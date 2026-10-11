@@ -1,0 +1,1498 @@
+{
+  "format": "Pause Desert ambient worm v1",
+  "draw_order": "ground, behind gameplay",
+  "recommended_render_alpha": {
+    "body": 0.85,
+    "spray": 0.7
+  },
+  "anchor_convention": "top-left cell coordinates, emergence origin at bottom center",
+  "sources": {
+    "s": "src~/candidate_arc_a.png",
+    "m": "src~/candidate_arc_c.png",
+    "l": "src~/candidate_arc_b.png",
+    "ridge": "src~/candidate_ridge.png",
+    "spray": "src~/candidate_spray.png"
+  },
+  "scales": {
+    "s": {
+      "ridge": {
+        "frames": [
+          "worm_s_ridge_00",
+          "worm_s_ridge_01",
+          "worm_s_ridge_02",
+          "worm_s_ridge_03",
+          "worm_s_ridge_04",
+          "worm_s_ridge_05",
+          "worm_s_ridge_06",
+          "worm_s_ridge_07"
+        ],
+        "fps": 10,
+        "anchor": [
+          128,
+          236
+        ],
+        "measurements": [
+          {
+            "anchor_offset": [
+              0,
+              0
+            ],
+            "opaque_bbox": [
+              83,
+              102,
+              191,
+              248
+            ]
+          },
+          {
+            "anchor_offset": [
+              0,
+              0
+            ],
+            "opaque_bbox": [
+              84,
+              102,
+              192,
+              248
+            ]
+          },
+          {
+            "anchor_offset": [
+              0,
+              0
+            ],
+            "opaque_bbox": [
+              84,
+              101,
+              192,
+              248
+            ]
+          },
+          {
+            "anchor_offset": [
+              0,
+              0
+            ],
+            "opaque_bbox": [
+              84,
+              100,
+              192,
+              248
+            ]
+          },
+          {
+            "anchor_offset": [
+              0,
+              0
+            ],
+            "opaque_bbox": [
+              83,
+              100,
+              191,
+              248
+            ]
+          },
+          {
+            "anchor_offset": [
+              0,
+              0
+            ],
+            "opaque_bbox": [
+              82,
+              100,
+              190,
+              248
+            ]
+          },
+          {
+            "anchor_offset": [
+              0,
+              0
+            ],
+            "opaque_bbox": [
+              82,
+              101,
+              190,
+              248
+            ]
+          },
+          {
+            "anchor_offset": [
+              0,
+              0
+            ],
+            "opaque_bbox": [
+              82,
+              102,
+              190,
+              248
+            ]
+          }
+        ],
+        "approx_ridge_length_px": 148,
+        "loop_changes": [
+          0.3294,
+          0.1539,
+          0.1599,
+          0.325,
+          0.3335,
+          0.158,
+          0.155,
+          0.3232
+        ]
+      },
+      "emerge": {
+        "frames": [
+          "worm_s_emerge_00",
+          "worm_s_emerge_01",
+          "worm_s_emerge_02",
+          "worm_s_emerge_03",
+          "worm_s_emerge_04"
+        ],
+        "fps": 12,
+        "anchor": [
+          128,
+          236
+        ],
+        "measurements": [
+          {
+            "anchor_offset": [
+              0,
+              0
+            ],
+            "opaque_bbox": [
+              83,
+              102,
+              191,
+              248
+            ],
+            "head_tip": null
+          },
+          {
+            "anchor_offset": [
+              0,
+              0
+            ],
+            "opaque_bbox": [
+              64,
+              161,
+              184,
+              246
+            ],
+            "head_tip": [
+              100,
+              187
+            ]
+          },
+          {
+            "anchor_offset": [
+              0,
+              0
+            ],
+            "opaque_bbox": [
+              58,
+              149,
+              190,
+              246
+            ],
+            "head_tip": [
+              98,
+              164
+            ]
+          },
+          {
+            "anchor_offset": [
+              0,
+              0
+            ],
+            "opaque_bbox": [
+              51,
+              141,
+              183,
+              246
+            ],
+            "head_tip": [
+              94,
+              142
+            ]
+          },
+          {
+            "anchor_offset": [
+              0,
+              0
+            ],
+            "opaque_bbox": [
+              46,
+              118,
+              176,
+              247
+            ],
+            "head_tip": [
+              93,
+              118
+            ]
+          }
+        ]
+      },
+      "arc": {
+        "frames": [
+          "worm_s_arc_00",
+          "worm_s_arc_01",
+          "worm_s_arc_02",
+          "worm_s_arc_03",
+          "worm_s_arc_04"
+        ],
+        "fps": 8,
+        "anchor": [
+          128,
+          236
+        ],
+        "measurements": [
+          {
+            "anchor_offset": [
+              0,
+              0
+            ],
+            "opaque_bbox": [
+              46,
+              119,
+              176,
+              238
+            ],
+            "head_tip": [
+              93,
+              119
+            ]
+          },
+          {
+            "anchor_offset": [
+              0,
+              0
+            ],
+            "opaque_bbox": [
+              47,
+              118,
+              176,
+              238
+            ],
+            "head_tip": [
+              94,
+              118
+            ]
+          },
+          {
+            "anchor_offset": [
+              0,
+              0
+            ],
+            "opaque_bbox": [
+              46,
+              118,
+              176,
+              238
+            ],
+            "head_tip": [
+              94,
+              118
+            ]
+          },
+          {
+            "anchor_offset": [
+              0,
+              0
+            ],
+            "opaque_bbox": [
+              45,
+              118,
+              176,
+              238
+            ],
+            "head_tip": [
+              92,
+              118
+            ]
+          },
+          {
+            "anchor_offset": [
+              0,
+              0
+            ],
+            "opaque_bbox": [
+              45,
+              118,
+              176,
+              238
+            ],
+            "head_tip": [
+              92,
+              118
+            ]
+          }
+        ],
+        "loop_changes": [
+          0.427,
+          0.2359,
+          0.2204,
+          0.2359,
+          0.4293
+        ]
+      },
+      "dive": {
+        "frames": [
+          "worm_s_dive_00",
+          "worm_s_dive_01",
+          "worm_s_dive_02",
+          "worm_s_dive_03",
+          "worm_s_dive_04"
+        ],
+        "fps": 12,
+        "anchor": [
+          128,
+          236
+        ],
+        "measurements": [
+          {
+            "anchor_offset": [
+              0,
+              0
+            ],
+            "opaque_bbox": [
+              46,
+              118,
+              176,
+              247
+            ],
+            "head_tip": [
+              94,
+              118
+            ]
+          },
+          {
+            "anchor_offset": [
+              0,
+              0
+            ],
+            "opaque_bbox": [
+              50,
+              141,
+              175,
+              248
+            ],
+            "head_tip": [
+              96,
+              141
+            ]
+          },
+          {
+            "anchor_offset": [
+              0,
+              0
+            ],
+            "opaque_bbox": [
+              52,
+              165,
+              181,
+              247
+            ],
+            "head_tip": [
+              96,
+              165
+            ]
+          },
+          {
+            "anchor_offset": [
+              0,
+              0
+            ],
+            "opaque_bbox": [
+              54,
+              155,
+              186,
+              248
+            ],
+            "head_tip": [
+              93,
+              188
+            ]
+          },
+          {
+            "anchor_offset": [
+              0,
+              0
+            ],
+            "opaque_bbox": [
+              83,
+              102,
+              191,
+              248
+            ],
+            "head_tip": null
+          }
+        ]
+      },
+      "spray": {
+        "frames": [
+          "worm_s_spray_00",
+          "worm_s_spray_01",
+          "worm_s_spray_02",
+          "worm_s_spray_03",
+          "worm_s_spray_04"
+        ],
+        "fps": 14,
+        "anchor": [
+          128,
+          236
+        ],
+        "measurements": [
+          {
+            "anchor_offset": [
+              0,
+              0
+            ],
+            "opaque_bbox": [
+              100,
+              203,
+              155,
+              247
+            ]
+          },
+          {
+            "anchor_offset": [
+              0,
+              0
+            ],
+            "opaque_bbox": [
+              82,
+              169,
+              175,
+              247
+            ]
+          },
+          {
+            "anchor_offset": [
+              0,
+              0
+            ],
+            "opaque_bbox": [
+              64,
+              138,
+              197,
+              248
+            ]
+          },
+          {
+            "anchor_offset": [
+              0,
+              0
+            ],
+            "opaque_bbox": [
+              76,
+              158,
+              183,
+              247
+            ]
+          },
+          {
+            "anchor_offset": [
+              0,
+              0
+            ],
+            "opaque_bbox": [
+              92,
+              189,
+              162,
+              247
+            ]
+          }
+        ]
+      },
+      "cascade": {
+        "frames": [
+          "worm_s_cascade_00",
+          "worm_s_cascade_01",
+          "worm_s_cascade_02",
+          "worm_s_cascade_03"
+        ],
+        "fps": 10,
+        "anchor": [
+          128,
+          236
+        ],
+        "measurements": [
+          {
+            "anchor_offset": [
+              0,
+              0
+            ],
+            "opaque_bbox": [
+              86,
+              102,
+              194,
+              248
+            ]
+          },
+          {
+            "anchor_offset": [
+              0,
+              0
+            ],
+            "opaque_bbox": [
+              87,
+              101,
+              195,
+              248
+            ]
+          },
+          {
+            "anchor_offset": [
+              0,
+              0
+            ],
+            "opaque_bbox": [
+              86,
+              100,
+              194,
+              248
+            ]
+          },
+          {
+            "anchor_offset": [
+              0,
+              0
+            ],
+            "opaque_bbox": [
+              85,
+              101,
+              193,
+              248
+            ]
+          }
+        ],
+        "loop_changes": [
+          0.4051,
+          0.403,
+          0.4085,
+          0.3996
+        ]
+      },
+      "hue_rules": {
+        "sand_saturation_p95": 0.2875,
+        "forbidden_amber_percent": 0.0384,
+        "red_pixels": 0,
+        "pink_pixels": 0,
+        "violet_pixels": 0,
+        "saturated_green_cyan_pixels": 0,
+        "copper_saturation_max": 0.6,
+        "copper_value_max": 0.5725,
+        "shadow_saturation_max": 0.3778,
+        "shadow_value_max": 0.2667,
+        "shadow_coverage_percent": 3.69,
+        "opaque_pixels": 234311,
+        "value_p90": 0.4941
+      }
+    },
+    "m": {
+      "ridge": {
+        "frames": [
+          "worm_m_ridge_00",
+          "worm_m_ridge_01",
+          "worm_m_ridge_02",
+          "worm_m_ridge_03",
+          "worm_m_ridge_04",
+          "worm_m_ridge_05",
+          "worm_m_ridge_06",
+          "worm_m_ridge_07"
+        ],
+        "fps": 10,
+        "anchor": [
+          128,
+          236
+        ],
+        "measurements": [
+          {
+            "anchor_offset": [
+              0,
+              0
+            ],
+            "opaque_bbox": [
+              58,
+              45,
+              218,
+              246
+            ]
+          },
+          {
+            "anchor_offset": [
+              0,
+              0
+            ],
+            "opaque_bbox": [
+              59,
+              45,
+              219,
+              246
+            ]
+          },
+          {
+            "anchor_offset": [
+              0,
+              0
+            ],
+            "opaque_bbox": [
+              59,
+              44,
+              220,
+              246
+            ]
+          },
+          {
+            "anchor_offset": [
+              0,
+              0
+            ],
+            "opaque_bbox": [
+              59,
+              43,
+              219,
+              246
+            ]
+          },
+          {
+            "anchor_offset": [
+              0,
+              0
+            ],
+            "opaque_bbox": [
+              58,
+              43,
+              218,
+              246
+            ]
+          },
+          {
+            "anchor_offset": [
+              0,
+              0
+            ],
+            "opaque_bbox": [
+              57,
+              43,
+              217,
+              246
+            ]
+          },
+          {
+            "anchor_offset": [
+              0,
+              0
+            ],
+            "opaque_bbox": [
+              57,
+              44,
+              216,
+              246
+            ]
+          },
+          {
+            "anchor_offset": [
+              0,
+              0
+            ],
+            "opaque_bbox": [
+              57,
+              45,
+              217,
+              246
+            ]
+          }
+        ],
+        "approx_ridge_length_px": 203,
+        "loop_changes": [
+          0.3731,
+          0.2984,
+          0.3,
+          0.3742,
+          0.3754,
+          0.2993,
+          0.2975,
+          0.3724
+        ]
+      },
+      "emerge": {
+        "frames": [
+          "worm_m_emerge_00",
+          "worm_m_emerge_01",
+          "worm_m_emerge_02",
+          "worm_m_emerge_03",
+          "worm_m_emerge_04"
+        ],
+        "fps": 12,
+        "anchor": [
+          128,
+          236
+        ],
+        "measurements": [
+          {
+            "anchor_offset": [
+              0,
+              0
+            ],
+            "opaque_bbox": [
+              60,
+              45,
+              220,
+              247
+            ],
+            "head_tip": null
+          },
+          {
+            "anchor_offset": [
+              0,
+              0
+            ],
+            "opaque_bbox": [
+              71,
+              138,
+              218,
+              248
+            ],
+            "head_tip": [
+              194,
+              168
+            ]
+          },
+          {
+            "anchor_offset": [
+              0,
+              0
+            ],
+            "opaque_bbox": [
+              63,
+              126,
+              227,
+              247
+            ],
+            "head_tip": [
+              203,
+              136
+            ]
+          },
+          {
+            "anchor_offset": [
+              0,
+              0
+            ],
+            "opaque_bbox": [
+              62,
+              105,
+              233,
+              248
+            ],
+            "head_tip": [
+              207,
+              106
+            ]
+          },
+          {
+            "anchor_offset": [
+              0,
+              0
+            ],
+            "opaque_bbox": [
+              57,
+              73,
+              241,
+              247
+            ],
+            "head_tip": [
+              215,
+              73
+            ]
+          }
+        ]
+      },
+      "arc": {
+        "frames": [
+          "worm_m_arc_00",
+          "worm_m_arc_01",
+          "worm_m_arc_02",
+          "worm_m_arc_03",
+          "worm_m_arc_04"
+        ],
+        "fps": 8,
+        "anchor": [
+          128,
+          236
+        ],
+        "measurements": [
+          {
+            "anchor_offset": [
+              0,
+              0
+            ],
+            "opaque_bbox": [
+              57,
+              74,
+              241,
+              237
+            ],
+            "head_tip": [
+              215,
+              74
+            ]
+          },
+          {
+            "anchor_offset": [
+              0,
+              0
+            ],
+            "opaque_bbox": [
+              57,
+              73,
+              242,
+              237
+            ],
+            "head_tip": [
+              217,
+              73
+            ]
+          },
+          {
+            "anchor_offset": [
+              0,
+              0
+            ],
+            "opaque_bbox": [
+              57,
+              72,
+              242,
+              237
+            ],
+            "head_tip": [
+              216,
+              72
+            ]
+          },
+          {
+            "anchor_offset": [
+              0,
+              0
+            ],
+            "opaque_bbox": [
+              57,
+              72,
+              240,
+              237
+            ],
+            "head_tip": [
+              214,
+              72
+            ]
+          },
+          {
+            "anchor_offset": [
+              0,
+              0
+            ],
+            "opaque_bbox": [
+              57,
+              73,
+              240,
+              237
+            ],
+            "head_tip": [
+              213,
+              73
+            ]
+          }
+        ],
+        "loop_changes": [
+          0.4416,
+          0.2177,
+          0.3657,
+          0.212,
+          0.4517
+        ]
+      },
+      "dive": {
+        "frames": [
+          "worm_m_dive_00",
+          "worm_m_dive_01",
+          "worm_m_dive_02",
+          "worm_m_dive_03",
+          "worm_m_dive_04"
+        ],
+        "fps": 12,
+        "anchor": [
+          128,
+          236
+        ],
+        "measurements": [
+          {
+            "anchor_offset": [
+              0,
+              0
+            ],
+            "opaque_bbox": [
+              57,
+              74,
+              242,
+              247
+            ],
+            "head_tip": [
+              216,
+              74
+            ]
+          },
+          {
+            "anchor_offset": [
+              0,
+              0
+            ],
+            "opaque_bbox": [
+              59,
+              105,
+              238,
+              246
+            ],
+            "head_tip": [
+              212,
+              105
+            ]
+          },
+          {
+            "anchor_offset": [
+              0,
+              0
+            ],
+            "opaque_bbox": [
+              61,
+              137,
+              234,
+              246
+            ],
+            "head_tip": [
+              208,
+              137
+            ]
+          },
+          {
+            "anchor_offset": [
+              0,
+              0
+            ],
+            "opaque_bbox": [
+              61,
+              132,
+              227,
+              248
+            ],
+            "head_tip": [
+              201,
+              169
+            ]
+          },
+          {
+            "anchor_offset": [
+              0,
+              0
+            ],
+            "opaque_bbox": [
+              60,
+              45,
+              220,
+              247
+            ],
+            "head_tip": null
+          }
+        ]
+      },
+      "spray": {
+        "frames": [
+          "worm_m_spray_00",
+          "worm_m_spray_01",
+          "worm_m_spray_02",
+          "worm_m_spray_03",
+          "worm_m_spray_04"
+        ],
+        "fps": 14,
+        "anchor": [
+          128,
+          236
+        ],
+        "measurements": [
+          {
+            "anchor_offset": [
+              0,
+              0
+            ],
+            "opaque_bbox": [
+              92,
+              192,
+              162,
+              247
+            ]
+          },
+          {
+            "anchor_offset": [
+              0,
+              0
+            ],
+            "opaque_bbox": [
+              70,
+              149,
+              189,
+              246
+            ]
+          },
+          {
+            "anchor_offset": [
+              0,
+              0
+            ],
+            "opaque_bbox": [
+              45,
+              110,
+              210,
+              247
+            ]
+          },
+          {
+            "anchor_offset": [
+              0,
+              0
+            ],
+            "opaque_bbox": [
+              62,
+              137,
+              199,
+              248
+            ]
+          },
+          {
+            "anchor_offset": [
+              0,
+              0
+            ],
+            "opaque_bbox": [
+              84,
+              175,
+              172,
+              247
+            ]
+          }
+        ]
+      },
+      "cascade": {
+        "frames": [
+          "worm_m_cascade_00",
+          "worm_m_cascade_01",
+          "worm_m_cascade_02",
+          "worm_m_cascade_03"
+        ],
+        "fps": 10,
+        "anchor": [
+          128,
+          236
+        ],
+        "measurements": [
+          {
+            "anchor_offset": [
+              0,
+              0
+            ],
+            "opaque_bbox": [
+              56,
+              98,
+              208,
+              246
+            ]
+          },
+          {
+            "anchor_offset": [
+              0,
+              0
+            ],
+            "opaque_bbox": [
+              57,
+              98,
+              210,
+              246
+            ]
+          },
+          {
+            "anchor_offset": [
+              0,
+              0
+            ],
+            "opaque_bbox": [
+              56,
+              98,
+              208,
+              246
+            ]
+          },
+          {
+            "anchor_offset": [
+              0,
+              0
+            ],
+            "opaque_bbox": [
+              55,
+              98,
+              207,
+              246
+            ]
+          }
+        ],
+        "loop_changes": [
+          0.4069,
+          0.4048,
+          0.4055,
+          0.4049
+        ]
+      },
+      "hue_rules": {
+        "sand_saturation_p95": 0.2872,
+        "forbidden_amber_percent": 0.0144,
+        "red_pixels": 0,
+        "pink_pixels": 0,
+        "violet_pixels": 0,
+        "saturated_green_cyan_pixels": 0,
+        "copper_saturation_max": 0.6,
+        "copper_value_max": 0.5647,
+        "shadow_saturation_max": 0.3898,
+        "shadow_value_max": 0.2667,
+        "shadow_coverage_percent": 6.397,
+        "opaque_pixels": 415751,
+        "value_p90": 0.4824
+      }
+    },
+    "l": {
+      "ridge": {
+        "frames": [
+          "worm_l_ridge_00",
+          "worm_l_ridge_01",
+          "worm_l_ridge_02",
+          "worm_l_ridge_03"
+        ],
+        "fps": 10,
+        "anchor": [
+          256,
+          492
+        ],
+        "measurements": [
+          {
+            "anchor_offset": [
+              0,
+              0
+            ],
+            "opaque_bbox": [
+              110,
+              118,
+              439,
+              503
+            ]
+          },
+          {
+            "anchor_offset": [
+              0,
+              0
+            ],
+            "opaque_bbox": [
+              113,
+              116,
+              443,
+              503
+            ]
+          },
+          {
+            "anchor_offset": [
+              0,
+              0
+            ],
+            "opaque_bbox": [
+              110,
+              114,
+              439,
+              503
+            ]
+          },
+          {
+            "anchor_offset": [
+              0,
+              0
+            ],
+            "opaque_bbox": [
+              107,
+              116,
+              435,
+              503
+            ]
+          }
+        ],
+        "approx_ridge_length_px": 388,
+        "loop_changes": [
+          0.4439,
+          0.4482,
+          0.4446,
+          0.4471
+        ]
+      },
+      "emerge": {
+        "frames": [
+          "worm_l_emerge_00",
+          "worm_l_emerge_01",
+          "worm_l_emerge_02"
+        ],
+        "fps": 12,
+        "anchor": [
+          256,
+          492
+        ],
+        "measurements": [
+          {
+            "anchor_offset": [
+              0,
+              0
+            ],
+            "opaque_bbox": [
+              110,
+              118,
+              439,
+              503
+            ],
+            "head_tip": null
+          },
+          {
+            "anchor_offset": [
+              0,
+              0
+            ],
+            "opaque_bbox": [
+              112,
+              243,
+              438,
+              502
+            ],
+            "head_tip": [
+              231,
+              266
+            ]
+          },
+          {
+            "anchor_offset": [
+              0,
+              0
+            ],
+            "opaque_bbox": [
+              91,
+              124,
+              448,
+              503
+            ],
+            "head_tip": [
+              227,
+              124
+            ]
+          }
+        ]
+      },
+      "arc": {
+        "frames": [
+          "worm_l_arc_00",
+          "worm_l_arc_01",
+          "worm_l_arc_02"
+        ],
+        "fps": 8,
+        "anchor": [
+          256,
+          492
+        ],
+        "measurements": [
+          {
+            "anchor_offset": [
+              0,
+              0
+            ],
+            "opaque_bbox": [
+              91,
+              126,
+              448,
+              499
+            ],
+            "head_tip": [
+              227,
+              126
+            ]
+          },
+          {
+            "anchor_offset": [
+              0,
+              0
+            ],
+            "opaque_bbox": [
+              91,
+              123,
+              448,
+              499
+            ],
+            "head_tip": [
+              231,
+              123
+            ]
+          },
+          {
+            "anchor_offset": [
+              0,
+              0
+            ],
+            "opaque_bbox": [
+              91,
+              123,
+              448,
+              499
+            ],
+            "head_tip": [
+              223,
+              123
+            ]
+          }
+        ],
+        "loop_changes": [
+          0.4492,
+          0.511,
+          0.4444
+        ]
+      },
+      "dive": {
+        "frames": [
+          "worm_l_dive_00",
+          "worm_l_dive_01",
+          "worm_l_dive_02"
+        ],
+        "fps": 12,
+        "anchor": [
+          256,
+          492
+        ],
+        "measurements": [
+          {
+            "anchor_offset": [
+              0,
+              0
+            ],
+            "opaque_bbox": [
+              91,
+              126,
+              448,
+              503
+            ],
+            "head_tip": [
+              230,
+              126
+            ]
+          },
+          {
+            "anchor_offset": [
+              0,
+              0
+            ],
+            "opaque_bbox": [
+              102,
+              267,
+              433,
+              503
+            ],
+            "head_tip": [
+              231,
+              267
+            ]
+          },
+          {
+            "anchor_offset": [
+              0,
+              0
+            ],
+            "opaque_bbox": [
+              110,
+              118,
+              439,
+              503
+            ],
+            "head_tip": null
+          }
+        ]
+      },
+      "spray": {
+        "frames": [
+          "worm_l_spray_00",
+          "worm_l_spray_01",
+          "worm_l_spray_02"
+        ],
+        "fps": 14,
+        "anchor": [
+          256,
+          492
+        ],
+        "measurements": [
+          {
+            "anchor_offset": [
+              0,
+              0
+            ],
+            "opaque_bbox": [
+              178,
+              375,
+              337,
+              503
+            ]
+          },
+          {
+            "anchor_offset": [
+              0,
+              0
+            ],
+            "opaque_bbox": [
+              72,
+              214,
+              429,
+              503
+            ]
+          },
+          {
+            "anchor_offset": [
+              0,
+              0
+            ],
+            "opaque_bbox": [
+              156,
+              342,
+              355,
+              503
+            ]
+          }
+        ]
+      },
+      "hue_rules": {
+        "sand_saturation_p95": 0.2874,
+        "forbidden_amber_percent": 0.0521,
+        "red_pixels": 0,
+        "pink_pixels": 0,
+        "violet_pixels": 0,
+        "saturated_green_cyan_pixels": 0,
+        "copper_saturation_max": 0.6071,
+        "copper_value_max": 0.5765,
+        "shadow_saturation_max": 0.4468,
+        "shadow_value_max": 0.2784,
+        "shadow_coverage_percent": 5.777,
+        "opaque_pixels": 948509,
+        "value_p90": 0.4863
+      }
+    }
+  },
+  "preview": {
+    "small_medium_giant": "all cells at 1x and nearest-neighbour 2x, in that order",
+    "tile_overlay": null
+  }
+}
