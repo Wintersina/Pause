@@ -76,3 +76,12 @@ Scaffold (Phase 9: Worlds[5], StormEnabled false, loop rewiring), roster defs + 
 explosion material, themed attacks (Storm material, pink cue), BossDef + BossCatalog + damage/death keys, elites via
 `add-elite-ship`, rails (WorldPainter, RailBounds, RailMatchTest), audio keys (`EnemyDeathAudioTest`), Codex entries (hidden
 until live), tests: RosterTest, EnemyBehaviourTest, EliteTest, boss tests, ReadabilitySweep, AttackBudgetTest, WorldLeakTest.
+
+## Status (feature/storm-world, integration)
+Installed and wired behind the flags (StormEnabled false; Storm live only with Tide on too, `WorldManager.StormLive`): 12-unit roster (+ rod mine, own third atlas
+v2), own rail, Tempest Engine boss (art, emitters, hearts, attack fx, damage/damage fx/death art, themed attacks), 5 elites, 11 scripted enemy death flipbooks
++ mine death (Codex), elite death strips (Codex), sounds (donor aliases + authored crack/arc/gust/hail, docs/storm-sounds.md), codex entries (hidden until live),
+`WorldFlagsTest`. Still stand-ins: backdrop (Tide's director; ReadabilitySweep numbers on its tiles are provisional), ShotSkins/AttackArt (5 worlds), landing sites.
+Known/tracked: mine reads 0.55 u (target 0.65, Storm tolerance 20%); Storm rail 3.7 px wider than the others (RailTransparency tolerance 4 px);
+hailstone silhouette 83-86% like Verdant knot / Tide brain (limit 90% for that unit); size-diet-era test failures (BossLaserArt texture memory, RailMineArt
+compression overrides) and Verdant-elite death-sound tests are pre-existing on master.
