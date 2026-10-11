@@ -174,6 +174,7 @@ public static class AllTests
         ("FrostEliteTest", FrostEliteTest.Execute),
         ("VerdantEliteTest", VerdantEliteTest.Execute),
         ("TideEliteTest", TideEliteTest.Execute),
+        ("StormEliteTest", StormEliteTest.Execute),
         ("TideSoundTest", TideSoundTest.Execute),
         ("SpaceStationTest", SpaceStationTest.Execute),
         ("SpacePlanetSheetTest", SpacePlanetSheetTest.Execute),

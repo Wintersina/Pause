@@ -1,0 +1,84 @@
+{
+  "key": "storm_elite_skyhook_harrier",
+  "codexId": "elite_storm_skyhook_harrier",
+  "world": "storm",
+  "cells": {
+    "flight": [
+      3
+    ],
+    "parked": 0,
+    "parkedIdle": 1,
+    "liftoff": 2,
+    "bankLeft": 4,
+    "bankRight": 5,
+    "tell": -1,
+    "action": -1,
+    "hit": -1,
+    "damaged": 6
+  },
+  "cellWorldSize": 1.5,
+  "noseDeg": 90,
+  "maxBank": 3,
+  "heartColor": "#FFF3A0",
+  "shotColor": "#9CC8FF",
+  "shotCore": "#F2F6FF",
+  "engineColor": "#9CC8FF",
+  "hearts": 2,
+  "heartSize": 0.18,
+  "heartOrbit": 0.85,
+  "heartStyle": "Halo",
+  "exhaustShip": 3,
+  "exhaustScale": 0,
+  "glowScale": 0.09,
+  "cellPixels": 192,
+  "armored": false,
+  "hazardSeconds": 0.4,
+  "hazardSize": 0.6,
+  "displayName": "Skyhook Harrier",
+  "role": "hooked lancer",
+  "brain": "interceptor",
+  "attack": "lance_dash",
+  "lore": "A swept interceptor that hangs off the skyhook docks and winds a barbed lance out of its nose. It tells the dash with the prong glowing, then hooks straight through the spot you stood on. Step aside while the prong glows; it never turns once the hook is thrown.",
+  "hullRadius": 0.3,
+  "turnsToFace": true,
+  "speed": 3.0,
+  "accel": 6.5,
+  "turnRate": 240,
+  "aggression": 0.5,
+  "tellSeconds": 0.85,
+  "attackGap": 3.4,
+  "avoidance": 0.6,
+  "lookAhead": 0.4,
+  "perception": 2.2,
+  "actionSeconds": 0.55,
+  "shotCount": 2,
+  "shotSpeed": 5.0,
+  "shotSpread": 14,
+  "shotSize": 0.2,
+  "shotInterval": 0.1,
+  "shotKind": "bolt",
+  "muzzles": [
+    {
+      "name": "hook",
+      "x": 96,
+      "y": 30,
+      "dir": -1.0
+    }
+  ],
+  "nozzles": [
+    {
+      "name": "l",
+      "x": 86,
+      "y": 159,
+      "dir": -1.0
+    },
+    {
+      "name": "r",
+      "x": 107,
+      "y": 159,
+      "dir": -1.0
+    }
+  ],
+  "followDistance": 2.0,
+  "dashSpeed": 8.0
+}

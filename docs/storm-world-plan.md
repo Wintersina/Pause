@@ -41,6 +41,12 @@ Skyhook Harrier (interceptor, hook lance), Refinery Tender (hauler, sinking cani
 Anvil Cloud (siege, lane-telegraphed lightning shell), Static Bastion (tank, `ward_curtain` of arcs). Vortex Reaver from the
 brief is dropped for this pass (5 as agreed); can be added later.
 
+Status (branch feature/storm-elite-wire): WIRED. Strips + death strips synced into `Resources/Elites/Storm/`, five defs
+`Defs/storm_elite_*.json` composed from existing brains/attacks with Storm numbers (interceptor+lance_dash, hauler+slag_drop,
+skirmisher+blink_shards, siege+siege_cannon, bastion+ward_curtain; no new code), `StormEliteTest`. No `launchFrom`: Storm's backdrop is
+still Tide's stand-in director, so they park on any of its pads; the real Storm director (add-world phase 11) names its own
+`LandingKind`s and the defs then get a `launchFrom`. Hidden from the title screen / codex panel until `StormEnabled`.
+
 ## Ordered job list (Codex, one worktree + branch each, art/storm-<piece>, `.claude/worktrees/codex-storm-<piece>`)
 Prompts: `docs/storm-codex-prompts/` (`build.sh <job>` prints common preamble + job). Max 2 Codex jobs machine-wide.
 1. `storm-enemies`  11 idle strips (7 cells; 1344x192, big 1792x256) -> staged `Art/Enemies/src~/storm_enemies/`

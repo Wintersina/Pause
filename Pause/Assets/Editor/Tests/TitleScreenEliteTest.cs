@@ -160,7 +160,9 @@ public static class TitleScreenEliteTest
         float first = t.NextEliteAt;
         Check("the first run is after a calm start (" + first.ToString("0.0") + " s, " + t.eliteFirst + ")",
               first >= t.eliteFirst.x && first <= t.eliteFirst.y && first >= 20f);
-        Check("the elite defs are all there (" + t.EliteDefCount + ")", t.EliteDefCount == EliteCatalog.All.Length && t.EliteDefCount >= 4);
+        int reachable = 0;   // (worlds not live yet, Tide and Storm, stay off the title screen until their switches flip)
+        foreach (var d in EliteCatalog.All) if (d.WorldIndex <= WorldManager.LastLiveWorld) reachable++;
+        Check("the elite defs of the live worlds are all there (" + t.EliteDefCount + ")", t.EliteDefCount == reachable && t.EliteDefCount >= 4);
         Check("the first run's elite is picked and its strip loaded ahead of time",
               t.NextEliteDef != null && EliteArt.Frames(t.NextEliteDef) != null);
         var starts = new List<float>();
