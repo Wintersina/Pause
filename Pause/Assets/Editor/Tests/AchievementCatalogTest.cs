@@ -64,8 +64,8 @@ public static class AchievementCatalogTest
               Target("elite_frost_all") == Elites(1) && Target("elite_verdant_all") == Elites(2) && Target("elite_ember_all") == Elites(3));
         Check("elites per world: Space 4, Frost 5, Verdant 5, Ember 6 (" + Elites(0) + "," + Elites(1) + "," + Elites(2) + "," + Elites(3) + ")",
               Elites(0) >= 4 && Elites(1) >= 5 && Elites(2) == 5 && Elites(3) >= 6);
-        Check("score thresholds ascend and sit inside what a run scores (ScoreRules: ~6,600 a first pass)",
-              Target("score_10k") < Target("score_50k") && Target("score_50k") < Target("score_150k") && Target("score_10k") <= 3000);
+        Check("score thresholds ascend and sit inside what a run scores (ScoreRules: ~6,600 a first pass before the 2x streak)",
+              Target("score_10k") < Target("score_50k") && Target("score_50k") < Target("score_150k") && Target("score_10k") == 5000 && Target("score_50k") == 20000 && Target("score_150k") == 80000);
         Check("the Codex is big enough for Cartographer (" + Codex.Entries.Length + " entries)", Codex.Entries.Length > 50);
         Check("Find works for every id and not for junk", all.All(d => AchievementCatalog.Find(d.id) == d) && AchievementCatalog.Find("nope") == null && AchievementCatalog.Find(null) == null);
         Check("counters are shared (kills feeds 3)", AchievementCatalog.ForCounter("kills").Length == 3 && AchievementCatalog.ForCounter("stars").Length == 3);
@@ -190,7 +190,9 @@ public static class AchievementCatalogTest
         var gcLines = gc.Split('\n').Where(l => l.Length > 0).ToArray();
         Check("export: Play CSV has a header and 60 rows", playLines.Length == 61 && playLines[0].StartsWith("Order,Name,Description,Points"));
         Check("export: Game Center CSV has a header and 60 rows", gcLines.Length == 61 && gcLines[0].StartsWith("Reference name,Achievement ID"));
-        Check("export: quotes commas (Hundredfold)", play.Contains("\"Destroy 1,000 enemies.\""));
+        Check("export: no commas inside store text (Play import forbids them)", play.Contains(",Hundredfold,Destroy 1000 enemies.,") && play.Contains(",Rookie Score,Score 5000 points in a run.,") &&
+              playLines.Skip(1).All(l => l.Split(',').Length == 7) && gcLines.Skip(1).All(l => l.Split(',').Length == 9));
+        Check("in-game text keeps the separator", AchievementCatalog.Find("score_10k").description == "Score 5,000 points in a run.");
         Check("export: hidden rows (3 + 2 dormant)", playLines.Count(l => l.Contains(",Hidden,")) == 5 && gcLines.Count(l => l.Contains(",Yes,No,")) == 5);
         Check("export: incremental steps for kills_1000", playLines.Any(l => l.Contains("Hundredfold") && l.Contains(",10,1000,Revealed,kills_1000.png")));
         Check("export: Game Center ids use the ach_ scheme", gcLines.Skip(1).All(l => l.Contains("me.hapticgate.pause.ach_")));

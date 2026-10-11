@@ -24,8 +24,8 @@ Order,Name,Description,Points,Incremental steps (blank = standard),Initial state
 23,Ember Elites,Down every Ember elite.,25,6,Revealed,elite_ember_all.png
 24,Blink Strike,Destroy an elite with a pause blink.,10,,Revealed,elite_blink.png
 25,Gunner,Destroy 100 enemies.,5,100,Revealed,kills_100.png
-26,Hundredfold,"Destroy 1,000 enemies.",10,1000,Revealed,kills_1000.png
-27,Warlord,"Destroy 5,000 enemies.",25,5000,Revealed,kills_5000.png
+26,Hundredfold,Destroy 1000 enemies.,10,1000,Revealed,kills_1000.png
+27,Warlord,Destroy 5000 enemies.,25,5000,Revealed,kills_5000.png
 28,Rock Breaker,Destroy 500 asteroids and rocks.,10,500,Revealed,rocks_500.png
 29,Minesweeper,Destroy 25 rail mines.,10,25,Revealed,mines_25.png
 30,Chain Reaction,Reach a 10-kill chain.,10,,Revealed,chain_10.png
@@ -42,12 +42,12 @@ Order,Name,Description,Points,Incremental steps (blank = standard),Initial state
 41,Full Wardrobe,Own all skins for one ship.,25,,Revealed,skin_full_set.png
 42,Secret Power,Unleash a ship's secret power.,10,,Revealed,secret_power_first.png
 43,Dust Gatherer,Collect 150 star dust pickups.,10,150,Revealed,stars_150.png
-44,Dust Hoarder,"Collect 1,000 star dust pickups.",20,1000,Revealed,stars_1000.png
-45,Dust Baron,"Collect 5,000 star dust pickups.",25,5000,Revealed,stars_5000.png
-46,Big Spender,"Spend 10,000 star dust in the shop.",15,10000,Revealed,dust_spent_10000.png
-47,Rookie Score,"Score 2,500 points in a run.",10,,Revealed,score_10k.png
-48,Ace Score,"Score 8,000 points in a run.",20,,Revealed,score_50k.png
-49,Legend Score,"Score 30,000 points in a run.",35,,Revealed,score_150k.png
+44,Dust Hoarder,Collect 1000 star dust pickups.,20,1000,Revealed,stars_1000.png
+45,Dust Baron,Collect 5000 star dust pickups.,25,5000,Revealed,stars_5000.png
+46,Big Spender,Spend 10000 star dust in the shop.,15,10000,Revealed,dust_spent_10000.png
+47,Rookie Score,Score 5000 points in a run.,10,,Revealed,score_10k.png
+48,Ace Score,Score 20000 points in a run.,20,,Revealed,score_50k.png
+49,Legend Score,Score 80000 points in a run.,35,,Revealed,score_150k.png
 50,Flash,Reach the speed cap.,15,,Revealed,speed_flash.png
 51,Speedster,Break the speed limit.,20,,Revealed,speed_speedster.png
 52,Super Sonic,Max out the limit break.,35,,Revealed,speed_super_sonic.png

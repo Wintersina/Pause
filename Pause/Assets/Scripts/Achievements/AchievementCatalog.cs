@@ -23,7 +23,7 @@ public static class AchievementCatalog
     // Single-run score thresholds. The design table had 10k / 50k / 150k, but a
     // whole first pass Space -> Ember scores ~6,600 and a second loop ~8,100
     // (ScoreRules), so they were recalibrated (ids keep their art names).
-    public const int ScoreRookie = 2500, ScoreAce = 8000, ScoreLegend = 30000;
+    public const int ScoreRookie = 5000, ScoreAce = 20000, ScoreLegend = 80000;
 
     public const string CKills = "kills", CRocks = "rocks", CMines = "mines", CElites = "elites", CStars = "stars",
         CDeaths = "deaths", CBlinks = "blinks", CSpent = "spent", CShips = "ships", CCodex = "codex",
