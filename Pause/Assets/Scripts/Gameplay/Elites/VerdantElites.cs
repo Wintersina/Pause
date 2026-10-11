@@ -57,7 +57,7 @@ public sealed class EliteTelegraph
     {
         End();
         seconds = untilLive;
-        preview = AttackPreview.Show(shape, untilLive, HostileShotPalette.Body(shot));
+        preview = AttackPreview.Show(shape, untilLive, HostileShotPalette.Body(shot), true);   // (bold: Verdant's canopy is bright)
     }
 
     public void Step(float dt) { if (preview != null) preview.Step(dt); }
@@ -108,12 +108,13 @@ public class DiverBrain : StrikerBrain
 // Timber Hauler: it plants itself, a row of ringed spots and the line each trunk will roll along is drawn at once (the whole
 // wind-up), then it lobs shotCount trunks onto the spots, one after another out of its grabbers. A trunk lands, rolls down the
 // board on a diagonal toward the nearer rail at 1.4 u/s (relative to the ground), glances off a rail once and is gone after five
-// seconds. The spots are locked when the tell begins and ride the board; a pilot who stands on one or on a roll line is hit.
+// seconds. The spots are locked on screen when the tell begins (the lobs come down from above onto them as the board carries them); a pilot who stands on one or on a roll line is hit.
 public class LogRollAttack : EliteAttack
 {
     public const float LaneLength = 3.6f, PathHalf = .16f, SpotRing = .45f, MinSpotX = .32f;
     readonly EliteTelegraph telegraph = new EliteTelegraph();
-    Vector2 rowCentre;
+    Vector2 rowCentre;   // the row where the trunks LAND (on screen: the tell draws it there, locked)
+    Vector2 liveRow;     // the lob's aim: that row plus the board's scroll over the flight, riding the board down onto it
     float next;
     int lobbed;
     bool fromLeft;
@@ -123,15 +124,17 @@ public class LogRollAttack : EliteAttack
     public int Lobbed => lobbed;
     public EliteTelegraph Telegraph => telegraph;
 
-    public Vector2 Spot(int i)
+    public Vector2 Spot(int i) => SpotAt(rowCentre, i);
+
+    Vector2 SpotAt(Vector2 centre, int i)
     {
         int n = Mathf.Max(1, def.shotCount);
-        float x = rowCentre.x + (i - (n - 1) * .5f) * def.lobSpacing;
+        float x = centre.x + (i - (n - 1) * .5f) * def.lobSpacing;
         float edge = Mathf.Max(MinSpotX, EliteSystem.RailEdge - def.shotSize - .1f);
         x = Mathf.Clamp(x, -edge, edge);
         // (a spot on the middle line would roll either way: it is nudged to a side, so its roll can be drawn)
         if (Mathf.Abs(x) < MinSpotX) x = x >= 0f ? MinSpotX : -MinSpotX;
-        return new Vector2(x, rowCentre.y);
+        return new Vector2(x, centre.y);
     }
 
     // The way a trunk rolls on from a spot (board frame), the same rule EliteShot uses.
@@ -161,8 +164,8 @@ public class LogRollAttack : EliteAttack
     public override void BeginTell(Vector2 seen)
     {
         base.BeginTell(seen);
-        // where the row will be when the trunks come down: lobAhead of the pilot, now Scroll x (tell + flight) higher: the board carries it down
-        rowCentre = seen + Vector2.up * (def.lobAhead + EliteSystem.Scroll * (TellSeconds + def.lobSeconds));
+        // where the trunks will come down: lobAhead of the pilot, on screen, drawn there for the whole tell
+        rowCentre = seen + Vector2.up * def.lobAhead;
         telegraph.Clear();
         int n = Mathf.Max(1, def.shotCount);
         for (int i = 0; i < n; i++)
@@ -178,9 +181,6 @@ public class LogRollAttack : EliteAttack
     {
         t += dt;
         telegraph.Step(dt);
-        float d = EliteSystem.Scroll * dt;
-        rowCentre.y -= d;
-        telegraph.Follow(Vector2.down * d);
     }
 
     public override void Cancel() { telegraph.End(); }
@@ -193,18 +193,19 @@ public class LogRollAttack : EliteAttack
         next = 0f;
         lobbed = 0;
         fromLeft = ship.Position.x < rowCentre.x;
+        liveRow = rowCentre + Vector2.up * (EliteSystem.Scroll * def.lobSeconds);
     }
 
     public override bool StepAction(float dt)
     {
         t += dt;
-        rowCentre.y -= EliteSystem.Scroll * dt;   // (the spots ride the board)
+        liveRow.y -= EliteSystem.Scroll * dt;   // (the aim rides the board down onto the row)
         int n = Mathf.Max(1, def.shotCount);
         while (t >= next && lobbed < n)
         {
             int spot = fromLeft ? lobbed : n - 1 - lobbed;
             int m = def.muzzles.Length > 0 ? lobbed % def.muzzles.Length : 0;
-            Vector2 to = Spot(spot);
+            Vector2 to = SpotAt(liveRow, spot);
             var shot = Fire(m, Deg(to - ship.MuzzleWorld(m)), 0f);
             if (shot != null) shot.Lob(to, def.lobSeconds - next);   // (the later trunks come down with the first: every spot lands on time)
             lobbed++;

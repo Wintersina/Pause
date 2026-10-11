@@ -756,7 +756,7 @@ Branch `feature/verdant-elites-wire`. Verdant had one elite (the Resin Warden, `
 each got its own brain and attack (`Scripts/Gameplay/Elites/VerdantElites.cs`). Every attack is Verdant's own material built from the
 attack cores that already existed (`ShotMotion` Roll / Burst / Slash, `AttackLash`), and every one **draws its footprint from the
 first frame of its tell** (`EliteTelegraph`: the same dotted pink-white `AttackPreview` outline the themed hazards use; shown for the
-whole tell, aim locked when the tell begins, cleaned up if the elite dies or is removed mid-tell). Their shot art slots are not painted
+whole tell, aim locked when the tell begins, cleaned up if the elite dies or is removed mid-tell). The telegraph dots of these four are bold (`AttackPreview.Show(..., bold: true)`: hot pink, 1.9x, 95 % alpha): the default pale dots vanish on Verdant's bright canopy. Their shot art slots are not painted
 yet, so the procedural `ShotMotionArt` bodies (log, pod, crescent) are used. Everything below is from headless simulation and tests; none
 of it has been played.
 
@@ -785,8 +785,9 @@ and attack); attacks `log_roll`, `vine_lash`, `spore_burst`, `leaf_dive`; `Elite
 mid-tell tidies what it drew (`OnDestroy`).
 
 Fairness: `AttackBudgetTest` has a Themed row per elite held to the pinned Resin Warden baseline (x1.15 + 0.02 rule, no loosening);
-the dodge bot is given everything the tell draws (rings, lanes, the whip's chain, the crescent's capsule). Measured rates: see the table
-under Progress.
+the dodge bot is given everything the tell draws (rings, lanes, the whip's chain, the crescent's capsule). Measured (2000 rolls, seed 1; limit 3.2 %): Timber Hauler 0.0 % (standing still 37.6 %), Thornlash 0.0 % (78.0 %), Sporebloom 1.0 % (100 %),
+Leafblade 0.0 % (68.2 %). The first Leafblade run was 18 %: its dive coasted past its drawn lane and the lane was drawn from where it was, not where it would
+have stopped; it now brakes to rest before the tell ends, stops just past the locked spot (0.3 s) and draws the lane from its rest point.
 
 Sound: Thornlash (verdant_fighter_4, x0.90), Sporebloom (verdant_alien, x0.90) and Leafblade (verdant_fighter_4, x1.10) borrow screams
 through `EnemyDeathAudio.BorrowTable`; the Timber Hauler is a machine and has none. Their death cues are still to be authored

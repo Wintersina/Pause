@@ -633,11 +633,13 @@ public static class AttackBudgetScenarios
                 for (int i = 0; i < Mathf.Max(1, def.shotCount); i++)
                 {
                     Vector2 sp = lr.Spot(i);
+                    // (the spot is a place on screen; the board carries what lands on it: at the moment of landing it is at `sp`, then it rides down)
                     float land = tellLeft + def.lobSeconds;
-                    var ring = Hz.Circle(2600 + i, sp, def.shotSize * .4f + .05f, land, .3f);
+                    Vector2 from = sp + Vector2.up * (EliteSystem.Scroll * land);
+                    var ring = Hz.Circle(2600 + i, from, def.shotSize * .4f + .05f, land, .3f);
                     ring.planOnly = ring.hasV = true; ring.va = ring.vb = board;
                     into.Add(ring);
-                    var lane = Hz.Segment(2610 + i, sp, sp + LogRollAttack.RollDir(sp.x) * LogRollAttack.LaneLength, def.shotSize * .4f + LogRollAttack.PathHalf, land, 4f);
+                    var lane = Hz.Segment(2610 + i, from, from + LogRollAttack.RollDir(sp.x) * LogRollAttack.LaneLength, def.shotSize * .4f + LogRollAttack.PathHalf, land, 4f);
                     lane.planOnly = lane.hasV = true; lane.va = lane.vb = board;
                     into.Add(lane);
                 }
