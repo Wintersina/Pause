@@ -88,7 +88,7 @@ public class WorldManager : MonoBehaviour
         },
         new WorldTheme {
             displayName = "Verdant", resourceFolder = "Verdant",
-            musicResource = "", progressiveMusic = false, // plays the scene's own track
+            musicResource = "WorldMusic/Verdant_Main", progressiveMusic = false, // Jungle Night Pulse
             portalColor = new Color(0.60f, 1f, 0.62f),
             speedRampPerSecond = 0.00345f, enemyRampScale = 1.20f,
         },
