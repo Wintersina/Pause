@@ -1317,8 +1317,12 @@ then retreats (it was 36 s). The rules round it are unchanged: hits count only i
 warps in or out), the clock is never shaved, DeathCombo never chains a boss, rams and shockwaves pass through it.
 The attack phases stay at the thirds of the clock / of the hearts (40 s each); the damaged-hull looks
 (`BossArt.DamageStage`, 4 stages) spread across the 9 hearts (1-2 lost stage 1, 3-4 stage 2, 5-6 stage 3, 7+ stage 4).
-Balance: damage comes from the ultimate (a 30-60 s countdown, cut by pickups), the 3 free-shot atoms of the fight
-(`BossFreeShotAtoms`, one hit each at most) and rams; BossEscapeClockTest asserts the numbers.
+Supply: a 120 s fight guarantees `BossFreeShotAtoms.Count` = 7 free-shot atoms on a stratified schedule (one per
+~16 s slot, the first within the first ~13 s, never luck), plus one each of capacitor (twice), shield and heal at fixed
+shares of the fight (`RollPlan`, released by `spawnGoodStuff` on top of the level's own budgets). Damage: ultimate
+(30-60 s countdown, cut by pickups), the free shots (each one hit at most) and rams. Estimate: 5 hits needed; 7 free
+shots alone could do it, the 5th landing around 70 s, sooner with the natural ultimate (~45 s cycle, 2-3 in the fight).
+`BossFreeShotAtomsTest` / `BossEscapeClockTest` assert the numbers.
 
 **Phases.** The attack escalation (one attack, two, then all three faster) goes by
 `BossEncounter.PhaseProgress01`: the clock's progress or the share of hearts lost, whichever is further on, at the

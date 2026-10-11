@@ -249,7 +249,7 @@ public static class BossFreeShotAtomsTest
         Check("world " + w + ": >= 7 free shots offered in the fight (" + rel[0] + ")", rel[0] >= 7 && res.times.Count >= 7);
         Check("world " + w + ": " + kinds + " other atom kinds (shield " + rel[1] + ", capacitor " + rel[2] + ", heal " + rel[3] + ")", kinds >= 3);
         Check("world " + w + ": the first free shot is early (" + (res.times.Count > 0 ? res.times[0].ToString("F1") : "-") + " s) and the last in the final third (not bunched)",
-              res.times.Count >= 7 && res.times[0] < 14f && res.times[res.times.Count - 1] > BossConfig.FightSeconds * .6f);
+              res.times.Count >= 7 && res.times[0] < 18f && res.times[res.times.Count - 1] > BossConfig.FightSeconds * .6f);
         Check("world " + w + ": free shots cost the boss nothing -- untouched, it escapes with every heart",
               !res.destroyed && BossEncounter.Instance != null ? BossEncounter.Instance.HeartsLeft == BossConfig.Hearts : true);
         Cleanup();

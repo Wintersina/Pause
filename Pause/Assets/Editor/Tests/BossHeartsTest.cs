@@ -251,7 +251,7 @@ public static class BossHeartsTest
         for (int i = 0; i < 2; i++) e.OnShipAttackHit(.25f);
         Check("two 0.25 contacts (0.5) take no heart yet", e.HeartsLeft == N);
         e.OnShipAttackHit(.1f);
-        Check("... 0.6 takes the first", e.HeartsLeft == 4);
+        Check("... 0.6 takes the first", e.HeartsLeft == N - 1);
         bool consistent = true;
         for (float d = 0f; d < BossConfig.HitPoints + .2f; d += .01f)
         {
