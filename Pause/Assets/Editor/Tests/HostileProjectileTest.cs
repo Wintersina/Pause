@@ -87,7 +87,7 @@ public static class HostileProjectileTest
 
     // ---- fixtures -----------------------------------------------------------
 
-    static Camera Fresh(int world = 0)
+    internal static Camera Fresh(int world = 0)
     {
         EliteSystem.Clear();
         EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
@@ -287,7 +287,7 @@ public static class HostileProjectileTest
 
     // ---- 2. contrast over every world --------------------------------------
 
-    const int RW = 540, RH = 960;
+    internal const int RW = 540, RH = 960;
 
     static void ContrastOverEveryWorld()
     {
@@ -619,7 +619,7 @@ public static class HostileProjectileTest
         foreach (var (shot, _) in list) if (shot is EliteShot) shot.gameObject.SetActive(on);
     }
 
-    static Color[] Grab(Camera cam, RenderTexture rt, Texture2D tex)
+    internal static Color[] Grab(Camera cam, RenderTexture rt, Texture2D tex)
     {
         cam.Render();
         var old = RenderTexture.active;
@@ -634,7 +634,7 @@ public static class HostileProjectileTest
 
     // Pixels within `half` of c (a square) whose luminance in fg stands
     // MinContrast clear of the mean backdrop luminance over that square.
-    static int StandOut(Color[] fg, Color[] bg, Vector3 c, float half)
+    internal static int StandOut(Color[] fg, Color[] bg, Vector3 c, float half)
     {
         int r = Mathf.CeilToInt(half), n = 0, count = 0;
         int x0 = Mathf.Max(0, (int)c.x - r), x1 = Mathf.Min(RW - 1, (int)c.x + r);

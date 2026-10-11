@@ -11,6 +11,8 @@ using static AttackTestKit;
 //   * the links tile: stacking N link cells at the painted period (104 px of vine per 128 px cell) gives a continuous column,
 //     every joint's rows overlap, in every a/b order; the lash draws its links at that period
 //   * AttackLash / AttackLog really pick the painted cells (also through the Thornlash / Timber Hauler specs); hit shapes unchanged
+//   * the colour exception (see Palette): these two files are GREEN with a pink accent, not the >= 30 % pink of every other hostile drawing
+//   * the painted whip and trunk still stand out of every installed Verdant backdrop variant (Contrast): the pink rim / tip / outline carry them
 //   * stepping a whip and a trunk allocates nothing
 public static class VerdantAttackArtTest
 {
@@ -36,6 +38,8 @@ public static class VerdantAttackArtTest
             {
                 Files();
                 Loops();
+                Palette();
+                Contrast();
                 Tiling();
                 LashUsesIt();
                 LogUsesIt();
@@ -250,5 +254,148 @@ public static class VerdantAttackArtTest
         Check("a painted whip's whole life allocates nothing after warm-up (" + u1 + " bytes; meter " + (meter ? "ok" : "blind") + ")", meter && u1 == 0);
         Check("a painted trunk's whole life allocates nothing after warm-up (" + u2 + " bytes)", meter && u2 == 0);
         EliteSystem.Clear();
+    }
+
+    // ---- the colour exception -----------------------------------------------------------------------------------
+    //
+    // DOCUMENTED, NARROW EXCEPTION to the "hostile art is >= 30 % pink-family" rule (ShotSkinTest.MinPinkShare): the Verdant vine lash and
+    // rolling log (and only these two files; the Thornlash / Timber Hauler elites draw the same ones) are painted GREEN so the jungle's own
+    // weapons read as plants, with a pink ACCENT: a thin rim, the hooked thorn tip, the cut rings of the trunk (the dotted tell arc stays pink).
+    // So per cell: pink share 6..18 % and green share >= 55 % of the opaque pixels. No other world's art, shot or procedural sprite is
+    // loosened (the 30 % checks in ShotSkinTest, AttackLashTest, AttackFairnessTest, ShotMotionTest still run on everything else), and the
+    // hostile cue stays meaningful: the pink accent must exist in every working cell (rim / tip / rings) and the stand-out test below
+    // keeps the whip and trunk 3:1 clear of the backdrop (the in-code outline, AttackLash's / AttackLog's ShotOutline rim, carries the rest).
+    public const float ExceptionPinkMin = .06f, ExceptionPinkMax = .18f, ExceptionGreenMin = .55f;
+
+    static void Shares(Color32[] px, out float pink, out float green, out int pinkPx, out int opaque)
+    {
+        int p = 0, g = 0, n = 0;
+        foreach (var c in px)
+        {
+            if (c.a <= 24) continue;
+            n++;
+            Color.RGBToHSV(c, out float h, out float sat, out float v);
+            float deg = h * 360f;
+            if ((deg >= 300f && deg <= 340f && sat > .2f) || (sat < .22f && v > .82f)) p++;
+            else if (deg >= 70f && deg <= 170f && sat > .2f) g++;
+        }
+        opaque = n; pinkPx = p;
+        pink = n > 0 ? p / (float)n : 0f;
+        green = n > 0 ? g / (float)n : 0f;
+    }
+
+    static void Palette()
+    {
+        foreach (var (name, cw, ch, cols, cells) in new[] { ("verdant_attack_lash", 128, 128, 8, 8), ("verdant_attack_log", 256, 128, 4, 8) })
+        {
+            var t = Read(name);
+            float lowP = 9f, highP = -1f, lowG = 9f;
+            int minPinkPx = int.MaxValue, workCells = 0;
+            float dashMin = 9f;
+            for (int i = 0; i < cells; i++)
+            {
+                var px = Rgba(t, (i % cols) * cw, (i / cols) * ch, cw, ch);
+                Shares(px, out float pink, out float green, out int pinkPx, out int opaque);
+                if (opaque == 0) continue;
+                // the lash's dash cells (6, 7) are the dotted tell arc: they stay fully pink, under the ordinary >= 30 % rule
+                if (name.EndsWith("lash") && i >= 6) { dashMin = Mathf.Min(dashMin, pink); workCells++; continue; }
+                workCells++;
+                lowP = Mathf.Min(lowP, pink); highP = Mathf.Max(highP, pink); lowG = Mathf.Min(lowG, green);
+                minPinkPx = Mathf.Min(minPinkPx, pinkPx);
+            }
+            if (name.EndsWith("lash")) Check("verdant_attack_lash: the dotted tell arc (dash cells) stays pink-family: " + (dashMin * 100f).ToString("F0") + " % >= " + (ShotSkinTest.MinPinkShare * 100f) + " %", dashMin >= ShotSkinTest.MinPinkShare);
+            Debug.Log("[VERDANTART] " + name + " pink " + (lowP * 100f).ToString("F1") + ".." + (highP * 100f).ToString("F1") + " %, least green " + (lowG * 100f).ToString("F1") + " %, fewest pink px " + minPinkPx);
+            Check(name + ": green with a pink accent in every one of its " + workCells + " cells: pink " + (ExceptionPinkMin * 100f) + ".." + (ExceptionPinkMax * 100f) +
+                  " % (got " + (lowP * 100f).ToString("F1") + ".." + (highP * 100f).ToString("F1") + "), green >= " + (ExceptionGreenMin * 100f) + " % (least " + (lowG * 100f).ToString("F1") + ")",
+                  workCells == cells && lowP >= ExceptionPinkMin && highP <= ExceptionPinkMax && lowG >= ExceptionGreenMin);
+            Check(name + ": the pink rim / thorn tip / cut rings exist in every cell (fewest " + minPinkPx + " pink px, need >= 40)", minPinkPx >= 40);
+        }
+    }
+
+    // ---- stand-out over the Verdant backdrop ---------------------------------------------------------------------
+    //
+    // HostileProjectileTest's rule on real renders: pixels the drawing adds that are MinContrast (3:1) clear of the backdrop behind them.
+    // Every installed Verdant backdrop variant at 2 / 12 / 40 s; the whip's links (window = one link) and the trunk (its whole box).
+    static void Contrast()
+    {
+        var spec = BackdropCatalog.For("Verdant");
+        var picker = BackdropVariants.For("Verdant");
+        int worstLink = int.MaxValue, worstNaked = int.MaxValue, worstLog = int.MaxValue, worstLogNaked = int.MaxValue;
+        long sumDressed = 0, sumNaked = 0;
+        string worstWhere = "";
+        for (int v = 1; v <= Mathf.Max(1, spec.variantSets); v++)
+        {
+            if (spec.variantSets > 0 && !picker.Installed(v)) continue;
+            var cam = HostileProjectileTest.Fresh(2);
+            cam.aspect = HostileProjectileTest.RW / (float)HostileProjectileTest.RH;
+            picker.Force = spec.variantSets > 0 ? v : 0;
+            var go = new GameObject("~Backdrop");
+            var wb = go.AddComponent<WorldBackdrop>();
+            wb.Show("Verdant", false);
+            var rt = new RenderTexture(HostileProjectileTest.RW, HostileProjectileTest.RH, 24);
+            cam.targetTexture = rt;
+            var tex = new Texture2D(HostileProjectileTest.RW, HostileProjectileTest.RH, TextureFormat.RGB24, false);
+            float clock = 0f;
+            foreach (float at in new[] { 2f, 12f, 40f })
+            {
+                while (clock < at) { wb.Step(1f / 60f); clock += 1f / 60f; }
+                var bg = HostileProjectileTest.Grab(cam, rt, tex);
+                float ppu = HostileProjectileTest.RH / (cam.orthographicSize * 2f);
+                // the whip hangs straight down from (0.3, 3.5): its links centred on the joints' midpoints
+                var l = AttackLash.Arm(LashSpec.Standard(2), new Vector2(.3f, 3.5f), new Vector2(.3f, -2.5f), 1f, null);
+                l.Ignite();
+                for (int i = 0; i < 8; i++) { AttackPools.StepAll(Dt); HostileShots.Resolve(); }
+                int linkMin = int.MaxValue, nakedMin = int.MaxValue;
+                for (int pass = 0; pass < 2; pass++)
+                {
+                    bool naked = pass == 1;
+                    SetRims(l.gameObject, !naked);
+                    var fg = HostileProjectileTest.Grab(cam, rt, tex);
+                    for (int i = 0; i < l.Links; i++)
+                    {
+                        Vector2 m = (l.Joint(i) + l.Joint(i + 1)) * .5f;
+                        var c = cam.WorldToScreenPoint(new Vector3(m.x, m.y, 0f));
+                        float half = (l.Joint(i + 1) - l.Joint(i)).magnitude * .5f * ppu + 6f;
+                        int n = HostileProjectileTest.StandOut(fg, bg, c, half);
+                        if (naked) { nakedMin = Mathf.Min(nakedMin, n); sumNaked += n; }
+                        else { if (n < linkMin) { linkMin = n; worstWhere = "v" + v + " " + at + " s link " + i; } sumDressed += n; }
+                    }
+                }
+                worstLink = Mathf.Min(worstLink, linkMin); worstNaked = Mathf.Min(worstNaked, nakedMin);
+                l.gameObject.SetActive(false);
+                AttackPools.Forget();
+                // the trunk lying across the canopy
+                var lg = AttackLog.Arm(LogSpec.Standard(2), new Vector2(-2f, 3f), new Vector2(.5f, 1f), 1f, 1.2f, null);
+                lg.Ignite();
+                for (int i = 0; i < 20; i++) { AttackPools.StepAll(Dt); HostileShots.Resolve(); }
+                for (int pass = 0; pass < 2; pass++)
+                {
+                    SetRims(lg.gameObject, pass == 0);
+                    var fg = HostileProjectileTest.Grab(cam, rt, tex);
+                    var c = cam.WorldToScreenPoint(lg.BodyRenderer.transform.position);
+                    float half = lg.BodyRenderer.bounds.extents.x * ppu + 4f;
+                    int n = HostileProjectileTest.StandOut(fg, bg, c, half);
+                    if (pass == 0) worstLog = Mathf.Min(worstLog, n); else worstLogNaked = Mathf.Min(worstLogNaked, n);
+                }
+                AttackPools.Forget();
+            }
+            cam.targetTexture = null;
+            Object.DestroyImmediate(rt);
+            Object.DestroyImmediate(tex);
+            Object.DestroyImmediate(go);
+            picker.Force = 0;
+        }
+        Debug.Log("[VERDANTART] CONTRAST whip: fewest 3:1 px per link window " + worstLink + " with the outline (" + worstWhere + "), " + worstNaked + " without; log: " + worstLog + " with, " + worstLogNaked + " without; sums " + sumDressed + " vs " + sumNaked);
+        Check("the painted whip stands out of every Verdant backdrop variant: every link has >= " + HostileProjectileTest.MinStandOutPixels + " px at " + HostileProjectileTest.MinContrast + ":1 (fewest " + worstLink + "; without its outline " + worstNaked + ")",
+              worstLink >= HostileProjectileTest.MinStandOutPixels);
+        Check("the painted trunk stands out of every Verdant backdrop variant: >= " + HostileProjectileTest.MinStandOutPixels + " px at " + HostileProjectileTest.MinContrast + ":1 (fewest " + worstLog + "; without its outline " + worstLogNaked + ")",
+              worstLog >= HostileProjectileTest.MinStandOutPixels);
+    }
+
+    // shows / hides the outline renderers (the children named Rim, and the log's Outline) under a hazard
+    static void SetRims(GameObject root, bool on)
+    {
+        foreach (var sr in root.GetComponentsInChildren<SpriteRenderer>(true))
+            if (sr.name == "Rim" || sr.name == "Outline") sr.forceRenderingOff = !on;
     }
 }
