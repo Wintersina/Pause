@@ -176,15 +176,14 @@ public static class BackdropCatalog
         // very long way off, so every planet tier (planet_deep..planet_near)
         // creeps by just in front of the stars, far slower than the small
         // stations and rocks (deep..near) that really are close to the ship.
-        // See SpaceDirector.Tiers; comets pass behind all of them.
+        // See SpaceDirector.Tiers.
         new Spec { world = "Space", layers = new[] {
             // Cross-fade the sky's last rows into its first at render time
             // (BackdropSkyWrap). One of Codex's sky_01..04 per run (SpaceSkySelection).
-            Layer.Tile("sky", 0.006f, new Color(0.68f, 0.68f, 0.76f), Role.Sky).WrapBlended(SkyWrapBlend),
+            Layer.Tile("sky", 0.006f, new Color(0.84f, 0.84f, 0.94f), Role.Sky).WrapBlended(SkyWrapBlend),
             Layer.Pieces("wisps", 0.007f, Role.Sky),
             Layer.Pieces("galaxies", 0.008f, Role.Sky),
             Layer.Pieces("stars", 0.009f, Role.Sky),
-            Layer.Pieces("comets", 0.010f, Role.Sky),
             Layer.Pieces("planet_deep", 0.0110f, Role.Sky),
             Layer.Pieces("planet_far", 0.0125f, Role.Sky),
             Layer.Pieces("planet_mid", 0.0140f, Role.Sky),

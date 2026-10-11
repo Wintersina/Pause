@@ -38,7 +38,6 @@ public class BackdropSet
     public BackdropAtlas Extras { get; private set; }
     public BackdropAtlas NeonFrames { get; private set; }
     public BackdropAtlas AsteroidFx { get; private set; }
-    public BackdropAtlas CometFrames { get; private set; }
     public BackdropDirector Director { get; private set; }
     // The variant set the tile layers came from (Spec.variantSets; 0 = none).
     public int Variant { get; private set; }
@@ -84,7 +83,6 @@ public class BackdropSet
             if (Spec.world == "Space") Extras = LoadAtlas(folder, "extras");
             if (Spec.world == "Space") NeonFrames = LoadAtlas(folder, "neon_frames");
             if (Spec.world == "Space") AsteroidFx = LoadAtlas(folder, "asteroid_fx");
-            if (Spec.world == "Space") CometFrames = LoadAtlas(folder, "comet_frames_v1");
             Complete = string.IsNullOrEmpty(Spec.keyAtlas) ? Fx.Count > 0 : Atlas(Spec.keyAtlas).Count > 0;
         }
         else
@@ -234,7 +232,6 @@ public class BackdropSet
         if (Extras != null) Extras.Destroy();
         if (NeonFrames != null) NeonFrames.Destroy();
         if (AsteroidFx != null) AsteroidFx.Destroy();
-        if (CometFrames != null) CometFrames.Destroy();
         foreach (var a in atlases.Values) a.Destroy();
         atlases.Clear();
         if (Root != null) BackdropAtlas.Kill(Root.gameObject);

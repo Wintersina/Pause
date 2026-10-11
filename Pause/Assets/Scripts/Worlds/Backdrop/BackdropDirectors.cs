@@ -108,9 +108,6 @@ public partial class SpaceDirector : BackdropDirector
     Material planetMat, spriteMat;
     readonly MaterialPropertyBlock mpb = new MaterialPropertyBlock();
 
-    // Comets cross far behind everything: small, dim and pulled toward the sky.
-    public const float CometMinWidth = 0.7f, CometMaxWidth = 1.05f, CometMaxAlpha = 0.56f;
-    static readonly Color CometTint = new Color(0.62f, 0.74f, 0.95f);
 
     static readonly Color[] WispTints =
     {
@@ -123,18 +120,15 @@ public partial class SpaceDirector : BackdropDirector
         new Color(1.00f, 0.63f, 0.22f, 0.68f), // rare warm punctuation against the blue field
     };
 
-    BackdropPool wisps, galaxies, stars, comets, shooters, planets, stations, planetoids, moons, dust;
-    Sprite[] giant, rocky, moonArt, station, ringStation, miniRocky, miniStation, miniRingStation, comet;
+    BackdropPool wisps, galaxies, stars, shooters, planets, stations, planetoids, moons, dust;
+    Sprite[] giant, rocky, moonArt, station, ringStation, miniRocky, miniStation, miniRingStation;
     Sprite[] haloPlanets, asteroids;
     Sprite[] neonPlanets, referencePlanet;
     Sprite[] detailedStationFrames;
-    Sprite detailedComet;
-    Sprite[] detailedCometFrames;
     Sprite[][] asteroidEffects;
     readonly List<BackdropPool> bodies = new List<BackdropPool>();
     readonly List<BackdropPool> setPieces = new List<BackdropPool>();
     Timer galaxyTimer = new Timer(30f, 50f, 30f);
-    Timer cometTimer = new Timer(16f, 26f, 7f);
     Timer shooterTimer = new Timer(5f, 11f, 2.5f);
     // Hero planets recur by count, not by the clock: planets cross slowly
     // (distance parallax), so a 30-second timer would make nearly every
@@ -178,7 +172,6 @@ public partial class SpaceDirector : BackdropDirector
         miniRocky = fx.Frames("mini_rocky");
         miniStation = fx.Frames("mini_station");
         miniRingStation = fx.Frames("mini_ringstation");
-        comet = fx.Frames("comet");
         haloPlanets = set.Extras != null ? set.Extras.Frames("halo_planet") : new Sprite[0];
         asteroids = new Sprite[3];
         string spaceFolder = BackdropCatalog.Folder("Space");
@@ -187,8 +180,6 @@ public partial class SpaceDirector : BackdropDirector
         neonPlanets = set.NeonFrames != null ? set.NeonFrames.Frames("neon_planet") : new Sprite[0];
         Sprite reference = Resources.Load<Sprite>(spaceFolder + "reference_planet");
         referencePlanet = reference != null ? new[] { reference } : new Sprite[0];
-        detailedComet = Resources.Load<Sprite>(spaceFolder + "comet_v2");
-        detailedCometFrames = set.CometFrames != null ? set.CometFrames.Frames("comet_frame") : new Sprite[0];
         Sprite detailedStation = Resources.Load<Sprite>(spaceFolder + "station_ring_v2");
         detailedStationFrames = detailedStation != null ? new[] { detailedStation } : new Sprite[0];
         asteroidEffects = new Sprite[3][];
@@ -203,7 +194,6 @@ public partial class SpaceDirector : BackdropDirector
         galaxies = Pool("galaxies", 1);
         stars = Pool("stars", 26);
         shooters = Pool("stars", 2, false, 1);
-        comets = Pool("comets", 1);
         // Bodies take their tier's sorting order when they spawn.
         string deep = Tiers[0].layer, planetDeep = Tiers[0].planetLayer;
         planets = Pool(planetDeep, 3);
@@ -232,10 +222,11 @@ public partial class SpaceDirector : BackdropDirector
         }
         bodies.AddRange(new[] { planets, stations, planetoids, moons });
         setPieces.AddRange(bodies);
-        setPieces.AddRange(new[] { wisps, galaxies, comets });
+        setPieces.AddRange(new[] { wisps, galaxies });
         BuildStationLights();
         BuildStationPuffs();
         BuildAsteroidDrift();
+        BuildExtras();
 
         // Stars sit at their own small spread of depths: the farther, the
         // smaller, dimmer and slower. Most are pinpoints, a few glint.
@@ -326,7 +317,6 @@ public partial class SpaceDirector : BackdropDirector
         }
 
         if (galaxyTimer.Tick(dt, rng)) SpawnGalaxy(float.NaN);
-        if (cometTimer.Tick(dt, rng)) SpawnComet(v);
         if (shooterTimer.Tick(dt, rng)) SpawnShooter();
 
         // One queue per depth class. A plan that doesn't fit yet is held, not
@@ -374,13 +364,7 @@ public partial class SpaceDirector : BackdropDirector
         TickStationLights(dt);
         TickStationPuffs(dt);
         TickAsteroidDrift(dt, v);
-        foreach (var c in comets.items)
-            if (c.active && Drift(c, dt, v))
-            {
-                OrientComet(c, v);
-                Paint(c, 1f);
-                c.Animate();
-            }
+        StepExtras(dt, v);
         foreach (var s in shooters.items)
         {
             if (!s.active) continue;
@@ -545,6 +529,9 @@ public partial class SpaceDirector : BackdropDirector
             // director's seeded stream -- the station / planet sequence -- is
             // unchanged.
             : (asteroids[0] != null && n.size >= MiniBelow && Chance(0.55) ? RockArt(n.size) : RockArt(n.size));
+        // Space backdrop redo: now and then a planet is a ringed / lit-city planet (own
+        // random stream: the seeded planet and station sequence is unchanged).
+        if (n.kind == Planet && !opening && n.tier <= OutpostMaxTier && HasOutposts && xrng.NextDouble() < OutpostShare) art = outpostArt;
         if (art.Length == 0) { p.Show(false); return true; }
         Sprite selected = Pick(art);
         Dress(p, selected, n.kind, n.tier, n.size, 0, planetClass);
@@ -602,7 +589,7 @@ public partial class SpaceDirector : BackdropDirector
         bool sphere = planetMat != null && kind != Station &&
             (IsSphere(s) || s.name.StartsWith("halo_planet_", System.StringComparison.Ordinal));
         p.planet = sphere;
-        p.sr.sharedMaterial = sphere ? planetMat : spriteMat;
+        p.sr.sharedMaterial = sphere ? (IsOutpost(s) && outpostMat != null ? outpostMat : planetMat) : spriteMat;
         if (!sphere) { p.sr.SetPropertyBlock(null); return; }
         p.disc = DiscOf(s);
         p.turn = Rand(0f, 6.283f);
@@ -618,6 +605,7 @@ public partial class SpaceDirector : BackdropDirector
         if (s == null) return false;
         string n = s.name;
         return n.StartsWith("giant_", System.StringComparison.Ordinal) ||
+               n.StartsWith(OutpostPrefix, System.StringComparison.Ordinal) ||
                n.StartsWith("neon_planet_", System.StringComparison.Ordinal) ||
                n.StartsWith("rocky_", System.StringComparison.Ordinal) ||
                n.StartsWith("mini_rocky_", System.StringComparison.Ordinal);
@@ -630,15 +618,18 @@ public partial class SpaceDirector : BackdropDirector
     {
         Rect r = s.textureRect;
         float tw = s.texture.width, th = s.texture.height;
+        string n = s.name;      // once: Object.name allocates a string per call
         // (neon_planet_ cells are cut tight on the disc by build_neon_frames.py,
         // so they take the margin rule; only the haloed planets are inset.)
-        bool inset = s.name.StartsWith("halo_planet_", System.StringComparison.Ordinal);
+        // City planets (SpaceExtras) are cut in square cells with the disc OutpostDiscShare of the cell.
+        bool halo = n.StartsWith("halo_planet_", System.StringComparison.Ordinal);
+        bool city = n.StartsWith(OutpostPrefix, System.StringComparison.Ordinal);
+        bool inset = halo || city;
+        float share = city ? OutpostDiscShare * 0.5f : 0.39f;
         float margin = DiscMarginPx * s.pixelsPerUnit / BackdropAtlas.PixelsPerUnit;
-        float radius = inset
-            ? r.width * 0.39f : r.width * 0.5f - margin;
+        float radius = inset ? r.width * share : r.width * 0.5f - margin;
         return new Vector4(r.center.x / tw, r.center.y / th,
-                           radius / tw, (inset
-                               ? r.height * 0.39f : r.height * 0.5f - margin) / th);
+                           radius / tw, (inset ? r.height * share : r.height * 0.5f - margin) / th);
     }
 
     void PaintSphere(BackdropPiece p)
@@ -672,6 +663,7 @@ public partial class SpaceDirector : BackdropDirector
         TeardownStationPuffs();
         TeardownStationLights();
         TeardownAsteroidDrift();
+        TeardownExtras();
         BackdropAtlas.Kill(planetMat);
         planetMat = null;
     }
@@ -742,45 +734,6 @@ public partial class SpaceDirector : BackdropDirector
         g.root.localScale = new Vector3(g.root.localScale.x, g.root.localScale.y * Rand(0.45f, 0.75f), 1f);
         g.root.localRotation = Quaternion.Euler(0, 0, Rand(-35f, 35f));
         g.color = new Color(0.7f, 0.65f, 0.9f, 0.5f);
-    }
-
-    // Comets cross far behind every body (their layer sorts below the deep
-    // tier), small and dim.
-    void SpawnComet(float scrollVelocity)
-    {
-        if (comet.Length == 0 && detailedComet == null && detailedCometFrames.Length == 0) return;
-        var c = comets.Spawn();
-        if (c == null) return;
-        bool useDetailed = detailedCometFrames.Length > 0 && (comet.Length == 0 || Chance(0.65));
-        Sprite selected = useDetailed ? detailedCometFrames[0]
-            : detailedComet != null && comet.Length == 0 ? detailedComet : Pick(comet);
-        SetSprite(c, selected, Rand(CometMinWidth, CometMaxWidth));
-        if (useDetailed)
-        {
-            c.frames = detailedCometFrames;
-            c.fps = 8f;
-        }
-        float dir = Chance(0.5) ? -1f : 1f;              // -1: travels right-to-left
-        c.x = -dir * (HalfW + 1f);
-        c.y = Rand(HalfH * 0.1f, HalfH * 0.8f);
-        c.vx = dir * Rand(1.15f, 1.75f);
-        c.vy = -Rand(0.25f, 0.55f);
-        c.rate = set.Spec.Rate("comets");
-        OrientComet(c, scrollVelocity);
-        // Hazed toward the sky's indigo and mostly see-through: the art's
-        // white-hot head would otherwise outshine the gameplay in front.
-        c.color = CometTint;
-        c.color.a = Rand(0.42f, CometMaxAlpha);
-    }
-
-    // The visible vertical velocity includes parallax scroll. Orienting from
-    // authored velocity alone made the head point away from its path as the
-    // run accelerated.
-    void OrientComet(BackdropPiece c, float scrollVelocity)
-    {
-        float screenVy = c.vy - c.rate * scrollVelocity;
-        float ang = Mathf.Atan2(screenVy, c.vx) * Mathf.Rad2Deg - 213f;
-        c.root.localRotation = Quaternion.Euler(0f, 0f, ang);
     }
 
     void SpawnShooter()

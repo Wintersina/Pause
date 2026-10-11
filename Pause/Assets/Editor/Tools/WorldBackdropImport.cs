@@ -89,7 +89,7 @@ public class WorldBackdropImport : AssetPostprocessor
     static bool IsStandaloneSprite(string file)
     {
         return file.StartsWith("asteroid_", System.StringComparison.Ordinal) ||
-               file == "reference_planet" || file == "comet_v2" || file == "station_ring_v2";
+               file == "reference_planet" || file == "station_ring_v2";
     }
 
     public static void ReimportSpaceStandaloneSprites()
@@ -99,9 +99,8 @@ public class WorldBackdropImport : AssetPostprocessor
             AssetDatabase.ImportAsset(folder + "asteroid_" + i.ToString("00") + ".png",
                                       ImportAssetOptions.ForceUpdate);
         AssetDatabase.ImportAsset(folder + "reference_planet.png", ImportAssetOptions.ForceUpdate);
-        AssetDatabase.ImportAsset(folder + "comet_v2.png", ImportAssetOptions.ForceUpdate);
         AssetDatabase.ImportAsset(folder + "station_ring_v2.png", ImportAssetOptions.ForceUpdate);
-        foreach (string atlas in new[] { "extras", "neon_frames", "asteroid_fx", "comet_frames_v1" })
+        foreach (string atlas in new[] { "extras", "neon_frames", "asteroid_fx" })
             AssetDatabase.ImportAsset(folder + atlas + ".png", ImportAssetOptions.ForceUpdate);
     }
 
@@ -122,7 +121,7 @@ public class WorldBackdropImport : AssetPostprocessor
         ti.alphaIsTransparency = true;
         ti.isReadable = false;
         ti.npotScale = TextureImporterNPOTScale.None;
-        ti.maxTextureSize = planetSheet ? PlanetSheetMaxSize : file == "comet_v2" || file == "comet_frames_v1" || file == "station_ring_v2" ? 512 : file == "reference_planet" ? 1024 :
+        ti.maxTextureSize = planetSheet ? PlanetSheetMaxSize : file == "station_ring_v2" ? 512 : file == "reference_planet" ? 1024 :
             sharpSpaceSky || (!tile && assetPath.Contains("/Worlds/Space/")) ? 2048 : 1024;
         ti.textureCompression = TextureImporterCompression.Compressed;
         ti.sRGBTexture = true;
@@ -156,7 +155,7 @@ public class WorldBackdropImport : AssetPostprocessor
         if (!tile && assetPath.Contains("/Worlds/Space/"))
         {
             var defaults = ti.GetPlatformTextureSettings("DefaultTexturePlatform");
-            defaults.maxTextureSize = planetSheet ? PlanetSheetMaxSize : file == "comet_v2" || file == "comet_frames_v1" || file == "station_ring_v2" ? 512 : file == "reference_planet" ? 1024 : 2048;
+            defaults.maxTextureSize = planetSheet ? PlanetSheetMaxSize : file == "station_ring_v2" ? 512 : file == "reference_planet" ? 1024 : 2048;
             ti.SetPlatformTextureSettings(defaults);
         }
 
@@ -164,7 +163,7 @@ public class WorldBackdropImport : AssetPostprocessor
         {
             var ps = ti.GetPlatformTextureSettings(platform);
             ps.overridden = true;
-            ps.maxTextureSize = planetSheet ? PlanetSheetMaxSize : file == "comet_v2" || file == "comet_frames_v1" || file == "station_ring_v2" ? 512 : file == "reference_planet" ? 1024 :
+            ps.maxTextureSize = planetSheet ? PlanetSheetMaxSize : file == "station_ring_v2" ? 512 : file == "reference_planet" ? 1024 :
                 sharpSpaceSky || (!tile && assetPath.Contains("/Worlds/Space/")) ? 2048 : 1024;
             ps.format = planetSheet ? TextureImporterFormat.ASTC_4x4 : TextureImporterFormat.ASTC_6x6;
             ps.textureCompression = TextureImporterCompression.Compressed;

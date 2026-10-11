@@ -29,7 +29,7 @@ public static class BackdropCellClipTest
     const byte Opaque = 40;
     static readonly string[] Atlases =
     {
-        "anim", "anim_hires", "fx", "neon_frames", "asteroid_drift", "asteroid_drift_fx", "asteroid_fx", "comet_frames_v1",
+        "anim", "anim_hires", "fx", "neon_frames", "asteroid_drift", "asteroid_drift_fx", "asteroid_fx",
     };
     // Cells whose art abuts a neighbour's by design / is never drawn.
     static bool Exempt(string n) { return n.StartsWith("neon_asteroid_"); }

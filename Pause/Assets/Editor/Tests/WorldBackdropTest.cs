@@ -206,7 +206,7 @@ public static class WorldBackdropTest
     {
         { "Space", new[] { "giant_00", "giant_11", "rocky_00", "rocky_03", "station_00", "station_03",
                            "ringstation_00", "ringstation_03", "mini_station_00", "mini_ringstation_00",
-                           "mini_rocky_00", "comet_00", "comet_01", "galaxy0", "galaxy1", "wisp0", "wisp1",
+                           "mini_rocky_00", "galaxy0", "galaxy1", "wisp0", "wisp1",
                            "moon", "star", "dot", "streak" } },
         // Frost's, Verdant's and Ember's v3 backdrops have no fx / anim atlases: their own atlases.
     };
@@ -1358,8 +1358,8 @@ public static class WorldBackdropTest
               " <= " + BackdropCatalog.MaxPlanetRate + ", < a third of the farthest structure's " + structureMin + ")",
               planetMax <= BackdropCatalog.MaxPlanetRate && planetMax * 3f < structureMin &&
               spec.Order(nearest.planetLayer) < spec.Order(tiers[0].layer));
-        Check("Space planets sit in front of the sky, stars and comets",
-              spec.Rate(tiers[0].planetLayer) > spec.Rate("comets") && spec.Rate("comets") > spec.Rate("stars") &&
+        Check("Space planets sit in front of the sky and stars",
+              spec.Rate(tiers[0].planetLayer) > spec.Rate("stars") &&
               spec.Rate("stars") > spec.Rate("sky"));
         // The biggest planet tier, on a 12.4 u tall view, at a mid-run HUD
         // speed of 30: how long from its top edge entering to it being gone.
@@ -1371,8 +1371,6 @@ public static class WorldBackdropTest
         float nearShare = tiers[tiers.Length - 1].weight / (float)total;
         Check("Space random planets remain mostly far away (two farthest tiers " + farShare.ToString("F2") +
               " >= 0.7, nearest " + nearShare.ToString("F2") + " <= 0.10)", farShare >= 0.7f && nearShare <= 0.10f);
-        Check("Space comets pass behind every body", spec.Order("comets") < spec.Order(tiers[0].planetLayer) &&
-              spec.Order("comets") < spec.Order(tiers[0].layer));
         float nearRate = spec.Rate(tiers[tiers.Length - 1].layer);
         Check("Space bodies stay far behind the ship's own depth (nearest tier rate " + nearRate + " <= 0.15)",
               nearRate <= 0.15f);
@@ -1770,8 +1768,7 @@ public static class WorldBackdropTest
         return null;
     }
 
-    // Space bodies play their atlas sequences on scaled time; comets stay
-    // small and dim, the sky draws seamlessly, and none of it allocates.
+    // Space bodies play their atlas sequences on scaled time; the sky draws seamlessly, and none of it allocates.
     static void CheckSpaceMotion()
     {
         var go = new GameObject("~SpaceMotionTest");
@@ -1793,8 +1790,6 @@ public static class WorldBackdropTest
             for (int i = 0; i < 3 && effectFrames; i++)
                 effectFrames &= wb.Current.AsteroidFx.Frames("asteroidfx" + i).Length >= 4;
             Check("Space gives every still asteroid at least four smoke/light frames", effectFrames);
-            Check("Space loads eight comet animation frames",
-                  wb.Current.CometFrames != null && wb.Current.CometFrames.Frames("comet_frame").Length == 8);
 
             var sky = wb.Current.Tiles[0];
             Check("Space sky draws through the wrap cross-fade shader",
@@ -1831,15 +1826,17 @@ public static class WorldBackdropTest
             Check("Space giant holds its rotation while timeScale = 0", planet.turn == frozen);
             Time.timeScale = 1f;
 
-            // A long run: every sphere turns, comets stay small and dim.
+            // A long run: every sphere turns.
             const float step = 1f / 30f;
-            int spheres = 0, still = 0, comets = 0;
-            bool cometsDim = true, animatedCometSeen = false;
+            int spheres = 0, still = 0;
+            int outpostViews = 0, outpostStill = 0, outpostNear = 0, wreckViews = 0, wreckStill = 0, debrisViews = 0, debrisStill = 0;
+            bool twinkleAnimated = false, blinkClockAdvances = false;
+            float blinkFirst = sd.BlinkMaterial != null ? sd.BlinkMaterial.GetFloat("_Blink") : 0f;
+            Sprite twinkleFirst = sd.Twinkles != null ? sd.Twinkles.items[0].sr.sprite : null;
             BackdropPiece watchedRock = null;
             Sprite rockImage = null, effectImage = null;
             bool rockStill = true, effectsAdvance = false;
             float rockAge = 0f;
-            float brightest = 0f, biggest = 0f;
             for (int i = 0; i < 300 * 30; i++)
             {
                 moveBackGround.speed = Mathf.Repeat(i * 0.0002f, 0.62f);
@@ -1861,34 +1858,46 @@ public static class WorldBackdropTest
                 if (i % 30 != 0) continue;
                 foreach (var pool in sd.Bodies)
                     foreach (var p in pool.items)
+                        if (sd.IsOutpostPiece(p))
+                        {
+                            outpostViews++;
+                            if (!p.planet || p.turnRate == 0f || p.sr.sharedMaterial != sd.OutpostMaterial) outpostStill++;
+                            if (p.tier > SpaceDirector.OutpostMaxTier || p.size > SpaceDirector.OutpostMaxWidth) outpostNear++;
+                        }
+                                if (sd.Wrecks != null)
+                    foreach (var w in sd.Wrecks.items)
+                        if (w.active) { wreckViews++; if (w.spin == 0f || w.sr.sharedMaterial != sd.BlinkMaterial) wreckStill++; }
+                if (sd.Debris != null)
+                    foreach (var d in sd.Debris.items)
+                        if (d.active) { debrisViews++; if (d.spin == 0f || d.sr.sharedMaterial != sd.BlinkMaterial) debrisStill++; }
+                if (sd.Twinkles != null)
+                {
+                    var t0 = sd.Twinkles.items[0];
+                    twinkleAnimated |= t0.frames != null && t0.frames.Length == 8 && t0.sr.sprite != twinkleFirst;
+                }
+                if (sd.BlinkMaterial != null) blinkClockAdvances |= sd.BlinkMaterial.GetFloat("_Blink") > blinkFirst + 1f;
+                foreach (var pool in sd.Bodies)
+                    foreach (var p in pool.items)
                     {
                         if (!p.active || !SpaceDirector.IsSphere(p.sr.sprite)) continue;
                         spheres++;
                         if (!p.planet || p.turnRate == 0f || p.frames != null) still++;
                     }
-                foreach (var pool in sd.Pools)
-                    foreach (var p in pool.items)
-                    {
-                        if (!p.active || p.sr.sprite == null || !p.sr.sprite.name.StartsWith("comet")) continue;
-                        comets++;
-                        animatedCometSeen |= p.frames != null && p.frames.Length == 8 &&
-                            p.sr.sprite != p.frames[0];
-                        brightest = Mathf.Max(brightest, p.sr.color.a);
-                        biggest = Mathf.Max(biggest, p.size);
-                        Color c = p.sr.color;
-                        if (c.a > SpaceDirector.CometMaxAlpha + 1e-4f || p.size > SpaceDirector.CometMaxWidth + 1e-4f ||
-                            Mathf.Max(c.r, Mathf.Max(c.g, c.b)) > 0.96f)
-                            cometsDim = false;
-                    }
             }
             Check("Space spheres all animate over a 5-minute run (" + spheres + " samples, " + still + " still)",
                   spheres > 50 && still == 0);
+            Check("Space outpost moons turn and blink their lamps (" + outpostViews + " samples, " + outpostStill + " static)",
+                  outpostViews > 0 && outpostStill == 0);
+            Check("Space outpost moons (modest-resolution art) stay in the far field, small on screen (tier <= " +
+                  SpaceDirector.OutpostMaxTier + ", width <= " + SpaceDirector.OutpostMaxWidth + " u; " + outpostNear + " too near / big)",
+                  outpostNear == 0 && outpostViews > 0);
+            Check("Space wrecks tumble and blink their lamps (" + wreckViews + " samples, " + wreckStill + " static)",
+                  wreckViews > 0 && wreckStill == 0);
+            Check("Space debris tumbles and blinks its glints (" + debrisViews + " samples, " + debrisStill + " static)",
+                  debrisViews > 0 && debrisStill == 0);
+            Check("Space twinkle stars play their 8 frames and the lamp clock runs on scaled time", twinkleAnimated && blinkClockAdvances);
             Check("Space drifting asteroid keeps its sprite while its smoke puffs advance through their stages",
                   rockStill && effectsAdvance);
-            Check("Space comets stay small and dim (" + comets + " samples, alpha <= " + brightest.ToString("F2") + " <= " +
-                  SpaceDirector.CometMaxAlpha + ", width <= " + biggest.ToString("F2") + " <= " + SpaceDirector.CometMaxWidth + " u)",
-                  cometsDim && comets > 0);
-            Check("Space comet animation advances during flight", animatedCometSeen);
 
             for (int i = 0; i < 60; i++) wb.Step(step);
             long before0 = System.GC.GetAllocatedBytesForCurrentThread();
