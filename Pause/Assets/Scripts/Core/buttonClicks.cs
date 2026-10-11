@@ -39,7 +39,7 @@ public class buttonClicks : MonoBehaviour {
     }
 
     // Everything Replay does before reloading gameS1 (tests call it): a clean
-    // run state, and the run's own start world pinned for the next
+    // run state, and the world the pilot died in pinned for the next
     // WorldManager.Start (WorldManager.RunStartWorld).
     public static void PrepareReplay()
     {

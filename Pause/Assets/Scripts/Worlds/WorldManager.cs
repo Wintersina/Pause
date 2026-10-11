@@ -39,7 +39,7 @@ using UnityEngine.SceneManagement;
 // speed), pauses and star dust carry over. Progress is remembered, so a later
 // run starts on the furthest planet reached (or the world the player chose in
 // Options, PlayerStartWorld) -- except REPLAY, which flies the same run again
-// from the world it began in (RunStartWorld).
+// on the world the pilot died in (RunStartWorld).
 //
 // A run that starts from the menu begins with its entry (WorldEntry): the
 // portal arrival in Space, the planet's planetfall on a planet; a replay does
@@ -394,20 +394,20 @@ public class WorldManager : MonoBehaviour
         if (Instance == this) PortalPressure.Reset();
     }
 
-    // REPLAY (buttonClicks.replay) flies the run just played again, from the
-    // world it began in -- not from the furthest planet that run reached.
-    // Without this, a run started in Space that planetfell into Frost (which
-    // raises highestWorld) replayed in Frost, the next one in Verdant, and so
-    // on: Replay seemed to pick a world at random. Menu PLAY keeps the
-    // furthest-planet rule. Kept across the reload of gameS1 (in memory
+    // REPLAY (buttonClicks.replay) starts a fresh run on the world the pilot
+    // died in (a run begun in Space that died in Frost replays in Frost), not
+    // the world the dead run began in. Menu PLAY keeps the start rule
+    // (player pick / developer pick / furthest planet). Kept across the reload of gameS1 (in memory
     // only); leaving for any non-gameplay scene drops it (GameStateReset).
     static int replayWorld = -1;
 
-    // Called by Replay while the old run is still live: RunLoop.StartWorld is
-    // where it began (a loop goes back there too, so it is the run's world).
+    // Called by Replay while the old run is still live: the world the pilot
+    // is in right now, i.e. the one they died in (CurrentIndex; after a loop
+    // that is the start world again). The replayed run begins there, and
+    // its loop returns there too (Start sets RunLoop.StartWorld).
     public static void PinReplayWorld()
     {
-        replayWorld = Instance != null ? Mathf.Clamp(RunLoop.StartWorld, 0, Worlds.Length - 1) : -1;
+        replayWorld = Instance != null ? Mathf.Clamp(CurrentIndex, 0, Worlds.Length - 1) : -1;
     }
 
     public static void ClearReplayWorld() { replayWorld = -1; }
@@ -447,7 +447,7 @@ public class WorldManager : MonoBehaviour
         // Unlocks are permanent: once a planet has been reached, later runs
         // start there rather than replaying the earlier worlds. Developer mode
         // can pin a start world from Options instead. Replay restarts the
-        // world the replayed run began in (RunStartWorld).
+        // world the pilot died in (RunStartWorld).
         string source = RunStartSource(startAtHighestUnlocked);
         spaceLegWorld = -1;
         CurrentIndex = RunStartWorld(startAtHighestUnlocked);

@@ -303,13 +303,13 @@ public static class WorldLeakTest
             try { wm.Advance(false); } catch (System.Exception) { }
             int reached = WorldManager.CurrentIndex;
             foreign += Fly(30f, reached, W(reached));
-            // ... the pilot dies, Replay pins the world the run began in
+            // ... the pilot dies, Replay pins the world the pilot died in
             WorldManager.PinReplayWorld();
             LoadRun(true);
-            Check("replay from " + W(reached) + ": flies " + W(start) + " again (" + W(WorldManager.CurrentIndex) + ")", WorldManager.CurrentIndex == start);
-            foreign += Audit(start, "replay start");
-            foreign += Fly(120f, start, "replay " + W(start));
-            Check("replay of a " + W(start) + " run that reached " + W(reached) + ": only " + W(start) + "'s own (" + audited + " live checks, " +
+            Check("replay of a " + W(start) + " run that died in " + W(reached) + ": flies " + W(reached) + " (" + W(WorldManager.CurrentIndex) + ")", WorldManager.CurrentIndex == reached);
+            foreign += Audit(reached, "replay start");
+            foreign += Fly(120f, reached, "replay " + W(reached));
+            Check("replay of a " + W(start) + " run that died in " + W(reached) + ": only " + W(reached) + "'s own (" + audited + " live checks, " +
                   foreign + " foreign" + Examples() + ")", foreign == 0);
             WorldManager.ClearReplayWorld();
         }

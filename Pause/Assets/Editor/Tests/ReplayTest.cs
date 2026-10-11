@@ -6,11 +6,11 @@ using UnityEngine.UI;
 
 // REPLAY (buttonClicks.replay): death -> Replay -> a fresh run.
 //
-//   1  Replay flies the replayed run's own start world, not the furthest
-//      planet that run reached: after a Space -> Frost planetfall (Space
-//      again), after a portal (Verdant -> Ember: Verdant again), after a loop
-//      (Ember start: Ember, loop 1 again), twice in a row, and with the
-//      developer's start-world pick
+//   1  Replay starts on the world the pilot died in, not the world the dead
+//      run began in: after a Space -> Frost planetfall (Frost), after a
+//      portal (Verdant -> Ember: Ember), after a loop (Ember start: Ember,
+//      loop 0 again), twice in a row, and with the developer's start-world
+//      pick (the world died in beats the pick; menu PLAY uses the pick)
 //   2  leaving for the menu drops the pin: menu PLAY keeps the furthest-planet
 //      rule
 //   3  the replayed run is clean: clock running, pilot alive, no portal /
@@ -179,20 +179,24 @@ public static class ReplayTest
 
         // Dies mid-descent (the planetfall still live) and replays.
         DieAndReplay();
-        Check("Replay pins the run's start world (Space)", WorldManager.PinnedReplayWorld == Space);
+        Check("Replay pins the world died in (Frost)", WorldManager.PinnedReplayWorld == Frost);
         wm = Load();
-        Check("after a Space -> Frost planetfall, Replay starts in Space again (was: Frost, the furthest planet) " +
-              "[" + WorldManager.Worlds[WorldManager.CurrentIndex].displayName + "]",
-              WorldManager.CurrentIndex == Space && RunLoop.StartWorld == Space);
+        Check("after a Space -> Frost planetfall death in Frost, Replay starts in Frost [" +
+              WorldManager.Worlds[WorldManager.CurrentIndex].displayName + "]",
+              WorldManager.CurrentIndex == Frost && RunLoop.StartWorld == Frost && RunLoop.Index == 0);
         Check("Frost stays unlocked", PlayerPrefs.GetInt(WorldManager.PrefsHighestWorld) == Frost);
         Clean("replay after a planetfall", wm);
 
-        // And again: the replayed run is a Space run too.
-        Through(wm);
-        Check("the replayed run planetfalls into Frost again", WorldManager.CurrentIndex == Frost);
+        // And again: the replayed run is a Frost run; dying in Frost replays Frost,
+        // dying one world on (Verdant) replays Verdant.
         DieAndReplay();
         wm = Load();
-        Check("a second Replay is Space again", WorldManager.CurrentIndex == Space);
+        Check("a second Replay in Frost is Frost again", WorldManager.CurrentIndex == Frost);
+        Through(wm);
+        Check("the replayed Frost run goes on to Verdant", WorldManager.CurrentIndex == Verdant);
+        DieAndReplay();
+        wm = Load();
+        Check("died in Verdant: Replay starts in Verdant", WorldManager.CurrentIndex == Verdant && RunLoop.StartWorld == Verdant);
         Clean("second replay", wm);
     }
 
@@ -206,9 +210,9 @@ public static class ReplayTest
               WorldManager.CurrentIndex == Ember && PlayerPrefs.GetInt(WorldManager.PrefsHighestWorld) == Ember);
         DieAndReplay();
         wm = Load();
-        Check("after a portal, Replay starts in Verdant again (was: Ember) [" +
+        Check("after a portal, Replay starts in Ember (the world died in) [" +
               WorldManager.Worlds[WorldManager.CurrentIndex].displayName + "]",
-              WorldManager.CurrentIndex == Verdant && RunLoop.StartWorld == Verdant);
+              WorldManager.CurrentIndex == Ember && RunLoop.StartWorld == Ember);
         Clean("replay after a portal", wm);
     }
 
@@ -224,7 +228,7 @@ public static class ReplayTest
         Check("looped back to Ember, loop 1", WorldManager.CurrentIndex == Ember && RunLoop.Index == 1);
         DieAndReplay();
         wm = Load();
-        Check("after a loop, Replay starts in Ember on loop 0", WorldManager.CurrentIndex == Ember && RunLoop.Index == 0);
+        Check("after a loop (died in Ember, loop 1), Replay starts in Ember on loop 0", WorldManager.CurrentIndex == Ember && RunLoop.Index == 0);
         Clean("replay after a loop", wm);
     }
 
@@ -240,7 +244,7 @@ public static class ReplayTest
         Check("on to Verdant", WorldManager.CurrentIndex == Verdant);
         DieAndReplay();
         wm = Load();
-        Check("developer pick: Replay is Frost again", WorldManager.CurrentIndex == Frost);
+        Check("developer pick: died in Verdant, Replay is Verdant", WorldManager.CurrentIndex == Verdant);
         Clean("developer replay", wm);
     }
 
@@ -283,12 +287,13 @@ public static class ReplayTest
                     for (int replay = 1; replay <= 3; replay++)
                     {
                         if (replay != 2) Through(wm);
+                        int died = WorldManager.CurrentIndex;
                         DieAndReplay();
                         wm = Load(startAtHighest);
-                        Check(tag + "replay " + replay + " starts in the pick, not " + Name(WorldManager.CurrentIndex) +
-                              " (backdrop " + Backdrop() + ")",
-                              WorldManager.CurrentIndex == pick && RunLoop.StartWorld == pick && RunLoop.Index == 0 &&
-                              (Backdrop() == "(none)" || Backdrop() == Name(pick)));
+                        Check(tag + "replay " + replay + " starts in " + Name(died) + ", the world died in, not the pick" +
+                              " (is " + Name(WorldManager.CurrentIndex) + ", backdrop " + Backdrop() + ")",
+                              WorldManager.CurrentIndex == died && RunLoop.StartWorld == died && RunLoop.Index == 0 &&
+                              (Backdrop() == "(none)" || Backdrop() == Name(died)));
                     }
 
                     // Out to the menu and PLAY again: the pick still rules.
