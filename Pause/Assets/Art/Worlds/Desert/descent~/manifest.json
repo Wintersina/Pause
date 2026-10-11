@@ -55,11 +55,13 @@
         355
       ],
       "horizon_y_at_center_px": 355,
-      "horizon_y_at_edges_px": 720,
+      "horizon_y_at_edges_px": 887,
       "horizon_y_at_left_right_px": [
-        720,
-        719
-      ]
+        887,
+        887
+      ],
+      "limb_circle_radius_px": 1250,
+      "roundness_fix": "Installed variant R1250 (variants/desert_planet_limb_R1250.png): exact circular horizon, radius 1250, apex 355, edge 887 (max fit residual 0.5 px), rigid per-column shift, bottom rows cropped; made by src~/limb_round_exact.py. PlanetfallDef limbApexPx 355, limbEdgePx 887. Original in original/, other variants R1450/R1100 and rejected x1.30 in variants/."
     },
     "desert_cloud_deck.png": {
       "size": [
