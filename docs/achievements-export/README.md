@@ -21,4 +21,4 @@ Steps for the owner (see also `docs/achievements-store-setup.md`):
 3. App Store Connect: create the 60 achievements with exactly the ids in `game-center.csv` and upload the 1024 px images, then set
    `AchievementIds.IosIdsConfirmed = true` in code.
 4. Publish the Play Games configuration, add testers, and test one unlock on a device (sign in, earn `meta_first_flight`).
-5. Score achievements are recalibrated (2,500 / 8,000 / 30,000): the exported descriptions already say so.
+5. Score achievements are recalibrated (5,000 / 20,000 / 80,000, after the 2x streak): the exported descriptions already say so (store text has no commas: Play's CSV import forbids them).

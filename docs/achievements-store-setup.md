@@ -84,9 +84,9 @@ Order,Name,Description,Points,Incremental steps (blank = standard),Initial state
 44,Dust Hoarder,"Collect 1,000 star dust pickups.",20,1000,Revealed,stars_1000.png
 45,Dust Baron,"Collect 5,000 star dust pickups.",25,5000,Revealed,stars_5000.png
 46,Big Spender,"Spend 10,000 star dust in the shop.",15,10000,Revealed,dust_spent_10000.png
-47,Rookie Score,"Score 10,000 points in a run.",10,,Revealed,score_10k.png
-48,Ace Score,"Score 50,000 points in a run.",20,,Revealed,score_50k.png
-49,Legend Score,"Score 150,000 points in a run.",35,,Revealed,score_150k.png
+47,Rookie Score,"Score 5000 points in a run.",10,,Revealed,score_10k.png
+48,Ace Score,"Score 20000 points in a run.",20,,Revealed,score_50k.png
+49,Legend Score,"Score 80000 points in a run.",35,,Revealed,score_150k.png
 50,Flash,Reach the speed cap.,15,,Revealed,speed_flash.png
 51,Speedster,Break the speed limit.,20,,Revealed,speed_speedster.png
 52,Super Sonic,Max out the limit break.,35,,Revealed,speed_super_sonic.png
@@ -157,9 +157,9 @@ Pause stars_150,me.sinaserati.Pause.ach_stars_150,10,No,No,Dust Gatherer,Collect
 Pause stars_1000,me.sinaserati.Pause.ach_stars_1000,20,No,No,Dust Hoarder,"Collect 1,000 star dust pickups.","Collect 1,000 star dust pickups.",stars_1000_1024.png
 Pause stars_5000,me.sinaserati.Pause.ach_stars_5000,25,No,No,Dust Baron,"Collect 5,000 star dust pickups.","Collect 5,000 star dust pickups.",stars_5000_1024.png
 Pause dust_spent_10000,me.sinaserati.Pause.ach_dust_spent_10000,15,No,No,Big Spender,"Spend 10,000 star dust in the shop.","Spend 10,000 star dust in the shop.",dust_spent_10000_1024.png
-Pause score_10k,me.sinaserati.Pause.ach_score_10k,10,No,No,Rookie Score,"Score 10,000 points in a run.","Score 10,000 points in a run.",score_10k_1024.png
-Pause score_50k,me.sinaserati.Pause.ach_score_50k,20,No,No,Ace Score,"Score 50,000 points in a run.","Score 50,000 points in a run.",score_50k_1024.png
-Pause score_150k,me.sinaserati.Pause.ach_score_150k,35,No,No,Legend Score,"Score 150,000 points in a run.","Score 150,000 points in a run.",score_150k_1024.png
+Pause score_10k,me.sinaserati.Pause.ach_score_10k,10,No,No,Rookie Score,"Score 5000 points in a run.","Score 5000 points in a run.",score_10k_1024.png
+Pause score_50k,me.sinaserati.Pause.ach_score_50k,20,No,No,Ace Score,"Score 20000 points in a run.","Score 20000 points in a run.",score_50k_1024.png
+Pause score_150k,me.sinaserati.Pause.ach_score_150k,35,No,No,Legend Score,"Score 80000 points in a run.","Score 80000 points in a run.",score_150k_1024.png
 Pause speed_flash,me.sinaserati.Pause.ach_speed_flash,15,No,No,Flash,Reach the speed cap.,Reach the speed cap.,speed_flash_1024.png
 Pause speed_speedster,me.sinaserati.Pause.ach_speed_speedster,20,No,No,Speedster,Break the speed limit.,Break the speed limit.,speed_speedster_1024.png
 Pause speed_super_sonic,me.sinaserati.Pause.ach_speed_super_sonic,35,No,No,Super Sonic,Max out the limit break.,Max out the limit break.,speed_super_sonic_1024.png
