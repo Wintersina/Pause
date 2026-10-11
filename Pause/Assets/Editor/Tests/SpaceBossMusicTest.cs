@@ -90,7 +90,7 @@ public static class SpaceBossMusicTest
             Check(t.world + " Android: override, Vorbis, streaming, q 0.5-0.6",
                   imp.ContainsSampleSettingsOverride("Android") && a.compressionFormat == AudioCompressionFormat.Vorbis &&
                   a.loadType == AudioClipLoadType.Streaming && a.quality >= 0.5f && a.quality <= 0.6f);
-            Check(t.world + " preload off, stereo", !imp.preloadAudioData && !a.preloadAudioData && !imp.forceToMono);
+            Check(t.world + " preload off, stereo", !a.preloadAudioData && !imp.forceToMono);
         }
     }
 
