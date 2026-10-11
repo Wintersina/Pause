@@ -9,7 +9,7 @@ using UnityEngine;
 //   Bathyscaphe  abyss    / depth_charge   (rigdeck)     fused charges fly out of the claws, each bursts into a ring of pearls
 //   Trawler      netter   / net_cast       (reefdock)    nets lobbed across the pilot's row, each lands as a pool; one gap stays open
 //   Thunderfin   stormray / thunder_strike (ventstack)   lightning columns on the lanes beside and on the pilot, glyph first
-//   Pearl Warden pearler  / pearl_curtain  (wreckbay)    a curtain of slow weaving pearls with one gap
+//   Pearl Warden pearler  / pearl_curtain  (wreckbay)    a curtain of slow pearls with one gap
 
 // ---- brains --------------------------------------------------------------------------------------------------------
 
@@ -303,7 +303,7 @@ public class ThunderStrikeAttack : EliteAttack
     public override void End() { for (int i = 0; i < armed.Length; i++) armed[i] = null; count = 0; }
 }
 
-// Pearl Warden: the ward curtain in pearls (they weave, see the def's shotMotion): a row of slow pearls across the pilot's height with
+// Pearl Warden: the ward curtain in pearls: a row of slow pearls across the pilot's height with
 // the one spot beside the pilot left out.
 public class PearlCurtainAttack : WardCurtainAttack
 {

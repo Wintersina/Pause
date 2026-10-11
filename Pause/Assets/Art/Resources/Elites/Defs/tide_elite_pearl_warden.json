@@ -39,7 +39,7 @@
   "brain": "pearler",
   "attack": "pearl_curtain",
   "launchFrom": "wreckbay",
-  "lore": "A shell-plated warden that opens its halves and lets go a curtain of slow pearls across your row. The pearls drift and weave, and exactly one spot beside you is left out. Slip into the gap before the shell closes.",
+  "lore": "A shell-plated warden that opens its halves and lets go a curtain of slow pearls across your row. The pearls drift down slowly, and exactly one spot beside you is left out. Slip into the gap before the shell closes.",
   "hullRadius": 0.33,
   "turnsToFace": false,
   "speed": 1.8,
@@ -60,7 +60,6 @@
   "shotSize": 0.26,
   "shotInterval": 0.14,
   "shotKind": "bolt",
-  "shotMotion": "flutter",
   "lobSpacing": 0.8,
   "muzzles": [
     {

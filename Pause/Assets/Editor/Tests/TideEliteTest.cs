@@ -397,15 +397,15 @@ public static class TideEliteTest
         var pc = (PearlCurtainAttack)e.Attack;
         StartTell(e);
         StepUntil(() => e.Acting, 3f);
-        int weavers = 0;
+        int pearls = 0;
         for (float t = 0f; t < 2f; t += Dt)
         {
             pilot.position = new Vector3(0f, -2.5f, 0f);
             EliteSystem.Step(Dt);
-            foreach (var s in EliteSystem.Shots.All) if (s.Active && (s.Motion & ShotMotion.Flutter) != 0) weavers++;
+            foreach (var s in EliteSystem.Shots.All) if (s.Active) pearls++;
         }
-        Check("Pearl Warden: a curtain of " + (pc.Count - 1) + " weaving pearls with one gap beside the pilot (fired " + pc.Fired + ", weaving frames " + weavers + ")",
-              pc.Fired == pc.Count - 1 && weavers > 10 && pc.Gap == pc.Centre + (pilot.position.x > 0f ? -1 : 1));
+        Check("Pearl Warden: a curtain of " + (pc.Count - 1) + " slow pearls with one gap beside the pilot (fired " + pc.Fired + ", pearl frames " + pearls + ")",
+              pc.Fired == pc.Count - 1 && pearls > 10 && pc.Gap == pc.Centre + (pilot.position.x > 0f ? -1 : 1));
     }
 
     // ---- allocations ------------------------------------------------------------------------

@@ -105,6 +105,11 @@ public static class AttackBudgetTest
         { "elite:space_elite_rift_lancer", new Pin(1802, 2000, 0) },   // 90.1 % bot, 0.0 % standing; shown in 2000/2000;
         { "elite:space_elite_singularity_hauler", new Pin(1717, 2000, 989) },   // 85.9 % bot, 49.5 % standing; shown in 2000/2000;
         { "elite:verdant_elite_resin_warden", new Pin(20, 2000, 515) },   // 1.0 % bot, 25.8 % standing; shown in 2000/2000;
+        { "elite:tide_elite_bathyscaphe", new Pin(85, 2000, 1761) },   // 4.3 % bot, 88.1 % standing; shown in 2000/2000;
+        { "elite:tide_elite_pearl_warden", new Pin(205, 2000, 762) },   // 10.3 % bot, 38.1 % standing; shown in 2000/2000;
+        { "elite:tide_elite_riptide", new Pin(0, 1969, 0) },   // 0.0 % bot, 0.0 % standing; shown in 1969/2000;
+        { "elite:tide_elite_thunderfin", new Pin(0, 2000, 2000) },   // 0.0 % bot, 100.0 % standing; shown in 2000/2000;
+        { "elite:tide_elite_trawler", new Pin(82, 2000, 2000) },   // 4.1 % bot, 100.0 % standing; shown in 2000/2000;
         { "boss:Space:chin cannon", new Pin(97, 2000, 55) },   // 4.9 % bot, 2.8 % standing; shown in 2000/2000;
         { "boss:Space:core burst", new Pin(638, 2000, 2000) },   // 31.9 % bot, 100.0 % standing; shown in 2000/2000;
         { "boss:Space:pod lasers", new Pin(113, 2000, 1873) },   // 5.7 % bot, 93.7 % standing; shown in 2000/2000;
