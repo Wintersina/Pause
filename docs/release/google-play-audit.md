@@ -125,3 +125,10 @@ Audit build (debug-signed, not uploadable), `Builds/Android/Release/` in the rel
 | `Pause-DEBUGSIGNED.apk` | 183,099,278 bytes |
 
 `aapt2 dump badging` on the APK: package `me.hapticgate.pause`, versionCode 10000, versionName 1.0.0, minSdk 25, targetSdk 36, compileSdk 36, native-code arm64-v8a, permissions INTERNET and ACCESS_NETWORK_STATE only. The signed upload needs the passwords; run `PAUSE_KEYSTORE_PASS=... PAUSE_KEYALIAS_PASS=... PAUSE_KEYSTORE_PATH=/Users/sina/Developer/Pause/Pause/PauseKey.keystore make android-release`.
+
+## RC verification run (2026-10-10, branch feature/rc-polish, debug-signed, never uploaded)
+
+- aapt2 on the release APK: package me.hapticgate.pause, versionCode 10000 / 1.0.0, minSdk 25, targetSdk 36, arm64-v8a only, permissions INTERNET and ACCESS_NETWORK_STATE only, no AD_ID, no BILLING, Play Games APP_ID 528367766818.
+- Size: APK 206 MB, AAB 203 MB. Close to the 200 MB Play base-module limit; check the AAB download size in Play Console (size-diet work runs separately).
+- AchievementStoreIds.csv: 60 CgkI ids, no TODO_ rows. Bundle id me.hapticgate.pause; iCloud uses the default container (iCloud.me.hapticgate.pause).
+- AllTests.RunAll: ReleaseReadinessTest PASS. Failures: RailMineLaserTest (3), SpawnSpaceTest (MaxDeferSeconds), UnusedAssetGuardTest (1 orphan: Assets/Art/UI/Splash/HapticGate.png), EmberBackdropTest (allocation meter, flaky), CodexTest "every world has an entry" (new vs baseline; counts Tide against LiveWorldCount+1). BossAttackTest now passes.
