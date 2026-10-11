@@ -250,7 +250,8 @@ public static class ScreenFitScreens
             PlayerPrefs.SetInt(WorldManager.PrefsHighestWorld, shot == 3 ? 2 : 0);
             PlayerPrefs.DeleteKey(PlayerStartWorld.Key);
             if (shot == 3) PlayerPrefs.SetInt(PlayerStartWorld.Key, 1);
-            if (shot == 6) PlayerPrefs.SetInt(SoundSettings.Key, 1); else PlayerPrefs.DeleteKey(SoundSettings.Key);
+            if (shot == 6) { PlayerPrefs.SetInt(SoundSettings.SfxOnKey, 0); PlayerPrefs.SetInt(SoundSettings.MusicOnKey, 0); }
+            else { PlayerPrefs.DeleteKey(SoundSettings.SfxOnKey); PlayerPrefs.DeleteKey(SoundSettings.MusicOnKey); }
         }
         else DeveloperUnlocks.SetEnabled(true);
         var fake = new FakeLeaderboards { LocalPlayerName = "KANEDA_THE_LONG_NAMED_PILOT" };

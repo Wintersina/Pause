@@ -26,7 +26,7 @@ public static class GateAudio
     // ---- test / dev hooks ---------------------------------------------------
     public static bool Simulate;               // no AudioSource touched (edit-mode tests)
     public static System.Func<double> Clock;
-    public static System.Func<bool> MutedSource = () => SoundSettings.Muted;
+    public static System.Func<bool> MutedSource = () => SoundSettings.SfxGain <= 0f;
     public static int Played { get; private set; }
     public static int Skipped { get; private set; }
     public static int RattleCut { get; private set; }

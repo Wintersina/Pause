@@ -344,8 +344,15 @@ public class RailMineLaser : MonoBehaviour
         if (lockOn != null) lockOn.enabled = false;
         if (pilot != null) pilot.enabled = false;
         beam.enabled = flash.enabled = true;
+        AttackAudio.Play(ShotSoundWorld, ShotSoundCue, ShotSoundGain);
         Place();
     }
+
+    // The shot's sound: the project's one electric crackle-and-thump (Storm's arc / ion-bolt cue, authored noise grains, no tone),
+    // played through AttackAudio's voices, so it follows the effects volume / toggle (AudioListener.volume) like every other sound.
+    public const int ShotSoundWorld = 5;
+    public const string ShotSoundCue = "arc";
+    public const float ShotSoundGain = .85f;
 
     // Absorbed by a shield or erased by a blink: the beam is spent.
     public void Erase()

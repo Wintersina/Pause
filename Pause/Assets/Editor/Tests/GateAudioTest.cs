@@ -116,13 +116,13 @@ public static class GateAudioTest
         Check("unmuted: plays again", GateAudio.Played == 1);
 
         // the real setting is what the default source reads
-        string key = SoundSettings.Key;
-        int had = PlayerPrefs.GetInt(key, 0);
+        string key = SoundSettings.SfxOnKey;
+        int had = PlayerPrefs.GetInt(key, 1);
         var def = new GateAudioDefaults();
-        PlayerPrefs.SetInt(key, 1);
-        bool m1 = SoundSettings.Muted;
         PlayerPrefs.SetInt(key, 0);
-        bool m0 = SoundSettings.Muted;
+        bool m1 = SoundSettings.SfxGain <= 0f;
+        PlayerPrefs.SetInt(key, 1);
+        bool m0 = SoundSettings.SfxGain <= 0f;
         PlayerPrefs.SetInt(key, had);
         Check("default mute source follows SoundSettings", m1 && !m0 && def.Ok());
     }

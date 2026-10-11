@@ -185,6 +185,7 @@ public class WorldMusic : MonoBehaviour
         tail.priority = main.priority;
         tail.pitch = main.pitch;
         tail.volume = main.volume;
+        SoundSettings.MarkMusic(tail);
         tail.time = at;
         tail.Play();
 
@@ -331,6 +332,7 @@ public class WorldMusic : MonoBehaviour
             var tail = tailGo.AddComponent<AudioSource>();
             tail.clip = oldClip;
             tail.volume = oldVolume;
+            SoundSettings.MarkMusic(tail);
             tail.loop = false;
             tail.time = Mathf.Min(oldTime, Mathf.Max(0f, oldClip.length - 0.05f));
             tail.Play();

@@ -253,7 +253,6 @@ public static class ShieldPickupSkinTest
         collisionDetection.lifeCounter = 0;
         collisionDetection.atomCheck = false;
         collisionDetection.invTimer = 0f;
-        musicControl.boostMusicChanger = false;
     }
 
     // ------------------------------------------------------------- the run

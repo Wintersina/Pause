@@ -10,7 +10,7 @@ public class collisionDetection : MonoBehaviour {
     // Phase Cloak (SecretPowerController.BeginPhaseCloak; Shield Pulse and
     // Blink Dash borrow it for their brief invulnerability). Its own clock, separate from
     // the blue atom's invTimer: Cloak makes the ship invulnerable without
-    // raising the shield, the boost or the boost music, and neither state can
+    // raising the shield or the boost, and neither state can
     // shorten or stretch the other. Ticks on the same running-world clock as
     // invTimer (turnTextsOff), so it never drains while the game is paused.
     public static float cloakTimer;
@@ -431,11 +431,6 @@ public class collisionDetection : MonoBehaviour {
                 PickupWord(ShieldWord, hit.transform.position, AkiraPalette.Cyan);
                 AtomCharged(AkiraPalette.Cyan);
                 boostSound.Play();
-                // ---------------------------
-                //   Music control section!
-                musicControl.boostMusicChanger = true;
-                // ----------------------------
-
                 ShipShield.For(gameObject).Show();
                 RunScore.OnShieldRaised();   // a fresh shield: its absorb allowance starts again
                 awardDust(blueAtomValue);
@@ -485,11 +480,6 @@ public class collisionDetection : MonoBehaviour {
             atomCheck = false;
             // the boost eases off; speed settles back to natural (<= the cap)
             SpeedRamp.EndBoost();
-
-            // ---------------------------
-            //   Music control section!
-            musicControl.boostMusicChanger = false;
-            //----------------------------
         }
         else if( savedTimer <=0)
         {
