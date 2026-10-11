@@ -291,7 +291,7 @@ public static class WorldLogicTest
         Check("Liftoff.Swap applies the interlude world's music",
               File.ReadAllText("Assets/Scripts/Worlds/Planetfall/Liftoff.cs").Contains("WorldMusic.Apply(theme);"));
         Check("the loop returns to Space (Worlds[0]): Space's song again",
-              WorldManager.Worlds[RunLoop.StartWorld >= 0 ? 0 : 0].musicResource == WorldMusic.SpaceTrack);
+              WorldManager.Worlds[0].musicResource == WorldMusic.SpaceTrack);
 
         // Applying Space starts the song on the music source, looping; the next planet crossfades away and back.
         EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
