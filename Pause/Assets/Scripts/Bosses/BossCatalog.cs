@@ -374,8 +374,8 @@ public static class BossCatalog
             for (int i = 0; i < b.DefaultAttacks.Length; i++) b.DefaultAttacks[i].minPhase = i + 1;
             b.themed = BossThemed.TableFor(b);
             // Fighting themed: Frost (icicle drop, cold blast), Ember (flame sweep, eruption columns) passed the dodge-bot budget and every
-            // boss suite. Space needs Streak (rail slugs) and its arc / scan art and sounds, Tide its water art and sounds, Verdant (built, flag OFF) awaits a verified budget run of the final table (plan 8.2e).
-            b.themedAttacks = b.themed != null && (b.artKey == "Frost" || b.artKey == "Ember");
+            // boss suite. Space needs Streak (rail slugs) and its arc / scan art and sounds, Tide its water art and sounds, Verdant (vine lash, trunk toss; one-whip lash 4.8 % vs 11.5 %, trunk toss 5.8 % vs 28.7 % at 500 seeds) fights themed too (plan 8.2e).
+            b.themedAttacks = b.themed != null && (b.artKey == "Frost" || b.artKey == "Ember" || b.artKey == "Verdant");
             Resolve(b, b.DefaultAttacks);
             Resolve(b, b.themed);
         }
