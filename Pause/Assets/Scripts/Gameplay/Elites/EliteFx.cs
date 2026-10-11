@@ -164,6 +164,22 @@ public sealed class EliteFx
         parts[i].fps = fps;
     }
 
+    // The seed pod's open husk (verdant_attack_shots.png sigC a,b), left where a pod burst or landed: a two-frame flip for about a third of a
+    // second, drawn only when the world's shot skins are on and its art delivered. Returns false with nothing emitted otherwise.
+    public const float HuskSeconds = .36f;
+    public bool PodHusk(int world, Vector2 at, float size)
+    {
+        if (!ShotSkins.Enabled(world)) return false;
+        var a = AttackArt.ShotCell(world, AttackArt.ShotCellName.SigCA);
+        if (a == null) return false;
+        var b = AttackArt.ShotCell(world, AttackArt.ShotCellName.SigCB) ?? a;
+        int i = Emit(a, at, Vector2.zero, HuskSeconds, size, size, Color.white, 40);
+        if (i < 0) return false;
+        parts[i].frames = new[] { a, b };
+        parts[i].fps = 2f / HuskSeconds;
+        return true;
+    }
+
     // ---- the effects -------------------------------------------------------
 
     static readonly Color Dust = new Color(.55f, .47f, .62f, .85f);
