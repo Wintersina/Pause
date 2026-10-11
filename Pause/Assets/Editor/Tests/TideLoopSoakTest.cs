@@ -223,8 +223,7 @@ public static class TideLoopSoakTest
             {
                 var cast = EnemyRoster.For(EnemyRoster.CurrentWorld, role);
                 rosterOk &= cast.Count > 0;
-                if (now != 5)   // Storm flies Tide's cast until its own roster lands
-                    foreach (var d in cast) rosterOk &= d.world == now && d.key.StartsWith(EnemyRoster.WorldKeys[now] + "_", System.StringComparison.Ordinal);
+                foreach (var d in cast) rosterOk &= d.world == now && d.key.StartsWith(EnemyRoster.WorldKeys[now] + "_", System.StringComparison.Ordinal);
             }
             scoreOk &= RunScore.Total >= scoreWas && collisionDetection.lifeCounter == 1;
             scoreWas = RunScore.Total;

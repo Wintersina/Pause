@@ -29,7 +29,11 @@ public static class RailMineArtTest
 
     public const string AtlasAsset = "Assets/Art/Resources/" + RailMineArt.AtlasPath + ".png";
     public const string TideAtlasAsset = "Assets/Art/Resources/" + RailMineArt.TideAtlasPath + ".png";
-    static string AssetFor(int world) => world >= RailMineArt.OriginalWorlds ? TideAtlasAsset : AtlasAsset;
+    public const string StormAtlasAsset = "Assets/Art/Resources/" + RailMineArt.StormAtlasPath + ".png";
+    // Storm's own atlas once Codex's art/storm-mine lands; until then its mine wears Tide's atlas (RailMineArt.StormAtlasPresent).
+    static bool StormOwn => File.Exists(StormAtlasAsset);
+    static string AssetFor(int world) =>
+        world == RailMineArt.StormWorld && StormOwn ? StormAtlasAsset : world >= RailMineArt.OriginalWorlds ? TideAtlasAsset : AtlasAsset;
     // SHA-1 of Pause/Assets/Art/Resources/Vfx/rail_bomb_themes_atlas.png at
     // 18b5e5f^ (git blob 0702e8004b2c486f1b6cd08b105df36cf15fcd4a), the art
     // before the flat-cartoon restyle repacked it.
@@ -43,6 +47,7 @@ public static class RailMineArtTest
         TheAtlasIsTheOriginalPng();
         ImportedCrisp();
         EachWorldUsesItsOwnRow();
+        StormMineHasItsOwnAtlas();
         FramesKeepTheMineInPlace();
         SizeMatchesTheOriginal();
         ArmingPlaysWakingThenCharging();
@@ -78,12 +83,40 @@ public static class RailMineArtTest
               RailMineArt.AtlasPathFor(3) == RailMineArt.AtlasPath && RailMineArt.AtlasPathFor(4) == RailMineArt.TideAtlasPath);
     }
 
+    // Storm's Rod Mine is the third atlas file (rail_mines_neon_storm.png, 1254x314, Tide's rects / pivots / core offsets).
+    // Codex paints it on art/storm-mine; until it is delivered the mine wears Tide's atlas (a TEMPORARY fallback) and this
+    // test says so loudly instead of passing silently.
+    static void StormMineHasItsOwnAtlas()
+    {
+        int w = RailMineArt.StormWorld;
+        if (!StormOwn)
+        {
+            Debug.Log("[RM] WAITING ON ART: " + StormAtlasAsset + " has not been delivered (Codex branch art/storm-mine); Storm's mine wears Tide's atlas");
+            Check("(waiting on art) without Storm's atlas the mine falls back to Tide's file",
+                  !RailMineArt.StormAtlasPresent && RailMineArt.AtlasPathFor(w) == RailMineArt.TideAtlasPath &&
+                  RailMineArt.AtlasFor(w) == RailMineArt.AtlasFor(RailMineArt.OriginalWorlds) && RailMineArt.Frame(w, RailMineArt.Dormant) != null);
+            return;
+        }
+        var tex = RailMineArt.AtlasFor(w);
+        Check("Storm's third atlas loads from Resources/" + RailMineArt.StormAtlasPath, tex != null && RailMineArt.StormAtlasPresent);
+        Check("... " + RailMineArt.AtlasSize + " x " + RailMineArt.TideAtlasHeight + " px: one row, the same four columns",
+              tex != null && tex.width == RailMineArt.AtlasSize && tex.height == RailMineArt.TideAtlasHeight);
+        Check("... routed by AtlasPathFor, a different file from Tide's and the original",
+              RailMineArt.AtlasPathFor(w) == RailMineArt.StormAtlasPath && tex != RailMineArt.AtlasFor(RailMineArt.OriginalWorlds) && tex != RailMineArt.Atlas &&
+              File.ReadAllBytes(StormAtlasAsset).Length != File.ReadAllBytes(TideAtlasAsset).Length);
+        for (int c = 0; c < RailMineArt.Columns; c++)
+            Check("Storm " + RailMineArt.ColumnName(c) + " frame rect and pivot are Tide's (the brief)",
+                  RailMineArt.PixelRect(w, c).Equals(RailMineArt.PixelRect(4, c)) && RailMineArt.PixelPivot(w, c) == RailMineArt.PixelPivot(4, c));
+    }
+
     static void ImportedCrisp()
     {
-        foreach (int world in new[] { 0, RailMineArt.OriginalWorlds })
+        var imported = new List<int> { 0, RailMineArt.OriginalWorlds };
+        if (StormOwn) imported.Add(RailMineArt.StormWorld);
+        foreach (int world in imported)
         {
             string asset = AssetFor(world);
-            string tag = world == 0 ? "the atlas" : "Tide's atlas";
+            string tag = world == 0 ? "the atlas" : world == RailMineArt.StormWorld ? "Storm's atlas" : "Tide's atlas";
             var importer = AssetImporter.GetAtPath(asset) as TextureImporter;
             Check(tag + " has a texture importer", importer != null);
             if (importer == null) continue;
@@ -129,7 +162,7 @@ public static class RailMineArtTest
 
     // The neon each row is lit with, from its saturated bright pixels' hue.
     public enum Neon { Cyan, Blue, Lime, Orange, Mint, None }
-    static readonly Neon[] RowNeon = { Neon.Cyan, Neon.Blue, Neon.Lime, Neon.Orange, Neon.Mint };
+    static readonly Neon[] RowNeon = { Neon.Cyan, Neon.Blue, Neon.Lime, Neon.Orange, Neon.Mint, Neon.Mint };   // Storm: Tide's file until its own atlas lands
 
     // The lit pixels a frame needs to show its neon. Tide's DORMANT frame is a dim sleeping eye by design (234 lit
     // mint pixels against the original rows' 500+; waking / charging / burst have 1400-11600): its floor is 200.
@@ -169,8 +202,9 @@ public static class RailMineArtTest
             {
                 var r = RailMineArt.PixelRect(w, c);
                 var sig = Signature(w, r);
+                // (Storm's own atlas is Codex's colour, not one of the five hues below: its readability is ReadabilitySweep's)
                 Check(string.Format("{0} {1} frame is lit {2} (got {3})", EnemyRoster.WorldKeys[w], RailMineArt.ColumnName(c), RowNeon[w], sig),
-                      sig == RowNeon[w]);
+                      sig == RowNeon[w] || (w == RailMineArt.StormWorld && StormOwn));
             }
 
         for (int w = 0; w < RailMineArt.Worlds; w++)
@@ -190,7 +224,7 @@ public static class RailMineArtTest
                 var got = sprite.rect;
                 var top = new RectInt((int)got.x, atlasTex.height - (int)got.y - (int)got.height, (int)got.width, (int)got.height);
                 Check(def.key + " idles on its own row's dormant frame " + want + " (got " + top + ")", top.Equals(want));
-                Check(def.key + " shows the " + RowNeon[w] + " row", Signature(w, top) == RowNeon[w]);
+                Check(def.key + " shows the " + RowNeon[w] + " row", Signature(w, top) == RowNeon[w] || (w == RailMineArt.StormWorld && StormOwn));
             }
             Check(def.key + " keeps its id, name, collider and explosion",
                   go.name == EnemyRoster.MineObjectName && go.CompareTag("Enimey") &&

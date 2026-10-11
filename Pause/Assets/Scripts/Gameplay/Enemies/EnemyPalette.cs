@@ -40,6 +40,13 @@ public static class EnemyPalette
     public static readonly Color Mint = Hex(0x7CF2C0);
     public static readonly Color MintSh = Hex(0x1F6B55);
     public static readonly Color Brass = Hex(0x8A6B4E);
+    public static readonly Color Graphite = Hex(0x5B6577);
+    public static readonly Color GraphiteSh = Hex(0x2A2F3A);
+    public static readonly Color GraphiteHi = Hex(0xA9B6CC);
+    public static readonly Color SlateTeal = Hex(0x718C94);
+    public static readonly Color StormWhite = Hex(0xF2F6FF);
+    public static readonly Color StormEdge = Hex(0xFFF3A0);
+    public static readonly Color ArcBlue = Hex(0x9FCBEE);
 
     // One world's enemy look, for art that must sit in the same cast (the
     // end-of-level bosses): hull base / one shadow / one highlight, a
@@ -67,11 +74,14 @@ public static class EnemyPalette
                 return new Theme { world = "ember", hull = Char, hullShadow = CharSh, hullHighlight = CharHi,
                                        accent = Gun, light = Sodium, lightDim = SodiumSh, ink = Ink, bone = Bone,
                                        explosion = TargetExplosion.Kind.Magma };
-            case 5: // Storm: Tide's cast until its own palette (add-world phase 12)
             case 4: // Tide: barnacle grey-green plating, brass, bioluminescent mint
                 return new Theme { world = "tide", hull = Barnacle, hullShadow = BarnacleSh, hullHighlight = BarnacleHi,
                                        accent = Brass, light = Mint, lightDim = MintSh, ink = Ink, bone = Bone,
                                        explosion = TargetExplosion.Kind.Ice };   // stand-in until Tide's own Water row
+            case 5: // Storm: slate / graphite plating, muted teal-grey, storm-white lightning (pale-yellow edge)
+                return new Theme { world = "storm", hull = Graphite, hullShadow = GraphiteSh, hullHighlight = GraphiteHi,
+                                       accent = SlateTeal, light = StormWhite, lightDim = GraphiteHi, ink = Ink, bone = Bone,
+                                       explosion = TargetExplosion.Kind.Metal };   // iron and sparks: no Storm row (Metal reads right for graphite machinery)
             default: return new Theme { world = "space", hull = Steel, hullShadow = SteelSh, hullHighlight = SteelHi,
                                         accent = Bruise, light = Magenta, lightDim = MagentaSh, ink = Ink, bone = Bone,
                                         explosion = TargetExplosion.Kind.Metal };

@@ -5,6 +5,11 @@ brief `.claude/skills/add-world/world-5-6-briefs.md` (World 6 section), model = 
 World order: Space -> Frost -> Verdant -> Ember -> Tide -> **Storm** -> Desert -> Space. Release switch `StormEnabled`
 (WorldManager-style) stays **false**; Google Play v1.0 ships 4 worlds. No switch is flipped by this work. Not merged to master.
 
+## Status
+- Roster (branch `feature/storm-roster`): strips installed in Resources, 12 defs + behaviours (Strike on Thunderhead, `ChaserStyle.Spiral`),
+  EnemyPalette case 5, explosion = Metal, rails, third mine atlas routing (falls back to Tide's until `rail_mines_neon_storm.png` lands).
+  Death strips (coordinator) and the mine atlas (Codex, `art/storm-mine`) still to arrive.
+
 ## Scope of this run
 Roster (12 units incl. the rod mine), boss, 5 elites, rails and mine atlas, themed attacks in Storm's own material, death
 sounds. Backdrop (4 sets, pieces, loops), planetfall wiring (art already merged) and the owner steps (leaderboards,
