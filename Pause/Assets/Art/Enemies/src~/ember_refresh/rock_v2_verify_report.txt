@@ -1,0 +1,35 @@
+Ember mid mean luminance: 37.9/65.1/35.5/34.8
+name                  tones bounds cut drift area range  idle motion %                 margin red pink amber other contrast % v1/v2/v3/v4
+ember_rock_magma       2442   7221   7  0.1 0.995-1.000         75.2/81.8/79.0/67.2  18 0.00 0.00 0.00 0.00 12.1/10.3/13.3/13.5
+ember_rock_cinder      2546   7567  28  0.5 0.995-1.000         76.0/81.8/79.6/66.9  18 0.00 0.00 0.01 0.00 11.7/10.3/12.7/12.9
+
+Native 192x192 frame-0 alpha IoU (no resize or recenter):
+comparison                                            ember_rock_magma  ember_rock_cinder
+Enemies/ember_rock_cinder.png                                    0.405              0.538
+Enemies/ember_rock_islet.png                                     0.508              0.293
+Enemies/ember_rock_magma.png                                     0.355              0.497
+Enemies/ember_rock_obsidian.png                                  0.269              0.467
+Enemies/frost_rock_chunk.png                                     0.360              0.399
+Enemies/frost_rock_rime.png                                      0.429              0.466
+Enemies/frost_rock_shard.png                                     0.383              0.562
+Enemies/space_rock_cluster.png                                   0.352              0.399
+Enemies/space_rock_crater.png                                    0.411              0.465
+Enemies/space_rock_dark.png                                      0.305              0.357
+Enemies/storm_rock_hail.png                                      0.444              0.486
+Enemies/storm_rock_islet.png                                     0.423              0.483
+Enemies/storm_rock_ore.png                                       0.280              0.470
+Enemies/storm_rock_slag.png                                      0.330              0.613
+Enemies/tide_rock_brain.png                                      0.430              0.517
+Enemies/tide_rock_islet.png                                      0.310              0.561
+Enemies/tide_rock_staghorn.png                                   0.229              0.579
+Enemies/tide_rock_urchin.png                                     0.456              0.507
+Enemies/verdant_rock_knot.png                                    0.418              0.448
+Enemies/verdant_rock_pod.png                                     0.375              0.547
+Enemies/verdant_rock_spore.png                                   0.355              0.375
+Enemies/verdant_rock_vine.png                                    0.333              0.415
+strips/ember_rock_cinder.png                                     0.345              0.622
+strips/ember_rock_islet.png                                      0.477              0.439
+strips/ember_rock_magma.png                                      0.412              0.501
+strips/ember_rock_obsidian.png                                   0.190              0.421
+MAX                                                              0.508              0.622
+RESULT: PASS (0 failures)
