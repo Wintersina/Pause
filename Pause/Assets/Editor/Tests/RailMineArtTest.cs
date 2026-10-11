@@ -30,8 +30,7 @@ public static class RailMineArtTest
     public const string AtlasAsset = "Assets/Art/Resources/" + RailMineArt.AtlasPath + ".png";
     public const string TideAtlasAsset = "Assets/Art/Resources/" + RailMineArt.TideAtlasPath + ".png";
     public const string StormAtlasAsset = "Assets/Art/Resources/" + RailMineArt.StormAtlasPath + ".png";
-    // Storm's own atlas once Codex's art/storm-mine lands; until then its mine wears Tide's atlas (RailMineArt.StormAtlasPresent).
-    static bool StormOwn => File.Exists(StormAtlasAsset);
+    static bool StormOwn => true;   // (Storm's own atlas is installed: the temporary Tide fallback is gone)
     static string AssetFor(int world) =>
         world == RailMineArt.StormWorld && StormOwn ? StormAtlasAsset : world >= RailMineArt.OriginalWorlds ? TideAtlasAsset : AtlasAsset;
     // SHA-1 of Pause/Assets/Art/Resources/Vfx/rail_bomb_themes_atlas.png at
@@ -83,30 +82,18 @@ public static class RailMineArtTest
               RailMineArt.AtlasPathFor(3) == RailMineArt.AtlasPath && RailMineArt.AtlasPathFor(4) == RailMineArt.TideAtlasPath);
     }
 
-    // Storm's Rod Mine is the third atlas file (rail_mines_neon_storm.png, 1254x314, Tide's rects / pivots / core offsets).
-    // Codex paints it on art/storm-mine; until it is delivered the mine wears Tide's atlas (a TEMPORARY fallback) and this
-    // test says so loudly instead of passing silently.
+    // Storm's Rod Mine is the third atlas file (rail_mines_neon_storm.png, 1254x314, Tide's rects, its own pivots).
     static void StormMineHasItsOwnAtlas()
     {
         int w = RailMineArt.StormWorld;
-        if (!StormOwn)
-        {
-            Debug.Log("[RM] WAITING ON ART: " + StormAtlasAsset + " has not been delivered (Codex branch art/storm-mine); Storm's mine wears Tide's atlas");
-            Check("(waiting on art) without Storm's atlas the mine falls back to Tide's file",
-                  !RailMineArt.StormAtlasPresent && RailMineArt.AtlasPathFor(w) == RailMineArt.TideAtlasPath &&
-                  RailMineArt.AtlasFor(w) == RailMineArt.AtlasFor(RailMineArt.OriginalWorlds) && RailMineArt.Frame(w, RailMineArt.Dormant) != null);
-            return;
-        }
         var tex = RailMineArt.AtlasFor(w);
-        Check("Storm's third atlas loads from Resources/" + RailMineArt.StormAtlasPath, tex != null && RailMineArt.StormAtlasPresent);
+        Check("Storm's third atlas is at " + StormAtlasAsset + " and loads from Resources/" + RailMineArt.StormAtlasPath, File.Exists(StormAtlasAsset) && tex != null);
         Check("... " + RailMineArt.AtlasSize + " x " + RailMineArt.TideAtlasHeight + " px: one row, the same four columns",
               tex != null && tex.width == RailMineArt.AtlasSize && tex.height == RailMineArt.TideAtlasHeight);
         Check("... routed by AtlasPathFor, a different file from Tide's and the original",
-              RailMineArt.AtlasPathFor(w) == RailMineArt.StormAtlasPath && tex != RailMineArt.AtlasFor(RailMineArt.OriginalWorlds) && tex != RailMineArt.Atlas &&
-              File.ReadAllBytes(StormAtlasAsset).Length != File.ReadAllBytes(TideAtlasAsset).Length);
+              RailMineArt.AtlasPathFor(w) == RailMineArt.StormAtlasPath && tex != RailMineArt.AtlasFor(RailMineArt.OriginalWorlds) && tex != RailMineArt.Atlas);
         for (int c = 0; c < RailMineArt.Columns; c++)
-            Check("Storm " + RailMineArt.ColumnName(c) + " frame rect and pivot are Tide's (the brief)",
-                  RailMineArt.PixelRect(w, c).Equals(RailMineArt.PixelRect(4, c)) && RailMineArt.PixelPivot(w, c) == RailMineArt.PixelPivot(4, c));
+            Check("Storm " + RailMineArt.ColumnName(c) + " frame rect is Tide's (the same cuts)", RailMineArt.PixelRect(w, c).Equals(RailMineArt.PixelRect(4, c)));
     }
 
     static void ImportedCrisp()

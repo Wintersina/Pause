@@ -153,11 +153,11 @@ public static class EnemyRosterTest
         foreach (var pair in guidWorlds) if (pair.Value.Count > 1) shared++;
         Check("no texture GUID appears in more than one world's roster (" + shared + " shared)", shared == 0);
 
-        var mineRects = new HashSet<Rect>();
+        var mineRects = new HashSet<(int, Rect)>();   // (the atlas file, the frame: Tide's and Storm's one-row atlases share their cuts)
         for (int w = 0; w < Worlds; w++)
         {
             var dormant = EnemyArt.Frame(EnemyRoster.One(w, EnemyRole.Mine), 0);
-            Check(W(w) + " mine has its own atlas row", dormant != null && mineRects.Add(dormant.rect));
+            Check(W(w) + " mine has its own atlas row", dormant != null && mineRects.Add((dormant.texture.GetInstanceID(), dormant.rect)));
         }
 
         var masks = new Dictionary<string, bool[]>();
