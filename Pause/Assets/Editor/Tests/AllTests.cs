@@ -132,6 +132,7 @@ public static class AllTests
         ("PostHitInvulnTest", PostHitInvulnTest.Execute),
         ("RailMineArtTest", RailMineArtTest.Execute),
         ("RailMineLaserTest", RailMineLaserTest.Execute),
+        ("RailMineThemedTest", RailMineThemedTest.Execute),
         ("RailMatchTest", RailMatchTest.Execute),
         ("RailTransparencyTest", RailTransparencyTest.Execute),
         ("RailMinePacingTest", RailMinePacingTest.Execute),
