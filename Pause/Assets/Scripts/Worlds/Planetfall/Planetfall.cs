@@ -449,6 +449,17 @@ public class Planetfall : MonoBehaviour
         reticle.enabled = true;
     }
 
+    // The landing is initiated: the destination's song crossfades in now, not
+    // once the clouds clear. WorldManager.Advance / ShowEntryWorld apply the
+    // same theme again at the switch, which WorldMusic.Apply treats as a no-op
+    // (the clip is already on the source), so nothing restarts or double-fires.
+    internal static void StartLandingMusic(PlanetfallDef d)
+    {
+        if (d == null || WorldManager.Worlds == null) return;
+        try { WorldMusic.Apply(WorldManager.Worlds[Mathf.Clamp(d.world, 0, WorldManager.Worlds.Length - 1)]); }
+        catch (System.Exception e) { Debug.LogException(e); }
+    }
+
     void OnTriggerEnter2D(Collider2D other)
     {
         if (state != Stage.Approach) return;
@@ -478,6 +489,7 @@ public class Planetfall : MonoBehaviour
         // on arrival, by WorldManager.Advance)
         PortalPressure.Close(true);
         ClearBoard(cam);
+        StartLandingMusic(def);
         Lift(true);
         StepDescent(0f);
         return true;

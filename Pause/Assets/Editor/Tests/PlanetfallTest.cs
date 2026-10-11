@@ -49,6 +49,10 @@ public static class PlanetfallTest
             DescentFlow(0);
             DescentFlow(1);
             DescentFlow(2);
+            LandingMusic(0);
+            LandingMusic(1);
+            LandingMusic(2);
+            EntryMusic(2);
             ShroudFits(0);
             ShroudFits(1);
             ShroudFits(2);
@@ -98,6 +102,50 @@ public static class PlanetfallTest
         }
         Debug.Log("[PLANETFALL] failures: " + fails);
         return fails;
+    }
+
+    // ---- landing music -----------------------------------------------------------
+    // The destination's song starts when the landing is INITIATED (the commit),
+    // and the switch under the clouds neither restarts nor re-swaps it.
+    static void LandingMusic(int from)
+    {
+        int to = from + 1;
+        string onto = WorldManager.Worlds[to].displayName;
+        LiftoffCatalog.Enabled = false;
+        FreshScene(from);
+        var src = new GameObject("MovingMusic").AddComponent<AudioSource>();
+        var wm = World();
+        var fromClip = Resources.Load<AudioClip>(WorldManager.Worlds[from].musicResource);
+        var toClip = Resources.Load<AudioClip>(WorldManager.Worlds[to].musicResource);
+        src.clip = fromClip;
+        Check(onto + " music: clips exist and differ", fromClip != null && toClip != null && fromClip != toClip);
+        FinishLevel(wm);
+        var p = Planetfall.Live;
+        for (int i = 0; i < 300; i++) Fly(wm, p);
+        Check(onto + " music: still the old song while the planet is only approached", src.clip == fromClip);
+        Check(onto + " music: the commit is taken", p.Commit(Ship()));
+        Check(onto + " music: the new song starts at the commit, before the world switch",
+              src.clip == toClip && WorldManager.CurrentIndex == from);
+        var clipAtCommit = src.clip;
+        for (int i = 0; i < (int)(10f / Dt) && p.State != Planetfall.Stage.Done; i++) Fly(wm, p);
+        Check(onto + " music: the world did switch", WorldManager.CurrentIndex == to);
+        Check(onto + " music: the switch leaves the song alone (no second swap)", src.clip == clipAtCommit && src.clip == toClip);
+        Gone();
+    }
+
+    // A run that begins on a planet: the planet's song from the entry's first frame.
+    static void EntryMusic(int world)
+    {
+        LiftoffCatalog.Enabled = false;
+        FreshScene(world);
+        var src = new GameObject("MovingMusic").AddComponent<AudioSource>();
+        src.clip = Resources.Load<AudioClip>(WorldManager.Worlds[0].musicResource);
+        var def = PlanetfallCatalog.For(world - 1, world, false);
+        var p = Planetfall.SpawnEntry(def, Ship());
+        var toClip = Resources.Load<AudioClip>(WorldManager.Worlds[world].musicResource);
+        Check(WorldManager.Worlds[world].displayName + " entry: the planet's song plays from the commit",
+              p != null && toClip != null && src.clip == toClip);
+        Gone();
     }
 
     // ---- fixtures (OpenPortalTest's) ----------------------------------------
