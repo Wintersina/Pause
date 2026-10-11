@@ -1037,3 +1037,20 @@ auditing the code for this skill.**
   to the control before blaming your change.
 - Skipping the honest critique. The user wants the weak parts named ("entry
   plasma is a thin ribbon", "sky/far are flat haze") before he finds them.
+
+
+## 8. Storm (World 6) notes (what its build-out taught)
+
+- **Flags chain in world order**: `WorldManager.StormLive = TideEnabled && StormEnabled`; `LastLiveWorld` reads `StormLive`, so Storm alone
+  changes nothing. Everything for a flagged world ships in the bundle (runtime art under `Resources`, never in a `~` folder; `WorldFlagsTest`
+  checks both that the art is present and that nothing leaks while the flags are off). Desert will join the same chain.
+- **Order that worked**: merge scaffold + art branches into one integration branch; wire roster / boss / elites / sounds on four sibling
+  branches in parallel (disjoint files, each merged back, one RunAll at the end). Boss damage and mine atlas are the only pieces that need
+  painted art after the first Codex round; run them as two Codex jobs early so they finish while code is being wired.
+- **Enemy death flipbooks are scripted**: `Art/Enemies/src~/build_storm_enemy_death.py` builds the 3-cell strips from each idle cell 3
+  (registered by construction, centroid drift 0 px). Elite death strips came from Codex with the elite pack (`_death.png`); the scripted
+  `Elite/src~/build_death_strips.py` is the fallback.
+- **Mine atlas gotchas**: Codex draws the mine too small and clips the arc effects at the panel edge (check body width vs Tide's, 0.65 u +-10%, and
+  `alpha` on each panel's outer 8 px); pivots are measured per atlas, never copied from Tide.
+- **Sounds**: reuse donors via `EnemyDeathAudio.DeathAlias` + one authored thin layer; only author cues nothing else covers (`docs/storm-sounds.md`).
+- **Stand-ins still in place for Storm**: backdrop (Tide's director), ShotSkins / AttackArt (5 worlds), landing sites (Tide's pads).
