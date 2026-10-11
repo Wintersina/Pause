@@ -1,28 +1,28 @@
 fileFormatVersion: 2
-guid: 1cae6b9ef749348e3912a2ca6354d2e3
+guid: c4f853ffcbbe04cc9835dfb9edfe3c12
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 6599858139850832322
-    second: verdant_elite_sporebloom_0
+      213: -2737148667311868812
+    second: verdant_elite_leafblade_0
   - first:
-      213: -6591482446623724047
-    second: verdant_elite_sporebloom_1
+      213: 6144239530667319587
+    second: verdant_elite_leafblade_1
   - first:
-      213: 3935065331414266096
-    second: verdant_elite_sporebloom_2
+      213: -4580738658395192520
+    second: verdant_elite_leafblade_2
   - first:
-      213: -8833166726434571250
-    second: verdant_elite_sporebloom_3
+      213: -7020603750782910878
+    second: verdant_elite_leafblade_3
   - first:
-      213: -6038242309195558509
-    second: verdant_elite_sporebloom_4
+      213: -3395400343228720479
+    second: verdant_elite_leafblade_4
   - first:
-      213: -7400230631464525970
-    second: verdant_elite_sporebloom_5
+      213: 7421795261446553924
+    second: verdant_elite_leafblade_5
   - first:
-      213: 6463996501044669400
-    second: verdant_elite_sporebloom_6
+      213: -3088007880947240984
+    second: verdant_elite_leafblade_6
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -144,13 +144,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: verdant_elite_sporebloom_0
+      name: verdant_elite_leafblade_0
       rect:
         serializedVersion: 2
-        x: 36
-        y: 26
-        width: 120
-        height: 140
+        x: 44
+        y: 24
+        width: 104
+        height: 144
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -159,20 +159,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 2c977c9b208679b50800000000000000
-      internalID: 6599858139850832322
+      spriteID: 47431730ac1b30ad0800000000000000
+      internalID: -2737148667311868812
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: verdant_elite_sporebloom_1
+      name: verdant_elite_leafblade_1
       rect:
         serializedVersion: 2
-        x: 229
-        y: 26
-        width: 118
-        height: 140
+        x: 236
+        y: 24
+        width: 104
+        height: 144
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -181,20 +181,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 1fd25c153a95684a0800000000000000
-      internalID: -6591482446623724047
+      spriteID: 321a650bc49b44550800000000000000
+      internalID: 6144239530667319587
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: verdant_elite_sporebloom_2
+      name: verdant_elite_leafblade_2
       rect:
         serializedVersion: 2
-        x: 423
+        x: 428
         y: 17
-        width: 114
-        height: 149
+        width: 104
+        height: 151
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -203,20 +203,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 0f0f6eee1192c9630800000000000000
-      internalID: 3935065331414266096
+      spriteID: 8338471c572fd60c0800000000000000
+      internalID: -4580738658395192520
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: verdant_elite_sporebloom_3
+      name: verdant_elite_leafblade_3
       rect:
         serializedVersion: 2
-        x: 617
+        x: 619
         y: 24
-        width: 110
-        height: 142
+        width: 106
+        height: 144
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -225,20 +225,64 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: e0c311599a94a6580800000000000000
-      internalID: -8833166726434571250
+      spriteID: 26e3fcdd51ec19e90800000000000000
+      internalID: -7020603750782910878
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: verdant_elite_sporebloom_4
+      name: verdant_elite_leafblade_4
       rect:
         serializedVersion: 2
-        x: 803
+        x: 812
+        y: 23
+        width: 105
+        height: 145
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1aadc9f906d11e0d0800000000000000
+      internalID: -3395400343228720479
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_elite_leafblade_5
+      rect:
+        serializedVersion: 2
+        x: 1003
+        y: 23
+        width: 105
+        height: 145
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 441033ac7738ff660800000000000000
+      internalID: 7421795261446553924
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_elite_leafblade_6
+      rect:
+        serializedVersion: 2
+        x: 1196
         y: 24
-        width: 117
-        height: 142
+        width: 104
+        height: 144
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -247,52 +291,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 3911aac9c9ad33ca0800000000000000
-      internalID: -6038242309195558509
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: verdant_elite_sporebloom_5
-      rect:
-        serializedVersion: 2
-        x: 1000
-        y: 24
-        width: 117
-        height: 142
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: e6f9793e2791d4990800000000000000
-      internalID: -7400230631464525970
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: verdant_elite_sporebloom_6
-      rect:
-        serializedVersion: 2
-        x: 1188
-        y: 26
-        width: 120
-        height: 140
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 8dba22ae19ab4b950800000000000000
-      internalID: 6463996501044669400
+      spriteID: 8ef688871313525d0800000000000000
+      internalID: -3088007880947240984
       vertices: []
       indices: 
       edges: []
@@ -311,13 +311,13 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      verdant_elite_sporebloom_0: 6599858139850832322
-      verdant_elite_sporebloom_1: -6591482446623724047
-      verdant_elite_sporebloom_2: 3935065331414266096
-      verdant_elite_sporebloom_3: -8833166726434571250
-      verdant_elite_sporebloom_4: -6038242309195558509
-      verdant_elite_sporebloom_5: -7400230631464525970
-      verdant_elite_sporebloom_6: 6463996501044669400
+      verdant_elite_leafblade_0: -2737148667311868812
+      verdant_elite_leafblade_1: 6144239530667319587
+      verdant_elite_leafblade_2: -4580738658395192520
+      verdant_elite_leafblade_3: -7020603750782910878
+      verdant_elite_leafblade_4: -3395400343228720479
+      verdant_elite_leafblade_5: 7421795261446553924
+      verdant_elite_leafblade_6: -3088007880947240984
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

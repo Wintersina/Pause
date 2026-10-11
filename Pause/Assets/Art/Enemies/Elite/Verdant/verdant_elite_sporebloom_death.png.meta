@@ -1,94 +1,79 @@
 fileFormatVersion: 2
-guid: ed2c4be511eb6405c9ab2315fd843bdb
+guid: 702a28d6407b148d39e4000a3453b7e8
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 4725707852665002290
-    second: verdant_elite_timber_hauler_death_0
+      213: 4212960048453777162
+    second: verdant_elite_sporebloom_death_0
   - first:
-      213: 6220205157789356181
-    second: verdant_elite_timber_hauler_death_1
+      213: -4204940318279801301
+    second: verdant_elite_sporebloom_death_1
   - first:
-      213: -1089464249417679828
-    second: verdant_elite_timber_hauler_death_2
+      213: 2585834448579865286
+    second: verdant_elite_sporebloom_death_2
   - first:
-      213: 7167726815936025527
-    second: verdant_elite_timber_hauler_death_3
+      213: 5740513140801752301
+    second: verdant_elite_sporebloom_death_3
   - first:
-      213: 5306328979090797107
-    second: verdant_elite_timber_hauler_death_4
+      213: -5908538656702093381
+    second: verdant_elite_sporebloom_death_4
   - first:
-      213: 6524006639027364147
-    second: verdant_elite_timber_hauler_death_5
+      213: -4923055321296726128
+    second: verdant_elite_sporebloom_death_5
   - first:
-      213: 7752716423293808521
-    second: verdant_elite_timber_hauler_death_6
+      213: -8061086980190202052
+    second: verdant_elite_sporebloom_death_6
   - first:
-      213: 7348136210024465417
-    second: verdant_elite_timber_hauler_death_7
+      213: 7124265716767416111
+    second: verdant_elite_sporebloom_death_7
   - first:
-      213: -918978614689586078
-    second: verdant_elite_timber_hauler_death_8
+      213: -4710282860832042866
+    second: verdant_elite_sporebloom_death_8
   - first:
-      213: 5811076403462996746
-    second: verdant_elite_timber_hauler_death_9
+      213: 3120972631215887899
+    second: verdant_elite_sporebloom_death_9
   - first:
-      213: 684825037902303432
-    second: verdant_elite_timber_hauler_death_10
+      213: -6468693772015722709
+    second: verdant_elite_sporebloom_death_10
   - first:
-      213: 178426034306388566
-    second: verdant_elite_timber_hauler_death_11
+      213: 1584825018945791462
+    second: verdant_elite_sporebloom_death_11
   - first:
-      213: 5595520343845537890
-    second: verdant_elite_timber_hauler_death_12
+      213: 9217162328547085008
+    second: verdant_elite_sporebloom_death_12
   - first:
-      213: 5646083160084770615
-    second: verdant_elite_timber_hauler_death_13
+      213: -8303871238008669781
+    second: verdant_elite_sporebloom_death_13
   - first:
-      213: 8890481173886176616
-    second: verdant_elite_timber_hauler_death_14
+      213: 2410996140560887208
+    second: verdant_elite_sporebloom_death_14
   - first:
-      213: 840416884613581614
-    second: verdant_elite_timber_hauler_death_15
+      213: 4202140577892862543
+    second: verdant_elite_sporebloom_death_15
   - first:
-      213: 8080443091324426153
-    second: verdant_elite_timber_hauler_death_16
+      213: -2553965568489114753
+    second: verdant_elite_sporebloom_death_16
   - first:
-      213: -7151695044024409562
-    second: verdant_elite_timber_hauler_death_17
+      213: 2086540953647567580
+    second: verdant_elite_sporebloom_death_17
   - first:
-      213: 2757750687269672391
-    second: verdant_elite_timber_hauler_death_18
+      213: 1746814615918287841
+    second: verdant_elite_sporebloom_death_18
   - first:
-      213: -7255545990851399027
-    second: verdant_elite_timber_hauler_death_19
+      213: 3955376071653884694
+    second: verdant_elite_sporebloom_death_19
   - first:
-      213: 1348851118999459496
-    second: verdant_elite_timber_hauler_death_20
+      213: -3331300793019455625
+    second: verdant_elite_sporebloom_death_20
   - first:
-      213: -8764696676349210102
-    second: verdant_elite_timber_hauler_death_21
+      213: 6494686959051057488
+    second: verdant_elite_sporebloom_death_21
   - first:
-      213: -8292065120269039593
-    second: verdant_elite_timber_hauler_death_22
+      213: 7009479348014834674
+    second: verdant_elite_sporebloom_death_22
   - first:
-      213: -3842640140237441856
-    second: verdant_elite_timber_hauler_death_23
-  - first:
-      213: 246520679782396896
-    second: verdant_elite_timber_hauler_death_24
-  - first:
-      213: -378772457357773756
-    second: verdant_elite_timber_hauler_death_25
-  - first:
-      213: -5842424426543346672
-    second: verdant_elite_timber_hauler_death_26
-  - first:
-      213: 1412502018406232353
-    second: verdant_elite_timber_hauler_death_27
-  - first:
-      213: -8214857536683939778
-    second: verdant_elite_timber_hauler_death_28
+      213: -2785670754062247620
+    second: verdant_elite_sporebloom_death_23
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -210,13 +195,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: verdant_elite_timber_hauler_death_0
+      name: verdant_elite_sporebloom_death_0
       rect:
         serializedVersion: 2
-        x: 31
-        y: 41
-        width: 130
-        height: 110
+        x: 39
+        y: 26
+        width: 114
+        height: 140
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -225,20 +210,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 2391f5e0146159140800000000000000
-      internalID: 4725707852665002290
+      spriteID: a07fff4c7d0777a30800000000000000
+      internalID: 4212960048453777162
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: verdant_elite_timber_hauler_death_1
+      name: verdant_elite_sporebloom_death_1
       rect:
         serializedVersion: 2
-        x: 219
+        x: 228
         y: 96
-        width: 67
-        height: 62
+        width: 58
+        height: 77
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -247,42 +232,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 590561c82ab925650800000000000000
-      internalID: 6220205157789356181
+      spriteID: b26e63b2f0d05a5c0800000000000000
+      internalID: -4204940318279801301
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: verdant_elite_timber_hauler_death_2
-      rect:
-        serializedVersion: 2
-        x: 283
-        y: 102
-        width: 9
-        height: 9
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: c2cb8f1990271e0f0800000000000000
-      internalID: -1089464249417679828
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: verdant_elite_timber_hauler_death_3
+      name: verdant_elite_sporebloom_death_2
       rect:
         serializedVersion: 2
         x: 292
-        y: 99
-        width: 65
-        height: 59
+        y: 100
+        width: 56
+        height: 73
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -291,20 +254,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 7b398e61091e87360800000000000000
-      internalID: 7167726815936025527
+      spriteID: 6ca229b0bbab2e320800000000000000
+      internalID: 2585834448579865286
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: verdant_elite_timber_hauler_death_4
+      name: verdant_elite_sporebloom_death_3
       rect:
         serializedVersion: 2
-        x: 419
-        y: 106
-        width: 52
-        height: 53
+        x: 427
+        y: 93
+        width: 49
+        height: 77
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -313,64 +276,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 3327114a71ed3a940800000000000000
-      internalID: 5306328979090797107
+      spriteID: dec43f979466aaf40800000000000000
+      internalID: 5740513140801752301
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: verdant_elite_timber_hauler_death_5
-      rect:
-        serializedVersion: 2
-        x: 458
-        y: 95
-        width: 18
-        height: 16
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 3312487f87de98a50800000000000000
-      internalID: 6524006639027364147
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: verdant_elite_timber_hauler_death_6
-      rect:
-        serializedVersion: 2
-        x: 474
-        y: 111
-        width: 9
-        height: 9
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 98fa3c6e28e279b60800000000000000
-      internalID: 7752716423293808521
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: verdant_elite_timber_hauler_death_7
+      name: verdant_elite_sporebloom_death_4
       rect:
         serializedVersion: 2
         x: 480
-        y: 93
-        width: 61
-        height: 66
+        y: 101
+        width: 53
+        height: 69
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -379,18 +298,18 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 90481bf63f2d9f560800000000000000
-      internalID: 7348136210024465417
+      spriteID: bb7ab918567a00ea0800000000000000
+      internalID: -5908538656702093381
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: verdant_elite_timber_hauler_death_8
+      name: verdant_elite_sporebloom_death_5
       rect:
         serializedVersion: 2
-        x: 245
-        y: 93
+        x: 518
+        y: 162
         width: 9
         height: 9
       alignment: 0
@@ -401,18 +320,18 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 2642f33a1d12f33f0800000000000000
-      internalID: -918978614689586078
+      spriteID: 097138cc44bcdabb0800000000000000
+      internalID: -4923055321296726128
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: verdant_elite_timber_hauler_death_9
+      name: verdant_elite_sporebloom_death_6
       rect:
         serializedVersion: 2
-        x: 269
-        y: 94
+        x: 283
+        y: 142
         width: 9
         height: 9
       alignment: 0
@@ -423,18 +342,40 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: a030117533715a050800000000000000
-      internalID: 5811076403462996746
+      spriteID: c379c3ad914412090800000000000000
+      internalID: -8061086980190202052
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: verdant_elite_timber_hauler_death_10
+      name: verdant_elite_sporebloom_death_7
+      rect:
+        serializedVersion: 2
+        x: 474
+        y: 151
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f2f5a656ce97ed260800000000000000
+      internalID: 7124265716767416111
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_elite_sporebloom_death_8
       rect:
         serializedVersion: 2
         x: 424
-        y: 100
+        y: 140
         width: 9
         height: 9
       alignment: 0
@@ -445,20 +386,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 8c0d57d5ebcf08900800000000000000
-      internalID: 684825037902303432
+      spriteID: e80de78b1b6b1aeb0800000000000000
+      internalID: -4710282860832042866
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: verdant_elite_timber_hauler_death_11
+      name: verdant_elite_sporebloom_death_9
       rect:
         serializedVersion: 2
-        x: 285
-        y: 38
-        width: 64
-        height: 61
+        x: 525
+        y: 139
+        width: 9
+        height: 9
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -467,18 +408,18 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 65293896885e97200800000000000000
-      internalID: 178426034306388566
+      spriteID: b16d65d821cef4b20800000000000000
+      internalID: 3120972631215887899
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: verdant_elite_timber_hauler_death_12
+      name: verdant_elite_sporebloom_death_10
       rect:
         serializedVersion: 2
         x: 411
-        y: 85
+        y: 125
         width: 9
         height: 9
       alignment: 0
@@ -489,128 +430,18 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 268826c3b1847ad40800000000000000
-      internalID: 5595520343845537890
+      spriteID: b2f983679459a36a0800000000000000
+      internalID: -6468693772015722709
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: verdant_elite_timber_hauler_death_13
-      rect:
-        serializedVersion: 2
-        x: 453
-        y: 93
-        width: 6
-        height: 6
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 73fea2948baea5e40800000000000000
-      internalID: 5646083160084770615
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: verdant_elite_timber_hauler_death_14
-      rect:
-        serializedVersion: 2
-        x: 482
-        y: 38
-        width: 60
-        height: 56
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 86d88cb1685516b70800000000000000
-      internalID: 8890481173886176616
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: verdant_elite_timber_hauler_death_15
-      rect:
-        serializedVersion: 2
-        x: 491
-        y: 89
-        width: 6
-        height: 6
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: e2b02ae24b2c9ab00800000000000000
-      internalID: 840416884613581614
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: verdant_elite_timber_hauler_death_16
-      rect:
-        serializedVersion: 2
-        x: 227
-        y: 38
-        width: 57
-        height: 54
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 9a7d626fd20832070800000000000000
-      internalID: 8080443091324426153
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: verdant_elite_timber_hauler_death_17
-      rect:
-        serializedVersion: 2
-        x: 418
-        y: 39
-        width: 56
-        height: 53
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 622e00faf3310cc90800000000000000
-      internalID: -7151695044024409562
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: verdant_elite_timber_hauler_death_18
+      name: verdant_elite_sporebloom_death_11
       rect:
         serializedVersion: 2
         x: 549
-        y: 78
+        y: 118
         width: 9
         height: 9
       alignment: 0
@@ -621,18 +452,106 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 7c55ccd83af754620800000000000000
-      internalID: 2757750687269672391
+      spriteID: 6e56a6d35fd6ef510800000000000000
+      internalID: 1584825018945791462
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: verdant_elite_timber_hauler_death_19
+      name: verdant_elite_sporebloom_death_12
+      rect:
+        serializedVersion: 2
+        x: 423
+        y: 105
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0da492e9d40f9ef70800000000000000
+      internalID: 9217162328547085008
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_elite_sporebloom_death_13
+      rect:
+        serializedVersion: 2
+        x: 509
+        y: 97
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ba9f8e5da19b2cc80800000000000000
+      internalID: -8303871238008669781
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_elite_sporebloom_death_14
+      rect:
+        serializedVersion: 2
+        x: 232
+        y: 23
+        width: 52
+        height: 75
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8ad28f04734957120800000000000000
+      internalID: 2410996140560887208
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_elite_sporebloom_death_15
+      rect:
+        serializedVersion: 2
+        x: 292
+        y: 23
+        width: 52
+        height: 74
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f4a0f897790015a30800000000000000
+      internalID: 4202140577892862543
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_elite_sporebloom_death_16
       rect:
         serializedVersion: 2
         x: 417
-        y: 53
+        y: 93
         width: 9
         height: 9
       alignment: 0
@@ -643,20 +562,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: d82fac3ec5f1f4b90800000000000000
-      internalID: -7255545990851399027
+      spriteID: f73b0a1d8dd7e8cd0800000000000000
+      internalID: -2553965568489114753
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: verdant_elite_timber_hauler_death_20
+      name: verdant_elite_sporebloom_death_17
       rect:
         serializedVersion: 2
-        x: 528
-        y: 45
-        width: 9
-        height: 9
+        x: 423
+        y: 34
+        width: 50
+        height: 60
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -665,62 +584,18 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 8a6d9da32f418b210800000000000000
-      internalID: 1348851118999459496
+      spriteID: cd2d77f31f1e4fc10800000000000000
+      internalID: 2086540953647567580
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: verdant_elite_timber_hauler_death_21
-      rect:
-        serializedVersion: 2
-        x: 299
-        y: 26
-        width: 8
-        height: 9
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: a02982a6fca8d5680800000000000000
-      internalID: -8764696676349210102
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: verdant_elite_timber_hauler_death_22
+      name: verdant_elite_sporebloom_death_18
       rect:
         serializedVersion: 2
         x: 442
-        y: 34
-        width: 7
-        height: 9
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 71805f3d4baacec80800000000000000
-      internalID: -8292065120269039593
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: verdant_elite_timber_hauler_death_23
-      rect:
-        serializedVersion: 2
-        x: 515
-        y: 33
+        y: 92
         width: 9
         height: 9
       alignment: 0
@@ -731,19 +606,63 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 0c47d71d6233caac0800000000000000
-      internalID: -3842640140237441856
+      spriteID: 1eb154e53aeed3810800000000000000
+      internalID: 1746814615918287841
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: verdant_elite_timber_hauler_death_24
+      name: verdant_elite_sporebloom_death_19
       rect:
         serializedVersion: 2
-        x: 466
-        y: 17
-        width: 7
+        x: 482
+        y: 33
+        width: 55
+        height: 65
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6138208a49154e630800000000000000
+      internalID: 3955376071653884694
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_elite_sporebloom_death_20
+      rect:
+        serializedVersion: 2
+        x: 495
+        y: 91
+        width: 6
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 77729182497d4c1d0800000000000000
+      internalID: -3331300793019455625
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_elite_sporebloom_death_21
+      rect:
+        serializedVersion: 2
+        x: 285
+        y: 80
+        width: 9
         height: 9
       alignment: 0
       pivot: {x: 0, y: 0}
@@ -753,18 +672,18 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 0e3b73c8041db6300800000000000000
-      internalID: 246520679782396896
+      spriteID: 059a9910163c12a50800000000000000
+      internalID: 6494686959051057488
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: verdant_elite_timber_hauler_death_25
+      name: verdant_elite_sporebloom_death_22
       rect:
         serializedVersion: 2
         x: 476
-        y: 16
+        y: 52
         width: 9
         height: 9
       alignment: 0
@@ -775,62 +694,18 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 444fc74f4745ebaf0800000000000000
-      internalID: -378772457357773756
+      spriteID: 2f36cd6445ca64160800000000000000
+      internalID: 7009479348014834674
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: verdant_elite_timber_hauler_death_26
+      name: verdant_elite_sporebloom_death_23
       rect:
         serializedVersion: 2
         x: 484
-        y: 17
-        width: 8
-        height: 9
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 01c81d440f98beea0800000000000000
-      internalID: -5842424426543346672
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: verdant_elite_timber_hauler_death_27
-      rect:
-        serializedVersion: 2
-        x: 496
-        y: 16
-        width: 8
-        height: 9
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 12130ab1a173a9310800000000000000
-      internalID: 1412502018406232353
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: verdant_elite_timber_hauler_death_28
-      rect:
-        serializedVersion: 2
-        x: 511
-        y: 23
+        y: 57
         width: 9
         height: 9
       alignment: 0
@@ -841,8 +716,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: e3863853896fefd80800000000000000
-      internalID: -8214857536683939778
+      spriteID: c39dce2553f4759d0800000000000000
+      internalID: -2785670754062247620
       vertices: []
       indices: 
       edges: []
@@ -861,35 +736,30 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      verdant_elite_timber_hauler_death_0: 4725707852665002290
-      verdant_elite_timber_hauler_death_1: 6220205157789356181
-      verdant_elite_timber_hauler_death_10: 684825037902303432
-      verdant_elite_timber_hauler_death_11: 178426034306388566
-      verdant_elite_timber_hauler_death_12: 5595520343845537890
-      verdant_elite_timber_hauler_death_13: 5646083160084770615
-      verdant_elite_timber_hauler_death_14: 8890481173886176616
-      verdant_elite_timber_hauler_death_15: 840416884613581614
-      verdant_elite_timber_hauler_death_16: 8080443091324426153
-      verdant_elite_timber_hauler_death_17: -7151695044024409562
-      verdant_elite_timber_hauler_death_18: 2757750687269672391
-      verdant_elite_timber_hauler_death_19: -7255545990851399027
-      verdant_elite_timber_hauler_death_2: -1089464249417679828
-      verdant_elite_timber_hauler_death_20: 1348851118999459496
-      verdant_elite_timber_hauler_death_21: -8764696676349210102
-      verdant_elite_timber_hauler_death_22: -8292065120269039593
-      verdant_elite_timber_hauler_death_23: -3842640140237441856
-      verdant_elite_timber_hauler_death_24: 246520679782396896
-      verdant_elite_timber_hauler_death_25: -378772457357773756
-      verdant_elite_timber_hauler_death_26: -5842424426543346672
-      verdant_elite_timber_hauler_death_27: 1412502018406232353
-      verdant_elite_timber_hauler_death_28: -8214857536683939778
-      verdant_elite_timber_hauler_death_3: 7167726815936025527
-      verdant_elite_timber_hauler_death_4: 5306328979090797107
-      verdant_elite_timber_hauler_death_5: 6524006639027364147
-      verdant_elite_timber_hauler_death_6: 7752716423293808521
-      verdant_elite_timber_hauler_death_7: 7348136210024465417
-      verdant_elite_timber_hauler_death_8: -918978614689586078
-      verdant_elite_timber_hauler_death_9: 5811076403462996746
+      verdant_elite_sporebloom_death_0: 4212960048453777162
+      verdant_elite_sporebloom_death_1: -4204940318279801301
+      verdant_elite_sporebloom_death_10: -6468693772015722709
+      verdant_elite_sporebloom_death_11: 1584825018945791462
+      verdant_elite_sporebloom_death_12: 9217162328547085008
+      verdant_elite_sporebloom_death_13: -8303871238008669781
+      verdant_elite_sporebloom_death_14: 2410996140560887208
+      verdant_elite_sporebloom_death_15: 4202140577892862543
+      verdant_elite_sporebloom_death_16: -2553965568489114753
+      verdant_elite_sporebloom_death_17: 2086540953647567580
+      verdant_elite_sporebloom_death_18: 1746814615918287841
+      verdant_elite_sporebloom_death_19: 3955376071653884694
+      verdant_elite_sporebloom_death_2: 2585834448579865286
+      verdant_elite_sporebloom_death_20: -3331300793019455625
+      verdant_elite_sporebloom_death_21: 6494686959051057488
+      verdant_elite_sporebloom_death_22: 7009479348014834674
+      verdant_elite_sporebloom_death_23: -2785670754062247620
+      verdant_elite_sporebloom_death_3: 5740513140801752301
+      verdant_elite_sporebloom_death_4: -5908538656702093381
+      verdant_elite_sporebloom_death_5: -4923055321296726128
+      verdant_elite_sporebloom_death_6: -8061086980190202052
+      verdant_elite_sporebloom_death_7: 7124265716767416111
+      verdant_elite_sporebloom_death_8: -4710282860832042866
+      verdant_elite_sporebloom_death_9: 3120972631215887899
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

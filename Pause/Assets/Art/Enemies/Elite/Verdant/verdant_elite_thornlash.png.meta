@@ -1,28 +1,28 @@
 fileFormatVersion: 2
-guid: 63c901b52b7a349ec81324b6684511c5
+guid: d51c6f25bc1554c12a7693d44d86d502
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -2737148667311868812
-    second: verdant_elite_leafblade_0
+      213: 1713231806150955838
+    second: verdant_elite_thornlash_0
   - first:
-      213: 6144239530667319587
-    second: verdant_elite_leafblade_1
+      213: -161284670323416228
+    second: verdant_elite_thornlash_1
   - first:
-      213: -4580738658395192520
-    second: verdant_elite_leafblade_2
+      213: 6728532239911099600
+    second: verdant_elite_thornlash_2
   - first:
-      213: -7020603750782910878
-    second: verdant_elite_leafblade_3
+      213: 2452031458993546355
+    second: verdant_elite_thornlash_3
   - first:
-      213: -3395400343228720479
-    second: verdant_elite_leafblade_4
+      213: -7472401941850227397
+    second: verdant_elite_thornlash_4
   - first:
-      213: 7421795261446553924
-    second: verdant_elite_leafblade_5
+      213: 6243640481165991880
+    second: verdant_elite_thornlash_5
   - first:
-      213: -3088007880947240984
-    second: verdant_elite_leafblade_6
+      213: -2757645102956926367
+    second: verdant_elite_thornlash_6
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -144,13 +144,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: verdant_elite_leafblade_0
+      name: verdant_elite_thornlash_0
       rect:
         serializedVersion: 2
-        x: 44
-        y: 24
-        width: 104
-        height: 144
+        x: 34
+        y: 29
+        width: 124
+        height: 134
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -159,20 +159,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 47431730ac1b30ad0800000000000000
-      internalID: -2737148667311868812
+      spriteID: e335787204f96c710800000000000000
+      internalID: 1713231806150955838
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: verdant_elite_leafblade_1
+      name: verdant_elite_thornlash_1
       rect:
         serializedVersion: 2
-        x: 236
-        y: 24
-        width: 104
-        height: 144
+        x: 225
+        y: 28
+        width: 126
+        height: 136
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -181,20 +181,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 321a650bc49b44550800000000000000
-      internalID: 6144239530667319587
+      spriteID: c5328a5627003cdf0800000000000000
+      internalID: -161284670323416228
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: verdant_elite_leafblade_2
+      name: verdant_elite_thornlash_2
       rect:
         serializedVersion: 2
-        x: 428
-        y: 17
-        width: 104
-        height: 151
+        x: 416
+        y: 27
+        width: 128
+        height: 138
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -203,20 +203,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 8338471c572fd60c0800000000000000
-      internalID: -4580738658395192520
+      spriteID: 0dc1aa34c6c806d50800000000000000
+      internalID: 6728532239911099600
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: verdant_elite_leafblade_3
+      name: verdant_elite_thornlash_3
       rect:
         serializedVersion: 2
-        x: 619
-        y: 24
-        width: 106
-        height: 144
+        x: 607
+        y: 26
+        width: 130
+        height: 140
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -225,20 +225,42 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 26e3fcdd51ec19e90800000000000000
-      internalID: -7020603750782910878
+      spriteID: 374a46bde9d570220800000000000000
+      internalID: 2452031458993546355
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: verdant_elite_leafblade_4
+      name: verdant_elite_thornlash_4
       rect:
         serializedVersion: 2
-        x: 812
+        x: 803
+        y: 27
+        width: 126
+        height: 139
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b3df31d3602bc4890800000000000000
+      internalID: -7472401941850227397
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_elite_thornlash_5
+      rect:
+        serializedVersion: 2
+        x: 993
         y: 23
-        width: 105
-        height: 145
+        width: 130
+        height: 143
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -247,20 +269,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 1aadc9f906d11e0d0800000000000000
-      internalID: -3395400343228720479
+      spriteID: 8cfd529ffedd5a650800000000000000
+      internalID: 6243640481165991880
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: verdant_elite_leafblade_5
+      name: verdant_elite_thornlash_6
       rect:
         serializedVersion: 2
-        x: 1003
-        y: 23
-        width: 105
-        height: 145
+        x: 1186
+        y: 27
+        width: 124
+        height: 136
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -269,30 +291,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 441033ac7738ff660800000000000000
-      internalID: 7421795261446553924
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: verdant_elite_leafblade_6
-      rect:
-        serializedVersion: 2
-        x: 1196
-        y: 24
-        width: 104
-        height: 144
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 8ef688871313525d0800000000000000
-      internalID: -3088007880947240984
+      spriteID: 16a28a5b360eab9d0800000000000000
+      internalID: -2757645102956926367
       vertices: []
       indices: 
       edges: []
@@ -311,13 +311,13 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      verdant_elite_leafblade_0: -2737148667311868812
-      verdant_elite_leafblade_1: 6144239530667319587
-      verdant_elite_leafblade_2: -4580738658395192520
-      verdant_elite_leafblade_3: -7020603750782910878
-      verdant_elite_leafblade_4: -3395400343228720479
-      verdant_elite_leafblade_5: 7421795261446553924
-      verdant_elite_leafblade_6: -3088007880947240984
+      verdant_elite_thornlash_0: 1713231806150955838
+      verdant_elite_thornlash_1: -161284670323416228
+      verdant_elite_thornlash_2: 6728532239911099600
+      verdant_elite_thornlash_3: 2452031458993546355
+      verdant_elite_thornlash_4: -7472401941850227397
+      verdant_elite_thornlash_5: 6243640481165991880
+      verdant_elite_thornlash_6: -2757645102956926367
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

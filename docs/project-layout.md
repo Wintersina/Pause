@@ -40,3 +40,17 @@ affected and un-muting resumes mid-track). PlayerPrefs int `soundMuted` (absent 
 and re-applied on scene load and focus change. Device-local: not in the cloud snapshot. Haptics are a separate matter
 and unaffected (there is no haptics option). Un-muting plays a short confirmation click. Tests: `SoundMuteTest`,
 ScreenFit screens `options-mute-on` / `options-mute-off`.
+
+## Cloud save: what is synced
+
+One JSON `ProgressSnapshot` (`Scripts/Core/CloudSave`), merged by `ProgressMerge`, uploaded debounced by `CloudSync`.
+Synced: star dust, owned ships, spawn ship, best speed / best score, current / highest / start world, tutorial flag,
+achievement counters and flags (`AchievementStore.SyncKeys`), hull skins, and the **Codex**: `codexSeen` (discovered
+entries), `codexNew` (discovered but detail not yet opened = NEW dot) and `codexNewAck` (NEW entries whose tab was
+opened, plus `ach:<id>` acknowledgements). Each is a sorted, de-duplicated id list, capped at 512 ids.
+Codex merge: discoveries = union; NEW = both sides' NEW minus any entry the other side already knows and does not list
+as NEW (cleared on either side stays cleared, so no dot is resurrected); acknowledged on either side stays acknowledged
+(only while the entry is still NEW). Restoring on a fresh install therefore lights nothing: only entries the cloud itself
+listed as NEW stay NEW. `Apply()` ends with `Codex.OnExternalChange()` so cached sets cannot overwrite the restore.
+Schema stays at 1: the fields are additive (old saves load as empty; old clients ignore them, though an old client's
+next upload drops them until a newer client uploads again). Device-local: settings, developer switches, cloud bookkeeping.
