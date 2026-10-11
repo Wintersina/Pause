@@ -509,6 +509,19 @@ public static class EnemyDeathAudioTest
             good &= clip != null && clip.channels == 1 && clip.frequency == 44100;
             if (!good) { ok = false; bad = path; break; }
         }
+        // Android build override: Vorbis / ADPCM, still decompress-on-load + preloaded.
+        bool andOk = true; string andBad = "";
+        foreach (var g in guids)
+        {
+            string path = AssetDatabase.GUIDToAssetPath(g);
+            var imp = (AudioImporter)AssetImporter.GetAtPath(path);
+            if (!imp.ContainsSampleSettingsOverride("Android")) { andOk = false; andBad = path; break; }
+            var a = imp.GetOverrideSampleSettings("Android");
+            if (!(a.loadType == AudioClipLoadType.DecompressOnLoad && a.preloadAudioData &&
+                  (a.compressionFormat == AudioCompressionFormat.Vorbis || a.compressionFormat == AudioCompressionFormat.ADPCM)))
+            { andOk = false; andBad = path; break; }
+        }
+        Check("EnemyDeath clips import Android override Vorbis/ADPCM, decompress-on-load, preload" + (andBad != "" ? " (bad: " + andBad + ")" : ""), andOk);
         Check("EnemyDeath clips (" + guids.Length + ") import mono / PCM / decompress-on-load / preload / 44.1 kHz" + (bad != "" ? " (bad: " + bad + ")" : ""), ok);
     }
 
