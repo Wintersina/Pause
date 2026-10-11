@@ -68,6 +68,8 @@ For Suno / Udio style generators. No artist names. Each background track starts 
 
 ## Boost music (replaces BoostingMusic.wav, the track that plays while the ship is boosting)
 
+Shipped: the user's own "Hyperspace Loop" track, cut from 26 s to the end (about 182 s, stereo 48 kHz), is `BoostingMusic.wav`; the prompt below is only for a future replacement.
+
 The current file (`Assets/Audio/Music/BoostingMusic.wav`, about 40 s, loops while boosting) is a layer over the world track, so the replacement should be a short, tight loop that adds speed without being shrill or repetitive. Use the shared style line, then:
 
 > Instrumental, no vocals. A short seamless loop of 16 bars at 150 BPM that adds speed and adrenaline to a game, without a lead melody. A driving rolling bassline, a tight four-on-the-floor kick, fast closed hi-hats, a filtered rising arpeggio underneath and a subtle riser tail. Smooth, warm, analog tone, with no harsh high-pitched squeals or sirens, no sharp saw leads, no repeated stabs and no sudden loud hits. Sidechained pads breathing with the kick, a feeling of acceleration, wind rush and a hyperspace-like tunnel. Moderate loudness, mixed to sit under gameplay sounds. Ends on the same chord it starts on so that it loops with no gap.
