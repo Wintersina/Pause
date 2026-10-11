@@ -714,6 +714,8 @@ public static class AttackLashTest
     static void DrawnPixels()
     {
         Fresh();
+        AttackArt.Inject(2, "lash", null);   // audit the procedural look; the painted Verdant sheet is not CPU-readable (VerdantAttackArtTest covers it)
+        AttackHazardArt.Forget();
         int n = 0, lowPink = 0, red = 0, hot = 0, heavy = 0, softEdge = 0, keylineWrong = 0;
         string worstPink = "", worstEdge = "", hotWhere = "";
         float minPink = 9f, minEdge = 9f, maxMat = 0f;
@@ -801,6 +803,8 @@ public static class AttackLashTest
     static void ArtSlot()
     {
         Fresh();
+        AttackArt.Inject(2, "lash", null);   // (the painted whip is installed now: serve none to check the fallback)
+        AttackHazardArt.Forget();
         Check("without the art file the procedural whip is drawn (no verdant lash atlas)", !AttackArt.Has(2, "lash") && !AttackHazardArt.LashArt(2));
         var lashAtlas = Atlas(1024, 128, new Color32(255, 90, 220, 255));
         AttackArt.Inject(2, "lash", lashAtlas);

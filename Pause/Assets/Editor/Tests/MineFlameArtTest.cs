@@ -22,7 +22,7 @@ public static class MineFlameArtTest
     public static void Run() { TestHarness.Exit(Execute()); }
 
     const string Path_ = "Assets/Art/Resources/Attacks/Ember/ember_attack_mineflame.png";
-    public const long AttackTexturesBudget = 12L * 1024 * 1024;       // every Resources/Attacks sheet together (GPU, RGBA32): 4 laser kits + the flame ~ 11.3 MB
+    public const long AttackTexturesBudget = 13L * 1024 * 1024;       // every Resources/Attacks sheet together (GPU, RGBA32): 4 laser kits + the flame ~ 11.3 MB + Verdant's lash and log 1.5 MB = 12.8 MB
     public const long WithBackdropBudget = AttackTexturesBudget + WorldBackdropTest.FrostTextureBudgetBytes;   // the largest world budget beside them
 
     public static int Execute()
