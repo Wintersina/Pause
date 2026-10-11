@@ -16,7 +16,7 @@ public static class BoostMusicContinuityTest
         if (!ok) fails++;
     }
 
-    const string ClipPath = "Assets/Audio/Music/BoostingMusic.wav";
+    const string ClipPath = "Assets/Audio/Music/BoostingMusic.mp3";
     const string Guid = "96cc59c5eca368b4180a8501f68b7acb";
     const float SourceSeconds = 207.9735f;   // the Hyperspace Loop m4a, decoded
     const float CutAt = 26f;
@@ -37,7 +37,7 @@ public static class BoostMusicContinuityTest
     static void Body()
     {
         // ---- the asset: replaced in place, old data gone ----
-        Check("BoostingMusic.wav keeps its guid", AssetDatabase.AssetPathToGUID(ClipPath) == Guid);
+        Check("BoostingMusic.mp3 keeps its guid", AssetDatabase.AssetPathToGUID(ClipPath) == Guid);
         var clip = AssetDatabase.LoadAssetAtPath<AudioClip>(ClipPath);
         Check("clip loads", clip != null);
         if (clip != null)
@@ -52,9 +52,8 @@ public static class BoostMusicContinuityTest
         Check("file is not the old 7,301,622 byte wav", size != 7301622L);
 
         // The original is kept outside the build: a tilde folder Unity ignores, no meta.
-        Check("old track kept in Legacy~ (7,301,622 bytes)", new FileInfo("Assets/Audio/Legacy~/BoostingMusic_old.wav").Length == 7301622L);
-        Check("Legacy~ copy has no .meta and is not imported", !File.Exists("Assets/Audio/Legacy~/BoostingMusic_old.wav.meta")
-              && AssetDatabase.AssetPathToGUID("Assets/Audio/Legacy~/BoostingMusic_old.wav") == "");
+        Check("the old boost track is gone (master deleted it; no Legacy~ copy, not imported)",
+              !File.Exists("Assets/Audio/Legacy~/BoostingMusic_old.wav") && AssetDatabase.AssetPathToGUID("Assets/Audio/Legacy~/BoostingMusic_old.wav") == "");
 
         var imp = AssetImporter.GetAtPath(ClipPath) as AudioImporter;
         Check("importer found", imp != null);

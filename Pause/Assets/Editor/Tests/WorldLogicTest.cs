@@ -18,12 +18,15 @@ public static class WorldLogicTest
     // Worlds that play the scene's own default track: the Space/Verdant stage
     // arrangements and Verdant.wav were deleted on purpose, so these worlds
     // request no clips and never escalate.
-    static readonly string[] SceneDefaultWorlds = { "Verdant" };
+    static readonly string[] SceneDefaultWorlds = { };
 
     // Worlds that play one of the user's songs for the whole level.
     static readonly (string world, string resource, string asset)[] FullSongs =
     {
         ("Frost", "WorldMusic/Frost_Main", "Assets/Audio/Resources/WorldMusic/Frost_Main.mp3"),
+        ("Verdant", "WorldMusic/Verdant_Main", "Assets/Audio/Resources/WorldMusic/Verdant_Main.mp3"),
+        ("Tide", "WorldMusic/Tide_Main", "Assets/Audio/Resources/WorldMusic/Tide_Main.mp3"),
+        ("Storm", "WorldMusic/Storm_Main", "Assets/Audio/Resources/WorldMusic/Storm_Main.mp3"),
         ("Ember", "WorldMusic/Ember_Main", "Assets/Audio/Resources/WorldMusic/Ember_Main.mp3"),
     };
 
@@ -213,9 +216,9 @@ public static class WorldLogicTest
         Check("Storm is world 5 (the sixth), named Storm, folder Storm, ramping harder than Tide",
               t.displayName == "Storm" && t.resourceFolder == "Storm" && t.speedRampPerSecond > WorldManager.Worlds[Tide].speedRampPerSecond &&
               t.enemyRampScale > WorldManager.Worlds[Tide].enemyRampScale);
-        Check("... ramp .00405 / enemy scale 1.65, no music of its own",
+        Check("... ramp .00405 / enemy scale 1.65, its own song (Storm_Main)",
               Mathf.Approximately(t.speedRampPerSecond, .00405f) && Mathf.Approximately(t.enemyRampScale, 1.65f) &&
-              t.musicResource == "" && !t.progressiveMusic);
+              t.musicResource == WorldMusic.StormTrack && !t.progressiveMusic);
         Color c = t.portalColor;
         float hue, sat, val; Color.RGBToHSV(c, out hue, out sat, out val);
         Check("... its portal is pale storm-white / yellow (hue 40..70 deg, soft), not violet, amber nor the mint",
@@ -257,12 +260,12 @@ public static class WorldLogicTest
     // worlds and the loop's return all resolve to it.
     static void SpaceSong()
     {
-        const string asset = "Assets/Audio/Resources/WorldMusic/Space_Main.wav";
+        const string asset = "Assets/Audio/Resources/WorldMusic/Space_Main.mp3";
         var space = Theme("Space");
         var clip = Resources.Load<AudioClip>(WorldMusic.SpaceTrack);
         Check("Space plays " + WorldMusic.SpaceTrack, space.musicResource == WorldMusic.SpaceTrack && !WorldMusic.UsesStages(space));
         Check("Space_Main loads from Resources and is the imported " + asset, clip != null && AssetDatabase.LoadAssetAtPath<AudioClip>(asset) == clip);
-        Check("Space_Main is ~212.8 s (" + (clip != null ? clip.length : 0f) + ")", clip != null && Mathf.Abs(clip.length - 212.8f) < 0.2f);
+        Check("Space_Main is ~212.8 s (" + (clip != null ? clip.length : 0f) + ")", clip != null && Mathf.Abs(clip.length - 212.8f) < 0.1f);
         Check("Space_Main loops end to end (no loop-out point)", WorldMusic.LoopOutSeconds(WorldMusic.SpaceTrack) == 0f);
 
         var importer = AssetImporter.GetAtPath(asset) as AudioImporter;
@@ -280,9 +283,9 @@ public static class WorldLogicTest
             }
         }
 
-        // The old scene-default Space track is still the default for Verdant.
-        Check("MovingMusic.wav stays (Verdant, Tide, Storm still play the scene track)",
-              System.IO.File.Exists("Assets/Audio/Music/MovingMusic.wav") && Theme("Verdant").musicResource == "");
+        // MovingMusic.wav stays: it is the scene's own default clip (and the fallback for any world without a song).
+        Check("MovingMusic.wav stays (the scene default)",
+              System.IO.File.Exists("Assets/Audio/Music/MovingMusic.wav"));
 
         // The space leg between worlds is Space's sky: every lift-off's interlude world is Space, and Liftoff.Swap applies its music.
         foreach (var def in LiftoffCatalog.Defs)
@@ -331,7 +334,7 @@ public static class WorldLogicTest
 
             var clip = Resources.Load<AudioClip>(song.resource);
             Check(song.resource + " loads", clip != null);
-            Check(song.resource + " is the full song (over three minutes)", clip != null && clip.length > 180f);
+            Check(song.resource + " is a full song (over 100 s)", clip != null && clip.length > 100f);
             Check(song.resource + " is imported from " + song.asset,
                   clip != null && AssetDatabase.LoadAssetAtPath<AudioClip>(song.asset) == clip);
 
@@ -345,7 +348,8 @@ public static class WorldLogicTest
                     Check(song.world + " overrides " + platform, importer.ContainsSampleSettingsOverride(platform));
                     Check(song.world + " streams on " + platform, s.loadType == AudioClipLoadType.Streaming);
                     Check(song.world + " is Vorbis on " + platform, s.compressionFormat == AudioCompressionFormat.Vorbis);
-                    Check(song.world + " is ~70% quality on " + platform, Mathf.Abs(s.quality - 0.7f) < 0.011f);
+                    float wantQuality = 0.5f;   // Frost: the 48 kHz Frozen Pulse WAV, Vorbis 0.5 to keep the build small
+                    Check(song.world + " is ~" + Mathf.RoundToInt(wantQuality * 100f) + "% quality on " + platform, Mathf.Abs(s.quality - wantQuality) < 0.011f);
                     Check(song.world + " does not preload on " + platform, !s.preloadAudioData);
                 }
             }
@@ -380,7 +384,8 @@ public static class WorldLogicTest
 
         // A scene-default world keeps the scene's track and disarms the full-song loop.
         var sceneTrack = AudioClip.Create("sceneTrack", 44100, 1, 44100, false);
-        var music = GameObject.Find("MovingMusic").GetComponent<AudioSource>();
+        var musicGo = GameObject.Find("MovingMusic");
+        var music = musicGo != null ? musicGo.GetComponent<AudioSource>() : new GameObject("MovingMusic").AddComponent<AudioSource>();
         music.clip = sceneTrack;
         foreach (var w in SceneDefaultWorlds)
         {
@@ -412,6 +417,55 @@ public static class WorldLogicTest
             foreach (var c in code) if (c.Contains("\"WorldMusic/" + name + "\"")) { named = true; break; }
             Check(name + " is not named in code", !named);
         }
+        // Frost plays the user's Frozen Pulse WAV (207.6 s); the old mp3 is gone.
+        var frostClip = Resources.Load<AudioClip>(WorldMusic.FrostTrack);
+        Check("Frost resolves to the Frozen Pulse WAV", frostClip != null
+              && AssetDatabase.GetAssetPath(frostClip) == "Assets/Audio/Resources/WorldMusic/Frost_Main.mp3");
+        Check("Frost clip is ~207.6 s", frostClip != null && Mathf.Abs(frostClip.length - 207.6f) < 0.5f);
+        Check("old Frost song is kept only under Legacy~ (no wav in the build)",
+              File.Exists("Assets/Audio/Legacy~/Frost_Main_old.mp3") && !File.Exists("Assets/Audio/Resources/WorldMusic/Frost_Main.wav")
+              && !File.Exists("Assets/Audio/Legacy~/Frost_Main_old.mp3.meta"));
+        Check("Frost loop-out sits inside the clip, before its closing decay",
+              frostClip != null && WorldMusic.LoopOutSeconds(WorldMusic.FrostTrack) > 200f && WorldMusic.LoopOutSeconds(WorldMusic.FrostTrack) < frostClip.length - 2f);
+        var verdantClip = Resources.Load<AudioClip>(WorldMusic.VerdantTrack);
+        Check("Verdant resolves to the Jungle Night Pulse WAV", verdantClip != null
+              && AssetDatabase.GetAssetPath(verdantClip) == "Assets/Audio/Resources/WorldMusic/Verdant_Main.mp3");
+        Check("Verdant clip is ~200.0 s", verdantClip != null && Mathf.Abs(verdantClip.length - 200.0f) < 0.5f);
+        var tideClip = Resources.Load<AudioClip>(WorldMusic.TideTrack);
+        Check("Tide resolves to the Deep Sonar Ping WAV (~208.4 s)", tideClip != null
+              && AssetDatabase.GetAssetPath(tideClip) == "Assets/Audio/Resources/WorldMusic/Tide_Main.mp3"
+              && Mathf.Abs(tideClip.length - 208.4f) < 0.5f && Theme("Tide").musicResource == WorldMusic.TideTrack);
+        var stormClip = Resources.Load<AudioClip>(WorldMusic.StormTrack);
+        Check("Storm resolves to the Static Storm mp3 (~120.0 s)", stormClip != null
+              && AssetDatabase.GetAssetPath(stormClip) == "Assets/Audio/Resources/WorldMusic/Storm_Main.mp3"
+              && Mathf.Abs(stormClip.length - 120.0f) < 0.5f && Theme("Storm").musicResource == WorldMusic.StormTrack);
+        Check("Space keeps Space_Main", Theme("Space").musicResource == WorldMusic.SpaceTrack);
+        var emberClip = Resources.Load<AudioClip>(WorldMusic.EmberTrack);
+        Check("Ember resolves to the Anvil Arpeggio WAV (~229.9 s)", emberClip != null
+              && AssetDatabase.GetAssetPath(emberClip) == "Assets/Audio/Resources/WorldMusic/Ember_Main.mp3"
+              && Mathf.Abs(emberClip.length - 229.92f) < 0.5f && Theme("Ember").musicResource == WorldMusic.EmberTrack);
+        Check("old Ember song is kept only under Legacy~ (no wav in the build)",
+              File.Exists("Assets/Audio/Legacy~/Ember_Main_old.mp3") && !File.Exists("Assets/Audio/Resources/WorldMusic/Ember_Main.wav")
+              && !File.Exists("Assets/Audio/Legacy~/Ember_Main_old.mp3.meta"));
+        Check("no large WAV songs remain in WorldMusic", Directory.GetFiles("Assets/Audio/Resources/WorldMusic", "*_Main.wav").Length == 0);
+        var desertAsset = "Assets/Audio/Resources/WorldMusic/Desert_Main.mp3";
+        var desertClip = AssetDatabase.LoadAssetAtPath<AudioClip>(desertAsset);
+        Check("Desert_Main.mp3 (Dune Circuit) is installed, ~199.15 s, resolvable as " + WorldMusic.DesertTrack,
+              desertClip != null && Mathf.Abs(desertClip.length - 199.15f) < 0.1f && Resources.Load<AudioClip>(WorldMusic.DesertTrack) == desertClip);
+        var desertImp = AssetImporter.GetAtPath(desertAsset) as AudioImporter;
+        bool desertOk = desertImp != null && !desertImp.forceToMono;
+        foreach (var platform in new[] { "Android", "iOS" })
+        {
+            if (desertImp == null) break;
+            var ds = desertImp.GetOverrideSampleSettings(platform);
+            desertOk &= desertImp.ContainsSampleSettingsOverride(platform) && ds.loadType == AudioClipLoadType.Streaming
+                        && ds.compressionFormat == AudioCompressionFormat.Vorbis && Mathf.Abs(ds.quality - 0.5f) < 0.011f && !ds.preloadAudioData;
+        }
+        Check("Desert_Main is stereo, Vorbis 0.5, streaming, no preload on Android and iOS", desertOk);
+        Check("Desert loop-out sits inside the clip", desertClip != null && WorldMusic.LoopOutSeconds(WorldMusic.DesertTrack) > 190f
+              && WorldMusic.LoopOutSeconds(WorldMusic.DesertTrack) < desertClip.length - 1f);
+        Check("Ember loop-out sits inside the clip, before its closing decay",
+              emberClip != null && WorldMusic.LoopOutSeconds(WorldMusic.EmberTrack) > 220f && WorldMusic.LoopOutSeconds(WorldMusic.EmberTrack) < emberClip.length - 2f);
         foreach (var song in FullSongs)
             for (int stage = 1; stage <= 6; stage++)
                 Check("no " + song.world + " stage " + stage + " left",

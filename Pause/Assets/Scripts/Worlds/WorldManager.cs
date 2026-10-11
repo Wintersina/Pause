@@ -88,7 +88,7 @@ public class WorldManager : MonoBehaviour
         },
         new WorldTheme {
             displayName = "Verdant", resourceFolder = "Verdant",
-            musicResource = "", progressiveMusic = false, // plays the scene's own track
+            musicResource = "WorldMusic/Verdant_Main", progressiveMusic = false, // Jungle Night Pulse
             portalColor = new Color(0.60f, 1f, 0.62f),
             speedRampPerSecond = 0.00345f, enemyRampScale = 1.20f,
         },
@@ -104,7 +104,7 @@ public class WorldManager : MonoBehaviour
         // (add-world checklist section F).
         new WorldTheme {
             displayName = "Tide", resourceFolder = "Tide",
-            musicResource = "", progressiveMusic = false,   // plays the scene's own track
+            musicResource = "WorldMusic/Tide_Main", progressiveMusic = false,   // Deep Sonar Ping
             portalColor = new Color(0.49f, 0.95f, 0.75f),   // bioluminescent mint #7CF2C0
             speedRampPerSecond = 0.00385f, enemyRampScale = 1.50f,
         },
@@ -115,7 +115,7 @@ public class WorldManager : MonoBehaviour
         // (resourceFolder "Storm" has no rails yet: WorldPainter draws Tide's).
         new WorldTheme {
             displayName = "Storm", resourceFolder = "Storm",
-            musicResource = "", progressiveMusic = false,   // plays the scene's own track
+            musicResource = "WorldMusic/Storm_Main", progressiveMusic = false,   // Static Storm
             portalColor = new Color(0.96f, 0.95f, 0.72f),   // storm-white with a pale lightning-yellow edge
             speedRampPerSecond = 0.00405f, enemyRampScale = 1.65f,
         },
