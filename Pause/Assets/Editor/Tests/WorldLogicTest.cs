@@ -384,7 +384,8 @@ public static class WorldLogicTest
 
         // A scene-default world keeps the scene's track and disarms the full-song loop.
         var sceneTrack = AudioClip.Create("sceneTrack", 44100, 1, 44100, false);
-        var music = GameObject.Find("MovingMusic").GetComponent<AudioSource>();
+        var musicGo = GameObject.Find("MovingMusic");
+        var music = musicGo != null ? musicGo.GetComponent<AudioSource>() : new GameObject("MovingMusic").AddComponent<AudioSource>();
         music.clip = sceneTrack;
         foreach (var w in SceneDefaultWorlds)
         {

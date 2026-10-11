@@ -52,9 +52,8 @@ public static class BoostMusicContinuityTest
         Check("file is not the old 7,301,622 byte wav", size != 7301622L);
 
         // The original is kept outside the build: a tilde folder Unity ignores, no meta.
-        Check("old track kept in Legacy~ (7,301,622 bytes)", new FileInfo("Assets/Audio/Legacy~/BoostingMusic_old.wav").Length == 7301622L);
-        Check("Legacy~ copy has no .meta and is not imported", !File.Exists("Assets/Audio/Legacy~/BoostingMusic_old.wav.meta")
-              && AssetDatabase.AssetPathToGUID("Assets/Audio/Legacy~/BoostingMusic_old.wav") == "");
+        Check("the old boost track is gone (master deleted it; no Legacy~ copy, not imported)",
+              !File.Exists("Assets/Audio/Legacy~/BoostingMusic_old.wav") && AssetDatabase.AssetPathToGUID("Assets/Audio/Legacy~/BoostingMusic_old.wav") == "");
 
         var imp = AssetImporter.GetAtPath(ClipPath) as AudioImporter;
         Check("importer found", imp != null);
