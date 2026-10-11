@@ -373,12 +373,15 @@ def write_cs(results):
     w("    public static readonly string[][] Parts =")
     w("    {")
     for world, table in results.items():
-        w("        new[] { %s }," % ", ".join('"%s"' % n for n, _ in table))
+        w(("        new[] { %s }," % ", ".join('"%s"' % n for n, _ in table)) if table else "        new string[0],   // " + world)
     w("    };")
     w("")
     w("    public static readonly short[][][] Points =")
     w("    {")
     for world, table in results.items():
+        if not table:
+            w("        new short[0][],   // " + world)
+            continue
         w("        new[]   // " + world)
         w("        {")
         for name, pts in table:
@@ -403,6 +406,9 @@ def main():
         if out_dir:
             preview(world, frames, table, out_dir)
         print(world, ", ".join("%s %s" % (n, pts[min(9, len(pts) - 1)]) for n, pts in table))
+    # Storm: an empty entry keeps the table index-aligned with WorldManager.Worlds until its boss art is measured
+    # (its placeholder BossDef uses Tide's artKey, so nothing reads this row).
+    results["Storm"] = []
     write_cs(results)
     print("wrote", OUT)
 

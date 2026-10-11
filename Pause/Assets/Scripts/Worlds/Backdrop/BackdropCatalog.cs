@@ -333,8 +333,20 @@ public static class BackdropCatalog
         get { var spec = For(WorldManager.Current.displayName); return spec != null && spec.Bright; }
     }
 
+    // Storm has no ground backdrop yet (add-world phase 11): its level flies over
+    // Tide's, so a Storm run is playable in dev. Removed with the real Spec.
+    public const string StormStandIn = "Tide";
+
+    static string Resolve(string displayName)
+    {
+        if (displayName != "Storm") return displayName;
+        foreach (var s in specs) if (s.world == displayName) return displayName;
+        return StormStandIn;
+    }
+
     public static Spec For(string displayName)
     {
+        displayName = Resolve(displayName);
         foreach (var s in specs) if (s.world == displayName) return s;
         return specs[0];
     }
@@ -357,6 +369,7 @@ public static class BackdropCatalog
 
     static Spec Exact(string world)
     {
+        world = Resolve(world);
         foreach (var s in specs) if (s.world == world) return s;
         return null;
     }

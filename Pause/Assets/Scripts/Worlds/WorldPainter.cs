@@ -52,7 +52,7 @@ public static class WorldPainter
     public static RailEdge EdgeFor(string world)
     {
         var e = DefaultEdge;
-        switch (world)
+        switch (RailArtWorld(world))
         {
             // Frost's pale steel is the brightest metal: a touch more shade
             // for the same read.
@@ -100,7 +100,8 @@ public static class WorldPainter
             return;
         }
 
-        string root = "Worlds/" + (string.IsNullOrEmpty(theme.resourceFolder) ? theme.displayName : theme.resourceFolder) + "/";
+        string root = "Worlds/" + (RailArtWorld(theme.displayName) != theme.displayName ? RailArtWorld(theme.displayName)
+                      : string.IsNullOrEmpty(theme.resourceFolder) ? theme.displayName : theme.resourceFolder) + "/";
         // Reinforced rails share Frost's visible width and are mirrored so
         // their lamp/pipe edges face the playfield on both sides.
         var rail = Resources.Load<Texture2D>(root + railName);
@@ -124,9 +125,13 @@ public static class WorldPainter
         BossRails.Measure();
     }
 
+    // Storm has no rails of its own yet (add-world phase 5): it flies between
+    // Tide's, texture, bounds and edge alike. Dropped with the real art.
+    public static string RailArtWorld(string world) { return world == "Storm" ? "Tide" : world; }
+
     public static string RailTextureName(string world)
     {
-        switch (world)
+        switch (RailArtWorld(world))
         {
             case "Verdant": return "rail_forest_wide_v1";
             case "Frost": return "rail_frost_wide_v1";
@@ -174,7 +179,7 @@ public static class WorldPainter
 
     static void RailBounds(string world, out float min, out float max)
     {
-        switch (world)
+        switch (RailArtWorld(world))
         {
             case "Frost": min = 140f / 725f; max = 583f / 725f; break;
             case "Verdant": min = 139f / 725f; max = 580f / 725f; break;
@@ -199,7 +204,7 @@ public static class WorldPainter
         var tex = mat != null ? mat.mainTexture : null;
         if (tex == null) return false;
         string world = null;
-        foreach (string w in new[] { "Space", "Frost", "Verdant", "Ember", "Tide" })
+        foreach (string w in new[] { "Space", "Frost", "Verdant", "Ember", "Tide" })   // Storm shares Tide's (RailArtWorld)
             if (RailTextureName(w) == tex.name) world = w;
         if (world == null) return false;
         RailBounds(world, out float min, out float max);

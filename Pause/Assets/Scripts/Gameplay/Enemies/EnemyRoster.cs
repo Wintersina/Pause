@@ -3,7 +3,7 @@ using UnityEngine;
 
 // Every enemy the spawner can field, per world, in one table.
 //
-// Each world (WorldManager.Worlds: Space, Frost, Verdant, Ember, Tide) fills the
+// Each world (WorldManager.Worlds: Space, Frost, Verdant, Ember, Tide, Storm) fills the
 // same gameplay roles, so enmiesOnBoard's phases and difficulty hold whatever
 // planet the player is on -- only the cast changes:
 //
@@ -72,7 +72,12 @@ public static class EnemyRoster
     public const int FrameCount = 7;                  // 0-3 idle, 4-5 tell, 6 hit flash
     public const int TellFrame = 4, HitFrame = 6;
 
-    public static readonly string[] WorldKeys = { "space", "frost", "verdant", "ember", "tide" };
+    public static readonly string[] WorldKeys = { "space", "frost", "verdant", "ember", "tide", "storm" };
+
+    // Storm (world 5) has no cast of its own yet (add-world phase 12): its level
+    // flies Tide's roster (def.world stays 4, so strips, mines and palette stay
+    // Tide's). Dropped when Storm's own defs land.
+    public const int StormWorld = 5, StormStandIn = 4;
 
     // ---- sizes ---------------------------------------------------------------
     // What each role measured before the redraw (world units), so every
@@ -238,9 +243,16 @@ public static class EnemyRoster
     public static List<EnemyDef> For(int world, EnemyRole role)
     {
         world = Mathf.Clamp(world, 0, WorldKeys.Length - 1);
+        if (world == StormWorld && !HasDefs(StormWorld)) world = StormStandIn;
         var list = new List<EnemyDef>();
         foreach (var d in All) if (d.world == world && d.role == role) list.Add(d);
         return list;
+    }
+
+    static bool HasDefs(int world)
+    {
+        foreach (var d in All) if (d.world == world) return true;
+        return false;
     }
 
     public static EnemyDef One(int world, EnemyRole role)

@@ -5,12 +5,16 @@ using UnityEngine;
 
 // The whole world chain, walked headless through the real transitions
 // (WorldManager, Planetfall, Liftoff, Portal, PortalPressure, RunLoop), with
-// the Tide release switch (WorldManager.TideEnabled) OFF and ON, over three
-// loops, and for a run that began elsewhere (a developer start in Tide).
+// the Tide / Storm release switches (WorldManager.TideEnabled / StormEnabled)
+// OFF and ON, over three loops, and for a run that began elsewhere (a developer
+// start in Tide or Storm).
 //
 //   OFF (production today)   Space -> Frost -> Verdant -> Ember -> (lift-off) Space, loop + 1, again and again
-//   ON  (the release)        Space -> Frost -> Verdant -> Ember -> Tide -> (lift-off) Space, loop + 1
-//   Tide start               Tide -> (lift-off) -> the loop PORTAL back to Tide (the interlude shows Space, the loop leads elsewhere)
+//   Tide ON                  Space -> Frost -> Verdant -> Ember -> Tide -> (lift-off) Space, loop + 1
+//   Storm ON (implies Tide)  Space -> Frost -> Verdant -> Ember -> Tide -> Storm -> (lift-off) Space, loop + 1
+//   Tide / Storm start       Tide -> (lift-off) -> the loop PORTAL back to Tide (the interlude shows Space, the loop leads elsewhere)
+//
+// (Storm still flies Tide's roster, rails and backdrop: the own-cast check skips it until its roster lands.)
 //
 // Every arrival must be clean: the level stage, no transition in progress, no
 // portal or pressure left, the arrival speed of the loop, the world's own
@@ -39,14 +43,21 @@ public static class TideLoopSoakTest
         try
         {
             ReleaseSwitchIsOffInTheShippedCode();
-            Chain(false, 0, new[] { 0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3, 0 });
-            Chain(true, 0, new[] { 0, 1, 2, 3, 4, 0, 1, 2, 3, 4, 0, 1, 2, 3, 4, 0 });
+            Chain(false, false, 0, new[] { 0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3, 0 });
+            Chain(true, false, 0, new[] { 0, 1, 2, 3, 4, 0, 1, 2, 3, 4, 0, 1, 2, 3, 4, 0 });
+            Chain(true, true, 0, new[] { 0, 1, 2, 3, 4, 5, 0, 1, 2, 3, 4, 5, 0, 1, 2, 3, 4, 5, 0 });
             // a run that began in Tide: its loop leads back to Tide, through the portal
-            Chain(true, 4, new[] { 4, 4, 4, 4 });
-            Chain(false, 4, new[] { 4, 4, 4 });
+            Chain(true, false, 4, new[] { 4, 4, 4, 4 });
+            Chain(false, false, 4, new[] { 4, 4, 4 });
+            // ... with Storm on it goes on to Storm first, then loops back to Tide by portal
+            Chain(true, true, 4, new[] { 4, 5, 4, 5, 4 });
+            // a run that began in Storm (a developer start; the switch off or on): its loop leads back to Storm, through the portal
+            Chain(false, false, 5, new[] { 5, 5, 5 });
+            Chain(true, true, 5, new[] { 5, 5, 5, 5 });
             // a run that began in Ember: with the switch on it goes on to Tide, then loops back to Ember by portal
-            Chain(true, 3, new[] { 3, 4, 3, 4, 3 });
-            Chain(false, 3, new[] { 3, 3, 3 });
+            Chain(true, false, 3, new[] { 3, 4, 3, 4, 3 });
+            Chain(true, true, 3, new[] { 3, 4, 5, 3, 4, 5, 3 });
+            Chain(false, false, 3, new[] { 3, 3, 3 });
         }
         finally
         {
@@ -59,6 +70,7 @@ public static class TideLoopSoakTest
     static void Cleanup()
     {
         WorldManager.TideEnabled = false;
+        WorldManager.StormEnabled = false;
         if (Liftoff.Live != null) Object.DestroyImmediate(Liftoff.Live.gameObject);
         if (Planetfall.Live != null) Object.DestroyImmediate(Planetfall.Live.gameObject);
         foreach (var p in Object.FindObjectsByType<Portal>(FindObjectsSortMode.None)) Object.DestroyImmediate(p.gameObject);
@@ -82,8 +94,8 @@ public static class TideLoopSoakTest
 
     static void ReleaseSwitchIsOffInTheShippedCode()
     {
-        Check("the shipped code has the Tide release switch OFF (flip WorldManager.TideEnabled's initial value to release)",
-              !WorldManager.TideEnabled);
+        Check("the shipped code has the Tide and Storm release switches OFF (flip WorldManager.TideEnabled / StormEnabled's initial value to release)",
+              !WorldManager.TideEnabled && !WorldManager.StormEnabled);
     }
 
     // ---- fixtures (LiftoffTest's) ------------------------------------------------
@@ -162,10 +174,11 @@ public static class TideLoopSoakTest
     // From the world the run starts in, end each level and follow whatever the
     // game opens (lift-off, planetfall, portal) to the next level; record the
     // worlds in order and check every arrival.
-    static void Chain(bool tideOn, int start, int[] expect)
+    static void Chain(bool tideOn, bool stormOn, int start, int[] expect)
     {
         WorldManager.TideEnabled = tideOn;
-        string label = (tideOn ? "switch ON" : "switch OFF") + ", run begun in " + WorldManager.Worlds[start].displayName;
+        WorldManager.StormEnabled = stormOn;
+        string label = (stormOn ? "Storm ON" : tideOn ? "Tide ON" : "switches OFF") + ", run begun in " + WorldManager.Worlds[start].displayName;
         FreshScene(start);
         RunScore.BeginRun(true, true);
         RunLoop.StartWorld = start;   // (BeginRun resets it)
@@ -210,7 +223,8 @@ public static class TideLoopSoakTest
             {
                 var cast = EnemyRoster.For(EnemyRoster.CurrentWorld, role);
                 rosterOk &= cast.Count > 0;
-                foreach (var d in cast) rosterOk &= d.world == now && d.key.StartsWith(EnemyRoster.WorldKeys[now] + "_", System.StringComparison.Ordinal);
+                if (now != 5)   // Storm flies Tide's cast until its own roster lands
+                    foreach (var d in cast) rosterOk &= d.world == now && d.key.StartsWith(EnemyRoster.WorldKeys[now] + "_", System.StringComparison.Ordinal);
             }
             scoreOk &= RunScore.Total >= scoreWas && collisionDetection.lifeCounter == 1;
             scoreWas = RunScore.Total;
@@ -227,10 +241,12 @@ public static class TideLoopSoakTest
         Check(label + ": every arrival at the loop's arrival speed, on the right world's roster, no calm left on", speedOk && rosterOk && calmOk);
         Check(label + ": score never lost, hearts untouched through " + loopsSeen + " loop(s)", scoreOk);
         int expectLoops = 0;
-        for (int i = 1; i < expect.Length; i++) if (expect[i] == start && expect[i - 1] >= LastOf(tideOn, start)) expectLoops++;
+        for (int i = 1; i < expect.Length; i++) if (expect[i] == start && expect[i - 1] >= LastOf(tideOn, stormOn, start)) expectLoops++;
         Check(label + ": " + expectLoops + " loop(s) counted exactly (RunLoop.Index " + RunLoop.Index + ")", RunLoop.Index == expectLoops && loopsSeen == expectLoops);
-        if (!tideOn && start != 4)
+        if (!tideOn && start != 4 && start != 5)
             Check(label + ": Tide never visited with the switch off", !visited.Contains(4));
+        if (!stormOn && start != 5)
+            Check(label + ": Storm never visited with its switch off", !visited.Contains(5));
 
         Cleanup();
         Object.DestroyImmediate(ship.gameObject);
@@ -238,8 +254,10 @@ public static class TideLoopSoakTest
     }
 
     // The world after which the chain loops (the last live one) for this setup.
-    static int LastOf(bool tideOn, int start)
+    static int LastOf(bool tideOn, bool stormOn, int start)
     {
+        if (start == 5) return 5;
+        if (stormOn) return 5;
         if (start == 4) return 4;
         return tideOn ? 4 : 3;
     }
