@@ -564,6 +564,7 @@ public class EliteShot : MonoBehaviour, IHostileShot
         float spin = Mathf.Repeat(age * 37f, 360f / n);   // (never quite the same ring twice)
         var o = owner;
         var d = def;
+        AttackAudio.Play(ShotSkins.WorldOf(d), "burst");
         EliteSystem.Fx.Sparks(at, d.ShotCore, 10);
         EndReason = 6;
         Recycle();
@@ -606,6 +607,7 @@ public class EliteShot : MonoBehaviour, IHostileShot
         velocity = new Vector2(0f, -EliteSystem.Scroll);
         age = def.lobSeconds;
         EliteSystem.Fx.Sparks(lobTo, tint, 5);
+        AttackAudio.Play(ShotSkins.WorldOf(def), "splash", .7f);
         Physics2D.SyncTransforms();
         // a pod opens as it lands: the cloud pool stays, spores scatter out of it
         if ((mot & ShotMotion.Burst) != 0 && generation == 0)

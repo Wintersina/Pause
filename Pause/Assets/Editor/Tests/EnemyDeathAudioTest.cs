@@ -151,8 +151,7 @@ public static class EnemyDeathAudioTest
         int tideRoster = 0, tideSilent = 0;
         foreach (var d in EnemyRoster.All)
         {
-            // TODO(sounds): Tide's death cues do not exist yet (Codex sound job pending, add-world phase 8/15 --
-            // checklist section F). Its keys may lack clips until then; they play silently, never throw.
+            // Tide reuses other worlds' clips through EnemyDeathAudio.DeathAlias (TideSoundTest checks them)
             if (d.key.StartsWith("tide_")) { tideRoster++; if (EnemyDeathAudio.Variants(d.key) < 3) tideSilent++; continue; }
             enemies++;
             if (EnemyDeathAudio.Variants(d.key) < 3) missing.Add(d.key);
@@ -160,6 +159,7 @@ public static class EnemyDeathAudioTest
         int pendingElites = 0;
         foreach (var e in EliteCatalog.All)
         {
+            if (e.WorldIndex == 4) continue;                      // (Tide's: aliased clips, TideSoundTest)
             if (Pending(e.key)) { pendingElites++; continue; }   // (death cues still to be authored: silent, see below)
             elites++;
             if (EnemyDeathAudio.Variants(e.key) < 3) missing.Add(e.key);
@@ -168,8 +168,7 @@ public static class EnemyDeathAudioTest
               pendingElites == 4 && EnemyDeathAudio.Variants("verdant_elite_timber_hauler") == 0 && !EnemyDeathAudio.PlayElite("verdant_elite_timber_hauler"));
         Check("every roster enemy (" + enemies + ") and elite (" + elites + ") of every live-art world has authored clips" +
               (missing.Count > 0 ? " (missing: " + string.Join(", ", missing) + ")" : ""), missing.Count == 0 && enemies == 46 && elites == 16);
-        Check("Tide's 12 roster keys are in the roster; their death sounds are still a TODO (" + tideSilent + " without clips) and playing one is silent, not an error",
-              tideRoster == 12 && (tideSilent == 0 || (EnemyDeathAudio.PlayAuthored("tide_big", .5f) == false && EnemyDeathAudio.Variants("tide_big") == 0)));
+        Check("Tide's 12 roster keys all resolve death clips through their donors (" + tideSilent + " without)", tideRoster == 12 && tideSilent == 0);
         // the tutorial's enemy is a roster alien; the rail mines are roster mines
         Check("tutorial enemy key '" + TutorialEnemy.DefKey + "' is authored", EnemyDeathAudio.Variants(TutorialEnemy.DefKey) == 3);
         foreach (var d in EnemyRoster.All)
@@ -181,7 +180,7 @@ public static class EnemyDeathAudioTest
         // the key the game passes for each roster body (EnemyIdentity.Set -> def.key) and for each elite (def.key)
         foreach (var e in EliteCatalog.All)
         {
-            if (Pending(e.key)) continue;
+            if (Pending(e.key) || e.WorldIndex == 4) continue;
             EnemyDeathAudio.ResetVoices();
             clock += 2.0;
             Check("elite " + e.key + " PlayElite plays an authored clip", EnemyDeathAudio.PlayElite(e.key) && EnemyDeathAudio.LastKey == e.key);

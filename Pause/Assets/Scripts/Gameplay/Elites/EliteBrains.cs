@@ -94,7 +94,8 @@ public static class EliteBrains
 {
     public static readonly string[] Ids = { "interceptor", "gunship", "striker", "hauler", "skirmisher", "siege", "breaker", "warden",
                                             "bastion", "reaver", "lancer", "tug", "herder", "kiter", "tender", "ironclad",
-                                            "logger", "thorn", "drifter", "diver" };
+                                            "logger", "thorn", "drifter", "diver",
+                                            "surfer", "abyss", "netter", "stormray", "pearler" };
 
     public static EliteBrain Create(string id)
     {
@@ -119,6 +120,11 @@ public static class EliteBrains
             case "thorn": return new ThornBrain();
             case "drifter": return new DrifterBrain();
             case "diver": return new DiverBrain();
+            case "surfer": return new SurferBrain();
+            case "abyss": return new AbyssBrain();
+            case "netter": return new NetterBrain();
+            case "stormray": return new StormrayBrain();
+            case "pearler": return new PearlerBrain();
             default: return new InterceptorBrain();
         }
     }
