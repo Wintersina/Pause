@@ -7,6 +7,17 @@ reaches master, nothing is flipped. This document is the direction brief (Phase 
 
 Working name **Desert** (alternatives for the user: Dune, Sirocco, Mirage). User brief: "get started ASAP with the dunes and giant worms for the background".
 
+## HARD RULE for the wiring phases (user requirement): feature flag OFF, assets IN the bundle
+
+Tide, Storm and Desert are all OFF behind feature flags: `WorldManager.DesertEnabled` defaults **false** and is chained after `StormEnabled` exactly like
+`TideEnabled` / `StormEnabled` are chained in `WorldManager.cs` on master (Desert is only reachable when Storm is enabled and Desert's own flag is on;
+`LastLiveWorld`, `HasNext`, `PortalDestination` and the lift-off `autoLoop` all read the chain). The production loop stays **Space -> Frost -> Verdant ->
+Ember -> Space** until the flags flip. BUT the code and assets are real and ship in the bundle: when a phase wires an asset it is **installed under a
+`Resources/` folder** (planetfall under `Backgrounds/Resources/Worlds/Desert/Planetfall/`, backdrop under `.../Desert/Backdrop3/`, worm atlas beside it,
+enemies/bosses/elites/rails/audio in their usual Resources folders), never left in `~` staging folders after wiring. `~` folders are only the Codex
+staging area before wiring. Unfinished-world tests use `LiveWorldCount`/`LastLiveWorld`; `DesertLoopSoakTest` walks the chain with the flags off and on.
+Nothing is flipped by this work.
+
 ## 1. Setting (what the ship flies over at atmosphere level)
 
 A dead, sun-bleached industrial world. The planet was strip-mined and left to the wind: pale bone-gold dune seas with long wind ripples, glass and salt
