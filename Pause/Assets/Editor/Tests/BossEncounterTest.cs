@@ -457,10 +457,10 @@ public static class BossEncounterTest
     static void HitPointsOrTimerWhicheverFirst()
     {
         Check("the end rule is hit points or survival, whichever first",
-              BossConfig.EndRule == BossEndRule.HitPointsOrSurvival && BossConfig.HitPoints > 2);
+              BossConfig.EndRule == BossEndRule.HitPointsOrSurvival && BossConfig.HitPoints == 3);
         var remainingField = typeof(BossEncounter).GetField("remaining", Inst);
 
-        // HP first: all the full hits early in the fight end it at once.
+        // HP first: three full hits early in the fight end it at once.
         FreshScene();
         RunScore.EndRun(RunScore.RunId);
         RunScore.BeginRun(true, true);
@@ -477,14 +477,14 @@ public static class BossEncounterTest
         RunWhile(e, BossEncounter.Phase.Outro);
         Check("HP first: then Done", e.State == BossEncounter.Phase.Done);
 
-        // HP first with weighted hits: 0.5 x (2 x HitPoints).
+        // HP first with weighted hits: 0.5 x 6 = 3.
         FreshScene();
         e = StartFight();
         for (int i = 0; i < BossConfig.HitPoints * 2; i++) e.OnShipAttackHit(.5f);
         e.Step(.05f, 1f);
-        Check("HP first: half-weight hits add up (2 x HitPoints x 0.5)", e.State == BossEncounter.Phase.Outro && e.Destroyed);
+        Check("HP first: half-weight hits add up (6 x 0.5 = 3 points)", e.State == BossEncounter.Phase.Outro && e.Destroyed);
 
-        // Timer first: two hits (of HitPoints), then the clock runs out.
+        // Timer first: two hits, then the clock runs out.
         FreshScene();
         RunScore.EndRun(RunScore.RunId);
         RunScore.BeginRun(true, true);
@@ -496,9 +496,9 @@ public static class BossEncounterTest
         for (int i = 0; i < 2000 && e.State == BossEncounter.Phase.Fight; i++) { e.Step(.1f, 1f); fought += .1f; }
         Check("timer first: the fight lasts the full clock (" + fought.ToString("F1") + "s of " + BossConfig.FightSeconds + ")",
               Mathf.Abs(fought - BossConfig.FightSeconds) < .25f);
-        Check("timer first: SURVIVED -- hit points left, it retreats and pays " + ScoreRules.BossSurvived +
+        Check("timer first: SURVIVED -- one hit point left, it retreats and pays " + ScoreRules.BossSurvived +
               " (" + (RunScore.Total - score) + ")",
-              e.State == BossEncounter.Phase.Outro && !e.Destroyed && e.HitPointsLeft == BossConfig.HitPoints - 2 &&
+              e.State == BossEncounter.Phase.Outro && !e.Destroyed && e.HitPointsLeft == 1 &&
               e.Actor.State == BossActor.Mode.Retreating && RunScore.Total - score == ScoreRules.BossSurvived);
 
         // Simultaneous: the last point goes in on the frame the clock runs out.
@@ -603,8 +603,7 @@ public static class BossEncounterTest
         if (!hasClip)
             Check("fallback: same track, intensified", src.clip == worldTrack && src.pitch > 1f && WorldMusic.BossFallbackActive);
         WorldMusic.EndBoss();
-        // With a boss clip the edit-mode swap back needs Application.isPlaying (SpaceBossMusicTest covers it).
-        if (!hasClip) Check("music restored after the boss", src.clip == worldTrack && Mathf.Approximately(src.pitch, 1f));
+        Check("music restored after the boss", src.clip == worldTrack && Mathf.Approximately(src.pitch, 1f));
         Check("the TODO is marked in WorldMusic", File.ReadAllText("Assets/Scripts/Worlds/WorldMusic.cs").Contains("TODO(boss-music)"));
         Check("docs/TODO.md lists boss music", File.Exists("../docs/TODO.md") &&
               File.ReadAllText("../docs/TODO.md").Contains("Resources/WorldMusic/Boss_<World>"));

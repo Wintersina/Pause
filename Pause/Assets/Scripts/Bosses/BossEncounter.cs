@@ -57,8 +57,7 @@ public class BossEncounter : MonoBehaviour
     float outroClock;
     float rushClock;
     // The fight's free-shot atoms (BossFreeShotAtoms): when each is due.
-    readonly float[] freeAtomTimes = new float[BossFreeShotAtoms.PlanMax];
-    readonly BossFreeShotAtoms.Kind[] freeAtomKinds = new BossFreeShotAtoms.Kind[BossFreeShotAtoms.PlanMax];
+    readonly float[] freeAtomTimes = new float[BossFreeShotAtoms.Count];
     int freeAtomCount, freeAtomNext;
 
     BossActor actor;
@@ -85,8 +84,6 @@ public class BossEncounter : MonoBehaviour
     // boss is still there to shoot at); the caller then releases one. Never
     // true outside the fight, nor once the boss is destroyed or out of clock.
     public static bool FreeAtomDue => Instance != null && Instance.IsFreeAtomDue;
-    public static BossFreeShotAtoms.Kind FreeAtomKind => Instance != null && Instance.freeAtomNext < Instance.freeAtomCount
-        ? Instance.freeAtomKinds[Instance.freeAtomNext] : BossFreeShotAtoms.Kind.Free;
     public static void FreeAtomReleased() { if (Instance != null) Instance.freeAtomNext++; }
     bool IsFreeAtomDue => state == Phase.Fight && hp > 0 && remaining > 0f &&
         freeAtomNext < freeAtomCount && fightClock >= freeAtomTimes[freeAtomNext];
@@ -299,7 +296,7 @@ public class BossEncounter : MonoBehaviour
             remaining = Mathf.Min(remaining, DevShortFightSeconds);
         }
         fightClock = 0f;
-        freeAtomCount = BossFreeShotAtoms.RollPlan(remaining, freeAtomTimes, freeAtomKinds);
+        freeAtomCount = BossFreeShotAtoms.Roll(remaining, freeAtomTimes);
         freeAtomNext = 0;
         actor.BeginFight();
         if (TouchInput.IsPressed) freePress = false;
@@ -410,7 +407,6 @@ public class BossEncounter : MonoBehaviour
     void Abort()
     {
         state = Phase.Aborted;
-        WorldMusic.EndBoss();   // the player died: back to the world's music
         freePress = false;
         onFinished = null;
     }

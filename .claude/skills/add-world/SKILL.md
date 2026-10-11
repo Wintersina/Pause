@@ -160,7 +160,7 @@ every one still missing (section 2 of its output is the hard-coded-count list).
     for forest world (he wrote 'frost' by mistake: Verdant) have vine attacks, leaf attacks, tree trunks etc."
     So a world is **not done** while its shooters fire Space's pink darts. Every enemy, elite, boss and mine of the
     new world gets an attack whose *shape, motion, trail, impact and sound* match its material and name. The
-    **pink-cue rule stays**: every hostile thing keeps a pink-leaning core and/or keyline (`HostileShotPalette` 312-326,
+    **pink-cue rule stays for hostile shots and attack effects** (NOT enemy bodies: user decision 2026-10-11, no pink core or keyline on enemy/elite/boss sprites; use sun-white or world-light cores, and fix weak visibility with the thin pale border script, never a repaint): every hostile projectile and hazard keeps a pink-leaning core and/or keyline (`HostileShotPalette` 312-326,
     pickups own 178/82/259/37, never the player's red, bold two-ring keyline on bright worlds), so the world supplies
     the material and the pink says "this hurts". Fairness: an instant-hit hazard (cone, column, band, ring, strike)
     needs a >= .7 s tell, a drawn footprint >= .4 s before it is live and a >= 1.4 u safe corridor; budgets are held

@@ -413,7 +413,7 @@ public class Liftoff : MonoBehaviour
     }
 
     // The clouds cover the whole view: the backdrop and the rails become
-    // the interlude world's. The world itself (enemies, its index)
+    // the interlude world's. The world itself (music, enemies, its index)
     // changes only at the gateway.
     void Swap()
     {
@@ -423,8 +423,6 @@ public class Liftoff : MonoBehaviour
             var theme = WorldManager.Worlds[Mathf.Clamp(def.interludeWorld, 0, WorldManager.Worlds.Length - 1)];
             if (WorldBackdrop.Instance != null) WorldBackdrop.Instance.Show(theme.displayName, false);
             WorldPainter.Apply(theme);
-            // and so is the music, crossfaded under the clouds
-            WorldMusic.Apply(theme);
             // the sky is Space's: so is what spawns, until the next arrival
             WorldManager.BeginSpaceLeg(def.interludeWorld);
             // the planet's backdrop is gone: let its textures go too

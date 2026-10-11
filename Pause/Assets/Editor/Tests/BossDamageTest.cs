@@ -133,22 +133,7 @@ public static class BossDamageTest
         for (int left = 0; left <= 5; left++) ok &= BossArt.DamageStage(5, left) == want[left];
         Check("stage = hearts lost, clamped 0..4 (5 left 0, 4 left 1, 3 left 2, 2 left 3, 1 left 4)", ok);
         Check("... more hearts than the max is pristine", BossArt.DamageStage(5, 7) == 0);
-        Check("BossConfig.Hearts is 5 + " + BossConfig.ExtraHearts + " = " + (BossConfig.BaseHearts + BossConfig.ExtraHearts),
-              BossConfig.Hearts == BossConfig.BaseHearts + BossConfig.ExtraHearts);
-        // the four looks spread over the longer fight in proportion: 9 hearts -> 1-2 lost stage 1, 3-4 stage 2, 5-6 stage 3, 7+ stage 4
-        int n = BossConfig.Hearts;
-        int[] seen = new int[BossArt.DamageStages + 1];
-        bool mono = BossArt.DamageStage(n, n) == 0, last = BossArt.DamageStage(n, 1) == BossArt.DamageStages;
-        for (int left = n - 1; left >= 0; left--)
-        {
-            int st = BossArt.DamageStage(n, left);
-            mono &= st >= BossArt.DamageStage(n, left + 1) && st >= 1;
-            seen[st]++;
-        }
-        bool even = true;
-        for (int st = 1; st <= BossArt.DamageStages; st++) even &= seen[st] >= 1 && seen[st] <= Mathf.CeilToInt(n / (float)BossArt.DamageStages) + 1;
-        Check("with " + n + " hearts the damage stages spread evenly (counts " + string.Join(",", seen) + "), never pristine once hurt, the last heart is stage 4",
-              mono && last && even);
+        Check("BossConfig.Hearts is still 5", BossConfig.Hearts == 5);
 
         // effect strengths per stage
         Check("smoke: none at 0/1, ~35% at 2, ~70% at 3, full at 4",
@@ -292,12 +277,10 @@ public static class BossDamageTest
               a.DamageSmoke.transform.localScale == body.transform.localScale &&
               a.DamageSmoke.transform.localPosition == body.transform.localPosition);
 
-        for (int stage = 1; stage <= BossArt.DamageStages; stage++)
+        for (int left = 4; left >= 1; left--)
         {
-            // the first heart count that shows this stage
-            int left = MaxHearts - 1;
-            while (left > 1 && BossArt.DamageStage(MaxHearts, left) < stage) left--;
             LoseTo(e, left);
+            int stage = MaxHearts - left;
             Check(a.Boss.artKey + ": " + left + " hearts left -> stage " + stage + " (" + a.DamageStage + ")", a.DamageStage == stage);
 
             int idleSeen = 0, idleDamaged = 0, poseSeen = 0, posePristine = 0, smokeOn = 0, arcOn = 0, frames = 0;

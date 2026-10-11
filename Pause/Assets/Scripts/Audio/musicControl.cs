@@ -11,17 +11,6 @@ public class musicControl : MonoBehaviour {
     [Tooltip("How quickly the boost track fades up, per second.")]
     public float boostFadeInPerSecond = 0.9f;
 
-    [Tooltip("The boost track keeps playing (silent) between boosts. If it has " +
-             "been silent for longer than this, a fresh boost restarts it from " +
-             "the top once; a shorter gap, or a pickup while it is still audible " +
-             "(including during its fade-out), just carries on from where it is.")]
-    public float coldStartSeconds = 3f;
-
-    /// <summary>How many times the boost track has been rewound (cold starts only).</summary>
-    public static int ColdRestarts;
-
-    private float silentFor;
-
     public AudioSource boostSound;
     public AudioSource backgroundSound;
     public static bool boostMusicChanger;
@@ -36,28 +25,6 @@ public class musicControl : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-        Tick(Time.unscaledDeltaTime);
-        UpdateMix();
-    }
-
-    // The boost track is never Play()ed, Stop()ped or rewound by a pickup: it
-    // loops silently from scene start and the pickup only raises its volume.
-    // The one rewind is a cold start, a boost after the track sat silent for
-    // coldStartSeconds, so a fresh boost opens on the song's beginning.
-    public void Tick(float unscaledDt)
-    {
-        if (boostSound == null) return;
-        if (boostSound.volume > 0.001f) { silentFor = 0f; return; }
-        silentFor += unscaledDt;
-        if (boostMusicChanger && silentFor > coldStartSeconds)
-        {
-            boostSound.time = 0f;
-            ColdRestarts++;
-            silentFor = 0f;
-        }
-    }
-
-    void UpdateMix() {
         if (TouchInput.IsPressed)
         {
             // if boost has been picked up.

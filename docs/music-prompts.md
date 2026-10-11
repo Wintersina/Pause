@@ -62,27 +62,35 @@ For Suno / Udio style generators. No artist names. Each background track starts 
 **Boss:**
 > Instrumental cyberpunk boss battle in a desert. A heavy 148 BPM, with a massive kick, a rumbling distorted bass, a snaking synth lead in a minor key and pounding drums. A huge dubstep drop with a roaring bass, and a build with a rising snare roll. Menacing, as if a giant sandworm is erupting. Loopable.
 
-## Shared boss track (if you want only one for every boss)
 
-> Instrumental cyberpunk boss battle. Intense 150 BPM, with a pounding four-on-the-floor kick, a growling distorted bass, a screaming synth lead, industrial percussion and brass-like synth stabs. A dark minor-key riff, a heavy dubstep drop with a wobble bass, and a rising build back into the riff. Epic, relentless and loopable.
 
-## Boost music (replaces BoostingMusic.wav, the track that plays while the ship is boosting)
+  1. Alien pilot (main enemy scream)
 
-Shipped: the user's own "Hyperspace Loop" track, cut from 26 s to the end (about 182 s, stereo 48 kHz), is `BoostingMusic.wav`; the prompt below is only for a future replacement.
+  ▎ A short, raw death scream of an alien pilot in a stricken spaceship. A sharp inhale, then a piercing, cracking shriek that
+  ▎ falls away into a wet rasp, ending with a burst of static and a muffled radio crackle. Dry, close-miked, no reverb tail, no
+  ▎ music, no melody, no beat, about 1.5 seconds, then silence.
 
-The current file (`Assets/Audio/Music/BoostingMusic.wav`, about 40 s, loops while boosting) is a layer over the world track, so the replacement should be a short, tight loop that adds speed without being shrill or repetitive. Use the shared style line, then:
+  2. Human pilot
 
-> Instrumental, no vocals. A short seamless loop of 16 bars at 150 BPM that adds speed and adrenaline to a game, without a lead melody. A driving rolling bassline, a tight four-on-the-floor kick, fast closed hi-hats, a filtered rising arpeggio underneath and a subtle riser tail. Smooth, warm, analog tone, with no harsh high-pitched squeals or sirens, no sharp saw leads, no repeated stabs and no sudden loud hits. Sidechained pads breathing with the kick, a feeling of acceleration, wind rush and a hyperspace-like tunnel. Moderate loudness, mixed to sit under gameplay sounds. Ends on the same chord it starts on so that it loops with no gap.
+  ▎ A short, desperate male pilot scream cut off by an explosion. Raw, breaking and panicked, with a sudden hard stop. Dry,
+  ▎ close-miked, no reverb, no music, no melody, no beat, about 1.5 seconds, then silence.
 
-Variants to try if the first one is still annoying:
-- **Softer:** "same as above, but with no hi-hats and a low-pass filtered arpeggio, more pad and sub bass, like a calm cruise at light speed."
-- **More tension:** "add a pulsing 8th-note sub bass and a slow filter sweep that opens over the 16 bars, and keep the lead out."
-- **World-neutral:** it plays over every world's track, so avoid a strong key or melody. Ask for "key-neutral, drone-based" so it never clashes with the world music.
+  3. Insect or alien creature
 
-Tips for this one: generate 30-60 s and loop-trim to a whole number of bars; keep it quieter than the world tracks (about -6 dB); no vocals or spoken words.
+  ▎ A high, chittering alien screech that rises and fractures into rapid clicks and a hiss. Wet and organic, a dying insect
+  ▎ creature. Dry, no reverb, no music, no melody, no beat, about 1 second, then silence.
 
-## Tips
+  4. Machine or robot pilot
 
-- **Loops:** Generators rarely make perfect loops. Ask for "ends on the same chord it starts on", or trim in an editor.
-- **Length:** Ask for 2:30 to 3:00 for backgrounds. The calm part will be long for the game, so you may want to cut it so the buildup is shorter.
-- **Mood:** Add "dark and gritty" for Ember and Storm, or "clean and bright" for Frost and Tide.
+  ▎ A distorted robotic shriek, like a tortured servo and a glitching synthetic voice, collapsing into a power-down whine and
+  ▎ static. No musical notes, no melody, no beat, dry, about 1.5 seconds, then silence.
+
+  5. Big creature (for the big units and elites)
+
+  ▎ A deep, roaring bellow that breaks into a gurgling growl, with a heavy low-frequency rumble underneath. A huge dying beast,
+  ▎ raw and guttural. Dry, no reverb, no music, no melody, no beat, about 2.5 seconds, then silence.
+
+  6. Small drone or pilot (short and quiet)
+
+  ▎ A tiny, startled yelp, very short and high. A small creature caught off guard. Dry, no reverb, no music, no melody, no beat,
+  ▎ about half a second, then silence.

@@ -1,6 +1,6 @@
 using UnityEngine;
 
-// A boss's hearts (BossConfig.Hearts): its health, spinning round it.
+// A boss's five hearts (BossConfig.Hearts): its health, spinning round it.
 //
 // The shared HeartOrbit engine (the player's lives, the elites' hearts) on
 // a boss's terms: one flat ring in the screen plane round the body's drawn
@@ -115,7 +115,7 @@ public class BossHearts : HeartOrbit
 
     public override void BuildHearts() { BuildHearts(Mathf.Max(1, BossConfig.Hearts)); }
 
-    protected override int MaxHearts { get { return 12; } }
+    protected override int MaxHearts { get { return 8; } }
     protected override int RemainingHearts() { return left; }
 
     protected override bool TakeImpact(out Vector3 at)
