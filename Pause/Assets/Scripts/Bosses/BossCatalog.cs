@@ -366,7 +366,7 @@ public static class BossCatalog
                 lore = "A floating turbine the size of a city block that builds the weather it hides in. " +
                        "Its drum spits arcs the moment the core flares white, its crown calls the lightning down on your lane after the rods spark, and its twin coils cut the sky in half. " +
                        "Watch which part lights up first, then leave the gap between the towers.",
-                swayX = 1.05f, swayY = .16f, freqX = .28f, freqY = .56f, flash = StormYellow, heartColor = StormYellow, smokeStrength = .85f,
+                swayX = 1.05f, swayY = .16f, freqX = .28f, freqY = .56f, flash = StormYellow, heartColor = StormYellow,
                 attacks = new[]
                 {
                     // The drum's core flares white, then it vents fans of
@@ -375,7 +375,7 @@ public static class BossCatalog
                                      emitters = new[] { "Core" }, fireFrame = true,
                                      volleys = 3, volleyGap = .65f, count = 5, spreadDeg = 84f, rotateDeg = 10f,
                                      speed = 2.6f, style = BossShotStyle.Bolt,
-                                     rail = BossRailMode.Absorb, cooldown = 1.2f },
+                                     rail = BossRailMode.Bounce, bounces = 1, cooldown = 1.2f },
                     // The rods spark, then hail is flung up out of the crown
                     // and rains down on four of five columns.
                     new BossAttack { name = "crown hail", kind = BossAttackKind.Lob, tell = 1, tellSeconds = .9f,

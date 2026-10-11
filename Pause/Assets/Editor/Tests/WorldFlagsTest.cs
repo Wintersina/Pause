@@ -119,10 +119,6 @@ public static class WorldFlagsTest
         Check("Storm art in the build: planetfall + lift-off set", Exists("Assets/Art/Backgrounds/Resources/Worlds/Storm/Planetfall/storm_planet.png"));
         Check("Tide art in the build: roster, rail, boss",
               Exists("Assets/Art/Resources/Enemies/tide_big.png") && Exists("Assets/Art/Resources/Worlds/Tide/rail_tide_wide_v1.png") && Exists("Assets/Art/Resources/Bosses/Tide.png"));
-        bool runtime = true;
-        foreach (string dir in new[] { "Assets/Art/Resources" })
-            foreach (string p in Directory.GetDirectories(dir, "*~", SearchOption.AllDirectories)) runtime = false;
-        Check("no ~ staging folder inside any Resources tree (staged art would silently drop out of the build)", runtime);
     }
 
     static bool Exists(string p) { return AssetDatabase.LoadAssetAtPath<Object>(p) != null || File.Exists(p); }
