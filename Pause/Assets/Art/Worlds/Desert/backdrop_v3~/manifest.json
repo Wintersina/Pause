@@ -416,5 +416,952 @@
       "indigo_shadow_share": 0.0,
       "sand_saturation_p95": 0.1917
     }
+  },
+  "run_b": {
+    "sprites": [
+      {
+        "atlas": "landmarks.png",
+        "name": "refinery_hull_00",
+        "role": "Landmark",
+        "emitter": null,
+        "size_hint": "large",
+        "notes": "Generated painted source; nearest-neighbour x2; centered clear margin. Matte weathered form with a small contact sand skirt."
+      },
+      {
+        "atlas": "landmarks.png",
+        "name": "refinery_hull_01",
+        "role": "Landmark",
+        "emitter": null,
+        "size_hint": "large",
+        "notes": "Generated painted source; nearest-neighbour x2; centered clear margin. Matte weathered form with a small contact sand skirt."
+      },
+      {
+        "atlas": "landmarks.png",
+        "name": "ribcage_gantry_00",
+        "role": "Landmark",
+        "emitter": null,
+        "size_hint": "large",
+        "notes": "Generated painted source; nearest-neighbour x2; centered clear margin. Matte weathered form with a small contact sand skirt."
+      },
+      {
+        "atlas": "landmarks.png",
+        "name": "ribcage_gantry_01",
+        "role": "Landmark",
+        "emitter": null,
+        "size_hint": "large",
+        "notes": "Generated painted source; nearest-neighbour x2; centered clear margin. Matte weathered form with a small contact sand skirt."
+      },
+      {
+        "atlas": "landmarks.png",
+        "name": "drill_head_tower",
+        "role": "Landmark",
+        "emitter": null,
+        "size_hint": "large",
+        "notes": "Generated painted source; nearest-neighbour x2; centered clear margin. Matte weathered form with a small contact sand skirt."
+      },
+      {
+        "atlas": "landmarks.png",
+        "name": "solar_array_skeleton_00",
+        "role": "Landmark",
+        "emitter": null,
+        "size_hint": "large",
+        "notes": "Generated painted source; nearest-neighbour x2; centered clear margin. Matte weathered form with a small contact sand skirt."
+      },
+      {
+        "atlas": "landmarks.png",
+        "name": "solar_array_skeleton_01",
+        "role": "Landmark",
+        "emitter": null,
+        "size_hint": "large",
+        "notes": "Generated painted source; nearest-neighbour x2; centered clear margin. Matte weathered form with a small contact sand skirt."
+      },
+      {
+        "atlas": "landmarks.png",
+        "name": "crawler_caravan_00",
+        "role": "Landmark",
+        "emitter": null,
+        "size_hint": "large",
+        "notes": "Generated painted source; nearest-neighbour x2; centered clear margin. Matte weathered form with a small contact sand skirt."
+      },
+      {
+        "atlas": "landmarks.png",
+        "name": "crawler_caravan_01",
+        "role": "Landmark",
+        "emitter": null,
+        "size_hint": "large",
+        "notes": "Generated painted source; nearest-neighbour x2; centered clear margin. Matte weathered form with a small contact sand skirt."
+      },
+      {
+        "atlas": "landmarks.png",
+        "name": "radio_mast",
+        "role": "Landmark",
+        "emitter": null,
+        "size_hint": "large",
+        "notes": "Generated painted source; nearest-neighbour x2; centered clear margin. Matte weathered form with a small contact sand skirt."
+      },
+      {
+        "atlas": "landmarks.png",
+        "name": "collapsed_dome_cluster",
+        "role": "Landmark",
+        "emitter": null,
+        "size_hint": "large",
+        "notes": "Generated painted source; nearest-neighbour x2; centered clear margin. Matte weathered form with a small contact sand skirt."
+      },
+      {
+        "atlas": "landmarks.png",
+        "name": "bucket_wheel_excavator",
+        "role": "Landmark",
+        "emitter": null,
+        "size_hint": "large",
+        "notes": "Generated painted source; nearest-neighbour x2; centered clear margin. Matte weathered form with a small contact sand skirt."
+      },
+      {
+        "atlas": "landmarks.png",
+        "name": "sunken_cargo_crawler",
+        "role": "Landmark",
+        "emitter": null,
+        "size_hint": "large",
+        "notes": "Generated painted source; nearest-neighbour x2; centered clear margin. Matte weathered form with a small contact sand skirt."
+      },
+      {
+        "atlas": "landmarks.png",
+        "name": "fused_glass_crater_rim",
+        "role": "Landmark",
+        "emitter": null,
+        "size_hint": "large",
+        "notes": "Generated painted source; nearest-neighbour x2; centered clear margin. Matte weathered form with a small contact sand skirt."
+      },
+      {
+        "atlas": "landmarks.png",
+        "name": "cliff_arch",
+        "role": "Landmark",
+        "emitter": null,
+        "size_hint": "large",
+        "notes": "Generated painted source; nearest-neighbour x2; centered clear margin. Matte weathered form with a small contact sand skirt."
+      },
+      {
+        "atlas": "landmarks.png",
+        "name": "pump_well_station",
+        "role": "Landmark",
+        "emitter": [
+          128,
+          128
+        ],
+        "size_hint": "large",
+        "notes": "Generated painted source; nearest-neighbour x2; centered clear margin. Matte weathered form with a small contact sand skirt."
+      },
+      {
+        "atlas": "pipes.png",
+        "name": "straight_00",
+        "role": "Pipe",
+        "pipe_ends": [
+          {
+            "side": "left",
+            "xy": [
+              20,
+              128
+            ]
+          },
+          {
+            "side": "right",
+            "xy": [
+              236,
+              128
+            ]
+          }
+        ],
+        "emitter": null,
+        "size_hint": "medium",
+        "notes": "Generated painted source; nearest-neighbour x2; centered clear margin. Matte weathered form with a small contact sand skirt."
+      },
+      {
+        "atlas": "pipes.png",
+        "name": "straight_01",
+        "role": "Pipe",
+        "pipe_ends": [
+          {
+            "side": "left",
+            "xy": [
+              20,
+              128
+            ]
+          },
+          {
+            "side": "right",
+            "xy": [
+              236,
+              128
+            ]
+          }
+        ],
+        "emitter": null,
+        "size_hint": "medium",
+        "notes": "Generated painted source; nearest-neighbour x2; centered clear margin. Matte weathered form with a small contact sand skirt."
+      },
+      {
+        "atlas": "pipes.png",
+        "name": "bend_00",
+        "role": "Pipe",
+        "pipe_ends": [
+          {
+            "side": "left",
+            "xy": [
+              20,
+              128
+            ]
+          },
+          {
+            "side": "bottom",
+            "xy": [
+              128,
+              236
+            ]
+          }
+        ],
+        "emitter": null,
+        "size_hint": "medium",
+        "notes": "Generated painted source; nearest-neighbour x2; centered clear margin. Matte weathered form with a small contact sand skirt."
+      },
+      {
+        "atlas": "pipes.png",
+        "name": "bend_01",
+        "role": "Pipe",
+        "pipe_ends": [
+          {
+            "side": "left",
+            "xy": [
+              20,
+              128
+            ]
+          },
+          {
+            "side": "bottom",
+            "xy": [
+              128,
+              236
+            ]
+          }
+        ],
+        "emitter": null,
+        "size_hint": "medium",
+        "notes": "Generated painted source; nearest-neighbour x2; centered clear margin. Matte weathered form with a small contact sand skirt."
+      },
+      {
+        "atlas": "pipes.png",
+        "name": "tee",
+        "role": "Pipe",
+        "pipe_ends": [
+          {
+            "side": "left",
+            "xy": [
+              20,
+              128
+            ]
+          },
+          {
+            "side": "right",
+            "xy": [
+              236,
+              128
+            ]
+          },
+          {
+            "side": "bottom",
+            "xy": [
+              128,
+              236
+            ]
+          }
+        ],
+        "emitter": null,
+        "size_hint": "medium",
+        "notes": "Generated painted source; nearest-neighbour x2; centered clear margin. Matte weathered form with a small contact sand skirt."
+      },
+      {
+        "atlas": "pipes.png",
+        "name": "cross",
+        "role": "Pipe",
+        "pipe_ends": [
+          {
+            "side": "left",
+            "xy": [
+              20,
+              128
+            ]
+          },
+          {
+            "side": "right",
+            "xy": [
+              236,
+              128
+            ]
+          },
+          {
+            "side": "top",
+            "xy": [
+              128,
+              20
+            ]
+          },
+          {
+            "side": "bottom",
+            "xy": [
+              128,
+              236
+            ]
+          }
+        ],
+        "emitter": null,
+        "size_hint": "medium",
+        "notes": "Generated painted source; nearest-neighbour x2; centered clear margin. Matte weathered form with a small contact sand skirt."
+      },
+      {
+        "atlas": "pipes.png",
+        "name": "manifold_00",
+        "role": "Pipe",
+        "pipe_ends": [
+          {
+            "side": "left",
+            "xy": [
+              20,
+              128
+            ]
+          },
+          {
+            "side": "right",
+            "xy": [
+              236,
+              128
+            ]
+          }
+        ],
+        "emitter": null,
+        "size_hint": "medium",
+        "notes": "Generated painted source; nearest-neighbour x2; centered clear margin. Matte weathered form with a small contact sand skirt."
+      },
+      {
+        "atlas": "pipes.png",
+        "name": "manifold_01",
+        "role": "Pipe",
+        "pipe_ends": [
+          {
+            "side": "left",
+            "xy": [
+              20,
+              128
+            ]
+          },
+          {
+            "side": "right",
+            "xy": [
+              236,
+              128
+            ]
+          }
+        ],
+        "emitter": null,
+        "size_hint": "medium",
+        "notes": "Generated painted source; nearest-neighbour x2; centered clear margin. Matte weathered form with a small contact sand skirt."
+      },
+      {
+        "atlas": "pipes.png",
+        "name": "pipe_bridge_00",
+        "role": "Pipe",
+        "pipe_ends": [
+          {
+            "side": "left",
+            "xy": [
+              20,
+              128
+            ]
+          },
+          {
+            "side": "right",
+            "xy": [
+              236,
+              128
+            ]
+          }
+        ],
+        "emitter": null,
+        "size_hint": "medium",
+        "notes": "Generated painted source; nearest-neighbour x2; centered clear margin. Matte weathered form with a small contact sand skirt."
+      },
+      {
+        "atlas": "pipes.png",
+        "name": "pipe_bridge_01",
+        "role": "Pipe",
+        "pipe_ends": [
+          {
+            "side": "left",
+            "xy": [
+              20,
+              128
+            ]
+          },
+          {
+            "side": "right",
+            "xy": [
+              236,
+              128
+            ]
+          }
+        ],
+        "emitter": null,
+        "size_hint": "medium",
+        "notes": "Generated painted source; nearest-neighbour x2; centered clear margin. Matte weathered form with a small contact sand skirt."
+      },
+      {
+        "atlas": "pipes.png",
+        "name": "pump_house",
+        "role": "Pipe",
+        "pipe_ends": [
+          {
+            "side": "left",
+            "xy": [
+              20,
+              128
+            ]
+          },
+          {
+            "side": "right",
+            "xy": [
+              236,
+              128
+            ]
+          }
+        ],
+        "emitter": [
+          128,
+          128
+        ],
+        "size_hint": "medium",
+        "notes": "Generated painted source; nearest-neighbour x2; centered clear margin. Matte weathered form with a small contact sand skirt."
+      },
+      {
+        "atlas": "pipes.png",
+        "name": "leak_00",
+        "role": "Pipe",
+        "pipe_ends": [
+          {
+            "side": "left",
+            "xy": [
+              20,
+              128
+            ]
+          },
+          {
+            "side": "right",
+            "xy": [
+              236,
+              128
+            ]
+          }
+        ],
+        "emitter": [
+          128,
+          108
+        ],
+        "size_hint": "medium",
+        "notes": "Generated painted source; nearest-neighbour x2; centered clear margin. Pale white steam emitter."
+      },
+      {
+        "atlas": "pipes.png",
+        "name": "leak_01",
+        "role": "Pipe",
+        "pipe_ends": [
+          {
+            "side": "left",
+            "xy": [
+              20,
+              128
+            ]
+          },
+          {
+            "side": "right",
+            "xy": [
+              236,
+              128
+            ]
+          }
+        ],
+        "emitter": [
+          128,
+          108
+        ],
+        "size_hint": "medium",
+        "notes": "Generated painted source; nearest-neighbour x2; centered clear margin. Pale white steam emitter."
+      },
+      {
+        "atlas": "pipes.png",
+        "name": "half_buried_pipe",
+        "role": "Pipe",
+        "pipe_ends": [
+          {
+            "side": "left",
+            "xy": [
+              20,
+              128
+            ]
+          },
+          {
+            "side": "right",
+            "xy": [
+              236,
+              128
+            ]
+          }
+        ],
+        "emitter": null,
+        "size_hint": "medium",
+        "notes": "Generated painted source; nearest-neighbour x2; centered clear margin. Matte weathered form with a small contact sand skirt."
+      },
+      {
+        "atlas": "pipes.png",
+        "name": "tangle_00",
+        "role": "Pipe",
+        "pipe_ends": [
+          {
+            "side": "left",
+            "xy": [
+              20,
+              128
+            ]
+          },
+          {
+            "side": "right",
+            "xy": [
+              236,
+              128
+            ]
+          },
+          {
+            "side": "bottom",
+            "xy": [
+              128,
+              236
+            ]
+          }
+        ],
+        "emitter": null,
+        "size_hint": "medium",
+        "notes": "Generated painted source; nearest-neighbour x2; centered clear margin. Matte weathered form with a small contact sand skirt."
+      },
+      {
+        "atlas": "pipes.png",
+        "name": "tangle_01",
+        "role": "Pipe",
+        "pipe_ends": [
+          {
+            "side": "left",
+            "xy": [
+              20,
+              128
+            ]
+          },
+          {
+            "side": "right",
+            "xy": [
+              236,
+              128
+            ]
+          },
+          {
+            "side": "bottom",
+            "xy": [
+              128,
+              236
+            ]
+          }
+        ],
+        "emitter": null,
+        "size_hint": "medium",
+        "notes": "Generated painted source; nearest-neighbour x2; centered clear margin. Matte weathered form with a small contact sand skirt."
+      },
+      {
+        "atlas": "fires.png",
+        "name": "rock_fin_00",
+        "role": "Feature",
+        "emitter": null,
+        "size_hint": "medium",
+        "notes": "Generated painted source; nearest-neighbour x2; centered clear margin. Matte weathered form with a small contact sand skirt."
+      },
+      {
+        "atlas": "fires.png",
+        "name": "rock_fin_01",
+        "role": "Feature",
+        "emitter": null,
+        "size_hint": "medium",
+        "notes": "Generated painted source; nearest-neighbour x2; centered clear margin. Matte weathered form with a small contact sand skirt."
+      },
+      {
+        "atlas": "fires.png",
+        "name": "wall_drift_00",
+        "role": "Feature",
+        "emitter": null,
+        "size_hint": "medium",
+        "notes": "Generated painted source; nearest-neighbour x2; centered clear margin. Matte weathered form with a small contact sand skirt."
+      },
+      {
+        "atlas": "fires.png",
+        "name": "wall_drift_01",
+        "role": "Feature",
+        "emitter": null,
+        "size_hint": "medium",
+        "notes": "Generated painted source; nearest-neighbour x2; centered clear margin. Matte weathered form with a small contact sand skirt."
+      },
+      {
+        "atlas": "fires.png",
+        "name": "fulgurite_00",
+        "role": "Feature",
+        "emitter": null,
+        "size_hint": "medium",
+        "notes": "Generated painted source; nearest-neighbour x2; centered clear margin. Matte weathered form with a small contact sand skirt."
+      },
+      {
+        "atlas": "fires.png",
+        "name": "fulgurite_01",
+        "role": "Feature",
+        "emitter": null,
+        "size_hint": "medium",
+        "notes": "Generated painted source; nearest-neighbour x2; centered clear margin. Matte weathered form with a small contact sand skirt."
+      },
+      {
+        "atlas": "fires.png",
+        "name": "dry_well_00",
+        "role": "Feature",
+        "emitter": [
+          128,
+          128
+        ],
+        "size_hint": "medium",
+        "notes": "Generated painted source; nearest-neighbour x2; centered clear margin. Matte weathered form with a small contact sand skirt."
+      },
+      {
+        "atlas": "fires.png",
+        "name": "dry_well_01",
+        "role": "Feature",
+        "emitter": [
+          128,
+          128
+        ],
+        "size_hint": "medium",
+        "notes": "Generated painted source; nearest-neighbour x2; centered clear margin. Matte weathered form with a small contact sand skirt."
+      },
+      {
+        "atlas": "fires.png",
+        "name": "machine_ribs_00",
+        "role": "Feature",
+        "emitter": null,
+        "size_hint": "medium",
+        "notes": "Generated painted source; nearest-neighbour x2; centered clear margin. Matte weathered form with a small contact sand skirt."
+      },
+      {
+        "atlas": "fires.png",
+        "name": "machine_ribs_01",
+        "role": "Feature",
+        "emitter": null,
+        "size_hint": "medium",
+        "notes": "Generated painted source; nearest-neighbour x2; centered clear margin. Matte weathered form with a small contact sand skirt."
+      },
+      {
+        "atlas": "fires.png",
+        "name": "heat_vent_00",
+        "role": "Feature",
+        "emitter": [
+          128,
+          128
+        ],
+        "size_hint": "medium",
+        "notes": "Generated painted source; nearest-neighbour x2; centered clear margin. Matte weathered form with a small contact sand skirt."
+      },
+      {
+        "atlas": "fires.png",
+        "name": "heat_vent_01",
+        "role": "Feature",
+        "emitter": [
+          128,
+          128
+        ],
+        "size_hint": "medium",
+        "notes": "Generated painted source; nearest-neighbour x2; centered clear margin. Matte weathered form with a small contact sand skirt."
+      },
+      {
+        "atlas": "fires.png",
+        "name": "crack_scar",
+        "role": "Feature",
+        "emitter": null,
+        "size_hint": "medium",
+        "notes": "Generated painted source; nearest-neighbour x2; centered clear margin. Matte weathered form with a small contact sand skirt."
+      },
+      {
+        "atlas": "fires.png",
+        "name": "dune_ridge",
+        "role": "Feature",
+        "emitter": null,
+        "size_hint": "medium",
+        "notes": "Generated painted source; nearest-neighbour x2; centered clear margin. Matte weathered form with a small contact sand skirt."
+      },
+      {
+        "atlas": "fires.png",
+        "name": "wreckage",
+        "role": "Feature",
+        "emitter": null,
+        "size_hint": "medium",
+        "notes": "Generated painted source; nearest-neighbour x2; centered clear margin. Matte weathered form with a small contact sand skirt."
+      },
+      {
+        "atlas": "fires.png",
+        "name": "lone_crawler",
+        "role": "Feature",
+        "emitter": null,
+        "size_hint": "medium",
+        "notes": "Generated painted source; nearest-neighbour x2; centered clear margin. Matte weathered form with a small contact sand skirt."
+      },
+      {
+        "atlas": "weather.png",
+        "name": "cloud_bank_00",
+        "role": "Cloud",
+        "emitter": null,
+        "size_hint": "low overlay",
+        "notes": "Generated painted source; nearest-neighbour x2; centered clear margin. Sparse dusty haze."
+      },
+      {
+        "atlas": "weather.png",
+        "name": "cloud_bank_01",
+        "role": "Cloud",
+        "emitter": null,
+        "size_hint": "low overlay",
+        "notes": "Generated painted source; nearest-neighbour x2; centered clear margin. Sparse dusty haze."
+      },
+      {
+        "atlas": "weather.png",
+        "name": "cloud_bank_02",
+        "role": "Cloud",
+        "emitter": null,
+        "size_hint": "low overlay",
+        "notes": "Generated painted source; nearest-neighbour x2; centered clear margin. Sparse dusty haze."
+      },
+      {
+        "atlas": "weather.png",
+        "name": "cloud_bank_03",
+        "role": "Cloud",
+        "emitter": null,
+        "size_hint": "low overlay",
+        "notes": "Generated painted source; nearest-neighbour x2; centered clear margin. Sparse dusty haze."
+      },
+      {
+        "atlas": "weather.png",
+        "name": "cloud_wisp_00",
+        "role": "Cloud",
+        "emitter": null,
+        "size_hint": "low overlay",
+        "notes": "Generated painted source; nearest-neighbour x2; centered clear margin. Sparse dusty haze."
+      },
+      {
+        "atlas": "weather.png",
+        "name": "cloud_wisp_01",
+        "role": "Cloud",
+        "emitter": null,
+        "size_hint": "low overlay",
+        "notes": "Generated painted source; nearest-neighbour x2; centered clear margin. Sparse dusty haze."
+      },
+      {
+        "atlas": "weather.png",
+        "name": "cloud_wisp_02",
+        "role": "Cloud",
+        "emitter": null,
+        "size_hint": "low overlay",
+        "notes": "Generated painted source; nearest-neighbour x2; centered clear margin. Sparse dusty haze."
+      },
+      {
+        "atlas": "weather.png",
+        "name": "cloud_wisp_03",
+        "role": "Cloud",
+        "emitter": null,
+        "size_hint": "low overlay",
+        "notes": "Generated painted source; nearest-neighbour x2; centered clear margin. Sparse dusty haze."
+      },
+      {
+        "atlas": "weather.png",
+        "name": "mist_00",
+        "role": "Atmosphere",
+        "emitter": null,
+        "size_hint": "low overlay",
+        "notes": "Generated painted source; nearest-neighbour x2; centered clear margin. Sparse dusty haze."
+      },
+      {
+        "atlas": "weather.png",
+        "name": "mist_01",
+        "role": "Atmosphere",
+        "emitter": null,
+        "size_hint": "low overlay",
+        "notes": "Generated painted source; nearest-neighbour x2; centered clear margin. Sparse dusty haze."
+      },
+      {
+        "atlas": "weather.png",
+        "name": "gust_00",
+        "role": "Atmosphere",
+        "emitter": null,
+        "size_hint": "low overlay",
+        "notes": "Generated painted source; nearest-neighbour x2; centered clear margin. Sparse dusty haze."
+      },
+      {
+        "atlas": "weather.png",
+        "name": "gust_01",
+        "role": "Atmosphere",
+        "emitter": null,
+        "size_hint": "low overlay",
+        "notes": "Generated painted source; nearest-neighbour x2; centered clear margin. Sparse dusty haze."
+      },
+      {
+        "atlas": "weather.png",
+        "name": "pall_00",
+        "role": "Atmosphere",
+        "emitter": null,
+        "size_hint": "low overlay",
+        "notes": "Generated painted source; nearest-neighbour x2; centered clear margin. Sparse dusty haze."
+      },
+      {
+        "atlas": "weather.png",
+        "name": "pall_01",
+        "role": "Atmosphere",
+        "emitter": null,
+        "size_hint": "low overlay",
+        "notes": "Generated painted source; nearest-neighbour x2; centered clear margin. Sparse dusty haze."
+      },
+      {
+        "atlas": "weather.png",
+        "name": "particle_00",
+        "role": "Atmosphere",
+        "emitter": null,
+        "size_hint": "low overlay",
+        "notes": "Generated painted source; nearest-neighbour x2; centered clear margin. Sparse dusty haze."
+      },
+      {
+        "atlas": "weather.png",
+        "name": "mist_02",
+        "role": "Atmosphere",
+        "emitter": null,
+        "size_hint": "low overlay",
+        "notes": "Generated painted source; nearest-neighbour x2; centered clear margin. Sparse dusty haze."
+      },
+      {
+        "atlas": "sites.png",
+        "name": "worm_burrow_closed",
+        "role": "Site",
+        "emitter": null,
+        "size_hint": "medium",
+        "notes": "Generated painted source; nearest-neighbour x2; centered clear margin. Matte weathered form with a small contact sand skirt."
+      },
+      {
+        "atlas": "sites.png",
+        "name": "worm_burrow_open",
+        "role": "Site",
+        "emitter": [
+          128,
+          128
+        ],
+        "size_hint": "medium",
+        "notes": "Generated painted source; nearest-neighbour x2; centered clear margin. Dark central emergence point."
+      },
+      {
+        "atlas": "sites.png",
+        "name": "crawler_bay_closed",
+        "role": "Site",
+        "emitter": null,
+        "size_hint": "medium",
+        "notes": "Generated painted source; nearest-neighbour x2; centered clear margin. Matte weathered form with a small contact sand skirt."
+      },
+      {
+        "atlas": "sites.png",
+        "name": "crawler_bay_open",
+        "role": "Site",
+        "emitter": [
+          128,
+          128
+        ],
+        "size_hint": "medium",
+        "notes": "Generated painted source; nearest-neighbour x2; centered clear margin. Dark central emergence point."
+      },
+      {
+        "atlas": "sites.png",
+        "name": "glass_pad_closed",
+        "role": "Site",
+        "emitter": null,
+        "size_hint": "medium",
+        "notes": "Generated painted source; nearest-neighbour x2; centered clear margin. Matte weathered form with a small contact sand skirt."
+      },
+      {
+        "atlas": "sites.png",
+        "name": "glass_pad_open",
+        "role": "Site",
+        "emitter": [
+          128,
+          128
+        ],
+        "size_hint": "medium",
+        "notes": "Generated painted source; nearest-neighbour x2; centered clear margin. Dark central emergence point."
+      },
+      {
+        "atlas": "sites.png",
+        "name": "buried_silo_closed",
+        "role": "Site",
+        "emitter": null,
+        "size_hint": "medium",
+        "notes": "Generated painted source; nearest-neighbour x2; centered clear margin. Matte weathered form with a small contact sand skirt."
+      },
+      {
+        "atlas": "sites.png",
+        "name": "buried_silo_open",
+        "role": "Site",
+        "emitter": [
+          128,
+          128
+        ],
+        "size_hint": "medium",
+        "notes": "Generated painted source; nearest-neighbour x2; centered clear margin. Dark central emergence point."
+      },
+      {
+        "atlas": "sites.png",
+        "name": "ruin_dock_closed",
+        "role": "Site",
+        "emitter": null,
+        "size_hint": "medium",
+        "notes": "Generated painted source; nearest-neighbour x2; centered clear margin. Matte weathered form with a small contact sand skirt."
+      },
+      {
+        "atlas": "sites.png",
+        "name": "ruin_dock_open",
+        "role": "Site",
+        "emitter": [
+          128,
+          128
+        ],
+        "size_hint": "medium",
+        "notes": "Generated painted source; nearest-neighbour x2; centered clear margin. Dark central emergence point."
+      },
+      {
+        "atlas": "sites.png",
+        "name": "lights_off",
+        "role": "Site",
+        "emitter": null,
+        "size_hint": "medium",
+        "notes": "Generated painted source; nearest-neighbour x2; centered clear margin. Matte weathered form with a small contact sand skirt."
+      },
+      {
+        "atlas": "sites.png",
+        "name": "lights_on",
+        "role": "Site",
+        "emitter": [
+          128,
+          128
+        ],
+        "size_hint": "medium",
+        "notes": "Generated painted source; nearest-neighbour x2; centered clear margin. Matte weathered form with a small contact sand skirt."
+      }
+    ],
+    "source": "Built-in image generation candidates in src~; source A selected for all five atlas families.",
+    "note": "Weather has 16 physical cells: three mist and two gust entries because the requested inclusive ranges total 17."
   }
 }

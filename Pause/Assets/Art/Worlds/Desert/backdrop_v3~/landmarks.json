@@ -1,0 +1,116 @@
+{
+  "sprites": [
+    {
+      "n": "refinery_hull_00",
+      "x": 0,
+      "y": 768,
+      "w": 256,
+      "h": 256
+    },
+    {
+      "n": "refinery_hull_01",
+      "x": 256,
+      "y": 768,
+      "w": 256,
+      "h": 256
+    },
+    {
+      "n": "ribcage_gantry_00",
+      "x": 512,
+      "y": 768,
+      "w": 256,
+      "h": 256
+    },
+    {
+      "n": "ribcage_gantry_01",
+      "x": 768,
+      "y": 768,
+      "w": 256,
+      "h": 256
+    },
+    {
+      "n": "drill_head_tower",
+      "x": 0,
+      "y": 512,
+      "w": 256,
+      "h": 256
+    },
+    {
+      "n": "solar_array_skeleton_00",
+      "x": 256,
+      "y": 512,
+      "w": 256,
+      "h": 256
+    },
+    {
+      "n": "solar_array_skeleton_01",
+      "x": 512,
+      "y": 512,
+      "w": 256,
+      "h": 256
+    },
+    {
+      "n": "crawler_caravan_00",
+      "x": 768,
+      "y": 512,
+      "w": 256,
+      "h": 256
+    },
+    {
+      "n": "crawler_caravan_01",
+      "x": 0,
+      "y": 256,
+      "w": 256,
+      "h": 256
+    },
+    {
+      "n": "radio_mast",
+      "x": 256,
+      "y": 256,
+      "w": 256,
+      "h": 256
+    },
+    {
+      "n": "collapsed_dome_cluster",
+      "x": 512,
+      "y": 256,
+      "w": 256,
+      "h": 256
+    },
+    {
+      "n": "bucket_wheel_excavator",
+      "x": 768,
+      "y": 256,
+      "w": 256,
+      "h": 256
+    },
+    {
+      "n": "sunken_cargo_crawler",
+      "x": 0,
+      "y": 0,
+      "w": 256,
+      "h": 256
+    },
+    {
+      "n": "fused_glass_crater_rim",
+      "x": 256,
+      "y": 0,
+      "w": 256,
+      "h": 256
+    },
+    {
+      "n": "cliff_arch",
+      "x": 512,
+      "y": 0,
+      "w": 256,
+      "h": 256
+    },
+    {
+      "n": "pump_well_station",
+      "x": 768,
+      "y": 0,
+      "w": 256,
+      "h": 256
+    }
+  ]
+}
