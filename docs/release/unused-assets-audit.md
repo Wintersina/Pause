@@ -83,7 +83,7 @@ Current values from `ProjectSettings.asset` (see section 4). Medium stripping an
 | `Art/Backgrounds/Resources/Worlds/Space/Backdrop/anim.png` + `anim.json` | 1.59 MB source | `BackdropSet.LoadAnimAtlas` loads `anim_hires` first and falls back to `anim` only when it is missing; `anim_hires` exists. File removal only (no recompression); check `BackdropTests` first. | about 0.5 to 0.6 MB |
 | `Resources/prefabs/explode1_0.prefab` (+ `Art/Animation/explode_1.png`, `explode1_0.controller`, `newAnime.anim` if nothing else uses them) | about 20 KB | no scene, prefab or code reference by guid or name | under 0.05 MB |
 | Identical frames in `Art/Resources/Pickups/Atoms`: `cooldown_idle_{0,2,4,6,8}` equal `_{1,3,5,7,9}`; the four `*_burst_0` files are identical; `PauseGlowFx/pausedGlow_{a,b}_2` equal `PauseGlow/pausedGlow_{a,b}` | tens of KB | md5 identical | under 0.1 MB. Needs an animation-code change to share them, so skip unless free. |
-| `Resources/prefabs/Ships/inGameShips/ship{2..6}.prefab` | 60 KB | selected via `ShipSpawn.PrefabPathFor` for ids 1 to 7 (`IsRetro`); likely all live | none |
+| `Resources/prefabs/Ships/inGameShips/ship{2..6}.prefab` | 60 KB | selected via `spawnShips.PrefabPathFor` for ids 1 to 7 (`IsRetro`); likely all live | none |
 | `Art/Resources/Elites/Tide` strips with no `Defs/*.json` | 0.6 MB | not unused: Tide elites ship in v1, the defs still need authoring | none |
 
 Verified live (no action): all 60 achievement icons, 15 weapon and hull sheets, 6 Kenney Vfx files in `PowerFx`, boss `card`/`shots`/`damage`/`damage_fx`/`death` strips for all five worlds, `Attacks/*laser*`/`lash`/`log`/`shots`/`mineflame`, 5 `Planetfall` sets, all four sky variants and every `v1..v4` backdrop folder, all `Elites/*_death` strips.
@@ -109,7 +109,7 @@ What could be tightened: items 3, 5 and 6 above, plus IL2CPP "Faster (smaller) b
 ## 5. Install size vs AAB, and what else could help
 
 - The 158.8 MB AAB figure (size-diet.md) may still include armeabi-v7a (about 21.8 MB deflated) and the dev APK confirms the pre-commit build had it. The ARM64-only commit should already take about 22 MB off the AAB; Play never delivers v7a to an arm64 phone anyway, so install size was less affected.
-- Backdrops are the big remaining block (about 55 MB in the AAB per size-diet.md, Tide alone 43.6 MB of source PNG) and cannot be recompressed. The only lever that does not touch their pixels is moving Tide, Storm and Desert backdrops to Play Asset Delivery on-demand or fast-follow packs. It does not shrink the base module's 200 MB limit use for install-time packs, so it only helps if those worlds are not needed on first launch.
+- Backdrops are the big remaining block (about 55 MB in the AAB per size-diet.md, Tide alone 43.6 MB of source PNG) and cannot be recompressed. The only lever that does not touch their pixels is moving Tide, Storm and Desert backdrops to Play Asset Delivery on-demand or fast-follow packs. Install-time packs still count toward install size, so only on-demand or fast-follow packs help, and only if those worlds are not needed on first launch.
 - Everything under `Resources` also ships to every device even when never loaded (for example Tide and the Ember/Frost mp3s), which is by design here.
 
 ## 6. Verification still needed after any change
