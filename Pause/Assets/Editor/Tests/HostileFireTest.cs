@@ -158,7 +158,7 @@ public static class HostileFireTest
               ", max kills/frame " + FriendlyFire.HostileFireMaxKillsPerFrame + ", spawn-in protection " +
               FriendlyFire.HostileFireSpawnInProtectionSeconds + " s",
               FriendlyFire.HostileFireEnabled && FriendlyFire.HostileFireElitesLoseOneHeart && !FriendlyFire.HostileFireAwardsPlayerCredit &&
-              FriendlyFire.HostileFireMaxKillsPerFrame == 2 && Mathf.Approximately(FriendlyFire.HostileFireSpawnInProtectionSeconds, 1f));
+              FriendlyFire.HostileFireMaxKillsPerFrame == 2 && Mathf.Approximately(FriendlyFire.HostileFireSpawnInProtectionSeconds, .1f));
     }
 
     // ---- 1. roster enemies' shots (every attack that fires) -----------------------
@@ -381,13 +381,11 @@ public static class HostileFireTest
         Fresh();
         var rt = HazardRuntime.Ensure();
         var fresh = Hazard(EnemyRole.Rock, new Vector2(0f, 0f), settled: false);
-        var s = FireElite(null, EliteShots.Kind.Bolt, new Vector2(0f, 1f), Vector2.down * 3f);
-        for (int i = 0; i < 60; i++) { EliteSystem.Shots.Step(Dt); rt.Step(Dt); }
-        Check("a rock that has only just come in is spared (shot passes through, " + fresh.GetComponent<ClearTarget>().PlayfieldSeconds.ToString("F2") + " s on the board)",
-              !Gone(fresh));
-        // after a second inside the playfield it is fair game
-        for (int i = 0; i < 40; i++) rt.Step(Dt);
-        FireElite(null, EliteShots.Kind.Bolt, new Vector2(0f, 1f), Vector2.down * 3f);
+        var s = FireElite(null, EliteShots.Kind.Bolt, new Vector2(0f, .35f), Vector2.down * 3f);   // already on it when it comes in
+        for (int i = 0; i < 4; i++) { EliteSystem.Shots.Step(Dt); rt.Step(Dt); }
+        Check("a rock that has only just come in is spared for the first frames (shot on it, " + fresh.GetComponent<ClearTarget>().PlayfieldSeconds.ToString("F2") + " s on the board)",
+              !Gone(fresh) && FriendlyFire.SpawnProtected(fresh.GetComponent<ClearTarget>()));
+        // past the short grace inside the playfield it is fair game
         for (int i = 0; i < 60; i++) { EliteSystem.Shots.Step(Dt); rt.Step(Dt); }
         Check("... and after HostileFireSpawnInProtectionSeconds in the playfield it is hit", Gone(fresh));
 

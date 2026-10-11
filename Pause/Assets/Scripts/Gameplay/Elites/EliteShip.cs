@@ -929,6 +929,7 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
             if (elite.grace > 0f) return;
             velocity = away * 3f;
             elite.velocity = -away * 3f;
+            FriendlyFire.Popup(at);
             HitBy = "elite body";
             elite.TakeHit(EliteDamage.Crash, pos);
             HitBy = "elite body";
@@ -937,6 +938,7 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
         }
         bool rock = other.CompareTag("Astr");
         string what = SourceName(other);
+        FriendlyFire.Popup(at);
         FriendlyKill(other);
         if (rock && Acting && Attack.Ploughs)
         {

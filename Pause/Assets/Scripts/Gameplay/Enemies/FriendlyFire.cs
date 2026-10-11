@@ -14,8 +14,9 @@ using UnityEngine;
 //     whatever hazard they run into, and it breaks with them.
 // None of it pays the pilot (EliteShip.FriendlyKill: blast and sound, no
 // score, dust or codex); an elite that dies to it still pays its fixed
-// reward (EliteRewards, the elite rules). The boss itself is never hurt by
-// friendly fire, and nothing here runs during a player death (the domino
+// reward (EliteRewards, the elite rules). The boss is never hurt by its own
+// attacks, and takes only a sliver (BossFriendlyFireWeight, at most once a
+// BossFriendlyFireGap) from an ordinary enemy's shot or beam; nothing here runs during a player death (the domino
 // chain, DeathCrashDomino, owns the board then).
 //
 // HOSTILE FIRE (the weapon half of the above, one rule for every hostile
@@ -51,7 +52,9 @@ public static class FriendlyFire
     public static readonly bool HostileFireElitesLoseOneHeart = true;  // false: elites ignore hostile fire
     public static readonly bool HostileFireAwardsPlayerCredit = false; // true: a hostile-fire kill pays like a weapon kill
     public const int HostileFireMaxKillsPerFrame = 2;
-    public const float HostileFireSpawnInProtectionSeconds = 1f;
+    public const float HostileFireSpawnInProtectionSeconds = .1f;     // just long enough for a spawn-in not to pop; short so a laser / flame already burning still catches an enemy that flies in
+    public const float BossFriendlyFireWeight = .05f;                   // a boss hit by an ORDINARY enemy's fire loses this share of one ship hit (never by its own attacks)
+    public const float BossFriendlyFireGap = 1f;                        // seconds between two such hits
     public const float HostileFireReach = .8f;                         // x a target's radius (the shots' hit tests)
     public const float HostileFirePopupGap = 1.5f;                     // seconds between two "FRIENDLY FIRE" words
     public const int MaxBeamTargets = 24;                              // per beam pulse
@@ -60,7 +63,7 @@ public static class FriendlyFire
     public static DamageSource Source { get; private set; } = DamageSource.Player;
     public static bool HostileKillInProgress => Source == DamageSource.HostileFire;
     // Counters (tests, the probe).
-    public static int HostileKills, HostileEliteHits, HostileCapped;
+    public static int HostileKills, HostileEliteHits, HostileCapped, HostileBossHits, Popups;
 
     public const float MineBlastRadius = 1.05f;
     public const float MineBlastDelay = .1f;
@@ -84,11 +87,21 @@ public static class FriendlyFire
     public static bool CanHit(ClearTarget t) =>
         t != null && t.isActiveAndEnabled && ClearTarget.IsHazard(t.gameObject) && !Immune(t.gameObject);
 
+    static bool IsBossBody(ClearTarget t) => t != null && t.isActiveAndEnabled && t.TryGetComponent(out BossTarget _);
+
+    // The boss takes a sliver of damage from an ORDINARY enemy's fire (a rail
+    // mine's laser, a roster / elite shot); never from its own attacks (the
+    // boss shooter is null in the shot calls, or a BossActor body part).
+    static bool BossCanBeHurtBy(GameObject shooter) =>
+        shooter != null && shooter.GetComponentInParent<BossActor>() == null &&
+        clock - lastBossHit >= BossFriendlyFireGap && BossEncounter.Instance != null;
+
     // A hostile hit on `go`: an elite loses a heart, anything else is
     // destroyed with its blast, unpaid.
     public static void Hit(GameObject go, Vector3 at)
     {
         if (go == null || Immune(go)) return;
+        Popup(go.transform.position);
         if (go.TryGetComponent(out EliteShip elite))
         {
             EliteHits++;
@@ -104,9 +117,9 @@ public static class FriendlyFire
 
     static bool tutorialScene;
     static int frameKey = int.MinValue, killsThisFrame, editStep;
-    static float lastPopup = -999f, clock;
+    static float lastPopup = -999f, lastBossHit = -999f, clock;
 
-    public static void ResetHostileCounters() { HostileKills = HostileEliteHits = HostileCapped = 0; killsThisFrame = 0; frameKey = int.MinValue; }
+    public static void ResetHostileCounters() { HostileKills = HostileEliteHits = HostileCapped = HostileBossHits = Popups = 0; killsThisFrame = 0; frameKey = int.MinValue; lastPopup = -999f; lastBossHit = -999f; }
 
     // The scene loader's note (HazardRuntime.Boot): Scene.name allocates, so it is read once a load.
     public static void OnSceneLoaded(string sceneName) { tutorialScene = sceneName == score.TutorialScene; }
@@ -143,7 +156,9 @@ public static class FriendlyFire
     // May a hostile shot fired by `shooter` (null: the boss, a test) hit `t`?
     public static bool HostileFireCanHit(ClearTarget t, GameObject shooter)
     {
-        if (!CanHit(t) || !HostileFireAllowed) return false;
+        if (!HostileFireAllowed) return false;
+        if (IsBossBody(t)) return BossCanBeHurtBy(shooter);
+        if (!CanHit(t)) return false;
         var go = t.gameObject;
         if (go == shooter || t.IsShotHitbox || !t.enabled) return false;
         // An elite's own gate is joining the play (parked / lifting off it
@@ -171,10 +186,19 @@ public static class FriendlyFire
     public static bool HostileHit(ClearTarget t, Vector3 at, string by)
     {
         var go = t.gameObject;
+        if (IsBossBody(t))
+        {
+            lastBossHit = clock;
+            HostileBossHits++;
+            Popup(go.transform.position);
+            BossEncounter.Instance?.OnShipAttackHit(BossFriendlyFireWeight, at);
+            return true;
+        }
         var elite = t.Elite;
         if (elite != null || go.TryGetComponent(out elite))
         {
             HostileEliteHits++;
+            Popup(go.transform.position);
             EliteHits++;
             EliteShip.HitBy = by;
             Source = DamageSource.HostileFire;
@@ -197,10 +221,15 @@ public static class FriendlyFire
         return true;
     }
 
-    static void Popup(Vector3 at)
+    // The small "FRIENDLY FIRE" word: every friendly-fire hit or kill from any source (shots, beams, flames,
+    // blasts, crashes) calls it; at most one word every HostileFirePopupGap seconds of gameplay time.
+    public static System.Action<string, Vector3> WordHook;   // edit-mode previews / tests: stands in for the HUD word
+    public static void Popup(Vector3 at)
     {
-        if (!Application.isPlaying || clock - lastPopup < HostileFirePopupGap) return;
+        if (clock - lastPopup < HostileFirePopupGap) return;
         lastPopup = clock;
+        Popups++;
+        if (!Application.isPlaying) { WordHook?.Invoke("FRIENDLY FIRE", at); return; }
         var hud = ScoreHud.Current;
         if (hud != null) hud.ShowWord("FRIENDLY FIRE", at, DeathCombo.FlashColour, 22);
     }
@@ -665,4 +694,31 @@ public class HazardRuntime : MonoBehaviour
         for (int i = 0; i < fragsBuilt; i++) { frags[i].active = false; frags[i].sr.gameObject.SetActive(false); }
         for (int i = 0; i < popsBuilt; i++) { pops[i].active = false; pops[i].ring.gameObject.SetActive(false); }
     }
+}
+
+// THE REGISTRY OF DAMAGING ENEMY-OWNED SOURCES. Every component that makes a
+// hitbox that can hurt the pilot, or registers a hostile shot / zone, is
+// listed here with the call that sends it through the shared friendly-fire
+// path (FriendlyFire.HostileFireCanHit / HostileHit / HostileBeam / MineBlast
+// / Hit). FriendlyFireCoverageTest scans the source tree and fails when a
+// class makes such a hitbox without being listed (or lists a marker it no
+// longer calls), so a future attack cannot silently skip friendly fire.
+// Bodies (EliteShip, the boss) are targets and crash through their own rules.
+public static class FriendlyFireSources
+{
+    public readonly struct Source
+    {
+        public readonly string type, marker;
+        public Source(string type, string marker) { this.type = type; this.marker = marker; }
+    }
+
+    public static readonly Source[] All =
+    {
+        new Source("EliteShot", "FriendlyFire.HostileHit("),          // every elite / roster / pool shot kind
+        new Source("BossProjectile", "FriendlyFire.HostileHit("),     // boss shots (never the boss itself)
+        new Source("BossBeam", "FriendlyFire.HostileBeam("),          // boss lasers
+        new Source("AttackHazard", "FriendlyFire.HostileHit("),       // blast, strike, jet, wave, lash, log (the base burns)
+        new Source("RailMineLaser", "FriendlyFire.HostileHit("),      // rail mine laser / flame
+        new Source("RailBombAnimator", "FriendlyFire.MineBlast("),    // every mine burst blasts its neighbours
+    };
 }

@@ -114,6 +114,7 @@ public static class AllTests
         ("HostileReachTest", HostileReachTest.Execute),
         ("HostileProjectileTest", HostileProjectileTest.Execute),
         ("HostileFireTest", HostileFireTest.Execute),
+        ("FriendlyFireCoverageTest", FriendlyFireCoverageTest.Execute),
         ("LaunchCountdownTest", LaunchCountdownTest.Execute),
         ("LeaderboardTest", LeaderboardTest.Execute),
         ("LiftoffTest", LiftoffTest.Execute),
