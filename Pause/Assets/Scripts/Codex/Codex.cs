@@ -12,8 +12,8 @@ using UnityEngine.SceneManagement;
 // -- and the codex works out the entry from the object's prefab name.
 //
 // Discoveries persist in PlayerPrefs under one key, PrefsKey, as a
-// comma-separated id list, written through the batched PrefsSaver. Cloud
-// saves should sync that key alongside the rest of player progress.
+// comma-separated id list, written through the batched PrefsSaver. The cloud
+// save syncs it with NewKey and AckKey (ProgressSnapshot / ProgressMerge).
 //
 // Some entries need no discovery event:
 //   * the Pilot's Log entries are unlocked from the start;
@@ -236,6 +236,14 @@ public static class Codex
         seenOrder = null;
         unseen = null;
         acked = null;
+    }
+
+    // The saved sets were rewritten by a cloud restore: re-read them and let
+    // the home bubble / tab dots redraw.
+    public static void OnExternalChange()
+    {
+        Reload();
+        RaiseNewChanged();
     }
 
     // ---------------------------------------------------------------------

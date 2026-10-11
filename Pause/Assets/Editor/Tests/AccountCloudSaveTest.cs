@@ -71,6 +71,7 @@ public static class AccountCloudSaveTest
         {
             MergeRules();
             RoundTrip();
+            CodexSync();
             DeveloperModeSnapshot();
             SignInFailureLeavesLocalAlone();
             LoadFailureLeavesLocalAlone();
@@ -235,6 +236,120 @@ public static class AccountCloudSaveTest
         Check("parse: garbage is invalid", ProgressSnapshot.TryParse("{not json", out ignored) == ProgressSnapshot.ParseResult.Invalid);
         Check("parse: a newer schema is refused",
               ProgressSnapshot.TryParse("{\"schemaVersion\":2}", out ignored) == ProgressSnapshot.ParseResult.NewerSchema);
+    }
+
+    // ---- codex (discoveries, NEW markers, acknowledgements) ----
+
+    static ProgressSnapshot CodexSnap(long at, string seen, string fresh, string ack)
+    {
+        return new ProgressSnapshot
+        {
+            savedAtUtc = at,
+            codexSeen = ProgressSnapshot.IdList(seen),
+            codexNew = ProgressSnapshot.IdList(fresh),
+            codexNewAck = ProgressSnapshot.IdList(ack),
+        };
+    }
+
+    static string J(string[] ids) { return string.Join(",", ids ?? new string[0]); }
+
+    static void CodexSync()
+    {
+        ClearProgress();
+        Codex.Reload();
+
+        // round trip through json and PlayerPrefs; stored sorted and de-duplicated
+        PlayerPrefs.SetString(Codex.PrefsKey, "c,a,b,a");
+        PlayerPrefs.SetString(Codex.NewKey, "c,b");
+        PlayerPrefs.SetString(Codex.AckKey, "c,ach:x");
+        var cap = ProgressSnapshot.Capture(1);
+        Check("codex: capture is sorted and de-duplicated",
+              J(cap.codexSeen) == "a,b,c" && J(cap.codexNew) == "b,c" && J(cap.codexNewAck) == "ach:x,c");
+        string json = cap.ToJson();
+        ClearProgress();
+        Check("codex: clearing removes the keys",
+              !PlayerPrefs.HasKey(Codex.PrefsKey) && !PlayerPrefs.HasKey(Codex.NewKey) && !PlayerPrefs.HasKey(Codex.AckKey));
+        ProgressSnapshot parsed;
+        Check("codex: json parses", ProgressSnapshot.TryParse(json, out parsed) == ProgressSnapshot.ParseResult.Ok);
+        parsed.Apply();
+        Check("codex: round trip restores all three keys",
+              PlayerPrefs.GetString(Codex.PrefsKey) == "a,b,c" && PlayerPrefs.GetString(Codex.NewKey) == "b,c" &&
+              PlayerPrefs.GetString(Codex.AckKey) == "ach:x,c");
+        Check("codex: json stays compact (< 2 KB for 5 ids)", json.Length < 2048);
+
+        // union of discoveries
+        var m = ProgressMerge.Merge(CodexSnap(10, "a,b", "", ""), CodexSnap(20, "b,c", "", ""));
+        Check("codex merge: discoveries are a union", J(m.codexSeen) == "a,b,c");
+
+        // new on one side only (other side has never met it) stays new
+        m = ProgressMerge.Merge(CodexSnap(10, "a", "a", ""), CodexSnap(20, "b", "", ""));
+        Check("codex merge: new on a side that alone knows it stays new", J(m.codexNew) == "a");
+
+        // cleared on either side never comes back, whichever side is newer
+        m = ProgressMerge.Merge(CodexSnap(10, "a,b", "a,b", ""), CodexSnap(20, "a,b", "b", ""));
+        Check("codex merge: opened on the cloud (older local) stays opened", J(m.codexNew) == "b");
+        m = ProgressMerge.Merge(CodexSnap(20, "a,b", "b", ""), CodexSnap(10, "a,b", "a,b", ""));
+        Check("codex merge: opened on the device stays opened", J(m.codexNew) == "b");
+
+        // acknowledged on either side stays acknowledged
+        m = ProgressMerge.Merge(CodexSnap(10, "a,b", "a,b", "a"), CodexSnap(20, "a,b", "a,b", "b,ach:q"));
+        Check("codex merge: acknowledged on either side stays acknowledged",
+              J(m.codexNew) == "a,b" && J(m.codexNewAck) == "a,ach:q,b");
+        m = ProgressMerge.Merge(CodexSnap(10, "a,b", "a,b", "a,b"), CodexSnap(20, "a,b", "b", ""));
+        Check("codex merge: a cleared entry drops its ack, no resurrected dot",
+              J(m.codexNew) == "b" && J(m.codexNewAck) == "b");
+
+        // an older client's snapshot (no codex fields at all) changes nothing
+        ProgressSnapshot old;
+        Check("codex: an old snapshot without the fields parses",
+              ProgressSnapshot.TryParse("{\"schemaVersion\":1,\"savedAtUtc\":5,\"currency\":3}", out old) == ProgressSnapshot.ParseResult.Ok &&
+              old.codexSeen.Length == 0 && old.codexNew.Length == 0 && old.codexNewAck.Length == 0);
+        m = ProgressMerge.Merge(CodexSnap(10, "a,b", "b", "b"), old);
+        Check("codex merge: with an old snapshot the device keeps its state",
+              J(m.codexSeen) == "a,b" && J(m.codexNew) == "b" && J(m.codexNewAck) == "b");
+        ProgressSnapshot future;
+        Check("codex: unknown future fields do not break parsing",
+              ProgressSnapshot.TryParse("{\"schemaVersion\":1,\"codexSeen\":[\"a\"],\"codexSomethingNew\":[1,2]}", out future) == ProgressSnapshot.ParseResult.Ok &&
+              J(future.codexSeen) == "a");
+
+        // restore on a fresh install: restored discoveries do not light up
+        ClearProgress();
+        Codex.Reload();
+        var real = Codex.Entries.Where(e => e.category != CodexCategory.Log && !e.secret).Take(3).ToArray();
+        string ids = string.Join(",", real.Select(e => e.id));
+        var cloud = CodexSnap(100, ids, "", "");
+        var fresh = ProgressSnapshot.Capture(0);
+        var restored = ProgressMerge.Merge(fresh, cloud);
+        restored.Apply();
+        Check("codex restore: discoveries come back", Codex.IsDiscovered(real[0].id) && Codex.IsDiscovered(real[2].id));
+        Check("codex restore: nothing is NEW, no dots, no bubble count",
+              !Codex.IsNew(real[0].id) && Codex.UnackedNewCount == 0 && !Codex.TabHasNew(real[0].category));
+        // a NEW marker the cloud itself carried survives the restore
+        ClearProgress();
+        restored = ProgressMerge.Merge(ProgressSnapshot.Capture(0), CodexSnap(100, ids, real[1].id, ""));
+        restored.Apply();
+        Check("codex restore: only the cloud's own NEW entry is NEW",
+              Codex.IsNew(real[1].id) && !Codex.IsNew(real[0].id) && Codex.UnackedNewCount == 1);
+
+        // the cached sets are dropped by Apply, so the next change cannot undo the restore
+        Codex.MarkSeen(real[1].id);
+        Check("codex restore: marking seen after a restore clears the dot",
+              !Codex.IsNew(real[1].id) && PlayerPrefs.GetString(Codex.NewKey) == "");
+
+        // size bound
+        var many = new List<string>();
+        for (int i = 0; i < 5000; i++) many.Add("id" + i);
+        PlayerPrefs.SetString(Codex.PrefsKey, string.Join(",", many));
+        Check("codex: lists are capped", ProgressSnapshot.Capture(0).codexSeen.Length == ProgressSnapshot.MaxCodexIds);
+        var entryIds = Codex.Entries.Select(e => e.id).ToList();
+        PlayerPrefs.SetString(Codex.PrefsKey, string.Join(",", entryIds));
+        PlayerPrefs.SetString(Codex.NewKey, string.Join(",", entryIds));
+        PlayerPrefs.SetString(Codex.AckKey, string.Join(",", entryIds));
+        int full = ProgressSnapshot.Capture(0).ToJson().Length;
+        Check("codex: a snapshot with every entry in all three lists stays under 16 KB (" + full + ")", full < 16384);
+
+        ClearProgress();
+        Codex.Reload();
     }
 
     // ---- developer mode ----

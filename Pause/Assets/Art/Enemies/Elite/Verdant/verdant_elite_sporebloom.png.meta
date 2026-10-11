@@ -1,28 +1,28 @@
 fileFormatVersion: 2
-guid: b41644606993341a8a58e4702e17450f
+guid: 2e9a9292a74d8417aa2e7baacee732c8
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 9091502287385077488
-    second: verdant_elite_timber_hauler_0
+      213: 6599858139850832322
+    second: verdant_elite_sporebloom_0
   - first:
-      213: 9126780974110882958
-    second: verdant_elite_timber_hauler_1
+      213: -6591482446623724047
+    second: verdant_elite_sporebloom_1
   - first:
-      213: -1868769551714509962
-    second: verdant_elite_timber_hauler_2
+      213: 3935065331414266096
+    second: verdant_elite_sporebloom_2
   - first:
-      213: -1657722226999135259
-    second: verdant_elite_timber_hauler_3
+      213: -8833166726434571250
+    second: verdant_elite_sporebloom_3
   - first:
-      213: -1974063078834643983
-    second: verdant_elite_timber_hauler_4
+      213: -6038242309195558509
+    second: verdant_elite_sporebloom_4
   - first:
-      213: -4504810268342612761
-    second: verdant_elite_timber_hauler_5
+      213: -7400230631464525970
+    second: verdant_elite_sporebloom_5
   - first:
-      213: -6096550311753314028
-    second: verdant_elite_timber_hauler_6
+      213: 6463996501044669400
+    second: verdant_elite_sporebloom_6
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -144,13 +144,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: verdant_elite_timber_hauler_0
+      name: verdant_elite_sporebloom_0
       rect:
         serializedVersion: 2
-        x: 30
-        y: 41
-        width: 132
-        height: 110
+        x: 36
+        y: 26
+        width: 120
+        height: 140
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -159,20 +159,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 0f62d3a59218b2e70800000000000000
-      internalID: 9091502287385077488
+      spriteID: 2c977c9b208679b50800000000000000
+      internalID: 6599858139850832322
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: verdant_elite_timber_hauler_1
+      name: verdant_elite_sporebloom_1
       rect:
         serializedVersion: 2
-        x: 222
-        y: 41
-        width: 132
-        height: 110
+        x: 229
+        y: 26
+        width: 118
+        height: 140
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -181,20 +181,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: e8c3ca0b0f6d8ae70800000000000000
-      internalID: 9126780974110882958
+      spriteID: 1fd25c153a95684a0800000000000000
+      internalID: -6591482446623724047
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: verdant_elite_timber_hauler_2
+      name: verdant_elite_sporebloom_2
       rect:
         serializedVersion: 2
-        x: 415
-        y: 29
-        width: 130
-        height: 122
+        x: 423
+        y: 17
+        width: 114
+        height: 149
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -203,20 +203,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 67b9dfe6efbc016e0800000000000000
-      internalID: -1868769551714509962
+      spriteID: 0f0f6eee1192c9630800000000000000
+      internalID: 3935065331414266096
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: verdant_elite_timber_hauler_3
+      name: verdant_elite_sporebloom_3
       rect:
         serializedVersion: 2
-        x: 607
-        y: 36
-        width: 130
-        height: 115
+        x: 617
+        y: 24
+        width: 110
+        height: 142
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -225,20 +225,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 5e37273ea669ef8e0800000000000000
-      internalID: -1657722226999135259
+      spriteID: e0c311599a94a6580800000000000000
+      internalID: -8833166726434571250
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: verdant_elite_timber_hauler_4
+      name: verdant_elite_sporebloom_4
       rect:
         serializedVersion: 2
-        x: 797
-        y: 36
-        width: 131
-        height: 115
+        x: 803
+        y: 24
+        width: 117
+        height: 142
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -247,20 +247,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 1fbd8ddb618ba94e0800000000000000
-      internalID: -1974063078834643983
+      spriteID: 3911aac9c9ad33ca0800000000000000
+      internalID: -6038242309195558509
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: verdant_elite_timber_hauler_5
+      name: verdant_elite_sporebloom_5
       rect:
         serializedVersion: 2
-        x: 992
-        y: 36
-        width: 131
-        height: 115
+        x: 1000
+        y: 24
+        width: 117
+        height: 142
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -269,20 +269,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 7ec08eeade2bb71c0800000000000000
-      internalID: -4504810268342612761
+      spriteID: e6f9793e2791d4990800000000000000
+      internalID: -7400230631464525970
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: verdant_elite_timber_hauler_6
+      name: verdant_elite_sporebloom_6
       rect:
         serializedVersion: 2
-        x: 1183
-        y: 41
-        width: 130
-        height: 110
+        x: 1188
+        y: 26
+        width: 120
+        height: 140
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -291,8 +291,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 41195a8dac3b46ba0800000000000000
-      internalID: -6096550311753314028
+      spriteID: 8dba22ae19ab4b950800000000000000
+      internalID: 6463996501044669400
       vertices: []
       indices: 
       edges: []
@@ -311,13 +311,13 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      verdant_elite_timber_hauler_0: 9091502287385077488
-      verdant_elite_timber_hauler_1: 9126780974110882958
-      verdant_elite_timber_hauler_2: -1868769551714509962
-      verdant_elite_timber_hauler_3: -1657722226999135259
-      verdant_elite_timber_hauler_4: -1974063078834643983
-      verdant_elite_timber_hauler_5: -4504810268342612761
-      verdant_elite_timber_hauler_6: -6096550311753314028
+      verdant_elite_sporebloom_0: 6599858139850832322
+      verdant_elite_sporebloom_1: -6591482446623724047
+      verdant_elite_sporebloom_2: 3935065331414266096
+      verdant_elite_sporebloom_3: -8833166726434571250
+      verdant_elite_sporebloom_4: -6038242309195558509
+      verdant_elite_sporebloom_5: -7400230631464525970
+      verdant_elite_sporebloom_6: 6463996501044669400
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

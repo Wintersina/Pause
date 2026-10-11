@@ -8,7 +8,7 @@ Derived from the code and plugins at branch `feature/release-rc`, not from memor
 |---|---|---|
 | Game progress in PlayerPrefs (star dust, owned ships and skins, worlds reached, best score, achievement counters, Codex discoveries, sound switch) | Device only, private app storage | `ProgressSnapshot.Capture`, `PlayerPrefs` usage |
 | Play Games sign-in: player id and display name | Provided by Google to the game, held in memory | `PlayGamesAccount` (`GetUserId`, `GetUserDisplayName`) |
-| Cloud save: one JSON "Pause progress" snapshot | Google Play Games saved games (sent only when signed in) | `PlayGamesAccount.WriteCloudSave`, `ProgressSnapshot` (currency, owned ships, best score, worlds, counters, skins) |
+| Cloud save: one JSON "Pause progress" snapshot | Google Play Games saved games (sent only when signed in) | `PlayGamesAccount.WriteCloudSave`, `ProgressSnapshot` (currency, owned ships, best score, worlds, counters, skins, Codex entry ids: discovered / NEW / acknowledged) |
 | Leaderboard scores: Top Score, Star Dust (run), Furthest Loop | Google Play Games leaderboards (only when signed in, not in developer mode) | `LeaderboardService`, `LeaderboardBoards` |
 | Achievements (60 ids) | Google Play Games (only when signed in) | `AchievementIds`, `SocialBridge` |
 | Analytics, crash reports, telemetry | None. No Firebase, Crashlytics, Unity Analytics, GameAnalytics etc. in code or packages that is initialised; `UnityConnectSettings` has Analytics, Ads, Purchasing, Performance and Cloud Diagnostics all `m_Enabled: 0` | grep below |
