@@ -276,11 +276,11 @@ public static class VerdantEliteTest
             if (d.WorldIndex != 2) continue;
             n++;
             var entry = global::Codex.Find(d.codexId);
-            bool ok = entry != null && entry.category == CodexCategory.Enemies && (d.key == "verdant_elite_resin_warden" || EliteArt.HasExtra(d, EliteArt.Extra.Death));   // (the Warden has no painted death strip yet)
+            bool ok = entry != null && entry.category == CodexCategory.Enemies && EliteArt.HasExtra(d, EliteArt.Extra.Death);
             if (!ok) Debug.Log("[VEL] codex " + d.key + ": entry " + (entry != null) + " category " + (entry != null ? entry.category.ToString() : "-") + " death " + EliteArt.HasExtra(d, EliteArt.Extra.Death));
             strips &= ok;
         }
-        Check("the codex lists five Verdant elites, the four new ones with their death strip for the tap (" + n + ")", n == 5 && strips);
+        Check("the codex lists five Verdant elites, each with its death strip for the tap (" + n + ")", n == 5 && strips);
     }
 
     // ---- Timber Hauler: log_roll ----------------------------------------------------------

@@ -25,7 +25,7 @@ Strategy: versionCode = major * 10000 + minor * 100 + patch (1.0.0 = 10000, 1.0.
 | Scripting backend | IL2CPP | Required for arm64. |
 | Managed stripping | Low (`managedStrippingLevel: 1`), engine code stripping on | Safe for the Play Games plugin. |
 | Output | AAB for Play, APK for sideload | `make android-release` (new) builds both. |
-| Bundle size validation | `AndroidValidateAppBundleSize: 1`, limit 200 MB | The AAB is 181 MB: under the limit with little headroom, see section 10. |
+| Bundle size validation | `AndroidValidateAppBundleSize: 1`, limit 200 MB | The AAB is 158.8 MB after the size diet (was 183.5 MB): 41 MB under the limit, see section 10 and docs/release/size-diet.md. |
 | Install location | `auto` (was preferExternal) | Changed; preferExternal is obsolete. |
 | Android TV | off (was on) | `AndroidTVCompatibility: 0` removed the `LEANBACK_LAUNCHER` category; a touch-only game should not be offered on TV. |
 | Category | Game (`AndroidIsGame`, appCategory game) | OK |
@@ -101,7 +101,7 @@ Sign-in flow in code: `PlayGamesAccount.SignIn` (silent `Authenticate` at start,
 
 ## 10. Install size, startup, memory, frame rate
 
-- Audit AAB: 180.7 MB (181 MB), APK 183.1 MB, arm64 only (libil2cpp 51.8 MB, libunity 19.8 MB). Over the Play 200 MB base-module AAB limit it is not, but it is big for a 2D game. Uncompressed content is 513 MB, 90% textures (462 MB).
+- Audit AAB after the size diet: 158.8 MB (183.5 MB before; Tide excluded would be about 143 MB, see docs/release/size-diet.md). Older audit: AAB 180.7 MB, APK 183.1 MB, arm64 only (libil2cpp 51.8 MB, libunity 19.8 MB). Over the Play 200 MB base-module AAB limit it is not, but it is big for a 2D game. Uncompressed content is 513 MB, 90% textures (462 MB).
 - Biggest: 16 ship hull sheets at 9.0 MB uncompressed each (135 MB together), `exhaust_atlas.png` 15.4 MB, rail sheets 6 MB each (six worlds' worth), `teleport_portal_atlas` 6.2 MB, Tide assets 47.6 MB. Cheapest wins: confirm hulls/rails use ASTC (the logged sizes look like uncompressed RGBA, which suggests the Android texture format override is not applied to these; check their importer "Android" override), drop Tide until it ships, trim the 15 MB exhaust atlas. Each is a content change outside this task. Play also delivers the AAB compressed and split by ABI/density, so the download is roughly the AAB size or a little less.
 - Startup: not measured on a device in this task. The splash scene is first; Unity splash screen is off. Measure with `adb shell am start -W me.hapticgate.pause/com.unity3d.player.UnityPlayerActivity` on the phone before launch.
 - Memory budgets: `WorldBackdropTest` enforces per-world texture memory in ASTC 6x6 terms: Space 10 MB, Frost 12 MB, Verdant 7 MB, Ember 7 MB, Tide 10 MB (default 9 MB). Those suites pass in the full run (section 12).

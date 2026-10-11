@@ -1,10 +1,7 @@
 fileFormatVersion: 2
-guid: 138ce4b6b3e4a489e8f73aadee7b3565
+guid: 1ce3199f4a6d47d4b8ed86339fa10c23
 TextureImporter:
-  internalIDToNameTable:
-  - first:
-      213: 6206065358055445981
-    second: tide_elite_contact_sheet_0
+  internalIDToNameTable: []
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -124,29 +121,7 @@ TextureImporter:
     forceMaximumCompressionQuality_BC6H_BC7: 0
   spriteSheet:
     serializedVersion: 2
-    sprites:
-    - serializedVersion: 2
-      name: tide_elite_contact_sheet_0
-      rect:
-        serializedVersion: 2
-        x: 0
-        y: 0
-        width: 2880
-        height: 2304
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: dd590cfdf8f502650800000000000000
-      internalID: 6206065358055445981
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
+    sprites: []
     outline: []
     customData: 
     physicsShape: []

@@ -51,7 +51,7 @@ public sealed class AttackLash : AttackHazard
     public const int MinLinks = 4, MaxLinks = 10, MaxDashes = 12;
     public const float RetractSeconds = .24f;
     public const int PoolSize = 3;
-    public const int SortLinks = 12, SortTip = 13, SortRoot = 14, SortDash = 11;
+    public const int SortLinks = 12, SortTip = 13, SortRoot = 14, SortDash = 11, SortRim = 10;
     public const float FlickerFps = 10f;
     public const float MinCorridor = 1.4f, CorridorMargin = .25f;
     // the drawn chain is wider than it hits (the doc's 2x rule): the hit is HitHalf, the link tile .375 u
@@ -67,9 +67,16 @@ public sealed class AttackLash : AttackHazard
         go.transform.SetParent(root, false);
         var l = go.AddComponent<AttackLash>();
         l.links = new SpriteRenderer[MaxLinks];
-        for (int i = 0; i < MaxLinks; i++) l.links[i] = Piece(go.transform, "Link" + i, SortLinks);
+        l.linkRims = new SpriteRenderer[MaxLinks];
+        for (int i = 0; i < MaxLinks; i++)
+        {
+            l.links[i] = Piece(go.transform, "Link" + i, SortLinks);
+            l.linkRims[i] = Piece(l.links[i].transform, "Rim", SortRim);
+        }
         l.tip = Piece(go.transform, "Tip", SortTip);
+        l.tipRim = Piece(l.tip.transform, "Rim", SortRim);
         l.rootBud = Piece(go.transform, "Root", SortRoot);
+        l.rootRim = Piece(l.rootBud.transform, "Rim", SortRim);
         l.dashes = new SpriteRenderer[MaxDashes];
         for (int i = 0; i < MaxDashes; i++) l.dashes[i] = Piece(go.transform, "Dash" + i, SortDash);
         l.Register();
@@ -166,8 +173,13 @@ public sealed class AttackLash : AttackHazard
 
     // ---- instance ----
 
-    SpriteRenderer[] links, dashes;
-    SpriteRenderer tip, rootBud;
+    SpriteRenderer[] links, dashes, linkRims;
+    SpriteRenderer tip, rootBud, tipRim, rootRim;
+    // The painted whip (Verdant) is green on a green canopy: it wears ShotOutline's outline behind its art (the pale pink-white trace and, on
+    // bright worlds, the dark keyline), the way the rolling log does. Resolved once per take; the procedural whips carry their own pink keyline.
+    readonly Sprite[] linkRimSprites = new Sprite[2], tipRimSprites = new Sprite[2], rootRimSprites = new Sprite[2];
+    Color rimTint;
+    bool rimmed;
     LashSpec spec;
     Vector2 root, target;
     float startRad, length, linkLen, room, fadeFor;
@@ -222,7 +234,40 @@ public sealed class AttackLash : AttackHazard
             rootSprites[i] = AttackHazardArt.LashRoot(s.world, i, bold);
             dashSprites[i] = AttackHazardArt.LashDash(s.world, i, bold);
         }
+        ResolveRims(s.world);
         BeginTell(tellSeconds, by, s.world);
+    }
+
+    // drawn sizes snap to 5 cm so the outline cache stays small (a whip's length varies with the pilot's place)
+    static float Snap(float v) => Mathf.Max(.05f, Mathf.Round(v * 20f) / 20f);
+
+    void ResolveRims(int world)
+    {
+        rimmed = AttackHazardArt.LashArt(world);
+        var trace = HostileShotPalette.Trace(PreviewTint);
+        rimTint = bold ? ShotOutline.BoldTrace(trace) : trace;
+        for (int i = 0; i < 2; i++)
+        {
+            var l = linkSprites[i]; var t = tipSprites[i]; var r = rootSprites[i];
+            linkRimSprites[i] = rimmed && l != null ? ShotOutline.For(l, Snap(linkLen / AttackHazardArt.LinkFill(world)), bold) : null;
+            tipRimSprites[i] = rimmed && t != null ? ShotOutline.For(t, Snap(TipDraw), bold) : null;
+            rootRimSprites[i] = rimmed && r != null ? ShotOutline.For(r, Snap(.7f / Mathf.Max(.01f, r.bounds.size.x) * r.bounds.size.y), bold) : null;
+        }
+    }
+
+    // One outline renderer under `owner`'s art: same transform, the rim's own sprite and the trace colour.
+    void PlaceRim(SpriteRenderer rim, Sprite sprite, bool on, float alpha)
+    {
+        rim.sprite = sprite;
+        rim.enabled = on && sprite != null;
+        if (!rim.enabled) return;
+        var tr = rim.transform;
+        tr.localPosition = Vector3.zero;
+        tr.localRotation = Quaternion.identity;
+        tr.localScale = Vector3.one;
+        var c = rimTint;
+        c.a = alpha;
+        rim.color = c;
     }
 
     // The root rides `t` (+ a local offset) while the whip telegraphs and sweeps; the aim stays where it was locked.
@@ -295,6 +340,9 @@ public sealed class AttackLash : AttackHazard
         if (dashes != null) for (int i = 0; i < dashes.Length; i++) dashes[i].enabled = false;
         if (tip != null) tip.enabled = false;
         if (rootBud != null) rootBud.enabled = false;
+        if (linkRims != null) for (int i = 0; i < linkRims.Length; i++) linkRims[i].enabled = false;
+        if (tipRim != null) tipRim.enabled = false;
+        if (rootRim != null) rootRim.enabled = false;
         LinksShown = DashesShown = 0;
     }
 
@@ -307,7 +355,7 @@ public sealed class AttackLash : AttackHazard
         for (int i = 0; i < links.Length; i++)
         {
             var sr = links[i];
-            if (i >= upTo || i >= count) { sr.enabled = false; continue; }
+            if (i >= upTo || i >= count) { sr.enabled = false; linkRims[i].enabled = false; continue; }
             Vector2 a = joints[i], b = joints[i + 1];
             Vector2 d = b - a;
             float len = d.magnitude;
@@ -315,6 +363,7 @@ public sealed class AttackLash : AttackHazard
             sr.sprite = spr;
             sr.enabled = spr != null && len > 1e-4f;
             sr.color = tint;
+            PlaceRim(linkRims[i], linkRimSprites[(frame + i) & 1], sr.enabled && rimmed, alpha);
             var tr = sr.transform;
             Vector2 c = (a + b) * .5f;
             tr.position = new Vector3(c.x, c.y, 0f);
@@ -329,6 +378,7 @@ public sealed class AttackLash : AttackHazard
         tip.sprite = ts;
         tip.enabled = ts != null && upTo >= count && em > 1e-4f;
         tip.color = tint;
+        PlaceRim(tipRim, tipRimSprites[frame & 1], tip.enabled && rimmed, alpha);
         if (tip.enabled)
         {
             Vector2 u = e / em;
@@ -342,6 +392,7 @@ public sealed class AttackLash : AttackHazard
         rootBud.sprite = rs;
         rootBud.enabled = rs != null;
         rootBud.color = Color.white;
+        PlaceRim(rootRim, rootRimSprites[frame & 1], rootBud.enabled && rimmed, 1f);
         rootBud.transform.position = new Vector3(root.x, root.y, 0f);
         rootBud.transform.rotation = Quaternion.identity;
         rootBud.transform.localScale = Vector3.one * (rs != null ? .7f / Mathf.Max(.01f, rs.bounds.size.x) : 1f);

@@ -102,8 +102,11 @@ public static class BuildScript
         {
             EditorUserBuildSettings.buildAppBundle = true;
             if (!Build(BuildTarget.Android, Path.Combine(dir, stem + ".aab"))) { EditorApplication.Exit(1); return; }
-            EditorUserBuildSettings.buildAppBundle = false;
-            if (!Build(BuildTarget.Android, Path.Combine(dir, stem + ".apk"))) { EditorApplication.Exit(1); return; }
+            if (Environment.GetEnvironmentVariable("PAUSE_SKIP_APK") != "1")
+            {
+                EditorUserBuildSettings.buildAppBundle = false;
+                if (!Build(BuildTarget.Android, Path.Combine(dir, stem + ".apk"))) { EditorApplication.Exit(1); return; }
+            }
         }
         finally { EditorUserBuildSettings.buildAppBundle = bundleWas; }
         EditorApplication.Exit(0);
@@ -182,6 +185,8 @@ public static class BuildScript
             + " size=" + summary.totalSize + " bytes"
             + " time=" + summary.totalTime);
 
+        if (summary.result == BuildResult.Succeeded) LogSizeReport(report);
+
         if (summary.result != BuildResult.Succeeded)
         {
             foreach (var step in report.steps)
@@ -193,5 +198,26 @@ public static class BuildScript
         }
 
         return true;
+    }
+
+    // Size report: the biggest packed assets (their size inside the build,
+    // i.e. after texture compression) and totals per top-level asset folder.
+    // Lines are tagged [SIZE] so they are easy to grep from the log.
+    static void LogSizeReport(BuildReport report)
+    {
+        var rows = report.packedAssets
+            .SelectMany(p => p.contents)
+            .Where(c => !string.IsNullOrEmpty(c.sourceAssetPath))
+            .GroupBy(c => c.sourceAssetPath)
+            .Select(g => new { path = g.Key, size = g.Sum(c => (long)c.packedSize) })
+            .OrderByDescending(r => r.size)
+            .ToList();
+        foreach (var r in rows.Take(120))
+            Debug.Log("[SIZE] " + r.size + " " + r.path);
+        // the full list, one "<bytes> <path>" per line, for scripts
+        File.WriteAllLines(Path.Combine(OutputRoot, "size-report.txt"), rows.Select(r => r.size + " " + r.path).ToArray());
+        foreach (var g in rows.GroupBy(r => string.Join("/", r.path.Split('/').Take(Math.Min(4, r.path.Split('/').Length - 1))))
+                     .Select(g => new { g.Key, size = g.Sum(r => r.size) }).OrderByDescending(g => g.size).Take(60))
+            Debug.Log("[SIZEDIR] " + g.size + " " + g.Key);
     }
 }
