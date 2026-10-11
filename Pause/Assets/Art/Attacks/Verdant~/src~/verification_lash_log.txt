@@ -1,0 +1,4 @@
+file | size | RGBA | reserved/nonempty | 6px border | pink per cell % | hue 178/82/259/37 | red | loop differences % incl wrap | x2 | vertical join | content width
+verdant_attack_lash.png | True | True | no reserved; True | True | 50.7,50.6,64.4,64.1,65.7,62.2,100.0,100.0 | 0/0/0/0 | 0 | link:64.3,64.3; tip:67.3,67.3; root:60.7,60.7; dash:84.6,84.6 | True | trimmed 12px join=True | 92 True
+verdant_attack_log.png | True | True | no reserved; True | True | 52.3,48.0,47.0,48.4,48.5,49.9,48.6,48.6 | 0/0/0/0 | 0 | roll:67.1,65.8,66.0,65.8,65.2,64.2,63.8,65.0 | True | n/a | 240 True
+overall: PASS
