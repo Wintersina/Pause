@@ -306,6 +306,8 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
     void OnDestroy()
     {
         Live.Remove(this);
+        // (removed from the board in a tell -- a boss arriving, a world change: what it had drawn goes with it)
+        if (Attack != null && State != EliteState.Dead) { Attack.OnDeath(); Attack.End(); }
     }
 
     // ---- states ----------------------------------------------------------

@@ -225,6 +225,7 @@ public class VineLashAttack : EliteAttack
     bool lit;
     public VineLashAttack() { Id = "vine_lash"; }
     public override bool HoldsDuringTell => true;
+    public override bool Shoots => false;   // (a whip, not shots)
     public AttackLash Lash => lash;
     public bool Lit => lit;
 
@@ -364,7 +365,7 @@ public class SporeBurstAttack : EliteAttack
 // leaves its blade along the row, crossing the lane lengthwise at 4.5 u/s. A sidestep dodges the dive; the row needs a step up or down.
 public class LeafDiveAttack : EliteAttack
 {
-    public const float DiveHalfPad = .1f, SlashHalf = .18f;
+    public const float DiveHalfPad = .22f, SlashHalf = .18f;
     readonly EliteTelegraph telegraph = new EliteTelegraph();
     bool slashed;
     float slashDeg;
@@ -395,7 +396,9 @@ public class LeafDiveAttack : EliteAttack
         base.BeginTell(seen);
         slashed = false;
         slashDeg = SlashHeading(aim.x);
-        Vector2 from = ship.Position;
+        // where it will have come to rest by the end of the tell (it brakes from its circling speed at its own accel): the lane is drawn from there
+        Vector2 v = ship.Velocity;
+        Vector2 from = ship.Position + v * v.magnitude / (2f * Mathf.Max(1f, def.accel));
         diveFrom = from;
         Vector2 to = aim - from;
         Vector2 d = to.sqrMagnitude > 1e-4f ? to.normalized : Vector2.down;
@@ -422,27 +425,38 @@ public class LeafDiveAttack : EliteAttack
         ship.Drive(dir * def.dashSpeed);
     }
 
+    float slashT;
+
     public override bool StepAction(float dt)
     {
         t += dt;
-        Vector2 to = aim - ship.Position;
-        bool through = Vector2.Dot(to, dir) <= 0f;
-        ship.Drive(dir * def.dashSpeed * (through ? .45f : 1f));
-        if ((through || t >= def.actionSeconds) && !slashed)
+        if (!slashed)
         {
-            slashed = true;
-            // out of the blade on the side the crescent leaves (its muzzle 1 = left blade, 2 = right), along the row it was drawn on
-            int m = def.muzzles.Length > 2 ? (slashDeg > 90f ? 2 : 1) : 0;
-            var shot = Fire(m, slashDeg, def.shotSpeed);
-            if (shot != null)
+            ship.Drive(dir * def.dashSpeed);
+            Vector2 to = aim - ship.Position;
+            bool through = Vector2.Dot(to, dir) <= 0f;
+            if (through || t >= def.actionSeconds)
             {
-                // from the row it drew, not where the hull has got to
-                Vector3 p = shot.transform.position;
-                shot.transform.position = new Vector3(p.x, aim.y, p.z);
+                slashed = true;
+                slashT = t;
+                // out of the blade on the side the crescent leaves (its muzzle 1 = left blade, 2 = right: the blade on the side it heads for, so the whole crescent starts ahead of the spot), along the row it was drawn on
+                int m = def.muzzles.Length > 2 ? (slashDeg > 90f ? 1 : 2) : 0;
+                var shot = Fire(m, slashDeg, def.shotSpeed);
+                if (shot != null)
+                {
+                    // from the row it drew, not where the hull has got to
+                    Vector3 p = shot.transform.position;
+                    shot.transform.position = new Vector3(p.x, aim.y, p.z);
+                }
             }
+            return false;
         }
-        return t >= def.actionSeconds;
+        // the dive ends where it was drawn to end: a quick stop just past the locked spot, never a coast down the board
+        ship.Drive(dir * def.dashSpeed * .12f);
+        return t >= slashT + StopSeconds;
     }
+
+    public const float StopSeconds = .3f;
 
     public override void End()
     {

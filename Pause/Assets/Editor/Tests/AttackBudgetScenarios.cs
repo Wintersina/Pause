@@ -622,7 +622,10 @@ public static class AttackBudgetScenarios
         // What the wind-up draws (the dotted outline of the attack): known to the bot from the first frame, never scored
         void CollectKnown(List<Hz> into)
         {
-            if (ship == null || ship.State == EliteState.Dead || !ship.Telling) return;
+            if (ship == null || ship.State == EliteState.Dead) return;
+            // (the drawing stays on screen until the crescent is away: a dive's lane and row are still known while it dives)
+            var diving = ship.Attack as LeafDiveAttack;
+            if (!ship.Telling && !(ship.Acting && diving != null)) return;
             var board = new Vector2(0f, -EliteSystem.Scroll);
             var lr = ship.Attack as LogRollAttack;
             if (lr != null)
@@ -652,7 +655,8 @@ public static class AttackBudgetScenarios
             var ld = ship.Attack as LeafDiveAttack;
             if (ld != null)
             {
-                var dive = Hz.Segment(2640, ld.DiveFrom, ld.Aim + ld.Dir * .75f, def.hullRadius + LeafDiveAttack.DiveHalfPad, tellLeft, def.actionSeconds);
+                Vector2 dd = (ld.Aim - ld.DiveFrom).sqrMagnitude > 1e-4f ? (ld.Aim - ld.DiveFrom).normalized : Vector2.down;
+                var dive = Hz.Segment(2640, ld.DiveFrom, ld.Aim + dd * .75f, def.hullRadius + LeafDiveAttack.DiveHalfPad, tellLeft, def.actionSeconds);
                 dive.planOnly = true;
                 into.Add(dive);
                 float edge = EliteSystem.RailEdge;
