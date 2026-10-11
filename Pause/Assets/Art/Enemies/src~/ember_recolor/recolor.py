@@ -62,32 +62,51 @@ def keep_off_red(rgba, min_hue=17.5):
     return Image.fromarray(np.clip(a, 0, 255).astype(np.uint8), "RGBA")
 
 
-def recolor(img, heat=1.0):
-    """Hue/saturation remap only (VALUE untouched, so every detail, outline and the matte look survive). A value-driven fire ramp:
-    darks (steel/basalt/outline) get a deep ember-red tint (hue 17-18), mid tones go lava orange (hue 21-23, strongly saturated),
-    lights go hot orange-yellow (hue 26-30, softer saturation) instead of cream/white; already-saturated pixels (glows, brass,
-    lava seams) keep their own hue pulled into 17-32 and get hotter. Only near-white cores (v >= .96, s < .25) stay white-hot.
-    Blend strength follows how unsaturated a pixel was, so material differences (brass vs basalt vs steel) survive."""
+# Colour identities (the user: "don't make everything the same colour"). Each profile: w = how far non-glowing pixels are pulled to the
+# fire ramp (0 keeps the refresh colour), wg = the pull for already-saturated glows / seams / lava, hues and saturations for the dark /
+# mid / light tones, gamma = the value lift of the mid and light tones.
+PROFILES = {
+    "ember":    dict(w=.96, wg=.90, hue=(19.0, 21.0, 25.0), sat=(.74, .96, .80), gamma=.70),   # deep ember red-orange hulls
+    "molten":   dict(w=.96, wg=.90, hue=(23.0, 28.0, 33.0), sat=(.70, .92, .70), gamma=.66),   # molten yellow-orange
+    "rust":     dict(w=.85, wg=.90, hue=(19.0, 20.5, 24.0), sat=(.62, .80, .70), gamma=.76),   # rusted iron / brick
+    "copper":   dict(w=.70, wg=.90, hue=(24.0, 27.0, 30.0), sat=(.50, .72, .60), gamma=.82),   # copper
+    "brass":    dict(w=.55, wg=.90, hue=(26.0, 29.0, 32.0), sat=(.42, .62, .50), gamma=.85),   # brass, a little hotter than the refresh
+    "charcoal": dict(w=.30, wg=.96, hue=(18.0, 20.0, 24.0), sat=(.30, .50, .50), gamma=.80),   # obsidian-black hulls, lava seams
+    "ash":      dict(w=.16, wg=.96, hue=(20.0, 22.0, 26.0), sat=(.18, .30, .35), gamma=.84),   # ash grey-brown, fire glows
+}
+ASSIGN = {
+    "ember_alien": "molten", "ember_chaser": "copper", "ember_big": "ember", "ember_fighter_1": "charcoal",
+    "ember_fighter_2": "brass", "ember_fighter_3": "ash", "ember_fighter_4": "rust",
+    "ember_rock_magma": "charcoal", "ember_rock_cinder": "rust", "ember_rock_obsidian": "charcoal", "ember_rock_islet": "ember",
+    "ember_elite_sunstoke": "molten", "ember_elite_coalrunner": "charcoal", "ember_elite_brass_vulture": "brass",
+    "ember_elite_kilnback": "ember", "ember_elite_ash_wraith": "ash", "ember_elite_cauterizer": "rust",
+}
+
+
+def recolor(img, profile="ember"):
+    """Hue/saturation remap (VALUE kept, apart from a gentle gamma lift of the mid/light tones, so every detail, outline and the matte
+    look survive) along a value-driven fire ramp, per colour identity (PROFILES). Near-white pixels keep their white-hot value."""
+    p = PROFILES[profile]
     a = np.asarray(img.convert("RGBA")).astype(np.float64)
     h, s, v = rgb2hsv(a[..., :3])
     solid = a[..., 3] > 0
-    k_lo = 1 - smooth(v, .30, .45)                 # 1 in the darks
-    k_hi = smooth(v, .62, .80)                     # 1 in the lights
+    k_lo = 1 - smooth(v, .30, .45)
+    k_hi = smooth(v, .62, .80)
     k_mid = np.clip(1 - k_lo - k_hi, 0, 1)
-    h_t = k_lo * 19.0 + k_mid * 21.0 + k_hi * 25.0
-    s_t = k_lo * .74 + k_mid * .96 + k_hi * .80
-    # the pull toward the fire ramp: strong for everything, a little weaker for already-saturated pixels (they keep more of their own hue)
-    w = (.96 - .12 * smooth(s, .45, .8)) * heat
+    h_t = k_lo * p["hue"][0] + k_mid * p["hue"][1] + k_hi * p["hue"][2]
+    s_t = k_lo * p["sat"][0] + k_mid * p["sat"][1] + k_hi * p["sat"][2]
+    glow = smooth(s, .30, .55)
+    w = p["w"] * (1 - glow) + p["wg"] * glow
     dh = ((h_t - h + 180) % 360) - 180
     h_fin = h + dh * w
-    h_fin = np.where(s < .08, h_t, h_fin)
+    h_fin = np.where(s < .08, np.where(w > .25, h_t, h_t), h_fin)
     s_fin = s + (s_t - s) * w
     s_fin = np.where(s >= .45, np.maximum(s_fin, np.clip(s * 1.10, 0, .98)), s_fin)
     white = (v >= .96) & (s < .25)
     s_fin = np.where(white, s * .6, s_fin)
-    # heat: lift the mid and light tones (a gamma on value that leaves the darks and the outlines alone) so the orange reads as fire, not bronze
+    # near-neutral pixels in a low-pull profile: a faint warm tint only (hue pinned so charcoal/ash do not drift to blue or green)
     lift = smooth(v, .18, .40)
-    v_fin = np.where(white, v, v * (1 - lift) + (v ** (.70 if heat >= 1 else 1.0)) * lift)
+    v_fin = np.where(white, v, v * (1 - lift) + (v ** p["gamma"]) * lift)
     out = hsv2rgb(h_fin, np.clip(s_fin, 0, .98), np.clip(v_fin, 0, 1))
     res = a.copy()
     res[..., :3] = np.where(solid[..., None], out, a[..., :3])
@@ -98,7 +117,7 @@ def main():
     for kind, folder in (("enemies", SRC / "ember_refresh" / "strips"), ("elites", SRC / "ember_elites_refresh" / "strips")):
         (OUT / kind).mkdir(parents=True, exist_ok=True)
         for f in sorted(folder.glob("ember_*.png")):
-            recolor(Image.open(f)).save(OUT / kind / f.name)
+            recolor(Image.open(f), ASSIGN[f.stem]).save(OUT / kind / f.name)
             print(kind, f.name)
 
 
