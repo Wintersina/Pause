@@ -52,22 +52,53 @@ def load_crop(name: str) -> np.ndarray:
     return np.asarray(im.resize((W, H), Image.Resampling.NEAREST)).copy()
 
 
+def _cut_path(cost: np.ndarray, lo: int, hi: int) -> np.ndarray:
+    """Cheapest top-to-bottom path through cost[:, lo:hi] moving at most one column per row
+    (dynamic programming, as in image quilting). Returns the chosen column for every row."""
+    c = cost[:, lo:hi]
+    rows, cols = c.shape
+    acc = c.copy()
+    back = np.zeros((rows, cols), np.int8)
+    for y in range(1, rows):
+        prev = acc[y - 1]
+        left = np.concatenate(([np.inf], prev[:-1]))
+        right = np.concatenate((prev[1:], [np.inf]))
+        stack = np.stack((left, prev, right))
+        k = stack.argmin(0)
+        acc[y] += stack[k, np.arange(cols)]
+        back[y] = k - 1
+    path = np.zeros(rows, np.int64)
+    path[-1] = int(acc[-1].argmin())
+    for y in range(rows - 1, 0, -1):
+        path[y - 1] = path[y] + back[y, path[y]]
+    return path + lo
+
+
 def seam_splice(src: np.ndarray) -> np.ndarray:
     """Offset the source seam to the center, then repair it with source art.
 
-    The outer edges sample neighbouring pixels from the source center. The
-    center cross samples the intact source center. Ordered selection avoids
-    soft, translucent or interpolated seam pixels.
+    The outer edges sample neighbouring pixels from the source center (the offset copy wraps
+    seamlessly); the center cross keeps the intact source. The two meet along MINIMUM-ERROR
+    CUTS (the path through each transition band where the two copies differ least), so every
+    pixel is either source or offset copy -- no dither cross-fade. (The earlier Bayer-dithered
+    cross-fade showed in game as two vertical dot-screen stripes and a horizontal one down
+    every Frost tile; 2026-10-11.)
     """
     rolled = np.roll(src, (H // 2, W // 2), axis=(0, 1))
+    return np.where(seam_mask(src)[..., None], src, rolled)
+
+
+def seam_mask(src: np.ndarray) -> np.ndarray:
+    """True where seam_splice keeps the source (the centre cross between the four cuts)."""
+    rolled = np.roll(src, (H // 2, W // 2), axis=(0, 1))
+    err = ((src.astype(np.float32) - rolled.astype(np.float32)) ** 2).sum(2)
+    cx, cy = W // 2, H // 2
+    left = _cut_path(err, cx - 92, cx - 20)
+    right = _cut_path(err, cx + 20, cx + 92)
+    top = _cut_path(err.T, cy - 144, cy - 32)
+    bottom = _cut_path(err.T, cy + 32, cy + 144)
     yy, xx = np.indices((H, W))
-    dx = np.abs(xx - W // 2)
-    dy = np.abs(yy - H // 2)
-    wx = np.clip((92 - dx) / 72, 0, 1)
-    wy = np.clip((144 - dy) / 112, 0, 1)
-    probability = 1 - (1 - wx) * (1 - wy)
-    take_source = probability > BAYER8[yy % 8, xx % 8]
-    return np.where(take_source[..., None], src, rolled)
+    return ((xx >= left[:, None]) & (xx <= right[:, None])) | ((yy >= top[None, :]) & (yy <= bottom[None, :]))
 
 
 def alpha_for(name: str, original: np.ndarray) -> np.ndarray:
