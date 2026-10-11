@@ -38,10 +38,10 @@
               0
             ],
             "opaque_bbox": [
-              83,
-              102,
-              191,
-              248
+              52,
+              75,
+              201,
+              236
             ]
           },
           {
@@ -50,10 +50,10 @@
               0
             ],
             "opaque_bbox": [
-              84,
-              102,
-              192,
-              248
+              54,
+              74,
+              203,
+              236
             ]
           },
           {
@@ -62,10 +62,10 @@
               0
             ],
             "opaque_bbox": [
-              84,
-              101,
-              192,
-              248
+              56,
+              74,
+              205,
+              236
             ]
           },
           {
@@ -74,10 +74,10 @@
               0
             ],
             "opaque_bbox": [
-              84,
-              100,
-              192,
-              248
+              57,
+              75,
+              206,
+              236
             ]
           },
           {
@@ -86,10 +86,10 @@
               0
             ],
             "opaque_bbox": [
-              83,
-              100,
-              191,
-              248
+              55,
+              76,
+              204,
+              236
             ]
           },
           {
@@ -98,10 +98,10 @@
               0
             ],
             "opaque_bbox": [
-              82,
-              100,
-              190,
-              248
+              53,
+              76,
+              202,
+              236
             ]
           },
           {
@@ -110,10 +110,10 @@
               0
             ],
             "opaque_bbox": [
-              82,
-              101,
-              190,
-              248
+              50,
+              75,
+              199,
+              236
             ]
           },
           {
@@ -122,23 +122,23 @@
               0
             ],
             "opaque_bbox": [
-              82,
-              102,
-              190,
-              248
+              51,
+              74,
+              200,
+              236
             ]
           }
         ],
-        "approx_ridge_length_px": 148,
+        "approx_ridge_length_px": 162,
         "loop_changes": [
-          0.3294,
-          0.1539,
-          0.1599,
-          0.325,
-          0.3335,
-          0.158,
-          0.155,
-          0.3232
+          0.255,
+          0.2551,
+          0.2401,
+          0.2551,
+          0.2555,
+          0.3178,
+          0.2133,
+          0.2404
         ]
       },
       "emerge": {
@@ -576,19 +576,19 @@
         ]
       },
       "hue_rules": {
-        "sand_saturation_p95": 0.2875,
-        "forbidden_amber_percent": 0.0384,
+        "sand_saturation_p95": 0.3017,
+        "forbidden_amber_percent": 0.038,
         "red_pixels": 0,
         "pink_pixels": 0,
         "violet_pixels": 0,
         "saturated_green_cyan_pixels": 0,
         "copper_saturation_max": 0.6,
         "copper_value_max": 0.5725,
-        "shadow_saturation_max": 0.3778,
+        "shadow_saturation_max": 0.3913,
         "shadow_value_max": 0.2667,
-        "shadow_coverage_percent": 3.69,
-        "opaque_pixels": 234311,
-        "value_p90": 0.4941
+        "shadow_coverage_percent": 12.453,
+        "opaque_pixels": 236994,
+        "value_p90": 0.4902
       }
     },
     "m": {
@@ -615,10 +615,10 @@
               0
             ],
             "opaque_bbox": [
-              58,
-              45,
-              218,
-              246
+              50,
+              70,
+              208,
+              236
             ]
           },
           {
@@ -627,10 +627,10 @@
               0
             ],
             "opaque_bbox": [
-              59,
-              45,
-              219,
-              246
+              52,
+              69,
+              210,
+              236
             ]
           },
           {
@@ -639,10 +639,10 @@
               0
             ],
             "opaque_bbox": [
-              59,
-              44,
-              220,
-              246
+              55,
+              69,
+              213,
+              236
             ]
           },
           {
@@ -651,10 +651,10 @@
               0
             ],
             "opaque_bbox": [
-              59,
-              43,
-              219,
-              246
+              56,
+              70,
+              214,
+              236
             ]
           },
           {
@@ -663,10 +663,10 @@
               0
             ],
             "opaque_bbox": [
-              58,
-              43,
-              218,
-              246
+              54,
+              71,
+              212,
+              236
             ]
           },
           {
@@ -675,10 +675,10 @@
               0
             ],
             "opaque_bbox": [
-              57,
-              43,
-              217,
-              246
+              51,
+              71,
+              209,
+              236
             ]
           },
           {
@@ -687,10 +687,10 @@
               0
             ],
             "opaque_bbox": [
-              57,
-              44,
-              216,
-              246
+              48,
+              70,
+              206,
+              236
             ]
           },
           {
@@ -699,23 +699,23 @@
               0
             ],
             "opaque_bbox": [
-              57,
-              45,
-              217,
-              246
+              49,
+              69,
+              207,
+              236
             ]
           }
         ],
-        "approx_ridge_length_px": 203,
+        "approx_ridge_length_px": 167,
         "loop_changes": [
-          0.3731,
-          0.2984,
-          0.3,
-          0.3742,
-          0.3754,
-          0.2993,
-          0.2975,
-          0.3724
+          0.2467,
+          0.2995,
+          0.2342,
+          0.2472,
+          0.2997,
+          0.3132,
+          0.205,
+          0.2341
         ]
       },
       "emerge": {
@@ -1153,19 +1153,19 @@
         ]
       },
       "hue_rules": {
-        "sand_saturation_p95": 0.2872,
-        "forbidden_amber_percent": 0.0144,
+        "sand_saturation_p95": 0.3,
+        "forbidden_amber_percent": 0.0165,
         "red_pixels": 0,
         "pink_pixels": 0,
         "violet_pixels": 0,
         "saturated_green_cyan_pixels": 0,
         "copper_saturation_max": 0.6,
         "copper_value_max": 0.5647,
-        "shadow_saturation_max": 0.3898,
-        "shadow_value_max": 0.2667,
-        "shadow_coverage_percent": 6.397,
-        "opaque_pixels": 415751,
-        "value_p90": 0.4824
+        "shadow_saturation_max": 0.3953,
+        "shadow_value_max": 0.2706,
+        "shadow_coverage_percent": 13.717,
+        "opaque_pixels": 362670,
+        "value_p90": 0.4784
       }
     },
     "l": {
@@ -1188,22 +1188,10 @@
               0
             ],
             "opaque_bbox": [
-              110,
-              118,
-              439,
-              503
-            ]
-          },
-          {
-            "anchor_offset": [
-              0,
-              0
-            ],
-            "opaque_bbox": [
-              113,
-              116,
-              443,
-              503
+              102,
+              144,
+              408,
+              492
             ]
           },
           {
@@ -1213,9 +1201,9 @@
             ],
             "opaque_bbox": [
               110,
-              114,
-              439,
-              503
+              141,
+              416,
+              492
             ]
           },
           {
@@ -1224,19 +1212,31 @@
               0
             ],
             "opaque_bbox": [
-              107,
-              116,
-              435,
-              503
+              106,
+              147,
+              412,
+              492
+            ]
+          },
+          {
+            "anchor_offset": [
+              0,
+              0
+            ],
+            "opaque_bbox": [
+              97,
+              143,
+              403,
+              492
             ]
           }
         ],
-        "approx_ridge_length_px": 388,
+        "approx_ridge_length_px": 349,
         "loop_changes": [
-          0.4439,
-          0.4482,
-          0.4446,
-          0.4471
+          0.3527,
+          0.3565,
+          0.3658,
+          0.2888
         ]
       },
       "emerge": {
@@ -1475,8 +1475,8 @@
         ]
       },
       "hue_rules": {
-        "sand_saturation_p95": 0.2874,
-        "forbidden_amber_percent": 0.0521,
+        "sand_saturation_p95": 0.3,
+        "forbidden_amber_percent": 0.0586,
         "red_pixels": 0,
         "pink_pixels": 0,
         "violet_pixels": 0,
@@ -1485,14 +1485,99 @@
         "copper_value_max": 0.5765,
         "shadow_saturation_max": 0.4468,
         "shadow_value_max": 0.2784,
-        "shadow_coverage_percent": 5.777,
-        "opaque_pixels": 948509,
-        "value_p90": 0.4863
+        "shadow_coverage_percent": 11.528,
+        "opaque_pixels": 843719,
+        "value_p90": 0.4824
       }
     }
   },
   "preview": {
     "small_medium_giant": "all cells at 1x and nearest-neighbour 2x, in that order",
-    "tile_overlay": null
+    "tile_overlay": "Pause/Assets/Art/Worlds/Desert/backdrop_v3~/v1/mid.png"
+  },
+  "ridge_fix": {
+    "sources": [
+      "src~/ridge_candidate_d.png",
+      "src~/ridge_candidate_b.png"
+    ],
+    "candidate_rejected": [
+      "src~/ridge_candidate_a.png (triangular wake)",
+      "src~/ridge_candidate_c.png (diagonal leaf-like central crest)"
+    ],
+    "method": "generated mound and wake, HSV ramp cleaning, lee-flank tint, nearest-neighbour composition",
+    "hump_target_px": {
+      "small": [
+        154,
+        86
+      ],
+      "medium": [
+        166,
+        91
+      ],
+      "giant": [
+        314,
+        176
+      ]
+    },
+    "scope": "small row 0 cells 0-7; medium row 4 cells 0-7; giant row 0 cells 0-3",
+    "measurements": {
+      "small": {
+        "changed_cells": 8,
+        "untouched_cells_byte_identical": 24,
+        "hump_width_percent_median": 58.2,
+        "hump_height_percent_median": 32.03,
+        "wake_pixels_min": 85,
+        "sand_saturation_p95": 0.3089,
+        "forbidden_amber_percent": 0.0,
+        "shadow_percent_of_cell": 4.176,
+        "red_pixels": 0,
+        "pink_pixels": 0,
+        "violet_pixels": 0,
+        "saturated_green_cyan_pixels": 0,
+        "loop_change_min": 0.2133,
+        "loop_seam_to_adjacent_ratio": 0.942,
+        "ridge_to_preserved_emerge_change": 0.9654,
+        "anchor_offset_max": 0
+      },
+      "medium": {
+        "changed_cells": 8,
+        "untouched_cells_byte_identical": 24,
+        "hump_width_percent_median": 61.72,
+        "hump_height_percent_median": 33.59,
+        "wake_pixels_min": 78,
+        "sand_saturation_p95": 0.3089,
+        "forbidden_amber_percent": 0.0,
+        "shadow_percent_of_cell": 4.785,
+        "red_pixels": 0,
+        "pink_pixels": 0,
+        "violet_pixels": 0,
+        "saturated_green_cyan_pixels": 0,
+        "loop_change_min": 0.205,
+        "loop_seam_to_adjacent_ratio": 0.947,
+        "ridge_to_preserved_emerge_change": 0.9433,
+        "anchor_offset_max": 0
+      },
+      "giant": {
+        "changed_cells": 4,
+        "untouched_cells_byte_identical": 12,
+        "hump_width_percent_median": 58.59,
+        "hump_height_percent_median": 32.71,
+        "wake_pixels_min": 488,
+        "sand_saturation_p95": 0.3089,
+        "forbidden_amber_percent": 0.0,
+        "shadow_percent_of_cell": 4.373,
+        "red_pixels": 0,
+        "pink_pixels": 0,
+        "violet_pixels": 0,
+        "saturated_green_cyan_pixels": 0,
+        "loop_change_min": 0.2888,
+        "loop_seam_to_adjacent_ratio": 0.81,
+        "ridge_to_preserved_emerge_change": 0.9305,
+        "anchor_offset_max": 0
+      }
+    },
+    "untouched_cells_byte_identical": 60,
+    "changed_cells": 20,
+    "caveat": "The preserved emergence start still contains the first-pass pointed ridge, so the sequence handoff is visually abrupt."
   }
 }
