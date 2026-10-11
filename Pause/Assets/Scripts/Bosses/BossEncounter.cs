@@ -407,6 +407,7 @@ public class BossEncounter : MonoBehaviour
     void Abort()
     {
         state = Phase.Aborted;
+        WorldMusic.EndBoss();   // the player died: back to the world's music
         freePress = false;
         onFinished = null;
     }

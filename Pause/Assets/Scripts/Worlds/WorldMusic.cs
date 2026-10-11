@@ -264,6 +264,10 @@ public class WorldMusic : MonoBehaviour
     {
         var source = FindBackgroundSource();
         if (source == null) return;
+        // A fight that never reached EndBoss (a scene left mid-fight) must not
+        // leak its flags or its remembered world clip into this one.
+        bossTrackPlaying = bossPitched = false;
+        preBossClip = null;
         var next = ResolveBossTrack(source.clip, BossClip(theme));
         if (next != null && next != source.clip)
         {

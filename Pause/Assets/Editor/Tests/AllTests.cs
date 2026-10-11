@@ -152,6 +152,7 @@ public static class AllTests
         ("ScoreMultiplierTest", ScoreMultiplierTest.Execute),
         ("DustEconomyTest", DustEconomyTest.Execute),
         ("ShieldFitTest", ShieldFitTest.Execute),
+        ("SpaceBossMusicTest", SpaceBossMusicTest.Execute),
         ("ShieldPickupSkinTest", ShieldPickupSkinTest.Execute),
         ("ShieldShockwaveTest", ShieldShockwaveTest.Execute),
         ("ShoveCrashTest", ShoveCrashTest.Execute),
