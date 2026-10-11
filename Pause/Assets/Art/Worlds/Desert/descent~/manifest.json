@@ -55,12 +55,11 @@
         355
       ],
       "horizon_y_at_center_px": 355,
-      "horizon_y_at_edges_px": 828,
+      "horizon_y_at_edges_px": 720,
       "horizon_y_at_left_right_px": [
-        828,
-        827
-      ],
-      "roundness_fix": "Oct 11: horizon drop scaled x1.30 (365 -> 473 px) by nearest-neighbour column warp (src~/limb_round.py); fitted circle R 1587 -> ~1300 (Frost/Verdant/Ember are ~1580). PlanetfallDef.limbEdgePx must be ~827, not 720. Original in original/."
+        720,
+        719
+      ]
     },
     "desert_cloud_deck.png": {
       "size": [
