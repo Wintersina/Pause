@@ -73,6 +73,7 @@ public static class AllTests
         ("BossAttackTest", BossAttackTest.Execute),
         ("BossDamageTest", BossDamageTest.Execute),
         ("BossEncounterTest", BossEncounterTest.Execute),
+        ("BossEntranceTest", BossEntranceTest.Execute),
         ("BossHeartsTest", BossHeartsTest.Execute),
         ("BossEscapeClockTest", BossEscapeClockTest.Execute),
         ("BossThemedTest", BossThemedTest.Execute),

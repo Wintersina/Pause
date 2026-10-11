@@ -64,19 +64,33 @@ public class moveBackGround : MonoBehaviour {
     }
 
     void Update () {
-        // The boss intro freezes the world even with a finger down; it is
-        // scripted, so it never counts as a pause (BossEncounter).
-        if (BossEncounter.ScriptedFreeze)
-        {
-            Time.timeScale = ResumeSlowMo.Freeze();
-            return;
-        }
         if (ShipPowerController.CinematicClearActive)
         {
             Time.timeScale = ShipPowerController.CinematicTimeScale;
             // the board keeps rolling in the ultimate's slow motion (the rail
             // lanes and their mines do): the rail art rolls with it
             moveBackground();
+            return;
+        }
+        // A boss's entrance (BossEncounter / BossEntrance) owns the clock
+        // (it never overlaps the cinematic: the encounter waits one out):
+        // its slow motion while the world runs, frozen as ever while the
+        // finger is up with pauses left. It is scripted, so it never counts
+        // as a pause, and the speed is the encounter's (no ramp). The scale
+        // is asked for every frame, never stored: the frame the intro ends
+        // (the fight, a death, a scene load) the branches below take over.
+        if (BossEncounter.ScriptedEntrance)
+        {
+            if ((TouchInput.IsPressed || score.pauseCounter <= 0) && !buttonClicks.playerDied)
+            {
+                ResumeSlowMo.Apply(1f);   // (keeps the resume bookkeeping; the entrance's scale wins)
+                Time.timeScale = BossEncounter.EntranceTimeScale * WorldTimeFx.Scale; // hit-stop, Time Bubble on top
+                moveBackground();
+            }
+            else
+            {
+                Time.timeScale = ResumeSlowMo.Freeze();
+            }
             return;
         }
         // pauses when there is no touch on the touchscreen

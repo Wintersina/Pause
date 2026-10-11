@@ -207,7 +207,7 @@ public static class LoopTest
         Time.timeScale = 1f;
         bg.SendMessage("Update");
         Check("the waiting portal freezes nothing (no scripted freeze, the world runs)",
-              !BossEncounter.ScriptedFreeze && Time.timeScale > 0f);
+              !BossEncounter.ScriptedEntrance && Time.timeScale > 0f);
         score.pauseCounter = pauses;
         wm.Tick(5f);
         Check("the level clock stays stopped while the portal waits; its own clock runs (" +

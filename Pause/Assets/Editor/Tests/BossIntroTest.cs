@@ -84,14 +84,14 @@ public static class BossIntroTest
         float hold = BossConfig.NameBreakAt - settled;
         Check("name holds readable for 0.6-0.8s before it breaks (" + hold.ToString("F2") + "s)",
               hold >= .6f - .03f && hold <= .8f);
-        Check("the fight still starts at the same moment (IntroSeconds 2.2)",
-              Mathf.Approximately(BossConfig.IntroSeconds, 2.2f));
+        Check("the fight starts as the entrance's slow motion has eased out (IntroSeconds " + BossConfig.IntroSeconds + ")",
+              Mathf.Approximately(BossConfig.IntroSeconds, BossConfig.SlowOutAt + BossConfig.SlowOutSeconds));
         float over = BossIntroUI.FinishedAt - BossConfig.IntroSeconds;
         Check("the fall ends within 0.5s of the intro window (" + BossIntroUI.FinishedAt.ToString("F2") + "s, +" +
               over.ToString("F2") + ")", over <= .5f);
         Check("the name breaks after the card is in and the boss has landed",
               BossConfig.NameBreakAt > settled &&
-              BossConfig.NameBreakAt > BossConfig.BossArriveAt + BossConfig.BossArriveSeconds);
+              BossConfig.NameBreakAt > BossConfig.LandAt);
         Check("the crumble is staggered (" + BossConfig.NameStaggerSeconds.ToString("F2") + "s)",
               BossConfig.NameStaggerSeconds >= .1f);
     }

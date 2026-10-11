@@ -119,7 +119,7 @@ public static class FriendlyFire
     static int frameKey = int.MinValue, killsThisFrame, editStep;
     static float lastPopup = -999f, lastBossHit = -999f, clock;
 
-    public static void ResetHostileCounters() { HostileKills = HostileEliteHits = HostileCapped = HostileBossHits = Popups = 0; killsThisFrame = 0; frameKey = int.MinValue; lastPopup = -999f; lastBossHit = -999f; }
+    public static void ResetHostileCounters() { HostileKills = HostileEliteHits = HostileCapped = HostileBossHits = Popups = ShockwaveKills = ShockwaveEliteKills = 0; killsThisFrame = 0; frameKey = int.MinValue; lastPopup = -999f; lastBossHit = -999f; }
 
     // The scene loader's note (HazardRuntime.Boot): Scene.name allocates, so it is read once a load.
     public static void OnSceneLoaded(string sceneName) { tutorialScene = sceneName == score.TutorialScene; }
@@ -208,6 +208,14 @@ public static class FriendlyFire
         }
         if (!KillBudget()) { HostileCapped++; return false; }
         killsThisFrame++;
+        HostileKill(go);
+        return true;
+    }
+
+    // The kill itself, as hostile fire: counted, the FRIENDLY FIRE word, its
+    // blast and death cue, no pilot credit (HostileFireAwardsPlayerCredit).
+    static void HostileKill(GameObject go)
+    {
         HostileKills++;
         Kills++;
         Popup(go.transform.position);
@@ -218,6 +226,51 @@ public static class FriendlyFire
             EliteShip.FriendlyKill(go);
         }
         finally { Source = DamageSource.Player; }
+    }
+
+    // ---- the boss's landing shockwave (BossShockwave) ----
+    // It clears the board, and everything it kills is FRIENDLY FIRE exactly
+    // as a hostile weapon's kill is (HostileKill: the counters, the word, no
+    // pilot credit) -- but with no per-frame kill cap and no spawn-in
+    // protection, so nothing is left behind. An elite in play loses every
+    // heart under the hostile-fire source (it dies as an elite does, its
+    // fixed reward included); one in its grace, or still parked / rising, is
+    // simply removed. Never the boss, never an elite shot's hitbox (shots are
+    // popped by the wave itself). True when something was removed.
+    public static int ShockwaveKills, ShockwaveEliteKills;
+    public const string ShockwaveBy = "boss shockwave";
+
+    public static bool ShockwaveHit(ClearTarget t, Vector3 at)
+    {
+        if (t == null || !t.isActiveAndEnabled) return false;
+        var go = t.gameObject;
+        if (!ClearTarget.IsHazard(go) || Immune(go) || t.IsShotHitbox) return false;
+        var elite = t.Elite;
+        if (elite != null || go.TryGetComponent(out elite))
+        {
+            if (elite.State == EliteState.Dead) return false;
+            if (!elite.InPlay)
+            {
+                // still parked / rising in the backdrop: it is the board's, it simply goes
+                ClearTarget.Release(elite.gameObject);
+                BossUtil.Kill(elite.gameObject);
+                return true;
+            }
+            Popup(go.transform.position);
+            EliteShip.HitBy = ShockwaveBy;
+            Source = DamageSource.HostileFire;
+            try
+            {
+                // every heart it has; one its grace or armour refused still dies, the same way
+                bool landed = elite.TakeHit(EliteDamage.FriendlyFire, at, Mathf.Max(1, elite.Hearts));
+                if (elite != null && elite.State != EliteState.Dead) { EliteShip.HitBy = ShockwaveBy; elite.ForceDie(EliteDamage.FriendlyFire); landed = true; }
+                if (landed) { HostileEliteHits++; EliteHits++; ShockwaveEliteKills++; }
+            }
+            finally { Source = DamageSource.Player; EliteShip.HitBy = null; }
+            return true;
+        }
+        ShockwaveKills++;
+        HostileKill(go);
         return true;
     }
 

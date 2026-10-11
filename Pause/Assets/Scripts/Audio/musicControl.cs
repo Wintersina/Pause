@@ -58,7 +58,9 @@ public class musicControl : MonoBehaviour {
     }
 
     void UpdateMix() {
-        if (TouchInput.IsPressed)
+        // A boss's entrance is scripted, not a pause: its song plays at full
+        // level from the first frame even with the finger up (BossEncounter).
+        if (TouchInput.IsPressed || BossEncounter.ScriptedEntrance)
         {
             // if boost has been picked up.
             if (boostMusicChanger)

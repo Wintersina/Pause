@@ -309,19 +309,29 @@ public static class BossEncounterTest
         BossEncounter.Begin(0, null);
         var e = BossEncounter.Instance;
         e.Step(.1f, 1f);
+        e.Step(.1f, 1f);   // (the first step starts the intro; this one is in it)
         Check("intro running", e.State == BossEncounter.Phase.Intro);
-        Check("intro asks for a scripted freeze", BossEncounter.ScriptedFreeze);
+        Check("intro is the scripted entrance", BossEncounter.ScriptedEntrance);
         Time.timeScale = 1f;
-        bg.SendMessage("Update"); // the world would run (no pauses left)...
-        Check("... and moveBackGround freezes time anyway", Time.timeScale == 0f);
+        bg.SendMessage("Update"); // the world runs (no pauses left)...
+        Check("... in the entrance's slow motion, not at full speed (" + Time.timeScale.ToString("F2") + ")",
+              Time.timeScale > 0f && Time.timeScale < 1f && Mathf.Approximately(Time.timeScale, BossEncounter.EntranceTimeScale));
+        score.pauseCounter = 1;   // finger up with a pause left: frozen as ever
+        bg.SendMessage("Update");
+        Check("... and frozen while the finger is up with pauses left", Time.timeScale == 0f);
+        score.pauseCounter = 0;
         Check("a press during the intro is free", BossEncounter.FreePress);
         RunWhile(e, BossEncounter.Phase.Intro);
-        Check("intro ends in the fight after ~2s", e.State == BossEncounter.Phase.Fight);
+        Check("intro ends in the fight after the entrance", e.State == BossEncounter.Phase.Fight);
         Check("no pause was spent by the intro", score.pauseCounter == pauses);
         Check("the first press after the intro is still free (finger was up)", BossEncounter.FreePress);
         Check("score.cs marks that press as already paid",
               File.ReadAllText("Assets/Scripts/Core/score.cs").Contains("if (BossEncounter.FreePress && TouchInput.IsPressed) pauseCounterBool = true;"));
-        Check("no scripted freeze in the fight", !BossEncounter.ScriptedFreeze);
+        Check("no scripted entrance in the fight", !BossEncounter.ScriptedEntrance);
+        Time.timeScale = .2f;
+        ResumeSlowMo.ResetRun();   // (no resume slow-mo left over from other suites)
+        bg.SendMessage("Update");
+        Check("the fight runs at full speed: the entrance's slow motion is gone", Time.timeScale == 1f && BossEncounter.EntranceTimeScale == 1f);
         Object.DestroyImmediate(bg.gameObject);
     }
 
@@ -340,9 +350,9 @@ public static class BossEncounterTest
         Check("the boss intro cancels a boost in progress (no limit break into a boss)",
               e.State == BossEncounter.Phase.Intro && SpeedRamp.Boost == 0f && SpeedRamp.BoostTarget == 0f);
         e.Step(BossConfig.SpeedDrainSeconds * .5f, 0f);
-        Check("speed drains during the intro", moveBackGround.speed < .41f && moveBackGround.speed > 0f);
+        Check("speed drains during the intro", moveBackGround.speed < .41f && moveBackGround.speed > BossConfig.FightSpeed);
         e.Step(BossConfig.SpeedDrainSeconds, 0f);
-        Check("all speed is lost", moveBackGround.speed == 0f);
+        Check("the run's speed has eased to the fight speed", Mathf.Approximately(moveBackGround.speed, BossConfig.FightSpeed));
         RunWhile(e, BossEncounter.Phase.Intro);
         Check("fight speed is 0.20 (HUD 20)", moveBackGround.speed == BossConfig.FightSpeed &&
               Mathf.RoundToInt(moveBackGround.speed * 100f) == 20);
@@ -645,7 +655,7 @@ public static class BossEncounterTest
         buttonClicks.playerDied = true;   // collisionDetection's last life
         e.Step(.1f, 1f);
         Check("death aborts the encounter", e.State == BossEncounter.Phase.Aborted && !BossEncounter.Running);
-        Check("no scripted freeze or free press is left", !BossEncounter.ScriptedFreeze && !BossEncounter.FreePress);
+        Check("no scripted entrance or free press is left", !BossEncounter.ScriptedEntrance && !BossEncounter.FreePress);
         var dead = Object.FindFirstObjectByType<playerIsDead>();
         Check("gameS1 has its death handler", dead != null);
         if (dead != null)

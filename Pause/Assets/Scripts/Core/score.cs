@@ -100,7 +100,7 @@ public class score : MonoBehaviour {
             StarDustLedger.Commit(ledgerRun);
         }
 
-        // The boss intro's freeze is scripted: a press during it, or the
+        // The boss intro (its entrance) is scripted: a press during it, or the
         // first one after it, never spends a pause (BossEncounter).
         if (BossEncounter.FreePress && TouchInput.IsPressed) pauseCounterBool = true;
         // A planetfall's descent is scripted the same way (Planetfall.FreePress).
@@ -137,6 +137,9 @@ public class score : MonoBehaviour {
     {
         showSpeed();
         if (WorldEntry.Active) return;
+        // A boss's entrance is scripted: its slow motion earns nothing (it
+        // was a frozen world, timeScale 0, before the entrance had one).
+        if (BossEncounter.ScriptedEntrance) return;
         payDust();
         RunScore.Tick(Time.deltaTime, moveBackGround.speed);
     }

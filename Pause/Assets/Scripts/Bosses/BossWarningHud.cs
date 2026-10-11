@@ -459,6 +459,8 @@ public class BossWarningHud : MonoBehaviour
         {
             case BossWarningBeat.Announce:
                 handoff = -1f;
+                // the boss song starts on the entrance's first frame: have it in memory well before
+                if (Application.isPlaying) WorldMusic.PrewarmBoss(WorldManager.Current);
                 SetAccent(WorldManager.CurrentIndex);
                 SetNameLine(WorldManager.CurrentIndex);
                 styled = BossWarningStage.Idle;

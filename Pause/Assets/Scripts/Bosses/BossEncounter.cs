@@ -9,11 +9,16 @@ using UnityEngine.SceneManagement;
 // encounter is over. All tuning is in BossConfig, the bosses in BossCatalog.
 //
 //   Pending  waits out an ultimate cinematic already running
-//   Intro    BossConfig.IntroSeconds of real time. The world is frozen
-//            (moveBackGround asks ScriptedFreeze) even with a finger down,
+//   Intro    the boss's ENTRANCE (BossEntrance), BossConfig.IntroSeconds
+//            of real time. The boss song starts on its first frame; the
+//            world runs in slow motion (moveBackGround asks
+//            EntranceTimeScale) -- frozen as ever while the finger is up --
 //            and it is scripted, so it never spends a pause (score asks
-//            FreePress). Warning flash, on-screen hazards blown away, the
-//            boss warps in, its name card; speed drains to zero.
+//            FreePress) and earns nothing. Warning flash; the boss rises out
+//            of the backdrop (BossEmergence) and lands, and its shockwave
+//            clears the board as friendly fire (BossShockwave); its name
+//            card; speed eases to FightSpeed. The pilot cannot be hurt
+//            (ShieldsShip) until the fight begins.
 //   Fight    speed held at FightSpeed: moveBackGround skips its ramp and the
 //            blue atom's +0.05 is filtered (SpeedLocked). Normal enemy
 //            spawning is off (SuspendsSpawning). Pausing, teleporting and
@@ -48,7 +53,8 @@ public class BossEncounter : MonoBehaviour
     Action onFinished;
 
     float introClock, preSpeed;
-    bool warned, arrived, carded;
+    bool warned, arrived, carded, landed;
+    BossShockwave shockwave;
     float remaining, fightClock;
     int hits, hp;
     float damage;       // every hit's weight, summed (the hearts are read off it)
@@ -69,9 +75,20 @@ public class BossEncounter : MonoBehaviour
     // ---- hooks for shared code --------------------------------------------
 
     public static bool Running => Instance != null && Instance.IsRunning;
-    // moveBackGround: hold timeScale at 0 regardless of the finger -- the
-    // intro.
-    public static bool ScriptedFreeze => Instance != null && Instance.state == Phase.Intro;
+    // moveBackGround: the entrance owns timeScale (EntranceTimeScale while
+    // the world runs, 0 while the finger is up) -- the intro.
+    public static bool ScriptedEntrance => Instance != null && Instance.state == Phase.Intro;
+    // The entrance's slow motion right now (1 outside it). Derived from the
+    // intro's clock every frame, never stored: whatever ends the intro ends it.
+    public static float EntranceTimeScale => ScriptedEntrance ? BossEntrance.TimeScaleAt(Instance.introClock) : 1f;
+    // collisionDetection: nothing can hurt the pilot from the first frame of
+    // the entrance until the fight begins. Derived from the phase, so it can
+    // never outlive the intro (the fight, a death, a scene load).
+    public static bool ShieldsShip => ScriptedEntrance;
+    // The landing's shockwave while it runs (tests).
+    public BossShockwave Shockwave => shockwave;
+    public bool Landed => landed;
+    public float IntroClock => introClock;
     // moveBackGround (ramp) and collisionDetection (atom boost): hands off speed.
     public static bool SpeedLocked => Instance != null &&
         (Instance.state == Phase.Intro || Instance.state == Phase.Fight || Instance.state == Phase.Outro);
@@ -170,7 +187,7 @@ public class BossEncounter : MonoBehaviour
         onFinished = finished;
         state = Phase.Pending;
         introClock = 0f;
-        warned = arrived = carded = false;
+        warned = arrived = carded = landed = false;
         hits = 0;
         hp = BossConfig.HitPoints;
         hitBank = 0f;
@@ -234,6 +251,10 @@ public class BossEncounter : MonoBehaviour
         BossExecutors.WarmPools(boss);   // the pools of its hazards, built now and not in the middle of a volley
         BossArt.ShotRim(boss, BossArt.Bolt0);   // build the shots' rims now, not at the first volley
         if (Application.isPlaying) ui = BossIntroUI.Play(boss);
+        // The boss song starts here, on the entrance's first frame (prewarmed
+        // by the BOSS INCOMING warning), through the existing music source
+        // and its volume path; AudioSource pitch never follows timeScale, so
+        // the slow motion does not slow the song.
         WorldMusic.BeginBoss(WorldManager.Worlds[Mathf.Clamp(world, 0, WorldManager.Worlds.Length - 1)]);
         // First sight unlocks the secret codex entry.
         Codex.Discover(boss.id);
@@ -242,45 +263,46 @@ public class BossEncounter : MonoBehaviour
     void TickIntro(float realDt)
     {
         introClock += realDt;
-        float drain = Mathf.Clamp01(introClock / Mathf.Max(.01f, BossConfig.SpeedDrainSeconds));
-        moveBackGround.speed = Mathf.Lerp(preSpeed, 0f, drain);
+        float drain = BossEntrance.Smooth(introClock / Mathf.Max(.01f, BossConfig.SpeedDrainSeconds));
+        moveBackGround.speed = Mathf.Lerp(preSpeed, BossConfig.FightSpeed, drain);
 
-        if (!warned && introClock >= BossConfig.WarningAt)
-        {
-            warned = true;
-            ClearHazards();
-        }
+        // (the warning is BossIntroUI's; the board is cleared by the landing)
+        if (!warned && introClock >= BossConfig.WarningAt) warned = true;
         if (!arrived && introClock >= BossConfig.BossArriveAt)
         {
             arrived = true;
-            actor.BeginArrival();
+            actor.BeginArrival(BossEmergence.Pick());
         }
         if (arrived) actor.StepArrival(realDt);
+        // it lands when its flight ends (LandAt, give or take a frame)
+        if (!landed && (introClock >= BossConfig.LandAt || (actor != null && actor.ArrivalLanded))) Land();
+        if (shockwave != null && !shockwave.Finished) shockwave.Step(realDt);
         if (!carded && introClock >= BossConfig.NameCardAt) carded = true;
 
         if (introClock >= BossConfig.IntroSeconds) BeginFight();
     }
 
-    // The boss's arrival blows everything already on the board away, so the
-    // fight starts on a clean screen. The blasts hang frozen with the world
-    // until the fight starts -- time really has stopped.
-    void ClearHazards()
+    // It has landed: the shockwave goes out from it and clears the board
+    // (BossShockwave; its kills are friendly fire), the camera kicks and the
+    // landing is heard on the boss's own material.
+    void Land()
     {
-        int ship = ShipId.Equipped();
-        foreach (var t in FindObjectsByType<ClearTarget>(FindObjectsSortMode.None))
-        {
-            if (t == null || !ClearTarget.IsHazard(t.gameObject)) continue;
-            var go = t.gameObject;
-            var cam = Camera.main;
-            if (cam != null)
-            {
-                Vector3 v = cam.WorldToViewportPoint(go.transform.position);
-                if (v.x >= 0f && v.x <= 1f && v.y >= 0f && v.y <= 1f && Application.isPlaying)
-                    TargetExplosion.Spawn(go, ship);
-            }
-            ClearTarget.Release(go);
-            BossUtil.Kill(go);
-        }
+        landed = true;
+        Vector3 at = actor != null ? actor.transform.position : new Vector3(0f, BossConfig.BossY, 0f);
+        if (shockwave != null) shockwave.Dispose();
+        shockwave = new BossShockwave(at, boss != null ? boss.flash : Color.white);
+        CameraKick.Kick(CameraKick.MaxAmplitude);
+        if (boss != null) EnemyDeathAudio.PlayBossHurt(boss.artKey);
+    }
+
+    // The fight starts on a clean board, whatever happened on the way in (a
+    // shockwave still running, or none at all: a fight begun straight away).
+    void FinishShockwave()
+    {
+        if (shockwave == null)
+            shockwave = new BossShockwave(actor != null ? actor.transform.position : new Vector3(0f, BossConfig.BossY, 0f),
+                                          boss != null ? boss.flash : Color.white);
+        shockwave.Finish();
     }
 
     // ---- fight ------------------------------------------------------------
@@ -289,6 +311,7 @@ public class BossEncounter : MonoBehaviour
     {
         if (state != Phase.Intro && state != Phase.Pending) return;
         if (state == Phase.Pending) StartIntro();
+        FinishShockwave();
         state = Phase.Fight;
         AchievementTracker.OnBossFightStart();   // boss_no_hit: hearts lost from here on count
         moveBackGround.speed = BossConfig.FightSpeed;
@@ -410,6 +433,8 @@ public class BossEncounter : MonoBehaviour
     void Abort()
     {
         state = Phase.Aborted;
+        if (shockwave != null) shockwave.Dispose();   // (the death crash owns the board now)
+        shockwave = null;
         WorldMusic.EndBoss();   // the player died: back to the world's music
         freePress = false;
         onFinished = null;
@@ -421,6 +446,8 @@ public class BossEncounter : MonoBehaviour
         actor = null;
         if (pool != null) pool.Dispose();
         pool = null;
+        if (shockwave != null) shockwave.Dispose();
+        shockwave = null;
         if (ui != null) ui.Close();
         ui = null;
     }
