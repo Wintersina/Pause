@@ -1,0 +1,893 @@
+fileFormatVersion: 2
+guid: 58596f19f378a4ad3aa1d1ae15dcc3a1
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: -8742754732197917269
+    second: verdant_elite_thornlash_death_0
+  - first:
+      213: 2082983648944284215
+    second: verdant_elite_thornlash_death_1
+  - first:
+      213: 5910840837604562765
+    second: verdant_elite_thornlash_death_2
+  - first:
+      213: -8952621018516908612
+    second: verdant_elite_thornlash_death_3
+  - first:
+      213: -7630911532572504849
+    second: verdant_elite_thornlash_death_4
+  - first:
+      213: 4783107096848280092
+    second: verdant_elite_thornlash_death_5
+  - first:
+      213: -4667193065755327996
+    second: verdant_elite_thornlash_death_6
+  - first:
+      213: 9202169818274821756
+    second: verdant_elite_thornlash_death_7
+  - first:
+      213: 2445968161254994551
+    second: verdant_elite_thornlash_death_8
+  - first:
+      213: -3425343512480182040
+    second: verdant_elite_thornlash_death_9
+  - first:
+      213: 2288710566712923787
+    second: verdant_elite_thornlash_death_10
+  - first:
+      213: -6083229001261290004
+    second: verdant_elite_thornlash_death_11
+  - first:
+      213: 262258926461852713
+    second: verdant_elite_thornlash_death_12
+  - first:
+      213: -4677261573629887612
+    second: verdant_elite_thornlash_death_13
+  - first:
+      213: 8582794771642071214
+    second: verdant_elite_thornlash_death_14
+  - first:
+      213: 2493114264019901731
+    second: verdant_elite_thornlash_death_15
+  - first:
+      213: -3859247391468414825
+    second: verdant_elite_thornlash_death_16
+  - first:
+      213: -5079498508279118264
+    second: verdant_elite_thornlash_death_17
+  - first:
+      213: -5356325112742368353
+    second: verdant_elite_thornlash_death_18
+  - first:
+      213: -8836457736037202135
+    second: verdant_elite_thornlash_death_19
+  - first:
+      213: -2511074496398535262
+    second: verdant_elite_thornlash_death_20
+  - first:
+      213: 5676324594136056191
+    second: verdant_elite_thornlash_death_21
+  - first:
+      213: 7170969041004636140
+    second: verdant_elite_thornlash_death_22
+  - first:
+      213: -4317741216060625425
+    second: verdant_elite_thornlash_death_23
+  - first:
+      213: 6307987515821137601
+    second: verdant_elite_thornlash_death_24
+  - first:
+      213: -1368026757454435238
+    second: verdant_elite_thornlash_death_25
+  - first:
+      213: 1633307533552231322
+    second: verdant_elite_thornlash_death_26
+  - first:
+      213: 1009830385529539584
+    second: verdant_elite_thornlash_death_27
+  - first:
+      213: -4845529963977157663
+    second: verdant_elite_thornlash_death_28
+  - first:
+      213: -8651353833576872990
+    second: verdant_elite_thornlash_death_29
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 1
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 0
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: iOS
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: verdant_elite_thornlash_death_0
+      rect:
+        serializedVersion: 2
+        x: 32
+        y: 27
+        width: 128
+        height: 138
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bad4af464ee7ba680800000000000000
+      internalID: -8742754732197917269
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_elite_thornlash_death_1
+      rect:
+        serializedVersion: 2
+        x: 228
+        y: 97
+        width: 58
+        height: 74
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7326544b79e38ec10800000000000000
+      internalID: 2082983648944284215
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_elite_thornlash_death_2
+      rect:
+        serializedVersion: 2
+        x: 292
+        y: 100
+        width: 40
+        height: 71
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d47da41cc66870250800000000000000
+      internalID: 5910840837604562765
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_elite_thornlash_death_3
+      rect:
+        serializedVersion: 2
+        x: 437
+        y: 105
+        width: 39
+        height: 62
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cb59a9edd96e1c380800000000000000
+      internalID: -8952621018516908612
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_elite_thornlash_death_4
+      rect:
+        serializedVersion: 2
+        x: 474
+        y: 164
+        width: 9
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fec8594346e891690800000000000000
+      internalID: -7630911532572504849
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_elite_thornlash_death_5
+      rect:
+        serializedVersion: 2
+        x: 480
+        y: 96
+        width: 49
+        height: 77
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c1aaa460092016240800000000000000
+      internalID: 4783107096848280092
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_elite_thornlash_death_6
+      rect:
+        serializedVersion: 2
+        x: 491
+        y: 160
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 402cc7172acca3fb0800000000000000
+      internalID: -4667193065755327996
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_elite_thornlash_death_7
+      rect:
+        serializedVersion: 2
+        x: 502
+        y: 163
+        width: 6
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c76771dc1bca4bf70800000000000000
+      internalID: 9202169818274821756
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_elite_thornlash_death_8
+      rect:
+        serializedVersion: 2
+        x: 283
+        y: 155
+        width: 9
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 772f4875513d1f120800000000000000
+      internalID: 2445968161254994551
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_elite_thornlash_death_9
+      rect:
+        serializedVersion: 2
+        x: 424
+        y: 152
+        width: 9
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8e01ee0493cb670d0800000000000000
+      internalID: -3425343512480182040
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_elite_thornlash_death_10
+      rect:
+        serializedVersion: 2
+        x: 411
+        y: 137
+        width: 8
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b865b92622223cf10800000000000000
+      internalID: 2288710566712923787
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_elite_thornlash_death_11
+      rect:
+        serializedVersion: 2
+        x: 308
+        y: 100
+        width: 40
+        height: 27
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ced67742477049ba0800000000000000
+      internalID: -6083229001261290004
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_elite_thornlash_death_12
+      rect:
+        serializedVersion: 2
+        x: 418
+        y: 104
+        width: 44
+        height: 26
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 92c1fe6aa1bb3a300800000000000000
+      internalID: 262258926461852713
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_elite_thornlash_death_13
+      rect:
+        serializedVersion: 2
+        x: 460
+        y: 91
+        width: 11
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 48bb4364167071fb0800000000000000
+      internalID: -4677261573629887612
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_elite_thornlash_death_14
+      rect:
+        serializedVersion: 2
+        x: 495
+        y: 103
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ea83ec70f563c1770800000000000000
+      internalID: 8582794771642071214
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_elite_thornlash_death_15
+      rect:
+        serializedVersion: 2
+        x: 498
+        y: 105
+        width: 60
+        height: 29
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 32d9d5bc632599220800000000000000
+      internalID: 2493114264019901731
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_elite_thornlash_death_16
+      rect:
+        serializedVersion: 2
+        x: 230
+        y: 22
+        width: 54
+        height: 76
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7981c23d1f2317ac0800000000000000
+      internalID: -3859247391468414825
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_elite_thornlash_death_17
+      rect:
+        serializedVersion: 2
+        x: 285
+        y: 92
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 84685e0e40ff189b0800000000000000
+      internalID: -5079498508279118264
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_elite_thornlash_death_18
+      rect:
+        serializedVersion: 2
+        x: 317
+        y: 91
+        width: 8
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f9bac7160b28aa5b0800000000000000
+      internalID: -5356325112742368353
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_elite_thornlash_death_19
+      rect:
+        serializedVersion: 2
+        x: 440
+        y: 86
+        width: 9
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 92700c2b1889e5580800000000000000
+      internalID: -8836457736037202135
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_elite_thornlash_death_20
+      rect:
+        serializedVersion: 2
+        x: 447
+        y: 94
+        width: 9
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2a55f9dbc0fd62dd0800000000000000
+      internalID: -2511074496398535262
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_elite_thornlash_death_21
+      rect:
+        serializedVersion: 2
+        x: 491
+        y: 30
+        width: 45
+        height: 69
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f710b47d42b56ce40800000000000000
+      internalID: 5676324594136056191
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_elite_thornlash_death_22
+      rect:
+        serializedVersion: 2
+        x: 217
+        y: 61
+        width: 17
+        height: 31
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ce7a7607956648360800000000000000
+      internalID: 7170969041004636140
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_elite_thornlash_death_23
+      rect:
+        serializedVersion: 2
+        x: 292
+        y: 22
+        width: 54
+        height: 70
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: feda4a88d3d4414c0800000000000000
+      internalID: -4317741216060625425
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_elite_thornlash_death_24
+      rect:
+        serializedVersion: 2
+        x: 342
+        y: 61
+        width: 17
+        height: 31
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1ce1e1879397a8750800000000000000
+      internalID: 6307987515821137601
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_elite_thornlash_death_25
+      rect:
+        serializedVersion: 2
+        x: 411
+        y: 61
+        width: 14
+        height: 26
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a5ce2b689eac30de0800000000000000
+      internalID: -1368026757454435238
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_elite_thornlash_death_26
+      rect:
+        serializedVersion: 2
+        x: 425
+        y: 30
+        width: 48
+        height: 57
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a93a9525c8caaa610800000000000000
+      internalID: 1633307533552231322
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_elite_thornlash_death_27
+      rect:
+        serializedVersion: 2
+        x: 476
+        y: 64
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 00c42e4a263a30e00800000000000000
+      internalID: 1009830385529539584
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_elite_thornlash_death_28
+      rect:
+        serializedVersion: 2
+        x: 484
+        y: 69
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1e351a4ab2831ccb0800000000000000
+      internalID: -4845529963977157663
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_elite_thornlash_death_29
+      rect:
+        serializedVersion: 2
+        x: 536
+        y: 61
+        width: 13
+        height: 26
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2e3cf63768730f780800000000000000
+      internalID: -8651353833576872990
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 5e97eb03825dee720800000000000000
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable: {}
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
