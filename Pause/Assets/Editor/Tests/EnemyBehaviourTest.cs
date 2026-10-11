@@ -1076,7 +1076,7 @@ public static class EnemyBehaviourTest
             var t1 = EnemyRoster.Fighter(w, 1).Behaviour; var t2 = EnemyRoster.Fighter(w, 2).Behaviour;
             var t3 = EnemyRoster.Fighter(w, 3).Behaviour; var t4 = EnemyRoster.Fighter(w, 4).Behaviour;
             tiers &= t1.engageSeconds < t2.engageSeconds && t2.engageSeconds < t3.engageSeconds && t3.engageSeconds < t4.engageSeconds &&
-                     t1.exit == PilotExit.Run && t4.exit == PilotExit.Climb && t4.Shoots && t4.maxVolleys >= 3 && t4.stationDepth <= 1.7f &&
+                     t1.exit == PilotExit.Run && t4.exit == PilotExit.Climb && t4.Shoots && t4.maxVolleys >= (t4.attack == EnemyAttack.Wave ? 2 : 3) && t4.stationDepth <= 1.7f &&
                      EnemyRoster.One(w, EnemyRole.Big).Behaviour.entrySpeed < 2f;
         }
         Check("tiers escalate in every world: 1 makes one pass and runs, each tier stays longer, 4 holds range at the top with several volleys " +

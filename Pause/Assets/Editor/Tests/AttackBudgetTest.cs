@@ -162,6 +162,9 @@ public static class AttackBudgetTest
         { "themed:boss_ember_eruption_columns", "boss:Ember:brow laser" },
         { "themed:boss_space_ion_arcs", "boss:Space:core burst" },
         { "themed:boss_space_scan_line", "boss:Space:pod lasers" },
+        // the Tide roster's own themed rows (same id: held to its own pinned baseline)
+        { "roster:tide_fighter_3", "roster:tide_fighter_3" },       // Lantern Angler: the aimed bolt -> a thunder lure (lane glyph, then a column); tell .8 -> 1.7 s, volleys 3 -> 2
+        { "roster:tide_fighter_4", "roster:tide_fighter_4" },       // Hammerhead: the ring of eight -> a surf wave with a 1.6 u gap turned .8 u off the pilot; volleys 3 -> 2
         { "themed:boss_tide_thunder_strike", "boss:Tide:starboard cluster" },
         { "themed:boss_tide_surf_wave", "boss:Tide:starboard cluster" },
         { "themed:boss_verdant_vine_lash", "boss:Verdant:spore bloom" },     // slot 2 of the table (joins at phase 1 beside stinger thorns; spore bloom is the pinned attack of that slot)

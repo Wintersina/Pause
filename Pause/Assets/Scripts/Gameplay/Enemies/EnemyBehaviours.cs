@@ -245,6 +245,8 @@ public sealed class EnemyBehaviour
         attack = EnemyAttack.Wave; wave = spec; shotCount = 1; ride = 1f;
         return this;
     }
+    // The Hammerhead's surf wave: Tide's band with its 1.6 u gap turned .8 u off the pilot (a gap on him would make standing still safe).
+    public static WaveSpec HammerheadSurf() { var w = WaveSpec.Surf(4); w.gapOffset = .8f; return w; }
     public EnemyBehaviour Lob(float size, float pool)
     {
         attack = EnemyAttack.Lob; shotKind = EliteShots.Kind.Glob; shotCount = 1; shotSize = size; poolSeconds = pool;
@@ -483,8 +485,10 @@ public static class EnemyBehaviours
 
         // ================================================================== TIDE
         // The same budgets as Ember's cast (rocks, mine, fighters 1-4, big, alien), in the reef's own
-        // movement; the themed jet / wave / strike attacks are not switched on yet
-        // (docs/world-attacks-design.md), these are the generic shots.
+        // movement. Themed attacks (docs/world-attacks-design.md section 6): the Lantern Angler's thunder lure (Strike) and the
+        // Hammerhead's surf wave (Wave) are on, procedural until their art lands; the Needlefish's water gun and the Nautilus's pearl
+        // fan stay the generic shots (their Spout / Pearl skins are art, ShotSkins.Enable(4) waits for it) and the limpet mine's pressure
+        // jet waits for the Tide beam atlas.
         B("tide_rock_brain", "brain coral: slow wide tumble, lazy sideways drift")
             .Drift(.55f, .3f).Bob(.06f, 3f).Spin(12f, 30f)
             .Sizes(.8f, .96f, 1.4f);
@@ -508,12 +512,12 @@ public static class EnemyBehaviours
         B("tide_fighter_2", "Needlefish: lines up over the pilot, quick bolts straight down")
             .Track(.65f, 1f).Shot(Bolt, 1, 0f, 3.6f, .18f).Timing(.5f, 1.5f, 3, .15f)
             .Pilot(PilotEntry.Drop, 2.2f, 5.5f, PilotExit.Peel).Volleys(4);
-        B("tide_fighter_3", "Lantern Angler: hovers, the lure flares, then one aimed bolt")
-            .Drift(.6f, .5f).Brake(1.4f, .6f).Shot(Bolt, 1, 0f, 3.4f, .2f, 34f).Timing(.8f, 2f, 2, .15f)
-            .Pilot(PilotEntry.Drop, 2.2f, 7f, PilotExit.Peel).Volleys(3);
-        B("tide_fighter_4", "Hammerhead: hovers, tracks slowly, a full ring of eight")
-            .Track(.55f, .45f).Brake(1.7f, .65f).Ring(Bolt, 8, 2f, .18f).Muzzle(0f).Timing(1.2f, 3.8f, 2, .15f)
-            .Pilot(PilotEntry.Drop, 1.5f, 9f, PilotExit.Climb).Volleys(3);
+        B("tide_fighter_3", "Lantern Angler: hovers, the lure flares, a lane glyph on the pilot, then a thunder column")
+            .Drift(.6f, .5f).Brake(1.4f, .6f).Strike(StrikeSpec.Standard(4), 1).Timing(1.7f, 2.6f, 2, .15f)
+            .Pilot(PilotEntry.Drop, 2.2f, 7f, PilotExit.Peel).Volleys(2);
+        B("tide_fighter_4", "Hammerhead: hovers, tracks slowly, slams a surf wave with one gap")
+            .Track(.55f, .45f).Brake(1.7f, .65f).Wave(EnemyBehaviour.HammerheadSurf()).Muzzle(0f).Timing(1.1f, 3.8f, 2, .15f)
+            .Pilot(PilotEntry.Drop, 1.5f, 9f, PilotExit.Climb).Volleys(2);
         B("tide_chaser", "Wire Eel: surges in sinusoidal lunges on an S-curve, coils, then orbits")
             .Chaser(ChaserStyle.Slither, 4.2f, 2.3f, 1f, 1f, .8f)
             .Linger(6f);

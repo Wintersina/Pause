@@ -375,7 +375,7 @@ public static class BossCatalog
             b.themed = BossThemed.TableFor(b);
             // Fighting themed: Frost (icicle drop, cold blast), Ember (flame sweep, eruption columns) passed the dodge-bot budget and every
             // boss suite. Space needs Streak (rail slugs) and its arc / scan art and sounds, Tide its water art and sounds, Verdant (vine lash, trunk toss; one-whip lash 4.8 % vs 11.5 %, trunk toss 5.8 % vs 28.7 % at 500 seeds) fights themed too (plan 8.2e).
-            b.themedAttacks = b.themed != null && (b.artKey == "Frost" || b.artKey == "Ember" || b.artKey == "Verdant");
+            b.themedAttacks = b.themed != null && (b.artKey == "Frost" || b.artKey == "Ember" || b.artKey == "Verdant" || b.artKey == "Tide");
             Resolve(b, b.DefaultAttacks);
             Resolve(b, b.themed);
         }
