@@ -192,6 +192,8 @@ public static class BossCatalog
     static readonly Color HeartAmber = new Color(1f, .74f, .16f);
     static readonly Color Mint = new Color(.45f, 1f, .82f);
     static readonly Color StormYellow = new Color(1f, .95f, .63f);
+    static readonly Color DesertFlash = new Color(.957f, .89f, .69f);   // #F4E3B0, hue 44, S .28
+    static readonly Color DesertHeart = new Color(1f, .965f, .863f);    // #FFF6DC pale bone
 
     // The Tempest Engine's battle-damage and death art keys. TODO(storm-boss-damage): Codex's Storm_damage.png, Storm_damage_fx.png
     // and Storm_death.png are still being painted (art/storm-boss-damage); until they are installed under Resources/Bosses the engine
@@ -388,6 +390,40 @@ public static class BossCatalog
                     new BossAttack { name = "coil beams", kind = BossAttackKind.Beam, tell = 2, tellSeconds = 1f,
                                      emitters = new[] { "CoilL", "CoilR" },
                                      aim = BossBeamAim.Down, aimDeg = 6f, sweepDeg = 14f, beamWidth = .28f, hold = .8f,
+                                     cooldown = 1.4f },
+                },
+            },
+            // ----------------------------------------------------------- Desert
+            // A feral strip-mining bucket-wheel excavator with a grafted worm-maw (docs/desert-world-plan.md section 7). Tells: the maw
+            // opens (0), the drill boom lowers (1), the rear lens dish flares (2). Its default pattern is the maw's grit fan, the boom's
+            // dune lob and the lens beam; the themed table (BossThemed) adds the burrower strike and the sandstorm wall.
+            // No damage / death strips yet (docs/desert-wire.md): damageKey and deathKey stay null, so it fights pristine and dies on the
+            // atlas's own death frames (the death_0..4 cells Codex painted into Desert.png).
+            new BossDef
+            {
+                id = CodexPrefix + "desert", name = "DUNE-EATER", title = "FERAL STRIP-MINER", artKey = "Desert",
+                lore = "A bucket-wheel excavator the size of a refinery that kept mining after the company stopped paying it, and grew a worm's maw to " +
+                       "do it faster. Its maw opens a moment before the grit fan, its drill boom lowers before the sand comes down on your lanes, " +
+                       "and the lens dish flares white a second before it cuts the sky in half. Watch which part moves first.",
+                swayX = 1.1f, swayY = .16f, freqX = .27f, freqY = .54f, flash = DesertFlash, heartColor = DesertHeart,
+                attacks = new[]
+                {
+                    // The maw opens, then a fan of sand-slugs leaves the throat; the fan turns a little between volleys.
+                    new BossAttack { name = "grit fan", kind = BossAttackKind.Fan, tell = 0, tellSeconds = 1f,
+                                     emitters = new[] { "Maw" }, fireFrame = true,
+                                     volleys = 3, volleyGap = .65f, count = 7, spreadDeg = 96f, rotateDeg = 9f,
+                                     speed = 2.5f, style = BossShotStyle.Shard,
+                                     rail = BossRailMode.Bounce, bounces = 1, cooldown = 1.2f },
+                    // The drill boom lowers, then slugs are flung up out of it and rain down on four of five columns.
+                    new BossAttack { name = "dune lob", kind = BossAttackKind.Lob, tell = 1, tellSeconds = .9f,
+                                     emitters = new[] { "Boom" },
+                                     volleys = 2, volleyGap = .55f, count = 4, style = BossShotStyle.Bolt,
+                                     lobUp = 2.2f, gravity = 6f, fallSpeed = 3.3f,
+                                     rail = BossRailMode.Absorb, cooldown = 1.4f },
+                    // The lens dish flares, then one sun-lens beam burns straight down and swings a little outward.
+                    new BossAttack { name = "lens beam", kind = BossAttackKind.Beam, tell = 2, tellSeconds = 1f,
+                                     emitters = new[] { "Lens" },
+                                     aim = BossBeamAim.Down, aimDeg = 8f, sweepDeg = 16f, beamWidth = .3f, hold = .8f,
                                      cooldown = 1.4f },
                 },
             },

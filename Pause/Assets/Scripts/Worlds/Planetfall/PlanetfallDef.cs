@@ -273,13 +273,51 @@ public static class PlanetfallCatalog
         chipPrefix = "ORBIT  DANGER ",
     };
 
+    // Desert: after Storm's lift-off (only once WorldManager.DesertEnabled), the dune
+    // planet: bone-gold sand under a thin dust haze, a crescent dune-sea scar, a dark
+    // salt-glass basin, a snapped orbital ring and two wind-swept dust plumes
+    // (Art/Worlds/Desert/descent~/manifest.json). Numbers from the manifest: disc
+    // centre 553.1, 544.4, radius 386.7; the limb is the user-picked R1250 variant
+    // (an exact circle of radius 1250: horizon apex row 355 in the centre column,
+    // 887 at both sides -- NOT the 720 of the original set); the opening is 146 px
+    // wide, 165 tall at y 338, centre x wandering 253 .. 260.
+    public static readonly PlanetfallDef Desert = new PlanetfallDef
+    {
+        world = 6,
+        folder = "Worlds/Desert/Planetfall/",
+        planet = "desert_planet",
+        limb = "desert_planet_limb",
+        deck = "desert_cloud_deck",
+        deckDark = "desert_cloud_deck_dark",
+        entryFx = "desert_entry_fx",
+        burst = "desert_breakthrough",
+        streaks = "desert_entry_streaks",
+        planetCentrePx = new Vector2(553f, 544.5f),
+        planetDiscPx = 387f,
+        limbApexPx = 355f,
+        limbEdgePx = 887f,
+        entryFrames = 6,
+        entryShipPx = new Vector2(256f, 338f),
+        entryHolePx = 147f,
+        entryHoleX = new[] { 256f, 259f, 253f, 260f, 254f, 258f },
+        burstFrames = 5,
+        cue = new Color(1f, 0.945f, 0.78f),         // sun-white #FFF1C8 (hue 45 deg, S .22: never amber)
+        heat = new Color(1f, 0.95f, 0.80f),         // white-hot shroud with a pale gold edge
+        cold = new Color(0.45f, 0.40f, 0.35f),      // the dusty brown-grey haze under the plasma
+        flash = new Color(0.96f, 0.89f, 0.69f),     // #F4E3B0 pale bone flash
+        shade = new Color(0.10f, 0.09f, 0.17f),     // dusty indigo black
+        openBanner = "LAND ON DESERT",
+        urgeBanner = "DIVE INTO DESERT",
+        chipPrefix = "ORBIT  DANGER ",
+    };
+
     // Every planet arrived at by planetfall (Frost from Space, Verdant after
-    // Frost's lift-off, Ember after Verdant's, Tide after Ember's, Storm after Tide's -- the
-    // last two only while WorldManager.TideEnabled / StormEnabled: until then Ember is the last live
+    // Frost's lift-off, Ember after Verdant's, Tide after Ember's, Storm after Tide's, Desert after Storm's -- the
+    // last three only while WorldManager.TideEnabled / StormEnabled / DesertEnabled: until then Ember is the last live
     // world, PlanetfallCatalog.For never gets asked for Tide). A new planet
     // is one more entry here; the tests swap the list. Space, the loop's way
     // back round, has none: the loop keeps the portal.
-    public static readonly PlanetfallDef[] All = { Frost, Verdant, Ember, Tide, Storm };
+    public static readonly PlanetfallDef[] All = { Frost, Verdant, Ember, Tide, Storm, Desert };
     public static PlanetfallDef[] Defs = All;
 
     // The planetfall for leaving `from` for `to`, or null for a portal.

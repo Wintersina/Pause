@@ -47,6 +47,12 @@ public static class EnemyPalette
     public static readonly Color StormWhite = Hex(0xF2F6FF);
     public static readonly Color StormEdge = Hex(0xFFF3A0);
     public static readonly Color ArcBlue = Hex(0x9FCBEE);
+    public static readonly Color DuneSand = Hex(0xBFAE80);
+    public static readonly Color DuneSandSh = Hex(0x2E3150);
+    public static readonly Color DuneSandHi = Hex(0xE6DCC0);
+    public static readonly Color DuneOchre = Hex(0x8F8160);
+    public static readonly Color DuneCopper = Hex(0x9A5E3A);
+    public static readonly Color SunWhite = Hex(0xFFF1C8);
 
     // One world's enemy look, for art that must sit in the same cast (the
     // end-of-level bosses): hull base / one shadow / one highlight, a
@@ -82,6 +88,10 @@ public static class EnemyPalette
                 return new Theme { world = "storm", hull = Graphite, hullShadow = GraphiteSh, hullHighlight = GraphiteHi,
                                        accent = SlateTeal, light = StormWhite, lightDim = GraphiteHi, ink = Ink, bone = Bone,
                                        explosion = TargetExplosion.Kind.Metal };   // iron and sparks: no Storm row (Metal reads right for graphite machinery)
+            case 6: // Desert: bone-gold sand (pale, never star-dust amber), dusty indigo shadow, matte oxidised copper, sun-white light
+                return new Theme { world = "desert", hull = DuneSand, hullShadow = DuneSandSh, hullHighlight = DuneSandHi,
+                                       accent = DuneCopper, light = SunWhite, lightDim = DuneOchre, ink = Ink, bone = Bone,
+                                       explosion = TargetExplosion.Kind.Rock };   // sand and grit: Rock's debris until a Dust/Grit row exists
             default: return new Theme { world = "space", hull = Steel, hullShadow = SteelSh, hullHighlight = SteelHi,
                                         accent = Bruise, light = Magenta, lightDim = MagentaSh, ink = Ink, bone = Bone,
                                         explosion = TargetExplosion.Kind.Metal };

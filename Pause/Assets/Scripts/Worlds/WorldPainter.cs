@@ -100,7 +100,8 @@ public static class WorldPainter
             return;
         }
 
-        string root = "Worlds/" + (string.IsNullOrEmpty(theme.resourceFolder) ? theme.displayName : theme.resourceFolder) + "/";
+        string root = "Worlds/" + (RailArtWorld(theme.displayName) != theme.displayName ? RailArtWorld(theme.displayName)
+                      : string.IsNullOrEmpty(theme.resourceFolder) ? theme.displayName : theme.resourceFolder) + "/";
         // Reinforced rails share Frost's visible width and are mirrored so
         // their lamp/pipe edges face the playfield on both sides.
         var rail = Resources.Load<Texture2D>(root + railName);
@@ -124,9 +125,14 @@ public static class WorldPainter
         BossRails.Measure();
     }
 
+    // Desert has no rails of its own yet (add-world phase 5): it flies between Storm's
+    // (texture, bounds and edge alike; both are the Codex neon rails of one footprint).
+    // Dropped with the real art.
+    public static string RailArtWorld(string world) { return world == "Desert" ? "Storm" : world; }
+
     public static string RailTextureName(string world)
     {
-        switch (world)
+        switch (RailArtWorld(world))
         {
             case "Verdant": return "rail_forest_wide_v1";
             case "Frost": return "rail_frost_wide_v1";

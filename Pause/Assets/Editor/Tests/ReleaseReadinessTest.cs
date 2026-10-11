@@ -84,7 +84,9 @@ public static class ReleaseReadinessTest
         Check("last live world is Ember", WorldManager.Worlds[WorldManager.LastLiveWorld].displayName == "Ember");
         Check("Storm release switch is off and Storm is not live (it ships in the bundle behind WorldManager.StormEnabled; Tide must also be on)",
               !WorldManager.StormEnabled && !WorldManager.StormLive);
-        Check("no Desert world exists yet", !WorldManager.Worlds.Any(w => w.displayName == "Desert"));
+        // (was: "no Desert world exists yet". Desert now exists in Worlds[] behind its own switch, like Tide and Storm.)
+        Check("Desert release switch is off and Desert is not live (it ships in the bundle behind WorldManager.DesertEnabled; Storm and Tide must also be on)",
+              !WorldManager.DesertEnabled && !WorldManager.DesertLive && WorldManager.Worlds.Any(w => w.displayName == "Desert") && WorldManager.Worlds.Length == 7);
     }
 
     static void StoreIds()

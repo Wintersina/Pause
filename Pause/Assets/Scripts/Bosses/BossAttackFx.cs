@@ -1,8 +1,8 @@
 using UnityEngine;
 
 // The boss attacks' small FX sheet (Art/BossAttacks/src~/build_boss_attack_fx.py
-// -> Resources/BossAttackFx/boss_attack_fx.png): 6 x 6 cells, one row per boss
-// in BossCatalog order (Space, Frost, Verdant, Ember, Tide, Storm), row 0 on top.
+// -> Resources/BossAttackFx/boss_attack_fx.png): 6 x 7 cells, one row per boss
+// in BossCatalog order (Space, Frost, Verdant, Ember, Tide, Storm, Desert), row 0 on top.
 //
 //   col 0..2  rail spark (ricochet / splash on a side rail)
 //   col 3..4  muzzle flash (a part firing; the root of a live beam)
@@ -12,7 +12,7 @@ using UnityEngine;
 public static class BossAttackFx
 {
     public const string Path = "BossAttackFx/boss_attack_fx";
-    public const int Columns = 6, Rows = 6;
+    public const int Columns = 6, Rows = 7;
     public const int Spark0 = 0, SparkFrames = 3, Flash0 = 3, FlashFrames = 2, Ring = 5;
     public static readonly int[] SparkTicks = { 1, 2, 3 };
     public const int FlashTicks = 2;

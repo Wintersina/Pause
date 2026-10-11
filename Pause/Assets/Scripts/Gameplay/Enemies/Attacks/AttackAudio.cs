@@ -12,7 +12,7 @@ using UnityEngine;
 // AttackHazard.Ignite and EliteShot call Play; the world's backdrop / ambience sounds are not here.
 public static class AttackAudio
 {
-    public static readonly string[] WorldFolders = { "Space", "Frost", "Verdant", "Ember", "Tide", "Storm" };
+    public static readonly string[] WorldFolders = { "Space", "Frost", "Verdant", "Ember", "Tide", "Storm", "Desert" };
     public const string ResourceFolder = "Audio/Attack/";
     public const int MaxVariants = 6, MaxVoices = 4;
     public static float Volume = .7f;            // base gain of a cue
@@ -52,7 +52,14 @@ public static class AttackAudio
 
     // A (world, cue) with no clips of its own plays another world's: Storm's lightning strike is Tide's thunder (docs/storm-sounds.md).
     // Resolved to a clip folder; -1 none.
-    public static int Fallback(int world, string cue) { return world == 5 && cue == "strike" ? 4 : -1; }
+    // Desert (no authored attack clips: docs/desert-wire.md) plays Storm's reused cues -- its sandstorm wall is the gust, its burrower strike
+    // the strike (Tide's thunder through Storm), its grit and glass volleys the hail clatter; its other cues stay silent.
+    public static int Fallback(int world, string cue)
+    {
+        if (world == 5 && cue == "strike") return 4;
+        if (world == 6 && (cue == "strike" || cue == "gust" || cue == "hail")) return 5;
+        return -1;
+    }
 
     public static int Variants(int world, string cue) { return string.IsNullOrEmpty(cue) ? 0 : Get(world, cue).clips.Length; }
     public static AudioClip Clip(int world, string cue, int n) { var c = Get(world, cue); return n >= 0 && n < c.clips.Length ? c.clips[n] : null; }

@@ -107,7 +107,7 @@ public static class CodexCatalogue
     public static string Seconds(float s) { return s.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture) + " s"; }
 
     // World ids, index-aligned with WorldManager.Worlds.
-    public static readonly string[] WorldIds = { "world_space", "world_frost", "world_verdant", "world_ember", "world_tide", "world_storm" };
+    public static readonly string[] WorldIds = { "world_space", "world_frost", "world_verdant", "world_ember", "world_tide", "world_storm", "world_desert" };
 
     static CodexEntry[] all;
 
@@ -198,6 +198,10 @@ public static class CodexCatalogue
             new CodexEntry(WorldIds[5], "Storm", CodexCategory.Worlds, () => Backdrop("Storm"),
                 "A gas giant with no ground at all: thunderheads the size of continents, cyclone eyes and the " +
                 "little refinery platforms that float between them. Everything out here is charged.",
+                null, round: true),
+            new CodexEntry(WorldIds[6], "Desert", CodexCategory.Worlds, () => Backdrop("Desert"),
+                "A strip-mined world left to the wind: bone-gold dunes, fused-glass flats, half-buried refinery hulls " +
+                "and rusted crawlers between dry wells. It is very quiet. Something very large is moving under the sand.",
                 null, round: true),
         };
 
@@ -323,6 +327,9 @@ public static class CodexCatalogue
             case "Beak": return "its beak";
             case "Rods": return "its lightning-rod crown";
             case "Coil": return "its twin coil towers";
+            case "Maw": return "its bucket-wheel maw";
+            case "Boom": return "its drill boom";
+            case "Lens": return "its lens dish";
             case "LeftA": case "LeftB": return "its port cannon arms";
             case "RightA": case "RightB": return "its starboard cannon arms";
             default: return null;

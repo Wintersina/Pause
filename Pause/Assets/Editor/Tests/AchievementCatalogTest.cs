@@ -70,7 +70,7 @@ public static class AchievementCatalogTest
         Check("Find works for every id and not for junk", all.All(d => AchievementCatalog.Find(d.id) == d) && AchievementCatalog.Find("nope") == null && AchievementCatalog.Find(null) == null);
         Check("counters are shared (kills feeds 3)", AchievementCatalog.ForCounter("kills").Length == 3 && AchievementCatalog.ForCounter("stars").Length == 3);
         Check("7 sections, each with achievements", System.Enum.GetValues(typeof(AchievementSection)).Cast<AchievementSection>().All(s => all.Any(d => d.Section == s)));
-        Check("max 7 sections fits the codex (MaxSections)", CodexAchievementsView.BuildSections().Count <= CodexPanel.MaxSections);
+        Check("max 8 sections fits the codex (MaxSections)", CodexAchievementsView.BuildSections().Count <= CodexPanel.MaxSections);
         Check("every group is used", System.Enum.GetValues(typeof(AchievementGroup)).Cast<AchievementGroup>().All(g => all.Any(d => d.group == g)));
         Check("every tier is used", System.Enum.GetValues(typeof(AchievementTier)).Cast<AchievementTier>().All(t => all.Any(d => d.tier == t)));
     }

@@ -15,6 +15,7 @@ using UnityEngine;
 //   Cinder Drake         fire breath, flame sweep | furnace slugs | brow laser, eruption columns
 //   Iron Kraken          port cluster, thunder strike | beak jet | starboard cluster, surf wave
 //   Tempest Engine       core arc fan, crown lane strike | crown hail | coil beams, chain-lightning sweep
+//   Dune-Eater           grit fan, burrower strike | dune lob | lens beam, sandstorm wall
 //
 // A table only fights when BossDef.themedAttacks is on (default off); the default tables are untouched. The
 // new attacks share the existing attacks' tell poses: each lights the part it fires from (the Archon's pods, the
@@ -41,6 +42,8 @@ public static class BossThemed
                 return new[] { d[0], CrownStrike(w), d[1], d[2], ChainSweep(w) };
             case "Verdant":
                 return new[] { d[0], VineLash(w), d[1], d[2], TrunkToss(w) };
+            case "Desert":  // the burrower strike (a ridge, then a column of sand and shards) from the boom, a sandstorm wall (Scan band) from the lens
+                return new[] { d[0], BurrowerStrike(w), d[1], d[2], SandstormWall(w) };
             default:
                 return null;
         }
@@ -183,6 +186,31 @@ public static class BossThemed
         return new BossAttack
         {
             name = "chain lightning", kind = BossAttackKind.Wave, tell = 0, tellSeconds = 1.1f, emitters = new[] { "Core" },
+            wave = wave, volleys = 2, volleyGap = 1.7f, cooldown = 1.4f, minPhase = 3,
+        };
+    }
+
+    // ---- Desert: burrower strike (Strike), sandstorm wall (Wave) ---------------------------------------------------
+
+    static BossAttack BurrowerStrike(int w)
+    {
+        // the drill boom lowers (tell 1), then three lanes at the ship's row, 1.9 u apart: a ridge races down each (the strike's telegraph),
+        // then a column of sand and shards erupts (Strike's Eruption look in Desert's ramp)
+        return new BossAttack
+        {
+            name = "burrower strike", kind = BossAttackKind.Strike, tell = 1, tellSeconds = 1f, emitters = new[] { "Boom" },
+            strike = StrikeSpec.Standard(w), count = 3, spacing = 1.9f, cooldown = 1.2f, minPhase = 1,
+        };
+    }
+
+    static BossAttack SandstormWall(int w)
+    {
+        // a band of grit falls the whole lane from the lens with a gap turned toward the middle; twice, the gaps 1.7 s apart
+        var wave = WaveSpec.Scan(w);
+        wave.gapOffset = .8f; wave.gapWidth = 1.9f;
+        return new BossAttack
+        {
+            name = "sandstorm wall", kind = BossAttackKind.Wave, tell = 2, tellSeconds = 1.1f, emitters = new[] { "Lens" },
             wave = wave, volleys = 2, volleyGap = 1.7f, cooldown = 1.4f, minPhase = 3,
         };
     }

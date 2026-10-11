@@ -89,6 +89,11 @@ PARTS = {
         ("CoilL", 0, (110, 168), 22, (0, 0)),      # the twin Tesla coil towers, at their bases (coil beams)
         ("CoilR", 0, (272, 168), 22, (0, 0)),
     ],
+    "Desert": [
+        ("Maw", 0, (174, 270), 24, (0, 16)),       # the front bucket-wheel maw -> its throat (aimed sand-slug fan); measured (174, 286) in the manifest
+        ("Boom", 0, (328, 198), 18, (0, 9)),       # the side drill boom -> its tip (dune lob, burrower strike); manifest (328, 207)
+        ("Lens", 0, (174, 96), 24, (0, -13)),      # the rear lens dish -> its centre (sun-lens beam, sandstorm wall); manifest (174, 83)
+    ],
     "Ember": [
         ("Jaw", 0, (192, 196), 26, (0, 8)),        # the burning maw
         ("Furnace", 0, (192, 250), 22, (0, 0)),    # the chest furnace
@@ -103,7 +108,8 @@ PARTS = {
 BAND = {"Space": (96, 282, 0, 384), "Frost": (112, 292, 0, 384),
         "Verdant": (40, 262, 0, 384), "Ember": (40, 236, 112, 272),
         "Tide": (56, 250, 112, 272),
-        "Storm": (110, 200, 0, 384)}
+        "Storm": (110, 200, 0, 384),
+        "Desert": (120, 300, 40, 344)}
 
 SCALES = [0.86 + 0.02 * i for i in range(18)]   # 0.86 .. 1.20
 
@@ -407,7 +413,7 @@ def main():
         out_dir = sys.argv[sys.argv.index("--preview") + 1]
         os.makedirs(out_dir, exist_ok=True)
     results = {}
-    for world in ["Space", "Frost", "Verdant", "Ember", "Tide", "Storm"]:
+    for world in ["Space", "Frost", "Verdant", "Ember", "Tide", "Storm", "Desert"]:
         frames, table = measure(world)
         results[world] = table
         if out_dir:

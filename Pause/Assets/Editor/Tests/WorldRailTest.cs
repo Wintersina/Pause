@@ -13,7 +13,7 @@ public static class WorldRailTest
         if (string.IsNullOrEmpty(name)) return 0;
 
         string path = "Assets/Art/Resources/Worlds/" +
-            (string.IsNullOrEmpty(theme.resourceFolder) ? theme.displayName : theme.resourceFolder) + "/" + name + ".png";
+            (WorldPainter.RailArtWorld(theme.displayName) != theme.displayName ? WorldPainter.RailArtWorld(theme.displayName) : string.IsNullOrEmpty(theme.resourceFolder) ? theme.displayName : theme.resourceFolder) + "/" + name + ".png";
         int failures = 0;
         Texture2D imported = AssetDatabase.LoadAssetAtPath<Texture2D>(path);
         Check(theme.displayName + " reinforced rail texture imports", imported != null, ref failures);

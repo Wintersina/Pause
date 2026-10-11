@@ -332,7 +332,7 @@ public static class CodexTest
                 if (anim.Dying) Check("pointer tap: " + e.id + " slow taps must not play it", false);
             }
             Check("pointer tap: every Codex elite plays a death from real taps (" + elites + " elites, " + bursts + " composed)", elites >= 16 && bursts + 0 >= 0);
-            Check("pointer tap: every boss plays its death strip on tap (" + bossStrips + " of " + bosses + ")", bossStrips == BossCatalog.All.Length && bosses == BossCatalog.All.Length);
+            Check("pointer tap: every boss plays its death strip on tap (" + bossStrips + " of " + bosses + ")", bossStrips == System.Array.FindAll(BossCatalog.All, b => BossArt.HasDeathArt(b)).Length && bosses == BossCatalog.All.Length);   // (Desert has no death strip yet: it is not expected to play one)
 
             // a locked elite stays inert
             PlayerPrefs.DeleteKey(Codex.PrefsKey);
@@ -1533,13 +1533,13 @@ public static class CodexTest
         string seen = PlayerPrefs.GetString(Codex.PrefsKey);
         DeveloperUnlocks.SetEnabled(true);
         panel.SkipAnimations();
-        // (dev mode discovers everything, so Tide's and Storm's sections are listed too: SPACE..STORM, then BOSSES)
+        // (dev mode discovers everything, so Tide's and Storm's sections are listed too: SPACE..DESERT, then BOSSES)
         int bi = WorldManager.Worlds.Length;
         bool allBosses = panel.SectionCount == bi + 1 && panel.SectionAt(bi).entries.Count == BossCatalog.All.Length;
         for (int b = 0; allBosses && b < BossCatalog.All.Length; b++)
             allBosses &= panel.SectionAt(bi).entries[b].id == BossCatalog.All[b].id &&
                          panel.CardName(panel.SectionStart(bi) + b).text == Codex.Find(BossCatalog.All[b].id).name;
-        Check("dev mode: BOSSES shows all six bosses, named, after Storm's section", allBosses && BossCatalog.All.Length == 6 && panel.ChipLabel(bi - 1).text == "STORM");
+        Check("dev mode: BOSSES shows all seven bosses, named, after Desert's section", allBosses && BossCatalog.All.Length == 7 && panel.ChipLabel(bi - 1).text == "DESERT");
         Check("dev mode: BOSSES counter reads " + BossCatalog.All.Length, panel.SectionCounter(bi).text == BossCatalog.All.Length.ToString());
         CheckWorldSections(panel, true);
         DeveloperUnlocks.SetEnabled(false);

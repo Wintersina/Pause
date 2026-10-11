@@ -376,6 +376,8 @@ public static class WorldBackdropTest
             // Flip this to "own spec" when it lands.
             if (theme.displayName == "Storm")
                 Check("Storm still uses its stand-in backdrop spec (" + BackdropCatalog.StormStandIn + "'s; TODO: own backdrop)", spec.world == BackdropCatalog.StormStandIn);
+            else if (theme.displayName == "Desert")
+                Check("Desert still uses its stand-in backdrop spec (" + BackdropCatalog.DesertStandIn + "'s; TODO: own backdrop, director and worm)", spec.world == BackdropCatalog.DesertStandIn);
             else
                 Check(theme.displayName + " has its own backdrop spec", spec.world == theme.displayName);
             // Space carries two runs of body tiers (planets, structures).
@@ -1107,7 +1109,8 @@ public static class WorldBackdropTest
             {
                 string railName = WorldPainter.RailTextureName(theme.displayName);
                 if (railName == null) continue;
-                string folder = string.IsNullOrEmpty(theme.resourceFolder) ? theme.displayName : theme.resourceFolder;
+                string folder = WorldPainter.RailArtWorld(theme.displayName) != theme.displayName ? WorldPainter.RailArtWorld(theme.displayName)   // (Desert flies Storm's rail)
+                    : string.IsNullOrEmpty(theme.resourceFolder) ? theme.displayName : theme.resourceFolder;
 
                 // Columns of the PNG that hold visible art (not transparent,
                 // not the black matte the shader cuts).

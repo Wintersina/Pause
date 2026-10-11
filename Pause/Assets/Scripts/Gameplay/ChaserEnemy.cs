@@ -52,6 +52,9 @@ public class ChaserEnemy : MonoBehaviour, IMovementFootprint
     //   Spiral  a rotor drone: closes in on a corkscrew, circling the line to
     //           the ship at a steady speed (sideways and fore-aft offsets a
     //           quarter turn apart)
+    //   Burrow  a scarab drone: runs at the ship, dives (BurrowDiveSeconds: hidden and
+    //           untouchable, slipping under the sand beside the ship's column), surfaces
+    //           there and lunges along the line it then locks (BurrowLungeSeconds)
     public ChaserStyle style = ChaserStyle.Hound;
     public const float LancerAimSeconds = .55f, LancerDashSeconds = .7f;
     public const float LancerAimSpeed = .15f, LancerDashSpeed = 1.9f;
@@ -61,6 +64,10 @@ public class ChaserEnemy : MonoBehaviour, IMovementFootprint
     public const float SlitherSurge = .85f, SlitherHz = .9f, SlitherSideSpeed = 1.3f;
     // Spiral: a circle of radius SpiralSpeed / (2 pi SpiralHz) ~ .27 u carried along the heading (the mean speed is unchanged)
     public const float SpiralSpeed = 1.5f, SpiralHz = .9f;
+    // Burrow: run (surface, steady pursuit), buried (hidden and untouchable, tunnelling to a point BurrowSide u beside the ship's
+    // column), then a straight lunge along the line it locks as it surfaces
+    public const float BurrowRunSeconds = 1.3f, BurrowDiveSeconds = .75f, BurrowLungeSeconds = .55f;
+    public const float BurrowDiveSpeed = 1.6f, BurrowLungeSpeed = 1.9f, BurrowSide = 1f;
 
     // It does not stay for ever: after lingerSeconds of orbiting (or when a
     // boss / portal is coming) it leaves, climbing out the top.
@@ -86,6 +93,23 @@ public class ChaserEnemy : MonoBehaviour, IMovementFootprint
     Vector3 lockedHeading = Vector3.up;
 
     // True while a Lancer is stopped, aiming its next dash.
+    // True while a Burrow drone is under the sand: its body is hidden and cannot be hit.
+    public bool Buried { get; private set; }
+    Renderer[] burrowRenderers;
+    Collider2D[] burrowColliders;
+    int burrowSide = 1;
+
+    void SetBuried(bool buried)
+    {
+        if (Buried == buried) return;
+        Buried = buried;
+        if (burrowRenderers == null) { burrowRenderers = GetComponentsInChildren<Renderer>(true); burrowColliders = GetComponentsInChildren<Collider2D>(true); }
+        foreach (var r in burrowRenderers) if (r != null) r.enabled = !buried;
+        foreach (var c in burrowColliders) if (c != null) c.enabled = !buried;
+    }
+
+    void OnDisable() { if (Buried) SetBuried(false); }
+
     public bool Aiming => style == ChaserStyle.Lancer && !wandering && styleClock < LancerAimSeconds;
 
     public void Configure(EnemyBehaviour b)
@@ -99,6 +123,11 @@ public class ChaserEnemy : MonoBehaviour, IMovementFootprint
         wanderRadius = b.wanderRadius;
         lingerSeconds = b.lingerSeconds;
         if (!alive.Contains(this)) alive.Add(this);
+        if (style == ChaserStyle.Burrow && burrowRenderers == null)   // (cached here so the dive allocates nothing)
+        {
+            burrowRenderers = GetComponentsInChildren<Renderer>(true);
+            burrowColliders = GetComponentsInChildren<Collider2D>(true);
+        }
     }
 
     Transform player;
@@ -156,6 +185,7 @@ public class ChaserEnemy : MonoBehaviour, IMovementFootprint
         Vector3 from = transform.position;
         Vector3 wish = from;
         SecondsAlive += dt;
+        if (Buried && (Leaving || wandering)) SetBuried(false);   // (a Burrow drone never stays hidden once its chase is over)
 
         if (!Leaving && (PilotAirspace.MustClear || (wandering && (lingered += dt) >= lingerSeconds))) Leaving = true;
         if (Leaving)
@@ -194,6 +224,29 @@ public class ChaserEnemy : MonoBehaviour, IMovementFootprint
                         if (styleClock >= cycle) styleClock -= cycle;
                         if (styleClock < LancerAimSeconds) { lockedHeading = heading; speed *= LancerAimSpeed; }
                         else { heading = lockedHeading; speed *= LancerDashSpeed; }
+                    }
+                    if (style == ChaserStyle.Burrow)
+                    {
+                        float cycle = BurrowRunSeconds + BurrowDiveSeconds + BurrowLungeSeconds;
+                        if (styleClock >= cycle) { styleClock -= cycle; burrowSide = -burrowSide; }
+                        if (styleClock < BurrowRunSeconds) SetBuried(false);
+                        else if (styleClock < BurrowRunSeconds + BurrowDiveSeconds)
+                        {
+                            // under the sand: toward the spot beside the ship (the lunge starts from there), hidden
+                            SetBuried(true);
+                            Vector3 spot = new Vector3(goal.x + burrowSide * BurrowSide, goal.y - .6f, from.z);
+                            Vector3 to = spot - from; to.z = 0f;
+                            heading = to.sqrMagnitude > .0001f ? to.normalized : heading;
+                            speed *= BurrowDiveSpeed;
+                            lockedHeading = heading;
+                        }
+                        else
+                        {
+                            // surfaced: a straight lunge along the line to the ship, locked as it came up
+                            if (Buried) { SetBuried(false); lockedHeading = heading; }
+                            heading = lockedHeading;
+                            speed *= BurrowLungeSpeed;
+                        }
                     }
                     if (style == ChaserStyle.Slither)
                         speed *= 1f + SlitherSurge * Mathf.Sin(styleClock * SlitherHz * 2f * Mathf.PI);

@@ -333,12 +333,20 @@ public static class BackdropCatalog
         get { var spec = For(WorldManager.Current.displayName); return spec != null && spec.Bright; }
     }
 
-    // Storm has no ground backdrop yet (add-world phase 11): its level flies over
-    // Tide's, so a Storm run is playable in dev. Removed with the real Spec.
+    // Storm and Desert have no ground backdrop yet (add-world phase 11): their levels fly over
+    // Tide's, so a run there is playable in dev. Removed with the real Spec.
+    // (Desert's tiles and worm atlas are Codex-finished, art/desert-backdrop-a/b/c and
+    // art/desert-worm, but its director is not written: docs/desert-wire.md.)
     public const string StormStandIn = "Tide";
+    public const string DesertStandIn = "Tide";
 
     static string Resolve(string displayName)
     {
+        if (displayName == "Desert")
+        {
+            foreach (var s in specs) if (s.world == displayName) return displayName;
+            return DesertStandIn;
+        }
         if (displayName != "Storm") return displayName;
         foreach (var s in specs) if (s.world == displayName) return displayName;
         return StormStandIn;
