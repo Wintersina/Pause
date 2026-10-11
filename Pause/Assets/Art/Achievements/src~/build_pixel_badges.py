@@ -321,6 +321,25 @@ def skull(d,c=(200,211,202)):
  for x in (57,63,69): d.rectangle((x,82,x+3,89),fill=INK)
  line(d,[(46,49),(52,43),(76,43)],(255,244,212),2)
 
+def diamond_spark(d,x,y,r,metal=(255,198,67)):
+ # Broad four-point dust crystal with a dark pixel edge and a white hot core.
+ polygon(d,[(x,y-r),(x+3,y-3),(x+r,y),(x+3,y+3),
+            (x,y+r),(x-3,y+3),(x-r,y),(x-3,y-3)],metal)
+ polygon(d,[(x,y-r+3),(x+2,y-2),(x+r-3,y),(x+2,y+2),
+            (x,y+r-3),(x-2,y+2),(x-r+3,y),(x-2,y-2)],(255,226,119),None)
+ d.rectangle((x-1,y-1,x+1,y+1),fill=(255,255,224,255))
+
+def orbit_points(cx,cy,a,b,angle,steps=48):
+ rot=math.radians(angle)
+ return [(round(cx+a*math.cos(t)*math.cos(rot)-b*math.sin(t)*math.sin(rot)),
+          round(cy+a*math.cos(t)*math.sin(rot)+b*math.sin(t)*math.cos(rot)))
+         for t in [2*math.pi*i/steps for i in range(steps+1)]]
+
+def orbit_stroke(d,pts,colour,shine):
+ line(d,pts,INK,7)
+ line(d,pts,colour,4)
+ line(d,pts[:len(pts)//3],shine,2)
+
 def subject(im,ident,world):
  d=ImageDraw.Draw(im);lo,mid,hi=ACCENTS[world]
  glow(d,world)
@@ -403,14 +422,48 @@ def subject(im,ident,world):
     xx=round(64+15*math.cos(math.radians(a)));yy=round(74+15*math.sin(math.radians(a)))
     d.rectangle((xx-1,yy-1,xx+1,yy+1),fill=(255,213,109,255))
    d.ellipse((58,68,70,80),fill=(227,179,75,255),outline=INK,width=2)
-  else:
+  elif ident=="stars_150":
    polygon(d,[(44,59),(54,50),(74,50),(84,59),(80,89),(70,96),(53,96),(45,87)],(142,91,43))
    polygon(d,[(48,60),(54,55),(75,55),(80,62),(75,85),(52,85)],(222,151,63))
    line(d,[(51,64),(76,64)],(91,53,26),3)
-   for x,y in [(64,46),(50,49),(78,49),(57,38),(73,38)][: 1 if ident=="stars_150" else 3 if ident=="stars_1000" else 5]:
+   for x,y in [(64,46)]:
     paste_asset(im,f"{R}Pickups/Atoms/dust_idle_0.png",180,9,x,y,16)
-   d=ImageDraw.Draw(im)
-   if ident=="stars_5000":ring(d,64,73,17,(255,227,99),2)
+  elif ident=="stars_1000":
+   # Seven individual crystals form a broad, open fan; the only base is a steel band.
+   for x,y,r in [(64,42,11),(49,59,10),(79,59,10),
+                 (38,78,8),(55,78,9),(73,78,9),(90,78,8)]:
+    d.ellipse((x-r-3,y-r-3,x+r+3,y+r+3),fill=(63,57,30,255))
+    diamond_spark(d,x,y,r)
+   polygon(d,[(43,91),(85,91),(90,97),(38,97)],(101,135,145))
+   line(d,[(45,92),(83,92)],(236,249,236),2)
+   for x in (49,64,79):d.point((x,95),fill=(255,222,103,255))
+  else:
+   # A heavy circular vault, coin rim, and a single oversized central star.
+   d.ellipse((32,39,96,96),fill=INK)
+   d.ellipse((35,42,93,93),fill=(136,83,26,255),outline=(255,211,82,255),width=3)
+   d.ellipse((42,47,86,89),fill=(70,49,28,255),outline=(255,225,112,255),width=3)
+   polygon(d,[(37,82),(44,75),(51,80),(59,72),(67,79),
+              (75,72),(83,79),(91,76),(94,90),(84,96),(43,96)],(151,91,26))
+   polygon(d,[(40,86),(49,81),(57,85),(64,77),(72,84),
+              (80,79),(88,85),(91,90),(83,92),(44,92)],(248,184,52))
+   line(d,[(42,86),(49,82),(57,86),(64,78),(71,85),(80,80),(87,86)],(255,236,130),2)
+   for a in range(0,360,45):
+    x=round(64+27*math.cos(math.radians(a)))
+    y=round(67+23*math.sin(math.radians(a)))
+    d.ellipse((x-5,y-5,x+5,y+5),fill=INK)
+    d.ellipse((x-4,y-4,x+4,y+4),fill=(226,162,43,255))
+    d.arc((x-3,y-3,x+3,y+3),190,300,fill=(255,243,150,255),width=2)
+   for a in range(0,360,45):
+    x1=round(64+18*math.cos(math.radians(a)))
+    y1=round(66+18*math.sin(math.radians(a)))
+    x2=round(64+25*math.cos(math.radians(a)))
+    y2=round(66+25*math.sin(math.radians(a)))
+    line(d,[(x1,y1),(x2,y2)],(255,210,64),2)
+   polygon(d,[(64,45),(70,58),(84,64),(70,70),(64,85),
+              (58,70),(44,64),(58,58)],(255,194,53))
+   polygon(d,[(64,49),(68,60),(79,64),(68,68),(64,80),
+              (60,68),(49,64),(60,60)],(255,231,111),None)
+   d.ellipse((61,61,67,67),fill=(255,255,223,255))
  elif ident.startswith("pause_"):
   d=ImageDraw.Draw(im)
   if ident=="pause_hoarder":
@@ -442,15 +495,75 @@ def subject(im,ident,world):
    d=ImageDraw.Draw(im);skull(d,(236,215,155))
    polygon(d,[(45,43),(45,32),(55,37),(64,27),(73,37),(83,32),(83,43)],(241,190,65))
  elif ident in ("elite_first","elite_10","elite_50"):
-  # Actual elite hulls for the hunt medals; the chevron wings live on the rim.
-  names=["space_elite_rift_lancer","space_elite_orbit_reaver","space_elite_eventide_bastion"]
-  idx=["elite_first","elite_10","elite_50"].index(ident)
-  paste_asset(im,f"{R}Elites/Space/{names[idx]}.png",192,4,64,66)
   d=ImageDraw.Draw(im)
-  for i in range(idx+1):
-   y=86+i*5
-   line(d,[(51,y),(64,y+5),(77,y)],(255,202,90),2)
-  d.ellipse((59,57,69,67),outline=rgba(hi),width=1)
+  if ident=="elite_first":
+   # One light, open winged chevron-star medal.
+   for side in (-1,1):
+    def wing(points):return [(64+side*x,y) for x,y in points]
+    polygon(d,wing([(7,63),(27,44),(32,45),(27,60),(16,71)]),(195,125,46))
+    polygon(d,wing([(10,63),(29,47),(27,54),(17,66)]),(255,211,91),None)
+    polygon(d,wing([(9,70),(30,60),(32,66),(16,79),(8,77)]),(169,98,37))
+    polygon(d,wing([(12,70),(29,63),(28,67),(16,75)]),(255,223,115),None)
+    polygon(d,wing([(8,80),(25,78),(21,87),(12,91),(6,86)]),(198,129,45))
+    line(d,wing([(10,82),(22,81),(16,87)]),(255,231,133),2)
+   polygon(d,[(43,51),(64,67),(85,51),(85,59),(64,78),(43,59)],(219,154,57))
+   line(d,[(47,54),(64,68),(81,54)],(255,236,142),2)
+   polygon(d,[(64,42),(69,56),(83,62),(69,68),(64,82),
+              (59,68),(45,62),(59,56)],(239,186,73))
+   polygon(d,[(64,47),(67,58),(78,62),(67,66),(64,76),
+              (61,66),(50,62),(61,58)],(255,227,124),None)
+   d.ellipse((59,57,69,67),fill=INK)
+   d.ellipse((61,59,67,65),fill=(255,250,213,255))
+   line(d,[(64,54),(64,70)],(255,244,173))
+   line(d,[(56,62),(72,62)],(255,244,173))
+   for feather in ([(46,87),(55,96)],[(82,87),(73,96)]):
+    line(d,feather,INK,5)
+    line(d,feather,(255,250,201),3)
+  elif ident=="elite_10":
+   # Broad heater shield: ten countable rivets in two regular rows.
+   polygon(d,[(37,38),(91,38),(91,72),(82,85),(64,98),
+              (46,85),(37,72)],(82,114,129))
+   polygon(d,[(41,43),(87,43),(87,70),(79,82),(64,92),
+              (49,82),(41,70)],(156,195,204))
+   polygon(d,[(45,47),(83,47),(83,69),(76,79),(64,87),
+              (52,79),(45,69)],(62,95,113))
+   line(d,[(41,43),(87,43)],(237,251,239),2)
+   polygon(d,[(46,70),(64,82),(82,70),(82,76),(64,89),(46,76)],(214,218,195))
+   line(d,[(49,71),(64,81),(79,71)],(255,250,220),2)
+   # Split steel facets distinguish the shield from rectangular score drums.
+   d.polygon([(40,43),(58,43),(58,51),(49,70),(43,75),(40,70)],fill=(178,220,221,255))
+   d.polygon([(87,43),(71,43),(71,51),(79,70),(84,75),(87,70)],fill=(16,35,49,255))
+   for y in (54,63):
+    for x in (49,56,63,70,77):
+     d.ellipse((x-2,y-2,x+2,y+2),fill=INK)
+     d.ellipse((x-1,y-1,x+1,y+1),fill=(255,238,153,255))
+  else:
+   # Tall three-point crown, central star, and two wide laurel branches.
+   polygon(d,[(41,62),(41,40),(53,50),(64,34),(75,50),(87,40),
+              (87,62)],(180,113,30))
+   polygon(d,[(45,58),(45,47),(55,55),(64,40),(73,55),
+              (83,47),(83,58)],(255,204,65))
+   d.rectangle((41,60,87,68),fill=INK)
+   d.rectangle((44,61,84,66),fill=(242,186,54,255))
+   for x,c in [(50,(94,233,229)),(64,(250,104,208)),(78,(94,233,229))]:
+    d.rectangle((x-2,61,x+2,65),fill=INK)
+    d.rectangle((x-1,62,x+1,64),fill=rgba(c))
+   for side in (-1,1):
+    pts=[(64+side*x,y) for x,y in [(9,89),(18,84),(24,75),(28,66)]]
+    line(d,pts,INK,6);line(d,pts,(218,166,46),3)
+    for x,y,dx in [(17,83,7),(23,76,7),(27,68,6)]:
+     polygon(d,[(64+side*(x-2),y+3),(64+side*(x+dx),y-3),
+                (64+side*(x+2),y-7)],(238,188,63))
+     line(d,[(64+side*x,y),(64+side*(x+dx-1),y-3)],(255,239,145),2)
+    for x,y in [(17,89),(23,82),(28,75)]:
+     polygon(d,[(64+side*x,y),(64+side*(x+7),y+1),
+                (64+side*(x+2),y-6)],(148,91,27))
+   line(d,[(40,59),(40,71)],INK,5)
+   line(d,[(40,59),(40,71)],(255,250,201),3)
+   polygon(d,[(64,68),(69,77),(79,79),(71,85),(73,95),
+              (64,90),(55,95),(57,85),(49,79),(59,77)],(250,205,77))
+   polygon(d,[(64,72),(67,79),(74,80),(69,84),(70,90),
+              (64,87),(58,90),(59,84),(54,80),(61,79)],(255,242,145),None)
  elif ident.startswith("score_"):
   d=ImageDraw.Draw(im)
   # Three geared odometer drums, with a different count of engaged stops.
@@ -467,16 +580,39 @@ def subject(im,ident,world):
    star(d,round(64+(i-(n-1)/2)*13),43,(255,220,110),True)
   if n==3:polygon(d,[(47,42),(47,33),(57,37),(64,29),(71,37),(81,33),(81,42)],(245,201,76))
  elif ident.startswith("loop_"):
-  d=ImageDraw.Draw(im);ring(d,64,67,30,mid,4)
+  d=ImageDraw.Draw(im)
   if ident=="loop_1":
+   ring(d,64,67,30,mid,4)
    polygon(d,[(88,43),(96,52),(85,55)],hi);paste_asset(im,f"{B}Frost/Planetfall/frost_planet.png",1024,32,64,68,55)
   elif ident=="loop_2":
-   ring(d,64,67,20,hi,3)
-   polygon(d,[(87,43),(96,51),(85,55)],hi);polygon(d,[(40,91),(32,82),(44,79)],hi)
+   # Two crossing tilted elliptical paths create a wide infinity silhouette.
+   for cx,rot,planet,arrow in [(51,-38,(37,77),(72,43)),(77,38,(91,78),(56,44))]:
+    pts=orbit_points(cx,67,20,30,rot)
+    orbit_stroke(d,pts,(220,52,177),(255,179,239))
+    x,y=planet
+    d.ellipse((x-4,y-4,x+4,y+4),fill=INK)
+    d.ellipse((x-3,y-3,x+3,y+3),fill=(255,230,153,255))
+    x,y=arrow
+    polygon(d,[(x-5,y-2),(x+5,y-5),(x+1,y+6)],(255,123,219))
+   d.rectangle((61,63,67,70),fill=(255,213,244,255))
   else:
-   for a in range(0,360,72):
-    xx=64+int(20*math.cos(math.radians(a)));yy=67+int(20*math.sin(math.radians(a)))
-    star(d,xx,yy,hi,True)
+   # Five long, radial petals end in arrowheads around a ringed planet.
+   for i in range(5):
+    a=-90+i*72
+    rad=math.radians(a)
+    cx=round(64+15*math.cos(rad));cy=round(67+15*math.sin(rad))
+    pts=orbit_points(cx,cy,22,10,a)
+    orbit_stroke(d,pts,(219,76,192),(255,222,248))
+    tx=round(64+35*math.cos(rad));ty=round(67+35*math.sin(rad))
+    lx=-math.sin(rad);ly=math.cos(rad)
+    polygon(d,[(round(tx+5*math.cos(rad)),round(ty+5*math.sin(rad))),
+               (round(tx-4*math.cos(rad)+4*lx),round(ty-4*math.sin(rad)+4*ly)),
+               (round(tx-4*math.cos(rad)-4*lx),round(ty-4*math.sin(rad)-4*ly))],
+            (255,235,249))
+   d.ellipse((52,55,76,79),fill=INK,outline=(255,195,239,255),width=2)
+   d.ellipse((56,59,72,75),fill=(176,69,163,255),outline=(255,236,248,255),width=2)
+   d.arc((49,63,79,72),5,175,fill=(255,246,253,255),width=3)
+   d.point((61,62),fill=(255,255,255,255))
  elif ident in ("meta_first_flight","meta_logged_on","secret_power_first","chain_10","mega_domino",
                "skin_first","skin_full_set","speed_flash","speed_speedster","deaths_100"):
   d=ImageDraw.Draw(im)
