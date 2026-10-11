@@ -1,8 +1,7 @@
 using UnityEngine;
 
-// Storm's sound set: all 17 Storm keys (11 roster, 5 elites, plus the boss) resolve death clips through EnemyDeathAudio.DeathAlias
-// (other worlds' clips, pitched, under the authored storm_crack_ layer), the pilots and elites borrow screams, a mote / drone / whale /
-// mine / rock borrows none, Storm strikes fall back to Tide's thunder, the authored attack cues (Resources/Audio/Attack/Storm) load,
+// Storm's sound set: the 4 Storm rocks resolve death clips through EnemyDeathAudio.DeathAlias (other worlds' rock clips, pitched, under
+// the authored storm_crack_ layer), every other Storm key (roster, 5 elites, the boss) plays a shared death category, Storm strikes fall back to Tide's thunder, the authored attack cues (Resources/Audio/Attack/Storm) load,
 // nothing leaks into the other worlds, and no authored clip is a beep (spectral check on the samples).
 //
 //   scripts/unity-batch.sh -executeMethod AllTests.RunSuites -suites StormSoundTest
@@ -28,11 +27,6 @@ public static class StormSoundTest
     {
         "storm_elite_skyhook_harrier", "storm_elite_refinery_tender", "storm_elite_rod_dancer", "storm_elite_anvil_cloud", "storm_elite_static_bastion",
     };
-    static readonly string[] Screamers =
-    {
-        "storm_fighter_1", "storm_fighter_2", "storm_fighter_3", "storm_fighter_4",
-        "storm_elite_skyhook_harrier", "storm_elite_refinery_tender", "storm_elite_rod_dancer", "storm_elite_anvil_cloud", "storm_elite_static_bastion",
-    };
 
     public static int Execute()
     {
@@ -44,16 +38,13 @@ public static class StormSoundTest
             EnemyDeathAudio.Simulate = true; EnemyDeathAudio.Clock = () => clock;
             AttackAudio.Simulate = true; AttackAudio.Clock = () => clock;
             EnemyDeathAudio.ClearCache(); AttackAudio.ClearCache();
-            EnemyDeathAudio.ResetBorrows();
             Deaths();
-            Screams();
             Attacks();
             NoBeeps();
         }
         finally
         {
             EnemyDeathAudio.Simulate = sim; EnemyDeathAudio.Clock = c1; AttackAudio.Simulate = asim; AttackAudio.Clock = c2;
-            EnemyDeathAudio.ResetBorrows();
             EnemyDeathAudio.ClearCache(); AttackAudio.ClearCache();
         }
         Debug.Log("[SSD] failures: " + fails);
@@ -66,57 +57,35 @@ public static class StormSoundTest
         foreach (var list in new[] { Roster, Elites })
             foreach (var k in list)
             {
+                bool rock = k.Contains("_rock_");
                 string donor = EnemyDeathAudio.DonorOf(k);
-                bool ok = donor != null && !donor.StartsWith("storm_") && EnemyDeathAudio.Variants(donor) > 0 && EnemyDeathAudio.DonorOf(donor) == null &&
-                          EnemyDeathAudio.Variants(k) >= 3 && EnemyDeathAudio.Variants(k) == EnemyDeathAudio.Variants(donor) &&
-                          EnemyDeathAudio.LayerOf(k) == EnemyDeathAudio.StormLayer;
+                bool ok = rock
+                    ? donor != null && !donor.StartsWith("storm_") && EnemyDeathAudio.Variants(donor) > 0 && EnemyDeathAudio.DonorOf(donor) == null &&
+                      EnemyDeathAudio.Variants(k) == EnemyDeathAudio.Variants(donor) && EnemyDeathAudio.LayerOf(k) == EnemyDeathAudio.StormLayer
+                    : donor == null && EnemyDeathAudio.CategoryOf(k) != "" && EnemyDeathAudio.Variants(k) >= 1;
                 if (!ok) bad.Add(k);
             }
-        Check("all 12 Storm roster keys and 5 elites resolve donor death clips under the storm layer (" + (bad.Count == 0 ? "ok" : string.Join(", ", bad)) + ")", bad.Count == 0);
-        bool real = true;
-        foreach (var r in EnemyDeathAudio.DeathAlias) real &= EnemyDeathAudio.DonorOf(r[1]) == null;
-        Check("no alias points at another alias (a donor is always a real authored key)", real);
-        Check("the Storm boss death cue resolves (boss_storm -> boss_space, key from artKey 'Storm')",
-              EnemyDeathAudio.BossKey("Storm") == "boss_storm" && EnemyDeathAudio.DonorOf("boss_storm") == "boss_space" && EnemyDeathAudio.Variants("boss_storm") >= 2);
-        // a roster / elite def, if the roster / elite agents' defs are merged, must be covered by an alias
+        Check("the 4 Storm rocks alias rock donors under the storm layer; the other 8 roster keys and 5 elites play shared clips (" + (bad.Count == 0 ? "ok" : string.Join(", ", bad)) + ")", bad.Count == 0);
+        Check("the Storm boss death cue resolves (boss_storm -> shared roar, key from artKey 'Storm')",
+              EnemyDeathAudio.BossKey("Storm") == "boss_storm" && EnemyDeathAudio.CategoryOf("boss_storm") == EnemyDeathAudio.Roar && EnemyDeathAudio.Variants("boss_storm") >= 1);
         int defs = 0; var missing = new System.Collections.Generic.List<string>();
-        foreach (var d in EnemyRoster.All) if (d.key.StartsWith("storm_")) { defs++; if (EnemyDeathAudio.Variants(d.key) < 3) missing.Add(d.key); }
+        foreach (var d in EnemyRoster.All) if (d.key.StartsWith("storm_")) { defs++; if (EnemyDeathAudio.Variants(d.key) < 1) missing.Add(d.key); }
         Check("every storm_ roster def present (" + defs + ") has death clips" + (missing.Count > 0 ? " (missing: " + string.Join(", ", missing) + ")" : ""), missing.Count == 0);
         EnemyDeathAudio.ResetVoices();
         clock += 5;
-        bool played = EnemyDeathAudio.PlayAuthored("storm_big", .8f);
-        Check("a Storm death plays its donor clip, and the crack layer takes a voice (pitch " + EnemyDeathAudio.DonorOf("storm_big") + ")",
-              played && EnemyDeathAudio.Played == 1 && EnemyDeathAudio.LastClip != null && EnemyDeathAudio.ActiveScreams() >= 1);
+        bool played = EnemyDeathAudio.PlayAuthored("storm_rock_slag", .8f);
+        Check("a Storm rock death plays its donor clip, and the crack layer takes a voice",
+              played && EnemyDeathAudio.Played == 1 && EnemyDeathAudio.LastClip != null && EnemyDeathAudio.ActiveLayers() >= 1);
+        EnemyDeathAudio.ResetVoices();
+        clock += 5;
+        EnemyDeathAudio.PlayAuthored("storm_big", .8f);
+        Check("a Storm big plays the shared roar at its pitch, no layer (" + EnemyDeathAudio.LastPitch.ToString("0.00") + ")",
+              EnemyDeathAudio.LastClip != null && EnemyDeathAudio.LastClip.name == "shared_roar_0" && EnemyDeathAudio.ActiveLayers() == 0 &&
+              Mathf.Abs(EnemyDeathAudio.LastPitch - .75f) <= .75f * EnemyDeathAudio.PitchJitter + 1e-4f);
         Check("the crack layer storm_crack_0..2 exists", Resources.Load<AudioClip>("Audio/EnemyDeath/storm_crack_0") != null &&
               Resources.Load<AudioClip>("Audio/EnemyDeath/storm_crack_1") != null && Resources.Load<AudioClip>("Audio/EnemyDeath/storm_crack_2") != null);
-        Check("Tide keeps its own wet layer and other worlds are not aliased",
-              EnemyDeathAudio.LayerOf("tide_big") == EnemyDeathAudio.WetLayer && EnemyDeathAudio.DonorOf("ember_big") == null && EnemyDeathAudio.DonorOf("space_mine") == null);
-    }
-
-    static void Screams()
-    {
-        bool all = true;
-        foreach (var k in Screamers)
-        {
-            EnemyDeathAudio.Borrow b;
-            bool ok = EnemyDeathAudio.ScreamBorrow.TryGetValue(k, out b) && EnemyDeathAudio.ScreamVariants(b.donor) > 0 && !EnemyDeathAudio.ScreamBorrow.ContainsKey(b.donor) &&
-                      b.pitch >= .8f && b.pitch <= 1.6f && EnemyDeathAudio.ScreamVariants(k) == 0;
-            if (!ok) Debug.Log("[SSD] bad borrow for " + k);
-            all &= ok;
-        }
-        Check("the 4 pilots and 5 elites borrow a scream from a donor that owns one (" + Screamers.Length + ")", all);
-        bool none = true;
-        foreach (var k in new[] { "storm_rock_hail", "storm_rock_ore", "storm_rock_slag", "storm_rock_islet", "storm_mine", "storm_big", "storm_chaser", "storm_alien" })
-            none &= !EnemyDeathAudio.ScreamBorrow.ContainsKey(k);
-        Check("the mote, rotor drone, whale, mine and rocks have no scream", none);
-        EnemyDeathAudio.ScreamChance = 1f;
-        try
-        {
-            EnemyDeathAudio.ResetVoices(); clock += 5;
-            EnemyDeathAudio.PlayAuthored("storm_elite_rod_dancer", .8f);
-            Check("an elite death layers its borrowed scream", EnemyDeathAudio.LastScream != null && EnemyDeathAudio.LastScream.name.StartsWith("ember_elite_ash_wraith_scream_"));
-        }
-        finally { EnemyDeathAudio.ScreamChance = .65f; }
+        Check("Tide keeps its own wet layer for its rocks and the other worlds' creatures are not aliased",
+              EnemyDeathAudio.LayerOf("tide_rock_brain") == EnemyDeathAudio.WetLayer && EnemyDeathAudio.DonorOf("ember_big") == null && EnemyDeathAudio.DonorOf("space_mine") == null);
     }
 
     static void Attacks()

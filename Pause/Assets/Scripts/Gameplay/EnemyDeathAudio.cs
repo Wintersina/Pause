@@ -3,209 +3,149 @@ using UnityEngine;
 
 // Per-target destruction audio.
 //
-// AUTHORED CLIPS FIRST: a roster key (or an elite def key) with WAVs at
-// Resources/Audio/EnemyDeath/<key>_0, <key>_1, ... plays one of them (a
-// random variant, never the same one twice in a row for that key, a small
-// pitch jitter) on a small pool of voices with a polyphony cap, a per-key
-// minimum interval and a light duck of rapidly repeated identical keys, so
-// a death combo cannot stack into a wall of sound. A key that also has
-// <key>_scream_0, ... sometimes (ScreamChance) layers a quiet radio cry /
-// creature screech a few tens of milliseconds after the death cue.
-// Every roster enemy and elite of all four worlds (Space, Frost, Verdant,
-// Ember) has authored clips; Tide's reuse them (DeathAlias) under its own wet layer. There is no synthesized fallback any more: a key
-// with no clips is silent (in the editor a roster / elite key without clips
-// logs one warning, and EnemyDeathAudioTest fails on it).
+// SHARED CLIPS: every non-rock creature (fighters, chasers, aliens, bigs, mines, elites, bosses of all six worlds) plays one of a few
+// shared clips, chosen by a deterministic key -> category table (SharedTable) and re-pitched per key at playback (AudioSource.pitch),
+// so one small file serves many creatures:
+//   yelp   (2 clips)  small scouts / pilots          human (2)  male + female crew     alien (1)  alien pilot / jelly scream
+//   screech (1)       insects and alien creatures    whine (1)  machines, drones, mines   roar (1)   bigs, living elites, bosses
+// Files: Resources/Audio/EnemyDeath/shared_<category>_<n>.wav (mono, trimmed).
 //
-// Timing: like any PlayOneShot, authored cues ignore
-// Time.timeScale -- a kill on a frozen (paused) frame is heard at once --
-// and the scream's delay is AudioSource.PlayDelayed (audio clock), so it
-// follows the very same rule. Voice bookkeeping uses unscaled time.
+// ROCKS keep their own authored clips: a *_rock_* key with WAVs at Resources/Audio/EnemyDeath/<key>_0, _1, ... (Tide / Storm rocks
+// alias to another world's rock clips via DeathAlias, under a wet / crack layer).
+//
+// Playback: a random variant (never the same one twice in a row for that key), a small pitch jitter, a small pool of voices with a
+// polyphony cap, a per-key minimum interval and a light duck of rapidly repeated identical keys, so a death combo cannot stack into
+// a wall of sound. There is no synthesized fallback: a key with no clips is silent (in the editor a roster / elite key without
+// clips logs one warning, and EnemyDeathAudioTest fails on it).
+//
+// Timing: like any PlayOneShot, authored cues ignore Time.timeScale -- a kill on a frozen (paused) frame is heard at once.
+// Voice bookkeeping uses unscaled time.
 public static class EnemyDeathAudio
 {
     // ---- tunables -----------------------------------------------------------
 
     // Master switch for the authored WAVs. Off: enemy deaths are silent.
     public static bool AuthoredEnabled = true;
-    // Resources folder the authored clips live in (<key>_<n>, <key>_scream_<n>).
+    // Resources folder the clips live in.
     public const string ResourceFolder = "Audio/EnemyDeath/";
     // Probe stops at this many variants per key.
     public const int MaxVariants = 8;
-    // Random pitch jitter of an authored cue / scream: 1 +- this.
+    // Random pitch jitter of a cue: 1 +- this.
     public static float PitchJitter = .03f;
     // Overall gain of an authored cue (applied on top of Volume(role)).
     public static float AuthoredGain = .8f;
     // Base volume of an elite's death cue (elites have no EnemyRole).
     public static float EliteVolume = .8f;
-    // Chance a death cue with scream clips layers one.
-    public static float ScreamChance = .65f;
-    // The scream starts this long after the death cue (seconds, random in range).
-    public static float ScreamDelayMin = .034f, ScreamDelayMax = .055f;
-    // Scream volume relative to its death cue's (0.5 ~ peak 12 dB under it).
-    public static float ScreamVolume = .5f;
-    // Simultaneous authored death cues / screams; past the cap the quietest
-    // (then oldest) voice is cut -- or the new cue dropped if it is quieter
-    // still. A scream with no free voice is simply skipped.
-    public const int MaxVoices = 6, MaxScreamVoices = 2;
+    // Simultaneous death cues / under-layers; past the cap the quietest (then oldest) voice is cut -- or the new cue dropped if it is
+    // quieter still. A layer with no free voice is simply skipped.
+    public const int MaxVoices = 6, MaxLayerVoices = 2;
+    // The wet / crack layer starts this long after its rock cue (seconds).
+    public static float LayerDelay = .034f;
     // The same key re-triggering within this many seconds is dropped.
     public static float MinKeyInterval = .03f;
     // Identical keys repeating within DuckWindow seconds get quieter:
     // volume x DuckFactor per recent repeat, never below DuckFloor.
     public static float DuckWindow = .3f, DuckFactor = .8f, DuckFloor = .5f;
 
-    // Scream reuse: a key without scream clips of its own borrows a donor
-    // key's screams at a pitch (a smaller unit voiced by a bigger one's cry,
-    // pitched up). A borrowed scream plays at BorrowVolume x the normal scream
-    // volume and is subject to the same ScreamChance / voice cap. Keys that
-    // own screams never borrow. Only living / crewed units borrow (never rocks,
-    // mines, drones, bigs or machine elites), and a donor owns screams.
-    public struct Borrow { public string donor; public float pitch; public Borrow(string donor, float pitch) { this.donor = donor; this.pitch = pitch; } }
+    // ---- shared clips ---------------------------------------------------------
 
-    // key, donor, pitch (playback speed relative to the donor clip)
-    public static readonly string[][] BorrowTable =
+    public const string SharedPrefix = "shared_";
+    public const string Yelp = "yelp", Human = "human", Alien = "alien", Screech = "screech", Whine = "whine", Roar = "roar";
+    public static readonly string[] Categories = { Yelp, Human, Alien, Screech, Whine, Roar };
+
+    // key, category, playback pitch. Fighters 1-4 are the scout / two crewed gunships / the heavy; mines, drones and machine elites
+    // whine; bigs, living elites and bosses roar; insects screech; jellies and alien pilots scream.
+    public static readonly string[][] SharedTable =
     {
-        // Space: pilots and the Bile Mite are voiced by other worlds' crews and creatures
-        new[] { "space_fighter_1", "ember_fighter_1",   "1.25" },   // Needle: small scout, startled high cry
-        new[] { "space_fighter_2", "verdant_fighter_2", "1.20" },   // Steel Claw: tense nasal cry
-        new[] { "space_fighter_3", "ember_fighter_3",   "1.16" },   // Twin Claw: strained breathy cry
-        new[] { "space_alien",     "verdant_alien",     "1.32" },   // Bile Mite: wet creature voice
-        // Frost: the one living unit
-        new[] { "frost_alien",     "ember_alien",       "1.38" },   // Cryo Jelly: reedy creature voice
-        // Verdant: the gnat is the queen's voice pitched up; the dragonfly buzzes like the mantis
-        new[] { "verdant_fighter_1", "verdant_fighter_4", "1.50" }, // Gnat: tiny strained cry
-        new[] { "verdant_chaser",    "verdant_fighter_3", "1.15" }, // Dragonsting: insect rasp
-        // Ember: the salamander hisses like the brass vulture, smaller
-        new[] { "ember_chaser",      "ember_elite_brass_vulture", "1.15" },   // Cinder Fang: raspy creature cry
-        // Verdant's three living elites (the Timber Hauler is a machine: none). Heard once their death cues are authored (PendingClips):
-        // the scream layers on a death cue, so until then they are silent. Pitched down: a bigger body than its donor's.
-        new[] { "verdant_elite_thornlash",  "verdant_fighter_4", "0.90" },   // Thornlash: the Hornet Queen's cry, lower and slower
-        new[] { "verdant_elite_sporebloom", "verdant_alien",     "0.90" },   // Sporebloom: the Snap Sprout's wet voice, a size up
-        new[] { "verdant_elite_leafblade",  "verdant_fighter_4", "1.10" },   // Leafblade: a sharper, quicker queen
-        // Tide: the jelly is the only living unit; Ember's jelly cry, higher and thinner
-        new[] { "tide_alien",              "ember_alien",       "1.30" },   // Glow Jelly
-        // Storm: the four manta / gunship pilots and the five elites have a living occupant (the mote, rotor drone, whale and rocks do not)
-        new[] { "storm_fighter_1",                "ember_fighter_1",           "1.35" },   // Stormray Pup: tiny, startled
-        new[] { "storm_fighter_2",                "verdant_fighter_2",         "1.10" },   // Stormray: tense nasal cry
-        new[] { "storm_fighter_3",                "ember_fighter_3",           "0.95" },   // Gunship: a heavier voice
-        new[] { "storm_fighter_4",                "space_fighter_4",           "0.90" },   // Tempest Anvil: a big, low cry
-        new[] { "storm_elite_skyhook_harrier",    "ember_elite_coalrunner",    "1.10" },   // interceptor pilot
-        new[] { "storm_elite_refinery_tender",    "space_elite_singularity_hauler", "0.85" },   // hauler crew
-        new[] { "storm_elite_rod_dancer",         "ember_elite_ash_wraith",    "1.10" },   // skirmisher
-        new[] { "storm_elite_anvil_cloud",        "ember_elite_brass_vulture", "0.85" },   // siege gunner, a bigger body
-        new[] { "storm_elite_static_bastion",     "space_elite_eventide_bastion", "0.90" }, // bastion crew
-        // Desert (docs/desert-wire.md): the living occupants are the skimmer, hawk and gunner pilots, the scarab (chitter), the wisp (reedy)
-        // and the elite crews; the crawler, tank, mine and rocks have none
-        new[] { "desert_fighter_1",               "ember_fighter_1",           "1.30" },   // Sand Skimmer: tiny, startled
-        new[] { "desert_fighter_2",               "verdant_fighter_2",         "1.15" },   // Glint Hawk: tense nasal cry
-        new[] { "desert_fighter_3",               "ember_fighter_3",           "1.00" },   // Lens Gunner: strained
-        new[] { "desert_chaser",                  "verdant_fighter_3",         "1.30" },   // Scarab Drone: a high insect chitter
-        new[] { "desert_alien",                   "ember_alien",               "1.45" },   // Mirage Wisp: reedy, thin
-        new[] { "desert_elite_dune_stalker",      "ember_elite_coalrunner",    "1.00" },   // interceptor pilot
-        new[] { "desert_elite_caravan_hauler",    "space_elite_singularity_hauler", "0.85" },   // hauler crew
-        new[] { "desert_elite_lens_matriarch",    "ember_elite_ash_wraith",    "1.00" },   // kiter
-        new[] { "desert_elite_glass_cannon",      "ember_elite_brass_vulture", "0.85" },   // siege gunner
-        new[] { "desert_elite_scorpion_walker",   "ember_elite_brass_vulture", "0.95" },   // the walker's creature cry
-        new[] { "desert_elite_mirror_bastion",    "space_elite_eventide_bastion", "0.90" }, // bastion crew
+        // Space
+        new[] { "space_fighter_1", Yelp, "1.15" }, new[] { "space_fighter_2", Human, "1.0" }, new[] { "space_fighter_3", Human, "1.08" }, new[] { "space_fighter_4", Human, ".88" },
+        new[] { "space_chaser", Whine, "1.25" }, new[] { "space_alien", Screech, "1.05" }, new[] { "space_big", Roar, "1.0" }, new[] { "space_mine", Whine, "1.5" },
+        new[] { "space_elite_eventide_bastion", Whine, ".7" }, new[] { "space_elite_orbit_reaver", Human, "1.0" },
+        new[] { "space_elite_rift_lancer", Human, "1.12" }, new[] { "space_elite_singularity_hauler", Whine, ".6" },
+        // Verdant (insects, plants)
+        new[] { "verdant_fighter_1", Screech, "1.35" }, new[] { "verdant_fighter_2", Screech, "1.1" }, new[] { "verdant_fighter_3", Screech, "1.0" }, new[] { "verdant_fighter_4", Screech, ".85" },
+        new[] { "verdant_chaser", Screech, "1.2" }, new[] { "verdant_alien", Alien, "1.15" }, new[] { "verdant_big", Roar, ".95" }, new[] { "verdant_mine", Whine, "1.4" },
+        new[] { "verdant_elite_leafblade", Screech, ".8" }, new[] { "verdant_elite_resin_warden", Roar, ".85" }, new[] { "verdant_elite_sporebloom", Roar, ".9" },
+        new[] { "verdant_elite_thornlash", Screech, ".75" }, new[] { "verdant_elite_timber_hauler", Whine, ".65" },
+        // Ember
+        new[] { "ember_fighter_1", Yelp, "1.0" }, new[] { "ember_fighter_2", Human, "1.0" }, new[] { "ember_fighter_3", Human, ".95" }, new[] { "ember_fighter_4", Alien, ".9" },
+        new[] { "ember_chaser", Screech, "1.0" }, new[] { "ember_alien", Alien, "1.0" }, new[] { "ember_big", Roar, "1.1" }, new[] { "ember_mine", Whine, "1.3" },
+        new[] { "ember_elite_ash_wraith", Roar, "1.05" }, new[] { "ember_elite_brass_vulture", Screech, ".8" }, new[] { "ember_elite_cauterizer", Whine, ".7" },
+        new[] { "ember_elite_coalrunner", Human, ".85" }, new[] { "ember_elite_kilnback", Whine, ".55" }, new[] { "ember_elite_sunstoke", Roar, ".85" },
+        // Frost (ice machines; the jelly is the one living unit)
+        new[] { "frost_fighter_1", Whine, "1.45" }, new[] { "frost_fighter_2", Whine, "1.25" }, new[] { "frost_fighter_3", Whine, "1.05" }, new[] { "frost_fighter_4", Whine, ".85" },
+        new[] { "frost_chaser", Whine, "1.2" }, new[] { "frost_alien", Alien, "1.25" }, new[] { "frost_big", Roar, ".8" }, new[] { "frost_mine", Whine, "1.5" },
+        new[] { "frost_elite_cryo_siren", Whine, "1.0" }, new[] { "frost_elite_floe_harrower", Whine, ".7" }, new[] { "frost_elite_glacier_tender", Whine, ".6" },
+        new[] { "frost_elite_rimebreaker", Whine, ".8" }, new[] { "frost_elite_whiteout_sentinel", Whine, ".65" },
+        // Tide (sea creatures and submersibles)
+        new[] { "tide_fighter_1", Yelp, ".95" }, new[] { "tide_fighter_2", Screech, "1.2" }, new[] { "tide_fighter_3", Alien, ".8" }, new[] { "tide_fighter_4", Roar, "1.25" },
+        new[] { "tide_chaser", Screech, ".85" }, new[] { "tide_alien", Alien, "1.3" }, new[] { "tide_big", Roar, ".9" }, new[] { "tide_mine", Whine, "1.35" },
+        new[] { "tide_elite_riptide", Roar, "1.2" }, new[] { "tide_elite_bathyscaphe", Whine, ".6" }, new[] { "tide_elite_trawler", Whine, ".5" },
+        new[] { "tide_elite_thunderfin", Screech, ".7" }, new[] { "tide_elite_pearl_warden", Roar, ".95" },
+        // Storm (gunship pilots and drones)
+        new[] { "storm_fighter_1", Yelp, "1.1" }, new[] { "storm_fighter_2", Human, "1.12" }, new[] { "storm_fighter_3", Human, ".92" }, new[] { "storm_fighter_4", Human, ".8" },
+        new[] { "storm_chaser", Whine, "1.35" }, new[] { "storm_alien", Whine, "1.6" }, new[] { "storm_big", Roar, ".75" }, new[] { "storm_mine", Whine, "1.45" },
+        new[] { "storm_elite_skyhook_harrier", Human, "1.18" }, new[] { "storm_elite_refinery_tender", Whine, ".55" }, new[] { "storm_elite_rod_dancer", Human, "1.25" },
+        new[] { "storm_elite_anvil_cloud", Roar, ".7" }, new[] { "storm_elite_static_bastion", Whine, ".75" },
+        // Desert (skimmer / hawk / gunner pilots, scarab, wisp; the tank, mine and machine elites are machines)
+        new[] { "desert_fighter_1", Yelp, "1.3" }, new[] { "desert_fighter_2", Human, "1.15" }, new[] { "desert_fighter_3", Human, "1.0" }, new[] { "desert_fighter_4", Whine, ".8" },
+        new[] { "desert_chaser", Screech, "1.3" }, new[] { "desert_alien", Alien, "1.45" }, new[] { "desert_big", Roar, ".85" }, new[] { "desert_mine", Whine, "1.3" },
+        new[] { "desert_elite_dune_stalker", Human, "1.0" }, new[] { "desert_elite_caravan_hauler", Whine, ".6" }, new[] { "desert_elite_lens_matriarch", Roar, "1.05" },
+        new[] { "desert_elite_glass_cannon", Whine, ".75" }, new[] { "desert_elite_scorpion_walker", Roar, ".9" }, new[] { "desert_elite_mirror_bastion", Whine, ".7" },
+        // Bosses: the big roar, pitched down by how huge each hull is
+        new[] { "boss_space", Roar, ".65" }, new[] { "boss_frost", Roar, ".7" }, new[] { "boss_verdant", Roar, ".85" },
+        new[] { "boss_ember", Roar, ".75" }, new[] { "boss_tide", Roar, ".78" }, new[] { "boss_storm", Roar, ".6" }, new[] { "boss_desert", Roar, ".55" },
     };
-    // Death-cue reuse (Tide): a key with no clips of its own plays a DONOR key's clips at a pitch (playback speed relative to the donor),
-    // with the world's wet layer (WetLayer: tide_wet_0..) under it. Authored water is only that layer; the rest is other worlds'
-    // crunches, hulls and elite cues re-pitched (docs/tide-sounds.md). A key that owns clips never aliases.
+    // (not readonly on purpose: TestHarness.Sandbox restores readonly dictionaries by clearing and refilling them, which empties a generic Dictionary)
+    static Dictionary<string, string[]> sharedByKey = BuildShared();
+    static Dictionary<string, string[]> BuildShared()
+    {
+        var d = new Dictionary<string, string[]>();
+        foreach (var r in SharedTable) d[r[0]] = r;
+        return d;
+    }
+    // The shared category of a key ("" for rocks / unknown keys) and its pitch.
+    public static string CategoryOf(string key) { string[] r; return key != null && sharedByKey.TryGetValue(key, out r) ? r[1] : ""; }
+    public static float SharedPitchOf(string key)
+    {
+        string[] r;
+        return key != null && sharedByKey.TryGetValue(key, out r) ? float.Parse(r[2], System.Globalization.CultureInfo.InvariantCulture) : 1f;
+    }
+
+    // ---- rocks: aliased cues ----------------------------------------------------
+
+    // Death-cue reuse (Tide / Storm rocks): a key with no clips of its own plays a DONOR rock's clips at a pitch (playback speed
+    // relative to the donor), with the world's wet / crack layer under it. A key that owns clips never aliases.
     public static readonly string[][] DeathAlias =
     {
         new[] { "tide_rock_brain",    "frost_rock_chunk",       "0.85" },   // brain coral: a heavy crunch, slower
         new[] { "tide_rock_staghorn", "frost_rock_shard",       "1.00" },   // staghorn spire: brittle blade shatter
         new[] { "tide_rock_urchin",   "ember_rock_obsidian",    "1.12" },   // spine urchin: glassy spikes snapping
         new[] { "tide_rock_islet",    "ember_rock_islet",       "0.92" },   // kelp islet: the floating slab again, softer
-        new[] { "tide_mine",          "frost_mine",             "0.90" },   // limpet mine
-        new[] { "tide_big",           "verdant_big",            "0.85" },   // Nautilus Bulwark: a big organic hull
-        new[] { "tide_fighter_1",     "frost_fighter_1",        "1.10" },   // Remora
-        new[] { "tide_fighter_2",     "frost_fighter_2",        "1.00" },   // Needlefish
-        new[] { "tide_fighter_3",     "frost_fighter_3",        "0.90" },   // Lantern Angler
-        new[] { "tide_fighter_4",     "frost_fighter_4",        "0.80" },   // Hammerhead: heavy
-        new[] { "tide_chaser",        "space_chaser",           "0.95" },   // Wire Eel: sparks
-        new[] { "tide_alien",         "ember_alien",            "1.15" },   // Glow Jelly (its cry: ScreamBorrow)
-        new[] { "tide_elite_riptide",      "ember_elite_sunstoke",         "1.10" },
-        new[] { "tide_elite_bathyscaphe",  "ember_elite_cauterizer",       "0.80" },
-        new[] { "tide_elite_trawler",      "ember_elite_kilnback",         "0.85" },
-        new[] { "tide_elite_thunderfin",   "space_elite_rift_lancer",      "1.05" },
-        new[] { "tide_elite_pearl_warden", "space_elite_eventide_bastion", "0.90" },
-        // Storm (docs/storm-sounds.md): donors chosen for what the unit physically is, the authored storm_crack_ layer under all of them
         new[] { "storm_rock_hail",    "frost_rock_chunk",       "1.20" },   // hailstone: a hard-grain clatter, faster and smaller
         new[] { "storm_rock_ore",     "frost_rock_shard",       "1.08" },   // crystal blade snap
         new[] { "storm_rock_slag",    "ember_rock_obsidian",    "0.82" },   // dense iron thud, slower
         new[] { "storm_rock_islet",   "ember_rock_islet",       "0.85" },   // platform break, a dull crumble
-        new[] { "storm_mine",         "space_mine",             "1.00" },   // rod mine: concussive pop
-        new[] { "storm_big",          "verdant_big",            "0.75" },   // Cloud Whale: a huge, slow body
-        new[] { "storm_fighter_1",    "space_fighter_1",        "1.15" },   // Stormray Pup: light plate crack
-        new[] { "storm_fighter_2",    "space_fighter_2",        "1.00" },   // Stormray: wing snap, gun pop
-        new[] { "storm_fighter_3",    "ember_fighter_3",        "0.90" },   // Gunship: cannon drum boom
-        new[] { "storm_fighter_4",    "space_fighter_4",        "0.85" },   // Tempest Anvil: coil discharge, heavy collapse
-        new[] { "storm_chaser",       "verdant_chaser",         "0.90" },   // Cyclone Drone: rotor shreds
-        new[] { "storm_alien",        "space_alien",            "1.10" },   // Static Mote: ball lightning cage bursts
-        new[] { "storm_elite_skyhook_harrier", "space_elite_orbit_reaver",       "1.05" },   // interceptor
-        new[] { "storm_elite_refinery_tender", "space_elite_singularity_hauler", "0.80" },   // floating refinery hauler
-        new[] { "storm_elite_rod_dancer",      "space_elite_rift_lancer",        "1.15" },   // arc skirmisher
-        new[] { "storm_elite_anvil_cloud",     "ember_elite_cauterizer",         "0.75" },   // siege cloud
-        new[] { "storm_elite_static_bastion",  "space_elite_eventide_bastion",   "0.82" },   // ward bastion
-        new[] { "boss_storm",                  "boss_space",                     "0.88" },   // the floating turbine engine: a capital hull breaking
-    };
-    public const string WetLayer = "tide_wet_";       // under every aliased Tide death
-    // Desert (docs/desert-wire.md): donors chosen for what the unit physically is; NO authored layer under them yet (the plan's
-    // dry grit / glass / brass materials are the donors' own crunch, glass and metal; a sand-slump layer is a later sound job)
-    public static readonly string[][] DesertAlias =
-    {
+        // Desert rocks: donor rock clips, NO layer (docs/desert-wire.md)
         new[] { "desert_rock_dune",   "frost_rock_chunk",       "0.85" },   // sandstone crumble: a heavy crunch, slower
         new[] { "desert_rock_spire",  "frost_rock_shard",       "1.00" },   // fused glass: brittle snap
         new[] { "desert_rock_husk",   "ember_rock_obsidian",    "0.90" },   // fulgurite tube: glassy crack
         new[] { "desert_rock_slab",   "ember_rock_islet",       "0.88" },   // floating crust slab: a dull crumble
-        new[] { "desert_mine",        "ember_mine",             "0.90" },   // rusted lens mine: concussive pop
-        new[] { "desert_big",         "ember_big",              "0.85" },   // Sandcrawler: a heavy hull collapsing, rolling rumble
-        new[] { "desert_fighter_1",   "space_fighter_1",        "0.95" },   // Sand Skimmer: sheet-metal tear
-        new[] { "desert_fighter_2",   "frost_fighter_2",        "1.15" },   // Glint Hawk: brittle glass crash
-        new[] { "desert_fighter_3",   "frost_fighter_3",        "0.90" },   // Lens Gunner: lens shatter and servo whine down
-        new[] { "desert_fighter_4",   "ember_fighter_4",        "0.80" },   // Dust Devil Tank: heavy rolling collapse
-        new[] { "desert_chaser",      "verdant_chaser",         "1.10" },   // Scarab Drone: chitin crunch
-        new[] { "desert_alien",       "ember_alien",            "1.20" },   // Mirage Wisp: a papery heat-pop
-        new[] { "desert_elite_dune_stalker",    "ember_elite_coalrunner",        "1.00" },   // interceptor
-        new[] { "desert_elite_caravan_hauler",  "space_elite_singularity_hauler", "0.80" },   // crawler hauler
-        new[] { "desert_elite_lens_matriarch",  "ember_elite_ash_wraith",        "1.05" },   // kiter
-        new[] { "desert_elite_glass_cannon",    "ember_elite_cauterizer",        "0.80" },   // siege cannon
-        new[] { "desert_elite_scorpion_walker", "ember_elite_kilnback",          "0.90" },   // walker: a big armoured creature-machine
-        new[] { "desert_elite_mirror_bastion",  "space_elite_eventide_bastion",  "0.88" },   // ward bastion
-        new[] { "boss_desert",                  "boss_space",                    "0.80" },   // the feral excavator: a capital hull breaking, slower and heavier
     };
-    public const string StormLayer = "storm_crack_";  // under every aliased Storm death (thunder crack, rumble, sizzle)
+    public const string WetLayer = "tide_wet_";       // under every aliased Tide rock
+    public const string StormLayer = "storm_crack_";  // under every aliased Storm rock (thunder crack, rumble, sizzle)
     public static float WetVolume = .6f;               // relative to the death cue
     public static float StormVolume = .55f;
-    // The authored layer prefix a key's aliased death wears ("" none).
-    public static string LayerOf(string key) { return IsDesert(key) ? "" : key.StartsWith("storm_") || key == "boss_storm" ? StormLayer : WetLayer; }
+    // The authored layer prefix a key's aliased death wears.
+    // Desert rocks wear no layer ("").
+    public static string LayerOf(string key) { return IsDesert(key) ? "" : key.StartsWith("storm_") ? StormLayer : WetLayer; }
     public static bool IsDesert(string key) { return key != null && (key.StartsWith("desert_") || key == "boss_desert"); }
-    static float LayerVolume(string key) { return key.StartsWith("storm_") || key == "boss_storm" ? StormVolume : WetVolume; }
+    static float LayerVolume(string key) { return key.StartsWith("storm_") ? StormVolume : WetVolume; }
     public static string DonorOf(string key)
     {
         for (int i = 0; i < DeathAlias.Length; i++) if (DeathAlias[i][0] == key) return DeathAlias[i][1];
-        for (int i = 0; i < DesertAlias.Length; i++) if (DesertAlias[i][0] == key) return DesertAlias[i][1];
         return null;
     }
-    public static readonly Dictionary<string, Borrow> ScreamBorrow = BuildBorrows();
-    static Dictionary<string, Borrow> BuildBorrows()
-    {
-        var d = new Dictionary<string, Borrow>();
-        foreach (var r in BorrowTable) d[r[0]] = new Borrow(r[1], float.Parse(r[2], System.Globalization.CultureInfo.InvariantCulture));
-        return d;
-    }
-    // Put the table back to BorrowTable (tests clear and edit it).
-    public static void ResetBorrows() { ScreamBorrow.Clear(); foreach (var kv in BuildBorrows()) ScreamBorrow[kv.Key] = kv.Value; }
-    public static float BorrowVolume = .7f;
-
-    // Codex-only (forceScream == true): the scream is the point of the triple-tap,
-    // so it must cut through other sounds. Its volume is the UNDUCKED cue volume x
-    // CodexScreamBoost (clamped to 1 on the AudioSource), the death cue itself is
-    // ducked by CodexDeathDuck (0.5 ~ -6 dB) so the scream stays on top, the delay
-    // is 0..CodexScreamDelayMax and a borrowed scream skips BorrowVolume. In-game
-    // deaths (forceScream == false) are untouched.
-    public static float CodexScreamBoost = 2.6f, CodexDeathDuck = .5f, CodexScreamDelayMax = .02f;
-    public static float LastScreamPitch { get; private set; }
-    public static float LastScreamVolume { get; private set; }
 
     // ---- test / dev hooks -----------------------------------------------------
 
@@ -216,10 +156,8 @@ public static class EnemyDeathAudio
     public static int Played { get; private set; }      // authored cues started
     public static int Dropped { get; private set; }     // refused: interval / cap
     public static int Stolen { get; private set; }      // voices cut by the cap
-    public static int Screams { get; private set; }     // screams started
     public static AudioClip LastClip { get; private set; }
-    public static AudioClip LastScream { get; private set; }
-    public static float LastScreamDelay { get; private set; }
+    public static float LastPitch { get; private set; }   // playback pitch of the last cue (key pitch x jitter)
     public static float LastVolume { get; private set; }
     public static string LastKey { get; private set; }
 
@@ -227,9 +165,9 @@ public static class EnemyDeathAudio
 
     sealed class KeyClips
     {
-        public AudioClip[] deaths, screams, wet;
+        public AudioClip[] deaths, wet;
         public float pitch = 1f, layerVolume = .6f;
-        public int lastDeath = -1, lastScream = -1, repeats;
+        public int lastDeath = -1, repeats;
         public double lastTime = double.NegativeInfinity;
     }
 
@@ -238,7 +176,7 @@ public static class EnemyDeathAudio
     static readonly AudioClip[] None = new AudioClip[0];
     static readonly Dictionary<string, KeyClips> authored = new Dictionary<string, KeyClips>();
     static readonly Voice[] voices = new Voice[MaxVoices];
-    static readonly Voice[] screamVoices = new Voice[MaxScreamVoices];
+    static readonly Voice[] layerVoices = new Voice[MaxLayerVoices];
     static GameObject voiceHost;
     static uint rng = 0x9e3779b9u;
     static bool seeded;
@@ -250,36 +188,34 @@ public static class EnemyDeathAudio
         string key = def != null ? def.key : target.name;
         if (string.IsNullOrEmpty(key)) key = "unknown_target";
         EnemyRole role = def != null ? def.role : GuessRole(target);
-        PlayKey(key, role, false);
+        PlayKey(key, role);
     }
 
     // The same cue without a target object (the codex's tapped enemy).
-    public static void PlayKey(string key, EnemyRole role, bool forceScream)
+    public static void PlayKey(string key, EnemyRole role)
     {
         if (!(Application.isPlaying || Simulate) || string.IsNullOrEmpty(key)) return;
-        if (!PlayAuthored(key, Volume(role), forceScream)) WarnMissing(key);
+        if (!PlayAuthored(key, Volume(role))) WarnMissing(key);
     }
 
     // An elite going down (EliteDeath): its authored cue (its generic
     // explosion plays regardless).
-    public static bool PlayElite(string eliteKey, bool forceScream = false)
+    public static bool PlayElite(string eliteKey)
     {
         if (!(Application.isPlaying || Simulate)) return false;
-        bool ok = PlayAuthored(eliteKey, EliteVolume, forceScream);
+        bool ok = PlayAuthored(eliteKey, EliteVolume);
         if (!ok) WarnMissing(eliteKey);
         return ok;
     }
 
-    // A boss going down (BossActor.BeginOutro, the codex's tapped boss). Authored
-    // clips boss_<artKey lowercase>_0.. (and boss_<..>_scream_0.. for the living
-    // bosses) in Resources/Audio/EnemyDeath/; none dropped in yet = silent.
+    // A boss going down (BossActor.BeginOutro, the codex's tapped boss): the shared roar at the boss's own pitch (SharedTable boss_<artKey>).
     public static float BossVolume = 1f;
     public static string BossKey(string artKey) { return string.IsNullOrEmpty(artKey) ? null : "boss_" + artKey.ToLowerInvariant(); }
-    public static bool PlayBossDeath(string artKey, bool forceScream = false)
+    public static bool PlayBossDeath(string artKey)
     {
         if (!(Application.isPlaying || Simulate)) return false;
         string key = BossKey(artKey);
-        return key != null && PlayAuthored(key, BossVolume, forceScream);
+        return key != null && PlayAuthored(key, BossVolume);
     }
     // A boss losing a heart (BossActor.SetHearts): an authored boss_<artKey>_hurt_<n> blow (a short hit on the boss's own material, 0.5-0.7 s, a
     // few dB under its death cue); silent without clips. Never the last heart: that is the death cue.
@@ -291,8 +227,6 @@ public static class EnemyDeathAudio
         string key = BossHurtKey(artKey);
         return key != null && PlayAuthored(key, BossHurtVolume);
     }
-    // Bosses whose death carries a creature cry layer.
-    public static bool BossScreams(string artKey) { return artKey == "Frost" || artKey == "Verdant"; }
 
     // Editor safety net: a roster / elite key that resolves no clip is a
     // content bug (a new enemy added without a sound pass). Warn once per key.
@@ -312,10 +246,9 @@ public static class EnemyDeathAudio
 #endif
     }
 
-    // The authored cue (+ maybe a scream) for a key at a base volume; false
-    // when the key has no authored clips (the caller falls back). A cue
-    // refused by the interval / cap still returns true (it is handled).
-    public static bool PlayAuthored(string key, float baseVolume, bool forceScream = false)
+    // The authored cue (+ the rock wet / crack layer) for a key at a base volume; false
+    // when the key has no clips. A cue refused by the interval / cap still returns true (it is handled).
+    public static bool PlayAuthored(string key, float baseVolume)
     {
         if (!AuthoredEnabled || string.IsNullOrEmpty(key)) return false;
         var k = Clips(key);
@@ -325,8 +258,6 @@ public static class EnemyDeathAudio
         k.repeats = now - k.lastTime < DuckWindow ? k.repeats + 1 : 0;
         k.lastTime = now;
         float volume = baseVolume * AuthoredGain * Mathf.Max(DuckFloor, Mathf.Pow(DuckFactor, k.repeats));
-        float fullVolume = volume;
-        if (forceScream) volume *= CodexDeathDuck;
 
         int slot = PickSlot(voices, now, volume);
         if (slot < 0) { Dropped++; return true; }
@@ -337,63 +268,33 @@ public static class EnemyDeathAudio
         Start(ref voices[slot], clip, now, 0f, volume, pitch);
         if (k.wet.Length > 0)
         {
-            int ws = FreeSlot(screamVoices, now);
-            if (ws >= 0) Start(ref screamVoices[ws], k.wet[PickVariant(k.wet.Length, -1)], now, ScreamDelayMin, volume * k.layerVolume, 1f + Range(-PitchJitter, PitchJitter));
+            int ws = FreeSlot(layerVoices, now);
+            if (ws >= 0) Start(ref layerVoices[ws], k.wet[PickVariant(k.wet.Length, -1)], now, LayerDelay, volume * k.layerVolume, 1f + Range(-PitchJitter, PitchJitter));
         }
         Played++;
-        LastClip = clip; LastVolume = volume; LastKey = key;
-
-        var sk = k;
-        float screamPitch = 1f, screamGain = 1f;
-        if (k.screams.Length == 0 && ScreamBorrow.Count > 0)
-        {
-            Borrow b;
-            if (ScreamBorrow.TryGetValue(key, out b) && b.donor != key)
-            {
-                var d = Clips(b.donor);
-                if (d.screams.Length > 0) { sk = d; screamPitch = b.pitch; screamGain = forceScream ? 1f : BorrowVolume; }
-            }
-        }
-        if (sk.screams.Length > 0 && (forceScream || Next01() < ScreamChance))
-        {
-            int s = FreeSlot(screamVoices, now);
-            if (s >= 0)
-            {
-                int sv = PickVariant(sk.screams.Length, sk.lastScream);
-                sk.lastScream = sv;
-                float delay = forceScream ? Range(0f, CodexScreamDelayMax) : Range(ScreamDelayMin, ScreamDelayMax);
-                float sVol = forceScream ? Mathf.Min(1f, fullVolume * CodexScreamBoost * screamGain) : volume * ScreamVolume * screamGain;
-                float sPitch = screamPitch * (1f + Range(-PitchJitter, PitchJitter));
-                Start(ref screamVoices[s], sk.screams[sv], now, delay, sVol, sPitch);
-                Screams++;
-                LastScream = sk.screams[sv]; LastScreamDelay = delay;
-                LastScreamPitch = sPitch; LastScreamVolume = sVol;
-            }
-        }
+        LastClip = clip; LastVolume = volume; LastKey = key; LastPitch = pitch;
         return true;
     }
 
     // Authored variants for a key (cached; probed once).
     public static int Variants(string key) { return string.IsNullOrEmpty(key) ? 0 : Clips(key).deaths.Length; }
-    public static int ScreamVariants(string key) { return string.IsNullOrEmpty(key) ? 0 : Clips(key).screams.Length; }
     public static AudioClip AuthoredClip(string key, int n) { var k = Clips(key); return n >= 0 && n < k.deaths.Length ? k.deaths[n] : null; }
-    public static AudioClip ScreamClip(string key, int n) { var k = Clips(key); return n >= 0 && n < k.screams.Length ? k.screams[n] : null; }
 
     // Voices still sounding at the bookkeeping clock (tests / dev).
     public static int ActiveVoices() { return Active(voices, Now()); }
-    public static int ActiveScreams() { return Active(screamVoices, Now()); }
+    public static int ActiveLayers() { return Active(layerVoices, Now()); }
 
-    // Seeded variant / chance / delay choices (tests).
+    // Seeded variant / jitter choices (tests).
     public static void Seed(uint seed) { rng = seed != 0 ? seed : 1u; seeded = true; }
 
     // Forget voices, key timing and counters (not the clip cache).
     public static void ResetVoices()
     {
         for (int i = 0; i < voices.Length; i++) { if (voices[i].src != null && voices[i].src.isPlaying) voices[i].src.Stop(); voices[i].end = voices[i].start = 0; }
-        for (int i = 0; i < screamVoices.Length; i++) { if (screamVoices[i].src != null && screamVoices[i].src.isPlaying) screamVoices[i].src.Stop(); screamVoices[i].end = screamVoices[i].start = 0; }
-        foreach (var k in authored.Values) { k.lastTime = double.NegativeInfinity; k.repeats = 0; k.lastDeath = k.lastScream = -1; }
-        Played = Dropped = Stolen = Screams = 0;
-        LastClip = LastScream = null; LastKey = null;
+        for (int i = 0; i < layerVoices.Length; i++) { if (layerVoices[i].src != null && layerVoices[i].src.isPlaying) layerVoices[i].src.Stop(); layerVoices[i].end = layerVoices[i].start = 0; }
+        foreach (var k in authored.Values) { k.lastTime = double.NegativeInfinity; k.repeats = 0; k.lastDeath = -1; }
+        Played = Dropped = Stolen = 0;
+        LastClip = null; LastKey = null;
     }
 
     public static void ClearCache() { ResetVoices(); authored.Clear(); warned.Clear(); }
@@ -402,8 +303,15 @@ public static class EnemyDeathAudio
     {
         KeyClips k;
         if (authored.TryGetValue(key, out k)) return k;
+        string[] row;
+        if (sharedByKey.TryGetValue(key, out row))
+        {
+            k = new KeyClips { deaths = Load(SharedPrefix + row[1] + "_"), wet = None, pitch = SharedPitchOf(key) };
+            authored[key] = k;
+            return k;
+        }
         // a key with a '/' is a path under Audio/ (e.g. "Shockwave/shield_release"), not under EnemyDeath/
-        k = new KeyClips { deaths = Load(key + "_"), screams = Load(key + "_scream_"), wet = None };
+        k = new KeyClips { deaths = Load(key + "_"), wet = None };
         if (k.deaths.Length == 0)
         {
             string donor = DonorOf(key);
@@ -415,8 +323,6 @@ public static class EnemyDeathAudio
                 k.wet = string.IsNullOrEmpty(layer) ? None : Load(layer); k.layerVolume = LayerVolume(key);
                 for (int i = 0; i < DeathAlias.Length; i++)
                     if (DeathAlias[i][0] == key) k.pitch = float.Parse(DeathAlias[i][2], System.Globalization.CultureInfo.InvariantCulture);
-                for (int i = 0; i < DesertAlias.Length; i++)
-                    if (DesertAlias[i][0] == key) k.pitch = float.Parse(DesertAlias[i][2], System.Globalization.CultureInfo.InvariantCulture);
             }
         }
         authored[key] = k;

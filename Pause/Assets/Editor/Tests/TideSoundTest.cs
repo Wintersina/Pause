@@ -1,7 +1,7 @@
 using UnityEngine;
 
-// Tide's sound set: every roster enemy and elite resolves death clips through EnemyDeathAudio.DeathAlias (other worlds' clips,
-// pitched, under tide_wet_), the boss cue exists, the themed attack cues (Resources/Audio/Attack/Tide) load and fire from their
+// Tide's sound set: the 4 Tide rocks resolve death clips through EnemyDeathAudio.DeathAlias (other worlds' rock clips, pitched,
+// under tide_wet_), every other roster enemy and elite plays a shared death category, the boss cue exists, the themed attack cues (Resources/Audio/Attack/Tide) load and fire from their
 // attacks, nothing leaks into the other worlds, and no clip is a beep (spectral check on the samples).
 //
 //   scripts/unity-batch.sh -executeMethod AllTests.RunSuites -suites TideSoundTest
@@ -45,14 +45,17 @@ public static class TideSoundTest
 
     static void Deaths()
     {
-        int roster = 0, elites = 0;
+        int roster = 0, elites = 0, rocks = 0;
         bool all = true;
         foreach (var d in EnemyRoster.All)
         {
             if (!d.key.StartsWith("tide_")) continue;
             roster++;
+            bool rock = d.key.Contains("_rock_");
+            if (rock) rocks++;
             string donor = EnemyDeathAudio.DonorOf(d.key);
-            bool ok = donor != null && EnemyDeathAudio.Variants(d.key) >= 3 && EnemyDeathAudio.Variants(d.key) == EnemyDeathAudio.Variants(donor) && EnemyDeathAudio.Variants(donor) > 0;
+            bool ok = rock ? donor != null && EnemyDeathAudio.Variants(d.key) >= 3 && EnemyDeathAudio.Variants(d.key) == EnemyDeathAudio.Variants(donor) && EnemyDeathAudio.LayerOf(d.key) == EnemyDeathAudio.WetLayer
+                           : donor == null && EnemyDeathAudio.CategoryOf(d.key) != "" && EnemyDeathAudio.Variants(d.key) >= 1;
             if (!ok) Debug.Log("[TSD] no clips for " + d.key);
             all &= ok;
         }
@@ -60,21 +63,23 @@ public static class TideSoundTest
         {
             if (e.WorldIndex != 4) continue;
             elites++;
-            all &= EnemyDeathAudio.DonorOf(e.key) != null && EnemyDeathAudio.Variants(e.key) >= 3;
+            all &= EnemyDeathAudio.DonorOf(e.key) == null && EnemyDeathAudio.CategoryOf(e.key) != "" && EnemyDeathAudio.Variants(e.key) >= 1;
         }
-        Check("all 12 Tide roster keys and 5 Tide elites resolve donor death clips (" + roster + " / " + elites + ")", all && roster == 12 && elites == 5);
+        Check("all 12 Tide roster keys (4 rocks aliased, 8 shared) and 5 Tide elites (shared) resolve death clips (" + roster + " / " + elites + ")", all && roster == 12 && elites == 5 && rocks == 4);
         bool own = true;
         foreach (var r in EnemyDeathAudio.DeathAlias) own &= !r[1].StartsWith("tide_");
         Check("no alias points at another alias, a donor is always a real authored key", own);
         clock += 5;
         EnemyDeathAudio.ResetVoices();
         bool played = EnemyDeathAudio.PlayAuthored("tide_big", .8f);
-        Check("a Tide death plays its donor clip at the donor's pitch family (pitch " + EnemyDeathAudio.DonorOf("tide_big") + ")", played && EnemyDeathAudio.Played == 1 && EnemyDeathAudio.LastClip != null);
+        Check("a Tide big plays the shared roar at its own pitch (" + EnemyDeathAudio.LastPitch.ToString("0.00") + ")", played && EnemyDeathAudio.Played == 1 && EnemyDeathAudio.LastClip != null && EnemyDeathAudio.LastClip.name == "shared_roar_0");
+        clock += 5;
+        EnemyDeathAudio.ResetVoices();
+        EnemyDeathAudio.PlayAuthored("tide_rock_brain", .8f);
+        Check("a Tide rock plays its donor clip with the wet layer under it", EnemyDeathAudio.Played == 1 && EnemyDeathAudio.LastClip != null && EnemyDeathAudio.ActiveLayers() >= 1);
         var wet = Resources.Load<AudioClip>("Audio/EnemyDeath/" + EnemyDeathAudio.WetLayer + "0");
         Check("the wet layer tide_wet_0..2 exists", wet != null && Resources.Load<AudioClip>("Audio/EnemyDeath/tide_wet_2") != null);
-        Check("Tide's boss death cue exists (boss_tide)", EnemyDeathAudio.Variants("boss_tide") >= 1);
-        EnemyDeathAudio.ResetBorrows();
-        Check("the Glow Jelly's cry is borrowed from Ember's jelly", EnemyDeathAudio.ScreamBorrow.ContainsKey("tide_alien"));
+        Check("Tide's boss death cue exists (boss_tide, shared roar)", EnemyDeathAudio.Variants("boss_tide") >= 1 && EnemyDeathAudio.CategoryOf("boss_tide") == EnemyDeathAudio.Roar);
         Check("other worlds are not aliased", EnemyDeathAudio.DonorOf("ember_big") == null && EnemyDeathAudio.DonorOf("frost_mine") == null);
     }
 

@@ -3,7 +3,7 @@ using UnityEngine;
 
 // Dev audition: in Play mode, "Pause/Audition Enemy Death Sounds" plays every
 // authored (Space, Frost, Verdant, Ember) death cue in turn through the game's own EnemyDeathAudio path (pool,
-// jitter, volume), each with its scream layer forced on where it has one, so
+// jitter, volume), so
 // they can be judged in context over the music. Run it again to stop.
 public static class EnemyDeathAudition
 {
@@ -38,13 +38,8 @@ public static class EnemyDeathAudition
                   : key.EndsWith("_mine") ? EnemyDeathAudio.Volume(EnemyRole.Mine)
                   : key.Contains("_elite_") ? EnemyDeathAudio.EliteVolume
                   : EnemyDeathAudio.Volume(EnemyRole.Fighter);
-        int screamsBefore = EnemyDeathAudio.Screams;
-        bool ok = EnemyDeathAudio.PlayAuthored(key, vol, forceScream: true);
-        EnemyDeathAudio.Borrow borrow;
-        bool borrowed = EnemyDeathAudio.ScreamBorrow.TryGetValue(key, out borrow) && EnemyDeathAudio.ScreamVariants(key) == 0;
-        Debug.Log("[Audition] " + key + (ok ? " -> " + (EnemyDeathAudio.LastClip != null ? EnemyDeathAudio.LastClip.name : "?") +
-                  (EnemyDeathAudio.Screams > screamsBefore && EnemyDeathAudio.LastScream != null ? " + " + EnemyDeathAudio.LastScream.name + (borrowed ? " (borrowed x" + EnemyDeathAudio.LastScreamPitch.ToString("0.00") + ")" : "") : "")
-                  : " (no authored clip)"));
+        bool ok = EnemyDeathAudio.PlayAuthored(key, vol);
+        Debug.Log("[Audition] " + key + (ok ? " -> " + (EnemyDeathAudio.LastClip != null ? EnemyDeathAudio.LastClip.name : "?") + " x" + EnemyDeathAudio.LastPitch.ToString("0.00") : " (no authored clip)"));
         due = EditorApplication.timeSinceStartup + Gap;
     }
 }

@@ -649,8 +649,8 @@ public static class BossDamageTest
     static void BossDeathSoundHook()
     {
         bool keys = EnemyDeathAudio.BossKey("Space") == "boss_space" && EnemyDeathAudio.BossKey("Verdant") == "boss_verdant" && EnemyDeathAudio.BossKey("") == null;
-        Check("boss death sound hook: boss_<world> keys; screams for Frost/Verdant only",
-              keys && EnemyDeathAudio.BossScreams("Frost") && EnemyDeathAudio.BossScreams("Verdant") && !EnemyDeathAudio.BossScreams("Space"));
+        Check("boss death sound hook: boss_<world> keys; every boss uses the shared roar",
+              keys && EnemyDeathAudio.CategoryOf("boss_frost") == EnemyDeathAudio.Roar && EnemyDeathAudio.CategoryOf("boss_space") == EnemyDeathAudio.Roar);
 
         // the real fight path: BossActor.BeginOutro(true) plays the world's boss cue exactly once
         bool sim = EnemyDeathAudio.Simulate;

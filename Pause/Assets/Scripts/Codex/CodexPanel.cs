@@ -1258,7 +1258,7 @@ public class CodexPanel : MonoBehaviour
             for (int i = 0; i < frames.Length; i++) frames[i] = BossArt.DeathStrip(boss, i);
             if (!detailAnim.PlayDeath(frames, BossDeathHolds)) return false;
             LastDeathKind = "boss-strip";
-            EnemyDeathAudio.PlayBossDeath(boss.artKey, EnemyDeathAudio.BossScreams(boss.artKey));
+            EnemyDeathAudio.PlayBossDeath(boss.artKey);
             return true;
         }
         var elite = EliteCatalog.FindByCodexId(id);
@@ -1267,7 +1267,7 @@ public class CodexPanel : MonoBehaviour
         if (def == null) return false;
         var enemy = EnemyDeathFlipbook.Frames(def);
         if (enemy == null || !detailAnim.PlayDeath(enemy)) return false;
-        EnemyDeathAudio.PlayKey(def.key, def.role, true);
+        EnemyDeathAudio.PlayKey(def.key, def.role);
         LastDeathKind = "enemy";
         return true;
     }
@@ -1291,7 +1291,7 @@ public class CodexPanel : MonoBehaviour
             if (!detailAnim.PlayBurst(burst, flash)) return false;
             LastDeathKind = "elite-burst";
         }
-        EnemyDeathAudio.PlayElite(def.key, true);
+        EnemyDeathAudio.PlayElite(def.key);
         return true;
     }
 

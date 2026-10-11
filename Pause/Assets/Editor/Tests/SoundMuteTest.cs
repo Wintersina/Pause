@@ -62,7 +62,7 @@ public static class SoundMuteTest
         EnemyDeathAudio.Simulate = true;
         EnemyDeathAudio.ResetVoices();
         EnemyDeathAudio.PlayAuthored(Key, .8f);
-        EnemyDeathAudio.PlayKey(Key, EnemyRole.Rock, true);
+        EnemyDeathAudio.PlayKey(Key, EnemyRole.Rock);
         BossWarningAudio.Play(BossWarningBeat.Announce, 0);
     }
 

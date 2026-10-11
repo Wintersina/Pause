@@ -1,12 +1,12 @@
 using UnityEditor;
 using UnityEngine;
 
-// Import settings for the authored enemy death cues and scream layers
+// Import settings for the shared death clips and the rock cues
 // (Audio/Resources/Audio/EnemyDeath, read by EnemyDeathAudio): short mono
-// clips (~0.2-1.1 s, ~260 files as PCM), so uncompressed PCM,
+// clips (~0.2-2.3 s, ~56 files as PCM), so uncompressed PCM,
 // decompressed on load and preloaded -- the first kill of a run must not
 // stall on a decode, and a burst of kills costs no CPU decoding.
-// Sample rate preserved (authored at 44.1 kHz).
+// Sample rate preserved (the shared clips are 24 kHz, the rock cues 44.1 kHz).
 public class EnemyDeathAudioImporter : AssetPostprocessor
 {
     public const string Folder = "Assets/Audio/Resources/Audio/EnemyDeath/";
@@ -16,7 +16,7 @@ public class EnemyDeathAudioImporter : AssetPostprocessor
     public const string GateFolder = "Assets/Audio/Resources/Audio/Gate/";   // HapticGate splash cues (GateAudio), same rules
 
     // Bump to reimport the folder after changing a rule below.
-    public override uint GetVersion() { return 4; }
+    public override uint GetVersion() { return 5; }
 
     public const float ShortClipSeconds = 0.5f;
     public const float AndroidVorbisQuality = 0.6f;
