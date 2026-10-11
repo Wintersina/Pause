@@ -178,8 +178,16 @@ public class spawnGoodStuff : MonoBehaviour {
         // waits out the spacing gap like any atom. Not part of the allowance.
         if (BossEncounter.FreeAtomDue && AtomSpacing.Ready)
         {
+            var kind = BossEncounter.FreeAtomKind;
             BossEncounter.FreeAtomReleased();
-            spawnRedAtom();
+            BossAtomsReleased[(int)kind]++;
+            switch (kind)
+            {
+                case BossFreeShotAtoms.Kind.Shield: spawnAtom(); break;
+                case BossFreeShotAtoms.Kind.Capacitor: if (cooldownAtom != null) spawnCooldownAtom(); else spawnAtom(); break;
+                case BossFreeShotAtoms.Kind.Heal: spawnHealAtom(); break;
+                default: spawnRedAtom(); break;
+            }
         }
 
         if (cooldownAtom != null && cooldownAtomDelayTimer <= 0 && cooldownSpawned < cooldownBudget && AtomSpacing.Ready)
@@ -216,6 +224,17 @@ public class spawnGoodStuff : MonoBehaviour {
         AtomSpacing.Released();
 
     }
+    // Boss-fight plan atoms released this session, by BossFreeShotAtoms.Kind (tests).
+    public static readonly int[] BossAtomsReleased = new int[4];
+
+    void spawnHealAtom()
+    {
+        Vector2 half = Vector2.one * HealAtom.TargetDiameter * .5f;
+        Vector3 at = SpawnSpace.PickupSpot(new Vector3(Random.Range(-RailInset.PickupLaneHalf, RailInset.PickupLaneHalf), CameraFit.ViewTop + .5f, 0f), half, -RailInset.PickupLaneHalf, RailInset.PickupLaneHalf);
+        SpawnFootprint.Attach(HealAtom.Spawn(at), half, SpawnLayer.Pickup);
+        AtomSpacing.Released();
+    }
+
     void spawnRedAtom()
     {
         Vector3 randomStarPos = new Vector3(Random.Range(-RailInset.PickupLaneHalf, RailInset.PickupLaneHalf), transform.position.y, transform.rotation.z);

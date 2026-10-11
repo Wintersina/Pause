@@ -100,7 +100,16 @@ public static class BossArt
     public const float ArcBurstChance = .4f;   // ... this share of slots lit
 
     public static bool HasDamageArt(BossDef boss) => boss != null && !string.IsNullOrEmpty(boss.damageKey);
-    public static int DamageStage(int maxHearts, int heartsLeft) => Mathf.Clamp(maxHearts - heartsLeft, 0, DamageStages);
+    // The hearts lost spread over the DamageStages looks: with 5 hearts one lost
+    // is one stage (as it always was); with more, the same four looks are
+    // spread evenly across the longer fight (9 hearts: 1-2 lost stage 1, 3-4
+    // stage 2, 5-6 stage 3, 7+ stage 4). Never pristine once a heart is lost.
+    public static int DamageStage(int maxHearts, int heartsLeft)
+    {
+        int lost = Mathf.Clamp(maxHearts - heartsLeft, 0, Mathf.Max(0, maxHearts));
+        int span = Mathf.Max(1, maxHearts - 1);   // lost counts 1..span map to stages 1..4
+        return Mathf.Clamp((lost * DamageStages + span - 1) / span, 0, DamageStages);
+    }
     public static bool IsIdleFrame(int frame) =>
         (frame >= SpaceIdle0 && frame < SpaceIdle0 + SpaceIdleFrames) || (frame >= Idle0 && frame < Idle0 + IdleFrames);
 
