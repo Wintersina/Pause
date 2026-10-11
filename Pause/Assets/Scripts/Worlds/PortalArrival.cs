@@ -124,6 +124,8 @@ public class PortalArrival : MonoBehaviour
     public Stage State { get { return state; } }
     public float Seconds { get { return t; } }
     public Transform Ship { get { return ship; } }
+    // The ship's own (full-size) scale, which the arrival grows it back to.
+    public Vector3 RestScale { get { return shipScale0; } }
     public Vector3 Centre { get { return centre; } }
     public float BackdropBoost { get { return backdropBoost; } }
     public SpriteRenderer RingRenderer { get { return ring; } }
