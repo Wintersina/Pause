@@ -110,6 +110,11 @@ public static class AttackBudgetTest
         { "elite:tide_elite_riptide", new Pin(0, 1969, 0) },   // 0.0 % bot, 0.0 % standing; shown in 1969/2000;
         { "elite:tide_elite_thunderfin", new Pin(0, 2000, 2000) },   // 0.0 % bot, 100.0 % standing; shown in 2000/2000;
         { "elite:tide_elite_trawler", new Pin(82, 2000, 2000) },   // 4.1 % bot, 100.0 % standing; shown in 2000/2000;
+        { "elite:storm_elite_anvil_cloud", new Pin(0, 2000, 798) },   // 0.0 % bot, 39.9 % standing; shown in 2000/2000;
+        { "elite:storm_elite_refinery_tender", new Pin(9, 2000, 1403) },   // 0.5 % bot, 70.2 % standing; shown in 2000/2000;
+        { "elite:storm_elite_rod_dancer", new Pin(1521, 2000, 41) },   // 76.1 % bot, 2.1 % standing; shown in 2000/2000;
+        { "elite:storm_elite_skyhook_harrier", new Pin(1582, 1840, 1582) },   // 86.0 % bot, 86.0 % standing; shown in 1840/2000;
+        { "elite:storm_elite_static_bastion", new Pin(140, 2000, 2000) },   // 7.0 % bot, 100.0 % standing; shown in 2000/2000;
         { "boss:Space:chin cannon", new Pin(97, 2000, 55) },   // 4.9 % bot, 2.8 % standing; shown in 2000/2000;
         { "boss:Space:core burst", new Pin(638, 2000, 2000) },   // 31.9 % bot, 100.0 % standing; shown in 2000/2000;
         { "boss:Space:pod lasers", new Pin(113, 2000, 1873) },   // 5.7 % bot, 93.7 % standing; shown in 2000/2000;
