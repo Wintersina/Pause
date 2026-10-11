@@ -191,6 +191,7 @@ public static class BossCatalog
     static readonly Color HeartViolet = new Color(.78f, .38f, 1f);
     static readonly Color HeartAmber = new Color(1f, .74f, .16f);
     static readonly Color Mint = new Color(.45f, 1f, .82f);
+    static readonly Color StormYellow = new Color(1f, .95f, .63f);
 
     static BossDef[] Build()
     {
@@ -342,29 +343,20 @@ public static class BossCatalog
                        "Its eight pipe-and-cable arms end in cannons, its beak spits a hydraulic jet and its one mint eye never blinks. " +
                        "Everything that sinks here ends up bolted to it.",
                 swayX = 1.2f, swayY = .2f, freqX = .3f, freqY = .6f, flash = Mint, heartColor = Mint,
-                attacks = new[]
-                {
-                    // The left tentacle cluster glows and sweeps two fans of
-                    // pressure bolts out of its cannons; they ricochet once.
-                    new BossAttack { name = "port cluster", kind = BossAttackKind.Fan, tell = 1, tellSeconds = .8f,
-                                     emitters = new[] { "LeftA", "LeftB" }, fireFrame = true, alternate = true,
-                                     volleys = 3, volleyGap = .45f, count = 5, spreadDeg = 60f, rotateDeg = 8f,
-                                     speed = 3f, style = BossShotStyle.Bolt,
-                                     rail = BossRailMode.Bounce, bounces = 1, cooldown = 1.2f },
-                    // The beak opens around a mint bubble, then a pressure jet
-                    // rakes straight down from the mouth.
-                    new BossAttack { name = "beak jet", kind = BossAttackKind.Beam, tell = 0, tellSeconds = .9f,
-                                     emitters = new[] { "Beak" },
-                                     aim = BossBeamAim.Down, aimDeg = 0f, sweepDeg = 30f, beamWidth = .34f, hold = .8f,
-                                     cooldown = 1.3f },
-                    // The right cluster glows and lobs depth charges that
-                    // arc up and rain down on four columns.
-                    new BossAttack { name = "starboard cluster", kind = BossAttackKind.Lob, tell = 2, tellSeconds = .8f,
-                                     emitters = new[] { "RightA", "RightB" },
-                                     volleys = 2, volleyGap = .5f, count = 4, style = BossShotStyle.Shard,
-                                     lobUp = 2.2f, gravity = 6f, fallSpeed = 3.6f,
-                                     rail = BossRailMode.Absorb, cooldown = 1.4f },
-                },
+                attacks = TideAttacks(),
+            },
+            // ----------------------------------------------------------- Storm
+            // PLACEHOLDER until Storm's own boss (add-world phase 13): the Tempest
+            // Engine flies the Iron Kraken's art, emitters and attacks (artKey
+            // "Tide": BossEmitters.World reads it, so the Storm row of the emitter
+            // table stays empty). BossEncounterTest's "one boss per world" holds.
+            new BossDef
+            {
+                id = CodexPrefix + "storm", name = "TEMPEST ENGINE", title = "STORM-MAKING TURBINE", artKey = "Tide", damageKey = "Tide", deathKey = "Tide", expandedCombat = true,
+                lore = "A floating turbine the size of a city block that makes the weather it hides in. " +
+                       "Its drum spits arcs, its crown calls the lightning down and its twin coils cut the sky in half.",
+                swayX = 1.2f, swayY = .2f, freqX = .3f, freqY = .6f, flash = StormYellow, heartColor = StormYellow,
+                attacks = TideAttacks(),
             },
         };
 
@@ -380,6 +372,34 @@ public static class BossCatalog
             Resolve(b, b.themed);
         }
         return bosses;
+    }
+
+    // The Iron Kraken's three attacks (Tide's boss, and Storm's placeholder).
+    static BossAttack[] TideAttacks()
+    {
+        return new[]
+        {
+            // The left tentacle cluster glows and sweeps two fans of
+            // pressure bolts out of its cannons; they ricochet once.
+            new BossAttack { name = "port cluster", kind = BossAttackKind.Fan, tell = 1, tellSeconds = .8f,
+                             emitters = new[] { "LeftA", "LeftB" }, fireFrame = true, alternate = true,
+                             volleys = 3, volleyGap = .45f, count = 5, spreadDeg = 60f, rotateDeg = 8f,
+                             speed = 3f, style = BossShotStyle.Bolt,
+                             rail = BossRailMode.Bounce, bounces = 1, cooldown = 1.2f },
+            // The beak opens around a mint bubble, then a pressure jet
+            // rakes straight down from the mouth.
+            new BossAttack { name = "beak jet", kind = BossAttackKind.Beam, tell = 0, tellSeconds = .9f,
+                             emitters = new[] { "Beak" },
+                             aim = BossBeamAim.Down, aimDeg = 0f, sweepDeg = 30f, beamWidth = .34f, hold = .8f,
+                             cooldown = 1.3f },
+            // The right cluster glows and lobs depth charges that
+            // arc up and rain down on four columns.
+            new BossAttack { name = "starboard cluster", kind = BossAttackKind.Lob, tell = 2, tellSeconds = .8f,
+                             emitters = new[] { "RightA", "RightB" },
+                             volleys = 2, volleyGap = .5f, count = 4, style = BossShotStyle.Shard,
+                             lobUp = 2.2f, gravity = 6f, fallSpeed = 3.6f,
+                             rail = BossRailMode.Absorb, cooldown = 1.4f },
+        };
     }
 
     static void Resolve(BossDef b, BossAttack[] table)

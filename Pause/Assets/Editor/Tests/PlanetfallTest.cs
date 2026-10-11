@@ -65,12 +65,21 @@ public static class PlanetfallTest
             DescentFlow(3);
             ShroudFits(3);
             NoAllocations(3);
+            // Storm's likewise (Tide -> Storm); its switch implies Tide's
+            ArtLoads(PlanetfallCatalog.Storm, 1024f - 483f, 1619f);
+            WorldManager.StormEnabled = true;
+            StormTransitions();
+            DescentFlow(4);
+            ShroudFits(4);
+            NoAllocations(4);
+            WorldManager.StormEnabled = false;
             WorldManager.TideEnabled = false;
         }
         finally
         {
             if (Planetfall.Live != null) Object.DestroyImmediate(Planetfall.Live.gameObject);
             WorldManager.TideEnabled = false;
+            WorldManager.StormEnabled = false;
             LiftoffCatalog.Enabled = true;
             PlanetfallCatalog.Enabled = true;
             PlanetfallCatalog.Defs = PlanetfallCatalog.All;
@@ -292,6 +301,42 @@ public static class PlanetfallTest
               Planetfall.Live == null && Portal.Live != null && PortalPressure.Active && PortalPressure.Destination == RunLoop.StartWorld);
         Gone();
         Object.DestroyImmediate(wt.gameObject);
+        LiftoffCatalog.Enabled = true;
+    }
+
+    // Storm (switch on): Tide's end flies Storm's planet, not the loop; Storm's end is the loop portal.
+    static void StormTransitions()
+    {
+        var storm = PlanetfallCatalog.Storm;
+        Check("Storm's def: world 5, its folder and seven files, the measured numbers and the words",
+              storm.world == 5 && storm.folder == "Worlds/Storm/Planetfall/" && storm.planet == "storm_planet" && storm.limb == "storm_planet_limb" &&
+              storm.deck == "storm_cloud_deck" && storm.deckDark == "storm_cloud_deck_dark" && storm.entryFx == "storm_entry_fx" &&
+              storm.burst == "storm_breakthrough" && storm.streaks == "storm_entry_streaks" && storm.entryFrames == 6 && storm.burstFrames == 5 &&
+              storm.entryHoleX.Length == 6 && storm.openBanner == "LAND ON STORM" && storm.urgeBanner == "DIVE INTO STORM" &&
+              Mathf.Abs(storm.entryHolePx - 147f) < 3f && Mathf.Abs(storm.entryShipPx.y - 338f) < 1f);
+        Check("Storm's art is installed in Resources (not left staged): all seven files, the staging copies gone",
+              System.Array.TrueForAll(new[] { storm.planet, storm.limb, storm.deck, storm.deckDark, storm.entryFx, storm.burst, storm.streaks },
+                  f => File.Exists("Assets/Art/Backgrounds/Resources/" + storm.folder + f + ".png") && !File.Exists("Assets/Art/Worlds/Storm/descent~/" + f + ".png")));
+        Check("the catalogue (Storm on): Ember -> Tide and Tide -> Storm are planetfalls; Storm -> Space (the loop) is not",
+              PlanetfallCatalog.For(3, 4, false) == PlanetfallCatalog.Tide && PlanetfallCatalog.For(4, 5, false) == storm &&
+              PlanetfallCatalog.For(5, 0, true) == null && PlanetfallCatalog.For(5, 1, true) == null && PlanetfallCatalog.For(3, 5, false) == null);
+        LiftoffCatalog.Enabled = false;
+        FreshScene(4);
+        var wt = World();
+        FinishLevel(wt);
+        Check("Tide's gateway (Storm on, lift-off skipped): Storm's planet, no portal, its words (" + PortalPressure.Urge + " / " +
+              PortalPressure.Chip.Trim() + ")",
+              Planetfall.Live != null && Planetfall.Live.Def == storm && Portal.Live == null && PortalPressure.Active &&
+              PortalPressure.Destination == 5 && PortalPressure.Urge == storm.urgeBanner && PortalPressure.Chip == storm.chipPrefix);
+        Gone();
+        Object.DestroyImmediate(wt.gameObject);
+        FreshScene(5);
+        var ws = World();
+        FinishLevel(ws);
+        Check("Storm's end (Storm on, lift-off skipped): the loop portal back round, no planetfall",
+              Planetfall.Live == null && Portal.Live != null && PortalPressure.Active && PortalPressure.Destination == RunLoop.StartWorld);
+        Gone();
+        Object.DestroyImmediate(ws.gameObject);
         LiftoffCatalog.Enabled = true;
     }
 

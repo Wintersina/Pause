@@ -13,7 +13,7 @@ public static class BossEmitterTable
     // The drawings measured for a boss: Frames, or every cell of an expanded atlas (Tide: 35).
     public static int FrameCount(int world) { return Points[world][0].Length / 2; }
 
-    public static readonly string[] Worlds = { "Space", "Frost", "Verdant", "Ember", "Tide" };
+    public static readonly string[] Worlds = { "Space", "Frost", "Verdant", "Ember", "Tide", "Storm" };
 
     // Parts[world][part] = name; Points[world][part] = { x0, y0, x1, y1, ... } per frame.
     public static readonly string[][] Parts =
@@ -23,6 +23,7 @@ public static class BossEmitterTable
         new[] { "Stinger", "PetalUL", "PetalUR", "PetalL", "PetalR", "PetalLL", "PetalLR", "CannonL", "CannonR", "Bulb" },
         new[] { "Jaw", "Furnace", "Brow" },
         new[] { "Beak", "LeftA", "LeftB", "RightA", "RightB" },
+        new string[0],   // Storm
     };
 
     public static readonly short[][][] Points =
@@ -68,5 +69,6 @@ public static class BossEmitterTable
             new short[] { 327, 68, 327, 68, 327, 68, 327, 68, 327, 68, 327, 68, 327, 68, 327, 68, 327, 68, 327, 68, 327, 68, 327, 68, 327, 68, 327, 68, 327, 68, 327, 68, 327, 68, 327, 68, 347, 68, 327, 68, 327, 68, 333, 60, 343, 51, 351, 54, 344, 61, 330, 67, 333, 60, 343, 51, 351, 54, 351, 54, 344, 61, 330, 67, 329, 63, 334, 48, 343, 34 },   // RightA
             new short[] { 348, 224, 348, 224, 348, 224, 348, 224, 348, 224, 348, 224, 348, 224, 348, 224, 348, 224, 348, 224, 348, 224, 348, 224, 348, 224, 348, 224, 342, 222, 339, 233, 348, 224, 348, 224, 348, 224, 348, 224, 348, 224, 338, 217, 334, 211, 339, 211, 354, 222, 357, 227, 338, 217, 334, 211, 339, 211, 339, 211, 354, 222, 357, 227, 352, 218, 345, 205, 341, 193 },   // RightB
         },
+        new short[0][],   // Storm
     };
 }

@@ -125,10 +125,28 @@ public static class EnemyDensityTest
                         Mathf.Approximately(EnemyDensity.MaxPilotLoad(hud, w), EnemyDensity.MaxPilotLoad(35f, w)) &&
                         EnemyDensity.MaxChasers(hud) == EnemyDensity.MaxChasers(35f);
         Check("a limit break (HUD 36-46) fields what the cap fields: rate, threat ceiling, pilot load, chasers", flat);
+        // the lookup clamps to the last entry: a world without its own silently flew Ember's numbers
+        Check("every world has its own pilot-load entry, low >= high, and the load never drops from one world to the next (" +
+              EnemyDensity.PilotLoadAtLowSpeed.Length + " / " + EnemyDensity.PilotLoadAtHighSpeed.Length + " for " + WorldManager.Worlds.Length + " worlds)",
+              EnemyDensity.PilotLoadAtLowSpeed.Length == WorldManager.Worlds.Length && EnemyDensity.PilotLoadAtHighSpeed.Length == WorldManager.Worlds.Length &&
+              PilotLoadsRise());
+        Check("Storm fields the busiest air: 4.5 at low speed, 3.5 at high",
+              Mathf.Approximately(EnemyDensity.PilotLoadAtLowSpeed[5], 4.5f) && Mathf.Approximately(EnemyDensity.PilotLoadAtHighSpeed[5], 3.5f));
         EnemyDensity.Disabled = true;
         Check("switched off, it is the old spawner (rate x1, no ceiling)", EnemyDensity.RateScale(35f) == 1f && EnemyDensity.RoomFor(35f));
         EnemyDensity.Disabled = false;
         Check("a projectile counts as a fraction of a body", EnemyThreat.ShotWeight > 0f && EnemyThreat.ShotWeight < 1f);
+    }
+
+    static bool PilotLoadsRise()
+    {
+        for (int w = 0; w < EnemyDensity.PilotLoadAtLowSpeed.Length; w++)
+        {
+            if (EnemyDensity.PilotLoadAtLowSpeed[w] < EnemyDensity.PilotLoadAtHighSpeed[w]) return false;
+            if (w > 0 && (EnemyDensity.PilotLoadAtLowSpeed[w] < EnemyDensity.PilotLoadAtLowSpeed[w - 1] ||
+                          EnemyDensity.PilotLoadAtHighSpeed[w] < EnemyDensity.PilotLoadAtHighSpeed[w - 1])) return false;
+        }
+        return true;
     }
 
     static void Table()

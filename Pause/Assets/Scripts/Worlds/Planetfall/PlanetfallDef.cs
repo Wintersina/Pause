@@ -234,13 +234,52 @@ public static class PlanetfallCatalog
         chipPrefix = "ORBIT  DANGER ",
     };
 
+    // Storm: after Tide's lift-off (only once WorldManager.StormEnabled), the gas
+    // giant: slate and ink-blue thunderhead bands, cyclone eyes, tiny refinery
+    // platforms, pale yellow-white lightning, a blue-white atmosphere rim
+    // (Art/Worlds/Storm/descent~/manifest.json; the curved limb is limbfix/'s).
+    // Numbers from the manifest and verify_planetfall_art.py: disc centre
+    // 512.4, 482.8, edge 422 (the atmosphere's outer radius; fitted disc 413.1)
+    // -- the radius sits 8 px inside the edge as Tide's does; the limb's horizon
+    // peaks at row 355 in the centre column and sits at 720 at both sides; the
+    // opening is 147 px wide, 167 tall at y 338, centre x wandering 254 .. 259.
+    public static readonly PlanetfallDef Storm = new PlanetfallDef
+    {
+        world = 5,
+        folder = "Worlds/Storm/Planetfall/",
+        planet = "storm_planet",
+        limb = "storm_planet_limb",
+        deck = "storm_cloud_deck",
+        deckDark = "storm_cloud_deck_dark",
+        entryFx = "storm_entry_fx",
+        burst = "storm_breakthrough",
+        streaks = "storm_entry_streaks",
+        planetCentrePx = new Vector2(512.5f, 483f),
+        planetDiscPx = 414f,
+        limbApexPx = 355f,
+        limbEdgePx = 720f,
+        entryFrames = 6,
+        entryShipPx = new Vector2(256f, 338f),
+        entryHolePx = 147f,
+        entryHoleX = new[] { 256f, 258f, 254f, 259f, 255f, 257f },
+        burstFrames = 5,
+        cue = new Color(1f, 0.95f, 0.63f),          // pale lightning yellow #FFF3A0 (hue ~55 deg)
+        heat = new Color(0.80f, 0.88f, 1f),         // storm-white / cold white-blue plasma
+        cold = new Color(0.22f, 0.29f, 0.40f),      // the slate-blue thunderhead under the plasma
+        flash = new Color(0.95f, 0.97f, 1f),        // storm-white flash
+        shade = new Color(0.03f, 0.04f, 0.09f),     // ink-blue black
+        openBanner = "LAND ON STORM",
+        urgeBanner = "DIVE INTO STORM",
+        chipPrefix = "ORBIT  DANGER ",
+    };
+
     // Every planet arrived at by planetfall (Frost from Space, Verdant after
-    // Frost's lift-off, Ember after Verdant's, Tide after Ember's -- the last
-    // only while WorldManager.TideEnabled: until then Ember is the last live
+    // Frost's lift-off, Ember after Verdant's, Tide after Ember's, Storm after Tide's -- the
+    // last two only while WorldManager.TideEnabled / StormEnabled: until then Ember is the last live
     // world, PlanetfallCatalog.For never gets asked for Tide). A new planet
     // is one more entry here; the tests swap the list. Space, the loop's way
     // back round, has none: the loop keeps the portal.
-    public static readonly PlanetfallDef[] All = { Frost, Verdant, Ember, Tide };
+    public static readonly PlanetfallDef[] All = { Frost, Verdant, Ember, Tide, Storm };
     public static PlanetfallDef[] Defs = All;
 
     // The planetfall for leaving `from` for `to`, or null for a portal.

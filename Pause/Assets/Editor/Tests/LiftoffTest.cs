@@ -42,7 +42,7 @@ public static class LiftoffTest
     const BindingFlags Inst = BindingFlags.NonPublic | BindingFlags.Instance;
     const BindingFlags Stat = BindingFlags.NonPublic | BindingFlags.Static;
     const float Dt = 1f / 60f;
-    const int Frost = 1, Verdant = 2, Ember = 3, Tide = 4;
+    const int Frost = 1, Verdant = 2, Ember = 3, Tide = 4, Storm = 5;
     static int frame;
 
     public static int Execute()
@@ -76,6 +76,17 @@ public static class LiftoffTest
             Flow(Tide);   // the fallback: the loop portal
             LiftoffCatalog.Tide.autoLoop = true;
             NoAllocations(Tide);
+            // Storm: its switch on (which implies Tide's). Tide's lift-off now flies Storm's planetfall;
+            // Storm's (the final world) is the one that loops straight back to Space
+            WorldManager.StormEnabled = true;
+            StormTransitions();
+            NextPlanetfall(Tide);
+            Flow(Storm);
+            LiftoffCatalog.Storm.autoLoop = false;
+            Flow(Storm);   // the fallback: the loop portal
+            LiftoffCatalog.Storm.autoLoop = true;
+            NoAllocations(Storm);
+            WorldManager.StormEnabled = false;
             WorldManager.TideEnabled = false;
             Robust();
             NoAllocations(Frost);
@@ -90,7 +101,9 @@ public static class LiftoffTest
             LiftoffCatalog.Enabled = true;
             LiftoffCatalog.Ember.loopsWhileLastLive = true;
             LiftoffCatalog.Tide.autoLoop = true;
+            LiftoffCatalog.Storm.autoLoop = true;
             WorldManager.TideEnabled = false;
+            WorldManager.StormEnabled = false;
             if (WorldBackdrop.Instance != null) Object.DestroyImmediate(WorldBackdrop.Instance.gameObject);
             PortalPressure.Reset();
             ShipStartSpeed.EquippedHudOverride = null;
@@ -261,6 +274,39 @@ public static class LiftoffTest
             var wm = World();
             FinishLevel(wm);
             Check(WorldManager.Worlds[world].displayName + "'s end (switch on): the lift-off; no portal, no pressure yet, nothing spawning",
+                  wm.Stage == WorldManager.LevelStage.Portal && wm.PortalIsOpen && Liftoff.Live != null && Liftoff.Live.Def.world == world &&
+                  Portal.Live == null && Planetfall.Live == null && !PortalPressure.Active && Liftoff.SuspendsSpawning);
+            Gone();
+            Object.DestroyImmediate(wm.gameObject);
+        }
+    }
+
+    // Storm, with its release switch on: the catalogue, the gateways, the end of each world; and who loops
+    // when (a world with a live successor never does; a run begun past the live chain ends at its own world).
+    static void StormTransitions()
+    {
+        Check("Storm's catalogue: world 5, its own planet's art, Space's sky for the interlude, the loop on (autoLoop); Tide's no longer loops",
+              LiftoffCatalog.Storm.world == Storm && LiftoffCatalog.Storm.planet == PlanetfallCatalog.Storm && LiftoffCatalog.Storm.interludeWorld == 0 &&
+              LiftoffCatalog.Storm.autoLoop && LiftoffCatalog.Storm.AutoLoopNow && LiftoffCatalog.Storm.banner == "LIFT OFF" &&
+              LiftoffCatalog.Tide.autoLoop && !LiftoffCatalog.Tide.AutoLoopNow && !LiftoffCatalog.Ember.AutoLoopNow &&
+              LiftoffCatalog.For(Tide, Storm, false) == LiftoffCatalog.Tide && LiftoffCatalog.For(Storm, 0, true) == LiftoffCatalog.Storm);
+        Check("... the gateways: Tide's is Storm's planetfall, Storm's the loop (never a planetfall)",
+              PlanetfallCatalog.For(Tide, Storm, false) == PlanetfallCatalog.Storm && PlanetfallCatalog.For(Storm, 0, true) == null &&
+              System.Array.IndexOf(PlanetfallCatalog.All, PlanetfallCatalog.Storm) == 4 && System.Array.IndexOf(LiftoffCatalog.Defs, LiftoffCatalog.Storm) == 4);
+        WorldManager.StormEnabled = false;
+        Check("Storm off, Tide on: Tide loops (the last live world); a developer run on Storm loops there too",
+              LiftoffCatalog.Tide.AutoLoopNow && LiftoffCatalog.Storm.AutoLoopNow && !LiftoffCatalog.Ember.AutoLoopNow);
+        WorldManager.TideEnabled = false;
+        Check("both off: Ember loops (the last live world); developer runs on Tide or Storm loop at their own end",
+              LiftoffCatalog.Ember.AutoLoopNow && LiftoffCatalog.Tide.AutoLoopNow && LiftoffCatalog.Storm.AutoLoopNow);
+        WorldManager.TideEnabled = true;
+        WorldManager.StormEnabled = true;
+        foreach (int world in new[] { Tide, Storm })
+        {
+            FreshScene(world);
+            var wm = World();
+            FinishLevel(wm);
+            Check(WorldManager.Worlds[world].displayName + "'s end (Storm on): the lift-off; no portal, no pressure yet, nothing spawning",
                   wm.Stage == WorldManager.LevelStage.Portal && wm.PortalIsOpen && Liftoff.Live != null && Liftoff.Live.Def.world == world &&
                   Portal.Live == null && Planetfall.Live == null && !PortalPressure.Active && Liftoff.SuspendsSpawning);
             Gone();

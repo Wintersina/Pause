@@ -98,6 +98,7 @@ public static class BossWarningConfig
         new Color(.78f, 1f, .23f),      // Verdant: lime
         new Color(1f, .58f, .16f),      // Ember: orange
         new Color(.45f, 1f, .82f),      // Tide: mint
+        new Color(1f, .95f, .63f),      // Storm: pale lightning yellow (the Tempest Engine's flash)
     };
 
     public static Color Accent(int world)

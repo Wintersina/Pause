@@ -32,12 +32,13 @@ public static class EnemyDensity
 
     // ---- pilots (PilotAirspace): they stay and fight, so they are capped ----
     // The pilot load allowed at once, at low / high speed, per world (Space,
-    // Frost, Verdant, Ember). A scout or an alien weighs 0.5, a heavy or a
+    // Frost, Verdant, Ember, Tide, Storm). A scout or an alien weighs 0.5, a heavy or a
     // tier-4 fighter 1.5, the rest 1 (PilotAirspace.Weight).
     // (The fifth entry is Tide's own: Ember's numbers on purpose, so the new cast
-    // fights at the difficulty the stand-in did; EnemyRosterTest pins one entry per world.)
-    public static readonly float[] PilotLoadAtLowSpeed = { 3f, 3f, 3.5f, 3.5f, 3.5f };
-    public static readonly float[] PilotLoadAtHighSpeed = { 2f, 2f, 2.5f, 2.5f, 2.5f };
+    // fights at the difficulty the stand-in did; EnemyDensityTest pins one entry per world.
+    // The sixth is Storm's: the gas giant holds the busiest air, 4.5 / 3.5.)
+    public static readonly float[] PilotLoadAtLowSpeed = { 3f, 3f, 3.5f, 3.5f, 3.5f, 4.5f };
+    public static readonly float[] PilotLoadAtHighSpeed = { 2f, 2f, 2.5f, 2.5f, 2.5f, 3.5f };
     // Chasers hold no column; they have their own cap.
     public static int ChasersAtLowSpeed = 2, ChasersAtHighSpeed = 1;
 

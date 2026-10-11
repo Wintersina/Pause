@@ -144,6 +144,8 @@ Play Console id: its iOS id is already in.
    * `me.hapticgate.pause.run_star_dust`: score format *Fixed point, to 2 places*, High to low
    * `me.hapticgate.pause.furthest_world` ("Furthest Loop"): Integer, High to low, lowest 1, no upper limit (the value is the loop number, not a world index)
    Then copy the ids into `LeaderboardBoards`.
+   (World count: `furthest_world` is the loop number, not a world index, so adding Tide (World 5) and Storm (World 6) needs
+   NO range change in either store -- keep "lowest 1, no upper limit". Older notes that said "range 1..4" predate that.)
 4. Attach the leaderboards to the app version (the Game Center section of the version page; put Top Score first so it is the default board) and
    submit them with the next build. Sandbox/TestFlight accounts can use them before release.
 

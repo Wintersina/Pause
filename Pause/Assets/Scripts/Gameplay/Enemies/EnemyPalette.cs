@@ -67,6 +67,7 @@ public static class EnemyPalette
                 return new Theme { world = "ember", hull = Char, hullShadow = CharSh, hullHighlight = CharHi,
                                        accent = Gun, light = Sodium, lightDim = SodiumSh, ink = Ink, bone = Bone,
                                        explosion = TargetExplosion.Kind.Magma };
+            case 5: // Storm: Tide's cast until its own palette (add-world phase 12)
             case 4: // Tide: barnacle grey-green plating, brass, bioluminescent mint
                 return new Theme { world = "tide", hull = Barnacle, hullShadow = BarnacleSh, hullHighlight = BarnacleHi,
                                        accent = Brass, light = Mint, lightDim = MintSh, ink = Ink, bone = Bone,
