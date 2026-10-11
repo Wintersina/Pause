@@ -188,6 +188,9 @@ public static class UnusedAssetGuardTest
         if (path.EndsWith(".cs") || path.EndsWith(".md") || path.EndsWith(".txt") ||
             path.EndsWith(".asmdef") || path.Contains("/Editor/"))
             return true;
+        // The original splash mark: protected art (ArtRestyleTest / SplashLayoutTest pin its bytes), no scene shows it any more
+        // (the splash uses HapticGate_title_red.png), so nothing ships it; it stays in the repo as the user's original.
+        if (path == "Assets/Art/UI/Splash/HapticGate.png") return true;
         if (path == "Assets/link.xml") return true;   // the IL2CPP linker reads it, nothing references it
         if (path.Contains("/Staging/") || path.Contains("/staging/")) return true;
         foreach (string prefix in ExemptPrefixes)

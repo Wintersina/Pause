@@ -13,6 +13,14 @@ using UnityEngine.UI;
 public static class TitleScreenEliteTest
 {
     static int fails;
+    // The title screen only flies elites of worlds the player can reach (TitleScreenTraffic.BuildElite).
+    static int LiveEliteCount()
+    {
+        int n = 0;
+        foreach (var e in EliteCatalog.All) if (e != null && e.WorldIndex <= WorldManager.LastLiveWorld) n++;
+        return n;
+    }
+
     static void Check(string what, bool ok)
     {
         Debug.Log((ok ? "[TE] PASS  " : "[TE] FAIL  ") + what);
@@ -160,7 +168,7 @@ public static class TitleScreenEliteTest
         float first = t.NextEliteAt;
         Check("the first run is after a calm start (" + first.ToString("0.0") + " s, " + t.eliteFirst + ")",
               first >= t.eliteFirst.x && first <= t.eliteFirst.y && first >= 20f);
-        Check("the elite defs are all there (" + t.EliteDefCount + ")", t.EliteDefCount == EliteCatalog.All.Length && t.EliteDefCount >= 4);
+        Check("the elite defs are all there (" + t.EliteDefCount + ")", t.EliteDefCount == LiveEliteCount() && t.EliteDefCount >= 4);
         Check("the first run's elite is picked and its strip loaded ahead of time",
               t.NextEliteDef != null && EliteArt.Frames(t.NextEliteDef) != null);
         var starts = new List<float>();

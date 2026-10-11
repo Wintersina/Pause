@@ -446,8 +446,10 @@ public static class CooldownAtomTest
 
     static void NotInTutorial()
     {
-        Check("the tutorial spawner knows nothing of the capacitor",
-              !Source("Assets/Scripts/Tutorial/spawnGoodStuffTut.cs").Contains("cooldown"));
+        // (the tutorial polish pass teaches it as one scripted, hovering atom: TutorialAtom.Cooldown, spawned only by the tutorial's own spawner)
+        string tutSpawner = Source("Assets/Scripts/Tutorial/spawnGoodStuffTut.cs");
+        Check("the tutorial spawner only drops the capacitor as its one scripted, hovering lesson atom",
+              tutSpawner.Contains("CooldownPrefab()") && tutSpawner.Contains("TutorialAtomDrift.AddTo(atom") && !tutSpawner.Contains("cooldownAtomChance"));
         string guid = AssetDatabase.AssetPathToGUID("Assets/Scripts/Gameplay/Pickups/spawnGoodStuff.cs");
         string tut = Source("Assets/Scenes/tutorialS5.unity");
         Check("tutorialS5 has no real-game spawner and no capacitor",

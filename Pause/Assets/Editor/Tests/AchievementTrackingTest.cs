@@ -345,7 +345,7 @@ public static class AchievementTrackingTest
         Codex.Reload();
         AchievementTracker.RefreshCodex();
         Check("every entry discovered: Completionist (" + Codex.DiscoveredCount + "/" + Codex.Entries.Length + ")",
-              Codex.DiscoveredCount == Codex.Entries.Length && U("codex_complete"));
+              Codex.DiscoveredCount == Codex.ReachableCount && U("codex_complete"));
         PlayerPrefs.SetString(Codex.PrefsKey, "");
         Codex.Reload();
     }

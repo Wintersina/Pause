@@ -89,7 +89,7 @@ public static class AchievementCatalog
         D("codex_10", "Curious Pilot", "Discover 10 Codex entries.", 5, B, Cdx, "Codex.Discovered", CCodex, 10, steps: 10),
         D("codex_50", "Cartographer", "Discover 50 Codex entries.", 10, S, Cdx, "Codex.Discovered", CCodex, 50, steps: 50),
         D("codex_field_guide", "Field Guide", "Fully catalogue one world's enemies and hazards.", 15, S, Cdx, "Codex.Discovered (per-world sets)"),
-        D("codex_complete", "Completionist", "Discover every Codex entry.", 35, P, Cdx, "Codex.Discovered", CCodex, 0, () => Codex.Entries.Length),
+        D("codex_complete", "Completionist", "Discover every Codex entry.", 35, P, Cdx, "Codex.Discovered", CCodex, 0, () => Codex.ReachableCount),
         D("ship_first", "Hangar Debut", "Buy your first ship.", 5, B, Coll, "shopingShips.TryPurchase"),
         D("ship_half", "Squadron", "Own half the hangar.", 15, S, Coll, "shopingShips.TryPurchase", CShips, 8, steps: 8),
         D("ship_all", "Fleet Admiral", "Own every ship.", 40, P, Coll, "shopingShips.TryPurchase", CShips, 0, () => ShipId.Count),

@@ -164,10 +164,10 @@ public static class EnemyDeathAudioTest
             elites++;
             if (EnemyDeathAudio.Variants(e.key) < 3) missing.Add(e.key);
         }
-        Check("the four new Verdant elites are listed as awaiting authored death cues and play silently, no error (" + pendingElites + ")",
-              pendingElites == 4 && EnemyDeathAudio.Variants("verdant_elite_timber_hauler") == 0 && !EnemyDeathAudio.PlayElite("verdant_elite_timber_hauler"));
+        Check("no elite is still awaiting authored death cues; the four Verdant elites have their own clips (" + pendingElites + ")",
+              pendingElites == 0 && EnemyDeathAudio.Variants("verdant_elite_timber_hauler") >= 3 && EnemyDeathAudio.Variants("verdant_elite_leafblade") >= 3);
         Check("every roster enemy (" + enemies + ") and elite (" + elites + ") of every live-art world has authored clips" +
-              (missing.Count > 0 ? " (missing: " + string.Join(", ", missing) + ")" : ""), missing.Count == 0 && enemies == 46 && elites == 16);
+              (missing.Count > 0 ? " (missing: " + string.Join(", ", missing) + ")" : ""), missing.Count == 0 && enemies == 46 && elites == 20);
         Check("Tide's 12 roster keys all resolve death clips through their donors (" + tideSilent + " without)", tideRoster == 12 && tideSilent == 0);
         // the tutorial's enemy is a roster alien; the rail mines are roster mines
         Check("tutorial enemy key '" + TutorialEnemy.DefKey + "' is authored", EnemyDeathAudio.Variants(TutorialEnemy.DefKey) == 3);
@@ -221,7 +221,7 @@ public static class EnemyDeathAudioTest
                 Check("elite " + e.key + " PlayElite resolves its clip (" + (EnemyDeathAudio.LastClip != null ? EnemyDeathAudio.LastClip.name : "none") + ")",
                       ok && EnemyDeathAudio.LastKey == e.key && EnemyDeathAudio.LastClip != null && EnemyDeathAudio.LastClip.name.StartsWith(e.key + "_"));
             }
-        Check("12 Frost+Verdant+Ember elites in the catalog (" + elites + ")", elites == 12);
+        Check("16 Frost+Verdant+Ember elites in the catalog (" + elites + ")", elites == 16);
 
         // Clip-level sanity: no sample-clipping, voice caps hold with the new keys.
         bool clipped = false;

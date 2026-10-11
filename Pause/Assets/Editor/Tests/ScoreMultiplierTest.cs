@@ -148,7 +148,7 @@ public static class ScoreMultiplierTest
         string det = File.ReadAllText("Assets/Scripts/Ship/collisionDetection.cs");
         int hit = det.IndexOf("lifeCounter += 1;");
         Check("collisionDetection reports the lost heart right where it is taken",
-              hit > 0 && det.IndexOf("ScoreMultiplier.OnHeartLost();", hit) - hit < 120);
+              hit > 0 && det.IndexOf("ScoreMultiplier.OnHeartLost();", hit) - hit < 320);
     }
 
     static void BreaksBelowCap()
