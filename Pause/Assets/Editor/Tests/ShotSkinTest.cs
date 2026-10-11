@@ -124,7 +124,8 @@ public static class ShotSkinTest
             if (b == null || !b.Shoots) continue;
             shooters++;
             var style = b.ShotStyle;
-            if (style.WorldIndex != def.world || ShotSkins.WorldOf(style) != def.world || style.world != EnemyRoster.WorldKeys[def.world]) bad++;
+            if (style.WorldIndex != def.world || ShotSkins.WorldOf(style) != Mathf.Min(def.world, ShotSkins.Worlds - 1) ||   // (Storm has no skin row yet: it wears Tide's procedural skin, tinted by its own colour)
+                style.world == null || style.world != EnemyRoster.WorldKeys[def.world]) bad++;
             seen.Add(def.world);
         }
         Check("every roster shooter's ShotStyle carries its enemy's world, so the skin follows it (" + shooters + " shooters, " + bad + " wrong; worlds " + seen.Count + ")",

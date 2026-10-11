@@ -89,6 +89,13 @@ public static class AttackBudgetTest
         { "roster:tide_fighter_2", new Pin(26, 2000, 884) },   // 1.3 % bot, 44.2 % standing; shown in 2000/2000; Shot x1 volleys 4 cooldown 1.5 tell 0.5
         { "roster:tide_fighter_3", new Pin(0, 2000, 2000) },   // 0.0 % bot, 100.0 % standing; shown in 2000/2000; Shot x1 volleys 3 cooldown 2.0 tell 0.8
         { "roster:tide_fighter_4", new Pin(4, 2000, 162) },   // 0.2 % bot, 8.1 % standing; shown in 2000/2000; Ring x8 volleys 3 cooldown 3.8 tell 1.2
+        { "roster:storm_mine", new Pin(31, 2000, 1189) },   // 1.6 % bot, 59.5 % standing; shown in 2000/2000; Laser x1 volleys 2 cooldown 1.0 tell 1.0
+        { "roster:storm_big", new Pin(30, 2000, 537) },   // 1.5 % bot, 26.9 % standing; shown in 2000/2000; Shot x3 volleys 3 cooldown 3.6 tell 1.0
+        { "roster:storm_fighter_1", new Pin(0, 2000, 0) },   // 0.0 % bot, 0.0 % standing; shown in 2000/2000; Lunge x1 volleys 0 cooldown 2.1 tell 0.45
+        { "roster:storm_fighter_2", new Pin(0, 2000, 2000) },   // 0.0 % bot, 100.0 % standing; shown in 2000/2000; Shot x1 volleys 3 cooldown 2.0 tell 0.55
+        { "roster:storm_fighter_3", new Pin(0, 2000, 2000) },   // 0.0 % bot, 100.0 % standing; shown in 2000/2000; Strike x1 volleys 2 cooldown 2.4 tell 0.9
+        { "roster:storm_fighter_4", new Pin(10, 2000, 200) },   // 0.5 % bot, 10.0 % standing; shown in 2000/2000; Ring x8 volleys 3 cooldown 3.9 tell 1.2
+        { "roster:storm_alien", new Pin(14, 2000, 312) },   // 0.7 % bot, 15.6 % standing; shown in 2000/2000; Shot x1 volleys 2 cooldown 3.6 tell 0.6
         { "elite:ember_elite_ash_wraith", new Pin(1940, 2000, 64) },   // 97.0 % bot, 3.2 % standing; shown in 2000/2000;
         { "elite:ember_elite_brass_vulture", new Pin(1098, 1654, 1098) },   // 66.4 % bot, 66.4 % standing; shown in 1654/2000;
         { "elite:ember_elite_cauterizer", new Pin(0, 2000, 706) },   // 0.0 % bot, 35.3 % standing; shown in 2000/2000;

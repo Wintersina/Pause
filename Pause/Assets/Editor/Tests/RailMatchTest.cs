@@ -282,17 +282,17 @@ public static class RailMatchTest
                 Check(kv.Key + ": rail is darker toward the screen edge (outer half " + kv.Value.farHalf.ToString("F3") + " vs inner half " + kv.Value.nearHalf.ToString("F3") + ", " + ratio.ToString("F2") + "x)", ratio < .85f);
             }
             var e0 = WorldPainter.EdgeFor("Space");
-            foreach (string w in new[] { "Frost", "Verdant", "Ember", "Tide" })
+            foreach (string w in new[] { "Frost", "Verdant", "Ember", "Tide", "Storm" })
             {
                 var e1 = WorldPainter.EdgeFor(w);
                 Check(w + ": outer falloff strength and start equal Space's", e1.outerDark == e0.outerDark && e1.outerStart == e0.outerStart && e0.outerDark > 0f);
             }
             var s = all["Space"];
-            foreach (string world in new[] { "Frost", "Verdant", "Ember", "Tide" })
+            foreach (string world in new[] { "Frost", "Verdant", "Ember", "Tide", "Storm" })
             {
                 var m = all[world];
                 string tag = world + " vs Space: ";
-                bool must = world == "Frost" || world == "Tide";   // Tide's rail was painted to Space's footprint: held to it
+                bool must = world == "Frost" || world == "Tide" || world == "Storm";   // Tide's and Storm's rails were painted to Space's footprint: held to it
                 string detail = "inner " + m.inner.ToString("F3") + "/" + s.inner.ToString("F3") + ", outer " + m.outer.ToString("F3") + "/" + s.outer.ToString("F3") +
                                 ", width " + m.width.ToString("F3") + "/" + s.width.ToString("F3") + ", light " + m.light.ToString("F3") + "/" + s.light.ToString("F3") +
                                 ", body " + m.body.ToString("F3") + "/" + s.body.ToString("F3") + ", sat " + m.sat.ToString("F3") + "/" + s.sat.ToString("F3") +

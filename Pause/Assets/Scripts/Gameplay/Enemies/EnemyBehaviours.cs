@@ -18,7 +18,7 @@ using UnityEngine;
 public enum EnemyLateral { None, Drift, Glide, Sway, Orbit, Track, March }
 public enum EnemyVertical { None, Bob, Pulse, Brake, Sink, Patrol, Creep }
 public enum EnemyAttack { None, Lunge, Shot, Ring, Cross, Lob, Laser, Blast, Strike, Jet, Wave, Lash }
-public enum ChaserStyle { Hound, Lancer, Weaver, Burner, Slither }
+public enum ChaserStyle { Hound, Lancer, Weaver, Burner, Slither, Spiral }
 
 // PRESENCE. A Hazard (rocks, rail mines) rides the board and rushes past. A
 // Pilot (fighters, heavies, chasers, aliens) is piloted or alive: it flies
@@ -294,6 +294,7 @@ public static class EnemyBehaviours
             case 2: return EnemyPalette.BileLight;
             case 3: return EnemyPalette.Amber;
             case 4: return EnemyPalette.Mint;
+            case 5: return EnemyPalette.ArcBlue;   // (the shot itself is the hostile pink family, HostileShotPalette; this is the tell's flare)
             default: return SpaceShot;
         }
     }
@@ -520,6 +521,46 @@ public static class EnemyBehaviours
         B("tide_alien", "Glow Jelly: pulses as it sinks, slow sway")
             .Sway(.2f, 2f).Pulse(.35f, 1.6f)
             .Descend(1.1f);
+
+        // ================================================================= STORM
+        // The gas giant's cast, in its own material: the shots are arcs and ion bolts (the hostile pink core
+        // around storm-white, ShotSkins' procedural skins) and Thunderhead calls lightning down lanes
+        // (AttackStrike, the Thunder style). Budgets never above the attacks they replace (AttackBudgetTest).
+        B("storm_rock_hail", "hailstone: slow tumble, wide lazy drift, a faint bob")
+            .Drift(.6f, .34f).Bob(.05f, 2.7f).Spin(16f, 38f)
+            .Sizes(.8f, .96f, 1.4f);
+        B("storm_rock_ore", "ore shard: barely turns, one fast slanted slice across the lane")
+            .Glide(1.15f, 1f).Spin(5f, 9f)
+            .Sizes(.76f, 1.02f, 1.24f);
+        B("storm_rock_slag", "anvil chunk: sinks down the board, spinning")
+            .Sink(1.3f, .5f).Spin(22f, 42f)
+            .Sizes(.8f, .96f, 1.4f);
+        B("storm_rock_islet", "cloud islet: wide slow sway and bob, upright")
+            .Sway(.7f, 4.4f).Bob(.15f, 3.2f).Tilt(EnemyRoster.FloatSwayDegrees, EnemyRoster.FloatSwayPeriod)
+            .Sizes(.8f, .92f, 1.48f);
+        B("storm_mine", "rod mine: creeps down its rail, the eye flares white, two lasers across the lane at random angles, riding up beside the ship to fire them")
+            .Creep(1.3f, .65f).Laser().Muzzle(.5f).Timing(1f, RailMineLaser.ShotGapSeconds, RailMineLaser.ShotsPerRide, .15f);
+        B("storm_big", "Cloud Whale: holds its column, the gills crack open, a fan of three arc bolts")
+            .Bob(.05f, 3.4f).Shot(Bolt, 3, 26f, 1.8f, .25f).Muzzle(.45f).Timing(1f, 3.6f, 2, .15f)
+            .Pilot(PilotEntry.Drop, 1.5f, 9f, PilotExit.Climb).Slow().Volleys(3);
+        B("storm_fighter_1", "Stormray Pup: diagonal drift, then a wing-flap dash that never steers")
+            .Drift(.5f, .7f).Lunge(0f, 1.6f, .21f).Timing(.45f, 2.1f, 1, .15f)
+            .Pilot(PilotEntry.Swoop, 2.4f, 2.5f, PilotExit.Run).Volleys(0);
+        B("storm_fighter_2", "Stormray: shadows the pilot, one aimed arc bolt")
+            .Track(.6f, .95f).Shot(Bolt, 1, 0f, 3.5f, .18f, 30f).Timing(.55f, 2f, 2, .15f)
+            .Pilot(PilotEntry.Drop, 2.3f, 5.5f, PilotExit.Peel).Volleys(3);
+        B("storm_fighter_3", "Thunderhead: hovers, the flare builds, then lightning down three lanes")
+            .Drift(.6f, .45f).Brake(1.4f, .6f).Strike(StrikeSpec.Standard(5), 3).Timing(.9f, 2.4f, 2, .15f)
+            .Pilot(PilotEntry.Drop, 2.2f, 7f, PilotExit.Peel).Volleys(2);
+        B("storm_fighter_4", "Tempest Anvil: hovers, tracks slowly, chain lightning in a ring of eight")
+            .Track(.55f, .3f).Brake(1.6f, .6f).Ring(Bolt, 8, 2f, .17f).Muzzle(0f).Timing(1.2f, 3.9f, 2, .15f)
+            .Pilot(PilotEntry.Drop, 1.5f, 9f, PilotExit.Climb).Volleys(3);
+        B("storm_chaser", "Cyclone Drone: closes in on a corkscrew, circling the line to the ship, then orbits")
+            .Chaser(ChaserStyle.Spiral, 4.4f, 2.3f, 1f, 1.05f, .75f)
+            .Linger(6f);
+        B("storm_alien", "Static Mote: pulses as it sinks, quick sway; some spit a ball of static")
+            .Sway(.22f, 1.4f).Pulse(.3f, 1.2f).Shot(Bolt, 1, 0f, 2f, .16f).Armed(.35f).Timing(.6f, 3.6f, 1, .15f)
+            .Descend(1.1f).Volleys(2);
 
         var built = building;
         building = null;

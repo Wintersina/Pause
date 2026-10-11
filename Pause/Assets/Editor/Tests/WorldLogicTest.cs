@@ -183,8 +183,8 @@ public static class WorldLogicTest
         }
         Check("... its codex backdrop tile resolves through BackdropCatalog.TileFolder (" + BackdropCatalog.TileFolder("Tide", 1) + ")",
               BackdropCatalog.TileFolder("Tide", 1) == "Worlds/Tide/Backdrop3/v1/");
-        DeveloperUnlocks.SelectWorld(99);
-        Check("... a developer run may start on it: the picker clamps to the full list", DeveloperUnlocks.SelectedWorld == Tide);
+        DeveloperUnlocks.SelectWorld(Tide);
+        Check("... a developer run may start on it: the picker can pick it", DeveloperUnlocks.SelectedWorld == Tide);
         PlayerPrefs.DeleteKey(DeveloperUnlocks.SelectedWorldKey);
         bool was = WorldManager.TideEnabled;
         try
@@ -220,10 +220,10 @@ public static class WorldLogicTest
         float hue, sat, val; Color.RGBToHSV(c, out hue, out sat, out val);
         Check("... its portal is pale storm-white / yellow (hue 40..70 deg, soft), not violet, amber nor the mint",
               hue * 360f > 40f && hue * 360f < 70f && sat < .45f && val > .85f);
-        Check("... the station's stand-ins: Tide's rails, backdrop and roster cast, a boss on Tide's art",
-              WorldPainter.RailTextureName("Storm") == "rail_tide_wide_v1" && BackdropCatalog.For("Storm") == BackdropCatalog.For("Tide") &&
-              EnemyRoster.One(Storm, EnemyRole.Rock) == EnemyRoster.One(Tide, EnemyRole.Rock) &&
-              BossCatalog.ForWorld(Storm).id == "boss_storm" && BossCatalog.ForWorld(Storm).artKey == "Tide");
+        Check("... its own rails and roster cast; still Tide's backdrop (TODO: Storm's own)",
+              WorldPainter.RailTextureName("Storm") == "rail_storm_wide_v1" && BackdropCatalog.For("Storm") == BackdropCatalog.For("Tide") &&
+              EnemyRoster.One(Storm, EnemyRole.Rock).key == "storm_rock_hail" && EnemyRoster.One(Storm, EnemyRole.Rock).world == Storm &&
+              BossCatalog.ForWorld(Storm).id == "boss_storm");
         Check("... its planetfall art is installed, the numbers are the manifest's",
               PlanetfallCatalog.Storm.world == Storm && LiftoffCatalog.Storm.world == Storm && LiftoffCatalog.Storm.autoLoop &&
               AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Art/Backgrounds/Resources/" + PlanetfallCatalog.Storm.folder + PlanetfallCatalog.Storm.planet + ".png") != null &&
@@ -248,7 +248,7 @@ public static class WorldLogicTest
             WorldManager.CurrentIndex = Storm;
             Check("Storm on: Storm has no next", !WorldManager.HasNext);
             WorldManager.StormEnabled = false;
-            Check("Storm off (a developer run on it): no next, and the live chain ends at Ember", !WorldManager.HasNext && WorldManager.LastLiveWorld == Ember);
+            Check("Storm off (Tide still on; a developer run on Storm): no next, and the live chain ends at Tide", !WorldManager.HasNext && WorldManager.LastLiveWorld == Tide);
         }
         finally { WorldManager.TideEnabled = wasTide; WorldManager.StormEnabled = wasStorm; }
     }

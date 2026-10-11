@@ -636,7 +636,7 @@ public static class EnemyBehaviourTest
     {
         var styles = new HashSet<ChaserStyle>();
         var paths = new List<float>();
-        bool lancerAims = false, weaverWeaves = false, slitherSurges = false, slitherSways = false;
+        bool lancerAims = false, weaverWeaves = false, slitherSurges = false, slitherSways = false, spiralCircles = false;
         for (int w = 0; w < WorldManager.Worlds.Length; w++)
         {
             Fresh();
@@ -661,6 +661,7 @@ public static class EnemyBehaviourTest
             if (c.style == ChaserStyle.Lancer) lancerAims = aimed > .3f;
             if (c.style == ChaserStyle.Weaver) weaverWeaves = sideways > .5f;
             if (c.style == ChaserStyle.Slither) { slitherSways = sideways > .5f; slitherSurges = fastest > slowest * 2f && slowest < 2f; }
+            if (c.style == ChaserStyle.Spiral) spiralCircles = sideways > .5f && fastest > slowest * 1.5f;
             Check(def.displayName + " (" + c.style + ") closes on a pilot straight above it (y -5 -> " + go.transform.position.y.ToString("F2") + ")",
                   go.transform.position.y > -4.9f && c.chaseSeconds == EnemyBehaviours.For(def.key).chaseSeconds);
             Object.DestroyImmediate(go);
@@ -689,6 +690,7 @@ public static class EnemyBehaviourTest
         Check("every chaser leaves after its chase and linger, climbing out the top (longest stay " + longest.ToString("F1") + " s)", allLeft);
         Check("the Frost Lancer stops to aim between dashes", lancerAims);
         Check("the Dragonsting weaves sideways even at a pilot straight ahead", weaverWeaves);
+        Check("the Cyclone Drone corkscrews: it circles the line to a pilot straight ahead (sideways travel and a swinging climb speed) yet still closes on it", spiralCircles);
         Check("the Wire Eel slithers: it surges and coils in sinusoidal lunges (climb speed swings > 2x) on an S-curve", slitherSurges && slitherSways);
     }
 

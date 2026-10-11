@@ -196,6 +196,29 @@ Behind the release switch (`WorldManager.TideEnabled`); the generic shots stand 
 17 of the 46 shoot (one of them only some of the time); 29 never do. Six more attack with their body
 (`Lunge`). Bosses are untouched. Elites are untouched apart from the small `EliteShot` addition above.
 
+### Storm (shots: storm-white / arc blue tell, then the world's pink band like every hostile shot)
+
+Behind the release switch (`WorldManager.StormEnabled`). The shots are arcs and ion bolts (the procedural skins in the pink
+cue family; Storm has no attack atlas yet, so `ShotSkins` clamps it to the procedural set), Thunderhead calls lightning
+down three lanes (`AttackStrike`, the Thunder style, ramp = Tide's white water: hue 205-212, sat <= .4). Gust-wave `Blast`
+rings are not used by the roster (only the generic shots and the one strike). Budgets are Tide's, row for row
+(`roster:storm_*` pins in `AttackBudgetTest`). The Cyclone Drone adds `ChaserStyle.Spiral`.
+
+| Key | Name | What it is (art) | Movement | Shoots | Tell | Counter |
+|---|---|---|---|---|---|---|
+| `storm_rock_hail` | Hailstone | pale cratered ice ball | slow tumble, wide lazy `Drift`, tiny `Bob` | no | crack glows (cosmetic) | wide and slow |
+| `storm_rock_ore` | Ore Shard | slanted crystal blade | barely turns; one fast slanted `Glide` | no | edge glows (cosmetic) | reads early |
+| `storm_rock_slag` | Anvil Chunk | dark lightning-veined iron | spins as it `Sink`s | no | veins flicker (cosmetic) | arrives sooner than it looks |
+| `storm_rock_islet` | Cloud Islet | floating platform + antenna | upright; wide slow `Sway`, `Bob` | no | n/a | wide but slow |
+| `storm_mine` | Rod Mine | lightning-rod sea-mine (third atlas; Tide's until Codex delivers it) | `Creep`s down its rail | **yes**: two lasers across the lane | eye flares 1.0 s | be off the line when it blinks |
+| `storm_big` | Cloud Whale | armoured cloud whale | holds its column, tiny `Bob` | **yes**: gills open, a fan of three arc bolts | gills light 1.0 s | stand between the shots |
+| `storm_fighter_1` | Stormray Pup | small manta drone | diagonal `Drift` | no (`Lunge`: straight dash) | core flares, then the dash | the dash never tracks |
+| `storm_fighter_2` | Stormray | hooked-wing manta gunship | `Track`s | **yes**: one aimed arc bolt (30 deg cone), up to three volleys | nose coil glows 0.55 s | keep moving |
+| `storm_fighter_3` | Thunderhead | cannon-ring gunship | `Drift`, `Brake` hover | **yes**: lightning down three lanes (`Strike`) | charge flare + lane glyphs 0.9 s | leave the lanes when the flare builds |
+| `storm_fighter_4` | Tempest Anvil | twin-coil-tower heavy | `Brake` hover, slow `Track` | **yes**: a ring of eight (chain lightning) | core swells 1.2 s | back off; the ring opens with distance |
+| `storm_chaser` | Cyclone Drone | four-blade rotor drone | chaser, `ChaserStyle.Spiral`: a corkscrew about the line to the ship (1.5 u/s, .9 Hz) | no | corkscrew while hunting | slide sideways; it overshoots |
+| `storm_alien` | Static Mote | caged ball lightning | `Pulse` + quick `Sway` | **yes** (35% of them): one slow ball of static | core flares 0.6 s | pass on the sink |
+
 ## Presence: hazards and pilots (follow-up)
 
 User: "Some enemies should not rush past the player like idle objects like hazards. All hazards rushing

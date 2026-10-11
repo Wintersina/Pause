@@ -433,7 +433,7 @@ public static class CodexTest
                       CountIn(CodexCategory.Worlds) == WorldManager.LiveWorldCount + 1 && WorldManager.LiveWorldCount == 4);
                 Check("Tide is in the catalogue but not listed (or counted) while TideEnabled is off",
                       Codex.Find(Codex.WorldId(4)) != null && !Codex.IsListed(Codex.Find(Codex.WorldId(4))) &&
-                      CapacityWorlds() == CountIn(CodexCategory.Worlds) + 1);
+                      CapacityWorlds() == CountIn(CodexCategory.Worlds) + (WorldManager.Worlds.Length - WorldManager.LiveWorldCount));   // Tide and Storm are both unlisted
             }
             finally { WorldManager.TideEnabled = tideSwitch; PlayerPrefs.SetInt(WorldManager.PrefsHighestWorld, highestWas); Codex.Reload(); }
         }

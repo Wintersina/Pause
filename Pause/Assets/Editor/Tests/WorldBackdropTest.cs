@@ -372,7 +372,12 @@ public static class WorldBackdropTest
         {
             var theme = WorldManager.Worlds[w];
             var spec = BackdropCatalog.For(theme.displayName);
-            Check(theme.displayName + " has its own backdrop spec", spec.world == theme.displayName);
+            // TODO(storm-backdrop): Storm's own backdrop comes later; until then it flies Tide's (BackdropCatalog.StormStandIn).
+            // Flip this to "own spec" when it lands.
+            if (theme.displayName == "Storm")
+                Check("Storm still uses its stand-in backdrop spec (" + BackdropCatalog.StormStandIn + "'s; TODO: own backdrop)", spec.world == BackdropCatalog.StormStandIn);
+            else
+                Check(theme.displayName + " has its own backdrop spec", spec.world == theme.displayName);
             // Space carries two runs of body tiers (planets, structures).
             // Space carries two runs of body tiers (planets, structures);
             // Frost its weather at several depths.
