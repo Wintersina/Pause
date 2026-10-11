@@ -141,8 +141,11 @@ public static class RailMineArtTest
             foreach (string platform in new[] { "Android", "iPhone", "Standalone" })
             {
                 var s = importer.GetPlatformTextureSettings(platform);
-                Check(tag + ": " + platform + " keeps it uncompressed (no compressed override)",
-                      !s.overridden || s.textureCompression == TextureImporterCompression.Uncompressed);
+                // (the size diet gives Android / iPhone an explicit ASTC override on every shipping texture; point filtering and the
+                // full size stay, so the pixels remain crisp. Standalone must stay uncompressed.)
+                Check(tag + ": " + platform + " has no lossy override beyond the size diet's ASTC",
+                      !s.overridden || s.textureCompression == TextureImporterCompression.Uncompressed ||
+                      (platform != "Standalone" && s.maxTextureSize >= RailMineArt.AtlasSize));
             }
             Check(tag + " is full size (max texture size >= 1254)", importer.maxTextureSize >= RailMineArt.AtlasSize);
             Check(tag + " is imported as a sprite texture, sliced at runtime", importer.textureType == TextureImporterType.Sprite);

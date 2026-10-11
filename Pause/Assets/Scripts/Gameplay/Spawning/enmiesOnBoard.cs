@@ -122,7 +122,8 @@ public class enmiesOnBoard : MonoBehaviour {
 
     static int ArrivalKey()
     {
-        return EnemyRoster.CurrentWorld + 16 * RunLoop.Index;
+        // the world ARRIVAL, not the sky: the space leg is no new arrival
+        return (WorldManager.Instance != null ? WorldManager.CurrentIndex : 0) + 16 * RunLoop.Index;
     }
 
     // A new world (a portal, a loop): the calm arrival again, unless the

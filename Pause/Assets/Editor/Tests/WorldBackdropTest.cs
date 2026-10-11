@@ -390,10 +390,18 @@ public static class WorldBackdropTest
             // A layer PINNED to the ground tile before it (Layer.pinTo:
             // Verdant's ground pieces on the mid tile) shares its rate.
             bool increasing = true;
-            for (int i = 1; i < spec.layers.Length; i++)
-                if (!(spec.layers[i].rate > spec.layers[i - 1].rate) &&
-                    !(spec.layers[i].pinTo == spec.layers[i - 1].name && spec.layers[i].rate == spec.layers[i - 1].rate))
-                    increasing = false;
+            float prevRate = float.MinValue;
+            for (int i = 0; i < spec.layers.Length; i++)
+            {
+                var l = spec.layers[i];
+                if (!string.IsNullOrEmpty(l.pinTo))
+                {
+                    if (!spec.Has(l.pinTo) || spec.Rate(l.pinTo) != l.rate) increasing = false;   // must share its host's exact rate
+                    continue;
+                }
+                if (!(l.rate > prevRate)) increasing = false;
+                prevRate = l.rate;
+            }
             Check(theme.displayName + " parallax rates strictly increase far -> near (pinned layers share their host's)", increasing);
             Check(theme.displayName + " far layer is an opaque sky tile",
                   spec.layers[0].kind == BackdropCatalog.Kind.Tile && spec.layers[0].name == "sky");

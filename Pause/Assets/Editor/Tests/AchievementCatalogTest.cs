@@ -60,7 +60,7 @@ public static class AchievementCatalogTest
               Target("loop_1") == 1 && Target("loop_2") == 2 && Target("loop_5") == 5 && Target("chain_10") == 10);
         Check("dynamic targets follow the game: bosses " + Target("boss_all") + ", ships " + Target("ship_all") + ", codex " + Target("codex_complete"),
               Target("boss_all") == WorldManager.LiveWorldCount && Target("ship_all") == ShipId.Count &&
-              Target("codex_complete") == Codex.Entries.Length && Target("elite_space_all") == Elites(0) &&
+              Target("codex_complete") == Codex.ReachableCount && Target("elite_space_all") == Elites(0) &&
               Target("elite_frost_all") == Elites(1) && Target("elite_verdant_all") == Elites(2) && Target("elite_ember_all") == Elites(3));
         Check("elites per world: Space 4, Frost 5, Verdant 5, Ember 6 (" + Elites(0) + "," + Elites(1) + "," + Elites(2) + "," + Elites(3) + ")",
               Elites(0) >= 4 && Elites(1) >= 5 && Elites(2) == 5 && Elites(3) >= 6);

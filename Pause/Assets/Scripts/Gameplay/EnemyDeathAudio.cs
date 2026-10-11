@@ -288,9 +288,9 @@ public static class EnemyDeathAudio
     // content bug (a new enemy added without a sound pass). Warn once per key.
     static readonly HashSet<string> warned = new HashSet<string>();
     // Keys whose authored death cues are still to come (the sound job): silent until then, never an error or a warning.
+    // (Empty: the Verdant elites' cues were authored in 36b6b04d.)
     public static readonly string[] PendingClips =
     {
-        "verdant_elite_timber_hauler", "verdant_elite_thornlash", "verdant_elite_sporebloom", "verdant_elite_leafblade",
     };
     static void WarnMissing(string key)
     {

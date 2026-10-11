@@ -235,7 +235,7 @@ public static class EnemyRoster
     // The world the spawner should draw from right now: the current planet,
     // or Space when no WorldManager runs (the tutorial, edit-mode tests).
     public static int CurrentWorld =>
-        WorldManager.Instance != null ? WorldManager.CurrentIndex : 0;
+        WorldManager.Instance != null ? WorldManager.SpawnWorld : 0;
 
     public static List<EnemyDef> For(int world, EnemyRole role)
     {

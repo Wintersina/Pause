@@ -224,6 +224,32 @@ public class WorldManager : MonoBehaviour
         }
     }
 
+    // The space leg: from a lift-off's swap to Space's sky (Liftoff.Swap) to
+    // the next world's arrival (Advance), the player is flying in the
+    // interlude world (Space) while CurrentIndex still names the planet just
+    // left (its score, boss, loop and portal bookkeeping hang on it). What
+    // spawns follows the sky, not the bookkeeping: SpawnWorld.
+    int spaceLegWorld = -1;
+    public static bool InSpaceLeg { get { var run = Instance; return run != null && run.spaceLegWorld >= 0; } }
+
+    // The roster the spawners draw from (EnemyRoster.CurrentWorld: rocks,
+    // heavies, aliens, extras, rail mines, chasers; EliteDirector): the
+    // planet the run is on, or the interlude world during the space leg.
+    public static int SpawnWorld
+    {
+        get
+        {
+            var run = Instance;
+            if (run != null && run.spaceLegWorld >= 0) return run.spaceLegWorld;
+            return CurrentIndex;
+        }
+    }
+
+    public static void BeginSpaceLeg(int interludeWorld)
+    {
+        if (Instance != null) Instance.spaceLegWorld = Mathf.Clamp(interludeWorld, 0, Worlds.Length - 1);
+    }
+
     public static WorldTheme Current
     {
         get { return Worlds[CurrentIndex]; }
@@ -423,6 +449,7 @@ public class WorldManager : MonoBehaviour
         // can pin a start world from Options instead. Replay restarts the
         // world the replayed run began in (RunStartWorld).
         string source = RunStartSource(startAtHighestUnlocked);
+        spaceLegWorld = -1;
         CurrentIndex = RunStartWorld(startAtHighestUnlocked);
         Debug.Log("[WorldManager] run start: " + Current.displayName + " (index " + CurrentIndex + ", source " + source +
                   "; saved highest " + PlayerPrefs.GetInt(PrefsHighestWorld, 0) + ", dev " + DeveloperUnlocks.Enabled +
@@ -612,6 +639,7 @@ public class WorldManager : MonoBehaviour
         bool loop = !HasNext;
         // The way round again only exists as an open portal.
         if (loop && !portalOpen) return null;
+        spaceLegWorld = -1;   // the next world takes the spawners over
 
         // Nothing of the world left comes along (a planetfall cleared the
         // board at its commit; a portal has no such beat): the hazards and

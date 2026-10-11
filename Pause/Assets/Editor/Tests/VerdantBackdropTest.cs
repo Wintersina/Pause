@@ -717,7 +717,11 @@ public static class VerdantBackdropTest
         if (!found) return;
         var dir = new GameObject("~Dir").AddComponent<EliteDirector>();
         Random.InitState(5);
-        dir.SpawnGroup(2, 1);
+        // (Verdant has five elites now and the director deals them from a shuffled deck, so dock the Resin Warden itself on a site it
+        // accepts rather than hoping the deck deals it)
+        LandingSite? warden = null;
+        foreach (var s in sites) if (s.Valid && LandingSite.Accepts(resin.launchFrom, s.kind)) { warden = s; break; }
+        if (warden != null) dir.Spawn(resin, warden.Value, EliteDirector.ParkSeconds.y);
         var e = EliteShip.Live.Count > 0 ? EliteShip.Live[0] : null;
         Check("the director docks the Resin Warden in its own kind of site (" + (e != null ? e.Site.kind.ToString() : "-") + ")",
               e != null && (e.Site.kind == LandingKind.TowerBay || e.Site.kind == LandingKind.RootHangar) && e.IsDocked);

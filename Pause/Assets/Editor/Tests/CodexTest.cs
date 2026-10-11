@@ -287,6 +287,7 @@ public static class CodexTest
                 var anim = panel.DetailAnimator;
                 clock += 10f;
                 var pos = ScreenCentre(panel.DetailArt.transform.parent as RectTransform);
+                EnemyDeathAudio.ResetVoices();   // the loop outruns the clips: a full voice pool would drop the (ducked) codex cue
                 int played = EnemyDeathAudio.Played;
                 var h1 = PointerTap(panel, pos); clock += .25f;
                 var h2 = PointerTap(panel, pos); clock += .25f;
@@ -390,6 +391,7 @@ public static class CodexTest
             var sprite = e.Sprite;
             // The Hunter is defined by behaviour and may share a hull with its family.
             if (sprite == null || e.category == CodexCategory.Ships || e.category == CodexCategory.Log || e.id == "enemy_chaser") continue;
+            if (Codex.InFutureWorld(e)) continue;   // a world the loop cannot reach yet still wears stand-in art (Storm = Tide's)
             string path = AssetDatabase.GetAssetPath(sprite.texture);
             string content = string.IsNullOrEmpty(path) ? sprite.texture.GetInstanceID().ToString() : Hash(path);
             string key = content + "|" + sprite.rect;
@@ -2266,7 +2268,7 @@ public static class CodexTest
         };
         foreach (var b in BossCatalog.All) probes.Add((CodexCategory.Enemies, b.id));
         foreach (var e in Codex.Entries)
-            if (e.category == CodexCategory.Atoms || e.category == CodexCategory.Ships || e.category == CodexCategory.Worlds)
+            if (!Codex.InFutureWorld(e) && (e.category == CodexCategory.Atoms || e.category == CodexCategory.Ships || e.category == CodexCategory.Worlds))
                 probes.Add((e.category, e.id));
         foreach (var (tab, id) in probes)
         {

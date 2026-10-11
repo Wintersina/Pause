@@ -492,6 +492,8 @@ public static class RailMineLaserTest
     static Vector2[] Corners(SpriteRenderer sr)
     {
         var b = sr.sprite.bounds;
+        // a tiled strip (a themed laser kit) is as large as its renderer's size, not its one tile
+        if (sr.drawMode == SpriteDrawMode.Tiled) b = new Bounds(Vector3.zero, new Vector3(sr.size.x, sr.size.y, 0f));
         var m = sr.transform.localToWorldMatrix;
         return new Vector2[]
         {
@@ -505,6 +507,14 @@ public static class RailMineLaserTest
     static string QuadError(SpriteRenderer sr, RailMineLaser l, Vector2 muzzle, float faceX, float wLo, float wHi)
     {
         if (sr == null || sr.sprite == null) return "no sprite";
+        if (sr.drawMode == SpriteDrawMode.Tiled && l.Kit != null)
+        {
+            // THEMED KIT: the strip's width is its tile (the aim line's 128 px tile at KitSightScale, the beam's body frame at the scale that makes
+            // its opaque columns the hit width; the cool-down thins it down to a fifth)
+            float body = RailMineLaser.KitBodyScale(l.Kit);
+            if (sr == l.SightRenderer) { wLo = wHi = RailMineLaser.KitSightScale; }
+            else { wLo = body * .2f; wHi = body; }
+        }
         var c = Corners(sr);
         System.Array.Sort(c, (p, q) => Vector2.Dot(p - l.From, l.Direction).CompareTo(Vector2.Dot(q - l.From, l.Direction)));
         Vector2 s0 = c[0], s1 = c[1], e0 = c[2], e1 = c[3];
@@ -599,7 +609,7 @@ public static class RailMineLaserTest
             var br = l.BeamRenderer.bounds;
             float xLo = Mathf.Min(l.From.x, l.To.x), xHi = Mathf.Max(l.From.x, l.To.x);
             Check("... drawn across exactly that span (" + F(br.min.x) + " .. " + F(br.max.x) + "), " + F(br.size.y) + " u thick",
-                  Mathf.Abs(br.min.x - xLo) < .01f && Mathf.Abs(br.max.x - xHi) < .01f && br.size.y <= RailMineLaser.DrawWidth + 1e-3f);
+                  Mathf.Abs(br.min.x - xLo) < .01f && Mathf.Abs(br.max.x - xHi) < .01f && br.size.y <= Mathf.Max(RailMineLaser.DrawWidth, l.Kit != null ? RailMineLaser.KitBodyScale(l.Kit) : 0f) + 1e-3f);
             var box = l.Hitbox.GetComponent<BoxCollider2D>();
             Physics2D.SyncTransforms();
             var bb = box.bounds;
@@ -707,6 +717,7 @@ public static class RailMineLaserTest
         Fresh();
         Object.DestroyImmediate(ship.gameObject);
         var rig = new DeathCrashTest.Rig(FirstShip);
+        collisionDetection.MAXLIFE = 3;   // (the first dock row flies one base heart now: a touch would be fatal; these tests are about the non-fatal path)
         try
         {
             ship = rig.ship.transform;
@@ -868,6 +879,7 @@ public static class RailMineLaserTest
         Fresh();
         Object.DestroyImmediate(ship.gameObject);
         var rig = new DeathCrashTest.Rig(FirstShip);
+        collisionDetection.MAXLIFE = 3;   // (the first dock row flies one base heart now: a touch would be fatal; these tests are about the non-fatal path)
         try
         {
             ship = rig.ship.transform;
@@ -908,7 +920,26 @@ public static class RailMineLaserTest
 
     // ---- 4. friendly fire ----------------------------------------------------
 
-    static void FriendlyFireOnce()
+    // RailMineThemedTest: the same friendly-fire check on another world's mine (its themed beam), with this suite's own fixtures and clean-up
+    internal static int FriendlyFireOfWorld(int world)
+    {
+        int before = fails;
+        try { FriendlyFireOnce(world); }
+        finally
+        {
+            EnemyThreat.ForceShooting = false;
+            EnemyThreat.Reset();
+            RailMineLaser.HurtsOtherEnemies = true;
+            RailMineLaser.AngleOverride = null;
+            SpawnSpace.ClockOverride = null;
+            EliteSystem.Clear();
+            EliteSystem.PlayerOverride = null;
+            startMenu.youAreInTutorial = false;
+        }
+        return fails - before;
+    }
+
+    static void FriendlyFireOnce(int world = 3)
     {
         // ALL hostile fire is friendly fire: the beam hurts what it crosses
         // on: a game scene; off: the tutorial (hostile fire never runs there)
@@ -918,7 +949,7 @@ public static class RailMineLaserTest
             Check("the mine laser is friendly fire (RailMineLaser.HurtsOtherEnemies)", RailMineLaser.HurtsOtherEnemies);
             // the ship level with the mine lets it fire; the hazards go on the beam's row once it burns
             ship.position = new Vector3(0f, 1f, 0f);
-            var brain = Mine(3, true, 1f, out var rail);
+            var brain = Mine(world, true, 1f, out var rail);
             var l = LiveLaser(brain);
             float row = l != null ? l.Y : 1f;
             var rock = EnemyFactory.Create(EnemyRoster.One(0, EnemyRole.Rock), new Vector3(-1f, row + .05f, 0f), Quaternion.identity);

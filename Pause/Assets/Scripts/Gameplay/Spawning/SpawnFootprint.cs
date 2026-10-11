@@ -23,6 +23,7 @@ public class SpawnFootprint : MonoBehaviour
     IMovementFootprint plan;
     Behaviour planBehaviour;     // the plan's component, when it is one
     internal int registryIndex = -1;
+    internal bool yielded;       // ResolveSteer gave way last frame
     bool registered;
 
     public IMovementFootprint Plan => Held ? null : plan;

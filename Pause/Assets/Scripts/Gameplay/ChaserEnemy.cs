@@ -68,6 +68,7 @@ public class ChaserEnemy : MonoBehaviour, IMovementFootprint
     // column), then a straight lunge along the line it locks as it surfaces
     public const float BurrowRunSeconds = 1.3f, BurrowDiveSeconds = .75f, BurrowLungeSeconds = .55f;
     public const float BurrowDiveSpeed = 1.6f, BurrowLungeSpeed = 1.9f, BurrowSide = 1f;
+    public const float NearFade = .3f;
 
     // It does not stay for ever: after lingerSeconds of orbiting (or when a
     // boss / portal is coming) it leaves, climbing out the top.
@@ -214,7 +215,9 @@ public class ChaserEnemy : MonoBehaviour, IMovementFootprint
                 toPlayer.z = 0f;
                 if (toPlayer.sqrMagnitude > 0.0001f)
                 {
-                    Vector3 heading = toPlayer.normalized;
+                    float distance = toPlayer.magnitude;
+                    Vector3 heading = toPlayer / distance;
+                    bool dashing = false;
                     styleClock += dt;
                     if (style == ChaserStyle.Lancer)
                     {
@@ -223,7 +226,7 @@ public class ChaserEnemy : MonoBehaviour, IMovementFootprint
                         float cycle = LancerAimSeconds + LancerDashSeconds;
                         if (styleClock >= cycle) styleClock -= cycle;
                         if (styleClock < LancerAimSeconds) { lockedHeading = heading; speed *= LancerAimSpeed; }
-                        else { heading = lockedHeading; speed *= LancerDashSpeed; }
+                        else { heading = lockedHeading; speed *= LancerDashSpeed; dashing = true; }
                     }
                     if (style == ChaserStyle.Burrow)
                     {
@@ -250,20 +253,26 @@ public class ChaserEnemy : MonoBehaviour, IMovementFootprint
                     }
                     if (style == ChaserStyle.Slither)
                         speed *= 1f + SlitherSurge * Mathf.Sin(styleClock * SlitherHz * 2f * Mathf.PI);
-                    wish += heading * speed * dt;
+                    // It stops ON the goal instead of stepping past it and back every frame (a chaser
+                    // sitting on the ship -- a shield, the grace after a hit -- vibrated by a step); a
+                    // Lancer's locked dash is a line it flies whatever the ship does.
+                    wish += heading * (dashing ? speed * dt : Mathf.Min(speed * dt, distance));
+                    // (the corkscrew, coil and weave fade out over the last NearFade of the way: on top of the
+                    // ship the heading is noise and the extra terms would only shake it)
+                    float near = Mathf.Clamp01(distance / NearFade);
                     if (style == ChaserStyle.Slither)
                     {
                         Vector3 side = new Vector3(-heading.y, heading.x, 0f);
-                        wish += side * Mathf.Cos(styleClock * SlitherHz * 2f * Mathf.PI) * SlitherSideSpeed * dt;
+                        wish += side * Mathf.Cos(styleClock * SlitherHz * 2f * Mathf.PI) * SlitherSideSpeed * dt * near;
                     }
                     if (style == ChaserStyle.Spiral)
                     {
                         float a = styleClock * SpiralHz * 2f * Mathf.PI;
                         Vector3 side = new Vector3(-heading.y, heading.x, 0f);
-                        wish += (side * -Mathf.Sin(a) + heading * Mathf.Cos(a)) * SpiralSpeed * dt;
+                        wish += (side * -Mathf.Sin(a) + heading * Mathf.Cos(a)) * SpiralSpeed * dt * near;
                     }
                     if (style == ChaserStyle.Weaver)
-                        wish.x += Mathf.Cos(styleClock * WeaveHz * 2f * Mathf.PI) * WeaveSpeed * dt;
+                        wish.x += Mathf.Cos(styleClock * WeaveHz * 2f * Mathf.PI) * WeaveSpeed * dt * near;
                 }
             }
             else

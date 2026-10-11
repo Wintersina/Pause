@@ -109,6 +109,9 @@ public static class SpawnSpace
     // themselves out of the way after that (ResolveSteer).
     public const float SteerHorizon = .3f;
 
+    // See ResolveSteer: the spare room a steerer that gave way wants before it returns to its wish.
+    public const float YieldBand = .15f;
+
     // The board scroll in world units per second (what every board-locked
     // mover applies).
     public static float ScrollSpeed => moveBackGround.speed * 30f;
@@ -281,7 +284,12 @@ public static class SpawnSpace
     public static Vector2 ResolveSteer(SpawnFootprint self, Vector2 from, Vector2 wish, float scrollStep, float dodgeStep)
     {
         Vector2 half = self.half;
-        if (ClearForSteerer(self, wish, half)) return wish;
+        // Hysteresis: one that gave way last frame only goes back to its wish once that is clear
+        // with YieldBand to spare. The neighbour is carried along with the board, so the spot it
+        // was carried out of is clear again a frame later; without the band it stepped back into
+        // it, was carried out again, and so on: a vibration the size of one scroll step.
+        if (ClearForSteerer(self, wish, self.yielded ? half + Vector2.one * YieldBand : half)) { self.yielded = false; return wish; }
+        self.yielded = true;
 
         Vector2 carried = new Vector2(from.x, from.y - scrollStep);
         Vector2 sideways = new Vector2(wish.x, carried.y);

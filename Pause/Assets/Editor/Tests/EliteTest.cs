@@ -1117,7 +1117,7 @@ public static class EliteTest
             var wb = WorldBackdrop.Create(world);
             wb.Show(world, false);
             var sites = new List<LandingSite>();
-            for (int i = 0; i < 600 && LandingSites.Collect(sites) == 0; i++) wb.Step(1f / 15f);
+            for (int i = 0; i < 1800 && LandingSites.Collect(sites) == 0; i++) wb.Step(1f / 15f);   // Frost landmarks ride the ground at 0.024 (was 0.030): the first site needs a longer flight
             bool background = sites.Count > 0;
             foreach (var st in sites) background &= st.order < 0 && st.scale < .5f && st.Valid && st.Position.y > -CameraFit.ViewTop * .5f;
             Check(world + ": its backdrop reports elite landing sites on its terrain, at background depth (" + sites.Count + ")", background);

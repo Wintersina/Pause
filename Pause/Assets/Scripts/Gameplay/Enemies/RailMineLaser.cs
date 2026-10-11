@@ -12,7 +12,12 @@ using UnityEngine;
 //   Beam   BeamSeconds of sustained beam: the only phase with a hitbox.
 //   Cool   CoolSeconds of flicker as it dies out. Harmless.
 //
-// LOOK. The world boss's own laser art (BossArt: the lane telegraph cell
+// LOOK, THEMED. Space, Frost and Verdant fire their world's own painted laser kit (Resources/Attacks/<World>/<w>_attack_laser*.png via
+// AttackArt.BossLaser: Space's ion beam, Frost's ice beam with crystal shards, Verdant's thorned vine beam), laid on the mine's geometry
+// (PlaceKitAim / PlaceKitBeam). Ember keeps its flame-thrower; Tide and Storm have no installed kit (Tide's is staged under Attacks/Tide~)
+// and keep the boss-cell beam below. The older description follows.
+//
+// The world boss's own laser art (BossArt: the lane telegraph cell
 // for the aim line, the two beam cells, BossAttackFx's muzzle flash and rail
 // spark), so it is the same hard-edged pixel beam as the boss lasers, with a
 // white core (lime in Verdant, that world's laser). The boss beams' hot pink
@@ -108,7 +113,8 @@ public class RailMineLaser : MonoBehaviour
     // Tests / previews: every shot at this angle (degrees) instead of a draw.
     public static float? AngleOverride;
 
-    SpriteRenderer sight, beam, flash, impact, pilot, haze;
+    SpriteRenderer sight, beam, flash, impact, pilot, haze, lockOn, spark;
+    AttackArt.LaserArt kit;   // the world's painted laser kit (Space ion, Frost ice, Verdant thorn vine); null: the other worlds' beams
     MineFlameArt flame;   // Ember's flame-thrower art (null: the boss-cell beam of every other world)
     float tellTotal;
     GameObject hitbox;
@@ -140,6 +146,11 @@ public class RailMineLaser : MonoBehaviour
     public int HitsThisPulse => hitCount;
     public SpriteRenderer BeamRenderer => beam;
     public SpriteRenderer SightRenderer => sight;
+    public SpriteRenderer FlashRenderer => flash;
+    public SpriteRenderer ImpactRenderer => impact;
+    public SpriteRenderer LockRenderer => lockOn;
+    public SpriteRenderer SparkRenderer => spark;
+    public AttackArt.LaserArt Kit => kit;     // the painted laser kit this shot wears (null: boss cells / flame)
 
     // Where a laser from a mine at x runs: rail face to rail face.
     public static void SpanFor(float mineX, out float fromX, out float toX)
@@ -252,6 +263,8 @@ public class RailMineLaser : MonoBehaviour
         l.impact = Piece(go.transform, "Impact", SortFx);
         l.pilot = Piece(go.transform, "Pilot", SortFx);
         l.haze = Piece(go.transform, "Haze", SortBeam - 1, true);
+        l.lockOn = Piece(go.transform, "Lock", SortFx);
+        l.spark = Piece(go.transform, "Spark", SortFx + 1);
         l.EnsureHitbox();
         l.box.enabled = false;
         go.SetActive(false);
@@ -300,6 +313,8 @@ public class RailMineLaser : MonoBehaviour
         beamSprites[1] = art.beam1;
         for (int i = 0; i < flashSprites.Length; i++) flashSprites[i] = art.flash[i];
         flame = art.flame;
+        kit = art.kit;
+        ResetPieces();
         tellTotal = Mathf.Max(.01f, tellSeconds);
         sparkSprites[0] = art.spark[0];
         sparkSprites[1] = art.spark[1];
@@ -326,6 +341,7 @@ public class RailMineLaser : MonoBehaviour
         EnsureHitbox();
         box.enabled = true;
         sight.enabled = false;
+        if (lockOn != null) lockOn.enabled = false;
         if (pilot != null) pilot.enabled = false;
         beam.enabled = flash.enabled = true;
         Place();
@@ -344,6 +360,8 @@ public class RailMineLaser : MonoBehaviour
         if (box != null) box.enabled = false;
         flash.enabled = impact.enabled = false;
         if (haze != null) haze.enabled = false;
+        if (spark != null) spark.enabled = false;
+        if (lockOn != null) lockOn.enabled = false;
     }
 
     // Gone at once (its mine is gone).
@@ -400,10 +418,12 @@ public class RailMineLaser : MonoBehaviour
             {
                 bool on = t >= aimDelay && Mathf.FloorToInt((t - aimDelay) / (BossArt.TelegraphBlinkTicks * tick)) % 2 == 0;
                 sight.enabled = on && sightSprite != null;
+                if (kit != null) { sight.sprite = kit.sight[Mathf.FloorToInt((t - aimDelay) / (BossArt.TelegraphBlinkTicks * tick) * .5f) & 1]; SpanTiled(sight, KitSightScale, length, dir, false); }
                 // the painted aim line has two drawings (aim a, b): one per blink
                 if (flame != null && flame.sightB != null) sight.sprite = Mathf.FloorToInt((t - aimDelay) / (BossArt.TelegraphBlinkTicks * tick) * .5f) % 2 == 0 ? sightSprite : flame.sightB;
-                Span(sight.transform, SightWidth, length, dir, flame != null ? sight.sprite : null);
+                if (kit == null) Span(sight.transform, SightWidth, length, dir, flame != null ? sight.sprite : null);
                 if (flame != null) PlacePilot();
+                if (kit != null) PlaceKitAim(on);
                 break;
             }
             case Phase.Beam:
@@ -411,7 +431,8 @@ public class RailMineLaser : MonoBehaviour
                 // a hot flicker on twos, never a smooth pulse (as the boss beams)
                 float w = DrawWidth * (Mathf.FloorToInt(age / (2f * tick)) % 2 == 0 ? 1f : .85f);
                 beam.enabled = beamSprites[0] != null;
-                if (flame != null)
+                if (kit != null) PlaceKitBeam(1f, false);
+                else if (flame != null)
                 {
                     // Ember: the flame-thrower. Tongues flow at 12 fps; the burst and the scorch run on their own loops
                     beam.sprite = flame.beam[Mathf.FloorToInt(age * 12f) % MineFlameArt.BeamFrames];
@@ -460,6 +481,7 @@ public class RailMineLaser : MonoBehaviour
                 // flickers out on ticks, thinning
                 float k = 1f - Mathf.Clamp01(t / CoolSeconds);
                 beam.enabled = beamSprites[0] != null && Mathf.FloorToInt(t / tick) % 2 == 0;
+                if (kit != null) { PlaceKitBeam(Mathf.Max(.2f, k), true); break; }
                 if (flame != null) beam.sprite = flame.beam[Mathf.FloorToInt((BeamSeconds + t) * 12f) % MineFlameArt.BeamFrames];
                 Span(beam.transform, DrawWidth * Mathf.Max(.2f, k), length, dir, flame != null ? beam.sprite : null);
                 break;
@@ -537,6 +559,92 @@ public class RailMineLaser : MonoBehaviour
         art.localScale = unit;
     }
 
+
+    // ---- the painted laser kit (Space ion, Frost ice, Verdant thorn vine): art only ----
+    //
+    // The world's boss-laser kit (AttackArt.BossLaser) laid on the mine's own geometry. The tell shows the kit's dotted aim line with its
+    // lock reticle at the far rail and the windup cells gathering at the muzzle; the beam is the four body frames (12 fps) tiled down its
+    // length (pixel-exact, not stretched) with the muzzle cells over its root and the impact burst and sparks where it meets the far rail;
+    // the cool-down plays the fade cells. Every size derives from the body: its opaque columns are exactly HitThickness wide, so the
+    // painted beam is the hit shape. The parallelogram (Span: both ends flush with a rail) and the hitbox are unchanged.
+    public const float KitSightScale = 2.4f;   // the aim line's 128 px tile (its 2 px dashes are ~.04 u wide), as the boss's
+    public const float KitLockScale = .8f;
+    public const float KitFlareToBody = 1.5f;
+    const float KitFps = 12f;
+
+    public static float KitBodyScale(AttackArt.LaserArt k) => HitThickness * 128f / k.bodyOpaquePx;
+
+    void ResetPieces()
+    {
+        ResetPiece(sight); ResetPiece(beam); ResetPiece(flash); ResetPiece(impact); ResetPiece(pilot); ResetPiece(haze); ResetPiece(lockOn); ResetPiece(spark);
+    }
+
+    static void ResetPiece(SpriteRenderer r)
+    {
+        if (r == null) return;
+        r.drawMode = SpriteDrawMode.Simple;
+        r.color = Color.white;
+        r.transform.localRotation = Quaternion.identity;
+        r.transform.localScale = Vector3.one;
+    }
+
+    // `art` (a renderer of a sprite one tile wide) tiled down the beam: `tile` is one tile's width in world units, the beam's parallelogram is
+    // Span's. turned: the art's TOP is the root (the body strip), so the strip is turned half a circle.
+    static void SpanTiled(SpriteRenderer r, float tile, float len, Vector2 dir, bool turned)
+    {
+        len = Mathf.Max(.001f, len);
+        Span(r.transform, tile, len, dir);
+        r.drawMode = SpriteDrawMode.Tiled;
+        r.tileMode = SpriteTileMode.Continuous;
+        float rows = len / tile;
+        r.size = new Vector2(1f, rows);
+        float sg = turned ? -1f : 1f;
+        r.transform.localScale = new Vector3(sg, sg / rows, 1f);
+    }
+
+    void PlaceKitAim(bool sightOn)
+    {
+        float body = KitBodyScale(kit);
+        float k = Mathf.Clamp01(t / tellTotal);
+        flash.enabled = true;
+        flash.sprite = kit.windup[Mathf.Min(7, Mathf.FloorToInt(k * 8f))];
+        flash.transform.localPosition = new Vector3(0f, FlashAlong, 0f);
+        flash.transform.localScale = Vector3.one * body * KitFlareToBody;
+        lockOn.enabled = sightOn;
+        lockOn.sprite = kit.lockOn[Mathf.FloorToInt(age / (2f * BossArt.Tick)) & 1];
+        lockOn.transform.localPosition = new Vector3(0f, length, 0f);
+        lockOn.transform.rotation = Quaternion.identity;
+        lockOn.transform.localScale = Vector3.one * KitLockScale;
+    }
+
+    void PlaceKitBeam(float w, bool cooling)
+    {
+        float body = KitBodyScale(kit);
+        beam.enabled = !cooling || Mathf.FloorToInt(t / BossArt.Tick) % 2 == 0;
+        beam.sprite = kit.body[Mathf.FloorToInt((cooling ? BeamSeconds + t : age) * KitFps) & 3];
+        SpanTiled(beam, body * w, length, dir, true);
+        flash.enabled = true;
+        flash.transform.localPosition = new Vector3(0f, FlashAlong, 0f);
+        flash.transform.localScale = Vector3.one * body * KitFlareToBody;
+        if (cooling)
+        {
+            flash.sprite = kit.fade[Mathf.Min(3, Mathf.FloorToInt(Mathf.Clamp01(t / CoolSeconds) * 4f))];
+            return;
+        }
+        flash.sprite = kit.muzzle[Mathf.FloorToInt(age * KitFps) & 3];
+        float size = body * KitFlareToBody;
+        impact.enabled = true;
+        impact.sprite = kit.impact[Mathf.FloorToInt(age * KitFps) & 3];
+        impact.transform.localRotation = Quaternion.Euler(0f, 0f, 180f);
+        impact.transform.localPosition = new Vector3(0f, length - size * kit.impactBasePx / 128f, 0f);
+        impact.transform.localScale = Vector3.one * size;
+        spark.enabled = true;
+        spark.sprite = kit.spark[Mathf.FloorToInt(age * 15f) & 3];
+        spark.transform.localPosition = new Vector3(0f, length, 0f);
+        spark.transform.rotation = Quaternion.identity;
+        spark.transform.localScale = Vector3.one * size;
+    }
+
     // Ember's charge-up: a pilot flame at the muzzle that grows through the whole windup like a gas flare building,
     // flickering faster as it nears the burst, flaring just before it. Harmless art; nothing here touches the hitbox.
     void PlacePilot()
@@ -558,6 +666,8 @@ public class RailMineLaser : MonoBehaviour
         sight.enabled = beam.enabled = flash.enabled = impact.enabled = false;
         if (pilot != null) pilot.enabled = false;
         if (haze != null) haze.enabled = false;
+        if (spark != null) spark.enabled = false;
+        if (lockOn != null) lockOn.enabled = false;
     }
 
     public void Recycle()
@@ -631,10 +741,13 @@ public sealed class MineLaserArt
     public Sprite sight, beam0, beam1;
     public readonly Sprite[] flash = new Sprite[BossAttackFx.FlashFrames];
     public readonly Sprite[] spark = new Sprite[2];
+    public AttackArt.LaserArt kit;   // Space / Frost / Verdant: the world's painted laser kit (AttackArt.BossLaser); sight / beam0 / beam1 / flash / spark below are its first cells
     public MineFlameArt flame;   // Ember only: the flame-thrower (MineFlameArt); sight / beam0 / beam1 / flash / spark above are its first cells
 
     // preview / tests only: Ember's mine draws the boss-cell beam like every other world (the before-picture)
     public static bool NoFlame;
+    // preview / tests only: Space / Frost / Verdant draw the recoloured boss-cell beam (the before-picture)
+    public static bool NoKit;
     public static void ResetCache() { for (int i = 0; i < worlds.Length; i++) worlds[i] = null; }
     public const int EmberWorld = 3;   // Tide (4) shares Ember's boss cells but keeps the recoloured beam: only world 3 is the flame
 
@@ -655,6 +768,17 @@ public sealed class MineLaserArt
             a.beam0 = fl.beam[0]; a.beam1 = fl.beam[1];
             a.flash[0] = fl.flash[0]; a.flash[1] = fl.flash[1];
             a.spark[0] = fl.spark[0]; a.spark[1] = fl.spark[1];
+            worlds[slot] = a;
+            return a;
+        }
+        var laser = slot <= 2 && !NoKit ? AttackArt.BossLaser(slot) : null;
+        if (laser != null)
+        {
+            a.kit = laser;
+            a.sight = laser.sight[0];
+            a.beam0 = laser.body[0]; a.beam1 = laser.body[1];
+            for (int i = 0; i < a.flash.Length; i++) a.flash[i] = laser.muzzle[Mathf.Min(i, laser.muzzle.Length - 1)];
+            a.spark[0] = laser.spark[0]; a.spark[1] = laser.spark[1];
             worlds[slot] = a;
             return a;
         }
