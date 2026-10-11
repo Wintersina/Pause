@@ -84,10 +84,21 @@ public static class DesertTuning
     static readonly PieceRule Hollow = new PieceRule(GroundClass.Open | GroundClass.Water, .75f, .3f);                         // wells, vents, glass: soft or flat ground
     static readonly PieceRule Dune = new PieceRule(GroundClass.Water, .8f, .3f);                                               // a dune ridge: sand
     static readonly PieceRule Anywhere = new PieceRule(GroundClass.Any, 0f, .2f);
+    // a pipe bridge laid ALONE (a bank piece; runs between structures lay
+    // their own): its pipes are sliced off at the cell edge, so both ends must
+    // come down on painted pipeline / ruin (Built) -- it carries a painted line
+    // over a gap -- never left standing on open sand. Never mirrored. Ends:
+    // share of the drawn width from the centre, y up, over its feet.
+    static readonly PieceRule PipeSpan0 = new PieceRule(GroundClass.Any, 0f, .2f)
+        .WithEnds(new Vector2(-.42f, -.12f), new Vector2(.42f, -.12f), GroundClass.Built);
+    static readonly PieceRule PipeSpan1 = new PieceRule(GroundClass.Any, 0f, .2f)
+        .WithEnds(new Vector2(-.30f, -.15f), new Vector2(.42f, -.15f), GroundClass.Built);
 
     public static PieceRule Rule(string piece)
     {
         if (piece == null) return Anywhere;
+        if (piece == "pipe_bridge_00") return PipeSpan0;
+        if (piece == "pipe_bridge_01") return PipeSpan1;
         if (piece == "dune_ridge") return Dune;
         if (piece.StartsWith("dry_well") || piece.StartsWith("heat_vent") || piece.StartsWith("fulgurite") || piece == "fused_glass_crater_rim")
             return Hollow;
@@ -752,7 +763,7 @@ public class DesertDirector : PlanetDirector
         var atlas = pipeBank ? pipeArt : fireArt;
         var pool = pipeBank ? pipes : fires;
         float x; double gy;
-        if (Spot(bank, sk, lo - .4f, hi + .4f, out x, out gy) && Put(pool, atlas, bank, sk, x, gy, Chance(.5)) != null) n++;
+        if (Spot(bank, sk, lo - .4f, hi + .4f, out x, out gy) && Put(pool, atlas, bank, sk, x, gy, !DesertTuning.Rule(bank).HasEnds && Chance(.5)) != null) n++;
         string caravan = Pick(DesertTuning.Caravans);
         float sv = Rand(DesertTuning.LandmarkMin * .9f, DesertTuning.LandmarkMax);
         bool lone = caravan == "lone_crawler";

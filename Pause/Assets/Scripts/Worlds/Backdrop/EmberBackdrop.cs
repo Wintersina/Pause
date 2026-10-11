@@ -82,13 +82,24 @@ public static class EmberTuning
     static readonly PieceRule Span = new PieceRule(GroundClass.Water, .3f, .2f, GroundClass.Land);
     static readonly PieceRule Bank = new PieceRule(GroundClass.Land, .6f, .28f, GroundClass.Water);
     static readonly PieceRule Anywhere = new PieceRule(GroundClass.Any, 0f, .2f);
+    // SPANS laid alone by a lava channel: both ends come down on the crust
+    // (never mirrored), so the viaduct / pipe crosses the lava from bank to
+    // bank instead of standing as a stub in it. Ends measured on the cells
+    // (share of the drawn width from the centre, y up): the viaduct's
+    // landfalls (Codex landfall repaint, 2026-10-11), the pipe bridges' open
+    // flanges over their feet.
+    public static readonly PieceRule ViaductSpan = Span.WithEnds(new Vector2(-.32f, -.05f), new Vector2(.32f, .18f), GroundClass.Land);
+    static readonly PieceRule PipeSpan0 = Span.WithEnds(new Vector2(-.40f, -.16f), new Vector2(.40f, -.16f), GroundClass.Land);
+    static readonly PieceRule PipeSpan1 = Span.WithEnds(new Vector2(-.40f, -.20f), new Vector2(.40f, -.20f), GroundClass.Land);
 
     public static PieceRule Rule(string piece)
     {
         if (piece == null) return Anywhere;
         if (piece.StartsWith("slagbarge") || piece.StartsWith("lavapool") || piece.StartsWith("lavachannel") ||
             piece.StartsWith("firebreak") || piece.StartsWith("magmabay")) return LavaRun;
-        if (piece.StartsWith("viaduct") || piece == "pipebridge_00" || piece == "pipebridge_01") return Span;
+        if (piece.StartsWith("viaduct")) return ViaductSpan;
+        if (piece == "pipebridge_00") return PipeSpan0;
+        if (piece == "pipebridge_01") return PipeSpan1;
         if (piece.StartsWith("lavafall")) return Bank;
         if (piece.StartsWith("slagpad") || piece.StartsWith("hatch")) return Clearing;
         if (piece.StartsWith("lavafountain") || piece.StartsWith("eruptionscar") || piece.StartsWith("coalbed") ||
@@ -654,7 +665,7 @@ public class EmberDirector : PlanetDirector
         bool pipeBank = bank.StartsWith("pipebridge");
         var atlas = pipeBank ? pipeArt : landmarkArt;
         if (Spot(bank, sk, lo - .4f, hi + 1.4f, out x, out gy) &&
-            Put(pipeBank ? pipes : ground, atlas, bank, sk, x, gy, bank.StartsWith("viaduct") && Chance(.5)) != null) n++;
+            Put(pipeBank ? pipes : ground, atlas, bank, sk, x, gy, !EmberTuning.Rule(bank).HasEnds && Chance(.5)) != null) n++;
         if (n == 0 || Chance(.5))
         {
             string pool = Pick(EmberTuning.Pools);

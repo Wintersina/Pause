@@ -88,6 +88,18 @@ public static class TideTuning
     static readonly PieceRule Shoal = new PieceRule(GroundClass.Open | GroundClass.Water, .85f, .3f);   // reefs, wrecks, vents, blooms
     static readonly PieceRule Anywhere = new PieceRule(GroundClass.Any, 0f, .2f);
     static readonly PieceRule SeaPlatform = new PieceRule(GroundClass.Any, 0f, .3f);                     // the sea sets: no deck to stand on
+    // SPANS laid alone (SeaScene's banks): a bridge section or pipe bridge is
+    // only a connector, its deck / pipe sliced off at both ends, so both ends
+    // must come down on a painted deck or city block (Built) -- it joins two
+    // structures -- never left standing in the open sea. On the sea sets
+    // (no deck) they are simply not laid alone. Ends: share of the drawn width
+    // from the centre, y up (never mirrored).
+    static readonly PieceRule BridgeSpan = new PieceRule(GroundClass.Any, 0f, .3f)
+        .WithEnds(new Vector2(-.42f, 0f), new Vector2(.42f, 0f), GroundClass.Built);
+    static readonly PieceRule PipeSpan0 = new PieceRule(GroundClass.Any, 0f, .2f)
+        .WithEnds(new Vector2(-.42f, -.1f), new Vector2(.42f, -.1f), GroundClass.Built);
+    static readonly PieceRule PipeSpan1 = new PieceRule(GroundClass.Any, 0f, .2f)
+        .WithEnds(new Vector2(-.33f, 0f), new Vector2(.36f, -.22f), GroundClass.Built);
 
     // The sets with next to no painted deck (open sea, night currents): a platform
     // there stands on its own foam base, anywhere free.
@@ -96,6 +108,9 @@ public static class TideTuning
     public static PieceRule Rule(string piece, bool openSea = false)
     {
         if (piece == null) return Anywhere;
+        if (piece.StartsWith("bridge_section")) return BridgeSpan;
+        if (piece == "pipebridge_00") return PipeSpan0;
+        if (piece == "pipebridge_01") return PipeSpan1;
         if (piece.StartsWith("tanker") || piece.StartsWith("trawlerbarge") || piece.StartsWith("mooring") ||
             piece.StartsWith("whirlpool") || piece.StartsWith("oil_slick") || piece.StartsWith("plankton")) return Floating;
         if (piece.StartsWith("reef_head") || piece.StartsWith("wreck_hull") || piece.StartsWith("bubbling_vent") ||
@@ -730,7 +745,7 @@ public class TideDirector : PlanetDirector
         bool pipeBank = bank.StartsWith("pipebridge"), feature = bank.StartsWith("whirlpool") || bank.StartsWith("oil_slick");
         var atlas = pipeBank ? pipeArt : feature ? fireArt : landmarkArt;
         var pool = pipeBank ? pipes : feature ? fires : ground;
-        if (Spot(bank, sk, lo - .4f, hi + 1.4f, out x, out gy) && Put(pool, atlas, bank, sk, x, gy, Chance(.5)) != null) n++;
+        if (Spot(bank, sk, lo - .4f, hi + 1.4f, out x, out gy) && Put(pool, atlas, bank, sk, x, gy, !TideTuning.Rule(bank, openSea).HasEnds && Chance(.5)) != null) n++;
         return n;
     }
 
