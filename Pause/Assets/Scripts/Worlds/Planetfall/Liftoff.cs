@@ -423,6 +423,8 @@ public class Liftoff : MonoBehaviour
             var theme = WorldManager.Worlds[Mathf.Clamp(def.interludeWorld, 0, WorldManager.Worlds.Length - 1)];
             if (WorldBackdrop.Instance != null) WorldBackdrop.Instance.Show(theme.displayName, false);
             WorldPainter.Apply(theme);
+            // the sky is Space's: so is what spawns, until the next arrival
+            WorldManager.BeginSpaceLeg(def.interludeWorld);
             // the planet's backdrop is gone: let its textures go too
             if (Application.isPlaying) Resources.UnloadUnusedAssets();
         }

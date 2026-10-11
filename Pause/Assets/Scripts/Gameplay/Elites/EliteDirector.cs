@@ -78,7 +78,7 @@ public class EliteDirector : MonoBehaviour
 
     // ---- scheduling (dt explicit for tests) ----------------------------------
 
-    public static int CurrentWorld => WorldManager.Instance != null ? WorldManager.CurrentIndex : -1;
+    public static int CurrentWorld => WorldManager.Instance != null ? WorldManager.SpawnWorld : -1;
 
     // Why nothing may spawn right now, or null.
     public static string Blocked(int worldIndex, float secondsInWorld)
