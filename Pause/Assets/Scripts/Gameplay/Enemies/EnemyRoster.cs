@@ -3,7 +3,7 @@ using UnityEngine;
 
 // Every enemy the spawner can field, per world, in one table.
 //
-// Each world (WorldManager.Worlds: Space, Frost, Verdant, Ember, Tide, Storm) fills the
+// Each world (WorldManager.Worlds: Space, Frost, Verdant, Ember, Tide, Storm, Desert) fills the
 // same gameplay roles, so enmiesOnBoard's phases and difficulty hold whatever
 // planet the player is on -- only the cast changes:
 //
@@ -72,9 +72,9 @@ public static class EnemyRoster
     public const int FrameCount = 7;                  // 0-3 idle, 4-5 tell, 6 hit flash
     public const int TellFrame = 4, HitFrame = 6;
 
-    public static readonly string[] WorldKeys = { "space", "frost", "verdant", "ember", "tide", "storm" };
+    public static readonly string[] WorldKeys = { "space", "frost", "verdant", "ember", "tide", "storm", "desert" };
 
-    public const int StormWorld = 5;
+    public const int StormWorld = 5, DesertWorld = 6;
 
     // ---- sizes ---------------------------------------------------------------
     // What each role measured before the redraw (world units), so every
@@ -581,6 +581,59 @@ public static class EnemyRoster
                 "A ball of storm-white lightning caged in a graphite lattice with spired caps.",
                 "Static caged in a lattice, drifting in lines with its charge on show. It pulses as it sinks - " +
                 "slip past on the down-beat, and mind the spark it spits."), 1.45f),
+            // ================================================================ DESERT
+            // The dune planet: bone-gold sand, dusty indigo shadow, matte oxidised copper, sun-white lights.
+            // Sand and grit burst as Rock (no Dust/Grit row yet; the plan's open question 4). Every body wears the thin pale
+            // border script (add_border.py): no pink on the bodies, pink belongs to hostile shots and attack effects only.
+            Scaled(Def("desert_rock_dune", "Dune Boulder", R, 6, 1, "hazard_desert_rock_dune", Rock,
+                "Wind-carved sandstone ball with deep grooves and a pale bone rim.",
+                "A boulder the wind has been working on for a thousand years. It tumbles down the dunes slow and " +
+                "wide: give it the room it takes."), 1.1f),
+            Def("desert_rock_spire", "Glass Spire", R, 6, 2, "hazard_desert_rock_spire", Rock,
+                "Sheared blade of fused sand-glass, facets catching the sun along one edge.",
+                "A spire of glass the old reactors fused out of the sand. It slides across the lane on one slanted " +
+                "line, edge flashing, so you see it early."),
+            Scaled(Def("desert_rock_husk", "Fulgurite Husk", R, 6, 3, "hazard_desert_rock_husk", Rock,
+                "Rough twisted sand-glass tube with a dark hollow down its middle.",
+                "A tube of lightning-fused sand with nothing inside it. It spins as it sinks and arrives sooner " +
+                "than it looks."), 1.1f),
+            Floating(Def("desert_rock_slab", "Dune Slab", R, 6, 4, "hazard_desert_rock_slab", Rock,
+                "Floating chunk of crust with a crescent crest, roots and old cable dangling below.",
+                "A slab of dune crust that lifted off in the last storm and never came down. It sways and bobs, " +
+                "wide and slow, trailing its roots.")),
+            Def("desert_mine", "Mirage Mine", M, 6, 0, "hazard_desert_mine", Mine,
+                "Neon pixel rail mine: a rusted brass lens-sphere on a clamp, dull and dark until its glass core lights white-gold, charges and bursts.",
+                "A lens the size of a shield, clamped to the rail. When its core lights a line blinks across the " +
+                "lane, then a heat-lance burns it - twice, at two angles. Be off the line."),
+            Def("desert_big", "Sandcrawler", B, 6, 0, "enemy_desert_big", Rock,
+                "Armoured rusted crawler hulk on twin treads with a bucket-wheel and a cabin.",
+                "A strip-mining crawler still on its last shift. It holds its column and spins up the bucket-wheel; " +
+                "when the wheel is at speed a fan of three sand-slugs leaves it - stand between them."),
+            Scaled(Def("desert_fighter_1", "Sand Skimmer", F, 6, 1, "enemy_desert_fighter_1", Rock,
+                "Tiny wedge dune-skiff with a skid fin and an open canopy.",
+                "A scavenger's skiff that rides the dune crests alongside you, then guns it straight at you in a " +
+                "plume of dust - and never steers."), 1.15f),
+            Def("desert_fighter_2", "Glint Hawk", F, 6, 2, "enemy_desert_fighter_2", Rock,
+                "Angular scavenger glider with mirror-plate wings and a hooked prow.",
+                "It lines up over you with its mirror wings flashing and spits three glass shards straight down. " +
+                "Keep moving."),
+            Def("desert_fighter_3", "Lens Gunner", F, 6, 3, "enemy_desert_fighter_3", Rock,
+                "Tripod gunship carrying a big round mirror lens.",
+                "It hangs on its three legs and the lens flares white for a long second before the heat-lance " +
+                "leaves it. Move after the flare, not before."),
+            Def("desert_fighter_4", "Dust Devil Tank", F, 6, 4, "enemy_desert_fighter_4", Rock,
+                "Squat armoured turret wrapped in swirling bands of sand.",
+                "The dune fleet's heavy: a turret in a dust cone. It parks, the cone spins up, and a ring of grit " +
+                "rolls out with one crack in it - find the crack."),
+            Scaled(Def("desert_chaser", "Scarab Drone", C, 6, 0, "enemy_desert_chaser", Rock,
+                "Beetle drone with copper elytra, mandibles and a single lens.",
+                "It dives into the sand, vanishes under a puff, comes up beside you and lunges. Watch the puff - " +
+                "that is where it surfaces."), 1.1f),
+            // (the wisp's veil and core draw ~0.5 u of its cell: shown 25% larger, inside the Alien role's 0.64 +/-15%)
+            Scaled(Def("desert_alien", "Mirage Wisp", A, 6, 0, "enemy_desert_alien", Rock,
+                "Shimmering heat-haze sprite: layered bone and glass veils round a hard sun-white core.",
+                "A trick of the heat with a hard bright core. It pulses as it sinks and sways; some spit a bolt " +
+                "of heat. Slip past on the down-beat."), 1.25f),
         };
     }
 }

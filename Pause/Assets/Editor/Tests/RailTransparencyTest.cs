@@ -165,7 +165,8 @@ public static class RailTransparencyTest
     // of the wider rails runs off the screen, which hides exactly what this test is after.
     static void WallWidthPx(WorldTheme theme, GameObject wall, Camera cam, out float median, out float max)
     {
-        string folder = string.IsNullOrEmpty(theme.resourceFolder) ? theme.displayName : theme.resourceFolder;
+        string folder = WorldPainter.RailArtWorld(theme.displayName) != theme.displayName ? WorldPainter.RailArtWorld(theme.displayName)   // (Desert flies Storm's rail until its own lands)
+                        : string.IsNullOrEmpty(theme.resourceFolder) ? theme.displayName : theme.resourceFolder;
         var tex = new Texture2D(2, 2, TextureFormat.RGBA32, false);
         tex.LoadImage(File.ReadAllBytes("Assets/Art/Resources/Worlds/" + folder + "/" + WorldPainter.RailTextureName(theme.displayName) + ".png"));
         var px = tex.GetPixels32();

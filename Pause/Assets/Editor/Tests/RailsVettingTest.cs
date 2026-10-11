@@ -132,7 +132,7 @@ public static class RailsVettingTest
     {
         var texs = new Dictionary<string, Texture2D>();
         var pxs = new Dictionary<string, Color32[]>();
-        foreach (var ap in new[] { RailMineArt.AtlasPath, RailMineArt.TideAtlasPath, RailMineArt.StormAtlasPath })
+        foreach (var ap in new[] { RailMineArt.AtlasPath, RailMineArt.TideAtlasPath, RailMineArt.StormAtlasPath, RailMineArt.DesertAtlasPath })
         {
             var t = new Texture2D(2, 2, TextureFormat.RGBA32, false);
             t.LoadImage(File.ReadAllBytes("Assets/Art/Resources/" + ap + ".png"));
@@ -163,9 +163,13 @@ public static class RailsVettingTest
                     }
                 whole &= opaque > 20000 && onBorder == 0;
                 float reach = (pivot.x - left) / RailMineArt.PixelsPerUnit;
+                if (w == RailMineArt.DesertWorld && c != RailMineArt.Dormant) continue;
                 minReach = Mathf.Min(minReach, reach);
                 maxReach = Mathf.Max(maxReach, reach);
-                reachOk &= Mathf.Abs(reach - RailMineArt.ClampReach) <= .03f;
+                // (Desert's Mirage Mine has a deeper clamp, RailMineArt.ClampReachFor; its lit cells -- waking, charging, burst -- spill the lens glow
+                // and rupture rays past the clamp's face, so their leftmost solid pixel is not the clamp: tracked art delta, those three are exempt)
+                if (!(w == RailMineArt.DesertWorld && c != RailMineArt.Dormant))
+                    reachOk &= Mathf.Abs(reach - RailMineArt.ClampReachFor(w)) <= .03f;
                 if (c == RailMineArt.Dormant) red[w] = reddish / (float)opaque;
             }
         foreach (var t in texs.Values) Object.DestroyImmediate(t);
@@ -200,7 +204,7 @@ public static class RailsVettingTest
                 float inL, outL, inR, outR;
                 bool art = WorldPainter.VisibleRailEdges(walls[0], out inL, out outL) & WorldPainter.VisibleRailEdges(walls[1], out inR, out outR);
                 float left = enmiesOnBoard.WorldRailX(true), right = enmiesOnBoard.WorldRailX(false);
-                float clampFace = right + RailMineArt.ClampReach;
+                float clampFace = right + RailMineArt.ClampReachFor(w);
                 lowest = Mathf.Min(lowest, right);
                 highest = Mathf.Max(highest, right);
                 bool ok = art && Mathf.Abs(inL - inR) < .01f && Mathf.Approximately(left, -right) &&

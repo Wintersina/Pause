@@ -2,13 +2,13 @@
 // own planetfall art (the same globe, limb, cloud decks, plasma and burst,
 // flown the other way), the world whose backdrop is the space between
 // planets, and its words. One entry per world that is left by lift-off
-// (LiftoffCatalog: Frost, Verdant, Ember, Tide, Storm); everything else about the sequence is the same for
+// (LiftoffCatalog: Frost, Verdant, Ember, Tide, Storm, Desert); everything else about the sequence is the same for
 // every planet (Liftoff, LiftoffTimeline).
 //
 // The way on after the interlude is not the lift-off's business: it is
 // WorldManager.OpenGateway, which flies the next planet's planetfall when
 // PlanetfallCatalog has one (Verdant after Frost, Ember after Verdant, Tide
-// after Ember once WorldManager.TideEnabled, Storm after Tide once WorldManager.StormEnabled) and opens the portal otherwise.
+// after Ember once WorldManager.TideEnabled, Storm after Tide once WorldManager.StormEnabled, Desert after Storm once WorldManager.DesertEnabled) and opens the portal otherwise.
 // A lift-off that loops (AutoLoopNow: Tide's, the last world; Ember's only
 // while the release switch is off and it is still the last LIVE world) skips
 // the loop portal: the interlude already flies Space's sky, so the run
@@ -20,7 +20,7 @@ public class LiftoffDef
     public PlanetfallDef planet;        // the planet's art, numbers and colours
     public int interludeWorld;          // whose backdrop (and rails) the interlude flies: Space
     public string banner;               // as the ship is taken: LIFT OFF
-    public bool autoLoop;               // the final world (Tide, Storm; AutoLoopNow says whether it is the last LIVE one): after the interlude the loop starts at once, no portal
+    public bool autoLoop;               // the final world (Tide, Storm, Desert; AutoLoopNow says whether it is the last LIVE one): after the interlude the loop starts at once, no portal
                                         // (when the loop leads back to interludeWorld; else its portal)
 
     // Ember's only: until the release switch flips (WorldManager.TideEnabled) it
@@ -102,7 +102,18 @@ public static class LiftoffCatalog
         autoLoop = true,
     };
 
-    public static readonly LiftoffDef[] Defs = { Frost, Verdant, Ember, Tide, Storm };
+    // Desert: leaving the dune planet after its boss, the final world once
+    // WorldManager.DesertEnabled. No loop portal (as Tide's and Storm's, while last).
+    public static readonly LiftoffDef Desert = new LiftoffDef
+    {
+        world = 6,
+        planet = PlanetfallCatalog.Desert,
+        interludeWorld = 0,
+        banner = "LIFT OFF",
+        autoLoop = true,
+    };
+
+    public static readonly LiftoffDef[] Defs = { Frost, Verdant, Ember, Tide, Storm, Desert };
 
     // The lift-off for leaving `from` for `to` (the next planet, or the
     // loop's way round), or null for the portal straight away.

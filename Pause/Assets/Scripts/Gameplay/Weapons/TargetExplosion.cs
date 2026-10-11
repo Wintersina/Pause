@@ -66,6 +66,7 @@ public static class TargetExplosion
             case "verdant": return Kind.Spore;
             case "ember": return Kind.Magma;
             case "tide": return Kind.Ice;   // stand-in until Tide's own Water row (add-world phase 12)
+            case "desert": return Kind.Rock;   // sand and grit: Rock's debris until a Dust/Grit row (docs/desert-world-plan.md section 11, question 4)
             default: return Kind.Metal;   // space and storm (iron and sparks: Storm has no row of its own)
         }
     }

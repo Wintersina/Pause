@@ -296,7 +296,7 @@ public static class RailsShipSizeTest
     static void RenderedEdge(Material live, WorldTheme theme)
     {
         string world = theme.displayName;
-        string folder = string.IsNullOrEmpty(theme.resourceFolder) ? world : theme.resourceFolder;
+        string folder = WorldPainter.RailArtWorld(world) != world ? WorldPainter.RailArtWorld(world) : string.IsNullOrEmpty(theme.resourceFolder) ? world : theme.resourceFolder;   // (Desert flies Storm's rail)
         string path = "Assets/Art/Resources/Worlds/" + folder + "/" + WorldPainter.RailTextureName(world) + ".png";
         var source = new Texture2D(2, 2, TextureFormat.RGBA32, false);
         source.LoadImage(File.ReadAllBytes(path));

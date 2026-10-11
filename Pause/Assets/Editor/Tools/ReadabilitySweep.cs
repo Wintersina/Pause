@@ -7,7 +7,7 @@ using UnityEngine;
 
 // READABILITY SWEEP: does everything hostile read over every backdrop?
 //
-// For each world and each of its backdrop variants (Frost / Verdant / Ember / Tide: every
+// For each world and each of its backdrop variants (Frost / Verdant / Ember / Tide / Desert: every
 // installed v1..v4; Space: the one set), at 2 s (the cloud
 // ceiling), 10 s and 40 s of the
 // backdrop's own clock (as drawn: its grade, set pieces, clouds), it renders
@@ -47,7 +47,7 @@ public static class ReadabilitySweep
     const int Width = 540, Height = 1260;     // a 21:9 phone at half resolution
     const float Dt = 1f / 60f;
     public const float MinContrast = 3f;
-    static readonly string[] Worlds = { "Space", "Frost", "Verdant", "Ember", "Tide", "Storm" };   // (Storm over its stand-in backdrop, Tide's, until its own lands)
+    static readonly string[] Worlds = { "Space", "Frost", "Verdant", "Ember", "Tide", "Storm", "Desert" };   // (Storm over its stand-in backdrop, Tide's, until its own lands; Desert has its own: READABILITY_WORLDS=Desert)
     static readonly float[] Moments = { 2f, 10f, 40f };   // 2 s: the opening cloud ceiling at its thickest
 
     sealed class Item
@@ -174,7 +174,7 @@ public static class ReadabilitySweep
     {
         string world = Worlds[w];
         var spec = BackdropCatalog.For(world);
-        string backdrop = spec.world;   // Storm: the stand-in's (Tide)
+        string backdrop = spec.world;   // Storm: the stand-in's (Tide); Desert: its own
         var picker = BackdropVariants.For(backdrop);
         var items = Items(w);
         var enemies = items.FindAll(i => i.kind == "enemy");

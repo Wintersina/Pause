@@ -16,7 +16,10 @@ using UnityEngine;
 // is the third file, rail_mines_neon_storm.png (1254x314, one row, Tide's
 // frame rects; its own pivots: the clamp sits 65 px into every panel and its
 // centre line at y 165, so each pivot is placed 128 px right of the clamp's
-// solid left edge, as Tide's are).
+// solid left edge, as Tide's are). Desert's Mirage Mine is the FOURTH file,
+// rail_mines_neon_desert.png (1254x314, one row, panels cut at x 0 / 313 / 627 /
+// 940 / 1254); every frame's pivot is the lens centre, 215 px into its panel at
+// y 158 (the lens the heat-lance leaves from: its bright core IS the pivot).
 //
 // The drawings don't sit on the even 313.5 px grid the old slicer cut (the
 // rows drift up and the columns left, so Verdant's and Ember's top lugs were
@@ -43,7 +46,8 @@ public static class RailMineArt
     public const int VerdantWorld = 2, VerdantLitAtlasHeight = 298, VerdantRowY = 594;
     public const int OriginalWorlds = 4;   // the rows of the original atlas
     public const string StormAtlasPath = "Enemies/Mines/rail_mines_neon_storm";
-    public const int Worlds = 6;           // Space, Frost, Verdant, Ember (original atlas), Tide (second atlas), Storm (third atlas)
+    public const string DesertAtlasPath = "Enemies/Mines/rail_mines_neon_desert";
+    public const int Worlds = 7;           // Space, Frost, Verdant, Ember (original atlas), Tide (second atlas), Storm (third atlas), Desert (fourth atlas)
     public const int TideAtlasHeight = 314;
     public const int Dormant = 0, Waking = 1, Charging = 2, Burst = 3;
     public const int Columns = 4;
@@ -63,6 +67,12 @@ public static class RailMineArt
     // drawn inner edge is at `railInnerEdge`.
     public static float MountX(float railInnerEdge) { return railInnerEdge + ClampBite - ClampReach; }
 
+    // The Mirage Mine's clamp is a deeper one: its dormant drawing's solid left edge sits 157 px (0.409 u) from the pivot, not the
+    // other rows' ~128 (.33 u). The same bite into the rail, so its centre is put that much further out.
+    public const float DesertClampReach = .409f;
+    public static float ClampReachFor(int world) { return world == DesertWorld ? DesertClampReach : ClampReach; }
+    public static float MountX(float railInnerEdge, int world) { return railInnerEdge + ClampBite - ClampReachFor(world); }
+
     // Atlas size and per-frame rects in image pixels, top-left origin
     // (as an image viewer shows them): x, y, width, height.
     public const int AtlasSize = 1254;
@@ -80,6 +90,8 @@ public static class RailMineArt
         new RectInt(0, 0, 330, 314), new RectInt(330, 0, 308, 314), new RectInt(638, 0, 309, 314), new RectInt(947, 0, 307, 314),
         // Storm (the third atlas, one row, the same cuts as Tide's)
         new RectInt(0, 0, 330, 314), new RectInt(330, 0, 308, 314), new RectInt(638, 0, 309, 314), new RectInt(947, 0, 307, 314),
+        // Desert (the fourth atlas, one row): the panels' own gaps, 313 / 314 / 313 / 314 wide
+        new RectInt(0, 0, 313, 314), new RectInt(313, 0, 314, 314), new RectInt(627, 0, 313, 314), new RectInt(940, 0, 314, 314),
     };
 
     // Each frame's pivot in image pixels (top-left origin): where the rail is.
@@ -93,6 +105,8 @@ public static class RailMineArt
         new Vector2(186f, 161f), new Vector2(490f, 161f), new Vector2(788f, 161f), new Vector2(1093f, 161f),
         // Storm: the clamp's solid left edge sits 65 px into every panel, 128 px left of the pivot (Tide's rule); centre line y 165
         new Vector2(193f, 165f), new Vector2(523f, 165f), new Vector2(831f, 165f), new Vector2(1140f, 165f),
+        // Desert: the lens centre, (215, 158) inside every panel (the user-approved pivot)
+        new Vector2(215f, 158f), new Vector2(528f, 158f), new Vector2(842f, 158f), new Vector2(1155f, 158f),
     };
 
     // The core: where the mine's laser leaves it (RailMineLaser.MuzzleOf).
@@ -108,6 +122,7 @@ public static class RailMineArt
         new Vector2(38.1f, -2.2f),   // Ember
         new Vector2(27.5f, .7f),     // Tide (same method; the brightest pixels sit on the eye's glare)
         new Vector2(14.5f, 1.2f),    // Storm: the white coil's centroid in the waking / charging frames (12.8, .4) and (16.2, 2.1)
+        new Vector2(0f, 0f),         // Desert: the heat-lance leaves the lens centre = the pivot (the bright core's centroid in the waking / charging frames is exactly (0, 0))
     };
 
     // The core's offset from the mine's centre in world units (unscaled,
@@ -121,7 +136,7 @@ public static class RailMineArt
     // detonation, RailBombAnimator.Burst) is the burst.
     public static readonly int[] FlipbookColumns = { Dormant, Waking, Dormant, Dormant, Waking, Charging, Burst };
 
-    static Texture2D atlas, tideAtlas, stormAtlas, litAtlas;
+    static Texture2D atlas, tideAtlas, stormAtlas, desertAtlas, litAtlas;
     static Sprite[] sprites;   // [world * Columns + column]
     static readonly Sprite[] litSprites = new Sprite[Columns];
 
@@ -161,12 +176,17 @@ public static class RailMineArt
 
     // The atlas file a world's mine is drawn from.
     public static string AtlasPathFor(int world) =>
-        world < OriginalWorlds ? AtlasPath : world == StormWorld ? StormAtlasPath : TideAtlasPath;
-    public const int StormWorld = 5;
+        world < OriginalWorlds ? AtlasPath : world == DesertWorld ? DesertAtlasPath : world == StormWorld ? StormAtlasPath : TideAtlasPath;
+    public const int StormWorld = 5, DesertWorld = 6;
 
     public static Texture2D AtlasFor(int world)
     {
         if (world < OriginalWorlds) return Atlas;
+        if (world == DesertWorld)
+        {
+            if (desertAtlas == null) desertAtlas = Resources.Load<Texture2D>(DesertAtlasPath);
+            return desertAtlas;
+        }
         if (world == StormWorld)
         {
             if (stormAtlas == null) stormAtlas = Resources.Load<Texture2D>(StormAtlasPath);

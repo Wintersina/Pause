@@ -64,6 +64,7 @@ public static class BossDamageTest
             DeathStripArt(3, "Ember");
             DeathStripArt(4, "Tide");
             StormDeathStrip();
+            DesertOwnStrips();
             for (int w = 0; w < 6; w++) DeathStripPlaysOnce(w);
             EveryBossHasDeathArt();
             BossDeathSoundHook();
@@ -221,7 +222,7 @@ public static class BossDamageTest
         bool ok = true;
         foreach (var b in all)
         {
-            bool space = b.artKey == "Space" || b.artKey == "Frost" || b.artKey == "Ember" || b.artKey == "Tide" || b.artKey == "Verdant" || b.artKey == "Storm";
+            bool space = b.artKey == "Space" || b.artKey == "Frost" || b.artKey == "Ember" || b.artKey == "Tide" || b.artKey == "Verdant" || b.artKey == "Storm" || b.artKey == "Desert";
             // (Storm wears BossCatalog.StormDamageKey: the Kraken's art until Storm_damage*.png are installed, then "Storm")
             string key = b.artKey == "Storm" ? BossCatalog.StormDamageKey : b.artKey;
             ok &= BossArt.HasDamageArt(b) == space && (space ? b.damageKey == key : string.IsNullOrEmpty(b.damageKey));
@@ -594,6 +595,28 @@ public static class BossDamageTest
         // the flow: it ends, then the encounter finishes and the world transition callback fires
         for (int i = 0; i < 400 && !done; i++) e.Step(Dt, 1f);
         Check("defeat flow completes: the boss is gone and the finished callback (world transition) fires", done);
+    }
+
+    // The Dune-Eater (Desert): its own damage stages, damage fx and 6-cell death strip (Codex, thin pale border added by add_border_big.py).
+    static void DesertOwnStrips()
+    {
+        var d = BossCatalog.ForWorld(6);
+        Check("Desert: damage key and death key are Desert's own, both installed under Resources/Bosses",
+              d.artKey == "Desert" && d.damageKey == "Desert" && d.deathKey == "Desert" && BossArt.HasDamageArt(d) && BossArt.HasDeathArt(d) &&
+              System.IO.File.Exists("Assets/Art/Resources/Bosses/Desert_damage.png") && System.IO.File.Exists("Assets/Art/Resources/Bosses/Desert_damage_fx.png") &&
+              System.IO.File.Exists("Assets/Art/Resources/Bosses/Desert_death.png"));
+        var seen = new HashSet<Sprite>();
+        bool six = true;
+        for (int i = 0; i < BossArt.DeathStripCells; i++)
+        {
+            var s = BossArt.DeathStrip(d, i);
+            six &= s != null && seen.Add(s) && s.rect.width == 384f && s.rect.height == 384f;
+        }
+        Check("Desert death strip: 6 distinct 384 px cells", six && seen.Count == 6);
+        var b0 = Box(BossArt.DeathStrip(d, 0));
+        var ibox = Box(BossArt.Body(d, BossArt.IdleFrame(d, 0f)));
+        Check("Desert death cell 0 is registered to its idle cell", b0 != null && ibox != null &&
+              Mathf.Abs((b0[0] + b0[2]) / 2f - (ibox[0] + ibox[2]) / 2f) <= 40f && Mathf.Abs((b0[1] + b0[3]) / 2f - (ibox[1] + ibox[3]) / 2f) <= 40f);
     }
 
     static void EveryBossHasDeathArt()

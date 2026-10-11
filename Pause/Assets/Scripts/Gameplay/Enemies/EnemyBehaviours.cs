@@ -18,7 +18,7 @@ using UnityEngine;
 public enum EnemyLateral { None, Drift, Glide, Sway, Orbit, Track, March }
 public enum EnemyVertical { None, Bob, Pulse, Brake, Sink, Patrol, Creep }
 public enum EnemyAttack { None, Lunge, Shot, Ring, Cross, Lob, Laser, Blast, Strike, Jet, Wave, Lash }
-public enum ChaserStyle { Hound, Lancer, Weaver, Burner, Slither, Spiral }
+public enum ChaserStyle { Hound, Lancer, Weaver, Burner, Slither, Spiral, Burrow }
 
 // PRESENCE. A Hazard (rocks, rail mines) rides the board and rushes past. A
 // Pilot (fighters, heavies, chasers, aliens) is piloted or alive: it flies
@@ -564,6 +564,47 @@ public static class EnemyBehaviours
             .Linger(6f);
         B("storm_alien", "Static Mote: pulses as it sinks, quick sway; some spit a ball of static")
             .Sway(.22f, 1.4f).Pulse(.3f, 1.2f).Shot(Bolt, 1, 0f, 2f, .16f).Armed(.35f).Timing(.6f, 3.6f, 1, .15f)
+            .Descend(1.1f).Volleys(2);
+
+        // ================================================================ DESERT
+        // The dune planet's cast, in sand, glass and heat: the shots are sand-slugs, glass shards and heat-lances
+        // (the hostile pink core and keyline on pale bodies, ShotSkins' procedural skins), the Dust Devil Tank
+        // rolls a ring of grit with a crack (AttackBlast) and the Scarab Drone BURROWS (ChaserStyle.Burrow).
+        // Budgets never above the attacks they replace (AttackBudgetTest).
+        B("desert_rock_dune", "dune boulder: slow wide tumble, long lazy drift, a faint bob")
+            .Drift(.65f, .3f).Bob(.05f, 3f).Spin(10f, 28f)
+            .Sizes(.8f, .96f, 1.4f);
+        B("desert_rock_spire", "glass spire: barely turns, one fast slanted slice across the lane")
+            .Glide(1.2f, 1f).Spin(4f, 8f)
+            .Sizes(.76f, 1.02f, 1.24f);
+        B("desert_rock_husk", "fulgurite husk: sinks down the board, spinning")
+            .Sink(1.3f, .5f).Spin(24f, 46f)
+            .Sizes(.8f, .96f, 1.4f);
+        B("desert_rock_slab", "dune slab: wide slow sway and bob, upright")
+            .Sway(.7f, 4.6f).Bob(.15f, 3.4f).Tilt(EnemyRoster.FloatSwayDegrees, EnemyRoster.FloatSwayPeriod)
+            .Sizes(.8f, .92f, 1.48f);
+        B("desert_mine", "mirage mine: creeps down its rail, the lens core lights white-gold, two heat-lances across the lane at random angles, riding up beside the ship to fire them")
+            .Creep(1.45f, .7f).Laser().Muzzle(.5f).Timing(1f, RailMineLaser.ShotGapSeconds, RailMineLaser.ShotsPerRide, .15f);
+        B("desert_big", "Sandcrawler: holds its column, the bucket-wheel spins up, a fan of three sand-slugs")
+            .Bob(.04f, 3.6f).Shot(Shard, 3, 28f, 1.8f, .26f).Muzzle(.45f).Timing(1f, 3.6f, 2, .15f)
+            .Pilot(PilotEntry.Drop, 1.5f, 9f, PilotExit.Climb).Slow().Volleys(3);
+        B("desert_fighter_1", "Sand Skimmer: diagonal drift, then a straight dash trailing dust that never steers")
+            .Drift(.55f, .75f).Lunge(0f, 1.8f, .22f).Timing(.45f, 2.1f, 1, .15f)
+            .Pilot(PilotEntry.Swoop, 2.4f, 2.5f, PilotExit.Run).Volleys(0);
+        B("desert_fighter_2", "Glint Hawk: lines up over the pilot, three quick glass shards straight down")
+            .Track(.6f, .95f).Shot(Shard, 1, 0f, 3.7f, .18f).Timing(.5f, 1.5f, 3, .15f)
+            .Pilot(PilotEntry.Drop, 2.2f, 5.5f, PilotExit.Peel).Volleys(4);
+        B("desert_fighter_3", "Lens Gunner: hovers, the lens flares white for nearly a second, then one aimed heat-lance")
+            .Drift(.55f, .45f).Brake(1.4f, .6f).Shot(Bolt, 1, 0f, 3.9f, .15f, 32f).Timing(.9f, 2.2f, 2, .15f)
+            .Pilot(PilotEntry.Drop, 2.2f, 7f, PilotExit.Peel).Volleys(3);
+        B("desert_fighter_4", "Dust Devil Tank: hovers, tracks slowly, the cone spins up, a ring of grit with a crack in it")
+            .Track(.5f, .3f).Brake(1.6f, .6f).Blast(BlastSpec.Wide(6)).Muzzle(0f).Timing(1.2f, 3.9f, 2, .15f)
+            .Pilot(PilotEntry.Drop, 1.5f, 9f, PilotExit.Climb).Volleys(3);
+        B("desert_chaser", "Scarab Drone: runs in, dives under a sand puff, resurfaces beside the pilot and lunges")
+            .Chaser(ChaserStyle.Burrow, 4.4f, 2.2f, 1f, 1f, .75f)
+            .Linger(6f);
+        B("desert_alien", "Mirage Wisp: pulses as it sinks, quick sway; some spit a heat bolt")
+            .Sway(.22f, 1.5f).Pulse(.3f, 1.3f).Shot(Bolt, 1, 0f, 2f, .16f).Armed(.35f).Timing(.6f, 3.6f, 1, .15f)
             .Descend(1.1f).Volleys(2);
 
         var built = building;

@@ -92,6 +92,19 @@ public static class EnemyDeathAudio
         new[] { "storm_elite_rod_dancer",         "ember_elite_ash_wraith",    "1.10" },   // skirmisher
         new[] { "storm_elite_anvil_cloud",        "ember_elite_brass_vulture", "0.85" },   // siege gunner, a bigger body
         new[] { "storm_elite_static_bastion",     "space_elite_eventide_bastion", "0.90" }, // bastion crew
+        // Desert (docs/desert-wire.md): the living occupants are the skimmer, hawk and gunner pilots, the scarab (chitter), the wisp (reedy)
+        // and the elite crews; the crawler, tank, mine and rocks have none
+        new[] { "desert_fighter_1",               "ember_fighter_1",           "1.30" },   // Sand Skimmer: tiny, startled
+        new[] { "desert_fighter_2",               "verdant_fighter_2",         "1.15" },   // Glint Hawk: tense nasal cry
+        new[] { "desert_fighter_3",               "ember_fighter_3",           "1.00" },   // Lens Gunner: strained
+        new[] { "desert_chaser",                  "verdant_fighter_3",         "1.30" },   // Scarab Drone: a high insect chitter
+        new[] { "desert_alien",                   "ember_alien",               "1.45" },   // Mirage Wisp: reedy, thin
+        new[] { "desert_elite_dune_stalker",      "ember_elite_coalrunner",    "1.00" },   // interceptor pilot
+        new[] { "desert_elite_caravan_hauler",    "space_elite_singularity_hauler", "0.85" },   // hauler crew
+        new[] { "desert_elite_lens_matriarch",    "ember_elite_ash_wraith",    "1.00" },   // kiter
+        new[] { "desert_elite_glass_cannon",      "ember_elite_brass_vulture", "0.85" },   // siege gunner
+        new[] { "desert_elite_scorpion_walker",   "ember_elite_brass_vulture", "0.95" },   // the walker's creature cry
+        new[] { "desert_elite_mirror_bastion",    "space_elite_eventide_bastion", "0.90" }, // bastion crew
     };
     // Death-cue reuse (Tide): a key with no clips of its own plays a DONOR key's clips at a pitch (playback speed relative to the donor),
     // with the world's wet layer (WetLayer: tide_wet_0..) under it. Authored water is only that layer; the rest is other worlds'
@@ -136,15 +149,41 @@ public static class EnemyDeathAudio
         new[] { "boss_storm",                  "boss_space",                     "0.88" },   // the floating turbine engine: a capital hull breaking
     };
     public const string WetLayer = "tide_wet_";       // under every aliased Tide death
+    // Desert (docs/desert-wire.md): donors chosen for what the unit physically is; NO authored layer under them yet (the plan's
+    // dry grit / glass / brass materials are the donors' own crunch, glass and metal; a sand-slump layer is a later sound job)
+    public static readonly string[][] DesertAlias =
+    {
+        new[] { "desert_rock_dune",   "frost_rock_chunk",       "0.85" },   // sandstone crumble: a heavy crunch, slower
+        new[] { "desert_rock_spire",  "frost_rock_shard",       "1.00" },   // fused glass: brittle snap
+        new[] { "desert_rock_husk",   "ember_rock_obsidian",    "0.90" },   // fulgurite tube: glassy crack
+        new[] { "desert_rock_slab",   "ember_rock_islet",       "0.88" },   // floating crust slab: a dull crumble
+        new[] { "desert_mine",        "ember_mine",             "0.90" },   // rusted lens mine: concussive pop
+        new[] { "desert_big",         "ember_big",              "0.85" },   // Sandcrawler: a heavy hull collapsing, rolling rumble
+        new[] { "desert_fighter_1",   "space_fighter_1",        "0.95" },   // Sand Skimmer: sheet-metal tear
+        new[] { "desert_fighter_2",   "frost_fighter_2",        "1.15" },   // Glint Hawk: brittle glass crash
+        new[] { "desert_fighter_3",   "frost_fighter_3",        "0.90" },   // Lens Gunner: lens shatter and servo whine down
+        new[] { "desert_fighter_4",   "ember_fighter_4",        "0.80" },   // Dust Devil Tank: heavy rolling collapse
+        new[] { "desert_chaser",      "verdant_chaser",         "1.10" },   // Scarab Drone: chitin crunch
+        new[] { "desert_alien",       "ember_alien",            "1.20" },   // Mirage Wisp: a papery heat-pop
+        new[] { "desert_elite_dune_stalker",    "ember_elite_coalrunner",        "1.00" },   // interceptor
+        new[] { "desert_elite_caravan_hauler",  "space_elite_singularity_hauler", "0.80" },   // crawler hauler
+        new[] { "desert_elite_lens_matriarch",  "ember_elite_ash_wraith",        "1.05" },   // kiter
+        new[] { "desert_elite_glass_cannon",    "ember_elite_cauterizer",        "0.80" },   // siege cannon
+        new[] { "desert_elite_scorpion_walker", "ember_elite_kilnback",          "0.90" },   // walker: a big armoured creature-machine
+        new[] { "desert_elite_mirror_bastion",  "space_elite_eventide_bastion",  "0.88" },   // ward bastion
+        new[] { "boss_desert",                  "boss_space",                    "0.80" },   // the feral excavator: a capital hull breaking, slower and heavier
+    };
     public const string StormLayer = "storm_crack_";  // under every aliased Storm death (thunder crack, rumble, sizzle)
     public static float WetVolume = .6f;               // relative to the death cue
     public static float StormVolume = .55f;
     // The authored layer prefix a key's aliased death wears ("" none).
-    public static string LayerOf(string key) { return key.StartsWith("storm_") || key == "boss_storm" ? StormLayer : WetLayer; }
+    public static string LayerOf(string key) { return IsDesert(key) ? "" : key.StartsWith("storm_") || key == "boss_storm" ? StormLayer : WetLayer; }
+    public static bool IsDesert(string key) { return key != null && (key.StartsWith("desert_") || key == "boss_desert"); }
     static float LayerVolume(string key) { return key.StartsWith("storm_") || key == "boss_storm" ? StormVolume : WetVolume; }
     public static string DonorOf(string key)
     {
         for (int i = 0; i < DeathAlias.Length; i++) if (DeathAlias[i][0] == key) return DeathAlias[i][1];
+        for (int i = 0; i < DesertAlias.Length; i++) if (DesertAlias[i][0] == key) return DesertAlias[i][1];
         return null;
     }
     public static readonly Dictionary<string, Borrow> ScreamBorrow = BuildBorrows();
@@ -372,9 +411,12 @@ public static class EnemyDeathAudio
             {
                 var d = Clips(donor);
                 k.deaths = d.deaths;
-                k.wet = Load(LayerOf(key)); k.layerVolume = LayerVolume(key);
+                string layer = LayerOf(key);
+                k.wet = string.IsNullOrEmpty(layer) ? None : Load(layer); k.layerVolume = LayerVolume(key);
                 for (int i = 0; i < DeathAlias.Length; i++)
                     if (DeathAlias[i][0] == key) k.pitch = float.Parse(DeathAlias[i][2], System.Globalization.CultureInfo.InvariantCulture);
+                for (int i = 0; i < DesertAlias.Length; i++)
+                    if (DesertAlias[i][0] == key) k.pitch = float.Parse(DesertAlias[i][2], System.Globalization.CultureInfo.InvariantCulture);
             }
         }
         authored[key] = k;

@@ -43,6 +43,7 @@ public static partial class AttackHazardArt
             case 3: return new Ramp { light = Hsv(27, .6f, 1f), dark = Hsv(23, .62f, .9f) };         // ember: hot orange, never amber 37
             case 4: return new Ramp { light = Hsv(205, .2f, 1f), dark = Hsv(212, .4f, .9f) };        // tide: white water
             case 5: return new Ramp { light = Hsv(58, .3f, 1f), dark = Hsv(214, .28f, .9f) };         // storm: pale-yellow arc edge on storm-white, never lilac
+            case 6: return new Ramp { light = Hsv(45, .2f, 1f), dark = Hsv(40, .3f, .88f) };          // desert: pale bone sand (S <= .33, never star-dust amber)
             default: return new Ramp { light = Hsv(285, .25f, 1f), dark = Hsv(288, .4f, .9f) };      // space: lilac neon
         }
     }
@@ -53,6 +54,7 @@ public static partial class AttackHazardArt
         {
             case 1: return StrikeStyle.Icicle;
             case 3: return StrikeStyle.Eruption;
+            case 6: return StrikeStyle.Eruption;   // the burrower: a column of sand and shards (Ember's eruption shape in Desert's ramp)
             default: return StrikeStyle.Thunder;
         }
     }

@@ -1233,7 +1233,7 @@ public static class EliteTest
         }
         // (Tide's and Storm's sections stay out of the panel until WorldManager.TideEnabled / StormEnabled: their cards are TideEliteTest's and StormEliteTest's)
         int shown = 0;
-        foreach (var d in EliteCatalog.All) if ((d.WorldIndex != 4 || WorldManager.TideEnabled) && (d.WorldIndex != 5 || WorldManager.StormEnabled)) shown++;
+        foreach (var d in EliteCatalog.All) if ((d.WorldIndex != 4 || WorldManager.TideEnabled) && (d.WorldIndex != 5 || WorldManager.StormEnabled) && (d.WorldIndex != 6 || WorldManager.DesertEnabled)) shown++;
         Check("rendered every elite's locked card (" + tested + ")", tested == shown);
     }
 }

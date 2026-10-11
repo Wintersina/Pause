@@ -626,7 +626,7 @@ public class enmiesOnBoard : MonoBehaviour {
         float wallX = wall != null ? wall.transform.position.x : (left ? -3.15f : 3.15f);
         float inner, outer;
         float railX = wall != null && WorldPainter.VisibleRailEdges(wall, out inner, out outer)
-            ? RailMineArt.MountX(inner) : RailMineArt.FallbackRailX;
+            ? RailMineArt.MountX(inner, EnemyRoster.CurrentWorld) : RailMineArt.FallbackRailX;
         var cam = Camera.main;
         float visibleLimit = cam != null && cam.orthographic
             ? cam.orthographicSize * cam.aspect - .30f : railX;

@@ -21,14 +21,14 @@ using UnityEngine.SceneManagement;
 //           board for as long as the pilot stays (docs/speed-and-loops.md).
 //           A world with a planetfall (PlanetfallCatalog: Space -> Frost,
 //           Frost -> Verdant, Verdant -> Ember, Ember -> Tide once TideEnabled,
-//           Tide -> Storm once StormEnabled)
+//           Tide -> Storm once StormEnabled, Storm -> Desert once DesertEnabled)
 //           shows its planet instead: the same stage and the same pressure
 //           until the ship touches it, then the descent (Planetfall), which
 //           calls Advance while its clouds hide the view. A world left by
-//           lift-off (LiftoffCatalog: Frost, Verdant, Ember, Tide, Storm) climbs to space first (Liftoff):
+//           lift-off (LiftoffCatalog: Frost, Verdant, Ember, Tide, Storm, Desert) climbs to space first (Liftoff):
 //           the same stage, no pressure, nothing spawning, until its calm
 //           interlude ends and it opens the gateway (OpenGateway) -- or,
-//           the last live world's (Ember's, Tide's once TideEnabled, Storm's once StormEnabled; LiftoffDef.AutoLoopNow), starts the loop
+//           the last live world's (Ember's, Tide's once TideEnabled, Storm's once StormEnabled, Desert's once DesertEnabled; LiftoffDef.AutoLoopNow), starts the loop
 //           at once with no portal (StartLoop).
 //
 // Through the portal: the next planet -- or, after the final world, back to
@@ -119,6 +119,17 @@ public class WorldManager : MonoBehaviour
             portalColor = new Color(0.96f, 0.95f, 0.72f),   // storm-white with a pale lightning-yellow edge
             speedRampPerSecond = 0.00405f, enemyRampScale = 1.65f,
         },
+        // World 7, the dune planet (docs/desert-world-plan.md). UNDER CONSTRUCTION
+        // (see DesertEnabled): planetfall / lift-off, roster, mine, Dune Eater boss
+        // art and numbers are real; the backdrop (Storm's director over Storm's
+        // ground), rails (Storm's), elites' art, damage/death art and attack art
+        // are stand-ins until the remaining phases land.
+        new WorldTheme {
+            displayName = "Desert", resourceFolder = "Desert",
+            musicResource = "", progressiveMusic = false,   // plays the scene's own track (the user supplies it)
+            portalColor = new Color(0.96f, 0.90f, 0.72f),   // sun-white / pale bone gold (never amber, never red)
+            speedRampPerSecond = 0.00425f, enemyRampScale = 1.80f,
+        },
     };
 
     // ======================================================================
@@ -155,17 +166,34 @@ public class WorldManager : MonoBehaviour
     // (Ember -> Tide -> Storm). StormEnabled alone changes nothing.
     public static bool StormLive { get { return TideEnabled && StormEnabled; } }
 
+    // ======================================================================
+    //  RELEASE SWITCH for World 7, Desert (the dune planet), on the same pattern.
+    //  false (production today): Desert is not in the chain. Turning it on
+    //  implies Storm (and so Tide) on: Ember -> Tide -> Storm -> Desert -> Space
+    //  (loop + 1), Storm's lift-off opens Desert's planetfall and Desert's
+    //  lift-off starts the loop. Off, the developer picker (F7) and the tests
+    //  can still START a run on Desert; a run that begins there treats Desert as
+    //  the last world (its lift-off loops). A property so tests can flip it
+    //  (and must restore it).
+    // ======================================================================
+    public static bool DesertEnabled { get; set; } = false;
+
+    // The flags chain in world order: Desert is reachable only when Storm is live
+    // (Tide AND Storm on). DesertEnabled alone changes nothing.
+    public static bool DesertLive { get { return StormLive && DesertEnabled; } }
+
     // How many worlds the chain reaches (Worlds.Length with the switch on). The
     // tests that walk "every world" walk this many, so Tide joins them (and
     // the checks that need its real art / roster) the moment the switch flips.
     public static int LiveWorldCount { get { return LastLiveWorld + 1; } }
 
-    // The final world of the chain the player can actually reach: Storm with
-    // StormEnabled (which implies Tide), else Tide with TideEnabled, else Ember.
+    // The final world of the chain the player can actually reach: Desert with
+    // DesertEnabled (which implies Storm and Tide), Storm with StormEnabled
+    // (which implies Tide), else Tide with TideEnabled, else Ember.
     // Past it the next stop is the loop, not another planet.
     public static int LastLiveWorld
     {
-        get { return StormLive ? Worlds.Length - 1 : TideEnabled ? Worlds.Length - 2 : Worlds.Length - 3; }
+        get { return DesertLive ? Worlds.Length - 1 : StormLive ? Worlds.Length - 2 : TideEnabled ? Worlds.Length - 3 : Worlds.Length - 4; }
     }
 
     // The world the live run is on. Once this manager has set it (Start,
@@ -536,7 +564,7 @@ public class WorldManager : MonoBehaviour
     void OpenPortal()
     {
         portalOpen = true;
-        // Leaving a planet that lifts off (LiftoffCatalog: Frost, Verdant, Ember, Tide, Storm): the climb
+        // Leaving a planet that lifts off (LiftoffCatalog: Frost, Verdant, Ember, Tide, Storm, Desert): the climb
         // to space and a calm interlude first, then Liftoff opens the gateway
         // itself (no pressure until then). Missing art: the gateway now.
         if (Liftoff.Spawn(LiftoffCatalog.For(CurrentIndex, PortalDestination, !HasNext)) != null) return;
@@ -546,7 +574,7 @@ public class WorldManager : MonoBehaviour
     // The way on from the open stage: the next planet's planetfall if it has
     // one, else the portal; either way the pressure starts. The lift-off
     // calls it when its interlude is over: Frost's ends on Verdant's planet
-    // approach, Verdant's on Ember's, Ember's on Tide's (TideEnabled), Tide's on Storm's (StormEnabled). The last
+    // approach, Verdant's on Ember's, Ember's on Tide's (TideEnabled), Tide's on Storm's (StormEnabled), Storm's on Desert's (DesertEnabled). The last
     // live world's (LastLiveWorld) starts the
     // loop itself (StartLoop) and comes here only if that fails: the loop
     // portal back round (a loop is never a planetfall).

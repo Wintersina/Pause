@@ -30,9 +30,12 @@ public static class RailMineArtTest
     public const string AtlasAsset = "Assets/Art/Resources/" + RailMineArt.AtlasPath + ".png";
     public const string TideAtlasAsset = "Assets/Art/Resources/" + RailMineArt.TideAtlasPath + ".png";
     public const string StormAtlasAsset = "Assets/Art/Resources/" + RailMineArt.StormAtlasPath + ".png";
+    public const string DesertAtlasAsset = "Assets/Art/Resources/" + RailMineArt.DesertAtlasPath + ".png";
     static bool StormOwn => true;   // (Storm's own atlas is installed: the temporary Tide fallback is gone)
     static string AssetFor(int world) =>
-        world == RailMineArt.StormWorld && StormOwn ? StormAtlasAsset : world >= RailMineArt.OriginalWorlds ? TideAtlasAsset : AtlasAsset;
+        world == RailMineArt.DesertWorld ? DesertAtlasAsset : world == RailMineArt.StormWorld && StormOwn ? StormAtlasAsset : world >= RailMineArt.OriginalWorlds ? TideAtlasAsset : AtlasAsset;
+    // Storm's and Desert's own atlases are Codex's colour, not one of the five hues below (their readability is ReadabilitySweep's)
+    static bool OwnColour(int w) => w == RailMineArt.StormWorld || w == RailMineArt.DesertWorld;
     // SHA-1 of Pause/Assets/Art/Resources/Vfx/rail_bomb_themes_atlas.png at
     // 18b5e5f^ (git blob 0702e8004b2c486f1b6cd08b105df36cf15fcd4a), the art
     // before the flat-cartoon restyle repacked it.
@@ -47,6 +50,7 @@ public static class RailMineArtTest
         ImportedCrisp();
         EachWorldUsesItsOwnRow();
         StormMineHasItsOwnAtlas();
+        DesertMineHasItsOwnAtlas();
         FramesKeepTheMineInPlace();
         SizeMatchesTheOriginal();
         ArmingPlaysWakingThenCharging();
@@ -96,14 +100,38 @@ public static class RailMineArtTest
             Check("Storm " + RailMineArt.ColumnName(c) + " frame rect is Tide's (the same cuts)", RailMineArt.PixelRect(w, c).Equals(RailMineArt.PixelRect(4, c)));
     }
 
+    // Desert's Mirage Mine is the fourth atlas file (rail_mines_neon_desert.png, 1254x314, panels cut at 0 / 313 / 627 / 940, the lens
+    // centre (215, 158) inside every panel as the pivot).
+    static void DesertMineHasItsOwnAtlas()
+    {
+        int w = RailMineArt.DesertWorld;
+        var tex = RailMineArt.AtlasFor(w);
+        Check("Desert's fourth atlas is at " + DesertAtlasAsset + " and loads from Resources/" + RailMineArt.DesertAtlasPath, File.Exists(DesertAtlasAsset) && tex != null);
+        Check("... " + RailMineArt.AtlasSize + " x " + RailMineArt.TideAtlasHeight + " px: one row, four columns",
+              tex != null && tex.width == RailMineArt.AtlasSize && tex.height == RailMineArt.TideAtlasHeight);
+        Check("... routed by AtlasPathFor, a different file from Storm's, Tide's and the original",
+              RailMineArt.AtlasPathFor(w) == RailMineArt.DesertAtlasPath && tex != RailMineArt.AtlasFor(RailMineArt.StormWorld) &&
+              tex != RailMineArt.AtlasFor(RailMineArt.OriginalWorlds) && tex != RailMineArt.Atlas);
+        int[] edges = { 0, 313, 627, 940, 1254 };
+        for (int c = 0; c < RailMineArt.Columns; c++)
+        {
+            var r = RailMineArt.PixelRect(w, c);
+            Check("Desert " + RailMineArt.ColumnName(c) + " frame rect is its panel (" + edges[c] + " .. " + edges[c + 1] + ")", r.x == edges[c] && r.xMax == edges[c + 1] && r.y == 0 && r.height == 314);
+            var p = RailMineArt.PixelPivot(w, c);
+            Check("Desert " + RailMineArt.ColumnName(c) + " pivot is the lens centre (215, 158) of its panel", Mathf.Approximately(p.x - r.x, 215f) && Mathf.Approximately(p.y - r.y, 158f));
+        }
+        Check("Desert's heat-lance leaves the lens centre (the bright core's centroid is the pivot)", RailMineArt.CoreOffset(w) == Vector2.zero);
+    }
+
     static void ImportedCrisp()
     {
         var imported = new List<int> { 0, RailMineArt.OriginalWorlds };
         if (StormOwn) imported.Add(RailMineArt.StormWorld);
+        imported.Add(RailMineArt.DesertWorld);
         foreach (int world in imported)
         {
             string asset = AssetFor(world);
-            string tag = world == 0 ? "the atlas" : world == RailMineArt.StormWorld ? "Storm's atlas" : "Tide's atlas";
+            string tag = world == 0 ? "the atlas" : world == RailMineArt.DesertWorld ? "Desert's atlas" : world == RailMineArt.StormWorld ? "Storm's atlas" : "Tide's atlas";
             var importer = AssetImporter.GetAtPath(asset) as TextureImporter;
             Check(tag + " has a texture importer", importer != null);
             if (importer == null) continue;
@@ -152,7 +180,7 @@ public static class RailMineArtTest
 
     // The neon each row is lit with, from its saturated bright pixels' hue.
     public enum Neon { Cyan, Blue, Lime, Orange, Mint, None }
-    static readonly Neon[] RowNeon = { Neon.Cyan, Neon.Blue, Neon.Lime, Neon.Orange, Neon.Mint, Neon.Mint };   // Storm: Tide's file until its own atlas lands
+    static readonly Neon[] RowNeon = { Neon.Cyan, Neon.Blue, Neon.Lime, Neon.Orange, Neon.Mint, Neon.Mint, Neon.None };   // (Storm's and Desert's own atlases are exempt: OwnColour)
 
     // The lit pixels a frame needs to show its neon. Tide's DORMANT frame is a dim sleeping eye by design (234 lit
     // mint pixels against the original rows' 500+; waking / charging / burst have 1400-11600): its floor is 200.
@@ -194,7 +222,7 @@ public static class RailMineArtTest
                 var sig = Signature(w, r);
                 // (Storm's own atlas is Codex's colour, not one of the five hues below: its readability is ReadabilitySweep's)
                 Check(string.Format("{0} {1} frame is lit {2} (got {3})", EnemyRoster.WorldKeys[w], RailMineArt.ColumnName(c), RowNeon[w], sig),
-                      sig == RowNeon[w] || (w == RailMineArt.StormWorld && StormOwn));
+                      sig == RowNeon[w] || OwnColour(w));
             }
 
         for (int w = 0; w < RailMineArt.Worlds; w++)
@@ -214,7 +242,7 @@ public static class RailMineArtTest
                 var got = sprite.rect;
                 var top = new RectInt((int)got.x, atlasTex.height - (int)got.y - (int)got.height, (int)got.width, (int)got.height);
                 Check(def.key + " idles on its own row's dormant frame " + want + " (got " + top + ")", top.Equals(want));
-                Check(def.key + " shows the " + RowNeon[w] + " row", Signature(w, top) == RowNeon[w] || (w == RailMineArt.StormWorld && StormOwn));
+                Check(def.key + " shows the " + RowNeon[w] + " row", Signature(w, top) == RowNeon[w] || OwnColour(w));
             }
             Check(def.key + " keeps its id, name, collider and explosion",
                   go.name == EnemyRoster.MineObjectName && go.CompareTag("Enimey") &&
@@ -240,9 +268,12 @@ public static class RailMineArtTest
             for (int c = 1; c < RailMineArt.Columns; c++)
             {
                 float off = ClampOffset(w, c);
+                // (Desert's burst frame: the lens rupture's rays reach 29 px left of the clamp, so the leftmost solid pixel moves; the clamp itself
+                // is where it was. Allowed 40 px for that one frame, tracked art delta.)
+                float tol = w == RailMineArt.DesertWorld && c == RailMineArt.Burst ? 40f : 8f;
                 Check(string.Format("{0} {1}: the clamp stays put ({2:F0} px vs dormant {3:F0} px from the pivot)",
                                     EnemyRoster.WorldKeys[w], RailMineArt.ColumnName(c), off, dormant),
-                      Mathf.Abs(off - dormant) <= 8f);
+                      Mathf.Abs(off - dormant) <= tol);
             }
             for (int c = 0; c < RailMineArt.Columns; c++)
             {

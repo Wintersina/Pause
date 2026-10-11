@@ -79,9 +79,9 @@ public static class WorldLogicTest
         PlayerPrefs.DeleteKey(WorldManager.PrefsCurrentWorld);
         PlayerPrefs.DeleteKey(WorldManager.PrefsHighestWorld);
 
-        Check("six worlds defined (Space, Frost, Verdant, Ember, Tide, Storm)", WorldManager.Worlds.Length == 6);
-        Check("the release switches are off in the shipped code: Ember is the last live world, Tide and Storm are gated (WorldManager.TideEnabled / StormEnabled)",
-              !WorldManager.TideEnabled && !WorldManager.StormEnabled && WorldManager.LastLiveWorld == 3 && WorldManager.LiveWorldCount == 4);
+        Check("seven worlds defined (Space, Frost, Verdant, Ember, Tide, Storm, Desert)", WorldManager.Worlds.Length == 7);
+        Check("the release switches are off in the shipped code: Ember is the last live world, Tide, Storm and Desert are gated (WorldManager.TideEnabled / StormEnabled / DesertEnabled)",
+              !WorldManager.TideEnabled && !WorldManager.StormEnabled && !WorldManager.DesertEnabled && WorldManager.LastLiveWorld == 3 && WorldManager.LiveWorldCount == 4);
         Check("world 0 is Space", WorldManager.Worlds[0].displayName == "Space");
         Check("space keeps authored art", WorldManager.Worlds[0].resourceFolder == "");
         Check("space plays its own song (Space_Main)", WorldManager.Worlds[0].musicResource == WorldMusic.SpaceTrack);
@@ -98,7 +98,7 @@ public static class WorldLogicTest
         PlayerPrefs.DeleteKey(DeveloperUnlocks.EnabledKey);
         DeveloperUnlocks.SetEnabled(true);
         Check("developer flag unlocks every ship", PlayerPrefs.GetString("boughtship15") == "True");
-        Check("developer flag unlocks every world (Tide and Storm included, for the picker)", PlayerPrefs.GetInt(WorldManager.PrefsHighestWorld) == WorldManager.Worlds.Length - 1);
+        Check("developer flag unlocks every world (Tide, Storm and Desert included, for the picker)", PlayerPrefs.GetInt(WorldManager.PrefsHighestWorld) == WorldManager.Worlds.Length - 1);
         DeveloperUnlocks.SetEnabled(false);
         Check("turning developer flag off restores locked ship state", !PlayerPrefs.HasKey("boughtship15"));
         Check("turning developer flag off restores saved world progress",
@@ -131,6 +131,7 @@ public static class WorldLogicTest
         Check("highest recorded", PlayerPrefs.GetInt(WorldManager.PrefsHighestWorld, 0) == WorldManager.LastLiveWorld);
         TideWorld();
         StormWorld();
+        DesertWorld();
 
         // clamping
         WorldManager.CurrentIndex = 99;
@@ -231,8 +232,8 @@ public static class WorldLogicTest
               PlanetfallCatalog.Storm.world == Storm && LiftoffCatalog.Storm.world == Storm && LiftoffCatalog.Storm.autoLoop &&
               AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Art/Backgrounds/Resources/" + PlanetfallCatalog.Storm.folder + PlanetfallCatalog.Storm.planet + ".png") != null &&
               AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Art/Backgrounds/Resources/" + PlanetfallCatalog.Storm.folder + PlanetfallCatalog.Storm.limb + ".png") != null);
-        DeveloperUnlocks.SelectWorld(99);
-        Check("... a developer run may start on it: the picker clamps to the full list", DeveloperUnlocks.SelectedWorld == Storm);
+        DeveloperUnlocks.SelectWorld(Storm);
+        Check("... a developer run may start on it: the picker can pick it", DeveloperUnlocks.SelectedWorld == Storm);
         PlayerPrefs.DeleteKey(DeveloperUnlocks.SelectedWorldKey);
         bool wasTide = WorldManager.TideEnabled, wasStorm = WorldManager.StormEnabled;
         try
@@ -313,6 +314,56 @@ public static class WorldLogicTest
             WorldMusic.EndBoss();
         }
         EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+    }
+
+    // World 7, Desert: in the list, behind its own release switch (which implies Storm's, so Tide's), with its planet art, roster, mine, boss;
+    // the backdrop director, rails, elites' art and attack art are stand-ins (docs/desert-wire.md).
+    static void DesertWorld()
+    {
+        const int Ember = 3, Tide = 4, Storm = 5, Desert = 6;
+        var t = WorldManager.Worlds[Desert];
+        Check("Desert is world 6 (the seventh), named Desert, folder Desert, ramping harder than Storm",
+              t.displayName == "Desert" && t.resourceFolder == "Desert" && t.speedRampPerSecond > WorldManager.Worlds[Storm].speedRampPerSecond &&
+              t.enemyRampScale > WorldManager.Worlds[Storm].enemyRampScale);
+        Check("... ramp .00425 / enemy scale 1.80, no music of its own",
+              Mathf.Approximately(t.speedRampPerSecond, .00425f) && Mathf.Approximately(t.enemyRampScale, 1.80f) &&
+              t.musicResource == "" && !t.progressiveMusic);
+        float hue, sat, val; Color.RGBToHSV(t.portalColor, out hue, out sat, out val);
+        Check("... its portal is pale bone gold (hue 35..55 deg, S <= .33 so it never reads as star dust), not amber nor red",
+              hue * 360f > 35f && hue * 360f < 55f && sat <= .33f && val > .85f);
+        Check("... its roster, mine, boss and planetfall are its own; rails are Storm's (a stand-in), backdrop its own (dunes, worms)",
+              EnemyRoster.One(Desert, EnemyRole.Rock).key == "desert_rock_dune" && EnemyRoster.One(Desert, EnemyRole.Rock).world == Desert &&
+              EnemyRoster.One(Desert, EnemyRole.Mine).key == "desert_mine" && RailMineArt.AtlasPathFor(Desert) == RailMineArt.DesertAtlasPath &&
+              BossCatalog.ForWorld(Desert).id == "boss_desert" && WorldPainter.RailTextureName("Desert") == "rail_storm_wide_v1" &&
+              BackdropCatalog.For("Desert").world == "Desert" && BackdropCatalog.For("Desert") != BackdropCatalog.For("Tide"));
+        Check("... its planetfall art is installed under Resources, the limb is the R1250 one (apex 355, edge 887)",
+              PlanetfallCatalog.Desert.world == Desert && LiftoffCatalog.Desert.world == Desert && LiftoffCatalog.Desert.autoLoop &&
+              PlanetfallCatalog.Desert.limbApexPx == 355f && PlanetfallCatalog.Desert.limbEdgePx == 887f &&
+              AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Art/Backgrounds/Resources/" + PlanetfallCatalog.Desert.folder + PlanetfallCatalog.Desert.planet + ".png") != null &&
+              AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Art/Backgrounds/Resources/" + PlanetfallCatalog.Desert.folder + PlanetfallCatalog.Desert.limb + ".png") != null);
+        DeveloperUnlocks.SelectWorld(99);
+        Check("... a developer run may start on it: the picker clamps to the full list", DeveloperUnlocks.SelectedWorld == Desert);
+        PlayerPrefs.DeleteKey(DeveloperUnlocks.SelectedWorldKey);
+        bool wasTide = WorldManager.TideEnabled, wasStorm = WorldManager.StormEnabled, wasDesert = WorldManager.DesertEnabled;
+        try
+        {
+            WorldManager.TideEnabled = true; WorldManager.StormEnabled = true; WorldManager.DesertEnabled = false;
+            Check("Tide and Storm on, Desert off: Storm is last (6 live)", WorldManager.LastLiveWorld == Storm && WorldManager.LiveWorldCount == 6 && !WorldManager.DesertLive);
+            WorldManager.TideEnabled = false; WorldManager.StormEnabled = false; WorldManager.DesertEnabled = true;
+            Check("flags chain: Desert on alone changes nothing (Ember stays last, 4 live)", WorldManager.LastLiveWorld == Ember && WorldManager.LiveWorldCount == 4 && !WorldManager.DesertLive);
+            WorldManager.TideEnabled = true;
+            Check("Desert and Tide on, Storm off: still nothing past Tide (5 live)", WorldManager.LastLiveWorld == Tide && WorldManager.LiveWorldCount == 5 && !WorldManager.DesertLive);
+            WorldManager.StormEnabled = true;
+            Check("all three on: Desert is the last live world (7 live)", WorldManager.LastLiveWorld == Desert && WorldManager.LiveWorldCount == 7 && WorldManager.DesertLive);
+            WorldManager.CurrentIndex = Storm;
+            Check("Desert on: Storm has a next and it is Desert", WorldManager.HasNext && WorldManager.PortalDestination == Desert);
+            WorldManager.CurrentIndex = Desert;
+            Check("Desert on: Desert has no next (the loop)", !WorldManager.HasNext);
+            WorldManager.DesertEnabled = false;
+            Check("Desert off (a developer run on Desert): no next, and the live chain ends at Storm", !WorldManager.HasNext && WorldManager.LastLiveWorld == Storm);
+            WorldManager.CurrentIndex = Ember;
+        }
+        finally { WorldManager.TideEnabled = wasTide; WorldManager.StormEnabled = wasStorm; WorldManager.DesertEnabled = wasDesert; }
     }
 
     static WorldTheme Theme(string name)

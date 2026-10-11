@@ -34,6 +34,7 @@ public static class BossEncounterTest
             EveryWorldHasCompleteArt();
             TideBossUsesItsExpandedCells();
             StormBossIsWired();
+            DesertBossIsWired();
             LevelEndStartsTheBossThenThePortal();
             EmberHasABossThenTheLoopPortal();
             IntroFreezeIsScriptedAndFree();
@@ -151,11 +152,11 @@ public static class BossEncounterTest
     static void TideBossUsesItsExpandedCells()
     {
         var tide = BossCatalog.Find("boss_tide");
-        Check("the Iron Kraken is the fifth boss", tide != null && BossCatalog.All.Length == 6 && BossCatalog.All[4] == tide && tide.artKey == "Tide");
+        Check("the Iron Kraken is the fifth boss", tide != null && BossCatalog.All.Length == 7 && BossCatalog.All[4] == tide && tide.artKey == "Tide");
         Check("... named IRON KRAKEN, TYRANT OF THE DEEP", tide != null && tide.name == "IRON KRAKEN" && tide.title == "TYRANT OF THE DEEP");
         Check("expandedCombat: Space and Tide only", BossCatalog.All[0].expandedCombat && tide.expandedCombat &&
               !BossCatalog.All[1].expandedCombat && !BossCatalog.All[2].expandedCombat && !BossCatalog.All[3].expandedCombat &&
-              !BossCatalog.All[5].expandedCombat);
+              !BossCatalog.All[5].expandedCombat && !BossCatalog.All[6].expandedCombat);
         Check("Tide's atlas holds 35 cells", BossArt.BodyFrameCount(tide) == BossArt.BodyFrames);
         Check("its idle is the six tentacle cells at 20..25", BossArt.IdleStart(tide) == 20 && BossArt.IdleCount(tide) == 6 &&
               BossArt.IdleFrame(tide, 0f) == 20 && BossArt.IdleFrame(tide, 5.5f * 2 * BossArt.Tick) == 25);
@@ -189,7 +190,7 @@ public static class BossEncounterTest
     static void StormBossIsWired()
     {
         var storm = BossCatalog.Find("boss_storm");
-        Check("the Tempest Engine is the sixth boss, on the Storm art", storm != null && BossCatalog.All.Length == 6 && BossCatalog.All[5] == storm && storm.artKey == "Storm");
+        Check("the Tempest Engine is the sixth boss, on the Storm art", storm != null && BossCatalog.All.Length == 7 && BossCatalog.All[5] == storm && storm.artKey == "Storm");
         Check("... named TEMPEST ENGINE, STORM-MAKING TURBINE", storm != null && storm.name == "TEMPEST ENGINE" && storm.title == "STORM-MAKING TURBINE");
         Check("its atlas is the 20-cell base one, four idle cells", !storm.expandedCombat && BossArt.BodyFrameCount(storm) == BossArt.BaseBodyFrames &&
               BossArt.IdleStart(storm) == 0 && BossArt.IdleCount(storm) == 4);
@@ -213,6 +214,35 @@ public static class BossEncounterTest
               storm.damageKey == (own ? "Storm" : BossCatalog.StormDamageKey) && BossArt.HasDamageArt(storm));
         Check("death art key: " + (ownDeath ? "Storm's own" : "the stand-in (" + BossCatalog.StormDeathKey + ")"),
               storm.deathKey == (ownDeath ? "Storm" : BossCatalog.StormDeathKey) && BossArt.HasDeathArt(storm) && BossArt.DeathStrip(storm, 0) != null);
+    }
+
+    // The Dune-Eater (Desert): the seventh boss on its own 20-cell atlas, its own emitters (Maw, Boom, Lens) / hearts / fx row. No damage or
+    // death strips (BossDamageTest.DesertOwnStrips).
+    static void DesertBossIsWired()
+    {
+        var d = BossCatalog.Find("boss_desert");
+        var storm = BossCatalog.Find("boss_storm");
+        Check("the Dune-Eater is the seventh boss, on the Desert art", d != null && BossCatalog.All.Length == 7 && BossCatalog.All[6] == d && d.artKey == "Desert");
+        Check("... named DUNE-EATER, FERAL STRIP-MINER", d != null && d.name == "DUNE-EATER" && d.title == "FERAL STRIP-MINER");
+        Check("its atlas is the 20-cell base one, four idle cells", !d.expandedCombat && BossArt.BodyFrameCount(d) == BossArt.BaseBodyFrames &&
+              BossArt.IdleStart(d) == 0 && BossArt.IdleCount(d) == 4);
+        Check("it has its own atlas, shots and card (not the Tempest Engine's)", BossArt.Body(d, BossArt.Idle0) != BossArt.Body(storm, BossArt.Idle0) &&
+              BossArt.Shot(d, 0) != null && BossArt.Shot(d, 0) != BossArt.Shot(storm, 0));
+        Check("its emitter row has Maw, Boom, Lens over the 12 base drawings", BossEmitters.World(d) == 6 &&
+              string.Join(",", BossEmitterTable.Parts[6]) == "Maw,Boom,Lens" && BossEmitterTable.FrameCount(6) == BossEmitterTable.Frames);
+        bool parts = d.attacks.Length == 3 && d.themed != null && d.themed.Length == 5;
+        foreach (var a in d.themed) foreach (int part in a.parts) parts &= part >= 0;
+        Check("three default attacks (grit fan, dune lob, lens beam) and a themed table of five that ends in the sandstorm wall", parts &&
+              d.themed[1].kind == BossAttackKind.Strike && d.themed[4].kind == BossAttackKind.Wave && d.themed[4].minPhase == 3 &&
+              d.themed[1].name == "burrower strike" && d.themed[4].name == "sandstorm wall");
+        Check("it does not fight themed yet (Desert is not live)", !d.themedAttacks);
+        Check("a pale bone flash and heart colour (hue 35..55, S <= .35: never amber nor red), an accent of its own", d.heartColor != d.flash && BossWarningConfig.Accent(6) != BossWarningConfig.Accent(5));
+        float h, s, v;
+        Color.RGBToHSV(d.flash, out h, out s, out v);
+        Check("... the flash is #F4E3B0-like", h * 360f > 35f && h * 360f < 55f && s <= .35f && v > .85f);
+        Check("the attack fx sheet has its row", BossAttackFx.Row(d) == 6 && BossAttackFx.Get(d, BossAttackFx.Ring) != null &&
+              BossAttackFx.Get(d, BossAttackFx.Ring) != BossAttackFx.Get(storm, BossAttackFx.Ring));
+        Check("its damage stages, damage fx and death strip are its own (Desert_damage*.png, Desert_death.png)", d.damageKey == "Desert" && d.deathKey == "Desert" && BossArt.HasDamageArt(d) && BossArt.HasDeathArt(d));
     }
 
     static void LevelEndStartsTheBossThenThePortal()

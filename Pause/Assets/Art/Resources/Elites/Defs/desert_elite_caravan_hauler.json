@@ -1,0 +1,96 @@
+{
+  "key": "desert_elite_caravan_hauler",
+  "codexId": "elite_desert_caravan_hauler",
+  "world": "desert",
+  "launchFrom": "caravanbay",
+  "cells": {
+    "flight": [
+      3
+    ],
+    "parked": 0,
+    "parkedIdle": 1,
+    "liftoff": 2,
+    "bankLeft": 4,
+    "bankRight": 5,
+    "tell": -1,
+    "action": -1,
+    "hit": -1,
+    "damaged": 6
+  },
+  "cellWorldSize": 1.6,
+  "noseDeg": 90,
+  "maxBank": 3,
+  "heartColor": "#FFF6DC",
+  "shotColor": "#F4E3B0",
+  "shotCore": "#FFF6DC",
+  "engineColor": "#FFF1C8",
+  "hearts": 2,
+  "heartSize": 0.18,
+  "heartOrbit": 0.85,
+  "heartStyle": "Halo",
+  "exhaustShip": 3,
+  "exhaustScale": 0,
+  "glowScale": 0.09,
+  "cellPixels": 192,
+  "armored": true,
+  "hazardSeconds": 0.4,
+  "hazardSize": 0.6,
+  "displayName": "Caravan Hauler",
+  "role": "quicksand canister hauler",
+  "brain": "hauler",
+  "attack": "slag_drop",
+  "lore": "A rusted crawler-barge that still hauls its last caravan of sand-pit canisters. It lifts out of its bay and lets the canisters drop one at a time; each lands as a pool of quicksand that swallows shots. Watch the pool drawn on the ground before it lands.",
+  "hullRadius": 0.33,
+  "turnsToFace": false,
+  "speed": 1.68,
+  "accel": 3.0,
+  "turnRate": 120,
+  "aggression": 0.5,
+  "tellSeconds": 0.8,
+  "attackGap": 3.8,
+  "avoidance": 0.5,
+  "lookAhead": 0.4,
+  "perception": 2.2,
+  "actionSeconds": 0.9,
+  "shotCount": 4,
+  "shotSpeed": 1.1,
+  "shotSpread": 18,
+  "shotSize": 0.34,
+  "shotInterval": 0.22,
+  "shotKind": "slag",
+  "muzzles": [
+    {
+      "name": "port",
+      "x": 46,
+      "y": 105,
+      "dir": -1.0
+    },
+    {
+      "name": "star",
+      "x": 144,
+      "y": 105,
+      "dir": -1.0
+    },
+    {
+      "name": "canister",
+      "x": 96,
+      "y": 134,
+      "dir": -1.0
+    }
+  ],
+  "nozzles": [
+    {
+      "name": "l",
+      "x": 64,
+      "y": 145,
+      "dir": -1.0
+    },
+    {
+      "name": "r",
+      "x": 128,
+      "y": 145,
+      "dir": -1.0
+    }
+  ],
+  "followDistance": 2.2
+}

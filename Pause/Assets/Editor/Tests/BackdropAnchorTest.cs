@@ -31,7 +31,7 @@ public static class BackdropAnchorTest
     const float Dt = 1f / 30f;
     const float MaxDrift = .01f;
     const float Speed = .6f;               // moveBackGround.speed: ~25 s per mid-tile loop
-    static readonly string[] Worlds = { "Frost", "Verdant", "Ember", "Tide" };
+    static readonly string[] Worlds = { "Frost", "Verdant", "Ember", "Tide", "Desert" };
 
     public static int Execute()
     {

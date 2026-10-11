@@ -109,7 +109,7 @@ public static class BossThemedTest
         return e;
     }
 
-    static readonly int[] ThemedWorlds = { 0, 1, 2, 3, 4, 5 };   // Space, Frost, Verdant, Ember, Tide, Storm
+    static readonly int[] ThemedWorlds = { 0, 1, 2, 3, 4, 5, 6 };   // Space, Frost, Verdant, Ember, Tide, Storm, Desert
 
     static bool IsNew(BossDef b, BossAttack a) => System.Array.IndexOf(b.DefaultAttacks, a) < 0;
 

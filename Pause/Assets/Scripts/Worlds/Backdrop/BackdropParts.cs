@@ -229,6 +229,9 @@ public class BackdropPiece
     // in view; its y is recomputed from it every frame.
     public double gy;
     public int footprint = -1;           // GroundPlanner footprint slot, -1 none
+    // A pinned piece being destroyed (Desert's worms): seconds into its fall (-1 alive) and its fade.
+    public float dyingT = -1f, fade = 1f;
+    public float core = .3f;             // the footprint core (PieceRule.core) a director stamped on it
     public BackdropPiece[] children;     // e.g. a planet's moon
     public BackdropPiece parent;         // set on a child that is placed by its parent
     public readonly BackdropPiece[] slot = new BackdropPiece[1];   // reusable one-child `children` array
@@ -332,6 +335,8 @@ public class BackdropPool
             p.children = null;
             p.parent = null;
             p.planet = false;
+            p.dyingT = -1f;
+            p.fade = 1f;
             p.turn = p.turnRate = 0f;
             p.body.localRotation = Quaternion.identity;
             p.body.localScale = Vector3.one;

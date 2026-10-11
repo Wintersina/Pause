@@ -78,6 +78,7 @@ public static class EnemyDeathAudioTest
                 var l = new System.Collections.Generic.List<string>(SpaceKeys);
                 l.AddRange(VerdantKeys); l.AddRange(EmberKeys); l.AddRange(FrostKeys);
                 foreach (var r in EnemyDeathAudio.DeathAlias) if (r[0].StartsWith("storm_")) l.Add(r[0]);   // Storm's aliased keys (the allocation test warms them too)
+                foreach (var r in EnemyDeathAudio.DesertAlias) l.Add(r[0]);
                 allKeys = l.ToArray();
             }
             return allKeys;
@@ -153,7 +154,7 @@ public static class EnemyDeathAudioTest
         foreach (var d in EnemyRoster.All)
         {
             // Tide reuses other worlds' clips through EnemyDeathAudio.DeathAlias (TideSoundTest checks them)
-            if (d.key.StartsWith("storm_")) continue;                // (Storm: aliased clips, StormSoundTest)
+            if (d.key.StartsWith("storm_") || d.key.StartsWith("desert_")) continue;   // (Storm / Desert: aliased clips, StormSoundTest / DesertSoundTest)
             if (d.key.StartsWith("tide_")) { tideRoster++; if (EnemyDeathAudio.Variants(d.key) < 3) tideSilent++; continue; }
             enemies++;
             if (EnemyDeathAudio.Variants(d.key) < 3) missing.Add(d.key);
@@ -161,7 +162,7 @@ public static class EnemyDeathAudioTest
         int pendingElites = 0;
         foreach (var e in EliteCatalog.All)
         {
-            if (e.WorldIndex == 4 || e.key.StartsWith("storm_")) continue;   // (Tide's / Storm's: aliased clips, TideSoundTest / StormSoundTest)
+            if (e.WorldIndex == 4 || e.key.StartsWith("storm_") || e.key.StartsWith("desert_")) continue;   // (Tide's / Storm's: aliased clips, TideSoundTest / StormSoundTest)
             if (Pending(e.key)) { pendingElites++; continue; }   // (death cues still to be authored: silent, see below)
             elites++;
             if (EnemyDeathAudio.Variants(e.key) < 3) missing.Add(e.key);
@@ -354,6 +355,7 @@ public static class EnemyDeathAudioTest
         {
             string key = kv.Key, donor = kv.Value.donor;
             if (key.StartsWith("storm_")) continue;   // (Storm borrowers: StormSoundTest)
+            if (key.StartsWith("desert_")) continue;  // (Desert borrowers: DesertSoundTest)
             Check("borrow " + key + " <- " + donor + ": donor owns screams (" + EnemyDeathAudio.ScreamVariants(donor) + ")", EnemyDeathAudio.ScreamVariants(donor) > 0);
             Check("borrow " + key + ": not from itself", key != donor);
             Check("borrow " + key + ": donor is not itself a borrower", !EnemyDeathAudio.ScreamBorrow.ContainsKey(donor));

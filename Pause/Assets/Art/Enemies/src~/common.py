@@ -75,6 +75,7 @@ WORLD_THEMES = {
     "ember":   dict(hull=CHAR, hull_sh=CHAR_SH, hull_hi=CHAR_HI, accent=GUN, light=SODIUM, light_dim=SODIUM_SH),
     "tide":    dict(hull=BARNACLE, hull_sh=BARNACLE_SH, hull_hi=BARNACLE_HI, accent=BRASS, light=MINT, light_dim=MINT_SH),
     "storm":   dict(hull=GRAPHITE, hull_sh=GRAPHITE_SH, hull_hi=GRAPHITE_HI, accent=SLATE_TEAL, light=STORM_WHITE, light_dim=GRAPHITE_HI),
+    "desert":  dict(hull=DUNE_SAND, hull_sh=DUNE_SAND_SH, hull_hi=DUNE_SAND_HI, accent=DUNE_COPPER, light=SUN_WHITE, light_dim=DUNE_OCHRE),
 }
 
 # A light's dimmed (charging / dormant) tone.

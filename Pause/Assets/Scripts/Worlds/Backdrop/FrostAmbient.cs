@@ -388,6 +388,18 @@ public class AmbientEmitters
         return n;
     }
 
+    // Stops every loop riding `p` (a piece being destroyed: its smoke and lamps go with it).
+    public void Detach(BackdropPiece p)
+    {
+        for (int k = 0; k < pools.Count; k++)
+        {
+            int i = pools[k].items.IndexOf(p);
+            if (i < 0) continue;
+            foreach (var s in slots[k][i]) { s.on = false; s.sr.enabled = false; }
+            return;
+        }
+    }
+
     // Emitters showing right now (tests).
     public int LiveCount
     {

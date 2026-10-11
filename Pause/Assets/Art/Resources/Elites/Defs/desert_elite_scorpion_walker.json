@@ -1,0 +1,78 @@
+{
+  "world": "desert",
+  "launchFrom": "ruindock",
+  "heartColor": "#FFF6DC",
+  "shotColor": "#F4E3B0",
+  "shotCore": "#FFF6DC",
+  "engineColor": "#FFF1C8",
+  "hearts": 2,
+  "heartSize": 0.18,
+  "heartOrbit": 0.85,
+  "heartStyle": "Halo",
+  "exhaustShip": 3,
+  "cellPixels": 192,
+  "key": "desert_elite_scorpion_walker",
+  "displayName": "Scorpion Walker",
+  "role": "venom claw striker",
+  "brain": "striker",
+  "attack": "claw_dive",
+  "lore": "An armoured walker that lifts off a ruin dock with its tail curled over its back. It dives claws first, then lashes the sting across the lane: the pink tip is the part that hurts. Slip behind the lash.",
+  "cellWorldSize": 1.55,
+  "hullRadius": 0.33,
+  "noseDeg": 270,
+  "turnsToFace": true,
+  "speed": 3.2,
+  "accel": 7,
+  "turnRate": 280,
+  "circleRadius": 2.0,
+  "aggression": 0.55,
+  "tellSeconds": 0.75,
+  "attackGap": 3.325,
+  "avoidance": 0.8,
+  "lookAhead": 0.5,
+  "actionSeconds": 0.7,
+  "dashSpeed": 7.875,
+  "shotCount": 3,
+  "shotSpeed": 5,
+  "shotSpread": 18,
+  "shotSize": 0.2,
+  "shotKind": "shard",
+  "exhaustScale": 0.45,
+  "muzzles": [
+    {
+      "name": "claw",
+      "x": 60,
+      "y": 132,
+      "dir": -1.0
+    }
+  ],
+  "nozzles": [
+    {
+      "name": "l",
+      "x": 88,
+      "y": 160,
+      "dir": -1.0
+    },
+    {
+      "name": "r",
+      "x": 104,
+      "y": 160,
+      "dir": -1.0
+    }
+  ],
+  "codexId": "elite_desert_scorpion_walker",
+  "cells": {
+    "flight": [
+      3
+    ],
+    "parked": 0,
+    "parkedIdle": 1,
+    "liftoff": 2,
+    "bankLeft": 4,
+    "bankRight": 5,
+    "tell": -1,
+    "action": -1,
+    "hit": -1,
+    "damaged": 6
+  }
+}

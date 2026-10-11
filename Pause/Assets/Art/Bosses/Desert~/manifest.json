@@ -1,0 +1,214 @@
+{
+  "boss": "THE HARVESTER",
+  "card_name": "DUNE-EATER",
+  "title": "FERAL STRIP-MINER",
+  "world": "Desert",
+  "cell_size": [
+    384,
+    384
+  ],
+  "atlas_grid": [
+    5,
+    4
+  ],
+  "frames": [
+    {
+      "index": 0,
+      "row": 0,
+      "column": 0,
+      "name": "idle_0"
+    },
+    {
+      "index": 1,
+      "row": 0,
+      "column": 1,
+      "name": "idle_1"
+    },
+    {
+      "index": 2,
+      "row": 0,
+      "column": 2,
+      "name": "idle_2"
+    },
+    {
+      "index": 3,
+      "row": 0,
+      "column": 3,
+      "name": "idle_3"
+    },
+    {
+      "index": 4,
+      "row": 0,
+      "column": 4,
+      "name": "hit"
+    },
+    {
+      "index": 5,
+      "row": 1,
+      "column": 0,
+      "name": "tell_maw_a"
+    },
+    {
+      "index": 6,
+      "row": 1,
+      "column": 1,
+      "name": "tell_maw_b"
+    },
+    {
+      "index": 7,
+      "row": 1,
+      "column": 2,
+      "name": "tell_boom_a"
+    },
+    {
+      "index": 8,
+      "row": 1,
+      "column": 3,
+      "name": "tell_boom_b"
+    },
+    {
+      "index": 9,
+      "row": 1,
+      "column": 4,
+      "name": "fire_maw"
+    },
+    {
+      "index": 10,
+      "row": 2,
+      "column": 0,
+      "name": "tell_lens_a"
+    },
+    {
+      "index": 11,
+      "row": 2,
+      "column": 1,
+      "name": "tell_lens_b"
+    },
+    {
+      "index": 12,
+      "row": 2,
+      "column": 2,
+      "name": "death_0"
+    },
+    {
+      "index": 13,
+      "row": 2,
+      "column": 3,
+      "name": "death_1"
+    },
+    {
+      "index": 14,
+      "row": 2,
+      "column": 4,
+      "name": "death_2"
+    },
+    {
+      "index": 15,
+      "row": 3,
+      "column": 0,
+      "name": "death_3"
+    },
+    {
+      "index": 16,
+      "row": 3,
+      "column": 1,
+      "name": "death_4"
+    },
+    {
+      "index": 17,
+      "row": 3,
+      "column": 2,
+      "name": "retreat_0"
+    },
+    {
+      "index": 18,
+      "row": 3,
+      "column": 3,
+      "name": "retreat_1"
+    },
+    {
+      "index": 19,
+      "row": 3,
+      "column": 4,
+      "name": "portrait"
+    }
+  ],
+  "firing_parts": [
+    {
+      "part": 1,
+      "name": "MAW",
+      "attack": "aimed sand-slug fan",
+      "muzzle_px_per_cell": [
+        174,
+        286
+      ],
+      "tell_frames": [
+        5,
+        6
+      ],
+      "fire_frame": 9
+    },
+    {
+      "part": 2,
+      "name": "BOOM",
+      "attack": "dune lob and lane eruption",
+      "muzzle_px_per_cell": [
+        328,
+        207
+      ],
+      "tell_frames": [
+        7,
+        8
+      ]
+    },
+    {
+      "part": 3,
+      "name": "LENS",
+      "attack": "sun-lens heat beam",
+      "muzzle_px_per_cell": [
+        174,
+        83
+      ],
+      "tell_frames": [
+        10,
+        11
+      ]
+    }
+  ],
+  "shots": {
+    "cell_size": [
+      128,
+      128
+    ],
+    "order": [
+      "sand_slug_0",
+      "sand_slug_1",
+      "glass_shard_0",
+      "glass_shard_1",
+      "lane_telegraph",
+      "sun_beam_0",
+      "sun_beam_1",
+      "muzzle_charge"
+    ]
+  },
+  "palette": {
+    "sun_white": "#FFF1C8",
+    "flash": "#F4E3B0",
+    "heart": "#FFF6DC",
+    "matte_copper": "#9A5E3A",
+    "bone": "#E6DCC0"
+  },
+  "sources": {
+    "selected_hull": "src~/candidate_c.png",
+    "other_hulls": [
+      "src~/candidate_a.png",
+      "src~/candidate_b.png"
+    ],
+    "death": "src~/death_key.png"
+  },
+  "notes": [
+    "All firing light is pale sun-white; the copper is matte.",
+    "Only nearest-neighbour resampling is used.",
+    "The code supplies the hostile pink shot rim at runtime."
+  ]
+}

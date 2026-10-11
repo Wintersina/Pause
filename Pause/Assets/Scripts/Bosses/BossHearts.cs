@@ -47,6 +47,7 @@ public class BossHearts : HeartOrbit
             case "Ember": return Around(.02f, .12f, 1.82f, 1.55f);
             case "Tide": return Around(0f, -.03f, 2.06f, 1.78f);
             case "Storm": return Around(0f, .01f, 1.61f, 1.57f);
+            case "Desert": return Around(0f, 0f, 1.66f, 1.66f);
             default:
                 float h = BossConfig.BossWorldSize * .5f * 1.42f;
                 return Around(0f, 0f, h, h);
