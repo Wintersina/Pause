@@ -58,6 +58,7 @@ public static class DeathPanelTest
             rows.Add(new KeyValuePair<string, Rect>("card" + i, DeathPanelView.CardRects[i]));
         rows.Add(new KeyValuePair<string, Rect>("replay", DeathPanelView.ReplayRect));
         rows.Add(new KeyValuePair<string, Rect>("menu", DeathPanelView.MenuRect));
+        rows.Add(new KeyValuePair<string, Rect>("dock", DeathPanelView.DockRect));
 
         foreach (var row in rows)
             Check(row.Key + " sits inside the panel with padding", Contains(inner, row.Value));
@@ -85,6 +86,12 @@ public static class DeathPanelTest
         // 96 canvas units ~= 44pt on a 375pt-wide phone (canvas is 800 units wide).
         Check("buttons meet the ~44pt tap target (>= 96 units)", replay.height >= 96f && replay.width >= 96f);
         Check("intro is short (<= 1.25s)", DeathPanelView.IntroDuration <= 1.25f);
+        var dockR = DeathPanelView.DockRect;
+        Check("SPACE DOCK sits below the replay/menu row", dockR.yMax < replay.yMin && dockR.yMax < menu.yMin);
+        Check("SPACE DOCK spans the card column and is centred",
+              Mathf.Abs(dockR.xMin - cards[0].xMin) < .01f && Mathf.Abs(dockR.xMax - cards[0].xMax) < .01f);
+        Check("SPACE DOCK is as tall as the other buttons", Mathf.Approximately(dockR.height, replay.height));
+        Check("SPACE DOCK targets the dock scene", DeathPanelView.DockScene == "shopS6");
     }
 
     // ---- Fitting to screens / safe areas / the top-right quick actions ----
@@ -277,6 +284,33 @@ public static class DeathPanelTest
             foreach (var img in b.GetComponentsInChildren<Image>(true))
                 Check(b.name + " no longer uses the old taxes clip-art (" + img.name + ")",
                       img.sprite == null || img.sprite.name != "taxes-menu-icon");
+
+        // SPACE DOCK: a third button in the same style, below the row.
+        var dockSlot = view.DockSlot;
+        var dock = dockSlot != null ? dockSlot.GetComponentInChildren<Button>(true) : null;
+        Check("SPACE DOCK button exists inside the panel", dock != null && dock.transform.IsChildOf(panel));
+        if (dock != null)
+        {
+            var dr = PanelSpace(panel, (RectTransform)dock.transform);
+            Check("SPACE DOCK does not overlap the other buttons or the cards", !dr.Overlaps(rr) && !dr.Overlaps(mr) && !cardRects.Exists(c => dr.Overlaps(c)));
+            Check("SPACE DOCK is >= 96 tall and has press feedback", dr.height >= 96f && dock.GetComponent<DeathPanelPress>() != null);
+            Check("SPACE DOCK is labelled", dock.GetComponentInChildren<Text>(true).text == "SPACE DOCK");
+            Check("SPACE DOCK uses the same frame sprite as REPLAY",
+                  dock.GetComponent<Image>().sprite == replay.GetComponent<Image>().sprite);
+
+            // Clicking it clears run state and loads the dock, like MENU does for home.
+            var loads = new List<string>();
+            BackNavigator.LoadScene = sc => loads.Add(sc);
+            try
+            {
+                Time.timeScale = 0f; buttonClicks.playerDied = true;
+                dock.onClick.Invoke();
+            }
+            finally { BackNavigator.ResetHooks(); }
+            Check("SPACE DOCK loads shopS6 once", loads.Count == 1 && loads[0] == "shopS6");
+            Check("SPACE DOCK leaves run state clean (timeScale 1, not dead)",
+                  Mathf.Approximately(Time.timeScale, 1f) && !buttonClicks.playerDied);
+        }
 
         // Sprites came from the SVG-sourced set.
         var frame = panel.Find("Frame").GetComponent<Image>();

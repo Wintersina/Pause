@@ -56,7 +56,7 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
 
     // ---- Layout (panel space: canvas units, origin at the panel centre) ----
 
-    public const float Width = 680f, Height = 760f;
+    public const float Width = 680f, Height = 876f;
     // How far the frame sprite's neon bloom reaches outside the panel body.
     public const float GlowMargin = 20f;
     public const float CardWidth = 600f;
@@ -66,16 +66,24 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
     const float LabelLeft = -CardWidth * .5f + 40f;
     const float ValueRight = CardWidth * .5f - 28f;
 
-    public static readonly Rect HeaderRect = Centered(0f, 326f, 600f, 56f);
-    public static readonly Rect DividerRect = Centered(0f, 280f, 440f, 16f);
+    // The panel grew by 116 for the SPACE DOCK row (a button plus a 16 gap);
+    // everything above it moved up by half of that so the centre-origin
+    // layout stays put relative to the top edge.
+    public static readonly Rect HeaderRect = Centered(0f, 384f, 600f, 56f);
+    public static readonly Rect DividerRect = Centered(0f, 338f, 440f, 16f);
     public static readonly Rect[] CardRects =
     {
-        Centered(0f, 196f, CardWidth, 128f),   // score
-        Centered(0f, 4f, CardWidth, 232f),     // breakdown
-        Centered(0f, -178f, CardWidth, 108f),  // star dust
+        Centered(0f, 254f, CardWidth, 128f),   // score
+        Centered(0f, 62f, CardWidth, 232f),     // breakdown
+        Centered(0f, -120f, CardWidth, 108f),  // star dust
     };
-    public static readonly Rect ReplayRect = Centered(-156f, -302f, ButtonWidth, ButtonHeight);
-    public static readonly Rect MenuRect = Centered(156f, -302f, ButtonWidth, ButtonHeight);
+    public static readonly Rect ReplayRect = Centered(-156f, -244f, ButtonWidth, ButtonHeight);
+    public static readonly Rect MenuRect = Centered(156f, -244f, ButtonWidth, ButtonHeight);
+    // SPACE DOCK: a full-column button under REPLAY / MENU that goes straight
+    // to the ship dock (shopS6) so the run's star dust can be spent at once.
+    public static readonly Rect DockRect = Centered(0f, -360f, CardWidth, ButtonHeight);
+    public const string DockScene = "shopS6";
+    public const int ButtonCount = 3;
 
     // Breakdown card (card-local): title row, then one row per source.
     public const float BreakdownTitleY = 92f;
@@ -131,10 +139,10 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
     long[] rowPoints = new long[0];
     long[] shownRows = new long[0];
     RectTransform pill;
-    RectTransform[] buttonSlots = new RectTransform[2];
-    CanvasGroup[] buttonGroups = new CanvasGroup[2];
-    Image[] buttonGlows = new Image[2];
-    DeathPanelPress[] presses = new DeathPanelPress[2];
+    RectTransform[] buttonSlots = new RectTransform[ButtonCount];
+    CanvasGroup[] buttonGroups = new CanvasGroup[ButtonCount];
+    Image[] buttonGlows = new Image[ButtonCount];
+    DeathPanelPress[] presses = new DeathPanelPress[ButtonCount];
     Image[] dustBurst, bestBurst, bonusBurst;
     Text bonusLine, bonusPopup;
     Vector2 bonusCentre;
@@ -151,6 +159,8 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
     public RectTransform Panel { get { return panel; } }
     public RectTransform ReplaySlot { get { return buttonSlots[0]; } }
     public RectTransform MenuSlot { get { return buttonSlots[1]; } }
+    public RectTransform DockSlot { get { return buttonSlots[2]; } }
+    static Rect ButtonRect(int i) { return i == 0 ? ReplayRect : i == 1 ? MenuRect : DockRect; }
     public bool IntroFinished { get { return finalApplied; } }
 
     // ---------------------------------------------------------------------
@@ -423,11 +433,34 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
     {
         buttonSlots[0] = BuildButton(0, replay, replayGlyph, "REPLAY", Cyan, ReplayRect);
         buttonSlots[1] = BuildButton(1, menu, menuGlyph, "MENU", Coral, MenuRect);
+        buttonSlots[2] = BuildButton(2, NewDockButton(), null, "SPACE DOCK", Gold, DockRect);
+    }
+
+    // The dock button is made here (the scene has no third button). It is
+    // the same kind of Button as the scene's two, restyled by BuildButton.
+    Button NewDockButton()
+    {
+        var go = new GameObject("SpaceDock", typeof(RectTransform), typeof(Image), typeof(Button));
+        go.transform.SetParent(panel, false);
+        var button = go.GetComponent<Button>();
+        button.onClick.AddListener(OpenSpaceDock);
+        return button;
+    }
+
+    // Leave for the Space Dock. The run is already banked (playerIsDead
+    // settles score and saves the dust before this panel is built); this is
+    // MENU's exit with a different destination: clear run state (timeScale,
+    // dead flags), then load the dock. The dock's Back goes home as always.
+    public static void OpenSpaceDock()
+    {
+        moveBackGround.speed = 0f;
+        GameStateReset.Clear();
+        BackNavigator.LoadScene(DockScene);
     }
 
     RectTransform BuildButton(int index, Button button, Sprite glyph, string label, Color accent, Rect rect)
     {
-        var slotGo = new GameObject(label == "REPLAY" ? "ReplaySlot" : "MenuSlot", typeof(RectTransform), typeof(CanvasGroup));
+        var slotGo = new GameObject(label == "REPLAY" ? "ReplaySlot" : label == "MENU" ? "MenuSlot" : "DockSlot", typeof(RectTransform), typeof(CanvasGroup));
         slotGo.transform.SetParent(panel, false);
         var slot = (RectTransform)slotGo.transform;
         Place(slot, rect);
@@ -656,20 +689,20 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
         AnimateBurst(dustBurst, results.dustWon > 0f ? Progress(t, DustBurstAt, DustBurstAt + BurstDuration) : 1f,
                      dustValueCentre, 1f);
 
-        for (int i = 0; i < 2; i++)
+        for (int i = 0; i < ButtonCount; i++)
         {
             float b = EaseOutCubic((t - (ButtonsStart + i * ButtonStagger)) / ButtonDuration);
             buttonGroups[i].alpha = b;
             buttonGroups[i].interactable = b > .5f;
             float bq = EaseOutBack(Progress(tq, ButtonsStart + i * ButtonStagger, ButtonsStart + i * ButtonStagger + ButtonDuration));
-            buttonSlots[i].anchoredPosition = (i == 0 ? ReplayRect : MenuRect).center + new Vector2(0f, (1f - bq) * -24f);
+            buttonSlots[i].anchoredPosition = ButtonRect(i).center + new Vector2(0f, (1f - bq) * -24f);
         }
     }
 
     void AnimateIdle(float t)
     {
         float settle = Mathf.Clamp01((t - ButtonsStart) / .5f);
-        for (int i = 0; i < 2; i++)
+        for (int i = 0; i < ButtonCount; i++)
         {
             // A rim flash on a beat (2 ticks bright, 2 ticks half), the two
             // buttons a half-beat apart, instead of a soft breathing bloom.
