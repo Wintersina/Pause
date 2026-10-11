@@ -32,8 +32,8 @@ using UnityEngine;
 //   CLOSE     the ship coming close never makes the beam vanish (both rails):
 //             a pause jump beside it leaves it, one onto it erases it; an
 //             unshielded touch costs a heart and the beam burns on
-//   SOUND     firing plays the electric arc cue (existing authored clip, through AttackAudio, so it follows the
-//             effects volume / toggle) exactly once per shot, never during the windup
+//   SOUND     firing plays the shared small pew (PewSound, through the effects bus) exactly once per shot,
+//             never during the windup
 //   ANGLES    every shot a random angle within +/-MaxAngleDeg (a varied,
 //             deterministic stream that leaves UnityEngine.Random alone); the
 //             aim line, beam, hitbox, Touches, blink and burn all follow the
@@ -96,18 +96,18 @@ public static class RailMineLaserTest
 
     static void ShotSound()
     {
-        bool sim = AttackAudio.Simulate;
-        var oldClock = AttackAudio.Clock;
+        bool sim = PewSound.Simulate;
+        var oldClock = PewSound.Clock;
         double t = 100.0;
         try
         {
-            AttackAudio.Simulate = true;
-            AttackAudio.Clock = () => t;
+            PewSound.Simulate = true;
+            PewSound.Clock = () => t;
             int ok = 0; var bad = new List<string>();
             for (int w = 0; w < 4; w++)
             {
                 Fresh();
-                AttackAudio.ClearCache();
+                PewSound.Reset();
                 var brain = Mine(w, true, 0f, out var rail);
                 TestHarness.Send(brain.GetComponent<RailMineMount>(), "LateUpdate");
                 var l = RailMineLasers.Take();
@@ -115,20 +115,19 @@ public static class RailMineLaserTest
                 t += 1.0;
                 l.Arm(brain.transform, w, RailMineLaser.AimSeconds);
                 l.Step(.01f);
-                int windup = AttackAudio.Played;
+                int windup = PewSound.Played;
                 l.Fire();
                 string tag = EnemyRoster.WorldKeys[w] + ": ";
                 if (windup != 0) bad.Add(tag + "the windup made a sound");
-                else if (AttackAudio.Played != 1) bad.Add(tag + "Played " + AttackAudio.Played + " after the shot, not 1");
-                else if (AttackAudio.LastCue != RailMineLaser.ShotSoundCue || AttackAudio.LastClip == null) bad.Add(tag + "wrong cue / no clip");
+                else if (PewSound.Played != 1) bad.Add(tag + "Played " + PewSound.Played + " after the shot, not 1");
                 else ok++;
                 l.Recycle();
                 Cleanup(brain, rail);
             }
-            Check("a mine's shot plays the arc cue's authored clip once, silent during the windup, in every world (" + ok + "/4" +
+            Check("a mine's shot plays the small pew once, silent during the windup, in every world (" + ok + "/4" +
                   (bad.Count == 0 ? "" : "; " + string.Join("; ", bad)) + ")", bad.Count == 0 && ok == 4);
         }
-        finally { AttackAudio.Simulate = sim; AttackAudio.Clock = oldClock; AttackAudio.ClearCache(); }
+        finally { PewSound.Simulate = sim; PewSound.Clock = oldClock; PewSound.Reset(); }
     }
 
     // ---- fixtures ----------------------------------------------------------

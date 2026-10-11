@@ -1213,7 +1213,7 @@ public static class EnemyVolley
         {
             case EnemyAttack.Lob:
             {
-                var s = pool.Fire(null, style, EliteShots.Kind.Glob, at, Vector2.zero);
+                var s = pool.Fire(null, style, EliteShots.Kind.Glob, at, Vector2.zero, true, source.GetInstanceID());
                 if (s == null) break;
                 s.AsRosterShot(source, 0f);
                 s.Lob(lobTarget, EnemyBehaviours.LobSeconds);
@@ -1263,7 +1263,7 @@ public static class EnemyVolley
     {
         float speed = pilotVolley ? b.shotSpeed * PilotShotSpeed * pilotView : b.shotSpeed;
         speed *= PortalPressure.ShotSpeedScale;   // x1 unless a portal has been kept waiting into overdrive
-        var s = pool.Fire(null, style, b.shotKind, at, direction * speed);
+        var s = pool.Fire(null, style, b.shotKind, at, direction * speed, true, source.GetInstanceID());
         if (s == null) return 0;
         s.AsRosterShot(source, pilotVolley ? 0f : b.ride);
         return 1;

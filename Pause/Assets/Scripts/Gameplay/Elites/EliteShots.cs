@@ -105,7 +105,7 @@ public sealed class EliteShots
     }
 
     // Null when the pool is spent (a busy screen skips a shot).
-    public EliteShot Fire(EliteShip owner, EliteDef def, Kind kind, Vector2 at, Vector2 velocity)
+    public EliteShot Fire(EliteShip owner, EliteDef def, Kind kind, Vector2 at, Vector2 velocity, bool pew = true, int pewSource = 0)
     {
         EliteShot s = null;
         for (int i = 0; i < shots.Count; i++)
@@ -118,6 +118,7 @@ public sealed class EliteShots
         }
         s.Launch(owner, def, kind, at, velocity);
         Launched++;
+        if (pew) PewSound.Play(pewSource != 0 ? pewSource : (owner != null ? owner.GetHashCode() : 0));   // who fired: decides single shot vs rapid fire
         return s;
     }
 
@@ -572,7 +573,7 @@ public class EliteShot : MonoBehaviour, IHostileShot
         for (int i = 0; i < n; i++)
         {
             float r = (spin + i * 360f / n) * Mathf.Deg2Rad;
-            pool.Fire(o, d, EliteShots.Kind.Shard, at, new Vector2(Mathf.Cos(r), Mathf.Sin(r)) * speed);
+            pool.Fire(o, d, EliteShots.Kind.Shard, at, new Vector2(Mathf.Cos(r), Mathf.Sin(r)) * speed, false);
         }
     }
 
@@ -949,7 +950,7 @@ public class EliteShot : MonoBehaviour, IHostileShot
     bool Child(Vector2 at, Vector2 v, float scale, float seconds)
     {
         if (pool == null) return false;
-        var c = pool.Fire(owner, def, EliteShots.Kind.Shard, at, v);
+        var c = pool.Fire(owner, def, EliteShots.Kind.Shard, at, v, false);
         if (c == null) return false;
         c.BecomeChip(scale, seconds, rosterShot, shooter, ride, ownerId, age + ageBias);
         return true;

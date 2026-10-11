@@ -808,6 +808,7 @@ public sealed class BossProjectilePool
             shots.Add(p);
         }
         p.Launch(boss, style, at, velocity, rail, bounces, gravity, fallSpeed);
+        PewSound.Play(OwnerId);
         return p;
     }
 
