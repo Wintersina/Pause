@@ -32,6 +32,11 @@ public static class RailMineArt
     public const string AtlasPath = "Enemies/Mines/rail_mines_neon";
     public const float PixelsPerUnit = 384f;
     public const string TideAtlasPath = "Enemies/Mines/rail_mines_neon_tide";
+    // Verdant's LIT mine: the Verdant row again, repainted with the core and veins glowing, in its own file (the original atlas stays
+    // byte-identical). One row, 1254 x 298, the same four columns; its rects and pivots are the Verdant row's with the row's y (594)
+    // taken off. The mine wears it once it ARMS: the flipbook's tell slots (Waking, Charging). Idle, hit and the burst frame stay original.
+    public const string VerdantLitAtlasPath = "Enemies/Mines/rail_mines_neon_verdant_lit";
+    public const int VerdantWorld = 2, VerdantLitAtlasHeight = 298, VerdantRowY = 594;
     public const int OriginalWorlds = 4;   // the rows of the original atlas
     public const int Worlds = 5;           // Space, Frost, Verdant, Ember (original atlas), Tide (second atlas)
     public const int TideAtlasHeight = 314;
@@ -106,8 +111,43 @@ public static class RailMineArt
     // detonation, RailBombAnimator.Burst) is the burst.
     public static readonly int[] FlipbookColumns = { Dormant, Waking, Dormant, Dormant, Waking, Charging, Burst };
 
-    static Texture2D atlas, tideAtlas;
+    static Texture2D atlas, tideAtlas, litAtlas;
     static Sprite[] sprites;   // [world * Columns + column]
+    static readonly Sprite[] litSprites = new Sprite[Columns];
+
+    public static Texture2D LitAtlas
+    {
+        get
+        {
+            if (litAtlas == null) litAtlas = Resources.Load<Texture2D>(VerdantLitAtlasPath);
+            return litAtlas;
+        }
+    }
+
+    // True for the worlds that have a lit second drawing of their mine (Verdant).
+    public static bool HasLit(int world) => world == VerdantWorld && LitAtlas != null;
+
+    // Top-left-origin rect / pivot of a lit frame in the lit atlas: the Verdant row's, y offset removed.
+    public static RectInt LitPixelRect(int column) { var r = PixelRect(VerdantWorld, column); return new RectInt(r.x, r.y - VerdantRowY, r.width, r.height); }
+    public static Vector2 LitPixelPivot(int column) { var p = PixelPivot(VerdantWorld, column); return new Vector2(p.x, p.y - VerdantRowY); }
+
+    // The lit sprite of a column, or the ordinary frame when the world has none (or its file is missing).
+    public static Sprite LitFrame(int world, int column)
+    {
+        if (!HasLit(world)) return Frame(world, column);
+        column = Mathf.Clamp(column, 0, Columns - 1);
+        if (litSprites[column] == null)
+        {
+            var tex = LitAtlas;
+            var r = LitPixelRect(column);
+            var p = LitPixelPivot(column);
+            var rect = new Rect(r.x, tex.height - r.y - r.height, r.width, r.height);
+            var pivot = new Vector2((p.x - r.x) / r.width, 1f - (p.y - r.y) / r.height);
+            litSprites[column] = Sprite.Create(tex, rect, pivot, PixelsPerUnit, 0, SpriteMeshType.FullRect);
+            litSprites[column].name = "verdant_mine_" + ColumnName(column) + "_lit";
+        }
+        return litSprites[column];
+    }
 
     // The atlas file a world's mine is drawn from.
     public static string AtlasPathFor(int world) => world >= OriginalWorlds ? TideAtlasPath : AtlasPath;
@@ -162,7 +202,13 @@ public static class RailMineArt
     {
         if (AtlasFor(world) == null) return null;
         var frames = new Sprite[FlipbookColumns.Length];
-        for (int i = 0; i < frames.Length; i++) frames[i] = Frame(world, FlipbookColumns[i]);
+        for (int i = 0; i < frames.Length; i++)
+        {
+            int c = FlipbookColumns[i];
+            // the arming tell (slots 4-5: waking, charging) is the lit drawing where the world has one
+            bool arming = i == 4 || i == 5;
+            frames[i] = arming && HasLit(world) ? LitFrame(world, c) : Frame(world, c);
+        }
         return frames;
     }
 

@@ -507,7 +507,7 @@ public static class ShotMotionTest
     {
         var tex = sp.texture;
         var r = sp.rect;
-        var all = tex.GetPixels32();
+        var all = tex.isReadable ? tex.GetPixels32() : ShieldContour.ReadFromSourceFile(tex, 0, 0, tex.width, tex.height);   // (a painted atlas is not readable)
         var res = new Color32[(int)(r.width * r.height)];
         for (int y = 0; y < r.height; y++)
             for (int x = 0; x < r.width; x++)
@@ -532,7 +532,7 @@ public static class ShotMotionTest
             for (int world = 0; world < ShotSkins.Worlds; world++)
                 for (int f = 0; f < 2; f++)
                 {
-                    var sp = ShotMotionArt.Sprite_(piece, world, f);
+                    var sp = ShotMotionArt.ProceduralSprite(piece, world, f);
                     var px = Pixels(sp);
                     int w = (int)sp.rect.width, h = (int)sp.rect.height;
                     var au = ShotSkinTest.AuditPixels(px);
@@ -570,10 +570,10 @@ public static class ShotMotionTest
         Check(n + " procedural bodies (slug, leaf, crescent, log, pod x 5 worlds x 2 frames): at least " + (ShotSkinTest.MinPinkShare * 100f) + "% pink-family or white in every one, the least " + (minPink * 100f).ToString("F0") + "% (" + worstPink + ")", lowPink == 0 && n == 50);
         Check("... no player-red pixel, no saturated pickup hue (" + red + " red, " + hot + " hot: " + hotWhere + "), material at most half (most " + (maxMat * 100f).ToString("F0") + "%, " + worstMat + ")", red == 0 && hot == 0 && heavy == 0);
         Check("... the silhouette edge is the pink-white stroke (least " + (minEdge * 100f).ToString("F0") + "%, " + worstEdge + "; " + softEdge + " under 80%), and no body is a smooth filled square or disc (" + flat + ")", softEdge == 0 && flat == 0);
-        var a = Pixels(ShotMotionArt.Sprite_(ShotMotionArt.Piece.Leaf, 2, 0)); var b = Pixels(ShotMotionArt.Sprite_(ShotMotionArt.Piece.Leaf, 2, 1));
+        var a = Pixels(ShotMotionArt.ProceduralSprite(ShotMotionArt.Piece.Leaf, 2, 0)); var b = Pixels(ShotMotionArt.ProceduralSprite(ShotMotionArt.Piece.Leaf, 2, 1));
         int diff = 0;
         for (int i = 0; i < a.Length; i++) if (a[i].r != b[i].r || a[i].g != b[i].g || a[i].b != b[i].b || a[i].a != b[i].a) diff++;
-        var cres = ShotMotionArt.Sprite_(ShotMotionArt.Piece.Crescent, 2, 0);
+        var cres = ShotMotionArt.ProceduralSprite(ShotMotionArt.Piece.Crescent, 2, 0);
         Check("the two frames differ in the core (" + diff + " pixels: stepped flicker, PC5), and the crescent is a long thin blade (" + cres.rect.width + " x " + cres.rect.height + ")", diff >= 4 && cres.rect.width > cres.rect.height * 3f);
     }
 }

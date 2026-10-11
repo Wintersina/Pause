@@ -1,0 +1,31 @@
+name    cell   opaque  pink%  cyan green violet amber  red  border  x2  detail
+shots    0    2184   46.5     0     0      0     0    0       0  True  pair=80.2%
+shots    1    2376   49.8     0     0      0     0    0       0  True  
+shots    2    4416   43.0     0     0      0     0    0       0  True  pair=91.3%
+shots    3    3232   45.5     0     0      0     0    0       0  True  
+shots    4    4332   49.2     0     0      0     0    0       0  True  pair=84.6%
+shots    5    4932   56.0     0     0      0     0    0       0  True  
+shots    6    4204   52.3     0     0      0     0    0       0  True  pair=87.7%
+shots    7    4332   53.0     0     0      0     0    0       0  True  
+shots    8    7076   61.7     0     0      0     0    0       0  True  pair=82.2%
+shots    9    5104   58.9     0     0      0     0    0       0  True  
+shots   10    2348   48.7     0     0      0     0    0       0  True  pair=90.4%
+shots   11    2816   47.9     0     0      0     0    0       0  True  
+shots   12    4940   54.2     0     0      0     0    0       0  True  pair=85.3%
+shots   13    4640   55.5     0     0      0     0    0       0  True  
+shots   14    6568   59.6     0     0      0     0    0       0  True  pair=83.4%
+shots   15    6272   61.7     0     0      0     0    0       0  True  
+mine     0   40351   35.0     0     0      0     0    0       1  False  IoU=100.0%
+mine     1   42137   37.2     0     0      0     0    0       2  False  IoU=100.0%
+mine     2   51672   62.5     0     0      0     0    0       6  False  IoU=100.0%
+mine     3   54262   62.3     0     0      0     0    0     255  False  IoU=100.0%
+boss     0    1432   81.8     0     0      0     0    0       0  True  oldL=89.5 newL=176.9
+boss     1    1672   83.0     0     0      0     0    0       0  True  oldL=96.6 newL=177.0
+boss     2    3020   84.0     0     0      0     0    0       0  True  oldL=76.2 newL=171.4
+boss     3    3292   82.6     0     0      0     0    0       0  True  oldL=84.3 newL=166.7
+boss     4   14848    0.0     0 13056      0     0    0     235  False  COPY=True
+boss     5   16384   18.8     0  9728      0     0    0     255  False  COPY=True
+boss     6   16384   28.1     0  8192      0     0    0     255  False  COPY=True
+boss     7    5432   66.4     0     0      0     0    0       0  True  oldL=103.1 newL=160.8
+x2 note: all new shot cells and edited boss cells pass. Mine masks and untouched boss cells retain exact legacy pixels.
+FAILURES: none

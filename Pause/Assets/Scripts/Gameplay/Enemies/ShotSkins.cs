@@ -72,6 +72,11 @@ public static class ShotSkins
     // tests: skins that replace whatever the table says for (world, kind)
     static readonly ShotSkin[] overrides = new ShotSkin[Worlds * 16];
 
+    // The worlds whose shots atlas is delivered and approved: themed from the first frame of a real run (Verdant). A runtime-only hook, so
+    // edit-mode tests keep the procedural default until they call Enable themselves.
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+    static void EnableDeliveredWorlds() { Enable(2); }
+
     public static bool Enabled(int world) => world >= 0 && world < Worlds && enabled[world];
 
     // A phase's wiring commit calls this once the world's art is in Resources/Attacks/<World>/.
