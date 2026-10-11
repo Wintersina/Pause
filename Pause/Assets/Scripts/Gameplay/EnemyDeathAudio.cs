@@ -75,6 +75,11 @@ public static class EnemyDeathAudio
         new[] { "verdant_chaser",    "verdant_fighter_3", "1.15" }, // Dragonsting: insect rasp
         // Ember: the salamander hisses like the brass vulture, smaller
         new[] { "ember_chaser",      "ember_elite_brass_vulture", "1.15" },   // Cinder Fang: raspy creature cry
+        // Verdant's three living elites (the Timber Hauler is a machine: none). Heard once their death cues are authored (PendingClips):
+        // the scream layers on a death cue, so until then they are silent. Pitched down: a bigger body than its donor's.
+        new[] { "verdant_elite_thornlash",  "verdant_fighter_4", "0.90" },   // Thornlash: the Hornet Queen's cry, lower and slower
+        new[] { "verdant_elite_sporebloom", "verdant_alien",     "0.90" },   // Sporebloom: the Snap Sprout's wet voice, a size up
+        new[] { "verdant_elite_leafblade",  "verdant_fighter_4", "1.10" },   // Leafblade: a sharper, quicker queen
     };
     public static readonly Dictionary<string, Borrow> ScreamBorrow = BuildBorrows();
     static Dictionary<string, Borrow> BuildBorrows()
@@ -176,12 +181,17 @@ public static class EnemyDeathAudio
     // Editor safety net: a roster / elite key that resolves no clip is a
     // content bug (a new enemy added without a sound pass). Warn once per key.
     static readonly HashSet<string> warned = new HashSet<string>();
+    // Keys whose authored death cues are still to come (the sound job): silent until then, never an error or a warning.
+    public static readonly string[] PendingClips =
+    {
+        "verdant_elite_timber_hauler", "verdant_elite_thornlash", "verdant_elite_sporebloom", "verdant_elite_leafblade",
+    };
     static void WarnMissing(string key)
     {
 #if UNITY_EDITOR
         if (!AuthoredEnabled || Variants(key) > 0) return;
         if (EnemyRoster.Find(key) == null && EliteCatalog.Find(key) == null) return;   // hitboxes etc. are silent by design
-        if (key.StartsWith("tide_")) return;   // TODO(sounds): Tide's authored death cues are still to come (checklist section F)
+        if (key.StartsWith("tide_") || System.Array.IndexOf(PendingClips, key) >= 0) return;   // TODO(sounds): Tide's authored death cues are still to come (checklist section F)
         if (warned.Add(key)) Debug.LogWarning("[EnemyDeathAudio] no authored death clips for '" + key + "' (Resources/" + ResourceFolder + key + "_0)");
 #endif
     }

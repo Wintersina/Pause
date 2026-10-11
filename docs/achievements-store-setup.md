@@ -59,7 +59,7 @@ Order,Name,Description,Points,Incremental steps (blank = standard),Initial state
 19,Elite Exterminator,Destroy 50 elite ships.,25,50,Revealed,elite_50.png
 20,Space Elites,Down every Space elite.,15,4,Revealed,elite_space_all.png
 21,Frost Elites,Down every Frost elite.,20,5,Revealed,elite_frost_all.png
-22,Verdant Elites,Down the Verdant elite.,15,,Revealed,elite_verdant_all.png
+22,Verdant Elites,Down every Verdant elite.,15,,Revealed,elite_verdant_all.png
 23,Ember Elites,Down every Ember elite.,25,6,Revealed,elite_ember_all.png
 24,Blink Strike,Destroy an elite with a pause blink.,10,,Revealed,elite_blink.png
 25,Gunner,Destroy 100 enemies.,5,100,Revealed,kills_100.png
@@ -132,7 +132,7 @@ Pause elite_10,me.sinaserati.Pause.ach_elite_10,10,No,No,Veteran Hunter,Destroy 
 Pause elite_50,me.sinaserati.Pause.ach_elite_50,25,No,No,Elite Exterminator,Destroy 50 elite ships.,Destroy 50 elite ships.,elite_50_1024.png
 Pause elite_space_all,me.sinaserati.Pause.ach_elite_space_all,15,No,No,Space Elites,Down every Space elite.,Down every Space elite.,elite_space_all_1024.png
 Pause elite_frost_all,me.sinaserati.Pause.ach_elite_frost_all,20,No,No,Frost Elites,Down every Frost elite.,Down every Frost elite.,elite_frost_all_1024.png
-Pause elite_verdant_all,me.sinaserati.Pause.ach_elite_verdant_all,15,No,No,Verdant Elites,Down the Verdant elite.,Down the Verdant elite.,elite_verdant_all_1024.png
+Pause elite_verdant_all,me.sinaserati.Pause.ach_elite_verdant_all,15,No,No,Verdant Elites,Down every Verdant elite.,Down every Verdant elite.,elite_verdant_all_1024.png
 Pause elite_ember_all,me.sinaserati.Pause.ach_elite_ember_all,25,No,No,Ember Elites,Down every Ember elite.,Down every Ember elite.,elite_ember_all_1024.png
 Pause elite_blink,me.sinaserati.Pause.ach_elite_blink,10,No,No,Blink Strike,Destroy an elite with a pause blink.,Destroy an elite with a pause blink.,elite_blink_1024.png
 Pause kills_100,me.sinaserati.Pause.ach_kills_100,5,No,No,Gunner,Destroy 100 enemies.,Destroy 100 enemies.,kills_100_1024.png

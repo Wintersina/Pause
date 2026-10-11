@@ -145,6 +145,7 @@ public class EliteDef
     public float shotInterval = .1f;    // seconds between shots of a burst
     public float blinkDistance = 1.4f;  // skirmisher blink
     public string shotKind = "bolt";    // EliteShots.Kind: bolt | slag | shell | shard | glob
+    public string shotMotion = "";      // a projectile behaviour (ShotMotion) this elite's shots wear: roll | burst | slash | flutter | streak | shatter ("": the world's skin)
     public int shotBounces;             // times a shot glances off a side rail before it breaks
     public float lobSeconds = .9f;      // resin_mortar: a glob's flight time to its landing spot; gravity_sling: a shot's time round its curve to the well
     public float lobSpacing = .7f;      // resin_mortar / ward_curtain: world units between the spots of the row
@@ -187,6 +188,43 @@ public class EliteDef
     // ---- derived ----
     [NonSerialized] public Color HeartColor, ShotColor, ShotCore, EngineColor;
     [NonSerialized] public int WorldIndex = -1;
+
+    [NonSerialized] ShotSkin motionSkin;
+    [NonSerialized] ShotMotion motion;
+    [NonSerialized] bool motionRead;
+
+    // The behaviour named by shotMotion (None when empty).
+    public ShotMotion Motion
+    {
+        get
+        {
+            if (!motionRead)
+            {
+                motionRead = true;
+                motion = ShotMotion.None;
+                switch (shotMotion)
+                {
+                    case "roll": motion = ShotMotion.Roll; break;
+                    case "burst": motion = ShotMotion.Burst; break;
+                    case "slash": motion = ShotMotion.Slash; break;
+                    case "flutter": motion = ShotMotion.Flutter; break;
+                    case "streak": motion = ShotMotion.Streak; break;
+                    case "shatter": motion = ShotMotion.Shatter; break;
+                }
+            }
+            return motion;
+        }
+    }
+
+    // The skin for a shot of `kind` when the def names a behaviour: the behaviour's procedural body (ShotMotionArt) until the world's
+    // art is delivered, built once per def (null: the world's skin as ever).
+    public ShotSkin MotionSkinFor(EliteShots.Kind kind)
+    {
+        if (Motion == ShotMotion.None) return null;
+        if (motionSkin == null || motionSkin.a == null || motionSkin.b == null || motionSkin.kind != kind)
+            motionSkin = ShotMotionArt.Skin(Mathf.Max(0, WorldIndex), kind, Motion);
+        return motionSkin;
+    }
 
     public int Score => score > 0 ? score : ScoreRules.EliteDown;
     public float Dust => dust > 0f ? dust : ScoreRules.EliteDownDust;

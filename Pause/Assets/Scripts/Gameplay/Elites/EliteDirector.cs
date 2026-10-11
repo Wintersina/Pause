@@ -156,7 +156,7 @@ public class EliteDirector : MonoBehaviour
         float stagger = 0f;
         for (int k = 0; k < size; k++)
         {
-            var def = defs[Random.Range(0, defs.Count)];
+            var def = NextDef(worldIndex);
             int s = PickSite(def.launchFrom);
             if (s < 0) break;
             usedSites.Add(sites[s].id);
@@ -167,6 +167,29 @@ public class EliteDirector : MonoBehaviour
         }
         if (made > 0) Groups++;
         return made;
+    }
+
+    // The world's elites come round in a shuffled deck: every elite of the world turns up once before any turns up twice
+    // (a world with five elites shows all five within five spawns, whatever the groups' sizes).
+    readonly List<EliteDef> deck = new List<EliteDef>(8);
+    int deckWorld = -1;
+
+    public EliteDef NextDef(int worldIndex)
+    {
+        if (EliteCatalog.ForWorld(worldIndex, defs) == 0) return null;
+        if (deckWorld != worldIndex) { deck.Clear(); deckWorld = worldIndex; }
+        if (deck.Count == 0)
+        {
+            deck.AddRange(defs);
+            for (int i = deck.Count - 1; i > 0; i--)
+            {
+                int j = Random.Range(0, i + 1);
+                var tmp = deck[i]; deck[i] = deck[j]; deck[j] = tmp;
+            }
+        }
+        var next = deck[deck.Count - 1];
+        deck.RemoveAt(deck.Count - 1);
+        return next;
     }
 
     // One elite of `def` parked on `site` for `park` seconds.

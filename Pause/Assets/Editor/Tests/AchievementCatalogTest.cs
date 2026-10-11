@@ -62,8 +62,8 @@ public static class AchievementCatalogTest
               Target("boss_all") == WorldManager.LiveWorldCount && Target("ship_all") == ShipId.Count &&
               Target("codex_complete") == Codex.Entries.Length && Target("elite_space_all") == Elites(0) &&
               Target("elite_frost_all") == Elites(1) && Target("elite_verdant_all") == Elites(2) && Target("elite_ember_all") == Elites(3));
-        Check("elites per world: Space 4, Frost 5, Verdant >= 1, Ember 6 (" + Elites(0) + "," + Elites(1) + "," + Elites(2) + "," + Elites(3) + ")",
-              Elites(0) >= 4 && Elites(1) >= 5 && Elites(2) >= 1 && Elites(3) >= 6);
+        Check("elites per world: Space 4, Frost 5, Verdant 5, Ember 6 (" + Elites(0) + "," + Elites(1) + "," + Elites(2) + "," + Elites(3) + ")",
+              Elites(0) >= 4 && Elites(1) >= 5 && Elites(2) == 5 && Elites(3) >= 6);
         Check("score thresholds ascend and sit inside what a run scores (ScoreRules: ~6,600 a first pass)",
               Target("score_10k") < Target("score_50k") && Target("score_50k") < Target("score_150k") && Target("score_10k") <= 3000);
         Check("the Codex is big enough for Cartographer (" + Codex.Entries.Length + " entries)", Codex.Entries.Length > 50);

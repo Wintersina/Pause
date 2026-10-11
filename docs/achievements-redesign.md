@@ -44,7 +44,7 @@ Columns: id (stable snake_case, also the file name of the art), title (max 24), 
 | 19 | `elite_50` | Elite Exterminator | Destroy 50 elite ships. | 25 | Gold | Elite | 50 |  | Rare |
 | 20 | `elite_space_all` | Space Elites | Down every Space elite. | 15 | Silver | Elite | 4 |  | Uncommon |
 | 21 | `elite_frost_all` | Frost Elites | Down every Frost elite. | 20 | Silver | Elite | 5 |  | Rare |
-| 22 | `elite_verdant_all` | Verdant Elites | Down the Verdant elite. | 15 | Silver | Elite | - |  | Uncommon |
+| 22 | `elite_verdant_all` | Verdant Elites | Down every Verdant elite. | 15 | Silver | Elite | 5 |  | Uncommon |
 | 23 | `elite_ember_all` | Ember Elites | Down every Ember elite. | 25 | Gold | Elite | 6 |  | Rare |
 | 24 | `elite_blink` | Blink Strike | Destroy an elite with a pause blink. | 10 | Silver | Elite | - |  | Uncommon |
 | 25 | `kills_100` | Gunner | Destroy 100 enemies. | 5 | Bronze | Enemy | 100 |  | Common |
@@ -116,7 +116,7 @@ entry point (see implementation plan): `Achievements.Report(string id)` for one-
 | `elite_50` | 50 elite kills | EliteShip.Died |
 | `elite_space_all` | All 4 Space elite codex ids killed at least once | EliteShip.Died + EliteCatalog.ForWorld(0) (Gameplay/Elites/EliteDef.cs:279) |
 | `elite_frost_all` | All 5 Frost elites killed | EliteShip.Died + EliteCatalog world list |
-| `elite_verdant_all` | All Verdant elites killed (1 defined today: resin_warden; counter auto-grows when more arrive) | EliteShip.Died + EliteCatalog world list |
+| `elite_verdant_all` | All Verdant elites killed (5 defined: resin_warden, timber_hauler, thornlash, sporebloom, leafblade; the counter follows the catalog) | EliteShip.Died + EliteCatalog world list |
 | `elite_ember_all` | All 6 Ember elites killed | EliteShip.Died + EliteCatalog world list |
 | `elite_blink` | Elite killed with cause EliteDamage.Teleport | EliteShip.Died (cause == EliteDamage.Teleport; EliteShip.TeleportStrike) |
 | `kills_100` | 100 enemy kills (tag Enimey, any world, not rocks) | collisionDetection.AwardDestroyedTarget -> RecordKillAchievement (extend: all Enimey, not only alien1); seed from old Aliens counter |

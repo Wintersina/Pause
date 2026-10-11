@@ -20,7 +20,7 @@ Order,Name,Description,Points,Incremental steps (blank = standard),Initial state
 19,Elite Exterminator,Destroy 50 elite ships.,25,50,Revealed,elite_50.png
 20,Space Elites,Down every Space elite.,15,4,Revealed,elite_space_all.png
 21,Frost Elites,Down every Frost elite.,20,5,Revealed,elite_frost_all.png
-22,Verdant Elites,Down the Verdant elite.,15,,Revealed,elite_verdant_all.png
+22,Verdant Elites,Down every Verdant elite.,15,,Revealed,elite_verdant_all.png
 23,Ember Elites,Down every Ember elite.,25,6,Revealed,elite_ember_all.png
 24,Blink Strike,Destroy an elite with a pause blink.,10,,Revealed,elite_blink.png
 25,Gunner,Destroy 100 enemies.,5,100,Revealed,kills_100.png
