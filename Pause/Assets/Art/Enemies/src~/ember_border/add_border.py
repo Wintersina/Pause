@@ -16,7 +16,7 @@ from PIL import Image
 HERE = Path(__file__).resolve().parent
 LIVE = HERE.parents[2] / "Resources" / "Enemies"
 NAMES = ["ember_alien", "ember_chaser", "ember_big", "ember_fighter_1", "ember_fighter_2", "ember_fighter_3", "ember_fighter_4", "ember_rock_cinder", "ember_rock_islet", "ember_rock_magma", "ember_rock_obsidian"]
-BORDER = (255, 222, 166)   # #FFDEA6 pale ember-gold rim (was cream #EBD8BC)
+BORDER = (196, 108, 46)    # #C46C2E dim ember-amber rim (was pale gold #FFDEA6; before that cream #EBD8BC)
 SOLID = 96                 # a pixel this opaque is part of the silhouette
 CELL = 192
 
