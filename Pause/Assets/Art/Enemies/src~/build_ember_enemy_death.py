@@ -47,6 +47,13 @@ UNITS = {
     "ember_fighter_2":     (192, 11, 50, 6, 2, 8,  "snap"),
     "ember_fighter_3":     (192, 12, 45, 7, 2, 10, "drum"),
     "ember_fighter_4":     (192, 14, 40, 9, 3, 12, "coil"),
+    # elites (flight strip cell 3 is the hull; run with EMBER_IDLE=<elite strips folder>)
+    "ember_elite_sunstoke":      (192, 14, 45, 7, 2, 10, "snap"),
+    "ember_elite_coalrunner":    (192, 14, 40, 7, 2, 10, "snap"),
+    "ember_elite_brass_vulture": (192, 14, 45, 7, 2, 10, "snap"),
+    "ember_elite_kilnback":      (192, 15, 35, 8, 3, 12, "vent"),
+    "ember_elite_ash_wraith":    (192, 14, 50, 8, 2, 10, "snap"),
+    "ember_elite_cauterizer":    (192, 15, 35, 8, 3, 12, "vent"),
 }
 
 

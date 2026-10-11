@@ -16,9 +16,9 @@
   "brain": "interceptor",
   "attack": "lance_dash",
   "lore": "A forge-built interceptor with a heat lance for a nose. It stalks you from behind, flares, then rams straight down the line it locked. Blink away mid-wind-up and it spears whatever is waiting there instead.",
-  "cellWorldSize": 1.5,
+  "cellWorldSize": 1.8,
   "hullRadius": 0.36,
-  "noseDeg": 54,
+  "noseDeg": 90,
   "turnsToFace": true,
   "speed": 3.0,
   "accel": 7,
@@ -41,22 +41,22 @@
   "muzzles": [
     {
       "name": "lance",
-      "x": 154,
-      "y": 20,
+      "x": 96,
+      "y": 24,
       "dir": -1.0
     }
   ],
   "nozzles": [
     {
       "name": "left",
-      "x": 57,
-      "y": 146,
+      "x": 86,
+      "y": 160,
       "dir": -1.0
     },
     {
       "name": "right",
-      "x": 91,
-      "y": 159,
+      "x": 106,
+      "y": 160,
       "dir": -1.0
     }
   ],

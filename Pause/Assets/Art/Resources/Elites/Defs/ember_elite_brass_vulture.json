@@ -16,9 +16,9 @@
   "brain": "striker",
   "attack": "claw_dive",
   "lore": "A salvage craft with hooked wings and a recovery claw. It circles you like you are already scrap, then dives claw first and flings what it tore loose. Make sure something else is under that claw.",
-  "cellWorldSize": 1.55,
+  "cellWorldSize": 1.92,
   "hullRadius": 0.33,
-  "noseDeg": 270,
+  "noseDeg": 90,
   "turnsToFace": true,
   "speed": 3.2,
   "accel": 7,
@@ -40,16 +40,16 @@
   "muzzles": [
     {
       "name": "claw",
-      "x": 93,
-      "y": 139,
+      "x": 94,
+      "y": 25,
       "dir": -1.0
     }
   ],
   "nozzles": [
     {
       "name": "tail",
-      "x": 56,
-      "y": 95,
+      "x": 96,
+      "y": 165,
       "dir": -1.0
     }
   ],
