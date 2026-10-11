@@ -14,6 +14,10 @@ public static class TextureDietPreview
     {
         "ShipArt/Hulls/Ninja", "ShipArt/Hulls/UFO", "ShipArt/Hulls/CrimsonHalo",
         "Elites/Frost/frost_elite_rimebreaker", "Bosses/Space", "Worlds/Space/rail_space_wide_v1",
+        "ShipArt/Exhaust/exhaust_atlas", "Pickups/heal_atom_green", "HapticGate/industrial_gate_v3", "HapticGate/gate_cracks_1",
+        "Bosses/Frost_shots", "Enemies/frost_alien", "Weapons/Explosions", "Weapons/AttackFx", "Vfx/teleport_portal_atlas",
+        "Bosses/Tide_damage_fx", "Bosses/Ember", "Worlds/Ember/Backdrop3/v1/mid", "Worlds/Frost/Backdrop3/v1/sky", "Worlds/Ember/Backdrop3/v1/far", "Elites/Tide/tide_elite_riptide", "HapticGate/gate_steam",
+        "Assets/Art/UI/Title/pause_title_2.png", "Assets/Art/UI/Splash/HapticGate_title_red.png",
     };
 
     public static void Run()
@@ -45,14 +49,20 @@ public static class TextureDietPreview
         string outDir = System.Environment.GetEnvironmentVariable("PAUSE_PREVIEW_DIR");
         if (string.IsNullOrEmpty(outDir)) outDir = "/private/tmp/claude-501/previews";
         Directory.CreateDirectory(outDir);
-        foreach (string res in Targets)
+        foreach (string res0 in Targets)
         {
-            var asset = Resources.Load<Texture2D>(res);
+            string res = res0;
             string assetPath = null;
-            foreach (string g in AssetDatabase.FindAssets(Path.GetFileName(res) + " t:Texture2D"))
+            Texture2D asset;
+            if (res.StartsWith("Assets/")) { assetPath = res; asset = AssetDatabase.LoadAssetAtPath<Texture2D>(res); res = Path.GetFileNameWithoutExtension(res); }
+            else
             {
-                string p = AssetDatabase.GUIDToAssetPath(g);
-                if (p.Contains("/Resources/" + res + ".")) assetPath = p;
+                asset = Resources.Load<Texture2D>(res);
+                foreach (string g in AssetDatabase.FindAssets(Path.GetFileName(res) + " t:Texture2D"))
+                {
+                    string p = AssetDatabase.GUIDToAssetPath(g);
+                    if (p.Contains("/Resources/" + res + ".")) assetPath = p;
+                }
             }
             if (asset == null || assetPath == null) { Debug.LogWarning("[DIETPREV] missing " + res); continue; }
             var src = new Texture2D(2, 2, TextureFormat.RGBA32, false, false);
@@ -78,6 +88,9 @@ public static class TextureDietPreview
             Debug.Log("[DIETPREV] " + res + " " + w + "x" + h + " format=" + asset.format + " PSNR=" + psnr.ToString("F1") + " dB maxAlphaErr=" + maxA + " maxColourErr=" + maxC);
             int cw = Mathf.Min(w, 384), ch = Mathf.Min(h, 256), cx = (w - cw) / 2, cy = (h - ch) / 2;
             Save(outDir, name + "_zoom.png", Triple(a, b, diff, w, cx, cy, cw, ch, 3));
+            Bg = new Color32(235, 235, 220, 255);
+            Save(outDir, name + "_zoom_bright.png", Triple(a, b, diff, w, cx, cy, cw, ch, 3));
+            Bg = new Color32(40, 40, 52, 255);
             int gw, gh;
             var ga = Area(a, w, h, 0.45f, out gw, out gh);   // before: what a mip chain would give (area average)
             var gb = Down(b, w, h, 0.45f, out gw, out gh);
@@ -139,6 +152,7 @@ public static class TextureDietPreview
         return o;
     }
 
+    static Color32 Bg = new Color32(40, 40, 52, 255);
     static Texture2D Triple(Color32[] a, Color32[] b, Color32[] d, int w, int cx, int cy, int cw, int ch, int zoom)
     {
         int panels = d == null ? 2 : 3;
@@ -156,7 +170,7 @@ public static class TextureDietPreview
                     if (p < 2)
                     {
                         float al = c.a / 255f;
-                        c = new Color32((byte)(c.r * al + 40 * (1 - al)), (byte)(c.g * al + 40 * (1 - al)), (byte)(c.b * al + 52 * (1 - al)), 255);
+                        c = new Color32((byte)(c.r * al + Bg.r * (1 - al)), (byte)(c.g * al + Bg.g * (1 - al)), (byte)(c.b * al + Bg.b * (1 - al)), 255);
                     }
                     t.SetPixel(p * (cw * zoom + 8) + x, y, c);
                 }

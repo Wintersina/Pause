@@ -33,7 +33,11 @@ public class AndroidTextureDiet : AssetPostprocessor
         if (path.Contains("~/") || path.Contains("/Editor/") || path.Contains("/Tests/")) return false;
         if (path.Contains("/Staging/") || path.Contains("/Plugins/")) return false;
         if (path.StartsWith("Assets/Art/AppIcon/", StringComparison.Ordinal)) return false;   // launcher icons stay uncompressed
-        if (path.StartsWith("Assets/Art/UI/", StringComparison.Ordinal)) return false;   // UI keeps its (test-guarded) import settings
+        if (path.StartsWith("Assets/Art/UI/", StringComparison.Ordinal) &&
+            !path.StartsWith("Assets/Art/UI/Title/", StringComparison.Ordinal) &&
+            !path.StartsWith("Assets/Art/UI/Splash/", StringComparison.Ordinal)) return false;   // UI keeps its (test-guarded) import settings; only the big title / splash art is diet material
+        // Small crisp logo with text: stays uncompressed (a few KB; ASTC at 6x6 would smear the lettering).
+        if (path == "Assets/Art/UI/Splash/HapticGate.png") return false;
         string ext = Path.GetExtension(path).ToLowerInvariant();
         return ext == ".png" || ext == ".jpg" || ext == ".jpeg" || ext == ".tga";
     }
@@ -42,7 +46,14 @@ public class AndroidTextureDiet : AssetPostprocessor
     public static TextureImporterFormat FormatFor(string path)
     {
         if (path.Contains("/Backgrounds/") || path.Contains("/Planetfall/")) return TextureImporterFormat.ASTC_6x6;
-        return TextureImporterFormat.ASTC_4x4;
+        if (path.StartsWith("Assets/Art/UI/", StringComparison.Ordinal)) return TextureImporterFormat.ASTC_6x6;
+        // Hard 1 px outlines (6x6 visibly blocks them in previews): ship hulls, guns, skins, exhaust, damage fx, shield, rails, weapons, attack fx, boss shots.
+        if (path.Contains("/ShipArt/") || path.Contains("/Shield/") || path.Contains("/Worlds/rail_") ||
+            path.Contains("/Resources/Worlds/") ||
+            path.Contains("/Resources/Weapons/") || path.Contains("/Resources/Attacks/") || path.Contains("/Resources/BossAttackFx/") || path.EndsWith("_shots.png", StringComparison.Ordinal))
+            return TextureImporterFormat.ASTC_4x4;
+        // Painted / glowing / soft art (previews clean at 6x6): bosses, enemies, elites, pickups, vfx, gate, title and splash.
+        return TextureImporterFormat.ASTC_6x6;
     }
 
     // True if the importer was changed.
@@ -56,10 +67,12 @@ public class AndroidTextureDiet : AssetPostprocessor
         if (w < MinSide && h < MinSide) return false;
 
         bool changed = false;
+        // Unity silently keeps NPOT + mipmaps as RGBA32; the big title / splash art is only ever minified ~2x.
+        if (ti.mipmapEnabled && (!Mathf.IsPowerOfTwo(w) || !Mathf.IsPowerOfTwo(h))) { ti.mipmapEnabled = false; changed = true; }
         foreach (string platform in new[] { "Android", "iPhone" })
         {
             var ps = ti.GetPlatformTextureSettings(platform);
-            if (ps.overridden && IsAstc(ps.format)) continue;      // another importer already chose
+            if (ps.overridden && IsAstc(ps.format) && OwnedByOtherImporter(path)) continue;   // that importer already chose
             ps.overridden = true;
             ps.format = FormatFor(path);
             ps.textureCompression = TextureImporterCompression.Compressed;
@@ -69,6 +82,12 @@ public class AndroidTextureDiet : AssetPostprocessor
             changed = true;
         }
         return changed;
+    }
+
+    // Folders whose own importer sets the ASTC override (WorldBackdropImport, PlanetfallArtImporter, ShipArtImporter).
+    static bool OwnedByOtherImporter(string path)
+    {
+        return path.Contains("/Backgrounds/") || path.Contains("/Planetfall/");
     }
 
     public static bool IsAstc(TextureImporterFormat f)
@@ -92,7 +111,9 @@ public class AndroidTextureDiet : AssetPostprocessor
             var ti = AssetImporter.GetAtPath(path) as TextureImporter;
             if (ti == null) continue;
             var before = ti.GetPlatformTextureSettings("Android");
-            if (before.overridden && IsAstc(before.format)) continue;
+            ti.GetSourceTextureWidthAndHeight(out int sw, out int sh);
+            bool npotMips = ti.mipmapEnabled && !ti.isReadable && (!Mathf.IsPowerOfTwo(sw) || !Mathf.IsPowerOfTwo(sh)) && (sw >= MinSide || sh >= MinSide);
+            if (!npotMips && before.overridden && (before.format == FormatFor(path) || (OwnedByOtherImporter(path) && IsAstc(before.format)))) continue;
             stale.Add(path);
         }
         Debug.Log("[DIET] " + stale.Count + " textures to re-import");
@@ -116,6 +137,21 @@ public class AndroidTextureDiet : AssetPostprocessor
     }
 
     static bool IsAstc2(TextureFormat f) { return f.ToString().StartsWith("ASTC"); }
+
+    // Re-imports every backdrop / planetfall texture (their importers set the ASTC format,
+    // which does not re-run on its own when that importer code changes).
+    public static void ReimportBackgroundsAndExit()
+    {
+        try
+        {
+            AssetDatabase.StartAssetEditing();
+            foreach (string guid in AssetDatabase.FindAssets("t:Texture2D", new[] { "Assets/Art/Backgrounds" }))
+                AssetDatabase.ImportAsset(AssetDatabase.GUIDToAssetPath(guid), ImportAssetOptions.ForceUpdate);
+        }
+        finally { AssetDatabase.StopAssetEditing(); }
+        AssetDatabase.SaveAssets();
+        EditorApplication.Exit(0);
+    }
 
     public static void ApplyAllAndExit()
     {
