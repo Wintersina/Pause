@@ -430,6 +430,11 @@ public static partial class AttackHazardArt
         return b;
     }
 
+    // The painted link cell is 128 px tall but its vine fills rows 12..115 only (104 px): drawn at len / (cell x this) the links' ends meet exactly,
+    // with no gap and no overlap (Codex's "trim the 12 px margins"). The procedural link fills its whole tile.
+    public const float PaintedLinkFill = 104f / 128f;
+    public static float LinkFill(int world) => LashArt(world) ? PaintedLinkFill : 1f;
+
     // one section of the chain, pointing down (frame 0 / 1: the core's flicker and the thorn's side)
     public static Sprite LashLink(int world, int frame, bool bold)
     {

@@ -64,6 +64,7 @@ public static class AllTests
         ("ShotSkinTest", ShotSkinTest.Execute),
         ("BossLaserArtTest", BossLaserArtTest.Execute),
         ("MineFlameArtTest", MineFlameArtTest.Execute),
+        ("VerdantAttackArtTest", VerdantAttackArtTest.Execute),
         ("AtomFlightTest", AtomFlightTest.Execute),
         ("AtomSpacingTest", AtomSpacingTest.Execute),
         ("BackNavigationTest", BackNavigationTest.Execute),

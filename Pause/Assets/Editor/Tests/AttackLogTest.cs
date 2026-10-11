@@ -262,6 +262,8 @@ public static class AttackLogTest
     static void ArtSlot()
     {
         Fresh();
+        AttackArt.Inject(2, "log", null);   // (the painted trunk is installed now: serve none to check the fallback)
+        AttackHazardArt.Forget();
         var l = Arm(new Vector2(0f, 1f), 1f);
         var proc = l.BodyRenderer.sprite;
         Check("without verdant_attack_log.png the procedural trunk (ShotMotionArt's log) is drawn", !AttackArt.Has(2, "log") && proc != null && proc.texture != null && proc.bounds.size.y > proc.bounds.size.x);
@@ -280,6 +282,8 @@ public static class AttackLogTest
         Check("... with the pink cue in its pixels (" + pinkish + " of " + opaque + " are pink-white)", opaque > 20 && pinkish >= opaque / 5);
         EliteSystem.Clear();
         Fresh();
+        AttackArt.Clear();
+        AttackHazardArt.Forget();
         var atlas = Atlas(1024, 256, new Color32(255, 90, 220, 255));
         AttackArt.Inject(2, "log", atlas);
         var a = Arm(new Vector2(0f, 1f), 1f);

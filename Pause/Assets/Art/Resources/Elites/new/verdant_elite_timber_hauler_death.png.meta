@@ -1,0 +1,868 @@
+fileFormatVersion: 2
+guid: 645b514185d814e2c82f926c49712f60
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 4725707852665002290
+    second: verdant_elite_timber_hauler_death_0
+  - first:
+      213: 6220205157789356181
+    second: verdant_elite_timber_hauler_death_1
+  - first:
+      213: -1089464249417679828
+    second: verdant_elite_timber_hauler_death_2
+  - first:
+      213: 7167726815936025527
+    second: verdant_elite_timber_hauler_death_3
+  - first:
+      213: 5306328979090797107
+    second: verdant_elite_timber_hauler_death_4
+  - first:
+      213: 6524006639027364147
+    second: verdant_elite_timber_hauler_death_5
+  - first:
+      213: 7752716423293808521
+    second: verdant_elite_timber_hauler_death_6
+  - first:
+      213: 7348136210024465417
+    second: verdant_elite_timber_hauler_death_7
+  - first:
+      213: -918978614689586078
+    second: verdant_elite_timber_hauler_death_8
+  - first:
+      213: 5811076403462996746
+    second: verdant_elite_timber_hauler_death_9
+  - first:
+      213: 684825037902303432
+    second: verdant_elite_timber_hauler_death_10
+  - first:
+      213: 178426034306388566
+    second: verdant_elite_timber_hauler_death_11
+  - first:
+      213: 5595520343845537890
+    second: verdant_elite_timber_hauler_death_12
+  - first:
+      213: 5646083160084770615
+    second: verdant_elite_timber_hauler_death_13
+  - first:
+      213: 8890481173886176616
+    second: verdant_elite_timber_hauler_death_14
+  - first:
+      213: 840416884613581614
+    second: verdant_elite_timber_hauler_death_15
+  - first:
+      213: 8080443091324426153
+    second: verdant_elite_timber_hauler_death_16
+  - first:
+      213: -7151695044024409562
+    second: verdant_elite_timber_hauler_death_17
+  - first:
+      213: 2757750687269672391
+    second: verdant_elite_timber_hauler_death_18
+  - first:
+      213: -7255545990851399027
+    second: verdant_elite_timber_hauler_death_19
+  - first:
+      213: 1348851118999459496
+    second: verdant_elite_timber_hauler_death_20
+  - first:
+      213: -8764696676349210102
+    second: verdant_elite_timber_hauler_death_21
+  - first:
+      213: -8292065120269039593
+    second: verdant_elite_timber_hauler_death_22
+  - first:
+      213: -3842640140237441856
+    second: verdant_elite_timber_hauler_death_23
+  - first:
+      213: 246520679782396896
+    second: verdant_elite_timber_hauler_death_24
+  - first:
+      213: -378772457357773756
+    second: verdant_elite_timber_hauler_death_25
+  - first:
+      213: -5842424426543346672
+    second: verdant_elite_timber_hauler_death_26
+  - first:
+      213: 1412502018406232353
+    second: verdant_elite_timber_hauler_death_27
+  - first:
+      213: -8214857536683939778
+    second: verdant_elite_timber_hauler_death_28
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 1
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 0
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: iOS
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: verdant_elite_timber_hauler_death_0
+      rect:
+        serializedVersion: 2
+        x: 31
+        y: 41
+        width: 130
+        height: 110
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2391f5e0146159140800000000000000
+      internalID: 4725707852665002290
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_elite_timber_hauler_death_1
+      rect:
+        serializedVersion: 2
+        x: 219
+        y: 96
+        width: 67
+        height: 62
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 590561c82ab925650800000000000000
+      internalID: 6220205157789356181
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_elite_timber_hauler_death_2
+      rect:
+        serializedVersion: 2
+        x: 283
+        y: 102
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c2cb8f1990271e0f0800000000000000
+      internalID: -1089464249417679828
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_elite_timber_hauler_death_3
+      rect:
+        serializedVersion: 2
+        x: 292
+        y: 99
+        width: 65
+        height: 59
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7b398e61091e87360800000000000000
+      internalID: 7167726815936025527
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_elite_timber_hauler_death_4
+      rect:
+        serializedVersion: 2
+        x: 419
+        y: 106
+        width: 52
+        height: 53
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3327114a71ed3a940800000000000000
+      internalID: 5306328979090797107
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_elite_timber_hauler_death_5
+      rect:
+        serializedVersion: 2
+        x: 458
+        y: 95
+        width: 18
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3312487f87de98a50800000000000000
+      internalID: 6524006639027364147
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_elite_timber_hauler_death_6
+      rect:
+        serializedVersion: 2
+        x: 474
+        y: 111
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 98fa3c6e28e279b60800000000000000
+      internalID: 7752716423293808521
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_elite_timber_hauler_death_7
+      rect:
+        serializedVersion: 2
+        x: 480
+        y: 93
+        width: 61
+        height: 66
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 90481bf63f2d9f560800000000000000
+      internalID: 7348136210024465417
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_elite_timber_hauler_death_8
+      rect:
+        serializedVersion: 2
+        x: 245
+        y: 93
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2642f33a1d12f33f0800000000000000
+      internalID: -918978614689586078
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_elite_timber_hauler_death_9
+      rect:
+        serializedVersion: 2
+        x: 269
+        y: 94
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a030117533715a050800000000000000
+      internalID: 5811076403462996746
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_elite_timber_hauler_death_10
+      rect:
+        serializedVersion: 2
+        x: 424
+        y: 100
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8c0d57d5ebcf08900800000000000000
+      internalID: 684825037902303432
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_elite_timber_hauler_death_11
+      rect:
+        serializedVersion: 2
+        x: 285
+        y: 38
+        width: 64
+        height: 61
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 65293896885e97200800000000000000
+      internalID: 178426034306388566
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_elite_timber_hauler_death_12
+      rect:
+        serializedVersion: 2
+        x: 411
+        y: 85
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 268826c3b1847ad40800000000000000
+      internalID: 5595520343845537890
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_elite_timber_hauler_death_13
+      rect:
+        serializedVersion: 2
+        x: 453
+        y: 93
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 73fea2948baea5e40800000000000000
+      internalID: 5646083160084770615
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_elite_timber_hauler_death_14
+      rect:
+        serializedVersion: 2
+        x: 482
+        y: 38
+        width: 60
+        height: 56
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 86d88cb1685516b70800000000000000
+      internalID: 8890481173886176616
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_elite_timber_hauler_death_15
+      rect:
+        serializedVersion: 2
+        x: 491
+        y: 89
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e2b02ae24b2c9ab00800000000000000
+      internalID: 840416884613581614
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_elite_timber_hauler_death_16
+      rect:
+        serializedVersion: 2
+        x: 227
+        y: 38
+        width: 57
+        height: 54
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9a7d626fd20832070800000000000000
+      internalID: 8080443091324426153
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_elite_timber_hauler_death_17
+      rect:
+        serializedVersion: 2
+        x: 418
+        y: 39
+        width: 56
+        height: 53
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 622e00faf3310cc90800000000000000
+      internalID: -7151695044024409562
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_elite_timber_hauler_death_18
+      rect:
+        serializedVersion: 2
+        x: 549
+        y: 78
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7c55ccd83af754620800000000000000
+      internalID: 2757750687269672391
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_elite_timber_hauler_death_19
+      rect:
+        serializedVersion: 2
+        x: 417
+        y: 53
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d82fac3ec5f1f4b90800000000000000
+      internalID: -7255545990851399027
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_elite_timber_hauler_death_20
+      rect:
+        serializedVersion: 2
+        x: 528
+        y: 45
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8a6d9da32f418b210800000000000000
+      internalID: 1348851118999459496
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_elite_timber_hauler_death_21
+      rect:
+        serializedVersion: 2
+        x: 299
+        y: 26
+        width: 8
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a02982a6fca8d5680800000000000000
+      internalID: -8764696676349210102
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_elite_timber_hauler_death_22
+      rect:
+        serializedVersion: 2
+        x: 442
+        y: 34
+        width: 7
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 71805f3d4baacec80800000000000000
+      internalID: -8292065120269039593
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_elite_timber_hauler_death_23
+      rect:
+        serializedVersion: 2
+        x: 515
+        y: 33
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0c47d71d6233caac0800000000000000
+      internalID: -3842640140237441856
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_elite_timber_hauler_death_24
+      rect:
+        serializedVersion: 2
+        x: 466
+        y: 17
+        width: 7
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0e3b73c8041db6300800000000000000
+      internalID: 246520679782396896
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_elite_timber_hauler_death_25
+      rect:
+        serializedVersion: 2
+        x: 476
+        y: 16
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 444fc74f4745ebaf0800000000000000
+      internalID: -378772457357773756
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_elite_timber_hauler_death_26
+      rect:
+        serializedVersion: 2
+        x: 484
+        y: 17
+        width: 8
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 01c81d440f98beea0800000000000000
+      internalID: -5842424426543346672
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_elite_timber_hauler_death_27
+      rect:
+        serializedVersion: 2
+        x: 496
+        y: 16
+        width: 8
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 12130ab1a173a9310800000000000000
+      internalID: 1412502018406232353
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: verdant_elite_timber_hauler_death_28
+      rect:
+        serializedVersion: 2
+        x: 511
+        y: 23
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e3863853896fefd80800000000000000
+      internalID: -8214857536683939778
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 5e97eb03825dee720800000000000000
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable: {}
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
