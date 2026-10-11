@@ -42,6 +42,8 @@ Shader "Pause/BackdropPlanet"
         _Haze ("Haze amount", Range(0, 1)) = 0
         _Desat ("Desaturate", Range(0, 1)) = 0
         _Dim ("Value", Range(0, 1)) = 1
+        _BlinkAmount ("Lamp blink strength (0 = off)", Range(0, 1)) = 0
+        _Blink ("Lamp blink clock (s)", Float) = 0
     }
 
     SubShader
@@ -88,6 +90,8 @@ Shader "Pause/BackdropPlanet"
             float _Spin, _Band, _Period, _Seam, _Rim, _Ambient;
             fixed4 _HazeColor;
             half _Haze, _Desat, _Dim;
+            half _BlinkAmount;
+            float _Blink;
 
             v2f vert (appdata v)
             {
@@ -113,6 +117,19 @@ Shader "Pause/BackdropPlanet"
                 float3 n = float3(sin(ls) * cl, sl, cos(ls) * cl);
                 float2 uv = _Disc.xy + n.xy * _Disc.zw;
                 float3 s = tex2Dlod(_MainTex, float4(uv, 0, lod)).rgb;
+                if (_BlinkAmount > 0.0)
+                {
+                    // City lamps: saturated bright source texels blink on their own
+                    // clock (hash of the source texel, so a lamp keeps its rhythm
+                    // while the surface turns under it).
+                    float mx = max(s.r, max(s.g, s.b)), mn = min(s.r, min(s.g, s.b));
+                    float lamp = smoothstep(0.30, 0.50, mx) * smoothstep(0.35, 0.60, (mx - mn) / max(mx, 1e-3));
+                    float2 tc = floor(uv * _MainTex_TexelSize.zw);
+                    float h = frac(sin(dot(tc, float2(12.9898, 78.233))) * 43758.5453);
+                    float ph = frac(_Blink * (0.30 + 0.45 * frac(h * 7.3)) + h);
+                    float on = smoothstep(0.0, 0.06, ph) * (1.0 - smoothstep(0.52, 0.60, ph));
+                    s *= lerp(1.0, 0.22 + 1.0 * on, lamp * _BlinkAmount);
+                }
                 return s * clamp(dst / Shade(n), 0.5, 1.8);
             }
 

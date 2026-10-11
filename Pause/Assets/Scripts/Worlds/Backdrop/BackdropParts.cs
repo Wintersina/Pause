@@ -10,7 +10,8 @@ using UnityEngine;
 // art pipeline writes next to it). A sprite pivots on the middle of its rect.
 public class BackdropAtlas
 {
-    [System.Serializable] class Rect { public string n; public int x, y, w, h; }
+    // px / py: optional pivot inside the rect, 0..1 (0.5 when absent: py == 0 && px == 0 means centre).
+    [System.Serializable] class Rect { public string n; public int x, y, w, h; public float px, py; }
     // Optional, for re-renders at more pixels per cell (anim_hires):
     //   pixelScale  sheet pixels per pixel of the original 1x art (2 for a
     //               2x re-render). Sprites keep the 1x art's bounds, so the
@@ -41,7 +42,7 @@ public class BackdropAtlas
         foreach (var r in m.sprites)
         {
             var s = Sprite.Create(texture, new UnityEngine.Rect(r.x * fx, r.y * fy, r.w * fx, r.h * fy),
-                                  new Vector2(0.5f, 0.5f), PixelsPerUnit * PixelScale, 0, SpriteMeshType.FullRect);
+                                  new Vector2(r.px > 0f ? r.px : 0.5f, r.py > 0f ? r.py : 0.5f), PixelsPerUnit * PixelScale, 0, SpriteMeshType.FullRect);
             s.name = r.n;
             sprites[r.n] = s;
         }
