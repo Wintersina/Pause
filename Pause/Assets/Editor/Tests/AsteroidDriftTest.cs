@@ -148,7 +148,8 @@ public static class AsteroidDriftTest
                     if (!sr.enabled || !sr.gameObject.activeInHierarchy || sr.sprite == null) continue;
                     string n = sr.sprite.name;
                     bool drifting = n.Length > 4 && (n.StartsWith("rock") || n.StartsWith("puff")) && char.IsDigit(n[4]);
-                    if (drifting || n.StartsWith("crack") || n.StartsWith("asteroid_0")) rocks++;
+                    bool crack = n.Length > 5 && n.StartsWith("crack") && char.IsDigit(n[5]);   // (Space's crackN frames; Desert's crack_scar is a backdrop piece)
+                    if (drifting || crack || n.StartsWith("asteroid_0")) rocks++;
                 }
                 var sd = wb.Current.Director as SpaceDirector;
                 if (spec.world == "Space")

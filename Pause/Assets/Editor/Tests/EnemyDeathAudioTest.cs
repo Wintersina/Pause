@@ -568,6 +568,8 @@ public static class EnemyDeathAudioTest
 
             // the hurt blow (a heart lost): its own two short clips, quieter than the death cue, no scream
             string hurt = EnemyDeathAudio.BossHurtKey(b.artKey);
+            // Storm and Desert bosses are newer than the authored hurt cues (gaps-cleanup); their blows stay silent until the user authors them
+            if (hurt == "boss_storm_hurt" || hurt == "boss_desert_hurt") { Check(hurt + " is pending authored audio: nothing registered, PlayBossHurt harmless", EnemyDeathAudio.Variants(hurt) == 0 && !EnemyDeathAudio.PlayBossHurt(b.artKey)); continue; }
             Check(hurt + " has 2 short variants (" + EnemyDeathAudio.Variants(hurt) + ")", EnemyDeathAudio.Variants(hurt) == 2 && EnemyDeathAudio.AuthoredClip(hurt, 0) != null && EnemyDeathAudio.AuthoredClip(hurt, 1) != null &&
                   EnemyDeathAudio.AuthoredClip(hurt, 0).length < 1f && EnemyDeathAudio.AuthoredClip(hurt, 0).length < EnemyDeathAudio.AuthoredClip(key, 0).length * .5f);
             clock += 5; EnemyDeathAudio.ResetVoices();
