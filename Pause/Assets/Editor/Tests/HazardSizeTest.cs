@@ -130,7 +130,7 @@ public static class HazardSizeTest
     static void Table()
     {
         var rocks = Rocks();
-        Check("all 22 rocks are in the table (" + rocks.Count + ")", rocks.Count == 22);
+        Check("all 26 rocks are in the table (" + rocks.Count + ")", rocks.Count == 26);   // (22 + Desert's four)
         Debug.Log("[HAZARD-SIZE] key | small / typical / large tier | range | mean area | reach, pace at the ends");
         foreach (var d in rocks)
         {

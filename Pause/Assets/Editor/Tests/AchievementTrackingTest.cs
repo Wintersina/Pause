@@ -333,7 +333,7 @@ public static class AchievementTrackingTest
         Check("a world fully catalogued: Field Guide", U("codex_field_guide"));
 
         // 50 entries
-        PlayerPrefs.SetString(Codex.PrefsKey, string.Join(",", Codex.Entries.Where(e => !e.secret).Take(60).Select(e => e.id)));
+        PlayerPrefs.SetString(Codex.PrefsKey, string.Join(",", Codex.Entries.Where(e => !e.secret && !Codex.InFutureWorld(e)).Take(60).Select(e => e.id)));
         Codex.Reload();
         AchievementTracker.RefreshCodex();
         Check("50+ entries: Cartographer", Codex.DiscoveredCount >= 50 && U("codex_50"));

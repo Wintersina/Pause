@@ -1,16 +1,8 @@
-# Desert elites: STAND-IN art
+# Desert elites: what is still a STAND-IN
 
-Codex has not delivered the Desert elite strips yet (art/desert-elites holds only the prompt, docs/desert-codex-prompts/elites.md).
-These six strips (+ death strips) are sand-palette RECOLOURS (luminance remapped onto indigo / ochre / bone / sun-white, alpha untouched) of other worlds' elite art so the defs, brains, attacks, codex and tests run:
+Codex delivered five of the six Desert elites (art/desert-elites, manifest_new_elites.md): Dune Stalker, Caravan Hauler, Lens Matriarch, Scorpion Walker,
+Mirror Bastion. Their strips are installed under Resources/Elites/Desert/ and their defs carry muzzle / nozzle points snapped onto the hover cell.
 
-| desert key | stand-in art of |
-| --- | --- |
-| desert_elite_dune_stalker | storm_elite_skyhook_harrier |
-| desert_elite_caravan_hauler | storm_elite_refinery_tender |
-| desert_elite_lens_matriarch | storm_elite_rod_dancer |
-| desert_elite_glass_cannon | storm_elite_anvil_cloud |
-| desert_elite_scorpion_walker | ember_elite_brass_vulture |
-| desert_elite_mirror_bastion | storm_elite_static_bastion |
-
-When Codex delivers `desert_elite_<name>.png` (1344x192, 7 cells) and `_death.png` (576x192), replace the files here and under
-Resources/Elites/Desert/ and re-measure each def's muzzles / nozzles / cells (add-elite-ship skill): the defs' points are the donors'.
+NOT delivered: **desert_elite_glass_cannon** (Glass Cannon, siege). Its strip and death strip here are a sand-palette RECOLOUR (luminance remapped onto indigo /
+ochre / bone / sun-white, alpha untouched) of storm_elite_anvil_cloud, and its def's points are that donor's. Replace both files (here and under
+Resources/Elites/Desert/), then re-measure its muzzles / nozzles (add-elite-ship skill).

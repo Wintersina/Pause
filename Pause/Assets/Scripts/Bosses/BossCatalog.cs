@@ -397,11 +397,10 @@ public static class BossCatalog
             // A feral strip-mining bucket-wheel excavator with a grafted worm-maw (docs/desert-world-plan.md section 7). Tells: the maw
             // opens (0), the drill boom lowers (1), the rear lens dish flares (2). Its default pattern is the maw's grit fan, the boom's
             // dune lob and the lens beam; the themed table (BossThemed) adds the burrower strike and the sandstorm wall.
-            // No damage / death strips yet (docs/desert-wire.md): damageKey and deathKey stay null, so it fights pristine and dies on the
-            // atlas's own death frames (the death_0..4 cells Codex painted into Desert.png).
+            // Battle damage (Desert_damage.png, Desert_damage_fx.png) and the six-cell death strip (Desert_death.png) are Codex's, installed.
             new BossDef
             {
-                id = CodexPrefix + "desert", name = "DUNE-EATER", title = "FERAL STRIP-MINER", artKey = "Desert",
+                id = CodexPrefix + "desert", name = "DUNE-EATER", title = "FERAL STRIP-MINER", artKey = "Desert", damageKey = "Desert", deathKey = "Desert",
                 lore = "A bucket-wheel excavator the size of a refinery that kept mining after the company stopped paying it, and grew a worm's maw to " +
                        "do it faster. Its maw opens a moment before the grit fan, its drill boom lowers before the sand comes down on your lanes, " +
                        "and the lens dish flares white a second before it cuts the sky in half. Watch which part moves first.",
@@ -411,7 +410,7 @@ public static class BossCatalog
                     // The maw opens, then a fan of sand-slugs leaves the throat; the fan turns a little between volleys.
                     new BossAttack { name = "grit fan", kind = BossAttackKind.Fan, tell = 0, tellSeconds = 1f,
                                      emitters = new[] { "Maw" }, fireFrame = true,
-                                     volleys = 3, volleyGap = .65f, count = 7, spreadDeg = 96f, rotateDeg = 9f,
+                                     volleys = 3, volleyGap = .65f, count = 5, spreadDeg = 84f, rotateDeg = 10f,
                                      speed = 2.5f, style = BossShotStyle.Shard,
                                      rail = BossRailMode.Bounce, bounces = 1, cooldown = 1.2f },
                     // The drill boom lowers, then slugs are flung up out of it and rain down on four of five columns.

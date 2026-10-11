@@ -217,7 +217,7 @@ public static class BossEncounterTest
     }
 
     // The Dune-Eater (Desert): the seventh boss on its own 20-cell atlas, its own emitters (Maw, Boom, Lens) / hearts / fx row. No damage or
-    // death strips yet (BossDamageTest.DesertNoStripsYet).
+    // death strips (BossDamageTest.DesertOwnStrips).
     static void DesertBossIsWired()
     {
         var d = BossCatalog.Find("boss_desert");
@@ -242,7 +242,7 @@ public static class BossEncounterTest
         Check("... the flash is #F4E3B0-like", h * 360f > 35f && h * 360f < 55f && s <= .35f && v > .85f);
         Check("the attack fx sheet has its row", BossAttackFx.Row(d) == 6 && BossAttackFx.Get(d, BossAttackFx.Ring) != null &&
               BossAttackFx.Get(d, BossAttackFx.Ring) != BossAttackFx.Get(storm, BossAttackFx.Ring));
-        Check("no damage or death art keys yet (it fights pristine and dies on the atlas frames)", d.damageKey == null && d.deathKey == null);
+        Check("its damage stages, damage fx and death strip are its own (Desert_damage*.png, Desert_death.png)", d.damageKey == "Desert" && d.deathKey == "Desert" && BossArt.HasDamageArt(d) && BossArt.HasDeathArt(d));
     }
 
     static void LevelEndStartsTheBossThenThePortal()

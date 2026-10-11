@@ -285,6 +285,7 @@ public static class UnusedAssetGuardTest
             if (path == "Assets/Art/Resources/" + RailMineArt.VerdantLitAtlasPath + ".png") continue;   // Verdant's lit mine (RailMineArt.LitFrame)
             if (path == "Assets/Art/Resources/" + RailMineArt.TideAtlasPath + ".png") continue;   // Tide's second atlas (RailMineArt.AtlasPathFor)
             if (path == "Assets/Art/Resources/" + RailMineArt.StormAtlasPath + ".png") continue;  // Storm's third atlas
+            if (path == "Assets/Art/Resources/" + RailMineArt.DesertAtlasPath + ".png") continue;  // Desert's fourth atlas
             if (path.Contains("/Resources/Enemies/Death/")) continue;   // EnemyDeathFlipbook strips (keyed by def.key, incl. each world's mine) are not the idle atlas
             if (MineArtName.IsMatch(Path.GetFileNameWithoutExtension(path))) found.Add(path);
         }

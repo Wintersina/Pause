@@ -215,7 +215,8 @@ public static class ShoveCrashTest
 
     // ---- 4 ---------------------------------------------------------------------
 
-    static EliteDef AnyElite() { foreach (var d in EliteCatalog.All) if (d.brain == "interceptor") return d; return EliteCatalog.All[0]; }
+    // (a live world's interceptor: the defs sort by key, and desert_ comes first)
+    static EliteDef AnyElite() { foreach (var d in EliteCatalog.All) if (d.brain == "interceptor" && d.WorldIndex <= WorldManager.LastLiveWorld) return d; return EliteCatalog.All[0]; }
 
     static void ElitesLoseOneHeartAndCount()
     {

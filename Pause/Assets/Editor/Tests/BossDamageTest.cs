@@ -64,7 +64,7 @@ public static class BossDamageTest
             DeathStripArt(3, "Ember");
             DeathStripArt(4, "Tide");
             StormDeathStrip();
-            DesertNoStripsYet();
+            DesertOwnStrips();
             for (int w = 0; w < 6; w++) DeathStripPlaysOnce(w);
             EveryBossHasDeathArt();
             BossDeathSoundHook();
@@ -207,7 +207,7 @@ public static class BossDamageTest
         bool ok = true;
         foreach (var b in all)
         {
-            bool space = b.artKey == "Space" || b.artKey == "Frost" || b.artKey == "Ember" || b.artKey == "Tide" || b.artKey == "Verdant" || b.artKey == "Storm";
+            bool space = b.artKey == "Space" || b.artKey == "Frost" || b.artKey == "Ember" || b.artKey == "Tide" || b.artKey == "Verdant" || b.artKey == "Storm" || b.artKey == "Desert";
             // (Storm wears BossCatalog.StormDamageKey: the Kraken's art until Storm_damage*.png are installed, then "Storm")
             string key = b.artKey == "Storm" ? BossCatalog.StormDamageKey : b.artKey;
             ok &= BossArt.HasDamageArt(b) == space && (space ? b.damageKey == key : string.IsNullOrEmpty(b.damageKey));
@@ -580,24 +580,26 @@ public static class BossDamageTest
         Check("defeat flow completes: the boss is gone and the finished callback (world transition) fires", done);
     }
 
-    // The Dune-Eater (Desert): no damage or death strips painted yet. It fights pristine (no damage key) and dies on the atlas's five death
-    // cells; the keys switch to "Desert" the moment its files are installed.
-    static void DesertNoStripsYet()
+    // The Dune-Eater (Desert): its own damage stages, damage fx and 6-cell death strip (Codex, thin pale border added by add_border_big.py).
+    static void DesertOwnStrips()
     {
         var d = BossCatalog.ForWorld(6);
-        bool deathOwn = System.IO.File.Exists("Assets/Art/Resources/Bosses/Desert_death.png");
-        bool damageOwn = System.IO.File.Exists("Assets/Art/Resources/Bosses/Desert_damage.png") && System.IO.File.Exists("Assets/Art/Resources/Bosses/Desert_damage_fx.png");
-        Check("Desert: death key " + (deathOwn ? "Desert (its strip is installed)" : "none (no strip yet: it dies on the atlas death cells)") + ", damage key " + (damageOwn ? "Desert" : "none (fights pristine)"),
-              d.artKey == "Desert" && (deathOwn ? d.deathKey == "Desert" && BossArt.HasDeathArt(d) : string.IsNullOrEmpty(d.deathKey) && !BossArt.HasDeathArt(d)) &&
-              (damageOwn ? d.damageKey == "Desert" : string.IsNullOrEmpty(d.damageKey) && !BossArt.HasDamageArt(d)));
+        Check("Desert: damage key and death key are Desert's own, both installed under Resources/Bosses",
+              d.artKey == "Desert" && d.damageKey == "Desert" && d.deathKey == "Desert" && BossArt.HasDamageArt(d) && BossArt.HasDeathArt(d) &&
+              System.IO.File.Exists("Assets/Art/Resources/Bosses/Desert_damage.png") && System.IO.File.Exists("Assets/Art/Resources/Bosses/Desert_damage_fx.png") &&
+              System.IO.File.Exists("Assets/Art/Resources/Bosses/Desert_death.png"));
         var seen = new HashSet<Sprite>();
-        bool five = true;
-        for (int i = 0; i < BossArt.DeathFrames; i++)
+        bool six = true;
+        for (int i = 0; i < BossArt.DeathStripCells; i++)
         {
-            var s = BossArt.Body(d, BossArt.Death(i));
-            five &= s != null && seen.Add(s);
+            var s = BossArt.DeathStrip(d, i);
+            six &= s != null && seen.Add(s) && s.rect.width == 384f && s.rect.height == 384f;
         }
-        Check("Desert: the atlas's five death cells (12..16) are there and distinct", five && seen.Count == BossArt.DeathFrames);
+        Check("Desert death strip: 6 distinct 384 px cells", six && seen.Count == 6);
+        var b0 = Box(BossArt.DeathStrip(d, 0));
+        var ibox = Box(BossArt.Body(d, BossArt.IdleFrame(d, 0f)));
+        Check("Desert death cell 0 is registered to its idle cell", b0 != null && ibox != null &&
+              Mathf.Abs((b0[0] + b0[2]) / 2f - (ibox[0] + ibox[2]) / 2f) <= 40f && Mathf.Abs((b0[1] + b0[3]) / 2f - (ibox[1] + ibox[3]) / 2f) <= 40f);
     }
 
     static void EveryBossHasDeathArt()
@@ -607,9 +609,6 @@ public static class BossDamageTest
         foreach (var b in BossCatalog.All)
         {
             bool has = !string.IsNullOrEmpty(b.deathKey) && BossArt.HasDeathArt(b);
-            // (RELAXED for Desert only: Codex has not painted Desert_death.png / Desert_damage*.png yet, so the Dune-Eater dies on the atlas's own
-            // death_0..4 cells (DesertNoStripsYet); the moment Desert_death.png is installed it must have its strip like everyone else)
-            if (b.artKey == "Desert" && !System.IO.File.Exists("Assets/Art/Resources/Bosses/Desert_death.png")) continue;
             if (!has) miss += b.artKey + " ";
             ok &= has;
         }
@@ -619,7 +618,6 @@ public static class BossDamageTest
         bool same = refImp != null;
         foreach (var b in BossCatalog.All)
         {
-            if (b.artKey == "Desert" && string.IsNullOrEmpty(b.deathKey)) continue;   // (no strip yet, see above)
             var imp = UnityEditor.AssetImporter.GetAtPath("Assets/Art/Resources/Bosses/" + b.deathKey + "_death.png") as UnityEditor.TextureImporter;
             same &= imp != null && refImp != null && imp.textureType == refImp.textureType &&
                     imp.filterMode == refImp.filterMode && imp.mipmapEnabled == refImp.mipmapEnabled && imp.isReadable == refImp.isReadable &&

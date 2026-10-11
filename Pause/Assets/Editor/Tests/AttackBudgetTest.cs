@@ -142,6 +142,23 @@ public static class AttackBudgetTest
         { "boss:Storm:core arc fan", new Pin(91, 2000, 1570) },   // 4.6 % bot, 78.5 % standing; shown in 2000/2000; (the first tuning, 5 bolts / 70 deg / ricochet, was 63 %)
         { "boss:Storm:crown hail", new Pin(227, 2000, 1877) },   // 11.4 % bot, 93.9 % standing; shown in 2000/2000;
         { "boss:Storm:coil beams", new Pin(0, 2000, 1155) },   // 0.0 % bot, 57.8 % standing; shown in 2000/2000;
+        // Desert (measured at 2000 rolls; the grit fan after one retune: 7 bolts / 96 deg hit the bot 78 %, 5 bolts / 84 deg / speed 2.5 14 %)
+        { "roster:desert_mine", new Pin(36, 2000, 1165) },   // 1.8 % bot, 58.3 % standing; shown in 2000/2000; Laser x1 volleys 2 cooldown 1.0 tell 1.0
+        { "roster:desert_big", new Pin(33, 2000, 480) },   // 1.7 % bot, 24.0 % standing; shown in 2000/2000; Shot x3 volleys 3 cooldown 3.6 tell 1.0
+        { "roster:desert_fighter_1", new Pin(0, 2000, 0) },   // 0.0 % bot, 0.0 % standing; shown in 2000/2000; Lunge x1 volleys 0 cooldown 2.1 tell 0.45
+        { "roster:desert_fighter_2", new Pin(24, 2000, 851) },   // 1.2 % bot, 42.6 % standing; shown in 2000/2000; Shot x1 volleys 4 cooldown 1.5 tell 0.5
+        { "roster:desert_fighter_3", new Pin(0, 2000, 1993) },   // 0.0 % bot, 99.7 % standing; shown in 2000/2000; Shot x1 volleys 3 cooldown 2.2 tell 0.9
+        { "roster:desert_fighter_4", new Pin(0, 2000, 0) },   // 0.0 % bot, 0.0 % standing; shown in 2000/2000; Blast x1 volleys 3 cooldown 3.9 tell 1.2
+        { "roster:desert_alien", new Pin(12, 2000, 313) },   // 0.6 % bot, 15.7 % standing; shown in 2000/2000; Shot x1 volleys 2 cooldown 3.6 tell 0.6
+        { "elite:desert_elite_caravan_hauler", new Pin(27, 2000, 1779) },   // 1.4 % bot, 89.0 % standing; shown in 2000/2000;
+        { "elite:desert_elite_dune_stalker", new Pin(1540, 1803, 1540) },   // 85.4 % bot, 85.4 % standing; shown in 1803/2000;
+        { "elite:desert_elite_glass_cannon", new Pin(0, 2000, 891) },   // 0.0 % bot, 44.6 % standing; shown in 2000/2000;
+        { "elite:desert_elite_lens_matriarch", new Pin(1864, 2000, 329) },   // 93.2 % bot, 16.5 % standing; shown in 2000/2000;
+        { "elite:desert_elite_mirror_bastion", new Pin(138, 2000, 2000) },   // 6.9 % bot, 100.0 % standing; shown in 2000/2000;
+        { "elite:desert_elite_scorpion_walker", new Pin(434, 1649, 434) },   // 26.3 % bot, 26.3 % standing; shown in 1649/2000;
+        { "boss:Desert:grit fan", new Pin(280, 2000, 1618) },   // 14.0 % bot, 80.9 % standing; shown in 2000/2000;
+        { "boss:Desert:dune lob", new Pin(336, 2000, 1960) },   // 16.8 % bot, 98.0 % standing; shown in 2000/2000;
+        { "boss:Desert:lens beam", new Pin(3, 2000, 489) },   // 0.2 % bot, 24.5 % standing; shown in 2000/2000;
     };
 
     // New attack id -> the old attack id it replaces. Later phases add rows here

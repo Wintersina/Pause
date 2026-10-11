@@ -47,7 +47,7 @@ public static class ReadabilitySweep
     const int Width = 540, Height = 1260;     // a 21:9 phone at half resolution
     const float Dt = 1f / 60f;
     public const float MinContrast = 3f;
-    static readonly string[] Worlds = { "Space", "Frost", "Verdant", "Ember", "Tide", "Storm" };   // (Storm over its stand-in backdrop, Tide's, until its own lands)
+    static readonly string[] Worlds = { "Space", "Frost", "Verdant", "Ember", "Tide", "Storm", "Desert" };   // (Storm and Desert over their stand-in backdrop, Tide's, until their own land: re-run for Desert then)
     static readonly float[] Moments = { 2f, 10f, 40f };   // 2 s: the opening cloud ceiling at its thickest
 
     sealed class Item

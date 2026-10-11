@@ -569,7 +569,7 @@ public static class EnemyBehaviours
         // Budgets never above the attacks they replace (AttackBudgetTest).
         B("desert_rock_dune", "dune boulder: slow wide tumble, long lazy drift, a faint bob")
             .Drift(.65f, .3f).Bob(.05f, 3f).Spin(10f, 28f)
-            .Sizes(.8f, .98f, 1.4f);
+            .Sizes(.8f, .96f, 1.4f);
         B("desert_rock_spire", "glass spire: barely turns, one fast slanted slice across the lane")
             .Glide(1.2f, 1f).Spin(4f, 8f)
             .Sizes(.76f, 1.02f, 1.24f);

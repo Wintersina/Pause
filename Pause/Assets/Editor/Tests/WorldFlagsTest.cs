@@ -141,8 +141,8 @@ public static class WorldFlagsTest
         Check("Desert art in the build: Mirage Mine atlas + death strip",
               Exists("Assets/Art/Resources/Enemies/Mines/rail_mines_neon_desert.png") && Exists("Assets/Art/Resources/Enemies/Death/desert_mine.png"));
         bool dboss = true;
-        foreach (string f in new[] { "Desert", "Desert_shots", "Desert_card" }) dboss &= Exists("Assets/Art/Resources/Bosses/" + f + ".png");
-        Check("Desert art in the build: Dune-Eater atlas, shots, card (damage and death strips are not painted yet; the boss fights pristine and dies on the atlas frames)", dboss);
+        foreach (string f in new[] { "Desert", "Desert_shots", "Desert_card", "Desert_damage", "Desert_damage_fx", "Desert_death" }) dboss &= Exists("Assets/Art/Resources/Bosses/" + f + ".png");
+        Check("Desert art in the build: Dune-Eater atlas, shots, card, damage, damage fx, death", dboss);
         Check("Desert art in the build: attack fx row (boss_attack_fx.png has 7 rows)", Exists("Assets/Art/Resources/BossAttackFx/boss_attack_fx.png") && BossAttackFx.Rows == 7);
         foreach (string k in DesertElites)
             Check("Desert elite in the build: " + k + " flight + death strips and def (stand-in art, see Art/Enemies/Elite/Desert/STAND_IN.md)",
