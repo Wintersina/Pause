@@ -742,7 +742,7 @@ public static class ScreenFitScreens
             skip.SendMessage("Update");
             speaker.HideAll();
             speaker.gameObject.SetActive(false);
-            var panel = TutorialCompletePanel.Show(1234.56f, 7);
+            var panel = TutorialCompletePanel.Show();
             rig.Sync();
             if (panel != null)
             {

@@ -165,6 +165,13 @@ public class collisionDetection : MonoBehaviour {
                         : red ? power.secondsPerRedAtom : power.secondsPerAtom);
     }
 
+    // The tutorial scene can never end in a death: a hit that would take the
+    // last heart leaves it (Hints also tops the hearts back up between beats).
+    public static bool TutorialCannotDie(GameObject ship)
+    {
+        return ship != null && ship.scene.name == score.TutorialScene;
+    }
+
 	void Start () {
 
         // This ship's own lives (ShipLives: its hull's 1 to 5 by dock row,
@@ -250,7 +257,8 @@ public class collisionDetection : MonoBehaviour {
             // The last life: the ship breaks up and crashes into the rails
             // (DeathCrash), and the killer with it -- a mine tumbles into a
             // rail rather than bursting here.
-            bool fatal = !safe && lifeCounter + 1 >= MAXLIFE;
+            // (the tutorial can never be lost: TutorialCannotDie)
+            bool fatal = !safe && lifeCounter + 1 >= MAXLIFE && !TutorialCannotDie(gameObject);
             // (its burst frame, friendly-fire blast and explosion: RamKill, below)
             if (PrefabName.Is(hit.gameObject, "mine") && !safe && !fatal)
                 EnemyDeathAudio.Play(hit.gameObject);
@@ -290,6 +298,8 @@ public class collisionDetection : MonoBehaviour {
                 // though the player's own explosion is the visual focus.
                 if (!PrefabName.Is(hit.gameObject, "mine")) EnemyDeathAudio.Play(hit.gameObject);
                 lifeCounter += 1;
+                // the tutorial keeps its last heart whatever hits it
+                if (TutorialCannotDie(gameObject)) lifeCounter = Mathf.Min(lifeCounter, MAXLIFE - 1);
                 ScoreMultiplier.OnHeartLost();   // the max-speed streak ends with the heart
                 AchievementEvents.RaisePlayerHurt();   // boss_no_hit, the blink-dodge probe
                 // the heart this costs darts out to shield against it

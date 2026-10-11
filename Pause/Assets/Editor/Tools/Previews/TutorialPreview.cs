@@ -282,7 +282,7 @@ public static class TutorialPreview
         WorldCanvas(canvas, cam);
         var play = DummyButton(canvasGo.transform, "playMainGameButton");
         var menu = DummyButton(canvasGo.transform, "MainMenuButton");
-        var view = TutorialCompletePanel.Build(canvasGo.transform, play, menu, null, 3.5f, 4);
+        var view = TutorialCompletePanel.Build(canvasGo.transform, play, menu, null);
         Canvas.ForceUpdateCanvases();
         view.ApplyAt(10f);
         Canvas.ForceUpdateCanvases();
