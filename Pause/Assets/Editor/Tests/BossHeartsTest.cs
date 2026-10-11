@@ -21,6 +21,8 @@ using Object = UnityEngine.Object;
 // Drives BossEncounter frame by frame (Step(realDt, timeScale)) in edit mode.
 public static class BossHeartsTest
 {
+    static int N => BossConfig.Hearts;   // 5 + 4
+
     static int fails;
     static void Check(string what, bool ok)
     {
@@ -151,17 +153,17 @@ public static class BossHeartsTest
 
     static void EveryBossSpawnsWithFiveHearts()
     {
-        Check("a boss has 5 hearts (BossConfig.Hearts), splitting its " + BossConfig.HitPoints + " hit points (" +
+        Check("a boss has " + N + " hearts (BossConfig.Hearts = base " + BossConfig.BaseHearts + " + " + BossConfig.ExtraHearts + "), splitting its " + BossConfig.HitPoints + " hit points (" +
               BossConfig.HeartWeight.ToString("F2") + " hits a heart)",
-              BossConfig.Hearts == 5 && Mathf.Abs(BossConfig.HeartWeight * BossConfig.Hearts - BossConfig.HitPoints) < 1e-4f);
+              BossConfig.Hearts == BossConfig.BaseHearts + BossConfig.ExtraHearts && Mathf.Abs(BossConfig.HeartWeight * BossConfig.Hearts - BossConfig.HitPoints) < 1e-4f);
         for (int w = 0; w < BossCatalog.All.Length; w++)
         {
             FreshScene(w);
             var e = StartFight(w);
             var boss = e.Boss;
             var h = e.Actor != null ? e.Actor.Hearts : null;
-            Check(boss.artKey + ": fights with exactly 5 hearts round it", e.State == BossEncounter.Phase.Fight && h != null &&
-                  h.Hearts.Length == 5 && h.ShownCount == 5 && e.HeartsLeft == 5 && h is HeartOrbit);
+            Check(boss.artKey + ": fights with exactly " + N + " hearts round it", e.State == BossEncounter.Phase.Fight && h != null &&
+                  h.Hearts.Length == N && h.ShownCount == N && e.HeartsLeft == N && h is HeartOrbit);
             if (h == null) continue;
             var r = h.Hearts[0].GetComponent<SpriteRenderer>();
             Check(boss.artKey + ": the elite heart drawing in its own colour, never the player's red (hue gap " +
@@ -178,7 +180,7 @@ public static class BossHeartsTest
             float rev = 2f * Mathf.PI / h.OrbitParams.speed;
             Check(boss.artKey + ": one revolution every " + rev.ToString("F1") + " s (4-6 s), flat, no warp or flourish",
                   rev >= 4f && rev <= 6f && h.OrbitParams.tilt == 0f && h.OrbitParams.flourishEvery == 0f);
-            Check(boss.artKey + ": every heart wears its outline", h.HasOutlines && h.HeartOutlineRenderer(4) != null);
+            Check(boss.artKey + ": every heart wears its outline", h.HasOutlines && h.HeartOutlineRenderer(N - 1) != null);
         }
     }
 
@@ -196,7 +198,7 @@ public static class BossHeartsTest
         }
         Check("no hearts while the boss warps in (its intro)", none);
         var h = e.Actor.Hearts;
-        Check("... they come with the fight", h != null && h.ShownCount == 5);
+        Check("... they come with the fight", h != null && h.ShownCount == N);
         float start = h.Hearts[0].localScale.x;
         e.Step(.02f, 1f);
         float early = h.Hearts[0].localScale.x;
@@ -214,54 +216,52 @@ public static class BossHeartsTest
         var h = e.Actor.Hearts;
         bool track = true;
         string seen = "";
-        for (int k = 1; k <= 5; k++)
+        for (int k = 1; k <= N; k++)
         {
             e.OnShipAttackHit(BossConfig.HeartWeight);
-            if (k < 5) e.Step(Dt, 1f);
-            seen += e.HeartsLeft + (k < 5 ? "," : "");
-            track &= e.HeartsLeft == 5 - k && h.Left == 5 - k;
+            if (k < N) e.Step(Dt, 1f);
+            seen += e.HeartsLeft + (k < N ? "," : "");
+            track &= e.HeartsLeft == N - k && h.Left == N - k;
         }
         Check("each heart's share of damage (" + BossConfig.HeartWeight.ToString("F2") + " hit) takes one heart: " + seen, track);
-        Check("... and the fifth heart lost destroys it", e.Destroyed && e.HitPointsLeft == 0);
+        Check("... and the last heart lost destroys it", e.Destroyed && e.HitPointsLeft == 0);
         e.Step(Dt, 1f);
         Check("... which then explodes (DESTROYED)", e.State == BossEncounter.Phase.Outro && e.Actor.State == BossActor.Mode.Dying);
 
-        // full-weight hits: the same three as before end it
+        // full-weight hits: HitPoints of them end it, each taking HeartWeight-many hearts' worth
         FreshScene(2);
         e = StartFight(2);
         h = e.Actor.Hearts;
         e.Step(Dt, 1f);
-        e.OnUltimateHit();
-        int a = e.HeartsLeft;
-        e.Step(Dt, 1f);
-        int shownA = h.ShownCount;
-        e.OnUltimateHit();
-        int b = e.HeartsLeft;
-        e.Step(Dt, 1f);
-        int shownB = h.ShownCount;
-        bool alive = !e.Destroyed;
-        e.OnUltimateHit();
-        Check("three full hits, as before: hearts 5 -> " + a + " -> " + b + " -> " + e.HeartsLeft + ", destroyed on the third",
-              a == 4 && b == 2 && e.HeartsLeft == 0 && alive && e.Destroyed);
-        Check("the ring shows what is left (" + shownA + ", " + shownB + ")", shownA == 4 && shownB == 2);
+        string path = "" + N;
+        bool hearts = true, alive = true;
+        for (int j = 1; j <= BossConfig.HitPoints; j++)
+        {
+            e.OnUltimateHit();
+            int want = Mathf.Max(0, N - Mathf.FloorToInt(j / BossConfig.HeartWeight + 1e-4f));
+            path += " -> " + e.HeartsLeft;
+            hearts &= e.HeartsLeft == want;
+            if (j < BossConfig.HitPoints) { alive &= !e.Destroyed; e.Step(Dt, 1f); hearts &= h.ShownCount == want; }
+        }
+        Check(BossConfig.HitPoints + " full hits: hearts " + path + ", destroyed on the last", hearts && alive && e.HeartsLeft == 0 && e.Destroyed);
 
         // small weighted contacts bank up to a heart, never past the hit points
         FreshScene(3);
         e = StartFight(3);
         for (int i = 0; i < 2; i++) e.OnShipAttackHit(.25f);
-        Check("two 0.25 contacts (0.5) take no heart yet", e.HeartsLeft == 5);
+        Check("two 0.25 contacts (0.5) take no heart yet", e.HeartsLeft == N);
         e.OnShipAttackHit(.1f);
         Check("... 0.6 takes the first", e.HeartsLeft == 4);
         bool consistent = true;
-        for (float d = 0f; d < 3.2f; d += .01f)
+        for (float d = 0f; d < BossConfig.HitPoints + .2f; d += .01f)
         {
             int hp = BossConfig.HitPoints - Mathf.Min(BossConfig.HitPoints, Mathf.FloorToInt(d + 1e-4f));
             int n = BossEncounter.HeartsFor(d, hp);
-            consistent &= (hp <= 0) == (n == 0) && n >= 0 && n <= 5;
+            consistent &= (hp <= 0) == (n == 0) && n >= 0 && n <= N;
         }
         Check("the last heart goes exactly with the last hit point, at any damage", consistent);
-        Check("a hit points' edge case: 2.99 hits leaves one heart and one hit point",
-              BossEncounter.HeartsFor(2.99f, 1) == 1);
+        Check("a hit points' edge case: just under all the hits leaves one heart and one hit point",
+              BossEncounter.HeartsFor(BossConfig.HitPoints - .01f, 1) == 1);
     }
 
     static void PhasesFollowTheHearts()
@@ -269,21 +269,27 @@ public static class BossHeartsTest
         FreshScene(0);
         var e = StartFight(0);
         var boss = e.Boss;
-        int[] phase = new int[6], unlocked = new int[6];
+        int[] phase = new int[N], unlocked = new int[N];
         phase[0] = e.FightPhase;
         unlocked[0] = BossCatalog.UnlockedAttacks(boss, e.PhaseProgress01);
-        for (int k = 1; k <= 4; k++)
+        for (int k = 1; k <= N - 1; k++)
         {
             e.OnShipAttackHit(BossConfig.HeartWeight);
             phase[k] = e.FightPhase;
             unlocked[k] = BossCatalog.UnlockedAttacks(boss, e.PhaseProgress01);
         }
         string s = "";
-        for (int k = 0; k <= 4; k++) s += (5 - k) + "h:p" + phase[k] + " ";
-        Check("phases by the hearts, at the clock's thirds: 5-4 hearts phase 1, 3-2 phase 2, 1 phase 3 (" + s.Trim() + ")",
-              phase[0] == 1 && phase[1] == 1 && phase[2] == 2 && phase[3] == 2 && phase[4] == 3);
-        Check("... unlocking one attack, then two, then all three",
-              unlocked[0] == 1 && unlocked[1] == 1 && unlocked[2] == 2 && unlocked[3] == 2 && unlocked[4] == 3);
+        bool right = true, ladder = unlocked[0] == 1 && unlocked[N - 1] == 3;
+        for (int k = 0; k <= N - 1; k++)
+        {
+            s += (N - k) + "h:p" + phase[k] + " ";
+            float frac = k / (float)N;   // the share of hearts lost: the same thirds as the clock's
+            right &= phase[k] == (frac >= 2f / 3f ? 3 : frac >= 1f / 3f ? 2 : 1);
+            if (k > 0) ladder &= unlocked[k] >= unlocked[k - 1] && phase[k] >= phase[k - 1];
+        }
+        Check("phases by the hearts, at the clock's thirds: first third phase 1, middle phase 2, last third (and the last heart) phase 3 (" + s.Trim() + ")",
+              right && phase[0] == 1 && phase[N - 1] == 3);
+        Check("... unlocking one attack, then two, then all three", ladder);
         Check("... with the final phase's faster cooldowns on the last heart", BossCatalog.FinalPhase(e.PhaseProgress01));
         Check("the fight steps the boss on the phase progress (the further on of clock and hearts)",
               File.ReadAllText("Assets/Scripts/Bosses/BossEncounter.cs").Contains("actor.StepFight(dt, realDt, PlayerPosition(), PhaseProgress01, pool)"));
@@ -293,8 +299,8 @@ public static class BossHeartsTest
         e = StartFight(0);
         typeof(BossEncounter).GetField("remaining", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
             .SetValue(e, BossConfig.FightSeconds * .3f);
-        Check("an untouched boss still reaches phase 3 by the clock (5 hearts, phase " + e.FightPhase + ")",
-              e.HeartsLeft == 5 && e.FightPhase == 3);
+        Check("an untouched boss still reaches phase 3 by the clock (" + N + " hearts, phase " + e.FightPhase + ")",
+              e.HeartsLeft == N && e.FightPhase == 3);
     }
 
     // Body(): the ellipse round each boss's idle silhouette, re-measured
@@ -417,8 +423,8 @@ public static class BossHeartsTest
         var e = StartFight(0);
         var h = e.Actor.Hearts;
         for (int i = 0; i < 30; i++) e.Step(Dt, 1f);
-        Check("five hearts start evenly spaced (worst gap off by " + SpacingError(h).ToString("F1") + " deg)", SpacingError(h) < 2f);
-        for (int k = 1; k <= 4; k++)
+        Check(N + " hearts start evenly spaced (worst gap off by " + SpacingError(h).ToString("F1") + " deg)", SpacingError(h) < 2f);
+        for (int k = 1; k <= N - 1; k++)
         {
             e.OnShipAttackHit(BossConfig.HeartWeight, e.Actor.transform.position + new Vector3(k % 2 == 0 ? 2f : -2f, -1f, 0f));
             float at30 = 0f;
@@ -428,8 +434,8 @@ public static class BossHeartsTest
                 if (i == 17) at30 = SpacingError(h);
             }
             float settled = SpacingError(h);
-            Check((5 - k) + " hearts: even again after a loss (" + at30.ToString("F1") + " deg off at 0.3 s, " +
-                  settled.ToString("F1") + " at 1 s)", settled < 3f && at30 < 25f && h.ShownCount == 5 - k);
+            Check((N - k) + " hearts: even again after a loss (" + at30.ToString("F1") + " deg off at 0.3 s, " +
+                  settled.ToString("F1") + " at 1 s)", settled < 3f && at30 < 25f && h.ShownCount == N - k);
         }
     }
 
@@ -439,7 +445,7 @@ public static class BossHeartsTest
         FreshScene(0);
         var e = StartFight(0);
         var h = e.Actor.Hearts;
-        for (int i = 0; i < 3; i++) e.OnUltimateHit();
+        for (int i = 0; i < BossConfig.HitPoints; i++) e.OnUltimateHit();
         Check("the last hit: no heart left in the ring, its crumble playing", h.ShownCount == 0 && h.ActiveBreaks > 0);
         e.Step(Dt, 1f);
         int guard = 0;
@@ -465,7 +471,7 @@ public static class BossHeartsTest
         h = e.Actor.Hearts;
         buttonClicks.playerDied = true;
         e.Step(Dt, 1f);
-        Check("the player dies: the encounter aborts, no heart is lost", e.State == BossEncounter.Phase.Aborted && h.ShownCount == 5);
+        Check("the player dies: the encounter aborts, no heart is lost", e.State == BossEncounter.Phase.Aborted && h.ShownCount == N);
         buttonClicks.playerDied = false;
     }
 

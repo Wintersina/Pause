@@ -1306,20 +1306,26 @@ Branch `feature/boss-hearts`. The user: "The bosses should have 5 spinning heart
 enemy elite hearts more clear: give them an outline glow". Tested by `BossHeartsTest`; renders from
 `BossHeartsPreview`.
 
-**Health.** A boss still has `BossConfig.HitPoints` = 3 (full-weight ship-attack hits: a rail slug, a fireball, one
-homing shot of the volley = 1; a gatling shell 1/14, a beam or cone tick 0.2, ...). It now wears them as
-`BossConfig.Hearts` = 5 hearts, each an equal share (`HeartWeight` = 0.6 hit) of the same pool: a heart goes the
-moment its share is spent, the fifth exactly with the last hit point. So the fight is exactly as long and as hard as
-before -- three full hits still destroy it (hearts 5 -> 4 -> 2 -> 0), and an untouched boss still retreats when the
-36 s clock runs out. The rules round it are unchanged: hits count only in the Fight phase (nothing while it warps in
-or out), the clock is never shaved, DeathCombo never chains a boss, rams and shockwaves pass through it.
+**Health.** A boss has `BossConfig.HitPoints` = 5 (full-weight ship-attack hits: a rail slug, a fireball, one
+homing shot of the volley = 1; a gatling shell 1/14, a beam or cone tick 0.2, ...), worn as `BossConfig.Hearts` = 9
+hearts (`BaseHearts` 5 + `ExtraHearts` 4, on the user's ask "lengthen all the boss healths by 4 hearts"), each an
+equal share (`HeartWeight` = 5/9 = 0.556 hit) of the pool: a heart goes the moment its share is spent, the ninth
+exactly with the last hit point. Five full hits destroy it (hearts 9 -> 8 -> 6 -> 4 -> 2 -> 0; it was three hits and
+5 hearts). Every boss in every world has the same numbers (`BossConfig`; the catalogue holds neither).
+**The escape clock** is `BossConfig.EscapeSeconds` = 120 s (`FightSeconds`): an untouched boss stays two minutes,
+then retreats (it was 36 s). The rules round it are unchanged: hits count only in the Fight phase (nothing while it
+warps in or out), the clock is never shaved, DeathCombo never chains a boss, rams and shockwaves pass through it.
+The attack phases stay at the thirds of the clock / of the hearts (40 s each); the damaged-hull looks
+(`BossArt.DamageStage`, 4 stages) spread across the 9 hearts (1-2 lost stage 1, 3-4 stage 2, 5-6 stage 3, 7+ stage 4).
+Balance: damage comes from the ultimate (a 30-60 s countdown, cut by pickups), the 3 free-shot atoms of the fight
+(`BossFreeShotAtoms`, one hit each at most) and rams; BossEscapeClockTest asserts the numbers.
 
 **Phases.** The attack escalation (one attack, two, then all three faster) goes by
 `BossEncounter.PhaseProgress01`: the clock's progress or the share of hearts lost, whichever is further on, at the
-same thirds. 5-4 hearts is phase 1, 3-2 phase 2, the last heart phase 3 (or later, by the clock).
+same thirds. The first third of the hearts lost (9-7 left) is phase 1, the middle third phase 2, the last third phase 3 (or later, by the clock).
 
 **The ring** (`BossHearts`, on the shared `HeartOrbit` engine with the player's lives and the elites' hearts): one
-flat ellipse in the screen plane, five hearts evenly spaced, a revolution every 5 s, no warp or flourish. Its radii
+flat ellipse in the screen plane, nine hearts evenly spaced, a revolution every 5 s, no warp or flourish. Its radii
 are the ellipse round each boss's idle silhouette (`BossHearts.Body`, measured from the atlases and re-measured by
 the test) plus a 0.06 gap and half the drawn heart: Space 1.93 x 1.84, Frost 2.09 x 1.95, Verdant 1.87 x 1.82,
 Ember 1.97 x 1.70. At rest it clears the body and stays inside the rails (|x| <= 2.09 against 2.43) and under the
