@@ -523,7 +523,7 @@ public class CodexPanel : MonoBehaviour
             lrt.offsetMax = new Vector2(-6f, 0f);
 
             // NEW dot on the tab's top-right corner: shown until the tab is opened
-            tabDots[i] = NewDot(tabFrame.rectTransform, new Vector2(-4f, -4f), false);
+            tabDots[i] = NewDot(tabFrame.rectTransform, new Vector2(-NewDotInset, -NewDotInset), false);
             tabFrames[i] = tabFrame;
             tabLabels[i] = label;
         }
@@ -688,12 +688,15 @@ public class CodexPanel : MonoBehaviour
         card.lockIcon = CodexUi.NewImage("Lock", card.rt, CodexUi.CodexSprite("cx_lock"), CodexUi.Select);
         card.lockIcon.preserveAspect = true;
         CodexUi.Isolate(card.lockIcon.gameObject);   // a sub-canvas draws over its parent: keep the lock above the art
-        card.newDot = NewDot(card.rt, new Vector2(-8f, -8f), true);
+        card.newDot = NewDot(card.rt, new Vector2(-NewDotInset, -NewDotInset), true);
         return card;
     }
 
     // The restrained amber pixel dot of the home bubble, no number: takes no touches, no animation.
-    public const float NewDotSize = 26f;
+    // 17 units (about 35% under the first 26), snapped to a whole multiple of the 13 px art; sits fully inside its
+    // card / tab, NewDotInset from the top and right edges.
+    public const float NewDotSize = 17f, NewDotInset = 6f;
+    public float DotUnits() { return CodexHomeButton.SnapToArt(this, NewDotSize); }
     Image NewDot(RectTransform parent, Vector2 inset, bool above)
     {
         var dot = CodexUi.NewImage("NewDot", parent, CodexHomeButton.BadgeSprite(), Color.white);
@@ -855,9 +858,17 @@ public class CodexPanel : MonoBehaviour
         CodexUi.Place(detail, layout.detail);
         CodexUi.Place(backSlot, layout.back);
 
+        SizeDots();
         LayoutCards();
         LayoutDetail();
         ach.ApplyLayout(layout.body, layout);
+    }
+
+    void SizeDots()
+    {
+        float d = DotUnits();
+        if (tabDots != null) foreach (var dot in tabDots) if (dot != null) dot.rectTransform.sizeDelta = new Vector2(d, d);
+        if (cards != null) foreach (var c in cards) if (c != null && c.newDot != null) c.newDot.rectTransform.sizeDelta = new Vector2(d, d);
     }
 
     void LayoutCards()

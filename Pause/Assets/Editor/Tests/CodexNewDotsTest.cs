@@ -121,11 +121,15 @@ public static class CodexNewDotsTest
                 Canvas.ForceUpdateCanvases();
                 for (int i = 0; i < panel.VisibleCards; i++)
                     if (panel.CardNewDot(i).gameObject.activeSelf)
-                        inside &= Within(panel.CardRect(i), panel.CardNewDot(i).rectTransform, 1f);
-                inside &= Within((RectTransform)panel.TabNewDot(tabA).transform.parent, panel.TabNewDot(tabA).rectTransform, 1f);
+                        inside &= InsideWithMargin(panel.CardRect(i), panel.CardNewDot(i).rectTransform, 5f);
+                inside &= InsideWithMargin((RectTransform)panel.TabNewDot(tabA).transform.parent, panel.TabNewDot(tabA).rectTransform, 5f);
                 Canvas.ForceUpdateCanvases();
             }
-            Check("dots stay inside their card / tab on 4 layouts", inside);
+            Check("dots sit fully inside their card / tab (>= 5 units from every edge) on 4 layouts", inside);
+            var dotSize = panel.TabNewDot(tabA).rectTransform.rect.size;
+            float dsf = panel.GetComponent<Canvas>().rootCanvas.scaleFactor, dpx = dotSize.x * dsf / 13f;
+            Check("dots are about 35% smaller than the first 26-unit ones: 9.5..22 units (checked at a real canvas scale only), a whole multiple of the 13 px art (" + dotSize.x + " units x" + dsf + " = " + dpx + " art px multiples)",
+                  dsf < .7f || (dotSize.x >= 9.5f && dotSize.x <= 22f && Mathf.Abs(dpx - Mathf.Round(dpx)) < .03f));
 
             // ACHIEVEMENTS: dot on unlock, clears on opening, claimable count stays until claimed
             AchievementStore.ResetAll();
@@ -141,10 +145,24 @@ public static class CodexNewDotsTest
                   !panel.TabNewDot(CodexPanel.AchievementsTab).gameObject.activeSelf && CodexHomeButton.Total() == before && before >= 1 && home.BadgeVisible);
             AchievementStore.Claim(def);
             Check("achievements: the bubble drops when it is claimed", CodexHomeButton.Total() == before - 1);
+
+            // (last: the fit rig swaps scenes) every FitDevice shape: every card and tab dot inside its box with a margin, clear of the tab label
+            fitBad = 0; fitCells = 0; fitFirst = "";
+            var fit = new FitScreen { id = "codex-dots", scene = "startS4", title = "dots", fullBleed = true, stage = DotsStage };
+            foreach (var device in FitDevice.All)
+                using (new TestHarness.Sandbox())
+                {
+                    var shot = ScreenFitRunner.Run(fit, device, null, 0);
+                    fitCells++;
+                    if (shot.error != null) { fitBad++; if (fitFirst == "") fitFirst = device.id + ": " + shot.error; }
+                }
+            Check("dots inside their card / tab with a margin and off the tab label on all " + fitCells + " device sizes" + (fitFirst == "" ? "" : " (" + fitFirst + ")"), fitBad == 0 && fitCells >= 21);
+
         }
         finally
         {
-            typeof(CodexHomeButton).GetMethod("OnDisable", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).Invoke(host != null ? host.GetComponentInChildren<CodexHomeButton>() : null, null);
+            var homeBtn = host != null ? host.GetComponentInChildren<CodexHomeButton>() : null;
+            if (homeBtn != null) typeof(CodexHomeButton).GetMethod("OnDisable", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).Invoke(homeBtn, null);
             if (host != null) Object.DestroyImmediate(host);
             if (panel != null) { panel.Close(); panel.SkipAnimations(); Object.DestroyImmediate(panel.gameObject); }
             Object.DestroyImmediate(esGo);
@@ -154,6 +172,86 @@ public static class CodexNewDotsTest
         }
         UnityEngine.Debug.Log("[CND] failures: " + fails);
         return fails;
+    }
+
+    static int fitBad, fitCells;
+    static string fitFirst = "";
+
+    static void DotsStage(ScreenFitRig rig)
+    {
+        ScreenFitScreens.HomeBase(rig);
+        DeveloperUnlocks.SetEnabled(true);   // every entry listed: the fullest grids
+        Codex.Reload();
+        var panel = CodexPanel.Open(null);
+        rig.Sync();
+        panel.Refresh();
+        panel.ApplyLayout(CodexUi.SafeAreaUnits(panel.GetComponent<Canvas>()));
+        string why = null;
+        foreach (var tab in CodexPanel.Tabs)
+        {
+            panel.ShowCategory(tab);
+            panel.SkipAnimations();
+            panel.ApplyLayout(CodexUi.SafeAreaUnits(panel.GetComponent<Canvas>()));
+            Canvas.ForceUpdateCanvases();
+            for (int i = 0; i < panel.VisibleCards && why == null; i++)
+            {
+                var dot = panel.CardNewDot(i);
+                dot.gameObject.SetActive(true);
+                if (!InsideWithMargin(panel.CardRect(i), dot.rectTransform, 5f)) why = tab + " card " + i + ": dot not inside with margin";
+            }
+        }
+        float sf = panel.GetComponent<Canvas>().rootCanvas.scaleFactor, du = panel.TabNewDot(0).rectTransform.rect.width, px = du * sf / 13f;
+        if (du < 9.5f || du > 22f || Mathf.Abs(px - Mathf.Round(px)) > .03f) why = "dot size " + du + " units x" + sf + " is not a 9.5..22 unit whole multiple of 13 px";
+        for (int t = 0; t < CodexPanel.TabCount && why == null; t++)
+        {
+            var dot = panel.TabNewDot(t);
+            dot.gameObject.SetActive(true);
+            var box = (RectTransform)dot.transform.parent;
+            if (!InsideWithMargin(box, dot.rectTransform, 5f)) why = "tab " + t + ": dot not inside with margin";
+            else if (OverlapsLabel(panel.TabLabel(t), dot.rectTransform)) why = "tab " + t + ": dot covers the label";
+        }
+        if (why != null) { throw new System.Exception(why); }
+    }
+
+    // Glyph extent of the label's rendered text vs the dot, in the label's local space.
+    static bool OverlapsLabel(Text label, RectTransform dot)
+    {
+        var rect = label.rectTransform.rect.size;
+        var gen = new TextGenerator();
+        gen.Populate(label.text, label.GetGenerationSettings(rect));
+        var v = gen.verts;
+        if (v.Count < 4) return false;
+        float ppu = Mathf.Max(.01f, label.pixelsPerUnit);
+        Rect text = Rect.MinMaxRect(float.MaxValue, float.MaxValue, float.MinValue, float.MinValue);
+        foreach (var vert in v)
+        {
+            text.xMin = Mathf.Min(text.xMin, vert.position.x / ppu); text.xMax = Mathf.Max(text.xMax, vert.position.x / ppu);
+            text.yMin = Mathf.Min(text.yMin, vert.position.y / ppu); text.yMax = Mathf.Max(text.yMax, vert.position.y / ppu);
+        }
+        var c = new Vector3[4];
+        dot.GetWorldCorners(c);
+        Rect d = Rect.MinMaxRect(float.MaxValue, float.MaxValue, float.MinValue, float.MinValue);
+        foreach (var w in c)
+        {
+            var l = label.rectTransform.InverseTransformPoint(w);
+            d.xMin = Mathf.Min(d.xMin, l.x); d.xMax = Mathf.Max(d.xMax, l.x);
+            d.yMin = Mathf.Min(d.yMin, l.y); d.yMax = Mathf.Max(d.yMax, l.y);
+        }
+        return d.Overlaps(text);
+    }
+
+    // inner fully inside outer, at least `margin` of outer's own units from every edge
+    static bool InsideWithMargin(RectTransform outer, RectTransform inner, float margin)
+    {
+        var c = new Vector3[4];
+        inner.GetWorldCorners(c);
+        Rect o = outer.rect;
+        foreach (var w in c)
+        {
+            var l = outer.InverseTransformPoint(w);
+            if (l.x < o.xMin + margin || l.x > o.xMax - margin || l.y < o.yMin + margin || l.y > o.yMax - margin) return false;
+        }
+        return true;
     }
 
     // ships and worlds are discovered by ownership / progress, not by Discover()

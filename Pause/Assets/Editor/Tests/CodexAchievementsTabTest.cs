@@ -594,7 +594,7 @@ public static class CodexAchievementsTabTest
 
     // The bubble rides the top-right of the rendered word: right of its last
     // glyph (<= 10 units away), above the text's vertical centre, inside the
-    // button, clear of the DISCOVERED line, 18..28 units, whole 13 px multiples.
+    // button, clear of the DISCOVERED line, 9.5..22 units, whole 13 px multiples.
     static string BadgeRidesWord(ScreenFitRig rig, CodexHomeButton home, string word)
     {
         home.Label.text = word;
@@ -615,7 +615,7 @@ public static class CodexAchievementsTabTest
         if (bd.yMin < wr.y - 4f && bd.xMin < wr.x - .5f) return word + ": badge below the last glyph's top";
         if (bd.center.y <= labR.center.y) return word + ": badge not above the text centre";
         if (bd.Overlaps(cnt)) return word + ": badge overlaps the DISCOVERED line";
-        if (bd.width < 18f || bd.width > 28f) return word + ": badge size " + bd.width;
+        if (bd.width < 9.5f || bd.width > 22f) return word + ": badge size " + bd.width;
         float scale = home.GetComponentInParent<Canvas>().rootCanvas.scaleFactor;
         float px = bd.width * scale / 13f;
         if (Mathf.Abs(px - Mathf.Round(px)) > .03f) return word + ": badge not a whole multiple of the 13 px art (" + px + ")";

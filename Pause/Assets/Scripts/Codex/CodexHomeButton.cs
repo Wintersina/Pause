@@ -26,10 +26,10 @@ public class CodexHomeButton : MonoBehaviour
     // procedural disc when Codex paints one.
     Image badge;
     Text badgeText;
-    public const float BadgeSize = 21f, BadgeOverlapX = 2f, BadgeOverlapY = 2f;
+    public const float BadgeSize = 14f, BadgeOverlapX = 2f, BadgeOverlapY = 2f;
     // size/position are recomputed when the label's rendered text or the canvas scale changes
     string badgeSig;
-    public const int BadgeMax = 9;
+    public const int BadgeMax = 9, BadgeFont = 11;
     public const string BadgeArtSlot = "cx_badge";
 
     public Image Badge { get { return badge; } }
@@ -168,12 +168,12 @@ public class CodexHomeButton : MonoBehaviour
         brt.sizeDelta = new Vector2(BadgeSize, BadgeSize);
         badgeText = CodexUi.NewText("Count", brt, font, "", 18, CodexPalette.Ink, TextAnchor.MiddleCenter);
         badgeText.resizeTextForBestFit = false;
-        badgeText.fontSize = 11;
+        badgeText.fontSize = BadgeFont;
         badgeText.horizontalOverflow = HorizontalWrapMode.Overflow;
         badgeText.verticalOverflow = VerticalWrapMode.Overflow;
         var trt = badgeText.rectTransform;
         trt.anchorMin = Vector2.zero; trt.anchorMax = Vector2.one;
-        trt.offsetMin = new Vector2(1f, 3f); trt.offsetMax = new Vector2(-1f, 0f);
+        trt.offsetMin = new Vector2(0f, 2f); trt.offsetMax = new Vector2(0f, 0f);
         badge.gameObject.SetActive(false);
 
         Refresh();
@@ -243,14 +243,17 @@ public class CodexHomeButton : MonoBehaviour
         return true;
     }
 
-    // Integer pixel multiple of the 13 px art at the current canvas scale, nearest to BadgeSize.
-    float BadgeUnits()
+    // Integer pixel multiple of the 13 px art at the canvas scale, nearest to `units` (at least 1x).
+    public static float SnapToArt(Component c, float units)
     {
-        var canvas = GetComponentInParent<Canvas>();
+        var canvas = c != null ? c.GetComponentInParent<Canvas>() : null;
         float scale = canvas != null ? Mathf.Max(.01f, canvas.rootCanvas.scaleFactor) : 1f;
-        int mult = Mathf.Max(1, Mathf.RoundToInt(BadgeSize * scale / 13f));
+        if (scale < .7f) return units;   // canvas not scaled yet (edit-mode tests)
+        int mult = Mathf.Max(1, Mathf.RoundToInt(units * scale / 13f));
         return mult * 13f / scale;
     }
+
+    float BadgeUnits() { return SnapToArt(this, BadgeSize); }
 
     // Pin the bubble to the top-right of the word: its bottom-left corner sits
     // just inside the last letter's top-right, so it rides the cap line and
