@@ -14,6 +14,7 @@ using UnityEngine;
 //   Bloom Queen          stinger thorns, vine lash | spore bloom | acid cannons, trunk toss
 //   Cinder Drake         fire breath, flame sweep | furnace slugs | brow laser, eruption columns
 //   Iron Kraken          port cluster, thunder strike | beak jet | starboard cluster, surf wave
+//   Tempest Engine       core arc fan, crown lane strike | crown hail | coil beams, chain-lightning sweep
 //
 // A table only fights when BossDef.themedAttacks is on (default off); the default tables are untouched. The
 // new attacks share the existing attacks' tell poses: each lights the part it fires from (the Archon's pods, the
@@ -36,6 +37,8 @@ public static class BossThemed
                 return new[] { d[0], FlameSweep(w), d[1], d[2], Eruption(w) };
             case "Tide":    // the thunder arcs / ink skins are art; the beak spit, ink and tentacle attacks stay the placeholders
                 return new[] { d[0], ThunderStrike(w), d[1], d[2], SurfWave(w) };
+            case "Storm":   // lane strike from the lightning-rod crown, a chain-lightning sweep (Scan band) from the core
+                return new[] { d[0], CrownStrike(w), d[1], d[2], ChainSweep(w) };
             case "Verdant":
                 return new[] { d[0], VineLash(w), d[1], d[2], TrunkToss(w) };
             default:
@@ -157,6 +160,30 @@ public static class BossThemed
         {
             name = "trunk toss", kind = BossAttackKind.Roll, tell = 1, tellSeconds = 1.2f, emitters = new[] { "PetalLL", "PetalLR" },
             log = log, spacing = 1.9f, heightAbove = 2.6f, volleys = 2, volleyGap = .9f, cooldown = 1.4f, minPhase = 3,
+        };
+    }
+
+    // ---- Storm: crown lane strike (Strike), chain-lightning sweep (Wave) -----------------------------------------
+
+    static BossAttack CrownStrike(int w)
+    {
+        // the rods spark (tell 1: the crown's arcs flare first), then three lightning lanes at the ship's row, 1.9 u apart
+        return new BossAttack
+        {
+            name = "crown strike", kind = BossAttackKind.Strike, tell = 1, tellSeconds = 1f, emitters = new[] { "Rods" },
+            strike = StrikeSpec.Standard(w), count = 3, spacing = 1.9f, cooldown = 1.2f, minPhase = 1,
+        };
+    }
+
+    static BossAttack ChainSweep(int w)
+    {
+        // a thin arc line falls the whole lane from the core with a gap turned toward the middle; twice, the gaps 1.7 s apart
+        var wave = WaveSpec.Scan(w);
+        wave.gapOffset = .8f; wave.gapWidth = 1.9f;
+        return new BossAttack
+        {
+            name = "chain lightning", kind = BossAttackKind.Wave, tell = 0, tellSeconds = 1.1f, emitters = new[] { "Core" },
+            wave = wave, volleys = 2, volleyGap = 1.7f, cooldown = 1.4f, minPhase = 3,
         };
     }
 }

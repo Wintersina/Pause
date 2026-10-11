@@ -344,8 +344,8 @@ public static class AchievementTrackingTest
         PlayerPrefs.SetInt(WorldManager.PrefsHighestWorld, 3);
         Codex.Reload();
         AchievementTracker.RefreshCodex();
-        Check("every entry discovered: Completionist (" + Codex.DiscoveredCount + "/" + Codex.Entries.Length + ")",
-              Codex.DiscoveredCount == Codex.Entries.Length && U("codex_complete"));
+        Check("every entry discovered: Completionist (" + Codex.DiscoveredCount + "/" + Codex.Total + ")",
+              Codex.DiscoveredCount == Codex.Total && U("codex_complete"));
         PlayerPrefs.SetString(Codex.PrefsKey, "");
         Codex.Reload();
     }

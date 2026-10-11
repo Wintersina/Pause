@@ -49,6 +49,9 @@ public class ChaserEnemy : MonoBehaviour, IMovementFootprint
     //   Burner  the same pursuit, tuned short and hard (its numbers)
     //   Slither a wire eel: surges toward the ship in sinusoidal lunges (it
     //           coils back, then whips forward) on a side-to-side S-curve
+    //   Spiral  a rotor drone: closes in on a corkscrew, circling the line to
+    //           the ship at a steady speed (sideways and fore-aft offsets a
+    //           quarter turn apart)
     public ChaserStyle style = ChaserStyle.Hound;
     public const float LancerAimSeconds = .55f, LancerDashSeconds = .7f;
     public const float LancerAimSpeed = .15f, LancerDashSpeed = 1.9f;
@@ -56,6 +59,8 @@ public class ChaserEnemy : MonoBehaviour, IMovementFootprint
     // Slither: the surge is speed x (1 + SlitherSurge * sin) at SlitherHz (average speed unchanged: 1),
     // the S-curve a sideways sine a quarter cycle behind it (it whips its tail as it coils)
     public const float SlitherSurge = .85f, SlitherHz = .9f, SlitherSideSpeed = 1.3f;
+    // Spiral: a circle of radius SpiralSpeed / (2 pi SpiralHz) ~ .27 u carried along the heading (the mean speed is unchanged)
+    public const float SpiralSpeed = 1.5f, SpiralHz = .9f;
 
     // It does not stay for ever: after lingerSeconds of orbiting (or when a
     // boss / portal is coming) it leaves, climbing out the top.
@@ -197,6 +202,12 @@ public class ChaserEnemy : MonoBehaviour, IMovementFootprint
                     {
                         Vector3 side = new Vector3(-heading.y, heading.x, 0f);
                         wish += side * Mathf.Cos(styleClock * SlitherHz * 2f * Mathf.PI) * SlitherSideSpeed * dt;
+                    }
+                    if (style == ChaserStyle.Spiral)
+                    {
+                        float a = styleClock * SpiralHz * 2f * Mathf.PI;
+                        Vector3 side = new Vector3(-heading.y, heading.x, 0f);
+                        wish += (side * -Mathf.Sin(a) + heading * Mathf.Cos(a)) * SpiralSpeed * dt;
                     }
                     if (style == ChaserStyle.Weaver)
                         wish.x += Mathf.Cos(styleClock * WeaveHz * 2f * Mathf.PI) * WeaveSpeed * dt;

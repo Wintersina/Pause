@@ -76,9 +76,9 @@ public static class WorldLogicTest
         PlayerPrefs.DeleteKey(WorldManager.PrefsCurrentWorld);
         PlayerPrefs.DeleteKey(WorldManager.PrefsHighestWorld);
 
-        Check("five worlds defined (Space, Frost, Verdant, Ember, Tide)", WorldManager.Worlds.Length == 5);
-        Check("the release switch is off in the shipped code: Ember is the last live world, Tide is gated (WorldManager.TideEnabled)",
-              !WorldManager.TideEnabled && WorldManager.LastLiveWorld == 3 && WorldManager.LiveWorldCount == 4);
+        Check("six worlds defined (Space, Frost, Verdant, Ember, Tide, Storm)", WorldManager.Worlds.Length == 6);
+        Check("the release switches are off in the shipped code: Ember is the last live world, Tide and Storm are gated (WorldManager.TideEnabled / StormEnabled)",
+              !WorldManager.TideEnabled && !WorldManager.StormEnabled && WorldManager.LastLiveWorld == 3 && WorldManager.LiveWorldCount == 4);
         Check("world 0 is Space", WorldManager.Worlds[0].displayName == "Space");
         Check("space keeps authored art", WorldManager.Worlds[0].resourceFolder == "");
         Check("space keeps authored music", WorldManager.Worlds[0].musicResource == "");
@@ -95,7 +95,7 @@ public static class WorldLogicTest
         PlayerPrefs.DeleteKey(DeveloperUnlocks.EnabledKey);
         DeveloperUnlocks.SetEnabled(true);
         Check("developer flag unlocks every ship", PlayerPrefs.GetString("boughtship15") == "True");
-        Check("developer flag unlocks every world (Tide included, for the picker)", PlayerPrefs.GetInt(WorldManager.PrefsHighestWorld) == WorldManager.Worlds.Length - 1);
+        Check("developer flag unlocks every world (Tide and Storm included, for the picker)", PlayerPrefs.GetInt(WorldManager.PrefsHighestWorld) == WorldManager.Worlds.Length - 1);
         DeveloperUnlocks.SetEnabled(false);
         Check("turning developer flag off restores locked ship state", !PlayerPrefs.HasKey("boughtship15"));
         Check("turning developer flag off restores saved world progress",
@@ -127,6 +127,7 @@ public static class WorldLogicTest
         Check("last live world has no next", !WorldManager.HasNext);
         Check("highest recorded", PlayerPrefs.GetInt(WorldManager.PrefsHighestWorld, 0) == WorldManager.LastLiveWorld);
         TideWorld();
+        StormWorld();
 
         // clamping
         WorldManager.CurrentIndex = 99;
@@ -182,8 +183,8 @@ public static class WorldLogicTest
         }
         Check("... its codex backdrop tile resolves through BackdropCatalog.TileFolder (" + BackdropCatalog.TileFolder("Tide", 1) + ")",
               BackdropCatalog.TileFolder("Tide", 1) == "Worlds/Tide/Backdrop3/v1/");
-        DeveloperUnlocks.SelectWorld(99);
-        Check("... a developer run may start on it: the picker clamps to the full list", DeveloperUnlocks.SelectedWorld == Tide);
+        DeveloperUnlocks.SelectWorld(Tide);
+        Check("... a developer run may start on it: the picker can pick it", DeveloperUnlocks.SelectedWorld == Tide);
         PlayerPrefs.DeleteKey(DeveloperUnlocks.SelectedWorldKey);
         bool was = WorldManager.TideEnabled;
         try
@@ -193,7 +194,7 @@ public static class WorldLogicTest
             WorldManager.CurrentIndex = Ember;
             Check("switch ON: Ember has a next, and it is Tide", WorldManager.HasNext && WorldManager.PortalDestination == Tide);
             WorldManager.CurrentIndex = Tide;
-            Check("switch ON: Tide has no next", !WorldManager.HasNext);
+            Check("switch ON: Tide has no next (Storm is gated)", !WorldManager.HasNext);
             WorldManager.TideEnabled = false;
             Check("switch OFF: Tide (a developer run) has no next either, and Ember is last",
                   !WorldManager.HasNext && WorldManager.LastLiveWorld == Ember);
@@ -201,6 +202,55 @@ public static class WorldLogicTest
             Check("switch OFF: Ember has no next (the loop)", !WorldManager.HasNext);
         }
         finally { WorldManager.TideEnabled = was; }
+    }
+
+    // World 6, Storm: in the list, behind its own release switch (which implies Tide's), with its
+    // planet art; rails, backdrop, roster and boss are Tide's stand-ins until their phases land.
+    static void StormWorld()
+    {
+        const int Ember = 3, Tide = 4, Storm = 5;
+        var t = WorldManager.Worlds[Storm];
+        Check("Storm is world 5 (the sixth), named Storm, folder Storm, ramping harder than Tide",
+              t.displayName == "Storm" && t.resourceFolder == "Storm" && t.speedRampPerSecond > WorldManager.Worlds[Tide].speedRampPerSecond &&
+              t.enemyRampScale > WorldManager.Worlds[Tide].enemyRampScale);
+        Check("... ramp .00405 / enemy scale 1.65, no music of its own",
+              Mathf.Approximately(t.speedRampPerSecond, .00405f) && Mathf.Approximately(t.enemyRampScale, 1.65f) &&
+              t.musicResource == "" && !t.progressiveMusic);
+        Color c = t.portalColor;
+        float hue, sat, val; Color.RGBToHSV(c, out hue, out sat, out val);
+        Check("... its portal is pale storm-white / yellow (hue 40..70 deg, soft), not violet, amber nor the mint",
+              hue * 360f > 40f && hue * 360f < 70f && sat < .45f && val > .85f);
+        Check("... its own rails and roster cast; still Tide's backdrop (TODO: Storm's own)",
+              WorldPainter.RailTextureName("Storm") == "rail_storm_wide_v1" && BackdropCatalog.For("Storm") == BackdropCatalog.For("Tide") &&
+              EnemyRoster.One(Storm, EnemyRole.Rock).key == "storm_rock_hail" && EnemyRoster.One(Storm, EnemyRole.Rock).world == Storm &&
+              BossCatalog.ForWorld(Storm).id == "boss_storm");
+        Check("... its planetfall art is installed, the numbers are the manifest's",
+              PlanetfallCatalog.Storm.world == Storm && LiftoffCatalog.Storm.world == Storm && LiftoffCatalog.Storm.autoLoop &&
+              AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Art/Backgrounds/Resources/" + PlanetfallCatalog.Storm.folder + PlanetfallCatalog.Storm.planet + ".png") != null &&
+              AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Art/Backgrounds/Resources/" + PlanetfallCatalog.Storm.folder + PlanetfallCatalog.Storm.limb + ".png") != null);
+        DeveloperUnlocks.SelectWorld(99);
+        Check("... a developer run may start on it: the picker clamps to the full list", DeveloperUnlocks.SelectedWorld == Storm);
+        PlayerPrefs.DeleteKey(DeveloperUnlocks.SelectedWorldKey);
+        bool wasTide = WorldManager.TideEnabled, wasStorm = WorldManager.StormEnabled;
+        try
+        {
+            WorldManager.TideEnabled = true; WorldManager.StormEnabled = false;
+            Check("Tide on, Storm off: Tide is last (5 live)", WorldManager.LastLiveWorld == Tide && WorldManager.LiveWorldCount == 5);
+            WorldManager.StormEnabled = true; WorldManager.TideEnabled = false;
+            Check("flags chain: Storm on alone changes nothing (Ember stays last, 4 live, production loop Space-Frost-Verdant-Ember-Space)",
+                  WorldManager.LastLiveWorld == Ember && WorldManager.LiveWorldCount == 4 && !WorldManager.StormLive);
+            WorldManager.TideEnabled = true;
+            Check("Tide and Storm both on: Storm is the last live world (6 live)", WorldManager.LastLiveWorld == Storm && WorldManager.LiveWorldCount == 6 && WorldManager.StormLive);
+            WorldManager.CurrentIndex = Ember;
+            Check("Storm on: Ember -> Tide -> Storm", WorldManager.HasNext && WorldManager.PortalDestination == Tide);
+            WorldManager.CurrentIndex = Tide;
+            Check("Storm on: Tide has a next and it is Storm", WorldManager.HasNext && WorldManager.PortalDestination == Storm);
+            WorldManager.CurrentIndex = Storm;
+            Check("Storm on: Storm has no next", !WorldManager.HasNext);
+            WorldManager.StormEnabled = false;
+            Check("Storm off (Tide still on; a developer run on Storm): no next, and the live chain ends at Tide", !WorldManager.HasNext && WorldManager.LastLiveWorld == Tide);
+        }
+        finally { WorldManager.TideEnabled = wasTide; WorldManager.StormEnabled = wasStorm; }
     }
 
     static WorldTheme Theme(string name)

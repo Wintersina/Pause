@@ -209,8 +209,25 @@ public static class EliteTest
             Check(d.key + ": the original art is untouched (Resources copy matches " + src + ")",
                   File.Exists(src) && File.ReadAllBytes(CopyPath(d)).Length == File.ReadAllBytes(src).Length);
         }
-        Check("every elite has its own brain (" + brains.Count + ")", brains.Count == EliteCatalog.All.Length);
-        Check("every elite has its own attack (" + attacks.Count + ")", attacks.Count == EliteCatalog.All.Length);
+        // (Storm composes the older brains and attacks with its own numbers: each world's elites are distinct among themselves)
+        bool distinct = true;
+        string dup = "";
+        for (int w = 0; w < EnemyRoster.WorldKeys.Length; w++)
+        {
+            var wb = new HashSet<string>();
+            var wa = new HashSet<string>();
+            var list = new List<EliteDef>();
+            EliteCatalog.ForWorld(w, list);
+            foreach (var d in list) if (!wb.Add(d.brain) || !wa.Add(d.attack)) { distinct = false; dup += " " + d.key; }
+        }
+        Check("every elite has its own brain and attack inside its world (" + brains.Count + " brains, " + attacks.Count + " attacks;" + dup + ")", distinct);
+        var storm = new List<EliteDef>();
+        EliteCatalog.ForWorld(5, storm);
+        var stormKeys = new HashSet<string>();
+        foreach (var d in storm) stormKeys.Add(d.key);
+        Check("Storm has its five elites: Skyhook Harrier, Refinery Tender, Rod Dancer, Anvil Cloud, Static Bastion (" + storm.Count + ")",
+              storm.Count == 5 && stormKeys.Contains("storm_elite_skyhook_harrier") && stormKeys.Contains("storm_elite_refinery_tender") &&
+              stormKeys.Contains("storm_elite_rod_dancer") && stormKeys.Contains("storm_elite_anvil_cloud") && stormKeys.Contains("storm_elite_static_bastion"));
         Check("the elite heart is white art (tinted per elite)", Resources.Load<Sprite>(EliteHearts.SpritePath) != null);
     }
 
@@ -1214,9 +1231,9 @@ public static class EliteTest
             Check(e.id + ": locked card is a readable flat silhouette (" + r.opaque + "/" + r.covered + " px, " + r.colours + " colour)",
                   panel.CardName(i).text == "???" && r.rendered && r.opaque >= 200 && r.colours == 1 && inkOk);
         }
-        // (Tide's section stays out of the panel until WorldManager.TideEnabled: its five cards are TideEliteTest's)
+        // (Tide's and Storm's sections stay out of the panel until WorldManager.TideEnabled / StormEnabled: their cards are TideEliteTest's and StormEliteTest's)
         int shown = 0;
-        foreach (var d in EliteCatalog.All) if (d.WorldIndex != 4 || WorldManager.TideEnabled) shown++;
+        foreach (var d in EliteCatalog.All) if ((d.WorldIndex != 4 || WorldManager.TideEnabled) && (d.WorldIndex != 5 || WorldManager.StormEnabled)) shown++;
         Check("rendered every elite's locked card (" + tested + ")", tested == shown);
     }
 }

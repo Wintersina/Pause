@@ -191,6 +191,14 @@ public static class BossCatalog
     static readonly Color HeartViolet = new Color(.78f, .38f, 1f);
     static readonly Color HeartAmber = new Color(1f, .74f, .16f);
     static readonly Color Mint = new Color(.45f, 1f, .82f);
+    static readonly Color StormYellow = new Color(1f, .95f, .63f);
+
+    // The Tempest Engine's battle-damage and death art keys. TODO(storm-boss-damage): Codex's Storm_damage.png, Storm_damage_fx.png
+    // and Storm_death.png are still being painted (art/storm-boss-damage); until they are installed under Resources/Bosses the engine
+    // wears the Iron Kraken's damage smoke / arcs and death strip. Swapping is this one line each: "Storm" (BossDamageTest then
+    // requires exactly that as soon as Storm_damage.png exists).
+    public const string StormDamageKey = "Storm";
+    public const string StormDeathKey = "Storm";
 
     static BossDef[] Build()
     {
@@ -342,28 +350,45 @@ public static class BossCatalog
                        "Its eight pipe-and-cable arms end in cannons, its beak spits a hydraulic jet and its one mint eye never blinks. " +
                        "Everything that sinks here ends up bolted to it.",
                 swayX = 1.2f, swayY = .2f, freqX = .3f, freqY = .6f, flash = Mint, heartColor = Mint,
+                attacks = TideAttacks(),
+            },
+            // ----------------------------------------------------------- Storm
+            // A weather-factory turbine: a white-hot core drum, a crown of
+            // lightning rods between two Tesla coil towers. Tells: core flare
+            // (0), crown arcs (1), coil towers charging (2). The core fan and
+            // the coil beams are its default pattern; the crown's hail is its
+            // third; the themed table (BossThemed) adds its lane strike and
+            // chain-lightning sweep.
+            new BossDef
+            {
+                id = CodexPrefix + "storm", name = "TEMPEST ENGINE", title = "STORM-MAKING TURBINE", artKey = "Storm",
+                damageKey = StormDamageKey, deathKey = StormDeathKey,
+                lore = "A floating turbine the size of a city block that builds the weather it hides in. " +
+                       "Its drum spits arcs the moment the core flares white, its crown calls the lightning down on your lane after the rods spark, and its twin coils cut the sky in half. " +
+                       "Watch which part lights up first, then leave the gap between the towers.",
+                swayX = 1.05f, swayY = .16f, freqX = .28f, freqY = .56f, flash = StormYellow, heartColor = StormYellow,
                 attacks = new[]
                 {
-                    // The left tentacle cluster glows and sweeps two fans of
-                    // pressure bolts out of its cannons; they ricochet once.
-                    new BossAttack { name = "port cluster", kind = BossAttackKind.Fan, tell = 1, tellSeconds = .8f,
-                                     emitters = new[] { "LeftA", "LeftB" }, fireFrame = true, alternate = true,
-                                     volleys = 3, volleyGap = .45f, count = 5, spreadDeg = 60f, rotateDeg = 8f,
-                                     speed = 3f, style = BossShotStyle.Bolt,
+                    // The drum's core flares white, then it vents fans of
+                    // arc bolts that ricochet once off the rails.
+                    new BossAttack { name = "core arc fan", kind = BossAttackKind.Fan, tell = 0, tellSeconds = 1f,
+                                     emitters = new[] { "Core" }, fireFrame = true,
+                                     volleys = 3, volleyGap = .65f, count = 5, spreadDeg = 84f, rotateDeg = 10f,
+                                     speed = 2.6f, style = BossShotStyle.Bolt,
                                      rail = BossRailMode.Bounce, bounces = 1, cooldown = 1.2f },
-                    // The beak opens around a mint bubble, then a pressure jet
-                    // rakes straight down from the mouth.
-                    new BossAttack { name = "beak jet", kind = BossAttackKind.Beam, tell = 0, tellSeconds = .9f,
-                                     emitters = new[] { "Beak" },
-                                     aim = BossBeamAim.Down, aimDeg = 0f, sweepDeg = 30f, beamWidth = .34f, hold = .8f,
-                                     cooldown = 1.3f },
-                    // The right cluster glows and lobs depth charges that
-                    // arc up and rain down on four columns.
-                    new BossAttack { name = "starboard cluster", kind = BossAttackKind.Lob, tell = 2, tellSeconds = .8f,
-                                     emitters = new[] { "RightA", "RightB" },
-                                     volleys = 2, volleyGap = .5f, count = 4, style = BossShotStyle.Shard,
-                                     lobUp = 2.2f, gravity = 6f, fallSpeed = 3.6f,
+                    // The rods spark, then hail is flung up out of the crown
+                    // and rains down on four of five columns.
+                    new BossAttack { name = "crown hail", kind = BossAttackKind.Lob, tell = 1, tellSeconds = .9f,
+                                     emitters = new[] { "Rods" },
+                                     volleys = 2, volleyGap = .55f, count = 4, style = BossShotStyle.Shard,
+                                     lobUp = 2.2f, gravity = 6f, fallSpeed = 3.4f,
                                      rail = BossRailMode.Absorb, cooldown = 1.4f },
+                    // Both coil towers charge, then burn two beams straight
+                    // down that swing outward: the lane between them is safe.
+                    new BossAttack { name = "coil beams", kind = BossAttackKind.Beam, tell = 2, tellSeconds = 1f,
+                                     emitters = new[] { "CoilL", "CoilR" },
+                                     aim = BossBeamAim.Down, aimDeg = 6f, sweepDeg = 14f, beamWidth = .28f, hold = .8f,
+                                     cooldown = 1.4f },
                 },
             },
         };
@@ -380,6 +405,34 @@ public static class BossCatalog
             Resolve(b, b.themed);
         }
         return bosses;
+    }
+
+    // The Iron Kraken's three attacks.
+    static BossAttack[] TideAttacks()
+    {
+        return new[]
+        {
+            // The left tentacle cluster glows and sweeps two fans of
+            // pressure bolts out of its cannons; they ricochet once.
+            new BossAttack { name = "port cluster", kind = BossAttackKind.Fan, tell = 1, tellSeconds = .8f,
+                             emitters = new[] { "LeftA", "LeftB" }, fireFrame = true, alternate = true,
+                             volleys = 3, volleyGap = .45f, count = 5, spreadDeg = 60f, rotateDeg = 8f,
+                             speed = 3f, style = BossShotStyle.Bolt,
+                             rail = BossRailMode.Bounce, bounces = 1, cooldown = 1.2f },
+            // The beak opens around a mint bubble, then a pressure jet
+            // rakes straight down from the mouth.
+            new BossAttack { name = "beak jet", kind = BossAttackKind.Beam, tell = 0, tellSeconds = .9f,
+                             emitters = new[] { "Beak" },
+                             aim = BossBeamAim.Down, aimDeg = 0f, sweepDeg = 30f, beamWidth = .34f, hold = .8f,
+                             cooldown = 1.3f },
+            // The right cluster glows and lobs depth charges that
+            // arc up and rain down on four columns.
+            new BossAttack { name = "starboard cluster", kind = BossAttackKind.Lob, tell = 2, tellSeconds = .8f,
+                             emitters = new[] { "RightA", "RightB" },
+                             volleys = 2, volleyGap = .5f, count = 4, style = BossShotStyle.Shard,
+                             lobUp = 2.2f, gravity = 6f, fallSpeed = 3.6f,
+                             rail = BossRailMode.Absorb, cooldown = 1.4f },
+        };
     }
 
     static void Resolve(BossDef b, BossAttack[] table)

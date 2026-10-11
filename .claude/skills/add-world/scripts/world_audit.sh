@@ -14,6 +14,7 @@
 #   2  the hard-coded "this many worlds" spots (arrays of four, == 3, Length == 4 ...)
 #   3  art folders that carry the reference world's name
 #   4  Unity-ignored staging folders (~) for the world
+#   (Tide / Storm: pass REF=Tide to see the six-world spots; the release flags are WorldManager.TideEnabled / StormEnabled)
 #   5  with NEW_WORLD: files that mention REF but not NEW (to do)
 set -u
 REF="${1:-Ember}"
@@ -29,7 +30,7 @@ grep -rliE "$REF" --include='*.cs' "$A/Scripts" "$A/Editor" 2>/dev/null | sed "s
 
 echo
 echo "== 2. hard-coded world-count / world-list spots (each must grow with the new world) =="
-grep -rnE '"Space", *"Frost", *"Verdant", *"Ember"|"space", *"frost", *"verdant", *"ember"|Frost, Verdant, Ember|new\[\] *\{ *"Frost", *"Verdant", *"Ember"|Worlds\.Length *== *[0-9]|PrefsHighestWorld[^;]*== *[0-9]|(Rows|Worlds) *= *4\b|MaxSections *= *5|four worlds|\bfour-world |[Ww]orld[A-Za-z]* *== *3\b|CurrentIndex *== *3|SelectWorld\(3\)|KeyCode\.F4|HighestWorld\)? *== *3|Worlds\[3\]|All\[3\]|\bEmber *= *3|WorldIds *=|WorldKeys *=|PilotLoadAt(Low|High)Speed *=|Accents *=|Rows *= *4' \
+grep -rnE '"Space", *"Frost", *"Verdant", *"Ember", *"Tide"|"space", *"frost", *"verdant", *"ember", *"tide"|Verdant, Ember, Tide|Worlds\[4\]|Worlds\[5\]|StormStandIn|StormEnabled|TideEnabled|"Space", *"Frost", *"Verdant", *"Ember"|"space", *"frost", *"verdant", *"ember"|Frost, Verdant, Ember|new\[\] *\{ *"Frost", *"Verdant", *"Ember"|Worlds\.Length *== *[0-9]|PrefsHighestWorld[^;]*== *[0-9]|(Rows|Worlds) *= *4\b|MaxSections *= *5|four worlds|\bfour-world |[Ww]orld[A-Za-z]* *== *3\b|CurrentIndex *== *3|SelectWorld\(3\)|KeyCode\.F4|HighestWorld\)? *== *3|Worlds\[3\]|All\[3\]|\bEmber *= *3|WorldIds *=|WorldKeys *=|PilotLoadAt(Low|High)Speed *=|Accents *=|Rows *= *4' \
     --include='*.cs' "$A/Scripts" "$A/Editor" 2>/dev/null | sed "s#$A/##" | cut -c1-190 | sort
 
 echo

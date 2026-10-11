@@ -1,0 +1,109 @@
+{
+  "key": "storm_elite_static_bastion",
+  "codexId": "elite_storm_static_bastion",
+  "world": "storm",
+  "cells": {
+    "flight": [
+      3
+    ],
+    "parked": 0,
+    "parkedIdle": 1,
+    "liftoff": 2,
+    "bankLeft": 4,
+    "bankRight": 5,
+    "tell": -1,
+    "action": -1,
+    "hit": -1,
+    "damaged": 6
+  },
+  "cellWorldSize": 1.6,
+  "noseDeg": 90,
+  "maxBank": 3,
+  "heartColor": "#9CC8FF",
+  "shotColor": "#9CC8FF",
+  "shotCore": "#F2F6FF",
+  "engineColor": "#9CC8FF",
+  "hearts": 2,
+  "heartSize": 0.18,
+  "heartOrbit": 0.85,
+  "heartStyle": "Halo",
+  "exhaustShip": 3,
+  "exhaustScale": 0,
+  "glowScale": 0.09,
+  "cellPixels": 192,
+  "armored": true,
+  "hazardSeconds": 0.4,
+  "hazardSize": 0.6,
+  "displayName": "Static Bastion",
+  "role": "arc curtain bastion",
+  "brain": "bastion",
+  "attack": "ward_curtain",
+  "lore": "A wide shield tank whose four spires hum with held charge. It casts a curtain of slow arcs across your row and leaves exactly one gap. Slip into the gap before the spires let go.",
+  "hullRadius": 0.34,
+  "turnsToFace": false,
+  "speed": 1.7,
+  "accel": 3.5,
+  "turnRate": 140,
+  "aggression": 0.5,
+  "tellSeconds": 1.0,
+  "attackGap": 4.0,
+  "avoidance": 0.5,
+  "lookAhead": 0.4,
+  "perception": 2.2,
+  "actionSeconds": 0.6,
+  "shotCount": 9,
+  "shotSpeed": 2.6,
+  "shotSpread": 0,
+  "shotSize": 0.22,
+  "shotInterval": 0.05,
+  "shotKind": "bolt",
+  "muzzles": [
+    {
+      "name": "core",
+      "x": 95,
+      "y": 75,
+      "dir": 270.0
+    },
+    {
+      "name": "portcap",
+      "x": 52,
+      "y": 54,
+      "dir": 270.0
+    },
+    {
+      "name": "starcap",
+      "x": 142,
+      "y": 57,
+      "dir": 270.0
+    }
+  ],
+  "nozzles": [
+    {
+      "name": "a",
+      "x": 66,
+      "y": 153,
+      "dir": -1.0
+    },
+    {
+      "name": "b",
+      "x": 86,
+      "y": 151,
+      "dir": -1.0
+    },
+    {
+      "name": "c",
+      "x": 106,
+      "y": 153,
+      "dir": -1.0
+    },
+    {
+      "name": "d",
+      "x": 127,
+      "y": 152,
+      "dir": -1.0
+    }
+  ],
+  "followDistance": 3.0,
+  "laneOffset": 0.9,
+  "lobSpacing": 0.62
+}

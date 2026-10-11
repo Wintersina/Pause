@@ -40,6 +40,7 @@ public static class BossDamageTest
             ArtSlicesIntoItsCells(2);
             ArtSlicesIntoItsCells(3);
             ArtSlicesIntoItsCells(4);
+            ArtSlicesIntoItsCells(5);
             OnlyKeyedBossesHaveDamage();
             SmokeStrengthIsTunable();
             FightShowsTheDamage(0);
@@ -47,12 +48,14 @@ public static class BossDamageTest
             FightShowsTheDamage(2);
             FightShowsTheDamage(3);
             FightShowsTheDamage(4);
+            FightShowsTheDamage(5);
             OtherBossesUnchangedInAFight();
             OverlayGoesWithTheBoss(0);
             OverlayGoesWithTheBoss(1);
             OverlayGoesWithTheBoss(2);
             OverlayGoesWithTheBoss(3);
             OverlayGoesWithTheBoss(4);
+            OverlayGoesWithTheBoss(5);
             DamageRegistration(2);
             DamageLoopsAnimate(2);
             DeathStripArt(0, "Space");
@@ -60,7 +63,8 @@ public static class BossDamageTest
             DeathStripArt(2, "Verdant");
             DeathStripArt(3, "Ember");
             DeathStripArt(4, "Tide");
-            for (int w = 0; w < 5; w++) DeathStripPlaysOnce(w);
+            StormDeathStrip();
+            for (int w = 0; w < 6; w++) DeathStripPlaysOnce(w);
             EveryBossHasDeathArt();
             BossDeathSoundHook();
         }
@@ -202,8 +206,10 @@ public static class BossDamageTest
         bool ok = true;
         foreach (var b in all)
         {
-            bool space = b.artKey == "Space" || b.artKey == "Frost" || b.artKey == "Ember" || b.artKey == "Tide" || b.artKey == "Verdant";
-            ok &= BossArt.HasDamageArt(b) == space && (space ? b.damageKey == b.artKey : string.IsNullOrEmpty(b.damageKey));
+            bool space = b.artKey == "Space" || b.artKey == "Frost" || b.artKey == "Ember" || b.artKey == "Tide" || b.artKey == "Verdant" || b.artKey == "Storm";
+            // (Storm wears BossCatalog.StormDamageKey: the Kraken's art until Storm_damage*.png are installed, then "Storm")
+            string key = b.artKey == "Storm" ? BossCatalog.StormDamageKey : b.artKey;
+            ok &= BossArt.HasDamageArt(b) == space && (space ? b.damageKey == key : string.IsNullOrEmpty(b.damageKey));
             int idle = BossArt.IdleFrame(b, 0f);
             for (int stage = 0; stage <= 4; stage++)
             {
@@ -494,6 +500,32 @@ public static class BossDamageTest
         Check("death art is looked up by deathKey: found for a key with a strip, absent (no throw) for one without or none",
               BossArt.HasDeathArt(temp) && BossArt.DeathStrip(temp, 0) == BossArt.DeathStrip(em, 0) &&
               !BossArt.HasDeathArt(missing) && !BossArt.HasDeathArt(new BossDef { artKey = "Frost" }) && !BossArt.HasDeathArt(null));
+    }
+
+    // The Tempest Engine's death strip: the stand-in key (BossCatalog.StormDeathKey, the Kraken's) until Storm_death.png exists, then its own.
+    // Either way the strip is 6 cells of 384, distinct, and its first cell is registered to Storm's idle cell.
+    static void StormDeathStrip()
+    {
+        var em = BossCatalog.ForWorld(5);
+        bool own = System.IO.File.Exists("Assets/Art/Resources/Bosses/Storm_death.png");
+        Check("Storm: deathKey is " + (own ? "Storm (its own strip is installed)" : "the stand-in " + BossCatalog.StormDeathKey) + ", damage key follows Storm_damage.png",
+              em.deathKey == (own ? "Storm" : BossCatalog.StormDeathKey) && BossArt.HasDeathArt(em) &&
+              em.damageKey == (System.IO.File.Exists("Assets/Art/Resources/Bosses/Storm_damage.png") && System.IO.File.Exists("Assets/Art/Resources/Bosses/Storm_damage_fx.png") ? "Storm" : BossCatalog.StormDamageKey));
+        var seen = new HashSet<Sprite>();
+        bool six = true;
+        for (int i = 0; i < BossArt.DeathStripCells; i++)
+        {
+            var s = BossArt.DeathStrip(em, i);
+            six &= s != null && seen.Add(s) && s.rect.width == 384f && s.rect.height == 384f;
+        }
+        Check("Storm death strip: 6 distinct 384 px cells", six && seen.Count == 6);
+        if (own)
+        {
+            var b0 = Box(BossArt.DeathStrip(em, 0));
+            var ibox = Box(BossArt.Body(em, BossArt.IdleFrame(em, 0f)));
+            Check("Storm death cell 0 is registered to its idle cell", b0 != null && ibox != null &&
+                  Mathf.Abs((b0[0] + b0[2]) / 2f - (ibox[0] + ibox[2]) / 2f) <= 40f && Mathf.Abs((b0[1] + b0[3]) / 2f - (ibox[1] + ibox[3]) / 2f) <= 40f);
+        }
     }
 
     static void DeathStripPlaysOnce(int world)

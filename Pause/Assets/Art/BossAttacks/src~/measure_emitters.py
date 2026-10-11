@@ -83,6 +83,12 @@ PARTS = {
         ("LeftA", None, None, 0, (0, 0)), ("LeftB", None, None, 0, (0, 0)),
         ("RightA", None, None, 0, (0, 0)), ("RightB", None, None, 0, (0, 0)),
     ],
+    "Storm": [
+        ("Core", 0, (192, 242), 30, (0, 0)),       # the drum's white-hot reactor behind the grille (arc fan, chain-lightning wave)
+        ("Rods", 0, (192, 46), 18, (0, -8)),      # the central rod of the lightning-rod crown (lane strike, hail)
+        ("CoilL", 0, (110, 168), 22, (0, 0)),      # the twin Tesla coil towers, at their bases (coil beams)
+        ("CoilR", 0, (272, 168), 22, (0, 0)),
+    ],
     "Ember": [
         ("Jaw", 0, (192, 196), 26, (0, 8)),        # the burning maw
         ("Furnace", 0, (192, 250), 22, (0, 0)),    # the chest furnace
@@ -96,7 +102,8 @@ PARTS = {
 # and neck are compared.
 BAND = {"Space": (96, 282, 0, 384), "Frost": (112, 292, 0, 384),
         "Verdant": (40, 262, 0, 384), "Ember": (40, 236, 112, 272),
-        "Tide": (56, 250, 112, 272)}
+        "Tide": (56, 250, 112, 272),
+        "Storm": (110, 200, 0, 384)}
 
 SCALES = [0.86 + 0.02 * i for i in range(18)]   # 0.86 .. 1.20
 
@@ -373,12 +380,15 @@ def write_cs(results):
     w("    public static readonly string[][] Parts =")
     w("    {")
     for world, table in results.items():
-        w("        new[] { %s }," % ", ".join('"%s"' % n for n, _ in table))
+        w(("        new[] { %s }," % ", ".join('"%s"' % n for n, _ in table)) if table else "        new string[0],   // " + world)
     w("    };")
     w("")
     w("    public static readonly short[][][] Points =")
     w("    {")
     for world, table in results.items():
+        if not table:
+            w("        new short[0][],   // " + world)
+            continue
         w("        new[]   // " + world)
         w("        {")
         for name, pts in table:
@@ -397,7 +407,7 @@ def main():
         out_dir = sys.argv[sys.argv.index("--preview") + 1]
         os.makedirs(out_dir, exist_ok=True)
     results = {}
-    for world in ["Space", "Frost", "Verdant", "Ember", "Tide"]:
+    for world in ["Space", "Frost", "Verdant", "Ember", "Tide", "Storm"]:
         frames, table = measure(world)
         results[world] = table
         if out_dir:

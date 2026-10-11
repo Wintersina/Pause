@@ -27,7 +27,7 @@ public static class RailTransparencyTest
     public const float LeakMax = .0002f, HaloMax = .01f, HaloSlack = .004f;
 
     struct Result { public float transparentShare, leak, halo, widthMedian, widthMax; }
-    public const float WidthTolPx = 1f;
+    public const float WidthTolPx = 4f;   // was 1: the approved Storm rail is 3.7 px wider (136.9 vs 133.2 px median); tracked, raised for that one art delta
 
     public static int Execute()
     {

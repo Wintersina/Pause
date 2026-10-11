@@ -1,0 +1,95 @@
+{
+  "key": "storm_elite_refinery_tender",
+  "codexId": "elite_storm_refinery_tender",
+  "world": "storm",
+  "cells": {
+    "flight": [
+      3
+    ],
+    "parked": 0,
+    "parkedIdle": 1,
+    "liftoff": 2,
+    "bankLeft": 4,
+    "bankRight": 5,
+    "tell": -1,
+    "action": -1,
+    "hit": -1,
+    "damaged": 6
+  },
+  "cellWorldSize": 1.6,
+  "noseDeg": 90,
+  "maxBank": 3,
+  "heartColor": "#9CC8FF",
+  "shotColor": "#FFF3A0",
+  "shotCore": "#F2F6FF",
+  "engineColor": "#FFF3A0",
+  "hearts": 2,
+  "heartSize": 0.18,
+  "heartOrbit": 0.85,
+  "heartStyle": "Halo",
+  "exhaustShip": 3,
+  "exhaustScale": 0,
+  "glowScale": 0.09,
+  "cellPixels": 192,
+  "armored": true,
+  "hazardSeconds": 0.4,
+  "hazardSize": 0.6,
+  "displayName": "Refinery Tender",
+  "role": "canister hauler",
+  "brain": "hauler",
+  "attack": "slag_drop",
+  "lore": "A barrel-bellied tender that hauls refinery canisters through the storm decks and lets them sink out of its racks. The canisters fall slowly and hang in the air like hail. It is armored, so go around it, not through it.",
+  "hullRadius": 0.33,
+  "turnsToFace": false,
+  "speed": 1.6,
+  "accel": 3.0,
+  "turnRate": 120,
+  "aggression": 0.5,
+  "tellSeconds": 0.8,
+  "attackGap": 4.0,
+  "avoidance": 0.5,
+  "lookAhead": 0.4,
+  "perception": 2.2,
+  "actionSeconds": 0.9,
+  "shotCount": 4,
+  "shotSpeed": 1.1,
+  "shotSpread": 18,
+  "shotSize": 0.34,
+  "shotInterval": 0.22,
+  "shotKind": "slag",
+  "muzzles": [
+    {
+      "name": "port",
+      "x": 63,
+      "y": 89,
+      "dir": 270.0
+    },
+    {
+      "name": "star",
+      "x": 129,
+      "y": 87,
+      "dir": 270.0
+    },
+    {
+      "name": "canister",
+      "x": 96,
+      "y": 126,
+      "dir": 270.0
+    }
+  ],
+  "nozzles": [
+    {
+      "name": "l",
+      "x": 68,
+      "y": 139,
+      "dir": -1.0
+    },
+    {
+      "name": "r",
+      "x": 122,
+      "y": 138,
+      "dir": -1.0
+    }
+  ],
+  "followDistance": 2.2
+}

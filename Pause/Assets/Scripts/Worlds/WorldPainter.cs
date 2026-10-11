@@ -132,6 +132,7 @@ public static class WorldPainter
             case "Frost": return "rail_frost_wide_v1";
             case "Ember": return "rail_ember_wide_v1";
             case "Tide": return "rail_tide_wide_v1";
+            case "Storm": return "rail_storm_wide_v1";
             case "Space": return "rail_space_wide_v1";
             default: return null;
         }
@@ -163,7 +164,7 @@ public static class WorldPainter
         return 1.25f * (443f / 725f) * RailThickness(world) / (max - min);
     }
 
-    // Per-row median of lit (non-black) art columns: Space/Tide 261, Ember 259, Verdant 338, Frost 356.
+    // Per-row median of lit (non-black) art columns: Space/Tide/Storm 261, Ember 259, Verdant 338, Frost 356.
     // The bounds-based factor left Frost drawing ~4.8% thicker than the rest (ice crust inside its bounds).
     // This trims Frost back to the common visible width (RailTransparencyTest asserts it).
     // Ember's rail is 0.8% narrower than Space/Tide, nudged to match. Verdant, Space and Tide already agree.
@@ -180,6 +181,7 @@ public static class WorldPainter
             case "Verdant": min = 139f / 725f; max = 580f / 725f; break;
             case "Ember": min = 157f / 725f; max = 497f / 725f; break;
             case "Tide": min = 159f / 725f; max = 499f / 725f; break;   // opaque columns >= 10% of the rows (Codex rail, 2026-10-10)
+            case "Storm": min = 159f / 725f; max = 499f / 725f; break;   // Codex rail, opaque columns >= 10% of the rows: Tide's footprint
             default: min = 159f / 725f; max = 499f / 725f; break;
         }
     }
@@ -199,7 +201,7 @@ public static class WorldPainter
         var tex = mat != null ? mat.mainTexture : null;
         if (tex == null) return false;
         string world = null;
-        foreach (string w in new[] { "Space", "Frost", "Verdant", "Ember", "Tide" })
+        foreach (string w in new[] { "Space", "Frost", "Verdant", "Ember", "Tide", "Storm" })
             if (RailTextureName(w) == tex.name) world = w;
         if (world == null) return false;
         RailBounds(world, out float min, out float max);

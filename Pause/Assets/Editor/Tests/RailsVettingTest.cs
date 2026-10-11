@@ -132,7 +132,7 @@ public static class RailsVettingTest
     {
         var texs = new Dictionary<string, Texture2D>();
         var pxs = new Dictionary<string, Color32[]>();
-        foreach (var ap in new[] { RailMineArt.AtlasPath, RailMineArt.TideAtlasPath })
+        foreach (var ap in new[] { RailMineArt.AtlasPath, RailMineArt.TideAtlasPath, RailMineArt.StormAtlasPath })
         {
             var t = new Texture2D(2, 2, TextureFormat.RGBA32, false);
             t.LoadImage(File.ReadAllBytes("Assets/Art/Resources/" + ap + ".png"));

@@ -89,6 +89,13 @@ public static class AttackBudgetTest
         { "roster:tide_fighter_2", new Pin(26, 2000, 884) },   // 1.3 % bot, 44.2 % standing; shown in 2000/2000; Shot x1 volleys 4 cooldown 1.5 tell 0.5
         { "roster:tide_fighter_3", new Pin(0, 2000, 2000) },   // 0.0 % bot, 100.0 % standing; shown in 2000/2000; Shot x1 volleys 3 cooldown 2.0 tell 0.8
         { "roster:tide_fighter_4", new Pin(4, 2000, 162) },   // 0.2 % bot, 8.1 % standing; shown in 2000/2000; Ring x8 volleys 3 cooldown 3.8 tell 1.2
+        { "roster:storm_mine", new Pin(31, 2000, 1189) },   // 1.6 % bot, 59.5 % standing; shown in 2000/2000; Laser x1 volleys 2 cooldown 1.0 tell 1.0
+        { "roster:storm_big", new Pin(30, 2000, 537) },   // 1.5 % bot, 26.9 % standing; shown in 2000/2000; Shot x3 volleys 3 cooldown 3.6 tell 1.0
+        { "roster:storm_fighter_1", new Pin(0, 2000, 0) },   // 0.0 % bot, 0.0 % standing; shown in 2000/2000; Lunge x1 volleys 0 cooldown 2.1 tell 0.45
+        { "roster:storm_fighter_2", new Pin(0, 2000, 2000) },   // 0.0 % bot, 100.0 % standing; shown in 2000/2000; Shot x1 volleys 3 cooldown 2.0 tell 0.55
+        { "roster:storm_fighter_3", new Pin(0, 2000, 2000) },   // 0.0 % bot, 100.0 % standing; shown in 2000/2000; Strike x1 volleys 2 cooldown 2.4 tell 0.9
+        { "roster:storm_fighter_4", new Pin(10, 2000, 200) },   // 0.5 % bot, 10.0 % standing; shown in 2000/2000; Ring x8 volleys 3 cooldown 3.9 tell 1.2
+        { "roster:storm_alien", new Pin(14, 2000, 312) },   // 0.7 % bot, 15.6 % standing; shown in 2000/2000; Shot x1 volleys 2 cooldown 3.6 tell 0.6
         { "elite:ember_elite_ash_wraith", new Pin(1940, 2000, 64) },   // 97.0 % bot, 3.2 % standing; shown in 2000/2000;
         { "elite:ember_elite_brass_vulture", new Pin(1098, 1654, 1098) },   // 66.4 % bot, 66.4 % standing; shown in 1654/2000;
         { "elite:ember_elite_cauterizer", new Pin(0, 2000, 706) },   // 0.0 % bot, 35.3 % standing; shown in 2000/2000;
@@ -110,6 +117,11 @@ public static class AttackBudgetTest
         { "elite:tide_elite_riptide", new Pin(0, 1969, 0) },   // 0.0 % bot, 0.0 % standing; shown in 1969/2000;
         { "elite:tide_elite_thunderfin", new Pin(0, 2000, 2000) },   // 0.0 % bot, 100.0 % standing; shown in 2000/2000;
         { "elite:tide_elite_trawler", new Pin(82, 2000, 2000) },   // 4.1 % bot, 100.0 % standing; shown in 2000/2000;
+        { "elite:storm_elite_anvil_cloud", new Pin(0, 2000, 798) },   // 0.0 % bot, 39.9 % standing; shown in 2000/2000;
+        { "elite:storm_elite_refinery_tender", new Pin(9, 2000, 1403) },   // 0.5 % bot, 70.2 % standing; shown in 2000/2000;
+        { "elite:storm_elite_rod_dancer", new Pin(1521, 2000, 41) },   // 76.1 % bot, 2.1 % standing; shown in 2000/2000;
+        { "elite:storm_elite_skyhook_harrier", new Pin(1582, 1840, 1582) },   // 86.0 % bot, 86.0 % standing; shown in 1840/2000;
+        { "elite:storm_elite_static_bastion", new Pin(140, 2000, 2000) },   // 7.0 % bot, 100.0 % standing; shown in 2000/2000;
         { "boss:Space:chin cannon", new Pin(97, 2000, 55) },   // 4.9 % bot, 2.8 % standing; shown in 2000/2000;
         { "boss:Space:core burst", new Pin(638, 2000, 2000) },   // 31.9 % bot, 100.0 % standing; shown in 2000/2000;
         { "boss:Space:pod lasers", new Pin(113, 2000, 1873) },   // 5.7 % bot, 93.7 % standing; shown in 2000/2000;
@@ -126,6 +138,10 @@ public static class AttackBudgetTest
         { "boss:Tide:port cluster", new Pin(1873, 2000, 1989) },   // 93.7 % bot, 99.5 % standing; shown in 2000/2000;
         { "boss:Tide:beak jet", new Pin(0, 2000, 1202) },   // 0.0 % bot, 60.1 % standing; shown in 2000/2000;
         { "boss:Tide:starboard cluster", new Pin(624, 2000, 1990) },   // 31.2 % bot, 99.5 % standing; shown in 2000/2000;
+        // Tempest Engine (default table; the core fan was retuned to a fair rate, see its Pin)
+        { "boss:Storm:core arc fan", new Pin(91, 2000, 1570) },   // 4.6 % bot, 78.5 % standing; shown in 2000/2000; (the first tuning, 5 bolts / 70 deg / ricochet, was 63 %)
+        { "boss:Storm:crown hail", new Pin(227, 2000, 1877) },   // 11.4 % bot, 93.9 % standing; shown in 2000/2000;
+        { "boss:Storm:coil beams", new Pin(0, 2000, 1155) },   // 0.0 % bot, 57.8 % standing; shown in 2000/2000;
     };
 
     // New attack id -> the old attack id it replaces. Later phases add rows here
@@ -164,6 +180,8 @@ public static class AttackBudgetTest
         { "themed:boss_space_scan_line", "boss:Space:pod lasers" },
         { "themed:boss_tide_thunder_strike", "boss:Tide:starboard cluster" },
         { "themed:boss_tide_surf_wave", "boss:Tide:starboard cluster" },
+        { "themed:boss_storm_crown_strike", "boss:Storm:crown hail" },
+        { "themed:boss_storm_chain_lightning", "boss:Storm:crown hail" },   // held to the crown hail (the coil beams of its slot are 0 % and the core fan 4.6 %; measured 9.2 %)
         { "themed:boss_verdant_vine_lash", "boss:Verdant:spore bloom" },     // slot 2 of the table (joins at phase 1 beside stinger thorns; spore bloom is the pinned attack of that slot)
         { "themed:boss_verdant_trunk_toss", "boss:Verdant:acid cannons" },   // slot 5 (phase 3), against the phase-3 pinned attack
     };

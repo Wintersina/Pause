@@ -20,14 +20,15 @@ using UnityEngine.SceneManagement;
 //           it. The level clock is stopped; PortalPressure escalates the
 //           board for as long as the pilot stays (docs/speed-and-loops.md).
 //           A world with a planetfall (PlanetfallCatalog: Space -> Frost,
-//           Frost -> Verdant, Verdant -> Ember, Ember -> Tide once TideEnabled)
+//           Frost -> Verdant, Verdant -> Ember, Ember -> Tide once TideEnabled,
+//           Tide -> Storm once StormEnabled)
 //           shows its planet instead: the same stage and the same pressure
 //           until the ship touches it, then the descent (Planetfall), which
 //           calls Advance while its clouds hide the view. A world left by
-//           lift-off (LiftoffCatalog: Frost, Verdant, Ember, Tide) climbs to space first (Liftoff):
+//           lift-off (LiftoffCatalog: Frost, Verdant, Ember, Tide, Storm) climbs to space first (Liftoff):
 //           the same stage, no pressure, nothing spawning, until its calm
 //           interlude ends and it opens the gateway (OpenGateway) -- or,
-//           the last live world's (Ember's, or Tide's once TideEnabled; LiftoffDef.AutoLoopNow), starts the loop
+//           the last live world's (Ember's, Tide's once TideEnabled, Storm's once StormEnabled; LiftoffDef.AutoLoopNow), starts the loop
 //           at once with no portal (StartLoop).
 //
 // Through the portal: the next planet -- or, after the final world, back to
@@ -107,6 +108,17 @@ public class WorldManager : MonoBehaviour
             portalColor = new Color(0.49f, 0.95f, 0.75f),   // bioluminescent mint #7CF2C0
             speedRampPerSecond = 0.00385f, enemyRampScale = 1.50f,
         },
+        // World 6, the gas giant. UNDER CONSTRUCTION (see StormEnabled): only its
+        // planetfall / lift-off art and numbers are real. Rails (Tide's), backdrop
+        // (Tide's), roster (Tide's cast), boss (a Tide-art placeholder), explosion and
+        // palette are stand-ins until the add-world phases 5, 11, 12, 13 land
+        // (resourceFolder "Storm" has no rails yet: WorldPainter draws Tide's).
+        new WorldTheme {
+            displayName = "Storm", resourceFolder = "Storm",
+            musicResource = "", progressiveMusic = false,   // plays the scene's own track
+            portalColor = new Color(0.96f, 0.95f, 0.72f),   // storm-white with a pale lightning-yellow edge
+            speedRampPerSecond = 0.00405f, enemyRampScale = 1.65f,
+        },
     };
 
     // ======================================================================
@@ -127,17 +139,33 @@ public class WorldManager : MonoBehaviour
     // ======================================================================
     public static bool TideEnabled { get; set; } = false;
 
+    // ======================================================================
+    //  RELEASE SWITCH for World 6, Storm (the gas giant), on the same pattern.
+    //  false (production today): Storm is not in the chain. Turning it on
+    //  implies Tide on (LastLiveWorld reads Storm first): Ember -> Tide ->
+    //  Storm -> Space (loop + 1), Tide's lift-off opens Storm's planetfall and
+    //  Storm's lift-off starts the loop. Off, the developer picker (F6) and
+    //  the tests can still START a run on Storm; a run that begins there
+    //  treats Storm as the last world (its lift-off loops, like Tide's).
+    //  A property so tests can flip it (and must restore it).
+    // ======================================================================
+    public static bool StormEnabled { get; set; } = false;
+
+    // The flags chain in world order: Storm is reachable only when Tide is ALSO on
+    // (Ember -> Tide -> Storm). StormEnabled alone changes nothing.
+    public static bool StormLive { get { return TideEnabled && StormEnabled; } }
+
     // How many worlds the chain reaches (Worlds.Length with the switch on). The
     // tests that walk "every world" walk this many, so Tide joins them (and
     // the checks that need its real art / roster) the moment the switch flips.
     public static int LiveWorldCount { get { return LastLiveWorld + 1; } }
 
-    // The final world of the chain the player can actually reach: the last
-    // entry of Worlds[] with the release switch on, else the one before it.
+    // The final world of the chain the player can actually reach: Storm with
+    // StormEnabled (which implies Tide), else Tide with TideEnabled, else Ember.
     // Past it the next stop is the loop, not another planet.
     public static int LastLiveWorld
     {
-        get { return TideEnabled ? Worlds.Length - 1 : Worlds.Length - 2; }
+        get { return StormLive ? Worlds.Length - 1 : TideEnabled ? Worlds.Length - 2 : Worlds.Length - 3; }
     }
 
     // The world the live run is on. Once this manager has set it (Start,
@@ -481,7 +509,7 @@ public class WorldManager : MonoBehaviour
     void OpenPortal()
     {
         portalOpen = true;
-        // Leaving a planet that lifts off (LiftoffCatalog: Frost, Verdant, Ember, Tide): the climb
+        // Leaving a planet that lifts off (LiftoffCatalog: Frost, Verdant, Ember, Tide, Storm): the climb
         // to space and a calm interlude first, then Liftoff opens the gateway
         // itself (no pressure until then). Missing art: the gateway now.
         if (Liftoff.Spawn(LiftoffCatalog.For(CurrentIndex, PortalDestination, !HasNext)) != null) return;
@@ -491,7 +519,7 @@ public class WorldManager : MonoBehaviour
     // The way on from the open stage: the next planet's planetfall if it has
     // one, else the portal; either way the pressure starts. The lift-off
     // calls it when its interlude is over: Frost's ends on Verdant's planet
-    // approach, Verdant's on Ember's, Ember's on Tide's (TideEnabled). The last
+    // approach, Verdant's on Ember's, Ember's on Tide's (TideEnabled), Tide's on Storm's (StormEnabled). The last
     // live world's (LastLiveWorld) starts the
     // loop itself (StartLoop) and comes here only if that fails: the loop
     // portal back round (a loop is never a planetfall).

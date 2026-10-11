@@ -3,7 +3,7 @@ using UnityEngine;
 
 // Every enemy the spawner can field, per world, in one table.
 //
-// Each world (WorldManager.Worlds: Space, Frost, Verdant, Ember, Tide) fills the
+// Each world (WorldManager.Worlds: Space, Frost, Verdant, Ember, Tide, Storm) fills the
 // same gameplay roles, so enmiesOnBoard's phases and difficulty hold whatever
 // planet the player is on -- only the cast changes:
 //
@@ -72,7 +72,9 @@ public static class EnemyRoster
     public const int FrameCount = 7;                  // 0-3 idle, 4-5 tell, 6 hit flash
     public const int TellFrame = 4, HitFrame = 6;
 
-    public static readonly string[] WorldKeys = { "space", "frost", "verdant", "ember", "tide" };
+    public static readonly string[] WorldKeys = { "space", "frost", "verdant", "ember", "tide", "storm" };
+
+    public const int StormWorld = 5;
 
     // ---- sizes ---------------------------------------------------------------
     // What each role measured before the redraw (world units), so every
@@ -527,6 +529,58 @@ public static class EnemyRoster
                 "Translucent mint bell in a brass collar trailing glowing tendrils; a living jelly drone.",
                 "Jellies in a brass collar, drifting in lines with their lights on. They pulse as they sink - " +
                 "slip past on the down-beat."), 1.17f),
+            // ================================================================ STORM
+            // The gas giant: slate and graphite plating, storm-white lightning with a pale-yellow edge.
+            // (Iron bursts as Metal: Storm has no explosion row of its own.)
+            Scaled(Def("storm_rock_hail", "Hailstone", R, 5, 1, "hazard_storm_rock_hail", Metal,
+                "Pale cratered ball of frozen hail, pitted all over, a hairline of storm-white light in one crack.",
+                "A hailstone the size of a lifeboat, hurled up out of the cloud deck and never let go. It drifts " +
+                "slow and wide, and the white crack in it brightens when the storm is close."), 1.1f),
+            Def("storm_rock_ore", "Ore Shard", R, 5, 2, "hazard_storm_rock_ore", Metal,
+                "Slanted blade of pale crystal ore, storm-white along its edge.",
+                "A shard of ore the refineries lost in the updraft. It slices across the lane on one slanted " +
+                "line, edge lit, so you can see it coming."),
+            Scaled(Def("storm_rock_slag", "Anvil Chunk", R, 5, 3, "hazard_storm_rock_slag", Metal,
+                "Dark iron chunk veined with storm-white lightning, split plates and a riveted face.",
+                "A lump of slag cooled into the shape of an anvil, as if the sky were forging something. It spins " +
+                "as it sinks and arrives sooner than it looks."), 1.1f),
+            Floating(Def("storm_rock_islet", "Cloud Islet", R, 5, 4, "hazard_storm_rock_islet", Metal,
+                "Floating platform fragment with an antenna mast on top, cloud wrapped round its underside, struts hanging below.",
+                "A scrap of platform that floated off with its antenna and a cloud of its own. It dips and " +
+                "sways, wide and slow, humming faintly.")),
+            Def("storm_mine", "Rod Mine", M, 5, 0, "hazard_storm_mine", Mine,
+                "Neon pixel rail mine: a graphite sphere with four lightning-rod horns on a slate clamp, a storm-white eye that wakes, charges and bursts in arcs.",
+                "A lightning rod with a mind of its own, clamped to the rail. When the eye flares white a line " +
+                "blinks across the lane, then a bolt burns it - twice, at two angles. Be off the line."),
+            Def("storm_big", "Cloud Whale", B, 5, 0, "enemy_storm_big", Metal,
+                "A huge armoured cloud-whale of graphite plates and riveted ribs, its gills cracking open on storm-white light.",
+                "A hulk that swims the cloud tops with its gills banked full of charge. When they crack open it " +
+                "fans arcs across the sky - stand between them."),
+            Scaled(Def("storm_fighter_1", "Stormray Pup", F, 5, 1, "enemy_storm_fighter_1", Metal,
+                "Small slate manta drone with wide wing-flaps, a long spike and a white-lit core.",
+                "A young ray that rides the wind off bigger ones. It drifts alongside, then flaps hard and darts " +
+                "straight at you - and never steers."), 1.15f),
+            Def("storm_fighter_2", "Stormray", F, 5, 2, "enemy_storm_fighter_2", Metal,
+                "Graphite manta gunship with swept hooked wings, a long tail spine and a cold-white arc coil in its nose.",
+                "The grown ray keeps pace above you and spits an arc of charge at your lane. Slide off it " +
+                "before the coil clears."),
+            Def("storm_fighter_3", "Thunderhead", F, 5, 3, "enemy_storm_fighter_3", Metal,
+                "Boxy armoured gunship with a ring of cannon muzzles on its dome and side pods, a white core that flares when it charges.",
+                "It hangs under a ring of cannons. When the flare builds it has picked its lanes - move " +
+                "before the sky comes down."),
+            Def("storm_fighter_4", "Tempest Anvil", F, 5, 4, "enemy_storm_fighter_4", Metal,
+                "Wide plated heavy with two pale coil towers on its shoulders and a white-hot core on its belly.",
+                "The sky fleet's heavy: a slab of plate with two coil towers. It parks and rings itself in " +
+                "chain lightning - the gaps open with distance."),
+            Scaled(Def("storm_chaser", "Cyclone Drone", C, 5, 0, "enemy_storm_chaser", Metal,
+                "Four-bladed rotor drone: curved scythe blades round a graphite core and a storm-white eye.",
+                "It climbs out of the clouds in a corkscrew, blades screaming, and keeps circling the line " +
+                "to you. Slide sideways and let it overshoot."), 1.15f),
+            // (the mote's cage and arcs draw 0.43 u of its cell: shown 45% larger, 0.62 u, inside the Alien role's 0.64 +/-15%)
+            Scaled(Def("storm_alien", "Static Mote", A, 5, 0, "enemy_storm_alien", Metal,
+                "A ball of storm-white lightning caged in a graphite lattice with spired caps.",
+                "Static caged in a lattice, drifting in lines with its charge on show. It pulses as it sinks - " +
+                "slip past on the down-beat, and mind the spark it spits."), 1.45f),
         };
     }
 }

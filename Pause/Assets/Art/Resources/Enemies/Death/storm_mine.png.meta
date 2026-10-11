@@ -1,0 +1,1079 @@
+fileFormatVersion: 2
+guid: b56e468100f9d477c900954b2c8ef7c1
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 5528930728341910882
+    second: storm_mine_0
+  - first:
+      213: -6253965619575278889
+    second: storm_mine_1
+  - first:
+      213: -7001434881645381423
+    second: storm_mine_2
+  - first:
+      213: -2282404452252246836
+    second: storm_mine_3
+  - first:
+      213: 3088211025693212737
+    second: storm_mine_4
+  - first:
+      213: -5399797923639238329
+    second: storm_mine_5
+  - first:
+      213: -2698325938478192128
+    second: storm_mine_6
+  - first:
+      213: 8817970282999940331
+    second: storm_mine_7
+  - first:
+      213: 779471076439605332
+    second: storm_mine_8
+  - first:
+      213: 4106167208843360160
+    second: storm_mine_9
+  - first:
+      213: -7389648163933802593
+    second: storm_mine_10
+  - first:
+      213: 1514930747254123454
+    second: storm_mine_11
+  - first:
+      213: 1377593396539921954
+    second: storm_mine_12
+  - first:
+      213: -2439570611355260348
+    second: storm_mine_13
+  - first:
+      213: 1625471125403532218
+    second: storm_mine_14
+  - first:
+      213: 2302726531638375383
+    second: storm_mine_15
+  - first:
+      213: 1421572654875119519
+    second: storm_mine_16
+  - first:
+      213: -3128322770049092040
+    second: storm_mine_17
+  - first:
+      213: 4388052699847433683
+    second: storm_mine_18
+  - first:
+      213: -1493916637398560007
+    second: storm_mine_19
+  - first:
+      213: -5547573894613515137
+    second: storm_mine_20
+  - first:
+      213: 2736821706154564212
+    second: storm_mine_21
+  - first:
+      213: 1104523912385701270
+    second: storm_mine_22
+  - first:
+      213: -8122542918106982025
+    second: storm_mine_23
+  - first:
+      213: -7803818528786623362
+    second: storm_mine_24
+  - first:
+      213: -4227882505309890392
+    second: storm_mine_25
+  - first:
+      213: 7911645081568036649
+    second: storm_mine_26
+  - first:
+      213: 3333905309644139389
+    second: storm_mine_27
+  - first:
+      213: 1454979535192134769
+    second: storm_mine_28
+  - first:
+      213: 1531038049032938970
+    second: storm_mine_29
+  - first:
+      213: 8434548388297691345
+    second: storm_mine_30
+  - first:
+      213: -622445595151977167
+    second: storm_mine_31
+  - first:
+      213: -8294785266386224424
+    second: storm_mine_32
+  - first:
+      213: -4800111287724397343
+    second: storm_mine_33
+  - first:
+      213: 6982086760825233409
+    second: storm_mine_34
+  - first:
+      213: 2632234372652960715
+    second: storm_mine_35
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: 50
+    textureCompression: 1
+    compressionQuality: 100
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 1
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: iOS
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: 50
+    textureCompression: 1
+    compressionQuality: 100
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 1
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: storm_mine_0
+      rect:
+        serializedVersion: 2
+        x: 7
+        y: 8
+        width: 144
+        height: 165
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 265bf823435babc40800000000000000
+      internalID: 5528930728341910882
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: storm_mine_1
+      rect:
+        serializedVersion: 2
+        x: 206
+        y: 10
+        width: 149
+        height: 173
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7d2b5b767637539a0800000000000000
+      internalID: -6253965619575278889
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: storm_mine_2
+      rect:
+        serializedVersion: 2
+        x: 435
+        y: 106
+        width: 59
+        height: 60
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1d87f710218e5de90800000000000000
+      internalID: -7001434881645381423
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: storm_mine_3
+      rect:
+        serializedVersion: 2
+        x: 499
+        y: 139
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ccc1cbd4e354350e0800000000000000
+      internalID: -2282404452252246836
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: storm_mine_4
+      rect:
+        serializedVersion: 2
+        x: 348
+        y: 111
+        width: 11
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 14083e9d0978bda20800000000000000
+      internalID: 3088211025693212737
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: storm_mine_5
+      rect:
+        serializedVersion: 2
+        x: 490
+        y: 118
+        width: 15
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7416796d5601015b0800000000000000
+      internalID: -5399797923639238329
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: storm_mine_6
+      rect:
+        serializedVersion: 2
+        x: 514
+        y: 120
+        width: 11
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 00ae8c4fade9d8ad0800000000000000
+      internalID: -2698325938478192128
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: storm_mine_7
+      rect:
+        serializedVersion: 2
+        x: 351
+        y: 104
+        width: 7
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: be48926b049bf5a70800000000000000
+      internalID: 8817970282999940331
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: storm_mine_8
+      rect:
+        serializedVersion: 2
+        x: 448
+        y: 95
+        width: 21
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 450cfdf60dc31da00800000000000000
+      internalID: 779471076439605332
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: storm_mine_9
+      rect:
+        serializedVersion: 2
+        x: 494
+        y: 62
+        width: 32
+        height: 49
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0a7377f22590cf830800000000000000
+      internalID: 4106167208843360160
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: storm_mine_10
+      rect:
+        serializedVersion: 2
+        x: 498
+        y: 108
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f9fab9d9522b27990800000000000000
+      internalID: -7389648163933802593
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: storm_mine_11
+      rect:
+        serializedVersion: 2
+        x: 533
+        y: 111
+        width: 7
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ebb2669fc7d160510800000000000000
+      internalID: 1514930747254123454
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: storm_mine_12
+      rect:
+        serializedVersion: 2
+        x: 356
+        y: 94
+        width: 14
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2269fa535e13e1310800000000000000
+      internalID: 1377593396539921954
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: storm_mine_13
+      rect:
+        serializedVersion: 2
+        x: 422
+        y: 70
+        width: 15
+        height: 27
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 44aefa15477e42ed0800000000000000
+      internalID: -2439570611355260348
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: storm_mine_14
+      rect:
+        serializedVersion: 2
+        x: 451
+        y: 92
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: abbf45e5065de8610800000000000000
+      internalID: 1625471125403532218
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: storm_mine_15
+      rect:
+        serializedVersion: 2
+        x: 527
+        y: 75
+        width: 12
+        height: 29
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7d33c25849de4ff10800000000000000
+      internalID: 2302726531638375383
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: storm_mine_16
+      rect:
+        serializedVersion: 2
+        x: 351
+        y: 69
+        width: 10
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f9f8d3c3cc07ab310800000000000000
+      internalID: 1421572654875119519
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: storm_mine_17
+      rect:
+        serializedVersion: 2
+        x: 358
+        y: 79
+        width: 10
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8363574e307f594d0800000000000000
+      internalID: -3128322770049092040
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: storm_mine_18
+      rect:
+        serializedVersion: 2
+        x: 439
+        y: 59
+        width: 34
+        height: 33
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3dd991e7eae75ec30800000000000000
+      internalID: 4388052699847433683
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: storm_mine_19
+      rect:
+        serializedVersion: 2
+        x: 523
+        y: 71
+        width: 6
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9f210dfbbba844be0800000000000000
+      internalID: -1493916637398560007
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: storm_mine_20
+      rect:
+        serializedVersion: 2
+        x: 341
+        y: 48
+        width: 26
+        height: 24
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f74c4566fee0303b0800000000000000
+      internalID: -5547573894613515137
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: storm_mine_21
+      rect:
+        serializedVersion: 2
+        x: 470
+        y: 62
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 47adbe867d42bf520800000000000000
+      internalID: 2736821706154564212
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: storm_mine_22
+      rect:
+        serializedVersion: 2
+        x: 532
+        y: 68
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 695aca375ae045f00800000000000000
+      internalID: 1104523912385701270
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: storm_mine_23
+      rect:
+        serializedVersion: 2
+        x: 438
+        y: 55
+        width: 6
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7795e55404ee64f80800000000000000
+      internalID: -8122542918106982025
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: storm_mine_24
+      rect:
+        serializedVersion: 2
+        x: 447
+        y: 42
+        width: 17
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e74df0cf46443b390800000000000000
+      internalID: -7803818528786623362
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: storm_mine_25
+      rect:
+        serializedVersion: 2
+        x: 463
+        y: 55
+        width: 8
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8a85aeef24b8355c0800000000000000
+      internalID: -4227882505309890392
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: storm_mine_26
+      rect:
+        serializedVersion: 2
+        x: 475
+        y: 48
+        width: 9
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 92744d3b84fcbcd60800000000000000
+      internalID: 7911645081568036649
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: storm_mine_27
+      rect:
+        serializedVersion: 2
+        x: 505
+        y: 49
+        width: 16
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d7ba0202739644e20800000000000000
+      internalID: 3333905309644139389
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: storm_mine_28
+      rect:
+        serializedVersion: 2
+        x: 525
+        y: 56
+        width: 8
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 174179ead20213410800000000000000
+      internalID: 1454979535192134769
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: storm_mine_29
+      rect:
+        serializedVersion: 2
+        x: 350
+        y: 43
+        width: 6
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ad5273a6ef65f3510800000000000000
+      internalID: 1531038049032938970
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: storm_mine_30
+      rect:
+        serializedVersion: 2
+        x: 465
+        y: 45
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1d0d35d22198d0570800000000000000
+      internalID: 8434548388297691345
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: storm_mine_31
+      rect:
+        serializedVersion: 2
+        x: 485
+        y: 39
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 135b5f07701ac57f0800000000000000
+      internalID: -622445595151977167
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: storm_mine_32
+      rect:
+        serializedVersion: 2
+        x: 495
+        y: 26
+        width: 15
+        height: 29
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8dab7e47fb003ec80800000000000000
+      internalID: -8294785266386224424
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: storm_mine_33
+      rect:
+        serializedVersion: 2
+        x: 524
+        y: 43
+        width: 6
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1ec28d44734926db0800000000000000
+      internalID: -4800111287724397343
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: storm_mine_34
+      rect:
+        serializedVersion: 2
+        x: 477
+        y: 27
+        width: 6
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 10022f19aea55e060800000000000000
+      internalID: 6982086760825233409
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: storm_mine_35
+      rect:
+        serializedVersion: 2
+        x: 300
+        y: 8
+        width: 11
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bcb8d8b3733978420800000000000000
+      internalID: 2632234372652960715
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      storm_mine_0: 5528930728341910882
+      storm_mine_1: -6253965619575278889
+      storm_mine_10: -7389648163933802593
+      storm_mine_11: 1514930747254123454
+      storm_mine_12: 1377593396539921954
+      storm_mine_13: -2439570611355260348
+      storm_mine_14: 1625471125403532218
+      storm_mine_15: 2302726531638375383
+      storm_mine_16: 1421572654875119519
+      storm_mine_17: -3128322770049092040
+      storm_mine_18: 4388052699847433683
+      storm_mine_19: -1493916637398560007
+      storm_mine_2: -7001434881645381423
+      storm_mine_20: -5547573894613515137
+      storm_mine_21: 2736821706154564212
+      storm_mine_22: 1104523912385701270
+      storm_mine_23: -8122542918106982025
+      storm_mine_24: -7803818528786623362
+      storm_mine_25: -4227882505309890392
+      storm_mine_26: 7911645081568036649
+      storm_mine_27: 3333905309644139389
+      storm_mine_28: 1454979535192134769
+      storm_mine_29: 1531038049032938970
+      storm_mine_3: -2282404452252246836
+      storm_mine_30: 8434548388297691345
+      storm_mine_31: -622445595151977167
+      storm_mine_32: -8294785266386224424
+      storm_mine_33: -4800111287724397343
+      storm_mine_34: 6982086760825233409
+      storm_mine_35: 2632234372652960715
+      storm_mine_4: 3088211025693212737
+      storm_mine_5: -5399797923639238329
+      storm_mine_6: -2698325938478192128
+      storm_mine_7: 8817970282999940331
+      storm_mine_8: 779471076439605332
+      storm_mine_9: 4106167208843360160
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

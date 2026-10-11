@@ -107,7 +107,7 @@ public static class CodexCatalogue
     public static string Seconds(float s) { return s.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture) + " s"; }
 
     // World ids, index-aligned with WorldManager.Worlds.
-    public static readonly string[] WorldIds = { "world_space", "world_frost", "world_verdant", "world_ember", "world_tide" };
+    public static readonly string[] WorldIds = { "world_space", "world_frost", "world_verdant", "world_ember", "world_tide", "world_storm" };
 
     static CodexEntry[] all;
 
@@ -194,6 +194,10 @@ public static class CodexCatalogue
             new CodexEntry(WorldIds[4], "Tide", CodexCategory.Worlds, () => Backdrop("Tide"),
                 "A drowned world of rusted rigs, barnacled walkways and sunken cities still glowing under the " +
                 "waves. The skies have teeth and the lights are alive. Faster again - and wetter.",
+                null, round: true),
+            new CodexEntry(WorldIds[5], "Storm", CodexCategory.Worlds, () => Backdrop("Storm"),
+                "A gas giant with no ground at all: thunderheads the size of continents, cyclone eyes and the " +
+                "little refinery platforms that float between them. Everything out here is charged.",
                 null, round: true),
         };
 
@@ -317,6 +321,8 @@ public static class CodexCatalogue
             case "Furnace": return "its chest furnace";
             case "Brow": return "the gem on its brow";
             case "Beak": return "its beak";
+            case "Rods": return "its lightning-rod crown";
+            case "Coil": return "its twin coil towers";
             case "LeftA": case "LeftB": return "its port cannon arms";
             case "RightA": case "RightB": return "its starboard cannon arms";
             default: return null;

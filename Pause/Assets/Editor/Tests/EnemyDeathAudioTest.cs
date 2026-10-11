@@ -77,6 +77,7 @@ public static class EnemyDeathAudioTest
             {
                 var l = new System.Collections.Generic.List<string>(SpaceKeys);
                 l.AddRange(VerdantKeys); l.AddRange(EmberKeys); l.AddRange(FrostKeys);
+                foreach (var r in EnemyDeathAudio.DeathAlias) if (r[0].StartsWith("storm_")) l.Add(r[0]);   // Storm's aliased keys (the allocation test warms them too)
                 allKeys = l.ToArray();
             }
             return allKeys;
@@ -152,6 +153,7 @@ public static class EnemyDeathAudioTest
         foreach (var d in EnemyRoster.All)
         {
             // Tide reuses other worlds' clips through EnemyDeathAudio.DeathAlias (TideSoundTest checks them)
+            if (d.key.StartsWith("storm_")) continue;                // (Storm: aliased clips, StormSoundTest)
             if (d.key.StartsWith("tide_")) { tideRoster++; if (EnemyDeathAudio.Variants(d.key) < 3) tideSilent++; continue; }
             enemies++;
             if (EnemyDeathAudio.Variants(d.key) < 3) missing.Add(d.key);
@@ -159,7 +161,7 @@ public static class EnemyDeathAudioTest
         int pendingElites = 0;
         foreach (var e in EliteCatalog.All)
         {
-            if (e.WorldIndex == 4) continue;                      // (Tide's: aliased clips, TideSoundTest)
+            if (e.WorldIndex == 4 || e.key.StartsWith("storm_")) continue;   // (Tide's / Storm's: aliased clips, TideSoundTest / StormSoundTest)
             if (Pending(e.key)) { pendingElites++; continue; }   // (death cues still to be authored: silent, see below)
             elites++;
             if (EnemyDeathAudio.Variants(e.key) < 3) missing.Add(e.key);
@@ -172,7 +174,7 @@ public static class EnemyDeathAudioTest
         // the tutorial's enemy is a roster alien; the rail mines are roster mines
         Check("tutorial enemy key '" + TutorialEnemy.DefKey + "' is authored", EnemyDeathAudio.Variants(TutorialEnemy.DefKey) == 3);
         foreach (var d in EnemyRoster.All)
-            if (d.role == EnemyRole.Mine && !d.key.StartsWith("tide_")) Check("rail mine " + d.key + " is authored", EnemyDeathAudio.Variants(d.key) == 3);
+            if (d.role == EnemyRole.Mine && !d.key.StartsWith("tide_") && !d.key.StartsWith("storm_")) Check("rail mine " + d.key + " is authored", EnemyDeathAudio.Variants(d.key) == 3);
         // no synthesized fallback: an unknown key resolves nothing and plays nothing
         EnemyDeathAudio.ResetVoices();
         clock += 2.0;
@@ -180,7 +182,7 @@ public static class EnemyDeathAudioTest
         // the key the game passes for each roster body (EnemyIdentity.Set -> def.key) and for each elite (def.key)
         foreach (var e in EliteCatalog.All)
         {
-            if (Pending(e.key) || e.WorldIndex == 4) continue;
+            if (Pending(e.key) || e.WorldIndex == 4 || e.key.StartsWith("storm_")) continue;
             EnemyDeathAudio.ResetVoices();
             clock += 2.0;
             Check("elite " + e.key + " PlayElite plays an authored clip", EnemyDeathAudio.PlayElite(e.key) && EnemyDeathAudio.LastKey == e.key);
@@ -351,6 +353,7 @@ public static class EnemyDeathAudioTest
         foreach (var kv in EnemyDeathAudio.ScreamBorrow)
         {
             string key = kv.Key, donor = kv.Value.donor;
+            if (key.StartsWith("storm_")) continue;   // (Storm borrowers: StormSoundTest)
             Check("borrow " + key + " <- " + donor + ": donor owns screams (" + EnemyDeathAudio.ScreamVariants(donor) + ")", EnemyDeathAudio.ScreamVariants(donor) > 0);
             Check("borrow " + key + ": not from itself", key != donor);
             Check("borrow " + key + ": donor is not itself a borrower", !EnemyDeathAudio.ScreamBorrow.ContainsKey(donor));

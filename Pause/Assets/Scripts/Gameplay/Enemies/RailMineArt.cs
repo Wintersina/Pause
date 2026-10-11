@@ -12,7 +12,11 @@ using UnityEngine;
 // byte-identical: RailMineArtTest pins its SHA-1): Tide's Limpet Mine is the
 // one row of Resources/Enemies/Mines/rail_mines_neon_tide.png (1254x314,
 // same four columns, same 384 PPU, same clamp geometry). AtlasPathFor(world)
-// routes; PixelRect / PixelPivot are in the world's own atlas.
+// routes; PixelRect / PixelPivot are in the world's own atlas. Storm's Rod Mine
+// is the third file, rail_mines_neon_storm.png (1254x314, one row, Tide's
+// frame rects; its own pivots: the clamp sits 65 px into every panel and its
+// centre line at y 165, so each pivot is placed 128 px right of the clamp's
+// solid left edge, as Tide's are).
 //
 // The drawings don't sit on the even 313.5 px grid the old slicer cut (the
 // rows drift up and the columns left, so Verdant's and Ember's top lugs were
@@ -38,7 +42,8 @@ public static class RailMineArt
     public const string VerdantLitAtlasPath = "Enemies/Mines/rail_mines_neon_verdant_lit";
     public const int VerdantWorld = 2, VerdantLitAtlasHeight = 298, VerdantRowY = 594;
     public const int OriginalWorlds = 4;   // the rows of the original atlas
-    public const int Worlds = 5;           // Space, Frost, Verdant, Ember (original atlas), Tide (second atlas)
+    public const string StormAtlasPath = "Enemies/Mines/rail_mines_neon_storm";
+    public const int Worlds = 6;           // Space, Frost, Verdant, Ember (original atlas), Tide (second atlas), Storm (third atlas)
     public const int TideAtlasHeight = 314;
     public const int Dormant = 0, Waking = 1, Charging = 2, Burst = 3;
     public const int Columns = 4;
@@ -73,6 +78,8 @@ public static class RailMineArt
         new RectInt(0, 892, 309, 362), new RectInt(309, 892, 294, 362), new RectInt(603, 892, 319, 362), new RectInt(922, 892, 332, 362),
         // Tide (the second atlas, one row: y from its own top). Cut along the empty gaps between the panels.
         new RectInt(0, 0, 330, 314), new RectInt(330, 0, 308, 314), new RectInt(638, 0, 309, 314), new RectInt(947, 0, 307, 314),
+        // Storm (the third atlas, one row, the same cuts as Tide's)
+        new RectInt(0, 0, 330, 314), new RectInt(330, 0, 308, 314), new RectInt(638, 0, 309, 314), new RectInt(947, 0, 307, 314),
     };
 
     // Each frame's pivot in image pixels (top-left origin): where the rail is.
@@ -84,6 +91,8 @@ public static class RailMineArt
         new Vector2(175f, 1042.5f), new Vector2(476f, 1049.5f), new Vector2(770f, 1046.5f), new Vector2(1074f, 1056.5f),
         // Tide: the clamp's solid left edge sits 128 px left of the pivot in every frame (the others 124-134)
         new Vector2(186f, 161f), new Vector2(490f, 161f), new Vector2(788f, 161f), new Vector2(1093f, 161f),
+        // Storm: the clamp's solid left edge sits 65 px into every panel, 128 px left of the pivot (Tide's rule); centre line y 165
+        new Vector2(193f, 165f), new Vector2(523f, 165f), new Vector2(831f, 165f), new Vector2(1140f, 165f),
     };
 
     // The core: where the mine's laser leaves it (RailMineLaser.MuzzleOf).
@@ -98,6 +107,7 @@ public static class RailMineArt
         new Vector2(39.4f, 1f),      // Verdant
         new Vector2(38.1f, -2.2f),   // Ember
         new Vector2(27.5f, .7f),     // Tide (same method; the brightest pixels sit on the eye's glare)
+        new Vector2(14.5f, 1.2f),    // Storm: the white coil's centroid in the waking / charging frames (12.8, .4) and (16.2, 2.1)
     };
 
     // The core's offset from the mine's centre in world units (unscaled,
@@ -111,7 +121,7 @@ public static class RailMineArt
     // detonation, RailBombAnimator.Burst) is the burst.
     public static readonly int[] FlipbookColumns = { Dormant, Waking, Dormant, Dormant, Waking, Charging, Burst };
 
-    static Texture2D atlas, tideAtlas, litAtlas;
+    static Texture2D atlas, tideAtlas, stormAtlas, litAtlas;
     static Sprite[] sprites;   // [world * Columns + column]
     static readonly Sprite[] litSprites = new Sprite[Columns];
 
@@ -150,10 +160,18 @@ public static class RailMineArt
     }
 
     // The atlas file a world's mine is drawn from.
-    public static string AtlasPathFor(int world) => world >= OriginalWorlds ? TideAtlasPath : AtlasPath;
+    public static string AtlasPathFor(int world) =>
+        world < OriginalWorlds ? AtlasPath : world == StormWorld ? StormAtlasPath : TideAtlasPath;
+    public const int StormWorld = 5;
+
     public static Texture2D AtlasFor(int world)
     {
         if (world < OriginalWorlds) return Atlas;
+        if (world == StormWorld)
+        {
+            if (stormAtlas == null) stormAtlas = Resources.Load<Texture2D>(StormAtlasPath);
+            return stormAtlas;
+        }
         if (tideAtlas == null) tideAtlas = Resources.Load<Texture2D>(TideAtlasPath);
         return tideAtlas;
     }

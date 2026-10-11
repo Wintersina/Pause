@@ -5,8 +5,8 @@
 
 Output: Art/Resources/BossAttackFx/boss_attack_fx.png, imported
 point-filtered and uncompressed by Editor/Importers/BossAttackFxImporter.cs and sliced
-at runtime by BossAttackFx (6 x 4 cells of 48 px; one row per boss, in
-BossCatalog order Space, Frost, Verdant, Ember, Tide, Tide):
+at runtime by BossAttackFx (6 x 6 cells of 48 px; one row per boss, in
+BossCatalog order Space, Frost, Verdant, Ember, Tide, Storm):
 
   col 0..2  rail spark: the ping a ricochet or an absorbed shot makes on a
             side rail -- a hot point, then a four-way splash, then embers
@@ -41,6 +41,7 @@ PALETTES = [
     ((0xF6, 0xFF, 0xDC), (0xC8, 0xFF, 0x3C), (0x3C, 0x78, 0x10)),   # Verdant: bile
     ((0xFF, 0xF4, 0xC8), (0xFF, 0x8C, 0x28), (0x96, 0x22, 0x6E)),   # Ember: magma (orange, plum rim)
     ((0xEE, 0xFF, 0xF8), (0x73, 0xFF, 0xD1), (0x1A, 0x6A, 0x7A)),   # Tide: mint (blue-violet-free teal rim)
+    ((0xF2, 0xF6, 0xFF), (0xFF, 0xF3, 0xA0), (0x4A, 0x55, 0x6E)),   # Storm: storm-white, pale-yellow edge, slate rim
 ]
 
 BAYER4 = [[0, 8, 2, 10], [12, 4, 14, 6], [3, 11, 1, 9], [15, 7, 13, 5]]

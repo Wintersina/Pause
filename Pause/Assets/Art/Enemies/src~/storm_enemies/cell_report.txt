@@ -1,0 +1,14 @@
+storm_alien.png  1344x192  cell 192  -> ok (severity 0)
+storm_big.png  1792x256  cell 256  -> ok (severity 0)
+storm_chaser.png  1344x192  cell 192  -> ok (severity 0)
+storm_fighter_1.png  1344x192  cell 192  -> ok (severity 0)
+storm_fighter_2.png  1344x192  cell 192  -> ok (severity 0)
+storm_fighter_3.png  1344x192  cell 192  -> ok (severity 0)
+storm_fighter_4.png  1344x192  cell 192  -> ok (severity 0)
+storm_rock_hail.png  1344x192  cell 192  -> ok (severity 0)
+storm_rock_islet.png  1344x192  cell 192  -> ok (severity 0)
+storm_rock_ore.png  1344x192  cell 192  -> ok (severity 0)
+storm_rock_slag.png  1344x192  cell 192  -> ok (severity 0)
+
+ranked by severity:
+  11 of 11 strips clean
