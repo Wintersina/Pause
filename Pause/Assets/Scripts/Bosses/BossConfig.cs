@@ -54,19 +54,24 @@ public static class BossConfig
     // ---- fight ----
     // moveBackGround.speed for the whole fight: the HUD shows round(x*100) = 20.
     public static float FightSpeed = 0.20f;
-    public static float FightSeconds = 36f;
+    // How long a boss stays before it escapes: 2 minutes, for every boss in
+    // every world (one rule, one number).
+    public const float EscapeSeconds = 120f;
+    public static float FightSeconds = EscapeSeconds;
     public static float FirstAttackDelay = 1.2f;
     // Phase 3 (the last third) shortens every pattern's cooldown by this.
     public static float FinalPhaseCooldownScale = 0.75f;
 
     // Full-weight ship-attack hits needed to destroy the boss before the
     // fight clock runs out (weighted hits add up).
-    public static int HitPoints = 3;
+    // (3 became 5 with the four extra hearts: 5 hearts / 3 hits grew to
+    // 9 hearts / 5 hits, each heart ~0.56 of a hit instead of 0.6.)
+    public static int HitPoints = 5;
 
     // ---- hearts (BossHearts) ----
     // The boss wears its health as Hearts hearts spinning round it. They
     // split the same HitPoints pool into equal segments: each heart is
-    // HeartWeight full hits (3 / 5 = 0.6), and goes the moment its segment
+    // HeartWeight full hits (HitPoints / Hearts = 5 / 9), and goes the moment its segment
     // is spent -- so the fight is exactly as long and as hard as before,
     // the last heart going with the last hit point. (A full-weight hit
     // takes one heart, sometimes two: 5 -> 4 -> 2 -> 0 under three of them.)
@@ -74,7 +79,9 @@ public static class BossConfig
     // progress is the further on of the two (BossEncounter.PhaseProgress01),
     // so 5-4 hearts is phase 1, 3-2 phase 2 and the last heart phase 3, at
     // the same thirds as the clock's.
-    public static int Hearts = 5;
+    public const int BaseHearts = 5;
+    public const int ExtraHearts = 4;   // added to every boss on the user's ask
+    public static int Hearts = BaseHearts + ExtraHearts;
     public static float HeartWeight => HitPoints / (float)Mathf.Max(1, Hearts);
     // Each heart's world size: the player's (ShipLivesIndicator, 0.22) x 1.3.
     public static float HeartSize = .29f;

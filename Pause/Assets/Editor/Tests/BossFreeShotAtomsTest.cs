@@ -34,8 +34,9 @@ public static class BossFreeShotAtomsTest
         {
             RollIsRandomSpacedAndInsideTheWindow();
             ShortWindowsFitFewer();
-            for (int w = 0; w < WorldManager.LiveWorldCount; w++) EveryWorldGetsExactlyThree(w);
+            for (int w = 0; w < WorldManager.LiveWorldCount; w++) EveryWorldGetsExactlyCount(w);
             LoopFightGetsThreeAgain();
+            for (int w = 0; w < WorldManager.LiveWorldCount; w++) EveryFightHasTheSupply(w);
             EarlyKillLeavesNoStray();
             DeterministicPerSeed();
             NoAllocations();
@@ -227,11 +228,30 @@ public static class BossFreeShotAtomsTest
         Check("a window that fits two spaced atoms gets two", n == 2);
     }
 
-    static void EveryWorldGetsExactlyThree(int w)
+    static void EveryWorldGetsExactlyCount(int w)
     {
         var r = NewRig(100 + w);
         var res = Fight(r, w);
         CheckFight("world " + w, res);
+        Cleanup();
+    }
+
+    // The user's rule: a full 120 s fight offers >= 7 free shots (spread, first early)
+    // plus at least 3 other kinds of atom, and none of it costs the boss a heart.
+    static void EveryFightHasTheSupply(int w)
+    {
+        var r = NewRig(300 + w);
+        System.Array.Clear(spawnGoodStuff.BossAtomsReleased, 0, 4);
+        var res = Fight(r, w);
+        var rel = spawnGoodStuff.BossAtomsReleased;
+        int kinds = 0;
+        for (int k = 1; k < rel.Length; k++) if (rel[k] > 0) kinds++;
+        Check("world " + w + ": >= 7 free shots offered in the fight (" + rel[0] + ")", rel[0] >= 7 && res.times.Count >= 7);
+        Check("world " + w + ": " + kinds + " other atom kinds (shield " + rel[1] + ", capacitor " + rel[2] + ", heal " + rel[3] + ")", kinds >= 3);
+        Check("world " + w + ": the first free shot is early (" + (res.times.Count > 0 ? res.times[0].ToString("F1") : "-") + " s) and the last in the final third (not bunched)",
+              res.times.Count >= 7 && res.times[0] < 18f && res.times[res.times.Count - 1] > BossConfig.FightSeconds * .6f);
+        Check("world " + w + ": free shots cost the boss nothing -- untouched, it escapes with every heart",
+              !res.destroyed && BossEncounter.Instance != null ? BossEncounter.Instance.HeartsLeft == BossConfig.Hearts : true);
         Cleanup();
     }
 
