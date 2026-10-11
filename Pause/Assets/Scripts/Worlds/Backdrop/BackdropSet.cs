@@ -183,7 +183,7 @@ public class BackdropSet
             case "Ember": return new EmberDirector();
             case "Tide": return new TideDirector();
             case "Storm": return new TideDirector();   // stand-in until Storm's own director (add-world phase 11)
-            case "Desert": return new TideDirector();  // stand-in until Desert's own director (add-world phase 11)
+            case "Desert": return new DesertDirector();
             default: return new SpaceDirector();
         }
     }

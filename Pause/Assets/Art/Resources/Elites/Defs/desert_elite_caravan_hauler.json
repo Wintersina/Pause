@@ -2,6 +2,7 @@
   "key": "desert_elite_caravan_hauler",
   "codexId": "elite_desert_caravan_hauler",
   "world": "desert",
+  "launchFrom": "caravanbay",
   "cells": {
     "flight": [
       3

@@ -2,6 +2,7 @@
   "key": "desert_elite_glass_cannon",
   "codexId": "elite_desert_glass_cannon",
   "world": "desert",
+  "launchFrom": "buriedsilo",
   "cells": {
     "flight": [
       3

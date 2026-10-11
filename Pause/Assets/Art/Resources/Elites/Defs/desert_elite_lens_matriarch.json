@@ -2,6 +2,7 @@
   "key": "desert_elite_lens_matriarch",
   "codexId": "elite_desert_lens_matriarch",
   "world": "desert",
+  "launchFrom": "glasspad",
   "cells": {
     "flight": [
       3

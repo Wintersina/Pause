@@ -1,5 +1,6 @@
 {
   "world": "desert",
+  "launchFrom": "ruindock",
   "heartColor": "#FFF6DC",
   "shotColor": "#F4E3B0",
   "shotCore": "#FFF6DC",

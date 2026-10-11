@@ -15,7 +15,7 @@ using UnityEngine;
 //   Desert ON (implies Storm, Tide)  ... -> Storm -> Desert -> (lift-off) Space, loop + 1
 //   Tide / Storm start       Tide -> (lift-off) -> the loop PORTAL back to Tide (the interlude shows Space, the loop leads elsewhere)
 //
-// (Desert still flies Tide's backdrop and Storm's rails; its roster is its own.)
+// (Desert flies its own backdrop and Storm's rails; its roster is its own. Storm still flies Tide's backdrop.)
 //
 // Every arrival must be clean: the level stage, no transition in progress, no
 // portal or pressure left, the arrival speed of the loop, the world's own

@@ -2,6 +2,7 @@
   "key": "desert_elite_mirror_bastion",
   "codexId": "elite_desert_mirror_bastion",
   "world": "desert",
+  "launchFrom": "ruindock",
   "cells": {
     "flight": [
       3

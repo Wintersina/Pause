@@ -269,11 +269,11 @@ public static class WorldLogicTest
         float hue, sat, val; Color.RGBToHSV(t.portalColor, out hue, out sat, out val);
         Check("... its portal is pale bone gold (hue 35..55 deg, S <= .33 so it never reads as star dust), not amber nor red",
               hue * 360f > 35f && hue * 360f < 55f && sat <= .33f && val > .85f);
-        Check("... its roster, mine, boss and planetfall are its own; rails are Storm's, backdrop Tide's (stand-ins)",
+        Check("... its roster, mine, boss and planetfall are its own; rails are Storm's (a stand-in), backdrop its own (dunes, worms)",
               EnemyRoster.One(Desert, EnemyRole.Rock).key == "desert_rock_dune" && EnemyRoster.One(Desert, EnemyRole.Rock).world == Desert &&
               EnemyRoster.One(Desert, EnemyRole.Mine).key == "desert_mine" && RailMineArt.AtlasPathFor(Desert) == RailMineArt.DesertAtlasPath &&
               BossCatalog.ForWorld(Desert).id == "boss_desert" && WorldPainter.RailTextureName("Desert") == "rail_storm_wide_v1" &&
-              BackdropCatalog.For("Desert") == BackdropCatalog.For("Tide"));
+              BackdropCatalog.For("Desert").world == "Desert" && BackdropCatalog.For("Desert") != BackdropCatalog.For("Tide"));
         Check("... its planetfall art is installed under Resources, the limb is the R1250 one (apex 355, edge 887)",
               PlanetfallCatalog.Desert.world == Desert && LiftoffCatalog.Desert.world == Desert && LiftoffCatalog.Desert.autoLoop &&
               PlanetfallCatalog.Desert.limbApexPx == 355f && PlanetfallCatalog.Desert.limbEdgePx == 887f &&

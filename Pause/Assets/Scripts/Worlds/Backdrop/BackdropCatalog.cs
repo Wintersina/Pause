@@ -324,6 +324,38 @@ public static class BackdropCatalog
             Layer.Pieces("gusts", 0.250f, Role.Atmosphere),
             Layer.Pieces("rain", 0.450f, Role.Atmosphere),
         }},
+        // Desert (DesertDirector, docs in DesertBackdrop.cs): flown at atmosphere
+        // level over the dead strip-mined planet: bone-gold dune seas, a dry copper
+        // canyon of buried refineries, a cracked salt flat of toppled solar arrays,
+        // or the NIGHT side's cold moon-lit dunes (DesertTuning.Night; one of four
+        // variant sets per landing) -- with giant sand worms under the sand (ridge
+        // trails and eruptions, DesertDirector). Ruins, pipework, wells, vents and
+        // ground features stand on the ground, PINNED to the mid tile
+        // (GroundPlanner) where its affinity mask says they belong. The art is
+        // painted dark-base with bone crest lights (value p90 ~.40-.49) and drawn
+        // as painted (brightness 1: not Spec.Bright), so the dark worlds' shot
+        // outlines apply.
+        new Spec { world = "Desert", folder = "Worlds/Desert/Backdrop3/", keyAtlas = "landmarks",
+                   variantSets = BackdropVariants.MaxVariants,
+                   brightness = () => DesertTuning.Brightness, saturation = () => 1f,
+                   variantBrightness = DesertTuning.VariantBrightness, variantNight = DesertTuning.Night,
+                   cloudDensity = () => DesertTuning.CloudDensity, ceilingHold = () => DesertTuning.CeilingHold,
+                   ceilingClearSeconds = () => DesertTuning.CeilingClearSeconds, layers = new[] {
+            Layer.Tile("sky", 0.006f, W).Graded(.6f),
+            Layer.Tile("far", 0.014f, W).Graded(.8f),
+            Layer.Tile("mid", 0.024f, W).Graded(1f),
+            // landmarks, pipes, ground features, the worms and the elite sites: one
+            // ground plane pinned to the mid tile
+            Layer.Pieces("ground", 0.024f, Role.Landmark).PinnedTo("mid", 0.024f).Graded(1f),
+            Layer.Strip("flow", 0.025f, 0.30f, 0.01f, new Color(1f, 1f, 1f, 0.85f)).Graded(1f),
+            Layer.Pieces("palls", 0.040f, Role.Atmosphere).Graded(.6f),
+            Layer.Pieces("mist", 0.060f, Role.Atmosphere).Graded(.6f),
+            Layer.Pieces("wisps", 0.090f, Role.Cloud).Graded(.6f),
+            // the dust-haze ceiling the planetfall drops through
+            Layer.Pieces("ceiling", 0.130f, Role.Cloud),
+            Layer.Pieces("gusts", 0.250f, Role.Atmosphere),
+            Layer.Pieces("grit", 0.450f, Role.Atmosphere),
+        }},
     };
 
     public static Spec[] All { get { return specs; } }
@@ -336,20 +368,12 @@ public static class BackdropCatalog
         get { var spec = For(WorldManager.Current.displayName); return spec != null && spec.Bright; }
     }
 
-    // Storm and Desert have no ground backdrop yet (add-world phase 11): their levels fly over
+    // Storm has no ground backdrop yet (add-world phase 11): its levels fly over
     // Tide's, so a run there is playable in dev. Removed with the real Spec.
-    // (Desert's tiles and worm atlas are Codex-finished, art/desert-backdrop-a/b/c and
-    // art/desert-worm, but its director is not written: docs/desert-wire.md.)
     public const string StormStandIn = "Tide";
-    public const string DesertStandIn = "Tide";
 
     static string Resolve(string displayName)
     {
-        if (displayName == "Desert")
-        {
-            foreach (var s in specs) if (s.world == displayName) return displayName;
-            return DesertStandIn;
-        }
         if (displayName != "Storm") return displayName;
         foreach (var s in specs) if (s.world == displayName) return displayName;
         return StormStandIn;

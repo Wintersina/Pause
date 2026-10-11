@@ -60,11 +60,18 @@ public class WorldBackdropImport : AssetPostprocessor
         return file == "weather" || file == "smoke" || file == "steam" || file == "aurora" || file == "firesmoke" || file == "eruption" || file == "surf";
     }
 
-    // Tide's run C loops (smoke, surf, ...) are nearest-neighbour pixel art: point-sampled,
+    // Tide's and Desert's run C loops (smoke, surf, dust, worms ...) are nearest-neighbour pixel art: point-sampled,
     // unlike Ember's and Verdant's soft sheets of the same name. Only its weather stays soft.
     public static bool IsTidePixelLoop(string path, string file)
     {
-        return path.Contains("/Worlds/Tide/Backdrop3/") && file != "weather";
+        return (path.Contains("/Worlds/Tide/Backdrop3/") || path.Contains("/Worlds/Desert/Backdrop3/")) && file != "weather";
+    }
+
+    // Desert's worm sheets (worm, worm_giant): 2048 px sheets of 256 / 512 px cells that are drawn up to
+    // ~1.5x their pixel size, so they keep every pixel (the other atlases cap at 1024).
+    public static bool IsDesertWormSheet(string path, string file)
+    {
+        return path.Contains("/Worlds/Desert/Backdrop3/") && (file == "worm" || file == "worm_giant");
     }
 
     public static bool IsTile(string path)
@@ -123,7 +130,7 @@ public class WorldBackdropImport : AssetPostprocessor
         ti.isReadable = false;
         ti.npotScale = TextureImporterNPOTScale.None;
         ti.maxTextureSize = planetSheet ? PlanetSheetMaxSize : file == "comet_v2" || file == "comet_frames_v1" || file == "station_ring_v2" ? 512 : file == "reference_planet" ? 1024 :
-            sharpSpaceSky || (!tile && assetPath.Contains("/Worlds/Space/")) ? 2048 : 1024;
+            sharpSpaceSky || (!tile && assetPath.Contains("/Worlds/Space/")) || IsDesertWormSheet(assetPath, file) ? 2048 : 1024;
         ti.textureCompression = TextureImporterCompression.Compressed;
         ti.sRGBTexture = true;
 
@@ -165,7 +172,7 @@ public class WorldBackdropImport : AssetPostprocessor
             var ps = ti.GetPlatformTextureSettings(platform);
             ps.overridden = true;
             ps.maxTextureSize = planetSheet ? PlanetSheetMaxSize : file == "comet_v2" || file == "comet_frames_v1" || file == "station_ring_v2" ? 512 : file == "reference_planet" ? 1024 :
-                sharpSpaceSky || (!tile && assetPath.Contains("/Worlds/Space/")) ? 2048 : 1024;
+                sharpSpaceSky || (!tile && assetPath.Contains("/Worlds/Space/")) || IsDesertWormSheet(assetPath, file) ? 2048 : 1024;
             ps.format = planetSheet ? TextureImporterFormat.ASTC_4x4 : TextureImporterFormat.ASTC_6x6;
             ps.textureCompression = TextureImporterCompression.Compressed;
             ti.SetPlatformTextureSettings(ps);

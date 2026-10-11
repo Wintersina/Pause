@@ -2,6 +2,7 @@
   "key": "desert_elite_dune_stalker",
   "codexId": "elite_desert_dune_stalker",
   "world": "desert",
+  "launchFrom": "wormburrow",
   "cells": {
     "flight": [
       3

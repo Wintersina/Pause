@@ -9,7 +9,7 @@ using UnityEngine;
 //
 // THE ART IS A STAND-IN: Codex has not delivered the Desert elite strips (Art/Enemies/Elite/Desert/STAND_IN.md), the defs carry the donors' sand-recoloured
 // strips and points. Everything here is about wiring and behaviour, so it holds when the real art replaces them (re-measure the points).
-// Desert's backdrop is still Tide's stand-in director, so the elites carry no launchFrom: they take any free pad of the stand-in's.
+// Desert's backdrop has its own director and sites now (DesertBackdrop.cs): each elite launches from its own kind (launchFrom), see DesertBackdropTest.
 //
 //   scripts/unity-batch.sh -executeMethod AllTests.RunSuites -suites DesertEliteTest
 public static class DesertEliteTest
@@ -35,6 +35,19 @@ public static class DesertEliteTest
         ("desert_elite_scorpion_walker", "striker", "claw_dive"),
         ("desert_elite_mirror_bastion", "bastion", "ward_curtain"),
     };
+
+    // The site kind each elite launches from (DesertBackdrop.cs; DesertBackdropTest flies them).
+    static LandingKind LaunchKind(string key)
+    {
+        switch (key)
+        {
+            case "desert_elite_dune_stalker": return LandingKind.DesertWormBurrow;
+            case "desert_elite_caravan_hauler": return LandingKind.DesertCrawlerBay;
+            case "desert_elite_lens_matriarch": return LandingKind.DesertGlassPad;
+            case "desert_elite_glass_cannon": return LandingKind.DesertBuriedSilo;
+            default: return LandingKind.DesertRuinDock;
+        }
+    }
 
     public static int Execute()
     {
@@ -179,7 +192,7 @@ public static class DesertEliteTest
                   d != null && d.WorldIndex == 6 && d.brain == x.brain && d.attack == x.attack && brains.Add(d.brain) && attacks.Add(d.attack));
             if (d == null) continue;
             shots.Add(d.shotKind + "/" + d.shotCount + "/" + d.shotSpread + "/" + d.shotSpeed);
-            Check(x.key + ": no launchFrom (any pad of the stand-in backdrop), codex id elite_desert_*", string.IsNullOrEmpty(d.launchFrom) && d.codexId.StartsWith("elite_desert_"));
+            Check(x.key + ": launches from its own site (" + d.launchFrom + "), codex id elite_desert_*", LandingSite.KindOf(d.launchFrom) == LaunchKind(x.key) && d.codexId.StartsWith("elite_desert_"));
             var frames = EliteArt.Frames(d);
             var c = d.cells;
             Check(x.key + ": the 1344 x 192 flight strip slices into 7 cells of 192 and the cell map is the flight layout",
@@ -237,18 +250,23 @@ public static class DesertEliteTest
     static void Sites()
     {
         Fresh(.05f);
-        var pads = new List<LandingSite> { Pad(new Vector2(-1.6f, 3f), LandingKind.TideTrenchHatch, 1), Pad(new Vector2(0f, 3f), LandingKind.TideWreckBay, 2), Pad(new Vector2(1.6f, 3f), LandingKind.TideVentStack, 3) };
+        var pads = new List<LandingSite>
+        {
+            Pad(new Vector2(-2.0f, 3f), LandingKind.DesertWormBurrow, 1), Pad(new Vector2(-1.0f, 3f), LandingKind.DesertCrawlerBay, 2), Pad(new Vector2(0f, 3f), LandingKind.DesertGlassPad, 3),
+            Pad(new Vector2(1.0f, 3f), LandingKind.DesertBuriedSilo, 4), Pad(new Vector2(2.0f, 3f), LandingKind.DesertRuinDock, 5), Pad(new Vector2(0f, 4.5f), LandingKind.DesertRuinDock, 6),
+        };
         LandingSites.Override = list => list.AddRange(pads);
         var dir = new GameObject("~Dir").AddComponent<EliteDirector>();
-        int spawned = 0;
+        int spawned = 0, matched = 0;
         var seen = new HashSet<string>();
         for (int i = 0; i < 40; i++)
         {
             EliteSystem.Clear();
             spawned += dir.SpawnGroup(6, 1);
-            foreach (var e in EliteShip.Live) { seen.Add(e.Def.key); }
+            foreach (var e in EliteShip.Live) { seen.Add(e.Def.key); if (LandingSite.Accepts(e.Def.launchFrom, e.Site.kind)) matched++; }
         }
-        Check("Desert's elites launch from the stand-in backdrop's pads, any kind (" + spawned + " launches)", spawned == 40);
+        Check("Desert's elites launch from Desert's own pads (" + spawned + " launches)", spawned == 40);
+        Check("... each from the kind its def names (launchFrom) when one is free (" + matched + "/40)", matched == 40);
         Check("all six Desert elites turn up (" + seen.Count + ")", seen.Count == 6);
         Object.DestroyImmediate(dir.gameObject);
         LandingSites.Override = null;

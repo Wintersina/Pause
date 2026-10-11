@@ -32,6 +32,10 @@ public static class WorldBackdropTest
     // weather) plus run C's five loop sheets (smoke, flames, surf, leaks, lights) besides
     // one 4-tile variant set: ~6 MB measured now (ASTC 6x6 sizes), ~8.5 MB with run C.
     public const long TideTextureBudgetBytes = 10L * 1024 * 1024;
+    // Desert carries the same shared 1024 atlases as Tide (landmarks, pipes, fires, sites, weather)
+    // plus fourteen loop sheets' worth of dust, shimmer, leaks and lights, and the worms'
+    // two 2048 sheets (worm, worm_giant), besides one 4-tile variant set.
+    public const long DesertTextureBudgetBytes = 12L * 1024 * 1024;     // measured ~10.7 MB ASTC (the worm sheets alone ~3.7 MB)
     const float SeamTolerance = 0.02f;          // mean |top row - bottom row|, premultiplied RGBA
     // The guide's sky ramps (docs/art-style.md 1.3) peak at ~#123248 / #143430,
     // so the opaque sky averages up to ~0.12 relative luminance.
@@ -103,16 +107,29 @@ public static class WorldBackdropTest
     const float TideTileMaxChroma = 0.30f;
     const float TideCloudMaxLuminance = 0.80f;
 
+    // DESERT IS DARK-BASED, BONE-GOLD AND DUSTY, AS PAINTED: its v3 dune world is painted at value
+    // p90 ~.40-.49 (night ~.32-.42), pale sand crests on a dark base, drawn as painted
+    // (brightness 1: below Spec.BrightLift, so shots keep the thin outline; a set that fails
+    // the lane guard is drawn darker by DesertTuning.VariantBrightness). The gameplay guard
+    // (enemy bodies 2.5:1, brightest tone 7:1 against the rendered lane: CheckReadability and
+    // DesertBackdropTest) is every world's.
+    const float DesertTileMaxValueP90 = 0.50f;
+    const float DesertSkyMaxLuminance = 0.26f;
+    const float DesertTileMaxLuminance = 0.31f;
+    const float DesertTileMaxChroma = 0.30f;
+    const float DesertCloudMaxLuminance = 0.80f;
+
     static bool Frost(BackdropCatalog.Spec spec) { return spec.world == "Frost"; }
     static bool Ember(BackdropCatalog.Spec spec) { return spec.world == "Ember"; }
     static bool Verdant(BackdropCatalog.Spec spec) { return spec.world == "Verdant"; }
     // the worlds measured as drawn, with their own v3 atlases
     static bool Tide(BackdropCatalog.Spec spec) { return spec.world == "Tide"; }
-    static bool V3(BackdropCatalog.Spec spec) { return Frost(spec) || Verdant(spec) || Ember(spec) || Tide(spec); }
-    static float ValueCap(BackdropCatalog.Spec spec) { return Frost(spec) ? FrostTileMaxValueP90 : Verdant(spec) ? VerdantTileMaxValueP90 : Ember(spec) ? EmberTileMaxValueP90 : Tide(spec) ? TideTileMaxValueP90 : TileMaxValueP90; }
-    static float ChromaCap(BackdropCatalog.Spec spec) { return Frost(spec) ? FrostTileMaxChroma : Verdant(spec) ? VerdantTileMaxChroma : Ember(spec) ? EmberTileMaxChroma : Tide(spec) ? TideTileMaxChroma : TileMaxChroma; }
-    static float SkyLumCap(BackdropCatalog.Spec spec) { return Frost(spec) ? FrostSkyMaxLuminance : Verdant(spec) ? VerdantSkyMaxLuminance : Ember(spec) ? EmberSkyMaxLuminance : Tide(spec) ? TideSkyMaxLuminance : SkyMaxLuminance; }
-    static float TileLumCap(BackdropCatalog.Spec spec) { return Frost(spec) ? FrostTileMaxLuminance : Verdant(spec) ? VerdantTileMaxLuminance : Ember(spec) ? EmberTileMaxLuminance : Tide(spec) ? TideTileMaxLuminance : TileMaxLuminance; }
+    static bool Desert(BackdropCatalog.Spec spec) { return spec.world == "Desert"; }
+    static bool V3(BackdropCatalog.Spec spec) { return Frost(spec) || Verdant(spec) || Ember(spec) || Tide(spec) || Desert(spec); }
+    static float ValueCap(BackdropCatalog.Spec spec) { return Frost(spec) ? FrostTileMaxValueP90 : Verdant(spec) ? VerdantTileMaxValueP90 : Ember(spec) ? EmberTileMaxValueP90 : Tide(spec) ? TideTileMaxValueP90 : Desert(spec) ? DesertTileMaxValueP90 : TileMaxValueP90; }
+    static float ChromaCap(BackdropCatalog.Spec spec) { return Frost(spec) ? FrostTileMaxChroma : Verdant(spec) ? VerdantTileMaxChroma : Ember(spec) ? EmberTileMaxChroma : Tide(spec) ? TideTileMaxChroma : Desert(spec) ? DesertTileMaxChroma : TileMaxChroma; }
+    static float SkyLumCap(BackdropCatalog.Spec spec) { return Frost(spec) ? FrostSkyMaxLuminance : Verdant(spec) ? VerdantSkyMaxLuminance : Ember(spec) ? EmberSkyMaxLuminance : Tide(spec) ? TideSkyMaxLuminance : Desert(spec) ? DesertSkyMaxLuminance : SkyMaxLuminance; }
+    static float TileLumCap(BackdropCatalog.Spec spec) { return Frost(spec) ? FrostTileMaxLuminance : Verdant(spec) ? VerdantTileMaxLuminance : Ember(spec) ? EmberTileMaxLuminance : Tide(spec) ? TideTileMaxLuminance : Desert(spec) ? DesertTileMaxLuminance : TileMaxLuminance; }
 
     // A tile layer's pixels as drawn (BackdropGrade; the art itself when the
     // layer is not lifted).
@@ -168,6 +185,23 @@ public static class WorldBackdropTest
         if (atlas == "landmarks" || atlas == "sites" || atlas == "pipes" || atlas == "fires") lift = BackdropGrade.Lift(spec, spec.Find("ground"), 1);
         else if (atlas == "weather") { alphaLift = TideTuning.CeilingThicken; lift = TideTuning.CeilingLift; sat = TideTuning.CeilingSaturation; }
         return BackdropGrade.Apply(px, lift, sat, alphaLift);
+    }
+
+    // A Desert atlas as drawn: pieces and loops as painted, the weather at the cloud ceiling's
+    // thickening, lift and tint toward the planetfall's dust deck.
+    static Color[] DesertAtlasAsDrawn(BackdropCatalog.Spec spec, string atlas, Color[] px)
+    {
+        float lift = 1f, alphaLift = 1f, sat = 1f;
+        if (atlas == "landmarks" || atlas == "sites" || atlas == "pipes" || atlas == "fires") lift = BackdropGrade.Lift(spec, spec.Find("ground"), 1);
+        else if (atlas == "weather") { alphaLift = DesertTuning.CeilingThicken; lift = DesertTuning.CeilingLift; sat = DesertTuning.CeilingSaturation; }
+        return BackdropGrade.Apply(px, lift, sat, alphaLift);
+    }
+
+    static float DesertDrawAlpha(string atlas)
+    {
+        float a = 0f;
+        foreach (var l in DesertAmbientCatalog.Table.loops) if (l.atlas == atlas) a = Mathf.Max(a, l.alpha * DesertTuning.NightLightBoost);
+        return a > 0f ? a : 1f;
     }
 
     static float TideDrawAlpha(string atlas)
@@ -272,6 +306,39 @@ public static class WorldBackdropTest
         { "weather", new[] { "cloud_bank_00", "cloud_bank_03", "cloud_wisp_00", "cloud_wisp_03", "mist_00", "mist_02", "gust_00", "gust_02", "pall_00", "rain_00" } },
     };
 
+    // Desert's shared atlases and the drawings the director relies on (ordered like the art:
+    // landmarks, pipes, fires, sites, weather; the loop sheets and the worms are checked by name below).
+    static readonly Dictionary<string, string[]> DesertAtlases = new Dictionary<string, string[]>
+    {
+        { "landmarks", DesertPieces("landmarks") },
+        { "pipes", DesertPieces("pipes") },
+        { "fires", DesertPieces("fires") },
+        { "sites", new[] { "worm_burrow_closed", "worm_burrow_open", "crawler_bay_closed", "crawler_bay_open", "glass_pad_closed", "glass_pad_open",
+                           "buried_silo_closed", "buried_silo_open", "ruin_dock_closed", "ruin_dock_open" } },
+        { "weather", new[] { "cloud_bank_00", "cloud_bank_03", "cloud_wisp_00", "cloud_wisp_03", "mist_00", "mist_02", "gust_00", "gust_01", "pall_00", "pall_01", "particle_00" } },
+        { "worm", new[] { "worm_s_ridge_00", "worm_s_emerge_01", "worm_s_arc_00", "worm_s_dive_00", "worm_s_spray_00", "worm_m_ridge_00", "worm_m_emerge_01", "worm_m_arc_00", "worm_m_dive_00", "worm_m_spray_00" } },
+        { "worm_giant", new[] { "worm_l_ridge_00", "worm_l_emerge_01", "worm_l_arc_00", "worm_l_dive_00", "worm_l_spray_00" } },
+    };
+
+    // Every drawing of a Desert piece atlas the director names.
+    static string[] DesertPieces(string atlas)
+    {
+        var names = new List<string>();
+        foreach (var group in new[] { DesertTuning.Ruins, DesertTuning.Neighbours, DesertTuning.Fronts, DesertTuning.Satellites,
+                                      DesertTuning.Caravans, DesertTuning.Banks, DesertTuning.Lone, DesertTuning.HorizontalPipes })
+            foreach (string n in group)
+            {
+                bool pipe = n.StartsWith("straight") || n.StartsWith("manifold") || n.StartsWith("tangle") || n.StartsWith("leak") ||
+                            n == "pump_house" || n == "half_buried_pipe" || n.StartsWith("pipe_bridge");
+                bool fire = n.StartsWith("rock_fin") || n.StartsWith("wall_drift") || n.StartsWith("fulgurite") || n.StartsWith("dry_well") ||
+                            n.StartsWith("machine_ribs") || n.StartsWith("heat_vent") || n == "crack_scar" || n == "dune_ridge" ||
+                            n == "wreckage" || n == "lone_crawler";
+                string a = pipe ? "pipes" : fire ? "fires" : "landmarks";
+                if (a == atlas && !names.Contains(n)) names.Add(n);
+            }
+        return names.ToArray();
+    }
+
     // Every drawing of a Tide piece atlas the director names.
     static string[] TidePieces(string atlas)
     {
@@ -335,7 +402,7 @@ public static class WorldBackdropTest
             // dropped in; force one normal import so that rule takes effect.
             // A tile can gain its importer rule after the image was first
             // dropped in (Frost's / Verdant's / Ember's v3 sheets): reimport those.
-            foreach (string world in new[] { "Frost", "Verdant", "Ember", "Tide" })
+            foreach (string world in new[] { "Frost", "Verdant", "Ember", "Tide", "Desert" })
             foreach (string png in Directory.GetFiles(ArtDir(world), "*.png", SearchOption.AllDirectories))
             {
                 var imp = AssetImporter.GetAtPath(png.Replace('\\', '/')) as TextureImporter;
@@ -348,6 +415,7 @@ public static class WorldBackdropTest
             CheckVerdantPalette();
             CheckEmberPalette();
             CheckTidePalette();
+            CheckDesertPalette();
             CheckReadability();
             CheckWalls();
             CheckSpaceRailMaterials();
@@ -376,8 +444,6 @@ public static class WorldBackdropTest
             // Flip this to "own spec" when it lands.
             if (theme.displayName == "Storm")
                 Check("Storm still uses its stand-in backdrop spec (" + BackdropCatalog.StormStandIn + "'s; TODO: own backdrop)", spec.world == BackdropCatalog.StormStandIn);
-            else if (theme.displayName == "Desert")
-                Check("Desert still uses its stand-in backdrop spec (" + BackdropCatalog.DesertStandIn + "'s; TODO: own backdrop, director and worm)", spec.world == BackdropCatalog.DesertStandIn);
             else
                 Check(theme.displayName + " has its own backdrop spec", spec.world == theme.displayName);
             // Space carries two runs of body tiers (planets, structures).
@@ -423,7 +489,7 @@ public static class WorldBackdropTest
             }
             if (V3(spec))
             {
-                foreach (var kv in Frost(spec) ? FrostAtlases : Ember(spec) ? EmberAtlases : Tide(spec) ? TideAtlases : VerdantAtlases)
+                foreach (var kv in Frost(spec) ? FrostAtlases : Ember(spec) ? EmberAtlases : Tide(spec) ? TideAtlases : Desert(spec) ? DesertAtlases : VerdantAtlases)
                 {
                     var atlas = new BackdropAtlas(Resources.Load<Texture2D>(folder + kv.Key), Resources.Load<TextAsset>(folder + kv.Key));
                     Check(spec.world + " atlas " + kv.Key + " resolves (" + atlas.Count + " sprites)", atlas.Count >= kv.Value.Length);
@@ -614,6 +680,7 @@ public static class WorldBackdropTest
                     else if (Frost(spec)) px = FrostAtlasAsDrawn(spec, file, px);
                     else if (Ember(spec)) px = EmberAtlasAsDrawn(spec, file, px);
                     else if (Tide(spec)) px = TideAtlasAsDrawn(spec, file, px);
+                    else if (Desert(spec)) px = DesertAtlasAsDrawn(spec, file, px);
                     else px = VerdantAtlasAsDrawn(spec, file, px);
                 }
                 string drawnTag = V3(spec) ? " as drawn" : "";
@@ -652,6 +719,15 @@ public static class WorldBackdropTest
                     Check(spec.world + "/" + name + " atlas art under brightness ceiling as drawn (" + drawn.ToString("F3") + " <= " + cap + ")",
                           drawn <= cap);
                 }
+                else if (!tile && Desert(spec))
+                {
+                    float maxA = 0f;
+                    foreach (var c in px) maxA = Mathf.Max(maxA, c.a);
+                    float drawn = lum * Mathf.Min(1f, maxA * DesertDrawAlpha(file));
+                    float cap = file == "weather" ? DesertCloudMaxLuminance : AtlasMaxLuminance;
+                    Check(spec.world + "/" + name + " atlas art under brightness ceiling as drawn (" + drawn.ToString("F3") + " <= " + cap + ")",
+                          drawn <= cap);
+                }
                 else if (!tile && Verdant(spec))
                 {
                     // drawn at their loops' alpha (x the night boost) / the
@@ -687,7 +763,7 @@ public static class WorldBackdropTest
             bytes += maxSet;
             astc += maxSetAstc;
             long budget = spec.world == "Frost" ? FrostTextureBudgetBytes : spec.world == "Space" ? SpaceTextureBudgetBytes :
-                          spec.world == "Verdant" ? VerdantTextureBudgetBytes : spec.world == "Ember" ? EmberTextureBudgetBytes : spec.world == "Tide" ? TideTextureBudgetBytes : TextureBudgetBytes;
+                          spec.world == "Verdant" ? VerdantTextureBudgetBytes : spec.world == "Ember" ? EmberTextureBudgetBytes : spec.world == "Tide" ? TideTextureBudgetBytes : spec.world == "Desert" ? DesertTextureBudgetBytes : TextureBudgetBytes;
             Debug.Log("[WB] " + spec.world + " texture memory: " + (bytes / 1024) + " KB desktop, ~" +
                       (astc / 1024) + " KB ASTC 6x6");
             // The budget is the phone's (ASTC) size. `bytes` is only that while the
@@ -1008,6 +1084,72 @@ public static class WorldBackdropTest
               green >= TideMinLampPixels && blue >= TideMinLampPixels);
     }
 
+    // Desert's palette: pale bone-gold sand on a dark base, rust-copper metal, indigo shadows. It
+    // must not read as one flat sand mud, and must keep clear of the player's red, of pink / violet
+    // (the hostile cue and the capacitor), and of SATURATED star-dust amber (hue 30..48 at
+    // saturation > .45: the pickup's colour; the sand is pale, S <= .33, so only sparks may exceed it).
+    public const int DesertMinClusters = 4;
+    public const float DesertMinValueRange = 0.15f;
+    public const float DesertMaxForbiddenShare = 0.003f;   // tile pixels in a forbidden hue band (player red 345..15, star-dust amber, violet 250..300)
+    public const int DesertMaxForbiddenAtlasPixels = 400;  // ... in the piece atlases (a rusted rivet may stray)
+
+    static bool IsForbiddenDesert(Color c)
+    {
+        float hh, ss, vv;
+        Color.RGBToHSV(c, out hh, out ss, out vv);
+        float hue = hh * 360f;
+        bool red = (hue >= 345f || hue < 15f) && ss > .5f && vv > .45f;
+        bool amber = hue >= 30f && hue < 48f && ss > .45f && vv > .6f;
+        bool violet = hue >= 250f && hue < 300f && ss > .45f && vv > .45f;
+        return red || amber || violet;
+    }
+
+    static void CheckDesertPalette()
+    {
+        var spec = BackdropCatalog.For("Desert");
+        for (int v = 1; v <= Mathf.Max(1, spec.variantSets); v++)
+        {
+            int w, h;
+            var px = Composite("Desert", out w, out h, v);
+            var bins = new Dictionary<int, int>();
+            var values = new List<float>();
+            int n = 0, forbidden = 0;
+            for (int i = 0; i < px.Length; i += 2)
+            {
+                Color c = px[i];
+                float hh, ss, vv;
+                Color.RGBToHSV(c, out hh, out ss, out vv);
+                float hue = hh * 360f;
+                int band = Mathf.Min((int)(vv / 0.1f), 5);
+                int key = Chroma(c) > 0.03f ? ((int)(hue / 30f) % 12) * 6 + band : 100 + band;
+                int k;
+                bins.TryGetValue(key, out k);
+                bins[key] = k + 1;
+                values.Add(vv);
+                if (IsForbiddenDesert(c)) forbidden++;
+                n++;
+            }
+            int clusters = 0;
+            foreach (var kv in bins) if (kv.Value >= 0.005f * n) clusters++;
+            values.Sort();
+            float range = values[(int)(n * 0.95f)] - values[(int)(n * 0.05f)];
+            Check("Desert v" + v + " has >= " + DesertMinClusters + " distinct hue/value clusters (" + clusters + ")", clusters >= DesertMinClusters);
+            Check("Desert v" + v + " value range p5..p95 >= " + DesertMinValueRange + " (" + range.ToString("F3") + ")", range >= DesertMinValueRange);
+            Check("Desert v" + v + " keeps out of the player's red, star-dust amber and violet (" + (forbidden / (float)n).ToString("F4") + " <= " + DesertMaxForbiddenShare + ")",
+                  forbidden <= DesertMaxForbiddenShare * n);
+        }
+        foreach (string atlas in new[] { "landmarks", "pipes", "fires", "sites", "weather" })
+        {
+            int bad = 0;
+            foreach (var c in ReadPixels(ArtDir("Desert") + atlas + ".png"))
+            {
+                if (c.a < 0.9f) continue;
+                if (IsForbiddenDesert(c)) bad++;
+            }
+            Check("Desert " + atlas + " keeps out of the player's red, star-dust amber and violet (" + bad + " px <= " + DesertMaxForbiddenAtlasPixels + ")", bad <= DesertMaxForbiddenAtlasPixels);
+        }
+    }
+
     // docs/art-style.md 4, with each world's enemies on top: the composited
     // lane stays darker and greyer than the enemy bodies, bodies reach 2.5:1
     // and the brightest tone 7:1 against the lane (its median luminance).
@@ -1069,7 +1211,7 @@ public static class WorldBackdropTest
             Check(world + " has a reinforced rail", rail);
             if (rail) failures += WorldRailTest.CheckArt(WorldManager.Worlds[wi]);
         }
-        foreach (string world in new[] { "Frost", "Verdant", "Ember", "Tide" })
+        foreach (string world in new[] { "Frost", "Verdant", "Ember", "Tide", "Desert" })
             foreach (string name in new[] { "wallLeft", "wallRight" })
                 Check("the legacy " + world + " " + name + " wall stays deleted",
                       !File.Exists("Assets/Art/Resources/Worlds/" + world + "/" + name + ".png") &&

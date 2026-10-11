@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""Tide enemy readability: a thin pale border round the outer silhouette of the weak-readability Tide strips.
+"""Desert enemy readability: a thin pale border round the outer silhouette of the weak-readability Desert strips.
 
 Interior art is untouched: the border is written only into pixels that are (almost) transparent and touch the silhouette
 (alpha >= SOLID) in the 8-neighbourhood, once per cell, so grids, registration and anchors stay identical. Colour: a pale
-sea-foam (#D2F4E6, hue ~158, inside the Tide palette), opaque; NO pink. Reads from ./original/ (the pre-border strips), writes the
+bone (#E6DCC0, inside the Desert palette), opaque; NO pink. Reads from ./original/ (the pre-border strips), writes the
 live strips in Resources/Enemies. Re-runnable.
 
     python3 add_border.py [--width 1] [--check]
@@ -15,7 +15,8 @@ from PIL import Image
 
 HERE = Path(__file__).resolve().parent
 LIVE = HERE / "strips"
-NAMES = ["desert_chaser"]
+NAMES = ["desert_chaser", "desert_big"]   # the Scarab, then the Sandcrawler (ReadabilitySweep over the real Desert tiles: WEAK on the canyon floor)
+CELLS = {"desert_big": 256}
 BORDER = (230, 220, 192)   # #E6DCC0 bone
 SOLID = 96                 # a pixel this opaque is part of the silhouette
 CELL = 192
@@ -32,7 +33,7 @@ def dilate(mask):
     return out
 
 
-def border(strip, width):
+def border(strip, width, CELL=192):
     a = strip[:, :, 3]
     out = strip.copy()
     h, w = a.shape
@@ -52,7 +53,7 @@ def main():
     width = int(sys.argv[sys.argv.index("--width") + 1]) if "--width" in sys.argv else 1
     for n in NAMES:
         src = np.array(Image.open(HERE / "strips" / "original" / f"{n}.png").convert("RGBA"))
-        res = border(src, width)
+        res = border(src, width, CELLS.get(n, CELL))
         changed = (res != src).any(axis=2)
         # interior untouched: every pixel that was opaque >= SOLID is identical
         assert (res[src[:, :, 3] >= SOLID] == src[src[:, :, 3] >= SOLID]).all(), n

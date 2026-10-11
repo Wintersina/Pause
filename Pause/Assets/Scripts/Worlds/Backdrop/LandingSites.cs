@@ -31,9 +31,14 @@ using UnityEngine;
 // Tide's (TideDirector) are emerge sites too: a trench hatch in the sea floor
 // shoals, a rig deck bay, a reef dock, a vent stack and a wreck bay -- shut
 // until the launch tell opens them.
+//
+// Desert's (DesertDirector) are emerge sites too: a worm burrow hatch in the dunes, a
+// crawler bay, a fused-glass pad, a buried silo and a ruin dock -- shut until the launch
+// tell opens them.
 public enum LandingKind { Ground, Station, Planet, Asteroid, Hangar, RigBay, PadRing, CrawlerBay, Hatch, RootHangar, RiverBay, PodPad, TowerBay,
                          FoundryHangar, MagmaBay, SlagPad, FurnaceBay,
-                         TideTrenchHatch, TideRigDeck, TideReefDock, TideVentStack, TideWreckBay }
+                         TideTrenchHatch, TideRigDeck, TideReefDock, TideVentStack, TideWreckBay,
+                         DesertWormBurrow, DesertCrawlerBay, DesertGlassPad, DesertBuriedSilo, DesertRuinDock }
 
 public struct LandingSite
 {
@@ -51,7 +56,7 @@ public struct LandingSite
     // "station" / "planet" / "asteroid" / "ground" / "hangar" / "rigbay" /
     // "padring" / "crawlerbay" / "hatch" / "roothangar" / "riverbay" / "podpad" /
     // "towerbay" / "foundryhangar" / "magmabay" / "slagpad" / "furnacebay" / "trenchhatch" / "rigdeck" /
-    // "reefdock" / "ventstack" / "wreckbay" (EliteDef.launchFrom); anything else:
+    // "reefdock" / "ventstack" / "wreckbay" / "wormburrow" / "caravanbay" / "glasspad" / "buriedsilo" / "ruindock" (EliteDef.launchFrom); anything else:
     // null (any pad). A launchFrom may list several, comma separated
     // ("hangar,crawlerbay"): KindOf is the first, Accepts takes any of them.
     public static LandingKind? KindOf(string s)
@@ -77,6 +82,11 @@ public struct LandingSite
             case "reefdock": return LandingKind.TideReefDock;
             case "ventstack": return LandingKind.TideVentStack;
             case "wreckbay": return LandingKind.TideWreckBay;
+            case "wormburrow": return LandingKind.DesertWormBurrow;
+            case "caravanbay": return LandingKind.DesertCrawlerBay;
+            case "glasspad": return LandingKind.DesertGlassPad;
+            case "buriedsilo": return LandingKind.DesertBuriedSilo;
+            case "ruindock": return LandingKind.DesertRuinDock;
             case "station": return LandingKind.Station;
             case "planet": return LandingKind.Planet;
             case "asteroid": return LandingKind.Asteroid;
