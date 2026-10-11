@@ -82,6 +82,16 @@ public static class EnemyDeathAudio
         new[] { "verdant_elite_leafblade",  "verdant_fighter_4", "1.10" },   // Leafblade: a sharper, quicker queen
         // Tide: the jelly is the only living unit; Ember's jelly cry, higher and thinner
         new[] { "tide_alien",              "ember_alien",       "1.30" },   // Glow Jelly
+        // Storm: the four manta / gunship pilots and the five elites have a living occupant (the mote, rotor drone, whale and rocks do not)
+        new[] { "storm_fighter_1",                "ember_fighter_1",           "1.35" },   // Stormray Pup: tiny, startled
+        new[] { "storm_fighter_2",                "verdant_fighter_2",         "1.10" },   // Stormray: tense nasal cry
+        new[] { "storm_fighter_3",                "ember_fighter_3",           "0.95" },   // Gunship: a heavier voice
+        new[] { "storm_fighter_4",                "space_fighter_4",           "0.90" },   // Tempest Anvil: a big, low cry
+        new[] { "storm_elite_skyhook_harrier",    "ember_elite_coalrunner",    "1.10" },   // interceptor pilot
+        new[] { "storm_elite_refinery_tender",    "space_elite_singularity_hauler", "0.85" },   // hauler crew
+        new[] { "storm_elite_rod_dancer",         "ember_elite_ash_wraith",    "1.10" },   // skirmisher
+        new[] { "storm_elite_anvil_cloud",        "ember_elite_brass_vulture", "0.85" },   // siege gunner, a bigger body
+        new[] { "storm_elite_static_bastion",     "space_elite_eventide_bastion", "0.90" }, // bastion crew
     };
     // Death-cue reuse (Tide): a key with no clips of its own plays a DONOR key's clips at a pitch (playback speed relative to the donor),
     // with the world's wet layer (WetLayer: tide_wet_0..) under it. Authored water is only that layer; the rest is other worlds'
@@ -105,9 +115,33 @@ public static class EnemyDeathAudio
         new[] { "tide_elite_trawler",      "ember_elite_kilnback",         "0.85" },
         new[] { "tide_elite_thunderfin",   "space_elite_rift_lancer",      "1.05" },
         new[] { "tide_elite_pearl_warden", "space_elite_eventide_bastion", "0.90" },
+        // Storm (docs/storm-sounds.md): donors chosen for what the unit physically is, the authored storm_crack_ layer under all of them
+        new[] { "storm_rock_hail",    "frost_rock_chunk",       "1.20" },   // hailstone: a hard-grain clatter, faster and smaller
+        new[] { "storm_rock_ore",     "frost_rock_shard",       "1.08" },   // crystal blade snap
+        new[] { "storm_rock_slag",    "ember_rock_obsidian",    "0.82" },   // dense iron thud, slower
+        new[] { "storm_rock_islet",   "ember_rock_islet",       "0.85" },   // platform break, a dull crumble
+        new[] { "storm_mine",         "space_mine",             "1.00" },   // rod mine: concussive pop
+        new[] { "storm_big",          "verdant_big",            "0.75" },   // Cloud Whale: a huge, slow body
+        new[] { "storm_fighter_1",    "space_fighter_1",        "1.15" },   // Stormray Pup: light plate crack
+        new[] { "storm_fighter_2",    "space_fighter_2",        "1.00" },   // Stormray: wing snap, gun pop
+        new[] { "storm_fighter_3",    "ember_fighter_3",        "0.90" },   // Gunship: cannon drum boom
+        new[] { "storm_fighter_4",    "space_fighter_4",        "0.85" },   // Tempest Anvil: coil discharge, heavy collapse
+        new[] { "storm_chaser",       "verdant_chaser",         "0.90" },   // Cyclone Drone: rotor shreds
+        new[] { "storm_alien",        "space_alien",            "1.10" },   // Static Mote: ball lightning cage bursts
+        new[] { "storm_elite_skyhook_harrier", "space_elite_orbit_reaver",       "1.05" },   // interceptor
+        new[] { "storm_elite_refinery_tender", "space_elite_singularity_hauler", "0.80" },   // floating refinery hauler
+        new[] { "storm_elite_rod_dancer",      "space_elite_rift_lancer",        "1.15" },   // arc skirmisher
+        new[] { "storm_elite_anvil_cloud",     "ember_elite_cauterizer",         "0.75" },   // siege cloud
+        new[] { "storm_elite_static_bastion",  "space_elite_eventide_bastion",   "0.82" },   // ward bastion
+        new[] { "boss_storm",                  "boss_space",                     "0.88" },   // the floating turbine engine: a capital hull breaking
     };
     public const string WetLayer = "tide_wet_";       // under every aliased Tide death
+    public const string StormLayer = "storm_crack_";  // under every aliased Storm death (thunder crack, rumble, sizzle)
     public static float WetVolume = .6f;               // relative to the death cue
+    public static float StormVolume = .55f;
+    // The authored layer prefix a key's aliased death wears ("" none).
+    public static string LayerOf(string key) { return key.StartsWith("storm_") || key == "boss_storm" ? StormLayer : WetLayer; }
+    static float LayerVolume(string key) { return key.StartsWith("storm_") || key == "boss_storm" ? StormVolume : WetVolume; }
     public static string DonorOf(string key)
     {
         for (int i = 0; i < DeathAlias.Length; i++) if (DeathAlias[i][0] == key) return DeathAlias[i][1];
@@ -155,7 +189,7 @@ public static class EnemyDeathAudio
     sealed class KeyClips
     {
         public AudioClip[] deaths, screams, wet;
-        public float pitch = 1f;
+        public float pitch = 1f, layerVolume = .6f;
         public int lastDeath = -1, lastScream = -1, repeats;
         public double lastTime = double.NegativeInfinity;
     }
@@ -255,7 +289,7 @@ public static class EnemyDeathAudio
         if (k.wet.Length > 0)
         {
             int ws = FreeSlot(screamVoices, now);
-            if (ws >= 0) Start(ref screamVoices[ws], k.wet[PickVariant(k.wet.Length, -1)], now, ScreamDelayMin, volume * WetVolume, 1f + Range(-PitchJitter, PitchJitter));
+            if (ws >= 0) Start(ref screamVoices[ws], k.wet[PickVariant(k.wet.Length, -1)], now, ScreamDelayMin, volume * k.layerVolume, 1f + Range(-PitchJitter, PitchJitter));
         }
         Played++;
         LastClip = clip; LastVolume = volume; LastKey = key;
@@ -328,7 +362,7 @@ public static class EnemyDeathAudio
             {
                 var d = Clips(donor);
                 k.deaths = d.deaths;
-                k.wet = Load(WetLayer);
+                k.wet = Load(LayerOf(key)); k.layerVolume = LayerVolume(key);
                 for (int i = 0; i < DeathAlias.Length; i++)
                     if (DeathAlias[i][0] == key) k.pitch = float.Parse(DeathAlias[i][2], System.Globalization.CultureInfo.InvariantCulture);
             }
