@@ -17,6 +17,10 @@ HERE = Path(__file__).resolve().parent
 LIVE = HERE.parents[2] / "Resources" / "Enemies"
 NAMES = ["ember_alien", "ember_chaser", "ember_big", "ember_fighter_1", "ember_fighter_2", "ember_fighter_3", "ember_fighter_4", "ember_rock_cinder", "ember_rock_islet", "ember_rock_magma", "ember_rock_obsidian"]
 BORDER = (196, 108, 46)    # #C46C2E dim ember-amber rim (was pale gold #FFDEA6; before that cream #EBD8BC)
+LIGHTER = (232, 148, 76)   # #E8944C: a slightly lighter warm rim for the units that went LOW/near-LOW under the dim rim
+LIGHTER_UNITS = {"ember_rock_islet", "ember_fighter_4", "ember_big"}
+BRIGHTER = (255, 196, 120)  # #FFC478: Cinder Chunk (dark columns on dark tiles) still read LOW with the lighter rim
+BRIGHTER_UNITS = {"ember_rock_cinder"}
 SOLID = 96                 # a pixel this opaque is part of the silhouette
 CELL = 192
 
@@ -32,7 +36,7 @@ def dilate(mask):
     return out
 
 
-def border(strip, width):
+def border(strip, width, color=None):
     CELL = strip.shape[0]
     a = strip[:, :, 3]
     out = strip.copy()
@@ -45,7 +49,7 @@ def border(strip, width):
             grown = dilate(grown)
         ring = grown & ~solid & (a[:, sl] < SOLID)
         cell = out[:, sl]
-        cell[ring] = (*BORDER, 255)
+        cell[ring] = (*(color or BORDER), 255)
     return break_straight(out, strip, CELL)
 
 
@@ -76,7 +80,7 @@ def main():
     width = int(sys.argv[sys.argv.index("--width") + 1]) if "--width" in sys.argv else 1
     for n in NAMES:
         src = np.array(Image.open(HERE.parent / "ember_recolor" / "out" / "enemies" / f"{n}.png").convert("RGBA"))
-        res = border(src, 2 if n == "ember_big" else width)
+        res = border(src, 2 if n == "ember_big" else width, BRIGHTER if n in BRIGHTER_UNITS else (LIGHTER if n in LIGHTER_UNITS else None))
         changed = (res != src).any(axis=2)
         # interior untouched: every pixel that was opaque >= SOLID is identical
         assert (res[src[:, :, 3] >= SOLID] == src[src[:, :, 3] >= SOLID]).all(), n
