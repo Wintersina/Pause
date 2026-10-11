@@ -976,10 +976,11 @@ PlayerSettings:
     Standalone: 0
     WebPlayer: 0
   il2cppCompilerConfiguration: {}
-  il2cppCodeGeneration: {}
+  il2cppCodeGeneration:
+    Android: 1
   il2cppStacktraceInformation: {}
   managedStrippingLevel:
-    Android: 1
+    Android: 2
     EmbeddedLinux: 1
     GameCoreScarlett: 1
     GameCoreXboxOne: 1
