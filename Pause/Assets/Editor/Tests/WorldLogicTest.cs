@@ -305,9 +305,13 @@ public static class WorldLogicTest
         Check("Frost replaces it", src.clip != clip);
         WorldMusic.Apply(space);
         Check("the return to Space plays Space_Main again", src.clip == clip && src.loop);
-        WorldMusic.BeginBoss(space);
-        Check("boss fallback keeps Space's song", src.clip == clip && WorldMusic.BossFallbackActive);
-        WorldMusic.EndBoss();
+        // Space has its own Boss_Space clip now, so the fallback only applies while a world has none.
+        if (WorldMusic.BossClip(space) == null)
+        {
+            WorldMusic.BeginBoss(space);
+            Check("boss fallback keeps Space's song", src.clip == clip && WorldMusic.BossFallbackActive);
+            WorldMusic.EndBoss();
+        }
         EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
     }
 
