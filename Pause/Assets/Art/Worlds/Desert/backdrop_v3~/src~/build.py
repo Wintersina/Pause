@@ -1,6 +1,6 @@
 """Build Desert ground tiles from the selected image-generated paintings.
 
-Only nearest-neighbour resizing is used.  The short edge cross-fade makes the
+Sources are resampled once to the true 512 x 1024 tile.  The short edge cross-fade makes the
 paintings periodic before the material ramps are applied; it is a colour
 transition between corresponding edge pixels, not a spatial blur.
 """
@@ -84,8 +84,10 @@ def load_source(variant: int) -> np.ndarray:
     w, h = im.size
     crop_w = h // 2
     im = im.crop(((w - crop_w) // 2, 0, (w + crop_w) // 2, h))
-    im = im.resize((256, 512), Image.Resampling.NEAREST)
-    return periodic(np.asarray(im))
+    # Authored at the tile's true 512 x 1024 (was 256 x 512 nearest-doubled, so
+    # every texel was a 2 x 2 block and the sand read soft and zoomed in).
+    im = im.resize((512, 1024), Image.Resampling.LANCZOS)
+    return periodic(np.asarray(im), 24, 30)
 
 
 def material_masks(variant: int, sh: np.ndarray, ss: np.ndarray, lum: np.ndarray):
@@ -181,21 +183,21 @@ def flow_from(source: np.ndarray, variant: int) -> np.ndarray:
     rgba[:, :, 3][mask] = np.uint8(34 + 42 * np.clip(strength[mask] / .3, 0, 1))
     if variant == 2:
         # Three broken ribbons hug the generated canyon's winding floor.
-        for y in range(8, 504):
-            if y % 49 >= 32: continue
-            centre = 130 + 25 * math.sin(y / 70) + 13 * math.sin(y / 31)
-            for offset in (-5, 0, 5):
+        for y in range(16, 1008):
+            if y % 98 >= 64: continue
+            centre = 260 + 50 * math.sin(y / 140) + 26 * math.sin(y / 62)
+            for offset in (-10, 0, 10):
                 x = int(centre + offset)
                 rgba[y, x, :3] = (119, 113, 98)
                 rgba[y, x, 3] = 31
     if variant == 4:
         # Cold wind veils remain thinner than the dune crest traces.
-        for start, xpos in ((54, 35), (236, 161), (394, 48)):
-            for step in range(91):
+        for start, xpos in ((108, 70), (472, 322), (788, 96)):
+            for step in range(182):
                 y = start + step
-                if step % 29 >= 22: continue
-                x = int(xpos + step * .63 + 3 * math.sin(step / 11))
-                if 2 < x < 253 and 2 < y < 509:
+                if step % 58 >= 44: continue
+                x = int(xpos + step * .63 + 6 * math.sin(step / 22))
+                if 4 < x < 507 and 4 < y < 1019:
                     rgba[y, x, :3] = (112, 110, 108)
                     rgba[y, x, 3] = 28
     return rgba
@@ -204,7 +206,9 @@ def flow_from(source: np.ndarray, variant: int) -> np.ndarray:
 def upscale(a: np.ndarray) -> Image.Image:
     mode = "RGBA" if a.shape[2] == 4 else "RGB"
     im = Image.fromarray(a, mode)
-    return im.resize((512, 1024), Image.Resampling.NEAREST).convert("RGBA")
+    if im.size != (512, 1024):
+        im = im.resize((512, 1024), Image.Resampling.NEAREST)
+    return im.convert("RGBA")
 
 
 def main():
@@ -212,11 +216,11 @@ def main():
         base = load_source(variant)
         out_dir = ROOT / f"v{variant}"
         out_dir.mkdir(exist_ok=True)
-        for role, shift in zip(ROLES, ((36, 71), (13, 29), (0, 0))):
+        for role, shift in zip(ROLES, ((72, 142), (26, 58), (0, 0))):
             shifted = np.roll(base, shift, axis=(0, 1))
             # Rolling a periodic source gives a periodic source, except at
             # the shifted cut; repeat the edge match after each offset.
-            shifted = periodic(shifted, 12, 15)
+            shifted = periodic(shifted, 24, 30)
             image = upscale(shade(shifted, variant, role))
             if variant == 4 and role == "mid":
                 # Dim 1px sun-white work lamps on scattered buried ruins.
