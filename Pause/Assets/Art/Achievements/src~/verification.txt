@@ -14,14 +14,14 @@ NEAREST PERCEPTUAL HASH PAIRS (Hamming distance on 256-bit dHash)
 5 | pause_first | pause_no_pause_world
 8 | elite_space_all | elite_verdant_all
 8 | score_10k | score_50k
-8 | stars_1000 | stars_5000
-8 | stars_150 | stars_1000
 9 | codex_10 | codex_50
 9 | elite_space_all | elite_frost_all
-10 | elite_first | elite_frost_all
-10 | stars_150 | stars_5000
 11 | boss_ember | boss_tide
 11 | elite_blink | pause_blink_100
+11 | elite_frost_all | elite_ember_all
+11 | kills_1000 | kills_5000
+11 | meta_first_flight | meta_logged_on
+12 | elite_frost_all | pause_hoarder
 
 ID | TIER | COLOURS
 meta_first_flight | bronze | 348
@@ -31,8 +31,8 @@ world_verdant_reached | silver | 425
 world_ember_reached | silver | 432
 world_tide_reached | silver | 745
 loop_1 | gold | 416
-loop_2 | gold | 346
-loop_5 | platinum | 347
+loop_2 | gold | 350
+loop_5 | platinum | 353
 boss_space | silver | 866
 boss_frost | silver | 861
 boss_verdant | silver | 786
@@ -40,9 +40,9 @@ boss_ember | gold | 786
 boss_tide | gold | 777
 boss_no_hit | gold | 379
 boss_all | platinum | 791
-elite_first | bronze | 773
-elite_10 | silver | 889
-elite_50 | gold | 930
+elite_first | bronze | 401
+elite_10 | silver | 396
+elite_50 | gold | 400
 elite_space_all | silver | 956
 elite_frost_all | silver | 405
 elite_verdant_all | silver | 899
@@ -67,8 +67,8 @@ skin_special | silver | 487
 skin_full_set | gold | 385
 secret_power_first | bronze | 367
 stars_150 | bronze | 378
-stars_1000 | silver | 378
-stars_5000 | gold | 380
+stars_1000 | silver | 377
+stars_5000 | gold | 383
 dust_spent_10000 | silver | 377
 score_10k | bronze | 374
 score_50k | silver | 374
