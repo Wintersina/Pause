@@ -96,8 +96,14 @@ public static class FrostBackdropTest
         foreach (string n in want) all &= spec.Has(n);
         Check("Frost layers: ground tiles + flow, aurora, landmarks, mist, wisps, ceiling, snow x3, blizzard", all);
         bool rising = true;
-        for (int i = 1; i < spec.layers.Length; i++) rising &= spec.layers[i].rate > spec.layers[i - 1].rate;
-        Check("Frost rates strictly increase far -> near", rising);
+        float prev = float.MinValue;
+        foreach (var l in spec.layers)
+        {
+            if (!string.IsNullOrEmpty(l.pinTo)) { rising &= spec.Has(l.pinTo) && spec.Rate(l.pinTo) == l.rate; continue; }   // pinned: its host's exact rate
+            rising &= l.rate > prev;
+            prev = l.rate;
+        }
+        Check("Frost rates strictly increase far -> near (landmarks pinned to the mid tile share its rate)", rising);
         Check("Frost landmarks ride the ground's far parallax (" + spec.Rate("landmarks") + " <= " + BackdropCatalog.MaxGroundRate + ")",
               spec.Rate("landmarks") <= BackdropCatalog.MaxGroundRate && spec.Find("landmarks").role == BackdropCatalog.Role.Landmark);
         Check("Frost's ceiling and wisps are cloud layers, snow / blizzard / mist atmosphere",
@@ -491,7 +497,7 @@ public static class FrostBackdropTest
         bool shape = true;
         string bad = "";
         int samples = 0;
-        Run(wb, 240f, () =>
+        Run(wb, 420f, () =>      // landmarks ride the ground (0.024, was 0.030): a longer flight so the random kinds still show up
         {
             if (LandingSites.Collect(sites) == 0) return;
             samples++;
@@ -525,12 +531,12 @@ public static class FrostBackdropTest
         pilot.position = new Vector3(0f, -2.5f, 0f);
         EliteSystem.PlayerOverride = pilot;
         bool found = false;
-        for (int i = 0; i < 30 * 120 && !found; i++)
+        for (int i = 0; i < 30 * 240 && !found; i++)
         {
             wb.Step(Dt);
             LandingSites.Collect(sites);
             foreach (var s in sites) if (s.kind == LandingKind.Hangar || s.kind == LandingKind.CrawlerBay) found = true;
-            if (!found && i % 300 == 299) d.SpawnSite(float.NaN, 0);
+            if (!found && i % 60 == 59) d.SpawnSite(float.NaN, 0);   // the ground is slower now (0.024): retry often, the top is busy longer
         }
         Check("a hangar or crawler bay comes into view", found);
         if (!found) return;

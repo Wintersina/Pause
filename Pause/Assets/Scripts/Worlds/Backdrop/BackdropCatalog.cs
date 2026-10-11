@@ -219,7 +219,10 @@ public static class BackdropCatalog
             Layer.Pieces("aurora", 0.027f, Role.Atmosphere).Graded(.3f),
             // Rigs, refineries, icebreakers ... and the elite launch sites
             // (one ground plane: they never slide over each other).
-            Layer.Pieces("landmarks", 0.030f, Role.Landmark).Graded(1f),
+            // PINNED to the mid tile: the pieces stand on the ground, so they
+            // scroll at exactly its rate (0.024; they used to run at 0.030 and
+            // slid 25% faster than the ice they stand on).
+            Layer.Pieces("landmarks", 0.024f, Role.Landmark).PinnedTo("mid", 0.024f).Graded(1f),
             Layer.Pieces("mist", 0.060f, Role.Atmosphere).Graded(.5f),
             Layer.Pieces("wisps", 0.090f, Role.Cloud).Graded(.5f),
             // The ceiling's banks are also thickened (FrostTuning.CeilingThicken).

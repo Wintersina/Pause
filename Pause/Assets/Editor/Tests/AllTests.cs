@@ -211,6 +211,7 @@ public static class AllTests
         ("MenuBackdropTest", MenuBackdropTest.Execute),
         ("HomeLayoutTest", HomeLayoutTest.Execute),
         ("FrostBackdropTest", FrostBackdropTest.Execute),
+        ("BackdropAnchorTest", BackdropAnchorTest.Execute),
         ("VerdantBackdropTest", VerdantBackdropTest.Execute),
         ("EmberBackdropTest", EmberBackdropTest.Execute),
         ("TideBackdropTest", TideBackdropTest.Execute),
