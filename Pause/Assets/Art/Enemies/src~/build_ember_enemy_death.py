@@ -57,6 +57,31 @@ UNITS = {
 }
 
 
+FIRE_UNITS = {"ember_alien", "ember_chaser", "ember_big", "ember_fighter_1", "ember_fighter_3", "ember_fighter_4",
+              "ember_elite_sunstoke", "ember_elite_coalrunner", "ember_elite_brass_vulture", "ember_elite_kilnback",
+              "ember_elite_ash_wraith", "ember_elite_cauterizer"}
+
+
+def fire_under(frame, core, R, rng, n, length, width, phase):
+    """Flame tongues rising round the burst (drawn UNDER the chunks): the death of a fire unit is a blaze, not only sparks."""
+    sys.path.insert(0, str(Path(__file__).resolve().parent / "ember_recolor"))
+    import fire
+    S = frame.width
+    lay = np.zeros((S, S, 4), np.uint8)
+    old = fire.EDGE
+    fire.EDGE = 10
+    for i in range(n):
+        a = rng.uniform(0, math.tau)
+        rr = rng.uniform(R * .15, R * .62)
+        x = int(core[0] + math.cos(a) * rr)
+        y = int(core[1] + math.sin(a) * rr * .8 + R * .25)
+        fire.tongue(lay, x, y, -1, length * rng.uniform(.7, 1.25), width * rng.uniform(.8, 1.3), phase + i * 1.3, int(rng.integers(1, 9999)))
+    fire.EDGE = old
+    f = Image.fromarray(lay, "RGBA")
+    f.alpha_composite(frame)
+    return f
+
+
 def cell3(key, side):
     strip = Image.open(IDLE / f"{key}.png").convert("RGBA")
     return strip.crop((3 * side, 0, 4 * side, side))
@@ -257,6 +282,9 @@ def build(key):
     disc(d, core, 2, (*WHITE, 230))
     frames.append(dis)
 
+    if key in FIRE_UNITS:
+        frames[1] = fire_under(frames[1], core, R, rng, 10, 44, 14, 1.0)
+        frames[2] = fire_under(frames[2], core, R, rng, 7, 30, 11, 3.0)
     out = Image.new("RGBA", (S * 3, S))
     for i, fr in enumerate(frames):
         out.alpha_composite(fr, (i * S, 0))
