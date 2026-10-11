@@ -220,6 +220,7 @@ public static class AllTests
         ("HomeLayoutTest", HomeLayoutTest.Execute),
         ("FrostBackdropTest", FrostBackdropTest.Execute),
         ("BackdropAnchorTest", BackdropAnchorTest.Execute),
+        ("BackdropCellBleedTest", BackdropCellBleedTest.Execute),
         ("VerdantBackdropTest", VerdantBackdropTest.Execute),
         ("EmberBackdropTest", EmberBackdropTest.Execute),
         ("TideBackdropTest", TideBackdropTest.Execute),
