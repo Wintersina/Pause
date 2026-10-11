@@ -16,7 +16,7 @@ public static class BoostMusicContinuityTest
         if (!ok) fails++;
     }
 
-    const string ClipPath = "Assets/Audio/Music/BoostingMusic.wav";
+    const string ClipPath = "Assets/Audio/Music/BoostingMusic.mp3";
     const string Guid = "96cc59c5eca368b4180a8501f68b7acb";
     const float SourceSeconds = 207.9735f;   // the Hyperspace Loop m4a, decoded
     const float CutAt = 26f;
@@ -37,7 +37,7 @@ public static class BoostMusicContinuityTest
     static void Body()
     {
         // ---- the asset: replaced in place, old data gone ----
-        Check("BoostingMusic.wav keeps its guid", AssetDatabase.AssetPathToGUID(ClipPath) == Guid);
+        Check("BoostingMusic.mp3 keeps its guid", AssetDatabase.AssetPathToGUID(ClipPath) == Guid);
         var clip = AssetDatabase.LoadAssetAtPath<AudioClip>(ClipPath);
         Check("clip loads", clip != null);
         if (clip != null)

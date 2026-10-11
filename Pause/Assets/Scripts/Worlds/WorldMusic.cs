@@ -40,6 +40,9 @@ public class WorldMusic : MonoBehaviour
     public const string VerdantTrack = "WorldMusic/Verdant_Main";
     public const string TideTrack = "WorldMusic/Tide_Main";
     public const string StormTrack = "WorldMusic/Storm_Main";
+    // Dune Circuit (199.15 s): the Desert world's song. The Desert branch only has to set
+    // musicResource = WorldMusic.DesertTrack on its WorldTheme row.
+    public const string DesertTrack = "WorldMusic/Desert_Main";
     // Space's own song (Neon Solitude, 212.8 s): plays in the Space sky, the
     // space leg between worlds and the loop's return. It fades in from silence
     // and ends on a 50 ms fade, so a plain end-to-end loop is clean.
@@ -71,6 +74,7 @@ public class WorldMusic : MonoBehaviour
         {
             case EmberTrack: return 225.5f;   // Anvil Arpeggio: full level to ~225.5 s of 229.9 s
             case FrostTrack: return 203.8f;
+            case DesertTrack: return 197.8f;   // Dune Circuit: full level to ~197.8 s of 199.15 s
             case StormTrack: return 118.9f;   // Static Storm (mp3): full level to ~119.1 s of 120.0 s, then a short near-silent tail
             case TideTrack: return 205.9f;   // Deep Sonar Ping: full level to ~205.9 s of 208.4 s
             case VerdantTrack: return 197.0f;   // Jungle Night Pulse: full level to ~197.0 s of 200.0 s
