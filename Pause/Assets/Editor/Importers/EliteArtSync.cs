@@ -25,7 +25,7 @@ public class EliteArtSync : AssetPostprocessor
 
     static readonly Regex Final = new Regex(@"^[a-z]+_elite_[a-z0-9_]+\.png$");
     static readonly Regex Bare = new Regex(@"^[a-z][a-z0-9_]*\.png$");
-    static readonly string[] WorkingSuffixes = { "_candidate", "_concept", "_wip", "_draft", "_old" };
+    static readonly string[] WorkingSuffixes = { "_candidate", "_concept", "_wip", "_draft", "_old", "_sheet", "_preview" };   // _sheet: contact sheets (10 MB of RGBA once shipped)
 
     public static bool IsFinalStrip(string fileName)
     {

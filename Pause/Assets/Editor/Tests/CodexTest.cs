@@ -413,7 +413,30 @@ public static class CodexTest
             Check("ship " + ShipId.KeyOf(ship) + " entry uses its roster name and id",
                   e != null && e.name == ShipId.NameOf(ship) && CodexCatalogue.ShipIndex(e.id) == ship);
         }
-        Check("every world has an entry", CountIn(CodexCategory.Worlds) == WorldManager.LiveWorldCount + 1);
+        {
+            // Only live worlds (plus the portal) are listed. Reset the state that changes listing first:
+            // developer mode and the Tide switch both reveal future worlds.
+            DeveloperUnlocks.SetEnabled(false);
+            bool tideSwitch = WorldManager.TideEnabled;
+            WorldManager.TideEnabled = false;
+            int highestWas = PlayerPrefs.GetInt(WorldManager.PrefsHighestWorld, 0);
+            try
+            {
+                // a leftover "highest world reached = Tide" (a dev build's picker) must not list Tide in a live build
+                PlayerPrefs.SetInt(WorldManager.PrefsHighestWorld, 4);
+                Codex.Reload();
+                Check("a stale highest-world pref of Tide still does not list Tide while the switch is off",
+                      !Codex.IsListed(Codex.Find(Codex.WorldId(4))) && CountIn(CodexCategory.Worlds) == WorldManager.LiveWorldCount + 1);
+                PlayerPrefs.SetInt(WorldManager.PrefsHighestWorld, highestWas);
+                Codex.Reload();
+                Check("every live world has an entry, plus the portal (" + CountIn(CodexCategory.Worlds) + ")",
+                      CountIn(CodexCategory.Worlds) == WorldManager.LiveWorldCount + 1 && WorldManager.LiveWorldCount == 4);
+                Check("Tide is in the catalogue but not listed (or counted) while TideEnabled is off",
+                      Codex.Find(Codex.WorldId(4)) != null && !Codex.IsListed(Codex.Find(Codex.WorldId(4))) &&
+                      CapacityWorlds() == CountIn(CodexCategory.Worlds) + 1);
+            }
+            finally { WorldManager.TideEnabled = tideSwitch; PlayerPrefs.SetInt(WorldManager.PrefsHighestWorld, highestWas); Codex.Reload(); }
+        }
         {
             var space = Codex.Find(Codex.WorldId(0));
             var sky = CodexCatalogue.SpaceSkyTexture();
@@ -882,8 +905,11 @@ public static class CodexTest
                 PlayerPrefs.SetString(ShipId.OwnedKey(ship), "True");
                 Check(id + ": buying it discovers it", !before && Codex.IsDiscovered(id));
             }
-            Check("meeting everything once discovers the whole codex (" + Codex.DiscoveredCount + "/" + Codex.Total + ")",
-                  Codex.DiscoveredCount == Codex.Entries.Length && Codex.Total == Codex.Entries.Length);
+            // every LIVE entry: a world the loop cannot reach (Tide, switch off) is recorded but never listed or counted
+            int liveEntries = 0;
+            foreach (var entry in Codex.Entries) if (!Codex.InFutureWorld(entry)) liveEntries++;
+            Check("meeting everything once discovers the whole live codex (" + Codex.DiscoveredCount + "/" + Codex.Total + ")",
+                  Codex.DiscoveredCount == liveEntries && Codex.Total == liveEntries && liveEntries < Codex.Entries.Length);
         }
         finally
         {
@@ -2528,6 +2554,8 @@ public static class CodexTest
         using (var md5 = System.Security.Cryptography.MD5.Create())
             return BitConverter.ToString(md5.ComputeHash(File.ReadAllBytes(assetPath)));
     }
+
+    static int CapacityWorlds() { return Codex.CapacityIn(CodexCategory.Worlds); }
 
     static int CountIn(CodexCategory c)
     {

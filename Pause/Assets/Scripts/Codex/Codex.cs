@@ -69,7 +69,7 @@ public static class Codex
         get
         {
             int n = 0;
-            foreach (var e in Entries) if (IsDiscovered(e)) n++;
+            foreach (var e in Entries) if (IsListed(e) && IsDiscovered(e)) n++;
             return n;
         }
     }
@@ -102,7 +102,11 @@ public static class Codex
     // off the list the same way, so the codex never shows a world the loop cannot reach.
     public static bool IsListed(CodexEntry entry)
     {
-        return entry != null && ((!entry.secret && !InFutureWorld(entry)) || IsDiscovered(entry));
+        if (entry == null) return false;
+        // A world the loop cannot reach is never listed, even when a stale "highest world" pref (a dev
+        // build's picker) would count its entry as discovered; only developer mode shows it.
+        if (InFutureWorld(entry)) return DeveloperUnlocks.Enabled;
+        return !entry.secret || IsDiscovered(entry);
     }
 
     // True for a world entry, roster enemy / hazard or elite of a world past WorldManager.LiveWorldCount.
