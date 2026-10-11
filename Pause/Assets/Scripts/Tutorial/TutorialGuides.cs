@@ -203,7 +203,7 @@ public class TutorialGuides : MonoBehaviour
         Vector3 sp = cam.WorldToScreenPoint(target.position);
         if (sp.z < 0f || sp.y > ScreenInfo.Height || sp.y < 0f || sp.x < 0f || sp.x > ScreenInfo.Width) return false;
         var screen = new Vector2(sp.x, sp.y + 28f * Mathf.Max(.0001f, ScaleFactor()));
-        return RectTransformUtility.ScreenPointToLocalPointInRectangle(root, screen, null, out local);
+        return RectTransformUtility.ScreenPointToLocalPointInRectangle(root, screen, UiCamera, out local);
     }
 
     void Apply(float now, float tAlpha)
@@ -253,9 +253,16 @@ public class TutorialGuides : MonoBehaviour
         else return false;
 
         Vector2 local;
-        if (!RectTransformUtility.ScreenPointToLocalPointInRectangle(root, screen, null, out local)) return false;
+        if (!RectTransformUtility.ScreenPointToLocalPointInRectangle(root, screen, UiCamera, out local)) return false;
         tip = local;
         return true;
+    }
+
+    // The canvas's camera (null on the game's overlay canvas; the screen-fit rig
+    // draws it through a UI camera).
+    Camera UiCamera
+    {
+        get { return canvas != null && canvas.renderMode != RenderMode.ScreenSpaceOverlay ? canvas.worldCamera : null; }
     }
 
     float ScaleFactor()

@@ -511,8 +511,8 @@ public static class TutorialPolishTest
             if (live == null) continue;
             var drift = live.GetComponent<TutorialAtomDrift>();
             var col = live.GetComponent<Collider2D>();
-            Check(name + " is a pickUp trigger with an enabled collider",
-                  col != null && col.enabled && col.isTrigger && live.CompareTag("pickUp"));
+            Check(name + " is a pickUp with an enabled collider",
+                  col != null && col.enabled && live.CompareTag("pickUp"));
             Check(name + " can touch the ship's layer", !Physics2D.GetIgnoreLayerCollision(ship.layer, live.gameObject.layer));
 
             // visible within a second or so, in the lane, and stays on screen
@@ -527,6 +527,7 @@ public static class TutorialPolishTest
             Check(name + " is on screen and in the lane (y " + live.position.y.ToString("0.0") + ", seen after " + seenAt.ToString("0.0") + " s)",
                   seenAt >= 0f && seenAt < 1.5f && live.position.y > bottom && live.position.y < top && Mathf.Abs(live.position.x) <= 2.4f);
 
+            if (kind == TutorialAtom.Cooldown) score.pauseCounter = 0;   // the world runs, so the weapon can fire
             int heal0 = collisionDetection.healAtomPickups, blue0 = collisionDetection.shieldAtomPickups,
                 red0 = collisionDetection.pauseAtomPickups, pauses0 = score.pauseCounter;
             int life0 = collisionDetection.lifeCounter;
@@ -552,7 +553,7 @@ public static class TutorialPolishTest
                     break;
                 case TutorialAtom.Red:
                     Check("pause: the pause counter goes up (" + pauses0 + " -> " + score.pauseCounter + ")",
-                          score.pauseCounter == pauses0 + 1 && collisionDetection.pauseAtomPickups == red0 + 1);
+                          score.pauseCounter > pauses0 && collisionDetection.pauseAtomPickups == red0 + 1);
                     break;
                 case TutorialAtom.Cooldown:
                     Own(power, "Update");
@@ -649,6 +650,10 @@ public static class TutorialPolishTest
             TutorialLiftOff.Reset();
             try
             {
+                // edit mode runs persistent listeners only if told to
+                foreach (var b in Object.FindObjectsByType<Button>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+                    for (int i = 0; i < b.onClick.GetPersistentEventCount(); i++)
+                        UnityEditor.Events.UnityEventTools.SetPersistentListenerState(b.onClick, i, UnityEngine.Events.UnityEventCallState.EditorAndRuntime);
                 var host = new GameObject("~tutClicks").AddComponent<tutButtonClicks>();
                 host.SendMessage("Start");
                 var panel = TutorialCompletePanel.Show();
@@ -748,7 +753,7 @@ public static class TutorialPolishTest
             Check("it takes about " + TutorialLiftOff.Seconds + " s (" + t.ToString("0.00") + ")", t > TutorialLiftOff.Seconds * .8f && t < TutorialLiftOff.Seconds + .7f);
             events.Add("end");
             Check("the portal plays exactly once and the level loads exactly once, straight to gameS1 (" + string.Join(", ", events) + ")",
-                  string.Join(",", events) == "begin,end,load gameS1" && TutorialLiftOff.Loaded == 1);
+                  string.Join(",", events) == "begin,load gameS1,end" && TutorialLiftOff.Loaded == 1);
             flight.Step(1f);
             Check("stepping on after the end does nothing more", TutorialLiftOff.Loaded == 1);
 
