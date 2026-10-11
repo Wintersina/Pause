@@ -214,6 +214,8 @@ public static class BuildScript
             .ToList();
         foreach (var r in rows.Take(120))
             Debug.Log("[SIZE] " + r.size + " " + r.path);
+        // the full list, one "<bytes> <path>" per line, for scripts
+        File.WriteAllLines(Path.Combine(OutputRoot, "size-report.txt"), rows.Select(r => r.size + " " + r.path).ToArray());
         foreach (var g in rows.GroupBy(r => string.Join("/", r.path.Split('/').Take(Math.Min(4, r.path.Split('/').Length - 1))))
                      .Select(g => new { g.Key, size = g.Sum(r => r.size) }).OrderByDescending(g => g.size).Take(60))
             Debug.Log("[SIZEDIR] " + g.size + " " + g.Key);

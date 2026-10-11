@@ -133,12 +133,12 @@ TextureImporter:
     buildTarget: Android
     maxTextureSize: 4096
     resizeAlgorithm: 0
-    textureFormat: -1
+    textureFormat: 48
     textureCompression: 1
-    compressionQuality: 50
+    compressionQuality: 100
     crunchedCompression: 0
     allowsAlphaSplitting: 0
-    overridden: 0
+    overridden: 1
     ignorePlatformSupport: 0
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 0
@@ -146,12 +146,12 @@ TextureImporter:
     buildTarget: iOS
     maxTextureSize: 4096
     resizeAlgorithm: 0
-    textureFormat: -1
+    textureFormat: 48
     textureCompression: 1
-    compressionQuality: 50
+    compressionQuality: 100
     crunchedCompression: 0
     allowsAlphaSplitting: 0
-    overridden: 0
+    overridden: 1
     ignorePlatformSupport: 0
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 0
@@ -438,6 +438,8 @@ TextureImporter:
     nameFileIdTable:
       space_elite_rift_lancer_strip_candidate_0: -8700463745506891993
       space_elite_rift_lancer_strip_candidate_1: 3039914044162524991
+      space_elite_rift_lancer_strip_candidate_10: 2300460359973034678
+      space_elite_rift_lancer_strip_candidate_11: 4186228378774255157
       space_elite_rift_lancer_strip_candidate_2: 3546965194136713480
       space_elite_rift_lancer_strip_candidate_3: 6746855735718362673
       space_elite_rift_lancer_strip_candidate_4: -7861144672115522274
@@ -446,8 +448,6 @@ TextureImporter:
       space_elite_rift_lancer_strip_candidate_7: -490380687081926309
       space_elite_rift_lancer_strip_candidate_8: 5080344585706643882
       space_elite_rift_lancer_strip_candidate_9: 7986089846819773334
-      space_elite_rift_lancer_strip_candidate_10: 2300460359973034678
-      space_elite_rift_lancer_strip_candidate_11: 4186228378774255157
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

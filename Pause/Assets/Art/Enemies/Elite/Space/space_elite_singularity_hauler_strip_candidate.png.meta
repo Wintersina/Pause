@@ -133,12 +133,12 @@ TextureImporter:
     buildTarget: Android
     maxTextureSize: 4096
     resizeAlgorithm: 0
-    textureFormat: -1
+    textureFormat: 48
     textureCompression: 1
-    compressionQuality: 50
+    compressionQuality: 100
     crunchedCompression: 0
     allowsAlphaSplitting: 0
-    overridden: 0
+    overridden: 1
     ignorePlatformSupport: 0
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 0
@@ -146,12 +146,12 @@ TextureImporter:
     buildTarget: iOS
     maxTextureSize: 4096
     resizeAlgorithm: 0
-    textureFormat: -1
+    textureFormat: 48
     textureCompression: 1
-    compressionQuality: 50
+    compressionQuality: 100
     crunchedCompression: 0
     allowsAlphaSplitting: 0
-    overridden: 0
+    overridden: 1
     ignorePlatformSupport: 0
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 0
@@ -438,6 +438,8 @@ TextureImporter:
     nameFileIdTable:
       space_elite_singularity_hauler_strip_candidate_0: -1735480231702013467
       space_elite_singularity_hauler_strip_candidate_1: 8654620955538012584
+      space_elite_singularity_hauler_strip_candidate_10: -1943165499245725879
+      space_elite_singularity_hauler_strip_candidate_11: 2036653133181810899
       space_elite_singularity_hauler_strip_candidate_2: -7273861805914129383
       space_elite_singularity_hauler_strip_candidate_3: -5549832392843610066
       space_elite_singularity_hauler_strip_candidate_4: -5108676138028201306
@@ -446,8 +448,6 @@ TextureImporter:
       space_elite_singularity_hauler_strip_candidate_7: -6669851920236536798
       space_elite_singularity_hauler_strip_candidate_8: 5608816350041283797
       space_elite_singularity_hauler_strip_candidate_9: 4545569681446739030
-      space_elite_singularity_hauler_strip_candidate_10: -1943165499245725879
-      space_elite_singularity_hauler_strip_candidate_11: 2036653133181810899
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

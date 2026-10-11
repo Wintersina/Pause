@@ -25,13 +25,15 @@ public class AndroidTextureDiet : AssetPostprocessor
 {
     public const int MinSide = 128;
 
-    public override uint GetPostprocessOrder() { return 1000; }
+    public override int GetPostprocessOrder() { return 1000; }
 
     public static bool Eligible(string path)
     {
         if (!path.StartsWith("Assets/", StringComparison.Ordinal)) return false;
         if (path.Contains("~/") || path.Contains("/Editor/") || path.Contains("/Tests/")) return false;
         if (path.Contains("/Staging/") || path.Contains("/Plugins/")) return false;
+        if (path.StartsWith("Assets/Art/AppIcon/", StringComparison.Ordinal)) return false;   // launcher icons stay uncompressed
+        if (path.StartsWith("Assets/Art/UI/", StringComparison.Ordinal)) return false;   // UI keeps its (test-guarded) import settings
         string ext = Path.GetExtension(path).ToLowerInvariant();
         return ext == ".png" || ext == ".jpg" || ext == ".jpeg" || ext == ".tga";
     }
@@ -101,7 +103,19 @@ public class AndroidTextureDiet : AssetPostprocessor
         }
         finally { AssetDatabase.StopAssetEditing(); }
         AssetDatabase.SaveAssets();
+        // Anything that still is not block compressed (Unity silently keeps NPOT + mipmaps as RGBA32).
+        foreach (string guid in AssetDatabase.FindAssets("t:Texture2D", new[] { "Assets" }))
+        {
+            string path = AssetDatabase.GUIDToAssetPath(guid);
+            var ti = AssetImporter.GetAtPath(path) as TextureImporter;
+            if (ti == null || !Eligible(path) || ti.isReadable) continue;
+            var tex = AssetDatabase.LoadAssetAtPath<Texture2D>(path);
+            if (tex != null && tex.width >= MinSide && !IsAstc2(tex.format))
+                Debug.Log("[DIETFAIL] " + path + " format=" + tex.format + " " + tex.width + "x" + tex.height + " mips=" + tex.mipmapCount);
+        }
     }
+
+    static bool IsAstc2(TextureFormat f) { return f.ToString().StartsWith("ASTC"); }
 
     public static void ApplyAllAndExit()
     {

@@ -133,12 +133,12 @@ TextureImporter:
     buildTarget: Android
     maxTextureSize: 4096
     resizeAlgorithm: 0
-    textureFormat: -1
+    textureFormat: 48
     textureCompression: 1
-    compressionQuality: 50
+    compressionQuality: 100
     crunchedCompression: 0
     allowsAlphaSplitting: 0
-    overridden: 0
+    overridden: 1
     ignorePlatformSupport: 0
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 0
@@ -146,12 +146,12 @@ TextureImporter:
     buildTarget: iOS
     maxTextureSize: 4096
     resizeAlgorithm: 0
-    textureFormat: -1
+    textureFormat: 48
     textureCompression: 1
-    compressionQuality: 50
+    compressionQuality: 100
     crunchedCompression: 0
     allowsAlphaSplitting: 0
-    overridden: 0
+    overridden: 1
     ignorePlatformSupport: 0
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 0
@@ -438,6 +438,8 @@ TextureImporter:
     nameFileIdTable:
       space_elite_orbit_reaver_strip_candidate_0: -1702043353481813944
       space_elite_orbit_reaver_strip_candidate_1: -2997445191785466503
+      space_elite_orbit_reaver_strip_candidate_10: -8785241820107986920
+      space_elite_orbit_reaver_strip_candidate_11: -3656161554412151072
       space_elite_orbit_reaver_strip_candidate_2: 4210005545305931266
       space_elite_orbit_reaver_strip_candidate_3: -8845958631842538779
       space_elite_orbit_reaver_strip_candidate_4: 8769506410476986201
@@ -446,8 +448,6 @@ TextureImporter:
       space_elite_orbit_reaver_strip_candidate_7: -1997977140795587460
       space_elite_orbit_reaver_strip_candidate_8: 2502053478260076568
       space_elite_orbit_reaver_strip_candidate_9: -4229970514851790182
-      space_elite_orbit_reaver_strip_candidate_10: -8785241820107986920
-      space_elite_orbit_reaver_strip_candidate_11: -3656161554412151072
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
