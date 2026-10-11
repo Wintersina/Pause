@@ -722,12 +722,11 @@ public static class TutorialRobotTest
         string skip = File.ReadAllText("Assets/Scripts/Tutorial/TutorialSkip.cs");
         string card = File.ReadAllText("Assets/Scripts/Tutorial/TutorialCompletePanel.cs");
         Check("the skip plate is not tinted", skip.Contains("img.color = Color.white"));
-        Check("the end card's plates are not tinted", card.Contains("Load(\"tut_card\"), Color.white") && card.Contains("frame.color = Color.white"));
+        Check("the end card wears the Flight Complete plates (dp_panel, dp_button)", card.Contains("Load(\"dp_panel\")") && card.Contains("Load(\"dp_button\")"));
         Check("the voice pulse tints the white ring cyan",
               File.ReadAllText("Assets/Scripts/Tutorial/RobotSpeaker.cs").Contains("Load(\"tut_ring\"), TutorialPalette.Cyan"));
-        Check("PLAY and MENU labels are told apart (amber vs paper) on identical plates",
-              card.Contains("\"PLAY\", TutorialPalette.Orange") && card.Contains("\"MENU\", TutorialPalette.Paper")
-              && card.Contains("text.color = accent"));
+        Check("LIFT OFF and HOME are told apart (cyan vs red plates, as REPLAY / MENU)",
+              card.Contains("LiftOffText, Cyan") && card.Contains("HomeText, Coral"));
         Check("the palette is the kit's: cyan 0BD0F6, panel 0C1725, ink 05060C",
               TutorialPalette.Html(TutorialPalette.Cyan) == "#0BD0F6" && TutorialPalette.Html(TutorialPalette.Panel) == "#0C1725"
               && TutorialPalette.Html(TutorialPalette.Ink) == "#05060C");

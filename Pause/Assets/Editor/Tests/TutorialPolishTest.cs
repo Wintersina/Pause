@@ -650,13 +650,20 @@ public static class TutorialPolishTest
             TutorialLiftOff.Reset();
             try
             {
-                // edit mode runs persistent listeners only if told to
+                // edit mode does not run persistent listeners: a runtime listener calls
+                // the scene-wired method (Wired in TutorialRobotTest checks the wiring itself)
                 foreach (var b in Object.FindObjectsByType<Button>(FindObjectsInactive.Include, FindObjectsSortMode.None))
                 {
-                    var so = new UnityEditor.SerializedObject(b);
-                    var calls = so.FindProperty("m_OnClick.m_PersistentCalls.m_Calls");
-                    for (int i = 0; i < calls.arraySize; i++) calls.GetArrayElementAtIndex(i).FindPropertyRelative("m_CallState").intValue = 2;
-                    so.ApplyModifiedPropertiesWithoutUndo();
+                    var btn = b;
+                    btn.onClick.AddListener(() =>
+                    {
+                        for (int i = 0; i < btn.onClick.GetPersistentEventCount(); i++)
+                        {
+                            var target = btn.onClick.GetPersistentTarget(i);
+                            var m = target != null ? target.GetType().GetMethod(btn.onClick.GetPersistentMethodName(i), BindingFlags.Instance | BindingFlags.Public) : null;
+                            if (m != null) m.Invoke(target, null);
+                        }
+                    });
                 }
                 var host = new GameObject("~tutClicks").AddComponent<tutButtonClicks>();
                 host.SendMessage("Start");
