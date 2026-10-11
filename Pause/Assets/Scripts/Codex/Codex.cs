@@ -198,6 +198,40 @@ public static class Codex
         return true;
     }
 
+    // ---------------------------------------------------------------------
+    // Music tracks (the codex MUSIC tab, see CodexMusic)
+    // ---------------------------------------------------------------------
+    //
+    // A track is "heard" once the player has played it in a real run. It is
+    // stored as one more id ("music_ember") in the same PrefsKey set as the
+    // discovered entries, so it persists, batches and cloud-syncs the same way.
+    // Track ids are not CodexEntry rows, so they never touch Total,
+    // DiscoveredCount, the NEW markers or the completionist target.
+    // The tutorial is practice (nothing counts) and developer mode shows every
+    // track without writing, exactly like entries.
+
+    public static bool IsTrackHeard(string trackId)
+    {
+        if (string.IsNullOrEmpty(trackId)) return false;
+        if (DeveloperUnlocks.Enabled) return true;
+        EnsureLoaded();
+        return seen.Contains(trackId);
+    }
+
+    // Returns true only the first time. Cheap when already heard (called on every world / boss music start).
+    public static bool HearTrack(string trackId)
+    {
+        if (string.IsNullOrEmpty(trackId)) return false;
+        EnsureLoaded();
+        if (seen.Contains(trackId)) return false;
+        if (InTutorial() || DeveloperUnlocks.Enabled) return false;
+        seen.Add(trackId);
+        seenOrder.Add(trackId);
+        PlayerPrefs.SetString(PrefsKey, string.Join(",", seenOrder));
+        PrefsSaver.MarkDirty();
+        return true;
+    }
+
     public static bool IsDiscovered(string id)
     {
         var entry = Find(id);

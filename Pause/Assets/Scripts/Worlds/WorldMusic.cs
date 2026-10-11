@@ -104,6 +104,9 @@ public class WorldMusic : MonoBehaviour
             sceneDefault = source.clip;
         }
 
+        // The world's own song counts as heard for the codex MUSIC tab (the tutorial never counts).
+        CodexMusic.HeardWorld(theme);
+
         AudioClip next = UsesStages(theme) ? Resources.Load<AudioClip>(StageResource(theme, 1)) : null;
         if (next == null)
             next = string.IsNullOrEmpty(theme.musicResource)
@@ -287,6 +290,7 @@ public class WorldMusic : MonoBehaviour
         {
             preBossClip = source.clip;
             bossTrackPlaying = true;
+            if (BossClip(theme) == next) CodexMusic.HeardBoss(theme);
             EnsureRunner().StartCoroutine(Swap(source, next));
         }
         else

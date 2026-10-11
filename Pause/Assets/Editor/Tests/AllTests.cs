@@ -51,6 +51,7 @@ public static class AllTests
         ("AchievementReportingTest", AchievementReportingTest.Execute),
         ("CodexAchievementsTabTest", CodexAchievementsTabTest.Execute),
         ("CodexNewDotsTest", CodexNewDotsTest.Execute),
+        ("CodexMusicTest", CodexMusicTest.Execute),
         ("AsteroidBackwardsAndShopColumnsTest", AsteroidBackwardsAndShopColumnsTest.Execute),
         ("AsteroidColliderTest", AsteroidColliderTest.Execute),
         ("AsteroidDriftTest", AsteroidDriftTest.Execute),
