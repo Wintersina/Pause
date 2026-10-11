@@ -652,8 +652,12 @@ public static class TutorialPolishTest
             {
                 // edit mode runs persistent listeners only if told to
                 foreach (var b in Object.FindObjectsByType<Button>(FindObjectsInactive.Include, FindObjectsSortMode.None))
-                    for (int i = 0; i < b.onClick.GetPersistentEventCount(); i++)
-                        UnityEditor.Events.UnityEventTools.SetPersistentListenerState(b.onClick, i, UnityEngine.Events.UnityEventCallState.EditorAndRuntime);
+                {
+                    var so = new UnityEditor.SerializedObject(b);
+                    var calls = so.FindProperty("m_OnClick.m_PersistentCalls.m_Calls");
+                    for (int i = 0; i < calls.arraySize; i++) calls.GetArrayElementAtIndex(i).FindPropertyRelative("m_CallState").intValue = 2;
+                    so.ApplyModifiedPropertiesWithoutUndo();
+                }
                 var host = new GameObject("~tutClicks").AddComponent<tutButtonClicks>();
                 host.SendMessage("Start");
                 var panel = TutorialCompletePanel.Show();
