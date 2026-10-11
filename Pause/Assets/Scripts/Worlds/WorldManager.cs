@@ -76,7 +76,7 @@ public class WorldManager : MonoBehaviour
     {
         new WorldTheme {
             displayName = "Space", resourceFolder = "",
-            progressiveMusic = false, // plays the scene's own track (no stage clips)
+            musicResource = "WorldMusic/Space_Main", progressiveMusic = false, // Neon Solitude, looped end to end
             portalColor = new Color(0.55f, 0.85f, 1f),
             speedRampPerSecond = 0.00315f, enemyRampScale = 1.00f,
         },

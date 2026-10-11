@@ -37,6 +37,10 @@ public class WorldMusic : MonoBehaviour
 
     public const string EmberTrack = "WorldMusic/Ember_Main";
     public const string FrostTrack = "WorldMusic/Frost_Main";
+    // Space's own song (Neon Solitude, 212.8 s): plays in the Space sky, the
+    // space leg between worlds and the loop's return. It fades in from silence
+    // and ends on a 50 ms fade, so a plain end-to-end loop is clean.
+    public const string SpaceTrack = "WorldMusic/Space_Main";
 
 
     // The full song on the main source, and where it loops back.
@@ -305,7 +309,9 @@ public class WorldMusic : MonoBehaviour
         float oldVolume = main.volume;
         float oldTime = main.time;
 
-        if (oldClip != null && main.isPlaying)
+        // A source that has only just started (the scene's own track at the
+        // run's first Apply) has nothing worth fading out.
+        if (oldClip != null && main.isPlaying && oldTime > 0.3f)
         {
             var tailGo = new GameObject("~MusicTail");
             var tail = tailGo.AddComponent<AudioSource>();
