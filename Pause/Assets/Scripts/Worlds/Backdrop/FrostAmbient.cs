@@ -186,7 +186,7 @@ public static class FrostAmbientCatalog
         B("refinery_01", E("smoke_a", 130, 30), E("smoke_b", 74, 90), E("smoke_b", 184, 96, .8f), E("window_lights", 110, 190)),
         B("relay_00", E("beacon_cyan", 98, 84), E("beacon_magenta", 193, 96), E("strobe_white", 160, 28)),
         B("relay_01", E("beacon_cyan", 72, 82), E("beacon_magenta", 137, 60), E("strobe_white", 120, 28)),
-        B("causeway_00", E("beacon_cyan", 55, 38), E("beacon_magenta", 195, 94)),
+        B("causeway_00", E("beacon_cyan", 76, 46), E("beacon_magenta", 184, 111)),     // lamp heads of the landfall causeway (Codex, 2026-10-11)
         B("icebreaker_00", E("steam_vent", 134, 48, .7f), E("beacon_magenta", 144, 73)),
         B("icebreaker_01", E("steam_vent", 128, 50, .7f), E("beacon_cyan", 147, 61)),
         B("cliff_00", E("geyser", 70, 182), E("steam_vent", 190, 200, .8f)),

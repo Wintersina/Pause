@@ -22,6 +22,11 @@ using UnityEngine;
 //              spot where the mask under the footprint agrees. The tile
 //              repeats vertically (period = its drawn height) and spans the
 //              view's width (TileWidth), exactly as BackdropTile draws it.
+//   ENDS       A span (bridge, viaduct, causeway, a lone pipe bridge) also
+//              declares its two ends (PieceRule.WithEnds): both must come
+//              down on the ground it connects -- shore to shore, deck to
+//              deck -- so it never stands as a stub in the middle of the
+//              ice / sea / sand.
 //   ROOM       Accepted footprints are remembered (ground coordinates) and a
 //              new one may not overlap any of them; they are forgotten once
 //              they have scrolled out under the view.
@@ -110,11 +115,27 @@ public struct PieceRule
     public float need;          // share of the footprint samples that must match (0..1)
     public GroundClass near;    // optional: at least one sample of its RING (1.6 x footprint) must be this (None: no rule)
     public float core;          // footprint half-size as a share of the drawn width (the art's core, not its margins)
+    // ENDS (a span: bridge, viaduct, causeway, lone pipe bridge): the two
+    // points where the drawing meets the ground it connects, as a share of its
+    // drawn width from its centre (y up, as drawn: a piece with ends is never
+    // mirrored). Each must stand on `endsOn` (at least half of a small disc of
+    // radius endRadius x width around it). None: no ends rule.
+    public GroundClass endsOn;
+    public Vector2 endA, endB;
+    public float endRadius;
 
     public PieceRule(GroundClass on, float need, float core = .32f, GroundClass near = GroundClass.None)
     {
         this.on = on; this.need = need; this.core = core; this.near = near;
+        endsOn = GroundClass.None; endA = endB = Vector2.zero; endRadius = 0f;
     }
+
+    public PieceRule WithEnds(Vector2 a, Vector2 b, GroundClass on, float radius = .1f)
+    {
+        var r = this; r.endA = a; r.endB = b; r.endsOn = on; r.endRadius = radius; return r;
+    }
+
+    public bool HasEnds => endsOn != GroundClass.None;
 }
 
 public class GroundPlanner
@@ -200,7 +221,16 @@ public class GroundPlanner
     public bool Accepts(PieceRule r, float x, double gy, float size)
     {
         float rx = HalfX(r, size), ry = HalfY(r, size);
-        return Match(x, gy, rx, ry, r.on) >= r.need && Near(x, gy, rx, ry, r.near);
+        return Match(x, gy, rx, ry, r.on) >= r.need && Near(x, gy, rx, ry, r.near) && Ends(r, x, gy, size);
+    }
+
+    // A span's two ends both come down on the ground it connects (PieceRule.endsOn).
+    public bool Ends(PieceRule r, float x, double gy, float size)
+    {
+        if (!r.HasEnds || Mask == null) return true;
+        float e = Mathf.Max(.02f, r.endRadius * size);
+        return Match(x + r.endA.x * size, gy + r.endA.y * size, e, e, r.endsOn) >= .5f &&
+               Match(x + r.endB.x * size, gy + r.endB.y * size, e, e, r.endsOn) >= .5f;
     }
 
     // Room for a footprint (half-sizes) at x, gy: no overlap with any remembered one.
@@ -253,6 +283,7 @@ public class GroundPlanner
             float m = Match(cx, cy, rx, ry, rule.on);
             if (m < rule.need || m <= best) continue;
             if (!Near(cx, cy, rx, ry, rule.near)) continue;
+            if (!Ends(rule, cx, cy, size)) continue;
             best = m; x = cx; gy = cy;
             if (m >= .999f) break;
         }

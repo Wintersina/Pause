@@ -11,7 +11,11 @@ using UnityEngine;
 // landmarks (and nothing, without an error, when their atlas is missing);
 // the elites' launch sites -- offered in the upper view, opening for the
 // launch tell and the lift-off, shutting behind -- with the Rimebreaker
-// launching from one; and no per-frame allocation.
+// launching from one; every ground piece on ground its rule allows (open
+// water for rigs and icebreakers, never an island stacked on a painted ice
+// sheet or quay, a causeway landing on land at both ends, nothing over the
+// glacier's crevasses), pinned and never overlapping; and no per-frame
+// allocation.
 // (The tiles' seams / darkness / contrast are WorldBackdropTest's.)
 //
 //   Unity -batchmode -quit -projectPath <abs>/Pause -executeMethod FrostBackdropTest.Run
@@ -42,10 +46,12 @@ public static class FrostBackdropTest
             Brightness();
             Ambient();
             Sites();
+            Affinity();
             Allocation();
         }
         finally
         {
+            FrostDirector.SeedOverride = 0;
             moveBackGround.speed = savedSpeed;
             Time.timeScale = 1f;
             FrostBackdropSelection.Reset();
@@ -244,26 +250,114 @@ public static class FrostBackdropTest
         int landmarks = d.Ground.ActiveCount;
         Check("landmarks keep scrolling by (" + landmarks + " in view)", landmarks >= 2);
 
-        // no two ground pieces ever overlap much
-        float worst = 0f;
-        Run(wb, 120f, () =>
+        // no two ground pieces' footprints ever overlap (GroundPlanner room)
+        int overlaps = 0;
+        Run(wb, 120f, () => { overlaps += Overlaps(d); });
+        Check("ground pieces never stack on each other (" + overlaps + " overlapping footprint frames over 120 s)", overlaps == 0);
+    }
+
+    // ---- where the pieces stand (GroundPlanner, FrostTuning.Rule) ----------------------
+
+    // User, 2026-10-11: "the backdrop layers sometimes connect in places that
+    // make no sense -- the rail piece sits randomly on top of an ice sheet".
+    // Every variant, many seeds, each piece checked when it comes into view:
+    // none stands on ground its rule forbids (icebreakers and rigs in open
+    // water, the islands never on a painted sheet / quay, the glacier's on a
+    // plateau, never over a crevasse), a causeway always has land under both
+    // deck ends, nothing that floats is drawn on the glacier, footprints never
+    // overlap, every piece stays pinned to its spot of the mid tile, and a ship
+    // under way never leaves the ground its rule allows.
+    const int SeededRuns = 6;
+
+    static void Affinity()
+    {
+        var wanted = new Dictionary<string, int>();
+        for (int v = 1; v <= 4; v++)
         {
-            foreach (var pool in d.Landmarks)
-                foreach (var p in pool.items)
+            int pieces = 0, wrong = 0, relaxed = 0, overlaps = 0, runs = 0, causeways = 0, deckWet = 0, floaters = 0, drift = 0, strayShips = 0;
+            string bad = "";
+            for (int run = 0; run < SeededRuns; run++)
+            {
+                FrostDirector.SeedOverride = 101 + run * 7;
+                var wb = Fresh(v, .6f);
+                var d = Director(wb);
+                if (d == null || d.Planner == null || d.Planner.Mask == null) { Check("v" + v + ": Frost director with a ground mask", false); continue; }
+                runs++;
+                var seen = new Dictionary<BackdropPiece, double>();     // a pooled piece is re-dealt: each deal (its ground spot) is checked once
+                System.Action audit = () =>
                 {
-                    if (!p.active) continue;
-                    foreach (var pool2 in d.Landmarks)
-                        foreach (var q in pool2.items)
+                    foreach (var pool in d.Landmarks)
+                        foreach (var p in pool.items)
                         {
-                            if (!q.active || q == p) continue;
-                            float dx = Mathf.Abs(p.x - q.x), dy = Mathf.Abs(p.y - q.y);
-                            float r = (p.size + q.size) * .5f;
-                            float ov = Mathf.Max(0f, r * .8f - dx) * Mathf.Max(0f, r * .8f - dy) / (r * r * .64f);
-                            worst = Mathf.Max(worst, ov);
+                            if (!p.active || p.sr.sprite == null) continue;
+                            string name = p.sr.sprite.name;
+                            var rule = FrostTuning.Rule(name, v);
+                            // pinned: y + travel is its ground coordinate, always
+                            if (Mathf.Abs((float)(p.y + d.Planner.Travel - p.gy)) > 1e-3f) drift++;
+                            bool moving = p.vx != 0f || p.vy != 0f;
+                            if (moving && !d.Planner.Accepts(rule, p.x, p.gy, p.size)) strayShips++;
+                            double dealt;
+                            if (seen.TryGetValue(p, out dealt) && System.Math.Abs(dealt - p.gy) < 1e-6 && !moving) continue;
+                            if (moving && seen.ContainsKey(p)) continue;     // a ship under way is checked every frame above
+                            seen[p] = p.gy;
+                            pieces++;
+                            int c; wanted.TryGetValue(name.Split('_')[0], out c); wanted[name.Split('_')[0]] = c + 1;
+                            bool site = pool == d.Sites;
+                            if (!d.Planner.Accepts(rule, p.x, p.gy, p.size))
+                            {
+                                if (site && d.Planner.Accepts(new PieceRule(GroundClass.Any, 0f), p.x, p.gy, p.size)) relaxed++;
+                                else { wrong++; if (bad.Length < 300) bad += name + "@" + d.Planner.ClassAt(p.x, p.gy) + " "; }
+                            }
+                            if (name.StartsWith("causeway"))
+                            {
+                                causeways++;
+                                if (!d.Planner.Ends(rule, p.x, p.gy, p.size) || p.body.localScale.x < 0f) deckWet++;
+                            }
+                            if (FrostTuning.IsGlacier(v) && (name.StartsWith("icebreaker") || name.StartsWith("rig_") || name.StartsWith("platform"))) floaters++;
                         }
-                }
-        });
-        Check("ground pieces never stack on each other (worst overlap " + worst.ToString("F2") + " of the art's core)", worst < .2f);
+                    overlaps += Overlaps(d);
+                };
+                audit();
+                for (int i = 0; i < 14; i++) { Run(wb, 2f); audit(); }
+                Object.DestroyImmediate(wb.gameObject);
+            }
+            FrostDirector.SeedOverride = 0;
+            Check("v" + v + ": " + runs + " seeded runs, " + pieces + " pieces: none on ground its rule forbids (" + wrong + " " + bad +
+                  "; sites on relaxed ground " + relaxed + ")", runs == SeededRuns && pieces >= runs * 4 && wrong == 0);
+            Check("v" + v + ": every causeway lands on land at both deck ends (" + causeways + " laid, " + deckWet + " not)", deckWet == 0);
+            Check("v" + v + ": no two piece footprints overlap (" + overlaps + ")", overlaps == 0);
+            Check("v" + v + ": every piece stays pinned to its spot of the ground (" + drift + " drifted)", drift == 0);
+            Check("v" + v + ": ships under way stay on ground they may cross (" + strayShips + " frames off it)", strayShips == 0);
+            if (FrostTuning.IsGlacier(v)) Check("v" + v + " (glacier): nothing that floats is drawn over the crevasses (" + floaters + ")", floaters == 0);
+        }
+        var mix = new List<string>();
+        foreach (var kv in wanted) mix.Add(kv.Key + " " + kv.Value);
+        Debug.Log("[FBD] placed families over all runs: " + string.Join(", ", mix));
+        Check("every landmark family still shows up somewhere (" + string.Join(", ", mix) + ")",
+              wanted.ContainsKey("rig") && wanted.ContainsKey("platform") && wanted.ContainsKey("refinery") && wanted.ContainsKey("relay") &&
+              wanted.ContainsKey("causeway") && wanted.ContainsKey("icebreaker") && wanted.ContainsKey("cliff") && wanted.ContainsKey("derrick") &&
+              wanted.ContainsKey("convoy"));
+    }
+
+    // Pairs of live ground pieces whose planner footprints overlap.
+    static int Overlaps(FrostDirector d)
+    {
+        int n = 0;
+        var all = d.Landmarks;
+        for (int i = 0; i < all.Count; i++)
+            foreach (var a in all[i].items)
+            {
+                if (!a.active || a.sr.sprite == null) continue;
+                for (int j = 0; j < all.Count; j++)
+                    foreach (var b in all[j].items)
+                    {
+                        if (!b.active || b == a || b.sr.sprite == null || b.GetHashCode() < a.GetHashCode()) continue;
+                        float ax = GroundPlanner.HalfX(new PieceRule(GroundClass.Any, 0f, a.core), a.size), ay = ax * .8f;
+                        float bx = GroundPlanner.HalfX(new PieceRule(GroundClass.Any, 0f, b.core), b.size), by = bx * .8f;
+                        if (Mathf.Abs(a.x - b.x) < (ax + bx) * .98f && System.Math.Abs(a.gy - b.gy) < (ay + by) * .98f) n++;
+                    }
+            }
+        return n;
     }
 
     // ---- cloud cover after the ceiling (CloudCover, FrostTuning.CloudDensity) ----------
@@ -542,7 +636,13 @@ public static class FrostBackdropTest
         if (!found) return;
         var dir = new GameObject("~Dir").AddComponent<EliteDirector>();
         Random.InitState(5);
+        // offer only the hangar / crawler bay just found: which other sites the seeded layout
+        // happens to show (a hatch for another elite) must not decide which elite docks
+        var offered = new List<LandingSite>();
+        foreach (var s in sites) if (s.kind == LandingKind.Hangar || s.kind == LandingKind.CrawlerBay) offered.Add(s);
+        LandingSites.Override = list => list.AddRange(offered);
         int made = dir.SpawnGroup(1, 1);
+        LandingSites.Override = null;
         var e = EliteShip.Live.Count > 0 ? EliteShip.Live[0] : null;
         Check("the director docks the Rimebreaker in its own kind of site (" + made + ", " + (e != null ? e.Site.kind.ToString() : "-") + ")",
               e != null && (e.Site.kind == LandingKind.Hangar || e.Site.kind == LandingKind.CrawlerBay) && e.IsDocked);
