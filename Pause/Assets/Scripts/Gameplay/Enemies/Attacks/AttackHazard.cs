@@ -153,6 +153,7 @@ public abstract class AttackHazard : MonoBehaviour, IHostileZone, IAttackStep, I
         hitCount = 0;
         if (preview != null) { preview.GoLive(); preview = null; }
         OnIgnited();
+        AttackAudio.Play(world, AttackAudio.CueOf(Label));
         if (hitbox == null) { EndLive(); return; }
         SyncHitbox();
         poly.enabled = true;

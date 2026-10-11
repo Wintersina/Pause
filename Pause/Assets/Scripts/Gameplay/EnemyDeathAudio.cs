@@ -12,7 +12,7 @@ using UnityEngine;
 // <key>_scream_0, ... sometimes (ScreamChance) layers a quiet radio cry /
 // creature screech a few tens of milliseconds after the death cue.
 // Every roster enemy and elite of all four worlds (Space, Frost, Verdant,
-// Ember) has authored clips. There is no synthesized fallback any more: a key
+// Ember) has authored clips; Tide's reuse them (DeathAlias) under its own wet layer. There is no synthesized fallback any more: a key
 // with no clips is silent (in the editor a roster / elite key without clips
 // logs one warning, and EnemyDeathAudioTest fails on it).
 //
@@ -80,7 +80,39 @@ public static class EnemyDeathAudio
         new[] { "verdant_elite_thornlash",  "verdant_fighter_4", "0.90" },   // Thornlash: the Hornet Queen's cry, lower and slower
         new[] { "verdant_elite_sporebloom", "verdant_alien",     "0.90" },   // Sporebloom: the Snap Sprout's wet voice, a size up
         new[] { "verdant_elite_leafblade",  "verdant_fighter_4", "1.10" },   // Leafblade: a sharper, quicker queen
+        // Tide: the jelly is the only living unit; Ember's jelly cry, higher and thinner
+        new[] { "tide_alien",              "ember_alien",       "1.30" },   // Glow Jelly
     };
+    // Death-cue reuse (Tide): a key with no clips of its own plays a DONOR key's clips at a pitch (playback speed relative to the donor),
+    // with the world's wet layer (WetLayer: tide_wet_0..) under it. Authored water is only that layer; the rest is other worlds'
+    // crunches, hulls and elite cues re-pitched (docs/tide-sounds.md). A key that owns clips never aliases.
+    public static readonly string[][] DeathAlias =
+    {
+        new[] { "tide_rock_brain",    "frost_rock_chunk",       "0.85" },   // brain coral: a heavy crunch, slower
+        new[] { "tide_rock_staghorn", "frost_rock_shard",       "1.00" },   // staghorn spire: brittle blade shatter
+        new[] { "tide_rock_urchin",   "ember_rock_obsidian",    "1.12" },   // spine urchin: glassy spikes snapping
+        new[] { "tide_rock_islet",    "ember_rock_islet",       "0.92" },   // kelp islet: the floating slab again, softer
+        new[] { "tide_mine",          "frost_mine",             "0.90" },   // limpet mine
+        new[] { "tide_big",           "verdant_big",            "0.85" },   // Nautilus Bulwark: a big organic hull
+        new[] { "tide_fighter_1",     "frost_fighter_1",        "1.10" },   // Remora
+        new[] { "tide_fighter_2",     "frost_fighter_2",        "1.00" },   // Needlefish
+        new[] { "tide_fighter_3",     "frost_fighter_3",        "0.90" },   // Lantern Angler
+        new[] { "tide_fighter_4",     "frost_fighter_4",        "0.80" },   // Hammerhead: heavy
+        new[] { "tide_chaser",        "space_chaser",           "0.95" },   // Wire Eel: sparks
+        new[] { "tide_alien",         "ember_alien",            "1.15" },   // Glow Jelly (its cry: ScreamBorrow)
+        new[] { "tide_elite_riptide",      "ember_elite_sunstoke",         "1.10" },
+        new[] { "tide_elite_bathyscaphe",  "ember_elite_cauterizer",       "0.80" },
+        new[] { "tide_elite_trawler",      "ember_elite_kilnback",         "0.85" },
+        new[] { "tide_elite_thunderfin",   "space_elite_rift_lancer",      "1.05" },
+        new[] { "tide_elite_pearl_warden", "space_elite_eventide_bastion", "0.90" },
+    };
+    public const string WetLayer = "tide_wet_";       // under every aliased Tide death
+    public static float WetVolume = .6f;               // relative to the death cue
+    public static string DonorOf(string key)
+    {
+        for (int i = 0; i < DeathAlias.Length; i++) if (DeathAlias[i][0] == key) return DeathAlias[i][1];
+        return null;
+    }
     public static readonly Dictionary<string, Borrow> ScreamBorrow = BuildBorrows();
     static Dictionary<string, Borrow> BuildBorrows()
     {
@@ -122,7 +154,8 @@ public static class EnemyDeathAudio
 
     sealed class KeyClips
     {
-        public AudioClip[] deaths, screams;
+        public AudioClip[] deaths, screams, wet;
+        public float pitch = 1f;
         public int lastDeath = -1, lastScream = -1, repeats;
         public double lastTime = double.NegativeInfinity;
     }
@@ -191,7 +224,7 @@ public static class EnemyDeathAudio
 #if UNITY_EDITOR
         if (!AuthoredEnabled || Variants(key) > 0) return;
         if (EnemyRoster.Find(key) == null && EliteCatalog.Find(key) == null) return;   // hitboxes etc. are silent by design
-        if (key.StartsWith("tide_") || System.Array.IndexOf(PendingClips, key) >= 0) return;   // TODO(sounds): Tide's authored death cues are still to come (checklist section F)
+        if (System.Array.IndexOf(PendingClips, key) >= 0) return;
         if (warned.Add(key)) Debug.LogWarning("[EnemyDeathAudio] no authored death clips for '" + key + "' (Resources/" + ResourceFolder + key + "_0)");
 #endif
     }
@@ -217,8 +250,13 @@ public static class EnemyDeathAudio
         int v = PickVariant(k.deaths.Length, k.lastDeath);
         k.lastDeath = v;
         var clip = k.deaths[v];
-        float pitch = 1f + Range(-PitchJitter, PitchJitter);
+        float pitch = k.pitch * (1f + Range(-PitchJitter, PitchJitter));
         Start(ref voices[slot], clip, now, 0f, volume, pitch);
+        if (k.wet.Length > 0)
+        {
+            int ws = FreeSlot(screamVoices, now);
+            if (ws >= 0) Start(ref screamVoices[ws], k.wet[PickVariant(k.wet.Length, -1)], now, ScreamDelayMin, volume * WetVolume, 1f + Range(-PitchJitter, PitchJitter));
+        }
         Played++;
         LastClip = clip; LastVolume = volume; LastKey = key;
 
@@ -282,7 +320,19 @@ public static class EnemyDeathAudio
         KeyClips k;
         if (authored.TryGetValue(key, out k)) return k;
         // a key with a '/' is a path under Audio/ (e.g. "Shockwave/shield_release"), not under EnemyDeath/
-        k = new KeyClips { deaths = Load(key + "_"), screams = Load(key + "_scream_") };
+        k = new KeyClips { deaths = Load(key + "_"), screams = Load(key + "_scream_"), wet = None };
+        if (k.deaths.Length == 0)
+        {
+            string donor = DonorOf(key);
+            if (donor != null)
+            {
+                var d = Clips(donor);
+                k.deaths = d.deaths;
+                k.wet = Load(WetLayer);
+                for (int i = 0; i < DeathAlias.Length; i++)
+                    if (DeathAlias[i][0] == key) k.pitch = float.Parse(DeathAlias[i][2], System.Globalization.CultureInfo.InvariantCulture);
+            }
+        }
         authored[key] = k;
         return k;
     }

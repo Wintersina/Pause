@@ -1492,8 +1492,8 @@ public static class CodexTest
         {
             panel.Refresh();
             panel.SkipAnimations();
-            Check("switch on: ENEMIES gains a TIDE section after EMBER with Tide's 7 pilots (" + Labels(panel) + ")",
-                  Labels(panel) == "SPACE,FROST,VERDANT,EMBER,TIDE" && panel.SectionAt(4).entries.Count == 7 &&
+            Check("switch on: ENEMIES gains a TIDE section after EMBER with Tide's 7 pilots and its 5 elites (" + Labels(panel) + ")",
+                  Labels(panel) == "SPACE,FROST,VERDANT,EMBER,TIDE" && panel.SectionAt(4).entries.Count == 12 &&
                   panel.SectionAt(4).color == EnemyPalette.WorldLight(4) && Codex.IsListed(tideBig));
             Check("switch on: its fighters list by tier, then chaser, alien and big",
                   EnemyRoster.FindByCodexId(panel.SectionAt(4).entries[0].id).tier == 1 &&

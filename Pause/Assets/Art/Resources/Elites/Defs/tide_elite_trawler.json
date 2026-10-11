@@ -1,0 +1,101 @@
+{
+  "key": "tide_elite_trawler",
+  "codexId": "elite_tide_trawler",
+  "world": "tide",
+  "cells": {
+    "flight": [
+      3
+    ],
+    "parked": 0,
+    "parkedIdle": 1,
+    "liftoff": 2,
+    "bankLeft": 4,
+    "bankRight": 5,
+    "tell": -1,
+    "action": -1,
+    "hit": -1,
+    "damaged": 6
+  },
+  "cellWorldSize": 1.5,
+  "noseDeg": 90,
+  "maxBank": 3,
+  "heartColor": "#7FD8FF",
+  "shotColor": "#FF4FD8",
+  "shotCore": "#E8FFFB",
+  "engineColor": "#5FF2D0",
+  "hearts": 2,
+  "heartSize": 0.18,
+  "heartOrbit": 0.85,
+  "heartStyle": "Halo",
+  "exhaustShip": 3,
+  "exhaustScale": 0,
+  "glowScale": 0.09,
+  "cellPixels": 192,
+  "armored": false,
+  "hazardSeconds": 0.4,
+  "hazardSize": 0.6,
+  "displayName": "Trawler",
+  "role": "net hauler",
+  "brain": "netter",
+  "attack": "net_cast",
+  "launchFrom": "reefdock",
+  "lore": "A reef-docked trawler that blocks your lane and casts its nets across your row. Each net lands as a sticky pool and lingers while the board carries it down. There is always one hole in the net, on the side nearer the middle.",
+  "hullRadius": 0.31,
+  "turnsToFace": false,
+  "speed": 1.9,
+  "accel": 3.5,
+  "turnRate": 140,
+  "followDistance": 2.0,
+  "laneOffset": 1.2,
+  "aggression": 0.5,
+  "tellSeconds": 1.1,
+  "attackGap": 4.2,
+  "avoidance": 0.5,
+  "lookAhead": 0.4,
+  "perception": 2.0,
+  "actionSeconds": 0.9,
+  "shotCount": 5,
+  "shotSpeed": 0,
+  "shotSpread": 0,
+  "shotSize": 0.3,
+  "shotInterval": 0.14,
+  "shotKind": "glob",
+  "lobSeconds": 0.95,
+  "lobSpacing": 1.0,
+  "lobAhead": 1.7,
+  "poolSeconds": 4.0,
+  "muzzles": [
+    {
+      "name": "port",
+      "x": 34,
+      "y": 94,
+      "dir": -1.0
+    },
+    {
+      "name": "star",
+      "x": 157,
+      "y": 94,
+      "dir": -1.0
+    },
+    {
+      "name": "winch",
+      "x": 95,
+      "y": 108,
+      "dir": -1.0
+    }
+  ],
+  "nozzles": [
+    {
+      "name": "l",
+      "x": 80,
+      "y": 146,
+      "dir": -1.0
+    },
+    {
+      "name": "r",
+      "x": 112,
+      "y": 146,
+      "dir": -1.0
+    }
+  ]
+}
