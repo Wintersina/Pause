@@ -323,6 +323,40 @@ public static class BackdropCatalog
             Layer.Pieces("gusts", 0.250f, Role.Atmosphere),
             Layer.Pieces("rain", 0.450f, Role.Atmosphere),
         }},
+        // Storm (StormDirector, docs in StormBackdrop.cs): flown at atmosphere level inside the
+        // gas giant's thunderstorm: wind-sheared slate cloud bands, the thunderhead field of
+        // towering lit cumulonimbus, the calm eye of a cyclone, or the NIGHT side lit from inside
+        // by sheet lightning (StormTuning.Night; one of four variant sets per landing). Anvil
+        // towers, lightning-rod masts, skyhooks and floating refineries stand on the ground,
+        // PINNED to the mid tile (GroundPlanner). Lightning (StormLightning) flashes soft glows
+        // across the cloud layers and strikes the masts; heavy rain sheets fall through.
+        // The art is painted dark slate with storm-white light (value p90 ~.40-.50) and drawn as
+        // painted (brightness 1: not Spec.Bright), so the dark worlds' shot outlines apply.
+        new Spec { world = "Storm", folder = "Worlds/Storm/Backdrop3/", keyAtlas = "landmarks",
+                   variantSets = BackdropVariants.MaxVariants,
+                   brightness = () => StormTuning.Brightness, saturation = () => 1f,
+                   variantBrightness = StormTuning.VariantBrightness, variantNight = StormTuning.Night,
+                   cloudDensity = () => StormTuning.CloudDensity, ceilingHold = () => StormTuning.CeilingHold,
+                   ceilingClearSeconds = () => StormTuning.CeilingClearSeconds, layers = new[] {
+            Layer.Tile("sky", 0.006f, W).Graded(.6f),
+            Layer.Tile("far", 0.014f, W).Graded(.8f),
+            Layer.Tile("mid", 0.024f, W).Graded(1f),
+            // masts, towers, skyhooks, refineries and the elite sites: one ground plane pinned to the mid tile
+            Layer.Pieces("ground", 0.024f, Role.Landmark).PinnedTo("mid", 0.024f).Graded(1f),
+            Layer.Strip("flow", 0.025f, 0.30f, 0.01f, new Color(1f, 1f, 1f, 0.85f)).Graded(1f),
+            // lightning's light spilling over the cloud sea, and its bolts
+            Layer.Pieces("glow", 0.027f, Role.Atmosphere),
+            Layer.Pieces("bolts", 0.030f, Role.Atmosphere),
+            Layer.Pieces("mist", 0.060f, Role.Atmosphere).Graded(.6f),
+            Layer.Pieces("wisps", 0.090f, Role.Cloud).Graded(.6f),
+            // the storm-cloud ceiling the planetfall drops through
+            Layer.Pieces("ceiling", 0.130f, Role.Cloud),
+            // a faint lightning wash over the ceiling
+            Layer.Pieces("bloom", 0.135f, Role.Cloud),
+            Layer.Pieces("gusts", 0.250f, Role.Atmosphere),
+            Layer.Pieces("debris", 0.320f, Role.Atmosphere),
+            Layer.Pieces("rain", 0.450f, Role.Atmosphere),
+        }},
         // Desert (DesertDirector, docs in DesertBackdrop.cs): flown at atmosphere
         // level over the dead strip-mined planet: bone-gold dune seas, a dry copper
         // canyon of buried refineries, a cracked salt flat of toppled solar arrays,
@@ -367,20 +401,8 @@ public static class BackdropCatalog
         get { var spec = For(WorldManager.Current.displayName); return spec != null && spec.Bright; }
     }
 
-    // Storm has no ground backdrop yet (add-world phase 11): its levels fly over
-    // Tide's, so a run there is playable in dev. Removed with the real Spec.
-    public const string StormStandIn = "Tide";
-
-    static string Resolve(string displayName)
-    {
-        if (displayName != "Storm") return displayName;
-        foreach (var s in specs) if (s.world == displayName) return displayName;
-        return StormStandIn;
-    }
-
     public static Spec For(string displayName)
     {
-        displayName = Resolve(displayName);
         foreach (var s in specs) if (s.world == displayName) return s;
         return specs[0];
     }
@@ -403,7 +425,6 @@ public static class BackdropCatalog
 
     static Spec Exact(string world)
     {
-        world = Resolve(world);
         foreach (var s in specs) if (s.world == world) return s;
         return null;
     }

@@ -1,0 +1,569 @@
+{
+  "pieces": [
+    {
+      "atlas": "landmarks",
+      "name": "anvil_tower_00",
+      "role": "anvil_tower",
+      "size_hint": "large",
+      "max_alpha": 255,
+      "source_candidate": "landmarks_candidate_b.png",
+      "notes": "Flat anvil cap, illuminated thunderhead body, feathered vapour foot."
+    },
+    {
+      "atlas": "landmarks",
+      "name": "anvil_tower_01",
+      "role": "anvil_tower",
+      "size_hint": "large",
+      "max_alpha": 253,
+      "source_candidate": "landmarks_candidate_b.png",
+      "notes": "Flat anvil cap, illuminated thunderhead body, feathered vapour foot."
+    },
+    {
+      "atlas": "landmarks",
+      "name": "anvil_tower_02",
+      "role": "anvil_tower",
+      "size_hint": "large",
+      "max_alpha": 255,
+      "source_candidate": "landmarks_candidate_b.png",
+      "notes": "Flat anvil cap, illuminated thunderhead body, feathered vapour foot."
+    },
+    {
+      "atlas": "landmarks",
+      "name": "anvil_tower_03",
+      "role": "anvil_tower",
+      "size_hint": "large",
+      "max_alpha": 255,
+      "source_candidate": "landmarks_candidate_b.png",
+      "notes": "Flat anvil cap, illuminated thunderhead body, feathered vapour foot."
+    },
+    {
+      "atlas": "landmarks",
+      "name": "spire_00",
+      "role": "spire",
+      "size_hint": "medium",
+      "max_alpha": 255,
+      "source_candidate": "landmarks_candidate_b.png",
+      "notes": "Lightning-rod mast on small suspended platform; cold rod-tip glow.",
+      "rod_tip_from_top": [
+        128,
+        40
+      ]
+    },
+    {
+      "atlas": "landmarks",
+      "name": "spire_01",
+      "role": "spire",
+      "size_hint": "medium",
+      "max_alpha": 255,
+      "source_candidate": "landmarks_candidate_b.png",
+      "notes": "Lightning-rod mast on small suspended platform; cold rod-tip glow.",
+      "rod_tip_from_top": [
+        128,
+        40
+      ]
+    },
+    {
+      "atlas": "landmarks",
+      "name": "skyhook_00",
+      "role": "skyhook",
+      "size_hint": "medium",
+      "max_alpha": 253,
+      "source_candidate": "landmarks_candidate_b.png",
+      "notes": "Cable anchor with suspended ballast balloons."
+    },
+    {
+      "atlas": "landmarks",
+      "name": "skyhook_01",
+      "role": "skyhook",
+      "size_hint": "medium",
+      "max_alpha": 255,
+      "source_candidate": "landmarks_candidate_b.png",
+      "notes": "Cable anchor with suspended ballast balloons."
+    },
+    {
+      "atlas": "landmarks",
+      "name": "refinery_float_00",
+      "role": "refinery_float",
+      "size_hint": "medium",
+      "max_alpha": 255,
+      "source_candidate": "landmarks_candidate_b.png",
+      "notes": "Floating gas refinery with ballast skirt, stacks, storm-white lamps."
+    },
+    {
+      "atlas": "landmarks",
+      "name": "refinery_float_01",
+      "role": "refinery_float",
+      "size_hint": "medium",
+      "max_alpha": 254,
+      "source_candidate": "landmarks_candidate_b.png",
+      "notes": "Floating gas refinery with ballast skirt, stacks, storm-white lamps."
+    },
+    {
+      "atlas": "landmarks",
+      "name": "refinery_float_02",
+      "role": "refinery_float",
+      "size_hint": "medium",
+      "max_alpha": 255,
+      "source_candidate": "landmarks_candidate_b.png",
+      "notes": "Floating gas refinery with ballast skirt, stacks, storm-white lamps."
+    },
+    {
+      "atlas": "landmarks",
+      "name": "siphon_tower_00",
+      "role": "siphon_tower",
+      "size_hint": "medium",
+      "max_alpha": 255,
+      "source_candidate": "landmarks_candidate_b.png",
+      "notes": "Painted high-altitude storm structure with cold upper-left rim light."
+    },
+    {
+      "atlas": "landmarks",
+      "name": "airship_dock_00",
+      "role": "airship_dock",
+      "size_hint": "medium",
+      "max_alpha": 254,
+      "source_candidate": "landmarks_candidate_b.png",
+      "notes": "Painted high-altitude storm structure with cold upper-left rim light."
+    },
+    {
+      "atlas": "landmarks",
+      "name": "gantry_00",
+      "role": "gantry",
+      "size_hint": "medium",
+      "max_alpha": 254,
+      "source_candidate": "landmarks_candidate_b.png",
+      "notes": "Painted high-altitude storm structure with cold upper-left rim light."
+    },
+    {
+      "atlas": "landmarks",
+      "name": "turbine_raft_00",
+      "role": "turbine_raft",
+      "size_hint": "medium",
+      "max_alpha": 255,
+      "source_candidate": "landmarks_candidate_b.png",
+      "notes": "Painted high-altitude storm structure with cold upper-left rim light."
+    },
+    {
+      "atlas": "landmarks",
+      "name": "relay_dish_00",
+      "role": "relay_dish",
+      "size_hint": "medium",
+      "max_alpha": 255,
+      "source_candidate": "landmarks_candidate_b.png",
+      "notes": "Painted high-altitude storm structure with cold upper-left rim light."
+    },
+    {
+      "atlas": "sites",
+      "name": "skyhook_dock_closed",
+      "role": "skyhook_dock",
+      "size_hint": "medium",
+      "max_alpha": 254,
+      "source_candidate": "sites_candidate_a.png",
+      "notes": "Cable anchor with suspended ballast balloons."
+    },
+    {
+      "atlas": "sites",
+      "name": "skyhook_dock_open",
+      "role": "skyhook_dock",
+      "size_hint": "medium",
+      "max_alpha": 254,
+      "source_candidate": "sites_candidate_a.png",
+      "notes": "Cable anchor with suspended ballast balloons."
+    },
+    {
+      "atlas": "sites",
+      "name": "refinery_pad_closed",
+      "role": "refinery_pad",
+      "size_hint": "medium",
+      "max_alpha": 254,
+      "source_candidate": "sites_candidate_a.png",
+      "notes": "Elite emergence site with sealed central hatch."
+    },
+    {
+      "atlas": "sites",
+      "name": "refinery_pad_open",
+      "role": "refinery_pad",
+      "size_hint": "medium",
+      "max_alpha": 254,
+      "source_candidate": "sites_candidate_a.png",
+      "notes": "Elite emergence site with lit central opening."
+    },
+    {
+      "atlas": "sites",
+      "name": "balloon_hangar_closed",
+      "role": "balloon_hangar",
+      "size_hint": "medium",
+      "max_alpha": 254,
+      "source_candidate": "sites_candidate_a.png",
+      "notes": "Elite emergence site with sealed central hatch."
+    },
+    {
+      "atlas": "sites",
+      "name": "balloon_hangar_open",
+      "role": "balloon_hangar",
+      "size_hint": "medium",
+      "max_alpha": 253,
+      "source_candidate": "sites_candidate_a.png",
+      "notes": "Elite emergence site with lit central opening."
+    },
+    {
+      "atlas": "sites",
+      "name": "gantry_hatch_closed",
+      "role": "gantry_hatch",
+      "size_hint": "medium",
+      "max_alpha": 254,
+      "source_candidate": "sites_candidate_a.png",
+      "notes": "Elite emergence site with sealed central hatch."
+    },
+    {
+      "atlas": "sites",
+      "name": "gantry_hatch_open",
+      "role": "gantry_hatch",
+      "size_hint": "medium",
+      "max_alpha": 254,
+      "source_candidate": "sites_candidate_a.png",
+      "notes": "Elite emergence site with lit central opening."
+    },
+    {
+      "atlas": "sites",
+      "name": "cloud_bay_closed",
+      "role": "cloud_bay",
+      "size_hint": "medium",
+      "max_alpha": 254,
+      "source_candidate": "sites_candidate_a.png",
+      "notes": "Elite emergence site with sealed central hatch."
+    },
+    {
+      "atlas": "sites",
+      "name": "cloud_bay_open",
+      "role": "cloud_bay",
+      "size_hint": "medium",
+      "max_alpha": 254,
+      "source_candidate": "sites_candidate_a.png",
+      "notes": "Elite emergence site with lit central opening."
+    },
+    {
+      "atlas": "sites",
+      "name": "lights_off",
+      "role": "lights",
+      "size_hint": "small",
+      "max_alpha": 253,
+      "source_candidate": "sites_candidate_a.png",
+      "notes": "Four-lamp horizontal signal centred at the site emergence point."
+    },
+    {
+      "atlas": "sites",
+      "name": "lights_on",
+      "role": "lights",
+      "size_hint": "small",
+      "max_alpha": 253,
+      "source_candidate": "sites_candidate_a.png",
+      "notes": "Four-lamp horizontal signal centred at the site emergence point."
+    },
+    {
+      "atlas": "weather",
+      "name": "cloud_bank_00",
+      "role": "cloud_bank",
+      "size_hint": "large",
+      "max_alpha": 150,
+      "source_candidate": "weather_candidate_b.png",
+      "notes": "Ceiling thunderhead; feathered semi-transparent edge."
+    },
+    {
+      "atlas": "weather",
+      "name": "cloud_bank_01",
+      "role": "cloud_bank",
+      "size_hint": "large",
+      "max_alpha": 150,
+      "source_candidate": "weather_candidate_b.png",
+      "notes": "Ceiling thunderhead; feathered semi-transparent edge."
+    },
+    {
+      "atlas": "weather",
+      "name": "cloud_bank_02",
+      "role": "cloud_bank",
+      "size_hint": "large",
+      "max_alpha": 150,
+      "source_candidate": "weather_candidate_b.png",
+      "notes": "Ceiling thunderhead; feathered semi-transparent edge."
+    },
+    {
+      "atlas": "weather",
+      "name": "cloud_bank_03",
+      "role": "cloud_bank",
+      "size_hint": "large",
+      "max_alpha": 150,
+      "source_candidate": "weather_candidate_b.png",
+      "notes": "Ceiling thunderhead; feathered semi-transparent edge."
+    },
+    {
+      "atlas": "weather",
+      "name": "cloud_wisp_00",
+      "role": "cloud_wisp",
+      "size_hint": "medium",
+      "max_alpha": 105,
+      "source_candidate": "weather_candidate_b.png",
+      "notes": "Painted high-altitude storm structure with cold upper-left rim light."
+    },
+    {
+      "atlas": "weather",
+      "name": "cloud_wisp_01",
+      "role": "cloud_wisp",
+      "size_hint": "medium",
+      "max_alpha": 105,
+      "source_candidate": "weather_candidate_b.png",
+      "notes": "Painted high-altitude storm structure with cold upper-left rim light."
+    },
+    {
+      "atlas": "weather",
+      "name": "cloud_wisp_02",
+      "role": "cloud_wisp",
+      "size_hint": "medium",
+      "max_alpha": 104,
+      "source_candidate": "weather_candidate_b.png",
+      "notes": "Painted high-altitude storm structure with cold upper-left rim light."
+    },
+    {
+      "atlas": "weather",
+      "name": "mist_00",
+      "role": "mist",
+      "size_hint": "medium",
+      "max_alpha": 105,
+      "source_candidate": "weather_candidate_b.png",
+      "notes": "Painted high-altitude storm structure with cold upper-left rim light."
+    },
+    {
+      "atlas": "weather",
+      "name": "mist_01",
+      "role": "mist",
+      "size_hint": "medium",
+      "max_alpha": 104,
+      "source_candidate": "weather_candidate_b.png",
+      "notes": "Painted high-altitude storm structure with cold upper-left rim light."
+    },
+    {
+      "atlas": "weather",
+      "name": "gust_00",
+      "role": "gust",
+      "size_hint": "medium",
+      "max_alpha": 105,
+      "source_candidate": "weather_candidate_b.png",
+      "notes": "Painted high-altitude storm structure with cold upper-left rim light."
+    },
+    {
+      "atlas": "weather",
+      "name": "gust_01",
+      "role": "gust",
+      "size_hint": "medium",
+      "max_alpha": 105,
+      "source_candidate": "weather_candidate_b.png",
+      "notes": "Painted high-altitude storm structure with cold upper-left rim light."
+    },
+    {
+      "atlas": "weather",
+      "name": "pall_00",
+      "role": "pall",
+      "size_hint": "medium",
+      "max_alpha": 105,
+      "source_candidate": "weather_candidate_b.png",
+      "notes": "Painted high-altitude storm structure with cold upper-left rim light."
+    },
+    {
+      "atlas": "weather",
+      "name": "rain_00",
+      "role": "rain",
+      "size_hint": "medium",
+      "max_alpha": 105,
+      "source_candidate": "weather_candidate_b.png",
+      "notes": "Painted heavy rain sheet; slanted luminous streaks and foot mist."
+    },
+    {
+      "atlas": "weather",
+      "name": "rain_01",
+      "role": "rain",
+      "size_hint": "medium",
+      "max_alpha": 105,
+      "source_candidate": "weather_candidate_b.png",
+      "notes": "Painted heavy rain sheet; slanted luminous streaks and foot mist."
+    },
+    {
+      "atlas": "weather",
+      "name": "rain_02",
+      "role": "rain",
+      "size_hint": "medium",
+      "max_alpha": 105,
+      "source_candidate": "weather_candidate_b.png",
+      "notes": "Painted heavy rain sheet; slanted luminous streaks and foot mist."
+    },
+    {
+      "atlas": "weather",
+      "name": "rain_03",
+      "role": "rain",
+      "size_hint": "medium",
+      "max_alpha": 105,
+      "source_candidate": "weather_candidate_b.png",
+      "notes": "Painted heavy rain sheet; slanted luminous streaks and foot mist."
+    },
+    {
+      "atlas": "lightning",
+      "name": "bolt_00",
+      "role": "bolt",
+      "size_hint": "medium",
+      "max_alpha": 252,
+      "source_candidate": "lightning_candidate_b.png",
+      "notes": "Painted branching channel with thin white core and 3-6 px stepped halo."
+    },
+    {
+      "atlas": "lightning",
+      "name": "bolt_01",
+      "role": "bolt",
+      "size_hint": "medium",
+      "max_alpha": 251,
+      "source_candidate": "lightning_candidate_b.png",
+      "notes": "Painted branching channel with thin white core and 3-6 px stepped halo."
+    },
+    {
+      "atlas": "lightning",
+      "name": "bolt_02",
+      "role": "bolt",
+      "size_hint": "medium",
+      "max_alpha": 252,
+      "source_candidate": "lightning_candidate_b.png",
+      "notes": "Painted branching channel with thin white core and 3-6 px stepped halo."
+    },
+    {
+      "atlas": "lightning",
+      "name": "bolt_03",
+      "role": "bolt",
+      "size_hint": "medium",
+      "max_alpha": 250,
+      "source_candidate": "lightning_candidate_b.png",
+      "notes": "Painted branching channel with thin white core and 3-6 px stepped halo."
+    },
+    {
+      "atlas": "lightning",
+      "name": "bolt_04",
+      "role": "bolt",
+      "size_hint": "medium",
+      "max_alpha": 252,
+      "source_candidate": "lightning_candidate_b.png",
+      "notes": "Painted branching channel with thin white core and 3-6 px stepped halo."
+    },
+    {
+      "atlas": "lightning",
+      "name": "bolt_05",
+      "role": "bolt",
+      "size_hint": "medium",
+      "max_alpha": 251,
+      "source_candidate": "lightning_candidate_b.png",
+      "notes": "Painted branching channel with thin white core and 3-6 px stepped halo."
+    },
+    {
+      "atlas": "lightning",
+      "name": "strike_00",
+      "role": "strike",
+      "size_hint": "medium",
+      "max_alpha": 255,
+      "source_candidate": "lightning_candidate_b.png",
+      "notes": "Painted branching strike with fixed top entry and bottom-centre impact.",
+      "strike_end_from_top": [
+        128,
+        226
+      ]
+    },
+    {
+      "atlas": "lightning",
+      "name": "strike_01",
+      "role": "strike",
+      "size_hint": "medium",
+      "max_alpha": 255,
+      "source_candidate": "lightning_candidate_b.png",
+      "notes": "Painted branching strike with fixed top entry and bottom-centre impact.",
+      "strike_end_from_top": [
+        128,
+        226
+      ]
+    },
+    {
+      "atlas": "lightning",
+      "name": "flash_00",
+      "role": "flash",
+      "size_hint": "medium",
+      "max_alpha": 253,
+      "source_candidate": "lightning_candidate_b.png",
+      "notes": "Painted white-blue radial bloom, faded to transparent at the cell edge."
+    },
+    {
+      "atlas": "lightning",
+      "name": "flash_01",
+      "role": "flash",
+      "size_hint": "medium",
+      "max_alpha": 253,
+      "source_candidate": "lightning_candidate_b.png",
+      "notes": "Painted white-blue radial bloom, faded to transparent at the cell edge."
+    },
+    {
+      "atlas": "lightning",
+      "name": "arc_00",
+      "role": "arc",
+      "size_hint": "medium",
+      "max_alpha": 253,
+      "source_candidate": "lightning_candidate_b.png",
+      "notes": "Painted high-altitude storm structure with cold upper-left rim light."
+    },
+    {
+      "atlas": "lightning",
+      "name": "debris_00",
+      "role": "debris",
+      "size_hint": "small",
+      "max_alpha": 252,
+      "source_candidate": "lightning_candidate_a.png",
+      "notes": "Tumbling dark gunmetal debris with pale upper-left rim light."
+    },
+    {
+      "atlas": "lightning",
+      "name": "debris_01",
+      "role": "debris",
+      "size_hint": "small",
+      "max_alpha": 255,
+      "source_candidate": "lightning_candidate_a.png",
+      "notes": "Tumbling dark gunmetal debris with pale upper-left rim light."
+    },
+    {
+      "atlas": "lightning",
+      "name": "debris_02",
+      "role": "debris",
+      "size_hint": "small",
+      "max_alpha": 254,
+      "source_candidate": "lightning_candidate_a.png",
+      "notes": "Tumbling dark gunmetal debris with pale upper-left rim light."
+    },
+    {
+      "atlas": "lightning",
+      "name": "debris_03",
+      "role": "debris",
+      "size_hint": "small",
+      "max_alpha": 255,
+      "source_candidate": "lightning_candidate_a.png",
+      "notes": "Tumbling dark gunmetal debris with pale upper-left rim light."
+    },
+    {
+      "atlas": "lightning",
+      "name": "debris_04",
+      "role": "debris",
+      "size_hint": "small",
+      "max_alpha": 253,
+      "source_candidate": "lightning_candidate_a.png",
+      "notes": "Tumbling dark gunmetal debris with pale upper-left rim light."
+    }
+  ],
+  "source_choices": {
+    "landmarks": "landmarks_candidate_b.png",
+    "sites": "sites_candidate_a.png",
+    "weather": "weather_candidate_b.png",
+    "lightning": "lightning_candidate_b.png"
+  },
+  "source_override": {
+    "lightning debris_00..04": "lightning_candidate_a.png"
+  }
+}
