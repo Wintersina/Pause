@@ -160,8 +160,9 @@ public static class AchievementTracker
     // BossEncounter.BeginOutro: `destroyed` false means it warped away.
     public static void OnBossOutro(int world, bool destroyed)
     {
-        if (!destroyed || !Achievements.Real || world < 0 || world >= BossIds.Length) return;
-        AchievementStore.Unlock(AchievementCatalog.Find(BossIds[world]));
+        if (!destroyed || !Achievements.Real || world < 0 || world >= WorldManager.Worlds.Length) return;
+        // (Storm and Desert have no boss achievement of their own, but their bosses count for Boss Collector)
+        if (world < BossIds.Length) AchievementStore.Unlock(AchievementCatalog.Find(BossIds[world]));
         if (AchievementStore.MarkBoss(world))
             AchievementStore.SetCounterAtLeast(AchievementCatalog.CBosses, AchievementStore.BossesDestroyed());
         if (!bossHurt) AchievementStore.Unlock(AchievementCatalog.Find("boss_no_hit"));
