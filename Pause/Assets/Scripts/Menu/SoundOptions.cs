@@ -8,7 +8,10 @@ using UnityEngine.UI;
 // with a volume slider beside it (see SoundSettings). One row, not two, so the
 // Account card above keeps its room on short screens. Built at runtime from the screen's own "Tutorial" button like
 // START WORLD, so the toggles share its font, size and button look; the slider
-// is a thin track with a neon fill and a small handle, no outline boxes.
+// is a neon pixel-art one (Resources/Options, drawn by Assets/Art/UI~/Options/gen_options_icons.py):
+// a speaker (effects) or a beamed note (music) above a chunky track + fill + handle. The icon shows
+// no waves / 1 / 2 / 3 waves (bars for music) as the volume grows, and a slashed, grey one when
+// the volume is 0 or the toggle is off. No outline boxes.
 //
 // The row sits in the slot above START WORLD (y -33), or, in builds that offer
 // developer mode (whose rows fill -133 / -43 / 47), on top of the developer
@@ -26,6 +29,32 @@ public class SoundOptions : MonoBehaviour
     public const string EffectsSliderName = "EffectsSlider";
     public const string MusicSliderName = "MusicSlider";
 
+    // ---- art -------------------------------------------------------------------
+    public const string ResPath = "Options/";
+    const float IconSize = 48f, IconY = 20f, TrackY = -28f, TrackH = 16f, HandleW = 24f, HandleH = 36f;
+    static Sprite[] iconSprites;   // [kind * 4 + level]; kind 0 = speaker, 1 = note
+
+    // 0 = muted / zero, 1..3 = the wave (bar) count: <= 1/3, <= 2/3, above.
+    public static int IconLevel(bool on, float volume)
+    {
+        if (!on || volume <= 0f) return 0;
+        return volume <= 1f / 3f ? 1 : (volume <= 2f / 3f ? 2 : 3);
+    }
+
+    public static Sprite IconSprite(bool music, int level)
+    {
+        if (iconSprites == null || iconSprites[0] == null)
+        {
+            var tex = Resources.Load<Texture2D>(ResPath + "options_icons");
+            if (tex == null) return null;
+            iconSprites = new Sprite[8];
+            for (int k = 0; k < 2; k++)
+                for (int l = 0; l < 4; l++)
+                    iconSprites[k * 4 + l] = Sprite.Create(tex, new Rect(l * 48, (1 - k) * 48, 48, 48), new Vector2(.5f, .5f), 100f);
+        }
+        return iconSprites[(music ? 4 : 0) + Mathf.Clamp(level, 0, 3)];
+    }
+
     public static float EffectsY { get { return DeveloperUnlocks.Available ? 147f : -33f; } }
     public static float MusicY { get { return EffectsY; } }
 
@@ -35,7 +64,7 @@ public class SoundOptions : MonoBehaviour
         public GameObject toggle;
         public Text label;
         public Slider slider;
-        public Image fill, handle;
+        public Image fill, handle, icon;
     }
 
     Row effects, music;
@@ -93,6 +122,13 @@ public class SoundOptions : MonoBehaviour
         return rt;
     }
 
+    static void Art(Image img, string file, bool sliced)
+    {
+        img.sprite = Resources.Load<Sprite>(ResPath + file);
+        img.type = sliced ? Image.Type.Sliced : Image.Type.Simple;
+        img.color = Color.white;
+    }
+
     void BuildSlider(Transform parent, Row row, string name, Vector2 pos)
     {
         var root = Rect(name, parent);
@@ -105,27 +141,37 @@ public class SoundOptions : MonoBehaviour
 
         var track = Rect("Track", root);
         track.anchorMin = new Vector2(0f, .5f); track.anchorMax = new Vector2(1f, .5f);
-        track.offsetMin = new Vector2(8f, -3f); track.offsetMax = new Vector2(-8f, 3f);
+        track.offsetMin = new Vector2(4f, TrackY - TrackH * .5f); track.offsetMax = new Vector2(-4f, TrackY + TrackH * .5f);
         var trackImg = track.gameObject.AddComponent<Image>();
-        trackImg.color = new Color(1f, 1f, 1f, .22f);
+        Art(trackImg, "options_track", true);
         trackImg.raycastTarget = false;
 
         var fillArea = Rect("Fill Area", root);
         fillArea.anchorMin = new Vector2(0f, .5f); fillArea.anchorMax = new Vector2(1f, .5f);
-        fillArea.offsetMin = new Vector2(8f, -3f); fillArea.offsetMax = new Vector2(-8f, 3f);
+        fillArea.offsetMin = new Vector2(4f, TrackY - TrackH * .5f); fillArea.offsetMax = new Vector2(-4f, TrackY + TrackH * .5f);
         var fill = Rect("Fill", fillArea);
         fill.anchorMin = Vector2.zero; fill.anchorMax = new Vector2(0f, 1f);
         fill.offsetMin = fill.offsetMax = Vector2.zero;
         row.fill = fill.gameObject.AddComponent<Image>();
+        Art(row.fill, "options_fill", true);
         row.fill.raycastTarget = false;
 
         var slide = Rect("Handle Slide Area", root);
-        slide.anchorMin = Vector2.zero; slide.anchorMax = Vector2.one;
-        slide.offsetMin = new Vector2(14f, 0f); slide.offsetMax = new Vector2(-14f, 0f);
+        slide.anchorMin = new Vector2(0f, .5f); slide.anchorMax = new Vector2(1f, .5f);
+        slide.offsetMin = new Vector2(4f + HandleW * .5f, TrackY - HandleH * .5f); slide.offsetMax = new Vector2(-4f - HandleW * .5f, TrackY + HandleH * .5f);
         var handle = Rect("Handle", slide);
-        handle.sizeDelta = new Vector2(24f, 44f);
+        handle.sizeDelta = new Vector2(HandleW, HandleH);
         row.handle = handle.gameObject.AddComponent<Image>();
+        Art(row.handle, "options_handle", false);
         row.handle.raycastTarget = false;
+
+        var icon = Rect("Icon", root);
+        icon.anchorMin = icon.anchorMax = icon.pivot = new Vector2(.5f, .5f);
+        icon.anchoredPosition = new Vector2(0f, IconY);
+        icon.sizeDelta = new Vector2(IconSize, IconSize);
+        row.icon = icon.gameObject.AddComponent<Image>();
+        row.icon.raycastTarget = false;
+        row.icon.preserveAspect = true;
 
         var slider = root.gameObject.AddComponent<Slider>();
         slider.fillRect = fill;
@@ -217,8 +263,14 @@ public class SoundOptions : MonoBehaviour
     {
         if (row.label != null) row.label.text = name + "\n" + SoundSettings.Label(on);
         row.slider.SetValueWithoutNotify(volume);
-        var c = on ? AkiraPalette.Cyan : new Color(1f, 1f, 1f, .35f);
-        row.fill.color = c;
-        row.handle.color = on ? Color.white : new Color(1f, 1f, 1f, .5f);
+        // Dim the neon art (not a colour swap) while the bus is off.
+        var tint = on ? Color.white : new Color(.55f, .58f, .72f, .85f);
+        row.fill.color = tint;
+        row.handle.color = tint;
+        if (row.icon != null)
+        {
+            row.icon.sprite = IconSprite(row.music, IconLevel(on, volume));
+            row.icon.color = Color.white;
+        }
     }
 }

@@ -36,6 +36,8 @@ public class AndroidTextureDiet : AssetPostprocessor
         if (path.StartsWith("Assets/Art/UI/", StringComparison.Ordinal) &&
             !path.StartsWith("Assets/Art/UI/Title/", StringComparison.Ordinal) &&
             !path.StartsWith("Assets/Art/UI/Splash/", StringComparison.Ordinal)) return false;   // UI keeps its (test-guarded) import settings; only the big title / splash art is diet material
+        // The Options volume icons / slider sprites: tiny pixel art that must stay uncompressed (ASTC blurs the 2x2 pixels).
+        if (path.StartsWith("Assets/Art/Resources/Options/", StringComparison.Ordinal)) return false;
         // Small crisp logo with text: stays uncompressed (a few KB; ASTC at 6x6 would smear the lettering).
         if (path == "Assets/Art/UI/Splash/HapticGate.png") return false;
         string ext = Path.GetExtension(path).ToLowerInvariant();

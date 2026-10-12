@@ -88,6 +88,44 @@ public static class SoundMuteTest
 
     static bool Near(float a, float b) { return Mathf.Abs(a - b) < 1e-4f; }
 
+    static UnityEngine.UI.Image Icon(string slider) { return Obj(slider).transform.Find("Icon").GetComponent<UnityEngine.UI.Image>(); }
+
+    // The slider art: a speaker / note icon whose wave count follows the volume, a slashed one at 0 or off,
+    // neon pixel-art track / fill / handle sprites (Point filtered, small, uncompressed), touch size kept.
+    static void IconChecks()
+    {
+        Check("icon level: 0 muted, 1 / 2 / 3 waves as the volume grows",
+              SoundOptions.IconLevel(true, 0f) == 0 && SoundOptions.IconLevel(true, .3f) == 1 && SoundOptions.IconLevel(true, .5f) == 2 &&
+              SoundOptions.IconLevel(true, .7f) == 3 && SoundOptions.IconLevel(true, 1f) == 3 && SoundOptions.IconLevel(false, 1f) == 0);
+        var eff = Icon(SoundOptions.EffectsSliderName);
+        var mus = Icon(SoundOptions.MusicSliderName);
+        Check("both sliders have an icon at full volume (3 waves), speaker for effects and note for music",
+              eff.sprite == SoundOptions.IconSprite(false, 3) && mus.sprite == SoundOptions.IconSprite(true, 3) && eff.sprite != mus.sprite);
+        Check("icon is at least 48 units square", eff.rectTransform.sizeDelta.x >= 48f && eff.rectTransform.sizeDelta.y >= 48f);
+        var sl = Sl(SoundOptions.EffectsSliderName);
+        sl.value = .3f;
+        Check("30% shows 1 wave", Icon(SoundOptions.EffectsSliderName).sprite == SoundOptions.IconSprite(false, 1));
+        sl.value = 0f;
+        Check("0% shows the muted icon", Icon(SoundOptions.EffectsSliderName).sprite == SoundOptions.IconSprite(false, 0));
+        sl.value = 1f;
+        Check("back to 100% shows 3 waves", Icon(SoundOptions.EffectsSliderName).sprite == SoundOptions.IconSprite(false, 3));
+        foreach (var n in new[] { "options_icons", "options_track", "options_fill", "options_handle" })
+        {
+            string path = "Assets/Art/Resources/Options/" + n + ".png";
+            var ti = UnityEditor.AssetImporter.GetAtPath(path) as UnityEditor.TextureImporter;
+            bool small = new System.IO.FileInfo(path).Length < 1024 * 1024;
+            Check(n + ": Point filter, no mipmaps, not compressed, under 1 MiB, exempt from the ASTC diet",
+                  ti != null && ti.filterMode == FilterMode.Point && !ti.mipmapEnabled && ti.textureCompression == UnityEditor.TextureImporterCompression.Uncompressed && small &&
+                  !AndroidTextureDiet.Eligible(path));
+        }
+        var track = Obj(SoundOptions.EffectsSliderName).transform.Find("Track").GetComponent<UnityEngine.UI.Image>();
+        Check("track is a sliced neon sprite, not a flat translucent white bar", track.sprite != null && track.type == UnityEngine.UI.Image.Type.Sliced &&
+              track.color == Color.white);
+        var handle = sl.handleRect.GetComponent<UnityEngine.UI.Image>();
+        Check("handle is the chunky sprite (24 x 36 units)", handle.sprite != null && sl.handleRect.sizeDelta == new Vector2(24f, 36f));
+        Check("slider touch height kept at 88 units", ((RectTransform)sl.transform).sizeDelta.y >= 88f);
+    }
+
     static void Body()
     {
         ClearPrefs();
@@ -102,6 +140,7 @@ public static class SoundMuteTest
         Check("default rows read EFFECTS / MUSIC over ON (" + Label(SoundOptions.RowName).Replace("\n", "|") + " / " + Label(SoundOptions.MusicRowName).Replace("\n", "|") + ")",
               Label(SoundOptions.RowName) == "EFFECTS\nON" && Label(SoundOptions.MusicRowName) == "MUSIC\nON");
         Check("default sliders at full", Near(Sl(SoundOptions.EffectsSliderName).value, 1f) && Near(Sl(SoundOptions.MusicSliderName).value, 1f));
+        IconChecks();
 
         // geometry: finger-sized, clear of the other rows and of each other
         var names = new List<string> { "PlayerStartWorld", "PlayerStartWorldLocked", "pullUpLeaderBoard", "Tutorial", "BackButton",
