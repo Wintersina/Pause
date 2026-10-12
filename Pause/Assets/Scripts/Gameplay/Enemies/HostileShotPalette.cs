@@ -1,6 +1,11 @@
 using UnityEngine;
 
-// ONE hue family for every elite and roster enemy shot: magenta to hot pink
+// SPACE'S hue family for hostile shots (and the fallback of the world-less overloads): magenta to hot pink
+// NO PINK OUTSIDE SPACE (user, 2026-10-11): Body(source, world) / InFamily(c, world) answer WorldCue's own cue colour for every
+// other world (Frost icy white-cyan, Verdant green-white, Ember amber, Tide aqua-white, Storm white-violet, Desert sun-white).
+// The text below is the old all-worlds pink design, still true for Space:
+//
+// (original) ONE hue family for every elite and roster enemy shot: magenta to hot pink
 // (HueMin..HueMax degrees), so no shot ever wears an atom's colour.
 //
 // The worlds used to fire in their element -- Frost cyan (#6EF2EE, the blue
@@ -21,6 +26,13 @@ public static class HostileShotPalette
     public const float MinSaturation = .62f, MaxSaturation = .8f, MinValue = 1f;
     public const float CoreWhite = .75f;   // the core: the body this far towards white
     public const float TraceWhite = .3f;  // the outline's light trace (ShotOutline): this far towards white
+
+    // The world's own cue (WorldCue): Space keeps the pink band, every other world its cue colour (user, 2026-10-11).
+    public static Color Body(Color source, int world)
+    {
+        if (world <= 0) return Body(source);
+        return WorldCue.Body(world);
+    }
 
     public static Color Body(Color source)
     {
@@ -45,6 +57,11 @@ public static class HostileShotPalette
         var c = Color.Lerp(body, Color.white, CoreWhite);
         c.a = 1f;
         return c;
+    }
+
+    public static bool InFamily(Color c, int world, float slack = 1f)
+    {
+        return world <= 0 ? InFamily(c, slack) : WorldCue.InFamily(c, world, 14f + slack);
     }
 
     public static bool InFamily(Color c, float slack = 1f)

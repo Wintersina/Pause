@@ -193,7 +193,7 @@ public sealed class AttackLash : AttackHazard
 
     public override float ThreatWeight => 1.5f;               // FR7: a lash counts as 1.5 shots
     protected override string Label => spec.world == 4 ? "tentacle lash" : "vine lash";
-    protected override Color PreviewTint => HostileShotPalette.Body(EnemyBehaviours.SpaceShot);
+    protected override Color PreviewTint => HostileShotPalette.Body(EnemyBehaviours.SpaceShot, world);
     public LashSpec Spec => spec;
     public Vector2 Root => root;
     public float StartRad => startRad;

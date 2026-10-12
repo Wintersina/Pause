@@ -81,7 +81,7 @@ public abstract class AttackHazard : MonoBehaviour, IHostileZone, IAttackStep, I
     protected abstract void OnEnded();                  // hide the visuals
     protected abstract void ReturnToPool();             // give this item back to its AttackPool
     protected virtual string Label => "attack";         // FriendlyFire "by" name
-    protected virtual Color PreviewTint => HostileShotPalette.Body(EnemyBehaviours.SpaceShot);
+    protected virtual Color PreviewTint => HostileShotPalette.Body(EnemyBehaviours.SpaceShot, world);
 
     // ---- IHostileZone ----
     public bool ZoneLive => State == Phase.Live;
@@ -129,7 +129,7 @@ public abstract class AttackHazard : MonoBehaviour, IHostileZone, IAttackStep, I
     // Starts the tell. `tellSeconds` is raised to MinTellSeconds. The subclass has set its data.
     protected void BeginTell(float tellSeconds, GameObject by, int worldIndex)
     {
-        world = Mathf.Clamp(worldIndex, 0, ShotSkins.Worlds - 1);
+        world = Mathf.Clamp(worldIndex, 0, WorldCue.Worlds - 1);   // (Storm 5 / Desert 6 keep their own ramp and cue colour, WorldCue)
         audioWorld = Mathf.Clamp(worldIndex, 0, AttackAudio.WorldFolders.Length - 1);
         shooter = by;
         ownerId = by != null ? by.GetInstanceID() : 0;

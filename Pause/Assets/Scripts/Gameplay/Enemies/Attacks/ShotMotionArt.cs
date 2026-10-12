@@ -60,7 +60,7 @@ public static class ShotMotionArt
         }
         var ramp = MaterialOf(piece, world);
         string key = "ShotMot" + (int)piece + "_" + world + "_" + f;
-        return AttackHazardArt.Made(key, w, h, Ppu, new Vector2(.5f, .5f), (px, ww, hh) => Shade(px, ww, hh, inside, f, ramp.light, ramp.dark, piece == Piece.Log, piece == Piece.Leaf || piece == Piece.Pod ? 2 : 1), false);
+        return AttackHazardArt.Made(key, w, h, Ppu, new Vector2(.5f, .5f), (px, ww, hh) => Shade(world, px, ww, hh, inside, f, ramp.light, ramp.dark, piece == Piece.Log, piece == Piece.Leaf || piece == Piece.Pod ? 2 : 1), false);
     }
 
     // Verdant's painted shots (verdant_attack_shots.png), or null (other worlds, the log and the slug, a missing atlas).
@@ -140,7 +140,7 @@ public static class ShotMotionArt
 
     // ---- shading by depth from the rim ---------------------------------------------------------------------
 
-    static void Shade(Color32[] px, int w, int h, System.Func<int, int, bool> inside, int f, Color32 light, Color32 dark, bool rings, int coreRows)
+    static void Shade(int world, Color32[] px, int w, int h, System.Func<int, int, bool> inside, int f, Color32 light, Color32 dark, bool rings, int coreRows)
     {
         var d = new int[w * h];
         var m = new bool[w * h];
@@ -163,7 +163,7 @@ public static class ShotMotionArt
             if (!any) break;
             maxD = layer;
         }
-        Color32 edge = AttackHazardArt.PinkEdge, body = AttackHazardArt.PinkBody, core = f == 0 ? AttackHazardArt.CoreA : AttackHazardArt.CoreB;
+        Color32 edge = AttackHazardArt.PinkEdge(world), body = AttackHazardArt.PinkBody(world), core = f == 0 ? AttackHazardArt.CoreA(world) : AttackHazardArt.CoreB(world);
         // the rim is the pink-white stroke, the deepest rows the hot core; a body line of pink between them only where the shape is thick,
         // the rest the world's material (so the leaf still reads green and the log brown)
         int coreFrom = Mathf.Max(3, maxD - coreRows);

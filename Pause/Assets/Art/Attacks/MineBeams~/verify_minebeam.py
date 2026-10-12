@@ -48,8 +48,9 @@ for name, x, y, w, h in cells:
     c = a[y:y + h, x:x + w]; op = c[:, :, 3] >= (8 if name.startswith('haze') else 128)
     if not op.any(): fails.append(name + " empty"); continue
     hh, ss, vv = hsv(c)
-    pink = (((hh >= 300) & (hh <= 340) & (ss > .2)) | ((vv > .89) & (ss < .25))) & op
-    ps = 100 * pink.sum() / op.sum()
+    # NO PINK (user, 2026-10-11): any visibly pinkish pixel -- hue 280..352, chroma >= 9/255, not dark -- saturated magenta AND pale pinkish-white
+    pink = (c[:, :, 3] > 0) & (vv > .25) & (ss * vv >= .035) & (hh >= 280) & (hh < 352)
+    ps = 100 * pink.sum() / max(1, op.sum())   # (residual pink share: must be 0)
     xs = np.where(op)[1]; width = xs.max() - xs.min() + 1
     isbeam = name.startswith("beam")
     clear = bool((c[:, :6, 3] <= 24).all() and (c[:, -6:, 3] <= 24).all())
@@ -60,7 +61,7 @@ for name, x, y, w, h in cells:
     if not clear: fails.append(name + " touches the 6 px border")
     if isbeam:
         beam_w = max(beam_w, width); pinks.append(ps)
-        if ps < 3: fails.append(name + " pink cue %.1f%% < 3%%" % ps)
+    if pink.sum() > 0: fails.append("%s: %d pink / pale-pink pixels (no pink outside Space)" % (name, pink.sum()))
     print("%-8s %6d %6d %6.1f %5s" % (name, op.sum(), width, ps, clear))
 if beam_w > 100: fails.append("beam wider than 100 px (%d)" % beam_w)
 hh, ss, vv = hsv(a); opa = a[:, :, 3] >= 128

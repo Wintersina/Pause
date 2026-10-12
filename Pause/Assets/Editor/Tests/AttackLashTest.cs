@@ -693,11 +693,12 @@ public static class AttackLashTest
 
     static bool IsKey(Color32 c) => c.a > 24 && c.r == ShotOutline.BoldKey.r && c.g == ShotOutline.BoldKey.g && c.b == ShotOutline.BoldKey.b;
 
-    static bool PinkOrWhite(Color32 c)
+    static bool PinkOrWhite(Color32 c, int world)
     {
         Color.RGBToHSV(c, out float h, out float s, out float v);
+        if (s < .3f && v > .75f) return true;
         float deg = h * 360f;
-        return (s < .3f && v > .75f) || (deg >= 300f && deg <= 335f && s > .2f);
+        return world <= 0 ? (deg >= 300f && deg <= 335f && s > .2f) : ShotSkinTest.CueOrWhite(c, world);
     }
 
     static IEnumerable<KeyValuePair<string, Sprite>> LashSprites(int world, bool bold)
@@ -728,7 +729,7 @@ public static class AttackLashTest
                     var clean = new Color32[px.Length];
                     int key = 0;
                     for (int i = 0; i < px.Length; i++) { if (IsKey(px[i])) { key++; continue; } clean[i] = px[i]; }
-                    var au = ShotSkinTest.AuditPixels(clean);
+                    var au = ShotSkinTest.AuditPixels(clean, world);
                     n++;
                     string tag = kv.Key + " w" + world + (b == 1 ? " bold" : "");
                     if (au.PinkShare < minPink) { minPink = au.PinkShare; worstPink = tag; }
@@ -755,7 +756,7 @@ public static class AttackLashTest
                                 var nb = px[ny * w + nx];
                                 isEdge = nb.a <= 24 || IsKey(nb);
                             }
-                            if (isEdge) { edge++; if (PinkOrWhite(c) || (c.r > 200 && c.b > 150)) edgePink++; }
+                            if (isEdge) { edge++; if (PinkOrWhite(c, world) || (world <= 0 && c.r > 200 && c.b > 150)) edgePink++; }
                         }
                     float ep = edge > 0 ? edgePink / (float)edge : 1f;
                     if (ep < minEdge) { minEdge = ep; worstEdge = tag; }

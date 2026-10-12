@@ -2,7 +2,7 @@
 
 usage: python3 recolor_nopink.py <world> <atlas.png> [--out file]
 Originals are saved once to <dir>/pink_original/<name>. Pointwise (so the x2 nearest round trip still holds).
-A pixel is "pink family" when s > .15, v > .25 and hue 285..352 (the pink rim and pink-white specks; Ember's red-orange flame edge, hue 19, is untouched).
+A pixel is "pink family" when max-min >= .035, v > .25 and hue 280..352 (saturated pink AND pale pinkish-white / lavender-white; Ember's red-orange flame edge, hue 19, is untouched).
 The same constants live in C# (MineCue, RailMineLaser.cs): keep them equal.
 """
 import colorsys, shutil, sys
@@ -32,14 +32,16 @@ def remap(a, world):
     ix = (mx == g) & (d > 0) & (mx != r); h[ix] = (b[ix] - r[ix]) / d[ix] + 2
     ix = (mx == b) & (d > 0) & (mx != r) & (mx != g); h[ix] = (r[ix] - g[ix]) / d[ix] + 4
     h = (h * 60) % 360
-    pink = (a[:, :, 3] > 0) & (s > .15) & (mx > .25) & (h >= 285) & (h < 352)
+    # PINK = hue 280..352 at any visible chroma (max-min >= .035 of full range, i.e. >= 9/255): saturated magenta AND the pale
+    # pinkish-white / lavender-white of rims and specks (e.g. 255,224,248, s .12, which the first pass missed). Neutral whites stay.
+    pink = (a[:, :, 3] > 0) & (d >= .035) & (mx > .25) & (h >= 280) & (h < 352)
     out = a.copy()
     ys, xs = np.where(pink)
     for y, x in zip(ys, xs):
         v = max(float(mx[y, x]), vmin)
-        sat = min(float(s[y, x]) * .8, cap)
+        sat = min(max(float(s[y, x]) * .8, .10), cap)   # (a pale pixel keeps a visible cue tint: green-white, not grey)
         # keep a little of the original lightness structure: paler pixels stay paler
-        rr, gg, bb = colorsys.hsv_to_rgb(hue / 360, sat * (1.0 if mx[y, x] < .95 else .6), v)
+        rr, gg, bb = colorsys.hsv_to_rgb(hue / 360, sat * (1.0 if mx[y, x] < .95 else .75), v)
         out[y, x, :3] = (round(rr * 255), round(gg * 255), round(bb * 255))
     return out, int(pink.sum())
 

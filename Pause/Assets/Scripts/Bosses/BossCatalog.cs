@@ -138,6 +138,16 @@ public sealed class BossDef
     public BossAttack[] DefaultAttacks => baseAttacks;
     // Colour the hit flash and ring are tinted with (never the player's red).
     public Color flash;
+    // The world this boss belongs to (BossCatalog is index-aligned with WorldManager.Worlds): its shots, rims and telegraphs wear that world's cue colour (WorldCue).
+    public int WorldIndex
+    {
+        get
+        {
+            if (worldIndex < 0) worldIndex = Mathf.Max(0, System.Array.IndexOf(BossCatalog.All, this));
+            return worldIndex;
+        }
+    }
+    [System.NonSerialized] int worldIndex = -1;
     // Its hearts (BossHearts), tinting the white elite heart: a colour of
     // its own world, never the player's red.
     public Color heartColor = new Color(.8f, .4f, 1f);
@@ -185,6 +195,7 @@ public static class BossCatalog
     }
 
     static readonly Color Magenta = new Color(1f, .18f, .53f);
+    static readonly Color EmberFlash = new Color(1f, .62f, .2f);   // Cinder Drake: orange-white, no pink outside Space (WorldCue)
     static readonly Color Ice = new Color(.62f, .91f, .94f);
     static readonly Color BileLight = new Color(.78f, 1f, .23f);
     // Heart colours: Space violet, Frost ice, Verdant bile, Ember amber.
@@ -316,7 +327,7 @@ public static class BossCatalog
                 lore = "A basalt dragon that swims through magma the way the pilot swims through stars. " +
                        "It guards the last gate before home, breathing fire, hurling magma from its furnace and raking the sky with the gem on its brow. " +
                        "Everything in Ember burns - make sure it isn't you.",
-                swayX = 1.35f, swayY = .18f, freqX = .38f, freqY = .76f, flash = Magenta, heartColor = HeartAmber,
+                swayX = 1.35f, swayY = .18f, freqX = .38f, freqY = .76f, flash = EmberFlash, heartColor = HeartAmber,
                 attacks = new[]
                 {
                     // It rears and breathes two wide fans of fireballs from

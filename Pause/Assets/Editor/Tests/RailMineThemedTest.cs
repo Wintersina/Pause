@@ -75,7 +75,7 @@ public static class RailMineThemedTest
             if (HostileGlow.IsPlayerRed(px[i])) { red++; continue; }
             Color.RGBToHSV(px[i], out float hh, out float ss, out float vv);
             float d = hh * 360f;
-            if (d >= 285f && d <= 345f && ss > .22f && vv > .55f) pink++;
+            if (vv > .25f && ss * vv >= .035f && d >= 280f && d < 352f) pink++;   // any visibly pinkish pixel, saturated or pale (NO PINK, user 2026-10-11)
         }
         return opaque == 0 ? 0f : pink / (float)opaque;
     }

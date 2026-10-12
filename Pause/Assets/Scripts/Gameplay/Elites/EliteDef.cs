@@ -245,6 +245,14 @@ public class EliteDef
         ShotCore = Hex(shotCore, new Color(.62f, .96f, 1f));
         EngineColor = Hex(engineColor, new Color(1f, .6f, .24f));
         WorldIndex = Array.IndexOf(EnemyRoster.WorldKeys, world);
+        // NO PINK OUTSIDE SPACE (user, 2026-10-11): a non-Space elite's shot / telegraph / spark colour is its world's cue (WorldCue),
+        // whatever its json says (the old defs carried the shared pink FF4FD8 / violet / cyan core).
+        // (Frost, Storm and Desert defs already carry their own pale cold / white / bone colours: kept unless one of them is pink)
+        if (WorldIndex > 0 && (WorldIndex == 2 || WorldIndex == 3 || WorldIndex == 4 || WorldCue.IsPink(ShotColor) || WorldCue.IsPink(ShotCore)))
+        {
+            ShotColor = WorldCue.Body(WorldIndex);
+            ShotCore = WorldCue.Core(WorldIndex);
+        }
         if (muzzles == null) muzzles = new ElitePoint[0];
         if (nozzles == null) nozzles = new ElitePoint[0];
         if (cells == null) cells = new EliteCells();

@@ -146,14 +146,15 @@ public static class AtomClarityTest
         {
             var s = EliteSystem.Shots.Fire(null, d, kind, new Vector2(0f, 3f), Vector2.down);
             if (s == null) continue;
-            if (HostileShotPalette.InFamily(s.BodyTint) && HostileShotPalette.InFamily(s.ShotTint)) inFamily++;
+            int cw = Mathf.Max(0, d.WorldIndex);
+            if (HostileShotPalette.InFamily(s.BodyTint, cw) && HostileShotPalette.InFamily(s.ShotTint, cw)) inFamily++;
             else off += " " + key;
             foreach (var r in s.GetComponentsInChildren<SpriteRenderer>(true))
                 if (r.sprite == PickupGlow.HaloSprite || r.sprite == PickupGlow.RingSprite || r.sprite == HostileGlow.Halo) halos++;
             s.Recycle();
         }
-        Check("every elite and roster shot (" + styles.Count + ") is drawn in the hostile family " + HostileShotPalette.HueMin + ".." +
-              HostileShotPalette.HueMax + " deg (" + inFamily + ";" + off + ") and none wears a halo or ring (" + halos + ")",
+        Check("every elite and roster shot (" + styles.Count + ") is drawn in its world's cue family (Space pink " + HostileShotPalette.HueMin + ".." +
+              HostileShotPalette.HueMax + " deg, every other world WorldCue) (" + inFamily + ";" + off + ") and none wears a halo or ring (" + halos + ")",
               inFamily == styles.Count && halos == 0);
         var shot = EliteSystem.Shots.Fire(null, styles[0].def, EliteShots.Kind.Bolt, Vector2.zero, Vector2.down);
         var core = shot.transform.Find("Core").GetComponent<SpriteRenderer>();
@@ -179,8 +180,11 @@ public static class AtomClarityTest
     }
 
     // ---- one world ----
+    static int cueWorld;   // the world being measured: its cue hue is what a shot's 'hostile edge' is (WorldCue)
+
     static void World(int world)
     {
+        cueWorld = world;
         EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
         BossEncounter.ResetRun();
         EliteSystem.Clear();
@@ -277,7 +281,9 @@ public static class AtomClarityTest
                 float pink = s.pink - p.pink;
                 int cues = (hue >= CueHueGap ? 1 : 0) + (soft >= CueSoftGap ? 1 : 0) + (size >= CueSizeRatio ? 1 : 0) +
                            (iou <= CueMaxIoU ? 1 : 0) + (pink >= CuePinkGap ? 1 : 0);
-                bool ok = s.boss ? cues >= MinBossCues : hue >= MinHueGap && cues >= MinShotCues;
+                // (outside Space a cue colour may sit near an atom's hue by design -- NO PINK OUTSIDE SPACE, user 2026-10-11 -- so the hue gap is not required there:
+                //  hard edge, size, silhouette and the flicker tell a shot from an atom)
+                bool ok = s.boss ? cues >= MinBossCues : (cueWorld > 0 || hue >= MinHueGap) && cues >= MinShotCues;
                 string line = name + ": " + p.name + " vs " + s.name + " -- hue " + hue.ToString("F0") + " deg (" + p.hue.ToString("F0") + " / " + s.hue.ToString("F0") + "), softness gap " +
                               soft.ToString("F2") + ", hostile-pink gap " + pink.ToString("F2") + ", size x" + size.ToString("F2") + ", silhouette IoU " + iou.ToString("F2") +
                               " -> " + cues + " cues";
@@ -336,8 +342,8 @@ public static class AtomClarityTest
             Color.RGBToHSV(f, out float h, out float s, out float v);
             // the hostile edge: any visibly changed pixel in the hostile pink
             // (a rim is thin and pale over a bright cloud, but it is there)
-            if (s > .25f && v > .3f && h * 360f >= HostileShotPalette.HueMin - HostileEdgeSlack &&
-                h * 360f <= HostileShotPalette.HueMax + HostileEdgeSlack) pinkCount++;
+            if (cueWorld <= 0 ? (s > .25f && v > .3f && h * 360f >= HostileShotPalette.HueMin - HostileEdgeSlack && h * 360f <= HostileShotPalette.HueMax + HostileEdgeSlack)
+                              : (s > .2f && v > .3f && Mathf.Abs(Mathf.DeltaAngle(h * 360f, WorldCue.Hue[WorldCue.Slot(cueWorld)])) <= 22f)) pinkCount++;
             if (d < StrongDiff) continue;
             // the hue of the drawing itself (strongly changed pixels): soft
             // fringes blended with the backdrop would drag a thin shot's hue

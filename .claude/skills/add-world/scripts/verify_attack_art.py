@@ -50,6 +50,7 @@ def warn(ok, what):
 
 PICKUPS = {178: "shield cyan", 82: "repair green", 259: "capacitor violet", 37: "star-dust amber"}
 PINK_LO, PINK_HI = 312 - 8, 326 + 8
+NO_PINK = False   # set by main(): --world is not space -> the world's cue replaces pink (WorldCue.cs)
 SHOT_PINK, STRIP_PINK, PICKUP_MAX = 0.30, 0.05, 0.08
 MARGIN = 4
 
@@ -134,7 +135,8 @@ def audit(cell, allow):
         if hue in allow: continue
         gap = np.abs(h - hue); gap = np.minimum(gap, 360 - gap)
         pick |= gap < 20
-    return dict(n=n, pink=float((white | pink).sum()) / n, red=int(red.sum()),
+    anypink = (v > .25) & (s * v >= .035) & (h >= 280) & (h < 352)   # saturated magenta AND pale pinkish-white / lavender-white
+    return dict(n=n, anypink=int(anypink.sum()), pink=float((white | pink).sum()) / n, red=int(red.sum()),
                 pick=float((sat & pick).sum()) / max(1, int(sat.sum())), sat=int(sat.sum()))
 
 def border_ok(c):
@@ -178,13 +180,17 @@ def check_file(path, world_arg, allow):
         if not border_ok(c): margins.append(nm)
         au = audit(c, allow)
         need = SHOT_PINK if shot and (ci % 8) < 8 and kind == "shots" and not nm.startswith(("pool", "sig")) else STRIP_PINK
-        if au["pink"] < need: pinks.append(f"{nm} {au['pink']:.0%}<{need:.0%}")
+        if NO_PINK:
+            # NO PINK OUTSIDE SPACE (user, 2026-10-11): every non-Space world is held to ZERO pink / pale-pink pixels instead of the pink cue
+            if au["anypink"]: pinks.append(f"{nm} {au['anypink']}px pink")
+        elif au["pink"] < need: pinks.append(f"{nm} {au['pink']:.0%}<{need:.0%}")
         if au["pick"] >= PICKUP_MAX: picks.append(f"{nm} {au['pick']:.0%}")
         if au["red"]: reds.append(f"{nm} {au['red']}px")
     check(not empties, f"{name}: every used cell is drawn {empties}")
     check(not leaks, f"{name}: reserved cells are empty {leaks}")
     check(not margins, f"{name}: nothing within {MARGIN} px of a cell border {margins}")
-    check(not pinks, f"{name}: pink cue (>= {SHOT_PINK:.0%} of a shot cell, >= {STRIP_PINK:.0%} of a strip cell is pink-family/white) {pinks}")
+    if NO_PINK: check(not pinks, f"{name}: NO pink or pale pink pixel (hue 280-352, chroma >= 9/255); only Space keeps pink {pinks}")
+    else: check(not pinks, f"{name}: pink cue (>= {SHOT_PINK:.0%} of a shot cell, >= {STRIP_PINK:.0%} of a strip cell is pink-family/white) {pinks}")
     check(not picks, f"{name}: < {PICKUP_MAX:.0%} of the saturated area near a pickup hue 178/82/259/37 {picks}")
     check(not reds, f"{name}: no red-band pixels (hue 345-15, sat > .5) {reds}")
     # frame pairs
@@ -234,6 +240,8 @@ def main():
     ap.add_argument("--sheet")
     ap.add_argument("--backdrops", nargs="*", default=[])
     o = ap.parse_args()
+    global NO_PINK
+    NO_PINK = bool(o.world) and o.world.lower() != "space"
     for p in o.files:
         check_file(p, o.world, set(o.allow_hue))
     if o.sheet: sheet(o.sheet, o.files, o.backdrops)

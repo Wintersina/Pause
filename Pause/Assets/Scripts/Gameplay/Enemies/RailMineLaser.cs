@@ -754,22 +754,60 @@ public static class MineCue
 
     public static int Slot(int world) => Mathf.Clamp(world, 0, Worlds - 1);
 
-    // The pink family of a boss / kit cell: saturated, not dark, hue 285..360 or 0..28 (the hot pink of the boss beams sits in the player's red band).
+    // The pink family of a boss / kit cell: ANY visibly pinkish pixel -- hue 280..352 at a chroma of at least 9/255 and not dark (saturated
+    // pink AND the pale pinkish-white / lavender-white of rims and specks), or the hot pink of the boss beams that sits in the player's
+    // red band (hue 352..360 / 0..28, saturated). Neutral whites are untouched. Same mask as recolor_nopink.py.
     public static bool IsPink(Color c)
     {
         Color.RGBToHSV(c, out float h, out float s, out float v);
         float d = h * 360f;
-        return c.a > 0f && s > .15f && v > .25f && (d >= 285f || d < 28f);
+        if (c.a <= 0f || v <= .25f) return false;
+        if (s * v >= .035f && d >= 280f && d < 352f) return true;
+        return s > .15f && (d >= 352f || d < 28f);
     }
 
     public static Color Remap(Color c, int world)
     {
         int k = Slot(world);
         Color.RGBToHSV(c, out float h, out float s, out float v);
-        float sat = Mathf.Min(s * .8f, SatCap[k]) * (v < .95f ? 1f : .6f);
+        float sat = Mathf.Min(Mathf.Max(s * .8f, .10f), SatCap[k]) * (v < .95f ? 1f : .75f);
         var m = Color.HSVToRGB(Hue[k] / 360f, sat, Mathf.Max(v, ValueMin[k]));
         m.a = c.a;
         return m;
+    }
+
+    // The boss "WARNING" banner (BossArt.Warning, painted hot pink) in a world's own cue colour: the pink stripes become the world's saturated
+    // cue (WorldCue.Body), the cream lettering and navy plate stay. Space keeps the painted banner. Cached per world.
+    static readonly Dictionary<int, Sprite> banners = new Dictionary<int, Sprite>();
+    public static Sprite Banner(Sprite warning, int world)
+    {
+        if (warning == null || world <= 0) return warning;
+        int k = Slot(world);
+        if (banners.TryGetValue(k, out var cached) && cached != null && cached.texture != null) return cached;
+        int w, h;
+        var px = ShieldContour.ReadPixels(warning, out w, out h);
+        if (px == null) return warning;
+        float hue = WorldCue.Hue[k] / 360f;
+        for (int i = 0; i < px.Length; i++)
+        {
+            if (!IsPink(px[i])) continue;
+            Color.RGBToHSV(px[i], out _, out float s, out float v);
+            var m = Color.HSVToRGB(hue, Mathf.Min(s, WorldCue.BodySat[k]), v);
+            m.a = px[i].a / 255f;
+            px[i] = m;
+        }
+        var tex = new Texture2D(w, h, TextureFormat.RGBA32, false);
+        tex.name = "BossWarningCue" + k;
+        tex.filterMode = warning.texture != null ? warning.texture.filterMode : FilterMode.Bilinear;
+        tex.wrapMode = TextureWrapMode.Clamp;
+        tex.hideFlags = HideFlags.HideAndDontSave;
+        tex.SetPixels32(px);
+        tex.Apply(false, false);
+        var sp = Sprite.Create(tex, new Rect(0, 0, w, h), new Vector2(.5f, .5f), warning.pixelsPerUnit, 0, SpriteMeshType.FullRect);
+        sp.name = tex.name;
+        sp.hideFlags = HideFlags.HideAndDontSave;
+        banners[k] = sp;
+        return sp;
     }
 
     // A copy of `cell` with every pink-family pixel (and the player-red band) turned to the world's cue colour. (None: the cell itself.)

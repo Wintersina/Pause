@@ -86,7 +86,7 @@ public static partial class AttackHazardArt
         var ramp = RampOf(world);
         return Made("AtkJet" + world + (int)style + "_" + f + "_" + lenClass + "_" + basePx + "_" + tipPx + (bold ? "b" : ""), w, h, Ppu, new Vector2(.5f, 1f), (px, ww, hh) =>
         {
-            Color32 edge = PinkEdge, body = PinkBody, core = (f & 1) == 0 ? CoreA : CoreB;
+            Color32 edge = PinkEdge(world), body = PinkBody(world), core = (f & 1) == 0 ? CoreA(world) : CoreB(world);
             float cx = ww * .5f;
             for (int row = 0; row < hh; row++)
             {
@@ -168,7 +168,7 @@ public static partial class AttackHazardArt
         var ramp = RampOf(world);
         return Made("AtkFlare" + world + (int)style + "_" + st + (bold ? "b" : ""), NozzleSize, NozzleSize, Ppu, new Vector2(.5f, .5f), (px, w, h) =>
         {
-            Color32 edge = PinkEdge, body = PinkBody, hot = st == 1 ? CoreB : CoreA;
+            Color32 edge = PinkEdge(world), body = PinkBody(world), hot = st == 1 ? CoreB(world) : CoreA(world);
             float c = (w - 1) * .5f;
             float radius = 5f + st * 3.2f;
             for (int k = 0; k < 8; k++)
@@ -193,7 +193,7 @@ public static partial class AttackHazardArt
         var ramp = RampOf(world);
         return Made("AtkSparks" + world + (int)style + "_" + f + (bold ? "b" : ""), NozzleSize, NozzleSize, Ppu, new Vector2(.5f, .5f), (px, w, h) =>
         {
-            Color32 edge = PinkEdge, hot = f == 0 ? CoreA : CoreB;
+            Color32 edge = PinkEdge(world), hot = f == 0 ? CoreA(world) : CoreB(world);
             float c = (w - 1) * .5f;
             int n = 9 - f * 2;
             for (int k = 0; k < n; k++)
@@ -264,7 +264,7 @@ public static partial class AttackHazardArt
         var ramp = RampOf(world);
         return Made("AtkWave" + world + (int)style + "_" + f + (bold ? "b" : ""), WaveTileW, h, Ppu, new Vector2(.5f, .5f), (px, w, hh) =>
         {
-            Color32 edge = PinkEdge, body = PinkBody, core = f == 0 ? CoreA : CoreB;
+            Color32 edge = PinkEdge(world), body = PinkBody(world), core = f == 0 ? CoreA(world) : CoreB(world);
             for (int x = 0; x < w; x++)
             {
                 float ph = x / (float)w * 6.2832f;

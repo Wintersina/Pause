@@ -290,15 +290,8 @@ public static class EnemyBehaviours
     // sodium orange, whose hue sits on the edge of the red band.
     public static Color ShotColor(int world)
     {
-        switch (world)
-        {
-            case 1: return EnemyPalette.Cyan;
-            case 2: return EnemyPalette.BileLight;
-            case 3: return EnemyPalette.Amber;
-            case 4: return EnemyPalette.Mint;
-            case 5: return EnemyPalette.ArcBlue;   // (the shot itself is the hostile pink family, HostileShotPalette; this is the tell's flare)
-            default: return SpaceShot;
-        }
+        // (the world's cue colour, WorldCue: pink only in Space)
+        return world <= 0 ? SpaceShot : WorldCue.Body(world);
     }
 
     static Dictionary<string, EnemyBehaviour> table;

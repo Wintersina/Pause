@@ -515,11 +515,12 @@ public static class ShotMotionTest
         return res;
     }
 
-    static bool PinkOrWhite(Color32 c)
+    static bool PinkOrWhite(Color32 c, int world)
     {
         Color.RGBToHSV(c, out float h, out float s, out float v);
+        if (s < .3f && v > .75f) return true;
         float deg = h * 360f;
-        return (s < .3f && v > .75f) || (deg >= 300f && deg <= 335f && s > .2f);
+        return world <= 0 ? (deg >= 300f && deg <= 335f && s > .2f) : ShotSkinTest.CueOrWhite(c, world);
     }
 
     static void DrawnPixels()
@@ -535,7 +536,7 @@ public static class ShotMotionTest
                     var sp = ShotMotionArt.ProceduralSprite(piece, world, f);
                     var px = Pixels(sp);
                     int w = (int)sp.rect.width, h = (int)sp.rect.height;
-                    var au = ShotSkinTest.AuditPixels(px);
+                    var au = ShotSkinTest.AuditPixels(px, world);
                     n++;
                     string tag = piece + " w" + world + " f" + f;
                     if (au.PinkShare < minPink) { minPink = au.PinkShare; worstPink = tag; }
@@ -558,7 +559,7 @@ public static class ShotMotionTest
                                     int nx = x + (k == 0 ? -1 : k == 1 ? 1 : 0), ny = y + (k == 2 ? -1 : k == 3 ? 1 : 0);
                                     e = px[ny * w + nx].a <= 24;
                                 }
-                            if (e) { edge++; if (PinkOrWhite(c)) edgePink++; }
+                            if (e) { edge++; if (PinkOrWhite(c, world)) edgePink++; }
                         }
                     float ep = edge > 0 ? edgePink / (float)edge : 1f;
                     if (ep < minEdge) { minEdge = ep; worstEdge = tag; }

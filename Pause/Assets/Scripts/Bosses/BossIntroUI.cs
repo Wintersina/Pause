@@ -107,7 +107,7 @@ public class BossIntroUI : MonoBehaviour
         ui.boss = boss;
         ui.flash = NewImage(root.transform, "Flash", null, Vector2.zero, Vector2.zero, true);
         ui.flash.color = new Color(1f, 1f, 1f, 0f);
-        ui.warning = NewImage(root.transform, "Warning", BossArt.Warning(), new Vector2(-1000f, 330f), new Vector2(760f, 143f), false);
+        ui.warning = NewImage(root.transform, "Warning", MineCue.Banner(BossArt.Warning(), boss != null ? boss.WorldIndex : 0), new Vector2(-1000f, 330f), new Vector2(760f, 143f), false);
         ui.BuildName();
         ui.Flash(Bone, 2, .9f);
         ui.Step(0f);
