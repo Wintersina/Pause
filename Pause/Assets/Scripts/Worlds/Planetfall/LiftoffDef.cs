@@ -8,7 +8,7 @@
 // The way on after the interlude is not the lift-off's business: it is
 // WorldManager.OpenGateway, which flies the next planet's planetfall when
 // PlanetfallCatalog has one (Verdant after Frost, Ember after Verdant, Tide
-// after Ember once WorldManager.TideEnabled, Storm after Tide once WorldManager.StormEnabled, Desert after Storm once WorldManager.DesertEnabled) and opens the portal otherwise.
+// after Ember once WorldManager.TideEnabled, Storm after Tide once WorldManager.StormEnabled, Desert after Storm) and opens the portal otherwise.
 // A lift-off that loops (AutoLoopNow: Tide's, the last world; Ember's only
 // while the release switch is off and it is still the last LIVE world) skips
 // the loop portal: the interlude already flies Space's sky, so the run
@@ -102,8 +102,7 @@ public static class LiftoffCatalog
         autoLoop = true,
     };
 
-    // Desert: leaving the dune planet after its boss, the final world once
-    // WorldManager.DesertEnabled. No loop portal (as Tide's and Storm's, while last).
+    // Desert: leaving the dune planet after its boss, the final world. No loop portal.
     public static readonly LiftoffDef Desert = new LiftoffDef
     {
         world = 6,

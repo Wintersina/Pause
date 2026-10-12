@@ -273,7 +273,7 @@ public static class PlanetfallCatalog
         chipPrefix = "ORBIT  DANGER ",
     };
 
-    // Desert: after Storm's lift-off (only once WorldManager.DesertEnabled), the dune
+    // Desert: after Storm's lift-off, the dune
     // planet: bone-gold sand under a thin dust haze, a crescent dune-sea scar, a dark
     // salt-glass basin, a snapped orbital ring and two wind-swept dust plumes
     // (Art/Worlds/Desert/descent~/manifest.json). Numbers from the manifest: disc
