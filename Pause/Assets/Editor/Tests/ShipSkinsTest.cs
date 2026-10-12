@@ -553,7 +553,7 @@ public static class ShipSkinsTest
 
         // can't afford
         popup.Press();
-        var message = popup.transform.Find("Panel/Message").GetComponent<Text>();
+        var message = popup.transform.Find("Panel/Body/Message").GetComponent<Text>();
         Check("an unaffordable skin shakes NEED n MORE",
               message.enabled && message.text == "NEED 650 MORE" && !PlayerPrefs.HasKey("skinOwned3_4") &&
               Mathf.Approximately(PlayerPrefs.GetFloat(StarDustLedger.CurrencyKey), 100f));

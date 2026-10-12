@@ -286,7 +286,7 @@ public static class ShopTest
         Check("an unaffordable ship is not bought", PlayerPrefs.GetString("boughtship" + poor) != "True");
         Check("an unaffordable purchase takes no star dust", Mathf.Approximately(PlayerPrefs.GetFloat("PlayerCurrecny"), 100f));
         Check("an unaffordable ship keeps offering BUY", dock.popup.CurrentMode == DockPopup.Mode.Buy);
-        var message = dock.popup.transform.Find("Panel/Message").GetComponent<Text>();
+        var message = dock.popup.transform.Find("Panel/Body/Message").GetComponent<Text>();
         Check("the player is told they can't afford it",
               message.enabled && message.text.Contains("NEED") && message.text.Contains((shopingShips.CostFor(poor) - 100f).ToString("N0")));
     }

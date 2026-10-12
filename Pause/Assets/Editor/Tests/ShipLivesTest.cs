@@ -265,7 +265,7 @@ public static class ShipLivesTest
 
         // The name line stops before the close button; on the line under it
         // the colour's name stops before the hearts.
-        Check("dock popup: the heart badge and title exist", popup.transform.Find("Panel/Lives") != null && popup.transform.Find("Panel/Title") != null);
+        Check("dock popup: the heart badge and title exist", popup.transform.Find("Panel/Body/Lives") != null && popup.transform.Find("Panel/Body/Title") != null);
         popup.Show(comet, anchor, .3f, true, true, 0f, 1000f);
         popup.ShowSkins(comet, 1, 1000f);
         Check("dock popup: the title stops before the close button (" + popup.TitleRight.ToString("F0") + " <= " +

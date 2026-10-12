@@ -97,6 +97,13 @@ public static class DockPreview
                 string tag = "-" + size.x + "x" + size.y + ".png";
                 Render(size, 8, Path.Combine(dir, prefix + "-owned" + tag));
                 Render(size, 4, Path.Combine(dir, prefix + "-unbought" + tag));
+                // the power preview: more ships, ultimate and power sides
+                foreach (int ship in new[] { 2, 10, 13, 15 })
+                {
+                    string own = ShipId.IsOwned(ship) ? "owned" : "unbought";
+                    Render(size, ship, Path.Combine(dir, prefix + "-ship" + ship + "-" + own + "-ultimate" + tag));
+                    Render(size, ship, Path.Combine(dir, prefix + "-ship" + ship + "-" + own + "-power" + tag), dock => dock.popup.TapPreviewChip(true));
+                }
             }
         }
         EditorApplication.Exit(0);

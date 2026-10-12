@@ -30,7 +30,9 @@ public class DockPopup : MonoBehaviour
     public const float HeaderHeight = 44f;      // name line + skin-name / hearts / status line
     public const float ButtonHeight = 48f;
     // A locked ship's card: header and the action button.
-    public const float BaseHeight = Pad + HeaderHeight + 10f + ButtonHeight + Pad;
+    // The power preview at the top of the card: art frame, kind chips, name, line.
+    public const float PreviewHeight = 112f;
+    public const float BaseHeight = PreviewHeight + Pad + HeaderHeight + 10f + ButtonHeight + Pad;
     // Added for an owned ship: the swatches (their touch slots), the weapon
     // row and the START SPEED line.
     public const float SkinRowHeight = 50f;
@@ -110,7 +112,7 @@ public class DockPopup : MonoBehaviour
     Canvas canvas;
     Font font;
     CanvasGroup group;
-    RectTransform panel, tail, dustIcon;
+    RectTransform panel, body, tail, dustIcon;
     Text title, skinName, status, message, buttonLabel;
     public Button ActionButton { get; private set; }
     public Button CloseButton { get; private set; }
@@ -175,8 +177,15 @@ public class DockPopup : MonoBehaviour
         tailImage.sprite = DockArt.Get("popup_tail");
         tailImage.raycastTarget = false;
 
+        // Everything below the power preview lives in `body`, laid out from its
+        // own top exactly as before the preview existed.
+        body = Rect("Body", panel);
+        Stretch(body);
+        body.offsetMax = new Vector2(0f, -PreviewHeight);
+        BuildPreview();
+
         // Line 1: the ship's name, and the close button in the corner.
-        title = Label("Title", panel, font, TitleSize, TextAnchor.MiddleLeft, AkiraPalette.Bone);
+        title = Label("Title", body, font, TitleSize, TextAnchor.MiddleLeft, AkiraPalette.Bone);
         title.fontStyle = FontStyle.Bold;
         title.horizontalOverflow = HorizontalWrapMode.Wrap;
         title.verticalOverflow = VerticalWrapMode.Truncate;
@@ -187,21 +196,21 @@ public class DockPopup : MonoBehaviour
         BuildClose();
 
         // Line 2: the colour's name on the left; hearts and status / price on the right.
-        skinName = Label("SkinName", panel, font, SmallSize + 1, TextAnchor.MiddleLeft, AkiraPalette.WithAlpha(AkiraPalette.Cyan, .9f));
+        skinName = Label("SkinName", body, font, SmallSize + 1, TextAnchor.MiddleLeft, AkiraPalette.WithAlpha(AkiraPalette.Cyan, .9f));
         skinName.horizontalOverflow = HorizontalWrapMode.Wrap;
         skinName.verticalOverflow = VerticalWrapMode.Truncate;
         skinName.resizeTextForBestFit = true;
         skinName.resizeTextMinSize = SmallSize;
         skinName.resizeTextMaxSize = SmallSize + 1;
         Place(skinName.rectTransform, new Vector2(0f, 1f), new Vector2(Pad, -Pad - 24f), new Vector2(150f, 20f), new Vector2(0f, 1f));
-        status = Label("Status", panel, font, StatusSize, TextAnchor.MiddleRight, DockArt.Gold);
+        status = Label("Status", body, font, StatusSize, TextAnchor.MiddleRight, DockArt.Gold);
         Place(status.rectTransform, new Vector2(1f, 1f), new Vector2(-Pad, -Pad - 24f), new Vector2(120f, 20f), new Vector2(1f, 1f));
-        dustIcon = Rect("Dust", panel);
+        dustIcon = Rect("Dust", body);
         var dust = dustIcon.gameObject.AddComponent<Image>();
         dust.sprite = DockArt.Get("icon_dust");
         dust.raycastTarget = false;
         Place(dustIcon, new Vector2(1f, 1f), new Vector2(-80f, -Pad - 34f), new Vector2(15f, 15f), new Vector2(.5f, .5f));
-        livesBadge = Rect("Lives", panel);
+        livesBadge = Rect("Lives", body);
         Place(livesBadge, new Vector2(1f, 1f), new Vector2(-100f, -Pad - 34f), new Vector2(LivesIconSize + 16f, 18f), new Vector2(1f, .5f));
         var heart = Rect("Heart", livesBadge);
         Place(heart, new Vector2(0f, .5f), Vector2.zero, new Vector2(LivesIconSize, LivesIconSize), new Vector2(0f, .5f));
@@ -212,11 +221,11 @@ public class DockPopup : MonoBehaviour
         livesLabel = Label("Count", livesBadge, font, StatusSize, TextAnchor.MiddleLeft, AkiraPalette.Bone);
         Place(livesLabel.rectTransform, new Vector2(0f, .5f), new Vector2(LivesIconSize + 3f, 0f), new Vector2(14f, 18f), new Vector2(0f, .5f));
         // NEED n MORE / ACQUIRED: over the header while it is up.
-        message = Label("Message", panel, font, 15, TextAnchor.MiddleCenter, DockArt.Warn);
+        message = Label("Message", body, font, 15, TextAnchor.MiddleCenter, DockArt.Warn);
         message.fontStyle = FontStyle.Bold;
         Place(message.rectTransform, new Vector2(.5f, 1f), new Vector2(0f, -Pad), new Vector2(PanelWidth - 2f * Pad, HeaderHeight), new Vector2(.5f, 1f));
 
-        var buttonRect = Rect("Action", panel);
+        var buttonRect = Rect("Action", body);
         Place(buttonRect, new Vector2(.5f, 0f), new Vector2(0f, Pad), new Vector2(PanelWidth - 2f * Pad, ButtonHeight), new Vector2(.5f, 0f));
         buttonImage = buttonRect.gameObject.AddComponent<Image>();
         buttonImage.sprite = DockArt.Get("button", 8f);
@@ -243,10 +252,161 @@ public class DockPopup : MonoBehaviour
         BuildStartSpeedLine();
     }
 
+    // ---- BEGIN power preview ---------------------------------------------
+    //
+    // A small looping flipbook of the selected ship's ULTIMATE (its attack
+    // strip) and POWER (its secret-power strip): loop frames, then the burst.
+    // It alternates every PreviewAutoSeconds until the player taps a chip (or
+    // the frame). Sprites are cached per ship in Show; the tick only touches
+    // the Image when the frame changes, and only runs while the popup is up.
+    public const float PreviewAutoSeconds = 3f;
+    const float PreviewArtTop = 8f, PreviewArtHeight = 62f, ChipWidth = 74f, ChipHeight = 16f;
+    RectTransform previewRoot;
+    Image previewArt;
+    Text previewName, previewLine;
+    readonly Image[] previewChips = new Image[2];
+    readonly Text[] previewChipLabels = new Text[2];
+    // [0] ultimate (attack), [1] power; each 8 loop cells then 8 burst cells.
+    readonly Sprite[][] previewCells = { new Sprite[PowerPreview.Cells], new Sprite[PowerPreview.Cells] };
+    int previewShip = -1;
+    bool previewPower, previewAuto = true;
+    float previewKindAt, previewClockAt;
+    int previewTick = -2;
+    public bool PreviewShowsPower { get { return previewPower; } }
+    public bool PreviewAutoAlternates { get { return previewAuto; } }
+    public string PreviewName { get { return previewName != null ? previewName.text : ""; } }
+    public string PreviewLine { get { return previewLine != null ? previewLine.text : ""; } }
+    public Sprite PreviewSprite { get { return previewArt != null && previewArt.enabled ? previewArt.sprite : null; } }
+    public RectTransform PreviewRect { get { return previewRoot; } }
+
+    void BuildPreview()
+    {
+        previewRoot = Rect("Preview", panel);
+        Place(previewRoot, new Vector2(.5f, 1f), Vector2.zero, new Vector2(PanelWidth, PreviewHeight), new Vector2(.5f, 1f));
+        float w = PanelWidth - 2f * Pad;
+        // dark neon-framed panel: a cyan rim and an ink body, both the dock's button art
+        var rim = Rect("Rim", previewRoot);
+        Place(rim, new Vector2(.5f, 1f), new Vector2(0f, -PreviewArtTop), new Vector2(w, PreviewArtHeight), new Vector2(.5f, 1f));
+        var rimImage = rim.gameObject.AddComponent<Image>();
+        rimImage.sprite = DockArt.Get("button", 8f);
+        rimImage.type = Image.Type.Sliced;
+        rimImage.color = AkiraPalette.WithAlpha(AkiraPalette.Cyan, .55f);
+        rimImage.raycastTarget = true;
+        var tap = rim.gameObject.AddComponent<Button>();
+        tap.targetGraphic = rimImage;
+        tap.transition = Selectable.Transition.None;
+        tap.onClick.AddListener(() => SetPreviewKind(!previewPower));
+        var inner = Rect("Inner", rim);
+        Stretch(inner);
+        inner.offsetMin = new Vector2(2f, 2f);
+        inner.offsetMax = new Vector2(-2f, -2f);
+        var innerImage = inner.gameObject.AddComponent<Image>();
+        innerImage.sprite = DockArt.Get("button", 8f);
+        innerImage.type = Image.Type.Sliced;
+        innerImage.color = new Color(.03f, .04f, .10f, 1f);
+        innerImage.raycastTarget = false;
+        var art = Rect("Art", rim);
+        Place(art, new Vector2(.5f, .5f), Vector2.zero, new Vector2(PreviewArtHeight - 6f, PreviewArtHeight - 6f), new Vector2(.5f, .5f));
+        previewArt = art.gameObject.AddComponent<Image>();
+        previewArt.preserveAspect = true;
+        previewArt.raycastTarget = false;
+        previewArt.enabled = false;
+        for (int k = 0; k < 2; k++)
+        {
+            var chip = Rect(k == 0 ? "ChipUltimate" : "ChipPower", rim);
+            Place(chip, new Vector2(k == 0 ? 0f : 1f, 1f), new Vector2(k == 0 ? 6f : -6f, -5f),
+                  new Vector2(ChipWidth, ChipHeight), new Vector2(k == 0 ? 0f : 1f, 1f));
+            var image = chip.gameObject.AddComponent<Image>();
+            image.sprite = DockArt.Get("button", 8f);
+            image.type = Image.Type.Sliced;
+            image.raycastPadding = new Vector4(-4f, -(HitUnits - ChipHeight) * .5f, -4f, -(HitUnits - ChipHeight) * .5f);
+            var button = chip.gameObject.AddComponent<Button>();
+            button.targetGraphic = image;
+            button.transition = Selectable.Transition.None;
+            bool power = k == 1;
+            button.onClick.AddListener(() => { previewAuto = false; SetPreviewKind(power); });
+            var label = Label("Label", chip, font, 12, TextAnchor.MiddleCenter, AkiraPalette.Ink);
+            label.text = k == 0 ? "ULTIMATE" : "POWER";
+            label.fontStyle = FontStyle.Bold;
+            Stretch(label.rectTransform);
+            previewChips[k] = image;
+            previewChipLabels[k] = label;
+        }
+        float textTop = PreviewArtTop + PreviewArtHeight + 3f;
+        previewName = Label("PowerName", previewRoot, font, SmallSize + 1, TextAnchor.MiddleCenter, DockArt.Gold);
+        previewName.fontStyle = FontStyle.Bold;
+        Place(previewName.rectTransform, new Vector2(.5f, 1f), new Vector2(0f, -textTop), new Vector2(w, 16f), new Vector2(.5f, 1f));
+        previewLine = Label("PowerLine", previewRoot, font, SmallSize - 1, TextAnchor.UpperCenter, AkiraPalette.Muted);
+        previewLine.horizontalOverflow = HorizontalWrapMode.Wrap;
+        previewLine.verticalOverflow = VerticalWrapMode.Truncate;
+        previewLine.resizeTextForBestFit = true;
+        previewLine.resizeTextMinSize = SmallSize - 1;
+        previewLine.resizeTextMaxSize = SmallSize - 1;
+        Place(previewLine.rectTransform, new Vector2(.5f, 1f), new Vector2(0f, -textTop - 16f), new Vector2(w, 26f), new Vector2(.5f, 1f));
+    }
+
+    // A new ship (or the card just opened): reload its cells, start on the
+    // ultimate, and alternate on its own again.
+    void ResetPreview()
+    {
+        previewShip = ShipIndex;
+        PowerPreview.Fill(ShipIndex, false, previewCells[0]);
+        PowerPreview.Fill(ShipIndex, true, previewCells[1]);
+        previewAuto = true;
+        previewKindAt = Time.unscaledTime;
+        ApplyPreviewKind(false);
+    }
+
+    // A tap on the frame toggles (and stops the auto-alternation).
+    void SetPreviewKind(bool power)
+    {
+        previewAuto = false;
+        if (previewPower != power || previewShip < 0) ApplyPreviewKind(power);
+    }
+
+    public void TapPreviewChip(bool power) { previewAuto = false; SetPreviewKind(power); }
+
+    void ApplyPreviewKind(bool power)
+    {
+        previewPower = power;
+        previewClockAt = Time.unscaledTime;
+        previewTick = -2;
+        previewName.text = PowerPreview.Name(ShipIndex, power);
+        previewLine.text = PowerPreview.Line(ShipIndex, power);
+        for (int k = 0; k < 2; k++)
+        {
+            bool on = (k == 1) == power;
+            previewChips[k].color = on ? DockArt.Cyan : new Color(.12f, .15f, .28f, 1f);
+            previewChipLabels[k].color = on ? DockArt.Ink : AkiraPalette.Muted;
+        }
+        previewName.color = power ? DockArt.Cyan : DockArt.Gold;
+        TickPreview(Time.unscaledTime);
+    }
+
+    void TickPreview(float now)
+    {
+        if (previewShip < 0) return;
+        if (previewAuto && now - previewKindAt >= PreviewAutoSeconds)
+        {
+            previewKindAt = now;
+            ApplyPreviewKind(!previewPower);
+            return;
+        }
+        var seq = PowerPreview.Sequence(previewPower);
+        int tick = (int)((now - previewClockAt) * PowerPreview.Fps) % seq.Length;
+        if (tick < 0 || tick == previewTick) return;
+        previewTick = tick;
+        int cell = seq[tick];
+        var sprite = cell >= 0 ? previewCells[previewPower ? 1 : 0][cell] : null;
+        previewArt.sprite = sprite;
+        previewArt.enabled = sprite != null;
+    }
+    // ---- END power preview ------------------------------------------------
+
     // The card's corner X: closes it (as tapping anywhere off it or Back does).
     void BuildClose()
     {
-        var rt = Rect("Close", panel);
+        var rt = Rect("Close", body);
         // drawn 28 x 28 in the top-right corner; its touch target 48 x 48
         Place(rt, new Vector2(1f, 1f), new Vector2(-8f, -8f), new Vector2(28f, 28f), new Vector2(1f, 1f));
         var hit = rt.gameObject.AddComponent<Image>();
@@ -280,13 +440,13 @@ public class DockPopup : MonoBehaviour
     void BuildStartSpeedLine()
     {
         float y = -(SkinRowTop + SkinRowHeight + WeaponRowHeight) - 1f;
-        startSpeed = Label("StartSpeed", panel, font, SmallSize, TextAnchor.MiddleLeft,
+        startSpeed = Label("StartSpeed", body, font, SmallSize, TextAnchor.MiddleLeft,
                            AkiraPalette.WithAlpha(AkiraPalette.Cyan, .9f));
         Place(startSpeed.rectTransform, new Vector2(0f, 1f), new Vector2(Pad, y),
               new Vector2(StartSpeedWidth, StartSpeedLineHeight - 2f), new Vector2(0f, 1f));
         startSpeed.gameObject.SetActive(false);
 
-        heartsLine = Label("Hearts", panel, font, SmallSize, TextAnchor.MiddleRight,
+        heartsLine = Label("Hearts", body, font, SmallSize, TextAnchor.MiddleRight,
                            AkiraPalette.WithAlpha(AkiraPalette.Cyan, .9f));
         heartsLine.horizontalOverflow = HorizontalWrapMode.Wrap;
         heartsLine.verticalOverflow = VerticalWrapMode.Truncate;
@@ -322,7 +482,7 @@ public class DockPopup : MonoBehaviour
 
     void BuildSkinRow()
     {
-        skinRow = Rect("Skins", panel);
+        skinRow = Rect("Skins", body);
         Place(skinRow, new Vector2(.5f, 1f), new Vector2(0f, -SkinRowTop), new Vector2(PanelWidth, SkinRowHeight), new Vector2(.5f, 1f));
         float top = (SkinRowHeight - SlotContent) * .5f;   // the slot's overhang above the chip
         for (int n = 0; n < swatches.Length; n++)
@@ -616,7 +776,8 @@ public class DockPopup : MonoBehaviour
         HideSkins();
         FitHeader();
         SetRowVisible(true);
-        if (!wasVisible) shownAt = Time.unscaledTime;
+        if (!wasVisible) { shownAt = Time.unscaledTime; ResetPreview(); }
+        else if (previewShip != index) ResetPreview();
         Follow();
     }
 
@@ -672,6 +833,7 @@ public class DockPopup : MonoBehaviour
     {
         if (target == null) { Hide(); return; }
         float now = Time.unscaledTime;
+        TickPreview(now);
         if (messageUntil > 0f && now >= messageUntil)
         {
             messageUntil = 0f;
@@ -790,5 +952,59 @@ public class DockPopup : MonoBehaviour
         text.horizontalOverflow = HorizontalWrapMode.Overflow;
         text.verticalOverflow = VerticalWrapMode.Overflow;
         return text;
+    }
+}
+
+// What the dock's power preview plays: the ship's attack (ULTIMATE) and secret
+// power strips from ShipFxArt, as one fixed tick sequence each (24 fps).
+public static class PowerPreview
+{
+    public const int Cells = ShipFxArt.LoopFrames + ShipFxArt.BurstFrames;
+    public const float Fps = 24f;
+    const int LoopCycles = 2, HoldTicks = 8;
+    static int[] ultimate, power;
+
+    // Cell index per tick: the loop a couple of times, the burst, then a blank beat (-1).
+    public static int[] Sequence(bool secretPower)
+    {
+        if (ultimate == null) { ultimate = Build(ShipFxArt.LoopTicks, ShipFxArt.BurstTicks); power = Build(ShipFxArt.PowerLoopTicks, ShipFxArt.PowerBurstTicks); }
+        return secretPower ? power : ultimate;
+    }
+
+    static int[] Build(int[] loop, int[] burst)
+    {
+        var list = new System.Collections.Generic.List<int>();
+        for (int c = 0; c < LoopCycles; c++)
+            for (int i = 0; i < loop.Length; i++)
+                for (int t = 0; t < loop[i]; t++) list.Add(i);
+        for (int i = 0; i < burst.Length; i++)
+            for (int t = 0; t < burst[i]; t++) list.Add(ShipFxArt.LoopFrames + i);
+        for (int t = 0; t < HoldTicks; t++) list.Add(-1);
+        return list.ToArray();
+    }
+
+    // Fills `cells` (Cells long) with the ship's loop then burst sprites; false if any is missing.
+    public static bool Fill(int ship, bool secretPower, Sprite[] cells)
+    {
+        bool ok = true;
+        for (int i = 0; i < ShipFxArt.LoopFrames; i++)
+        {
+            cells[i] = secretPower ? ShipFxArt.PowerLoop(ship, i) : ShipFxArt.AttackLoop(ship, i);
+            cells[ShipFxArt.LoopFrames + i] = secretPower ? ShipFxArt.PowerBurst(ship, i) : ShipFxArt.AttackBurst(ship, i);
+        }
+        for (int i = 0; i < cells.Length; i++) ok &= cells[i] != null;
+        return ok;
+    }
+
+    public static string Name(int ship, bool secretPower)
+    {
+        var l = ShipLoadoutTable.For(ship);
+        return secretPower ? l.powerName : l.attackName;
+    }
+
+    public static string Line(int ship, bool secretPower)
+    {
+        var l = ShipLoadoutTable.For(ship);
+        return (secretPower ? l.powerLine : l.attackLine).TrimEnd('.');
     }
 }

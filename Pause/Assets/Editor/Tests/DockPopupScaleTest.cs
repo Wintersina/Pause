@@ -3,7 +3,8 @@ using UnityEngine;
 
 // The ship popup is drawn at 85% of its original size (DockPopup.PopupScale)
 // with its touch targets kept finger-sized. Original sizes are pinned here
-// (300 x 126 locked, 300 x 214 owned, canvas units) so a drift shows up.
+// (300 x 126 locked, 300 x 214 owned, canvas units, plus the power preview on
+// top) so a drift shows up.
 public static class DockPopupScaleTest
 {
     static int fails;
@@ -16,7 +17,53 @@ public static class DockPopupScaleTest
     public static void Run() { TestHarness.Exit(Execute()); }
 
     // Master before this change: the card in canvas units.
-    const float OldWidth = 300f, OldLockedHeight = 126f, OldOwnedHeight = 214f;
+    const float OldWidth = 300f, OldLockedHeight = 126f + DockPopup.PreviewHeight, OldOwnedHeight = 214f + DockPopup.PreviewHeight;
+
+    // The power preview: every ship has frames, names and lines for both
+    // kinds; it alternates on a timer until tapped; the card fits the smallest phone.
+    static void PreviewChecks(DockPopup popup, Transform anchor)
+    {
+        bool frames = true, text = true;
+        var cells = new Sprite[PowerPreview.Cells];
+        foreach (int ship in ShipId.All)
+            foreach (bool power in new[] { false, true })
+            {
+                frames &= PowerPreview.Fill(ship, power, cells);
+                text &= PowerPreview.Name(ship, power).Length > 0 && PowerPreview.Line(ship, power).Length > 0;
+            }
+        Check("every ship (" + ShipId.Count + ") resolves 16 non-null attack and power preview frames", frames && ShipId.Count == 15);
+        Check("every ship has a preview name and line for both kinds", text);
+        foreach (bool power in new[] { false, true })
+        {
+            var seq = PowerPreview.Sequence(power);
+            bool burst = false, loop = false;
+            foreach (int c in seq) { loop |= c >= 0 && c < 8; burst |= c >= 8; }
+            Check((power ? "power" : "ultimate") + " sequence plays loop then burst frames", loop && burst && seq[0] == 0);
+        }
+
+        popup.safeView = new Rect(-50f, -50f, 100f, 100f);
+        popup.SetDensity(.0132f);
+        popup.Show(4, anchor, .3f, false, false, 3200f, 0f);
+        Check("preview starts on the ultimate with its name and line",
+              !popup.PreviewShowsPower && popup.PreviewName == PowerPreview.Name(4, false) && popup.PreviewLine == PowerPreview.Line(4, false));
+        Check("preview shows a frame while up", popup.PreviewSprite != null);
+        popup.TapPreviewChip(true);
+        Check("tapping POWER switches to the power and stops auto-alternating",
+              popup.PreviewShowsPower && !popup.PreviewAutoAlternates && popup.PreviewName == PowerPreview.Name(4, true));
+        popup.Show(5, anchor, .3f, false, false, 3200f, 0f);
+        Check("a card kept open on another ship restarts the preview", !popup.PreviewShowsPower && popup.PreviewAutoAlternates);
+
+        // the smallest supported phone: 1080 x 1920 (9:16), 420 dpi -> ~411 x 731 dp
+        float wpp = 5.6f / 411f;
+        popup.safeView = new Rect(-2.8f, -3.2f, 5.6f, 6.4f);
+        popup.SetDensity(wpp);
+        popup.Show(2, anchor, .3f, true, false, 0f, 0f);
+        popup.ShowSkins(2, 0, 0f);
+        Check("the tallest card (owned + preview) fits the safe view of a short phone",
+              popup.WorldRect.height + popup.TailLength <= popup.safeView.height + .001f && popup.WorldRect.width <= popup.safeView.width + .001f);
+        popup.safeView = new Rect(-50f, -50f, 100f, 100f);
+        popup.SetDensity(.0132f);
+    }
 
     public static int Execute()
     {
@@ -30,6 +77,8 @@ public static class DockPopupScaleTest
         Check("the one scale constant is 0.85", Mathf.Approximately(DockPopup.PopupScale, .85f));
         Check("layout constants are the originals (width 300, locked 126, owned 214)",
               DockPopup.PanelWidth == OldWidth && DockPopup.BaseHeight == OldLockedHeight && DockPopup.OwnedHeight == OldOwnedHeight);
+        Check("the preview is 112 units tall", DockPopup.PreviewHeight == 112f);
+        PreviewChecks(popup, anchor);
         PlayerPrefs.SetString(ShipId.OwnedKey(2), "True");
         foreach (float wpp in new[] { .0066f, .0092f, .0132f, .0200f })   // world units per point: small to large phones
         {
