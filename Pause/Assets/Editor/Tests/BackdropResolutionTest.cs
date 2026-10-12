@@ -33,14 +33,6 @@ public static class BackdropResolutionTest
     static readonly string[] Dirs = { "Backdrop3", "Backdrop" };
     static readonly string[] Worlds = { "Frost", "Verdant", "Ember", "Tide", "Desert", "Space", "Storm" };
 
-    // Art known to still be a nearest-neighbour double and fixed on another branch (desert-fixes: true
-    // 512x1024 ground tiles). It is reported, not failed; remove the entry once that branch is merged.
-    static bool Pending(string rel)
-    {
-        return rel.StartsWith("Desert/Backdrop3/v") && (rel.EndsWith("/sky.png") || rel.EndsWith("/far.png") ||
-               rel.EndsWith("/mid.png") || rel.EndsWith("/flow.png"));
-    }
-
     public static int Execute()
     {
         fails = 0;
@@ -83,14 +75,10 @@ public static class BackdropResolutionTest
                     if (s > worst) { worst = s; worstK = k; }
                 }
         string label = rel + ": " + (worst > 0 ? "block score " + worst.ToString("0.000") + " (k=" + worstK + ")" : "too sparse to judge");
-        if (worst >= BlockFraction && Pending(rel))
-            Debug.Log("[BRES] PENDING  " + label + " is a " + worstK + "x block upscale (fixed on the desert-fixes branch)");
-        else
-            Check(label + " is not a nearest-neighbour block upscale", worst < BlockFraction);
+        Check(label + " is not a nearest-neighbour block upscale", worst < BlockFraction);
 
         float pairs = PairDup(px, W, H);
-        if (!(worst >= BlockFraction && Pending(rel)))
-            Check(rel + ": identical adjacent texel pairs " + pairs.ToString("0.00") + " <= " + PairCeiling, pairs <= PairCeiling);
+        Check(rel + ": identical adjacent texel pairs " + pairs.ToString("0.00") + " <= " + PairCeiling, pairs <= PairCeiling);
 
         var imp = AssetImporter.GetAtPath(path) as TextureImporter;
         if (imp != null)

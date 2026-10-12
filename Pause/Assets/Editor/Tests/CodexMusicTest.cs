@@ -219,6 +219,15 @@ public static class CodexMusicTest
 
     static void Volume(CodexPanel panel)
     {
+        // the default gain is the music bus (SoundSettings): the MUSIC toggle times the music slider
+        SoundSettings.SetMusicOn(true);
+        SoundSettings.SetMusicVolume(.5f);
+        Check("the default gain follows the music slider (SoundSettings.MusicGain)", Mathf.Abs(CodexMusicPlayer.Gain() - .5f) < .001f);
+        SoundSettings.SetMusicOn(false);
+        Check("the default gain is 0 with MUSIC off", CodexMusicPlayer.Gain() == 0f);
+        SoundSettings.SetMusicOn(true);
+        SoundSettings.SetMusicVolume(1f);
+
         float level = 1f;
         CodexMusicPlayer.Gain = () => level;
         Check("full music gain plays at the base volume", Mathf.Abs(CodexMusicPlayer.CurrentVolume - CodexMusicPlayer.BaseVolume) < .001f);
