@@ -98,7 +98,7 @@ public static class BackdropResolutionTest
     }
 
     // Best fraction (over the k*k grid phases) of opaque texels equal to their k x k block's first texel.
-    static float BlockScore(Color32[] px, int W, int x0, int y0, int w, int h, int k)
+    public static float BlockScore(Color32[] px, int W, int x0, int y0, int w, int h, int k)
     {
         int opaque = 0;
         for (int y = 0; y < h; y++)
@@ -128,7 +128,7 @@ public static class BackdropResolutionTest
         return best;
     }
 
-    static float PairDup(Color32[] px, int W, int H)
+    public static float PairDup(Color32[] px, int W, int H)
     {
         long same = 0, tot = 0;
         for (int y = 0; y < H; y++)
