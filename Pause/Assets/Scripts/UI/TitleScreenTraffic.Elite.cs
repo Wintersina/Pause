@@ -146,13 +146,12 @@ public partial class TitleScreenTraffic
         // is picked (PickNextElite), so they never all sit in memory at once
         var all = EliteCatalog.All;
         int n = 0, maxNoz = 0;
-        // (only worlds the player can reach: Tide's elites stay off the title screen until WorldManager.TideEnabled)
-        for (int i = 0; i < all.Length; i++) if (all[i] != null && all[i].WorldIndex <= WorldManager.LastLiveWorld) n++;
+        for (int i = 0; i < all.Length; i++) if (all[i] != null) n++;
         eliteDefs = new EliteDef[n];
         n = 0;
         for (int i = 0; i < all.Length; i++)
         {
-            if (all[i] == null || all[i].WorldIndex > WorldManager.LastLiveWorld) continue;
+            if (all[i] == null) continue;
             eliteDefs[n++] = all[i];
             maxNoz = Mathf.Max(maxNoz, all[i].nozzles.Length);
         }

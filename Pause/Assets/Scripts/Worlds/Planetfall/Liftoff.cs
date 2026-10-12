@@ -24,8 +24,7 @@ using UnityEngine;
 //              WorldManager.OpenGateway -- the next planet's planetfall if
 //              it has one, else the portal, with its pressure, exactly as
 //              after any other boss. The world itself changes only there.
-//              The last live world's lift-off (LiftoffDef.AutoLoopNow: Tide, or Ember while
-//              WorldManager.TideEnabled is off) has no
+//              The last live world's lift-off (LiftoffDef.AutoLoopNow: Desert's) has no
 //              portal when the loop leads back to Space: the loop starts at
 //              once (WorldManager.StartLoop), the world changing under the
 //              Space sky the interlude already shows; the portal if the run

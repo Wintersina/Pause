@@ -20,7 +20,7 @@ using UnityEngine.SceneManagement;
 //           it. The level clock is stopped; PortalPressure escalates the
 //           board for as long as the pilot stays (docs/speed-and-loops.md).
 //           A world with a planetfall (PlanetfallCatalog: Space -> Frost,
-//           Frost -> Verdant, Verdant -> Ember, Ember -> Tide once TideEnabled,
+//           Frost -> Verdant, Verdant -> Ember, Ember -> Tide,
 //           Tide -> Storm, Storm -> Desert)
 //           shows its planet instead: the same stage and the same pressure
 //           until the ship touches it, then the descent (Planetfall), which
@@ -28,7 +28,7 @@ using UnityEngine.SceneManagement;
 //           lift-off (LiftoffCatalog: Frost, Verdant, Ember, Tide, Storm, Desert) climbs to space first (Liftoff):
 //           the same stage, no pressure, nothing spawning, until its calm
 //           interlude ends and it opens the gateway (OpenGateway) -- or,
-//           the last live world's (Ember's, Tide's once TideEnabled, Storm's, Desert's: the final world; LiftoffDef.AutoLoopNow), starts the loop
+//           the last live world's (Desert's, the final world; LiftoffDef.AutoLoopNow), starts the loop
 //           at once with no portal (StartLoop).
 //
 // Through the portal: the next planet -- or, after the final world, back to
@@ -98,10 +98,8 @@ public class WorldManager : MonoBehaviour
             portalColor = new Color(1f, 0.62f, 0.35f),
             speedRampPerSecond = 0.00365f, enemyRampScale = 1.35f,
         },
-        // World 5, the ocean planet. UNDER CONSTRUCTION (see TideEnabled): its
-        // planetfall / lift-off, rails, backdrop, roster and boss are real; the
-        // elites, sounds, themed attacks and explosion kind are still stand-ins
-        // (add-world checklist section F).
+        // World 5, the ocean planet (stand-ins still: elites' sounds, themed attacks and
+        // explosion kind, see the flags-on report).
         new WorldTheme {
             displayName = "Tide", resourceFolder = "Tide",
             musicResource = "WorldMusic/Tide_Main", progressiveMusic = false,   // Deep Sonar Ping
@@ -127,36 +125,10 @@ public class WorldManager : MonoBehaviour
         },
     };
 
-    // ======================================================================
-    //  RELEASE SWITCH. Flip this one initial value to true when Tide is done
-    //  (backdrops, roster, boss, elites, sounds: add-world checklist, phase 17).
-    //
-    //  false (production today): the loop is Space -> Frost -> Verdant -> Ember
-    //  -> Space, exactly as before Tide existed. Ember is the last LIVE world
-    //  (LastLiveWorld), its lift-off starts the loop, and nothing ever flies to
-    //  Tide's planet. Tide still exists in Worlds[] so the developer world
-    //  picker / DeveloperUnlocks / tests can start a run ON Tide (a run that
-    //  begins there treats Tide as the last world, its lift-off loops).
-    //
-    //  true: Space -> Frost -> Verdant -> Ember -> Tide -> Space (loop + 1);
-    //  Ember's lift-off opens Tide's planetfall.
-    //
-    //  A property so tests can flip it (and must restore it).
-    // ======================================================================
-    public static bool TideEnabled { get; set; } = true;
-
-    // How many worlds the chain reaches (Worlds.Length with the switch on). The
-    // tests that walk "every world" walk this many, so Tide joins them (and
-    // the checks that need its real art / roster) the moment the switch flips.
-    public static int LiveWorldCount { get { return LastLiveWorld + 1; } }
-
-    // The final world of the chain the player can reach: Desert (the last entry of Worlds), or Ember
-    // while Tide is off.
-    // Past it the next stop is the loop, not another planet.
-    public static int LastLiveWorld
-    {
-        get { return TideEnabled ? Worlds.Length - 1 : Worlds.Length - 4; }
-    }
+    // The world count and the last world of the chain: every world in Worlds is
+    // reachable, and past the last the next stop is the loop, not another planet.
+    public static int LiveWorldCount { get { return Worlds.Length; } }
+    public static int LastLiveWorld { get { return Worlds.Length - 1; } }
 
     // The world the live run is on. Once this manager has set it (Start,
     // Advance) it is held here, in memory: the saved world (PlayerPrefs) is
@@ -536,7 +508,7 @@ public class WorldManager : MonoBehaviour
     // The way on from the open stage: the next planet's planetfall if it has
     // one, else the portal; either way the pressure starts. The lift-off
     // calls it when its interlude is over: Frost's ends on Verdant's planet
-    // approach, Verdant's on Ember's, Ember's on Tide's (TideEnabled), Tide's on Storm's, Storm's on Desert's. The last
+    // approach, Verdant's on Ember's, Ember's on Tide's, Tide's on Storm's, Storm's on Desert's. The last
     // live world's (LastLiveWorld) starts the
     // loop itself (StartLoop) and comes here only if that fails: the loop
     // portal back round (a loop is never a planetfall).

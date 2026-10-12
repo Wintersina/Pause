@@ -49,7 +49,6 @@ public static class EntryAnimPreview
                 PlayField.Reset();
                 ScreenInfo.ClearOverride();
                 buttonClicks.playerDied = false;
-                WorldManager.TideEnabled = false;
             }
         }
         EditorApplication.Exit(failures == 0 ? 0 : 1);
@@ -82,7 +81,6 @@ public static class EntryAnimPreview
         else PlayerPrefs.SetString("HasDoneTut", "true");
         PlayerPrefs.SetInt(WorldManager.PrefsHighestWorld, world);
         PlayerPrefs.SetInt(WorldManager.PrefsCurrentWorld, world);
-        WorldManager.TideEnabled = world >= 4;
         Random.InitState(7);
 
         var paused = SceneUtil.FindAny("paused");

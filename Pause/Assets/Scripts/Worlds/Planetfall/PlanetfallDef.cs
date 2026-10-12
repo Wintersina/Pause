@@ -188,7 +188,7 @@ public static class PlanetfallCatalog
         chipPrefix = "ORBIT  DANGER ",
     };
 
-    // Tide: after Ember's lift-off (only once WorldManager.TideEnabled), the
+    // Tide: after Ember's lift-off, the
     // ocean world: a blue-green marble under white storm bands, girdled by a
     // ring of rig platforms (Art/Worlds/Tide/descent~/manifest.json,
     // re-measured on the pixels with verify_planetfall_art.py).
@@ -312,9 +312,7 @@ public static class PlanetfallCatalog
     };
 
     // Every planet arrived at by planetfall (Frost from Space, Verdant after
-    // Frost's lift-off, Ember after Verdant's, Tide after Ember's, Storm after Tide's, Desert after Storm's -- the
-    // last three only while WorldManager.TideEnabled / StormEnabled / DesertEnabled: until then Ember is the last live
-    // world, PlanetfallCatalog.For never gets asked for Tide). A new planet
+    // Frost's lift-off, Ember after Verdant's, Tide after Ember's, Storm after Tide's, Desert after Storm's). A new planet
     // is one more entry here; the tests swap the list. Space, the loop's way
     // back round, has none: the loop keeps the portal.
     public static readonly PlanetfallDef[] All = { Frost, Verdant, Ember, Tide, Storm, Desert };

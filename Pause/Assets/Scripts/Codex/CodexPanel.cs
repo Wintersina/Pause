@@ -255,10 +255,6 @@ public class CodexPanel : MonoBehaviour
             InsertSorted(sections[w].entries, keys[w], e, key * 1000 + i);
         }
         for (int w = 0; w < worlds; w++) Finish(sections[w]);
-        // a world that is not live yet shows no section (its entries are unlisted): drop the empty ones off the end
-        while (sections.Count > 1 && sections[sections.Count - 1].world >= WorldManager.LiveWorldCount &&
-               sections[sections.Count - 1].entries.Count == 0)
-            sections.RemoveAt(sections.Count - 1);
         if (bosses.entries.Count > 0)
         {
             Finish(bosses);

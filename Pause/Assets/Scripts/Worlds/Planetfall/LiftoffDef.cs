@@ -8,9 +8,8 @@
 // The way on after the interlude is not the lift-off's business: it is
 // WorldManager.OpenGateway, which flies the next planet's planetfall when
 // PlanetfallCatalog has one (Verdant after Frost, Ember after Verdant, Tide
-// after Ember once WorldManager.TideEnabled, Storm after Tide, Desert after Storm) and opens the portal otherwise.
-// A lift-off that loops (AutoLoopNow: Tide's, the last world; Ember's only
-// while the release switch is off and it is still the last LIVE world) skips
+// after Ember, Storm after Tide, Desert after Storm) and opens the portal otherwise.
+// A lift-off that loops (AutoLoopNow: Desert's, the last world) skips
 // the loop portal: the interlude already flies Space's sky, so the run
 // simply starts its first world again, one loop on (WorldManager.StartLoop;
 // the portal only if that fails).
@@ -20,22 +19,11 @@ public class LiftoffDef
     public PlanetfallDef planet;        // the planet's art, numbers and colours
     public int interludeWorld;          // whose backdrop (and rails) the interlude flies: Space
     public string banner;               // as the ship is taken: LIFT OFF
-    public bool autoLoop;               // the final world (Tide, Storm, Desert; AutoLoopNow says whether it is the last LIVE one): after the interlude the loop starts at once, no portal
+    public bool autoLoop;               // the final world (Desert): after the interlude the loop starts at once, no portal
                                         // (when the loop leads back to interludeWorld; else its portal)
 
-    // Ember's only: until the release switch flips (WorldManager.TideEnabled) it
-    // is the last LIVE world, so its lift-off starts the loop like the final
-    // world's does. Tide's gateway for Ember takes over the moment Tide is live.
-    public bool loopsWhileLastLive;
-
     // Whether the loop starts at this lift-off's gateway right now.
-    public bool AutoLoopNow
-    {
-        // world >= LastLiveWorld: a world past the live chain (a developer run begun on Tide
-        // or Storm while its switch is off) is the last world of that run; a world with a
-        // live successor never loops.
-        get { return (autoLoop || loopsWhileLastLive) && world >= WorldManager.LastLiveWorld; }
-    }
+    public bool AutoLoopNow { get { return autoLoop; } }
 }
 
 // Which worlds are left by lift-off. A world not listed ends at its portal,
@@ -63,18 +51,13 @@ public static class LiftoffCatalog
         banner = "LIFT OFF",
     };
 
-    // Ember: leaving the forge world after its boss. Its gateway is Tide's
-    // planetfall once WorldManager.TideEnabled; until then Ember is the last
-    // live world and loopsWhileLastLive (AutoLoopNow) makes this lift-off start the loop (no
-    // portal) exactly as before Tide existed. autoLoop itself is false: it is
-    // Tide's, the final world.
+    // Ember: leaving the forge world after its boss. Its gateway is Tide's planetfall.
     public static readonly LiftoffDef Ember = new LiftoffDef
     {
         world = 3,
         planet = PlanetfallCatalog.Ember,
         interludeWorld = 0,
         banner = "LIFT OFF",
-        loopsWhileLastLive = true,
     };
 
     // Tide: leaving the ocean planet after its boss; its gateway is Storm's planetfall.

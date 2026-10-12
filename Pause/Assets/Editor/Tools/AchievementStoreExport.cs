@@ -80,7 +80,7 @@ public static class AchievementStoreExport
     // ("Score 5,000 points" -> "Score 5000 points"). The in-game text keeps it.
     public static string StoreText(string s) { return s == null ? "" : s.Replace(",", ""); }
 
-    static bool HiddenInStore(AchievementDef d) { return d.hidden || d.requiresTide; }
+    static bool HiddenInStore(AchievementDef d) { return d.hidden; }
 
     public static string PlayConsoleCsv()
     {

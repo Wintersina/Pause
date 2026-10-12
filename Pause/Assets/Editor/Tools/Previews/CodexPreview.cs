@@ -96,7 +96,6 @@ public static class CodexPreview
                 PlayerPrefs.SetString("boughtship1", "True");
                 PlayerPrefs.SetString(Codex.PrefsKey, "");
                 Codex.Reload();
-                WorldManager.TideEnabled = false;
                 float sf = PhoneW / 800f;
 
                 // 1. a fresh profile: everything locked
@@ -175,8 +174,7 @@ public static class CodexPreview
             AchievementStore.ResetAll();
             PlayerPrefs.SetInt(AchievementStore.SchemaKey, AchievementMigration.Schema);
             Codex.Reload();
-            WorldManager.TideEnabled = false;
-            var open = Codex.Entries.Where(e => e.category != CodexCategory.Log && !e.secret && !Codex.InFutureWorld(e)).ToList();
+            var open = Codex.Entries.Where(e => e.category != CodexCategory.Log && !e.secret).ToList();
             foreach (var e in open.Where(e => e.category == CodexCategory.Enemies).Take(5)) Codex.Discover(e.id);
             // the first one has been looked at already: three NEW + one seen
             var seenOne = open.First(e => e.category == CodexCategory.Enemies);

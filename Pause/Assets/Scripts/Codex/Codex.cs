@@ -64,17 +64,8 @@ public static class Codex
         }
     }
 
-    // Every entry the player can discover today: all but the entries of worlds the loop cannot reach yet (Completionist's target;
-    // developer mode, which discovers those too, only overshoots it).
-    public static int ReachableCount
-    {
-        get
-        {
-            int n = 0;
-            foreach (var e in Entries) if (!InFutureWorld(e)) n++;
-            return n;
-        }
-    }
+    // Every entry the player can discover (Completionist's target).
+    public static int ReachableCount { get { return Entries.Length; } }
 
     public static int DiscoveredCount
     {
@@ -110,33 +101,10 @@ public static class Codex
     // Whether the codex shows the entry at all: a secret entry stays off the
     // list -- not even a "???" card -- until it is discovered (developer mode
     // discovers, so lists, everything).
-    // The entries of a world that is not live yet (Tide, until WorldManager.TideEnabled) stay
-    // off the list the same way, so the codex never shows a world the loop cannot reach.
     public static bool IsListed(CodexEntry entry)
     {
         if (entry == null) return false;
-        // A world the loop cannot reach is never listed, even when a stale "highest world" pref (a dev
-        // build's picker) would count its entry as discovered; only developer mode shows it.
-        if (InFutureWorld(entry)) return DeveloperUnlocks.Enabled;
         return !entry.secret || IsDiscovered(entry);
-    }
-
-    // True for a world entry, roster enemy / hazard or elite of a world past WorldManager.LiveWorldCount.
-    public static bool InFutureWorld(CodexEntry entry)
-    {
-        if (entry == null || WorldManager.LiveWorldCount >= WorldManager.Worlds.Length) return false;
-        int world = Array.IndexOf(CodexCatalogue.WorldIds, entry.id);
-        if (world < 0)
-        {
-            var def = EnemyRoster.FindByCodexId(entry.id);
-            if (def != null) world = def.world;
-            else
-            {
-                var elite = EliteCatalog.FindByCodexId(entry.id);
-                if (elite != null) world = elite.WorldIndex;
-            }
-        }
-        return world >= WorldManager.LiveWorldCount;
     }
 
     public static CodexEntry Find(string id)

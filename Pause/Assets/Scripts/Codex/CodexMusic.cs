@@ -80,11 +80,9 @@ public static class CodexMusic
         return null;
     }
 
-    // Worlds past WorldManager.LiveWorldCount are not listed (developer mode lists them).
     public static bool IsListed(CodexTrack t)
     {
         if (t == null) return false;
-        if (t.world >= WorldManager.LiveWorldCount && !DeveloperUnlocks.Enabled) return false;
         return true;
     }
 

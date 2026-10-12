@@ -36,7 +36,7 @@ public static class TideBackdropPreview
         {
             try
             {
-                if (only.Contains("handoff")) Handoff(dir);       // opt-in: needs the Ember -> Tide planetfall (WorldManager.TideEnabled)
+                if (only.Contains("handoff")) Handoff(dir);       // opt-in: needs the Ember -> Tide planetfall
                 if (only == "" || only.Contains("variants")) Variants(dir);
                 if (only == "" || only.Contains("pieces")) Pieces(dir);
                 if (only.Contains("motion")) Motion(dir);

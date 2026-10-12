@@ -6,8 +6,7 @@ using System.Collections.Generic;
 // tests read it). Ids are stable snake_case keys: they name the saved state,
 // the badge art (Resources/Achievements/<id>) and the store rows.
 //
-// 58 are live; the two Tide ones are dormant (hidden, untracked, not
-// claimable, not counted in "x/N") until WorldManager.TideEnabled.
+// All 60 are live.
 //
 // Counters (lifetime, shared between achievements):
 //   kills rocks mines elites stars deaths blinks spent   Add()ed per event
@@ -34,9 +33,9 @@ public static class AchievementCatalog
 
     static AchievementDef D(string id, string title, string desc, int pts, AchievementTier tier, AchievementGroup group,
                             string hook, string counter = null, int target = 0, Func<int> dyn = null, int steps = 0,
-                            bool hidden = false, bool tide = false)
+                            bool hidden = false)
     {
-        return new AchievementDef(id, title, desc, pts, tier, group, hook, counter, target, dyn, steps, hidden, tide);
+        return new AchievementDef(id, title, desc, pts, tier, group, hook, counter, target, dyn, steps, hidden);
     }
 
     const AchievementTier B = AchievementTier.Bronze, S = AchievementTier.Silver, G = AchievementTier.Gold, P = AchievementTier.Platinum;
@@ -60,7 +59,7 @@ public static class AchievementCatalog
         D("world_frost_reached", "Cold Front", "Reach the Frost world.", 10, B, World, "WorldManager.Advance/Start -> OnWorldEntered(1)"),
         D("world_verdant_reached", "Into the Green", "Reach the Verdant world.", 10, S, World, "WorldManager.Advance/Start -> OnWorldEntered(2)"),
         D("world_ember_reached", "Trial by Fire", "Reach the Ember world.", 15, S, World, "WorldManager.Advance/Start -> OnWorldEntered(3)"),
-        D("world_tide_reached", "Deep Water", "Reach the Tide world.", 20, S, World, "WorldManager.Advance/Start -> OnWorldEntered(4)", tide: true),
+        D("world_tide_reached", "Deep Water", "Reach the Tide world.", 20, S, World, "WorldManager.Advance/Start -> OnWorldEntered(4)"),
         D("loop_1", "Full Circle", "Complete a full loop of every world.", 25, G, World, "WorldManager.Advance loop -> OnLoop", CLoop, 1),
         D("loop_2", "Second Lap", "Complete two loops in a single run.", 25, G, World, "WorldManager.Advance loop -> OnLoop", CLoop, 2),
         D("loop_5", "Orbit Lifer", "Complete five loops in a single run.", 40, P, World, "WorldManager.Advance loop -> OnLoop", CLoop, 5),
@@ -68,7 +67,7 @@ public static class AchievementCatalog
         D("boss_frost", "Leviathan Slain", "Defeat the Hoarfrost Leviathan.", 15, S, Boss, "BossEncounter.BeginOutro -> OnBossOutro(1)"),
         D("boss_verdant", "Bloom Queen Felled", "Defeat the Bloom Queen.", 20, S, Boss, "BossEncounter.BeginOutro -> OnBossOutro(2)"),
         D("boss_ember", "Drake Slayer", "Defeat the Cinder Drake.", 25, G, Boss, "BossEncounter.BeginOutro -> OnBossOutro(3)"),
-        D("boss_tide", "Tide Turner", "Defeat the Tide boss.", 25, G, Boss, "BossEncounter.BeginOutro -> OnBossOutro(4)", tide: true),
+        D("boss_tide", "Tide Turner", "Defeat the Tide boss.", 25, G, Boss, "BossEncounter.BeginOutro -> OnBossOutro(4)"),
         D("boss_no_hit", "Untouchable", "Defeat a boss without losing a heart.", 25, G, Boss, "AchievementEvents.PlayerHurt + BossEncounter fight start/outro"),
         D("boss_all", "Boss Collector", "Defeat every live world's boss.", 35, P, Boss, "BossEncounter.BeginOutro (distinct worlds)", CBosses, 0, () => WorldManager.LiveWorldCount, steps: 4),
         D("elite_first", "Elite Hunter", "Destroy your first elite ship.", 10, B, Elite, "EliteShip.Died", CElites, 1),
@@ -156,10 +155,10 @@ public static class AchievementCatalog
 
     static readonly AchievementDef[] NoDefs = new AchievementDef[0];
 
-    // Live now (a dormant Tide achievement is not).
+    // Live now (every achievement in the catalogue).
     public static bool IsActive(AchievementDef def)
     {
-        return def != null && (!def.requiresTide || WorldManager.TideEnabled);
+        return def != null;
     }
 
     // The achievements the player can see and earn right now.

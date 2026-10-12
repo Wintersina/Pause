@@ -21,7 +21,6 @@ public sealed class AchievementDef
     public readonly AchievementTier tier;
     public readonly int points;
     public readonly bool hidden;          // shown as ??? in the Codex (and Hidden in the stores) until earned
-    public readonly bool requiresTide;    // dormant until WorldManager.TideEnabled
     public readonly string counter;       // lifetime counter name, or null for a one-shot
     readonly int fixedTarget;
     readonly Func<int> dynamicTarget;     // "all" achievements whose target follows the game's content
@@ -35,7 +34,7 @@ public sealed class AchievementDef
 
     public AchievementDef(string id, string title, string description, int points, AchievementTier tier,
                           AchievementGroup group, string hook, string counter = null, int target = 0,
-                          Func<int> dynamicTarget = null, int storeSteps = 0, bool hidden = false, bool requiresTide = false)
+                          Func<int> dynamicTarget = null, int storeSteps = 0, bool hidden = false)
     {
         this.id = id;
         this.title = title;
@@ -49,7 +48,6 @@ public sealed class AchievementDef
         this.dynamicTarget = dynamicTarget;
         this.storeSteps = storeSteps;
         this.hidden = hidden;
-        this.requiresTide = requiresTide;
         unlockedKey = "ach_u_" + id;
         claimedKey = "ach_c_" + id;
         syncedKey = "ach_s_" + id;
