@@ -326,11 +326,10 @@ public class collisionDetection : MonoBehaviour {
                 }
                 else
                 {
-                    GameObject exp = ScrollWithWorld(Instantiate(explosionAnimation, shipPos, shipRot) as GameObject);
-                    // the hit burst matches the hull it bursts on (ShipScale)
-                    if (exp != null) exp.transform.localScale *= ShipScale.Live;
+                    // the hit blast + drifting smoke: pooled (HeartLossFx), no
+                    // per-hit instantiate; sized with the hull, paused with the world
+                    HeartLossFx.Play(gameObject, ShipId.Of(gameObject, ShipId.Equipped()));
                     PlayExplosion();
-                    Destroy(exp, 2);
                     PlayerInvuln.BeginPostHit();   // a heart lost: 2 s of blinking i-frames
                 }
                 // An elite survives a non-fatal contact with a heart less

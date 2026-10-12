@@ -112,6 +112,7 @@ public static class AllTests
         ("FrameRateBootstrapTest", FrameRateBootstrapTest.Execute),
         ("GreenAtomSizeTest", GreenAtomSizeTest.Execute),
         ("HeartsPlacementTest", HeartsPlacementTest.Execute),
+        ("HeartLossFxTest", HeartLossFxTest.Execute),
         ("HomePauseTest", HomePauseTest.Execute),
         ("HazardSizeTest", HazardSizeTest.Execute),
         ("HostileReachTest", HostileReachTest.Execute),
