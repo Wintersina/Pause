@@ -12,9 +12,12 @@ using UnityEngine;
 //   Beam   BeamSeconds of sustained beam: the only phase with a hitbox.
 //   Cool   CoolSeconds of flicker as it dies out. Harmless.
 //
-// LOOK, THEMED. Space, Frost and Verdant fire their world's own painted laser kit (Resources/Attacks/<World>/<w>_attack_laser*.png via
+// LOOK, THEMED. Ember (flame-thrower), Frost (cryo beam), Verdant (thorned vine), Tide (water jet) and Storm (lightning arc) each fire their own
+// painted mine atlas (<w>_attack_minebeam.png, the mineflame layout, AttackArt.MineBeam / MineFlameArt.ForWorld): pilot, aim line, beam loop,
+// muzzle burst, rail impact and haze in that world's material, all with the pink hostile cue. Where that atlas is missing: Space, Frost and Verdant
+// fire their world's own painted laser kit (Resources/Attacks/<World>/<w>_attack_laser*.png via
 // AttackArt.BossLaser: Space's ion beam, Frost's ice beam with crystal shards, Verdant's thorned vine beam), laid on the mine's geometry
-// (PlaceKitAim / PlaceKitBeam). Ember keeps its flame-thrower; Tide and Storm have no installed kit (Tide's is staged under Attacks/Tide~)
+// (PlaceKitAim / PlaceKitBeam). Tide and Storm then have no installed kit (Tide's is staged under Attacks/Tide~)
 // and keep the boss-cell beam below. The older description follows.
 //
 // The world boss's own laser art (BossArt: the lane telegraph cell
@@ -150,6 +153,9 @@ public class RailMineLaser : MonoBehaviour
     public SpriteRenderer ImpactRenderer => impact;
     public SpriteRenderer LockRenderer => lockOn;
     public SpriteRenderer SparkRenderer => spark;
+    public SpriteRenderer PilotRenderer => pilot;
+    public SpriteRenderer HazeRenderer => haze;
+    public MineFlameArt Flame => flame;       // the painted mine beam this shot wears (Ember's flame, Frost / Verdant / Tide / Storm minebeam); null: kit or boss cells
     public AttackArt.LaserArt Kit => kit;     // the painted laser kit this shot wears (null: boss cells / flame)
 
     // Where a laser from a mine at x runs: rail face to rail face.
@@ -731,38 +737,117 @@ public class RailMineLaserHitbox : MonoBehaviour
     public RailMineLaser laser;
 }
 
-// The mine laser's sprites for a world: the world boss's laser cells with
-// their player-red pixels turned magenta, and the boss's flash / spark
-// cells (which are drawn small, at the muzzle and the far rail). Built once
-// per world and cached (rebuilt only if an editor scene swap destroyed them).
+// The mine laser's sprites for a world. Ember (flame), Frost, Verdant, Tide and Storm wear their own painted atlas (MineFlameArt). The worlds
+// without one (Space: its painted ion kit; Desert and any unpainted world: the boss's laser cells) are recoloured by MineCue.
+//
+// NO PINK ON A RAIL MINE (user, 2026-10-11): the mine's windup, beam and impact carry no pink. The painted atlases were remapped once
+// (Art/Attacks/MineBeams~/recolor_nopink.py); the kit / boss cells are remapped here, once per world and cached, with the same
+// constants. Each world's warning reads in its own colours instead: Space ion white-blue, Frost icy white-cyan, Verdant bright green-white,
+// Ember amber / orange-white, Tide aqua-white, Storm electric white-violet, Desert sun-white.
+public static class MineCue
+{
+    //                                       space  frost verdant ember  tide  storm desert
+    public static readonly float[] Hue = { 215f, 195f, 135f, 32f, 188f, 258f, 45f };
+    public static readonly float[] SatCap = { .45f, .40f, .55f, .85f, .38f, .38f, .35f };
+    public static readonly float[] ValueMin = { .85f, .90f, .88f, .92f, .90f, .92f, .92f };
+    public const int Worlds = 7;
+
+    public static int Slot(int world) => Mathf.Clamp(world, 0, Worlds - 1);
+
+    // The pink family of a boss / kit cell: saturated, not dark, hue 285..360 or 0..28 (the hot pink of the boss beams sits in the player's red band).
+    public static bool IsPink(Color c)
+    {
+        Color.RGBToHSV(c, out float h, out float s, out float v);
+        float d = h * 360f;
+        return c.a > 0f && s > .15f && v > .25f && (d >= 285f || d < 28f);
+    }
+
+    public static Color Remap(Color c, int world)
+    {
+        int k = Slot(world);
+        Color.RGBToHSV(c, out float h, out float s, out float v);
+        float sat = Mathf.Min(s * .8f, SatCap[k]) * (v < .95f ? 1f : .6f);
+        var m = Color.HSVToRGB(Hue[k] / 360f, sat, Mathf.Max(v, ValueMin[k]));
+        m.a = c.a;
+        return m;
+    }
+
+    // A copy of `cell` with every pink-family pixel (and the player-red band) turned to the world's cue colour. (None: the cell itself.)
+    public static Sprite Recolour(Sprite cell, int world)
+    {
+        if (cell == null) return null;
+        int w, h;
+        var px = ShieldContour.ReadPixels(cell, out w, out h);
+        if (px == null) return cell;
+        bool changed = false;
+        for (int i = 0; i < px.Length; i++)
+        {
+            if (!IsPink(px[i])) continue;
+            px[i] = Remap(px[i], world);
+            changed = true;
+        }
+        if (!changed) return cell;
+        var tex = new Texture2D(w, h, TextureFormat.RGBA32, false);
+        tex.name = cell.name + "MineCue";
+        tex.filterMode = cell.texture != null ? cell.texture.filterMode : FilterMode.Point;
+        tex.wrapMode = TextureWrapMode.Clamp;
+        tex.hideFlags = HideFlags.HideAndDontSave;
+        tex.SetPixels32(px);
+        tex.Apply(false, false);
+        var s = Sprite.Create(tex, new Rect(0, 0, w, h), new Vector2(.5f, .5f), cell.pixelsPerUnit, 0, SpriteMeshType.FullRect);
+        s.name = tex.name;
+        s.hideFlags = HideFlags.HideAndDontSave;
+        return s;
+    }
+
+    static Sprite[] All(Sprite[] a, int world)
+    {
+        var o = new Sprite[a.Length];
+        for (int i = 0; i < a.Length; i++) o[i] = Recolour(a[i], world);
+        return o;
+    }
+
+    // The world's painted laser kit with its pink removed (same cells, same measurements).
+    public static AttackArt.LaserArt Kit(AttackArt.LaserArt k, int world)
+    {
+        var o = new AttackArt.LaserArt { bodyOpaquePx = k.bodyOpaquePx, impactBasePx = k.impactBasePx };
+        Copy(All(k.windup, world), o.windup); Copy(All(k.muzzle, world), o.muzzle); Copy(All(k.fade, world), o.fade); Copy(All(k.impact, world), o.impact);
+        Copy(All(k.spark, world), o.spark); Copy(All(k.body, world), o.body); Copy(All(k.sight, world), o.sight); Copy(All(k.lockOn, world), o.lockOn);
+        return o;
+    }
+
+    static void Copy(Sprite[] from, Sprite[] to) { for (int i = 0; i < to.Length; i++) to[i] = from[i]; }
+}
+
 public sealed class MineLaserArt
 {
-    public const float MagentaHue = 312f / 360f;   // neon magenta: 44 deg clear of the player's red
     public Sprite sight, beam0, beam1;
     public readonly Sprite[] flash = new Sprite[BossAttackFx.FlashFrames];
     public readonly Sprite[] spark = new Sprite[2];
-    public AttackArt.LaserArt kit;   // Space / Frost / Verdant: the world's painted laser kit (AttackArt.BossLaser); sight / beam0 / beam1 / flash / spark below are its first cells
-    public MineFlameArt flame;   // Ember only: the flame-thrower (MineFlameArt); sight / beam0 / beam1 / flash / spark above are its first cells
+    public AttackArt.LaserArt kit;   // Space (when a world's atlas is missing: Frost / Verdant too): the painted laser kit (AttackArt.BossLaser), pink removed by MineCue; sight / beam0 / beam1 / flash / spark below are its first cells
+    public MineFlameArt flame;   // Ember's flame-thrower or a world's painted mine beam (Frost, Verdant, Tide, Storm; MineFlameArt); sight / beam0 / beam1 / flash / spark above are its first cells
 
     // preview / tests only: Ember's mine draws the boss-cell beam like every other world (the before-picture)
     public static bool NoFlame;
     // preview / tests only: Space / Frost / Verdant draw the recoloured boss-cell beam (the before-picture)
     public static bool NoKit;
     public static void ResetCache() { for (int i = 0; i < worlds.Length; i++) worlds[i] = null; }
-    public const int EmberWorld = 3;   // Tide (4) shares Ember's boss cells but keeps the recoloured beam: only world 3 is the flame
+    public const int EmberWorld = 3;   // the flame-thrower; Frost / Verdant / Tide / Storm wear their own minebeam atlas, the rest the kit / boss-cell beam in their cue colour
 
-    static readonly MineLaserArt[] worlds = new MineLaserArt[5];
+    static readonly MineLaserArt[] worlds = new MineLaserArt[MineCue.Worlds];
 
     public static MineLaserArt For(int world)
     {
-        int slot = Mathf.Clamp(world, 0, worlds.Length - 1);
+        int slot = MineCue.Slot(world);
         world = Mathf.Clamp(world, 0, 3);
         var a = worlds[slot];
         if (a != null && a.beam0 != null && a.flash[0] != null) return a;
         a = new MineLaserArt();
-        if (slot == EmberWorld && !NoFlame)
+        // Ember's flame-thrower, and the painted beam of Frost (ice), Verdant (thorned vine), Tide (water jet) and Storm (lightning):
+        // one MineFlameArt-shaped atlas each, drawn by the same pilot / beam / haze / burst / impact code
+        var fl = NoFlame ? null : (slot == EmberWorld || AttackArt.HasMineBeam(slot) ? MineFlameArt.ForWorld(slot) : null);
+        if (fl != null)
         {
-            var fl = MineFlameArt.Ember();
             a.flame = fl;
             a.sight = fl.sight;
             a.beam0 = fl.beam[0]; a.beam1 = fl.beam[1];
@@ -774,6 +859,7 @@ public sealed class MineLaserArt
         var laser = slot <= 2 && !NoKit ? AttackArt.BossLaser(slot) : null;
         if (laser != null)
         {
+            laser = MineCue.Kit(laser, slot);
             a.kit = laser;
             a.sight = laser.sight[0];
             a.beam0 = laser.body[0]; a.beam1 = laser.body[1];
@@ -783,47 +869,14 @@ public sealed class MineLaserArt
             return a;
         }
         var boss = BossCatalog.ForWorld(world);
-        a.sight = Recolour(BossArt.Shot(boss, BossArt.Telegraph));
-        a.beam0 = Recolour(BossArt.Shot(boss, BossArt.Beam0));
-        a.beam1 = Recolour(BossArt.Shot(boss, BossArt.Beam0 + 1));
-        for (int i = 0; i < a.flash.Length; i++) a.flash[i] = BossAttackFx.Get(boss, BossAttackFx.Flash0 + i);
-        a.spark[0] = BossAttackFx.Get(boss, BossAttackFx.Spark0 + 1);
-        a.spark[1] = BossAttackFx.Get(boss, BossAttackFx.Spark0 + 2);
+        a.sight = MineCue.Recolour(BossArt.Shot(boss, BossArt.Telegraph), slot);
+        a.beam0 = MineCue.Recolour(BossArt.Shot(boss, BossArt.Beam0), slot);
+        a.beam1 = MineCue.Recolour(BossArt.Shot(boss, BossArt.Beam0 + 1), slot);
+        for (int i = 0; i < a.flash.Length; i++) a.flash[i] = MineCue.Recolour(BossAttackFx.Get(boss, BossAttackFx.Flash0 + i), slot);
+        a.spark[0] = MineCue.Recolour(BossAttackFx.Get(boss, BossAttackFx.Spark0 + 1), slot);
+        a.spark[1] = MineCue.Recolour(BossAttackFx.Get(boss, BossAttackFx.Spark0 + 2), slot);
         worlds[slot] = a;
         return a;
-    }
-
-    // A copy of `cell` with every player-red pixel turned to MagentaHue.
-    // (No red in it: the cell itself.)
-    static Sprite Recolour(Sprite cell)
-    {
-        if (cell == null) return null;
-        int w, h;
-        var px = ShieldContour.ReadPixels(cell, out w, out h);
-        if (px == null) return cell;
-        bool changed = false;
-        for (int i = 0; i < px.Length; i++)
-        {
-            Color c = px[i];
-            if (c.a <= 0f || !HostileGlow.IsPlayerRed(c)) continue;
-            Color.RGBToHSV(c, out float hh, out float ss, out float vv);
-            var m = Color.HSVToRGB(MagentaHue, ss, vv);
-            m.a = c.a;
-            px[i] = m;
-            changed = true;
-        }
-        if (!changed) return cell;
-        var tex = new Texture2D(w, h, TextureFormat.RGBA32, false);
-        tex.name = cell.name + "MineLaser";
-        tex.filterMode = cell.texture != null ? cell.texture.filterMode : FilterMode.Point;
-        tex.wrapMode = TextureWrapMode.Clamp;
-        tex.hideFlags = HideFlags.HideAndDontSave;
-        tex.SetPixels32(px);
-        tex.Apply(false, false);
-        var s = Sprite.Create(tex, new Rect(0, 0, w, h), new Vector2(.5f, .5f), cell.pixelsPerUnit, 0, SpriteMeshType.FullRect);
-        s.name = tex.name;
-        s.hideFlags = HideFlags.HideAndDontSave;
-        return s;
     }
 }
 

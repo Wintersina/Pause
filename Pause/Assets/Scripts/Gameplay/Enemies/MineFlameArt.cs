@@ -14,8 +14,7 @@ using UnityEngine;
 //   * no pixel closer than MinHueGapDeg (22) to the player's red
 //     (PlayerRedHueDeg 355, #FF3E4E): the reddest flame pixel is
 //     DeepEdge, hue 19 = 24 deg away (measured by RailMineLaserTest);
-//   * the hostile cue stays: a thin neon-pink rim (hue 326, 29 deg off) on
-//     the outermost pixels and pink ember specks (Pink);
+//   * (the pink rim and specks were removed 2026-10-11: no pink on any rail mine; the cue is the amber-white rim and orange-white specks);
 //   * the body is fire: white-yellow core, amber, orange, then the red-orange
 //     edge, with a dark plum outline so it separates from the lava backdrop.
 // Every other world's mine, and Tide's (which shares the Ember boss cells),
@@ -35,8 +34,8 @@ public sealed class MineFlameArt
     public static readonly Color32 Amber = new Color32(255, 190, 50, 255);
     public static readonly Color32 Orange = new Color32(255, 140, 24, 255);
     public static readonly Color32 DeepEdge = new Color32(208, 76, 14, 255);   // hue 19
-    public static readonly Color32 PinkRim = new Color32(255, 76, 178, 255);   // hue 326: the hostile cue
-    public static readonly Color32 Pink = new Color32(255, 150, 205, 255);
+    public static readonly Color32 PinkRim = new Color32(255, 205, 120, 255);   // (was neon pink 326 until 2026-10-11: no pink on a rail mine) the outermost rim, amber-white
+    public static readonly Color32 Pink = new Color32(255, 238, 196, 255);      // (was pink) the ember specks, orange-white
     public static readonly Color32 Plum = new Color32(34, 12, 38, 160);        // outline, over the lava
 
     public const int BeamFrames = 6, PilotFrames = 4, FlashFramesN = 4, SparkFrames = 3, HazeFrames = 2;
@@ -51,7 +50,31 @@ public sealed class MineFlameArt
     public readonly Sprite[] haze = new Sprite[HazeFrames];
     public bool painted;   // true: the Codex strip supplied the sprites
 
+    // every slot filled (a painted world atlas has no procedural fallback)
+    public bool Complete
+    {
+        get
+        {
+            if (sight == null) return false;
+            foreach (var arr in new[] { beam, pilot, flash, spark, haze }) foreach (var sp in arr) if (sp == null) return false;
+            return true;
+        }
+    }
+
+    public static MineFlameArt Empty() { return new MineFlameArt(); }
+
     static MineFlameArt cached;
+    static readonly MineFlameArt[] byWorld = new MineFlameArt[8];
+
+    // The painted mine beam of a world (Frost, Verdant, Tide, Storm: <w>_attack_minebeam.png), cached; null where the file is missing.
+    public static MineFlameArt ForWorld(int world)
+    {
+        if (world == 3) return Ember();
+        if (world < 0 || world >= byWorld.Length) return null;
+        var c = byWorld[world];
+        if (c != null && c.Alive) return c;
+        return byWorld[world] = AttackArt.MineBeam(world);
+    }
 
     public bool Alive => beam[0] != null && sight != null && pilot[0] != null && flash[0] != null && spark[0] != null && haze[0] != null;
 
@@ -65,7 +88,7 @@ public sealed class MineFlameArt
     }
 
     // tests: forget the cache (a scene swap destroyed the textures, or an atlas was injected)
-    public static void Reset() { cached = null; }
+    public static void Reset() { cached = null; System.Array.Clear(byWorld, 0, byWorld.Length); }
 
     public static MineFlameArt Build()
     {

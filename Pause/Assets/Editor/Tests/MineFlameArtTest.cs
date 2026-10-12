@@ -22,7 +22,7 @@ public static class MineFlameArtTest
     public static void Run() { TestHarness.Exit(Execute()); }
 
     const string Path_ = "Assets/Art/Resources/Attacks/Ember/ember_attack_mineflame.png";
-    public const long AttackTexturesBudget = 14L * 1024 * 1024;       // every Resources/Attacks sheet together (GPU, RGBA32): 4 laser kits + the flame ~ 11.3 MB + Verdant's lash, log and shots 2.5 MB = 13.8 MB (raised from 13 for the Verdant shots atlas, 1 MB)
+    public const long AttackTexturesBudget = 23L * 1024 * 1024;       // raised from 14 to 23 MB for the four world mine beams (Frost, Verdant, Tide, Storm: 4 x 2.25 MB); every Resources/Attacks sheet together (GPU, RGBA32): 4 laser kits + the flame ~ 11.3 MB + Verdant's lash, log and shots 2.5 MB = 13.8 MB (raised from 13 for the Verdant shots atlas, 1 MB)
     public const long WithBackdropBudget = AttackTexturesBudget + WorldBackdropTest.FrostTextureBudgetBytes;   // the largest world budget beside them
 
     public static int Execute()
@@ -130,6 +130,14 @@ public static class MineFlameArtTest
         AttackArt.Clear(); MineFlameArt.Reset(); MineLaserArt.ResetCache();
         Object.DestroyImmediate(tiny);
         Check("with no file at all (another world) AttackArt.MineFlame is null and MineFlameArt.Ember builds the procedural one", AttackArt.MineFlame(1) == null);
+        // a world's minebeam has NO procedural fallback (it would be Ember's flame): an unusable sheet gives null and the mine keeps its old beam
+        AttackArt.Clear(); MineFlameArt.Reset(); MineLaserArt.ResetCache();
+        var tiny2 = new Texture2D(8, 8, TextureFormat.RGBA32, false);
+        AttackArt.Inject(1, AttackArt.MineBeamFile, tiny2);
+        Check("a minebeam sheet with no usable cells is null (never Ember's procedural flame)", AttackArt.MineBeam(1) == null && MineFlameArt.ForWorld(1) == null && MineLaserArt.For(1).flame == null);
+        AttackArt.Clear(); MineFlameArt.Reset(); MineLaserArt.ResetCache();
+        Object.DestroyImmediate(tiny2);
+        Check("Storm's atlas lives in Attacks/Storm, Tide's in Attacks/Tide", AttackArt.PathOf(5, AttackArt.MineBeamFile) == "Attacks/Storm/storm_attack_minebeam" && AttackArt.PathOf(4, AttackArt.MineBeamFile) == "Attacks/Tide/tide_attack_minebeam");
     }
 
     static void Memory()
