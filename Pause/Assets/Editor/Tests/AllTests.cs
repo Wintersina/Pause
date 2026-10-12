@@ -138,6 +138,7 @@ public static class AllTests
         ("RailMineLaserTest", RailMineLaserTest.Execute),
         ("PewSoundTest", PewSoundTest.Execute),
         ("RailMineThemedTest", RailMineThemedTest.Execute),
+        ("NoPinkOutsideSpaceTest", NoPinkOutsideSpaceTest.Execute),
         ("RailMatchTest", RailMatchTest.Execute),
         ("RailTransparencyTest", RailTransparencyTest.Execute),
         ("RailMinePacingTest", RailMinePacingTest.Execute),

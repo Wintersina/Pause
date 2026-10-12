@@ -360,7 +360,7 @@ public static class VerdantAttackArtTest
     // loosened (the 30 % checks in ShotSkinTest, AttackLashTest, AttackFairnessTest, ShotMotionTest still run on everything else), and the
     // hostile cue stays meaningful: the pink accent must exist in every working cell (rim / tip / rings) and the stand-out test below
     // keeps the whip and trunk 3:1 clear of the backdrop (the in-code outline, AttackLash's / AttackLog's ShotOutline rim, carries the rest).
-    public const float ExceptionPinkMin = .06f, ExceptionPinkMax = .18f, ExceptionGreenMin = .55f;
+    public const float ExceptionPinkMin = .05f, ExceptionPinkMax = .18f, ExceptionGreenMin = .55f;
 
     static void Shares(Color32[] px, out float pink, out float green, out int pinkPx, out int opaque)
     {
@@ -371,7 +371,7 @@ public static class VerdantAttackArtTest
             n++;
             Color.RGBToHSV(c, out float h, out float sat, out float v);
             float deg = h * 360f;
-            if ((deg >= 300f && deg <= 340f && sat > .2f) || (sat < .22f && v > .82f)) p++;
+            if (sat < .35f && v > .8f) p++;   // the cue accent: jade-white / white-hot (NO PINK outside Space, user 2026-10-11)
             else if (deg >= 70f && deg <= 170f && sat > .2f) g++;
         }
         opaque = n; pinkPx = p;

@@ -391,12 +391,7 @@ public static partial class AttackFairnessTest
 
     static bool IsKey(Color32 c) => c.a > 0 && c.r == ShotOutline.BoldKey.r && c.g == ShotOutline.BoldKey.g && c.b == ShotOutline.BoldKey.b;
 
-    static bool PinkOrWhite(Color32 c)
-    {
-        Color.RGBToHSV(c, out float h, out float s, out float v);
-        float deg = h * 360f;
-        return (s < .2f && v > .85f) || (s > .3f && deg >= HostileShotPalette.HueMin - 8f && deg <= HostileShotPalette.HueMax + 8f);
-    }
+    static bool PinkOrWhite(Color32 c, int world) { return ShotSkinTest.CueOrWhite(c, world); }
 
     static Pixels_ Audit(Sprite sp, int world)
     {
@@ -407,7 +402,7 @@ public static partial class AttackFairnessTest
         // the keyline ring is not the drawing: audit the rest
         var clean = new Color32[px.Length];
         for (int i = 0; i < px.Length; i++) { if (IsKey(px[i])) { res.keyline++; continue; } clean[i] = px[i]; }
-        res.audit = ShotSkinTest.AuditPixels(clean);
+        res.audit = ShotSkinTest.AuditPixels(clean, world);
         for (int y = 0; y < h; y++)
             for (int x = 0; x < w; x++)
             {
@@ -415,7 +410,7 @@ public static partial class AttackFairnessTest
                 if (c.a <= 24) continue;
                 Color.RGBToHSV(c, out float hh, out float s, out float v);
                 float deg = hh * 360f;
-                foreach (float p in PickupHues)
+                if (world <= 0) foreach (float p in PickupHues)
                 {
                     float gap = Mathf.Abs(deg - p); gap = Mathf.Min(gap, 360f - gap);
                     if (gap < 25f && s > .65f && v > .25f) { res.pickupHot++; break; }
@@ -430,7 +425,7 @@ public static partial class AttackFairnessTest
                     var n = px[ny * w + nx];
                     edge = n.a <= 24 || IsKey(n);
                 }
-                if (edge) { res.edge++; if (PinkOrWhite(c)) res.edgePink++; }
+                if (edge) { res.edge++; if (PinkOrWhite(c, world)) res.edgePink++; }
             }
         return res;
     }

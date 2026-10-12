@@ -181,7 +181,7 @@ public class BossProjectile : MonoBehaviour, IHostileShot
         // the rim in the hostile family (HostileShotPalette): whatever the
         // boss's painted colours, every hostile shot carries a magenta-pink
         // edge and never an atom's hue
-        glowTint = HostileShotPalette.Trace(HostileShotPalette.Body(boss != null ? boss.flash : Color.white));
+        glowTint = HostileShotPalette.Trace(HostileShotPalette.Body(boss != null ? boss.flash : Color.white, boss != null ? boss.WorldIndex : 0));
         Pulse();
         Active = true;
         gameObject.SetActive(true);

@@ -185,7 +185,7 @@ public sealed class EliteFx
     static readonly Color Dust = new Color(.55f, .47f, .62f, .85f);
     static readonly Color DustLight = new Color(.78f, .66f, .74f, .7f);
     static readonly Color Heat = new Color(1f, .78f, .55f, .45f);
-    static readonly Color RailSpark = new Color(1f, .45f, .9f, 1f);
+    static Color RailSpark => WorldManager.CurrentIndex <= 0 ? new Color(1f, .45f, .9f, 1f) : WorldCue.Trace(WorldManager.CurrentIndex);   // (the world's cue; Space keeps pink)
 
     // Debris pieces that hit a rail (tests, previews).
     public int Impacts { get; private set; }

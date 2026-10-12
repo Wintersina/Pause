@@ -5,10 +5,12 @@ using UnityEngine;
 
 // EVERY WORLD'S RAIL MINE ATTACKS IN THAT WORLD'S OWN MATERIAL (docs/world-attacks-design.md, the add-world skill's THEMED ATTACKS rule).
 //
-//   Space / Frost / Verdant  the mine fires the world's painted laser kit (Resources/Attacks/<World>/<w>_attack_laser*, AttackArt.BossLaser:
-//                            ion beam, ice beam with crystal shards, thorned vine beam), NOT the boss cells recoloured magenta
-//   Ember                    the flame-thrower (MineFlameArt), unchanged
-//   Tide / Storm             no installed kit (Tide's is staged under Attacks/Tide~, Storm has none): the recoloured boss-cell beam, unchanged
+//   Space                    the mine fires the world's painted laser kit (Resources/Attacks/Space/space_attack_laser*, AttackArt.BossLaser:
+//                            ion beam, its pink remapped to ion white-blue by MineCue), NOT the boss cells
+//   Ember                    the flame-thrower (ember_attack_mineflame.png, MineFlameArt)
+//   Frost / Verdant /        their own custom attack in the same shape (<w>_attack_minebeam.png, AttackArt.MineBeam, MineFlameArt.ForWorld):
+//   Tide / Storm             a cryo laser, a thorned vine lash, a pressurised water jet, a lightning arc: pilot flare, aim line, beam loop,
+//                            muzzle burst, rail impact and haze, all painted, none of it pink (user, 2026-10-11): each carries its world's own warning colours
 //
 // Per world: the beam's / aim line's / muzzle's / impact's sprites really come from that kit's atlases (live sprites of a firing mine, not
 // just the cache); the kit is built once and cached; the painted body's opaque width is the hit width; the kit still carries the hostile
@@ -28,7 +30,8 @@ public static class RailMineThemedTest
     const float Dt = 1f / 60f;
     const int W = 540, H = 960;
     static readonly string[] Keys = { "Space", "Frost", "Verdant", "Ember", "Tide", "Storm" };
-    const float MinPinkShare = .15f;
+    const float MaxPinkShare = .01f;   // NO PINK on a rail mine (user, 2026-10-11)
+    const float MinCueShare = .03f;    // ... and the world's own cue colours are there instead
 
     public static int Execute()
     {
@@ -38,10 +41,11 @@ public static class RailMineThemedTest
             try
             {
                 AttackArt.Clear(); MineFlameArt.Reset(); MineLaserArt.ResetCache();
-                for (int w = 0; w <= 2; w++) Kit(w);
-                Others();
-                for (int w = 0; w <= 3; w++) Firing(w);
-                for (int w = 0; w <= 2; w++)
+                Kit(0);
+                Fallback();
+                for (int w = 1; w <= 5; w++) BeamAtlas(w);
+                for (int w = 0; w <= 5; w++) Firing(w);
+                for (int w = 0; w <= 5; w++)
                     Check(Keys[w] + ": friendly fire still works through the themed beam (rock + fighter on the row burn once; off in the tutorial)", RailMineLaserTest.FriendlyFireOfWorld(w) == 0);
             }
             finally
@@ -71,50 +75,101 @@ public static class RailMineThemedTest
             if (HostileGlow.IsPlayerRed(px[i])) { red++; continue; }
             Color.RGBToHSV(px[i], out float hh, out float ss, out float vv);
             float d = hh * 360f;
-            if (d >= 285f && d <= 345f && ss > .22f && vv > .55f) pink++;
+            if (vv > .25f && ss * vv >= .035f && d >= 280f && d < 352f) pink++;   // any visibly pinkish pixel, saturated or pale (NO PINK, user 2026-10-11)
         }
         return opaque == 0 ? 0f : pink / (float)opaque;
+    }
+
+    static float CueShare(Sprite s, int w)
+    {
+        var px = ShieldContour.ReadPixels(s, out int pw, out int ph);
+        if (px == null) return 0f;
+        int n = 0, cue = 0;
+        for (int i = 0; i < px.Length; i++)
+        {
+            if (px[i].a < 128) continue;
+            n++;
+            Color.RGBToHSV(px[i], out float hh, out float ss, out float vv);
+            if (ss > .08f && vv > .5f && Mathf.Abs(Mathf.DeltaAngle(hh * 360f, MineCue.Hue[MineCue.Slot(w)])) <= 30f) cue++;
+        }
+        return n == 0 ? 0f : cue / (float)n;
     }
 
     static void Kit(int w)
     {
         string t = Keys[w] + ": ";
         var a = MineLaserArt.For(w);
-        var kit = AttackArt.BossLaser(w);
-        Check(t + "the mine's art IS the world's laser kit (cached object, not the boss cells)", kit != null && a.kit == kit && a.flame == null);
-        Check(t + "built once per world: a second look-up is the same object", ReferenceEquals(MineLaserArt.For(w), a) && ReferenceEquals(AttackArt.BossLaser(w), kit));
-        if (kit == null) return;
-        var boss = BossCatalog.ForWorld(w);
-        var bossBeam = BossArt.Shot(boss, BossArt.Beam0);
-        Check(t + "beam frames come from <w>_attack_laserbody, the aim line from _lasertell, the muzzle / impact from _laser, none from the boss sheet",
-              a.beam0.texture == AttackArt.Atlas(w, "laserbody") && a.beam1.texture == AttackArt.Atlas(w, "laserbody") && a.sight.texture == AttackArt.Atlas(w, "lasertell") &&
-              kit.muzzle[0].texture == AttackArt.Atlas(w, "laser") && kit.impact[0].texture == AttackArt.Atlas(w, "laser") &&
-              (bossBeam == null || a.beam0.texture != bossBeam.texture));
+        var src = AttackArt.BossLaser(w);
+        Check(t + "the mine's art is the world's laser kit with its pink remapped (a cached copy, not the boss cells, not the boss's own kit)", src != null && a.kit != null && a.kit != src && a.flame == null &&
+              a.kit.body[0] != src.body[0] && a.kit.bodyOpaquePx == src.bodyOpaquePx && a.kit.impactBasePx == src.impactBasePx);
+        Check(t + "built once per world: a second look-up is the same object", ReferenceEquals(MineLaserArt.For(w), a));
+        if (a.kit == null) return;
+        var kit = a.kit;
         float drawn = RailMineLaser.KitBodyScale(kit) * kit.bodyOpaquePx / 128f;
         Check(t + "the painted body's opaque width (" + drawn.ToString("F3") + " u) is the hit width (" + RailMineLaser.HitThickness + " u)", Mathf.Abs(drawn - RailMineLaser.HitThickness) < 1e-4f);
         string line = "";
         bool cue = true;
-        foreach (var (name, s) in new[] { ("body0", kit.body[0]), ("body2", kit.body[2]), ("muzzle", kit.muzzle[1]), ("impact", kit.impact[1]) })
+        foreach (var (name, s) in new[] { ("body0", kit.body[0]), ("body2", kit.body[2]), ("muzzle", kit.muzzle[1]), ("windup", kit.windup[6]), ("impact", kit.impact[1]), ("sight", kit.sight[0]), ("lock", kit.lockOn[0]) })
         {
             float share = PinkShare(s, out int red, out int opq);
-            line += " " + name + " " + (share * 100f).ToString("F0") + "%/" + red + " red";
-            // (Verdant's impact burst has 4 stray player-red pixels of ~1000 in the approved art: tolerated at <= 1%, never in the body or muzzle)
-            cue &= share >= MinPinkShare && opq > 0 && (name == "impact" ? red * 100 <= opq : red == 0);
+            line += " " + name + " " + (share * 100f).ToString("F1") + "%/" + red + " red";
+            cue &= opq > 0 && share <= MaxPinkShare && red == 0;
         }
-        Check(t + "the hostile pink cue stays (>= " + (MinPinkShare * 100f) + "% pink-family of the opaque pixels, no player-red:" + line + ")", cue);
-        int sightRed = 0, so = 0;
-        PinkShare(kit.sight[0], out sightRed, out so);
-        Check(t + "the aim line is drawn (" + so + " px) and holds no player-red (" + sightRed + ")", so > 0 && sightRed == 0);
-        long bytes = 0;
-        foreach (var f in new[] { "laser", "laserbody", "lasertell" }) { var tx = AttackArt.Atlas(w, f); bytes += tx != null ? tx.width * tx.height * 4L : 0; }
-        Check(t + "the kit adds no texture of its own beyond its three sheets (" + bytes / 1024 + " KB <= BossLaserArtTest budget " + BossLaserArtTest.MemoryBudget / 1024 + " KB)", bytes > 0 && bytes <= BossLaserArtTest.MemoryBudget);
+        Check(t + "no pink (<= " + (MaxPinkShare * 100f) + "% pink-family) and no player-red in any cell:" + line, cue);
+        Check(t + "the world's cue colour (hue " + MineCue.Hue[MineCue.Slot(w)] + ") is in the beam body (" + (CueShare(kit.body[0], w) * 100f).ToString("F0") + "%)", CueShare(kit.body[0], w) >= MinCueShare);
     }
 
-    static void Others()
+    // a world without its own atlas (Desert): the boss's laser cells, their hot pink remapped to the sun-white cue
+    static void Fallback()
     {
-        Check("Ember keeps the flame-thrower (no laser kit)", MineLaserArt.For(3).flame != null && MineLaserArt.For(3).kit == null);
-        Check("Tide and Storm keep the recoloured boss-cell beam (Tide's kit is staged, not installed; Storm has none)",
-              MineLaserArt.For(4).kit == null && MineLaserArt.For(4).flame == null && MineLaserArt.For(5).kit == null && AttackArt.BossLaser(4) == null);
+        var a = MineLaserArt.For(6);
+        float worst = 0f;
+        foreach (var s in new[] { a.sight, a.beam0, a.beam1, a.flash[0], a.flash[1], a.spark[0], a.spark[1] })
+            worst = Mathf.Max(worst, s == null ? 1f : PinkShare(s, out int r, out int o));
+        Check("Desert (no mine atlas yet): the boss-cell beam carries no pink either (worst " + (worst * 100f).ToString("F1") + "%) and has its own cache slot", worst <= MaxPinkShare && a.flame == null && a.kit == null && !ReferenceEquals(a, MineLaserArt.For(5)));
+    }
+
+    const int PilotCells = 4, BeamCells = 6;
+
+    // The painted mine beam of Ember (flame) and of Frost / Verdant / Tide / Storm: slots, file, cue, loops.
+    static void BeamAtlas(int w)
+    {
+        string t = Keys[w] + ": ";
+        string file = w == 3 ? "mineflame" : AttackArt.MineBeamFile;
+        var a = MineLaserArt.For(w);
+        var f = MineFlameArt.ForWorld(w);
+        var tex = AttackArt.Atlas(w, file);
+        Check(t + "the atlas " + AttackArt.PathOf(w, file) + " exists, 768 x 768", tex != null && tex.width == 768 && tex.height == 768);
+        Check(t + "the mine's art IS that atlas (flame slot, no laser kit), every cell painted and Alive",
+              f != null && f.painted && f.Alive && f.Complete && a.flame == f && a.kit == null && f.beam[0].texture == tex && f.pilot[0].texture == tex &&
+              f.sight.texture == tex && f.flash[3].texture == tex && f.spark[2].texture == tex && f.haze[1].texture == tex);
+        if (f == null) return;
+        Check(t + "built once: a second look-up is the same object", ReferenceEquals(MineFlameArt.ForWorld(w), f) && ReferenceEquals(MineLaserArt.For(w), a));
+        Check(t + BeamCells + " beam bodies of 1 u x 3 u (128 x 384), " + PilotCells + " pilot, 4 burst, 3 impact, 2 haze", f.beam.Length == BeamCells && f.pilot.Length == PilotCells && f.flash.Length == 4 && f.spark.Length == 3 && f.haze.Length == 2 &&
+              System.Array.TrueForAll(f.beam, s => s != null && Mathf.Approximately(s.bounds.size.x, 1f) && Mathf.Approximately(s.bounds.size.y, 3f)));
+        string line = "";
+        bool cue = true;
+        var cells = new List<(string, Sprite, bool)>();
+        for (int i = 0; i < f.beam.Length; i++) cells.Add(("beam" + i, f.beam[i], true));
+        for (int i = 0; i < f.pilot.Length; i++) cells.Add(("pilot" + i, f.pilot[i], false));
+        for (int i = 0; i < f.flash.Length; i++) cells.Add(("burst" + i, f.flash[i], false));
+        for (int i = 0; i < f.spark.Length; i++) cells.Add(("impact" + i, f.spark[i], false));
+        cells.Add(("aim", f.sight, false));
+        foreach (var (name, s, strict) in cells)
+        {
+            float share = PinkShare(s, out int red, out int opq);
+            if (name == "beam0" || name == "beam3" || name == "pilot3" || name == "burst1" || name == "impact0") line += " " + name + " " + (share * 100f).ToString("F0") + "%/" + red + " red";
+            // Ember's flame has an exempt red-orange edge (MineFlameArt, RailMineLaserTest measures it); the others carry no player-red at all, and a pink cue in
+            // every beam body and every effect cell (aim line: dashes in the material, pink fringe optional)
+            bool ok = opq > 0 && (w == 3 || red == 0) && share <= MaxPinkShare;
+            if (!ok) line += " [" + name + " " + (share * 100f).ToString("F0") + "% pink, " + red + " red]";
+            cue &= ok;
+        }
+        Check(t + "no pink in any cell (<= " + (MaxPinkShare * 100f) + "%) and none of the player's red (Ember's red-orange edge excepted):" + line, cue);
+        Check(t + "the world's cue colour (hue " + MineCue.Hue[MineCue.Slot(w)] + ") is in the beam (" + (CueShare(f.beam[0], w) * 100f).ToString("F0") + "%) and the burst (" + (CueShare(f.flash[2], w) * 100f).ToString("F0") + "%)",
+              CueShare(f.beam[0], w) >= MinCueShare && CueShare(f.flash[2], w) >= MinCueShare);
+        long bytes = tex != null ? tex.width * tex.height * 4L : 0;
+        Check(t + "one 2.25 MB sheet (" + bytes / 1024 + " KB), no other texture of its own", bytes == 768L * 768 * 4);
     }
 
     // ---- a firing mine in the real backdrop ----
@@ -190,7 +245,9 @@ public static class RailMineThemedTest
         int worstStand = int.MaxValue, samples = 0;
         RailMineLaser seen = null;
         float beamAge = 0f;
-        bool kitWorld = w <= 2;
+        bool kitWorld = w == 0, flameWorld = w >= 1;
+        string file = w == 3 ? "mineflame" : AttackArt.MineBeamFile;
+        bool pilotOk = false, pilotSeen = false, flameBeamOk = false, flameBeamSeen = false, flameFxOk = false;
         for (int i = 0; i < 60 * 10; i++)
         {
             clock += Dt; SpawnSpace.ClockOverride = clock;
@@ -206,19 +263,32 @@ public static class RailMineThemedTest
             {
                 aimSeen = true;
                 var f = l.FlashRenderer; var lk = l.LockRenderer;
-                aimOk = l.SightRenderer.sprite.texture == AttackArt.Atlas(w, "lasertell") && l.SightRenderer.drawMode == SpriteDrawMode.Tiled && lk.enabled && lk.sprite.texture == AttackArt.Atlas(w, "lasertell");
-                windOk = f.enabled && f.sprite != null && f.sprite.texture == AttackArt.Atlas(w, "laser");
+                aimOk = l.SightRenderer.sprite == l.Kit.sight[0] || l.SightRenderer.sprite == l.Kit.sight[1]; aimOk &= l.SightRenderer.drawMode == SpriteDrawMode.Tiled && lk.enabled && lk.sprite != null;
+                windOk = f.enabled && f.sprite != null && System.Array.IndexOf(l.Kit.windup, f.sprite) >= 0;
+            }
+            if (l.State == RailMineLaser.Phase.Aim && flameWorld && l.PilotRenderer.enabled && l.State == RailMineLaser.Phase.Aim)
+            {
+                pilotSeen = true;
+                pilotOk = l.PilotRenderer.sprite.texture == AttackArt.Atlas(w, file) && l.Flame == MineFlameArt.ForWorld(w);
             }
             if (l.State == RailMineLaser.Phase.Beam)
             {
                 beamAge += Dt;
+                if (flameWorld && beamAge > .1f && !flameBeamSeen)
+                {
+                    flameBeamSeen = true;
+                    var tx = AttackArt.Atlas(w, file);
+                    flameBeamOk = l.BeamRenderer.enabled && l.BeamRenderer.sprite.texture == tx && l.Kit == null;
+                    flameFxOk = l.FlashRenderer.enabled && l.FlashRenderer.sprite.texture == tx && l.ImpactRenderer.enabled && l.ImpactRenderer.sprite.texture == tx &&
+                                l.HazeRenderer.enabled && l.HazeRenderer.sprite.texture == tx;
+                }
                 if (kitWorld && beamAge > .1f && !beamSeen)
                 {
                     beamSeen = true;
                     var b = l.BeamRenderer;
-                    beamOk = b.enabled && b.sprite.texture == AttackArt.Atlas(w, "laserbody") && b.drawMode == SpriteDrawMode.Tiled && l.Kit == AttackArt.BossLaser(w) &&
-                             l.FlashRenderer.sprite.texture == AttackArt.Atlas(w, "laser");
-                    impactOk = l.ImpactRenderer.enabled && l.ImpactRenderer.sprite.texture == AttackArt.Atlas(w, "laser") && l.SparkRenderer.enabled;
+                    beamOk = b.enabled && System.Array.IndexOf(l.Kit.body, b.sprite) >= 0 && b.drawMode == SpriteDrawMode.Tiled && l.Kit == MineLaserArt.For(w).kit &&
+                             System.Array.IndexOf(l.Kit.muzzle, l.FlashRenderer.sprite) >= 0;
+                    impactOk = l.ImpactRenderer.enabled && System.Array.IndexOf(l.Kit.impact, l.ImpactRenderer.sprite) >= 0 && l.SparkRenderer.enabled;
                 }
                 if (beamAge >= .12f && samples == 0)
                 {
@@ -242,7 +312,7 @@ public static class RailMineThemedTest
             if (l.State == RailMineLaser.Phase.Cool && kitWorld && l.FlashRenderer.enabled)
             {
                 coolSeen = true;
-                fadeOk = l.FlashRenderer.sprite.texture == AttackArt.Atlas(w, "laser");
+                fadeOk = System.Array.IndexOf(l.Kit.fade, l.FlashRenderer.sprite) >= 0;
             }
             if (l.State == RailMineLaser.Phase.Cool && !kitWorld) coolSeen = true;
             if (coolSeen && !l.Active) break;
@@ -252,6 +322,12 @@ public static class RailMineThemedTest
             Check(t + "the aim line (lasertell, tiled) with its lock reticle, and the windup cells (laser sheet) at the muzzle are on screen", aimSeen && aimOk && windOk);
             Check(t + "the live beam is the laserbody strip tiled down its length, muzzle cells over its root, impact burst and sparks at the far rail", beamSeen && beamOk && impactOk);
             Check(t + "the cool-down plays the kit's fade cells", coolSeen && fadeOk);
+        }
+        if (flameWorld)
+        {
+            Check(t + "the pilot flare at the muzzle grows through the windup from the world's atlas", pilotSeen && pilotOk);
+            Check(t + "the live beam, its muzzle burst, rail impact and haze are all the world's own atlas cells (no kit, no boss cells)", flameBeamSeen && flameBeamOk && flameFxOk);
+            Check(t + "the cool-down thins it out", coolSeen);
         }
         Debug.Log("[MINETHEMED] " + t + "beam stand-out pixels, worst of " + samples + " samples along the beam: " + worstStand);
         Check(t + "the beam stands out of the " + Keys[w] + " backdrop along its whole length (>= " + HostileProjectileTest.MinStandOutPixels + " px at " + HostileProjectileTest.MinContrast + ":1; worst " + worstStand + ")",

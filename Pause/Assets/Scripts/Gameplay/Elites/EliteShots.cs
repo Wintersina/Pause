@@ -409,7 +409,8 @@ public class EliteShot : MonoBehaviour, IHostileShot
         core.sprite = sprite;
         // (a slab is the world's own ice: drawn as it is, no core; its outline says "hazard")
         bool slab = kind == EliteShots.Kind.Slab;
-        tint = HostileShotPalette.Body(d.ShotColor);
+        int cueWorld = Mathf.Max(0, d.WorldIndex);   // (the world's own cue colour, WorldCue; Space keeps the pink)
+        tint = HostileShotPalette.Body(d.ShotColor, cueWorld);
         coreTint = HostileShotPalette.Core(tint);
         // (a painted skin -- art or a behaviour's own body -- carries its pink cue in its pixels: drawn as it is, no tint and no core copy on top)
         bool painted = slab || !skin.procedural;

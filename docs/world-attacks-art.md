@@ -111,6 +111,14 @@ so this one attack may carry a red-orange edge: **hue >= 17 deg and never within
 The hostile cue is kept as a thin **neon-pink rim and pink ember specks (hue 318-330)**, and a dark plum outline (#220C26) separates the flame from the lava backdrop.
 Do not use the player's red, blue, lime or cyan. `RailMineLaserTest` measures the gap on the shipped pixels. Every other world's mine, and Tide's, keep the 3.7 skin and the old rule.
 
+### 3.7c `<w>_attack_minebeam.png` -- 768 x 768, the themed rail-mine beam of Frost, Verdant, Tide and Storm (same cell map as 3.7b)
+
+Ember's flame-thrower proved the shape, so every other mine world with a painted kit gets the same atlas in its own material and the code path is shared
+(`AttackArt.MineBeam(world)` -> `MineFlameArt.ForWorld(world)` -> `MineLaserArt.For(world).flame`, drawn by `RailMineLaser`'s pilot / beam / haze / burst / impact code; timings,
+hit box and angle stream untouched). Frost: cryo laser (ice crystals, frost bloom pilot, shatter burst); Verdant: thorned vine coil with a seed-pod pilot; Tide: pressurised water jet
+with spray and a splash crown; Storm: re-rolling lightning arc with a static-ball pilot and a ground-strike fork. NO PINK (user, 2026-10-11, rail mines only: every mine attack, Ember's flame included, lost its pink rim / specks): the warning reads in the world's own colours instead (Ember amber / orange-white, Frost icy white-cyan, Verdant bright green-white, Tide aqua-white, Storm electric white-violet; Space's kit and the boss-cell fallback are remapped at runtime by `MineCue`, same constants as `MineBeams~/recolor_nopink.py`; the pre-recolour atlases are kept in `MineBeams~/<w>/pink_original/`). No player-red (`HostileGlow.IsPlayerRed`), saturated body clear of 178 / 82 / 259 / 37. Sources and previews: `Art/Attacks/MineBeams~/<w>/` (`verify_minebeam.py` audits a sheet). Storm's folder is `Attacks/Storm`
+(`AttackArt.MineBeamKeys`; ShotSkins has no Storm key yet). Sound: still the shared mine-laser clip; a thunder crackle / water-jet hiss would be its own follow-up.
+
 ### 3.8 `<w>_attack_lash.png` -- 1024 x 128, 8 cells, Verdant (vine whip) and Tide (tentacle whip)
 
 c0-1 `link` a,b (one 128 px section of the whip pointing down, tiles end to end along the curve), c2-3 `tip` a,b (Verdant: a thorn with a pink tip; Tide: a barnacled tentacle tip with a

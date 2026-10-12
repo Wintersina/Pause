@@ -276,10 +276,10 @@ public static class AttackLogTest
             if (p.a < 200) continue;
             opaque++;
             Color.RGBToHSV(p, out float h, out float s, out float v);
-            if (h * 360f > 300f && h * 360f < 345f && s > .15f) pinkish++;
+            if (ShotSkinTest.CueOrWhite(p, 2)) pinkish++;   // (Verdant's jade-white cue, WorldCue; no pink outside Space)
             else if (s < .25f && v > .8f) pinkish++;   // the white-hot core
         }
-        Check("... with the pink cue in its pixels (" + pinkish + " of " + opaque + " are pink-white)", opaque > 20 && pinkish >= opaque / 5);
+        Check("... with the world's cue in its pixels (" + pinkish + " of " + opaque + " are jade-white)", opaque > 20 && pinkish >= opaque / 5);
         EliteSystem.Clear();
         Fresh();
         AttackArt.Clear();

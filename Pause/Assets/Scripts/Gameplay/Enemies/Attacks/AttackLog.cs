@@ -141,7 +141,7 @@ public sealed class AttackLog : AttackHazard
 
     public override float ThreatWeight => 1f;                  // FR7: a rolling trunk counts as one shot
     protected override string Label => "trunk";
-    protected override Color PreviewTint => HostileShotPalette.Body(EnemyBehaviours.SpaceShot);
+    protected override Color PreviewTint => HostileShotPalette.Body(EnemyBehaviours.SpaceShot, world);
     public LogSpec Spec => spec;
     public Vector2 Landing => landing;
     public Vector2 Origin => origin;

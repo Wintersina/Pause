@@ -275,7 +275,21 @@ public static class ShotSkinTest
     static readonly float[] PickupHues = { 178f, 82f, 259f, 37f };
 
     // The numbers verify_attack_art.py reproduces: over the opaque pixels (alpha > 24) of a cell.
-    public static Audit AuditPixels(Color32[] px)
+    // The cue of a world's hostile things: Space's hot pink band, every other world's own cue hue (WorldCue) -- or white-hot.
+    // (user, 2026-10-11: pink only in Space). Non-Space cues deliberately sit near some pickup hues (Frost / Tide cyan, Ember / Desert
+    // amber, Storm violet): they are told apart by shape, white core and flicker, not by hue, so the pickup-hue share is only audited in Space.
+    public static bool CueOrWhite(Color32 c, int world)
+    {
+        Color.RGBToHSV(c, out float h, out float s, out float v);
+        float deg = h * 360f;
+        if (s < .2f && v > .85f) return true;
+        if (world <= 0) return s > .3f && deg >= HostileShotPalette.HueMin - 8f && deg <= HostileShotPalette.HueMax + 8f;
+        return s > .2f && Mathf.Abs(Mathf.DeltaAngle(deg, WorldCue.Hue[WorldCue.Slot(world)])) <= 22f;
+    }
+
+    public static Audit AuditPixels(Color32[] px) { return AuditPixels(px, 0); }
+
+    public static Audit AuditPixels(Color32[] px, int world)
     {
         var a = new Audit();
         for (int i = 0; i < px.Length; i++)
@@ -284,11 +298,9 @@ public static class ShotSkinTest
             a.opaque++;
             Color.RGBToHSV(px[i], out float h, out float s, out float v);
             float deg = h * 360f;
-            bool white = s < .2f && v > .85f;
-            bool pink = s > .3f && deg >= HostileShotPalette.HueMin - 8f && deg <= HostileShotPalette.HueMax + 8f;
-            if (white || pink) a.pinkOrWhite++;
+            if (CueOrWhite(px[i], world)) a.pinkOrWhite++;
             if (s > .5f && (deg >= 345f || deg <= 15f)) a.red++;
-            if (s > .35f && v > .25f)
+            if (world <= 0 && s > .35f && v > .25f)
             {
                 a.saturated++;
                 foreach (float p in PickupHues)
@@ -335,7 +347,7 @@ public static class ShotSkinTest
                 for (int y = 0; y < 128; y++)
                     for (int x = 0; x < 128; x++)
                         px[y * 128 + x] = all[(tex.height - 1 - (cy * 128 + y)) * tex.width + cx * 128 + x];
-                var au = AuditPixels(px);
+                var au = AuditPixels(px, w);
                 if (au.opaque == 0) continue;   // reserved cell
                 // Verdant's painted foliage and bark are saturated greens and rusts by nature: its atlas has its own ceilings (the pink share
                 // floor and a hostile-pink cue stay; a handful of rust-edge pixels may graze the red band, never a body of red)

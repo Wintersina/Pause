@@ -40,7 +40,21 @@ public static class AttackArt
     // world keys, matching ShotSkins.WorldKeys; Space has no atlases
     public static string KeyOf(int world) => ShotSkins.WorldKeys[Mathf.Clamp(world, 0, ShotSkins.WorldKeys.Length - 1)];
     public static string FolderOf(int world) => Folder + "/" + char.ToUpperInvariant(KeyOf(world)[0]) + KeyOf(world).Substring(1);
-    public static string PathOf(int world, string file) => FolderOf(world) + "/" + KeyOf(world) + "_attack_" + file;
+    public static string PathOf(int world, string file)
+    {
+        if (file == MineBeamFile && world >= 0 && world < MineBeamKeys.Length && MineBeamKeys[world] != null)
+        {
+            string k = MineBeamKeys[world];
+            return Folder + "/" + char.ToUpperInvariant(k[0]) + k.Substring(1) + "/" + k + "_attack_" + file;
+        }
+        return FolderOf(world) + "/" + KeyOf(world) + "_attack_" + file;
+    }
+
+    // The themed rail-mine beam atlases (<w>_attack_minebeam.png, the mineflame layout) per world index: Frost, Verdant, Tide, Storm.
+    // (Ember's is its mineflame; Space keeps its laser kit.) Storm (5) has no ShotSkins key yet, so its folder is named here.
+    public const string MineBeamFile = "minebeam";
+    public static readonly string[] MineBeamKeys = { null, "frost", "verdant", null, "tide", "storm" };
+    public static bool HasMineBeam(int world) => world >= 0 && world < MineBeamKeys.Length && MineBeamKeys[world] != null;
 
     static readonly Dictionary<string, Texture2D> atlases = new Dictionary<string, Texture2D>();
     static readonly Dictionary<string, Sprite> cells = new Dictionary<string, Sprite>();
@@ -120,22 +134,29 @@ public static class AttackArt
     // frames (hot at the bottom = the muzzle, flowing up); row 1 (y 384): pilot flame a-d (the charge-up, base at the cell's bottom, tip up),
     // aim a,b (a 128 tile, content 12 px wide); row 2 (y 512): muzzle burst a-d, impact a,b; row 3 (y 640): impact c, haze a,b (a soft warm
     // veil, 128 x 128), three reserved. Any missing cell leaves that slot procedural (MineFlameArt); null when the file is missing.
-    public static MineFlameArt MineFlame(int world)
+    public static MineFlameArt MineFlame(int world) => MineAtlas(world, "mineflame", true);
+
+    // <w>_attack_minebeam.png: the same 768 x 768 cell map, painted for Frost (ice beam), Verdant (thorned vine), Tide (water jet) and Storm
+    // (lightning arc). There is no procedural fallback for these (it is Ember's flame): null unless every cell is painted.
+    public static MineFlameArt MineBeam(int world) => HasMineBeam(world) ? MineAtlas(world, MineBeamFile, false) : null;
+
+    static MineFlameArt MineAtlas(int world, string file, bool procFallback)
     {
-        if (!Has(world, "mineflame")) return null;
+        if (!Has(world, file)) return null;
         var a = new MineFlameArt();
         a.painted = true;
-        var proc = MineFlameArt.Build();
-        for (int i = 0; i < a.beam.Length; i++) a.beam[i] = Cell(world, "mineflame", i, 0, 128, 384) ?? proc.beam[i];
-        for (int i = 0; i < a.pilot.Length; i++) a.pilot[i] = CellAt(world, "mineflame", i * 128, 384, 128, 128) ?? proc.pilot[i];
-        a.sight = CellAt(world, "mineflame", 4 * 128, 384, 128, 128) ?? proc.sight;
-        a.sightB = CellAt(world, "mineflame", 5 * 128, 384, 128, 128);
-        for (int i = 0; i < a.flash.Length; i++) a.flash[i] = CellAt(world, "mineflame", i * 128, 512, 128, 128) ?? proc.flash[i];
-        a.spark[0] = CellAt(world, "mineflame", 4 * 128, 512, 128, 128) ?? proc.spark[0];
-        a.spark[1] = CellAt(world, "mineflame", 5 * 128, 512, 128, 128) ?? proc.spark[1];
-        a.spark[2] = CellAt(world, "mineflame", 0, 640, 128, 128) ?? proc.spark[2];
-        a.haze[0] = CellAt(world, "mineflame", 128, 640, 128, 128) ?? proc.haze[0];
-        a.haze[1] = CellAt(world, "mineflame", 256, 640, 128, 128) ?? proc.haze[1];
+        var proc = procFallback ? MineFlameArt.Build() : MineFlameArt.Empty();
+        for (int i = 0; i < a.beam.Length; i++) a.beam[i] = Cell(world, file, i, 0, 128, 384) ?? proc.beam[i];
+        for (int i = 0; i < a.pilot.Length; i++) a.pilot[i] = CellAt(world, file, i * 128, 384, 128, 128) ?? proc.pilot[i];
+        a.sight = CellAt(world, file, 4 * 128, 384, 128, 128) ?? proc.sight;
+        a.sightB = CellAt(world, file, 5 * 128, 384, 128, 128);
+        for (int i = 0; i < a.flash.Length; i++) a.flash[i] = CellAt(world, file, i * 128, 512, 128, 128) ?? proc.flash[i];
+        a.spark[0] = CellAt(world, file, 4 * 128, 512, 128, 128) ?? proc.spark[0];
+        a.spark[1] = CellAt(world, file, 5 * 128, 512, 128, 128) ?? proc.spark[1];
+        a.spark[2] = CellAt(world, file, 0, 640, 128, 128) ?? proc.spark[2];
+        a.haze[0] = CellAt(world, file, 128, 640, 128, 128) ?? proc.haze[0];
+        a.haze[1] = CellAt(world, file, 256, 640, 128, 128) ?? proc.haze[1];
+        if (!procFallback && !a.Complete) return null;
         return a;
     }
 

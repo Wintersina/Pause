@@ -57,7 +57,7 @@ public sealed class EliteTelegraph
     {
         End();
         seconds = untilLive;
-        preview = AttackPreview.Show(shape, untilLive, HostileShotPalette.Body(shot), true);   // (bold: Verdant's canopy is bright)
+        preview = AttackPreview.Show(shape, untilLive, HostileShotPalette.Body(shot, 2), true);   // (bold: Verdant's canopy is bright)
     }
 
     public void Step(float dt) { if (preview != null) preview.Step(dt); }

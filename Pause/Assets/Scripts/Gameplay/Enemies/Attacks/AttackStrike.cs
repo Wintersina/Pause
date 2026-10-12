@@ -172,7 +172,7 @@ public sealed class AttackStrike : AttackHazard
         band.transform.position = new Vector3(r.center.x, r.center.y, 0f);
         band.transform.localScale = new Vector3(r.width, r.height, 1f);
         bool on = (Mathf.FloorToInt(t * 8f) & 1) == 0;
-        var c = HostileShotPalette.Core(HostileShotPalette.Body(EnemyBehaviours.SpaceShot));
+        var c = HostileShotPalette.Core(HostileShotPalette.Body(EnemyBehaviours.SpaceShot, world));
         c.a = on ? .2f : .09f;
         band.color = c;
     }

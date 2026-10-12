@@ -1,0 +1,24 @@
+# Frost cryo laser source paintings
+
+All three `candidate_*.png` files were produced with the built-in image generation tool on requested transparent backgrounds. The paintings supply the six distinct beam silhouettes, four charge blooms, four shattering bursts, three rail impacts, and two cold-vapor veils. `build_minebeam.py` crops and quantizes these paintings into safe ice and pink ramps, adds one-pixel edge cues and sparse motes, composes at 64 px per cell, and exports one exact x2 nearest-neighbor atlas. It does not recolor or shift the Ember flame.
+
+## Beam source (`candidate_beams.png`)
+
+> Use case: stylized-concept. Asset type: source painting for a Unity 2D attack sprite atlas, to be downsampled into six 64 x 192 native pixel-art beam frames. Create a TRANSPARENT-background sprite sheet of SIX DISTINCT narrow vertical CRYO LASER columns in one horizontal row, each isolated with generous empty transparent space between and around them. Each is a tall icy white-blue beam reaching upward from bottom muzzle to top, around 1:5 width-to-height: a near-white frozen core made of many broken vertical striations, layered pale steel-blue glacier ice, jagged faceted crystal edges, branching ice-feather ridges, small snowflake motes and diamond-dust glints. The six are genuinely different drawings in a cyclic animation: crystal ridges and shards grow upward, splinter, re-form; varied asymmetric contours and internal crack patterns, but consistent total size and anchored center. Dense hand-placed neon PIXEL ART clusters, sharp 1-pixel dark navy outline around silhouettes, 4-6 discrete flat colour tones, no anti-aliasing, no smooth gradients. Thin bright neon pink (#FF4FD8, #FF8AE6) accents at the outermost tips and intermittent pink-white glints, while the main body is cool white and desaturated steel blue. No fire, no liquid, no red, no cyan/turquoise, no violet, no amber. No text, labels, UI, environment, floor, rail, or checkerboard. Preserve actual alpha transparency between sprites. Crisp game sprite art.
+
+## Charge, burst, and impact source (`candidate_effects.png`)
+
+> Use case: stylized-concept. Asset type: transparent source painting for a Unity 2D CRYO LASER attack sprite atlas, dense neon pixel art. Create a clear contact sheet on TRUE ALPHA TRANSPARENT background of separate ice effects, spaced far enough apart to crop individually, no labels or grid. TOP ROW: four distinct progressively larger ice-crystal charge-up blooms, vertical teardrop clusters based at their bottom center, small to large, frosty spikes multiplying upward; each has a strong white center with steel-blue ice facets. MIDDLE ROW: four distinct muzzle ignition STARBURSTS, irregular wide ice splinter fans around a near-white core, long needle-like crystalline spikes and angular snow puff; unmistakable shattering ice, dynamic and jagged. BOTTOM ROW: three distinct far-rail impact fans, broadly spreading crystal spears and diamond flakes with a grounded horizontal base, from huge fresh impact to smaller settling bloom. Each separate effect is a complete crisp cutout. Hand-painted pixel clusters at multiple discrete scales, 1-pixel deep NAVY #0A1530 outlines around opaque silhouettes, pale desaturated steel-blue/white ice ramp, thin neon PINK #FF4FD8 and #FF8AE6 at outer crystal tips, scattered pink-white sparkle pixels. Intense but no fuzzy blur, no smooth gradients, no cyan/turquoise, no violet, no amber, no fire, no red. No environment, no ground, no UI, no text, no border, no checkerboard. Game-ready sharply pixelated 2D sprite-sheet painting.
+
+## Mist source (`candidate_haze.png`)
+
+> Use case: stylized-concept. Asset type: source painting for two subtle cold-mist sprites in a Unity 2D pixel-art cryo-laser attack atlas. On a TRUE TRANSPARENT alpha background, paint TWO separate wide, low, diaphanous VEILS of arctic vapor with generous spacing, no crystals, no solid spikes. Each veil is made of delicate irregular pixel clusters and dithered wisps, pale glacier white and desaturated steel-blue, airy and horizontally spread with soft broken edges; one drifts slightly left, the other curls right. Make the vapor artwork pale and faint, with variable translucency, appropriate for a brief afterimage behind the attack. Pixel art only, crisp pixel clusters, no blur or smooth gradient. No purple, no pink, no cyan, no red, no background scene, no floor, no text, no labels, no grid, no checkerboard.
+
+## Rebuild and verify
+
+```sh
+python3 Pause/Assets/Art/Attacks/MineBeams~/frost/src~/build_minebeam.py
+python3 Pause/Assets/Art/Attacks/MineBeams~/verify_minebeam.py Pause/Assets/Art/Attacks/MineBeams~/frost/frost_attack_minebeam.png
+```
+
+The quantizer removes low-alpha source halos. The original generated sheets are retained as candidate paintings so the crop choices and edge cleanup remain reviewable.

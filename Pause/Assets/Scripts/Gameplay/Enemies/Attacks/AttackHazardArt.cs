@@ -61,11 +61,11 @@ public static partial class AttackHazardArt
 
     public static Color32 Hsv(float deg, float s, float v) => (Color32)Color.HSVToRGB(deg / 360f, s, v);
 
-    // the pink the whole family wears (HostileShotPalette)
-    public static Color32 PinkBody => (Color32)HostileShotPalette.Body(EnemyBehaviours.SpaceShot);
-    public static Color32 PinkEdge => (Color32)HostileShotPalette.Trace(HostileShotPalette.Body(EnemyBehaviours.SpaceShot));
-    public static Color32 CoreA => (Color32)HostileShotPalette.Core(HostileShotPalette.Body(EnemyBehaviours.SpaceShot));
-    public static Color32 CoreB => (Color32)Color.Lerp(HostileShotPalette.Core(HostileShotPalette.Body(EnemyBehaviours.SpaceShot)), Color.white, .8f);
+    // the cue colour the whole family wears in this world (WorldCue: hot pink in Space, the world's own elsewhere)
+    public static Color32 PinkBody(int world) => (Color32)HostileShotPalette.Body(EnemyBehaviours.SpaceShot, world);
+    public static Color32 PinkEdge(int world) => (Color32)HostileShotPalette.Trace(HostileShotPalette.Body(EnemyBehaviours.SpaceShot, world));
+    public static Color32 CoreA(int world) => (Color32)HostileShotPalette.Core(HostileShotPalette.Body(EnemyBehaviours.SpaceShot, world));
+    public static Color32 CoreB(int world) => (Color32)Color.Lerp(HostileShotPalette.Core(HostileShotPalette.Body(EnemyBehaviours.SpaceShot, world)), Color.white, .8f);
 
     // ---- the cache --------------------------------------------------------------------------------
 
@@ -147,7 +147,7 @@ public static partial class AttackHazardArt
         int f = frame & 1;
         return Made("AtkBar" + world + "_" + f + (bold ? "b" : ""), BarW, BarH, Ppu, new Vector2(.5f, .5f), (px, w, h) =>
         {
-            Color32 edge = PinkEdge, body = PinkBody, core = f == 0 ? CoreA : CoreB;
+            Color32 edge = PinkEdge(world), body = PinkBody(world), core = f == 0 ? CoreA(world) : CoreB(world);
             for (int x = 0; x < w; x++)
             {
                 int end = Mathf.Min(x, w - 1 - x);
@@ -193,7 +193,7 @@ public static partial class AttackHazardArt
         int f = frame & 1;
         return Made("AtkGap" + world + "_" + f + (bold ? "b" : ""), GapSize, GapSize, Ppu, new Vector2(.5f, .5f), (px, w, h) =>
         {
-            Color32 c = f == 0 ? PinkEdge : CoreB, d = PinkBody;
+            Color32 c = f == 0 ? PinkEdge(world) : CoreB(world), d = PinkBody(world);
             for (int i = 0; i < 6; i++)
             {
                 // a chevron pointing down (toward the crack's middle is the caller's rotation)
@@ -263,7 +263,7 @@ public static partial class AttackHazardArt
         int h = tip ? TipH : ColH;
         return Made("AtkCol" + world + (int)style + "_" + f + (tip ? "t" : "") + (bold ? "b" : ""), ColW, h, Ppu, new Vector2(.5f, tip ? 0f : .5f), (px, w, hh) =>
         {
-            Color32 edge = PinkEdge, body = PinkBody, core = f == 0 ? CoreA : CoreB;
+            Color32 edge = PinkEdge(world), body = PinkBody(world), core = f == 0 ? CoreA(world) : CoreB(world);
             for (int y = 0; y < hh; y++)
             {
                 float shift = 0f, hw = 8f;
@@ -318,9 +318,9 @@ public static partial class AttackHazardArt
     {
         if (useArt) return StrikeGlyph(world, style, frame, bold);
         int f = frame & 1;
-        return Made("AtkGlyph" + (int)style + "_" + f + (bold ? "b" : ""), GlyphSize, GlyphSize, Ppu, new Vector2(.5f, .5f), (px, w, h) =>
+        return Made("AtkGlyph" + world + "_" + (int)style + "_" + f + (bold ? "b" : ""), GlyphSize, GlyphSize, Ppu, new Vector2(.5f, .5f), (px, w, h) =>
         {
-            Color32 edge = PinkEdge, hot = f == 0 ? CoreA : CoreB;
+            Color32 edge = PinkEdge(world), hot = f == 0 ? CoreA(world) : CoreB(world);
             float c = (w - 1) * .5f;
             for (int k = 0; k < 24; k++)
             {
@@ -381,7 +381,7 @@ public static partial class AttackHazardArt
         var ramp = RampOf(world);
         return Made("AtkBurst" + world + (int)style + "_" + f + (bold ? "b" : ""), GlyphSize, GlyphSize, Ppu, new Vector2(.5f, .5f), (px, w, h) =>
         {
-            Color32 edge = PinkEdge, body = PinkBody, hot = CoreB;
+            Color32 edge = PinkEdge(world), body = PinkBody(world), hot = CoreB(world);
             float c = (w - 1) * .5f;
             float radius = 5f + f * 4.5f;
             for (int k = 0; k < 12; k++)
@@ -477,9 +477,9 @@ public static partial class AttackHazardArt
     {
         var look = LookOf(world);
         int f = frame & 1;
-        return Made("AtkLink" + (int)look + "_" + f + (bold ? "b" : ""), LinkW, LinkH, Ppu, new Vector2(.5f, .5f), (px, w, h) =>
+        return Made("AtkLink" + world + "_" + (int)look + "_" + f + (bold ? "b" : ""), LinkW, LinkH, Ppu, new Vector2(.5f, .5f), (px, w, h) =>
         {
-            Color32 edge = PinkEdge, body = PinkBody, core = f == 0 ? CoreA : CoreB;
+            Color32 edge = PinkEdge(world), body = PinkBody(world), core = f == 0 ? CoreA(world) : CoreB(world);
             for (int y = 0; y < h; y++)
                 for (int x = 0; x < w; x++)
                 {
@@ -522,9 +522,9 @@ public static partial class AttackHazardArt
     {
         var look = LookOf(world);
         int f = frame & 1;
-        return Made("AtkLTip" + (int)look + "_" + f + (bold ? "b" : ""), LashTipW, LashTipH, Ppu, new Vector2(.5f, .5f), (px, w, h) =>
+        return Made("AtkLTip" + world + "_" + (int)look + "_" + f + (bold ? "b" : ""), LashTipW, LashTipH, Ppu, new Vector2(.5f, .5f), (px, w, h) =>
         {
-            Color32 edge = PinkEdge, body = PinkBody, core = f == 0 ? CoreA : CoreB;
+            Color32 edge = PinkEdge(world), body = PinkBody(world), core = f == 0 ? CoreA(world) : CoreB(world);
             for (int y = 0; y < h; y++)
             {
                 float hw = 1f + 6f * Mathf.Min(1f, y / 15f);              // y = 0 is the point (14 px wide at the base, like a link)
@@ -561,9 +561,9 @@ public static partial class AttackHazardArt
     {
         var look = LookOf(world);
         int f = frame & 1;
-        return Made("AtkRoot" + (int)look + "_" + f + (bold ? "b" : ""), LashRootSize, LashRootSize, Ppu, new Vector2(.5f, .5f), (px, w, h) =>
+        return Made("AtkRoot" + world + "_" + (int)look + "_" + f + (bold ? "b" : ""), LashRootSize, LashRootSize, Ppu, new Vector2(.5f, .5f), (px, w, h) =>
         {
-            Color32 edge = PinkEdge, body = PinkBody, hot = f == 0 ? CoreA : CoreB;
+            Color32 edge = PinkEdge(world), body = PinkBody(world), hot = f == 0 ? CoreA(world) : CoreB(world);
             float c = (w - 1) * .5f;
             // eight pink spikes (PC4: a spiked rim, never a smooth disc) round a small material hub
             for (int k = 0; k < 8; k++)
@@ -590,17 +590,17 @@ public static partial class AttackHazardArt
         int key = Key(Kind.Dash, world, 0, frame & 1, bold);
         Sprite s;
         if (Cached(key, out s)) return s;
-        s = AttackArt.LashDash(world, frame & 1) ?? DashProcedural(frame, bold);
+        s = AttackArt.LashDash(world, frame & 1) ?? DashProcedural(world, frame, bold);
         resolved[key] = s;
         return s;
     }
 
-    static Sprite DashProcedural(int frame, bool bold)
+    static Sprite DashProcedural(int world, int frame, bool bold)
     {
         int f = frame & 1;
-        return Made("AtkDash" + f + (bold ? "b" : ""), LashDashSize, LashDashSize, Ppu, new Vector2(.5f, .5f), (px, w, h) =>
+        return Made("AtkDash" + world + "_" + f + (bold ? "b" : ""), LashDashSize, LashDashSize, Ppu, new Vector2(.5f, .5f), (px, w, h) =>
         {
-            Color32 a = f == 0 ? CoreB : PinkEdge, b = PinkBody;
+            Color32 a = f == 0 ? CoreB(world) : PinkEdge(world), b = PinkBody(world);
             for (int y = 0; y < h; y++)
                 for (int x = 0; x < w; x++)
                 {
