@@ -16,8 +16,9 @@ public static class WorldBackdropTest
     // Space carries the 2048 anim_hires planet sheet (~5.3 MB with mips; the 1x
     // sheet was ~1.3 MB) beside the asteroid-drift sheets: 9573 KB, over the
     // generic 9 MB. The user asked for much sharper planets (2026-10-08), so
-    // Space gets a deliberate 10 MB.
-    public const long SpaceTextureBudgetBytes = 10L * 1024 * 1024;
+    // Space gets a deliberate 10 MB. The standalone ring station (station_ring_v2, a 1254 px painting that was
+    // clamped to 512 on phones, i.e. softened 2.4x) is now imported at 1024: +0.3 MB, so 11 MB.
+    public const long SpaceTextureBudgetBytes = 11L * 1024 * 1024;
     // Verdant carries ten shared 1024 atlases (landmarks, pipes, fires,
     // sites, weather and five ambient-loop sheets: the user asked for "more
     // pipes and smokes and wild fires", 2026-10-08) besides one 4-tile

@@ -896,6 +896,7 @@ public static class DesertBackdropTest
         var d2 = Director(wb2);
         Run(wb2, 14f);
         d2.ClearWorms();
+        d2.ClearItems();     // only the planted item in the ridge's way (the seeded layout must not decide what else it meets)
         bool ok = d2.SpawnWorm(1, 0f, false, 0f, true);
         var worm = d2.Worms.items[0];
         var item = d2.Plant("radio_mast", 1.4f, worm.x, worm.gy + .8);
@@ -904,6 +905,7 @@ public static class DesertBackdropTest
         bool dying = false, blasts = false, plume = false, alphaOk = true, behind = true, small = true, calm = true;
         float maxAlpha = 0f, maxSize = 0f, maxBlast = 0f;
         for (int i = 0; i < 30 * 40 && !dying; i++) { wb2.Step(Dt); dying = item.dyingT >= 0f; }
+        float ix = item.x; double igy = item.gy;     // its spot when razed (the pooled piece may be re-dealt once it is free)
         Check("the ridge destroys the item it reaches (razed " + d2.ItemsRazed + ")", dying && d2.ItemsRazed == 1);
         Check("... its footprint is freed (it can no longer block a spot) and its loops stop", item.footprint < 0 && feetBefore > 0);
         for (int i = 0; i < 30 * 3; i++)
@@ -929,7 +931,6 @@ public static class DesertBackdropTest
               blasts && plume && alphaOk && small && calm && DesertTuning.BlastAlpha <= .5f);
         Check("... behind gameplay, with a rumble (" + d2.RumblesPlayed + "), and no collider anywhere in the backdrop",
               behind && d2.RumblesPlayed == 1 && wb2.Current.Root.GetComponentsInChildren<Collider2D>(true).Length == 0);
-        float ix = item.x; double igy = item.gy;
         Run(wb2, 2f);
         bool gone = !item.active || item.gy != igy;
         Run(wb2, 60f);
@@ -1230,7 +1231,7 @@ public static class DesertBackdropTest
             d = Director(wb);
             Run(wb, 15f);
             bool any = false;
-            for (int t = 0; t < 8 && !any; t++) { any = d.SpawnWorm(); if (!any) Run(wb, 2f); }
+            for (int t = 0; t < 24 && !any; t++) { any = d.SpawnWorm(); if (!any) Run(wb, 2f); }     // up to ~1 min of ground: whether free sand is in view right now depends on the layout
             Check("v" + v + " can carry a worm on its own sand (" + any + ")", any || v == 2);
             Object.DestroyImmediate(wb.gameObject);
         }

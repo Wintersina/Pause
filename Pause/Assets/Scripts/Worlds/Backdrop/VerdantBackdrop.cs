@@ -74,12 +74,18 @@ public static class VerdantTuning
     static readonly PieceRule Span = new PieceRule(GroundClass.Water, .3f, .2f, GroundClass.Land);
     static readonly PieceRule Bank = new PieceRule(GroundClass.Land, .6f, .28f, GroundClass.Water);
     static readonly PieceRule Anywhere = new PieceRule(GroundClass.Any, 0f, .2f);
+    // a lone pipe bridge (pipebridge_00 laid by a river): its open flanges
+    // (cell x ~30 / ~230, over the drawn banks) both come down on land, so the
+    // pipe runs from bank to bank instead of standing as a stub in the water.
+    // (bridge_00 is drawn whole, jungle on both banks: Span is enough.)
+    static readonly PieceRule PipeSpan = Span.WithEnds(new Vector2(-.38f, -.08f), new Vector2(.38f, -.08f), GroundClass.Land);
 
     public static PieceRule Rule(string piece)
     {
         if (piece == null) return Anywhere;
         if (piece.StartsWith("barge")) return River;
-        if (piece.StartsWith("bridge") || piece == "pipebridge_00") return Span;
+        if (piece == "pipebridge_00") return PipeSpan;
+        if (piece.StartsWith("bridge")) return Span;
         if (piece.StartsWith("waterfall") || piece == "canopy_intake_00" || piece.StartsWith("riverbay")) return Bank;
         if (piece.StartsWith("dome") || piece.StartsWith("silo") || piece.StartsWith("podpad") || piece.StartsWith("hatch")) return Clearing;
         if (piece.StartsWith("burn") || piece.StartsWith("coal") || piece.StartsWith("scorched") ||
