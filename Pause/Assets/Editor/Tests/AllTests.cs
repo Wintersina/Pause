@@ -228,6 +228,7 @@ public static class AllTests
         ("VerdantBackdropTest", VerdantBackdropTest.Execute),
         ("EmberBackdropTest", EmberBackdropTest.Execute),
         ("TideBackdropTest", TideBackdropTest.Execute),
+        ("StormBackdropTest", StormBackdropTest.Execute),
         ("DesertBackdropTest", DesertBackdropTest.Execute),
         ("WorldGatingTest", WorldGatingTest.Execute),
         ("WorldLeakTest", WorldLeakTest.Execute),

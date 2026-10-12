@@ -1,0 +1,229 @@
+{
+  "description": "Storm atmosphere-level ground tiles, all source paintings generated with image_gen.",
+  "files": {
+    "v1/sky.png": {
+      "role": "sky",
+      "variant": "v1",
+      "source": "src~/v1_b.png",
+      "notes": "Long diagonal sheared bands, hail-grey belt, small curl scars, faint buried lightning. sky depth; value target 0.35.",
+      "size": [
+        512,
+        1024
+      ],
+      "p90_value_opaque": 0.3412,
+      "wrap_edge_max_channel_difference": 0,
+      "wrap_edge_mean_channel_difference": 0.0,
+      "opaque_fraction": 1.0
+    },
+    "v1/far.png": {
+      "role": "far",
+      "variant": "v1",
+      "source": "src~/v1_a.png",
+      "notes": "Long diagonal sheared bands, hail-grey belt, small curl scars, faint buried lightning. far depth; value target 0.40.",
+      "size": [
+        512,
+        1024
+      ],
+      "p90_value_opaque": 0.3961,
+      "wrap_edge_max_channel_difference": 0,
+      "wrap_edge_mean_channel_difference": 0.0,
+      "opaque_fraction": 1.0
+    },
+    "v1/mid.png": {
+      "role": "mid",
+      "variant": "v1",
+      "source": "src~/v1_b.png",
+      "notes": "Long diagonal sheared bands, hail-grey belt, small curl scars, faint buried lightning. mid depth; value target 0.45.",
+      "size": [
+        512,
+        1024
+      ],
+      "p90_value_opaque": 0.4392,
+      "wrap_edge_max_channel_difference": 0,
+      "wrap_edge_mean_channel_difference": 0.0,
+      "opaque_fraction": 1.0
+    },
+    "v1/flow.png": {
+      "role": "flow",
+      "variant": "v1",
+      "source": "src~/v1_b.png",
+      "notes": "Sparse painted crest wisps plus static, slanted rain and wind streaks; transparent scrolling strip.",
+      "size": [
+        512,
+        1024
+      ],
+      "p90_value_opaque": 0.7333,
+      "wrap_edge_max_channel_difference": 0,
+      "wrap_edge_mean_channel_difference": 0.0,
+      "opaque_fraction": 0.02807
+    },
+    "v2/sky.png": {
+      "role": "sky",
+      "variant": "v2",
+      "source": "src~/v2_b.png",
+      "notes": "Overhead cauliflower thunderhead crowns, deep canyons and hard crest rims. sky depth; value target 0.36.",
+      "size": [
+        512,
+        1024
+      ],
+      "p90_value_opaque": 0.349,
+      "wrap_edge_max_channel_difference": 0,
+      "wrap_edge_mean_channel_difference": 0.0,
+      "opaque_fraction": 1.0
+    },
+    "v2/far.png": {
+      "role": "far",
+      "variant": "v2",
+      "source": "src~/v2_b.png",
+      "notes": "Overhead cauliflower thunderhead crowns, deep canyons and hard crest rims. far depth; value target 0.41.",
+      "size": [
+        512,
+        1024
+      ],
+      "p90_value_opaque": 0.3961,
+      "wrap_edge_max_channel_difference": 0,
+      "wrap_edge_mean_channel_difference": 0.0,
+      "opaque_fraction": 1.0
+    },
+    "v2/mid.png": {
+      "role": "mid",
+      "variant": "v2",
+      "source": "src~/v2_a.png",
+      "notes": "Overhead cauliflower thunderhead crowns, deep canyons and hard crest rims. mid depth; value target 0.46.",
+      "size": [
+        512,
+        1024
+      ],
+      "p90_value_opaque": 0.4471,
+      "wrap_edge_max_channel_difference": 0,
+      "wrap_edge_mean_channel_difference": 0.0,
+      "opaque_fraction": 1.0
+    },
+    "v2/flow.png": {
+      "role": "flow",
+      "variant": "v2",
+      "source": "src~/v2_a.png",
+      "notes": "Sparse painted crest wisps plus static, slanted rain and wind streaks; transparent scrolling strip.",
+      "size": [
+        512,
+        1024
+      ],
+      "p90_value_opaque": 0.7333,
+      "wrap_edge_max_channel_difference": 0,
+      "wrap_edge_mean_channel_difference": 0.0,
+      "opaque_fraction": 0.02854
+    },
+    "v3/sky.png": {
+      "role": "sky",
+      "variant": "v3",
+      "source": "src~/v3_b.png",
+      "notes": "One immense eye and anvil spiral walls; wrapped arms carry the cyclone beyond the tile. sky depth; value target 0.34.",
+      "size": [
+        512,
+        1024
+      ],
+      "p90_value_opaque": 0.3333,
+      "wrap_edge_max_channel_difference": 0,
+      "wrap_edge_mean_channel_difference": 0.0,
+      "opaque_fraction": 1.0
+    },
+    "v3/far.png": {
+      "role": "far",
+      "variant": "v3",
+      "source": "src~/v3_b.png",
+      "notes": "One immense eye and anvil spiral walls; wrapped arms carry the cyclone beyond the tile. far depth; value target 0.39.",
+      "size": [
+        512,
+        1024
+      ],
+      "p90_value_opaque": 0.3843,
+      "wrap_edge_max_channel_difference": 0,
+      "wrap_edge_mean_channel_difference": 0.0,
+      "opaque_fraction": 1.0
+    },
+    "v3/mid.png": {
+      "role": "mid",
+      "variant": "v3",
+      "source": "src~/v3_a.png",
+      "notes": "One immense eye and anvil spiral walls; wrapped arms carry the cyclone beyond the tile. mid depth; value target 0.44.",
+      "size": [
+        512,
+        1024
+      ],
+      "p90_value_opaque": 0.4353,
+      "wrap_edge_max_channel_difference": 0,
+      "wrap_edge_mean_channel_difference": 0.0,
+      "opaque_fraction": 1.0
+    },
+    "v3/flow.png": {
+      "role": "flow",
+      "variant": "v3",
+      "source": "src~/v3_a.png",
+      "notes": "Sparse painted crest wisps plus static, slanted rain and wind streaks; transparent scrolling strip.",
+      "size": [
+        512,
+        1024
+      ],
+      "p90_value_opaque": 0.7333,
+      "wrap_edge_max_channel_difference": 0,
+      "wrap_edge_mean_channel_difference": 0.0,
+      "opaque_fraction": 0.02893
+    },
+    "v4/sky.png": {
+      "role": "sky",
+      "variant": "v4",
+      "source": "src~/v4_b.png",
+      "notes": "Night-side graphite billows lit internally by blue-white sheet lightning. sky depth; value target 0.27.",
+      "size": [
+        512,
+        1024
+      ],
+      "p90_value_opaque": 0.2627,
+      "wrap_edge_max_channel_difference": 0,
+      "wrap_edge_mean_channel_difference": 0.0,
+      "opaque_fraction": 1.0
+    },
+    "v4/far.png": {
+      "role": "far",
+      "variant": "v4",
+      "source": "src~/v4_b.png",
+      "notes": "Night-side graphite billows lit internally by blue-white sheet lightning. far depth; value target 0.32.",
+      "size": [
+        512,
+        1024
+      ],
+      "p90_value_opaque": 0.3098,
+      "wrap_edge_max_channel_difference": 0,
+      "wrap_edge_mean_channel_difference": 0.0,
+      "opaque_fraction": 1.0
+    },
+    "v4/mid.png": {
+      "role": "mid",
+      "variant": "v4",
+      "source": "src~/v4_a.png",
+      "notes": "Night-side graphite billows lit internally by blue-white sheet lightning. mid depth; value target 0.37.",
+      "size": [
+        512,
+        1024
+      ],
+      "p90_value_opaque": 0.3647,
+      "wrap_edge_max_channel_difference": 0,
+      "wrap_edge_mean_channel_difference": 0.0,
+      "opaque_fraction": 1.0
+    },
+    "v4/flow.png": {
+      "role": "flow",
+      "variant": "v4",
+      "source": "src~/v4_a.png",
+      "notes": "Sparse painted crest wisps plus static, slanted rain and wind streaks; transparent scrolling strip.",
+      "size": [
+        512,
+        1024
+      ],
+      "p90_value_opaque": 0.8431,
+      "wrap_edge_max_channel_difference": 0,
+      "wrap_edge_mean_channel_difference": 0.0,
+      "opaque_fraction": 0.03223
+    }
+  }
+}

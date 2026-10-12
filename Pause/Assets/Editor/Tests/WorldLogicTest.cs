@@ -225,8 +225,8 @@ public static class WorldLogicTest
         float hue, sat, val; Color.RGBToHSV(c, out hue, out sat, out val);
         Check("... its portal is pale storm-white / yellow (hue 40..70 deg, soft), not violet, amber nor the mint",
               hue * 360f > 40f && hue * 360f < 70f && sat < .45f && val > .85f);
-        Check("... its own rails and roster cast; still Tide's backdrop (TODO: Storm's own)",
-              WorldPainter.RailTextureName("Storm") == "rail_storm_wide_v1" && BackdropCatalog.For("Storm") == BackdropCatalog.For("Tide") &&
+        Check("... its own rails, roster cast and thunderstorm backdrop (not Tide's)",
+              WorldPainter.RailTextureName("Storm") == "rail_storm_wide_v1" && BackdropCatalog.For("Storm").world == "Storm" && BackdropCatalog.For("Storm") != BackdropCatalog.For("Tide") &&
               EnemyRoster.One(Storm, EnemyRole.Rock).key == "storm_rock_hail" && EnemyRoster.One(Storm, EnemyRole.Rock).world == Storm &&
               BossCatalog.ForWorld(Storm).id == "boss_storm");
         Check("... its planetfall art is installed, the numbers are the manifest's",
