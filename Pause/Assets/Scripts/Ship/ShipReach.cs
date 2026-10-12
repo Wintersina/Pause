@@ -140,6 +140,7 @@ public static class ShipReach
             case BossActor.Mode.Dying:
                 return rest;
             case BossActor.Mode.Arriving:
+                return rest + actor.ArrivalCeilingLift;   // open while it is still in the backdrop
             case BossActor.Mode.Retreating:
                 return rest + (actor.transform.position.y - BossConfig.RestYFor(f));
             default:

@@ -1353,7 +1353,7 @@ public static class EnemyBehaviourTest
         // the boss's board clear takes whatever is left, pilots included (the existing rule)
         var left = Build(def, new Vector2(0f, top - 1.6f));
         Check("a pilot is an ordinary hazard to the boss's board clear (ClearTarget, tagged)", left.GetComponent<ClearTarget>() != null &&
-              ClearTarget.IsHazard(left.gameObject) && File.ReadAllText("Assets/Scripts/Bosses/BossEncounter.cs").Contains("ClearTarget.IsHazard(t.gameObject)"));
+              ClearTarget.IsHazard(left.gameObject) && File.ReadAllText("Assets/Scripts/Bosses/BossEntrance.cs").Contains("ClearTarget.IsHazard(t.gameObject)"));
         Object.DestroyImmediate(left.gameObject);
     }
 }

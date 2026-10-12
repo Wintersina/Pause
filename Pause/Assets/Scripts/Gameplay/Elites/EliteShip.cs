@@ -1020,6 +1020,20 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
         return had;
     }
 
+    // A board clear that must not leave it standing (the boss's landing
+    // shockwave, FriendlyFire.ShockwaveHit): it dies now by `cause` -- its
+    // grace and armour aside -- through the ordinary death (reward, cue).
+    public void ForceDie(EliteDamage cause)
+    {
+        if (State == EliteState.Dead) { HitBy = null; return; }
+        LastHitCause = cause;
+        LastHitBy = HitBy;
+        HitBy = null;
+        Hearts = 0;
+        if (heartsView != null) heartsView.Refresh();
+        Die(cause);
+    }
+
     void Die(EliteDamage cause)
     {
         State = EliteState.Dead;

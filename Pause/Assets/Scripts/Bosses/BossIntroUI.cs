@@ -15,8 +15,8 @@ using UnityEngine.UI;
 // Nothing has a collider, a raycaster or a raycast target: it may still be
 // falling as the fight starts and is purely visual. Everything is built once
 // in Play (a fixed pool, no per-frame allocation; pieces are shown and hidden
-// by culling, never rebuilt), stepped on unscaled time (the world is frozen
-// through the intro) and moves on held ticks or plain ballistics, never
+// by culling, never rebuilt), stepped on unscaled time (the world is in the
+// entrance's slow motion, or frozen, through the intro) and moves on held ticks or plain ballistics, never
 // eased fades. The overlay stays up through the fight for the ultimate's hit
 // flashes and is closed by the encounter.
 public class BossIntroUI : MonoBehaviour
@@ -371,7 +371,7 @@ public class BossIntroUI : MonoBehaviour
         flash.color = flashLeft > 0f ? flashColor : new Color(1f, 1f, 1f, 0f);
 
         // A second, smaller flash the moment the boss lands.
-        float land = BossConfig.BossArriveAt + BossConfig.BossArriveSeconds * .55f;
+        float land = BossConfig.LandAt;
         if (!landed && clock >= land) { landed = true; Flash(Bone, 1, .45f); }
 
         Slide(warning.rectTransform, clock - BossConfig.WarningAt, BossConfig.NameCardAt - BossConfig.WarningAt,

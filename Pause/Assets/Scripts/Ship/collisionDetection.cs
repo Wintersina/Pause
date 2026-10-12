@@ -243,6 +243,10 @@ public class collisionDetection : MonoBehaviour {
             // A planetfall's descent: nothing can touch the ship (the board
             // was cleared at the commit; this is the guarantee).
             if (Planetfall.ShieldsShip || Liftoff.ShieldsShip || PortalArrival.ShieldsShip) return;
+            // A boss's entrance, from its first frame to the fight: the same
+            // guarantee (BossEncounter.ShieldsShip; derived from the phase,
+            // so it ends with the intro, a death or the scene).
+            if (BossEncounter.ShieldsShip) return;
             // A full secret meter whose power answers a hit (Shield Pulse,
             // Phase Cloak, Blink Dash) spends itself now, and a Hard Shell
             // eats the hit: either way it lands as a shielded hit.

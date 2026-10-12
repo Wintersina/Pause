@@ -20,9 +20,10 @@ public enum BossEndRule { HitPointsOrSurvival }
 //
 // The flow (BossEncounter):
 //   level clock runs out -> Pending (waits out an ultimate cinematic)
-//   -> Intro   IntroSeconds of real time with the world frozen (timeScale 0,
-//              never a spent pause): warning flash, the boss warps in, its
-//              name card; speed drains to 0 over SpeedDrainSeconds
+//   -> Intro   IntroSeconds of real time, the ENTRANCE (never a spent pause,
+//              the pilot untouchable): slow motion, the boss song, the boss
+//              rises out of the backdrop and lands with a board-clearing
+//              shockwave, its name card; speed eases to FightSpeed
 //   -> Fight   speed held at FightSpeed (HUD "20"); patterns escalate in
 //              thirds of FightSeconds; normal pausing and teleport work
 //   -> Outro   OutroSeconds: explodes (hit points gone) or retreats (timer)
@@ -32,19 +33,38 @@ public static class BossConfig
     // ---- how a fight ends (see BossEndRule): hit points or the timer ----
     public static BossEndRule EndRule = BossEndRule.HitPointsOrSurvival;
 
-    // ---- intro (real time; the world is frozen throughout) ----
-    public static float IntroSeconds = 2.2f;
-    public static float SpeedDrainSeconds = 0.9f;
+    // ---- intro: the boss's ENTRANCE (real time; BossEntrance) ----
+    // The world runs in slow motion (EntranceSlowScale) while the finger is
+    // down -- frozen as ever while it is up -- the boss song starts on the
+    // intro's first frame, the boss rises out of the world's backdrop (a
+    // landing site of the backdrop's own set pieces, BossEmergence) and
+    // grows into the play field, lands at LandAt with a shockwave that
+    // clears the board (BossShockwave), and the slow motion eases back to
+    // 1x by IntroSeconds, when the fight begins. The pilot cannot be hurt
+    // from the first frame of the intro to the fight (BossEncounter.ShieldsShip).
+    public static float IntroSeconds = 4.8f;    // = SlowOutAt + SlowOutSeconds: the fight starts at full speed
+    public static float SpeedDrainSeconds = 2f; // the run's speed eases to FightSpeed over this
     public static float WarningAt = 0.05f;      // warning slab + screen flash
-    public static float BossArriveAt = 0.35f;   // boss starts its warp in
-    public static float BossArriveSeconds = 0.7f;
-    public static float NameCardAt = 0.85f;
+    public static float BossArriveAt = 0.35f;   // boss starts rising out of the backdrop
+    public static float BossArriveSeconds = 3.4f;
+    // The instant it lands in the play field: the shockwave.
+    public static float LandAt => BossArriveAt + BossArriveSeconds;
+    public static float NameCardAt = 3.05f;
+    // Slow motion: in to EntranceSlowScale over SlowInSeconds, held until
+    // SlowOutAt (~4 s), then eased back to 1x over SlowOutSeconds.
+    public static float EntranceSlowScale = 0.3f;
+    public static float SlowInSeconds = 0.3f;
+    public static float SlowOutAt = 4.0f;
+    public static float SlowOutSeconds = 0.8f;
+    // The landing shockwave (BossShockwave): its front sweeps from the boss
+    // past the farthest corner of the view in ShockwaveSeconds (real time).
+    public static float ShockwaveSeconds = 0.6f;
     // The name card shows the boss's name only. It slams in (settled after
     // 3 ticks), holds readable, then cracks (NameCrackTicks) and crumbles:
     // the letters drop one after another over NameStaggerSeconds, each
     // falling past the ship and off the bottom within NameFallSeconds. The
     // fall runs on into the first moments of the fight (purely visual).
-    public static float NameBreakAt = 1.6f;
+    public static float NameBreakAt = 3.95f;
     public static int NameCrackTicks = 2;
     public static float NameStaggerSeconds = 0.2f;
     public static float NameFallSeconds = 0.7f;

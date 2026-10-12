@@ -310,8 +310,9 @@ public static class ScoringTest
         Check("score.cs ticks the score on the world's scaled clock, only on running frames",
               Regex.Matches(src, @"RunScore\.Tick\(Time\.deltaTime, moveBackGround\.speed\)").Count == 1 &&   // StepRunning: both running branches
               !src.Contains("RunScore.Tick(Time.unscaledDeltaTime"));
-        Check("the boss intro freezes the world (timeScale 0), so it earns nothing",
-              System.IO.File.ReadAllText("Assets/Scripts/Gameplay/moveBackGround.cs").Contains("BossEncounter.ScriptedFreeze"));
+        Check("the boss entrance is scripted (moveBackGround owns its clock) and earns nothing (score.cs)",
+              System.IO.File.ReadAllText("Assets/Scripts/Gameplay/moveBackGround.cs").Contains("BossEncounter.ScriptedEntrance") &&
+              src.Contains("if (BossEncounter.ScriptedEntrance) return;"));
     }
 
     // ---- 4. carried across a world and a boss ---------------------------------------

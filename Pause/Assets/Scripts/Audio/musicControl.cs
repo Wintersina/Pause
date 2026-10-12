@@ -25,7 +25,9 @@ public class musicControl : MonoBehaviour {
     }
 
     void UpdateMix() {
-        if (TouchInput.IsPressed || score.pauseCounter <= 0)
+        // A boss's entrance is scripted, not a pause: its song plays at full
+        // level from the first frame even with the finger up (BossEncounter).
+        if (TouchInput.IsPressed || BossEncounter.ScriptedEntrance || score.pauseCounter <= 0)
         {
             level = Mathf.Clamp01(level + .25f);
         }

@@ -220,43 +220,116 @@ public class BossActor : MonoBehaviour
     }
 
     // ---- arrival (intro, real time) ------------------------------------
+    //
+    // The entrance (BossEntrance): the boss rises out of the backdrop at
+    // `origin` (BossEmergence: a set piece's landing site, or a far point in
+    // the sky) -- that small, hazed like the far scenery and drawn behind the
+    // nearer backdrop layers (clouds, mist, dust pass over it) -- and grows
+    // into the play field on a perspective curve (slow, then rushing in),
+    // arcing up to its resting place. Its draw order steps from the site's
+    // up through the backdrop to the play layer; at the end it lands
+    // (BossConfig.LandAt: the shockwave), squashes, and idles until the
+    // fight. Nothing of it can be hit until then (the hitbox is built in
+    // BeginFight).
 
-    // Where the warp-in starts: fully above the visible top (7.6 on the
-    // authored view; higher on a tall screen, whose view reaches further up).
+    // The legacy warp-in's start, fully above the visible top (7.6 on the
+    // authored view; higher on a tall screen). Kept as the reference for
+    // "off screen above" (ScreenFit / TallScreen tests).
     public static float ArrivalY
     {
         get { return Mathf.Max(7.6f, CameraFit.ViewTop + BossConfig.BossWorldSize * .5f + .3f); }
     }
 
-    float arrivalY = 7.6f;
+    public const int PlayOrder = -3;          // the body's order in the fight (overlays -2 / -1)
+    public const int ApproachOrder = -10;     // above every backdrop layer, under the play layer
+    public const float BackdropShare = .5f;   // of the flight drawn at the site's own order
+    public const float PlayShare = .85f;      // from here on it is in the play layer
+    public const float LandOvershoot = .07f;  // the slam: a touch bigger just before it settles
 
-    public void BeginArrival()
+    BossEmergence.Origin origin;
+    Vector3 fromPos;
+
+    public BossEmergence.Origin ArrivalOrigin => origin;
+    public float ArrivalProgress01 => mode == Mode.Arriving ? Mathf.Clamp01(realClock / Mathf.Max(.05f, BossConfig.BossArriveSeconds)) : mode == Mode.Hidden ? 0f : 1f;
+    public bool ArrivalLanded => mode == Mode.Arriving && realClock >= Mathf.Max(.05f, BossConfig.BossArriveSeconds);
+    public int BodySortingOrder => body != null ? body.sortingOrder : PlayOrder;
+    public Color BodyColor => body != null ? body.color : Color.white;
+    public float ArrivalScale => transform.localScale.x;
+
+    // ShipReach: how far above its resting ceiling the ship's ceiling is
+    // while the boss flies in. Wide open while it is still in the backdrop,
+    // closing as it comes into the play layer, so a ship parked high is eased
+    // down by the arriving boss, not snapped.
+    public float ArrivalCeilingLift
     {
-        arrivalY = ArrivalY;
+        get
+        {
+            float k = ArrivalProgress01;
+            float open = 1f - BossEntrance.Smooth((k - BackdropShare) / (1f - BackdropShare));
+            return open * 30f + Mathf.Max(0f, transform.position.y - basePos.y);
+        }
+    }
+
+    public void BeginArrival() { BeginArrival(BossEmergence.Pick()); }
+
+    public void BeginArrival(BossEmergence.Origin from)
+    {
+        origin = from;
+        fromPos = from.position;
         mode = Mode.Arriving;
         realClock = 0f;
         body.enabled = true;
+        HideDamage();
+        transform.position = new Vector3(fromPos.x, fromPos.y, 0f);
+        PlaceArrival(0f);
+        SetFrame(BossArt.Idle0);
+        if (Application.isPlaying)
+        {
+            float size = from.scale * BossConfig.BossWorldSize;
+            if (from.emerge) EliteSystem.Fx.DockFlare(fromPos, boss.flash, from.order, size);
+            else EliteSystem.Fx.LiftOffDust(fromPos, from.order, size);
+        }
     }
 
     public void StepArrival(float realDt)
     {
         if (mode != Mode.Arriving) return;
         realClock += realDt;
+        // the site rides the backdrop's scroll: it rises from where the piece is now
+        if (origin.hasSite && origin.site.Valid && ArrivalProgress01 < BackdropShare) fromPos = origin.site.Position;
         float dur = Mathf.Max(.05f, BossConfig.BossArriveSeconds);
-        float t = Mathf.Clamp01(realClock / dur);
-        // ease-out-back: overshoots past its mark, then settles -- the warp
-        // lands hard rather than gliding in.
-        const float s = 1.6f;
-        float u = t - 1f;
-        float e = 1f + (s + 1f) * u * u * u + s * u * u;
-        transform.position = Vector3.LerpUnclamped(new Vector3(0f, arrivalY, 0f), basePos, e);
+        PlaceArrival(Mathf.Clamp01(realClock / dur));
 
-        if (t < .55f)
-            SetFrame(BossArt.Retreat0 + BossArt.FrameAt(BossArt.RetreatTicks, realClock, true)); // warp smear
-        else if (realClock - dur * .55f < BossArt.TellInTicks * BossArt.Tick * 2f)
+        if (realClock < dur)
+            SetFrame(BossArt.Idle0 + BossArt.FrameAt(BossArt.IdleTicks, realClock, true));
+        else if (realClock - dur < BossArt.TellInTicks * BossArt.Tick * 2f)
             SetFrame(BossArt.Tell(0, 0)); // landing squash
         else
             SetFrame(BossArt.Idle0 + BossArt.FrameAt(BossArt.IdleTicks, realClock, true));
+    }
+
+    // Where and how it is drawn `k` (0..1) of the way through the flight.
+    void PlaceArrival(float k)
+    {
+        float s0 = Mathf.Clamp(origin.scale > 0f ? origin.scale : BossEmergence.FallbackScale, .01f, 1f);
+        // perspective: the scale's log runs on k^1.8 -- it hangs far off, then rushes in
+        float grow = Mathf.Pow(k, 1.8f);
+        float scale = Mathf.Exp(Mathf.Lerp(Mathf.Log(s0), 0f, grow));
+        if (k > PlayShare) scale *= 1f + LandOvershoot * Mathf.Sin(Mathf.PI * (k - PlayShare) / (1f - PlayShare));
+        transform.localScale = Vector3.one * scale;
+
+        // up off its pad, then an arc out to its resting place
+        float u = BossEntrance.Smooth(k);
+        Vector3 c = new Vector3(fromPos.x * .4f + basePos.x * .6f, Mathf.Max(fromPos.y, basePos.y) + .6f, 0f);
+        Vector3 p = (1f - u) * (1f - u) * fromPos + 2f * u * (1f - u) * c + u * u * basePos;
+        transform.position = new Vector3(p.x, p.y, 0f);
+
+        // hazed like the scenery it comes out of, clearing as it comes close;
+        // out of a hangar / a surface it fades in, in hard steps
+        Color col = Color.Lerp(EliteShip.Haze, Color.white, BossEntrance.Smooth((k - .1f) / .75f));
+        if (origin.emerge && k < .15f) col.a = k < .05f ? .34f : k < .1f ? .67f : 1f;
+        body.color = col;
+        body.sortingOrder = k < BackdropShare ? origin.order : k < PlayShare ? ApproachOrder : PlayOrder;
     }
 
     // ---- fight (world time) --------------------------------------------
@@ -265,6 +338,9 @@ public class BossActor : MonoBehaviour
     {
         mode = Mode.Fighting;
         transform.position = basePos;
+        // whatever the entrance left: play size, play layer, full colour
+        transform.localScale = Vector3.one;
+        if (body != null) { body.sortingOrder = PlayOrder; body.color = Color.white; body.enabled = true; }
         moveClock = 0f;
         phase = AttackPhase.Cooldown;
         phaseTimer = BossConfig.FirstAttackDelay;

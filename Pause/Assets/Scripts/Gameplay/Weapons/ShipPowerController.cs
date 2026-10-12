@@ -191,7 +191,8 @@ public class ShipPowerController : MonoBehaviour
 
         bool running = !buttonClicks.playerDied &&
                        (TouchInput.IsPressed || score.pauseCounter <= 0);
-        bool transit = TransitionFrozen;
+        // (a boss's entrance holds the charge too: nothing fires into its slow motion)
+        bool transit = TransitionFrozen || BossEncounter.ScriptedEntrance;
 
         if (running && timer > 0f && chargeMode == ChargeMode.Timed && !transit) timer -= dt;
 

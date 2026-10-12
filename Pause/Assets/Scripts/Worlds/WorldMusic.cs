@@ -275,6 +275,14 @@ public class WorldMusic : MonoBehaviour
         return bossTrack != null ? bossTrack : worldTrack;
     }
 
+    // The BOSS INCOMING warning (BossWarningHud, ~30 s ahead): load the boss
+    // song's audio now, so BeginBoss -- the entrance's first frame -- starts
+    // it on that frame rather than decoding it there.
+    public static void PrewarmBoss(WorldTheme theme)
+    {
+        Prewarm(BossClip(theme));
+    }
+
     public static bool BossTrackPlaying => bossTrackPlaying;
     public static bool BossFallbackActive => bossPitched;
 
