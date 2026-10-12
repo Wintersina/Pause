@@ -69,6 +69,8 @@ public static class ShipWeaponUpgrades
         /* 13 UFO          */ new[] { Up("LONGER BEAM", duration: .6f), Cd(.15f), Up("WIDER BEAM", width: .14f), Cd(.20f) },
         /* 14 Dove         */ new[] { Up("+2 DARTS", shots: 2, width: 8f), Cd(.15f), Up("+2 DARTS", shots: 2, width: 8f), Cd(.20f) },
         /* 15 Turtle       */ new[] { Up("LONGER ORBIT", duration: 1.5f), Cd(.15f), Up("BIGGER DISC", range: .14f, speed: 60f), Cd(.20f) },
+        // 16 Paragon: four skins like every ship. Its tiers' missiles, shield, hearts and speed are PremiumShips.
+        /* 16 Paragon      */ new[] { Up("+2 LANCES", shots: 2), Cd(.15f), Up("+2 LANCES", shots: 2), Cd(.20f) },
     };
 
     public static bool Has(int shipId) { return shipId > 0 && shipId < tracks.Length && tracks[shipId] != null; }

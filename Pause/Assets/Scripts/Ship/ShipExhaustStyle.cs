@@ -31,6 +31,7 @@ public enum ExhaustKind
     GatlingSmoke,     // Saboteur: stuttering muzzle flash and smoke cels
     FeatherStreaks,   // Dove: feathery vanes around a slim streak
     HexJet,           // Turtle: a jet shedding angular hex shell cells
+    NeonJet,          // Paragon: a long neon-blue jet with white-hot core and wavering tail
     SpinBlades,       // Ninja (spin drift): blade-arc afterimages, curling cuts
     SpinVortex,       // UFO (spin drift): orbiting light ring, tractor shimmer, vortex
 }
@@ -264,6 +265,8 @@ public static class ShipExhaustStyle
         /* 13 UFO          */ Row(13, "UFO", ExhaustKind.SpinVortex, "#7A52DC", "#BBA4FF", "#F4EAD4", "#3A2478", "#6EF2EE", new[] { 2, 2, 1, 2, 2, 2, 2, 2 }),
         /* 14 Dove         */ Row(14, "Dove", ExhaustKind.FeatherStreaks, "#36C2C2", "#A6F2EE", "#F4EAD4", "#146A70", "#FFB43C", new[] { 3, 2, 1, 2, 2, 2, 2 }),
         /* 15 Turtle       */ Row(15, "Turtle", ExhaustKind.HexJet, "#1FB5B9", "#6EF2EE", "#F4EAD4", "#5A3A18", "#E2BE84", new[] { 2, 2, 1, 2, 2, 2, 2 }),
+        // 16 Paragon (premium): a long neon-blue jet; frames cut from the source art by src~/paragon/build_paragon.py
+        /* 16 Paragon      */ Row(16, "Paragon", ExhaustKind.NeonJet, "#2E9BE6", "#6EF2EE", "#F4EAD4", "#174C8C", "#9AB0FF", new[] { 2, 2, 1, 2, 2, 2, 2 }),
     };
 
     // Atlas strips: ship, layer, x, y (bottom-up), frame w, h, frames, stride (px).
@@ -304,10 +307,13 @@ public static class ShipExhaustStyle
         new Strip(15, ExhaustLayer.Plume, 350, 504, 48, 192, 7, 50),
         new Strip(15, ExhaustLayer.PlumeBoost, 700, 504, 48, 192, 7, 50),
         // END GENERATED EXHAUST
+        // Paragon strips (atlas band x 1050..1750, y 504; build_paragon.py)
+        new Strip(16, ExhaustLayer.Plume, 1050, 504, 48, 192, 7, 50),
+        new Strip(16, ExhaustLayer.PlumeBoost, 1400, 504, 48, 192, 7, 50),
     };
 
     static Texture2D atlas;
-    static readonly Sprite[][] sprites = new Sprite[16 * LayerCount][];
+    static readonly Sprite[][] sprites = new Sprite[32 * LayerCount][];
 
     public static int Count { get { return table.Length; } }
 

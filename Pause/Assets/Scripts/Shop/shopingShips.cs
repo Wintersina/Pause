@@ -17,7 +17,7 @@ public class shopingShips : MonoBehaviour {
     public const int StarterShip = 1;
 
     // Retro hulls retain their saved indices; original ships follow them.
-    public static int shipTotal = 16;
+    public static int shipTotal = 17;
     public static GameObject[] ships = new GameObject[shipTotal];
 
     public static int shipNumber;
@@ -84,6 +84,9 @@ public class shopingShips : MonoBehaviour {
     // to save, so killing the app from the shop could undo it.
     public static bool TryPurchase(int index, float cost)
     {
+        // TODO(IAP): premium ships (Paragon) are sold for real money, never
+        // star dust -- see PremiumShips. This is the dust-purchase gate.
+        if (PremiumShips.IsPremium(index)) return false;
         float dust = PlayerPrefs.GetFloat(StarDustLedger.CurrencyKey);
         if (dust < cost) return false;
         PlayerPrefs.SetFloat(StarDustLedger.CurrencyKey, dust - cost);
@@ -103,7 +106,7 @@ public class shopingShips : MonoBehaviour {
         "non", "Neon Comet", "Volt Viper", "Solar Fang", "Crimson Halo",
         "Ion Lancer", "Jade Phantom", "Gold Warden",
         "Lightning", "Ligher", "Paranoid", "Ninja", "Saboteur", "UFO",
-        "Dove", "Turtle",
+        "Dove", "Turtle", "Paragon",
     };
 
     // Prices, exposed so the shop buttons can show them before you tap in.
@@ -111,11 +114,16 @@ public class shopingShips : MonoBehaviour {
     {
         0f, 0f, 600f, 1400f, 2200f, 3200f, 4400f, 5800f,
         800f, 1000f, 1200f, 1600f, 1800f, 2000f, 2400f, 3000f,
+        // 16 Paragon: no dust price (a real-money IAP ship, PremiumShips);
+        // 0 here is never shown or charged: TryPurchase refuses it.
+        0f,
     };
 
     public static float CostFor(int index)
     {
         if (index < 0 || index >= Prices.Length) return 0f;
+        // a premium ship has no dust price: sort it after every dust ship
+        if (PremiumShips.IsPremium(index)) return float.MaxValue;
         return Prices[index];
     }
 

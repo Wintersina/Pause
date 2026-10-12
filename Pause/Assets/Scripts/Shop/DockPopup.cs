@@ -61,7 +61,7 @@ public class DockPopup : MonoBehaviour
     public const float PlumeClearance = .34f;
     const float AppearTime = .2f;
 
-    public enum Mode { Launch, Buy, BuySkin }
+    public enum Mode { Launch, Buy, BuySkin, Locked }
 
     public int ShipIndex { get; private set; }
     public Mode CurrentMode { get; private set; }
@@ -546,7 +546,7 @@ public class DockPopup : MonoBehaviour
 
     void SwatchClicked(int skin)
     {
-        if (!Visible || !SkinRowVisible || CurrentMode == Mode.Buy) return;
+        if (!Visible || !SkinRowVisible || CurrentMode == Mode.Buy || CurrentMode == Mode.Locked) return;
         if (onSkin != null) onSkin(ShipIndex, skin);
     }
 
@@ -557,7 +557,7 @@ public class DockPopup : MonoBehaviour
     // hull. A shown skin that isn't owned turns the action into BUY.
     public void ShowSkins(int index, int shown, float balance)
     {
-        if (index != ShipIndex || CurrentMode == Mode.Buy) return;
+        if (index != ShipIndex || CurrentMode == Mode.Buy || CurrentMode == Mode.Locked) return;
         SkinRowVisible = true;
         SkinShown = shown;
         skinRow.gameObject.SetActive(true);
@@ -730,7 +730,7 @@ public class DockPopup : MonoBehaviour
     // price), the hearts, then whatever is left for the colour's name.
     void FitHeader()
     {
-        bool price = CurrentMode != Mode.Launch;
+        bool price = CurrentMode == Mode.Buy || CurrentMode == Mode.BuySkin;
         float statusWidth = status.text.Length > 0 ? status.preferredWidth : 0f;
         float x = Pad + statusWidth + (statusWidth > 0f ? 6f : 0f);
         if (price)
@@ -777,6 +777,16 @@ public class DockPopup : MonoBehaviour
             buttonLabel.text = "LAUNCH";
             buttonImage.color = DockArt.Cyan;
         }
+        else if (PremiumShips.IsPremium(index))
+        {
+            // TODO(IAP): a real-money ship; until the store purchase exists it
+            // can't be bought with dust (PremiumShips). The popup says so.
+            CurrentMode = Mode.Locked;
+            ShowStatus(PremiumShips.ComingSoonLabel);
+            dustIcon.gameObject.SetActive(false);
+            buttonLabel.text = "SOON";
+            buttonImage.color = AkiraPalette.GunHi;
+        }
         else
         {
             CurrentMode = Mode.Buy;
@@ -821,6 +831,7 @@ public class DockPopup : MonoBehaviour
     void Clicked()
     {
         if (!Visible) return;
+        if (CurrentMode == Mode.Locked) return;   // coming soon (real-money IAP)
         if (CurrentMode == Mode.Launch) { if (onLaunch != null) onLaunch(ShipIndex); }
         else if (CurrentMode == Mode.BuySkin) { if (onBuySkin != null) onBuySkin(ShipIndex, SkinShown); }
         else if (onBuy != null) onBuy(ShipIndex);
@@ -838,7 +849,7 @@ public class DockPopup : MonoBehaviour
         skinName.enabled = row;
         status.enabled = row;
         livesBadge.gameObject.SetActive(row);
-        dustIcon.gameObject.SetActive(row && CurrentMode != Mode.Launch);
+        dustIcon.gameObject.SetActive(row && (CurrentMode == Mode.Buy || CurrentMode == Mode.BuySkin));
         message.enabled = !row;
     }
 

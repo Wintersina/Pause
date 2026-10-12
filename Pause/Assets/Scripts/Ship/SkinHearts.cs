@@ -54,7 +54,14 @@ public static class SkinHearts
     // The ship's colour tier (the weapon level: non-stock colours owned).
     public static int ColoursOwned(int id) { return ShipWeaponUpgrades.Level(id); }
 
-    public static int FromColours(int id) { return ShipId.IsValid(id) ? ForColours(ColoursOwned(id)) : 0; }
+    // A premium hull's tiers (PremiumShips) set its hearts: its colours add
+    // the difference to its tier 0.
+    public static int FromColours(int id)
+    {
+        if (!ShipId.IsValid(id)) return 0;
+        if (PremiumShips.IsPremium(id)) return PremiumShips.Current(id).hearts - PremiumShips.Tier(id, 0).hearts;
+        return ForColours(ColoursOwned(id));
+    }
 
     // Every non-stock colour of every ship is owned (developer mode: yes).
     // Stops at the first one missing, so it is a handful of pref reads for
@@ -64,8 +71,11 @@ public static class SkinHearts
         get
         {
             foreach (int id in ShipId.All)
+            {
+                if (PremiumShips.IsPremium(id)) continue;   // the set is the dust economy's
                 for (int skin = 1; skin < ShipSkins.CountFor(id); skin++)
                     if (!ShipSkins.IsOwned(id, skin)) return false;
+            }
             return true;
         }
     }
@@ -77,8 +87,11 @@ public static class SkinHearts
         {
             int n = 0;
             foreach (int id in ShipId.All)
+            {
+                if (PremiumShips.IsPremium(id)) continue;
                 for (int skin = 1; skin < ShipSkins.CountFor(id); skin++)
                     if (!ShipSkins.IsOwned(id, skin)) n++;
+            }
             return n;
         }
     }
@@ -86,7 +99,7 @@ public static class SkinHearts
     public static int SetBonus { get { return AllSkinsOwned ? AllSkinsBonus : 0; } }
 
     // Everything the skins add to ship `id` right now.
-    public static int Bonus(int id) { return FromColours(id) + SetBonus; }
+    public static int Bonus(int id) { return FromColours(id) + (PremiumShips.IsPremium(id) ? 0 : SetBonus); }
 
     // What buying skin `skin` of ship `id` would add to that ship's hearts:
     // its colour step, plus the set bonus if it is the last skin missing.
@@ -95,6 +108,11 @@ public static class SkinHearts
         completesSet = false;
         if (!ShipSkins.Has(id, skin) || skin == ShipSkins.Stock || ShipSkins.IsOwned(id, skin)) return 0;
         int n = ColoursOwned(id);
+        if (PremiumShips.IsPremium(id))
+        {
+            completesSet = false;
+            return PremiumShips.Tier(id, n + 1).hearts - PremiumShips.Tier(id, n).hearts;
+        }
         int gain = ForColours(n + 1) - ForColours(n);
         completesSet = SkinsMissing == 1;
         if (completesSet) gain += AllSkinsBonus;
@@ -126,7 +144,7 @@ public static class SkinHearts
     // "HEARTS 9: 5 +2 COLOURS +2 SET".
     public static string HeartsLine(int id)
     {
-        int b = ShipLives.Base(id), c = FromColours(id), s = SetBonus;
+        int b = ShipLives.Base(id), c = FromColours(id), s = PremiumShips.IsPremium(id) ? 0 : SetBonus;
         string line = "HEARTS " + ShipLives.Max(id);
         if (c == 0 && s == 0) return line;
         line += ": " + b;

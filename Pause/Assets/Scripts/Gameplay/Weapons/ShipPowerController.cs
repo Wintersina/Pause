@@ -160,6 +160,8 @@ public class ShipPowerController : MonoBehaviour
         indicator = ChargeIndicator.Attach(this);
         runner = ShipAttackRunner.Attach(gameObject, shipIndex);
         secret = SecretPowerController.Attach(gameObject, shipIndex);
+        // a premium hull's timed homing missiles (PremiumShips tiers)
+        if (PremiumShips.IsPremium(shipIndex)) ParagonMissiles.Attach(gameObject, shipIndex);
     }
 
     // ---- world transitions ---------------------------------------------

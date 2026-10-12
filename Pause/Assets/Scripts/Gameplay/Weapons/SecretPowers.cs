@@ -104,6 +104,7 @@ public class SecretPowerController : MonoBehaviour
     // Counters (tests, previews).
     public int ClapKills { get; private set; }
     public int Mends { get; private set; }
+    public int AegisShields { get; private set; }
     public int ShellBreaks { get; private set; }
     public int TractorKills { get; private set; }
     public int TractorStars { get; private set; }
@@ -166,6 +167,8 @@ public class SecretPowerController : MonoBehaviour
     public void Add(float amount)
     {
         if (amount <= 0f) return;
+        // a timed meter (Aegis Shield) fills with time only
+        if (loadout.power == SecretPower.AegisShield) return;
         meter = Mathf.Min(Full, meter + amount);
     }
 
@@ -195,6 +198,8 @@ public class SecretPowerController : MonoBehaviour
     {
         if (dt <= 0f || buttonClicks.playerDied) return;
         TickEffects(dt);
+        if (loadout.power == SecretPower.AegisShield && !Ready && !ShipPowerController.TransitionFrozen)
+            meter = Mathf.Min(Full, meter + Full * dt / Mathf.Max(.5f, PremiumShips.Current(ship).shieldEvery));
         if (Ready && ShouldTrigger()) Fire();
     }
 
@@ -227,6 +232,8 @@ public class SecretPowerController : MonoBehaviour
                 return collisionDetection.lifeCounter > 0;
             case PowerTrigger.HazardInLane:
                 return HazardInLane(at, loadout.triggerRadius);
+            case PowerTrigger.Always:
+                return true;
         }
         return false;
     }
@@ -393,6 +400,16 @@ public class SecretPowerController : MonoBehaviour
                 Burst(at + Vector3.up * .7f, 1.5f, null);
                 var hud = ScoreHud.Current;
                 if (hud != null) hud.ShowWord(collisionDetection.HealWord, at + Vector3.up * collisionDetection.PickupWordLift, PickupGlow.HealGreen, 28);
+                break;
+
+            case SecretPower.AegisShield:
+                {
+                    // the blue-atom shield (same art, same absorb rule), on a timer
+                    var hit = GetComponent<collisionDetection>();
+                    if (hit != null) hit.RaiseShield(PremiumShips.Current(ship).shieldSeconds);
+                    Burst(at, 2.4f, transform);
+                    AegisShields++;
+                }
                 break;
 
             case SecretPower.HardShell:

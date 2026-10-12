@@ -5,7 +5,7 @@ using UnityEngine;
 // meter functions, colours from the same PALETTES row as each ship's
 // weapon):
 //
-//   Resources/Weapons/AttackFx.png   128px cells, 16 x 15 (row = ship id - 1)
+//   Resources/Weapons/AttackFx.png   128px cells, 16 x 15 (row = ship id - 1; 16 ships)
 //     cols 0-3   attack loop   (beam, flame cone, chain arc, javelin strike,
 //                               rail flash, orbit ring, ...)
 //     cols 4-7   attack burst  (fireball blast, impact sparks, ...)
@@ -21,7 +21,7 @@ using UnityEngine;
 // Every sprite is one world unit across at scale 1, like WeaponArt.
 public static class ShipFxArt
 {
-    public const int Columns = 16, Rows = 15;
+    public const int Columns = 16, Rows = 16;
     public const int LoopFrames = 8, BurstFrames = 8;
     public const int StripCell = 256, StripCells = 16;   // powers-v2 strips: 4096 x 256
     public const int MeterFillFrames = 10, MeterReadyFrames = 4;

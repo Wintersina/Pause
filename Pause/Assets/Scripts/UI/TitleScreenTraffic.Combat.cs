@@ -419,6 +419,7 @@ public partial class TitleScreenTraffic
                 Done(u);
                 break;
             case ShipAttack.SeekerEyes:
+            case ShipAttack.ParagonBarrage:
                 {
                     int n = Pick(f, nose, 6f * s + 2f, l.shots);
                     for (int i = 0; i < l.shots; i++)

@@ -91,6 +91,10 @@ public static class ShipHullArt
         /* 14 Dove         */ new HullRect(27, 7, 202, 242, 1010.0000f, "#36C2C2", "#146A70", "#A6F2EE"),
         /* 15 Turtle       */ new HullRect(36, 7, 184, 242, 836.3636f, "#A87A3E", "#5A3A18", "#E2BE84"),
         // END GENERATED RECTS
+        // Paragon (premium, PNG-built by src~/paragon/build_paragon.py; kept out of the generated block)
+        // BEGIN PARAGON RECT
+        /* 16 Paragon      */ new HullRect(5, 24, 245, 207, 720.5882f, "#2E9BE6", "#174C8C", "#8FD3FF"),
+        // END PARAGON RECT
     };
 
     public static bool Has(int id) { return id > 0 && id < rects.Length && ShipId.KeyOf(id) != null; }

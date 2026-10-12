@@ -241,7 +241,8 @@ public class DockBay : MonoBehaviour
         chip.gameObject.SetActive(locked);
         if (locked)
         {
-            string label = Mathf.RoundToInt(price).ToString("N0");
+            // a premium ship has no dust price: the tag says SOON (PremiumShips)
+            string label = PremiumShips.IsPremium(index) ? "SOON" : Mathf.RoundToInt(price).ToString("N0");
             chipText.text = label;
             float width = .25f + label.Length * .058f;
             chip.size = new Vector2(width, .15f);

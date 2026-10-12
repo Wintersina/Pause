@@ -60,7 +60,10 @@ public static class ShipSkins
 
     public static float PriceOf(int id, int skin)
     {
-        return Has(id, skin) ? PriceOf(Get(id, skin).kind) : 0f;
+        if (!Has(id, skin) || skin == Stock) return 0f;
+        // a premium ship's skins are all one (high) price
+        if (PremiumShips.IsPremium(id)) return PremiumShips.SkinPrice;
+        return PriceOf(Get(id, skin).kind);
     }
 
     // Raised with the ship id when its equipped or previewed skin changes.
@@ -175,6 +178,14 @@ public static class ShipSkins
             S("Bone", ShipSkinKind.Palette, "#F4EAD4", "#B9AE98", "#F4EAD4"),
             S("Shellback", ShipSkinKind.Special, "#A87A3E", "#5A3A18", "#E2BE84", "chevrons", "#2C2D40", "#1A1A28", "#5A5C78") },
         // END GENERATED SKINS
+        // BEGIN PARAGON SKINS
+        /* 16 Paragon      */ new[] {
+            S("Stock", ShipSkinKind.Stock, "#2E9BE6", "#174C8C", "#8FD3FF"),
+            S("Aurum", ShipSkinKind.Palette, "#FFA800", "#AE7404", "#FFC30E"),
+            S("Umbra", ShipSkinKind.Palette, "#911AFF", "#5E13A3", "#9738E8"),
+            S("Spectre", ShipSkinKind.Palette, "#E1F6FF", "#C7D9E1", "#E4F7FF"),
+            S("Viridian", ShipSkinKind.Palette, "#0DFF1E", "#0FAC0B", "#1BFF3B") },
+        // END PARAGON SKINS
     };
 
     public static bool Has(int id, int skin)

@@ -19,6 +19,7 @@ public enum ChargeStyle
     DroneFormation,  // drones swoop in and lock into formation
     FeatherFan,      // wing feathers fan out around a halo
     ShellPlates,     // hex shell plates lock in around a core
+    MissilePods,     // six missile pods round a core light up one by one
 }
 
 // The homing shot each ship's ultimate releases.
@@ -26,7 +27,7 @@ public enum ShotStyle
 {
     CometStreak, ViperBolt, SolarFireball, RailSlug, IonLance, PlasmaWisp,
     GoldMissile, LightningJavelin, Fireball, SeekerEye, Shuriken, HeavyShell,
-    SaucerDrone, FeatherDart, ShellDisc,
+    SaucerDrone, FeatherDart, ShellDisc, ParagonLance,
 }
 
 public struct WeaponStyle
@@ -87,6 +88,7 @@ public static class WeaponStyleTable
     const string Amber = "#FFB43C", AmberShade = "#A9481A";
     const string Cyan = "#6EF2EE", Teal = "#1FB5B9";
     const string Bone = "#F4EAD4", GunHi = "#5A5C78";
+    const string Blue = "#2E9BE6", BlueShade = "#174C8C";
 
     // Indexed by ship id. Index 0 ("non") is not a flyable hull; it borrows
     // the starter's weapon so a stray index never renders nothing.
@@ -108,6 +110,7 @@ public static class WeaponStyleTable
         Make(13, "UFO",         ChargeStyle.DroneFormation, ShotStyle.SaucerDrone,      Sodium, SodiumShade, Cyan,    0f, 0f,   .26f, 7f,  5.2f, 1.18f),
         Make(14, "Dove",        ChargeStyle.FeatherFan,     ShotStyle.FeatherDart,      Bone, Amber, Sodium, 0f, 0f,   .20f, 8f,  6.0f, 1.10f),
         Make(15, "Turtle",      ChargeStyle.ShellPlates,    ShotStyle.ShellDisc,        Amber,  AmberShade,  Teal,    0f, 420f,  0f,   0f,  5.4f, 0.88f),
+        Make(16, "Paragon",     ChargeStyle.MissilePods,    ShotStyle.ParagonLance,     Blue,   BlueShade,   Cyan,    0f, 0f,   .10f,  9f,  7.0f, 1.15f),
     };
 
     public static int Count => table.Length;

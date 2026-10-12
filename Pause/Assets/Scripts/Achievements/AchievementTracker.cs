@@ -281,7 +281,7 @@ public static class AchievementTracker
     {
         int n = 0;
         for (int i = ShipId.First; i <= ShipId.Last; i++)
-            if (PlayerPrefs.GetString(ShipId.OwnedKey(i), "") == "True") n++;
+            if (!PremiumShips.IsPremium(i) && PlayerPrefs.GetString(ShipId.OwnedKey(i), "") == "True") n++;
         return n;
     }
 

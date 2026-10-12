@@ -491,10 +491,10 @@ public class UltimateGun : MonoBehaviour
     static readonly Sprite[] gunSprites = new Sprite[16];
     static Sprite GunSpriteFor(int shipIndex)
     {
-        // Roster ships are numbered 1-15 while the generated sheet is
+        // Roster ships are numbered 1-16 while the generated sheet is
         // zero-based, so subtract one to give every purchasable hull its own
         // tile. Ship 0 uses the first tile as the safe fallback.
-        int slot = Mathf.Clamp(shipIndex <= 0 ? 0 : shipIndex - 1, 0, 14);
+        int slot = Mathf.Clamp(shipIndex <= 0 ? 0 : shipIndex - 1, 0, 15);
         if (gunSprites[slot] != null) return gunSprites[slot];
         var tex = Resources.Load<Texture2D>("ShipArt/Guns/ship_gun_roster");
         if (tex == null) return SolidSprite();

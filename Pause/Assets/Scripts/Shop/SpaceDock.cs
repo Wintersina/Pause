@@ -534,6 +534,8 @@ public class SpaceDock : MonoBehaviour
     {
         if (Launching || index < 1 || index >= bays.Length) return;
         if (IsOwned(index)) { ShowPopup(index); return; }
+        // TODO(IAP): premium ships are real-money only (PremiumShips); the dock never sells one for dust.
+        if (PremiumShips.IsPremium(index)) { popup.ShowMessage(PremiumShips.ComingSoonLabel, DockArt.Cyan, 1.2f); return; }
         float price = shopingShips.CostFor(index);
         if (shopingShips.TryPurchase(index, price))
         {

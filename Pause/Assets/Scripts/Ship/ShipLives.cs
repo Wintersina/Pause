@@ -25,10 +25,14 @@ public static class ShipLives
     // the complete set (the heart orbit is built for this many).
     public static int Most { get { return MostBase + SkinHearts.MostFromColours + SkinHearts.AllSkinsBonus; } }
 
+    // The most hearts the heart orbit must have room for: the standard
+    // ships' Most, or a premium hull's top tier when that is more.
+    public static int MostHearts { get { return Mathf.Max(Most, PremiumShips.MostHearts); } }
+
     // Rows in the dock grid (the roster over the dock's column count).
     public static int Rows
     {
-        get { return Mathf.CeilToInt(ShipId.Count / (float)DockLayout.MaxColumns); }
+        get { return Mathf.CeilToInt(PremiumShips.StandardCount / (float)DockLayout.MaxColumns); }
     }
 
     // The ship's row in the dock grid, 1 = top. 0 for an unknown ship.
@@ -41,6 +45,8 @@ public static class ShipLives
     // The hull's own lives by ship id, before any colour (SkinHearts): its row.
     public static int Base(int id)
     {
+        // a premium hull has its own lives (PremiumShips), not its dock row's
+        if (PremiumShips.IsPremium(id)) return PremiumShips.Tier(id, 0).hearts;
         int row = Row(id);
         return row > 0 ? row : Fewest;
     }
@@ -49,7 +55,7 @@ public static class ShipLives
     // owned add (SkinHearts). Which skin is equipped doesn't matter.
     public static int Max(int id)
     {
-        return Mathf.Clamp(Base(id) + SkinHearts.Bonus(id), 1, Most);
+        return Mathf.Clamp(Base(id) + SkinHearts.Bonus(id), 1, MostHearts);
     }
 
     // The tutorial teaches on the bare hull (no colour hearts) with two extra

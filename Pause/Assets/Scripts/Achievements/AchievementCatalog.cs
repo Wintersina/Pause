@@ -91,7 +91,7 @@ public static class AchievementCatalog
         D("codex_complete", "Completionist", "Discover every Codex entry.", 35, P, Cdx, "Codex.Discovered", CCodex, 0, () => Codex.ReachableCount),
         D("ship_first", "Hangar Debut", "Buy your first ship.", 5, B, Coll, "shopingShips.TryPurchase"),
         D("ship_half", "Squadron", "Own half the hangar.", 15, S, Coll, "shopingShips.TryPurchase", CShips, 8, steps: 8),
-        D("ship_all", "Fleet Admiral", "Own every ship.", 40, P, Coll, "shopingShips.TryPurchase", CShips, 0, () => ShipId.Count),
+        D("ship_all", "Fleet Admiral", "Own every ship.", 40, P, Coll, "shopingShips.TryPurchase", CShips, 0, () => PremiumShips.StandardCount),
         D("skin_first", "Fresh Paint", "Buy your first ship skin.", 5, B, Coll, "ShipSkins.TryPurchase"),
         D("skin_special", "Special Edition", "Buy a Special skin.", 10, S, Coll, "ShipSkins.TryPurchase"),
         D("skin_full_set", "Full Wardrobe", "Own all skins for one ship.", 25, G, Coll, "ShipSkins.TryPurchase"),

@@ -31,7 +31,8 @@ public enum ShipAttack
     RailSlug,       // a piercing slug that hits everything in a narrow line
     FeatherFan,     // a fan of darts in a forward spread
     OrbitDisc,      // a disc that orbits the ship and smashes what it touches
-    ScreenClear,    // top tier only: the cinematic homing volley at everything
+    ParagonBarrage, // premium: a fan of cyan homing lances, each claims its own target
+    ScreenClear,    // top tier only: the cinematic homing volley at everything (keep LAST: arrays are sized by it)
 }
 
 // What each shot of the top tier's volley does when it lands (ShipVolley).
@@ -62,6 +63,7 @@ public enum SecretPower
     TractorPull,    // drags nearby enemies and debris in; kills drop star dust
     Mending,        // repairs one point of hull damage
     HardShell,      // a shell that eats the next hit
+    AegisShield,    // premium: a timed shield, raised on its own every few seconds
 }
 
 // When a full secret meter lets go.
@@ -78,6 +80,7 @@ public enum PowerTrigger
     ThreatClose,          // a hit is imminent or a hazard is within `radius`
     HullDamaged,          // the hull has taken a hit
     HazardInLane,         // something is in your lane within `radius` ahead
+    Always,               // as soon as the meter is full (a power whose meter is a timer)
 }
 
 public struct ShipLoadout
@@ -210,6 +213,13 @@ public static class ShipLoadoutTable
             SecretPower.HardShell, "HARD SHELL", "A shell shows on the hull for up to 8 s and shatters on the next hit.",
             PowerTrigger.HazardInLane, 1, 3.4f,
             duration: 5f, width: 1.05f, range: .42f, speed: 320f),
+        // 16 Paragon (premium, real-money IAP: PremiumShips). Its signature extras (a homing-missile
+        // volley and a shield, both on timers) are PremiumShips tiers; this row is its ultimate and
+        // its timed shield power.
+        Row(16, ShipAttack.ParagonBarrage, "AEGIS BARRAGE", "A fan of homing lances; each hunts its own target.",
+            SecretPower.AegisShield, "AEGIS SHIELD", "Raises the shield on its own every 8 s (quicker with every skin).",
+            PowerTrigger.Always, 0, 0f,
+            shots: 8, width: 70f, speed: 9f),
     };
 
     public static int Count => byShip.Length;
@@ -230,12 +240,13 @@ public static class ShipLoadoutTable
     // top TopTierCount. The table above must agree (tests).
     public static bool IsTopTierByPrice(int shipId)
     {
-        if (!ShipId.IsValid(shipId)) return false;
+        // premium ships are outside the dust economy and its price tiers
+        if (!ShipId.IsValid(shipId) || PremiumShips.IsPremium(shipId)) return false;
         float price = shopingShips.CostFor(shipId);
         int above = 0;
         foreach (int other in ShipId.All)
         {
-            if (other == shipId) continue;
+            if (other == shipId || PremiumShips.IsPremium(other)) continue;
             float p = shopingShips.CostFor(other);
             if (p > price || (Mathf.Approximately(p, price) && other > shipId)) above++;
         }
@@ -264,6 +275,7 @@ public static class ShipLoadoutTable
             case PowerTrigger.ThreatClose:          return "a hit or a threat within " + l.triggerRadius.ToString("0.#");
             case PowerTrigger.HullDamaged:          return "a damaged hull";
             case PowerTrigger.HazardInLane:         return "danger in your lane";
+            case PowerTrigger.Always:               return "on its own, on a timer";
             default:                                return "";
         }
     }

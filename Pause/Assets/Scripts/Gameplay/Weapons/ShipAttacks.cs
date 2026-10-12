@@ -194,6 +194,10 @@ public class ShipAttackRunner : MonoBehaviour
             case ShipAttack.SeekerEyes:
                 LaunchSeekers(run, nose);
                 break;
+            case ShipAttack.ParagonBarrage:
+                // the lances leave one by one in Step
+                run.hit.Clear();
+                break;
             case ShipAttack.Ricochet:
                 {
                     var first = ShipTargets.Nearest(nose, 0f, run.hit);
@@ -230,6 +234,49 @@ public class ShipAttackRunner : MonoBehaviour
     }
 
     static readonly int[] ShotLoop = { 2, 2, 2, 2 };
+
+    public const float BarrageGap = .05f;
+
+    // ---------------------------------------------------------- missiles
+    //
+    // A premium hull's timed homing missiles (ParagonMissiles): `count`
+    // homing missiles at the nearest hazards, each claiming a different one,
+    // from the nose at normal speed. Their own run (budget, claims), never
+    // one of the attack slots, so an ultimate in progress is not disturbed.
+    // Returns how many left; 0 (and nothing launched) with nothing to hunt.
+    public const float MissileSpeed = 8.5f;
+    AttackRun missileRun;
+    public int MissileVolleys { get; private set; }
+
+    public int FireMissiles(int count)
+    {
+        if (count <= 0) return 0;
+        if (runs[0] == null) Setup(ship);
+        Vector3 nose = Nose;
+        ShipTargets.Collect(targets);
+        if (targets.Count == 0) return 0;
+        if (missileRun == null) missileRun = new AttackRun();
+        missileRun.Begin(loadout, ship, Time.unscaledTime);
+        missileRun.active = false;
+        int launched = 0;
+        for (int i = 0; i < count; i++)
+        {
+            var t = ShipTargets.Nearest(nose, 0f, missileRun.hit);
+            if (t != null) missileRun.hit.Add(t.gameObject);
+            float a = (i - (count - 1) * .5f) * 16f;
+            Vector3 dir = Quaternion.Euler(0f, 0f, -a) * Vector3.up;
+            var p = Launch(missileRun, AttackProjectile.Kind.Homing, nose, dir, MissileSpeed, .22f, 1.1f,
+                           t != null ? t.transform : null, 1f / count);
+            if (p != null) launched++;
+        }
+        if (launched > 0)
+        {
+            MissileVolleys++;
+            AttackPool.Sprite().Play(AttackSprite.Source.AttackBurst, ship, nose, Vector3.one * .7f, 0f,
+                ShipFxArt.BurstTicks, false, 0f, transform, Vector3.up * noseOffset, 71);
+        }
+        return launched;
+    }
 
     // Rail i of an upgraded rail gun: 0 the main line, then alternating sides.
     public const float SideRailSpacing = 1.1f;
@@ -343,6 +390,29 @@ public class ShipAttackRunner : MonoBehaviour
                     run.fired++;
                 }
                 if (run.fired >= l.shots) run.active = false;
+                break;
+
+            case ShipAttack.ParagonBarrage:
+                {
+                    // AEGIS BARRAGE: a fan of homing lances, one every 50 ms,
+                    // each claiming its own target (nearest not yet claimed);
+                    // a lance with nothing left to hunt flies the fan line.
+                    // One firing is still one full hit on a boss (shared budget).
+                    while (run.fired < l.shots && run.t >= run.fired * BarrageGap)
+                    {
+                        Vector3 nose = Nose;
+                        var t = ShipTargets.Nearest(nose, 0f, run.hit);
+                        if (t != null) run.hit.Add(t.gameObject);
+                        float a = l.shots <= 1 ? 0f : -l.width * .5f + l.width * run.fired / (l.shots - 1);
+                        Vector3 dir = Quaternion.Euler(0f, 0f, -a) * Vector3.up;
+                        Launch(run, AttackProjectile.Kind.Homing, nose, dir, l.speed, .24f, 1.2f,
+                               t != null ? t.transform : null, 1f / Mathf.Max(1, l.shots));
+                        AttackPool.Sprite().Play(AttackSprite.Source.AttackBurst, ship, nose, Vector3.one * .5f,
+                            -a, ShipFxArt.BurstTicks, false, 0f, transform, Vector3.up * noseOffset, 71);
+                        run.fired++;
+                    }
+                    if (run.fired >= l.shots) { run.hit.Clear(); run.active = false; }
+                }
                 break;
 
             case ShipAttack.FeatherFan:

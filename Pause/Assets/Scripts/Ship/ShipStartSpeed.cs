@@ -59,6 +59,9 @@ public static class ShipStartSpeed
     public static int HudFor(int id, int skin)
     {
         if (!ShipId.IsValid(id)) return StockHud;
+        // a premium hull's speed is its tier (PremiumShips), not its column;
+        // for it `skin` is the tier (EquippedHud passes the skins owned)
+        if (PremiumShips.IsPremium(id)) return PremiumShips.Tier(id, skin).startSpeedHud;
         if (!ShipSkins.Has(id, skin)) skin = ShipSkins.Stock;
         return Mathf.Max(StockHud, BaseHud(id) + StepHud * skin);
     }
@@ -70,6 +73,7 @@ public static class ShipStartSpeed
     {
         if (EquippedHudOverride != null) return EquippedHudOverride();
         int id = ShipId.Equipped();
+        if (PremiumShips.IsPremium(id)) return HudFor(id, PremiumShips.TierOf(id));
         return HudFor(id, ShipSkins.Equipped(id));
     }
 

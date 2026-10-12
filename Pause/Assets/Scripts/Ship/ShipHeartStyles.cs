@@ -59,6 +59,7 @@ public static class ShipHeartStyles
         HeartStyle.ShieldRing,  // 13 UFO: spins, so a spinning ring
         HeartStyle.Comet,       // 14 Dove: a flock following its lead
         HeartStyle.Atom,        // 15 Turtle: steady electrons
+        HeartStyle.Halo,        // 16 Paragon: a turning crown of hearts
     };
 
     public static HeartStyle For(int id)

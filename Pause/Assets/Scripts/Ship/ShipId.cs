@@ -51,6 +51,7 @@ public static class ShipId
         "IonLancer", "JadePhantom", "GoldWarden",
         "Lightning", "Ligher", "Paranoid", "Ninja", "Saboteur", "UFO",
         "Dove", "Turtle",
+        "Paragon",   // 16: premium (real-money) ship, PremiumShips
     };
 
     public static string KeyOf(int id) { return IsValid(id) && id < keys.Length ? keys[id] : null; }
@@ -73,6 +74,15 @@ public static class ShipId
 
     public static string OwnedKey(int id) { return OwnedKeyPrefix + id; }
 
+    // The one ownership gate. Every roster ship is owned by the saved
+    // "boughtship<id>" key; star dust writes it for the 15 standard ships
+    // (shopingShips.TryPurchase), developer mode writes it for all.
+    //
+    // TODO(IAP): Paragon (id 16, PremiumShips) is a real-money ship on both
+    // stores (App Store / Google Play, product id PremiumShips.ParagonProductId,
+    // placeholder). Until that exists nothing in normal play writes its key,
+    // so this returns false for it; the IAP flow will call PremiumShips.Grant
+    // after a verified purchase or restore.
     public static bool IsOwned(int id)
     {
         return id == Starter || (IsValid(id) && PlayerPrefs.GetString(OwnedKey(id)) == "True");

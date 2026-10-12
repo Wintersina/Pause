@@ -50,6 +50,9 @@ public static class ShipNozzles
         /* 14 Dove         202x242 */ new[] { N(101.5f, 8.5f) },
         /* 15 Turtle       184x242 */ new[] { N(92.5f, 8.5f) },
         // END GENERATED NOZZLES
+        // BEGIN PARAGON NOZZLES
+        /* 16 Paragon      245x207 */ new[] { N(123.5f, 27.5f, 1.5f), N(22.5f, 23.5f, 0.55f), N(223.5f, 23.5f, 0.55f) },
+        // END PARAGON NOZZLES
     };
 
     static readonly Nozzle[] fallback = { N(-1f, -1f) };

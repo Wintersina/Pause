@@ -52,7 +52,7 @@ public class ShipLivesIndicator : HeartOrbit
         BuildHearts(ShipLives.RunMax);
     }
 
-    protected override int MaxHearts { get { return ShipLives.Most; } }
+    protected override int MaxHearts { get { return ShipLives.MostHearts; } }
 
     // Hearts left: the lives built, less the hits taken (ShipLives).
     protected override int RemainingHearts()

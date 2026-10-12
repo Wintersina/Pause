@@ -461,6 +461,23 @@ public class collisionDetection : MonoBehaviour {
         //------------------------------------------------------------------------------------------------------------------
     }
 
+    // A premium hull's timed shield (SecretPower.AegisShield): the blue
+    // atom's shield -- the same fitted shield art, the same "destroy whatever
+    // touches you" rule and clock -- without the atom's boost, speed or
+    // pickup score. A longer-running shield is never shortened.
+    public void RaiseShield(float seconds)
+    {
+        if (buttonClicks.playerDied) return;
+        ShipShield.For(gameObject).Show();
+        RunScore.OnShieldRaised();
+        atomCheck = true;
+        invTimer = Mathf.Max(invTimer, seconds);
+        AutoShields++;
+    }
+
+    // Timed shields raised on this run (tests, previews).
+    public static int AutoShields;
+
     // ShipHitbox's pickup radius reached a pickup: collected exactly as if it
     // had touched the hull. False if it was already spent.
     public bool CollectPickup(Collider2D hit)

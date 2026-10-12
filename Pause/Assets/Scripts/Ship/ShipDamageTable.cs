@@ -86,6 +86,10 @@ public static class ShipDamageTable
         // 15 Turtle: 1) shell plate blown, scute cracked; tail smoking; 2) rear scute shattered and arcing, front flipper bent, shell torn, canopy cracked
         new[] { E(1, Sparks, 45.7f, 72.6f), E(1, Smoke, 64.0f, 110.4f), E(1, Smolder, 45.7f, 72.6f), E(2, Arc, 64.0f, 88.8f), E(2, Flame, 87.4f, 78.0f), E(2, Leak, 49.7f, 103.9f), E(2, Smolder, 64.5f, 88.8f), E(2, Smolder, 88.5f, 79.1f), E(2, Smolder, 41.1f, 44.8f), E(2, Smolder, 73.0f, 20.3f), E(2, Smolder, 50.1f, 19.2f), E(2, Smolder, 55.0f, 109.6f) },
         // END GENERATED EMITTERS
+        // BEGIN PARAGON EMITTERS
+        // 16 Paragon: 1) left wing-pod panel blown, wiring sparking; scorch on the inner pod; 2) right inner pod panel open, right wing-tip pod torn and burning, hull and canopy cracked
+        new[] { E(1, Sparks, 36.9f, 76.0f), E(1, Smoke, 63.7f, 100.5f), E(1, Smolder, 37.1f, 76.3f), E(2, Arc, 112.9f, 85.6f), E(2, Flame, 93.1f, 97.2f), E(2, Leak, 52.6f, 92.2f), E(2, Smolder, 112.8f, 85.6f), E(2, Smolder, 93.1f, 96.8f), E(2, Smolder, 93.6f, 70.1f), E(2, Smolder, 63.5f, 47.6f), E(2, Smolder, 22.8f, 80.6f) },
+        // END PARAGON EMITTERS
     };
 
     // The flown ship's max lives: the single place the damage art / FX read it.
@@ -96,10 +100,15 @@ public static class ShipDamageTable
     // The sheet row for hits taken (collisionDetection.lifeCounter) on a ship
     // with `maxLives` lives: intact at full lives, critical on the last one,
     // damaged in between.
+    public const int WreckProportionalFrom = 10;
+
     public static int StateFor(int hitsTaken, int maxLives)
     {
         if (hitsTaken <= 0) return 0;
-        return maxLives - hitsTaken <= 1 ? States - 1 : 1;
+        // the last life is the wreck; a 10+ heart hull (Paragon) wrecks on its
+        // last two, the same fifth of its health (~20%) the others show it at
+        int critical = maxLives >= WreckProportionalFrom ? 2 : 1;
+        return maxLives - hitsTaken <= critical ? States - 1 : 1;
     }
 
     // (Full health needs no maximum: the dock's ships ask every frame.)

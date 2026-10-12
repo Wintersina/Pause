@@ -246,6 +246,8 @@ public static class CodexCatalogue
     public static string LivesLore(int ship)
     {
         int lives = ShipLives.Base(ship);
+        if (PremiumShips.IsPremium(ship))
+            return "HULL  " + lives + " HEARTS (up to " + PremiumShips.MostHearts + " with its skins)";
         int most = lives + SkinHearts.MostFromColours;
         return "HULL  " + lives + " " + SkinHearts.HeartsWord(lives) + " (up to " + most + " with its colours, " +
                (most + SkinHearts.AllSkinsBonus) + " with every skin)\n" + SkinHearts.LoreLine();
@@ -403,6 +405,7 @@ public static class CodexCatalogue
         { "UFO", "Nobody knows who built this saucer, and it isn't telling." },
         { "Dove", "A peaceful-looking ship with a not-so-peaceful ultimate." },
         { "Turtle", "Never slow, always tough: a shell built to shrug off space itself." },
+        { "Paragon", "A prototype nobody was meant to fly: ten hearts of armour, a shield that raises itself and missiles that find their own way. Coming soon." },
     };
 
     // ---------------------------------------------------------------------
