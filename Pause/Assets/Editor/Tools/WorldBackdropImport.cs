@@ -128,7 +128,7 @@ public class WorldBackdropImport : AssetPostprocessor
         ti.alphaIsTransparency = true;
         ti.isReadable = false;
         ti.npotScale = TextureImporterNPOTScale.None;
-        ti.maxTextureSize = planetSheet ? PlanetSheetMaxSize : file == "station_ring_v2" ? 512 : file == "reference_planet" ? 1024 :
+        ti.maxTextureSize = planetSheet ? PlanetSheetMaxSize : file == "station_ring_v2" ? 1024 : file == "reference_planet" ? 1024 :
             sharpSpaceSky || (!tile && assetPath.Contains("/Worlds/Space/")) || IsDesertWormSheet(assetPath, file) ? 2048 : 1024;
         ti.textureCompression = TextureImporterCompression.Compressed;
         ti.sRGBTexture = true;
@@ -162,7 +162,7 @@ public class WorldBackdropImport : AssetPostprocessor
         if (!tile && assetPath.Contains("/Worlds/Space/"))
         {
             var defaults = ti.GetPlatformTextureSettings("DefaultTexturePlatform");
-            defaults.maxTextureSize = planetSheet ? PlanetSheetMaxSize : file == "station_ring_v2" ? 512 : file == "reference_planet" ? 1024 : 2048;
+            defaults.maxTextureSize = planetSheet ? PlanetSheetMaxSize : file == "station_ring_v2" ? 1024 : file == "reference_planet" ? 1024 : 2048;
             ti.SetPlatformTextureSettings(defaults);
         }
 
@@ -170,7 +170,7 @@ public class WorldBackdropImport : AssetPostprocessor
         {
             var ps = ti.GetPlatformTextureSettings(platform);
             ps.overridden = true;
-            ps.maxTextureSize = planetSheet ? PlanetSheetMaxSize : file == "station_ring_v2" ? 512 : file == "reference_planet" ? 1024 :
+            ps.maxTextureSize = planetSheet ? PlanetSheetMaxSize : file == "station_ring_v2" ? 1024 : file == "reference_planet" ? 1024 :
                 sharpSpaceSky || (!tile && assetPath.Contains("/Worlds/Space/")) || IsDesertWormSheet(assetPath, file) ? 2048 : 1024;
             ps.format = planetSheet ? TextureImporterFormat.ASTC_4x4 : TextureImporterFormat.ASTC_6x6;
             ps.textureCompression = TextureImporterCompression.Compressed;
