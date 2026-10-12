@@ -620,13 +620,17 @@ public class enmiesOnBoard : MonoBehaviour {
     // (WorldPainter.VisibleRailEdges) and the mine art's own clamp
     // (RailMineArt.MountX); a wall without the rail art keeps the authored
     // lane edge. Never outside what the camera shows.
-    public static float WorldRailX(bool left)
+    public static float WorldRailX(bool left) { return WorldRailX(left, EnemyRoster.CurrentWorld); }
+
+    // The same for a given world's mine (a world's clamp reach differs: Desert's Mirage Mine). Headless tests, which have no
+    // WorldManager (so EnemyRoster.CurrentWorld is Space), name the world they stage.
+    public static float WorldRailX(bool left, int world)
     {
         GameObject wall = GameObject.Find(left ? "leftPipe" : "rightPipe");
         float wallX = wall != null ? wall.transform.position.x : (left ? -3.15f : 3.15f);
         float inner, outer;
         float railX = wall != null && WorldPainter.VisibleRailEdges(wall, out inner, out outer)
-            ? RailMineArt.MountX(inner, EnemyRoster.CurrentWorld) : RailMineArt.FallbackRailX;
+            ? RailMineArt.MountX(inner, world) : RailMineArt.FallbackRailX;
         var cam = Camera.main;
         float visibleLimit = cam != null && cam.orthographic
             ? cam.orthographicSize * cam.aspect - .30f : railX;

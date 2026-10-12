@@ -121,7 +121,7 @@ public static class RailMineArt
         new Vector2(39.4f, 1f),      // Verdant
         new Vector2(38.1f, -2.2f),   // Ember
         new Vector2(27.5f, .7f),     // Tide (same method; the brightest pixels sit on the eye's glare)
-        new Vector2(14.5f, 1.2f),    // Storm: the white coil's centroid in the waking / charging frames (12.8, .4) and (16.2, 2.1)
+        new Vector2(-4.1f, 1.6f),    // Storm: the white coil's centroid (every near-white pixel within 35 px of the pivot) in the waking / charging frames, (-4.0, 1.8) and (-4.2, 1.4); an earlier (14.5, 1.2) pre-dated the pivot move and put the beam on the coil's lane-side edge
         new Vector2(0f, 0f),         // Desert: the heat-lance leaves the lens centre = the pivot (the bright core's centroid in the waking / charging frames is exactly (0, 0))
     };
 

@@ -203,7 +203,7 @@ public static class RailsVettingTest
                 float halfW = cam.orthographicSize * cam.aspect;
                 float inL, outL, inR, outR;
                 bool art = WorldPainter.VisibleRailEdges(walls[0], out inL, out outL) & WorldPainter.VisibleRailEdges(walls[1], out inR, out outR);
-                float left = enmiesOnBoard.WorldRailX(true), right = enmiesOnBoard.WorldRailX(false);
+                float left = enmiesOnBoard.WorldRailX(true, w), right = enmiesOnBoard.WorldRailX(false, w);
                 float clampFace = right + RailMineArt.ClampReachFor(w);
                 lowest = Mathf.Min(lowest, right);
                 highest = Mathf.Max(highest, right);
@@ -272,7 +272,7 @@ public static class RailsVettingTest
             foreach (bool rightSide in new[] { false, true })
             {
                 Clear();
-                float x = enmiesOnBoard.WorldRailX(!rightSide);
+                float x = enmiesOnBoard.WorldRailX(!rightSide, w);
                 var rail = new GameObject("RailMineLane");
                 rail.transform.position = new Vector3(x, 1f, 0f);
                 rail.AddComponent<RailLaneScroller>();
@@ -306,7 +306,7 @@ public static class RailsVettingTest
                         sawShot = true;
                         shotOk &= Mathf.Abs(laser.Y - go.transform.position.y) < .05f &&
                                   (laser.From - RailMineLaser.MuzzleOf(go.transform, w)).magnitude < .02f &&
-                                  Mathf.Abs(laser.From.x) < Mathf.Abs(x) && Mathf.Abs(x) - Mathf.Abs(laser.From.x) < .2f &&
+                                  Mathf.Abs(Mathf.Abs(x) - Mathf.Abs(laser.From.x)) < .2f &&   // (the core is within .2 u of the mine's centre: Desert's IS the centre, Storm's coil sits a hair rail-side of it)
                                   Mathf.Abs(Mathf.Abs(laser.To.x) - BossRails.DrawnInnerEdge) < .01f &&
                                   Mathf.Sign(laser.From.x) == Mathf.Sign(x) && Mathf.Sign(laser.To.x) == -Mathf.Sign(x);
                     }
@@ -362,7 +362,7 @@ public static class RailsVettingTest
         var bad = new List<string>();
         foreach (bool rightSide in new[] { false, true })
         {
-            float x = enmiesOnBoard.WorldRailX(!rightSide);
+            float x = enmiesOnBoard.WorldRailX(!rightSide, 0);
             var lane = new GameObject("RailMineLane");
             lane.transform.position = new Vector3(x, -9f, 0f);
             var scroller = lane.AddComponent<RailLaneScroller>();

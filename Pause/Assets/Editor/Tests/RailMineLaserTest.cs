@@ -486,7 +486,7 @@ public static class RailMineLaserTest
     // both rails, every world, at -35 .. 35 deg.
 
     const string AtlasFile = "Assets/Art/Resources/Enemies/Mines/rail_mines_neon.png";
-    static Texture2D atlasPng;
+    static readonly Dictionary<string, Texture2D> atlases = new Dictionary<string, Texture2D>();
 
     // The core of a world's mine as drawn: the brightest pixels near the
     // body in its waking and charging frames (shown through the windup and
@@ -494,16 +494,35 @@ public static class RailMineLaserTest
     // toward the lane (unflipped), y up.
     public static Vector2 MeasuredCorePx(int world)
     {
-        if (atlasPng == null)
+        // each world reads ITS OWN atlas file (Tide, Storm and Desert have their own, RailMineArt.AtlasPathFor)
+        string file = "Assets/Art/Resources/" + RailMineArt.AtlasPathFor(world) + ".png";
+        Texture2D atlasPng;
+        if (!atlases.TryGetValue(file, out atlasPng))
         {
             atlasPng = new Texture2D(2, 2);
-            atlasPng.LoadImage(System.IO.File.ReadAllBytes(AtlasFile));
+            atlasPng.LoadImage(System.IO.File.ReadAllBytes(file));
+            atlases[file] = atlasPng;
         }
         int h = atlasPng.height;
         Vector2 sum = Vector2.zero;
         foreach (int col in new[] { RailMineArt.Waking, RailMineArt.Charging })
         {
             Vector2 piv = RailMineArt.PixelPivot(world, col);
+            if (world >= RailMineArt.StormWorld)
+            {
+                // Storm's coil and Desert's lens are lit areas, not a few brightest pixels (their glow / side lights would pull a top-25
+                // average away): the centroid of every near-white pixel within 35 px of the pivot is the core.
+                Vector2 sumPx = Vector2.zero; int count = 0;
+                for (int x = (int)piv.x - 35; x <= (int)piv.x + 35; x++)
+                    for (int y = (int)piv.y - 35; y <= (int)piv.y + 35; y++)
+                    {
+                        Color c = atlasPng.GetPixel(x, h - 1 - y);
+                        if (c.a > .78f && c.r + c.g + c.b > 2.4f) { sumPx += new Vector2(x, y); count++; }
+                    }
+                sumPx /= Mathf.Max(1, count);
+                sum += new Vector2(sumPx.x - piv.x, piv.y - sumPx.y);
+                continue;
+            }
             var best = new List<Vector3>();
             for (int x = (int)piv.x + 5; x < (int)piv.x + 70; x++)
                 for (int y = (int)piv.y - 30; y < (int)piv.y + 30; y++)
@@ -581,9 +600,9 @@ public static class RailMineLaserTest
         float max = RailMineLaser.MaxAngleDeg;
         var bad = new List<string>();
         var cores = new List<string>();
-        for (int w = 0; w < 4; w++) cores.Add(EnemyRoster.WorldKeys[w] + " " + MeasuredCorePx(w).ToString("F1"));
+        for (int w = 0; w < 7; w++) cores.Add(EnemyRoster.WorldKeys[w] + " " + MeasuredCorePx(w).ToString("F1"));
         int n = 0;
-        for (int w = 0; w < 4; w++)
+        for (int w = 0; w < 7; w++)
             foreach (bool right in new[] { true, false })
                 foreach (float deg in new[] { -max, -20f, 0f, 20f, max })
                 {
@@ -613,7 +632,7 @@ public static class RailMineLaserTest
         Check("the beam and the aim line leave the mine's core (measured on the art: " + string.Join(", ", cores) + " px) and end flush on the " +
               "opposite rail's face, both ends cut along the rails, at -" + max + " .. " + max + " deg on both rails in every world (" + n + " cases; " +
               (bad.Count == 0 ? "all" : bad.Count + " off: " + string.Join("; ", bad.GetRange(0, Mathf.Min(bad.Count, 12)))) + ")",
-              bad.Count == 0 && n == 40);
+              bad.Count == 0 && n == 70);
 
         // the beam is laid after the mount has put the mine where it is this
         // frame: RailMineLaser's LateUpdate runs after RailMineMount's
@@ -1201,7 +1220,7 @@ public static class RailMineLaserTest
             }
         }
         Check("at 9:16, 9:19.5, 9:21 and 3:4 in every world a mine's beam spans to the opposite rail's drawn inner face, on screen, and " +
-              "at +/-" + RailMineLaser.MaxAngleDeg + " deg its drawn quad leaves the mine's core and ends flush on that face (" + n + " cases; " + string.Join(", ", bad) + ")", bad.Count == 0 && n == 32);
+              "at +/-" + RailMineLaser.MaxAngleDeg + " deg its drawn quad leaves the mine's core and ends flush on that face (" + n + " cases; " + string.Join(", ", bad) + ")", bad.Count == 0 && n == 56);
         ScreenInfo.ClearOverride();
     }
 }
