@@ -28,23 +28,34 @@ public class SecretPowerController : MonoBehaviour
     public float lookahead = .28f;
     public float cloakSeconds = 4f;
     public float pulseRadius = 1.4f;
-    public float pulseInvulnerable = .75f;
+    public float pulseInvulnerable = 1.2f;
+    public float pulseShotRadius = 2.2f;   // the pulse ring also deletes enemy shots this close
     public float stunSeconds = 3f;
-    public float novaRadius = 2.1f;
+    public float novaRadius = 3f;
+    public float novaBurnSeconds = 2f;     // the ring the nova leaves behind
+    public float ionSlowSeconds = 2f;      // Ion Battery's slow-time after the +2 pauses
+    public float ionSlowScale = .5f;
+    public float ghostAlpha = .4f;         // Phase Cloak: how solid the hull stays
     public float magnetSeconds = 5f;
+    public float magnetDustMultiplier = 2f;
     public float magnetSpeed = 7f;
     public float clapRadius = 2.6f;
-    public float clapDistance = 2.4f;
     public float decoySeconds = 2.5f;
     public float decoyBlastRadius = 1.5f;
     public float bubbleScale = .45f;
+    public float bubbleRadius = 1.8f;      // the Time Bubble dome's radius (drawn, and the slow reads as inside it)
     public float bubbleSeconds = 2.5f;
     public float dashDistance = 1.25f;
+    public float dashThreatRadius = 2f;    // Blink Dash also fires proactively when a hazard is this close
     public float dashSeconds = .7f;
     public float holeSeconds = 2.6f;
     public float holePullRadius = 2.7f;
     public float holeKillRadius = .45f;
-    public int showerStars = 10;
+    public float tractorSeconds = 1.8f;    // UFO Tractor Pull: how long the pull lasts
+    public float tractorPullRadius = 4f;
+    public float tractorPullSpeed = 6f;
+    public float tractorKillRadius = 1f;   // reaching the ship's tractor field kills (and drops dust)
+    public int tractorStarsPerKill = 2;
     public float shellSeconds = 8f;
 
     public static SecretPowerController Instance { get; private set; }
@@ -65,20 +76,51 @@ public class SecretPowerController : MonoBehaviour
     public SecretMeter Badge => badge;
 
     // Ongoing effects, all counted down on gameplay time.
-    float stunLeft, magnetLeft, clapLeft, decoyLeft, bubbleLeft, dashLeft, holeLeft, shellLeft;
-    Vector3 holeAt;
+    float stunLeft, magnetLeft, tractorLeft, decoyLeft, bubbleLeft, dashLeft, holeLeft, shellLeft, novaLeft, ghostLeft;
+    Vector3 holeAt, novaAt;
+    SpriteRenderer ghostHull;
     AttackSprite holeFx, shellFx, magnetFx, bubbleFx, decoyFx, cloakFx;
 
     const int MaxLocked = 48;
     readonly Behaviour[] locked = new Behaviour[MaxLocked];
     int lockedCount;
-    readonly Transform[] pushed = new Transform[32];
-    int pushedCount;
     readonly List<ClearTarget> scratch = new List<ClearTarget>(64);
 
     public bool ShellUp => shellLeft > 0f;
     public bool HoleActive => holeLeft > 0f;
     public bool Stunning => stunLeft > 0f;
+    public bool Burning => novaLeft > 0f;
+    public bool GhostActive => ghostLeft > 0f;
+    public bool MagnetActive => magnetLeft > 0f;
+    public bool TractorActive => tractorLeft > 0f;
+    public bool DecoyActive => decoyLeft > 0f;
+    public bool BubbleActive => bubbleLeft > 0f && loadout.power == SecretPower.TimeBubble;
+    public AttackSprite ShellFx => shellFx;
+    public AttackSprite BubbleFx => bubbleFx;
+    public AttackSprite DecoyFx => decoyFx;
+
+    // Counters (tests, previews).
+    public int ClapKills { get; private set; }
+    public int Mends { get; private set; }
+    public int ShellBreaks { get; private set; }
+    public int TractorKills { get; private set; }
+    public int TractorStars { get; private set; }
+    public int DashCount { get; private set; }
+    public float LastDashDirection { get; private set; }
+
+    public const string ShellAuraName = "~ShellAura";
+    public const string BubbleDomeName = "~BubbleDome";
+    public static readonly Color BubbleTint = new Color(.45f, .8f, 1f, .55f);
+    public static readonly Color DecoyTint = new Color(1f, .82f, .35f, 1f);
+
+    // Phase Cloak: hazards pass through the ghosted hull (collisionDetection).
+    public static bool Ghosted { get { var c = Instance; return c != null && c.ghostLeft > 0f; } }
+
+    // Gold Magnet: star dust is worth this much while the magnet pulls.
+    public static float DustMultiplier
+    {
+        get { var c = Instance; return c != null && c.magnetLeft > 0f ? c.magnetDustMultiplier : 1f; }
+    }
     public int LockedCount => lockedCount;
 
     // Blink Dash: how far the hull is thrown sideways off the finger
@@ -99,6 +141,7 @@ public class SecretPowerController : MonoBehaviour
         ship = shipId;
         loadout = ShipLoadoutTable.For(shipId);
         var hull = GetComponent<SpriteRenderer>();
+        ghostHull = hull;
         if (hull != null && hull.sprite != null)
         {
             Vector3 e = hull.sprite.bounds.extents;
@@ -161,15 +204,15 @@ public class SecretPowerController : MonoBehaviour
         {
             case PowerTrigger.ImminentHit:
                 return ShipTargets.Imminent(at, hullRadius, lookahead) != null;
+            case PowerTrigger.ThreatClose:
+                return ShipTargets.Imminent(at, hullRadius, lookahead) != null ||
+                       ShipTargets.CountNear(at, loadout.triggerRadius) >= n;
             case PowerTrigger.EnemiesOnScreen:
                 return ShipTargets.CountOnScreen(true) >= n;
             case PowerTrigger.HazardsNearShip:
                 return ShipTargets.CountNear(at, loadout.triggerRadius) >= n;
-            case PowerTrigger.TargetsWhileCharging:
-                {
-                    var power = ShipPowerController.Instance;
-                    return ShipTargets.CountOnScreen(false) >= n && power != null && power.Charge01 < .65f;
-                }
+            case PowerTrigger.TargetsOnScreen:
+                return ShipTargets.CountOnScreen(false) >= n;
             case PowerTrigger.LowPauses:
                 return score.pauseCounter <= n;
             case PowerTrigger.PickupsOnScreen:
@@ -223,14 +266,10 @@ public class SecretPowerController : MonoBehaviour
         if (c == null) return false;
         if (c.ShellUp)
         {
-            c.shellLeft = 0f;
-            ShipHitbox.SetShield(c.gameObject, ShipHitbox.Source.Shell, false);
-            if (c.shellFx != null && c.shellFx.Active) c.shellFx.Stop();
-            c.shellFx = null;
-            c.Burst(c.transform.position, 2.2f, null);
+            c.BreakShell();
             return true;
         }
-        if (c.Ready && c.loadout.trigger == PowerTrigger.ImminentHit && !buttonClicks.playerDied)
+        if (c.Ready && (c.loadout.trigger == PowerTrigger.ImminentHit || c.loadout.trigger == PowerTrigger.ThreatClose) && !buttonClicks.playerDied)
         {
             c.Fire(hazard);
             return true;
@@ -251,36 +290,46 @@ public class SecretPowerController : MonoBehaviour
         {
             case SecretPower.ShieldPulse:
                 collisionDetection.BeginCloak(pulseInvulnerable);
-                Burst(at, pulseRadius * 2.3f, transform);
+                Burst(at, pulseShotRadius * 2f, transform);
                 KillWithin(at, pulseRadius);
+                HostileShots.ClearWithin(at, pulseShotRadius);
                 break;
 
             case SecretPower.EmpStun:
                 Burst(at, 6f, transform);
                 Stun();
+                HostileShots.ClearIn(ShipTargets.View());
                 break;
 
             case SecretPower.SolarNova:
                 Burst(at, novaRadius * 2.3f, transform);
                 if (KillWithin(at, novaRadius) > 0) WorldTimeFx.HitStop(.06f);
                 CameraKick.Kick(.04f);
+                // ...and the ring stays burning where it went off
+                novaAt = at;
+                novaLeft = novaBurnSeconds;
+                Loop(at, novaRadius * 2.2f, novaBurnSeconds, null, 66);
                 break;
 
             case SecretPower.CapacitorDump:
                 {
-                    var power = ShipPowerController.Instance;
-                    if (power != null) power.RechargeNow();
+                    // the rail goes off right now, on top of the usual countdown
+                    var runner = GetComponent<ShipAttackRunner>();
+                    if (runner != null && runner.Fire()) UltimateShotSound.Play(ship);
                     Burst(at + Vector3.up * .5f, 1.6f, transform);
                 }
                 break;
 
             case SecretPower.IonBattery:
                 score.incromentPause();
+                bubbleLeft = ionSlowSeconds;
+                WorldTimeFx.BubbleScale = ionSlowScale;
                 Burst(at, 2f, transform);
                 break;
 
             case SecretPower.PhaseCloak:
                 cloakFx = BeginPhaseCloak(transform, ship, cloakSeconds);
+                BeginGhost(cloakSeconds);
                 break;
 
             case SecretPower.GoldMagnet:
@@ -301,13 +350,17 @@ public class SecretPowerController : MonoBehaviour
                     decoyLeft = decoySeconds;
                     ShipDecoy.Place(spot);
                     decoyFx = Loop(spot, .9f, decoySeconds, null, 66);
+                    decoyFx.SetColor(DecoyTint);
                 }
                 break;
 
             case SecretPower.TimeBubble:
                 bubbleLeft = bubbleSeconds;
                 WorldTimeFx.BubbleScale = bubbleScale;
-                bubbleFx = Loop(at, 3.6f, bubbleSeconds, transform, 41);
+                bubbleFx = Loop(at, bubbleRadius * 2f, bubbleSeconds, transform, 41);
+                bubbleFx.Rename(BubbleDomeName);
+                bubbleFx.SetColor(BubbleTint);
+                Burst(at, bubbleRadius * 2.4f, transform).SetColor(BubbleTint);
                 break;
 
             case SecretPower.BlinkDash:
@@ -324,21 +377,26 @@ public class SecretPowerController : MonoBehaviour
                 }
                 break;
 
-            case SecretPower.StarShower:
-                Shower(at);
-                Burst(at + Vector3.up * 2.4f, 3f, null);
+            case SecretPower.TractorPull:
+                tractorLeft = tractorSeconds;
+                Loop(at + Vector3.up * 1.6f, tractorPullRadius * 1.1f, tractorSeconds, transform, 66);
+                Burst(at, 2.4f, transform);
                 break;
 
             case SecretPower.Mending:
-                if (collisionDetection.lifeCounter > 0) collisionDetection.lifeCounter--;
-                Burst(at, 2f, transform);
+                if (collisionDetection.lifeCounter > 0) { collisionDetection.lifeCounter--; Mends++; }
+                // a feather burst round the hull, a second one rising off it, and the word
+                Burst(at, 2.6f, transform).SetColor(PickupGlow.HealGreen);
+                Burst(at + Vector3.up * .7f, 1.5f, null);
+                var hud = ScoreHud.Current;
+                if (hud != null) hud.ShowWord(collisionDetection.HealWord, at + Vector3.up * collisionDetection.PickupWordLift, PickupGlow.HealGreen, 28);
                 break;
 
             case SecretPower.HardShell:
                 shellLeft = shellSeconds;
                 // The shell is a shield: the ship's hit zone grows to the shield zone.
                 ShipHitbox.SetShield(gameObject, ShipHitbox.Source.Shell, true);
-                shellFx = Loop(at, 1.25f, shellSeconds, transform, 45);
+                shellFx = ShellLoop(shellSeconds);
                 break;
         }
     }
@@ -362,6 +420,22 @@ public class SecretPowerController : MonoBehaviour
     }
 
     public const string CloakAuraName = "~CloakAura";
+
+    // The ghosted hull: translucent for as long as the cloak, hazards pass
+    // through it (Ghosted).
+    void BeginGhost(float seconds)
+    {
+        ghostLeft = seconds;
+        SetHullAlpha(ghostAlpha);
+    }
+
+    void SetHullAlpha(float a)
+    {
+        if (ghostHull == null) return;
+        var c = ghostHull.color;
+        c.a = a;
+        ghostHull.color = c;
+    }
 
     AttackSprite Burst(Vector3 at, float size, Transform follow)
     {
@@ -393,6 +467,24 @@ public class SecretPowerController : MonoBehaviour
         return kills;
     }
 
+    // The nova's burning ring: whatever enters it dies. The boss is left to
+    // the nova's one blast (a ring ticking every frame would hammer it).
+    int BurnWithin(Vector3 at, float radius)
+    {
+        ShipTargets.Collect(scratch);
+        int kills = 0;
+        for (int i = 0; i < scratch.Count; i++)
+        {
+            var t = scratch[i];
+            if (t == null || !t.isActiveAndEnabled || t.GetComponent<IShipAttackTarget>() != null) continue;
+            Vector2 d = t.transform.position - at;
+            float r = radius + t.Radius * .5f;
+            if (d.sqrMagnitude > r * r) continue;
+            if (ShipAttackHits.Hit(t.gameObject, ship)) kills++;
+        }
+        return kills;
+    }
+
     void Lock(GameObject go)
     {
         lockedCount = HazardMovers.Disable(go, locked, lockedCount);
@@ -409,11 +501,29 @@ public class SecretPowerController : MonoBehaviour
             int before = lockedCount;
             Lock(t.gameObject);
             if (lockedCount > before)
+            {
                 AttackPool.Sprite().Play(AttackSprite.Source.PowerLoop, ship, t.transform.position,
                     Vector3.one * Mathf.Max(.7f, t.Radius * 2.4f), 0f, ShipFxArt.PowerLoopTicks, true, stunSeconds,
                     t.transform, Vector3.zero, 67);
+                ArcTo(t.transform.position);
+                ArcCount++;
+            }
         }
         stunLeft = stunSeconds;
+    }
+
+    // Counts EMP arcs drawn (tests, previews).
+    public int ArcCount { get; private set; }
+
+    // A bolt from the hull to a stunned enemy.
+    void ArcTo(Vector3 to)
+    {
+        Vector3 a = transform.position;
+        Vector3 d = to - a;
+        float len = Mathf.Max(.2f, d.magnitude);
+        float ang = Mathf.Atan2(d.y, d.x) * Mathf.Rad2Deg;
+        AttackPool.Sprite().Play(AttackSprite.Source.PowerLoop, ship, (a + to) * .5f, new Vector3(len, .55f, 1f),
+            ang, ShipFxArt.PowerLoopTicks, true, .35f, null, Vector3.zero, 70);
     }
 
     void ReleaseLocked()
@@ -426,32 +536,76 @@ public class SecretPowerController : MonoBehaviour
         lockedCount = 0;
     }
 
+    // Thunderclap: lightning strikes every hazard within the radius dead (a
+    // boss takes a half hit from the whole clap, like every power).
     void Clap(Vector3 at)
     {
-        pushedCount = 0;
-        ShipTargets.Collect(scratch);
-        for (int i = 0; i < scratch.Count && pushedCount < pushed.Length; i++)
+        ClapKills += KillWithin(at, clapRadius);
+        CameraKick.Kick(.05f);
+    }
+
+    // The shell, drawn on the hull for as long as it stands.
+    AttackSprite ShellLoop(float seconds)
+    {
+        var fx = Loop(transform.position, 1.25f, seconds, transform, 45);
+        fx.Rename(ShellAuraName);
+        return fx;
+    }
+
+    bool ShellDrawn => shellFx != null && shellFx.Active && shellFx.name == ShellAuraName;
+
+    // The shell takes a hit: it shatters (a wide burst plus a bright inner
+    // flash, distinct from every other power's), and the tight hull returns.
+    void BreakShell()
+    {
+        ShellBreaks++;
+        shellLeft = 0f;
+        ShipHitbox.SetShield(gameObject, ShipHitbox.Source.Shell, false);
+        if (shellFx != null && shellFx.Active) shellFx.Stop();
+        shellFx = null;
+        Vector3 at = transform.position;
+        Burst(at, 3.2f, null).SetColor(new Color(.75f, 1f, .85f, 1f));
+        Burst(at, 1.6f, transform);
+        CameraKick.Kick(.03f);
+    }
+
+    // Which side is safer to sidestep to: the one whose landing spot keeps
+    // the most clearance from the hazards around the hull (ties: away from
+    // the threat, then away from the nearer wall).
+    public float SafestDashDirection(GameObject threat)
+    {
+        Vector3 at = transform.position;
+        float left = ShipReach.ClampX(at.x - dashDistance), right = ShipReach.ClampX(at.x + dashDistance);
+        float cl = Clearance(new Vector2(left, at.y), at.y), cr = Clearance(new Vector2(right, at.y), at.y);
+        if (Mathf.Abs(cl - cr) > .02f) return cl > cr ? -1f : 1f;
+        if (threat != null && Mathf.Abs(threat.transform.position.x - at.x) > .05f)
+            return at.x > threat.transform.position.x ? 1f : -1f;
+        return at.x > 0f ? -1f : 1f;
+    }
+
+    // Distance from `spot` to the nearest hazard around the hull's height
+    // (less its radius); big when nothing is near.
+    float Clearance(Vector2 spot, float shipY)
+    {
+        var live = ClearTarget.Live;
+        float best = 99f;
+        for (int i = 0; i < live.Count; i++)
         {
-            var t = scratch[i];
-            if (t == null || t.GetComponent<IShipAttackTarget>() != null) continue; // never shove the boss
-            Vector2 d = t.transform.position - at;
-            float r = clapRadius + t.Radius;
-            if (d.sqrMagnitude > r * r) continue;
-            pushed[pushedCount++] = t.transform;
+            var t = live[i];
+            if (!ShipTargets.IsHazard(t)) continue;
+            Vector3 p = t.transform.position;
+            if (p.y < shipY - 1.2f || p.y > shipY + 3f) continue;
+            best = Mathf.Min(best, ((Vector2)p - spot).magnitude - t.Radius);
         }
-        clapLeft = .25f;
+        return best;
     }
 
     void Dash(GameObject threat)
     {
         Vector3 at = transform.position;
-        float dir;
-        if (threat != null && Mathf.Abs(threat.transform.position.x - at.x) > .05f)
-            dir = at.x > threat.transform.position.x ? 1f : -1f;
-        else
-            dir = at.x > 0f ? -1f : 1f;
-        // don't dash into the wall: go the other way if there's no room
-        if (Mathf.Abs(at.x + dir * dashDistance) > ShipReach.HalfWidth) dir = -dir;
+        float dir = SafestDashDirection(threat);
+        LastDashDirection = dir;
+        DashCount++;
         DashOffsetX = dir * dashDistance;
         dashLeft = dashSeconds;
         collisionDetection.BeginCloak(.6f);
@@ -460,21 +614,44 @@ public class SecretPowerController : MonoBehaviour
         Burst(transform.position, 1.2f, transform);
     }
 
-    void Shower(Vector3 at)
+    // A star dust pickup at a kill, the way the old shower dropped them.
+    void DropStar(Vector3 at)
     {
+        TractorStars++;
         var prefab = Resources.Load<GameObject>("prefabs/smStar_1");
         if (prefab == null) return;
         Rect view = ShipTargets.View(-.35f);
-        for (int i = 0; i < showerStars; i++)
+        Vector3 p = new Vector3(Mathf.Clamp(at.x, view.xMin, view.xMax), Mathf.Clamp(at.y, view.yMin, view.yMax), 0f);
+        var star = Object.Instantiate(prefab, p, Quaternion.identity);
+        PickupArt.ApplyInGameScale(star, prefab);
+    }
+
+    // Tractor Pull: every hazard near the ship is dragged in; what reaches
+    // the field dies and drops star dust. The boss is never moved.
+    void StepTractor(float dt)
+    {
+        Vector3 at = transform.position;
+        ShipTargets.Collect(scratch);
+        for (int i = 0; i < scratch.Count; i++)
         {
-            float k = showerStars <= 1 ? .5f : i / (float)(showerStars - 1);
-            float x = Mathf.Clamp(at.x + Mathf.Lerp(-1.6f, 1.6f, k), view.xMin, view.xMax);
-            float y = Mathf.Min(at.y + 2.2f + Mathf.Sin(k * Mathf.PI) * 1.1f, view.yMax);
-            var star = Object.Instantiate(prefab, new Vector3(x, y, 0f), Quaternion.identity);
-            PickupArt.ApplyInGameScale(star, prefab);
-            // keep the arc: the star's sideways weave would collapse it
-            var weave = star.GetComponent<moveEnimes>();
-            if (weave != null) weave.enabled = false;
+            var t = scratch[i];
+            if (t == null || !t.isActiveAndEnabled || t.GetComponent<IShipAttackTarget>() != null) continue;
+            Vector3 p = t.transform.position;
+            Vector2 d = at - p;
+            float dist = d.magnitude;
+            if (dist > tractorPullRadius + t.Radius) continue;
+            if (dist <= tractorKillRadius + t.Radius * .5f)
+            {
+                Vector3 where = p;
+                if (ShipAttackHits.Hit(t.gameObject, ship))
+                {
+                    TractorKills++;
+                    for (int k = 0; k < tractorStarsPerKill; k++) DropStar(where + new Vector3((k - .5f) * .3f, 0f, 0f));
+                }
+                continue;
+            }
+            if (lockedCount < MaxLocked) Lock(t.gameObject);
+            t.transform.position = Vector3.MoveTowards(p, at, tractorPullSpeed * dt);
         }
     }
 
@@ -497,12 +674,11 @@ public class SecretPowerController : MonoBehaviour
             if (magnetLeft <= 0f) { magnetLeft = 0f; ReleaseLocked(); }
         }
 
-        if (clapLeft > 0f)
+        if (tractorLeft > 0f)
         {
-            float step = clapDistance / .25f * Mathf.Min(dt, clapLeft);
-            for (int i = 0; i < pushedCount; i++)
-                if (pushed[i] != null) pushed[i].position += Vector3.up * step;
-            if ((clapLeft -= dt) <= 0f) { clapLeft = 0f; pushedCount = 0; }
+            tractorLeft -= dt;
+            StepTractor(dt);
+            if (tractorLeft <= 0f) { tractorLeft = 0f; ReleaseLocked(); }
         }
 
         if (decoyLeft > 0f && (decoyLeft -= dt) <= 0f)
@@ -514,7 +690,13 @@ public class SecretPowerController : MonoBehaviour
             KillWithin(spot, decoyBlastRadius);
         }
 
-        if (bubbleLeft > 0f && (bubbleLeft -= dt) <= 0f) { bubbleLeft = 0f; WorldTimeFx.BubbleScale = 1f; }
+        if (bubbleLeft > 0f && (bubbleLeft -= dt) <= 0f)
+        {
+            bubbleLeft = 0f;
+            WorldTimeFx.BubbleScale = 1f;
+            if (bubbleFx != null && bubbleFx.Active && bubbleFx.name == BubbleDomeName) bubbleFx.Stop();
+            bubbleFx = null;
+        }
 
         if (dashLeft > 0f)
         {
@@ -532,10 +714,31 @@ public class SecretPowerController : MonoBehaviour
             if (holeLeft <= 0f) { holeLeft = 0f; ReleaseLocked(); }
         }
 
-        if (shellLeft > 0f && (shellLeft -= dt) <= 0f)
+        if (novaLeft > 0f)
         {
-            shellLeft = 0f;
-            ShipHitbox.SetShield(gameObject, ShipHitbox.Source.Shell, false);
+            novaLeft -= dt;
+            BurnWithin(novaAt, novaRadius);
+            if (novaLeft <= 0f) novaLeft = 0f;
+        }
+
+        if (ghostLeft > 0f)
+        {
+            ghostLeft -= dt;
+            SetHullAlpha(ghostAlpha);
+            if (ghostLeft <= 0f) { ghostLeft = 0f; SetHullAlpha(1f); }
+        }
+
+        if (shellLeft > 0f)
+        {
+            shellLeft -= dt;
+            if (shellLeft <= 0f)
+            {
+                shellLeft = 0f;
+                ShipHitbox.SetShield(gameObject, ShipHitbox.Source.Shell, false);
+                if (shellFx != null && shellFx.Active && shellFx.name == ShellAuraName) shellFx.Stop();
+                shellFx = null;
+            }
+            else if (!ShellDrawn) shellFx = ShellLoop(shellLeft);   // the pool took it back: draw it again
         }
     }
 
@@ -573,7 +776,8 @@ public class SecretPowerController : MonoBehaviour
     {
         ReleaseLocked();
         if (bubbleLeft > 0f) WorldTimeFx.BubbleScale = 1f;
-        stunLeft = magnetLeft = clapLeft = decoyLeft = bubbleLeft = dashLeft = holeLeft = shellLeft = 0f;
+        stunLeft = magnetLeft = tractorLeft = decoyLeft = bubbleLeft = dashLeft = holeLeft = shellLeft = novaLeft = 0f;
+        if (ghostLeft > 0f) { ghostLeft = 0f; SetHullAlpha(1f); }
         ShipHitbox.SetShield(gameObject, ShipHitbox.Source.Shell, false);
         DashOffsetX = 0f;
         ShipDecoy.Clear();
@@ -588,6 +792,9 @@ public static class ShipDecoy
     public static Vector3 Position { get; private set; }
 
     public static void Place(Vector3 at) { Active = true; Position = at; }
+
+    // Where an enemy shooter takes aim: the flare while one burns, else `real`.
+    public static Vector2 AimPoint(Vector2 real) { return Active ? (Vector2)Position : real; }
     public static void Clear() { Active = false; }
 }
 

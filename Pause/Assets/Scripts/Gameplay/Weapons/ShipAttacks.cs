@@ -402,7 +402,7 @@ public class ShipAttackRunner : MonoBehaviour
                 break;
 
             case ShipAttack.TractorBeam:
-                StepBeam(run);
+                StepBeam(run, dt);
                 if (run.t >= l.duration) run.Stop();
                 break;
 
@@ -476,7 +476,13 @@ public class ShipAttackRunner : MonoBehaviour
         return Vector2.Angle(Vector2.up, d) <= halfAngle + slack;
     }
 
-    void StepBeam(AttackRun run)
+    // The tractor beam: what is in its line dies; what is beside it (within
+    // BeamPullReach of the centre, along the beam) is dragged in towards the
+    // centre line while it is held. A boss is never moved.
+    public const float BeamPullReach = 1.7f, BeamPullSpeed = 5f;
+    public int BeamPulls { get; private set; }
+
+    void StepBeam(AttackRun run, float dt)
     {
         var l = run.loadout;
         Vector3 nose = Nose;
@@ -488,7 +494,19 @@ public class ShipAttackRunner : MonoBehaviour
         {
             var t = targets[i];
             if (t == null || !t.isActiveAndEnabled) continue;
-            if (!InRailLine(t.transform.position, t.Radius, nose, l.width, nose.y + len)) continue;
+            if (!InRailLine(t.transform.position, t.Radius, nose, l.width, nose.y + len))
+            {
+                if (dt > 0f && t.GetComponent<IShipAttackTarget>() == null)
+                {
+                    Vector3 p = t.transform.position;
+                    if (Mathf.Abs(p.x - nose.x) <= l.width + BeamPullReach && p.y >= nose.y - .35f && p.y <= nose.y + len)
+                    {
+                        t.transform.position = new Vector3(Mathf.MoveTowards(p.x, nose.x, BeamPullSpeed * dt), p.y, p.z);
+                        BeamPulls++;
+                    }
+                }
+                continue;
+            }
             Touch(run, t.gameObject, bossTick, .2f);
         }
     }
@@ -857,6 +875,7 @@ public class AttackProjectile : MonoBehaviour
     Transform target;
     GameObject lastSpecial;
     int hops;
+    Vector3 launchFrom;
 
     // Projectiles launched since load (tests, previews).
     public static int LaunchCount;
@@ -926,6 +945,7 @@ public class AttackProjectile : MonoBehaviour
         weight = hitWeight;
         target = homeOn;
         age = travelled = spinAngle = 0f;
+        launchFrom = at;
         lastSpecial = null;
         hops = 0;
         StopAtY = float.MinValue;
@@ -1000,7 +1020,11 @@ public class AttackProjectile : MonoBehaviour
                     if (hit != null)
                     {
                         if (kind == Kind.Fireball) { Burst(hit.transform.position); return; }
-                        Strike(hit.gameObject);
+                        var struckGo = hit.gameObject;
+                        Vector3 struck = hit.transform.position;
+                        Strike(struckGo);
+                        // the top tier's volley goes on (pierce / bounce / blast)
+                        if (kind == Kind.Homing) ShipVolley.AfterHit(ship, launchFrom, struck, struckGo, ref run.budget);
                         if (kind == Kind.Homing || kind == Kind.Straight) { Finish(true); return; }
                     }
                     if (kind == Kind.Fireball && travelled >= run.loadout.range) { Burst(to); return; }
@@ -1137,6 +1161,136 @@ public class AttackProjectile : MonoBehaviour
         lastSpecial = null;
         if (hit) WeaponFx.Impact(ship, transform.position, .5f);
         gameObject.SetActive(false);
+    }
+}
+
+// What a shot of the top tier's volley does once it has landed on its mark
+// (ShipLoadout.volley): the Ion Lancer's lances pierce on through the line of
+// targets behind it (maxHits targets in all), the Jade Phantom's wisps hop on
+// to the nearest ones (maxHits bounces), the Gold Warden's missiles blast
+// everything within `width` of the mark. Hits go through ShipAttackHits like
+// every attack, so a boss only takes what is left in `budget`.
+public static class ShipVolley
+{
+    public const float LanceHalfWidth = .42f;
+    public const float BounceReach = 3.5f;
+
+    static readonly List<ClearTarget> found = new List<ClearTarget>(64);
+    static readonly List<GameObject> seen = new List<GameObject>(8);
+    static readonly ClearTarget[] picked = new ClearTarget[8];
+
+    // `first` is what the shot just hit, `at` where it was; `from` is where
+    // the shot left. Returns the extra kills.
+    public static int AfterHit(int ship, Vector3 from, Vector3 at, GameObject first, ref float budget)
+    {
+        var l = ShipLoadoutTable.For(ship);
+        switch (l.volley)
+        {
+            case VolleyKind.Pierce: return Pierce(ship, l, from, at, first, ref budget);
+            case VolleyKind.Bounce: return Bounce(ship, l, at, first, ref budget);
+            case VolleyKind.Blast:  return Blast(ship, l, at, first, ref budget);
+        }
+        return 0;
+    }
+
+    static int Pierce(int ship, ShipLoadout l, Vector3 from, Vector3 at, GameObject first, ref float budget)
+    {
+        int extra = Mathf.Clamp(l.maxHits - 1, 0, picked.Length);
+        Vector2 dir = at - from;
+        dir = dir.sqrMagnitude > 1e-6f ? dir.normalized : Vector2.up;
+        ShipTargets.Collect(found);
+        int n = 0;
+        for (; n < extra; n++)
+        {
+            ClearTarget best = null;
+            float bestAlong = float.MaxValue;
+            for (int i = 0; i < found.Count; i++)
+            {
+                var t = found[i];
+                if (t == null || !t.isActiveAndEnabled || t.gameObject == first) continue;
+                bool taken = false;
+                for (int k = 0; k < n; k++) taken |= picked[k] == t;
+                if (taken) continue;
+                Vector2 d = (Vector2)t.transform.position - (Vector2)at;
+                float along = Vector2.Dot(d, dir);
+                if (along <= 0f || along >= bestAlong) continue;
+                float side = Mathf.Abs(d.x * dir.y - d.y * dir.x);
+                if (side > LanceHalfWidth + t.Radius * .5f) continue;
+                best = t;
+                bestAlong = along;
+            }
+            if (best == null) break;
+            picked[n] = best;
+        }
+        int kills = 0;
+        Vector3 end = at;
+        for (int i = 0; i < n; i++)
+        {
+            var t = picked[i];
+            picked[i] = null;
+            if (t == null || !t.isActiveAndEnabled) continue;
+            end = t.transform.position;
+            Flash(ship, end);
+            if (ShipAttackHits.Hit(t.gameObject, ship, 1f, ref budget)) kills++;
+        }
+        if (n > 0) Beam(ship, at, end);
+        return kills;
+    }
+
+    static int Bounce(int ship, ShipLoadout l, Vector3 at, GameObject first, ref float budget)
+    {
+        seen.Clear();
+        seen.Add(first);
+        int kills = 0;
+        Vector3 pos = at;
+        for (int i = 0; i < l.maxHits; i++)
+        {
+            var t = ShipTargets.Nearest(pos, BounceReach, seen);
+            if (t == null) break;
+            seen.Add(t.gameObject);
+            Vector3 to = t.transform.position;
+            Beam(ship, pos, to);
+            Flash(ship, to);
+            if (ShipAttackHits.Hit(t.gameObject, ship, 1f, ref budget)) kills++;
+            pos = to;
+        }
+        seen.Clear();
+        return kills;
+    }
+
+    static int Blast(int ship, ShipLoadout l, Vector3 at, GameObject first, ref float budget)
+    {
+        float r = l.width;
+        AttackPool.Sprite().Play(AttackSprite.Source.AttackBurst, ship, at, Vector3.one * r * 2.3f, 0f,
+            ShipFxArt.BurstTicks, false, 0f, null, Vector3.zero, 71);
+        ShipTargets.Collect(found);
+        int kills = 0;
+        for (int i = 0; i < found.Count; i++)
+        {
+            var t = found[i];
+            if (t == null || !t.isActiveAndEnabled || t.gameObject == first) continue;
+            Vector2 d = t.transform.position - at;
+            float reach = r + t.Radius * .5f;
+            if (d.sqrMagnitude > reach * reach) continue;
+            if (ShipAttackHits.Hit(t.gameObject, ship, 1f, ref budget)) kills++;
+        }
+        if (kills > 0) WorldTimeFx.HitStop(.05f);
+        return kills;
+    }
+
+    static void Flash(int ship, Vector3 at)
+    {
+        AttackPool.Sprite().Play(AttackSprite.Source.AttackBurst, ship, at, Vector3.one * .8f, 0f,
+            ShipFxArt.BurstTicks, false, 0f, null, Vector3.zero, 71);
+    }
+
+    static void Beam(int ship, Vector3 a, Vector3 b)
+    {
+        Vector3 d = b - a;
+        float len = Mathf.Max(.2f, d.magnitude);
+        float ang = Mathf.Atan2(d.y, d.x) * Mathf.Rad2Deg;
+        AttackPool.Sprite().Play(AttackSprite.Source.AttackLoop, ship, (a + b) * .5f, new Vector3(len, .55f, 1f),
+            ang, ShipFxArt.LoopTicks, true, .22f, null, Vector3.zero, 70);
     }
 }
 

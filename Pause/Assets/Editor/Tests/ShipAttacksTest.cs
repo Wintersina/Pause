@@ -322,13 +322,13 @@ public static class ShipAttacksTest
         Check("full -> ready", s.Ready);
 
         var foes = new List<GameObject>();
-        for (int i = 0; i < 4; i++) foes.Add(Hazard(-1.2f + i * .8f, 3f));
+        for (int i = 0; i < 2; i++) foes.Add(Hazard(-1.2f + i * .8f, 3f));
         s.Step(.02f);
-        Check("EMP waits while fewer than 5 enemies are on screen", s.FireCount == 0 && s.Ready);
+        Check("EMP waits while fewer than 3 enemies are on screen", s.FireCount == 0 && s.Ready);
         Check("the badge shows its ready tell", BadgeReady(s));
         foes.Add(Hazard(0f, 1f));
         s.Step(.02f);
-        Check("EMP fires itself once 5 enemies are on screen", s.FireCount == 1 && !s.Ready && s.Meter == 0f);
+        Check("EMP fires itself once 3 enemies are on screen", s.FireCount == 1 && !s.Ready && s.Meter == 0f);
         Check("and stuns them", s.Stunning);
         Teardown(viper);
         foreach (var f in foes) if (f != null) Object.DestroyImmediate(f);
@@ -373,8 +373,8 @@ public static class ShipAttacksTest
         for (int i = 0; i < 3; i++) foes.Add(Hazard(-1f + i, 4f));
         halo.Secret.SetMeter(SecretPowerController.Full);
         halo.Secret.Step(.02f);
-        Check("Capacitor Dump recharges the attack on a busy screen",
-              halo.Secret.FireCount == 1 && halo.SecondsLeft <= ChargeIndicator.ReadySeconds);
+        Check("Capacitor Dump fires the rail gun at once on a busy screen",
+              halo.Secret.FireCount == 1 && halo.Runner.FireCount == 1);
         Teardown(halo);
         foreach (var f in foes) if (f != null) Object.DestroyImmediate(f);
     }
@@ -568,7 +568,7 @@ public static class ShipAttacksTest
         FreshScene();
         var warden = Ship(7);
         boss = Boss(0f, 1f);
-        typeof(ShipPowerController).GetMethod("HitTarget", Inst).Invoke(warden, new object[] { boss.gameObject, Color.white });
+        typeof(ShipPowerController).GetMethod("HitTarget", Inst).Invoke(warden, new object[] { boss.gameObject, Color.white, new Vector3(0f, -3f, 0f) });
         Check("a screen-clear homing shot lands on the boss as one full hit",
               boss != null && boss.hits == 1 && Mathf.Approximately(boss.weight, 1f));
         Teardown(warden);

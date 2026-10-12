@@ -52,7 +52,7 @@ public static class HostileShots
     static readonly List<IHostileZone> zones = new List<IHostileZone>(16);
 
     // Counters (tests, previews).
-    public static int Clashes, Pops, BeamBurns, ShotDown, ZoneBurns;
+    public static int Clashes, Pops, BeamBurns, ShotDown, ZoneBurns, PowerCleared;
 
     public static IReadOnlyList<IHostileShot> All => shots;
 
@@ -64,7 +64,7 @@ public static class HostileShots
     public static void Unregister(IHostileZone z) { zones.Remove(z); }
     public static IReadOnlyList<IHostileZone> Zones => zones;
 
-    public static void ResetCounters() { Clashes = Pops = BeamBurns = ShotDown = ZoneBurns = 0; }
+    public static void ResetCounters() { Clashes = Pops = BeamBurns = ShotDown = ZoneBurns = PowerCleared = 0; }
 
     static bool Dead(IHostileShot s) => s == null || (Object)s == null;
 
@@ -161,6 +161,42 @@ public static class HostileShots
             float reach = r + s.ShotRadius;
             if (SegmentDistanceSq(from, to, p) > reach * reach) continue;
             ShotDown++;
+            n++;
+            Pop(s, p);
+        }
+        return n;
+    }
+
+    // A secret power's ring (Shield Pulse) deletes every light or heavy
+    // hostile shot within `r` of `at`; Volt Viper's EMP cancels every one
+    // inside `view`. No score; a landed pool (Fixed) stays.
+    public static int ClearWithin(Vector2 at, float r)
+    {
+        int n = 0;
+        for (int i = 0; i < shots.Count; i++)
+        {
+            var s = shots[i];
+            if (Dead(s) || !s.ShotCollidable || s.ShotMass == Fixed) continue;
+            Vector2 p = s.ShotPosition;
+            float reach = r + s.ShotRadius;
+            if ((p - at).sqrMagnitude > reach * reach) continue;
+            PowerCleared++;
+            n++;
+            Pop(s, p);
+        }
+        return n;
+    }
+
+    public static int ClearIn(Rect view)
+    {
+        int n = 0;
+        for (int i = 0; i < shots.Count; i++)
+        {
+            var s = shots[i];
+            if (Dead(s) || !s.ShotCollidable || s.ShotMass == Fixed) continue;
+            Vector2 p = s.ShotPosition;
+            if (!view.Contains(p)) continue;
+            PowerCleared++;
             n++;
             Pop(s, p);
         }

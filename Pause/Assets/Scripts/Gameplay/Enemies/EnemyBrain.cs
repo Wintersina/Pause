@@ -904,13 +904,15 @@ public class EnemyBrain : MonoBehaviour
         aim = Vector2.down;
         if (t != null)
         {
-            Vector2 to = (Vector2)t.position - ((Vector2)p + (Vector2)MuzzleLocal());
+            // a Flare Decoy draws the aim: the shot is locked on the flare, not the pilot
+            Vector2 mark = ShipDecoy.AimPoint(t.position);
+            Vector2 to = mark - ((Vector2)p + (Vector2)MuzzleLocal());
             if (b.aimCone > 0f && to.sqrMagnitude > 1e-4f)
             {
                 float deg = Mathf.Clamp(Vector2.SignedAngle(Vector2.down, to), -b.aimCone, b.aimCone);
                 aim = Rotate(Vector2.down, deg);
             }
-            lobTarget = t.position;
+            lobTarget = mark;
         }
         if (flipbook != null) flipbook.Drive(EnemyFlipbook.DrivePhase.Windup);
         if (charge != null) { charge.enabled = true; PulseCharge(); }

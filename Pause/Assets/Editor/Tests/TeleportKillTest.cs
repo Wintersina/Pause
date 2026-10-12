@@ -295,7 +295,7 @@ public static class TeleportKillTest
 
     // What a landed homing shot of the cinematic volley calls.
     static void UltimateHits(ShipPowerController c, GameObject target) =>
-        typeof(ShipPowerController).GetMethod("HitTarget", Inst).Invoke(c, new object[] { target, Color.white });
+        typeof(ShipPowerController).GetMethod("HitTarget", Inst).Invoke(c, new object[] { target, Color.white, new Vector3(0f, -3f, 0f) });
 
     static void UltimateKillsScore()
     {
@@ -309,8 +309,10 @@ public static class TeleportKillTest
         {
             Check("the top-tier ship's ultimate is the cinematic volley", ship.Loadout.IsTopTier);
             var targets = new GameObject[4];
-            targets[0] = Spawn(EnemyRole.Alien, new Vector3(-1f, 2f, 0f));
-            for (int i = 1; i < targets.Length; i++) targets[i] = Spawn(EnemyRole.Rock, new Vector3(i - 2f, 3f, 0f));
+            // spread wide: Gold Warden's missiles blast 1.6 round their mark
+            var spots = new[] { new Vector3(-2.5f, 2f, 0f), new Vector3(0f, 3.5f, 0f), new Vector3(2.5f, 2f, 0f), new Vector3(0f, 1f, 0f) };
+            targets[0] = Spawn(EnemyRole.Alien, spots[0]);
+            for (int i = 1; i < targets.Length; i++) targets[i] = Spawn(EnemyRole.Rock, spots[i]);
 
             int aliens = AchievementStore.Counter(AchievementCatalog.CKills);
             int rocks = AchievementStore.Counter(AchievementCatalog.CRocks);

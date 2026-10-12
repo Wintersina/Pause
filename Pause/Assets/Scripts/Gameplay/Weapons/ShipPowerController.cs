@@ -348,13 +348,6 @@ public class ShipPowerController : MonoBehaviour
         return CooldownAtomLabel(cut, timer <= 0f);
     }
 
-    // Capacitor Dump (a secret power): the attack comes back at once -- the
-    // ready tell still plays, so it never goes off unannounced.
-    public void RechargeNow()
-    {
-        timer = Mathf.Min(timer, ChargeIndicator.ReadySeconds * .9f);
-    }
-
     // The ship's main attack. Only the top price tier (ShipLoadoutTable)
     // gets the cinematic volley at everything on screen, with its slow
     // motion and early clear; every other ship fires its own directional or
@@ -479,7 +472,7 @@ public class ShipPowerController : MonoBehaviour
             var target = targets[i];
             if (target == null) continue;
             Vector3 from = gun != null ? gun.MuzzlePosition : transform.position + Vector3.up;
-            PowerFx.HomingProjectile(from, target.transform, tint, shipIndex, 2.4f, () => HitTarget(target, tint));
+            PowerFx.HomingProjectile(from, target.transform, tint, shipIndex, 2.4f, () => HitTarget(target, tint, from));
             yield return new WaitForSecondsRealtime(.11f);
         }
 
@@ -494,10 +487,15 @@ public class ShipPowerController : MonoBehaviour
     // One homing shot landed. Through ShipAttackHits, like every attack: a
     // hazard is destroyed; the boss (BossTarget, an IShipAttackTarget) is
     // hit, not destroyed, and one homing shot is one full ultimate hit.
-    void HitTarget(GameObject target, Color tint)
+    void HitTarget(GameObject target, Color tint, Vector3 from)
     {
         if (target == null) return;
+        Vector3 at = target.transform.position;
         ShipAttackHits.Hit(target, shipIndex);
+        // what this ship's volley does on landing: pierce on, bounce, blast
+        // (ShipVolley; a boss takes at most half a hit more from the extras)
+        float budget = .5f;
+        ShipVolley.AfterHit(shipIndex, from, at, target, ref budget);
         CheckCleared();
     }
 

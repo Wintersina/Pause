@@ -45,6 +45,7 @@ public static class CloakShieldTest
         CloakDuringShield();
         RecloakNeverShortens();
         ResetClearsCloak();
+        PhaseCloakGhostsThroughHazards();
 
         HudHasNoShieldTimer("Assets/Scenes/gameS1.unity", "gameS1");
         HudHasNoShieldTimer("Assets/Scenes/tutorialS5.unity", "tutorialS5");
@@ -250,6 +251,30 @@ public static class CloakShieldTest
         collisionDetection.BeginCloak(2f);
         Check("a shorter cloak never cuts a longer one short", Mathf.Approximately(collisionDetection.cloakTimer, 4f));
         collisionDetection.cloakTimer = 0f;
+    }
+
+    // Phase Cloak (the secret power) ghosts the hull: hazards pass through
+    // it, unhurt and unhurting, instead of being rammed to bits.
+    static void PhaseCloakGhostsThroughHazards()
+    {
+        var r = MakeRig();
+        PlayerPrefs.SetInt("spawnShip", 6);
+        var secret = SecretPowerController.Attach(r.ship, 6);
+        secret.SetMeter(SecretPowerController.Full);
+        secret.Fire();
+        Check("Phase Cloak ghosts the hull", SecretPowerController.Ghosted && collisionDetection.Invulnerable);
+
+        var rock = new GameObject("rock", typeof(CircleCollider2D));
+        rock.tag = "Astr";
+        rock.transform.position = r.ship.transform.position + Vector3.right * .3f;
+        Trigger.Invoke(r.cd, new object[] { rock.GetComponent<Collider2D>() });
+        Check("a ghosted hull takes no damage", collisionDetection.lifeCounter == 0);
+        Check("and the hazard passes through, still there", rock != null);
+        Object.DestroyImmediate(rock);
+
+        secret.Step(5f);
+        Check("the ghost is gone after its 4 s", !SecretPowerController.Ghosted);
+        r.Dispose();
     }
 
     static void ResetClearsCloak()

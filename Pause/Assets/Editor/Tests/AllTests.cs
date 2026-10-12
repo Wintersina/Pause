@@ -172,6 +172,7 @@ public static class AllTests
         ("PlayerZoneTopTest", PlayerZoneTopTest.Execute),
         ("ShipHitboxTest", ShipHitboxTest.Execute),
         ("ShipReachTest", ShipReachTest.Execute),
+        ("PowersReworkTest", PowersReworkTest.Execute),
         ("ShipAttacksTest", ShipAttacksTest.Execute),
         ("ShipDamageTest", ShipDamageTest.Execute),
         ("ShipLivesIndicatorTest", ShipLivesIndicatorTest.Execute),

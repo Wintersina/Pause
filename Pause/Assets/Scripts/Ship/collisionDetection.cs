@@ -96,7 +96,8 @@ public class collisionDetection : MonoBehaviour {
     // farmed for real currency.
     void awardDust(float amount)
     {
-        score.AwardStarDust(amount);
+        // Gold Magnet: dust is worth double while it pulls
+        score.AwardStarDust(amount * SecretPowerController.DustMultiplier);
     }
 
     // A kill's crumb of dust is a reward, not a pickup: scaled (DustRewardScale).
@@ -240,6 +241,10 @@ public class collisionDetection : MonoBehaviour {
             // Cloak is also up, the ship passes through harmlessly -- no
             // heart, no ram kill, no secret power spent.
             if (PlayerInvuln.Active && !Invulnerable) return;
+            // Phase Cloak's ghosting: the hull is out of phase, so hazards
+            // drift through untouched (no hit, no ram kill) -- unless the
+            // blue atom's shield is up, which still smashes what it meets.
+            if (SecretPowerController.Ghosted && !atomCheck) return;
             // A planetfall's descent: nothing can touch the ship (the board
             // was cleared at the commit; this is the guarantee).
             if (Planetfall.ShieldsShip || Liftoff.ShieldsShip || PortalArrival.ShieldsShip) return;
@@ -251,6 +256,8 @@ public class collisionDetection : MonoBehaviour {
             // Phase Cloak, Blink Dash) spends itself now, and a Hard Shell
             // eats the hit: either way it lands as a shielded hit.
             bool safe = Invulnerable || SecretPowerController.InterceptHit(hit.gameObject);
+            // (the hit that set Phase Cloak off passes through too)
+            if (safe && SecretPowerController.Ghosted && !atomCheck) return;
             // The power may already have destroyed it (Shield Pulse): don't
             // blow it up, or pay for it, twice.
             if (safe && ShipAttackHits.AlreadyHit(hit.gameObject)) return;
