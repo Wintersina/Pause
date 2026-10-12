@@ -27,6 +27,24 @@ public class movePlayer : MonoBehaviour
 
     private float nextTeleportAt;
 
+    // The launch glide. A finger already down when GO fires used to teleport
+    // the ship onto it (the first steered frame was a plain placement, or a
+    // full blink with FX when the finger had lifted and re-landed during
+    // READY). Now the ship glides there instead: an exponential ease-out
+    // toward the live finger, speed capped so a far finger is still a fast
+    // glide, then it hands over to the normal 1:1 follow. Only the first GO of
+    // this ship's life starts one (playoneshot); lifting the finger cancels it
+    // (that is the pause), so pause-teleport works as ever, mid-glide too.
+    public const float GlideRate = 14f;        // 1/s: ~95% of the gap in 0.2 s
+    public const float GlideMaxSpeed = 60f;    // world units / s
+    public const float GlideSettleDistance = 0.05f;
+    public const float GlideMaxSeconds = 0.6f; // hard end; rate ramps up from 0.35 s
+    const float GlideRampStart = 0.35f;
+    const float GlideRampPerSecond = 60f;
+    const float GlideMaxStep = 0.05f;          // dt clamp (hitch frames)
+    private bool gliding;
+    private float glideElapsed;
+
     // The launch countdown: one second of "READY" from the first touch, then
     // "GO!!!!" and the ship steers on that same frame. GO only lingers as a
     // fade-out; it never holds control back. (It used to be a 2s count plus a
@@ -68,7 +86,7 @@ public class movePlayer : MonoBehaviour
         // is down, and steering never waits for it.
         if (!playoneshot && goTimer > 0f)
         {
-            goTimer = TickCountdown(goTimer, Time.unscaledDeltaTime);
+            goTimer = TickCountdown(goTimer, Dt());
             Color c = startTimerBaseColor;
             c.a *= GoAlpha(goTimer);
             startTimer.color = c;
@@ -83,6 +101,7 @@ public class movePlayer : MonoBehaviour
         {
             teleported = false;
             teleportLockedUntilRelease = false;
+            gliding = false;
             return;
         }
 
@@ -98,7 +117,7 @@ public class movePlayer : MonoBehaviour
             // every frame, so the countdown was gone in a few frames, and the
             // font grew by 3 every frame without limit. Unscaled: the world is
             // still frozen at timeScale 0 on the frame the finger lands.
-            bool live = StepLaunch(ref startTimerCounter, Time.unscaledDeltaTime);
+            bool live = StepLaunch(ref startTimerCounter, Dt());
             startTimer.fontSize = CountdownFontSize(startTimerBaseFontSize, startTimerCounter);
 
             if (live)
@@ -109,6 +128,11 @@ public class movePlayer : MonoBehaviour
                     startTimer.text = LaunchLabel(startTimerCounter);
                     goClip.Play();
                     playoneshot = false;
+                    // The launch never blinks: glide to the finger instead.
+                    gliding = true;
+                    glideElapsed = 0f;
+                    teleported = false;
+                    teleportLockedUntilRelease = false;
                 }
 
                 if (TouchInput.IsPressed)
@@ -119,7 +143,17 @@ public class movePlayer : MonoBehaviour
                 else
                     teleported = true;
 
-                if (teleported)
+                if (gliding)
+                {
+                    float dt = Mathf.Min(Dt(), GlideMaxStep);
+                    Vector3 target = FollowTarget(fingerPos);
+                    bool done;
+                    Vector3 next = GlideStep(transform.position, target, glideElapsed, dt, out done);
+                    glideElapsed += dt;
+                    PlaceShip(next);
+                    if (done) gliding = false;
+                }
+                else if (teleported)
                 {
                     // `teleported` is set the moment the finger lifts, so the
                     // next touch is an arrival rather than a drag. Do the
@@ -156,10 +190,57 @@ public class movePlayer : MonoBehaviour
         }
         else
         {
+            // Finger up = the pause: a glide in flight is cancelled where it
+            // is, and the next touch is an ordinary pause-teleport.
+            gliding = false;
             teleported = true;
             teleportLockedUntilRelease = false;
         }
 
+    }
+
+#if UNITY_EDITOR
+    // Edit-mode tests step Update by hand; Time.unscaledDeltaTime is not real there.
+    public static System.Func<float> DeltaOverride;
+#endif
+    static float Dt()
+    {
+#if UNITY_EDITOR
+        if (DeltaOverride != null) return DeltaOverride();
+#endif
+        return Time.unscaledDeltaTime;
+    }
+
+    // Where the hull sits for a finger at world position `finger`.
+    public static Vector3 FollowTarget(Vector3 finger)
+    {
+        float x = ShipReach.ClampX(finger.x + SecretPowerController.DashOffsetX);
+        float y = ClampPlayerY(finger.y + ShipReach.FingerOffset);
+        return new Vector3(x, y);
+    }
+
+    // One frame of the launch glide from `pos` toward the live `target`.
+    // Exponential ease-out, capped at GlideMaxSpeed, with the rate ramping up
+    // late so a moving finger can't hold it open past GlideMaxSeconds. `done`
+    // lands exactly on the target (within GlideSettleDistance or out of time).
+    public static Vector3 GlideStep(Vector3 pos, Vector3 target, float elapsed, float dt, out bool done)
+    {
+        float rate = GlideRate + GlideRampPerSecond * Mathf.Max(0f, elapsed - GlideRampStart);
+        float gap = Vector3.Distance(pos, target);
+        float step = Mathf.Min(gap * (1f - Mathf.Exp(-rate * dt)), GlideMaxSpeed * dt);
+        Vector3 next = gap <= 1e-6f ? target : Vector3.MoveTowards(pos, target, step);
+        done = Vector3.Distance(next, target) <= GlideSettleDistance || elapsed + dt >= GlideMaxSeconds;
+        if (done) next = target;
+        return next;
+    }
+
+    void PlaceShip(Vector3 p)
+    {
+        this.transform.position = p;
+        hypeText.gameObject.SetActive(true);
+        boostText.gameObject.SetActive(true);
+        hypeText.transform.position = textPos + new Vector3(0, 75, 0);
+        boostText.transform.position = textPos + new Vector3(0, -60, 0);
     }
 
     public static float TickCountdown(float remaining, float deltaTime)
