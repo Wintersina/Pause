@@ -868,6 +868,15 @@ public class AttackProjectile : MonoBehaviour
     public float HitRadius => radius;
     void OnDestroy() { Flying.Remove(this); }
 
+    // The shield's shockwave (ShieldShockwave): displaced by `by`, trail and
+    // all. It steers from where it is (dir), so it flies on from the new place.
+    public void Shove(Vector2 by)
+    {
+        if (!Active) return;
+        transform.position += (Vector3)by;
+        for (int i = 0; i < hist.Length; i++) hist[i] += (Vector3)by;
+    }
+
     public bool Active { get; private set; }
     public ShipAttackRunner Owner => owner;
     public Transform Target => target;

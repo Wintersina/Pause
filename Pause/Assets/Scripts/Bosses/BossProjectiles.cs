@@ -94,6 +94,23 @@ public class BossProjectile : MonoBehaviour, IHostileShot
     public float ShotAge => age;
     public int ShotMass => HostileShots.Light;
     public Color ShotTint => boss != null ? boss.flash : Color.white;
+    public bool ShotShovable => Active && hitbox != null;
+
+    // The shield's shockwave (ShieldShockwave): displaced by `by`. Its course is
+    // position + velocity, so the shove is just a new position; a shot that
+    // stops at or bounces off the rails is kept inside them.
+    public void ShotShove(Vector2 by)
+    {
+        if (!Active) return;
+        Vector3 p = transform.position;
+        float x = p.x + by.x;
+        if (rail != BossRailMode.Pass)
+        {
+            float edge = Mathf.Max(Mathf.Abs(p.x), BossRails.InnerEdge - radius);
+            x = Mathf.Clamp(x, -edge, edge);
+        }
+        transform.position = new Vector3(x, p.y + by.y, p.z);
+    }
 
     public void ShotPop(Vector2 at)
     {
