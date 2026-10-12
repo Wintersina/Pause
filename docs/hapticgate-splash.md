@@ -122,8 +122,11 @@ the user; no beeps or coin sounds):
   0.12); `Layout.gateCenter` / `Layout.logoCenter` (the wordmark's FINAL centre). Edit-mode layout tests and the
   screen-fit rig see the wordmark at its final spot (the flight only runs while playing / `BuildGateInEditMode`).
 * The gap shows dark interior with warm haze (`GateView` "Gap haze"), no centre beam.
-* The closed-gate lockup (`hapticgate_lockup.png`, from `HapticGate-brand/closed`) is used by the Credits only
-  (`HapticGateMark.Lockup`); replace the PNG to change it.
+* The Credits head their roll with the animated gate-opening logo (`GateOpenPlayer` + `GateOpenFrames`, frames
+  `Art/Resources/HapticGate/GateOpen/gate_open_00..68.png`, 512 px RGBA, 15 fps, 4.6 s, then holds the last
+  frame). The frames are a transparent re-render of `HapticGate-brand/final` (same `build_final.py` timing and
+  particles, every 2nd frame up to the final hold). The closed-gate lockup (`hapticgate_lockup.png`,
+  `HapticGateMark.Lockup`) is only the fallback when those frames are missing.
 * The user's `gate_open.wav` (Audio/Resources/Audio/GateOpen, 5.6 s stereo 48 kHz, Vorbis q0.65, 141 KB
   imported) replaces the natural-run rattle and the seven step shrieks (`GateAudio.OpenReplaces`). Its first
   big hit is 1.11 s into the file (the broadband sweep ends and the latch lets go; found with astats/spectrogram);
