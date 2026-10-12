@@ -37,7 +37,7 @@ public static class ReplayTest
 
     const BindingFlags Inst = BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance;
     const BindingFlags Stat = BindingFlags.NonPublic | BindingFlags.Static;
-    const int Space = 0, Frost = 1, Verdant = 2, Ember = 3;
+    const int Space = 0, Frost = 1, Verdant = 2, Ember = 3, Desert = 6;
 
     public static int Execute()
     {
@@ -218,17 +218,17 @@ public static class ReplayTest
 
     static void AfterLoop()
     {
-        Prefs(Ember);
+        Prefs(Desert);
         var wm = Load();
-        Check("an Ember run", WorldManager.CurrentIndex == Ember && RunLoop.StartWorld == Ember);
+        Check("an Desert run", WorldManager.CurrentIndex == Desert && RunLoop.StartWorld == Desert);
         FinishLevel(wm);
         Check("the loop portal is open", wm.PortalIsOpen && !WorldManager.HasNext);
         wm.Advance(false);
         Gone();
-        Check("looped back to Ember, loop 1", WorldManager.CurrentIndex == Ember && RunLoop.Index == 1);
+        Check("looped back to Desert, loop 1", WorldManager.CurrentIndex == Desert && RunLoop.Index == 1);
         DieAndReplay();
         wm = Load();
-        Check("after a loop (died in Ember, loop 1), Replay starts in Ember on loop 0", WorldManager.CurrentIndex == Ember && RunLoop.Index == 0);
+        Check("after a loop (died in Desert, loop 1), Replay starts in Desert on loop 0", WorldManager.CurrentIndex == Desert && RunLoop.Index == 0);
         Clean("replay after a loop", wm);
     }
 

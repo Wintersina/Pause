@@ -56,6 +56,7 @@ public static class TransitionChargeTest
             LiftoffClimb(1);
             LiftoffClimb(2);
             LiftoffClimb(3);
+            LiftoffClimb(6);   // Desert, the final world: the loop starts at the interlude's end
             BossKillToPortal();
             NeverSticks();
             NoAllocations();
@@ -290,9 +291,9 @@ public static class TransitionChargeTest
         LiftoffCatalog.Enabled = false;   // Verdant's and Ember's own ends are lift-offs (LiftoffClimb); here their portals
         // ... and Verdant -> Ember without Ember's planetfall: the portal as it was before Ember's art
         PlanetfallCatalog.Defs = new[] { PlanetfallCatalog.Frost, PlanetfallCatalog.Verdant };
-        foreach (int world in new[] { 2, 3 })   // Verdant -> Ember, and Ember's loop portal
+        foreach (int world in new[] { 2, 6 })   // Verdant -> Ember, and Desert's (the last world's) loop portal
         {
-            string name = world == 3 ? "the loop portal" : "the portal";
+            string name = world == 6 ? "the loop portal" : "the portal";
             FreshScene(world);
             var c = Ship();
             var wm = World();
@@ -404,11 +405,11 @@ public static class TransitionChargeTest
         Check(name + ": beat, rise and interlude (" + (w.frames * Dt).ToString("F1") + " s) hold the charge",
               rose && interlude && w.held && Liftoff.Live == null);
         Check(name + ": ... nothing fires, the gun tucked in, the signal on throughout", w.quiet && w.tucked && w.signal);
-        // Frost's gateway: Verdant's planetfall; Verdant's: Ember's; Ember's
+        // Frost's gateway: Verdant's planetfall; Verdant's: Ember's; Desert's
         // (the last world): no gateway, the loop starts Space at once
         bool fall = from < WorldManager.LastLiveWorld;
         string onto = fall ? WorldManager.Worlds[from + 1].displayName : "";
-        if (!fall && LiftoffCatalog.Ember.AutoLoopNow)
+        if (!fall && LiftoffCatalog.Desert.AutoLoopNow)
         {
             Check(name + ": no portal: the loop began at the interlude's end (" + WorldManager.Current.displayName + ", loop " +
                   RunLoop.Index + "), the transition over",
@@ -502,8 +503,8 @@ public static class TransitionChargeTest
         Check("a scene reload mid-descent clears it", on && !WorldTransition.InProgress);
 
         // a dead pilot at the open portal: nothing fires, and the run's reload clears it
-        LiftoffCatalog.Enabled = false;   // Ember's loop portal (its lift-off: LiftoffClimb)
-        FreshScene(3);
+        LiftoffCatalog.Enabled = false;   // Desert's loop portal (its lift-off: LiftoffClimb)
+        FreshScene(6);
         wm = World();
         c = Ship();
         SetTimer(c, 0f);
@@ -544,8 +545,8 @@ public static class TransitionChargeTest
         Object.DestroyImmediate(wm.gameObject);
 
         // the manager going with the portal open (the scene going) clears it
-        LiftoffCatalog.Enabled = false;   // Ember's loop portal straight away
-        FreshScene(3);
+        LiftoffCatalog.Enabled = false;   // Desert's loop portal straight away
+        FreshScene(6);
         wm = World();
         FinishLevel(wm);
         on = WorldTransition.InProgress && Portal.Live != null;

@@ -200,8 +200,11 @@ public static class SpeedRampTest
             Debug.Log("[SR] " + theme.displayName + ": rate " + theme.speedRampPerSecond + "/s, cap " + SpeedRamp.Cap +
                       ", reaches the cap at " + reachedAt.ToString("F1") + "s, HUD 15 at " + at15.ToString("F1") +
                       "s, speed at 180s " + SpeedRamp.SpeedAfter(0f, theme.speedRampPerSecond, SpeedRamp.Cap, 180f).ToString("F3"));
-            Check(theme.displayName + ": HUD 15 within 2s of the pre-fix " + FeltSecondsTo15[w] + "s (" + at15.ToString("F1") + "s)",
-                  at15 >= 0f && Mathf.Abs(at15 - FeltSecondsTo15[w]) <= 2f);
+            if (w < FeltSecondsTo15.Length)   // (the pre-fix feel was only measured for the first four worlds)
+                Check(theme.displayName + ": HUD 15 within 2s of the pre-fix " + FeltSecondsTo15[w] + "s (" + at15.ToString("F1") + "s)",
+                      at15 >= 0f && Mathf.Abs(at15 - FeltSecondsTo15[w]) <= 2f);
+            else
+                Check(theme.displayName + ": HUD 15 is reached (" + at15.ToString("F1") + "s)", at15 >= 0f);
             Check(theme.displayName + ": reaches the cap inside " + LevelSeconds + "s of flight (" + reachedAt.ToString("F1") + "s)",
                   reachedAt >= 0f && reachedAt <= LevelSeconds);
             Check(theme.displayName + ": speed never exceeds the cap " + SpeedRamp.Cap + " (peak " + peak.ToString("F4") + ")",

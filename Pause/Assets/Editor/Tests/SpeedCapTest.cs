@@ -471,7 +471,7 @@ public static class SpeedCapTest
     {
         Debug.Log("[CAP] TABLE ramp: seconds from 0 to HUD 10 / 20 / 30 / 35, old (cap) / new");
         bool early = true, slower = true, slightly = true, reached = true, tickAgrees = true;
-        for (int w = 0; w < WorldManager.LiveWorldCount; w++)
+        for (int w = 0; w < OldCaps.Length; w++)   // (the old per-world caps existed for the first four worlds only)
         {
             var theme = WorldManager.Worlds[w];
             float rate = theme.speedRampPerSecond;
@@ -525,7 +525,7 @@ public static class SpeedCapTest
         bool sooner = true, baseline = true, lasting = true, dustSame = true;
         var passOld = new float[Starts.Length];
         var passNew = new float[Starts.Length];
-        for (int w = 0; w < WorldManager.LiveWorldCount; w++)
+        for (int w = 0; w < OldCaps.Length; w++)   // (the old per-world caps: the first four worlds)
         {
             var theme = WorldManager.Worlds[w];
             float rate = theme.speedRampPerSecond, oldD = OldWorldDistance(w), newD = WorldManager.WorldDistanceFor(w);

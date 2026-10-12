@@ -36,7 +36,7 @@ public static class BossEncounterTest
             StormBossIsWired();
             DesertBossIsWired();
             LevelEndStartsTheBossThenThePortal();
-            EmberHasABossThenTheLoopPortal();
+            DesertHasABossThenTheLoopPortal();
             IntroFreezeIsScriptedAndFree();
             SpeedIsHeldAt20ThenReleased();
             ProjectilesFreezeAtTimeScaleZero();
@@ -270,22 +270,22 @@ public static class BossEncounterTest
         Check("the same world's boss doesn't come back for a missed portal", !BossEncounter.Begin(0, null));
     }
 
-    static void EmberHasABossThenTheLoopPortal()
+    static void DesertHasABossThenTheLoopPortal()
     {
-        // Ember's lift-off (LiftoffTest) stands aside: its end opens the loop
+        // Desert's lift-off (LiftoffTest) stands aside: its end opens the loop
         // portal at once (with the lift-off the loop starts with no portal:
         // LiftoffTest, LoopTest).
         LiftoffCatalog.Enabled = false;
-        try { EmberBossToLoopPortal(); }
+        try { DesertBossToLoopPortal(); }
         finally { LiftoffCatalog.Enabled = true; }
     }
 
-    static void EmberBossToLoopPortal()
+    static void DesertBossToLoopPortal()
     {
-        FreshScene(3);
+        FreshScene(6);
         var wm = World(-1f);
         wm.SendMessage("Update");
-        Check("Ember's level end starts its boss", BossEncounter.Running && BossEncounter.Instance.Boss.artKey == "Ember");
+        Check("Desert's level end starts its boss", BossEncounter.Running && BossEncounter.Instance.Boss.artKey == "Desert");
         var e = BossEncounter.Instance;
         e.Step(.1f, 1f);
         RunWhile(e, BossEncounter.Phase.Intro);

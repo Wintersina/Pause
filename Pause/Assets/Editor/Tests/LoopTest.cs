@@ -9,14 +9,14 @@ using UnityEngine.UI;
 // multiplier (WorldManager, Portal, LoopRules, RunLoop, ScoreRules).
 // docs/speed-and-loops.md.
 //
-//   1  the Ember boss is followed by the portal, as in every world: it leads
+//   1  the final world's (Desert's) boss is followed by the portal, as in every world: it leads
 //      to the run's start world, freezes nothing, stops the level clock and
 //      never goes away (no KEEP FLYING / LOOP BACK choice any more)
-//   2  waiting at it: still Ember, no boss, the pressure climbs, the natural
+//   2  waiting at it: still the final world, no boss, the pressure climbs, the natural
 //      speed never passes the one cap (HUD 35)
 //   3  through it: the run's start world, score kept, loop + 1, arrival speed
 //      under the cap, and the next boss / portal sequence works (also a start
-//      world of Ember)
+//      world of Desert)
 //   4  per-loop difficulty (no speed: density, pilot load, threat ceiling,
 //      fighter tiers, shot budget and cadence, score) and bonus scaling apply
 //      and stay capped
@@ -47,7 +47,7 @@ public static class LoopTest
     }
 
     const BindingFlags Inst = BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance;
-    const int Ember = 3;
+    const int Ember = 3, Last = 6;   // Last = Desert, the final world (the loop portal / lift-off tests run there)
 
     public static int Execute()
     {
@@ -67,7 +67,7 @@ public static class LoopTest
             FinalPortalOpensAndWaits();
             WaitingAtTheFinalPortal();
             LoopBackGoesToTheStartWorld();
-            LoopBackFromAnEmberStart();
+            LoopBackFromTheLastWorldStart();
             LoopStartsStraightFromTheLiftoff();
             LoopScalingAppliesAndCaps();
             SpeedMultiplierTiersAndCap();
@@ -182,12 +182,12 @@ public static class LoopTest
 
     static void FinalPortalOpensAndWaits()
     {
-        FreshScene(Ember, 0);
+        FreshScene(Last, 0);
         var (bg, _) = Board();
         var wm = World(-1f);
         int pauses = score.pauseCounter = 3;
         wm.Tick(.1f);
-        Check("Ember's level end starts its boss", BossEncounter.Running && BossEncounter.Instance.Boss.artKey == "Ember");
+        Check("Desert's level end starts its boss", BossEncounter.Running && BossEncounter.Instance.Boss.artKey == "Desert");
         Check("no portal during the fight", !wm.PortalIsOpen && Portal.Live == null && wm.Stage == WorldManager.LevelStage.Boss);
         var e = BossEncounter.Instance;
         e.Step(.1f, 1f);
@@ -195,7 +195,7 @@ public static class LoopTest
         RunWhile(e, BossEncounter.Phase.Fight);
         RunWhile(e, BossEncounter.Phase.Outro);
         Check("encounter done", e.State == BossEncounter.Phase.Done);
-        Check("after the Ember boss the portal opens, as in every world (stage Portal, no choice)",
+        Check("after the Desert boss the portal opens, as in every world (stage Portal, no choice)",
               wm.PortalIsOpen && wm.Stage == WorldManager.LevelStage.Portal && Portal.Live != null &&
               Object.FindFirstObjectByType<Portal>() != null);
         Check("... leading back to the run's start world (Space), wearing its colour",
@@ -221,7 +221,7 @@ public static class LoopTest
         Check("ten minutes on: the same loop portal, still open, on station and in view",
               Portal.Live == portal && portal != null && portal.OnStation && wm.PortalIsOpen &&
               portal.transform.position.y < CameraFit.ViewTop && portal.transform.position.y > CameraFit.ViewBottom &&
-              !BossEncounter.Running && WorldManager.CurrentIndex == Ember && RunLoop.Index == 0);
+              !BossEncounter.Running && WorldManager.CurrentIndex == Last && RunLoop.Index == 0);
 
         Check("the choice is gone from the game (no FinalChoicePanel, no KEEP FLYING)",
               !File.Exists("Assets/Scripts/Worlds/FinalChoicePanel.cs") &&
@@ -237,12 +237,12 @@ public static class LoopTest
 
     static void WaitingAtTheFinalPortal()
     {
-        FreshScene(Ember, 0);
+        FreshScene(Last, 0);
         var (bg, _) = Board();
         var wm = World(-1f);
         PlayBoss(wm);
         Check("waiting: the loop portal is open", wm.PortalIsOpen && wm.Stage == WorldManager.LevelStage.Portal);
-        var theme = WorldManager.Worlds[Ember];
+        var theme = WorldManager.Worlds[Last];
         ApplyDifficulty();
         float dens0 = PortalPressure.DensityScale, loopDensity = LoopDifficulty.DensityScale;
 
@@ -272,14 +272,14 @@ public static class LoopTest
         Check("the walls ramp to the one cap, HUD " + SpeedRamp.CapHud + " (peak " + (peak * 100f).ToString("F2") + ")",
               Mathf.Approximately(bg.maxSpeed, SpeedRamp.Cap) && peak <= SpeedRamp.Cap + 1e-6f &&
               Mathf.Approximately(moveBackGround.speed, SpeedRamp.Cap));
-        Check("twenty minutes on: still Ember, the portal still open, no boss, the loop index unmoved",
-              WorldManager.CurrentIndex == Ember && wm.PortalIsOpen && !BossEncounter.Running && RunLoop.Index == 0 &&
+        Check("twenty minutes on: still Desert, the portal still open, no boss, the loop index unmoved",
+              WorldManager.CurrentIndex == Last && wm.PortalIsOpen && !BossEncounter.Running && RunLoop.Index == 0 &&
               Object.FindFirstObjectByType<Portal>() != null);
         Check("the pressure climbs instead (spawn rate x" + dens0.ToString("F2") + " -> x" + PortalPressure.DensityScale.ToString("F2") +
               "), the loop's own density untouched", PortalPressure.DensityScale > dens0 && PortalPressure.Pressing &&
               LoopDifficulty.DensityScale == loopDensity);
-        Check("Ember's full song keeps looping while it waits (it has a loop-out point)",
-              WorldMusic.LoopOutSeconds(WorldMusic.EmberTrack) > 0f && theme.musicResource == WorldMusic.EmberTrack && !theme.progressiveMusic);
+        Check("Desert's full song keeps looping while it waits (it has a loop-out point)",
+              WorldMusic.LoopOutSeconds(WorldMusic.DesertTrack) > 0f && theme.musicResource == WorldMusic.DesertTrack && !theme.progressiveMusic);
         foreach (var p in Object.FindObjectsByType<Portal>(FindObjectsSortMode.None)) Object.DestroyImmediate(p.gameObject);
         PortalPressure.Reset();
         moveBackGround.speed = 0f;
@@ -289,7 +289,7 @@ public static class LoopTest
 
     static void LoopBackGoesToTheStartWorld()
     {
-        FreshScene(Ember, 0);
+        FreshScene(Last, 0);
         Board();
         var wm = World(-1f);
         RunScore.Tick(30f, .3f);
@@ -301,7 +301,7 @@ public static class LoopTest
         var portal = Portal.Live;
         for (int i = 0; i < 90; i++) { portal.Step(1f); wm.Tick(1f); }
         Check("90 s later the same loop portal is still open (no missed portal, no lap)",
-              Portal.Live == portal && wm.PortalIsOpen && WorldManager.CurrentIndex == Ember && !BossEncounter.Running);
+              Portal.Live == portal && wm.PortalIsOpen && WorldManager.CurrentIndex == Last && !BossEncounter.Running);
 
         // Fly through it.
         long before = RunScore.Total;
@@ -310,8 +310,8 @@ public static class LoopTest
         foreach (var p in Object.FindObjectsByType<Portal>(FindObjectsSortMode.None)) Object.DestroyImmediate(p.gameObject);
         Check("arrives in the run's start world (Space)", WorldManager.CurrentIndex == 0);
         Check("loopIndex 0 -> 1", RunLoop.Index == 1 && RunScore.Parts.loops == 1);
-        Check("the score carries over: + Ember's world bonus only (" + before + " -> " + RunScore.Total + ")",
-              RunScore.Total == before + ScoreRules.WorldClearedPoints(Ember, 0));
+        Check("the score carries over: + Desert's world bonus only (" + before + " -> " + RunScore.Total + ")",
+              RunScore.Total == before + ScoreRules.WorldClearedPoints(Last, 0));
         Check("the pressure is over: neutral dials again", !PortalPressure.Active && PortalPressure.DensityScale == 1f &&
               !PortalPressure.EarningsClosed && wm.Stage == WorldManager.LevelStage.Level);
         Check("arrival speed is the ship's fresh-run start (HUD " + Mathf.RoundToInt(moveBackGround.speed * 100f) + "), under the cap",
@@ -333,45 +333,45 @@ public static class LoopTest
         Check("still loop 2", RunLoop.Index == 1);
     }
 
-    static void LoopBackFromAnEmberStart()
+    static void LoopBackFromTheLastWorldStart()
     {
-        // A run that began in Ember (furthest unlocked, or the developer's pick)
-        // loops back to Ember itself -- and meets its boss again.
-        FreshScene(Ember, Ember);
+        // A run that began in Desert (furthest unlocked, or the developer's pick)
+        // loops back to Desert itself -- and meets its boss again.
+        FreshScene(Last, Last);
         Board();
         var wm = World(-1f);
         PlayBoss(wm);
-        Check("Ember start: its portal leads back to Ember", wm.PortalIsOpen && WorldManager.PortalDestination == Ember);
+        Check("Desert start: its portal leads back to Desert", wm.PortalIsOpen && WorldManager.PortalDestination == Last);
         Advance(wm);
         foreach (var p in Object.FindObjectsByType<Portal>(FindObjectsSortMode.None)) Object.DestroyImmediate(p.gameObject);
-        Check("Ember start: the loop portal lands in Ember, loop 2", WorldManager.CurrentIndex == Ember && RunLoop.Index == 1);
+        Check("Desert start: the loop portal lands in Desert, loop 2", WorldManager.CurrentIndex == Last && RunLoop.Index == 1);
         long before = RunScore.Total;
         PlayBoss(wm);
-        Check("Ember's boss again on the loop, paying x1.5 (" + (RunScore.Total - before) + ")",
-              BossEncounter.DoneInWorld(Ember) && RunScore.Total - before >= ScoreRules.BossPoints(false, 0f, false, 1) &&
+        Check("Desert's boss again on the loop, paying x1.5 (" + (RunScore.Total - before) + ")",
+              BossEncounter.DoneInWorld(Last) && RunScore.Total - before >= ScoreRules.BossPoints(false, 0f, false, 1) &&
               ScoreRules.BossPoints(false, 0f, false, 1) == 225);
-        Check("... then the same loop portal again, to Ember", wm.PortalIsOpen && wm.Stage == WorldManager.LevelStage.Portal &&
-              WorldManager.PortalDestination == Ember);
+        Check("... then the same loop portal again, to Desert", wm.PortalIsOpen && wm.Stage == WorldManager.LevelStage.Portal &&
+              WorldManager.PortalDestination == Last);
         foreach (var p in Object.FindObjectsByType<Portal>(FindObjectsSortMode.None)) Object.DestroyImmediate(p.gameObject);
         PortalPressure.Reset();
     }
 
-    // Ember's lift-off (LiftoffDef.AutoLoopNow while Tide is gated off): after its interlude in Space's
+    // Desert's lift-off (LiftoffDef.AutoLoopNow while Tide is gated off): after its interlude in Space's
     // sky the loop begins at once, no portal -- the same world change as the
-    // loop portal's. A run that began in Ember loops back there through its
+    // loop portal's. A run that began in Desert loops back there through its
     // portal, as before.
     static void LoopStartsStraightFromTheLiftoff()
     {
         LiftoffCatalog.Enabled = true;
         try
         {
-            FreshScene(Ember, 0);
+            FreshScene(Last, 0);
             Board();
             var wm = World(-1f);
             RunScore.Tick(30f, .3f);
             PlayBoss(wm);
             var l = Liftoff.Live;
-            Check("Ember's boss down: the lift-off, no portal", l != null && l.Def.AutoLoopNow && Portal.Live == null && wm.PortalIsOpen);
+            Check("Desert's boss down: the lift-off, no portal", l != null && l.Def.AutoLoopNow && Portal.Live == null && wm.PortalIsOpen);
             long before = RunScore.Total;
             bool noPortal = true;
             int changes = 0, world = WorldManager.CurrentIndex;
@@ -386,17 +386,17 @@ public static class LoopTest
                   Liftoff.Live == null && noPortal && Object.FindFirstObjectByType<Portal>() == null && changes == 1 &&
                   WorldManager.CurrentIndex == 0 && wm.Stage == WorldManager.LevelStage.Level && !wm.PortalIsOpen);
             Check("... loopIndex 0 -> 1, exactly once", RunLoop.Index == 1 && RunScore.Parts.loops == 1);
-            Check("... + Ember's world bonus only (" + before + " -> " + RunScore.Total + ")",
-                  RunScore.Total == before + ScoreRules.WorldClearedPoints(Ember, 0));
+            Check("... + Desert's world bonus only (" + before + " -> " + RunScore.Total + ")",
+                  RunScore.Total == before + ScoreRules.WorldClearedPoints(Last, 0));
             Check("... the loop's arrival speed, the level distance restarted, every boss again",
                   Mathf.Approximately(moveBackGround.speed, WorldManager.ArrivalSpeed(1)) &&
-                  Mathf.Approximately(wm.DistanceLeft, wm.WorldDistance) && !BossEncounter.DoneInWorld(Ember));
+                  Mathf.Approximately(wm.DistanceLeft, wm.WorldDistance) && !BossEncounter.DoneInWorld(Last));
             wm.Tick(5f);
             Check("... 5 s on: still no portal, still loop 2", Portal.Live == null && RunLoop.Index == 1 && WorldManager.CurrentIndex == 0);
             Object.DestroyImmediate(wm.gameObject);
 
-            // a run begun in Ember: the loop leads back to Ember, so its portal
-            FreshScene(Ember, Ember);
+            // a run begun in Desert: the loop leads back to Desert, so its portal
+            FreshScene(Last, Last);
             Board();
             wm = World(-1f);
             PlayBoss(wm);
@@ -405,9 +405,9 @@ public static class LoopTest
                 try { Liftoff.Live.Step(1f / 60f); }
                 catch (System.Exception ex) { Debug.LogWarning("[LOOP] lift-off step threw: " + ex.Message); }
             }
-            Check("Ember start: the lift-off ends on the loop portal back to Ember (not straight round)",
-                  Liftoff.Live == null && Portal.Live != null && WorldManager.CurrentIndex == Ember && RunLoop.Index == 0 &&
-                  WorldManager.PortalDestination == Ember && PortalPressure.Active);
+            Check("Desert start: the lift-off ends on the loop portal back to Desert (not straight round)",
+                  Liftoff.Live == null && Portal.Live != null && WorldManager.CurrentIndex == Last && RunLoop.Index == 0 &&
+                  WorldManager.PortalDestination == Last && PortalPressure.Active);
             foreach (var p in Object.FindObjectsByType<Portal>(FindObjectsSortMode.None)) Object.DestroyImmediate(p.gameObject);
             Object.DestroyImmediate(wm.gameObject);
             PortalPressure.Reset();
@@ -814,7 +814,7 @@ public static class LoopTest
         moveBackGround.speed = 0f;
 
         // Developer: the run loops and scores, but nothing is saved.
-        FreshScene(Ember, 0);
+        FreshScene(Last, 0);
         PlayerPrefs.SetInt(DeveloperUnlocks.EnabledKey, 1);
         RunScore.EndRun(RunScore.RunId);
         RunScore.BeginRun(true, !DeveloperUnlocks.Enabled);
@@ -845,8 +845,8 @@ public static class LoopTest
         var wm = World(150f);
         Check("FINAL needs developer mode", !BossDev.TriggerFinal() && WorldManager.CurrentIndex == 0);
         PlayerPrefs.SetInt(DeveloperUnlocks.EnabledKey, 1);
-        Check("FINAL jumps to Ember and starts its boss", BossDev.TriggerFinal() && WorldManager.CurrentIndex == Ember &&
-              BossEncounter.Running && BossEncounter.Instance.Boss.artKey == "Ember");
+        Check("FINAL jumps to Desert and starts its boss", BossDev.TriggerFinal() && WorldManager.CurrentIndex == Last &&
+              BossEncounter.Running && BossEncounter.Instance.Boss.artKey == "Desert");
         var e = BossEncounter.Instance;
         e.Step(.1f, 1f);
         RunWhile(e, BossEncounter.Phase.Intro);
@@ -874,7 +874,7 @@ public static class LoopTest
         Check("BOSS RUSH FINAL is on", BossDev.FinalRushEnabled && BossDev.RushEnabled);
         var enc = BossEncounter.Ensure();
         for (int i = 0; i < 60 && !BossEncounter.Running; i++) enc.Step(.1f, 1f);
-        Check("BOSS RUSH FINAL: a few seconds in, the Ember boss", BossEncounter.Running && WorldManager.CurrentIndex == Ember);
+        Check("BOSS RUSH FINAL: a few seconds in, the Desert boss", BossEncounter.Running && WorldManager.CurrentIndex == Last);
         BossDev.SetRushMode(BossDev.RushOff);
         PlayerPrefs.SetInt(DeveloperUnlocks.EnabledKey, 0);
         Check("FINAL needs developer mode", !BossDev.FinalRushEnabled);
@@ -1004,30 +1004,30 @@ public static class LoopTest
 
     static void FinalPortalEveryLoop()
     {
-        // Started in Ember: its portal leads back to Ember, every loop, the same way.
-        FreshScene(Ember, Ember);
+        // Started in Desert: its portal leads back to Desert, every loop, the same way.
+        FreshScene(Last, Last);
         var (bg, enemies) = Board();
         var wm = World(-1f);
         RunScore.Tick(30f, .3f);
         PlayBoss(wm);
         Check("loop 1 ends in the loop portal", wm.PortalIsOpen && wm.Stage == WorldManager.LevelStage.Portal &&
-              WorldManager.PortalDestination == Ember);
+              WorldManager.PortalDestination == Last);
         Advance(wm);
         foreach (var p in Object.FindObjectsByType<Portal>(FindObjectsSortMode.None)) Object.DestroyImmediate(p.gameObject);
-        Check("LOOP 2 in Ember", WorldManager.CurrentIndex == Ember && RunLoop.Index == 1);
+        Check("LOOP 2 in Desert", WorldManager.CurrentIndex == Last && RunLoop.Index == 1);
         PlayBoss(wm);
         Check("the end of loop 2: the same loop portal, no prompt, no second lap",
-              wm.PortalIsOpen && wm.Stage == WorldManager.LevelStage.Portal && WorldManager.PortalDestination == Ember &&
-              PortalPressure.Active && PortalPressure.Destination == Ember);
+              wm.PortalIsOpen && wm.Stage == WorldManager.LevelStage.Portal && WorldManager.PortalDestination == Last &&
+              PortalPressure.Active && PortalPressure.Destination == Last);
         // waiting a while changes nothing about where it leads
         for (int i = 0; i < 120; i++) wm.Tick(1f);
         long b2 = RunScore.Total;
         Advance(wm);
         foreach (var p in Object.FindObjectsByType<Portal>(FindObjectsSortMode.None)) Object.DestroyImmediate(p.gameObject);
-        var ember = WorldManager.Worlds[Ember];
-        Check("LOOP 3 in Ember, + Ember's loop-2 world bonus once (" + (RunScore.Total - b2) + ")",
-              WorldManager.CurrentIndex == Ember && RunLoop.Index == 2 && RunScore.Parts.loops == 2 &&
-              RunScore.Total - b2 == ScoreRules.WorldClearedPoints(Ember, 1));
+        var ember = WorldManager.Worlds[Last];
+        Check("LOOP 3 in Desert, + Desert's loop-2 world bonus once (" + (RunScore.Total - b2) + ")",
+              WorldManager.CurrentIndex == Last && RunLoop.Index == 2 && RunScore.Parts.loops == 2 &&
+              RunScore.Total - b2 == ScoreRules.WorldClearedPoints(Last, 1));
         Check("loop 3 is scaled as loop 3 (ramp x" + LoopRules.RampScale(2) + ", phases x" + LoopRules.PhaseRampScale(2) +
               ", density x" + LoopRules.DensityScale(2) + ", arrival HUD " + Mathf.RoundToInt(WorldManager.ArrivalSpeed(2) * 100f) + ")",
               Mathf.Approximately(bg.speedRampPerSecond, ember.speedRampPerSecond * LoopRules.RampScale(2)) &&
