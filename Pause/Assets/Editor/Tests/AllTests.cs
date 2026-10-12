@@ -221,6 +221,7 @@ public static class AllTests
         ("FrostBackdropTest", FrostBackdropTest.Execute),
         ("BackdropAnchorTest", BackdropAnchorTest.Execute),
         ("BackdropCellBleedTest", BackdropCellBleedTest.Execute),
+        ("BackdropResolutionTest", BackdropResolutionTest.Execute),
         ("VerdantBackdropTest", VerdantBackdropTest.Execute),
         ("EmberBackdropTest", EmberBackdropTest.Execute),
         ("TideBackdropTest", TideBackdropTest.Execute),
