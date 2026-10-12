@@ -313,8 +313,9 @@ public static class PlayerStartWorldTest
         WorldManager.ClearReplayWorld();
     }
 
-    // Replay restarts the world the run began in: the chosen start world, not
-    // the furthest planet the run reached on the way.
+    // Replay restarts on the world the pilot died in (the chosen start world
+    // when no world was left, the next world after a Through), and the
+    // menu's PLAY goes back to the player's choice.
     static void ReplayKeepsTheChoice()
     {
         for (int highest = 1; highest <= Last; highest++)
@@ -330,14 +331,15 @@ public static class PlayerStartWorldTest
                 for (int n = 1; n <= 2; n++)
                 {
                     if (n == 1 && WorldManager.CurrentIndex < Last) Through(wm);
+                    int died = WorldManager.CurrentIndex;
                     buttonClicks.playerDied = true;
                     Time.timeScale = 0f;
                     buttonClicks.PrepareReplay();
-                    Check(tag + "replay " + n + " pins the pick", WorldManager.PinnedReplayWorld == pick);
+                    Check(tag + "replay " + n + " pins the world died in", WorldManager.PinnedReplayWorld == died);
                     End(wm);
                     wm = StartRun(out early);
-                    Check(tag + "replay " + n + " restarts in the pick (is " + Name(WorldManager.CurrentIndex) + ")",
-                          WorldManager.CurrentIndex == pick && early == pick && RunLoop.StartWorld == pick);
+                    Check(tag + "replay " + n + " restarts in the world died in (is " + Name(WorldManager.CurrentIndex) + ")",
+                          WorldManager.CurrentIndex == died && early == died && RunLoop.StartWorld == died);
                     Check(tag + "replay " + n + " source is replay pin", WorldManager.RunStartSource(true) == "replay pin");
                 }
                 End(wm);

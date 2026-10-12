@@ -166,11 +166,11 @@ public static class DeveloperUiStartTest
             Check(tag + "backdrop is the pick's (" + bd.Current.Spec.world + ")",
                   bd.Current.Spec.world == BackdropCatalog.For(WorldManager.Worlds[pick].displayName).world);   // (Tide: Ember's until its own)
 
-        // Replay keeps it.
+        // Replay pins the world the pilot is in (here the pick, as no world was left).
         buttonClicks.playerDied = true;
         Time.timeScale = 0f;
         buttonClicks.PrepareReplay();
-        Check(tag + "Replay pins the pick", WorldManager.PinnedReplayWorld == pick);
+        Check(tag + "Replay pins the world died in (the pick)", WorldManager.PinnedReplayWorld == pick);
         Object.DestroyImmediate(wm.gameObject);
         Time.timeScale = 1f;
         buttonClicks.playerDied = false;
