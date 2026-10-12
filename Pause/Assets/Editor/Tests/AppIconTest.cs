@@ -3,7 +3,7 @@ using UnityEditor;
 using UnityEditor.Build;
 using UnityEngine;
 
-// The app icon (Art/AppIcon/OrbitalRail, built by src~/new_icon/build_icon.py,
+// The app icon (Art/AppIcon/OrbitalRail, built by src~/icon_v2/build_icon_v2.py,
 // wired by AppIconSetter):
 //  - all six files exist at the right pixel size; master, iOS and the
 //    adaptive background are fully opaque (iOS also has no alpha channel);

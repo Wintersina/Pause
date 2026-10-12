@@ -7,12 +7,12 @@ using UnityEngine;
 // Wires the app icon (the "Orbital Rail" set) into Player Settings: the default
 // icon (standalone / fallback), Android adaptive (background + foreground
 // layers), round and legacy icons, and every iOS icon slot (incl. the 1024 App
-// Store icon). The art is built by Art/AppIcon/src~/new_icon/build_icon.py and
+// Store icon). The art is built by Art/AppIcon/src~/icon_v2/build_icon_v2.py and
 // lives in one folder:
 //
 //   Art/AppIcon/OrbitalRail/OrbitalRail_1024.png             master, opaque (default icon)
 //   Art/AppIcon/OrbitalRail/OrbitalRail_ios_1024.png         iOS, no alpha
-//   Art/AppIcon/OrbitalRail/OrbitalRail_adaptive_fg_432.png  Android adaptive foreground (wordmark + ship)
+//   Art/AppIcon/OrbitalRail/OrbitalRail_adaptive_fg_432.png  Android adaptive foreground (wordmark + ship), 1728 px
 //   Art/AppIcon/OrbitalRail/OrbitalRail_adaptive_bg_432.png  Android adaptive background (nebula, rails, planet)
 //   Art/AppIcon/OrbitalRail/OrbitalRail_legacy_192.png       Android legacy (full composite)
 //   Art/AppIcon/OrbitalRail/OrbitalRail_round_192.png        Android round (full composite)
@@ -33,7 +33,7 @@ public static class AppIconSetter
         AdaptiveBg = "adaptive_bg_432", Legacy = "legacy_192", Round = "round_192";
     public static readonly (string part, int size)[] Parts =
     {
-        (Master, 1024), (Ios, 1024), (AdaptiveFg, 432), (AdaptiveBg, 432), (Legacy, 192), (Round, 192),
+        (Master, 1024), (Ios, 1024), (AdaptiveFg, 1728), (AdaptiveBg, 1728), (Legacy, 1024), (Round, 1024),
     };
 
     public static string PathOf(string ship, string part) { return Root + "/" + ship + "/" + ship + "_" + part + ".png"; }
