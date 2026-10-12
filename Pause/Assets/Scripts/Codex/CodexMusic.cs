@@ -130,13 +130,11 @@ public static class CodexMusic
 // Only a source this class paused is ever resumed, so a muted or absent menu
 // source is left alone.
 //
-// Volume: the track plays at BaseVolume x Gain(). Today the only sound switch
-// is SoundSettings.Muted (AudioListener.volume 0 silences this source like
-// every other). INTEGRATION POINT for the Music/Effects options branch
-// (audio-settings): set `CodexMusicPlayer.Gain = () => SoundSettings.MusicGain;`
-// and call SoundSettings.MarkMusic(CodexMusicPlayer.Source) in Created so the
-// effects gain no longer applies to it; Tick() re-reads Gain every frame, so a
-// slider moved while a track plays takes effect at once.
+// Volume: the track plays at BaseVolume x Gain(), and Gain() is the music bus
+// (SoundSettings.MusicGain: the MUSIC toggle times the music slider). The source
+// is marked as music (SoundSettings.MarkMusic) when it is created, so the
+// effects gain (AudioListener.volume) no longer applies to it; Tick() re-reads
+// Gain every frame, so a slider moved while a track plays takes effect at once.
 public static class CodexMusicPlayer
 {
     public const float BaseVolume = .8f;
@@ -144,10 +142,10 @@ public static class CodexMusicPlayer
     // Tests: track the state without touching real audio devices.
     public static bool Simulate;
     // Music gain 0..1 (see the integration note above).
-    public static Func<float> Gain = () => 1f;
+    public static Func<float> Gain = () => SoundSettings.MusicGain;
     // Raised whenever the playing track changes or ends, so the open view repaints.
     public static event Action Changed;
-    // Raised when a real AudioSource is created (hook for SoundSettings.MarkMusic).
+    // Raised when a real AudioSource is created (already marked as music).
     public static event Action<AudioSource> Created;
 
     static AudioSource source;
@@ -195,6 +193,7 @@ public static class CodexMusicPlayer
                 source = go.AddComponent<AudioSource>();
                 source.playOnAwake = false;
                 source.spatialBlend = 0f;
+                SoundSettings.MarkMusic(source);
                 var created = Created;
                 if (created != null) created(source);
             }
