@@ -114,7 +114,9 @@ def frame_for(spec, index):
         base = np.asarray(piece).copy()
         bright = base[:, :, :3].max(2) > 75
         base[:, :, :3] = np.minimum(base[:, :, :3], 72)
-        base[:, :, 3] = np.minimum(base[:, :, 3], 105)
+        # 96, not build_c's 105: the resampled housing keeps a little more alpha, and the dimmest-to-brightest
+        # blink ratio the DesertBackdropTest holds (>= 4x) would sit at 3.9x
+        base[:, :, 3] = np.minimum(base[:, :, 3], 96)
         base[:, :, 3][bright] = np.minimum(base[:, :, 3][bright], 25)
         piece = Image.fromarray(base, "RGBA")
     x = 64*S-piece.width//2
