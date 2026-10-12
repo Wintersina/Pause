@@ -234,7 +234,7 @@ public static class PlanetfallCatalog
         chipPrefix = "ORBIT  DANGER ",
     };
 
-    // Storm: after Tide's lift-off (only once WorldManager.StormEnabled), the gas
+    // Storm: after Tide's lift-off, the gas
     // giant: slate and ink-blue thunderhead bands, cyclone eyes, tiny refinery
     // platforms, pale yellow-white lightning, a blue-white atmosphere rim
     // (Art/Worlds/Storm/descent~/manifest.json; the curved limb is limbfix/'s).

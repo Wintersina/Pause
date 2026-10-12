@@ -8,7 +8,7 @@
 // The way on after the interlude is not the lift-off's business: it is
 // WorldManager.OpenGateway, which flies the next planet's planetfall when
 // PlanetfallCatalog has one (Verdant after Frost, Ember after Verdant, Tide
-// after Ember once WorldManager.TideEnabled, Storm after Tide once WorldManager.StormEnabled, Desert after Storm) and opens the portal otherwise.
+// after Ember once WorldManager.TideEnabled, Storm after Tide, Desert after Storm) and opens the portal otherwise.
 // A lift-off that loops (AutoLoopNow: Tide's, the last world; Ember's only
 // while the release switch is off and it is still the last LIVE world) skips
 // the loop portal: the interlude already flies Space's sky, so the run
@@ -77,29 +77,22 @@ public static class LiftoffCatalog
         loopsWhileLastLive = true,
     };
 
-    // Tide: leaving the ocean planet after its boss, the final world until
-    // WorldManager.StormEnabled (AutoLoopNow is false then: Storm's planetfall
-    // is the gateway). No loop portal while it loops: once the interlude is over the run starts its first world
-    // (Space) again, one loop on, through the loop's own world change
-    // (LoopRules counting it as before).
+    // Tide: leaving the ocean planet after its boss; its gateway is Storm's planetfall.
     public static readonly LiftoffDef Tide = new LiftoffDef
     {
         world = 4,
         planet = PlanetfallCatalog.Tide,
         interludeWorld = 0,
         banner = "LIFT OFF",
-        autoLoop = true,
     };
 
-    // Storm: leaving the gas giant after its boss, the final world once
-    // WorldManager.StormEnabled. No loop portal (as Tide's, while Tide was last).
+    // Storm: leaving the gas giant after its boss; its gateway is Desert's planetfall.
     public static readonly LiftoffDef Storm = new LiftoffDef
     {
         world = 5,
         planet = PlanetfallCatalog.Storm,
         interludeWorld = 0,
         banner = "LIFT OFF",
-        autoLoop = true,
     };
 
     // Desert: leaving the dune planet after its boss, the final world. No loop portal.

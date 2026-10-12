@@ -108,11 +108,8 @@ public class WorldManager : MonoBehaviour
             portalColor = new Color(0.49f, 0.95f, 0.75f),   // bioluminescent mint #7CF2C0
             speedRampPerSecond = 0.00385f, enemyRampScale = 1.50f,
         },
-        // World 6, the gas giant. UNDER CONSTRUCTION (see StormEnabled): only its
-        // planetfall / lift-off art and numbers are real. Rails (Tide's), backdrop
-        // (Tide's), roster (Tide's cast), boss (a Tide-art placeholder), explosion and
-        // palette are stand-ins until the add-world phases 5, 11, 12, 13 land
-        // (resourceFolder "Storm" has no rails yet: WorldPainter draws Tide's).
+        // World 6, the gas giant (see the flags-on report for the stand-ins it
+        // still carries: Tide's rails / cast / boss placeholder, explosion and palette).
         new WorldTheme {
             displayName = "Storm", resourceFolder = "Storm",
             musicResource = "WorldMusic/Storm_Main", progressiveMusic = false,   // Static Storm
