@@ -189,6 +189,7 @@ public static class AllTests
         ("StormSoundTest", StormSoundTest.Execute),
         ("DesertSoundTest", DesertSoundTest.Execute),
         ("DesertRosterTest", DesertRosterTest.Execute),
+        ("EnemyWorldPaletteTest", EnemyWorldPaletteTest.Execute),
         ("WorldFlagsTest", WorldFlagsTest.Execute),
         ("SpaceStationTest", SpaceStationTest.Execute),
         ("SpacePlanetSheetTest", SpacePlanetSheetTest.Execute),
