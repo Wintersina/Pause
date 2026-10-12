@@ -67,6 +67,16 @@ public class splashScene : MonoBehaviour
     public const float AuthoredLogoScale = 0.7f;
     public const float AuthoredPixelsPerUnit = 192f;
 
+    // The brand mark (open gate + red seam) shown above the wordmark once the
+    // door is forced open: the splash's final frame is the lockup the brand
+    // uses everywhere (gate over wordmark). Width as a share of the wordmark's.
+    public const float MarkWidthShare = 0.72f;
+    // Space between the wordmark and the mark, in wordmark heights.
+    public const float MarkGap = 0.9f;
+    // The mark fades in as the leaves pass this open fraction (step 4 of 7)
+    // and is solid when they are fully open.
+    public const float MarkRevealFrom = 0.5f;
+
     // ---- hooks (tests, previews, audio) -------------------------------------
 
     // Scene change, replaceable so tests can count loads without leaving the scene.
@@ -92,6 +102,8 @@ public class splashScene : MonoBehaviour
     public GateSim Sim { get { return sim; } }
     public GateView View { get { return view; } }
     public GateArt Art { get { return art; } }
+    public SpriteRenderer Mark { get { return mark; } }
+    public float MarkAlpha { get { return mark != null ? mark.color.a : 0f; } }
 
     GateSim sim;
     GateArt art;
@@ -99,7 +111,9 @@ public class splashScene : MonoBehaviour
     Transform gateRoot;
     Layout layout;
     bool haveLayout;
-    Vector3 logoBase, rootBase;
+    Vector3 logoBase, rootBase, markBase;
+    SpriteRenderer mark;
+    bool markTried;
 
     Camera cam;
     Vector2[] wordsAuthored;
@@ -208,6 +222,7 @@ public class splashScene : MonoBehaviour
             }
         }
         if (logo != null) logoBase = logo.transform.position;
+        LayoutMark(camPos, l);
 
         if (words != null)
         {
@@ -231,6 +246,52 @@ public class splashScene : MonoBehaviour
         haveLayout = true;
         ApplyShake();
         return l;
+    }
+
+    // The gate mark sits above the wordmark, centred on it, never taller than
+    // the safe area allows (it shrinks on squat screens rather than leaving).
+    void LayoutMark(Vector3 camPos, Layout l)
+    {
+        if (logo == null) return;
+        if (mark == null && !markTried && (Application.isPlaying || BuildGateInEditMode))
+        {
+            markTried = true;
+            var sprite = HapticGateMark.Mark();
+            if (sprite != null)
+            {
+                var go = new GameObject("HapticGate mark");
+                go.transform.SetParent(transform.parent, false);
+                mark = go.AddComponent<SpriteRenderer>();
+                mark.sprite = sprite;
+                mark.sortingLayerID = logo.sortingLayerID;
+                mark.sortingOrder = logo.sortingOrder;
+                mark.color = new Color(1f, 1f, 1f, 0f);
+            }
+        }
+        if (mark == null) return;
+        Vector2 native = mark.sprite.bounds.size;
+        float markW = l.logoSize.x * MarkWidthShare;
+        float scale = markW / native.x;
+        float gap = l.logoSize.y * MarkGap;
+        float bottom = l.logoCenter.y + l.logoSize.y * 0.5f + gap;
+        float avail = l.safeWorld.yMax - bottom;
+        scale = Mathf.Min(scale, SafeFill * avail / native.y);
+        scale = Mathf.Max(scale, 0.0001f);
+        float h = native.y * scale;
+        var t = mark.transform;
+        SetWorldScale(t, new Vector3(scale, scale, 1f));
+        t.position = new Vector3(camPos.x + l.logoCenter.x, camPos.y + bottom + h * 0.5f, logo.transform.position.z);
+        markBase = t.position;
+    }
+
+    // 0 while the door is shut .. 1 once it is open (or smashed): the mark is
+    // revealed with the wordmark behind the leaves.
+    public static float MarkReveal(GateSim s)
+    {
+        if (s == null) return 0f;
+        float r = Mathf.Clamp01((s.open - MarkRevealFrom) / (1f - MarkRevealFrom));
+        if (s.smashed) r = Mathf.Max(r, Mathf.Clamp01(s.smashTime / 0.18f));
+        return r;
     }
 
     static void SetWorldScale(Transform t, Vector3 world)
@@ -267,7 +328,17 @@ public class splashScene : MonoBehaviour
         sim.Done += Leave;
     }
 
-    static void Cue(string name) { GateAudio.Play(name); if (SoundCue != null) SoundCue(name); }
+    // The user's gate-opening clip starts this long after the card begins, so its first big
+    // hit (1.11 s into the file) lands on the door's biggest forced step (1.22 s).
+    public const float OpenClipStart = 0.11f;
+    bool openStarted;
+
+    static void Cue(string name)
+    {
+        if (name == "gate_open") GateAudio.PlayOpen();
+        else if (!GateAudio.OpenReplaces(name)) GateAudio.Play(name);
+        if (SoundCue != null) SoundCue(name);
+    }
 
     void Start() { Cue("gate_rattle"); }
 
@@ -278,6 +349,7 @@ public class splashScene : MonoBehaviour
 
     public bool OnBackPressed()
     {
+        GateAudio.StopOpen(GateAudio.OpenSmashFade);
         Leave();
         return true;
     }
@@ -297,6 +369,7 @@ public class splashScene : MonoBehaviour
         EnsureSim();
         sim.Reset();
         leaving = false;
+        openStarted = false;
         loadCount = 0;
     }
 
@@ -314,6 +387,13 @@ public class splashScene : MonoBehaviour
         sim.naturalSeconds = holdSeconds;
         dt = Mathf.Min(dt, 0.1f);
         if (!leaving) sim.Advance(dt);
+        // Once, unless the door is already (or about to be) smashed: then it never starts.
+        if (!openStarted && !leaving && sim.time >= OpenClipStart && !sim.smashed
+            && sim.pendingTaps + sim.crackStage < GateSim.TapsToSmash)
+        {
+            openStarted = true;
+            Cue("gate_open");
+        }
         if (view != null) view.Sync(dt);
         ApplyShake();
     }
@@ -334,6 +414,11 @@ public class splashScene : MonoBehaviour
         if (!haveLayout) return;
         Vector2 w = sim != null ? sim.shake * layout.logoSize.x : Vector2.zero;
         if (logo != null) logo.transform.position = logoBase + new Vector3(w.x, w.y, 0f);
+        if (mark != null)
+        {
+            mark.transform.position = markBase + new Vector3(w.x, w.y, 0f);
+            mark.color = new Color(1f, 1f, 1f, MarkReveal(sim));
+        }
         if (gateRoot != null) gateRoot.position = rootBase + new Vector3(w.x, w.y, 0f);
         if (words != null && wordsAuthored != null && wordsAuthored.Length == words.Length)
         {
@@ -347,6 +432,8 @@ public class splashScene : MonoBehaviour
     {
         if (art != null) art.Release();
         art = null; view = null;
+        if (mark != null) { if (Application.isPlaying) Destroy(mark.gameObject); else DestroyImmediate(mark.gameObject); }
+        mark = null;
     }
 
     void Leave()
@@ -354,6 +441,8 @@ public class splashScene : MonoBehaviour
         if (leaving) return;
         leaving = true;
         loadCount++;
+        // A natural finish fades the opening clip out as the title comes up; a smash already stopped it.
+        if (sim == null || !sim.smashed) GateAudio.StopOpen(GateAudio.OpenLeaveFade);
         Time.timeScale = 1f;
         LoadScene(NextScene);
     }

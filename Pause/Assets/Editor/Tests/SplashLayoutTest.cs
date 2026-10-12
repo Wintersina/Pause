@@ -70,6 +70,7 @@ public static class SplashLayoutTest
         LogoUntouched();
         PureLayout();
         SceneLayout();
+        MarkLayout();
         PlayerSettingsGuard();
 
         Debug.Log("[SPLASH] failures: " + fails);
@@ -181,6 +182,55 @@ public static class SplashLayoutTest
                   Mathf.Abs(card.wordsScaler.scaleFactor - l.wordsScaleFactor) < 0.0001f && l.wordsScaleFactor > 0.15f);
         }
         cam.orthographicSize = baseSize;
+    }
+
+    // The brand mark (open gate + red seam) above the wordmark: hidden while the
+    // door is shut, solid when it is open, inside the safe area and clear of the
+    // wordmark on every screen.
+    static void MarkLayout()
+    {
+        Check("brand mark art is installed", HapticGateMark.Mark() != null && HapticGateMark.Lockup() != null);
+        var sim = new GateSim();
+        Check("mark hidden while the door is shut", splashScene.MarkReveal(sim) == 0f);
+        sim.Advance(1.0f);
+        float mid = splashScene.MarkReveal(sim);
+        sim.Advance(1.2f);
+        Check("mark partly shown mid-open, solid when open (" + mid.ToString("F2") + " -> " + splashScene.MarkReveal(sim).ToString("F2") + ")",
+              mid < 1f && splashScene.MarkReveal(sim) >= 0.999f);
+        var smash = new GateSim();
+        smash.Advance(0.3f); smash.Tap(); smash.Tap(); smash.Tap();
+        for (int i = 0; i < 40; i++) smash.Advance(0.02f);
+        Check("mark shown once the door is smashed", smash.smashed && splashScene.MarkReveal(smash) >= 0.999f);
+
+        EditorSceneLoader.Open("spashS7", OpenSceneMode.Single);
+        splashScene.BuildGateInEditMode = true;
+        try
+        {
+            var card = UnityEngine.Object.FindFirstObjectByType<splashScene>();
+            var cam = card.GetComponentInParent<Camera>();
+            float baseSize = cam.orthographicSize;
+            foreach (var c in Cases)
+            {
+                cam.orthographicSize = CameraFit.ComputeSize(baseSize, 2.85f, c.w, c.h);
+                card.ApplyLayout(c.w, c.h, c.safe);
+                var mark = card.Mark;
+                if (mark == null) { Check(c.name + ": mark created", false); continue; }
+                float aspect = (float)c.w / c.h;
+                float viewH = 2f * cam.orthographicSize, viewW = viewH * aspect;
+                Vector2 camXY = cam.transform.position;
+                Rect safe = new Rect(camXY.x - viewW / 2f + c.safe.x / c.w * viewW, camXY.y - viewH / 2f + c.safe.y / c.h * viewH,
+                                     c.safe.width / c.w * viewW, c.safe.height / c.h * viewH);
+                Bounds mb = mark.bounds, lb = card.logo.bounds;
+                const float eps = 0.002f;
+                Check(c.name + ": mark inside the safe area",
+                      mb.min.x >= safe.xMin - eps && mb.max.x <= safe.xMax + eps && mb.min.y >= safe.yMin - eps && mb.max.y <= safe.yMax + eps);
+                Check(c.name + ": mark sits above the wordmark, clear of it", mb.min.y >= lb.max.y - eps);
+                Check(c.name + ": mark centred over the wordmark", Mathf.Abs(mb.center.x - lb.center.x) < 0.01f);
+                Check(c.name + ": mark not wider than the wordmark", mb.size.x <= lb.size.x + eps);
+            }
+            cam.orthographicSize = baseSize;
+        }
+        finally { splashScene.BuildGateInEditMode = false; }
     }
 
     // Global settings the full-bleed card depends on. Changing them would

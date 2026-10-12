@@ -260,6 +260,10 @@ public static class ScreenFitScreens
         Add<DeveloperOptions>("~DeveloperOptions");
         Add<StartWorldOptions>("~StartWorldOptions");
         Add<SoundOptions>("~SoundOptions");
+        // The how-to-play clip's frame, with a still in place of the decoded video (a headless editor
+        // cannot play one); MediaShotPreview swaps in real frames.
+        if (HowToPlayClip.PreviewTexture == null) HowToPlayClip.PreviewTexture = Texture2D.grayTexture;
+        Add<HowToPlayClip>("~HowToPlayClip");
         var account = new GameObject("~AccountOptions").AddComponent<AccountOptions>();
         account.Build(new Vector2(rig.W, rig.H), rig.device.Safe, true);
         rig.Sync();
@@ -365,6 +369,8 @@ public static class ScreenFitScreens
     static void Credits(ScreenFitRig rig)
     {
         MenuStyler.StyleScene();
+        var mover = UnityEngine.Object.FindFirstObjectByType<CreditsMove>();
+        if (mover != null) mover.EnsureLockup();   // what CreditsMove.Awake does on a device
         rig.Sync();
         SafeAreaClamp.AttachAll("creditsS7");
         rig.Sync();   // it may change the canvas scaler

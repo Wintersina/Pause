@@ -3,7 +3,7 @@ using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.UI;
 
-// The credits are "Made by Sina Serati" plus a Special thanks list (Josh Morris,
+// The credits are "Made by HapticGate" (with the HapticGate lockup above it) then Sina Serati plus a Special thanks list (Josh Morris,
 // Pouya Vafaee, Preston Nalls). Guards against the old role lines and the Kenney
 // attribution (CC0, not legally required; licence files stay in docs/licenses/)
 // coming back, and checks the scroll still fits its text box (no truncation).
@@ -41,6 +41,8 @@ public static class CreditsTest
 
         Check("credits say 'Made by' once",
               credits.IndexOf("Made by") >= 0 && credits.IndexOf("Made by") == credits.LastIndexOf("Made by"));
+        Check("credits say 'Made by HapticGate'", credits.StartsWith("Made by HapticGate"));
+        Check("HapticGate lockup art is installed (head of the roll)", HapticGateMark.Lockup() != null);
         Check("Sina Serati is credited once",
               credits.IndexOf("Sina Serati") >= 0 &&
               credits.IndexOf("Sina Serati") == credits.LastIndexOf("Sina Serati"));

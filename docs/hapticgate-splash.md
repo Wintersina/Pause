@@ -108,3 +108,19 @@ the user; no beeps or coin sounds):
 * Full-frame captures at 1080x2520 and 1600x2560: `-executeMethod GateShotPreview.Render -shotDir <dir> -shotPrefix <name>`.
 * Filmstrips: `-executeMethod HapticGatePreview.Render -previewDir <dir>` writes
   `natural.png`, `tap1.png`, `tap2.png`, `tap3.png`.
+
+## Brand mark (final frame) and opening clip
+
+* `HapticGateMark` loads `Resources/HapticGate/hapticgate_mark.png` (closed gate + smoke, 512x448)
+  and `hapticgate_lockup.png` (gate + smoke + wordmark, 640x640): the approved closed-gate logo from
+  `HapticGate-brand/closed/`. Replace those two files to change the logo; nothing else knows about them.
+  `splashScene` shows the mark above the wordmark, fading in as the door passes `MarkRevealFrom` (half open)
+  and solid when it is open or smashed (`MarkReveal`); Credits shows the lockup above "Made by HapticGate"
+  (`CreditsMove.EnsureLockup`).
+* The user's `gate_open.wav` (Audio/Resources/Audio/GateOpen, 5.6 s stereo 48 kHz, Vorbis q0.65, 141 KB
+  imported) replaces the natural-run rattle and the seven step shrieks (`GateAudio.OpenReplaces`). Its first
+  big hit is 1.11 s into the file (the broadband sweep ends and the latch lets go; found with astats/spectrogram);
+  `splashScene.OpenClipStart` = 0.11 s lines that with the door's biggest forced step at 1.22 s. The loudest
+  peak (5.0-5.1 s, the closing swell) cannot line up with a 2.3 s card. Tap cracks and the smash are unchanged;
+  a smash fades the clip out in 0.1 s (Back too), a natural finish over 0.8 s; the card never waits for it, and
+  if the three taps are queued before 0.11 s it never starts. Mute (`SoundSettings`) is honoured. Tests: GateAudioTest.
