@@ -76,6 +76,7 @@ public static class AllTests
         ("BackdropLoopGuardTest", BackdropLoopGuardTest.Execute),
         ("BossAttackTest", BossAttackTest.Execute),
         ("BossDamageTest", BossDamageTest.Execute),
+        ("BossImpactTest", BossImpactTest.Execute),
         ("BossEncounterTest", BossEncounterTest.Execute),
         ("BossEntranceTest", BossEntranceTest.Execute),
         ("BossHeartsTest", BossHeartsTest.Execute),

@@ -122,6 +122,60 @@ public static class BossArt
         return (Mathf.Min(stage, DamageStages) - 1) * DamageColumns + FrameAt(DamageIdleTicksFor(boss), seconds, true);
     }
 
+    // ---- damaged attack poses (Resources/BossImpact/<Key>_attack_damage.png) --
+    //
+    // The damaged hull above only stands in for the idle pose; every tell /
+    // fire pose has its own damaged drawing here, one column per pose (the
+    // body-atlas frames of AttackDamagePoses, in that order), one row per
+    // damage stage 1..4, 384 px cells registered to the body cells. So a
+    // damaged boss keeps its damage while it telegraphs and fires.
+    public const string ImpactFolder = "BossImpact/";
+    static readonly int[] PlainAttackPoses = { 5, 6, 7, 8, 10, 11, 9 };      // tell0 a,b | tell1 a,b | tell2 a,b | fire
+    static readonly int[] ExpandedAttackPoses = { 26, 27, 28, 29, 30, 31, 32, 33, 34 };   // three drawings per tell pose
+    public static int[] AttackDamagePoses(BossDef boss) => HasExpandedCombat(boss) ? ExpandedAttackPoses : PlainAttackPoses;
+
+    // The column of body frame `frame` in the boss's attack-damage atlas, or -1 (not an attack pose).
+    public static int AttackDamageColumn(BossDef boss, int frame)
+    {
+        var poses = AttackDamagePoses(boss);
+        for (int i = 0; i < poses.Length; i++) if (poses[i] == frame) return i;
+        return -1;
+    }
+
+    // The damaged drawing of attack pose `frame` at damage `stage` (1..4), or
+    // null: undamaged, no damage art, or not an attack pose (keep the body frame).
+    public static Sprite AttackDamageBody(BossDef boss, int frame, int stage)
+    {
+        if (!HasDamageArt(boss) || stage <= 0) return null;
+        int col = AttackDamageColumn(boss, frame);
+        if (col < 0) return null;
+        var sheet = AttackDamageSheet(boss);
+        int i = (Mathf.Min(stage, DamageStages) - 1) * AttackDamagePoses(boss).Length + col;
+        return i < sheet.Length ? sheet[i] : null;
+    }
+
+    static readonly string[] PlainPoseNames = { "tell0_0", "tell0_1", "tell1_0", "tell1_1", "tell2_0", "tell2_1", "fire" };
+    static readonly string[] ExpandedPoseNames = { "tell0_0", "tell0_1", "tell0_2", "tell1_0", "tell1_1", "tell1_2", "tell2_0", "tell2_1", "tell2_2" };
+
+    // Resources/BossImpact/attack/<key>_<pose>_stage<N>.png: one 384 px file per pose and stage, loaded
+    // (and cached) the first time the boss shows that stage.
+    static Sprite[] AttackDamageSheet(BossDef boss)
+    {
+        string path = ImpactFolder + "attack/" + boss.damageKey;
+        Sprite[] sheet;
+        if (bodies.TryGetValue(path, out sheet) && sheet != null && sheet.Length > 0 && sheet[0] != null) return sheet;
+        var names = HasExpandedCombat(boss) ? ExpandedPoseNames : PlainPoseNames;
+        sheet = new Sprite[names.Length * DamageStages];
+        for (int s = 0; s < DamageStages; s++)
+            for (int c = 0; c < names.Length; c++)
+            {
+                var tex = Resources.Load<Texture2D>(path.Substring(0, path.LastIndexOf('/') + 1) + boss.damageKey.ToLowerInvariant() + "_" + names[c] + "_stage" + (s + 1));
+                if (tex != null) sheet[s * names.Length + c] = Sprite.Create(tex, new Rect(0, 0, tex.width, tex.height), new Vector2(.5f, .5f), tex.width);
+            }
+        bodies[path] = sheet;
+        return sheet;
+    }
+
     // The shared smoke schedule; SmokeAlpha(boss, stage) scales it by the
     // boss's smokeStrength.
     public static float SmokeAlpha(int stage) => stage >= 4 ? 1f : stage == 3 ? .7f : stage == 2 ? .35f : 0f;
@@ -495,6 +549,9 @@ public static class BossArt
         {
             for (int i = 0; i < DamageCells; i++) yield return DamageBody(boss, i);
             for (int i = 0; i < DamageFxCells; i++) yield return DamageFx(boss, i);
+            var poses = AttackDamagePoses(boss);
+            for (int s = 1; s <= DamageStages; s++)
+                for (int p = 0; p < poses.Length; p++) yield return AttackDamageBody(boss, poses[p], s);
         }
         if (HasDeathArt(boss))
             for (int i = 0; i < DeathStripCells; i++) yield return DeathStrip(boss, i);

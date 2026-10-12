@@ -25,6 +25,8 @@ public class BossActor : MonoBehaviour
     BossDef boss;
     SpriteRenderer body;
     SpriteRenderer smoke, arcs;   // battle damage over the body (BossArt damage fx)
+    SpriteRenderer white;         // the hit flash: an additive white silhouette of the body (BossImpact)
+    float whiteLeft, whitePeak;   // unscaled
     int damageStage;              // hearts lost, 0..BossArt.DamageStages
     readonly SpriteRenderer[] charges = new SpriteRenderer[MaxParts];
     readonly SpriteRenderer[] rings = new SpriteRenderer[MaxParts];
@@ -104,6 +106,9 @@ public class BossActor : MonoBehaviour
         bodyGo.transform.localScale = Vector3.one * BossConfig.BossWorldSize;
         body = bodyGo.AddComponent<SpriteRenderer>();
         body.sortingOrder = -3;
+        white = Overlay("HitFlash", 0);
+        var flashShader = Resources.Load<Shader>("BossFlash");
+        if (flashShader != null) white.sharedMaterial = new Material(flashShader) { name = "BossFlash" };
         if (BossArt.HasDamageArt(def))
         {
             smoke = Overlay("DamageSmoke", -2);
@@ -147,7 +152,10 @@ public class BossActor : MonoBehaviour
         BodyFrame = frame;
         if (body == null) return;
         int cell = BossArt.DamageIdleCell(boss, frame, damageStage, animClock);
-        body.sprite = cell >= 0 ? BossArt.DamageBody(boss, cell) : BossArt.Body(boss, frame);
+        Sprite sprite = cell >= 0 ? BossArt.DamageBody(boss, cell) : null;
+        // a tell / fire pose keeps the boss's damage too (BossArt.AttackDamageBody)
+        if (sprite == null) sprite = BossArt.AttackDamageBody(boss, frame, damageStage);
+        body.sprite = sprite != null ? sprite : BossArt.Body(boss, frame);
     }
 
     // ---- battle damage -------------------------------------------------
@@ -686,7 +694,9 @@ public class BossActor : MonoBehaviour
 
     void RefreshFrame()
     {
-        if (flashLeft > 0f) SetFrame(BossArt.Hit);
+        // a damaged boss keeps its pose through a hit (the white flash is the hit now): the
+        // pristine Hit drawing would read as it healing for two ticks per blow
+        if (flashLeft > 0f && damageStage <= 0) SetFrame(BossArt.Hit);
         else if (fireLeft > 0f && current != null && current.fireFrame && phase == AttackPhase.Volleys) SetFrame(BossArt.FireFrame(boss, current.tell));
         else if (phase == AttackPhase.Tell && current != null)
             SetFrame(BossArt.TellFrame(boss, current.tell, tellAge / Mathf.Max(.01f, current.tellSeconds)));
@@ -695,7 +705,21 @@ public class BossActor : MonoBehaviour
         else SetFrame(BossArt.IdleFrame(boss, animClock));
         RefreshGlows();
         RefreshDamage();
+        RefreshWhite();
     }
+
+    void RefreshWhite()
+    {
+        if (white == null) return;
+        bool on = whiteLeft > 0f && body.enabled && mode == Mode.Fighting;
+        white.enabled = on;
+        if (!on) return;
+        white.sprite = body.sprite;
+        white.color = new Color(1f, 1f, 1f, whitePeak * Mathf.Clamp01(whiteLeft / BossImpact.WhiteSeconds));
+    }
+
+    // Test / codex reads.
+    public float WhiteAlpha => white != null && white.enabled ? white.color.a : 0f;
 
     // The tell's charge gathering at each part about to fire (a ring closing
     // in, a core growing on 2s), and the muzzle flash at each part that just
@@ -741,9 +765,14 @@ public class BossActor : MonoBehaviour
 
     // ---- hit flash (real time) -----------------------------------------
 
-    public void Flash()
+    public void Flash() { Flash(1f); }
+
+    // `strength` 0..1 scales the white flash (a light hit is a dimmer pop).
+    public void Flash(float strength)
     {
         flashLeft = BossArt.HitTicks * BossArt.Tick;
+        whiteLeft = BossImpact.WhiteSeconds;
+        whitePeak = Mathf.Clamp01(strength);
         if (mode == Mode.Fighting) RefreshFrame();
     }
 
@@ -752,6 +781,7 @@ public class BossActor : MonoBehaviour
     void TickFlash(float realDt)
     {
         if (flashLeft > 0f) flashLeft -= realDt;
+        if (whiteLeft > 0f) whiteLeft -= realDt;
     }
 
     // ---- outro (world time) --------------------------------------------
@@ -769,6 +799,8 @@ public class BossActor : MonoBehaviour
         ClearArmed();   // a hazard of the attack in progress goes with the boss
         HideDamage();
         flashLeft = 0f;
+        whiteLeft = 0f;
+        if (white != null) white.enabled = false;
         if (bodyHit != null) { BossUtil.Kill(bodyHit); bodyHit = null; }
         // Retreating: its hearts go with it at once. Dying: the last one's
         // crumble plays out over the blasts (StepOutro), then all of it goes.

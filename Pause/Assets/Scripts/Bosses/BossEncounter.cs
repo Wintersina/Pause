@@ -375,12 +375,15 @@ public class BossEncounter : MonoBehaviour
         while (hitBank >= 1f - 1e-4f && hp > 0) { hitBank -= 1f; hp--; }
         int was = heartsLeft;
         heartsLeft = HeartsFor(damage, hp);
+        bool heartLost = heartsLeft != was, kill = hp <= 0;
         if (actor != null)
         {
-            if (heartsLeft != was) actor.SetHearts(heartsLeft, at);
-            actor.Flash();
+            if (heartLost) actor.SetHearts(heartsLeft, at);
+            actor.Flash(Mathf.Lerp(.55f, 1f, BossImpact.Intensity(weight)));
         }
         if (ui != null) ui.HitFlash(boss.flash);
+        // burst, shake, hit-stop, screen cracks (BossImpact): scaled by the hit's weight
+        BossImpact.Hit(at, weight, heartLost, kill);
     }
 
     // The hearts left after `damage` (weighted hits) with `hpLeft` hit

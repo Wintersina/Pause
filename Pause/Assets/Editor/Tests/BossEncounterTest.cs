@@ -446,7 +446,7 @@ public static class BossEncounterTest
         Check("a homing shot on the boss is intercepted", BossTarget.Intercept(body, 1));
         Check("... and takes one hit point (" + e.HitPointsLeft + " left)", e.HitPointsLeft == BossConfig.HitPoints - 1 && e.Hits == 1);
         Check("... but never shaves the fight clock (it stays fixed)", Mathf.Abs(before - e.Remaining) < .001f);
-        Check("... with a hit flash", e.Actor.Flashing && e.Actor.BodyFrame == BossArt.Hit);
+        Check("... with a hit flash", e.Actor.Flashing && (e.Actor.BodyFrame == BossArt.Hit || (e.Actor.DamageStage > 0 && e.Actor.WhiteAlpha > 0f)));   // (a damaged boss keeps its pose and pops white instead)
         Check("the boss itself is not destroyed", body != null && e.Actor != null);
         float budget = 1f;
         ShipAttackHits.Hit(body, 1, .25f, ref budget);

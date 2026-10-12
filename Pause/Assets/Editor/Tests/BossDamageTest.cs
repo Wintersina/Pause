@@ -315,14 +315,16 @@ public static class BossDamageTest
                 else
                 {
                     poseSeen++;
-                    if (body.sprite == BossArt.Body(a.Boss, a.BodyFrame)) posePristine++;
+                    // a tell / fire pose wears its own damaged drawing (BossArt.AttackDamageBody); others keep the body frame
+                    var want = BossArt.AttackDamageBody(a.Boss, a.BodyFrame, stage) ?? BossArt.Body(a.Boss, a.BodyFrame);
+                    if (body.sprite == want) posePristine++;
                 }
                 if (a.DamageSmoke.enabled) { smokeOn++; smokeA = a.DamageSmoke.color.a; }
                 if (a.DamageArcs.enabled) { arcOn++; arcA = a.DamageArcs.color.a; }
             }
             Check(a.Boss.artKey + ": stage " + stage + ": idle shows its damaged hull (" + idleDamaged + "/" + idleSeen + ")",
                   idleSeen > 0 && idleDamaged == idleSeen);
-            Check(a.Boss.artKey + ": stage " + stage + ": other poses keep their drawings (" + posePristine + "/" + poseSeen + ")",
+            Check(a.Boss.artKey + ": stage " + stage + ": other poses keep their own (damaged, for tell / fire) drawings (" + posePristine + "/" + poseSeen + ")",
                   posePristine == poseSeen);
             float wantSmoke = BossArt.SmokeAlpha(a.Boss, stage);
             Check(a.Boss.artKey + ": stage " + stage + ": smoke " + (wantSmoke > 0f ? "at " + wantSmoke : "off") + " (" + smokeOn + "/" + frames + ")",
@@ -447,7 +449,7 @@ public static class BossDamageTest
         for (int i = 0; i < 120 && a.State == BossActor.Mode.Retreating; i++)
         {
             a.StepOutro(Dt, 0);
-            left &= !a.DamageSmoke.enabled && !a.DamageArcs.enabled && body.sprite == BossArt.Body(a.Boss, a.BodyFrame);
+            left &= !a.DamageSmoke.enabled && !a.DamageArcs.enabled && (body.sprite == BossArt.Body(a.Boss, a.BodyFrame) || body.sprite == BossArt.AttackDamageBody(a.Boss, a.BodyFrame, a.DamageStage));   // (its first tick is tell0's drawing, damaged)
         }
         Check(a.Boss.artKey + ": retreating: overlay gone, retreat frames pristine, and it still leaves", left && a.State == BossActor.Mode.Gone);
     }

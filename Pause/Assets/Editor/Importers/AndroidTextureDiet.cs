@@ -47,10 +47,10 @@ public class AndroidTextureDiet : AssetPostprocessor
     {
         if (path.Contains("/Backgrounds/") || path.Contains("/Planetfall/")) return TextureImporterFormat.ASTC_6x6;
         if (path.StartsWith("Assets/Art/UI/", StringComparison.Ordinal)) return TextureImporterFormat.ASTC_6x6;
-        // Hard 1 px outlines (6x6 visibly blocks them in previews): ship hulls, guns, skins, exhaust, damage fx, shield, rails, weapons, attack fx, boss shots.
+        // Hard 1 px outlines (6x6 visibly blocks them in previews): ship hulls, guns, skins, exhaust, damage fx, shield, rails, weapons, attack fx, boss shots, the boss hit bursts / cracks / damaged attack poses.
         if (path.Contains("/ShipArt/") || path.Contains("/Shield/") || path.Contains("/Worlds/rail_") ||
             path.Contains("/Resources/Worlds/") ||
-            path.Contains("/Resources/Weapons/") || path.Contains("/Resources/Attacks/") || path.Contains("/Resources/BossAttackFx/") || path.EndsWith("_shots.png", StringComparison.Ordinal))
+            path.Contains("/Resources/Weapons/") || path.Contains("/Resources/Attacks/") || path.Contains("/Resources/BossAttackFx/") || path.Contains("/Resources/BossImpact/") || path.EndsWith("_shots.png", StringComparison.Ordinal))
             return TextureImporterFormat.ASTC_4x4;
         // Painted / glowing / soft art (previews clean at 6x6): bosses, enemies, elites, pickups, vfx, gate, title and splash.
         return TextureImporterFormat.ASTC_6x6;
