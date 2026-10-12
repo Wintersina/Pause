@@ -319,7 +319,7 @@ public static class BossWarning
                 default: return BossWarningInput.None;
             }
         }
-        // A portal is open and waiting (any world, the loop portal too): the
+        // A portal is open and waiting (any world; the final world's lift-off counts too): the
         // level clock is stopped and this visit's boss is done.
         if (wm.Stage == WorldManager.LevelStage.Portal || wm.DistanceLeft <= 0f) return BossWarningInput.None;
         if (BossEncounter.DoneInWorld(WorldManager.CurrentIndex)) return BossWarningInput.None;

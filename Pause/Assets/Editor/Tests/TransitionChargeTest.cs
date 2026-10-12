@@ -291,9 +291,9 @@ public static class TransitionChargeTest
         LiftoffCatalog.Enabled = false;   // Verdant's and Ember's own ends are lift-offs (LiftoffClimb); here their portals
         // ... and Verdant -> Ember without Ember's planetfall: the portal as it was before Ember's art
         PlanetfallCatalog.Defs = new[] { PlanetfallCatalog.Frost, PlanetfallCatalog.Verdant };
-        foreach (int world in new[] { 2, 6 })   // Verdant -> Ember, and Desert's (the last world's) loop portal
+        foreach (int world in new[] { 2 })   // Verdant -> Ember (Desert, the last world, has no portal: its lift-off, LiftoffClimb)
         {
-            string name = world == 6 ? "the loop portal" : "the portal";
+            string name = "the portal";
             FreshScene(world);
             var c = Ship();
             var wm = World();
@@ -409,11 +409,11 @@ public static class TransitionChargeTest
         // (the last world): no gateway, the loop starts Space at once
         bool fall = from < WorldManager.LastLiveWorld;
         string onto = fall ? WorldManager.Worlds[from + 1].displayName : "";
-        if (!fall && LiftoffCatalog.Desert.AutoLoopNow)
+        if (!fall)
         {
             Check(name + ": no portal: the loop began at the interlude's end (" + WorldManager.Current.displayName + ", loop " +
                   RunLoop.Index + "), the transition over",
-                  Portal.Live == null && Planetfall.Live == null && WorldManager.CurrentIndex == RunLoop.StartWorld &&
+                  Portal.Live == null && Planetfall.Live == null && WorldManager.CurrentIndex == WorldManager.LoopWorld &&
                   RunLoop.Index == 1 && !wm.PortalIsOpen && wm.Stage == WorldManager.LevelStage.Level);
             Resumes(name, c, wm, Held, 0);
             Teardown(c);
@@ -421,8 +421,8 @@ public static class TransitionChargeTest
             Object.DestroyImmediate(wm.gameObject);
             return;
         }
-        Check(name + ": the gateway it opened (" + (fall ? onto + "'s planetfall" : "the loop portal") + ") is still the transition",
-              (fall ? Planetfall.Live != null && Portal.Live == null : Portal.Live != null && Planetfall.Live == null) &&
+        Check(name + ": the gateway it opened (" + onto + "'s planetfall) is still the transition",
+              Planetfall.Live != null && Portal.Live == null &&
               WorldTransition.InProgress);
         for (int i = 0; i < 60; i++) Fly(wm, c);
         Check(name + ": ... the charge still held at the gateway", Mathf.Approximately(c.SecondsLeft, Held) && c.UltimatesFired == 0);
@@ -503,8 +503,8 @@ public static class TransitionChargeTest
         Check("a scene reload mid-descent clears it", on && !WorldTransition.InProgress);
 
         // a dead pilot at the open portal: nothing fires, and the run's reload clears it
-        LiftoffCatalog.Enabled = false;   // Desert's loop portal (its lift-off: LiftoffClimb)
-        FreshScene(6);
+        LiftoffCatalog.Enabled = false;   // Storm's gateway, Desert's planetfall (its lift-off: LiftoffClimb)
+        FreshScene(5);
         wm = World();
         c = Ship();
         SetTimer(c, 0f);
@@ -545,14 +545,16 @@ public static class TransitionChargeTest
         Object.DestroyImmediate(wm.gameObject);
 
         // the manager going with the portal open (the scene going) clears it
-        LiftoffCatalog.Enabled = false;   // Desert's loop portal straight away
-        FreshScene(6);
+        LiftoffCatalog.Enabled = false;   // Storm's portal straight away (Desert's planetfall stands aside)
+        PlanetfallCatalog.Enabled = false;
+        FreshScene(5);
         wm = World();
         FinishLevel(wm);
         on = WorldTransition.InProgress && Portal.Live != null;
         Object.DestroyImmediate(wm.gameObject);
-        Check("the world manager destroyed with the portal open clears it", on && !WorldTransition.InProgress);
+        Check("the world manager destroyed with the gateway open clears it", on && !WorldTransition.InProgress);
         Gone();
+        PlanetfallCatalog.Enabled = true;
         LiftoffCatalog.Enabled = true;
 
         // a lift-off destroyed mid-rise along with its scene

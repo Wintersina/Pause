@@ -11,7 +11,7 @@ Working name **Desert** (alternatives for the user: Dune, Sirocco, Mirage). User
 
 Tide, Storm and Desert are all OFF behind feature flags: `WorldManager.DesertEnabled` defaults **false** and is chained after `StormEnabled` exactly like
 `TideEnabled` / `StormEnabled` are chained in `WorldManager.cs` on master (Desert is only reachable when Storm is enabled and Desert's own flag is on;
-`LastLiveWorld`, `HasNext`, `PortalDestination` and the lift-off `autoLoop` all read the chain). The production loop stays **Space -> Frost -> Verdant ->
+`LastLiveWorld`, `HasNext`, `PortalDestination` and the final lift-off all read the chain). The production loop stays **Space -> Frost -> Verdant ->
 Ember -> Space** until the flags flip. BUT the code and assets are real and ship in the bundle: when a phase wires an asset it is **installed under a
 `Resources/` folder** (planetfall under `Backgrounds/Resources/Worlds/Desert/Planetfall/`, backdrop under `.../Desert/Backdrop3/`, worm atlas beside it,
 enemies/bosses/elites/rails/audio in their usual Resources folders), never left in `~` staging folders after wiring. `~` folders are only the Codex

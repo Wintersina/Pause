@@ -6,22 +6,20 @@ using UnityEngine;
 
 // The lift-off (Liftoff): Frost's, Verdant's and Ember's climb back to space
 // after their boss, a calm interlude, then the way on: Verdant's planetfall
-// after Frost, Ember's after Verdant; after Ember (the last world) no portal:
-// the loop starts Space again at once (LiftoffDef.autoLoop,
-// WorldManager.StartLoop), the loop portal only as its fallback.
+// after Frost, Ember's after Verdant; after Desert (the last world) no portal:
+// the loop starts Space again at once (WorldManager.StartLoop, LoopWorld).
 //
 //   1  which world ends lift off: Frost, Verdant and Ember. Space -> Frost
-//      stays the planetfall; Ember's way on is the loop itself; switched off
+//      stays the planetfall; Desert's way on is the loop itself; switched off
 //      or missing art: the gateway straight away
 //   2  the flow: a beat (nothing spawns, the pilot flies), the take (held,
 //      shielded, free presses, lifted over the clouds), the backdrop swapped
 //      to Space while the clouds cover the view, control back at release,
 //      a calm interlude, then the portal with its pressure; the world
 //      changes exactly once, only through the portal; score and hearts
-//      carry through; a pause freezes it; nothing of it is left. Ember's:
+//      carry through; a pause freezes it; nothing of it is left. Desert's:
 //      the same up to the interlude's end, then Space's level begins with
-//      no portal ever, one loop on (exactly once), the backdrop untouched;
-//      with autoLoop off, the loop portal as before
+//      no portal ever, one loop on (exactly once), the backdrop untouched
 //   3  the gateway after Frost (Verdant's planetfall) and after Verdant
 //      (Ember's), flown all the way down (the world changes once, under the
 //      clouds, onto the new planet)
@@ -70,9 +68,6 @@ public static class LiftoffTest
             LaterTransitions();
             // Desert is the final world: its lift-off loops straight back to Space
             Flow(Desert);
-            LiftoffCatalog.Desert.autoLoop = false;
-            Flow(Desert);   // the fallback: the loop portal
-            LiftoffCatalog.Desert.autoLoop = true;
             NoAllocations(Desert);
             NextPlanetfall(Frost);
             NextPlanetfall(Verdant);
@@ -90,7 +85,6 @@ public static class LiftoffTest
             PlanetfallCatalog.Defs = PlanetfallCatalog.All;
             PlanetfallCatalog.Enabled = true;
             LiftoffCatalog.Enabled = true;
-            LiftoffCatalog.Desert.autoLoop = true;
             if (WorldBackdrop.Instance != null) Object.DestroyImmediate(WorldBackdrop.Instance.gameObject);
             PortalPressure.Reset();
             ShipStartSpeed.EquippedHudOverride = null;
@@ -249,9 +243,8 @@ public static class LiftoffTest
               LiftoffCatalog.Storm.world == Storm && LiftoffCatalog.Storm.planet == PlanetfallCatalog.Storm && LiftoffCatalog.Storm.interludeWorld == 0 &&
               LiftoffCatalog.Desert.world == Desert && LiftoffCatalog.Desert.planet == PlanetfallCatalog.Desert && LiftoffCatalog.Desert.interludeWorld == 0 &&
               LiftoffCatalog.Desert.banner == "LIFT OFF");
-        Check("only the last world (Desert) loops by itself; Ember, Tide and Storm have a planetfall to fly on to",
-              LiftoffCatalog.Desert.autoLoop && LiftoffCatalog.Desert.AutoLoopNow &&
-              !LiftoffCatalog.Ember.AutoLoopNow && !LiftoffCatalog.Tide.AutoLoopNow && !LiftoffCatalog.Storm.AutoLoopNow &&
+        Check("only the last world (Desert) loops by itself (to Space); Ember, Tide and Storm have a planetfall to fly on to",
+              !WorldManager.HasNext == (WorldManager.LastLiveWorld == Desert) && WorldManager.LoopWorld == 0 &&
               LiftoffCatalog.For(Ember, Tide, false) == LiftoffCatalog.Ember && LiftoffCatalog.For(Tide, Storm, false) == LiftoffCatalog.Tide &&
               LiftoffCatalog.For(Storm, Desert, false) == LiftoffCatalog.Storm && LiftoffCatalog.For(Desert, 0, true) == LiftoffCatalog.Desert);
         Check("... the gateways: Ember's is Tide's planetfall, Tide's Storm's, Storm's Desert's, Desert's the loop (never a planetfall)",
@@ -279,7 +272,7 @@ public static class LiftoffTest
     static void Flow(int from)
     {
         bool loop = from == WorldManager.LastLiveWorld;
-        int to = loop ? RunLoop.StartWorld : from + 1;
+        int to = loop ? WorldManager.LoopWorld : from + 1;
         string name = WorldManager.Worlds[from].displayName, next = WorldManager.Worlds[to].displayName;
         FreshScene(from);
         RunScore.BeginRun(true, true);
@@ -295,7 +288,7 @@ public static class LiftoffTest
         Check(name + "'s lift-off flies its own planet's art", l != null && l.Def.world == from && l.Art.Def.world == from);
         var liftArt = l.Art;
         // the last world's: no portal, the loop begins at the interlude's end
-        bool direct = l.Def.AutoLoopNow && loop;
+        bool direct = loop;
         // ... under the backdrop the interlude already shows (a real one here)
         WorldBackdrop backdrop = null;
         if (direct)

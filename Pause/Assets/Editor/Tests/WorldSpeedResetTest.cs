@@ -78,7 +78,6 @@ public static class WorldSpeedResetTest
         wm = Object.FindFirstObjectByType<WorldManager>();
         if (wm == null) wm = new GameObject("~wm").AddComponent<WorldManager>();
         WorldManager.CurrentIndex = 0;
-        RunLoop.StartWorld = 0;
         // a fresh run's own start
         moveBackGround.speed = WorldManager.RunStartSpeed(0f);
         foreach (var w in walls) { w.speedRampPerSecond = WorldManager.Worlds[0].speedRampPerSecond; w.maxSpeed = SpeedRamp.Cap; }

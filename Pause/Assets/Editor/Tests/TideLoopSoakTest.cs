@@ -8,7 +8,8 @@ using UnityEngine;
 // three loops, and for a run that began elsewhere (a developer start).
 //
 //   Space -> Frost -> Verdant -> Ember -> Tide -> Storm -> Desert -> (lift-off) Space, loop + 1
-//   a run started in world N goes on to Desert, then the loop PORTAL leads back to N
+//   a run started in world N goes on to Desert, then (lift-off, no portal) to SPACE, and on
+//   through the chain again: the loop always restarts at Space, never at N
 //
 // Every arrival must be clean: the level stage, no transition in progress, no
 // portal or pressure left, the arrival speed of the loop, the world's own
@@ -38,11 +39,11 @@ public static class TideLoopSoakTest
         {
             // the whole chain, three loops: Space -> Frost -> Verdant -> Ember -> Tide -> Storm -> Desert -> (lift-off) Space, loop + 1
             Chain(0, new[] { 0, 1, 2, 3, 4, 5, 6, 0, 1, 2, 3, 4, 5, 6, 0, 1, 2, 3, 4, 5, 6, 0 });
-            // a run that began elsewhere (a developer start) goes on to Desert, then loops back to its own world by portal
-            Chain(3, new[] { 3, 4, 5, 6, 3, 4, 5, 6, 3 });
-            Chain(4, new[] { 4, 5, 6, 4, 5, 6, 4 });
-            Chain(5, new[] { 5, 6, 5, 6, 5 });
-            Chain(6, new[] { 6, 6, 6, 6 });
+            // a run that began elsewhere (a developer start or a replay) goes on to Desert, then to Space, then the chain again
+            Chain(3, new[] { 3, 4, 5, 6, 0, 1, 2, 3, 4, 5, 6, 0 });
+            Chain(4, new[] { 4, 5, 6, 0, 1, 2, 3, 4, 5, 6, 0 });
+            Chain(5, new[] { 5, 6, 0, 1, 2, 3, 4, 5, 6, 0 });
+            Chain(6, new[] { 6, 0, 1, 2, 3, 4, 5, 6, 0, 1 });
         }
         finally
         {
@@ -83,6 +84,8 @@ public static class TideLoopSoakTest
         BossEncounter.ResetRun();
         RunLoop.Reset();
         PortalPressure.Reset();
+        // the scene's background music source (WorldMusic only plays, and marks the codex song heard, with one)
+        new GameObject("MovingMusic", typeof(AudioSource));
         var camGo = new GameObject("Main Camera", typeof(Camera));
         camGo.tag = "MainCamera";
         var cam = camGo.GetComponent<Camera>();
@@ -104,7 +107,6 @@ public static class TideLoopSoakTest
         SpeedRamp.ResetBoost();
         ResumeSlowMo.ClockOverride = () => frame * Dt;
         ResumeSlowMo.ResetRun();
-        RunLoop.StartWorld = startWorld;
     }
 
     static WorldManager World()
@@ -156,13 +158,12 @@ public static class TideLoopSoakTest
         string label = "run begun in " + WorldManager.Worlds[start].displayName;
         FreshScene(start);
         RunScore.BeginRun(true, true);
-        RunLoop.StartWorld = start;   // (BeginRun resets it)
         RunScore.Tick(10f, .3f);
         var ship = Ship();
         collisionDetection.lifeCounter = 1;
         var wm = World();
         var visited = new List<int> { WorldManager.CurrentIndex };
-        bool clean = true, speedOk = true, rosterOk = true, scoreOk = true, calmOk = true, noStray = true;
+        bool tidy = true, clean = true, speedOk = true, rosterOk = true, scoreOk = true, calmOk = true, noStray = true;
         string why = "";
         long scoreWas = RunScore.Total;
         int safety = 0;
@@ -203,6 +204,16 @@ public static class TideLoopSoakTest
             scoreOk &= RunScore.Total >= scoreWas && collisionDetection.lifeCounter == 1;
             scoreWas = RunScore.Total;
             calmOk &= !SpaceDirector.Quiet;
+            // nothing leaked across the transition: one backdrop on the arrival world's own set, no lift-off / planetfall
+            // stage left behind, the clock running, the pilot's state sane
+            var bd = WorldBackdrop.Instance;
+            bool sky = Object.FindObjectsByType<WorldBackdrop>(FindObjectsSortMode.None).Length == 1 && bd != null && bd.Current != null &&
+                       bd.Current.Spec.world == BackdropCatalog.For(WorldManager.Worlds[now].displayName).world;
+            bool leftovers = GameObject.Find("~LiftoffStage") != null || GameObject.Find("~Liftoff") != null ||
+                             GameObject.Find("~PlanetfallStage") != null;
+            bool hooks = Codex.IsDiscovered(Codex.WorldId(now)) && Codex.IsTrackHeard(CodexMusic.WorldId(WorldManager.Worlds[now].displayName));
+            if (!sky || leftovers || Time.timeScale != 1f || buttonClicks.playerDied || !hooks)
+            { tidy = false; why += " [leak at " + from + "->" + now + ": sky " + sky + " leftovers " + leftovers + " timeScale " + Time.timeScale + " hooks " + hooks + "]"; }
             noStray &= Object.FindObjectsByType<Portal>(FindObjectsSortMode.None).Length == 0;
             Check("   " + label + ": " + WorldManager.Worlds[from].displayName + " -> " + WorldManager.Worlds[now].displayName +
                   " (loop " + (RunLoop.Index + 1) + ", " + (now == expect[visited.Count - 1] ? "as expected" : "EXPECTED " + WorldManager.Worlds[expect[visited.Count - 1]].displayName) + ")",
@@ -212,10 +223,11 @@ public static class TideLoopSoakTest
 
         Check(label + ": the order is " + Names(expect) + " (walked " + Names(visited.ToArray()) + ")", Same(visited, expect));
         Check(label + ": every arrival clean: level stage, no transition, no portal or pressure" + why, clean && noStray);
+        Check(label + ": every arrival leak-free: one backdrop of the arrival world, no stage left, timeScale 1, codex marks and song heard" + why, tidy);
         Check(label + ": every arrival at the loop's arrival speed, on the right world's roster, no calm left on", speedOk && rosterOk && calmOk);
         Check(label + ": score never lost, hearts untouched through " + loopsSeen + " loop(s)", scoreOk);
         int expectLoops = 0;
-        for (int i = 1; i < expect.Length; i++) if (expect[i] == start && expect[i - 1] >= LastOf(start)) expectLoops++;
+        for (int i = 1; i < expect.Length; i++) if (expect[i] == WorldManager.LoopWorld && expect[i - 1] == LastOf(start)) expectLoops++;
         Check(label + ": " + expectLoops + " loop(s) counted exactly (RunLoop.Index " + RunLoop.Index + ")", RunLoop.Index == expectLoops && loopsSeen == expectLoops);
         Check(label + ": Desert is reached", visited.Contains(6));
 

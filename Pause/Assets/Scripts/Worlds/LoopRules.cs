@@ -2,11 +2,12 @@ using UnityEngine;
 
 // Every tunable number for looping, in one table.
 //
-// Every level ends the same way: its boss, then a portal that stays open
-// until the ship flies through it (WorldManager, Portal, PortalPressure).
-// After the final world that portal leads back to the world the run started
-// in: the score carries on, RunLoop.Index goes up by one and the run plays
-// every world and boss again.
+// Every level ends the same way: its boss, then a portal / planetfall that
+// stays open until the ship flies through it (WorldManager, Portal,
+// PortalPressure). After the final world there is no portal: the ship lifts
+// off (Liftoff) and the run starts again in Space, the first world: the score
+// carries on, RunLoop.Index goes up by one and the run plays every world and
+// boss again.
 //
 // Speed is capped at SpeedRamp.Cap (HUD 35) on every loop, so a loop is
 // harder -- and worth more -- along other axes. Per-loop scaling uses
@@ -105,10 +106,8 @@ public static class LoopDifficulty
 // leaves nothing behind. RunScore.BeginRun resets it with the run.
 public static class RunLoop
 {
-    // 0 on the first pass; +1 each time the final world's portal is flown.
+    // 0 on the first pass; +1 each time the final world is left (its lift-off ends in Space).
     public static int Index { get; private set; }
-    // The world this run started in (where the final portal leads back to).
-    public static int StartWorld { get; set; }
 
     // "LOOP 2" for Index 1: the pass the pilot is on, counted from one.
     public static int DisplayNumber { get { return Index + 1; } }
@@ -116,7 +115,6 @@ public static class RunLoop
     public static void Reset()
     {
         Index = 0;
-        StartWorld = 0;
         LoopDifficulty.Reset();
     }
 

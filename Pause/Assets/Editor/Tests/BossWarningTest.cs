@@ -591,7 +591,6 @@ public static class BossWarningTest
     {
         int last = WorldManager.LastLiveWorld;
         var rig = Fly(last, .2f);
-        RunLoop.StartWorld = 0;
         var c = rig.hud.Countdown;
         while (!BossEncounter.Running && rig.flown < 300f) rig.Frame();
         Check("first pass, " + WorldManager.Worlds[last].displayName + ": warned once", BossEncounter.Running && c.Triggers == 1);
@@ -602,37 +601,15 @@ public static class BossWarningTest
         rig.hud.Step(BossWarning.Read(rig.wm), 0f, 0f, 1f);
         Check("after the boss: no boss ahead", BossWarning.Read(rig.wm) == BossWarningInput.None && !rig.hud.Visible);
 
+        // the final world has no portal: the lift-off into Space (here, lift-offs are not
+        // flown) loops at once, one loop on, Space's boss ahead again
         typeof(WorldManager).GetField("distanceLeft", Inst).SetValue(rig.wm, 0f);
-        OpenPortal(rig.wm);
-        Check("the final world's portal leads back to the start world", WorldManager.PortalDestination == 0 &&
-              PortalPressure.Destination == 0 && rig.wm.Stage == WorldManager.LevelStage.Portal);
-        Check("the loop portal waiting: no warning", BossWarning.Read(rig.wm) == BossWarningInput.None &&
-              float.IsPositiveInfinity(BossWarning.SecondsToBoss));
-        // the stage alone keeps it quiet: even with distance on the clock and
-        // the boss forgotten, a waiting portal never has a boss ahead
-        typeof(WorldManager).GetField("distanceLeft", Inst).SetValue(rig.wm, 5f);
-        BossEncounter.ForgetDone();
-        Check("a waiting portal (stage Portal) has no boss ahead whatever the clock says",
-              BossWarning.Read(rig.wm) == BossWarningInput.None);
-        typeof(BossEncounter).GetField("doneWorld", BindingFlags.NonPublic | BindingFlags.Static).SetValue(null, last);
-        typeof(WorldManager).GetField("distanceLeft", Inst).SetValue(rig.wm, 0f);
-
-        // a minute and a half of waiting, pressure and all: never a warning
-        bool quiet = true;
-        for (int i = 0; i < 60 * 90; i++)
-        {
-            rig.Frame();
-            quiet &= !c.Active && !rig.hud.Visible && BossWarning.Read(rig.wm) == BossWarningInput.None;
-        }
-        Check("90 s at the waiting loop portal (pressure level " + PortalPressure.Level.ToString("F1") + "): never a warning",
-              quiet && c.Triggers == 1 && rig.wm.Stage == WorldManager.LevelStage.Portal && PortalPressure.Pressing &&
-              !BossEncounter.Running);
-
-        // through the loop portal: the start world again, one loop on
-        try { rig.wm.Advance(); } catch (Exception e) { Debug.Log("[BW] Advance side effect threw (ignored): " + e.Message); }
-        Check("looped: back in " + WorldManager.Current.displayName + ", loop " + RunLoop.Index + ", its boss ahead again",
+        try { OpenPortal(rig.wm); } catch (Exception e) { Debug.Log("[BW] loop side effect threw (ignored): " + e.Message); }
+        try { rig.wm.OpenGateway(); } catch (Exception e) { Debug.Log("[BW] loop side effect threw (ignored): " + e.Message); }
+        Check("the final world leaves for Space, no portal: " + WorldManager.Current.displayName + ", loop " + RunLoop.Index +
+              ", its boss ahead again",
               WorldManager.CurrentIndex == 0 && RunLoop.Index == 1 && rig.wm.Stage == WorldManager.LevelStage.Level &&
-              !PortalPressure.Active && BossWarning.Read(rig.wm) == BossWarningInput.Ahead &&
+              !PortalPressure.Active && Portal.Live == null && BossWarning.Read(rig.wm) == BossWarningInput.Ahead &&
               BossWarning.SecondsToBoss > 40f);
         float start = rig.flown, firedAt = -1f;
         bool early = false;
@@ -661,7 +638,7 @@ public static class BossWarningTest
         typeof(BossEncounter).GetField("doneWorld", BindingFlags.NonPublic | BindingFlags.Static).SetValue(null, 1);
         typeof(WorldManager).GetField("distanceLeft", Inst).SetValue(rig.wm, 0f);
         OpenPortal(rig.wm);
-        quiet = WorldManager.PortalDestination == 2;
+        bool quiet = WorldManager.PortalDestination == 2;
         for (int i = 0; i < 60 * 20; i++) { rig.Frame(); quiet &= !rig.hud.Countdown.Active && BossWarning.Read(rig.wm) == BossWarningInput.None; }
         Check("a mid-run portal waiting 20 s: no warning", quiet && rig.hud.Countdown.Triggers == 0);
         try { rig.wm.Advance(); } catch (Exception e) { Debug.Log("[BW] Advance side effect threw (ignored): " + e.Message); }

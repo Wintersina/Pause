@@ -140,7 +140,7 @@ public static class PlayerStartWorldTest
         var wm = StartRun(out early);
         Check(tag + "run starts in " + Name(expect) + " (is " + Name(WorldManager.CurrentIndex) + ")", WorldManager.CurrentIndex == expect);
         Check(tag + "scripts starting before WorldManager.Start see it (saw " + early + ")", early == expect);
-        Check(tag + "loop return point is " + Name(expect), RunLoop.StartWorld == expect && RunLoop.Index == 0);
+        Check(tag + "loop return point is " + Name(expect), RunLoop.Index == 0);
         Check(tag + "source '" + seen + "' is '" + source + "'", seen == source);
         Check(tag + "highestWorld not lowered (" + Highest + " >= " + highestBefore + ")", Highest == highestBefore);
         var bd = WorldBackdrop.Instance;
@@ -339,7 +339,7 @@ public static class PlayerStartWorldTest
                     End(wm);
                     wm = StartRun(out early);
                     Check(tag + "replay " + n + " restarts in the world died in (is " + Name(WorldManager.CurrentIndex) + ")",
-                          WorldManager.CurrentIndex == died && early == died && RunLoop.StartWorld == died);
+                          WorldManager.CurrentIndex == died && early == died);
                     Check(tag + "replay " + n + " source is replay pin", WorldManager.RunStartSource(true) == "replay pin");
                 }
                 End(wm);

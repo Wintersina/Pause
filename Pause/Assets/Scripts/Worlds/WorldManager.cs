@@ -28,11 +28,12 @@ using UnityEngine.SceneManagement;
 //           lift-off (LiftoffCatalog: Frost, Verdant, Ember, Tide, Storm, Desert) climbs to space first (Liftoff):
 //           the same stage, no pressure, nothing spawning, until its calm
 //           interlude ends and it opens the gateway (OpenGateway) -- or,
-//           the last live world's (Desert's, the final world; LiftoffDef.AutoLoopNow), starts the loop
-//           at once with no portal (StartLoop).
+//           the last live world's (Desert's, the final world), starts the
+//           loop at once (StartLoop): there is no portal after the final world.
 //
-// Through the portal: the next planet -- or, after the final world, back to
-// the world the run started in, one loop on (RunLoop, LoopRules). The score
+// Through the portal: the next planet. After the final world there is no
+// portal: the ship lifts off and the run starts over in Space, the first
+// world of the chain, one loop on (RunLoop, LoopRules; LoopWorld). The score
 // carries on. There is no other ending than the pilot's death.
 //
 // On arrival: speed resets to the ship's start speed (or the loop's arrival
@@ -129,6 +130,9 @@ public class WorldManager : MonoBehaviour
     // reachable, and past the last the next stop is the loop, not another planet.
     public static int LiveWorldCount { get { return Worlds.Length; } }
     public static int LastLiveWorld { get { return Worlds.Length - 1; } }
+    // Where the loop restarts after the final world: Space, the first world of
+    // the chain, whatever world the run itself began in.
+    public const int LoopWorld = 0;
 
     // The world the live run is on. Once this manager has set it (Start,
     // Advance) it is held here, in memory: the saved world (PlayerPrefs) is
@@ -194,11 +198,11 @@ public class WorldManager : MonoBehaviour
         get { return CurrentIndex < LastLiveWorld; }
     }
 
-    // Where the open portal leads: the next planet, or (after the final
-    // world) the world the run started in.
+    // Where the way on leads: the next planet, or (after the final world)
+    // Space again, one loop on (LoopWorld).
     public static int PortalDestination
     {
-        get { return HasNext ? CurrentIndex + 1 : Mathf.Clamp(RunLoop.StartWorld, 0, Worlds.Length - 1); }
+        get { return HasNext ? CurrentIndex + 1 : LoopWorld; }
     }
 
     // Distance still to fly before the level ends (moveBackGround.speed x
@@ -337,8 +341,8 @@ public class WorldManager : MonoBehaviour
 
     // Called by Replay while the old run is still live: the world the pilot
     // is in right now, i.e. the one they died in (CurrentIndex; after a loop
-    // that is the start world again). The replayed run begins there, and
-    // its loop returns there too (Start sets RunLoop.StartWorld).
+    // that is Space again). The replayed run begins there; when it has flown
+    // the final world its loop goes to Space like any run's (LoopWorld).
     public static void PinReplayWorld()
     {
         replayWorld = Instance != null ? Mathf.Clamp(CurrentIndex, 0, Worlds.Length - 1) : -1;
@@ -390,8 +394,6 @@ public class WorldManager : MonoBehaviour
                   ", dev pick " + (DeveloperUnlocks.HasSelectedWorld ? PlayerPrefs.GetInt(DeveloperUnlocks.SelectedWorldKey).ToString() : "none") +
                   ", player pick " + (PlayerStartWorld.HasChoice ? PlayerPrefs.GetInt(PlayerStartWorld.Key).ToString() : "none") +
                   ", boss rush " + BossDev.RushMode + ", loop " + RunLoop.Index + ")");
-        // The final world's portal returns here (usually Space, or the developer's pick).
-        RunLoop.StartWorld = CurrentIndex;
 
         distanceLeft = WorldDistance;
         levelSeconds = 0f;
@@ -500,7 +502,8 @@ public class WorldManager : MonoBehaviour
         portalOpen = true;
         // Leaving a planet that lifts off (LiftoffCatalog: Frost, Verdant, Ember, Tide, Storm, Desert): the climb
         // to space and a calm interlude first, then Liftoff opens the gateway
-        // itself (no pressure until then). Missing art: the gateway now.
+        // itself (no pressure until then). Missing art: the gateway now (the
+        // final world's: the loop, without the cinematic).
         if (Liftoff.Spawn(LiftoffCatalog.For(CurrentIndex, PortalDestination, !HasNext)) != null) return;
         OpenGateway();
     }
@@ -509,30 +512,28 @@ public class WorldManager : MonoBehaviour
     // one, else the portal; either way the pressure starts. The lift-off
     // calls it when its interlude is over: Frost's ends on Verdant's planet
     // approach, Verdant's on Ember's, Ember's on Tide's, Tide's on Storm's, Storm's on Desert's. The last
-    // live world's (LastLiveWorld) starts the
-    // loop itself (StartLoop) and comes here only if that fails: the loop
-    // portal back round (a loop is never a planetfall).
+    // live world (LastLiveWorld) has no gateway at all: the loop starts
+    // (StartLoop, a loop is never a planetfall and never a portal).
     public void OpenGateway()
     {
         if (!portalOpen) return;
+        if (!HasNext) { StartLoop(); return; }
         int destination = PortalDestination;
         PortalPressure.Open(destination);
         // A planet arrived at by planetfall shows itself instead (and falls
         // back to the portal if its art is missing).
-        if (Planetfall.Spawn(PlanetfallCatalog.For(CurrentIndex, destination, !HasNext)) != null) return;
-        // The portal wears its world's colour; the loop portal the colour of
-        // the world it leads back to.
-        Color color = HasNext ? Current.portalColor : Worlds[destination].portalColor;
-        Portal.Spawn(color);
+        if (Planetfall.Spawn(PlanetfallCatalog.For(CurrentIndex, destination, false)) != null) return;
+        // The portal wears its world's colour.
+        Portal.Spawn(Current.portalColor);
     }
 
-    // The last world's lift-off (LiftoffDef.autoLoop) after its interlude:
+    // The last world's lift-off after its interlude (or its missing art):
     // the loop's world change straight away, no portal and no pressure --
-    // the same Advance the loop portal calls (loop count, bosses again,
-    // speed, difficulty, painter, music, banner). The interlude already
-    // shows Space's backdrop, so the backdrop doesn't change. False (and
-    // nothing changed): the caller opens the loop portal instead, so the
-    // pilot is never stranded.
+    // Advance(true): loop count, bosses again, speed, difficulty, painter,
+    // music, banner, and Space's level from its start (LoopWorld). The
+    // interlude already shows Space's run sky, so the backdrop doesn't
+    // change. False (and nothing changed): not the final world, or no
+    // gateway open yet.
     public bool StartLoop()
     {
         if (!portalOpen || HasNext) return false;
@@ -587,12 +588,12 @@ public class WorldManager : MonoBehaviour
         string banner;
         if (loop)
         {
-            // Back to where the run began, one loop on: every boss again.
+            // Back to Space, one loop on: every boss again.
             int loopIndex = RunLoop.Advance();
             RunScore.OnLoop(loopIndex);
             AchievementTracker.OnLoop(loopIndex);
             BossEncounter.ForgetDone();
-            CurrentIndex = RunLoop.StartWorld;
+            CurrentIndex = LoopWorld;
             banner = Current.displayName + "  LOOP " + RunLoop.DisplayNumber;
         }
         else
@@ -649,8 +650,7 @@ public class WorldManager : MonoBehaviour
     // ---- developer ----------------------------------------------------------
 
     // BOSS RUSH FINAL (BossDev.TriggerFinal): straight to the final world,
-    // no points for the worlds skipped. The run's start world is unchanged,
-    // so the final portal still leads back to where the run began.
+    // no points for the worlds skipped. Its lift-off loops to Space.
     public void DevJumpToFinal()
     {
         int last = LastLiveWorld;

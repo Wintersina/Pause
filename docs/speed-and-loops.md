@@ -86,7 +86,7 @@ While the blue atom's shield is up the ship boosts, as today: +5 HUD per blue at
 Unchanged table (`ShipStartSpeed`): regular ships 0 / 5 / 10 / 15 / 20 by colour, high-end 10 - 30. A
 world is a distance (what a start of 0 covers in 120 s on the world's curve), so a faster start meets the
 boss sooner, and arrives in every later world at its start speed again. **Every new world resets the speed**
-(`WorldManager.Advance`: portal, planetfall, the loop lift-off and the loop portal) to exactly what a
+(`WorldManager.Advance`: portal, planetfall and the final world's lift-off into Space) to exactly what a
 fresh run starts at (`WorldManager.RunStartSpeed`: the selected ship and colour's START SPD), a limit-break
 boost in progress included; the ramp then climbs again at the new world's rate. Loops no longer arrive
 faster (`LoopRules.ArrivalSpeed` is not used any more): their difficulty is the ramp rate, density and
@@ -174,7 +174,7 @@ read or written by the game), the Top Speed leaderboard (table row, submission, 
 `WorldManager.RunStartWorld` picks the world a run begins on, first match wins (the log line
 `[WorldManager] run start: ... source ...` names which):
 
-1. **replay pin** (`replay pin`): REPLAY restarts the world the run began in (`RunLoop.StartWorld`).
+1. **replay pin** (`replay pin`): REPLAY restarts the world the pilot died in (`WorldManager.PinReplayWorld`); its loop still goes to Space like any run's.
 2. **developer pick** (`developer pick`): developer mode on and a start world picked in the developer panel.
 3. **player start world** (`player start world`): the player's START WORLD choice in Options
    (`PlayerStartWorld`, PlayerPrefs `playerStartWorld`). Ignored while developer mode is on.
@@ -199,15 +199,18 @@ with developer mode, whose switch uses that slot) and is hidden while developer 
 
 ```
 Level --distance flown--> Boss --encounter over--> Portal --ship enters--> Level (next world,
-                                                     |                      or the run's start world
-                                                     +-- stays until entered, or the pilot dies     with loop + 1)
+                                                     |                      or, after the final world,
+                                                     +-- stays until entered, or the pilot dies     Space with loop + 1)
 ```
 
 * **Level**: the level clock eats distance. The boss warning runs in its last 30 s.
 * **Boss**: `BossEncounter` (unchanged).
 * **Portal**: the portal is open and waiting. The level clock is stopped. `PortalPressure` runs on
-  flight time. This is the same in every world. After the final world the portal leads back to the
-  world the run started in, one loop on ("SPACE  LOOP 2"), wearing that world's colour.
+  flight time. This is the same in every world except the final one: after the final world (Desert) there
+  is NO portal. The ship lifts off the planet (`Liftoff`, the same cinematic as every planet), and at the end
+  of the calm space interlude `WorldManager.StartLoop` starts Space again from its beginning, one loop on
+  ("SPACE  LOOP 2", `WorldManager.LoopWorld`), whatever world the run (or a replay) began in. Space then
+  goes on to the first planet as usual.
 
 Deleted: `FinalChoicePanel` (the KEEP FLYING / LOOP BACK prompt and its countdown), KEEP FLYING and
 its endless escalation, the encore pass, `RunLoop.EncorePass` / `DifficultyIndex`, the missed portal's

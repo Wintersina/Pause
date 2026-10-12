@@ -108,7 +108,7 @@ public class enmiesOnBoard : MonoBehaviour {
     //
     // The window belongs to each WORLD ARRIVAL, not to the scene: it starts
     // again when a portal brings the ship to the next world (or back round
-    // on a loop), unless the ship arrives at SPEED 10+. Nothing spawns in it
+    // to Space on a loop), unless the ship arrives at SPEED 10+. Nothing spawns in it
     // -- hazards, pilots, chasers, the deferred queue -- and when it ends the
     // slots come in one after another (StaggerAfterCalm), never as a burst.
     public const int FastArrivalHudSpeed = 10;

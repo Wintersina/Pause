@@ -217,7 +217,7 @@ public static class WorldLogicTest
               EnemyRoster.One(Storm, EnemyRole.Rock).key == "storm_rock_hail" && EnemyRoster.One(Storm, EnemyRole.Rock).world == Storm &&
               BossCatalog.ForWorld(Storm).id == "boss_storm");
         Check("... its planetfall art is installed, the numbers are the manifest's",
-              PlanetfallCatalog.Storm.world == Storm && LiftoffCatalog.Storm.world == Storm && !LiftoffCatalog.Storm.autoLoop &&
+              PlanetfallCatalog.Storm.world == Storm && LiftoffCatalog.Storm.world == Storm &&
               AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Art/Backgrounds/Resources/" + PlanetfallCatalog.Storm.folder + PlanetfallCatalog.Storm.planet + ".png") != null &&
               AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Art/Backgrounds/Resources/" + PlanetfallCatalog.Storm.folder + PlanetfallCatalog.Storm.limb + ".png") != null);
         DeveloperUnlocks.SelectWorld(Storm);
@@ -311,7 +311,7 @@ public static class WorldLogicTest
               BossCatalog.ForWorld(Desert).id == "boss_desert" && WorldPainter.RailTextureName("Desert") == "rail_storm_wide_v1" &&
               BackdropCatalog.For("Desert").world == "Desert" && BackdropCatalog.For("Desert") != BackdropCatalog.For("Tide"));
         Check("... its planetfall art is installed under Resources, the limb is the R1250 one (apex 355, edge 887)",
-              PlanetfallCatalog.Desert.world == Desert && LiftoffCatalog.Desert.world == Desert && LiftoffCatalog.Desert.autoLoop &&
+              PlanetfallCatalog.Desert.world == Desert && LiftoffCatalog.Desert.world == Desert &&
               PlanetfallCatalog.Desert.limbApexPx == 355f && PlanetfallCatalog.Desert.limbEdgePx == 887f &&
               AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Art/Backgrounds/Resources/" + PlanetfallCatalog.Desert.folder + PlanetfallCatalog.Desert.planet + ".png") != null &&
               AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Art/Backgrounds/Resources/" + PlanetfallCatalog.Desert.folder + PlanetfallCatalog.Desert.limb + ".png") != null);
@@ -321,7 +321,7 @@ public static class WorldLogicTest
         WorldManager.CurrentIndex = Storm;
         Check("Storm has a next and it is Desert", WorldManager.HasNext && WorldManager.PortalDestination == Desert);
         WorldManager.CurrentIndex = Desert;
-        Check("Desert has no next (the loop)", !WorldManager.HasNext);
+        Check("Desert has no next: the loop leads to Space, not a portal", !WorldManager.HasNext && WorldManager.PortalDestination == WorldManager.LoopWorld && WorldManager.LoopWorld == 0);
         WorldManager.CurrentIndex = Ember;
     }
 

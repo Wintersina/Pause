@@ -159,7 +159,7 @@ public static class DeveloperUiStartTest
 
         Check(tag + "the run starts in the pick (is " + WorldManager.Worlds[WorldManager.CurrentIndex].displayName + ")",
               WorldManager.CurrentIndex == pick);
-        Check(tag + "the loop's return point is the pick", RunLoop.StartWorld == pick && RunLoop.Index == 0);
+        Check(tag + "the loop's return point is the pick", RunLoop.Index == 0);
         Check(tag + "scripts that start before WorldManager.Start already see the pick (saw " + early + ")", early == pick);
         var bd = WorldBackdrop.Instance;
         if (bd != null && bd.Current != null)

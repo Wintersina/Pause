@@ -261,7 +261,7 @@ public static class WorldLeakTest
             for (int mode = 0; mode < 2; mode++)   // 0: the planetfall / loop portal the game flies, 1: a plain portal (no planetfall)
             {
                 int to = (from + 1) % Worlds;
-                string label = W(from) + " -> " + W(to) + (mode == 0 ? (from == Worlds - 1 ? " (loop portal)" : " (planetfall)") : " (portal)");
+                string label = W(from) + " -> " + W(to) + (mode == 0 ? (from == Worlds - 1 ? " (loop)" : " (planetfall)") : " (portal)");
                 if (mode == 1 && from == Worlds - 1) continue;   // the loop only has the portal
                 firstForeign.Clear(); audited = 0;
                 Prefs(from);
@@ -278,7 +278,7 @@ public static class WorldLeakTest
                 catch (System.Exception ex) { Debug.Log("[WORLDLEAK] (Advance's presentation threw: " + ex.Message + ")"); }
                 bool loop = from == Worlds - 1;
                 int now = WorldManager.CurrentIndex;
-                Check(label + ": arrives on " + W(loop ? RunLoop.StartWorld : to), now == (loop ? RunLoop.StartWorld : to));
+                Check(label + ": arrives on " + W(loop ? WorldManager.LoopWorld : to), now == (loop ? WorldManager.LoopWorld : to));
                 // the board the ship arrives to holds nothing of the world it left
                 int atArrival = Audit(now, label + " at arrival");
                 int after = Fly(150f, now, W(now));

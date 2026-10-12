@@ -1,7 +1,7 @@
 using UnityEngine;
 
-// The gateway between planets -- and, after the final world, back round to
-// the world the run began in.
+// The gateway between planets (the fallback when a planetfall's art is
+// missing). There is none after the final world: it lifts off into Space.
 //
 // Built from primitives at runtime. It comes down from above the view to a
 // station in the middle of the screen and STAYS there, drifting slowly from
@@ -171,7 +171,7 @@ public class Portal : MonoBehaviour
         Enter();
     }
 
-    // The ship flew in: on to the next world (or round again).
+    // The ship flew in: on to the next world.
     public void Enter()
     {
         if (Live == this) Live = null;

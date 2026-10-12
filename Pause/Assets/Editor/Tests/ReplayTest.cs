@@ -166,7 +166,7 @@ public static class ReplayTest
     {
         Prefs(Space);
         var wm = Load();
-        Check("a first run starts in Space", WorldManager.CurrentIndex == Space && RunLoop.StartWorld == Space);
+        Check("a first run starts in Space", WorldManager.CurrentIndex == Space);
 
         // Space's level ends in the Frost planetfall (a live transition).
         FinishLevel(wm);
@@ -183,7 +183,7 @@ public static class ReplayTest
         wm = Load();
         Check("after a Space -> Frost planetfall death in Frost, Replay starts in Frost [" +
               WorldManager.Worlds[WorldManager.CurrentIndex].displayName + "]",
-              WorldManager.CurrentIndex == Frost && RunLoop.StartWorld == Frost && RunLoop.Index == 0);
+              WorldManager.CurrentIndex == Frost && RunLoop.Index == 0);
         Check("Frost stays unlocked", PlayerPrefs.GetInt(WorldManager.PrefsHighestWorld) == Frost);
         Clean("replay after a planetfall", wm);
 
@@ -196,7 +196,7 @@ public static class ReplayTest
         Check("the replayed Frost run goes on to Verdant", WorldManager.CurrentIndex == Verdant);
         DieAndReplay();
         wm = Load();
-        Check("died in Verdant: Replay starts in Verdant", WorldManager.CurrentIndex == Verdant && RunLoop.StartWorld == Verdant);
+        Check("died in Verdant: Replay starts in Verdant", WorldManager.CurrentIndex == Verdant);
         Clean("second replay", wm);
     }
 
@@ -212,7 +212,7 @@ public static class ReplayTest
         wm = Load();
         Check("after a portal, Replay starts in Ember (the world died in) [" +
               WorldManager.Worlds[WorldManager.CurrentIndex].displayName + "]",
-              WorldManager.CurrentIndex == Ember && RunLoop.StartWorld == Ember);
+              WorldManager.CurrentIndex == Ember);
         Clean("replay after a portal", wm);
     }
 
@@ -220,16 +220,38 @@ public static class ReplayTest
     {
         Prefs(Desert);
         var wm = Load();
-        Check("an Desert run", WorldManager.CurrentIndex == Desert && RunLoop.StartWorld == Desert);
+        Check("an Desert run", WorldManager.CurrentIndex == Desert);
         FinishLevel(wm);
-        Check("the loop portal is open", wm.PortalIsOpen && !WorldManager.HasNext);
-        wm.Advance(false);
+        Check("the last world lifts off: no portal", Liftoff.Live != null && wm.PortalIsOpen && !WorldManager.HasNext && Portal.Live == null);
+        for (int i = 0; i < 1200 && Liftoff.Live != null; i++)
+        {
+            try { Liftoff.Live.Step(1f / 60f); }
+            catch (System.Exception ex) { Debug.Log("[REPLAY] (lift-off step threw: " + ex.Message + ")"); }
+        }
         Gone();
-        Check("looped back to Desert, loop 1", WorldManager.CurrentIndex == Desert && RunLoop.Index == 1);
+        Check("looped to Space (not back to Desert), loop 1", WorldManager.CurrentIndex == Space && RunLoop.Index == 1 && Portal.Live == null);
         DieAndReplay();
         wm = Load();
-        Check("after a loop (died in Desert, loop 1), Replay starts in Desert on loop 0", WorldManager.CurrentIndex == Desert && RunLoop.Index == 0);
+        Check("after a loop (died in Space, loop 1), Replay starts in Space on loop 0", WorldManager.CurrentIndex == Space && RunLoop.Index == 0);
         Clean("replay after a loop", wm);
+
+        // a replay pinned to Desert wraps to Space after Desert too
+        Prefs(Space);
+        wm = Load();
+        WorldManager.CurrentIndex = Desert;
+        DieAndReplay();
+        wm = Load();
+        Check("a replay pinned to Desert starts in Desert", WorldManager.CurrentIndex == Desert && RunLoop.Index == 0);
+        FinishLevel(wm);
+        for (int i = 0; i < 1200 && Liftoff.Live != null; i++)
+        {
+            try { Liftoff.Live.Step(1f / 60f); }
+            catch (System.Exception ex) { Debug.Log("[REPLAY] (lift-off step threw: " + ex.Message + ")"); }
+        }
+        Gone();
+        Check("... its end is the lift-off into Space, loop 1, no portal",
+              WorldManager.CurrentIndex == Space && RunLoop.Index == 1 && Portal.Live == null && !wm.PortalIsOpen);
+        Gone();
     }
 
     static void DeveloperPick()
@@ -280,7 +302,7 @@ public static class ReplayTest
                     // pin and the loop are in memory only, prefs persist).
                     var wm = Load(startAtHighest);
                     Check(tag + "first run starts in the pick (loop " + RunLoop.Index + ", backdrop " + Backdrop() + ")",
-                          WorldManager.CurrentIndex == pick && RunLoop.StartWorld == pick && RunLoop.Index == 0 &&
+                          WorldManager.CurrentIndex == pick && RunLoop.Index == 0 &&
                           (Backdrop() == "(none)" || Backdrop() == Name(pick)));
 
                     // Fly into the next world (planetfall / portal / lift-off) and replay.
@@ -292,14 +314,14 @@ public static class ReplayTest
                         wm = Load(startAtHighest);
                         Check(tag + "replay " + replay + " starts in " + Name(died) + ", the world died in, not the pick" +
                               " (is " + Name(WorldManager.CurrentIndex) + ", backdrop " + Backdrop() + ")",
-                              WorldManager.CurrentIndex == died && RunLoop.StartWorld == died && RunLoop.Index == 0 &&
+                              WorldManager.CurrentIndex == died && RunLoop.Index == 0 &&
                               (Backdrop() == "(none)" || Backdrop() == Name(died)));
                     }
 
                     // Out to the menu and PLAY again: the pick still rules.
                     GameStateReset.Clear();
                     wm = Load(startAtHighest);
-                    Check(tag + "menu PLAY starts in the pick", WorldManager.CurrentIndex == pick && RunLoop.StartWorld == pick);
+                    Check(tag + "menu PLAY starts in the pick", WorldManager.CurrentIndex == pick);
                 }
             }
         }

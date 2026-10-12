@@ -272,9 +272,9 @@ public static class BossEncounterTest
 
     static void DesertHasABossThenTheLoopPortal()
     {
-        // Desert's lift-off (LiftoffTest) stands aside: its end opens the loop
-        // portal at once (with the lift-off the loop starts with no portal:
-        // LiftoffTest, LoopTest).
+        // Desert's boss is followed by its lift-off into Space (LiftoffTest,
+        // LoopTest): no portal at all. Lift-offs stand aside here, so the way
+        // on is the loop itself, at once (the lift-off would need a ship).
         LiftoffCatalog.Enabled = false;
         try { DesertBossToLoopPortal(); }
         finally { LiftoffCatalog.Enabled = true; }
@@ -295,10 +295,10 @@ public static class BossEncounterTest
         // (Was "no portal after the last world's boss": the final choice came
         // up instead. Now every world ends the same way, the final one with
         // the portal back to where the run began.)
-        Check("after the last world's boss the loop portal opens, back to the run's start world",
-              wm.PortalIsOpen && !BossEncounter.Running && wm.Stage == WorldManager.LevelStage.Portal &&
-              WorldManager.PortalDestination == RunLoop.StartWorld && PortalPressure.Active &&
-              PortalPressure.Destination == RunLoop.StartWorld && Object.FindFirstObjectByType<Portal>() != null);
+        Check("after the last world's boss there is no portal and no pressure: the loop into Space begins",
+              !wm.PortalIsOpen && !BossEncounter.Running &&
+              WorldManager.CurrentIndex == WorldManager.LoopWorld && RunLoop.Index == 1 && !PortalPressure.Active &&
+              Object.FindFirstObjectByType<Portal>() == null);
     }
 
     static void IntroFreezeIsScriptedAndFree()

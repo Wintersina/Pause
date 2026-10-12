@@ -9,21 +9,15 @@
 // WorldManager.OpenGateway, which flies the next planet's planetfall when
 // PlanetfallCatalog has one (Verdant after Frost, Ember after Verdant, Tide
 // after Ember, Storm after Tide, Desert after Storm) and opens the portal otherwise.
-// A lift-off that loops (AutoLoopNow: Desert's, the last world) skips
-// the loop portal: the interlude already flies Space's sky, so the run
-// simply starts its first world again, one loop on (WorldManager.StartLoop;
-// the portal only if that fails).
+// The final world's lift-off (Desert's) has no gateway: the interlude already
+// flies Space's sky, so the run simply starts Space again, one loop on
+// (WorldManager.StartLoop).
 public class LiftoffDef
 {
     public int world;                   // WorldManager.Worlds index it leaves
     public PlanetfallDef planet;        // the planet's art, numbers and colours
     public int interludeWorld;          // whose backdrop (and rails) the interlude flies: Space
     public string banner;               // as the ship is taken: LIFT OFF
-    public bool autoLoop;               // the final world (Desert): after the interlude the loop starts at once, no portal
-                                        // (when the loop leads back to interludeWorld; else its portal)
-
-    // Whether the loop starts at this lift-off's gateway right now.
-    public bool AutoLoopNow { get { return autoLoop; } }
 }
 
 // Which worlds are left by lift-off. A world not listed ends at its portal,
@@ -78,14 +72,13 @@ public static class LiftoffCatalog
         banner = "LIFT OFF",
     };
 
-    // Desert: leaving the dune planet after its boss, the final world. No loop portal.
+    // Desert: leaving the dune planet after its boss, the final world: its interlude ends in Space's loop, no portal.
     public static readonly LiftoffDef Desert = new LiftoffDef
     {
         world = 6,
         planet = PlanetfallCatalog.Desert,
         interludeWorld = 0,
         banner = "LIFT OFF",
-        autoLoop = true,
     };
 
     public static readonly LiftoffDef[] Defs = { Frost, Verdant, Ember, Tide, Storm, Desert };

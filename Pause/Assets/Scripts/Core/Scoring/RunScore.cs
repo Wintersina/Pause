@@ -42,7 +42,7 @@ public static class RunScore
         public int bestChain;
         // Hostile projectiles absorbed by a shield (their points are in `kills`).
         public int shieldedShots;
-        // Times the final world's portal was flown (RunLoop.Index at the end).
+        // Times the final world was left for another loop (RunLoop.Index at the end).
         public int loops;
         // The highest multiplier any points were earned at: speed on flight,
         // chain x speed on kills (within ScoreRules.MaxTotalMultiplier).
@@ -390,7 +390,7 @@ public static class RunScore
         return points;
     }
 
-    // The final world's portal was flown: the run is now on pass `loopIndex`
+    // The final world was left (its lift-off into Space): the run is now on pass `loopIndex`
     // (the death panel's LOOPS line). Like every event, only while live.
     public static void OnLoop(int loopIndex)
     {

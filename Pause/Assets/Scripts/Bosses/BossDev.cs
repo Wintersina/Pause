@@ -9,7 +9,7 @@ using UnityEngine;
 // go through WorldManager.EndLevel, the same path as the real level clock.
 //   * "BOSS RUSH  FINAL" (the switch's third setting): a few seconds into a
 //     run it jumps straight to the final world with a 1.5s boss fight, so the
-//     portal back to the start world opens almost at once; after that loop
+//     lift-off into Space (the loop) begins almost at once; after that loop
 //     it rushes every boss like ON. F in the editor / a dev build: the same
 //     jump, right now.
 public static class BossDev
@@ -46,7 +46,7 @@ public static class BossDev
     }
 
     // Jumps to the final world and starts its boss with a short fight; when
-    // it ends the portal back to the start world opens. False when there
+    // it ends the lift-off into Space (the loop) begins. False when there
     // is no level running, developer mode is off, or it can't start.
     public static bool TriggerFinal()
     {

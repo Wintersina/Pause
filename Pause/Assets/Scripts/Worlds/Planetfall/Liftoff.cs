@@ -24,11 +24,10 @@ using UnityEngine;
 //              WorldManager.OpenGateway -- the next planet's planetfall if
 //              it has one, else the portal, with its pressure, exactly as
 //              after any other boss. The world itself changes only there.
-//              The last live world's lift-off (LiftoffDef.AutoLoopNow: Desert's) has no
-//              portal when the loop leads back to Space: the loop starts at
-//              once (WorldManager.StartLoop), the world changing under the
-//              Space sky the interlude already shows; the portal if the run
-//              began elsewhere (it loops there) or if that fails.
+//              The last live world's lift-off (Desert's) has no portal: the
+//              loop starts at once (WorldManager.StartLoop), the world
+//              changing under the Space sky the interlude already shows.
+//              Space's level begins from its start, one loop on.
 //
 // Clock: like the planetfall it moves only while the world is running
 // (WorldManager.Flying), on Time.deltaTime, so a lifted finger freezes it
@@ -461,14 +460,7 @@ public class Liftoff : MonoBehaviour
         gatewayOpened = true;
         var wm = WorldManager.Instance;
         if (wm == null) return;
-        try
-        {
-            // only when the loop leads back to the sky the interlude shows
-            // (Space); a run begun elsewhere loops through its portal
-            if (def != null && def.AutoLoopNow && !WorldManager.HasNext && WorldManager.PortalDestination == def.interludeWorld &&
-                wm.StartLoop()) return;
-        }
-        catch (System.Exception e) { Debug.LogException(e); }
+        // (the final world's gateway is the loop: OpenGateway -> StartLoop)
         try { wm.OpenGateway(); }
         catch (System.Exception e) { Debug.LogException(e); }
     }

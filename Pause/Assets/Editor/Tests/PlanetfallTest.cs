@@ -386,8 +386,9 @@ public static class PlanetfallTest
         FreshScene(6);
         var wd = World();
         FinishLevel(wd);
-        Check("Desert's end (lift-off skipped): the loop portal back round, no planetfall",
-              Planetfall.Live == null && Portal.Live != null && PortalPressure.Active && PortalPressure.Destination == RunLoop.StartWorld);
+        Check("Desert's end (lift-off skipped): the loop starts Space at once, no planetfall, no portal",
+              Planetfall.Live == null && Portal.Live == null && !PortalPressure.Active && !wd.PortalIsOpen &&
+              WorldManager.CurrentIndex == WorldManager.LoopWorld && RunLoop.Index == 1);
         Gone();
         Object.DestroyImmediate(wd.gameObject);
         LiftoffCatalog.Enabled = true;

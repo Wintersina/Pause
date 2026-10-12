@@ -59,8 +59,8 @@ public class PlanetfallDef
 }
 
 // Which world changes are flown as a planetfall. Only the way OUT to a new
-// planet: the final world's loop back round, and every pair not listed,
-// keep the portal.
+// planet: the final world's loop back round (a lift-off into Space) and every
+// pair not listed keep the portal.
 public static class PlanetfallCatalog
 {
     // Off: every world change uses the portal (developer / tests).
@@ -314,12 +314,12 @@ public static class PlanetfallCatalog
     // Every planet arrived at by planetfall (Frost from Space, Verdant after
     // Frost's lift-off, Ember after Verdant's, Tide after Ember's, Storm after Tide's, Desert after Storm's). A new planet
     // is one more entry here; the tests swap the list. Space, the loop's way
-    // back round, has none: the loop keeps the portal.
+    // back round, has none: the loop is the final world's lift-off.
     public static readonly PlanetfallDef[] All = { Frost, Verdant, Ember, Tide, Storm, Desert };
     public static PlanetfallDef[] Defs = All;
 
     // The planetfall for leaving `from` for `to`, or null for a portal.
-    // A loop (the way back round after the final world) is always a portal.
+    // A loop (the way back round after the final world) never is one.
     public static PlanetfallDef For(int from, int to, bool loop)
     {
         if (!Enabled || loop || to != from + 1) return null;

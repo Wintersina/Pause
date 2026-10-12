@@ -364,42 +364,34 @@ public static class OpenPortalTest
         Object.DestroyImmediate(wm2.gameObject);
     }
 
-    // ---- 3. the final portal: the same flow, back round ------------------------------
+    // ---- 3. the final world: no portal, the loop into Space ------------------------------
 
     static void FinalPortalLoopsBack()
     {
         int last = WorldManager.LastLiveWorld;
-        foreach (int start in new[] { 0, 2 })
+        for (int pass = 1; pass <= 2; pass++)
         {
-            FreshScene(last);
-            RunLoop.StartWorld = start;
-            var wm = World();
+            if (pass == 1) FreshScene(last);
+            var wm = pass == 1 ? World() : WorldManager.Instance;
+            if (pass == 2)
+            {
+                // and round again: Desert reached on loop 2 ends the same way
+                WorldManager.CurrentIndex = last;   // (the run's world is held by its manager, not read from the prefs)
+                Apply();
+            }
             FinishLevel(wm);
-            var ring = Portal.Live != null ? Portal.Live.GetComponentsInChildren<SpriteRenderer>()[0] : null;
-            Check("final world, run started in " + WorldManager.Worlds[start].displayName + ": the same open portal, leading back there in its colour",
-                  wm.Stage == WorldManager.LevelStage.Portal && PortalPressure.Active && PortalPressure.Destination == start &&
-                  WorldManager.PortalDestination == start && ring != null && ring.color == WorldManager.Worlds[start].portalColor);
-            for (int i = 0; i < (int)(120f / Dt); i++) Fly(wm, null);
-            Check("... two minutes on it is still open and pressing like any other (Level " + PortalPressure.Level.ToString("F1") + ")",
-                  Portal.Live != null && wm.PortalIsOpen && Mathf.Abs(PortalPressure.Level - PortalPressure.LevelAt(120f)) < .05f &&
-                  BossWarning.Read(wm) == BossWarningInput.None);
-            Enter();
-            Check("... through it: " + WorldManager.Current.displayName + ", loop 2, every boss to fight again, the pressure over",
-                  WorldManager.CurrentIndex == start && RunLoop.Index == 1 && !BossEncounter.DoneInWorld(last) &&
-                  wm.Stage == WorldManager.LevelStage.Level && !PortalPressure.Active && BossWarning.Read(wm) == BossWarningInput.Ahead);
-            Check("... arriving at loop 2's arrival speed, under the cap",
-                  Mathf.Approximately(SpeedRamp.Natural, WorldManager.ArrivalSpeed(1)) && SpeedRamp.Natural <= SpeedRamp.Cap);
-            Check("... with loop 2's density (x" + LoopDifficulty.DensityScale + ")", Mathf.Approximately(LoopDifficulty.DensityScale, LoopRules.DensityScale(1)));
-
-            // and round again: the final world's portal on loop 2 is the same
-            WorldManager.CurrentIndex = last;   // (the run's world is held by its manager, not read from the prefs)
-            Apply();
-            FinishLevel(wm);
-            for (int i = 0; i < (int)(30f / Dt); i++) Fly(wm, null);
-            Enter();
-            Check("... and the next time round the same: loop 3", WorldManager.CurrentIndex == start && RunLoop.Index == 2 && !PortalPressure.Active);
-            Object.DestroyImmediate(wm.gameObject);
+            Check("final world, pass " + pass + ": no portal, no pressure: the loop into " + WorldManager.Worlds[WorldManager.LoopWorld].displayName +
+                  " begins (lift-offs are off in this suite)",
+                  Portal.Live == null && Object.FindFirstObjectByType<Portal>() == null && !PortalPressure.Active && !wm.PortalIsOpen &&
+                  WorldManager.CurrentIndex == WorldManager.LoopWorld && RunLoop.Index == pass);
+            Check("... every boss to fight again, the pressure over, Space's boss ahead",
+                  !BossEncounter.DoneInWorld(last) && wm.Stage == WorldManager.LevelStage.Level && BossWarning.Read(wm) == BossWarningInput.Ahead);
+            Check("... at the loop's arrival speed, under the cap",
+                  Mathf.Approximately(SpeedRamp.Natural, WorldManager.ArrivalSpeed(pass)) && SpeedRamp.Natural <= SpeedRamp.Cap);
+            Check("... with the loop's density (x" + LoopDifficulty.DensityScale + ")",
+                  Mathf.Approximately(LoopDifficulty.DensityScale, LoopRules.DensityScale(pass)));
         }
+        Object.DestroyImmediate(WorldManager.Instance.gameObject);
     }
 
     static void NoDeadBranches()
