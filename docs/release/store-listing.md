@@ -153,5 +153,5 @@ Store policy: screenshots must show real gameplay or UI, no device frames implyi
 ## Other listing fields
 
 - Category: Games > Arcade (entered). Tags: arcade, survival, pixel art, space.
-- Contact email: hapticgate@gmail.com. Privacy policy URL: https://sinaserati.com/hapticgate/privacy/ (the hosted text needs the replacement paragraph from `privacy-policy.md`).
+- Contact email: hapticgate@gmail.com. Privacy policy URL: https://hapticgategames.com/privacy/ (the hosted text needs the replacement paragraph from `privacy-policy.md`).
 - Price: USD 1.99, set per country in Pricing. Contains ads: No. In-app purchases: No.

@@ -53,6 +53,13 @@ public static class ScreenFitScreens
                         reason = "DEVELOPER-ONLY rows (DeveloperUnlocks.Available builds; not shipped to players): left as is by decision" },
         new FitWaiver { screen = "options", kind = "SMALLTEXT", element = "AccountRow/Details",
                         reason = "DEVELOPER-ONLY sign-in details line (not shipped to players): left as is by decision" },
+        // The PRIVACY POLICY row (needs a 48dp tap target, so it cannot be slimmed) sits over SOUND and takes 100 units
+        // from the Account card, which scales to fit what is left. On the three shortest 16:9 Android shapes that leaves the
+        // card's small caption / action button a little under the floors. Revisit if the Options layout is reflowed.
+        new FitWaiver { screen = "options", kind = "TAPSIZE", element = "AccountRow/Action", devices = "and-480x854,and-720x1280,and-1080x1920-navbar",
+                        reason = "Account card squeezed by the PRIVACY POLICY row on short 16:9 phones (merge of feature/privacy-link): accepted, revisit with an Options reflow" },
+        new FitWaiver { screen = "options", kind = "SMALLTEXT", element = "AccountRow/", devices = "and-480x854,and-720x1280",
+                        reason = "Account card squeezed by the PRIVACY POLICY row on short 16:9 phones (merge of feature/privacy-link): accepted, revisit with an Options reflow" },
     };
 
     const float Dt = 1f / 60f;
@@ -296,6 +303,11 @@ public static class ScreenFitScreens
         Add<DeveloperOptions>("~DeveloperOptions");
         Add<StartWorldOptions>("~StartWorldOptions");
         Add<SoundOptions>("~SoundOptions");
+        Add<PrivacyOptions>("~PrivacyOptions");
+        // The how-to-play clip's frame, with a still in place of the decoded video (a headless editor
+        // cannot play one); MediaShotPreview swaps in real frames.
+        if (HowToPlayClip.PreviewTexture == null) HowToPlayClip.PreviewTexture = Texture2D.grayTexture;
+        Add<HowToPlayClip>("~HowToPlayClip");
         var account = new GameObject("~AccountOptions").AddComponent<AccountOptions>();
         account.Build(new Vector2(rig.W, rig.H), rig.device.Safe, true);
         rig.Sync();
@@ -305,6 +317,8 @@ public static class ScreenFitScreens
         SafeAreaClamp.AttachAll("leaderboardS3");
         account.Relayout();   // over the column as BACK's clamp left it (AccountOptions.Update on a device)
         rig.Sync();
+        var howTo = UnityEngine.Object.FindFirstObjectByType<HowToPlayClip>();
+        if (howTo != null) { howTo.Relayout(); rig.Sync(); }
         DevBadge(rig);
         if (shot == 1)
         {
@@ -401,6 +415,8 @@ public static class ScreenFitScreens
     static void Credits(ScreenFitRig rig)
     {
         MenuStyler.StyleScene();
+        var mover = UnityEngine.Object.FindFirstObjectByType<CreditsMove>();
+        if (mover != null) mover.EnsureLockup();   // what CreditsMove.Awake does on a device
         rig.Sync();
         SafeAreaClamp.AttachAll("creditsS7");
         rig.Sync();   // it may change the canvas scaler

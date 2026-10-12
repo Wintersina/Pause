@@ -67,6 +67,25 @@ public class splashScene : MonoBehaviour
     public const float AuthoredLogoScale = 0.7f;
     public const float AuthoredPixelsPerUnit = 192f;
 
+    // The wordmark flies out of the door (brand animation v2): small and dim in the
+    // middle of the gap as if far behind the gate, it rushes out between the leaves,
+    // growing, then travels DOWN to its final spot below the gate, lands with a small
+    // bounce and flickers on like neon. Times are sim seconds of the 2.3 s card (the
+    // brand film's 1.07 s / 1.43 s / 2.17 s after the first split, squeezed to fit).
+    public const float FlyStart = 1.00f;      // appears in the gap, tiny
+    public const float FlyExit = 1.30f;       // comes out in front of the leaves, heading down
+    public const float FlyLand = 1.70f;       // reaches its final spot (then the bounce)
+    public const float BounceSeconds = 0.20f;
+    public const float FlickerEnd = 2.08f;    // steady from here
+    public const float SmashFlySeconds = 0.30f;   // after a smash the flight is over this fast
+    public const float StartScale = 0.08f;    // share of the final size when it appears
+
+    // Gate height / width (a leaf is ~0.68 of the gate's width tall) and the space
+    // between the gate and the wordmark, in gate widths. The gate + wordmark together
+    // are centred in the safe area.
+    public const float GateHeight = 0.68f;
+    public const float GateWordGap = 0.12f;
+
     // ---- hooks (tests, previews, audio) -------------------------------------
 
     // Scene change, replaceable so tests can count loads without leaving the scene.
@@ -92,6 +111,7 @@ public class splashScene : MonoBehaviour
     public GateSim Sim { get { return sim; } }
     public GateView View { get { return view; } }
     public GateArt Art { get { return art; } }
+    public WordPose Pose { get { return pose; } }
 
     GateSim sim;
     GateArt art;
@@ -99,7 +119,11 @@ public class splashScene : MonoBehaviour
     Transform gateRoot;
     Layout layout;
     bool haveLayout;
-    Vector3 logoBase, rootBase;
+    Vector3 logoBase, rootBase, gateBase;
+    Vector3 logoScaleFinal;
+    int logoOrderFinal;
+    bool orderKnown;
+    WordPose pose;
 
     Camera cam;
     Vector2[] wordsAuthored;
@@ -115,7 +139,8 @@ public class splashScene : MonoBehaviour
         public Rect safeWorld;            // safe area, world units, camera-relative
         public Vector2 backdropScale;     // quad localScale (unit mesh)
         public float logoScale;           // uniform localScale of the mark
-        public Vector2 logoCenter;        // camera-relative world position
+        public Vector2 logoCenter;        // FINAL centre of the wordmark (below the gate), camera-relative
+        public Vector2 gateCenter;        // centre of the gate, camera-relative
         public Vector2 logoSize;          // world width/height of the mark
         public float pixelsPerUnit;       // screen pixels per world unit
         public float wordsScaleFactor;    // canvas scale factor
@@ -148,10 +173,15 @@ public class splashScene : MonoBehaviour
 
         float nw = Mathf.Max(logoNativeSize.x, 0.0001f), nh = Mathf.Max(logoNativeSize.y, 0.0001f);
         float scale = fraction * Mathf.Min(viewW, viewH) / nw;
-        scale = Mathf.Min(scale, SafeFill * l.safeWorld.width / nw, SafeFill * l.safeWorld.height / nh);
+        // gate + gap + wordmark, one column, as tall as it is wide times this:
+        float column = GateHeight + GateWordGap + nh / nw;
+        scale = Mathf.Min(scale, SafeFill * l.safeWorld.width / nw, SafeFill * l.safeWorld.height / (nw * column));
         l.logoScale = scale;
         l.logoSize = new Vector2(nw * scale, nh * scale);
-        l.logoCenter = l.safeWorld.center;
+        float w = l.logoSize.x, centreY = l.safeWorld.center.y;
+        float bottom = centreY - column * w * 0.5f;
+        l.logoCenter = new Vector2(l.safeWorld.center.x, bottom + l.logoSize.y * 0.5f);
+        l.gateCenter = new Vector2(l.safeWorld.center.x, centreY + column * w * 0.5f - GateHeight * w * 0.5f);
 
         // Canvas pixels per world unit at the mark's current scale, relative to
         // the authored relationship, is the canvas scale factor; the mark's
@@ -192,6 +222,8 @@ public class splashScene : MonoBehaviour
             var t = logo.transform;
             t.position = new Vector3(camPos.x + l.logoCenter.x, camPos.y + l.logoCenter.y, t.position.z);
             SetWorldScale(t, new Vector3(l.logoScale, l.logoScale, 1f));
+            logoScaleFinal = t.localScale;
+            if (logoOrderFinal == 0 && !orderKnown) { logoOrderFinal = logo.sortingOrder; orderKnown = true; }
             logo.color = Color.white;
         }
 
@@ -200,14 +232,15 @@ public class splashScene : MonoBehaviour
             EnsureGate();
             if (gateRoot != null)
             {
-                rootBase = new Vector3(camPos.x + l.logoCenter.x, camPos.y + l.logoCenter.y,
+                rootBase = new Vector3(camPos.x + l.gateCenter.x, camPos.y + l.gateCenter.y,
                                        logo != null ? logo.transform.position.z - 0.15f : 0f);
                 gateRoot.position = rootBase;
                 gateRoot.localScale = Vector3.one * l.logoSize.x;
                 view.SetView(l.viewSize, l.logoSize.x);
             }
         }
-        if (logo != null) logoBase = logo.transform.position;
+        logoBase = new Vector3(camPos.x + l.logoCenter.x, camPos.y + l.logoCenter.y, logo != null ? logo.transform.position.z : 0f);
+        gateBase = new Vector3(camPos.x + l.gateCenter.x, camPos.y + l.gateCenter.y, logoBase.z);
 
         if (words != null)
         {
@@ -231,6 +264,78 @@ public class splashScene : MonoBehaviour
         haveLayout = true;
         ApplyShake();
         return l;
+    }
+
+    // ---- the wordmark's flight --------------------------------------------
+
+    public struct WordPose
+    {
+        public float scale;     // share of the final size
+        public float travel;    // 0 = in the gap, 1 = final spot (can exceed 1 slightly: the bounce is added to y)
+        public float bounce;    // upward offset in wordmark heights
+        public float alpha;     // 0..1 (neon flicker on landing)
+        public bool front;      // drawn in front of the leaves
+        public bool done;       // exactly final
+    }
+
+    // The flight clock: sim time normally; after a smash it runs the rest of the
+    // flight (to the end of the flicker) in SmashFlySeconds.
+    public static float FlightTime(GateSim s)
+    {
+        if (s == null) return 0f;
+        if (!s.smashed) return s.time;
+        return Mathf.Lerp(s.smashAt, FlickerEnd, Mathf.Clamp01(s.smashTime / SmashFlySeconds));
+    }
+
+    static float Smooth(float x) { x = Mathf.Clamp01(x); return x * x * (3f - 2f * x); }
+
+    public static WordPose PoseAt(float t)
+    {
+        var p = new WordPose();
+        if (t < FlyStart) { p.scale = StartScale; p.alpha = 0f; return p; }
+        float q = Mathf.Clamp01((t - FlyStart) / (FlyLand - FlyStart));
+        p.alpha = Mathf.Clamp01((t - FlyStart) / 0.10f) * (t < FlyExit ? 0.8f : 1f);
+        // grows slowly in the gap, then rushes
+        p.scale = Mathf.Lerp(StartScale, 1f, Mathf.Pow(q, 2.2f));
+        p.front = t >= FlyExit;
+        float drop = Mathf.Clamp01((t - FlyExit) / (FlyLand - FlyExit));
+        p.travel = t < FlyExit ? 0.03f * Smooth((t - FlyStart) / (FlyExit - FlyStart)) : Mathf.Lerp(0.03f, 1f, drop * drop);
+        if (t >= FlyLand)
+        {
+            float u = Mathf.Clamp01((t - FlyLand) / BounceSeconds);
+            p.bounce = 0.55f * Mathf.Sin(u * Mathf.PI) * (1f - u);
+            p.scale = 1f + 0.05f * Mathf.Sin(u * Mathf.PI) * (1f - u);
+            // neon flicker-on: a few hard dips that settle
+            float f = Mathf.Clamp01((t - FlyLand) / (FlickerEnd - FlyLand));
+            if (f < 1f)
+            {
+                int k = (int)(f * 14f);
+                uint h = (uint)(k * 2654435761u) ^ 0x9E3779B9u; h ^= h >> 15; h *= 0x85ebca6bu; h ^= h >> 13;
+                float n = (h & 0xFFFF) / 65535f;
+                p.alpha = Mathf.Lerp(0.15f + 0.5f * n, 1f, f * f);
+            }
+            else p.alpha = 1f;
+        }
+        p.done = t >= FlickerEnd;
+        if (p.done) { p.scale = 1f; p.travel = 1f; p.bounce = 0f; p.alpha = 1f; p.front = true; }
+        return p;
+    }
+
+    // Place the wordmark for the current sim state. Off while not playing (edit-mode
+    // layout tests and the screen-fit rig see it at its final spot).
+    void ApplyWordmark(Vector2 shake)
+    {
+        if (logo == null) return;
+        bool animate = (Application.isPlaying || BuildGateInEditMode) && sim != null;
+        pose = animate ? PoseAt(FlightTime(sim)) : PoseAt(FlickerEnd);
+        Vector3 gateWorld = new Vector3(gateBase.x, gateBase.y, logoBase.z);
+        Vector3 p = Vector3.Lerp(gateWorld, logoBase, pose.travel);
+        p.y += pose.bounce * layout.logoSize.y;
+        var t = logo.transform;
+        t.position = p + new Vector3(shake.x, shake.y, 0f);
+        t.localScale = logoScaleFinal * pose.scale;
+        logo.color = new Color(1f, 1f, 1f, pose.alpha);
+        logo.sortingOrder = pose.front ? 4 : logoOrderFinal;
     }
 
     static void SetWorldScale(Transform t, Vector3 world)
@@ -267,7 +372,17 @@ public class splashScene : MonoBehaviour
         sim.Done += Leave;
     }
 
-    static void Cue(string name) { GateAudio.Play(name); if (SoundCue != null) SoundCue(name); }
+    // The user's gate-opening clip starts this long after the card begins, so its first big
+    // hit (1.11 s into the file) lands on the door's biggest forced step (1.22 s).
+    public const float OpenClipStart = 0.11f;
+    bool openStarted;
+
+    static void Cue(string name)
+    {
+        if (name == "gate_open") GateAudio.PlayOpen();
+        else if (!GateAudio.OpenReplaces(name)) GateAudio.Play(name);
+        if (SoundCue != null) SoundCue(name);
+    }
 
     void Start() { Cue("gate_rattle"); }
 
@@ -278,6 +393,7 @@ public class splashScene : MonoBehaviour
 
     public bool OnBackPressed()
     {
+        GateAudio.StopOpen(GateAudio.OpenSmashFade);
         Leave();
         return true;
     }
@@ -297,6 +413,7 @@ public class splashScene : MonoBehaviour
         EnsureSim();
         sim.Reset();
         leaving = false;
+        openStarted = false;
         loadCount = 0;
     }
 
@@ -314,6 +431,13 @@ public class splashScene : MonoBehaviour
         sim.naturalSeconds = holdSeconds;
         dt = Mathf.Min(dt, 0.1f);
         if (!leaving) sim.Advance(dt);
+        // Once, unless the door is already (or about to be) smashed: then it never starts.
+        if (!openStarted && !leaving && sim.time >= OpenClipStart && !sim.smashed
+            && sim.pendingTaps + sim.crackStage < GateSim.TapsToSmash)
+        {
+            openStarted = true;
+            Cue("gate_open");
+        }
         if (view != null) view.Sync(dt);
         ApplyShake();
     }
@@ -333,7 +457,7 @@ public class splashScene : MonoBehaviour
     {
         if (!haveLayout) return;
         Vector2 w = sim != null ? sim.shake * layout.logoSize.x : Vector2.zero;
-        if (logo != null) logo.transform.position = logoBase + new Vector3(w.x, w.y, 0f);
+        ApplyWordmark(w);
         if (gateRoot != null) gateRoot.position = rootBase + new Vector3(w.x, w.y, 0f);
         if (words != null && wordsAuthored != null && wordsAuthored.Length == words.Length)
         {
@@ -354,6 +478,8 @@ public class splashScene : MonoBehaviour
         if (leaving) return;
         leaving = true;
         loadCount++;
+        // A natural finish fades the opening clip out as the title comes up; a smash already stopped it.
+        if (sim == null || !sim.smashed) GateAudio.StopOpen(GateAudio.OpenLeaveFade);
         Time.timeScale = 1f;
         LoadScene(NextScene);
     }

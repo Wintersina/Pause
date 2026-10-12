@@ -68,7 +68,7 @@ public class AndroidTextureDiet : AssetPostprocessor
 
         bool changed = false;
         // Unity silently keeps NPOT + mipmaps as RGBA32; the big title / splash art is only ever minified ~2x.
-        if (ti.mipmapEnabled && (!Mathf.IsPowerOfTwo(w) || !Mathf.IsPowerOfTwo(h))) { ti.mipmapEnabled = false; changed = true; }
+        if (ti.mipmapEnabled && ti.npotScale == TextureImporterNPOTScale.None && (!Mathf.IsPowerOfTwo(w) || !Mathf.IsPowerOfTwo(h))) { ti.mipmapEnabled = false; changed = true; }
         foreach (string platform in new[] { "Android", "iPhone" })
         {
             var ps = ti.GetPlatformTextureSettings(platform);
@@ -112,7 +112,7 @@ public class AndroidTextureDiet : AssetPostprocessor
             if (ti == null) continue;
             var before = ti.GetPlatformTextureSettings("Android");
             ti.GetSourceTextureWidthAndHeight(out int sw, out int sh);
-            bool npotMips = ti.mipmapEnabled && !ti.isReadable && (!Mathf.IsPowerOfTwo(sw) || !Mathf.IsPowerOfTwo(sh)) && (sw >= MinSide || sh >= MinSide);
+            bool npotMips = ti.mipmapEnabled && ti.npotScale == TextureImporterNPOTScale.None && !ti.isReadable && (!Mathf.IsPowerOfTwo(sw) || !Mathf.IsPowerOfTwo(sh)) && (sw >= MinSide || sh >= MinSide);
             if (!npotMips && before.overridden && (before.format == FormatFor(path) || (OwnedByOtherImporter(path) && IsAstc(before.format)))) continue;
             stale.Add(path);
         }

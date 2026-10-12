@@ -17,7 +17,8 @@ public sealed class GateView
     readonly Transform root;
     SpriteRenderer leftRenderer, rightRenderer;
     readonly SpriteRenderer[] leftCrack = new SpriteRenderer[3], rightCrack = new SpriteRenderer[3];
-    SpriteRenderer flash;
+    SpriteRenderer flash, haze;
+    Transform hazeT;
     float flashAlpha;
 
     // debris
@@ -68,6 +69,9 @@ public sealed class GateView
         for (int i = 0; i < MaxSparks; i++) Pool("Spark " + i, art.white, 7, out sT[i], out sR[i]);
         for (int i = 0; i < MaxSteam; i++) Pool("Steam " + i, art.steam[0], 5, out tT[i], out tR[i]);
         for (int i = 0; i < MaxGlow; i++) Pool("Glow " + i, art.glow, 8, out gT[i], out gR[i]);
+        // Warm haze in the gap: the inside of the gate is dark with a warm smoky glow (no seam beam).
+        Pool("Gap haze", art.glow, 1, out hazeT, out haze);
+        haze.enabled = false;
         Transform ft;
         Pool("Flash", art.white, 9, out ft, out flash);
         flash.color = new Color(1, 1, 1, 0);
@@ -81,7 +85,8 @@ public sealed class GateView
     {
         var go = new GameObject(name);
         go.transform.SetParent(root, false);
-        go.transform.localScale = Vector3.one * (width / sprite.bounds.size.x);
+        float sx = width / sprite.bounds.size.x;
+        go.transform.localScale = new Vector3(sx, sx * GateArt.YStretch(sprite), 1f);   // the leaf has no rotated children with scale, so no shear
         sr = go.AddComponent<SpriteRenderer>();
         sr.sprite = sprite;
         sr.sortingOrder = 2;
@@ -93,7 +98,7 @@ public sealed class GateView
         var go = new GameObject(name);
         go.transform.SetParent(leaf, false);
         // The overlay is a slice of a sheet laid out like the door, so it covers the leaf exactly.
-        go.transform.localScale = Vector3.one * (leafSprite.bounds.size.x / sprite.bounds.size.x);
+        go.transform.localScale = new Vector3(leafSprite.bounds.size.x / sprite.bounds.size.x, leafSprite.bounds.size.y / sprite.bounds.size.y, 1f);
         go.transform.localPosition = new Vector3(0f, 0f, -0.001f);
         var sr = go.AddComponent<SpriteRenderer>();
         sr.sprite = sprite;
@@ -261,6 +266,17 @@ public sealed class GateView
             leftCrack[i].enabled = on; rightCrack[i].enabled = on;
         }
 
+        // haze in the opening: grows with the gap, gone with the leaves on a smash
+        float hz = Mathf.Clamp01(sim.open * 1.6f) * (sim.smashed ? Mathf.Clamp01(1f - sim.smashTime / 0.3f) : 1f);
+        haze.enabled = hz > 0.01f;
+        if (haze.enabled)
+        {
+            Vector2 hs = haze.sprite.bounds.size;
+            hazeT.localScale = new Vector3(Mathf.Max(0.25f, 1.5f * sim.open) / hs.x, 0.78f / hs.y, 1f);
+            hazeT.localPosition = new Vector3(0f, 0f, -0.01f);
+            haze.color = new Color(0.78f, 0.34f, 0.14f, 0.5f * hz);
+        }
+
         // continuous steam: jets from the leaf grilles, pressure building
         float p = sim.pressure;
         float rate = sim.smashed ? 0f : 3f + p * p * 26f + (sim.crackStage >= 2 ? 14f : 0f);
@@ -301,7 +317,8 @@ public sealed class GateView
     {
         t.localPosition = new Vector3(x, y, 0f);
         t.localRotation = Quaternion.Euler(0f, 0f, rot);
-        t.localScale = Vector3.one * (0.5f / sprite.bounds.size.x * scale);
+        float sx = 0.5f / sprite.bounds.size.x * scale;
+        t.localScale = new Vector3(sx, sx * GateArt.YStretch(sprite), 1f);
     }
 
     void UpdateParticles(float dt)

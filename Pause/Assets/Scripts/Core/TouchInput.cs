@@ -10,12 +10,23 @@ using UnityEngine;
 // works on iOS, Android, desktop and in Play mode.
 public static class TouchInput
 {
+#if UNITY_EDITOR
+    // Editor-only injection point for the marketing capture autopilot
+    // (Assets/Editor/Marketing). Compiled out of every player build.
+    public static System.Func<bool> PressedOverride;
+    public static System.Func<Vector2> PositionOverride;
+    public static System.Func<bool> SecondaryOverride;
+#endif
+
     // True while exactly one finger is down, or the left mouse button is held.
     // Matches the original "touchCount > 0 && touchCount <= 1" intent.
     public static bool IsPressed
     {
         get
         {
+#if UNITY_EDITOR
+            if (PressedOverride != null) return PressedOverride();
+#endif
             if (Input.touchSupported && Input.touchCount > 0)
                 return Input.touchCount == 1;
 
@@ -30,6 +41,9 @@ public static class TouchInput
     {
         get
         {
+#if UNITY_EDITOR
+            if (SecondaryOverride != null) return SecondaryOverride();
+#endif
             if (Input.touchSupported && Input.touchCount > 0)
                 return Input.touchCount >= 2;
 
@@ -42,6 +56,9 @@ public static class TouchInput
     {
         get
         {
+#if UNITY_EDITOR
+            if (SecondaryOverride != null) return SecondaryOverride();
+#endif
             if (Input.touchSupported && Input.touchCount > 0)
             {
                 for (int i = 0; i < Input.touchCount; i++)
@@ -59,6 +76,9 @@ public static class TouchInput
     {
         get
         {
+#if UNITY_EDITOR
+            if (PositionOverride != null) return PositionOverride();
+#endif
             if (Input.touchSupported && Input.touchCount > 0)
                 return Input.GetTouch(0).position;
 

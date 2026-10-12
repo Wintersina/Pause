@@ -44,6 +44,7 @@ public sealed class GateSim
     public int crackStage;             // 0..3
     public bool smashed;
     public float smashTime;            // seconds since the smash (0 before it)
+    public float smashAt;              // sim time of the smash
     public bool finished;              // true once the scene should change
     public bool smashFinish;           // finished because of the smash (not the natural end)
     public float naturalSeconds = IntroSeconds;   // splashScene.holdSeconds
@@ -75,7 +76,7 @@ public sealed class GateSim
     public void Reset()
     {
         time = open = amp = kick = pressure = 0f;
-        crackStage = 0; smashed = false; smashTime = 0f; finished = false; smashFinish = false;
+        crackStage = 0; smashed = false; smashTime = 0f; smashAt = 0f; finished = false; smashFinish = false;
         stepsDone = 0; pendingTaps = 0; tapsApplied = 0; sinceTap = 99f; doneFired = false; rng = 0x1234ABCDu;
         leftJitter = rightJitter = shake = Vector2.zero; leftRot = rightRot = 0f; bulge = 0f;
     }
@@ -174,6 +175,7 @@ public sealed class GateSim
                 kick = 1.6f;
                 if (Cracked != null) Cracked(3);
                 smashed = true;
+                smashAt = time;
                 smashTime = 0f;
                 pendingTaps = 0;
                 if (Smashed != null) Smashed();

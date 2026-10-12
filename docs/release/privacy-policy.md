@@ -1,6 +1,6 @@
 # Privacy Policy for Pause
 
-Hosted at https://sinaserati.com/hapticgate/privacy/ (the URL entered in Play Console). The hosted page currently says the game "does not collect your personal information", which conflicts with the Data safety form (User IDs and App interactions declared). Add the paragraph in the next section to the hosted page; the rest of this file is the full text this repo recommends.
+Hosted at https://hapticgategames.com/privacy/ (the URL entered in Play Console). The hosted page currently says the game "does not collect your personal information", which conflicts with the Data safety form (User IDs and App interactions declared). Add the paragraph in the next section to the hosted page; the rest of this file is the full text this repo recommends.
 
 ## Replacement paragraph for the hosted policy (owner to paste)
 

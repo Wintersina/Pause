@@ -5,21 +5,27 @@ using UnityEngine;
 // Each slot is a PNG in Resources/HapticGate/ (see docs/hapticgate-splash.md).
 // If any slot is missing Load returns null and the card shows just the mark.
 //
-//   industrial_gate_v3   1536x1024  RGBA cut-out two-leaf door, same crop contract as industrial_gate
-//   gate_cracks_1..3     1536x1024  RGBA cumulative crack overlays aligned to the leaves
+//   industrial_gate_v4   6144x4096  RGBA cut-out two-leaf door (exact 4x of the old 1536x1024 v3), same crop fractions
+//   gate_cracks_1..3     6144x4096  RGBA cumulative crack overlays aligned to the leaves
 //   gate_debris          1024x512   8x4 cells of 128 px debris sprites
 //   gate_steam           1024x1024  4x4 cells of 256 px steam puffs
 //
-// The crop contract (fractions of the 1536x1024 sheet) is unchanged from the
+// The crop contract (fractions of the sheet, so resolution-independent) is unchanged from the
 // original door: left leaf x 0.055, right leaf x 0.51, width 0.44, y 0.05..0.95.
 public sealed class GateArt
 {
-    public const string DoorSlot = "HapticGate/industrial_gate_v3";
+    public const string DoorSlot = "HapticGate/industrial_gate_v4";
     public const string CrackSlotPrefix = "HapticGate/gate_cracks_";   // + 1..3
     public const string DebrisSlot = "HapticGate/gate_debris";
     public const string SteamSlot = "HapticGate/gate_steam";
 
     public const float LeftX = 0.055f, RightX = 0.51f, LeafW = 0.44f, LeafY = 0.05f, LeafH = 0.9f;
+    // The door sheet is laid out 3:2 (6144x4096 source). The importer scales it to a power-of-two
+    // size (2048x1024) so it can be mipmapped and ASTC compressed, which squashes it; this is the
+    // vertical factor that restores the painted proportions (1 for an unsquashed 3:2 sheet).
+    public const float SheetAspect = 1.5f;
+    public static float YStretch(Sprite s) { return s.texture.width / (SheetAspect * s.texture.height); }
+
     public const int DebrisCols = 8, DebrisRows = 4, DebrisCell = 128;
     public const int SteamCols = 4, SteamRows = 4;
 
@@ -49,13 +55,14 @@ public sealed class GateArt
 
         var art = new GateArt();
         var cracks = new[] { c1, c2, c3 };
-        door.filterMode = deb.filterMode = st.filterMode = FilterMode.Point;
+        deb.filterMode = st.filterMode = FilterMode.Point;
+        door.filterMode = FilterMode.Trilinear;   // painted HD art, mipmapped: never Point
         art.leftLeaf = Slice(door, LeftX, 100f);
         art.rightLeaf = Slice(door, RightX, 100f);
         art.owned.Add(art.leftLeaf); art.owned.Add(art.rightLeaf);
         for (int i = 0; i < 3; i++)
         {
-            cracks[i].filterMode = FilterMode.Point;
+            cracks[i].filterMode = FilterMode.Trilinear;
             art.leftCracks[i] = Slice(cracks[i], LeftX, 100f);
             art.rightCracks[i] = Slice(cracks[i], RightX, 100f);
             art.owned.Add(art.leftCracks[i]); art.owned.Add(art.rightCracks[i]);
@@ -80,7 +87,7 @@ public sealed class GateArt
         if (Application.isPlaying) Object.Destroy(o); else Object.DestroyImmediate(o);
     }
 
-    // Sprite of one leaf from a 1536x1024-layout sheet (or any sheet in the same fractions).
+    // Sprite of one leaf from a sheet in the 1536x1024 layout (or any sheet in the same fractions).
     public static Sprite Slice(Texture2D t, float x, float ppu)
     {
         return Sprite.Create(t, new Rect(t.width * x, t.height * LeafY, t.width * LeafW, t.height * LeafH),

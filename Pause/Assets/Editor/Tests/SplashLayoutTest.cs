@@ -70,6 +70,7 @@ public static class SplashLayoutTest
         LogoUntouched();
         PureLayout();
         SceneLayout();
+        WordmarkLayout();
         PlayerSettingsGuard();
 
         Debug.Log("[SPLASH] failures: " + fails);
@@ -150,8 +151,15 @@ public static class SplashLayoutTest
             bool inside = lb.min.x >= safe.xMin - eps && lb.max.x <= safe.xMax + eps
                        && lb.min.y >= safe.yMin - eps && lb.max.y <= safe.yMax + eps;
             Check(c.name + ": logo fully inside the safe area", inside);
-            Vector2 off = (Vector2)lb.center - safe.center;
-            Check(c.name + ": logo centred in the safe area (off " + off.ToString("F3") + ")", off.magnitude < 0.01f);
+            // The column (gate above, wordmark below) is centred in the safe area; the wordmark is the lower part.
+            float w = l.logoSize.x;
+            float columnTop = camXY.y + l.gateCenter.y + splashScene.GateHeight * w * 0.5f;
+            float columnMid = (columnTop + lb.min.y) * 0.5f;
+            Check(c.name + ": gate + wordmark column centred in the safe area (off " + (columnMid - safe.center.y).ToString("F3") + ")",
+                  Mathf.Abs(columnMid - safe.center.y) < 0.01f && Mathf.Abs(lb.center.x - safe.center.x) < 0.01f);
+            Check(c.name + ": column inside the safe area", columnTop <= safe.yMax + eps);
+            Check(c.name + ": wordmark ends below the gate",
+                  lb.max.y <= camXY.y + l.gateCenter.y - splashScene.GateHeight * w * 0.5f + eps);
             float aspectNow = lb.size.x / lb.size.y;
             Check(c.name + ": logo keeps its proportions", Mathf.Abs(aspectNow / nativeAspect - 1f) < 0.001f);
             var ls = card.logo.transform.lossyScale;
@@ -162,8 +170,9 @@ public static class SplashLayoutTest
             // area forces it smaller; never tiny.
             float shortSide = Mathf.Min(viewW, viewH);
             float share = lb.size.x / shortSide;
+            float column = splashScene.GateHeight + splashScene.GateWordGap + native.y / native.x;
             bool safeBound = lb.size.x >= splashScene.SafeFill * safe.width - 0.01f
-                          || lb.size.y >= splashScene.SafeFill * safe.height - 0.01f;
+                          || lb.size.x * column >= splashScene.SafeFill * safe.height - 0.01f;
             Check(c.name + ": logo is " + (share * 100f).ToString("F1") + "% of the shorter side",
                   Mathf.Abs(share - splashScene.LogoFraction) < 0.005f || (safeBound && share > 0.3f));
 
@@ -181,6 +190,81 @@ public static class SplashLayoutTest
                   Mathf.Abs(card.wordsScaler.scaleFactor - l.wordsScaleFactor) < 0.0001f && l.wordsScaleFactor > 0.15f);
         }
         cam.orthographicSize = baseSize;
+    }
+
+    // The wordmark flies out of the door and ends below the gate (brand animation v2).
+    static void WordmarkLayout()
+    {
+        Check("lockup art for the credits is installed", HapticGateMark.Lockup() != null);
+        var start = splashScene.PoseAt(0f);
+        Check("wordmark is invisible while the door is shut", start.alpha == 0f && start.scale <= splashScene.StartScale + 1e-4f);
+        var gap = splashScene.PoseAt(splashScene.FlyStart + 0.05f);
+        Check("it appears small in the gap (scale " + gap.scale.ToString("F2") + ", travel " + gap.travel.ToString("F2") + ", behind the leaves)",
+              gap.alpha > 0f && gap.scale < 0.15f && gap.travel < 0.1f && !gap.front);
+        var out1 = splashScene.PoseAt(splashScene.FlyExit + 0.05f);
+        var out2 = splashScene.PoseAt(splashScene.FlyExit + 0.2f);
+        Check("it rushes out in front of the leaves, growing and travelling down",
+              out1.front && out2.scale > out1.scale && out2.travel > out1.travel && out1.scale > gap.scale);
+        var landed = splashScene.PoseAt(splashScene.FlyLand + 0.01f);
+        var bounce = splashScene.PoseAt(splashScene.FlyLand + splashScene.BounceSeconds * 0.5f);
+        Check("it lands (travel 1) and bounces up a little (" + bounce.bounce.ToString("F2") + " wordmark heights)",
+              landed.travel >= 0.999f && bounce.bounce > 0.1f && bounce.bounce < 0.8f);
+        bool dips = false;
+        for (float t = splashScene.FlyLand; t < splashScene.FlickerEnd; t += 0.01f) if (splashScene.PoseAt(t).alpha < 0.9f) dips = true;
+        var end = splashScene.PoseAt(splashScene.FlickerEnd);
+        Check("neon flicker dips then settles exactly final", dips && end.done && end.alpha == 1f && end.scale == 1f && end.travel == 1f && end.bounce == 0f);
+        Check("it is settled before the card ends (" + splashScene.FlickerEnd + " < " + GateSim.IntroSeconds + ")", splashScene.FlickerEnd < GateSim.IntroSeconds);
+
+        // smash: the flight finishes within SmashFlySeconds, well inside the 0.45 s leave delay
+        var smash = new GateSim();
+        smash.Advance(0.3f); smash.Tap(); smash.Tap(); smash.Tap();
+        for (int i = 0; i < 100 && !smash.smashed; i++) smash.Advance(0.02f);
+        Check("smash path: wordmark flight is final within " + splashScene.SmashFlySeconds + " s of the smash",
+              smash.smashed && splashScene.SmashFlySeconds < GateSim.SmashLeaveDelay);
+        float before = splashScene.FlightTime(smash);
+        smash.Advance(splashScene.SmashFlySeconds + 0.01f);
+        Check("... flight clock reaches the end of the flicker", splashScene.PoseAt(splashScene.FlightTime(smash)).done && splashScene.FlightTime(smash) >= before);
+
+        EditorSceneLoader.Open("spashS7", OpenSceneMode.Single);
+        splashScene.BuildGateInEditMode = true;
+        splashScene.LoadScene = n => { };
+        try
+        {
+            var card = UnityEngine.Object.FindFirstObjectByType<splashScene>();
+            var cam = card.GetComponentInParent<Camera>();
+            float baseSize = cam.orthographicSize;
+            foreach (var c in Cases)
+            {
+                cam.orthographicSize = CameraFit.ComputeSize(baseSize, 2.85f, c.w, c.h);
+                var l = card.ApplyLayout(c.w, c.h, c.safe);
+                card.Restart();
+                // mid-flight: smaller than final, on the way down, inside the view
+                while (card.Sim.time < splashScene.FlyExit + 0.1f) card.Step(1f / 60f);
+                Bounds mid = card.logo.bounds;
+                // landed and settled
+                while (card.Sim.time < splashScene.FlickerEnd + 0.02f) card.Step(1f / 60f);
+                card.Step(0f);
+                float aspect = (float)c.w / c.h;
+                float viewH = 2f * cam.orthographicSize, viewW = viewH * aspect;
+                Vector2 camXY = cam.transform.position;
+                Rect safe = new Rect(camXY.x - viewW / 2f + c.safe.x / c.w * viewW, camXY.y - viewH / 2f + c.safe.y / c.h * viewH,
+                                     c.safe.width / c.w * viewW, c.safe.height / c.h * viewH);
+                Bounds fb = card.logo.bounds;
+                const float eps = 0.003f;
+                float w = l.logoSize.x;
+                Vector2 sh = card.Sim.shake * w;   // the whole card shakes a little while the door still jitters
+                Check(c.name + ": mid-flight the wordmark is smaller than final (" + (mid.size.x / w).ToString("F2") + ") and above its spot",
+                      mid.size.x < w * 0.9f && mid.center.y > fb.center.y);
+                Check(c.name + ": wordmark ends at its final spot (off " + ((Vector2)fb.center - (camXY + l.logoCenter + card.Sim.shake * w)).magnitude.ToString("F4") + ")",
+                      ((Vector2)fb.center - (camXY + l.logoCenter + card.Sim.shake * w)).magnitude < eps && Mathf.Abs(fb.size.x - w) < eps && card.Pose.done);
+                Check(c.name + ": final wordmark below the gate and inside the safe area",
+                      fb.max.y <= camXY.y + l.gateCenter.y - splashScene.GateHeight * w * 0.5f + eps + sh.y
+                      && fb.min.x >= safe.xMin - eps + sh.x && fb.max.x <= safe.xMax + eps + sh.x && fb.min.y >= safe.yMin - eps + sh.y);
+                Check(c.name + ": wordmark opaque and in front once landed", card.logo.color.a > 0.999f && card.logo.sortingOrder > 3);
+            }
+            cam.orthographicSize = baseSize;
+        }
+        finally { splashScene.BuildGateInEditMode = false; }
     }
 
     // Global settings the full-bleed card depends on. Changing them would

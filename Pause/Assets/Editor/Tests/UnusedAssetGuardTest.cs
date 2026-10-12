@@ -211,7 +211,7 @@ public static class UnusedAssetGuardTest
         {
             if (!path.StartsWith("Assets/") || AssetDatabase.IsValidFolder(path)) continue;
             all.Add(path);
-            if (path.Contains("/Resources/")) roots.Add(path);
+            if (path.Contains("/Resources/") || path.StartsWith("Assets/StreamingAssets/")) roots.Add(path);   // StreamingAssets ship as plain files (the gameplay clips)
         }
         foreach (string file in Directory.GetFiles("ProjectSettings", "*.asset"))
             foreach (Match m in Regex.Matches(File.ReadAllText(file), "guid: ([0-9a-f]{32})"))

@@ -41,7 +41,7 @@ Play Console > App content > Data safety. Answers below assume Play Games sign-i
 | App activity > App interactions | Collected, not shared, optional, purpose App functionality (covers scores, achievements, saved game, progress) |
 | Advertising ID | No |
 | Encrypted in transit | Yes |
-| Deletion | Yes, link = privacy policy URL https://sinaserati.com/hapticgate/privacy/ |
+| Deletion | Yes, link = privacy policy URL https://hapticgategames.com/privacy/ |
 | Ads | None |
 | Target age | 13+ |
 | IARC / ESRB | Everyone 10+ (E10+) |

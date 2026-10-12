@@ -53,20 +53,37 @@ slot is missing, `GateArt.Load` returns null and the card shows just the mark.
 
 | Resources path | spec |
 |---|---|
-| `HapticGate/industrial_gate_v3` | 1536x1024 two-leaf door; crop contract left x 0.055, right x 0.51, w 0.44, y 0.05..0.95 |
-| `HapticGate/gate_cracks_1` `_2` `_3` | 1536x1024 RGBA cumulative crack overlays, cut with the same leaf rects |
+| `HapticGate/industrial_gate_v4` | 6144x4096 two-leaf door (HD, exact 4x of the old 1536x1024 v3, same layout); crop contract (fractions, resolution-independent) left x 0.055, right x 0.51, w 0.44, y 0.05..0.95 |
+| `HapticGate/gate_cracks_1` `_2` `_3` | 6144x4096 RGBA cumulative crack overlays, cut with the same leaf rects |
 | `HapticGate/gate_debris` | 1024x512, 8x4 cells of 128 px (drawn at 1.8x: the shard fills about half a cell) |
 | `HapticGate/gate_steam` | 1024x1024, 4x4 cells of 256 px: columns are growth stages (stepped with the puff's age), rows are variants |
 
-Importer settings (all six): Sprite single, Point filter, no mipmaps,
-uncompressed (about 26 MB of GPU memory in total, only while the splash is up).
+Importer settings:
 
-To swap art later, replace the PNGs (same names and sizes) and keep the meta
+* Door and cracks (HD, painted art, not pixel art): texture type Default (GateArt makes its own
+  sprites), **Trilinear** filter (`GateArt.Load` sets it), **mipmaps on** (a leaf is shown at
+  roughly a third of its texture size on phones; without mips it shimmers during the shake),
+  **Non-Power-of-2: To Nearest**, max size 2048. The 6144x4096 source therefore imports as
+  **2048x1024** (about 900 texels across a leaf for ~330 px on a 1080 phone, ~600 px on a
+  tablet). Android and iOS: ASTC 6x6 (set by `AndroidTextureDiet`, which skips its
+  "NPOT means no mips" rule when NPOT scaling is on).
+* The To-Nearest import squashes the sheet vertically by 0.75, so `GateArt.YStretch(sprite)`
+  (= texture w / (1.5 x texture h)) is applied to the leaf transform's y scale in
+  `GateView.NewLeaf` / `SetLeaf`; overlays inherit it. Anything that swaps the door for a
+  different-shaped import must keep that in mind (a true 3:2 texture gives 1).
+* `gate_debris`, `gate_steam`: unchanged (Sprite, Point, no mips, uncompressed).
+
+GPU memory, measured with `Profiler.GetRuntimeMemorySizeLong` on the imported door (ASTC 6x6,
+12 mips): 2.50 MB per HD texture, 10.0 MB for the four (the old four 1536x1024 sheets were
+about 2.8 MB). Raising `maxTextureSize` to 4096 gives 4096x2048, about 10 MB per texture
+(40 MB total) for more detail on very large tablets; the crop fractions need no change.
+
+To swap art later, replace the PNGs (same names, same layout; any 3:2 size works since the crop is fractional) and keep the meta
 settings. If the crop contract changes, edit the constants at the top of
 `GateArt.cs`; vent and crack anchor points in `GateView.cs` (`LeafPoint(...)`) are
 leaf-relative (u across, v up).
 
-Art note: `industrial_gate_v3.png` is the alpha cut-out of the v2 door (leaves pixel-identical, transparent outside), so no backdrop box shows against the black card.
+Art note: `industrial_gate_v4.png` is an alpha cut-out (leaf alpha bounds are the old (85,37,1451,947) x4; transparent outside and in the central gap), so no backdrop box shows against the black card.
 
 ## Sounds
 
@@ -88,5 +105,29 @@ the user; no beeps or coin sounds):
   (`SplashInput.ReadLegacy`) is only checked to be idle and the scene's `Update` is
   driven through the same hook the real reader plugs into.
 * Existing: `SplashLayoutTest` (layout), ScreenFit's `splash` screen.
+* Full-frame captures at 1080x2520 and 1600x2560: `-executeMethod GateShotPreview.Render -shotDir <dir> -shotPrefix <name>`.
 * Filmstrips: `-executeMethod HapticGatePreview.Render -previewDir <dir>` writes
   `natural.png`, `tap1.png`, `tap2.png`, `tap3.png`.
+
+## Wordmark fly-out (brand animation v2) and opening clip
+
+* The red wordmark flies out of the door (`splashScene.PoseAt`, pure and tested): from `FlyStart` (1.00 s)
+  it is a tiny, dimmed wordmark in the middle of the gap, as if far behind the gate; at `FlyExit` (1.30 s) it
+  comes out in front of the leaves, growing fast and heading down; it lands on its final spot below the gate at
+  `FlyLand` (1.70 s), bounces up a little (`BounceSeconds`), flickers on like neon and is steady from
+  `FlickerEnd` (2.08 s; the card leaves at 2.3 s). The brand film's 1.07 / 1.43 / 2.17 s after the first split
+  are squeezed to fit the 2.3 s card. After a smash the same flight runs out in `SmashFlySeconds` (0.3 s), so
+  skipping is as quick as before (`SmashLeaveDelay` 0.45 s is unchanged).
+* Layout: gate + wordmark are one column centred in the safe area (`GateHeight` 0.68 gate-widths, `GateWordGap`
+  0.12); `Layout.gateCenter` / `Layout.logoCenter` (the wordmark's FINAL centre). Edit-mode layout tests and the
+  screen-fit rig see the wordmark at its final spot (the flight only runs while playing / `BuildGateInEditMode`).
+* The gap shows dark interior with warm haze (`GateView` "Gap haze"), no centre beam.
+* The closed-gate lockup (`hapticgate_lockup.png`, from `HapticGate-brand/closed`) is used by the Credits only
+  (`HapticGateMark.Lockup`); replace the PNG to change it.
+* The user's `gate_open.wav` (Audio/Resources/Audio/GateOpen, 5.6 s stereo 48 kHz, Vorbis q0.65, 141 KB
+  imported) replaces the natural-run rattle and the seven step shrieks (`GateAudio.OpenReplaces`). Its first
+  big hit is 1.11 s into the file (the broadband sweep ends and the latch lets go; found with astats/spectrogram);
+  `splashScene.OpenClipStart` = 0.11 s lines that with the door's biggest forced step at 1.22 s. The loudest
+  peak (5.0-5.1 s, the closing swell) cannot line up with a 2.3 s card. Tap cracks and the smash are unchanged;
+  a smash fades the clip out in 0.1 s (Back too), a natural finish over 0.8 s; the card never waits for it, and
+  if the three taps are queued before 0.11 s it never starts. Mute (`SoundSettings`) is honoured. Tests: GateAudioTest.

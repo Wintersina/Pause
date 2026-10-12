@@ -40,6 +40,7 @@ public static class GateAudioTest
             Muted();
             Allocations();
             SceneCues();
+            OpenClip();
             Import();
         }
         finally
@@ -163,7 +164,8 @@ public static class GateAudioTest
             for (int i = 0; i < 600 && loads == 0; i++) { clock += Dt; card.Step(Dt); }
             Check("natural run cues: 1 rattle, 7 steps, no crack / smash (" + string.Join(",", heard) + ")",
                   Count(heard, "gate_rattle") == 1 && Count(heard, "gate_step") == 7 && Count(heard, "gate_crack") == 0 && Count(heard, "gate_smash") == 0 && heard[0] == "gate_rattle");
-            Check("... every cue reached the player (" + GateAudio.Played + ")", GateAudio.Played == heard.Count);
+            Check("... every cue reached the player or was replaced by the opening clip (" + GateAudio.Played + "+" + GateAudio.Suppressed + " of " + heard.Count + ")",
+                  GateAudio.Played + GateAudio.Suppressed == heard.Count && GateAudio.Suppressed == 8);
 
             // three taps: crack, crack, smash
             loads = 0; GateAudio.Reset(); clock += 10; heard.Clear();
@@ -187,6 +189,97 @@ public static class GateAudioTest
 
     static int Count(List<string> l, string s) { int n = 0; foreach (var x in l) if (x == s) n++; return n; }
 
+    // ---- the user's gate-opening clip ---------------------------------------------
+
+    static splashScene OpenCard(out int[] loads, out List<string> heard)
+    {
+        EditorSceneLoader.Open("spashS7", OpenSceneMode.Single);
+        splashScene.BuildGateInEditMode = true;
+        var card = Object.FindFirstObjectByType<splashScene>();
+        card.ApplyLayout(1080, 2340, new Rect(0, 0, 1080, 2340));
+        var count = new int[1];
+        splashScene.LoadScene = n => count[0]++;
+        var list = new List<string>();
+        splashScene.SoundCue += list.Add;
+        loads = count; heard = list;
+        return card;
+    }
+
+    static void OpenClip()
+    {
+        var clip = GateAudio.OpenClip();
+        Check("gate_open clip is assigned (" + (clip != null ? clip.length.ToString("F2") + " s, " + clip.channels + " ch, " + clip.frequency + " Hz" : "missing") + ")",
+              clip != null && Mathf.Abs(clip.length - 5.6f) < 0.1f);
+        Check("the hit offset sits inside the clip and the start delay lines it up with the 1.22 s door step",
+              clip != null && GateAudio.OpenImpactSeconds < clip.length
+              && Mathf.Abs(splashScene.OpenClipStart + GateAudio.OpenImpactSeconds - 1.22f) < 0.011f);
+
+        // natural run: plays exactly once, at the start delay, then fades on leaving
+        var card = OpenCard(out var loads, out var heard);
+        try
+        {
+            GateAudio.Reset(); clock += 10; heard.Clear(); loads[0] = 0;
+            card.Restart(); card.SendMessage("Start");
+            float startedAt = -1f; bool activeMid = false;
+            for (int i = 0; i < 600 && loads[0] == 0; i++)
+            {
+                clock += Dt; card.Step(Dt);
+                if (startedAt < 0 && GateAudio.OpenStarts > 0) startedAt = card.Sim.time;
+                if (card.Sim.time > 1.2f && card.Sim.time < 1.3f && GateAudio.OpenActive) activeMid = true;
+            }
+            Check("natural run: the opening clip starts once, at " + startedAt.ToString("F2") + " s (want " + splashScene.OpenClipStart.ToString("F2") + ")",
+                  GateAudio.OpenStarts == 1 && Count(heard, "gate_open") == 1 && Mathf.Abs(startedAt - splashScene.OpenClipStart) < 0.03f);
+            Check("... it is playing when the leaves split (1.2 s) and replaces rattle + steps (suppressed " + GateAudio.Suppressed + ")",
+                  activeMid && GateAudio.Suppressed == 8);
+            Check("... leaving naturally fades it over " + GateAudio.OpenLeaveFade + " s (stops: " + GateAudio.OpenStops + ")",
+                  GateAudio.OpenStops == 1 && Mathf.Abs(GateAudio.OpenLastFade - GateAudio.OpenLeaveFade) < 0.001f);
+            clock += 1.0;
+            Check("... and it is silent a second after the scene change", !GateAudio.OpenActive);
+
+            // muted: not started
+            GateAudio.Reset(); clock += 10; heard.Clear(); loads[0] = 0;
+            GateAudio.MutedSource = () => true;
+            card.Restart(); card.SendMessage("Start");
+            for (int i = 0; i < 600 && loads[0] == 0; i++) { clock += Dt; card.Step(Dt); }
+            Check("muted: the opening clip never plays", GateAudio.OpenStarts == 0 && !GateAudio.OpenActive);
+            GateAudio.MutedSource = () => false;
+
+            // smash during the clip: stopped within 0.1 s, the card leaves on the usual schedule
+            GateAudio.Reset(); clock += 10; heard.Clear(); loads[0] = 0;
+            card.Restart(); card.SendMessage("Start");
+            float[] at = { .3f, .5f, .7f };
+            int k = 0; float smashTime = -1f, loadTime = -1f, clipActiveAtSmash = -1f;
+            double smashClock = -1;
+            for (int i = 0; i < 600 && loads[0] == 0; i++)
+            {
+                if (k < 3 && card.Sim.time >= at[k]) { card.Tap(); k++; }
+                clock += Dt; card.Step(Dt);
+                if (smashTime < 0 && card.Sim.smashed) { smashTime = card.Sim.time; smashClock = clock; clipActiveAtSmash = GateAudio.OpenActive ? 1f : 0f; }
+            }
+            loadTime = card.Sim.time;
+            Check("smash during the clip: it was playing, started once (" + GateAudio.OpenStarts + ")", GateAudio.OpenStarts == 1 && clipActiveAtSmash >= 0f);
+            Check("... the smash fades it out in <= 0.1 s (fade " + GateAudio.OpenLastFade.ToString("F2") + ")",
+                  GateAudio.OpenStops == 1 && GateAudio.OpenLastFade <= 0.1001f);
+            clock = smashClock + 0.11;
+            Check("... and 0.11 s after the smash it is stopped", !GateAudio.OpenActive);
+            Check("... the splash advances on the old schedule: scene change " + (loadTime - smashTime).ToString("F3") + " s after the smash (want "
+                  + GateSim.SmashLeaveDelay.ToString("F2") + "), nothing waits for the 5.6 s clip",
+                  Mathf.Abs(loadTime - smashTime - GateSim.SmashLeaveDelay) < 0.03f && loadTime < 1.5f && loads[0] == 1);
+
+            // smash before the clip would start: it never starts
+            GateAudio.Reset(); clock += 10; heard.Clear(); loads[0] = 0;
+            card.Restart(); card.SendMessage("Start");
+            for (int i = 0; i < 10; i++) { clock += Dt; card.Step(Dt); }   // 0.17 s: past the tap lockout
+            // the lockout is 0.15 s and the clip starts at 0.11 s, so only a queued burst can beat it:
+            card.Restart(); GateAudio.Reset(); heard.Clear(); loads[0] = 0;
+            var sim = card.Sim;
+            sim.Advance(0.2f); sim.Tap(); sim.Tap(); sim.Tap();   // three taps queued before the card's first Step
+            clock += 10; card.Step(Dt);
+            Check("three taps queued before the clip's start: it never starts (" + GateAudio.OpenStarts + ")", GateAudio.OpenStarts == 0);
+        }
+        finally { splashScene.SoundCue -= heard.Add; GateAudio.Reset(); }
+    }
+
     static void Import()
     {
         var guids = AssetDatabase.FindAssets("t:AudioClip", new[] { EnemyDeathAudioImporter.GateFolder.TrimEnd('/') });
@@ -200,5 +293,11 @@ public static class GateAudioTest
                   && s.preloadAudioData && s.sampleRateSetting == AudioSampleRateSetting.PreserveSampleRate;
         }
         Check("gate clips (" + guids.Length + ") import mono / PCM / decompress-on-load / preload", ok);
+        string openPath = "Assets/Audio/Resources/Audio/GateOpen/gate_open.wav";
+        var oi = AssetImporter.GetAtPath(openPath) as AudioImporter;
+        var os = oi != null ? oi.defaultSampleSettings : default(AudioImporterSampleSettings);
+        Check("gate_open imports as Vorbis q" + os.quality.ToString("F2") + ", decompress-on-load, preloaded, 5.6 s",
+              oi != null && os.compressionFormat == AudioCompressionFormat.Vorbis && os.quality >= 0.6f && os.quality <= 0.7f
+              && os.loadType == AudioClipLoadType.DecompressOnLoad && os.preloadAudioData);
     }
 }
