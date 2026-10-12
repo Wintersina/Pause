@@ -11,6 +11,8 @@ L = Image.Resampling.LANCZOS
 LAYER = 1728        # adaptive layers: 108dp x 16
 TITLE_FRAC = 0.62   # title crop width / LAYER (letters themselves are ~84% of it)
 
+import subprocess, sys
+subprocess.run([sys.executable, str(HERE / "make.py")], check=True, cwd=HERE)
 master = Image.open(HERE / "master_4096.png").convert("RGB")
 m1024 = master.resize((1024, 1024), L)
 m1024.save(OUT / "OrbitalRail_1024.png", optimize=True)
@@ -50,17 +52,23 @@ logo = Image.open(HERE / "title_logo.png").convert("RGBA").crop((69, 272, 990, 7
 ship = Image.open(HERE / "ship_alone.png").convert("RGBA")
 W = round(LAYER * TITLE_FRAC)
 t = logo.resize((W, round(W * logo.height / logo.width)), L)
-# ship geometry relative to the title in the master (see make.py): centre x .523W, top .417W, width .181W
-sw = round(W * 0.181); sh = round(sw * ship.height / ship.width)
+# ship geometry relative to the title in the master (see make.py): centre x .523W, nose .395W, width .181W x1.55 (v2)
+sw = round(W * 0.181 * 1.35 * 1.15); sh = round(sw * ship.height / ship.width)
 s = ship.resize((sw, sh), L)
-sx = round(W * 0.523) - sw // 2; sy = round(W * 0.417)
+sx = round(W * 0.523) - sw // 2; sy = round(W * 0.395)
 # group bbox of opaque lettering + ship, centred on the canvas
 fg = Image.new("RGBA", (LAYER, LAYER), (0, 0, 0, 0))
 gh = max(t.height, sy + sh)
 lt = np.where(np.array(t)[:, :, 3] > 200)[0]
 top = lt.min(); bottom = sy + sh
 ox = (LAYER - W) // 2
-oy = round(LAYER / 2 - (top + bottom) / 2)
+oy0 = round(LAYER / 2 - (top + bottom) / 2)
+# slide the title+ship group vertically to the offset that keeps everything closest to the centre
+def _maxr(oy):
+    c = Image.new("RGBA", (LAYER, LAYER), (0, 0, 0, 0)); c.alpha_composite(t, (ox, oy)); c.alpha_composite(s, (ox + sx, oy + sy))
+    a = np.array(c)[:, :, 3]; yy, xx = np.nonzero(a > 51)
+    return np.hypot(xx + .5 - LAYER / 2, yy + .5 - LAYER / 2).max()
+oy = min(range(oy0 - 40, oy0 + 200, 8), key=_maxr)
 fg.alpha_composite(t, (ox, oy))
 fg.alpha_composite(s, (ox + sx, oy + sy))
 fg.save(OUT / "OrbitalRail_adaptive_fg_432.png", optimize=True)

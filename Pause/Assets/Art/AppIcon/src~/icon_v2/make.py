@@ -2,11 +2,11 @@ from PIL import Image, ImageDraw, ImageFilter
 import numpy as np
 
 SIZE = 4096
-BG = 'out3/assets/starfield.png'
-SHIP = 'out3/assets/ship.png'
+BG = 'starfield.png'
+SHIP = 'ship_alone.png'
 
 background = Image.open(BG).convert('RGB')
-moon = Image.open('ref/moon.png').convert('RGBA')
+moon = Image.open('moon.png').convert('RGBA')
 # Shift the source's tiny violet crater glints toward cool blue without
 # changing its crater detail, silhouette, or lighting.
 mp = np.array(moon)
@@ -15,20 +15,11 @@ violet = (mb > mg * 1.18) & (mr > mg * 1.20) & (mb > 45) & (mp[:, :, 3] > 8)
 mp[violet, 0] = np.clip(mg[violet] * 0.85, 0, 255)
 mp[violet, 1] = np.maximum(mg[violet], mb[violet] * 0.58).clip(0, 255)
 moon = Image.fromarray(mp, 'RGBA')
-logo = Image.open('ref/title_logo.png').convert('RGBA').crop((69, 272, 990, 706))
-ship = Image.open(SHIP).convert('RGBA').crop((259, 5, 994, 1243))
-
-# Keep the red hull and blue highlights, shifting only the pink exhaust to cyan.
-pix = np.array(ship)
-r, g, b = [pix[:, :, i].astype(np.int16) for i in range(3)]
-pink = (r > b * 0.70) & (b > g * 1.25) & (r > g * 1.4) & (pix[:, :, 3] > 16)
-pix[pink, 0] = np.clip(g[pink] * 0.75, 0, 255)
-pix[pink, 1] = np.maximum(g[pink], b[pink] * 0.88).clip(0, 255)
-pix[pink, 2] = np.maximum(b[pink], r[pink] * 0.8).clip(0, 255)
-ship = Image.fromarray(pix, 'RGBA')
+logo = Image.open('title_logo.png').convert('RGBA').crop((69, 272, 990, 706))
+ship = Image.open(SHIP).convert('RGBA')   # already cropped + exhaust recoloured
 
 variants = [
-    dict(angle=0, moon=(2510, -275, 1910), ship=(1768, 2790, 750)),
+    dict(angle=0, moon=(2510, -275, 1910), ship=(1561, 2700, 1164)),  # v2: ship x1.55 (1.35 x 1.15), centred on the U stem (x 2143), nose under the title; exhaust runs off the bottom
 ]
 
 for number, cfg in enumerate(variants, 1):
@@ -54,4 +45,4 @@ for number, cfg in enumerate(variants, 1):
     mark = logo.resize((lw, lh), Image.Resampling.LANCZOS)
     canvas.alpha_composite(mark, ((SIZE - lw) // 2, 1150 - (lh - round(round(SIZE*0.92)*logo.height/logo.width))//2))
 
-    canvas.convert('RGB').save(f'out4/v{number}.png', optimize=True)
+    canvas.convert('RGB').save(f'master_4096.png', optimize=True)
