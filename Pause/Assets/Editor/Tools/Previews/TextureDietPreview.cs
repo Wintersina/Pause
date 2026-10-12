@@ -14,7 +14,7 @@ public static class TextureDietPreview
     {
         "ShipArt/Hulls/Ninja", "ShipArt/Hulls/UFO", "ShipArt/Hulls/CrimsonHalo",
         "Elites/Frost/frost_elite_rimebreaker", "Bosses/Space", "Worlds/Space/rail_space_wide_v1",
-        "ShipArt/Exhaust/exhaust_atlas", "Pickups/heal_atom_green", "HapticGate/industrial_gate_v4", "HapticGate/gate_cracks_1",
+        "ShipArt/Exhaust/exhaust_atlas", "Pickups/heal_atom_green", "HapticGate/Film/gate_film_046", "HapticGate/Film/gate_film_100",
         "Bosses/Frost_shots", "Enemies/frost_alien", "Weapons/Explosions", "Weapons/AttackFx", "Vfx/teleport_portal_atlas",
         "Bosses/Tide_damage_fx", "Bosses/Ember", "Worlds/Ember/Backdrop3/v1/mid", "Worlds/Frost/Backdrop3/v1/sky", "Worlds/Ember/Backdrop3/v1/far", "Elites/Tide/tide_elite_riptide", "HapticGate/gate_steam",
         "Assets/Art/UI/Title/pause_title_2.png", "Assets/Art/UI/Splash/HapticGate_title_red.png",

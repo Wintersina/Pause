@@ -5,9 +5,9 @@ using UnityEngine;
 using UnityEngine.UI;
 
 // Filmstrips of the HapticGate splash, driven by a fake clock (1/60 s steps):
-//   natural.png  12 frames of the untouched intro
-//   tap1.png     tap 1: the door cracks
-//   tap2.png     tap 2: more cracks, bulge, steam leaks
+//   natural.png  12 frames of the untouched intro (the gate film, 0.05 .. 3.68 s)
+//   tap1.png     tap 1: sparks and chips off a leaf
+//   tap2.png     tap 2: more, steam leaks
 //   tap3.png     tap 3: the smash and the scene change
 // Output dir: -previewDir <path> on the command line, else <repo>/HapticGateFrames.
 public static class HapticGatePreview
@@ -48,7 +48,7 @@ public static class HapticGatePreview
         // natural: 12 frames across the intro
         card.Restart();
         var times = new float[12];
-        for (int i = 0; i < 12; i++) times[i] = 0.05f + i * 0.2f;
+        for (int i = 0; i < 12; i++) times[i] = 0.05f + i * 0.33f;
         Save("natural", Strip(times, null, 6));
 
         // tap 1 at 0.40 s; frames after it

@@ -157,15 +157,15 @@ public static class GateAudioTest
         splashScene.SoundCue += hook;
         try
         {
-            // natural run: rattle once, then 7 steps, no crack / smash
+            // natural run: rattle once, then one step per film shove, no crack / smash
             GateAudio.Reset(); clock += 10; heard.Clear();
             card.Restart();
             card.SendMessage("Start");   // the first frame in play mode
             for (int i = 0; i < 600 && loads == 0; i++) { clock += Dt; card.Step(Dt); }
-            Check("natural run cues: 1 rattle, 7 steps, no crack / smash (" + string.Join(",", heard) + ")",
-                  Count(heard, "gate_rattle") == 1 && Count(heard, "gate_step") == 7 && Count(heard, "gate_crack") == 0 && Count(heard, "gate_smash") == 0 && heard[0] == "gate_rattle");
+            Check("natural run cues: 1 rattle, " + GateSim.StepCount + " steps, no crack / smash (" + string.Join(",", heard) + ")",
+                  Count(heard, "gate_rattle") == 1 && Count(heard, "gate_step") == GateSim.StepCount && Count(heard, "gate_crack") == 0 && Count(heard, "gate_smash") == 0 && heard[0] == "gate_rattle");
             Check("... every cue reached the player or was replaced by the opening clip (" + GateAudio.Played + "+" + GateAudio.Suppressed + " of " + heard.Count + ")",
-                  GateAudio.Played + GateAudio.Suppressed == heard.Count && GateAudio.Suppressed == 8);
+                  GateAudio.Played + GateAudio.Suppressed == heard.Count && GateAudio.Suppressed == 1 + GateSim.StepCount);
 
             // three taps: crack, crack, smash
             loads = 0; GateAudio.Reset(); clock += 10; heard.Clear();
@@ -182,7 +182,7 @@ public static class GateAudioTest
             Check("three taps: 2 cracks then exactly 1 smash (" + string.Join(",", heard) + ")",
                   Count(heard, "gate_crack") == 2 && Count(heard, "gate_smash") == 1 && heard.IndexOf("gate_smash") > heard.LastIndexOf("gate_crack"));
             Check("the smash plays before the scene change and keeps ringing after it", smashAt > 0 && loadAt - smashAt > 0.2 && GateAudio.ActiveVoices() >= 1);
-            Check("steps stopped by the smash: at most 7 (" + Count(heard, "gate_step") + ")", Count(heard, "gate_step") <= 7);
+            Check("steps stopped by the smash: at most " + GateSim.StepCount + " (" + Count(heard, "gate_step") + ")", Count(heard, "gate_step") <= GateSim.StepCount);
         }
         finally { splashScene.SoundCue -= hook; }
     }
@@ -210,9 +210,9 @@ public static class GateAudioTest
         var clip = GateAudio.OpenClip();
         Check("gate_open clip is assigned (" + (clip != null ? clip.length.ToString("F2") + " s, " + clip.channels + " ch, " + clip.frequency + " Hz" : "missing") + ")",
               clip != null && Mathf.Abs(clip.length - 5.6f) < 0.1f);
-        Check("the hit offset sits inside the clip and the start delay lines it up with the 1.22 s door step",
+        Check("the hit offset sits inside the clip and the start delay lines it up with the film's first split (" + GateFilm.FirstSplit.ToString("F3") + " s)",
               clip != null && GateAudio.OpenImpactSeconds < clip.length
-              && Mathf.Abs(splashScene.OpenClipStart + GateAudio.OpenImpactSeconds - 1.22f) < 0.011f);
+              && Mathf.Abs(splashScene.OpenClipStart + GateAudio.OpenImpactSeconds - GateFilm.FirstSplit) < 0.011f);
 
         // natural run: plays exactly once, at the start delay, then fades on leaving
         var card = OpenCard(out var loads, out var heard);
@@ -230,7 +230,7 @@ public static class GateAudioTest
             Check("natural run: the opening clip starts once, at " + startedAt.ToString("F2") + " s (want " + splashScene.OpenClipStart.ToString("F2") + ")",
                   GateAudio.OpenStarts == 1 && Count(heard, "gate_open") == 1 && Mathf.Abs(startedAt - splashScene.OpenClipStart) < 0.03f);
             Check("... it is playing when the leaves split (1.2 s) and replaces rattle + steps (suppressed " + GateAudio.Suppressed + ")",
-                  activeMid && GateAudio.Suppressed == 8);
+                  activeMid && GateAudio.Suppressed == 1 + GateSim.StepCount);
             Check("... leaving naturally fades it over " + GateAudio.OpenLeaveFade + " s (stops: " + GateAudio.OpenStops + ")",
                   GateAudio.OpenStops == 1 && Mathf.Abs(GateAudio.OpenLastFade - GateAudio.OpenLeaveFade) < 0.001f);
             clock += 1.0;
@@ -270,7 +270,7 @@ public static class GateAudioTest
             GateAudio.Reset(); clock += 10; heard.Clear(); loads[0] = 0;
             card.Restart(); card.SendMessage("Start");
             for (int i = 0; i < 10; i++) { clock += Dt; card.Step(Dt); }   // 0.17 s: past the tap lockout
-            // the lockout is 0.15 s and the clip starts at 0.11 s, so only a queued burst can beat it:
+            // the lockout is 0.15 s and the clip starts at 0.03 s, so only a queued burst can beat it:
             card.Restart(); GateAudio.Reset(); heard.Clear(); loads[0] = 0;
             var sim = card.Sim;
             sim.Advance(0.2f); sim.Tap(); sim.Tap(); sim.Tap();   // three taps queued before the card's first Step

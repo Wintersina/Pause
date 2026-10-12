@@ -5,39 +5,41 @@ using UnityEngine;
 // Time, no scene loading. splashScene feeds it real (unscaled) frame time and
 // player taps; the editor tests and the preview filmstrips feed it a fake clock.
 //
-// The intro (no taps): the two steel leaves rattle on their latch with a rising
-// amplitude, steam pressure builds, then the leaves are FORCED open in jerky
-// steps -- each step snaps, overshoots and recoils, and fires an Impact (flash,
-// camera kick, debris, sparks, steam gust). The logo is revealed behind them.
+// The picture is the approved gate-opening film (GateFilm), played on the sim
+// clock. The sim adds what the film cannot: the card shake (a rattle that rises
+// while the shut gate strains, a kick on each of the film's opening shoves) and
+// the player's taps.
 //
-// Taps. The intro keeps playing (it is never frozen: a player who taps once and
+// Taps. The film keeps playing (it is never frozen: a player who taps once and
 // walks away still sees the card finish by itself). Every discrete tap queues
 // one stage; stages are applied at least TapSpacing apart so even a triple tap
 // inside one frame shows crack 1, crack 2, then the smash, and no tap is lost:
-//   tap 1 -> crack stage 1 (sharp kick, a few sparks)
-//   tap 2 -> crack stage 2 (more cracks, the leaves bulge, steam leaks, bigger kick)
-//   tap 3 -> crack stage 3 for one beat, then SMASH: the leaves burst, hard shake,
-//            flash; the card is over SmashLeaveDelay later.
+//   tap 1 -> crack stage 1 (sharp kick, sparks and chips off a leaf)
+//   tap 2 -> crack stage 2 (more, steam leaks, bigger kick)
+//   tap 3 -> SMASH: white flash, debris burst, hard shake, the film jumps to its
+//            final frame (gate open, wordmark landed); the card is over
+//            SmashLeaveDelay later.
 // Taps in the first SkipLockout seconds are dropped (a stray tap carried over
 // from a previous screen), taps after the smash are ignored.
 public sealed class GateSim
 {
-    public const float IntroSeconds = 2.3f;       // natural length (splashScene.holdSeconds)
+    // Natural length (splashScene.holdSeconds): the film (3.33 s, wordmark landed at 3.30 s) plus a short hold.
+    public const float HoldAfterFilm = 4f - GateFilm.Length;   // 0.667 s
+    public const float IntroSeconds = GateFilm.Length + HoldAfterFilm;   // 4.0 s
     public const float SkipLockout = 0.15f;
     public const float TapSpacing = 0.12f;        // min sim time between applied stages
     public const float SmashLeaveDelay = 0.45f;   // smash -> scene change
     public const int TapsToSmash = 3;
 
-    // Forced-open steps: start time, open fraction reached, snap duration.
-    public const int StepCount = 7;
-    static readonly float[] StepTime = { 0.70f, 0.92f, 1.10f, 1.22f, 1.40f, 1.58f, 1.76f };
-    static readonly float[] StepOpen = { 0.08f, 0.20f, 0.31f, 0.52f, 0.66f, 0.86f, 1.00f };
-    static readonly float[] StepDur  = { 0.050f, 0.050f, 0.045f, 0.050f, 0.050f, 0.055f, 0.110f };
-    public const float RattleEnd = 0.70f;
+    // The film's opening shoves (it pauses at frame 43-44 and shoves again at 45): each is an impact
+    // (card kick + gate_step cue, which the opening clip replaces in a natural run).
+    public static readonly float[] StepTime = { GateFilm.FirstSplit, 45f / GateFilm.Fps };
+    public static int StepCount { get { return StepTime.Length; } }
+    public const float RattleEnd = GateFilm.FirstSplit;
 
     // ---- outputs, read by the view --------------------------------------
     public float time;                 // sim seconds since the card appeared
-    public float open;                 // 0 shut .. 1 fully open (stepped, not smooth)
+    public float open;                 // 0 shut .. 1 fully open (the film's leaves, GateFilm.OpenAt)
     public float amp;                  // leaf rattle amplitude, 0..1
     public float kick;                 // impact/tap shake impulse, decays fast (0..~1.5)
     public float pressure;             // steam pressure 0..1
@@ -52,13 +54,8 @@ public sealed class GateSim
     public int pendingTaps;
     public int tapsApplied;
 
-    // Per-leaf jitter, gate-local units / degrees (+x is the leaf's own outward direction).
-    public Vector2 leftJitter, rightJitter;
-    public float leftRot, rightRot;
-    // Shared shake offset in gate-local units (applies to the whole card + words).
+    // Shake offset of the whole card, in film widths.
     public Vector2 shake;
-    // How far each leaf bulges outward / in scale at crack stage 2+ (gate-local, 0..1).
-    public float bulge;
 
     // ---- events (audio / effects hooks) -----------------------------------
     public Action<float, int> Impact;   // strength 0..1, step index (-1 = not a step)
@@ -78,7 +75,7 @@ public sealed class GateSim
         time = open = amp = kick = pressure = 0f;
         crackStage = 0; smashed = false; smashTime = 0f; smashAt = 0f; finished = false; smashFinish = false;
         stepsDone = 0; pendingTaps = 0; tapsApplied = 0; sinceTap = 99f; doneFired = false; rng = 0x1234ABCDu;
-        leftJitter = rightJitter = shake = Vector2.zero; leftRot = rightRot = 0f; bulge = 0f;
+        shake = Vector2.zero;
     }
 
     // Queue one tap (a discrete press). Returns false if it was dropped.
@@ -101,56 +98,28 @@ public sealed class GateSim
         ApplyTaps();
         if (smashed) smashTime += dt;
 
-        // Rattle amplitude: rises through the build, stays high while forcing
-        // the leaves, drops once they are through.
+        // Rattle amplitude: rises while the shut gate strains, drops once it is through.
         if (time < RattleEnd) { float r = time / RattleEnd; amp = 0.10f + 0.90f * r * r; }
-        else amp = Mathf.Lerp(0.85f, 0.25f, Mathf.Clamp01((time - 1.76f) / 0.5f));
+        else amp = Mathf.Lerp(0.85f, 0f, Mathf.Clamp01((time - RattleEnd) / 0.8f));
         if (smashed) amp = 0f;
 
-        pressure = Mathf.Clamp01(time / 1.0f);
+        pressure = Mathf.Clamp01(time / RattleEnd);
 
-        // Forced-open steps.
-        float o = 0f;
-        for (int i = 0; i < StepCount; i++)
+        // The film's shoves.
+        for (int i = stepsDone; i < StepCount; i++)
         {
-            if (time < StepTime[i]) break;
-            if (i >= stepsDone)
-            {
-                stepsDone = i + 1;
-                float s = (i + 1f) / StepCount;
-                kick = Mathf.Max(kick, 0.55f + 0.5f * s);
-                if (Impact != null) Impact(0.45f + 0.55f * s, i);
-            }
-            float prev = i == 0 ? 0f : StepOpen[i - 1];
-            float k = Mathf.Clamp01((time - StepTime[i]) / StepDur[i]);
-            float ease = 1f - (1f - k) * (1f - k) * (1f - k);
-            // overshoot + recoil on the last step; a small recoil on the others
-            float recoil = Mathf.Sin(k * Mathf.PI) * (i == StepCount - 1 ? 0.035f : 0.012f);
-            o = prev + (StepOpen[i] - prev) * ease + (k < 1f ? recoil : 0f);
+            if (time < StepTime[i] || smashed) break;
+            stepsDone = i + 1;
+            float s = (i + 1f) / StepCount;
+            kick = Mathf.Max(kick, 0.55f + 0.5f * s);
+            if (Impact != null) Impact(0.45f + 0.55f * s, i);
         }
-        if (time >= StepTime[StepCount - 1] + StepDur[StepCount - 1])
-        {
-            // dead-stop shudder after the last step
-            float since = time - (StepTime[StepCount - 1] + StepDur[StepCount - 1]);
-            o = 1f + Mathf.Sin(since * 38f) * Mathf.Exp(-since * 9f) * 0.02f;
-        }
-        open = o;
+        open = smashed ? 1f : GateFilm.OpenAt(time);
 
-        bulge = crackStage >= 2 ? (crackStage >= 3 ? 1f : 0.6f) : 0f;
-
-        // Jitter. Hash noise re-rolled ~50x a second reads as violent rattling;
-        // a faster sine on top keeps it moving between rolls.
-        float a = amp + kick * 0.9f;
+        // Shake of the whole card (film widths). Hash noise re-rolled ~50x a second reads as
+        // violent rattling; stronger with kicks; always a little while the gate strains.
         int roll = (int)(time * 50f);
-        float tt = time * 61f;
-        leftJitter  = new Vector2(Noise(roll, 1) * 0.0085f + Mathf.Sin(tt) * 0.0025f,
-                                  Noise(roll, 2) * 0.0065f) * a;
-        rightJitter = new Vector2(Noise(roll, 3) * 0.0085f + Mathf.Sin(tt + 2f) * 0.0025f,
-                                  Noise(roll, 4) * 0.0065f) * a;
-        leftRot  = Noise(roll, 5) * 0.9f * a;
-        rightRot = Noise(roll, 6) * 0.9f * a;
-        // Shake of the whole card. Stronger with kicks; always a little during the rattle.
-        float sh = amp * 0.012f + kick * 0.045f;
+        float sh = amp * 0.005f + kick * 0.022f;
         shake = new Vector2(Noise(roll, 7), Noise(roll, 8)) * sh;
 
         if (smashed)

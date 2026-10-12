@@ -2,34 +2,28 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
-// The Haptic Gate title card.
+// The Haptic Gate title card: the approved gate-opening film (GateFilm: the
+// steel H-gate is forced open, smoke and steam spill out, the HapticGate
+// wordmark flies out of the door and lands at the bottom), with a card shake
+// and the user's gate-opening sound on top. Three taps smash it (GateSim /
+// GateView), Back skips it, and it leaves for the title by itself after
+// GateSim.IntroSeconds (the 3.33 s film plus a short hold).
 //
-// It used to hold for a flat three seconds with no way past it, which is a long
-// time to stare at a logo you have already seen -- especially on a game whose
-// runs are a couple of minutes. It is shorter now, and a tap skips it.
-//
-// Layout. The card was authored as fixed scene transforms for a 9:16 phone: a
-// black backdrop quad 7.02 x 11.05 world units, the HapticGate mark at scale
-// 0.7, and the "A" / "Game" words on a constant-pixel-size overlay canvas at
-// fixed pixel offsets. CameraFit (attached to every scene's camera at runtime)
-// then grows the orthographic size on taller screens so the play field keeps
-// its width -- on the 1080x2520 Galaxy Z Flip the view becomes 13.3 units tall,
-// so the 11.05-unit backdrop stopped short and the camera's blue clear colour
-// showed as a band across the top and bottom of the card. The words also
-// drifted against the mark whenever the screen's pixel density differed from
-// the one they were placed on.
-//
-// So the card now lays itself out from the live view every time the screen,
-// safe area or camera size changes: the backdrop covers the whole view (cutout
-// included -- the app renders outside the safe area), the mark is a fixed
-// fraction of the shorter screen dimension, centred in the safe area and never
-// larger than it, and the words are scaled and moved with the mark exactly as
-// they were authored around it. The mark's art is never touched, only its
-// uniform transform scale and position.
+// Layout. CameraFit grows the orthographic size on taller screens, so the card
+// lays itself out from the live view every time the screen, safe area or
+// camera size changes: the black backdrop covers the whole view (cutout
+// included -- the app renders outside the safe area), the film is as wide as
+// the view (never wider than its lit content allows in the safe area, never
+// taller than the safe area) and centred in the safe area. The HapticGate mark
+// sprite (logo) is the fallback when the film's art is missing, and sits
+// exactly where the film's wordmark lands (the edit-mode layout tests and the
+// screen-fit rig measure it there); while the film plays it is hidden. The
+// "A" / "Game" words are scaled and moved with the mark as they were authored
+// around it. The mark's art is never touched, only its transform.
 public class splashScene : MonoBehaviour
 {
-    [Tooltip("How long the intro runs if the player does not tap (the door is forced open " +
-             "and the card leaves). Three taps smash the door and skip it sooner.")]
+    [Tooltip("How long the intro runs if the player does not tap (the film plays, holds " +
+             "its last frame and the card leaves). Three taps smash the door and skip it sooner.")]
     public float holdSeconds = GateSim.IntroSeconds;
 
     [Tooltip("Ignore input for a moment so a stray tap carried over from a " +
@@ -37,7 +31,7 @@ public class splashScene : MonoBehaviour
     public float skipLockout = 0.15f;
 
     [Header("Layout")]
-    [Tooltip("The HapticGate mark. Only its transform is changed.")]
+    [Tooltip("The HapticGate mark (fallback when the film is missing). Only its transform is changed.")]
     public SpriteRenderer logo;
 
     [Tooltip("The overlay canvas carrying the \"A\" / \"Game\" words.")]
@@ -46,16 +40,21 @@ public class splashScene : MonoBehaviour
     [Tooltip("The words placed around the mark.")]
     public RectTransform[] words;
 
-    [Tooltip("Logo width as a fraction of the shorter visible screen dimension.")]
-    public float logoFraction = LogoFraction;
+    [Tooltip("Film width as a fraction of the visible width.")]
+    public float filmFraction = FilmFraction;
 
-    // 0.64 of the shorter side is what the authored 0.7 scale works out to on
-    // the 9:16 phone the card was made on, after CameraFit's small bump there.
-    public const float LogoFraction = 0.64f;
+    // The film is as wide as the view: its edges are soft smoke on black.
+    public const float FilmFraction = 1f;
 
-    // Never let the mark fill more than this share of the safe area's width or
-    // height, so it keeps a margin on squat or cut-into screens.
+    // The film's lit content (gate leaves wide open, the wordmark's glow) spans
+    // this share of its width; it must fit inside the safe area's width.
+    public const float FilmContentShare = 0.88f;
+
+    // Never let the film be taller than this share of the safe area's height.
     public const float SafeFill = 0.9f;
+
+    // The card's worst shake, in film widths (GateSim: rattle 0.005 + a 1.6 kick x 0.022).
+    public const float MaxShake = 0.005f + 0.022f * 1.6f;
 
     // How much bigger than the view the backdrop is drawn, so rounding and a
     // one-frame lag behind a resize can never open a hairline gap.
@@ -67,25 +66,6 @@ public class splashScene : MonoBehaviour
     public const float AuthoredLogoScale = 0.7f;
     public const float AuthoredPixelsPerUnit = 192f;
 
-    // The wordmark flies out of the door (brand animation v2): small and dim in the
-    // middle of the gap as if far behind the gate, it rushes out between the leaves,
-    // growing, then travels DOWN to its final spot below the gate, lands with a small
-    // bounce and flickers on like neon. Times are sim seconds of the 2.3 s card (the
-    // brand film's 1.07 s / 1.43 s / 2.17 s after the first split, squeezed to fit).
-    public const float FlyStart = 1.00f;      // appears in the gap, tiny
-    public const float FlyExit = 1.30f;       // comes out in front of the leaves, heading down
-    public const float FlyLand = 1.70f;       // reaches its final spot (then the bounce)
-    public const float BounceSeconds = 0.20f;
-    public const float FlickerEnd = 2.08f;    // steady from here
-    public const float SmashFlySeconds = 0.30f;   // after a smash the flight is over this fast
-    public const float StartScale = 0.08f;    // share of the final size when it appears
-
-    // Gate height / width (a leaf is ~0.68 of the gate's width tall) and the space
-    // between the gate and the wordmark, in gate widths. The gate + wordmark together
-    // are centred in the safe area.
-    public const float GateHeight = 0.68f;
-    public const float GateWordGap = 0.12f;
-
     // ---- hooks (tests, previews, audio) -------------------------------------
 
     // Scene change, replaceable so tests can count loads without leaving the scene.
@@ -94,12 +74,12 @@ public class splashScene : MonoBehaviour
     // Where the player's presses come from (legacy Input by default).
     public static System.Func<SplashInput.Sample> InputSource = SplashInput.ReadLegacy;
 
-    // Build the door while not playing (edit-mode tests and preview filmstrips).
+    // Build the film and effects while not playing (edit-mode tests and preview filmstrips).
     public static bool BuildGateInEditMode;
 
     // Sound hooks: the splash names each cue; GateAudio plays the authored clips,
     // and the event lets tests / previews listen in.
-    // Cues: gate_rattle (intro start), gate_step (each forced-open jolt),
+    // Cues: gate_rattle (intro start), gate_open (the user's opening clip), gate_step (each of the film's shoves),
     // gate_crack (tap 1 and 2), gate_smash (tap 3). See docs/hapticgate-splash.md.
     public static event System.Action<string> SoundCue;
 
@@ -111,19 +91,20 @@ public class splashScene : MonoBehaviour
     public GateSim Sim { get { return sim; } }
     public GateView View { get { return view; } }
     public GateArt Art { get { return art; } }
-    public WordPose Pose { get { return pose; } }
+    public GateFilm Film { get { return film; } }
+    public Layout CurrentLayout { get { return layout; } }
+
+    // The film clock: sim time, or the end of the film once the door is smashed.
+    public float FilmTime { get { return sim == null ? 0f : (sim.smashed ? GateFilm.Length : sim.time); } }
 
     GateSim sim;
     GateArt art;
     GateView view;
+    GateFilm film;
     Transform gateRoot;
     Layout layout;
     bool haveLayout;
-    Vector3 logoBase, rootBase, gateBase;
-    Vector3 logoScaleFinal;
-    int logoOrderFinal;
-    bool orderKnown;
-    WordPose pose;
+    Vector3 logoBase, rootBase;
 
     Camera cam;
     Vector2[] wordsAuthored;
@@ -138,9 +119,11 @@ public class splashScene : MonoBehaviour
         public Vector2 viewSize;          // visible world width/height
         public Rect safeWorld;            // safe area, world units, camera-relative
         public Vector2 backdropScale;     // quad localScale (unit mesh)
+        public float filmWidth;           // world width of the film (its height is GateFilm.Aspect times that)
+        public Vector2 filmCenter;        // centre of the film, camera-relative
         public float logoScale;           // uniform localScale of the mark
-        public Vector2 logoCenter;        // FINAL centre of the wordmark (below the gate), camera-relative
-        public Vector2 gateCenter;        // centre of the gate, camera-relative
+        public Vector2 logoCenter;        // where the film's wordmark lands (the mark's spot), camera-relative
+        public Vector2 gateCenter;        // centre of the film's gate, camera-relative
         public Vector2 logoSize;          // world width/height of the mark
         public float pixelsPerUnit;       // screen pixels per world unit
         public float wordsScaleFactor;    // canvas scale factor
@@ -150,7 +133,7 @@ public class splashScene : MonoBehaviour
     // Pure: no scene, no Screen. logoNativeSize is the sprite's world size at
     // scale 1 (5.18 x 0.87 for the 518x87, 100 ppu mark).
     public static Layout Compute(float orthoSize, int screenW, int screenH, Rect safeArea,
-                                 Vector2 logoNativeSize, float fraction = LogoFraction)
+                                 Vector2 logoNativeSize, float fraction = FilmFraction)
     {
         var l = new Layout();
         if (screenW <= 0 || screenH <= 0) { screenW = 1080; screenH = 1920; safeArea = new Rect(0, 0, 1080, 1920); }
@@ -171,17 +154,22 @@ public class splashScene : MonoBehaviour
 
         l.backdropScale = new Vector2(viewW * BackdropOverscan, viewH * BackdropOverscan);
 
+        float fw = fraction * viewW;
+        fw = Mathf.Min(fw, l.safeWorld.width / FilmContentShare, SafeFill * l.safeWorld.height / GateFilm.Aspect);
+        // The mark (fallback / screen-fit anchor, its sprite box is taller than the letters) plus the
+        // worst shake must stay inside the safe area below the film's centre.
+        float nwk = Mathf.Max(logoNativeSize.x, 0.0001f), nhk = Mathf.Max(logoNativeSize.y, 0.0001f);
+        float below = -GateFilm.WordmarkCentreY + 0.5f * GateFilm.WordmarkWidth * nhk / nwk + MaxShake + 0.01f;   // + a hair: never exactly on the edge
+        fw = Mathf.Min(fw, 0.5f * l.safeWorld.height / below);
+        l.filmWidth = fw;
+        l.filmCenter = l.safeWorld.center;
+        l.gateCenter = l.filmCenter + new Vector2(0f, GateFilm.GateCentreY * fw);
+
         float nw = Mathf.Max(logoNativeSize.x, 0.0001f), nh = Mathf.Max(logoNativeSize.y, 0.0001f);
-        float scale = fraction * Mathf.Min(viewW, viewH) / nw;
-        // gate + gap + wordmark, one column, as tall as it is wide times this:
-        float column = GateHeight + GateWordGap + nh / nw;
-        scale = Mathf.Min(scale, SafeFill * l.safeWorld.width / nw, SafeFill * l.safeWorld.height / (nw * column));
+        float scale = GateFilm.WordmarkWidth * fw / nw;
         l.logoScale = scale;
         l.logoSize = new Vector2(nw * scale, nh * scale);
-        float w = l.logoSize.x, centreY = l.safeWorld.center.y;
-        float bottom = centreY - column * w * 0.5f;
-        l.logoCenter = new Vector2(l.safeWorld.center.x, bottom + l.logoSize.y * 0.5f);
-        l.gateCenter = new Vector2(l.safeWorld.center.x, centreY + column * w * 0.5f - GateHeight * w * 0.5f);
+        l.logoCenter = l.filmCenter + new Vector2(0f, GateFilm.WordmarkCentreY * fw);
 
         // Canvas pixels per world unit at the mark's current scale, relative to
         // the authored relationship, is the canvas scale factor; the mark's
@@ -210,37 +198,34 @@ public class splashScene : MonoBehaviour
     {
         var c = FindCamera();
         float size = c != null && c.orthographic ? c.orthographicSize : 5f;
-        var l = Compute(size, screenW, screenH, safeArea, NativeSize(logo), logoFraction);
+        var l = Compute(size, screenW, screenH, safeArea, NativeSize(logo), filmFraction);
         Vector3 camPos = c != null ? c.transform.position : Vector3.zero;
 
         // Backdrop: centred on the camera, covering the whole view.
         transform.position = new Vector3(camPos.x, camPos.y, transform.position.z);
         SetWorldScale(transform, new Vector3(l.backdropScale.x, l.backdropScale.y, 1f));
 
+        if (Application.isPlaying || BuildGateInEditMode) EnsureGate();
+
         if (logo != null)
         {
             var t = logo.transform;
             t.position = new Vector3(camPos.x + l.logoCenter.x, camPos.y + l.logoCenter.y, t.position.z);
             SetWorldScale(t, new Vector3(l.logoScale, l.logoScale, 1f));
-            logoScaleFinal = t.localScale;
-            if (logoOrderFinal == 0 && !orderKnown) { logoOrderFinal = logo.sortingOrder; orderKnown = true; }
             logo.color = Color.white;
+            // The film carries the wordmark; the mark is the fallback without it.
+            logo.enabled = !FilmShowing;
         }
 
-        if (Application.isPlaying || BuildGateInEditMode)
+        if (gateRoot != null)
         {
-            EnsureGate();
-            if (gateRoot != null)
-            {
-                rootBase = new Vector3(camPos.x + l.gateCenter.x, camPos.y + l.gateCenter.y,
-                                       logo != null ? logo.transform.position.z - 0.15f : 0f);
-                gateRoot.position = rootBase;
-                gateRoot.localScale = Vector3.one * l.logoSize.x;
-                view.SetView(l.viewSize, l.logoSize.x);
-            }
+            rootBase = new Vector3(camPos.x + l.filmCenter.x, camPos.y + l.filmCenter.y,
+                                   logo != null ? logo.transform.position.z - 0.15f : 0f);
+            gateRoot.position = rootBase;
+            SetWorldScale(gateRoot, new Vector3(l.filmWidth, l.filmWidth, 1f));
+            if (view != null) view.SetView(l.viewSize, l.filmWidth);
         }
         logoBase = new Vector3(camPos.x + l.logoCenter.x, camPos.y + l.logoCenter.y, logo != null ? logo.transform.position.z : 0f);
-        gateBase = new Vector3(camPos.x + l.gateCenter.x, camPos.y + l.gateCenter.y, logoBase.z);
 
         if (words != null)
         {
@@ -266,76 +251,46 @@ public class splashScene : MonoBehaviour
         return l;
     }
 
-    // ---- the wordmark's flight --------------------------------------------
+    // True while the film is on screen (it then carries the wordmark).
+    public bool FilmShowing { get { return film != null && film.HasArt; } }
 
-    public struct WordPose
+    // The "A" / "Game" words frame the wordmark, so with the film they come in only once
+    // its wordmark has landed (fading in over WordsFadeSeconds); without the film they show at once.
+    public const float WordsFadeSeconds = 0.2f;
+    public static float WordsAlphaAt(float filmTime)
     {
-        public float scale;     // share of the final size
-        public float travel;    // 0 = in the gap, 1 = final spot (can exceed 1 slightly: the bounce is added to y)
-        public float bounce;    // upward offset in wordmark heights
-        public float alpha;     // 0..1 (neon flicker on landing)
-        public bool front;      // drawn in front of the leaves
-        public bool done;       // exactly final
+        return Mathf.Clamp01((filmTime - GateFilm.WordmarkLands) / WordsFadeSeconds);
     }
-
-    // The flight clock: sim time normally; after a smash it runs the rest of the
-    // flight (to the end of the flicker) in SmashFlySeconds.
-    public static float FlightTime(GateSim s)
+    // After a smash the words come in over the same fade, from the smash.
+    public float WordsAlpha
     {
-        if (s == null) return 0f;
-        if (!s.smashed) return s.time;
-        return Mathf.Lerp(s.smashAt, FlickerEnd, Mathf.Clamp01(s.smashTime / SmashFlySeconds));
-    }
-
-    static float Smooth(float x) { x = Mathf.Clamp01(x); return x * x * (3f - 2f * x); }
-
-    public static WordPose PoseAt(float t)
-    {
-        var p = new WordPose();
-        if (t < FlyStart) { p.scale = StartScale; p.alpha = 0f; return p; }
-        float q = Mathf.Clamp01((t - FlyStart) / (FlyLand - FlyStart));
-        p.alpha = Mathf.Clamp01((t - FlyStart) / 0.10f) * (t < FlyExit ? 0.8f : 1f);
-        // grows slowly in the gap, then rushes
-        p.scale = Mathf.Lerp(StartScale, 1f, Mathf.Pow(q, 2.2f));
-        p.front = t >= FlyExit;
-        float drop = Mathf.Clamp01((t - FlyExit) / (FlyLand - FlyExit));
-        p.travel = t < FlyExit ? 0.03f * Smooth((t - FlyStart) / (FlyExit - FlyStart)) : Mathf.Lerp(0.03f, 1f, drop * drop);
-        if (t >= FlyLand)
+        get
         {
-            float u = Mathf.Clamp01((t - FlyLand) / BounceSeconds);
-            p.bounce = 0.55f * Mathf.Sin(u * Mathf.PI) * (1f - u);
-            p.scale = 1f + 0.05f * Mathf.Sin(u * Mathf.PI) * (1f - u);
-            // neon flicker-on: a few hard dips that settle
-            float f = Mathf.Clamp01((t - FlyLand) / (FlickerEnd - FlyLand));
-            if (f < 1f)
-            {
-                int k = (int)(f * 14f);
-                uint h = (uint)(k * 2654435761u) ^ 0x9E3779B9u; h ^= h >> 15; h *= 0x85ebca6bu; h ^= h >> 13;
-                float n = (h & 0xFFFF) / 65535f;
-                p.alpha = Mathf.Lerp(0.15f + 0.5f * n, 1f, f * f);
-            }
-            else p.alpha = 1f;
+            if (!FilmShowing) return 1f;
+            if (sim != null && sim.smashed) return Mathf.Clamp01(sim.smashTime / WordsFadeSeconds);
+            return WordsAlphaAt(FilmTime);
         }
-        p.done = t >= FlickerEnd;
-        if (p.done) { p.scale = 1f; p.travel = 1f; p.bounce = 0f; p.alpha = 1f; p.front = true; }
-        return p;
     }
 
-    // Place the wordmark for the current sim state. Off while not playing (edit-mode
-    // layout tests and the screen-fit rig see it at its final spot).
-    void ApplyWordmark(Vector2 shake)
+    CanvasRenderer[] wordRenderers;
+    float wordsAlphaShown = -1f;
+
+    // Through the CanvasRenderer's alpha: no graphic rebuild, no allocation per frame.
+    void ApplyWordsAlpha()
     {
-        if (logo == null) return;
-        bool animate = (Application.isPlaying || BuildGateInEditMode) && sim != null;
-        pose = animate ? PoseAt(FlightTime(sim)) : PoseAt(FlickerEnd);
-        Vector3 gateWorld = new Vector3(gateBase.x, gateBase.y, logoBase.z);
-        Vector3 p = Vector3.Lerp(gateWorld, logoBase, pose.travel);
-        p.y += pose.bounce * layout.logoSize.y;
-        var t = logo.transform;
-        t.position = p + new Vector3(shake.x, shake.y, 0f);
-        t.localScale = logoScaleFinal * pose.scale;
-        logo.color = new Color(1f, 1f, 1f, pose.alpha);
-        logo.sortingOrder = pose.front ? 4 : logoOrderFinal;
+        if (words == null) return;
+        if (wordRenderers == null || wordRenderers.Length != words.Length)
+        {
+            wordRenderers = new CanvasRenderer[words.Length];
+            for (int i = 0; i < words.Length; i++)
+                if (words[i] != null) wordRenderers[i] = words[i].GetComponent<CanvasRenderer>();
+            wordsAlphaShown = -1f;
+        }
+        float a = WordsAlpha;
+        if (a == wordsAlphaShown) return;
+        wordsAlphaShown = a;
+        for (int i = 0; i < wordRenderers.Length; i++)
+            if (wordRenderers[i] != null) wordRenderers[i].SetAlpha(a);
     }
 
     static void SetWorldScale(Transform t, Vector3 world)
@@ -360,7 +315,9 @@ public class splashScene : MonoBehaviour
         ApplyLayout(ScreenInfo.Width, ScreenInfo.Height, safe);
     }
 
-    void Awake() { EnsureSim(); }
+    // Playing: build the film at once so frame 0 is up on the first rendered frame and the rest
+    // starts streaming in before the first layout pass.
+    void Awake() { EnsureSim(); if (Application.isPlaying) EnsureGate(); }
 
     void EnsureSim()
     {
@@ -372,9 +329,10 @@ public class splashScene : MonoBehaviour
         sim.Done += Leave;
     }
 
-    // The user's gate-opening clip starts this long after the card begins, so its first big
-    // hit (1.11 s into the file) lands on the door's biggest forced step (1.22 s).
-    public const float OpenClipStart = 0.11f;
+    // The user's gate-opening clip (the film's own soundtrack) starts this long after the
+    // card begins, as in the brand film (its audio is delayed 30 ms), so the clip's first big
+    // hit (1.11 s into the file) lands on the film's first split (frame 34, 1.133 s).
+    public const float OpenClipStart = 0.03f;
     bool openStarted;
 
     static void Cue(string name)
@@ -412,6 +370,7 @@ public class splashScene : MonoBehaviour
     {
         EnsureSim();
         sim.Reset();
+        if (view != null) view.Clear();
         leaving = false;
         openStarted = false;
         loadCount = 0;
@@ -438,6 +397,7 @@ public class splashScene : MonoBehaviour
             openStarted = true;
             Cue("gate_open");
         }
+        if (film != null) film.Show(FilmTime);
         if (view != null) view.Sync(dt);
         ApplyShake();
     }
@@ -446,19 +406,21 @@ public class splashScene : MonoBehaviour
     {
         if (gateRoot != null) return;
         EnsureSim();
+        gateRoot = new GameObject("HapticGate film").transform;
+        film = new GateFilm(gateRoot, 2);
+        if (!film.Begin()) { film.Release(); film = null; }
         art = GateArt.Load();
-        if (art == null) return;
-        gateRoot = new GameObject("Industrial gate").transform;
-        view = new GateView(gateRoot, art, sim);
+        if (art != null) view = new GateView(gateRoot, art, sim);
     }
 
     // Shake the whole card (door, mark and words) like a camera shake.
     void ApplyShake()
     {
         if (!haveLayout) return;
-        Vector2 w = sim != null ? sim.shake * layout.logoSize.x : Vector2.zero;
-        ApplyWordmark(w);
+        Vector2 w = sim != null ? sim.shake * layout.filmWidth : Vector2.zero;
         if (gateRoot != null) gateRoot.position = rootBase + new Vector3(w.x, w.y, 0f);
+        if (logo != null) logo.transform.position = logoBase + new Vector3(w.x, w.y, 0f);
+        ApplyWordsAlpha();
         if (words != null && wordsAuthored != null && wordsAuthored.Length == words.Length)
         {
             Vector2 c = w * layout.pixelsPerUnit / Mathf.Max(layout.wordsScaleFactor, 0.0001f);
@@ -469,8 +431,9 @@ public class splashScene : MonoBehaviour
 
     void OnDestroy()
     {
+        if (film != null) film.Release();
         if (art != null) art.Release();
-        art = null; view = null;
+        art = null; view = null; film = null;
     }
 
     void Leave()

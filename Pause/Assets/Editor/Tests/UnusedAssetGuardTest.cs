@@ -101,6 +101,12 @@ public static class UnusedAssetGuardTest
     // and the scrollingText behaviour nothing attached.
     public static readonly string[] ReplacedAssets =
     {
+        // The splash's procedural steel door (2026-10-12): replaced by the approved gate-opening
+        // film (Resources/HapticGate/Film, GateFilm); its debris / steam effect sheets stay.
+        "Assets/Resources/HapticGate/industrial_gate_v4.png",
+        "Assets/Resources/HapticGate/gate_cracks_1.png",
+        "Assets/Resources/HapticGate/gate_cracks_2.png",
+        "Assets/Resources/HapticGate/gate_cracks_3.png",
         "Assets/Resources/prefabs/explosion_0.prefab",
         "Assets/Art/Animation/explosion_0.controller",
         "Assets/Art/Animation/explotion2.anim",

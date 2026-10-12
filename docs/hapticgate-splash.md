@@ -1,38 +1,44 @@
 # HapticGate splash (first scene, `spashS7`)
 
-The title card: a steel two-leaf gate that is forced open, with the HapticGate
-mark behind it. It is violent on purpose, and three taps smash it.
+The title card plays the approved HapticGate gate-opening film (brand job
+`anim_v2`, `~/Developer/HapticGate-brand/anim_v2/`): the closed steel H-gate in
+charcoal smoke is forced open, smoke, steam and warm haze spill out, and the red
+"HapticGate" wordmark flies out of the door and lands at the bottom. A card shake
+and the user's gate-opening sound ride on top; three taps smash it.
 
 ## Behaviour
 
 Code: `Scripts/UI/splashScene.cs` (scene component, layout, input, scene change),
-`GateSim.cs` (pure simulation, fake-clock friendly), `GateView.cs` (renderers and
-particle pools), `GateArt.cs` (art slots and procedural stand-ins),
-`SplashInput.cs` (press reading). All time is **unscaled** (`Time.unscaledDeltaTime`,
-clamped to 0.1 s per frame), so a leftover `timeScale = 0` cannot stall the card.
+`GateFilm.cs` (the film: frame table, progressive loading, one SpriteRenderer),
+`GateSim.cs` (pure simulation: clock, shake, taps; fake-clock friendly),
+`GateView.cs` (tap / smash effects over the film: particle pools, flash),
+`GateArt.cs` (the effect sprite sheets), `SplashInput.cs` (press reading). All
+time is **unscaled** (`Time.unscaledDeltaTime`, clamped to 0.1 s per frame), so a
+leftover `timeScale = 0` cannot stall the card.
 
-**Intro** (`holdSeconds`, 2.3 s in the scene):
+**Intro** (`GateSim.IntroSeconds` = film 3.33 s + 0.67 s hold = **4.0 s**):
 
-1. 0 - 0.7 s: both leaves rattle on the latch. Amplitude rises from sub-pixel to
-   a hard rattle (hash jitter on x, y and rotation, re-rolled about 50 Hz, plus a
-   faster sine). Steam jets from the leaf grilles with pressure building.
-2. 0.7 - 1.9 s: the leaves are forced apart in seven jerky steps (snap, recoil,
-   hold, rattle, snap). Each step is an *impact*: card shake kick, flash, glow at
-   the seam, sparks, debris chunks and a steam gust. The last step overshoots and
-   shudders to a stop. The logo is revealed behind.
-3. Then the card leaves to `startS4`.
+| card time | film frame | what shows |
+|---|---|---|
+| 0 - 1.13 s | 0 (still) | closed gate in smoke; the card rattles harder and harder (shake), the opening clip's sweep builds (starts at 0.03 s) |
+| 1.133 s | 34 | first split, lined up with the clip's big hit (1.11 s into the file + 0.03 s); card kick |
+| 1.13 - 1.90 s | 34 - 57 | leaves forced apart (pause at 43-44, second shove at 45 = second kick), smoke and steam |
+| 2.20 s | 66 | the wordmark appears tiny, deep in the gap |
+| 2.57 s | 77 | it rushes out of the door, growing, heading down |
+| 3.30 s | 99 | landed (bounce + neon flicker done); the "A" / "Game" words fade in over 0.2 s |
+| 3.33 - 4.0 s | 100 (held) | final frame; at 4.0 s the card leaves to `startS4` (the clip fades over 0.8 s) |
 
-The "camera shake" moves the whole card (mark, door and the A / Game words) rather
-than the camera, so the black backdrop always covers the screen.
+The "camera shake" moves the whole card (film, mark and words) rather than the
+camera, so the black backdrop always covers the screen.
 
-**Tapping** (the intro keeps playing - it is never frozen, so a single tap and
+**Tapping** (the film keeps playing - it is never frozen, so a single tap and
 walking away still ends in the normal finish):
 
 | press | effect |
 |-------|--------|
-| 1 | crack overlay 1, sharp shake, a few sparks and chips |
-| 2 | crack overlay 2, leaves bulge, steam leaks from the cracks, bigger shake |
-| 3 | crack overlay 3 for a beat, then the SMASH: big debris burst, flash, hard shake, leaves vanish; next scene loads 0.45 s later |
+| 1 | sharp kick, sparks + chips + glow off a leaf, small flash |
+| 2 | bigger kick, more sparks, steam leaks from the leaves |
+| 3 | SMASH: white flash, 40 chunks + 64 sparks + steam burst, hard shake, the film jumps to its final frame (gate open, wordmark landed); next scene 0.45 s later |
 
 * Presses are discrete: only the frame a mouse button / finger goes down counts.
   Hold-repeat does nothing; several fingers (and the mouse that touch emulates) in
@@ -44,46 +50,64 @@ walking away still ends in the normal finish):
 * If the intro runs out before the taps complete, the card just proceeds normally.
 * Back / Escape leaves at once, as before (a `BackNavigator` layer; only `BackNavigatorRunner` reads Escape). Any other key counts as a press.
 
-## Art slots
+## The film's frames
 
-All installed (Codex, branch `art/gate-steampunk`, commit 0313a15c; source and
-`verify.py` stay in `art/gate-steampunk` under `Art/HapticGate~/`). PNGs in
-`Assets/Resources/HapticGate/`, loaded by exact slot name in `GateArt.cs`. If any
-slot is missing, `GateArt.Load` returns null and the card shows just the mark.
+`Assets/Resources/HapticGate/Film/gate_film_NNN.jpg`, NNN = film frame at 30 fps,
+one file per **kept** frame (`GateFilm.Kept`, 60 files, ~300 KB each, 18 MB):
+
+* source: `anim_v2/frames_portrait/frame_0000..0100.png` (1080x1920; 101..179 equal 100),
+* cropped to rows 416..1520 (1080x1104: every lit pixel of the whole film is inside),
+  scaled 0.75 to **810x828**, JPEG q95 4:4:4 (no chroma subsampling: the red neon
+  edges stay sharp),
+* frames 1..33 equal frame 0 (not stored); in 58..73 (only the tiny wordmark deep in
+  the gap moves, mean change 0.5/255) every second frame is stored; everything else
+  (the opening and the wordmark's flight) at the full 30 fps.
+* rebuild: `python3 Assets/Art/HapticGate~/build_gate_film.py [frames_dir]` (Pillow).
+
+Importer (`Editor/Importers/GateFilmImporter.cs`): Default texture, no mipmaps,
+Non-Power-of-2 None, clamp, bilinear, not readable, max 1024, desktop CompressedHQ;
+Android / iOS **ASTC 6x6** from `AndroidTextureDiet` (soft painted splash art; at
+~1.33x magnification on a 1080 px phone 6x6 is indistinguishable from 4x4 and half
+the bytes). About 300 KB of GPU memory per frame, ~18 MB if all were resident.
+
+Loading (`GateFilm`): `Begin()` loads frame 0 synchronously (one ~300 KB texture, in
+`splashScene.Awake`), then the final frame (a smash jumps to it), then the rest
+stream in with `Resources.LoadAsync` in film order, 3 in flight, up to 24 kept frames
+ahead of the playhead, during the 1.1 s the closed gate stands still. A frame that is
+not in yet never blocks: the newest loaded frame at or before it stays up. Frames
+behind the playhead are released (`Resources.UnloadAsset`) as it passes them, the
+final one stays. In edit mode (tests, previews) all frames load synchronously.
+
+`GateFilm` is self-contained (film-local units, 1 unit = film width, `Aspect` tall):
+`new GateFilm(parent, sortingOrder)`, `Begin()`, `Show(seconds)` every frame,
+`ShowEnd()`, `Release()`; statics `FrameAt`, `KeyFor`, `OpenAt`, `LeafCentreX` and the
+geometry constants (`GateCentreY`, `GateHeight`, `LeafWidth`, `LeafClosedX/OpenX`,
+`WordmarkCentreY`, `WordmarkWidth`).
+
+## Layout
+
+The film is as wide as the view (`FilmFraction` 1: its edges are soft smoke on
+black), but never so wide that its lit content (`FilmContentShare` 0.88 of its width)
+leaves the safe area, and never taller than 0.9 of the safe area; it is centred in
+the safe area. `Layout.filmWidth / filmCenter / gateCenter / logoCenter`. The mark
+sprite (`HapticGate_title_red`) sits exactly where the film's wordmark lands, at its
+width; it is hidden while the film plays and is the fallback if the film's art is
+missing (the edit-mode layout tests and the screen-fit rig measure it there).
+
+## Effect art slots
+
+PNGs in `Assets/Resources/HapticGate/`, loaded by exact slot name in `GateArt.cs`.
+If a slot is missing, `GateArt.Load` returns null and the card plays the film
+without tap effects.
 
 | Resources path | spec |
 |---|---|
-| `HapticGate/industrial_gate_v4` | 6144x4096 two-leaf door (HD, exact 4x of the old 1536x1024 v3, same layout); crop contract (fractions, resolution-independent) left x 0.055, right x 0.51, w 0.44, y 0.05..0.95 |
-| `HapticGate/gate_cracks_1` `_2` `_3` | 6144x4096 RGBA cumulative crack overlays, cut with the same leaf rects |
 | `HapticGate/gate_debris` | 1024x512, 8x4 cells of 128 px (drawn at 1.8x: the shard fills about half a cell) |
 | `HapticGate/gate_steam` | 1024x1024, 4x4 cells of 256 px: columns are growth stages (stepped with the puff's age), rows are variants |
 
-Importer settings:
-
-* Door and cracks (HD, painted art, not pixel art): texture type Default (GateArt makes its own
-  sprites), **Trilinear** filter (`GateArt.Load` sets it), **mipmaps on** (a leaf is shown at
-  roughly a third of its texture size on phones; without mips it shimmers during the shake),
-  **Non-Power-of-2: To Nearest**, max size 2048. The 6144x4096 source therefore imports as
-  **2048x1024** (about 900 texels across a leaf for ~330 px on a 1080 phone, ~600 px on a
-  tablet). Android and iOS: ASTC 6x6 (set by `AndroidTextureDiet`, which skips its
-  "NPOT means no mips" rule when NPOT scaling is on).
-* The To-Nearest import squashes the sheet vertically by 0.75, so `GateArt.YStretch(sprite)`
-  (= texture w / (1.5 x texture h)) is applied to the leaf transform's y scale in
-  `GateView.NewLeaf` / `SetLeaf`; overlays inherit it. Anything that swaps the door for a
-  different-shaped import must keep that in mind (a true 3:2 texture gives 1).
-* `gate_debris`, `gate_steam`: unchanged (Sprite, Point, no mips, uncompressed).
-
-GPU memory, measured with `Profiler.GetRuntimeMemorySizeLong` on the imported door (ASTC 6x6,
-12 mips): 2.50 MB per HD texture, 10.0 MB for the four (the old four 1536x1024 sheets were
-about 2.8 MB). Raising `maxTextureSize` to 4096 gives 4096x2048, about 10 MB per texture
-(40 MB total) for more detail on very large tablets; the crop fractions need no change.
-
-To swap art later, replace the PNGs (same names, same layout; any 3:2 size works since the crop is fractional) and keep the meta
-settings. If the crop contract changes, edit the constants at the top of
-`GateArt.cs`; vent and crack anchor points in `GateView.cs` (`LeafPoint(...)`) are
-leaf-relative (u across, v up).
-
-Art note: `industrial_gate_v4.png` is an alpha cut-out (leaf alpha bounds are the old (85,37,1451,947) x4; transparent outside and in the central gap), so no backdrop box shows against the black card.
+Both: Sprite, Point, no mips, uncompressed. The old procedural door
+(`industrial_gate_v4` 6144x4096 and `gate_cracks_1..3`) is retired (deleted,
+`UnusedAssetGuardTest` keeps it out).
 
 ## Sounds
 
@@ -99,38 +123,26 @@ the user; no beeps or coin sounds):
 ## Tests and previews
 
 * Suite: `SplashViolentGateTest` (`-executeMethod SplashViolentGateTest.Run`), in
-  `AllTests`. Fake clock via `splashScene.Step(dt)` / `GateSim.Advance(dt)`;
-  `splashScene.LoadScene` and `InputSource` are replaceable hooks. The legacy
-  `Input` class cannot be injected in a batch editor, so the real reader
-  (`SplashInput.ReadLegacy`) is only checked to be idle and the scene's `Update` is
-  driven through the same hook the real reader plugs into.
-* Existing: `SplashLayoutTest` (layout), ScreenFit's `splash` screen.
-* Full-frame captures at 1080x2520 and 1600x2560: `-executeMethod GateShotPreview.Render -shotDir <dir> -shotPrefix <name>`.
+  `AllTests`: film frame table and files (every kept frame present, < 1 MiB, 810x828,
+  import settings, ASTC 6x6), sim, film playback on the card clock, taps / smash,
+  input path, screen fit on every `FitDevice`, zero allocations per frame.
+  `SplashLayoutTest` (layout on 18 screens, film drawn at its layout, words timing),
+  `GateAudioTest` (the clip's hit lines up with the film's split), ScreenFit's `splash` screen.
+* Full-frame captures at 1080x2400, 1080x2520 and 1600x2560 (0.2 / 1 / 2 / 2.6 / 3 / 3.6 s, taps 1..3):
+  `-executeMethod GateShotPreview.Render -shotDir <dir> -shotPrefix <name>`.
 * Filmstrips: `-executeMethod HapticGatePreview.Render -previewDir <dir>` writes
   `natural.png`, `tap1.png`, `tap2.png`, `tap3.png`.
 
-## Wordmark fly-out (brand animation v2) and opening clip
+## Opening clip
 
-* The red wordmark flies out of the door (`splashScene.PoseAt`, pure and tested): from `FlyStart` (1.00 s)
-  it is a tiny, dimmed wordmark in the middle of the gap, as if far behind the gate; at `FlyExit` (1.30 s) it
-  comes out in front of the leaves, growing fast and heading down; it lands on its final spot below the gate at
-  `FlyLand` (1.70 s), bounces up a little (`BounceSeconds`), flickers on like neon and is steady from
-  `FlickerEnd` (2.08 s; the card leaves at 2.3 s). The brand film's 1.07 / 1.43 / 2.17 s after the first split
-  are squeezed to fit the 2.3 s card. After a smash the same flight runs out in `SmashFlySeconds` (0.3 s), so
-  skipping is as quick as before (`SmashLeaveDelay` 0.45 s is unchanged).
-* Layout: gate + wordmark are one column centred in the safe area (`GateHeight` 0.68 gate-widths, `GateWordGap`
-  0.12); `Layout.gateCenter` / `Layout.logoCenter` (the wordmark's FINAL centre). Edit-mode layout tests and the
-  screen-fit rig see the wordmark at its final spot (the flight only runs while playing / `BuildGateInEditMode`).
-* The gap shows dark interior with warm haze (`GateView` "Gap haze"), no centre beam.
+* The user's `gate_open.wav` (Audio/Resources/Audio/GateOpen, 5.6 s stereo 48 kHz, Vorbis q0.65; byte-identical to
+  the brand film's soundtrack `HapticGate-brand/audio/neon_latch_opening.wav`) replaces the natural-run rattle and
+  the step cues (`GateAudio.OpenReplaces`). Its first big hit is 1.11 s into the file; `splashScene.OpenClipStart`
+  = 0.03 s (the film's own audio delay) puts it on the film's first split (1.133 s). Tap cracks and the smash are
+  unchanged; a smash fades the clip out in 0.1 s (Back too), a natural finish (4.0 s) over 0.8 s; the card never
+  waits for it, and if the three taps are queued before 0.03 s it never starts. Mute (`SoundSettings`) is honoured.
 * The Credits head their roll with the animated gate-opening logo (`GateOpenPlayer` + `GateOpenFrames`, frames
   `Art/Resources/HapticGate/GateOpen/gate_open_00..68.png`, 512 px RGBA, 15 fps, 4.6 s, then holds the last
   frame). The frames are a transparent re-render of `HapticGate-brand/final` (same `build_final.py` timing and
   particles, every 2nd frame up to the final hold). The closed-gate lockup (`hapticgate_lockup.png`,
   `HapticGateMark.Lockup`) is only the fallback when those frames are missing.
-* The user's `gate_open.wav` (Audio/Resources/Audio/GateOpen, 5.6 s stereo 48 kHz, Vorbis q0.65, 141 KB
-  imported) replaces the natural-run rattle and the seven step shrieks (`GateAudio.OpenReplaces`). Its first
-  big hit is 1.11 s into the file (the broadband sweep ends and the latch lets go; found with astats/spectrogram);
-  `splashScene.OpenClipStart` = 0.11 s lines that with the door's biggest forced step at 1.22 s. The loudest
-  peak (5.0-5.1 s, the closing swell) cannot line up with a 2.3 s card. Tap cracks and the smash are unchanged;
-  a smash fades the clip out in 0.1 s (Back too), a natural finish over 0.8 s; the card never waits for it, and
-  if the three taps are queued before 0.11 s it never starts. Mute (`SoundSettings`) is honoured. Tests: GateAudioTest.

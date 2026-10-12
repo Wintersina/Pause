@@ -24,12 +24,12 @@ public static class GateAudio
     public static float StepJitter = .25f;     // step volume x (1 - up to this)
 
     // The user's own gate-opening clip (5.6 s, Audio/Resources/Audio/GateOpen/gate_open.wav,
-    // Vorbis q0.65, stereo). It REPLACES the natural-run rattle and the seven step shrieks
-    // (they would pile into mush under it); the tap cracks and the smash stay. Its first big
-    // hit (broadband sweep ends, latch lets go) is 1.11 s into the file, and splashScene
-    // starts it OpenClipStart after the card begins so that hit lands on the door's biggest
-    // forced step (1.22 s). A smash stops it in OpenSmashFade; leaving naturally fades it
-    // over OpenLeaveFade (its second swell and thump at 4.5-5.2 s never reach the title).
+    // Vorbis q0.65, stereo; the same file is the brand film's soundtrack). It REPLACES the
+    // natural-run rattle and the step shrieks (they would pile into mush under it); the tap
+    // cracks and the smash stay. Its first big hit (broadband sweep ends, latch lets go) is
+    // 1.11 s into the file, and splashScene starts it OpenClipStart (0.03 s, as in the film)
+    // after the card begins so that hit lands on the film's first split (1.133 s). A smash
+    // stops it in OpenSmashFade; leaving naturally (4.0 s) fades it over OpenLeaveFade.
     public const string OpenResource = "Audio/GateOpen/gate_open";
     public const float OpenGain = .9f;
     public const float OpenSmashFade = .1f;

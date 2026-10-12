@@ -691,14 +691,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 47079772a8f0c13488f5c9c6cce35078, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  holdSeconds: 2.3
+  holdSeconds: 4
   skipLockout: 0.15
   logo: {fileID: 175737379}
   wordsScaler: {fileID: 405873919}
   words:
   - {fileID: 1792764093}
   - {fileID: 838844052}
-  logoFraction: 0.64
+  filmFraction: 1
 --- !u!1 &1471770517
 GameObject:
   m_ObjectHideFlags: 0

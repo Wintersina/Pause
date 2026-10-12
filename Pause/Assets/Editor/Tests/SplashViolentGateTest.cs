@@ -6,9 +6,10 @@ using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 
-// The violent HapticGate intro and its tap-to-smash skip: simulation (fake
-// clock), the scene wiring (one scene load, queued taps, input path), screen
-// fit on every device, and per-frame allocations.
+// The HapticGate intro (the approved gate film + card shake) and its
+// tap-to-smash skip: the film's frame table and art, simulation (fake clock),
+// the scene wiring (film playback, one scene load, queued taps, input path),
+// screen fit on every device, and per-frame allocations.
 public static class SplashViolentGateTest
 {
     static int fails;
@@ -33,6 +34,7 @@ public static class SplashViolentGateTest
         float scaleWas = Time.timeScale;
         try
         {
+            FilmTable();
             PureSim();
             SceneBehaviour();
             InputPath();
@@ -56,49 +58,102 @@ public static class SplashViolentGateTest
 
     static float Rms(GateSim sim, float from, float to)
     {
-        // run a fresh sim to `from`, then average |shake| and leaf jitter until `to`
+        // run a fresh sim to `from`, then average |shake| until `to`
         var s = new GateSim();
         while (s.time < from) s.Advance(Dt);
         double sum = 0; int n = 0;
         while (s.time < to)
         {
             s.Advance(Dt);
-            sum += s.leftJitter.sqrMagnitude + s.shake.sqrMagnitude * 4f; n++;
+            sum += s.shake.sqrMagnitude; n++;
         }
         return Mathf.Sqrt((float)(sum / Mathf.Max(1, n)));
     }
 
+    // ---- the film's frame table ----------------------------------------------
+
+    static void FilmTable()
+    {
+        Check("film timing: 30 fps, final frame 100 at 3.33 s, split 1.133 s, wordmark lands 3.30 s",
+              GateFilm.Fps == 30f && GateFilm.LastFrame == 100 && Mathf.Abs(GateFilm.Length - 3.333f) < 0.002f
+              && Mathf.Abs(GateFilm.FirstSplit - 1.1333f) < 0.001f && Mathf.Abs(GateFilm.WordmarkLands - 3.3f) < 0.001f);
+        bool asc = GateFilm.Kept[0] == 0 && GateFilm.Kept[GateFilm.Kept.Length - 1] == GateFilm.LastFrame;
+        for (int i = 1; i < GateFilm.Kept.Length; i++) asc &= GateFilm.Kept[i] > GateFilm.Kept[i - 1] && (GateFilm.Kept[i] - GateFilm.Kept[i - 1] <= 2 || GateFilm.Kept[i] == 34);
+        Check("kept frames ascend from 0 to 100, no gap over 2 frames after the split (" + GateFilm.Kept.Length + " frames)", asc && GateFilm.Kept.Length == 60);
+        bool keyOk = true;
+        for (int f = 0; f <= GateFilm.LastFrame; f++)
+        {
+            int k = GateFilm.KeyFor(f);
+            keyOk &= GateFilm.Kept[k] <= f && (k == GateFilm.Kept.Length - 1 || GateFilm.Kept[k + 1] > f);
+        }
+        Check("every film frame maps to the newest stored frame at or before it", keyOk && GateFilm.KeyFor(500) == GateFilm.Kept.Length - 1);
+        Check("frame at time: 0.2 s -> 6, 1 s -> 30, 2 s -> 60, 3 s -> 90, 9 s -> 100, -1 s -> 0",
+              GateFilm.FrameAt(0.2f) == 6 && GateFilm.FrameAt(1f) == 30 && GateFilm.FrameAt(2f) == 60 && GateFilm.FrameAt(3f) == 90
+              && GateFilm.FrameAt(9f) == 100 && GateFilm.FrameAt(-1f) == 0);
+        Check("leaves shut until the split, fully open once settled",
+              GateFilm.OpenAt(1.1f) == 0f && GateFilm.OpenAt(GateFilm.OpenSettled) == 1f && GateFilm.OpenAt(1.5f) > 0.2f);
+
+        // the files: every kept frame present, nothing extra, each under 1 MiB, 810x828, import settings
+        int present = 0, small = 0, sized = 0, imported = 0;
+        foreach (int f in GateFilm.Kept)
+        {
+            string path = "Assets/Resources/" + GateFilm.PathFor(f) + ".jpg";
+            if (File.Exists(path)) present++;
+            if (File.Exists(path) && new FileInfo(path).Length < 1024 * 1024) small++;
+            var t = Resources.Load<Texture2D>(GateFilm.PathFor(f));
+            if (t != null && t.width == GateFilm.Width && t.height == GateFilm.Height) sized++;
+            if (FilmImporterOk(path)) imported++;
+        }
+        int n = GateFilm.Kept.Length;
+        Check("all " + n + " kept film frames exist (" + present + ")", present == n);
+        Check("each film frame file is under 1 MiB (" + small + "/" + n + ")", small == n);
+        Check("each film frame imports at 810x828 (" + sized + "/" + n + ")", sized == n);
+        Check("film import: no mips, no NPOT scaling, bilinear clamp, not readable, ASTC 6x6 on Android and iOS (" + imported + "/" + n + ")", imported == n);
+        int files = Directory.GetFiles("Assets/Resources/HapticGate/Film", "*.jpg").Length;
+        Check("no stray film frames in the folder (" + files + ")", files == n);
+        Check("the retired procedural door art is gone",
+              !File.Exists("Assets/Resources/HapticGate/industrial_gate_v4.png") && !File.Exists("Assets/Resources/HapticGate/gate_cracks_1.png"));
+    }
+
+    static bool FilmImporterOk(string path)
+    {
+        var imp = AssetImporter.GetAtPath(path) as TextureImporter;
+        if (imp == null || imp.mipmapEnabled || imp.npotScale != TextureImporterNPOTScale.None || imp.isReadable
+            || imp.filterMode != FilterMode.Bilinear || imp.wrapMode != TextureWrapMode.Clamp || imp.maxTextureSize < 1024) return false;
+        foreach (var plat in new[] { "Android", "iOS" })
+        {
+            var ps = imp.GetPlatformTextureSettings(plat);
+            if (!ps.overridden || ps.format != TextureImporterFormat.ASTC_6x6) return false;
+        }
+        return true;
+    }
+
+    // ---- pure simulation -------------------------------------------------
+
     static void PureSim()
     {
-        float a = Rms(null, 0.02f, 0.22f), b = Rms(null, 0.25f, 0.45f), c = Rms(null, 0.5f, 0.69f);
-        Check("rattle amplitude rises through the build (" + a.ToString("F4") + " < " + b.ToString("F4") + " < " + c.ToString("F4") + ")",
+        float a = Rms(null, 0.02f, 0.3f), b = Rms(null, 0.4f, 0.7f), c = Rms(null, 0.8f, 1.1f);
+        Check("rattle shake rises while the shut gate strains (" + a.ToString("F4") + " < " + b.ToString("F4") + " < " + c.ToString("F4") + ")",
               a < b && b < c);
 
         var sim = new GateSim();
-        int impacts = 0, jumps = 0, flat = 0, dones = 0, maxStepFrames = 0;
-        sim.Impact += (s, i) => { if (i >= 0) impacts++; };
+        int impacts = 0, dones = 0;
+        var impactTimes = new List<float>();
+        sim.Impact += (s, i) => { if (i >= 0) { impacts++; impactTimes.Add(sim.time); } };
         sim.Done += () => dones++;
-        float prev = 0f, peak = 0f; bool jitterXY = false, jitterRot = false;
-        int steady = 0;
-        while (!sim.finished)
+        float openAtSplit = -1f;
+        int guard = 0;
+        while (!sim.finished && guard++ < 1000)
         {
             sim.Advance(Dt);
-            float d = sim.open - prev;
-            if (d > 0.03f) jumps++;
-            if (sim.time > 0.75f && sim.time < 1.7f && Mathf.Abs(d) < 0.004f) flat++;
-            prev = sim.open; peak = Mathf.Max(peak, sim.open);
-            if (Mathf.Abs(sim.leftJitter.x) > 0f && Mathf.Abs(sim.leftJitter.y) > 0f) jitterXY = true;
-            if (Mathf.Abs(sim.leftRot) > 0.001f) jitterRot = true;
-            steady++;
-            if (steady > 1000) break;
+            if (openAtSplit < 0f && sim.time >= GateFilm.FirstSplit - 0.02f) openAtSplit = sim.open;
         }
         Check("intro ends by itself at about " + sim.naturalSeconds + " s (" + sim.time.ToString("F2") + ")", sim.finished && !sim.smashFinish && Mathf.Abs(sim.time - sim.naturalSeconds) < 0.05f);
-        Check("doors end fully open (" + sim.open.ToString("F3") + ")", sim.open > 0.97f && peak < 1.12f);
-        Check("doors are forced open in jerky steps (" + jumps + " jolts, " + flat + " held frames)", jumps >= 5 && flat >= 20);
-        Check("each forced step fires an impact (" + impacts + "/" + GateSim.StepCount + ")", impacts == GateSim.StepCount);
-        Check("leaves jitter on x, y and rotation", jitterXY && jitterRot);
+        Check("intro = the 3.33 s film + a short hold (3.8-4.2 s)", sim.time >= 3.8f && sim.time <= 4.2f && GateSim.IntroSeconds > GateFilm.WordmarkLands + 0.3f);
+        Check("leaves shut until the film's split, open at the end (" + openAtSplit.ToString("F2") + " -> " + sim.open.ToString("F2") + ")", openAtSplit == 0f && sim.open > 0.99f);
+        Check("each of the film's shoves fires an impact on time (" + impacts + "/" + GateSim.StepCount + ")",
+              impacts == GateSim.StepCount && impactTimes.Count > 0 && Mathf.Abs(impactTimes[0] - GateFilm.FirstSplit) < Dt + 0.001f);
         Check("Done fires exactly once on natural finish", dones == 1);
-        Check("intro length is roughly as before, slightly longer (2.0-2.6 s)", sim.time >= 2.0f && sim.time <= 2.6f);
 
         // taps -> crack1, crack2, smash
         sim = new GateSim();
@@ -182,12 +237,28 @@ public static class SplashViolentGateTest
     static void SceneBehaviour()
     {
         var card = OpenCard(out _, out var cues);
-        Check("splash card built the door (view present)", card.View != null && card.Sim != null);
+        Check("splash card built the film and the effects (film + view present, art loaded)",
+              card.Film != null && card.Film.HasArt && card.View != null && card.Sim != null && card.Film.LoadedCount == GateFilm.Kept.Length);
+        Check("the film replaces the mark (hidden while it plays)", card.FilmShowing && !card.logo.enabled);
+
+        // film playback on the card clock (0.2 / 1 / 2 / 3 s, then the held final frame)
+        float[] at0 = { 0.2f, 1f, 2f, 3f, 3.6f };
+        int[] want = { 0, 0, 60, 90, 100 };
+        var got = new List<int>();
+        int ai = 0;
+        for (int i = 0; i < 400 && ai < at0.Length; i++)
+        {
+            card.Step(Dt);
+            if (card.Sim.time >= at0[ai] - 0.0001f) { got.Add(card.Film.ShownFrame); ai++; }
+        }
+        Check("film frames on the card clock 0.2/1/2/3/3.6 s -> " + string.Join(",", got),
+              got.Count == 5 && got[0] == want[0] && got[1] == want[1] && got[2] == want[2] && got[3] == want[3] && got[4] == want[4]);
+        lastCount[0] = 0; card.Restart(); cues.Clear();
 
         // natural run
         Time.timeScale = 0f;
         for (int i = 0; i < 400 && lastCount[0] == 0; i++) card.Step(Dt);
-        Check("timeScale 0: the card still advances and finishes (unscaled step)", lastCount[0] == 1 && card.Sim.time > 2f);
+        Check("timeScale 0: the card still advances and finishes (unscaled step)", lastCount[0] == 1 && card.Sim.time > 3.9f);
         Check("timeScale is restored to 1 when the card leaves", Time.timeScale == 1f);
         for (int i = 0; i < 60; i++) card.Step(Dt);
         Check("natural finish loads the next scene exactly once (" + lastCount[0] + ")", lastCount[0] == 1);
@@ -238,34 +309,23 @@ public static class SplashViolentGateTest
         for (int i = 0; i < 100; i++) card.Step(Dt);
         Check("natural finish with an unfinished tap sequence proceeds once", lastCount[0] == 1 && !card.Sim.smashed);
 
-        // door visuals respond
+        // effects respond to the taps; the smash jumps the film to its final frame under a white flash
         lastCount[0] = 0; card.Restart();
         for (int i = 0; i < 30; i++) card.Step(Dt);
-        card.Tap(); for (int i = 0; i < 6; i++) card.Step(Dt);
-        bool crack1 = CrackShown(card, 0);
+        int before = card.View.ActiveParticles;
+        card.Tap(); for (int i = 0; i < 3; i++) card.Step(Dt);
+        int after1 = card.View.ActiveParticles;
         card.Tap(); for (int i = 0; i < 12; i++) card.Step(Dt);
-        bool crack2 = CrackShown(card, 1);
-        Check("tap 1 shows crack overlay 1, tap 2 shows overlay 2 (and bulges the leaves)", crack1 && crack2 && card.Sim.bulge > 0f);
+        Check("tap 1 throws sparks and chips off a leaf (" + before + " -> " + after1 + "), tap 2 more and steam leaks",
+              before == 0 && after1 > 0 && card.Sim.crackStage == 2 && card.View.ActiveParticles > 0);
+        Check("... the film keeps playing under the taps (frame " + card.Film.ShownFrame + ")", card.Film.ShownFrame == 0 && card.Sim.time < 1f);
         card.Tap(); while (!card.Sim.smashed) card.Step(Dt);
-        for (int i = 0; i < 6; i++) card.Step(Dt);
-        var leaf = card.View.leftLeaf.GetComponent<SpriteRenderer>();
-        Check("smash hides the door leaves", !leaf.enabled);
+        card.Step(Dt);
+        Check("smash: film jumps to the final frame (gate open, wordmark landed) under a bright flash (" + card.View.FlashAlpha.ToString("F2") + ")",
+              card.Film.ShownFrame == GateFilm.LastFrame && card.View.FlashAlpha > 0.8f && card.View.ActiveParticles > 40);
 
         splashScene.SoundCue -= cues.Add;
         Time.timeScale = 1f;
-    }
-
-    static bool CrackShown(splashScene card, int idx)
-    {
-        var leaf = card.View.leftLeaf;
-        var overlays = leaf.GetComponentsInChildren<SpriteRenderer>();
-        int on = 0; bool right = false;
-        for (int i = 0; i < overlays.Length; i++)
-        {
-            if (overlays[i].transform == leaf) continue;
-            if (overlays[i].enabled) { on++; if (overlays[i].gameObject.name.EndsWith((idx + 1).ToString())) right = true; }
-        }
-        return on == 1 && right;
     }
 
     // ---- input path ----------------------------------------------------------
@@ -307,87 +367,68 @@ public static class SplashViolentGateTest
 
     static void SlotsAndFallbacks()
     {
-        Check("slot names: " + GateArt.DoorSlot + ", " + GateArt.CrackSlotPrefix + "1..3, " + GateArt.DebrisSlot + ", " + GateArt.SteamSlot,
-              GateArt.DoorSlot == "HapticGate/industrial_gate_v4" && GateArt.CrackSlotPrefix == "HapticGate/gate_cracks_"
-              && GateArt.DebrisSlot == "HapticGate/gate_debris" && GateArt.SteamSlot == "HapticGate/gate_steam");
-        var door = Resources.Load<Texture2D>(GateArt.DoorSlot);
-        Check("door v4 imports as a power-of-two texture (6144x4096 source, scaled to nearest, max 2048)", door != null && door.width >= 2048 && door.width <= 2048 && Mathf.IsPowerOfTwo(door.width) && Mathf.IsPowerOfTwo(door.height));
-        for (int i = 1; i <= 3; i++)
-        {
-            var c = Resources.Load<Texture2D>(GateArt.CrackSlotPrefix + i);
-            Check("gate_cracks_" + i + " is a power-of-two texture (leaf crops are fractions, so any size aligns)", c != null && Mathf.IsPowerOfTwo(c.width) && Mathf.IsPowerOfTwo(c.height));
-        }
+        Check("effect slot names: " + GateArt.DebrisSlot + ", " + GateArt.SteamSlot,
+              GateArt.DebrisSlot == "HapticGate/gate_debris" && GateArt.SteamSlot == "HapticGate/gate_steam");
         var deb = Resources.Load<Texture2D>(GateArt.DebrisSlot);
         var st = Resources.Load<Texture2D>(GateArt.SteamSlot);
         Check("gate_debris is 1024x512 (8x4 of 128)", deb != null && deb.width == 1024 && deb.height == 512);
         Check("gate_steam is 1024x1024 (4x4 of 256)", st != null && st.width == 1024 && st.height == 1024);
         Check("importers: debris/steam point, no mips, uncompressed", ImporterOk(GateArt.DebrisSlot) && ImporterOk(GateArt.SteamSlot));
-        Check("importers: HD door/cracks trilinear + mipmaps + NPOT scaled, max 2048, ASTC on Android and iOS",
-              HdImporterOk(GateArt.DoorSlot) && HdImporterOk(GateArt.CrackSlotPrefix + "1") && HdImporterOk(GateArt.CrackSlotPrefix + "2")
-              && HdImporterOk(GateArt.CrackSlotPrefix + "3"));
-        Check("the old industrial_gate / steam fallbacks are gone from the code",
-              !File.ReadAllText(Path.Combine(Application.dataPath, "Scripts/UI/GateArt.cs")).Contains("HapticGate/steam\""));
+        string artSrc = File.ReadAllText(Path.Combine(Application.dataPath, "Scripts/UI/GateArt.cs"));
+        Check("the old procedural door / crack / steam fallbacks are gone from the code",
+              !artSrc.Contains("HapticGate/steam\"") && !artSrc.Contains("industrial_gate") && !artSrc.Contains("gate_cracks_\""));
 
         var art = GateArt.Load();
         Check("art loads", art != null);
         if (art == null) return;
         Check("32 debris cells (8x4) of 128 px", art.debris.Length == 32 && Mathf.Approximately(art.debris[0].rect.width, 128f));
         Check("16 steam cells (4x4) of 256 px", art.steam.Length == 16 && Mathf.Approximately(art.steam[0].rect.width, 256f));
-        bool cracksOk = true;
-        for (int i = 0; i < 3; i++)
-            cracksOk &= art.leftCracks[i] != null && art.rightCracks[i] != null
-                        && art.leftCracks[i].rect == art.leftLeaf.rect && art.rightCracks[i].rect == art.rightLeaf.rect;
-        Check("crack overlays are cut with exactly the leaf rects (aligned), 3 stages, both leaves", cracksOk);
-        Check("leaf crop contract: left x 0.055, right x 0.51, w 0.44",
-              Mathf.Abs(art.leftLeaf.rect.x - door.width * 0.055f) < 0.5f && Mathf.Abs(art.rightLeaf.rect.x - door.width * 0.51f) < 0.5f
-              && Mathf.Abs(art.leftLeaf.rect.width - door.width * 0.44f) < 0.5f);
-        // every v2 leaf must be inside its crop (nothing of the door cut off): the dark margin at the crop edges
-        Check("door art inside the crops (edge columns are background)", EdgesAreBackground(door));
-        Check("door v4 is a cut-out: the sheet's corners and top-centre are transparent (no navy backdrop box)", GateCutOutCorners);
-        Check("leaf proportions restored after the power-of-two import (h/w 1.364 as painted)",
-              Mathf.Abs(art.leftLeaf.bounds.size.y / art.leftLeaf.bounds.size.x * GateArt.YStretch(art.leftLeaf) - 0.9f * 4096f / (0.44f * 6144f)) < 0.01f);
         art.Release();
+
+        // The film's first frame is a closed gate on black with smoke, the last has the wordmark at the bottom.
+        var f0 = Resources.Load<Texture2D>(GateFilm.PathFor(0));
+        var f100 = Resources.Load<Texture2D>(GateFilm.PathFor(GateFilm.LastFrame));
+        if (f0 == null || f100 == null) { Check("first / last film frames load", false); return; }
+        var p0 = Pixels(f0); var p100 = Pixels(f100);
+        int w = f0.width, h = f0.height;
+        Func<Color[], int, int, Color> at = (px, x, y) => px[y * w + x];   // y up (texture rows)
+        bool cornersBlack = at(p0, 2, 2).maxColorComponent < 0.05f && at(p0, w - 3, h - 3).maxColorComponent < 0.05f;
+        // wordmark band: film y 0.80..0.98 from the top -> rows near the bottom; red there only in the final frame
+        float red0 = RedShare(p0, w, h, 0.03f, 0.18f), red100 = RedShare(p100, w, h, 0.03f, 0.18f);
+        Check("film frame 0: black corners, no wordmark yet (red " + red0.ToString("F3") + "); final frame: red wordmark at the bottom (" + red100.ToString("F3") + ")",
+              cornersBlack && red0 < 0.005f && red100 > 0.03f);
+    }
+
+    static Color[] Pixels(Texture2D t)
+    {
+        var rt = RenderTexture.GetTemporary(t.width, t.height, 0);
+        Graphics.Blit(t, rt);
+        var prev = RenderTexture.active; RenderTexture.active = rt;
+        var copy = new Texture2D(t.width, t.height, TextureFormat.RGBA32, false);
+        copy.ReadPixels(new Rect(0, 0, t.width, t.height), 0, 0);
+        RenderTexture.active = prev; RenderTexture.ReleaseTemporary(rt);
+        var px = copy.GetPixels();
+        UnityEngine.Object.DestroyImmediate(copy);
+        return px;
+    }
+
+    // share of strongly red pixels in the rows between y0 and y1 (fractions of the height, from the bottom)
+    static float RedShare(Color[] px, int w, int h, float y0, float y1)
+    {
+        int n = 0, red = 0;
+        for (int y = (int)(y0 * h); y < (int)(y1 * h); y++)
+            for (int x = 0; x < w; x += 2)
+            {
+                var c = px[y * w + x]; n++;
+                if (c.r > 0.75f && c.g < 0.45f && c.b < 0.45f) red++;
+            }
+        return red / (float)Mathf.Max(1, n);
     }
 
     static bool ImporterOk(string slot)
     {
         var imp = AssetImporter.GetAtPath("Assets/Resources/" + slot + ".png") as TextureImporter;
         return imp != null && imp.filterMode == FilterMode.Point && !imp.mipmapEnabled && imp.textureCompression == TextureImporterCompression.Uncompressed;
-    }
-
-    static bool HdImporterOk(string slot)
-    {
-        var imp = AssetImporter.GetAtPath("Assets/Resources/" + slot + ".png") as TextureImporter;
-        if (imp == null || imp.filterMode == FilterMode.Point || !imp.mipmapEnabled || imp.maxTextureSize > 2048 || imp.npotScale == TextureImporterNPOTScale.None) return false;
-        foreach (var plat in new[] { "Android", "iOS" })
-        {
-            var ps = imp.GetPlatformTextureSettings(plat);
-            if (!ps.overridden || ps.maxTextureSize > 2048 || ps.format < TextureImporterFormat.ASTC_4x4 || ps.format > TextureImporterFormat.ASTC_8x8) return false;
-        }
-        return true;
-    }
-
-    // the leaf crops' outer columns must be the dark backdrop, i.e. the door isn't cut by the crop
-    static bool GateCutOutCorners;
-    static bool EdgesAreBackground(Texture2D door)
-    {
-        var rt = RenderTexture.GetTemporary(door.width, door.height, 0);
-        Graphics.Blit(door, rt);
-        var prev = RenderTexture.active; RenderTexture.active = rt;
-        var copy = new Texture2D(door.width, door.height, TextureFormat.RGBA32, false);
-        copy.ReadPixels(new Rect(0, 0, door.width, door.height), 0, 0);
-        RenderTexture.active = prev; RenderTexture.ReleaseTemporary(rt);
-        GateCutOutCorners = copy.GetPixel(0, 0).a < .01f && copy.GetPixel(door.width - 1, door.height - 1).a < .01f && copy.GetPixel(door.width / 2, door.height - 1).a < .01f;
-        float[] xs = { door.width * 0.055f + 2, door.width * 0.495f - 3, door.width * 0.51f + 2, door.width * 0.95f - 3 };
-        bool ok = true;
-        foreach (float x in xs)
-            for (int y = door.height * 60 / 1024; y < door.height * 960 / 1024; y += door.height * 30 / 1024)
-            {
-                var c = copy.GetPixel((int)x, y);
-                if (c.a > 0.1f && c.r + c.g + c.b > 0.7f) ok = false;   // transparent (the cut-out) or dark
-            }
-        UnityEngine.Object.DestroyImmediate(copy);
-        return ok;
     }
 
     // ---- screen fit -------------------------------------------------------------
@@ -412,14 +453,15 @@ public static class SplashViolentGateTest
             var view = new Rect(c.x - viewW / 2f, c.y - viewH / 2f, viewW, viewH);
             var safe = new Rect(view.xMin + d.Safe.x / d.w * viewW, view.yMin + d.Safe.y / d.h * viewH,
                                 d.Safe.width / d.w * viewW, d.Safe.height / d.h * viewH);
-            var lr = card.View.leftLeaf.GetComponent<SpriteRenderer>().bounds;
-            var rr = card.View.rightLeaf.GetComponent<SpriteRenderer>().bounds;
-            var both = lr; both.Encapsulate(rr.min); both.Encapsulate(rr.max);
+            // the film's gate fully open (its widest) and the landed wordmark (the mark's spot)
+            float fw = l.filmWidth;
+            Vector2 gc = (Vector2)cam.transform.position + l.gateCenter;
+            float halfW = (GateFilm.LeafOpenX + GateFilm.LeafWidth * 0.5f) * fw, halfH = GateFilm.GateHeight * 0.5f * fw;
             const float eps = 0.002f;
-            bool doorIn = both.min.x >= safe.xMin - eps && both.max.x <= safe.xMax + eps
-                          && both.min.y >= safe.yMin - eps && both.max.y <= safe.yMax + eps;
-            // worst shake: logo must stay on screen
-            float maxShake = (0.012f + 0.045f * 1.6f) * l.logoSize.x;
+            bool doorIn = gc.x - halfW >= safe.xMin - eps && gc.x + halfW <= safe.xMax + eps
+                          && gc.y - halfH >= safe.yMin - eps && gc.y + halfH <= safe.yMax + eps;
+            // worst shake: wordmark must stay on screen
+            float maxShake = (0.005f + 0.022f * 1.6f) * fw;
             var lb = card.logo.bounds;
             bool logoIn = lb.min.x - maxShake >= view.xMin && lb.max.x + maxShake <= view.xMax
                           && lb.min.y - maxShake >= view.yMin && lb.max.y + maxShake <= view.yMax;
@@ -427,10 +469,11 @@ public static class SplashViolentGateTest
             if (!doorIn || !logoIn || !logoSafe)
             {
                 bad++;
-                Debug.Log("[GATE] fit problem on " + d.id + " door=" + doorIn + " logo=" + logoIn + " logoSafe=" + logoSafe);
+                Debug.Log("[GATE] fit problem on " + d.id + " door=" + doorIn + " logo=" + logoIn + " logoSafe=" + logoSafe
+                          + " view=" + view + " safe=" + safe + " logo=" + lb.min + ".." + lb.max + " shake=" + maxShake + " fw=" + fw);
             }
         }
-        Check("door shut state + logo (even at max shake) fit every FitDevice (" + FitDevice.All.Length + " devices)", bad == 0);
+        Check("open gate + landed wordmark (even at max shake) fit every FitDevice (" + FitDevice.All.Length + " devices)", bad == 0);
         splashScene.BuildGateInEditMode = false;
     }
 
@@ -450,11 +493,25 @@ public static class SplashViolentGateTest
             card.Tap(); card.Tap(); card.Tap();
             for (int i = 0; i < 60; i++) card.Step(Dt);
             lastCount[0] = 0; card.Restart();
-            for (int i = 0; i < 160; i++) card.Step(Dt);
+            for (int i = 0; i < 260; i++) card.Step(Dt);
         }
         lastCount[0] = 0; card.Restart();
-        long natural = TestHarness.AllocatedBytes(() => { for (int i = 0; i < 135; i++) card.Step(Dt); });   // up to the frame before the scene change
-        Check("natural intro allocates nothing per frame (" + natural + " bytes over the whole run)", natural <= 64);   // <= 0.5 B per frame: the meter itself reads a one-off ~42 B in a long editor session
+        long natural = TestHarness.AllocatedBytes(() => { for (int i = 0; i < 235; i++) card.Step(Dt); });   // up to the frame before the scene change (4.0 s)
+        // The meter itself reads a one-off ~42 B in a long editor session (sometimes twice: the opening clip's
+        // start lands inside this window), so the whole run allows that and the per-part check below is strict.
+        Check("natural intro allocates nothing per frame (" + natural + " bytes over the whole run)", natural <= 128);
+        {
+            lastCount[0] = 0; card.Restart();
+            var shake = (Action)Delegate.CreateDelegate(typeof(Action), card, "ApplyShake");
+            Action adv = () => card.Sim.Advance(Dt), show = () => card.Film.Show(card.FilmTime), sync = () => card.View.Sync(Dt);
+            long sa = 0, sb = 0, sc = 0, sd = 0;
+            for (int i = 0; i < 230; i++)
+            {
+                sa += TestHarness.AllocatedBytes(adv); sb += TestHarness.AllocatedBytes(show);
+                sc += TestHarness.AllocatedBytes(sync); sd += TestHarness.AllocatedBytes(shake);
+            }
+            Check("... per part, zero: sim " + sa + ", film " + sb + ", effects " + sc + ", shake/words " + sd, sa + sb + sc + sd == 0);
+        }   // <= 0.5 B per frame: the meter itself reads a one-off ~42 B in a long editor session
         lastCount[0] = 0; card.Restart();
         for (int i = 0; i < 24; i++) card.Step(Dt);
         long taps = TestHarness.AllocatedBytes(() =>

@@ -8,10 +8,12 @@ using UnityEngine.UI;
 
 // The HapticGate splash (spashS7) must fill the whole screen on any phone:
 // the black backdrop covers the camera's view edge to edge (the app renders
-// into the cutout, so the view is the whole panel), and the mark sits centred
-// in the safe area, uncropped, at its own proportions and a fixed share of the
-// shorter screen side. The mark's art itself is protected, so its file must be
-// byte-identical to the one this was written against.
+// into the cutout, so the view is the whole panel), the gate film is centred in
+// the safe area as wide as the view (its lit content inside the safe area), and
+// the mark (the fallback, and the screen-fit rig's anchor) sits exactly where
+// the film's wordmark lands, uncropped, at its own proportions. The mark's art
+// itself is protected, so its file must be byte-identical to the one this was
+// written against.
 //
 // Regression: CameraFit grows the orthographic size on tall screens, and the
 // backdrop was a fixed 7.02 x 11.05 quad, so on a 1080x2520 Z Flip the view
@@ -70,7 +72,7 @@ public static class SplashLayoutTest
         LogoUntouched();
         PureLayout();
         SceneLayout();
-        WordmarkLayout();
+        FilmLayout();
         PlayerSettingsGuard();
 
         Debug.Log("[SPLASH] failures: " + fails);
@@ -91,7 +93,7 @@ public static class SplashLayoutTest
         var native = new Vector2(5.18f, 0.87f);
         // The authored look survives on the authored phone: 9:16 at size 5
         // keeps scale 0.7 and an unscaled, unshifted word canvas.
-        var l = splashScene.Compute(5f, 1080, 1920, new Rect(0, 0, 1080, 1920), native, 0.7f * 5.18f / 5.625f);
+        var l = splashScene.Compute(5f, 1080, 1920, new Rect(0, 0, 1080, 1920), native, 0.7f * 5.18f / (GateFilm.WordmarkWidth * 5.625f));
         Check("authored 9:16: word canvas scale 1 (" + l.wordsScaleFactor.ToString("F3") + ")",
               Mathf.Abs(l.wordsScaleFactor - 1f) < 0.01f);
         Check("authored 9:16: logo scale 0.7", Mathf.Abs(l.logoScale - 0.7f) < 0.01f);
@@ -151,30 +153,30 @@ public static class SplashLayoutTest
             bool inside = lb.min.x >= safe.xMin - eps && lb.max.x <= safe.xMax + eps
                        && lb.min.y >= safe.yMin - eps && lb.max.y <= safe.yMax + eps;
             Check(c.name + ": logo fully inside the safe area", inside);
-            // The column (gate above, wordmark below) is centred in the safe area; the wordmark is the lower part.
-            float w = l.logoSize.x;
-            float columnTop = camXY.y + l.gateCenter.y + splashScene.GateHeight * w * 0.5f;
-            float columnMid = (columnTop + lb.min.y) * 0.5f;
-            Check(c.name + ": gate + wordmark column centred in the safe area (off " + (columnMid - safe.center.y).ToString("F3") + ")",
-                  Mathf.Abs(columnMid - safe.center.y) < 0.01f && Mathf.Abs(lb.center.x - safe.center.x) < 0.01f);
-            Check(c.name + ": column inside the safe area", columnTop <= safe.yMax + eps);
+            // The film is centred in the safe area; the mark sits where its wordmark lands, below its gate.
+            float fw = l.filmWidth;
+            Vector2 filmC = camXY + l.filmCenter;
+            Check(c.name + ": film centred in the safe area (off " + (filmC - safe.center).magnitude.ToString("F3") + ")",
+                  (filmC - safe.center).magnitude < 0.01f);
+            Check(c.name + ": mark at the film's wordmark spot",
+                  Mathf.Abs(lb.center.x - filmC.x) < 0.01f && Mathf.Abs(lb.center.y - (filmC.y + GateFilm.WordmarkCentreY * fw)) < 0.01f
+                  && Mathf.Abs(lb.size.x - GateFilm.WordmarkWidth * fw) < 0.01f);
             Check(c.name + ": wordmark ends below the gate",
-                  lb.max.y <= camXY.y + l.gateCenter.y - splashScene.GateHeight * w * 0.5f + eps);
+                  lb.max.y <= camXY.y + l.gateCenter.y - GateFilm.GateHeight * fw * 0.5f + eps);
+            Check(c.name + ": film's lit content inside the safe area (width " + (fw * splashScene.FilmContentShare).ToString("F2") + " <= " + safe.width.ToString("F2") + ")",
+                  fw * splashScene.FilmContentShare <= safe.width + eps && fw * GateFilm.Aspect <= splashScene.SafeFill * safe.height + eps);
             float aspectNow = lb.size.x / lb.size.y;
             Check(c.name + ": logo keeps its proportions", Mathf.Abs(aspectNow / nativeAspect - 1f) < 0.001f);
             var ls = card.logo.transform.lossyScale;
             Check(c.name + ": logo scaled uniformly", Mathf.Abs(ls.x - ls.y) < 0.0001f);
             Check(c.name + ": logo sits in front of the backdrop", lb.center.z < b.center.z);
 
-            // Size: a consistent share of the shorter side unless the safe
-            // area forces it smaller; never tiny.
-            float shortSide = Mathf.Min(viewW, viewH);
-            float share = lb.size.x / shortSide;
-            float column = splashScene.GateHeight + splashScene.GateWordGap + native.y / native.x;
-            bool safeBound = lb.size.x >= splashScene.SafeFill * safe.width - 0.01f
-                          || lb.size.x * column >= splashScene.SafeFill * safe.height - 0.01f;
-            Check(c.name + ": logo is " + (share * 100f).ToString("F1") + "% of the shorter side",
-                  Mathf.Abs(share - splashScene.LogoFraction) < 0.005f || (safeBound && share > 0.3f));
+            // Size: the film is as wide as the view unless the safe area forces it smaller; never tiny.
+            bool safeBound = fw * splashScene.FilmContentShare >= safe.width - 0.01f
+                          || fw * GateFilm.Aspect >= splashScene.SafeFill * safe.height - 0.01f
+                          || fw * (-GateFilm.WordmarkCentreY + 0.5f * GateFilm.WordmarkWidth * native.y / native.x + splashScene.MaxShake + 0.01f) >= 0.5f * safe.height - 0.01f;
+            Check(c.name + ": film is " + (fw / viewW * 100f).ToString("F1") + "% of the view width",
+                  (Mathf.Abs(fw - viewW * splashScene.FilmFraction) < 0.01f || safeBound) && fw >= 0.3f * Mathf.Min(viewW, viewH));
 
             // Words ride with the mark: their offset from the logo, measured in
             // logo widths, is the same on every screen.
@@ -192,38 +194,15 @@ public static class SplashLayoutTest
         cam.orthographicSize = baseSize;
     }
 
-    // The wordmark flies out of the door and ends below the gate (brand animation v2).
-    static void WordmarkLayout()
+    // The approved gate film plays on the card: laid out like the numbers say, the mark hidden
+    // while it shows (the film carries the wordmark), the words in only once the wordmark has landed.
+    static void FilmLayout()
     {
         Check("lockup art for the credits is installed", HapticGateMark.Lockup() != null);
-        var start = splashScene.PoseAt(0f);
-        Check("wordmark is invisible while the door is shut", start.alpha == 0f && start.scale <= splashScene.StartScale + 1e-4f);
-        var gap = splashScene.PoseAt(splashScene.FlyStart + 0.05f);
-        Check("it appears small in the gap (scale " + gap.scale.ToString("F2") + ", travel " + gap.travel.ToString("F2") + ", behind the leaves)",
-              gap.alpha > 0f && gap.scale < 0.15f && gap.travel < 0.1f && !gap.front);
-        var out1 = splashScene.PoseAt(splashScene.FlyExit + 0.05f);
-        var out2 = splashScene.PoseAt(splashScene.FlyExit + 0.2f);
-        Check("it rushes out in front of the leaves, growing and travelling down",
-              out1.front && out2.scale > out1.scale && out2.travel > out1.travel && out1.scale > gap.scale);
-        var landed = splashScene.PoseAt(splashScene.FlyLand + 0.01f);
-        var bounce = splashScene.PoseAt(splashScene.FlyLand + splashScene.BounceSeconds * 0.5f);
-        Check("it lands (travel 1) and bounces up a little (" + bounce.bounce.ToString("F2") + " wordmark heights)",
-              landed.travel >= 0.999f && bounce.bounce > 0.1f && bounce.bounce < 0.8f);
-        bool dips = false;
-        for (float t = splashScene.FlyLand; t < splashScene.FlickerEnd; t += 0.01f) if (splashScene.PoseAt(t).alpha < 0.9f) dips = true;
-        var end = splashScene.PoseAt(splashScene.FlickerEnd);
-        Check("neon flicker dips then settles exactly final", dips && end.done && end.alpha == 1f && end.scale == 1f && end.travel == 1f && end.bounce == 0f);
-        Check("it is settled before the card ends (" + splashScene.FlickerEnd + " < " + GateSim.IntroSeconds + ")", splashScene.FlickerEnd < GateSim.IntroSeconds);
-
-        // smash: the flight finishes within SmashFlySeconds, well inside the 0.45 s leave delay
-        var smash = new GateSim();
-        smash.Advance(0.3f); smash.Tap(); smash.Tap(); smash.Tap();
-        for (int i = 0; i < 100 && !smash.smashed; i++) smash.Advance(0.02f);
-        Check("smash path: wordmark flight is final within " + splashScene.SmashFlySeconds + " s of the smash",
-              smash.smashed && splashScene.SmashFlySeconds < GateSim.SmashLeaveDelay);
-        float before = splashScene.FlightTime(smash);
-        smash.Advance(splashScene.SmashFlySeconds + 0.01f);
-        Check("... flight clock reaches the end of the flicker", splashScene.PoseAt(splashScene.FlightTime(smash)).done && splashScene.FlightTime(smash) >= before);
+        Check("words hidden while the wordmark flies, in after it lands",
+              splashScene.WordsAlphaAt(0f) == 0f && splashScene.WordsAlphaAt(GateFilm.WordmarkLands - 0.01f) == 0f
+              && splashScene.WordsAlphaAt(GateFilm.WordmarkLands + splashScene.WordsFadeSeconds) == 1f
+              && GateFilm.WordmarkLands + splashScene.WordsFadeSeconds < GateSim.IntroSeconds);
 
         EditorSceneLoader.Open("spashS7", OpenSceneMode.Single);
         splashScene.BuildGateInEditMode = true;
@@ -238,29 +217,26 @@ public static class SplashLayoutTest
                 cam.orthographicSize = CameraFit.ComputeSize(baseSize, 2.85f, c.w, c.h);
                 var l = card.ApplyLayout(c.w, c.h, c.safe);
                 card.Restart();
-                // mid-flight: smaller than final, on the way down, inside the view
-                while (card.Sim.time < splashScene.FlyExit + 0.1f) card.Step(1f / 60f);
-                Bounds mid = card.logo.bounds;
-                // landed and settled
-                while (card.Sim.time < splashScene.FlickerEnd + 0.02f) card.Step(1f / 60f);
+                card.Step(0f);
+                Check(c.name + ": the scene's card runs the full film + hold (" + card.holdSeconds + " s)", Mathf.Abs(card.holdSeconds - GateSim.IntroSeconds) < 0.01f && Mathf.Abs(card.filmFraction - splashScene.FilmFraction) < 0.001f);
+                Check(c.name + ": film built and showing, mark hidden", card.FilmShowing && card.Film.renderer.enabled && !card.logo.enabled);
+                for (int g = 0; g < 600 && card.Sim.time < 1.0f; g++) card.Step(1f / 60f);
+                float aMid = card.WordsAlpha;
+                for (int g = 0; g < 600 && card.Sim.time < GateFilm.Length + 0.25f; g++) card.Step(1f / 60f);
                 card.Step(0f);
                 float aspect = (float)c.w / c.h;
                 float viewH = 2f * cam.orthographicSize, viewW = viewH * aspect;
                 Vector2 camXY = cam.transform.position;
-                Rect safe = new Rect(camXY.x - viewW / 2f + c.safe.x / c.w * viewW, camXY.y - viewH / 2f + c.safe.y / c.h * viewH,
-                                     c.safe.width / c.w * viewW, c.safe.height / c.h * viewH);
-                Bounds fb = card.logo.bounds;
+                Bounds fb = card.Film.renderer.bounds;
+                Vector2 sh = card.Sim.shake * l.filmWidth;
                 const float eps = 0.003f;
-                float w = l.logoSize.x;
-                Vector2 sh = card.Sim.shake * w;   // the whole card shakes a little while the door still jitters
-                Check(c.name + ": mid-flight the wordmark is smaller than final (" + (mid.size.x / w).ToString("F2") + ") and above its spot",
-                      mid.size.x < w * 0.9f && mid.center.y > fb.center.y);
-                Check(c.name + ": wordmark ends at its final spot (off " + ((Vector2)fb.center - (camXY + l.logoCenter + card.Sim.shake * w)).magnitude.ToString("F4") + ")",
-                      ((Vector2)fb.center - (camXY + l.logoCenter + card.Sim.shake * w)).magnitude < eps && Mathf.Abs(fb.size.x - w) < eps && card.Pose.done);
-                Check(c.name + ": final wordmark below the gate and inside the safe area",
-                      fb.max.y <= camXY.y + l.gateCenter.y - splashScene.GateHeight * w * 0.5f + eps + sh.y
-                      && fb.min.x >= safe.xMin - eps + sh.x && fb.max.x <= safe.xMax + eps + sh.x && fb.min.y >= safe.yMin - eps + sh.y);
-                Check(c.name + ": wordmark opaque and in front once landed", card.logo.color.a > 0.999f && card.logo.sortingOrder > 3);
+                Check(c.name + ": film drawn at its layout (" + fb.size.x.ToString("F2") + " x " + fb.size.y.ToString("F2") + ")",
+                      Mathf.Abs(fb.size.x - l.filmWidth) < eps && Mathf.Abs(fb.size.y - l.filmWidth * GateFilm.Aspect) < eps
+                      && ((Vector2)fb.center - (camXY + l.filmCenter + sh)).magnitude < eps);
+                Check(c.name + ": film no wider than the view", fb.size.x <= viewW + eps);
+                Check(c.name + ": film in front of the backdrop", fb.center.z < card.GetComponent<Renderer>().bounds.center.z);
+                Check(c.name + ": final frame up after the film, words in (alpha " + aMid.ToString("F2") + " -> " + card.WordsAlpha.ToString("F2") + ")",
+                      card.Film.ShownFrame == GateFilm.LastFrame && aMid == 0f && card.WordsAlpha == 1f);
             }
             cam.orthographicSize = baseSize;
         }
@@ -304,7 +280,8 @@ public static class SplashLayoutTest
     // Offscreen renders of the card for eyeballing:
     //   Unity -batchmode -projectPath <abs> -executeMethod SplashLayoutTest.Render -splashOut <dir>
     // Renders each case through the scene camera into a texture (no player).
-    // Only the world-space card (backdrop + mark) is captured: batch mode never
+    // Only the world-space card (backdrop + mark; no film: it is built only while
+    // playing or for GateShotPreview) is captured: batch mode never
     // builds the uGUI batches for the "A" / "Game" words, which the layout
     // checks above cover numerically instead.
     // "-splashRaw" renders the authored transforms without the runtime layout.

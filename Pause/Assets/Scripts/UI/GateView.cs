@@ -1,25 +1,27 @@
 using UnityEngine;
 
-// Draws a GateSim: the two leaves (with crack overlays and bulge), steam jets,
-// debris chunks, sparks and flashes. Everything lives in the gate's local space
-// (the gate is 1 unit wide; root.localScale maps that to the logo's width).
+// The effects drawn over the gate film (GateFilm) for a GateSim: the player's
+// taps (sparks, chips, a glow and steam off a leaf), the smash (debris burst,
+// sparks, steam, full-view white flash) and the steam leaking after tap 2.
+// The film itself carries the gate, the smoke and steam of the opening and the
+// wordmark, so a natural run draws nothing here.
 //
+// Everything lives in "gate space": root is a child of the film centred on the
+// gate, scaled so the shut gate is 1 unit wide (each leaf 0.5 wide, 1 tall).
 // All pools are built once; Sync allocates nothing.
 public sealed class GateView
 {
     const int MaxDebris = 56, MaxSparks = 96, MaxSteam = 32, MaxGlow = 6;
 
-    public Transform leftLeaf, rightLeaf;
-    public bool leavesVisible = true;
+    // Gate space in film widths: the shut gate's width (two leaves).
+    public const float GateSpace = 2f * GateFilm.LeafWidth;
 
     readonly GateArt art;
     readonly GateSim sim;
-    readonly Transform root;
-    SpriteRenderer leftRenderer, rightRenderer;
-    readonly SpriteRenderer[] leftCrack = new SpriteRenderer[3], rightCrack = new SpriteRenderer[3];
-    SpriteRenderer flash, haze;
-    Transform hazeT;
+    public readonly Transform root;
+    SpriteRenderer flash;
     float flashAlpha;
+    public float FlashAlpha { get { return flashAlpha; } }
 
     // debris
     readonly Transform[] dT = new Transform[MaxDebris];
@@ -47,64 +49,27 @@ public sealed class GateView
     readonly float[] gLife = new float[MaxGlow], gSize = new float[MaxGlow];
     int gNext;
 
-    float emitVent;
     float leakTimer;
-    Vector2 viewLocal;   // visible area in gate-local units
 
-
-    public GateView(Transform root, GateArt art, GateSim sim)
+    // filmRoot: the film's transform (1 unit = 1 film width, origin at its centre).
+    public GateView(Transform filmRoot, GateArt art, GateSim sim)
     {
-        this.root = root; this.art = art; this.sim = sim;
-        const float leafW = 0.5f;
-
-        leftLeaf = NewLeaf("Left steel door", art.leftLeaf, leafW, out leftRenderer);
-        rightLeaf = NewLeaf("Right steel door", art.rightLeaf, leafW, out rightRenderer);
-        for (int i = 0; i < 3; i++)
-        {
-            leftCrack[i] = NewOverlay("Left cracks " + (i + 1), leftLeaf, art.leftCracks[i], art.leftLeaf);
-            rightCrack[i] = NewOverlay("Right cracks " + (i + 1), rightLeaf, art.rightCracks[i], art.rightLeaf);
-        }
+        this.art = art; this.sim = sim;
+        root = new GameObject("Gate effects").transform;
+        root.SetParent(filmRoot, false);
+        root.localPosition = new Vector3(0f, GateFilm.GateCentreY, -0.02f);
+        root.localScale = Vector3.one * GateSpace;
 
         for (int i = 0; i < MaxDebris; i++) Pool("Debris " + i, art.debris[0], 6, out dT[i], out dR[i]);
         for (int i = 0; i < MaxSparks; i++) Pool("Spark " + i, art.white, 7, out sT[i], out sR[i]);
         for (int i = 0; i < MaxSteam; i++) Pool("Steam " + i, art.steam[0], 5, out tT[i], out tR[i]);
         for (int i = 0; i < MaxGlow; i++) Pool("Glow " + i, art.glow, 8, out gT[i], out gR[i]);
-        // Warm haze in the gap: the inside of the gate is dark with a warm smoky glow (no seam beam).
-        Pool("Gap haze", art.glow, 1, out hazeT, out haze);
-        haze.enabled = false;
         Transform ft;
         Pool("Flash", art.white, 9, out ft, out flash);
         flash.color = new Color(1, 1, 1, 0);
 
-        sim.Impact += OnImpact;
         sim.Cracked += OnCracked;
         sim.Smashed += OnSmashed;
-    }
-
-    Transform NewLeaf(string name, Sprite sprite, float width, out SpriteRenderer sr)
-    {
-        var go = new GameObject(name);
-        go.transform.SetParent(root, false);
-        float sx = width / sprite.bounds.size.x;
-        go.transform.localScale = new Vector3(sx, sx * GateArt.YStretch(sprite), 1f);   // the leaf has no rotated children with scale, so no shear
-        sr = go.AddComponent<SpriteRenderer>();
-        sr.sprite = sprite;
-        sr.sortingOrder = 2;
-        return go.transform;
-    }
-
-    SpriteRenderer NewOverlay(string name, Transform leaf, Sprite sprite, Sprite leafSprite)
-    {
-        var go = new GameObject(name);
-        go.transform.SetParent(leaf, false);
-        // The overlay is a slice of a sheet laid out like the door, so it covers the leaf exactly.
-        go.transform.localScale = new Vector3(leafSprite.bounds.size.x / sprite.bounds.size.x, leafSprite.bounds.size.y / sprite.bounds.size.y, 1f);
-        go.transform.localPosition = new Vector3(0f, 0f, -0.001f);
-        var sr = go.AddComponent<SpriteRenderer>();
-        sr.sprite = sprite;
-        sr.sortingOrder = 3;
-        sr.enabled = false;
-        return sr;
     }
 
     void Pool(string name, Sprite sprite, int order, out Transform t, out SpriteRenderer sr)
@@ -119,29 +84,39 @@ public sealed class GateView
         t = go.transform;
     }
 
-    // visible area in world units and the gate's world width
-    public void SetView(Vector2 viewWorld, float gateWorldWidth)
+    // visible area in world units and the film's world width
+    public void SetView(Vector2 viewWorld, float filmWorldWidth)
     {
-        float k = 1f / Mathf.Max(gateWorldWidth, 0.0001f);
-        viewLocal = viewWorld * k;
-        flash.transform.localScale = new Vector3(viewLocal.x * 1.5f, viewLocal.y * 1.5f, 1f);
+        float k = 1f / Mathf.Max(filmWorldWidth * GateSpace, 0.0001f);
+        Vector2 v = viewWorld * k;
+        flash.transform.localPosition = new Vector3(0f, -GateFilm.GateCentreY / GateSpace, -0.04f);
+        flash.transform.localScale = new Vector3(v.x * 1.5f, v.y * 1.5f, 1f);
+    }
+
+    // Everything off (previews / tests restarting the card).
+    public void Clear()
+    {
+        for (int i = 0; i < MaxDebris; i++) dR[i].enabled = false;
+        for (int i = 0; i < MaxSparks; i++) sR[i].enabled = false;
+        for (int i = 0; i < MaxSteam; i++) tR[i].enabled = false;
+        for (int i = 0; i < MaxGlow; i++) gR[i].enabled = false;
+        flashAlpha = 0f; leakTimer = 0f;
+        flash.enabled = false;
+    }
+
+    public int ActiveParticles
+    {
+        get
+        {
+            int n = 0;
+            for (int i = 0; i < MaxDebris; i++) if (dR[i].enabled) n++;
+            for (int i = 0; i < MaxSparks; i++) if (sR[i].enabled) n++;
+            for (int i = 0; i < MaxSteam; i++) if (tR[i].enabled) n++;
+            return n;
+        }
     }
 
     // ---- events -----------------------------------------------------------
-
-    void OnImpact(float s, int step)
-    {
-        if (step >= 0)
-        {
-            // a step: the leaves slam apart at the seam
-            int sp = 8 + (int)(26f * s), db = 2 + (int)(5f * s);
-            for (int i = 0; i < sp; i++) Spark(Seam(i % 2), 0.4f + 1.4f * s, i % 2 == 0 ? -1 : 1);
-            for (int i = 0; i < db; i++) Chunk(Seam(i % 2), 0.06f + 0.05f * sim.Rand(), 0.5f + s, i % 2 == 0 ? -1 : 1);
-            for (int i = 0; i < 3; i++) Steam(Seam(i % 2) + new Vector2(0, -0.1f), new Vector2((i % 2 == 0 ? -1 : 1) * (0.2f + sim.Rand() * 0.4f), 0.2f + sim.Rand() * 0.5f), 0.14f + 0.08f * sim.Rand(), 0.55f);
-            Glow(Seam(0) * 0.5f, 0.5f + 0.5f * s);
-            flashAlpha = Mathf.Max(flashAlpha, 0.12f + 0.2f * s);
-        }
-    }
 
     void OnCracked(int stage)
     {
@@ -149,7 +124,7 @@ public sealed class GateView
         // sparks and chips from where the crack starts on one leaf
         float side = sim.Rand() < 0.5f ? -1f : 1f;
         var p = LeafPoint(side, 0.80f, 0.52f);
-        int sp = stage == 1 ? 8 : 18;
+        int sp = stage == 1 ? 10 : 20;
         for (int i = 0; i < sp; i++) Spark(p, 0.5f + 0.8f * stage, side);
         for (int i = 0; i < stage * 2; i++) Chunk(p, 0.04f + 0.04f * sim.Rand(), 0.6f, side);
         Glow(p, 0.6f + 0.3f * stage);
@@ -177,23 +152,14 @@ public sealed class GateView
         Glow(new Vector2(0.2f, -0.05f), 2f);
     }
 
-    float LeafCenterX(float side) { return side * (0.25f + 0.58f * Mathf.Clamp01(sim.open)); }
-
-    // Point on a leaf: u (0..1) across, v (0..1) up, measured on the leaf as drawn.
-    // side -1 = left leaf. The leaf is 0.5 wide and ~0.68 tall.
+    // Point on a leaf of the film's gate: u (0..1) across, v (0..1) up. side -1 = left leaf.
+    // In gate space a leaf is 0.5 wide and GateHeight / GateSpace (~1) tall.
     Vector2 LeafPoint(float side, float u, float v)
     {
-        float cx = LeafCenterX(side);
+        float cx = GateFilm.LeafCentreX(side, sim.open) / GateSpace;
         // the inner edge (seam) is u = 1 for the left leaf, mirrored on the right
         float lx = (side < 0 ? u - 0.5f : 0.5f - u) * 0.5f;
-        return new Vector2(cx + lx, (v - 0.5f) * 0.68f);
-    }
-
-    // A point on a leaf's inner edge (where the leaves meet), at a random height.
-    Vector2 Seam(int side)
-    {
-        float x = side == 0 ? LeafCenterX(-1f) + 0.25f : LeafCenterX(1f) - 0.25f;
-        return new Vector2(x, (sim.Rand() - 0.5f) * 0.6f);
+        return new Vector2(cx + lx, (v - 0.5f) * GateFilm.GateHeight / GateSpace);
     }
 
     // ---- spawners ---------------------------------------------------------
@@ -251,48 +217,7 @@ public sealed class GateView
 
     public void Sync(float dt)
     {
-        // leaves
-        bool show = leavesVisible && !(sim.smashed && sim.smashTime > 0.03f);
-        leftRenderer.enabled = rightRenderer.enabled = show;
-        float travel = 0.58f * sim.open;
-        float bulgeX = 0.012f * sim.bulge;
-        float scl = 1f + 0.03f * sim.bulge;
-        SetLeaf(leftLeaf, leftRenderer, art.leftLeaf, -(0.25f + travel) - bulgeX + sim.leftJitter.x, sim.leftJitter.y, sim.leftRot, scl);
-        SetLeaf(rightLeaf, rightRenderer, art.rightLeaf, (0.25f + travel) + bulgeX - sim.rightJitter.x, sim.rightJitter.y, -sim.rightRot, scl);
-        int stage = Mathf.Clamp(sim.crackStage, 0, 3);
-        for (int i = 0; i < 3; i++)
-        {
-            bool on = show && stage == i + 1;
-            leftCrack[i].enabled = on; rightCrack[i].enabled = on;
-        }
-
-        // haze in the opening: grows with the gap, gone with the leaves on a smash
-        float hz = Mathf.Clamp01(sim.open * 1.6f) * (sim.smashed ? Mathf.Clamp01(1f - sim.smashTime / 0.3f) : 1f);
-        haze.enabled = hz > 0.01f;
-        if (haze.enabled)
-        {
-            Vector2 hs = haze.sprite.bounds.size;
-            hazeT.localScale = new Vector3(Mathf.Max(0.25f, 1.5f * sim.open) / hs.x, 0.78f / hs.y, 1f);
-            hazeT.localPosition = new Vector3(0f, 0f, -0.01f);
-            haze.color = new Color(0.78f, 0.34f, 0.14f, 0.5f * hz);
-        }
-
-        // continuous steam: jets from the leaf grilles, pressure building
-        float p = sim.pressure;
-        float rate = sim.smashed ? 0f : 3f + p * p * 26f + (sim.crackStage >= 2 ? 14f : 0f);
-        emitVent += rate * dt;
-        while (emitVent >= 1f)
-        {
-            emitVent -= 1f;
-            float side = sim.Rand() < 0.5f ? -1f : 1f;
-            Vector2 v = LeafPoint(side, 0.6f, 0.64f);
-            // jets angle up and away from the seam, harder as pressure builds
-            float j = 0.25f + p * 0.9f;
-            Steam(v,
-                  new Vector2(side * (0.1f + sim.Rand() * 0.35f) * j, (0.35f + sim.Rand() * 0.6f) * j),
-                  0.07f + 0.05f * sim.Rand() + 0.05f * p, 0.35f + 0.3f * p);
-        }
-        // leaks from the cracks once the door is bulging
+        // leaks from the cracks after tap 2
         if (sim.crackStage >= 2 && !sim.smashed)
         {
             leakTimer += dt;
@@ -311,14 +236,6 @@ public sealed class GateView
         flashAlpha = Mathf.Max(0f, flashAlpha - dt * (sim.smashed ? 3.2f : 5f));
         flash.enabled = flashAlpha > 0.003f;
         flash.color = new Color(1f, 0.93f, 0.8f, flashAlpha);
-    }
-
-    void SetLeaf(Transform t, SpriteRenderer sr, Sprite sprite, float x, float y, float rot, float scale)
-    {
-        t.localPosition = new Vector3(x, y, 0f);
-        t.localRotation = Quaternion.Euler(0f, 0f, rot);
-        float sx = 0.5f / sprite.bounds.size.x * scale;
-        t.localScale = new Vector3(sx, sx * GateArt.YStretch(sprite), 1f);
     }
 
     void UpdateParticles(float dt)
