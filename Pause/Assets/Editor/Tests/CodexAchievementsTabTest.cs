@@ -80,7 +80,7 @@ public static class CodexAchievementsTabTest
 
     static void Tabs(CodexPanel panel)
     {
-        Check("seven tabs: the six categories then ACHIEVEMENTS", CodexPanel.TabCount == 7 && CodexPanel.Tabs.Length == 6 &&
+        Check("eight tabs: the six categories, ACHIEVEMENTS, then MUSIC", CodexPanel.TabCount == 8 && CodexPanel.MusicTab == 7 && panel.TabLabel(CodexPanel.MusicTab).text == "MUSIC" && CodexPanel.Tabs.Length == 6 &&
               panel.TabLabel(CodexPanel.AchievementsTab).text == "ACHIEVEMENTS" && CodexPanel.TabsPerRow == 4);
         foreach (var (name, safe) in Screens)
         {
@@ -98,11 +98,11 @@ public static class CodexAchievementsTabTest
                 var drawn = PanelSpace(panel.Panel, (RectTransform)panel.TabLabel(i).transform.parent);
                 ok &= Mathf.Abs(drawn.center.x - t.center.x) < 1f && Mathf.Abs(drawn.center.y - t.center.y) < 1f;
             }
-            Check(name + ": seven tabs (4 + 3) sit in the tab band without overlap", ok);
+            Check(name + ": eight tabs (4 + 4) sit in the tab band without overlap", ok);
             Check(name + ": every tab is a >= 96-unit touch target", hit);
             bool fit = true;
             for (int i = 0; i < CodexPanel.TabCount; i++) fit &= FitsAt(panel.TabLabel(i), 13);
-            Check(name + ": all seven tab labels fit at >= 13px", fit);
+            Check(name + ": all eight tab labels fit at >= 13px", fit);
             Check(name + ": the body still holds a section header and two card rows", l.list.height >= CodexPanel.SectionHeaderHeight + CodexPanel.SectionHeaderGap + 2f * l.cardHeight);
         }
         panel.ApplyLayout(Screens[0].safe);
