@@ -160,7 +160,7 @@ public class WorldManager : MonoBehaviour
     //  treats Storm as the last world (its lift-off loops, like Tide's).
     //  A property so tests can flip it (and must restore it).
     // ======================================================================
-    public static bool StormEnabled { get; set; } = false;
+    public static bool StormEnabled { get; set; } = true;
 
     // The flags chain in world order: Storm is reachable only when Tide is ALSO on
     // (Ember -> Tide -> Storm). StormEnabled alone changes nothing.
