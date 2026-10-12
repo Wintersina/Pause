@@ -4,10 +4,13 @@ public class leaderboard : MonoBehaviour {
 
 	// Use this for 
 
-	// The LeaderBoard button: the in-game rankings panel. Its "View all"
-	// opens the store's own leaderboard screen.
-	public void pull_up_leaderboard () {
-        LeaderboardPanel.Open();
+	// The Options screen's CREDITS button (it took the old LeaderBoard
+	// button's slot; the leaderboard moved to the home screen). The home
+	// music plays on through (MenuMusic) and Back returns to Options.
+	public const string CreditsScene = "creditsS7";
+	public static System.Action<string> LoadScene = name => UnityEngine.SceneManagement.SceneManager.LoadScene(name);
+	public void credits () {
+        LoadScene(CreditsScene);
 	}
     public void playTut()
     {

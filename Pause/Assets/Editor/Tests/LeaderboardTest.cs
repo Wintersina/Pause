@@ -524,22 +524,28 @@ public static class LeaderboardTest
     static void OptionsButton()
     {
         RealRunContext();
+        // The leaderboard moved from Options to the home screen (2026-10-12).
         EditorSceneManager.OpenScene("Assets/Scenes/leaderboardS3.unity", OpenSceneMode.Single);
+        Check("Options no longer has a LeaderBoard button",
+              GameObject.Find("pullUpLeaderBoard") == null && GameObject.Find("LeaderboardButton") == null);
+        EditorSceneManager.OpenScene("Assets/Scenes/startS4.unity", OpenSceneMode.Single);
         var fake = FakeLeaderboards.Demo();
         Service(fake);
 
-        var go = GameObject.Find("pullUpLeaderBoard");
+        var go = GameObject.Find("LeaderboardButton");
         var button = go != null ? go.GetComponent<Button>() : null;
-        Check("Options has the LeaderBoard button", button != null);
+        Check("home has the Leaderboard button", button != null);
         if (button == null) return;
+        Check("... in the main menu column", go.transform.parent != null && go.transform.parent.name == "UIPanel");
         int calls = button.onClick.GetPersistentEventCount();
         Object target = calls > 0 ? button.onClick.GetPersistentTarget(0) : null;
-        Check("LeaderBoard button calls leaderboard.pull_up_leaderboard",
-              calls == 1 && target is leaderboard && button.onClick.GetPersistentMethodName(0) == "pull_up_leaderboard");
-        Check("Options still has its Tutorial button (DeveloperOptions' template)", GameObject.Find("Tutorial") != null);
+        Check("Leaderboard button calls startMenu.leaderboard",
+              calls == 1 && target is startMenu && button.onClick.GetPersistentMethodName(0) == "leaderboard");
+        var caption = go.GetComponentInChildren<Text>(true);
+        Check("... and reads Leaderboard", caption != null && caption.text == "Leaderboard");
 
         // Persistent calls are runtime-only; invoke the same method directly.
-        ((leaderboard)target).pull_up_leaderboard();
+        ((startMenu)target).leaderboard();
         var panel = LeaderboardPanel.Current;
         Check("LeaderBoard button opens the in-game panel", panel != null);
         if (panel == null) return;
@@ -547,7 +553,7 @@ public static class LeaderboardTest
         Check("panel uses the scene's Orbitron",
               panel.GetComponentInChildren<Text>().font != null &&
               panel.GetComponentInChildren<Text>().font.name.Contains("Orbitron"));
-        Check("panel sits above the Options canvas", panel.GetComponent<Canvas>().sortingOrder > 0);
+        Check("panel sits above the home canvas", panel.GetComponent<Canvas>().sortingOrder > GameObject.Find("MainMenuCanvas").GetComponent<Canvas>().sortingOrder);
 
         panel.ViewAllButton.onClick.Invoke();
         Check("View all opens the native UI for the selected board",

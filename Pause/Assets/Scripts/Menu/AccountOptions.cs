@@ -71,10 +71,12 @@ public class AccountOptions : MonoBehaviour
             new GameObject("~AccountOptions").AddComponent<AccountOptions>();
     }
 
-    // The Options canvas: the one holding the LeaderBoard button.
+    // The Options canvas: the one holding the Credits button.
+    public const string OptionsCreditsButton = "CreditsButton";
+
     public static RectTransform FindOptionsCanvas()
     {
-        var anchor = SceneUtil.FindAny("pullUpLeaderBoard");
+        var anchor = SceneUtil.FindAny(OptionsCreditsButton);
         return anchor != null ? anchor.transform.parent as RectTransform : null;
     }
 
@@ -289,7 +291,7 @@ public class AccountOptions : MonoBehaviour
         };
     }
 
-    // Top of the highest other control on the Options canvas (the LeaderBoard
+    // Top of the highest other control on the Options canvas (the Credits
     // / Tutorial / Back stack and DeveloperOptions' rows, shown or not, so the
     // card doesn't jump when developer mode is switched).
     public float RowsTop()

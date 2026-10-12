@@ -28,7 +28,7 @@ public class SafeAreaClamp : MonoBehaviour
     Rect lastSafe;
 
     // The Options screen's BACK closes a column of rows stacked 100 units
-    // apart (Tutorial, LeaderBoard and the developer rows above it). On a
+    // apart (Tutorial, Credits and the developer rows above it). On a
     // canvas UiScale's floor makes short (a phone small in points / dp) the
     // lift that keeps BACK inside the safe area would put it on the row
     // above: the whole column rises with it instead (the account card above

@@ -43,6 +43,7 @@ public class startMenu : MonoBehaviour {
     {
         var canvasObject = SceneUtil.FindAny("MainMenuCanvas");
         if (canvasObject == null) return;
+        EnsurePrivacyButton();
         var canvas = canvasObject.GetComponent<Canvas>();
         var scaler = canvasObject.GetComponent<CanvasScaler>();
         if (scaler != null)
@@ -71,15 +72,41 @@ public class startMenu : MonoBehaviour {
             group.childAlignment = TextAnchor.MiddleCenter;
             EvenOutRows(panel.transform, group.spacing);
         }
-        // Sign-in is automatic now, so the footer is just Quit.
+        // The footer: PRIVACY POLICY, with Quit under it (no Quit on iOS: the
+        // policy link takes its place at the bottom). On a canvas too short for
+        // two stacked rows under the menu column, the two sit side by side.
         float footerWidth = Mathf.Min(180f, (width - 64f) * 0.5f);
-        Place("QuitButton", new Vector2(0.5f, 0f),
-              new Vector2(0f, 44f + safeBottom), new Vector2(footerWidth, 56f));
-        // a finger-sized target without bigger art (the art is 56 units tall)
         var quit = SceneUtil.FindAny("QuitButton");
-        var quitGraphic = quit != null ? quit.GetComponent<Graphic>() : null;
-        if (quitGraphic != null) quitGraphic.raycastPadding = new Vector4(-8f, -8f, -8f, -8f);
-        foreach (string name in new[] { "PlayButton", "shopButton", "achivButton", "CreditsButton", "QuitButton" })
+        bool hasQuit = quit != null && quit.activeSelf;
+        float footerY = 44f + safeBottom;
+        float columnBottom = height * 0.5f - height * 0.08f - Mathf.Min(330f, height * 0.5f) * 0.5f - 6f;
+        float stackedTop = footerY + FooterRowUnits * 1.5f + FooterGap + FooterGap * 0.5f;
+        FooterStacked = !hasQuit || stackedTop <= columnBottom;
+        if (FooterStacked)
+        {
+            Place("QuitButton", new Vector2(0.5f, 0f), new Vector2(0f, footerY), new Vector2(footerWidth, FooterRowUnits));
+            Place(PrivacyButtonName, new Vector2(0.5f, 0f),
+                  new Vector2(0f, footerY + (hasQuit ? FooterRowUnits + FooterGap : 0f)),
+                  new Vector2(Mathf.Min(PrivacyWidth, width - 64f), FooterRowUnits));
+        }
+        else
+        {
+            float room = width - 64f - FooterSideGap;
+            float privacyW = Mathf.Min(PrivacyWidth, room * 0.6f), quitW = Mathf.Min(180f, room - privacyW);
+            float total = privacyW + FooterSideGap + quitW;
+            Place(PrivacyButtonName, new Vector2(0.5f, 0f), new Vector2(-total * 0.5f + privacyW * 0.5f, footerY),
+                  new Vector2(privacyW, FooterRowUnits));
+            Place("QuitButton", new Vector2(0.5f, 0f), new Vector2(total * 0.5f - quitW * 0.5f, footerY),
+                  new Vector2(quitW, FooterRowUnits));
+        }
+        // finger-sized targets without bigger art (the art is 56 units tall)
+        foreach (string name in new[] { "QuitButton", PrivacyButtonName })
+        {
+            var go = SceneUtil.FindAny(name);
+            var graphic = go != null ? go.GetComponent<Graphic>() : null;
+            if (graphic != null) graphic.raycastPadding = new Vector4(-8f, -FooterGap * .5f, -8f, -FooterGap * .5f);
+        }
+        foreach (string name in new[] { "PlayButton", "shopButton", "achivButton", "LeaderboardButton", "QuitButton", PrivacyButtonName })
         {
             var button = SceneUtil.FindAny(name);
             if (button == null) continue;
@@ -87,7 +114,7 @@ public class startMenu : MonoBehaviour {
             {
                 label.resizeTextForBestFit = true;
                 label.resizeTextMinSize = 22;
-                label.resizeTextMaxSize = name == "QuitButton" ? 28 : 38;
+                label.resizeTextMaxSize = name == "QuitButton" || name == PrivacyButtonName ? 28 : 38;
             }
         }
         layoutWidth = ScreenInfo.Width;
@@ -116,6 +143,36 @@ public class startMenu : MonoBehaviour {
             if (graphic != null) graphic.raycastPadding = new Vector4(0f, -spacing * .5f, 0f, -spacing * .5f);
         }
     }
+
+    // The PRIVACY POLICY link (moved here from Options, 2026-10-12): a copy of
+    // the Quit button (same art, label style and press) that opens the policy
+    // in the browser. Menu buttons have no click sound, so neither does this.
+    public const string PrivacyButtonName = "PrivacyButton";
+    public const string PrivacyCaption = "Privacy Policy";
+    public const float FooterRowUnits = 56f, FooterGap = 16f, FooterSideGap = 24f, PrivacyWidth = 300f;
+    // false when the canvas is too short and Privacy / Quit share one row
+    public static bool FooterStacked { get; private set; } = true;
+
+    public static GameObject EnsurePrivacyButton()
+    {
+        var existing = SceneUtil.FindAny(PrivacyButtonName);
+        if (existing != null) return existing;
+        var template = SceneUtil.FindAny("QuitButton");
+        if (template == null) return null;
+        var go = Instantiate(template, template.transform.parent, false);
+        go.name = PrivacyButtonName;
+        go.SetActive(true);
+        var button = go.GetComponent<Button>();
+        if (button != null)
+        {
+            button.onClick = new Button.ButtonClickedEvent();
+            button.onClick.AddListener(OpenPrivacyPolicy);
+        }
+        foreach (var label in go.GetComponentsInChildren<Text>(true)) label.text = PrivacyCaption;
+        return go;
+    }
+
+    public static void OpenPrivacyPolicy() { ExternalLinks.Open(ExternalLinks.PrivacyPolicy); }
 
     static void Place(string name, Vector2 anchor, Vector2 position, Vector2 size)
     {
@@ -153,17 +210,20 @@ public class startMenu : MonoBehaviour {
         score.totalCurrency = 0;
     }
 
-   public void achivements()
+    // The Options button (the scene still calls it by its old name).
+    public void achivements()
     {
         SceneManager.LoadScene("leaderboardS3");
+    }
+    // LEADERBOARD (moved here from Options): the in-game rankings panel over
+    // the home screen; its "View all" opens the store's own screen.
+    public void leaderboard()
+    {
+        LeaderboardPanel.Open();
     }
     public void shop()
     {
         SceneManager.LoadScene("shopS6");
-    }
-    public void credit()
-    {
-        SceneManager.LoadScene("creditsS7");
     }
     // The Quit button: a deliberate quit, so no confirmation (never on iOS).
     public void quit()

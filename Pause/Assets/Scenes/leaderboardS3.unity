@@ -866,7 +866,7 @@ GameObject:
   - component: {fileID: 943404593}
   - component: {fileID: 943404592}
   m_Layer: 5
-  m_Name: pullUpLeaderBoard
+  m_Name: CreditsButton
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -938,7 +938,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 268133803}
         m_TargetAssemblyTypeName: 
-        m_MethodName: pull_up_leaderboard
+        m_MethodName: credits
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -1293,7 +1293,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: LeaderBoard
+  m_Text: Credits
 --- !u!222 &1493376184
 CanvasRenderer:
   m_ObjectHideFlags: 0

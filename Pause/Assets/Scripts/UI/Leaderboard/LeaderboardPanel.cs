@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-// The in-game leaderboard, opened from Options (leaderboardS3) -> LeaderBoard.
+// The in-game leaderboard, opened from the home screen (startS4) -> Leaderboard.
 //
 // Built entirely at runtime on its own overlay canvas, so the scene only
 // keeps its existing button. Board tabs (enabled boards only), the top 10,
@@ -132,7 +132,7 @@ public class LeaderboardPanel : MonoBehaviour
         panel.safeArea = safe;
         panel.Build();
         Current = panel;
-        // Back closes the panel before Options' own back (home) is reached.
+        // Back closes the panel before the screen's own back is reached.
         BackNavigator.Register(panel, panel.OnBackPressed);
         panel.SelectFirstBoard();
         return panel;
@@ -150,7 +150,7 @@ public class LeaderboardPanel : MonoBehaviour
         else DestroyImmediate(go);
     }
 
-    // Android back / Escape: closes the panel instead of leaving Options
+    // Android back / Escape: closes the panel instead of leaving the screen
     // (the open panel is a BackNavigator layer; see Open).
     public static bool CloseIfOpen()
     {
@@ -183,7 +183,7 @@ public class LeaderboardPanel : MonoBehaviour
         scaler.uiScaleMode = CanvasScaler.ScaleMode.ConstantPixelSize;
         gameObject.AddComponent<GraphicRaycaster>();
 
-        // Full-screen dim that also swallows taps meant for the Options buttons.
+        // Full-screen dim that also swallows taps meant for the menu buttons behind it.
         var dim = Child(transform, "Dim");
         Stretch(dim);
         var dimImage = dim.gameObject.AddComponent<Image>();

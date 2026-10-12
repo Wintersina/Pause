@@ -303,11 +303,6 @@ public static class ScreenFitScreens
         Add<DeveloperOptions>("~DeveloperOptions");
         Add<StartWorldOptions>("~StartWorldOptions");
         Add<SoundOptions>("~SoundOptions");
-        Add<PrivacyOptions>("~PrivacyOptions");
-        // The how-to-play clip's frame, with a still in place of the decoded video (a headless editor
-        // cannot play one); MediaShotPreview swaps in real frames.
-        if (HowToPlayClip.PreviewTexture == null) HowToPlayClip.PreviewTexture = Texture2D.grayTexture;
-        Add<HowToPlayClip>("~HowToPlayClip");
         var account = new GameObject("~AccountOptions").AddComponent<AccountOptions>();
         account.Build(new Vector2(rig.W, rig.H), rig.device.Safe, true);
         rig.Sync();
@@ -317,8 +312,6 @@ public static class ScreenFitScreens
         SafeAreaClamp.AttachAll("leaderboardS3");
         account.Relayout();   // over the column as BACK's clamp left it (AccountOptions.Update on a device)
         rig.Sync();
-        var howTo = UnityEngine.Object.FindFirstObjectByType<HowToPlayClip>();
-        if (howTo != null) { howTo.Relayout(); rig.Sync(); }
         DevBadge(rig);
         if (shot == 1)
         {

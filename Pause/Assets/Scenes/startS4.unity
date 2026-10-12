@@ -182,7 +182,7 @@ GameObject:
   - component: {fileID: 243279718}
   - component: {fileID: 243279717}
   m_Layer: 5
-  m_Name: CreditsButton
+  m_Name: LeaderboardButton
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -254,7 +254,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 268133802}
         m_TargetAssemblyTypeName: 
-        m_MethodName: credit
+        m_MethodName: leaderboard
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -2374,7 +2374,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: Credits
+  m_Text: Leaderboard
 --- !u!222 &2128457411
 CanvasRenderer:
   m_ObjectHideFlags: 0

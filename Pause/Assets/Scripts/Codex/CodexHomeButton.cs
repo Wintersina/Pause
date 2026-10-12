@@ -2,17 +2,17 @@ using UnityEngine;
 using UnityEngine.UI;
 
 // The CODEX entry on the home screen (startS4): a fifth row in the main
-// menu's UIPanel, under Credits, with a small "12/42 DISCOVERED" counter.
+// menu's UIPanel, under Leaderboard, with a small "12/42 DISCOVERED" counter.
 //
 // Authored into startS4 as an empty RectTransform inside UIPanel carrying
 // this component, so the panel's VerticalLayoutGroup sizes it like the other
-// rows. Its look is copied at runtime from the scene's own CreditsButton
+// rows. Its look is copied at runtime from the scene's own LeaderboardButton
 // (same Button colours, same Orbitron label style), so it can never drift
 // from the home screen's buttons. The codex itself opens as a full-screen
 // panel over the home page (CodexPanel).
 public class CodexHomeButton : MonoBehaviour
 {
-    public const string Template = "CreditsButton";
+    public const string Template = "LeaderboardButton";
     // Label takes the upper part of the row, the counter the lower.
     public const float LabelShare = .68f;
 

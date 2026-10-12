@@ -539,7 +539,7 @@ public static class AccountSignInTest
                 }
                 Check(label + ": card clear of the Options buttons", !overlaps);
                 var boss = SceneUtil.FindAny("DeveloperBossRush");
-                var lb = SceneUtil.FindAny("pullUpLeaderBoard");
+                var lb = SceneUtil.FindAny("CreditsButton");
                 if (dev && boss != null && lb != null)
                 {
                     var b = (RectTransform)boss.transform;

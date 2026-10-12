@@ -7,8 +7,9 @@ using UnityEngine;
 // "Back undoes one level", everywhere (BackNavigator):
 //   dock: a tapped ship is deselected (nothing saved), then home
 //   home: codex detail -> grid -> closed -> quit armed -> quit
-//   Options: the leaderboard panel closes first, then home
-//   credits / gameS1 / tutorial: home
+//   home Leaderboard: the panel closes first, then home's own back
+//   Options: home; credits (entered from Options): Options
+//   gameS1 / tutorial: home
 // plus: one Escape press is consumed by exactly one handler, only one script
 // reads Escape, and iOS never quits or shows a quit affordance.
 //
@@ -113,7 +114,7 @@ public static class BackNavigationTest
         BackNavigator.Unregister(lower);
         BackNavigator.Unregister(upper);
         BackNavigator.HandleEscape(103);
-        Check("with no layers the scene root runs (credits -> home)", LastLoad == BackNavigator.HomeScene && loads.Count == 1);
+        Check("with no layers the scene root runs (credits -> Options)", LastLoad == BackNavigator.OptionsScene && loads.Count == 1);
 
         var dead = new GameObject("deadLayer");
         BackNavigator.Register(dead, () => { lowerHits += 100; return true; });
@@ -316,45 +317,72 @@ public static class BackNavigationTest
 
     // ------------------------------------------------------------- other screens
 
+    // The leaderboard lives on the home screen now (moved from Options,
+    // 2026-10-12): Back closes its panel first, then home's own back runs.
     static void OptionsLeaderboard()
     {
-        EditorSceneLoader.Open("leaderboardS3", OpenSceneMode.Single);
+        EditorSceneLoader.Open(BackNavigator.HomeScene, OpenSceneMode.Single);
         Stub(RuntimePlatform.Android);
         var service = new LeaderboardService(FakeLeaderboards.Demo(), () => 0f) { Ios = false };
         LeaderboardService.Instance = service;
-        var panel = LeaderboardPanel.Open(service, null, new Vector2(1080f, 2340f), new Rect(0f, 63f, 1080f, 2202f));
-        Check("options: leaderboard panel opens as the top Back layer", LeaderboardPanel.IsOpen && BackNavigator.Top == (object)panel);
+        var home = Object.FindFirstObjectByType<startMenu>();
+        Check("home: has its startMenu", home != null);
+        if (home != null) home.leaderboard();
+        var panel = LeaderboardPanel.Current;
+        Check("home: Leaderboard opens the panel as the top Back layer", LeaderboardPanel.IsOpen && BackNavigator.Top == (object)panel);
         BackNavigator.Back();
-        Check("options: Back closes the leaderboard panel first", !LeaderboardPanel.IsOpen && loads.Count == 0);
-        BackNavigator.Back();
-        Check("options: the next Back goes home", LastLoad == BackNavigator.HomeScene && loads.Count == 1);
+        Check("home: Back closes the leaderboard panel first (no load, quit not armed)",
+              !LeaderboardPanel.IsOpen && loads.Count == 0 && !BackNavigator.QuitIsArmed);
+        LeaderboardService.Instance = null;
 
+        EditorSceneLoader.Open(BackNavigator.OptionsScene, OpenSceneMode.Single);
+        Stub(RuntimePlatform.Android);
+        BackNavigator.Back();
+        Check("options: Back goes home", LastLoad == BackNavigator.HomeScene && loads.Count == 1);
         var menu = Object.FindFirstObjectByType<menuButton>();
         if (menu != null)
         {
-            LeaderboardPanel.Open(service, null, new Vector2(1080f, 2340f), new Rect(0f, 63f, 1080f, 2202f));
             loads.Clear();
             menu.back();
-            Check("options: on-screen BACK also closes the panel first", !LeaderboardPanel.IsOpen && loads.Count == 0);
-            menu.back();
-            Check("options: on-screen BACK again goes home", LastLoad == BackNavigator.HomeScene);
+            Check("options: on-screen BACK goes home", LastLoad == BackNavigator.HomeScene && loads.Count == 1);
         }
-        LeaderboardService.Instance = null;
     }
 
+    // Credits is entered from Options now, so Back returns there.
     static void Credits()
     {
+        EditorSceneLoader.Open(BackNavigator.OptionsScene, OpenSceneMode.Single);
+        var entry = GameObject.Find(AccountOptions.OptionsCreditsButton);
+        var button = entry != null ? entry.GetComponent<UnityEngine.UI.Button>() : null;
+        Check("options: has a Credits button", button != null);
+        if (button != null)
+        {
+            Object target = button.onClick.GetPersistentEventCount() == 1 ? button.onClick.GetPersistentTarget(0) : null;
+            Check("options: Credits calls leaderboard.credits",
+                  target is leaderboard && button.onClick.GetPersistentMethodName(0) == "credits");
+            var label = entry.GetComponentInChildren<UnityEngine.UI.Text>(true);
+            Check("options: the button reads Credits", label != null && label.text == "Credits");
+            var opened = new System.Collections.Generic.List<string>();
+            var was = leaderboard.LoadScene;
+            leaderboard.LoadScene = s => opened.Add(s);
+            try { if (target is leaderboard l) l.credits(); }
+            finally { leaderboard.LoadScene = was; }
+            Check("options: Credits loads creditsS7", opened.Count == 1 && opened[0] == "creditsS7");
+        }
+        EditorSceneLoader.Open(BackNavigator.HomeScene, OpenSceneMode.Single);
+        Check("home: no Credits entry any more", GameObject.Find("CreditsButton") == null);
+
         EditorSceneLoader.Open("creditsS7", OpenSceneMode.Single);
         Stub(RuntimePlatform.Android);
         BackNavigator.Back();
-        Check("credits: Back goes home", LastLoad == BackNavigator.HomeScene);
+        Check("credits: Back returns to Options", LastLoad == BackNavigator.OptionsScene && loads.Count == 1);
         var credits = Object.FindFirstObjectByType<everythingCredit>();
         Check("credits: scene has its BACK target", credits != null);
         if (credits != null)
         {
             loads.Clear();
             credits.back();
-            Check("credits: on-screen BACK goes home", LastLoad == BackNavigator.HomeScene && loads.Count == 1);
+            Check("credits: on-screen BACK returns to Options", LastLoad == BackNavigator.OptionsScene && loads.Count == 1);
         }
     }
 

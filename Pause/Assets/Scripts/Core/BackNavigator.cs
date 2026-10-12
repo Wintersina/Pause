@@ -8,12 +8,14 @@ using UnityEngine.SceneManagement;
 // each press undoes exactly one level.
 //
 // UI layers that can be backed out of (the dock's ship selection, the codex,
-// the Options leaderboard panel) Register a handler while they are up. Back()
+// the leaderboard panel) Register a handler while they are up. Back()
 // asks them newest-first; the first one that returns true consumed the press.
 // When none does, the scene's root fallback runs:
 //
 //   startS4 (home)                          quit, behind "press back again"
-//   shopS6 / leaderboardS3 / creditsS7      home
+//   shopS6 / leaderboardS3                  home
+//   creditsS7                               Options (leaderboardS3), where
+//                                           its entry lives
 //   gameS1 (flying or dead)                 home, exactly like the Home
 //                                           quick action / death-panel MENU
 //   tutorialS5                              home (the tutorial's Home action;
@@ -27,6 +29,7 @@ using UnityEngine.SceneManagement;
 public static class BackNavigator
 {
     public const string HomeScene = "startS4";
+    public const string OptionsScene = "leaderboardS3";
     // How long the first back on the home screen keeps quitting armed.
     public const float QuitWindow = 2f;
 
@@ -148,9 +151,11 @@ public static class BackNavigator
             case HomeScene:
                 HomeBack();
                 break;
+            case "creditsS7":
+                LoadScene(OptionsScene);
+                break;
             case "shopS6":
             case "leaderboardS3":
-            case "creditsS7":
             case "gameS1":
             case "tutorialS5":
                 GoHome();

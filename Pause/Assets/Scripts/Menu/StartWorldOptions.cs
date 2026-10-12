@@ -14,7 +14,7 @@ using UnityEngine.UI;
 //   developer mode on       hidden: the developer's own picker takes this slot
 //                           (and wins over this choice anyway)
 //
-// It sits in the slot just above LeaderBoard (y -133), or one row higher
+// It sits in the slot just above Credits (y -133), or one row higher
 // (-33, just under the developer picker's slot) in builds that offer developer mode, whose
 // switch lives at -133.
 public class StartWorldOptions : MonoBehaviour

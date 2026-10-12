@@ -60,7 +60,7 @@ public static class HomeLayoutTest
     static readonly string[] Buttons =
     {
         "MainMenuCanvas/UIPanel/PlayButton", "MainMenuCanvas/UIPanel/shopButton", "MainMenuCanvas/UIPanel/achivButton",
-        "MainMenuCanvas/UIPanel/CreditsButton", "MainMenuCanvas/UIPanel/CodexButton",
+        "MainMenuCanvas/UIPanel/LeaderboardButton", "MainMenuCanvas/UIPanel/CodexButton",
     };
 
     static Rect Rect_(ScreenFitRig rig, string path)
@@ -120,7 +120,7 @@ public static class HomeLayoutTest
         Check(d + "logo and buttons found", ok);
         Check(d + "logo " + got.logoY0 + ".." + got.logoY1, Near(got.logoY0, want.logoY0) && Near(got.logoY1, want.logoY1));
         Check(d + "buttons " + got.w + "x" + got.h + " at x " + got.x, Near(got.x, want.x) && Near(got.w, want.w) && Near(got.h, want.h));
-        Check(d + "Play / Space dock / Options / Credits / Codex at " + got.play + " " + got.dock + " " + got.options + " " + got.credits + " " + got.codex,
+        Check(d + "Play / Space dock / Options / Leaderboard / Codex at " + got.play + " " + got.dock + " " + got.options + " " + got.credits + " " + got.codex,
               Near(got.play, want.play) && Near(got.dock, want.dock) && Near(got.options, want.options) &&
               Near(got.credits, want.credits) && Near(got.codex, want.codex));
         // the spacing the player sees, independent of the absolute pins

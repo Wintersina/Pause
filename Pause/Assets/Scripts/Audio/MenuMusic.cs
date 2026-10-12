@@ -3,18 +3,19 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-// Keeps the home screen's music playing, uninterrupted, across the Credits
-// screen and back.
+// Keeps the home screen's music playing, uninterrupted, across the Options and
+// Credits screens and back.
 //
-// The Options menu is a panel inside the home scene (it never reloads it), but
-// Credits is its own scene (creditsS7) and Back returns to a freshly loaded home
-// scene, each of which would otherwise cut the music and restart it. So the home
-// scene's "MainMenuMusic" source is adopted the first time home loads
-// (DontDestroyOnLoad) and carried through creditsS7; when home loads again the
-// scene's own duplicate source is destroyed on the spot and the carried one keeps
-// playing from where it was. Any other scene (game, tutorial, store, leaderboard)
-// ends the carried music, so it never leaks into gameplay or the store (which has
-// its own StoreMusic) and the next home arrival starts the track fresh.
+// The Codex is an overlay inside the home scene (it never reloads it), but
+// Options (leaderboardS3) and Credits (creditsS7) are their own scenes and Back
+// returns to a freshly loaded home scene, each of which would otherwise cut the
+// music and restart it. So the home scene's "MainMenuMusic" source is adopted the
+// first time home loads (DontDestroyOnLoad) and carried through the menu scenes
+// in CarriedScenes; when home loads again the scene's own duplicate source is
+// destroyed on the spot and the carried one keeps playing from where it was. Any
+// other scene (game, tutorial, store) ends the carried music, so it never leaks
+// into gameplay or the store (which has its own StoreMusic) and the next home
+// arrival starts the track fresh.
 //
 // Volume stays under SoundSettings (the source is registered as music there, so
 // the MUSIC toggle/slider keep applying); pausing on app focus loss is the
@@ -25,6 +26,15 @@ public static class MenuMusic
     public const string SourceName = CodexMusic.MenuSourceName;
     public const string HomeScene = "startS4";
     public const string CreditsScene = "creditsS7";
+    public const string OptionsScene = "leaderboardS3";
+
+    /// <summary>Menu scenes (besides home) the home music plays on through.</summary>
+    public static readonly string[] CarriedScenes = { CreditsScene, OptionsScene };
+
+    public static bool Carries(string sceneName)
+    {
+        return sceneName == HomeScene || Array.IndexOf(CarriedScenes, sceneName) >= 0;
+    }
 
     // Tests (edit mode forbids DontDestroyOnLoad).
     public static Action<GameObject> Persist = DefaultPersist;
@@ -54,7 +64,7 @@ public static class MenuMusic
     /// <summary>One scene arrived (roots are its root objects).</summary>
     public static void Handle(string sceneName, IEnumerable<GameObject> roots)
     {
-        if (sceneName != HomeScene && sceneName != CreditsScene)
+        if (!Carries(sceneName))
         {
             if (keeper != null) UnityEngine.Object.Destroy(keeper.gameObject);
             keeper = null;

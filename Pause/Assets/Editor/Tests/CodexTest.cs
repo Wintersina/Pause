@@ -1085,8 +1085,8 @@ public static class CodexTest
         var uiPanel = entry.transform.parent;
         Check("CODEX is a row of the home menu (UIPanel)", uiPanel != null && uiPanel.name == "UIPanel");
         Check("CODEX sits right under Credits",
-              uiPanel.Find("CreditsButton") != null &&
-              entry.transform.GetSiblingIndex() == uiPanel.Find("CreditsButton").GetSiblingIndex() + 1);
+              uiPanel.Find("LeaderboardButton") != null &&
+              entry.transform.GetSiblingIndex() == uiPanel.Find("LeaderboardButton").GetSiblingIndex() + 1);
 
         // The title logo must not move, resize or recolour.
         var logo = SceneUtil.FindAny("menuTitle");
@@ -1112,7 +1112,7 @@ public static class CodexTest
         entry.Build();   // idempotent
         Check("CODEX button is built once", entry.GetComponentsInChildren<Button>(true).Length == 1);
         Check("button reads Codex, like its neighbours", entry.Label != null && entry.Label.text == "Codex");
-        var creditsText = uiPanel.Find("CreditsButton").GetComponentInChildren<Text>(true);
+        var creditsText = uiPanel.Find("LeaderboardButton").GetComponentInChildren<Text>(true);
         Check("label matches the home buttons' font and colour",
               entry.Label.font == creditsText.font && entry.Label.color == creditsText.color);
         Check("counter shows discovered/total ('" + entry.Counter.text + "')",

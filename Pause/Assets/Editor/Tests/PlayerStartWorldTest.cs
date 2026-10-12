@@ -202,7 +202,7 @@ public static class PlayerStartWorldTest
         Check("unlocked: arrows read < and >", Label(StartWorldOptions.PrevName) == "<" && Label(StartWorldOptions.NextName) == ">");
         var row = (RectTransform)Obj(StartWorldOptions.RowName).transform;
         var tut = (RectTransform)Obj("Tutorial").transform;
-        var lb = (RectTransform)Obj("pullUpLeaderBoard").transform;
+        var lb = (RectTransform)Obj("CreditsButton").transform;
         Check("row sits above LeaderBoard and clear of it",
               row.anchoredPosition.y - RowHalf() >= lb.anchoredPosition.y + lb.sizeDelta.y * .5f - .01f &&
               row.parent == tut.parent);

@@ -51,7 +51,7 @@ public class DeveloperOptions : MonoBehaviour
         // Boss rush: every run's end-of-level boss arrives a few seconds in
         // (BossDev), for testing the encounters without flying a level.
         // Stacked above the start-world row (it used to sit at -223, on top
-        // of the LeaderBoard button at -233).
+        // of the Credits (then LeaderBoard) button at -233).
         bossRow = Clone(template, parent, "DeveloperBossRush",
                         new Vector2(0f, 47f), new Vector2(420f, RowH), ToggleBossRush);
         bossLabel = Label(bossRow);

@@ -143,7 +143,7 @@ public static class SoundMuteTest
         IconChecks();
 
         // geometry: finger-sized, clear of the other rows and of each other
-        var names = new List<string> { "PlayerStartWorld", "PlayerStartWorldLocked", "pullUpLeaderBoard", "Tutorial", "BackButton",
+        var names = new List<string> { "PlayerStartWorld", "PlayerStartWorldLocked", "CreditsButton", "Tutorial", "BackButton",
             "DeveloperToggle", "DeveloperStartWorld", "DeveloperBossRush" };
         foreach (var mine in new[] { SoundOptions.RowName, SoundOptions.MusicRowName, SoundOptions.EffectsSliderName, SoundOptions.MusicSliderName })
         {

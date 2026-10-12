@@ -915,7 +915,7 @@ public static class TitleScreenTrafficTest
 
         // the menu's buttons are a screen-space overlay; they keep raycast targets
         var codex = GameObject.Find("CodexButton");
-        var credits = GameObject.Find("CreditsButton");
+        var credits = GameObject.Find("LeaderboardButton");
         var play = GameObject.Find("PlayButton");
         bool buttons = true;
         foreach (var b in new[] { codex, credits, play })
