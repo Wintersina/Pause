@@ -126,7 +126,7 @@ public class WorldManager : MonoBehaviour
         // are stand-ins until the remaining phases land.
         new WorldTheme {
             displayName = "Desert", resourceFolder = "Desert",
-            musicResource = "", progressiveMusic = false,   // plays the scene's own track (the user supplies it)
+            musicResource = "WorldMusic/Desert_Main", progressiveMusic = false,   // Dune Circuit
             portalColor = new Color(0.96f, 0.90f, 0.72f),   // sun-white / pale bone gold (never amber, never red)
             speedRampPerSecond = 0.00425f, enemyRampScale = 1.80f,
         },

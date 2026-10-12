@@ -28,6 +28,7 @@ public static class WorldLogicTest
         ("Tide", "WorldMusic/Tide_Main", "Assets/Audio/Resources/WorldMusic/Tide_Main.mp3"),
         ("Storm", "WorldMusic/Storm_Main", "Assets/Audio/Resources/WorldMusic/Storm_Main.mp3"),
         ("Ember", "WorldMusic/Ember_Main", "Assets/Audio/Resources/WorldMusic/Ember_Main.mp3"),
+        ("Desert", "WorldMusic/Desert_Main", "Assets/Audio/Resources/WorldMusic/Desert_Main.mp3"),
     };
 
     // The audio these songs replaced: the Frost/Ember stage arrangements and
@@ -325,9 +326,11 @@ public static class WorldLogicTest
         Check("Desert is world 6 (the seventh), named Desert, folder Desert, ramping harder than Storm",
               t.displayName == "Desert" && t.resourceFolder == "Desert" && t.speedRampPerSecond > WorldManager.Worlds[Storm].speedRampPerSecond &&
               t.enemyRampScale > WorldManager.Worlds[Storm].enemyRampScale);
-        Check("... ramp .00425 / enemy scale 1.80, no music of its own",
+        Check("... ramp .00425 / enemy scale 1.80, plays Dune Circuit (Desert_Main) as a full song",
               Mathf.Approximately(t.speedRampPerSecond, .00425f) && Mathf.Approximately(t.enemyRampScale, 1.80f) &&
-              t.musicResource == "" && !t.progressiveMusic);
+              t.musicResource == WorldMusic.DesertTrack && !t.progressiveMusic);
+        Check("... its boss resolves Boss_Desert (Netrunner's Gambit), distinct from its world song",
+              WorldMusic.BossClip(t) != null && WorldMusic.BossClip(t) != Resources.Load<AudioClip>(t.musicResource));
         float hue, sat, val; Color.RGBToHSV(t.portalColor, out hue, out sat, out val);
         Check("... its portal is pale bone gold (hue 35..55 deg, S <= .33 so it never reads as star dust), not amber nor red",
               hue * 360f > 35f && hue * 360f < 55f && sat <= .33f && val > .85f);
