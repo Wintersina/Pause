@@ -253,8 +253,8 @@ public static class ScoreBonusTest
                 Debug.Log("[BONUS] outside: " + g.name + " " + r);
             }
         }
-        Check("everything still sits inside the panel (its size and fit are unchanged at every aspect)",
-              inside && DeathPanelView.Height == 760f && DeathPanelView.Width == 680f);
+        Check("everything still sits inside the panel (the panel is 876 tall since the SPACE DOCK row)",
+              inside && DeathPanelView.Height == 876f && DeathPanelView.Width == 680f);
         Object.DestroyImmediate(view.gameObject);
     }
 
