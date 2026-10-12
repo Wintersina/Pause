@@ -79,6 +79,8 @@ public class SecretPowerController : MonoBehaviour
     float stunLeft, magnetLeft, tractorLeft, decoyLeft, bubbleLeft, dashLeft, holeLeft, shellLeft, novaLeft, ghostLeft;
     Vector3 holeAt, novaAt;
     SpriteRenderer ghostHull;
+    float ghostEmit;
+    Vector3 lastGhostAt;
     AttackSprite holeFx, shellFx, magnetFx, bubbleFx, decoyFx, cloakFx;
 
     const int MaxLocked = 48;
@@ -322,6 +324,7 @@ public class SecretPowerController : MonoBehaviour
 
             case SecretPower.IonBattery:
                 score.incromentPause();
+                PowerTrailSprite.Pack(ship, at);
                 bubbleLeft = ionSlowSeconds;
                 WorldTimeFx.BubbleScale = ionSlowScale;
                 Burst(at, 2f, transform);
@@ -426,6 +429,8 @@ public class SecretPowerController : MonoBehaviour
     void BeginGhost(float seconds)
     {
         ghostLeft = seconds;
+        ghostEmit = 0f;
+        lastGhostAt = transform.position;
         SetHullAlpha(ghostAlpha);
     }
 
@@ -725,6 +730,17 @@ public class SecretPowerController : MonoBehaviour
         {
             ghostLeft -= dt;
             SetHullAlpha(ghostAlpha);
+            // afterimages: a translucent hull copy every ~.06 s once it has moved
+            ghostEmit -= dt;
+            if (ghostEmit <= 0f)
+            {
+                ghostEmit = .06f;
+                if ((transform.position - lastGhostAt).sqrMagnitude > .0025f)
+                {
+                    PowerTrailSprite.Ghost(ghostHull, ghostAlpha * .9f);
+                    lastGhostAt = transform.position;
+                }
+            }
             if (ghostLeft <= 0f) { ghostLeft = 0f; SetHullAlpha(1f); }
         }
 

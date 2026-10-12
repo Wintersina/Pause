@@ -22,19 +22,44 @@ using UnityEngine;
 public static class ShipFxArt
 {
     public const int Columns = 16, Rows = 15;
-    public const int LoopFrames = 4, BurstFrames = 4;
+    public const int LoopFrames = 8, BurstFrames = 8;
+    public const int StripCell = 256, StripCells = 16;   // powers-v2 strips: 4096 x 256
     public const int MeterFillFrames = 10, MeterReadyFrames = 4;
 
-    public static readonly int[] LoopTicks = { 2, 2, 2, 2 };
-    public static readonly int[] BurstTicks = { 1, 1, 2, 3 };
-    public static readonly int[] PowerLoopTicks = { 3, 2, 3, 2 };
-    public static readonly int[] PowerBurstTicks = { 1, 2, 2, 3 };
+    // 8-frame strips at 24 fps (one tick a drawing, the last burst drawing held longer).
+    public static readonly int[] LoopTicks = { 1, 1, 1, 1, 1, 1, 1, 1 };
+    public static readonly int[] BurstTicks = { 1, 1, 1, 1, 1, 1, 2, 2 };
+    public static readonly int[] PowerLoopTicks = { 1, 1, 1, 1, 1, 1, 1, 1 };
+    public static readonly int[] PowerBurstTicks = { 1, 1, 1, 1, 1, 2, 2, 2 };
+    const int OldFrames = 4;   // the legacy AttackFx atlas, the fallback when a strip is missing
     public static readonly int[] MeterReadyTicks = { 4, 2, 2, 2 };
 
     const int AttackLoopAt = 0, AttackBurstAt = 4, PowerLoopAt = 8, PowerBurstAt = 12;
     const int MeterFillAt = 0, MeterReadyAt = 10, MeterFlashAt = 14, MeterIconAt = 15;
 
     static Sprite[] attackSheet, meterSheet;
+    static readonly System.Collections.Generic.Dictionary<string, Sprite[]> strips = new System.Collections.Generic.Dictionary<string, Sprite[]>();
+
+    // Resources/Weapons/Powers2/<ShipId.KeyOf>_power.png / _attack.png: 16
+    // cells of 256 px (0-7 loop, 8-15 burst or impact), one world unit across
+    // at scale 1 like the old atlas. Null when the strip is missing.
+    public static Sprite[] Strip(int ship, bool power)
+    {
+        string key = (ShipId.KeyOf(ShipId.IsValid(ship) ? ship : ShipId.Starter) ?? "") + (power ? "_power" : "_attack");
+        Sprite[] cells;
+        if (strips.TryGetValue(key, out cells) && (cells == null || cells[0] != null)) return cells;
+        var tex = Resources.Load<Texture2D>("Weapons/Powers2/" + key);
+        cells = null;
+        if (tex != null && tex.height > 0 && tex.width >= tex.height * StripCells)
+        {
+            cells = new Sprite[StripCells];
+            float c = tex.width / (float)StripCells;
+            for (int i = 0; i < StripCells; i++)
+                cells[i] = Sprite.Create(tex, new Rect(i * c, 0, c, tex.height), new Vector2(.5f, .5f), c);
+        }
+        strips[key] = cells;
+        return cells;
+    }
 
     static Sprite[] Slice(string file)
     {
@@ -70,10 +95,20 @@ public static class ShipFxArt
         return sheet[Row(ship) * Columns + at + Mathf.Clamp(i, 0, count - 1)];
     }
 
-    public static Sprite AttackLoop(int ship, int i)  => Get(Attack(), ship, AttackLoopAt, LoopFrames, Wrap(i, LoopFrames));
-    public static Sprite AttackBurst(int ship, int i) => Get(Attack(), ship, AttackBurstAt, BurstFrames, i);
-    public static Sprite PowerLoop(int ship, int i)   => Get(Attack(), ship, PowerLoopAt, LoopFrames, Wrap(i, LoopFrames));
-    public static Sprite PowerBurst(int ship, int i)  => Get(Attack(), ship, PowerBurstAt, BurstFrames, i);
+    static Sprite Fx(int ship, bool power, bool burst, int i)
+    {
+        var strip = Strip(ship, power);
+        if (strip != null) return strip[(burst ? LoopFrames : 0) + (burst ? Mathf.Clamp(i, 0, BurstFrames - 1) : Wrap(i, LoopFrames))];
+        // fallback: the old 4-frame atlas, each of its drawings held for two of ours
+        int at = power ? (burst ? PowerBurstAt : PowerLoopAt) : (burst ? AttackBurstAt : AttackLoopAt);
+        int j = Mathf.Clamp(i, 0, burst ? BurstFrames - 1 : int.MaxValue) / 2;
+        return Get(Attack(), ship, at, OldFrames, burst ? j : Wrap(j, OldFrames));
+    }
+
+    public static Sprite AttackLoop(int ship, int i)  => Fx(ship, false, false, i);
+    public static Sprite AttackBurst(int ship, int i) => Fx(ship, false, true, i);
+    public static Sprite PowerLoop(int ship, int i)   => Fx(ship, true, false, i);
+    public static Sprite PowerBurst(int ship, int i)  => Fx(ship, true, true, i);
 
     public static Sprite MeterFill(int ship, int i)   => Get(Meter(), ship, MeterFillAt, MeterFillFrames, i);
     public static Sprite MeterReady(int ship, int i)  => Get(Meter(), ship, MeterReadyAt, MeterReadyFrames, Wrap(i, MeterReadyFrames));

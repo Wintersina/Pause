@@ -62,6 +62,8 @@ public static class PowersReworkTest
         MendingFiresWhenDamaged();
         ShellStaysDrawnAndShatters();
         DescriptionsMatch();
+        PowersV2ArtResolves();
+        CloakTrailAndIonPack();
 
         AttackPool.StopAll();
         WorldTimeFx.Reset();
@@ -698,6 +700,79 @@ public static class PowersReworkTest
               SpritesActiveNamed(SecretPowerController.ShellAuraName) == 0);
         Object.DestroyImmediate(hit);
         Teardown(turtle);
+    }
+
+    // ---- powers-v2 art ------------------------------------------------------
+
+    static void PowersV2ArtResolves()
+    {
+        bool allStrips = true, allFrames = true, sized = true;
+        string bad = "";
+        for (int id = 1; id <= 15; id++)
+        {
+            foreach (bool power in new[] { true, false })
+            {
+                var strip = ShipFxArt.Strip(id, power);
+                if (strip == null || strip.Length != 16) { allStrips = false; bad += ShipId.KeyOf(id) + (power ? "_power " : "_attack "); continue; }
+                for (int i = 0; i < 8; i++)
+                {
+                    var loop = power ? ShipFxArt.PowerLoop(id, i) : ShipFxArt.AttackLoop(id, i);
+                    var burst = power ? ShipFxArt.PowerBurst(id, i) : ShipFxArt.AttackBurst(id, i);
+                    if (loop != strip[i] || burst != strip[8 + i]) allFrames = false;
+                    // ppu = cell size: one world unit across at scale 1, so call-site scales are world sizes
+                    var b = loop.bounds.size;
+                    var bb = burst.bounds.size;
+                    if (Mathf.Abs(b.x - 1f) > .01f || Mathf.Abs(b.y - 1f) > .01f ||
+                        Mathf.Abs(bb.x - 1f) > .01f || Mathf.Abs(bb.y - 1f) > .01f) sized = false;
+                }
+            }
+        }
+        Check("all 30 strips load as 16 cells" + (bad.Length > 0 ? " (missing: " + bad + ")" : ""), allStrips);
+        Check("every ship's 8 loop + 8 burst frames resolve for power and attack", allFrames);
+        Check("every frame is one world unit across at scale 1", sized);
+        Check("loops and bursts have 8 hold entries at about 24 fps",
+              ShipFxArt.LoopTicks.Length == 8 && ShipFxArt.BurstTicks.Length == 8 &&
+              ShipFxArt.PowerLoopTicks.Length == 8 && ShipFxArt.PowerBurstTicks.Length == 8 &&
+              WeaponArt.Seconds(ShipFxArt.BurstTicks) < .5f && WeaponArt.Seconds(ShipFxArt.PowerBurstTicks) < .5f);
+        Check("an out-of-range ship still draws (starter fallback)", ShipFxArt.PowerBurst(0, 3) != null && ShipFxArt.AttackLoop(99, 20) != null);
+
+        // call-site world sizes stay sane: the largest scale used is EMP's 6 units
+        float[] sizes = { 6f, 3.2f, 2.4f, 1.6f, 2f, 1.1f };
+        bool sane = true;
+        foreach (float sz in sizes) sane &= sz >= .5f && sz <= 7f;
+        Check("call-site world sizes stay within .5 - 7 units", sane);
+    }
+
+    static void CloakTrailAndIonPack()
+    {
+        FreshScene();
+        var jade = Ship(6);
+        var s = jade.Secret;
+        jade.GetComponent<SpriteRenderer>().sprite = ShipFxArt.PowerLoop(6, 0);   // the test hull has no art of its own
+        s.SetMeter(SecretPowerController.Full);
+        s.Fire();
+        for (int i = 0; i < 6; i++)
+        {
+            jade.transform.position += new Vector3(.3f, 0f, 0f);
+            s.Step(.07f);
+        }
+        Check("Phase Cloak leaves afterimages behind a moving hull (" + PowerTrailSprite.GhostsActive + ")",
+              PowerTrailSprite.GhostsActive >= 3 && PowerTrailSprite.GhostsActive <= PowerTrailSprite.Pool);
+        PowerTrailSprite.StepAll(.5f);
+        Check("they fade out", PowerTrailSprite.GhostsActive == 0);
+        Teardown(jade);
+
+        FreshScene();
+        var ion = Ship(5);
+        var e = ion.Secret;
+        score.pauseCounter = 2;
+        e.SetMeter(SecretPowerController.Full);
+        e.Step(.02f);
+        Check("Ion Battery sends a pack toward the pause counter", PowerTrailSprite.PackActive);
+        PowerTrailSprite.StepAll(PowerTrailSprite.PackLife + .05f);
+        Check("it lands in about half a second", !PowerTrailSprite.PackActive);
+        Teardown(ion);
+        score.pauseCounter = 0;
     }
 
     // ---- text ------------------------------------------------------------

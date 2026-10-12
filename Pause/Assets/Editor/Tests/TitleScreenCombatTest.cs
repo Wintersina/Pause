@@ -220,7 +220,7 @@ public static class TitleScreenCombatTest
     static bool IsOwnArt(Sprite s, int id)
     {
         for (int i = 0; i < WeaponArt.ShotFrames; i++) if (WeaponArt.Shot(id, i) == s) return true;
-        for (int i = 0; i < 4; i++)
+        for (int i = 0; i < ShipFxArt.BurstFrames; i++)
             if (ShipFxArt.AttackLoop(id, i) == s || ShipFxArt.AttackBurst(id, i) == s) return true;
         return false;
     }
