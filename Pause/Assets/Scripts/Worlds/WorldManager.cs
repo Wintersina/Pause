@@ -176,7 +176,7 @@ public class WorldManager : MonoBehaviour
     //  the last world (its lift-off loops). A property so tests can flip it
     //  (and must restore it).
     // ======================================================================
-    public static bool DesertEnabled { get; set; } = false;
+    public static bool DesertEnabled { get; set; } = true;
 
     // The flags chain in world order: Desert is reachable only when Storm is live
     // (Tide AND Storm on). DesertEnabled alone changes nothing.
