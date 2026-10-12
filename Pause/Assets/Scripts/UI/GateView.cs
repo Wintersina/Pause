@@ -17,7 +17,8 @@ public sealed class GateView
     readonly Transform root;
     SpriteRenderer leftRenderer, rightRenderer;
     readonly SpriteRenderer[] leftCrack = new SpriteRenderer[3], rightCrack = new SpriteRenderer[3];
-    SpriteRenderer flash;
+    SpriteRenderer flash, haze;
+    Transform hazeT;
     float flashAlpha;
 
     // debris
@@ -68,6 +69,9 @@ public sealed class GateView
         for (int i = 0; i < MaxSparks; i++) Pool("Spark " + i, art.white, 7, out sT[i], out sR[i]);
         for (int i = 0; i < MaxSteam; i++) Pool("Steam " + i, art.steam[0], 5, out tT[i], out tR[i]);
         for (int i = 0; i < MaxGlow; i++) Pool("Glow " + i, art.glow, 8, out gT[i], out gR[i]);
+        // Warm haze in the gap: the inside of the gate is dark with a warm smoky glow (no seam beam).
+        Pool("Gap haze", art.glow, 1, out hazeT, out haze);
+        haze.enabled = false;
         Transform ft;
         Pool("Flash", art.white, 9, out ft, out flash);
         flash.color = new Color(1, 1, 1, 0);
@@ -260,6 +264,17 @@ public sealed class GateView
         {
             bool on = show && stage == i + 1;
             leftCrack[i].enabled = on; rightCrack[i].enabled = on;
+        }
+
+        // haze in the opening: grows with the gap, gone with the leaves on a smash
+        float hz = Mathf.Clamp01(sim.open * 1.6f) * (sim.smashed ? Mathf.Clamp01(1f - sim.smashTime / 0.3f) : 1f);
+        haze.enabled = hz > 0.01f;
+        if (haze.enabled)
+        {
+            Vector2 hs = haze.sprite.bounds.size;
+            hazeT.localScale = new Vector3(Mathf.Max(0.25f, 1.5f * sim.open) / hs.x, 0.78f / hs.y, 1f);
+            hazeT.localPosition = new Vector3(0f, 0f, -0.01f);
+            haze.color = new Color(0.78f, 0.34f, 0.14f, 0.5f * hz);
         }
 
         // continuous steam: jets from the leaf grilles, pressure building

@@ -273,6 +273,8 @@ public static class ScreenFitScreens
         SafeAreaClamp.AttachAll("leaderboardS3");
         account.Relayout();   // over the column as BACK's clamp left it (AccountOptions.Update on a device)
         rig.Sync();
+        var howTo = UnityEngine.Object.FindFirstObjectByType<HowToPlayClip>();
+        if (howTo != null) { howTo.Relayout(); rig.Sync(); }
         DevBadge(rig);
         if (shot == 1)
         {

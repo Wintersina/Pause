@@ -6,7 +6,7 @@ Two muted H.264 loops ship with the game. Both are played by `LoopingClip`
 | file | where | use | encode |
 |---|---|---|---|
 | `StreamingAssets/Video/title_loop.mp4` | title screen (startS4), behind the menu | `TitleVideo` | 540x960, 30 fps, H.264 Main L3.1, ~1.2 Mbps, no audio, 12.5 s, ~2.0 MB |
-| `StreamingAssets/Video/tutorial_demo.mp4` | Options screen (leaderboardS3), beside the Tutorial (replay) button | `HowToPlayClip` | 540x960, 30 fps, H.264 Main L3.1, ~1.0 Mbps, no audio, 7.2 s, ~0.8 MB |
+| `StreamingAssets/Video/tutorial_demo.mp4` | Options screen (leaderboardS3), under the Options rows | `HowToPlayClip` | 540x960, 30 fps, H.264 Main L3.1, ~1.0 Mbps, no audio, 7.2 s, ~0.8 MB |
 
 Footage: Space only (pause_showcase_space, HapticGate-brand/marketing/pause/video/raw).
 No Tide, Storm or Desert may ever be used here.
@@ -30,7 +30,8 @@ in over 0.8 s, and the rolled MenuBackdrop stays underneath as the fallback.
 
 ## How-to-play loop
 0.4 s - 7.6 s of the showcase: release (freeze) -> hold -> touch -> teleport.
-Placed on the Options screen next to the Tutorial button, NOT inside the tutorial:
+Placed on the Options screen, centred under the last row with a HOW TO PLAY label (about a third of the screen
+width, smaller on short phones, hidden when there is no clear space; `HowToPlayClip.Relayout`), NOT inside the tutorial:
 the tutorial's timed beats (`TutorialScript`, `Hints`, `TutorialPolishTest`) are
 unchanged, so nothing can lengthen them.
 

@@ -109,14 +109,21 @@ the user; no beeps or coin sounds):
 * Filmstrips: `-executeMethod HapticGatePreview.Render -previewDir <dir>` writes
   `natural.png`, `tap1.png`, `tap2.png`, `tap3.png`.
 
-## Brand mark (final frame) and opening clip
+## Wordmark fly-out (brand animation v2) and opening clip
 
-* `HapticGateMark` loads `Resources/HapticGate/hapticgate_mark.png` (closed gate + smoke, 512x448)
-  and `hapticgate_lockup.png` (gate + smoke + wordmark, 640x640): the approved closed-gate logo from
-  `HapticGate-brand/closed/`. Replace those two files to change the logo; nothing else knows about them.
-  `splashScene` shows the mark above the wordmark, fading in as the door passes `MarkRevealFrom` (half open)
-  and solid when it is open or smashed (`MarkReveal`); Credits shows the lockup above "Made by HapticGate"
-  (`CreditsMove.EnsureLockup`).
+* The red wordmark flies out of the door (`splashScene.PoseAt`, pure and tested): from `FlyStart` (1.00 s)
+  it is a tiny, dimmed wordmark in the middle of the gap, as if far behind the gate; at `FlyExit` (1.30 s) it
+  comes out in front of the leaves, growing fast and heading down; it lands on its final spot below the gate at
+  `FlyLand` (1.70 s), bounces up a little (`BounceSeconds`), flickers on like neon and is steady from
+  `FlickerEnd` (2.08 s; the card leaves at 2.3 s). The brand film's 1.07 / 1.43 / 2.17 s after the first split
+  are squeezed to fit the 2.3 s card. After a smash the same flight runs out in `SmashFlySeconds` (0.3 s), so
+  skipping is as quick as before (`SmashLeaveDelay` 0.45 s is unchanged).
+* Layout: gate + wordmark are one column centred in the safe area (`GateHeight` 0.68 gate-widths, `GateWordGap`
+  0.12); `Layout.gateCenter` / `Layout.logoCenter` (the wordmark's FINAL centre). Edit-mode layout tests and the
+  screen-fit rig see the wordmark at its final spot (the flight only runs while playing / `BuildGateInEditMode`).
+* The gap shows dark interior with warm haze (`GateView` "Gap haze"), no centre beam.
+* The closed-gate lockup (`hapticgate_lockup.png`, from `HapticGate-brand/closed`) is used by the Credits only
+  (`HapticGateMark.Lockup`); replace the PNG to change it.
 * The user's `gate_open.wav` (Audio/Resources/Audio/GateOpen, 5.6 s stereo 48 kHz, Vorbis q0.65, 141 KB
   imported) replaces the natural-run rattle and the seven step shrieks (`GateAudio.OpenReplaces`). Its first
   big hit is 1.11 s into the file (the broadband sweep ends and the latch lets go; found with astats/spectrogram);

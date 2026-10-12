@@ -113,11 +113,18 @@ public static class GameMediaTest
         HowToPlayClip.PreviewTexture = Texture2D.grayTexture;
         var clip = new GameObject("~HowToPlayClip").AddComponent<HowToPlayClip>();
         clip.SendMessage("Start");
-        Check("how-to-play frame is built next to the Tutorial button", clip.Frame != null);
+        clip.Relayout();
+        Check("how-to-play frame is built under the Options rows", clip.Frame != null);
         if (clip.Frame != null)
-            Check("... 9:16, inside the options canvas, not a button",
-                  Mathf.Abs(clip.Frame.rect.width / clip.Frame.rect.height - 540f / 960f) < 0.05f
-                  && clip.Frame.GetComponentInParent<Canvas>() != null && clip.Frame.GetComponent<UnityEngine.UI.Selectable>() == null);
+        {
+            Check("... inside the options canvas, not a button", clip.Frame.GetComponentInParent<Canvas>() != null
+                  && clip.Frame.GetComponent<UnityEngine.UI.Selectable>() == null);
+            if (clip.Frame.gameObject.activeInHierarchy && clip.Frame.rect.height > 1f)
+                Check("... 9:16 and labelled HOW TO PLAY",
+                      Mathf.Abs(clip.Frame.rect.width / clip.Frame.rect.height - 540f / 960f) < 0.05f
+                      && clip.GetComponentInChildren<UnityEngine.UI.Text>(true) == null
+                      && clip.Frame.parent.GetComponentInChildren<UnityEngine.UI.Text>(true).text == HowToPlayClip.LabelText);
+        }
         Object.DestroyImmediate(clip.gameObject);
     }
 }

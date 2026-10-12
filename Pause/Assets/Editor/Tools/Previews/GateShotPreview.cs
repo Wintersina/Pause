@@ -52,7 +52,7 @@ public static class GateShotPreview
         // natural at 1.2 s and 1.5 s (mid-open)
         card.Restart();
         if (dev == "phone") Debug.Log("[GATE SHOT] leaf scale " + card.View.leftLeaf.localScale);
-        Run(new[] { 1.2f, 1.5f, 2.1f }, new[] { "natural_1.2s", "midopen_1.5s", "final_2.1s" }, null, dir, prefix, dev);
+        Run(new[] { 1.2f, 1.4f, 1.55f, 1.8f, 2.15f }, new[] { "natural_1.2s", "wordmark_emerging_1.4s", "wordmark_midflight_1.55s", "wordmark_landing_1.8s", "final_2.15s" }, null, dir, prefix, dev);
         // taps at 0.4 / 0.8 / 1.2 s; frames right after each
         card.Restart();
         Run(new[] { 0.55f, 0.95f, 1.27f }, new[] { "after_tap1", "after_tap2", "after_tap3_crack3" }, new[] { 0.40f, 0.80f, 1.20f }, dir, prefix, dev);
