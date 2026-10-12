@@ -441,6 +441,7 @@ public class collisionDetection : MonoBehaviour {
                 PickupWord(ShieldWord, hit.transform.position, AkiraPalette.Cyan);
                 AtomCharged(AkiraPalette.Cyan);
                 boostSound.Play();
+                BoostJet.Play();   // the jet-engine spool-up, restarted (never stacked) by a quick second atom
                 ShipShield.For(gameObject).Show();
                 RunScore.OnShieldRaised();   // a fresh shield: its absorb allowance starts again
                 awardDust(blueAtomValue);

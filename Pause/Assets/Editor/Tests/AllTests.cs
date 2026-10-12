@@ -165,6 +165,7 @@ public static class AllTests
         ("ShieldFitTest", ShieldFitTest.Execute),
         ("SpaceBossMusicTest", SpaceBossMusicTest.Execute),
         ("ShieldPickupSkinTest", ShieldPickupSkinTest.Execute),
+        ("BoostJetTest", BoostJetTest.Execute),
         ("ShieldShockwaveTest", ShieldShockwaveTest.Execute),
         ("ShoveCrashTest", ShoveCrashTest.Execute),
         ("ShipArtTest", ShipArtTest.Execute),
