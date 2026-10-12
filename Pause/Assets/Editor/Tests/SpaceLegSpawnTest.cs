@@ -103,17 +103,15 @@ public static class SpaceLegSpawnTest
     {
         fails = 0;
         using var sandbox = new TestHarness.Sandbox();
-        bool tide = WorldManager.TideEnabled, storm = WorldManager.StormEnabled;
         string dir = System.Environment.GetEnvironmentVariable("SPACELEG_LOG_DIR");
         log = new StringBuilder();
         try
         {
             EliteCatalog.Reload();
-            foreach (bool all in new[] { false, true })
+            foreach (bool all in new[] { true })
             {
-                WorldManager.TideEnabled = all; WorldManager.StormEnabled = all;
                 int last = WorldManager.LastLiveWorld;
-                log.AppendLine("=== switches " + (all ? "Tide+Storm on" : "production (Ember last)") + " ===");
+                log.AppendLine("=== switches " + "all worlds" + " ===");
                 for (int from = 1; from <= last; from++)
                 {
                     int totalForeign = 0, totalSpace = 0, runs = 0;
@@ -159,7 +157,6 @@ public static class SpaceLegSpawnTest
             }
 
             // Space first level: no leg, Space roster, ordinary rules
-            WorldManager.TideEnabled = tide; WorldManager.StormEnabled = storm;
             WorldLeakTest.firstForeign.Clear(); WorldLeakTest.audited = 0;
             WorldLeakTest.Prefs(0);
             Random.InitState(77);
@@ -192,7 +189,6 @@ public static class SpaceLegSpawnTest
         }
         finally
         {
-            WorldManager.TideEnabled = tide; WorldManager.StormEnabled = storm;
             WorldLeakTest.TearDown();
             EliteSystem.PlayerOverride = null;
             LandingSites.Override = null;

@@ -21,10 +21,8 @@ public static class AchievementClaimTest
         PlayerPrefs.SetInt(DeveloperUnlocks.EnabledKey, 0);
         AchievementStore.ResetAll();
         PlayerPrefs.SetFloat(StarDustLedger.CurrencyKey, 100f);
-        bool tide = WorldManager.TideEnabled;
         try
         {
-            WorldManager.TideEnabled = false;
             ClaimOnce();
             ClaimAll();
             LedgerRun();
@@ -32,7 +30,6 @@ public static class AchievementClaimTest
         }
         finally
         {
-            WorldManager.TideEnabled = tide;
             AchievementStore.ResetAll();
         }
         Debug.Log("[ACL] failures: " + fails);

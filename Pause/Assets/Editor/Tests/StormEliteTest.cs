@@ -204,7 +204,6 @@ public static class StormEliteTest
             Check(x.key + ": lore is three sentences or fewer", d.lore.Split(new[] { ". " }, System.StringSplitOptions.RemoveEmptyEntries).Length <= 3);
         }
         Check("each Storm elite shoots its own pattern (" + shots.Count + " distinct kind / count / spread / speed)", shots.Count == 5);
-        Check("Storm stays closed (WorldManager.StormEnabled false)", !WorldManager.StormEnabled);
     }
 
     static float Hue(Color c) { float h, s, v; Color.RGBToHSV(c, out h, out s, out v); return h * 360f; }

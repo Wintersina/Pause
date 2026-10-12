@@ -219,7 +219,6 @@ public static class DesertEliteTest
             Check(x.key + ": lore is three sentences or fewer", d.lore.Split(new[] { ". " }, System.StringSplitOptions.RemoveEmptyEntries).Length <= 3);
         }
         Check("each Desert elite shoots its own pattern (" + shots.Count + " distinct kind / count / spread / speed)", shots.Count == 6);
-        Check("Desert stays closed (WorldManager.DesertEnabled false)", !WorldManager.DesertEnabled);
     }
 
     static float Sat(Color c) { float h, sa, v; Color.RGBToHSV(c, out h, out sa, out v); return sa; }

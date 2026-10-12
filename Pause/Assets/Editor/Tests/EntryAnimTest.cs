@@ -45,9 +45,7 @@ public static class EntryAnimTest
             Plan();
             SpaceEntry();
             for (int world = 1; world <= 3; world++) PlanetEntry(world);
-            WorldManager.TideEnabled = true;
             PlanetEntry(4);
-            WorldManager.TideEnabled = false;
             Paths();
             Frozen();
             NoAllocations(0);
@@ -58,7 +56,6 @@ public static class EntryAnimTest
         {
             Gone();
             WorldEntry.Enabled = true;
-            WorldManager.TideEnabled = false;
             WorldManager.ClearReplayWorld();
             PlanetfallCatalog.Enabled = true;
             PlanetfallCatalog.Defs = PlanetfallCatalog.All;

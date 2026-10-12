@@ -4,23 +4,16 @@ using UnityEditor.SceneManagement;
 using UnityEngine;
 
 // The whole world chain, walked headless through the real transitions
-// (WorldManager, Planetfall, Liftoff, Portal, PortalPressure, RunLoop), with
-// the Tide / Storm release switches (WorldManager.TideEnabled / StormEnabled)
-// OFF and ON, over three loops, and for a run that began elsewhere (a developer
-// start in Tide or Storm).
+// (WorldManager, Planetfall, Liftoff, Portal, PortalPressure, RunLoop), over
+// three loops, and for a run that began elsewhere (a developer start).
 //
-//   OFF (production today)   Space -> Frost -> Verdant -> Ember -> (lift-off) Space, loop + 1, again and again
-//   Tide ON                  Space -> Frost -> Verdant -> Ember -> Tide -> (lift-off) Space, loop + 1
-//   Storm ON (implies Tide)  Space -> Frost -> Verdant -> Ember -> Tide -> Storm -> (lift-off) Space, loop + 1
-//   Desert ON (implies Storm, Tide)  ... -> Storm -> Desert -> (lift-off) Space, loop + 1
-//   Tide / Storm start       Tide -> (lift-off) -> the loop PORTAL back to Tide (the interlude shows Space, the loop leads elsewhere)
-//
-// (Desert flies its own backdrop and Storm's rails; its roster is its own. Storm still flies Tide's backdrop.)
+//   Space -> Frost -> Verdant -> Ember -> Tide -> Storm -> Desert -> (lift-off) Space, loop + 1
+//   a run started in world N goes on to Desert, then the loop PORTAL leads back to N
 //
 // Every arrival must be clean: the level stage, no transition in progress, no
 // portal or pressure left, the arrival speed of the loop, the world's own
 // roster, a calm window re-armed (arrivalKey), and the run's score, hearts and
-// pauses carried. One suite so that flipping the switch is one tested step.
+// pauses carried. 
 public static class TideLoopSoakTest
 {
     static int fails;
@@ -43,33 +36,13 @@ public static class TideLoopSoakTest
         using var sandbox = new TestHarness.Sandbox();
         try
         {
-            ReleaseSwitchIsOffInTheShippedCode();
-            Chain(false, false, false, 0, new[] { 0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3, 0 });
-            Chain(true, false, false, 0, new[] { 0, 1, 2, 3, 4, 0, 1, 2, 3, 4, 0, 1, 2, 3, 4, 0 });
-            Chain(true, true, false, 0, new[] { 0, 1, 2, 3, 4, 5, 0, 1, 2, 3, 4, 5, 0, 1, 2, 3, 4, 5, 0 });
-            // a run that began in Tide: its loop leads back to Tide, through the portal
-            Chain(true, false, false, 4, new[] { 4, 4, 4, 4 });
-            Chain(false, false, false, 4, new[] { 4, 4, 4 });
-            // ... with Storm on it goes on to Storm first, then loops back to Tide by portal
-            Chain(true, true, false, 4, new[] { 4, 5, 4, 5, 4 });
-            // a run that began in Storm (a developer start; the switch off or on): its loop leads back to Storm, through the portal
-            Chain(false, false, false, 5, new[] { 5, 5, 5 });
-            Chain(true, true, false, 5, new[] { 5, 5, 5, 5 });
-            // a run that began in Ember: with the switch on it goes on to Tide, then loops back to Ember by portal
-            Chain(true, false, false, 3, new[] { 3, 4, 3, 4, 3 });
-            Chain(true, true, false, 3, new[] { 3, 4, 5, 3, 4, 5, 3 });
-            Chain(false, false, false, 3, new[] { 3, 3, 3 });
-            // Desert ON (implies Storm and Tide): the seventh world, then the loop
-            Chain(true, true, true, 0, new[] { 0, 1, 2, 3, 4, 5, 6, 0, 1, 2, 3, 4, 5, 6, 0, 1, 2, 3, 4, 5, 6, 0 });
-            // Desert on without Storm (or Tide) changes nothing: the chain ends where the earlier switches end it
-            Chain(true, false, true, 0, new[] { 0, 1, 2, 3, 4, 0, 1, 2, 3, 4, 0 });
-            Chain(false, false, true, 0, new[] { 0, 1, 2, 3, 0, 1, 2, 3, 0 });
-            // a run that began in Desert (a developer start; the switch off or on): its loop leads back to Desert, through the portal
-            Chain(false, false, false, 6, new[] { 6, 6, 6 });
-            Chain(true, true, true, 6, new[] { 6, 6, 6, 6 });
-            // a run that began in Storm with Desert on goes on to Desert first, then loops back to Storm by portal
-            Chain(true, true, true, 5, new[] { 5, 6, 5, 6, 5 });
-            Chain(true, true, true, 3, new[] { 3, 4, 5, 6, 3, 4, 5, 6, 3 });
+            // the whole chain, three loops: Space -> Frost -> Verdant -> Ember -> Tide -> Storm -> Desert -> (lift-off) Space, loop + 1
+            Chain(0, new[] { 0, 1, 2, 3, 4, 5, 6, 0, 1, 2, 3, 4, 5, 6, 0, 1, 2, 3, 4, 5, 6, 0 });
+            // a run that began elsewhere (a developer start) goes on to Desert, then loops back to its own world by portal
+            Chain(3, new[] { 3, 4, 5, 6, 3, 4, 5, 6, 3 });
+            Chain(4, new[] { 4, 5, 6, 4, 5, 6, 4 });
+            Chain(5, new[] { 5, 6, 5, 6, 5 });
+            Chain(6, new[] { 6, 6, 6, 6 });
         }
         finally
         {
@@ -81,9 +54,6 @@ public static class TideLoopSoakTest
 
     static void Cleanup()
     {
-        WorldManager.TideEnabled = false;
-        WorldManager.StormEnabled = false;
-        WorldManager.DesertEnabled = false;
         if (Liftoff.Live != null) Object.DestroyImmediate(Liftoff.Live.gameObject);
         if (Planetfall.Live != null) Object.DestroyImmediate(Planetfall.Live.gameObject);
         foreach (var p in Object.FindObjectsByType<Portal>(FindObjectsSortMode.None)) Object.DestroyImmediate(p.gameObject);
@@ -103,12 +73,6 @@ public static class TideLoopSoakTest
         buttonClicks.playerDied = false;
         score.pauseCounter = 0;
         moveBackGround.speed = 0f;
-    }
-
-    static void ReleaseSwitchIsOffInTheShippedCode()
-    {
-        Check("the shipped code has the Tide, Storm and Desert release switches OFF (flip WorldManager.TideEnabled / StormEnabled / DesertEnabled's initial value to release)",
-              !WorldManager.TideEnabled && !WorldManager.StormEnabled && !WorldManager.DesertEnabled);
     }
 
     // ---- fixtures (LiftoffTest's) ------------------------------------------------
@@ -187,12 +151,9 @@ public static class TideLoopSoakTest
     // From the world the run starts in, end each level and follow whatever the
     // game opens (lift-off, planetfall, portal) to the next level; record the
     // worlds in order and check every arrival.
-    static void Chain(bool tideOn, bool stormOn, bool desertOn, int start, int[] expect)
+    static void Chain(int start, int[] expect)
     {
-        WorldManager.TideEnabled = tideOn;
-        WorldManager.StormEnabled = stormOn;
-        WorldManager.DesertEnabled = desertOn;
-        string label = (desertOn ? (stormOn && tideOn ? "Desert ON" : "Desert on alone/partial") : stormOn ? "Storm ON" : tideOn ? "Tide ON" : "switches OFF") + ", run begun in " + WorldManager.Worlds[start].displayName;
+        string label = "run begun in " + WorldManager.Worlds[start].displayName;
         FreshScene(start);
         RunScore.BeginRun(true, true);
         RunLoop.StartWorld = start;   // (BeginRun resets it)
@@ -254,26 +215,17 @@ public static class TideLoopSoakTest
         Check(label + ": every arrival at the loop's arrival speed, on the right world's roster, no calm left on", speedOk && rosterOk && calmOk);
         Check(label + ": score never lost, hearts untouched through " + loopsSeen + " loop(s)", scoreOk);
         int expectLoops = 0;
-        for (int i = 1; i < expect.Length; i++) if (expect[i] == start && expect[i - 1] >= LastOf(tideOn, stormOn, desertOn, start)) expectLoops++;
+        for (int i = 1; i < expect.Length; i++) if (expect[i] == start && expect[i - 1] >= LastOf(start)) expectLoops++;
         Check(label + ": " + expectLoops + " loop(s) counted exactly (RunLoop.Index " + RunLoop.Index + ")", RunLoop.Index == expectLoops && loopsSeen == expectLoops);
-        if (!(desertOn && stormOn && tideOn) && start != 6)
-            Check(label + ": Desert never visited with its chain switched off", !visited.Contains(6));
-        if (!tideOn && start != 4 && start != 5 && start != 6)
-            Check(label + ": Tide never visited with the switch off", !visited.Contains(4));
-        if (!(stormOn && tideOn) && start != 5 && start != 6)
-            Check(label + ": Storm never visited with its switch off", !visited.Contains(5));
+        Check(label + ": Desert is reached", visited.Contains(6));
 
         Cleanup();
         Object.DestroyImmediate(ship.gameObject);
         Object.DestroyImmediate(wm.gameObject);
     }
 
-    // The world after which the chain loops (the last live one) for this setup.
-    static int LastOf(bool tideOn, bool stormOn, bool desertOn, int start)
-    {
-        if (start >= 4) { int live = desertOn && stormOn && tideOn ? 6 : stormOn && tideOn ? 5 : tideOn ? 4 : 3; return Mathf.Max(start, start == 6 ? 6 : live); }
-        return desertOn && stormOn && tideOn ? 6 : stormOn && tideOn ? 5 : tideOn ? 4 : 3;
-    }
+    // The world after which the chain loops (the last world, Desert).
+    static int LastOf(int start) { return 6; }
 
     static bool Same(List<int> a, int[] b)
     {

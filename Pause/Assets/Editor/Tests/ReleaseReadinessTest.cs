@@ -36,7 +36,7 @@ public static class ReleaseReadinessTest
         "Assets/Scenes/tutorialS5.unity",
     };
 
-    static readonly string[] ShippingWorlds = { "Space", "Frost", "Verdant", "Ember" };
+    static readonly string[] ShippingWorlds = { "Space", "Frost", "Verdant", "Ember", "Tide", "Storm", "Desert" };
 
     // What the project's own manifests may request (Play Games adds INTERNET /
     // ACCESS_NETWORK_STATE itself; the merged-manifest list is in the audit doc).
@@ -77,16 +77,10 @@ public static class ReleaseReadinessTest
 
     static void Worlds()
     {
-        Check("Tide release switch is off", !WorldManager.TideEnabled);
-        Check("exactly four live worlds", WorldManager.LiveWorldCount == 4);
+        Check("seven live worlds: every world in the table is reachable", WorldManager.LiveWorldCount == 7 && WorldManager.Worlds.Length == 7);
         for (int i = 0; i < ShippingWorlds.Length; i++)
             Check("world " + i + " is " + ShippingWorlds[i], WorldManager.Worlds.Length > i && WorldManager.Worlds[i].displayName == ShippingWorlds[i]);
-        Check("last live world is Ember", WorldManager.Worlds[WorldManager.LastLiveWorld].displayName == "Ember");
-        Check("Storm release switch is off and Storm is not live (it ships in the bundle behind WorldManager.StormEnabled; Tide must also be on)",
-              !WorldManager.StormEnabled && !WorldManager.StormLive);
-        // (was: "no Desert world exists yet". Desert now exists in Worlds[] behind its own switch, like Tide and Storm.)
-        Check("Desert release switch is off and Desert is not live (it ships in the bundle behind WorldManager.DesertEnabled; Storm and Tide must also be on)",
-              !WorldManager.DesertEnabled && !WorldManager.DesertLive && WorldManager.Worlds.Any(w => w.displayName == "Desert") && WorldManager.Worlds.Length == 7);
+        Check("last live world is Desert", WorldManager.Worlds[WorldManager.LastLiveWorld].displayName == "Desert");
     }
 
     static void StoreIds()

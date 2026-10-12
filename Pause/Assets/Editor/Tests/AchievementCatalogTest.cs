@@ -20,18 +20,16 @@ public static class AchievementCatalogTest
     {
         fails = 0;
         using var sandbox = new TestHarness.Sandbox();
-        bool tide = WorldManager.TideEnabled;
         try
         {
-            WorldManager.TideEnabled = false;
             Catalogue();
-            Dormant();
+            AllLive();
             StoreIds();
             Icons();
             Art();
             Export();
         }
-        finally { WorldManager.TideEnabled = tide; }
+        finally { }
         Debug.Log("[ACH] failures: " + fails);
         return fails;
     }
@@ -79,26 +77,17 @@ public static class AchievementCatalogTest
 
     static int Elites(int world) { return EliteCatalog.All.Count(e => e.WorldIndex == world); }
 
-    static void Dormant()
+    static void AllLive()
     {
-        var dormant = AchievementCatalog.All.Where(d => d.requiresTide).Select(d => d.id).OrderBy(x => x).ToArray();
-        Check("exactly the two Tide achievements are dormant", dormant.Length == 2 && dormant[0] == "boss_tide" && dormant[1] == "world_tide_reached");
-        Check("58 live while Tide is off", AchievementCatalog.ActiveCount == 58);
+        Check("all 60 achievements are live and listed in the Codex tab (Tide's included)",
+              AchievementCatalog.All.Length == 60 && AchievementCatalog.ActiveCount == 60 &&
+              CodexAchievementsView.BuildSections().Sum(s => s.defs.Count) == 60);
         AchievementStore.ResetAll();
         var tideWorld = AchievementCatalog.Find("world_tide_reached");
-        Check("a dormant achievement cannot be unlocked", !AchievementStore.Unlock(tideWorld) && !AchievementStore.IsUnlocked(tideWorld));
-        Check("... is not listed in the Codex tab", CodexAchievementsView.BuildSections().SelectMany(s => s.defs).All(d => !d.requiresTide) &&
-              CodexAchievementsView.BuildSections().Sum(s => s.defs.Count) == 58);
         PlayerPrefs.SetInt(tideWorld.unlockedKey, 1);   // e.g. restored from the cloud
-        Check("... and not claimable even if its flag arrives", !AchievementStore.IsClaimable(tideWorld) && AchievementStore.ClaimableCount == 0 &&
-              AchievementStore.Claim(tideWorld) == 0);
-        Check("... or counted in x/N", AchievementStore.UnlockedCount == 0);
-        WorldManager.TideEnabled = true;
-        Check("Tide on: all 60 live, listed, and the restored one is claimable",
-              AchievementCatalog.ActiveCount == 60 && CodexAchievementsView.BuildSections().Sum(s => s.defs.Count) == 60 &&
+        Check("a Tide achievement restored from the cloud is claimable and counted",
               AchievementStore.IsClaimable(tideWorld) && AchievementStore.UnlockedCount == 1);
-        Check("... boss_all follows the live world count", Target("boss_all") == WorldManager.LiveWorldCount);
-        WorldManager.TideEnabled = false;
+        Check("boss_all follows the world count", Target("boss_all") == WorldManager.Worlds.Length);
         AchievementStore.ResetAll();
     }
 
@@ -193,7 +182,7 @@ public static class AchievementCatalogTest
         Check("export: no commas inside store text (Play import forbids them)", play.Contains(",Hundredfold,Destroy 1000 enemies.,") && play.Contains(",Rookie Score,Score 5000 points in a run.,") &&
               playLines.Skip(1).All(l => l.Split(',').Length == 7) && gcLines.Skip(1).All(l => l.Split(',').Length == 9));
         Check("in-game text keeps the separator", AchievementCatalog.Find("score_10k").description == "Score 5,000 points in a run.");
-        Check("export: hidden rows (3 + 2 dormant)", playLines.Count(l => l.Contains(",Hidden,")) == 5 && gcLines.Count(l => l.Contains(",Yes,No,")) == 5);
+        Check("export: hidden rows (the 3 secret ones; Tide's two are revealed)", playLines.Count(l => l.Contains(",Hidden,")) == 3 && gcLines.Count(l => l.Contains(",Yes,No,")) == 3);
         Check("export: incremental steps for kills_1000", playLines.Any(l => l.Contains("Hundredfold") && l.Contains(",10,1000,Revealed,kills_1000.png")));
         Check("export: Game Center ids use the ach_ scheme", gcLines.Skip(1).All(l => l.Contains("me.hapticgate.pause.ach_")));
         string dir = Path.GetFullPath(Path.Combine(Application.dataPath, "..", "..", AchievementStoreExport.Folder));

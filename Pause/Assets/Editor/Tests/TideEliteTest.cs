@@ -196,7 +196,6 @@ public static class TideEliteTest
                   d.speed >= 1.2f && d.speed <= 3.4f && d.attackGap >= 2.5f && d.attackGap <= 5.5f && d.tellSeconds >= .7f && d.avoidance >= .4f && d.avoidance <= .8f);
             Check(x.key + ": lore is three sentences or fewer", d.lore.Split(new[] { ". " }, System.StringSplitOptions.RemoveEmptyEntries).Length <= 3);
         }
-        Check("Tide stays closed (WorldManager.TideEnabled false)", !WorldManager.TideEnabled);
     }
 
     static void Sites()

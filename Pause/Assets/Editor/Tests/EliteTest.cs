@@ -1231,9 +1231,7 @@ public static class EliteTest
             Check(e.id + ": locked card is a readable flat silhouette (" + r.opaque + "/" + r.covered + " px, " + r.colours + " colour)",
                   panel.CardName(i).text == "???" && r.rendered && r.opaque >= 200 && r.colours == 1 && inkOk);
         }
-        // (Tide's and Storm's sections stay out of the panel until WorldManager.TideEnabled / StormEnabled: their cards are TideEliteTest's and StormEliteTest's)
-        int shown = 0;
-        foreach (var d in EliteCatalog.All) if ((d.WorldIndex != 4 || WorldManager.TideEnabled) && (d.WorldIndex != 5 || WorldManager.StormEnabled) && (d.WorldIndex != 6 || WorldManager.DesertEnabled)) shown++;
+        int shown = EliteCatalog.All.Length;
         Check("rendered every elite's locked card (" + tested + ")", tested == shown);
     }
 }

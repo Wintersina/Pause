@@ -42,11 +42,9 @@ public static class AchievementTrackingTest
         }
         PlayerPrefs.SetString(Codex.PrefsKey, "");
         Codex.Reload();
-        bool tide = WorldManager.TideEnabled;
         var objs = new List<GameObject>();
         try
         {
-            WorldManager.TideEnabled = false;
             AchievementStores.Current = new FakeAchievementStore { available = false };
             Fresh();
             Achievements.ForceReal = true;
@@ -72,7 +70,6 @@ public static class AchievementTrackingTest
             AchievementTracker.Clock = () => Time.time;
             Achievements.ForceReal = null;
             AchievementStores.Current = null;
-            WorldManager.TideEnabled = tide;
             AchievementStore.ResetAll();
         }
         Debug.Log("[ATR] failures: " + fails);
@@ -177,13 +174,12 @@ public static class AchievementTrackingTest
         AchievementTracker.OnBossOutro(0, true);
         AchievementTracker.OnBossOutro(2, true);
         AchievementTracker.OnBossOutro(3, true);
-        Check("all four live bosses: Boss Collector", U("boss_verdant") && U("boss_ember") && C("bosses") == 4 && U("boss_all"));
+        Check("Verdant and Ember fall; four of seven: no Boss Collector yet", U("boss_verdant") && U("boss_ember") && C("bosses") == 4 && !U("boss_all"));
         AchievementTracker.OnBossOutro(4, true);
-        Check("the Tide boss is dormant while Tide is off", !U("boss_tide"));
-        WorldManager.TideEnabled = true;
-        AchievementTracker.OnBossOutro(4, true);
-        Check("... and counts once it is on", U("boss_tide"));
-        WorldManager.TideEnabled = false;
+        Check("the Tide boss counts", U("boss_tide"));
+        AchievementTracker.OnBossOutro(5, true);
+        AchievementTracker.OnBossOutro(6, true);
+        Check("all seven worlds' bosses: Boss Collector", C("bosses") == 7 && U("boss_all"));
     }
 
     static void Worlds()
@@ -194,7 +190,7 @@ public static class AchievementTrackingTest
         AchievementTracker.OnWorldEntered(1); AchievementTracker.OnWorldEntered(2); AchievementTracker.OnWorldEntered(3);
         Check("Frost, Verdant, Ember reached", U("world_frost_reached") && U("world_verdant_reached") && U("world_ember_reached"));
         AchievementTracker.OnWorldEntered(4);
-        Check("Tide reached stays dormant", !U("world_tide_reached"));
+        Check("Tide reached counts", U("world_tide_reached"));
         AchievementTracker.OnLoop(1);
         Check("one loop: Full Circle", U("loop_1") && !U("loop_2"));
         AchievementTracker.OnLoop(2);
@@ -333,7 +329,7 @@ public static class AchievementTrackingTest
         Check("a world fully catalogued: Field Guide", U("codex_field_guide"));
 
         // 50 entries
-        PlayerPrefs.SetString(Codex.PrefsKey, string.Join(",", Codex.Entries.Where(e => !e.secret && !Codex.InFutureWorld(e)).Take(60).Select(e => e.id)));
+        PlayerPrefs.SetString(Codex.PrefsKey, string.Join(",", Codex.Entries.Where(e => !e.secret).Take(60).Select(e => e.id)));
         Codex.Reload();
         AchievementTracker.RefreshCodex();
         Check("50+ entries: Cartographer", Codex.DiscoveredCount >= 50 && U("codex_50"));

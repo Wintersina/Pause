@@ -23,17 +23,14 @@ public static class AchievementMigrationTest
         fails = 0;
         using var sandbox = new TestHarness.Sandbox();
         PlayerPrefs.SetInt(DeveloperUnlocks.EnabledKey, 0);
-        bool tide = WorldManager.TideEnabled;
         try
         {
-            WorldManager.TideEnabled = false;
             Migrates();
             DeveloperModeIsSkipped();
             Cloud();
         }
         finally
         {
-            WorldManager.TideEnabled = tide;
             AchievementStore.ResetAll();
         }
         Debug.Log("[AMG] failures: " + fails);

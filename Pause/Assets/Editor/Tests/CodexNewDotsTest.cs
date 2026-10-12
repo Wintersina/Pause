@@ -29,16 +29,14 @@ public static class CodexNewDotsTest
         PlayerPrefs.SetInt(AchievementStore.SchemaKey, AchievementMigration.Schema);
         PlayerPrefs.DeleteKey(WorldManager.PrefsHighestWorld);
         for (int i = 1; i <= shopingShips.shipTotal; i++) PlayerPrefs.DeleteKey("boughtship" + i);
-        bool tide = WorldManager.TideEnabled;
         EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
         var esGo = new GameObject("TestEventSystem", typeof(EventSystem));
         CodexPanel panel = null;
         GameObject host = null;
         try
         {
-            WorldManager.TideEnabled = false;
             // candidates: undiscovered, listed, non-log entries in two categories
-            var open = Codex.Entries.Where(e => e.category != CodexCategory.Log && !e.secret && !Codex.InFutureWorld(e)).ToList();
+            var open = Codex.Entries.Where(e => e.category != CodexCategory.Log && !e.secret).ToList();
             var cats = open.Select(e => e.category).Distinct().ToList();
             var catA = cats.First(c => open.Count(e => e.category == c && !IsOwnedKind(e)) >= 2);
             var catB = cats.First(c => c != catA && open.Any(e => e.category == c && !IsOwnedKind(e)));
@@ -167,7 +165,6 @@ public static class CodexNewDotsTest
             if (host != null) Object.DestroyImmediate(host);
             if (panel != null) { panel.Close(); panel.SkipAnimations(); Object.DestroyImmediate(panel.gameObject); }
             Object.DestroyImmediate(esGo);
-            WorldManager.TideEnabled = tide;
             AchievementStore.ResetAll();
             AchievementStores.Current = null;
         }

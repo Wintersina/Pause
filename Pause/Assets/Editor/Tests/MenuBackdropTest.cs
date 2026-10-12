@@ -79,17 +79,14 @@ public static class MenuBackdropTest
         Check("Tide's four ground sets are offered once reached (" + tideSets + ") and not before (" + tideBefore + ")",
               tideAt == 4 && tideSets == 4 && tideBefore == 0);
 
-        // Desert (world 6) has its own backdrop now: its four sets join the pool once the player has reached it, which the
-        // release switch (DesertEnabled, off) or a developer unlock (F7) does -- and never before
+        // Desert (world 6) has its own backdrop: its four sets join the pool once the player has reached it -- and never before
         int desertAt = -1;
         for (int i = 0; i < WorldManager.Worlds.Length; i++) if (WorldManager.Worlds[i].displayName == "Desert") desertAt = i;
-        int desertSets = 0, desertBefore = 0, liveOnly = 0;
+        int desertSets = 0, desertBefore = 0;
         foreach (var p in List(desertAt)) if (p.world == "Desert") desertSets++;
         foreach (var p in List(desertAt - 1)) if (p.world == "Desert") desertBefore++;
-        foreach (var p in List(WorldManager.LastLiveWorld)) if (p.world == "Desert") liveOnly++;
-        Check("Desert's four ground sets are offered once reached (" + desertSets + ") and not before (" + desertBefore + "); with its switch off (" +
-              WorldManager.DesertEnabled + ") the progress of a normal player (world " + WorldManager.LastLiveWorld + ") never offers it (" + liveOnly + ")",
-              desertAt == 6 && desertSets == 4 && desertBefore == 0 && (WorldManager.DesertEnabled || liveOnly == 0));
+        Check("Desert's four ground sets are offered once reached (" + desertSets + ") and not before (" + desertBefore + ")",
+              desertAt == 6 && desertSets == 4 && desertBefore == 0);
 
         // the PlayerPrefs hook
         PlayerPrefs.SetInt(WorldManager.PrefsHighestWorld, 1);

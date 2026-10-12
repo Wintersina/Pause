@@ -44,13 +44,11 @@ public static class CodexAchievementsTabTest
         PlayerPrefs.DeleteKey(WorldManager.PrefsHighestWorld);
         for (int i = 1; i <= shopingShips.shipTotal; i++) PlayerPrefs.DeleteKey("boughtship" + i);
         Codex.Reload();
-        bool tide = WorldManager.TideEnabled;
         EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
         var esGo = new GameObject("TestEventSystem", typeof(EventSystem));
         CodexPanel panel = null;
         try
         {
-            WorldManager.TideEnabled = false;
             panel = CodexPanel.Open(CodexUi.FindFont());
             panel.SkipAnimations();
             panel.ApplyLayout(Screens[0].safe);
@@ -59,7 +57,7 @@ public static class CodexAchievementsTabTest
             States(panel);
             Layouts(panel);
             Pointer(panel);
-            Dormant(panel);
+            TideListed(panel);
             Perf(panel);
             Home();
             HomeFit();
@@ -68,7 +66,6 @@ public static class CodexAchievementsTabTest
         {
             if (panel != null) { panel.Close(); panel.SkipAnimations(); Object.DestroyImmediate(panel.gameObject); }
             Object.DestroyImmediate(esGo);
-            WorldManager.TideEnabled = tide;
             AchievementStore.ResetAll();
             AchievementStores.Current = null;
         }
@@ -118,13 +115,13 @@ public static class CodexAchievementsTabTest
         panel.SkipAnimations();
         var v = panel.Achievements;
         Check("the tab opens the achievements view and hides the entry grid", panel.AchievementsOpen && v.Active);
-        Check("58 cards in 7 sections (dormant Tide not listed)", v.VisibleCards == 58 && v.SectionCount == 7);
+        Check("60 cards in 7 sections", v.VisibleCards == 60 && v.SectionCount == 7);
         Check("sections: JOURNEY, BOSSES, ELITES, COMBAT, PAUSE, CODEX, COLLECTION",
               string.Join(",", Enumerable.Range(0, v.SectionCount).Select(i => v.SectionAt(i).label)) == "JOURNEY,BOSSES,ELITES,COMBAT,PAUSE,CODEX,COLLECTION");
         Check("section counters read 0/n", v.SectionAt(0).counter == "0/" + v.SectionAt(0).defs.Count);
-        Check("the header counter reads 0 / 58 UNLOCKED", panel.Counter.text.StartsWith("0 / 58"));
-        Check("strip: 0/58 UNLOCKED, nothing to collect, COLLECT ALL off",
-              v.StripCount.text == "0/58 UNLOCKED" && v.StripLine.text.StartsWith("NOTHING TO COLLECT") && !v.CollectAll.button.interactable);
+        Check("the header counter reads 0 / 60 UNLOCKED", panel.Counter.text.StartsWith("0 / 60"));
+        Check("strip: 0/60 UNLOCKED, nothing to collect, COLLECT ALL off",
+              v.StripCount.text == "0/60 UNLOCKED" && v.StripLine.text.StartsWith("NOTHING TO COLLECT") && !v.CollectAll.button.interactable);
         bool allLocked = true;
         for (int i = 0; i < v.VisibleCards; i++)
             allLocked &= v.CardLock(i).gameObject.activeSelf && !v.CardCollectVisible(i) && !v.CardCollected(i).gameObject.activeSelf && v.CardBadge(i).sprite != null;
@@ -170,9 +167,9 @@ public static class CodexAchievementsTabTest
               v.CardEdge(claimed).color == CodexUi.Accent && !v.CardLock(claimed).gameObject.activeSelf);
         Check("a hidden one shows its real name once earned", v.CardName(secret).text == "MEGA DOMINO" && v.CardCollectVisible(secret));
         Check("strip counts 3 unlocked, 2 to collect, COLLECT ALL +50",
-              v.StripCount.text == "3/58 UNLOCKED" && v.StripLine.text.StartsWith("2 TO COLLECT") && v.CollectAll.button.interactable &&
+              v.StripCount.text == "3/60 UNLOCKED" && v.StripLine.text.StartsWith("2 TO COLLECT") && v.CollectAll.button.interactable &&
               v.CollectAll.label.text == "COLLECT ALL +50");
-        Check("the sticky/section counters follow", v.SectionAt(0).counter.StartsWith("1/") && panel.Counter.text.StartsWith("3 / 58"));
+        Check("the sticky/section counters follow", v.SectionAt(0).counter.StartsWith("1/") && panel.Counter.text.StartsWith("3 / 60"));
 
         panel.ShowAchievements();   // already open: closes a detail, never re-enters
         v.ShowDetail(AchievementCatalog.Find("loop_1"));
@@ -431,17 +428,11 @@ public static class CodexAchievementsTabTest
 
     // ---- dormant Tide ----
 
-    static void Dormant(CodexPanel panel)
+    static void TideListed(CodexPanel panel)
     {
         var v = panel.Achievements;
-        Check("Tide off: neither Tide achievement is on a card", v.CardIndexOf("world_tide_reached") < 0 && v.CardIndexOf("boss_tide") < 0 && v.VisibleCards == 58);
-        WorldManager.TideEnabled = true;
-        panel.Refresh();
-        Check("Tide on: both are listed, 60 cards, x/60", v.CardIndexOf("world_tide_reached") >= 0 && v.CardIndexOf("boss_tide") >= 0 &&
+        Check("both Tide achievements are on a card: 60 cards, x/60", v.CardIndexOf("world_tide_reached") >= 0 && v.CardIndexOf("boss_tide") >= 0 &&
               v.VisibleCards == 60 && v.StripCount.text.EndsWith("/60 UNLOCKED"));
-        WorldManager.TideEnabled = false;
-        panel.Refresh();
-        Check("Tide off again: back to 58", v.VisibleCards == 58);
     }
 
     // ---- no per-frame allocation, pulse only where visible ----
