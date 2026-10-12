@@ -92,7 +92,7 @@ public static class ShopTest
                   bay.ShowsStatusIcon == owned);
             Check("berth " + i + (owned ? " has no price tag" : " shows its price"),
                   bay.ShowsPrice == !owned &&
-                  (owned || bay.PriceLabel == Mathf.RoundToInt(shopingShips.CostFor(i)).ToString("N0")));
+                  (owned || bay.PriceLabel == (PremiumShips.IsPremium(i) ? "SOON" : Mathf.RoundToInt(shopingShips.CostFor(i)).ToString("N0"))));
         }
 
         // Berths are packed edge to edge, without overlapping (slots 0, 1
@@ -156,6 +156,7 @@ public static class ShopTest
 
         PopupAnchoring(dock, cam);
         Purchases(dock);
+        PremiumLocked(dock);
         Dismissal(dock);
         Unlocks(dock);
         LaunchFlow(dock);
@@ -289,6 +290,33 @@ public static class ShopTest
         var message = dock.popup.transform.Find("Panel/Body/Message").GetComponent<Text>();
         Check("the player is told they can't afford it",
               message.enabled && message.text.Contains("NEED") && message.text.Contains((shopingShips.CostFor(poor) - 100f).ToString("N0")));
+    }
+
+    // Paragon (PremiumShips) is a real-money ship: the dock shows it locked,
+    // "COMING SOON", with no dust path to own it.
+    static void PremiumLocked(SpaceDock dock)
+    {
+        int p = PremiumShips.Paragon;
+        PlayerPrefs.DeleteKey("boughtship" + p);
+        PlayerPrefs.SetFloat("PlayerCurrecny", 9999999f);
+        dock.RefreshStatuses();
+        dock.Select(p);
+        Check("Paragon's popup is the locked COMING SOON state, not BUY", dock.popup.CurrentMode == DockPopup.Mode.Locked);
+        Check("its berth shows a SOON tag", dock.bays[p].ShowsPrice && dock.bays[p].PriceLabel == "SOON");
+        int saves = PrefsSaver.SaveCount;
+        dock.popup.Press();
+        dock.Buy(p);
+        Check("pressing it or calling Buy never owns it or charges dust",
+              PlayerPrefs.GetString("boughtship" + p) != "True" && Mathf.Approximately(PlayerPrefs.GetFloat("PlayerCurrecny"), 9999999f));
+        Check("it can't launch", !ShipId.IsOwned(p) && dock.LiftOffIndex() != p);
+        PlayerPrefs.SetString("boughtship" + p, "True");   // what developer mode / the future IAP writes
+        dock.RefreshStatuses();
+        dock.Select(p);
+        Check("owned (dev mode / IAP): the popup offers LAUNCH and shows its skins",
+              dock.popup.CurrentMode == DockPopup.Mode.Launch && dock.popup.SkinRowVisible);
+        PlayerPrefs.DeleteKey("boughtship" + p);
+        dock.RefreshStatuses();
+        dock.Deselect();
     }
 
     static void Dismissal(SpaceDock dock)
