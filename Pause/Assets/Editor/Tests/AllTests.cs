@@ -98,6 +98,7 @@ public static class AllTests
         ("DifficultyRetuneTest", DifficultyRetuneTest.Execute),
         ("PlayerStartWorldTest", PlayerStartWorldTest.Execute),
         ("SoundMuteTest", SoundMuteTest.Execute),
+        ("PrivacyLinkTest", PrivacyLinkTest.Execute),
         ("BoostMusicContinuityTest", BoostMusicContinuityTest.Execute),
         ("EliteTest", EliteTest.Execute),
         ("EliteEvasionTest", EliteEvasionTest.Execute),

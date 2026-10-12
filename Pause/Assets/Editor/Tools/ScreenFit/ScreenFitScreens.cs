@@ -260,6 +260,7 @@ public static class ScreenFitScreens
         Add<DeveloperOptions>("~DeveloperOptions");
         Add<StartWorldOptions>("~StartWorldOptions");
         Add<SoundOptions>("~SoundOptions");
+        Add<PrivacyOptions>("~PrivacyOptions");
         var account = new GameObject("~AccountOptions").AddComponent<AccountOptions>();
         account.Build(new Vector2(rig.W, rig.H), rig.device.Safe, true);
         rig.Sync();
