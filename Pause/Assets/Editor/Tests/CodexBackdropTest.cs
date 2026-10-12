@@ -43,7 +43,6 @@ public static class CodexBackdropTest
         PlayerPrefs.DeleteKey(Codex.AckKey);
         PlayerPrefs.DeleteKey(WorldManager.PrefsHighestWorld);
         Codex.Reload();
-        bool tide = WorldManager.TideEnabled, storm = WorldManager.StormEnabled, desert = WorldManager.DesertEnabled;
         EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
         var es = new GameObject("TestEventSystem", typeof(EventSystem));
         CodexPanel panel = null;
@@ -67,9 +66,6 @@ public static class CodexBackdropTest
             if (CodexBackdropViewer.IsOpen) CodexBackdropViewer.Current.Close();
             if (panel != null) Object.DestroyImmediate(panel.gameObject);
             Object.DestroyImmediate(es);
-            WorldManager.TideEnabled = tide;
-            WorldManager.StormEnabled = storm;
-            WorldManager.DesertEnabled = desert;
             DeveloperUnlocks.SetEnabled(false);
             BackNavigator.ResetHooks();
         }
@@ -102,15 +98,7 @@ public static class CodexBackdropTest
 
     static void Listing()
     {
-        WorldManager.TideEnabled = WorldManager.StormEnabled = WorldManager.DesertEnabled = false;
-        Check("worlds the loop cannot reach are not listed: " + CodexBackdrops.ListedCount, CodexBackdrops.ListedCount == WorldManager.LiveWorldCount * 4 && !CodexBackdrops.IsListed(B("Desert", 1)));
-        WorldManager.TideEnabled = WorldManager.StormEnabled = WorldManager.DesertEnabled = true;
-        Check("with every world live all are listed", CodexBackdrops.ListedCount == CodexBackdrops.All.Count && CodexBackdrops.IsListed(B("Desert", 4)));
-        DeveloperUnlocks.SetEnabled(true);
-        WorldManager.TideEnabled = WorldManager.StormEnabled = WorldManager.DesertEnabled = false;
-        Check("developer mode lists the dormant worlds too", CodexBackdrops.IsListed(B("Desert", 1)));
-        DeveloperUnlocks.SetEnabled(false);
-        WorldManager.TideEnabled = WorldManager.StormEnabled = WorldManager.DesertEnabled = true;   // the rest runs with every world live
+        Check("every world is live: all are listed", CodexBackdrops.ListedCount == CodexBackdrops.All.Count && CodexBackdrops.IsListed(B("Desert", 4)));
     }
 
     static void Unlocking()

@@ -32,11 +32,9 @@ public static class CodexVettingTest
         PlayerPrefs.DeleteKey(WorldManager.PrefsHighestWorld);
         for (int i = 1; i <= shopingShips.shipTotal; i++) PlayerPrefs.DeleteKey(ShipId.OwnedKey(i));
         Codex.Reload();
-        bool tide = WorldManager.TideEnabled, storm = WorldManager.StormEnabled, desert = WorldManager.DesertEnabled;
         EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
         try
         {
-            WorldManager.TideEnabled = WorldManager.StormEnabled = WorldManager.DesertEnabled = true;
             Cast();
             Entries();
             Text();
@@ -46,9 +44,6 @@ public static class CodexVettingTest
         }
         finally
         {
-            WorldManager.TideEnabled = tide;
-            WorldManager.StormEnabled = storm;
-            WorldManager.DesertEnabled = desert;
             DeveloperUnlocks.SetEnabled(false);
         }
         Debug.Log("[CVT] failures: " + fails);
@@ -102,8 +97,7 @@ public static class CodexVettingTest
         Check("every entry has a name and text" + (noText.Count > 0 ? " (" + string.Join(", ", noText) + ")" : ""), noText.Count == 0);
         Check("no two entries of a tab share a name" + (dupes.Count > 0 ? " (" + string.Join(", ", dupes) + ")" : ""), dupes.Count == 0);
         Check("every enemy / hazard animates in the codex" + (noAnim.Count > 0 ? " (" + string.Join(", ", noAnim) + ")" : ""), noAnim.Count == 0);
-        Check("with every world live nothing is hidden for being in a future world", Codex.Entries.All(e => !Codex.InFutureWorld(e)) &&
-              Codex.ReachableCount == Codex.Entries.Length);
+        Check("every world is live: the reachable count is the whole catalogue", Codex.ReachableCount == Codex.Entries.Length);
     }
 
     // Stale text: wording from when the game ended sooner.

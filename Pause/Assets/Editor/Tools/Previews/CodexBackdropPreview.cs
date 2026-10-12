@@ -43,7 +43,6 @@ public static class CodexBackdropPreview
             using (new TestHarness.Sandbox())
             using (ScreenInfo.Override(1080, 2400, new Rect(0, 0, 1080, 2400)))
             {
-                WorldManager.TideEnabled = WorldManager.StormEnabled = WorldManager.DesertEnabled = true;
                 EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
                 var es = new GameObject("EventSystem", typeof(EventSystem));
                 DeveloperUnlocks.SetEnabled(true);
@@ -78,7 +77,6 @@ public static class CodexBackdropPreview
                 var screen = ScreenFitScreens.Find(id);
                 using (new TestHarness.Sandbox())
                 {
-                    WorldManager.TideEnabled = WorldManager.StormEnabled = WorldManager.DesertEnabled = true;
                     var shot = ScreenFitRunner.Run(screen, device, Path.Combine(Dir, id + ".png"), 2400);
                     if (shot.error != null) Debug.LogWarning("[CodexBackdropPreview] " + id + ": " + shot.error);
                 }

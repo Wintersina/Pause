@@ -124,11 +124,10 @@ public static class CodexBackdrops
         return ok;
     }
 
-    // Worlds past WorldManager.LiveWorldCount are not listed (developer mode lists them).
+    // Every backdrop whose art is installed is listed (every world is live).
     public static bool IsListed(CodexBackdrop b)
     {
         if (b == null) return false;
-        if (b.worldIndex >= WorldManager.LiveWorldCount && !DeveloperUnlocks.Enabled) return false;
         return ArtInstalled(b);
     }
 
