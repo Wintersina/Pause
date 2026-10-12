@@ -308,22 +308,23 @@ public static class SplashViolentGateTest
     static void SlotsAndFallbacks()
     {
         Check("slot names: " + GateArt.DoorSlot + ", " + GateArt.CrackSlotPrefix + "1..3, " + GateArt.DebrisSlot + ", " + GateArt.SteamSlot,
-              GateArt.DoorSlot == "HapticGate/industrial_gate_v3" && GateArt.CrackSlotPrefix == "HapticGate/gate_cracks_"
+              GateArt.DoorSlot == "HapticGate/industrial_gate_v4" && GateArt.CrackSlotPrefix == "HapticGate/gate_cracks_"
               && GateArt.DebrisSlot == "HapticGate/gate_debris" && GateArt.SteamSlot == "HapticGate/gate_steam");
         var door = Resources.Load<Texture2D>(GateArt.DoorSlot);
-        Check("door v3 is 1536x1024", door != null && door.width == 1536 && door.height == 1024);
+        Check("door v4 imports as a power-of-two texture (6144x4096 source, scaled to nearest, max 2048)", door != null && door.width >= 2048 && door.width <= 2048 && Mathf.IsPowerOfTwo(door.width) && Mathf.IsPowerOfTwo(door.height));
         for (int i = 1; i <= 3; i++)
         {
             var c = Resources.Load<Texture2D>(GateArt.CrackSlotPrefix + i);
-            Check("gate_cracks_" + i + " is 1536x1024 (aligned to the door sheet)", c != null && c.width == 1536 && c.height == 1024);
+            Check("gate_cracks_" + i + " is a power-of-two texture (leaf crops are fractions, so any size aligns)", c != null && Mathf.IsPowerOfTwo(c.width) && Mathf.IsPowerOfTwo(c.height));
         }
         var deb = Resources.Load<Texture2D>(GateArt.DebrisSlot);
         var st = Resources.Load<Texture2D>(GateArt.SteamSlot);
         Check("gate_debris is 1024x512 (8x4 of 128)", deb != null && deb.width == 1024 && deb.height == 512);
         Check("gate_steam is 1024x1024 (4x4 of 256)", st != null && st.width == 1024 && st.height == 1024);
-        Check("importers: point filter, no mipmaps, uncompressed", ImporterOk(GateArt.DoorSlot) && ImporterOk(GateArt.DebrisSlot)
-              && ImporterOk(GateArt.SteamSlot) && ImporterOk(GateArt.CrackSlotPrefix + "1") && ImporterOk(GateArt.CrackSlotPrefix + "2")
-              && ImporterOk(GateArt.CrackSlotPrefix + "3"));
+        Check("importers: debris/steam point, no mips, uncompressed", ImporterOk(GateArt.DebrisSlot) && ImporterOk(GateArt.SteamSlot));
+        Check("importers: HD door/cracks trilinear + mipmaps + NPOT scaled, max 2048, ASTC on Android and iOS",
+              HdImporterOk(GateArt.DoorSlot) && HdImporterOk(GateArt.CrackSlotPrefix + "1") && HdImporterOk(GateArt.CrackSlotPrefix + "2")
+              && HdImporterOk(GateArt.CrackSlotPrefix + "3"));
         Check("the old industrial_gate / steam fallbacks are gone from the code",
               !File.ReadAllText(Path.Combine(Application.dataPath, "Scripts/UI/GateArt.cs")).Contains("HapticGate/steam\""));
 
@@ -338,11 +339,13 @@ public static class SplashViolentGateTest
                         && art.leftCracks[i].rect == art.leftLeaf.rect && art.rightCracks[i].rect == art.rightLeaf.rect;
         Check("crack overlays are cut with exactly the leaf rects (aligned), 3 stages, both leaves", cracksOk);
         Check("leaf crop contract: left x 0.055, right x 0.51, w 0.44",
-              Mathf.Abs(art.leftLeaf.rect.x - 1536 * 0.055f) < 0.5f && Mathf.Abs(art.rightLeaf.rect.x - 1536 * 0.51f) < 0.5f
-              && Mathf.Abs(art.leftLeaf.rect.width - 1536 * 0.44f) < 0.5f);
+              Mathf.Abs(art.leftLeaf.rect.x - door.width * 0.055f) < 0.5f && Mathf.Abs(art.rightLeaf.rect.x - door.width * 0.51f) < 0.5f
+              && Mathf.Abs(art.leftLeaf.rect.width - door.width * 0.44f) < 0.5f);
         // every v2 leaf must be inside its crop (nothing of the door cut off): the dark margin at the crop edges
         Check("door art inside the crops (edge columns are background)", EdgesAreBackground(door));
-        Check("door v3 is a cut-out: the sheet's corners and top-centre are transparent (no navy backdrop box)", GateCutOutCorners);
+        Check("door v4 is a cut-out: the sheet's corners and top-centre are transparent (no navy backdrop box)", GateCutOutCorners);
+        Check("leaf proportions restored after the power-of-two import (h/w 1.364 as painted)",
+              Mathf.Abs(art.leftLeaf.bounds.size.y / art.leftLeaf.bounds.size.x * GateArt.YStretch(art.leftLeaf) - 0.9f * 4096f / (0.44f * 6144f)) < 0.01f);
         art.Release();
     }
 
@@ -350,6 +353,18 @@ public static class SplashViolentGateTest
     {
         var imp = AssetImporter.GetAtPath("Assets/Resources/" + slot + ".png") as TextureImporter;
         return imp != null && imp.filterMode == FilterMode.Point && !imp.mipmapEnabled && imp.textureCompression == TextureImporterCompression.Uncompressed;
+    }
+
+    static bool HdImporterOk(string slot)
+    {
+        var imp = AssetImporter.GetAtPath("Assets/Resources/" + slot + ".png") as TextureImporter;
+        if (imp == null || imp.filterMode == FilterMode.Point || !imp.mipmapEnabled || imp.maxTextureSize > 2048 || imp.npotScale == TextureImporterNPOTScale.None) return false;
+        foreach (var plat in new[] { "Android", "iOS" })
+        {
+            var ps = imp.GetPlatformTextureSettings(plat);
+            if (!ps.overridden || ps.maxTextureSize > 2048 || ps.format < TextureImporterFormat.ASTC_4x4 || ps.format > TextureImporterFormat.ASTC_8x8) return false;
+        }
+        return true;
     }
 
     // the leaf crops' outer columns must be the dark backdrop, i.e. the door isn't cut by the crop
@@ -362,14 +377,14 @@ public static class SplashViolentGateTest
         var copy = new Texture2D(door.width, door.height, TextureFormat.RGBA32, false);
         copy.ReadPixels(new Rect(0, 0, door.width, door.height), 0, 0);
         RenderTexture.active = prev; RenderTexture.ReleaseTemporary(rt);
-        GateCutOutCorners = copy.GetPixel(0, 0).a < .01f && copy.GetPixel(1535, 1023).a < .01f && copy.GetPixel(768, 1023).a < .01f;
-        float[] xs = { 1536 * 0.055f + 2, 1536 * 0.495f - 3, 1536 * 0.51f + 2, 1536 * 0.95f - 3 };
+        GateCutOutCorners = copy.GetPixel(0, 0).a < .01f && copy.GetPixel(door.width - 1, door.height - 1).a < .01f && copy.GetPixel(door.width / 2, door.height - 1).a < .01f;
+        float[] xs = { door.width * 0.055f + 2, door.width * 0.495f - 3, door.width * 0.51f + 2, door.width * 0.95f - 3 };
         bool ok = true;
         foreach (float x in xs)
-            for (int y = 60; y < 960; y += 30)
+            for (int y = door.height * 60 / 1024; y < door.height * 960 / 1024; y += door.height * 30 / 1024)
             {
                 var c = copy.GetPixel((int)x, y);
-                if (c.a > 0.1f && c.r + c.g + c.b > 0.7f) ok = false;   // transparent (the v3 cut-out) or dark
+                if (c.a > 0.1f && c.r + c.g + c.b > 0.7f) ok = false;   // transparent (the cut-out) or dark
             }
         UnityEngine.Object.DestroyImmediate(copy);
         return ok;

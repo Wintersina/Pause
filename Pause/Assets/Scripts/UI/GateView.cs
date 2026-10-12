@@ -81,7 +81,8 @@ public sealed class GateView
     {
         var go = new GameObject(name);
         go.transform.SetParent(root, false);
-        go.transform.localScale = Vector3.one * (width / sprite.bounds.size.x);
+        float sx = width / sprite.bounds.size.x;
+        go.transform.localScale = new Vector3(sx, sx * GateArt.YStretch(sprite), 1f);   // the leaf has no rotated children with scale, so no shear
         sr = go.AddComponent<SpriteRenderer>();
         sr.sprite = sprite;
         sr.sortingOrder = 2;
@@ -93,7 +94,7 @@ public sealed class GateView
         var go = new GameObject(name);
         go.transform.SetParent(leaf, false);
         // The overlay is a slice of a sheet laid out like the door, so it covers the leaf exactly.
-        go.transform.localScale = Vector3.one * (leafSprite.bounds.size.x / sprite.bounds.size.x);
+        go.transform.localScale = new Vector3(leafSprite.bounds.size.x / sprite.bounds.size.x, leafSprite.bounds.size.y / sprite.bounds.size.y, 1f);
         go.transform.localPosition = new Vector3(0f, 0f, -0.001f);
         var sr = go.AddComponent<SpriteRenderer>();
         sr.sprite = sprite;
@@ -301,7 +302,8 @@ public sealed class GateView
     {
         t.localPosition = new Vector3(x, y, 0f);
         t.localRotation = Quaternion.Euler(0f, 0f, rot);
-        t.localScale = Vector3.one * (0.5f / sprite.bounds.size.x * scale);
+        float sx = 0.5f / sprite.bounds.size.x * scale;
+        t.localScale = new Vector3(sx, sx * GateArt.YStretch(sprite), 1f);
     }
 
     void UpdateParticles(float dt)

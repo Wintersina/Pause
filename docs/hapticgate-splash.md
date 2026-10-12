@@ -53,20 +53,37 @@ slot is missing, `GateArt.Load` returns null and the card shows just the mark.
 
 | Resources path | spec |
 |---|---|
-| `HapticGate/industrial_gate_v3` | 1536x1024 two-leaf door; crop contract left x 0.055, right x 0.51, w 0.44, y 0.05..0.95 |
-| `HapticGate/gate_cracks_1` `_2` `_3` | 1536x1024 RGBA cumulative crack overlays, cut with the same leaf rects |
+| `HapticGate/industrial_gate_v4` | 6144x4096 two-leaf door (HD, exact 4x of the old 1536x1024 v3, same layout); crop contract (fractions, resolution-independent) left x 0.055, right x 0.51, w 0.44, y 0.05..0.95 |
+| `HapticGate/gate_cracks_1` `_2` `_3` | 6144x4096 RGBA cumulative crack overlays, cut with the same leaf rects |
 | `HapticGate/gate_debris` | 1024x512, 8x4 cells of 128 px (drawn at 1.8x: the shard fills about half a cell) |
 | `HapticGate/gate_steam` | 1024x1024, 4x4 cells of 256 px: columns are growth stages (stepped with the puff's age), rows are variants |
 
-Importer settings (all six): Sprite single, Point filter, no mipmaps,
-uncompressed (about 26 MB of GPU memory in total, only while the splash is up).
+Importer settings:
 
-To swap art later, replace the PNGs (same names and sizes) and keep the meta
+* Door and cracks (HD, painted art, not pixel art): texture type Default (GateArt makes its own
+  sprites), **Trilinear** filter (`GateArt.Load` sets it), **mipmaps on** (a leaf is shown at
+  roughly a third of its texture size on phones; without mips it shimmers during the shake),
+  **Non-Power-of-2: To Nearest**, max size 2048. The 6144x4096 source therefore imports as
+  **2048x1024** (about 900 texels across a leaf for ~330 px on a 1080 phone, ~600 px on a
+  tablet). Android and iOS: ASTC 6x6 (set by `AndroidTextureDiet`, which skips its
+  "NPOT means no mips" rule when NPOT scaling is on).
+* The To-Nearest import squashes the sheet vertically by 0.75, so `GateArt.YStretch(sprite)`
+  (= texture w / (1.5 x texture h)) is applied to the leaf transform's y scale in
+  `GateView.NewLeaf` / `SetLeaf`; overlays inherit it. Anything that swaps the door for a
+  different-shaped import must keep that in mind (a true 3:2 texture gives 1).
+* `gate_debris`, `gate_steam`: unchanged (Sprite, Point, no mips, uncompressed).
+
+GPU memory, measured with `Profiler.GetRuntimeMemorySizeLong` on the imported door (ASTC 6x6,
+12 mips): 2.50 MB per HD texture, 10.0 MB for the four (the old four 1536x1024 sheets were
+about 2.8 MB). Raising `maxTextureSize` to 4096 gives 4096x2048, about 10 MB per texture
+(40 MB total) for more detail on very large tablets; the crop fractions need no change.
+
+To swap art later, replace the PNGs (same names, same layout; any 3:2 size works since the crop is fractional) and keep the meta
 settings. If the crop contract changes, edit the constants at the top of
 `GateArt.cs`; vent and crack anchor points in `GateView.cs` (`LeafPoint(...)`) are
 leaf-relative (u across, v up).
 
-Art note: `industrial_gate_v3.png` is the alpha cut-out of the v2 door (leaves pixel-identical, transparent outside), so no backdrop box shows against the black card.
+Art note: `industrial_gate_v4.png` is an alpha cut-out (leaf alpha bounds are the old (85,37,1451,947) x4; transparent outside and in the central gap), so no backdrop box shows against the black card.
 
 ## Sounds
 
@@ -88,5 +105,6 @@ the user; no beeps or coin sounds):
   (`SplashInput.ReadLegacy`) is only checked to be idle and the scene's `Update` is
   driven through the same hook the real reader plugs into.
 * Existing: `SplashLayoutTest` (layout), ScreenFit's `splash` screen.
+* Full-frame captures at 1080x2520 and 1600x2560: `-executeMethod GateShotPreview.Render -shotDir <dir> -shotPrefix <name>`.
 * Filmstrips: `-executeMethod HapticGatePreview.Render -previewDir <dir>` writes
   `natural.png`, `tap1.png`, `tap2.png`, `tap3.png`.
