@@ -62,6 +62,8 @@ public class CodexPanel : MonoBehaviour
     public const float GridInset = 8f;
     public const float ChipsHeight = 52f;
     public const float ChipGap = 8f;
+    public const float ChipGapTight = 4f;      // with more than six chips (all seven worlds + bosses) the row is tight
+    public static float ChipGapFor(int count) { return count > 6 ? ChipGapTight : ChipGap; }
     public const float ChipsGap = 12f;         // chip row -> list
     public const float SectionHeaderHeight = 56f;
     public const float SectionHeaderGap = 12f; // header -> its first card row
@@ -937,10 +939,11 @@ public class CodexPanel : MonoBehaviour
         int chipCount = sectioned ? sectionCount : 0;
         if (chipCount > 0)
         {
-            float cw = (layout.chips.width - ChipGap * (chipCount - 1)) / chipCount;
+            float gap = ChipGapFor(chipCount);
+            float cw = (layout.chips.width - gap * (chipCount - 1)) / chipCount;
             for (int i = 0; i < chipCount; i++)
             {
-                float x = -layout.chips.width * .5f + cw * .5f + i * (cw + ChipGap);
+                float x = -layout.chips.width * .5f + cw * .5f + i * (cw + gap);
                 CodexUi.Place(chips[i].rt, CodexUi.Centered(x, 0f, cw, layout.chips.height));
             }
         }
