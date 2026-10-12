@@ -117,6 +117,9 @@ public class WorldBackdrop : MonoBehaviour
             Current.Destroy();
         }
         Current = next;
+        // The codex BACKDROPS tab: this backdrop was shown in play (the tutorial and developer mode record nothing).
+        if (Application.isPlaying)
+            CodexBackdrops.SeenInPlay(next.Spec.world, next.Spec.world == "Space" ? SpaceSkySelection.Variant : next.Variant);
         HideSceneStarfield();
         FixWallQueue();
         next.Tick(0f, ScrollVelocity(moveBackGround.speed));

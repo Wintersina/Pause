@@ -325,7 +325,7 @@ public static class BossCatalog
             {
                 id = CodexPrefix + "ember", name = "CINDER DRAKE", title = "VOLCANIC WYRM", artKey = "Ember", damageKey = "Ember", deathKey = "Ember",
                 lore = "A basalt dragon that swims through magma the way the pilot swims through stars. " +
-                       "It guards the last gate before home, breathing fire, hurling magma from its furnace and raking the sky with the gem on its brow. " +
+                       "It guards the forge gate to the deep worlds, breathing fire, hurling magma from its furnace and raking the sky with the gem on its brow. " +
                        "Everything in Ember burns - make sure it isn't you.",
                 swayX = 1.35f, swayY = .18f, freqX = .38f, freqY = .76f, flash = EmberFlash, heartColor = HeartAmber,
                 attacks = new[]

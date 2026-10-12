@@ -64,6 +64,9 @@ public class BackdropSet
         public int variant;
         public bool halfTurn;
         public float dim = 1f;
+        // The codex backdrop viewer: the chosen variant WITH its atlases and director (set pieces,
+        // ambient loops, weather, lightning under the director's own safety caps), as in a run.
+        public bool withDirector;
     }
 
     public BackdropSet(string world, Transform parent, float halfWidth, float halfHeight, MenuOptions menu = null)
@@ -75,7 +78,8 @@ public class BackdropSet
         HalfHeight = halfHeight;
 
         string folder = BackdropCatalog.Folder(Spec.world);
-        if (menu == null)
+        bool tilesOnly = menu != null && !menu.withDirector;
+        if (!tilesOnly)
         {
             Fx = LoadAtlas(folder, BackdropCatalog.AtlasFx);
             Anim = LoadAnimAtlas(folder);
@@ -127,7 +131,7 @@ public class BackdropSet
         }
 
         Layout(halfWidth, halfHeight);
-        Director = menu != null ? null : CreateDirector(Spec.world);
+        Director = tilesOnly ? null : CreateDirector(Spec.world);
         if (Director != null && Complete) Director.Init(this);
     }
 

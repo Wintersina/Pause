@@ -66,6 +66,8 @@ public static class ScreenFitScreens
         new FitScreen { id = "home-toasts", fullBleed = true, scene = "startS4", title = "Home + quit / account toasts", stage = r => Home(r, true) },
         new FitScreen { id = "codex-grid", fullBleed = true, scene = "startS4", title = "Codex / pilot's log: list", stage = r => CodexScreen(r, false) },
         new FitScreen { id = "codex-detail", fullBleed = true, scene = "startS4", title = "Codex / pilot's log: entry", stage = r => CodexScreen(r, true) },
+        new FitScreen { id = "codex-backdrops", fullBleed = true, scene = "startS4", title = "Codex / backdrops tab", stage = r => CodexBackdropsScreen(r, false) },
+        new FitScreen { id = "codex-backdrop-viewer", fullBleed = true, scene = "startS4", title = "Codex / backdrop viewer", stage = r => CodexBackdropsScreen(r, true) },
         new FitScreen { id = "options", fullBleed = true, scene = "leaderboardS3", title = "Options: account + developer rows", stage = r => Options(r, 0) },
         new FitScreen { id = "options-signout", fullBleed = true, scene = "leaderboardS3", title = "Options: sign-out dialog", stage = r => Options(r, 1) },
         new FitScreen { id = "options-start-world", fullBleed = true, scene = "leaderboardS3", title = "Options: START WORLD row (unlocked)", stage = r => Options(r, 3) },
@@ -229,6 +231,39 @@ public static class ScreenFitScreens
         panel.SkipAnimations();
         Canvas.ForceUpdateCanvases();
         // the home menu is behind the panel's scrim: covered, not part of this screen
+        rig.Ignore("MainMenuCanvas");
+    }
+
+    // The BACKDROPS tab (developer mode: every backdrop unlocked, the fullest list), or the full-screen
+    // viewer opened on the longest-named one.
+    static void CodexBackdropsScreen(ScreenFitRig rig, bool viewer)
+    {
+        HomeBase(rig);
+        DeveloperUnlocks.SetEnabled(true);
+        Codex.Reload();
+        if (viewer)
+        {
+            CodexBackdrops.UnlockedList();
+            CodexBackdrop longest = null;
+            foreach (var b in CodexBackdrops.All)
+                if (CodexBackdrops.IsListed(b) && (longest == null || b.title.Length > longest.title.Length)) longest = b;
+            var v = CodexBackdropViewer.Open(null, longest);
+            rig.Sync();
+            v.ApplyLayout(CodexUi.SafeAreaUnits(v.GetComponent<Canvas>()));
+            for (int i = 0; i < 20; i++) v.Step(1f / 30f);
+            Canvas.ForceUpdateCanvases();
+            rig.Ignore("MainMenuCanvas");
+            return;
+        }
+        var panel = CodexPanel.Open(null);
+        rig.Sync();
+        panel.Refresh();
+        panel.ApplyLayout(CodexUi.SafeAreaUnits(panel.GetComponent<Canvas>()));
+        panel.ShowBackdrops();
+        panel.SkipAnimations();
+        panel.ApplyLayout(CodexUi.SafeAreaUnits(panel.GetComponent<Canvas>()));
+        panel.SkipAnimations();
+        Canvas.ForceUpdateCanvases();
         rig.Ignore("MainMenuCanvas");
     }
 

@@ -406,7 +406,7 @@ public static class CodexCatalogue
     };
 
     // ---------------------------------------------------------------------
-    // Enemies and hazards: EnemyRoster, all four worlds
+    // Enemies and hazards: EnemyRoster, every world
     // ---------------------------------------------------------------------
 
     // One entry per roster enemy: enemies first, then hazards (rocks, mines),

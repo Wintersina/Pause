@@ -37,6 +37,7 @@ public static class CodexPreview
         {
             using (new TestHarness.Sandbox())
             {
+                WorldManager.TideEnabled = WorldManager.StormEnabled = WorldManager.DesertEnabled = true;   // review every world
                 EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
                 foreach (bool unlocked in new[] { false, true })
                 {

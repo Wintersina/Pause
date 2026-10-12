@@ -9,13 +9,13 @@ using UnityEngine.UI;
 // "???" with no lore.
 //
 // ENEMIES and HAZARDS are one vertically scrolling list in world sections
-// (SPACE, FROST, VERDANT, EMBER, TIDE, then BOSSES for enemies), each under a flat
+// (SPACE, FROST, VERDANT, EMBER, TIDE, STORM, DESERT, then BOSSES for enemies), each under a flat
 // cel header bar in that world's enemy light with a found/total counter.
 // The current section's header stays pinned to the top of the list while
 // you scroll through it (pushed up by the next one), and a row of jump chips
 // above the list smooth-scrolls to any section. The BOSSES section keeps the
 // bosses secret: it only appears once one has been met, lists only the met
-// ones and counts only those (developer mode shows all four).
+// ones and counts only those (developer mode shows them all).
 //
 // Built entirely at runtime on its own overlay canvas as flat 80s-anime cels
 // in the Akira palette (CodexPalette): thick ink outlines, flat fills, hard
@@ -39,16 +39,17 @@ public class CodexPanel : MonoBehaviour
     public const float Pad = 30f;
     public const float HeaderHeight = 64f;
     public const float DividerHeight = 16f;
-    // Eight tabs (the six entry categories, then ACHIEVEMENTS and MUSIC) in two rows,
-    // 4 + 4: one row left each tab ~110
+    // Nine tabs (the six entry categories, then ACHIEVEMENTS, MUSIC and BACKDROPS) in two rows,
+    // 5 + 4: one row left each tab ~110
     // units wide and 60 tall (~32-40 dp touch targets even padded). Each
     // tab is drawn TabRowHeight tall and its touch target reaches half of
     // every gap around it: TabRowHeight + TabRowGap = 96 units, >= 48 dp /
     // 44 pt wherever the canvas is >= 0.5 dp per unit (UiScale's floor).
-    public const int TabsPerRow = 4, TabRows = 2;
+    public const int TabsPerRow = 5, TabRows = 2;
     public const int AchievementsTab = 6;           // index of the ACHIEVEMENTS tab (after CodexPanel.Tabs)
     public const int MusicTab = 7;                  // index of the MUSIC tab (after ACHIEVEMENTS)
-    public const int TabCount = 8;
+    public const int BackdropsTab = 8;              // index of the BACKDROPS tab (after MUSIC)
+    public const int TabCount = 9;
     public const float TabRowHeight = 84f;
     public const float TabRowGap = 12f;
     public const float TabsHeight = TabRows * TabRowHeight + (TabRows - 1) * TabRowGap;
@@ -88,10 +89,11 @@ public class CodexPanel : MonoBehaviour
 
     public const string AchievementsLabel = "ACHIEVEMENTS";
     public const string MusicLabel = "MUSIC";
+    public const string BackdropsLabel = "BACKDROPS";
 
     public static string TabName(int i)
     {
-        return i == AchievementsTab ? AchievementsLabel : i == MusicTab ? MusicLabel : CategoryLabel(Tabs[i]);
+        return i == AchievementsTab ? AchievementsLabel : i == MusicTab ? MusicLabel : i == BackdropsTab ? BackdropsLabel : CategoryLabel(Tabs[i]);
     }
 
     public static string CategoryLabel(CodexCategory c)
@@ -150,7 +152,7 @@ public class CodexPanel : MonoBehaviour
         return l;
     }
 
-    // Tab `i`'s drawn rect (panel-local): row-major, 4 + 3; the second row
+    // Tab `i`'s drawn rect (panel-local): row-major, 5 + 4; the second row
     // shares the band's width between its three.
     public static Rect TabRect(Layout l, int i)
     {
@@ -330,7 +332,8 @@ public class CodexPanel : MonoBehaviour
     CanvasGroup chipsGroup;
     CodexAchievementsView ach;
     CodexMusicView music;
-    bool achievementsOpen, musicOpen;
+    CodexBackdropsView backdrops;
+    bool achievementsOpen, musicOpen, backdropsOpen;
     Chip[] chips;
     SectionBar[] headers;
     SectionBar sticky;
@@ -392,7 +395,10 @@ public class CodexPanel : MonoBehaviour
     // The MUSIC tab (not a CodexCategory: its cards are tracks).
     public CodexMusicView Music { get { return music; } }
     public bool MusicOpen { get { return musicOpen; } }
-    bool OtherViewOpen { get { return achievementsOpen || musicOpen; } }
+    // The BACKDROPS tab (not a CodexCategory: its cards are backdrops, opened in CodexBackdropViewer).
+    public CodexBackdropsView Backdrops { get { return backdrops; } }
+    public bool BackdropsOpen { get { return backdropsOpen; } }
+    bool OtherViewOpen { get { return achievementsOpen || musicOpen || backdropsOpen; } }
     public bool InDetail { get { return inDetail; } }
     public CodexCategory Category { get { return category; } }
     public CodexEntry DetailEntry { get { return detailEntry; } }
@@ -494,6 +500,7 @@ public class CodexPanel : MonoBehaviour
         BuildGrid();
         ach = new CodexAchievementsView(this, panel, font);
         music = new CodexMusicView(this, panel, font);
+        backdrops = new CodexBackdropsView(this, panel, font);
         BuildDetail();
         BuildBack();
     }
@@ -729,7 +736,7 @@ public class CodexPanel : MonoBehaviour
         for (int i = 0; i < cards.Length; i++)
             cards[i].newDot.gameObject.SetActive(i < shownCount && cards[i].entry != null && Codex.IsNew(cards[i].entry.id));
         for (int i = 0; i < TabCount; i++)
-            tabDots[i].gameObject.SetActive(i == MusicTab ? false : i == AchievementsTab ? Codex.AchievementsTabHasNew() : Codex.TabHasNew(Tabs[i]));
+            tabDots[i].gameObject.SetActive(i == MusicTab || i == BackdropsTab ? false : i == AchievementsTab ? Codex.AchievementsTabHasNew() : Codex.TabHasNew(Tabs[i]));
     }
 
     void BuildDetail()
@@ -871,6 +878,7 @@ public class CodexPanel : MonoBehaviour
         LayoutDetail();
         ach.ApplyLayout(layout.body, layout);
         music.ApplyLayout(layout.body, layout);
+        backdrops.ApplyLayout(layout.body, layout);
     }
 
     void SizeDots()
@@ -1025,6 +1033,7 @@ public class CodexPanel : MonoBehaviour
         AchievementTracker.RefreshCodex();
         if (achievementsOpen) HideAchievements();
         if (musicOpen) HideMusic();
+        if (backdropsOpen) HideBackdrops();
         RefreshCounter();
         // The codex owns Back/Escape while it is up (BackNavigator layer), so
         // the home screen's back-to-quit never sees those presses.
@@ -1045,6 +1054,7 @@ public class CodexPanel : MonoBehaviour
     public void Close()
     {
         if (phase == Phase.Hidden || phase == Phase.Closing) return;
+        if (CodexBackdropViewer.IsOpen) CodexBackdropViewer.Current.Close();
         CodexMusicPlayer.Stop();   // the menu music comes back as the codex closes
         phase = Phase.Closing;
         phaseAt = Time.unscaledTime;
@@ -1082,6 +1092,7 @@ public class CodexPanel : MonoBehaviour
         {
             HideAchievements();
             HideMusic();
+            HideBackdrops();
             Populate(c);
             tabAt = Time.unscaledTime;
             return;
@@ -1096,6 +1107,7 @@ public class CodexPanel : MonoBehaviour
     {
         if (i == AchievementsTab) ShowAchievements();
         else if (i == MusicTab) ShowMusic();
+        else if (i == BackdropsTab) ShowBackdrops();
         else if (i >= 0 && i < Tabs.Length) ShowCategory(Tabs[i]);
     }
 
@@ -1104,6 +1116,7 @@ public class CodexPanel : MonoBehaviour
         if (inDetail) ShowGrid();
         if (achievementsOpen) { ach.CloseDetail(); Codex.AckAchievements(); PaintNewDots(); return; }
         HideMusic();
+        HideBackdrops();
         achievementsOpen = true;
         grid.gameObject.SetActive(false);
         chipsRoot.gameObject.SetActive(false);
@@ -1121,6 +1134,7 @@ public class CodexPanel : MonoBehaviour
         if (inDetail) ShowGrid();
         if (musicOpen) return;
         if (achievementsOpen) HideAchievements();
+        HideBackdrops();
         musicOpen = true;
         grid.gameObject.SetActive(false);
         chipsRoot.gameObject.SetActive(false);
@@ -1130,6 +1144,40 @@ public class CodexPanel : MonoBehaviour
         RefreshCounter();
         tabAt = Time.unscaledTime;
         PaintNewDots();
+    }
+
+    public void ShowBackdrops()
+    {
+        if (inDetail) ShowGrid();
+        if (backdropsOpen) return;
+        if (achievementsOpen) HideAchievements();
+        HideMusic();
+        backdropsOpen = true;
+        grid.gameObject.SetActive(false);
+        chipsRoot.gameObject.SetActive(false);
+        backdrops.ApplyLayout(layout.body, layout);
+        backdrops.Show();
+        PaintTabs();
+        RefreshCounter();
+        tabAt = Time.unscaledTime;
+        PaintNewDots();
+    }
+
+    void HideBackdrops()
+    {
+        if (!backdropsOpen) return;
+        backdropsOpen = false;
+        if (CodexBackdropViewer.IsOpen) CodexBackdropViewer.Current.Close();
+        backdrops.Hide();   // drops the thumbnails
+        grid.gameObject.SetActive(true);
+        chipsRoot.gameObject.SetActive(sectioned);
+        RefreshCounter();
+    }
+
+    // A backdrop card was tapped: the full-screen viewer opens over the codex (BACK returns to this list).
+    public CodexBackdropViewer OpenBackdropViewer(CodexBackdrop b)
+    {
+        return CodexBackdropViewer.Open(font, b);
     }
 
     void HideMusic()
@@ -1157,7 +1205,7 @@ public class CodexPanel : MonoBehaviour
     {
         for (int i = 0; i < TabCount; i++)
         {
-            bool active = i == MusicTab ? musicOpen : i == AchievementsTab ? achievementsOpen : (!OtherViewOpen && Tabs[i] == category);
+            bool active = i == BackdropsTab ? backdropsOpen : i == MusicTab ? musicOpen : i == AchievementsTab ? achievementsOpen : (!OtherViewOpen && Tabs[i] == category);
             tabFrames[i].color = active ? CodexUi.Select : CodexUi.Idle;
             tabLabels[i].color = active ? CodexUi.Body : CodexUi.Muted;
         }
@@ -1531,6 +1579,7 @@ public class CodexPanel : MonoBehaviour
         RefreshCounter();
         if (achievementsOpen) { ach.Show(true); return; }
         if (musicOpen) { music.Paint(); return; }
+        if (backdropsOpen) { backdrops.Show(); return; }
         var open = inDetail ? detailEntry : null;
         Populate(category, true);
         if (open != null)
@@ -1543,7 +1592,9 @@ public class CodexPanel : MonoBehaviour
 
     void RefreshCounter()
     {
-        counter.text = musicOpen
+        counter.text = backdropsOpen
+            ? CodexBackdrops.UnlockedCount + " / " + CodexBackdrops.ListedCount + "  SEEN"
+            : musicOpen
             ? CodexMusic.UnlockedCount + " / " + CodexMusic.ListedCount + "  HEARD"
             : achievementsOpen
             ? AchievementStore.UnlockedCount + " / " + AchievementCatalog.ActiveCount + "  UNLOCKED"
@@ -1639,6 +1690,7 @@ public class CodexPanel : MonoBehaviour
             {
                 phase = Phase.Hidden;
                 CodexMusicPlayer.Stop();
+                if (backdropsOpen) HideBackdrops();   // the thumbnails go with the panel
                 StopAnimations();
                 BackNavigator.Unregister(this);
                 gameObject.SetActive(false);
@@ -1672,6 +1724,7 @@ public class CodexPanel : MonoBehaviour
         gridGroup.blocksRaycasts = !inDetail && !OtherViewOpen;
         if (achievementsOpen) ach.SetFade(tab);
         if (musicOpen) music.SetFade(tab);
+        if (backdropsOpen) backdrops.SetFade(tab);
         grid.anchoredPosition = gridRect.center + new Vector2(-d * 48f, (1f - tab) * -18f);
         chipsGroup.alpha = OtherViewOpen ? 0f : (1f - d) * tab;
         chipsGroup.interactable = !inDetail && !OtherViewOpen;

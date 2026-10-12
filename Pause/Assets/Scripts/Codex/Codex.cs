@@ -232,6 +232,26 @@ public static class Codex
         return true;
     }
 
+    // ---------------------------------------------------------------------
+    // Backdrops (the codex BACKDROPS tab, see CodexBackdrops)
+    // ---------------------------------------------------------------------
+    //
+    // A backdrop is "seen" once WorldBackdrop showed it in a real run. Same storage and rules as the
+    // music tracks: one more id ("bd_frost_2") in the PrefsKey set, never a CodexEntry, so it never
+    // touches Total, DiscoveredCount, NEW markers or Completionist. Tutorial and developer mode
+    // record nothing; developer mode shows every backdrop.
+
+    public static bool IsBackdropSeen(string backdropId)
+    {
+        return IsTrackHeard(backdropId);
+    }
+
+    // Returns true only the first time.
+    public static bool SeeBackdrop(string backdropId)
+    {
+        return HearTrack(backdropId);
+    }
+
     public static bool IsDiscovered(string id)
     {
         var entry = Find(id);
