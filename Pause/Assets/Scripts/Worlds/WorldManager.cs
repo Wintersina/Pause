@@ -148,7 +148,7 @@ public class WorldManager : MonoBehaviour
     //
     //  A property so tests can flip it (and must restore it).
     // ======================================================================
-    public static bool TideEnabled { get; set; } = false;
+    public static bool TideEnabled { get; set; } = true;
 
     // ======================================================================
     //  RELEASE SWITCH for World 6, Storm (the gas giant), on the same pattern.
