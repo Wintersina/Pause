@@ -83,6 +83,7 @@ public static class AllTests
         ("BossEscapeClockTest", BossEscapeClockTest.Execute),
         ("BossThemedTest", BossThemedTest.Execute),
         ("BossFreeShotAtomsTest", BossFreeShotAtomsTest.Execute),
+        ("BossHealAtomCapTest", BossHealAtomCapTest.Execute),
         ("BossIntroTest", BossIntroTest.Execute),
         ("BossWarningTest", BossWarningTest.Execute),
         ("BugBatch0907Test", BugBatch0907Test.Execute),

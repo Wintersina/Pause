@@ -107,6 +107,20 @@ public class BossEncounter : MonoBehaviour
     public static void FreeAtomReleased() { if (Instance != null) Instance.freeAtomNext++; }
     bool IsFreeAtomDue => state == Phase.Fight && hp > 0 && remaining > 0f &&
         freeAtomNext < freeAtomCount && fightClock >= freeAtomTimes[freeAtomNext];
+    // Hull-repair (green heal) atoms: at most MaxHealAtomsPerFight may be
+    // released over one encounter (intro through boss death / escape), from
+    // any source (HealAtomSpawner, the fight plan's Heal). Outside an
+    // encounter nothing is capped. The count resets in Setup (next boss).
+    public const int MaxHealAtomsPerFight = 2;
+    int healAtomsReleased;
+    public int HealAtomsReleased => healAtomsReleased;
+    public static bool TryReserveHealAtom()
+    {
+        if (!Running) return true;
+        if (Instance.healAtomsReleased >= MaxHealAtomsPerFight) return false;
+        Instance.healAtomsReleased++;
+        return true;
+    }
     public int FreeAtomsPlanned => freeAtomCount;
     public int FreeAtomsReleased => freeAtomNext;
     public float FightClock => fightClock;
@@ -196,6 +210,7 @@ public class BossEncounter : MonoBehaviour
         remaining = BossConfig.FightSeconds;
         fightClock = 0f;
         freeAtomCount = freeAtomNext = 0;
+        healAtomsReleased = 0;
         freePress = false;
     }
 

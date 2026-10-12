@@ -69,6 +69,8 @@ public class HealAtomSpawner : MonoBehaviour
         // Damaged players need it; an undamaged one does not.
         if (collisionDetection.lifeCounter <= 0) return;
         if (Random.value > chance) return;
+        // boss fight: at most BossEncounter.MaxHealAtomsPerFight in total
+        if (!BossEncounter.TryReserveHealAtom()) return;
 
         // just above the visible top on any screen (a fixed y 7 popped in
         // already visible on 9:22+ phones), clear of the enemies' footprints
