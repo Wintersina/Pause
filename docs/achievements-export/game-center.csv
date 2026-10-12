@@ -4,7 +4,7 @@ Pause meta_logged_on,me.hapticgate.pause.ach_meta_logged_on,5,No,No,Logged On,Si
 Pause world_frost_reached,me.hapticgate.pause.ach_world_frost_reached,10,No,No,Cold Front,Reach the Frost world.,Reach the Frost world.,world_frost_reached_1024.png
 Pause world_verdant_reached,me.hapticgate.pause.ach_world_verdant_reached,10,No,No,Into the Green,Reach the Verdant world.,Reach the Verdant world.,world_verdant_reached_1024.png
 Pause world_ember_reached,me.hapticgate.pause.ach_world_ember_reached,15,No,No,Trial by Fire,Reach the Ember world.,Reach the Ember world.,world_ember_reached_1024.png
-Pause world_tide_reached,me.hapticgate.pause.ach_world_tide_reached,20,Yes,No,Deep Water,Reach the Tide world.,Reach the Tide world.,world_tide_reached_1024.png
+Pause world_tide_reached,me.hapticgate.pause.ach_world_tide_reached,20,No,No,Deep Water,Reach the Tide world.,Reach the Tide world.,world_tide_reached_1024.png
 Pause loop_1,me.hapticgate.pause.ach_loop_1,25,No,No,Full Circle,Complete a full loop of every world.,Complete a full loop of every world.,loop_1_1024.png
 Pause loop_2,me.hapticgate.pause.ach_loop_2,25,No,No,Second Lap,Complete two loops in a single run.,Complete two loops in a single run.,loop_2_1024.png
 Pause loop_5,me.hapticgate.pause.ach_loop_5,40,No,No,Orbit Lifer,Complete five loops in a single run.,Complete five loops in a single run.,loop_5_1024.png
@@ -12,7 +12,7 @@ Pause boss_space,me.hapticgate.pause.ach_boss_space,10,No,No,Archon Down,Defeat 
 Pause boss_frost,me.hapticgate.pause.ach_boss_frost,15,No,No,Leviathan Slain,Defeat the Hoarfrost Leviathan.,Defeat the Hoarfrost Leviathan.,boss_frost_1024.png
 Pause boss_verdant,me.hapticgate.pause.ach_boss_verdant,20,No,No,Bloom Queen Felled,Defeat the Bloom Queen.,Defeat the Bloom Queen.,boss_verdant_1024.png
 Pause boss_ember,me.hapticgate.pause.ach_boss_ember,25,No,No,Drake Slayer,Defeat the Cinder Drake.,Defeat the Cinder Drake.,boss_ember_1024.png
-Pause boss_tide,me.hapticgate.pause.ach_boss_tide,25,Yes,No,Tide Turner,Defeat the Tide boss.,Defeat the Tide boss.,boss_tide_1024.png
+Pause boss_tide,me.hapticgate.pause.ach_boss_tide,25,No,No,Tide Turner,Defeat the Tide boss.,Defeat the Tide boss.,boss_tide_1024.png
 Pause boss_no_hit,me.hapticgate.pause.ach_boss_no_hit,25,No,No,Untouchable,Defeat a boss without losing a heart.,Defeat a boss without losing a heart.,boss_no_hit_1024.png
 Pause boss_all,me.hapticgate.pause.ach_boss_all,35,No,No,Boss Collector,Defeat every live world's boss.,Defeat every live world's boss.,boss_all_1024.png
 Pause elite_first,me.hapticgate.pause.ach_elite_first,10,No,No,Elite Hunter,Destroy your first elite ship.,Destroy your first elite ship.,elite_first_1024.png

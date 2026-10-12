@@ -4,7 +4,7 @@ Order,Name,Description,Points,Incremental steps (blank = standard),Initial state
 3,Cold Front,Reach the Frost world.,10,,Revealed,world_frost_reached.png
 4,Into the Green,Reach the Verdant world.,10,,Revealed,world_verdant_reached.png
 5,Trial by Fire,Reach the Ember world.,15,,Revealed,world_ember_reached.png
-6,Deep Water,Reach the Tide world.,20,,Hidden,world_tide_reached.png
+6,Deep Water,Reach the Tide world.,20,,Revealed,world_tide_reached.png
 7,Full Circle,Complete a full loop of every world.,25,,Revealed,loop_1.png
 8,Second Lap,Complete two loops in a single run.,25,,Revealed,loop_2.png
 9,Orbit Lifer,Complete five loops in a single run.,40,,Revealed,loop_5.png
@@ -12,7 +12,7 @@ Order,Name,Description,Points,Incremental steps (blank = standard),Initial state
 11,Leviathan Slain,Defeat the Hoarfrost Leviathan.,15,,Revealed,boss_frost.png
 12,Bloom Queen Felled,Defeat the Bloom Queen.,20,,Revealed,boss_verdant.png
 13,Drake Slayer,Defeat the Cinder Drake.,25,,Revealed,boss_ember.png
-14,Tide Turner,Defeat the Tide boss.,25,,Hidden,boss_tide.png
+14,Tide Turner,Defeat the Tide boss.,25,,Revealed,boss_tide.png
 15,Untouchable,Defeat a boss without losing a heart.,25,,Revealed,boss_no_hit.png
 16,Boss Collector,Defeat every live world's boss.,35,4,Revealed,boss_all.png
 17,Elite Hunter,Destroy your first elite ship.,10,,Revealed,elite_first.png
