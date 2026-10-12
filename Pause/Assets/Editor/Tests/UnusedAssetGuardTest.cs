@@ -191,6 +191,9 @@ public static class UnusedAssetGuardTest
         // The original splash mark: protected art (ArtRestyleTest / SplashLayoutTest pin its bytes), no scene shows it any more
         // (the splash uses HapticGate_title_red.png), so nothing ships it; it stays in the repo as the user's original.
         if (path == "Assets/Art/UI/Splash/HapticGate.png") return true;
+        // The old boost song: the in-run boost track switch is gone (audio-settings), so nothing plays it; master restored
+        // the file on purpose (c45e714a), so it stays until the user decides to delete it or reuse it.
+        if (path == "Assets/Audio/Music/BoostingMusic.mp3") return true;
         if (path == "Assets/link.xml") return true;   // the IL2CPP linker reads it, nothing references it
         if (path.Contains("/Staging/") || path.Contains("/staging/")) return true;
         foreach (string prefix in ExemptPrefixes)
@@ -289,6 +292,7 @@ public static class UnusedAssetGuardTest
             if (path == "Assets/Art/Resources/" + RailMineArt.TideAtlasPath + ".png") continue;   // Tide's second atlas (RailMineArt.AtlasPathFor)
             if (path == "Assets/Art/Resources/" + RailMineArt.StormAtlasPath + ".png") continue;  // Storm's third atlas
             if (path == "Assets/Art/Resources/" + RailMineArt.DesertAtlasPath + ".png") continue;  // Desert's fourth atlas
+            if (path.Contains("~/")) continue;   // a folder ending in ~ (src~ archives) is never imported, so it is no Resources folder
             if (path.Contains("/Resources/Enemies/Death/")) continue;   // EnemyDeathFlipbook strips (keyed by def.key, incl. each world's mine) are not the idle atlas
             if (MineArtName.IsMatch(Path.GetFileNameWithoutExtension(path))) found.Add(path);
         }

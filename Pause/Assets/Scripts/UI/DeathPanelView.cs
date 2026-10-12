@@ -815,6 +815,28 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
         panel.anchoredPosition = centre;
         if (finalApplied) panel.localScale = Vector3.one * fitScale;
         PadButtonTouch(buttonSlots, fitScale, ButtonHeight);
+        SplitRowGap(fitScale);
+    }
+
+    // REPLAY / MENU sit a 16-unit gap above SPACE DOCK. On a short screen the
+    // panel shrinks and PadButtonTouch grows every touch area by more than half
+    // that gap, so the two rows' targets would meet in it: each row reaches at
+    // most half the gap into it and takes the rest of its pad on its far side
+    // (same total touch height, no overlap).
+    void SplitRowGap(float fitScale)
+    {
+        float pad = Mathf.Max(0f, (UiScaleFloor.SceneTapUnits / Mathf.Max(fitScale, .1f) - ButtonHeight) * .5f);
+        float half = (ReplayRect.yMin - DockRect.yMax) * .5f;
+        if (pad <= half) return;
+        float far = 2f * pad - half;
+        for (int i = 0; i < ButtonCount; i++)
+        {
+            var button = buttonSlots[i] != null ? buttonSlots[i].GetComponentInChildren<Button>(true) : null;
+            var g = button != null ? button.targetGraphic : null;
+            if (g == null) continue;
+            // raycastPadding: (left, bottom, right, top); negative grows the area
+            g.raycastPadding = i < 2 ? new Vector4(0f, -half, 0f, -far) : new Vector4(0f, -far, 0f, -half);
+        }
     }
 
     // The panel scales down to fit a short canvas (ComputeFit); UiScale's
