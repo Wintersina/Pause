@@ -24,7 +24,9 @@ public interface ILeaderboardPlatform
     // Interactive sign-in (may show the store's UI).
     void SignIn(Action<bool> done);
 
-    void Submit(string boardId, long score, Action<bool> done);
+    // `tag` is the run's start ship and hearts (LeaderboardRunTag), kept with
+    // the score where the store allows it (Play Games score tag); may be empty.
+    void Submit(string boardId, long score, string tag, Action<bool> done);
 
     void LoadTopScores(string boardId, LeaderboardTimeScope timeScope, int count, Action<LeaderboardPage> done);
 
@@ -55,6 +57,11 @@ public struct LeaderboardEntry
     public string playerName;
     public long value;
     public bool isLocalPlayer;
+    // The ship the run started with and the hearts it started with, read from
+    // the score's tag (LeaderboardRunTag). 0 = unknown (an old entry, a store
+    // without tags, a tag we can't read): the row shows nothing for it.
+    public int startShip;
+    public int startHearts;
 }
 
 public sealed class LeaderboardPage

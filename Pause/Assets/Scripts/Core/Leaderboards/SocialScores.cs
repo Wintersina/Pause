@@ -8,16 +8,17 @@ using UnityEngine.SocialPlatforms;
 public static class SocialScores
 {
     public static void ToPage(IScore[] scores, IScore playerScore, string localUserId, string localUserName,
-                              Action<string[], Action<IUserProfile[]>> loadUsers, Action<LeaderboardPage> done)
+                              Action<string[], Action<IUserProfile[]>> loadUsers, Action<LeaderboardPage> done,
+                              Func<IScore, string> tagOf = null)
     {
         var page = new LeaderboardPage { status = LeaderboardStatus.Ok };
         if (scores != null)
             foreach (var s in scores)
-                if (s != null) page.entries.Add(Entry(s, localUserId));
+                if (s != null) page.entries.Add(Entry(s, localUserId, tagOf));
         if (playerScore != null && playerScore.rank > 0)
         {
             page.hasPlayer = true;
-            page.player = Entry(playerScore, localUserId);
+            page.player = Entry(playerScore, localUserId, tagOf);
             page.player.isLocalPlayer = true;
         }
 
@@ -60,10 +61,18 @@ public static class SocialScores
         catch (Exception) { finish(); }
     }
 
-    static LeaderboardEntry Entry(IScore s, string localUserId)
+    static LeaderboardEntry Entry(IScore s, string localUserId, Func<IScore, string> tagOf)
     {
+        int ship = 0, hearts = 0;
+        if (tagOf != null)
+        {
+            string tag = null;
+            try { tag = tagOf(s); } catch (Exception) { }
+            LeaderboardRunTag.TryParse(tag, out ship, out hearts);
+        }
         return new LeaderboardEntry
         {
+            startShip = ship, startHearts = hearts,
             rank = s.rank,
             playerId = s.userID,
             value = s.value,

@@ -34,7 +34,11 @@ public class LeaderboardPanel : MonoBehaviour
     // long one, then cut short with an ellipsis -- never smaller. The rank
     // and score columns keep their own boxes, so they stay aligned and whole.
     public const int NameSize = 24, NameMinSize = 20;
-    public const float NameLeft = 120f, NameWidth = 290f;   // NameWidth: at the design width
+    // Row columns, left to right: rank, the ship the run started with (its hull
+    // art), the name, the hearts it started with (the HUD heart + a count), the score.
+    public const float NameLeft = 130f, NameWidth = 210f;   // NameWidth: at the design width
+    const float RankWidth = 62f, ShipLeft = 78f, ShipWidth = 46f;
+    const float BadgeWidth = 70f, HeartSize = 22f;
     const float ValueWidth = 200f, ValueInset = 22f;
     // UiScale's floor: the buttons and the tab are 100-unit touch targets.
     public const float MinTapUnits = 100f;
@@ -74,7 +78,7 @@ public class LeaderboardPanel : MonoBehaviour
     float Inner { get { return panelW - 2f * SideInset; } }
     float Drop { get { return DesignHeight - panelH; } }   // the lower block moves up by this
     float ListHeight { get { return PlayerRowTop - Drop - 40f - ListTop; } }
-    public float NameColumnWidth { get { return Inner - NameLeft - ValueInset - ValueWidth - 8f; } }
+    public float NameColumnWidth { get { return Inner - NameLeft - ValueInset - ValueWidth - 8f - BadgeWidth; } }
     public Vector2 PanelSize { get { return new Vector2(panelW, panelH); } }
     public bool ListScrolls { get { return list != null && list.GetComponent<ScrollRect>().enabled; } }
 
@@ -532,14 +536,47 @@ public class LeaderboardPanel : MonoBehaviour
         Color valueColor = mine ? AkiraPalette.Bone : AkiraPalette.Cyan;
 
         var rank = Child(rt, "Rank");
-        Anchor(rank, 18f, 100f);
+        Anchor(rank, 14f, RankWidth);
         Label(rank, e.rank > 0 ? "#" + e.rank : "#--", 26, rankColor, TextAnchor.MiddleLeft, 2.5f);
+
+        // The premium (cheat) ship is never shown: such an entry reads as unknown.
+        if (PremiumShips.IsPremium(e.startShip)) { e.startShip = 0; e.startHearts = 0; }
+        if (ShipHullArt.Has(e.startShip))
+        {
+            var ship = Child(rt, "Ship");
+            Anchor(ship, ShipLeft, ShipWidth);
+            var image = ship.gameObject.AddComponent<Image>();
+            image.sprite = ShipHullArt.StockRest(e.startShip);
+            image.preserveAspect = true;
+            image.raycastTarget = false;
+        }
 
         var name = Child(rt, "Name");
         Anchor(name, NameLeft, NameColumnWidth);
         string who = string.IsNullOrEmpty(e.playerName) ? "PILOT" : e.playerName.ToUpperInvariant();
         if (own && e.rank > 0) who = "YOU  " + who;
         FitName(Label(name, who, NameSize, nameColor, TextAnchor.MiddleLeft, 2.5f), who, NameColumnWidth - 4f);
+
+        if (e.startHearts > 0)
+        {
+            var badge = Child(rt, "Hearts");
+            Anchor(badge, NameLeft + NameColumnWidth + 2f, BadgeWidth - 4f);
+            var heart = Child(badge, "Heart");
+            heart.anchorMin = heart.anchorMax = new Vector2(0f, .5f);
+            heart.pivot = new Vector2(0f, .5f);
+            heart.sizeDelta = new Vector2(HeartSize, HeartSize);
+            heart.anchoredPosition = Vector2.zero;
+            var heartImage = heart.gameObject.AddComponent<Image>();
+            heartImage.sprite = Resources.Load<Sprite>("Vfx/lifeHeart");
+            heartImage.preserveAspect = true;
+            heartImage.raycastTarget = false;
+            var count = Child(badge, "Count");
+            count.anchorMin = new Vector2(0f, 0f);
+            count.anchorMax = new Vector2(1f, 1f);
+            count.offsetMin = new Vector2(HeartSize + 4f, 0f);
+            count.offsetMax = Vector2.zero;
+            Label(count, e.startHearts.ToString(), 24, AkiraPalette.Bone, TextAnchor.MiddleLeft, 2.5f);
+        }
 
         if (e.rank > 0 || e.value != 0)
         {

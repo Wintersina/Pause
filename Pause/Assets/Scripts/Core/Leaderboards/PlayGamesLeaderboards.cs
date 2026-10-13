@@ -29,10 +29,12 @@ public sealed class PlayGamesLeaderboards : ILeaderboardPlatform
         SocialBridge.Authenticate(ok => { if (done != null) done(ok); });
     }
 
-    public void Submit(string boardId, long score, Action<bool> done)
+    public void Submit(string boardId, long score, string tag, Action<bool> done)
     {
         if (!IsSignedIn) { done(false); return; }
-        PlayGamesPlatform.Instance.ReportScore(score, boardId, ok => done(ok));
+        // The tag rides along as the Play Games score tag (URL-safe, max 64 chars).
+        if (string.IsNullOrEmpty(tag)) PlayGamesPlatform.Instance.ReportScore(score, boardId, ok => done(ok));
+        else PlayGamesPlatform.Instance.ReportScore(score, boardId, tag, ok => done(ok));
     }
 
     static LeaderboardTimeSpan Span(LeaderboardTimeScope scope)
@@ -61,7 +63,8 @@ public sealed class PlayGamesLeaderboards : ILeaderboardPlatform
                 return;
             }
             SocialScores.ToPage(playerOnly ? null : data.Scores, data.PlayerScore,
-                gpgs.GetUserId(), gpgs.GetUserDisplayName(), gpgs.LoadUsers, done);
+                gpgs.GetUserId(), gpgs.GetUserDisplayName(), gpgs.LoadUsers, done,
+                s => (s as PlayGamesScore) != null ? ((PlayGamesScore)s).metaData : null);
         });
     }
 
@@ -90,7 +93,7 @@ public sealed class PlayGamesLeaderboards : ILeaderboardPlatform
     public bool IsAvailable { get { return false; } }
     public bool IsSignedIn { get { return false; } }
     public void SignIn(Action<bool> done) { if (done != null) done(false); }
-    public void Submit(string boardId, long score, Action<bool> done) { done(false); }
+    public void Submit(string boardId, long score, string tag, Action<bool> done) { done(false); }
     public void LoadTopScores(string boardId, LeaderboardTimeScope timeScope, int count, Action<LeaderboardPage> done)
     { done(LeaderboardPage.Failed(LeaderboardStatus.Unavailable)); }
     public void LoadPlayerCentered(string boardId, int count, Action<LeaderboardPage> done)

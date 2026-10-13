@@ -65,7 +65,8 @@ public static class SocialBridge
     // `leaderboardId` is already the id for this platform.
     public static void ReportScore(long score, string leaderboardId, SocialCallback callback = null)
     {
-        if (string.IsNullOrEmpty(leaderboardId) || !IsAuthenticated)
+        // A run flown on the premium (cheat) ship is never ranked.
+        if (string.IsNullOrEmpty(leaderboardId) || !IsAuthenticated || PremiumShips.IsPremium(ShipId.Equipped()))
         {
             if (callback != null) callback(false);
             return;

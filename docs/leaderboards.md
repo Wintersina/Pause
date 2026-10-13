@@ -82,6 +82,13 @@ top 10, a "your rank" row that appears even outside the top 10 (Kaneda red), and
 opens the store's own screen. The panel follows `docs/art-style.md`: flat chamfered cel plates,
 `INK` contours, one hard offset shadow, the red title slab, and Orbitron with an ink stroke.
 
+## Start ship, start hearts and the premium ship
+
+* **Row layout:** rank, the start ship's hull art (`ShipHullArt.StockRest`), the name, the HUD heart (`Vfx/lifeHeart`) with the start hearts count, then the score. An entry with no data (an older score, or a store that keeps no tag) shows nothing in those slots.
+* **Capture:** `LeaderboardRunTracker.Start` records `ShipId.Equipped()` and `ShipLives.Max(ship)` at run start (never re-read at the end) in `LeaderboardRunStats.startShip/startHearts`.
+* **Carrying it:** `LeaderboardRunTag` encodes `s<ship>h<hearts>` (e.g. `s7h4`). Android sends it as the Play Games score tag and reads it back from every row. Unity's Game Center API has no score context, so iOS rows of other players stay blank; the player's own row is filled from the device-local `submittedScores` record (which now keeps the tag) when the stored value equals the submitted one. `ScoreTable.Entry.tag` is additive: old queues load with an empty tag.
+* **Paragon (premium cheat ship) never ranks.** Gates: `RunScore.BeginRun` marks the run `Unranked` at its start (no saved best, no score/loop achievement progress; the dust score bonus is unchanged); `LeaderboardRunTracker` marks the run premium if it starts on, or ever flies, Paragon; `LeaderboardService.SubmitRun`, `SubmissionBlocked` (equipped ship), `OfferUnchecked` and `Flush` (drops queued premium-tagged entries) all refuse it; `SocialBridge.ReportScore` refuses it too. A premium tag read from a board is shown as unknown.
+
 ## Adding a board
 
 1. Create the leaderboard in **both** consoles (see below).

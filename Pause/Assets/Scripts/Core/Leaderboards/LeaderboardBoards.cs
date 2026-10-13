@@ -25,6 +25,16 @@ public struct LeaderboardRunStats
     // RunLoop.DisplayNumber is the game's own counter, so the boundary is
     // whatever the last live world was when the loop happened.
     public int loop;
+    // What the run STARTED with (captured at run start, not read at the end):
+    // the ship id and its hearts. Shown beside the score on the boards.
+    public int startShip;
+    public int startHearts;
+    // The run flew the premium (cheat) ship at any point, or ranked nothing
+    // (RunScore.Unranked). Such a run is never submitted anywhere.
+    public bool premiumRun;
+
+    public bool UsedPremium { get { return premiumRun || PremiumShips.IsPremium(startShip); } }
+    public string Tag { get { return LeaderboardRunTag.Encode(startShip, startHearts); } }
 }
 
 public sealed class LeaderboardBoard

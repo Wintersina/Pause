@@ -93,6 +93,9 @@ public sealed class LeaderboardService
     public static bool SubmissionBlocked(out string reason)
     {
         if (DeveloperUnlocks.Enabled) { reason = "developer mode"; return true; }
+        // The premium (cheat) ship never ranks: the flown ship is checked here
+        // too, besides the run's own start ship (SubmitRun).
+        if (PremiumShips.IsPremium(ShipId.Equipped())) { reason = "premium ship"; return true; }
         bool practice = !score.PaysRealDust(SceneManager.GetActiveScene().name,
             PlayerPrefs.GetString("HasDoneTut") == "true", startMenu.youAreInTutorial);
         if (practice) { reason = "tutorial"; return true; }
@@ -131,28 +134,36 @@ public sealed class LeaderboardService
             Debug.Log("[Leaderboards] not submitting: " + reason);
             return 0;
         }
+        if (run.UsedPremium)
+        {
+            Debug.Log("[Leaderboards] not submitting: premium ship");
+            return 0;
+        }
         int accepted = 0;
+        string tag = run.Tag;
         foreach (var board in UsableBoards())
-            if (OfferUnchecked(board, board.Measure(run))) accepted++;
+            if (OfferUnchecked(board, board.Measure(run), tag)) accepted++;
         return accepted;
     }
 
-    public bool Offer(string boardId, long value)
+    public bool Offer(string boardId, long value, string tag = null)
     {
         if (SubmissionBlocked()) return false;
         var board = Usable(boardId);
-        return board != null && OfferUnchecked(board, value);
+        return board != null && OfferUnchecked(board, value, tag);
     }
 
-    bool OfferUnchecked(LeaderboardBoard board, long value)
+    bool OfferUnchecked(LeaderboardBoard board, long value, string tag)
     {
+        // The last gate before the queue: nothing from the premium ship, ever.
+        if (PremiumShips.IsPremium(ShipId.Equipped()) || LeaderboardRunTag.IsPremium(tag)) return false;
         var submitted = ScoreTable.Load(SubmittedKey);
         var pending = ScoreTable.Load(PendingKey);
         long have;
         if (submitted.TryGet(board.id, out have) && !board.IsBetter(value, have)) return false;
         if (pending.TryGet(board.id, out have) && !board.IsBetter(value, have)) return false;
 
-        pending.Set(board.id, value);
+        pending.Set(board.id, value, tag);
         pending.Save(PendingKey);
         PrefsSaver.SaveNow();   // a run end: must survive the app being killed
         flushDueAt = clock() + DebounceSeconds;
@@ -194,16 +205,24 @@ public sealed class LeaderboardService
                 pending.Save(PendingKey);
                 continue;
             }
+            if (LeaderboardRunTag.IsPremium(entry.tag))
+            {
+                // Never send a premium-ship score (nothing queues one; this is the net).
+                pending.Remove(entry.board);
+                pending.Save(PendingKey);
+                continue;
+            }
             if (inFlight.Contains(board.id)) continue;
             inFlight.Add(board.id);
             SubmitCount++;
             long value = entry.value;
             string id = board.id;
-            Platform.Submit(board.PlatformId(Ios), value, ok => OnSubmitted(id, value, ok));
+            string tag = entry.tag ?? "";
+            Platform.Submit(board.PlatformId(Ios), value, tag, ok => OnSubmitted(id, value, tag, ok));
         }
     }
 
-    void OnSubmitted(string boardId, long value, bool ok)
+    void OnSubmitted(string boardId, long value, string tag, bool ok)
     {
         inFlight.Remove(boardId);
         var board = LeaderboardBoards.Get(boardId);
@@ -216,7 +235,7 @@ public sealed class LeaderboardService
         long have;
         if (!submitted.TryGet(boardId, out have) || board.IsBetter(value, have))
         {
-            submitted.Set(boardId, value);
+            submitted.Set(boardId, value, tag);
             submitted.Save(SubmittedKey);
         }
         var pending = ScoreTable.Load(PendingKey);
@@ -246,8 +265,40 @@ public sealed class LeaderboardService
         LeaderboardPage top = null, me = null;
         int remaining = 2;
         Action finish = () => { if (--remaining == 0) done(top, me); };
-        Platform.LoadTopScores(id, LeaderboardTimeScope.AllTime, count, page => { top = page; finish(); });
-        Platform.LoadPlayerScore(id, page => { me = page; finish(); });
+        string boardLogical = board.id;
+        Platform.LoadTopScores(id, LeaderboardTimeScope.AllTime, count, page => { top = FillOwnTag(boardLogical, page); finish(); });
+        Platform.LoadPlayerScore(id, page => { me = FillOwnTag(boardLogical, page); finish(); });
+    }
+
+    // The player's own entry with no tag from the store (Game Center, or a
+    // score from an older build) gets the one this device kept for the score
+    // it submitted -- only when the stored value is the same, so a score made
+    // elsewhere is never given this device's ship.
+    LeaderboardPage FillOwnTag(string boardId, LeaderboardPage page)
+    {
+        if (page == null || !page.Ok) return page;
+        var submitted = ScoreTable.Load(SubmittedKey);
+        long have;
+        string tag = submitted.TagOf(boardId);
+        if (string.IsNullOrEmpty(tag) || !submitted.TryGet(boardId, out have)) return page;
+        int ship, hearts;
+        if (!LeaderboardRunTag.TryParse(tag, out ship, out hearts)) return page;
+        for (int i = 0; i < page.entries.Count; i++)
+        {
+            var e = page.entries[i];
+            if (e.isLocalPlayer && e.value == have && e.startShip == 0 && e.startHearts == 0)
+            {
+                e.startShip = ship;
+                e.startHearts = hearts;
+                page.entries[i] = e;
+            }
+        }
+        if (page.hasPlayer && page.player.value == have && page.player.startShip == 0 && page.player.startHearts == 0)
+        {
+            page.player.startShip = ship;
+            page.player.startHearts = hearts;
+        }
+        return page;
     }
 
     // The panel's SIGN IN. The store platforms route this to
@@ -282,6 +333,9 @@ public sealed class LeaderboardService
         {
             public string board;
             public long value;
+            // Start ship and hearts of the run that made the value
+            // (LeaderboardRunTag); empty on entries an older build wrote.
+            public string tag;
         }
 
         public List<Entry> entries = new List<Entry>();
@@ -315,10 +369,17 @@ public sealed class LeaderboardService
             return false;
         }
 
-        public void Set(string board, long value)
+        public void Set(string board, long value, string tag = null)
         {
             Remove(board);
-            entries.Add(new Entry { board = board, value = value });
+            entries.Add(new Entry { board = board, value = value, tag = tag ?? "" });
+        }
+
+        public string TagOf(string board)
+        {
+            foreach (var e in entries)
+                if (e.board == board) return e.tag ?? "";
+            return "";
         }
 
         public void Remove(string board)

@@ -15,7 +15,7 @@ public sealed class FakeLeaderboards : ILeaderboardPlatform
     public string LocalPlayerId = "local";
     public string LocalPlayerName = "KANEDA";
 
-    public struct Submission { public string board; public long score; }
+    public struct Submission { public string board; public long score; public string tag; }
 
     public readonly List<Submission> Submissions = new List<Submission>();
     public readonly List<string> NativeUICalls = new List<string>();
@@ -37,9 +37,9 @@ public sealed class FakeLeaderboards : ILeaderboardPlatform
         if (done != null) done(IsSignedIn);
     }
 
-    public void Submit(string boardId, long score, Action<bool> done)
+    public void Submit(string boardId, long score, string tag, Action<bool> done)
     {
-        Submissions.Add(new Submission { board = boardId, score = score });
+        Submissions.Add(new Submission { board = boardId, score = score, tag = tag ?? "" });
         if (done != null) done(IsSignedIn && SubmitSucceeds);
     }
 
@@ -116,10 +116,11 @@ public sealed class FakeLeaderboards : ILeaderboardPlatform
         NativeUICalls.Add(boardId);
     }
 
-    public static LeaderboardEntry Entry(int rank, string name, long value, bool local = false)
+    public static LeaderboardEntry Entry(int rank, string name, long value, bool local = false, int ship = 0, int hearts = 0)
     {
         return new LeaderboardEntry
         {
+            startShip = ship, startHearts = hearts,
             rank = rank, playerId = local ? "local" : "p" + rank, playerName = name,
             value = value, isLocalPlayer = local,
         };

@@ -18,6 +18,9 @@ public class LeaderboardRunTracker : MonoBehaviour
     long bestScoreAtStart;
     int furthestLoop;
     bool ended;
+    // Captured when the run starts, never re-read: what it STARTED with.
+    int startShip, startHearts;
+    bool premiumRun;
 
     void Start()
     {
@@ -25,6 +28,9 @@ public class LeaderboardRunTracker : MonoBehaviour
         runScore = 0;
         furthestLoop = RunLoop.DisplayNumber;
         ended = false;
+        startShip = ShipId.Equipped();
+        startHearts = ShipLives.Max(startShip);
+        premiumRun = PremiumShips.IsPremium(startShip) || RunScore.Unranked;
     }
 
     void Update()
@@ -43,6 +49,9 @@ public class LeaderboardRunTracker : MonoBehaviour
     void Sample()
     {
         furthestLoop = Mathf.Max(furthestLoop, RunLoop.DisplayNumber);
+        // A run that started on the premium ship stays premium whatever the
+        // selection becomes; one that ever flies it is premium from then on.
+        if (RunScore.Unranked || PremiumShips.IsPremium(ShipId.Equipped())) premiumRun = true;
         // Cached rather than read at teardown: the next scene's run may
         // already have begun by then.
         if (RunScore.Scoring) runScore = System.Math.Max(runScore, RunScore.Total);
@@ -57,6 +66,9 @@ public class LeaderboardRunTracker : MonoBehaviour
             score = runScore,
             starDust = StarDustLedger.Earned,
             loop = furthestLoop,
+            startShip = startShip,
+            startHearts = startHearts,
+            premiumRun = premiumRun,
         };
     }
 

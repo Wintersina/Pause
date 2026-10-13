@@ -162,7 +162,7 @@ public class score : MonoBehaviour {
     {
         if (scoreToken <= 0 || scoreToken != RunScore.RunId) return 0f;
         RunScore.EndRun(scoreToken);
-        float amount = RunScore.SavesBest ? ScoreRules.ScoreDustBonus(RunScore.Total) : 0f;
+        float amount = RunScore.PaysScoreBonus ? ScoreRules.ScoreDustBonus(RunScore.Total) : 0f;
         float paid = StarDustLedger.PayScoreBonus(ledgerToken, amount);
         if (paid > 0f && paysRealDust) totalCurrency += paid;
         return paid;
