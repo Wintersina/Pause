@@ -216,6 +216,7 @@ public static class PlayerStartWorldTest
     {
         for (int highest = 1; highest <= Last; highest++)
         {
+            if (!TestHarness.FullLane && highest != 1 && highest != Last) continue;   // gate lane: the first and the furthest progress
             Progress(highest);
             OpenOptions();
             int count = highest + 1;
@@ -320,6 +321,7 @@ public static class PlayerStartWorldTest
     {
         for (int highest = 1; highest <= Last; highest++)
         {
+            if (!TestHarness.FullLane && highest != 1 && highest != Last) continue;   // gate lane: the first and the furthest progress
             for (int pick = 0; pick < highest; pick++)
             {
                 Progress(highest);

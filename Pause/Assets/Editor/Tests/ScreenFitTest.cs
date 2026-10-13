@@ -38,24 +38,49 @@ public static class ScreenFitTest
         "fold-1812x2176", "tab-1600x2560", "iphone-se", "iphone-15",
     };
 
-    public static int Execute()
+    // Two lanes (env PAUSE_TEST_FULL): unset = GATE lane, every screen on the
+    // Flip7 plus the aspect / safe-area extremes below; PAUSE_TEST_FULL=1 = the
+    // whole matrix (every device, plus the dpi-unreported pass).
+    public static readonly string[] GateDevices =
+    {
+        "flip7-1080x2520",           // the user's phone: 21:9, centre punch-hole
+        "and-480x854",               // smallest, low dpi, 16:9
+        "and-1080x2340-waterfall",   // left / right insets + rounded corners
+        "fold-1812x2176",            // widest (near square)
+        "iphone-16pm",               // Dynamic Island + home indicator
+    };
+    static readonly string[] GateUnreported = { "flip7-1080x2520" };
+
+    // Is this device part of the current lane's matrix (all of them in the full lane)?
+    public static bool InLane(FitDevice d) { return FullLane || System.Array.IndexOf(GateDevices, d.id) >= 0; }
+
+    public static bool FullLane { get { return TestHarness.FullLane; } }
+
+    public static int Execute() { return Execute(0, 1); }
+
+    // Slice k of n of ScreenFitScreens.All (contiguous, so a scene stays in one slice).
+    public static int Execute(int slice, int slices)
     {
         int fails = 0, cells = 0, waived = 0;
-        bool full = TestHarness.Slow("screen-fit: the whole device matrix");
+        bool full = FullLane && TestHarness.Slow("screen-fit: the whole device matrix");
+        var screens = new List<FitScreen>();
+        int total = ScreenFitScreens.All.Length;
+        for (int i = slice * total / slices; i < (slice + 1) * total / slices; i++) screens.Add(ScreenFitScreens.All[i]);
         foreach (var dpi in new[] { ScreenFitRig.DpiMode.Reported, ScreenFitRig.DpiMode.Unreported })
         {
             ScreenFitRig.Dpi = dpi;
             string tag = dpi == ScreenFitRig.DpiMode.Unreported ? " (dpi unreported)" : "";
             try
             {
-                foreach (var screen in ScreenFitScreens.All)
+                foreach (var screen in screens)
                 {
                     using (new TestHarness.Sandbox())
                     {
                         foreach (var device in FitDevice.All)
                         {
-                            if (!full && device.id != "flip7-1080x2520") continue;
-                            if (dpi == ScreenFitRig.DpiMode.Unreported && System.Array.IndexOf(UnreportedDevices, device.id) < 0) continue;
+                            if (!full && System.Array.IndexOf(GateDevices, device.id) < 0) continue;
+                            var unrep = full ? UnreportedDevices : GateUnreported;
+                            if (dpi == ScreenFitRig.DpiMode.Unreported && System.Array.IndexOf(unrep, device.id) < 0) continue;
                             var shot = ScreenFitRunner.Run(screen, device, null, 0);
                             cells++;
                             foreach (var f in shot.findings)
@@ -77,4 +102,9 @@ public static class ScreenFitTest
         Debug.Log("[FIT] " + cells + " screen x device cells, " + fails + " failing checks, " + waived + " waived findings");
         return fails;
     }
+
+    public static int Slice1() { return Execute(0, 4); }
+    public static int Slice2() { return Execute(1, 4); }
+    public static int Slice3() { return Execute(2, 4); }
+    public static int Slice4() { return Execute(3, 4); }
 }

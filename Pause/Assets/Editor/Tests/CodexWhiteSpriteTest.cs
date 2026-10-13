@@ -93,6 +93,7 @@ public static class CodexWhiteSpriteTest
         // open (dock / title screen / scene load), at every moment of the tell.
         for (int k = 0; k < 4; k++)
         {
+            if (!TestHarness.FullLane && k != 1) continue;   // gate lane: one release pattern per ship
             anim = CodexAnimations.For(entry);
             a = Make(parent, anim, true);
             int n = 0;
@@ -117,9 +118,11 @@ public static class CodexWhiteSpriteTest
     {
         // Ships are covered above; this is elites, bosses, enemies, mines,
         // atoms, worlds and the portal, with and without a death in between.
+        int index = 0;
         foreach (var e in Codex.Entries)
         {
             if (e.category == CodexCategory.Ships) continue;
+            if (!TestHarness.FullLane && index++ % 3 != 0) continue;   // gate lane: every third entry (every category is hit)
             var anim = CodexAnimations.For(e);
             if (anim == null || !anim.HasArt) continue;
             var a = Make(parent, anim, true);

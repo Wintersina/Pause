@@ -28,7 +28,18 @@ public static class EditorSceneLoader
         Debug.LogError("[SceneLoader] Could not import or find Assets/Scenes/" + sceneName + ".unity");
     }
 
+    static readonly System.Collections.Generic.Dictionary<string, string> found = new System.Collections.Generic.Dictionary<string, string>();
+
     static string Find(string sceneName)
+    {
+        string cached;
+        if (found.TryGetValue(sceneName, out cached) && System.IO.File.Exists(cached)) return cached;
+        string path = FindUncached(sceneName);
+        if (path != null) found[sceneName] = path;
+        return path;
+    }
+
+    static string FindUncached(string sceneName)
     {
         string expected = sceneName + ".unity";
         foreach (string guid in AssetDatabase.FindAssets(sceneName + " t:Scene"))

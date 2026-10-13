@@ -148,14 +148,18 @@ public static class CodexNewDotsTest
             // (last: the fit rig swaps scenes) every FitDevice shape: every card and tab dot inside its box with a margin, clear of the tab label
             fitBad = 0; fitCells = 0; fitFirst = "";
             var fit = new FitScreen { id = "codex-dots", scene = "startS4", title = "dots", fullBleed = true, stage = DotsStage };
+            // gate lane: the shape extremes (smallest, Flip7, widest, tablet); full lane: every FitDevice
+            var dotDevices = new[] { "flip7-1080x2520", "and-480x854", "fold-1812x2176", "ipad-pro" };
+            int wantCells = TestHarness.FullLane ? 21 : dotDevices.Length;
             foreach (var device in FitDevice.All)
+                if (TestHarness.FullLane || System.Array.IndexOf(dotDevices, device.id) >= 0)
                 using (new TestHarness.Sandbox())
                 {
                     var shot = ScreenFitRunner.Run(fit, device, null, 0);
                     fitCells++;
                     if (shot.error != null) { fitBad++; if (fitFirst == "") fitFirst = device.id + ": " + shot.error; }
                 }
-            Check("dots inside their card / tab with a margin and off the tab label on all " + fitCells + " device sizes" + (fitFirst == "" ? "" : " (" + fitFirst + ")"), fitBad == 0 && fitCells >= 21);
+            Check("dots inside their card / tab with a margin and off the tab label on all " + fitCells + " device sizes" + (fitFirst == "" ? "" : " (" + fitFirst + ")"), fitBad == 0 && fitCells >= wantCells);
 
         }
         finally

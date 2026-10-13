@@ -34,9 +34,9 @@ public static class BossFreeShotAtomsTest
         {
             RollIsRandomSpacedAndInsideTheWindow();
             ShortWindowsFitFewer();
-            for (int w = 0; w < WorldManager.LiveWorldCount; w++) EveryWorldGetsExactlyCount(w);
+            for (int w = 0; w < WorldManager.LiveWorldCount; w++) if (TestHarness.SweepWorld(w)) EveryWorldGetsExactlyCount(w);
             LoopFightGetsTwoAgain();
-            for (int w = 0; w < WorldManager.LiveWorldCount; w++) EveryFightHasTheSupply(w);
+            for (int w = 0; w < WorldManager.LiveWorldCount; w++) if (TestHarness.SweepWorld(w)) EveryFightHasTheSupply(w);
             EarlyKillLeavesNoStray();
             DeterministicPerSeed();
             NoAllocations();

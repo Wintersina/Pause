@@ -617,6 +617,7 @@ public static class WorldBackdropTest
                          spec.variantSets > 0 ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly))
             {
                 string asset = path.Replace('\\', '/');
+                if (!TestHarness.FullLane && spec.variantSets > 0 && VariantOf(path) > 1) continue;   // gate lane: variant 1 per world
                 var tex = AssetDatabase.LoadAssetAtPath<Texture2D>(asset);
                 if (tex == null) { Check(asset + " imports", false); continue; }
                 // GPU size of the imported format (Profiler's editor number also
@@ -917,7 +918,7 @@ public static class WorldBackdropTest
     static void CheckVerdantPalette()
     {
         var spec = BackdropCatalog.For("Verdant");
-        for (int v = 1; v <= Mathf.Max(1, spec.variantSets); v++)
+        for (int v = 1; v <= TestHarness.SweepVariants(Mathf.Max(1, spec.variantSets)); v++)
         {
             int w, h;
             var px = Composite("Verdant", out w, out h, v);
@@ -988,7 +989,7 @@ public static class WorldBackdropTest
     static void CheckEmberPalette()
     {
         var spec = BackdropCatalog.For("Ember");
-        for (int v = 1; v <= Mathf.Max(1, spec.variantSets); v++)
+        for (int v = 1; v <= TestHarness.SweepVariants(Mathf.Max(1, spec.variantSets)); v++)
         {
             int w, h;
             var px = Composite("Ember", out w, out h, v);
@@ -1067,7 +1068,7 @@ public static class WorldBackdropTest
     static void CheckTidePalette()
     {
         var spec = BackdropCatalog.For("Tide");
-        for (int v = 1; v <= Mathf.Max(1, spec.variantSets); v++)
+        for (int v = 1; v <= TestHarness.SweepVariants(Mathf.Max(1, spec.variantSets)); v++)
         {
             int w, h;
             var px = Composite("Tide", out w, out h, v);
@@ -1143,7 +1144,7 @@ public static class WorldBackdropTest
     static void CheckDesertPalette()
     {
         var spec = BackdropCatalog.For("Desert");
-        for (int v = 1; v <= Mathf.Max(1, spec.variantSets); v++)
+        for (int v = 1; v <= TestHarness.SweepVariants(Mathf.Max(1, spec.variantSets)); v++)
         {
             int w, h;
             var px = Composite("Desert", out w, out h, v);
@@ -1192,7 +1193,7 @@ public static class WorldBackdropTest
     static void CheckReadability()
     {
         for (int wi = 0; wi < WorldManager.Worlds.Length; wi++)
-        for (int variant = 1; variant <= Mathf.Max(1, BackdropCatalog.For(WorldManager.Worlds[wi].displayName).variantSets); variant++)
+        for (int variant = 1; variant <= TestHarness.SweepVariants(Mathf.Max(1, BackdropCatalog.For(WorldManager.Worlds[wi].displayName).variantSets)); variant++)
         {
             var wspec = BackdropCatalog.For(WorldManager.Worlds[wi].displayName);
             string world = wspec.world + (wspec.variantSets > 0 ? " v" + variant : "");

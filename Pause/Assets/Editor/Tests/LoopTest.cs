@@ -1101,6 +1101,7 @@ public static class LoopTest
         {
             for (int w = 0; w < WorldManager.LiveWorldCount; w++)
             {
+                if (!TestHarness.SweepWorld(w)) continue;   // gate lane: every third world
                 PlayerPrefs.SetInt(WorldManager.PrefsCurrentWorld, w);
                 int[] counts = new int[2];
                 int closed = 0;

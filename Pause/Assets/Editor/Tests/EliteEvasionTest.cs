@@ -57,7 +57,7 @@ public static class EliteEvasionTest
             Paused();
             Allocations();
             KillableByThePlayer();
-            if (TestHarness.Slow("elite survival probe (before / after, hunted)")) Survival();
+            if (TestHarness.FullLane && TestHarness.Slow("elite survival probe (before / after, hunted)")) Survival();
         }
         finally
         {

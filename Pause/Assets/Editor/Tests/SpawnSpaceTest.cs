@@ -446,12 +446,16 @@ public static class SpawnSpaceTest
         int[] spawnedAt = new int[2];
         int totalOverlapFrames = 0, frames = 0, deferred = 0, dropped = 0, chasersSeen = 0, brainsMoved = 0;
         string firstOverlap = null;
+        int worldsRun = 0;
         var target = new GameObject("~SimShip").transform;
         var sw = System.Diagnostics.Stopwatch.StartNew();
         var buffer = new List<SpawnFootprint>(128);
         try
         {
             for (int w = 0; w < WorldManager.LiveWorldCount; w++)
+            {
+                if (!TestHarness.SweepWorld(w)) continue;   // gate lane: every third world (the baseline counts below scale with it)
+                worldsRun++;
                 for (int si = 0; si < speeds.Length; si++)
                     for (int di = 0; di < densities.Length; di++)
                     {
@@ -543,6 +547,7 @@ public static class SpawnSpaceTest
                                                 w, v, densities[di], board.SpawnedCount, board.DeferredTotal, board.DroppedTotal, overlapFrames));
                         ClearBoard();
                     }
+            }
         }
         finally
         {
@@ -553,7 +558,7 @@ public static class SpawnSpaceTest
             SpawnSpace.ClockOverride = null;
         }
         Debug.Log("[SPAWN] long runs took " + sw.Elapsed.TotalSeconds.ToString("F1") + "s over " + frames + " frames");
-        Check("no two live enemy bodies ever overlap, every frame of 24 two-minute runs (" + totalOverlapFrames + " frames" +
+        Check("no two live enemy bodies ever overlap, every frame of the two-minute runs (" + totalOverlapFrames + " frames" +
               (firstOverlap != null ? "; first: " + firstOverlap : "") + ")", totalOverlapFrames == 0);
         Check("chasers flew in the runs (" + chasersSeen + "; they are capped now, EnemyDensity.MaxChasers)", chasersSeen > 40);
         Check("spawns with no room were deferred (" + deferred + ")", deferred > 0);
@@ -565,7 +570,8 @@ public static class SpawnSpaceTest
         // (EnemyDensity; EnemyDensityTest holds the cut itself), and each one
         // reserves its whole pattern, so the counts are no longer the
         // pre-SpawnSpace spawner's: well below it, and never above.
-        float r0 = spawnedAt[0] / (float)BaselineFirstPass, r1 = spawnedAt[1] / (float)BaselineMaxLoop;
+        float share = worldsRun / (float)WorldManager.LiveWorldCount;   // 1 in the full lane
+        float r0 = spawnedAt[0] / (BaselineFirstPass * share), r1 = spawnedAt[1] / (BaselineMaxLoop * share);
         Check(string.Format("first-pass density is the deliberate cut, not a planner loss: {0} spawns vs {1} before ({2:P1})",
                             spawnedAt[0], BaselineFirstPass, r0 - 1f), r0 >= .2f && r0 <= .8f);
         Check(string.Format("max loop density likewise: {0} spawns vs {1} before ({2:P1})", spawnedAt[1], BaselineMaxLoop, r1 - 1f),

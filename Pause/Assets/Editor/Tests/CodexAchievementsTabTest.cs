@@ -541,6 +541,7 @@ public static class CodexAchievementsTabTest
         };
         foreach (var device in FitDevice.All)
         {
+            if (!ScreenFitTest.InLane(device)) continue;   // gate lane: the shape extremes
             using (new TestHarness.Sandbox())
             {
                 AchievementStore.ResetAll();
@@ -549,7 +550,7 @@ public static class CodexAchievementsTabTest
                 if (shot.error != null) { bad++; if (first == "") first = device.id + ": " + shot.error; }
             }
         }
-        Check("home: badge rides the Codex word's top-right (also for a longer word), taps pass through it, on all " + cells + " device sizes" + (first == "" ? "" : " (" + first + ")"), bad == 0 && cells > 5);
+        Check("home: badge rides the Codex word's top-right (also for a longer word), taps pass through it, on all " + cells + " device sizes" + (first == "" ? "" : " (" + first + ")"), bad == 0 && cells > (TestHarness.FullLane ? 5 : 3));
     }
 
     static void HomeBadgeStage(ScreenFitRig rig, ref int bad, ref string first)

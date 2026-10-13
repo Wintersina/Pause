@@ -263,7 +263,7 @@ public static class EnemyJitterTest
         var perKind = new SortedDictionary<string, string>();
         foreach (var def in EnemyRoster.All)
         {
-            int variants = def.role == EnemyRole.Mine ? 2 : 3;
+            int variants = TestHarness.FullLane ? (def.role == EnemyRole.Mine ? 2 : 3) : 1;   // gate lane: the first variant
             for (int variant = 0; variant < variants; variant++)
                 foreach (string path in Paths)
                     foreach (float dt in new[] { 1f / 60f, 1f / 30f })

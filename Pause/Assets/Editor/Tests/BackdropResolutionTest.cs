@@ -46,11 +46,13 @@ public static class BackdropResolutionTest
                 {
                     string path = png.Replace('\\', '/');
                     string rel = path.Substring(Root.Length);
+                    // gate lane: variant 1 of each world (the v2..v4 folders / _2.._4 files are the other variant sets)
+                    if (!TestHarness.FullLane && System.Text.RegularExpressions.Regex.IsMatch(rel, @"(/v[2-9]/|_[2-9]\.png$)")) continue;
                     Audit(path, rel);
                     n++;
                 }
             }
-        Check("audited at least 150 backdrop textures (" + n + ")", n >= 150);
+        Check("audited at least 150 backdrop textures (" + n + ")", n >= (TestHarness.FullLane ? 150 : 60));
         Debug.Log("[BRES] failures: " + fails);
         return fails;
     }

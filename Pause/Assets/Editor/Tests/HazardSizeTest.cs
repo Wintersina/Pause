@@ -67,7 +67,7 @@ public static class HazardSizeTest
             PilotColumnsStayClear();
             NoAllocation();
             if (TestHarness.Slow("long mixed-size spawner runs (overlap, row gap, rails)")) LongRuns();
-            if (TestHarness.Slow("threat table, sizes off vs on")) ThreatTable();
+            if (TestHarness.FullLane && TestHarness.Slow("threat table, sizes off vs on")) ThreatTable();
         }
         finally
         {

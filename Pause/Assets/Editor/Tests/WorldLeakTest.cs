@@ -239,6 +239,7 @@ public static class WorldLeakTest
     {
         for (int w = 0; w < Worlds; w++)
         {
+            if (!TestHarness.SweepWorld(w)) continue;   // gate lane: every third world
             firstForeign.Clear(); audited = 0;
             Prefs(w);
             Random.InitState(9100 + w);
@@ -263,6 +264,7 @@ public static class WorldLeakTest
                 int to = (from + 1) % Worlds;
                 string label = W(from) + " -> " + W(to) + (mode == 0 ? (from == Worlds - 1 ? " (loop)" : " (planetfall)") : " (portal)");
                 if (mode == 1 && from == Worlds - 1) continue;   // the loop only has the portal
+                if (!TestHarness.FullLane && (mode == 1 || from % 2 == 1)) continue;   // gate lane: the real way on (planetfall / loop) from every other world
                 firstForeign.Clear(); audited = 0;
                 Prefs(from);
                 Random.InitState(555 + from * 7 + mode);
@@ -293,6 +295,7 @@ public static class WorldLeakTest
     {
         for (int start = 0; start < Worlds - 1; start++)
         {
+            if (!TestHarness.SweepWorld(start)) continue;   // gate lane: every third world
             firstForeign.Clear(); audited = 0;
             Prefs(start);
             Random.InitState(31 + start);
@@ -322,6 +325,7 @@ public static class WorldLeakTest
     {
         for (int w = 1; w < Worlds; w++)
         {
+            if (!TestHarness.SweepWorld(w)) continue;   // gate lane: every third world
             firstForeign.Clear(); audited = 0;
             Prefs(w);
             Random.InitState(7000 + w);

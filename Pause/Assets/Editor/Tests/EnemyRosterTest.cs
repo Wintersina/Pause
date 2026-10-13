@@ -647,6 +647,7 @@ public static class EnemyRosterTest
         {
             for (int w = 0; w < Worlds; w++)
             {
+                if (!TestHarness.SweepWorld(w)) continue;   // gate lane: every third world
                 PlayerPrefs.SetInt(WorldManager.PrefsCurrentWorld, w);
                 UnityEngine.Random.InitState(9100 + w);
                 var board = new GameObject("~ErRunBoard").AddComponent<enmiesOnBoard>();

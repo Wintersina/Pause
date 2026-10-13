@@ -291,8 +291,10 @@ public static class ReplayTest
         int worlds = WorldManager.LiveWorldCount;
         for (int pick = 0; pick < worlds; pick++)
         {
+            if (!TestHarness.SweepWorld(pick)) continue;   // gate lane: every third pick / furthest world
             for (int highest = 0; highest < worlds; highest++)
             {
+                if (!TestHarness.SweepWorld(highest)) continue;
                 foreach (bool startAtHighest in new[] { true, false })
                 {
                     string tag = "dev pick " + Name(pick) + ", furthest " + Name(highest) +

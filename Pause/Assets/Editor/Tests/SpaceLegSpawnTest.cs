@@ -114,6 +114,7 @@ public static class SpaceLegSpawnTest
                 log.AppendLine("=== switches " + "all worlds" + " ===");
                 for (int from = 1; from <= last; from++)
                 {
+                    if (!TestHarness.FullLane && from != 1 && !TestHarness.SweepWorld(from)) continue;   // gate lane: worlds 1, 3, 6
                     int totalForeign = 0, totalSpace = 0, runs = 0;
                     for (int seed = 0; seed < 6; seed++)
                     {

@@ -47,7 +47,8 @@ public static class EnemyDensityTest
                 EditorSceneLoader.Open("gameS1", OpenSceneMode.Single);
                 EnemyThreat.ForceShooting = true;
                 EnemyDensityProbe.SetAuthoredView();   // the 10 u view the recorded baseline was measured in
-                Table();
+                // gate lane: the Flip7 table only (the shape the game ships on); full lane: the authored view + both phone shapes
+                if (TestHarness.FullLane) Table();
                 PhoneTables();
             }
         }
@@ -71,7 +72,7 @@ public static class EnemyDensityTest
     // times that. Pilots do not scale (they are capped, not rained).
     static void PhoneTables()
     {
-        foreach (var shape in new[] { new Vector2Int(1080, 1920), new Vector2Int(1080, 2520) })
+        foreach (var shape in TestHarness.FullLane ? new[] { new Vector2Int(1080, 1920), new Vector2Int(1080, 2520) } : new[] { new Vector2Int(1080, 2520) })
         {
             EnemyDensityProbe.SetView(shape.x, shape.y);
             float k = EnemyDensityProbe.ViewHalfHeight / EnemyDensityProbe.AuthoredHalfHeight;

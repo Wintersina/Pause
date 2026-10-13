@@ -264,7 +264,7 @@ public static class VerdantBackdropTest
 
     static void Affinity()
     {
-        for (int v = 1; v <= 4; v++)
+        for (int v = 1; v <= TestHarness.SweepVariants(4); v++)
         {
             int pieces = 0, wrong = 0, overlaps = 0, relaxed = 0, clusters = 0, runs = 0, pipes = 0;
             var byClass = new Dictionary<string, int>();

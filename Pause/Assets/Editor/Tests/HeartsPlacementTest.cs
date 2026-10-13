@@ -253,6 +253,7 @@ public static class HeartsPlacementTest
         foreach (int id in ShipId.All)
             for (int count = ShipLives.Fewest; count <= ShipLives.Most; count++)
             {
+                if (!TestHarness.FullLane && count != ShipLives.Fewest && count != ShipLives.Most) continue;   // gate lane: the fewest and the most hearts
                 FreshScene();
                 var rig = Build(id, Vector3.zero, true, count);
                 Pose(rig, 20f, 0f, 1.3f, 1f);
@@ -348,8 +349,10 @@ public static class HeartsPlacementTest
             bool tall = (float)h / w > 2f;
             screens.Add((name, Rect.MinMaxRect(-halfW, -size + (tall ? 48 : 0) * unit, halfW, size - (tall ? 96 : 0) * unit)));
         }
+        int screenNo = 0;
         foreach (var (name, safe) in screens)
         {
+            if (!TestHarness.FullLane && screenNo++ % 3 != 0) continue;   // gate lane: gameplay + every third screen shape
             ShipUiSlots.ScreenOverride = () => safe;
             float half = Mathf.Max(5f, Mathf.Max(-safe.yMin, safe.yMax));
             var view = new PlayField.Frame { bottom = -half, top = half, safeBottom = safe.yMin, safeTop = safe.yMax, bandBottom = safe.yMax };

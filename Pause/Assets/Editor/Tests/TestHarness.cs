@@ -26,6 +26,19 @@ public static class TestHarness
 
     // Wrap a long simulation / big render check: `if (TestHarness.Slow("...")) LongCheck();`
     // Runs it everywhere except AllTests.RunFast, which logs the skip.
+    // Two lanes. Unset = GATE lane (the default run: exhaustive sweeps keep one
+    // representative variant / device subset); PAUSE_TEST_FULL=1 = FULL lane
+    // (every variant, every device, every seed: what a release gate runs).
+    public static bool FullLane { get { return System.Environment.GetEnvironmentVariable("PAUSE_TEST_FULL") == "1"; } }
+
+    // The variants of a world's backdrop an exhaustive sweep visits: 1..n in
+    // the full lane, just variant 1 in the gate lane.
+    public static int SweepVariants(int n) { return FullLane ? n : 1; }
+
+    // Which worlds of a per-world simulation sweep run: all in the full lane,
+    // every third (first, middle, last of seven) in the gate lane.
+    public static bool SweepWorld(int w) { return FullLane || w % 3 == 0; }
+
     public static bool Slow(string what)
     {
         if (!Fast) return true;
