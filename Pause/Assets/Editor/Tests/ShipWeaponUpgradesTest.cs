@@ -370,7 +370,7 @@ public static class ShipWeaponUpgradesTest
     static void DockShowsTheWeaponLevel()
     {
         EditorSceneLoader.Open("shopS6", OpenSceneMode.Single);
-        for (int i = 0; i <= shopingShips.shipTotal; i++) PlayerPrefs.DeleteKey(ShipId.OwnedKey(i));
+        for (int i = 0; i <= shopingShips.RosterTotal; i++) PlayerPrefs.DeleteKey(ShipId.OwnedKey(i));
         PlayerPrefs.SetString(ShipId.OwnedKey(1), "True");
         PlayerPrefs.SetString(ShipId.OwnedKey(8), "True");
         PlayerPrefs.SetInt("spawnShip", 8);

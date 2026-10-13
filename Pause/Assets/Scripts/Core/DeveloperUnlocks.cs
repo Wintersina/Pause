@@ -63,7 +63,7 @@ public static class DeveloperUnlocks
         {
             PlayerPrefs.SetString("HasDoneTut", "true");
             PlayerPrefs.SetInt(WorldManager.PrefsHighestWorld, WorldManager.Worlds.Length - 1);
-            for (int i = 1; i < shopingShips.shipTotal; i++)
+            for (int i = 1; i < shopingShips.RosterTotal; i++)
                 PlayerPrefs.SetString("boughtship" + i, "True");
         }
         // Only an on -> off transition restores. Restoring while already off
@@ -143,7 +143,7 @@ public static class DeveloperUnlocks
         SnapshotString("HasDoneTut");
         SnapshotInt(WorldManager.PrefsHighestWorld);
         SnapshotInt(WorldManager.PrefsCurrentWorld);
-        for (int i = 1; i < shopingShips.shipTotal; i++) SnapshotString("boughtship" + i);
+        for (int i = 1; i < shopingShips.RosterTotal; i++) SnapshotString("boughtship" + i);
     }
 
     static void RestoreProgress()
@@ -151,7 +151,7 @@ public static class DeveloperUnlocks
         RestoreString("HasDoneTut");
         RestoreInt(WorldManager.PrefsHighestWorld);
         RestoreInt(WorldManager.PrefsCurrentWorld);
-        for (int i = 1; i < shopingShips.shipTotal; i++) RestoreString("boughtship" + i);
+        for (int i = 1; i < shopingShips.RosterTotal; i++) RestoreString("boughtship" + i);
     }
 
     static void SnapshotString(string key)

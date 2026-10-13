@@ -32,7 +32,7 @@ public static class DockPreview
         using (new TestHarness.Sandbox())
         {
             DeveloperUnlocks.SetEnabled(false);
-            for (int i = 0; i <= shopingShips.shipTotal; i++) PlayerPrefs.DeleteKey(ShipId.OwnedKey(i));
+            for (int i = 0; i <= shopingShips.RosterTotal; i++) PlayerPrefs.DeleteKey(ShipId.OwnedKey(i));
             foreach (int id in new[] { 2, 8, 10, 3, 13 }) PlayerPrefs.SetString(ShipId.OwnedKey(id), "True");
             PlayerPrefs.SetInt(ShipId.SelectedKey, 10);
             PlayerPrefs.SetFloat(StarDustLedger.CurrencyKey, 2600f);
@@ -86,7 +86,7 @@ public static class DockPreview
         using (new TestHarness.Sandbox())
         {
             DeveloperUnlocks.SetEnabled(false);
-            for (int i = 0; i <= shopingShips.shipTotal; i++) PlayerPrefs.DeleteKey(ShipId.OwnedKey(i));
+            for (int i = 0; i <= shopingShips.RosterTotal; i++) PlayerPrefs.DeleteKey(ShipId.OwnedKey(i));
             foreach (int id in new[] { 8, 10 }) PlayerPrefs.SetString(ShipId.OwnedKey(id), "True");
             PlayerPrefs.SetInt(ShipId.SelectedKey, 8);
             PlayerPrefs.SetFloat(StarDustLedger.CurrencyKey, 2600f);
@@ -120,7 +120,7 @@ public static class DockPreview
         using (new TestHarness.Sandbox())
         {
             DeveloperUnlocks.SetEnabled(false);
-            for (int i = 0; i <= shopingShips.shipTotal; i++) PlayerPrefs.DeleteKey(ShipId.OwnedKey(i));
+            for (int i = 0; i <= shopingShips.RosterTotal; i++) PlayerPrefs.DeleteKey(ShipId.OwnedKey(i));
             foreach (int id in new[] { 2, 8, 10 }) PlayerPrefs.SetString(ShipId.OwnedKey(id), "True");
             PlayerPrefs.SetFloat(StarDustLedger.CurrencyKey, 120000f);
             var size = new Vector2Int(1080, 1920);
@@ -132,6 +132,9 @@ public static class DockPreview
             PlayerPrefs.SetInt(ShipSkins.OwnedKey(PremiumShips.Paragon, 1), 1);
             PlayerPrefs.SetInt(ShipSkins.OwnedKey(PremiumShips.Paragon, 2), 1);
             Render(size, PremiumShips.Paragon, Path.Combine(dir, "paragon-dock-two-skins.png"), d => d.popup.TapSwatch(3));
+            // The same card on other aspect ratios: the 50K chips and the price line must read whole.
+            Render(new Vector2Int(1080, 2520), PremiumShips.Paragon, Path.Combine(dir, "paragon-dock-two-skins-21x9.png"), d => d.popup.TapSwatch(3));
+            Render(new Vector2Int(1200, 1600), PremiumShips.Paragon, Path.Combine(dir, "paragon-dock-two-skins-4x3.png"), d => d.popup.TapSwatch(3));
             ShipSkins.ClearPreview();
         }
         EditorApplication.Exit(0);

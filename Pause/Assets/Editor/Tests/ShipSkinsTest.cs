@@ -74,7 +74,7 @@ public static class ShipSkinsTest
     {
         ShipSkins.ClearPreview();
         PlayerPrefs.SetInt(DeveloperUnlocks.EnabledKey, 0);
-        for (int id = 0; id <= shopingShips.shipTotal; id++)
+        for (int id = 0; id <= shopingShips.RosterTotal; id++)
         {
             PlayerPrefs.DeleteKey(ShipSkins.EquippedKey(id));
             PlayerPrefs.DeleteKey(ShipSkins.DeveloperEquippedKey(id));
@@ -85,7 +85,7 @@ public static class ShipSkinsTest
 
     static void Own(params int[] ids)
     {
-        for (int i = 0; i <= shopingShips.shipTotal; i++) PlayerPrefs.DeleteKey(ShipId.OwnedKey(i));
+        for (int i = 0; i <= shopingShips.RosterTotal; i++) PlayerPrefs.DeleteKey(ShipId.OwnedKey(i));
         PlayerPrefs.SetString(ShipId.OwnedKey(1), "True");
         foreach (int id in ids) PlayerPrefs.SetString(ShipId.OwnedKey(id), "True");
     }

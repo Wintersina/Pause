@@ -42,7 +42,7 @@ public static class CodexAchievementsTabTest
         PlayerPrefs.SetInt(AchievementStore.SchemaKey, AchievementMigration.Schema);   // no migration surprises
         PlayerPrefs.SetString(Codex.PrefsKey, "");
         PlayerPrefs.DeleteKey(WorldManager.PrefsHighestWorld);
-        for (int i = 1; i <= shopingShips.shipTotal; i++) PlayerPrefs.DeleteKey("boughtship" + i);
+        for (int i = 1; i <= shopingShips.RosterTotal; i++) PlayerPrefs.DeleteKey("boughtship" + i);
         Codex.Reload();
         EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
         var esGo = new GameObject("TestEventSystem", typeof(EventSystem));

@@ -110,12 +110,18 @@ public static class CodexCatalogue
     public static readonly string[] WorldIds = { "world_space", "world_frost", "world_verdant", "world_ember", "world_tide", "world_storm", "world_desert" };
 
     static CodexEntry[] all;
+    static bool allWithPremium;
 
     public static CodexEntry[] All
     {
         get
         {
-            if (all == null) all = Build();
+            // Rebuilt when Paragon's visibility flips (feature flag / developer mode).
+            if (all == null || allWithPremium != PremiumShips.Visible)
+            {
+                allWithPremium = PremiumShips.Visible;
+                all = Build();
+            }
             return all;
         }
     }

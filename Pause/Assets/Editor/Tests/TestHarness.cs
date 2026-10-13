@@ -182,11 +182,16 @@ public static class TestHarness
             // the key itself is put back on Dispose like every other pref.
             PlayerPrefs.SetInt(DeveloperUnlocks.EnabledKey, 0);
 
+            // The suites written for the full 16-ship roster run with Paragon's
+            // feature flag on (it ships OFF: the roster is then 15 ships). The
+            // suite that tests the flag itself (ParagonFlagTest) turns it off.
+            FeatureFlags.Set(FeatureFlags.ParagonShip, true);
+
             // Likewise every ship starts in its stock skin: suites that check
             // the hull art read the stock sheet's source pixels, and a skin
             // equipped in the Mac player would otherwise show up here. (Put
             // back on Dispose with the other prefs.)
-            for (int id = 0; id <= shopingShips.shipTotal; id++)
+            for (int id = 0; id <= shopingShips.RosterTotal; id++)
             {
                 PlayerPrefs.DeleteKey(ShipSkins.EquippedKey(id));
                 PlayerPrefs.DeleteKey(ShipSkins.DeveloperEquippedKey(id));
@@ -195,7 +200,7 @@ public static class TestHarness
 
             // And with no colours bought, so every ship's weapon starts at
             // level 0 (ShipWeaponUpgrades) whatever the Mac player bought.
-            for (int id = 0; id <= shopingShips.shipTotal; id++)
+            for (int id = 0; id <= shopingShips.RosterTotal; id++)
                 for (int n = 1; n < ShipSkins.PerShip; n++)
                     PlayerPrefs.DeleteKey(ShipSkins.OwnedKey(id, n));
         }
@@ -429,13 +434,14 @@ public static class TestHarness
             "spawnShip", "HasDoneTut", "PlayerCurrecny", "HighestSpeed", RunScore.BestScoreKey,
             WorldManager.PrefsCurrentWorld, WorldManager.PrefsHighestWorld,
             DeveloperUnlocks.EnabledKey, DeveloperUnlocks.SelectedWorldKey,
+            FeatureFlags.KeyOf(FeatureFlags.ParagonShip),
             DeveloperUnlocks.ChoiceBuildKey, PlayerStartWorld.Key, SoundSettings.Key, SoundSettings.SfxOnKey, SoundSettings.MusicOnKey, SoundSettings.SfxVolumeKey, SoundSettings.MusicVolumeKey,
             Codex.PrefsKey, Codex.NewKey, Codex.AckKey,
         };
-        for (int i = 0; i <= shopingShips.shipTotal; i++) keys.Add("boughtship" + i);
+        for (int i = 0; i <= shopingShips.RosterTotal; i++) keys.Add("boughtship" + i);
 
         // Hull skins: equipped index, ownership, and developer-mode equips.
-        for (int i = 0; i <= shopingShips.shipTotal; i++)
+        for (int i = 0; i <= shopingShips.RosterTotal; i++)
         {
             keys.Add(ShipSkins.EquippedKey(i));
             keys.Add(ShipSkins.DeveloperEquippedKey(i));
@@ -463,7 +469,7 @@ public static class TestHarness
         {
             "HasDoneTut", WorldManager.PrefsHighestWorld, WorldManager.PrefsCurrentWorld,
         };
-        for (int i = 0; i <= shopingShips.shipTotal; i++) backed.Add("boughtship" + i);
+        for (int i = 0; i <= shopingShips.RosterTotal; i++) backed.Add("boughtship" + i);
         foreach (string k in backed)
         {
             keys.Add("developerBackup_" + k);

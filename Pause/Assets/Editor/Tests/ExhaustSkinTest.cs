@@ -50,7 +50,7 @@ public static class ExhaustSkinTest
     {
         ShipSkins.ClearPreview();
         PlayerPrefs.SetInt(DeveloperUnlocks.EnabledKey, 0);
-        for (int id = 0; id <= shopingShips.shipTotal; id++)
+        for (int id = 0; id <= shopingShips.RosterTotal; id++)
         {
             PlayerPrefs.DeleteKey(ShipSkins.EquippedKey(id));
             PlayerPrefs.DeleteKey(ShipSkins.DeveloperEquippedKey(id));

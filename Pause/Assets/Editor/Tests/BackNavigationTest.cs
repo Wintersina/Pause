@@ -153,7 +153,7 @@ public static class BackNavigationTest
 
     static void Dock()
     {
-        for (int i = 0; i <= shopingShips.shipTotal; i++) PlayerPrefs.DeleteKey(ShipId.OwnedKey(i));
+        for (int i = 0; i <= shopingShips.RosterTotal; i++) PlayerPrefs.DeleteKey(ShipId.OwnedKey(i));
         PlayerPrefs.SetString(ShipId.OwnedKey(6), "True");
         PlayerPrefs.SetString(ShipId.OwnedKey(11), "True");
         PlayerPrefs.SetInt(ShipId.SelectedKey, 11);

@@ -67,7 +67,7 @@ public static class ShipSelectionTest
     // Exactly these ships bought (the starter is owned regardless).
     static int[] Own(params int[] ids)
     {
-        for (int i = 0; i <= shopingShips.shipTotal; i++) PlayerPrefs.DeleteKey(ShipId.OwnedKey(i));
+        for (int i = 0; i <= shopingShips.RosterTotal; i++) PlayerPrefs.DeleteKey(ShipId.OwnedKey(i));
         foreach (int id in ids) PlayerPrefs.SetString(ShipId.OwnedKey(id), "True");
         return ids;
     }

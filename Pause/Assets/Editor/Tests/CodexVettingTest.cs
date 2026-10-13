@@ -30,7 +30,7 @@ public static class CodexVettingTest
         PlayerPrefs.DeleteKey(Codex.NewKey);
         PlayerPrefs.DeleteKey(Codex.AckKey);
         PlayerPrefs.DeleteKey(WorldManager.PrefsHighestWorld);
-        for (int i = 1; i <= shopingShips.shipTotal; i++) PlayerPrefs.DeleteKey(ShipId.OwnedKey(i));
+        for (int i = 1; i <= shopingShips.RosterTotal; i++) PlayerPrefs.DeleteKey(ShipId.OwnedKey(i));
         Codex.Reload();
         EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
         try

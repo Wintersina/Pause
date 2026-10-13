@@ -45,7 +45,7 @@ public static class CodexPreview
                     {
                         PlayerPrefs.DeleteKey(Codex.PrefsKey);
                         PlayerPrefs.DeleteKey(WorldManager.PrefsHighestWorld);
-                        for (int i = 0; i <= shopingShips.shipTotal; i++) PlayerPrefs.DeleteKey(ShipId.OwnedKey(i));
+                        for (int i = 0; i <= shopingShips.RosterTotal; i++) PlayerPrefs.DeleteKey(ShipId.OwnedKey(i));
                     }
                     Codex.Reload();
                     var panel = CodexPanel.Open(null);
@@ -91,7 +91,7 @@ public static class CodexPreview
                 EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
                 DeveloperUnlocks.SetEnabled(false);
                 PlayerPrefs.DeleteKey(WorldManager.PrefsHighestWorld);
-                for (int i = 0; i <= shopingShips.shipTotal; i++) PlayerPrefs.DeleteKey(ShipId.OwnedKey(i));
+                for (int i = 0; i <= shopingShips.RosterTotal; i++) PlayerPrefs.DeleteKey(ShipId.OwnedKey(i));
                 PlayerPrefs.SetString("boughtship1", "True");
                 PlayerPrefs.SetString(Codex.PrefsKey, "");
                 Codex.Reload();

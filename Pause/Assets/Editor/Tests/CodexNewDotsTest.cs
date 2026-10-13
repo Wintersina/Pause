@@ -28,7 +28,7 @@ public static class CodexNewDotsTest
         AchievementStore.ResetAll();
         PlayerPrefs.SetInt(AchievementStore.SchemaKey, AchievementMigration.Schema);
         PlayerPrefs.DeleteKey(WorldManager.PrefsHighestWorld);
-        for (int i = 1; i <= shopingShips.shipTotal; i++) PlayerPrefs.DeleteKey("boughtship" + i);
+        for (int i = 1; i <= shopingShips.RosterTotal; i++) PlayerPrefs.DeleteKey("boughtship" + i);
         EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
         var esGo = new GameObject("TestEventSystem", typeof(EventSystem));
         CodexPanel panel = null;

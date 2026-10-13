@@ -17,7 +17,13 @@ public class shopingShips : MonoBehaviour {
     public const int StarterShip = 1;
 
     // Retro hulls retain their saved indices; original ships follow them.
-    public static int shipTotal = 17;
+    // Every id the code knows (the full roster, slot 0 included).
+    public const int RosterTotal = 17;
+
+    // The roster the player can see: slot 0 + the ships in play. Paragon (the last
+    // id) is left out unless PremiumShips.Visible, so a hidden premium ship makes
+    // the game behave exactly as a 15-ship roster (docks, codex, saves, counts).
+    public static int shipTotal { get { return PremiumShips.Visible ? RosterTotal : RosterTotal - 1; } }
     public static GameObject[] ships = new GameObject[shipTotal];
 
     public static int shipNumber;

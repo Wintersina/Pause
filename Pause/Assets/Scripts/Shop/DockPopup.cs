@@ -49,7 +49,7 @@ public class DockPopup : MonoBehaviour
     public const float HitUnits = 48f / PopupScale;
     public const float CloseSize = HitUnits;
     // The type sizes (units).
-    public const int TitleSize = 17, TitleMinSize = 13, StatusSize = 13, PriceSize = 17, SmallSize = 12, ButtonSize = 18;
+    public const int TitleSize = 17, TitleMinSize = 13, StatusSize = 13, PriceSize = 17, SmallSize = 12, PriceMinSize = 7, ButtonSize = 18;
 
     // World units per canvas unit before the dock has measured the screen
     // (tests without a camera): about a dp on a 1080-wide phone.
@@ -521,6 +521,13 @@ public class DockPopup : MonoBehaviour
             w.dust = Chip(w.root, "Dust", "icon_dust", new Vector2(10f, 10f));
             w.dust.rectTransform.anchoredPosition = new Vector2(-12f, priceY);
             w.price = Label("Price", w.root, font, SmallSize, TextAnchor.MiddleLeft, DockArt.Gold);
+            // Whatever the price reads ("1,600", "50K"), it shrinks to fit the slot instead of
+            // running past the chip row (five chips share the card's width).
+            w.price.resizeTextForBestFit = true;
+            w.price.resizeTextMinSize = PriceMinSize;
+            w.price.resizeTextMaxSize = SmallSize;
+            w.price.horizontalOverflow = HorizontalWrapMode.Wrap;
+            w.price.verticalOverflow = VerticalWrapMode.Truncate;
             Place(w.price.rectTransform, new Vector2(.5f, .5f), new Vector2(-6f, priceY),
                   new Vector2(SlotW * .5f + 4f, 14f), new Vector2(0f, .5f));
             w.button = w.root.gameObject.AddComponent<Button>();

@@ -46,7 +46,7 @@ public static class AchievementMigrationTest
         PlayerPrefs.DeleteKey(RunScore.BestScoreKey);
         PlayerPrefs.DeleteKey(ProgressSnapshot.HighestSpeedKey);
         PlayerPrefs.SetString(Codex.PrefsKey, "");
-        for (int i = 1; i <= shopingShips.shipTotal; i++)
+        for (int i = 1; i <= shopingShips.RosterTotal; i++)
         {
             PlayerPrefs.DeleteKey("boughtship" + i);
             for (int n = 1; n < ShipSkins.PerShip; n++) PlayerPrefs.DeleteKey(ShipSkins.OwnedKey(i, n));

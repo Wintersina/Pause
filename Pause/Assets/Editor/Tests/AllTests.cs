@@ -162,6 +162,7 @@ public static class AllTests
         ("ResumeSlowMoTest", ResumeSlowMoTest.Execute),
         ("RosterCleanupTest", RosterCleanupTest.Execute),
         ("PremiumShipTest", PremiumShipTest.Execute),
+        ("ParagonFlagTest", ParagonFlagTest.Execute),
         ("ScoringTest", ScoringTest.Execute),
         ("ScoreBonusTest", ScoreBonusTest.Execute),
         ("ScoreMultiplierTest", ScoreMultiplierTest.Execute),

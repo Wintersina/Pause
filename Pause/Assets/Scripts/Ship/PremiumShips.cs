@@ -40,10 +40,18 @@ public static class PremiumShips
     // Every skin of a premium ship costs this much star dust (100,000 for the first two).
     public const float SkinPrice = 50000f;
 
+    // Whether Paragon exists for this player: its feature flag ("paragon_ship",
+    // default off) or developer mode. Hidden, ShipId.Count is 15 and Paragon is not
+    // a valid id anywhere (dock, codex, saves, achievements, selection).
+    public static bool Visible
+    {
+        get { return DeveloperUnlocks.Enabled || FeatureFlags.IsOn(FeatureFlags.ParagonShip); }
+    }
+
     public static bool IsPremium(int id) { return id == Paragon; }
 
     // Roster ships that live in the dust economy (the 15 originals).
-    public static int StandardCount { get { return ShipId.Count - 1; } }
+    public static int StandardCount { get { return shopingShips.RosterTotal - 2; } }
 
     // The roster without premium ships: the dust economy's ships.
     public static System.Collections.Generic.IEnumerable<int> StandardIds

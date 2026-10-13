@@ -35,7 +35,7 @@ public static class AchievementTrackingTest
         PlayerPrefs.SetInt(DeveloperUnlocks.EnabledKey, 0);
         // a clean profile: no ships, worlds or codex from this machine's editor prefs
         PlayerPrefs.DeleteKey(WorldManager.PrefsHighestWorld);
-        for (int i = 1; i <= shopingShips.shipTotal; i++)
+        for (int i = 1; i <= shopingShips.RosterTotal; i++)
         {
             PlayerPrefs.DeleteKey("boughtship" + i);
             for (int n = 1; n < ShipSkins.PerShip; n++) PlayerPrefs.DeleteKey(ShipSkins.OwnedKey(i, n));

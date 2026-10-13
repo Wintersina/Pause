@@ -60,7 +60,7 @@ public static class ShipId
     {
         if (string.IsNullOrEmpty(key)) return None;
         for (int id = 1; id < keys.Length; id++)
-            if (keys[id] == key) return id;
+            if (keys[id] == key) return IsValid(id) ? id : None;   // a hidden Paragon is not a ship
         return None;
     }
 

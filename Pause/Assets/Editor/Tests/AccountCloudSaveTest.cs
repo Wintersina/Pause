@@ -123,7 +123,7 @@ public static class AccountCloudSaveTest
     static void SetLocal(float currency, int[] ships, int spawn, float speed, int world, int highest, bool tut)
     {
         PlayerPrefs.SetFloat("PlayerCurrecny", currency);
-        for (int i = 0; i <= shopingShips.shipTotal; i++) PlayerPrefs.DeleteKey("boughtship" + i);
+        for (int i = 0; i <= shopingShips.RosterTotal; i++) PlayerPrefs.DeleteKey("boughtship" + i);
         foreach (int s in ships) PlayerPrefs.SetString("boughtship" + s, "True");
         PlayerPrefs.SetInt("spawnShip", spawn);
         PlayerPrefs.SetFloat("HighestSpeed", speed);
@@ -135,7 +135,7 @@ public static class AccountCloudSaveTest
     static string Ships()
     {
         var owned = new List<int>();
-        for (int i = 0; i <= shopingShips.shipTotal; i++)
+        for (int i = 0; i <= shopingShips.RosterTotal; i++)
             if (PlayerPrefs.GetString("boughtship" + i) == "True") owned.Add(i);
         return string.Join(",", owned);
     }

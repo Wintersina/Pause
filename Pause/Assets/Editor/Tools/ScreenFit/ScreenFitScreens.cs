@@ -447,7 +447,7 @@ public static class ScreenFitScreens
     static void Dock(ScreenFitRig rig, int selected, bool unused)
     {
         DeveloperUnlocks.SetEnabled(false);
-        for (int i = 0; i <= shopingShips.shipTotal; i++) PlayerPrefs.DeleteKey(ShipId.OwnedKey(i));
+        for (int i = 0; i <= shopingShips.RosterTotal; i++) PlayerPrefs.DeleteKey(ShipId.OwnedKey(i));
         foreach (int id in new[] { 8, 10 }) PlayerPrefs.SetString(ShipId.OwnedKey(id), "True");
         PlayerPrefs.SetInt(ShipId.SelectedKey, 8);
         PlayerPrefs.SetFloat(StarDustLedger.CurrencyKey, 2600f);

@@ -542,7 +542,7 @@ public static class CodexTest
         EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
         PlayerPrefs.DeleteKey(Codex.PrefsKey);
         PlayerPrefs.DeleteKey(WorldManager.PrefsHighestWorld);
-        for (int i = 0; i <= shopingShips.shipTotal; i++) PlayerPrefs.DeleteKey("boughtship" + i);
+        for (int i = 0; i <= shopingShips.RosterTotal; i++) PlayerPrefs.DeleteKey("boughtship" + i);
         Codex.Reload();
 
         int events = 0;
@@ -834,7 +834,7 @@ public static class CodexTest
         DeveloperUnlocks.SetEnabled(false);
         PlayerPrefs.DeleteKey(Codex.PrefsKey);
         PlayerPrefs.DeleteKey(WorldManager.PrefsHighestWorld);
-        for (int i = 0; i <= shopingShips.shipTotal; i++) PlayerPrefs.DeleteKey(ShipId.OwnedKey(i));
+        for (int i = 0; i <= shopingShips.RosterTotal; i++) PlayerPrefs.DeleteKey(ShipId.OwnedKey(i));
         Codex.Reload();
 
         var toasts = new List<string>();
@@ -905,7 +905,7 @@ public static class CodexTest
             Codex.Discovered -= handler;
             foreach (var go in temp) if (go != null) UnityEngine.Object.DestroyImmediate(go);
             PlayerPrefs.DeleteKey(Codex.PrefsKey);
-            for (int i = 0; i <= shopingShips.shipTotal; i++) PlayerPrefs.DeleteKey(ShipId.OwnedKey(i));
+            for (int i = 0; i <= shopingShips.RosterTotal; i++) PlayerPrefs.DeleteKey(ShipId.OwnedKey(i));
             Codex.Reload();
         }
 
@@ -937,7 +937,7 @@ public static class CodexTest
         PlayerPrefs.SetInt(DeveloperUnlocks.EnabledKey, 0);
         PlayerPrefs.SetString(Codex.PrefsKey, "enemy_space_fighter_1,atom_red");
         PlayerPrefs.DeleteKey(WorldManager.PrefsHighestWorld);
-        for (int i = 0; i <= shopingShips.shipTotal; i++) PlayerPrefs.DeleteKey("boughtship" + i);
+        for (int i = 0; i <= shopingShips.RosterTotal; i++) PlayerPrefs.DeleteKey("boughtship" + i);
         Codex.Reload();
         int realCount = Codex.DiscoveredCount;
         Check("dev mode off: only the real set is discovered", realCount < Codex.Total && !Codex.IsDiscovered("enemy_space_fighter_4"));
