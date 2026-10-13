@@ -30,6 +30,8 @@ public static class AttackBotAbTest
     public static int Execute()
     {
         fails = 0;
+        // Reference-vs-fast equivalence of the dodge bot: full lane only (43 s).
+        if (!TestHarness.FullLane) { UnityEngine.Debug.Log("[ABBOT] skipped in the gate lane (PAUSE_TEST_FULL=1 runs it)"); return 0; }
         bool was = DodgeBot.UseReference;
         using (new TestHarness.Sandbox())
         {

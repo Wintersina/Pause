@@ -330,7 +330,8 @@ public static class OpenPortalTest
     {
         bool all = true;
         var lines = new List<string>();
-        foreach (float wait in new[] { .2f, 1f, 5f, 8.5f, 30f, 120f, 900f })
+        // gate lane: still arriving, just past the grace, very late; full lane: all seven waits
+        foreach (float wait in TestHarness.FullLane ? new[] { .2f, 1f, 5f, 8.5f, 30f, 120f, 900f } : new[] { .2f, 8.5f, 900f })
             for (int world = 0; world < WorldManager.LastLiveWorld; world++)
             {
                 FreshScene(world);

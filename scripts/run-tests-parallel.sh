@@ -46,9 +46,11 @@ list_suites() {
 
 # stdin: "suite seconds" (seconds may be "-" = unknown); $1 = N.
 # stdout: "shard suite seconds" with shard in 1..N, longest-first onto the least-loaded shard.
+# $2 (optional, default 0) = start offset step: shard s starts (s-1)*step seconds late (the
+# wrapper's start stagger), so it begins with that much "load" and gets correspondingly less work.
 balance() {
-    local n="$1"
-    awk -v n="$n" '
+    local n="$1" step="${2:-0}"
+    awk -v n="$n" -v step="$step" '
         { name[NR] = $1; sec[NR] = ($2 ~ /^[0-9.]+$/) ? $2 + 0 : -1; if (sec[NR] >= 0) { k++; known[k] = sec[NR] } }
         END {
             # unknown durations: the median of the known ones (1 s when nothing is known)
@@ -62,7 +64,7 @@ balance() {
                 while (j >= 1 && (sec[idx[j]] < sec[v] || (sec[idx[j]] == sec[v] && name[idx[j]] > name[v]))) { idx[j + 1] = idx[j]; j-- }
                 idx[j + 1] = v
             }
-            for (s = 1; s <= n; s++) load[s] = 0
+            for (s = 1; s <= n; s++) load[s] = (s - 1) * step
             for (i = 1; i <= NR; i++) {
                 b = 1
                 for (s = 2; s <= n; s++) if (load[s] < load[b]) b = s
@@ -124,6 +126,7 @@ DURS="${PT_DURATIONS:-$HERE/test-durations$SUFFIX.txt}"
 
 # ---- the suite list and the durations -------------------------------------------------
 all="$(list_suites "$ALLTESTS")"
+all_suites="$all"   # the full table (a --suites run narrows $all)
 [ -n "$all" ] || { echo "[parallel] no suites found in $ALLTESTS" >&2; exit 2; }
 if [ -n "$SUITES" ]; then
     sel=""
@@ -155,7 +158,9 @@ declare_durs() {   # stdout: "suite seconds" for every suite in $all
         { print $1, ($1 in d) ? d[$1] : "-" }'
     rm -f "$tmp" "$tmp.log"
 }
-plan="$(declare_durs | balance "$JOBS")"
+# each later shard waits one more start stagger in the wrapper's queue
+export UNITY_BATCH_STAGGER="${UNITY_BATCH_STAGGER:-${PT_STAGGER:-12}}"
+plan="$(declare_durs | balance "$JOBS" "$UNITY_BATCH_STAGGER")"
 
 if [ "$PLAN" = 1 ]; then
     echo "$plan" | awk '{ n[$1]++; t[$1] += $3; l[$1] = l[$1] (l[$1] ? "," : "") $2 }
@@ -203,13 +208,13 @@ shard_main() {   # runs in the background: first pass, then one rerun of suites 
     parse_log < "$RUN/shard$i.log" | awk '$1 == "R" { print $2 }' | sort > "$RUN/shard$i.done"
     missing="$(echo "$list" | tr ',' '\n' | sort | comm -23 - "$RUN/shard$i.done" | paste -sd, -)"
     echo "$rc" > "$RUN/shard$i.rc"
-    echo "$missing" > "$RUN/shard$i.missing"
+    printf '%s' "$missing" > "$RUN/shard$i.missing"
     if [ -n "$missing" ] && [ "$RERUN" = 1 ]; then
         echo "[parallel] shard$i: no result for $missing (exit $rc): rerunning once" >&2
         rc2="$(run_shard "$i" "$missing" "$RUN/shard$i-rerun.log")"
         echo "$rc2" > "$RUN/shard$i-rerun.rc"
         parse_log < "$RUN/shard$i-rerun.log" | awk '$1 == "R" { print $2 }' | sort > "$RUN/shard$i-rerun.done"
-        echo "$missing" | tr ',' '\n' | sort | comm -23 - "$RUN/shard$i-rerun.done" | paste -sd, - > "$RUN/shard$i.missing"
+        echo "$missing" | tr ',' '\n' | sort | comm -23 - "$RUN/shard$i-rerun.done" | paste -sd, - | tr -d '\n' > "$RUN/shard$i.missing"
     fi
     echo $((SECONDS - t)) > "$RUN/shard$i.secs"
 }
@@ -248,7 +253,7 @@ for ((i = 1; i <= JOBS; i++)); do
     if [ -n "$m" ]; then echo "NO RESULT (shard $i, editor exit $(cat "$RUN/shard$i.rc" 2>/dev/null), log $RUN/shard$i.log): $m"; bad=1; fi
 done
 for ((i = 1; i <= JOBS; i++)); do
-    [ -f "$RUN/shard$i.secs" ] && echo "shard $i: $(wc -l < "$RUN/shard$i.done" | tr -d ' ') suites, $(cat "$RUN/shard$i.secs") s wall$( [ -s "$RUN/shard$i.missing" ] && echo ", INCOMPLETE")"
+    [ -f "$RUN/shard$i.secs" ] && echo "shard $i: $(wc -l < "$RUN/shard$i.done" | tr -d ' ') suites, $(cat "$RUN/shard$i.secs") s wall$( [ -n "$(cat "$RUN/shard$i.missing" 2>/dev/null)" ] && echo ", INCOMPLETE")"
 done
 wall=$((SECONDS - T0))
 verdict=PASS
@@ -260,7 +265,8 @@ echo "[parallel] RESULT: $verdict suites=$ran/$total failed=$failed_n"
 if [ "$REFRESH" = 1 ] && [ "$verdict" = PASS ]; then
     tmp="$(mktemp)"
     { [ -f "$DURS" ] && grep -E '^[A-Za-z0-9_]+ [0-9.]+$' "$DURS"; awk '$1 == "R" { print $3, $6 }' "$RUN/results.txt"; } |
-        awk '{ d[$1] = $2 } END { for (k in d) print k, d[k] }' | sort -k2,2nr -k1,1 > "$tmp" && mv "$tmp" "$DURS"
+        awk -v keep="$(echo "$all_suites" | tr '\n' ' ')" 'BEGIN { n = split(keep, a, " "); for (i = 1; i <= n; i++) ok[a[i]] = 1 }
+            { d[$1] = $2 } END { for (k in d) if (k in ok) print k, d[k] }' | sort -k2,2nr -k1,1 > "$tmp" && mv "$tmp" "$DURS"
 fi
 [ "$CLEAN" = 1 ] && rm -rf "$SHARD_DIR/shard"*
 [ "$verdict" = PASS ]

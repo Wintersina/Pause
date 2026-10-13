@@ -799,7 +799,7 @@ public static class TitleScreenTrafficTest
     {
         var oldLayers = new[] { 5, 4, 2 };
         float baseAvg = 0f, newAvg = 0f; int basePeak = 0, newPeak = 0;
-        const int Runs = 3;
+        int Runs = TestHarness.FullLane ? 3 : 2;   // gate lane: two seeds (the 1.30-1.50 band is checked on their mean); full lane: three
         for (int run = 0; run < Runs; run++)
         {
             for (int pass = 0; pass < 2; pass++)

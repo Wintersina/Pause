@@ -47,10 +47,12 @@ public static class HostileReachTest
     public static void Run() { TestHarness.Exit(Execute()); }
 
     // the four aspect ratios asked for
-    static readonly (string name, string id)[] Shapes =
+    static readonly (string name, string id)[] AllShapes =
     {
         ("9:16", "and-1080x1920"), ("9:19.5", "iphone-13"), ("9:21", "flip7-1080x2520"), ("3:4", "ipad-9"),
     };
+    // gate lane: the tall phone and the 21:9 one; full lane: all four aspect ratios
+    static (string name, string id)[] Shapes { get { return TestHarness.FullLane ? AllShapes : new[] { AllShapes[0], AllShapes[2] }; } }
 
     // Targets (shares of the time in play, after it has arrived).
     // Ship at rest (the typical spot): in pause-jump AND shield-ram range.
@@ -431,7 +433,7 @@ public static class HostileReachTest
 
     // ---- 4: a pause jump on an elite always kills it ----------------------------------------------
 
-    const int Trials = 24;
+    static int Trials { get { return TestHarness.FullLane ? 24 : 12; } }
 
     static void PauseJumpAlwaysKills()
     {

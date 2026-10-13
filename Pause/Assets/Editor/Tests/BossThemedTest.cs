@@ -240,7 +240,9 @@ public static class BossThemedTest
             {
                 var a = def.attacks[ai];
                 if (!IsNew(def, a)) continue;
-                foreach (float shipX in new[] { -1.8f, .2f, 1.9f })
+                // gate lane: one ship position per world (alternating the two edges, the harsh cases); full lane: left, centre, right
+                var xs = TestHarness.FullLane ? new[] { -1.8f, .2f, 1.9f } : new[] { w % 2 == 0 ? -1.8f : 1.9f };
+                foreach (float shipX in xs)
                     FightOne(def, ai, a, shipX);
             }
             def.themedAttacks = false;

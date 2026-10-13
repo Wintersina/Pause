@@ -65,7 +65,14 @@ public static class ScreenFitTest
         bool full = FullLane && TestHarness.Slow("screen-fit: the whole device matrix");
         var screens = new List<FitScreen>();
         int total = ScreenFitScreens.All.Length;
-        for (int i = slice * total / slices; i < (slice + 1) * total / slices; i++) screens.Add(ScreenFitScreens.All[i]);
+        int from = slice * total / slices, to = (slice + 1) * total / slices;
+        if (slices == SliceStarts.Length + 1)
+        {
+            // equal TIME, not equal count: the codex screens cost 2-4x the rest (measured, gate lane)
+            from = slice == 0 ? 0 : IndexOf(SliceStarts[slice - 1]);
+            to = slice == slices - 1 ? total : IndexOf(SliceStarts[slice]);
+        }
+        for (int i = from; i < to; i++) screens.Add(ScreenFitScreens.All[i]);
         foreach (var dpi in new[] { ScreenFitRig.DpiMode.Reported, ScreenFitRig.DpiMode.Unreported })
         {
             ScreenFitRig.Dpi = dpi;
@@ -74,6 +81,7 @@ public static class ScreenFitTest
             {
                 foreach (var screen in screens)
                 {
+                    var swScreen = System.Diagnostics.Stopwatch.StartNew();
                     using (new TestHarness.Sandbox())
                     {
                         foreach (var device in FitDevice.All)
@@ -92,6 +100,7 @@ public static class ScreenFitTest
                             if (shot.failures == 0) Debug.Log("[FIT] PASS  " + screen.id + " @ " + device.id + tag);
                         }
                     }
+                    Debug.Log("[FITTIME] " + screen.id + tag + " " + swScreen.Elapsed.TotalSeconds.ToString("F2") + "s");
                 }
             }
             finally
@@ -101,6 +110,14 @@ public static class ScreenFitTest
         }
         Debug.Log("[FIT] " + cells + " screen x device cells, " + fails + " failing checks, " + waived + " waived findings");
         return fails;
+    }
+
+    // First screen of slices 2..4 (4 slices of ~15-21 s each in the gate lane; re-measure with the [FITTIME] log lines).
+    static readonly string[] SliceStarts = { "codex-music", "options-signout", "tutorial" };
+    static int IndexOf(string id)
+    {
+        for (int i = 0; i < ScreenFitScreens.All.Length; i++) if (ScreenFitScreens.All[i].id == id) return i;
+        throw new System.InvalidOperationException("ScreenFitTest.SliceStarts names an unknown screen: " + id);
     }
 
     public static int Slice1() { return Execute(0, 4); }

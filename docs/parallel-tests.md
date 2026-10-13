@@ -63,3 +63,11 @@ Editors run side by side, so anything outside the editor's own project folder is
 
 `scripts/tests/run-tests-parallel-test.sh` checks suite parsing, balancing, log parsing and `--plan`
 without starting Unity.
+
+## Lanes and timing notes
+
+* `AttackBotAbTest` (dodge-bot reference-vs-fast equivalence, ~43 s) runs only in the full lane (`PAUSE_TEST_FULL=1`); in the gate lane it is registered but returns at once.
+* `ScreenFitScreens.All` is split into `ScreenFitTest1..4` at screen ids (`ScreenFitTest.SliceStarts`), by measured time, not count. The `[FITTIME]` log lines give each screen's seconds.
+* Balancing: shard s starts with (s-1) x the start stagger as load (editors start one stagger apart; the runner sets `UNITY_BATCH_STAGGER` to 12 s unless you set it).
+* The summary marks a shard INCOMPLETE only when it has suites without a result line.
+* Steady-state fixed cost per shard: ~4-7 s editor startup (2 domain reloads, ~3 s asset refresh when nothing changed) plus the start stagger; a script change adds a 6-14 s compile per shard.

@@ -756,6 +756,7 @@ public static class ShipReachTest
     {
         for (int world = 0; world < BossCatalog.All.Length; world++)
         {
+            if (!TestHarness.SweepWorld(world)) continue;   // gate lane: worlds 0, 3, 6; full lane: all 7
             var boss = BossCatalog.ForWorld(world);
             for (int ai = 0; ai < boss.attacks.Length; ai++)
             {
@@ -811,6 +812,7 @@ public static class ShipReachTest
             var f = PlayField.Live;
             for (int world = 0; world < BossCatalog.All.Length; world++)
             {
+                if (!TestHarness.SweepWorld(world)) continue;   // gate lane: worlds 0, 3, 6; full lane: all 7
                 var boss = BossCatalog.ForWorld(world);
                 for (int ai = 0; ai < boss.attacks.Length; ai++)
                 {

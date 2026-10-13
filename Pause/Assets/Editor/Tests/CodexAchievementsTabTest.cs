@@ -463,6 +463,9 @@ public static class CodexAchievementsTabTest
 
         long control;
         bool meter = TestHarness.AllocMeterWorks(out control);
+        // finish the running count-up / jump first: it repaints the strip (allocates) until its wall-clock end, which made this
+        // check pass or fail with the machine's speed (sharded runs flaked it)
+        v.SkipAnimations();
         for (int i = 0; i < 30; i++) v.Tick(t + i * .016f);   // warm up
         long bytes = TestHarness.AllocatedBytes(() => { for (int i = 0; i < 120; i++) v.Tick(t + 1f + i * .016f); });
         Check("120 frames of the tab allocate nothing (" + bytes + " B; meter control " + control + " B" + (meter ? "" : ", meter blind this run: not judged") + ")", !meter || bytes == 0);
