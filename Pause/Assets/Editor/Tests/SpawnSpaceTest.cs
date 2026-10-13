@@ -217,6 +217,16 @@ public static class SpawnSpaceTest
 
     // ---- 3: deferral -------------------------------------------------------
 
+    // The spawn() steps below tick the board's own *DelayTimer fields, and a timer that comes round
+    // (randomly rolled intervals) would queue a NEW rock behind the wall (PendingCount > 0 at the
+    // end) or land a rail / mine beside it (SpawnedCount up), so "the one spawn was let go" would
+    // pass or fail by the roll. Park every timer: only the spawn this test makes by hand is in play.
+    static void FreezeSpawnTimers(enmiesOnBoard board)
+    {
+        foreach (var f in typeof(enmiesOnBoard).GetFields(Inst))
+            if (f.FieldType == typeof(float) && f.Name.EndsWith("DelayTimer")) f.SetValue(board, 1e6f);
+    }
+
     static void DeferredSpawnLands()
     {
         ClearBoard();
@@ -226,6 +236,7 @@ public static class SpawnSpaceTest
         SpawnFootprint.Attach(wall, new Vector2(3f, 2.5f));
 
         var board = NewBoard();
+        FreezeSpawnTimers(board);
         typeof(enmiesOnBoard).GetMethod("spawnAstroid2", Inst).Invoke(board, null);   // a rock (the heavy is a pilot now)
         Check("a rock with no room is deferred, not dropped on the wall",
               board.SpawnedCount == 0 && board.PendingCount == 1 && board.DeferredTotal == 1);

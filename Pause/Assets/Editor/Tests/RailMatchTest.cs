@@ -15,7 +15,7 @@ using UnityEngine;
 //   body            the same over the solid body (columns lit in at least
 //                   half their rows): the rail's face, without its glow
 //   sat             mean HSV saturation of the lit pixels
-//   contrast        |rail body - the lane strip beside it| against the world's own
+//   contrast        |rail body - the lane strip beside it| / the brighter of the two, against the world's own
 //                   backdrop: the visibility that matters (Frost's pale sky vs Space's black)
 //   mass            summed value of the whole frame / its width in u: the
 //                   existing WorldBackdropTest rail-light measurement
@@ -165,7 +165,11 @@ public static class RailMatchTest
     // the lane strip beside it (from 0.25 u to 1.0 u inside the inner edge,
     // clear of the rail's shadow), through the whole frame. contrast = the gap
     // between them; rail / lane are the two means. Backdrop must be showing.
-    public struct Contrast { public float rail, lane, gap; }
+    // gap = absolute luminance difference; rel = gap / the brighter of the two (Weber contrast): how much
+    // louder the rail is than its lane IN PROPORTION to the light it sits in. rel is what the visibility
+    // check compares: an absolute gap is unfair across backdrops (Frost's pale sky, lane 0.51, gives even a
+    // dark steel rail 3x Space's absolute gap -- 0.22 vs 0.07 -- while its rel, 0.44, equals Space's 0.43).
+    public struct Contrast { public float rail, lane, gap, rel; }
     public static Contrast VsBackdrop(WorldTheme theme, Camera cam, float inner, float outer, int px = 540)
     {
         WorldPainter.Apply(theme);
@@ -197,6 +201,7 @@ public static class RailMatchTest
         }
         var r = new Contrast { rail = (float)(rs / System.Math.Max(1, rn)), lane = (float)(ls / System.Math.Max(1, ln)) };
         r.gap = Mathf.Abs(r.rail - r.lane);
+        r.rel = r.gap / Mathf.Max(1e-4f, Mathf.Max(r.rail, r.lane));
         return r;
     }
 
@@ -248,32 +253,55 @@ public static class RailMatchTest
                 }
             }
             // against each world's own backdrop
+            // Every Show picks a RANDOM backdrop (Space: one of 4 skies; Frost, Verdant, ...: one of up to 4
+            // variant sets), and the pale Frost sky vs the black Space sky moves the rail-vs-lane gap a lot
+            // (Frost read 2.3x or 3.3x of Space's depending on the draw: a flaky check, not a content bug).
+            // So each world's contrast is the MEAN over all its installed variants, each forced in turn.
             var gaps = new Dictionary<string, Contrast>();
-            var backdrop = new GameObject("~RailMatchBackdrop").AddComponent<WorldBackdrop>();
-            hidden.RemoveAll(r => r == null);
-            foreach (var r in Object.FindObjectsByType<Renderer>(FindObjectsSortMode.None))
-                if (r.GetComponentInParent<WorldBackdrop>() != null && !r.enabled) r.enabled = true;
+            WorldBackdrop backdrop = null;
+            var spaceProp = typeof(SpaceSkySelection).GetProperty("Variant");
+            var halfTurnProp = typeof(SpaceSkySelection).GetProperty("HalfTurn");
+            int spaceVariant0 = SpaceSkySelection.Variant; bool spaceTurn0 = SpaceSkySelection.HalfTurn;
             cam.clearFlags = flags;
             foreach (var theme in WorldManager.Worlds)
             {
                 if (WorldPainter.RailTextureName(theme.displayName) == null) continue;
-                backdrop.Show(theme.displayName, false);
-                backdrop.Step(1f);
-                var live = VsBackdrop(theme, cam, all[theme.displayName].inner, all[theme.displayName].outer);
-                gaps[theme.displayName] = live;
-                Debug.Log("[RAILMATCH] vs backdrop " + theme.displayName + ": rail " + live.rail.ToString("F3") +
-                          " lane " + live.lane.ToString("F3") + " gap " + live.gap.ToString("F3"));
-                if (theme.displayName == "Frost")
-                    foreach (float k in new[] { .6f, .8f, 1f })
-                    {
-                        float saved = WorldPainter.FrostRailBrightness;
-                        WorldPainter.FrostRailBrightness = k;
-                        var c = VsBackdrop(theme, cam, all[theme.displayName].inner, all[theme.displayName].outer);
-                        WorldPainter.FrostRailBrightness = saved;
-                        Debug.Log("[RAILMATCH] (sweep) vs backdrop Frost @" + k + ": gap " + c.gap.ToString("F3"));
-                    }
+                string wn = theme.displayName;
+                var vars = BackdropVariants.For(wn);
+                int forceSaved = vars.Force;
+                var variants = new List<int>();
+                if (wn == "Space") variants.AddRange(new[] { 1, 2, 3, 4 });
+                else
+                {
+                    int sets = BackdropCatalog.For(wn).variantSets;
+                    for (int v = 1; v <= sets; v++) if (vars.Installed(v)) variants.Add(v);
+                    if (variants.Count == 0) variants.Add(0);
+                }
+                float railSum = 0, laneSum = 0, gapSum = 0;
+                foreach (int v in variants)
+                {
+                    if (backdrop != null) Object.DestroyImmediate(backdrop.gameObject);
+                    backdrop = new GameObject("~RailMatchBackdrop").AddComponent<WorldBackdrop>();
+                    if (wn == "Space") { spaceProp.SetValue(null, v); halfTurnProp.SetValue(null, false); }
+                    else vars.Force = v;
+                    backdrop.Show(wn, false);
+                    backdrop.Step(1f);
+                    foreach (var r in Object.FindObjectsByType<Renderer>(FindObjectsSortMode.None))
+                        if (r.GetComponentInParent<WorldBackdrop>() != null && !r.enabled) r.enabled = true;
+                    var one = VsBackdrop(theme, cam, all[wn].inner, all[wn].outer);
+                    Debug.Log("[RAILMATCH] vs backdrop " + wn + " variant " + v + ": rail " + one.rail.ToString("F3") + " lane " + one.lane.ToString("F3") + " gap " + one.gap.ToString("F3"));
+                    railSum += one.rail; laneSum += one.lane; gapSum += one.gap;
+                }
+                vars.Force = forceSaved;
+                float n = variants.Count;
+                var live = new Contrast { rail = railSum / n, lane = laneSum / n, gap = gapSum / n };
+                live.rel = live.gap / Mathf.Max(1e-4f, Mathf.Max(live.rail, live.lane));
+                gaps[wn] = live;
+                Debug.Log("[RAILMATCH] vs backdrop " + wn + " (mean of " + variants.Count + " variants): rail " + live.rail.ToString("F3") +
+                          " lane " + live.lane.ToString("F3") + " gap " + live.gap.ToString("F3") + " rel " + live.rel.ToString("F3"));
             }
-            Object.DestroyImmediate(backdrop.gameObject);
+            if (backdrop != null) Object.DestroyImmediate(backdrop.gameObject);
+            spaceProp.SetValue(null, spaceVariant0); halfTurnProp.SetValue(null, spaceTurn0);
             WorldPainter.Apply(WorldManager.Worlds[0]);
             // the same darker falloff toward the screen edge in every world
             foreach (var kv in all)
@@ -301,10 +329,10 @@ public static class RailMatchTest
                 bool geo = Mathf.Abs(m.inner - s.inner) <= EdgeTol && Mathf.Abs(feet[world].x - feet["Space"].x) <= EdgeTol && Mathf.Abs(feet[world].y - feet["Space"].y) <= WidthTol;
                 // visibility is the rail's contrast with its own backdrop (a pale
                 // Frost sky needs a lighter rail than a black Space one to read
-                // as loudly): the same gap between rail and lane, whatever the world
-                float gapRatio = gaps[world].gap / Mathf.Max(1e-4f, gaps["Space"].gap);
+                // as loudly): the same RELATIVE gap (Weber) between rail and lane, whatever the world
+                float gapRatio = gaps[world].rel / Mathf.Max(1e-4f, gaps["Space"].rel);
                 bool vis = Mathf.Abs(gapRatio - 1f) <= GapTol;
-                detail += ", contrast vs backdrop " + gaps[world].gap.ToString("F3") + "/" + gaps["Space"].gap.ToString("F3");
+                detail += ", contrast vs backdrop (relative) " + gaps[world].rel.ToString("F3") + "/" + gaps["Space"].rel.ToString("F3");
                 if (must)
                 {
                     Check(tag + "the rail's inner edge, outer edge and width match (" + detail + ")", geo);
