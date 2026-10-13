@@ -196,7 +196,7 @@ public static class TestHarness
             PlayerPrefs.SetInt(DeveloperUnlocks.EnabledKey, 0);
 
             // The suites written for the full 16-ship roster run with Paragon's
-            // feature flag on (it ships OFF: the roster is then 15 ships). The
+            // feature flag on (explicitly, whatever its default). The
             // suite that tests the flag itself (ParagonFlagTest) turns it off.
             FeatureFlags.Set(FeatureFlags.ParagonShip, true);
 
@@ -447,10 +447,10 @@ public static class TestHarness
             "spawnShip", "HasDoneTut", "PlayerCurrecny", "HighestSpeed", RunScore.BestScoreKey,
             WorldManager.PrefsCurrentWorld, WorldManager.PrefsHighestWorld,
             DeveloperUnlocks.EnabledKey, DeveloperUnlocks.SelectedWorldKey,
-            FeatureFlags.KeyOf(FeatureFlags.ParagonShip),
             DeveloperUnlocks.ChoiceBuildKey, PlayerStartWorld.Key, SoundSettings.Key, SoundSettings.SfxOnKey, SoundSettings.MusicOnKey, SoundSettings.SfxVolumeKey, SoundSettings.MusicVolumeKey,
             Codex.PrefsKey, Codex.NewKey, Codex.AckKey,
         };
+        foreach (var flag in FeatureFlags.All) keys.Add(FeatureFlags.KeyOf(flag.name));
         for (int i = 0; i <= shopingShips.RosterTotal; i++) keys.Add("boughtship" + i);
 
         // Hull skins: equipped index, ownership, and developer-mode equips.

@@ -64,6 +64,10 @@ public static class TitleScreenCombatTest
         ButtonCrashLeavesButtonsTappable();
         FingerPushesShips();
         NoPushWhenTouchStartsOnAButton();
+        TapDestroysShips();
+        TapOnAButtonDestroysNothing();
+        TapDestroysTheElite();
+        SwipeFlingsShips();
         EverySkinFlies();
         NoGameplaySideEffects();
         NoPerFrameAllocations();
@@ -442,7 +446,7 @@ public static class TitleScreenCombatTest
         var bk = LaunchId(t3, 2, TitleScreenTraffic.Depth.Back, c + new Vector2(.5f, 0f), Mathf.PI * .5f);
         fr.baseSpeed = bk.baseSpeed = 0f;
         Vector2 a = fr.pos, b = bk.pos;
-        for (int i = 0; i < 10; i++) { t3.FeedPointer(0, 0, true, screen, Dt); t3.Step(Dt); }
+        for (int i = 0; i < 30; i++) { t3.FeedPointer(0, 0, true, screen, Dt); t3.Step(Dt); }   // longer than a tap (TapMaxTime): a pressed ship is not shoved until the press is a hold
         Check("far (back) ships feel the finger less", (bk.pos - b).magnitude < (fr.pos - a).magnitude);
 
         // two fingers push independently
@@ -458,6 +462,154 @@ public static class TitleScreenCombatTest
         Check("a second finger pushes its own ships (multitouch: " + t3.PointersDown + " down, moved " + (g.pos - g0) + ")", t3.PointersDown == 2 && (g.pos - g0).x > .02f);
         Done(t3);
         Done(t);
+    }
+
+    // A quick press that stays put and lifts on a ship destroys it.
+    static void Tap(TitleScreenTraffic t, int slot, Vector2 world, int frames = 3)
+    {
+        Vector2 screen = WorldToScreen(t, world);
+        for (int i = 0; i < frames; i++) { t.FeedPointer(slot, slot, true, screen, Dt); t.Step(Dt); }
+        t.FeedPointer(slot, slot, false, screen, Dt);
+    }
+
+    static void TapDestroysShips()
+    {
+        var t = Quiet("~TC_tap", 21);
+        var c = t.Safe.center + new Vector2(0f, -2.2f);
+        var a = LaunchId(t, 1, TitleScreenTraffic.Depth.Front, c, Mathf.PI * .5f);
+        var b = LaunchId(t, 2, TitleScreenTraffic.Depth.Front, c + new Vector2(3f, 0f), Mathf.PI * .5f);
+        var d = LaunchId(t, 3, TitleScreenTraffic.Depth.Front, c + new Vector2(-3f, 0f), Mathf.PI * .5f);
+        Check("tap test ships placed", a != null && b != null && d != null);
+        if (a == null || b == null || d == null) { Done(t); return; }
+        foreach (var f in new[] { a, b, d }) f.baseSpeed = 0f;
+        var a0 = a.pos;
+
+        // a press on empty sky kills nothing
+        Tap(t, 0, c + new Vector2(0f, 3f));
+        Check("a tap on empty sky destroys nothing", a.active && b.active && d.active && t.TapKills == 0);
+
+        // a pressed ship is held still, not shoved, until the press is over
+        var screen = WorldToScreen(t, c);
+        for (int i = 0; i < 3; i++) { t.FeedPointer(0, 0, true, screen, Dt); t.Step(Dt); }
+        Check("a pressed ship is not shoved while it may be tapped", (a.pos - a0).sqrMagnitude < 1e-8f && a.push == Vector2.zero);
+        int downs = t.ShootDowns;
+        t.FeedPointer(0, 0, false, screen, Dt);
+        Check("lifting on it destroys it (wreck / pop, normal shoot-down)", !a.active && t.TapKills == 1 && t.ShootDowns == downs + 1);
+        Check("only the tapped ship goes", b.active && d.active);
+
+        // a long press or a drag is not a tap
+        var s2 = WorldToScreen(t, b.pos);
+        for (int i = 0; i < 12; i++) { t.FeedPointer(0, 0, true, s2, Dt); t.Step(Dt); }
+        t.FeedPointer(0, 0, false, s2, Dt);
+        Check("a long press does not destroy (it shoves instead)", b.active && t.TapKills == 1);
+        for (int i = 0; i < 3; i++) { t.FeedPointer(0, 0, true, WorldToScreen(t, d.pos + new Vector2(i * .5f, 0f)), Dt); t.Step(Dt); }
+        t.FeedPointer(0, 0, false, Vector2.zero, Dt);
+        Check("a drag that lifts on a ship does not destroy it", d.active && t.TapKills == 1);
+
+        // two fingers, two ships
+        b.pos = c + new Vector2(3f, 0f); d.pos = c + new Vector2(-3f, 0f);
+        b.push = d.push = Vector2.zero;
+        Vector2 sb = WorldToScreen(t, b.pos), sd = WorldToScreen(t, d.pos);
+        for (int i = 0; i < 3; i++)
+        {
+            t.FeedPointer(0, 0, true, sb, Dt);
+            t.FeedPointer(1, 1, true, sd, Dt);
+            t.Step(Dt);
+        }
+        t.FeedPointer(0, 0, false, sb, Dt);
+        t.FeedPointer(1, 1, false, sd, Dt);
+        Check("two fingers destroy two ships (multitouch)", !b.active && !d.active && t.TapKills == 3);
+        Done(t);
+
+        // the screen never empties: the usual spawn logic brings ships back
+        var u = Make("~TC_tap_respawn", 22);
+        Run(u, 20f);
+        int killed = 0;
+        var cands = new List<TitleScreenTraffic.Flyer>();
+        foreach (var f in u.Pool) if (f.active && f.state != TitleScreenTraffic.State.Plunge && f.state != TitleScreenTraffic.State.ZipIn) cands.Add(f);
+        foreach (var victim in cands)   // some sit over a menu button (a UI press never shoots): try each until a few go down
+        {
+            if (killed >= 3) break;
+            if (!victim.active) continue;
+            Tap(u, 0, victim.pos, 1);
+            if (!victim.active) killed++;
+        }
+        Run(u, 12f);
+        Check("tapped ships respawn through the traffic logic (killed " + killed + ", " + u.ShipsOnScreen + " on screen after)", killed > 0 && u.ShipsOnScreen > 0);
+        Done(u);
+    }
+
+    static void TapOnAButtonDestroysNothing()
+    {
+        var t = Quiet("~TC_tapui", 23);
+        var play = GameObject.Find("PlayButton");
+        Check("PLAY is on the home screen (tap test)", play != null);
+        if (play == null) { Done(t); return; }
+        Vector2 screen = ScreenCentre((RectTransform)play.transform);
+        Vector2 world = t.View.min + new Vector2(screen.x / Screen.width * t.View.width, screen.y / Screen.height * t.View.height);
+        var f = LaunchId(t, 1, TitleScreenTraffic.Depth.Front, world, Mathf.PI * .5f);
+        f.baseSpeed = 0f;
+        for (int i = 0; i < 3; i++) { t.FeedPointer(0, 0, true, screen, Dt); t.Step(Dt); }
+        t.FeedPointer(0, 0, false, screen, Dt);
+        Check("a tap on a button, with a ship behind it, leaves the ship (UI wins)", f.active && t.TapKills == 0);
+        Done(t);
+    }
+
+    static void TapDestroysTheElite()
+    {
+        var t = Quiet("~TC_tapelite", 24);
+        var bystander = LaunchId(t, 1, TitleScreenTraffic.Depth.Front, t.Safe.center + new Vector2(0f, -2.2f), Mathf.PI * .5f);
+        bystander.baseSpeed = 0f;
+        Check("an elite run starts", t.TryStartElite());
+        for (int i = 0; i < 30 * 3 && t.ElitePhaseNow != TitleScreenTraffic.ElitePhase.Snipe; i++) t.Step(Dt);
+        Check("it perches", t.ElitePhaseNow == TitleScreenTraffic.ElitePhase.Snipe || t.ElitePhaseNow == TitleScreenTraffic.ElitePhase.Exit);
+        if (t.ElitePhaseNow != TitleScreenTraffic.ElitePhase.Snipe) { Done(t); return; }
+        int paid = EliteRewards.Paid, played = EliteDeath.Played;
+        Tap(t, 0, t.ElitePosition, 2);
+        Check("a tap on the elite destroys it (" + t.ElitePhaseNow + ")", t.EliteTapKills == 1 && t.ElitePhaseNow == TitleScreenTraffic.ElitePhase.Dying);
+        Check("its blast plays", t.LastExplosion != null && t.Explosions > 0);
+        Check("no rewards, no gameplay death", EliteRewards.Paid == paid && EliteDeath.Played == played);
+        for (int i = 0; i < 30 * 4 && t.ElitePhaseNow != TitleScreenTraffic.ElitePhase.None; i++) t.Step(Dt);
+        Check("the run ends and traffic may refill", t.ElitePhaseNow == TitleScreenTraffic.ElitePhase.None && !t.EliteVisible);
+        Done(t);
+    }
+
+    static void SwipeFlingsShips()
+    {
+        var t = Quiet("~TC_fling", 25);
+        var c = t.Safe.center + new Vector2(0f, -2.2f);
+        var f = LaunchId(t, 1, TitleScreenTraffic.Depth.Front, c + new Vector2(.3f, 0f), Mathf.PI * .5f);
+        f.baseSpeed = 0f;
+        Check("fling ship placed", f != null);
+        if (f == null) { Done(t); return; }
+        float step = 12f * Dt;   // a 12 u/s flick to the right
+        float peak = 0f, maxHop = 0f;
+        Vector2 prev = f.pos;
+        for (int i = 0; i < 10; i++)
+        {
+            t.FeedPointer(0, 0, true, WorldToScreen(t, c + new Vector2(-1.2f + i * step, 0f)), Dt);
+            t.Step(Dt);
+            peak = Mathf.Max(peak, f.push.magnitude);
+            maxHop = Mathf.Max(maxHop, (f.pos - prev).magnitude);
+            prev = f.pos;
+        }
+        t.FeedPointer(0, 0, false, Vector2.zero, Dt);
+        Check("a flick throws the ship (peak " + peak.ToString("0.0") + " u/s, " + t.Flings + " fling(s))", t.Flings >= 1 && peak > TitleScreenTraffic.PushMax);
+        Check("it keeps the finger's direction", f.push.x > 0f || f.pos.x > c.x + .3f);
+        Check("capped at FlingMax and still alive", peak <= TitleScreenTraffic.FlingMax + .01f && f.active && t.TapKills == 0);
+        Check("no teleporting (largest hop " + maxHop.ToString("0.00") + ")", maxHop < TitleScreenTraffic.FlingMax * Dt * 1.2f);
+        Run(t, 3f);
+        Check("drag eases the speed away (" + f.push.magnitude.ToString("0.000") + ")", f.push.magnitude < .05f);
+        Done(t);
+
+        // a slow drag past a ship stays the gentle shove
+        var u = Quiet("~TC_nofling", 26);
+        var g = LaunchId(u, 1, TitleScreenTraffic.Depth.Front, c + new Vector2(.3f, 0f), Mathf.PI * .5f);
+        g.baseSpeed = 0f;
+        for (int i = 0; i < 10; i++) { u.FeedPointer(0, 0, true, WorldToScreen(u, c + new Vector2(-.6f + i * .1f, 0f)), Dt); u.Step(Dt); }
+        u.FeedPointer(0, 0, false, Vector2.zero, Dt);
+        Check("a slow drag does not fling", u.Flings == 0);
+        Done(u);
     }
 
     static Vector2 WorldToScreen(TitleScreenTraffic t, Vector2 w)

@@ -2,22 +2,24 @@ using System;
 using UnityEngine;
 
 // The player's link between Pause and their store account (Google Play Games
-// on Android, Game Center on iOS), as the Options screen's Account row shows
-// it. One place for: the interactive sign-in, the last sign-in result (and
+// on Android, Game Center on iOS). The Options screen no longer has an account
+// row: sign-in lives on the leaderboard screen. One place for: the interactive sign-in, the last sign-in result (and
 // why it failed), and Pause's own "signed out" switch.
 //
 // Sign-in
 //   - Launch: one SILENT attempt (CloudSync.Start). Play Games v2 answers
 //     SIGN_IN_REQUIRED for a player who never signed in to this game and
 //     suppresses its own prompt, so the player must be offered a button:
-//     the Account row in Options, plus a one-time hint toast on the home
+//     the leaderboard panel's SIGN IN, plus a one-time hint toast on the home
 //     screen (AccountHintToast).
 //   - SignIn(): the INTERACTIVE attempt (PlayGamesPlatform.ManuallyAuthenticate
 //     / Game Center's authenticate sheet). Every "sign in" in the game goes
-//     through here: the Account row, the leaderboard panel's SIGN IN and the
+//     through here: the leaderboard panel's SIGN IN and the
 //     store screens (SocialBridge.Authenticate).
 //
 // Signing out
+//   (There is no sign-out button in the UI now; Disconnect below stays for a
+//   future settings screen and the tests.)
 //   Neither store lets an app sign the player out any more: Play Games
 //   Services v2 removed SignOut() (the installed plugin, 2.1.0, has none) and
 //   Game Center never had one (iOS Settings > Game Center). So SIGN OUT is
@@ -31,7 +33,7 @@ using UnityEngine;
 public static class AccountLink
 {
     public const string DisconnectedKey = "accountDisconnected";
-    // Set once the home screen showed "sign in in Options" (once per install).
+    // Set once the home screen showed "sign in from the leaderboard" (once per install).
     public const string HintShownKey = "account_signInHintShown";
 
     public enum Status
@@ -247,7 +249,7 @@ public static class AccountLink
 
     // ---- the home screen hint ----
 
-    // True when the home screen should show "sign in in Options" now: the
+    // True when the home screen should show "sign in from the leaderboard" now: the
     // silent launch sign-in failed this launch, the player did not choose
     // SIGN OUT, and the hint was never shown on this install.
     public static bool ShouldShowLaunchHint
@@ -270,8 +272,8 @@ public static class AccountLink
         get
         {
             return IsGameCenter
-                ? "Sign in to Game Center in Options to save progress to your account"
-                : "Sign in with Play Games in Options to save progress to your account";
+                ? "Sign in to Game Center from the leaderboard to save progress to your account"
+                : "Sign in with Play Games from the leaderboard to save progress to your account";
         }
     }
 

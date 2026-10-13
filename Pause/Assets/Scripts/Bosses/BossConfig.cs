@@ -85,13 +85,14 @@ public static class BossConfig
     // Full-weight ship-attack hits needed to destroy the boss before the
     // fight clock runs out (weighted hits add up).
     // (3 became 5 with the four extra hearts: 5 hearts / 3 hits grew to
-    // 9 hearts / 5 hits, each heart ~0.56 of a hit instead of 0.6.)
-    public static int HitPoints = 5;
+    // 9 hearts / 5 hits, each heart ~0.56 of a hit instead of 0.6. Then 9 became 12 on the
+    // user's ask: 12 hearts / 7 hits, each heart ~0.58 of a hit -- the same ratio again.)
+    public static int HitPoints = 7;
 
     // ---- hearts (BossHearts) ----
     // The boss wears its health as Hearts hearts spinning round it. They
     // split the same HitPoints pool into equal segments: each heart is
-    // HeartWeight full hits (HitPoints / Hearts = 5 / 9), and goes the moment its segment
+    // HeartWeight full hits (HitPoints / Hearts = 7 / 12), and goes the moment its segment
     // is spent -- so the fight is exactly as long and as hard as before,
     // the last heart going with the last hit point. (A full-weight hit
     // takes one heart, sometimes two: 5 -> 4 -> 2 -> 0 under three of them.)
@@ -100,7 +101,7 @@ public static class BossConfig
     // so 5-4 hearts is phase 1, 3-2 phase 2 and the last heart phase 3, at
     // the same thirds as the clock's.
     public const int BaseHearts = 5;
-    public const int ExtraHearts = 4;   // added to every boss on the user's ask
+    public const int ExtraHearts = 7;   // added to every boss on the user's ask (4, then 7: 5 + 7 = 12 hearts; HeartOrbit's ceiling is 12)
     public static int Hearts = BaseHearts + ExtraHearts;
     public static float HeartWeight => HitPoints / (float)Mathf.Max(1, Hearts);
     // Each heart's world size: the player's (ShipLivesIndicator, 0.22) x 1.3.

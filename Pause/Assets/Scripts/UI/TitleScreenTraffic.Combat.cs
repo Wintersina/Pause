@@ -1019,7 +1019,7 @@ public partial class TitleScreenTraffic
     // ------------------------------------------------------- shoot-downs
 
     // `ship` fired the shot, from `layer`.
-    void ShootDown(Flyer victim, Vector2 dir, int ship, Depth layer)
+    void ShootDown(Flyer victim, Vector2 dir, int ship, Depth layer, bool allowCareen = true)
     {
         if (victim == null || !victim.active || victim.state == State.Plunge) return;
         ShootDowns++;
@@ -1029,7 +1029,7 @@ public partial class TitleScreenTraffic
         if (pursuerA == victim || pursuerB == victim) EndPursuit();
 
         // now and then the stricken ship careens into the logo or a button
-        if (victim.layer != Depth.Back && plunger == null && now >= nextPlungeAt - plungeInterval.x * .5f &&
+        if (allowCareen && victim.layer != Depth.Back && plunger == null && now >= nextPlungeAt - plungeInterval.x * .5f &&
             Random.value < StrickenPlungeChance && StartPlunge(victim, true))
         {
             nextPlungeAt = Mathf.Max(nextPlungeAt, now + plungeInterval.x * .6f);

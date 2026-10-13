@@ -1,11 +1,11 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-// Building blocks shared by the Account row (AccountOptions), its dialogs
-// (AccountDialog) and the home-screen hint (AccountHintToast). Same look as
+// Building blocks shared by the Options screen's runtime-built cards
+// (FeatureFlagOptions) and the home-screen hint (AccountHintToast). Same look as
 // the leaderboard panel (docs/art-style.md): flat CelShape plates with a
 // thick INK contour and one hard offset shadow, Orbitron with an ink stroke.
-public static class AccountUi
+public static class OptionsUi
 {
     public static RectTransform Child(Transform parent, string name)
     {

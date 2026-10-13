@@ -69,6 +69,14 @@ public class WorldBackdropImport : AssetPostprocessor
 
     // Desert's worm sheets (worm, worm_giant): 2048 px sheets of 256 / 512 px cells that are drawn up to
     // ~1.5x their pixel size, so they keep every pixel (the other atlases cap at 1024).
+    // Storm's and Desert's painted art is continuous-tone (thousands of colours: smooth cloud / dune gradients), not
+    // the small palettes of Frost / Verdant / Ember: ASTC 6x6 bands and blocks it on phones, so these two worlds
+    // take ASTC 4x4 (8 bpp). Their sources are never clamped (see maxTextureSize above).
+    public static bool IsContinuousTone(string path)
+    {
+        return path.Contains("/Worlds/Storm/Backdrop3/") || path.Contains("/Worlds/Desert/Backdrop3/");
+    }
+
     public static bool IsDesertWormSheet(string path, string file)
     {
         return path.Contains("/Worlds/Desert/Backdrop3/") && (file == "worm" || file == "worm_giant");
@@ -172,7 +180,7 @@ public class WorldBackdropImport : AssetPostprocessor
             ps.overridden = true;
             ps.maxTextureSize = planetSheet ? PlanetSheetMaxSize : file == "station_ring_v2" ? 1024 : file == "reference_planet" ? 1024 :
                 sharpSpaceSky || (!tile && assetPath.Contains("/Worlds/Space/")) || IsDesertWormSheet(assetPath, file) ? 2048 : 1024;
-            ps.format = planetSheet ? TextureImporterFormat.ASTC_4x4 : TextureImporterFormat.ASTC_6x6;
+            ps.format = planetSheet || IsContinuousTone(assetPath) ? TextureImporterFormat.ASTC_4x4 : TextureImporterFormat.ASTC_6x6;
             ps.textureCompression = TextureImporterCompression.Compressed;
             ti.SetPlatformTextureSettings(ps);
         }

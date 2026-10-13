@@ -19,6 +19,19 @@ using UnityEngine.UI;
 // life, wherever it is dragged. Every finger is its own pointer
 // (multitouch); without a touchscreen the left mouse button is one.
 //
+// Tap and fling (the same touch, told apart by how it moves). A quick press
+// that stays put (TapMaxTime, TapSlop) and lifts on a ship destroys it: the
+// shoot-down's wreck into the walls, no careen, the standard explosion cue.
+// The elite is tappable too (its own death strip, blast and authored cue,
+// TitleScreenTraffic.Elite.cs); nothing persistent ever happens (no score,
+// dust, codex, stats or leaderboard). A pressed ship holds still (no shove)
+// until the press turns into a hold or a drag, so a tap never knocks it away
+// first. A fast swipe through a ship (FlingMinSpeed) throws it off with the
+// finger's velocity (FlingGain, capped at FlingMax), which then decays at
+// PushDecay as usual so its own steering eases it back (or it flies out and
+// traffic respawns it). Destroyed ships come back through the normal spawn
+// logic (respawnDelay). Hits only count for touches that began off the UI.
+//
 // Read-only on input: nothing here consumes, uses or blocks an event, so the
 // menu's taps and the back button work exactly as before (the home screen
 // has no other gestures). Step itself never reads input -- Update feeds the
@@ -32,15 +45,25 @@ public partial class TitleScreenTraffic
     public const float PushDrag = .35f;          // a swipe drags ships along this much
     public const float PushDecay = 2.6f;         // per second
     public const float PushMax = 6f;             // u/s
+    public const float TapMaxTime = .18f;        // s a press may last and still be a tap
+    public const float TapSlop = .3f;            // world units a tap may wander
+    public const float TapMinHit = .55f;         // finger-sized hit radius at the front layer
+    public const float FlingMinSpeed = 5f;       // finger u/s that turns a shove into a fling
+    public const float FlingGain = .95f;         // ship gets this x the finger's velocity
+    public const float FlingMax = 12f;           // u/s
+    public const float FlingPad = .45f;          // reach beyond the hull, front layer
+    public const float FlingRetry = .3f;         // s before the same ship can be flung again
 
     // Depth: the far layers feel the finger less.
     static readonly float[] PushLayer = { .55f, .8f, 1f };
 
     struct Pointer
     {
-        public bool down, ui;
+        public bool down, ui, tapping, tapElite;
         public int id;
-        public Vector2 world, vel;
+        public Vector2 world, vel, startWorld;
+        public float held;
+        public Flyer tapTarget;
     }
 
     readonly Pointer[] pointers = new Pointer[MaxPointers];
@@ -57,6 +80,8 @@ public partial class TitleScreenTraffic
 
     public bool PointerOnUi(int slot) => pointers[slot].down && pointers[slot].ui;
     public int Shoves { get; private set; }
+    public int TapKills { get; private set; }
+    public int Flings { get; private set; }
 
     void BuildTouch()
     {
@@ -115,6 +140,9 @@ public partial class TitleScreenTraffic
         ref var p = ref pointers[slot];
         if (!down)
         {
+            if (p.down && !p.ui && p.tapping) ResolveTap(ref p);
+            p.tapTarget = null;
+            p.tapping = false;
             p.down = false;
             p.id = int.MinValue;
             p.vel = Vector2.zero;
@@ -129,14 +157,67 @@ public partial class TitleScreenTraffic
             p.vel = Vector2.zero;
             // decided once, when the touch lands
             p.ui = StartsOnUi(pointerId, screen);
+            p.startWorld = world;
+            p.held = 0f;
+            p.tapTarget = null;
+            p.tapElite = false;
+            p.tapping = !p.ui;
+            if (p.tapping)
+            {
+                p.tapElite = EliteHit(world);
+                if (!p.tapElite) p.tapTarget = TapPick(world);
+            }
             return;
         }
+        p.held += dt;
+        if (p.tapping && (p.held > TapMaxTime || (world - p.startWorld).sqrMagnitude > TapSlop * TapSlop)) p.tapping = false;
         if (dt > 0f)
         {
             Vector2 v = (world - p.world) / dt;
             p.vel = Vector2.Lerp(p.vel, v, 1f - Mathf.Exp(-18f * dt));
         }
         p.world = world;
+    }
+
+    float TapReach(Flyer f)
+    {
+        return Mathf.Max(f.radius * 1.1f, TapMinHit * (.6f + .4f * PushLayer[(int)f.layer]));
+    }
+
+    // The ship under a press: front layer first, then the nearest.
+    Flyer TapPick(Vector2 world)
+    {
+        Flyer best = null;
+        float bestScore = float.MaxValue;
+        for (int i = 0; i < pool.Length; i++)
+        {
+            var f = pool[i];
+            if (f == null || !f.active || f.state == State.Plunge || f.state == State.ZipIn || !Overlaps(view, f.pos, -.1f)) continue;
+            float r = TapReach(f);
+            float d2 = (f.pos - world).sqrMagnitude;
+            if (d2 > r * r) continue;
+            float score = d2 - (int)f.layer * 100f;
+            if (score < bestScore) { bestScore = score; best = f; }
+        }
+        return best;
+    }
+
+    // A press that stayed a tap is lifted: whatever it began on goes down.
+    void ResolveTap(ref Pointer p)
+    {
+        if ((p.world - p.startWorld).sqrMagnitude > TapSlop * TapSlop) return;
+        if (p.tapElite)
+        {
+            if (EliteHit(p.world) && KillElite()) TapKills++;
+            return;
+        }
+        var f = p.tapTarget;
+        if (f == null || !f.active || f.state == State.Plunge) return;
+        float r = TapReach(f) + TapSlop;
+        if ((f.pos - p.world).sqrMagnitude > r * r) return;
+        TapKills++;
+        ShootDown(f, (f.pos - p.world).sqrMagnitude > 1e-4f ? (f.pos - p.world).normalized : Vector2.up, f.id, f.layer, false);
+        collisionDetection.PlayExplosion();
     }
 
     Vector2 ScreenPointToWorld(Vector2 screen)
@@ -200,18 +281,31 @@ public partial class TitleScreenTraffic
             {
                 var f = pool[i];
                 if (!f.active || !Pushable(f)) continue;
+                if (p.tapping && f == p.tapTarget) continue;   // pressed, not shoved: it may be about to be tapped
                 float layerK = PushLayer[(int)f.layer];
                 float reach = PushRadius * (.75f + .25f * layerK);
                 Vector2 d = f.pos - p.world;
                 float dist = d.magnitude;
                 if (dist >= reach) continue;
+                // a fast swipe through the hull throws it with the finger's velocity
+                if (speed >= FlingMinSpeed && now >= f.flingUntil && dist < f.radius + FlingPad * layerK)
+                {
+                    Vector2 fling = p.vel * (FlingGain * layerK);
+                    float fm = fling.magnitude;
+                    if (fm > FlingMax) fling *= FlingMax / fm;
+                    f.push = fling;
+                    f.flingUntil = now + FlingRetry;
+                    Flings++;
+                    continue;
+                }
                 float fall = 1f - dist / reach;
                 fall *= fall;
                 Vector2 away = dist > 1e-3f ? d / dist : (p.vel.sqrMagnitude > 1e-4f ? new Vector2(-p.vel.y, p.vel.x).normalized : Vector2.up);
                 float strength = (PushBase + PushPerSpeed * speed) * fall * layerK;
                 f.push += (away * strength + p.vel * (PushDrag * fall * layerK)) * (dt * 6f);
                 float m = f.push.magnitude;
-                if (m > PushMax) f.push *= PushMax / m;
+                float cap = now < f.flingUntil ? FlingMax : PushMax;   // a thrown ship keeps its speed; the gentle field only adds up to PushMax
+                if (m > cap) f.push *= cap / m;
                 Shoves++;
             }
         }

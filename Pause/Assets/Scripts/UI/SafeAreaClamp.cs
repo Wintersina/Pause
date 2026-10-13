@@ -31,10 +31,10 @@ public class SafeAreaClamp : MonoBehaviour
     // apart (Tutorial, Credits and the developer rows above it). On a
     // canvas UiScale's floor makes short (a phone small in points / dp) the
     // lift that keeps BACK inside the safe area would put it on the row
-    // above: the whole column rises with it instead (the account card above
-    // it shrinks to fit, AccountOptions). Other clamped elements move alone.
+    // above: the whole column rises with it instead (the developer flags card above
+    // it shrinks to fit, FeatureFlagOptions). Other clamped elements move alone.
     public static readonly string[] ColumnScenes = { "leaderboardS3" };
-    public const string ColumnHead = "AccountRow";   // placed by AccountOptions itself
+    public const string ColumnHead = FeatureFlagOptions.CardName;   // placed by FeatureFlagOptions itself
     public bool carryColumn;
     readonly System.Collections.Generic.List<RectTransform> column = new System.Collections.Generic.List<RectTransform>();
     readonly System.Collections.Generic.List<Vector2> columnAuthored = new System.Collections.Generic.List<Vector2>();

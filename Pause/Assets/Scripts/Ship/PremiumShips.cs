@@ -41,7 +41,7 @@ public static class PremiumShips
     public const float SkinPrice = 50000f;
 
     // Whether Paragon exists for this player: its feature flag ("paragon_ship",
-    // default off) or developer mode. Hidden, ShipId.Count is 15 and Paragon is not
+    // default ON, a locked COMING SOON berth) or developer mode. Flag off, ShipId.Count is 15 and Paragon is not
     // a valid id anywhere (dock, codex, saves, achievements, selection).
     public static bool Visible
     {

@@ -352,7 +352,7 @@ public static class BackNavigationTest
     static void Credits()
     {
         EditorSceneLoader.Open(BackNavigator.OptionsScene, OpenSceneMode.Single);
-        var entry = GameObject.Find(AccountOptions.OptionsCreditsButton);
+        var entry = GameObject.Find(FeatureFlagOptions.OptionsCreditsButton);
         var button = entry != null ? entry.GetComponent<UnityEngine.UI.Button>() : null;
         Check("options: has a Credits button", button != null);
         if (button != null)
