@@ -177,7 +177,8 @@ public static class RedAtomFreeShotTest
         {
             case ShipAttack.ScreenClear: return ShipAttackRunner.QuickVolleyShots(inView);
             case ShipAttack.Ricochet: return 1;
-            case ShipAttack.SeekerEyes: return l.shots;
+            case ShipAttack.SeekerEyes:
+            case ShipAttack.ParagonBarrage: return l.shots;
             case ShipAttack.RailSlug:
             case ShipAttack.ChainLightning:
             case ShipAttack.Blowtorch:
@@ -281,8 +282,8 @@ public static class RedAtomFreeShotTest
             SetLevel(id, 0);
         }
         if (bad.Length > 0) Debug.Log("[RA] per-ship issues:" + bad);
-        Check("every ship (15) at levels 0 and 4 fires exactly once on a red atom (" + shipsOk + "/" + cases + ")",
-              shipsOk == cases && cases == 30);
+        Check("every ship at levels 0 and 4 fires exactly once on a red atom (" + shipsOk + "/" + cases + ")",
+              shipsOk == cases && cases == ShipId.Count * 2);
         Check("the free shot leaves the countdown and cooldown alone (only the atom's usual cut) (" + timerOk + "/" + cases + ")",
               timerOk == cases);
         Check("the red atom still gives +2 pauses and counts as a pause atom (" + effectOk + "/" + cases + ")",

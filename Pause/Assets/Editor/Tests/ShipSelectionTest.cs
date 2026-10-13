@@ -199,7 +199,7 @@ public static class ShipSelectionTest
 
     static void RosterTables()
     {
-        Check("roster has 15 ships", ShipId.Count == 15 && ShipId.Last == 15);
+        Check("roster has 15 dust ships + the premium Paragon", ShipId.Count == 16 && ShipId.Last == 16 && PremiumShips.StandardCount == 15);
         Check("roster, prices and ids agree",
               shopingShips.Roster.Length == shopingShips.shipTotal &&
               shopingShips.Prices.Length == shopingShips.shipTotal);

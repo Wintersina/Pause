@@ -129,7 +129,7 @@ public static class ShipWeaponUpgradesTest
         bool every = true;
         foreach (int id in ShipId.All)
             every &= ShipWeaponUpgrades.Has(id) && ShipSkins.CountFor(id) == ShipSkins.PerShip;
-        Check("every ship has an upgrade track and " + ShipSkins.PerShip + " skins", every && ShipId.Count == 15);
+        Check("every ship has an upgrade track and " + ShipSkins.PerShip + " skins", every && ShipId.Count == 16);
 
         SetLevel(3, 0);
         Check("only the stock colours -> level 0", ShipWeaponUpgrades.Level(3) == 0);

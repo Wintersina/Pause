@@ -78,8 +78,9 @@ public static class PremiumShipTest
         PlayerPrefs.SetInt(ShipId.SelectedKey, 1);
         Check("the placeholder IAP product id exists", !string.IsNullOrEmpty(PremiumShips.ParagonProductId));
 
-        PremiumShips.Grant(1);
-        Check("Grant only works on a premium ship", PlayerPrefs.GetString(ShipId.OwnedKey(2)) != "True");
+        PlayerPrefs.DeleteKey(ShipId.OwnedKey(2));
+        PremiumShips.Grant(2);
+        Check("Grant only works on a premium ship", PlayerPrefs.GetString(ShipId.OwnedKey(2)) != "True" && !ShipId.IsOwned(2));
         PremiumShips.Grant(P);
         Check("Grant (the IAP hook) owns it with the usual key", ShipId.IsOwned(P) && PlayerPrefs.GetString(ShipId.OwnedKey(P)) == "True");
         PlayerPrefs.DeleteKey(ShipId.OwnedKey(P));
@@ -165,7 +166,11 @@ public static class PremiumShipTest
               ShipLoadoutTable.IsTopTierByPrice(7) && !ShipLoadoutTable.IsTopTierByPrice(15));
         Check("the all-skins set ignores it: owning every dust-ship skin completes the set without Paragon",
               SkinHearts.SkinsMissing >= 0 && SkinHearts.Bonus(P) == SkinHearts.FromColours(P));
-        Check("Fleet Admiral counts the 15 dust ships", PremiumShips.StandardCount == 15 && AchievementTracker.OwnedShips() <= 1);
+        int owned = AchievementTracker.OwnedShips();
+        PlayerPrefs.SetString(ShipId.OwnedKey(P), "True");
+        Check("Fleet Admiral counts the 15 dust ships: owning Paragon adds nothing", PremiumShips.StandardCount == 15 &&
+              AchievementTracker.OwnedShips() == owned);
+        PlayerPrefs.DeleteKey(ShipId.OwnedKey(P));
     }
 
     // ---- fixtures (as PowersReworkTest) ---------------------------------
@@ -238,7 +243,8 @@ public static class PremiumShipTest
                 if (p != null && p.Active && p.CurrentKind == AttackProjectile.Kind.Homing)
                 { homing++; if (p.Target != null && seen.Add(p.Target)) distinct++; }
             Check("they are homing and each hunts a different target", homing >= 2 && distinct == 2);
-            for (int i = 0; i < 99; i++) missiles.Step(.1f);
+            // the volley fired at step 100 (10.0 s); 5 steps have run since
+            for (int i = 0; i < 94; i++) missiles.Step(.1f);
             Check("the next volley is another 10 s away", missiles.Fired == 1);
             for (int i = 0; i < 10; i++) missiles.Step(.1f);
             Check("the second volley fires at 20 s", missiles.Fired == 2);

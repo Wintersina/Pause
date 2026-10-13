@@ -118,7 +118,7 @@ public static class WeaponChargeTest
             if (!ok) Debug.Log("[WC] missing frames for ship " + ship + " (" + style.artKey + ")");
             frames &= ok;
         }
-        Check("every ShipId.All entry has a weapon table entry", all && ShipId.Count == 15);
+        Check("every ShipId.All entry has a weapon table entry", all && ShipId.Count == 16);
         Check("each weapon entry's art key is its ShipId key", keyed);
         Check("every ship's indicator/shot/impact/muzzle frames resolve", frames);
         Check("every ship has its own charge indicator style", charges.Count == roster - 1);

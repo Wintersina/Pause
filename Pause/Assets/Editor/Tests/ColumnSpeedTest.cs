@@ -44,7 +44,7 @@ public static class ColumnSpeedTest
         var expect = new[] { 0, 5, 10 };
         bool all = true, derived = true;
         var per = new int[4];
-        foreach (int id in ShipId.All)
+        foreach (int id in PremiumShips.StandardIds)
         {
             int col = ShipStartSpeed.Column(id);
             all &= col >= 1 && col <= 3 && ShipStartSpeed.BaseHud(id) == expect[col - 1] && ShipStartSpeed.HudFor(id, 0) == expect[col - 1];
@@ -61,12 +61,12 @@ public static class ColumnSpeedTest
     static void Upgrades()
     {
         bool ok = true;
-        foreach (int id in ShipId.All)
+        foreach (int id in PremiumShips.StandardIds)
             for (int skin = 0; skin < ShipSkins.CountFor(id); skin++)
                 ok &= ShipStartSpeed.HudFor(id, skin) == ShipStartSpeed.BaseHud(id) + ShipStartSpeed.StepHud * skin;
         Check("each colour adds +5 on top of the column base, every ship", ok);
         bool cap = true;
-        foreach (int id in ShipId.All)
+        foreach (int id in PremiumShips.StandardIds)
             for (int skin = 0; skin < ShipSkins.CountFor(id); skin++)
                 cap &= ShipStartSpeed.SpeedFor(id, skin) < SpeedRamp.Cap;
         Check("the fastest start (column 3, colour 5) is 30, under the cap", cap && ShipStartSpeed.HudFor(ShipId.FromKey("GoldWarden"), 4) == 30);
@@ -78,7 +78,7 @@ public static class ColumnSpeedTest
         var anchor = new GameObject("~Anchor").transform;
         var popup = DockPopup.Create(null, font, null);
         bool ok = true;
-        foreach (int id in ShipId.All)
+        foreach (int id in PremiumShips.StandardIds)
         {
             PlayerPrefs.SetString(ShipId.OwnedKey(id), "True");
             popup.Show(id, anchor, .3f, true, false, 0f, 0f);

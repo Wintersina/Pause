@@ -287,7 +287,7 @@ public static class AchievementTrackingTest
         for (int i = 3; i <= 8; i++) shopingShips.TryPurchase(i, 0f);
         Check("8 ships owned: Squadron (" + C("ships") + ")", C("ships") == 8 && U("ship_half") && !U("ship_all"));
         for (int i = 9; i <= 15; i++) shopingShips.TryPurchase(i, 0f);
-        Check("every ship owned: Fleet Admiral", C("ships") == ShipId.Count && U("ship_all"));
+        Check("every ship owned: Fleet Admiral", C("ships") == PremiumShips.StandardCount && U("ship_all"));
         Check("a failed purchase changes nothing", !shopingShips.TryPurchase(2, 99999f) && C("spent") == 600);
 
         var res = ShipSkins.TryPurchase(2, 1);

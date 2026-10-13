@@ -402,7 +402,8 @@ public static class ShopTest
         foreach (int id in order) names.Add(shopingShips.NameFor(id) + " " + shopingShips.CostFor(id));
         Debug.Log("[ST] bay order: " + string.Join(", ", names));
         Check("berths run from cheapest to most expensive (ties by ShipId)", ascending);
-        Check("the most expensive ship (Gold Warden) is the last berth", order[order.Length - 1] == 7);
+        Check("the most expensive dust ship (Gold Warden) is the last berth before the premium ship, which sorts last",
+              order[order.Length - 2] == 7 && PremiumShips.IsPremium(order[order.Length - 1]));
 
         bool placed = true, identity = true;
         for (int slot = 0; slot < order.Length; slot++)

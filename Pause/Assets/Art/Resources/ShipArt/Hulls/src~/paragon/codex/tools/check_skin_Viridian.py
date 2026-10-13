@@ -26,7 +26,7 @@ def pct(mask):
 
 def main():
     failures = []
-    print("state cell pose          silhouette%   blue%   red-to-emerald%   changed-all%")
+    print("state cell pose          silhouette%   blue%   red-to-emerald%   changed-all%   changed-ship%")
     for state in range(3):
         ref = np.asarray(Image.open(HERE / f"skinref_state{state}.png").convert("RGB"))
         path = OUT / f"skin_Viridian_state{state}.png"
@@ -63,10 +63,13 @@ def main():
             emerald = (bh >= 140) & (bh <= 175) & (bs > .30) & (bv > .15)
             green_fraction = (100 * np.count_nonzero(former_red & emerald) /
                               max(1, former_red.sum()))
-            changed = pct(np.any(a != b, axis=2))
+            changed_mask = np.any(a != b, axis=2)
+            changed = pct(changed_mask)
+            changed_ship = 100 * np.count_nonzero(changed_mask & in_a) / max(1, in_a.sum())
             green_text = f"{green_fraction:6.2f}" if cell != 8 else "   n/a"
             print(f"  {state}     {cell}  {POSES[cell]:<12} {silhouette:8.2f}     "
-                  f"{blue_difference:6.2f}         {green_text}          {changed:6.2f}")
+                  f"{blue_difference:6.2f}         {green_text}          "
+                  f"{changed:6.2f}          {changed_ship:6.2f}")
             if silhouette >= 1.5:
                 failures.append(f"state {state} cell {cell}: silhouette {silhouette:.2f}% >= 1.5%")
             if blue_difference >= 6:
@@ -79,6 +82,9 @@ def main():
                 failures.append(f"state {state} cell 8: hit flash differs from approved art")
             if np.any(np.all(b == CHROMA, axis=2) & in_a):
                 failures.append(f"state {state} cell {cell}: chroma green inside original ship")
+            magenta = (bh >= 280) & (bh <= 345) & (bs > .39) & (bv > .23) & in_b
+            if np.any(magenta):
+                failures.append(f"state {state} cell {cell}: {magenta.sum()} magenta pixels")
     if failures:
         print("FAIL:")
         for failure in failures:

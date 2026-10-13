@@ -129,7 +129,7 @@ public static class ShipAttacksTest
             named &= !string.IsNullOrEmpty(l.attackName) && !string.IsNullOrEmpty(l.powerName) &&
                      !string.IsNullOrEmpty(l.attackLine) && !string.IsNullOrEmpty(l.powerLine);
         }
-        Check("every ShipId has an attack and a secret power", all && ShipId.Count == 15);
+        Check("every ShipId has an attack and a secret power", all && ShipId.Count == 16);
         Check("no two ships share the same attack + power pair", distinct);
         Check("every ship's secret power is its own", powers.Count == ShipId.Count);
         Check("every attack and power has a name and a one-line description", named);
@@ -149,6 +149,7 @@ public static class ShipAttacksTest
     static void OnlyTheTopPriceTierClearsTheScreen()
     {
         var byPrice = new List<int>(ShipId.All);
+        byPrice.RemoveAll(id => PremiumShips.IsPremium(id));   // premium ships are outside the dust price tiers
         byPrice.Sort((a, b) => shopingShips.CostFor(b).CompareTo(shopingShips.CostFor(a)));
         var top = new HashSet<int> { byPrice[0], byPrice[1], byPrice[2] };
         bool match = true;

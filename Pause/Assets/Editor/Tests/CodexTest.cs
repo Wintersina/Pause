@@ -762,7 +762,7 @@ public static class CodexTest
             Check("ship " + ShipId.KeyOf(ship) + " lore: attack + secret power", e.lore.Contains(l.attackName) && e.lore.Contains(l.powerName));
             Check("ship " + ShipId.KeyOf(ship) + " lore: " + ShipLives.Base(ship) + " hearts",
                   e.lore.Contains("HULL  " + ShipLives.Base(ship) + " " + SkinHearts.HeartsWord(ShipLives.Base(ship))) &&
-                  ShipLives.Base(ship) >= ShipLives.Fewest && ShipLives.Base(ship) <= ShipLives.Most);
+                  ShipLives.Base(ship) >= ShipLives.Fewest && ShipLives.Base(ship) <= ShipLives.MostHearts);
             Check("ship " + ShipId.KeyOf(ship) + " lore: all " + ShipSkins.PerShip + " colours", colours);
             Check("ship " + ShipId.KeyOf(ship) + " lore: the weapon upgrade each colour buys", upgrades);
             Check("ship " + ShipId.KeyOf(ship) + " lore: start speed by colour (" + string.Join("/", speeds) + ")",

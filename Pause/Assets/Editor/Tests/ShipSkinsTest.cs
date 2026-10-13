@@ -106,15 +106,17 @@ public static class ShipSkinsTest
             {
                 var s = ShipSkins.Get(id, n);
                 names.Add(s.name);
-                var want = n == 0 ? ShipSkinKind.Stock : n == ShipSkins.Special ? ShipSkinKind.Special : ShipSkinKind.Palette;
+                var want = n == 0 ? ShipSkinKind.Stock : n == ShipSkins.Special && !PremiumShips.IsPremium(id) ? ShipSkinKind.Special : ShipSkinKind.Palette;
                 Check(who + " skin " + n + " (" + s.name + ") is " + want, s.kind == want);
             }
             Check(who + " skin names are distinct", names.Count == ShipSkins.CountFor(id));
             var stock = ShipSkins.Get(id, 0);
             var r = ShipHullArt.RectFor(id);
             Check(who + " stock skin is its identity hue", stock.hue == r.hue && stock.hueShadow == r.hueShadow);
-            Check(who + " special keeps the identity hue and adds a livery",
-                  ShipSkins.Get(id, ShipSkins.Special).hue == r.hue && ShipSkins.Get(id, ShipSkins.Special).pattern != null);
+            // (a premium ship's skins are painted colourways, all palette swaps: no stripe livery)
+            if (!PremiumShips.IsPremium(id))
+                Check(who + " special keeps the identity hue and adds a livery",
+                      ShipSkins.Get(id, ShipSkins.Special).hue == r.hue && ShipSkins.Get(id, ShipSkins.Special).pattern != null);
             for (int n = 1; n < ShipSkins.Special; n++)
                 Check(who + " palette skin " + ShipSkins.Get(id, n).name + " differs from stock",
                       Distance(ShipSkins.Get(id, n).primary, stock.primary) > 60f);
@@ -228,7 +230,7 @@ public static class ShipSkinsTest
     {
         var guide = new HashSet<string>(guidePalette);
         var enemies = new HashSet<string>(enemyOnly);
-        foreach (int id in ShipId.All)
+        foreach (int id in PremiumShips.StandardIds)   // premium skins are painted art (PremiumShipTest), not vector flats
         {
             var r = ShipHullArt.RectFor(id);
             for (int n = 0; n < ShipSkins.CountFor(id); n++)

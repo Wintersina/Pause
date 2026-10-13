@@ -421,10 +421,12 @@ public partial class TitleScreenTraffic
             case ShipAttack.SeekerEyes:
             case ShipAttack.ParagonBarrage:
                 {
-                    int n = Pick(f, nose, 6f * s + 2f, l.shots);
-                    for (int i = 0; i < l.shots; i++)
+                    // (Paragon's barrage is eight lances in the game; the title sky flies three, like the eyes)
+                    int shots = l.attack == ShipAttack.ParagonBarrage ? Mathf.Min(l.shots, 3) : l.shots;
+                    int n = Pick(f, nose, 6f * s + 2f, shots);
+                    for (int i = 0; i < shots; i++)
                     {
-                        float a = (i - (l.shots - 1) * .5f) * 24f;
+                        float a = (i - (shots - 1) * .5f) * 24f;
                         Launch(f, BoltKind.Homing, nose, Rotate(Dir(f.heading), -a * Mathf.Deg2Rad),
                                Mathf.Max(2.5f, l.speed * .6f * s), .18f * s, .5f * s, i < n ? picks[i] : null);
                     }

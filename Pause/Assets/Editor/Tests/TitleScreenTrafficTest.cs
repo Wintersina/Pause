@@ -610,7 +610,10 @@ public static class TitleScreenTrafficTest
             {
                 t.Step(step);
                 if (!g.active) break;
-                still &= Mathf.Abs(Mathf.DeltaAngle(g.tr.eulerAngles.z, g.heading * Mathf.Rad2Deg - 90f)) < 13f;
+                if (g.tumble.sqrMagnitude > 1e-4f || Mathf.Abs(g.spinVel) > 1f) break;   // knocked dizzy / hit by the sky's own combat: it spins on purpose
+                float off = Mathf.Abs(Mathf.DeltaAngle(g.tr.eulerAngles.z, g.heading * Mathf.Rad2Deg - 90f));
+                if (off >= 13f) Debug.Log("[TT] heading off by " + off.ToString("0.0") + " deg on " + g.go.name + " (step " + i + ")");
+                still &= off < 13f;
             }
             g.active = false; g.go.SetActive(false);
         }
@@ -762,7 +765,7 @@ public static class TitleScreenTrafficTest
         Check("population stays steady (avg " + avgPop.ToString("0.0") + ", min " + minPop + ")", avgPop >= 12f && minPop >= 8);   // x1.4 sky (was avg >= 8, min >= 5)
         Check("ship pool is fixed (roster + twins)", t.Pool.Length == TitleScreenTraffic.PoolSize);
         Check("trail / fx tracking pools stay bounded", pools && t.Trails.Length == TitleScreenTraffic.TrailPool);
-        Check("WeaponFx flipbook pool stays small (peak " + flipbookPeak + ")", flipbookPeak <= 16 && flipbookPeak <= WeaponFx.MaxFlipbooks);
+        Check("WeaponFx flipbook pool stays small (peak " + flipbookPeak + ")", flipbookPeak <= 24 && flipbookPeak <= WeaponFx.MaxFlipbooks);   // (was 16 before the 16th ship joined the sky)
 
         Check("crashes happened (" + t.Crashes + " in " + Seconds + " s)", t.Crashes >= 30);
         Check("never across layers", t.CrossLayerCrashes == 0);

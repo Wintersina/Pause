@@ -51,7 +51,7 @@ public static class ShipNozzles
         /* 15 Turtle       184x242 */ new[] { N(92.5f, 8.5f) },
         // END GENERATED NOZZLES
         // BEGIN PARAGON NOZZLES
-        /* 16 Paragon      251x207 */ new[] { N(126.5f, 27.5f, 1.5f), N(25.5f, 23.5f, 0.55f), N(226.5f, 23.5f, 0.55f) },
+        /* 16 Paragon      250x206 */ new[] { N(125.5f, 26.5f, 1.5f), N(24.5f, 22.5f, 0.55f), N(225.5f, 22.5f, 0.55f) },
         // END PARAGON NOZZLES
     };
 

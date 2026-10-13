@@ -44,7 +44,7 @@ public static class RowHeartsTest
 
     static void Clear()
     {
-        foreach (int id in ShipId.All)
+        foreach (int id in PremiumShips.StandardIds)
             for (int n = 1; n < ShipSkins.PerShip; n++) PlayerPrefs.DeleteKey(ShipSkins.OwnedKey(id, n));
     }
 
@@ -63,7 +63,7 @@ public static class RowHeartsTest
         Check("15 ships make exactly 5 rows (" + ShipLives.Rows + ")", ShipLives.Rows == 5 && ShipLives.MostBase == 5);
         bool all = true;
         var counts = new int[6];
-        foreach (int id in ShipId.All)
+        foreach (int id in PremiumShips.StandardIds)
         {
             int slot = SpaceDock.SlotOf(id);
             int row = ShipLives.Row(id);
@@ -75,7 +75,7 @@ public static class RowHeartsTest
         Check("the row follows the price order the player sees: Neon Comet row 1, Gold Warden row 5",
               ShipLives.Row(ShipId.Starter) == 1 && ShipLives.Row(ShipId.FromKey("GoldWarden")) == 5);
         Check("hearts never go down as the price goes up",
-              ShipId.All.All(a => ShipId.All.All(b => shopingShips.CostFor(a) >= shopingShips.CostFor(b) || ShipLives.Base(a) <= ShipLives.Base(b))));
+              PremiumShips.StandardIds.All(a => PremiumShips.StandardIds.All(b => shopingShips.CostFor(a) >= shopingShips.CostFor(b) || ShipLives.Base(a) <= ShipLives.Base(b))));
         Check("an unknown ship has the fewest (" + ShipLives.Base(0) + ")", ShipLives.Base(0) == ShipLives.Fewest && ShipLives.Fewest == 1);
         Check("the most: row 5 + colours + set = " + ShipLives.Most, ShipLives.Most == 5 + SkinHearts.MostFromColours + SkinHearts.AllSkinsBonus && ShipLives.Most == 9);
     }
@@ -84,7 +84,7 @@ public static class RowHeartsTest
     {
         Clear();
         bool table = true;
-        foreach (int id in ShipId.All)
+        foreach (int id in PremiumShips.StandardIds)
             for (int n = 0; n < ShipSkins.CountFor(id); n++)
             {
                 Own(id, n);
@@ -92,8 +92,8 @@ public static class RowHeartsTest
                 if (n == ShipSkins.CountFor(id) - 1) Own(id, 0);   // (the last ship at 4 colours would complete the set)
             }
         Check("colour step on top of the row for 0..4 colours, every ship", table);
-        foreach (int id in ShipId.All) Own(id, ShipSkins.PerShip - 1);
-        bool set = ShipId.All.All(id => ShipLives.Max(id) == ShipLives.Row(id) + 4);
+        foreach (int id in PremiumShips.StandardIds) Own(id, ShipSkins.PerShip - 1);
+        bool set = PremiumShips.StandardIds.All(id => ShipLives.Max(id) == ShipLives.Row(id) + 4);
         Check("full set: row + 2 + 2 on every ship (row 1 -> 5, row 5 -> 9)", set);
         Clear();
     }
@@ -119,7 +119,7 @@ public static class RowHeartsTest
         var font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
         var anchor = new GameObject("~Anchor").transform;
         var popup = DockPopup.Create(null, font, null);
-        foreach (int id in ShipId.All)
+        foreach (int id in PremiumShips.StandardIds)
         {
             popup.Show(id, anchor, .3f, false, false, shopingShips.CostFor(id), 0f);
             if (popup.LivesShown != ShipLives.Row(id)) Check(ShipId.KeyOf(id) + " badge shows its row", false);
@@ -135,7 +135,7 @@ public static class RowHeartsTest
 
     static bool RowLine()
     {
-        int id = ShipId.All.First(i => ShipLives.Row(i) == 3);
+        int id = PremiumShips.StandardIds.First(i => ShipLives.Row(i) == 3);
         Own(id, 1);
         bool ok = SkinHearts.HeartsLine(id) == "HEARTS 4: 3 +1 COLOURS";
         Clear();

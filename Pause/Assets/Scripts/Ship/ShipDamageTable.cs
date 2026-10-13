@@ -88,7 +88,7 @@ public static class ShipDamageTable
         // END GENERATED EMITTERS
         // BEGIN PARAGON EMITTERS
         // 16 Paragon: 1) left wing-pod panel blown, wiring sparking; scorch on the inner pod; 2) right inner pod panel open, right wing-tip pod torn and burning, hull and canopy cracked
-        new[] { E(1, Sparks, 36.9f, 76.0f), E(1, Smoke, 63.7f, 100.5f), E(1, Smolder, 37.1f, 76.3f), E(2, Arc, 112.9f, 85.6f), E(2, Flame, 93.1f, 97.2f), E(2, Leak, 52.6f, 92.2f), E(2, Smolder, 112.8f, 85.6f), E(2, Smolder, 93.1f, 96.8f), E(2, Smolder, 92.6f, 72.1f), E(2, Smolder, 63.5f, 47.6f), E(2, Smolder, 22.8f, 80.6f) },
+        new[] { E(1, Sparks, 36.9f, 76.0f), E(1, Smoke, 63.7f, 100.5f), E(1, Smolder, 37.1f, 76.3f), E(2, Arc, 112.9f, 85.6f), E(2, Flame, 93.1f, 97.2f), E(2, Leak, 52.6f, 92.2f), E(2, Smolder, 112.8f, 85.6f), E(2, Smolder, 93.1f, 96.8f), E(2, Smolder, 93.6f, 70.1f), E(2, Smolder, 63.5f, 47.6f), E(2, Smolder, 22.8f, 80.6f) },
         // END PARAGON EMITTERS
     };
 

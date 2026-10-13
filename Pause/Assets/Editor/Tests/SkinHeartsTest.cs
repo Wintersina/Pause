@@ -59,7 +59,7 @@ public static class SkinHeartsTest
 
     static void ClearSkins()
     {
-        foreach (int id in ShipId.All)
+        foreach (int id in PremiumShips.StandardIds)
             for (int n = 1; n < ShipSkins.PerShip; n++) PlayerPrefs.DeleteKey(ShipSkins.OwnedKey(id, n));
     }
 
@@ -74,7 +74,7 @@ public static class SkinHeartsTest
 
     static void OwnEverything()
     {
-        foreach (int id in ShipId.All) Own(id, ShipSkins.PerShip - 1);
+        foreach (int id in PremiumShips.StandardIds) Own(id, ShipSkins.PerShip - 1);
     }
 
     // ---- cases ---------------------------------------------------------
@@ -96,7 +96,7 @@ public static class SkinHeartsTest
         ClearSkins();
         var table = new List<string>();
         bool all = true, monotonic = true, capped = true;
-        foreach (int id in ShipId.All)
+        foreach (int id in PremiumShips.StandardIds)
         {
             int last = -1;
             string row = ShipId.KeyOf(id) + ":";
@@ -143,14 +143,14 @@ public static class SkinHeartsTest
         OwnEverything();
         Check("every skin owned: the set is complete", SkinHearts.AllSkinsOwned && SkinHearts.SkinsMissing == 0);
         bool every = true;
-        foreach (int id in ShipId.All)
+        foreach (int id in PremiumShips.StandardIds)
             every &= ShipLives.Max(id) == ShipLives.Base(id) + SkinHearts.MostFromColours + 2;
         Check("every ship flies with hull + 2 + 2 (starter 5, Gold Warden 9)", every &&
               ShipLives.Max(ShipId.Starter) == 5 && ShipLives.Max(ShipId.FromKey("GoldWarden")) == 9);
 
         // Any one skin missing: no set bonus anywhere.
         bool none = true;
-        foreach (int id in ShipId.All)
+        foreach (int id in PremiumShips.StandardIds)
             for (int n = 1; n < ShipSkins.CountFor(id); n++)
             {
                 PlayerPrefs.DeleteKey(ShipSkins.OwnedKey(id, n));
@@ -287,7 +287,7 @@ public static class SkinHeartsTest
             float closest = float.MaxValue, overlapShare = 0f, ringClear = float.MaxValue;
             int samples = 0, overlapped = 0;
             bool insideRails = true, insideSafe = true, built = true;
-            foreach (int id in ShipId.All)
+            foreach (int id in PremiumShips.StandardIds)
             {
                 EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
                 GameObject ship;
@@ -439,7 +439,7 @@ public static class SkinHeartsTest
               dock.LastPurchaseMessage == "ACQUIRED  +1 HEART" && popup.LivesShown == 4);
 
         // Everything else owned: Solar Fang's special is the last skin.
-        foreach (int id in ShipId.All) if (id != fang) Own(id, ShipSkins.PerShip - 1);
+        foreach (int id in PremiumShips.StandardIds) if (id != fang) Own(id, ShipSkins.PerShip - 1);
         var old = CodexToast.Current;
         if (old != null) Object.DestroyImmediate(old.gameObject);
         popup.TapSwatch(4);

@@ -93,7 +93,7 @@ public static class ShipHullArt
         // END GENERATED RECTS
         // Paragon (premium, PNG-built by src~/paragon/build_paragon.py; kept out of the generated block)
         // BEGIN PARAGON RECT
-        /* 16 Paragon      */ new HullRect(2, 24, 251, 207, 738.2353f, "#2E9BE6", "#174C8C", "#8FD3FF"),
+        /* 16 Paragon      */ new HullRect(3, 25, 250, 206, 735.2941f, "#2E9BE6", "#174C8C", "#8FD3FF"),
         // END PARAGON RECT
     };
 

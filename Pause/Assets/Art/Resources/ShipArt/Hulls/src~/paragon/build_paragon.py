@@ -374,7 +374,7 @@ def downscale_rgba(img, scale):
     chans = [Image.fromarray(pre[..., i]).resize(size, Image.LANCZOS) for i in range(4)]
     pre = np.stack([np.array(c).astype(np.float32) for c in chans], axis=2)
     alpha = np.clip(pre[..., 3], 0, 255)
-    alpha[alpha < 40] = 0
+    alpha = np.where(alpha >= 128, 255, 0).astype(np.float32)   # crisp pixel-art edge, no faint rim
     safe = np.maximum(alpha, 1)[..., None] / 255.0
     rgb = np.clip(pre[..., :3] / safe, 0, 255)
     out = np.dstack([rgb, alpha]).astype(np.uint8)
@@ -440,6 +440,7 @@ def codex_sheet():
                 fill = m0 & (cur[..., 3] == 0)
                 cur[fill] = base[fill]
                 cur[~m0] = 0
+                cur[..., 3] = base[..., 3]      # the intact alpha, exactly
             sheet.alpha_composite(Image.fromarray(cur), (c * CELL, st * CELL))
     return sheet, rest_states[0][0]
 

@@ -45,6 +45,12 @@ public static class PremiumShips
     // Roster ships that live in the dust economy (the 15 originals).
     public static int StandardCount { get { return ShipId.Count - 1; } }
 
+    // The roster without premium ships: the dust economy's ships.
+    public static System.Collections.Generic.IEnumerable<int> StandardIds
+    {
+        get { foreach (int id in ShipId.All) if (!IsPremium(id)) yield return id; }
+    }
+
     // Whether star dust can buy the hull itself. Never for a premium ship.
     public static bool DustPurchasable(int id) { return ShipId.IsValid(id) && !IsPremium(id); }
 

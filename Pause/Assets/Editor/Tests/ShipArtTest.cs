@@ -34,6 +34,7 @@ public static class ShipArtTest
         new Vector2(47, 55), new Vector2(56, 55), new Vector2(51, 55), new Vector2(28, 27),
         new Vector2(20, 29), new Vector2(30, 22), new Vector2(30, 30), new Vector2(24, 30),
         new Vector2(26, 26), new Vector2(20, 24), new Vector2(22, 29),
+        new Vector2(34, 29),   // 16 Paragon (PNG-built: the "old" size is its design size, PremiumShips)
     };
 
     // docs/art-style.md section 1 (docs/art-samples/src/akira.py), plus
@@ -217,8 +218,10 @@ public static class ShipArtTest
                         if (!banded) stray++;
                     }
                 }
-            Check(who + " flat fills are guide palette + identity hue (" + off + " of " + flat + " off)",
-                  flat > 0 && off <= flat / 200);
+            // (Paragon is painted pixel art, not flat vector cels: its palette is PremiumShipTest's / the user's eye)
+            if (!PremiumShips.IsPremium(id))
+                Check(who + " flat fills are guide palette + identity hue (" + off + " of " + flat + " off)",
+                      flat > 0 && off <= flat / 200);
             Check(who + " clean alpha: no faint pixel beyond 2 px of the ink outline (" + stray + " of " + faint + ")",
                   stray == 0);
             // the sheet's border cells are empty: nothing bleeds between frames

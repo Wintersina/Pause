@@ -49,7 +49,7 @@ public static class ShipNozzlesTest
                 Check(name + " nozzle " + n + " sits in the lower half of the hull",
                       local.y < b.center.y);
                 Check(name + " nozzle " + n + " has a sensible plume scale",
-                      nz.scale > .2f && nz.scale <= 1f);
+                      nz.scale > .2f && nz.scale <= (name == "Paragon" ? 1.6f : 1f));   // Paragon's big centre engine is scaled up
                 if (pixels != null)
                     Check(name + " nozzle " + n + " sits on painted hull pixels",
                           NearOpaque(pixels, hull.rect, nz.x, nz.y, 1.5f));

@@ -61,6 +61,7 @@ public static class ShipLivesTest
             { "Ninja", 3 }, { "Saboteur", 3 }, { "UFO", 3 },
             { "CrimsonHalo", 4 }, { "Dove", 4 }, { "Turtle", 4 },
             { "IonLancer", 5 }, { "JadePhantom", 5 }, { "GoldWarden", 5 },
+            { "Paragon", 10 },   // premium: its own lives (PremiumShips), not its dock row
         };
         foreach (int id in ShipId.All)
         {
@@ -69,7 +70,7 @@ public static class ShipLivesTest
             Check(key + " is in the lives table", expected.TryGetValue(key, out want));
             Check(key + " (" + shopingShips.CostFor(id) + " dust) flies with " + want + " hearts (" + ShipLives.Max(id) + ")",
                   ShipLives.Max(id) == want && ShipLives.Base(id) == want);
-            Check(key + ": within 1..5", ShipLives.Max(id) >= ShipLives.Fewest && ShipLives.Max(id) <= ShipLives.MostBase);
+            Check(key + ": within 1..5", ShipLives.Max(id) >= ShipLives.Fewest && ShipLives.Max(id) <= (PremiumShips.IsPremium(id) ? ShipLives.MostHearts : ShipLives.MostBase));
         }
         // A pricier ship never has fewer hearts than a cheaper one.
         bool monotonic = true;

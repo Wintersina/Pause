@@ -67,7 +67,9 @@ def build(state):
     damage_area = ((state == 1) & (lx < 112) & (ly > 180)) | (
         (state == 2) & (lx > 310) & (ly > 175))
     hot_crack = (rh < 26) & (rs > .72) & (rv > .48)
-    protect = ~ship | ref_blue | ink | white | (damage_area & hot_crack)
+    painted_damage = (ph >= 5) & (ph <= 38) & (ps > .55) & (pv > .38)
+    protect = ~ship | ref_blue | ink | white | (
+        damage_area & hot_crack & painted_damage & ~paint_emerald)
 
     # Take the generated green material where it follows the original plates;
     # fill its small registration gaps with the same generated paint ramp. The
@@ -81,11 +83,17 @@ def build(state):
     result = ref.copy()
     result[armour] = RAMP[steps[armour]]
 
-    # Remove the old red-violet paint flecks. Blue and ink stay protected.
+    # Remove old red-violet flecks. A few sit inside blue equipment, where they
+    # become blue navy rather than emerald so the equipment stays blue.
     h, s, v = hsv(result)
-    magenta = ship & ~ref_blue & ~ink & (h > 280) & (h < 345) & (s > .4) & (v > .25)
+    magenta = ship & ~ink & (h > 278) & (h < 350) & (s > .30) & (v > .14)
     magenta[1024:1536, 1024:1536] = False
-    result[magenta] = RAMP[0]
+    result[magenta & ~ref_blue] = RAMP[0]
+    violet_blue = magenta & ref_blue
+    navy = result[violet_blue].astype(np.int16)
+    navy[:, 0] = np.minimum(navy[:, 0], navy[:, 1])
+    navy[:, 2] = np.maximum(navy[:, 2], navy[:, 1] + 12)
+    result[violet_blue] = np.clip(navy, 0, 255).astype(np.uint8)
     result[1024:1536, 1024:1536] = ref[1024:1536, 1024:1536]
     result[~ship] = CHROMA
     path = OUT / f"skin_Viridian_state{state}.png"
