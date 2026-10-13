@@ -1,5 +1,5 @@
 #!/bin/bash
-# Tests for scripts/unity-batch.sh (queue, light/heavy slots, stagger, memory
+# Tests for scripts/unity-batch.sh (queue, medium/heavy slots, stagger, memory
 # guard, cleanup). Uses a FAKE Unity binary and private temp lock/queue/log
 # dirs: never starts real Unity and never touches /tmp/pause-unity-batch.*.
 #
@@ -64,6 +64,7 @@ newtest() {
     export UNITY_BATCH_FAKE_FREE_MB=100000
     export UNITY_BATCH_FAKE_SWAP_MB=0
     unset UNITY_BATCH_TIMEOUT UNITY_BATCH_HEAVY
+    export UNITY_BATCH_MAX_JOBS=4
     export FAKE_LOG="$D/fake.log"
     : > "$FAKE_LOG"
 }
@@ -98,9 +99,9 @@ dump() { echo "    fake.log:"; sed 's/^/      /' "$FAKE_LOG"; }
 
 # ---------------------------------------------------------------------------
 newtest fifo_heavy
-job H1 AllTests.RunAll A 2
-job H2 AllTests.RunAll B 2
-job H3 AllTests.RunAll C 2
+job H1 BuildScript.BuildAndroidDev A 2
+job H2 BuildScript.BuildAndroidDev B 2
+job H3 BuildScript.BuildAndroidDev C 2
 finish H1 H2 H3
 check "H2 starts after H1 ends" ge "$(st H2)" "$(en H1)"
 check "H3 starts after H2 ends" ge "$(st H3)" "$(en H2)"
@@ -109,6 +110,7 @@ check "queue + lock empty afterwards" eq "$(ls "$D/queue" "$D/queue/running" 2>/
 
 # ---------------------------------------------------------------------------
 newtest fifo_light
+export UNITY_BATCH_MAX_JOBS=2
 job L1 AllTests.RunSuites A 3
 job L2 AllTests.RunSuites B 3
 job L3 AllTests.RunSuites C 3
@@ -120,6 +122,7 @@ check "L3 starts no later than L4" ge "$(st L4)" "$(st L3)"
 
 # ---------------------------------------------------------------------------
 newtest two_light_overlap
+export UNITY_BATCH_MAX_JOBS=2
 job L1 AllTests.RunSuites A 5
 job L2 AllTests.RunSuites B 5
 job L3 BootPreview.Run C 2
@@ -141,7 +144,7 @@ check "later light waits for the heavy" ge "$(st L3)" "$(en H1)"
 # ---------------------------------------------------------------------------
 newtest heavy_not_starved
 job L1 AllTests.RunSuites A 5
-job H1 AllTests.RunAll B 2
+job H1 BuildScript.BuildAndroidDev B 2
 job L2 AllTests.RunSuites C 2
 job L3 AllTests.RunSuites D 2
 finish L1 H1 L2 L3
@@ -151,16 +154,16 @@ check "L2 did not slip beside L1 (free slot)" ge "$(st L2)" "$(en L1)"
 
 # ---------------------------------------------------------------------------
 newtest classes
-for m in AllTests.RunAll BuildScript.BuildAndroidDev AndroidTextureDiet.Run EliteArtSync.Go TextureDiet.Apply \
+for m in BuildScript.BuildAndroidDev AndroidTextureDiet.Run EliteArtSync.Go TextureDiet.Apply \
          Foo.DoBuildThing Foo.ApplyAll Foo.SyncX Unknown.Method; do
     n="$(echo "$m" | tr -c 'A-Za-z0-9\n' '_')"
     UNITY_BATCH_TIMEOUT=0 env FAKE_NAME=x FAKE_SLEEP=0 "$SCRIPT" -executeMethod "$m" -projectPath "$D/pA" > "$D/c_$n.out" 2>&1
     check "$m is heavy" grep -q "class: heavy" "$D/c_$n.out"
 done
-for m in AllTests.RunSuites BootPreview.Run ShipPreview.RunAll2; do
+for m in AllTests.RunAll AllTests.RunSuites BootPreview.Run ShipPreview.RunAll2; do
     n="$(echo "$m" | tr -c 'A-Za-z0-9\n' '_')"
     env FAKE_NAME=x FAKE_SLEEP=0 "$SCRIPT" -executeMethod "$m" -projectPath "$D/pA" > "$D/c_$n.out" 2>&1
-    check "$m is light" grep -q "class: light" "$D/c_$n.out"
+    check "$m is medium" grep -q "class: medium" "$D/c_$n.out"
 done
 env UNITY_BATCH_HEAVY=1 FAKE_NAME=x FAKE_SLEEP=0 "$SCRIPT" -executeMethod AllTests.RunSuites -projectPath "$D/pA" > "$D/c_env.out" 2>&1
 check "UNITY_BATCH_HEAVY=1 forces heavy" grep -q "class: heavy" "$D/c_env.out"
@@ -185,9 +188,9 @@ check "stagger reason was printed" grep -q "start stagger" "$D/L2.out"
 
 # ---------------------------------------------------------------------------
 newtest dead_ticket
-job H1 AllTests.RunAll A 6
-job H2 AllTests.RunAll B 2
-job H3 AllTests.RunAll C 2
+job H1 BuildScript.BuildAndroidDev A 6
+job H2 BuildScript.BuildAndroidDev B 2
+job H3 BuildScript.BuildAndroidDev C 2
 kill -9 "$PID_H2" 2>/dev/null
 wait "$PID_H2" 2>/dev/null
 check "dead ticket stays until purged" eq "$(ls "$D/queue" | grep -c "^[0-9]\{8\}-$PID_H2\$")" 1
@@ -198,8 +201,8 @@ check "H2 ticket purged" eq "$(ls "$D/queue" | grep -c "^[0-9]\{8\}-$PID_H2\$")"
 
 # ---------------------------------------------------------------------------
 newtest sigterm
-job H1 AllTests.RunAll A 30
-job H2 AllTests.RunAll B 2
+job H1 BuildScript.BuildAndroidDev A 30
+job H2 BuildScript.BuildAndroidDev B 2
 kill -TERM "$PID_H2"; wait "$PID_H2" 2>/dev/null; RC_H2=$?
 check "waiting job exits 143 on SIGTERM" eq "$RC_H2" 143
 check "its ticket is gone" eq "$(ls "$D/queue" | grep -c "^[0-9]\{8\}-$PID_H2\$")" 0
@@ -213,8 +216,8 @@ check "queue empty" eq "$(ls "$D/queue" | grep -c '^[0-9]')" 0
 
 # ---------------------------------------------------------------------------
 newtest timeout75
-job H1 AllTests.RunAll A 5
-job H2 AllTests.RunAll B 2 UNITY_BATCH_TIMEOUT=2
+job H1 BuildScript.BuildAndroidDev A 5
+job H2 BuildScript.BuildAndroidDev B 2 UNITY_BATCH_TIMEOUT=2
 finish H2
 check "gave up with exit 75" eq "$RC_H2" 75
 check "H2 never ran" eq "$(st H2)" ""
@@ -225,7 +228,7 @@ check "message mentions position and holder" grep -q "waiting: position 1, holde
 
 # ---------------------------------------------------------------------------
 newtest exit_code
-job H1 AllTests.RunAll A 1 FAKE_EXIT=3
+job H1 BuildScript.BuildAndroidDev A 1 FAKE_EXIT=3
 finish H1
 check "Unity's exit code is passed through" eq "$RC_H1" 3
 check "lock freed after failure" eq "$([ -d "$D/lock" ] && echo present || echo gone)" gone
@@ -256,7 +259,7 @@ mkdir "$D/lock"; echo "$OLDPID" > "$D/lock/pid"; echo "old" > "$D/lock/owner"
 job L1 AllTests.RunSuites A 1 UNITY_BATCH_TIMEOUT=2
 finish L1
 check "light job waits for an old-copy holder" eq "$RC_L1" 75
-job H1 AllTests.RunAll A 1 UNITY_BATCH_TIMEOUT=2
+job H1 BuildScript.BuildAndroidDev A 1 UNITY_BATCH_TIMEOUT=2
 finish H1
 check "heavy job waits for an old-copy holder" eq "$RC_H1" 75
 kill "$OLDPID"; wait "$OLDPID" 2>/dev/null
@@ -265,16 +268,117 @@ finish L2
 check "stale old lock is taken over" eq "$RC_L2" 0
 # while a new light job runs, an old copy would see a lock owned by a live pid
 job L3 AllTests.RunSuites A 3
-check "light job holds the old lock (class light, owner pid)" eq "$(cat "$D/lock/class" 2>/dev/null)/$(cat "$D/lock/pid" 2>/dev/null)" "light/$PID_L3"
+check "light job holds the old lock (class medium, owner pid)" eq "$(cat "$D/lock/class" 2>/dev/null)/$(cat "$D/lock/pid" 2>/dev/null)" "medium/$PID_L3"
 job L4 AllTests.RunSuites B 6
 finish L3
 check "owner handover to the surviving light job" eq "$(cat "$D/lock/pid" 2>/dev/null)" "$PID_L4"
 check "lock still held after first light exits" eq "$([ -d "$D/lock" ] && echo present || echo gone)" present
 finish L4
 check "last light job removes the lock" eq "$([ -d "$D/lock" ] && echo present || echo gone)" gone
-job H2 AllTests.RunAll A 3
+job H2 BuildScript.BuildAndroidDev A 3
 check "heavy holds the old lock (class heavy)" eq "$(cat "$D/lock/class" 2>/dev/null)/$(cat "$D/lock/pid" 2>/dev/null)" "heavy/$PID_H2"
 finish H2
+
+# ---------------------------------------------------------------------------
+newtest four_concurrent
+mkdir -p "$D/pE"
+job M1 AllTests.RunAll A 6
+job M2 AllTests.RunSuites B 6
+job M3 BootPreview.Run C 6
+job M4 AllTests.RunAll D 6
+job M5 AllTests.RunSuites A 2
+job M6 AllTests.RunSuites E 2
+finish M1 M2 M3 M4 M5 M6
+check "4 jobs on 4 projects overlap (M4 starts before M1 ends)" lt "$(st M4)" "$(en M1)"
+check "M3 overlaps M1" lt "$(st M3)" "$(en M1)"
+check "5th job (same project A as M1) waits for M1" ge "$(st M5)" "$(en M1)"
+check "6th job waits behind the 5th (FIFO)" ge "$(st M6)" "$(st M5)"
+check "all exit 0" eq "$RC_M1$RC_M2$RC_M3$RC_M4$RC_M5$RC_M6" "000000"
+check "5th said why it waits" grep -q "waiting: position" "$D/M5.out"
+check "queue, slots and lock empty afterwards" eq "$(ls "$D/queue" "$D/queue/running" 2>/dev/null | grep -c '^[0-9]')$([ -d "$D/lock" ] && echo L)" "0"
+
+# ---------------------------------------------------------------------------
+newtest fifth_waits_on_slots
+mkdir -p "$D/pE"
+job M1 AllTests.RunSuites A 6
+job M2 AllTests.RunSuites B 6
+job M3 AllTests.RunSuites C 6
+job M4 AllTests.RunSuites D 6
+job M5 AllTests.RunSuites E 2
+finish M1 M2 M3 M4 M5
+check "5th (different project) waits for a slot" ge "$(st M5)" "$(en M1)"
+check "slot-busy reason printed" grep -q "all 4 slots busy" "$D/M5.out"
+
+newtest max_jobs_default_2
+unset UNITY_BATCH_MAX_JOBS
+job M1 AllTests.RunSuites A 5
+job M2 AllTests.RunSuites B 5
+job M3 AllTests.RunSuites C 2
+finish M1 M2 M3
+check "default allows 2 concurrent" lt "$(st M2)" "$(en M1)"
+check "default: 3rd waits" ge "$(st M3)" "$(en M1)"
+check "default: reason says all 2 slots busy" grep -q "all 2 slots busy" "$D/M3.out"
+
+newtest max_jobs_env
+job M1 AllTests.RunSuites A 5 UNITY_BATCH_MAX_JOBS=1
+job M2 AllTests.RunSuites B 2 UNITY_BATCH_MAX_JOBS=1
+finish M1 M2
+check "UNITY_BATCH_MAX_JOBS=1 serialises" ge "$(st M2)" "$(en M1)"
+
+# ---------------------------------------------------------------------------
+newtest build_solo
+job M1 AllTests.RunSuites A 4
+job M2 AllTests.RunSuites B 4
+job B1 BuildScript.BuildAndroidDev C 3
+job M3 AllTests.RunAll D 2
+job M4 AllTests.RunSuites A 2
+finish M1 M2 B1 M3 M4
+check "build starts only after all running jobs ended" ge "$(st B1)" "$(en M2)"
+check "later medium jobs wait for the build" ge "$(st M3)" "$(en B1)"
+check "later same-project job waits for the build too" ge "$(st M4)" "$(en B1)"
+
+newtest build_blocks_new
+job B1 BuildScript.BuildAndroidDev A 5
+job M1 AllTests.RunSuites B 2
+finish B1 M1
+check "medium job waits while a build runs" ge "$(st M1)" "$(en B1)"
+check "reason names the heavy job" grep -q "is a heavy job" "$D/M1.out"
+
+# ---------------------------------------------------------------------------
+newtest fifo_not_starved
+job M1 AllTests.RunSuites A 6
+job M2 AllTests.RunSuites B 6
+job B1 BuildScript.BuildAndroidDev C 2
+job M3 AllTests.RunSuites D 2
+job M4 AllTests.RunSuites C 2
+finish M1 M2 B1 M3 M4
+check "build (head) is not overtaken by M3" ge "$(st M3)" "$(en B1)"
+check "build (head) is not overtaken by M4" ge "$(st M4)" "$(en B1)"
+check "build ran after M1 and M2" ge "$(st B1)" "$(en M1)"
+
+# ---------------------------------------------------------------------------
+newtest memory_guard_concurrent
+job M1 AllTests.RunSuites A 5
+job M2 AllTests.RunSuites B 1 UNITY_BATCH_FAKE_FREE_MB=3000 UNITY_BATCH_TIMEOUT=2
+job M3 AllTests.RunSuites C 1 UNITY_BATCH_FAKE_SWAP_MB=3000 UNITY_BATCH_TIMEOUT=2
+finish M2 M3
+check "low memory blocks a 2nd concurrent start (75)" eq "$RC_M2" 75
+check "high swap blocks a concurrent start (75)" eq "$RC_M3" 75
+check "reason: memory guard" grep -q "memory guard: only 3000 MB" "$D/M2.out"
+finish M1
+
+# ---------------------------------------------------------------------------
+newtest old_lock_many_medium
+job M1 AllTests.RunSuites A 3
+job M2 AllTests.RunSuites B 6
+job M3 AllTests.RunSuites C 9
+check "owner is the first medium job" eq "$(cat "$D/lock/class")/$(cat "$D/lock/pid")" "medium/$PID_M1"
+finish M1
+check "handover after owner exit goes to a live job" eq "$([ "$(cat "$D/lock/pid")" = "$PID_M2" ] || [ "$(cat "$D/lock/pid")" = "$PID_M3" ] && echo y)" y
+finish M2
+check "lock held while last job runs" eq "$([ -d "$D/lock" ] && echo present || echo gone)" present
+finish M3
+check "last one out removes the lock" eq "$([ -d "$D/lock" ] && echo present || echo gone)" gone
 
 # ---------------------------------------------------------------------------
 echo

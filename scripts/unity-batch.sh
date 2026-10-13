@@ -1,6 +1,7 @@
 #!/bin/bash
 # unity-batch.sh -- run headless Unity batch jobs machine-wide: FIFO queue,
-# at most two LIGHT jobs at once, HEAVY jobs alone.
+# up to UNITY_BATCH_MAX_JOBS (2) MEDIUM jobs at once on different projects,
+# HEAVY (build) jobs alone.
 #
 # Every agent / worktree runs Unity through this, so the Mac never has
 # several 2-5 GB batch editors resident at once (18 GB of RAM).
@@ -23,28 +24,30 @@
 #     tickets of dead pids are purged. Waiting prints
 #     "waiting: position N, holder pid ..." every ~60 s.
 #   * Class, from the -executeMethod argument:
-#       LIGHT: AllTests.RunSuites*, *Preview*  (short focused runs)
-#       HEAVY: everything else (unknown methods too), explicitly AllTests.RunAll,
+#       MEDIUM: AllTests.RunAll*, AllTests.RunSuites*, *Preview*  (test runs, each
+#               peaks ~0.8-2 GB, so 4 x 2 GB fits the budget)
+#       HEAVY: everything else (unknown methods too), 
 #              BuildScript.*, AndroidTextureDiet.*, EliteArtSync.*, TextureDiet*,
 #              names containing Build / ApplyAll / Sync, no -executeMethod at all,
-#              or env UNITY_BATCH_HEAVY=1. Heavy wins over light on any match.
+#              or env UNITY_BATCH_HEAVY=1. Heavy wins over medium on any match.
 #   * Slots: running jobs are files in <queue>/running/<pid>. A HEAVY job starts
-#     only with no job running and nothing starts while it runs. A LIGHT job
-#     starts when at most ONE other job runs and that one is LIGHT on a
-#     DIFFERENT projectPath (Unity cannot open one project twice).
+#     only with no job running and nothing starts while it runs. A MEDIUM job
+#     starts when fewer than MAX_JOBS jobs run, all of them MEDIUM on DIFFERENT
+#     projectPaths (Unity cannot open one project twice: same-project jobs
+#     serialise).
 #   * Old-lock compatibility: older copies of this script only know the mkdir
 #     lock /tmp/pause-unity-batch.lock and treat it as "a job runs". We keep it:
 #       - a HEAVY job holds it alone (class file "heavy");
-#       - the LIGHT group holds it jointly: the first light job creates it with
-#         class file "light", the second joins without touching it, and when
-#         the pid-file owner exits it hands the pid file to the surviving light
-#         job (atomic rename); the last light job removes the lock.
+#       - the MEDIUM group holds it jointly: the first medium job creates it with
+#         class file "medium", the others join without touching it, and when
+#         the pid-file owner exits it hands the pid file to the surviving medium
+#         job (atomic rename); the last medium job removes the lock.
 #       - so an OLD copy sees the lock taken whenever any new job runs (it is
-#         treated like a HEAVY job: it waits for light AND heavy ones), and a new
-#         job seeing the lock without class "light" (old-copy owner) waits like
+#         treated like a HEAVY job: it waits for medium AND heavy ones), and a new
+#         job seeing the lock without class "medium" (old-copy owner) waits like
 #         for a heavy holder. An old copy can therefore never run beside a new
-#         job. Only a tiny window while a crashed light owner is repaired.
-#   * Memory guard (light jobs): free+inactive memory >= 4 GB and swap used
+#         job. Only a tiny window while a crashed medium owner is repaired.
+#   * Memory guard (medium jobs): free+inactive memory >= 4 GB and swap used
 #     < 2 GB, else wait (re-checked every poll) and say why.
 #   * Stagger: no two Unity processes start within 25 s of each other
 #     (Unity's licensing helper hangs when editors start together).
@@ -72,7 +75,7 @@
 #      mutex + stamp), UNITY_BATCH_LOGDIR (alias UNITY_BATCH_LOG_DIR),
 #      UNITY_BATCH_TIMEOUT (seconds to wait; 0 = forever, default),
 #      UNITY_BATCH_HEAVY=1, UNITY_BATCH_IGNORE_FOREIGN=1, UNITY_BATCH_RSS_LOG,
-#      UNITY_BATCH_STAGGER (25), UNITY_BATCH_POLL (5), UNITY_BATCH_NOTE (60),
+#      UNITY_BATCH_MAX_JOBS (2, concurrent medium jobs), UNITY_BATCH_STAGGER (25), UNITY_BATCH_POLL (5), UNITY_BATCH_NOTE (60),
 #      UNITY_BATCH_MIN_FREE_MB (4096), UNITY_BATCH_MAX_SWAP_MB (2048),
 #      UNITY_BATCH_FAKE_FREE_MB / UNITY_BATCH_FAKE_SWAP_MB (tests),
 #      UNITY_BATCH_SKIP_HELPER_CLEANUP=1 (tests: never touch real helpers).
@@ -86,6 +89,7 @@ TIMEOUT="${UNITY_BATCH_TIMEOUT:-0}"
 IGNORE_FOREIGN="${UNITY_BATCH_IGNORE_FOREIGN:-0}"
 LOG_DIR="${UNITY_BATCH_LOGDIR:-${UNITY_BATCH_LOG_DIR:-/tmp/pause-unity-logs}}"
 RSS_LOG="${UNITY_BATCH_RSS_LOG:-}"
+MAX_JOBS="${UNITY_BATCH_MAX_JOBS:-2}"
 STAGGER="${UNITY_BATCH_STAGGER:-25}"
 POLL="${UNITY_BATCH_POLL:-5}"
 NOTE_EVERY="${UNITY_BATCH_NOTE:-60}"
@@ -132,14 +136,14 @@ fi
 has -quit || args=(-quit "${args[@]}")
 has -batchmode || args=(-batchmode "${args[@]}")
 
-# ---- class: light / heavy, by -executeMethod (unknown = heavy) ------------
+# ---- class: medium / heavy, by -executeMethod (unknown = heavy) ------------
 classify() {
     [ "${UNITY_BATCH_HEAVY:-0}" = 1 ] && { echo heavy; return; }
     case "$method" in
         "") echo heavy ;;
-        AllTests.RunAll*|BuildScript.*|AndroidTextureDiet.*|EliteArtSync.*|TextureDiet*) echo heavy ;;
+        BuildScript.*|AndroidTextureDiet.*|EliteArtSync.*|TextureDiet*) echo heavy ;;
         *Build*|*ApplyAll*|*Sync*) echo heavy ;;
-        AllTests.RunSuites*|*Preview*) echo light ;;
+        AllTests.RunAll*|AllTests.RunSuites*|*Preview*) echo medium ;;
         *) echo heavy ;;
     esac
 }
@@ -274,18 +278,18 @@ try_start() {
     # the old-style lock: stale handling
     lp="$(cat "$LOCK/pid" 2>/dev/null)"; lc="$(cat "$LOCK/class" 2>/dev/null)"
     if [ -d "$LOCK" ]; then
-        if [ "$lc" = light ] && [ "$nslots" = 0 ]; then
-            say "removing stale light lock (no job running)"; rm -rf "${LOCK:?}"
+        if [ "$lc" = medium ] && [ "$nslots" = 0 ]; then
+            say "removing stale medium lock (no job running)"; rm -rf "${LOCK:?}"
         elif [ -z "$lp" ]; then
             # mid-creation by another script copy, or a crash between mkdir and
             # the pid write: stale once it is older than 10 s
             age=$(( $(date +%s) - $(stat -f %m "$LOCK" 2>/dev/null || date +%s) ))
             if [ "$age" -gt 10 ]; then say "removing ownerless lock"; rm -rf "${LOCK:?}"; fi
         elif ! kill -0 "$lp" 2>/dev/null; then
-            if [ "$lc" = light ]; then
+            if [ "$lc" = medium ]; then
                 for p in $slots; do
                     echo "$p" > "$LOCK/pid.$$" && mv -f "$LOCK/pid.$$" "$LOCK/pid"
-                    say "light lock owner $lp died; handed to pid $p"; break
+                    say "medium lock owner $lp died; handed to pid $p"; break
                 done
             else
                 say "removing stale lock of dead pid $lp"; rm -rf "${LOCK:?}"
@@ -307,12 +311,14 @@ try_start() {
         if [ "$nslots" -gt 0 ]; then reason="heavy job waits for $nslots running job(s) to drain"
         elif [ -d "$LOCK" ]; then reason="lock held by pid ${lp:-?} ($(head -1 "$LOCK/owner" 2>/dev/null))"; fi
     else
-        if [ "$nslots" -ge 2 ]; then reason="both slots busy"
-        elif [ "$nslots" = 1 ]; then
-            other="${slots%% *}"; ocls="$(slot_field "$other" 1)"; oproj="$(slot_field "$other" 2)"
-            if [ "$ocls" != light ]; then reason="pid $other is a $ocls job"
-            elif [ "$oproj" = "$project" ]; then reason="pid $other runs the same project"
-            elif [ "$lc" != light ]; then reason="lock held by non-light owner (pid ${lp:-?})"; fi
+        if [ "$nslots" -ge "$MAX_JOBS" ]; then reason="all $MAX_JOBS slots busy"
+        elif [ "$nslots" -ge 1 ]; then
+            for other in $slots; do
+                ocls="$(slot_field "$other" 1)"; oproj="$(slot_field "$other" 2)"
+                if [ "$ocls" != medium ]; then reason="pid $other is a $ocls job"; break
+                elif [ "$oproj" = "$project" ]; then reason="pid $other runs the same project"; break; fi
+            done
+            if [ -z "$reason" ] && [ "$lc" != medium ]; then reason="lock held by non-medium owner (pid ${lp:-?})"; fi
         elif [ -d "$LOCK" ]; then reason="lock held by pid ${lp:-?} ($(head -1 "$LOCK/owner" 2>/dev/null))"; fi
     fi
     if [ -z "$reason" ] && [ "$IGNORE_FOREIGN" != 1 ]; then
@@ -324,7 +330,7 @@ try_start() {
         since=$(( $(date +%s) - last ))
         [ "$since" -lt "$STAGGER" ] && reason="start stagger: previous Unity started ${since}s ago (need ${STAGGER}s)"
     fi
-    if [ -z "$reason" ] && [ "$class" = light ]; then
+    if [ -z "$reason" ] && [ "$class" = medium ]; then
         fr="$(free_mb)"; sw="$(swap_mb)"; fr="${fr:-999999}"; sw="${sw:-0}"
         if [ "$fr" -lt "$MIN_FREE_MB" ]; then reason="memory guard: only ${fr} MB free+inactive (need ${MIN_FREE_MB} MB)"
         elif [ "$sw" -ge "$MAX_SWAP_MB" ]; then reason="memory guard: swap used ${sw} MB (limit ${MAX_SWAP_MB} MB)"; fi
@@ -333,7 +339,7 @@ try_start() {
         why="position $my_pos, holder pid${holders:- none}: $reason"; return 1
     fi
 
-    # take the old-style lock (heavy: alone; light: first creates, second joins)
+    # take the old-style lock (heavy: alone; medium: first creates, second joins)
     if ! [ -d "$LOCK" ]; then
         if mkdir "$LOCK" 2>/dev/null; then
             echo "$class" > "$LOCK/class"
@@ -359,7 +365,7 @@ release() {
         local lp lc nxt=""
         lp="$(cat "$LOCK/pid" 2>/dev/null)"; lc="$(cat "$LOCK/class" 2>/dev/null)"
         if [ "$lp" = "$$" ]; then
-            if [ "$class" = light ]; then
+            if [ "$class" = medium ]; then
                 nxt="$(other_slots | head -1)"
                 if [ -n "$nxt" ]; then
                     echo "$nxt" > "$LOCK/pid.$$" && mv -f "$LOCK/pid.$$" "$LOCK/pid"
@@ -367,7 +373,7 @@ release() {
             else
                 rm -rf "${LOCK:?}"
             fi
-        elif [ "$lc" = light ] && [ -z "$(live_slots)" ]; then
+        elif [ "$lc" = medium ] && [ -z "$(live_slots)" ]; then
             rm -rf "${LOCK:?}"
         fi
     fi

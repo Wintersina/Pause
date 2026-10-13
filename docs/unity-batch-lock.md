@@ -3,6 +3,8 @@
 `scripts/unity-batch.sh` runs every headless Unity job on this Mac. It keeps
 the machine inside its 18 GB: a full `AllTests.RunAll` peaks near 2 GB, a small
 focused run near 0.8 GB, Android builds and texture-import jobs much more.
+Test-style (MEDIUM) jobs run concurrently, up to `UNITY_BATCH_MAX_JOBS` at once
+(default 2; 4 x 2 GB = 8 GB is the budget when you raise it); builds run solo.
 
 ## How a job gets to run
 
@@ -20,7 +22,7 @@ focused run near 0.8 GB, Android builds and texture-import jobs much more.
      is running, unless `UNITY_BATCH_IGNORE_FOREIGN=1`;
    - the last Unity start was at least 25 s ago (`<queue>/.laststart`), because
      the licensing helper hangs when two editors start together;
-   - light jobs only: free+inactive(+speculative) memory >= 4 GB and swap used
+   - medium jobs only: free+inactive(+speculative) memory >= 4 GB and swap used
      < 2 GB (`vm_stat`, `sysctl vm.swapusage`).
 4. **Start.** The job takes the old lock (below), writes its slot file
    `<queue>/running/<pid>`, removes its ticket and launches Unity.
@@ -34,14 +36,17 @@ Chosen from the `-executeMethod` argument; anything unknown is HEAVY.
 
 | class | methods |
 |-------|---------|
-| LIGHT | `AllTests.RunSuites*`, anything containing `Preview` |
-| HEAVY | `AllTests.RunAll*`, `BuildScript.*`, `AndroidTextureDiet.*`, `EliteArtSync.*`, `TextureDiet*`, any name containing `Build`, `ApplyAll` or `Sync`, no `-executeMethod`, anything unlisted, or env `UNITY_BATCH_HEAVY=1` |
+| MEDIUM | `AllTests.RunAll*`, `AllTests.RunSuites*`, anything containing `Preview` |
+| HEAVY (solo) | `BuildScript.*`, `AndroidTextureDiet.*`, `EliteArtSync.*`, `TextureDiet*`, any name containing `Build`, `ApplyAll` or `Sync`, no `-executeMethod`, anything unlisted, or env `UNITY_BATCH_HEAVY=1` |
 
-Heavy patterns win over light ones. A HEAVY job starts only when no job runs
-and nothing starts while it runs. A LIGHT job runs beside at most ONE other job,
-which must be LIGHT on a DIFFERENT projectPath (Unity cannot open a project
-twice; two light jobs on the same project serialise). Two concurrent jobs
-therefore need two worktrees.
+Heavy patterns win over medium ones. A HEAVY job starts only when no job runs
+and nothing starts while it runs. A MEDIUM job starts when fewer than
+`UNITY_BATCH_MAX_JOBS` jobs run, all of them MEDIUM on projectPaths different
+from its own (Unity cannot open a project twice; same-project jobs serialise).
+N concurrent jobs therefore need N worktrees. Strict FIFO still holds: a
+blocked head job (a build waiting to drain, a same-project job) holds back
+everyone behind it, so a build is never starved. The 25 s start stagger and the
+memory guard apply to every start.
 
 ## Compatibility with old copies
 
@@ -50,14 +55,15 @@ Other worktrees may still hold the old script, which only knows the mkdir lock
 using that dir:
 
 - HEAVY job: creates it alone (`class` = `heavy`, `pid` = job pid).
-- First LIGHT job: creates it with `class` = `light`. The second LIGHT job
-  joins without touching it. When the owner (`pid`) exits and another light job
-  still runs, the `pid` file is atomically replaced by the survivor's pid; the
-  last light job removes the dir. A light lock with no live slot is stale.
+- First MEDIUM job: creates it with `class` = `medium`. Further MEDIUM jobs
+  (up to N) join without touching it. When the owner (`pid`) exits and other
+  medium jobs still run, the `pid` file is atomically replaced by a survivor's
+  pid; the last medium job removes the dir. A medium lock with no live slot is
+  stale.
 - An old copy sees the lock held by a live pid whenever any new job runs, so
   it waits like for a heavy job and can never run beside a new job. A new job
-  that finds the lock without `class` = `light` (old-copy holder) waits too.
-- Remaining window: if a light lock owner is SIGKILLed, the `pid` file is dead
+  that finds the lock without `class` = `medium` (old-copy holder) waits too.
+- Remaining window: if a medium lock owner is SIGKILLed, the `pid` file is dead
   until the next waiting job repoints it to the survivor (within one poll); an
   old copy polling in that instant could take it over.
 
@@ -72,6 +78,7 @@ using that dir:
 | `UNITY_BATCH_TIMEOUT` | 0 (forever) | seconds to wait; then exit 75 |
 | `UNITY_BATCH_HEAVY` | unset | `1` forces HEAVY |
 | `UNITY_BATCH_IGNORE_FOREIGN` | 0 | `1` skips waiting for foreign batch editors |
+| `UNITY_BATCH_MAX_JOBS` | 2 | concurrent MEDIUM jobs (each on its own project); builds are always solo |
 | `UNITY_BATCH_STAGGER` | 25 | min seconds between Unity starts |
 | `UNITY_BATCH_POLL` / `UNITY_BATCH_NOTE` | 5 / 60 | poll interval / status line interval |
 | `UNITY_BATCH_MIN_FREE_MB` / `UNITY_BATCH_MAX_SWAP_MB` | 4096 / 2048 | memory guard |
@@ -104,5 +111,5 @@ If the whole thing is wedged, `rm -rf /tmp/pause-unity-batch.queue
 ## Tests
 
 `scripts/tests/unity-batch-lock-test.sh` runs the real script against a fake
-Unity binary in private temp dirs (about 100 s; it never starts Unity and never
+Unity binary in private temp dirs (a few minutes; it never starts Unity and never
 touches the live lock or queue).
