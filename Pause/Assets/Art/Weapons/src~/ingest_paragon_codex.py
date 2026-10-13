@@ -8,6 +8,8 @@ Reads the sheets Codex drew (briefs in ShipArt/Hulls/src~/paragon/codex, J3):
   charge_16.png            4x4  -> Weapons/Paragon.png row 0 (charge 0..15)
   ready_shot_impact.png    4x4  -> row 1 (ready 0-3 | shot 0-5 | impact 0-5)
   muzzle_release_trail.png 4x3  -> row 2 (muzzle 0-3 | release 0-3 | trail 0-1)
+  shot_6.png               3x2  -> row 1 shot 0-5 (REDO: replaces the shot cells of ready_shot_impact)
+  meter_16.png             4x4  -> Weapons/SecretMeter.png row 16 (64 px cells: fill 0-9, ready 10-13, flash, icon)
   fx_16.png                4x4  -> Weapons/AttackFx.png row 16 (loop, burst, power loop, power burst)
   gun_tile.png             1x1  -> ShipArt/Guns/ship_gun_roster.png tile 16 (the ultimate gun pod)
 Each cell is keyed off its flat #00FF00, Lanczos-fitted to 128 px (the gun
@@ -78,6 +80,9 @@ def main():
         place(atlas, rsi[0:4], 1, 0)
         place(atlas, rsi[4:10], 1, 4)
         place(atlas, rsi[10:16], 1, 10)
+    shots = cells("shot_6.png", 3, 2)
+    if shots:
+        place(atlas, shots, 1, 4)
     mrt = cells("muzzle_release_trail.png", 4, 3)
     if mrt:
         place(atlas, mrt[0:4], 2, 0)
@@ -92,6 +97,15 @@ def main():
         place(im, fx, 15, 0)
         im.save(p, optimize=True)
 
+    mt = cells("meter_16.png", 4, 4)
+    if mt:
+        p = os.path.join(WEAPONS, "SecretMeter.png")
+        im = Image.open(p).convert("RGBA")
+        im.paste(Image.new("RGBA", (1024, 64), (0, 0, 0, 0)), (0, 15 * 64))
+        for i, f in enumerate(mt):
+            im.alpha_composite(fit(f, 64), (i * 64, 15 * 64))
+        im.save(p, optimize=True)
+
     gp = os.path.join(SRC, "gun_tile.png")
     if os.path.exists(gp):
         roster = Image.open(GUNS).convert("RGBA")
@@ -102,7 +116,7 @@ def main():
         roster.alpha_composite(tile, (x0, y0))
         roster.save(GUNS, optimize=True)
     print("ingested", [n for n, v in (("charge", charge), ("ready/shot/impact", rsi), ("muzzle/release/trail", mrt),
-                                      ("fx", fx), ("gun", os.path.exists(gp))) if v])
+                                      ("shot redo", shots), ("meter", mt), ("fx", fx), ("gun", os.path.exists(gp))) if v])
 
 
 if __name__ == "__main__":

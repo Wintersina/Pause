@@ -181,10 +181,10 @@ public static class ShipSkins
         // BEGIN PARAGON SKINS
         /* 16 Paragon      */ new[] {
             S("Stock", ShipSkinKind.Stock, "#2E9BE6", "#174C8C", "#8FD3FF"),
-            S("Aurum", ShipSkinKind.Palette, "#FFA800", "#AE7404", "#FFC30E"),
-            S("Umbra", ShipSkinKind.Palette, "#911AFF", "#5E13A3", "#9738E8"),
-            S("Spectre", ShipSkinKind.Palette, "#E1F6FF", "#C7D9E1", "#E4F7FF"),
-            S("Viridian", ShipSkinKind.Palette, "#0DFF1E", "#0FAC0B", "#1BFF3B") },
+            S("Aurum", ShipSkinKind.Palette, "#F2A81A", "#AA6A0E", "#FFD36A"),
+            S("Umbra", ShipSkinKind.Palette, "#7A3CD8", "#4F12B3", "#B78CFF"),
+            S("Spectre", ShipSkinKind.Palette, "#DCEEF6", "#8FB0C8", "#FFFFFF"),
+            S("Viridian", ShipSkinKind.Palette, "#1FB57A", "#0E5A44", "#8EF0C4") },
         // END PARAGON SKINS
     };
 

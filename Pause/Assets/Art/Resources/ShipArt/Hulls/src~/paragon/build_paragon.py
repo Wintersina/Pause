@@ -335,10 +335,10 @@ def build_sheet(hull):
 CODEX = os.path.join(HERE, "codex")
 
 
-def codex_cells(path):
+def codex_cells(path, cols=3, rows=3):
     im = Image.open(path).convert("RGB")
-    n = im.width // 3
-    return [im.crop((c * n, r * n, (c + 1) * n, (r + 1) * n)) for r in range(3) for c in range(3)], n
+    n = im.width // cols
+    return [im.crop((c * n, r * n, (c + 1) * n, (r + 1) * n)) for r in range(rows) for c in range(cols)], n
 
 
 def key_green(img):
@@ -393,16 +393,38 @@ def codex_sheet():
         if scale is None:                       # the intact sheet sets the fit
             scale = TARGET_W / bw
             anchor = ((xs.min() + xs.max()) / 2, (ys.min() + ys.max()) / 2)
-        rows.append(fit_cells(cells, n, scale, anchor))
+        fitted = fit_cells(cells, n, scale, anchor)
+        # J1b: the painted lights-off / glint / bank poses (strict redo; the
+        # first delivery's glint was a copy and its banks a scripted squash)
+        rp = os.path.join(CODEX, f"hull_redo_state{st}.png")
+        redo = None
+        if os.path.exists(rp) and "--no-redo" not in sys.argv:
+            rcells, rn = codex_cells(rp, 3, 2)
+            redo = fit_cells(rcells[:5], rn, scale * n / rn, (anchor[0] * rn / n, anchor[1] * rn / n))
+        rows.append((fitted, redo, n))
     # intact alpha per column; damaged rows copy it exactly
     sheet = Image.new("RGBA", (CELL * COLS, CELL * STATES), (0, 0, 0, 0))
     rest_states = []
     for st in range(3):
-        cells = rows[st]
+        cells, redo, n = rows[st]
         rest = cells[0]
         pieces = []
+        # the first delivery's bob is an exact translation: bob-up shift in cell px
+        up = np.array(cells[1]); k = np.array(cells[0])
+        ys1 = np.nonzero(up[..., 3])[0].min(); ys0 = np.nonzero(k[..., 3])[0].min()
+        dy = int(ys1 - ys0)
         for c in range(COLS):
-            if c < 6 or c == 8:
+            if redo is not None and c == 2:
+                pieces.append(Image.fromarray(np.roll(np.array(redo[0]), dy, axis=0)))     # bob up, lights off
+            elif redo is not None and c == 3:
+                pieces.append(redo[1])                                                    # glint 1
+            elif redo is not None and c == 4:
+                pieces.append(redo[2])                                                    # glint 2, lights off
+            elif redo is not None and c == 6:
+                pieces.append(redo[3])                                                    # bank left
+            elif redo is not None and c == 7:
+                pieces.append(redo[4])                                                    # bank right
+            elif c < 6 or c == 8:
                 pieces.append(cells[c])
             elif c == 6:
                 pieces.append(warp(rest, 0, -1))
@@ -426,10 +448,10 @@ def codex_sheet():
 
 SKINS = [
     # name, kind, description, (hue h 0-255 PIL, sat mult, val mult)
-    dict(name="Aurum", mode="gold"),
-    dict(name="Umbra", mode="violet"),
-    dict(name="Spectre", mode="ice"),
-    dict(name="Viridian", mode="green"),
+    dict(name="Aurum", mode="gold", hue="#F2A81A", shadow="#AA6A0E", highlight="#FFD36A"),
+    dict(name="Umbra", mode="violet", hue="#7A3CD8", shadow="#4F12B3", highlight="#B78CFF"),
+    dict(name="Spectre", mode="ice", hue="#DCEEF6", shadow="#8FB0C8", highlight="#FFFFFF"),
+    dict(name="Viridian", mode="green", hue="#1FB57A", shadow="#0E5A44", highlight="#8EF0C4"),
 ]
 
 
@@ -464,6 +486,36 @@ def recolour(sheet, mode):
     res = np.dstack([np.array(out), arr[..., 3]])
     res[res[..., 3] == 0] = 0
     return Image.fromarray(res)
+
+
+def codex_skin_sheet(name, stock, fallback):
+    """Codex's repainted colourway (codex/skin_<name>_state{0,1,2}.png: 3 x 3
+    sheets of the FINAL pose order, cells 4x the game cell). Keyed and
+    downscaled 4x; the stock sheet's alpha is imposed exactly, and any pixel
+    Codex left green inside the silhouette comes from the palette-shift
+    fallback, so a skin is never a different shape."""
+    paths = [os.path.join(CODEX, f"skin_{name}_state{st}.png") for st in range(3)]
+    if not all(os.path.exists(q) for q in paths) or "--no-codex" in sys.argv:
+        return None
+    sheet = Image.new("RGBA", (CELL * COLS, CELL * STATES), (0, 0, 0, 0))
+    base = np.array(stock)
+    fb = np.array(fallback)
+    holes = 0
+    for st, q in enumerate(paths):
+        cells, n = codex_cells(q)
+        for c, cell in enumerate(cells):
+            big, _ = downscale_rgba(key_green(cell), CELL / n)
+            tile = np.array(big.resize((CELL, CELL), Image.LANCZOS)) if big.size != (CELL, CELL) else np.array(big)
+            region = (slice(st * CELL, (st + 1) * CELL), slice(c * CELL, (c + 1) * CELL))
+            a = base[region][..., 3] > 0
+            hole = a & (tile[..., 3] < 128)
+            holes += int(hole.sum())
+            tile[hole] = fb[region][hole]
+            tile[~a] = 0
+            tile[a, 3] = base[region][..., 3][a]
+            sheet.alpha_composite(Image.fromarray(tile), (c * CELL, st * CELL))
+    print(f"  skin {name}: Codex sheets, {holes} silhouette pixels from the fallback")
+    return sheet
 
 
 def skin_primary(sheet_rest_rgba, recoloured):
@@ -708,13 +760,16 @@ def main():
     rest = sheet.crop((0, 0, CELL, CELL))
     skins = []
     for sk in SKINS:
-        rc = recolour(sheet, sk["mode"])
+        rc = recolour(sheet, sk["mode"])             # scripted palette shift (fallback)
+        cx = codex_skin_sheet(sk["name"], sheet, rc)
+        if cx is not None:
+            rc = cx
         assert (np.array(rc)[..., 3] == np.array(sheet)[..., 3]).all()
         buf = io.BytesIO()
         rc.save(buf, "PNG", optimize=True)
         with open(os.path.join(SKINS_DIR, f"{KEY}_{sk['name']}.bytes"), "wb") as fh:
             fh.write(buf.getvalue())
-        hue, shadow, high = skin_primary(rest, rc.crop((0, 0, CELL, CELL)))
+        hue, shadow, high = sk["hue"], sk["shadow"], sk["highlight"]   # the colourway briefed to Codex
         skins.append(dict(name=sk["name"], hue=hue, shadow=shadow, highlight=high))
     data["skins"] = skins
     stock_hue = skin_primary(rest, recolour(rest, "gold"))   # unused, informational

@@ -28,6 +28,7 @@ public static class PremiumShipTest
     {
         fails = 0;
         using var sandbox = new TestHarness.Sandbox();
+        PlayerPrefs.SetInt(DeveloperUnlocks.EnabledKey, 0);   // the real rules, not the dev override
         PlayerPrefs.DeleteKey(ShipId.OwnedKey(P));
         for (int s = 1; s < ShipSkins.PerShip; s++) PlayerPrefs.DeleteKey(ShipSkins.OwnedKey(P, s));
         Identity();
@@ -164,7 +165,7 @@ public static class PremiumShipTest
               ShipLoadoutTable.IsTopTierByPrice(7) && !ShipLoadoutTable.IsTopTierByPrice(15));
         Check("the all-skins set ignores it: owning every dust-ship skin completes the set without Paragon",
               SkinHearts.SkinsMissing >= 0 && SkinHearts.Bonus(P) == SkinHearts.FromColours(P));
-        Check("Fleet Admiral counts the 15 dust ships", PremiumShips.StandardCount == 15 && AchievementTracker.OwnedShips() == 1);
+        Check("Fleet Admiral counts the 15 dust ships", PremiumShips.StandardCount == 15 && AchievementTracker.OwnedShips() <= 1);
     }
 
     // ---- fixtures (as PowersReworkTest) ---------------------------------

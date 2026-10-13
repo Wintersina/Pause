@@ -1,24 +1,24 @@
 {
  "rect": [
-  5,
+  2,
   24,
-  245,
+  251,
   207
  ],
- "ppu": 720.5882,
+ "ppu": 738.2353,
  "nozzles": [
   [
-   123.5,
+   126.5,
    27.5,
    1.5
   ],
   [
-   22.5,
+   25.5,
    23.5,
    0.55
   ],
   [
-   223.5,
+   226.5,
    23.5,
    0.55
   ]
@@ -75,8 +75,8 @@
   [
    2,
    "smolder",
-   93.6,
-   70.1
+   92.6,
+   72.1
   ],
   [
    2,
@@ -94,27 +94,27 @@
  "skins": [
   {
    "name": "Aurum",
-   "hue": "#FFA800",
-   "shadow": "#AE7404",
-   "highlight": "#FFC30E"
+   "hue": "#F2A81A",
+   "shadow": "#AA6A0E",
+   "highlight": "#FFD36A"
   },
   {
    "name": "Umbra",
-   "hue": "#911AFF",
-   "shadow": "#5E13A3",
-   "highlight": "#9738E8"
+   "hue": "#7A3CD8",
+   "shadow": "#4F12B3",
+   "highlight": "#B78CFF"
   },
   {
    "name": "Spectre",
-   "hue": "#E1F6FF",
-   "shadow": "#C7D9E1",
-   "highlight": "#E4F7FF"
+   "hue": "#DCEEF6",
+   "shadow": "#8FB0C8",
+   "highlight": "#FFFFFF"
   },
   {
    "name": "Viridian",
-   "hue": "#0DFF1E",
-   "shadow": "#0FAC0B",
-   "highlight": "#1BFF3B"
+   "hue": "#1FB57A",
+   "shadow": "#0E5A44",
+   "highlight": "#8EF0C4"
   }
  ],
  "stockHue": [

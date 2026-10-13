@@ -265,7 +265,7 @@ public class ShipAttackRunner : MonoBehaviour
             if (t != null) missileRun.hit.Add(t.gameObject);
             float a = (i - (count - 1) * .5f) * 16f;
             Vector3 dir = Quaternion.Euler(0f, 0f, -a) * Vector3.up;
-            var p = Launch(missileRun, AttackProjectile.Kind.Homing, nose, dir, MissileSpeed, .22f, 1.1f,
+            var p = Launch(missileRun, AttackProjectile.Kind.Homing, nose, dir, MissileSpeed, .22f, .75f,
                            t != null ? t.transform : null, 1f / count);
             if (p != null) launched++;
         }
@@ -405,7 +405,7 @@ public class ShipAttackRunner : MonoBehaviour
                         if (t != null) run.hit.Add(t.gameObject);
                         float a = l.shots <= 1 ? 0f : -l.width * .5f + l.width * run.fired / (l.shots - 1);
                         Vector3 dir = Quaternion.Euler(0f, 0f, -a) * Vector3.up;
-                        Launch(run, AttackProjectile.Kind.Homing, nose, dir, l.speed, .24f, 1.2f,
+                        Launch(run, AttackProjectile.Kind.Homing, nose, dir, l.speed, .24f, .8f,
                                t != null ? t.transform : null, 1f / Mathf.Max(1, l.shots));
                         AttackPool.Sprite().Play(AttackSprite.Source.AttackBurst, ship, nose, Vector3.one * .5f,
                             -a, ShipFxArt.BurstTicks, false, 0f, transform, Vector3.up * noseOffset, 71);
