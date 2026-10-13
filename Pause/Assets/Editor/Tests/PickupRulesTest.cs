@@ -220,7 +220,7 @@ public static class PickupRulesTest
               Mathf.Abs(redMean - oldRed) < .35f);
 
         // the allowance's red atoms are held back through a boss: the fight hands
-        // out its own exactly-3 instead (BossFreeShotAtomsTest)
+        // out its own exactly-2 instead (BossFreeShotAtomsTest)
         FreshScene();
         StartBoss();
         long bossRed = 0;

@@ -1,17 +1,22 @@
 using UnityEngine;
 
-// The boss fight's free-shot atoms: during every boss fight exactly Count red
-// (pause) atoms arrive at random moments of the fight, all before the boss
-// escapes (the fight clock, BossConfig.FightSeconds, runs out), so the player
-// always has a few free main-weapon shots (ShipPowerController.FreeShot) to
-// spend on the boss.
+// The boss fight's free-shot atoms: during every boss fight exactly Count (2)
+// red (pause) atoms arrive, one at about 30% and one at about 65% of the fight
+// (jittered), both before the boss escapes (the fight clock,
+// BossConfig.FightSeconds, runs out). Each hands the player a CHARGED free
+// main-weapon shot (ShipPowerController.FreeShot; its hit budget is
+// ChargedBudget instead of 1, see ShipAttackRunner.FireFree).
+//
+// Count is also the hard cap on red atoms per encounter
+// (BossEncounter.TryReserveRedAtom, MaxRedAtomsPerFight): the plan and every
+// other red-atom source go through that one reservation.
 //
 // BossEncounter rolls the plan when the fight begins (Roll) and spawnGoodStuff
 // asks each running frame whether one is due (BossEncounter.TakeDueFreeAtom).
 // The times are on the fight clock (world time: a pause or frozen world holds
 // them), drawn from UnityEngine.Random (seedable, like the rest of the
-// spawners), uniform within [StartMargin, FightSeconds - EndMargin] and at
-// least MinSpacing apart. A short window fits fewer; an atom that is due while
+// spawners), inside [StartMargin, FightSeconds - EndMargin] and at least
+// MinSpacing apart. A short window fits fewer; an atom that is due while
 // another atom's AtomSpacing gap is still running waits for it, so EndMargin
 // must stay >= AtomSpacing.Gap. Nothing is released once the boss is destroyed
 // or has run out of clock. The normal red atoms are held back for the fight so
@@ -19,25 +24,31 @@ using UnityEngine;
 public static class BossFreeShotAtoms
 {
     // ---- tuning ----
-    public const int Count = 7;              // a 120 s fight (BossConfig.EscapeSeconds) hands out at least this many
+    public const int Count = 2;              // at most BossEncounter.MaxRedAtomsPerFight
+    public static readonly float[] Shares = { .30f, .65f };   // of the fight, where each lands
+    public const float ShareJitter = .04f;   // +-, of the fight
+    // Hit budget of one of these shots against a boss (a normal firing: 1).
+    // With only 2 atoms (was 7) the fight would lose ~5 hits of damage; each
+    // now carries 1.5, so the pair is worth 3 full hits (was up to 7).
+    public const float ChargedBudget = 1.5f;
     public const float StartMargin = 3f;     // none in the fight's first seconds
     public const float EndMargin = 5f;       // ... nor in the last (>= AtomSpacing.Gap; time to catch it too)
     public const float MinSpacing = 6f;      // between two of these (>= AtomSpacing.Gap)
 
     // Fills `times` (ascending, fight-clock seconds) and returns how many fit.
-    // Stratified, not luck: the window is cut into n equal slots and one atom
-    // lands at a random moment of each slot's first part (kept >= MinSpacing
-    // clear of the next slot's), so the first comes early (the player can
-    // start hurting the boss) and the rest follow at a steady cadence across
-    // the whole fight (7 in 120 s: about one every 16 s).
     public static int Roll(float fightSeconds, float[] times)
     {
-        float window = fightSeconds - StartMargin - EndMargin;
-        if (window < 0f) return 0;
-        int n = Mathf.Min(Mathf.Min(Count, times.Length), 1 + Mathf.FloorToInt(window / MinSpacing + 1e-4f));
-        float slot = n > 1 ? Mathf.Max(MinSpacing, window / n) : window;
-        float jitter = n > 1 ? Mathf.Max(0f, slot - MinSpacing) : window;
-        for (int i = 0; i < n; i++) times[i] = StartMargin + i * slot + Random.value * jitter;
+        float lo = StartMargin, hi = fightSeconds - EndMargin;
+        if (hi < lo) return 0;
+        int n = 0;
+        for (int i = 0; i < Count && i < times.Length; i++)
+        {
+            float t = fightSeconds * (Shares[i] + (Random.value - .5f) * 2f * ShareJitter);
+            t = Mathf.Clamp(t, lo, hi);
+            if (n > 0 && t < times[n - 1] + MinSpacing) t = times[n - 1] + MinSpacing;
+            if (t > hi) break;
+            times[n++] = t;
+        }
         return n;
     }
 

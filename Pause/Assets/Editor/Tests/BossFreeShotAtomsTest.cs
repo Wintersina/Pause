@@ -3,7 +3,7 @@ using System.Reflection;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 
-// Feature: "during boss fights have 3 free shot atoms appear randomly before
+// Feature: "during boss fights have 2 free shot atoms appear randomly before
 // the boss escapes". Every boss fight (all worlds, the Ember loop's second
 // one too) releases exactly BossFreeShotAtoms.Count red atoms at random
 // moments of the fight, all before the boss's clock runs out, spaced by
@@ -35,7 +35,7 @@ public static class BossFreeShotAtomsTest
             RollIsRandomSpacedAndInsideTheWindow();
             ShortWindowsFitFewer();
             for (int w = 0; w < WorldManager.LiveWorldCount; w++) EveryWorldGetsExactlyCount(w);
-            LoopFightGetsThreeAgain();
+            LoopFightGetsTwoAgain();
             for (int w = 0; w < WorldManager.LiveWorldCount; w++) EveryFightHasTheSupply(w);
             EarlyKillLeavesNoStray();
             DeterministicPerSeed();
@@ -212,9 +212,13 @@ public static class BossFreeShotAtomsTest
                 if (t[i] < BossFreeShotAtoms.StartMargin - 1e-3f || t[i] > BossConfig.FightSeconds - BossFreeShotAtoms.EndMargin + 1e-3f) ok = false;
                 if (i > 0 && t[i] - t[i - 1] < BossFreeShotAtoms.MinSpacing - 1e-3f) spaced = false;
             }
+            if (n == 2 && (t[0] < BossConfig.FightSeconds * (BossFreeShotAtoms.Shares[0] - BossFreeShotAtoms.ShareJitter) - .01f ||
+                           t[0] > BossConfig.FightSeconds * (BossFreeShotAtoms.Shares[0] + BossFreeShotAtoms.ShareJitter) + .01f ||
+                           t[1] < BossConfig.FightSeconds * (BossFreeShotAtoms.Shares[1] - BossFreeShotAtoms.ShareJitter) - .01f ||
+                           t[1] > BossConfig.FightSeconds * (BossFreeShotAtoms.Shares[1] + BossFreeShotAtoms.ShareJitter) + .01f)) ok = false;
             if (first < 0f) first = t[0]; else if (Mathf.Abs(t[0] - first) > .5f) varied = true;
         }
-        Check("200 rolls: 3 times each inside [start margin, fight - end margin]", ok);
+        Check("200 rolls: exactly Count times each inside [start margin, fight - end margin]", ok);
         Check("200 rolls: always >= MinSpacing apart", spaced);
         Check("rolls differ between seeds", varied);
     }
@@ -225,7 +229,8 @@ public static class BossFreeShotAtomsTest
         Check("a fight shorter than the margins gets none", BossFreeShotAtoms.Roll(BossFreeShotAtoms.StartMargin + BossFreeShotAtoms.EndMargin - 1f, t) == 0);
         Check("the dev 1.5 s fight gets none", BossFreeShotAtoms.Roll(BossEncounter.DevShortFightSeconds, t) == 0);
         int n = BossFreeShotAtoms.Roll(BossFreeShotAtoms.StartMargin + BossFreeShotAtoms.EndMargin + BossFreeShotAtoms.MinSpacing + .5f, t);
-        Check("a window that fits two spaced atoms gets two", n == 2);
+        Check("a window too tight for two spaced atoms gets one", n == 1);
+        Check("a 40 s fight fits both", BossFreeShotAtoms.Roll(40f, t) == 2);
     }
 
     static void EveryWorldGetsExactlyCount(int w)
@@ -236,7 +241,7 @@ public static class BossFreeShotAtomsTest
         Cleanup();
     }
 
-    // The user's rule: a full 120 s fight offers >= 7 free shots (spread, first early)
+    // A full 120 s fight offers exactly 2 free shots (~30% and ~65%)
     // plus at least 3 other kinds of atom, and none of it costs the boss a heart.
     static void EveryFightHasTheSupply(int w)
     {
@@ -246,16 +251,17 @@ public static class BossFreeShotAtomsTest
         var rel = spawnGoodStuff.BossAtomsReleased;
         int kinds = 0;
         for (int k = 1; k < rel.Length; k++) if (rel[k] > 0) kinds++;
-        Check("world " + w + ": >= 7 free shots offered in the fight (" + rel[0] + ")", rel[0] >= 7 && res.times.Count >= 7);
+        Check("world " + w + ": exactly 2 free shots offered in the fight (" + rel[0] + ")", rel[0] == 2 && res.times.Count == 2);
         Check("world " + w + ": " + kinds + " other atom kinds (shield " + rel[1] + ", capacitor " + rel[2] + ", heal " + rel[3] + ")", kinds >= 3);
-        Check("world " + w + ": the first free shot is early (" + (res.times.Count > 0 ? res.times[0].ToString("F1") : "-") + " s) and the last in the final third (not bunched)",
-              res.times.Count >= 7 && res.times[0] < 18f && res.times[res.times.Count - 1] > BossConfig.FightSeconds * .6f);
+        Check("world " + w + ": the first free shot is early (" + (res.times.Count > 0 ? res.times[0].ToString("F1") : "-") + " s) around 30% and the second around 65% (not bunched)",
+              res.times.Count == 2 && res.times[0] > BossConfig.FightSeconds * .25f && res.times[0] < BossConfig.FightSeconds * .36f &&
+              res.times[1] > BossConfig.FightSeconds * .6f && res.times[1] < BossConfig.FightSeconds * .71f);
         Check("world " + w + ": free shots cost the boss nothing -- untouched, it escapes with every heart",
               !res.destroyed && BossEncounter.Instance != null ? BossEncounter.Instance.HeartsLeft == BossConfig.Hearts : true);
         Cleanup();
     }
 
-    static void LoopFightGetsThreeAgain()
+    static void LoopFightGetsTwoAgain()
     {
         int last = WorldManager.LastLiveWorld;
         var r = NewRig(7);

@@ -27,8 +27,8 @@ using UnityEngine.SceneManagement;
 //            (BossHearts): each one an equal share (HeartWeight) of its hit
 //            points, gone when that share is spent; the attack phases follow
 //            the hearts as well as the clock (PhaseProgress01).
-//            Exactly BossFreeShotAtoms.Count red free-shot atoms arrive at random
-//            moments of the fight, all before the clock runs out (the allowance's
+//            Exactly BossFreeShotAtoms.Count (2) red free-shot atoms arrive, at about
+//            30% and 65% of the fight, all before the clock runs out (the allowance's
 //            own red atoms wait for the portal).
 //   Outro    the boss explodes (its hit points ran out) or retreats (the
 //            fight clock ran out first) -- whichever came first (BossEndRule).
@@ -121,6 +121,19 @@ public class BossEncounter : MonoBehaviour
         Instance.healAtomsReleased++;
         return true;
     }
+    // Red (pause) atoms: at most MaxRedAtomsPerFight over one encounter, from
+    // any source (the fight plan's free-shot atoms, spawnGoodStuff's normal
+    // red atom). Outside an encounter nothing is capped. Reset in Setup.
+    public const int MaxRedAtomsPerFight = 2;
+    int redAtomsReleased;
+    public int RedAtomsReleased => redAtomsReleased;
+    public static bool TryReserveRedAtom()
+    {
+        if (!Running) return true;
+        if (Instance.redAtomsReleased >= MaxRedAtomsPerFight) return false;
+        Instance.redAtomsReleased++;
+        return true;
+    }
     public int FreeAtomsPlanned => freeAtomCount;
     public int FreeAtomsReleased => freeAtomNext;
     public float FightClock => fightClock;
@@ -211,6 +224,7 @@ public class BossEncounter : MonoBehaviour
         fightClock = 0f;
         freeAtomCount = freeAtomNext = 0;
         healAtomsReleased = 0;
+        redAtomsReleased = 0;
         freePress = false;
     }
 

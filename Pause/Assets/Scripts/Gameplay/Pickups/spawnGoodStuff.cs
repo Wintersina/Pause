@@ -238,6 +238,7 @@ public class spawnGoodStuff : MonoBehaviour {
 
     void spawnRedAtom()
     {
+        if (!BossEncounter.TryReserveRedAtom()) return;   // boss fight: max 2 red atoms
         Vector3 randomStarPos = new Vector3(Random.Range(-RailInset.PickupLaneHalf, RailInset.PickupLaneHalf), transform.position.y, transform.rotation.z);
         AtomSpin.AddTo(Place(redAtom, randomStarPos));
         AtomSpacing.Released();

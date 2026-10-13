@@ -130,6 +130,8 @@ public class ShipAttackRunner : MonoBehaviour
         loadout = ShipWeaponUpgrades.LoadoutFor(ship);
         FreeFireCount++;
         run.Begin(loadout, ship, Time.unscaledTime);
+        // the boss fight hands out only BossFreeShotAtoms.Count of these: each is charged
+        if (BossEncounter.Running) run.budget = BossFreeShotAtoms.ChargedBudget;
         StartRun(run);
         return true;
     }
