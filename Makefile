@@ -67,7 +67,7 @@ mac-dev-run: mac-dev-build
 	open "$(MAC_DEV_APP)"
 
 android-build:
-	$(UNITY_CMD) -executeMethod BuildScript.BuildAndroid
+	$(UNITY_CMD) -buildTarget Android -executeMethod BuildScript.BuildAndroid
 
 android-deploy: android-build
 	$(ADB_DEVICE) wait-for-device
@@ -82,7 +82,7 @@ android-release:
 	$(UNITY_CMD) -executeMethod BuildScript.BuildAndroidRelease
 
 android-dev-build:
-	$(UNITY_CMD) -executeMethod BuildScript.BuildAndroidDev
+	$(UNITY_CMD) -buildTarget Android -executeMethod BuildScript.BuildAndroidDev
 
 android-dev-deploy: android-dev-build
 	$(ADB_DEVICE) wait-for-device

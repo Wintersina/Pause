@@ -192,6 +192,7 @@ public static class BuildScript
             + " size=" + summary.totalSize + " bytes"
             + " time=" + summary.totalTime);
 
+        LogStepTimings(report);
         if (summary.result == BuildResult.Succeeded) LogSizeReport(report);
 
         if (summary.result != BuildResult.Succeeded)
@@ -205,6 +206,18 @@ public static class BuildScript
         }
 
         return true;
+    }
+
+    // Build report steps with durations ([STEP] lines in the log, and
+    // Builds/build-timings.txt) so slow phases are visible without a profiler.
+    static void LogStepTimings(BuildReport report)
+    {
+        var lines = new System.Collections.Generic.List<string>();
+        foreach (var step in report.steps)
+            lines.Add(string.Format("{0,8:F1}s  {1}{2}", step.duration.TotalSeconds, new string(' ', step.depth * 2), step.name));
+        lines.Add(string.Format("{0,8:F1}s  TOTAL", report.summary.totalTime.TotalSeconds));
+        foreach (var l in lines) Debug.Log("[STEP] " + l);
+        try { File.WriteAllLines(Path.Combine(OutputRoot, "build-timings.txt"), lines.ToArray()); } catch (Exception) { }
     }
 
     // Size report: the biggest packed assets (their size inside the build,
