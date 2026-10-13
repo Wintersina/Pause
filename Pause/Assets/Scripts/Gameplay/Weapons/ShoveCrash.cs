@@ -47,6 +47,71 @@ public static class ShoveCrash
     public const float ThudVolume = .22f;
     public const float KickAmount = .004f;
     public const int SparkCount = 4;
+
+    // RAIL CRASHES (ShieldShockwave): a body flung at a side rail hard enough
+    // crashes there and dies, by the shockwave's roll made at the release.
+    //   impact speed v  = what EnemyShove's ease-out has it moving at when it
+    //                     reaches the rail (ShieldShockwave.RailImpact)
+    //   effective speed = v / (1 + RailWeightResist x (Weight - 1)): heavy
+    //                     things take more
+    //   chance          = 0 below RailMinSpeed, RailMaxChance at RailSureSpeed
+    //                     less a little (linear between), 1 at or above
+    //                     RailSureSpeed -- an occasional dramatic kill, not
+    //                     every body that touches a rail
+    //   at most RailMaxKillsPerWave a release; a kill is paid like any crash
+    //   kill (the pilot's, no death combo); elites and bosses never (an elite
+    //   takes the usual rail heart from EliteShip.Collide).
+    public const float RailMinSpeed = 9f;
+    public const float RailSureSpeed = 24f;
+    public const float RailMaxChance = .8f;
+    public const float RailWeightResist = .35f;
+    public const int RailMaxKillsPerWave = 3;
+    public const int RailSparkCount = 10;
+    public const float RailKickAmount = .008f;
+    public const float RailThudVolume = .5f;
+    public static int RailKills;
+    public static System.Func<float> RollOverride;   // tests; default Random.value
+    public static float Roll() { return RollOverride != null ? RollOverride() : Random.value; }
+
+    public static float RailChance(float speed, int weight)
+    {
+        float v = speed / (1f + RailWeightResist * Mathf.Max(0, weight - 1));
+        if (v >= RailSureSpeed) return 1f;
+        if (v <= RailMinSpeed) return 0f;
+        return RailMaxChance * (v - RailMinSpeed) / (RailSureSpeed - RailMinSpeed);
+    }
+
+    // Can this body die on a rail? (Not elites, bosses or anything their own; mines ride their rail.)
+    public static bool CanRailCrash(GameObject go)
+    {
+        if (!Allowed || go == null || !Victim(go)) return false;
+        if (go.TryGetComponent(out EliteShip _) || go.TryGetComponent(out RailMineMount _)) return false;
+        return true;
+    }
+
+    // The crash itself: sparks and the whump at the rail, one bigger camera kick a release, then the usual kill.
+    public static bool RailCrash(GameObject go, Vector2 at)
+    {
+        if (go == null || !CanRailCrash(go)) return false;
+        RailKills++; Kills++;
+        var fx = EliteSystem.Fx;
+        if (fx != null) fx.Sparks(at, SparkColor, RailSparkCount);
+        if (Application.isPlaying || EnemyDeathAudio.Simulate)
+        {
+            EnemyDeathAudio.PlayAuthored(ShieldShockwave.SoundKey, RailThudVolume);
+            if (!railKicked) { railKicked = true; CameraKick.Kick(RailKickAmount); }
+        }
+        KillPaid(go);
+        return true;
+    }
+
+    // A survivor that meets a rail: a few sparks, no damage.
+    public static void RailScrape(Vector2 at)
+    {
+        var fx = EliteSystem.Fx;
+        if (fx != null) fx.Sparks(at, SparkColor, 3);
+    }
+    static bool railKicked;
     public static readonly Color SparkColor = new Color(1f, .66f, .35f, 1f);
 
     // counters (tests, previews)
@@ -76,7 +141,7 @@ public static class ShoveCrash
     static float clock;
     static bool kicked;
 
-    public static void ResetCounters() { Hits = Kills = EliteHits = Recoils = 0; }
+    public static void ResetCounters() { Hits = Kills = EliteHits = Recoils = RailKills = 0; }
 
     public static void Clear()
     {
@@ -86,7 +151,7 @@ public static class ShoveCrash
     }
 
     // A release begins: the caps start again.
-    public static void BeginWave() { pairs = 0; waveKills = waveHits = 0; kicked = false; }
+    public static void BeginWave() { pairs = 0; waveKills = waveHits = 0; kicked = railKicked = false; }
 
     // The size class of a hazard body.
     public static int Weight(GameObject go)

@@ -138,6 +138,7 @@ RailMineArtTest 0.5
 ShipLivesTest 0.5
 ShopHealthCarryoverTest 0.5
 ShotSkinTest 0.5
+ShieldRailCrashTest 1.5
 ShoveCrashTest 0.5
 SoundMuteTest 0.5
 TeleportKillTest 0.5

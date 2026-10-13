@@ -187,6 +187,7 @@ public static class AllTests
         ("BoostJetTest", BoostJetTest.Execute),
         ("ShieldShockwaveTest", ShieldShockwaveTest.Execute),
         ("ShoveCrashTest", ShoveCrashTest.Execute),
+        ("ShieldRailCrashTest", ShieldRailCrashTest.Execute),
         ("ShipArtTest", ShipArtTest.Execute),
         ("ScreenFitTest1", ScreenFitTest.Slice1),
         ("ScreenFitTest2", ScreenFitTest.Slice2),

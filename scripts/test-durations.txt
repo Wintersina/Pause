@@ -152,6 +152,7 @@ GateAudioTest 0.6
 HomePauseTest 0.6
 PrivacyLinkTest 0.6
 ShotSkinTest 0.6
+ShieldRailCrashTest 1.5
 ShoveCrashTest 0.6
 SoundMuteTest 0.6
 SpaceStationTest 0.6

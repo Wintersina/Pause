@@ -12,9 +12,14 @@ using UnityEngine;
 //            strip the hull's width plus ColumnMargin, up to the top of the
 //            view) is pushed up-screen by ColumnPush, however far away it is
 //
-// The wave itself does no damage: nothing is hit, killed or scored by it. The
-// BODIES it shoves can crash into other enemies for a moment (ShoveCrash: crash
-// damage by size class, kills are the pilot's, capped per release).
+// The wave itself does no damage. The BODIES it shoves can crash into other
+// enemies for a moment (ShoveCrash: crash damage by size class, kills are the
+// pilot's, capped per release) and a body flung hard into a side rail can
+// CRASH there (ShoveCrash.RailCrash): decided at the release from the speed it
+// would meet the rail with (see RailImpact), a roll weighted by that speed and
+// the body's size class, at most ShoveCrash.RailMaxKillsPerWave a release. A
+// survivor grinds along the rail. Elites take the heart the rail always takes
+// (EliteShip.Collide); bosses are not moved at all.
 //
 // HOW A PUSH COMPOSES. Every board mover is relative -- the scrollers
 // Translate from where the body is, EnemyBrain adds the frame's change of its
@@ -74,15 +79,15 @@ public static class ShieldShockwave
 {
     // ------------------------------------------------------------- tunables
     public static float Radius = 2.6f;          // world units from the ship's centre (to a body's edge)
-    public static float RadialPush = 1.0f;       // displacement right next to the hull (keep < Radius)
+    public static float RadialPush = 3.4f;       // displacement right next to the hull (was 1.0; the lane's rails cap how far a body can go sideways)
     public static float RadialFalloff = 1f;     // 1 = linear to zero at the ring; higher = tighter
     public static float ColumnMargin = .12f;    // added each side of the hull's width
     public static float ColumnPush = 1.25f;     // up-screen displacement for the whole column
     public static float PushSeconds = .28f;     // how long a shove takes (ease-out)
     public static float MineMaxSlide = .6f;     // a mine never slides further than this from its clamp
-    public static float EliteKick = 3.2f;       // u/s added to an elite's velocity next to the hull (before EliteResist)
-    public static float EliteColumnKick = 2.4f; // u/s up-screen for an elite in the column (before EliteResist)
-    public static float EliteResist = .25f;     // elites take this share of the kick; their own steering eases them back
+    public static float EliteKick = 9f;         // u/s added to an elite's velocity next to the hull (before EliteResist; was 3.2)
+    public static float EliteColumnKick = 4f;   // u/s up-screen for an elite in the column (before EliteResist; was 2.4)
+    public static float EliteResist = .45f;     // elites take this share of the kick (was .25); their own steering eases them back. Into a rail they lose one heart (EliteShip.Collide), never die of the wave
     public const float ShockwaveDamage = 0f;    // push only. Raise to make the wave hurt (no damage path is wired yet)
 
     // Fairness. TryRelease (what the shield calls) fires only for a shield
@@ -119,6 +124,7 @@ public static class ShieldShockwave
     public static int LastPushed { get; private set; }     // bodies given a displacement
     public static int LastKicked { get; private set; }     // elites given a kick
     public static float LastColumnHalf { get; private set; }
+    public static int LastRailDoomed { get; private set; }   // bodies flung at a rail hard enough to crash there
     public static int LastShotsPushed { get; private set; }   // projectiles (hostile and the player's) given a displacement
 
     const int Capacity = EnemyShove.Capacity;
@@ -129,6 +135,7 @@ public static class ShieldShockwave
     static readonly Vector2[] from = new Vector2[Capacity];
     static readonly Vector2[] push = new Vector2[Capacity];
     static readonly Vector2[] half = new Vector2[Capacity];
+    static readonly bool[] doomed = new bool[Capacity];
 
     // Builds the ring and the streak now (with the shield, as the ship
     // spawns), so the release creates nothing.
@@ -160,7 +167,8 @@ public static class ShieldShockwave
         float columnHalf = Mathf.Max(.05f, hullHalfWidth) + ColumnMargin;
         LastColumnHalf = columnHalf;
         float top = CameraFit.ViewTop, bottom = CameraFit.ViewBottom;
-        int n = 0, kicked = 0;
+        int n = 0, kicked = 0, doomedCount = 0;
+        LastRailDoomed = 0;
 
         var live = ClearTarget.Live;
         for (int i = 0; i < live.Count && n < Capacity; i++)
@@ -213,6 +221,7 @@ public static class ShieldShockwave
             if (inColumn) move = new Vector2(0f, Mathf.Max(move.y, ColumnPush));
 
             RailMineMount mount;
+            bool doom = false;
             if (go.TryGetComponent(out mount) && mount.rail != null)
             {
                 // along the rail only, away from the ship, within reach of its clamp
@@ -226,13 +235,18 @@ public static class ShieldShockwave
                 // sideways: the body -- and a brain's base, which its whole
                 // pattern hangs from -- stays between the rails
                 float lane = SpawnLane.LaneHalf - h.x;
+                // a body flung at a rail hard enough crashes there (it is not held back from it)
+                doom = doomedCount < ShoveCrash.RailMaxKillsPerWave && RailDoomed(go, p.x, move.x, lane);
                 // (a pilot's Base is its station, which a shove never moves: its body is what is kept in)
                 float offset = brain != null && !pilot ? p.x - brain.Base.x : 0f;
                 float baseX = p.x - offset;
-                if (Mathf.Abs(baseX) <= lane) move.x = Mathf.Clamp(baseX + move.x, -lane, lane) - baseX;
+                if (doom) { }
+                else if (Mathf.Abs(baseX) <= lane) move.x = Mathf.Clamp(baseX + move.x, -lane, lane) - baseX;
                 else if (Mathf.Abs(baseX + move.x) > Mathf.Abs(baseX)) move.x = 0f;   // already outside: never further
                 // down: not out through the bottom of the view
                 if (move.y < 0f && p.y - h.y >= bottom) move.y = Mathf.Max(move.y, bottom + h.y - p.y);
+                // up: a radial throw keeps the body in the view (the column's clear-out is not capped)
+                else if (!inColumn && move.y > 0f && p.y + h.y <= top) move.y = Mathf.Min(move.y, top - h.y - p.y);
             }
             if (move.sqrMagnitude < 1e-6f) continue;
 
@@ -243,6 +257,8 @@ public static class ShieldShockwave
             from[n] = p;
             push[n] = move;
             half[n] = h;
+            doomed[n] = doom;
+            if (doom) doomedCount++;
             n++;
         }
 
@@ -252,7 +268,7 @@ public static class ShieldShockwave
         int pushed = 0;
         for (int i = 0; i < n; i++)
         {
-            if (push[i].sqrMagnitude >= 1e-6f && EnemyShove.Add(who[i], mounts[i], push[i], half[i].x, PushSeconds, pilots[i]))
+            if (push[i].sqrMagnitude >= 1e-6f && EnemyShove.Add(who[i], mounts[i], push[i], half[i].x, PushSeconds, pilots[i], doomed[i]))
             {
                 pushed++;
                 ShoveCrash.Carry(who[i]);   // a shoved body is a battering ram for a moment
@@ -260,11 +276,35 @@ public static class ShieldShockwave
             who[i] = null; mounts[i] = null; prints[i] = null;
         }
         LastPushed = pushed;
+        LastRailDoomed = doomedCount;
         LastKicked = kicked;
         LastShotsPushed = PushShots(ship, columnHalf, top);
 
         ShieldShockwaveFx.Play(ship, Radius, columnHalf, top, sortingLayer, sortingOrder);
         return pushed + kicked;
+    }
+
+    // The speed (u/s) a body at x `px`, shoved sideways by `dx` over PushSeconds
+    // on EnemyShove's cubic ease-out, meets the rail at `lane` with (0 when it
+    // never gets there). The ease-out is fastest at the start, so a rail close
+    // to the body is hit hard and one at the very end of the throw barely.
+    public static float RailImpact(float px, float dx, float lane)
+    {
+        if (Mathf.Abs(dx) < .05f) return 0f;
+        float side = Mathf.Sign(dx);
+        float dist = Mathf.Max(0f, lane - side * px);
+        float f = dist / Mathf.Abs(dx);
+        if (f >= 1f) return 0f;
+        return 3f * Mathf.Pow(1f - f, 2f / 3f) * Mathf.Abs(dx) / PushSeconds;
+    }
+
+    // Is this body crashed by the rail it is flung at (the roll is made now)?
+    static bool RailDoomed(GameObject go, float px, float dx, float lane)
+    {
+        if (!ShoveCrash.CanRailCrash(go)) return false;
+        float v = RailImpact(px, dx, lane);
+        if (v <= 0f) return false;
+        return ShoveCrash.Roll() < ShoveCrash.RailChance(v, ShoveCrash.Weight(go));
     }
 
     // Every projectile in flight, hostile or the player's, takes the radial and
@@ -368,6 +408,8 @@ public static class EnemyShove
         public bool hold;        // a body that flies itself back (a pilot): kept on the push's curve meanwhile
         public Vector3 last;     // where the push last put it
         public float halfX, seconds, time, done;   // done: eased share already applied
+        public bool railed;      // already met a rail this push
+        public bool doom;        // flung at a rail hard enough to crash on it (decided at the release)
     }
 
     static readonly Entry[] entries = new Entry[Capacity];
@@ -382,7 +424,7 @@ public static class EnemyShove
     // gets the whole distance, then returns under its own power. A body
     // already being pushed takes the new push on top of what is left of the
     // old one.
-    public static bool Add(Transform body, RailMineMount mount, Vector2 total, float halfX, float seconds, bool hold = false)
+    public static bool Add(Transform body, RailMineMount mount, Vector2 total, float halfX, float seconds, bool hold = false, bool doom = false)
     {
         if (body == null) return false;
         for (int i = 0; i < count; i++)
@@ -390,14 +432,14 @@ public static class EnemyShove
             if (entries[i].body != body) continue;
             var e = entries[i];
             e.total = e.total * (1f - e.done) + total;
-            e.time = 0f; e.done = 0f; e.seconds = Mathf.Max(.01f, seconds);
+            e.time = 0f; e.done = 0f; e.seconds = Mathf.Max(.01f, seconds); e.doom |= doom;
             entries[i] = e;
             return true;
         }
         if (count >= Capacity) return false;
         entries[count++] = new Entry
         {
-            body = body, mount = mount, total = total, hold = hold, last = body.position, halfX = halfX, seconds = Mathf.Max(.01f, seconds),
+            body = body, mount = mount, total = total, hold = hold, last = body.position, halfX = halfX, seconds = Mathf.Max(.01f, seconds), doom = doom,
         };
         return true;
     }
@@ -429,11 +471,27 @@ public static class EnemyShove
                 // whatever else moved it meanwhile, the shove never carries it into a rail
                 // (a body its own pattern already holds further out is never carried further still)
                 float lane = Mathf.Max(SpawnLane.LaneHalf - e.halfX, Mathf.Abs(p.x));
+                bool onRail = step.x != 0f && Mathf.Abs(x) > lane + 1e-4f && Mathf.Sign(x) == Mathf.Sign(step.x);
+                float railSide = Mathf.Sign(x);
                 x = Mathf.Clamp(x, -lane, lane);
                 e.last = new Vector3(x, p.y + step.y, p.z);
                 e.body.position = e.last;
+                // it met the side rail: a flung body crashes there, any other grinds along it
+                if (onRail && !e.railed)
+                {
+                    e.railed = true;
+                    Vector2 at = new Vector2(railSide * (lane + e.halfX), e.last.y);
+                    if (e.doom && ShoveCrash.RailCrash(e.body.gameObject, at)) { Remove(i); continue; }
+                    ShoveCrash.RailScrape(at);
+                }
             }
-            if (k >= 1f) Remove(i); else entries[i] = e;
+            if (k >= 1f)
+            {
+                // a doomed body that never felt the rail (a weave moved it off) crashes where the throw ends
+                if (e.doom && e.mount == null && !e.railed) ShoveCrash.RailCrash(e.body.gameObject, e.body.position);
+                Remove(i);
+            }
+            else entries[i] = e;
         }
         ShoveCrash.Step(dt);
         ProjectileShove.Step(dt);

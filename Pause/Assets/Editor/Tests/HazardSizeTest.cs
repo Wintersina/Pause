@@ -490,8 +490,11 @@ public static class HazardSizeTest
         var small = Build(d, new Vector2(-(gap + SpawnSpace.BodyHalf(d, lo).x), ship.y - .01f), lo);
         var big = Build(d, new Vector2(gap + SpawnSpace.BodyHalf(d, hi).x, ship.y - .01f), hi);
         Vector3 s0 = small.transform.position, b0 = big.transform.position;
+        bool crashes = ShoveCrash.Enabled;
+        ShoveCrash.Enabled = false;   // the push alone (the burst now crashes bodies thrown hard at a rail)
         ShieldShockwave.Release(ship, .3f);
         for (int i = 0; i < 40; i++) EnemyShove.Step(Dt);
+        ShoveCrash.Enabled = crashes;
         float ds = Vector3.Distance(small.transform.position, s0), db = Vector3.Distance(big.transform.position, b0);
         Check(string.Format("a shockwave shoves a small rock further than a big one at the same gap ({0:F2} u vs {1:F2} u; x{2:F2} vs x{3:F2})",
                             ds, db, HazardSize.ShoveScale(lo), HazardSize.ShoveScale(hi)),
