@@ -101,7 +101,6 @@ public static class ScreenFitRunner
         score.pauseCounter = 0;
         startMenu.youAreInTutorial = false;
         if (DeveloperUnlocks.Enabled) DeveloperUnlocks.SetEnabled(false);
-        AccountDialog.Close();
         LeaderboardPanel.Close();
         LeaderboardBoards.OverrideForTests(null);
         HudStyler.StackedReadout = default(Rect);

@@ -2,13 +2,14 @@ using UnityEngine;
 using UnityEditor.SceneManagement;
 using System.Linq;
 
-// Paragon's visibility gate: hidden unless the "paragon_ship" feature flag or
-// developer mode is on. Hidden, the game is a 15-ship game in every list.
+// Paragon's visibility gate: the "paragon_ship" feature flag (ON by default since
+// 2026-10-13: a locked COMING SOON premium berth) or developer mode. With the flag
+// switched off the game is a 15-ship game in every list.
 //   1  flag off + developer mode off: roster of 15, no dock berth, no codex entry,
 //      not selectable, no save / achievement footprint
 //   2  flag on: visible, locked, COMING SOON, not owned
 //   3  developer mode: visible and owned, with the flag off
-//   4  the flag is default off and switches both ways
+//   4  the flag is default ON and switches both ways (off = the 15-ship roster)
 public static class ParagonFlagTest
 {
     static int fails;
@@ -35,13 +36,16 @@ public static class ParagonFlagTest
         fails = 0;
         using var sandbox = new TestHarness.Sandbox();
 
-        FeatureFlags.Set(Flag, false);
         PlayerPrefs.DeleteKey(FeatureFlags.KeyOf(Flag));
-        Check("the flag is OFF by default", !FeatureFlags.IsOn(Flag) && FeatureFlags.KeyOf(Flag) == "ff_paragon_ship");
-        FeatureFlags.Set(Flag, true);
-        Check("the flag switches on", FeatureFlags.IsOn(Flag));
+        Check("the flag is ON by default (a stored nothing reads the default)",
+              FeatureFlags.IsOn(Flag) && FeatureFlags.DefaultOf(Flag) && FeatureFlags.KeyOf(Flag) == "ff_paragon_ship");
+        Check("a normal player (no flag stored, no developer mode) sees Paragon, locked, not owned",
+              PremiumShips.Visible && ShipId.IsValid(P) && !ShipId.IsOwned(P) && PremiumShips.ComingSoon(P));
         FeatureFlags.Set(Flag, false);
-        Check("and off again", !FeatureFlags.IsOn(Flag));
+        Check("the flag switches off", !FeatureFlags.IsOn(Flag));
+        FeatureFlags.Set(Flag, true);
+        Check("and on again (back to the default: nothing stored)",
+              FeatureFlags.IsOn(Flag) && !PlayerPrefs.HasKey(FeatureFlags.KeyOf(Flag)));
 
         Hidden();
         FlagOn();

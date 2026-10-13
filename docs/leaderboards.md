@@ -26,9 +26,9 @@ All code is in `Pause/Assets/Scripts/Core/Leaderboards/`, and the panel is in `S
 | `LeaderboardPanel` | The in-game panel, opened by Options → LeaderBoard (`leaderboard.pull_up_leaderboard`). It's built at runtime on its own overlay canvas, so `leaderboardS3.unity` is unchanged. |
 
 Sign-in still belongs to `CloudSync`/`IPlayerAccount`. The interactive sign-in is `AccountLink.SignIn`
-(the Options Account row, and this panel's SIGN IN through `SocialBridge.Authenticate`).
+(this panel's SIGN IN through `SocialBridge.Authenticate`).
 `SocialBridge.SignedIn` is raised on every successful sign-in, and the service flushes its queue when it
-fires. While the player is signed out in Pause (`AccountLink.Disconnected`, the Account row's SIGN OUT),
+fires. While the player is signed out in Pause (`AccountLink.Disconnected`, Pause's own disconnect, now without a UI),
 `LeaderboardService.SignedIn` is false: nothing is sent, and the panel shows its signed-out state.
 
 ### Boards

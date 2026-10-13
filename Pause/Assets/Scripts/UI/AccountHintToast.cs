@@ -2,7 +2,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
-// "Sign in with Play Games in Options to save progress to your account":
+// "Sign in with Play Games from the leaderboard to save progress to your account":
 // the one launch-time signal that sign-in exists, shown on the home screen
 // when the silent launch sign-in failed -- at most once per install
 // (AccountLink.HintShownKey), never after the player chose SIGN OUT, and

@@ -97,7 +97,7 @@ Each OAuth client (Cloud project 528367766818, Credentials, Android client for p
 
 If the third client is missing, the Play-installed app will fail Play Games sign-in (status code like DEVELOPER_ERROR / "sign in failed") even though sideloaded release builds work. Also add testers' Google accounts in the Play Games Services testing list until the game is published. I did not verify the SHA-1s against the keystore (needs the password).
 
-Sign-in flow in code: `PlayGamesAccount.SignIn` (silent `Authenticate` at start, `ManuallyAuthenticate` from the Options Account row); failures are logged with the plugin's status code and surfaced by `SignInDiagnosis`. Play Games saved games must also be enabled for the game in Play Console (cloud save uses `OpenWithAutomaticConflictResolution`).
+Sign-in flow in code: `PlayGamesAccount.SignIn` (silent `Authenticate` at start, `ManuallyAuthenticate` from the leaderboard panel's SIGN IN); failures are logged with the plugin's status code and surfaced by `SignInDiagnosis`. Play Games saved games must also be enabled for the game in Play Console (cloud save uses `OpenWithAutomaticConflictResolution`).
 
 ## 10. Install size, startup, memory, frame rate
 

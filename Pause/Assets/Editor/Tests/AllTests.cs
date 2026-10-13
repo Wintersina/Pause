@@ -176,6 +176,7 @@ public static class AllTests
         ("RosterCleanupTest", RosterCleanupTest.Execute),
         ("PremiumShipTest", PremiumShipTest.Execute),
         ("ParagonFlagTest", ParagonFlagTest.Execute),
+        ("FeatureFlagOptionsTest", FeatureFlagOptionsTest.Execute),
         ("ScoringTest", ScoringTest.Execute),
         ("ScoreBonusTest", ScoreBonusTest.Execute),
         ("ScoreMultiplierTest", ScoreMultiplierTest.Execute),
