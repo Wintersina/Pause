@@ -73,6 +73,7 @@ public static class ScreenFitScreens
         new FitScreen { id = "home-toasts", fullBleed = true, scene = "startS4", title = "Home + quit / account toasts", stage = r => Home(r, true) },
         new FitScreen { id = "codex-grid", fullBleed = true, scene = "startS4", title = "Codex / pilot's log: list", stage = r => CodexScreen(r, false) },
         new FitScreen { id = "codex-detail", fullBleed = true, scene = "startS4", title = "Codex / pilot's log: entry", stage = r => CodexScreen(r, true) },
+        new FitScreen { id = "codex-music", fullBleed = true, scene = "startS4", title = "Codex / music tab", stage = r => CodexMusicScreen(r) },
         new FitScreen { id = "codex-backdrops", fullBleed = true, scene = "startS4", title = "Codex / backdrops tab", stage = r => CodexBackdropsScreen(r, false) },
         new FitScreen { id = "codex-backdrop-viewer", fullBleed = true, scene = "startS4", title = "Codex / backdrop viewer", stage = r => CodexBackdropsScreen(r, true) },
         new FitScreen { id = "options", fullBleed = true, scene = "leaderboardS3", title = "Options: account + developer rows", stage = r => Options(r, 0) },
@@ -238,6 +239,24 @@ public static class ScreenFitScreens
         panel.SkipAnimations();
         Canvas.ForceUpdateCanvases();
         // the home menu is behind the panel's scrim: covered, not part of this screen
+        rig.Ignore("MainMenuCanvas");
+    }
+
+    // The MUSIC tab with every track unlocked (the longest list); the rig checks its text for truncation.
+    static void CodexMusicScreen(ScreenFitRig rig)
+    {
+        HomeBase(rig);
+        DeveloperUnlocks.SetEnabled(true);
+        Codex.Reload();
+        var panel = CodexPanel.Open(null);
+        rig.Sync();
+        panel.Refresh();
+        panel.ApplyLayout(CodexUi.SafeAreaUnits(panel.GetComponent<Canvas>()));
+        panel.ShowTab(CodexPanel.MusicTab);
+        panel.SkipAnimations();
+        panel.ApplyLayout(CodexUi.SafeAreaUnits(panel.GetComponent<Canvas>()));
+        panel.SkipAnimations();
+        Canvas.ForceUpdateCanvases();
         rig.Ignore("MainMenuCanvas");
     }
 

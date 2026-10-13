@@ -1246,6 +1246,25 @@ public static class CodexTest
                       pinned.xMin >= view.xMin - .5f && pinned.xMax <= view.xMax + .5f);
                 panel.SetScrollY(0f);
             }
+            panel.ShowTab(CodexPanel.MusicTab);
+            panel.SkipAnimations();
+            Canvas.ForceUpdateCanvases();
+            {
+                var m = panel.Music;
+                bool padded = true;
+                for (int i = 0; i < m.VisibleRows; i++)
+                {
+                    var rt = m.RowRect(i);
+                    var t = m.RowTitle(i).rectTransform;
+                    var sub = m.RowSub(i).rectTransform;
+                    float hw = rt.sizeDelta.x * .5f, hh = rt.sizeDelta.y * .5f;
+                    padded &= t.anchoredPosition.x - t.sizeDelta.x * .5f >= -hw + CodexMusicView.InsetX - .01f
+                           && t.anchoredPosition.y + t.sizeDelta.y * .5f <= hh - CodexMusicView.InsetY + .01f
+                           && sub.anchoredPosition.y - sub.sizeDelta.y * .5f >= -hh + CodexMusicView.InsetY - .01f
+                           && rt.sizeDelta.y >= 96f;
+                }
+                Check(name + ": music rows keep their text clear of the card border", padded);
+            }
             for (int i = 0; i < CodexPanel.Tabs.Length; i++)
                 Check(name + ": tab " + panel.TabLabel(i).text + " fits at >= 13px", FitsAt(panel.TabLabel(i), 13));
 

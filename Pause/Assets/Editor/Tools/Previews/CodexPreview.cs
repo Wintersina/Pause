@@ -197,6 +197,53 @@ public static class CodexPreview
         }
     }
 
+    // The MUSIC tab (all tracks unlocked, one playing) at 1080 x 2400 and 1080 x 1920:
+    //   PAUSE_CODEX_PREVIEW_DIR=<dir> PAUSE_CODEX_MUSIC_TAG=before|after
+    //   Unity -batchmode -projectPath <abs>/Pause -executeMethod CodexPreview.RunMusic
+    public static void RunMusic()
+    {
+        string dir = Environment.GetEnvironmentVariable("PAUSE_CODEX_PREVIEW_DIR");
+        if (string.IsNullOrEmpty(dir)) dir = "/private/tmp";
+        string tag = Environment.GetEnvironmentVariable("PAUSE_CODEX_MUSIC_TAG");
+        if (string.IsNullOrEmpty(tag)) tag = "music";
+        Directory.CreateDirectory(dir);
+        int code = 0;
+        bool sim = CodexMusicPlayer.Simulate;
+        try
+        {
+            using (new TestHarness.Sandbox())
+            {
+                EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+                DeveloperUnlocks.SetEnabled(true);
+                Codex.Reload();
+                CodexMusicPlayer.Simulate = true;
+                var panel = CodexPanel.Open(null);
+                panel.SkipAnimations();
+                foreach (int h in new[] { 2400, 1920 })
+                {
+                    var tex = Capture(panel, 1080, h, () =>
+                    {
+                        panel.ShowTab(CodexPanel.MusicTab);
+                        panel.SkipAnimations();
+                        if (CodexMusic.All.Count > 1) CodexMusicPlayer.Play(CodexMusic.All[1].id);
+                        panel.Music.Paint();
+                    }, 1, 1080f / 800f);
+                    string path = Path.Combine(dir, "music-" + tag + "-1080x" + h + ".png");
+                    File.WriteAllBytes(path, tex.EncodeToPNG());
+                    UnityEngine.Object.DestroyImmediate(tex);
+                    Debug.Log("[CODEX-PREVIEW] " + path);
+                    CodexMusicPlayer.Stop();
+                }
+                panel.Close();
+                panel.SkipAnimations();
+                DeveloperUnlocks.SetEnabled(false);
+            }
+        }
+        catch (Exception e) { Debug.LogException(e); code = 1; }
+        CodexMusicPlayer.Simulate = sim;
+        EditorApplication.Exit(code);
+    }
+
     static void Shot(CodexPanel panel, string path, float sf, Action setup, int w = PhoneW, int h = PhoneH)
     {
         var tex = Capture(panel, w, h, () =>

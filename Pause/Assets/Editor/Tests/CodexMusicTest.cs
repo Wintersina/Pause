@@ -252,10 +252,39 @@ public static class CodexMusicTest
                 var rt = v.RowRect(i);
                 inside &= rt.sizeDelta.x <= v.ListRect.width && rt.sizeDelta.y >= 96f;
             }
+            bool padded = v.VisibleRows > 0;
+            for (int i = 0; i < v.VisibleRows; i++)
+            {
+                var rt = v.RowRect(i);
+                float hw = rt.sizeDelta.x * .5f, hh = rt.sizeDelta.y * .5f;
+                foreach (var t in new[] { v.RowTitle(i), v.RowSub(i) })
+                {
+                    var r = Local(t.rectTransform);
+                    padded &= r.xMin >= -hw + CodexMusicView.InsetX - .01f
+                           && r.yMax <= hh - CodexMusicView.InsetY + .01f
+                           && r.yMin >= -hh + CodexMusicView.InsetY - .01f;
+                }
+                padded &= Local(v.RowTitle(i).rectTransform).xMax <= hw - CodexMusicView.InsetX + .01f;
+                padded &= rt.sizeDelta.y >= 96f;
+            }
+            Check("row text keeps >= " + CodexMusicView.PadX + " units off the card border horizontally and >= " + CodexMusicView.PadY + " vertically at " + safe.width + "x" + safe.height, padded);
+            {
+                float hw = v.StripRectLocal.width * .5f, hh = v.StripRectLocal.height * .5f;
+                var c = Local(v.StripCount.rectTransform); var ln = Local(v.StripLine.rectTransform);
+                Check("strip text keeps its inset off the card border",
+                    c.xMin >= -hw + CodexMusicView.InsetX - .01f && ln.xMin >= -hw + CodexMusicView.InsetX - .01f
+                    && c.yMax <= hh - CodexMusicView.InsetY + .01f && ln.yMin >= -hh + CodexMusicView.InsetY - .01f);
+            }
             Check("rows fit the list width and are >= 96 units tall at " + safe.width + "x" + safe.height, inside);
             Check("the strip sits above the list", v.StripRectLocal.yMin >= v.ListRect.yMax);
             Check("the content is tall enough for every row", v.ContentHeight >= v.VisibleRows * CodexMusicView.RowHeight);
         }
         panel.ApplyLayout(Safes[0]);
+    }
+
+    // A child laid out with CodexUi.Place (centre anchors) as a rect in its parent's space.
+    static Rect Local(RectTransform rt)
+    {
+        return new Rect(rt.anchoredPosition - rt.sizeDelta * .5f, rt.sizeDelta);
     }
 }

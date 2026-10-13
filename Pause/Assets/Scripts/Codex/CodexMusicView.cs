@@ -13,11 +13,16 @@ using UnityEngine.UI;
 // stops it whenever the tab or the codex is left.
 public sealed class CodexMusicView
 {
-    public const float StripHeight = 112f, StripGap = 12f;
-    public const float RowHeight = 108f, RowGap = 12f;
+    // The cx_card 9-slice border is 28 canvas units (56 px at 200 ppu under a 100 ppu canvas):
+    // text must start past it, plus a breathing gap, or it sits on the card's outline.
+    public const float CardBorder = 28f;
+    public const float PadX = 12f, PadY = 8f;
+    public const float InsetX = CardBorder + PadX, InsetY = CardBorder + PadY;
+    public const float StripHeight = 128f, StripGap = 12f;
+    public const float RowHeight = 132f, RowGap = 12f;
     public const float StopWidth = 200f;
     public const string LockedHint = "Not heard yet.  Keep flying.";
-    public const string IdleLine = "Tap a track to listen. The menu music rests while one plays.";
+    public const string IdleLine = "Tap a track to listen.";
     public const string SoundOffLine = "Sound is off in Options.";
 
     sealed class Row
@@ -176,11 +181,12 @@ public sealed class CodexMusicView
         stripRect = new Rect(-w * .5f, h * .5f - StripHeight, w, StripHeight);
         listRect = Rect.MinMaxRect(-w * .5f, -h * .5f, w * .5f, stripRect.yMin - StripGap);
         CodexUi.Place(strip, stripRect);
-        float pad = 20f, btnW = Mathf.Min(StopWidth, w * .34f), btnH = 72f;
-        CodexUi.Place(stopFrame.rectTransform, CodexUi.Centered(w * .5f - pad - btnW * .5f, 0f, btnW, btnH));
-        float textW = w - btnW - pad * 3f;
-        CodexUi.Place(stripCount.rectTransform, new Rect(-w * .5f + pad + 8f, 2f, textW - 8f, StripHeight * .5f - 12f));
-        CodexUi.Place(stripLine.rectTransform, new Rect(-w * .5f + pad + 8f, -StripHeight * .5f + 8f, textW - 8f, StripHeight * .5f - 10f));
+        float btnW = Mathf.Min(StopWidth, w * .34f), btnH = StripHeight - 2f * InsetY;
+        CodexUi.Place(stopFrame.rectTransform, CodexUi.Centered(w * .5f - InsetX - btnW * .5f, 0f, btnW, btnH));
+        float textW = w - btnW - InsetX * 2f - 12f;
+        float lineH = StripHeight * .5f - InsetY - 2f;
+        CodexUi.Place(stripCount.rectTransform, new Rect(-w * .5f + InsetX, 2f, textW, lineH));
+        CodexUi.Place(stripLine.rectTransform, new Rect(-w * .5f + InsetX, -2f - lineH, textW, lineH));
         CodexUi.Place(grid, listRect);
         LayoutRows();
     }
@@ -197,12 +203,13 @@ public sealed class CodexMusicView
             r.rt.pivot = new Vector2(.5f, 1f);
             r.rt.anchoredPosition = new Vector2(0f, -y);
             r.rt.sizeDelta = new Vector2(w, RowHeight);
-            float chipW = Mathf.Min(170f, w * .26f), chipH = 56f, pad = 26f;
-            CodexUi.Place(r.chip.rectTransform, CodexUi.Centered(w * .5f - pad - chipW * .5f, 0f, chipW, chipH));
-            float textW = w - chipW - pad * 3f;
-            float left = -w * .5f + pad;
-            CodexUi.Place(r.title.rectTransform, new Rect(left, 4f, textW, RowHeight * .5f - 8f));
-            CodexUi.Place(r.sub.rectTransform, new Rect(left, -RowHeight * .5f + 10f, textW, RowHeight * .5f - 18f));
+            float chipW = Mathf.Min(170f, w * .26f), chipH = RowHeight - 2f * InsetY;
+            CodexUi.Place(r.chip.rectTransform, CodexUi.Centered(w * .5f - InsetX - chipW * .5f, 0f, chipW, chipH));
+            float textW = w - chipW - InsetX * 2f - 12f;
+            float left = -w * .5f + InsetX;
+            float lineH = RowHeight * .5f - InsetY - 2f;
+            CodexUi.Place(r.title.rectTransform, new Rect(left, 2f, textW, lineH));
+            CodexUi.Place(r.sub.rectTransform, new Rect(left, -2f - lineH, textW, lineH));
             y += RowHeight + RowGap;
         }
         float total = Mathf.Max(0f, y - RowGap) + 8f;
