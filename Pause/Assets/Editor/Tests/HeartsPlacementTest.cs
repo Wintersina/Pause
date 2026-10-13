@@ -209,7 +209,8 @@ public static class HeartsPlacementTest
 
     // The thumb: movePlayer flies the ship 1 unit above the finger; a thumb
     // pad covers about this radius round it (and everything under it).
-    public const float FingerBelow = ShipLivesIndicator.ThumbBelow, FingerRadius = ShipLivesIndicator.ThumbRadius;
+    public static float FingerBelow { get { return ShipLivesIndicator.ThumbBelow; } }
+    public const float FingerRadius = ShipLivesIndicator.ThumbRadius;
 
     public static bool UnderThumb(Bounds h, Vector3 ship)
     {

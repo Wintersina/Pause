@@ -82,7 +82,8 @@ public abstract class HeartOrbit : MonoBehaviour
     // The thumb: movePlayer flies the ship ThumbBelow above the finger; its
     // pad covers ThumbRadius round that point, the rest of it everything
     // under.
-    public const float ThumbBelow = ShipReach.FingerOffset, ThumbRadius = .42f;
+    public const float ThumbRadius = .42f;
+    public static float ThumbBelow { get { return ShipReach.FingerOffset; } }
 
     public static bool UnderThumb(Vector2 offset, float half)
     {

@@ -789,7 +789,15 @@ public static class TutorialPolishTest
 
     static void FingerOffset()
     {
-        Check("the finger-to-ship offset is 25% up on the old 1.0 u (" + ShipReach.FingerOffset + ")", Mathf.Approximately(ShipReach.FingerOffset, 1.25f));
+        Check("the finger-to-ship offset is the 1.25 u base plus 1 mm (" + ShipReach.FingerOffset + ")", Mathf.Approximately(ShipReach.FingerOffset, ShipReach.BaseFingerOffset + ShipReach.MmToWorld(1f)) && ShipReach.FingerOffset > 1.25f);
+        // +1 mm of physical distance at several dpi values (pure math, 1080x2400 over a 13.2 u view)
+        foreach (float dpi in new[] { 0f, 160f, 320f, 420f, 560f })
+        {
+            float eff = dpi < 1f ? ShipReach.FallbackDpi : dpi;
+            float px = ShipReach.MmToWorld(1f, dpi, 2400f, 13.2f) / (13.2f / 2400f);
+            Check("1 mm at " + dpi + " dpi = " + eff / 25.4f + " px (" + px + ")", Mathf.Abs(px - eff / 25.4f) < .01f);
+        }
+        Check("the extra gap shrinks in world units as dpi falls", ShipReach.MmToWorld(1f, 560f, 2400f, 13.2f) > ShipReach.MmToWorld(1f, 280f, 2400f, 13.2f));
         Check("the hearts' thumb clearance follows it", Mathf.Approximately(HeartOrbit.ThumbBelow, ShipReach.FingerOffset));
         foreach (var f in new[] { "Assets/Scripts/Ship/movePlayer.cs", "Assets/Scripts/Gameplay/movePlayerInTut.cs", "Assets/Scripts/Worlds/Planetfall/Planetfall.cs" })
         {
@@ -821,7 +829,8 @@ public static class TutorialPolishTest
             PlayField.Reset();
             var f = PlayField.Live;
             float lowest = ShipReach.ClampY(f.bottom + ShipReach.FingerOffset);   // a finger on the screen's bottom edge
-            if (lowest > ShipReach.Bottom + .05f)
+            // the floor can sit up to the extra 1 mm above a finger on the very bottom edge (only on screens without a bottom inset)
+            if (lowest > ShipReach.Bottom + .05f + ShipReach.MmToWorld(ShipReach.ExtraFingerMm))
                 Check(d.id + ": a finger on the bottom edge reaches the ship's floor (" + lowest.ToString("0.000") + " vs " + ShipReach.Bottom.ToString("0.000") + ")", false);
             float highest = ShipReach.ClampY(f.top);
             if (Mathf.Abs(highest - ShipReach.Top) > .001f) Check(d.id + ": the top is reachable", false);

@@ -68,7 +68,27 @@ public static class ShipReach
     // movePlayerInTut, Planetfall's hand-back): 1.25 u, 25% above the 1.0 u it
     // was, so the thumb sits further from the hull. The reach itself (rail
     // clamps, floor, ceiling) does not depend on it.
-    public const float FingerOffset = 1.25f;
+    //
+    // 1.25 u (BaseFingerOffset) plus ExtraFingerMm (1 mm of PHYSICAL screen)
+    // converted to world units live: mm -> px by the screen's dpi
+    // (FallbackDpi when it reports 0), px -> u by the camera's view height
+    // over the screen height. Device-independent: the same gap on every phone.
+    public const float BaseFingerOffset = 1.25f;
+    public const float ExtraFingerMm = 1f;
+    public const float FallbackDpi = 320f;
+    public static float FingerOffset { get { return BaseFingerOffset + MmToWorld(ExtraFingerMm); } }
+    public static float MmToWorld(float mm)
+    {
+        var cam = Camera.main;
+        float viewH = cam != null && cam.orthographic ? 2f * cam.orthographicSize : 2f * CameraFit.AuthoredSize;
+        return MmToWorld(mm, ScreenInfo.Dpi, ScreenInfo.Height, viewH);
+    }
+    public static float MmToWorld(float mm, float dpi, float screenHeightPx, float viewHeightU)
+    {
+        if (dpi < 1f) dpi = FallbackDpi;
+        if (screenHeightPx < 1f) return 0f;
+        return mm * dpi / 25.4f * (viewHeightU / screenHeightPx);
+    }
     // Sideways: the ship's centre stays within +/- this. It was the constant
     // 2.4 (LegacyHalfWidth), which let a 0.58 u hull poke 0.08 u into the
     // drawn rails (inner edge 2.61); now the hull's side stops on the rails'
