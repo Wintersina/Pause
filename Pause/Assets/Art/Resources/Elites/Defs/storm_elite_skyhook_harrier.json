@@ -16,7 +16,7 @@
     "hit": -1,
     "damaged": 6
   },
-  "cellWorldSize": 1.5,
+  "cellWorldSize": 2.06,
   "noseDeg": 90,
   "maxBank": 3,
   "heartColor": "#FFF3A0",
@@ -25,7 +25,7 @@
   "engineColor": "#9CC8FF",
   "hearts": 2,
   "heartSize": 0.18,
-  "heartOrbit": 0.85,
+  "heartOrbit": 0.746,
   "heartStyle": "Halo",
   "exhaustShip": 3,
   "exhaustScale": 0,
@@ -39,7 +39,7 @@
   "brain": "interceptor",
   "attack": "lance_dash",
   "lore": "A swept interceptor that hangs off the skyhook docks and winds a barbed lance out of its nose. It tells the dash with the prong glowing, then hooks straight through the spot you stood on. Step aside while the prong glows; it never turns once the hook is thrown.",
-  "hullRadius": 0.3,
+  "hullRadius": 0.39,
   "turnsToFace": true,
   "speed": 3.0,
   "accel": 6.5,
@@ -80,5 +80,6 @@
     }
   ],
   "followDistance": 2.0,
-  "dashSpeed": 8.0
+  "dashSpeed": 8.0,
+  "followLag": 0.35
 }

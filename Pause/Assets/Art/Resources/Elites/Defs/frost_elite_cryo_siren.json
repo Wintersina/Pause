@@ -22,8 +22,8 @@
     "hit": -1,
     "damaged": 6
   },
-  "cellWorldSize": 1.5,
-  "hullRadius": 0.26,
+  "cellWorldSize": 1.88,
+  "hullRadius": 0.309,
   "noseDeg": 90,
   "turnsToFace": false,
   "maxBank": 5,
@@ -81,5 +81,6 @@
   "hazardSize": 0.36,
   "hazardSeconds": 0.8,
   "hazardCount": 8,
-  "hazardSpeed": 3.0
+  "hazardSpeed": 3.0,
+  "followLag": 0.15
 }

@@ -157,6 +157,19 @@ the codex voice: second person, playful, gives a hint), `brain`, `attack`,
 + heartSize x 1.05` stays under ~0.52 u -- a tighter orbit than the player's
 (EliteTest compares them).
 
+**Size tier (docs/ship-scale-and-lockon-analysis.md):** pick `cellWorldSize` so the DRAWN silhouette (longest side of the flight cell's
+alpha bbox, not the cell) is at least `EliteDef.FloorHulls` x the flown hull (1.9 x 0.78 u = 1.5 u; armoured / slow classes -- brains in
+`EliteDef.HeavyBrains` -- 2.1 x = 1.65 u), and `hullRadius` about 0.45-0.55 of the drawn half-size. `ShipTierTest` fails below the floor.
+A strip that draws only 65% of its cell needs a cell of ~2.3 u, not 1.5. Give it a
+focal accent >= 6 art px (section 3.3 of the analysis).
+
+**Lock-on (so it never "welds" to the pilot):** `followLag` (0.15-0.6 s, default 0.3: the pilot position its brain steers to is low-passed),
+`aimCommit` (0.3-0.65 share of the tell, default 0.5: an aimed attack follows the pilot until then and shoots at where the pilot WAS --
+`ship.AimSeen`, never `ship.Seen`, in `BeginAction` / `StepAction`), `faceTurnMax` (deg/s, default 300). An attack that aims at the pilot
+overrides `Aimed => true` (its tell is then at least `EliteDef.MinAimedTell` 0.6 s, so the warning after the commit is >= 0.3 s;
+`EliteLockOnTest` checks every def). Attacks that lock their lane / spots at the first frame of the tell and draw them (the Tide /
+Verdant telegraphs) need none of this.
+
 Personality numbers (shared base): `speed`, `accel`, `turnRate`,
 `followDistance`, `aggression` (0-1), `tellSeconds`, `attackGap`,
 `avoidance` (0-1 dodge skill), `lookAhead` (s), `perception` (u/s to re-find

@@ -58,5 +58,6 @@
       "dir": -1.0
     }
   ],
-  "codexId": "elite_ember_cauterizer"
+  "codexId": "elite_ember_cauterizer",
+  "followLag": 0.25
 }

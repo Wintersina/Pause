@@ -16,7 +16,7 @@
     "hit": -1,
     "damaged": 6
   },
-  "cellWorldSize": 1.65,
+  "cellWorldSize": 2.51,
   "noseDeg": 90,
   "maxBank": 3,
   "heartColor": "#FFF3A0",
@@ -25,7 +25,7 @@
   "engineColor": "#9CC8FF",
   "hearts": 2,
   "heartSize": 0.18,
-  "heartOrbit": 0.85,
+  "heartOrbit": 0.53,
   "heartStyle": "Halo",
   "exhaustShip": 3,
   "exhaustScale": 0,
@@ -39,7 +39,7 @@
   "brain": "siege",
   "attack": "siege_cannon",
   "lore": "A flat-topped thunderhead with a cannon where the lightning should be. It draws one cold line down the sky, holds it, and fires a lightning shell along it. Leave the line and the shell finds nothing.",
-  "hullRadius": 0.38,
+  "hullRadius": 0.549,
   "turnsToFace": false,
   "speed": 1.7,
   "accel": 4.0,
@@ -79,5 +79,6 @@
       "dir": -1.0
     }
   ],
-  "topMargin": 1.6
+  "topMargin": 1.6,
+  "followLag": 0.25
 }

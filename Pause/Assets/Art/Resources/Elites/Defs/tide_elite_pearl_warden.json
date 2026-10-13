@@ -16,7 +16,7 @@
     "hit": -1,
     "damaged": 6
   },
-  "cellWorldSize": 1.5,
+  "cellWorldSize": 2.59,
   "noseDeg": 90,
   "maxBank": 3,
   "heartColor": "#7FD8FF",
@@ -25,7 +25,7 @@
   "engineColor": "#5FF2D0",
   "hearts": 2,
   "heartSize": 0.18,
-  "heartOrbit": 0.85,
+  "heartOrbit": 0.537,
   "heartStyle": "Halo",
   "exhaustShip": 3,
   "exhaustScale": 0,
@@ -40,7 +40,7 @@
   "attack": "pearl_curtain",
   "launchFrom": "wreckbay",
   "lore": "A shell-plated warden that opens its halves and lets go a curtain of slow pearls across your row. The pearls drift down slowly, and exactly one spot beside you is left out. Slip into the gap before the shell closes.",
-  "hullRadius": 0.33,
+  "hullRadius": 0.542,
   "turnsToFace": false,
   "speed": 1.8,
   "accel": 3.5,
@@ -88,5 +88,6 @@
       "y": 145,
       "dir": -1.0
     }
-  ]
+  ],
+  "followLag": 0.25
 }

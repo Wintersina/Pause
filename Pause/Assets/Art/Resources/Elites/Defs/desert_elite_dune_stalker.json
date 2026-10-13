@@ -17,7 +17,7 @@
     "hit": -1,
     "damaged": 6
   },
-  "cellWorldSize": 1.5,
+  "cellWorldSize": 2.06,
   "noseDeg": 90,
   "maxBank": 3,
   "heartColor": "#FFF6DC",
@@ -26,7 +26,7 @@
   "engineColor": "#FFF1C8",
   "hearts": 2,
   "heartSize": 0.18,
-  "heartOrbit": 0.85,
+  "heartOrbit": 0.746,
   "heartStyle": "Halo",
   "exhaustShip": 3,
   "exhaustScale": 0,
@@ -40,7 +40,7 @@
   "brain": "interceptor",
   "attack": "lance_dash",
   "lore": "A low copper sand-shark that lives in a worm-burrow hole at the edge of the dunes. It sights you, rears, and bursts through its own sand wake in one straight lance dash, grit needles spitting from its flanks. Step out of the wake, not along it.",
-  "hullRadius": 0.3,
+  "hullRadius": 0.39,
   "turnsToFace": true,
   "speed": 3.15,
   "accel": 6.5,
@@ -81,5 +81,6 @@
     }
   ],
   "followDistance": 2.0,
-  "dashSpeed": 8.4
+  "dashSpeed": 8.4,
+  "followLag": 0.35
 }

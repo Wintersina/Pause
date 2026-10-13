@@ -22,8 +22,8 @@
     "hit": -1,
     "damaged": 6
   },
-  "cellWorldSize": 1.55,
-  "hullRadius": 0.33,
+  "cellWorldSize": 2.43,
+  "hullRadius": 0.492,
   "noseDeg": 90,
   "turnsToFace": true,
   "maxBank": 0,
@@ -48,7 +48,7 @@
   "engineColor": "#6FD8FF",
   "hearts": 2,
   "heartSize": 0.18,
-  "heartOrbit": 0.85,
+  "heartOrbit": 0.591,
   "heartStyle": "Halo",
   "exhaustShip": 3,
   "exhaustScale": 0,
@@ -91,5 +91,6 @@
   "armored": true,
   "followDistance": 1.8,
   "dashSpeed": 6.0,
-  "hazardCount": 3
+  "hazardCount": 3,
+  "followLag": 0.35
 }

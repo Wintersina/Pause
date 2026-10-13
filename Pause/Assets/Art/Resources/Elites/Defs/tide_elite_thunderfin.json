@@ -16,7 +16,7 @@
     "hit": -1,
     "damaged": 6
   },
-  "cellWorldSize": 1.5,
+  "cellWorldSize": 2.28,
   "noseDeg": 90,
   "maxBank": 3,
   "heartColor": "#7FD8FF",
@@ -25,7 +25,7 @@
   "engineColor": "#5FF2D0",
   "hearts": 2,
   "heartSize": 0.18,
-  "heartOrbit": 0.85,
+  "heartOrbit": 0.72,
   "heartStyle": "Halo",
   "exhaustShip": 3,
   "exhaustScale": 0,
@@ -40,7 +40,7 @@
   "attack": "thunder_strike",
   "launchFrom": "ventstack",
   "lore": "A ray-finned storm skiff that charges its coils off the vent stacks. A glyph appears under every column it means to call down, and a second later the lightning lands. Leave the glyph; the sky is open everywhere else.",
-  "hullRadius": 0.28,
+  "hullRadius": 0.404,
   "turnsToFace": false,
   "speed": 2.6,
   "accel": 5.5,
@@ -94,5 +94,6 @@
       "y": 152,
       "dir": -1.0
     }
-  ]
+  ],
+  "followLag": 0.3
 }

@@ -123,6 +123,8 @@ public static class AllTests
         ("PrivacyLinkTest", PrivacyLinkTest.Execute),
         ("EliteTest", EliteTest.Execute),
         ("EliteEvasionTest", EliteEvasionTest.Execute),
+        ("EliteLockOnTest", EliteLockOnTest.Execute),
+        ("ShipTierTest", ShipTierTest.Execute),
         ("EnemyBehaviourTest", EnemyBehaviourTest.Execute),
         ("EnemyJitterTest", EnemyJitterTest.Execute),
         ("EnemyAvoidanceTest", EnemyAvoidanceTest.Execute),

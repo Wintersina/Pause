@@ -28,9 +28,9 @@ public static class PilotAirspace
 {
     // ---- tunables ----
     // A column's clearance beyond band + body, each side.
-    public const float ColumnMargin = .1f;
+    public const float ColumnMargin = .05f;   // (was .1 before the 1.2 x size tier: the bodies grew 20%, the lane did not -- a heavy and a small pilot still share it)
     // Columns keep inside +/- this: the rail mines' inner edge is at ~2.04.
-    public const float RailClear = 2f;
+    public const float RailClear = 1.85f;   // (was 2: the bodies grew 20% with the size tier, a heavy at its station must not reach the mines' slide)
     // At most this share of the lane (2 x SpawnLane.LaneHalf) is reserved
     // (one pilot is always allowed, however wide).
     public static float MaxReservedShare = .50f;

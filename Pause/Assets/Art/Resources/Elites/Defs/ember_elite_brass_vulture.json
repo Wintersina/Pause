@@ -25,7 +25,7 @@
   "turnRate": 280,
   "circleRadius": 2.0,
   "aggression": 0.55,
-  "tellSeconds": 0.5,
+  "tellSeconds": 0.65,
   "attackGap": 3.5,
   "avoidance": 0.8,
   "lookAhead": 0.5,
@@ -53,5 +53,6 @@
       "dir": -1.0
     }
   ],
-  "codexId": "elite_ember_brass_vulture"
+  "codexId": "elite_ember_brass_vulture",
+  "followLag": 0.3
 }

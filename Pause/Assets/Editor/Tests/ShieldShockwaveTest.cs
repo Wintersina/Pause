@@ -691,7 +691,7 @@ public static class ShieldShockwaveTest
 
         // an elite in play, on a board of its own
         Fresh();
-        var flying = EliteShip.CreateInPlay(def, Ship + new Vector2(.9f, .6f));
+        var flying = EliteShip.CreateInPlay(def, Ship + new Vector2(.9f + def.hullRadius, .6f));   // (beside the column whatever the elite's size tier)
         flying.AttackCooldown = 99f;
         flying.Velocity = Vector2.zero;
         Vector2 flyingAt = flying.Position;

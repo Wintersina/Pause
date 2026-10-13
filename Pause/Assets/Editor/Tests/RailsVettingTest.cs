@@ -615,8 +615,10 @@ public static class RailsVettingTest
             fly(.2f);
             int burst = board.SpawnedCount - before;
             fly(2f);
-            Check("... and no burst when it ends, though every timer was due (" + burst + " at the instant, " + (board.SpawnedCount - before) + " after 2 s)",
-                  !board.InCalmWindow && burst == 0 && board.SpawnedCount - before <= 3 && board.SpawnedCount - before >= 1);
+            var seenKeys = new System.Text.StringBuilder();
+            foreach (var idn in Object.FindObjectsByType<EnemyIdentity>(FindObjectsSortMode.None)) if (idn.Def != null) seenKeys.Append(idn.Def.key).Append(' ');
+            Check("... and no burst when it ends, though every timer was due (" + burst + " at the instant, " + (board.SpawnedCount - before) + " after 2 s: " + seenKeys + ")",
+                  !board.InCalmWindow && burst == 0 && board.SpawnedCount - before <= 4 && board.SpawnedCount - before >= 1);   // (<= 4: the two rock slots are not staggered; which of them lands in the 2 s depends on the seeded draw, 3 or 4 before / after the size tier)
 
             // a loop back to the same world is an arrival too
             before = board.SpawnedCount;

@@ -90,7 +90,18 @@ public static class EnemyRoster
     // target BigWidth instead (TargetWidth / TargetCollider below), and the
     // mines, back on their original neon atlas: held to the drawing the
     // original showed (MineWidth), not its 0.8 u cell.
-    public const float BigWidth = 1.1f;
+    //
+    // SIZE TIERS (docs/ship-scale-and-lockon-analysis.md): the fodder, fighter and
+    // heavy tiers are shown TierScale x their legacy size (the drawings were 0.33-0.5
+    // screen px per art px: eyes, ports and outlines were lost). Mines (rail
+    // mounted, collider pinned) and bosses are not part of it.
+    public const float TierScale = 1.2f;
+    public static float TierScaleFor(EnemyRole role)
+    {
+        return role == EnemyRole.Mine ? 1f : TierScale;
+    }
+
+    public const float BigWidth = 1.1f * TierScale;
 
     // The original atlas mine's drawn width: ~255 px at 180 PPU, prefab
     // scale 0.46. RailMineArt.PixelsPerUnit draws it at ~0.66 u.
@@ -100,12 +111,12 @@ public static class EnemyRoster
     // or the heavies' and mines' own.
     public static float TargetWidth(EnemyRole role)
     {
-        return role == EnemyRole.Big ? BigWidth : role == EnemyRole.Mine ? MineWidth : LegacyWidth(role);
+        return role == EnemyRole.Big ? BigWidth : role == EnemyRole.Mine ? MineWidth : LegacyWidth(role) * TierScaleFor(role);
     }
 
     public static Vector2 TargetCollider(EnemyRole role)
     {
-        return role == EnemyRole.Big ? ColliderSize(EnemyRole.Big) : LegacyCollider(role);
+        return role == EnemyRole.Big ? ColliderSize(EnemyRole.Big) : LegacyCollider(role) * TierScaleFor(role);
     }
 
     public static Vector2 LegacyCollider(EnemyRole role)
@@ -137,13 +148,13 @@ public static class EnemyRoster
     {
         switch (role)
         {
-            case EnemyRole.Rock: return new Vector2(.472f, .472f);
+            case EnemyRole.Rock: return new Vector2(.472f, .472f) * TierScale;
             // ~78% of the 1.1 u drawing: scaled with the art, inset a little
             // further than the rocks' 82% so a graze past the plating is fair
-            case EnemyRole.Big: return new Vector2(.86f, .86f);
-            case EnemyRole.Fighter: return new Vector2(.68f, .61f);
-            case EnemyRole.Chaser: return new Vector2(.66f, .62f);
-            case EnemyRole.Alien: return new Vector2(.4f, .2f);
+            case EnemyRole.Big: return new Vector2(.86f, .86f) * TierScale;
+            case EnemyRole.Fighter: return new Vector2(.68f, .61f) * TierScale;
+            case EnemyRole.Chaser: return new Vector2(.66f, .62f) * TierScale;
+            case EnemyRole.Alien: return new Vector2(.4f, .2f) * TierScale;
             default: return new Vector2(.621f, .621f);
         }
     }
@@ -155,11 +166,11 @@ public static class EnemyRoster
     {
         switch (role)
         {
-            case EnemyRole.Rock: return .66f;
-            case EnemyRole.Big: return 1.3f;   // the drawing fills ~85%: ~1.1 u
-            case EnemyRole.Fighter: return .9f;
-            case EnemyRole.Chaser: return .95f;
-            case EnemyRole.Alien: return .67f;
+            case EnemyRole.Rock: return .66f * TierScale;
+            case EnemyRole.Big: return 1.3f * TierScale;   // the drawing fills ~85%: ~1.3 u
+            case EnemyRole.Fighter: return .9f * TierScale;
+            case EnemyRole.Chaser: return .95f * TierScale;
+            case EnemyRole.Alien: return .67f * TierScale;
             default: return .85f;
         }
     }

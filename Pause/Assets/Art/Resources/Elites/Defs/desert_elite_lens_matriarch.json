@@ -17,7 +17,7 @@
     "hit": -1,
     "damaged": 6
   },
-  "cellWorldSize": 1.5,
+  "cellWorldSize": 1.97,
   "noseDeg": 90,
   "maxBank": 3,
   "heartColor": "#FFF6DC",
@@ -26,7 +26,7 @@
   "engineColor": "#FFF1C8",
   "hearts": 2,
   "heartSize": 0.18,
-  "heartOrbit": 0.85,
+  "heartOrbit": 0.65,
   "heartStyle": "Halo",
   "exhaustShip": 3,
   "exhaustScale": 0,
@@ -40,7 +40,7 @@
   "brain": "skirmisher",
   "attack": "blink_shards",
   "lore": "A slim heliograph of mirror petals that signals across the dunes. It blinks beside you and fans out three real glass shards among three hollow decoy glints. The decoys are empty: watch which ones are solid.",
-  "hullRadius": 0.36,
+  "hullRadius": 0.448,
   "turnsToFace": true,
   "speed": 2.835,
   "accel": 8.0,
@@ -93,5 +93,6 @@
     }
   ],
   "keepDistance": 2.6,
-  "blinkDistance": 1.7
+  "blinkDistance": 1.7,
+  "followLag": 0.25
 }

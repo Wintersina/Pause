@@ -17,7 +17,7 @@
     "hit": -1,
     "damaged": 6
   },
-  "cellWorldSize": 1.6,
+  "cellWorldSize": 2.37,
   "noseDeg": 90,
   "maxBank": 3,
   "heartColor": "#FFF6DC",
@@ -26,7 +26,7 @@
   "engineColor": "#FFF1C8",
   "hearts": 2,
   "heartSize": 0.18,
-  "heartOrbit": 0.85,
+  "heartOrbit": 0.609,
   "heartStyle": "Halo",
   "exhaustShip": 3,
   "exhaustScale": 0,
@@ -40,7 +40,7 @@
   "brain": "bastion",
   "attack": "ward_curtain",
   "lore": "A shielded tank ringed in overlapping glass-mirror plates. It rolls out of a ruin dock and hangs a curtain of slow glass shards in front of itself with one gap in it. Find the gap and wait.",
-  "hullRadius": 0.34,
+  "hullRadius": 0.478,
   "turnsToFace": false,
   "speed": 1.785,
   "accel": 3.5,
@@ -100,5 +100,6 @@
   ],
   "followDistance": 3.0,
   "laneOffset": 0.9,
-  "lobSpacing": 0.62
+  "lobSpacing": 0.62,
+  "followLag": 0.25
 }

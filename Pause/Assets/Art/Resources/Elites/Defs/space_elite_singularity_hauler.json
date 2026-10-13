@@ -22,8 +22,8 @@
     "hit": -1,
     "damaged": 6
   },
-  "cellWorldSize": 1.55,
-  "hullRadius": 0.32,
+  "cellWorldSize": 2.06,
+  "hullRadius": 0.404,
   "noseDeg": 90,
   "turnsToFace": false,
   "maxBank": 3,
@@ -54,7 +54,7 @@
   "engineColor": "#6FD8FF",
   "hearts": 2,
   "heartSize": 0.18,
-  "heartOrbit": 0.85,
+  "heartOrbit": 0.72,
   "heartStyle": "Halo",
   "exhaustShip": 3,
   "exhaustScale": 0,
@@ -99,5 +99,6 @@
       "y": 132,
       "dir": -1.0
     }
-  ]
+  ],
+  "followLag": 0.25
 }

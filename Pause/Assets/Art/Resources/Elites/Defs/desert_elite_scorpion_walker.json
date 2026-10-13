@@ -7,7 +7,7 @@
   "engineColor": "#FFF1C8",
   "hearts": 2,
   "heartSize": 0.18,
-  "heartOrbit": 0.85,
+  "heartOrbit": 0.713,
   "heartStyle": "Halo",
   "exhaustShip": 3,
   "cellPixels": 192,
@@ -17,8 +17,8 @@
   "brain": "striker",
   "attack": "claw_dive",
   "lore": "An armoured walker that lifts off a ruin dock with its tail curled over its back. It dives claws first, then lashes the sting across the lane: the pink tip is the part that hurts. Slip behind the lash.",
-  "cellWorldSize": 1.55,
-  "hullRadius": 0.33,
+  "cellWorldSize": 2.02,
+  "hullRadius": 0.408,
   "noseDeg": 270,
   "turnsToFace": true,
   "speed": 3.2,
@@ -74,5 +74,6 @@
     "action": -1,
     "hit": -1,
     "damaged": 6
-  }
+  },
+  "followLag": 0.3
 }

@@ -1392,3 +1392,13 @@ core line 2.5 texels wide right at the silhouette, then a 2-texel dark keyline w
 the heart's cell in all, never a round halo; constant scale, only its alpha pulses (0.78..1). Elite hearts are drawn
 10% larger (0.198, still under the player's 0.22). Over all four worlds every outlined heart has outline pixels
 3:1 clear of what is behind it.
+
+
+## Elite lock-on and size tiers
+
+Full analysis: `docs/ship-scale-and-lockon-analysis.md`.
+
+* An elite perceives the pilot exactly (`EliteShip.Seen`) but its **brain steers to `Follow`**, `Seen` through a low-pass of `followLag` seconds, so it trails the pilot's twitches (gunship 0.45, stalkers 0.35, skirmishers 0.25 ...).
+* An **aimed attack** (`EliteAttack.Aimed`) reads `EliteShip.AimSeen`: live for the first `aimCommit` (0.5) of the tell, frozen after it. The shot / row / well / dive goes where the pilot was at the commit, so the second half of the tell is the player's window (>= 0.3 s: aimed tells are at least `EliteDef.MinAimedTell` = 0.6 s).
+* The hull turns to face the pilot at most `faceTurnMax` (300) deg/s.
+* Sizes: enemy roles Rock / Alien / Fighter / Chaser / Big are 1.2 x their legacy size (`EnemyRoster.TierScale`; mines and bosses unchanged); elites' drawn silhouette is >= 1.9 x the flown hull (2.1 x for armoured classes). Tests: `ShipTierTest`, `EliteLockOnTest`.

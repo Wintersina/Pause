@@ -332,9 +332,11 @@ public class EnemyBrain : MonoBehaviour
 
     Vector3 MuzzleLocal()
     {
+        // (the muzzle sits on the cannon: it scales with the body's size tier, EnemyRoster.TierScale)
+        float muzzle = Behaviour.muzzle * EnemyRoster.TierScaleFor(Def.role);
         if (Behaviour.attack == EnemyAttack.Cross || Behaviour.attack == EnemyAttack.Laser)
-            return new Vector3(transform.position.x > 0f ? -Behaviour.muzzle : Behaviour.muzzle, 0f, 0f);
-        return new Vector3(0f, -Behaviour.muzzle, 0f);
+            return new Vector3(transform.position.x > 0f ? -muzzle : muzzle, 0f, 0f);
+        return new Vector3(0f, -muzzle, 0f);
     }
 
     Transform Target => TargetOverride != null ? TargetOverride : EliteSystem.Player;
