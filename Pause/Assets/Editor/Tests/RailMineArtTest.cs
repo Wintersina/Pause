@@ -39,7 +39,10 @@ public static class RailMineArtTest
     // SHA-1 of Pause/Assets/Art/Resources/Vfx/rail_bomb_themes_atlas.png at
     // 18b5e5f^ (git blob 0702e8004b2c486f1b6cd08b105df36cf15fcd4a), the art
     // before the flat-cartoon restyle repacked it.
-    public const string OriginalSha1 = "5ce92c375e467f39c839c3fcc6a060c2185840b8";
+    // 2026-10-13: the Verdant row's hot-pink head / thorn tips were recoloured to the Verdant cue green-white
+    // (Assets/Art/Attacks/MineBeams~/recolor_verdant_body.py; pink original archived in MineBeams~/verdant_body/pink_original, whose SHA-1 was
+    // 5ce92c375e467f39c839c3fcc6a060c2185840b8). Every other row is pixel-identical, so the pin moved to the recoloured file.
+    public const string OriginalSha1 = "33e2b29ad364b814874d70ad60a2382eb2fc0d1e";
 
     public static int Execute()
     {
