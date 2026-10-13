@@ -346,7 +346,12 @@ public static class BossEntranceTest
         Check("pickups are spared", pickup != null);
         Check("every kill is FRIENDLY FIRE (" + FriendlyFire.HostileKills + " hostile kills, " + FriendlyFire.ShockwaveKills + " by the wave)",
               FriendlyFire.ShockwaveKills == 3 && FriendlyFire.HostileKills == 3 && FriendlyFire.Kills >= 3);
-        Check("the FRIENDLY FIRE word shows", words >= 1 && FriendlyFire.Popups >= 1);
+        Check("the FRIENDLY FIRE word shows above EVERY kill of the boss fight, not one a gap (" + words + " words for 3 kills)",
+              BossEncounter.Running && words == 3 && FriendlyFire.Popups == 3);
+        int before = words;
+        for (int i = 0; i < 10; i++) FriendlyFire.Popup(new Vector3(i * .1f, 1f, 0f));
+        Check("a mass kill is bounded per frame (" + (words - before) + " of 10 words, cap " + FriendlyFire.BossPopupsPerFrame + ")",
+              words - before == FriendlyFire.BossPopupsPerFrame);
         Check("the pilot is paid nothing for them (no score, as any hostile-fire kill)",
               RunScore.Total == scoreBefore && !FriendlyFire.HostileFireAwardsPlayerCredit);
         Check("... and meets nothing new in the codex through them", Codex.DiscoveredCount == discovered);

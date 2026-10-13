@@ -57,6 +57,7 @@ public static class FriendlyFire
     public const float BossFriendlyFireGap = 1f;                        // seconds between two such hits
     public const float HostileFireReach = .8f;                         // x a target's radius (the shots' hit tests)
     public const float HostileFirePopupGap = 1.5f;                     // seconds between two "FRIENDLY FIRE" words
+    public const int BossPopupsPerFrame = 6;                           // during a boss: every kill gets its own word, up to this many a frame (a mass kill / the landing shockwave is still bounded)
     public const int MaxBeamTargets = 24;                              // per beam pulse
 
     // What the kill in progress comes from (reward code reads it).
@@ -116,10 +117,10 @@ public static class FriendlyFire
     // ---- hostile fire ----
 
     static bool tutorialScene;
-    static int frameKey = int.MinValue, killsThisFrame, editStep;
+    static int frameKey = int.MinValue, killsThisFrame, editStep, popupFrame = int.MinValue, popupsThisFrame;
     static float lastPopup = -999f, lastBossHit = -999f, clock;
 
-    public static void ResetHostileCounters() { HostileKills = HostileEliteHits = HostileCapped = HostileBossHits = Popups = ShockwaveKills = ShockwaveEliteKills = 0; killsThisFrame = 0; frameKey = int.MinValue; lastPopup = -999f; lastBossHit = -999f; }
+    public static void ResetHostileCounters() { HostileKills = HostileEliteHits = HostileCapped = HostileBossHits = Popups = ShockwaveKills = ShockwaveEliteKills = 0; killsThisFrame = 0; frameKey = int.MinValue; lastPopup = -999f; lastBossHit = -999f; popupFrame = int.MinValue; popupsThisFrame = 0; }
 
     // The scene loader's note (HazardRuntime.Boot): Scene.name allocates, so it is read once a load.
     public static void OnSceneLoaded(string sceneName) { tutorialScene = sceneName == score.TutorialScene; }
@@ -279,8 +280,20 @@ public static class FriendlyFire
     public static System.Action<string, Vector3> WordHook;   // edit-mode previews / tests: stands in for the HUD word
     public static void Popup(Vector3 at)
     {
-        if (clock - lastPopup < HostileFirePopupGap) return;
-        lastPopup = clock;
+        if (BossEncounter.Running)
+        {
+            // BOSS: no shared gap -- every object destroyed shows its own word above itself (the pool recycles the oldest),
+            // bounded per frame so a mass kill (shockwave, mine chain) cannot flood the HUD.
+            int key = Application.isPlaying ? Time.frameCount : editStep;
+            if (key != popupFrame) { popupFrame = key; popupsThisFrame = 0; }
+            if (popupsThisFrame >= BossPopupsPerFrame) return;
+            popupsThisFrame++;
+        }
+        else
+        {
+            if (clock - lastPopup < HostileFirePopupGap) return;
+            lastPopup = clock;
+        }
         Popups++;
         if (!Application.isPlaying) { WordHook?.Invoke("FRIENDLY FIRE", at); return; }
         var hud = ScoreHud.Current;
