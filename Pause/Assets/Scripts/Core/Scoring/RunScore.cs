@@ -59,6 +59,8 @@ public static class RunScore
 
     static int runId;
     static bool scoring;      // this run earns points at all (not the tutorial)
+    static bool paysBonus;    // ... the run's score bonus in star dust is paid (scoring, not developer mode)
+    static bool unranked;     // the run flies the premium ship: no best, no board, no score achievements
     static bool savesBest;    // ... and may be saved as best / ranked (not developer mode)
     static bool ended;
     static int bestAtStart;
@@ -74,6 +76,10 @@ public static class RunScore
 
     public static bool Scoring { get { return scoring; } }
     public static bool SavesBest { get { return savesBest; } }
+    public static bool PaysScoreBonus { get { return paysBonus; } }
+    // A run on the premium (cheat) ship: decided when the run begins, so a
+    // later change of selection can't turn it into a ranked one.
+    public static bool Unranked { get { return unranked; } }
     public static bool Ended { get { return ended; } }
     public static int RunId { get { return runId; } }
     public static int BestAtStart { get { return bestAtStart; } }
@@ -123,10 +129,17 @@ public static class RunScore
     // Awake beat the old scene's OnDestroy) is banked first.
     public static int BeginRun(bool scores, bool mayBeBest)
     {
+        return BeginRun(scores, mayBeBest, PremiumShips.IsPremium(ShipId.Equipped()));
+    }
+
+    public static int BeginRun(bool scores, bool mayBeBest, bool premium)
+    {
         if (!ended && runId > 0) Bank();
         runId++;
         scoring = scores;
-        savesBest = scores && mayBeBest;
+        paysBonus = scores && mayBeBest;
+        unranked = premium;
+        savesBest = paysBonus && !premium;
         ended = false;
         bestAtStart = SavedBest;
         distance = 0d;

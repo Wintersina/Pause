@@ -28,9 +28,11 @@ public sealed class GameCenterLeaderboards : ILeaderboardPlatform
         SocialBridge.Authenticate(ok => { if (done != null) done(ok); });
     }
 
-    public void Submit(string boardId, long score, Action<bool> done)
+    public void Submit(string boardId, long score, string tag, Action<bool> done)
     {
         if (!IsSignedIn) { done(false); return; }
+        // Unity's Social API has no GKScore.context, so the tag stays on this
+        // device (LeaderboardService keeps it next to the submitted score).
         Social.ReportScore(score, boardId, ok => done(ok));
     }
 
@@ -100,7 +102,7 @@ public sealed class GameCenterLeaderboards : ILeaderboardPlatform
     public bool IsAvailable { get { return false; } }
     public bool IsSignedIn { get { return false; } }
     public void SignIn(Action<bool> done) { if (done != null) done(false); }
-    public void Submit(string boardId, long score, Action<bool> done) { done(false); }
+    public void Submit(string boardId, long score, string tag, Action<bool> done) { done(false); }
     public void LoadTopScores(string boardId, LeaderboardTimeScope timeScope, int count, Action<LeaderboardPage> done)
     { done(LeaderboardPage.Failed(LeaderboardStatus.Unavailable)); }
     public void LoadPlayerCentered(string boardId, int count, Action<LeaderboardPage> done)

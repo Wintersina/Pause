@@ -51,9 +51,9 @@ public static class ScreenFitScreens
         // Developer-only rows: left as they are on purpose (user decision).
         new FitWaiver { screen = "options", kind = "TAPSIZE", element = "Canvas/Developer",
                         reason = "DEVELOPER-ONLY rows (DeveloperUnlocks.Available builds; not shipped to players): left as is by decision" },
-        new FitWaiver { screen = "options", kind = "TAPSIZE", element = "FlagsRow/",
+        new FitWaiver { screen = "options", kind = "TAPSIZE", element = "Viewport/Content/",
                         reason = "DEVELOPER-ONLY feature-flag list (DeveloperUnlocks.Available builds; not shipped to players)" },
-        new FitWaiver { screen = "options", kind = "SMALLTEXT", element = "FlagsRow/",
+        new FitWaiver { screen = "options", kind = "SMALLTEXT", element = "Viewport/Content/",
                         reason = "DEVELOPER-ONLY feature-flag list (DeveloperUnlocks.Available builds; not shipped to players)" },
     };
 

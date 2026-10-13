@@ -105,14 +105,15 @@ public static class AchievementTracker
 
     static void OnScored(int points, Vector3 at, RunScore.Source source)
     {
-        if (!Achievements.Real) return;
+        if (!Achievements.Real || RunScore.Unranked) return;
         OnScore(RunScore.Total);
     }
 
     // A run's score so far (also when the run is banked).
     public static void OnScore(long total)
     {
-        if (!Achievements.Real) return;
+        // A premium-ship run ranks nothing, so it feeds no score achievement.
+        if (!Achievements.Real || RunScore.Unranked) return;
         AchievementStore.SetCounterAtLeast(AchievementCatalog.CScore, (int)System.Math.Min(total, int.MaxValue));
     }
 
@@ -188,7 +189,7 @@ public static class AchievementTracker
     // WorldManager.Advance loop branch: the run is on pass `loopIndex`.
     public static void OnLoop(int loopIndex)
     {
-        if (Achievements.Real) AchievementStore.SetCounterAtLeast(AchievementCatalog.CLoop, loopIndex);
+        if (Achievements.Real && !RunScore.Unranked) AchievementStore.SetCounterAtLeast(AchievementCatalog.CLoop, loopIndex);
     }
 
     // ---- pickups, deaths ----

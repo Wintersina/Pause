@@ -9,7 +9,7 @@ public sealed class NullLeaderboards : ILeaderboardPlatform
     public bool IsAvailable { get { return false; } }
     public bool IsSignedIn { get { return false; } }
     public void SignIn(Action<bool> done) { if (done != null) done(false); }
-    public void Submit(string boardId, long score, Action<bool> done) { if (done != null) done(false); }
+    public void Submit(string boardId, long score, string tag, Action<bool> done) { if (done != null) done(false); }
 
     public void LoadTopScores(string boardId, LeaderboardTimeScope timeScope, int count, Action<LeaderboardPage> done)
     { done(LeaderboardPage.Failed(LeaderboardStatus.Unavailable)); }

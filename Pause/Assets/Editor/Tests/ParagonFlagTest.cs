@@ -37,6 +37,8 @@ public static class ParagonFlagTest
         using var sandbox = new TestHarness.Sandbox();
 
         PlayerPrefs.DeleteKey(FeatureFlags.KeyOf(Flag));
+        PlayerPrefs.SetInt(DeveloperUnlocks.EnabledKey, 0);
+        PlayerPrefs.DeleteKey(ShipId.OwnedKey(P));
         Check("the flag is ON by default (a stored nothing reads the default)",
               FeatureFlags.IsOn(Flag) && FeatureFlags.DefaultOf(Flag) && FeatureFlags.KeyOf(Flag) == "ff_paragon_ship");
         Check("a normal player (no flag stored, no developer mode) sees Paragon, locked, not owned",
@@ -61,7 +63,7 @@ public static class ParagonFlagTest
     {
         Reset(false, false);
         PlayerPrefs.SetString(ShipId.OwnedKey(P), "True");   // even a stray owned key must not show it
-        ShipId.Equip(P);
+        PlayerPrefs.SetInt(ShipId.SelectedKey, P);   // raw: a stale saved selection
         Check("hidden: not visible", !PremiumShips.Visible);
         Check("hidden: the roster is the 15 ships", ShipId.Count == 15 && ShipId.Last == 15 && shopingShips.shipTotal == 16 &&
               ShipId.All.Count() == 15 && !ShipId.All.Contains(P) && PremiumShips.StandardCount == 15);

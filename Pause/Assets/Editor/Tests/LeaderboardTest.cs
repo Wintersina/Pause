@@ -40,6 +40,7 @@ public static class LeaderboardTest
             ImprovementOnly();
             OfflineQueue();
             Blocked();
+            RunTagsAndParagon();
             PanelStates();
             SafeAreaFit();
             OptionsButton();
@@ -317,6 +318,142 @@ public static class LeaderboardTest
         service.Flush();
         Check("blocked runs never reach the store", fake.Submissions.Count == 0);
         Check("a real run is submitted (score and world)", service.SubmitRun(run) == LeaderboardBoards.Enabled().Count);
+    }
+
+
+    // ---- start ship + hearts, and the premium (cheat) ship ----
+
+    static void RunTagsAndParagon()
+    {
+        // The tag format.
+        Check("tag: encode s<ship>h<hearts>", LeaderboardRunTag.Encode(7, 4) == "s7h4");
+        int ship, hearts;
+        Check("tag: round trip", LeaderboardRunTag.TryParse("s7h4", out ship, out hearts) && ship == 7 && hearts == 4);
+        Check("tag: Paragon is never encoded", LeaderboardRunTag.Encode(PremiumShips.Paragon, 10) == "");
+        Check("tag: a Paragon tag reads as unknown", !LeaderboardRunTag.TryParse("s16h10", out ship, out hearts) && ship == 0 && hearts == 0 && LeaderboardRunTag.IsPremium("s16h10"));
+        Check("tag: garbage is unknown", !LeaderboardRunTag.TryParse("hello", out ship, out hearts) && ship == 0 && hearts == 0
+              && !LeaderboardRunTag.TryParse("", out ship, out hearts) && !LeaderboardRunTag.TryParse(null, out ship, out hearts)
+              && !LeaderboardRunTag.TryParse("s7h", out ship, out hearts) && !LeaderboardRunTag.TryParse("s7h4x", out ship, out hearts));
+        Check("tag: absurd hearts read as unknown hearts", LeaderboardRunTag.TryParse("s7h999", out ship, out hearts) && ship == 7 && hearts == 0);
+
+        // A normal run carries its start ship and hearts to the store.
+        RealRunContext();
+        var fake = new FakeLeaderboards();
+        var service = Service(fake);
+        var run = new LeaderboardRunStats { score = 500, loop = 1, startShip = 7, startHearts = 4 };
+        Check("start ship run: accepted", service.SubmitRun(run) > 0);
+        now = 60f;
+        service.Tick();
+        bool tagged = fake.Submissions.Count > 0;
+        foreach (var sub in fake.Submissions) tagged &= sub.tag == "s7h4";
+        Check("start ship run: every board's submission carries s7h4", tagged);
+        Check("submitted record keeps the tag (companion for stores without tags)",
+              LeadboardTag(LeaderboardService.SubmittedKey, LeaderboardBoards.TopScore) == "s7h4");
+
+        // An old queue (written before tags existed) still loads and sends, tagless.
+        RealRunContext();
+        PlayerPrefs.SetString(LeaderboardService.PendingKey, "{\"entries\":[{\"board\":\"" + LeaderboardBoards.TopScore + "\",\"value\":77}]}");
+        fake = new FakeLeaderboards();
+        service = Service(fake);
+        service.Flush();
+        Check("old queue entry (no tag) is still sent, with an empty tag",
+              fake.SubmissionsTo(TopScoreId) == 1 && fake.Submissions[0].score == 77 && fake.Submissions[0].tag == "");
+
+        // Paragon: nothing reaches any board.
+        RealRunContext();
+        fake = new FakeLeaderboards();
+        service = Service(fake);
+        long v;
+        var paragonRun = new LeaderboardRunStats { score = 9999, loop = 3, startShip = PremiumShips.Paragon, startHearts = 14 };
+        Check("Paragon start: run not submitted", service.SubmitRun(paragonRun) == 0);
+        var switched = new LeaderboardRunStats { score = 9999, loop = 3, startShip = 5, startHearts = 3, premiumRun = true };
+        Check("started on Paragon, ship changed mid-run: not submitted (premiumRun)", service.SubmitRun(switched) == 0);
+        Check("a premium tag is refused at the queue", !service.Offer(LeaderboardBoards.TopScore, 9999, "s16h14"));
+        service.Flush();
+        now = 120f;
+        service.Tick();
+        Check("Paragon runs: nothing queued, nothing sent",
+              !service.HasPending(LeaderboardBoards.TopScore, out v) && fake.Submissions.Count == 0);
+
+        // Paragon equipped (e.g. a run with a stale stats object): blocked at the single gate.
+        PlayerPrefs.SetString(ShipId.OwnedKey(PremiumShips.Paragon), "True");
+        PlayerPrefs.SetInt(ShipId.SelectedKey, PremiumShips.Paragon);
+        Check("Paragon equipped: SubmissionBlocked", LeaderboardService.SubmissionBlocked());
+        Check("Paragon equipped: even a clean-looking run is refused", service.SubmitRun(run) == 0);
+        Check("Paragon equipped: Offer refused", !service.Offer(LeaderboardBoards.TopScore, 12345));
+        // ... and a premium entry already in the queue is dropped, never sent.
+        var table = new LeaderboardService.ScoreTable();
+        table.Set(LeaderboardBoards.TopScore, 4242, "s16h10");
+        table.Save(LeaderboardService.PendingKey);
+        service.Flush();
+        Check("a queued premium entry is dropped, not sent",
+              fake.Submissions.Count == 0 && !service.HasPending(LeaderboardBoards.TopScore, out v));
+        PlayerPrefs.SetInt(ShipId.SelectedKey, ShipId.Starter);
+        PlayerPrefs.DeleteKey(ShipId.OwnedKey(PremiumShips.Paragon));
+
+        // Local best and the score achievements: a Paragon run is unranked.
+        PlayerPrefs.SetInt(RunScore.BestScoreKey, 100);
+        int scoreCounter = AchievementStore.Counter(AchievementCatalog.CScore);
+        int loopCounter = AchievementStore.Counter(AchievementCatalog.CLoop);
+        Achievements.ForceReal = true;
+        try
+        {
+            RunScore.BeginRun(true, true, true);
+            Check("Paragon run: unranked, saves no best, still pays the dust score bonus",
+                  RunScore.Unranked && !RunScore.SavesBest && RunScore.PaysScoreBonus);
+            AchievementTracker.OnScore(999999);
+            AchievementTracker.OnLoop(5);
+            Check("Paragon run: no score or loop achievement progress",
+                  AchievementStore.Counter(AchievementCatalog.CScore) == scoreCounter &&
+                  AchievementStore.Counter(AchievementCatalog.CLoop) == loopCounter);
+            RunScore.EndRun(RunScore.RunId);
+            Check("Paragon run: the saved best is untouched", RunScore.SavedBest == 100);
+
+            RunScore.BeginRun(true, true, false);
+            Check("normal run: ranked", !RunScore.Unranked && RunScore.SavesBest);
+            AchievementTracker.OnScore(1234);
+            Check("normal run: score achievement still counts", AchievementStore.Counter(AchievementCatalog.CScore) >= 1234);
+        }
+        finally
+        {
+            Achievements.ForceReal = null;
+            RunScore.BeginRun(false, false, false);
+        }
+
+        // Rows: ship icon + heart + count where known, blank where not.
+        RealRunContext();
+        EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+        fake = new FakeLeaderboards();
+        var mineNoTag = FakeLeaderboards.Entry(4, "KANEDA", 700, true);
+        fake.SetBoard(TopScoreId,
+            FakeLeaderboards.Entry(1, "TETSUO", 1000, false, 7, 4),
+            FakeLeaderboards.Entry(2, "KAI", 900),
+            FakeLeaderboards.Entry(3, "CHEAT", 800, false, PremiumShips.Paragon, 14),
+            mineNoTag);
+        var companion = new LeaderboardService.ScoreTable();
+        companion.Set(LeaderboardBoards.TopScore, 700, "s3h2");
+        companion.Save(LeaderboardService.SubmittedKey);
+        var panel = OpenPanel(fake);
+        var rows = panel.PanelRoot.Find("List/Rows");
+        Check("row with ship and hearts: both shown",
+              rows.Find("Row0/Ship") != null && rows.Find("Row0/Hearts/Heart") != null &&
+              rows.Find("Row0/Hearts/Count").GetComponent<Text>().text == "4");
+        Check("old entry (no tag): blank, no ship and no hearts", rows.Find("Row1/Ship") == null && rows.Find("Row1/Hearts") == null);
+        Check("a Paragon entry never shows the cheat ship", rows.Find("Row2/Ship") == null);
+        Check("own entry: filled from the device's record of the submitted score",
+              rows.Find("Row3/Ship") != null && rows.Find("Row3/Hearts/Count").GetComponent<Text>().text == "2");
+        var ownRow = panel.PanelRoot.Find("PlayerRow/Row");
+        Check("own rank row also shows ship and hearts", ownRow != null && ownRow.Find("Ship") != null && ownRow.Find("Hearts") != null);
+
+        // A score the store has that this device didn't make (different value) is not given this device's ship.
+        fake.SetBoard(TopScoreId, FakeLeaderboards.Entry(1, "KANEDA", 750, true));
+        panel = OpenPanel(fake);
+        Check("own entry with another value: left blank", panel.PanelRoot.Find("List/Rows/Row0/Ship") == null);
+    }
+
+    static string LeadboardTag(string key, string board)
+    {
+        return LeaderboardService.ScoreTable.Load(key).TagOf(board);
     }
 
     // ---- panel ----
