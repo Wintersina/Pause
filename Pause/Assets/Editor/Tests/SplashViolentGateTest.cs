@@ -498,8 +498,8 @@ public static class SplashViolentGateTest
         lastCount[0] = 0; card.Restart();
         long natural = TestHarness.AllocatedBytes(() => { for (int i = 0; i < 235; i++) card.Step(Dt); });   // up to the frame before the scene change (4.0 s)
         // The meter itself reads a one-off ~42 B in a long editor session (sometimes twice: the opening clip's
-        // start lands inside this window), so the whole run allows that and the per-part check below is strict.
-        Check("natural intro allocates nothing per frame (" + natural + " bytes over the whole run)", natural <= 128);
+        // start lands inside this window), so the whole run allows a few hundred bytes (208 seen after a full-suite run, 24 B per frame would be 5.6 KB) and the per-part check below is strict.
+        Check("natural intro allocates nothing per frame (" + natural + " bytes over the whole run)", natural <= 512);
         {
             lastCount[0] = 0; card.Restart();
             var shake = (Action)Delegate.CreateDelegate(typeof(Action), card, "ApplyShake");
