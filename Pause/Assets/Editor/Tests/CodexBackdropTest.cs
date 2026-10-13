@@ -5,7 +5,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-// The Codex BACKDROPS tab and the full-screen backdrop viewer: which backdrops exist (a card per world
+// The BACKDROPS sub-tab of a discovered world's Codex detail (INFO | BACKDROPS; no top-level tab any more) and the full-screen backdrop viewer: which backdrops exist (a card per world
 // variant), when one unlocks (shown in play, persisted in the codex's own PrefsKey, never counted in the
 // entry totals / NEW dots / Completionist), locked cards reading "???", tapping an unlocked card opening
 // the viewer, swipes and arrows stepping through the unlocked backdrops (wrapping), BACK returning to
@@ -51,6 +51,7 @@ public static class CodexBackdropTest
             Catalogue();
             Listing();
             Unlocking();
+            PlayerPrefs.SetInt(WorldManager.PrefsHighestWorld, WorldManager.Worlds.Length - 1);   // every world reached: their details are open
             panel = CodexPanel.Open(CodexUi.FindFont());
             panel.SkipAnimations();
             panel.ApplyLayout(Screens[0].safe);
@@ -148,36 +149,121 @@ public static class CodexBackdropTest
               string.Join(",", CodexBackdrops.UnlockedList().Select(b => b.id)) == "bd_space_1,bd_frost_2,bd_storm_4");
     }
 
+    // Opens world `world`'s detail on its BACKDROPS sub-tab and returns the gallery.
+    static CodexBackdropsView Gallery(CodexPanel panel, int world)
+    {
+        var entry = Codex.Find(CodexCatalogue.WorldIds[world]);
+        if (!panel.InDetail || panel.DetailEntry != entry)
+        {
+            panel.ShowTab(4);
+            panel.SkipAnimations();
+            panel.ShowDetail(entry);
+        }
+        panel.SelectDetailTab(CodexPanel.DetailTabBackdrops);
+        panel.SkipAnimations();
+        return panel.Backdrops;
+    }
+
+    // Taps backdrop `id`'s card in its world's gallery.
+    static void Tap(CodexPanel panel, string id)
+    {
+        var v = Gallery(panel, CodexBackdrops.Find(id).worldIndex);
+        v.CardButton(v.CardIndexOf(id)).onClick.Invoke();
+    }
+
+    static Rect DetailRect(CodexPanel panel, RectTransform rt)
+    {
+        var corners = new Vector3[4];
+        rt.GetWorldCorners(corners);
+        var a = panel.Panel.InverseTransformPoint(corners[0]);
+        var c = panel.Panel.InverseTransformPoint(corners[2]);
+        return Rect.MinMaxRect(a.x, a.y, c.x, c.y);
+    }
+
     static void Tab(CodexPanel panel)
     {
-        Check("nine tabs: ... ACHIEVEMENTS, MUSIC, then BACKDROPS", CodexPanel.TabCount == 9 && CodexPanel.BackdropsTab == 8 &&
-              panel.TabLabel(CodexPanel.BackdropsTab).text == "BACKDROPS");
-        panel.ShowTab(CodexPanel.BackdropsTab);
+        Check("eight tabs: the six categories, ACHIEVEMENTS, MUSIC; no top-level BACKDROPS tab",
+              CodexPanel.TabCount == 8 && CodexPanel.TabsPerRow == 4 && CodexPanel.MusicTab == 7 &&
+              Enumerable.Range(0, CodexPanel.TabCount).All(i => panel.TabLabel(i).text != "BACKDROPS"));
+        Check("a fresh codex shows no backdrop gallery", !panel.BackdropsOpen && !panel.Backdrops.Active);
+
+        // a discovered world's detail has the sub-tab row
+        panel.ShowTab(4);
+        panel.SkipAnimations();
+        panel.ShowDetail(Codex.Find(CodexCatalogue.WorldIds[1]));
+        panel.SkipAnimations();
+        Check("an unlocked world's detail shows INFO | BACKDROPS, on INFO", panel.SubTabsShown && panel.SubTabLabel(0).text == "INFO" &&
+              panel.SubTabLabel(1).text == "BACKDROPS" && panel.DetailTab == CodexPanel.DetailTabInfo && !panel.BackdropsOpen);
+        Check("... the sub-tabs are drawn", panel.SubTabFrame(0).gameObject.activeInHierarchy && panel.SubTabFrame(1).gameObject.activeInHierarchy);
+        panel.SubTabFrame(1).GetComponent<Button>().onClick.Invoke();
         panel.SkipAnimations();
         var v = panel.Backdrops;
-        Check("the tab opens its view and hides the grid", panel.BackdropsOpen && v.Active && !panel.MusicOpen && !panel.AchievementsOpen);
-        Check("one card per listed backdrop under a header per world", v.VisibleCards == CodexBackdrops.ListedCount && v.VisibleHeaders == WorldManager.LiveWorldCount);
+        Check("BACKDROPS opens Frost's gallery in the detail", panel.BackdropsOpen && v.Active && panel.DetailTab == CodexPanel.DetailTabBackdrops && v.WorldFilter == 1);
+        Check("one card per Frost backdrop, no other world's, and no section header", v.VisibleCards == 4 && v.VisibleHeaders == 1 &&
+              Enumerable.Range(0, v.VisibleCards).All(k => v.CardBackdrop(k).world == "Frost") && !v.HeaderRect(1).gameObject.activeSelf);
         int i = v.CardIndexOf("bd_frost_2"), j = v.CardIndexOf("bd_frost_1");
         Check("an unlocked card shows its name, art and can be tapped",
               v.CardName(i).text == "Coast and Harbour" && v.CardButton(i).interactable && v.CardThumb(i).texture != null && !v.CardLock(i).gameObject.activeSelf);
         Check("a locked card shows ??? a lock and an ink silhouette, and cannot be tapped",
               v.CardName(j).text == "???" && !v.CardButton(j).interactable && v.CardThumb(j).texture == null && v.CardLock(j).gameObject.activeSelf &&
               v.CardThumb(j).color == CodexUi.Silhouette);
-        Check("only the unlocked cards load their textures", v.LoadedThumbnails == CodexBackdrops.UnlockedCount);
-        Check("the header counts seen backdrops", panel.Counter.text.StartsWith(CodexBackdrops.UnlockedCount + " / " + CodexBackdrops.ListedCount) && panel.Counter.text.EndsWith("SEEN"));
-        Check("section counters read found/total", v.HeaderCounter(1).text == "1/4" && v.HeaderLabel(1).text == "FROST");
-        Check("the tab never shows a NEW dot", !panel.TabNewDot(CodexPanel.BackdropsTab).gameObject.activeSelf);
-        Check("the strip invites a tap", v.StripLine.text == CodexBackdropsView.IdleLine);
+        Check("only the unlocked cards of this world load their textures", v.LoadedThumbnails == 1);
+        Check("the codex counter stays the entry count", panel.Counter.text.EndsWith("DISCOVERED"));
+        Check("the strip counts this world's seen backdrops", v.StripCount.text == "1 / 4  SEEN" && v.StripLine.text == CodexBackdropsView.IdleLine);
+        Check("the info art and lore are hidden under the gallery", !panel.DetailLore.gameObject.activeInHierarchy);
 
-        panel.ShowTab(CodexPanel.MusicTab);
+        // another world shows only its own
+        var sp = Gallery(panel, 0);
+        Check("Space's gallery shows only Space's four skies", sp.WorldFilter == 0 && sp.VisibleCards == 4 && Enumerable.Range(0, 4).All(k => sp.CardBackdrop(k).world == "Space"));
+
+        // back: gallery -> world detail -> worlds list -> codex home
+        panel.Back();
         panel.SkipAnimations();
-        Check("leaving the tab releases the thumbnails and the view", !panel.BackdropsOpen && !v.Active && v.LoadedThumbnails == 0);
-        panel.ShowTab(CodexPanel.BackdropsTab);
+        Check("BACK from the gallery returns to the world detail (INFO)", panel.InDetail && !panel.BackdropsOpen && panel.DetailTab == CodexPanel.DetailTabInfo &&
+              !panel.Backdrops.Active && panel.Backdrops.LoadedThumbnails == 0 && panel.DetailLore.gameObject.activeInHierarchy && panel.DetailEntry.id == CodexCatalogue.WorldIds[0]);
+        panel.Back();
         panel.SkipAnimations();
+        Check("BACK again returns to the worlds list", !panel.InDetail && panel.IsOpen && panel.Category == CodexCategory.Worlds && panel.VisibleCards > 0);
+        BackNavigator.Back();
+        panel.SkipAnimations();
+        Check("and the system back closes the codex", !panel.IsOpen);
+        CodexPanel.Open(CodexUi.FindFont());
+        panel.SkipAnimations();
+        panel.ApplyLayout(Screens[0].safe);
+
+        // leaving the gallery by other routes
+        Gallery(panel, 1);
+        panel.SubTabFrame(0).GetComponent<Button>().onClick.Invoke();
+        panel.SkipAnimations();
+        Check("INFO brings the lore back and releases the gallery", !panel.BackdropsOpen && panel.Backdrops.LoadedThumbnails == 0 && panel.DetailLore.gameObject.activeInHierarchy);
+        Gallery(panel, 1);
         panel.ShowCategory(CodexPanel.Tabs[1]);
         panel.SkipAnimations();
-        Check("a category tab takes the grid back from it", !panel.BackdropsOpen && !v.Active && v.LoadedThumbnails == 0 && panel.VisibleCards > 0);
-        panel.ShowTab(CodexPanel.BackdropsTab);
+        Check("a category tab leaves the detail and releases the gallery", !panel.InDetail && !panel.BackdropsOpen && !panel.Backdrops.Active && panel.Backdrops.LoadedThumbnails == 0 && panel.VisibleCards > 0);
+        Gallery(panel, 1);
+        panel.ShowTab(CodexPanel.MusicTab);
+        panel.SkipAnimations();
+        Check("the MUSIC tab does too", !panel.InDetail && !panel.Backdrops.Active && panel.MusicOpen);
+        panel.ShowTab(4);
+        panel.SkipAnimations();
+
+        // a locked world has no sub-tabs; non-world entries neither
+        PlayerPrefs.SetInt(WorldManager.PrefsHighestWorld, 1);
+        Codex.Reload();
+        panel.Refresh();
+        panel.ShowDetail(Codex.Find(CodexCatalogue.WorldIds[3]));
+        panel.SkipAnimations();
+        Check("a locked world shows no sub-tabs and cannot open a gallery", !panel.SubTabsShown && !panel.SubTabFrame(1).gameObject.activeSelf && !panel.Backdrops.Active);
+        panel.SelectDetailTab(CodexPanel.DetailTabBackdrops);
+        Check("... forcing the tab does nothing", !panel.BackdropsOpen && panel.DetailTab == CodexPanel.DetailTabInfo);
+        panel.ShowDetail(Codex.Find(CodexCatalogue.PortalId));
+        Check("the wormhole portal (not a world) has none either", !panel.SubTabsShown);
+        panel.ShowDetail(Codex.Find(CodexCatalogue.WorldIds[1]));
+        Check("a reached world (Frost) does", panel.SubTabsShown);
+        panel.ShowGrid();
+        PlayerPrefs.SetInt(WorldManager.PrefsHighestWorld, WorldManager.Worlds.Length - 1);
+        Codex.Reload();
+        panel.Refresh();
         panel.SkipAnimations();
     }
 
@@ -205,10 +291,10 @@ public static class CodexBackdropTest
         var v = panel.Backdrops;
         int cams = Cameras(), targets = Targets(), roots = Roots();
         Check("a locked card does nothing", CodexBackdropViewer.Open(null, B("Frost", 1)) == null && !CodexBackdropViewer.IsOpen);
-        v.CardButton(v.CardIndexOf("bd_frost_1")).onClick.Invoke();
+        Tap(panel, "bd_frost_1");
         Check("... tapping it opens no viewer", !CodexBackdropViewer.IsOpen);
 
-        v.CardButton(v.CardIndexOf("bd_frost_2")).onClick.Invoke();
+        Tap(panel, "bd_frost_2");
         var viewer = CodexBackdropViewer.Current;
         Check("tapping an unlocked card opens the viewer on it", viewer != null && CodexBackdropViewer.IsOpen && viewer.CurrentBackdrop.id == "bd_frost_2");
         Check("it shows the real backdrop: Frost's own set with its director, variant 2",
@@ -239,7 +325,7 @@ public static class CodexBackdropTest
         Check("the codex owns Back again", BackNavigator.Top == (object)panel);
 
         // the system back does the same
-        v.CardButton(v.CardIndexOf("bd_frost_2")).onClick.Invoke();
+        Tap(panel, "bd_frost_2");
         Check("it opens again", CodexBackdropViewer.IsOpen);
         BackNavigator.Back();
         Check("the system back closes the viewer first, not the codex", !CodexBackdropViewer.IsOpen && panel.IsOpen && panel.BackdropsOpen);
@@ -265,7 +351,7 @@ public static class CodexBackdropTest
               CodexBackdropViewer.SwipeDirection(new Vector2(-300f, 250f), 1080f) == 0 && CodexBackdropViewer.SwipeDirection(new Vector2(-70f, 0f), 400f) == 1);
 
         var v = panel.Backdrops;
-        v.CardButton(v.CardIndexOf("bd_frost_2")).onClick.Invoke();
+        Tap(panel, "bd_frost_2");
         var viewer = CodexBackdropViewer.Current;
         Check("three unlocked: Space 1, Frost 2, Storm 4", viewer.Count == 3 && viewer.Index == 1);
 
@@ -274,7 +360,7 @@ public static class CodexBackdropTest
         viewer.Close();
 
         // deterministic stepping from here on
-        v.CardButton(v.CardIndexOf("bd_frost_2")).onClick.Invoke();
+        Tap(panel, "bd_frost_2");
         viewer = CodexBackdropViewer.Current;
         viewer.MoveNow(1);
         Check("next from Frost 2 is Storm 4: its own set, director and name",
@@ -297,7 +383,7 @@ public static class CodexBackdropTest
         viewer.Close();
 
         // the real thing: the pointer events of an arrow tap
-        v.CardButton(v.CardIndexOf("bd_frost_2")).onClick.Invoke();
+        Tap(panel, "bd_frost_2");
         viewer = CodexBackdropViewer.Current;
         ExecuteEvents.Execute(viewer.PrevButton.gameObject, Pointer(Vector2.zero), ExecuteEvents.pointerClickHandler);
         Check("a tap on the previous arrow starts a step", viewer.Dipping);
@@ -307,7 +393,7 @@ public static class CodexBackdropTest
         PlayerPrefs.SetString(Codex.PrefsKey, "bd_frost_2");
         Codex.Reload();
         panel.Refresh();
-        v.CardButton(v.CardIndexOf("bd_frost_2")).onClick.Invoke();
+        Tap(panel, "bd_frost_2");
         viewer = CodexBackdropViewer.Current;
         Check("with a single unlocked backdrop the arrows are hidden and a swipe does nothing",
               viewer.Count == 1 && !viewer.PrevButton.gameObject.activeSelf && !viewer.NextButton.gameObject.activeSelf);
@@ -330,7 +416,7 @@ public static class CodexBackdropTest
         panel.Refresh();
         foreach (string id in new[] { "bd_storm_2", "bd_storm_4" })
         {
-            v.CardButton(v.CardIndexOf(id)).onClick.Invoke();
+            Tap(panel, id);
             var viewer = CodexBackdropViewer.Current;
             var storm = viewer.Set.Director as StormDirector;
             Check(id + ": the viewer's Storm backdrop is the real StormDirector", storm != null);
@@ -367,7 +453,7 @@ public static class CodexBackdropTest
         var objs = Object.FindObjectsByType<Transform>(FindObjectsInactive.Include, FindObjectsSortMode.None).Length;
         for (int round = 0; round < 3; round++)
         {
-            v.CardButton(v.CardIndexOf("bd_frost_2")).onClick.Invoke();
+            Tap(panel, "bd_frost_2");
             var viewer = CodexBackdropViewer.Current;
             viewer.MoveNow(1);
             viewer.MoveNow(1);
@@ -380,7 +466,7 @@ public static class CodexBackdropTest
         Check("close twice is harmless", !CodexBackdropViewer.IsOpen);
 
         // closing the codex while the viewer is up takes the viewer with it
-        v.CardButton(v.CardIndexOf("bd_frost_2")).onClick.Invoke();
+        Tap(panel, "bd_frost_2");
         Check("viewer up", CodexBackdropViewer.IsOpen);
         panel.Close();
         panel.SkipAnimations();
@@ -401,7 +487,7 @@ public static class CodexBackdropTest
             panel.ApplyLayout(safe);
             Canvas.ForceUpdateCanvases();
             var l = panel.CurrentLayout;
-            // the tab row, nine tabs in two rows
+            // the tab row, eight tabs in two rows
             bool tabs = true, hit = true, fit = true;
             for (int i = 0; i < CodexPanel.TabCount; i++)
             {
@@ -410,13 +496,18 @@ public static class CodexBackdropTest
                 for (int j = 0; j < i; j++) tabs &= !CodexPanel.TabRect(l, j).Overlaps(t);
                 hit &= t.width + CodexPanel.TabGap >= 96f && t.height + CodexPanel.TabRowGap >= 96f;
             }
-            Check(name + ": nine tabs (5 + 4) sit in the tab band, no overlap, each a >= 96-unit touch target", tabs && hit);
+            Check(name + ": eight tabs (4 + 4) sit in the tab band, no overlap, each a >= 96-unit touch target", tabs && hit);
 
-            panel.ShowTab(CodexPanel.BackdropsTab);
-            panel.SkipAnimations();
-            var v = panel.Backdrops;
+            var v = Gallery(panel, 5);
             panel.ApplyLayout(safe);
             Canvas.ForceUpdateCanvases();
+            var d = l.detail;
+            var s0 = DetailRect(panel, panel.SubTabFrame(0).rectTransform);
+            var s1 = DetailRect(panel, panel.SubTabFrame(1).rectTransform);
+            Check(name + ": the INFO | BACKDROPS row sits inside the detail, apart, each a >= 96-unit touch target", panel.SubTabsShown &&
+                  Inside(d, s0) && Inside(d, s1) && !s0.Overlaps(s1) && s0.width + CodexPanel.SubTabSplit >= 96f && s0.height + CodexPanel.SubTabGap >= 96f);
+            var vr = DetailRect(panel, v.Viewport);
+            Check(name + ": the gallery sits under the sub-tabs, inside the detail", Inside(d, vr) && vr.yMax <= Mathf.Min(s0.yMin, s1.yMin) + .5f);
             bool cards = true, names = true;
             for (int i = 0; i < v.VisibleCards; i++)
             {

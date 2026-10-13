@@ -74,8 +74,9 @@ public static class ScreenFitScreens
         new FitScreen { id = "codex-grid", fullBleed = true, scene = "startS4", title = "Codex / pilot's log: list", stage = r => CodexScreen(r, false) },
         new FitScreen { id = "codex-detail", fullBleed = true, scene = "startS4", title = "Codex / pilot's log: entry", stage = r => CodexScreen(r, true) },
         new FitScreen { id = "codex-music", fullBleed = true, scene = "startS4", title = "Codex / music tab", stage = r => CodexMusicScreen(r) },
-        new FitScreen { id = "codex-backdrops", fullBleed = true, scene = "startS4", title = "Codex / backdrops tab", stage = r => CodexBackdropsScreen(r, false) },
-        new FitScreen { id = "codex-backdrop-viewer", fullBleed = true, scene = "startS4", title = "Codex / backdrop viewer", stage = r => CodexBackdropsScreen(r, true) },
+        new FitScreen { id = "codex-world-detail", fullBleed = true, scene = "startS4", title = "Codex / world detail (INFO | BACKDROPS)", stage = r => CodexBackdropsScreen(r, false, false) },
+        new FitScreen { id = "codex-backdrops", fullBleed = true, scene = "startS4", title = "Codex / world detail: backdrops sub-tab", stage = r => CodexBackdropsScreen(r, false, true) },
+        new FitScreen { id = "codex-backdrop-viewer", fullBleed = true, scene = "startS4", title = "Codex / backdrop viewer", stage = r => CodexBackdropsScreen(r, true, false) },
         new FitScreen { id = "options", fullBleed = true, scene = "leaderboardS3", title = "Options: account + developer rows", stage = r => Options(r, 0) },
         new FitScreen { id = "options-signout", fullBleed = true, scene = "leaderboardS3", title = "Options: sign-out dialog", stage = r => Options(r, 1) },
         new FitScreen { id = "options-start-world", fullBleed = true, scene = "leaderboardS3", title = "Options: START WORLD row (unlocked)", stage = r => Options(r, 3) },
@@ -260,9 +261,9 @@ public static class ScreenFitScreens
         rig.Ignore("MainMenuCanvas");
     }
 
-    // The BACKDROPS tab (developer mode: every backdrop unlocked, the fullest list), or the full-screen
-    // viewer opened on the longest-named one.
-    static void CodexBackdropsScreen(ScreenFitRig rig, bool viewer)
+    // A world's detail (the world with the longest backdrop name; developer mode: every backdrop unlocked) on its
+    // INFO sub-tab or, with `gallery`, its BACKDROPS sub-tab; or the full-screen viewer opened on the longest-named one.
+    static void CodexBackdropsScreen(ScreenFitRig rig, bool viewer, bool gallery)
     {
         HomeBase(rig);
         DeveloperUnlocks.SetEnabled(true);
@@ -285,7 +286,12 @@ public static class ScreenFitScreens
         rig.Sync();
         panel.Refresh();
         panel.ApplyLayout(CodexUi.SafeAreaUnits(panel.GetComponent<Canvas>()));
-        panel.ShowBackdrops();
+        CodexBackdrop longestBackdrop = null;
+        foreach (var b in CodexBackdrops.All)
+            if (CodexBackdrops.IsListed(b) && (longestBackdrop == null || b.title.Length > longestBackdrop.title.Length)) longestBackdrop = b;
+        panel.ShowTab(4);   // WORLDS
+        panel.ShowDetail(Codex.Find(CodexCatalogue.WorldIds[longestBackdrop.worldIndex]));
+        if (gallery) panel.SelectDetailTab(CodexPanel.DetailTabBackdrops);
         panel.SkipAnimations();
         panel.ApplyLayout(CodexUi.SafeAreaUnits(panel.GetComponent<Canvas>()));
         panel.SkipAnimations();

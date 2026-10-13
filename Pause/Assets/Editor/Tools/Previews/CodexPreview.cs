@@ -244,6 +244,58 @@ public static class CodexPreview
         EditorApplication.Exit(code);
     }
 
+    // The tab bar (8 tabs), a world's detail with its INFO | BACKDROPS sub-tabs, and the backdrop gallery inside it,
+    // at 1080 x 2400 and 1080 x 1920:
+    //   PAUSE_CODEX_PREVIEW_DIR=<dir> PAUSE_CODEX_MUSIC_TAG=before|after
+    //   Unity -batchmode -projectPath <abs>/Pause -executeMethod CodexPreview.RunWorldBackdrops
+    public static void RunWorldBackdrops()
+    {
+        string dir = Environment.GetEnvironmentVariable("PAUSE_CODEX_PREVIEW_DIR");
+        if (string.IsNullOrEmpty(dir)) dir = "/private/tmp";
+        string tag = Environment.GetEnvironmentVariable("PAUSE_CODEX_MUSIC_TAG");
+        if (string.IsNullOrEmpty(tag)) tag = "after";
+        Directory.CreateDirectory(dir);
+        int code = 0;
+        try
+        {
+            using (new TestHarness.Sandbox())
+            {
+                EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+                DeveloperUnlocks.SetEnabled(true);
+                Codex.Reload();
+                var panel = CodexPanel.Open(null);
+                panel.SkipAnimations();
+                var storm = Codex.Find(CodexCatalogue.WorldIds[5]);
+                foreach (int h in new[] { 2400, 1920 })
+                {
+                    Save(panel, dir, tag + "-tabbar-1080x" + h, h, () => { panel.ShowTab(4); panel.SkipAnimations(); });
+                    Save(panel, dir, tag + "-world-info-1080x" + h, h, () => { panel.ShowTab(4); panel.ShowDetail(storm); panel.SkipAnimations(); });
+                    Save(panel, dir, tag + "-world-backdrops-1080x" + h, h, () =>
+                    {
+                        panel.ShowTab(4);
+                        panel.ShowDetail(storm);
+                        panel.SelectDetailTab(CodexPanel.DetailTabBackdrops);
+                        panel.SkipAnimations();
+                    });
+                }
+                panel.Close();
+                panel.SkipAnimations();
+                DeveloperUnlocks.SetEnabled(false);
+            }
+        }
+        catch (Exception e) { Debug.LogException(e); code = 1; }
+        EditorApplication.Exit(code);
+    }
+
+    static void Save(CodexPanel panel, string dir, string name, int h, Action setup)
+    {
+        var tex = Capture(panel, 1080, h, setup, 1, 1080f / 800f);
+        string path = Path.Combine(dir, name + ".png");
+        File.WriteAllBytes(path, tex.EncodeToPNG());
+        UnityEngine.Object.DestroyImmediate(tex);
+        Debug.Log("[CODEX-PREVIEW] " + path);
+    }
+
     static void Shot(CodexPanel panel, string path, float sf, Action setup, int w = PhoneW, int h = PhoneH)
     {
         var tex = Capture(panel, w, h, () =>

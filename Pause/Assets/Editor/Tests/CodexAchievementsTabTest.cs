@@ -77,8 +77,8 @@ public static class CodexAchievementsTabTest
 
     static void Tabs(CodexPanel panel)
     {
-        Check("nine tabs: the six categories, ACHIEVEMENTS, MUSIC, then BACKDROPS", CodexPanel.TabCount == 9 && CodexPanel.MusicTab == 7 && panel.TabLabel(CodexPanel.MusicTab).text == "MUSIC" && CodexPanel.Tabs.Length == 6 &&
-              panel.TabLabel(CodexPanel.BackdropsTab).text == "BACKDROPS" && panel.TabLabel(CodexPanel.AchievementsTab).text == "ACHIEVEMENTS" && CodexPanel.TabsPerRow == 5);
+        Check("eight tabs: the six categories, ACHIEVEMENTS, MUSIC (BACKDROPS lives in a world's detail)", CodexPanel.TabCount == 8 && CodexPanel.MusicTab == 7 && panel.TabLabel(CodexPanel.MusicTab).text == "MUSIC" && CodexPanel.Tabs.Length == 6 &&
+              panel.TabLabel(CodexPanel.AchievementsTab).text == "ACHIEVEMENTS" && CodexPanel.TabsPerRow == 4);
         foreach (var (name, safe) in Screens)
         {
             panel.ApplyLayout(safe);
@@ -95,11 +95,11 @@ public static class CodexAchievementsTabTest
                 var drawn = PanelSpace(panel.Panel, (RectTransform)panel.TabLabel(i).transform.parent);
                 ok &= Mathf.Abs(drawn.center.x - t.center.x) < 1f && Mathf.Abs(drawn.center.y - t.center.y) < 1f;
             }
-            Check(name + ": nine tabs (5 + 4) sit in the tab band without overlap", ok);
+            Check(name + ": eight tabs (4 + 4) sit in the tab band without overlap", ok);
             Check(name + ": every tab is a >= 96-unit touch target", hit);
             bool fit = true;
             for (int i = 0; i < CodexPanel.TabCount; i++) fit &= FitsAt(panel.TabLabel(i), 13);
-            Check(name + ": all nine tab labels fit at >= 13px", fit);
+            Check(name + ": all eight tab labels fit at >= 13px", fit);
             Check(name + ": the body still holds a section header and two card rows", l.list.height >= CodexPanel.SectionHeaderHeight + CodexPanel.SectionHeaderGap + 2f * l.cardHeight);
         }
         panel.ApplyLayout(Screens[0].safe);

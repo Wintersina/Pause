@@ -72,7 +72,7 @@ public static class CodexBackdropPreview
     {
         {
             var device = FitDevice.Find("and-1080x2400-corner");
-            foreach (string id in new[] { "codex-backdrops", "codex-backdrop-viewer" })
+            foreach (string id in new[] { "codex-world-detail", "codex-backdrops", "codex-backdrop-viewer" })
             {
                 var screen = ScreenFitScreens.Find(id);
                 using (new TestHarness.Sandbox())

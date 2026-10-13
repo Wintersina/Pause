@@ -39,17 +39,22 @@ public class CodexPanel : MonoBehaviour
     public const float Pad = 30f;
     public const float HeaderHeight = 64f;
     public const float DividerHeight = 16f;
-    // Nine tabs (the six entry categories, then ACHIEVEMENTS, MUSIC and BACKDROPS) in two rows,
-    // 5 + 4: one row left each tab ~110
+    // Eight tabs (the six entry categories, then ACHIEVEMENTS and MUSIC) in two rows of four:
+    // one row left each tab ~110
     // units wide and 60 tall (~32-40 dp touch targets even padded). Each
     // tab is drawn TabRowHeight tall and its touch target reaches half of
     // every gap around it: TabRowHeight + TabRowGap = 96 units, >= 48 dp /
     // 44 pt wherever the canvas is >= 0.5 dp per unit (UiScale's floor).
-    public const int TabsPerRow = 5, TabRows = 2;
+    public const int TabsPerRow = 4, TabRows = 2;
     public const int AchievementsTab = 6;           // index of the ACHIEVEMENTS tab (after CodexPanel.Tabs)
     public const int MusicTab = 7;                  // index of the MUSIC tab (after ACHIEVEMENTS)
-    public const int BackdropsTab = 8;              // index of the BACKDROPS tab (after MUSIC)
-    public const int TabCount = 9;
+    public const int TabCount = 8;
+    // A discovered world's detail view has a sub-tab row: INFO (the lore) | BACKDROPS (that world's
+    // backdrop gallery). Same cel tab look as the head tabs; each button is SubTabHeight tall with the
+    // gap added as hit padding (>= 48 dp wherever the canvas is >= 0.5 dp per unit).
+    public const int DetailTabInfo = 0, DetailTabBackdrops = 1;
+    public const float SubTabHeight = 82f, SubTabGap = 14f, SubTabSplit = 12f;
+    public const string InfoLabel = "INFO";
     public const float TabRowHeight = 84f;
     public const float TabRowGap = 12f;
     public const float TabsHeight = TabRows * TabRowHeight + (TabRows - 1) * TabRowGap;
@@ -91,11 +96,11 @@ public class CodexPanel : MonoBehaviour
 
     public const string AchievementsLabel = "ACHIEVEMENTS";
     public const string MusicLabel = "MUSIC";
-    public const string BackdropsLabel = "BACKDROPS";
+    public const string BackdropsLabel = "BACKDROPS";   // the sub-tab inside a world's detail
 
     public static string TabName(int i)
     {
-        return i == AchievementsTab ? AchievementsLabel : i == MusicTab ? MusicLabel : i == BackdropsTab ? BackdropsLabel : CategoryLabel(Tabs[i]);
+        return i == AchievementsTab ? AchievementsLabel : i == MusicTab ? MusicLabel : CategoryLabel(Tabs[i]);
     }
 
     public static string CategoryLabel(CodexCategory c)
@@ -154,8 +159,7 @@ public class CodexPanel : MonoBehaviour
         return l;
     }
 
-    // Tab `i`'s drawn rect (panel-local): row-major, 5 + 4; the second row
-    // shares the band's width between its three.
+    // Tab `i`'s drawn rect (panel-local): row-major, 4 + 4.
     public static Rect TabRect(Layout l, int i)
     {
         int row = i / TabsPerRow, col = i % TabsPerRow;
@@ -330,8 +334,13 @@ public class CodexPanel : MonoBehaviour
     CanvasGroup chipsGroup;
     CodexAchievementsView ach;
     CodexMusicView music;
-    CodexBackdropsView backdrops;
-    bool achievementsOpen, musicOpen, backdropsOpen;
+    CodexBackdropsView backdrops;           // the gallery inside a world's detail (BACKDROPS sub-tab)
+    RectTransform infoRoot;                 // the detail's art / name / lore (hidden while the gallery shows)
+    Image[] subFrames;
+    Text[] subLabels;
+    int detailTab;                          // DetailTabInfo | DetailTabBackdrops
+    bool subTabsShown;                      // a discovered world's detail
+    bool achievementsOpen, musicOpen;
     Chip[] chips;
     SectionBar[] headers;
     SectionBar sticky;
@@ -393,10 +402,14 @@ public class CodexPanel : MonoBehaviour
     // The MUSIC tab (not a CodexCategory: its cards are tracks).
     public CodexMusicView Music { get { return music; } }
     public bool MusicOpen { get { return musicOpen; } }
-    // The BACKDROPS tab (not a CodexCategory: its cards are backdrops, opened in CodexBackdropViewer).
+    // The BACKDROPS sub-tab of a discovered world's detail (its cards are backdrops, opened in CodexBackdropViewer).
     public CodexBackdropsView Backdrops { get { return backdrops; } }
-    public bool BackdropsOpen { get { return backdropsOpen; } }
-    bool OtherViewOpen { get { return achievementsOpen || musicOpen || backdropsOpen; } }
+    public bool BackdropsOpen { get { return inDetail && detailTab == DetailTabBackdrops && backdrops.Active; } }
+    public bool SubTabsShown { get { return inDetail && subTabsShown; } }
+    public int DetailTab { get { return detailTab; } }
+    public Text SubTabLabel(int i) { return subLabels[i]; }
+    public Image SubTabFrame(int i) { return subFrames[i]; }
+    bool OtherViewOpen { get { return achievementsOpen || musicOpen; } }
     public bool InDetail { get { return inDetail; } }
     public CodexCategory Category { get { return category; } }
     public CodexEntry DetailEntry { get { return detailEntry; } }
@@ -498,7 +511,6 @@ public class CodexPanel : MonoBehaviour
         BuildGrid();
         ach = new CodexAchievementsView(this, panel, font);
         music = new CodexMusicView(this, panel, font);
-        backdrops = new CodexBackdropsView(this, panel, font);
         BuildDetail();
         BuildBack();
     }
@@ -734,7 +746,7 @@ public class CodexPanel : MonoBehaviour
         for (int i = 0; i < cards.Length; i++)
             cards[i].newDot.gameObject.SetActive(i < shownCount && cards[i].entry != null && Codex.IsNew(cards[i].entry.id));
         for (int i = 0; i < TabCount; i++)
-            tabDots[i].gameObject.SetActive(i == MusicTab || i == BackdropsTab ? false : i == AchievementsTab ? Codex.AchievementsTabHasNew() : Codex.TabHasNew(Tabs[i]));
+            tabDots[i].gameObject.SetActive(i == MusicTab ? false : i == AchievementsTab ? Codex.AchievementsTabHasNew() : Codex.TabHasNew(Tabs[i]));
     }
 
     void BuildDetail()
@@ -743,8 +755,10 @@ public class CodexPanel : MonoBehaviour
         go.transform.SetParent(panel, false);
         detail = (RectTransform)go.transform;
         detailGroup = go.GetComponent<CanvasGroup>();
+        infoRoot = CodexUi.NewRect("Info", detail);
+        CodexUi.Stretch(infoRoot);
 
-        detailFrame = CodexUi.NewImage("ArtFrame", detail, CodexUi.CodexSprite("cx_card"), Color.white, true);
+        detailFrame = CodexUi.NewImage("ArtFrame", infoRoot, CodexUi.CodexSprite("cx_card"), Color.white, true);
         detailFrameEdge = CodexUi.NewImage("Edge", detailFrame.rectTransform, CodexUi.CodexSprite("cx_card_edge"), CodexUi.Accent, true);
         CodexUi.Stretch(detailFrameEdge.rectTransform);
         detailMask = CodexUi.NewImage("ArtBox", detailFrame.rectTransform, CodexUi.CodexSprite("cx_circle"), Color.white);
@@ -765,9 +779,9 @@ public class CodexPanel : MonoBehaviour
         detailFrame.raycastTarget = true;  // ... and so does the whole frame around it (a fat finger's margin)
         detailFrame.gameObject.AddComponent<CodexArtTap>().panel = this;
 
-        detailIndex = CodexUi.NewText("Index", detail, font, "", 16, CodexUi.Muted, TextAnchor.UpperRight);
+        detailIndex = CodexUi.NewText("Index", infoRoot, font, "", 16, CodexUi.Muted, TextAnchor.UpperRight);
 
-        detailName = CodexUi.NewText("Name", detail, font, "", 40, CodexUi.Title, TextAnchor.MiddleCenter, true);
+        detailName = CodexUi.NewText("Name", infoRoot, font, "", 40, CodexUi.Title, TextAnchor.MiddleCenter, true);
         detailName.verticalOverflow = VerticalWrapMode.Truncate;
         detailName.resizeTextForBestFit = true;
         detailName.resizeTextMinSize = 22;
@@ -775,15 +789,15 @@ public class CodexPanel : MonoBehaviour
         CodexUi.AddOutline(detailName.gameObject, CodexUi.Ink, 3f);
         detailName.fontStyle = FontStyle.BoldAndItalic;
 
-        detailPill = CodexUi.NewImage("Category", detail, CodexUi.CodexSprite("cx_tab"), CodexUi.Accent, true);
+        detailPill = CodexUi.NewImage("Category", infoRoot, CodexUi.CodexSprite("cx_tab"), CodexUi.Accent, true);
         detailPillLabel = CodexUi.NewText("Label", detailPill.rectTransform, font, "", 18, CodexUi.Ink,
                                           TextAnchor.MiddleCenter);
         CodexUi.Stretch(detailPillLabel.rectTransform);
 
-        detailSubtitle = CodexUi.NewText("Subtitle", detail, font, "", 20, CodexUi.Title, TextAnchor.MiddleCenter);
+        detailSubtitle = CodexUi.NewText("Subtitle", infoRoot, font, "", 20, CodexUi.Title, TextAnchor.MiddleCenter);
         CodexUi.AddOutline(detailSubtitle.gameObject, CodexUi.Ink, 1.5f);
 
-        detailLoreCard = CodexUi.NewImage("LoreCard", detail, CodexUi.CodexSprite("cx_card"), Color.white, true);
+        detailLoreCard = CodexUi.NewImage("LoreCard", infoRoot, CodexUi.CodexSprite("cx_card"), Color.white, true);
         detailLoreEdge = CodexUi.NewImage("Edge", detailLoreCard.rectTransform, CodexUi.CodexSprite("cx_card_edge"), CodexUi.Accent, true);
         CodexUi.Stretch(detailLoreEdge.rectTransform);
         detailLore = CodexUi.NewText("Lore", detailLoreCard.rectTransform, font, "", 26, CodexUi.Body,
@@ -798,6 +812,35 @@ public class CodexPanel : MonoBehaviour
         CodexUi.Stretch(lrt);
         lrt.offsetMin = new Vector2(30f, 24f);
         lrt.offsetMax = new Vector2(-34f, -26f);
+    
+        // the sub-tab row (INFO | BACKDROPS) and the world's backdrop gallery under it
+        subFrames = new Image[2];
+        subLabels = new Text[2];
+        for (int i = 0; i < 2; i++)
+        {
+            int index = i;
+            string name = i == DetailTabInfo ? InfoLabel : BackdropsLabel;
+            var f = CodexUi.NewImage("SubTab" + name, detail, CodexUi.CodexSprite("cx_tab"), CodexUi.Idle, true);
+            f.raycastTarget = true;
+            f.raycastPadding = new Vector4(-SubTabSplit * .5f, -SubTabGap * .5f, -SubTabSplit * .5f, -SubTabGap * .5f);
+            var button = f.gameObject.AddComponent<Button>();
+            button.transition = Selectable.Transition.None;
+            button.targetGraphic = f;
+            button.onClick.AddListener(() => SelectDetailTab(index));
+            var label = CodexUi.NewText("Label", f.rectTransform, font, name, TabLabelSize, Color.white, TextAnchor.MiddleCenter);
+            label.horizontalOverflow = HorizontalWrapMode.Wrap;
+            label.verticalOverflow = VerticalWrapMode.Truncate;
+            label.resizeTextForBestFit = true;
+            label.resizeTextMinSize = TabLabelMinSize;
+            label.resizeTextMaxSize = TabLabelSize;
+            var srt = label.rectTransform;
+            CodexUi.Stretch(srt);
+            srt.offsetMin = new Vector2(6f, 0f);
+            srt.offsetMax = new Vector2(-6f, 0f);
+            subFrames[i] = f;
+            subLabels[i] = label;
+        }
+        backdrops = new CodexBackdropsView(this, detail, font);
     }
 
     void BuildBack()
@@ -876,7 +919,7 @@ public class CodexPanel : MonoBehaviour
         LayoutDetail();
         ach.ApplyLayout(layout.body, layout);
         music.ApplyLayout(layout.body, layout);
-        backdrops.ApplyLayout(layout.body, layout);
+        LayoutSubTabs();
     }
 
     void SizeDots()
@@ -955,10 +998,13 @@ public class CodexPanel : MonoBehaviour
     // The detail art never gives up more than this (units) for the lore.
     public const float MinDetailArt = 140f;
 
+    // Height the sub-tab row takes off the top of the detail (0 when it is not shown).
+    float SubRowHeight { get { return subTabsShown ? SubTabHeight + SubTabGap : 0f; } }
+
     void LayoutDetail()
     {
         var d = layout.detail;
-        float art = Mathf.Min(d.width * .5f, d.height * .34f, 300f);
+        float art = Mathf.Min(d.width * .5f, (d.height - SubRowHeight) * .34f, 300f);
         // On a short canvas (UiScale's floor on a phone small in points /
         // dp) the lore may not fit even at its smallest type: the art gives
         // up room, a step at a time, until it does (or reaches MinDetailArt).
@@ -990,7 +1036,7 @@ public class CodexPanel : MonoBehaviour
     float PlaceDetail(float art)
     {
         var d = layout.detail;
-        float w = d.width, top = d.height * .5f;
+        float w = d.width, top = d.height * .5f - SubRowHeight;
 
         // Art frame flush with the top, then name, category pill, the
         // optional subtitle, and the lore card taking whatever is left.
@@ -1032,7 +1078,7 @@ public class CodexPanel : MonoBehaviour
         AchievementTracker.RefreshCodex();
         if (achievementsOpen) HideAchievements();
         if (musicOpen) HideMusic();
-        if (backdropsOpen) HideBackdrops();
+        HideWorldBackdrops();
         RefreshCounter();
         // The codex owns Back/Escape while it is up (BackNavigator layer), so
         // the home screen's back-to-quit never sees those presses.
@@ -1073,6 +1119,7 @@ public class CodexPanel : MonoBehaviour
     {
         if (phase != Phase.Open && phase != Phase.Opening) return;
         if (achievementsOpen && ach.InDetail) ach.CloseDetail();
+        else if (inDetail && detailTab == DetailTabBackdrops) SelectDetailTab(DetailTabInfo);   // gallery -> world detail
         else if (inDetail) ShowGrid();
         else Close();
     }
@@ -1091,7 +1138,6 @@ public class CodexPanel : MonoBehaviour
         {
             HideAchievements();
             HideMusic();
-            HideBackdrops();
             Populate(c);
             tabAt = Time.unscaledTime;
             return;
@@ -1106,7 +1152,6 @@ public class CodexPanel : MonoBehaviour
     {
         if (i == AchievementsTab) ShowAchievements();
         else if (i == MusicTab) ShowMusic();
-        else if (i == BackdropsTab) ShowBackdrops();
         else if (i >= 0 && i < Tabs.Length) ShowCategory(Tabs[i]);
     }
 
@@ -1115,7 +1160,6 @@ public class CodexPanel : MonoBehaviour
         if (inDetail) ShowGrid();
         if (achievementsOpen) { ach.CloseDetail(); Codex.AckAchievements(); PaintNewDots(); return; }
         HideMusic();
-        HideBackdrops();
         achievementsOpen = true;
         grid.gameObject.SetActive(false);
         chipsRoot.gameObject.SetActive(false);
@@ -1133,7 +1177,6 @@ public class CodexPanel : MonoBehaviour
         if (inDetail) ShowGrid();
         if (musicOpen) return;
         if (achievementsOpen) HideAchievements();
-        HideBackdrops();
         musicOpen = true;
         grid.gameObject.SetActive(false);
         chipsRoot.gameObject.SetActive(false);
@@ -1145,38 +1188,73 @@ public class CodexPanel : MonoBehaviour
         PaintNewDots();
     }
 
-    public void ShowBackdrops()
-    {
-        if (inDetail) ShowGrid();
-        if (backdropsOpen) return;
-        if (achievementsOpen) HideAchievements();
-        HideMusic();
-        backdropsOpen = true;
-        grid.gameObject.SetActive(false);
-        chipsRoot.gameObject.SetActive(false);
-        backdrops.ApplyLayout(layout.body, layout);
-        backdrops.Show();
-        PaintTabs();
-        RefreshCounter();
-        tabAt = Time.unscaledTime;
-        PaintNewDots();
-    }
-
-    void HideBackdrops()
-    {
-        if (!backdropsOpen) return;
-        backdropsOpen = false;
-        if (CodexBackdropViewer.IsOpen) CodexBackdropViewer.Current.Close();
-        backdrops.Hide();   // drops the thumbnails
-        grid.gameObject.SetActive(true);
-        chipsRoot.gameObject.SetActive(sectioned);
-        RefreshCounter();
-    }
-
     // A backdrop card was tapped: the full-screen viewer opens over the codex (BACK returns to this list).
     public CodexBackdropViewer OpenBackdropViewer(CodexBackdrop b)
     {
         return CodexBackdropViewer.Open(font, b);
+    }
+
+    // ---- the world detail's sub-tabs ----
+
+    // Panel-free layout of the sub-tab row and the gallery under it (detail-local coordinates).
+    void LayoutSubTabs()
+    {
+        if (subFrames == null) return;
+        var d = layout.detail;
+        float w = d.width, top = d.height * .5f;
+        float each = (w - SubTabSplit) * .5f;
+        for (int i = 0; i < 2; i++)
+            CodexUi.Place(subFrames[i].rectTransform, new Rect(-w * .5f + i * (each + SubTabSplit), top - SubTabHeight, each, SubTabHeight));
+        var body = Rect.MinMaxRect(-w * .5f, -d.height * .5f, w * .5f, top - SubTabHeight - SubTabGap);
+        backdrops.ApplyLayout(body, layout);
+        PaintSubTabs();
+    }
+
+    void PaintSubTabs()
+    {
+        if (subFrames == null) return;
+        for (int i = 0; i < 2; i++)
+        {
+            bool shown = subTabsShown;
+            subFrames[i].gameObject.SetActive(shown);
+            bool active = i == detailTab;
+            subFrames[i].color = active ? CodexUi.Select : CodexUi.Idle;
+            subLabels[i].color = active ? CodexUi.Body : CodexUi.Muted;
+        }
+    }
+
+    // Tapping INFO / BACKDROPS (only a discovered world's detail has them).
+    public void SelectDetailTab(int tab)
+    {
+        if (!inDetail || !subTabsShown) return;
+        SetDetailTab(tab);
+        LayoutDetail();
+        swapAt = Time.unscaledTime;
+        PaintNewDots();
+    }
+
+    void SetDetailTab(int tab)
+    {
+        detailTab = subTabsShown ? tab : DetailTabInfo;
+        bool gallery = detailTab == DetailTabBackdrops;
+        infoRoot.gameObject.SetActive(!gallery);
+        LayoutSubTabs();
+        if (gallery)
+        {
+            int world = CodexCatalogue.WorldIndex(detailEntry.id);
+            backdrops.Show(world);
+        }
+        else HideWorldBackdrops();
+    }
+
+    // Leaving the gallery (INFO, BACK, another tab, the codex closing): the viewer and the thumbnails go.
+    void HideWorldBackdrops()
+    {
+        if (backdrops == null || !backdrops.Active) { detailTab = DetailTabInfo; return; }
+        if (CodexBackdropViewer.IsOpen) CodexBackdropViewer.Current.Close();
+        backdrops.Hide();
+        detailTab = DetailTabInfo;
+        if (infoRoot != null) infoRoot.gameObject.SetActive(true);
     }
 
     void HideMusic()
@@ -1204,7 +1282,7 @@ public class CodexPanel : MonoBehaviour
     {
         for (int i = 0; i < TabCount; i++)
         {
-            bool active = i == BackdropsTab ? backdropsOpen : i == MusicTab ? musicOpen : i == AchievementsTab ? achievementsOpen : (!OtherViewOpen && Tabs[i] == category);
+            bool active = i == MusicTab ? musicOpen : i == AchievementsTab ? achievementsOpen : (!OtherViewOpen && Tabs[i] == category);
             tabFrames[i].color = active ? CodexUi.Select : CodexUi.Idle;
             tabLabels[i].color = active ? CodexUi.Body : CodexUi.Muted;
         }
@@ -1222,6 +1300,8 @@ public class CodexPanel : MonoBehaviour
         if (entry == null) return;
         detailEntry = entry;
         bool found = Codex.IsDiscovered(entry);
+        subTabsShown = found && entry.category == CodexCategory.Worlds && CodexCatalogue.WorldIndex(entry.id) >= 0;
+        SetDetailTab(DetailTabInfo);
         if (found) Codex.MarkSeen(entry.id);   // opening the entry clears its NEW dot
 
         detailName.text = Codex.DisplayName(entry);
@@ -1387,6 +1467,7 @@ public class CodexPanel : MonoBehaviour
         artTaps = 0;
         if (!inDetail) return;
         inDetail = false;
+        HideWorldBackdrops();
         swapAt = Time.unscaledTime;
         // Unlocks can't change while the panel is open, but names can be
         // re-read cheaply here if they ever do.
@@ -1578,12 +1659,13 @@ public class CodexPanel : MonoBehaviour
         RefreshCounter();
         if (achievementsOpen) { ach.Show(true); return; }
         if (musicOpen) { music.Paint(); return; }
-        if (backdropsOpen) { backdrops.Show(); return; }
         var open = inDetail ? detailEntry : null;
+        int tab = detailTab;
         Populate(category, true);
         if (open != null)
         {
             ShowDetail(open);
+            if (subTabsShown && tab == DetailTabBackdrops) SelectDetailTab(tab);
             swapAt = -100f;
         }
         ApplyFrame(Time.unscaledTime);
@@ -1591,9 +1673,7 @@ public class CodexPanel : MonoBehaviour
 
     void RefreshCounter()
     {
-        counter.text = backdropsOpen
-            ? CodexBackdrops.UnlockedCount + " / " + CodexBackdrops.ListedCount + "  SEEN"
-            : musicOpen
+        counter.text = musicOpen
             ? CodexMusic.UnlockedCount + " / " + CodexMusic.ListedCount + "  HEARD"
             : achievementsOpen
             ? AchievementStore.UnlockedCount + " / " + AchievementCatalog.ActiveCount + "  UNLOCKED"
@@ -1689,7 +1769,7 @@ public class CodexPanel : MonoBehaviour
             {
                 phase = Phase.Hidden;
                 CodexMusicPlayer.Stop();
-                if (backdropsOpen) HideBackdrops();   // the thumbnails go with the panel
+                HideWorldBackdrops();   // the thumbnails go with the panel
                 StopAnimations();
                 BackNavigator.Unregister(this);
                 gameObject.SetActive(false);
@@ -1723,7 +1803,6 @@ public class CodexPanel : MonoBehaviour
         gridGroup.blocksRaycasts = !inDetail && !OtherViewOpen;
         if (achievementsOpen) ach.SetFade(tab);
         if (musicOpen) music.SetFade(tab);
-        if (backdropsOpen) backdrops.SetFade(tab);
         grid.anchoredPosition = gridRect.center + new Vector2(-d * 48f, (1f - tab) * -18f);
         chipsGroup.alpha = OtherViewOpen ? 0f : (1f - d) * tab;
         chipsGroup.interactable = !inDetail && !OtherViewOpen;

@@ -2,8 +2,9 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-// The BACKDROPS tab of the codex: a header strip (how many backdrops the pilot has seen) above one
-// scrolling list of world sections, each a row of cards -- one per variant of that world's backdrop.
+// The BACKDROPS sub-tab of a discovered world's codex detail (INFO | BACKDROPS): a header strip (how many of
+// this world's backdrops the pilot has seen) above the scrolling card grid -- one card per variant of that
+// world's backdrop. (Shown with no world filter it lists every world as sections.)
 // A card shows the variant's real ground (or Space's sky) tile and its name; one the pilot has not
 // flown over yet is a "???" silhouette with a lock and does nothing. Tapping an unlocked card opens
 // the full-screen viewer (CodexBackdropViewer) on it; BACK returns here. Same cel cards, ink
@@ -47,6 +48,7 @@ public sealed class CodexBackdropsView
     readonly List<int> headerStart = new List<int>();      // first card index of each shown header
     int shownCards, shownHeaders;
     Rect body, stripRect, listRect;
+    int worldFilter = -1;      // WorldManager.Worlds index this gallery is limited to; -1 = every world
     CodexPanel.Layout layout;
 
     public CodexBackdropsView(CodexPanel panel, RectTransform parent, Font font)
@@ -74,6 +76,7 @@ public sealed class CodexBackdropsView
         for (int i = 0; i < shownCards; i++) if (cards[i].backdrop.id == id) return i;
         return -1;
     }
+    public int WorldFilter { get { return worldFilter; } }
     public Text StripCount { get { return stripCount; } }
     public Text StripLine { get { return stripLine; } }
     public RectTransform StripRect { get { return strip; } }
@@ -233,12 +236,16 @@ public sealed class CodexBackdropsView
         for (int s = 0; s < shownHeaders; s++)
         {
             if (s > 0) y += CodexPanel.SectionGap;
+            bool showHeader = worldFilter < 0;     // a one-world gallery needs no section header
             var hr = headers[headerWorlds[s]].rt;
-            hr.anchorMin = hr.anchorMax = new Vector2(.5f, 1f);
-            hr.pivot = new Vector2(.5f, 1f);
-            hr.anchoredPosition = new Vector2(0f, -y);
-            hr.sizeDelta = new Vector2(gridW, CodexPanel.SectionHeaderHeight);
-            y += CodexPanel.SectionHeaderHeight + CodexPanel.SectionHeaderGap;
+            if (showHeader)
+            {
+                hr.anchorMin = hr.anchorMax = new Vector2(.5f, 1f);
+                hr.pivot = new Vector2(.5f, 1f);
+                hr.anchoredPosition = new Vector2(0f, -y);
+                hr.sizeDelta = new Vector2(gridW, CodexPanel.SectionHeaderHeight);
+                y += CodexPanel.SectionHeaderHeight + CodexPanel.SectionHeaderGap;
+            }
             int end = s + 1 < shownHeaders ? headerStart[s + 1] : shownCards;
             int n = end - headerStart[s];
             for (int k = 0; k < n; k++)
@@ -267,8 +274,9 @@ public sealed class CodexBackdropsView
     // State
     // ---------------------------------------------------------------------
 
-    public void Show()
+    public void Show(int onlyWorld = -1)
     {
+        worldFilter = onlyWorld;
         root.gameObject.SetActive(true);
         shownCards = shownHeaders = 0;
         headerWorlds.Clear();
@@ -277,6 +285,7 @@ public sealed class CodexBackdropsView
         foreach (var b in CodexBackdrops.All)
         {
             if (!CodexBackdrops.IsListed(b) || shownCards >= cards.Length) continue;
+            if (worldFilter >= 0 && b.worldIndex != worldFilter) continue;
             if (b.worldIndex != world)
             {
                 world = b.worldIndex;
@@ -287,7 +296,7 @@ public sealed class CodexBackdropsView
             cards[shownCards++].backdrop = b;
         }
         for (int i = 0; i < cards.Length; i++) cards[i].rt.gameObject.SetActive(i < shownCards);
-        for (int i = 0; i < headers.Length; i++) headers[i].rt.gameObject.SetActive(headerWorlds.Contains(i));
+        for (int i = 0; i < headers.Length; i++) headers[i].rt.gameObject.SetActive(worldFilter < 0 && headerWorlds.Contains(i));
         scroll.velocity = Vector2.zero;
         content.anchoredPosition = Vector2.zero;
         Paint();
@@ -350,7 +359,9 @@ public sealed class CodexBackdropsView
             h.label.text = CodexPanel.WorldLabel(world);
             h.counter.text = found + "/" + (end - headerStart[s]);
         }
-        stripCount.text = CodexBackdrops.UnlockedCount + " / " + CodexBackdrops.ListedCount + "  SEEN";
+        int seen = 0;
+        for (int i = 0; i < shownCards; i++) if (CodexBackdrops.IsUnlocked(cards[i].backdrop)) seen++;
+        stripCount.text = (worldFilter < 0 ? CodexBackdrops.UnlockedCount + " / " + CodexBackdrops.ListedCount : seen + " / " + shownCards) + "  SEEN";
         stripLine.text = IdleLine;
     }
 
