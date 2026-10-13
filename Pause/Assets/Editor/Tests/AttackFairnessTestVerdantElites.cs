@@ -41,10 +41,10 @@ public static partial class AttackFairnessTest
                   AttackPreview.TooShort == 0 && AttackPreview.MinShown >= AttackPreview.MinLead);
             sc.End();
             AttackBudgetScenarios.Cleanup();
-            var r = AttackBudgetTest.Measure("elite:" + key, 300);
+            var r = AttackBudgetTest.Measure("elite:" + key, AttackBudgetTest.Full ? 300 : 100);
             string why;
-            bool ok = AttackBudgetTest.WithinBudget("elite:" + key, r, out why);
-            Check("the dodge bot against " + key + " (300 rolls; standing still: " + r.GhostRate.ToString("P0") + "): " + why, ok && r.hits <= r.ghostHits);
+            bool ok = AttackBudgetTest.Full ? AttackBudgetTest.WithinBudget("elite:" + key, r, out why) : AttackBudgetTest.WithinBudgetSampled("elite:" + key, r, out why);
+            Check("the dodge bot against " + key + " (" + r.rolls + " rolls; standing still: " + r.GhostRate.ToString("P0") + "): " + why, ok && r.hits <= r.ghostHits);
         }
     }
 }

@@ -218,6 +218,57 @@ public static class AttackBudgetTest
         return r.HitRate <= limit && r.AttackedShare >= MinAttackedShare;
     }
 
+    // ---- the two lanes -------------------------------------------------------------------
+    // PAUSE_TEST_FULL unset = GATE: a seeded PREFIX of the same rolls (200 per row, 30 for a boss attack: a boss attack fights 3 starts of
+    //   up to 26 s) judged statistically (WithinBudgetSampled: fails when even the lower end of a one-sided 95 % interval of the
+    //   measured rate is over the limit, so it only fires on a real regression, not on sampling noise; the rolls are seeded, so a
+    //   pass stays a pass). It catches gross regressions (an attack that became unavoidable, a bot that got clumsy, 2x harder).
+    // PAUSE_TEST_FULL=1 = FULL: every row at the pinned 2000 rolls (boss rows 500), the strict 1.15x + 2 points budget. Run it before a release /
+    //   nightly: the 15 % budget is only resolvable at that size.
+    public static bool Full => System.Environment.GetEnvironmentVariable("PAUSE_TEST_FULL") == "1";
+    public const int GateRolls = 200, GateBossRolls = 30, FullBossRolls = 500;
+    public const float GateZ = 1.645f;      // one-sided 95 %
+
+    // rows whose world is so heavy (the cold blast draws its ring every frame: ~.12 s a roll, the boss version .4 s) that the gate rolls fewer
+    static readonly Dictionary<string, int> GateCap = new Dictionary<string, int>
+    {
+        { "themed:frost_cold_blast", 60 }, { "themed:boss_frost_cold_blast", 15 }, { "themed:verdant_vine_lash", 100 },
+    };
+
+    public static int RowRolls(string id)
+    {
+        bool boss = id.StartsWith("themed:boss_");
+        if (!Full) { int cap; if (GateCap.TryGetValue(id, out cap)) return cap; }
+        return Full ? (boss ? FullBossRolls : Rolls) : (boss ? GateBossRolls : GateRolls);
+    }
+
+    // Lower end of the Wilson interval of hits/n at z.
+    public static float WilsonLower(int hits, int n, float z)
+    {
+        if (n <= 0) return 0f;
+        float p = hits / (float)n, z2 = z * z;
+        float denom = 1f + z2 / n;
+        float centre = (p + z2 / (2f * n)) / denom;
+        float half = z * Mathf.Sqrt(p * (1f - p) / n + z2 / (4f * n * n)) / denom;
+        return Mathf.Max(0f, centre - half);
+    }
+
+    // The budget check for a measurement of any size: the full-size ones are held to the strict limit, a shorter run to the
+    // statistically valid one (the true rate is above the limit with 95 % confidence).
+    public static bool WithinBudgetSampled(string id, DodgeBot.Result r, out string why)
+    {
+        if (r.rolls >= Rolls || r.rolls >= FullBossRolls && id.StartsWith("themed:boss_")) return WithinBudget(id, r, out why);
+        string old;
+        if (!Themed.TryGetValue(id, out old)) old = id;
+        Pin p;
+        if (!Pinned.TryGetValue(old, out p)) { why = "no baseline pinned for " + old; return false; }
+        float limit = p.Rate * BudgetFactor + Slack;
+        float low = WilsonLower(r.hits, r.attacked, GateZ);
+        why = id + ": bot hit rate " + r.HitRate.ToString("P1") + " (" + r.hits + "/" + r.attacked + ", 95% lower bound " + low.ToString("P1") + ") vs baseline " + old + " " +
+              p.Rate.ToString("P1") + " (" + p.hits + "/" + p.attacked + "), limit " + limit.ToString("P1");
+        return low <= limit && r.AttackedShare >= MinAttackedShare;
+    }
+
     // Measure one attack the way the pins were measured.
     public static DodgeBot.Result Measure(string id, int rolls = Rolls)
     {
@@ -234,17 +285,35 @@ public static class AttackBudgetTest
         "roster:space_fighter_4", "roster:frost_fighter_2", "roster:verdant_fighter_4", "roster:ember_fighter_3", "roster:verdant_big",
     };
 
-    public static int Execute()
+    // Everything (what AttackBudgetTest used to be): the core checks and every row group, in one process.
+    public static int Execute() { return ExecuteGroups(AllGroups); }
+
+    // The shards (AttackBudgetShards.cs): "Core" = harness + catalogue + spot checks, then one group of themed rows each.
+    public static readonly string[] AllGroups =
+    {
+        "Core", "Frost", "Ember", "Verdant", "Space", "Tide",
+        "BossFrost", "BossEmber", "BossSpace", "BossTide", "BossStorm", "BossVerdant",
+    };
+
+    public static string GroupOf(string id)
+    {
+        string w = id.Contains("frost") ? "Frost" : id.Contains("ember") ? "Ember" : id.Contains("verdant") ? "Verdant" :
+                   id.Contains("space") ? "Space" : id.Contains("tide") ? "Tide" : id.Contains("storm") ? "Storm" : "Other";
+        return id.StartsWith("themed:boss_") ? "Boss" + w : w;
+    }
+
+    public static int ExecuteGroups(params string[] groups)
     {
         fails = 0;
         using (new TestHarness.Sandbox())
         {
             try
             {
-                Harness();
-                Catalogue();
-                SpotChecksHold();
-                ThemedRowsPass();
+                foreach (var g in groups)
+                {
+                    if (g == "Core") { Harness(); Catalogue(); SpotChecksHold(); }
+                    else ThemedRowsPass(g);
+                }
             }
             finally { AttackBudgetScenarios.Cleanup(); }
         }
@@ -327,25 +396,41 @@ public static class AttackBudgetTest
         {
             Pin p;
             if (!Pinned.TryGetValue(id, out p)) { Check(id + ": pinned", false); continue; }
-            var r = Measure(id);
-            // (a few rolls can differ run to run: the world's clock and the brains' drift directions carry a little state between
-            // attacks in one editor process; within a point and a half is the same measurement)
-            int tol = Mathf.CeilToInt(Rolls * .015f);
-            Check(id + ": today's attack still measures its pin (" + r.hits + "/" + r.attacked + " ghost " + r.ghostHits + " vs " + p.hits + "/" + p.attacked + " ghost " + p.ghost + ", tolerance " + tol + ")",
-                  Mathf.Abs(r.hits - p.hits) <= tol && Mathf.Abs(r.attacked - p.attacked) <= tol && Mathf.Abs(r.ghostHits - p.ghost) <= tol);
+            int n = Full ? Rolls : 100;
+            var r = Measure(id, n);
+            if (Full)
+            {
+                // (a few rolls can differ run to run: the world's clock and the brains' drift directions carry a little state between
+                // attacks in one editor process; within a point and a half is the same measurement)
+                int tol = Mathf.CeilToInt(Rolls * .015f);
+                Check(id + ": today's attack still measures its pin (" + r.hits + "/" + r.attacked + " ghost " + r.ghostHits + " vs " + p.hits + "/" + p.attacked + " ghost " + p.ghost + ", tolerance " + tol + ")",
+                      Mathf.Abs(r.hits - p.hits) <= tol && Mathf.Abs(r.attacked - p.attacked) <= tol && Mathf.Abs(r.ghostHits - p.ghost) <= tol);
+            }
+            else
+            {
+                // gate: the first n of the pinned rolls; its bot rate must be consistent with the pinned rate (3 sigma + a point and a half),
+                // and the ghost rate (how often an attack lands on a ship that stands still) likewise: that one moves with the attack's reach and timing
+                float pr = p.Rate, gr = p.ghost / (float)p.attacked;
+                float tolR = 3f * Mathf.Sqrt(Mathf.Max(pr * (1f - pr), .0025f) / n) + .015f;
+                float tolG = 3f * Mathf.Sqrt(Mathf.Max(gr * (1f - gr), .0025f) / n) + .015f;
+                Check(id + ": today's attack still measures its pin (gate, " + n + " rolls: bot " + r.HitRate.ToString("P1") + " vs " + pr.ToString("P1") + " +-" + tolR.ToString("P1") +
+                      ", standing " + r.GhostRate.ToString("P1") + " vs " + gr.ToString("P1") + " +-" + tolG.ToString("P1") + ", shown " + r.attacked + "/" + n + ")",
+                      Mathf.Abs(r.HitRate - pr) <= tolR && Mathf.Abs(r.GhostRate - gr) <= tolG && r.AttackedShare >= .9f * (p.attacked / (float)Rolls));
+            }
         }
     }
 
-    static void ThemedRowsPass()
+    static void ThemedRowsPass(string group)
     {
         foreach (var kv in Themed)
         {
-            // (a boss attack fights 3 starts of up to 26 s: 2000 rolls take ~3 min each, so the suite rolls the first 500 of its seeded rolls --
-            // deterministic, so a pass stays a pass; SweepThemed measures all 2000)
-            var r = Measure(kv.Key, kv.Key.StartsWith("themed:boss_") ? 500 : Rolls);
+            if (GroupOf(kv.Key) != group) continue;
+            // (a boss attack fights 3 starts of up to 26 s: 2000 rolls take ~3 min each, so the full lane rolls the first 500 of its seeded rolls --
+            // deterministic, so a pass stays a pass; SweepThemed measures all 2000; the gate lane rolls fewer, see RowRolls)
+            var r = Measure(kv.Key, RowRolls(kv.Key));
             string why;
-            bool ok = WithinBudget(kv.Key, r, out why);
-            Check("themed attack within the budget: " + why, ok);
+            bool ok = WithinBudgetSampled(kv.Key, r, out why);
+            Check("themed attack within the budget (" + (Full ? "full" : "gate") + ", " + r.rolls + " rolls): " + why, ok);
         }
     }
 
@@ -433,10 +518,11 @@ public static class AttackBudgetTest
         {
             foreach (string one in id.Split(','))   // (several ids, comma separated)
             {
+                var sw1 = Stopwatch.StartNew();
                 var r = Measure(one, rolls);
                 string why;
                 bool ok = WithinBudget(one, r, out why);
-                Debug.Log("[ATKBUD] ONE " + (ok ? "WITHIN " : "OVER   ") + why + "; standing still " + r.GhostRate.ToString("P1") + "; shown in " + r.attacked + "/" + r.rolls);
+                Debug.Log("[ATKBUD] ONE (" + sw1.Elapsed.TotalSeconds.ToString("0.0") + " s, hits " + r.hits + " attacked " + r.attacked + " ghost " + r.ghostHits + " frames " + r.frames + ") " + (ok ? "WITHIN " : "OVER   ") + why + "; standing still " + r.GhostRate.ToString("P1") + "; shown in " + r.attacked + "/" + r.rolls);
             }
         }
         finally { AttackBudgetScenarios.Cleanup(); }

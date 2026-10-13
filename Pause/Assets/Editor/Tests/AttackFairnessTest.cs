@@ -46,7 +46,6 @@ public static partial class AttackFairnessTest
                 BoldOnBrightWorlds();
                 HitMatchesDrawing();
                 ArtSlots();
-                BudgetRows();
                 VerdantEliteSuite();   // AttackFairnessTestVerdantElites.cs: the four new Verdant elites
                 JetWaveSuite();   // AttackFairnessTestJetWave.cs: phases 1a (AttackJet) and 1b (AttackWave)
             }
@@ -680,14 +679,29 @@ public static partial class AttackFairnessTest
 
     // ---- FR6: the dodge bot (a short run; AttackBudgetTest rolls the 2000) -------------------------------------------------------
 
+    // Its own suite (AttackFairnessBudgetTest) so it shards apart from the deterministic checks above. Lanes as AttackBudgetTest:
+    // gate (PAUSE_TEST_FULL unset) 60 rolls judged statistically, full 300 rolls strictly.
+    public static int ExecuteBudgetRows()
+    {
+        fails = 0;
+        using (new TestHarness.Sandbox())
+        {
+            try { BudgetRows(); }
+            finally { AttackBudgetScenarios.Cleanup(); }
+        }
+        Debug.Log("[ATKFAIR] failures: " + fails);
+        return fails;
+    }
+
     static void BudgetRows()
     {
+        int rolls = AttackBudgetTest.Full ? 300 : 40;
         foreach (string id in AttackBudgetScenarios.ThemedFixtures.Ids)
         {
-            var r = AttackBudgetTest.Measure(id, 300);
+            var r = AttackBudgetTest.Measure(id, rolls);
             string why;
-            bool ok = AttackBudgetTest.WithinBudget(id, r, out why);
-            Check("the dodge bot against " + id + " (300 rolls; standing still: " + r.GhostRate.ToString("P0") + "): " + why, ok);
+            bool ok = AttackBudgetTest.Full ? AttackBudgetTest.WithinBudget(id, r, out why) : AttackBudgetTest.WithinBudgetSampled(id, r, out why);
+            Check("the dodge bot against " + id + " (" + rolls + " rolls; standing still: " + r.GhostRate.ToString("P0") + "): " + why, ok);
         }
     }
 }

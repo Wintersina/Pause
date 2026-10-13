@@ -1,4 +1,6 @@
 using System;
+using System.Diagnostics;
+using Debug = UnityEngine.Debug;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -95,6 +97,7 @@ public static class DodgeBot
 
     // Debugging: log every frame's hazards and the bot's place (AttackBudgetTest.Sweep -trace)
     public static bool Trace;
+    public static long ProfStep, ProfCollect, ProfPlan;   // Stopwatch ticks, A/B test reports them
 
     // offsets from the ship, nearest first (built once)
     static Vector2[] offsets;
@@ -140,9 +143,13 @@ public static class DodgeBot
             int f = 0;
             for (; f < maxFrames; f++)
             {
+                long t0 = Stopwatch.GetTimestamp();
                 s.Step(Dt);
+                long t1 = Stopwatch.GetTimestamp();
                 now.Clear();
                 s.Collect(now);
+                long t2 = Stopwatch.GetTimestamp();
+                ProfStep += t1 - t0; ProfCollect += t2 - t1;
                 // velocities from the last frame's positions
                 for (int i = 0; i < now.Count; i++)
                 {
@@ -187,6 +194,7 @@ public static class DodgeBot
                 {
                     var seen = ring[(f - DelayFrames) % ring.Length];
                     int salt = roll;
+                    planDirty = true;
                     // a windup seen (a reaction ago): a quick sidestep, a coin flip which way, towards the room there is
                     bool tell = tellRing[(f - DelayFrames) % tellRing.Length];
                     if (tell && !tellWas)
@@ -197,6 +205,7 @@ public static class DodgeBot
                         havePlan = true;
                     }
                     tellWas = tell;
+                    long t3 = Stopwatch.GetTimestamp();
                     if (!havePlan || !PathClear(pos, goal, seen, salt))
                     {
                         goal = pos;
@@ -213,6 +222,7 @@ public static class DodgeBot
                             }
                         }
                     }
+                    ProfPlan += Stopwatch.GetTimestamp() - t3;
                     Vector2 to = goal - pos;
                     float away = to.magnitude;
                     float want = Mathf.Min(Speed, Mathf.Sqrt(2f * Accel * away));   // brakes into its goal
@@ -241,7 +251,115 @@ public static class DodgeBot
 
     // Is the straight flight from `from` to `to` (at Speed, then holding)
     // clear of everything `seen` (a snapshot Reaction ago) predicts?
+    // Reference (original) implementation, kept for A/B proof: PAUSE_BOT_REF=1 selects it. The fast path must give identical answers.
+    public static bool UseReference = Environment.GetEnvironmentVariable("PAUSE_BOT_REF") == "1";
+
+    // The hazards' predicted places at each plan step do not depend on the candidate path, only on the
+    // snapshot and roll: build them once per bot frame (plan.Dirty), then every candidate just tests its
+    // point per step against flat arrays (circles: one distance; segments: a bounding-box reject first).
+    // Arithmetic is written exactly as in PathClearRef so results are bit-identical.
+    static readonly float[] stepTau, stepTravel;
+    static readonly int[] stepStart;
+    static bool planDirty = true;
+    static int planCount, stepCount;
+    static bool[] eSeg = new bool[4096];
+    static Vector2[] eA = new Vector2[4096], eB = new Vector2[4096];
+    static float[] eReachSq = new float[4096], eMinX = new float[4096], eMaxX = new float[4096], eMinY = new float[4096], eMaxY = new float[4096];
+
+    static DodgeBot()
+    {
+        var taus = new List<float>();
+        for (float tau = 0f; tau <= Horizon + 1e-4f; tau += PlanStep) taus.Add(tau);
+        stepCount = taus.Count;
+        stepTau = taus.ToArray();
+        stepTravel = new float[stepCount];
+        for (int i = 0; i < stepCount; i++) stepTravel[i] = Travelled(stepTau[i]);
+        stepStart = new int[stepCount + 1];
+    }
+
+    static void Add(bool seg, Vector2 a, Vector2 b, float reach)
+    {
+        if (planCount == eSeg.Length)
+        {
+            int n = planCount * 2;
+            Array.Resize(ref eSeg, n); Array.Resize(ref eA, n); Array.Resize(ref eB, n); Array.Resize(ref eReachSq, n);
+            Array.Resize(ref eMinX, n); Array.Resize(ref eMaxX, n); Array.Resize(ref eMinY, n); Array.Resize(ref eMaxY, n);
+        }
+        int k = planCount++;
+        eSeg[k] = seg; eA[k] = a; eB[k] = b; eReachSq[k] = reach * reach;
+        const float eps = .01f;   // (the box only has to be a safe superset of "closer than reach")
+        eMinX[k] = Mathf.Min(a.x, b.x) - reach - eps; eMaxX[k] = Mathf.Max(a.x, b.x) + reach + eps;
+        eMinY[k] = Mathf.Min(a.y, b.y) - reach - eps; eMaxY[k] = Mathf.Max(a.y, b.y) + reach + eps;
+    }
+
+    static void BuildPlan(List<Hz> seen, int salt)
+    {
+        planCount = 0;
+        var errs = new Vector2[seen.Count];
+        for (int i = 0; i < seen.Count; i++) errs[i] = Misjudged(seen[i].id, salt);
+        for (int st = 0; st < stepCount; st++)
+        {
+            stepStart[st] = planCount;
+            float since = Reaction + stepTau[st];
+            for (int i = 0; i < seen.Count; i++)
+            {
+                var h = seen[i];
+                if (since < h.liveIn || since > h.liveIn + h.liveFor) continue;
+                float reach = h.r + ShipRadius + Margin;
+                Vector2 err = errs[i];
+                if (!h.seg) Add(false, h.a + err + h.va * since, default(Vector2), reach);
+                else if (h.segAt != null)
+                {
+                    for (int sub = 0; sub < 4; sub++)
+                    {
+                        float at = since + sub * PlanStep * .25f;
+                        if (at < h.liveIn || at > h.liveIn + h.liveFor) continue;
+                        Vector4 e = h.segAt(at);
+                        Add(true, new Vector2(e.x, e.y) + err, new Vector2(e.z, e.w) + err, reach);
+                    }
+                }
+                else
+                {
+                    Vector2 a = h.a + err + h.va * since, b = h.b + err + h.vb * since + h.vbExtra * Mathf.Max(0f, since - h.moveFrom);
+                    Add(true, a, b, reach);
+                }
+            }
+        }
+        stepStart[stepCount] = planCount;
+        planDirty = false;
+    }
+
     static bool PathClear(Vector2 from, Vector2 to, List<Hz> seen, int salt)
+    {
+        if (UseReference) return PathClearRef(from, to, seen, salt);
+        if (seen.Count == 0) return true;
+        if (planDirty) BuildPlan(seen, salt);
+        Vector2 d = to - from;
+        float dist = d.magnitude;
+        Vector2 dir = dist > 1e-4f ? d / dist : Vector2.zero;
+        for (int st = 0; st < stepCount; st++)
+        {
+            int lo = stepStart[st], hi = stepStart[st + 1];
+            if (lo == hi) continue;
+            Vector2 p = from + dir * Mathf.Min(stepTravel[st], dist);
+            for (int k = lo; k < hi; k++)
+            {
+                if (!eSeg[k])
+                {
+                    float dx = eA[k].x - p.x, dy = eA[k].y - p.y;
+                    if ((new Vector2(dx, dy)).sqrMagnitude < eReachSq[k]) return false;
+                }
+                else
+                {
+                    if (p.x < eMinX[k] || p.x > eMaxX[k] || p.y < eMinY[k] || p.y > eMaxY[k]) continue;
+                    if (HostileShots.SegmentDistanceSq(eA[k], eB[k], p) < eReachSq[k]) return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    static bool PathClearRef(Vector2 from, Vector2 to, List<Hz> seen, int salt)
     {
         if (seen.Count == 0) return true;
         Vector2 d = to - from;
