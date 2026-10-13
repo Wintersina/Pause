@@ -13,7 +13,7 @@ public static class MineThemedPreview
 {
     const int Width = 540, Height = 960, CropH = 330;
     static int World;
-    static readonly string[] Keys = { "Space", "Frost", "Verdant", "Ember", "Tide", "Storm" };
+    static readonly string[] Keys = { "Space", "Frost", "Verdant", "Ember", "Tide", "Storm", "Desert" };
     const float Dt = 1f / 60f;
 
     static Camera cam;
@@ -44,6 +44,7 @@ public static class MineThemedPreview
             {
                 MineLaserArt.NoFlame = false;
                 MineLaserArt.NoKit = false;
+                MineCue.LegacySpaceWhite = false;
                 MineLaserArt.ResetCache();
                 RailMineLaser.AngleOverride = null;
                 EnemyThreat.ForceShooting = false;
@@ -116,6 +117,7 @@ public static class MineThemedPreview
     {
         MineLaserArt.NoFlame = old;
         MineLaserArt.NoKit = old;
+        MineCue.LegacySpaceWhite = System.Environment.GetEnvironmentVariable("MINE_THEMED_LEGACY") == "1";
         MineLaserArt.ResetCache();
         RailMineLaser.AngleOverride = 14f;
         Scene();

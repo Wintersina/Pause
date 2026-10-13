@@ -745,17 +745,22 @@ public class RailMineLaserHitbox : MonoBehaviour
 //
 // NO PINK ON A RAIL MINE (user, 2026-10-11): the mine's windup, beam and impact carry no pink. The painted atlases were remapped once
 // (Art/Attacks/MineBeams~/recolor_nopink.py); the kit / boss cells are remapped here, once per world and cached, with the same
-// constants. Each world's warning reads in its own colours instead: Space ion white-blue, Frost icy white-cyan, Verdant bright green-white,
+// constants (Space is NOT remapped: its mine laser stays the painted hot pink). Each other world's warning reads in its own colours instead: Frost icy white-cyan, Verdant bright green-white,
 // Ember amber / orange-white, Tide aqua-white, Storm electric white-violet, Desert sun-white.
 public static class MineCue
 {
     //                                       space  frost verdant ember  tide  storm desert
-    public static readonly float[] Hue = { 215f, 195f, 135f, 32f, 188f, 258f, 45f };
-    public static readonly float[] SatCap = { .45f, .40f, .55f, .85f, .38f, .38f, .35f };
+    public static readonly float[] Hue = { 318f, 195f, 135f, 32f, 188f, 258f, 45f };
+    public static readonly float[] SatCap = { .70f, .40f, .55f, .85f, .38f, .38f, .35f };
     public static readonly float[] ValueMin = { .85f, .90f, .88f, .92f, .90f, .92f, .92f };
     public const int Worlds = 7;
 
     public static int Slot(int world) => Mathf.Clamp(world, 0, Worlds - 1);
+
+    // User, 2026-10-12: Space is the one world whose mine laser is PINK; white(-violet) is Storm's. So Space is never remapped.
+    public static bool KeepsPink(int world) => world <= 0 && !LegacySpaceWhite;
+    // preview only: the old Space look (pink remapped to ion white-blue), for before-pictures
+    public static bool LegacySpaceWhite;
 
     // The pink family of a boss / kit cell: ANY visibly pinkish pixel -- hue 280..352 at a chroma of at least 9/255 and not dark (saturated
     // pink AND the pale pinkish-white / lavender-white of rims and specks), or the hot pink of the boss beams that sits in the player's
@@ -773,8 +778,9 @@ public static class MineCue
     {
         int k = Slot(world);
         Color.RGBToHSV(c, out float h, out float s, out float v);
-        float sat = Mathf.Min(Mathf.Max(s * .8f, .10f), SatCap[k]) * (v < .95f ? 1f : .75f);
-        var m = Color.HSVToRGB(Hue[k] / 360f, sat, Mathf.Max(v, ValueMin[k]));
+        bool old = k == 0 && LegacySpaceWhite;
+        float sat = Mathf.Min(Mathf.Max(s * .8f, .10f), old ? .45f : SatCap[k]) * (v < .95f ? 1f : .75f);
+        var m = Color.HSVToRGB((old ? 215f : Hue[k]) / 360f, sat, Mathf.Max(v, old ? .85f : ValueMin[k]));
         m.a = c.a;
         return m;
     }
@@ -817,6 +823,7 @@ public static class MineCue
     public static Sprite Recolour(Sprite cell, int world)
     {
         if (cell == null) return null;
+        if (KeepsPink(world)) return cell;   // Space: its painted hot pink stays (white-violet belongs to Storm)
         int w, h;
         var px = ShieldContour.ReadPixels(cell, out w, out h);
         if (px == null) return cell;
@@ -851,6 +858,7 @@ public static class MineCue
     // The world's painted laser kit with its pink removed (same cells, same measurements).
     public static AttackArt.LaserArt Kit(AttackArt.LaserArt k, int world)
     {
+        if (KeepsPink(world)) return k;
         var o = new AttackArt.LaserArt { bodyOpaquePx = k.bodyOpaquePx, impactBasePx = k.impactBasePx };
         Copy(All(k.windup, world), o.windup); Copy(All(k.muzzle, world), o.muzzle); Copy(All(k.fade, world), o.fade); Copy(All(k.impact, world), o.impact);
         Copy(All(k.spark, world), o.spark); Copy(All(k.body, world), o.body); Copy(All(k.sight, world), o.sight); Copy(All(k.lockOn, world), o.lockOn);

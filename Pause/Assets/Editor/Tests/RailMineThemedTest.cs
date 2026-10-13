@@ -6,7 +6,7 @@ using UnityEngine;
 // EVERY WORLD'S RAIL MINE ATTACKS IN THAT WORLD'S OWN MATERIAL (docs/world-attacks-design.md, the add-world skill's THEMED ATTACKS rule).
 //
 //   Space                    the mine fires the world's painted laser kit (Resources/Attacks/Space/space_attack_laser*, AttackArt.BossLaser:
-//                            ion beam, its pink remapped to ion white-blue by MineCue), NOT the boss cells
+//                            ion beam, PINK, left as painted: Space is the one world with a pink mine laser, 2026-10-12), NOT the boss cells
 //   Ember                    the flame-thrower (ember_attack_mineflame.png, MineFlameArt)
 //   Frost / Verdant /        their own custom attack in the same shape (<w>_attack_minebeam.png, AttackArt.MineBeam, MineFlameArt.ForWorld):
 //   Tide / Storm             a cryo laser, a thorned vine lash, a pressurised water jet, a lightning arc: pilot flare, aim line, beam loop,
@@ -100,6 +100,15 @@ public static class RailMineThemedTest
         string t = Keys[w] + ": ";
         var a = MineLaserArt.For(w);
         var src = AttackArt.BossLaser(w);
+        if (w == 0)
+        {
+            // SPACE IS PINK (user, 2026-10-12): the mine fires the painted ion kit as it is, never remapped (white-violet is Storm's)
+            Check(t + "the mine's art is the painted laser kit itself, not remapped", src != null && a.kit == src && a.flame == null && MineCue.KeepsPink(0) && !MineCue.KeepsPink(5));
+            float pb = PinkShare(a.kit.body[0], out int rb, out int ob), ps = PinkShare(a.kit.sight[0], out int rs, out int os);
+            Check(t + "its beam body is pink (" + (pb * 100f).ToString("F0") + "%) and its aim line is pink (" + (ps * 100f).ToString("F0") + "%)", pb > .3f && ps > .3f);
+            Check(t + "the cue table: Space pink, every other world's mine cue not pink", WorldCue.IsPink(WorldCue.Body(0)) && MineCue.Hue[0] == WorldCue.Hue[0] && AllOthersNotPink());
+            return;
+        }
         Check(t + "the mine's art is the world's laser kit with its pink remapped (a cached copy, not the boss cells, not the boss's own kit)", src != null && a.kit != null && a.kit != src && a.flame == null &&
               a.kit.body[0] != src.body[0] && a.kit.bodyOpaquePx == src.bodyOpaquePx && a.kit.impactBasePx == src.impactBasePx);
         Check(t + "built once per world: a second look-up is the same object", ReferenceEquals(MineLaserArt.For(w), a));
@@ -117,6 +126,18 @@ public static class RailMineThemedTest
         }
         Check(t + "no pink (<= " + (MaxPinkShare * 100f) + "% pink-family) and no player-red in any cell:" + line, cue);
         Check(t + "the world's cue colour (hue " + MineCue.Hue[MineCue.Slot(w)] + ") is in the beam body (" + (CueShare(kit.body[0], w) * 100f).ToString("F0") + "%)", CueShare(kit.body[0], w) >= MinCueShare);
+    }
+
+    // MineCue and WorldCue: hue tables equal; Frost..Desert none pink; Storm is white-violet (the white one), Space the pink one
+    static bool AllOthersNotPink()
+    {
+        for (int w = 1; w < MineCue.Worlds; w++)
+        {
+            if (MineCue.Hue[w] != WorldCue.Hue[w]) return false;
+            var c = Color.HSVToRGB(MineCue.Hue[w] / 360f, MineCue.SatCap[w], 1f);
+            if (WorldCue.IsPink(c) || WorldCue.IsPink(WorldCue.Body(w))) return false;
+        }
+        return Mathf.Abs(Mathf.DeltaAngle(MineCue.Hue[5], 258f)) < 1f && MineCue.SatCap[5] <= .4f;
     }
 
     // a world without its own atlas (Desert): the boss's laser cells, their hot pink remapped to the sun-white cue
