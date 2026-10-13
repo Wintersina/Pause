@@ -109,6 +109,34 @@ public static class DockPreview
         EditorApplication.Exit(0);
     }
 
+    // Paragon (the premium ship) in the dock: locked "COMING SOON", owned with
+    // its skin chips, and a previewed skin, into $PAUSE_DOCK_PREVIEW_DIR as
+    // paragon-dock-<case>.png.
+    public static void RunParagon()
+    {
+        string dir = System.Environment.GetEnvironmentVariable("PAUSE_DOCK_PREVIEW_DIR");
+        if (string.IsNullOrEmpty(dir)) dir = "/private/tmp";
+        Directory.CreateDirectory(dir);
+        using (new TestHarness.Sandbox())
+        {
+            DeveloperUnlocks.SetEnabled(false);
+            for (int i = 0; i <= shopingShips.shipTotal; i++) PlayerPrefs.DeleteKey(ShipId.OwnedKey(i));
+            foreach (int id in new[] { 2, 8, 10 }) PlayerPrefs.SetString(ShipId.OwnedKey(id), "True");
+            PlayerPrefs.SetFloat(StarDustLedger.CurrencyKey, 120000f);
+            var size = new Vector2Int(1080, 1920);
+            Render(size, 0, Path.Combine(dir, "paragon-dock-idle.png"));
+            Render(size, PremiumShips.Paragon, Path.Combine(dir, "paragon-dock-locked.png"));
+            PlayerPrefs.SetString(ShipId.OwnedKey(PremiumShips.Paragon), "True");   // what developer mode / the IAP writes
+            Render(size, PremiumShips.Paragon, Path.Combine(dir, "paragon-dock-owned.png"));
+            Render(size, PremiumShips.Paragon, Path.Combine(dir, "paragon-dock-skin-preview.png"), d => d.popup.TapSwatch(2));
+            PlayerPrefs.SetInt(ShipSkins.OwnedKey(PremiumShips.Paragon, 1), 1);
+            PlayerPrefs.SetInt(ShipSkins.OwnedKey(PremiumShips.Paragon, 2), 1);
+            Render(size, PremiumShips.Paragon, Path.Combine(dir, "paragon-dock-two-skins.png"), d => d.popup.TapSwatch(3));
+            ShipSkins.ClearPreview();
+        }
+        EditorApplication.Exit(0);
+    }
+
     static void Render(Vector2Int size, int selected, string path, System.Action<SpaceDock> after = null)
     {
         EditorSceneLoader.Open("shopS6");

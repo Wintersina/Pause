@@ -586,7 +586,8 @@ public class DockPopup : MonoBehaviour
             if (!w.owned)
             {
                 float price = ShipSkins.PriceOf(index, n);
-                w.price.text = Mathf.RoundToInt(price).ToString("N0");
+                // (a premium ship's 50,000 skins read "50K": five chips share the row)
+                w.price.text = price >= 10000f ? Mathf.RoundToInt(price / 1000f) + "K" : Mathf.RoundToInt(price).ToString("N0");
                 w.price.color = balance >= price ? DockArt.Gold : DockArt.Warn;
             }
         }
