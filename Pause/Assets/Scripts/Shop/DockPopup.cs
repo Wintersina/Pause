@@ -263,6 +263,8 @@ public class DockPopup : MonoBehaviour
     const float PreviewArtTop = 8f, PreviewArtHeight = 62f, ChipWidth = 74f, ChipHeight = 16f;
     RectTransform previewRoot;
     Image previewArt;
+    RectTransform previewArtRect;
+    public RectTransform PreviewArtRect { get { return previewArtRect; } }
     Text previewName, previewLine;
     readonly Image[] previewChips = new Image[2];
     readonly Text[] previewChipLabels = new Text[2];
@@ -305,7 +307,14 @@ public class DockPopup : MonoBehaviour
         innerImage.type = Image.Type.Sliced;
         innerImage.color = new Color(.03f, .04f, .10f, 1f);
         innerImage.raycastTarget = false;
-        var art = Rect("Art", rim);
+        // the art may be scaled past the panel (PowerPreview.Fit): clip it to the frame
+        var clip = Rect("Clip", rim);
+        Stretch(clip);
+        clip.offsetMin = new Vector2(3f, 3f);
+        clip.offsetMax = new Vector2(-3f, -3f);
+        clip.gameObject.AddComponent<RectMask2D>();
+        var art = Rect("Art", clip);
+        previewArtRect = art;
         Place(art, new Vector2(.5f, .5f), Vector2.zero, new Vector2(PreviewArtHeight - 6f, PreviewArtHeight - 6f), new Vector2(.5f, .5f));
         previewArt = art.gameObject.AddComponent<Image>();
         previewArt.preserveAspect = true;
@@ -371,6 +380,10 @@ public class DockPopup : MonoBehaviour
         previewPower = power;
         previewClockAt = Time.unscaledTime;
         previewTick = -2;
+        Vector2 artSize, artAt;
+        PowerPreview.Fit(ShipIndex, power, previewCells[power ? 1 : 0], PreviewArtHeight, PanelWidth - 2f * Pad, out artSize, out artAt);
+        previewArtRect.sizeDelta = artSize;
+        previewArtRect.anchoredPosition = artAt;
         previewName.text = PowerPreview.Name(ShipIndex, power);
         previewLine.text = PowerPreview.Line(ShipIndex, power);
         for (int k = 0; k < 2; k++)
@@ -994,6 +1007,60 @@ public static class PowerPreview
         }
         for (int i = 0; i < cells.Length; i++) ok &= cells[i] != null;
         return ok;
+    }
+
+    const float FitFraction = .85f, MaxZoom = 3f, AlphaCut = .15f, BaseSide = 56f;
+    static readonly System.Collections.Generic.Dictionary<int, Rect> bounds = new System.Collections.Generic.Dictionary<int, Rect>();
+
+    // The visible (alpha) box over all 16 cells, in 0..1 cell coordinates (y up).
+    // Read through a temporary RenderTexture (the strips are not readable);
+    // cached per ship and kind, so it costs once when a card opens.
+    public static Rect VisibleBounds(int ship, bool secretPower, Sprite[] cells)
+    {
+        int key = ship * 2 + (secretPower ? 1 : 0);
+        Rect box;
+        if (bounds.TryGetValue(key, out box)) return box;
+        box = new Rect(0f, 0f, 1f, 1f);
+        var tex = cells != null && cells[0] != null ? cells[0].texture : null;
+        if (tex != null && tex.width >= Cells * 2)
+        {
+            var rt = RenderTexture.GetTemporary(tex.width, tex.height, 0, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Linear);
+            var prev = RenderTexture.active;
+            Graphics.Blit(tex, rt);
+            RenderTexture.active = rt;
+            var read = new Texture2D(tex.width, tex.height, TextureFormat.RGBA32, false);
+            read.ReadPixels(new Rect(0, 0, tex.width, tex.height), 0, 0);
+            RenderTexture.active = prev;
+            RenderTexture.ReleaseTemporary(rt);
+            var px = read.GetPixels32();
+            int cw = tex.width / ShipFxArt.StripCells, h = tex.height, cut = (int)(AlphaCut * 255f);
+            int x0 = int.MaxValue, y0 = int.MaxValue, x1 = -1, y1 = -1;
+            for (int c = 0; c < Cells; c++)
+                for (int y = 0; y < h; y++)
+                    for (int x = 0; x < cw; x++)
+                        if (px[y * tex.width + c * cw + x].a > cut)
+                        {
+                            if (x < x0) x0 = x; if (x > x1) x1 = x;
+                            if (y < y0) y0 = y; if (y > y1) y1 = y;
+                        }
+            Object.DestroyImmediate(read);
+            if (x1 >= x0 && y1 >= y0) box = Rect.MinMaxRect(x0 / (float)cw, y0 / (float)h, (x1 + 1) / (float)cw, (y1 + 1) / (float)h);
+        }
+        bounds[key] = box;
+        return box;
+    }
+
+    // Image size and offset (canvas units) that centre the strip's visible box
+    // in the panel and fill ~85% of its height (up to 3x, within the panel's width).
+    public static void Fit(int ship, bool secretPower, Sprite[] cells, float panelHeight, float panelWidth,
+                           out Vector2 size, out Vector2 at)
+    {
+        Rect b = VisibleBounds(ship, secretPower, cells);
+        float side = Mathf.Min(FitFraction * panelHeight / Mathf.Max(.05f, b.height),
+                               FitFraction * panelWidth / Mathf.Max(.05f, b.width),
+                               MaxZoom * BaseSide);
+        size = new Vector2(side, side);
+        at = new Vector2(-(b.center.x - .5f) * side, -(b.center.y - .5f) * side);
     }
 
     public static string Name(int ship, bool secretPower)

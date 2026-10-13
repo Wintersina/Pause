@@ -32,6 +32,17 @@ public static class DockPopupScaleTest
                 text &= PowerPreview.Name(ship, power).Length > 0 && PowerPreview.Line(ship, power).Length > 0;
             }
         Check("every ship (" + ShipId.Count + ") resolves 16 non-null attack and power preview frames", frames && ShipId.Count == 15);
+        bool fit = true;
+        foreach (int ship in ShipId.All)
+            foreach (bool power in new[] { false, true })
+            {
+                PowerPreview.Fill(ship, power, cells);
+                var b = PowerPreview.VisibleBounds(ship, power, cells);
+                Vector2 size, at;
+                PowerPreview.Fit(ship, power, cells, 62f, 276f, out size, out at);
+                fit &= b.width > 0f && b.height > 0f && size.x > 0f && size.x <= 168.01f && b.height * size.x <= 62f * .86f + .01f;
+            }
+        Check("every ship's preview art fits the panel (visible box <= 85% of its height, zoom <= 3x)", fit);
         Check("every ship has a preview name and line for both kinds", text);
         foreach (bool power in new[] { false, true })
         {
