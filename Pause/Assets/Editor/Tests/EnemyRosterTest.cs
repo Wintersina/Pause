@@ -202,6 +202,23 @@ public static class EnemyRosterTest
         return mask;
     }
 
+    // True when any of the listed frames differs in pixels from frame 0 of the strip.
+    static bool FramesDiffer(string path, params int[] frames)
+    {
+        if (!File.Exists(path)) return false;
+        var tex = new Texture2D(2, 2);
+        tex.LoadImage(File.ReadAllBytes(path));
+        int h = tex.height;
+        var px = tex.GetPixels32();
+        bool differ = false;
+        foreach (int f in frames)
+            for (int y = 0; y < h && !differ; y++)
+                for (int x = 0; x < h && !differ; x++)
+                    differ = !px[y * tex.width + f * h + x].Equals(px[y * tex.width + x]);
+        UnityEngine.Object.DestroyImmediate(tex);
+        return differ;
+    }
+
     static float IoU(bool[] a, bool[] b)
     {
         if (a.Length == 0 || a.Length != b.Length) return 1f;
@@ -1031,8 +1048,13 @@ public static class EnemyRosterTest
             var keyPose = Mask(strip, 0);
             bool bobs = false;
             foreach (int k in new[] { 1, 2, 3 }) bobs |= keyPose.Length > 0 && IoU(keyPose, Mask(strip, k)) < .97f;
-            Check(d.key + (d.key == "space_rock_crater" ? " keeps a steady idle silhouette" : " draws its float bob into the idle frames"),
-                  d.key == "space_rock_crater" ? !bobs : bobs);
+            // Steady-silhouette rocks: Space's Beacon Rock pulses its light; the Verdant Spore Rock's
+            // vents blink like eyelids inside an unchanging body (frames differ in pixels, not outline).
+            bool steady = d.key == "space_rock_crater" || d.key == "verdant_rock_spore";
+            Check(d.key + (steady ? " keeps a steady idle silhouette" : " draws its float bob into the idle frames"),
+                  steady ? !bobs : bobs);
+            if (d.key == "verdant_rock_spore")
+                Check(d.key + " animates inside the body (vent blink: idle frames differ in pixels)", FramesDiffer(strip, 0, 1, 2, 3, 4, 5));
         }
 
         // The restored Verdant Spore Rock keeps the first-pass grass-cap
