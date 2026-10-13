@@ -63,7 +63,7 @@ public static class PremiumShips
     public static bool DustPurchasable(int id) { return ShipId.IsValid(id) && !IsPremium(id); }
 
     // Locked and not buyable yet: the dock reads "COMING SOON".
-    public static bool ComingSoon(int id) { return IsPremium(id) && !ShipId.IsOwned(id); }
+    public static bool ComingSoon(int id) { return Visible && IsPremium(id) && !ShipId.IsOwned(id); }
 
     public const string ComingSoonLabel = "COMING SOON";
 

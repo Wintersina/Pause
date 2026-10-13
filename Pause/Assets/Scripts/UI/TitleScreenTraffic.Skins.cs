@@ -29,7 +29,7 @@ public partial class TitleScreenTraffic
     public const float ResidentShare = .75f;    // flights wearing the colourway, not stock
 
     float nextSkinWorkAt;
-    readonly bool[] skinSeen = new bool[(ShipId.Count + 1) * ShipSkins.PerShip];
+    readonly bool[] skinSeen = new bool[shopingShips.RosterTotal * ShipSkins.PerShip];
 
     // Heavy wardrobe steps so far (a decode or a fragment cut). Tests use it
     // to tell those scheduled frames apart from ordinary ones.

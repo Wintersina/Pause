@@ -24,7 +24,7 @@ public class shopingShips : MonoBehaviour {
     // id) is left out unless PremiumShips.Visible, so a hidden premium ship makes
     // the game behave exactly as a 15-ship roster (docks, codex, saves, counts).
     public static int shipTotal { get { return PremiumShips.Visible ? RosterTotal : RosterTotal - 1; } }
-    public static GameObject[] ships = new GameObject[shipTotal];
+    public static GameObject[] ships = new GameObject[RosterTotal];
 
     public static int shipNumber;
     public static int LastShipSelected;

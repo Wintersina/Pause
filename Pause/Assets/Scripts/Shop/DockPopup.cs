@@ -519,7 +519,7 @@ public class DockPopup : MonoBehaviour
             w.check.rectTransform.anchoredPosition = new Vector2(ChipW * .5f - 5f, ChipH * .5f - 2.5f);
             float priceY = -ChipH * .5f - 4f - 7f;
             w.dust = Chip(w.root, "Dust", "icon_dust", new Vector2(10f, 10f));
-            w.dust.rectTransform.anchoredPosition = new Vector2(-12f, priceY);
+            w.dust.rectTransform.anchoredPosition = new Vector2(-15f, priceY);
             w.price = Label("Price", w.root, font, SmallSize, TextAnchor.MiddleLeft, DockArt.Gold);
             // Whatever the price reads ("1,600", "50K"), it shrinks to fit the slot instead of
             // running past the chip row (five chips share the card's width).
@@ -528,7 +528,7 @@ public class DockPopup : MonoBehaviour
             w.price.resizeTextMaxSize = SmallSize;
             w.price.horizontalOverflow = HorizontalWrapMode.Wrap;
             w.price.verticalOverflow = VerticalWrapMode.Truncate;
-            Place(w.price.rectTransform, new Vector2(.5f, .5f), new Vector2(-6f, priceY),
+            Place(w.price.rectTransform, new Vector2(.5f, .5f), new Vector2(-9f, priceY),
                   new Vector2(SlotW * .5f + 4f, 14f), new Vector2(0f, .5f));
             w.button = w.root.gameObject.AddComponent<Button>();
             w.button.targetGraphic = w.hit;

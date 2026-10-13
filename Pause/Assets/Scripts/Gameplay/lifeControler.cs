@@ -9,7 +9,7 @@ public class lifeControler : MonoBehaviour {
     public Sprite []img = new Sprite[3];
     private int currentShipIndex;
     private string extention;
-    private string []shipNames= new string[shopingShips.shipTotal];
+    private string []shipNames= new string[shopingShips.RosterTotal];
 
     // The shop's own ship1-ship3 are authored with the same collisionDetection
     // component the real player ship carries (so this script's sprite-picking
