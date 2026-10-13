@@ -40,7 +40,7 @@ using UnityEngine;
 // picked (one load, counted as heavy SkinWork), never mid-event.
 public partial class TitleScreenTraffic
 {
-    public enum ElitePhase { None, Enter, Snipe, Exit, Return }
+    public enum ElitePhase { None, Enter, Snipe, Exit, Return, Dying }
 
     [Tooltip("Seconds between elite snipe runs (start to start).")]
     public Vector2 eliteInterval = new Vector2(36f, 46f);
@@ -224,6 +224,10 @@ public partial class TitleScreenTraffic
             case ElitePhase.Exit: EliteExit(dt); break;
             case ElitePhase.Return:
                 if (now >= eliteReturnAt) EndElite();
+                break;
+            case ElitePhase.Dying:
+                eliteT += dt;
+                if (eliteT >= eliteDeathLen) EliteGone();
                 break;
         }
         TickEliteShots(dt);
@@ -580,6 +584,7 @@ public partial class TitleScreenTraffic
     void DrawElite(float dt)
     {
         if (elitePhase == ElitePhase.None || elitePhase == ElitePhase.Return || eliteDef == null) return;
+        if (elitePhase == ElitePhase.Dying) { DrawEliteDeath(); return; }
         var def = eliteDef;
         var c = def.cells;
         if (eliteFire > 0f) eliteFire = Mathf.Max(0f, eliteFire - dt);
@@ -707,5 +712,77 @@ public partial class TitleScreenTraffic
         ct.localScale = new Vector3(w, l * .7f, 1f);
         s.body.enabled = true;
         s.core.enabled = true;
+    }
+
+    // ---- tapped down by the player (Touch.cs)
+
+    public const float EliteDeathFps = 12f;
+    public const float EliteDeathMin = .5f;      // a blast with no death strip still lingers this long
+    public int EliteTapKills { get; private set; }
+    float eliteDeathLen;
+    Sprite[] eliteDeathFrames;
+
+    // The elite is hit by a finger anywhere on its hull.
+    bool EliteHit(Vector2 world)
+    {
+        if (eliteDef == null || eliteRoot == null) return false;
+        if (elitePhase != ElitePhase.Enter && elitePhase != ElitePhase.Snipe && elitePhase != ElitePhase.Exit) return false;
+        float r = Mathf.Max(TapMinHit, eliteDef.cellWorldSize * EliteScale * .45f);
+        return (world - elitePos).sqrMagnitude <= r * r && Overlaps(view, elitePos, -.1f);
+    }
+
+    // Tapped down: its own death strip (if Codex delivered one) over the
+    // usual metal blast in its own shot colours, its authored cue and the
+    // standard explosion. Nothing persistent: no score, dust, codex entry or
+    // stat (EliteRewards / Codex.Discover are never called).
+    bool KillElite()
+    {
+        if (eliteDef == null || (elitePhase != ElitePhase.Enter && elitePhase != ElitePhase.Snipe && elitePhase != ElitePhase.Exit)) return false;
+        EliteTapKills++;
+        eliteAim = null;
+        for (int i = 0; i < EliteShotPool; i++)
+        {
+            if (!eliteShots[i].on) continue;
+            if (eliteShots[i].target != null) eliteShots[i].target.sniped = false;
+            StopEliteShot(eliteShots[i]);
+        }
+        for (int i = 0; i < elitePlumes.Length; i++) if (elitePlumes[i] != null) elitePlumes[i].enabled = false;
+        for (int i = 0; i < eliteGlows.Length; i++) if (eliteGlows[i] != null) eliteGlows[i].enabled = false;
+        eliteMuzzle.enabled = false;
+        eliteSight.enabled = false;
+        eliteReticle.enabled = false;
+
+        var spec = Depths[(int)Depth.Front];
+        float size = TargetExplosion.WorldSizeFor(TargetExplosion.Size.Large, TargetExplosion.Kind.Metal) * eliteDef.cellWorldSize * EliteScale * .5f;
+        size = Mathf.Max(size, 1.4f);
+        Color energy = eliteDef.ShotColor;
+        PlayFx(FlipbookFx.Mode.Flash, elitePos, size * 1.15f, ShipId.First, energy, EliteSort + 1);
+        PlayFx(FlipbookFx.Mode.Ring, elitePos, size * 1.35f, ShipId.First, energy, EliteSort + 2);
+        LastExplosion = PlayFx(FlipbookFx.Mode.Explosion, elitePos, size, ShipId.First, spec.fxTint, EliteSort + 3);
+        Explosions++;
+        EnemyDeathAudio.PlayElite(eliteDef.key);
+        collisionDetection.PlayExplosion();
+
+        eliteDeathFrames = EliteArt.ExtraFrames(eliteDef, EliteArt.Extra.Death);
+        eliteDeathLen = eliteDeathFrames != null && eliteDeathFrames.Length > 0
+            ? Mathf.Max(EliteDeathMin * .5f, eliteDeathFrames.Length / EliteDeathFps)
+            : EliteDeathMin;
+        elitePhase = ElitePhase.Dying;
+        eliteT = 0f;
+        DrawEliteDeath();
+        return true;
+    }
+
+    void DrawEliteDeath()
+    {
+        var frames = eliteDeathFrames;
+        bool show = frames != null && frames.Length > 0 && eliteT < frames.Length / EliteDeathFps;
+        eliteHull.enabled = show;
+        if (!show) return;
+        int i = Mathf.Min(frames.Length - 1, Mathf.FloorToInt(eliteT * EliteDeathFps));
+        if (eliteHull.sprite != frames[i]) eliteHull.sprite = frames[i];
+        eliteHullTf.position = new Vector3(elitePos.x, elitePos.y, 0f);
+        eliteHullTf.rotation = Quaternion.Euler(0f, 0f, EliteDrawingDeg);
+        eliteHullTf.localScale = new Vector3(EliteScale, EliteScale, 1f);
     }
 }

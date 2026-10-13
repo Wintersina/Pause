@@ -189,6 +189,7 @@ public partial class TitleScreenTraffic : MonoBehaviour
         public Vector2 push;
         // elite (Elite.cs): a shot is on its way to it
         public bool sniped;
+        public float flingUntil;              // Touch.cs: no second fling impulse before this time
         public DeathCrash.FragmentSet Frags => skin != ShipSkins.Stock && residentFrags != null ? residentFrags : stockFrags;
     }
 
