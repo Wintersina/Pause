@@ -10,7 +10,7 @@ using UnityEngine.UI;
 // layout mirrors the ENEMIES list: pinned section header, smooth jump).
 //
 // A card is LOCKED (dark badge, padlock, a progress bar for counters),
-// UNLOCKED (gold edge and glow, a pulsing COLLECT 25 chip) or CLAIMED (full
+// UNLOCKED (gold edge and glow, a pulsing COLLECT +5 / +25 chip) or CLAIMED (full
 // colour, "COLLECTED"). Tapping a card opens its detail with the same states
 // and a big COLLECT button. A hidden achievement reads "???" until earned; the
 // dormant Tide ones are not listed at all (AchievementCatalog.IsActive).
@@ -414,7 +414,7 @@ public sealed class CodexAchievementsView
         c.collectedLabel.resizeTextMaxSize = 18;
         CodexUi.AddOutline(c.collectedLabel.gameObject, CodexUi.Ink, 1.5f);
 
-        c.collect = NewChipButton("Collect", c.rt, "COLLECT " + AchievementCatalog.RewardDust, 22, 11);
+        c.collect = NewChipButton("Collect", c.rt, "COLLECT", 22, 11);
         int idx = index;
         c.collect.button.onClick.AddListener(() => OnCollectCard(idx));
         return c;
@@ -490,7 +490,7 @@ public sealed class CodexAchievementsView
         dCollected.resizeTextMaxSize = 30;
         CodexUi.AddOutline(dCollected.gameObject, CodexUi.Ink, 2f);
 
-        dCollect = NewChipButton("Collect", detail, "COLLECT " + AchievementCatalog.RewardDust, 34, 16);
+        dCollect = NewChipButton("Collect", detail, "COLLECT", 34, 16);
         dCollect.button.onClick.AddListener(OnCollectDetail);
         detail.gameObject.SetActive(false);
     }
@@ -766,6 +766,7 @@ public sealed class CodexAchievementsView
             c.barText.text = Fraction(d);
         }
         c.collect.rt.gameObject.SetActive(claimable);
+        if (claimable) c.collect.label.text = "COLLECT " + d.Reward;
         c.collectedLabel.gameObject.SetActive(claimed);
         bool showTier = !unlocked && !showBar;
         c.tierLabel.gameObject.SetActive(showTier);
@@ -789,7 +790,7 @@ public sealed class CodexAchievementsView
         collectAll.button.interactable = any;
         collectAll.frame.color = any ? Gold : CodexUi.Locked;
         collectAll.label.color = any ? CodexUi.Ink : CodexUi.Muted;
-        collectAll.label.text = any ? "COLLECT ALL +" + (claimable * AchievementCatalog.RewardDust) : "COLLECT ALL";
+        collectAll.label.text = any ? "COLLECT ALL +" + AchievementStore.ClaimableDust : "COLLECT ALL";
         if (countShown < 0) countShown = Mathf.FloorToInt(StarDustLedger.Saved);
     }
 
@@ -843,8 +844,9 @@ public sealed class CodexAchievementsView
             dBarFill.enabled = frac > 0f;
             dBarText.text = Fraction(d);
         }
-        dReward.text = "REWARD  " + AchievementCatalog.RewardDust + " STAR DUST";
+        dReward.text = "REWARD  " + d.Reward + " STAR DUST";
         dCollect.rt.gameObject.SetActive(claimable);
+        if (claimable) dCollect.label.text = "COLLECT " + d.Reward;
         dCollected.gameObject.SetActive(claimed);
     }
 

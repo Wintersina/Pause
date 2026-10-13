@@ -316,6 +316,13 @@ public class CodexPanel : MonoBehaviour
     Image[] tabFrames;
     Text[] tabLabels;
     Image[] tabDots;
+    // Unlock-reward collecting: COLLECT ALL for the open tab (header, right of the counter) and COLLECT for the open
+    // entry (detail, beside the category pill). Both hide when nothing is waiting.
+    Image collectTabFrame, collectDetailFrame;
+    Button collectTabButton, collectDetailButton;
+    Text collectTabLabel, collectDetailLabel;
+    float feedbackUntil;
+    string feedbackText;
     RectTransform grid, viewport, content;
     CanvasGroup gridGroup;
     ScrollRect scroll;
@@ -417,6 +424,8 @@ public class CodexPanel : MonoBehaviour
     public Layout CurrentLayout { get { return layout; } }
     public Button BackButton { get { return backBtn; } }
     public Text DetailName { get { return detailName; } }
+    public Image DetailPill { get { return detailPill; } }
+    public Image DetailLoreCard { get { return detailLoreCard; } }
     public Text DetailLore { get { return detailLore; } }
     public Image DetailArt { get { return detailArt; } }
     public Text DetailSubtitle { get { return detailSubtitle; } }
@@ -506,6 +515,7 @@ public class CodexPanel : MonoBehaviour
         divider = CodexUi.NewImage("Divider", panel, CodexUi.CodexSprite("cx_divider"), Color.white);
         divider.preserveAspect = true;
 
+        BuildCollectTab();
         BuildTabs();
         BuildChips();
         BuildGrid();
@@ -513,6 +523,35 @@ public class CodexPanel : MonoBehaviour
         music = new CodexMusicView(this, panel, font);
         BuildDetail();
         BuildBack();
+    }
+
+    // A yellow tab-shaped chip with a label: the collect buttons.
+    Image NewCollectButton(string name, Transform parent, int size, int minSize, out Button button, out Text label)
+    {
+        var frame = CodexUi.NewImage(name, parent, CodexUi.CodexSprite("cx_tab"), CodexHomeButton.BubbleYellow, true);
+        frame.raycastTarget = true;
+        frame.raycastPadding = new Vector4(-8f, -12f, -8f, -12f);
+        button = frame.gameObject.AddComponent<Button>();
+        button.transition = Selectable.Transition.None;
+        button.targetGraphic = frame;
+        label = CodexUi.NewText("Label", frame.rectTransform, font, "", size, CodexUi.Ink, TextAnchor.MiddleCenter);
+        label.horizontalOverflow = HorizontalWrapMode.Wrap;
+        label.verticalOverflow = VerticalWrapMode.Truncate;
+        label.resizeTextForBestFit = true;
+        label.resizeTextMinSize = minSize;
+        label.resizeTextMaxSize = size;
+        var lrt = label.rectTransform;
+        CodexUi.Stretch(lrt);
+        lrt.offsetMin = new Vector2(8f, 0f);
+        lrt.offsetMax = new Vector2(-8f, 0f);
+        frame.gameObject.SetActive(false);
+        return frame;
+    }
+
+    void BuildCollectTab()
+    {
+        collectTabFrame = NewCollectButton("CollectTab", panel, 24, 12, out collectTabButton, out collectTabLabel);
+        collectTabButton.onClick.AddListener(OnCollectTab);
     }
 
     void BuildTabs()
@@ -739,14 +778,66 @@ public class CodexPanel : MonoBehaviour
     public Image CardNewDot(int i) { return cards[i].newDot; }
     public Image TabNewDot(int i) { return tabDots[i]; }
 
-    // Card dots follow Codex.IsNew; tab dots follow "something NEW and the tab not opened".
+    // The yellow dots follow the SAVED reward state, so they persist until the reward is collected (opening a tab or
+    // an entry never clears them): a card while its unlock reward is waiting, a category tab while it has any, the
+    // ACHIEVEMENTS tab while anything is claimable.
     void PaintNewDots()
     {
         if (cards == null || tabDots == null) return;
         for (int i = 0; i < cards.Length; i++)
-            cards[i].newDot.gameObject.SetActive(i < shownCount && cards[i].entry != null && Codex.IsNew(cards[i].entry.id));
+            cards[i].newDot.gameObject.SetActive(i < shownCount && cards[i].entry != null && Codex.IsRewardPending(cards[i].entry));
         for (int i = 0; i < TabCount; i++)
-            tabDots[i].gameObject.SetActive(i == MusicTab ? false : i == AchievementsTab ? Codex.AchievementsTabHasNew() : Codex.TabHasNew(Tabs[i]));
+            tabDots[i].gameObject.SetActive(TabHasReward(i));
+        PaintCollect();
+    }
+
+    public static bool TabHasReward(int i)
+    {
+        return i == MusicTab ? false : i == AchievementsTab ? AchievementStore.ClaimableCount > 0 : Codex.PendingIn(Tabs[i]) > 0;
+    }
+
+    public Button CollectTabButton { get { return collectTabButton; } }
+    public Text CollectTabLabel { get { return collectTabLabel; } }
+    public Image CollectTabFrame { get { return collectTabFrame; } }
+    public Button CollectEntryButton { get { return collectDetailButton; } }
+    public Text CollectEntryLabel { get { return collectDetailLabel; } }
+    public Image CollectEntryFrame { get { return collectDetailFrame; } }
+
+    void PaintCollect()
+    {
+        if (collectTabFrame == null) return;
+        int tabPending = !OtherViewOpen && !inDetail ? Codex.PendingIn(category) : 0;
+        bool tabShown = tabPending > 0;
+        bool wasShown = collectTabFrame.gameObject.activeSelf;
+        collectTabFrame.gameObject.SetActive(tabShown);
+        if (tabShown) collectTabLabel.text = "COLLECT ALL +" + tabPending * Codex.UnlockReward;
+        if (wasShown != tabShown && layout.panel.width > 0f) { PlaceHeader(); RefreshCounter(); }   // the counter shortens beside the chip
+
+        bool entryShown = inDetail && detailEntry != null && !OtherViewOpen && Codex.IsRewardPending(detailEntry);
+        collectDetailFrame.gameObject.SetActive(entryShown);
+        if (entryShown) collectDetailLabel.text = "COLLECT +" + Codex.UnlockReward;
+    }
+
+    void OnCollectTab()
+    {
+        if (OtherViewOpen || inDetail) return;
+        AfterCollect(Codex.CollectRewards(category));
+    }
+
+    void OnCollectDetail()
+    {
+        if (!inDetail || detailEntry == null) return;
+        AfterCollect(Codex.CollectReward(detailEntry.id));
+    }
+
+    // The counter flashes what was paid for a moment (the same star dust the shop spends).
+    void AfterCollect(int dust)
+    {
+        if (dust <= 0) return;
+        feedbackText = "+" + dust + " STAR DUST";
+        feedbackUntil = Time.unscaledTime + 2.2f;
+        RefreshCounter();
+        PaintNewDots();
     }
 
     void BuildDetail()
@@ -790,6 +881,8 @@ public class CodexPanel : MonoBehaviour
         detailName.fontStyle = FontStyle.BoldAndItalic;
 
         detailPill = CodexUi.NewImage("Category", infoRoot, CodexUi.CodexSprite("cx_tab"), CodexUi.Accent, true);
+        collectDetailFrame = NewCollectButton("CollectEntry", infoRoot, 26, 12, out collectDetailButton, out collectDetailLabel);
+        collectDetailButton.onClick.AddListener(OnCollectDetail);
         detailPillLabel = CodexUi.NewText("Label", detailPill.rectTransform, font, "", 18, CodexUi.Ink,
                                           TextAnchor.MiddleCenter);
         CodexUi.Stretch(detailPillLabel.rectTransform);
@@ -896,8 +989,8 @@ public class CodexPanel : MonoBehaviour
         float titleW = Mathf.Ceil(title.preferredWidth) + 4f;
         CodexUi.Place(title.rectTransform, new Rect(h.xMin + 40f, h.yMin, titleW, h.height));
         CodexUi.Place(marker, CodexUi.Centered(h.xMin + 14f, h.center.y, 28f, 28f));
-        CodexUi.Place(counter.rectTransform, new Rect(h.xMin + 40f + titleW + 16f, h.yMin,
-                                                       h.xMax - (h.xMin + 40f + titleW + 16f), h.height));
+        headerTitleW = titleW;
+        PlaceHeader();
         CodexUi.Place(divider.rectTransform, layout.divider);
 
         CodexUi.Place(tabsRoot, layout.tabs);
@@ -920,6 +1013,22 @@ public class CodexPanel : MonoBehaviour
         ach.ApplyLayout(layout.body, layout);
         music.ApplyLayout(layout.body, layout);
         LayoutSubTabs();
+    }
+
+    float headerTitleW;
+    public const float CollectTabWidth = 230f;
+
+    // The header's counter, and the COLLECT ALL chip at its right end while the open tab has rewards waiting.
+    void PlaceHeader()
+    {
+        var h = layout.header;
+        float left = h.xMin + 40f + headerTitleW + 16f;
+        bool chip = collectTabFrame != null && collectTabFrame.gameObject.activeSelf;
+        float chipW = Mathf.Clamp(h.width * .32f, 160f, CollectTabWidth);   // narrow panels leave the counter its room
+        float right = chip ? h.xMax - chipW - 12f : h.xMax;
+        CodexUi.Place(counter.rectTransform, new Rect(left, h.yMin, Mathf.Max(0f, right - left), h.height));
+        if (collectTabFrame != null)
+            CodexUi.Place(collectTabFrame.rectTransform, CodexUi.Centered(h.xMax - chipW * .5f, h.center.y, chipW, h.height - 8f));
     }
 
     void SizeDots()
@@ -1053,6 +1162,9 @@ public class CodexPanel : MonoBehaviour
 
         y -= 10f + 18f;
         CodexUi.Place(detailPill.rectTransform, CodexUi.Centered(0f, y, 200f, 36f));
+        // COLLECT sits right of the pill, inside the detail's edge (sides stay clear of the pill at any width)
+        float chipW = Mathf.Min(260f, w * .5f - 100f - 16f - 8f);
+        CodexUi.Place(collectDetailFrame.rectTransform, Rect.MinMaxRect(100f + 16f, y - 22f, 100f + 16f + chipW, y + 22f));
         y -= 18f;
 
         if (detailSubtitle.gameObject.activeSelf && detailSubtitle.text.Length > 0)
@@ -1150,6 +1262,7 @@ public class CodexPanel : MonoBehaviour
     // A tab button: 0-5 are the entry categories, AchievementsTab the achievements.
     public void ShowTab(int i)
     {
+        feedbackUntil = 0f;
         if (i == AchievementsTab) ShowAchievements();
         else if (i == MusicTab) ShowMusic();
         else if (i >= 0 && i < Tabs.Length) ShowCategory(Tabs[i]);
@@ -1469,6 +1582,7 @@ public class CodexPanel : MonoBehaviour
         inDetail = false;
         HideWorldBackdrops();
         swapAt = Time.unscaledTime;
+        PaintNewDots();
         // Unlocks can't change while the panel is open, but names can be
         // re-read cheaply here if they ever do.
     }
@@ -1673,11 +1787,12 @@ public class CodexPanel : MonoBehaviour
 
     void RefreshCounter()
     {
+        if (Time.unscaledTime < feedbackUntil && !musicOpen && !achievementsOpen) { counter.text = feedbackText; return; }
         counter.text = musicOpen
             ? CodexMusic.UnlockedCount + " / " + CodexMusic.ListedCount + "  HEARD"
             : achievementsOpen
             ? AchievementStore.UnlockedCount + " / " + AchievementCatalog.ActiveCount + "  UNLOCKED"
-            : Codex.DiscoveredCount + " / " + Codex.Total + "  DISCOVERED";
+            : Codex.DiscoveredCount + " / " + Codex.Total + (collectTabFrame != null && collectTabFrame.gameObject.activeSelf ? "" : "  DISCOVERED");
     }
 
     // ---------------------------------------------------------------------
@@ -1687,6 +1802,7 @@ public class CodexPanel : MonoBehaviour
     void Update()
     {
         if (ScreenInfo.Width != lastW || ScreenInfo.Height != lastH || ScreenInfo.SafeArea != lastSafe) Fit();
+        if (feedbackUntil > 0f && Time.unscaledTime >= feedbackUntil) { feedbackUntil = 0f; RefreshCounter(); }
         UpdateJump(Time.unscaledTime);
         ApplyFrame(Time.unscaledTime);
         UpdatePulse();

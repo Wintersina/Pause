@@ -19,7 +19,11 @@ tidied to 0.01 after scaling.
 | Any kill (weapons, ultimate, powers, ram, teleport kill, death combo chain) | 0.12 | 0.072 | `AwardDestroyedTarget` -> `score.AwardRewardDust` |
 | Elite down | 15 | 9 | `EliteRewards.Pay` -> `score.AwardRewardDust` |
 | End-of-run score bonus | min(1.5, 0.02 sqrt(score)) | x0.60, cap 0.90 | `ScoreRules.ScoreDustBonus` |
-| Bosses, worlds, loops, achievements, daily, leaderboards | no dust | - | - |
+| Achievements (claimed in the Codex) | 5 or 25 each, 640 total | same | `AchievementStore.Claim` -> `StarDustLedger.Grant` |
+| Codex unlock (claimed in the Codex) | 5 per entry | same | `Codex.CollectReward` -> `StarDustLedger.Grant` |
+| Bosses, worlds, loops, daily, leaderboards | no dust | - | - |
+
+See `docs/codex-and-achievement-rewards.md` for the claimable rewards.
 
 Tutorial practice dust uses the same paths (so the Tutorial Complete card shows the reduced reward numbers);
 it never touches the saved balance. Developer mode earns no bonus, as before.

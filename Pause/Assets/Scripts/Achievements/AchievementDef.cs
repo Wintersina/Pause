@@ -53,6 +53,9 @@ public sealed class AchievementDef
         syncedKey = "ach_s_" + id;
     }
 
+    // Star dust paid when claimed: 25 for the hard ones (Gold and Platinum badges), 5 for the rest.
+    public int Reward { get { return AchievementCatalog.RewardFor(tier); } }
+
     public bool IsCounter { get { return counter != null; } }
 
     // The counter value that unlocks it (0 for a one-shot).

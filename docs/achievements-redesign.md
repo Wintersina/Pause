@@ -2,7 +2,7 @@
 
 Replaces the 28 store achievements (see `achievements-audit.md`) with a 60-achievement set built around the game as it is
 now: four live worlds plus dormant Tide, bosses, elites, the Codex, ships and skins, star dust, and the pause mechanic.
-Every achievement pays a flat **25 star dust**, collected by the player in a new Codex ACHIEVEMENTS tab.
+Achievements pay **5 star dust (Bronze / Silver) or 25 (Gold / Platinum)** (reworked, see `docs/codex-and-achievement-rewards.md`; the original design was a flat 25), collected by the player in a new Codex ACHIEVEMENTS tab.
 
 ## 1. Rules
 
@@ -15,7 +15,7 @@ Every achievement pays a flat **25 star dust**, collected by the player in a new
 * Hidden: 3 (Play Games "hidden" until revealed; in the Codex shown as "???" with a `?` badge until earned).
 * Progress: achievements with a target are counters (`target > 0`); store incremental steps = target; others are one-shot.
 * Tracking never runs in the tutorial, in developer mode (`DeveloperUnlocks.Enabled`), or while `score.paysRealDust` is false, matching `Codex.Discover`.
-* Reward: 25 star dust each (1,500 total across 60), claimed per achievement or with COLLECT ALL.
+* Reward: 5 or 25 star dust (640 total across 60), claimed per achievement or with COLLECT ALL.
 
 ## 2. The set
 

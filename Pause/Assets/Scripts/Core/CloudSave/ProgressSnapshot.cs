@@ -71,6 +71,9 @@ public class ProgressSnapshot
     public string[] codexSeen = new string[0];
     public string[] codexNew = new string[0];
     public string[] codexNewAck = new string[0];
+    // Codex entries whose 5 star dust unlock reward was collected (Codex.PaidKey). Additive, no schema
+    // bump: an older blob lacks it (= nothing collected there). Merged by union; a restore never shrinks the local set.
+    public string[] codexPaid = new string[0];
 
     // Hard cap per list: the Codex has ~95 entries (+ achievement acks), so this
     // only guards the cloud blob against a corrupt pref.
@@ -141,6 +144,7 @@ public class ProgressSnapshot
         s.codexSeen = IdList(PlayerPrefs.GetString(Codex.PrefsKey, ""));
         s.codexNew = IdList(PlayerPrefs.GetString(Codex.NewKey, ""));
         s.codexNewAck = IdList(PlayerPrefs.GetString(Codex.AckKey, ""));
+        s.codexPaid = IdList(PlayerPrefs.GetString(Codex.PaidKey, ""));
 
         var counters = new List<Counter>();
         foreach (string key in CounterKeys())
@@ -193,6 +197,10 @@ public class ProgressSnapshot
         WriteIds(Codex.PrefsKey, codexSeen);
         WriteIds(Codex.NewKey, codexNew);
         WriteIds(Codex.AckKey, codexNewAck);
+        // Never lose a collected reward (that would let it be collected, and paid, twice).
+        var paidNow = new HashSet<string>(IdList(PlayerPrefs.GetString(Codex.PaidKey, "")));
+        paidNow.UnionWith(codexPaid ?? new string[0]);
+        WriteIds(Codex.PaidKey, IdList(paidNow));
         Codex.OnExternalChange();   // drop the cached sets so the next write can't undo this
     }
 
@@ -312,6 +320,7 @@ public class ProgressSnapshot
         snapshot.codexSeen = IdList(snapshot.codexSeen);
         snapshot.codexNew = IdList(snapshot.codexNew);
         snapshot.codexNewAck = IdList(snapshot.codexNewAck);
+        snapshot.codexPaid = IdList(snapshot.codexPaid);
         return ParseResult.Ok;
     }
 

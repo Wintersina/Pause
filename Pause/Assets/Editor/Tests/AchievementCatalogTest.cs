@@ -44,7 +44,18 @@ public static class AchievementCatalogTest
         Check("descriptions <= 100 chars", all.All(d => d.description.Length > 0 && d.description.Length <= 100));
         Check("points are multiples of 5 within 5..40", all.All(d => d.points % 5 == 0 && d.points >= 5 && d.points <= 40));
         Check("points total exactly 1000 (" + all.Sum(d => d.points) + ")", all.Sum(d => d.points) == AchievementCatalog.TotalPoints);
-        Check("every achievement pays 25 star dust", AchievementCatalog.RewardDust == 25);
+        // Reward table: 5 star dust for routine milestones (Bronze / Silver badges), 25 for the hard ones (Gold / Platinum).
+        string[] hard =
+        {
+            "loop_1", "loop_2", "loop_5", "boss_ember", "boss_tide", "boss_no_hit", "boss_all", "elite_50", "elite_ember_all",
+            "kills_5000", "codex_complete", "ship_all", "skin_full_set", "stars_5000", "score_150k", "speed_super_sonic", "pause_perfect_dodge",
+        };
+        Check("every achievement pays exactly 5 or 25 star dust", all.All(d => d.Reward == 5 || d.Reward == 25));
+        Check("17 pay 25 and 43 pay 5 (" + all.Count(d => d.Reward == 25) + " / " + all.Count(d => d.Reward == 5) + ")", all.Count(d => d.Reward == 25) == 17 && all.Count(d => d.Reward == 5) == 43);
+        Check("the 25-dust set is exactly the hard list: " + string.Join(",", all.Where(d => d.Reward == 25).Select(d => d.id)),
+              all.Where(d => d.Reward == 25).Select(d => d.id).OrderBy(x => x).SequenceEqual(hard.OrderBy(x => x)));
+        Check("25 is exactly the Gold and Platinum badges, 5 the Bronze and Silver ones", all.All(d => (d.tier >= AchievementTier.Gold) == (d.Reward == 25)));
+        Check("the total reward is 43 x 5 + 17 x 25 = 640", AchievementCatalog.TotalReward == 640);
         Check("3 hidden", all.Count(d => d.hidden) == 3 && all.Where(d => d.hidden).All(d => d.id == "mega_domino" || d.id == "deaths_100" || d.id == "pause_perfect_dodge"));
         Check("every achievement names its tracking hook", all.All(d => !string.IsNullOrEmpty(d.hook)));
         Check("counter achievements have a target, one-shots none",

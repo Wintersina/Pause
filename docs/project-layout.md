@@ -47,7 +47,7 @@ One JSON `ProgressSnapshot` (`Scripts/Core/CloudSave`), merged by `ProgressMerge
 Synced: star dust, owned ships, spawn ship, best speed / best score, current / highest / start world, tutorial flag,
 achievement counters and flags (`AchievementStore.SyncKeys`), hull skins, and the **Codex**: `codexSeen` (discovered
 entries), `codexNew` (discovered but detail not yet opened = NEW dot) and `codexNewAck` (NEW entries whose tab was
-opened, plus `ach:<id>` acknowledgements). Each is a sorted, de-duplicated id list, capped at 512 ids.
+opened, plus `ach:<id>` acknowledgements) and `codexPaid` (entries whose 5-dust unlock reward was collected; merged by union, never shrinks). Each is a sorted, de-duplicated id list, capped at 512 ids.
 Codex merge: discoveries = union; NEW = both sides' NEW minus any entry the other side already knows and does not list
 as NEW (cleared on either side stays cleared, so no dot is resurrected); acknowledged on either side stays acknowledged
 (only while the entry is still NEW). Restoring on a fresh install therefore lights nothing: only entries the cloud itself

@@ -7,7 +7,7 @@ using UnityEngine;
 // on each independently:
 //
 //   ach_u_<id>     1 once unlocked (never cleared, so retuning a target cannot take one away)
-//   ach_c_<id>     1 once the 25 star dust was claimed
+//   ach_c_<id>     1 once the reward (5 or 25 star dust, AchievementDef.Reward) was claimed
 //   ach_n_<name>   lifetime counters (AchievementCatalog lists them)
 //   ach_e_<codex>  1 per elite ship the pilot has downed (feeds elite_w<world>)
 //   ach_b_<world>  1 per world whose boss was destroyed (feeds bosses)
@@ -89,6 +89,17 @@ public static class AchievementStore
         }
     }
 
+    // Star dust waiting to be claimed across every claimable achievement.
+    public static int ClaimableDust
+    {
+        get
+        {
+            int n = 0;
+            foreach (var d in AchievementCatalog.All) if (IsClaimable(d)) n += d.Reward;
+            return n;
+        }
+    }
+
     public static int ClaimedCount
     {
         get
@@ -154,9 +165,9 @@ public static class AchievementStore
 
     // ---- claiming ----
 
-    public static float RewardOf(AchievementDef def) { return AchievementCatalog.RewardDust; }
+    public static float RewardOf(AchievementDef def) { return def.Reward; }
 
-    // Pays the 25 star dust once. Returns the dust paid (0: locked, dormant or already claimed).
+    // Pays the achievement's star dust (5 or 25) once. Returns the dust paid (0: locked, dormant or already claimed).
     public static int Claim(AchievementDef def)
     {
         int paid = ClaimNoSave(def);
@@ -179,8 +190,8 @@ public static class AchievementStore
         // Both writes land before the one save, so a kill in between can
         // neither give dust without the flag nor the flag without the dust.
         PlayerPrefs.SetInt(def.claimedKey, 1);
-        StarDustLedger.Grant(AchievementCatalog.RewardDust);
-        return AchievementCatalog.RewardDust;
+        StarDustLedger.Grant(def.Reward);
+        return def.Reward;
     }
 
     static void Finish()

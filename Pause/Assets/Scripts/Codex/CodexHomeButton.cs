@@ -19,8 +19,8 @@ public class CodexHomeButton : MonoBehaviour
     Button button;
     Text label, counter;
     Font font;
-    // The notification bubble: unclaimed achievements (25 star dust each) plus NEW codex entries,
-    // riding the top-right corner of the "Codex" word (measured from the rendered text). A small amber pixel disc with
+    // The notification bubble: unclaimed achievements plus uncollected Codex-unlock rewards,
+    // riding the top-right corner of the "Codex" word (measured from the rendered text). A small yellow pixel disc with
     // the count in ink; hidden at 0, "9+" above 9. Art slot: a sprite named
     // Resources/Codex/cx_badge (13x13 px, point filtered) replaces the
     // procedural disc when Codex paints one.
@@ -45,6 +45,10 @@ public class CodexHomeButton : MonoBehaviour
     }
 
     static Sprite procBadge;
+
+    // The notification bubble's yellow (a clear "something is waiting", distinct from the amber / red UI accents).
+    public static readonly Color BubbleYellow = new Color(1.000f, 0.882f, 0.188f, 1f);        // #FFE130
+    public static readonly Color BubbleYellowShadow = new Color(0.769f, 0.549f, 0.075f, 1f);  // #C48C13
 
     // A 13x13 pixel disc: ink outline, amber fill, one shadow row along the
     // bottom. Point filtered, so it stays crisp at any scale.
@@ -115,7 +119,7 @@ public class CodexHomeButton : MonoBehaviour
                 float d = Mathf.Sqrt((x - c) * (x - c) + (y - c) * (y - c));
                 Color col = new Color(0, 0, 0, 0);
                 if (d <= 6.3f) col = CodexPalette.Ink;
-                if (d <= 5.2f) col = y <= 2 ? CodexPalette.SodiumShadow : CodexPalette.Amber;
+                if (d <= 5.2f) col = y <= 2 ? BubbleYellowShadow : BubbleYellow;
                 tex.SetPixel(x, y, col);
             }
         tex.Apply(false, false);
@@ -239,11 +243,11 @@ public class CodexHomeButton : MonoBehaviour
         return Codex.DiscoveredCount + "/" + Codex.Total + " DISCOVERED";
     }
 
-    // What the bubble counts: star dust waiting to be claimed plus NEW codex entries
-    // whose tab has not been opened yet.
+    // What the bubble counts: every uncollected reward, achievements plus Codex unlocks. It derives from the
+    // save, so it survives restarts and only drops when a reward is collected (viewing a tab never clears it).
     public static int Total()
     {
-        return AchievementStore.ClaimableCount + Codex.UnackedNewCount;
+        return AchievementStore.ClaimableCount + Codex.PendingTotal;
     }
 
     public void Refresh()

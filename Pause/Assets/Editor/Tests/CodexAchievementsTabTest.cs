@@ -160,15 +160,15 @@ public static class CodexAchievementsTabTest
         Check("locked counter: bar 40/150 at 27%", v.CardBarText(locked).text == "40/150" &&
               Mathf.Abs(v.CardBarFill(locked).rectTransform.anchorMax.x - 40f / 150f) < .001f && v.CardLock(locked).gameObject.activeSelf);
         Check("locked: the badge is dimmed but still readable", v.CardBadge(locked).color.r < .75f && v.CardBadge(locked).color.r > .45f && v.CardEdge(locked).color == CodexUi.Locked);
-        Check("unlocked (claimable): COLLECT 25 chip, no padlock, full-colour badge, gold edge",
+        Check("unlocked (claimable): COLLECT 25 chip (Gold badge pays 25), no padlock, full-colour badge, gold edge",
               v.CardCollectVisible(claimable) && v.CardCollect(claimable).label.text == "COLLECT 25" && !v.CardLock(claimable).gameObject.activeSelf &&
               v.CardBadge(claimable).color == Color.white && v.CardEdge(claimable).color == CodexPalette.Amber && !v.CardCollected(claimable).gameObject.activeSelf);
         Check("claimed: COLLECTED, no chip, teal edge, no padlock", v.CardCollected(claimed).gameObject.activeSelf && !v.CardCollectVisible(claimed) &&
               v.CardEdge(claimed).color == CodexUi.Accent && !v.CardLock(claimed).gameObject.activeSelf);
         Check("a hidden one shows its real name once earned", v.CardName(secret).text == "MEGA DOMINO" && v.CardCollectVisible(secret));
-        Check("strip counts 3 unlocked, 2 to collect, COLLECT ALL +50",
+        Check("strip counts 3 unlocked, 2 to collect, COLLECT ALL +30",
               v.StripCount.text == "3/60 UNLOCKED" && v.StripLine.text.StartsWith("2 TO COLLECT") && v.CollectAll.button.interactable &&
-              v.CollectAll.label.text == "COLLECT ALL +50");
+              v.CollectAll.label.text == "COLLECT ALL +30");
         Check("the sticky/section counters follow", v.SectionAt(0).counter.StartsWith("1/") && panel.Counter.text.StartsWith("3 / 60"));
 
         panel.ShowAchievements();   // already open: closes a detail, never re-enters
@@ -358,13 +358,13 @@ public static class CodexAchievementsTabTest
         Reveal(v, idx);
         var hit = Tap(panel, ScreenCentre(chip.rt));
         Check("a real tap on the COLLECT chip hits the chip (hit " + (hit != null ? hit.name : "nothing") + ")", hit == chip.frame.gameObject);
-        Check("... pays exactly 25 star dust and marks it claimed", Dust() == 125f && AchievementStore.IsClaimed(AchievementCatalog.Find("meta_first_flight")));
+        Check("... pays exactly 5 star dust and marks it claimed", Dust() == 105f && AchievementStore.IsClaimed(AchievementCatalog.Find("meta_first_flight")));
         Check("... the card flips to COLLECTED at once", !v.CardCollectVisible(idx) && v.CardCollected(idx).gameObject.activeSelf);
-        Check("... the strip updates (3 to collect, balance counts up to 125)", v.StripLine.text.StartsWith("3 TO COLLECT"));
+        Check("... the strip updates (3 to collect, balance counts up to 105)", v.StripLine.text.StartsWith("3 TO COLLECT"));
         v.SkipAnimations();
-        Check("... the balance reads 125 after the count-up", v.StripLine.text.EndsWith("DUST 125") && v.ShownBalance == 125);
+        Check("... the balance reads 105 after the count-up", v.StripLine.text.EndsWith("DUST 105") && v.ShownBalance == 105);
         Tap(panel, ScreenCentre(chip.rt));   // the chip is gone: the tap lands on the card and opens its detail
-        Check("tapping the (gone) chip again pays nothing", Dust() == 125f);
+        Check("tapping the (gone) chip again pays nothing", Dust() == 105f);
         v.CloseDetail();
 
         // tap a card: detail opens; COLLECT in the detail
@@ -379,7 +379,7 @@ public static class CodexAchievementsTabTest
         Canvas.ForceUpdateCanvases();
         var h3 = Tap(panel, ScreenCentre(v.DetailCollect.rt));
         Check("a real tap on the detail's COLLECT hits it", h3 == v.DetailCollect.frame.gameObject);
-        Check("... pays 25 and shows COLLECTED", Dust() == 150f && v.DetailCollected.gameObject.activeSelf && !v.DetailCollect.rt.gameObject.activeSelf);
+        Check("... pays 5 and shows COLLECTED", Dust() == 110f && v.DetailCollected.gameObject.activeSelf && !v.DetailCollect.rt.gameObject.activeSelf);
         Check("while the detail is up the list under it takes no taps",
               Tap(panel, ScreenCentre(v.CardRect(idx))) == null || v.InDetail);
         panel.BackButton.onClick.Invoke();
@@ -387,13 +387,13 @@ public static class CodexAchievementsTabTest
 
         // COLLECT ALL
         Canvas.ForceUpdateCanvases();
-        Check("2 left to collect", AchievementStore.ClaimableCount == 2 && v.CollectAll.label.text == "COLLECT ALL +50");
+        Check("2 left to collect", AchievementStore.ClaimableCount == 2 && v.CollectAll.label.text == "COLLECT ALL +10");
         var h4 = Tap(panel, ScreenCentre(v.CollectAll.rt));
         Check("a real tap on COLLECT ALL hits it", h4 == v.CollectAll.frame.gameObject);
-        Check("... pays N x 25 = 50 once", Dust() == 200f && AchievementStore.ClaimableCount == 0);
+        Check("... pays the sum of the rewards (2 x 5 = 10) once", Dust() == 120f && AchievementStore.ClaimableCount == 0);
         Check("... and disables itself", !v.CollectAll.button.interactable && v.CollectAll.label.text == "COLLECT ALL");
         Tap(panel, ScreenCentre(v.CollectAll.rt));
-        Check("a second COLLECT ALL pays nothing", Dust() == 200f);
+        Check("a second COLLECT ALL pays nothing", Dust() == 120f);
 
         // a tab tap through the real pipeline
         panel.ShowCategory(CodexCategory.Log);

@@ -1,7 +1,7 @@
 using System.Linq;
 using UnityEngine;
 
-// Claiming: once, 25 star dust exactly, one save, never while locked or dormant,
+// Claiming: once, the achievement's star dust exactly (5, or 25 for a Gold / Platinum one), one save, never while locked or dormant,
 // COLLECT ALL, and the ledger (which overwrites prefs during runs) keeps a grant.
 public static class AchievementClaimTest
 {
@@ -63,9 +63,9 @@ public static class AchievementClaimTest
         int saves = PrefsSaver.SaveCount;
         Check("3 waiting", AchievementStore.ClaimableCount == 3);
         int paid = AchievementStore.ClaimAll();
-        Check("COLLECT ALL pays N x 25 (75)", paid == 75 && Dust() == before + 75f);
+        Check("COLLECT ALL pays the sum of the rewards (3 x 5 = 15)", paid == 15 && Dust() == before + 15f);
         Check("... with one save", PrefsSaver.SaveCount == saves + 1);
-        Check("... and a second COLLECT ALL pays nothing", AchievementStore.ClaimAll() == 0 && Dust() == before + 75f);
+        Check("... and a second COLLECT ALL pays nothing", AchievementStore.ClaimAll() == 0 && Dust() == before + 15f);
         Check("claimed count", AchievementStore.ClaimedCount == 4 && AchievementStore.UnlockedCount == 4);
     }
 

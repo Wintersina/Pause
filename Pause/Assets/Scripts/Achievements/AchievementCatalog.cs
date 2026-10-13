@@ -14,8 +14,25 @@ using System.Collections.Generic;
 //   best_chain best_loop best_score                      SetAtLeast()
 public static class AchievementCatalog
 {
-    // The flat payout of every achievement (star dust).
-    public const int RewardDust = 25;
+    // Star dust paid per achievement, by difficulty: routine milestones (Bronze and Silver badges) pay 5, the hard
+    // ones (Gold and Platinum: long grinds, high loops and scores, boss / elite feats, collect-everything) pay 25.
+    public const int RewardStandard = 5, RewardHard = 25;
+
+    public static int RewardFor(AchievementTier tier)
+    {
+        return tier >= AchievementTier.Gold ? RewardHard : RewardStandard;
+    }
+
+    // Every achievement's reward added up (what claiming them all pays).
+    public static int TotalReward
+    {
+        get
+        {
+            int n = 0;
+            for (int i = 0; i < All.Length; i++) n += All[i].Reward;
+            return n;
+        }
+    }
     public const int Count = 60;
     public const int TotalPoints = 1000;
 

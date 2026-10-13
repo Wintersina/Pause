@@ -2,7 +2,7 @@ using System.Linq;
 using UnityEngine;
 
 // The one-time move from the old counters / owned state to the new set: the
-// mapped achievements come out UNLOCKED but not claimed (each worth 25 dust),
+// mapped achievements come out UNLOCKED but not claimed (each worth its 5 or 25 dust),
 // running twice changes nothing, developer mode is left alone, and the cloud
 // keys round-trip and merge (flags union, counters max).
 public static class AchievementMigrationTest
@@ -86,8 +86,8 @@ public static class AchievementMigrationTest
         Check("every migrated achievement is UNLOCKED, none claimed",
               AchievementStore.UnlockedCount == AchievementCatalog.All.Count(d => AchievementStore.IsUnlocked(d)) &&
               AchievementStore.ClaimedCount == 0 && AchievementStore.ClaimableCount == AchievementStore.UnlockedCount);
-        Check("... each one worth 25 dust", AchievementStore.ClaimableCount * AchievementCatalog.RewardDust ==
-              AchievementCatalog.All.Count(d => AchievementStore.IsClaimable(d)) * 25 && AchievementStore.ClaimableCount >= 10);
+        Check("... each one worth its reward (5 or 25 dust)", AchievementStore.ClaimableDust ==
+              AchievementCatalog.All.Where(d => AchievementStore.IsClaimable(d)).Sum(d => d.tier >= AchievementTier.Gold ? 25 : 5) && AchievementStore.ClaimableCount >= 10);
 
         // idempotent
         string before = Snapshot();

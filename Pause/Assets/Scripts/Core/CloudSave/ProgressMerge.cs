@@ -70,8 +70,17 @@ public static class ProgressMerge
             codexSeen = seen,
             codexNew = fresh,
             codexNewAck = acked,
+            codexPaid = MergePaid(local, cloud),
         };
         return result;
+    }
+
+    // A collected unlock reward stays collected on every device: union.
+    public static string[] MergePaid(ProgressSnapshot a, ProgressSnapshot b)
+    {
+        var all = new HashSet<string>(a.codexPaid ?? new string[0]);
+        all.UnionWith(b.codexPaid ?? new string[0]);
+        return ProgressSnapshot.IdList(all);
     }
 
     // Codex rules. An entry is CLEARED on a side when that side knows it

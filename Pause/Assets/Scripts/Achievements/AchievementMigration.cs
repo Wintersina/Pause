@@ -15,7 +15,7 @@ using UnityEngine;
 //     codex counts, best score
 //
 // Everything unlocked this way is UNLOCKED but not claimed, so each earned one
-// is worth 25 star dust to collect. It never runs in developer mode (the keys
+// is worth its reward (5 or 25 star dust) to collect. It never runs in developer mode (the keys
 // it reads are overridden there).
 public static class AchievementMigration
 {

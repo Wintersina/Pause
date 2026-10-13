@@ -37,6 +37,16 @@ public static class Codex
     public const string NewKey = "codexNew", AckKey = "codexNewAck";
     public const string AchievementAckPrefix = "ach:";
 
+    // UNLOCK REWARDS. Discovering a codex entry (not the Pilot's Log, which is free from the start) earns
+    // UnlockReward star dust that the player COLLECTS in the Codex (never auto-paid). The saved state is one id
+    // list, PaidKey: the entries whose reward was collected. An entry is "pending" while it is in the real
+    // discovered set (PrefsKey) and not in PaidKey, so the pending state derives from the save and survives
+    // restarts. Saves that predate the rewards have no PaidKey: everything they already discovered is pending
+    // once (each old entry is claimable one time; nothing is paid automatically). Developer mode
+    // shows no rewards and cannot collect (its discoveries are not real).
+    public const string PaidKey = "codexPaid";
+    public const int UnlockReward = 5;
+
     // Raised whenever a NEW marker appears or is cleared (the home bubble listens).
     public static event Action NewChanged;
 
@@ -274,6 +284,7 @@ public static class Codex
         seenOrder = null;
         unseen = null;
         acked = null;
+        paid = null;
     }
 
     // The saved sets were rewritten by a cloud restore: re-read them and let
@@ -288,7 +299,7 @@ public static class Codex
     // NEW markers
     // ---------------------------------------------------------------------
 
-    static HashSet<string> unseen, acked;
+    static HashSet<string> unseen, acked, paid;
 
     static void LoadNew()
     {
@@ -409,6 +420,103 @@ public static class Codex
         if (!changed) return;
         SaveNew();
         RaiseNewChanged();
+    }
+
+    // ---------------------------------------------------------------------
+    // Unlock rewards (5 star dust per discovered entry, collected by the player)
+    // ---------------------------------------------------------------------
+
+    static HashSet<string> Paid()
+    {
+        if (paid == null) paid = ReadSet(PaidKey);
+        return paid;
+    }
+
+    static bool RewardsActive { get { return !DeveloperUnlocks.Enabled; } }
+
+    // The entry earns a reward the player has not collected yet.
+    public static bool IsRewardPending(CodexEntry entry)
+    {
+        if (entry == null || entry.category == CodexCategory.Log || !RewardsActive) return false;
+        EnsureLoaded();
+        return seen.Contains(entry.id) && !Paid().Contains(entry.id);
+    }
+
+    public static bool IsRewardPending(string id) { return IsRewardPending(Find(id)); }
+
+    public static bool IsRewardCollected(string id)
+    {
+        EnsureLoaded();
+        return Paid().Contains(id);
+    }
+
+    // Uncollected rewards in one tab.
+    public static int PendingIn(CodexCategory category)
+    {
+        if (!RewardsActive) return 0;
+        EnsureLoaded();
+        var done = Paid();
+        int n = 0;
+        foreach (var e in Entries)
+            if (e.category == category && e.category != CodexCategory.Log && seen.Contains(e.id) && !done.Contains(e.id)) n++;
+        return n;
+    }
+
+    // Uncollected rewards across every tab (the home bubble counts these).
+    public static int PendingTotal
+    {
+        get
+        {
+            int n = 0;
+            foreach (CodexCategory c in Enum.GetValues(typeof(CodexCategory))) n += PendingIn(c);
+            return n;
+        }
+    }
+
+    // Collects one entry's reward. Returns the star dust paid (0: nothing pending).
+    public static int CollectReward(string id)
+    {
+        var entry = Find(id);
+        if (!IsRewardPending(entry)) return 0;
+        return CollectWhere(e => e == entry);
+    }
+
+    // Collects every pending reward of a tab.
+    public static int CollectRewards(CodexCategory category)
+    {
+        return CollectWhere(e => e.category == category);
+    }
+
+    // Collects every pending reward.
+    public static int CollectAllRewards()
+    {
+        return CollectWhere(e => true);
+    }
+
+    // Marks the entries paid and grants the dust in the same write batch, then saves once: a kill in between
+    // can neither give dust without the mark nor the mark without the dust (both are in PlayerPrefs before the
+    // one save), and a second call finds nothing pending.
+    static int CollectWhere(Func<CodexEntry, bool> pick)
+    {
+        if (!RewardsActive) return 0;
+        EnsureLoaded();
+        var done = Paid();
+        int count = 0;
+        foreach (var e in Entries)
+        {
+            if (e.category == CodexCategory.Log || !seen.Contains(e.id) || done.Contains(e.id) || !pick(e)) continue;
+            done.Add(e.id);
+            count++;
+        }
+        if (count == 0) return 0;
+        var sorted = new List<string>(done);
+        sorted.Sort(StringComparer.Ordinal);
+        PlayerPrefs.SetString(PaidKey, string.Join(",", sorted));
+        int dust = count * UnlockReward;
+        StarDustLedger.Grant(dust);
+        PrefsSaver.SaveNow();
+        RaiseNewChanged();
+        return dust;
     }
 
     static void EnsureLoaded()
