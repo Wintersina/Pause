@@ -35,6 +35,7 @@ public static class NoPinkOutsideSpaceTest
         CueTable();
         PaintedArt();
         ProceduralSprites();
+        MineChargeUp();
         Debug.Log("[NOPINK] failures: " + fails);
         return fails;
     }
@@ -223,6 +224,120 @@ public static class NoPinkOutsideSpaceTest
                 Check(Worlds[w] + ": " + n + " procedural hazard / shot sprites, none with a pink pixel" + (first.Length > 0 ? " (first: " + first + ")" : ""), n > 20 && pink == 0);
                 Check(Worlds[w] + ": the world's own cue colour is present in its sprites (" + cue + " of " + n + ")", cue >= n * 3 / 4);
             }
+        }
+    }
+
+    // ---- 4: the rail mine's whole charge-up, as rendered ----
+    // (user, 2026-10-13: the Verdant mine "still turns into a pink glow when it is about to shoot": the lit arming atlas was a pink repaint
+    // remapped to a washed-out mint with salmon flecks.) Every drawing a non-Space mine wears from dormant to firing -- the Codex loop (idle steps
+    // and the arming tell, the drawings the Codex entry cycles through), the in-game flipbook (waking / charging / burst), and the laser's own
+    // charge-up and beam art (windup flare, aim line, muzzle, impact, haze) -- has < 1% pink pixels, and so does the tell's glow colour.
+
+    static float SpritePink(Sprite s, out int opaque)
+    {
+        opaque = 0;
+        if (s == null) return 0f;
+        var px = ShieldContour.ReadPixels(s, out int w, out int h);
+        if (px == null) return 0f;
+        int p = 0;
+        for (int i = 0; i < px.Length; i++)
+        {
+            if (px[i].a <= 24) continue;
+            opaque++;
+            if (PinkPixel(px[i])) p++;
+        }
+        return opaque == 0 ? 0f : p / (float)opaque;
+    }
+
+    // The washed-out "rose / salmon" cast of a green or cyan mine's glow: light, red-dominant, not warm-yellow. (The old Verdant lit atlas's
+    // pink-remapped arming frames: 3.3% of the charging frame; the clean drawing: < 1%.) Only for Frost and Verdant (Tide's ivory tusks are warm by design), whose bodies are
+    // never red-dominant and light.
+    static float SalmonShare(Sprite s)
+    {
+        var px = ShieldContour.ReadPixels(s, out int w, out int h);
+        if (px == null) return 0f;
+        int n = 0, p = 0;
+        for (int i = 0; i < px.Length; i++)
+        {
+            if (px[i].a <= 24) continue;
+            n++;
+            if (px[i].r > px[i].g && px[i].r >= 140 && px[i].b >= 70) p++;
+        }
+        return n == 0 ? 0f : p / (float)n;
+    }
+    public const float MaxSalmonShare = .02f;
+
+    static void AddAll(List<KeyValuePair<string, Sprite>> into, string tag, IEnumerable<Sprite> sprites)
+    {
+        if (sprites == null) return;
+        int i = 0;
+        foreach (var s in sprites) { if (s != null) into.Add(new KeyValuePair<string, Sprite>(tag + i, s)); i++; }
+    }
+
+    static List<KeyValuePair<string, Sprite>> MineChargeSprites(int world)
+    {
+        var all = new List<KeyValuePair<string, Sprite>>();
+        var def = EnemyRoster.One(world, EnemyRole.Mine);
+        if (def == null) return all;
+        var anim = CodexAnimations.Enemy(def);
+        if (anim != null)
+        {
+            AddAll(all, "codex idle ", anim.idle);
+            if (anim.tells != null) for (int t = 0; t < anim.tells.Length; t++) AddAll(all, "codex tell" + t + " ", anim.tells[t]);
+        }
+        AddAll(all, "flipbook ", EnemyArt.Frames(def));
+        MineLaserArt.ResetCache();
+        var art = MineLaserArt.For(world);
+        if (art != null)
+        {
+            AddAll(all, "beam sight ", new[] { art.sight }); AddAll(all, "beam0 ", new[] { art.beam0, art.beam1 });
+            AddAll(all, "flash ", art.flash); AddAll(all, "spark ", art.spark);
+            if (art.flame != null)
+            {
+                AddAll(all, "pilot ", art.flame.pilot); AddAll(all, "flame flash ", art.flame.flash); AddAll(all, "flame spark ", art.flame.spark);
+                AddAll(all, "flame haze ", art.flame.haze); AddAll(all, "flame beam ", art.flame.beam); AddAll(all, "flame sightB ", new[] { art.flame.sightB });
+            }
+            if (art.kit != null)
+            {
+                AddAll(all, "kit windup ", art.kit.windup); AddAll(all, "kit muzzle ", art.kit.muzzle); AddAll(all, "kit fade ", art.kit.fade);
+                AddAll(all, "kit impact ", art.kit.impact); AddAll(all, "kit body ", art.kit.body); AddAll(all, "kit sight ", art.kit.sight); AddAll(all, "kit lock ", art.kit.lockOn);
+            }
+        }
+        return all;
+    }
+
+    static void MineChargeUp()
+    {
+        for (int w = 0; w < WorldCue.Worlds; w++)
+        {
+            var sprites = MineChargeSprites(w);
+            string worst = ""; float worstShare = 0f; int bad = 0;
+            foreach (var kv in sprites)
+            {
+                float share = SpritePink(kv.Value, out int opaque);
+                if (share > worstShare) { worstShare = share; worst = kv.Key; }
+                if (share > MaxPaintedPinkShare) bad++;
+            }
+            if (w == 0)
+            {
+                Check("control: Space's mine charge-up still carries pink (worst " + (worstShare * 100f).ToString("F0") + "% " + worst + ", " + sprites.Count + " drawings)", sprites.Count > 10 && worstShare > .3f);
+                continue;
+            }
+            Check(Worlds[w] + ": " + sprites.Count + " mine drawings (Codex loop + tell, flipbook, laser charge-up / beam): none over " + (MaxPaintedPinkShare * 100f) + "% pink (worst " + (worstShare * 100f).ToString("F2") + "% " + worst + ")",
+                  sprites.Count >= 12 && bad == 0);
+            if (w == 1 || w == 2)
+            {
+                string sw = ""; float ws = 0f;
+                foreach (var kv in sprites)
+                    if (kv.Key.StartsWith("codex tell") || kv.Key == "flipbook 4" || kv.Key == "flipbook 5")
+                    {
+                        float sh = SalmonShare(kv.Value);
+                        if (sh > ws) { ws = sh; sw = kv.Key; }
+                    }
+                Check(Worlds[w] + ": no rose / salmon cast in the mine's arming (tell) drawings (worst " + (ws * 100f).ToString("F2") + "% " + sw + ")", ws <= MaxSalmonShare);
+            }
+            var glow = EnemyBehaviours.ShotColor(w);
+            Check(Worlds[w] + ": the mine's charge light (EnemyBehaviours.ShotColor) is not pink", !WorldCue.IsPink(glow));
         }
     }
 }

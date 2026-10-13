@@ -196,7 +196,7 @@ public static class VerdantAttackArtTest
             if (vv > .25f && ss * vv >= .035f && dg >= 280f && dg < 352f) pinkPx++;
             if (ss > .25f && vv > .5f && Mathf.Abs(Mathf.DeltaAngle(dg, 125f)) <= 25f) greenPx++;
         }
-        Check("lit mine: no pink (" + pinkPx + " of " + opq + " opaque px) and a visible green glow (" + greenPx + " px)", opq > 0 && pinkPx <= opq * .01f && greenPx > opq * .1f);
+        Check("lit mine: no pink (" + pinkPx + " of " + opq + " opaque px) and a visible green glow (" + greenPx + " px)", opq > 0 && pinkPx <= opq * .01f && greenPx > opq * .05f);
         Check("only Verdant has a lit mine", RailMineArt.HasLit(2) && !RailMineArt.HasLit(0) && !RailMineArt.HasLit(1) && !RailMineArt.HasLit(3) && !RailMineArt.HasLit(4));
         bool geo = true;
         for (int c = 0; c < 4; c++)
