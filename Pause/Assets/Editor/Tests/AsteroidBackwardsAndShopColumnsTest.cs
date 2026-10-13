@@ -91,8 +91,11 @@ public static class AsteroidBackwardsAndShopColumnsTest
             if (s.y > s.x)
             {
                 // ~1.9 world units of header + footer HUD on a portrait phone.
-                Check(tag + ": the whole roster fits between header and footer",
-                      layout.Height * layout.scale <= size * 2f - 1.9f);
+                // the 15 dust ships; Paragon's berth is the 6th row, reached by scrolling
+                // (the rack scrolls when taller than its space: below)
+                var dust = DockLayout.For(PremiumShips.StandardCount, halfW);
+                Check(tag + ": the whole dust roster fits between header and footer",
+                      dust.Height * dust.scale <= size * 2f - 1.9f);
             }
         }
 

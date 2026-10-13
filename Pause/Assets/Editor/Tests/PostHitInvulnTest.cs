@@ -357,7 +357,7 @@ public static class PostHitInvulnTest
             else Debug.Log("[PHI]   ship " + id + " (" + max + " hearts): started " + started + " ignored " + ignored + " counts " + counts);
             r.Dispose();
         }
-        Check("every ship (" + ok + "/" + n + ") gets the window, ignores a hit in it, and counts after", ok == n && n == 15);
+        Check("every ship (" + ok + "/" + n + ") gets the window, ignores a hit in it, and counts after", ok == n && n == ShipId.Count);
     }
 
     static void NoAllocations()

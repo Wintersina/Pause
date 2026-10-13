@@ -75,32 +75,48 @@ roster id, which is the debug grant. The IAP gate is `ShipId.IsOwned`; the futur
 ### 2. Art (Codex), then assemble with scripts
 
 Reference: the approved hero art; strip anything baked in that is a separate game piece (flames).
-Briefs: see `Hulls/src~/paragon/codex/` (the prompts that worked are in the PR/branch notes:
-common preamble + one JOB each). Always: green `#00FF00` chroma background, "redraw, never
-filter-warp", IMAGE GENERATION for the painted content, nearest-neighbour clean-up, no pink,
-write a `tools/check_*.py` and a `preview_*.png`.
+The briefs that worked are in `Hulls/src~/paragon/codex/briefs/` (`common` preamble + one JOB each).
+Always: green `#00FF00` chroma background, "redraw, never filter-warp", IMAGE GENERATION for the painted
+content, nearest-neighbour clean-up, no pink, a `tools/check_*.py` that prints a table, a `preview_*.png`.
+Codex shares the user's ChatGPT usage; jobs take 5-15 minutes; run at most 2 at once.
 
-- **J1 hull flipbook** -- 3 sheets (`hull_state0/1/2.png`), each 3x3 cells of 1024 px: idle key pose, bob up,
-  bob up + lights off, canopy glint 1, glint 2 + lights off, bob down, bank L, bank R, hit flash (bone-white).
-  State 1 = damaged (blown panel, sparking wires, scorch, hairline cracks), state 2 = wreck (adds a torn
-  pod, glowing tears, cracked canopy, embers). Damage is painted INSIDE the intact silhouette.
-- **J2 flame** -- `flame_cruise.png` / `flame_boost.png`: 7 cells (1:4), hot head at the top, only the five
-  exhaust bands (outer / mid / core / dark / accent) so the skin remap shader finds them; frame 2 is the
-  1-tick smear.
-- **J3 ultimate** -- `charge_16.png` (4x4), `ready_shot_impact.png` (4x4), `muzzle_release_trail.png` (4x3),
-  `fx_16.png` (4x4: attack loop, attack burst, power loop, power burst), `gun_tile.png`.
-- Assemble: `Hulls/src~/paragon/build_paragon.py` (keys + fits the three sheets at 243 px wide, bank poses
-  from the rest drawing via the same warp `ShipDamageTable.Posed` documents, damage rows take the intact
-  alpha exactly, measures rect / nozzles / emitters -- nudging each emitter onto paint in all 27 cells --
-  writes `data.json`, skins, exhaust atlas strips) then `patch_cs.py` (fills the `BEGIN/END PARAGON` blocks
-  next to the generated blocks the vector pipeline owns). Weapons: `Weapons/src~/paragon_weapons.py`
-  (scripted fallback + the meter row) then `ingest_paragon_codex.py`.
-- **Skins**: palette-shift script on the finished sheet (`recolour`): hue-shift the armour's red only, keep
-  blues, ink and alpha identical (the script asserts equal alpha). Written as PNG bytes to
-  `Resources/ShipArt/Skins/<Key>_<Skin>.bytes`. 4 skins besides stock (`ShipSkins.PerShip = 5`,
-  `ShipWeaponUpgrades.MaxLevel = 4` assume it).
-- Import settings: hull sheet = copy a neighbour's `.meta` (bilinear, no mipmaps, 2048 max, `Resources/`);
-  atlases keep their metas; Unity writes missing metas on first import, commit them.
+| Job | Output (all in `src~/<ship>/codex/`) | What it must contain |
+| --- | --- | --- |
+| J1 hull | `hull_state{0,1,2}.png`, 3x3 cells of 1024 px | key pose, bob up, bob up + lights off, glint 1, glint 2 + lights off, bob down, bank L, bank R, hit flash (bone-white); state 1 = damaged (blown panel, wires, scorch, cracks), state 2 = wreck (adds torn pod, glowing tears, cracked canopy, embers); damage INSIDE the intact silhouette |
+| J1b strict redo | `hull_redo_state{0,1,2}.png`, 3x2 cells | lights-off, glint 1, glint 2, bank L, bank R, each PAINTED (see audit below) |
+| J2 flame | `flame_cruise.png`, `flame_boost.png`: 7 cells 1:4 | hot head at the top, only the five exhaust bands (outer / mid / core / dark / accent) so the skin remap shader finds them; frame 2 = the 1-tick smear |
+| J3 ultimate | `charge_16.png` (4x4), `ready_shot_impact.png` (4x4), `muzzle_release_trail.png` (4x3), `fx_16.png` (4x4: attack loop, attack burst, power loop, power burst), `gun_tile.png` | the layout `WeaponArt.cs` / `ShipFxArt.cs` slice |
+| J3b | `shot_6.png` (3x2) | the homing shot: 4 loop frames + 2 smear frames, big (body ~40% of the cell) |
+| J4 meter | `meter_16.png` (4x4) | fill 0-9, ready pulse 10-13, fire flash, icon |
+| skins | `skin_<Name>_state{0,1,2}.png` | the FINAL flipbook (pose order as shipped) repainted in a colourway: silhouette identical, only the armour hue changes (give the `skinref_state*.png` as references) |
+
+**Audit every Codex delivery numerically before trusting it** (Codex shortcuts: on the first Paragon pass
+a "glint" cell was a copy of the key pose, the banks a scripted squash, the shot sprite 1% of its cell,
+and its final message did not say so). Per sheet compute: percentage of pixels differing from the key
+pose per cell (threshold 60 on summed RGB; every animated cell > ~0.8%, banks also after the best integer
+translation > 5% and silhouette > 3%), pairwise differences between flipbook frames, empty-cell list, the
+sheet size, and `PIL.Image.open(...).load()` (a half-written PNG raises "truncated" while Codex still works).
+Re-run with a brief that names the exact cells and the thresholds, and demands the table in the final
+message; repeat until it passes. Repo limit: `jj` refuses new files over 1 MiB, so quantize the big sheets
+(`Image.quantize(colors=..., dither=NONE)`) and keep the originals outside the tree.
+
+Assemble with scripts only (no hand painting):
+
+- `Hulls/src~/paragon/build_paragon.py`: keys + fits the sheets (243 px wide, the intact sheet sets the
+  scale), uses J1 for idle + flash, J1b for the painted poses, binary alpha (the art test wants no faint
+  rim), damage rows take the intact alpha EXACTLY (tests compare), measures rect / nozzles, nudges each
+  damage emitter onto paint in all 27 cells, writes `data.json`, builds the skin sheets (Codex paintings when
+  present, the palette-shift script as per-pixel fallback + silhouette guard), pastes the flame strips into
+  the exhaust atlas; `patch_cs.py` writes the `BEGIN/END PARAGON` blocks next to the generated blocks that
+  the vector pipeline (`build.py`) owns.
+- `Weapons/src~/paragon_weapons.py` (scripted placeholders for every weapon cell) then
+  `ingest_paragon_codex.py` (overwrites with Codex's: charge, ready/shot/impact, shot redo, muzzle/release/trail,
+  fx row 16, meter row 16, gun tile 16). Always run them in that order: the first one resets the atlas.
+- Skins: 4 besides stock (`ShipSkins.PerShip = 5`, `ShipWeaponUpgrades.MaxLevel = 4` assume it), written
+  as PNG bytes to `Resources/ShipArt/Skins/<Key>_<Skin>.bytes` (+ copy a neighbour's `.bytes.meta` with a
+  new guid). The skin table rows use the colours the brief named, not measured medians.
+- Import settings: hull sheet = copy a neighbour's `.meta` (new guid, empty `internalIDToNameTable`);
+  weapon atlas likewise; atlases keep their metas.
 
 ### 3. Wire the tables (Paragon is the worked example)
 
@@ -128,26 +144,50 @@ required fields; additive only.
 
 ### 5. Tests
 
-Add `PremiumShipTest`-style suite (register in `AllTests.Suites`): identity rows, the purchase gate,
+Add a `PremiumShipTest`-style suite (register in `AllTests.Suites`): identity rows, the purchase gate,
 tiers strictly escalating, skins priced and owned only with the ship, the economy it must not disturb,
-timers firing at the right second (step the components with fixed `dt`), shield, barrage count.
-Then run and fix the suites the roster length touches (each hard-codes "15 ships / 5 rows / prices"):
-`RosterCleanupTest, ShipSelectionTest, ShopTest, RowHeartsTest, SkinHeartsTest, ShipLivesTest, ColumnSpeedTest,
-ExhaustStyleTest, ShipNozzlesTest, ShipWeaponUpgradesTest, PowersReworkTest, CodexTest, AchievementCatalogTest,
-UnusedAssetGuardTest, ShipHitboxTest` (use the real names in `AllTests.cs`). Final gate: `make test`.
+timers firing at the right second (step the components with fixed `dt`; note a fired timer restarts from
+its full interval, not from the overshoot), the shield, the barrage count; and a dock check in `ShopTest`
+(popup `Mode.Locked`, SOON tag, no dust path). Then the roster-length suites need their expectations
+widened. What the Paragon pass had to touch (each hard-codes the 15-ship dust economy):
+
+- exempt premium from vector-art checks: `ShipSkinsTest` (skin kinds, palette compliance), `ShipArtTest`
+  (flat fills; add its design size to `oldRects`), `ShipDamageTest` (the "2.5x more repainted" ratio),
+  `ShipLivesTest`, `RowHeartsTest`, `ColumnSpeedTest`, `SkinHeartsTest` (use `PremiumShips.StandardIds`);
+- counts: `ShipId.Count == 16` (`ShipSelectionTest`, `ShipAttacksTest`, `WeaponChargeTest`,
+  `ShipWeaponUpgradesTest`), Fleet Admiral = `PremiumShips.StandardCount` (`AchievementCatalogTest`,
+  `AchievementTrackingTest`), top tier by price excludes premium, `ShopTest` last berth, `ShipNozzlesTest`
+  plume scale, `CodexTest` hearts <= `MostHearts`, `RedAtomFreeShotTest` (the new attack launches `shots`);
+- `TitleScreenTrafficTest`: the sky flies every roster ship (cap Paragon's barrage to 3 lances in
+  `TitleScreenTraffic.Combat`), its flipbook-pool peak bound and a "tumbling flyer" exemption were RNG-sensitive;
+- `ShipHitboxTest` needs the baked `hull_hitboxes.bytes` / `hull_silhouettes.bytes`: run
+  `-executeMethod BakeThenTests.Run -suites ...` (bakes, then runs the suites; the import hook never fires
+  in `-batchmode -quit`) and commit the two `.bytes`.
+
+`UnusedAssetGuardTest` failed with 11 `Art/Enemies/storm_*` orphans on master before this work (see the
+`baseline-jj` log); not a Paragon issue.
 
 ### 6. Verify
 
-`scripts/unity-batch.sh -executeMethod AllTests.RunSuites -suites A,B,C`, then
-`BuildScript.BuildMac` (and `BuildAndroidDev` for the phone). To see the ship, `DockPreview` /
-`CodexPreview` editor tools or the dev build (developer mode owns it).
+```bash
+cd <workspace>
+UNITY_BATCH_IGNORE_FOREIGN=1 UNITY_BATCH_MAX_SWAP_MB=8000 \
+  scripts/unity-batch.sh -projectPath "$PWD/Pause" -executeMethod BakeThenTests.Run -suites A,B,C   # focused
+UNITY_BATCH_IGNORE_FOREIGN=1 scripts/unity-batch.sh -projectPath "$PWD/Pause" -executeMethod AllTests.RunAll   # sign-off
+```
+
+Other agents' unwrapped `AllTests.RunAll` runs and the swap guard can starve the queue for an hour; the two
+env vars above are the wrapper's documented overrides. Stills (no build needed):
+`DockPreview.RunParagon` (idle / locked / owned / skin preview dock) and `ParagonPreview.Run` (flames +
+shield, missile volley, barrage, damage states); output dirs via `PAUSE_DOCK_PREVIEW_DIR` /
+`PAUSE_PARAGON_PREVIEW_DIR`. Then `BuildScript.BuildMac` (and `BuildAndroidDev` for the phone).
 
 ## Pitfalls hit building Paragon
 
 - The default jj workspace has no `Library`; `cp -Rc` one. The batch queue can hold you for an hour.
 - Codex headless refuses a non-git dir unless `--skip-git-repo-check`; it writes finished PNGs to the
-  folder you name, a half-written PNG ("truncated") means it is still working.
-- Codex's bank poses barely differed from rest: bank from the rest drawing + the documented warp.
+  folder you name, a half-written PNG ("truncated") means it is still working. Its final message is
+  not evidence: measure the files (see the audit above).
 - `ShipLoadout` enums: adding after `ScreenClear` overflows `TitleScreenTraffic.AttacksFired`.
 - `ShipLives.Rows` is derived from the roster count: a premium ship must not add a dock row's worth of
   hearts to every other ship (`PremiumShips.StandardCount`).

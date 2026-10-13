@@ -71,7 +71,7 @@ public static class WorldPaceTest
     {
         bool all = true;
         var lines = new List<string>();
-        foreach (int id in ShipId.All)
+        foreach (int id in PremiumShips.StandardIds)
         {
             int[] want = { 0, 5, 10, 15, 20 };
             int add = ShipStartSpeed.ColumnHud[ShipStartSpeed.Column(id) - 1];
