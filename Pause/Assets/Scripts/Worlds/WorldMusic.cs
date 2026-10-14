@@ -301,9 +301,12 @@ public class WorldMusic : MonoBehaviour
             bossTrackPlaying = true;
             if (BossClip(theme) == next) CodexMusic.HeardBoss(theme);
             EnsureRunner().StartCoroutine(Swap(source, next));
+            // the boss song's beat clock (Scripts/Audio/BeatClock.cs): the fight's volleys follow it
+            if (BossClip(theme) == next) BossBeat.Attach(source, theme.displayName);
         }
         else
         {
+            BossBeat.Detach();
             // No boss clip yet: keep the world track, intensified.
             bossPitched = true;
             source.pitch = BossFallbackPitch;
@@ -312,6 +315,7 @@ public class WorldMusic : MonoBehaviour
 
     public static void EndBoss()
     {
+        BossBeat.Detach();
         var source = FindBackgroundSource();
         if (bossPitched)
         {
