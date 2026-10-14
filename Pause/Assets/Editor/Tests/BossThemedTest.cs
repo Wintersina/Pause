@@ -39,6 +39,7 @@ public static class BossThemedTest
         {
             var was = new Dictionary<BossDef, bool>();
             foreach (var b in BossCatalog.All) was[b] = b.themedAttacks;
+            BossCatalog.UseOverhaul = false;   // the themed tables' suite; the bullet-hell tables are BossPatternTest / BossLadderTest
             try
             {
                 Tables();
@@ -53,6 +54,7 @@ public static class BossThemedTest
             finally
             {
                 foreach (var kv in was) kv.Key.themedAttacks = kv.Value;
+                BossCatalog.UseOverhaul = true;
                 BossEncounter.ResetRun();
                 BossRails.Reset();
                 AttackPools.ClearAll();

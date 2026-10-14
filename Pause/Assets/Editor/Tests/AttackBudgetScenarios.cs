@@ -31,6 +31,7 @@ public static class AttackBudgetScenarios
 
     public static IScenario Make(string id)
     {
+        if (id.StartsWith("rotation:")) return new Rotation(int.Parse(id.Substring(9)), 40f);   // a boss's whole phase-3 bullet-hell rotation (BossLadderBotTest)
         if (id.StartsWith("themed:boss_")) return new Boss(id);   // a NEW boss attack of the themed table (BossThemed), fought with BossDef.themedAttacks on
         if (id.StartsWith("roster:") || id.StartsWith("themed:")) return new Roster(id);
         if (id.StartsWith("elite:")) return new Elite(id);
@@ -773,6 +774,7 @@ public static class AttackBudgetScenarios
             BossRails.Reset();
             // (a pinned "boss:" id is today's attack in today's table even for a boss that now fights themed; a "themed:boss_" id is the new table)
             if (themedDef != null) { wasThemed = themedDef.themedAttacks; themedDef.themedAttacks = themedBoss; }
+            BossCatalog.UseOverhaul = false;   // these scenarios pin the OLD tables' attacks (the bullet-hell rotation is the Rotation scenario)
             if (Camera.main == null)
             {
                 var camGo = new GameObject("Main Camera", typeof(Camera));
@@ -844,7 +846,125 @@ public static class AttackBudgetScenarios
         {
             BossEncounter.ResetRun();
             BossRails.Reset();
+            BossCatalog.UseOverhaul = true;
             if (themedDef != null) themedDef.themedAttacks = wasThemed;
+            for (int i = 0; i < hadOrigin.Length; i++) hadOrigin[i] = false;
+        }
+    }
+
+    // A boss's whole bullet-hell rotation in its last third (enrage on), fought through the real BossEncounter for
+    // `seconds`, the bot flying a bare transform. The ladder test counts the hits it still takes.
+    public sealed class Rotation : IScenario
+    {
+        readonly int world;
+        readonly float seconds;
+        BossEncounter e;
+        float t;
+        static readonly FieldInfo PlayerField = typeof(BossEncounter).GetField("player", BindingFlags.NonPublic | BindingFlags.Instance);
+        static readonly FieldInfo RemainingField = typeof(BossEncounter).GetField("remaining", BindingFlags.NonPublic | BindingFlags.Instance);
+        public int PeakShots, PeakBeams;
+        public string CurrentName => e != null && e.Actor != null && e.Actor.CurrentAttack != null ? e.Actor.CurrentAttack.name : "(cooldown)";
+
+        public bool Legacy;   // the boss's old table (the one it fought before the overhaul), for the baseline
+        public Rotation(int world, float seconds) { this.world = world; this.seconds = seconds; Name = "rotation:" + world; }
+
+        public string Name { get; }
+        public float MaxSeconds => seconds;
+        public bool Attacked => e != null && e.Actor != null && e.Actor.AttacksStarted > 0;
+        public bool Telling => e != null && e.Actor != null && e.Actor.Telegraphing && e.Actor.CurrentAttack != null && e.Actor.CurrentAttack.kind != BossAttackKind.Beam;
+        public bool Done => false;
+
+        public Transform Begin(System.Random rng, Vector2 start)
+        {
+            var ship = EnsureShip(start);
+            BossEncounter.ResetRun();
+            BossRails.Reset();
+            BossCatalog.UseOverhaul = !Legacy;
+            if (Camera.main == null)
+            {
+                var camGo = new GameObject("Main Camera", typeof(Camera));
+                camGo.tag = "MainCamera";
+                var cam = camGo.GetComponent<Camera>();
+                cam.orthographic = true;
+                cam.orthographicSize = 5f;
+                camGo.transform.position = new Vector3(0f, 0f, -10f);
+            }
+            buttonClicks.playerDied = false;
+            score.pauseCounter = 0;
+            moveBackGround.speed = .37f;
+            Time.timeScale = 1f;
+            PlayerPrefs.SetInt(WorldManager.PrefsCurrentWorld, world);
+            t = 0f;
+            PeakShots = PeakBeams = 0;
+            BossEncounter.Begin(world, null);
+            e = BossEncounter.Instance;
+            PlayerField.SetValue(e, ship);
+            e.Step(.1f, 1f);
+            for (int i = 0; i < 400 && e.State == BossEncounter.Phase.Intro; i++) e.Step(.1f, 1f);
+            // the last third of the fight's clock: phase 3, enrage on, the whole rotation unlocked
+            RemainingField.SetValue(e, BossConfig.FightSeconds * .32f);
+            return ship;
+        }
+
+        public void Step(float dt)
+        {
+            t += dt;
+            if (e == null) return;
+            RemainingField.SetValue(e, Mathf.Max(BossConfig.FightSeconds * .2f, (float)RemainingField.GetValue(e)));   // never runs out: the fight is the whole window
+            e.Step(dt, 1f);
+            if (e.Pool != null) { PeakShots = Mathf.Max(PeakShots, e.Pool.ActiveShots); PeakBeams = Mathf.Max(PeakBeams, e.Pool.ActiveBeams); }
+        }
+
+        readonly Vector2[] prevOrigin = new Vector2[16];
+        readonly bool[] hadOrigin = new bool[16];
+
+        public void Collect(List<Hz> into)
+        {
+            if (e == null || e.Pool == null) return;
+            CollectHazards(into);
+            var shots = e.Pool.Shots;
+            for (int i = 0; i < shots.Count; i++)
+            {
+                var s = shots[i];
+                if (s == null || !s.Active || s.Hitbox == null) continue;
+                into.Add(Hz.Circle(400 + i, s.transform.position, s.Radius));
+                // a bomb about to burst: what any player reads off the swelling shot, the zone its ring will sweep (to plan round, never to be scored)
+                if (s.BurstCount > 0 && s.FuseLeft > 0f)
+                {
+                    var zone = Hz.Circle(900 + i, s.transform.position, 1.15f, s.FuseLeft, .7f);
+                    zone.planOnly = true;
+                    into.Add(zone);
+                }
+            }
+            var beams = e.Pool.Beams;
+            for (int i = 0; i < beams.Count; i++)
+            {
+                var bm = beams[i];
+                if (bm == null || !bm.Active) { if (i < hadOrigin.Length) hadOrigin[i] = false; continue; }
+                Vector2 o = bm.Origin, d = bm.Direction;
+                float half = bm.Width * BossConfig.BeamHitFraction * .5f;
+                if (bm.Live) into.Add(Hz.Segment(600 + i, o, o + d * bm.Length, half, 0f, Mathf.Max(.05f, bm.HoldLeft)));
+                else if (bm.Telegraphing)
+                {
+                    Vector2 d0 = BossBeam.Heading(bm.StartDeg);
+                    var seg = Hz.Segment(600 + i, o, o + d0 * 9f, half, bm.TellLeft, Mathf.Max(.2f, bm.HoldTotal));
+                    float omega = bm.SweepDeg / Mathf.Max(.05f, bm.HoldTotal) * Mathf.Deg2Rad;
+                    Vector2 ov = i < prevOrigin.Length && hadOrigin[i] ? (o - prevOrigin[i]) / DodgeBot.Dt : Vector2.zero;
+                    seg.va = seg.vb = ov;
+                    seg.vbExtra = new Vector2(-d0.y, d0.x) * (omega * 9f);
+                    seg.hasV = true;
+                    seg.moveFrom = bm.TellLeft;
+                    into.Add(seg);
+                }
+                if (i < prevOrigin.Length) { prevOrigin[i] = o; hadOrigin[i] = true; }
+            }
+        }
+
+        public void End()
+        {
+            BossEncounter.ResetRun();
+            BossRails.Reset();
+            BossCatalog.UseOverhaul = true;
             for (int i = 0; i < hadOrigin.Length; i++) hadOrigin[i] = false;
         }
     }

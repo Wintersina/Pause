@@ -72,6 +72,7 @@ public static class ShipReachTest
         // the boss projectile / laser reach is measured on the default tables; the themed hazards are BossThemedTest's
         var themedWas = new System.Collections.Generic.Dictionary<BossDef, bool>();
         foreach (var b in BossCatalog.All) { themedWas[b] = b.themedAttacks; b.themedAttacks = false; }
+        BossCatalog.UseOverhaul = false;   // (the bullet-hell tables are checked by BossPatternTest's own reach and fit tests)
         try
         {
             EditorSceneLoader.Open("gameS1");
@@ -99,12 +100,14 @@ public static class ShipReachTest
             UnreportedDensity();
             BossAttackTiming();
             BossFightOnEveryPhone();
+            BossHellOnEveryPhone();
             if (TestHarness.Slow("boss dodge simulation on phone shapes")) BossPatternsLeaveAWayThrough();
             NothingAllocatesNothingMovesWhilePaused();
         }
         finally
         {
             foreach (var kv in themedWas) kv.Key.themedAttacks = kv.Value;
+            BossCatalog.UseOverhaul = true;
             Use(null);
             NoDpi = false;
             ShipReach.FitToView = true;
@@ -803,6 +806,60 @@ public static class ShipReachTest
     }
 
     // ---- 7: the whole fight on the phones ------------------------------------------------------
+
+    // The bullet-hell tables (BossDef.hell) on every phone shape: the stage a pattern is played on is read from the live frame (rails, ship
+    // reach, the boss's ceiling, the view's top, the shot scale), the muzzles are the boss's real ones, and the solver must find a way
+    // through every static pattern with that stage -- on the smallest phone as on the tallest.
+    static void BossHellOnEveryPhone()
+    {
+        BossCatalog.UseOverhaul = true;
+        try
+        {
+            var sim = new PatternSim();
+            foreach (var id in Phones)
+            {
+                Use(FitDevice.Find(id));
+                var f = PlayField.Live;
+                for (int world = 0; world < BossCatalog.All.Length; world++)
+                {
+                    if (!TestHarness.SweepWorld(world)) continue;
+                    var boss = BossCatalog.ForWorld(world);
+                    var parts = BossEmitterTable.Parts[BossEmitters.World(boss)];
+                    var em = new Vector2[parts.Length];
+                    for (int p = 0; p < em.Length; p++) em[p] = new Vector2(0f, BossConfig.BossY) + BossEmitters.Local(boss, p, BossArt.Idle0);
+                    sim.emitters = em;
+                    sim.railEdge = BossRails.InnerEdge;
+                    sim.shipHalf = ShipReach.HalfWidth;
+                    sim.spawnTop = CameraFit.ViewTop + .15f;
+                    sim.zoneBottom = ShipReach.BottomFor(f);
+                    sim.zoneTop = Mathf.Min(ShipReach.TopFor(f), BossConfig.ShipCeilingFor(f, boss));
+                    sim.shotScale = BossConfig.ShotScaleFor(f);
+                    bool zone = sim.zoneTop - sim.zoneBottom > 1.6f, top = sim.spawnTop >= f.top - 1e-3f, muzzles = true;
+                    foreach (var q in em) muzzles &= q.y < f.top && q.y > f.bottom && Mathf.Abs(q.x) < 3.72f;
+                    int solved = 0, total = 0;
+                    float worst = 1f;
+                    foreach (var a in boss.attacks)
+                    {
+                        if (a.kind != BossAttackKind.Pattern) continue;
+                        var stat = BossLadderTest.StaticOnly(a.pattern);
+                        if (stat == null) continue;
+                        foreach (float x in new[] { -sim.shipHalf * .9f, 0f, sim.shipHalf * .9f })
+                        {
+                            var r = sim.Solve(stat, BossLadder.RateAt(world, 1f), 1, new Vector2(x, Mathf.Lerp(sim.zoneBottom, sim.zoneTop, .3f)), 5f, .04f, 2.5f);
+                            total++;
+                            if (r.survivable) solved++;
+                            worst = Mathf.Min(worst, r.minReach);
+                        }
+                    }
+                    Check(id + " " + boss.artKey + ": the ship's zone is " + F(sim.zoneTop - sim.zoneBottom) + " u tall, walls spawn at the view's top, the muzzles are on screen", zone && top && muzzles);
+                    Check(id + " " + boss.artKey + ": a way through every static pattern on this phone (" + solved + "/" + total + ", the tightest leaves " + P(worst) + " of the zone, shot scale " + F(sim.shotScale) + ")",
+                          solved == total && worst >= .08f);
+                }
+            }
+            sim.shotScale = 1f;
+        }
+        finally { BossCatalog.UseOverhaul = false; Use(null); }
+    }
 
     static void BossFightOnEveryPhone()
     {

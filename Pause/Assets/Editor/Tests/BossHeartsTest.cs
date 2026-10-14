@@ -279,7 +279,7 @@ public static class BossHeartsTest
             unlocked[k] = BossCatalog.UnlockedAttacks(boss, e.PhaseProgress01);
         }
         string s = "";
-        bool right = true, ladder = unlocked[0] == 1 && unlocked[N - 1] == 3;
+        bool right = true, ladder = unlocked[0] == 2 && unlocked[N - 1] == boss.attacks.Length;   // (the bullet-hell tables: two attacks, then more, then all)
         for (int k = 0; k <= N - 1; k++)
         {
             s += (N - k) + "h:p" + phase[k] + " ";
@@ -289,7 +289,7 @@ public static class BossHeartsTest
         }
         Check("phases by the hearts, at the clock's thirds: first third phase 1, middle phase 2, last third (and the last heart) phase 3 (" + s.Trim() + ")",
               right && phase[0] == 1 && phase[N - 1] == 3);
-        Check("... unlocking one attack, then two, then all three", ladder);
+        Check("... unlocking two attacks, then more, then all of them", ladder);
         Check("... with the final phase's faster cooldowns on the last heart", BossCatalog.FinalPhase(e.PhaseProgress01));
         Check("the fight steps the boss on the phase progress (the further on of clock and hearts)",
               File.ReadAllText("Assets/Scripts/Bosses/BossEncounter.cs").Contains("actor.StepFight(dt, realDt, PlayerPosition(), PhaseProgress01, pool)"));
