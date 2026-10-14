@@ -98,9 +98,21 @@ public static class ShipId
     // the player's ship uses this.
     public static int Equipped()
     {
+        if (TutorialFlight) return TutorialShip;
         int id = SavedSelection;
         return IsValid(id) && IsOwned(id) ? id : Starter;
     }
+
+    // The tutorial always flies Neon Comet, the free starter, in its stock
+    // colour and with no upgrades, whatever the pilot has equipped: while
+    // TutorialFlight is set (startMenu.PrepareTutorialRun / the tutorial
+    // scene loading) Equipped() answers TutorialShip, ShipSkins.Equipped
+    // answers Stock and ShipWeaponUpgrades.Level answers 0. The saved
+    // selection, skins and ownership are never read or written for it, so
+    // there is nothing to restore afterwards. Cleared when any other scene
+    // loads and by GameStateReset.Clear.
+    public const int TutorialShip = Starter;
+    public static bool TutorialFlight;
 
     // Saves the selection (callers decide when to flush to disk).
     public static void Equip(int id)

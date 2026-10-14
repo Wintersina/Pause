@@ -180,7 +180,14 @@ public class TutorialCompletePanel : MonoBehaviour, IPointerDownHandler
 
         if (button == null) return slot;
 
-        // The scene's own Button: its persistent onClick stays as authored.
+        // The scene's own Button. LIFT OFF is rebound to the lift-off (the
+        // scene's persistent onClick is tutButtonClicks.replay, which
+        // restarts the tutorial); HOME keeps its authored onClick.
+        if (index == 0)
+        {
+            button.onClick = new Button.ButtonClickedEvent();
+            button.onClick.AddListener(() => TutorialLiftOff.Begin());
+        }
         var rt = (RectTransform)button.transform;
         rt.SetParent(slot, false);
         rt.anchorMin = rt.anchorMax = rt.pivot = new Vector2(.5f, .5f);

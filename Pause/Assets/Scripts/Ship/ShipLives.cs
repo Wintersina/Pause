@@ -10,7 +10,7 @@ using UnityEngine;
 //   row 2 .. row 5 (the dearest three: Ion, Jade, Gold)        2 .. 5
 // and the colours bought add to them (SkinHearts: +1 with the ship's first
 // colour, +2 with its third, +2 more on every ship once every skin of every
-// ship is owned) -- Max. The tutorial flies the bare hull (TutorialMax).
+// ship is owned) -- Max. The tutorial flies TutorialHearts (TutorialMax).
 //
 // A run's numbers: collisionDetection.MAXLIFE is the flown ship's Max(),
 // set when the ship spawns (collisionDetection.Start); lifeCounter counts the
@@ -58,12 +58,14 @@ public static class ShipLives
         return Mathf.Clamp(Base(id) + SkinHearts.Bonus(id), 1, MostHearts);
     }
 
-    // The tutorial teaches on the bare hull (no colour hearts) with two extra
-    // hearts orbiting it, so the alien's crash costs one and can never end the
-    // lesson (Hints tops them back up). Only the tutorial scene flies this;
-    // every real run uses Max.
-    public const int TutorialExtraHearts = 2;
-    public static int TutorialMax(int id) { return Mathf.Max(Base(id) + TutorialExtraHearts, TutorialExtraHearts + 1); }
+    // The tutorial's ship (Neon Comet, ShipId.TutorialShip) flies with exactly
+    // TutorialHearts hearts -- one more than the real Neon Comet's 1 -- so it
+    // can start the lesson damaged (1 of 2) and the green atom heals it to 2.
+    // A tutorial-only override: ShipLives.Max, the saved skins and every real
+    // run are untouched. The tutorial can never end in a death
+    // (collisionDetection.TutorialCannotDie).
+    public const int TutorialHearts = 2;
+    public static int TutorialMax(int id) { return TutorialHearts; }
 
     // The flown ship's maximum this run (falls back to the equipped ship's
     // before collisionDetection has set it).

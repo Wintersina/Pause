@@ -57,6 +57,11 @@ public static class RunScore
     // `at` is a world position, or NaN for "middle of the screen".
     public static event Action<int, Vector3, Source> Scored;
 
+    // The tutorial scores nothing, but its pickups still pop their worth over
+    // where they were caught, exactly like a run (ScoreHud popups). Set by
+    // score.Awake in the tutorial scene; nothing is added to any total.
+    public static bool PracticePopups;
+
     static int runId;
     static bool scoring;      // this run earns points at all (not the tutorial)
     static bool paysBonus;    // ... the run's score bonus in star dust is paid (scoring, not developer mode)
@@ -136,6 +141,7 @@ public static class RunScore
     {
         if (!ended && runId > 0) Bank();
         runId++;
+        PracticePopups = false;
         scoring = scores;
         paysBonus = scores && mayBeBest;
         unranked = premium;
@@ -336,12 +342,18 @@ public static class RunScore
     // `at`: where it was caught (for the HUD popup); none -> no popup.
     public static int OnDust(bool large, Vector3? at = null)
     {
-        if (!Earning) return 0;
+        if (!Earning) { Practice(large ? ScoreRules.LargeDust : ScoreRules.SmallDust, at, Source.Dust); return 0; }
         int points = ScoreMultiplier.Gain(large ? ScoreRules.LargeDust : ScoreRules.SmallDust);
         parts.dust += points;
         parts.dustCount++;
         if (at.HasValue) Raise(points, at.Value, Source.Dust);
         return points;
+    }
+
+    // A practice run's popup: what the pickup is worth, shown, never counted.
+    static void Practice(int points, Vector3? at, Source source)
+    {
+        if (PracticePopups && at.HasValue && points > 0) Raise(points, at.Value, source);
     }
 
     public enum Atom { Heal, Shield, Pause, Cooldown }
@@ -359,7 +371,7 @@ public static class RunScore
 
     public static int OnAtom(Atom kind, Vector3? at = null)
     {
-        if (!Earning) return 0;
+        if (!Earning) { Practice(AtomPoints(kind), at, Source.Atom); return 0; }
         int points = ScoreMultiplier.Gain(AtomPoints(kind));
         parts.atoms += points;
         parts.atomCount++;

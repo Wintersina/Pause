@@ -105,7 +105,7 @@ public static class AchievementTracker
 
     static void OnScored(int points, Vector3 at, RunScore.Source source)
     {
-        if (!Achievements.Real || RunScore.Unranked) return;
+        if (!Achievements.Real || RunScore.Unranked || !RunScore.Scoring) return;   // (a practice popup scores nothing)
         OnScore(RunScore.Total);
     }
 

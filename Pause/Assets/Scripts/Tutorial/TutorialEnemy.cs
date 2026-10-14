@@ -53,6 +53,18 @@ public class TutorialEnemy : MonoBehaviour
         var go = EnemyFactory.Create(def, new Vector3(x, top + SpawnAboveTop, 0f), Quaternion.identity);
         if (go == null) return null;
 
+        Prepare(go);
+
+        var enemy = go.AddComponent<TutorialEnemy>();
+        enemy.baseX = x;
+        live = go.transform;
+        return enemy;
+    }
+
+    // Switches off a factory enemy's own mover, brain and shots: the tutorial
+    // moves it (TutorialEnemy, TutorialWall) and it never shoots.
+    public static void Prepare(GameObject go)
+    {
         var weaver = go.GetComponent<moveEnimes>();
         if (weaver != null) weaver.enabled = false;
         var scroller = go.GetComponent<moveItemEnmInStrightLine>();
@@ -62,11 +74,6 @@ public class TutorialEnemy : MonoBehaviour
         // with no brain to drive its attack tell, it plays its own
         var flipbook = go.GetComponent<EnemyFlipbook>();
         if (flipbook != null) flipbook.SetBrainDriven(false);
-
-        var enemy = go.AddComponent<TutorialEnemy>();
-        enemy.baseX = x;
-        live = go.transform;
-        return enemy;
     }
 
     // Removes the alien if it is still out (the tutorial ended or was skipped).

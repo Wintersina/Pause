@@ -14,14 +14,14 @@ using Object = UnityEngine.Object;
 //           the ship (on it within ~1 s), every dust piece wears an arrow
 //           (gone with the piece), the step advances on a catch, and a missed
 //           stream is rushed again. Driven with a fake clock.
-//   HEARTS  the tutorial ship flies with extra orbiting hearts; the alien's
-//           crash costs one and never kills, however many times; hearts are
-//           topped back up before the next beat; a normal run afterwards
-//           starts with its usual hearts.
+//   HEARTS  the tutorial ship (Neon Comet) flies with 2 hearts and starts at
+//           1; a crash costs one and never kills, however many times; the
+//           green atom heals it to 2; a normal run afterwards starts with
+//           its usual hearts (Neon Comet's 1).
 //   ATOMS   each atom type is introduced exactly once, in the documented order, by one
 //           short sentence, with no random atoms; each one can be collected, does its real
 //           effect and advances its step
-//   TIMING  a competent player finishes in 30-45 s, the all-timeouts worst case in <75 s
+//   TIMING  a competent player finishes in about a minute; nothing advances on a timer
 //   PANEL   the Tutorial Complete card: title + LIFT OFF + HOME, real taps on both
 //   LIFTOFF the portal departure plays once, then the first level loads once
 //   FINGER  one finger-to-ship offset for every touch controller
@@ -60,6 +60,8 @@ public static class TutorialPolishTest
         }
         finally
         {
+            Hints.PlayFlyIn = true;
+            ShipId.TutorialFlight = false;
             ScreenInfo.ClearOverride();
             Time.timeScale = 1f;
         }
@@ -71,13 +73,13 @@ public static class TutorialPolishTest
 
     static void ScriptTable()
     {
-        int hearts = StepIndex("hearts"), enemies = StepIndex("enemies"), dust = StepIndex("dust");
-        Check("the hearts line comes right before the alien", hearts >= 0 && hearts + 1 == enemies);
+        int dust = StepIndex("dust"), freeze = StepIndex("freeze"), jump = StepIndex("jump");
         Check("the dust step rushes the dust (SpawnStars cue)", dust >= 0 && TutorialScript.Steps[dust].cue == TutorialCue.SpawnStars);
-        if (hearts >= 0)
+        Check("the wall step comes right before the jump step", freeze >= 0 && freeze + 1 == jump);
+        if (freeze >= 0)
         {
-            string line = TutorialScript.Steps[hearts].line;
-            Check("the hearts line says the hearts protect (\"" + line + "\")", line.Contains("hearts") && line.Length <= TutorialScript.MaxLineLength);
+            string line = TutorialScript.Steps[freeze].line;
+            Check("the wall line says to let go (\"" + line + "\")", line.Contains("Let go") && line.Length <= TutorialScript.MaxLineLength);
         }
     }
 
@@ -88,8 +90,10 @@ public static class TutorialPolishTest
         Time.timeScale = 1f;
         buttonClicks.playerDied = false;
         moveBackGround.speed = 0f;
-        score.pauseCounter = 50;
+        score.pauseCounter = score.TUTPAUSECOUNTER;
         score.paysRealDust = false;
+        Hints.PlayFlyIn = false;
+        ShipId.TutorialFlight = true;
         var hints = Object.FindFirstObjectByType<Hints>();
         hints.SendMessage("Start");
         ship = GameObject.Find("ship1");
@@ -158,13 +162,19 @@ public static class TutorialPolishTest
             Check("a handful of dust pieces (" + rushed + ") rush in", rushed >= 4 && rushed <= 8);
             Check("all above the ship, in its lane", allAhead && allLane);
             Check("each is a real star prefab with the tutorial drift", allDrift);
-            Check("the last piece is on the ship within 1.2 s (" + latest.ToString("0.00") + ")", latest > 0f && latest <= 1.2f);
+            Check("the last piece is on the ship within 1.8 s of entering from the top (" + latest.ToString("0.00") + ")", latest > 0f && latest <= 1.8f);
+            bool fromTop = true;
+            float bottom0, top0;
+            TutorialAtomDrift.View(out bottom0, out top0);
+            foreach (var t in stars) if (t != null && t.position.y < top0) fromTop = false;
+            Check("every piece enters from above the top edge of the level", fromTop);
+            Check("and falls fast (" + TutorialStarDrift.Speed + " u/s)", TutorialStarDrift.Speed >= 7f);
 
             // fake clock: fall at 60 fps with the finger down; the first pieces reach the ship
             var first = new List<Transform>();
             foreach (var t in stars) if (t != null) first.Add(t);
             float time = 0f, reached = -1f;
-            while (time < 1.5f)
+            while (time < 2.2f)
             {
                 foreach (var t in first)
                     if (t != null) t.GetComponent<TutorialStarDrift>().Step(1f / 60f, true);
@@ -176,7 +186,7 @@ public static class TutorialPolishTest
                     if (all) reached = time;
                 }
             }
-            Check("every piece has passed the ship's height after " + reached.ToString("0.00") + " s fake time", reached > 0f && reached <= 1.25f);
+            Check("every piece has passed the ship's height after " + reached.ToString("0.00") + " s fake time", reached > 0f && reached <= 1.9f);
             Cleanup0();
 
             // frozen world: nothing falls
@@ -193,6 +203,9 @@ public static class TutorialPolishTest
             ship.transform.position = new Vector3(1.1f, -2.6f, 0f);
             Cleanup0();
             Begin(hints, StepIndex("dust"));
+            // the stream enters from above the top edge: let it fall into view
+            for (float f = 0f; f < .9f; f += 1f / 60f)
+                foreach (var t in new List<Transform>(spawnGoodStuffTut.LiveStars)) if (t != null) t.GetComponent<TutorialStarDrift>().Step(1f / 60f, true);
             rig.Sync();
             guides.PointAtStars(spawnGoodStuffTut.LiveStars);
             guides.SendMessage("Update");
@@ -218,9 +231,9 @@ public static class TutorialPolishTest
             Check("so does one that left the screen (" + guides.StarArrowsShown + ")", guides.StarArrowsShown == onScreen - 2);
 
             // other prompts keep the arrow to themselves
-            Check("arrows stay off during the atom steps, the alien and the pause readout",
+            Check("arrows stay off during the atom steps and the wall",
                   !Hints.StarArrowsAllowed(TutorialCue.SpawnGreenAtom) && !Hints.StarArrowsAllowed(TutorialCue.SpawnCapacitorAtom) &&
-                  !Hints.StarArrowsAllowed(TutorialCue.SpawnEnemy) && !Hints.StarArrowsAllowed(TutorialCue.PointAtPauses) &&
+                  !Hints.StarArrowsAllowed(TutorialCue.SpawnWall) && !Hints.StarArrowsAllowed(TutorialCue.PointAtWall) &&
                   Hints.StarArrowsAllowed(TutorialCue.SpawnStars));
 
             // advance on collect
@@ -228,7 +241,7 @@ public static class TutorialPolishTest
             Sample(hints, 1f / 60f);
             var start = hints.Signals;
             Check("the step is not met before a catch", !TutorialScript.IsMet(dustStep, start, hints.Signals));
-            score.AwardStarDust(.5f);   // what collisionDetection does on a catch
+            for (int c = 0; c < (int)dustStep.amount; c++) score.AwardStarDust(.5f);   // what collisionDetection does on a catch
             Sample(hints, 1f / 60f);
             Check("the step advances once the dust is collected", TutorialScript.IsMet(dustStep, start, hints.Signals));
 
@@ -275,10 +288,13 @@ public static class TutorialPolishTest
         collisionDetection.lifeCounter = 5;   // stale from an earlier run
         typeof(collisionDetection).GetMethod("Start", Inst).Invoke(cd, null);
         int id = ShipId.Of(ship, ShipId.Equipped());
-        Check("the tutorial flies the hull plus " + ShipLives.TutorialExtraHearts + " extra hearts (MAXLIFE " + collisionDetection.MAXLIFE + ")",
-              collisionDetection.MAXLIFE == ShipLives.TutorialMax(id) && collisionDetection.MAXLIFE >= ShipLives.TutorialExtraHearts + 1 &&
-              collisionDetection.MAXLIFE >= ShipLives.Base(id) + ShipLives.TutorialExtraHearts);
-        Check("and starts with every heart (lifeCounter " + collisionDetection.lifeCounter + ")", collisionDetection.lifeCounter == 0);
+        Check("the tutorial ship is Neon Comet (id " + id + ")", id == ShipId.Starter && ShipId.TutorialShip == ShipId.Starter);
+        Check("it flies with exactly " + ShipLives.TutorialHearts + " hearts (MAXLIFE " + collisionDetection.MAXLIFE + ")",
+              collisionDetection.MAXLIFE == ShipLives.TutorialMax(id) && collisionDetection.MAXLIFE == 2 && ShipLives.TutorialHearts == 2);
+        Check("and starts with every heart (lifeCounter " + collisionDetection.lifeCounter + ") until the lesson dents it", collisionDetection.lifeCounter == 0);
+        Hints.ApplyDamagedStart();
+        Check("the damaged start leaves 1 of 2 hearts (lifeCounter " + collisionDetection.lifeCounter + ")", collisionDetection.lifeCounter == 1 && ShipLives.Left == 1);
+        Check("damaged hull art state (critical at one heart)", ShipLives.RunDamageState == 2);
 
         // the orbiting hearts: the attach script finds the tutorial ship
         var attach = new GameObject("~attach").AddComponent<ShipLivesIndicatorAttach>();
@@ -288,14 +304,11 @@ public static class TutorialPolishTest
         if (indicator != null)
         {
             Own(indicator, "Start");
-            Check("it builds one orbiting heart per life (" + indicator.ShownCount + ")", indicator.ShownCount == collisionDetection.MAXLIFE);
+            Check("it builds one orbiting heart per life (" + indicator.ShownCount + ")", indicator.ShownCount == 2);
         }
 
-        // the dust before it, the hearts step topping up
-        Begin(hints, StepIndex("hearts"));
-        Check("the hearts step has the touch cue", TutorialScript.Steps[StepIndex("hearts")].cue == TutorialCue.GrantHearts);
-
-        // the alien crashes into the ship, again and again: never a death
+        // crashes: never a death
+        Begin(hints, StepIndex("freeze"));
         var spawnedPlayerDied = false;
         int maxMark = collisionDetection.MAXLIFE;
         for (int crash = 1; crash <= maxMark + 3; crash++)
@@ -307,11 +320,6 @@ public static class TutorialPolishTest
             var hit = alien.GetComponent<Collider2D>();
             if (hit == null) { Check("the alien has a collider", false); break; }
             typeof(collisionDetection).GetMethod("OnTriggerEnter2D", Inst).Invoke(cd, new object[] { hit });
-            if (crash == 1)
-            {
-                Check("the first crash costs exactly one heart (lifeCounter " + collisionDetection.lifeCounter + ")", collisionDetection.lifeCounter == 1);
-                Check("and the player survives it", !buttonClicks.playerDied);
-            }
             if (buttonClicks.playerDied) spawnedPlayerDied = true;
             TutorialEnemy.Clear();
         }
@@ -319,15 +327,31 @@ public static class TutorialPolishTest
               !spawnedPlayerDied && !buttonClicks.playerDied && collisionDetection.lifeCounter <= maxMark - 1);
         Check("DeathCrash never started", !DeathCrash.Running);
 
-        // the next beat starts with every heart
-        collisionDetection.lifeCounter = 1;
-        Begin(hints, StepIndex("power"));
-        Check("hearts are topped back up before the next beat (lifeCounter " + collisionDetection.lifeCounter + ")", collisionDetection.lifeCounter == 0);
+        // before the heal the ship stays damaged, whatever a step does
+        collisionDetection.lifeCounter = 0;
+        Begin(hints, StepIndex("dust"));
+        typeof(Hints).GetMethod("KeepHeartsRight", Inst).Invoke(hints, null);
+        Check("until the green atom, nothing mends the ship (lifeCounter " + collisionDetection.lifeCounter + ")", collisionDetection.lifeCounter == 1);
 
-        // the safety net between beats: never down to the last heart
-        collisionDetection.lifeCounter = collisionDetection.MAXLIFE - 1;
-        typeof(Hints).GetMethod("KeepHeartsUp", Inst).Invoke(hints, null);
-        Check("and the last heart is never left as the only one (" + collisionDetection.lifeCounter + ")", collisionDetection.lifeCounter <= collisionDetection.MAXLIFE - 2);
+        // the heal: green atom through the real pickup path restores to 2 hearts, visibly and with a popup
+        collisionDetection.lifeCounter = 1;
+        Begin(hints, StepIndex("heal"));
+        Sample(hints, 1f / 60f);
+        var healStart = hints.Signals;
+        var live = spawnGoodStuffTut.LiveAtom;
+        Check("the green atom is out", live != null);
+        if (live != null)
+        {
+            ship.transform.position = new Vector3(live.position.x, live.position.y - .1f, 0f);
+            Physics2D.SyncTransforms();
+            var col = live.GetComponent<Collider2D>();
+            cd.CollectPickup(col);
+        }
+        Sample(hints, 1f / 60f);
+        Check("the heal restores the heart: 2 of 2 (lifeCounter " + collisionDetection.lifeCounter + ")", collisionDetection.lifeCounter == 0 && ShipLives.Left == 2);
+        Check("the heal step is met only now", TutorialScript.IsMet(TutorialScript.Steps[StepIndex("heal")], healStart, hints.Signals));
+        Check("and a later step no longer keeps it damaged",
+              (typeof(Hints).GetMethod("KeepHeartsRight", Inst).Invoke(hints, null) == null) && collisionDetection.lifeCounter == 0);
 
         // a hit that would be fatal is not
         PlayerInvuln.Reset();
@@ -348,12 +372,13 @@ public static class TutorialPolishTest
     static void NormalRunHearts()
     {
         EditorSceneManager.OpenScene("Assets/Scenes/gameS1.unity", OpenSceneMode.Single);
+        ShipId.TutorialFlight = false;
         buttonClicks.playerDied = false;
         foreach (int id in new[] { ShipId.Starter, 1, 3 })
         {
             if (!ShipId.IsValid(id)) continue;
             // the tutorial just left the counters low and high
-            collisionDetection.lifeCounter = 2;
+            collisionDetection.lifeCounter = 1;
             collisionDetection.MAXLIFE = ShipLives.TutorialMax(id);
             var prefab = Resources.Load<GameObject>(spawnShips.PrefabPathFor(id));
             var go = Object.Instantiate(prefab);
@@ -367,61 +392,64 @@ public static class TutorialPolishTest
             Check("ship " + id + ": the run is not the tutorial (a fatal hit still kills)", !collisionDetection.TutorialCannotDie(go));
             Object.DestroyImmediate(go);
         }
-        Check("the tutorial's extra hearts live only in ShipLives.TutorialMax",
-              ShipLives.TutorialMax(ShipId.Starter) == Mathf.Max(ShipLives.Base(ShipId.Starter) + ShipLives.TutorialExtraHearts, ShipLives.TutorialExtraHearts + 1) &&
-              ShipLives.Max(ShipId.Starter) <= ShipLives.Most);
+        Check("Neon Comet's real hearts are unchanged by the tutorial's 2: ShipLives.Max(1) = Base(1) + skin hearts (" + ShipLives.Max(ShipId.Starter) + ", base " + ShipLives.Base(ShipId.Starter) + ")",
+              ShipLives.Base(ShipId.Starter) == 1 && ShipLives.Max(ShipId.Starter) == ShipLives.Base(ShipId.Starter) + SkinHearts.Bonus(ShipId.Starter));
         collisionDetection.lifeCounter = 0;
     }
 
-    // ---- TIMING --------------------------------------------------------------
+    // ---- PACING --------------------------------------------------------------
 
     static void Timeline()
     {
         var steps = TutorialScript.Steps;
-        float competent = TutorialScript.IntroSeconds, worst = TutorialScript.IntroSeconds;
+        float competent = PortalArrivalTimeline.Seconds + TutorialScript.IntroSeconds;
         string table = "";
         foreach (var st in steps)
         {
             float speak = TutorialScript.SpeakSeconds(TutorialScript.Speak(st.line)) + .6f;   // + Hints.readSeconds
             float c = Mathf.Max(speak, st.par);
-            float w = Mathf.Max(speak, st.timeout);
             competent += c;
-            worst += w;
-            table += "\n  " + st.id + ": spoken+read " + speak.ToString("0.0") + ", par " + st.par.ToString("0.0") + " -> " + c.ToString("0.0") + " s; timeout " + st.timeout.ToString("0.0") + " -> " + w.ToString("0.0") + " s";
+            table += "\n  " + st.id + ": spoken+read " + speak.ToString("0.0") + ", par " + st.par.ToString("0.0") + " -> " + c.ToString("0.0") + " s";
         }
-        competent += TutorialScript.EndingSeconds;
-        worst += TutorialScript.EndingSeconds;
-        Debug.Log("[TP] beat timeline:" + table + "\n  total competent " + competent.ToString("0.0") + " s, worst " + worst.ToString("0.0") + " s");
-        Check("a competent player reaches the completion panel in 30-45 s (" + competent.ToString("0.0") + ")", competent >= 30f && competent <= 45f);
-        Check("even every step timing out stays under 75 s (" + worst.ToString("0.0") + ")", worst < 75f);
+        competent += TutorialScript.EndingSeconds + TutorialLiftOff.Seconds;
+        Debug.Log("[TP] pacing:" + table + "\n  total competent " + competent.ToString("0.0") + " s");
+        Check("a competent player flies in, plays 8 steps and lifts off in 30-60 s (" + competent.ToString("0.0") + ")", competent >= 30f && competent <= 60f);
 
-        // fake clock: a player who does nothing at all is moved on by every timeout
-        float clock = TutorialScript.IntroSeconds;
-        int done = 0;
+        // fake clock: a player who does NOTHING never advances any step, however long
         var none = new TutorialSignals { worldMoving = false };
+        int advanced = 0;
         foreach (var st in steps)
-        {
-            float lineDone = TutorialScript.SpeakSeconds(TutorialScript.Speak(st.line));
-            bool advanced = false;
-            for (float t = 0f; t < 120f; t += .05f)
-            {
-                bool finished = t >= lineDone;
-                float since = Mathf.Max(0f, t - lineDone);
-                if (TutorialScript.CanAdvance(st, none, none, finished, since, .6f, t)) { clock += t; advanced = true; break; }
-            }
-            if (advanced) done++;
-        }
-        Check("a player who does nothing is still taken through all " + steps.Length + " steps by the timeouts (" + done + ", " + clock.ToString("0.0") + " s)",
-              done == steps.Length && clock + TutorialScript.EndingSeconds < 75f);
+            for (float t = 0f; t < 600f; t += 1f)
+                if (TutorialScript.CanAdvance(st, none, none, true, t, .6f)) { advanced++; break; }
+        Check("a player who does nothing is NEVER moved on, even after 10 minutes of fake time (" + advanced + " steps advanced)", advanced == 0);
         var first = steps[0];
+        var did = Perform(first, none);
         Check("a step never ends before its line is spoken and read",
-              !TutorialScript.CanAdvance(first, none, none, false, 0f, .6f, 999f) && !TutorialScript.CanAdvance(first, none, none, true, .1f, .6f, 999f));
-        Check("a step whose action is done ends once the line is read, before its timeout",
-              TutorialScript.CanAdvance(TutorialScript.Steps[StepIndex("hearts")], none, none, true, .7f, .6f, .1f));
-        string doc = File.Exists("../docs/tutorial-flow.md") ? File.ReadAllText("../docs/tutorial-flow.md") : "";
+              !TutorialScript.CanAdvance(first, none, did, false, 0f, .6f) && !TutorialScript.CanAdvance(first, none, did, true, .1f, .6f));
+        Check("a step whose action is done ends once the line is read",
+              TutorialScript.CanAdvance(first, none, did, true, .7f, .6f));
+        string doc = File.Exists("../docs/tutorial-rebuild.md") ? File.ReadAllText("../docs/tutorial-rebuild.md") : "";
         bool allIds = doc.Length > 0;
         foreach (var st in steps) allIds &= doc.Contains("`" + st.id + "`");
-        Check("docs/tutorial-flow.md documents the beat timeline and atom order for every step", allIds && doc.Contains("Atom order"));
+        Check("docs/tutorial-rebuild.md documents every step", allIds && doc.Contains("Neon Comet"));
+    }
+
+    // The canonical player action for a step (a copy of what the robot test does).
+    static TutorialSignals Perform(TutorialStep s, TutorialSignals now)
+    {
+        switch (s.advance)
+        {
+            case TutorialAdvance.FlyDistance: now.flyUnits += s.amount + .01f; break;
+            case TutorialAdvance.WallFrozen: now.wallFrozenSeconds = s.amount + .01f; break;
+            case TutorialAdvance.CrossWall: now.wallsCrossed += 1; break;
+            case TutorialAdvance.HealHeart: now.heartsHealed += 1; break;
+            case TutorialAdvance.CollectStar: now.starsCollected += Mathf.CeilToInt(s.amount); break;
+            case TutorialAdvance.CollectGreenAtom: now.greenAtomsCollected += 1; break;
+            case TutorialAdvance.CollectBlueAtom: now.blueAtomsCollected += 1; break;
+            case TutorialAdvance.CollectRedAtom: now.redAtomsCollected += 1; break;
+            case TutorialAdvance.FirePower: now.powersFired += 1; break;
+        }
+        return now;
     }
 
     // ---- ATOMS ---------------------------------------------------------------
@@ -442,7 +470,7 @@ public static class TutorialPolishTest
                   line.Length <= 70 && stops <= (atomStep ? 1 : 2) && (!atomStep || (line.EndsWith(".") || line.EndsWith("!"))));
         }
         string got = string.Join(",", order), want = string.Join(",", TutorialScript.AtomOrder);
-        Check("atoms are introduced in the documented order: repair (green), shield (blue), pause (red), weapon (violet) (" + got + ")", got == want);
+        Check("atoms are introduced in the documented order: repair (green), pause (red), shield (blue), weapon (violet) (" + got + ")", got == want);
         Check("every atom type is introduced exactly once", order.Count == new HashSet<TutorialAtom>(order).Count && order.Count == 4);
 
         // the run: every step in order, the way Hints plays them
@@ -499,6 +527,7 @@ public static class TutorialPolishTest
                 if (gun != null) Own(gun, "Awake");
             }
             score.pauseCounter = 7;
+            if (kind == TutorialAtom.Green) Hints.ApplyDamagedStart();   // the lesson's damaged start
             int stepIndex = System.Array.FindIndex(TutorialScript.Steps, st => Hints.AtomFor(st.cue) == kind);
             var step = TutorialScript.Steps[stepIndex];
             string name = kind + " atom";
@@ -541,7 +570,7 @@ public static class TutorialPolishTest
             switch (kind)
             {
                 case TutorialAtom.Green:
-                    Check("repair: the dented ship (" + life0 + " hit) gets its heart back (" + collisionDetection.lifeCounter + ")",
+                    Check("repair: the damaged ship (" + life0 + " hit) gets its heart back (" + collisionDetection.lifeCounter + ")",
                           life0 == 1 && collisionDetection.lifeCounter == 0 && collisionDetection.healAtomPickups == heal0 + 1);
                     Check("repair says so", cd.hypeText != null && cd.hypeText.text == "REPAIRED");
                     break;
@@ -564,10 +593,10 @@ public static class TutorialPolishTest
 
             Sample(hints, 1f / 60f);
             Check(name + ": the step advances once the line is read",
-                  TutorialScript.CanAdvance(step, start, hints.Signals, true, 1f, .6f, 2f));
-            Check(name + ": and not before the atom is caught or the step times out",
-                  !TutorialScript.CanAdvance(step, start, start, true, 1f, .6f, step.timeout - .5f) &&
-                  TutorialScript.CanAdvance(step, start, start, true, 1f, .6f, step.timeout));
+                  TutorialScript.CanAdvance(step, start, hints.Signals, true, 1f, .6f));
+            Check(name + ": and never before the atom is caught, however long the step runs",
+                  !TutorialScript.CanAdvance(step, start, start, true, 1f, .6f) &&
+                  !TutorialScript.CanAdvance(step, start, start, true, 999f, .6f));
             if (kind == TutorialAtom.Cooldown && power != null)
             {
                 Own(power, "OnDestroy");
@@ -581,7 +610,7 @@ public static class TutorialPolishTest
             collisionDetection.lifeCounter = 0;
             Cleanup();
         }
-        score.pauseCounter = 50;
+        score.pauseCounter = score.TUTPAUSECOUNTER;
     }
 
     // SendMessage reaches every component on the object (the ship's collisionDetection
@@ -844,10 +873,9 @@ public static class TutorialPolishTest
 
     static void ShipSize()
     {
-        int id = ShipId.Equipped();
-        if (!ShipId.IsValid(id)) id = ShipId.Starter;
+        int id = ShipId.TutorialShip;   // the tutorial always flies Neon Comet; the game scene is checked with the same hull
 
-        // the tutorial's ship, dressed as the equipped hull like the scene does at load
+        // the tutorial's ship, dressed as Neon Comet like the scene does at load
         EditorSceneManager.OpenScene("Assets/Scenes/tutorialS5.unity", OpenSceneMode.Single);
         var tutShip = TutorialShipHull.Apply();
         Check("tutorialS5 has its ship", tutShip != null);

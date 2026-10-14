@@ -1,3 +1,5 @@
+> Superseded for the step table, ship, hearts, wall, replay and lift-off by [tutorial-rebuild.md](tutorial-rebuild.md). The atom notes below still hold.
+
 # Tutorial flow
 
 The script is one table, `Pause/Assets/Scripts/Tutorial/TutorialScript.cs`

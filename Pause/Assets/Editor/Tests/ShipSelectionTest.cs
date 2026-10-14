@@ -444,21 +444,26 @@ public static class ShipSelectionTest
             Own(id);
             PlayerPrefs.SetInt(ShipId.SelectedKey, id);
             EditorSceneLoader.Open("tutorialS5", OpenSceneMode.Single);
+            ShipId.TutorialFlight = true;
             var ship = TutorialShipHull.Apply();
             if (ship != null)
             {
                 var life = ship.GetComponent<lifeControler>();
                 if (life != null) { Call(life, "Start"); Call(life, "Update"); }
             }
-            CheckIsShip("tutorial", ship, id, null);
+            // the tutorial ALWAYS flies Neon Comet, whatever is equipped (ShipId.TutorialFlight)
+            CheckIsShip("tutorial (ship " + id + " equipped flies Neon Comet)", ship, ShipId.TutorialShip, null);
         }
+        ShipId.TutorialFlight = false;
 
         Own();
         PlayerPrefs.SetInt(ShipId.SelectedKey, 8);
         EditorSceneLoader.Open("tutorialS5", OpenSceneMode.Single);
+        ShipId.TutorialFlight = true;
         var fallback = TutorialShipHull.Apply();
         if (fallback != null) Call(fallback.GetComponent<lifeControler>(), "Start");
         CheckIsShip("tutorial, unowned selection", fallback, ShipId.Starter, null);
+        ShipId.TutorialFlight = false;
         PlayerPrefs.SetString("HasDoneTut", "true");
     }
 }

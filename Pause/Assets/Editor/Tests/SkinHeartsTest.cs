@@ -235,9 +235,9 @@ public static class SkinHeartsTest
         Check("the starter with every colour: 3 hearts in a run", ShipLives.Max(ShipId.Starter) == 3);
         EditorSceneManager.OpenScene("Assets/Scenes/" + score.TutorialScene + ".unity", OpenSceneMode.Single);
         var r = new ShipLivesTest.Rig(ShipId.Starter);
-        Check("the tutorial flies its bare hull plus the scripted extra hearts, no skin hearts (" + collisionDetection.MAXLIFE + ")",
+        Check("the tutorial flies exactly its 2 scripted hearts, no skin hearts (" + collisionDetection.MAXLIFE + ")",
               r.ship.scene.name == score.TutorialScene && collisionDetection.MAXLIFE == ShipLives.TutorialMax(ShipId.Starter) &&
-              ShipLives.TutorialMax(ShipId.Starter) == ShipLives.Base(ShipId.Starter) + ShipLives.TutorialExtraHearts);
+              ShipLives.TutorialMax(ShipId.Starter) == ShipLives.TutorialHearts && ShipLives.TutorialHearts == 2);
         r.Dispose();
         EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
         ClearSkins();

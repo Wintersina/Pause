@@ -45,22 +45,23 @@ public class spawnGoodStuffTut: MonoBehaviour {
     }
 
     public const int RushCount = 6;
-    // First piece this far above the ship, then every RushSpacing: the last is
-    // RushReach above it, so it arrives in RushReach / TutorialStarDrift.Speed.
-    public const float RushFirstGap = 1.3f;
-    public const float RushSpacing = .5f;
+    // First piece this far above the TOP EDGE of the view (it enters from the
+    // top of the level), then every RushSpacing up: the stream reaches the
+    // ship in about (view height + RushReach) / TutorialStarDrift.Speed.
+    public const float RushFirstGap = .35f;
+    public const float RushSpacing = .55f;
     public const float RushReach = RushFirstGap + (RushCount - 1) * RushSpacing;
 
-    // Puts RushCount pieces in a gentle S just above the ship, in its lane,
-    // each falling onto it (TutorialStarDrift); the last is a big one.
-    // Returns how many were made.
+    // Puts RushCount pieces in a gentle S in a column above the top edge,
+    // aimed at the ship's lane, each rushing down onto it (TutorialStarDrift);
+    // the last is a big one. Returns how many were made.
     public int RushStars(Vector3 ship, float topEdge)
     {
         if (smStar == null) return 0;
         int made = 0;
         for (int i = 0; i < RushCount; i++)
         {
-            float y = Mathf.Min(ship.y + RushFirstGap + i * RushSpacing, topEdge - .3f - (RushCount - 1 - i) * .35f);
+            float y = topEdge + RushFirstGap + i * RushSpacing;
             float x = Mathf.Clamp(ship.x + .25f * Mathf.Sin(i * 1.3f), -RailInset.PickupLaneHalf, RailInset.PickupLaneHalf);
             var prefab = i == RushCount - 1 && midStar != null ? midStar : smStar;
             var star = Instantiate(prefab, new Vector3(x, y, 0f), transform.rotation) as GameObject;
@@ -160,7 +161,10 @@ public class spawnGoodStuffTut: MonoBehaviour {
     public GameObject SpawnIntro(TutorialAtom kind)
     {
         if (kind == TutorialAtom.None) return null;
-        float x = Random.Range(-1.2f, 1.2f);
+        // aimed at the pilot: it rushes down the ship's own lane
+        var tut = FindFirstObjectByType<movePlayerInTut>();
+        float aim = tut != null ? tut.transform.position.x : 0f;
+        float x = Mathf.Clamp(aim + Random.Range(-.5f, .5f), -1.2f, 1.2f);
         Vector3 pos = new Vector3(x, transform.position.y, transform.rotation.z);
         GameObject atom;
         if (kind == TutorialAtom.Green) atom = HealAtom.Spawn(pos);

@@ -1,16 +1,17 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-// Runs the tutorial: walks TutorialScript.Steps in order, has the robot say
-// each line, sets up whatever the step needs (a touch hint, an arrow, stars,
-// an atom, the one alien, the weapon's charge), and moves on when the player has actually done the thing --
-// not on a timer. After the last step the ship lifts off and the Tutorial
-// Complete card comes up.
+// Runs the tutorial: the ship flies in through a portal (the run-start
+// arrival, always Neon Comet, damaged), then walks TutorialScript.Steps in
+// order. Every step sets its scene up (a touch hint, dust / an atom / the wall
+// rushing in from the top), has the robot say its line, and moves on ONLY when
+// the player has really done the thing -- there is no timer that advances a
+// step. An idle player is re-prompted (IdleHintSeconds). With the finger up
+// the world is frozen (moveBackGround) and the tutorial waits with it: its
+// idle clock stops, the line and the touch pulse stay up.
 //
-// It used to type eleven long lines into a Text box, one character per
-// frame, and only while a finger was down, with fixed holds between lines;
-// most of what it said was not needed to play. The script is now a few short
-// lines in one table (TutorialScript.cs), spoken by RobotSpeaker.
+// After the last step the ship lifts off into the real game (TutorialLiftOff),
+// or, with AutoLiftOff off, the Tutorial Complete card comes up first.
 //
 // The ship carries the real weapon (ShipPowerController), held -- no
 // countdown, no firing, no red-atom free shot -- until the power step arms
@@ -25,12 +26,25 @@ public class Hints : MonoBehaviour {
              "even if the player already did what it asks.")]
     public float readSeconds = .6f;
 
-    [Tooltip("Delay before the robot pops in and says the first line.")]
+    [Tooltip("Delay between the fly-in ending and the robot's first line.")]
     public float introDelay = TutorialScript.IntroSeconds;
 
-    [Tooltip("How long the ship flies off toward LiftOffLeft before the " +
-             "Tutorial Complete card appears.")]
+    [Tooltip("How long after the closing line is read before the ship lifts off.")]
     public float liftOffSeconds = TutorialScript.EndingSeconds;
+
+    // The player has gone this long with no progress (and the world running,
+    // or a step that wants the finger up): the robot says the line again.
+    public const float IdleHintSeconds = 7f;
+    // A broken-up wall comes back after this long.
+    public const float WallRetrySeconds = 1f;
+    // Pauses the player always has at the start of a step (so letting go
+    // always freezes the tutorial, as in a run).
+    public const int PausesPerStep = 2;
+    // After the last step the ship flies on into the game by itself; false:
+    // the Tutorial Complete card (LIFT OFF / HOME) comes up first.
+    public static bool AutoLiftOff = true;
+    // Play the fly-in portal (tests turn it off to start at the first step).
+    public static bool PlayFlyIn = true;
 
     public static bool reachedTheEndOfTut;
 
@@ -49,24 +63,34 @@ public class Hints : MonoBehaviour {
     TutorialGuides guides;
     TutorialSkip skip;
     SpokenLine[] lines;
+    SpokenLine closingLine, retryLine;
     Text pauseReadout;
     RectTransform hudPanel;
     readonly Vector3[] corners = new Vector3[4];
 
     int step = -1;
-    float stepClock;   // unscaled seconds since the step began (its timeout)
     TutorialSignals signals, stepStart;
     bool sampling;
     bool lastPressed;
-    int lastPauseCounter, lastDustPickups, lastHeal, lastShield, lastRed, lastFired;
-    bool enemyOut;
+    int lastPauseCounter, lastDustPickups, lastHeal, lastShield, lastRed, lastFired, lastLife;
     ShipPowerController power;
     float startedAt;
     float endedAt = -1f;
-    bool panelShown;
+    bool panelShown, liftStarted;
+    bool damagedApplied, healed;
+    PortalArrival flyIn;
+    float idleClock, lastProgress;
+    float wallRetryLeft = -1f;   // seconds until a broken wall comes back (-1: none pending)
+    TutorialWall wall;
+    bool wallCounted;
 
     public int CurrentStep { get { return step; } }
     public TutorialSignals Signals { get { return signals; } }
+    public bool FlyingIn { get { return flyIn != null && flyIn.State != PortalArrival.Stage.Done; } }
+    public bool Ending { get { return endedAt >= 0f; } }
+    public float IdleClock { get { return idleClock; } }
+    public bool LiftOffStarted { get { return liftStarted; } }
+    public RobotSpeaker Speaker { get { return speaker; } }
 
     void Start() {
 
@@ -82,6 +106,7 @@ public class Hints : MonoBehaviour {
         }
 
         reachedTheEndOfTut = false;
+        TutorialWall.Clear();
 
         if (playerIcon != null) playerIcon.SetActive(false);
         Font font = null;
@@ -95,6 +120,8 @@ public class Hints : MonoBehaviour {
         var steps = TutorialScript.Steps;
         lines = new SpokenLine[steps.Length];
         for (int i = 0; i < steps.Length; i++) lines[i] = TutorialScript.Speak(steps[i].line);
+        closingLine = TutorialScript.Speak(TutorialScript.ClosingLine);
+        retryLine = TutorialScript.Speak(TutorialScript.WallRetryLine);
 
         speaker = RobotSpeaker.Create(font);
         guides = TutorialGuides.Create(speaker.Root);
@@ -103,13 +130,42 @@ public class Hints : MonoBehaviour {
         hudPanel = TopPanelOf(pauseReadout);
 
         startedAt = Time.unscaledTime;
+
+        // The ship flies in through the run-start portal (held and shielded
+        // while it plays); the first line waits for it.
+        if (PlayFlyIn && ship != null)
+        {
+            var theme = WorldManager.Worlds[0];
+            flyIn = PortalArrival.SpawnDriven(ship.transform, theme.portalColor);
+        }
+    }
+
+#if UNITY_EDITOR
+    // Edit-mode tests step Update by hand; Time.unscaledDeltaTime is not real there.
+    public static System.Func<float> DeltaOverride;
+#endif
+    static float Dt()
+    {
+#if UNITY_EDITOR
+        if (DeltaOverride != null) return DeltaOverride();
+#endif
+        return Time.unscaledDeltaTime;
     }
 
     void Update() {
 
         if (speaker == null) return;
-        Sample(Time.unscaledDeltaTime);
+        float dt = Dt();
+        Sample(dt);
         KeepClearOfTopUi();
+        EnsureDamagedStart();
+
+        if (FlyingIn)
+        {
+            flyIn.Step(dt);
+            startedAt = Time.unscaledTime;
+            return;
+        }
 
         if (endedAt >= 0f)
         {
@@ -125,13 +181,16 @@ public class Hints : MonoBehaviour {
 
         var current = TutorialScript.Steps[step];
         if (AtomFor(current.cue) != TutorialAtom.None) guides.PointAt(spawnGoodStuffTut.LiveAtom);
-        else if (current.cue == TutorialCue.SpawnEnemy) guides.PointAt(TutorialEnemy.Live);
+        else if (current.cue == TutorialCue.SpawnWall || current.cue == TutorialCue.PointAtWall) guides.PointAt(wall != null && wall.OnScreen && wall.Pieces.Count > 0 ? wall.Pieces[wall.Pieces.Count / 2] : null);
+        // the wall still on its way in: a lifted finger gets the touch pulse (touch to bring it in)
+        if (current.cue == TutorialCue.SpawnWall) guides.ShowTouch(wall == null || !wall.Jumpable);
         guides.PointAtStars(StarArrowsAllowed(current.cue) ? spawnGoodStuffTut.LiveStars : null);
-        TickDust(Time.unscaledDeltaTime);
-        KeepHeartsUp();
+        TickDust(dt);
+        TickWall(dt);
+        KeepHeartsRight();
+        TickIdle(current, dt);
 
-        stepClock += Time.unscaledDeltaTime;
-        if (TutorialScript.CanAdvance(current, stepStart, signals, speaker.LineFinished, speaker.SinceLineFinished, readSeconds, stepClock))
+        if (TutorialScript.CanAdvance(current, stepStart, signals, speaker.LineFinished, speaker.SinceLineFinished, readSeconds))
         {
             EndStep(current);
             if (step + 1 < TutorialScript.Steps.Length) BeginStep(step + 1);
@@ -155,6 +214,7 @@ public class Hints : MonoBehaviour {
             lastDustPickups = score.dustPickups;
             lastPressed = TouchInput.IsPressed;
             lastFired = power != null ? power.UltimatesFired : 0;
+            lastLife = collisionDetection.lifeCounter;
         }
 
         bool pressed = TouchInput.IsPressed && !buttonClicks.playerDied;
@@ -163,24 +223,24 @@ public class Hints : MonoBehaviour {
         lastPressed = pressed;
         signals.pressed = pressed;
         signals.worldMoving = moving;
-        if (pressed) signals.flySeconds += dt;
+        signals.flyUnits = movePlayerInTut.FlownUnits;
         signals.frozenSeconds = moving ? 0f : signals.frozenSeconds + dt;
+        bool wallInView = TutorialWall.Live != null && TutorialWall.Live.Jumpable;
+        signals.wallFrozenSeconds = !moving && wallInView ? signals.wallFrozenSeconds + dt : 0f;
 
         int pauses = score.pauseCounter;
         if (pauses < lastPauseCounter) signals.pausesSpent += lastPauseCounter - pauses;
         lastPauseCounter = pauses;
 
-        signals.greenAtomsCollected += Count(collisionDetection.healAtomPickups, ref lastHeal);
+        int greens = Count(collisionDetection.healAtomPickups, ref lastHeal);
+        signals.greenAtomsCollected += greens;
+        // the green atom repaired a heart: the count of hearts left went up
+        if (greens > 0 && collisionDetection.lifeCounter < lastLife) { signals.heartsHealed++; healed = true; }
+        lastLife = collisionDetection.lifeCounter;
         signals.blueAtomsCollected += Count(collisionDetection.shieldAtomPickups, ref lastShield);
         signals.redAtomsCollected += Count(collisionDetection.pauseAtomPickups, ref lastRed);
 
-        // The tutorial alien is gone once it is destroyed (rammed, teleported
-        // onto, shot) or has left past the bottom edge.
-        if (enemyOut && TutorialEnemy.Live == null)
-        {
-            enemyOut = false;
-            signals.enemiesGone++;
-        }
+        if (wall != null && wall.Crossed && !wallCounted) { wallCounted = true; signals.wallsCrossed++; }
         if (power != null) signals.powersFired += Count(power.UltimatesFired, ref lastFired);
 
         if (score.dustPickups != lastDustPickups)
@@ -190,13 +250,35 @@ public class Hints : MonoBehaviour {
         }
     }
 
+    // Idle: no progress for IdleHintSeconds while the player is "on the
+    // clock" (world running, or the step wants a lifted finger) -> the robot
+    // repeats the line. A lifted finger on any other step pauses the clock.
+    void TickIdle(TutorialStep current, float dt)
+    {
+        float progress = signals.flyUnits + signals.presses + signals.pausesSpent + signals.starsCollected
+                       + signals.greenAtomsCollected + signals.blueAtomsCollected + signals.redAtomsCollected
+                       + signals.powersFired + signals.wallsCrossed;
+        if (!Mathf.Approximately(progress, lastProgress)) { lastProgress = progress; idleClock = 0f; return; }
+        bool wantsFinger = current.advance == TutorialAdvance.WallFrozen || current.advance == TutorialAdvance.CrossWall;
+        if (!signals.worldMoving && !wantsFinger) return;
+        if (!speaker.LineFinished) return;
+        idleClock += dt;
+        if (idleClock >= IdleHintSeconds) { idleClock = 0f; Reprompt(); }
+    }
+
+    void Reprompt()
+    {
+        speaker.Say(lines[step]);
+        guides.ShowTouch(true);
+    }
+
     // ---- Star dust: the rush and its arrows ----
 
     // Every star-dust piece wears an arrow, except while another prompt owns
     // the arrow (a HUD readout, an atom, the alien).
     public static bool StarArrowsAllowed(TutorialCue cue)
     {
-        return cue != TutorialCue.PointAtPauses && cue != TutorialCue.SpawnEnemy && AtomFor(cue) == TutorialAtom.None;
+        return cue != TutorialCue.SpawnWall && cue != TutorialCue.PointAtWall && AtomFor(cue) == TutorialAtom.None;
     }
 
     public const float RushAgainSeconds = .6f;
@@ -230,20 +312,63 @@ public class Hints : MonoBehaviour {
         if (noRushedDust >= RushAgainSeconds && signals.starsCollected - stepStart.starsCollected < 1) RushDust();
     }
 
-    // ---- Hearts: the tutorial can never end in a death ----
+    // ---- Hearts: the ship starts damaged; the tutorial can never end in a death ----
 
-    // The tutorial's hearts are all back (the crash cost one: lifeCounter 1).
+    // The ship ALWAYS starts the lesson damaged: one of its two hearts is
+    // gone (damaged hull art, one heart left on the ring), so the green atom
+    // has something to repair. Applied once, as soon as the ship's own Start
+    // has set its hearts (collisionDetection.MAXLIFE).
+    public static void ApplyDamagedStart()
+    {
+        if (collisionDetection.MAXLIFE < 2) return;
+        collisionDetection.lifeCounter = collisionDetection.MAXLIFE - 1;
+    }
+
+    void EnsureDamagedStart()
+    {
+        if (damagedApplied || collisionDetection.MAXLIFE <= 0) return;
+        damagedApplied = true;
+        ApplyDamagedStart();
+        lastLife = collisionDetection.lifeCounter;
+    }
+
+    // The tutorial's hearts are all back (a crash cost one: lifeCounter 1).
     public static void TopUpHearts()
     {
         if (collisionDetection.lifeCounter > 0) collisionDetection.lifeCounter = 0;
     }
 
-    // Safety net between beats: never down to the last heart.
-    void KeepHeartsUp()
+    // Before the heal the ship stays damaged (nothing can mend it but the
+    // green atom); after it a crash is mended between beats.
+    void KeepHeartsRight()
     {
-        if (collisionDetection.MAXLIFE > 0 && collisionDetection.lifeCounter >= collisionDetection.MAXLIFE - 1
-            && collisionDetection.lifeCounter > 0)
-            collisionDetection.lifeCounter = Mathf.Max(0, collisionDetection.MAXLIFE - 2);
+        if (!healed && collisionDetection.MAXLIFE >= 2 && collisionDetection.lifeCounter < 1)
+            collisionDetection.lifeCounter = collisionDetection.MAXLIFE - 1;
+    }
+
+    // ---- The wall ----
+
+    // Brings the broken wall back after a moment (with the retry line), and
+    // puts the pause counter right so the lesson can always be finished.
+    void TickWall(float dt)
+    {
+        if (wall != null && wall.Broken && wallRetryLeft < 0f)
+        {
+            TutorialWall.Clear();
+            wall = null;
+            wallRetryLeft = WallRetrySeconds;
+            if (healed) TopUpHearts();
+        }
+        if (wallRetryLeft >= 0f)
+        {
+            wallRetryLeft -= dt;
+            if (wallRetryLeft >= 0f) return;
+            wallRetryLeft = -1f;
+            if (score.pauseCounter < PausesPerStep) score.pauseCounter = PausesPerStep;
+            wall = TutorialWall.Spawn(ship != null ? ship.transform : null);
+            wallCounted = false;
+            speaker.Say(retryLine);
+        }
     }
 
     // ---- Steps ----
@@ -251,52 +376,47 @@ public class Hints : MonoBehaviour {
     void BeginStep(int index)
     {
         step = index;
-        stepClock = 0f;
+        idleClock = 0f;
         stepStart = signals;
         var s = TutorialScript.Steps[index];
         speaker.Say(lines[index]);
 
         guides.Clear();
-        TopUpHearts();   // whatever the last beat cost, the next one starts with every heart
+        if (healed) TopUpHearts();   // whatever the last beat cost, the next one starts with every heart
+        // letting go always freezes the tutorial: never out of pauses at a step's start
+        int minPauses = s.cue == TutorialCue.SpawnRedAtom ? 1 : PausesPerStep;
+        if (score.pauseCounter < minPauses) score.pauseCounter = minPauses;
         switch (s.cue)
         {
             case TutorialCue.TouchPulse:
                 guides.ShowTouch(true);
                 break;
-            case TutorialCue.PointAtPauses:
-                guides.ShowTouch(true);
-                guides.PointAt(pauseReadout);
-                break;
             case TutorialCue.SpawnStars:
                 // The HUD has no star dust read-out any more (the run's dust
                 // shows on the Tutorial Complete card): every piece wears its
-                // own arrow instead (PointAtStars).
+                // own arrow instead (PointAtStars). The dust rushes in from the top.
                 spawnGoodStuffTut.StartStars();
-                // ...but the dust itself comes right now, in the ship's lane
                 if (RushDust() == 0) noRushedDust = 0f;
                 break;
-            case TutorialCue.GrantHearts:
-                guides.ShowTouch(true);
-                break;
             case TutorialCue.SpawnGreenAtom:
-                // the ship takes a dent first, so the repair is seen working
-                DentShip();
-                IntroduceAtom(AtomFor(s.cue));
-                break;
             case TutorialCue.SpawnBlueAtom:
             case TutorialCue.SpawnRedAtom:
                 IntroduceAtom(AtomFor(s.cue));
-                break;
-            case TutorialCue.SpawnEnemy:
-                // straight down at where the ship is: dodge it or blink onto it
-                enemyOut = TutorialEnemy.Spawn(ship != null ? ship.transform.position.x : 0f) != null;
-                if (!enemyOut) signals.enemiesGone++;   // no alien to show: never stall here
                 break;
             case TutorialCue.SpawnCapacitorAtom:
                 // an empty charge that the one violet atom fills
                 if (power != null) power.Arm(TutorialScript.ArmSeconds);
                 else signals.powersFired++;   // no weapon to charge: never stall here
                 IntroduceAtom(AtomFor(s.cue));
+                break;
+            case TutorialCue.SpawnWall:
+                wallRetryLeft = -1f;
+                wallCounted = false;
+                wall = TutorialWall.Spawn(ship != null ? ship.transform : null);
+                if (wall == null) { signals.wallFrozenSeconds = 99f; signals.wallsCrossed++; }   // no wall to show: never stall here
+                break;
+            case TutorialCue.PointAtWall:
+                guides.ShowTouch(true);
                 break;
         }
     }
@@ -318,19 +438,10 @@ public class Hints : MonoBehaviour {
         if (spawner != null && spawner.SpawnIntro(kind) != null) return;
         switch (kind)
         {
-            case TutorialAtom.Green: signals.greenAtomsCollected++; break;
+            case TutorialAtom.Green: signals.greenAtomsCollected++; signals.heartsHealed++; healed = true; break;
             case TutorialAtom.Blue: signals.blueAtomsCollected++; break;
             case TutorialAtom.Red: signals.redAtomsCollected++; break;
         }
-    }
-
-    // One hit taken, shown on the orbiting hearts: the green atom has a heart to repair.
-    void DentShip()
-    {
-        if (collisionDetection.MAXLIFE < 2) return;
-        collisionDetection.lifeCounter = 1;
-        Vector3 at = ship != null ? ship.transform.position : Vector3.zero;
-        ShipLivesIndicator.Impact(at + Vector3.up * .6f);
     }
 
     // Which atom a step's cue introduces (None for the other cues).
@@ -353,22 +464,22 @@ public class Hints : MonoBehaviour {
         return d;
     }
 
-    // ---- The end: lift off, then the Tutorial Complete card ----
+    // ---- The end: the closing line, then the ship lifts off into the game ----
 
     void BeginEnding()
     {
         endedAt = Time.unscaledTime;
         reachedTheEndOfTut = true;
-        speaker.HideAll();
         guides.Clear();
         spawnGoodStuffTut.RemoveLiveAtom();
         spawnGoodStuffTut.keepAtomComing = TutorialAtom.None;
-        TopUpHearts();
+        TutorialWall.Clear();
+        wall = null;
+        wallRetryLeft = -1f;
+        if (healed) TopUpHearts();
         if (power != null) power.chargeMode = ShipPowerController.ChargeMode.Held;
-        TutorialEnemy.Clear();   // a Skip mid-step leaves nothing to fly into
-        enemyOut = false;
         if (skip != null) skip.SetVisible(false);
-        if (script != null) script.enabled = false;
+        speaker.Say(closingLine);
 
         // Marks the tutorial complete for the menu. It does not affect this
         // run: score decided once, at load, that the tutorial scene never
@@ -380,10 +491,22 @@ public class Hints : MonoBehaviour {
 
     void RunEnding()
     {
-        // (the ship stays where it is: LIFT OFF flies it into the portal, TutorialLiftOff)
-        if (panelShown || Time.unscaledTime - endedAt < liftOffSeconds) return;
+        if (panelShown || liftStarted) return;
+        if (!speaker.LineFinished || speaker.SinceLineFinished < liftOffSeconds) return;
+        if (AutoLiftOff)
+        {
+            // the ship flies on into the first level (TutorialLiftOff plays
+            // the portal departure, then loads gameS1, whose run begins with
+            // its usual arrival and the PLAYER'S ship)
+            liftStarted = true;
+            if (script != null) script.enabled = false;
+            speaker.HideAll();
+            TutorialLiftOff.Begin();
+            return;
+        }
         panelShown = true;
-
+        speaker.HideAll();
+        if (script != null) script.enabled = false;
         if (pausedIcon != null) Destroy(pausedIcon);
         score.totalCurrency = 0;
         moveBackGround.speed = 0;

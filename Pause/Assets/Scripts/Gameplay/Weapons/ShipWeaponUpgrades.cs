@@ -88,6 +88,7 @@ public static class ShipWeaponUpgrades
     // mode owns them all).
     public static int Level(int shipId)
     {
+        if (ShipId.TutorialFlight) return 0;   // the tutorial's ship has no upgrades
         int n = 0;
         for (int skin = 1; skin < ShipSkins.CountFor(shipId); skin++)
             if (ShipSkins.IsOwned(shipId, skin)) n++;

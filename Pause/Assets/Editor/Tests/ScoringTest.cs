@@ -388,7 +388,7 @@ public static class ScoringTest
         var go = new GameObject("~HudTutTest");
         var styler = go.AddComponent<HudStyler>();
         styler.SendMessage("Start");
-        Check("tutorial HUD: no SCORE row", SceneUtil.FindAny(ScoreHud.RowName) == null && go.GetComponent<ScoreHud>() == null);
+        Check("tutorial HUD: no SCORE row, only the popups (ScoreHud popups-only)", SceneUtil.FindAny(ScoreHud.RowName) == null && go.GetComponent<ScoreHud>() != null && go.GetComponent<ScoreHud>().PopupsOnly);
         Check("tutorial complete panel has no score", !System.IO.File.ReadAllText("Assets/Scripts/Tutorial/TutorialCompletePanel.cs").Contains("RunScore"));
         Object.DestroyImmediate(go);
     }

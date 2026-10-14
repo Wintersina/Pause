@@ -88,6 +88,24 @@ public class ScoreHud : MonoBehaviour
         return speedText != null && speedText.gameObject.scene.name != score.TutorialScene;
     }
 
+    // The tutorial's popups: the same pooled "+N" / word popups as a run (same
+    // look, motion and clock), with no SCORE row -- the tutorial scores nothing
+    // (RunScore.PracticePopups only shows what each pickup is worth). Idempotent.
+    public static ScoreHud AttachPopupsOnly(GameObject host, Text speedText)
+    {
+        if (speedText == null) return null;
+        var hud = host.GetComponent<ScoreHud>() ?? host.AddComponent<ScoreHud>();
+        hud.font = speedText.font;
+        hud.popupsOnly = true;
+        var c = speedText.GetComponentInParent<Canvas>();
+        hud.canvas = c != null ? c.rootCanvas : null;
+        hud.canvasRect = hud.canvas != null ? (RectTransform)hud.canvas.transform : null;
+        return hud;
+    }
+
+    bool popupsOnly;
+    public bool PopupsOnly { get { return popupsOnly; } }
+
     // Adds the SCORE row to the top of the read-out that holds `speedText`
     // and grows the stack and its panel by one row. Idempotent.
     public static ScoreHud Attach(GameObject host, Text speedText)
@@ -243,6 +261,11 @@ public class ScoreHud : MonoBehaviour
 
     void Update()
     {
+        if (popupsOnly)
+        {
+            StepPopups(!buttonClicks.playerDied ? TargetExplosion.Delta() : -1f);
+            return;
+        }
         TickDisplay(Mathf.Min(Time.unscaledDeltaTime, .1f));
     }
 

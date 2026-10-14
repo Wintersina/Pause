@@ -22,6 +22,7 @@ public static class GameStateReset
 
     static void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
+        if (scene.name != score.TutorialScene) ShipId.TutorialFlight = false;
         if (System.Array.IndexOf(GameplayScenes, scene.name) >= 0) return;
         Clear();
     }
@@ -35,6 +36,7 @@ public static class GameStateReset
         // Set again by startMenu.PrepareTutorialRun on the way into the
         // tutorial; must not leak out of one (e.g. via Back) into a real run.
         startMenu.youAreInTutorial = false;
+        ShipId.TutorialFlight = false;
 
         // collisionDetection.lifeCounter/atomCheck/invTimer/cloakTimer are statics too,
         // and the shop's own ship1-ship3 (authored directly in shopS6 with

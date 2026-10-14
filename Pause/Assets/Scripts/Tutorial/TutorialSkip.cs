@@ -31,6 +31,7 @@ public class TutorialSkip : MonoBehaviour
     public float clampWorldX = 2.15f;
 
     public const string ExitScene = "gameS1";
+    public const string TutorialSceneName = "tutorialS5";
 
 
     RectTransform buttonRect;
