@@ -30,7 +30,7 @@
   "exhaustShip": 3,
   "exhaustScale": 0,
   "glowScale": 0.09,
-  "cellPixels": 192,
+  "cellPixels": 384,
   "armored": false,
   "hazardSeconds": 0.4,
   "hazardSize": 0.6,
@@ -64,34 +64,34 @@
   "muzzles": [
     {
       "name": "rod",
-      "x": 95,
-      "y": 34,
+      "x": 190,
+      "y": 68,
       "dir": -1.0
     },
     {
       "name": "coilp",
-      "x": 68,
-      "y": 76,
+      "x": 136,
+      "y": 152,
       "dir": -1.0
     },
     {
       "name": "coils",
-      "x": 125,
-      "y": 78,
+      "x": 250,
+      "y": 156,
       "dir": -1.0
     }
   ],
   "nozzles": [
     {
       "name": "l",
-      "x": 89,
-      "y": 152,
+      "x": 178,
+      "y": 304,
       "dir": -1.0
     },
     {
       "name": "r",
-      "x": 103,
-      "y": 152,
+      "x": 206,
+      "y": 304,
       "dir": -1.0
     }
   ],

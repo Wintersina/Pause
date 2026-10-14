@@ -39,3 +39,7 @@ Alpha bbox at threshold 24 and width × height. Body registration is measured on
 | pearl_warden | (35, 40, 157, 153) | 122×113 | 120×113 | 120×113 | 1.05 px | 1.11 px | 35 px | 7104 | 0.202% |
 
 The generated concepts were scaled to flight cells with nearest-neighbour sampling. Tiny procedural cracks, exhaust, fin bends and debris make the flight and death keys; the painted masters carry the material detail. Weapon telegraphs, nets, pearls, and hostile-pink shots are gameplay FX rather than baked into the hull.
+
+## Thunderfin HD (2026-10-13)
+
+`tide_elite_thunderfin.png` and its `_death.png` are rebuilt at true high resolution by `src~/build_thunderfin_hd.py`: the same painted master and poses on a 384 px cell (2688 x 384 strip, 3 x 384 death), area-averaged instead of nearest-decimated, then the Tide palette unification (`Art/Enemies/src~/palette_unify`). Points are the old ones x2 (`cellPixels` 384 in the def): rod (190,68), port coil (136,152), starboard coil (250,156), nozzles (178,304) and (206,304). The outline pass keeps `ship_scale_border~/original/tide_elite_thunderfin.png` as the HD strip.

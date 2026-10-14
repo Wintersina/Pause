@@ -243,6 +243,53 @@ Smallest on screen (0.52-0.61 u, 49-60 px at 720): all rocks - Tide Brain Coral 
 2. **Enemies**: scale x1.2 (code constants), then redraw for detail: ships whose key features (eyes, ports) are under ~3 px even after x1.2 - Ember fighters 1 / 3 (eye 1.4 / 0.9 px), Storm Cyclone Drone / fighters 2-4, Tide Wire Eel / Remora / Hammerhead, Desert fighter 4, Storm / Tide / Desert aliens and rocks, Verdant Hornet / Gnat features, Tide rocks, Frost Frost Lancer. The brief for Codex: bold the key eye / weapon / cockpit to >= 5 art px at 192 px cells and give a 2 px pale (not 1 px) outline for ships drawn at 0.33-0.5 screen px per art px, or render these on a 256 px cell.
 3. **Elites with sub-3 px features at 720 even after scaling**: Verdant Thornlash, Tide Riptide / Thunderfin / Trawler, Desert Dune Stalker / Lens Matriarch / Scorpion Walker, Storm Refinery Tender / Static Bastion / Skyhook Harrier: Codex redraws at the new size (staged, not wired).
 
+### 2.7 Resolution audit (source cell px, scale, effective texel density)
+
+Every elite strip has a 192 px cell (the Thunderfin now 384), every enemy strip 192 (heavies 256). What matters is how many screen pixels one art pixel covers at 1080 wide (1 u = 145 px): the elites were scaled UP (x1.0-1.73) so their pixels got chunkier, the enemies are shown 0.33-0.55 screen px per art px (downscaled, so detail is lost rather than chunky: max 1.18 px per art px for any enemy). No strip is block-doubled (checked: no flat 2x2 / 3x3 blocks); the Tide elites are the only strips built from a 1254 px painted master by NEAREST-neighbour decimation (`build_tide_elites.py`: about 7 of every 8 source texels dropped, hence the noisy dither), which is why the Thunderfin looked far worse than its 1.72 px per art px suggests.
+
+Elites, chunkiest first (best: Sunstoke 1.39, Ash Wraith 1.40, Orbit Reaver 1.42):
+
+| Elite | source cell | silhouette (art px) | on screen @1080 (px) | screen px per art px | scale | note |
+|---|---|---|---|---|---|---|
+| Caravan Hauler | 192 | 121 | 240 | 1.98 | x1.64 | flagged: as chunky as the old Thunderfin or more |
+| Floe Harrower | 192 | 121 | 240 | 1.98 | x1.64 | flagged: as chunky as the old Thunderfin or more |
+| Pearl Warden | 192 | 122 | 239 | 1.96 | x1.73 | flagged: as chunky as the old Thunderfin or more |
+| Refinery Tender | 192 | 123 | 239 | 1.95 | x1.61 | flagged: as chunky as the old Thunderfin or more |
+| Bathyscaphe | 192 | 124 | 239 | 1.93 | x1.70 | flagged: as chunky as the old Thunderfin or more |
+| Trawler | 192 | 126 | 240 | 1.91 | x1.68 | flagged: as chunky as the old Thunderfin or more |
+| Glass Cannon | 192 | 126 | 238 | 1.90 | x1.52 | flagged: as chunky as the old Thunderfin or more |
+| Anvil Cloud | 192 | 126 | 238 | 1.90 | x1.52 | flagged: as chunky as the old Thunderfin or more |
+| Timber Hauler | 192 | 128 | 239 | 1.87 | x1.65 | flagged: as chunky as the old Thunderfin or more |
+| Whiteout Sentinel | 192 | 130 | 239 | 1.84 | x1.57 | flagged: as chunky as the old Thunderfin or more |
+| Static Bastion | 192 | 130 | 239 | 1.84 | x1.52 | flagged: as chunky as the old Thunderfin or more |
+| Mirror Bastion | 192 | 134 | 239 | 1.79 | x1.48 | flagged: as chunky as the old Thunderfin or more |
+| Rimebreaker | 192 | 124 | 217 | 1.75 | x1.45 | flagged: as chunky as the old Thunderfin or more |
+| Thunderfin | 192 | 126 | 217 | 1.72 | x1.52 | **redrawn at 384 px (HD) in this PR** |
+| Glacier Tender | 192 | 144 | 239 | 1.66 | x1.42 |  |
+| Thornlash | 192 | 138 | 217 | 1.58 | x1.39 |  |
+| Cauterizer | 192 | 157 | 245 | 1.57 | x1.00 |  |
+| Singularity Hauler | 192 | 154 | 240 | 1.56 | x1.33 |  |
+| Dune Stalker | 192 | 140 | 217 | 1.55 | x1.37 |  |
+| Skyhook Harrier | 192 | 140 | 217 | 1.55 | x1.37 |  |
+| Sporebloom | 192 | 140 | 217 | 1.55 | x1.37 |  |
+| Coalrunner | 192 | 142 | 217 | 1.53 | x1.30 |  |
+| Leafblade | 192 | 142 | 217 | 1.53 | x1.35 |  |
+| Kilnback | 192 | 157 | 239 | 1.53 | x1.14 |  |
+| Scorpion Walker | 192 | 143 | 217 | 1.52 | x1.30 |  |
+| Eventide Bastion | 192 | 158 | 238 | 1.51 | x1.29 |  |
+| Lens Matriarch | 192 | 147 | 218 | 1.49 | x1.31 |  |
+| Rod Dancer | 192 | 147 | 218 | 1.49 | x1.31 |  |
+| Riptide | 192 | 148 | 218 | 1.47 | x1.30 |  |
+| Brass Vulture | 192 | 156 | 226 | 1.45 | x1.00 |  |
+| Cryo Siren | 192 | 154 | 218 | 1.42 | x1.25 |  |
+| Rift Lancer | 192 | 154 | 218 | 1.42 | x1.25 |  |
+| Resin Warden | 192 | 154 | 218 | 1.42 | x1.25 |  |
+| Orbit Reaver | 192 | 154 | 217 | 1.42 | x1.17 |  |
+| Ash Wraith | 192 | 157 | 219 | 1.40 | x1.00 |  |
+| Sunstoke | 192 | 157 | 217 | 1.39 | x1.02 |  |
+
+Other ships as low-res as the old Thunderfin (>= 1.7 px per art px, silhouette <= 126 art px) are flagged above: Caravan Hauler, Floe Harrower, Pearl Warden, Refinery Tender, Bathyscaphe, Trawler, Glass Cannon, Anvil Cloud, Timber Hauler, Whiteout Sentinel, Static Bastion, Mirror Bastion, Rimebreaker. Of these the four other Tide elites (Bathyscaphe, Trawler, Pearl Warden, Riptide) share the Thunderfin's nearest-decimated pipeline and have painted masters in `Art/Enemies/Elite/Tide/src~/`: the same `build_thunderfin_hd.py` recipe would redraw them at 384 px. Not done: the user decides.
+
 ## 3. Design language
 
 Measured on the idle drawings (mean over the world): luminance (0-1), saturation, share of near-white highlights (>0.75), share of near-black (<0.18), top-minus-bottom luminance (light from above if > 0), pale outline detected (a bright 1 px boundary against a darker interior).
@@ -322,5 +369,5 @@ The mechanical fix for the outline (a 1 px, world-tinted pale outline script run
 * **Elite scale** (data): `cellWorldSize` x k and `hullRadius` x 0.95 k for the 34 elites below the floor (k 1.05-1.73, table in 2.2); heart orbits capped so they stay tighter than the player's. Ember Ash Wraith / Brass Vulture / Cauterizer / Sunstoke unchanged. Evasion look-ahead scales with the hull (x1.0-1.4), the hold-ground jink reach too.
 * **Enemy scale** (code): `EnemyRoster.TierScale` 1.2 for Rock / Alien / Fighter / Chaser / Big (frames, colliders, targets, heavy width 1.32 u, enemy muzzle offsets); mines and bosses unchanged. Knock-on: `PilotAirspace.ColumnMargin` .1 -> .05 and `RailClear` 2 -> 1.85 (columns of the bigger bodies still share the lane at the same 50% cap and stay clear of the mines' slide).
 * **Tests**: new `ShipTierTest` (every elite's drawn silhouette >= floor, hit radius share, tier ordering, lanes) and `EliteLockOnTest` (data limits for all defs, brain lag, aim frozen after the commit, facing limit); adjusted pins: `EnemyRosterTest` (heavy 1.2-1.5 u; slot sampling per try), `EnemyBehaviourTest` (fixture spacing), `ShieldShockwaveTest` (elite offset by hull), `EliteEvasionTest` (look-ahead bound x hull), `HazardSizeTest` (mean-area tolerance .07), `RailsVettingTest` (<= 4 spawns in the 2 s after the calm window).
-* **Art**: nothing redrawn. The design-language outline is wired as a ONE-SIDED pale outline (never a full ring: Glow Jelly and Singularity looked bad with one): `Pause/Assets/Art/Enemies/src~/ship_scale_border~/` (`add_border.py`, one data place `modes.json`: default bottom half, a soft smoothstep fade of 30% of the silhouette across the midline; overrides: Glow Jelly, Resin Warden, Snap Sprout top; Thunderfin right; `none` opts a ship out). 27 elites (1 px) and 38 enemies (2 px) outlined, interiors untouched, world-tinted pale tones, no pink outside Space; the originals are in `original/` (the live strips are regenerated from them, `--wire`). `EliteArtSync` keeps outlined strips; `ShipOutlineTest` checks side, fade, no pink, no full outline, originals == Codex strips. The Codex brief is `docs/ship-scale-codex-brief.md` (not run).
+* **Art**: nothing redrawn. The design-language outline is wired as a ONE-SIDED pale outline (never a full ring: Glow Jelly and Singularity looked bad with one): `Pause/Assets/Art/Enemies/src~/ship_scale_border~/` (`add_border.py`, one data place `modes.json`: default bottom half, a soft smoothstep fade of 30% of the silhouette across the midline; overrides: Glow Jelly, Resin Warden, Snap Sprout, Thunderfin, Coalrunner, Sunstoke top; `none` opts a ship out). 27 elites (1 px) and 38 enemies (2 px) outlined, interiors untouched, world-tinted pale tones, no pink outside Space; the originals are in `original/` (the live strips are regenerated from them, `--wire`). `EliteArtSync` keeps outlined strips; `ShipOutlineTest` checks side, fade, no pink, no full outline, originals == Codex strips. The Codex brief is `docs/ship-scale-codex-brief.md` (not run).
 * **Enemy sizes**: the uniform x1.2 stays; natural size variety between enemy types is kept (small ones may stay small), so there is no per-enemy floor for fodder (an experiment with per-enemy floors was dropped at the user's request). Only elites have a floor (`ShipTierTest`).

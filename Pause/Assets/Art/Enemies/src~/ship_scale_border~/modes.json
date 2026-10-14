@@ -1,15 +1,13 @@
 {
   "_note": "ONE data place for the outline pass. default: the mode of every ship not listed. Modes: bottom | top | right | none (never a full ring). A ship in 'ships' overrides the default; 'none' opts a ship out. Which ships get an outline at all: lacking.json (those whose art has no pale outline) plus every key named here.",
   "default": "bottom",
-  "fade": 0.30,
+  "fade": 0.3,
   "ships": {
     "tide_alien": "top",
     "verdant_elite_resin_warden": "top",
     "verdant_alien": "top",
-    "tide_elite_thunderfin": "right"
-  },
-  "unconfirmed": {
-    "_note": "descriptions the user gave that match more than one ship; they stay on the default (bottom) until confirmed",
-    "orange/brown spiky gunship with twin thrusters (Ember-style)": ["ember_elite_sunstoke", "ember_elite_coalrunner", "ember_fighter_1"]
+    "tide_elite_thunderfin": "top",
+    "ember_elite_coalrunner": "top",
+    "ember_elite_sunstoke": "top"
   }
 }

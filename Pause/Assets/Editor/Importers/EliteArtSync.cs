@@ -60,7 +60,7 @@ public class EliteArtSync : AssetPostprocessor
         ti.alphaIsTransparency = true;
         ti.filterMode = FilterMode.Bilinear;
         ti.textureCompression = TextureImporterCompression.Uncompressed;
-        ti.maxTextureSize = 2048;
+        ti.maxTextureSize = 4096;   // (the HD Thunderfin strip is 2688 px wide)
         ti.npotScale = TextureImporterNPOTScale.None;
         ti.wrapMode = TextureWrapMode.Clamp;
     }

@@ -118,7 +118,7 @@ def main():
             continue
         src = np.array(Image.open(orig).convert("RGBA"))
         cell = src.shape[0]
-        res = border(src, 1 if kind == "elites" else 2, TONE[world], cell, mode, fade)
+        res = border(src, 1 if kind == "elites" and cell <= 192 else 2, TONE[world], cell, mode, fade)   # (an HD 384 px elite cell is drawn at ~0.9 screen px per art px: 2 px)
         solid = src[:, :, 3] >= SOLID
         assert (res[solid] == src[solid]).all(), key
         if world != "space":
