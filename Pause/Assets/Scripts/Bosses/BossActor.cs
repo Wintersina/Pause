@@ -17,6 +17,9 @@ using UnityEngine;
 public class BossActor : MonoBehaviour, IPatternHost
 {
     public enum Mode { Hidden, Arriving, Fighting, Dying, Retreating, Gone }
+    const float MaxAlignHold = 2.5f;
+    double alignBeat = -1.0;   // beat position the pattern in its tell starts on (beat-synced only)
+    float alignHold;
     enum AttackPhase { Cooldown, Tell, Volleys, Beams, Hazards, Pattern }
 
     // The most parts one attack fires from (the Bloom Queen's six petals).
@@ -402,6 +405,7 @@ public class BossActor : MonoBehaviour, IPatternHost
     public void StepFight(float dt, float realDt, Vector3 player, float progress01, BossProjectilePool pool)
     {
         if (mode != Mode.Fighting) return;
+        BossBeat.Tick();
         TickFlash(realDt);
         if (dt <= 0f) { RefreshFrame(); if (hearts != null) hearts.Step(realDt, 0f); return; }
 
@@ -450,7 +454,19 @@ public class BossActor : MonoBehaviour, IPatternHost
                 {
                     playerNow = player;
                     poolNow = pool;
-                    runner.Begin(current.pattern, this, BossLadder.RateAt(World, progress01), patternSeed++, current.tellSeconds);
+                    // With the boss song playing the pattern waits for a bar line / beat and fires on the grid; the
+                    // telegraphs last until then (BossBeatTuning). Without it: the old timers, unchanged.
+                    var tune = BossBeatTuning.For(World);
+                    var src = tune.enabled ? BossBeat.Source : null;
+                    float tell = current.tellSeconds;
+                    alignBeat = -1.0;
+                    alignHold = 0f;
+                    if (src != null)
+                    {
+                        alignBeat = BeatAlign.Target(src, tell, tune.barWaitMax);
+                        tell = Mathf.Max(tell, (float)((alignBeat - src.BeatNow) * src.SecondsPerBeat));
+                    }
+                    runner.Begin(current.pattern, this, BossLadder.RateAt(World, progress01), patternSeed++, tell, src, tune);
                 }
                 else
                 {
@@ -469,6 +485,11 @@ public class BossActor : MonoBehaviour, IPatternHost
                 if (phaseTimer > 0f) return;
                 if (current.kind == BossAttackKind.Pattern)
                 {
+                    // holding for the bar line: the boss keeps its tell pose until the music gets there (never longer
+                    // than MaxAlignHold, and not at all once the music stops)
+                    var clk = alignBeat >= 0.0 ? BossBeat.Source : null;
+                    if (clk != null && clk.BeatNow < alignBeat - clk.SecondsPerBeat * .004 && (alignHold += dt) < MaxAlignHold) return;
+                    alignBeat = -1.0;
                     phase = AttackPhase.Pattern;
                     Fire();
                     return;
