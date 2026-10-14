@@ -17,7 +17,7 @@
     "hit": -1,
     "damaged": 6
   },
-  "cellWorldSize": 1.65,
+  "cellWorldSize": 2.51,
   "noseDeg": 90,
   "maxBank": 3,
   "heartColor": "#FFF6DC",
@@ -26,7 +26,7 @@
   "engineColor": "#FFF1C8",
   "hearts": 2,
   "heartSize": 0.18,
-  "heartOrbit": 0.85,
+  "heartOrbit": 0.53,
   "heartStyle": "Halo",
   "exhaustShip": 3,
   "exhaustScale": 0,
@@ -40,7 +40,7 @@
   "brain": "siege",
   "attack": "siege_cannon",
   "lore": "A buried silo cannon with a fused-glass sun lens that rises from the sand to burn a lane. A ringed lane preview shows where the shell will land. Leave the lane, it does not follow.",
-  "hullRadius": 0.38,
+  "hullRadius": 0.549,
   "turnsToFace": false,
   "speed": 1.785,
   "accel": 4.0,
@@ -80,5 +80,6 @@
       "dir": -1.0
     }
   ],
-  "topMargin": 1.6
+  "topMargin": 1.6,
+  "followLag": 0.25
 }

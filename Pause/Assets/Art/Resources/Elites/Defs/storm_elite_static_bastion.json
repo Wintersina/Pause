@@ -16,7 +16,7 @@
     "hit": -1,
     "damaged": 6
   },
-  "cellWorldSize": 1.6,
+  "cellWorldSize": 2.43,
   "noseDeg": 90,
   "maxBank": 3,
   "heartColor": "#9CC8FF",
@@ -25,7 +25,7 @@
   "engineColor": "#9CC8FF",
   "hearts": 2,
   "heartSize": 0.18,
-  "heartOrbit": 0.85,
+  "heartOrbit": 0.593,
   "heartStyle": "Halo",
   "exhaustShip": 3,
   "exhaustScale": 0,
@@ -39,7 +39,7 @@
   "brain": "bastion",
   "attack": "ward_curtain",
   "lore": "A wide shield tank whose four spires hum with held charge. It casts a curtain of slow arcs across your row and leaves exactly one gap. Slip into the gap before the spires let go.",
-  "hullRadius": 0.34,
+  "hullRadius": 0.491,
   "turnsToFace": false,
   "speed": 1.7,
   "accel": 3.5,
@@ -105,5 +105,6 @@
   ],
   "followDistance": 3.0,
   "laneOffset": 0.9,
-  "lobSpacing": 0.62
+  "lobSpacing": 0.62,
+  "followLag": 0.25
 }

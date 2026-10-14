@@ -176,7 +176,8 @@ public static class EliteEvasion
     public static bool Measured(ClearTarget t) => t != null && t.SensedStep == stamp && t.SensedMeasured;
 
     public static float Skill(EliteDef def) => Mathf.Clamp01(def.avoidance);
-    public static float LookAheadFor(EliteDef def) => LookAheadSeconds * Mathf.Lerp(LookAheadUnskilled, 1f, Skill(def));
+    // (a bigger hull needs more room and so more time to clear what comes at it: the size tier scales the look-ahead with the hull, up to x1.4)
+    public static float LookAheadFor(EliteDef def) => LookAheadSeconds * Mathf.Lerp(LookAheadUnskilled, 1f, Skill(def)) * Mathf.Clamp(def.hullRadius / .4f, 1f, 1.4f);
     public static float ReactionFor(EliteDef def) => ReactionSeconds * Mathf.Lerp(ReactionUnskilled, 1f, Skill(def));
     public static float EvadeSpeedFor(EliteDef def) =>
         Mathf.Min(MaxEvadeSpeed, Mathf.Max(def.speed * EvadeSpeedScale, EliteSystem.Scroll * EvadeBoardShare));

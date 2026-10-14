@@ -16,7 +16,7 @@
     "hit": -1,
     "damaged": 6
   },
-  "cellWorldSize": 1.5,
+  "cellWorldSize": 2.55,
   "noseDeg": 90,
   "maxBank": 3,
   "heartColor": "#7FD8FF",
@@ -25,7 +25,7 @@
   "engineColor": "#5FF2D0",
   "hearts": 2,
   "heartSize": 0.18,
-  "heartOrbit": 0.85,
+  "heartOrbit": 0.546,
   "heartStyle": "Halo",
   "exhaustShip": 3,
   "exhaustScale": 0,
@@ -40,7 +40,7 @@
   "attack": "depth_charge",
   "launchFrom": "rigdeck",
   "lore": "A brass pressure sphere that winds depth charges out of its claws. Each charge flies to a ringed spot above you, then bursts into a ring of pearls. Read the rings, not the claws: stand between the bursts.",
-  "hullRadius": 0.33,
+  "hullRadius": 0.533,
   "turnsToFace": false,
   "speed": 2.0,
   "accel": 4.0,
@@ -97,5 +97,6 @@
       "y": 143,
       "dir": -1.0
     }
-  ]
+  ],
+  "followLag": 0.25
 }

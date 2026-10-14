@@ -16,7 +16,7 @@
     "hit": -1,
     "damaged": 6
   },
-  "cellWorldSize": 1.5,
+  "cellWorldSize": 1.95,
   "noseDeg": 90,
   "maxBank": 3,
   "heartColor": "#7FD8FF",
@@ -25,7 +25,7 @@
   "engineColor": "#5FF2D0",
   "hearts": 2,
   "heartSize": 0.18,
-  "heartOrbit": 0.85,
+  "heartOrbit": 0.786,
   "heartStyle": "Halo",
   "exhaustShip": 3,
   "exhaustScale": 0,
@@ -40,7 +40,7 @@
   "attack": "surf_dash",
   "launchFrom": "trenchhatch",
   "lore": "A needle-nosed lancer that sleeps in the trench hatches. It draws its whole dash lane in dots, then rides it like a breaking wave. Step out of the lane while the dots blink: it never turns once it commits.",
-  "hullRadius": 0.3,
+  "hullRadius": 0.37,
   "turnsToFace": true,
   "speed": 3.0,
   "accel": 6.5,
@@ -81,5 +81,6 @@
       "y": 161,
       "dir": -1.0
     }
-  ]
+  ],
+  "followLag": 0.35
 }

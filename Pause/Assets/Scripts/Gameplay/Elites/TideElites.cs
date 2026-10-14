@@ -81,7 +81,7 @@ public class SurfDashAttack : LanceDashAttack
     public override void StepTell(float dt)
     {
         base.StepTell(dt);
-        if (!shown && t >= TellSeconds * .5f)
+        if (!shown && t >= TellSeconds * def.aimCommit)
         {
             shown = true;
             Vector2 from = ship.Position;

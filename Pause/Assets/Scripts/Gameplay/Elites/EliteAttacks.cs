@@ -82,7 +82,11 @@ public abstract class EliteAttack
     // Its action fires shots out of its muzzles (drone_deploy releases drones instead).
     public virtual bool Shoots => true;
 
-    public virtual float TellSeconds => def.tellSeconds;
+    // The wind-up. An attack that aims at the pilot (Aimed) never winds up shorter than EliteDef.MinAimedTell.
+    public virtual float TellSeconds => BaseTell;
+    protected float BaseTell => Aimed ? Mathf.Max(def.tellSeconds, EliteDef.MinAimedTell) : def.tellSeconds;
+    // Aims at where the pilot is (EliteShip.AimSeen: live for the first aimCommit of the tell, then frozen).
+    public virtual bool Aimed => false;
     public virtual bool HoldsDuringTell => false;
     public virtual bool DrivesMovement => false;
     public virtual float? FaceDeg => null;
@@ -214,6 +218,7 @@ public static class EliteAttacks
 public class LanceDashAttack : EliteAttack
 {
     public LanceDashAttack() { Id = "lance_dash"; }
+    public override bool Aimed => true;
     public override bool HoldsDuringTell => true;
     public override bool DrivesMovement => true;
     public override float? FaceDeg => Deg(dir);
@@ -222,7 +227,7 @@ public class LanceDashAttack : EliteAttack
     {
         // keeps re-aiming through the first half of the wind-up
         t += dt;
-        if (t < TellSeconds * .5f) BeginTellAim();
+        if (t < TellSeconds * def.aimCommit) BeginTellAim();
     }
 
     void BeginTellAim()
@@ -385,7 +390,8 @@ public class BlinkShardsAttack : EliteAttack
     bool fired;
     public BlinkShardsAttack() { Id = "blink_shards"; }
     public override bool Blinks => true;
-    public override float? FaceDeg => Deg(ship.Seen - ship.Position);
+    public override bool Aimed => true;
+    public override float? FaceDeg => Deg(ship.AimSeen - ship.Position);
 
     public override bool FriendlyInLine(Vector2 seen)
     {
@@ -407,7 +413,7 @@ public class BlinkShardsAttack : EliteAttack
         if (!fired && t >= def.actionSeconds * .35f)
         {
             fired = true;
-            Vector2 d = ship.Seen - ship.MuzzleWorld(0);
+            Vector2 d = ship.AimSeen - ship.MuzzleWorld(0);   // (where the pilot was at the commit, not now)
             float baseDeg = Deg(d);
             int n = Mathf.Max(1, def.shotCount);
             for (int i = 0; i < n; i++)
@@ -545,6 +551,7 @@ public class ResinMortarAttack : EliteAttack
     bool fromLeft;
     public ResinMortarAttack() { Id = "resin_mortar"; }
     public override bool HoldsDuringTell => true;
+    public override bool Aimed => true;
     public Vector2 RowCentre => rowCentre;
     public int Lobbed => lobbed;
 
@@ -567,7 +574,7 @@ public class ResinMortarAttack : EliteAttack
         lobbed = 0;
         // the row: lobAhead in front of the pilot when the globs come down
         // (the spots ride the board meanwhile), inside the rails
-        rowCentre = ship.Seen + Vector2.up * (def.lobAhead + EliteSystem.Scroll * def.lobSeconds);
+        rowCentre = ship.AimSeen + Vector2.up * (def.lobAhead + EliteSystem.Scroll * def.lobSeconds);
         float half = (Mathf.Max(1, def.shotCount) - 1) * .5f * def.lobSpacing;
         float edge = Mathf.Max(0f, EliteSystem.RailEdge - def.shotSize - half);
         rowCentre.x = Mathf.Clamp(rowCentre.x, -edge, edge);
@@ -614,6 +621,7 @@ public class WardCurtainAttack : EliteAttack
     Vector2 row;
     public WardCurtainAttack() { Id = "ward_curtain"; }
     public override bool HoldsDuringTell => true;
+    public override bool Aimed => true;
     public int Gap => gap;
     public Vector2 Row => row;
     public int Count => Mathf.Max(3, def.shotCount);
@@ -635,8 +643,8 @@ public class WardCurtainAttack : EliteAttack
         slot = 0;
         // the row: across the pilot's height, the centre spot on the pilot
         // (shifted so that spot lands exactly on it when the count is even)
-        row = ship.Seen + new Vector2(((Count - 1) * .5f - Centre) * def.lobSpacing, 0f);
-        gap = Centre + (ship.Seen.x > 0f ? -1 : 1);
+        row = ship.AimSeen + new Vector2(((Count - 1) * .5f - Centre) * def.lobSpacing, 0f);
+        gap = Centre + (ship.AimSeen.x > 0f ? -1 : 1);
     }
 
     public override bool StepAction(float dt)
@@ -718,8 +726,9 @@ public class RiftRailAttack : EliteAttack
     int fired;
     public RiftRailAttack() { Id = "rift_rail"; }
     public override bool HoldsDuringTell => true;
+    public override bool Aimed => true;
     public override float? FaceDeg => Deg(dir);
-    public bool Locked => t >= TellSeconds * TrackShare;
+    public bool Locked => t >= TellSeconds * Mathf.Min(TrackShare, def.aimCommit);
 
     public override bool FriendlyInLine(Vector2 seen)
     {
@@ -790,6 +799,7 @@ public class GravitySlingAttack : EliteAttack
     Vector2 well;
     public GravitySlingAttack() { Id = "gravity_sling"; }
     public override bool HoldsDuringTell => true;
+    public override bool Aimed => true;
     public Vector2 Well => well;
 
     public override bool FriendlyInLine(Vector2 seen)
@@ -804,7 +814,7 @@ public class GravitySlingAttack : EliteAttack
         base.BeginAction();
         next = 0f;
         fired = 0;
-        well = ship.Seen + Vector2.up * (def.lobAhead + EliteSystem.Scroll * def.lobSeconds);
+        well = ship.AimSeen + Vector2.up * (def.lobAhead + EliteSystem.Scroll * def.lobSeconds);
         float edge = Mathf.Max(0f, EliteSystem.RailEdge - def.shotSize - .3f);
         well.x = Mathf.Clamp(well.x, -edge, edge);
     }

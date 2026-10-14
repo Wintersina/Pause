@@ -16,7 +16,7 @@
     "hit": -1,
     "damaged": 6
   },
-  "cellWorldSize": 1.5,
+  "cellWorldSize": 1.97,
   "noseDeg": 90,
   "maxBank": 3,
   "heartColor": "#F2F6FF",
@@ -25,7 +25,7 @@
   "engineColor": "#9CC8FF",
   "hearts": 2,
   "heartSize": 0.18,
-  "heartOrbit": 0.85,
+  "heartOrbit": 0.65,
   "heartStyle": "Halo",
   "exhaustShip": 3,
   "exhaustScale": 0,
@@ -39,7 +39,7 @@
   "brain": "skirmisher",
   "attack": "blink_shards",
   "lore": "A tall twin-rod skirmisher that dances between the lightning rods of the balloon hangars. It blinks beside you, splays its rods, and lets an arc fan loose. Do not stand where it lands.",
-  "hullRadius": 0.36,
+  "hullRadius": 0.448,
   "turnsToFace": true,
   "speed": 2.7,
   "accel": 8.0,
@@ -92,5 +92,6 @@
     }
   ],
   "keepDistance": 2.6,
-  "blinkDistance": 1.7
+  "blinkDistance": 1.7,
+  "followLag": 0.25
 }

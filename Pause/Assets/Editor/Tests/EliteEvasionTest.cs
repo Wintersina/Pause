@@ -170,7 +170,7 @@ public static class EliteEvasionTest
         foreach (var d in EliteCatalog.All)
         {
             capped &= EliteEvasion.EvadeAccelFor(d) <= EliteEvasion.MaxEvadeAccel + 1e-4f && EliteEvasion.EvadeAccelFor(d) >= d.accel;
-            slower &= EliteEvasion.ReactionFor(d) >= EliteEvasion.ReactionSeconds - 1e-4f && EliteEvasion.LookAheadFor(d) <= EliteEvasion.LookAheadSeconds + 1e-4f;
+            slower &= EliteEvasion.ReactionFor(d) >= EliteEvasion.ReactionSeconds - 1e-4f && EliteEvasion.LookAheadFor(d) <= EliteEvasion.LookAheadSeconds * Mathf.Clamp(d.hullRadius / .4f, 1f, 1.4f) + 1e-4f;   // (a big hull reads up to x1.4 further: it needs the room)
         }
         Check("every elite's evasive acceleration is capped (" + EliteEvasion.MaxEvadeAccel + " u/s^2)", capped);
         Check("a clumsier elite (lower avoidance) reacts later and reads less far ahead, never the other way", slower);
@@ -372,7 +372,7 @@ public static class EliteEvasionTest
         Rock(new Vector2(planted.x, planted.y + 3.6f));   // comes down its lane while it charges
         Step(1.4f);
         Check("a wind-up that holds its ground is not flown through: it jinks or gives the attack up (hearts " + (Alive(e) ? e.Hearts : 0) +
-              ", broke off " + (Alive(e) ? e.BreakOffs : 0) + ", moved " + (Alive(e) ? Vector2.Distance(e.Position, planted).ToString("F2") : "-") + ")",
+              ", broke off " + (Alive(e) ? e.BreakOffs : 0) + ", moved " + (Alive(e) ? Vector2.Distance(e.Position, planted).ToString("F2") : "-") + (Alive(e) ? ", last hit by " + e.LastHitBy + ", def " + e.Def.key : "") + ")",
               Alive(e) && e.Hearts == 2 && (e.BreakOffs > 0 || Vector2.Distance(e.Position, planted) > .2f));
         Step(6f);
         Check("... and it attacks again afterwards (" + (Alive(e) ? e.Attack.Fired : 0) + " shells)", Alive(e) && e.Attack.Fired >= 1);

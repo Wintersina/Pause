@@ -80,7 +80,9 @@ public class KiterBrain : EliteBrain
         // (the cap only limits its height: on the slant of its arc it can still keep most of its range)
         range = Mathf.Clamp(room / Mathf.Sin((90f - Arc) * Mathf.Deg2Rad), MinAttackAbove + .4f, def.keepDistance);
         bool was = backing;
-        backing = dist < range * (was ? .95f : Crowded);
+        // (it flees what really closes in: the crowd check reads the exact pilot position, only its station is low-passed)
+        float crowd = (Pos - ship.Seen).magnitude;
+        backing = crowd < range * (was ? .95f : Crowded);
         if (backing && !was) Backpedals++;
         if (backing)
         {
@@ -229,6 +231,7 @@ public class FloeCastAttack : EliteAttack
 
     public FloeCastAttack() { Id = "floe_cast"; }
     public override bool HoldsDuringTell => true;
+    public override bool Aimed => true;
     public int Count => Mathf.Clamp(def.shotCount, 3, 5);
     public int Gap => gap;
     public Vector2 Row => row;
@@ -251,7 +254,7 @@ public class FloeCastAttack : EliteAttack
     public Vector2 GapNow => Spot(gap) + Vector2.right * sideways * Mathf.Max(0f, t - settleAt);
 
     // Where the lance goes: down the gap's lane, at the pilot's height (wherever the row is).
-    public Vector2 LanceAim => new Vector2(GapNow.x, Mathf.Min(ship.Seen.y, ship.Position.y - 1f));
+    public Vector2 LanceAim => new Vector2(GapNow.x, Mathf.Min(ship.AimSeen.y, ship.Position.y - 1f));
 
     public override bool FriendlyInLine(Vector2 seen) =>
         EliteOnLine(ship.Position, Vector2.down, Mathf.Max(1f, ship.Position.y - seen.y), 1f);
@@ -294,7 +297,7 @@ public class FloeCastAttack : EliteAttack
         int n = Count;
         settleAt = (n - 1) * SlabGap + def.hazardSeconds;
         // the row: lobAhead in front of the pilot once the slabs are out (it rides the board meanwhile)
-        row.y = Mathf.Min(ship.Seen.y + def.lobAhead + EliteSystem.Scroll * settleAt, EliteSystem.ViewTop - .6f);
+        row.y = Mathf.Min(ship.AimSeen.y + def.lobAhead + EliteSystem.Scroll * settleAt, EliteSystem.ViewTop - .6f);
         // they all drift the same way: toward the middle from the gap's side
         sideways = (Spot(gap).x > 0f ? -1f : 1f) * def.hazardSpeed;
     }
@@ -373,7 +376,8 @@ public class FrostBloomAttack : EliteAttack
 
     public FrostBloomAttack() { Id = "frost_bloom"; }
 
-    public override float TellSeconds => beam ? def.tellSeconds * BeamTell : def.tellSeconds;
+    public override float TellSeconds => beam ? BaseTell * BeamTell : BaseTell;
+    public override bool Aimed => true;
     public override bool HoldsDuringTell => beam;
     public bool Locked => beam && t >= TellSeconds * LockShare;
 
@@ -424,7 +428,7 @@ public class FrostBloomAttack : EliteAttack
         beamShots = 0;
         if (beam) return;
         ship.ShowSight(Vector2.zero, 0f, 0f, false);
-        var orb = Fire(0, Deg(ship.Seen - ship.MuzzleWorld(0)), def.shotSpeed * OrbShare, EliteShots.Kind.Orb);
+        var orb = Fire(0, Deg(ship.AimSeen - ship.MuzzleWorld(0)), def.shotSpeed * OrbShare, EliteShots.Kind.Orb);
         if (orb != null) orb.Fuse(def.hazardSeconds);
         Orb = orb;
     }
@@ -703,7 +707,8 @@ public class ArmourShatterAttack : EliteAttack
 
     public override bool DrivesMovement => Stripped;
     public override bool HoldsDuringTell => Stripped;
-    public override float TellSeconds => Stripped ? def.tellSeconds * ChargeTell : def.tellSeconds;
+    public override float TellSeconds => Stripped ? BaseTell * ChargeTell : BaseTell;
+    public override bool Aimed => true;
     public override float? FaceDeg => Stripped ? Deg(dir) : (float?)null;
     public override bool ShowsDamaged => Stripped;
 
@@ -723,7 +728,7 @@ public class ArmourShatterAttack : EliteAttack
         t += dt;
         if (!Stripped) return;
         // the charge's sight: tracks the pilot for the first half, then locks, blinking faster
-        bool locked = t >= TellSeconds * .5f;
+        bool locked = t >= TellSeconds * def.aimCommit;
         if (!locked)
         {
             Vector2 d = ship.Seen - ship.Position;
@@ -745,7 +750,7 @@ public class ArmourShatterAttack : EliteAttack
         }
         // plated: a shard from each side emitter at the pilot
         for (int m = 1; m < def.muzzles.Length; m++)
-            Fire(m, Deg(ship.Seen - ship.MuzzleWorld(m)), def.shotSpeed);
+            Fire(m, Deg(ship.AimSeen - ship.MuzzleWorld(m)), def.shotSpeed);
     }
 
     public override bool StepAction(float dt)

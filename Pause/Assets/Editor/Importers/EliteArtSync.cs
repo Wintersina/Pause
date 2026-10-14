@@ -60,7 +60,7 @@ public class EliteArtSync : AssetPostprocessor
         ti.alphaIsTransparency = true;
         ti.filterMode = FilterMode.Bilinear;
         ti.textureCompression = TextureImporterCompression.Uncompressed;
-        ti.maxTextureSize = 2048;
+        ti.maxTextureSize = 4096;   // (the HD Thunderfin strip is 2688 px wide)
         ti.npotScale = TextureImporterNPOTScale.None;
         ti.wrapMode = TextureWrapMode.Clamp;
     }
@@ -97,6 +97,8 @@ public class EliteArtSync : AssetPostprocessor
         string world = Path.GetFileName(Path.GetDirectoryName(source));
         string dir = TargetRoot + "/" + world;
         string target = dir + "/" + TargetName(world, file);
+        // a strip with the one-sided outline pass keeps its outlined copy (re-run Art/Enemies/src~/ship_scale_border~/add_border.py --init --wire after a new delivery; ShipOutlineTest catches a stale original)
+        if (File.Exists("Assets/Art/Enemies/src~/ship_scale_border~/original/" + TargetName(world, file))) return false;
         if (File.Exists(target) && Same(source, target)) return false;
         Directory.CreateDirectory(dir);
         File.Copy(source, target, true);

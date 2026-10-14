@@ -206,8 +206,10 @@ public static class EliteTest
             Object.DestroyImmediate(tex);
             Check(d.key + ": muzzles and nozzles land on the art", onArt);
             string src = SourcePath(d);
-            Check(d.key + ": the original art is untouched (Resources copy matches " + src + ")",
-                  File.Exists(src) && File.ReadAllBytes(CopyPath(d)).Length == File.ReadAllBytes(src).Length);
+            // (a strip with the one-sided outline pass: Resources holds original + outline; ShipOutlineTest checks original/ against Codex's strip)
+            bool outlined = File.Exists("Assets/Art/Enemies/src~/ship_scale_border~/original/" + d.key + ".png");
+            Check(d.key + ": the original art is untouched (Resources copy matches " + src + (outlined ? ", with the outline pass: ShipOutlineTest" : "") + ")",
+                  File.Exists(src) && (outlined || File.ReadAllBytes(CopyPath(d)).Length == File.ReadAllBytes(src).Length));
         }
         // (Storm composes the older brains and attacks with its own numbers: each world's elites are distinct among themselves)
         bool distinct = true;

@@ -407,7 +407,7 @@ public static class EnemyBehaviourTest
         Fresh();
         var brains = new List<EnemyBrain>();
         foreach (string key in new[] { "space_fighter_4", "frost_fighter_4", "verdant_fighter_2", "ember_rock_islet", "frost_alien" })
-            brains.Add(Build(EnemyRoster.Find(key), new Vector2(brains.Count - 2f, 1.8f)));
+            brains.Add(Build(EnemyRoster.Find(key), new Vector2((brains.Count - 2f) * 1.2f, 1.8f)));   // (1.2 u apart: the size tier's bodies are wider)
         // run until the first of them is mid-windup: the worst moment to freeze
         bool winding = false;
         for (int i = 0; i < 60 * 8 && !winding; i++)

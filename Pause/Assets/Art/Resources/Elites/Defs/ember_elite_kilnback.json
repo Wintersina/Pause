@@ -6,7 +6,7 @@
   "engineColor": "#FF9A3C",
   "hearts": 2,
   "heartSize": 0.18,
-  "heartOrbit": 0.85,
+  "heartOrbit": 0.791,
   "heartStyle": "Halo",
   "exhaustShip": 3,
   "cellPixels": 192,
@@ -17,8 +17,8 @@
   "attack": "slag_drop",
   "armored": true,
   "lore": "A slab-shielded forge hauler that shoulders rocks aside. It drifts into your lane and parks there, dumping molten slag that sinks down the board. Only mines, rails and its own kind crack its armour.",
-  "cellWorldSize": 1.77,
-  "hullRadius": 0.34,
+  "cellWorldSize": 2.02,
+  "hullRadius": 0.368,
   "noseDeg": 90,
   "turnsToFace": false,
   "maxBank": 6,
@@ -67,5 +67,6 @@
       "dir": 270.0
     }
   ],
-  "codexId": "elite_ember_kilnback"
+  "codexId": "elite_ember_kilnback",
+  "followLag": 0.25
 }

@@ -181,6 +181,13 @@ public static class EnemyRosterTest
                         }
     }
 
+    // The drawing without the one-sided outline pass (Art/Enemies/src~/ship_scale_border~/original): these checks are about the art, not its outline.
+    static string Drawing(string path)
+    {
+        string orig = "Assets/Art/Enemies/src~/ship_scale_border~/original/" + Path.GetFileNameWithoutExtension(path) + ".png";
+        return path.Contains("/Resources/Enemies/") && File.Exists(orig) ? orig : path;
+    }
+
     static bool[] Mask(EnemyDef d)
     {
         return Mask("Assets/Art/Resources/" + d.StripPath + ".png");
@@ -189,6 +196,7 @@ public static class EnemyRosterTest
     // One frame's alpha > 50% silhouette from any flipbook strip on disk.
     static bool[] Mask(string path, int frame = 0)
     {
+        path = Drawing(path);
         if (!File.Exists(path)) return new bool[0];
         var tex = new Texture2D(2, 2);
         tex.LoadImage(File.ReadAllBytes(path));
@@ -258,7 +266,7 @@ public static class EnemyRosterTest
         // The heavies are the one role resized on purpose: properly big
         // (1.0-1.2 u drawn), bigger than every fighter, with a collider that
         // scales with the art but stays inset inside the drawing.
-        Check("the heavies target 1.0-1.2 u", EnemyRoster.BigWidth >= 1f && EnemyRoster.BigWidth <= 1.2f);
+        Check("the heavies target 1.2-1.5 u (1.1 u x the 1.2 size tier)", EnemyRoster.BigWidth >= 1.2f && EnemyRoster.BigWidth <= 1.5f);
         Check("the heavies out-size the fighters", EnemyRoster.BigWidth > EnemyRoster.LegacyWidth(EnemyRole.Fighter));
         foreach (var d in EnemyRoster.All)
         {
@@ -299,7 +307,7 @@ public static class EnemyRosterTest
     // Longest edge of frame 0's alpha > 50% bounds, as a fraction of the frame.
     static float SilhouetteEdge(EnemyDef d)
     {
-        string path = "Assets/Art/Resources/" + d.StripPath + ".png";
+        string path = Drawing("Assets/Art/Resources/" + d.StripPath + ".png");
         if (!File.Exists(path)) return 0f;
         var tex = new Texture2D(2, 2);
         tex.LoadImage(File.ReadAllBytes(path));
@@ -567,25 +575,25 @@ public static class EnemyRosterTest
                 int n = 0;
                 foreach (string slot in slots)
                 {
-                    for (int k = 0; k < 6; k++)
+                    for (int k = 0; k < 10; k++)   // (10: the size tier's bigger bodies leave fewer slots, a fighter may need a few more tries)
                     {
                         typeof(enmiesOnBoard).GetMethod(slot, BindingFlags.NonPublic | BindingFlags.Instance).Invoke(board, null);
                         Scroll(1f, false);   // the board moves on between spawns (SpawnLane keeps each row open)
-                    }
-                    // Pilots (heavies, aliens, fighters) stay and hold the
-                    // airspace until they fly off, which nothing steps here:
-                    // count this slot's, then let them go so the next slot's
-                    // pilots are admitted (PilotAirspace caps them).
-                    foreach (var id in UnityEngine.Object.FindObjectsByType<EnemyIdentity>(FindObjectsSortMode.None))
-                    {
-                        if (before.Contains(id)) continue;
-                        before.Add(id);
-                        n++;
-                        allHere &= id.Def != null && id.Def.world == w;
-                        if (id.Def == null) continue;
-                        roles.Add(id.Def.role);
-                        if (id.Def.Behaviour != null && id.Def.Behaviour.IsPilot && id.Def.role != EnemyRole.Chaser)
-                            UnityEngine.Object.DestroyImmediate(id.gameObject);
+                        // Pilots (heavies, aliens, fighters) stay and hold the
+                        // airspace until they fly off, which nothing steps here:
+                        // count each try's, then let them go so the next try's
+                        // pilots are admitted (PilotAirspace caps them).
+                        foreach (var id in UnityEngine.Object.FindObjectsByType<EnemyIdentity>(FindObjectsSortMode.None))
+                        {
+                            if (before.Contains(id)) continue;
+                            before.Add(id);
+                            n++;
+                            allHere &= id.Def != null && id.Def.world == w;
+                            if (id.Def == null) continue;
+                            roles.Add(id.Def.role);
+                            if (id.Def.Behaviour != null && id.Def.Behaviour.IsPilot && id.Def.role != EnemyRole.Chaser)
+                                UnityEngine.Object.DestroyImmediate(id.gameObject);
+                        }
                     }
                 }
                 Check(W(w) + ": every spawn slot draws from " + W(w) + "'s roster (" + n + " spawned)", allHere && n > 20);
@@ -857,7 +865,7 @@ public static class EnemyRosterTest
 
     static Texture2D LoadStrip(EnemyDef d)
     {
-        string path = "Assets/Art/Resources/" + d.StripPath + ".png";
+        string path = Drawing("Assets/Art/Resources/" + d.StripPath + ".png");
         if (!File.Exists(path)) return null;
         var tex = new Texture2D(2, 2);
         tex.LoadImage(File.ReadAllBytes(path));

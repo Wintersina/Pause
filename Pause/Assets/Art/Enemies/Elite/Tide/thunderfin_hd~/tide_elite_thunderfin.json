@@ -1,0 +1,99 @@
+{
+  "key": "tide_elite_thunderfin",
+  "codexId": "elite_tide_thunderfin",
+  "world": "tide",
+  "cells": {
+    "flight": [
+      3
+    ],
+    "parked": 0,
+    "parkedIdle": 1,
+    "liftoff": 2,
+    "bankLeft": 4,
+    "bankRight": 5,
+    "tell": -1,
+    "action": -1,
+    "hit": -1,
+    "damaged": 6
+  },
+  "cellWorldSize": 2.28,
+  "noseDeg": 90,
+  "maxBank": 3,
+  "heartColor": "#7FD8FF",
+  "shotColor": "#FF4FD8",
+  "shotCore": "#E8FFFB",
+  "engineColor": "#5FF2D0",
+  "hearts": 2,
+  "heartSize": 0.18,
+  "heartOrbit": 0.72,
+  "heartStyle": "Halo",
+  "exhaustShip": 3,
+  "exhaustScale": 0,
+  "glowScale": 0.09,
+  "cellPixels": 384,
+  "armored": false,
+  "hazardSeconds": 0.4,
+  "hazardSize": 0.6,
+  "displayName": "Thunderfin",
+  "role": "thunder striker",
+  "brain": "stormray",
+  "attack": "thunder_strike",
+  "launchFrom": "ventstack",
+  "lore": "A ray-finned storm skiff that charges its coils off the vent stacks. A glyph appears under every column it means to call down, and a second later the lightning lands. Leave the glyph; the sky is open everywhere else.",
+  "hullRadius": 0.404,
+  "turnsToFace": false,
+  "speed": 2.6,
+  "accel": 5.5,
+  "turnRate": 200,
+  "keepDistance": 2.8,
+  "aggression": 0.5,
+  "tellSeconds": 1.4,
+  "attackGap": 4.0,
+  "avoidance": 0.75,
+  "lookAhead": 0.5,
+  "perception": 2.2,
+  "blinkDistance": 1.3,
+  "actionSeconds": 0.6,
+  "shotCount": 2,
+  "shotSpeed": 0,
+  "shotSpread": 0,
+  "shotSize": 0.3,
+  "shotInterval": 0.1,
+  "shotKind": "bolt",
+  "lobSpacing": 2.0,
+  "muzzles": [
+    {
+      "name": "rod",
+      "x": 190,
+      "y": 68,
+      "dir": -1.0
+    },
+    {
+      "name": "coilp",
+      "x": 136,
+      "y": 152,
+      "dir": -1.0
+    },
+    {
+      "name": "coils",
+      "x": 250,
+      "y": 156,
+      "dir": -1.0
+    }
+  ],
+  "nozzles": [
+    {
+      "name": "l",
+      "x": 178,
+      "y": 304,
+      "dir": -1.0
+    },
+    {
+      "name": "r",
+      "x": 206,
+      "y": 304,
+      "dir": -1.0
+    }
+  ],
+  "followLag": 0.3
+}

@@ -108,6 +108,11 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
     public Vector2 Velocity { get { return velocity; } set { velocity = value; } }
     public float Facing { get { return facing; } }
     public Vector2 Seen { get { return seen; } }
+    // The pilot position the brain steers to: `seen` through a low-pass of Def.followLag (the elite trails the pilot's twitches).
+    public Vector2 Follow { get { return follow; } }
+    // The point an aimed attack shoots at: where it saw the pilot, live until Def.aimCommit of the tell, then frozen (the player's chance to move).
+    public Vector2 AimSeen { get { return aimSeen; } }
+    public bool AimLocked { get { return aimLocked; } }
     public bool PlayerLost { get { return lost; } }
     public float StateTime { get { return stateTime; } }
     public bool InPlay => State == EliteState.Join || State == EliteState.Follow || State == EliteState.Attack;
@@ -152,7 +157,8 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
     float stateTime, cooldown, escapeLeft, grace, hitFlash, frameHold, blinkCooldown, exhaustClock;
     int idleStep, attackPhase;
     float thrust, lastDt;
-    Vector2 seen, lastPlayer;
+    Vector2 seen, lastPlayer, follow, aimSeen;
+    bool aimLocked;
     bool lost, havePlayer;
     bool impactPending;
     Vector3 impactAt;
@@ -381,7 +387,7 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
         }
         Physics2D.SyncTransforms();
         var p = EliteSystem.Player;
-        if (p != null) { seen = p.position; lastPlayer = seen; havePlayer = true; lost = false; }
+        if (p != null) { seen = p.position; lastPlayer = seen; follow = seen; aimSeen = seen; havePlayer = true; lost = false; }
         Codex.Discover(gameObject);
         Brain.OnJoin();
     }
@@ -563,12 +569,15 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
     // the mortar): it stays planted while that is safe, jinks a little out
     // of the way of something coming if a small move is enough, and gives
     // the attack up if it is not.
+    // A big hull needs a longer jink to clear what comes down its lane (the size tier: docs/ship-scale-and-lockon-analysis.md).
+    float JinkReachFor { get { return EliteEvasion.JinkReach * Mathf.Max(1f, Def.hullRadius / .4f); } }
+
     void HoldTell(float dt)
     {
         if (!EliteEvasion.Enabled || forcedAttack) { Brake(dt); return; }
         Vector2 nav = Navigate(tellAnchor, .5f, dt);
         if (!evading) { Brake(dt); return; }
-        if (hitIn >= 0f || (evadeTo - tellAnchor).sqrMagnitude > EliteEvasion.JinkReach * EliteEvasion.JinkReach) { BreakOff(); return; }
+        if (hitIn >= 0f || (evadeTo - tellAnchor).sqrMagnitude > JinkReachFor * JinkReachFor) { BreakOff(); return; }
         Steer(nav, 1f, dt);
     }
 
@@ -582,14 +591,14 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
         bool driven = false;
         if (State == EliteState.Join)
         {
-            Vector2 goal = ReachGoal(Brain.Goal(seen, dt));
+            Vector2 goal = ReachGoal(Brain.Goal(follow, dt));
             Steer(Navigate(goal, 1.35f, dt), 1.35f, dt);
             if (stateTime >= JoinSeconds || (goal - pos).sqrMagnitude < .09f) { State = EliteState.Follow; stateTime = 0f; }
         }
         else if (State == EliteState.Follow)
         {
             StepReachRise(dt);
-            Vector2 goal = ReachGoal(Brain.Goal(seen, dt));
+            Vector2 goal = ReachGoal(Brain.Goal(follow, dt));
             Steer(Navigate(goal, Brain.SpeedScale, dt), Brain.SpeedScale, dt);
             if (Brain.DodgesByBlink && blinkCooldown <= 0f && (ThreatSeverity() > .55f || Cornered))
             {
@@ -608,20 +617,25 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
             attackClock += dt;
             if (attackPhase == 0)
             {
+                if (!aimLocked)
+                {
+                    aimSeen = seen;
+                    if (attackClock >= Attack.TellSeconds * Def.aimCommit) aimLocked = true;   // the commit: from here the aim is where the pilot WAS
+                }
                 Attack.StepTell(dt);
                 if (Attack.HoldsDuringTell) HoldTell(dt);
-                else Steer(Navigate(ReachGoal(Brain.Goal(seen, dt)), Brain.SpeedScale * .5f, dt), Brain.SpeedScale * .5f, dt);
+                else Steer(Navigate(ReachGoal(Brain.Goal(follow, dt)), Brain.SpeedScale * .5f, dt), Brain.SpeedScale * .5f, dt);
                 if (State == EliteState.Attack && attackClock >= Attack.TellSeconds)
                 {
                     if (!MayCommit(true)) BreakOff();
-                    else { attackPhase = 1; attackClock = 0f; evading = false; Attack.BeginAction(); }
+                    else { attackPhase = 1; attackClock = 0f; evading = false; if (!aimLocked) { aimSeen = seen; aimLocked = true; } Attack.BeginAction(); }
                 }
             }
             else
             {
                 bool done = Attack.StepAction(dt);
                 driven = Attack.DrivesMovement;
-                if (!driven) Steer(Navigate(ReachGoal(Brain.Goal(seen, dt)), Brain.SpeedScale, dt), Brain.SpeedScale, dt);
+                if (!driven) Steer(Navigate(ReachGoal(Brain.Goal(follow, dt)), Brain.SpeedScale, dt), Brain.SpeedScale, dt);
                 else claim = transform.position;
                 if (done) EndAttack();
             }
@@ -643,6 +657,8 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
         attackClock = 0f;
         Attacks++;
         tellAnchor = transform.position;
+        aimSeen = seen;
+        aimLocked = false;
         Attack.BeginTell(seen);
     }
 
@@ -715,7 +731,7 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
         var p = EliteSystem.Player;
         if (p == null) { havePlayer = false; return; }
         Vector2 actual = ShipDecoy.Active ? (Vector2)ShipDecoy.Position : (Vector2)p.position;
-        if (!havePlayer) { seen = lastPlayer = actual; havePlayer = true; lost = false; return; }
+        if (!havePlayer) { seen = lastPlayer = follow = actual; havePlayer = true; lost = false; return; }
         Vector2 jump = actual - lastPlayer;
         lastPlayer = actual;
         if (!lost && jump.magnitude >= TeleportFx.MinimumJump) lost = true;
@@ -725,6 +741,7 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
             if ((seen - actual).sqrMagnitude < .04f) lost = false;
         }
         else seen = actual;
+        follow += (seen - follow) * (1f - Mathf.Exp(-dt / Mathf.Clamp(Def.followLag, .02f, 5f)));
     }
 
     // Arrive at `goal`, dodging, within accel and turn limits.
@@ -873,7 +890,7 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
         if (pref != null) want = pref.Value;
         else if (velocity.sqrMagnitude > .16f) want = Mathf.Atan2(velocity.y, velocity.x) * Mathf.Rad2Deg;
         else want = facing;
-        facing = Mathf.MoveTowardsAngle(facing, want, Def.turnRate * 1.4f * dt);
+        facing = Mathf.MoveTowardsAngle(facing, want, Mathf.Min(Def.turnRate * 1.4f, Def.faceTurnMax) * dt);
         float b = -Mathf.Clamp(velocity.x / Mathf.Max(.1f, Def.speed), -1f, 1f) * Def.maxBank;
         bank = Mathf.Lerp(bank, b, 1f - Mathf.Exp(-6f * dt));
     }
@@ -1493,6 +1510,6 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
     public void ForceLiftOff() { if (State == EliteState.Parked) { stateTime = parkSeconds; } }
     // (a forced attack runs whatever is in its way: no hold, jink or break-off)
     public void ForceAttack() { if (State == EliteState.Follow || State == EliteState.Join) { State = EliteState.Follow; cooldown = 0f; escapeLeft = 0f; forcedAttack = true; BeginAttack(); } }
-    public void SetSeen(Vector2 p) { seen = p; lastPlayer = p; havePlayer = true; lost = false; }
+    public void SetSeen(Vector2 p) { seen = p; lastPlayer = p; follow = p; if (!aimLocked) aimSeen = p; havePlayer = true; lost = false; }
     public float ParkSeconds => parkSeconds;
 }

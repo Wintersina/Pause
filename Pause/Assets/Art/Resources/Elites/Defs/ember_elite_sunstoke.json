@@ -60,5 +60,6 @@
       "dir": -1.0
     }
   ],
-  "codexId": "elite_ember_sunstoke"
+  "codexId": "elite_ember_sunstoke",
+  "followLag": 0.35
 }

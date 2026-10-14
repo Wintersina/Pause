@@ -16,7 +16,7 @@
     "hit": -1,
     "damaged": 6
   },
-  "cellWorldSize": 1.6,
+  "cellWorldSize": 2.58,
   "noseDeg": 90,
   "maxBank": 3,
   "heartColor": "#9CC8FF",
@@ -25,7 +25,7 @@
   "engineColor": "#FFF3A0",
   "hearts": 2,
   "heartSize": 0.18,
-  "heartOrbit": 0.85,
+  "heartOrbit": 0.576,
   "heartStyle": "Halo",
   "exhaustShip": 3,
   "exhaustScale": 0,
@@ -39,7 +39,7 @@
   "brain": "hauler",
   "attack": "slag_drop",
   "lore": "A barrel-bellied tender that hauls refinery canisters through the storm decks and lets them sink out of its racks. The canisters fall slowly and hang in the air like hail. It is armored, so go around it, not through it.",
-  "hullRadius": 0.33,
+  "hullRadius": 0.505,
   "turnsToFace": false,
   "speed": 1.6,
   "accel": 3.0,
@@ -91,5 +91,6 @@
       "dir": -1.0
     }
   ],
-  "followDistance": 2.2
+  "followDistance": 2.2,
+  "followLag": 0.25
 }

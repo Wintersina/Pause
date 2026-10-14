@@ -130,6 +130,20 @@ public class EliteDef
     public float avoidance = .8f;       // 0..1 obstacle-dodging skill
     public float lookAhead = .5f;       // seconds of closing it watches for obstacles
     public float perception = 2.4f;     // u/s its idea of where the pilot is catches up after a teleport
+    // ---- lock-on (docs/ship-scale-and-lockon-analysis.md) ----
+    public float followLag = .3f;       // s: the pilot position the BRAIN steers to is `seen` through a low-pass of this time constant (no welding to the pilot's every twitch)
+    public float aimCommit = .5f;       // share of the tell during which an aimed attack still follows the pilot; then its aim (EliteShip.AimSeen) is frozen
+    public float faceTurnMax = 300f;    // deg/s: the hull never swings round to face the pilot faster than this, whatever turnRate x 1.4 says
+    public const float MinAimedTell = .6f;     // an attack that aims at the pilot winds up for at least this long (>= .3 s of warning after the commit)
+    public const float MinFollowLag = .15f, MaxFollowLag = .6f;
+
+    // ---- size tier (docs/ship-scale-and-lockon-analysis.md, 2.1) ----
+    // An elite's drawn silhouette is at least FloorHulls x the flown hull (0.58 u x ShipScale.Main = 0.78 u), the armoured / slow
+    // classes HeavyFloorHulls x: the player's own ship never reads as the bigger one.
+    public const float FloorHulls = 1.9f, HeavyFloorHulls = 2.1f;
+    public static readonly string[] HeavyBrains = { "hauler", "bastion", "siege", "tug", "herder", "tender", "ironclad", "logger", "abyss", "netter", "pearler" };
+    public bool Heavy { get { return System.Array.IndexOf(HeavyBrains, brain) >= 0; } }
+    public float TierFloorUnits { get { return (Heavy ? HeavyFloorHulls : FloorHulls) * shopingShips.ReferenceHullSize * ShipScale.Main; } }
     public float laneOffset = 1.5f;     // gunship / hauler / warden / lancer / tug: lane distance from the pilot; bastion: how far off centre it may go
     public float circleRadius = 1.9f;   // striker / reaver: circling radius
     public float keepDistance = 2.6f;   // skirmisher / kiter: preferred distance; tender: how close the pilot may come before it flees

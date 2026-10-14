@@ -16,7 +16,7 @@
     "hit": -1,
     "damaged": 6
   },
-  "cellWorldSize": 1.5,
+  "cellWorldSize": 2.52,
   "noseDeg": 90,
   "maxBank": 3,
   "heartColor": "#7FD8FF",
@@ -25,7 +25,7 @@
   "engineColor": "#5FF2D0",
   "hearts": 2,
   "heartSize": 0.18,
-  "heartOrbit": 0.85,
+  "heartOrbit": 0.588,
   "heartStyle": "Halo",
   "exhaustShip": 3,
   "exhaustScale": 0,
@@ -40,7 +40,7 @@
   "attack": "net_cast",
   "launchFrom": "reefdock",
   "lore": "A reef-docked trawler that blocks your lane and casts its nets across your row. Each net lands as a sticky pool and lingers while the board carries it down. There is always one hole in the net, on the side nearer the middle.",
-  "hullRadius": 0.31,
+  "hullRadius": 0.495,
   "turnsToFace": false,
   "speed": 1.9,
   "accel": 3.5,
@@ -97,5 +97,6 @@
       "y": 146,
       "dir": -1.0
     }
-  ]
+  ],
+  "followLag": 0.25
 }
