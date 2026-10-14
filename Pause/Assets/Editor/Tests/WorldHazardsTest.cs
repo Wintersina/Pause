@@ -663,7 +663,14 @@ public static class WorldHazardsTest
         WorldHazards.ClearAll();
         Check("... and not once it has ended", CoverBoulderDirector.Blocked(5, 100f) == null);
         // direction 2: a boulder is on screen -> no hazard starts, a running one fades
-        var b = CoverBoulders.Spawn(5, 0);
+        // only Space boulders are interactive cover: a Storm landform is decorative and must NOT count
+        var land = CoverBoulders.Spawn(5, 0);
+        Check("a Storm landform spawned but is decorative (not interactive cover)", land != null && CoverBoulders.AliveAny == 1 && CoverBoulders.Alive == 0);
+        var sit0 = WorldHazards.Read(); sit0.world = 5;
+        Check("a decorative landform is not cover for the hazard seam", !HazardCoverSeam.CoverOnScreen && !sit0.coverOnScreen);
+        Check("... so hazards are not blocked by it (the cover reason)", WorldHazards.Blocked(sit0, 100f, 99f) == null || !WorldHazards.Blocked(sit0, 100f, 99f).ToLower().Contains("cover"));
+        CoverBoulders.Clear();
+        var b = CoverBoulders.Spawn(0, 0);   // Space: the interactive cover boulder (the hazard world stays Storm)
         Check("a boulder spawned", b != null && CoverBoulders.Alive == 1);
         var sit = WorldHazards.Read(); sit.world = 5;
         Check("the real boulder is seen by the hazards (CoverOnScreen)", HazardCoverSeam.CoverOnScreen && sit.coverOnScreen);
@@ -676,7 +683,7 @@ public static class WorldHazardsTest
         m.Begin(Def("tornado"));
         for (int i = 0; i < 4 * 60; i++) { m.Tick(Dt, open); m.StepFields(Dt); }
         Check("a tornado is acting", WorldHazards.AnyActing);
-        CoverBoulders.Spawn(5, 0);
+        CoverBoulders.Spawn(0, 0);
         open.coverOnScreen = HazardCoverSeam.CoverOnScreen;
         for (int i = 0; i < 90; i++) { m.Tick(Dt, open); m.StepFields(Dt); }
         Check("a boulder appearing mid-event fades the real hazard out", !WorldHazards.AnyActive);
