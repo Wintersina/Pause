@@ -1,0 +1,147 @@
+# Cover boulders
+
+Branch `feat/cover-boulders`. Code: `Pause/Assets/Scripts/Gameplay/Cover/`. Tests: `CoverBoulderTest*`, `ScreenFit` screens `cover-*`.
+Art staging: `Pause/Assets/Art/Boulders~/<World>/` (not shipped until vetted; see section 12).
+
+## 1. Idea (user request, 2026-10-13)
+
+Rarely a huge boulder drifts slowly down the lane. The player can hide behind it: it blocks **everything** (player shots, enemy shots, beams, blasts, bodies)
+and nothing can destroy it. The ship is blocked by it too (solid, slides round it) but takes no damage. When a **boss** arrives the boulder is destroyed
+(a short rumble / crack / burst sequence) to clear the field, and none spawn during a boss fight. Every world has its own boulder (own material, own art,
+own drift style, own tuning). Pink only in Space.
+
+## 2. What a cover boulder is
+
+* An **object of the board, not of a backdrop layer**: it is drawn *behind* the player, enemies and every shot (sorting order `-7`, above all backdrop
+  layers, below the boss's play order `-3`), so a shot that is stopped by it is seen to die on its face and the ship is never half hidden by it.
+* **3-5x an enemy ship** wide (2.0 .. 3.0 u; the lane's rails are 2.61 u from the centre, the ship's reach is +-2.2 .. 2.45 u).
+* **Solid shape** = one to four circles per variant fitted inside the art's silhouette (`boulder.json`, written by `scripts/verify_boulder_art.py`;
+  they sit 6 % inside the art so the ship can tuck against the drawn edge). The shape rotates / sways / bobs with the art.
+* **Pooled** (`CoverBoulders.Slots` = 2 boulder objects built once, one on screen at a time), nothing allocates per frame.
+* Indestructible: no weapon, ultimate, secret power, mine blast, ramming or shockwave changes its state. Only the boss clear (section 8) and leaving the
+  view end it. A shielded / boosted ship does not smash it either (it is not a hazard: no tag `Enimey` / `Astr`, never in `ClearTarget`).
+
+## 3. Per-world design table
+
+Sizes are the drawn art's width in world units (the ship's hull is ~0.8 u wide, a normal enemy ~0.7 u).
+Speeds: the boulder's own fall down the screen and its sideways drift, u/s, **independent of the board's scroll** (it is a landmark you hide behind, not a
+thing that rushes past). All numbers live in ONE place: `CoverBoulderTable` (section 9).
+
+| World | Boulder (3 variants each) | Width u | Drift style | Fall / sideways u/s | Spawn gap s | Crack light / debris | Destruction concept |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Space | purple-lit cratered asteroid (the user's `asteroid_00..02`, magenta cracks, cyan rim) | 2.0 / 2.4 / 2.8 | **Tumble**: slow spin 3-7 deg/s either way | .50-.80 / +-.15 | 45-85 | magenta cracks, rock chips + magenta crumbs | it cracks along its magenta veins, bursts into chunks that keep glowing, crumbs drift off |
+| Frost | ice mountain: broad two-peak crag / sheared iceberg block / twin-spire crag with a cave arch | 2.4 / 2.6 / 2.8 | **Slide**: never rotates, flat foot down, very slow, a slight lateral sway | .35-.60 / +-.10 | 50-90 | cold white-cyan light, ice shards + snow dust | the mountain splits down a crevasse, peaks topple off, snow cloud |
+| Verdant | giant tree: broken trunk with root crown / floating root-ball with a canopy tuft / hollow trunk arch | 2.3 / 2.6 / 2.9 | **Sway**: pendulum +-3 deg, 9 s period, slow fall | .40-.65 / +-.12 | 45-85 | jade sap light, bark chips + leaves + spore puffs | the trunk splits, bark and roots fly, sap-light burst, leaves flutter |
+| Ember | volcanic stone: obsidian spire / lava-veined slab / basalt column cluster | 2.2 / 2.6 / 2.8 | **Rock**: heavy rocking +-6 deg, 7 s period | .45-.75 / +-.10 | 45-85 | amber lava light, obsidian shards + slag drops | lava seams flare, it shatters into glowing slabs, ash cloud |
+| Tide | reef: barnacled sea stack / coral rock arch / domed reef mound | 2.2 / 2.9 / 2.7 | **Bob**: vertical bob .12 u (6 s) + sway +-2 deg | .40-.65 / +-.15 | 45-85 | mint-aqua polyp light, coral chips + shells + bubbles | polyps flash, the reef bursts into coral and shell, bubbles rise |
+| Storm | floating thunderhead rock: anvil crag with a cloud skirt / storm island with a ruined refinery stump / hail-stone cluster | 2.4 / 2.9 / 2.6 | **Hover**: bob .10 u (5 s) + slow lean +-1.5 deg, flicker | .45-.70 / +-.20 | 40-80 | storm-white / pale-yellow flashes, slate chips + hail + static | lightning runs through it, it blows into slate and hail, vapour puff |
+| Desert | sandstone: flat-topped mesa / natural rock arch / strip-mined butte with girders | 2.5 / 2.9 / 2.6 | **Slide** (like Frost) with a faint dust trail | .35-.60 / +-.10 | 50-90 | sun-gold light in the cracks, sand + slabs + dust | strata crack, slabs fall away, a sand cloud rolls off |
+
+A world with no vetted art is **not enabled** (`CoverBoulderTable.Enabled`): nothing spawns there (the system is testable everywhere through
+`CoverBoulders.ArtOverride`). On this branch only Space is wired (section 12).
+
+## 4. Interactions (what blocks, what passes)
+
+"Blocked" = stopped at the boulder's face with a few world-coloured chips and a soft thud (rate limited); the boulder is never damaged.
+
+### Player weapons (`ShipAttackRunner`, `AttackProjectile`)
+
+| Weapon | Rule |
+| --- | --- |
+| Straight / seeker / homing / ricochet / javelin / fireball shots (comet, feather fan, gatling, fireball, seekers, lances, missiles, javelins) | **blocked**: the shot ends where its path meets a boulder (no burst damage; a fireball fizzles) |
+| Rail slug, tractor beam | **truncated**: the beam's length ends at the first boulder in its column; nothing beyond is hit, nothing beyond is pulled |
+| Blowtorch cone | **blocked by line of sight**: a target whose line from the nose crosses a boulder is not burned (the drawn cone is cosmetic) |
+| Chain lightning | **blocked per hop**: a hop whose segment crosses a boulder is not taken (the chain ends) |
+| Orbit disc | **blocked**: while the disc is inside a boulder it hits nothing |
+| Ultimate (the cinematic homing volley) and its top-tier volley | **pass**: the volley is a cinematic reward that curves round cover; it never harms the boulder |
+| Secret powers (shield pulse, EMP, clap, nova, black hole, tractor, decoy, blink dash, cloak) | **pass**: ring / field / self powers, not projectiles; the boulder is untouched. A blink that lands inside a boulder is pushed out to its face |
+| Shield-burst shockwave (`ShieldShockwave`) | the wave is **blocked** (a body whose line from the ship crosses a boulder is not shoved); a shoved body that meets a boulder is a **crash** (below) |
+| Hostile shots shot down by a player projectile | unchanged (a player shot stopped by a boulder shoots nothing down beyond it) |
+
+### Hostile fire
+
+| Source | Rule |
+| --- | --- |
+| Elite and boss projectiles (`IHostileShot`: bolts, shards, shells, slag, ricochets, roots...) | **blocked** by `HostileShots.Resolve` (popped at the face; a ricochet pops too) |
+| Lasers / beams (`BossBeam`, `RailMineLaser`) and themed area hazards (jets, wave bands, blast rings, strike columns, lashes: `AttackHazard`) | **line of sight**: a hit on the ship by a hazard whose shooter (or mine) has a boulder between it and the ship does not land (no heart, no shield spent); the drawn beam is cosmetic. Hazards still hurt other enemies as before |
+| Mine blasts | same rule (the mine / the blast origin is the shooter) |
+| Bodies (enemy ships, rocks, chasers, elites in play, mines that are not on a rail) | **solid**: pushed out of every boulder each frame, they slide round it (their own movers keep running). No damage either way; bodies never pass through a boulder |
+| Rail mines | ride their rail, which is never covered (boulders keep clear of the rails, section 7) |
+| Shoved / shield-burst bodies and `ShoveCrash` carriers | **crash**: a body shoved into a boulder crashes there by the same roll as the rail crash (`ShoveCrash.RailChance(impact speed, weight)`, at most `RailMaxKillsPerWave` a release; the kill is the pilot's, paid, no death combo); a survivor scrapes (3 sparks) and is pushed out. Elites and bosses never die of it (an elite loses nothing: it is pushed out) |
+| Contact with the ship | the ship is **blocked, never damaged**; see section 7 |
+| Boss body and its entrance | the boulder is gone before the boss lands (section 8) |
+
+## 5. Spawn rules (`CoverBoulderDirector`, gameS1 only, like `EliteDirector`)
+
+* At most **one** on screen (`MaxAlive` 1). Next one after a random gap in the world's `gap` range (x 1 on loop 0, never shorter than 40 s).
+* Never in the **first 20 s of a world** (this includes the 8 s calm start) and never while: `WorldEntry.Active`, a planetfall / lift-off / portal
+  arrival (`SuspendsSpawning`), a world transition, an open portal / planet waiting (`PortalIsOpen`), the boss run-up (`SecondsLeftInWorld < 14`),
+  `BossEncounter.Running`, the tutorial, the player dead, `ResumeFx` slow-mo, a cinematic ultimate.
+* Never while an **elite is parked or lifting off** (their landing sites and entrances stay clear), and `EliteDirector` skips any landing site a
+  boulder covers (`CoverBoulders.SiteCovered`).
+* It enters from above the view (or, for drift styles with a sideways speed, from the top corner away from the rail it hugs), leaves out of the bottom
+  or the side, and is released when fully outside the view with a margin.
+* On a world change, a death or a scene change every boulder is removed at once (quick fade, not the destruction).
+* Frozen world (finger up with pauses left, `timeScale 0`): nothing moves, same rule as every hazard.
+
+## 6. Art contract (per world, three variants + destruction strip)
+
+* `boulder.png` 1536 x 512 (three 512 cells), `break.png` 2560 x 1536 (row = variant, five 512 cells), transparent, hard pixel edges.
+* Light from the upper left, a **thin pale outline** (2 px), no pink outside Space, ink-dark body with real material texture.
+* Frame 0 of each break row is the intact variant with first cracks lit; frame 4 is the last dust (8-35 % of the area).
+* `scripts/verify_boulder_art.py <dir> --world <W> --manifest --sheet preview.png` checks all of it and writes the hit-circle manifest `boulder.json`.
+* Codex prompts: `docs/cover-boulders-codex/` (`common.md` + `worlds/<World>.md`), run headless one at a time in a separate worktree.
+* Runtime: the sheets are loaded per world on demand and unloaded when the world changes (a few MB compressed each).
+
+## 7. Safety: the ship can never be trapped or crushed
+
+The ship follows the finger absolutely (`movePlayer`), so there is no physics push to pin it. The boulder only **filters the placement**:
+`CoverBoulders.Resolve(pos, hullRadius, reach)` moves the target out along the circle normal (or, near the centre, away from where the ship was), then
+re-clamps to the reach, then, if the clamp put it back inside, takes the nearest free exit on the same row. So the ship slides round the face.
+
+Guarantee (tested by `CoverBoulderTest.Safety`): a boulder is only ever placed / steered where **one side of the lane stays free by at least
+`MinFreeReach` = .9 u of the ship's centre range** (`|cx| >= HalfWidth - MinFreeReach - boundingRadius - hull` on the side it hugs, measured with the
+rotation-proof bounding radius). Its centre line never crosses the forbidden band between the two sides, and the sideways drift is clamped to its side.
+No path of the boulder ever covers the full width of the reach at any row; for any finger position `Resolve` returns a point outside every circle and
+inside the reach (swept over a grid of fingers x boulder positions x variants in the test). The rails are never covered: the boulder's circles stay
+`RailClear` .15 u off the drawn rail edge. A boulder that is still over a landing finger when the boss arrives is destroyed, so the boss's ceiling /
+floor logic is never involved.
+
+## 8. Boss arrival (`CoverBoulders.OnBossBegin()`, one line in `BossEncounter.Setup`)
+
+Every boulder starts a **destruction sequence** (about 1.4 s of world time), then is released:
+
+1. **rumble** (.55 s): it shakes (+-.04 u, rising), a dark crack light flickers through the art (the world's crack colour, additive tint), a low thud
+   (`Shockwave/shield_release` at .35) and a small camera kick;
+2. **crack** (.35 s): break frames 0-1 play; 6 small chips peel off;
+3. **burst** (.5 s): frames 2-4 play (the drawn strip), 18 world-coloured debris pixels fly out from the face, a bigger kick, the existing rock explosion
+   sound (`collisionDetection.PlayExplosion`); the collision shape is gone from the first frame of the burst; shots / bodies are never frozen by it.
+
+A world without drawn break frames plays the same sequence with the **procedural fracture**: the sprite is cut into 3 x 3 tile pieces (pooled sprites)
+that part along the cracks. Never any beep or coin sound. No boulder is spawned during the fight, the outro or the portal wait.
+
+## 9. Data / tuning (one place)
+
+`CoverBoulderTable` (`Gameplay/Cover/CoverBoulderTable.cs`): one `Entry` per world (`Space` .. `Desert`, in `WorldManager.Worlds` order) with the art
+folder, enabled flag, width per variant, drift style + numbers, gap range, crack / debris colours. `CoverBoulderTable.Validate()` (used by the test)
+checks every world has an entry, ranges are sane, no pink outside Space. Global constants (first delay, max alive, the free-reach rule, the hide
+radius, sound volumes) sit at the top of `CoverBoulders`.
+
+## 10. Layer, cost, screens
+
+* Sorting order -7; the chips / debris pixels use order 28 (under shots at 30).
+* `CoverBoulders.Step(dt)` is O(boulders x circles) with <= 4 circles, hostile shots are tested in `HostileShots.Resolve` (already O(shots)), bodies by
+  `ClearTarget.Live`. No allocation after `Prewarm` (measured by `CoverBoulderTest.Cost`). 60 fps budget: well under .05 ms per frame on device-class code.
+* ScreenFit: the boulder's width is clamped to `.62 x` the lane's rail-to-rail width, its path and the 1 u of free lane are checked on every device shape
+  (`CoverBoulderTest.Screens`, and `cover-*` ScreenFit screens).
+
+## 11. Tests (`CoverBoulderTest`, gate lane)
+
+Blocking of every projectile kind and the beam truncations, indestructibility by every damage source, the ship blocked without damage and never
+trapped (grid sweep + corner cases), bodies solid, crash rules, boss arrival destroys boulders and prevents spawns, the spawn rules per world
+(rarity, first delay, blocked states), pooling / no allocations, world table completeness, no pink outside Space, ScreenFit device shapes.
+
+## 12. Status
+
+See the PR description: what is wired (Space with the user's reference art + procedural fracture until the break strip is vetted) and which art
+is staged and awaiting the user's approval (`Pause/Assets/Art/Boulders~/<World>/preview.png`).
