@@ -212,7 +212,7 @@ public class ShipAttackRunner : MonoBehaviour
                 break;
             case ShipAttack.TractorBeam:
                 {
-                    float len = BeamLength(nose, l.range);
+                    float len = BeamLength(nose, l.range, l.width);
                     run.visual = AttackPool.Sprite().Play(AttackSprite.Source.AttackLoop, ship, nose,
                         new Vector3(l.width * 2f * 1.5f, len, 1f), 0f, ShipFxArt.LoopTicks, true, l.duration,
                         transform, Vector3.up * (noseOffset + len * .5f), 69).Owned(run);
@@ -292,11 +292,12 @@ public class ShipAttackRunner : MonoBehaviour
         return new Vector3(halfWidth * 2f * 1.15f, l.range, 1f);
     }
 
-    static float BeamLength(Vector3 from, float range)
+    static float BeamLength(Vector3 from, float range, float halfWidth = .1f)
     {
         Rect view = ShipTargets.View();
         float top = Mathf.Min(view.yMax + .3f, from.y + range);
-        return Mathf.Max(1f, top - from.y);
+        // a cover boulder cuts the beam at its face: nothing beyond it is hit or pulled
+        return CoverBoulders.ClipUp(from, Mathf.Max(1f, top - from.y), halfWidth);
     }
 
     AttackProjectile Launch(AttackRun run, AttackProjectile.Kind kind, Vector3 from, Vector3 dir, float speed,
@@ -330,7 +331,7 @@ public class ShipAttackRunner : MonoBehaviour
     void Rail(AttackRun run, Vector3 nose)
     {
         var l = run.loadout;
-        float len = BeamLength(nose, l.range);
+        float len = BeamLength(nose, l.range, l.width);
         AttackPool.Sprite().Play(AttackSprite.Source.AttackLoop, ship, nose + Vector3.up * len * .5f,
             new Vector3(l.width * 2f * 1.6f, len, 1f), 0f, ShipFxArt.BurstTicks, false, 0f, null, Vector3.zero, 70);
         AttackPool.Sprite().Play(AttackSprite.Source.AttackBurst, ship, nose, Vector3.one * 1.1f, 0f,
@@ -502,6 +503,7 @@ public class ShipAttackRunner : MonoBehaviour
             var t = ShipTargets.Nearest(run.point, reach, run.hit);
             if (t == null || run.hops >= l.maxHits) { run.active = false; break; }
             Vector3 to = t.transform.position;
+            if (CoverBoulders.Blocked(run.point, to)) { run.active = false; break; }   // a cover boulder cuts the chain
             Arc(run.point, to);
             AttackPool.Sprite().Play(AttackSprite.Source.AttackBurst, ship, to, Vector3.one * .8f, 0f,
                 ShipFxArt.BurstTicks, false, 0f, null, Vector3.zero, 71);
@@ -534,6 +536,7 @@ public class ShipAttackRunner : MonoBehaviour
             var t = targets[i];
             if (t == null || !t.isActiveAndEnabled) continue;
             if (!InCone(t.transform.position, t.Radius, nose, l.range, l.width)) continue;
+            if (CoverBoulders.Blocked(nose, t.transform.position)) continue;   // behind a cover boulder: the flame does not reach it
             Touch(run, t.gameObject, bossTick, .2f);
         }
     }
@@ -558,7 +561,7 @@ public class ShipAttackRunner : MonoBehaviour
     {
         var l = run.loadout;
         Vector3 nose = Nose;
-        float len = BeamLength(nose, l.range);
+        float len = BeamLength(nose, l.range, l.width);
         ShipTargets.Collect(targets);
         bool bossTick = run.t >= run.next;
         if (bossTick) run.next = run.t + .25f;
@@ -591,6 +594,7 @@ public class ShipAttackRunner : MonoBehaviour
         Vector3 disc = transform.position + new Vector3(Mathf.Cos(a), Mathf.Sin(a), 0f) * l.width;
         if (run.disc != null && run.disc.Active) run.disc.transform.position = disc;
         run.point = disc;
+        if (CoverBoulders.Inside(disc, 0f)) return;   // the disc is behind a cover boulder: it hits nothing
         ShipTargets.Collect(targets);
         bool bossTick = run.t >= run.next;
         if (bossTick) run.next = run.t + .4f;
@@ -1058,6 +1062,14 @@ public class AttackProjectile : MonoBehaviour
 
         Vector3 to = from + dir * speed * dt;
         travelled += speed * dt;
+        // a cover boulder stops it where its path meets the face: no damage to either (CoverBoulders)
+        Vector2 stopped;
+        if (CoverBoulders.StopsPlayerShot(from, to, radius, out stopped))
+        {
+            transform.position = new Vector3(stopped.x, stopped.y, from.z);
+            Finish(false);
+            return;
+        }
         transform.position = to;
         // Defensive play: hostile shots it passes through are shot down
         // (no score); it flies on, its own hits unchanged (HostileShots).

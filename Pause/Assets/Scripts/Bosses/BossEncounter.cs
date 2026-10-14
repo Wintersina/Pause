@@ -209,6 +209,7 @@ public class BossEncounter : MonoBehaviour
     void Setup(int worldIndex, Action finished)
     {
         Teardown();
+        CoverBoulders.OnBossBegin();   // a cover boulder breaks to clear the field (docs/cover-boulders.md section 8)
         world = worldIndex;
         boss = BossCatalog.ForWorld(worldIndex);
         onFinished = finished;

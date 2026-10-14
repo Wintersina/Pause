@@ -9,7 +9,7 @@
     break.png     2560 x 1536  the destruction strip: row = variant, 5 columns of 512 x 512 cells
                                col 0 = the intact variant with its first cracks lit, col 4 = the last drifting dust
 
-Prints a PASS / FAIL table and exits 1 on any failure.  --manifest writes <DIR>/boulder.json: per variant the
+Prints a PASS / FAIL table and exits 1 on any failure.  --manifest writes <DIR>/manifest.json: per variant the
 alpha bounding box, a few hit circles (cell px, origin = cell centre, y up) fitted inside the silhouette, and the
 measured stats the game reads (docs/cover-boulders.md 6).  --sheet writes a contact sheet on dark #0b0b1a at 1x
 (never any mock UI) for the user to vet.
@@ -113,13 +113,15 @@ def main():
     ap.add_argument("--world", required=True)
     ap.add_argument("--manifest", action="store_true")
     ap.add_argument("--sheet")
+    ap.add_argument("--no-break", action="store_true", help="the intact sheet only (Space before its strip exists)")
+    ap.add_argument("--intact", nargs=3, metavar="RES", help="Resources paths of three in-place intact sprites (Space)")
     args = ap.parse_args()
     world = args.world
     space = world.lower() == "space"
 
     b = load(os.path.join(args.dir, "boulder.png"), (CELL * VARIANTS, CELL))
-    k = load(os.path.join(args.dir, "break.png"), (CELL * FRAMES, CELL * VARIANTS))
-    if b is None or k is None:
+    k = None if args.no_break else load(os.path.join(args.dir, "break.png"), (CELL * FRAMES, CELL * VARIANTS))
+    if b is None or (k is None and not args.no_break):
         print("cannot go on without both files at the right size")
         sys.exit(1)
 
@@ -166,12 +168,13 @@ def main():
         if not space:
             pk = pinkness(cell)
             check("v%d: no pink outside Space (%.2f%%)" % (v, pk * 100), pk <= .002)
-        variants.append({"bbox": [x0, y0, x1, y1], "circles": fit_circles(cell)})
+        variants.append({"x0": x0, "y0": y0, "x1": x1, "y1": y1,
+                         "circles": [{"x": c[0], "y": c[1], "r": c[2]} for c in fit_circles(cell)]})
 
     if space:   # the user's reference sheet is lit from the right (cyan rim): only the three must agree
         check("the three variants share one light direction (%s)" % " ".join("%.1f" % x for x in lights),
               all(x > 1 for x in lights) or all(x < -1 for x in lights))
-    for v in range(VARIANTS):
+    for v in range(VARIANTS if k is not None else 0):
         frames = [k[v * CELL:(v + 1) * CELL, f * CELL:(f + 1) * CELL] for f in range(FRAMES)]
         a0 = (b[:, v * CELL:(v + 1) * CELL][..., 3] > 128)
         f0 = frames[0][..., 3] > 128
@@ -192,18 +195,20 @@ def main():
                 break
 
     if args.manifest:
-        out = {"world": world, "cell": CELL, "variants": variants, "break": {"cell": CELL, "frames": FRAMES}}
-        with open(os.path.join(args.dir, "boulder.json"), "w") as fh:
+        out = {"world": world, "cell": CELL, "variants": variants, "breakFrames": 0 if k is None else FRAMES,
+               "intact": list(args.intact) if args.intact else []}
+        with open(os.path.join(args.dir, "manifest.json"), "w") as fh:
             json.dump(out, fh, indent=1)
-        print("wrote boulder.json (%d circles)" % sum(len(v["circles"]) for v in variants))
+        print("wrote manifest.json (%d circles)" % sum(len(v["circles"]) for v in variants))
 
     if args.sheet:
         W = CELL * FRAMES
         sheet = Image.new("RGBA", (W, CELL * (VARIANTS + 1)), (11, 11, 26, 255))
         sheet.alpha_composite(Image.fromarray(b), (0, 0))
-        kk = Image.fromarray(k)
-        for v in range(VARIANTS):
-            sheet.alpha_composite(kk.crop((0, v * CELL, W, (v + 1) * CELL)), (0, CELL * (v + 1)))
+        if k is not None:
+            kk = Image.fromarray(k)
+            for v in range(VARIANTS):
+                sheet.alpha_composite(kk.crop((0, v * CELL, W, (v + 1) * CELL)), (0, CELL * (v + 1)))
         sheet.convert("RGB").save(args.sheet)
         print("wrote", args.sheet)
 

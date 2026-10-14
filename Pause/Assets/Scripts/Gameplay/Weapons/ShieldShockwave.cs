@@ -190,6 +190,7 @@ public static class ShieldShockwave
                 brain.Stage != EnemyBrain.PilotStage.Engaging && brain.Stage != EnemyBrain.PilotStage.Exiting) continue;
 
             Vector2 p = t.transform.position;
+            if (CoverBoulders.Blocked(ship, p)) continue;   // behind a cover boulder: the wave does not reach it
             SpawnFootprint print;
             bool hasPrint = go.TryGetComponent(out print) && print.isActiveAndEnabled;
             Vector2 h = hasPrint ? print.half : new Vector2(t.Radius, t.Radius);
@@ -476,6 +477,12 @@ public static class EnemyShove
                 x = Mathf.Clamp(x, -lane, lane);
                 e.last = new Vector3(x, p.y + step.y, p.z);
                 e.body.position = e.last;
+                // it met a cover boulder: a crash by the rail-crash roll, else a scrape (CoverBoulders.ShoveMeet)
+                if (CoverBoulders.Any)
+                {
+                    if (CoverBoulders.ShoveMeet(e.body, e.halfX, new Vector2(step.x, step.y), dt)) { Remove(i); continue; }
+                    e.last = e.body.position;
+                }
                 // it met the side rail: a flung body crashes there, any other grinds along it
                 if (onRail && !e.railed)
                 {

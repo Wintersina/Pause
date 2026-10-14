@@ -104,6 +104,7 @@ public static class AllTests
         ("CameraFitTest", CameraFitTest.Execute),
         ("CinematicEarlyClearTest", CinematicEarlyClearTest.Execute),
         ("CloakShieldTest", CloakShieldTest.Execute),
+        ("CoverBoulderTest", CoverBoulderTest.Execute),
         ("CodexTest", CodexTest.Execute),
         ("CodexWhiteSpriteTest", CodexWhiteSpriteTest.Execute),
         ("CooldownAtomTest", CooldownAtomTest.Execute),

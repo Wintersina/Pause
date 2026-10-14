@@ -38,7 +38,8 @@ thing that rushes past). All numbers live in ONE place: `CoverBoulderTable` (sec
 | Desert | sandstone: flat-topped mesa / natural rock arch / strip-mined butte with girders | 2.5 / 2.9 / 2.6 | **Slide** (like Frost) with a faint dust trail | .35-.60 / +-.10 | 50-90 | sun-gold light in the cracks, sand + slabs + dust | strata crack, slabs fall away, a sand cloud rolls off |
 
 A world with no vetted art is **not enabled** (`CoverBoulderTable.Enabled`): nothing spawns there (the system is testable everywhere through
-`CoverBoulders.ArtOverride`). On this branch only Space is wired (section 12).
+`CoverBoulders.TestAnyWorld`, which borrows Space's art). On this branch only Space is wired (section 12). The fall speeds above are the first
+draft; the shipped numbers are the table in `CoverBoulderTable.cs` (.6-1.1 u/s, i.e. 16-30 s on screen).
 
 ## 4. Interactions (what blocks, what passes)
 
@@ -96,16 +97,18 @@ A world with no vetted art is **not enabled** (`CoverBoulderTable.Enabled`): not
 ## 7. Safety: the ship can never be trapped or crushed
 
 The ship follows the finger absolutely (`movePlayer`), so there is no physics push to pin it. The boulder only **filters the placement**:
-`CoverBoulders.Resolve(pos, hullRadius, reach)` moves the target out along the circle normal (or, near the centre, away from where the ship was), then
-re-clamps to the reach, then, if the clamp put it back inside, takes the nearest free exit on the same row. So the ship slides round the face.
+`CoverBoulders.ResolveStep(want, prev, prevWant, ...)` moves the target out along the circle normal (or, near the centre, away from where the ship was), re-clamps
+to the reach, and if the clamp put it back inside takes the nearest free exit on the same row, then the column. The hull may only **slide** round a boulder
+(`SlideSpeed` 18 u/s): a held finger that comes out on the far side of it, or has been held off by it, walks the ship round the face instead of jumping; a
+pause-teleport (finger lands more than `TeleportDistance` 3.2 u from where it was) places it at once.
 
-Guarantee (tested by `CoverBoulderTest.Safety`): a boulder is only ever placed / steered where **one side of the lane stays free by at least
-`MinFreeReach` = .9 u of the ship's centre range** (`|cx| >= HalfWidth - MinFreeReach - boundingRadius - hull` on the side it hugs, measured with the
-rotation-proof bounding radius). Its centre line never crosses the forbidden band between the two sides, and the sideways drift is clamped to its side.
-No path of the boulder ever covers the full width of the reach at any row; for any finger position `Resolve` returns a point outside every circle and
-inside the reach (swept over a grid of fingers x boulder positions x variants in the test). The rails are never covered: the boulder's circles stay
-`RailClear` .15 u off the drawn rail edge. A boulder that is still over a landing finger when the boss arrives is destroyed, so the boss's ceiling /
-floor logic is never involved.
+Guarantee (tested by `CoverBoulderTest.Lanes / Safety / DynamicSafety / Screens`): **both sides** of a boulder keep `SideGap` = 1.0 u between its
+circles and the drawn rail face, whatever its turn (the band `|cx| <= Edge - SideGap - boundingRadius` uses the rotation-proof bounding radius; the drift
+turns round at its edges), so a hull (0.78 u wide) always fits beside it and a ship at a rail is never squeezed between boulder and rail. Boulder width is
+shrunk on a narrow lane (`FitScale`: at most .62 of the rail-to-rail width and room for .25 u of sideways travel). For every finger on a grid x boulder
+positions x variants x turns x six lane shapes `Resolve` returns a point outside every circle and inside the reach; a boulder falling onto a still finger
+at the floor or a wall moves the ship continuously (<= .6 u a frame at the first touch, the rest at the slide speed) and the ship is back under the finger
+when it has passed. A boulder still over the field when a boss arrives is destroyed.
 
 ## 8. Boss arrival (`CoverBoulders.OnBossBegin()`, one line in `BossEncounter.Setup`)
 
@@ -143,5 +146,9 @@ trapped (grid sweep + corner cases), bodies solid, crash rules, boss arrival des
 
 ## 12. Status
 
-See the PR description: what is wired (Space with the user's reference art + procedural fracture until the break strip is vetted) and which art
-is staged and awaiting the user's approval (`Pause/Assets/Art/Boulders~/<World>/preview.png`).
+* **Space: wired and approved by the user** (2026-10-13): the three reference asteroids in place (`Worlds/Space/Backdrop/asteroid_00..02`, magenta glow is
+  Space-only) with the Codex destruction strip `Art/Resources/Boulders/Space/break.png` and `manifest.json` (hit circles from `verify_boulder_art.py`).
+* **Frost, Verdant, Ember, Tide, Storm, Desert: designed (section 3), prompts written (`docs/cover-boulders-codex/`), art NOT drawn / NOT shown to the
+  user yet.** To add one: run `codex exec` with `common.md` + `worlds/<World>.md` in a separate worktree, run `scripts/verify_boulder_art.py <dir> --world
+  <World> --manifest --sheet preview.png`, show the preview, and when approved move `boulder.png`, `break.png`, `manifest.json` to
+  `Art/Resources/Boulders/<World>/` and set `enabled = true` in `CoverBoulderTable`.
