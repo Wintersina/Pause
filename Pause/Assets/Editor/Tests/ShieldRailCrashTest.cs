@@ -188,8 +188,17 @@ public static class ShieldRailCrashTest
         Check("... paid like any crash kill: score up (" + (RunScore.Total - total) + ")", RunScore.Total > total);
 
         Fresh(true);
-        var spared = Fighter(at);
-        ShoveCrash.RollOverride = () => Mathf.Min(.999f, chance + .01f);   // the roll fails
+        // (the burst is hard enough that a body beside the hull is a sure kill; a body further out has a share)
+        Vector2 farAt = Ship + new Vector2(2.3f, .3f);
+        float farChance = 1f;
+        for (float fx = 2.2f; fx <= 3.2f && farChance >= .9f; fx += .05f)
+        {
+            farAt = Ship + new Vector2(fx, .3f);
+            farChance = ShoveCrash.RailChance(ShieldShockwave.RailImpact(farAt.x, ThrowX(farAt), Lane(.2f)), 1);
+        }
+        var spared = Fighter(farAt);
+        Check("a body further out has only a share of a chance (" + farChance.ToString("F2") + ")", farChance > 0f && farChance < .95f);
+        ShoveCrash.RollOverride = () => Mathf.Min(.999f, farChance + .01f);   // the roll fails
         Release();
         Step(ShieldShockwave.PushSeconds + .15f);
         float x = Mathf.Abs(spared.transform.position.x);
@@ -209,8 +218,8 @@ public static class ShieldRailCrashTest
     static float ThrowX(Vector2 at)
     {
         Vector2 d = at - Ship;
-        float k = Mathf.Clamp01(1f - (d.magnitude - .2f) / ShieldShockwave.Radius);
-        return d.normalized.x * ShieldShockwave.RadialPush * k;
+        float k = Mathf.Pow(Mathf.Clamp01(1f - (d.magnitude - .2f) / ShieldShockwave.Radius), ShieldShockwave.RadialFalloff);
+        return ShieldShockwave.WallThrow(d.normalized).x * ShieldShockwave.RadialPush * k;
     }
 
     // ---- 4 ---------------------------------------------------------------------

@@ -61,6 +61,7 @@ public static class ShieldShockwaveTest
                       ", EliteColumnKick " + ShieldShockwave.EliteColumnKick);
             TheShieldEndingFiresIt();
             RadiusPushesOutward();
+            BurstSlamsIntoTheWalls();
             ColumnPushesUpScreen();
             HazardsKeepTheirBehaviour();
             PilotsAreShovedAndReturn();
@@ -214,7 +215,7 @@ public static class ShieldShockwaveTest
         var close = Hazard(Ship + new Vector2(.75f, .1f));
         var mid = Hazard(Ship + new Vector2(-1.2f, -.3f));
         var below = Hazard(Ship + new Vector2(.1f, -.9f));
-        var outside = Hazard(Ship + new Vector2(3.4f, .9f));
+        var outside = Hazard(Ship + new Vector2(4.4f, .9f));
         var rock = Hazard(Ship + new Vector2(-.8f, .7f), .4f, "Astr");
         var all = new[] { close, mid, below, outside, rock };
         var start = new Vector2[all.Length];
@@ -233,9 +234,9 @@ public static class ShieldShockwaveTest
         {
             Vector2 away = (start[i] - Ship).normalized;
             // (the lane's rails stop the sideways part of a hard throw, so the line bends a little)
-            outward &= moved[i].magnitude > .05f && Vector2.Dot(moved[i].normalized, away) > .6f;
+            outward &= moved[i].magnitude > .05f && Vector2.Dot(moved[i].normalized, away) > .3f;   // (WallBias leans the throw toward the rails)
         }
-        Check("hazards inside the radius are pushed straight away from the ship (" + moved[0].magnitude.ToString("F2") + ", " +
+        Check("hazards inside the radius are pushed away from the ship, leaning to the rails (" + moved[0].magnitude.ToString("F2") + ", " +
               moved[1].magnitude.ToString("F2") + ", " + moved[2].magnitude.ToString("F2") + " u)", outward);
         Check("... a rock like any hazard (" + moved[4].magnitude.ToString("F2") + " u)", moved[4].magnitude > .05f);
         Check("the closer, the harder (" + moved[0].magnitude.ToString("F2") + " > " + moved[1].magnitude.ToString("F2") + ")",
@@ -249,6 +250,37 @@ public static class ShieldShockwaveTest
         Vector3 rest = close.transform.position;
         Run(.5f);
         Check("... and leave the hazard where they put it", close.transform.position == rest);
+    }
+
+    // The burst is a real slam: a body 1.5-2 u from the ship is thrown far
+    // and ends against a side rail, not a few tenths away.
+    static void BurstSlamsIntoTheWalls()
+    {
+        Fresh();
+        Check("tunables: push " + ShieldShockwave.RadialPush + " >= 8, wall bias " + ShieldShockwave.WallBias + " > 1",
+              ShieldShockwave.RadialPush >= 8f && ShieldShockwave.WallBias > 1f);
+        var wt = ShieldShockwave.WallThrow(new Vector2(.6f, .8f));
+        Check("WallThrow keeps length 1 and leans sideways (" + wt.x.ToString("F2") + ", " + wt.y.ToString("F2") + ")",
+              Mathf.Abs(wt.magnitude - 1f) < 1e-4f && wt.x > .6f && wt.y < .8f && ShieldShockwave.WallThrow(Vector2.up) == Vector2.up);
+        float lane = SpawnLane.LaneHalf;
+        var right = Hazard(Ship + new Vector2(1.3f, 1.1f));
+        var left = Hazard(Ship + new Vector2(-1.6f, .5f));
+        var high = Hazard(Ship + new Vector2(.9f, 2.2f));
+        var all = new[] { right, left, high };
+        var start = new Vector2[3];
+        for (int i = 0; i < 3; i++) start[i] = all[i].transform.position;
+        Release();
+        Run(ShieldShockwave.PushSeconds + .1f);
+        float h = .2f;
+        for (int i = 0; i < 2; i++)
+        {
+            float x = all[i].transform.position.x, side = Mathf.Sign(start[i].x);
+            Check("a body " + (start[i] - Ship).magnitude.ToString("F1") + " u from the ship is slammed to the " + (side > 0 ? "right" : "left") +
+                  " rail (x " + x.ToString("F2") + " of " + (side * (lane - h)).ToString("F2") + ")",
+                  Mathf.Sign(x) == side && Mathf.Abs(x) > lane - h - .15f);
+        }
+        float far = ((Vector2)high.transform.position - start[2]).magnitude;
+        Check("even one 2.4 u away is thrown " + far.ToString("F2") + " u (was well under 1)", far > 1.5f);
     }
 
     // ---- 3 -------------------------------------------------------------------
@@ -709,8 +741,8 @@ public static class ShieldShockwaveTest
             EliteSystem.Step(Dt);
             farthest = Mathf.Max(farthest, Vector2.Distance(flying.Position, Ship) - Vector2.Distance(flyingAt, Ship));
         }
-        Check("... and is carried off by it (" + farthest.ToString("F2") + " u further away), still in play, hearts intact",
-              farthest > .03f && flying.InPlay && flying.Hearts == def.hearts);
+        Check("... and is carried off by it (" + farthest.ToString("F2") + " u further away), still in play (a hard rail hit may cost one heart)",
+              farthest > .03f && flying.InPlay && flying.Hearts >= def.hearts - 1);
         EliteSystem.Clear();
     }
 
@@ -895,7 +927,7 @@ public static class ShieldShockwaveTest
         Check("... and the push plays out in full (" + (near.transform.position - nearAt).magnitude.ToString("F2") + " u, column " +
               (column.transform.position.y - columnAt.y).ToString("F2") + " u)",
               (near.transform.position - nearAt).magnitude > .2f &&
-              Mathf.Abs(column.transform.position.y - columnAt.y - ShieldShockwave.ColumnPush) < 1e-3f && EnemyShove.Active == 0);
+              column.transform.position.y - columnAt.y >= ShieldShockwave.ColumnPush - 1e-3f && EnemyShove.Active == 0);
     }
 
     // ---- 9 -------------------------------------------------------------------
@@ -1084,8 +1116,8 @@ public static class ShieldShockwaveTest
     {
         Fresh();
         ShieldShockwave.ResetGuards();
-        var inside = Hazard(Ship + new Vector2(1.9f, .6f));    // beyond the old 1.7 radius, inside 2.6
-        var outside = Hazard(Ship + new Vector2(3.4f, .6f));   // outside both
+        var inside = Hazard(Ship + new Vector2(1.9f, .6f));    // beyond the old 1.7 radius, inside 3.2
+        var outside = Hazard(Ship + new Vector2(4.4f, .6f));   // outside both
         var inColumn = Hazard(Ship + new Vector2(0f, 4f));
         Vector3 outsideAt = outside.transform.position, insideAt = inside.transform.position, colAt = inColumn.transform.position;
         int hit = 0, moved = -9;
@@ -1108,7 +1140,7 @@ public static class ShieldShockwaveTest
             Check("a held shield fires (" + r + " moved)", r >= 2 && ShieldShockwave.Releases == releases + 1);
             Check("the achievements event carries the count once", hit == 1 && moved == r);
             Run(.5f);
-            Check("radius " + ShieldShockwave.Radius + ": a body 2 u away is pushed, one 3.4 u away and the lane beside are not",
+            Check("radius " + ShieldShockwave.Radius + ": a body 2 u away is pushed, one 4.4 u away and the lane beside are not",
                   (inside.transform.position - insideAt).magnitude > .05f && outside.transform.position == outsideAt);
             Check("the column body is pushed up-screen", inColumn.transform.position.y > colAt.y + .5f);
             Check("... and stays below the top of the view", inColumn.transform.position.y < CameraFit.ViewTop + 1f);
