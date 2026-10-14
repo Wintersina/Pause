@@ -35,16 +35,8 @@ public enum BossAttackKind
     Strike, // telegraphed lane columns at the ship's row: AttackStrike (icicle drop, eruption, thunder)
     Lash,   // a whip swept across the ship's place from a part: AttackLash (the Bloom Queen's vine lash)
     Roll,   // trunks lobbed onto marked spots that land and roll with one rail bounce: AttackLog (the Bloom Queen's trunk toss)
-}
-
-public enum BossShotStyle { Bolt, Shard }
-
-// What a projectile does at a side rail.
-public enum BossRailMode
-{
-    Absorb,  // splashes against the rail (a spark) and is gone
-    Bounce,  // ricochets `bounces` times (a spark each), then splashes
-    Pass,    // flies on past the rail and off the screen
+    // BULLET HELL (docs/boss-attack-overhaul.md): the attack is a BossPattern, a few overlapping streams of shots (BossPatternRunner).
+    Pattern,
 }
 
 // Where a laser points when its tell starts.
@@ -110,6 +102,11 @@ public sealed class BossAttack
     public float spacing = 1.9f;    // strike: lane spacing (>= AttackStrike.MinLaneSpacing); lash / roll: how far across the ship the second volley is aimed
     public float heightAbove = 2.6f; // roll: how far above the ship's row the trunk lands
     public float aimSpreadX;        // jet: each part aims this far to its own side of the ship (0: straight at it)
+
+    // Pattern: the streams (BossPatternTables)
+    public BossPattern pattern;
+
+    public BossAttack Copy() => (BossAttack)MemberwiseClone();
 }
 
 public sealed class BossDef
@@ -125,9 +122,17 @@ public sealed class BossDef
     // `attacks` follows the switch. Sorted by minPhase.
     public BossAttack[] attacks
     {
-        get { return themedAttacks && themed != null ? themed : baseAttacks; }
+        get
+        {
+            if (overhaulAttacks && hell != null && BossCatalog.UseOverhaul) return hell;
+            return themedAttacks && themed != null ? themed : baseAttacks;
+        }
         set { baseAttacks = value; }
     }
+    // The bullet-hell table (BossPatternTables): the boss's rotation since the overhaul. Fights with it unless
+    // overhaulAttacks is off (the old default / themed tables, kept for their tests).
+    public BossAttack[] hell;
+    public bool overhaulAttacks = true;
     BossAttack[] baseAttacks;
     // Five attacks: today's three plus the world's two new ones (docs/world-attacks-design.md section 7). Null: the
     // boss has no themed table yet (it needs a primitive that is not built).
@@ -181,6 +186,9 @@ public static class BossCatalog
             return all;
         }
     }
+
+    // Test switch: false makes every boss fight its old (default or themed) table.
+    public static bool UseOverhaul = true;
 
     public static BossDef ForWorld(int world)
     {
@@ -449,6 +457,8 @@ public static class BossCatalog
             b.themedAttacks = b.themed != null && (b.artKey == "Frost" || b.artKey == "Ember" || b.artKey == "Verdant" || b.artKey == "Tide");
             Resolve(b, b.DefaultAttacks);
             Resolve(b, b.themed);
+            b.hell = BossHell.TableFor(b, System.Array.IndexOf(bosses, b));
+            Resolve(b, b.hell);
         }
         return bosses;
     }

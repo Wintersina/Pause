@@ -15,6 +15,9 @@ public interface IHostileShot
     void ShotPop(Vector2 at);      // destroyed by another shot / a player shot
     bool ShotShovable { get; }     // in flight and movable by the shield's shockwave (not a landed pool)
     void ShotShove(Vector2 by);    // displaced by `by` (world), its whole course with it, so it never snaps back
+    // A bullet-hell pattern's shot: it never breaks, and is never burnt by, its own shooter's shots, lasers or hazards
+    // (a lattice crossing a curtain is one authored pattern). Everything else (the player's weapons, other shooters) still does.
+    bool ShotSelfSafe => false;
 }
 
 // PROJECTILE vs PROJECTILE.
@@ -109,6 +112,7 @@ public static class HostileShots
                 if (!b.ShotCollidable) continue;
                 if (a.ShotMass == Fixed && b.ShotMass == Fixed) continue;
                 if (SameVolley(a.ShotOwner, a.ShotAge, b.ShotOwner, b.ShotAge)) continue;
+                if (a.ShotSelfSafe && b.ShotSelfSafe && a.ShotOwner == b.ShotOwner) continue;
                 Vector2 pb = b.ShotPosition;
                 float r = ra + b.ShotRadius;
                 if ((pa - pb).sqrMagnitude > r * r) continue;
@@ -120,6 +124,7 @@ public static class HostileShots
                 var beam = beams[k];
                 if (!beam.Live || beam.Hitbox == null) continue;
                 if (SameVolley(a.ShotOwner, a.ShotAge, beam.OwnerId, beam.LiveAge)) continue;
+                if (a.ShotSelfSafe && a.ShotOwner == beam.OwnerId) continue;
                 if (!beam.Touches(pa, ra)) continue;
                 BeamBurns++;
                 Pop(a, pa);
@@ -131,6 +136,7 @@ public static class HostileShots
                 var z = zones[k];
                 if (!z.ZoneLive) continue;
                 if (SameVolley(a.ShotOwner, a.ShotAge, z.ZoneOwner, z.ZoneAge)) continue;
+                if (a.ShotSelfSafe && z.ZoneOwner == a.ShotOwner) continue;
                 if (!z.ZoneTouches(pa, ra)) continue;
                 ZoneBurns++;
                 Pop(a, pa);

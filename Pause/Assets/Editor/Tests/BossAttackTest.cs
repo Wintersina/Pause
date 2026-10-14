@@ -41,6 +41,7 @@ public static class BossAttackTest
         // with its themed table (BossDef.themedAttacks) are BossThemedTest's.
         var themedWas = new System.Collections.Generic.Dictionary<BossDef, bool>();
         foreach (var b in BossCatalog.All) { themedWas[b] = b.themedAttacks; b.themedAttacks = false; }
+        BossCatalog.UseOverhaul = false;   // this suite is the old default tables' (the bullet-hell tables are BossPatternTest / BossLadderTest)
         try
         {
             EveryBossHasASensibleSet();
@@ -58,6 +59,7 @@ public static class BossAttackTest
         finally
         {
             foreach (var kv in themedWas) kv.Key.themedAttacks = kv.Value;
+            BossCatalog.UseOverhaul = true;
             BossEncounter.ResetRun();
             BossRails.Reset();
             ReleaseAtlases();
@@ -73,8 +75,9 @@ public static class BossAttackTest
         fails = 0;
         var themedWas = new System.Collections.Generic.Dictionary<BossDef, bool>();
         foreach (var b in BossCatalog.All) { themedWas[b] = b.themedAttacks; b.themedAttacks = false; }
+        BossCatalog.UseOverhaul = false;
         try { EveryPatternLeavesAWayThrough(); }
-        finally { foreach (var kv in themedWas) kv.Key.themedAttacks = kv.Value; BossEncounter.ResetRun(); BossRails.Reset(); ReleaseAtlases(); }
+        finally { BossCatalog.UseOverhaul = true; foreach (var kv in themedWas) kv.Key.themedAttacks = kv.Value; BossEncounter.ResetRun(); BossRails.Reset(); ReleaseAtlases(); }
         return fails;
     }
 

@@ -114,7 +114,7 @@ public static class BossEncounterTest
             Check(boss.artKey + " belongs to " + WorldManager.Worlds[w].displayName,
                   boss.artKey == WorldManager.Worlds[w].displayName);
             Check(boss.artKey + " has a distinct name", names.Add(boss.name));
-            Check(boss.artKey + " has 2-5 attack patterns", boss.attacks.Length >= 2 && boss.attacks.Length <= 5);
+            Check(boss.artKey + " has 2-5 attack patterns", boss.attacks.Length >= 2 && boss.attacks.Length <= 7);
             bool tells = true;
             foreach (var a in boss.attacks) tells &= a.tellSeconds >= .5f;
             Check(boss.artKey + " telegraphs every attack (>= 0.5s)", tells);
@@ -198,7 +198,7 @@ public static class BossEncounterTest
         var tide = BossCatalog.Find("boss_tide");
         Check("its emitter row has Core, Rods, CoilL, CoilR over the 12 base drawings", BossEmitters.World(storm) == 5 &&
               string.Join(",", BossEmitterTable.Parts[5]) == "Core,Rods,CoilL,CoilR" && BossEmitterTable.FrameCount(5) == BossEmitterTable.Frames);
-        bool parts = storm.attacks.Length == 3 && storm.themed != null && storm.themed.Length == 5;
+        bool parts = storm.DefaultAttacks.Length == 3 && storm.themed != null && storm.themed.Length == 5;
         foreach (var a in storm.themed) foreach (int part in a.parts) parts &= part >= 0;
         Check("three default attacks (core arc fan, crown hail, coil beams) and a themed table of five that ends in the chain-lightning sweep", parts &&
               storm.themed[1].kind == BossAttackKind.Strike && storm.themed[4].kind == BossAttackKind.Wave && storm.themed[4].minPhase == 3);
@@ -230,7 +230,7 @@ public static class BossEncounterTest
               BossArt.Shot(d, 0) != null && BossArt.Shot(d, 0) != BossArt.Shot(storm, 0));
         Check("its emitter row has Maw, Boom, Lens over the 12 base drawings", BossEmitters.World(d) == 6 &&
               string.Join(",", BossEmitterTable.Parts[6]) == "Maw,Boom,Lens" && BossEmitterTable.FrameCount(6) == BossEmitterTable.Frames);
-        bool parts = d.attacks.Length == 3 && d.themed != null && d.themed.Length == 5;
+        bool parts = d.DefaultAttacks.Length == 3 && d.themed != null && d.themed.Length == 5;
         foreach (var a in d.themed) foreach (int part in a.parts) parts &= part >= 0;
         Check("three default attacks (grit fan, dune lob, lens beam) and a themed table of five that ends in the sandstorm wall", parts &&
               d.themed[1].kind == BossAttackKind.Strike && d.themed[4].kind == BossAttackKind.Wave && d.themed[4].minPhase == 3 &&

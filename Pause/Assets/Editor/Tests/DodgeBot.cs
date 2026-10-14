@@ -44,6 +44,7 @@ public static class DodgeBot
     public const float MinX = -2.3f, MaxX = 2.3f, MinY = -3.9f, MaxY = -.7f;   // where the ship may fly
     public const float StartY0 = -3.6f, StartY1 = -2f, StartX = 2.1f;
     public const int MaxCandidates = 520;
+    public const float HitGap = 1.5f;       // seconds after a hit before another counts (the ship's post-hit invulnerability)
     public const float TellStep = 1.2f;     // u the bot sidesteps when it sees a windup begin (before it knows the line)
 
     // A hazard as the bot can see it: a circle (a shot, a pool, a body), or a
@@ -90,6 +91,9 @@ public static class DodgeBot
     {
         public string name;
         public int rolls, attacked, hits, ghostHits, frames;
+        public int hitEvents;          // separate hits taken in the rolls (a hit then HitGap seconds of grace), the "damage" the ladder test counts
+        public float seconds;          // simulated seconds over all rolls
+        public int hitByShot, hitByBeam, hitByOther;   // hitEvents by what touched the ship (boss scenarios: shot ids 400..599, beams 600..)
         public float HitRate => attacked > 0 ? hits / (float)attacked : 0f;
         public float GhostRate => attacked > 0 ? ghostHits / (float)attacked : 0f;
         public float AttackedShare => rolls > 0 ? attacked / (float)rolls : 0f;
@@ -97,6 +101,8 @@ public static class DodgeBot
 
     // Debugging: log every frame's hazards and the bot's place (AttackBudgetTest.Sweep -trace)
     public static bool Trace;
+    public static Action<float, int> HitHook;   // (seconds into the roll, hazard id) at each counted hit: tools that want to know what hurt
+    public static bool CountHits;   // keep scoring after the first hit (Result.hitEvents); off elsewhere: nothing else needs it
     public static long ProfStep, ProfCollect, ProfPlan;   // Stopwatch ticks, A/B test reports them
 
     // offsets from the ship, nearest first (built once)
@@ -135,6 +141,7 @@ public static class DodgeBot
                                         Mathf.Lerp(StartY0, StartY1, (float)rng.NextDouble()));
             Vector2 pos = start, ghost = start, goal = start, vel = Vector2.zero;
             bool havePlan = false, hit = false, ghostHit = false, tellWas = false;
+            float grace = 0f;
             for (int i = 0; i < tellRing.Length; i++) tellRing[i] = false;
             for (int i = 0; i < prevFrame.Length; i++) prevFrame[i] = -10;
             for (int i = 0; i < ring.Length; i++) ring[i].Clear();
@@ -165,14 +172,15 @@ public static class DodgeBot
                 slot.Clear();
                 slot.AddRange(now);
 
+                if (grace > 0f) grace -= Dt;
                 // ---- did anything touch the ships this frame (hazards at their end-of-frame places)
                 pos = ship.position;
-                for (int i = 0; i < now.Count && !(hit && ghostHit); i++)
+                for (int i = 0; i < now.Count && (CountHits || !(hit && ghostHit)); i++)
                 {
                     var h = now[i];
                     if (!h.HarmfulNow || h.planOnly) continue;
                     float reach = h.r + ShipRadius;
-                    if (!hit && Touches(h, pos, reach)) hit = true;
+                    if ((CountHits || !hit) && Touches(h, pos, reach)) { hit = true; if (grace <= 0f) { res.hitEvents++; grace = HitGap; if (HitHook != null) HitHook(f * Dt, h.id); if (h.id >= 600) res.hitByBeam++; else if (h.id >= 400) res.hitByShot++; else res.hitByOther++; } }
                     if (!ghostHit && Touches(h, ghost, reach)) ghostHit = true;
                 }
 
@@ -236,6 +244,7 @@ public static class DodgeBot
                 if (s.Done && f > DelayFrames) break;
             }
             res.frames += f;
+            res.seconds += f * Dt;
             if (s.Attacked) { res.attacked++; if (hit) res.hits++; if (ghostHit) res.ghostHits++; }
             s.End();
         }

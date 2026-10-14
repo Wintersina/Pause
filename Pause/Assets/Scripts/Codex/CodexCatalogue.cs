@@ -285,9 +285,16 @@ public static class CodexCatalogue
     public static string BossAttackLore(BossDef boss)
     {
         var lines = new List<string>();
+        bool compact = boss.attacks.Length > 5;   // six or seven attacks: the parts are named once, below, so the page still fits
+        var parts = new List<string>();
         foreach (var a in boss.attacks)
-            lines.Add(a.name.ToUpperInvariant() + "  " + AttackWhat(a) + " from " + PartsOf(a));
-        lines.Add("PHASES  one attack, then two, then all " + boss.attacks.Length + " faster");
+        {
+            lines.Add(a.name.ToUpperInvariant() + "  " + AttackWhat(a) + (compact ? "" : " from " + PartsOf(a)));
+            if (compact) foreach (var w in PartsOf(a).Split(new[] { ", ", " and " }, System.StringSplitOptions.RemoveEmptyEntries)) if (!parts.Contains(w)) parts.Add(w);
+        }
+        if (compact) lines.Add("FIRES FROM  " + string.Join(", ", parts));
+        int first = BossCatalog.UnlockedAttacks(boss, 0f), second = BossCatalog.UnlockedAttacks(boss, .5f);
+        lines.Add("PHASES  " + first + " attacks, then " + second + ", then all " + boss.attacks.Length + " faster, and it enrages at the end");
         lines.Add("HEARTS  " + BossConfig.Hearts + " spin round it, all gone in " + BossConfig.HitPoints + " weapon hits");
         lines.Add("ENDS  break every heart (+" + ScoreRules.BossDestroyed +
                   ") or outlast it for " + Mathf.RoundToInt(BossConfig.FightSeconds) + " s (+" + ScoreRules.BossSurvived + ")");
@@ -303,6 +310,13 @@ public static class CodexCatalogue
             case BossAttackKind.Aimed: what = (a.count > 1 ? "aimed spreads of " : "aimed ") + shots; break;
             case BossAttackKind.Fan: what = "fans of " + shots; break;
             case BossAttackKind.Lob: what = "hail lobbed onto your lanes"; break;
+            case BossAttackKind.Pattern: what = PatternWhat(a.pattern); break;
+            case BossAttackKind.Jet: what = "a sweeping jet"; break;
+            case BossAttackKind.Strike: what = "columns erupting on your lanes"; break;
+            case BossAttackKind.Wave: what = "a wall sweeping down with a gap"; break;
+            case BossAttackKind.Blast: what = "an expanding ring with a gap"; break;
+            case BossAttackKind.Lash: what = "a whip swept across your place"; break;
+            case BossAttackKind.Roll: what = "trunks that land and roll"; break;
             default:
                 bool twin = a.emitters != null && a.emitters.Length > 1;
                 what = (twin ? "twin lasers" : "a laser") +
@@ -312,6 +326,29 @@ public static class CodexCatalogue
         if (a.kind != BossAttackKind.Beam && a.rail == BossRailMode.Bounce)
             what += a.bounces == 1 ? " that ricochet once" : " that ricochet " + a.bounces + " times";
         return what;
+    }
+
+    // What a bullet-hell pattern looks like, in a few words (its first stream names it).
+    static string PatternWhat(BossPattern p)
+    {
+        if (p == null || p.streams == null || p.streams.Length == 0) return "a barrage";
+        string what;
+        switch (p.streams[0].kind)
+        {
+            case StreamKind.Aimed: what = "aimed volleys"; break;
+            case StreamKind.Fan: what = p.streams[0].rail == BossRailMode.Bounce ? "ricocheting fans" : "fans of shots"; break;
+            case StreamKind.Spiral: what = p.streams[0].mirror ? "mirrored sweeping spirals" : "a rotating spiral"; break;
+            case StreamKind.Ring: what = "rings with a gap to slip through"; break;
+            case StreamKind.Curtain: what = "walls of shots with a drifting gap"; break;
+            case StreamKind.Rain: what = "rain from the top of the screen"; break;
+            case StreamKind.Lattice: what = "a drifting lattice to thread"; break;
+            case StreamKind.Bomb: what = "slow bombs that burst into rings"; break;
+            case StreamKind.Seeds: what = "homing seeds"; break;
+            case StreamKind.Mines: what = "a field of mines"; break;
+            case StreamKind.Pincer: what = "closing jaws of shots"; break;
+            default: what = "a barrage"; break;
+        }
+        return p.streams.Length > 1 ? what + " layered with " + (p.streams.Length - 1 == 1 ? "another" : "more") : what;
     }
 
     // Body-part words for the boss art's emitters (BossEmitterTable names,
