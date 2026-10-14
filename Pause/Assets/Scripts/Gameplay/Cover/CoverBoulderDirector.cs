@@ -76,6 +76,7 @@ public class CoverBoulderDirector : MonoBehaviour
         if (ShipPowerController.CinematicClearActive) return "cinematic";
         if (secondsInWorld < CoverBoulders.FirstSeconds) return "too early";
         if (ElitesParked()) return "elite";
+        if (WorldHazards.AnyActive) return "hazard";   // a world hazard (tornado, sandstorm...) is warning, acting or fading: never both on screen (HazardCoverSeam)
         if (CoverBoulders.Alive >= CoverBoulders.MaxAlive) return "alive";
         return null;
     }

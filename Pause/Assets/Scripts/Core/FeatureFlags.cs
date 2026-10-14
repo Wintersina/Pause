@@ -29,6 +29,14 @@ public static class FeatureFlags
     [Flag("PARAGON SHIP", true)]
     public const string ParagonShip = "paragon_ship";
 
+    // World weather and hazards (docs/world-weather-hazards.md): the rare push / pull weather events (tornado, sandstorm,
+    // whirlpool...) and the ambient weather particles. No damage, only pushes. Two switches so either can be turned off.
+    [Flag("WORLD HAZARDS", true)]
+    public const string WorldHazards = "world_hazards";
+
+    [Flag("WORLD WEATHER", true)]
+    public const string WorldWeather = "world_weather";
+
     public struct Info
     {
         public string name, label;
