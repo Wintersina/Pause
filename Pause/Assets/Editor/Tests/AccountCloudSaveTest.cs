@@ -35,6 +35,8 @@ public static class AccountCloudSaveTest
         public bool signedIn;
         public int signIns, interactiveSignIns, loads;
         public readonly List<string> writes = new List<string>();
+        // Platform calls that never answer (a lost callback).
+        public bool hangSignIn, hangLoad, hangWrite;
 
         public string PlatformName { get { return "fake"; } }
         public bool IsSignedIn { get { return signedIn; } }
@@ -44,6 +46,7 @@ public static class AccountCloudSaveTest
         {
             signIns++;
             if (interactive) interactiveSignIns++;
+            if (hangSignIn) return;
             signedIn = signInResult;
             done(signInResult);
         }
@@ -51,12 +54,14 @@ public static class AccountCloudSaveTest
         public void LoadCloudSave(Action<bool, string> done)
         {
             loads++;
+            if (hangLoad) return;
             done(loadOk, loadOk ? cloudJson : null);
         }
 
         public void WriteCloudSave(string json, Action<bool> done)
         {
             writes.Add(json);
+            if (hangWrite) return;
             cloudJson = json;
             done(true);
         }
@@ -77,6 +82,9 @@ public static class AccountCloudSaveTest
             LoadFailureLeavesLocalAlone();
             SignedInMergeAndUpload();
             AccountSwitch();
+            FreshDeviceRestoresCloud();
+            PurchasesStayPaidAcrossDevices();
+            LostCallbacksRecover();
             AchievementIdTable();
             AchievementResync();
             ResyncRunsAfterSignIn();
@@ -144,9 +152,9 @@ public static class AccountCloudSaveTest
 
     static void MergeRules()
     {
-        var local = Snap(1000, 50f, new[] { 1, 2 }, 2, 300f, 1, 1, false,
+        var local = Snap(1000, 50f, new[] { 1, 2, 4 }, 2, 300f, 1, 1, false,
                          ("achv_count_aliens", 40), ("achv_count_stars", 10));
-        var cloud = Snap(2000, 75f, new[] { 1, 4 }, 4, 250f, 2, 3, true,
+        var cloud = Snap(2000, 75f, new[] { 1, 2, 4 }, 4, 250f, 2, 3, true,
                          ("achv_count_aliens", 12), ("achv_count_deaths", 7));
 
         var m = ProgressMerge.Merge(local, cloud);
@@ -431,7 +439,7 @@ public static class AccountCloudSaveTest
         long now = 500000;
         var fake = new FakeAccount
         {
-            cloudJson = Snap(now + 1000, 70f, new[] { 1, 6 }, 6, 400f, 2, 2, true, ("achv_count_aliens", 9)).ToJson(),
+            cloudJson = Snap(now + 1000, 70f, new[] { 1, 2, 6 }, 6, 400f, 2, 2, true, ("achv_count_aliens", 9)).ToJson(),
         };
         var sync = new CloudSync(fake, () => now) ;
         sync.Start();
@@ -498,6 +506,160 @@ public static class AccountCloudSaveTest
         var first = new FakeAccount { id = "player-D", cloudJson = Snap(1, 3f, new[] { 1, 5 }, 5, 10f, 0, 0, false).ToJson() };
         new CloudSync(first, () => 900000) .Start();
         Check("first sign-in: local progress merged, not replaced", Ships() == "1,4,5" && PlayerPrefs.GetFloat("HighestSpeed") == 90f);
+    }
+
+    // ---- audit fixes ----
+
+    // C1: a fresh install (or new phone) next to an OLDER cloud save must take
+    // the cloud's dust, world and ship, and must not upload anything empty.
+    static void FreshDeviceRestoresCloud()
+    {
+        ClearProgress();
+        long now = 900000000;
+        var cloud = Snap(now - 86400000, 345f, new[] { 1, 3 }, 3, 120f, 1, 2, true);
+        cloud.startWorld = 2;
+        var fake = new FakeAccount { cloudJson = cloud.ToJson() };
+        var before = new CloudSync(new FakeAccount { hangSignIn = true }, () => now);
+        before.Start();
+        Check("fresh device: an empty save carries no 'newer' stamp", CloudSync.LocalSavedAt() == 0);
+        ClearProgress();
+        var sync = new CloudSync(fake, () => now);
+        sync.Start();
+        Check("fresh device: cloud star dust wins", PlayerPrefs.GetFloat("PlayerCurrecny") == 345f);
+        Check("fresh device: cloud ship and world win",
+              PlayerPrefs.GetInt("spawnShip") == 3 && PlayerPrefs.GetInt("currentWorld") == 1 && PlayerPrefs.GetInt("highestWorld") == 2);
+        Check("fresh device: cloud start world wins", PlayerPrefs.GetInt(PlayerStartWorld.Key) == 1);
+        sync.Poll(urgent: true, force: true);
+        ProgressSnapshot up;
+        bool carriesCloud = fake.writes.Count == 0 ||
+            (ProgressSnapshot.TryParse(fake.writes[fake.writes.Count - 1], out up) == ProgressSnapshot.ParseResult.Ok &&
+             up.currency == 345f && up.spawnShip == 3 && up.currentWorld == 1);
+        Check("fresh device: nothing empty is ever uploaded", carriesCloud);
+
+        // An install that earlier stamped itself (the old behaviour) still loses.
+        ClearProgress();
+        PlayerPrefs.SetString(CloudSync.LocalSavedAtKey, (now + 5000).ToString());
+        var old = new FakeAccount { cloudJson = cloud.ToJson() };
+        new CloudSync(old, () => now).Start();
+        Check("fresh device: even a stale 'now' stamp on an empty save loses", PlayerPrefs.GetFloat("PlayerCurrecny") == 345f);
+
+        // Empty device, account with no cloud save: nothing is uploaded.
+        ClearProgress();
+        var none = new FakeAccount { cloudJson = null };
+        var s2 = new CloudSync(none, () => now);
+        s2.Start();
+        s2.Poll(urgent: true, force: true);
+        Check("fresh device, empty cloud: no empty upload", none.writes.Count == 0);
+
+        // Pure merge: an empty local with a huge stamp never beats cloud.
+        var emptyNewer = new ProgressSnapshot { savedAtUtc = now + 999999 };
+        var merged = ProgressMerge.Merge(emptyNewer, cloud);
+        Check("merge: empty local never wins on stamp", merged.currency == 345f && merged.spawnShip == 3 && merged.currentWorld == 1);
+        merged = ProgressMerge.Merge(cloud, emptyNewer);
+        Check("merge: empty cloud never wins on stamp", merged.currency == 345f && merged.spawnShip == 3);
+    }
+
+    // H4: a purchase on one device is paid for from the other's balance, never refunded.
+    static void PurchasesStayPaidAcrossDevices()
+    {
+        // B bought ship 2 (price 600) earlier: 1000 -> 400. A is newer but never saw it (1000).
+        var b = Snap(1000, 400f, new[] { 1, 2 }, 2, 0f, 0, 0, true);
+        var a = Snap(2000, 1000f, new[] { 1 }, 1, 0f, 0, 0, true);
+        var m = ProgressMerge.Merge(a, b);
+        Check("economy: ship bought on the older device is deducted from the newer balance",
+              string.Join(",", m.boughtShips) == "1,2" && m.currency == 1000f - shopingShips.Prices[2]);
+        m = ProgressMerge.Merge(b, a);
+        Check("economy: same result either way round", m.currency == 1000f - shopingShips.Prices[2]);
+        // Purchase made on the newer side: nothing extra is charged.
+        m = ProgressMerge.Merge(b, Snap(1, 1000f, new[] { 1 }, 1, 0f, 0, 0, true));
+        Check("economy: a purchase on the newer side is not charged twice", m.currency == 400f);
+        // A skin (id 2, skin 1) owned only on the older side.
+        var skinOlder = Snap(1000, 50f, new[] { 1, 2 }, 2, 0f, 0, 0, true);
+        skinOlder.ownedSkins = new[] { 2 * ProgressSnapshot.SkinCode + 1 };
+        var newer = Snap(2000, 900f, new[] { 1, 2 }, 2, 0f, 0, 0, true);
+        m = ProgressMerge.Merge(newer, skinOlder);
+        Check("economy: an older-side skin is deducted too", m.currency == 900f - ShipSkins.PriceOf(2, 1) && m.ownedSkins.Length == 1);
+        // Never negative.
+        m = ProgressMerge.Merge(Snap(2000, 10f, new[] { 1 }, 1, 0f, 0, 0, true), b);
+        Check("economy: balance floors at zero", m.currency == 0f);
+        // Merging an already-merged result again changes nothing (idempotent).
+        var again = ProgressMerge.Merge(m, b);
+        Check("economy: re-merging is stable", again.currency == m.currency);
+    }
+
+    // H1: a lost platform callback is recovered after the timeout.
+    static void LostCallbacksRecover()
+    {
+        // Upload that never answers: retried after the timeout.
+        ClearProgress();
+        SetLocal(20f, new[] { 1, 2 }, 2, 10f, 0, 0, true);
+        long now = 1000000;
+        var fake = new FakeAccount { cloudJson = null };
+        var sync = new CloudSync(fake, () => now);
+        sync.Start();
+        fake.hangWrite = true;
+        sync.Poll(urgent: true, force: true);
+        Check("timeout: first upload is in flight", fake.writes.Count == 1);
+        PlayerPrefs.SetFloat("PlayerCurrecny", 25f);
+        now += 1000;
+        sync.Poll(urgent: true, force: true);
+        Check("timeout: no second upload while the first may still answer", fake.writes.Count == 1);
+        now += CloudSync.CallTimeoutMs;
+        fake.hangWrite = false;
+        sync.Poll(urgent: true, force: true);
+        Check("timeout: uploads again after the lost callback", fake.writes.Count == 2);
+
+        // Cloud read that never answers: retried, then read-only; never uploads.
+        ClearProgress();
+        SetLocal(20f, new[] { 1 }, 1, 10f, 0, 0, true);
+        now = 2000000;
+        var hung = new FakeAccount { hangLoad = true, cloudJson = null };
+        var s2 = new CloudSync(hung, () => now);
+        s2.Start();
+        Check("timeout: cloud read pending", s2.Current == CloudSync.State.Loading && hung.loads == 1);
+        for (int i = 0; i < CloudSync.MaxLoadAttempts + 1; i++) { now += CloudSync.CallTimeoutMs; s2.Poll(); }
+        Check("timeout: cloud read asked again, then gives up read-only",
+              hung.loads == CloudSync.MaxLoadAttempts && s2.Current == CloudSync.State.ReadOnly);
+        s2.Poll(urgent: true, force: true);
+        Check("timeout: nothing uploaded over an unread cloud save", hung.writes.Count == 0);
+
+        // Sign-in that never answers: Offline, not stuck "signing in".
+        ClearProgress();
+        now = 3000000;
+        var mute = new FakeAccount { hangSignIn = true };
+        var s3 = new CloudSync(mute, () => now);
+        s3.Start();
+        Check("timeout: sign-in pending", s3.Current == CloudSync.State.SigningIn);
+        now += CloudSync.CallTimeoutMs;
+        s3.Poll();
+        Check("timeout: sign-in gives up to Offline", s3.Current == CloudSync.State.Offline);
+
+        // Interactive sign-in button: a second tap after the timeout starts a new attempt.
+        AccountLink.ResetSession();
+        float t = 0f;
+        AccountLink.Now = () => t;
+        var acct = new FakeAccount { hangSignIn = true };
+        var savedSync = CloudSync.Instance;
+        CloudSync.SetInstance(null);
+        var savedAcct = PlayerAccounts.Current;
+        PlayerAccounts.Current = acct;
+        try
+        {
+            AccountLink.SignIn();
+            AccountLink.SignIn();
+            Check("timeout: second tap while pending is queued", acct.interactiveSignIns == 1);
+            t += AccountLink.SignInTimeoutSeconds + 1f;
+            acct.hangSignIn = false;
+            AccountLink.SignIn();
+            Check("timeout: a tap after the timeout starts a fresh attempt", acct.interactiveSignIns == 2 && !AccountLink.SigningIn);
+        }
+        finally
+        {
+            PlayerAccounts.Current = savedAcct;
+            CloudSync.SetInstance(savedSync);
+            AccountLink.Now = () => Time.realtimeSinceStartup;
+            AccountLink.ResetSession();
+        }
     }
 
     // ---- achievements ----

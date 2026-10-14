@@ -62,6 +62,10 @@ public sealed class LeaderboardService
 
     float flushDueAt = -1f;
     readonly HashSet<string> inFlight = new HashSet<string>();
+    readonly Dictionary<string, float> inFlightSince = new Dictionary<string, float>();
+    // A submit the platform never answered is treated as lost after this long,
+    // so the board is sent again instead of staying stuck for the session.
+    public const float SubmitTimeoutSeconds = 30f;
 
     public LeaderboardService(ILeaderboardPlatform platform, Func<float> clock = null)
     {
@@ -183,9 +187,26 @@ public sealed class LeaderboardService
     // Driven every frame by LeaderboardRunner.
     public void Tick()
     {
-        if (flushDueAt < 0f || clock() < flushDueAt) return;
+        if (flushDueAt < 0f || clock() < flushDueAt)
+        {
+            // Nothing is due, but a submit that never answered must be retried.
+            if (inFlight.Count > 0 && flushDueAt < 0f && ExpireInFlight()) Flush();
+            return;
+        }
         flushDueAt = -1f;
         Flush();
+    }
+
+    // Forgets submits that never answered; true if any were dropped.
+    bool ExpireInFlight()
+    {
+        List<string> expired = null;
+        foreach (var pair in inFlightSince)
+            if (clock() - pair.Value >= SubmitTimeoutSeconds)
+                (expired ?? (expired = new List<string>())).Add(pair.Key);
+        if (expired == null) return false;
+        foreach (string id in expired) { inFlight.Remove(id); inFlightSince.Remove(id); }
+        return true;
     }
 
     // Sends everything queued, if the player is signed in (and not signed out
@@ -212,8 +233,14 @@ public sealed class LeaderboardService
                 pending.Save(PendingKey);
                 continue;
             }
-            if (inFlight.Contains(board.id)) continue;
+            if (inFlight.Contains(board.id))
+            {
+                float since;
+                if (!inFlightSince.TryGetValue(board.id, out since) || clock() - since < SubmitTimeoutSeconds) continue;
+                Debug.Log("[Leaderboards] submit to " + board.id + " got no answer; sending again.");
+            }
             inFlight.Add(board.id);
+            inFlightSince[board.id] = clock();
             SubmitCount++;
             long value = entry.value;
             string id = board.id;
@@ -225,6 +252,7 @@ public sealed class LeaderboardService
     void OnSubmitted(string boardId, long value, string tag, bool ok)
     {
         inFlight.Remove(boardId);
+        inFlightSince.Remove(boardId);
         var board = LeaderboardBoards.Get(boardId);
         if (!ok || board == null)
         {

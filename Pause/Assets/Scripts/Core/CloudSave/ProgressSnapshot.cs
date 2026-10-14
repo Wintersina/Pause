@@ -94,6 +94,23 @@ public class ProgressSnapshot
         return keys;
     }
 
+    // True once the snapshot holds value the player would miss: star dust, a
+    // reached world, a best score, a bought ship (the starter does not count)
+    // or skin. A snapshot without any (fresh install, cleared data, or one that
+    // has only played the tutorial) must never win a "newer" comparison against a
+    // cloud save, nor be uploaded over one. Selections (spawn ship, start world,
+    // equipped skins), the tutorial flag, the codex and derived achievement
+    // counters deliberately do not count: they appear on a brand-new install
+    // within seconds (and merge by union / max anyway).
+    public bool HasProgress()
+    {
+        if (currency > 0f || highestWorld > 0 || currentWorld > 0 || bestScore > 0 || highestSpeed > 0f) return true;
+        if (ownedSkins != null && ownedSkins.Length > 0) return true;
+        foreach (int id in boughtShips ?? new int[0])
+            if (id != 0 && id != shopingShips.StarterShip) return true;
+        return false;
+    }
+
     public static ProgressSnapshot Fresh(long savedAtUtc)
     {
         return new ProgressSnapshot { savedAtUtc = savedAtUtc };
