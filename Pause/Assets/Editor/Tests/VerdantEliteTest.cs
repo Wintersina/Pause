@@ -197,17 +197,29 @@ public static class VerdantEliteTest
                   d.speed >= 1.2f && d.speed <= 3.4f && d.attackGap >= 2.5f && d.attackGap <= 5.5f && d.tellSeconds >= .7f && d.avoidance >= .4f && d.avoidance <= .7f);
             Check(x.key + ": lore is three sentences or fewer", d.lore.Split(new[] { ". " }, System.StringSplitOptions.RemoveEmptyEntries).Length <= 3);
         }
-        // memory budget: the strips are imported uncompressed (pixel art): a flight strip and a death strip per elite stay small
-        long bytes = 0;
+        // memory budget. Two different numbers, and only the first is what a player's phone pays:
+        //  phone  = ASTC 6x6 (3.56 bits per px, the Android diet override on each strip's importer), no readable copy: budget 4 MB,
+        //           the same per-world phone budget EliteHdTest holds for all of a world's HD elites (these four are a part of it);
+        //  editor = what Profiler.GetRuntimeMemorySizeLong reports here: RGBA32 plus the readable CPU copy (2 x w*h*4, ~45 MB for these
+        //           four). It is not a shipping cost; it is only checked as a sanity bound so a duplicated or mip-mapped strip shows up.
+        long px = 0, editorBytes = 0;
+        bool astc = true;
         foreach (var x in Expected)
         {
             foreach (string suffix in new[] { "", "_death" })
             {
                 var t = Resources.Load<Texture2D>("Elites/Verdant/" + x.key + suffix);
-                if (t != null) bytes += UnityEngine.Profiling.Profiler.GetRuntimeMemorySizeLong(t);
+                if (t == null) continue;
+                px += (long)t.width * t.height;
+                editorBytes += UnityEngine.Profiling.Profiler.GetRuntimeMemorySizeLong(t);
+                var ti = UnityEditor.AssetImporter.GetAtPath("Assets/Art/Resources/Elites/Verdant/" + x.key + suffix + ".png") as UnityEditor.TextureImporter;
+                var an = ti != null ? ti.GetPlatformTextureSettings("Android") : default;
+                if (ti == null || !an.overridden || !AndroidTextureDiet.IsAstc(an.format)) astc = false;
             }
         }
-        Check("the four new elites' art holds " + (bytes / 1048576f).ToString("0.0") + " MB of textures, flight + death strips, uncompressed with the editor's readable copy (budget 28 MB, 7 MB each: the HD 384 px cells)", bytes > 0 && bytes <= 28L * 1048576);
+        float phoneMb = px * 3.56f / 8f / 1048576f;
+        Check("the four new elites' art costs " + phoneMb.ToString("0.0") + " MB on phones (ASTC 6x6 on every strip: " + astc + "; budget 4 MB, shared with EliteHdTest's per-world budget)", px > 0 && astc && phoneMb <= 4f);
+        Check("editor memory of the four strips " + (editorBytes / 1048576f).ToString("0.0") + " MB is at most RGBA32 plus the readable copy (" + (px * 8 / 1048576f).ToString("0.0") + " MB, no extra mips or copies)", editorBytes > 0 && editorBytes <= px * 8 * 1.05f);
         Check("Verdant is open to elites after the first 20 s", EliteDirector.Blocked(2, 60f) == null && EliteDirector.Blocked(2, 10f) == "too early");
     }
 
