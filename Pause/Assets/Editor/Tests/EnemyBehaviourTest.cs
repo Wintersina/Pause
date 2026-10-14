@@ -847,6 +847,10 @@ public static class EnemyBehaviourTest
         // (a one-off growth of the pool, not a per-frame allocation)
         frames();
         frames();
+        // (a third: soft avoidance -- SpawnSpace.Soft -- lets pilots hold their stations instead of giving way, so
+        // their volleys fall on another rhythm and the shot pool peaks one pass later. Still a one-off growth:
+        // the two measured passes after it read 0.)
+        frames();
         int shotsBefore = EliteSystem.Shots.Launched;
         long bytes = Measure(meter, frames);
         long again = Measure(meter, frames);
@@ -1203,14 +1207,21 @@ public static class EnemyBehaviourTest
         while (pilot.Stage == EnemyBrain.PilotStage.Waiting && frames < 60 * 20) { Step(pilot); frames++; }
         Check("a pilot never waits longer than " + EnemyBrain.MaxWaitSeconds + " s for its column (" + (frames * Dt).ToString("F1") + " s)",
               frames * Dt <= EnemyBrain.MaxWaitSeconds + .1f && frames * Dt >= EnemyBrain.MaxWaitSeconds - .1f);
-        // ... and it still never steps into the rock (SpawnSpace.ResolveSteer)
-        bool touched = false;
-        for (int i = 0; i < 240; i++)
+        // ... the OLD rule (SpawnSpace.Soft off): it still never steps into the rock (ResolveSteer's ladder). The soft
+        // rule has no such ban -- a pilot is never held back by what is in its way: it flies on and the crash is
+        // friendly fire (FriendlyFire.StepCrashes) -- so it is checked as that: either it never touched the rock, or the
+        // touch killed them both.
+        bool touched = false, crashedOut = false;
+        FriendlyFire.ResetCounters();
+        for (int i = 0; i < 240 && pilot != null; i++)
         {
             Step(pilot);
+            if (SpawnSpace.Soft && FriendlyFire.StepCrashes(new Rect(-5f, -9f, 10f, 20f))) crashedOut = true;
+            if (pilot == null || wall == null) break;
             touched |= pilot.GetComponent<SpawnFootprint>().Body.Overlaps(wall.GetComponent<SpawnFootprint>().Body);
         }
-        Check("... and even then it never steps into the hazard in its way", !touched);
+        if (SpawnSpace.Soft) Check("... and even then it is not held off the hazard in its way: it either missed it or crashed into it, friendly fire (touched " + touched + ", crashed " + crashedOut + ")", !touched || crashedOut || pilot == null);
+        else Check("... and even then it never steps into the hazard in its way", !touched);
         Object.DestroyImmediate(wall);
 
         // the real spawner: with a pilot on station, no rock is placed down its column

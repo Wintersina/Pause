@@ -125,6 +125,7 @@ public static class AllTests
         ("EliteEvasionTest", EliteEvasionTest.Execute),
         ("EnemyBehaviourTest", EnemyBehaviourTest.Execute),
         ("EnemyJitterTest", EnemyJitterTest.Execute),
+        ("EnemyAvoidanceTest", EnemyAvoidanceTest.Execute),
         ("EnemyDeathAudioTest", EnemyDeathAudioTest.Execute),
         ("EnemyDeathFlipbookTest", EnemyDeathFlipbookTest.Execute),
         ("EnemyDensityTest", EnemyDensityTest.Execute),

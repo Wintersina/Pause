@@ -328,6 +328,114 @@ public static class SpawnSpace
         return carried;
     }
 
+    // ---- SOFT AVOIDANCE (the way free movers now keep off each other) -----------
+    //
+    // ResolveSteer is a ladder of hard tests re-run every frame: the wish, the
+    // wish sideways, a step left, a step right, carried, held -- each an on / off
+    // envelope check. Two bodies close together flipped between rungs frame to
+    // frame (and a chaser poking at the edge of a falling rock's probe, or a
+    // pilot's band cut in and out as a hazard crossed its look window, did the
+    // same): the shake on the dense boards (EnemyAvoidanceTest has the numbers).
+    //
+    // Soft avoidance replaces that with ONE continuous rule. Another body
+    // within SoftReach of touching pushes the steerer sideways with a force that
+    // rises smoothly (smoothstep) from nothing at the edge of the reach to
+    // SoftSpeed at touching and to SoftDeepSpeed deep inside; the push is
+    // low-passed (SoftTau) and its change capped (SoftAccel), so no choice can
+    // flip faster than that; the sign comes from the sideways offset plus a
+    // tiny stable bias (never a coin toss at dead centre). It never forbids a
+    // step: a body that drives on into a neighbour (a fleeing pilot, a chaser
+    // on its line) is not stopped -- FriendlyFire's crash resolves it -- and a
+    // pair stacked on one spot is parted by the deep push (FriendlyFire usually
+    // gets there first). One loop over the enemy list a call, no allocation.
+    public static bool Soft = true;
+    public const float SoftReach = .25f;        // u beyond touching where the push starts (zero there)
+    public const float SoftSpeed = 1.2f;        // u/s of drift at touching
+    public const float SoftDeepSpeed = 2.4f;    // u/s when bodies are half a body inside each other
+    public const float SoftTau = .3f;           // seconds: the low-pass on the drift
+    public const float SoftAccel = 5f;          // u/s^2: the most the drift velocity may change by
+    public const float SoftEdge = .15f, SoftEdgeFade = .4f;   // u: how far past the lane edge a body may drift, and over how much room the outward push fades
+    public const float SoftBias = .06f;         // u: stable tie-break (by instance id) for bodies dead in line
+    public const float SoftMaxOffset = 1f;      // u: how far a pilot's line may be drifted
+    public const float SoftReturn = .4f;        // u/s: a drifted pilot's way back to its line
+
+    // The sideways drift velocity of `self` right now (u/s, + to the right),
+    // low-passed and rate-capped; advances self's filter by dt. `cap` scales
+    // the speeds (a nimble steerer may drift faster). `lookUp`: the body is
+    // read this much taller upward (something coming down on it).
+    public static float SoftDrift(SpawnFootprint self, float dt, float cap = 1f, float lookUp = 0f)
+    {
+        if (dt <= 0f) return self.softV;
+        Vector2 c = self.transform.position;
+        Vector2 half = self.half;
+        float cy = c.y + lookUp * .5f, hy = half.y + lookUp * .5f;
+        int idSelf = self.GetInstanceID();
+        float push = 0f;
+        for (int i = 0; i < enemies.Count; i++)
+        {
+            var f = enemies[i];
+            if (f == null || f == self) continue;
+            Vector2 o = f.transform.position;
+            float dx = c.x - o.x;
+            float px = half.x + f.half.x + SoftReach - Mathf.Abs(dx);
+            if (px <= 0f) continue;
+            float py = hy + f.half.y + SoftReach - Mathf.Abs(cy - o.y);
+            if (py <= 0f) continue;
+            float depth = Mathf.Min(px, py);
+            float w = Mathf.Clamp01(depth / (SoftReach * 2f));
+            w = w * w * (3f - 2f * w);
+            float deep = Mathf.Clamp01((depth - SoftReach) / Mathf.Max(.1f, Mathf.Min(half.x, f.half.x)));
+            float bias = idSelf > f.GetInstanceID() ? SoftBias : -SoftBias;
+            float dir = Mathf.Clamp((dx + bias) / .3f, -1f, 1f);
+            push += dir * (SoftSpeed * w + (SoftDeepSpeed - SoftSpeed) * deep);
+        }
+        // Towards the lane's edge the outward push fades out (smoothly) instead of running into the lane clamp,
+        // which would switch it off abruptly each time the body reached it.
+        if (push * c.x > 0f)
+        {
+            float room = SpawnLane.LaneHalf + SoftEdge - half.x - Mathf.Abs(c.x);
+            push *= Mathf.Clamp01(room / SoftEdgeFade);
+        }
+        float max = SoftDeepSpeed * cap;
+        float target = Mathf.Clamp(push * cap, -max, max);
+        float k = 1f - Mathf.Exp(-dt / SoftTau);
+        float next = Mathf.Lerp(self.softV, target, k);
+        self.softV = Mathf.MoveTowards(self.softV, next, SoftAccel * cap * dt);
+        return self.softV;
+    }
+
+    // A pilot's damped offset from its line: the drift integrated, with a slow way home.
+    public static float SoftOffset(SpawnFootprint self, float dt)
+    {
+        float v = SoftDrift(self, dt);
+        float x = self.SoftX + v * dt;
+        x = Mathf.MoveTowards(x, 0f, SoftReturn * dt);
+        x = Mathf.Clamp(x, -SoftMaxOffset, SoftMaxOffset);
+        self.SoftX = x;
+        return x;
+    }
+
+    // Forget the drift (a pilot leaving, a body re-seated): flying away is never held back.
+    public static void SoftRelease(SpawnFootprint self, float dt)
+    {
+        self.softV = Mathf.MoveTowards(self.softV, 0f, SoftAccel * 2f * dt);
+        self.SoftX = Mathf.MoveTowards(self.SoftX, 0f, SoftReturn * 3f * dt);
+    }
+
+    // For a chaser: the move it wants with the soft drift added (or ResolveSteer's hard rules when Soft is off).
+    public static Vector2 Steer(SpawnFootprint self, Vector2 from, Vector2 wish, float scrollStep, float dodgeStep, float dt,
+                                float cap = 1f, float lookUp = 0f)
+    {
+        if (!Soft) return ResolveSteer(self, from, wish, scrollStep, dodgeStep);
+        float v = SoftDrift(self, dt, cap, lookUp);
+        float limit = SpawnLane.LaneHalf + .3f - self.half.x;
+        float x = wish.x + v * dt;
+        // (the lane clamp only ever pulls the drift back, never the wish itself)
+        if (Mathf.Abs(x) > limit) x = Mathf.Sign(x) * Mathf.Max(limit, Mathf.Abs(wish.x));
+        wish.x = x;
+        return wish;
+    }
+
     // Touching no other enemy's body at this instant (a hair of margin, so
     // resting against one never reads as overlap through rounding)?
     static bool ClearOfBodies(SpawnFootprint self, Vector2 at, Vector2 half)

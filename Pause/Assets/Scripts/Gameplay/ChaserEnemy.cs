@@ -40,6 +40,8 @@ public class ChaserEnemy : MonoBehaviour, IMovementFootprint
 
     [Tooltip("How far ahead (seconds of scroll) it watches the board for something to sidestep.")]
     public float lookAheadSeconds = .45f;
+    // how much faster than a pilot its soft drift off neighbours may be (SpawnSpace.SoftDrift)
+    public float SoftCap = 2f;
 
     // How it hunts (EnemyBehaviours; each world's chaser has its own):
     //   Hound   steady pursuit
@@ -306,14 +308,18 @@ public class ChaserEnemy : MonoBehaviour, IMovementFootprint
         // away from the threat (and off the wall).
         float scroll = SpawnSpace.ScrollSpeed;
         Rect threat;
-        if (SpawnSpace.ThreatAhead(footprint, wish, footprint.half, scroll * lookAheadSeconds, out threat))
+        // (the hard on / off sidestep is the old rule; the soft drift below reads the same look-ahead continuously)
+        if (!SpawnSpace.Soft && SpawnSpace.ThreatAhead(footprint, wish, footprint.half, scroll * lookAheadSeconds, out threat))
         {
             float dir = wish.x >= threat.center.x ? 1f : -1f;
             if (Mathf.Abs(wish.x + dir * (footprint.half.x + .3f)) > SpawnLane.LaneHalf) dir = -dir;
             wish.x += dir * dodgeSpeed * dt;
         }
 
-        Vector2 p = SpawnSpace.ResolveSteer(footprint, from, wish, scroll * dt, dodgeSpeed * dt);
+        // A leaving chaser flies on: whatever is in its way, it crashes into (FriendlyFire).
+        Vector2 p = Leaving && SpawnSpace.Soft
+            ? (Vector2)wish
+            : SpawnSpace.Steer(footprint, from, wish, scroll * dt, dodgeSpeed * dt, dt, SoftCap, scroll * lookAheadSeconds);
         // a wandering loop follows wherever it had to give way to
         if (wandering) wanderCenter += new Vector3(p.x - wish.x, p.y - wish.y, 0f);
         transform.position = new Vector3(p.x, p.y, from.z);

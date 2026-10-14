@@ -422,6 +422,7 @@ public static class FriendlyFire
 
     // ---- free movers running into things ----
 
+    // (Pilots ride a moveEnimes too, so they are free movers: with soft avoidance nothing stops one meeting a neighbour.)
     public static bool FreeMover(GameObject go) =>
         go.TryGetComponent(out ChaserEnemy _) || go.TryGetComponent(out moveEnimes _);
 

@@ -47,6 +47,9 @@ public class EnemyBrain : MonoBehaviour
     public const float LeaveMargin = 1.2f;        // gone once this far past the top / bottom of the view
     public const float EarlyLeaveShare = .5f;     // volleys spent: may leave after this share of its window
     public const float CatchUpSpeed = 12f;        // u/s back to its line after giving way
+    // soft avoidance: how fast the sidestep band closes (a hazard comes) and opens (it has passed), u/s. Opening is
+    // slower than closing, so a hazard chattering at the edge of the look window only ever ratchets the band shut.
+    public const float BandCloseRate = 4f, BandOpenRate = 1f;
     public const float DodgeSpeed = 4f;           // u/s sideways when ResolveSteer has to give way
     public const float LungeRecoverSeconds = .55f;
     public const float ShoveReturnSpeed = 3f;     // u/s back to its line after something pushed it (a shockwave)
@@ -226,6 +229,8 @@ public class EnemyBrain : MonoBehaviour
     bool onRail;
 
     float ox, oy, lx, ly;           // pattern offset, lunge offset
+    float smoothLo, smoothHi;       // the sidestep band as it is eased (soft avoidance)
+    bool bandInit;
     float lat, vert;                // pattern clocks
     float dir = 1f;
     float marchTarget, marchTimer;
@@ -681,24 +686,44 @@ public class EnemyBrain : MonoBehaviour
         float band = b.bandX;
         if (footprint == null) TryGetComponent(out footprint);
         float bandLo = -band, bandHi = band;
-        if (band > 0f && footprint != null && Stage != PilotStage.Waiting)
+        // Soft avoidance (SpawnSpace.Soft): a pilot that is flying away -- leaving, diving, running a
+        // lunge -- is never held back by what is in its way: it crashes into it (FriendlyFire). One that
+        // is staying still sidesteps what passes beside it SMOOTHLY: the cut-back band closes and opens
+        // at BandRate (no snap as a hazard crosses the look window), and it drifts off crowding
+        // neighbours by a damped offset (SpawnSpace.SoftOffset). Soft off: the old hard band and ladder.
+        bool soft = SpawnSpace.Soft && footprint != null && footprint.isActiveAndEnabled;
+        bool flyingAway = Stage == PilotStage.Exiting || runDiving || (State == Phase.Release && b.attack == EnemyAttack.Lunge);
+        if (band > 0f && footprint != null && Stage != PilotStage.Waiting && !(soft && flyingAway))
         {
             bool diving = runDiving || (State == Phase.Release && b.attack == EnemyAttack.Lunge);
             PilotAirspace.BandLimits(this, p, footprint.half, band, SpawnSpace.ScrollSpeed * SidestepLookSeconds + .6f,
                                      diving ? 4f : .4f, out bandLo, out bandHi);
         }
+        if (soft)
+        {
+            if (!bandInit) { smoothLo = -band; smoothHi = band; bandInit = true; }
+            smoothLo = Mathf.MoveTowards(smoothLo, bandLo, (bandLo > smoothLo ? BandCloseRate : BandOpenRate) * dt);
+            smoothHi = Mathf.MoveTowards(smoothHi, bandHi, (bandHi < smoothHi ? BandCloseRate : BandOpenRate) * dt);
+            bandLo = smoothLo; bandHi = smoothHi;
+        }
         float total = Mathf.Clamp(ox + lx, bandLo, bandHi);
         float lane = SpawnLane.LaneHalf - halfX;
-        float wantX = Mathf.Clamp(anchor.x + total, -lane, lane);
+        float wantX = anchor.x + total;
+        if (soft)
+        {
+            if (flyingAway || Stage == PilotStage.Waiting) SpawnSpace.SoftRelease(footprint, dt);
+            else wantX += SpawnSpace.SoftOffset(footprint, dt);
+        }
+        wantX = Mathf.Clamp(wantX, -lane, lane);
         float wantY = anchor.y + oy + ly;
         Vector2 from = p;
         Vector2 want = new Vector2(wantX, wantY);
         if (Displaced && (want - from).sqrMagnitude < .05f * .05f) Displaced = false;   // back on its line
         Vector2 wish = Vector2.MoveTowards(from, want, (Displaced ? ShoveReturnSpeed : CatchUpSpeed * view) * dt);
 
-        // the chaser's rule: never step into another body (another pilot, a
-        // chaser, an elite, a hazard that got into its column anyway)
-        if (footprint != null && footprint.isActiveAndEnabled)
+        // the chaser's rule, old form: never step into another body (another pilot, a chaser, an elite, a hazard
+        // that got into its column anyway). The soft form has no such rule: it crashes into what it meets.
+        if (!soft && footprint != null && footprint.isActiveAndEnabled)
             wish = SpawnSpace.ResolveSteer(footprint, from, wish, SpawnSpace.ScrollSpeed * dt, DodgeSpeed * dt);
         transform.position = new Vector3(wish.x, wish.y, p.z);
         lastSet = transform.position;

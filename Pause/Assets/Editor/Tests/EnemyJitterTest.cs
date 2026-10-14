@@ -39,8 +39,8 @@ public static class EnemyJitterTest
 
     static readonly string[] Paths = { "rest", "top", "sameY", "under", "sweepY", "sweepX" };
 
-    static Transform ship;
-    static float clock;
+    internal static Transform ship;   // (EnemyAvoidanceTest flies dense scenes with the same fixtures)
+    internal static float clock;
 
     public static int Execute()
     {
@@ -68,7 +68,7 @@ public static class EnemyJitterTest
         return fails;
     }
 
-    static void Clear()
+    internal static void Clear()
     {
         foreach (var b in Object.FindObjectsByType<enmiesOnBoard>(FindObjectsSortMode.None)) Object.DestroyImmediate(b.gameObject);
         foreach (var e in Object.FindObjectsByType<EnemyIdentity>(FindObjectsSortMode.None)) Object.DestroyImmediate(e.gameObject);
@@ -77,7 +77,7 @@ public static class EnemyJitterTest
         ship = null;
     }
 
-    static void Fresh()
+    internal static void Fresh()
     {
         Clear();
         EliteSystem.Clear();
@@ -122,7 +122,7 @@ public static class EnemyJitterTest
         public float shipGap;   // closest approach to the ship
     }
 
-    sealed class Actor
+    internal sealed class Actor
     {
         public GameObject go, rail;
         public EnemyBrain brain;
