@@ -40,6 +40,7 @@ public sealed class CoverBoulderEntry
     public int[] shapes = { 7, 7, 7, 7 };
     public Color[] tint;
     public Color haze = new Color(.45f, .5f, .55f, 1f);
+    public bool outline;                  // a thin pale one-sided rim (Storm: the user asked for it so the rock stays visible); every other world has none (docs 13)
     public string[] notes;                // one line per backdrop variant: what it is and why these shapes (docs / PR table)
 
     public int Variants => widths.Length;
@@ -148,6 +149,7 @@ public static class CoverBoulderTable
             widths = new[] { 2.4f, 2.9f, 2.6f }, drift = CoverDrift.Hover,
             fall = new Vector2(.7f, 1.0f), side = .20f, swayDeg = 1.5f, swayPeriod = 11f, bobAmp = .10f, bobPeriod = 5f,
             gap = new Vector2(40f, 80f),
+            outline = true,
             shapes = new[] { 7,7,7,7 },
             notes = new[] {
                 "v1 sheared cloud banks: a floating thunderhead rock sits in the deck",

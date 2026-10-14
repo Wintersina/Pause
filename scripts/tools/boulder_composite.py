@@ -13,7 +13,7 @@ R = "Pause/Assets/Art/Backgrounds/Resources/Worlds/%s/Backdrop3/" % w
 src = open("Pause/Assets/Scripts/Gameplay/Cover/CoverBoulderTable.cs").read()
 m = re.search(r'world = "%s".*?widths = new\[\] \{ ([^}]*) \}' % w, src, re.S)
 widths = [float(x.strip().rstrip("f")) for x in m.group(1).split(",")]
-tm = re.search(r'world = "%s".*?tint = new\[\] \{ ([^}]*)\},' % w, src, re.S)
+tm = re.search(r'world = "%s"(?:(?!world = ).)*?tint = new\[\] \{ ([^}]*)\},' % w, src, re.S)
 tints = [(1, 1, 1)] * 4
 if tm and tm.group(1):
     parts = re.findall(r'Color\.white|C\(([^)]*)\)', tm.group(1))
@@ -32,6 +32,9 @@ for r, v in enumerate(vs):
             p = "%s%s/%s.png" % (R, v, layer)
             if os.path.exists(p):
                 bg.alpha_composite(Image.open(p).convert("RGBA"))
+        if os.environ.get('FLASH'):
+            from PIL import ImageEnhance
+            bg = ImageEnhance.Brightness(bg.convert('RGB')).enhance(float(os.environ['FLASH'])).convert('RGBA')
         bg = bg.crop((0, 40 + 60 * r, 512, 40 + 60 * r + 910)).resize((VW, VH), Image.NEAREST)
         jv = man["variants"][c]
         art = sheet.crop((c * cell, 0, (c + 1) * cell, cell))

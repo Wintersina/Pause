@@ -262,6 +262,23 @@ public static class CoverBoulderTest
                 for (int i = 0; i < px.Length; i += 3)
                     if (px[i].a > 8) { opaque++; if (w > 0 && WorldCue.IsPink(new Color32(px[i].r, px[i].g, px[i].b, 255))) pinks++; }
                 bool pinkFree = pinks <= opaque * .002f;
+                if (f == "boulder.png")
+                {
+                    // the rim: solid pixels with a clear pixel 4 px away; Storm has a pale one, every other world none
+                    double rim = 0, body = 0; long nr = 0, nb = 0;
+                    for (int y = 4; y < H - 4; y += 2)
+                        for (int x = 4; x < W - 4; x += 2)
+                        {
+                            var c = px[y * W + x];
+                            if (c.a <= 240) continue;
+                            double l = .299 * c.r + .587 * c.g + .114 * c.b;
+                            bool edge = px[y * W + x - 4].a < 128 || px[y * W + x + 4].a < 128 || px[(y - 4) * W + x].a < 128 || px[(y + 4) * W + x].a < 128;
+                            if (edge) { rim += l; nr++; } else { body += l; nb++; }
+                        }
+                    double dl = nr > 0 && nb > 0 ? rim / nr - body / nb : 0;
+                    Check(name + "/boulder.png: " + (e.outline ? "has its pale one-sided outline" : "has no outline or halo") + " (rim " + dl.ToString("+0;-0") + " luma vs body)",
+                          e.outline ? dl >= 20 : dl <= 14);
+                }
                 Check(name + "/" + f + ": no pink outside Space", pinkFree);
             }
         }

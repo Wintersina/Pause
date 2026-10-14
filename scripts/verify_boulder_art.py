@@ -130,6 +130,7 @@ def main():
     ap.add_argument("--manifest", action="store_true")
     ap.add_argument("--sheet")
     ap.add_argument("--cell", type=int, default=512, help="cell size in px (768 for the high-res sheets)")
+    ap.add_argument("--outline", action="store_true", help="the world is meant to carry a thin pale outline (Storm): require it instead of forbidding it")
     ap.add_argument("--no-break", action="store_true", help="the intact sheet only (Space before its strip exists)")
     ap.add_argument("--intact", nargs=3, metavar="RES", help="Resources paths of three in-place intact sprites (Space)")
     args = ap.parse_args()
@@ -194,7 +195,10 @@ def main():
             inner = er & ~er2
             if ring.sum() > 50 and inner.sum() > 50:
                 dl = float(l[ring].mean() - l[inner].mean())
-                check("v%d: no pale outline or halo (rim luma %+.0f vs the body just inside, max +14)" % (v, dl), dl <= 14)
+                if args.outline:
+                    check("v%d: pale one-sided outline present (rim luma %+.0f vs the body just inside, min +20)" % (v, dl), dl >= 20)
+                else:
+                    check("v%d: no pale outline or halo (rim luma %+.0f vs the body just inside, max +14)" % (v, dl), dl <= 14)
             med = float(np.median(l[op]))
             check("v%d: body at backdrop brightness (median luma %.0f <= 112)" % (v, med), med <= 112)
         if not space:

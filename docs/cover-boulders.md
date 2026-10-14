@@ -160,7 +160,8 @@ trapped (grid sweep + corner cases), bodies solid, crash rules, boss arrival des
 
 The user rejected the first boulders (bright, pale-outlined, pasted on). Rules now:
 
-* **No outline, no rim halo.** The silhouette is the art's own edge; the foot of every boulder is ringed by the world's ground cover (floes, foliage, ash, foam,
+* **Storm alone carries a thin pale one-sided outline** (the user: 'the Storm boulder is good, it just needs an outline so it can be visible'): 4 px storm-white (#DEE6F2) on the top and sides of the solid silhouette, fading out along the base and cloud skirt (`scripts/tools/boulder_outline.py`, `CoverBoulderEntry.outline`, `verify_boulder_art.py --outline`).
+* **Every other world: no outline, no rim halo.** The silhouette is the art's own edge; the foot of every boulder is ringed by the world's ground cover (floes, foliage, ash, foam,
   vapour, sand) that fades to transparent (a fog skirt); `verify_boulder_art.py` fails a pale rim and a body brighter than median luma 112.
 * **Painted in the backdrop's own view, palette and value range.** Codex was given the world's four-variant contact sheet (`docs/cover-boulders-codex/refs/`), its
   landmarks atlas and mid layer; `scripts/tools/boulder_grade.py` (per-world parameters in `Boulders~/<W>/src~/grade.txt`) re-grades the finished sheets into the
