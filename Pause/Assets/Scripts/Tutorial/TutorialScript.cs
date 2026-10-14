@@ -5,46 +5,54 @@ using System.Text;
 // before it moves on. Edit the table in Steps; nothing else needs touching.
 //
 //   id       - stable name for the step (tests and logs)
-//   line     - what the robot says. ASCII only, <= 60 characters. Wrap a word
+//   line     - what the robot says. ASCII only, <= 70 characters. Wrap a word
 //              in *asterisks* to highlight it in sodium orange.
 //   advance  - the player action that completes the step (see TutorialAdvance)
-//   amount   - how much of that action (seconds, or a count)
+//   amount   - how much of that action (a distance, seconds, or a count)
 //   cue      - what the scene does to set the action up (see TutorialCue)
+//   par      - seconds a competent player needs (documentation + the pacing test)
 //
-// A step completes once its line has been fully spoken, the player has had a
-// moment to read it, and the advance condition is met. Conditions count from
-// the moment the step starts, so doing the thing while the robot is still
-// talking counts.
+// A step completes ONLY when its line has been fully spoken, the player has
+// had a moment to read it, and the player has really done the thing. There
+// is no timeout: nothing advances on a clock. An idle player is re-prompted
+// (Hints.IdleHintSeconds) and, with the finger up, the whole tutorial is
+// paused with the world. Conditions count from the moment the step starts,
+// so doing the thing while the robot is still talking counts.
 public static class TutorialScript
 {
-    // THE BEAT TIMELINE (docs/tutorial-flow.md has the same table). Seconds
-    // are from the step's start; "par" is how long a competent player takes
-    // to do what it asks (the line is spoken meanwhile), "timeout" the most a
-    // step may take, whatever the player does -- it then moves on by itself.
+    // THE STEP TABLE (docs/tutorial-rebuild.md has the same table). "par" is
+    // how long a competent player takes to do what the step asks (the line is
+    // spoken meanwhile). There is no timeout: a step ends only on the action.
     // A step also waits for its line to be spoken and read (Hints.readSeconds).
     //
     // ATOM ORDER -- each atom is introduced once, by one scripted atom that
-    // drops in as its line starts (no random atoms in the tutorial at all):
-    //   1 green repair   hearts are the thing that keeps a run alive, and the
-    //                    ship is dented first so the repair is seen working
-    //   2 blue shield    the next thing that saves a run: a free hit
-    //   3 red pause      what the freezing the player just learned costs
+    // rushes in from the top as its line starts (no random atoms at all):
+    //   1 green repair   the ship STARTS damaged, so the repair is seen working
+    //   2 red pause      right after the pause lesson spent one
+    //   3 blue shield    the next thing that saves a run: a free hit
     //   4 violet charge  the weapon: last, because it is the reward -- one
     //                    atom charges the armed weapon and it goes off
     public static readonly TutorialStep[] Steps =
     {
-        //        id          line                                                   advance when the player...            amount  cue                          par  timeout
-        new TutorialStep("hold",     "*Hold* anywhere to fly.",                           TutorialAdvance.FlySeconds, .8f,  TutorialCue.TouchPulse,        2.0f, 6f),
-        new TutorialStep("freeze",   "Let go. Time *freezes*!",                           TutorialAdvance.LetGo, .4f,       TutorialCue.None,              2.0f, 4f),
-        new TutorialStep("teleport", "Touch to teleport. Each costs a *pause*.",          TutorialAdvance.SpendPause, 1f,   TutorialCue.PointAtPauses,     3.0f, 6f),
-        new TutorialStep("dust",     "*Star dust*! Grab it, that's your cash.",           TutorialAdvance.CollectStar, 1f,  TutorialCue.SpawnStars,        3.0f, 6f),
-        new TutorialStep("heal",     "The *green* atom repairs a heart.",                 TutorialAdvance.CollectGreenAtom, 1f, TutorialCue.SpawnGreenAtom, 3.5f, 7f),
-        new TutorialStep("shield",   "The *blue* atom wraps you in a shield.",            TutorialAdvance.CollectBlueAtom, 1f,  TutorialCue.SpawnBlueAtom,  3.5f, 6f),
-        new TutorialStep("refill",   "The *red* atom refills your pauses.",               TutorialAdvance.CollectRedAtom, 1f,   TutorialCue.SpawnRedAtom,   3.5f, 6f),
-        new TutorialStep("power",    "The *violet* atom charges your weapon.",            TutorialAdvance.FirePower, 1f,    TutorialCue.SpawnCapacitorAtom, 4.0f, 8f),
-        new TutorialStep("hearts",   "Your *hearts* shield you from a crash.",            TutorialAdvance.Read, 0f,         TutorialCue.GrantHearts,       0f,   3f),
-        new TutorialStep("enemies",  "An *alien*! Dodge it, or teleport onto it!",        TutorialAdvance.EnemyGone, 1f,    TutorialCue.SpawnEnemy,        4.5f, 7f),
+        //        id         line                                                  advance when the player...          amount cue                          par
+        new TutorialStep("hold",    "*Hold* anywhere to fly around.",                  TutorialAdvance.FlyDistance,      FlyDistanceUnits, TutorialCue.TouchPulse,     3.0f),
+        new TutorialStep("dust",    "*Star dust*! Grab it, that's your cash.",         TutorialAdvance.CollectStar,      3f,   TutorialCue.SpawnStars,      4.0f),
+        new TutorialStep("heal",    "The *green* atom repairs a heart.",               TutorialAdvance.HealHeart,        1f,   TutorialCue.SpawnGreenAtom,  4.0f),
+        new TutorialStep("freeze",  "A wall! *Let go* to pause time.",       TutorialAdvance.WallFrozen,       FrozenSeconds, TutorialCue.SpawnWall,     4.0f),
+        new TutorialStep("jump",    "Touch *above* the wall to jump over it.",         TutorialAdvance.CrossWall,        1f,   TutorialCue.PointAtWall,     4.0f),
+        new TutorialStep("refill",  "The *red* atom refills your pauses.",             TutorialAdvance.CollectRedAtom,   1f,   TutorialCue.SpawnRedAtom,    4.0f),
+        new TutorialStep("shield",  "The *blue* atom wraps you in a shield.",          TutorialAdvance.CollectBlueAtom,  1f,   TutorialCue.SpawnBlueAtom,   4.0f),
+        new TutorialStep("power",   "The *violet* atom charges your weapon.",          TutorialAdvance.FirePower,        1f,   TutorialCue.SpawnCapacitorAtom, 4.5f),
     };
+
+    // The closing line, said once the last step is done, as the ship lifts off.
+    public const string ClosingLine = "Nice flying! *Lift off*!";
+    // Hold step: steer the ship at least this far (world units).
+    public const float FlyDistanceUnits = 2.5f;
+    // Freeze step: stay frozen this long with the wall in view.
+    public const float FrozenSeconds = .5f;
+    // The retry line when the wall was broken up instead of jumped.
+    public const string WallRetryLine = "Not through it! *Let go*, touch *above* the wall.";
 
     public const int MaxSteps = 10;
     // One sentence per line: short enough for the bubble.
@@ -57,7 +65,7 @@ public static class TutorialScript
 
     // The atom order above, by atom kind (the test pins it to the steps).
     public static readonly TutorialAtom[] AtomOrder =
-        { TutorialAtom.Green, TutorialAtom.Blue, TutorialAtom.Red, TutorialAtom.Cooldown };
+        { TutorialAtom.Green, TutorialAtom.Red, TutorialAtom.Blue, TutorialAtom.Cooldown };
 
     // Seconds the robot takes to say a line (RobotSpeaker's own pacing).
     public static float SpeakSeconds(SpokenLine l)
@@ -68,13 +76,13 @@ public static class TutorialScript
         return t;
     }
 
-    // May the step end now? Its line has been spoken and read, and either the
-    // player did the thing or the step ran out of time.
+    // May the step end now? Its line has been spoken and read AND the player
+    // did the thing. Never on a timer.
     public static bool CanAdvance(TutorialStep step, TutorialSignals start, TutorialSignals now,
-                                  bool lineFinished, float sinceLineFinished, float readSeconds, float stepSeconds)
+                                  bool lineFinished, float sinceLineFinished, float readSeconds)
     {
         if (!lineFinished || sinceLineFinished < readSeconds) return false;
-        return IsMet(step, start, now) || stepSeconds >= step.timeout;
+        return IsMet(step, start, now);
     }
 
     // The power step's charge: one violet atom's cut (ShipPowerController.
@@ -87,29 +95,24 @@ public static class TutorialScript
     {
         switch (step.advance)
         {
-            case TutorialAdvance.FlySeconds:
-                return now.flySeconds - start.flySeconds >= step.amount;
-            case TutorialAdvance.LetGo:
-                // Frozen right now, and for long enough to see the world stop.
-                return !now.worldMoving && now.frozenSeconds >= step.amount;
-            case TutorialAdvance.Touch:
-                return now.presses - start.presses >= step.amount;
-            case TutorialAdvance.SpendPause:
-                return now.pausesSpent - start.pausesSpent >= step.amount;
+            case TutorialAdvance.FlyDistance:
+                return now.flyUnits - start.flyUnits >= step.amount;
             case TutorialAdvance.CollectStar:
                 return now.starsCollected - start.starsCollected >= step.amount;
+            case TutorialAdvance.HealHeart:
+                return now.heartsHealed - start.heartsHealed >= step.amount;
+            case TutorialAdvance.WallFrozen:
+                return now.wallFrozenSeconds >= step.amount;
+            case TutorialAdvance.CrossWall:
+                return now.wallsCrossed - start.wallsCrossed >= step.amount;
             case TutorialAdvance.CollectGreenAtom:
                 return now.greenAtomsCollected - start.greenAtomsCollected >= step.amount;
             case TutorialAdvance.CollectBlueAtom:
                 return now.blueAtomsCollected - start.blueAtomsCollected >= step.amount;
             case TutorialAdvance.CollectRedAtom:
                 return now.redAtomsCollected - start.redAtomsCollected >= step.amount;
-            case TutorialAdvance.EnemyGone:
-                return now.enemiesGone - start.enemiesGone >= step.amount;
             case TutorialAdvance.FirePower:
                 return now.powersFired - start.powersFired >= step.amount;
-            case TutorialAdvance.Read:
-                return true;
         }
         return false;
     }
@@ -282,16 +285,14 @@ public static class TutorialScript
 
 public enum TutorialAdvance
 {
-    FlySeconds,      // fly (finger down, world moving) for `amount` seconds in total
-    LetGo,           // lift the finger and stay frozen for `amount` seconds
-    Touch,           // put a finger down `amount` times
-    SpendPause,      // the pause counter drops by `amount`
-    CollectStar,     // pick up `amount` star-dust stars
+    FlyDistance,     // steer the ship `amount` world units with a finger down
+    CollectStar,     // pick up `amount` star-dust pieces
+    HealHeart,       // a green atom repairs a missing heart (`amount` times)
+    WallFrozen,      // lift the finger (world frozen) `amount` seconds with the wall in view
+    CrossWall,       // pause-jump from below the wall to above it, `amount` times
     CollectGreenAtom, // pick up `amount` green (heal) atoms
     CollectBlueAtom, // pick up `amount` blue (shield) atoms
     CollectRedAtom,  // pick up `amount` red (pause) atoms
-    EnemyGone,       // `amount` tutorial enemies gone: blasted, rammed or dodged off the bottom
-    Read,            // nothing: the step is its line (met as soon as it is read)
     FirePower,       // the ship's weapon (the ultimate) goes off `amount` times
 }
 
@@ -299,14 +300,13 @@ public enum TutorialCue
 {
     None,
     TouchPulse,      // a pulsing "touch here" ring while the world is frozen
-    PointAtPauses,   // arrow at the PAUSES readout, plus the touch pulse
-    SpawnStars,      // start the star clusters, and rush a short stream of dust onto the ship (arrows on every piece)
-    SpawnGreenAtom,  // dent the ship, drop one green (heal) atom in, arrow on it
+    SpawnStars,      // rush a stream of dust from the top, fast, onto the ship (arrows on every piece)
+    SpawnGreenAtom,  // drop one green (heal) atom in from the top, arrow on it (the ship is already damaged)
     SpawnBlueAtom,   // one blue (shield) atom
     SpawnRedAtom,    // one red (pause) atom
-    GrantHearts,     // fill the ship's orbiting hearts (ShipLives.TutorialExtraHearts extra) and show the touch pulse
-    SpawnEnemy,      // one alien drops slowly through the ship's lane (TutorialEnemy), arrow on it
     SpawnCapacitorAtom, // arm the weapon for one violet atom and drop that one atom in, arrow on it
+    SpawnWall,       // a wall of aliens rushes in from the top and stops above the ship: no way round
+    PointAtWall,     // the wall waits; the touch pulse says where to touch
 }
 
 public struct TutorialStep
@@ -317,12 +317,10 @@ public struct TutorialStep
     public readonly float amount;
     public readonly TutorialCue cue;
     public readonly float par;       // seconds a competent player needs
-    public readonly float timeout;   // the step moves on by itself after this long
 
-    public TutorialStep(string id, string line, TutorialAdvance advance, float amount, TutorialCue cue, float par, float timeout)
+    public TutorialStep(string id, string line, TutorialAdvance advance, float amount, TutorialCue cue, float par)
     {
         this.par = par;
-        this.timeout = timeout;
         this.id = id;
         this.line = line;
         this.advance = advance;
@@ -336,18 +334,19 @@ public struct TutorialSignals
 {
     public bool pressed;
     public bool worldMoving;
-    public float flySeconds;      // total time with a finger down
+    public float flyUnits;        // total distance steered with a finger down
     public float frozenSeconds;   // how long the world has been frozen right now (0 while moving)
+    public float wallFrozenSeconds; // ... of that, with the wall in view
     public int presses;           // finger-down edges
     public int pausesSpent;
     public int starsCollected;
+    public int heartsHealed;
     public int greenAtomsCollected;
     public int blueAtomsCollected;
     public int redAtomsCollected;
-    public int enemiesGone;
+    public int wallsCrossed;
     public int powersFired;
 }
-
 // A line, pre-chewed for the speaker so nothing is computed while talking.
 public sealed class SpokenLine
 {

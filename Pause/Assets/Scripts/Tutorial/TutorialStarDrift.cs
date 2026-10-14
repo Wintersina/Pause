@@ -10,9 +10,8 @@ using UnityEngine;
 // untouched.
 public class TutorialStarDrift : MonoBehaviour
 {
-    // Fast enough that a piece spawned within DustRush.Reach of the ship is on
-    // it in about a second.
-    public const float Speed = 4.2f;
+    // Fast: a piece enters at the top edge and is on the ship in about a second.
+    public const float Speed = 8f;
     // Gone once this far below the bottom edge.
     public const float LeaveBelow = .6f;
 

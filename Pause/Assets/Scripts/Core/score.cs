@@ -27,7 +27,9 @@ public class score : MonoBehaviour {
     // never consume one of the player's earned teleports.
     private bool hasStartedRun;
     private const int PAUSECOUNTER = 5;
-    private const int TUTPAUSECOUNTER = 50;
+    // The tutorial starts with a few pauses (Hints tops them up per step) so
+    // letting go always freezes it, as in a run.
+    public const int TUTPAUSECOUNTER = 3;
     // A real run's allotment, for screens that explain it (tutorial end card).
     public const int RealRunPauses = PAUSECOUNTER;
 
@@ -58,6 +60,7 @@ public class score : MonoBehaviour {
         // Practice runs score nothing; developer runs score but never save a
         // best (or reach a leaderboard).
         scoreRun = RunScore.BeginRun(paysRealDust, !DeveloperUnlocks.Enabled);
+        RunScore.PracticePopups = gameObject.scene.name == TutorialScene;
         committedOnDeath = false;
         if (paysRealDust) currencyHolder = StarDustLedger.Balance;
     }

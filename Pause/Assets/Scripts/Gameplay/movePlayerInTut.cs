@@ -14,6 +14,7 @@ public class movePlayerInTut : MonoBehaviour
 
     void Start()
     {
+        ResetCounters();
         //will move pos of texts to follow ship
         boostText = GameObject.Find("boostText").GetComponent<RectTransform>();
         hypeText = GameObject.Find("hypeText").GetComponent<RectTransform>();
@@ -23,21 +24,93 @@ public class movePlayerInTut : MonoBehaviour
     // True from a press until the finger lifts: the first frame of a press is
     // an arrival (a pause-jump), every later one is steering.
     bool held;
+    // The first press of the lesson glides the ship to the finger (like a
+    // run's launch, movePlayer.GlideStep) instead of blinking it there.
+    bool glided;
+    bool gliding;
+    float glideElapsed;
+
+    // Total distance the ship has been steered (world units) since the
+    // scene started; the "hold anywhere to fly" step watches it. Pause-jumps
+    // do not count: it is flying, not blinking.
+    public static float FlownUnits { get; private set; }
+    // Pause-jumps made (Arrive) since the scene started, and the last one.
+    public static int Jumps { get; private set; }
+    public static Vector3 LastJumpFrom { get; private set; }
+    public static Vector3 LastJumpTo { get; private set; }
+    public static void ResetCounters() { FlownUnits = 0f; Jumps = 0; }
 
     // Update is called once per frame
     void Update()
     {
+        // The fly-in's portal and the lift-off hold the ship: no steering.
+        if (Planetfall.HoldsShip || Liftoff.HoldsShip || PortalArrival.HoldsShip)
+        {
+            held = false;
+            gliding = false;
+            return;
+        }
+
         if (TouchInput.IsPressed)
         {
+            // A press on the pause quick actions (replay / home) belongs to
+            // the UI, never a steer or a jump (movePlayer does the same).
+            if (PauseQuickActions.IsScreenPointOnAction(TouchInput.Position)) return;
+
             fingerPos = Camera.main.ScreenToWorldPoint(new Vector3(TouchInput.Position.x, TouchInput.Position.y, 0));
             textPos = Camera.main.WorldToScreenPoint(transform.position);
 
             Vector3 before = transform.position;
-            moveLeft_Right(fingerPos);
-            if (!held) Arrive(before, transform.position);
+            if (!held && !glided)
+            {
+                glided = true;
+                gliding = true;
+                glideElapsed = 0f;
+            }
+            if (gliding)
+            {
+                float dt = Mathf.Min(Dt(), .05f);
+                bool done;
+                transform.position = movePlayer.GlideStep(transform.position, movePlayer.FollowTarget(fingerPos), glideElapsed, dt, out done);
+                glideElapsed += dt;
+                if (done) gliding = false;
+                FollowTexts();
+            }
+            else
+            {
+                moveLeft_Right(fingerPos);
+                if (!held) Arrive(before, transform.position);
+                else FlownUnits += Vector3.Distance(before, transform.position);
+            }
+            if (gliding) FlownUnits += Vector3.Distance(before, transform.position);
             held = true;
         }
-        else held = false;
+        else
+        {
+            held = false;
+            gliding = false;
+        }
+    }
+
+#if UNITY_EDITOR
+    // Edit-mode tests step Update by hand; Time.unscaledDeltaTime is not real there.
+    public static System.Func<float> DeltaOverride;
+#endif
+    static float Dt()
+    {
+#if UNITY_EDITOR
+        if (DeltaOverride != null) return DeltaOverride();
+#endif
+        return Time.unscaledDeltaTime;
+    }
+
+    void FollowTexts()
+    {
+        if (hypeText == null || boostText == null) return;
+        hypeText.gameObject.SetActive(true);
+        boostText.gameObject.SetActive(true);
+        hypeText.transform.position = textPos + new Vector3(0, 70, 0);
+        boostText.transform.position = textPos + new Vector3(0, -40, 0);
     }
 
     // The pause-jump, as in a run (movePlayer): the portal opens where the
@@ -47,10 +120,12 @@ public class movePlayerInTut : MonoBehaviour
     public static bool Arrive(Vector3 from, Vector3 to)
     {
         if (Vector3.Distance(from, to) < TeleportFx.MinimumJump) return false;
+        Jumps++;
+        LastJumpFrom = from;
+        LastJumpTo = to;
         TeleportFx.Play(from, to);
         return true;
     }
-
 
     // will move the player left and right baised on touch positions.
     void moveLeft_Right(Vector3 fingerPos)
@@ -68,10 +143,7 @@ public class movePlayerInTut : MonoBehaviour
 
             // Allow text to follow player----------------------------
 
-            hypeText.gameObject.SetActive(true);
-            boostText.gameObject.SetActive(true);
-            hypeText.transform.position = textPos + new Vector3(0, 70, 0);
-            boostText.transform.position = textPos + new Vector3(0, -40, 0);
+            FollowTexts();
 
             //--------------------------------------------------------
         }

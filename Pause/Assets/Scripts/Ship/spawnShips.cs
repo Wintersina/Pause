@@ -87,10 +87,11 @@ public class spawnShips : MonoBehaviour
     }
 }
 
-// The tutorial's ship is authored into tutorialS5 (a ship1 instance), so it
-// flew Neon Comet whatever was picked in the dock. Re-dress it as the
-// equipped ship as the scene loads -- after Awake, before any Start, so
-// lifeControler, the thruster and the damage fx all see the right id.
+// The tutorial's ship is authored into tutorialS5 (a ship1 instance = Neon
+// Comet) and ALWAYS flies as Neon Comet, stock colour, whatever the pilot has
+// equipped (ShipId.TutorialFlight). It is dressed as ShipId.TutorialShip as
+// the scene loads -- after Awake, before any Start, so lifeControler, the
+// thruster and the damage fx all see the right id.
 public static class TutorialShipHull
 {
     public const string Scene = "tutorialS5";
@@ -104,7 +105,7 @@ public static class TutorialShipHull
 
     static void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
-        if (scene.name == Scene) Apply();
+        if (scene.name == Scene) { ShipId.TutorialFlight = true; Apply(); }
     }
 
     // Returns the tutorial ship it dressed, or null if there is none.
@@ -112,7 +113,7 @@ public static class TutorialShipHull
     {
         var player = Object.FindFirstObjectByType<movePlayerInTut>();
         if (player == null) return null;
-        spawnShips.ApplyHull(player.gameObject, ShipId.Equipped());
+        spawnShips.ApplyHull(player.gameObject, ShipId.TutorialShip);
         return player.gameObject;
     }
 }

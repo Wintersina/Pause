@@ -175,6 +175,17 @@ public class PauseQuickActions : MonoBehaviour
                 leave.onClick.AddListener(clicks.mainMenuButton);
             }
         }
+        else
+        {
+            // tutorialS5 has no buttonClicks: its replay RESTARTS THE TUTORIAL
+            // and its leave goes home (tutButtonClicks), never the main game.
+            var tut = Object.FindFirstObjectByType<tutButtonClicks>();
+            if (tut != null)
+            {
+                if (replay != null) { replay.onClick = new Button.ButtonClickedEvent(); replay.onClick.AddListener(tut.replay); }
+                if (leave != null) { leave.onClick = new Button.ButtonClickedEvent(); leave.onClick.AddListener(tut.mainMenuButton); }
+            }
+        }
         StyleIcon(replayClone, ReplayIconPath);
         StyleIcon(leaveClone, HomeIconPath);
     }

@@ -69,6 +69,7 @@ public class HudStyler : MonoBehaviour
 
         // SCORE row on top (gameS1 only). Before placement: it grows the panel.
         if (ScoreHud.ShouldShow(speedText)) ScoreHud.Attach(gameObject, speedText);
+        else ScoreHud.AttachPopupsOnly(gameObject, speedText);   // the tutorial: popups, no score row
 
         Style(speedText, Speed, 26);
         Style(pauseText, Pause, 30);

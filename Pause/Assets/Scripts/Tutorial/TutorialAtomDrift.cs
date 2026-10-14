@@ -26,11 +26,11 @@ public class TutorialAtomDrift : MonoBehaviour
     // ---- Tuning (world units, seconds) ----
 
     // Descent speed floor, independent of the near-zero tutorial world speed.
-    public const float FloorSpeed = 3.6f;
+    public const float FloorSpeed = 8f;
     // Slowest it moves while easing into the hover, so it never stalls short.
     public const float MinApproachSpeed = .7f;
     // Starts slowing down this far above the hover line.
-    public const float EaseDistance = 1.6f;
+    public const float EaseDistance = 2.2f;
     // Spawn this far above the camera's top edge (just out of view).
     public const float SpawnAboveTop = .45f;
     // Hover line, as a fraction of the camera's height from its bottom edge.

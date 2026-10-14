@@ -264,6 +264,7 @@ public static class ShipSkins
     // The skin the ship flies in.
     public static int Equipped(int id)
     {
+        if (ShipId.TutorialFlight && id == ShipId.TutorialShip) return Stock;   // the tutorial's stock Neon Comet
         if (DeveloperUnlocks.Enabled && PlayerPrefs.HasKey(DeveloperEquippedKey(id)))
         {
             int dev = PlayerPrefs.GetInt(DeveloperEquippedKey(id), Stock);

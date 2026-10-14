@@ -206,6 +206,7 @@ public class startMenu : MonoBehaviour {
     public static void PrepareTutorialRun()
     {
         youAreInTutorial = true;
+        ShipId.TutorialFlight = true;   // always Neon Comet, stock (ShipId.TutorialShip)
         moveBackGround.speed = 0f;
         score.totalCurrency = 0;
     }

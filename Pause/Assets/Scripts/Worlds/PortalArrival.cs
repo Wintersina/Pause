@@ -162,6 +162,19 @@ public class PortalArrival : MonoBehaviour
     Vector3 shipFrom;
     public bool Departing { get { return departing; } }
 
+    // The tutorial's fly-in: the run-start arrival, stepped from outside
+    // (Hints, unscaled time -- the tutorial's world sits at timeScale 0 until
+    // a finger lands) instead of by the world's clock. It holds and shields the
+    // ship while it plays, exactly like the run's own entry.
+    public static PortalArrival SpawnDriven(Transform shipTransform, Color portalColor)
+    {
+        var p = Spawn(shipTransform, portalColor);
+        if (p != null) p.driven = true;
+        return p;
+    }
+
+    bool driven;
+
     public static PortalArrival Spawn(Transform shipTransform, Color portalColor)
     {
         if (shipTransform == null) return null;
@@ -225,7 +238,7 @@ public class PortalArrival : MonoBehaviour
     void Update()
     {
         // Only while the world is actually moving: a paused game holds it.
-        if (!departing && WorldManager.Flying) Step(Time.deltaTime);
+        if (!departing && !driven && WorldManager.Flying) Step(Time.deltaTime);
     }
 
     // One running frame. Public so edit-mode tests and the preview can step
