@@ -62,7 +62,7 @@ public static partial class BossPatternTables
         all = new PatternSlot[Bosses][];
         all[0] = Space();
         all[1] = Frost();
-        all[2] = new PatternSlot[0];   // (filled in by the boss commits)
+        all[2] = Verdant();
         all[3] = new PatternSlot[0];   // (filled in by the boss commits)
         all[4] = new PatternSlot[0];   // (filled in by the boss commits)
         all[5] = new PatternSlot[0];   // (filled in by the boss commits)
