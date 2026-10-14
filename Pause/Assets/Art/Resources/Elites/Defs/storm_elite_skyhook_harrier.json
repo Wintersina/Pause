@@ -30,7 +30,7 @@
   "exhaustShip": 3,
   "exhaustScale": 0,
   "glowScale": 0.09,
-  "cellPixels": 192,
+  "cellPixels": 384,
   "armored": false,
   "hazardSeconds": 0.4,
   "hazardSize": 0.6,
@@ -60,22 +60,22 @@
   "muzzles": [
     {
       "name": "hook",
-      "x": 96,
-      "y": 30,
+      "x": 192,
+      "y": 60,
       "dir": -1.0
     }
   ],
   "nozzles": [
     {
       "name": "l",
-      "x": 86,
-      "y": 159,
+      "x": 172,
+      "y": 318,
       "dir": -1.0
     },
     {
       "name": "r",
-      "x": 107,
-      "y": 159,
+      "x": 214,
+      "y": 318,
       "dir": -1.0
     }
   ],

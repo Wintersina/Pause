@@ -1,5 +1,8 @@
 # Verdant elite additions — painted art handoff
 
+> **HD rebuild:** Timber Hauler, Thornlash, Sporebloom, Leafblade are now 384 px cells (2688 x 384 flight strip, 1152 x 384 death strip), rebuilt from the same painted masters with an area-averaging downsample (`Verdant/new/src~/build_verdant_hd.py`, shared helpers `Elite/src~/elite_hd.py`, installed by `Elite/src~/install_hd.py`). Poses, frame order, hull radius and scale tier are unchanged; the 192 px coordinates below are x2 in the defs (`cellPixels` 384). See docs/ship-scale-and-lockon-analysis.md 2.6.
+
+
 Four new top-down elites for Verdant's hollow-log hangar, vine-tower dock,
 spore silo and root bunker. The existing Resin Warden is the fifth row of
 `contact_sheet.png` for fleet comparison. The four new rows are Timber Hauler,

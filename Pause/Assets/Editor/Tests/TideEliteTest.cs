@@ -148,8 +148,9 @@ public static class TideEliteTest
     {
         int cell = d.cells.Flight0, n = d.cellPixels;
         bool hit = false;
-        for (int dy = -2; dy <= 2 && !hit; dy++)
-            for (int dx = -2; dx <= 2 && !hit; dx++)
+        int r = 2 * n / 192;   // a 2 px reach at the 192 px grid, scaled to HD cells
+        for (int dy = -r; dy <= r && !hit; dy++)
+            for (int dx = -r; dx <= r && !hit; dx++)
             {
                 int x = cell * n + Mathf.RoundToInt(p.x) + dx, y = n - 1 - (Mathf.RoundToInt(p.y) + dy);
                 hit = tex.GetPixel(x, y).a >= .5f;
@@ -174,9 +175,9 @@ public static class TideEliteTest
             Check(x.key + ": launches from its own Tide pad, never a Space body", LandingSite.Accepts(d.launchFrom, x.from) && !LandingSite.Accepts(d.launchFrom, LandingKind.Station));
             var frames = EliteArt.Frames(d);
             var c = d.cells;
-            float cell = d.cellPixels;   // 192, the HD Thunderfin 384 (build_thunderfin_hd.py)
+            float cell = d.cellPixels;   // 192, or 384 for the HD rebuilds (build_tide_hd.py)
             Check(x.key + ": the flight strip (7 x " + cell + " px cells) slices into 7 cells and the cell map is the flight layout",
-                  (cell == 192f || (cell == 384f && x.key == "tide_elite_thunderfin")) &&
+                  EliteHdResolution.CellOk(d) &&
                   frames != null && frames.Length == 7 && Mathf.Approximately(frames[0].rect.width, cell) && Mathf.Approximately(frames[0].rect.height, cell) &&
                   c.parked == 0 && c.parkedIdle == 1 && c.liftoff == 2 && c.Flight0 == 3 && c.bankLeft == 4 && c.bankRight == 5 && c.damaged == 6 &&
                   c.tell < 0 && c.action < 0 && c.hit < 0);

@@ -30,7 +30,7 @@
   "exhaustShip": 3,
   "exhaustScale": 0,
   "glowScale": 0.09,
-  "cellPixels": 192,
+  "cellPixels": 384,
   "armored": false,
   "hazardSeconds": 0.4,
   "hazardSize": 0.6,
@@ -64,28 +64,28 @@
   "muzzles": [
     {
       "name": "shellp",
-      "x": 48,
-      "y": 86,
+      "x": 96,
+      "y": 172,
       "dir": -1.0
     },
     {
       "name": "shells",
-      "x": 142,
-      "y": 86,
+      "x": 284,
+      "y": 172,
       "dir": -1.0
     }
   ],
   "nozzles": [
     {
       "name": "l",
-      "x": 71,
-      "y": 146,
+      "x": 142,
+      "y": 292,
       "dir": -1.0
     },
     {
       "name": "r",
-      "x": 119,
-      "y": 145,
+      "x": 238,
+      "y": 290,
       "dir": -1.0
     }
   ],

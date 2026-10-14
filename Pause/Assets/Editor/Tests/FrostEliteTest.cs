@@ -171,7 +171,7 @@ public static class FrostEliteTest
             var frames = EliteArt.Frames(d);
             var c = d.cells;
             Check(x.key + ": Codex's 7-cell flight strip (1344 x 192) is installed with the flight cell map",
-                  frames != null && frames.Length == 7 && Mathf.Approximately(frames[0].rect.width, 192f) && Mathf.Approximately(frames[0].rect.height, 192f) &&
+                  frames != null && frames.Length == 7 && Mathf.Approximately(frames[0].rect.width, d.cellPixels) && Mathf.Approximately(frames[0].rect.height, d.cellPixels) &&
                   c.parked == 0 && c.parkedIdle == 1 && c.liftoff == 2 && c.Flight0 == 3 && c.damaged == 6 && c.tell < 0 && c.action < 0 && c.hit < 0);
             // every muzzle and nozzle on solid hull pixels of the hover cell, well inside the cell
             var tex = new Texture2D(2, 2);
@@ -196,8 +196,9 @@ public static class FrostEliteTest
     {
         int cell = d.cells.Flight0, n = d.cellPixels;
         bool hit = false;
-        for (int dy = -2; dy <= 2 && !hit; dy++)
-            for (int dx = -2; dx <= 2 && !hit; dx++)
+        int r = 2 * n / 192;   // a 2 px reach at the 192 px grid, scaled to HD cells
+        for (int dy = -r; dy <= r && !hit; dy++)
+            for (int dx = -r; dx <= r && !hit; dx++)
             {
                 int x = cell * n + Mathf.RoundToInt(p.x) + dx, y = n - 1 - (Mathf.RoundToInt(p.y) + dy);
                 hit = tex.GetPixel(x, y).a >= .5f;

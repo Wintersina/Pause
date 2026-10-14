@@ -1,5 +1,8 @@
 # Storm elite flight art
 
+> **HD rebuild:** all five Storm elites are now 384 px cells (2688 x 384 flight strip, 1152 x 384 death strip), rebuilt from the same painted masters with an area-averaging downsample (`Storm/src~/build_storm_hd.py`, shared helpers `Elite/src~/elite_hd.py`, installed by `Elite/src~/install_hd.py`). Poses, frame order, hull radius and scale tier are unchanged; the 192 px coordinates below are x2 in the defs (`cellPixels` 384). See docs/ship-scale-and-lockon-analysis.md 2.6.
+
+
 Five new art-only elite ships for Storm's atmosphere-level cloud run. Each ship is an exact top-down RGBA sprite facing up, with rear thrusters facing down. The painted masters and both candidates for each ship are in `src~/`; `src~/build_storm_elites.py` assembles the final strips using nearest-neighbour sampling and pixel details. No Unity resources, definitions, metadata, or code were changed.
 
 ## Cell contract

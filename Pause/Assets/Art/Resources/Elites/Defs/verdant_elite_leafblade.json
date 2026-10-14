@@ -61,38 +61,38 @@
   "exhaustShip": 3,
   "exhaustScale": 0,
   "glowScale": 0.09,
-  "cellPixels": 192,
+  "cellPixels": 384,
   "muzzles": [
     {
       "name": "nose",
-      "x": 96,
-      "y": 29,
+      "x": 192,
+      "y": 58,
       "dir": -1.0
     },
     {
       "name": "lblade",
-      "x": 50,
-      "y": 119,
+      "x": 100,
+      "y": 238,
       "dir": -1.0
     },
     {
       "name": "rblade",
-      "x": 142,
-      "y": 118,
+      "x": 284,
+      "y": 236,
       "dir": -1.0
     }
   ],
   "nozzles": [
     {
       "name": "a",
-      "x": 87,
-      "y": 159,
+      "x": 174,
+      "y": 318,
       "dir": -1.0
     },
     {
       "name": "b",
-      "x": 105,
-      "y": 159,
+      "x": 210,
+      "y": 318,
       "dir": -1.0
     }
   ],

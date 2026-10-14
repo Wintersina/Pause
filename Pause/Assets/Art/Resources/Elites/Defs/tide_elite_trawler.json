@@ -30,7 +30,7 @@
   "exhaustShip": 3,
   "exhaustScale": 0,
   "glowScale": 0.09,
-  "cellPixels": 192,
+  "cellPixels": 384,
   "armored": false,
   "hazardSeconds": 0.4,
   "hazardSize": 0.6,
@@ -67,34 +67,34 @@
   "muzzles": [
     {
       "name": "port",
-      "x": 34,
-      "y": 94,
+      "x": 68,
+      "y": 188,
       "dir": -1.0
     },
     {
       "name": "star",
-      "x": 157,
-      "y": 94,
+      "x": 314,
+      "y": 188,
       "dir": -1.0
     },
     {
       "name": "winch",
-      "x": 95,
-      "y": 108,
+      "x": 190,
+      "y": 216,
       "dir": -1.0
     }
   ],
   "nozzles": [
     {
       "name": "l",
-      "x": 80,
-      "y": 146,
+      "x": 160,
+      "y": 292,
       "dir": -1.0
     },
     {
       "name": "r",
-      "x": 112,
-      "y": 146,
+      "x": 224,
+      "y": 292,
       "dir": -1.0
     }
   ],

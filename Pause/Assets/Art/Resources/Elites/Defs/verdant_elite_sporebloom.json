@@ -61,38 +61,38 @@
   "exhaustShip": 3,
   "exhaustScale": 0,
   "glowScale": 0.09,
-  "cellPixels": 192,
+  "cellPixels": 384,
   "muzzles": [
     {
       "name": "lvent",
-      "x": 49,
-      "y": 89,
+      "x": 98,
+      "y": 178,
       "dir": -1.0
     },
     {
       "name": "rvent",
-      "x": 143,
-      "y": 89,
+      "x": 286,
+      "y": 178,
       "dir": -1.0
     },
     {
       "name": "pod",
-      "x": 96,
-      "y": 68,
+      "x": 192,
+      "y": 136,
       "dir": -1.0
     }
   ],
   "nozzles": [
     {
       "name": "a",
-      "x": 82,
-      "y": 158,
+      "x": 164,
+      "y": 316,
       "dir": -1.0
     },
     {
       "name": "b",
-      "x": 110,
-      "y": 158,
+      "x": 220,
+      "y": 316,
       "dir": -1.0
     }
   ],

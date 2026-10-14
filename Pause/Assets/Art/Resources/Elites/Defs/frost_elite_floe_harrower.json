@@ -53,38 +53,38 @@
   "exhaustShip": 3,
   "exhaustScale": 0,
   "glowScale": 0.08,
-  "cellPixels": 192,
+  "cellPixels": 384,
   "muzzles": [
     {
       "name": "chuteL",
-      "x": 84,
-      "y": 116,
+      "x": 168,
+      "y": 232,
       "dir": 270.0
     },
     {
       "name": "chuteR",
-      "x": 108,
-      "y": 116,
+      "x": 216,
+      "y": 232,
       "dir": 270.0
     },
     {
       "name": "keel",
-      "x": 96,
-      "y": 129,
+      "x": 192,
+      "y": 258,
       "dir": 270.0
     }
   ],
   "nozzles": [
     {
       "name": "l",
-      "x": 83,
-      "y": 146,
+      "x": 166,
+      "y": 292,
       "dir": -1.0
     },
     {
       "name": "r",
-      "x": 109,
-      "y": 146,
+      "x": 218,
+      "y": 292,
       "dir": -1.0
     }
   ],

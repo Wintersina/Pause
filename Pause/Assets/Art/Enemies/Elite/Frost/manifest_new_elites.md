@@ -1,5 +1,8 @@
 # Frost World 2 — four new elite ship concepts
 
+> **HD rebuild:** Floe Harrower, Glacier Tender, Whiteout Sentinel (not the Cryo Siren or Rimebreaker: no master) are now 384 px cells (2688 x 384 flight strip, 1152 x 384 death strip), rebuilt from the same painted masters with an area-averaging downsample (`Frost/src~/build_frost_hd.py`, shared helpers `Elite/src~/elite_hd.py`, installed by `Elite/src~/install_hd.py`). Poses, frame order, hull radius and scale tier are unchanged; the 192 px coordinates below are x2 in the defs (`cellPixels` 384). See docs/ship-scale-and-lockon-analysis.md 2.6.
+
+
 These are art-only flight strips for Frost's atmosphere-level run over a frozen ocean and industrial coast. All craft are viewed directly from above, point up, and use transparent 192 × 192 cells. The painted concept masters and the deterministic nearest-neighbour pixel conversion live in `src~/`; each `_concept.png` is the full-resolution generated hero painting.
 
 ## Shared cell contract

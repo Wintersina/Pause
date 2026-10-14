@@ -26,7 +26,10 @@
   "tide_elite_riptide": "tide",
   "tide_elite_thunderfin": "tide",
   "tide_elite_trawler": "tide",
-  "verdant_elite_resin_warden": "verdant"
+  "verdant_elite_resin_warden": "verdant",
+  "desert_elite_caravan_hauler": "desert",
+  "desert_elite_dune_stalker": "desert",
+  "desert_elite_scorpion_walker": "desert"
  },
  "enemies": {
   "desert_alien": "desert",
