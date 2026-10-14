@@ -252,6 +252,8 @@ public class collisionDetection : MonoBehaviour {
             // guarantee (BossEncounter.ShieldsShip; derived from the phase,
             // so it ends with the intro, a death or the scene).
             if (BossEncounter.ShieldsShip) return;
+            // A cover boulder between the shooter and the ship: a beam / area hazard's hit does not land (CoverBoulders).
+            if (CoverBoulders.ShadowsHit(hit.gameObject, transform.position)) return;
             // A full secret meter whose power answers a hit (Shield Pulse,
             // Phase Cloak, Blink Dash) spends itself now, and a Hard Shell
             // eats the hit: either way it lands as a shielded hit.

@@ -1,0 +1,7218 @@
+fileFormatVersion: 2
+guid: f47b7746f1f1a4893a82dc1e725410ef
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: -5650651337889624947
+    second: break_0
+  - first:
+      213: 503238515407390686
+    second: break_1
+  - first:
+      213: 4127042686290067907
+    second: break_2
+  - first:
+      213: -4755404167257985202
+    second: break_3
+  - first:
+      213: -787624077569890586
+    second: break_4
+  - first:
+      213: 6382224882267752945
+    second: break_5
+  - first:
+      213: -3911260720821325967
+    second: break_6
+  - first:
+      213: -2026826892865181181
+    second: break_7
+  - first:
+      213: 5878540441235647584
+    second: break_8
+  - first:
+      213: 3863269300863474799
+    second: break_9
+  - first:
+      213: 3472797149125893436
+    second: break_10
+  - first:
+      213: 1002268953572816489
+    second: break_11
+  - first:
+      213: 8101624581213702008
+    second: break_12
+  - first:
+      213: 8212463968725163848
+    second: break_13
+  - first:
+      213: 5381902894506741657
+    second: break_14
+  - first:
+      213: -7081621703580138628
+    second: break_15
+  - first:
+      213: 8886857921989650460
+    second: break_16
+  - first:
+      213: -6612404053510397238
+    second: break_17
+  - first:
+      213: -6277262108681378899
+    second: break_18
+  - first:
+      213: 5357362106273053556
+    second: break_19
+  - first:
+      213: 6793082247923762915
+    second: break_20
+  - first:
+      213: -1258759385942775072
+    second: break_21
+  - first:
+      213: -7327829830924762821
+    second: break_22
+  - first:
+      213: -7053340882269626028
+    second: break_23
+  - first:
+      213: 1657199063188479046
+    second: break_24
+  - first:
+      213: -509214844663729228
+    second: break_25
+  - first:
+      213: -8021098282045842011
+    second: break_26
+  - first:
+      213: 2195096182965370082
+    second: break_27
+  - first:
+      213: -4389505988825020081
+    second: break_28
+  - first:
+      213: -2403344061353023510
+    second: break_29
+  - first:
+      213: -2724137374828575095
+    second: break_30
+  - first:
+      213: 5073553948801237432
+    second: break_31
+  - first:
+      213: -1920658045857361862
+    second: break_32
+  - first:
+      213: -7051349422430777060
+    second: break_33
+  - first:
+      213: -2724306098396290450
+    second: break_34
+  - first:
+      213: -7298763954536133951
+    second: break_35
+  - first:
+      213: -5739126231160889709
+    second: break_36
+  - first:
+      213: -7939067364797244545
+    second: break_37
+  - first:
+      213: 1386484137887841704
+    second: break_38
+  - first:
+      213: -7180052052177290472
+    second: break_39
+  - first:
+      213: 5773192473732192604
+    second: break_40
+  - first:
+      213: 6882729286510850110
+    second: break_41
+  - first:
+      213: 4955498761412514425
+    second: break_42
+  - first:
+      213: 4464162882302612716
+    second: break_43
+  - first:
+      213: -7401017753662171373
+    second: break_44
+  - first:
+      213: -5588916330825424486
+    second: break_45
+  - first:
+      213: 8483418072740376659
+    second: break_46
+  - first:
+      213: 6412947412634877132
+    second: break_47
+  - first:
+      213: 734894750906223547
+    second: break_48
+  - first:
+      213: -8720929513484851323
+    second: break_49
+  - first:
+      213: -5480310587940006020
+    second: break_50
+  - first:
+      213: 3882061589062163040
+    second: break_51
+  - first:
+      213: 5369486850502042810
+    second: break_52
+  - first:
+      213: -6535092084324165469
+    second: break_53
+  - first:
+      213: -8139668897037445074
+    second: break_54
+  - first:
+      213: 4382755631677307936
+    second: break_55
+  - first:
+      213: 318585299300298670
+    second: break_56
+  - first:
+      213: 559608397658504841
+    second: break_57
+  - first:
+      213: -3227938696803272422
+    second: break_58
+  - first:
+      213: 2467160439438551609
+    second: break_59
+  - first:
+      213: -7013527519007993239
+    second: break_60
+  - first:
+      213: -4046504044420115140
+    second: break_61
+  - first:
+      213: -3211117602391694304
+    second: break_62
+  - first:
+      213: -3121468884631096440
+    second: break_63
+  - first:
+      213: 812334747122402057
+    second: break_64
+  - first:
+      213: 7239409405528786250
+    second: break_65
+  - first:
+      213: -3478449913819804857
+    second: break_66
+  - first:
+      213: 6213132342736190737
+    second: break_67
+  - first:
+      213: 4926660424864617465
+    second: break_68
+  - first:
+      213: -6272405761618905433
+    second: break_69
+  - first:
+      213: -8992565961375541817
+    second: break_70
+  - first:
+      213: 8043815045601427296
+    second: break_71
+  - first:
+      213: -8148200996874254330
+    second: break_72
+  - first:
+      213: -5392907710690412270
+    second: break_73
+  - first:
+      213: 7078965767669545330
+    second: break_74
+  - first:
+      213: -4339500144800174589
+    second: break_75
+  - first:
+      213: 5329601842373180516
+    second: break_76
+  - first:
+      213: -1427188701875362428
+    second: break_77
+  - first:
+      213: 5288571299281423558
+    second: break_78
+  - first:
+      213: -1828178333280777081
+    second: break_79
+  - first:
+      213: 1434460664574876048
+    second: break_80
+  - first:
+      213: 2119023873223557424
+    second: break_81
+  - first:
+      213: -5738380644739755524
+    second: break_82
+  - first:
+      213: 2835176148331388916
+    second: break_83
+  - first:
+      213: 8714855894687187454
+    second: break_84
+  - first:
+      213: 9211811311393168919
+    second: break_85
+  - first:
+      213: -2629137331960915027
+    second: break_86
+  - first:
+      213: 3302524009870186054
+    second: break_87
+  - first:
+      213: -3383868014286853128
+    second: break_88
+  - first:
+      213: 8097775215875497000
+    second: break_89
+  - first:
+      213: -6939293063787551414
+    second: break_90
+  - first:
+      213: 1458642430235615606
+    second: break_91
+  - first:
+      213: -3437919780648269202
+    second: break_92
+  - first:
+      213: -2713132705668211559
+    second: break_93
+  - first:
+      213: -7780580399405172949
+    second: break_94
+  - first:
+      213: -4728493092610810
+    second: break_95
+  - first:
+      213: -3214476408579656209
+    second: break_96
+  - first:
+      213: 3911613296925588233
+    second: break_97
+  - first:
+      213: 3213919054540872932
+    second: break_98
+  - first:
+      213: 4462177897405623881
+    second: break_99
+  - first:
+      213: -5463047307320384652
+    second: break_100
+  - first:
+      213: -5822666544610031032
+    second: break_101
+  - first:
+      213: 688440046933155355
+    second: break_102
+  - first:
+      213: -2985220573972967877
+    second: break_103
+  - first:
+      213: 2022227890201551470
+    second: break_104
+  - first:
+      213: 8876532075648197107
+    second: break_105
+  - first:
+      213: 7545754587871264371
+    second: break_106
+  - first:
+      213: 1894763634043380997
+    second: break_107
+  - first:
+      213: 7423947852770353288
+    second: break_108
+  - first:
+      213: -7938868500239480414
+    second: break_109
+  - first:
+      213: 534646875326122156
+    second: break_110
+  - first:
+      213: 7591798697050409201
+    second: break_111
+  - first:
+      213: 5587973449834661707
+    second: break_112
+  - first:
+      213: 3196023940524565130
+    second: break_113
+  - first:
+      213: -6699613082004075075
+    second: break_114
+  - first:
+      213: 670650231412614759
+    second: break_115
+  - first:
+      213: -4085449606045180558
+    second: break_116
+  - first:
+      213: -335008301982383438
+    second: break_117
+  - first:
+      213: -7339363136659755189
+    second: break_118
+  - first:
+      213: -2828432818395841124
+    second: break_119
+  - first:
+      213: -4106996868886834698
+    second: break_120
+  - first:
+      213: 4790034689439549663
+    second: break_121
+  - first:
+      213: -7959718169412149776
+    second: break_122
+  - first:
+      213: 7674188666304023394
+    second: break_123
+  - first:
+      213: 4433201141022297618
+    second: break_124
+  - first:
+      213: 6430274918687416009
+    second: break_125
+  - first:
+      213: 6893690057702455677
+    second: break_126
+  - first:
+      213: -5451140535013010701
+    second: break_127
+  - first:
+      213: -5833411557961341439
+    second: break_128
+  - first:
+      213: 838365346111573697
+    second: break_129
+  - first:
+      213: 3016461288683080917
+    second: break_130
+  - first:
+      213: -1766194336920892163
+    second: break_131
+  - first:
+      213: -6029813173644368715
+    second: break_132
+  - first:
+      213: 4470743332458272280
+    second: break_133
+  - first:
+      213: 1681374587504230491
+    second: break_134
+  - first:
+      213: 4828962371937441934
+    second: break_135
+  - first:
+      213: 7790969876701819155
+    second: break_136
+  - first:
+      213: 1366079250854249750
+    second: break_137
+  - first:
+      213: 4998081325829510014
+    second: break_138
+  - first:
+      213: 7956015910572005228
+    second: break_139
+  - first:
+      213: -8234772856683993891
+    second: break_140
+  - first:
+      213: -4220387299065278317
+    second: break_141
+  - first:
+      213: 2959053473922381058
+    second: break_142
+  - first:
+      213: -2767114914869535892
+    second: break_143
+  - first:
+      213: -1511007295883405146
+    second: break_144
+  - first:
+      213: 3580469210530702159
+    second: break_145
+  - first:
+      213: 5040236886005048129
+    second: break_146
+  - first:
+      213: -1860904042701583029
+    second: break_147
+  - first:
+      213: 6352268269857856898
+    second: break_148
+  - first:
+      213: 830152465118626679
+    second: break_149
+  - first:
+      213: 5317313275061943483
+    second: break_150
+  - first:
+      213: -5154070905094576351
+    second: break_151
+  - first:
+      213: -2624698400494033293
+    second: break_152
+  - first:
+      213: 8271231667736153763
+    second: break_153
+  - first:
+      213: 2020385522613882489
+    second: break_154
+  - first:
+      213: 866471704550269062
+    second: break_155
+  - first:
+      213: 3340152760860206798
+    second: break_156
+  - first:
+      213: -896833308111888799
+    second: break_157
+  - first:
+      213: 635672802418546227
+    second: break_158
+  - first:
+      213: -545413714114812901
+    second: break_159
+  - first:
+      213: -5505459209457883423
+    second: break_160
+  - first:
+      213: -2034404212276802585
+    second: break_161
+  - first:
+      213: -1382299556984519422
+    second: break_162
+  - first:
+      213: 7274813027422354744
+    second: break_163
+  - first:
+      213: -5324512081752282676
+    second: break_164
+  - first:
+      213: -2031184449955960185
+    second: break_165
+  - first:
+      213: -2075993847544192029
+    second: break_166
+  - first:
+      213: 2353536457186569416
+    second: break_167
+  - first:
+      213: 5645613124298494184
+    second: break_168
+  - first:
+      213: 2065161953196908374
+    second: break_169
+  - first:
+      213: -328050447209234622
+    second: break_170
+  - first:
+      213: -3867226038421806623
+    second: break_171
+  - first:
+      213: -4284831123856969880
+    second: break_172
+  - first:
+      213: -184647907761032847
+    second: break_173
+  - first:
+      213: 7431684557365919302
+    second: break_174
+  - first:
+      213: 3022981554109501691
+    second: break_175
+  - first:
+      213: -2937826260531930169
+    second: break_176
+  - first:
+      213: -2124486129897958466
+    second: break_177
+  - first:
+      213: 209249397076400889
+    second: break_178
+  - first:
+      213: 7162645244356667321
+    second: break_179
+  - first:
+      213: -9217798553107594517
+    second: break_180
+  - first:
+      213: 2416132696504991101
+    second: break_181
+  - first:
+      213: -8475741421001174802
+    second: break_182
+  - first:
+      213: 2091906799853641436
+    second: break_183
+  - first:
+      213: 7577368256244867926
+    second: break_184
+  - first:
+      213: -2588851646155065872
+    second: break_185
+  - first:
+      213: -2632768125982694653
+    second: break_186
+  - first:
+      213: -770363138720954046
+    second: break_187
+  - first:
+      213: -5772382153987883644
+    second: break_188
+  - first:
+      213: 1354429886734403067
+    second: break_189
+  - first:
+      213: -9203207648215869074
+    second: break_190
+  - first:
+      213: -5250503824140464630
+    second: break_191
+  - first:
+      213: -8307487537673070835
+    second: break_192
+  - first:
+      213: -8118083126586617840
+    second: break_193
+  - first:
+      213: 8171729339244838051
+    second: break_194
+  - first:
+      213: 510148720247885232
+    second: break_195
+  - first:
+      213: 4081142348073925898
+    second: break_196
+  - first:
+      213: -1307667254738826348
+    second: break_197
+  - first:
+      213: -7263446627091389683
+    second: break_198
+  - first:
+      213: -5456695882755184051
+    second: break_199
+  - first:
+      213: 6959982620015910515
+    second: break_200
+  - first:
+      213: -848695970385773202
+    second: break_201
+  - first:
+      213: -3213051653006556683
+    second: break_202
+  - first:
+      213: -4047135436251235430
+    second: break_203
+  - first:
+      213: -7819777990235034069
+    second: break_204
+  - first:
+      213: -8560981333814061158
+    second: break_205
+  - first:
+      213: -3263512830375780104
+    second: break_206
+  - first:
+      213: 2318572243475088575
+    second: break_207
+  - first:
+      213: 8285956483215554318
+    second: break_208
+  - first:
+      213: 890909908230401569
+    second: break_209
+  - first:
+      213: 1655466326166109493
+    second: break_210
+  - first:
+      213: 5073760026601737431
+    second: break_211
+  - first:
+      213: 2534367313100245591
+    second: break_212
+  - first:
+      213: 5521376726079746621
+    second: break_213
+  - first:
+      213: 5206493724709088311
+    second: break_214
+  - first:
+      213: -1749361503934231328
+    second: break_215
+  - first:
+      213: -8847077624338716397
+    second: break_216
+  - first:
+      213: 5894994883696500117
+    second: break_217
+  - first:
+      213: 8908487961200713154
+    second: break_218
+  - first:
+      213: -4457885242864514398
+    second: break_219
+  - first:
+      213: -8747762665206735990
+    second: break_220
+  - first:
+      213: 1710282149613502689
+    second: break_221
+  - first:
+      213: 3020041339032320903
+    second: break_222
+  - first:
+      213: 3711461368083291246
+    second: break_223
+  - first:
+      213: -944184509383097455
+    second: break_224
+  - first:
+      213: -6654833958002695031
+    second: break_225
+  - first:
+      213: -1833261333755063217
+    second: break_226
+  - first:
+      213: -7637470007555774685
+    second: break_227
+  - first:
+      213: 3580936582397364569
+    second: break_228
+  - first:
+      213: -2231429168804679722
+    second: break_229
+  - first:
+      213: 7779313937244320954
+    second: break_230
+  - first:
+      213: -7756106280485931372
+    second: break_231
+  - first:
+      213: 7686044499152489328
+    second: break_232
+  - first:
+      213: 7370822328598022507
+    second: break_233
+  - first:
+      213: -2171368077129020128
+    second: break_234
+  - first:
+      213: -8866931883124361878
+    second: break_235
+  - first:
+      213: -6013292960693709949
+    second: break_236
+  - first:
+      213: -5946225359108584264
+    second: break_237
+  - first:
+      213: 3568540393121020052
+    second: break_238
+  - first:
+      213: -1749250116035996565
+    second: break_239
+  - first:
+      213: -3123500309093818864
+    second: break_240
+  - first:
+      213: 374728170650458091
+    second: break_241
+  - first:
+      213: -6061834876914574922
+    second: break_242
+  - first:
+      213: -4910240963189835839
+    second: break_243
+  - first:
+      213: 8920678578486013900
+    second: break_244
+  - first:
+      213: 3115732855893929105
+    second: break_245
+  - first:
+      213: -4190116700691637730
+    second: break_246
+  - first:
+      213: -2740647681071861825
+    second: break_247
+  - first:
+      213: 7528475823386323238
+    second: break_248
+  - first:
+      213: 8360416570410808178
+    second: break_249
+  - first:
+      213: 4566665811199567613
+    second: break_250
+  - first:
+      213: -9152544050439305817
+    second: break_251
+  - first:
+      213: -2096185448401024154
+    second: break_252
+  - first:
+      213: 129470554446643545
+    second: break_253
+  - first:
+      213: 1259719188565897233
+    second: break_254
+  - first:
+      213: 1321466691158355687
+    second: break_255
+  - first:
+      213: 7265204383376793752
+    second: break_256
+  - first:
+      213: -7798742765074558461
+    second: break_257
+  - first:
+      213: 9169189594593262129
+    second: break_258
+  - first:
+      213: 1639925102227955710
+    second: break_259
+  - first:
+      213: 6547025297571968699
+    second: break_260
+  - first:
+      213: 7890352600593743121
+    second: break_261
+  - first:
+      213: -1422028724549141874
+    second: break_262
+  - first:
+      213: 3728198270836324576
+    second: break_263
+  - first:
+      213: 4771867056700880443
+    second: break_264
+  - first:
+      213: -2757762739248516531
+    second: break_265
+  - first:
+      213: 3640258818685382910
+    second: break_266
+  - first:
+      213: 6038363532405111742
+    second: break_267
+  - first:
+      213: 7507350301230133587
+    second: break_268
+  - first:
+      213: -7192616902518114571
+    second: break_269
+  - first:
+      213: -7732490809085079109
+    second: break_270
+  - first:
+      213: 6762021054900530404
+    second: break_271
+  - first:
+      213: 8317028886569802729
+    second: break_272
+  - first:
+      213: -3961303695281505743
+    second: break_273
+  - first:
+      213: 8268589877696338411
+    second: break_274
+  - first:
+      213: 8893639082955519042
+    second: break_275
+  - first:
+      213: -1746199307232986907
+    second: break_276
+  - first:
+      213: 5998768983779455029
+    second: break_277
+  - first:
+      213: 8479905458042591870
+    second: break_278
+  - first:
+      213: 5676744920178270646
+    second: break_279
+  - first:
+      213: 5477355146308803543
+    second: break_280
+  - first:
+      213: 5905047179650227703
+    second: break_281
+  - first:
+      213: 5708062229975014605
+    second: break_282
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 1
+  spriteExtrude: 1
+  spriteMeshType: 0
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 4096
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 4096
+    resizeAlgorithm: 0
+    textureFormat: 50
+    textureCompression: 1
+    compressionQuality: 100
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 1
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: iOS
+    maxTextureSize: 4096
+    resizeAlgorithm: 0
+    textureFormat: 50
+    textureCompression: 1
+    compressionQuality: 100
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 1
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: break_0
+      rect:
+        serializedVersion: 2
+        x: 1707
+        y: 1522
+        width: 14
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d8cc08feb8ad491b0800000000000000
+      internalID: -5650651337889624947
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_1
+      rect:
+        serializedVersion: 2
+        x: 1724
+        y: 1508
+        width: 17
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ed7072473ccdbf600800000000000000
+      internalID: 503238515407390686
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_2
+      rect:
+        serializedVersion: 2
+        x: 1615
+        y: 1512
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3c181390573364930800000000000000
+      internalID: 4127042686290067907
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_3
+      rect:
+        serializedVersion: 2
+        x: 1760
+        y: 1498
+        width: 11
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e4fec27ea19610eb0800000000000000
+      internalID: -4755404167257985202
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_4
+      rect:
+        serializedVersion: 2
+        x: 2091
+        y: 1420
+        width: 33
+        height: 92
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6e6e6ef031cc115f0800000000000000
+      internalID: -787624077569890586
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_5
+      rect:
+        serializedVersion: 2
+        x: 55
+        y: 1084
+        width: 441
+        height: 411
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1f98a3847b7329850800000000000000
+      internalID: 6382224882267752945
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_6
+      rect:
+        serializedVersion: 2
+        x: 1070
+        y: 1200
+        width: 282
+        height: 301
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 17fa18fd81968b9c0800000000000000
+      internalID: -3911260720821325967
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_7
+      rect:
+        serializedVersion: 2
+        x: 1205
+        y: 1495
+        width: 17
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 30aef85fda34fd3e0800000000000000
+      internalID: -2026826892865181181
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_8
+      rect:
+        serializedVersion: 2
+        x: 1779
+        y: 1489
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 06c6e9da265c49150800000000000000
+      internalID: 5878540441235647584
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_9
+      rect:
+        serializedVersion: 2
+        x: 1802
+        y: 1492
+        width: 14
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f6c93ade5f61d9530800000000000000
+      internalID: 3863269300863474799
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_10
+      rect:
+        serializedVersion: 2
+        x: 2229
+        y: 1469
+        width: 21
+        height: 36
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c3d53a28b9ad13030800000000000000
+      internalID: 3472797149125893436
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_11
+      rect:
+        serializedVersion: 2
+        x: 2326
+        y: 1474
+        width: 37
+        height: 32
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9663c139d46c8ed00800000000000000
+      internalID: 1002268953572816489
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_12
+      rect:
+        serializedVersion: 2
+        x: 2354
+        y: 1359
+        width: 185
+        height: 140
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 877c0d2e1a0ce6070800000000000000
+      internalID: 8101624581213702008
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_13
+      rect:
+        serializedVersion: 2
+        x: 567
+        y: 1085
+        width: 440
+        height: 409
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 84fde82d77888f170800000000000000
+      internalID: 8212463968725163848
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_14
+      rect:
+        serializedVersion: 2
+        x: 1594
+        y: 1237
+        width: 249
+        height: 250
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 99f88b20b2c50ba40800000000000000
+      internalID: 5381902894506741657
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_15
+      rect:
+        serializedVersion: 2
+        x: 1841
+        y: 1475
+        width: 16
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c73c864a49609bd90800000000000000
+      internalID: -7081621703580138628
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_16
+      rect:
+        serializedVersion: 2
+        x: 1853
+        y: 1263
+        width: 178
+        height: 226
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c182f890236745b70800000000000000
+      internalID: 8886857921989650460
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_17
+      rect:
+        serializedVersion: 2
+        x: 1315
+        y: 1232
+        width: 198
+        height: 241
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ac2e82f1c850c34a0800000000000000
+      internalID: -6612404053510397238
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_18
+      rect:
+        serializedVersion: 2
+        x: 1855
+        y: 1466
+        width: 6
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: da3e60ade5fa2e8a0800000000000000
+      internalID: -6277262108681378899
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_19
+      rect:
+        serializedVersion: 2
+        x: 1814
+        y: 1430
+        width: 28
+        height: 34
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 47b3b8d737c295a40800000000000000
+      internalID: 5357362106273053556
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_20
+      rect:
+        serializedVersion: 2
+        x: 2165
+        y: 1351
+        width: 127
+        height: 106
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3e6028d2050e54e50800000000000000
+      internalID: 6793082247923762915
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_21
+      rect:
+        serializedVersion: 2
+        x: 2243
+        y: 1416
+        width: 40
+        height: 39
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0ea2137f10df78ee0800000000000000
+      internalID: -1258759385942775072
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_22
+      rect:
+        serializedVersion: 2
+        x: 2343
+        y: 1450
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b310831e7915e4a90800000000000000
+      internalID: -7327829830924762821
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_23
+      rect:
+        serializedVersion: 2
+        x: 2302
+        y: 1384
+        width: 30
+        height: 34
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 451249876df7d1e90800000000000000
+      internalID: -7053340882269626028
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_24
+      rect:
+        serializedVersion: 2
+        x: 2358
+        y: 1376
+        width: 50
+        height: 29
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 64c957b84cd8ff610800000000000000
+      internalID: 1657199063188479046
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_25
+      rect:
+        serializedVersion: 2
+        x: 2391
+        y: 1403
+        width: 15
+        height: 18
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4b37675fbc7eee8f0800000000000000
+      internalID: -509214844663729228
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_26
+      rect:
+        serializedVersion: 2
+        x: 2428
+        y: 1371
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5ad592e2c955fa090800000000000000
+      internalID: -8021098282045842011
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_27
+      rect:
+        serializedVersion: 2
+        x: 1537
+        y: 1311
+        width: 34
+        height: 37
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2ec7779295c867e10800000000000000
+      internalID: 2195096182965370082
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_28
+      rect:
+        serializedVersion: 2
+        x: 1576
+        y: 1338
+        width: 9
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f4982ac4f875513c0800000000000000
+      internalID: -4389505988825020081
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_29
+      rect:
+        serializedVersion: 2
+        x: 2100
+        y: 1348
+        width: 21
+        height: 19
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ae722064f4b95aed0800000000000000
+      internalID: -2403344061353023510
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_30
+      rect:
+        serializedVersion: 2
+        x: 2201
+        y: 1305
+        width: 61
+        height: 46
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9864afd9d7be13ad0800000000000000
+      internalID: -2724137374828575095
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_31
+      rect:
+        serializedVersion: 2
+        x: 2340
+        y: 1343
+        width: 26
+        height: 23
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8b104138f62e86640800000000000000
+      internalID: 5073553948801237432
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_32
+      rect:
+        serializedVersion: 2
+        x: 1047
+        y: 1299
+        width: 44
+        height: 47
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a301da1fea37855e0800000000000000
+      internalID: -1920658045857361862
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_33
+      rect:
+        serializedVersion: 2
+        x: 1593
+        y: 1333
+        width: 6
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c119bd85f03942e90800000000000000
+      internalID: -7051349422430777060
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_34
+      rect:
+        serializedVersion: 2
+        x: 2068
+        y: 1333
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e62a8a99902513ad0800000000000000
+      internalID: -2724306098396290450
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_35
+      rect:
+        serializedVersion: 2
+        x: 2086
+        y: 1240
+        width: 29
+        height: 93
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1cac2769ad495ba90800000000000000
+      internalID: -7298763954536133951
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_36
+      rect:
+        serializedVersion: 2
+        x: 2166
+        y: 1314
+        width: 28
+        height: 25
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 39e578699178a50b0800000000000000
+      internalID: -5739126231160889709
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_37
+      rect:
+        serializedVersion: 2
+        x: 2496
+        y: 1293
+        width: 15
+        height: 42
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f7b1d517b44c2d190800000000000000
+      internalID: -7939067364797244545
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_38
+      rect:
+        serializedVersion: 2
+        x: 1041
+        y: 1115
+        width: 215
+        height: 208
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8adb48d3af7cd3310800000000000000
+      internalID: 1386484137887841704
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_39
+      rect:
+        serializedVersion: 2
+        x: 1501
+        y: 1287
+        width: 18
+        height: 18
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 81b782933b45b5c90800000000000000
+      internalID: -7180052052177290472
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_40
+      rect:
+        serializedVersion: 2
+        x: 1537
+        y: 1122
+        width: 194
+        height: 177
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c5914c897ff7e1050800000000000000
+      internalID: 5773192473732192604
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_41
+      rect:
+        serializedVersion: 2
+        x: 2033
+        y: 1292
+        width: 14
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e3038afd1dd548f50800000000000000
+      internalID: 6882729286510850110
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_42
+      rect:
+        serializedVersion: 2
+        x: 2163
+        y: 1309
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 97291ee3ed775c440800000000000000
+      internalID: 4955498761412514425
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_43
+      rect:
+        serializedVersion: 2
+        x: 2228
+        y: 1224
+        width: 23
+        height: 52
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ce491234d74e3fd30800000000000000
+      internalID: 4464162882302612716
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_44
+      rect:
+        serializedVersion: 2
+        x: 2306
+        y: 1274
+        width: 24
+        height: 43
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3175b98b09d4a4990800000000000000
+      internalID: -7401017753662171373
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_45
+      rect:
+        serializedVersion: 2
+        x: 2362
+        y: 1289
+        width: 31
+        height: 36
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a9165cd553e2072b0800000000000000
+      internalID: -5588916330825424486
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_46
+      rect:
+        serializedVersion: 2
+        x: 2410
+        y: 1293
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 350b1d24ac72bb570800000000000000
+      internalID: 8483418072740376659
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_47
+      rect:
+        serializedVersion: 2
+        x: 2424
+        y: 1300
+        width: 15
+        height: 18
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cccbc5dc1bd5ff850800000000000000
+      internalID: 6412947412634877132
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_48
+      rect:
+        serializedVersion: 2
+        x: 2426
+        y: 1291
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bbb801fd1eed23a00800000000000000
+      internalID: 734894750906223547
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_49
+      rect:
+        serializedVersion: 2
+        x: 2430
+        y: 1267
+        width: 28
+        height: 27
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 587e38d10d809f680800000000000000
+      internalID: -8720929513484851323
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_50
+      rect:
+        serializedVersion: 2
+        x: 1240
+        y: 1050
+        width: 261
+        height: 213
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c7716036e8602f3b0800000000000000
+      internalID: -5480310587940006020
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_51
+      rect:
+        serializedVersion: 2
+        x: 1884
+        y: 1244
+        width: 17
+        height: 18
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 06a1d3c727adfd530800000000000000
+      internalID: 3882061589062163040
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_52
+      rect:
+        serializedVersion: 2
+        x: 1916
+        y: 1252
+        width: 7
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ab42e4e77df348a40800000000000000
+      internalID: 5369486850502042810
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_53
+      rect:
+        serializedVersion: 2
+        x: 2172
+        y: 1239
+        width: 20
+        height: 26
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3a8146baf50be45a0800000000000000
+      internalID: -6535092084324165469
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_54
+      rect:
+        serializedVersion: 2
+        x: 2385
+        y: 1244
+        width: 24
+        height: 22
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e2899c293461a0f80800000000000000
+      internalID: -8139668897037445074
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_55
+      rect:
+        serializedVersion: 2
+        x: 1746
+        y: 1228
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 02cf773b60da2dc30800000000000000
+      internalID: 4382755631677307936
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_56
+      rect:
+        serializedVersion: 2
+        x: 1788
+        y: 1047
+        width: 259
+        height: 199
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: eafa47b44a7db6400800000000000000
+      internalID: 318585299300298670
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_57
+      rect:
+        serializedVersion: 2
+        x: 2172
+        y: 1218
+        width: 22
+        height: 20
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 98eb2cb6fd024c700800000000000000
+      internalID: 559608397658504841
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_58
+      rect:
+        serializedVersion: 2
+        x: 2242
+        y: 1192
+        width: 40
+        height: 50
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a19bd4c8bde0433d0800000000000000
+      internalID: -3227938696803272422
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_59
+      rect:
+        serializedVersion: 2
+        x: 2354
+        y: 1219
+        width: 18
+        height: 20
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 93aa1ac195d1d3220800000000000000
+      internalID: 2467160439438551609
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_60
+      rect:
+        serializedVersion: 2
+        x: 2457
+        y: 1210
+        width: 30
+        height: 27
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9621a1771e1faae90800000000000000
+      internalID: -7013527519007993239
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_61
+      rect:
+        serializedVersion: 2
+        x: 1452
+        y: 1183
+        width: 48
+        height: 43
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c35582ac20ee7d7c0800000000000000
+      internalID: -4046504044420115140
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_62
+      rect:
+        serializedVersion: 2
+        x: 1991
+        y: 1219
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0246079cd81df63d0800000000000000
+      internalID: -3211117602391694304
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_63
+      rect:
+        serializedVersion: 2
+        x: 1753
+        y: 1205
+        width: 7
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 883f02276905ea4d0800000000000000
+      internalID: -3121468884631096440
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_64
+      rect:
+        serializedVersion: 2
+        x: 2003
+        y: 1175
+        width: 37
+        height: 34
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 90300f8062ef54b00800000000000000
+      internalID: 812334747122402057
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_65
+      rect:
+        serializedVersion: 2
+        x: 2135
+        y: 1179
+        width: 33
+        height: 33
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a454a209f7c877460800000000000000
+      internalID: 7239409405528786250
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_66
+      rect:
+        serializedVersion: 2
+        x: 2387
+        y: 1182
+        width: 51
+        height: 36
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 74b48c5ab301abfc0800000000000000
+      internalID: -3478449913819804857
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_67
+      rect:
+        serializedVersion: 2
+        x: 2484
+        y: 1186
+        width: 27
+        height: 26
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 11df74772fa793650800000000000000
+      internalID: 6213132342736190737
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_68
+      rect:
+        serializedVersion: 2
+        x: 1775
+        y: 1173
+        width: 20
+        height: 24
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9f3d709cd830f5440800000000000000
+      internalID: 4926660424864617465
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_69
+      rect:
+        serializedVersion: 2
+        x: 2195
+        y: 1175
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7a677934130f3f8a0800000000000000
+      internalID: -6272405761618905433
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_70
+      rect:
+        serializedVersion: 2
+        x: 2326
+        y: 1162
+        width: 43
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7c511fc17ecf33380800000000000000
+      internalID: -8992565961375541817
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_71
+      rect:
+        serializedVersion: 2
+        x: 2446
+        y: 1157
+        width: 39
+        height: 22
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 06ff3008a2f51af60800000000000000
+      internalID: 8043815045601427296
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_72
+      rect:
+        serializedVersion: 2
+        x: 1766
+        y: 1147
+        width: 13
+        height: 22
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 60883d64d56cbee80800000000000000
+      internalID: -8148200996874254330
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_73
+      rect:
+        serializedVersion: 2
+        x: 2091
+        y: 1129
+        width: 84
+        height: 41
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 21935dd820b8825b0800000000000000
+      internalID: -5392907710690412270
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_74
+      rect:
+        serializedVersion: 2
+        x: 2285
+        y: 1153
+        width: 22
+        height: 20
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 279f7171cd98d3260800000000000000
+      internalID: 7078965767669545330
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_75
+      rect:
+        serializedVersion: 2
+        x: 2396
+        y: 1145
+        width: 19
+        height: 21
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 30eed662c9ff6c3c0800000000000000
+      internalID: -4339500144800174589
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_76
+      rect:
+        serializedVersion: 2
+        x: 1129
+        y: 1090
+        width: 42
+        height: 48
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 46cbbe063ac86f940800000000000000
+      internalID: 5329601842373180516
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_77
+      rect:
+        serializedVersion: 2
+        x: 1729
+        y: 1118
+        width: 12
+        height: 23
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 485a44def6b913ce0800000000000000
+      internalID: -1427188701875362428
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_78
+      rect:
+        serializedVersion: 2
+        x: 1741
+        y: 1129
+        width: 7
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6cccefe9397c46940800000000000000
+      internalID: 5288571299281423558
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_79
+      rect:
+        serializedVersion: 2
+        x: 1747
+        y: 1133
+        width: 20
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 78ccbb2fd7101a6e0800000000000000
+      internalID: -1828178333280777081
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_80
+      rect:
+        serializedVersion: 2
+        x: 2160
+        y: 1105
+        width: 33
+        height: 34
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0999144df5a38e310800000000000000
+      internalID: 1434460664574876048
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_81
+      rect:
+        serializedVersion: 2
+        x: 2337
+        y: 1118
+        width: 37
+        height: 32
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 03100125cf8486d10800000000000000
+      internalID: 2119023873223557424
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_82
+      rect:
+        serializedVersion: 2
+        x: 2442
+        y: 1125
+        width: 22
+        height: 23
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cf15f44f43d2d50b0800000000000000
+      internalID: -5738380644739755524
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_83
+      rect:
+        serializedVersion: 2
+        x: 2491
+        y: 1122
+        width: 48
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4ffd3fc7fa1985720800000000000000
+      internalID: 2835176148331388916
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_84
+      rect:
+        serializedVersion: 2
+        x: 1209
+        y: 1093
+        width: 30
+        height: 33
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ef18c8f434361f870800000000000000
+      internalID: 8714855894687187454
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_85
+      rect:
+        serializedVersion: 2
+        x: 1781
+        y: 1125
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 71ed389d49de6df70800000000000000
+      internalID: 9211811311393168919
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_86
+      rect:
+        serializedVersion: 2
+        x: 2136
+        y: 1048
+        width: 101
+        height: 83
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: dab50ceb68d638bd0800000000000000
+      internalID: -2629137331960915027
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_87
+      rect:
+        serializedVersion: 2
+        x: 1192
+        y: 1102
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 646d286e61ce4dd20800000000000000
+      internalID: 3302524009870186054
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_88
+      rect:
+        serializedVersion: 2
+        x: 1590
+        y: 964
+        width: 109
+        height: 149
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8fb20a138f51a01d0800000000000000
+      internalID: -3383868014286853128
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_89
+      rect:
+        serializedVersion: 2
+        x: 2309
+        y: 1085
+        width: 22
+        height: 22
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 82c983da7a3116070800000000000000
+      internalID: 8097775215875497000
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_90
+      rect:
+        serializedVersion: 2
+        x: 2423
+        y: 1097
+        width: 26
+        height: 22
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a456c9479bda2bf90800000000000000
+      internalID: -6939293063787551414
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_91
+      rect:
+        serializedVersion: 2
+        x: 1237
+        y: 1082
+        width: 10
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 671a184ef832e3410800000000000000
+      internalID: 1458642430235615606
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_92
+      rect:
+        serializedVersion: 2
+        x: 1690
+        y: 1068
+        width: 48
+        height: 26
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e6acb24ac2e0a40d0800000000000000
+      internalID: -3437919780648269202
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_93
+      rect:
+        serializedVersion: 2
+        x: 1781
+        y: 1072
+        width: 13
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 99cd622dd24095ad0800000000000000
+      internalID: -2713132705668211559
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_94
+      rect:
+        serializedVersion: 2
+        x: 2458
+        y: 1056
+        width: 76
+        height: 40
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b27761b9953d50490800000000000000
+      internalID: -7780580399405172949
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_95
+      rect:
+        serializedVersion: 2
+        x: 1747
+        y: 1071
+        width: 7
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 60d54e8e5733feff0800000000000000
+      internalID: -4728493092610810
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_96
+      rect:
+        serializedVersion: 2
+        x: 2305
+        y: 1052
+        width: 27
+        height: 25
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fe57cb7ccb2e363d0800000000000000
+      internalID: -3214476408579656209
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_97
+      rect:
+        serializedVersion: 2
+        x: 2458
+        y: 1066
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 90bb1f5a197d84630800000000000000
+      internalID: 3911613296925588233
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_98
+      rect:
+        serializedVersion: 2
+        x: 1743
+        y: 1050
+        width: 9
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4ec94ce1a522a9c20800000000000000
+      internalID: 3213919054540872932
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_99
+      rect:
+        serializedVersion: 2
+        x: 1761
+        y: 1041
+        width: 17
+        height: 20
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 94e2673f727dced30800000000000000
+      internalID: 4462177897405623881
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_100
+      rect:
+        serializedVersion: 2
+        x: 1939
+        y: 1031
+        width: 20
+        height: 21
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 473a3002b6b5f24b0800000000000000
+      internalID: -5463047307320384652
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_101
+      rect:
+        serializedVersion: 2
+        x: 2078
+        y: 1044
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 84ac7f2a0abb13fa0800000000000000
+      internalID: -5822666544610031032
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_102
+      rect:
+        serializedVersion: 2
+        x: 48
+        y: 563
+        width: 441
+        height: 411
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b1e9a9e3394dd8900800000000000000
+      internalID: 688440046933155355
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_103
+      rect:
+        serializedVersion: 2
+        x: 560
+        y: 551
+        width: 441
+        height: 423
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b3e472054bd5296d0800000000000000
+      internalID: -2985220573972967877
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_104
+      rect:
+        serializedVersion: 2
+        x: 1842
+        y: 940
+        width: 84
+        height: 41
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e62e95a4d85601c10800000000000000
+      internalID: 2022227890201551470
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_105
+      rect:
+        serializedVersion: 2
+        x: 1985
+        y: 951
+        width: 16
+        height: 43
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3f12f5694e6cf2b70800000000000000
+      internalID: 8876532075648197107
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_106
+      rect:
+        serializedVersion: 2
+        x: 2068
+        y: 955
+        width: 19
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 37e375c81d7e7b860800000000000000
+      internalID: 7545754587871264371
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_107
+      rect:
+        serializedVersion: 2
+        x: 2269
+        y: 932
+        width: 23
+        height: 21
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 505eb7c7c7d8b4a10800000000000000
+      internalID: 1894763634043380997
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_108
+      rect:
+        serializedVersion: 2
+        x: 2320
+        y: 984
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 880a6630d39270760800000000000000
+      internalID: 7423947852770353288
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_109
+      rect:
+        serializedVersion: 2
+        x: 2477
+        y: 914
+        width: 65
+        height: 73
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2a900b4392973d190800000000000000
+      internalID: -7938868500239480414
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_110
+      rect:
+        serializedVersion: 2
+        x: 1041
+        y: 602
+        width: 478
+        height: 332
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ca8061c10827b6700800000000000000
+      internalID: 534646875326122156
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_111
+      rect:
+        serializedVersion: 2
+        x: 1817
+        y: 929
+        width: 31
+        height: 19
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1f886ff11bc7b5960800000000000000
+      internalID: 7591798697050409201
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_112
+      rect:
+        serializedVersion: 2
+        x: 2120
+        y: 876
+        width: 62
+        height: 71
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b4785bb0f387c8d40800000000000000
+      internalID: 5587973449834661707
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_113
+      rect:
+        serializedVersion: 2
+        x: 2205
+        y: 908
+        width: 37
+        height: 30
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a826c9437de8a5c20800000000000000
+      internalID: 3196023940524565130
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_114
+      rect:
+        serializedVersion: 2
+        x: 2270
+        y: 893
+        width: 35
+        height: 37
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: dbd4692e5613603a0800000000000000
+      internalID: -6699613082004075075
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_115
+      rect:
+        serializedVersion: 2
+        x: 2388
+        y: 910
+        width: 25
+        height: 19
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 766e1eb05d0ae4900800000000000000
+      internalID: 670650231412614759
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_116
+      rect:
+        serializedVersion: 2
+        x: 1559
+        y: 599
+        width: 468
+        height: 307
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 27ddaeb9a319d47c0800000000000000
+      internalID: -4085449606045180558
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_117
+      rect:
+        serializedVersion: 2
+        x: 1705
+        y: 905
+        width: 9
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2b2888b69bfc95bf0800000000000000
+      internalID: -335008301982383438
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_118
+      rect:
+        serializedVersion: 2
+        x: 2169
+        y: 904
+        width: 26
+        height: 24
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b4f6cc1ec18552a90800000000000000
+      internalID: -7339363136659755189
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_119
+      rect:
+        serializedVersion: 2
+        x: 2348
+        y: 881
+        width: 26
+        height: 47
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c9d757c56536fb8d0800000000000000
+      internalID: -2828432818395841124
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_120
+      rect:
+        serializedVersion: 2
+        x: 2435
+        y: 902
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6f1db588b140107c0800000000000000
+      internalID: -4106996868886834698
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_121
+      rect:
+        serializedVersion: 2
+        x: 2465
+        y: 887
+        width: 26
+        height: 30
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fd8c7dddb2f997240800000000000000
+      internalID: 4790034689439549663
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_122
+      rect:
+        serializedVersion: 2
+        x: 1937
+        y: 822
+        width: 68
+        height: 72
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0fd57ff4f76698190800000000000000
+      internalID: -7959718169412149776
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_123
+      rect:
+        serializedVersion: 2
+        x: 2428
+        y: 892
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 26b4162bee1308a60800000000000000
+      internalID: 7674188666304023394
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_124
+      rect:
+        serializedVersion: 2
+        x: 2067
+        y: 820
+        width: 26
+        height: 68
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 21e8d7c13f4e58d30800000000000000
+      internalID: 4433201141022297618
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_125
+      rect:
+        serializedVersion: 2
+        x: 2274
+        y: 853
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9ce977038fcec3950800000000000000
+      internalID: 6430274918687416009
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_126
+      rect:
+        serializedVersion: 2
+        x: 2456
+        y: 847
+        width: 19
+        height: 20
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d793ff8459e4baf50800000000000000
+      internalID: 6893690057702455677
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_127
+      rect:
+        serializedVersion: 2
+        x: 2522
+        y: 867
+        width: 16
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3f211d59098a954b0800000000000000
+      internalID: -5451140535013010701
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_128
+      rect:
+        serializedVersion: 2
+        x: 2162
+        y: 795
+        width: 32
+        height: 45
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1066e03481f8b0fa0800000000000000
+      internalID: -5833411557961341439
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_129
+      rect:
+        serializedVersion: 2
+        x: 2208
+        y: 831
+        width: 26
+        height: 23
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1ce4af627d872ab00800000000000000
+      internalID: 838365346111573697
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_130
+      rect:
+        serializedVersion: 2
+        x: 2227
+        y: 792
+        width: 71
+        height: 59
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5dc0ca66f8f9cd920800000000000000
+      internalID: 3016461288683080917
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_131
+      rect:
+        serializedVersion: 2
+        x: 2338
+        y: 813
+        width: 26
+        height: 37
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: dfc0687bb973d77e0800000000000000
+      internalID: -1766194336920892163
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_132
+      rect:
+        serializedVersion: 2
+        x: 2408
+        y: 832
+        width: 27
+        height: 18
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5b4e4faaddcc15ca0800000000000000
+      internalID: -6029813173644368715
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_133
+      rect:
+        serializedVersion: 2
+        x: 2470
+        y: 835
+        width: 18
+        height: 20
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8161f15bf554b0e30800000000000000
+      internalID: 4470743332458272280
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_134
+      rect:
+        serializedVersion: 2
+        x: 2100
+        y: 779
+        width: 33
+        height: 39
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b500f8e6741755710800000000000000
+      internalID: 1681374587504230491
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_135
+      rect:
+        serializedVersion: 2
+        x: 2382
+        y: 804
+        width: 31
+        height: 20
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e881f0d31bbe30340800000000000000
+      internalID: 4828962371937441934
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_136
+      rect:
+        serializedVersion: 2
+        x: 2071
+        y: 729
+        width: 64
+        height: 45
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 311b49413d51f1c60800000000000000
+      internalID: 7790969876701819155
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_137
+      rect:
+        serializedVersion: 2
+        x: 2147
+        y: 747
+        width: 22
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 615033247d945f210800000000000000
+      internalID: 1366079250854249750
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_138
+      rect:
+        serializedVersion: 2
+        x: 2186
+        y: 717
+        width: 21
+        height: 21
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e73d4902c70cc5540800000000000000
+      internalID: 4998081325829510014
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_139
+      rect:
+        serializedVersion: 2
+        x: 2226
+        y: 678
+        width: 52
+        height: 67
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c6710016152796e60800000000000000
+      internalID: 7956015910572005228
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_140
+      rect:
+        serializedVersion: 2
+        x: 2358
+        y: 737
+        width: 77
+        height: 60
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: dd4625f67b538bd80800000000000000
+      internalID: -8234772856683993891
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_141
+      rect:
+        serializedVersion: 2
+        x: 2450
+        y: 714
+        width: 32
+        height: 43
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 390d4a0bc1c2e65c0800000000000000
+      internalID: -4220387299065278317
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_142
+      rect:
+        serializedVersion: 2
+        x: 2500
+        y: 764
+        width: 23
+        height: 28
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2057780f47ba01920800000000000000
+      internalID: 2959053473922381058
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_143
+      rect:
+        serializedVersion: 2
+        x: 2081
+        y: 644
+        width: 48
+        height: 77
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c6b148e45ab3999d0800000000000000
+      internalID: -2767114914869535892
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_144
+      rect:
+        serializedVersion: 2
+        x: 2143
+        y: 690
+        width: 26
+        height: 26
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6a898dbbed2d70be0800000000000000
+      internalID: -1511007295883405146
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_145
+      rect:
+        serializedVersion: 2
+        x: 2307
+        y: 707
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f43e7eed6c160b130800000000000000
+      internalID: 3580469210530702159
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_146
+      rect:
+        serializedVersion: 2
+        x: 2332
+        y: 698
+        width: 22
+        height: 21
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 143e6265eb482f540800000000000000
+      internalID: 5040236886005048129
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_147
+      rect:
+        serializedVersion: 2
+        x: 2369
+        y: 695
+        width: 22
+        height: 18
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b4d0fa5f1adbc26e0800000000000000
+      internalID: -1860904042701583029
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_148
+      rect:
+        serializedVersion: 2
+        x: 2479
+        y: 681
+        width: 60
+        height: 26
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 28ddcdee55ac72850800000000000000
+      internalID: 6352268269857856898
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_149
+      rect:
+        serializedVersion: 2
+        x: 2257
+        y: 673
+        width: 23
+        height: 22
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7738fc8c44b458b00800000000000000
+      internalID: 830152465118626679
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_150
+      rect:
+        serializedVersion: 2
+        x: 2307
+        y: 648
+        width: 42
+        height: 39
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bbc39875044eac940800000000000000
+      internalID: 5317313275061943483
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_151
+      rect:
+        serializedVersion: 2
+        x: 2372
+        y: 667
+        width: 39
+        height: 32
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 12769aab1df0978b0800000000000000
+      internalID: -5154070905094576351
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_152
+      rect:
+        serializedVersion: 2
+        x: 2409
+        y: 682
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 376640406b2339bd0800000000000000
+      internalID: -2624698400494033293
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_153
+      rect:
+        serializedVersion: 2
+        x: 2409
+        y: 676
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3ae0062016159c270800000000000000
+      internalID: 8271231667736153763
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_154
+      rect:
+        serializedVersion: 2
+        x: 2441
+        y: 586
+        width: 32
+        height: 111
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 97e0eb8ade9d90c10800000000000000
+      internalID: 2020385522613882489
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_155
+      rect:
+        serializedVersion: 2
+        x: 2161
+        y: 631
+        width: 52
+        height: 50
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 68065adac63560c00800000000000000
+      internalID: 866471704550269062
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_156
+      rect:
+        serializedVersion: 2
+        x: 2236
+        y: 649
+        width: 29
+        height: 25
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ec6ec963d3b9a5e20800000000000000
+      internalID: 3340152760860206798
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_157
+      rect:
+        serializedVersion: 2
+        x: 2371
+        y: 638
+        width: 22
+        height: 23
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 16e904f9bdecd83f0800000000000000
+      internalID: -896833308111888799
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_158
+      rect:
+        serializedVersion: 2
+        x: 1729
+        y: 626
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 336d88dbb0d52d800800000000000000
+      internalID: 635672802418546227
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_159
+      rect:
+        serializedVersion: 2
+        x: 1891
+        y: 608
+        width: 13
+        height: 18
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b146f82ed1d4e68f0800000000000000
+      internalID: -545413714114812901
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_160
+      rect:
+        serializedVersion: 2
+        x: 2357
+        y: 605
+        width: 31
+        height: 28
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1e62cd6a40ea893b0800000000000000
+      internalID: -5505459209457883423
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_161
+      rect:
+        serializedVersion: 2
+        x: 1826
+        y: 589
+        width: 8
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7ebceadc52854c3e0800000000000000
+      internalID: -2034404212276802585
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_162
+      rect:
+        serializedVersion: 2
+        x: 1904
+        y: 592
+        width: 22
+        height: 21
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 20502cc60e511dce0800000000000000
+      internalID: -1382299556984519422
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_163
+      rect:
+        serializedVersion: 2
+        x: 2370
+        y: 595
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 83db4e2a7e355f460800000000000000
+      internalID: 7274813027422354744
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_164
+      rect:
+        serializedVersion: 2
+        x: 1642
+        y: 529
+        width: 56
+        height: 26
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cc921ecd8788b16b0800000000000000
+      internalID: -5324512081752282676
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_165
+      rect:
+        serializedVersion: 2
+        x: 1724
+        y: 526
+        width: 53
+        height: 43
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 78ae3132188cfc3e0800000000000000
+      internalID: -2031184449955960185
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_166
+      rect:
+        serializedVersion: 2
+        x: 2076
+        y: 536
+        width: 39
+        height: 58
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3e36b3148969033e0800000000000000
+      internalID: -2075993847544192029
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_167
+      rect:
+        serializedVersion: 2
+        x: 2092
+        y: 411
+        width: 79
+        height: 164
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8cc698030f079a020800000000000000
+      internalID: 2353536457186569416
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_168
+      rect:
+        serializedVersion: 2
+        x: 2199
+        y: 551
+        width: 32
+        height: 38
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8e0581d893f395e40800000000000000
+      internalID: 5645613124298494184
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_169
+      rect:
+        serializedVersion: 2
+        x: 2249
+        y: 487
+        width: 25
+        height: 77
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 65f14ffcadde8ac10800000000000000
+      internalID: 2065161953196908374
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_170
+      rect:
+        serializedVersion: 2
+        x: 2288
+        y: 554
+        width: 49
+        height: 18
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 24f7fa93bd7827bf0800000000000000
+      internalID: -328050447209234622
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_171
+      rect:
+        serializedVersion: 2
+        x: 2370
+        y: 527
+        width: 11
+        height: 33
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1e12ab1586ad45ac0800000000000000
+      internalID: -3867226038421806623
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_172
+      rect:
+        serializedVersion: 2
+        x: 2389
+        y: 553
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 86fa7fb7bc83984c0800000000000000
+      internalID: -4284831123856969880
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_173
+      rect:
+        serializedVersion: 2
+        x: 2491
+        y: 543
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1717269c4bfff6df0800000000000000
+      internalID: -184647907761032847
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_174
+      rect:
+        serializedVersion: 2
+        x: 2368
+        y: 479
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 64e3d8ceab5a22760800000000000000
+      internalID: 7431684557365919302
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_175
+      rect:
+        serializedVersion: 2
+        x: 2397
+        y: 476
+        width: 11
+        height: 21
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bf0514ff4b9c3f920800000000000000
+      internalID: 3022981554109501691
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_176
+      rect:
+        serializedVersion: 2
+        x: 38
+        y: 60
+        width: 423
+        height: 403
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7cb1e21d49eba37d0800000000000000
+      internalID: -2937826260531930169
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_177
+      rect:
+        serializedVersion: 2
+        x: 551
+        y: 49
+        width: 421
+        height: 413
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: eb31031fe1f4482e0800000000000000
+      internalID: -2124486129897958466
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_178
+      rect:
+        serializedVersion: 2
+        x: 1781
+        y: 441
+        width: 14
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9fa143ec73767e200800000000000000
+      internalID: 209249397076400889
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_179
+      rect:
+        serializedVersion: 2
+        x: 1873
+        y: 400
+        width: 31
+        height: 51
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9b7250286e3d66360800000000000000
+      internalID: 7162645244356667321
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_180
+      rect:
+        serializedVersion: 2
+        x: 1928
+        y: 450
+        width: 48
+        height: 20
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: be289eecd0dc31080800000000000000
+      internalID: -9217798553107594517
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_181
+      rect:
+        serializedVersion: 2
+        x: 2217
+        y: 429
+        width: 50
+        height: 28
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d7df261e2e3d78120800000000000000
+      internalID: 2416132696504991101
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_182
+      rect:
+        serializedVersion: 2
+        x: 1096
+        y: 302
+        width: 112
+        height: 126
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ee01921851e106a80800000000000000
+      internalID: -8475741421001174802
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_183
+      rect:
+        serializedVersion: 2
+        x: 1559
+        y: 331
+        width: 132
+        height: 114
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cde108ca622f70d10800000000000000
+      internalID: 2091906799853641436
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_184
+      rect:
+        serializedVersion: 2
+        x: 1703
+        y: 419
+        width: 15
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 653ebcd4848382960800000000000000
+      internalID: 7577368256244867926
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_185
+      rect:
+        serializedVersion: 2
+        x: 1706
+        y: 398
+        width: 28
+        height: 26
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0f5fdb6e42d821cd0800000000000000
+      internalID: -2588851646155065872
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_186
+      rect:
+        serializedVersion: 2
+        x: 2174
+        y: 405
+        width: 20
+        height: 19
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 303a4d2a657867bd0800000000000000
+      internalID: -2632768125982694653
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_187
+      rect:
+        serializedVersion: 2
+        x: 2278
+        y: 372
+        width: 56
+        height: 54
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2498b709ece1f45f0800000000000000
+      internalID: -770363138720954046
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_188
+      rect:
+        serializedVersion: 2
+        x: 2353
+        y: 368
+        width: 46
+        height: 63
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 48d7fbba30164efa0800000000000000
+      internalID: -5772382153987883644
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_189
+      rect:
+        serializedVersion: 2
+        x: 2424
+        y: 375
+        width: 102
+        height: 74
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bf50aff4ec6ebc210800000000000000
+      internalID: 1354429886734403067
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_190
+      rect:
+        serializedVersion: 2
+        x: 1201
+        y: 372
+        width: 34
+        height: 33
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e695fe59763a74080800000000000000
+      internalID: -9203207648215869074
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_191
+      rect:
+        serializedVersion: 2
+        x: 1371
+        y: 268
+        width: 140
+        height: 148
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a0e074e17967227b0800000000000000
+      internalID: -5250503824140464630
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_192
+      rect:
+        serializedVersion: 2
+        x: 1736
+        y: 393
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d0713057910e5bc80800000000000000
+      internalID: -8307487537673070835
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_193
+      rect:
+        serializedVersion: 2
+        x: 1903
+        y: 397
+        width: 13
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 01056b66866c65f80800000000000000
+      internalID: -8118083126586617840
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_194
+      rect:
+        serializedVersion: 2
+        x: 1922
+        y: 295
+        width: 117
+        height: 123
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3ac7352d980d76170800000000000000
+      internalID: 8171729339244838051
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_195
+      rect:
+        serializedVersion: 2
+        x: 2178
+        y: 367
+        width: 53
+        height: 43
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0bdcef4ee89641700800000000000000
+      internalID: 510148720247885232
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_196
+      rect:
+        serializedVersion: 2
+        x: 2187
+        y: 394
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a0dffbeb75123a830800000000000000
+      internalID: 4081142348073925898
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_197
+      rect:
+        serializedVersion: 2
+        x: 1177
+        y: 150
+        width: 232
+        height: 239
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 49bc1e46f8b3adde0800000000000000
+      internalID: -1307667254738826348
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_198
+      rect:
+        serializedVersion: 2
+        x: 1714
+        y: 381
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d03653ba6cd033b90800000000000000
+      internalID: -7263446627091389683
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_199
+      rect:
+        serializedVersion: 2
+        x: 1881
+        y: 368
+        width: 34
+        height: 27
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d4a6a05610ce544b0800000000000000
+      internalID: -5456695882755184051
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_200
+      rect:
+        serializedVersion: 2
+        x: 1586
+        y: 348
+        width: 14
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 37ed0fc3153d69060800000000000000
+      internalID: 6959982620015910515
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_201
+      rect:
+        serializedVersion: 2
+        x: 1711
+        y: 172
+        width: 196
+        height: 199
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e6db9d2f283d834f0800000000000000
+      internalID: -848695970385773202
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_202
+      rect:
+        serializedVersion: 2
+        x: 2074
+        y: 313
+        width: 35
+        height: 44
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5f100998b82f863d0800000000000000
+      internalID: -3213051653006556683
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_203
+      rect:
+        serializedVersion: 2
+        x: 2282
+        y: 335
+        width: 29
+        height: 23
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a9b795c63cfa5d7c0800000000000000
+      internalID: -4047135436251235430
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_204
+      rect:
+        serializedVersion: 2
+        x: 2419
+        y: 315
+        width: 48
+        height: 37
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b2e6f9d49519a7390800000000000000
+      internalID: -7819777990235034069
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_205
+      rect:
+        serializedVersion: 2
+        x: 1694
+        y: 332
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a97534db5d8413980800000000000000
+      internalID: -8560981333814061158
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_206
+      rect:
+        serializedVersion: 2
+        x: 2133
+        y: 311
+        width: 19
+        height: 24
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8f0a5812f5ca5b2d0800000000000000
+      internalID: -3263512830375780104
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_207
+      rect:
+        serializedVersion: 2
+        x: 2322
+        y: 322
+        width: 25
+        height: 25
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fb4c96ecb293d2020800000000000000
+      internalID: 2318572243475088575
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_208
+      rect:
+        serializedVersion: 2
+        x: 2347
+        y: 328
+        width: 16
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e0778664581adf270800000000000000
+      internalID: 8285956483215554318
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_209
+      rect:
+        serializedVersion: 2
+        x: 2487
+        y: 296
+        width: 21
+        height: 44
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 12ee2fe57d52d5c00800000000000000
+      internalID: 890909908230401569
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_210
+      rect:
+        serializedVersion: 2
+        x: 1041
+        y: 208
+        width: 130
+        height: 123
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 53d70c44ad569f610800000000000000
+      internalID: 1655466326166109493
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_211
+      rect:
+        serializedVersion: 2
+        x: 1537
+        y: 221
+        width: 108
+        height: 102
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7dc4c2dbcdd996640800000000000000
+      internalID: 5073760026601737431
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_212
+      rect:
+        serializedVersion: 2
+        x: 1667
+        y: 299
+        width: 14
+        height: 21
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 75a83b3c4a1eb2320800000000000000
+      internalID: 2534367313100245591
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_213
+      rect:
+        serializedVersion: 2
+        x: 2357
+        y: 303
+        width: 25
+        height: 21
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d32b71df0eedf9c40800000000000000
+      internalID: 5521376726079746621
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_214
+      rect:
+        serializedVersion: 2
+        x: 2440
+        y: 318
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 73ce59a157e214840800000000000000
+      internalID: 5206493724709088311
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_215
+      rect:
+        serializedVersion: 2
+        x: 1170
+        y: 288
+        width: 18
+        height: 27
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0ecc14e0bf409b7e0800000000000000
+      internalID: -1749361503934231328
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_216
+      rect:
+        serializedVersion: 2
+        x: 1656
+        y: 300
+        width: 7
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 319ebf446cdd83580800000000000000
+      internalID: -8847077624338716397
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_217
+      rect:
+        serializedVersion: 2
+        x: 2214
+        y: 263
+        width: 72
+        height: 43
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 59d997b1d9a3fc150800000000000000
+      internalID: 5894994883696500117
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_218
+      rect:
+        serializedVersion: 2
+        x: 2335
+        y: 305
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2cd563df99e41ab70800000000000000
+      internalID: 8908487961200713154
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_219
+      rect:
+        serializedVersion: 2
+        x: 1940
+        y: 289
+        width: 7
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2aaca919df86222c0800000000000000
+      internalID: -4457885242864514398
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_220
+      rect:
+        serializedVersion: 2
+        x: 2398
+        y: 267
+        width: 21
+        height: 31
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a8b9de02434b99680800000000000000
+      internalID: -8747762665206735990
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_221
+      rect:
+        serializedVersion: 2
+        x: 2467
+        y: 296
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1e08769bd842cb710800000000000000
+      internalID: 1710282149613502689
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_222
+      rect:
+        serializedVersion: 2
+        x: 1425
+        y: 266
+        width: 17
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 78b3404d89759e920800000000000000
+      internalID: 3020041339032320903
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_223
+      rect:
+        serializedVersion: 2
+        x: 1647
+        y: 274
+        width: 7
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e6c903a3372c18330800000000000000
+      internalID: 3711461368083291246
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_224
+      rect:
+        serializedVersion: 2
+        x: 1934
+        y: 270
+        width: 11
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1934bc3f03595e2f0800000000000000
+      internalID: -944184509383097455
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_225
+      rect:
+        serializedVersion: 2
+        x: 1965
+        y: 271
+        width: 14
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 984ea0626c745a3a0800000000000000
+      internalID: -6654833958002695031
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_226
+      rect:
+        serializedVersion: 2
+        x: 2183
+        y: 254
+        width: 23
+        height: 27
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f44121da782fe86e0800000000000000
+      internalID: -1833261333755063217
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_227
+      rect:
+        serializedVersion: 2
+        x: 2345
+        y: 254
+        width: 55
+        height: 33
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 32720f04e71420690800000000000000
+      internalID: -7637470007555774685
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_228
+      rect:
+        serializedVersion: 2
+        x: 2470
+        y: 258
+        width: 28
+        height: 27
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9590ffc59da02b130800000000000000
+      internalID: 3580936582397364569
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_229
+      rect:
+        serializedVersion: 2
+        x: 2506
+        y: 267
+        width: 24
+        height: 23
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6dfa3fb5efe5801e0800000000000000
+      internalID: -2231429168804679722
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_230
+      rect:
+        serializedVersion: 2
+        x: 1436
+        y: 256
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ab471b13fcca5fb60800000000000000
+      internalID: 7779313937244320954
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_231
+      rect:
+        serializedVersion: 2
+        x: 1976
+        y: 258
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 496b5777e66cc5490800000000000000
+      internalID: -7756106280485931372
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_232
+      rect:
+        serializedVersion: 2
+        x: 2079
+        y: 264
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 07b44d3efb05aaa60800000000000000
+      internalID: 7686044499152489328
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_233
+      rect:
+        serializedVersion: 2
+        x: 1175
+        y: 246
+        width: 12
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b694a960bdb6a4660800000000000000
+      internalID: 7370822328598022507
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_234
+      rect:
+        serializedVersion: 2
+        x: 1671
+        y: 247
+        width: 10
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 02d0a1efc30cdd1e0800000000000000
+      internalID: -2171368077129020128
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_235
+      rect:
+        serializedVersion: 2
+        x: 2078
+        y: 256
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a6579ca6e6452f480800000000000000
+      internalID: -8866931883124361878
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_236
+      rect:
+        serializedVersion: 2
+        x: 2108
+        y: 233
+        width: 23
+        height: 25
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3839e7b79ed7c8ca0800000000000000
+      internalID: -6013292960693709949
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_237
+      rect:
+        serializedVersion: 2
+        x: 2275
+        y: 252
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8bcc9e35a83ca7da0800000000000000
+      internalID: -5946225359108584264
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_238
+      rect:
+        serializedVersion: 2
+        x: 1159
+        y: 223
+        width: 23
+        height: 25
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4987c92a490068130800000000000000
+      internalID: 3568540393121020052
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_239
+      rect:
+        serializedVersion: 2
+        x: 1378
+        y: 102
+        width: 141
+        height: 150
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b641d52994a69b7e0800000000000000
+      internalID: -1749250116035996565
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_240
+      rect:
+        serializedVersion: 2
+        x: 1655
+        y: 222
+        width: 18
+        height: 20
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 01ed3a4940917a4d0800000000000000
+      internalID: -3123500309093818864
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_241
+      rect:
+        serializedVersion: 2
+        x: 1684
+        y: 237
+        width: 7
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: be7d3fa294d433500800000000000000
+      internalID: 374728170650458091
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_242
+      rect:
+        serializedVersion: 2
+        x: 1922
+        y: 240
+        width: 24
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6b9de62eb4900eba0800000000000000
+      internalID: -6061834876914574922
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_243
+      rect:
+        serializedVersion: 2
+        x: 2226
+        y: 242
+        width: 7
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1c77f7b0cd15bdbb0800000000000000
+      internalID: -4910240963189835839
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_244
+      rect:
+        serializedVersion: 2
+        x: 2285
+        y: 242
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ccf681247ed9ccb70800000000000000
+      internalID: 8920678578486013900
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_245
+      rect:
+        serializedVersion: 2
+        x: 2143
+        y: 228
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 19c229a468e4d3b20800000000000000
+      internalID: 3115732855893929105
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_246
+      rect:
+        serializedVersion: 2
+        x: 2463
+        y: 193
+        width: 29
+        height: 41
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e1ad7d79f07b9d5c0800000000000000
+      internalID: -4190116700691637730
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_247
+      rect:
+        serializedVersion: 2
+        x: 1082
+        y: 85
+        width: 163
+        height: 136
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fbfa633647347f9d0800000000000000
+      internalID: -2740647681071861825
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_248
+      rect:
+        serializedVersion: 2
+        x: 1930
+        y: 61
+        width: 147
+        height: 165
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 629ee01bfd48a7860800000000000000
+      internalID: 7528475823386323238
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_249
+      rect:
+        serializedVersion: 2
+        x: 2204
+        y: 167
+        width: 102
+        height: 57
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 27330ad439a260470800000000000000
+      internalID: 8360416570410808178
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_250
+      rect:
+        serializedVersion: 2
+        x: 2205
+        y: 212
+        width: 18
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: df6a87c2c5e006f30800000000000000
+      internalID: 4566665811199567613
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_251
+      rect:
+        serializedVersion: 2
+        x: 2336
+        y: 118
+        width: 102
+        height: 103
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7a5437aada1abf080800000000000000
+      internalID: -9152544050439305817
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_252
+      rect:
+        serializedVersion: 2
+        x: 2348
+        y: 200
+        width: 20
+        height: 19
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 66bc6b4d07ad8e2e0800000000000000
+      internalID: -2096185448401024154
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_253
+      rect:
+        serializedVersion: 2
+        x: 1319
+        y: 98
+        width: 77
+        height: 87
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9514aa688c8fbc100800000000000000
+      internalID: 129470554446643545
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_254
+      rect:
+        serializedVersion: 2
+        x: 1560
+        y: 45
+        width: 164
+        height: 147
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 110b63f7deb6b7110800000000000000
+      internalID: 1259719188565897233
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_255
+      rect:
+        serializedVersion: 2
+        x: 1570
+        y: 185
+        width: 12
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7ee210544fac65210800000000000000
+      internalID: 1321466691158355687
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_256
+      rect:
+        serializedVersion: 2
+        x: 2119
+        y: 140
+        width: 23
+        height: 58
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 890e8cbd4e033d460800000000000000
+      internalID: 7265204383376793752
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_257
+      rect:
+        serializedVersion: 2
+        x: 2475
+        y: 115
+        width: 24
+        height: 73
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 302551156cc45c390800000000000000
+      internalID: -7798742765074558461
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_258
+      rect:
+        serializedVersion: 2
+        x: 1241
+        y: 142
+        width: 26
+        height: 30
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 13a70f71b518f3f70800000000000000
+      internalID: 9169189594593262129
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_259
+      rect:
+        serializedVersion: 2
+        x: 1739
+        y: 164
+        width: 13
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: eff1b88113f22c610800000000000000
+      internalID: 1639925102227955710
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_260
+      rect:
+        serializedVersion: 2
+        x: 1752
+        y: 128
+        width: 20
+        height: 24
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bb6f54d02d4bbda50800000000000000
+      internalID: 6547025297571968699
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_261
+      rect:
+        serializedVersion: 2
+        x: 1851
+        y: 81
+        width: 64
+        height: 78
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 11d38f6a2e9208d60800000000000000
+      internalID: 7890352600593743121
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_262
+      rect:
+        serializedVersion: 2
+        x: 2101
+        y: 145
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e8ab8d4c860f34ce0800000000000000
+      internalID: -1422028724549141874
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_263
+      rect:
+        serializedVersion: 2
+        x: 2141
+        y: 137
+        width: 18
+        height: 23
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0e8bc6113983db330800000000000000
+      internalID: 3728198270836324576
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_264
+      rect:
+        serializedVersion: 2
+        x: 1305
+        y: 116
+        width: 22
+        height: 24
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b367b0e3ec3193240800000000000000
+      internalID: 4771867056700880443
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_265
+      rect:
+        serializedVersion: 2
+        x: 1814
+        y: 125
+        width: 11
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d42b84066657ab9d0800000000000000
+      internalID: -2757762739248516531
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_266
+      rect:
+        serializedVersion: 2
+        x: 1928
+        y: 117
+        width: 9
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ef0b932db1cc48230800000000000000
+      internalID: 3640258818685382910
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_267
+      rect:
+        serializedVersion: 2
+        x: 2203
+        y: 88
+        width: 38
+        height: 37
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ebbfdadd3a39cc350800000000000000
+      internalID: 6038363532405111742
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_268
+      rect:
+        serializedVersion: 2
+        x: 2280
+        y: 109
+        width: 26
+        height: 26
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3517e35c2577f2860800000000000000
+      internalID: 7507350301230133587
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_269
+      rect:
+        serializedVersion: 2
+        x: 1826
+        y: 91
+        width: 17
+        height: 25
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5f6ffe70901be2c90800000000000000
+      internalID: -7192616902518114571
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_270
+      rect:
+        serializedVersion: 2
+        x: 1850
+        y: 99
+        width: 8
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bb1d28fd39ca0b490800000000000000
+      internalID: -7732490809085079109
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_271
+      rect:
+        serializedVersion: 2
+        x: 1939
+        y: 86
+        width: 17
+        height: 18
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4ecee0d925687dd50800000000000000
+      internalID: 6762021054900530404
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_272
+      rect:
+        serializedVersion: 2
+        x: 2444
+        y: 87
+        width: 24
+        height: 28
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9ebd7a2f4b50c6370800000000000000
+      internalID: 8317028886569802729
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_273
+      rect:
+        serializedVersion: 2
+        x: 2027
+        y: 84
+        width: 13
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 13abd4be64f9609c0800000000000000
+      internalID: -3961303695281505743
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_274
+      rect:
+        serializedVersion: 2
+        x: 2469
+        y: 92
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: be91b755faeefb270800000000000000
+      internalID: 8268589877696338411
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_275
+      rect:
+        serializedVersion: 2
+        x: 1767
+        y: 71
+        width: 14
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 244381c10ad8c6b70800000000000000
+      internalID: 8893639082955519042
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_276
+      rect:
+        serializedVersion: 2
+        x: 2266
+        y: 54
+        width: 43
+        height: 33
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5e838595bf044c7e0800000000000000
+      internalID: -1746199307232986907
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_277
+      rect:
+        serializedVersion: 2
+        x: 2343
+        y: 35
+        width: 86
+        height: 46
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5303ecf9b98ef3350800000000000000
+      internalID: 5998768983779455029
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_278
+      rect:
+        serializedVersion: 2
+        x: 2221
+        y: 53
+        width: 37
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e7a568be51daea570800000000000000
+      internalID: 8479905458042591870
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_279
+      rect:
+        serializedVersion: 2
+        x: 2258
+        y: 38
+        width: 16
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6b1aabf9d69d7ce40800000000000000
+      internalID: 5676744920178270646
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_280
+      rect:
+        serializedVersion: 2
+        x: 2520
+        y: 26
+        width: 29
+        height: 30
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7dbd46c3c79730c40800000000000000
+      internalID: 5477355146308803543
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_281
+      rect:
+        serializedVersion: 2
+        x: 1585
+        y: 45
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7fd59f4af11f2f150800000000000000
+      internalID: 5905047179650227703
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: break_282
+      rect:
+        serializedVersion: 2
+        x: 2149
+        y: 23
+        width: 62
+        height: 25
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: dcc1c750b5c173f40800000000000000
+      internalID: 5708062229975014605
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 5e97eb03825dee720800000000000000
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable: {}
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
