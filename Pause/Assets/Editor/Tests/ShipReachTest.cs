@@ -486,7 +486,7 @@ public static class ShipReachTest
             if (def.role != EnemyRole.Chaser) continue;
             UseAuthored();
             float authoredVis;
-            float authored = ChaserContact(def, Mathf.Max(ShipReach.LegacyBottom, CameraFit.ViewBottom + ShipReach.FingerOffset), out authoredVis);
+            float authored = ChaserContact(def, Mathf.Max(ShipReach.LegacyBottom, CameraFit.ViewBottom + ShipReach.BaseFingerOffset), out authoredVis);
             bool ok = true;
             string line = def.key + ": a chaser from under the view reaches a ship at the floor in " + F(authored) + " s (" + F(authoredVis) + " s in view) as authored";
             foreach (var id in new[] { "and-1080x1920", "flip7-1080x2520", "iphone-15", "and-1080x1920-navbar" })
