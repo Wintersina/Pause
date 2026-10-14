@@ -245,9 +245,9 @@ public static class EliteTest
 
     static bool Opaque(Texture2D tex, EliteDef d, int cell, ElitePoint p)
     {
-        int cp = d.cellPixels;
-        for (int dy = -2; dy <= 2; dy++)
-            for (int dx = -2; dx <= 2; dx++)
+        int cp = d.cellPixels, r = 2 * cp / 192;   // a 2 px reach on the 192 px grid, scaled to HD cells
+        for (int dy = -r; dy <= r; dy++)
+            for (int dx = -r; dx <= r; dx++)
             {
                 int x = cell * cp + Mathf.RoundToInt(p.x) + dx, y = cp - 1 - (Mathf.RoundToInt(p.y) + dy);
                 if (x < 0 || y < 0 || x >= tex.width || y >= tex.height) continue;

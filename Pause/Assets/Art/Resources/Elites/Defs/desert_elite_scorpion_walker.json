@@ -10,7 +10,7 @@
   "heartOrbit": 0.713,
   "heartStyle": "Halo",
   "exhaustShip": 3,
-  "cellPixels": 192,
+  "cellPixels": 384,
   "key": "desert_elite_scorpion_walker",
   "displayName": "Scorpion Walker",
   "role": "venom claw striker",
@@ -41,22 +41,22 @@
   "muzzles": [
     {
       "name": "claw",
-      "x": 60,
-      "y": 132,
+      "x": 120,
+      "y": 264,
       "dir": -1.0
     }
   ],
   "nozzles": [
     {
       "name": "l",
-      "x": 88,
-      "y": 160,
+      "x": 176,
+      "y": 320,
       "dir": -1.0
     },
     {
       "name": "r",
-      "x": 104,
-      "y": 160,
+      "x": 208,
+      "y": 320,
       "dir": -1.0
     }
   ],

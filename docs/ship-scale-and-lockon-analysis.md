@@ -237,6 +237,27 @@ Smallest on screen (0.52-0.61 u, 49-60 px at 720): all rocks - Tide Brain Coral 
 * **Elite hazards** (Frost slabs 0.78 u, Verdant trunks, Tide pearls 0.36, Frost orbs 0.36): already deliberate, drawn and sized as mechanics, not ships. Elite shots are 0.16-0.5 u (23-72 px at 1080); anything under 0.2 u is 29 / 19 px and sits at the edge: Coalrunner / Cryo bolts 0.2, the lowest are 0.16. Left alone (shot size is a fairness number), but the minimum shot size is asserted at 0.16 u.
 * **Bosses**: 2.85-3.21 u drawn (3.3 u cell, ~4x the player, 413-466 px at 1080). Fine; unchanged.
 
+### 2.6 HD rebuild of every elite that has a painted master (branch art/elite-hd-rebuild)
+
+Audit (every elite, every world): which have a painted master in the repo, how the live strip was made.
+
+| World | Ships | Master in the repo | Live strip derived by | After this PR |
+|---|---|---|---|---|
+| Tide | Riptide, Bathyscaphe, Trawler, Pearl Warden (+ Thunderfin, PR #4) | `Elite/Tide/src~/*_master.png`, 1254 px (Riptide 1024 x 1536) | `build_tide_elites.py`: NEAREST decimation, noisy dither, then palette unify | 384 px cells, `build_tide_hd.py` (Thunderfin reproduced to 99.998%) |
+| Storm | Skyhook Harrier, Refinery Tender, Rod Dancer, Anvil Cloud, Static Bastion | `Elite/Storm/src~/*_master.png`, 1024-1536 px | `build_storm_elites.py`: NEAREST, then palette unify | 384 px, `build_storm_hd.py` |
+| Desert | Dune Stalker, Caravan Hauler, Lens Matriarch, Scorpion Walker, Mirror Bastion | `Elite/Desert/src~/*_master.png`, 1086-1448 px | `build.py`: NEAREST, 1-bit alpha, palette unify | 384 px, `build_desert_hd.py` (soft alpha) |
+| Frost | Floe Harrower, Glacier Tender, Whiteout Sentinel | `Elite/Frost/src~/*_master.png` / `*_alt.png`, 1024-1536 px | `build_new_elites.py`: NEAREST, classified into the Frost ramps; deaths by `build_death_strips.py` | 384 px, `build_frost_hd.py` + `build_death_strips_hd.py` |
+| Verdant | Timber Hauler, Thornlash, Sporebloom, Leafblade | `Elite/Verdant/new/src~/*_master.png`, 1254-1374 px | `build_verdant_elites.py`: NEAREST + NEAREST rotations | 384 px, `build_verdant_hd.py` (bicubic rotations) |
+| Space | Eventide Bastion, Orbit Reaver, Rift Lancer, Singularity Hauler | concepts 1024-1536 px (`*_concept.png`) | LANCZOS to 192 (`build_strips.py`), then the restyle transfer (`space_elites_restyle/restyle.py`) onto the live cells | not rebuilt: already the best density (1.39-1.42 screen px per art px); the restyle is a per-cell transfer, a 384 px redo needs its own pass |
+| Ember | 6 | concepts only 385-971 px tall (the ship is < 600 px: a 384 cell would be upscaled) | drawn directly at 192 | not rebuilt: Codex redraw |
+| Frost | Cryo Siren | none for the live art: it is the Codex v2 silver redraw (`src~/frost_old/codex_v2/cryo_siren`, drawn directly at 192); `cryo_siren_master.png` in `Frost/src~` is a different (blue) design that is not what ships | - | not rebuilt: Codex redraw |
+| Frost / Verdant | Rimebreaker, Resin Warden | none (strips drawn at 192) | - | not rebuilt: Codex redraw |
+| Desert | Glass Cannon | none (strip only, no concept / master) | - | not rebuilt: Codex redraw |
+
+Recipe (the Thunderfin one, now `Elite/src~/elite_hd.py` + one script per world, run from the world's `src~/`, then `Elite/src~/install_hd.py`): the painted master is cropped to its silhouette and downsampled with a premultiplied area-averaging (Lanczos) filter to 2 x the old hull size (asserted: never an upscale), every later step of the old script is kept on a cell Z = 2 x bigger (hue clean-up, rim, bank warp, exhaust, core, damage crack, death frames, the world palette unification), drawing code is the old 192-space code scaled through `ZDraw`, warps sample on a 192-space grid, rotations are bicubic. Layout, frame counts, hull / hit radius, `cellWorldSize` (scale tier) are unchanged; the defs gain `cellPixels` 384 and muzzles / nozzles x 2. `ship_scale_border~/original/` holds the new originals and the one-sided pale outline pass was re-run (same sides, `modes.json`); the three Desert elites that carried a full cream ring in the old art (Caravan Hauler, Dune Stalker, Scorpion Walker) now get the one-sided pass like the others.
+
+Enemies (192 / 256 cells) and mines: their masters are three-up candidate sheets (about 512 px per ship, `*_enemies/*_candidates.png`) from which the 192 px cells were built; on screen they are drawn at 0.33-0.55 screen px per art px, i.e. already finer than the screen, so an HD rebuild would not be visible. Not rebuilt.
+
 ### 2.5 Priorities and the redraw list
 
 1. **Elites below the floor** (Tide x4, Frost Floe Harrower / Rimebreaker, Storm x5, Desert x6, Verdant Timber Hauler / Thornlash / Sporebloom): scale, data only.

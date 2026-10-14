@@ -46,8 +46,8 @@ public static class EliteDeathStripTest
         {
             n++;
             var death = EliteArt.ExtraFrames(d, EliteArt.Extra.Death);
-            Check(d.key + ": death strip slices into 3 cells of 192", death != null && death.Length == 3 &&
-                  Mathf.Approximately(death[0].rect.width, 192f) && Mathf.Approximately(death[0].rect.height, 192f));
+            Check(d.key + ": death strip slices into 3 cells of " + d.cellPixels, death != null && death.Length == 3 &&
+                  Mathf.Approximately(death[0].rect.width, d.cellPixels) && Mathf.Approximately(death[0].rect.height, d.cellPixels));
             string dir = "Assets/Art/Resources/Elites/" + Folder(d) + "/";
             if (!File.Exists(dir + d.key + "_death.png") || !Authored(d.key)) continue;
             var ds = Read(dir + d.key + "_death.png");
@@ -58,10 +58,11 @@ public static class EliteDeathStripTest
             bool ember = d.key.StartsWith("ember_");
             if (ember) flightCell = 3;
             int covered = 0, total = 0, pink = 0, red = 0, edge = 0, flightRed = 0;
-            for (int y = 0; y < 192; y++)
-                for (int x = 0; x < 192; x++)
+            int S = d.cellPixels, m = 6 * S / 192;
+            for (int y = 0; y < S; y++)
+                for (int x = 0; x < S; x++)
                 {
-                    var f = fl.GetPixel(flightCell * 192 + x, y);
+                    var f = fl.GetPixel(flightCell * S + x, y);
                     var c0 = ds.GetPixel(x, y);
                     if (f.a > .5f)
                     {
@@ -71,9 +72,9 @@ public static class EliteDeathStripTest
                     }
                     for (int cell = 0; cell < 3; cell++)
                     {
-                        var p = ds.GetPixel(cell * 192 + x, y);
+                        var p = ds.GetPixel(cell * S + x, y);
                         if (p.a < .5f) continue;
-                        if (x < 6 || x >= 186 || y < 6 || y >= 186) edge++;
+                        if (x < m || x >= S - m || y < m || y >= S - m) edge++;
                         Color.RGBToHSV(p, out float h, out float s, out float v);
                         if (s > .6f && v > .55f && (h < .012f || h > .985f)) red++;
                         if (p.r > .9f && p.g < .45f && p.b > .7f) pink++;

@@ -61,38 +61,38 @@
   "exhaustShip": 3,
   "exhaustScale": 0,
   "glowScale": 0.09,
-  "cellPixels": 192,
+  "cellPixels": 384,
   "muzzles": [
     {
       "name": "lgrab",
-      "x": 64,
-      "y": 67,
+      "x": 128,
+      "y": 134,
       "dir": -1.0
     },
     {
       "name": "rgrab",
-      "x": 135,
-      "y": 67,
+      "x": 270,
+      "y": 134,
       "dir": -1.0
     }
   ],
   "nozzles": [
     {
       "name": "a",
-      "x": 73,
-      "y": 136,
+      "x": 146,
+      "y": 272,
       "dir": -1.0
     },
     {
       "name": "b",
-      "x": 96,
-      "y": 146,
+      "x": 192,
+      "y": 292,
       "dir": -1.0
     },
     {
       "name": "c",
-      "x": 118,
-      "y": 136,
+      "x": 236,
+      "y": 272,
       "dir": -1.0
     }
   ],

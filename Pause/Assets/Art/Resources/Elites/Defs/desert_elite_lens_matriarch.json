@@ -31,7 +31,7 @@
   "exhaustShip": 3,
   "exhaustScale": 0,
   "glowScale": 0.09,
-  "cellPixels": 192,
+  "cellPixels": 384,
   "armored": false,
   "hazardSeconds": 0.4,
   "hazardSize": 0.6,
@@ -61,34 +61,34 @@
   "muzzles": [
     {
       "name": "fan",
-      "x": 96,
-      "y": 54,
+      "x": 192,
+      "y": 108,
       "dir": -1.0
     },
     {
       "name": "portrod",
-      "x": 62,
-      "y": 67,
+      "x": 124,
+      "y": 134,
       "dir": -1.0
     },
     {
       "name": "starrod",
-      "x": 130,
-      "y": 67,
+      "x": 260,
+      "y": 134,
       "dir": -1.0
     }
   ],
   "nozzles": [
     {
       "name": "l",
-      "x": 90,
-      "y": 163,
+      "x": 180,
+      "y": 326,
       "dir": -1.0
     },
     {
       "name": "r",
-      "x": 102,
-      "y": 163,
+      "x": 204,
+      "y": 326,
       "dir": -1.0
     }
   ],

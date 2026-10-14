@@ -1,5 +1,8 @@
 # Tide elite flight art
 
+> **HD rebuild:** Riptide, Bathyscaphe, Trawler, Pearl Warden (and Thunderfin, PR #4) are now 384 px cells (2688 x 384 flight strip, 1152 x 384 death strip), rebuilt from the same painted masters with an area-averaging downsample (`Tide/src~/build_tide_hd.py`, shared helpers `Elite/src~/elite_hd.py`, installed by `Elite/src~/install_hd.py`). Poses, frame order, hull radius and scale tier are unchanged; the 192 px coordinates below are x2 in the defs (`cellPixels` 384). See docs/ship-scale-and-lockon-analysis.md 2.6.
+
+
 Painted source masters: `src~/*_master.png` (built-in image generation). `src~/build_tide_elites.py` creates all strips by nearest-neighbour sampling and stepped pixel effects.
 
 | Cell | Pose |

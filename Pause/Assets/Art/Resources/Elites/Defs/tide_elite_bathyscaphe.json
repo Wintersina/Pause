@@ -30,7 +30,7 @@
   "exhaustShip": 3,
   "exhaustScale": 0,
   "glowScale": 0.09,
-  "cellPixels": 192,
+  "cellPixels": 384,
   "armored": false,
   "hazardSeconds": 1.0,
   "hazardSize": 0.36,
@@ -67,34 +67,34 @@
   "muzzles": [
     {
       "name": "portclaw",
-      "x": 37,
-      "y": 119,
+      "x": 74,
+      "y": 238,
       "dir": -1.0
     },
     {
       "name": "starclaw",
-      "x": 155,
-      "y": 119,
+      "x": 310,
+      "y": 238,
       "dir": -1.0
     },
     {
       "name": "rack",
-      "x": 95,
-      "y": 135,
+      "x": 190,
+      "y": 270,
       "dir": -1.0
     }
   ],
   "nozzles": [
     {
       "name": "l",
-      "x": 64,
-      "y": 143,
+      "x": 128,
+      "y": 286,
       "dir": -1.0
     },
     {
       "name": "r",
-      "x": 128,
-      "y": 143,
+      "x": 256,
+      "y": 286,
       "dir": -1.0
     }
   ],

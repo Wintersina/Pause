@@ -147,8 +147,9 @@ public static class VerdantEliteTest
     {
         int cell = d.cells.Flight0, n = d.cellPixels;
         bool hit = false;
-        for (int dy = -2; dy <= 2 && !hit; dy++)
-            for (int dx = -2; dx <= 2 && !hit; dx++)
+        int r = 2 * n / 192;   // a 2 px reach at the 192 px grid, scaled to HD cells
+        for (int dy = -r; dy <= r && !hit; dy++)
+            for (int dx = -r; dx <= r && !hit; dx++)
             {
                 int x = cell * n + Mathf.RoundToInt(p.x) + dx, y = n - 1 - (Mathf.RoundToInt(p.y) + dy);
                 hit = tex.GetPixel(x, y).a >= .5f;
@@ -174,20 +175,20 @@ public static class VerdantEliteTest
             Check(x.key + ": launches from its own pad, never a Space body", LandingSite.Accepts(d.launchFrom, x.from) && !LandingSite.Accepts(d.launchFrom, LandingKind.Station));
             var frames = EliteArt.Frames(d);
             var c = d.cells;
-            Check(x.key + ": the 1344 x 192 flight strip slices into 7 cells of 192 and the cell map is the flight layout",
-                  frames != null && frames.Length == 7 && Mathf.Approximately(frames[0].rect.width, 192f) && Mathf.Approximately(frames[0].rect.height, 192f) &&
+            Check(x.key + ": the flight strip slices into 7 square cells of the def's cell size and the cell map is the flight layout",
+                  frames != null && frames.Length == 7 && Mathf.Approximately(frames[0].rect.width, d.cellPixels) && Mathf.Approximately(frames[0].rect.height, d.cellPixels) &&
                   c.parked == 0 && c.parkedIdle == 1 && c.liftoff == 2 && c.Flight0 == 3 && c.bankLeft == 4 && c.bankRight == 5 && c.damaged == 6 &&
-                  c.tell < 0 && c.action < 0 && c.hit < 0 && d.cellPixels == 192);
+                  c.tell < 0 && c.action < 0 && c.hit < 0 && EliteHdResolution.CellOk(d));
             var death = EliteArt.ExtraFrames(d, EliteArt.Extra.Death);
-            Check(x.key + ": the 576 x 192 death strip slices into 3 cells of 192 (" + (death != null ? death.Length.ToString() : "none") + ")",
-                  death != null && death.Length == 3 && Mathf.Approximately(death[0].rect.width, 192f) && Mathf.Approximately(death[0].rect.height, 192f));
+            Check(x.key + ": the death strip slices into 3 cells of the def's cell size (" + (death != null ? death.Length.ToString() : "none") + ")",
+                  death != null && death.Length == 3 && Mathf.Approximately(death[0].rect.width, d.cellPixels) && Mathf.Approximately(death[0].rect.height, d.cellPixels));
             var tex = new Texture2D(2, 2);
             tex.LoadImage(File.ReadAllBytes("Assets/Art/Resources/Elites/Verdant/" + d.key + ".png"));
             bool solid = true;
             string bad = "";
             bool inCell = true;
-            foreach (var p in d.muzzles) { if (!OnHull(tex, d, p)) { solid = false; bad += p.name + " "; } inCell &= p.x > 8 && p.x < 184 && p.y > 8 && p.y < 184; }
-            foreach (var p in d.nozzles) { if (!OnHull(tex, d, p)) { solid = false; bad += p.name + " "; } inCell &= p.x > 8 && p.x < 184 && p.y > 8 && p.y < 184; }
+            foreach (var p in d.muzzles) { if (!OnHull(tex, d, p)) { solid = false; bad += p.name + " "; } inCell &= p.x > d.cellPixels * .04f && p.x < d.cellPixels * .96f && p.y > d.cellPixels * .04f && p.y < d.cellPixels * .96f; }
+            foreach (var p in d.nozzles) { if (!OnHull(tex, d, p)) { solid = false; bad += p.name + " "; } inCell &= p.x > d.cellPixels * .04f && p.x < d.cellPixels * .96f && p.y > d.cellPixels * .04f && p.y < d.cellPixels * .96f; }
             Object.DestroyImmediate(tex);
             Check(x.key + ": its " + d.muzzles.Length + " muzzles and " + d.nozzles.Length + " nozzles sit on the hull, well inside the cell " + bad, solid && inCell && d.muzzles.Length > 0 && d.nozzles.Length > 0);
             Check(x.key + ": two hearts orbiting tighter than the player's (" + (d.hullRadius * d.heartOrbit + d.heartSize * 1.05f).ToString("0.00") + " u)",
@@ -206,7 +207,7 @@ public static class VerdantEliteTest
                 if (t != null) bytes += UnityEngine.Profiling.Profiler.GetRuntimeMemorySizeLong(t);
             }
         }
-        Check("the four new elites' art holds " + (bytes / 1048576f).ToString("0.0") + " MB of textures, flight + death strips, uncompressed with the editor's readable copy (budget 14 MB, 3.5 MB each)", bytes > 0 && bytes <= 14L * 1048576);
+        Check("the four new elites' art holds " + (bytes / 1048576f).ToString("0.0") + " MB of textures, flight + death strips, uncompressed with the editor's readable copy (budget 28 MB, 7 MB each: the HD 384 px cells)", bytes > 0 && bytes <= 28L * 1048576);
         Check("Verdant is open to elites after the first 20 s", EliteDirector.Blocked(2, 60f) == null && EliteDirector.Blocked(2, 10f) == "too early");
     }
 

@@ -1,5 +1,8 @@
 # Desert elite flight art
 
+> **HD rebuild:** Dune Stalker, Caravan Hauler, Lens Matriarch, Scorpion Walker, Mirror Bastion (not the Glass Cannon: no master) are now 384 px cells (2688 x 384 flight strip, 1152 x 384 death strip), rebuilt from the same painted masters with an area-averaging downsample (`Desert/src~/build_desert_hd.py`, shared helpers `Elite/src~/elite_hd.py`, installed by `Elite/src~/install_hd.py`). Poses, frame order, hull radius and scale tier are unchanged; the 192 px coordinates below are x2 in the defs (`cellPixels` 384). See docs/ship-scale-and-lockon-analysis.md 2.6.
+
+
 Five staged, art-only elite ships for Desert's atmosphere-level run. Their source hulls were painted with the built-in image-generation tool. Two candidates were made for every ship; the selected painting was cleaned, resized, registered and animated with nearest-neighbour pixels by `src~/build.py`. No Unity resource, metadata, definition or code was changed.
 
 ## Cell contract

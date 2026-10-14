@@ -31,7 +31,7 @@
   "exhaustShip": 3,
   "exhaustScale": 0,
   "glowScale": 0.09,
-  "cellPixels": 192,
+  "cellPixels": 384,
   "armored": true,
   "hazardSeconds": 0.4,
   "hazardSize": 0.6,
@@ -61,40 +61,40 @@
   "muzzles": [
     {
       "name": "core",
-      "x": 96,
-      "y": 51,
+      "x": 192,
+      "y": 102,
       "dir": -1.0
     },
     {
       "name": "portcap",
-      "x": 57,
-      "y": 62,
+      "x": 114,
+      "y": 124,
       "dir": -1.0
     },
     {
       "name": "starcap",
-      "x": 134,
-      "y": 62,
+      "x": 268,
+      "y": 124,
       "dir": -1.0
     }
   ],
   "nozzles": [
     {
       "name": "a",
-      "x": 82,
-      "y": 158,
+      "x": 164,
+      "y": 316,
       "dir": -1.0
     },
     {
       "name": "b",
-      "x": 96,
-      "y": 158,
+      "x": 192,
+      "y": 316,
       "dir": -1.0
     },
     {
       "name": "c",
-      "x": 110,
-      "y": 158,
+      "x": 220,
+      "y": 316,
       "dir": -1.0
     }
   ],
