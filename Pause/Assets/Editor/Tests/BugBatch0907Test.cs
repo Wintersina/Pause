@@ -124,7 +124,7 @@ public static class BugBatch0907Test
     static void TutorialAtomLessonsAreBalanced()
     {
         Check("tutorial includes a green atom lesson",
-              System.Array.Exists(TutorialScript.Steps, s => s.advance == TutorialAdvance.CollectGreenAtom));
+              System.Array.Exists(TutorialScript.Steps, s => s.advance == TutorialAdvance.HealHeart));
         Check("tutorial keeps the step's atom coming until one is caught",
               System.IO.File.ReadAllText("Assets/Scripts/Tutorial/spawnGoodStuffTut.cs").Contains("TutorialAtomDrift.AddTo(atom, x)"));   // (one-time atoms: the scripted atom hovers in the ship's lane until caught)
         Check("green atom uses the shared slow spin", typeof(HealAtom).GetMethod("Spawn") != null);

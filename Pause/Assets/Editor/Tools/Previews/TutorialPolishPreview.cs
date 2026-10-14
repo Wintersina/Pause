@@ -143,7 +143,7 @@ public static class TutorialPolishPreview
             var screen = Screen("crash-" + ph, "tutorialS5", rig =>
             {
                 GameObject ship; TutorialGuides guides;
-                TutorialBase(rig, Line("enemies"), new Vector3(0f, -2.4f, 0f), out ship, out guides);
+                TutorialBase(rig, Line("freeze"), new Vector3(0f, -2.4f, 0f), out ship, out guides);
                 var alien = TutorialEnemy.Spawn(ship.transform.position.x);
                 float bottom, top;
                 TutorialAtomDrift.View(out bottom, out top);

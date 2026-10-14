@@ -32,6 +32,7 @@ public static class TutorialRobotTest
         fails = 0;
         using var sandbox = new TestHarness.Sandbox();
 
+        Hints.PlayFlyIn = false;
         ScriptTable();
         Syllables();
         AdvanceConditionsAreReachable();
@@ -71,25 +72,21 @@ public static class TutorialRobotTest
                   Regex.IsMatch(s.line, @"^[\x20-\x7E]+$"));
             Check("\"" + s.id + "\" highlight markers are balanced", s.line.Split('*').Length % 2 == 1);
             Check("\"" + s.id + "\" id is unique", ids.Add(s.id));
-            Check("\"" + s.id + "\" asks for a positive amount", s.amount > 0f || s.advance == TutorialAdvance.Read);
-            Check("\"" + s.id + "\" has a timeout beyond its competent time (" + s.par + " / " + s.timeout + " s)", s.timeout > s.par && s.timeout >= 2f);
+            Check("\"" + s.id + "\" asks for a positive amount", s.amount > 0f);
+            Check("\"" + s.id + "\" has a competent time (" + s.par + " s) and no timeout field", s.par >= 2f);
         }
 
         // The order the brief asks for.
-        Check("teaches flying first", steps[0].advance == TutorialAdvance.FlySeconds);
-        Check("then letting go to freeze", steps[1].advance == TutorialAdvance.LetGo);
-        int pausesAt = IndexOf(TutorialAdvance.SpendPause), dustAt = IndexOf(TutorialAdvance.CollectStar),
+        Check("teaches flying first", steps[0].advance == TutorialAdvance.FlyDistance && TutorialScript.ToPlainText(steps[0].line) == "Hold anywhere to fly around.");
+        int dustAt = IndexOf(TutorialAdvance.CollectStar), healAt = IndexOf(TutorialAdvance.HealHeart),
+            freezeAt = IndexOf(TutorialAdvance.WallFrozen), jumpAt = IndexOf(TutorialAdvance.CrossWall),
             atomAt = IndexOf(TutorialAdvance.CollectRedAtom);
-        Check("pauses are limited, before star dust, before the power-up",
-              pausesAt > 1 && dustAt > pausesAt && atomAt > dustAt);
-        int enemyAt = System.Array.FindIndex(steps, s => s.id == "enemies");
-        Check("enemies are covered after the pickups", enemyAt > dustAt);
-        Check("the enemy step sends one alien (SpawnEnemy) and waits until it is gone",
-              enemyAt >= 0 && steps[enemyAt].cue == TutorialCue.SpawnEnemy
-              && steps[enemyAt].advance == TutorialAdvance.EnemyGone && steps[enemyAt].amount == 1f);
+        Check("star dust, then the heal, then the wall (freeze, jump), then the pause atom",
+              dustAt == 1 && healAt == 2 && freezeAt == 3 && jumpAt == 4 && atomAt == 5);
+        Check("the wall step is cued as a wall of aliens", steps[freezeAt].cue == TutorialCue.SpawnWall);
         int powerAt = IndexOf(TutorialAdvance.FirePower);
         Check("a power step comes after the atoms are taught", powerAt > atomAt
-              && powerAt > IndexOf(TutorialAdvance.CollectGreenAtom) && powerAt > IndexOf(TutorialAdvance.CollectBlueAtom));
+              && powerAt > IndexOf(TutorialAdvance.CollectGreenAtom) && powerAt > IndexOf(TutorialAdvance.CollectBlueAtom) && powerAt == steps.Length - 1);
         Check("it drops the one violet atom in and waits for the weapon to go off once",
               powerAt >= 0 && steps[powerAt].cue == TutorialCue.SpawnCapacitorAtom && steps[powerAt].amount == 1f);
         Check("its charge is exactly what that atom cuts (" + TutorialScript.ArmSeconds + " s)",
@@ -132,8 +129,7 @@ public static class TutorialRobotTest
         foreach (var s in TutorialScript.Steps)
         {
             var start = new TutorialSignals { worldMoving = true, pressed = true };
-            if (s.advance != TutorialAdvance.Read)
-                Check("\"" + s.id + "\" is not already met when it starts", !TutorialScript.IsMet(s, start, start));
+            Check("\"" + s.id + "\" is not already met when it starts", !TutorialScript.IsMet(s, start, start));
             var after = Perform(s, start);
             Check("\"" + s.id + "\" is met once the player " + s.advance + " x" + s.amount,
                   TutorialScript.IsMet(s, start, after));
@@ -157,12 +153,6 @@ public static class TutorialRobotTest
               ship != null && ship.GetComponent<collisionDetection>() != null);
         Check("the tutorial has a Hints director", Object.FindFirstObjectByType<Hints>() != null);
 
-        int pauseSteps = 0;
-        foreach (var s in TutorialScript.Steps)
-            if (s.advance == TutorialAdvance.LetGo || s.advance == TutorialAdvance.Touch || s.advance == TutorialAdvance.SpendPause)
-                pauseSteps++;
-        Check("50 tutorial pauses are plenty for the freeze steps (" + pauseSteps + ")", pauseSteps * 3 < 50);
-
         // Pickups the steps count are the ones the scene produces.
         int before = score.dustPickups;
         score.paysRealDust = false;
@@ -183,7 +173,7 @@ public static class TutorialRobotTest
     {
         var kinds = new[]
         {
-            (TutorialAdvance.CollectGreenAtom, TutorialCue.SpawnGreenAtom, TutorialAtom.Green, "green heal atom"),
+            (TutorialAdvance.HealHeart, TutorialCue.SpawnGreenAtom, TutorialAtom.Green, "green heal atom"),
             (TutorialAdvance.CollectBlueAtom, TutorialCue.SpawnBlueAtom, TutorialAtom.Blue, "blue shield atom"),
             (TutorialAdvance.CollectRedAtom, TutorialCue.SpawnRedAtom, TutorialAtom.Red, "red pause atom"),
             (TutorialAdvance.FirePower, TutorialCue.SpawnCapacitorAtom, TutorialAtom.Cooldown, "violet capacitor atom"),
@@ -221,14 +211,14 @@ public static class TutorialRobotTest
     {
         switch (s.advance)
         {
-            case TutorialAdvance.FlySeconds:
-                now.flySeconds += s.amount + .01f; break;
-            case TutorialAdvance.LetGo:
-                now.pressed = false; now.worldMoving = false; now.frozenSeconds = s.amount + .01f; break;
-            case TutorialAdvance.Touch:
-                now.presses += Mathf.CeilToInt(s.amount); now.pressed = true; now.worldMoving = true; now.frozenSeconds = 0f; break;
-            case TutorialAdvance.SpendPause:
-                now.pausesSpent += Mathf.CeilToInt(s.amount); break;
+            case TutorialAdvance.FlyDistance:
+                now.flyUnits += s.amount + .01f; break;
+            case TutorialAdvance.WallFrozen:
+                now.pressed = false; now.worldMoving = false; now.wallFrozenSeconds = s.amount + .01f; break;
+            case TutorialAdvance.CrossWall:
+                now.wallsCrossed += Mathf.CeilToInt(s.amount); break;
+            case TutorialAdvance.HealHeart:
+                now.heartsHealed += Mathf.CeilToInt(s.amount); break;
             case TutorialAdvance.CollectStar:
                 now.starsCollected += Mathf.CeilToInt(s.amount); break;
             case TutorialAdvance.CollectGreenAtom:
@@ -237,8 +227,6 @@ public static class TutorialRobotTest
                 now.blueAtomsCollected += Mathf.CeilToInt(s.amount); break;
             case TutorialAdvance.CollectRedAtom:
                 now.redAtomsCollected += Mathf.CeilToInt(s.amount); break;
-            case TutorialAdvance.EnemyGone:
-                now.enemiesGone += Mathf.CeilToInt(s.amount); break;
             case TutorialAdvance.FirePower:
                 now.powersFired += Mathf.CeilToInt(s.amount); break;
         }
@@ -279,7 +267,7 @@ public static class TutorialRobotTest
         // No per-frame allocation: RobotSpeaker.Update allocates nothing once warm.
         EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
         var speaker = RobotSpeaker.Create(null);
-        speaker.Say(TutorialScript.Speak(TutorialScript.Steps[3].line));
+        speaker.Say(TutorialScript.Speak(TutorialScript.Steps[1].line));
         var update = typeof(RobotSpeaker).GetMethod("Update", BindingFlags.Instance | BindingFlags.NonPublic);
         var guides = TutorialGuides.Create(speaker.Root);
         var guidesUpdate = typeof(TutorialGuides).GetMethod("Update", BindingFlags.Instance | BindingFlags.NonPublic);
@@ -521,6 +509,7 @@ public static class TutorialRobotTest
 
             int powerAt = System.Array.FindIndex(TutorialScript.Steps, s => s.advance == TutorialAdvance.FirePower);
             typeof(Hints).GetMethod("BeginStep", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(hints, new object[] { powerAt });
+            score.pauseCounter = 0;   // (a step starts with pauses in hand; here the world runs with no finger)
             Check("the power step arms it: only pickups fill it",
                   power.chargeMode == ShipPowerController.ChargeMode.PickupsOnly && power.Charge01 < .01f);
             Check("the power step drops in the violet atom", spawnGoodStuffTut.keepAtomComing == TutorialAtom.Cooldown && spawnGoodStuffTut.LiveAtom != null);
@@ -634,7 +623,7 @@ public static class TutorialRobotTest
               play != null && play.transform.IsChildOf(view.LiftOffSlot));
         Check("HOME is the scene's own button, moved into the card",
               menu != null && menu.transform.IsChildOf(view.HomeSlot));
-        Check("LIFT OFF calls tutButtonClicks.replay (the portal lift-off)", Wired(play, "replay"));
+        Check("LIFT OFF is bound to the lift-off, no longer to replay (which restarts the tutorial)", !Wired(play, "replay") && play.GetComponent<Button>().onClick.GetPersistentEventCount() == 0);
         Check("HOME calls tutButtonClicks.mainMenuButton", Wired(menu, "mainMenuButton"));
         Check("LIFT OFF is visible and clickable", play != null && play.activeInHierarchy && play.GetComponent<Button>().interactable);
         var legacy = SceneUtil.FindAny(TutorialCompletePanel.LegacyDialogName);
