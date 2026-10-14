@@ -112,6 +112,12 @@ public static class BuildScript
         EditorApplication.Exit(0);
     }
 
+    // NOTE: ProjectSettings.asset keeps AndroidKeystoreName empty on purpose (it used to
+    // hold a Windows-only absolute path). Release signing is configured here from
+    // PAUSE_KEYSTORE_PATH (default Pause/PauseKey.keystore) and the PAUSE_* passwords;
+    // an editor "Build and Run" without them is debug-signed. Point Project Settings >
+    // Player > Publishing Settings at your own keystore locally if you need it, and do
+    // not commit that path.
     static bool ConfigureReleaseSigning()
     {
         string storePass = Environment.GetEnvironmentVariable("PAUSE_KEYSTORE_PASS");

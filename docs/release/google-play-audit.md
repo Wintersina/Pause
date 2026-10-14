@@ -1,6 +1,6 @@
 # Google Play release audit (v1.0.0, branch feature/release-rc)
 
-Package `me.hapticgate.pause`, paid app (USD 1.99), four worlds: Space, Frost, Verdant, Ember. Unity 6000.3.23f1. Checked against an audit build (see section 12) and the code.
+Package `me.hapticgate.pause`, paid app (USD 1.99), v1.0 scope: four worlds (Space, Frost, Verdant, Ember; Tide, Storm and Desert are built but not part of 1.0). Unity 6000.3.23f1. Note (2026-10-14): the code audit found the Paragon "COMING SOON" premium berth is enabled by default (`FeatureFlags.ParagonShip`) with no purchase path; the "no IAP" statements below hold only while that flag is off or the ship is not purchasable. Decide before submission. Checked against an audit build (see section 12) and the code.
 
 ## Verdict
 
@@ -23,7 +23,7 @@ Strategy: versionCode = major * 10000 + minor * 100 + patch (1.0.0 = 10000, 1.0.
 | minSdk | 25 (Android 7.1) | Fine (Unity 6 minimum is 23, Play Games v2 needs 21+). |
 | ABIs | **arm64-v8a only** (was ARMv7 + ARM64) | Done: `AndroidTargetArchitectures: 2`. Built APK `native-code: 'arm64-v8a'`; mainTemplate.gradle and AndroidResolverDependencies.xml updated by the resolver accordingly. Play requires 64-bit; dropping ARMv7 removes pre-2016 devices only. |
 | Scripting backend | IL2CPP | Required for arm64. |
-| Managed stripping | Low (`managedStrippingLevel: 1`), engine code stripping on | Safe for the Play Games plugin. |
+| Managed stripping | Medium (`managedStrippingLevel: Android: 2`), engine code stripping on | Raised from Low after this audit was first written; the Play Games plugin is kept safe by its link.xml / resolver config. Re-test sign-in and cloud save on a release build after any stripping change. |
 | Output | AAB for Play, APK for sideload | `make android-release` (new) builds both. |
 | Bundle size validation | `AndroidValidateAppBundleSize: 1`, limit 200 MB | The AAB is 158.8 MB after the size diet (was 183.5 MB): 41 MB under the limit, see section 10 and docs/release/size-diet.md. |
 | Install location | `auto` (was preferExternal) | Changed; preferExternal is obsolete. |
