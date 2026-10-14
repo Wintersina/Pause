@@ -14,10 +14,10 @@ using UnityEngine;
 // shot starts at its part's muzzle pixel in the drawing on screen the
 // moment it fires, every laser is rooted there for as long as it burns, and
 // the tell's charge gathers at those same parts.
-public class BossActor : MonoBehaviour
+public class BossActor : MonoBehaviour, IPatternHost
 {
     public enum Mode { Hidden, Arriving, Fighting, Dying, Retreating, Gone }
-    enum AttackPhase { Cooldown, Tell, Volleys, Beams, Hazards }
+    enum AttackPhase { Cooldown, Tell, Volleys, Beams, Hazards, Pattern }
 
     // The most parts one attack fires from (the Bloom Queen's six petals).
     public const int MaxParts = 8;
@@ -82,6 +82,15 @@ public class BossActor : MonoBehaviour
     public int VolleysFired => volleysFired;
     public bool HazardPhase => phase == AttackPhase.Hazards;
     public int ArmedHazards => armedCount;
+    // Bullet-hell patterns (BossPatternRunner): the runner, the telegraph markers, and what the host answers while one plays.
+    readonly BossPatternRunner runner = new BossPatternRunner();
+    BossPatternMarkers markers;
+    Vector3 playerNow;
+    BossProjectilePool poolNow;
+    int patternSeed = 11;
+    public BossPatternRunner Runner => runner;
+    public BossPatternMarkers Markers => markers;
+    public bool PatternPhase => phase == AttackPhase.Pattern;
     public AttackHazard ArmedHazard(int i) => i >= 0 && i < armedCount ? armed[i] : null;
     // The world this boss belongs to (its art key's index: Space 0 ... Tide 4).
     public int World => Mathf.Max(0, BossEmitters.World(boss));
@@ -357,6 +366,9 @@ public class BossActor : MonoBehaviour
         // from the start (LoopRules).
         loop = RunLoop.Index;
         EnsureBodyHitbox();
+        if (markers == null) { markers = new BossPatternMarkers(); markers.Build(transform, boss); }
+        markers.Clear();
+        runner.Stop();
         // Its hearts pop in round it now it has landed.
         if (hearts == null) hearts = BossHearts.Attach(this, Mathf.Max(1, BossConfig.Hearts));
         SetDamage(hearts != null ? hearts.Left : BossConfig.Hearts);   // a fresh fight starts pristine
@@ -396,7 +408,7 @@ public class BossActor : MonoBehaviour
         animClock += dt;
         // It all but holds still while it aims and while its lasers burn,
         // so a beam's root (and its sight line) doesn't skate about.
-        bool steady = phase == AttackPhase.Tell || phase == AttackPhase.Beams || phase == AttackPhase.Hazards;
+        bool steady = phase == AttackPhase.Tell || phase == AttackPhase.Beams || phase == AttackPhase.Hazards || phase == AttackPhase.Pattern;
         moveClock += dt * (steady ? .35f : 1f);
         float x = boss.swayX * Mathf.Sin(moveClock * boss.freqX * Mathf.PI * 2f);
         float y = BossConfig.BossY + boss.swayY * Mathf.Sin(moveClock * boss.freqY * Mathf.PI * 2f);
@@ -411,6 +423,7 @@ public class BossActor : MonoBehaviour
 
         if (fireLeft > 0f) fireLeft -= dt;
         StepAttacks(dt, player, progress01, pool);
+        if (markers != null) markers.Step(dt);
         RefreshFrame();
         if (hearts != null) hearts.Step(realDt, dt);   // after the move: the ring is round where it is now
     }
@@ -433,6 +446,12 @@ public class BossActor : MonoBehaviour
                 firedMask = 0;
                 AttacksStarted++;
                 if (current.kind == BossAttackKind.Beam) phaseTimer = current.tellSeconds + SpawnBeams(player, pool);
+                else if (current.kind == BossAttackKind.Pattern)
+                {
+                    playerNow = player;
+                    poolNow = pool;
+                    runner.Begin(current.pattern, this, BossLadder.RateAt(World, progress01), patternSeed++, current.tellSeconds);
+                }
                 else
                 {
                     var exec = BossExecutors.For(current.kind);
@@ -448,6 +467,12 @@ public class BossActor : MonoBehaviour
                     return;
                 }
                 if (phaseTimer > 0f) return;
+                if (current.kind == BossAttackKind.Pattern)
+                {
+                    phase = AttackPhase.Pattern;
+                    Fire();
+                    return;
+                }
                 if (BossExecutors.IsHazardKind(current.kind))
                 {
                     // the hazards ignite on their own tell; the boss holds its pose until the last one is over
@@ -475,6 +500,12 @@ public class BossActor : MonoBehaviour
 
             case AttackPhase.Beams:
                 if (phaseTimer <= 0f) EndAttack(progress01);
+                return;
+
+            case AttackPhase.Pattern:
+                playerNow = player;
+                poolNow = pool;
+                if (runner.Step(dt)) { runner.Stop(); EndAttack(progress01); }
                 return;
 
             case AttackPhase.Hazards:
@@ -533,6 +564,36 @@ public class BossActor : MonoBehaviour
     {
         float x = BossEmitters.Local(boss, part, frame).x;
         return x < -.15f ? -1 : x > .15f ? 1 : 0;
+    }
+
+    // ---- IPatternHost: what a bullet-hell pattern asks of the boss that plays it ----
+    Vector2 IPatternHost.Emitter(int part) => (Vector2)Emitter(part);
+    Vector2 IPatternHost.Player => playerNow;
+    float IPatternHost.RailEdge => BossRails.InnerEdge;
+    float IPatternHost.ShipHalfWidth => ShipReach.HalfWidth;
+    float IPatternHost.SpawnTop => CameraFit.ViewTop + .15f;
+    float IPatternHost.ZoneBottom => ShipReach.BottomFor(PlayField.Live);
+    float IPatternHost.ZoneTop => Mathf.Min(ShipReach.TopFor(PlayField.Live), BossConfig.ShipCeilingFor(PlayField.Live, boss));
+
+    void IPatternHost.Fire(Vector2 at, Vector2 velocity, ref PShot shot)
+    {
+        if (poolNow == null) return;
+        // straight shots reach the ship's rows in the same time on every screen (BossConfig.ShotScale); a bomb's flight is
+        // already worked out to its spot, and a mine stands still
+        if (!(shot.fuse > 0f)) velocity *= BossConfig.ShotScale;
+        poolNow.FireShot(boss, new Vector3(at.x, at.y, 0f), velocity, ref shot);
+    }
+
+    void IPatternHost.Emitted()
+    {
+        Fire();
+        int n = current != null && current.parts != null ? Mathf.Min(MaxParts, current.parts.Length) : 0;
+        firedMask = n >= 31 ? -1 : (1 << n) - 1;
+    }
+
+    void IPatternHost.Mark(Vector2 a, Vector2 b, float halfWidth, float seconds)
+    {
+        if (markers != null) markers.Add(a, b, halfWidth, seconds);
     }
 
     void Volley(Vector3 player, BossProjectilePool pool)
@@ -697,10 +758,10 @@ public class BossActor : MonoBehaviour
         // a damaged boss keeps its pose through a hit (the white flash is the hit now): the
         // pristine Hit drawing would read as it healing for two ticks per blow
         if (flashLeft > 0f && damageStage <= 0) SetFrame(BossArt.Hit);
-        else if (fireLeft > 0f && current != null && current.fireFrame && phase == AttackPhase.Volleys) SetFrame(BossArt.FireFrame(boss, current.tell));
+        else if (fireLeft > 0f && current != null && current.fireFrame && (phase == AttackPhase.Volleys || phase == AttackPhase.Pattern)) SetFrame(BossArt.FireFrame(boss, current.tell));
         else if (phase == AttackPhase.Tell && current != null)
             SetFrame(BossArt.TellFrame(boss, current.tell, tellAge / Mathf.Max(.01f, current.tellSeconds)));
-        else if ((phase == AttackPhase.Volleys || phase == AttackPhase.Beams || phase == AttackPhase.Hazards) && current != null)
+        else if ((phase == AttackPhase.Volleys || phase == AttackPhase.Beams || phase == AttackPhase.Hazards || phase == AttackPhase.Pattern) && current != null)
             SetFrame(BossArt.TellFrame(boss, current.tell, 1f));
         else SetFrame(BossArt.IdleFrame(boss, animClock));
         RefreshGlows();
@@ -728,7 +789,7 @@ public class BossActor : MonoBehaviour
     {
         bool fighting = mode == Mode.Fighting && current != null && current.parts != null;
         bool telling = fighting && phase == AttackPhase.Tell;
-        bool flashing = fighting && phase == AttackPhase.Volleys && fireLeft > 0f;
+        bool flashing = fighting && (phase == AttackPhase.Volleys || phase == AttackPhase.Pattern) && fireLeft > 0f;
         int n = fighting ? Mathf.Min(MaxParts, current.parts.Length) : 0;
         float k = telling ? Mathf.Clamp01(tellAge / Mathf.Max(.05f, current.tellSeconds)) : 0f;
         int step = Mathf.FloorToInt(tellAge / (2f * BossArt.Tick));
@@ -788,6 +849,8 @@ public class BossActor : MonoBehaviour
 
     public void BeginOutro(bool explode)
     {
+        if (markers != null) markers.Clear();
+        runner.Stop();
         mode = explode ? Mode.Dying : Mode.Retreating;
         outroClock = 0f;
         explosionsFired = 0;

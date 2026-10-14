@@ -285,11 +285,16 @@ public static class BossArt
     }
 
     // A body sheet: square cells, BodyColumns across, as many rows as fit.
+    static BossDef lastBodyBoss;
+    static Sprite[] lastBodySheet;
+
     static Sprite[] BodySheet(BossDef boss)
     {
+        // the last boss asked about (a frame asks for its body a few times: no path string built each time)
+        if (ReferenceEquals(boss, lastBodyBoss) && lastBodySheet != null && lastBodySheet.Length > 0 && lastBodySheet[0] != null) return lastBodySheet;
         string path = Folder + boss.artKey;
         Sprite[] sheet;
-        if (bodies.TryGetValue(path, out sheet) && sheet != null && sheet.Length > 0 && sheet[0] != null) return sheet;
+        if (bodies.TryGetValue(path, out sheet) && sheet != null && sheet.Length > 0 && sheet[0] != null) { lastBodyBoss = boss; lastBodySheet = sheet; return sheet; }
         var tex = Resources.Load<Texture2D>(path);
         int rows = BodyRows;
         if (tex != null)
@@ -299,6 +304,7 @@ public static class BossArt
         }
         sheet = Slice(tex, BodyColumns, rows, tex == null ? 0 : tex.width / BodyColumns);
         bodies[path] = sheet;
+        lastBodyBoss = boss; lastBodySheet = sheet;
         return sheet;
     }
 
@@ -348,11 +354,19 @@ public static class BossArt
         return sheet[Mathf.Clamp(cell, 0, DeathStripCells - 1)];
     }
 
+    // The shot sheet of the last boss asked about (a fight asks hundreds of times a second: no path string built per call).
+    static BossDef lastShotBoss;
+    static Sprite[] lastShotSheet;
+
     public static Sprite Shot(BossDef boss, int cell)
     {
         if (boss == null) return null;
-        var sheet = Sheet(shots, Folder + boss.artKey + "_shots", ShotColumns, 1);
-        return sheet[Mathf.Clamp(cell, 0, ShotColumns - 1)];
+        if (!ReferenceEquals(boss, lastShotBoss) || lastShotSheet == null || lastShotSheet.Length == 0 || lastShotSheet[0] == null)
+        {
+            lastShotSheet = Sheet(shots, Folder + boss.artKey + "_shots", ShotColumns, 1);
+            lastShotBoss = boss;
+        }
+        return lastShotSheet[Mathf.Clamp(cell, 0, ShotColumns - 1)];
     }
 
     // ---- the shots' rim ----------------------------------------------------
@@ -395,13 +409,21 @@ public static class BossArt
     // back to the round wrapper).
     public static Sprite ShotRim(BossDef boss, int cell) { return ShotRim(boss, cell, ShotRimUseBold); }
 
+    // The rim set of the last boss asked about (every shot launch asks twice: no path string built each time).
+    static BossDef lastRimBoss;
+    static bool lastRimBold;
+    static RimSet lastRimSet;
+
     public static Sprite ShotRim(BossDef boss, int cell, bool bold)
     {
         if (boss == null || cell < 0 || cell >= ShotRimCells) return null;
-        string path = Folder + boss.artKey + "_shots" + (bold ? "#bold" : "");
         var first = Shot(boss, 0);
         var source = first != null ? first.texture : null;
         RimSet set;
+        if (ReferenceEquals(boss, lastRimBoss) && bold == lastRimBold && lastRimSet != null && lastRimSet.source == source &&
+            (!lastRimSet.built || (lastRimSet.sprites[0] != null && lastRimSet.sprites[0].texture != null)))
+            return lastRimSet.built ? lastRimSet.sprites[cell] : null;
+        string path = Folder + boss.artKey + "_shots" + (bold ? "#bold" : "");
         bool fresh = rims.TryGetValue(path, out set) && set.source == source &&
                      (!set.built || (set.sprites[0] != null && set.sprites[0].texture != null));
         if (!fresh)
@@ -410,6 +432,7 @@ public static class BossArt
             set.built = source != null && BuildShotRims(boss, set.sprites, bold);
             rims[path] = set;
         }
+        lastRimBoss = boss; lastRimBold = bold; lastRimSet = set;
         return set.built ? set.sprites[cell] : null;
     }
 

@@ -144,7 +144,8 @@ public static class BossConfig
     public static float BodyRespawnSeconds = 1f;
 
     // ---- projectiles ----
-    public static int ProjectilePoolMax = 48;
+    // 48 shots until the bullet-hell overhaul; the last boss's phase-3 rotation peaks near 130 live shots (BossLadder), so 144.
+    public static int ProjectilePoolMax = 144;
     public static int BeamPoolMax = 6;
     public static float BoltWorldSize = .46f;
     public static float ShardWorldSize = .42f;

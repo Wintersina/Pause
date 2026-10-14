@@ -69,6 +69,10 @@ public class BossProjectile : MonoBehaviour, IHostileShot
     BossRailMode rail;
     int bouncesLeft;
     float viewTop = 5f, viewBottom = -5f;     // read once per shot, not per frame
+    // Bullet-hell extras (BossPatternRunner's PShot): a seed's homing, a bomb's / mine's fuse and burst.
+    bool patterned;
+    float homeLeft, homeDeg, fuseLeft, fuseTotal, burstSpeed, burstRot;
+    int burst;
 
     public bool Active { get; private set; }
     public Vector2 Velocity => velocity;
@@ -77,6 +81,11 @@ public class BossProjectile : MonoBehaviour, IHostileShot
     public BossRailMode Rail => rail;
     public int BouncesLeft => bouncesLeft;
     public int Bounces { get; private set; }
+    public bool Patterned => patterned;
+    public float FuseLeft => fuseLeft;
+    public int BurstCount => burst;
+    public float BurstSpeed => burstSpeed;
+    public float HomeLeft => homeLeft;
     public float Radius => radius;
     public Vector3 LaunchedAt => launchedAt;
     // Why it last left play (tests): 0 none, 1 off screen, 2 splashed on a
@@ -95,6 +104,7 @@ public class BossProjectile : MonoBehaviour, IHostileShot
     public int ShotMass => HostileShots.Light;
     public Color ShotTint => boss != null ? boss.flash : Color.white;
     public bool ShotShovable => Active && hitbox != null;
+    public bool ShotSelfSafe => patterned;   // a pattern's shots never break each other (HostileShots)
 
     // The shield's shockwave (ShieldShockwave): displaced by `by`. Its course is
     // position + velocity, so the shove is just a new position; a shot that
@@ -139,6 +149,28 @@ public class BossProjectile : MonoBehaviour, IHostileShot
     public void Launch(BossDef def, BossShotStyle shotStyle, Vector3 at, Vector2 v,
                        BossRailMode railMode, int bounces, float gravityPull, float maxFall)
     {
+        patterned = false;
+        homeLeft = fuseLeft = fuseTotal = 0f;
+        burst = 0;
+        Launch(def, shotStyle, at, v, railMode, bounces, gravityPull, maxFall, true);
+    }
+
+    // A bullet-hell shot (BossPatternRunner): the pattern's extras on top of the plain flight.
+    public void LaunchPattern(BossDef def, Vector3 at, Vector2 v, ref PShot ps)
+    {
+        patterned = true;
+        homeDeg = ps.homeDeg;
+        homeLeft = ps.homeSeconds > 0f && ps.homeDeg > 0f ? ps.homeSeconds : 0f;
+        fuseLeft = fuseTotal = ps.fuse;
+        burst = ps.burst;
+        burstSpeed = ps.burstSpeed;
+        burstRot = ps.burstRot;
+        Launch(def, ps.style, at, v, ps.rail, ps.bounces, 0f, 0f, true);
+    }
+
+    void Launch(BossDef def, BossShotStyle shotStyle, Vector3 at, Vector2 v,
+                BossRailMode railMode, int bounces, float gravityPull, float maxFall, bool internalCall)
+    {
         boss = def;
         style = shotStyle;
         velocity = v;
@@ -155,6 +187,7 @@ public class BossProjectile : MonoBehaviour, IHostileShot
         transform.position = launchedAt;
         float size = style == BossShotStyle.Bolt ? BossConfig.BoltWorldSize : BossConfig.ShardWorldSize;
         transform.localScale = Vector3.one * size;
+        transform.rotation = Quaternion.identity;
         Face();
         radius = style == BossShotStyle.Bolt ? BossConfig.BoltHitRadius : BossConfig.ShardHitRadius;
         if (hitbox == null)
@@ -215,6 +248,28 @@ public class BossProjectile : MonoBehaviour, IHostileShot
         if (dt <= 0f) return;
 
         age += dt;
+        if (fuseLeft > 0f)
+        {
+            fuseLeft -= dt;
+            if (fuseLeft <= 0f) { Detonate(); return; }
+            // a bomb swells in its last half second: the warning that it is about to burst
+            glowBase = burst > 0 && fuseLeft < .5f ? 1f + 1.1f * (1f - fuseLeft / .5f) : 1f;
+        }
+        if (homeLeft > 0f)
+        {
+            homeLeft -= dt;
+            float sp = velocity.magnitude;
+            if (sp > .01f && pool != null)
+            {
+                Vector2 to = pool.PlayerPos - (Vector2)transform.position;
+                float cur = Mathf.Atan2(velocity.y, velocity.x) * Mathf.Rad2Deg;
+                float want = Mathf.Atan2(to.y, to.x) * Mathf.Rad2Deg;
+                float turn = Mathf.Clamp(Mathf.DeltaAngle(cur, want), -homeDeg * dt, homeDeg * dt);
+                float h = (cur + turn) * Mathf.Deg2Rad;
+                velocity = new Vector2(Mathf.Cos(h), Mathf.Sin(h)) * sp;
+                Face();
+            }
+        }
         if (gravity > 0f)
         {
             velocity.y = Mathf.Max(velocity.y - gravity * dt, -fallSpeed);
@@ -267,6 +322,16 @@ public class BossProjectile : MonoBehaviour, IHostileShot
             EndReason = 1;
             Recycle();
         }
+    }
+
+    // A bomb's fuse is up: it goes, in a ring of `burst` shards if it is a bomb (a mine just ends).
+    void Detonate()
+    {
+        Vector3 at = transform.position;
+        if (burst > 0 && pool != null) pool.Burst(boss, at, burst, burstSpeed, burstRot);
+        else if (pool != null) pool.Spark(boss, at);
+        EndReason = 1;
+        Recycle();
     }
 
     bool HitsHazard(Vector3 p)
@@ -776,6 +841,8 @@ public sealed class BossProjectilePool
     }
 
     public int Capacity => maxShots;
+    // Where the ship is (BossEncounter sets it each frame): seeds home on it.
+    public Vector2 PlayerPos;
     // Who fired, for the shot-vs-shot volley rule (HostileShots).
     public int OwnerId { get; }
     public int BeamCapacity => maxBeams;
@@ -827,6 +894,50 @@ public sealed class BossProjectilePool
         p.Launch(boss, style, at, velocity, rail, bounces, gravity, fallSpeed);
         PewSound.Play(OwnerId);
         return p;
+    }
+
+    // A bullet-hell shot (pattern streams): null when the pool is spent. `sound`: the pew (one per volley is plenty; PewSound caps the rest).
+    public BossProjectile FireShot(BossDef boss, Vector3 at, Vector2 velocity, ref PShot ps, bool sound = true)
+    {
+        BossProjectile p = null;
+        for (int i = 0; i < shots.Count; i++)
+            if (shots[i] != null && !shots[i].Active) { p = shots[i]; break; }
+        if (p == null)
+        {
+            if (shots.Count >= maxShots || root == null) return null;
+            p = BossProjectile.Create(root.transform, this);
+            shots.Add(p);
+        }
+        p.LaunchPattern(boss, at, velocity, ref ps);
+        if (sound) PewSound.Play(OwnerId);
+        return p;
+    }
+
+    // Builds `n` shots (their objects and hitboxes) now, off screen and at rest: a bullet-hell fight never makes an object
+    // in the middle of a pattern (the boss intro is the time for it).
+    public void Warm(BossDef boss, int n)
+    {
+        n = Mathf.Min(n, maxShots);
+        var ps = new PShot { style = BossShotStyle.Bolt, rail = BossRailMode.Pass };
+        for (int i = shots.Count; i < n && root != null; i++)
+        {
+            var p = BossProjectile.Create(root.transform, this);
+            shots.Add(p);
+            p.LaunchPattern(boss, new Vector3(0f, -60f, 0f), Vector2.zero, ref ps);
+            p.Recycle();
+        }
+    }
+
+    // A bomb's ring: `n` shards out from `at`, turned `rot` degrees (silent: the bang is the bomb's own).
+    public void Burst(BossDef boss, Vector3 at, int n, float speed, float rot)
+    {
+        Spark(boss, at);
+        var ps = new PShot { style = BossShotStyle.Shard, rail = BossRailMode.Absorb };
+        for (int i = 0; i < n; i++)
+        {
+            float h = (rot + 360f * i / n) * Mathf.Deg2Rad;
+            FireShot(boss, at, new Vector2(Mathf.Cos(h), Mathf.Sin(h)) * speed, ref ps, false);
+        }
     }
 
     public BossBeam Beam(BossDef boss, BossActor owner, int part, Vector3 from, float angleDeg, float sweepDeg,

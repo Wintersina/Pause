@@ -260,7 +260,7 @@ public class BossEncounter : MonoBehaviour
             case Phase.Fight: TickFight(dt, realDt); break;
             case Phase.Outro: TickOutro(dt); break;
         }
-        if (pool != null) pool.Step(dt);
+        if (pool != null) { pool.PlayerPos = (Vector2)PlayerPosition(); pool.Step(dt); }
         // The themed area hazards a boss attack arms are stepped by the elite system (EliteDirector -> EliteSystem.Step) in the
         // game; a scene without it (tests, previews) has the encounter step them.
         if (EliteDirector.Instance == null && dt > 0f) AttackPools.StepAll(dt);
@@ -278,7 +278,8 @@ public class BossEncounter : MonoBehaviour
         actor = BossActor.Spawn(boss);
         BossRails.Measure();   // the walls boss shots ricochet off or splash on
         pool = new BossProjectilePool(BossConfig.ProjectilePoolMax, BossConfig.BeamPoolMax);
-        BossExecutors.WarmPools(boss);   // the pools of its hazards, built now and not in the middle of a volley
+        BossExecutors.WarmPools(boss);
+        if (BossCatalog.UseOverhaul && boss.overhaulAttacks) pool.Warm(boss, BossLadder.WarmShots(Mathf.Max(0, BossEmitters.World(boss))));   // the pools of its hazards, built now and not in the middle of a volley
         BossArt.ShotRim(boss, BossArt.Bolt0);   // build the shots' rims now, not at the first volley
         if (Application.isPlaying) ui = BossIntroUI.Play(boss);
         // The boss song starts here, on the entrance's first frame (prewarmed
