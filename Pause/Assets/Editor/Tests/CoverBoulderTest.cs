@@ -168,7 +168,10 @@ public static class CoverBoulderTest
                 inside &= new Vector2(c.x, c.y).magnitude + c.r <= x.cellPx * .5f * 1.05f && c.r > 8f;
         Check("every hit circle lies inside its cell", inside);
         Check("Space's approved destruction strip is wired: 5 drawn frames per variant", System.Array.TrueForAll(v, x => x.frames != null && x.frames.Length == CoverBoulderArt.FramesPerStrip));
+        string keep = CoverBoulderTable.Entries[3].folder;
+        CoverBoulderTable.Entries[3].folder = "Boulders/Nowhere";   // (every world has art now: pretend one has not)
         var w = CoverBoulderArt.For(3);
+        CoverBoulderTable.Entries[3].folder = keep;
         Check("a world with no art borrows Space's for the tests", w != null && w[0] == v[0]);
     }
 
