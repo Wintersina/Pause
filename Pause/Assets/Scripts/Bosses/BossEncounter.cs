@@ -389,7 +389,7 @@ public class BossEncounter : MonoBehaviour
     // share of one full ultimate hit (one firing never totals more than 1).
     // Weights bank up and the boss loses a hit point per whole hit; the
     // fight clock is left alone (BossEndRule).
-    // Each heart is HeartWeight of it (7/12): a heart goes the moment its
+    // Each heart is HeartWeight of it (12/12 = 1): a heart goes the moment its
     // share is spent, the last with the last hit point.
     float hitBank;
     public void OnShipAttackHit(float weight)

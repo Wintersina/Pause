@@ -44,9 +44,9 @@ public static class BossEscapeClockTest
         const int OldHearts = 5;
         Check("the escape clock is one named constant, 120 s (2 minutes)", BossConfig.EscapeSeconds == 120f && BossConfig.FightSeconds == BossConfig.EscapeSeconds);
         Check("hearts = the old " + OldHearts + " + 7 = 12 (" + BossConfig.Hearts + ")",
-              BossConfig.BaseHearts == OldHearts && BossConfig.ExtraHearts == 7 && BossConfig.Hearts == 12 && BossConfig.HitPoints == 7);
+              BossConfig.BaseHearts == OldHearts && BossConfig.ExtraHearts == 7 && BossConfig.Hearts == 12 && BossConfig.HitPoints == 12);
         Check("the hearts still split the hit points evenly (" + BossConfig.HitPoints + " hits, " + BossConfig.HeartWeight.ToString("F3") + " a heart)",
-              Mathf.Abs(BossConfig.HeartWeight * BossConfig.Hearts - BossConfig.HitPoints) < 1e-4f && BossConfig.HitPoints > 3);
+              Mathf.Abs(BossConfig.HeartWeight * BossConfig.Hearts - BossConfig.HitPoints) < 1e-4f && BossConfig.HitPoints == BossConfig.Hearts && Mathf.Abs(BossConfig.HeartWeight - 1f) < 1e-4f);
         Check("no boss has its own hearts or clock: the catalogue holds neither", typeof(BossDef).GetField("hearts") == null && typeof(BossDef).GetField("fightSeconds") == null);
         // the free shots of the fight fit its clock
         float[] t = new float[BossFreeShotAtoms.Count];

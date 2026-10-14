@@ -120,7 +120,7 @@ public static class BossDamageTest
     // Lose hearts until `left` remain (never the last: that ends the fight).
     static void LoseTo(BossEncounter e, int left)
     {
-        for (int i = 0; i < 20 && e.HeartsLeft > left; i++) e.OnShipAttackHit(BossConfig.HeartWeight * .5f);
+        for (int i = 0; i < 40 && e.HeartsLeft > left; i++) e.OnShipAttackHit(BossConfig.HeartWeight * .5f);
         for (int i = 0; i < 6; i++) e.Step(Dt, 1f);   // the hit flash over
     }
 
