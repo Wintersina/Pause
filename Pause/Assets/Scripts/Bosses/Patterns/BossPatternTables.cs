@@ -64,7 +64,7 @@ public static partial class BossPatternTables
         all[1] = Frost();
         all[2] = Verdant();
         all[3] = Ember();
-        all[4] = new PatternSlot[0];   // (filled in by the boss commits)
+        all[4] = Tide();
         all[5] = new PatternSlot[0];   // (filled in by the boss commits)
         all[6] = new PatternSlot[0];   // (filled in by the boss commits)
     }
