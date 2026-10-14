@@ -80,6 +80,7 @@ public class CoverBoulderDirector : MonoBehaviour
         if (buttonClicks.playerDied) return "dead";
         if (!CoverBoulderTable.Enabled(worldIndex) && !CoverBoulders.TestAnyWorld) return "no art";
         if (CoverBoulderTable.For(worldIndex).Mask(BackdropVariant(worldIndex)) == 0) return "backdrop";   // nothing blends into this backdrop
+        if (CoverBoulders.AliveAny >= CoverBoulders.MaxAlive) return "alive";   // (one at a time, cover boulder or landform)
         if (BossEncounter.Running) return "boss";
         if (Planetfall.SuspendsSpawning || Liftoff.SuspendsSpawning || PortalArrival.SuspendsSpawning || WorldEntry.Active) return "transition";
         var wm = WorldManager.Instance;
@@ -88,7 +89,7 @@ public class CoverBoulderDirector : MonoBehaviour
         if (ShipPowerController.CinematicClearActive) return "cinematic";
         if (secondsInWorld < CoverBoulders.FirstSeconds) return "too early";
         if (ElitesParked()) return "elite";
-        if (CoverBoulders.AliveAny >= CoverBoulders.MaxAlive) return "alive";
+        if (CoverBoulders.Alive >= CoverBoulders.MaxAlive) return "alive";
         return null;
     }
 
