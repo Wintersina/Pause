@@ -100,6 +100,7 @@ public static class AllTests
         ("BossThemedTest", BossThemedTest.Execute),
         ("BossLadderTest", BossLadderTest.Execute),
         ("BossPatternTest", BossPatternTest.Execute),
+        ("BeatSyncTest", BeatSyncTest.Execute),
         ("BossLadderBotTest", BossLadderBotTest.Execute),
         ("BossFreeShotAtomsTest", BossFreeShotAtomsTest.Execute),
         ("BossHealAtomCapTest", BossHealAtomCapTest.Execute),
