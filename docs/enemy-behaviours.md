@@ -24,8 +24,9 @@ Rules that already hold and must keep holding:
 * **Pause.** The board runs only while `!playerDied && (TouchInput.IsPressed || pauseCounter <= 0)`;
   otherwise `Time.timeScale` is 0. Every mover gates on that rule and elite shots are stepped only on
   running frames (`EliteDirector.Update` -> `EliteSystem.Step`).
-* **No stacking.** `SpawnSpace` places every spawn so its declared sweep (`IMovementFootprint`) never
-  meets another's; `SpawnLane` keeps a ship-width gap in every row; chasers self-steer (`ResolveSteer`).
+* **No stacking at spawn.** `SpawnSpace` places every spawn so its declared sweep (`IMovementFootprint`) never
+  meets another's; `SpawnLane` keeps a ship-width gap in every row. After that, free movers (pilots, chasers) keep off
+  each other only softly (`SpawnSpace.SoftDrift`, "Soft avoidance" below); what still meets is friendly fire.
 * **Other systems drive the movers by hand**: the death domino (`DeathCrashDomino.StepWorld`), the stun /
   black hole / magnet (`HazardMovers.Disable`), the headless spawn simulation (`SpawnSpaceTest`).
 * **Hostile shots** are `IHostileShot`s in `HostileShots` (shot vs shot, player weapons shoot them down),
@@ -258,9 +259,9 @@ column (it picks from the free stretches of lane, `TryFreeX`, and where they are
 a narrower lateral band, `EnemyBrain.BandScale`), and a pilot waits above the view, at most 4 s, until
 hazards already in its column have gone by. Its lateral band is not reserved: hazards do come down
 beside its column, and the pilot sidesteps back toward its column while one passes (`BandLimits`), then
-uses its whole band again. Two pilots side by side share the lane between them, half each. As a safety
-net every pilot move still goes through `SpawnSpace.ResolveSteer` (the chaser's rule). The long-run test
-(24 two-minute runs, every frame) shows no two bodies overlapping. All of this is self-contained in the
+uses its whole band again. Two pilots side by side share the lane between them, half each. The band's cut-back eases in and out (soft avoidance, below) instead of snapping. (The old safety net, every
+pilot move through `SpawnSpace.ResolveSteer`, is only used with `SpawnSpace.Soft` off.) The long-run test (24 two-minute
+runs, every frame) shows no two board-locked bodies overlapping; pilots and chasers may meet and break on each other. All of this is self-contained in the
 roster brain files; if the elites' hazard sensor lands, `PilotAirspace.BandLimits` / `ColumnClear` and
 that sensor answer the same question ("what is coming down beside or onto me") and could become one
 query.
@@ -524,6 +525,50 @@ Listed as found; none of these blocks the feature.
 * [x] `integrate/oct05-enemy-intelligence` merged in (the enemy strip re-cell); `EnemyRosterTest` passes
 * [ ] Play it. Nothing here has been played: every number is from headless simulation
 * [ ] Merge `integrate/oct04-batch` (the enemy strip re-cell) and re-run `EnemyRosterTest`
+
+## Soft avoidance: enemies no longer steer hard round each other
+
+Bug: "the jittery effect is back; it is because enemies try to avoid colliding with each other." Measured
+(`EnemyAvoidanceTest`, dense boards of pilots, chasers and weaving rocks at 60 and 30 fps in three worlds; per body, the
+sideways velocity changing sign by a visible step, the worst second of the run, and the RMS second difference of x):
+
+| | OLD (`SpawnSpace.Soft = false`) | SOFT |
+|---|---|---|
+| two chasers hunting one ship (nothing else on the board) | 60 flips/s, 9 of 12 bodies shaking for 19.7 s, accel rms 79 u/s^2 | 14 flips/s (a chaser's own spiral near the ship), 1 body, 0.8 s, accel rms 11 |
+| one chaser alone | 2 flips/s | 2 flips/s (untouched) |
+| dense board (3-5 pilots, 8 rocks, 2 chasers) | 9 of 168 bodies shaking, 10.7 s, worst 50 flips/s, accel rms 31 | 1 of 157, 1.0 s, worst 18, accel rms 9 |
+| elites (alone and in the crowd) | 2-5 flips/s | unchanged: their steering was never the shake |
+
+Causes, found by tracing single frames (the old chaser pair is a pure two-frame flip-flop, x alternating 1.603 / 1.670):
+`SpawnSpace.ResolveSteer` was a ladder of hard tests re-run every frame (the wish, the wish sideways, a step left, a step
+right, carried, held), each an on / off envelope check, so two bodies close together picked a different rung every other
+frame (`YieldBand` hysteresis was not enough: a neighbour carried out of the way and back changes the answer every frame);
+`ChaserEnemy`'s early sidestep (`ThreatAhead`) switched on and off at the edge of its probe so a chaser poked at a rock;
+`PilotAirspace.BandLimits` snapped a pilot's band shut and open as a hazard crossed its look window, and a pilot's
+distance to the lane clamp fought the avoidance.
+
+What replaced them (`SpawnSpace.SoftDrift` / `SoftOffset` / `Steer`, `SpawnSpace.Soft` on by default):
+
+* one continuous rule: a body within `SoftReach` (0.25 u) of touching another is pushed sideways, smoothstep from nothing at
+  the edge to `SoftSpeed` (1.2 u/s) at touching and `SoftDeepSpeed` (2.4 u/s) well inside; the sign comes from the sideways
+  offset plus a tiny stable id bias (no coin toss at dead centre);
+* low-passed (`SoftTau` 0.3 s) and rate-capped (`SoftAccel` 5 u/s^2), so no decision can flip faster than that; the outward
+  push fades over `SoftEdgeFade` before the lane edge instead of hitting the lane clamp;
+* a pilot turns the drift into a damped offset from its line (`SoftMaxOffset` 1 u, `SoftReturn` 0.4 u/s home); a chaser
+  adds it to its move (`ChaserEnemy.SoftCap` 2x the speeds, it has more steering to give);
+* the pilot's sidestep band closes at `BandCloseRate` 4 u/s and opens at `BandOpenRate` 1 u/s (asymmetric: chatter at the
+  edge of the look window only ratchets it shut);
+* a body that is FLYING AWAY (a pilot exiting -- Climb, Peel, Run -- or diving a lunge, a leaving chaser) ignores all of
+  it: nothing holds it back, so it flies into whatever is in its way;
+* nothing forbids a step any more: a body that meets another is a crash, and a crash is friendly fire
+  (`FriendlyFire.StepCrashes`, unchanged: both break, a blast, "FRIENDLY FIRE" word with its gap or the boss every-kill
+  rule, no score / dust / codex; elites and the boss are untouched -- an elite is never one of the two, the boss is `Immune`).
+
+Stacking: SpawnSpace still places spawns apart; a pair stacked by accident is parted by the deep push and, mostly, by the
+crash (the long runs: no pair stayed overlapped more than 0.8 s with the crash step running). Cost: one loop over the live
+enemies per steerer per frame (<= ~40 bodies), no allocation (`EnemyAvoidanceTest` meters it). The elites'
+`EliteEvasion` is a separate system and is unchanged: it plans smooth, acceleration-limited paths and measured 2-5 flips/s.
+The home-screen traffic (`TitleScreenTraffic`) has its own code and does not use `SpawnSpace`.
 
 ## Elite evasion
 

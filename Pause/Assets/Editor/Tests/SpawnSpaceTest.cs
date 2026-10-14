@@ -429,6 +429,32 @@ public static class SpawnSpaceTest
     const int BaselineMaxLoop = 19219;    // max loop density
     const float BaselineChaosSeconds = 130f;
 
+    // The first overlapping pair of live bodies; `steerer`: one of them steers itself (a chaser, a pilot).
+    // With the old hard rule (SpawnSpace.Soft off) nothing is excused: every pair counts as placed.
+    internal static bool FirstOverlap(out SpawnFootprint a, out SpawnFootprint b, out bool steerer)
+    {
+        var live = SpawnSpace.Live(SpawnLayer.Enemy);
+        SpawnFootprint sa = null, sb = null;
+        for (int i = 0; i < live.Count; i++)
+            for (int j = i + 1; j < live.Count; j++)
+            {
+                if (!live[i].Body.Overlaps(live[j].Body)) continue;
+                if (SpawnSpace.Soft && (Steers(live[i]) || Steers(live[j]))) { if (sa == null) { sa = live[i]; sb = live[j]; } continue; }
+                a = live[i]; b = live[j];
+                steerer = false;
+                return true;   // a placed pair always wins: it is the one that must never happen
+            }
+        a = sa; b = sb;
+        steerer = sa != null;
+        return sa != null;
+    }
+
+    static bool Steers(SpawnFootprint f)
+    {
+        EnemyBrain brain;
+        return f.TryGetComponent(out ChaserEnemy _) || (f.TryGetComponent(out brain) && brain.IsPilot);
+    }
+
     static void LongRunsNeverOverlap()
     {
         ClearBoard();
@@ -444,7 +470,9 @@ public static class SpawnSpaceTest
         float[] densities = { 1f, maxDensity };
         const float dt = 1f / 60f, runSeconds = 120f;
         int[] spawnedAt = new int[2];
-        int totalOverlapFrames = 0, frames = 0, deferred = 0, dropped = 0, chasersSeen = 0, brainsMoved = 0;
+        var crashView = new Rect(-6f, -9f, 12f, 20f);
+        int crashes = 0, lastPair = 0, streak = 0, longestStreak = 0;
+        int totalOverlapFrames = 0, steeredOverlapFrames = 0, frames = 0, deferred = 0, dropped = 0, chasersSeen = 0, brainsMoved = 0;
         string firstOverlap = null;
         int worldsRun = 0;
         var target = new GameObject("~SimShip").transform;
@@ -530,11 +558,25 @@ public static class SpawnSpaceTest
                                 if (y < -14f || y > 20f) Object.DestroyImmediate(f.gameObject);
                             }
 
+                            // the game's own crash step (HazardRuntime): a chaser or pilot that runs into a neighbour breaks on it
+                            if (SpawnSpace.Soft) { if (FriendlyFire.StepCrashes(crashView)) crashes++; }
                             SpawnFootprint a, b;
-                            if (SpawnSpace.AnyBodiesOverlap(out a, out b))
+                            bool steerer;
+                            if (!FirstOverlap(out a, out b, out steerer)) { lastPair = 0; streak = 0; }
+                            else
                             {
-                                overlapFrames++;
-                                if (firstOverlap == null)
+                                // (soft avoidance: a chaser or a pilot may meet a neighbour -- FriendlyFire's crash resolves it;
+                                // only what placement alone keeps apart must never overlap)
+                                if (steerer)
+                                {
+                                    steeredOverlapFrames++;
+                                    int pair = a.GetInstanceID() ^ (b.GetInstanceID() * 31);
+                                    streak = pair == lastPair ? streak + 1 : 1;
+                                    lastPair = pair;
+                                    longestStreak = Mathf.Max(longestStreak, streak);
+                                }
+                                else overlapFrames++;
+                                if (!steerer && firstOverlap == null)
                                     firstOverlap = string.Format("world {0} scroll {1} density {2:F2} t={3:F2}: {4} at {5} and {6} at {7}",
                                         w, v, densities[di], t, a.name, (Vector2)a.transform.position, b.name, (Vector2)b.transform.position);
                             }
@@ -558,8 +600,11 @@ public static class SpawnSpaceTest
             SpawnSpace.ClockOverride = null;
         }
         Debug.Log("[SPAWN] long runs took " + sw.Elapsed.TotalSeconds.ToString("F1") + "s over " + frames + " frames");
-        Check("no two live enemy bodies ever overlap, every frame of the two-minute runs (" + totalOverlapFrames + " frames" +
+        Check("no two board-locked enemy bodies ever overlap, every frame of the two-minute runs (" + totalOverlapFrames + " frames" +
               (firstOverlap != null ? "; first: " + firstOverlap : "") + ")", totalOverlapFrames == 0);
+        Check("... and a chaser or pilot that did meet a neighbour (soft avoidance lets it; friendly fire resolves it) never stays stacked once the crash step runs, as in the game: " + steeredOverlapFrames + " of " + frames +
+              " frames, and the runs saw " + crashes + " crashes (friendly fire); the longest the same pair stayed overlapped: " +
+              (longestStreak / 60f).ToString("F1") + " s", longestStreak <= 60 * 3);
         Check("chasers flew in the runs (" + chasersSeen + "; they are capped now, EnemyDensity.MaxChasers)", chasersSeen > 40);
         Check("spawns with no room were deferred (" + deferred + ")", deferred > 0);
         // (hazards are routed round the pilots' columns now: one that finds

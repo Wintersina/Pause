@@ -24,6 +24,10 @@ public class SpawnFootprint : MonoBehaviour
     Behaviour planBehaviour;     // the plan's component, when it is one
     internal int registryIndex = -1;
     internal bool yielded;       // ResolveSteer gave way last frame
+    internal float softV;        // SpawnSpace.SoftDrift: the low-passed sideways drift off its neighbours (u/s)
+    // A pilot's damped sideways offset from its line, built from that drift (SpawnSpace.SoftOffset).
+    public float SoftX { get; internal set; }
+    public float SoftV => softV;   // (tests / probes)
     bool registered;
 
     public IMovementFootprint Plan => Held ? null : plan;

@@ -760,7 +760,10 @@ public static class HazardSizeTest
                                 }
                             }
                             SpawnFootprint a, b;
-                            if (SpawnSpace.AnyBodiesOverlap(out a, out b))
+                            bool steerer;
+                            // (soft avoidance: a pilot or chaser may meet a neighbour, and friendly fire resolves it -- SpawnSpaceTest
+                            // has that run; this one is about placement, so only board-locked pairs count)
+                            if (SpawnSpaceTest.FirstOverlap(out a, out b, out steerer) && !steerer)
                             {
                                 overlapFrames++;
                                 if (firstOverlap == null)
@@ -788,7 +791,7 @@ public static class HazardSizeTest
                             rocks, frames, smallest, biggest, tiers[0] / (float)Mathf.Max(1, rocks), tiers[1] / (float)Mathf.Max(1, rocks),
                             tiers[2] / (float)Mathf.Max(1, rocks), meanArea),
               rocks > 1000 && biggest > 1.3f && smallest < .8f && Mathf.Abs(meanArea - 1f) <= .05f);
-        Check("no two live bodies ever overlap, every frame of 16 mixed-size runs (" + overlapFrames + " frames" +
+        Check("no two board-locked bodies ever overlap, every frame of 16 mixed-size runs (" + overlapFrames + " frames" +
               (firstOverlap != null ? "; first: " + firstOverlap : "") + ")", overlapFrames == 0);
         Check(string.Format("every rock entered its row with a ship-wide gap ({0} rows, {1} short, narrowest widest-gap {2:F2} u vs {3:F2}{4})",
                             rowsChecked, rowsShort, worstGap, SpawnLane.GuaranteedGap, firstRow != null ? "; first: " + firstRow : ""),
