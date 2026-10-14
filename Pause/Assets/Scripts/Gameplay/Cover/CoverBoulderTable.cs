@@ -97,12 +97,13 @@ public static class CoverBoulderTable
             crack = C(.75f, .95f, 1f), debris = C(.80f, .92f, 1f), chip2 = C(.45f, .70f, .90f),
         },
         new CoverBoulderEntry {
-            world = "Verdant", folder = "Boulders/Verdant", enabled = false,
+            world = "Verdant", folder = "Boulders/Verdant", enabled = true,
             concept = "giant tree trunk / root mass",
             widths = new[] { 2.3f, 2.6f, 2.9f }, drift = CoverDrift.Sway,
             fall = new Vector2(.65f, .95f), side = .12f, swayDeg = 3f, swayPeriod = 9f,
             gap = new Vector2(45f, 85f),
             shapes = new[] { 7,7,0,7 },
+            tint = new[] { Color.white, Color.white, Color.white, C(.78f, .95f, .95f) },
             notes = new[] {
                 "v1 jungle canopy with rivers: giant tree masses grow out of the canopy",
                 "v2 mangrove islands and channels: tree masses and root-balls belong",
@@ -112,7 +113,7 @@ public static class CoverBoulderTable
             crack = C(.72f, 1f, .77f), debris = C(.30f, .45f, .22f), chip2 = C(.55f, .85f, .45f),
         },
         new CoverBoulderEntry {
-            world = "Ember", folder = "Boulders/Ember", enabled = false,
+            world = "Ember", folder = "Boulders/Ember", enabled = true,
             concept = "obsidian spire / lava-veined slab",
             widths = new[] { 2.2f, 2.6f, 2.8f }, drift = CoverDrift.Rock,
             fall = new Vector2(.7f, 1.0f), side = .10f, swayDeg = 6f, swayPeriod = 7f,
@@ -127,7 +128,7 @@ public static class CoverBoulderTable
             crack = C(1f, .71f, .35f), debris = C(.16f, .14f, .20f), chip2 = C(1f, .60f, .24f),
         },
         new CoverBoulderEntry {
-            world = "Tide", folder = "Boulders/Tide", enabled = false,
+            world = "Tide", folder = "Boulders/Tide", enabled = true,
             concept = "sea stack / coral reef arch",
             widths = new[] { 2.2f, 2.9f, 2.7f }, drift = CoverDrift.Bob,
             fall = new Vector2(.65f, .95f), side = .15f, swayDeg = 2f, swayPeriod = 8f, bobAmp = .12f, bobPeriod = 6f,
@@ -142,7 +143,7 @@ public static class CoverBoulderTable
             crack = C(.61f, 1f, .88f), debris = C(.55f, .75f, .72f), chip2 = C(.90f, .95f, .80f),
         },
         new CoverBoulderEntry {
-            world = "Storm", folder = "Boulders/Storm", enabled = false,
+            world = "Storm", folder = "Boulders/Storm", enabled = true,
             concept = "floating thunderhead rock / storm island",
             widths = new[] { 2.4f, 2.9f, 2.6f }, drift = CoverDrift.Hover,
             fall = new Vector2(.7f, 1.0f), side = .20f, swayDeg = 1.5f, swayPeriod = 11f, bobAmp = .10f, bobPeriod = 5f,
@@ -157,12 +158,13 @@ public static class CoverBoulderTable
             crack = C(.95f, .96f, 1f), debris = C(.50f, .54f, .62f), chip2 = C(1f, .95f, .63f),
         },
         new CoverBoulderEntry {
-            world = "Desert", folder = "Boulders/Desert", enabled = false,
+            world = "Desert", folder = "Boulders/Desert", enabled = true,
             concept = "sandstone mesa / rock arch",
             widths = new[] { 2.5f, 2.9f, 2.6f }, drift = CoverDrift.Slide,
             fall = new Vector2(.6f, .9f), side = .10f, swayDeg = 0f, swayPeriod = 1f,
             gap = new Vector2(50f, 90f),
             shapes = new[] { 7,7,7,7 },
+            tint = new[] { Color.white, Color.white, Color.white, C(.62f, .70f, .95f) },
             notes = new[] {
                 "v1 sand dunes: a rock outcrop belongs",
                 "v2 mesa canyon with mining pipes: the mesa and butte are this backdrop's own rock",

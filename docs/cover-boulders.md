@@ -1,7 +1,7 @@
 # Cover boulders
 
 Branch `feat/cover-boulders`. Code: `Pause/Assets/Scripts/Gameplay/Cover/`. Tests: `CoverBoulderTest*`, `ScreenFit` screens `cover-*`.
-Art staging: `Pause/Assets/Art/Boulders~/<World>/` (not shipped until vetted; see section 12).
+Art staging: `Pause/Assets/Art/Boulders~/<World>/` (masters, composites, crumble GIFs; the wired copies live in `Art/Resources/Boulders/<World>/`; see sections 12-13).
 
 ## 1. Idea (user request, 2026-10-13)
 
@@ -87,12 +87,14 @@ draft; the shipped numbers are the table in `CoverBoulderTable.cs` (.6-1.1 u/s, 
 
 ## 6. Art contract (per world, three variants + destruction strip)
 
-* `boulder.png` 1536 x 512 (three 512 cells), `break.png` 2560 x 1536 (row = variant, five 512 cells), transparent, hard pixel edges.
-* Light from the upper left, a **thin pale outline** (2 px), no pink outside Space, ink-dark body with real material texture.
+* `boulder.png` 2304 x 768 (three 768 cells), `break.png` 3840 x 2304 (row = variant, five 768 cells), transparent, TRUE resolution (see sections 12-13).
+* Light from the upper left, **no outline** (section 13), the body at the backdrop's brightness, the foot fading out in a ground skirt, no pink outside Space.
 * Frame 0 of each break row is the intact variant with first cracks lit; frame 4 is the last dust (8-35 % of the area).
-* `scripts/verify_boulder_art.py <dir> --world <W> --manifest --sheet preview.png` checks all of it and writes the hit-circle manifest `boulder.json`.
-* Codex prompts: `docs/cover-boulders-codex/` (`common.md` + `worlds/<World>.md`), run headless one at a time in a separate worktree.
-* Runtime: the sheets are loaded per world on demand and unloaded when the world changes (a few MB compressed each).
+* `scripts/verify_boulder_art.py <dir> --world <W> --cell 768 --manifest --sheet preview.png` checks all of it and writes the hit-circle manifest `manifest.json`;
+  `scripts/tools/boulder_composite.py` composites the art over every backdrop variant at in-game scale, `boulder_crumble_gif.py` plays the break strip,
+  `boulder_grade.py` re-grades into the backdrop range, `boulder_wire.sh <W>` copies the sheets to Resources and enables the world.
+* Codex prompts: `docs/cover-boulders-codex/` (`common.md` + `worlds/<World>.md`, `run_world.sh <World>`), run headless one at a time.
+* Runtime: the sheets are loaded per world on demand and unloaded when the world changes.
 
 ## 7. Safety: the ship can never be trapped or crushed
 
@@ -146,9 +148,36 @@ trapped (grid sweep + corner cases), bodies solid, crash rules, boss arrival des
 
 ## 12. Status
 
-* **Space: wired and approved by the user** (2026-10-13): the three reference asteroids in place (`Worlds/Space/Backdrop/asteroid_00..02`, magenta glow is
-  Space-only) with the Codex destruction strip `Art/Resources/Boulders/Space/break.png` and `manifest.json` (hit circles from `verify_boulder_art.py`).
-* **Frost, Verdant, Ember, Tide, Storm, Desert: designed (section 3), prompts written (`docs/cover-boulders-codex/`), art NOT drawn / NOT shown to the
-  user yet.** To add one: run `codex exec` with `common.md` + `worlds/<World>.md` in a separate worktree, run `scripts/verify_boulder_art.py <dir> --world
-  <World> --manifest --sheet preview.png`, show the preview, and when approved move `boulder.png`, `break.png`, `manifest.json` to
-  `Art/Resources/Boulders/<World>/` and set `enabled = true` in `CoverBoulderTable`.
+* **All seven worlds are drawn and wired** (Space the user's in-place asteroids; the six others Codex art at 768 px cells, revision 2 = blended into the backdrop,
+  section 13). `CoverBoulderTable.enabled` is true for each; a world's backdrop variants that have no fitting boulder are explicitly `none` (section 13).
+* Sheets: `boulder.png` 2304 x 768 (three 768 cells) and `break.png` 3840 x 2304 (row = variant, five cells), `manifest.json` (cell 768, hit circles, written by
+  `scripts/verify_boulder_art.py <dir> --world <W> --cell 768 --manifest`). Import (`BoulderArtImporter`, `AndroidTextureDiet`): no mipmaps, bilinear, never clamped
+  (4096), ASTC 4x4 on Android / iOS. Only the current world's pair loads (about 10.5 MB ASTC per world: 2.3 + 8.8; see the PR for the measured numbers).
+* Resolution: 640-700 px wide per boulder for 2.2-2.9 u, i.e. 220-300 px/u, against Space's 150-220 px/u and the backdrops' ~70-100 px/u. Never block-upscaled
+  (`verify_boulder_art.py` and `CoverBoulderTest.WorldArt` measure the 2x/3x/4x duplication score, < .97; real art scores ~.27).
+
+## 13. Blending into the backdrop (revision 2, 2026-10-13/14)
+
+The user rejected the first boulders (bright, pale-outlined, pasted on). Rules now:
+
+* **No outline, no rim halo.** The silhouette is the art's own edge; the foot of every boulder is ringed by the world's ground cover (floes, foliage, ash, foam,
+  vapour, sand) that fades to transparent (a fog skirt); `verify_boulder_art.py` fails a pale rim and a body brighter than median luma 112.
+* **Painted in the backdrop's own view, palette and value range.** Codex was given the world's four-variant contact sheet (`docs/cover-boulders-codex/refs/`), its
+  landmarks atlas and mid layer; `scripts/tools/boulder_grade.py` (per-world parameters in `Boulders~/<W>/src~/grade.txt`) re-grades the finished sheets into the
+  backdrop's range (Frost and Desert needed it most).
+* **The four backdrop variants are different places**, so each world's entry has `shapes[v1..v4]` (bit mask of the boulder shapes that blend in; 0 = none),
+  `tint[v1..v4]` (night / teal variants), `haze` and a one-line `notes[v]`. `CoverBoulderDirector.BackdropVariant(world)` reads the live backdrop set
+  (`WorldBackdrop.Instance.Current.Variant`; 0 = unknown, e.g. a cross-fade: the union applies). `Blocked` returns `"backdrop"` for a `none` variant, `SpawnOne`
+  only picks an allowed shape (never the same twice running while another fits). Coverage is not a goal: where nothing fits, nothing spawns.
+* **Emerge / recede** (`CoverBoulder`): it spawns above the view and over `EmergeSeconds` (2.6) grows from .62 x to 1 x, from 0 to full opacity, out of a flat haze of
+  the world's `haze` colour (the solid circles scale with it, it is still off screen); in the last `RecedeUnits` (1.8 u) above the view bottom it sinks back to .25
+  opacity (opacity only: what blocks is never smaller than what is drawn). Smooth (smoothstep), no pop; `CoverBoulderTest.Emerge` measures the per-frame steps.
+* No landmark anchoring: the ground layers scroll at <= .05 of the foreground speed and their landmarks are random pieces, so there is nothing to time a spawn to;
+  the variant rule is the backdrop awareness.
+
+### Coverage table (shape 0 / 1 / 2 = the three base boulders; none = no spawn)
+
+| World | Backdrop | Shapes | Why |
+| --- | --- | --- | --- |
+
+

@@ -1,0 +1,8 @@
+Created the Desert cover boulder sheets with a mesa, rock arch, and strip-mined butte. The painted source art was made with built-in image generation; the [source notes](/Users/sina/Developer/Pause-boulders-art/Pause/Assets/Art/Boulders~/Desert/src~/generation-notes.md) record the selected candidates and prompts.
+
+- [boulder.png](/Users/sina/Developer/Pause-boulders-art/Pause/Assets/Art/Boulders~/Desert/boulder.png) · [break.png](/Users/sina/Developer/Pause-boulders-art/Pause/Assets/Art/Boulders~/Desert/break.png)
+- [Preview](/Users/sina/Developer/Pause-boulders-art/Pause/Assets/Art/Boulders~/Desert/preview.png) · [hit-circle manifest](/Users/sina/Developer/Pause-boulders-art/Pause/Assets/Art/Boulders~/Desert/boulder.json)
+
+**Verification passed every check** at 768 px per cell. The three intact bounds are 650×628, 665×481, and 663×486 px; their median luminance values are 57, 53, and 51. The final debris frames retain 8%, 12%, and 11% of their intact areas, and the manifest contains 12 hit circles.
+
+The weakest visual is the breakup: its large slabs still form a somewhat regular fracture pattern. The arch’s requested opening also gives it a less continuous cover silhouette than the other two. No existing files were replaced, and nothing was committed.

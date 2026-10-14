@@ -1,0 +1,8 @@
+Created the three Verdant cover boulders and their five-frame destruction strips:
+
+- [boulder.png](/Users/sina/Developer/Pause-boulders-art/Pause/Assets/Art/Boulders~/Verdant/boulder.png) · [break.png](/Users/sina/Developer/Pause-boulders-art/Pause/Assets/Art/Boulders~/Verdant/break.png)
+- [Preview](/Users/sina/Developer/Pause-boulders-art/Pause/Assets/Art/Boulders~/Verdant/preview.png) · [hit-circle data](/Users/sina/Developer/Pause-boulders-art/Pause/Assets/Art/Boulders~/Verdant/boulder.json)
+
+**Verification: every line PASS.** The sheets measure 2304×768 and 3840×2304. Variant bounds are 666×351, 659×470, and 667×424 px; final debris retains 27%, 19%, and 21% of intact area. The verifier fitted 12 hit circles. A separate color audit found zero red or pink pixels.
+
+The arch is the weakest silhouette: its dark recess is filled and opaque, but it reads less massive than the stump and root-ball. No commit was made.

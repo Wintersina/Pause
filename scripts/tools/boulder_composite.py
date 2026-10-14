@@ -13,6 +13,11 @@ R = "Pause/Assets/Art/Backgrounds/Resources/Worlds/%s/Backdrop3/" % w
 src = open("Pause/Assets/Scripts/Gameplay/Cover/CoverBoulderTable.cs").read()
 m = re.search(r'world = "%s".*?widths = new\[\] \{ ([^}]*) \}' % w, src, re.S)
 widths = [float(x.strip().rstrip("f")) for x in m.group(1).split(",")]
+tm = re.search(r'world = "%s".*?tint = new\[\] \{ ([^}]*)\},' % w, src, re.S)
+tints = [(1, 1, 1)] * 4
+if tm and tm.group(1):
+    parts = re.findall(r'Color\.white|C\(([^)]*)\)', tm.group(1))
+    tints = [(1, 1, 1) if not q else tuple(float(x.strip().rstrip("f")) for x in q.split(",")) for q in parts]
 man = json.load(open(bdir + "/manifest.json"))
 sheet = Image.open(bdir + "/boulder.png").convert("RGBA")
 VW, VH = 1024, 1820            # 2 x (512 x 910): 7.43 u wide, 13.2 u tall -> 138 px/u
@@ -32,6 +37,9 @@ for r, v in enumerate(vs):
         art = sheet.crop((c * cell, 0, (c + 1) * cell, cell))
         s = widths[c] * PPU / (jv["x1"] - jv["x0"])
         art = art.resize((int(cell * s), int(cell * s)), Image.LANCZOS)
+        tr, tg, tb = tints[r] if r < len(tints) else (1, 1, 1)
+        if (tr, tg, tb) != (1, 1, 1):
+            ch = list(art.split()); ch[0] = ch[0].point(lambda v: int(v * tr)); ch[1] = ch[1].point(lambda v: int(v * tg)); ch[2] = ch[2].point(lambda v: int(v * tb)); art = Image.merge("RGBA", ch)
         bg.alpha_composite(art, (int(VW * (.34 + .16 * (c % 2)) - art.width / 2), int(VH * (.30 + .12 * c) - art.height / 2)))
         row.append(bg.convert("RGB").resize((VW // 2, VH // 2), Image.LANCZOS))
     tiles.append(row)

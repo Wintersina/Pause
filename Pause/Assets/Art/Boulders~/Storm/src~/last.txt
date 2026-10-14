@@ -1,0 +1,8 @@
+Created the three Storm cover boulders and their five-frame destruction strips:
+
+- [boulder.png](/Users/sina/Developer/Pause-boulders-art/Pause/Assets/Art/Boulders~/Storm/boulder.png) · [break.png](/Users/sina/Developer/Pause-boulders-art/Pause/Assets/Art/Boulders~/Storm/break.png)
+- [Art preview](/Users/sina/Developer/Pause-boulders-art/Pause/Assets/Art/Boulders~/Storm/preview.png) · [hit-circle manifest](/Users/sina/Developer/Pause-boulders-art/Pause/Assets/Art/Boulders~/Storm/boulder.json)
+
+The required verifier **PASSed every check**. The sheets are 2304×768 and 3840×2304; variant widths are 668–670 px, resolution block scores are 0.515 and 0.495, and break frame 0 matches each intact silhouette at IoU 1.00. Final debris occupies 9–10% of the intact area. The [prompts and source notes](/Users/sina/Developer/Pause-boulders-art/Pause/Assets/Art/Boulders~/Storm/src~/generation_notes.md) record the built-in image generation work.
+
+The weakest visual detail is the somewhat geometric spacing between chunks during the burst. No commit was made.
