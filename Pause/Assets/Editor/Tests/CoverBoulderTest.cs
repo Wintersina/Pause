@@ -36,6 +36,7 @@ public static class CoverBoulderTest
             Art();
             WorldArt();
             BackdropRules();
+            Landforms();
             Emerge();
             Lanes();
             Safety();
@@ -394,6 +395,83 @@ public static class CoverBoulderTest
         }
         Check("the recede is smooth (max step " + maxRec.ToString("0.000") + " per .02 u) and ends faint (" + pp.ToString("0.00") + ")", maxRec < .03f && pp < .5f);
         CoverBoulders.Clear();
+    }
+
+    // ---- LANDFORMS: every world but Space draws its boulder as DECORATIVE backdrop art that affects nothing ----
+
+    static void Landforms()
+    {
+        Fresh();
+        var T = CoverBoulderTable.Entries;
+        bool flags = T[0].interactive;
+        for (int w = 1; w < T.Length; w++) flags &= !T[w].interactive;
+        Check("only Space is interactive cover; every other world's boulder is a decorative landform (one flag per world)", flags);
+        // no built-up city, rig or industrial complex gets a landform (the per-variant table of docs section 13)
+        bool cities = T[1].Mask(2) == 0 && T[1].Mask(3) == 0 && T[2].Mask(3) == 0 && T[3].Mask(2) == 0 && T[4].Mask(3) == 0 && T[6].Mask(2) == 0 && T[6].Mask(3) == 0;
+        Check("none on the cities / industrial variants: Frost v2 v3, Verdant v3, Ember v2, Tide v2 v3 (oil rigs, sunken city), Desert v2 v3", cities);
+
+        for (int w = 1; w < T.Length; w++)
+        {
+            Fresh();
+            var b = CoverBoulders.Spawn(w, 1);
+            string nm = T[w].world;
+            if (b == null) { Check(nm + ": a landform spawns", false); continue; }
+            b.Hold(new Vector2(.4f, 2f), 0f);
+            var body = Hazard(.4f, 2f, "Enimey", .3f);
+            var at = body.transform.position;
+            var shot = Fake(new Vector2(.4f, 3.5f));
+            Vector2 hit;
+            bool inert = b.Alive && b.Decorative && !b.Solid && !CoverBoulders.Any && CoverBoulders.SolidCount == 0 && CoverBoulders.Alive == 0 && !CoverBoulders.All.GetEnumerator().MoveNext();
+            inert &= !CoverBoulders.Inside(new Vector2(.4f, 2f), .3f) && !CoverBoulders.StopsShot(new Vector2(.4f, 2f), .2f);
+            inert &= !CoverBoulders.StopsPlayerShot(new Vector2(.4f, -3f), new Vector2(.4f, 6f), .2f, out hit);
+            inert &= !CoverBoulders.Blocked(new Vector2(.4f, 6f), new Vector2(.4f, -3f)) && Mathf.Approximately(CoverBoulders.ClipUp(new Vector2(.4f, -3f), 8f, .3f), 8f);
+            inert &= (CoverBoulders.ResolveShip(new Vector2(.4f, 2f)) - new Vector2(.4f, 2f)).sqrMagnitude < 1e-6f;
+            inert &= !CoverBoulders.SiteCovered(new Vector2(.4f, 2f)) && !CoverBoulders.ShoveMeet(body.transform, .3f, Vector2.down * .1f, Dt);
+            CoverBoulders.PushBodies();
+            inert &= (body.transform.position - at).sqrMagnitude < 1e-8f;
+            Check(nm + ": the landform blocks nothing (shots, beams, line of sight, ship, bodies, shoves, landing sites, hazard cover query) and pushes nothing", inert);
+            b.Hold(new Vector2(.4f, 2f), 0f);
+            Check(nm + ": it is bigger than a cover boulder and inside the lane (" + b.Width.ToString("0.0") + " u of " + (CoverBoulders.Edge * 2f).ToString("0.0") + ")", b.Width > T[w].widths[1] * 1.2f - .01f && b.Width <= CoverBoulders.Edge * 2f * CoverBoulders.DecorMaxShare + .001f);
+            Check(nm + ": it falls slowly (" + (-b.Vel.y).ToString("0.00") + " u/s)", -b.Vel.y <= T[w].fall.y * CoverBoulders.DecorSpeed + .001f);
+        }
+
+        // a boss starting: a landform sinks out (no rumble, no crumble, nothing destroyed); Space's cover boulder is destroyed as before
+        Fresh();
+        int before = CoverBoulders.Destroyed;
+        var f = CoverBoulders.Spawn(1, 0);
+        f.Hold(new Vector2(0f, 1f), 0f);
+        int n = CoverBoulders.OnBossBegin();
+        Check("a boss starting fades the landform out (state " + f.State + ", destroyed " + (CoverBoulders.Destroyed - before) + ")", n == 0 && f.State == CoverBoulder.Phase.Fade && CoverBoulders.Destroyed == before);
+        float tt = 0f;
+        while (f.Alive && tt < 4f) { CoverBoulders.Step(Dt); tt += Dt; }
+        Check("... and is gone, effects included, in " + tt.ToString("0.0") + " s", !f.Alive && CoverBoulders.AliveAny == 0);
+        var sp = CoverBoulders.Spawn(0, 0);
+        sp.Hold(new Vector2(0f, 1f), 0f);
+        Check("Space's cover boulder still blocks and is still destroyed by a boss", CoverBoulders.Any && CoverBoulders.OnBossBegin() == 1 && sp.State == CoverBoulder.Phase.Rumble);
+
+        // the Storm effects layer: pooled, no allocations, follows the boulder, hidden the moment it fades or is released, no pink
+        Fresh();
+        var st = CoverBoulders.Spawn(5, 1);
+        st.Hold(new Vector2(0f, 2f), 0f);
+        for (int i = 0; i < 30; i++) CoverBoulders.Step(Dt);
+        var fxRoot = st.StormFxRoot;
+        Check("Storm: the effects layer exists (" + (fxRoot != null ? fxRoot.GetComponentsInChildren<SpriteRenderer>(true).Length.ToString() : "-") + " pooled renderers) and is showing", fxRoot != null && fxRoot.gameObject.activeSelf && fxRoot.GetComponentsInChildren<SpriteRenderer>(true).Length == 31);
+        System.Action work = () => { for (int i = 0; i < 120; i++) CoverBoulders.Step(Dt); };
+        work();
+        long bytes = TestHarness.AllocatedBytes(work);
+        Check("Storm: 120 frames with every wisp, streak, pellet and arc moving allocate " + bytes + " bytes", bytes == 0);
+        CoverBoulders.OnBossBegin();
+        for (int i = 0; i < 60 * 2.2f; i++) CoverBoulders.Step(Dt);
+        Check("Storm: no wisp, streak or arc is left after the boss fade", !st.Alive && !fxRoot.gameObject.activeSelf);
+        var st2 = CoverBoulders.Spawn(5, 0);
+        for (int i = 0; i < 90; i++) CoverBoulders.Step(Dt);
+        CoverBoulders.Clear();
+        Check("Storm: released with its effects (a despawn leaves nothing)", !st2.Alive && !st2.StormFxRoot.gameObject.activeSelf);
+        int W, H;
+        var fxpx = ReadPng("Assets/Art/Resources/Boulders/Storm/fx.png", out W, out H);
+        int pk = 0, op = 0;
+        for (int i = 0; i < fxpx.Length; i += 2) if (fxpx[i].a > 8) { op++; if (WorldCue.IsPink(new Color32(fxpx[i].r, fxpx[i].g, fxpx[i].b, 255))) pk++; }
+        Check("Storm: the effects atlas is " + W + "x" + H + ", real resolution, no pink (" + pk + " of " + op + ")", W == 1024 && H == 1024 && pk == 0 && BlockScore(fxpx, W, H, 2) < .97f);
     }
 
     // ---- lanes: the free-reach band, every shape ----
@@ -1025,9 +1103,9 @@ public static class CoverBoulderTest
                 dir.Tick(dt);
                 if (CoverBoulders.Spawned != n) times.Add(t);
                 CoverBoulders.Step(dt);
-                maxAlive = Mathf.Max(maxAlive, CoverBoulders.Alive);
-                if (CoverBoulders.Alive > 0 && aliveSince < 0f) aliveSince = t;
-                if (CoverBoulders.Alive == 0 && aliveSince >= 0f) { if (t - aliveSince > 45f) onScreenShort = false; aliveSince = -1f; }
+                maxAlive = Mathf.Max(maxAlive, CoverBoulders.AliveAny);
+                if (CoverBoulders.AliveAny > 0 && aliveSince < 0f) aliveSince = t;
+                if (CoverBoulders.AliveAny == 0 && aliveSince >= 0f) { if (t - aliveSince > (e.interactive ? 45f : 140f)) onScreenShort = false; aliveSince = -1f; }
             }
             float first = times.Count > 0 ? times[0] : -1f;
             float minGap = float.MaxValue, maxGap = 0f;
@@ -1036,7 +1114,7 @@ public static class CoverBoulderTest
                   times.Count >= 1800f / (e.gap.y + 3f) * .85f && times.Count <= 1800f / e.gap.x + 1 &&
                   first >= CoverBoulders.FirstSeconds && first <= CoverBoulders.FirstSeconds + 16f &&
                   (times.Count < 2 || (minGap >= e.gap.x - .25f && maxGap <= e.gap.y + 3f)));
-            Check(e.world + ": never more than one at a time, and each is on screen under 45 s (max " + maxAlive + ")", maxAlive == 1 && onScreenShort);
+            Check(e.world + ": never more than one at a time, and each is on screen under " + (e.interactive ? 45 : 140) + " s (max " + maxAlive + ")", maxAlive == 1 && onScreenShort);
             Check(e.world + ": none in the first 8 s calm start", times.Count == 0 || times[0] > 8f);
             // a world change takes the boulder away
             CoverBoulders.Clear();
@@ -1127,19 +1205,22 @@ public static class CoverBoulderTest
                             var b = CoverBoulders.Spawn(w, v);
                             checkedN++;
                             float width = b.Width;
-                            bool ok = CoverBoulders.SideGapOf(b) >= CoverBoulders.SideGap - .01f &&
-                                      width <= edge * 2f * CoverBoulders.MaxScreenShare + .01f &&
-                                      b.Pos.y > CameraFit.ViewTop;   // it enters above the top
+                            // a landform is backdrop art: huge but inside the view's width, no lane to keep free, nothing solid
+                            bool ok = b.Decorative
+                                ? width <= edge * 2f * CoverBoulders.DecorMaxShare + .01f && !b.Solid && b.Pos.y > CameraFit.ViewTop
+                                : CoverBoulders.SideGapOf(b) >= CoverBoulders.SideGap - .01f &&
+                                  width <= edge * 2f * CoverBoulders.MaxScreenShare + .01f &&
+                                  b.Pos.y > CameraFit.ViewTop;   // it enters above the top
                             // and it keeps that all the way down (drift a minute)
                             for (int i = 0; i < 1500 && ok && b.Alive; i++)
                             {
                                 CoverBoulders.Step(.05f);
                                 if (!b.Alive) break;
-                                ok &= CoverBoulders.SideGapOf(b) >= CoverBoulders.SideGap - .01f;
+                                ok &= b.Decorative ? !b.Solid : CoverBoulders.SideGapOf(b) >= CoverBoulders.SideGap - .01f;
                             }
                             if (!ok) { bad++; worst++; }
                         }
-                Check(id + " (reach " + h.ToString("F2") + ", rails " + edge.ToString("F2") + ", view " + (CameraFit.ViewTop - CameraFit.ViewBottom).ToString("F1") + " u): every world's boulder keeps SideGap to both rails, in and out of the view (" + worst + " bad)", worst == 0);
+                Check(id + " (reach " + h.ToString("F2") + ", rails " + edge.ToString("F2") + ", view " + (CameraFit.ViewTop - CameraFit.ViewBottom).ToString("F1") + " u): Space's cover boulder keeps SideGap to both rails and every landform stays inside the view width, in and out of the view (" + worst + " bad)", worst == 0);
             }
             PlayField.Reset();
         }

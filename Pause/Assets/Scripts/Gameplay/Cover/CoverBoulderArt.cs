@@ -17,6 +17,7 @@ public sealed class CoverVariant
     public CoverCircle[] circles;
     public float artWidth = 400f;    // the art's alpha bounding box width (px)
     public float cellPx = 512f;
+    public float x0, y0, x1, y1;     // the art's alpha bounding box in cell px, y down (manifest): the effects layer hangs off it
     public float WorldScale(float widthU) { return widthU * 100f / Mathf.Max(8f, artWidth); }
 }
 
@@ -54,8 +55,34 @@ public static class CoverBoulderArt
 
     public static bool Has(int world) { return Load(CoverBoulderTable.For(world).folder) != null; }
 
+    // The Storm boulder's effects atlas (Resources/Boulders/Storm/fx.png, scripts/tools/storm_fx_atlas.py): wisps 0-3, arcs 4-6, shadow 7, rain 8-11, hail 12-14.
+    static Sprite[] fxSprites;
+    public static Sprite[] FxSprites(string folder)
+    {
+        if (fxSprites != null && fxSprites[0] != null) return fxSprites;
+        var tex = Resources.Load<Texture2D>(folder + "/fx");
+        if (tex == null) return null;
+        int H = tex.height;
+        var rects = new[]
+        {
+            new Rect(0, 0, 512, 256), new Rect(512, 0, 512, 256), new Rect(0, 256, 512, 256), new Rect(512, 256, 512, 256),
+            new Rect(0, 512, 256, 256), new Rect(256, 512, 256, 256), new Rect(512, 512, 256, 256),
+            new Rect(768, 512, 256, 128),
+            new Rect(0, 768, 16, 128), new Rect(32, 768, 16, 128), new Rect(64, 768, 16, 128), new Rect(96, 768, 16, 128),
+            new Rect(160, 768, 32, 32), new Rect(208, 768, 32, 32), new Rect(256, 768, 32, 32),
+        };
+        fxSprites = new Sprite[rects.Length];
+        for (int i = 0; i < rects.Length; i++)
+        {
+            var r = rects[i];
+            fxSprites[i] = Sprite.Create(tex, new Rect(r.x, H - r.y - r.height, r.width, r.height), new Vector2(.5f, .5f), Ppu, 0, SpriteMeshType.FullRect);
+        }
+        return fxSprites;
+    }
+
     public static void Forget()
     {
+        fxSprites = null;
         cache.Clear();
     }
 
@@ -82,7 +109,7 @@ public static class CoverBoulderArt
         for (int v = 0; v < outv.Length; v++)
         {
             var jv = m.variants[v];
-            var cv = new CoverVariant { cellPx = cell, artWidth = Mathf.Max(8, jv.x1 - jv.x0) };
+            var cv = new CoverVariant { cellPx = cell, artWidth = Mathf.Max(8, jv.x1 - jv.x0), x0 = jv.x0, y0 = jv.y0, x1 = jv.x1, y1 = jv.y1 };
             cv.intact = inPlace
                 ? Resources.Load<Sprite>(m.intact[v])
                 : Slice(sheet, v * (int)cell, 0, (int)cell);

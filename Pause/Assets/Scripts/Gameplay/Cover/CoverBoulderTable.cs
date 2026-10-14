@@ -21,6 +21,7 @@ public sealed class CoverBoulderEntry
     public string world;
     public string folder;                 // Resources folder of the art: Boulders/<World>
     public bool enabled;                  // art vetted and wired
+    public bool interactive;              // true: a COVER boulder (blocks shots, bodies, the ship; destroyed by a boss). false: a decorative backdrop LANDFORM seen from far above the ship (affects nothing; fades out when a boss starts). Only Space is interactive: one switch per world
     public string concept;                // what it is (docs table)
     public float[] widths;                // drawn art width per variant, world u (the art's alpha bounding box)
     public CoverDrift drift;
@@ -40,6 +41,7 @@ public sealed class CoverBoulderEntry
     public int[] shapes = { 7, 7, 7, 7 };
     public Color[] tint;
     public Color haze = new Color(.45f, .5f, .55f, 1f);
+    public bool stormFx;                  // the animated storm-effects layer (CoverStormFx): wisps, rain, hail, static, cloud shadow
     public bool outline;                  // a thin pale one-sided rim (Storm: the user asked for it so the rock stays visible); every other world has none (docs 13)
     public string[] notes;                // one line per backdrop variant: what it is and why these shapes (docs / PR table)
 
@@ -68,7 +70,7 @@ public static class CoverBoulderTable
     public static readonly CoverBoulderEntry[] Entries =
     {
         new CoverBoulderEntry {
-            world = "Space", folder = "Boulders/Space", enabled = true,
+            world = "Space", folder = "Boulders/Space", enabled = true, interactive = true,
             concept = "purple-lit cratered asteroid with magenta cracks",
             widths = new[] { 2.0f, 2.4f, 2.8f }, drift = CoverDrift.Tumble,
             fall = new Vector2(.75f, 1.1f), side = .15f, spin = new Vector2(3f, 7f),
@@ -134,11 +136,11 @@ public static class CoverBoulderTable
             widths = new[] { 2.2f, 2.9f, 2.7f }, drift = CoverDrift.Bob,
             fall = new Vector2(.65f, .95f), side = .15f, swayDeg = 2f, swayPeriod = 8f, bobAmp = .12f, bobPeriod = 6f,
             gap = new Vector2(45f, 85f),
-            shapes = new[] { 7,0,7,7 },
+            shapes = new[] { 7,0,0,7 },
             notes = new[] {
                 "v1 storm-tossed open sea: a reef stack drifts in the swell",
                 "v2 rusted oil-platform field: industrial brown, a reef would clash: NONE",
-                "v3 sunken glowing city / reef flats: reef belongs",
+                "v3 sunken glowing city (buildings, streets, towers): a built-up city, NONE (the user)",
                 "v4 whirlpool bioluminescent ocean: reef belongs"
             },
             crack = C(.61f, 1f, .88f), debris = C(.55f, .75f, .72f), chip2 = C(.90f, .95f, .80f),
@@ -149,7 +151,7 @@ public static class CoverBoulderTable
             widths = new[] { 2.4f, 2.9f, 2.6f }, drift = CoverDrift.Hover,
             fall = new Vector2(.7f, 1.0f), side = .20f, swayDeg = 1.5f, swayPeriod = 11f, bobAmp = .10f, bobPeriod = 5f,
             gap = new Vector2(40f, 80f),
-            outline = true,
+            outline = true, stormFx = true,
             shapes = new[] { 7,7,7,7 },
             notes = new[] {
                 "v1 sheared cloud banks: a floating thunderhead rock sits in the deck",
@@ -165,12 +167,12 @@ public static class CoverBoulderTable
             widths = new[] { 2.5f, 2.9f, 2.6f }, drift = CoverDrift.Slide,
             fall = new Vector2(.6f, .9f), side = .10f, swayDeg = 0f, swayPeriod = 1f,
             gap = new Vector2(50f, 90f),
-            shapes = new[] { 7,7,7,7 },
+            shapes = new[] { 7,0,0,7 },
             tint = new[] { Color.white, Color.white, Color.white, C(.62f, .70f, .95f) },
             notes = new[] {
                 "v1 sand dunes: a rock outcrop belongs",
-                "v2 mesa canyon with mining pipes: the mesa and butte are this backdrop's own rock",
-                "v3 cracked flats with mining scaffolds: butte and mesa belong",
+                "v2 mesa canyon crossed by giant pipelines and mining rigs: an industrial complex, NONE",
+                "v3 cracked flats with mining scaffolds and rails (strip mine): industrial, NONE",
                 "v4 night dunes (blue): rock outcrop, tinted blue"
             },
             crack = C(1f, .91f, .66f), debris = C(.78f, .60f, .38f), chip2 = C(.95f, .85f, .62f),

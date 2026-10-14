@@ -1,4 +1,12 @@
-# Cover boulders
+# Cover boulders (Space) and backdrop landforms (every other world)
+
+**Two kinds, one flag (`CoverBoulderEntry.interactive`, only Space is true).** Space's asteroids are interactive COVER boulders exactly as in sections 1-11 (you hide
+behind them). Every other world's boulder is a decorative backdrop LANDFORM seen from far above the ship (user, 2026-10-14: 'the ship will be much higher, it doesn't
+make sense for these to stop you'): it is drawn, drifts and emerges / recedes with the backdrop haze, and affects NOTHING: not the ship, shots, beams, hazards, bodies,
+shoves, landing sites or the hazard seam (`CoverBoulders.Alive` / `All` / `Any` / `Solid` count interactive boulders only; `AliveAny` is the pool bookkeeping). No
+boss-arrival crumble: when a boss starts a landform just sinks out (1.8 s) and none spawn during the fight. Landforms are bigger (x`DecorScale` 1.5, at most 98 % of
+the rail-to-rail width), slower (x`DecorSpeed` .45 of the table's fall) and keep a steady depth haze (`DecorHaze`). A landform never gets a lane-keeping band. Sections
+1-11 below describe the interactive kind; section 13 the blending, per-variant rules and landforms.
 
 Branch `feat/cover-boulders`. Code: `Pause/Assets/Scripts/Gameplay/Cover/`. Tests: `CoverBoulderTest*`, `ScreenFit` screens `cover-*`.
 Art staging: `Pause/Assets/Art/Boulders~/<World>/` (masters, composites, crumble GIFs; the wired copies live in `Art/Resources/Boulders/<World>/`; see sections 12-13).
@@ -160,6 +168,7 @@ trapped (grid sweep + corner cases), bodies solid, crash rules, boss arrival des
 
 The user rejected the first boulders (bright, pale-outlined, pasted on). Rules now:
 
+* **Storm's landform has an animated effects layer** (`CoverStormFx`, pooled children, no per-frame allocations): 8 drifting cloud wisps round the base (front and back), 14 rain streaks + 5 hail pellets falling off the underside, 3 faint static arcs, a cloud shadow; atlas `Resources/Boulders/Storm/fx.png` (`scripts/tools/storm_fx_atlas.py`, 1024 x 1024, dithered pixel-hard alpha, deterministic). Everything is a function of the boulder's age and presence (grows with the emerge, sinks with the recede, gone the instant it fades). Preview: `CoverBoulderPreview.Run` renders the real runtime over the backdrop variants.
 * **Storm alone carries a thin pale one-sided outline** (the user: 'the Storm boulder is good, it just needs an outline so it can be visible'): 4 px storm-white (#DEE6F2) on the top and sides of the solid silhouette, fading out along the base and cloud skirt (`scripts/tools/boulder_outline.py`, `CoverBoulderEntry.outline`, `verify_boulder_art.py --outline`).
 * **Every other world: no outline, no rim halo.** The silhouette is the art's own edge; the foot of every boulder is ringed by the world's ground cover (floes, foliage, ash, foam,
   vapour, sand) that fades to transparent (a fog skirt); `verify_boulder_art.py` fails a pale rim and a body brighter than median luma 112.
@@ -176,9 +185,35 @@ The user rejected the first boulders (bright, pale-outlined, pasted on). Rules n
 * No landmark anchoring: the ground layers scroll at <= .05 of the foreground speed and their landmarks are random pieces, so there is nothing to time a spawn to;
   the variant rule is the backdrop awareness.
 
-### Coverage table (shape 0 / 1 / 2 = the three base boulders; none = no spawn)
+### Coverage table (shape 0 / 1 / 2 = the three base shapes; none = no spawn)
 
 | World | Backdrop | Shapes | Why |
 | --- | --- | --- | --- |
-
-
+| Space | v1 | 0+1+2 | open space: an asteroid belongs on every sky variant |
+| Space | v2 | 0+1+2 | open space: an asteroid belongs on every sky variant |
+| Space | v3 | 0+1+2 | open space: an asteroid belongs on every sky variant |
+| Space | v4 | 0+1+2 | open space: an asteroid belongs on every sky variant |
+| Frost | v1 | 0+1+2 | v1 broken pack ice and floes: the ice mountain drifts out of the floes (all three shapes) |
+| Frost | v2 | none | v2 harbour wharf with wrecks and docks: industrial, a mountain would clash: NONE |
+| Frost | v3 | none | v3 industrial pipe / rail lattice with refinery towers on frozen ground: NONE (the user: 'doesn't need any boulders') |
+| Frost | v4 | 0+1+2 | v4 sheer ice cliffs and crevasses: natural ice mountain terrain (all three shapes) |
+| Verdant | v1 | 0+1+2 | v1 jungle canopy with rivers: giant tree masses grow out of the canopy |
+| Verdant | v2 | 0+1+2 | v2 mangrove islands and channels: tree masses and root-balls belong |
+| Verdant | v3 | none | v3 ruined overgrown city grid: concrete and roads, a tree mass would clash: NONE |
+| Verdant | v4 | 0+1+2 | v4 deep bioluminescent teal jungle: tree masses, tinted teal |
+| Ember | v1 | 0+1+2 | v1 lava rivers between basalt plateaus: volcanic stone belongs |
+| Ember | v2 | none | v2 foundry plant (pipes, vents, machinery): NONE |
+| Ember | v3 | 0+1+2 | v3 ash ridges and lava dunes: volcanic stone belongs |
+| Ember | v4 | 0+1+2 | v4 cracked caldera floor with a magma vortex: volcanic stone belongs |
+| Tide | v1 | 0+1+2 | v1 storm-tossed open sea: a reef stack drifts in the swell |
+| Tide | v2 | none | v2 rusted oil-platform field: industrial brown, a reef would clash: NONE |
+| Tide | v3 | none | v3 sunken glowing city (buildings, streets, towers): a built-up city, NONE (the user) |
+| Tide | v4 | 0+1+2 | v4 whirlpool bioluminescent ocean: reef belongs |
+| Storm | v1 | 0+1+2 | v1 sheared cloud banks: a floating thunderhead rock sits in the deck |
+| Storm | v2 | 0+1+2 | v2 towering cumulus field: thunderhead rock belongs |
+| Storm | v3 | 0+1+2 | v3 cyclone eye over the deck: thunderhead rock belongs |
+| Storm | v4 | 0+1+2 | v4 lightning fields: thunderhead rock belongs |
+| Desert | v1 | 0+1+2 | v1 sand dunes: a rock outcrop belongs |
+| Desert | v2 | none | v2 mesa canyon crossed by giant pipelines and mining rigs: an industrial complex, NONE |
+| Desert | v3 | none | v3 cracked flats with mining scaffolds and rails (strip mine): industrial, NONE |
+| Desert | v4 | 0+1+2 | v4 night dunes (blue): rock outcrop, tinted blue |

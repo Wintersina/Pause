@@ -13,7 +13,7 @@ public sealed class CoverBoulder
 {
     public enum Phase { Off, Live, Rumble, Crack, Burst, Fade }
 
-    public const float RumbleSeconds = .55f, CrackSeconds = .35f, BurstSeconds = .5f, FadeSeconds = .45f;
+    public const float RumbleSeconds = .55f, CrackSeconds = .35f, BurstSeconds = .5f, FadeSeconds = .45f, DecorFadeSeconds = 1.8f;   // a landform sinks out slowly
     public const float RumbleShake = .04f;
     // EMERGE / RECEDE (docs 13): it comes out of the backdrop, small, hazy and see-through, and grows into the play layer over
     // EmergeSeconds (smooth in scale and opacity: no pop); on the way out it sinks back over the last RecedeUnits above the view bottom.
@@ -31,7 +31,10 @@ public sealed class CoverBoulder
     public float Rotation { get; private set; }
     public int Side { get; private set; }  // which side of the lane it hugs (-1 / +1)
     public float Age { get; private set; }
-    public bool Solid => State == Phase.Live || State == Phase.Rumble || State == Phase.Crack;
+    // INTERACTIVE (Space) boulders are solid cover; every other world's is a decorative LANDFORM of the backdrop: drawn, never solid, never in any query.
+    public bool Interactive => entry != null && entry.interactive;
+    public bool Decorative => entry != null && !entry.interactive;
+    public bool Solid => Interactive && (State == Phase.Live || State == Phase.Rumble || State == Phase.Crack);
     public bool Alive => State != Phase.Off;
     public bool DrawnFracture { get; private set; }   // the burst plays the drawn frames (else the procedural fracture)
     public int Count { get; private set; }
@@ -40,6 +43,7 @@ public sealed class CoverBoulder
     public CoverBoulderEntry Entry => entry;
     public Vector2 Visual => new Vector2(Pos.x, Pos.y + bobY);
     public float PhaseTime => t;
+    public Transform StormFxRoot => stormFx != null ? stormFx.Root : null;
 
     CoverBoulderEntry entry;
     CoverVariant art;
@@ -49,6 +53,7 @@ public sealed class CoverBoulder
     readonly float[] cx = new float[MaxCircles], cy = new float[MaxCircles], cr = new float[MaxCircles];
     GameObject go;
     SpriteRenderer body, wash;
+    CoverStormFx stormFx;   // the Storm landform's effects (built on first need, then pooled with the boulder)
     SpriteRenderer[] pieces;
     readonly Vector2[] pieceVel = new Vector2[CoverBoulderArt.Tiles * CoverBoulderArt.Tiles];
     readonly float[] pieceSpin = new float[CoverBoulderArt.Tiles * CoverBoulderArt.Tiles];
@@ -106,6 +111,12 @@ public sealed class CoverBoulder
             b = Mathf.Max(b, new Vector2(v.circles[i].x, v.circles[i].y).magnitude + v.circles[i].r);
         Count = Mathf.Min(MaxCircles, v.circles.Length);
         Bound = b / CoverBoulderArt.Ppu * scale;
+        if (entry.stormFx)
+        {
+            if (stormFx == null) stormFx = new CoverStormFx(go.transform);
+            stormFx.Begin(v, entry.folder, rng01);
+        }
+        else if (stormFx != null) stormFx.Hide();
         go.SetActive(true);
         body.sprite = v.intact;
         body.enabled = true;
@@ -118,6 +129,7 @@ public sealed class CoverBoulder
     public void Release()
     {
         State = Phase.Off;
+        if (stormFx != null) stormFx.Hide();
         if (go != null) go.SetActive(false);
         if (body != null) body.enabled = false;
     }
@@ -133,6 +145,7 @@ public sealed class CoverBoulder
     public void Destroy()
     {
         if (State != Phase.Live) return;
+        if (Decorative) { Dismiss(); return; }   // a landform far below the ship simply sinks back into the backdrop
         State = Phase.Rumble;
         t = 0f;
         chipped = burstDone = false;
@@ -184,7 +197,7 @@ public sealed class CoverBoulder
                 if (t >= BurstSeconds) { Release(); return; }
                 break;
             case Phase.Fade:
-                if (t >= FadeSeconds) { Release(); return; }
+                if (t >= (Decorative ? DecorFadeSeconds : FadeSeconds)) { Release(); return; }
                 Drift(dt, ctx);
                 break;
         }
@@ -196,10 +209,13 @@ public sealed class CoverBoulder
         // sideways: inside the band that keeps one side of the lane free (docs 7); turn round at its edges
         Pos.x += Vel.x * dt;
         Pos.y += Vel.y * dt;
-        float lo, hi;
-        CoverBoulders.Band(Side, Bound, out lo, out hi);
-        if (Pos.x < lo) { Pos.x = lo; if (Vel.x < 0f) Vel.x = -Vel.x; }
-        else if (Pos.x > hi) { Pos.x = hi; if (Vel.x > 0f) Vel.x = -Vel.x; }
+        if (Interactive)
+        {
+            float lo, hi;
+            CoverBoulders.Band(Side, Bound, out lo, out hi);
+            if (Pos.x < lo) { Pos.x = lo; if (Vel.x < 0f) Vel.x = -Vel.x; }
+            else if (Pos.x > hi) { Pos.x = hi; if (Vel.x > 0f) Vel.x = -Vel.x; }
+        }
         float tt = Age;
         switch (entry.drift)
         {
@@ -253,14 +269,17 @@ public sealed class CoverBoulder
         tr.rotation = Quaternion.Euler(0f, 0f, Rotation);
         tr.localScale = new Vector3(scale * ek, scale * ek, 1f);
 
+        if (stormFx != null && stormFx.Active) stormFx.Step(Age, FxAlpha());
+
         switch (State)
         {
             case Phase.Live:
                 body.enabled = true; body.sprite = art.intact;
                 body.color = new Color(bodyTint.r * flicker, bodyTint.g * flicker, bodyTint.b * flicker, presence);
                 // the fog it comes out of: a flat haze over the silhouette that thins as it grows into the play layer
-                wash.enabled = presence < .985f; wash.sprite = art.intact;
-                { var hz = entry.haze; hz.a = (1f - presence) * .5f * presence * 2f; wash.color = hz; }
+                // (a landform far below the ship keeps a steady depth haze on top of the emerge fog)
+                wash.enabled = presence < .985f || Decorative; wash.sprite = art.intact;
+                { var hz = entry.haze; hz.a = (1f - presence) * presence + (Decorative ? CoverBoulders.DecorHaze * presence : 0f); wash.color = hz; }
                 break;
             case Phase.Rumble:
                 {
@@ -312,11 +331,22 @@ public sealed class CoverBoulder
                 break;
             case Phase.Fade:
                 {
-                    float a = 1f - Mathf.Clamp01(t / FadeSeconds);
+                    float a = 1f - Smooth(t / (Decorative ? DecorFadeSeconds : FadeSeconds));
                     body.enabled = true; body.sprite = art.intact; body.color = new Color(bodyTint.r, bodyTint.g, bodyTint.b, a * presence);
                     wash.enabled = false;
                 }
                 break;
+        }
+    }
+
+    float FxAlpha()
+    {
+        switch (State)
+        {
+            case Phase.Live: return presence;
+            case Phase.Rumble: return presence * (1f - Smooth(t / RumbleSeconds));
+            case Phase.Fade: return presence * (1f - Smooth(t / (Decorative ? DecorFadeSeconds : FadeSeconds)));
+            default: return 0f;
         }
     }
 

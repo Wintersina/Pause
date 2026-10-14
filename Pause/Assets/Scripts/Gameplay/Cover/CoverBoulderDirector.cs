@@ -43,7 +43,7 @@ public class CoverBoulderDirector : MonoBehaviour
 
     void Update()
     {
-        if (buttonClicks.playerDied && CoverBoulders.Alive > 0) CoverBoulders.DismissAll();
+        if (buttonClicks.playerDied && CoverBoulders.AliveAny > 0) CoverBoulders.DismissAll();
         if (!Flying || WorldEntry.Active) return;
         float dt = Time.deltaTime;
         if (dt <= 0f) return;
@@ -88,7 +88,7 @@ public class CoverBoulderDirector : MonoBehaviour
         if (ShipPowerController.CinematicClearActive) return "cinematic";
         if (secondsInWorld < CoverBoulders.FirstSeconds) return "too early";
         if (ElitesParked()) return "elite";
-        if (CoverBoulders.Alive >= CoverBoulders.MaxAlive) return "alive";
+        if (CoverBoulders.AliveAny >= CoverBoulders.MaxAlive) return "alive";
         return null;
     }
 
@@ -118,7 +118,7 @@ public class CoverBoulderDirector : MonoBehaviour
         if (BossEncounter.Running || Planetfall.SuspendsSpawning || Liftoff.SuspendsSpawning || PortalArrival.SuspendsSpawning)
         {
             // a boss: the destruction sequence (OnBossBegin) has the boulder; a transition: it fades
-            if (!BossEncounter.Running && CoverBoulders.Alive > 0) CoverBoulders.DismissAll();
+            if (!BossEncounter.Running && CoverBoulders.AliveAny > 0) CoverBoulders.DismissAll();
             return;
         }
         untilNext -= dt;
