@@ -9,7 +9,7 @@ using UnityEngine;
 //   * a ram that lands (RamCooldown seconds since the last one) is one hit of
 //     RamWeight on the boss -- the same path as the ship's weapons
 //     (BossTarget.TakeShipAttack: blast, sound, heart / hit point bookkeeping);
-//     7 hit points and 12 hearts, so RamWeight .3 is about half a heart (.58) a ram;
+//     12 hit points and 12 hearts (a heart is one full hit), so RamWeight .3 is under a third of a heart a ram;
 //   * it costs the shield RamShieldCost seconds of its timer, so one blue atom
 //     (5.8 s) buys about four rams at most, never a melted boss;
 //   * the body hitbox stays (nothing is destroyed, nothing paid as a kill);

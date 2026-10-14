@@ -155,7 +155,7 @@ public static class BossHeartsTest
     {
         Check("a boss has " + N + " hearts (BossConfig.Hearts = base " + BossConfig.BaseHearts + " + " + BossConfig.ExtraHearts + "), splitting its " + BossConfig.HitPoints + " hit points (" +
               BossConfig.HeartWeight.ToString("F2") + " hits a heart)",
-              BossConfig.Hearts == BossConfig.BaseHearts + BossConfig.ExtraHearts && Mathf.Abs(BossConfig.HeartWeight * BossConfig.Hearts - BossConfig.HitPoints) < 1e-4f);
+              BossConfig.Hearts == BossConfig.BaseHearts + BossConfig.ExtraHearts && Mathf.Abs(BossConfig.HeartWeight * BossConfig.Hearts - BossConfig.HitPoints) < 1e-4f && BossConfig.HitPoints == BossConfig.Hearts && BossConfig.HitPoints == 12);
         for (int w = 0; w < BossCatalog.All.Length; w++)
         {
             FreshScene(w);
@@ -251,7 +251,9 @@ public static class BossHeartsTest
         for (int i = 0; i < 2; i++) e.OnShipAttackHit(.25f);
         Check("two 0.25 contacts (0.5) take no heart yet", e.HeartsLeft == N);
         e.OnShipAttackHit(.1f);
-        Check("... 0.6 takes the first", e.HeartsLeft == N - 1);
+        Check("... 0.6 takes no heart while a heart is a whole hit", e.HeartsLeft == N - Mathf.FloorToInt(.6f / BossConfig.HeartWeight + 1e-4f));
+        e.OnShipAttackHit(.4f);
+        Check("... 1.0 takes the first", e.HeartsLeft == N - Mathf.FloorToInt(1f / BossConfig.HeartWeight + 1e-4f));
         bool consistent = true;
         for (float d = 0f; d < BossConfig.HitPoints + .2f; d += .01f)
         {

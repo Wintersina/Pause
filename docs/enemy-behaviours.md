@@ -1351,21 +1351,21 @@ Branch `feature/boss-hearts`. The user: "The bosses should have 5 spinning heart
 enemy elite hearts more clear: give them an outline glow". Tested by `BossHeartsTest`; renders from
 `BossHeartsPreview`.
 
-**Health.** A boss has `BossConfig.HitPoints` = 7 (full-weight ship-attack hits: a rail slug, a fireball, one
+**Health.** A boss has `BossConfig.HitPoints` = 12, always equal to `Hearts` (full-weight ship-attack hits: a rail slug, a fireball, one
 homing shot of the volley = 1; a gatling shell 1/14, a beam or cone tick 0.2, ...), worn as `BossConfig.Hearts` = 12
 hearts (`BaseHearts` 5 + `ExtraHearts` 7; it was 9 = 5 + 4, then the user asked for 12), each an
-equal share (`HeartWeight` = 7/12 = 0.583 hit) of the pool: a heart goes the moment its share is spent, the twelfth
-exactly with the last hit point. Seven full hits destroy it (it was five hits and 9 hearts, three and 5 before). Every boss in every world has the same numbers (`BossConfig`; the catalogue holds neither).
+equal share (`HeartWeight` = 12/12 = 1 hit: one full hit, one heart) of the pool: a heart goes the moment its share is spent, the twelfth
+exactly with the last hit point. Twelve full hits destroy it (it was 7 hits with 12 hearts, five hits and 9 hearts, three and 5 before; `HitPoints` is now defined as `Hearts`, so they cannot diverge). Every boss in every world has the same numbers (`BossConfig`; the catalogue holds neither).
 **The escape clock** is `BossConfig.EscapeSeconds` = 120 s (`FightSeconds`): an untouched boss stays two minutes,
 then retreats (it was 36 s). The rules round it are unchanged: hits count only in the Fight phase (nothing while it
 warps in or out), the clock is never shaved, DeathCombo never chains a boss, rams and shockwaves pass through it.
 The attack phases stay at the thirds of the clock / of the hearts (40 s each); the damaged-hull looks
 (`BossArt.DamageStage`, 4 stages) spread across the 12 hearts (1-3 lost stage 1, 4-6 stage 2, 7-9 stage 3, 10+ stage 4).
-Supply: a 120 s fight guarantees `BossFreeShotAtoms.Count` = 7 free-shot atoms on a stratified schedule (one per
-~16 s slot, the first within the first ~13 s, never luck), plus one each of capacitor (twice), shield and heal at fixed
-shares of the fight (`RollPlan`, released by `spawnGoodStuff` on top of the level's own budgets). Damage: ultimate
-(30-60 s countdown, cut by pickups), the free shots (each one hit at most) and rams. Estimate: 7 hits needed; the 7 free
-shots alone only just do it (every one must land, the 7th around 110 s), so the natural ultimate (~45 s cycle, 2-3 in the fight) and rams are now needed alongside: a harder fight than at 5 hits.
+Supply: a fight guarantees `BossFreeShotAtoms.Count` = 2 free-shot atoms (~30% and ~65% of the fight), each a charged shot
+worth `ChargedBudget` 1.5 hits (3 in all), plus one each of capacitor (twice), shield and heal at fixed shares (`RollPlan`).
+Other damage: the ultimate (30-60 s countdown, cut by pickups; one firing is about 1-1.5 hits) and rams (`BossRam.RamWeight` .3,
+about four per blue atom). Estimate for 12 hits: free shots 3 + ultimate 2-3 firings (~2.5-3.5) = ~6, so about 6 more
+hits must come from rams (~20 rams = 5 shield atoms) in 120 s: see the PR notes on the balance (not retuned).
 `BossFreeShotAtomsTest` / `BossEscapeClockTest` assert the numbers.
 
 **Phases.** The attack escalation (one attack, two, then all three faster) goes by

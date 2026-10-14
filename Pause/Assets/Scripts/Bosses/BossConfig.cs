@@ -83,16 +83,16 @@ public static class BossConfig
     public static float FinalPhaseCooldownScale = 0.75f;
 
     // Full-weight ship-attack hits needed to destroy the boss before the
-    // fight clock runs out (weighted hits add up).
-    // (3 became 5 with the four extra hearts: 5 hearts / 3 hits grew to
-    // 9 hearts / 5 hits, each heart ~0.56 of a hit instead of 0.6. Then 9 became 12 on the
-    // user's ask: 12 hearts / 7 hits, each heart ~0.58 of a hit -- the same ratio again.)
-    public static int HitPoints = 7;
+    // fight clock runs out (weighted hits add up). One hit point per heart,
+    // always: it IS Hearts, so the two can never diverge (each heart is
+    // exactly one full hit, HeartWeight 1). History: 3 hits / 5 hearts, then
+    // 5 / 9, then 7 / 12 (a heart ~0.58 of a hit); now 12 / 12 on the user's ask.
+    public static int HitPoints => Hearts;
 
     // ---- hearts (BossHearts) ----
     // The boss wears its health as Hearts hearts spinning round it. They
     // split the same HitPoints pool into equal segments: each heart is
-    // HeartWeight full hits (HitPoints / Hearts = 7 / 12), and goes the moment its segment
+    // HeartWeight full hits (HitPoints / Hearts = 12 / 12 = 1), and goes the moment its segment
     // is spent -- so the fight is exactly as long and as hard as before,
     // the last heart going with the last hit point. (A full-weight hit
     // takes one heart, sometimes two: 5 -> 4 -> 2 -> 0 under three of them.)

@@ -74,7 +74,7 @@ public static class BossDamagePreview
         for (int t = 0; t < tiles; t++)
         {
             int left = tiles - t;
-            for (int i = 0; i < 20 && e.HeartsLeft > left; i++) e.OnShipAttackHit(BossConfig.HeartWeight * .5f);
+            for (int i = 0; i < 40 && e.HeartsLeft > left; i++) e.OnShipAttackHit(BossConfig.HeartWeight * .5f);
             // settle (crumble and flash done), then wait for the idle pose
             for (int i = 0; i < 90; i++) e.Step(Dt, 1f);
             for (int i = 0; i < 600 && !BossArt.IsIdleFrame(e.Actor.BodyFrame); i++) e.Step(Dt, 1f);

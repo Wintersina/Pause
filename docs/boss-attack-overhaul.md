@@ -4,7 +4,7 @@ The user: "the bosses should progressively become harder and the attack patterns
 boss from each level should be harder than the last. Let's build this out fully for new different attack patterns. The
 current bosses each have too similar attack patterns."
 
-Kept as it was: 12 hearts / 7 hit points per boss, the 120 s escape clock, the thirds-of-the-fight phases, the free shots and
+Kept as it was: 12 hearts / 12 hit points per boss (each heart one full hit), the 120 s escape clock, the thirds-of-the-fight phases, the free shots and
 ultimate, the friendly-fire rules (a boss shot still takes out a rock it meets), the entrance, the death sequence, all artwork.
 What changed: what the bosses fire, how much, and how it escalates. Every number lives in two files:
 `Scripts/Bosses/Patterns/BossPatternTables.cs` (the attacks) and `Scripts/Bosses/Patterns/BossLadder.cs` (the ladder: density,

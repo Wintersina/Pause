@@ -81,8 +81,8 @@ public static class BossPatternTest
             Check(Names[w] + ": every stream's body parts resolve, at most " + BossPatternRunner.MaxStreams + " streams an attack", parts && patterns);
             Check(Names[w] + ": telegraphs meet the ladder floor " + BossLadder.TellFloor[w].ToString("F2") + " s, cooldowns positive, tell poses 0-2", tells && pose);
         }
-        Check("the numbers the overhaul keeps: 12 hearts, 7 hit points, 120 s escape clock",
-              BossConfig.Hearts == 12 && BossConfig.HitPoints == 7 && BossConfig.EscapeSeconds == 120f && BossConfig.FightSeconds == 120f);
+        Check("the numbers the overhaul keeps: 12 hearts, 12 hit points, 120 s escape clock",
+              BossConfig.Hearts == 12 && BossConfig.HitPoints == 12 && BossConfig.EscapeSeconds == 120f && BossConfig.FightSeconds == 120f);
         Check("the old default and themed tables are still there for their suites", BossCatalog.ForWorld(1).DefaultAttacks.Length == 3 && BossCatalog.ForWorld(1).themed.Length == 5);
         BossCatalog.UseOverhaul = false;
         Check("with the overhaul off the boss fights its old table again", !ReferenceEquals(BossCatalog.ForWorld(0).attacks, BossCatalog.ForWorld(0).hell));
