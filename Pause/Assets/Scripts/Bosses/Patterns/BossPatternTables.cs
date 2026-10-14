@@ -60,7 +60,7 @@ public static partial class BossPatternTables
     static void Build()
     {
         all = new PatternSlot[Bosses][];
-        all[0] = new PatternSlot[0];   // (filled in by the boss commits)
+        all[0] = Space();
         all[1] = new PatternSlot[0];   // (filled in by the boss commits)
         all[2] = new PatternSlot[0];   // (filled in by the boss commits)
         all[3] = new PatternSlot[0];   // (filled in by the boss commits)
