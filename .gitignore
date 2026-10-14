@@ -83,3 +83,13 @@ QUESTIONS.md
 # Secrets
 .env
 .env.*
+
+# Cover boulder staging (docs/cover-boulders.md): the wired copies live in Art/Resources/Boulders; keep the scripts and the composites
+Pause/Assets/Art/Boulders~/*/src~/*.png
+Pause/Assets/Art/Boulders~/*/src~/v1/
+Pause/Assets/Art/Boulders~/*/src~/*.log
+Pause/Assets/Art/Boulders~/*/boulder.png
+Pause/Assets/Art/Boulders~/*/break.png
+Pause/Assets/Art/Boulders~/*/preview.png
+Pause/Assets/Art/Boulders~/*/src~/*/
+Pause/Assets/Art/Boulders~/*/composite.png

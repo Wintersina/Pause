@@ -5,5 +5,4 @@
 <CRACK_LIGHT>=magenta glow (#FF55E8 with a pale #FFD0F6 core), exactly like the cracks already in the rocks
 <DEBRIS>=rock chips, glowing magenta crumbs, cyan-lit dust
 <PALETTE>=exactly the reference's: dark purple-grey rock, cyan-blue rim (hue 195-215), magenta glow (the ONLY world allowed pink)
-<OUTLINE>=the reference's own blue rim light (keep each rock's existing edge)
-<REFS>=Pause/Assets/Art/Boulders~/Space/boulder.png
+<REFS>=(attached images) the four backdrop variants contact sheet (rows v1..v4; columns sky/far/mid/flow), the landmarks atlas, and v1 mid layer of the world

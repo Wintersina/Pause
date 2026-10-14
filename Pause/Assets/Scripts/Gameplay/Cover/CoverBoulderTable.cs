@@ -34,7 +34,29 @@ public sealed class CoverBoulderEntry
     public Color debris;                  // chips / debris pixels
     public Color chip2;                   // a second debris tone
 
+    // BACKDROP RULES (docs/cover-boulders.md section 13): the world's backdrop has four variants (BackdropSet.Variant 1..4, one per
+    // visit). shapes[b-1] is the bit mask of the boulder shapes that blend into backdrop variant b (bit i = shape i; 0 = NO boulder
+    // spawns over that backdrop). tint[b-1] multiplies the sprite so it takes that variant's colour; haze is the fog it emerges from.
+    public int[] shapes = { 7, 7, 7, 7 };
+    public Color[] tint;
+    public Color haze = new Color(.45f, .5f, .55f, 1f);
+    public string[] notes;                // one line per backdrop variant: what it is and why these shapes (docs / PR table)
+
     public int Variants => widths.Length;
+
+    // The shapes allowed over backdrop variant `b` (1..4; 0 / unknown: the union, for tests and menus).
+    public int Mask(int b)
+    {
+        if (b >= 1 && b <= shapes.Length) return shapes[b - 1];
+        int m = 0;
+        for (int i = 0; i < shapes.Length; i++) m |= shapes[i];
+        return m;
+    }
+
+    public Color TintFor(int b)
+    {
+        return tint != null && b >= 1 && b <= tint.Length ? tint[b - 1] : Color.white;
+    }
 }
 
 public static class CoverBoulderTable
@@ -50,14 +72,28 @@ public static class CoverBoulderTable
             widths = new[] { 2.0f, 2.4f, 2.8f }, drift = CoverDrift.Tumble,
             fall = new Vector2(.75f, 1.1f), side = .15f, spin = new Vector2(3f, 7f),
             gap = new Vector2(45f, 85f),
+            shapes = new[] { 7,7,7,7 },
+            notes = new[] {
+                "open space: an asteroid belongs on every sky variant",
+                "open space: an asteroid belongs on every sky variant",
+                "open space: an asteroid belongs on every sky variant",
+                "open space: an asteroid belongs on every sky variant"
+            },
             crack = C(1f, .33f, .91f), debris = C(.42f, .40f, .55f), chip2 = C(1f, .33f, .91f),
         },
         new CoverBoulderEntry {
-            world = "Frost", folder = "Boulders/Frost", enabled = false,
+            world = "Frost", folder = "Boulders/Frost", enabled = true,
             concept = "ice mountain / iceberg crag",
             widths = new[] { 2.4f, 2.6f, 2.8f }, drift = CoverDrift.Slide,
             fall = new Vector2(.6f, .9f), side = .10f, swayDeg = 0f, swayPeriod = 1f,
             gap = new Vector2(50f, 90f),
+            shapes = new[] { 7,0,0,7 },
+            notes = new[] {
+                "v1 broken pack ice and floes: the ice mountain drifts out of the floes (all three shapes)",
+                "v2 harbour wharf with wrecks and docks: industrial, a mountain would clash: NONE",
+                "v3 industrial pipe / rail lattice with refinery towers on frozen ground: NONE (the user: 'doesn't need any boulders')",
+                "v4 sheer ice cliffs and crevasses: natural ice mountain terrain (all three shapes)"
+            },
             crack = C(.75f, .95f, 1f), debris = C(.80f, .92f, 1f), chip2 = C(.45f, .70f, .90f),
         },
         new CoverBoulderEntry {
@@ -66,6 +102,13 @@ public static class CoverBoulderTable
             widths = new[] { 2.3f, 2.6f, 2.9f }, drift = CoverDrift.Sway,
             fall = new Vector2(.65f, .95f), side = .12f, swayDeg = 3f, swayPeriod = 9f,
             gap = new Vector2(45f, 85f),
+            shapes = new[] { 7,7,0,7 },
+            notes = new[] {
+                "v1 jungle canopy with rivers: giant tree masses grow out of the canopy",
+                "v2 mangrove islands and channels: tree masses and root-balls belong",
+                "v3 ruined overgrown city grid: concrete and roads, a tree mass would clash: NONE",
+                "v4 deep bioluminescent teal jungle: tree masses, tinted teal"
+            },
             crack = C(.72f, 1f, .77f), debris = C(.30f, .45f, .22f), chip2 = C(.55f, .85f, .45f),
         },
         new CoverBoulderEntry {
@@ -74,6 +117,13 @@ public static class CoverBoulderTable
             widths = new[] { 2.2f, 2.6f, 2.8f }, drift = CoverDrift.Rock,
             fall = new Vector2(.7f, 1.0f), side = .10f, swayDeg = 6f, swayPeriod = 7f,
             gap = new Vector2(45f, 85f),
+            shapes = new[] { 7,0,7,7 },
+            notes = new[] {
+                "v1 lava rivers between basalt plateaus: volcanic stone belongs",
+                "v2 foundry plant (pipes, vents, machinery): NONE",
+                "v3 ash ridges and lava dunes: volcanic stone belongs",
+                "v4 cracked caldera floor with a magma vortex: volcanic stone belongs"
+            },
             crack = C(1f, .71f, .35f), debris = C(.16f, .14f, .20f), chip2 = C(1f, .60f, .24f),
         },
         new CoverBoulderEntry {
@@ -82,6 +132,13 @@ public static class CoverBoulderTable
             widths = new[] { 2.2f, 2.9f, 2.7f }, drift = CoverDrift.Bob,
             fall = new Vector2(.65f, .95f), side = .15f, swayDeg = 2f, swayPeriod = 8f, bobAmp = .12f, bobPeriod = 6f,
             gap = new Vector2(45f, 85f),
+            shapes = new[] { 7,0,7,7 },
+            notes = new[] {
+                "v1 storm-tossed open sea: a reef stack drifts in the swell",
+                "v2 rusted oil-platform field: industrial brown, a reef would clash: NONE",
+                "v3 sunken glowing city / reef flats: reef belongs",
+                "v4 whirlpool bioluminescent ocean: reef belongs"
+            },
             crack = C(.61f, 1f, .88f), debris = C(.55f, .75f, .72f), chip2 = C(.90f, .95f, .80f),
         },
         new CoverBoulderEntry {
@@ -90,6 +147,13 @@ public static class CoverBoulderTable
             widths = new[] { 2.4f, 2.9f, 2.6f }, drift = CoverDrift.Hover,
             fall = new Vector2(.7f, 1.0f), side = .20f, swayDeg = 1.5f, swayPeriod = 11f, bobAmp = .10f, bobPeriod = 5f,
             gap = new Vector2(40f, 80f),
+            shapes = new[] { 7,7,7,7 },
+            notes = new[] {
+                "v1 sheared cloud banks: a floating thunderhead rock sits in the deck",
+                "v2 towering cumulus field: thunderhead rock belongs",
+                "v3 cyclone eye over the deck: thunderhead rock belongs",
+                "v4 lightning fields: thunderhead rock belongs"
+            },
             crack = C(.95f, .96f, 1f), debris = C(.50f, .54f, .62f), chip2 = C(1f, .95f, .63f),
         },
         new CoverBoulderEntry {
@@ -98,6 +162,13 @@ public static class CoverBoulderTable
             widths = new[] { 2.5f, 2.9f, 2.6f }, drift = CoverDrift.Slide,
             fall = new Vector2(.6f, .9f), side = .10f, swayDeg = 0f, swayPeriod = 1f,
             gap = new Vector2(50f, 90f),
+            shapes = new[] { 7,7,7,7 },
+            notes = new[] {
+                "v1 sand dunes: a rock outcrop belongs",
+                "v2 mesa canyon with mining pipes: the mesa and butte are this backdrop's own rock",
+                "v3 cracked flats with mining scaffolds: butte and mesa belong",
+                "v4 night dunes (blue): rock outcrop, tinted blue"
+            },
             crack = C(1f, .91f, .66f), debris = C(.78f, .60f, .38f), chip2 = C(.95f, .85f, .62f),
         },
     };
@@ -132,10 +203,15 @@ public static class CoverBoulderTable
             if (e.drift != CoverDrift.Tumble && e.drift != CoverDrift.Slide && (e.swayDeg <= 0f || e.swayPeriod < 3f)) return e.world + ": sway";
             if (e.drift == CoverDrift.Slide && e.swayDeg != 0f) return e.world + ": a Slide boulder never leans";
             if ((e.drift == CoverDrift.Bob || e.drift == CoverDrift.Hover) && (e.bobAmp <= 0f || e.bobAmp > .2f || e.bobPeriod < 3f)) return e.world + ": bob";
+            if (e.shapes == null || e.shapes.Length != 4) return e.world + ": shapes needs one mask per backdrop variant (4)";
+            foreach (var m in e.shapes) if (m < 0 || m > 7) return e.world + ": shape mask " + m;
+            if (e.enabled && e.Mask(0) == 0) return e.world + ": enabled with no shape over any backdrop";
+            if (e.notes == null || e.notes.Length != 4) return e.world + ": notes needs one line per backdrop variant (4)";
+            if (e.tint != null && e.tint.Length != 4) return e.world + ": tint needs 4 colours";
             if (e.folder != "Boulders/" + e.world) return e.world + ": folder " + e.folder;
             if (w > 0)
             {
-                if (WorldCue.IsPink(e.crack) || WorldCue.IsPink(e.debris) || WorldCue.IsPink(e.chip2)) return e.world + ": pink outside Space";
+                if (WorldCue.IsPink(e.crack) || WorldCue.IsPink(e.debris) || WorldCue.IsPink(e.chip2) || WorldCue.IsPink(e.haze)) return e.world + ": pink outside Space";
             }
         }
         return null;

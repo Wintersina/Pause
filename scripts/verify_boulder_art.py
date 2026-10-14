@@ -18,7 +18,7 @@ import argparse, json, os, sys
 import numpy as np
 from PIL import Image
 
-CELL = 512
+CELL = 512   # set by --cell (768 for the high-res sheets)
 VARIANTS = 3
 FRAMES = 5
 FAIL = 0
@@ -107,15 +107,35 @@ def fit_circles(cellarr, maxn=4, shrink=.94):
     return [[round(c[0], 1), round(c[1], 1), round(c[2], 1)] for c in circles]
 
 
+def block_score(a, k):
+    """Share of opaque texels equal to the first texel of their k x k block, best phase (>= .97 = a block upscale)."""
+    op = a[..., 3] > 8
+    best = 0.0
+    for oy in range(k):
+        for ox in range(k):
+            h = (a.shape[0] - oy) // k * k; w = (a.shape[1] - ox) // k * k
+            sub = a[oy:oy + h, ox:ox + w]
+            first = np.repeat(np.repeat(sub[::k, ::k], k, 0), k, 1)
+            eq = (sub == first).all(-1) & op[oy:oy + h, ox:ox + w]
+            n = op[oy:oy + h, ox:ox + w].sum()
+            if n > 300:
+                best = max(best, float(eq.sum() / n))
+    return best
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("dir")
     ap.add_argument("--world", required=True)
     ap.add_argument("--manifest", action="store_true")
     ap.add_argument("--sheet")
+    ap.add_argument("--cell", type=int, default=512, help="cell size in px (768 for the high-res sheets)")
     ap.add_argument("--no-break", action="store_true", help="the intact sheet only (Space before its strip exists)")
     ap.add_argument("--intact", nargs=3, metavar="RES", help="Resources paths of three in-place intact sprites (Space)")
     args = ap.parse_args()
+    global CELL
+    CELL = args.cell
+    S = CELL / 512.0
     world = args.world
     space = world.lower() == "space"
 
@@ -125,6 +145,11 @@ def main():
         print("cannot go on without both files at the right size")
         sys.exit(1)
 
+    for name, arr in (("boulder.png", b), ("break.png", k)):
+        if arr is None:
+            continue
+        worst = max(block_score(arr, kk) for kk in (2, 3, 4))
+        check(name + " is real resolution, not a block upscale (block score %.3f < .97)" % worst, worst < .97)
     variants = []
     lights = []
     for v in range(VARIANTS):
@@ -139,10 +164,10 @@ def main():
               .60 * CELL <= w <= .95 * CELL and .45 * CELL <= h <= .95 * CELL)
         cx, cy = (x0 + x1) / 2, (y0 + y1) / 2
         check("v%d: centred within 6%% (%.0f, %.0f)" % (v, cx, cy), abs(cx - CELL / 2) < .06 * CELL and abs(cy - CELL / 2) < .06 * CELL)
-        check("v%d: 8 px clear margin" % v, x0 >= 8 and y0 >= 8 and x1 <= CELL - 8 and y1 <= CELL - 8)
+        check("v%d: 8 px clear margin" % v, x0 >= 8 * S and y0 >= 8 * S and x1 <= CELL - 8 * S and y1 <= CELL - 8 * S)
         al = cell[..., 3]
         mid = ((al > 8) & (al < 247)).sum() / max(1, (al > 8).sum())
-        check("v%d: hard pixel edges (%.1f%% soft alpha, max 9%%)" % (v, mid * 100), mid <= .09)
+        check("v%d: edges (%.1f%% soft alpha; the base fades out, max %d%%)" % (v, mid * 100, 9 if space else 45), mid <= (.09 if space else .45))
         # light from the upper left: the upper-left half of the body is brighter than the lower right one
         op = al > 128
         l = luma(cell[..., :3].astype(np.float32))
@@ -151,20 +176,27 @@ def main():
         lights.append(float(l[ul].mean() - l[lr].mean()))
         if not space:
             check("v%d: lit from the upper left (%.0f vs %.0f)" % (v, l[ul].mean(), l[lr].mean()), l[ul].mean() > l[lr].mean() + 3)
-        # thin pale outline: the 2 px rim ring is pale (v >= .62, s <= .5) on at least half of its pixels
+        # NO pale outline / halo (revision 2: the boulder blends into its backdrop): the 3 px rim of the SOLID body is not
+        # brighter than the body just inside it, and the body is not brighter than the backdrop's landmarks (median luma <= 110)
         if not space:
-            inner = op.copy()
-            er = op.copy()
-            for _ in range(2):
+            solid = al > 240
+            er = solid.copy()
+            for _ in range(int(round(3 * S))):
                 n = er.copy()
                 n[1:, :] &= er[:-1, :]; n[:-1, :] &= er[1:, :]; n[:, 1:] &= er[:, :-1]; n[:, :-1] &= er[:, 1:]
                 er = n
-            ring = op & ~er
-            rgb = cell[..., :3][ring] / 255.0
-            mx = rgb.max(1); mn = rgb.min(1)
-            sat = np.where(mx > 0, (mx - mn) / np.maximum(mx, 1e-6), 0)
-            pale = ((mx >= .62) & (sat <= .5)).mean() if len(rgb) else 0
-            check("v%d: thin pale outline (%.0f%% of the 2 px rim is pale, min 45%%)" % (v, pale * 100), pale >= .45)
+            ring = solid & ~er
+            er2 = er.copy()
+            for _ in range(int(round(12 * S))):
+                n = er2.copy()
+                n[1:, :] &= er2[:-1, :]; n[:-1, :] &= er2[1:, :]; n[:, 1:] &= er2[:, :-1]; n[:, :-1] &= er2[:, 1:]
+                er2 = n
+            inner = er & ~er2
+            if ring.sum() > 50 and inner.sum() > 50:
+                dl = float(l[ring].mean() - l[inner].mean())
+                check("v%d: no pale outline or halo (rim luma %+.0f vs the body just inside, max +14)" % (v, dl), dl <= 14)
+            med = float(np.median(l[op]))
+            check("v%d: body at backdrop brightness (median luma %.0f <= 112)" % (v, med), med <= 112)
         if not space:
             pk = pinkness(cell)
             check("v%d: no pink outside Space (%.2f%%)" % (v, pk * 100), pk <= .002)
@@ -190,7 +222,7 @@ def main():
             check("v%d: no pink in the break frames (%.2f%%)" % (v, pk * 100), pk <= .002)
         for i, f in enumerate(frames):
             bb = bbox(f)
-            if bb is not None and (bb[0] < 2 or bb[1] < 2 or bb[2] > CELL - 2 or bb[3] > CELL - 2):
+            if bb is not None and (bb[0] < 2 * S or bb[1] < 2 * S or bb[2] > CELL - 2 * S or bb[3] > CELL - 2 * S):
                 check("v%d f%d: debris stays inside its cell" % (v, i), False)
                 break
 

@@ -15,6 +15,9 @@ public sealed class CoverBoulder
 
     public const float RumbleSeconds = .55f, CrackSeconds = .35f, BurstSeconds = .5f, FadeSeconds = .45f;
     public const float RumbleShake = .04f;
+    // EMERGE / RECEDE (docs 13): it comes out of the backdrop, small, hazy and see-through, and grows into the play layer over
+    // EmergeSeconds (smooth in scale and opacity: no pop); on the way out it sinks back over the last RecedeUnits above the view bottom.
+    public const float EmergeSeconds = 2.6f, EmergeScale = .62f, RecedeUnits = 1.8f;
     public const int MaxCircles = 4;
     public const int SortingOrder = -7;
 
@@ -40,6 +43,8 @@ public sealed class CoverBoulder
 
     CoverBoulderEntry entry;
     CoverVariant art;
+    Color bodyTint = Color.white;
+    float presence = 1f, viewBottom = -100f;
     float scale, spin, phaseOff, bobY, t, vyTarget, flicker;
     readonly float[] cx = new float[MaxCircles], cy = new float[MaxCircles], cr = new float[MaxCircles];
     GameObject go;
@@ -73,8 +78,10 @@ public sealed class CoverBoulder
 
     // ---- life ----
 
-    public void Spawn(int world, int variant, CoverVariant v, float widthU, Vector2 at, Vector2 vel, int side, float rng01)
+    public void Spawn(int world, int variant, CoverVariant v, float widthU, Vector2 at, Vector2 vel, int side, float rng01, Color tint)
     {
+        bodyTint = tint;
+        viewBottom = -100f;
         entry = CoverBoulderTable.For(world);
         World = world;
         art = v;
@@ -102,7 +109,7 @@ public sealed class CoverBoulder
         go.SetActive(true);
         body.sprite = v.intact;
         body.enabled = true;
-        body.color = Color.white;
+        body.color = new Color(bodyTint.r, bodyTint.g, bodyTint.b, 0f);
         wash.enabled = false;
         for (int i = 0; i < pieces.Length; i++) pieces[i].enabled = false;
         Place();
@@ -132,17 +139,27 @@ public sealed class CoverBoulder
     }
 
     // A test / preview puts it exactly here (turned `rotDeg`) and holds it still.
-    public void Hold(Vector2 at, float rotDeg = 0f)
+    public void Hold(Vector2 at, float rotDeg = 0f, bool settled = true)
     {
+        if (settled) Age = Mathf.Max(Age, EmergeSeconds);
         Pos = at; Vel = Vector2.zero; Rotation = rotDeg; spin = 0f;
         Place();
     }
 
     // ---- step ----
 
+    // Emerge x recede: 0 (hidden in the backdrop) .. 1 (fully in the play layer). Smooth, so nothing pops.
+    public float Presence => presence;
+    public float VisualScale => EmergeK();
+    public SpriteRenderer GetComponentOnBody() { return body; }
+    public static float Smooth(float x) { x = Mathf.Clamp01(x); return x * x * (3f - 2f * x); }
+    float Recede() { return viewBottom < -99f ? 1f : Smooth((Pos.y - viewBottom) / (Bound + RecedeUnits)); }
+    float EmergeK() { return Mathf.Lerp(EmergeScale, 1f, Smooth(Age / EmergeSeconds)); }   // (the solid shape never shrinks on the way out)
+
     public void Step(float dt, CoverBoulders.StepContext ctx)
     {
         if (State == Phase.Off || dt <= 0f) return;
+        viewBottom = ctx.viewBottom;
         Age += dt;
         t += dt;
         switch (State)
@@ -219,7 +236,10 @@ public sealed class CoverBoulder
         if (shake > 0f) shaken += new Vector2(Mathf.Sin(Age * 83f), Mathf.Cos(Age * 67f)) * shake;
 
         float rad = Rotation * Mathf.Deg2Rad, c = Mathf.Cos(rad), s = Mathf.Sin(rad);
-        float k = scale / CoverBoulderArt.Ppu;
+        float ek = EmergeK();
+        float emerge = Smooth(Age / EmergeSeconds);
+        presence = emerge * Mathf.Lerp(.25f, 1f, Recede());
+        float k = scale * ek / CoverBoulderArt.Ppu;
         for (int i = 0; i < Count; i++)
         {
             float lx = art.circles[i].x * k, ly = art.circles[i].y * k;
@@ -231,20 +251,22 @@ public sealed class CoverBoulder
         var tr = go.transform;
         tr.position = new Vector3(shaken.x, shaken.y, 0f);
         tr.rotation = Quaternion.Euler(0f, 0f, Rotation);
-        tr.localScale = new Vector3(scale, scale, 1f);
+        tr.localScale = new Vector3(scale * ek, scale * ek, 1f);
 
         switch (State)
         {
             case Phase.Live:
                 body.enabled = true; body.sprite = art.intact;
-                body.color = new Color(flicker, flicker, flicker, 1f);
-                wash.enabled = false;
+                body.color = new Color(bodyTint.r * flicker, bodyTint.g * flicker, bodyTint.b * flicker, presence);
+                // the fog it comes out of: a flat haze over the silhouette that thins as it grows into the play layer
+                wash.enabled = presence < .985f; wash.sprite = art.intact;
+                { var hz = entry.haze; hz.a = (1f - presence) * .5f * presence * 2f; wash.color = hz; }
                 break;
             case Phase.Rumble:
                 {
                     body.enabled = true;
                     body.sprite = DrawnFracture && t > RumbleSeconds * .5f ? art.frames[0] : art.intact;
-                    body.color = Color.white;
+                    body.color = new Color(bodyTint.r, bodyTint.g, bodyTint.b, presence);
                     // the crack light flickers through it, faster and stronger as the burst nears
                     float f = Mathf.Clamp01(t / RumbleSeconds);
                     float flick = .5f + .5f * Mathf.Sin(Age * (28f + 40f * f));
@@ -259,7 +281,7 @@ public sealed class CoverBoulder
                     if (DrawnFracture)
                     {
                         body.enabled = true; body.sprite = art.frames[f < .5f ? 0 : 1];
-                        body.color = Color.white;
+                        body.color = new Color(bodyTint.r, bodyTint.g, bodyTint.b, presence);
                         wash.enabled = true; wash.sprite = body.sprite;
                         var col = entry.crack; col.a = .22f + .25f * f; wash.color = col;
                     }
@@ -279,7 +301,7 @@ public sealed class CoverBoulder
                     {
                         int frame = 2 + Mathf.Min(2, (int)(f * 3f));
                         body.enabled = true; body.sprite = art.frames[frame];
-                        body.color = Color.white;
+                        body.color = new Color(bodyTint.r, bodyTint.g, bodyTint.b, presence);
                     }
                     else
                     {
@@ -291,7 +313,7 @@ public sealed class CoverBoulder
             case Phase.Fade:
                 {
                     float a = 1f - Mathf.Clamp01(t / FadeSeconds);
-                    body.enabled = true; body.sprite = art.intact; body.color = new Color(1f, 1f, 1f, a);
+                    body.enabled = true; body.sprite = art.intact; body.color = new Color(bodyTint.r, bodyTint.g, bodyTint.b, a * presence);
                     wash.enabled = false;
                 }
                 break;

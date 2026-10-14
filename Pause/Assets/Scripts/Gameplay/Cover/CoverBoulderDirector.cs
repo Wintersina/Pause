@@ -57,6 +57,17 @@ public class CoverBoulderDirector : MonoBehaviour
         if (CoverBoulders.Any) CoverBoulders.PushBodies();
     }
 
+    // The backdrop variant (1..4) the boulders must blend into: tests set BackdropVariantOverride (> 0); in play it is the live
+    // backdrop set's own variant, and only while that set is this world's (a cross-fade in progress counts as no match: 0).
+    public static int BackdropVariantOverride = -1;
+    public static int BackdropVariant(int worldIndex)
+    {
+        if (BackdropVariantOverride >= 0) return BackdropVariantOverride;
+        var wb = WorldBackdrop.Instance;
+        if (wb == null || wb.Current == null || worldIndex < 0 || worldIndex >= WorldManager.Worlds.Length) return 0;
+        return wb.Current.Spec.world == WorldManager.Worlds[worldIndex].displayName ? wb.Current.Variant : 0;
+    }
+
     public static int WorldOverride = -1;   // tests: the world the director believes it is in (>= 0)
     public static int CurrentWorld => WorldOverride >= 0 ? WorldOverride : WorldManager.Instance != null ? WorldManager.SpawnWorld : -1;
 
@@ -68,6 +79,7 @@ public class CoverBoulderDirector : MonoBehaviour
         if (worldIndex < 0) return "no world";
         if (buttonClicks.playerDied) return "dead";
         if (!CoverBoulderTable.Enabled(worldIndex) && !CoverBoulders.TestAnyWorld) return "no art";
+        if (CoverBoulderTable.For(worldIndex).Mask(BackdropVariant(worldIndex)) == 0) return "backdrop";   // nothing blends into this backdrop
         if (BossEncounter.Running) return "boss";
         if (Planetfall.SuspendsSpawning || Liftoff.SuspendsSpawning || PortalArrival.SuspendsSpawning || WorldEntry.Active) return "transition";
         var wm = WorldManager.Instance;
@@ -122,13 +134,21 @@ public class CoverBoulderDirector : MonoBehaviour
         return Random.Range(e.gap.x, e.gap.y);
     }
 
+    static int BitCount(int m) { int n = 0; while (m != 0) { n += m & 1; m >>= 1; } return n; }
+
     public CoverBoulder SpawnOne(int worldIndex)
     {
         var e = CoverBoulderTable.For(worldIndex);
-        int v = Random.Range(0, e.Variants);
-        if (v == lastVariant) v = (v + 1 + Random.Range(0, e.Variants - 1)) % e.Variants;   // never the same silhouette twice running
-        lastVariant = v;
-        return CoverBoulders.Spawn(worldIndex, v);
+        int mask = e.Mask(BackdropVariant(worldIndex));
+        if (mask == 0) return null;
+        // a shape that blends into this backdrop, never the same silhouette twice running when another fits
+        int n = 0, pick = -1;
+        for (int i = 0; i < e.Variants; i++)
+            if ((mask & (1 << i)) != 0 && (i != lastVariant || BitCount(mask) == 1))
+                if (Random.Range(0, ++n) == 0) pick = i;
+        if (pick < 0) return null;
+        lastVariant = pick;
+        return CoverBoulders.Spawn(worldIndex, pick);
     }
 }
 

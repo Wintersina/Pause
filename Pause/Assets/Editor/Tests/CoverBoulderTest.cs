@@ -34,6 +34,9 @@ public static class CoverBoulderTest
         {
             Table();
             Art();
+            WorldArt();
+            BackdropRules();
+            Emerge();
             Lanes();
             Safety();
             DynamicSafety();
@@ -54,6 +57,7 @@ public static class CoverBoulderTest
             CoverBoulders.Disabled = false;
             CoverBoulders.TestAnyWorld = false;
             CoverBoulderDirector.WorldOverride = -1;
+            CoverBoulderDirector.BackdropVariantOverride = -1;
             CoverBoulders.Dispose();
             EliteSystem.PlayerOverride = null;
             EliteSystem.Clear();
@@ -162,10 +166,214 @@ public static class CoverBoulderTest
         foreach (var x in v)
             foreach (var c in x.circles)
                 inside &= new Vector2(c.x, c.y).magnitude + c.r <= x.cellPx * .5f * 1.05f && c.r > 8f;
-        Check("every hit circle lies inside its 512 px cell", inside);
+        Check("every hit circle lies inside its cell", inside);
         Check("Space's approved destruction strip is wired: 5 drawn frames per variant", System.Array.TrueForAll(v, x => x.frames != null && x.frames.Length == CoverBoulderArt.FramesPerStrip));
         var w = CoverBoulderArt.For(3);
         Check("a world with no art borrows Space's for the tests", w != null && w[0] == v[0]);
+    }
+
+    // ---- every wired world's art: complete, real resolution, never clamped, pale-edged, no pink outside Space ----
+
+    // Share of opaque texels equal to their k x k block's first texel at the best grid phase (>= .97 is a block upscale).
+    static float BlockScore(Color32[] px, int W, int H, int k)
+    {
+        float best = 0f;
+        for (int oy = 0; oy < k; oy++)
+            for (int ox = 0; ox < k; ox++)
+            {
+                long eq = 0, n = 0;
+                for (int y = oy; y + k <= H; y++)
+                {
+                    int by = oy + (y - oy) / k * k;
+                    for (int x = ox; x + k <= W; x++)
+                    {
+                        var c = px[y * W + x];
+                        if (c.a <= 8) continue;
+                        n++;
+                        var f = px[by * W + ox + (x - ox) / k * k];
+                        if (c.r == f.r && c.g == f.g && c.b == f.b && c.a == f.a) eq++;
+                    }
+                }
+                if (n > 300) best = Mathf.Max(best, eq / (float)n);
+            }
+        return best;
+    }
+
+    static Color32[] ReadPng(string path, out int w, out int h)
+    {
+        var tex = new Texture2D(2, 2, TextureFormat.RGBA32, false);
+        tex.LoadImage(System.IO.File.ReadAllBytes(path));
+        w = tex.width; h = tex.height;
+        var px = tex.GetPixels32();
+        Object.DestroyImmediate(tex);
+        return px;
+    }
+
+    static void WorldArt()
+    {
+        Fresh();
+        float spaceDensity = 0f;
+        var sp = CoverBoulderArt.For(0);
+        for (int i = 0; i < sp.Length; i++)
+            spaceDensity += sp[i].artWidth / CoverBoulderTable.Entries[0].widths[i] / sp.Length;
+        for (int w = 0; w < CoverBoulderTable.Entries.Length; w++)
+        {
+            var e = CoverBoulderTable.Entries[w];
+            if (!e.enabled) continue;
+            string name = e.world;
+            var v = CoverBoulderArt.Load(e.folder);
+            Check(name + ": manifest + art load, 3 variants, 1-4 hit circles each, five drawn break frames",
+                  v != null && v.Length == 3 && System.Array.TrueForAll(v, x => x.intact != null && x.circles.Length >= 1 && x.circles.Length <= CoverBoulder.MaxCircles &&
+                                                                           x.frames != null && x.frames.Length == CoverBoulderArt.FramesPerStrip));
+            if (v == null) continue;
+            float cell = v[0].cellPx;
+            // texel density: the art's own pixels per world unit never below Space's (no downscale to save memory)
+            for (int i = 0; i < v.Length && w > 0; i++)
+                Check(name + " v" + i + ": texel density " + (v[i].artWidth / e.widths[i]).ToString("0") + " px/u >= Space's " + spaceDensity.ToString("0"),
+                      v[i].artWidth / e.widths[i] >= spaceDensity * 1.05f);
+            bool inside = true, pivot = true;
+            foreach (var x in v)
+            {
+                // collider sanity: circles inside the cell and inside the art's own width, the centre circle near the cell centre
+                foreach (var c in x.circles) inside &= new Vector2(c.x, c.y).magnitude + c.r <= cell * .5f * 1.05f && c.r > 8f * cell / 512f && Mathf.Abs(c.x) < x.artWidth * .5f;
+                pivot &= x.intact.pivot.x * 2f == x.intact.rect.width && Mathf.Approximately(x.intact.rect.width, cell) && Mathf.Approximately(x.frames[0].rect.width, cell);
+            }
+            Check(name + ": hit circles inside the " + cell + " px cell, pivot at the cell centre (art and break frames share one cell)", inside && pivot);
+
+            if (w == 0) continue;   // Space: the user's in-place asteroids (no sheets), the benchmark of the others
+            string dir = "Assets/Art/Resources/" + e.folder + "/";
+            foreach (var f in new[] { "boulder.png", "break.png" })
+            {
+                int W, H;
+                var px = ReadPng(dir + f, out W, out H);
+                bool ok = f == "boulder.png" ? W == (int)cell * 3 && H == (int)cell : W == (int)cell * 5 && H == (int)cell * 3;
+                var imp = (UnityEditor.TextureImporter)UnityEditor.AssetImporter.GetAtPath(dir + f);
+                if (imp != null) Debug.Log("[COVER] import " + f + ": def " + imp.GetDefaultPlatformTextureSettings().maxTextureSize + " android " + imp.GetPlatformTextureSettings("Android").maxTextureSize + "/" + imp.GetPlatformTextureSettings("Android").format + " iphone " + imp.GetPlatformTextureSettings("iPhone").format + " mips " + imp.mipmapEnabled + " ok " + ok);
+                Check(name + "/" + f + ": " + W + "x" + H + " is the full sheet; import not clamped, no mipmaps, ASTC 4x4 on phones",
+                      ok && imp != null && imp.GetDefaultPlatformTextureSettings().maxTextureSize >= W && imp.GetPlatformTextureSettings("Android").maxTextureSize >= W && !imp.mipmapEnabled &&
+                      imp.GetPlatformTextureSettings("Android").format == UnityEditor.TextureImporterFormat.ASTC_4x4 &&
+                      imp.GetPlatformTextureSettings("iPhone").format == UnityEditor.TextureImporterFormat.ASTC_4x4);
+                float worst = Mathf.Max(BlockScore(px, W, H, 2), Mathf.Max(BlockScore(px, W, H, 3), BlockScore(px, W, H, 4)));
+                Check(name + "/" + f + ": real resolution, not a block upscale (block score " + worst.ToString("0.000") + " < .97)", worst < .97f);
+                int pinks = 0, opaque = 0;
+                for (int i = 0; i < px.Length; i += 3)
+                    if (px[i].a > 8) { opaque++; if (w > 0 && WorldCue.IsPink(new Color32(px[i].r, px[i].g, px[i].b, 255))) pinks++; }
+                bool pinkFree = pinks <= opaque * .002f;
+                Check(name + "/" + f + ": no pink outside Space", pinkFree);
+            }
+        }
+    }
+
+    // ---- BACKDROP RULES: a boulder only spawns where it blends into the backdrop variant in play (docs 13) ----
+
+    static void BackdropRules()
+    {
+        Fresh();
+        CoverBoulders.TestAnyWorld = false;
+        bool all = true, notes = true, noneBlocked = true, onlyAllowed = true, determinism = true, someWhere = true;
+        int noneCount = 0;
+        for (int w = 0; w < CoverBoulderTable.Entries.Length; w++)
+        {
+            var e = CoverBoulderTable.Entries[w];
+            if (!e.enabled) continue;
+            someWhere &= e.Mask(0) != 0;
+            for (int b = 1; b <= 4; b++)
+            {
+                int mask = e.Mask(b);
+                notes &= !string.IsNullOrEmpty(e.notes[b - 1]);
+                CoverBoulderDirector.BackdropVariantOverride = b;
+                CoverBoulders.Clear();
+                string why = CoverBoulderDirector.Blocked(w, 90f);
+                if (mask == 0) { noneCount++; noneBlocked &= why == "backdrop"; }
+                else
+                {
+                    if (why != null) { Debug.Log("[COVER] backdrop rule: " + CoverBoulderTable.Entries[w].world + " v" + b + " blocked by " + why); }
+                    all &= why == null;
+                    CoverBoulderDirector.WorldOverride = w;
+                    var dir = new GameObject("~dir").AddComponent<CoverBoulderDirector>();
+                    dir.Begin();
+                    var seen = new List<int>();
+                    for (int i = 0; i < 24; i++)
+                    {
+                        CoverBoulders.Clear();
+                        var bd = dir.SpawnOne(w);
+                        if (bd == null) { onlyAllowed = false; break; }
+                        onlyAllowed &= (mask & (1 << bd.Variant)) != 0;
+                        seen.Add(bd.Variant);
+                    }
+                    // determinism: the same seed gives the same sequence
+                    var again = new List<int>();
+                    Random.InitState(4242);
+                    var dir2 = new GameObject("~dir2").AddComponent<CoverBoulderDirector>();
+                    dir2.Begin();
+                    Random.InitState(99); var first = new List<int>();
+                    for (int i = 0; i < 8; i++) { CoverBoulders.Clear(); var bd = dir2.SpawnOne(w); first.Add(bd != null ? bd.Variant : -1); }
+                    Object.DestroyImmediate(dir2.gameObject);
+                    var dir3 = new GameObject("~dir3").AddComponent<CoverBoulderDirector>();
+                    dir3.Begin();
+                    Random.InitState(99);
+                    for (int i = 0; i < 8; i++) { CoverBoulders.Clear(); var bd = dir3.SpawnOne(w); again.Add(bd != null ? bd.Variant : -1); }
+                    Object.DestroyImmediate(dir3.gameObject);
+                    determinism &= first.Count == again.Count;
+                    for (int i = 0; i < first.Count && i < again.Count; i++) determinism &= first[i] == again[i];
+                    Object.DestroyImmediate(dir.gameObject);
+                    CoverBoulderDirector.WorldOverride = -1;
+                }
+            }
+            // with no known backdrop variant (0: menus, tests) the union applies
+            CoverBoulderDirector.BackdropVariantOverride = 0;
+            CoverBoulders.Clear();
+            string why0 = CoverBoulderDirector.Blocked(w, 90f);
+            if (why0 != null) Debug.Log("[COVER] backdrop rule: " + e.world + " union blocked by " + why0);
+            all &= why0 == null;
+        }
+        CoverBoulderDirector.BackdropVariantOverride = -1;
+        CoverBoulders.Clear();
+        CoverBoulders.TestAnyWorld = true;
+        Check("every wired world allows at least one shape over at least one backdrop variant", someWhere);
+        Check("every backdrop variant of a wired world either has allowed shapes (spawns, nothing else blocks) or is explicitly 'none' (" + noneCount + " none)", all);
+        Check("a 'none' backdrop never spawns a boulder (Blocked == backdrop)", noneBlocked);
+        Check("every wired world documents each backdrop variant (notes)", notes);
+        Check("spawns only ever pick an allowed shape for the backdrop variant", onlyAllowed);
+        Check("the choice of shape is deterministic for a seed", determinism);
+    }
+
+    // ---- EMERGE / RECEDE: out of the backdrop into the play layer with no pop ----
+
+    static void Emerge()
+    {
+        Fresh();
+        var b = CoverBoulders.Spawn(0, 1);
+        var sr = b != null ? b.GetComponentOnBody() : null;
+        Check("a fresh boulder starts fully faded and small (presence " + (b != null ? b.Presence.ToString("0.00") : "-") + ")", b != null && b.Presence < .02f);
+        if (b == null) return;
+        float prev = b.Presence, maxStep = 0f, prevScale = b.VisualScale, maxScaleStep = 0f, last = 0f;
+        bool monotone = true;
+        for (int i = 0; i < 160; i++)
+        {
+            b.Hold(new Vector2(0f, 0f), 0f, false);   // keeps it clear of the view bottom: only the emerge runs
+            CoverBoulders.Step(Dt);
+            b.Hold(new Vector2(0f, 0f), 0f, false);
+            maxStep = Mathf.Max(maxStep, Mathf.Abs(b.Presence - prev));
+            maxScaleStep = Mathf.Max(maxScaleStep, Mathf.Abs(b.VisualScale - prevScale));
+            monotone &= b.Presence >= prev - 1e-4f;
+            prev = b.Presence; prevScale = b.VisualScale; last = b.Presence;
+        }
+        Check("the emerge is continuous: opacity steps <= " + maxStep.ToString("0.000") + ", scale steps <= " + maxScaleStep.ToString("0.000") + " per frame, rising", maxStep < .03f && maxScaleStep < .02f && monotone);
+        Check("after " + CoverBoulder.EmergeSeconds + " s it is fully in the play layer (presence " + last.ToString("0.00") + ", scale " + prevScale.ToString("0.00") + ")", last > .98f && Mathf.Abs(prevScale - 1f) < .02f);
+        // recede: a boulder low in the view sinks back smoothly (no jump from the last frame in view)
+        float vb = CameraFit.ViewBottom;
+        float pp = -1f, maxRec = 0f;
+        for (float y = vb + 6f; y > vb - .5f; y -= .02f)
+        {
+            b.Hold(new Vector2(0f, y), 0f, false);
+            CoverBoulders.Step(.0001f);
+            b.Hold(new Vector2(0f, y), 0f, false);
+            if (pp >= 0f) maxRec = Mathf.Max(maxRec, Mathf.Abs(b.Presence - pp));
+            pp = b.Presence;
+        }
+        Check("the recede is smooth (max step " + maxRec.ToString("0.000") + " per .02 u) and ends faint (" + pp.ToString("0.00") + ")", maxRec < .03f && pp < .5f);
+        CoverBoulders.Clear();
     }
 
     // ---- lanes: the free-reach band, every shape ----
@@ -729,7 +937,10 @@ public static class CoverBoulderTest
     {
         Fresh();
         CoverBoulders.TestAnyWorld = false;
-        Check("a world whose art is not wired spawns nothing (Frost: " + CoverBoulderDirector.Blocked(1, 90f) + ")", CoverBoulderDirector.Blocked(1, 90f) == "no art");
+        bool wasOn = CoverBoulderTable.Entries[1].enabled;
+        CoverBoulderTable.Entries[1].enabled = false;
+        Check("a world whose art is not wired spawns nothing (Frost, switched off: " + CoverBoulderDirector.Blocked(1, 90f) + ")", CoverBoulderDirector.Blocked(1, 90f) == "no art");
+        CoverBoulderTable.Entries[1].enabled = wasOn;
         Check("Space spawns after its first 20 s", CoverBoulderDirector.Blocked(0, 90f) == null);
         CoverBoulders.TestAnyWorld = true;
         Check("none in the first 20 s of a world (the 8 s calm start inside it)", CoverBoulderDirector.Blocked(0, 5f) == "too early" && CoverBoulderDirector.Blocked(0, 19f) == "too early" && CoverBoulderDirector.Blocked(0, 21f) == null);

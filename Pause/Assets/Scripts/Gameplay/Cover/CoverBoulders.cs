@@ -121,7 +121,7 @@ public static class CoverBoulders
         float x = Mathf.Lerp(lo, hi, Random.value);
         float y = CameraFit.ViewTop + bound + SpawnMargin;
         var vel = new Vector2(Random.Range(-e.side, e.side), -Random.Range(e.fall.x, e.fall.y));
-        slot.Spawn(world, variant, v, width, new Vector2(x, y), vel, side, Random.value);
+        slot.Spawn(world, variant, v, width, new Vector2(x, y), vel, side, Random.value, e.TintFor(CoverBoulderDirector.BackdropVariant(world)));
         Spawned++;
         return slot;
     }
