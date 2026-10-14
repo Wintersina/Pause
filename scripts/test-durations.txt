@@ -229,3 +229,6 @@ LaunchCountdownTest 0.0
 ReleaseReadinessTest 0.0
 ResumeSlowMoTest 0.0
 UiScaleTest 0.0
+WorldHazardsTest 0.4
+WeatherArtTest 8.0
+SpaceSunTest 4.0

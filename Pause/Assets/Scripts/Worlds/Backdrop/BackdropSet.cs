@@ -39,6 +39,8 @@ public class BackdropSet
     public BackdropAtlas NeonFrames { get; private set; }
     public BackdropAtlas AsteroidFx { get; private set; }
     public BackdropDirector Director { get; private set; }
+    public SpaceSunLayer Sun { get; private set; }
+    public float SunDim { get; private set; } = 1f;
     // The variant set the tile layers came from (Spec.variantSets; 0 = none).
     public int Variant { get; private set; }
     readonly Dictionary<string, BackdropAtlas> atlases = new Dictionary<string, BackdropAtlas>();
@@ -133,6 +135,13 @@ public class BackdropSet
         Layout(halfWidth, halfHeight);
         Director = tilesOnly ? null : CreateDirector(Spec.world);
         if (Director != null && Complete) Director.Init(this);
+        // Space's sun: a backdrop piece the run's palette pick owns (SpaceSunPick); the menu's Space shows it too, dimmed like its tiles.
+        if (Spec.world == "Space" && Complete)
+        {
+            SunDim = menu != null ? menu.dim : 1f;
+            Sun = new SpaceSunLayer(this);
+            Sun.Build();
+        }
     }
 
     // Tests: stands in for an atlas that is not installed yet (Tide's run C loop sheets).
@@ -214,6 +223,7 @@ public class BackdropSet
     {
         foreach (var t in Tiles) t.Tick(dt, velocity, HalfHeight * 2f, Alpha);
         if (Director != null && Complete) Director.Tick(dt, velocity);
+        if (Sun != null) Sun.Step(dt);
     }
 
     public int PieceCount
@@ -231,6 +241,7 @@ public class BackdropSet
     public void Destroy()
     {
         if (Director != null) Director.Teardown();
+        if (Sun != null) { Sun.Teardown(); Sun = null; }
         foreach (var t in Tiles) t.Destroy();
         Fx.Destroy();
         Anim.Destroy();

@@ -1,0 +1,108 @@
+PASS  hazard.png is 3072x1536  [got 3072x1536]
+PASS  hazard.png has art  [1680205 px]
+PASS  hazard.png no pink outside Space  [pink share 0.0000]
+PASS  hazard.png no red  [red share 0.0000]
+INFO  hazard.png soft-alpha share 1.00
+PASS  hazard.png cell r0 c0 is filled  [158404 px]
+PASS  hazard.png cell r0 c0 is true resolution (no 2x/3x/4x block upscale)  [worst block share 0.66]
+PASS  hazard.png cell r0 c0 keeps a 6 px margin
+PASS  hazard.png cell r0 c1 is filled  [158397 px]
+PASS  hazard.png cell r0 c1 is true resolution (no 2x/3x/4x block upscale)  [worst block share 0.65]
+PASS  hazard.png cell r0 c1 keeps a 6 px margin
+PASS  hazard.png cell r0 c2 is filled  [158388 px]
+PASS  hazard.png cell r0 c2 is true resolution (no 2x/3x/4x block upscale)  [worst block share 0.65]
+PASS  hazard.png cell r0 c2 keeps a 6 px margin
+PASS  hazard.png cell r0 c3 is filled  [158360 px]
+PASS  hazard.png cell r0 c3 is true resolution (no 2x/3x/4x block upscale)  [worst block share 0.65]
+PASS  hazard.png cell r0 c3 keeps a 6 px margin
+PASS  hazard.png cell r0 c4 is filled  [158396 px]
+PASS  hazard.png cell r0 c4 is true resolution (no 2x/3x/4x block upscale)  [worst block share 0.65]
+PASS  hazard.png cell r0 c4 keeps a 6 px margin
+PASS  hazard.png cell r0 c5 is filled  [158409 px]
+PASS  hazard.png cell r0 c5 is true resolution (no 2x/3x/4x block upscale)  [worst block share 0.65]
+PASS  hazard.png cell r0 c5 keeps a 6 px margin
+PASS  hazard.png cell r1 c0 is filled  [91846 px]
+PASS  hazard.png cell r1 c0 is true resolution (no 2x/3x/4x block upscale)  [worst block share 0.68]
+PASS  hazard.png front r1 c0 tiles horizontally  [edge diff 0.0]
+PASS  hazard.png cell r1 c1 is filled  [91847 px]
+PASS  hazard.png cell r1 c1 is true resolution (no 2x/3x/4x block upscale)  [worst block share 0.68]
+PASS  hazard.png front r1 c1 tiles horizontally  [edge diff 0.0]
+PASS  hazard.png cell r1 c2 is filled  [91844 px]
+PASS  hazard.png cell r1 c2 is true resolution (no 2x/3x/4x block upscale)  [worst block share 0.68]
+PASS  hazard.png front r1 c2 tiles horizontally  [edge diff 0.0]
+PASS  hazard.png cell r1 c3 is filled  [91846 px]
+PASS  hazard.png cell r1 c3 is true resolution (no 2x/3x/4x block upscale)  [worst block share 0.68]
+PASS  hazard.png front r1 c3 tiles horizontally  [edge diff 0.0]
+PASS  hazard.png cell r1 c4 is filled  [91847 px]
+PASS  hazard.png cell r1 c4 is true resolution (no 2x/3x/4x block upscale)  [worst block share 0.68]
+PASS  hazard.png front r1 c4 tiles horizontally  [edge diff 0.0]
+PASS  hazard.png cell r1 c5 is filled  [91849 px]
+PASS  hazard.png cell r1 c5 is true resolution (no 2x/3x/4x block upscale)  [worst block share 0.68]
+PASS  hazard.png front r1 c5 tiles horizontally  [edge diff 0.0]
+PASS  hazard.png cell r2 c0 is filled  [50098 px]
+PASS  hazard.png cell r2 c0 is true resolution (no 2x/3x/4x block upscale)  [worst block share 0.44]
+PASS  hazard.png cell r2 c0 keeps a 6 px margin
+PASS  hazard.png cell r2 c1 is filled  [49660 px]
+PASS  hazard.png cell r2 c1 is true resolution (no 2x/3x/4x block upscale)  [worst block share 0.44]
+PASS  hazard.png cell r2 c1 keeps a 6 px margin
+PASS  hazard.png cell r2 c2 is filled  [39521 px]
+PASS  hazard.png cell r2 c2 is true resolution (no 2x/3x/4x block upscale)  [worst block share 0.46]
+PASS  hazard.png cell r2 c2 keeps a 6 px margin
+PASS  hazard.png cell r2 c3 is filled  [39493 px]
+PASS  hazard.png cell r2 c3 is true resolution (no 2x/3x/4x block upscale)  [worst block share 0.46]
+PASS  hazard.png cell r2 c3 keeps a 6 px margin
+PASS  ambient.png is 2048x512  [got 2048x512]
+PASS  ambient.png has art  [6277 px]
+PASS  ambient.png no pink outside Space  [pink share 0.0000]
+PASS  ambient.png no red  [red share 0.0000]
+INFO  ambient.png soft-alpha share 1.00
+PASS  ambient.png cell r0 c0 is filled  [389 px]
+PASS  ambient.png cell r0 c0 is true resolution (no 2x/3x/4x block upscale)  [worst block share 0.30]
+PASS  ambient.png cell r0 c0 keeps a 6 px margin
+PASS  ambient.png cell r0 c1 is filled  [550 px]
+PASS  ambient.png cell r0 c1 is true resolution (no 2x/3x/4x block upscale)  [worst block share 0.31]
+PASS  ambient.png cell r0 c1 keeps a 6 px margin
+PASS  ambient.png cell r0 c2 is filled  [754 px]
+PASS  ambient.png cell r0 c2 is true resolution (no 2x/3x/4x block upscale)  [worst block share 0.32]
+PASS  ambient.png cell r0 c2 keeps a 6 px margin
+PASS  ambient.png cell r0 c3 is filled  [635 px]
+PASS  ambient.png cell r0 c3 is true resolution (no 2x/3x/4x block upscale)  [worst block share 0.31]
+PASS  ambient.png cell r0 c3 keeps a 6 px margin
+PASS  ambient.png cell r0 c4 is filled  [159 px]
+PASS  ambient.png cell r0 c4 is true resolution (no 2x/3x/4x block upscale)  [worst block share 0.25]
+PASS  ambient.png cell r0 c4 keeps a 6 px margin
+PASS  ambient.png cell r0 c5 is filled  [232 px]
+PASS  ambient.png cell r0 c5 is true resolution (no 2x/3x/4x block upscale)  [worst block share 0.27]
+PASS  ambient.png cell r0 c5 keeps a 6 px margin
+PASS  ambient.png cell r0 c6 is filled  [291 px]
+PASS  ambient.png cell r0 c6 is true resolution (no 2x/3x/4x block upscale)  [worst block share 0.26]
+PASS  ambient.png cell r0 c6 keeps a 6 px margin
+PASS  ambient.png cell r0 c7 is filled  [196 px]
+PASS  ambient.png cell r0 c7 is true resolution (no 2x/3x/4x block upscale)  [worst block share 0.26]
+PASS  ambient.png cell r0 c7 keeps a 6 px margin
+PASS  ambient.png cell r1 c0 is filled  [371 px]
+PASS  ambient.png cell r1 c0 is true resolution (no 2x/3x/4x block upscale)  [worst block share 0.30]
+PASS  ambient.png cell r1 c0 keeps a 6 px margin
+PASS  ambient.png cell r1 c1 is filled  [525 px]
+PASS  ambient.png cell r1 c1 is true resolution (no 2x/3x/4x block upscale)  [worst block share 0.33]
+PASS  ambient.png cell r1 c1 keeps a 6 px margin
+PASS  ambient.png cell r1 c2 is filled  [606 px]
+PASS  ambient.png cell r1 c2 is true resolution (no 2x/3x/4x block upscale)  [worst block share 0.34]
+PASS  ambient.png cell r1 c2 keeps a 6 px margin
+PASS  ambient.png cell r1 c3 is filled  [447 px]
+PASS  ambient.png cell r1 c3 is true resolution (no 2x/3x/4x block upscale)  [worst block share 0.32]
+PASS  ambient.png cell r1 c3 keeps a 6 px margin
+PASS  ambient.png cell r1 c4 is filled  [200 px]
+PASS  ambient.png cell r1 c4 is true resolution (no 2x/3x/4x block upscale)  [worst block share 0.31]
+PASS  ambient.png cell r1 c4 keeps a 6 px margin
+PASS  ambient.png cell r1 c5 is filled  [289 px]
+PASS  ambient.png cell r1 c5 is true resolution (no 2x/3x/4x block upscale)  [worst block share 0.37]
+PASS  ambient.png cell r1 c5 keeps a 6 px margin
+PASS  ambient.png cell r1 c6 is filled  [386 px]
+PASS  ambient.png cell r1 c6 is true resolution (no 2x/3x/4x block upscale)  [worst block share 0.37]
+PASS  ambient.png cell r1 c6 keeps a 6 px margin
+PASS  ambient.png cell r1 c7 is filled  [247 px]
+PASS  ambient.png cell r1 c7 is true resolution (no 2x/3x/4x block upscale)  [worst block share 0.38]
+PASS  ambient.png cell r1 c7 keeps a 6 px margin
+wrote Pause/Assets/Art/Weather~/Tide/preview.png
+RESULT: PASS

@@ -242,6 +242,9 @@ public static class WorldBackdropBootstrap
             WorldPainter.Apply(WorldManager.Worlds[0]);
         }
         else if (scene.name == "gameS1")
+        {
+            SpaceSunPick.NewRun();   // the Space sun's palette is one pick per run, made before any backdrop is built
             WorldBackdrop.Create(WorldManager.Current.displayName);
+        }
     }
 }

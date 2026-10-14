@@ -33,6 +33,7 @@ public class AndroidTextureDiet : AssetPostprocessor
         if (path.Contains("~/") || path.Contains("/Editor/") || path.Contains("/Tests/")) return false;
         if (path.Contains("/Staging/") || path.Contains("/Plugins/")) return false;
         if (path.StartsWith("Assets/Art/AppIcon/", StringComparison.Ordinal)) return false;   // launcher icons stay uncompressed
+        if (WorldBackdropImport.IsSunDisc(path)) return false;   // the Space sun's disc is hard pixel art: RGBA32 on phones (WorldBackdropImport)
         if (path.StartsWith("Assets/Art/UI/", StringComparison.Ordinal) &&
             !path.StartsWith("Assets/Art/UI/Title/", StringComparison.Ordinal) &&
             !path.StartsWith("Assets/Art/UI/Splash/", StringComparison.Ordinal)) return false;   // UI keeps its (test-guarded) import settings; only the big title / splash art is diet material

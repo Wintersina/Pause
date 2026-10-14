@@ -40,6 +40,9 @@ public static class AllTests
     // cleans up after itself through TestHarness.Sandbox.
     static readonly (string name, Func<int> execute)[] Suites =
     {
+        ("WorldHazardsTest", WorldHazardsTest.Execute),
+        ("WeatherArtTest", WeatherArtTest.Execute),
+        ("SpaceSunTest", SpaceSunTest.Execute),
         ("AccountCloudSaveTest", AccountCloudSaveTest.Execute),
         ("AccountSignInTest", AccountSignInTest.Execute),
         ("AppIconTest", AppIconTest.Execute),

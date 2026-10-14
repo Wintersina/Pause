@@ -19,6 +19,8 @@ public static class WorldBackdropTest
     // Space gets a deliberate 10 MB. The standalone ring station (station_ring_v2, a 1254 px painting that was
     // clamped to 512 on phones, i.e. softened 2.4x) is now imported at 1024: +0.3 MB, so 11 MB.
     public const long SpaceTextureBudgetBytes = 11L * 1024 * 1024;
+    public const long SunBudgetBytes = 20L * 1024 * 1024;        // the picked palette: disc RGBA32 + corona + flares ASTC 4x4 (about 19 MB)
+    public const long TornadoBudgetBytes = 8L * 1024 * 1024;    // Storm and Tide: hazard sheet (4.7 MB, only while an event lives) + ambient sheet (1.0 MB), ASTC 4x4
     // Verdant carries ten shared 1024 atlases (landmarks, pipes, fires,
     // sites, weather and five ambient-loop sheets: the user asked for "more
     // pipes and smokes and wild fires", 2026-10-08) besides one 4-tile
@@ -610,6 +612,9 @@ public static class WorldBackdropTest
             string dir = ArtDir(spec.world);
             long bytes = 0, astc = 0;
             long skyBytes = 0, skyAstc = 0;
+            // HERO sheets (Space's sun, the Storm / Tide weather sheets): not resident like an atlas. A run holds ONE sun palette at a time and a tornado's art
+            // only while the event lives, so each has its own phone budget below instead of the world's.
+            long sunWarmAstc = 0, sunVioletAstc = 0, tornadoAstc = 0;
             // Frost: one variant tile set per landing, so only one set counts.
             var variantBytes = new long[FrostBackdropSelection.MaxVariants + 1];
             var variantAstc = new long[FrostBackdropSelection.MaxVariants + 1];
@@ -627,6 +632,19 @@ public static class WorldBackdropTest
                 long assetAstc = ((tex.width + 5) / 6) * ((tex.height + 5) / 6) * 16L;
 
                 var imp = (TextureImporter)AssetImporter.GetAtPath(asset);
+                if (WorldBackdropImport.IsSunSheet(asset) || WorldBackdropImport.IsTornadoSheet(asset))
+                {
+                    bool disc = WorldBackdropImport.IsSunDisc(asset);
+                    long phone = disc ? (long)tex.width * tex.height * 4 : ((tex.width + 3) / 4) * ((tex.height + 3) / 4) * 16L;   // RGBA32 disc, ASTC 4x4 soft layers
+                    string f0 = Path.GetFileNameWithoutExtension(path);
+                    if (WorldBackdropImport.IsTornadoSheet(asset)) tornadoAstc += phone;
+                    else if (f0.EndsWith("violet") || f0.Contains("violet_")) sunVioletAstc += phone;
+                    else sunWarmAstc += phone;
+                    Check(asset + " has no mipmaps", imp != null && !imp.mipmapEnabled);
+                    Check(asset + " is not clamped below its size", imp != null && imp.maxTextureSize >= System.Math.Max(tex.width, tex.height));
+                    Check(asset + (disc ? " stays uncompressed (hard pixel art)" : " is compressed (soft layer)"), imp != null && (imp.textureCompression == TextureImporterCompression.Uncompressed) == disc);
+                    continue;
+                }
                 // Space's planet sheet is drawn from ~0.4x to ~2.8x and keeps
                 // a trilinear mip chain (WorldBackdropImport.IsPlanetSheet;
                 // SpacePlanetSheetTest); a run loads anim_hires instead of
@@ -799,6 +817,12 @@ public static class WorldBackdropTest
             for (int v = 1; v < variantBytes.Length; v++) { maxSet = System.Math.Max(maxSet, variantBytes[v]); maxSetAstc = System.Math.Max(maxSetAstc, variantAstc[v]); }
             bytes += maxSet;
             astc += maxSetAstc;
+            if (spec.world == "Space")
+                Check("Space sun: one palette resident, " + (System.Math.Max(sunWarmAstc, sunVioletAstc) / 1024) + " KB <= " + (SunBudgetBytes / 1024) + " KB (disc RGBA32, corona + flares ASTC 4x4)",
+                      System.Math.Max(sunWarmAstc, sunVioletAstc) <= SunBudgetBytes);
+            if (tornadoAstc > 0)
+                Check(spec.world + " approved weather art (tornado / hazard sheet while an event lives, ambient sheet in the world): " + (tornadoAstc / 1024) + " KB <= " + (TornadoBudgetBytes / 1024) + " KB ASTC 4x4",
+                      tornadoAstc <= TornadoBudgetBytes);
             long budget = spec.world == "Frost" ? FrostTextureBudgetBytes : spec.world == "Space" ? SpaceTextureBudgetBytes :
                           spec.world == "Verdant" ? VerdantTextureBudgetBytes : spec.world == "Ember" ? EmberTextureBudgetBytes : spec.world == "Tide" ? TideTextureBudgetBytes : spec.world == "Desert" ? DesertTextureBudgetBytes : spec.world == "Storm" ? StormTextureBudgetBytes : TextureBudgetBytes;
             Debug.Log("[WB] " + spec.world + " texture memory: " + (bytes / 1024) + " KB desktop, ~" +

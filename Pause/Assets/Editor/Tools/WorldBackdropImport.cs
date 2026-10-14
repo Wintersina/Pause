@@ -41,6 +41,27 @@ public class WorldBackdropImport : AssetPostprocessor
         return f == BackdropCatalog.AtlasAnim || f == BackdropCatalog.AtlasAnimHires;
     }
 
+    // Space's sun sheets (SpaceSunLayer): never clamped (4096), no mip maps; the disc is hard pixel art (point, RGBA32 on phones),
+    // the corona and the flare flipbook are soft additive layers (bilinear, ASTC 4x4 on phones).
+    public static bool IsSunSheet(string path)
+    {
+        if (!path.Contains("/Worlds/Space/Backdrop/")) return false;
+        string f = System.IO.Path.GetFileNameWithoutExtension(path);
+        return f.StartsWith("sun_", System.StringComparison.Ordinal) || f.StartsWith("flares_", System.StringComparison.Ordinal);
+    }
+    // The approved weather sheets of every world (wx_hazard / wx_ambient: HazardArt / WeatherArt): the same treatment as the sun's soft layers.
+    public static bool IsTornadoSheet(string path)
+    {
+        if (!path.StartsWith("Assets/Art/Backgrounds/Resources/Worlds/") || !(path.Contains("/Backdrop3/") || path.Contains("/Backdrop/"))) return false;
+        string f = System.IO.Path.GetFileNameWithoutExtension(path);
+        return f.StartsWith("wx_", System.StringComparison.Ordinal);   // the approved Storm / Tide weather sheets
+    }
+    public static bool IsSunDisc(string path)
+    {
+        string f = System.IO.Path.GetFileNameWithoutExtension(path);
+        return IsSunSheet(path) && !f.Contains("corona") && !f.StartsWith("flares_", System.StringComparison.Ordinal);
+    }
+
     static bool IsBackdrop(string path)
     {
         return path.StartsWith("Assets/Art/Backgrounds/Resources/Worlds/") &&
@@ -129,16 +150,17 @@ public class WorldBackdropImport : AssetPostprocessor
                              file.StartsWith("sky_", System.StringComparison.Ordinal);
 
         bool planetSheet = IsPlanetSheet(assetPath);
+        bool sun = IsSunSheet(assetPath) || IsTornadoSheet(assetPath), sunDisc = IsSunDisc(assetPath);
         ti.mipmapEnabled = planetSheet;
         if (planetSheet) ti.mipmapFilter = TextureImporterMipFilter.KaiserFilter;
         bool crisp = sharpSpaceSky || (IsBackdrop3(assetPath) && (!IsSoftAtlas(file) || IsTidePixelLoop(assetPath, file)));
-        ti.filterMode = crisp ? FilterMode.Point : planetSheet ? FilterMode.Trilinear : FilterMode.Bilinear;
+        ti.filterMode = sun ? (sunDisc ? FilterMode.Point : FilterMode.Bilinear) : crisp ? FilterMode.Point : planetSheet ? FilterMode.Trilinear : FilterMode.Bilinear;
         ti.alphaIsTransparency = true;
         ti.isReadable = false;
         ti.npotScale = TextureImporterNPOTScale.None;
-        ti.maxTextureSize = planetSheet ? PlanetSheetMaxSize : file == "station_ring_v2" ? 1024 : file == "reference_planet" ? 1024 :
+        ti.maxTextureSize = sun ? PlanetSheetMaxSize : planetSheet ? PlanetSheetMaxSize : file == "station_ring_v2" ? 1024 : file == "reference_planet" ? 1024 :
             sharpSpaceSky || (!tile && assetPath.Contains("/Worlds/Space/")) || IsDesertWormSheet(assetPath, file) ? 2048 : 1024;
-        ti.textureCompression = TextureImporterCompression.Compressed;
+        ti.textureCompression = sunDisc ? TextureImporterCompression.Uncompressed : TextureImporterCompression.Compressed;
         ti.sRGBTexture = true;
 
         if (tile || IsStandaloneSprite(file))
@@ -170,7 +192,7 @@ public class WorldBackdropImport : AssetPostprocessor
         if (!tile && assetPath.Contains("/Worlds/Space/"))
         {
             var defaults = ti.GetPlatformTextureSettings("DefaultTexturePlatform");
-            defaults.maxTextureSize = planetSheet ? PlanetSheetMaxSize : file == "station_ring_v2" ? 1024 : file == "reference_planet" ? 1024 : 2048;
+            defaults.maxTextureSize = sun ? PlanetSheetMaxSize : planetSheet ? PlanetSheetMaxSize : file == "station_ring_v2" ? 1024 : file == "reference_planet" ? 1024 : 2048;
             ti.SetPlatformTextureSettings(defaults);
         }
 
@@ -178,10 +200,10 @@ public class WorldBackdropImport : AssetPostprocessor
         {
             var ps = ti.GetPlatformTextureSettings(platform);
             ps.overridden = true;
-            ps.maxTextureSize = planetSheet ? PlanetSheetMaxSize : file == "station_ring_v2" ? 1024 : file == "reference_planet" ? 1024 :
+            ps.maxTextureSize = sun ? PlanetSheetMaxSize : planetSheet ? PlanetSheetMaxSize : file == "station_ring_v2" ? 1024 : file == "reference_planet" ? 1024 :
                 sharpSpaceSky || (!tile && assetPath.Contains("/Worlds/Space/")) || IsDesertWormSheet(assetPath, file) ? 2048 : 1024;
-            ps.format = planetSheet || IsContinuousTone(assetPath) ? TextureImporterFormat.ASTC_4x4 : TextureImporterFormat.ASTC_6x6;
-            ps.textureCompression = TextureImporterCompression.Compressed;
+            ps.format = sunDisc ? TextureImporterFormat.RGBA32 : sun || planetSheet || IsContinuousTone(assetPath) ? TextureImporterFormat.ASTC_4x4 : TextureImporterFormat.ASTC_6x6;
+            ps.textureCompression = sunDisc ? TextureImporterCompression.Uncompressed : TextureImporterCompression.Compressed;
             ti.SetPlatformTextureSettings(ps);
         }
     }

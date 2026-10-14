@@ -212,3 +212,6 @@ RosterCleanupTest 0.0
 SpinWindTest 0.0
 StarDustPersistenceTest 0.0
 UiScaleTest 0.0
+WorldHazardsTest 0.4
+WeatherArtTest 20.0
+SpaceSunTest 6.0
