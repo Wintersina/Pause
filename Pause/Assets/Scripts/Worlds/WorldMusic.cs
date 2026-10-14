@@ -148,10 +148,22 @@ public class WorldMusic : MonoBehaviour
         if (clip != null && clip.loadState == AudioDataLoadState.Unloaded) clip.LoadAudioData();
     }
 
-    static AudioSource FindBackgroundSource()
+    // Cached: Update asks for it every frame. A destroyed source (scene change)
+    // is looked up again, at most once a second while none exists.
+    static AudioSource cachedBackground;
+    static float nextBackgroundLookupAt;
+
+    static AudioSource FindBackgroundSource(bool everyFrame = false)
     {
+        if (cachedBackground != null) return cachedBackground;
+        if (everyFrame)
+        {
+            if (Time.unscaledTime < nextBackgroundLookupAt) return null;
+            nextBackgroundLookupAt = Time.unscaledTime + 1f;
+        }
         var go = GameObject.Find(BackgroundSourceName);
-        return go != null ? go.GetComponent<AudioSource>() : null;
+        cachedBackground = go != null ? go.GetComponent<AudioSource>() : null;
+        return cachedBackground;
     }
 
     static WorldMusic EnsureRunner()
@@ -169,7 +181,7 @@ public class WorldMusic : MonoBehaviour
     void Update()
     {
         if (loopClip == null) return;
-        var main = FindBackgroundSource();
+        var main = FindBackgroundSource(everyFrame: true);
         if (main == null || main.clip != loopClip || !main.isPlaying) return;
         if (PastLoopPoint(main.time, loopOut, loopClip.length)) LoopNow(main);
     }

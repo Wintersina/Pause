@@ -59,8 +59,17 @@ public class PauseQuickActions : MonoBehaviour
     // the glyph's opaque pixels.
     public static bool IsScreenPointOnAction(Vector2 screenPoint)
     {
-        var actions = Object.FindFirstObjectByType<PauseQuickActions>();
-        return actions != null && actions.Contains(screenPoint);
+        // Cached: this runs every frame a finger is down. Looked up again only
+        // when the cached bar is gone (a new scene).
+        if (live == null) live = Object.FindFirstObjectByType<PauseQuickActions>();
+        return live != null && live.Contains(screenPoint);
+    }
+
+    static PauseQuickActions live;
+
+    void OnDestroy()
+    {
+        if (live == this) live = null;
     }
 
     bool Contains(Vector2 screenPoint)
