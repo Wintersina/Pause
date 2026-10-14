@@ -181,6 +181,13 @@ public static class EnemyRosterTest
                         }
     }
 
+    // The drawing without the one-sided outline pass (Art/Enemies/src~/ship_scale_border~/original): these checks are about the art, not its outline.
+    static string Drawing(string path)
+    {
+        string orig = "Assets/Art/Enemies/src~/ship_scale_border~/original/" + Path.GetFileNameWithoutExtension(path) + ".png";
+        return path.Contains("/Resources/Enemies/") && File.Exists(orig) ? orig : path;
+    }
+
     static bool[] Mask(EnemyDef d)
     {
         return Mask("Assets/Art/Resources/" + d.StripPath + ".png");
@@ -189,6 +196,7 @@ public static class EnemyRosterTest
     // One frame's alpha > 50% silhouette from any flipbook strip on disk.
     static bool[] Mask(string path, int frame = 0)
     {
+        path = Drawing(path);
         if (!File.Exists(path)) return new bool[0];
         var tex = new Texture2D(2, 2);
         tex.LoadImage(File.ReadAllBytes(path));
@@ -299,7 +307,7 @@ public static class EnemyRosterTest
     // Longest edge of frame 0's alpha > 50% bounds, as a fraction of the frame.
     static float SilhouetteEdge(EnemyDef d)
     {
-        string path = "Assets/Art/Resources/" + d.StripPath + ".png";
+        string path = Drawing("Assets/Art/Resources/" + d.StripPath + ".png");
         if (!File.Exists(path)) return 0f;
         var tex = new Texture2D(2, 2);
         tex.LoadImage(File.ReadAllBytes(path));
@@ -857,7 +865,7 @@ public static class EnemyRosterTest
 
     static Texture2D LoadStrip(EnemyDef d)
     {
-        string path = "Assets/Art/Resources/" + d.StripPath + ".png";
+        string path = Drawing("Assets/Art/Resources/" + d.StripPath + ".png");
         if (!File.Exists(path)) return null;
         var tex = new Texture2D(2, 2);
         tex.LoadImage(File.ReadAllBytes(path));

@@ -125,6 +125,7 @@ public static class AllTests
         ("EliteEvasionTest", EliteEvasionTest.Execute),
         ("EliteLockOnTest", EliteLockOnTest.Execute),
         ("ShipTierTest", ShipTierTest.Execute),
+        ("ShipOutlineTest", ShipOutlineTest.Execute),
         ("EnemyBehaviourTest", EnemyBehaviourTest.Execute),
         ("EnemyJitterTest", EnemyJitterTest.Execute),
         ("EnemyAvoidanceTest", EnemyAvoidanceTest.Execute),
