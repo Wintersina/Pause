@@ -1,0 +1,5 @@
+The Frost cover boulders are complete. The [preview](/Users/sina/Developer/Pause-boulders-art/Pause/Assets/Art/Boulders~/Frost/preview.png) shows the three intact variants and their destruction frames.
+
+[ boulder.png ](/Users/sina/Developer/Pause-boulders-art/Pause/Assets/Art/Boulders~/Frost/boulder.png) and [break.png](/Users/sina/Developer/Pause-boulders-art/Pause/Assets/Art/Boulders~/Frost/break.png) are at the requested 768 px cell size. The verifier passed every check: variant widths are 650–690 px, median luma is 38–42, block scores are 0.284 and 0.285, and the final debris frames retain 15% of the intact area. The verifier’s [manifest.json](/Users/sina/Developer/Pause-boulders-art/Pause/Assets/Art/Boulders~/Frost/manifest.json) is also copied byte-for-byte as [boulder.json](/Users/sina/Developer/Pause-boulders-art/Pause/Assets/Art/Boulders~/Frost/boulder.json).
+
+The weakest detail is the breakup: its large pieces still have somewhat regular cut edges. No commit was made.

@@ -1,0 +1,5 @@
+Created the three Ember cover boulders and their five-frame destruction strips using built-in image generation. The [art preview](/Users/sina/Developer/Pause-boulders-art/Pause/Assets/Art/Boulders~/Ember/preview.png), [boulder.png](/Users/sina/Developer/Pause-boulders-art/Pause/Assets/Art/Boulders~/Ember/boulder.png), [break.png](/Users/sina/Developer/Pause-boulders-art/Pause/Assets/Art/Boulders~/Ember/break.png), [hit-circle manifest](/Users/sina/Developer/Pause-boulders-art/Pause/Assets/Art/Boulders~/Ember/boulder.json), and [generation prompts](/Users/sina/Developer/Pause-boulders-art/Pause/Assets/Art/Boulders~/Ember/src~/generation_prompts.md) are in the requested folder.
+
+**Verification: all checks PASS.** Each intact variant is 642 px wide; their heights are 670, 648, and 655 px. The final debris frames retain 12%, 14%, and 13% of intact area. The audit found zero bright red or pink pixels. The verifier produced 12 hit circles in `manifest.json`; `boulder.json` is an identical copy.
+
+The weakest match is texture: the generated stone is slightly smoother than the backdrop’s finer pixel grain. No commit was made.

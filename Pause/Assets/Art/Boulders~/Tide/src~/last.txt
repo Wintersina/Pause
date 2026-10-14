@@ -1,0 +1,5 @@
+Created the Tide cover-boulder art using built-in image generation: a sea stack, a sealed reef arch, and a reef mound. The prompt set used a dark teal ocean palette, oblique top-down view, upper-left light, and transparent backgrounds.
+
+Files: [boulder.png](/Users/sina/Developer/Pause-boulders-art/Pause/Assets/Art/Boulders~/Tide/boulder.png), [break.png](/Users/sina/Developer/Pause-boulders-art/Pause/Assets/Art/Boulders~/Tide/break.png), [preview.png](/Users/sina/Developer/Pause-boulders-art/Pause/Assets/Art/Boulders~/Tide/preview.png), and [boulder.json](/Users/sina/Developer/Pause-boulders-art/Pause/Assets/Art/Boulders~/Tide/boulder.json).
+
+The required verifier reports **PASS on every line**. Variant bounds are 663×717, 700×597, and 689×649 px; block scores are 0.262 and 0.265, and the last break frames retain 9–10% of intact area. The weakest detail is that the burst seams look more regular than the painted reef texture.

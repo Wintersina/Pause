@@ -1,0 +1,1 @@
+Storm: scripts/tools/boulder_outline.py (color 222,230,242, 4 px, one-sided: fades along the base)

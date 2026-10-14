@@ -24,7 +24,9 @@ public static class CoverBoulders
     public const float BodyShare = .85f;         // a body's blocking radius = its measured radius x this
     public const float ThudVolume = .16f, ThudGap = .18f, RumbleVolume = .35f;
     public const float KickBlock = 0f, KickBurst = .05f;
-    public const float MaxScreenShare = .62f;    // a boulder is at most this share of the rail-to-rail width wide
+    public const float MaxScreenShare = .62f;
+    // decorative LANDFORMS (every world but Space): bigger and slower than cover boulders, with a steady depth haze
+    public const float DecorScale = 1.5f, DecorSpeed = .45f, DecorHaze = .2f, DecorMaxShare = .98f;    // a boulder is at most this share of the rail-to-rail width wide
 
     // test / tool switches
     public static bool Disabled;                 // (a scene without boulders)
@@ -69,12 +71,19 @@ public static class CoverBoulders
 
     public static CoverFx Fx { get { Prewarm(); return fx; } }
 
+    // COVER boulders only (the interactive ones: Space's). The hazard seam (CoverHazardQuery) asks these: a decorative landform is no cover.
     public static IEnumerable<CoverBoulder> All
     {
-        get { for (int i = 0; i < pool.Length; i++) if (pool[i] != null && pool[i].Alive) yield return pool[i]; }
+        get { for (int i = 0; i < pool.Length; i++) if (pool[i] != null && pool[i].Alive && pool[i].Interactive) yield return pool[i]; }
     }
 
     public static int Alive
+    {
+        get { int n = 0; for (int i = 0; i < pool.Length; i++) if (pool[i] != null && pool[i].Alive && pool[i].Interactive) n++; return n; }
+    }
+
+    // Every boulder or landform alive (the pool / one-at-a-time bookkeeping).
+    public static int AliveAny
     {
         get { int n = 0; for (int i = 0; i < pool.Length; i++) if (pool[i] != null && pool[i].Alive) n++; return n; }
     }
@@ -113,15 +122,28 @@ public static class CoverBoulders
             boundPx = Mathf.Max(boundPx, new Vector2(v.circles[i].x, v.circles[i].y).magnitude + v.circles[i].r);
         // width: the table's, shrunk on a narrow lane so the free-reach rule can always be met (ScreenFit)
         float width = e.widths[variant];
-        width *= FitScale(width, boundPx / v.artWidth);
-        float bound = boundPx * width / v.artWidth;
         int side = Random.value < .5f ? -1 : 1;
-        float lo, hi;
-        Band(side, bound, out lo, out hi);
-        float x = Mathf.Lerp(lo, hi, Random.value);
+        float x, bound;
+        Vector2 vel;
+        if (e.interactive)
+        {
+            width *= FitScale(width, boundPx / v.artWidth);
+            bound = boundPx * width / v.artWidth;
+            float lo, hi;
+            Band(side, bound, out lo, out hi);
+            x = Mathf.Lerp(lo, hi, Random.value);
+            vel = new Vector2(Random.Range(-e.side, e.side), -Random.Range(e.fall.x, e.fall.y));
+        }
+        else
+        {
+            // a landform: huge and slow (far below the ship), anywhere across the view, no lane to keep free
+            width = Mathf.Min(width * DecorScale, Edge * 2f * DecorMaxShare);
+            bound = boundPx * width / v.artWidth;
+            x = Random.Range(-Edge * .55f, Edge * .55f);
+            vel = new Vector2(Random.Range(-e.side, e.side) * .4f, -Random.Range(e.fall.x, e.fall.y) * DecorSpeed);
+        }
         float y = CameraFit.ViewTop + bound + SpawnMargin;
-        var vel = new Vector2(Random.Range(-e.side, e.side), -Random.Range(e.fall.x, e.fall.y));
-        slot.Spawn(world, variant, v, width, new Vector2(x, y), vel, side, Random.value);
+        slot.Spawn(world, variant, v, width, new Vector2(x, y), vel, side, Random.value, e.TintFor(CoverBoulderDirector.BackdropVariant(world)));
         Spawned++;
         return slot;
     }
@@ -156,7 +178,11 @@ public static class CoverBoulders
     {
         int n = 0;
         for (int i = 0; i < pool.Length; i++)
-            if (pool[i] != null && pool[i].State == CoverBoulder.Phase.Live) { pool[i].Destroy(); n++; }
+            if (pool[i] != null && pool[i].State == CoverBoulder.Phase.Live)
+            {
+                if (pool[i].Decorative) pool[i].Dismiss();   // a landform just sinks out: no crumble, no rumble, no kick
+                else { pool[i].Destroy(); n++; }
+            }
         if (n > 0)
         {
             Destroyed += n;

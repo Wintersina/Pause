@@ -1,7 +1,15 @@
-# Cover boulders
+# Cover boulders (Space) and backdrop landforms (every other world)
+
+**Two kinds, one flag (`CoverBoulderEntry.interactive`, only Space is true).** Space's asteroids are interactive COVER boulders exactly as in sections 1-11 (you hide
+behind them). Every other world's boulder is a decorative backdrop LANDFORM seen from far above the ship (user, 2026-10-14: 'the ship will be much higher, it doesn't
+make sense for these to stop you'): it is drawn, drifts and emerges / recedes with the backdrop haze, and affects NOTHING: not the ship, shots, beams, hazards, bodies,
+shoves, landing sites or the hazard seam (`CoverBoulders.Alive` / `All` / `Any` / `Solid` count interactive boulders only; `AliveAny` is the pool bookkeeping). No
+boss-arrival crumble: when a boss starts a landform just sinks out (1.8 s) and none spawn during the fight. Landforms are bigger (x`DecorScale` 1.5, at most 98 % of
+the rail-to-rail width), slower (x`DecorSpeed` .45 of the table's fall) and keep a steady depth haze (`DecorHaze`). A landform never gets a lane-keeping band. Sections
+1-11 below describe the interactive kind; section 13 the blending, per-variant rules and landforms.
 
 Branch `feat/cover-boulders`. Code: `Pause/Assets/Scripts/Gameplay/Cover/`. Tests: `CoverBoulderTest*`, `ScreenFit` screens `cover-*`.
-Art staging: `Pause/Assets/Art/Boulders~/<World>/` (not shipped until vetted; see section 12).
+Art staging: `Pause/Assets/Art/Boulders~/<World>/` (masters, composites, crumble GIFs; the wired copies live in `Art/Resources/Boulders/<World>/`; see sections 12-13).
 
 ## 1. Idea (user request, 2026-10-13)
 
@@ -87,12 +95,14 @@ draft; the shipped numbers are the table in `CoverBoulderTable.cs` (.6-1.1 u/s, 
 
 ## 6. Art contract (per world, three variants + destruction strip)
 
-* `boulder.png` 1536 x 512 (three 512 cells), `break.png` 2560 x 1536 (row = variant, five 512 cells), transparent, hard pixel edges.
-* Light from the upper left, a **thin pale outline** (2 px), no pink outside Space, ink-dark body with real material texture.
+* `boulder.png` 2304 x 768 (three 768 cells), `break.png` 3840 x 2304 (row = variant, five 768 cells), transparent, TRUE resolution (see sections 12-13).
+* Light from the upper left, **no outline** (section 13), the body at the backdrop's brightness, the foot fading out in a ground skirt, no pink outside Space.
 * Frame 0 of each break row is the intact variant with first cracks lit; frame 4 is the last dust (8-35 % of the area).
-* `scripts/verify_boulder_art.py <dir> --world <W> --manifest --sheet preview.png` checks all of it and writes the hit-circle manifest `boulder.json`.
-* Codex prompts: `docs/cover-boulders-codex/` (`common.md` + `worlds/<World>.md`), run headless one at a time in a separate worktree.
-* Runtime: the sheets are loaded per world on demand and unloaded when the world changes (a few MB compressed each).
+* `scripts/verify_boulder_art.py <dir> --world <W> --cell 768 --manifest --sheet preview.png` checks all of it and writes the hit-circle manifest `manifest.json`;
+  `scripts/tools/boulder_composite.py` composites the art over every backdrop variant at in-game scale, `boulder_crumble_gif.py` plays the break strip,
+  `boulder_grade.py` re-grades into the backdrop range, `boulder_wire.sh <W>` copies the sheets to Resources and enables the world.
+* Codex prompts: `docs/cover-boulders-codex/` (`common.md` + `worlds/<World>.md`, `run_world.sh <World>`), run headless one at a time.
+* Runtime: the sheets are loaded per world on demand and unloaded when the world changes.
 
 ## 7. Safety: the ship can never be trapped or crushed
 
@@ -146,9 +156,64 @@ trapped (grid sweep + corner cases), bodies solid, crash rules, boss arrival des
 
 ## 12. Status
 
-* **Space: wired and approved by the user** (2026-10-13): the three reference asteroids in place (`Worlds/Space/Backdrop/asteroid_00..02`, magenta glow is
-  Space-only) with the Codex destruction strip `Art/Resources/Boulders/Space/break.png` and `manifest.json` (hit circles from `verify_boulder_art.py`).
-* **Frost, Verdant, Ember, Tide, Storm, Desert: designed (section 3), prompts written (`docs/cover-boulders-codex/`), art NOT drawn / NOT shown to the
-  user yet.** To add one: run `codex exec` with `common.md` + `worlds/<World>.md` in a separate worktree, run `scripts/verify_boulder_art.py <dir> --world
-  <World> --manifest --sheet preview.png`, show the preview, and when approved move `boulder.png`, `break.png`, `manifest.json` to
-  `Art/Resources/Boulders/<World>/` and set `enabled = true` in `CoverBoulderTable`.
+* **All seven worlds are drawn and wired** (Space the user's in-place asteroids; the six others Codex art at 768 px cells, revision 2 = blended into the backdrop,
+  section 13). `CoverBoulderTable.enabled` is true for each; a world's backdrop variants that have no fitting boulder are explicitly `none` (section 13).
+* Sheets: `boulder.png` 2304 x 768 (three 768 cells) and `break.png` 3840 x 2304 (row = variant, five cells), `manifest.json` (cell 768, hit circles, written by
+  `scripts/verify_boulder_art.py <dir> --world <W> --cell 768 --manifest`). Import (`BoulderArtImporter`, `AndroidTextureDiet`): no mipmaps, bilinear, never clamped
+  (4096), ASTC 4x4 on Android / iOS. Only the current world's pair loads (about 10.5 MB ASTC per world: 2.3 + 8.8; see the PR for the measured numbers).
+* Resolution: 640-700 px wide per boulder for 2.2-2.9 u, i.e. 220-300 px/u, against Space's 150-220 px/u and the backdrops' ~70-100 px/u. Never block-upscaled
+  (`verify_boulder_art.py` and `CoverBoulderTest.WorldArt` measure the 2x/3x/4x duplication score, < .97; real art scores ~.27).
+
+## 13. Blending into the backdrop (revision 2, 2026-10-13/14)
+
+The user rejected the first boulders (bright, pale-outlined, pasted on). Rules now:
+
+* **Storm's landform has an animated effects layer** (`CoverStormFx`, pooled children, no per-frame allocations): 8 drifting cloud wisps round the base (front and back), 14 rain streaks + 5 hail pellets falling off the underside, 3 faint static arcs, a cloud shadow; atlas `Resources/Boulders/Storm/fx.png` (`scripts/tools/storm_fx_atlas.py`, 1024 x 1024, dithered pixel-hard alpha, deterministic). Everything is a function of the boulder's age and presence (grows with the emerge, sinks with the recede, gone the instant it fades). Preview: `CoverBoulderPreview.Run` renders the real runtime over the backdrop variants.
+* **Storm alone carries a thin pale one-sided outline** (the user: 'the Storm boulder is good, it just needs an outline so it can be visible'): 4 px storm-white (#DEE6F2) on the top and sides of the solid silhouette, fading out along the base and cloud skirt (`scripts/tools/boulder_outline.py`, `CoverBoulderEntry.outline`, `verify_boulder_art.py --outline`).
+* **Every other world: no outline, no rim halo.** The silhouette is the art's own edge; the foot of every boulder is ringed by the world's ground cover (floes, foliage, ash, foam,
+  vapour, sand) that fades to transparent (a fog skirt); `verify_boulder_art.py` fails a pale rim and a body brighter than median luma 112.
+* **Painted in the backdrop's own view, palette and value range.** Codex was given the world's four-variant contact sheet (`docs/cover-boulders-codex/refs/`), its
+  landmarks atlas and mid layer; `scripts/tools/boulder_grade.py` (per-world parameters in `Boulders~/<W>/src~/grade.txt`) re-grades the finished sheets into the
+  backdrop's range (Frost and Desert needed it most).
+* **The four backdrop variants are different places**, so each world's entry has `shapes[v1..v4]` (bit mask of the boulder shapes that blend in; 0 = none),
+  `tint[v1..v4]` (night / teal variants), `haze` and a one-line `notes[v]`. `CoverBoulderDirector.BackdropVariant(world)` reads the live backdrop set
+  (`WorldBackdrop.Instance.Current.Variant`; 0 = unknown, e.g. a cross-fade: the union applies). `Blocked` returns `"backdrop"` for a `none` variant, `SpawnOne`
+  only picks an allowed shape (never the same twice running while another fits). Coverage is not a goal: where nothing fits, nothing spawns.
+* **Emerge / recede** (`CoverBoulder`): it spawns above the view and over `EmergeSeconds` (2.6) grows from .62 x to 1 x, from 0 to full opacity, out of a flat haze of
+  the world's `haze` colour (the solid circles scale with it, it is still off screen); in the last `RecedeUnits` (1.8 u) above the view bottom it sinks back to .25
+  opacity (opacity only: what blocks is never smaller than what is drawn). Smooth (smoothstep), no pop; `CoverBoulderTest.Emerge` measures the per-frame steps.
+* No landmark anchoring: the ground layers scroll at <= .05 of the foreground speed and their landmarks are random pieces, so there is nothing to time a spawn to;
+  the variant rule is the backdrop awareness.
+
+### Coverage table (shape 0 / 1 / 2 = the three base shapes; none = no spawn)
+
+| World | Backdrop | Shapes | Why |
+| --- | --- | --- | --- |
+| Space | v1 | 0+1+2 | open space: an asteroid belongs on every sky variant |
+| Space | v2 | 0+1+2 | open space: an asteroid belongs on every sky variant |
+| Space | v3 | 0+1+2 | open space: an asteroid belongs on every sky variant |
+| Space | v4 | 0+1+2 | open space: an asteroid belongs on every sky variant |
+| Frost | v1 | 0+1+2 | v1 broken pack ice and floes: the ice mountain drifts out of the floes (all three shapes) |
+| Frost | v2 | none | v2 harbour wharf with wrecks and docks: industrial, a mountain would clash: NONE |
+| Frost | v3 | none | v3 industrial pipe / rail lattice with refinery towers on frozen ground: NONE (the user: 'doesn't need any boulders') |
+| Frost | v4 | 0+1+2 | v4 sheer ice cliffs and crevasses: natural ice mountain terrain (all three shapes) |
+| Verdant | v1 | 0+1+2 | v1 jungle canopy with rivers: giant tree masses grow out of the canopy |
+| Verdant | v2 | 0+1+2 | v2 mangrove islands and channels: tree masses and root-balls belong |
+| Verdant | v3 | none | v3 ruined overgrown city grid: concrete and roads, a tree mass would clash: NONE |
+| Verdant | v4 | 0+1+2 | v4 deep bioluminescent teal jungle: tree masses, tinted teal |
+| Ember | v1 | 0+1+2 | v1 lava rivers between basalt plateaus: volcanic stone belongs |
+| Ember | v2 | none | v2 foundry plant (pipes, vents, machinery): NONE |
+| Ember | v3 | 0+1+2 | v3 ash ridges and lava dunes: volcanic stone belongs |
+| Ember | v4 | 0+1+2 | v4 cracked caldera floor with a magma vortex: volcanic stone belongs |
+| Tide | v1 | 0+1+2 | v1 storm-tossed open sea: a reef stack drifts in the swell |
+| Tide | v2 | none | v2 rusted oil-platform field: industrial brown, a reef would clash: NONE |
+| Tide | v3 | none | v3 sunken glowing city (buildings, streets, towers): a built-up city, NONE (the user) |
+| Tide | v4 | 0+1+2 | v4 whirlpool bioluminescent ocean: reef belongs |
+| Storm | v1 | 0+1+2 | v1 sheared cloud banks: a floating thunderhead rock sits in the deck |
+| Storm | v2 | 0+1+2 | v2 towering cumulus field: thunderhead rock belongs |
+| Storm | v3 | 0+1+2 | v3 cyclone eye over the deck: thunderhead rock belongs |
+| Storm | v4 | 0+1+2 | v4 lightning fields: thunderhead rock belongs |
+| Desert | v1 | 0+1+2 | v1 sand dunes: a rock outcrop belongs |
+| Desert | v2 | none | v2 mesa canyon crossed by giant pipelines and mining rigs: an industrial complex, NONE |
+| Desert | v3 | none | v3 cracked flats with mining scaffolds and rails (strip mine): industrial, NONE |
+| Desert | v4 | 0+1+2 | v4 night dunes (blue): rock outcrop, tinted blue |

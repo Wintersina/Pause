@@ -1,0 +1,1 @@
+Frost grade: boulder_grade.py --body 0:0,40:60,80:105,140:160,255:255 --sat 1.1 --tint-amt 0 --rim-px 0

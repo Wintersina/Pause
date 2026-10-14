@@ -34,6 +34,10 @@ public static class CoverBoulderTest
         {
             Table();
             Art();
+            WorldArt();
+            BackdropRules();
+            Landforms();
+            Emerge();
             Lanes();
             Safety();
             DynamicSafety();
@@ -54,6 +58,7 @@ public static class CoverBoulderTest
             CoverBoulders.Disabled = false;
             CoverBoulders.TestAnyWorld = false;
             CoverBoulderDirector.WorldOverride = -1;
+            CoverBoulderDirector.BackdropVariantOverride = -1;
             CoverBoulders.Dispose();
             EliteSystem.PlayerOverride = null;
             EliteSystem.Clear();
@@ -162,10 +167,311 @@ public static class CoverBoulderTest
         foreach (var x in v)
             foreach (var c in x.circles)
                 inside &= new Vector2(c.x, c.y).magnitude + c.r <= x.cellPx * .5f * 1.05f && c.r > 8f;
-        Check("every hit circle lies inside its 512 px cell", inside);
+        Check("every hit circle lies inside its cell", inside);
         Check("Space's approved destruction strip is wired: 5 drawn frames per variant", System.Array.TrueForAll(v, x => x.frames != null && x.frames.Length == CoverBoulderArt.FramesPerStrip));
+        string keep = CoverBoulderTable.Entries[3].folder;
+        CoverBoulderTable.Entries[3].folder = "Boulders/Nowhere";   // (every world has art now: pretend one has not)
         var w = CoverBoulderArt.For(3);
+        CoverBoulderTable.Entries[3].folder = keep;
         Check("a world with no art borrows Space's for the tests", w != null && w[0] == v[0]);
+    }
+
+    // ---- every wired world's art: complete, real resolution, never clamped, pale-edged, no pink outside Space ----
+
+    // Share of opaque texels equal to their k x k block's first texel at the best grid phase (>= .97 is a block upscale).
+    static float BlockScore(Color32[] px, int W, int H, int k)
+    {
+        float best = 0f;
+        for (int oy = 0; oy < k; oy++)
+            for (int ox = 0; ox < k; ox++)
+            {
+                long eq = 0, n = 0;
+                for (int y = oy; y + k <= H; y++)
+                {
+                    int by = oy + (y - oy) / k * k;
+                    for (int x = ox; x + k <= W; x++)
+                    {
+                        var c = px[y * W + x];
+                        if (c.a <= 8) continue;
+                        n++;
+                        var f = px[by * W + ox + (x - ox) / k * k];
+                        if (c.r == f.r && c.g == f.g && c.b == f.b && c.a == f.a) eq++;
+                    }
+                }
+                if (n > 300) best = Mathf.Max(best, eq / (float)n);
+            }
+        return best;
+    }
+
+    static Color32[] ReadPng(string path, out int w, out int h)
+    {
+        var tex = new Texture2D(2, 2, TextureFormat.RGBA32, false);
+        tex.LoadImage(System.IO.File.ReadAllBytes(path));
+        w = tex.width; h = tex.height;
+        var px = tex.GetPixels32();
+        Object.DestroyImmediate(tex);
+        return px;
+    }
+
+    static void WorldArt()
+    {
+        Fresh();
+        float spaceDensity = 0f;
+        var sp = CoverBoulderArt.For(0);
+        for (int i = 0; i < sp.Length; i++)
+            spaceDensity += sp[i].artWidth / CoverBoulderTable.Entries[0].widths[i] / sp.Length;
+        for (int w = 0; w < CoverBoulderTable.Entries.Length; w++)
+        {
+            var e = CoverBoulderTable.Entries[w];
+            if (!e.enabled) continue;
+            string name = e.world;
+            var v = CoverBoulderArt.Load(e.folder);
+            Check(name + ": manifest + art load, 3 variants, 1-4 hit circles each, five drawn break frames",
+                  v != null && v.Length == 3 && System.Array.TrueForAll(v, x => x.intact != null && x.circles.Length >= 1 && x.circles.Length <= CoverBoulder.MaxCircles &&
+                                                                           x.frames != null && x.frames.Length == CoverBoulderArt.FramesPerStrip));
+            if (v == null) continue;
+            float cell = v[0].cellPx;
+            // texel density: the art's own pixels per world unit never below Space's (no downscale to save memory)
+            for (int i = 0; i < v.Length && w > 0; i++)
+                Check(name + " v" + i + ": texel density " + (v[i].artWidth / e.widths[i]).ToString("0") + " px/u >= Space's " + spaceDensity.ToString("0"),
+                      v[i].artWidth / e.widths[i] >= spaceDensity * 1.05f);
+            bool inside = true, pivot = true;
+            foreach (var x in v)
+            {
+                // collider sanity: circles inside the cell and inside the art's own width, the centre circle near the cell centre
+                foreach (var c in x.circles) inside &= new Vector2(c.x, c.y).magnitude + c.r <= cell * .5f * 1.05f && c.r > 8f * cell / 512f && Mathf.Abs(c.x) < x.artWidth * .5f;
+                pivot &= x.intact.pivot.x * 2f == x.intact.rect.width && Mathf.Approximately(x.intact.rect.width, cell) && Mathf.Approximately(x.frames[0].rect.width, cell);
+            }
+            Check(name + ": hit circles inside the " + cell + " px cell, pivot at the cell centre (art and break frames share one cell)", inside && pivot);
+
+            if (w == 0) continue;   // Space: the user's in-place asteroids (no sheets), the benchmark of the others
+            string dir = "Assets/Art/Resources/" + e.folder + "/";
+            foreach (var f in new[] { "boulder.png", "break.png" })
+            {
+                int W, H;
+                var px = ReadPng(dir + f, out W, out H);
+                bool ok = f == "boulder.png" ? W == (int)cell * 3 && H == (int)cell : W == (int)cell * 5 && H == (int)cell * 3;
+                var imp = (UnityEditor.TextureImporter)UnityEditor.AssetImporter.GetAtPath(dir + f);
+                if (imp != null) Debug.Log("[COVER] import " + f + ": def " + imp.GetDefaultPlatformTextureSettings().maxTextureSize + " android " + imp.GetPlatformTextureSettings("Android").maxTextureSize + "/" + imp.GetPlatformTextureSettings("Android").format + " iphone " + imp.GetPlatformTextureSettings("iPhone").format + " mips " + imp.mipmapEnabled + " ok " + ok);
+                Check(name + "/" + f + ": " + W + "x" + H + " is the full sheet; import not clamped, no mipmaps, ASTC 4x4 on phones",
+                      ok && imp != null && imp.GetDefaultPlatformTextureSettings().maxTextureSize >= W && imp.GetPlatformTextureSettings("Android").maxTextureSize >= W && !imp.mipmapEnabled &&
+                      imp.GetPlatformTextureSettings("Android").format == UnityEditor.TextureImporterFormat.ASTC_4x4 &&
+                      imp.GetPlatformTextureSettings("iPhone").format == UnityEditor.TextureImporterFormat.ASTC_4x4);
+                float worst = Mathf.Max(BlockScore(px, W, H, 2), Mathf.Max(BlockScore(px, W, H, 3), BlockScore(px, W, H, 4)));
+                Check(name + "/" + f + ": real resolution, not a block upscale (block score " + worst.ToString("0.000") + " < .97)", worst < .97f);
+                int pinks = 0, opaque = 0;
+                for (int i = 0; i < px.Length; i += 3)
+                    if (px[i].a > 8) { opaque++; if (w > 0 && WorldCue.IsPink(new Color32(px[i].r, px[i].g, px[i].b, 255))) pinks++; }
+                bool pinkFree = pinks <= opaque * .002f;
+                if (f == "boulder.png")
+                {
+                    // the rim: solid pixels with a clear pixel 4 px away; Storm has a pale one, every other world none
+                    double rim = 0, body = 0; long nr = 0, nb = 0;
+                    for (int y = 4; y < H - 4; y += 2)
+                        for (int x = 4; x < W - 4; x += 2)
+                        {
+                            var c = px[y * W + x];
+                            if (c.a <= 240) continue;
+                            double l = .299 * c.r + .587 * c.g + .114 * c.b;
+                            bool edge = px[y * W + x - 4].a < 128 || px[y * W + x + 4].a < 128 || px[(y - 4) * W + x].a < 128 || px[(y + 4) * W + x].a < 128;
+                            if (edge) { rim += l; nr++; } else { body += l; nb++; }
+                        }
+                    double dl = nr > 0 && nb > 0 ? rim / nr - body / nb : 0;
+                    Check(name + "/boulder.png: " + (e.outline ? "has its pale one-sided outline" : "has no outline or halo") + " (rim " + dl.ToString("+0;-0") + " luma vs body)",
+                          e.outline ? dl >= 20 : dl <= 14);
+                }
+                Check(name + "/" + f + ": no pink outside Space", pinkFree);
+            }
+        }
+    }
+
+    // ---- BACKDROP RULES: a boulder only spawns where it blends into the backdrop variant in play (docs 13) ----
+
+    static void BackdropRules()
+    {
+        Fresh();
+        CoverBoulders.TestAnyWorld = false;
+        bool all = true, notes = true, noneBlocked = true, onlyAllowed = true, determinism = true, someWhere = true;
+        int noneCount = 0;
+        for (int w = 0; w < CoverBoulderTable.Entries.Length; w++)
+        {
+            var e = CoverBoulderTable.Entries[w];
+            if (!e.enabled) continue;
+            someWhere &= e.Mask(0) != 0;
+            for (int b = 1; b <= 4; b++)
+            {
+                int mask = e.Mask(b);
+                notes &= !string.IsNullOrEmpty(e.notes[b - 1]);
+                CoverBoulderDirector.BackdropVariantOverride = b;
+                CoverBoulders.Clear();
+                string why = CoverBoulderDirector.Blocked(w, 90f);
+                if (mask == 0) { noneCount++; noneBlocked &= why == "backdrop"; }
+                else
+                {
+                    if (why != null) { Debug.Log("[COVER] backdrop rule: " + CoverBoulderTable.Entries[w].world + " v" + b + " blocked by " + why); }
+                    all &= why == null;
+                    CoverBoulderDirector.WorldOverride = w;
+                    var dir = new GameObject("~dir").AddComponent<CoverBoulderDirector>();
+                    dir.Begin();
+                    var seen = new List<int>();
+                    for (int i = 0; i < 24; i++)
+                    {
+                        CoverBoulders.Clear();
+                        var bd = dir.SpawnOne(w);
+                        if (bd == null) { onlyAllowed = false; break; }
+                        onlyAllowed &= (mask & (1 << bd.Variant)) != 0;
+                        seen.Add(bd.Variant);
+                    }
+                    // determinism: the same seed gives the same sequence
+                    var again = new List<int>();
+                    Random.InitState(4242);
+                    var dir2 = new GameObject("~dir2").AddComponent<CoverBoulderDirector>();
+                    dir2.Begin();
+                    Random.InitState(99); var first = new List<int>();
+                    for (int i = 0; i < 8; i++) { CoverBoulders.Clear(); var bd = dir2.SpawnOne(w); first.Add(bd != null ? bd.Variant : -1); }
+                    Object.DestroyImmediate(dir2.gameObject);
+                    var dir3 = new GameObject("~dir3").AddComponent<CoverBoulderDirector>();
+                    dir3.Begin();
+                    Random.InitState(99);
+                    for (int i = 0; i < 8; i++) { CoverBoulders.Clear(); var bd = dir3.SpawnOne(w); again.Add(bd != null ? bd.Variant : -1); }
+                    Object.DestroyImmediate(dir3.gameObject);
+                    determinism &= first.Count == again.Count;
+                    for (int i = 0; i < first.Count && i < again.Count; i++) determinism &= first[i] == again[i];
+                    Object.DestroyImmediate(dir.gameObject);
+                    CoverBoulderDirector.WorldOverride = -1;
+                }
+            }
+            // with no known backdrop variant (0: menus, tests) the union applies
+            CoverBoulderDirector.BackdropVariantOverride = 0;
+            CoverBoulders.Clear();
+            string why0 = CoverBoulderDirector.Blocked(w, 90f);
+            if (why0 != null) Debug.Log("[COVER] backdrop rule: " + e.world + " union blocked by " + why0);
+            all &= why0 == null;
+        }
+        CoverBoulderDirector.BackdropVariantOverride = -1;
+        CoverBoulders.Clear();
+        CoverBoulders.TestAnyWorld = true;
+        Check("every wired world allows at least one shape over at least one backdrop variant", someWhere);
+        Check("every backdrop variant of a wired world either has allowed shapes (spawns, nothing else blocks) or is explicitly 'none' (" + noneCount + " none)", all);
+        Check("a 'none' backdrop never spawns a boulder (Blocked == backdrop)", noneBlocked);
+        Check("every wired world documents each backdrop variant (notes)", notes);
+        Check("spawns only ever pick an allowed shape for the backdrop variant", onlyAllowed);
+        Check("the choice of shape is deterministic for a seed", determinism);
+    }
+
+    // ---- EMERGE / RECEDE: out of the backdrop into the play layer with no pop ----
+
+    static void Emerge()
+    {
+        Fresh();
+        var b = CoverBoulders.Spawn(0, 1);
+        var sr = b != null ? b.GetComponentOnBody() : null;
+        Check("a fresh boulder starts fully faded and small (presence " + (b != null ? b.Presence.ToString("0.00") : "-") + ")", b != null && b.Presence < .02f);
+        if (b == null) return;
+        float prev = b.Presence, maxStep = 0f, prevScale = b.VisualScale, maxScaleStep = 0f, last = 0f;
+        bool monotone = true;
+        for (int i = 0; i < 160; i++)
+        {
+            b.Hold(new Vector2(0f, 0f), 0f, false);   // keeps it clear of the view bottom: only the emerge runs
+            CoverBoulders.Step(Dt);
+            b.Hold(new Vector2(0f, 0f), 0f, false);
+            maxStep = Mathf.Max(maxStep, Mathf.Abs(b.Presence - prev));
+            maxScaleStep = Mathf.Max(maxScaleStep, Mathf.Abs(b.VisualScale - prevScale));
+            monotone &= b.Presence >= prev - 1e-4f;
+            prev = b.Presence; prevScale = b.VisualScale; last = b.Presence;
+        }
+        Check("the emerge is continuous: opacity steps <= " + maxStep.ToString("0.000") + ", scale steps <= " + maxScaleStep.ToString("0.000") + " per frame, rising", maxStep < .03f && maxScaleStep < .02f && monotone);
+        Check("after " + CoverBoulder.EmergeSeconds + " s it is fully in the play layer (presence " + last.ToString("0.00") + ", scale " + prevScale.ToString("0.00") + ")", last > .98f && Mathf.Abs(prevScale - 1f) < .02f);
+        // recede: a boulder low in the view sinks back smoothly (no jump from the last frame in view)
+        float vb = CameraFit.ViewBottom;
+        float pp = -1f, maxRec = 0f;
+        for (float y = vb + 6f; y > vb - .5f; y -= .02f)
+        {
+            b.Hold(new Vector2(0f, y), 0f, false);
+            CoverBoulders.Step(.0001f);
+            b.Hold(new Vector2(0f, y), 0f, false);
+            if (pp >= 0f) maxRec = Mathf.Max(maxRec, Mathf.Abs(b.Presence - pp));
+            pp = b.Presence;
+        }
+        Check("the recede is smooth (max step " + maxRec.ToString("0.000") + " per .02 u) and ends faint (" + pp.ToString("0.00") + ")", maxRec < .03f && pp < .5f);
+        CoverBoulders.Clear();
+    }
+
+    // ---- LANDFORMS: every world but Space draws its boulder as DECORATIVE backdrop art that affects nothing ----
+
+    static void Landforms()
+    {
+        Fresh();
+        var T = CoverBoulderTable.Entries;
+        bool flags = T[0].interactive;
+        for (int w = 1; w < T.Length; w++) flags &= !T[w].interactive;
+        Check("only Space is interactive cover; every other world's boulder is a decorative landform (one flag per world)", flags);
+        // no built-up city, rig or industrial complex gets a landform (the per-variant table of docs section 13)
+        bool cities = T[1].Mask(2) == 0 && T[1].Mask(3) == 0 && T[2].Mask(3) == 0 && T[3].Mask(2) == 0 && T[4].Mask(3) == 0 && T[6].Mask(2) == 0 && T[6].Mask(3) == 0;
+        Check("none on the cities / industrial variants: Frost v2 v3, Verdant v3, Ember v2, Tide v2 v3 (oil rigs, sunken city), Desert v2 v3", cities);
+
+        for (int w = 1; w < T.Length; w++)
+        {
+            Fresh();
+            var b = CoverBoulders.Spawn(w, 1);
+            string nm = T[w].world;
+            if (b == null) { Check(nm + ": a landform spawns", false); continue; }
+            b.Hold(new Vector2(.4f, 2f), 0f);
+            var body = Hazard(.4f, 2f, "Enimey", .3f);
+            var at = body.transform.position;
+            var shot = Fake(new Vector2(.4f, 3.5f));
+            Vector2 hit;
+            bool inert = b.Alive && b.Decorative && !b.Solid && !CoverBoulders.Any && CoverBoulders.SolidCount == 0 && CoverBoulders.Alive == 0 && !CoverBoulders.All.GetEnumerator().MoveNext();
+            inert &= !CoverBoulders.Inside(new Vector2(.4f, 2f), .3f) && !CoverBoulders.StopsShot(new Vector2(.4f, 2f), .2f);
+            inert &= !CoverBoulders.StopsPlayerShot(new Vector2(.4f, -3f), new Vector2(.4f, 6f), .2f, out hit);
+            inert &= !CoverBoulders.Blocked(new Vector2(.4f, 6f), new Vector2(.4f, -3f)) && Mathf.Approximately(CoverBoulders.ClipUp(new Vector2(.4f, -3f), 8f, .3f), 8f);
+            inert &= (CoverBoulders.ResolveShip(new Vector2(.4f, 2f)) - new Vector2(.4f, 2f)).sqrMagnitude < 1e-6f;
+            inert &= !CoverBoulders.SiteCovered(new Vector2(.4f, 2f)) && !CoverBoulders.ShoveMeet(body.transform, .3f, Vector2.down * .1f, Dt);
+            CoverBoulders.PushBodies();
+            inert &= (body.transform.position - at).sqrMagnitude < 1e-8f;
+            Check(nm + ": the landform blocks nothing (shots, beams, line of sight, ship, bodies, shoves, landing sites, hazard cover query) and pushes nothing", inert);
+            b.Hold(new Vector2(.4f, 2f), 0f);
+            Check(nm + ": it is bigger than a cover boulder and inside the lane (" + b.Width.ToString("0.0") + " u of " + (CoverBoulders.Edge * 2f).ToString("0.0") + ")", b.Width > T[w].widths[1] * 1.2f - .01f && b.Width <= CoverBoulders.Edge * 2f * CoverBoulders.DecorMaxShare + .001f);
+            Check(nm + ": it falls slowly (" + (-b.Vel.y).ToString("0.00") + " u/s)", -b.Vel.y <= T[w].fall.y * CoverBoulders.DecorSpeed + .001f);
+        }
+
+        // a boss starting: a landform sinks out (no rumble, no crumble, nothing destroyed); Space's cover boulder is destroyed as before
+        Fresh();
+        int before = CoverBoulders.Destroyed;
+        var f = CoverBoulders.Spawn(1, 0);
+        f.Hold(new Vector2(0f, 1f), 0f);
+        int n = CoverBoulders.OnBossBegin();
+        Check("a boss starting fades the landform out (state " + f.State + ", destroyed " + (CoverBoulders.Destroyed - before) + ")", n == 0 && f.State == CoverBoulder.Phase.Fade && CoverBoulders.Destroyed == before);
+        float tt = 0f;
+        while (f.Alive && tt < 4f) { CoverBoulders.Step(Dt); tt += Dt; }
+        Check("... and is gone, effects included, in " + tt.ToString("0.0") + " s", !f.Alive && CoverBoulders.AliveAny == 0);
+        var sp = CoverBoulders.Spawn(0, 0);
+        sp.Hold(new Vector2(0f, 1f), 0f);
+        Check("Space's cover boulder still blocks and is still destroyed by a boss", CoverBoulders.Any && CoverBoulders.OnBossBegin() == 1 && sp.State == CoverBoulder.Phase.Rumble);
+
+        // the Storm effects layer: pooled, no allocations, follows the boulder, hidden the moment it fades or is released, no pink
+        Fresh();
+        var st = CoverBoulders.Spawn(5, 1);
+        st.Hold(new Vector2(0f, 2f), 0f);
+        for (int i = 0; i < 30; i++) CoverBoulders.Step(Dt);
+        var fxRoot = st.StormFxRoot;
+        Check("Storm: the effects layer exists (" + (fxRoot != null ? fxRoot.GetComponentsInChildren<SpriteRenderer>(true).Length.ToString() : "-") + " pooled renderers) and is showing", fxRoot != null && fxRoot.gameObject.activeSelf && fxRoot.GetComponentsInChildren<SpriteRenderer>(true).Length == 31);
+        System.Action work = () => { for (int i = 0; i < 120; i++) CoverBoulders.Step(Dt); };
+        work();
+        long bytes = TestHarness.AllocatedBytes(work);
+        Check("Storm: 120 frames with every wisp, streak, pellet and arc moving allocate " + bytes + " bytes", bytes == 0);
+        CoverBoulders.OnBossBegin();
+        for (int i = 0; i < 60 * 2.2f; i++) CoverBoulders.Step(Dt);
+        Check("Storm: no wisp, streak or arc is left after the boss fade", !st.Alive && !fxRoot.gameObject.activeSelf);
+        var st2 = CoverBoulders.Spawn(5, 0);
+        for (int i = 0; i < 90; i++) CoverBoulders.Step(Dt);
+        CoverBoulders.Clear();
+        Check("Storm: released with its effects (a despawn leaves nothing)", !st2.Alive && !st2.StormFxRoot.gameObject.activeSelf);
+        int W, H;
+        var fxpx = ReadPng("Assets/Art/Resources/Boulders/Storm/fx.png", out W, out H);
+        int pk = 0, op = 0;
+        for (int i = 0; i < fxpx.Length; i += 2) if (fxpx[i].a > 8) { op++; if (WorldCue.IsPink(new Color32(fxpx[i].r, fxpx[i].g, fxpx[i].b, 255))) pk++; }
+        Check("Storm: the effects atlas is " + W + "x" + H + ", real resolution, no pink (" + pk + " of " + op + ")", W == 1024 && H == 1024 && pk == 0 && BlockScore(fxpx, W, H, 2) < .97f);
     }
 
     // ---- lanes: the free-reach band, every shape ----
@@ -729,7 +1035,10 @@ public static class CoverBoulderTest
     {
         Fresh();
         CoverBoulders.TestAnyWorld = false;
-        Check("a world whose art is not wired spawns nothing (Frost: " + CoverBoulderDirector.Blocked(1, 90f) + ")", CoverBoulderDirector.Blocked(1, 90f) == "no art");
+        bool wasOn = CoverBoulderTable.Entries[1].enabled;
+        CoverBoulderTable.Entries[1].enabled = false;
+        Check("a world whose art is not wired spawns nothing (Frost, switched off: " + CoverBoulderDirector.Blocked(1, 90f) + ")", CoverBoulderDirector.Blocked(1, 90f) == "no art");
+        CoverBoulderTable.Entries[1].enabled = wasOn;
         Check("Space spawns after its first 20 s", CoverBoulderDirector.Blocked(0, 90f) == null);
         CoverBoulders.TestAnyWorld = true;
         Check("none in the first 20 s of a world (the 8 s calm start inside it)", CoverBoulderDirector.Blocked(0, 5f) == "too early" && CoverBoulderDirector.Blocked(0, 19f) == "too early" && CoverBoulderDirector.Blocked(0, 21f) == null);
@@ -794,9 +1103,9 @@ public static class CoverBoulderTest
                 dir.Tick(dt);
                 if (CoverBoulders.Spawned != n) times.Add(t);
                 CoverBoulders.Step(dt);
-                maxAlive = Mathf.Max(maxAlive, CoverBoulders.Alive);
-                if (CoverBoulders.Alive > 0 && aliveSince < 0f) aliveSince = t;
-                if (CoverBoulders.Alive == 0 && aliveSince >= 0f) { if (t - aliveSince > 45f) onScreenShort = false; aliveSince = -1f; }
+                maxAlive = Mathf.Max(maxAlive, CoverBoulders.AliveAny);
+                if (CoverBoulders.AliveAny > 0 && aliveSince < 0f) aliveSince = t;
+                if (CoverBoulders.AliveAny == 0 && aliveSince >= 0f) { if (t - aliveSince > (e.interactive ? 45f : 140f)) onScreenShort = false; aliveSince = -1f; }
             }
             float first = times.Count > 0 ? times[0] : -1f;
             float minGap = float.MaxValue, maxGap = 0f;
@@ -805,7 +1114,7 @@ public static class CoverBoulderTest
                   times.Count >= 1800f / (e.gap.y + 3f) * .85f && times.Count <= 1800f / e.gap.x + 1 &&
                   first >= CoverBoulders.FirstSeconds && first <= CoverBoulders.FirstSeconds + 16f &&
                   (times.Count < 2 || (minGap >= e.gap.x - .25f && maxGap <= e.gap.y + 3f)));
-            Check(e.world + ": never more than one at a time, and each is on screen under 45 s (max " + maxAlive + ")", maxAlive == 1 && onScreenShort);
+            Check(e.world + ": never more than one at a time, and each is on screen under " + (e.interactive ? 45 : 140) + " s (max " + maxAlive + ")", maxAlive == 1 && onScreenShort);
             Check(e.world + ": none in the first 8 s calm start", times.Count == 0 || times[0] > 8f);
             // a world change takes the boulder away
             CoverBoulders.Clear();
@@ -896,19 +1205,22 @@ public static class CoverBoulderTest
                             var b = CoverBoulders.Spawn(w, v);
                             checkedN++;
                             float width = b.Width;
-                            bool ok = CoverBoulders.SideGapOf(b) >= CoverBoulders.SideGap - .01f &&
-                                      width <= edge * 2f * CoverBoulders.MaxScreenShare + .01f &&
-                                      b.Pos.y > CameraFit.ViewTop;   // it enters above the top
+                            // a landform is backdrop art: huge but inside the view's width, no lane to keep free, nothing solid
+                            bool ok = b.Decorative
+                                ? width <= edge * 2f * CoverBoulders.DecorMaxShare + .01f && !b.Solid && b.Pos.y > CameraFit.ViewTop
+                                : CoverBoulders.SideGapOf(b) >= CoverBoulders.SideGap - .01f &&
+                                  width <= edge * 2f * CoverBoulders.MaxScreenShare + .01f &&
+                                  b.Pos.y > CameraFit.ViewTop;   // it enters above the top
                             // and it keeps that all the way down (drift a minute)
                             for (int i = 0; i < 1500 && ok && b.Alive; i++)
                             {
                                 CoverBoulders.Step(.05f);
                                 if (!b.Alive) break;
-                                ok &= CoverBoulders.SideGapOf(b) >= CoverBoulders.SideGap - .01f;
+                                ok &= b.Decorative ? !b.Solid : CoverBoulders.SideGapOf(b) >= CoverBoulders.SideGap - .01f;
                             }
                             if (!ok) { bad++; worst++; }
                         }
-                Check(id + " (reach " + h.ToString("F2") + ", rails " + edge.ToString("F2") + ", view " + (CameraFit.ViewTop - CameraFit.ViewBottom).ToString("F1") + " u): every world's boulder keeps SideGap to both rails, in and out of the view (" + worst + " bad)", worst == 0);
+                Check(id + " (reach " + h.ToString("F2") + ", rails " + edge.ToString("F2") + ", view " + (CameraFit.ViewTop - CameraFit.ViewBottom).ToString("F1") + " u): Space's cover boulder keeps SideGap to both rails and every landform stays inside the view width, in and out of the view (" + worst + " bad)", worst == 0);
             }
             PlayField.Reset();
         }
