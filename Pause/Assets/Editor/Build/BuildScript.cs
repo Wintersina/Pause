@@ -67,6 +67,25 @@ public static class BuildScript
                   "signing Android with the debug key (not for distribution)");
     }
 
+    // Share build (make apk-share): a release-style APK (no PAUSE_DEV, no
+    // development flag, APK not AAB) for friends and testers. It is ALWAYS
+    // signed with Unity's debug key: it never looks at PAUSE_KEYSTORE_PASS /
+    // PAUSE_KEYALIAS_PASS, so a shell that happens to export them cannot leak
+    // the release key into a file that gets passed around. Output path comes
+    // from PAUSE_SHARE_APK (absolute); default Builds/Android/Pause-share.apk.
+    public static void BuildAndroidShare()
+    {
+        string path = Environment.GetEnvironmentVariable("PAUSE_SHARE_APK");
+        if (string.IsNullOrEmpty(path)) path = Path.Combine(OutputRoot, "Android/Pause-share.apk");
+        PlayerSettings.Android.useCustomKeystore = false;
+        PlayerSettings.Android.keystorePass = "";
+        PlayerSettings.Android.keyaliasPass = "";
+        EditorUserBuildSettings.buildAppBundle = false;
+        Directory.CreateDirectory(OutputRoot); // size/timing reports land here even when the APK does not
+        Debug.Log("[BUILD] share build: debug-key signed (not the release key), APK");
+        Run(BuildTarget.Android, path);
+    }
+
     // Developer builds: the same game compiled with PAUSE_DEV, which starts
     // with developer mode on (see DeveloperUnlocks.ShouldDefaultOn) and shows
     // a DEV badge. The define is passed to this build only, through

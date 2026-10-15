@@ -40,6 +40,7 @@ make mac-run              # build and launch the Mac app
 make mac-dev-run          # build and launch the PAUSE_DEV Mac app
 make android-deploy       # build, install, and launch on a connected Android device
 make android-dev-deploy   # same, using the PAUSE_DEV build
+make apk-share            # debug-key-signed APK for friends -> build/share/ (see docs/build-and-share.md)
 make android-log          # stream Unity logs from the device
 make ios-devices          # list connected iPhone/iPad device IDs
 IOS_DEVICE_ID=<udid> make ios-deploy  # build, install, and launch on that device
