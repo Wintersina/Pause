@@ -66,14 +66,15 @@ public sealed class BeatMap
 
     // Whole bars' worth of beats in one trip round the clip: the beat counter grows by this at each loop wrap, so the
     // bar phase carries on across the loop point.
-    public double BeatsPerLoop
+    public double BeatsPerLoop => BeatsInLoop(duration);
+
+    public double BeatsInLoop(double loopSeconds)
     {
-        get
-        {
-            int n = BarBeats;
-            return Math.Ceiling(BeatAt(duration) / n) * n;
-        }
+        // Include the negative beat position before the first beat. Rounding only the
+        // end position makes some maps (Verdant) move backwards on wrapping to beat < 0.
+        return Math.Ceiling((BeatAt(loopSeconds) - BeatAt(0)) / BarBeats) * BarBeats;
     }
+
 }
 
 [Serializable]

@@ -7,7 +7,7 @@ using UnityEngine;
 //
 //   beatsScale   every stream's beats-between-volleys times this (1 = about the old pace: the old interval rounded to a
 //                sixteenth / half beat; 2 = half as many waves). Per-stream override: PatternStream.beats.
-//   speedScale   bullet speed times this while beat-synced (waves arrive on the beat; 1 = the old speed)
+//   speedScale   bullet speed times this while beat-synced (1 = the old travel speed)
 //   barWaitMax   a pattern waits for the next BAR line if that is at most this many seconds away, else for the next
 //                beat (the boss holds its tell pose a little longer; it never fires early)
 //   enabled      false keeps this boss on its old timers
@@ -23,15 +23,16 @@ public sealed class BeatTuning
 
 public static class BossBeatTuning
 {
+    // Twice the volley cadence before subdivision rounding; dense streams stop at a sixteenth.
     static readonly BeatTuning[] rows =
     {
-        new BeatTuning(),   // 0 Space   Void Archon
-        new BeatTuning(),   // 1 Frost   Hoarfrost Leviathan
-        new BeatTuning(),   // 2 Verdant Bloom Queen
-        new BeatTuning(),   // 3 Ember   Cinder Drake
-        new BeatTuning(),   // 4 Tide    Iron Kraken
-        new BeatTuning(),   // 5 Storm   Tempest Engine
-        new BeatTuning(),   // 6 Desert  Dune-Eater
+        new BeatTuning { beatsScale = .5f },   // 0 Space   Void Archon
+        new BeatTuning { beatsScale = .5f },   // 1 Frost   Hoarfrost Leviathan
+        new BeatTuning { beatsScale = .5f },   // 2 Verdant Bloom Queen
+        new BeatTuning { beatsScale = .5f },   // 3 Ember   Cinder Drake
+        new BeatTuning { beatsScale = .5f },   // 4 Tide    Iron Kraken
+        new BeatTuning { beatsScale = .5f },   // 5 Storm   Tempest Engine
+        new BeatTuning { beatsScale = .5f },   // 6 Desert  Dune-Eater
     };
 
     public static BeatTuning For(int world)
@@ -43,14 +44,12 @@ public static class BossBeatTuning
 // Where a pattern's first volley lands: the next bar line if it is close enough, else the next beat.
 public static class BeatAlign
 {
-    const double Slack = .08;   // beats: a moment already just past a line still counts as on it
-
     // The beat position to start at, for a pattern whose telegraph ends `afterSeconds` from now. Never earlier than that.
     public static double Target(IBeatSource b, double afterSeconds, float barWaitMax)
     {
         double spb = b.SecondsPerBeat;
         double earliest = b.BeatNow + afterSeconds / spb;
-        double nextBeat = System.Math.Ceiling(earliest - Slack);
+        double nextBeat = System.Math.Ceiling(earliest);
         int bar = System.Math.Max(1, b.BeatsPerBar);
         double rel = nextBeat - b.DownbeatBeat;
         double nextBar = nextBeat + ((bar - (rel % bar)) % bar + bar) % bar;

@@ -60,6 +60,7 @@ public sealed class BeatClock : IBeatSource
     public static System.Func<double> Now = () => AudioSettings.dspTime;
 
     public readonly BeatMap map;
+    readonly double duration, beatsPerLoop;
     bool anchored, playing;
     double anchorDsp, anchorClip, lastSample;
     long loops;
@@ -68,7 +69,14 @@ public sealed class BeatClock : IBeatSource
     public bool UseLatencyOverride;
     public double LatencyOverride;
 
-    public BeatClock(BeatMap m) { map = m; }
+    public BeatClock(BeatMap m, double clipDuration = 0)
+    {
+        map = m;
+        // Imported MP3 clips contain padding beyond the offline decoded duration.
+        // Wrap when the AudioSource actually wraps, not at the analyzer's loop point.
+        duration = clipDuration > 0 ? clipDuration : m.duration;
+        beatsPerLoop = m.BeatsInLoop(duration);
+    }
 
     public int BeatsPerBar => map.BarBeats;
     public int DownbeatBeat => map.downbeatBeat;
@@ -97,7 +105,7 @@ public sealed class BeatClock : IBeatSource
         if (!isPlaying) { Halt(); return; }
         playing = true;
         lastSample = dsp;
-        double d = map.duration;
+        double d = duration;
         if (!anchored)
         {
             anchored = true;
@@ -133,20 +141,20 @@ public sealed class BeatClock : IBeatSource
     // The clip time the music is at, in the unwrapped timeline (clip time + whole loops * duration), less latency.
     public double MusicTime(double dsp)
     {
-        return anchorClip + (dsp - anchorDsp) * pitch - Latency + loops * map.duration;
+        return anchorClip + (dsp - anchorDsp) * pitch - Latency + loops * duration;
     }
 
     public double BeatAtDsp(double dsp)
     {
         double t = anchorClip + (dsp - anchorDsp) * pitch - Latency;
-        double d = map.duration;
+        double d = duration;
         long w = 0;
         if (d > 0.0)
         {
             w = (long)System.Math.Floor(t / d);
             t -= w * d;
         }
-        return (loops + w) * map.BeatsPerLoop + map.BeatAt(t);
+        return (loops + w) * beatsPerLoop + map.BeatAt(t);
     }
 
     public double BeatNow => BeatAtDsp(Now());
@@ -156,7 +164,7 @@ public sealed class BeatClock : IBeatSource
         get
         {
             double t = anchorClip + (Now() - anchorDsp) * pitch - Latency;
-            double d = map.duration;
+            double d = duration;
             if (d > 0.0) t -= System.Math.Floor(t / d) * d;
             return map.SecondsPerBeatAt(t) / pitch;
         }
@@ -186,7 +194,7 @@ public static class BossBeat
         if (src == null || map == null || src.clip == null) return;
         source = src;
         clip = src.clip;
-        clock = new BeatClock(map);
+        clock = new BeatClock(map, clip.length);
         Tick();
     }
 

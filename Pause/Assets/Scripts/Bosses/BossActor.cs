@@ -426,13 +426,13 @@ public class BossActor : MonoBehaviour, IPatternHost
         else bodyRespawn = BossConfig.BodyRespawnSeconds;
 
         if (fireLeft > 0f) fireLeft -= dt;
-        StepAttacks(dt, player, progress01, pool);
+        StepAttacks(dt, realDt, player, progress01, pool, BossBeat.Source);
         if (markers != null) markers.Step(dt);
         RefreshFrame();
         if (hearts != null) hearts.Step(realDt, dt);   // after the move: the ring is round where it is now
     }
 
-    void StepAttacks(float dt, Vector3 player, float progress01, BossProjectilePool pool)
+    void StepAttacks(float dt, float realDt, Vector3 player, float progress01, BossProjectilePool pool, IBeatSource beatSource)
     {
         phaseTimer -= dt;
         switch (phase)
@@ -457,7 +457,7 @@ public class BossActor : MonoBehaviour, IPatternHost
                     // With the boss song playing the pattern waits for a bar line / beat and fires on the grid; the
                     // telegraphs last until then (BossBeatTuning). Without it: the old timers, unchanged.
                     var tune = BossBeatTuning.For(World);
-                    var src = tune.enabled ? BossBeat.Source : null;
+                    var src = tune.enabled ? beatSource : null;
                     float tell = current.tellSeconds;
                     alignBeat = -1.0;
                     alignHold = 0f;
@@ -487,11 +487,22 @@ public class BossActor : MonoBehaviour, IPatternHost
                 {
                     // holding for the bar line: the boss keeps its tell pose until the music gets there (never longer
                     // than MaxAlignHold, and not at all once the music stops)
-                    var clk = alignBeat >= 0.0 ? BossBeat.Source : null;
-                    if (clk != null && clk.BeatNow < alignBeat - clk.SecondsPerBeat * .004 && (alignHold += dt) < MaxAlignHold) return;
+                    var clk = alignBeat >= 0.0 && beatSource != null && beatSource.Active ? beatSource : null;
+                    if (clk != null && clk.BeatNow - alignBeat > realDt / clk.SecondsPerBeat + 1e-6)
+                    {
+                        // The song continued during a pause or slow motion. Wait for its next
+                        // beat instead of launching at the expired tell target between beats.
+                        alignBeat = BeatAlign.Target(clk, 0, 0f);
+                        alignHold = 0f;
+                    }
+                    if (clk != null && clk.BeatNow < alignBeat && (alignHold += dt) < MaxAlignHold) return;
+                    if (clk != null) runner.StartOnBeat(alignBeat);
                     alignBeat = -1.0;
                     phase = AttackPhase.Pattern;
                     Fire();
+                    playerNow = player;
+                    poolNow = pool;
+                    runner.Step(0f, realDt); // emit on this frame's beat, not the next frame
                     return;
                 }
                 if (BossExecutors.IsHazardKind(current.kind))
@@ -526,7 +537,7 @@ public class BossActor : MonoBehaviour, IPatternHost
             case AttackPhase.Pattern:
                 playerNow = player;
                 poolNow = pool;
-                if (runner.Step(dt)) { runner.Stop(); EndAttack(progress01); }
+                if (runner.Step(dt, realDt)) { runner.Stop(); EndAttack(progress01); }
                 return;
 
             case AttackPhase.Hazards:

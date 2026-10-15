@@ -140,7 +140,6 @@ public sealed class BossPatternRunner
     // timer above, exactly as before.
     public const double GridBeats = .25;       // the finest subdivision a volley lands on (a 16th)
     const double StartSlack = .12;             // beats: a pattern that starts just past a grid line still uses it
-    const double MaxLateBeats = 1.0;           // a volley this far behind (a stall) is skipped rather than fired in a burst
     IBeatSource beat;
     BeatTuning tune;
     bool started;
@@ -166,6 +165,7 @@ public sealed class BossPatternRunner
         beat = beatSource != null && beatSource.Active ? beatSource : null;
         tune = tuning ?? BeatTuning.Default;
         started = false;
+        startBeat = double.NaN;
         for (int i = 0; i < MaxStreams; i++) beatMode[i] = false;
         pat = pattern;
         host = h;
@@ -240,17 +240,21 @@ public sealed class BossPatternRunner
         return Mathf.Clamp(aim + side * s.spread, -165f, -15f);
     }
 
-    public bool Step(float dt)
+    // Preserve the beat chosen by the actor's tell. The first Step may arrive a frame late;
+    // deriving a fresh origin there shifts the entire stream onto a different subdivision.
+    public void StartOnBeat(double target) { if (!started) startBeat = target; }
+
+    public bool Step(float dt, float realDt = -1f)
     {
         if (pat == null) return true;
         clock += dt;
-        if (beat != null && !started) BeginBeats(dt);
+        if (beat != null && !started) BeginBeats();
         for (int i = 0; i < pat.streams.Length && i < MaxStreams; i++)
         {
             var s = pat.streams[i];
             if (beatMode[i])
             {
-                if (beat != null && beat.Active) { StepBeats(i, s); continue; }
+                if (beat != null && beat.Active) { StepBeats(i, s, realDt >= 0f ? realDt : dt); continue; }
                 // the music stopped under the pattern: this stream goes back to its own timer from now on
                 beatMode[i] = false;
                 next[i] = clock + Mathf.Max(.02f, s.interval / rate);
@@ -271,10 +275,10 @@ public sealed class BossPatternRunner
     }
 
     // The pattern's first frame: each stream's first volley is the first grid line at or after its start time.
-    void BeginBeats(float dt)
+    void BeginBeats()
     {
         started = true;
-        startBeat = beat.BeatNow;
+        if (double.IsNaN(startBeat)) startBeat = beat.BeatNow;
         double perSec = 1.0 / beat.SecondsPerBeat;
         for (int i = 0; i < pat.streams.Length && i < MaxStreams; i++)
         {
@@ -312,22 +316,21 @@ public sealed class BossPatternRunner
         return best;
     }
 
-    void StepBeats(int i, PatternStream s)
+    void StepBeats(int i, PatternStream s, float realDt)
     {
         double now = beat.BeatNow;
         double spb = beat.SecondsPerBeat;
         double step = VolleyBeats(s);
         emitSpeed = tune.speedScale;
+        // Gameplay can freeze while music keeps playing. Only a normal frame's lateness
+        // is allowed, even for a stream that has not fired yet. Keep its original phase.
+        double allowedLate = System.Math.Max(0, realDt) / spb + 1e-6;
+        if (now - nextBeat[i] > allowedLate)
+            nextBeat[i] += System.Math.Ceiling((now - nextBeat[i]) / step) * step;
         while (nextBeat[i] <= now)
         {
             float at = clock - (float)((now - nextBeat[i]) * spb);
             if (emitted[i] > 0 && at >= s.End - 1e-4f) { nextBeat[i] = 1e18; break; }
-            if (now - nextBeat[i] > MaxLateBeats && emitted[i] > 0)
-            {
-                // the game stood still while the music ran on: land on the next grid line, no catch-up burst
-                nextBeat[i] += System.Math.Ceiling((now - nextBeat[i]) / step) * step;
-                continue;
-            }
             LastScheduledBeat = nextBeat[i];
             LastEmitLateBeats = now - nextBeat[i];
             Emit(i, s, Mathf.Max(s.start, at));
