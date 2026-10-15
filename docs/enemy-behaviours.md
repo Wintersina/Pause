@@ -155,7 +155,7 @@ Shot speeds are relative to the board, in world units per second.
 | `verdant_fighter_3` | Mantis | scythe arms | `Brake` hover, still ("praying") | no (`Lunge`: a sideways slash right across its band) | arms raise, then the slash | be above or below its row, not beside it |
 | `verdant_fighter_4` | Hornet Queen | four wings, scythes, stinger | `Brake` hover, `Track` | **yes**: three stingers in a tight aimed fan, up to three volleys | abdomen glows 0.8 s | a tight fan: one clear step sideways |
 | `verdant_chaser` | Dragonsting | four-winged dragonfly | chaser: weaving pursuit, longer and slower | no | lunge loop while hunting | its weave makes it overshoot |
-| `verdant_alien` | Snap Sprout | walking flytrap | `March`: sideways hops in step, reversing at the edges | no | jaws snap when near (cosmetic) | the line shifts one hop at a time |
+| `verdant_alien` | Snap Sprout | winged flytrap | `March`: sideways hops in step, reversing at the edges | no | jaws snap when near (cosmetic) | the line shifts one hop at a time |
 
 ### Ember (shots: amber)
 
@@ -308,7 +308,7 @@ that scrolled off the bottom before.
 | `space_fighter_3` Twin Claw | pilot | Drop to 2.0 u | wide sweep, splayed pairs x3, 7 s | Peel |
 | `space_fighter_4` Warden | pilot | Drop to 1.6 u | holds range, tracks, aimed shells x4, 9 s | Climb |
 | `space_chaser` Steel Hound | pilot | from below (as before) | pursues, then orbits 5 s | Climb |
-| `space_alien` Bile Mite | pilot | Descend 1.1 u/s in line | wiggles; spitters spit twice | marches out the bottom |
+| `space_alien` Bile Mite | pilot | Descend 1.1 u/s in line | wiggles; spitters spit twice | hops out the bottom |
 | `frost_big` Glacier Golem | pilot | slow Drop to 1.6 u | sways, shard fans x3, 9 s | slow Climb |
 | `frost_fighter_1` Flake | pilot | Swoop to 2.4 u | snowflake drift, 3 s | Run at the pilot's column |
 | `frost_fighter_2` Icicle | pilot | Drop to 2.4 u | tracks, aimed bolts x3, 5.5 s | Peel |
@@ -322,7 +322,7 @@ that scrolled off the bottom before.
 | `verdant_fighter_3` Mantis | pilot | Drop to 3.0 u | hovers still, slashes x3, 6.5 s | Peel |
 | `verdant_fighter_4` Hornet Queen | pilot | Drop to 1.6 u | tracks, stinger fans x4, 9 s | Climb |
 | `verdant_chaser` Dragonsting | pilot | from below | weaving pursuit, orbits 6 s | Climb |
-| `verdant_alien` Snap Sprout | pilot | Descend 1.0 u/s | marches sideways in step | marches out the bottom |
+| `verdant_alien` Snap Sprout | pilot | Descend 1.0 u/s | hops sideways in step on leaf wings | hops out the bottom |
 | `ember_big` Magma Skull | pilot | slow Drop to 1.5 u | slag pairs x3, 9 s | slow Climb |
 | `ember_fighter_1` Cinder | pilot | Swoop to 2.4 u | diagonal drift, 2.5 s | Run |
 | `ember_fighter_2` Scorch | pilot | Drop to 2.2 u | lines up over the pilot, bolts x4, 5.5 s | Peel |

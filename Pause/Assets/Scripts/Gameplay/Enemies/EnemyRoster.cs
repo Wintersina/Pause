@@ -381,8 +381,8 @@ public static class EnemyRoster
                 "A geode the Frost rails grew around a cold star. Get close and the crystals start to grow - " +
                 "then it lasers the lane, rail to rail, at a slant of its choosing."),
             Def("frost_big", "Glacier Golem", B, 1, 0, "enemy_frost_big", Ice,
-                "A hunched iceberg hulk with crystal shoulders, one cyan visor and a jagged ice maw that cracks open.",
-                "A walking iceberg with one cold eye. When its crystal jaw cracks open, the frost is coming " +
+                "A hovering iceberg hulk on cryo thrusters with crystal shoulders, floating ice fists, one cyan visor and a jagged ice maw that cracks open.",
+                "A flying iceberg with one cold eye. When its crystal jaw cracks open, the frost is coming " +
                 "your way."),
             Def("frost_fighter_1", "Flake", F, 1, 1, "enemy_frost_fighter_1", Ice,
                 "Hex drone, two swept crystal blades and an icicle lance.",
@@ -447,8 +447,8 @@ public static class EnemyRoster
                 "It rises out of the canopy on four blurring wings and snaps at your engines. Slide sideways " +
                 "and let it bite the air."),
             Def("verdant_alien", "Snap Sprout", A, 2, 0, "enemy_verdant_alien", Spore,
-                "A walking flytrap on root legs; its jaws gape and snap around a bile gullet.",
-                "Flytraps that learned to march in lines. Their jaws snap shut on anything slow."),
+                "A winged flytrap bud hovering on leaf-rotor wings; its toothed jaws gape and snap around a glowing gullet.",
+                "Flytraps that learned to fly in lines. They hop in step on leaf wings, and their jaws snap shut on anything slow."),
 
             // ================================================================ EMBER
             Def("ember_rock_magma", "Magma Rock", R, 3, 1, "hazard_ember_rock_magma", Magma,
