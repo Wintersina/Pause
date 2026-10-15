@@ -90,6 +90,9 @@ public static class BossLadder
     public static int WarmShots(int world)
     {
         world = Mathf.Clamp(world, 0, warm.Length - 1);
+        // Beat-synced volleys are denser than Measure's timer rotation. Build their
+        // bounded pool during the entrance rather than allocating on musical accents.
+        if (BossBeat.Enabled && BossBeatTuning.For(world).enabled) return BossConfig.ProjectilePoolMax;
         if (warm[world] == 0) warm[world] = Mathf.Min(BossConfig.ProjectilePoolMax, Measure(world).maxSimultaneous + 12);
         return warm[world];
     }

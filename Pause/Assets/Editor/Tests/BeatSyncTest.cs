@@ -38,6 +38,9 @@ public static class BeatSyncTest
             Clock();
             Waves();
             Fallback();
+            ResumeTiming();
+            ActorTiming();
+            SongDensity();
         }
         finally
         {
@@ -76,6 +79,157 @@ public static class BeatSyncTest
                 Check(n + ": listed beats rise at 120..200 bpm", rising);
             }
         }
+    }
+
+    static void ResumeTiming()
+    {
+        var map = Steady(150f, 0f, 100f);
+        // Resume between beats after less than one beat: never fire an overdue volley.
+        var r = new Rig(map, 4.0);
+        r.Tick(0);
+        r.runner.Begin(Single(Aimed(.4f, 1f, 6f)), r.host, 1f, 1, .9f, r.clock);
+        r.runner.Step(1f / 60f);
+        int before = r.host.volleys;
+        r.Tick(.6);
+        r.runner.Step(1f / 60f);
+        Check("resume between beats: no overdue volley", r.host.volleys == before);
+        r.Tick(.20001);
+        r.runner.Step(1f / 60f);
+        Check("resume: next volley retains the original beat phase", r.host.volleys == before + 1 && Near(r.runner.LastScheduledBeat, 12, 1e-6));
+
+        // A delayed stream has not emitted yet when the player lifts their finger.
+        var d = new Rig(map, 4.0);
+        d.Tick(0);
+        d.runner.Begin(Single(Aimed(.1f, .25f, 6f, start: .4f)), d.host, 1f, 1, .9f, d.clock);
+        d.runner.Step(1f / 60f);
+        d.Tick(2.05);
+        d.runner.Step(1f / 60f);
+        Check("resume before a delayed stream's first volley: no catch-up burst", d.host.volleys == 0);
+
+        foreach (var name in Names)
+        {
+            var m = BeatMaps.For(name);
+            var c = new BeatClock(m) { UseLatencyOverride = true };
+            c.Sample(0, 0, true);
+            Check(name + ": beat position does not go backwards at the actual loop seam",
+                c.BeatAtDsp(m.duration + .00001) >= c.BeatAtDsp(m.duration - .00001));
+        }
+    }
+
+    sealed class ManualBeat : IBeatSource
+    {
+        public bool Active => true;
+        public double BeatNow { get; set; }
+        public double SecondsPerBeat => .4;
+        public int BeatsPerBar => 4;
+        public int DownbeatBeat => 0;
+    }
+
+    static void ActorTiming()
+    {
+        using var sandbox = new TestHarness.Sandbox();
+        var step = typeof(BossActor).GetMethod("StepAttacks", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+        var targetField = typeof(BossActor).GetField("alignBeat", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+        foreach (float hz in new[] { 30f, 60f, 120f })
+        foreach (bool pauseInTell in new[] { false, true })
+        {
+            var boss = BossCatalog.ForWorld(0);
+            var actor = BossActor.Spawn(boss);
+            var pool = new BossProjectilePool(144, 12);
+            var music = new ManualBeat { BeatNow = 10.13 };
+            float dt = 1f / hz;
+            try
+            {
+                actor.BeginFight();
+                // Enter the real actor's first tell, then advance the audio independently.
+                step.Invoke(actor, new object[] { 10f, dt, Vector3.zero, 0f, pool, music });
+                double target = (double)targetField.GetValue(actor);
+                double chosen = target;
+                if (pauseInTell) music.BeatNow += 9.37;
+                bool sameFrame = false;
+                for (int f = 0; f < hz * 5; f++)
+                {
+                    music.BeatNow += dt / music.SecondsPerBeat;
+                    step.Invoke(actor, new object[] { dt, dt, Vector3.zero, 0f, pool, music });
+                    if (actor.PatternPhase)
+                    {
+                        sameFrame = actor.Runner.Emissions > 0;
+                        break;
+                    }
+                    double pending = (double)targetField.GetValue(actor);
+                    if (pending >= 0) chosen = pending;
+                }
+                string tag = hz + " Hz actor, pause in tell=" + pauseInTell + ": ";
+                Check(tag + "first volley fires on the transition frame", sameFrame);
+                Check(tag + "first volley uses the chosen beat", Near(actor.Runner.LastScheduledBeat, chosen, 1e-6));
+                Check(tag + "first volley is at most one frame late",
+                    actor.Runner.LastEmitLateBeats >= 0 && actor.Runner.LastEmitLateBeats * .4 <= dt + 1e-6);
+                if (pauseInTell) Check(tag + "expired target replaced by a current beat", chosen > target);
+            }
+            finally
+            {
+                pool.Dispose();
+                UnityEngine.Object.DestroyImmediate(actor.gameObject);
+            }
+        }
+        // A tell ending just beyond a beat cannot select the already-passed beat.
+        var b = new ManualBeat { BeatNow = 10.01 };
+        Check("align: never selects a beat before the tell ends", BeatAlign.Target(b, .8, 0) >= 12.01);
+    }
+
+    static void SongDensity()
+    {
+        for (int world = 0; world < Names.Length; world++)
+        {
+            var before = BeatRotation(world, new BeatTuning());
+            var after = BeatRotation(world, BossBeatTuning.For(world));
+            Check(Names[world] + ": song-synced density increases (" + before.fired + " -> " + after.fired + " shots)", after.fired > before.fired);
+            foreach (float x in new[] { -1.8f, 1.8f })
+            {
+                var edge = BeatRotation(world, BossBeatTuning.For(world), x);
+                after.maxLive = Math.Max(after.maxLive, edge.maxLive);
+                after.dropped += edge.dropped;
+            }
+            Check(Names[world] + ": song-synced pool is prewarmed", BossLadder.WarmShots(world) >= after.maxLive);
+            Check(Names[world] + ": song-synced peak " + after.maxLive + " fits pool " + BossConfig.ProjectilePoolMax,
+                after.maxLive <= BossConfig.ProjectilePoolMax - 8 && after.dropped == 0);
+        }
+    }
+
+    static PatternSim BeatRotation(int world, BeatTuning tuning, float playerX = 0f)
+    {
+        var map = BeatMaps.For(Names[world]);
+        // Measure unconstrained demand, so exceeding the real pool is visible.
+        var sim = new PatternSim { cap = 1024, shots = new PatternSim.Shot[1024], player = new Vector2(playerX, -3.2f) };
+        var run = new BossPatternRunner();
+        var clock = new BeatClock(map) { UseLatencyOverride = true };
+        double dsp = 0;
+        BeatClock.Now = () => dsp;
+        const float dt = 1f / 60f;
+        Action advance = () =>
+        {
+            dsp += dt;
+            clock.Sample(dsp, dsp % map.duration, true);
+            sim.Advance(dt);
+        };
+        clock.Sample(0, 0, true);
+        var slots = BossPatternTables.For(world);
+        for (int round = 0; round < 2; round++)
+        foreach (var slot in slots)
+        {
+            if (slot.pattern != null)
+            {
+                double target = BeatAlign.Target(clock, slot.tell, tuning.barWaitMax);
+                while (clock.BeatNow < target) advance();
+                run.Begin(slot.pattern, sim, BossLadder.RateAt(world, 1f), 7, slot.tell, clock, tuning);
+                run.StartOnBeat(target);
+                while (!run.Step(dt)) advance();
+                advance();
+            }
+            else for (float t = 0; t < slot.tell + slot.est; t += dt) advance();
+            for (float t = 0; t < slot.cooldown * BossLadder.CooldownFor(world) * BossLadder.FinalCooldownScale; t += dt) advance();
+        }
+        return sim;
     }
 
     // ---- 2 ----
@@ -160,6 +314,15 @@ public static class BeatSyncTest
         Check("clock: active while sampled", c.Active);
         dsp += 1.0;
         Check("clock: stale (no samples for a second) = inactive", !c.Active);
+
+        // Unity's imported MP3 has padding beyond ffmpeg's decoded length.
+        var padded = new BeatClock(m, m.duration + .06) { UseLatencyOverride = true };
+        padded.Sample(0, 0, true);
+        Check("clock: imported clip padding does not wrap at the baked duration",
+            Near(padded.BeatAtDsp(m.duration + .03), m.BeatAt(m.duration + .03), 1e-6));
+        double paddedLoop = m.duration + .06;
+        Check("clock: imported clip wraps at the source's actual length",
+            Near(padded.BeatAtDsp(paddedLoop + .01), m.BeatsInLoop(paddedLoop) + m.BeatAt(.01), 1e-6));
 
         // calibration: latency L makes the game treat the music as L earlier
         var c2 = new BeatClock(m);
@@ -311,7 +474,7 @@ public static class BeatSyncTest
             var slot = BossPatternTables.For(0)[0];
             var rig = new Rig(map, 7.3);
             rig.Tick(0);
-            rig.runner.Begin(slot.pattern, rig.host, 1f, 3, slot.tell, rig.clock, BossBeatTuning.For(0));
+            rig.runner.Begin(slot.pattern, rig.host, 1f, 3, slot.tell, rig.clock, new BeatTuning());
             for (int f = 0; f < 60 * 4 && !rig.runner.Step(1f / 60f); f++) rig.Tick(1.0 / 60);
             Check("Space chin cannon: .32 s interval becomes one volley a beat on 150 bpm (" + rig.beats.Count + " volleys)", rig.beats.Count >= 2 && Near(rig.scheduled[1] - rig.scheduled[0], 1.0, 1e-9));
         }
