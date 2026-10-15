@@ -413,8 +413,8 @@ public class BossEncounter : MonoBehaviour
             actor.Flash(Mathf.Lerp(.55f, 1f, BossImpact.Intensity(weight)));
         }
         if (ui != null) ui.HitFlash(boss.flash);
-        // burst, shake, hit-stop, screen cracks (BossImpact): scaled by the hit's weight
-        BossImpact.Hit(at, weight, heartLost, kill);
+        // themed burst, shake, hit-stop (BossImpact): scaled by the hit's weight
+        BossImpact.Hit(boss.artKey, at, weight, heartLost, kill);
     }
 
     // The hearts left after `damage` (weighted hits) with `hpLeft` hit

@@ -1,25 +1,21 @@
 using UnityEngine;
-using UnityEngine.UI;
 
 // The feel of a player hit that damages a boss (BossEncounter.OnShipAttackHit):
-//   * a burst of flame / sparks / smoke at the hit point (boss_hit_burst for
-//     weighty hits, boss_hit_burst_small for light ones), 12 cells over 0.5 s;
+//   * a small themed impact at the hit point: one 12-cell strip per boss
+//     (boss_impact_<key>.png, 256 px cells: Frost ice shards, Ember rising
+//     embers, Verdant leaves, Tide splash crown, Storm bolt cross, Desert grit
+//     fan, Space ion forks), BurstSeconds long, BurstBig / BurstSmall world
+//     units across (weighty vs light hits);
 //   * camera shake: an offset that starts at its amplitude and decays to zero
 //     over ShakeSeconds (0.5 s), quadratically;
 //   * hit-stop (WorldTimeFx.HitStop, real time) -- 45 ms for a light hit up to
 //     90 ms for a kill;
-//   * screen cracks: a full-screen crack overlay (one of 4, random) on a
-//     screen-space canvas above the HUD and below the pause menu, held a beat
-//     then faded out over CrackSeconds (0.5 s); a weighty hit also grows the
-//     8-cell crack strip at the impact point. At most MaxCracks overlays exist
-//     (pooled, the oldest reused) and light hits crack at most once per
-//     LightCrackGap, so a gatling never buries the screen;
 //   * the boss's own white flash (BossActor.Flash(strength)).
+// There is no screen overlay any more (the old full-screen cracks were too big).
 //
 // Weight is the hit's share of one full ultimate hit (BossTarget): a gatling
 // shell 1/14, a beam tick .2, a rail slug / blast 1. Everything is pooled and
-// built once; nothing is allocated per hit. All of it runs on unscaled time
-// (the hit-stop and the ultimate's slow motion must not stretch it).
+// built once; nothing is allocated per hit. All of it runs on unscaled time.
 //
 // Stepped by its own Update in the game; tests call Step(realDt) directly.
 public class BossImpact : MonoBehaviour
@@ -29,19 +25,19 @@ public class BossImpact : MonoBehaviour
     public const float ShakeLight = .09f, ShakeHeavy = .3f;   // world units, peak offset at weight ~0 / 1
     public const float ShakeHeartBonus = .08f, ShakeKillBonus = .2f, ShakeMax = .6f;
     public const float HitStopLight = .045f, HitStopMid = .06f, HitStopHeavy = .08f, HitStopKill = .09f;
-    public const float LightWeight = .2f;         // below this: a light hit (no hit-stop, rare cracks)
-    public const float BigWeight = .5f;           // from this: the big burst + the growth strip
+    public const float LightWeight = .2f;         // below this: a light hit (no hit-stop, rate-limited burst)
+    public const float BigWeight = .5f;           // from this: the big burst
     public const float LightStopGap = .6f;        // light hits hit-stop at most this often
     public const float WhiteSeconds = .12f;       // the boss's white flash
-    public const float CrackSeconds = .5f;
-    public const float CrackHold = .12f;          // full strength for this long, then fades
-    public const float LightCrackGap = .45f;
-    public const int MaxCracks = 3, MaxLightCracks = 2;
+    public const float LightBurstGap = .15f;      // light hits burst at most this often
     public const int BurstCells = 12, BurstPool = 6;
-    public const float BurstSeconds = .5f;
-    public const float BurstBig = 2.4f, BurstSmall = 1.3f;   // world units across
-    public const int CanvasOrder = 60;            // over the HUD (0), under PauseQuickActions (90) and the boss intro (590)
-    public const int CrackStageCells = 8;
+    public const float BurstSeconds = .4f;
+    public const float BurstBig = 1.5f, BurstSmall = .85f;   // world units across (a cell is 256 px, content ~200)
+    public const float BurstTilt = 10f;           // random roll, degrees (Desert stays flat)
+    public const int BurstOrder = 40;             // over the boss and its shots
+
+    // The boss art keys with a strip (BossCatalog artKey).
+    public static readonly string[] Keys = { "Space", "Frost", "Verdant", "Ember", "Tide", "Storm", "Desert" };
 
     // ---- pure maths (tested) -----------------------------------------------
 
@@ -70,51 +66,34 @@ public class BossImpact : MonoBehaviour
         return Mathf.Lerp(HitStopMid, HitStopHeavy, Mathf.InverseLerp(LightWeight, 1f, Mathf.Clamp01(weight)));
     }
 
-    // The crack overlay's alpha `age` seconds in: full for CrackHold, then linear to 0 at CrackSeconds.
-    public static float CrackAlpha(float age)
-    {
-        if (age < 0f || age >= CrackSeconds) return 0f;
-        return age <= CrackHold ? 1f : 1f - (age - CrackHold) / (CrackSeconds - CrackHold);
-    }
-
-    public static int GrowthCell(float age) =>
-        Mathf.Clamp(Mathf.FloorToInt(age / (CrackHold * 1.5f) * CrackStageCells), 0, CrackStageCells - 1);
-
     public static int BurstCell(float age) => Mathf.Clamp(Mathf.FloorToInt(age / BurstSeconds * BurstCells), 0, BurstCells - 1);
 
     // ---- state ---------------------------------------------------------------
 
-    sealed class Crack
-    {
-        public Image overlay, growth;
-        public float age = 99f, strength;
-        public bool Active => age < CrackSeconds;
-    }
-    sealed class Burst { public SpriteRenderer sr; public float age = 99f; public bool big; }
+    sealed class Burst { public SpriteRenderer sr; public float age = 99f; public string key; }
 
     static BossImpact instance;
     public static BossImpact Instance => instance;
 
     float shakeAmp, shakeAge = 99f, shakeClock;
-    float lastCrackAt = -99f, lastStopAt = -99f, clock;
+    float lastBurstAt = -99f, lastStopAt = -99f;
     Vector3 shakeApplied;
     Camera shakeCam;
-    Crack[] cracks;
     Burst[] bursts;
-    Canvas canvas;
-    int nextBurst, crackPick;
-    Vector2 canvasSize = new Vector2(1080f, 2400f);
+    int nextBurst;
+    SpriteRenderer lastBurstSr;
 
     // Counters for tests / diagnostics.
-    public int CracksShown { get { int n = 0; if (cracks != null) foreach (var c in cracks) if (c.Active) n++; return n; } }
     public int BurstsShown { get { int n = 0; if (bursts != null) foreach (var b in bursts) if (b.age < BurstSeconds) n++; return n; } }
-    public int CracksSpawned { get; private set; }
+    public int BurstsSpawned { get; private set; }
+    public int PoolSize => bursts != null ? bursts.Length : 0;
     public float ShakeNow => ShakeEnvelope(shakeAmp, shakeAge);
     public Vector3 ShakeOffset => shakeApplied;
     public static int Spawned;   // hits that reached the effect (tests)
-    public Canvas OverlayCanvas => canvas;
-    public Image CrackOverlay(int i) => cracks != null && i >= 0 && i < cracks.Length ? cracks[i].overlay : null;
-    public float CrackAge(int i) => cracks != null && i >= 0 && i < cracks.Length ? cracks[i].age : 99f;
+    // The last burst's boss key, size and current sprite (tests).
+    public string LastBurstKey { get; private set; }
+    public float LastBurstSize { get; private set; }
+    public Sprite LastBurstSprite => lastBurstSr != null ? lastBurstSr.sprite : null;
 
     // Tests drive the clock through this; null means Time.unscaledTime.
     public static System.Func<float> ClockOverride;
@@ -144,15 +123,15 @@ public class BossImpact : MonoBehaviour
 
     // ---- the hit -------------------------------------------------------------
 
-    // A player hit that damaged the boss, at world point `at`. `heartLost`: it cost a
-    // heart (a phase change); `kill`: it took the last hit point.
-    public static void Hit(Vector3 at, float weight, bool heartLost, bool kill)
+    // A player hit that damaged the boss (art key `key`, e.g. "Frost"), at world point `at`.
+    // `heartLost`: it cost a heart (a phase change); `kill`: it took the last hit point.
+    public static void Hit(string key, Vector3 at, float weight, bool heartLost, bool kill)
     {
         if (weight <= 0f) return;
-        Ensure().Trigger(at, weight, heartLost, kill);
+        Ensure().Trigger(key, at, weight, heartLost, kill);
     }
 
-    public void Trigger(Vector3 at, float weight, bool heartLost, bool kill)
+    public void Trigger(string key, Vector3 at, float weight, bool heartLost, bool kill)
     {
         Spawned++;
         float now = Now;
@@ -169,54 +148,26 @@ public class BossImpact : MonoBehaviour
             lastStopAt = now;
         }
 
-        SpawnBurst(at, weight >= BigWeight || heartLost || kill);
-        SpawnCrack(at, weight, light, now);
+        if (light && now - lastBurstAt < LightBurstGap) return;
+        lastBurstAt = now;
+        SpawnBurst(key, at, weight >= BigWeight || heartLost || kill);
     }
 
-    void SpawnBurst(Vector3 at, bool big)
+    void SpawnBurst(string key, Vector3 at, bool big)
     {
         var b = bursts[nextBurst];
         nextBurst = (nextBurst + 1) % bursts.Length;
+        BurstsSpawned++;
         b.age = 0f;
-        b.big = big;
+        b.key = key;
+        float size = (big ? BurstBig : BurstSmall) * Random.Range(.92f, 1.08f);
         b.sr.transform.position = new Vector3(at.x, at.y, 0f);
-        float size = big ? BurstBig : BurstSmall;
-        b.sr.transform.localScale = new Vector3(size, size, 1f) * Random.Range(.9f, 1.1f);
-        b.sr.transform.rotation = Quaternion.Euler(0f, 0f, Random.Range(-12f, 12f));
-        b.sr.sprite = Cell(big, 0);
+        b.sr.transform.localScale = new Vector3(size, size, 1f);
+        float tilt = key == "Desert" ? 0f : BurstTilt;
+        b.sr.transform.rotation = Quaternion.Euler(0f, 0f, Random.Range(-tilt, tilt));
+        b.sr.sprite = Cell(key, 0);
         b.sr.enabled = b.sr.sprite != null;
-    }
-
-    void SpawnCrack(Vector3 at, float weight, bool light, float now)
-    {
-        if (light && (now - lastCrackAt < LightCrackGap || CracksShown >= MaxLightCracks)) return;
-        // a free slot, else the oldest
-        Crack pick = null;
-        foreach (var c in cracks) if (!c.Active) { pick = c; break; }
-        if (pick == null) { pick = cracks[0]; foreach (var c in cracks) if (c.age > pick.age) pick = c; }
-        lastCrackAt = now;
-        CracksSpawned++;
-        pick.age = 0f;
-        pick.strength = light ? .6f : 1f;
-        crackPick = (crackPick + 1 + Random.Range(0, 3)) % 4;
-        pick.overlay.sprite = CrackSprite(crackPick);
-        pick.overlay.enabled = pick.overlay.sprite != null;
-        pick.overlay.transform.SetAsLastSibling();
-        // the growth strip, scaled up at the impact point, on the weighty hits
-        pick.growth.enabled = false;
-        if (!light && Camera.main != null)
-        {
-            Vector2 view = Camera.main.WorldToViewportPoint(at);
-            var rt = pick.growth.rectTransform;
-            rt.anchorMin = rt.anchorMax = new Vector2(Mathf.Clamp01(view.x), Mathf.Clamp01(view.y));
-            rt.anchoredPosition = Vector2.zero;
-            float side = Mathf.Lerp(520f, 900f, Intensity(weight));
-            rt.sizeDelta = new Vector2(side, side);
-            rt.localRotation = Quaternion.Euler(0f, 0f, Random.Range(0, 4) * 90f);
-            pick.growth.sprite = GrowthSprite(0);
-            pick.growth.enabled = pick.growth.sprite != null;
-            pick.growth.transform.SetAsLastSibling();
-        }
+        LastBurstKey = key; LastBurstSize = size; lastBurstSr = b.sr;
     }
 
     // ---- per frame -----------------------------------------------------------
@@ -225,34 +176,15 @@ public class BossImpact : MonoBehaviour
 
     public void Step(float dt)
     {
-        clock += dt;
         shakeAge += dt;
         shakeClock += dt;
-        if (cracks == null) return;
-        foreach (var c in cracks)
-        {
-            if (c.age >= CrackSeconds + 1f) continue;
-            c.age += dt;
-            bool on = c.Active;
-            c.overlay.enabled = on && c.overlay.sprite != null;
-            if (on)
-            {
-                float a = CrackAlpha(c.age) * c.strength;
-                c.overlay.color = new Color(1f, 1f, 1f, a);
-                if (c.growth.enabled)
-                {
-                    c.growth.sprite = GrowthSprite(GrowthCell(c.age));
-                    c.growth.color = new Color(1f, 1f, 1f, a);
-                }
-            }
-            else c.growth.enabled = false;
-        }
+        if (bursts == null) return;
         foreach (var b in bursts)
         {
             if (b.age >= BurstSeconds) { if (b.sr.enabled) b.sr.enabled = false; continue; }
             b.age += dt;
             if (b.age >= BurstSeconds) { b.sr.enabled = false; continue; }
-            b.sr.sprite = Cell(b.big, BurstCell(b.age));
+            b.sr.sprite = Cell(b.key, BurstCell(b.age));
         }
     }
 
@@ -280,96 +212,53 @@ public class BossImpact : MonoBehaviour
 
     void Build()
     {
-        var cgo = new GameObject("Cracks", typeof(RectTransform), typeof(Canvas), typeof(CanvasScaler));
-        cgo.transform.SetParent(transform, false);
-        canvas = cgo.GetComponent<Canvas>();
-        canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-        canvas.sortingOrder = CanvasOrder;
-        var scaler = cgo.GetComponent<CanvasScaler>();
-        scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-        scaler.referenceResolution = canvasSize;
-        scaler.screenMatchMode = CanvasScaler.ScreenMatchMode.Expand;
-
-        cracks = new Crack[MaxCracks];
-        for (int i = 0; i < cracks.Length; i++)
-        {
-            var c = new Crack();
-            c.overlay = NewImage(cgo.transform, "Crack" + i, true);
-            c.growth = NewImage(cgo.transform, "Growth" + i, false);
-            cracks[i] = c;
-        }
         bursts = new Burst[BurstPool];
         for (int i = 0; i < bursts.Length; i++)
         {
             var go = new GameObject("Burst" + i);
             go.transform.SetParent(transform, false);
             var sr = go.AddComponent<SpriteRenderer>();
-            sr.sortingOrder = 40;   // over the boss and its shots
+            sr.sortingOrder = BurstOrder;
             sr.enabled = false;
             bursts[i] = new Burst { sr = sr };
         }
     }
 
-    static Image NewImage(Transform parent, string name, bool full)
-    {
-        var go = new GameObject(name, typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
-        go.transform.SetParent(parent, false);
-        var img = go.GetComponent<Image>();
-        img.raycastTarget = false;
-        img.enabled = false;
-        var rt = img.rectTransform;
-        if (full)
-        {
-            rt.anchorMin = Vector2.zero;
-            rt.anchorMax = Vector2.one;
-            rt.offsetMin = rt.offsetMax = Vector2.zero;
-        }
-        return img;
-    }
-
     // ---- art -------------------------------------------------------------------
 
-    static Sprite[] crackSprites, growthCells, burstBig, burstSmall;
+    static readonly Sprite[][] strips = new Sprite[Keys.Length][];
 
-    static Texture2D Tex(string name) => Resources.Load<Texture2D>(BossArt.ImpactFolder + name);
-
-    static Sprite CrackSprite(int i)
+    static int KeyIndex(string key)
     {
-        if (crackSprites == null) crackSprites = new Sprite[4];
-        i = Mathf.Clamp(i, 0, 3);
-        if (crackSprites[i] == null)
-        {
-            var t = Tex("crack_0" + (i + 1));
-            if (t != null) crackSprites[i] = Sprite.Create(t, new Rect(0, 0, t.width, t.height), new Vector2(.5f, .5f), 100f, 0, SpriteMeshType.FullRect);
-        }
-        return crackSprites[i];
+        for (int i = 0; i < Keys.Length; i++) if (Keys[i] == key) return i;
+        return 3;   // unknown boss: Ember's embers read as a neutral impact
     }
 
-    public static Sprite GrowthSprite(int cell) => Strip(ref growthCells, "crack_growth", CrackStageCells, cell);
-    public static Sprite Cell(bool big, int cell) =>
-        big ? Strip(ref burstBig, "boss_hit_burst", BurstCells, cell) : Strip(ref burstSmall, "boss_hit_burst_small", BurstCells, cell);
+    public static string StripName(string key) => "boss_impact_" + Keys[KeyIndex(key)].ToLowerInvariant();
 
-    static Sprite Strip(ref Sprite[] cache, string name, int cells, int cell)
+    // Cell `cell` (0..11) of the boss's strip; sliced once, cached.
+    public static Sprite Cell(string key, int cell)
     {
-        if (cache == null || cache.Length != cells || cache[0] == null)
+        int k = KeyIndex(key);
+        var cache = strips[k];
+        if (cache == null || cache[0] == null)
         {
-            var t = Tex(name);
-            cache = new Sprite[cells];
+            var t = Resources.Load<Texture2D>(BossArt.ImpactFolder + StripName(key));
+            cache = strips[k] = new Sprite[BurstCells];
             if (t != null)
             {
-                int w = t.width / cells;
-                for (int i = 0; i < cells; i++)
+                int w = t.width / BurstCells;
+                for (int i = 0; i < BurstCells; i++)
                     cache[i] = Sprite.Create(t, new Rect(i * w, 0, w, t.height), new Vector2(.5f, .5f), w, 0, SpriteMeshType.FullRect);
             }
         }
-        return cache[Mathf.Clamp(cell, 0, cells - 1)];
+        return cache[Mathf.Clamp(cell, 0, BurstCells - 1)];
     }
 
     // Every sprite this effect shows (the art-completeness test).
     public static System.Collections.Generic.IEnumerable<Sprite> AllSprites()
     {
-        for (int i = 0; i < 4; i++) yield return CrackSprite(i);
-        for (int i = 0; i < CrackStageCells; i++) yield return GrowthSprite(i);
-        for (int i = 0; i < BurstCells; i++) { yield return Cell(true, i); yield return Cell(false, i); }
+        foreach (var k in Keys)
+            for (int i = 0; i < BurstCells; i++) yield return Cell(k, i);
     }
 }
