@@ -437,7 +437,7 @@ public class EmberDirector : PlanetDirector
             p.age += dt;
             p.y = planner.Y(p.gy);
             Place(p);
-            if (p.y < -HalfH - p.size * .9f - .5f)
+            if (p.y < GroundDespawnY(p, ambient))
             {
                 planner.Release(p.footprint);
                 p.footprint = -1;

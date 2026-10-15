@@ -31,7 +31,7 @@ public static class BackdropAnchorTest
     const float Dt = 1f / 30f;
     const float MaxDrift = .01f;
     const float Speed = .6f;               // moveBackGround.speed: ~25 s per mid-tile loop
-    static readonly string[] Worlds = { "Frost", "Verdant", "Ember", "Tide", "Desert" };
+    static readonly string[] Worlds = { "Frost", "Verdant", "Ember", "Tide", "Storm", "Desert" };
 
     public static int Execute()
     {
@@ -42,11 +42,15 @@ public static class BackdropAnchorTest
         {
             Declared();
             foreach (string world in Worlds) Drift(world);
+            foreach (string world in Worlds) Landform(world);
         }
         finally
         {
             moveBackGround.speed = savedSpeed;
             Time.timeScale = 1f;
+            CoverBoulders.Dispose();
+            CoverBoulders.TestAnyWorld = false;
+            CoverBoulders.AnchorOrigin = Vector2.zero;
             foreach (string w in Worlds) BackdropVariants.For(w).Reset();
             if (WorldBackdrop.Instance != null) Object.DestroyImmediate(WorldBackdrop.Instance.gameObject);
         }
@@ -157,5 +161,68 @@ public static class BackdropAnchorTest
             Check(world + " v" + v + ": anchored overlay drift " + worst.ToString("F4") + " < " + MaxDrift, worst < MaxDrift);
             Object.DestroyImmediate(wb.gameObject);
         }
+    }
+
+    // Decorative LANDFORMS (the mountain / tree mass / spire / reef / mesa the cover-boulder system draws in every world but Space)
+    // are scenery painted on the ground: for a whole crossing of the view, at jittery frame times and a changing scroll speed,
+    // with the landform and the backdrop stepped in either order, a landform keeps its ground coordinate (y + the mid tile's
+    // travel) and its x, never leans, bobs or tumbles, and keeps its size. (It used to fall and drift at a pace of its own and
+    // sway / bob / rock about its centre, so it slid and wiggled over the ground it was meant to stand on.)
+    static void Landform(string world)
+    {
+        int idx = -1;
+        for (int i = 0; i < WorldManager.Worlds.Length; i++) if (WorldManager.Worlds[i].displayName == world) idx = i;
+        var spec = BackdropCatalog.For(world);
+        int sets = Mathf.Max(1, spec.variantSets);
+        for (int v = 1; v <= sets; v++)
+        {
+            if (spec.variantSets > 0 && !BackdropVariants.For(world).Installed(v)) continue;
+            var wb = Fresh(world, v);
+            var set = wb.Current;
+            BackdropTile mid = null;
+            if (set != null) foreach (var t in set.Tiles) if (t.layer.name == "mid") mid = t;
+            if (mid == null || idx < 0) { Check(world + " v" + v + " landform: ground tile found", false); continue; }
+            CoverBoulders.Dispose();
+            CoverBoulders.TestAnyWorld = true;
+            Random.InitState(5 + v);
+            var b = CoverBoulders.Spawn(idx, 1);
+            if (b == null) { Check(world + " v" + v + " landform spawns", false); continue; }
+            Check(world + " v" + v + " landform is decorative scenery", b.Decorative);
+            double gy0 = b.Pos.y + mid.travel;
+            float x0 = b.Pos.x, size0 = b.VisualScale;
+            double worst = 0; float worstX = 0, worstRot = 0, worstSize = 0;
+            int frames = 0;
+            var rng = new System.Random(v);
+            for (int i = 0; i < 6000 && b.Alive; i++)
+            {
+                float dt = Dt * (.35f + 1.3f * (float)rng.NextDouble());
+                moveBackGround.speed = .15f + .9f * Mathf.Abs(Mathf.Sin(i * .01f));
+                if (i % 2 == 0) { wb.Step(dt); CoverBoulders.Step(dt); }
+                else { CoverBoulders.Step(dt); wb.Step(dt); }
+                if (!b.Alive) break;
+                frames++;
+                worst = System.Math.Max(worst, System.Math.Abs(b.Pos.y + mid.travel - gy0));
+                worstX = Mathf.Max(worstX, Mathf.Abs(b.Pos.x - x0));
+                worstRot = Mathf.Max(worstRot, Mathf.Abs(b.Rotation));
+                worstSize = Mathf.Max(worstSize, Mathf.Abs(b.VisualScale - size0));
+                // the drawn transform, not just the numbers
+                var tr = b.GetComponentOnBody().transform.parent;
+                worst = System.Math.Max(worst, System.Math.Abs(tr.position.y + mid.travel - gy0));
+            }
+            Check(world + " v" + v + " landform crossed the view (" + frames + " frames)", frames > 100);
+            Check(world + " v" + v + " landform stays on its ground: drift " + worst.ToString("F5") + " < 0.001", worst < .001);
+            Check(world + " v" + v + " landform does not slide sideways (" + worstX.ToString("F5") + ")", worstX < 1e-4f);
+            Check(world + " v" + v + " landform never leans or turns (" + worstRot.ToString("F3") + " deg)", worstRot < 1e-3f);
+            Check(world + " v" + v + " landform never changes size (" + worstSize.ToString("F4") + ")", worstSize < 1e-3f);
+            // a frozen world holds it still
+            if (b.Alive)
+            {
+                float y = b.Pos.y;
+                for (int i = 0; i < 10; i++) { wb.Step(0f); CoverBoulders.Step(0f); }
+                Check(world + " v" + v + " landform is still when the world is frozen", Mathf.Approximately(y, b.Pos.y));
+            }
+            Object.DestroyImmediate(wb.gameObject);
+        }
+        CoverBoulders.Dispose();
     }
 }
