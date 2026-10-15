@@ -50,6 +50,13 @@ public static class AccountLink
     public static event Action Changed;
 
     static bool signingIn;
+    static float signInStartedAt;
+    static int signInToken;
+    // An interactive sign-in the platform never answered is abandoned after this
+    // long: the next tap starts a fresh attempt instead of queueing forever.
+    public const float SignInTimeoutSeconds = 30f;
+    // Tests drive time through this.
+    public static Func<float> Now = () => Time.realtimeSinceStartup;
     static SignInReport lastReport;
     static bool silentFailed;
     static IPlayerAccount accountOverride;
@@ -151,6 +158,16 @@ public static class AccountLink
             if (done != null) done(false);
             return;
         }
+        if (signingIn && Now() - signInStartedAt >= SignInTimeoutSeconds)
+        {
+            // The platform never answered the last attempt: give up on it (a
+            // late answer is ignored via the token) and answer the waiting taps.
+            signInToken++;
+            signingIn = false;
+            var stale = pendingCallbacks;
+            pendingCallbacks = null;
+            if (stale != null) stale(false);
+        }
         if (signingIn)
         {
             if (done != null) pendingCallbacks += done;
@@ -168,11 +185,14 @@ public static class AccountLink
         }
 
         signingIn = true;
+        signInStartedAt = Now();
+        int token = ++signInToken;
         InteractiveAttempts++;
         RaiseChanged();
         Debug.Log("[Account] interactive sign-in to " + account.PlatformName + "...");
         Action<bool> finished = ok =>
         {
+            if (token != signInToken) return;   // an abandoned attempt answering late
             signingIn = false;
             var callbacks = pendingCallbacks;
             pendingCallbacks = null;

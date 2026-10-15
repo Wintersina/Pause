@@ -38,6 +38,7 @@ public class HudStyler : MonoBehaviour
     // Reactive motion (unscaled: the HUD lives on through the freeze).
     // A stat that changes snaps to a punch pose for a couple of ticks.
     int lastPauses = int.MinValue;
+    int pauseTextFor = int.MinValue;
     float pausePunchAt = -1f;
 
     // The read-out's root: the child of the HUD's root canvas that holds the
@@ -355,7 +356,11 @@ public class HudStyler : MonoBehaviour
             // Nearly out: a hard red/bone blink on 4s (no fading).
             bool blinkOn = low && Mathf.FloorToInt(now * 6f) % 2 == 0;
             pauseText.color = blinkOn ? PauseLow : Pause;
-            pauseText.text = "PAUSES  " + left;
+            if (left != pauseTextFor)
+            {
+                pauseTextFor = left;
+                pauseText.text = "PAUSES  " + left;
+            }
             Punch(pauseText.rectTransform, now - pausePunchAt);
 
             if (pauseBar != null)

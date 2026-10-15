@@ -23,6 +23,8 @@ public class score : MonoBehaviour {
     public static int pauseCounter;
     public Text pauseCounterText;
     private bool pauseCounterBool;
+    int shownPauseCounter = int.MinValue;
+    int shownSpeed = int.MinValue;
     // The launch touch starts a run. It is not a pause-resume action and must
     // never consume one of the player's earned teleports.
     private bool hasStartedRun;
@@ -194,14 +196,22 @@ public class score : MonoBehaviour {
         // (nothing while a portal is kept waiting past its grace: PortalPressure)
         float earned = PortalPressure.EarningsClosed ? 0f : ScoreRules.FlightDust(moveBackGround.speed, Time.deltaTime);
         tc += earned;
-        pauseCounterText.text = "Pauses Remaining : " + pauseCounter.ToString();
+        // Rebuilt only when the count changes (a string per frame otherwise).
+        if (pauseCounter != shownPauseCounter)
+        {
+            shownPauseCounter = pauseCounter;
+            pauseCounterText.text = "Pauses Remaining : " + pauseCounter.ToString();
+        }
         return earned;
     }
     
     // calculates speed and updates canvis.
     void showSpeed()
     {
-        speedValue.text = "Current Speed : " + ( Mathf.Round(moveBackGround.speed * 100)).ToString();
+        int shown = (int)Mathf.Round(moveBackGround.speed * 100);
+        if (shown == shownSpeed) return;   // same text: no new string this frame
+        shownSpeed = shown;
+        speedValue.text = "Current Speed : " + shown.ToString();
 
     }
     void pauseCounterFunction()

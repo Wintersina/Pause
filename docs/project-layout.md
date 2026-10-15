@@ -15,7 +15,7 @@ generators and source art that render the PNGs next to them.
 | `Editor/Tests/` | Editor test suites; every suite is registered in `AllTests.cs` (`AllTests.RunAll`). |
 | `Editor/Tools/` | Batch tools (`AppIconSetter`, `PlayGamesSetup`, `WorldBackdropImport`, `WorldRailImport`, `EditorSceneLoader`, `ScreenFit/`); `Previews/` holds the `-executeMethod X.Run` review renders (`*Preview`, `*Render`, `WorldRailReview`). |
 | `Shaders/Resources/` | Every project shader, at the Resources path its loader uses: `WorldRailRepeat`, `BackdropShaders/*`, `CodexSilhouette/*`, `Dock/DockSprite`, `ShipArt/Exhaust/ExhaustRemap` (+ `.cginc`), `TitleTraffic/TitleTrafficHaze`. |
-| `Resources/` | Prefabs loaded by path (`prefabs/...`, ships in `prefabs/Ships/inGameShips/shipN`), `BillingMode.json` (Unity IAP), `HapticGate/` (splash textures). |
+| `Resources/` | Prefabs loaded by path (`prefabs/...`, ships in `prefabs/Ships/inGameShips/shipN`), `HapticGate/` (splash textures). |
 | `Art/Resources/` | Runtime art loaded by path: bosses, elites, enemies, pickups, ship hulls/skins/exhaust, weapons, codex, tutorial, HUD, `Vfx/` (incl. `Vfx/Kenney` particles), world rails (`Worlds/<World>/rail_*`). |
 | `Art/Backgrounds/` | World backdrops (`Resources/Worlds/<World>/Backdrop/*`, loaded by `BackdropCatalog`) and the scenes' star-field materials (`Materials/`). |
 | `Art/Worlds/` | Codex's world staging art and the backdrop generators (`src~`). Nothing here ships until promoted into `Art/Backgrounds/Resources`. |

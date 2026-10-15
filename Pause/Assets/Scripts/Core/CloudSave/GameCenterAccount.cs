@@ -39,6 +39,10 @@ public sealed class GameCenterAccount : IPlayerAccount, IAccountProfile
 
     static Action<bool, string> pendingLoad;
     static Action<bool> pendingWrite;
+    static float pendingLoadAt, pendingWriteAt;
+    // The native side answers by callback only; if it never does, the slot is
+    // reused after this long (CloudSync also times the call out on its side).
+    const float CallTimeoutSeconds = 30f;
 
     [MonoPInvokeCallback(typeof(LoadCallback))]
     static void OnLoaded(int ok, string json)
@@ -109,15 +113,27 @@ public sealed class GameCenterAccount : IPlayerAccount, IAccountProfile
 
     public void LoadCloudSave(Action<bool, string> done)
     {
-        if (!IsSignedIn || pendingLoad != null) { done(false, null); return; }
+        if (!IsSignedIn) { done(false, null); return; }
+        if (pendingLoad != null)
+        {
+            if (Time.realtimeSinceStartup - pendingLoadAt < CallTimeoutSeconds) { done(false, null); return; }
+            pendingLoad = null;   // the earlier read was lost
+        }
         pendingLoad = done;
+        pendingLoadAt = Time.realtimeSinceStartup;
         PauseGC_LoadSave(SaveName, OnLoaded);
     }
 
     public void WriteCloudSave(string json, Action<bool> done)
     {
-        if (!IsSignedIn || pendingWrite != null) { done(false); return; }
+        if (!IsSignedIn) { done(false); return; }
+        if (pendingWrite != null)
+        {
+            if (Time.realtimeSinceStartup - pendingWriteAt < CallTimeoutSeconds) { done(false); return; }
+            pendingWrite = null;   // the earlier write was lost
+        }
         pendingWrite = done;
+        pendingWriteAt = Time.realtimeSinceStartup;
         PauseGC_WriteSave(SaveName, json, OnWritten);
     }
 #else

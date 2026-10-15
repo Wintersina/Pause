@@ -111,6 +111,8 @@ public class collisionDetection : MonoBehaviour {
     // pause-teleport -- so each pays the same: codex, secret meter, run score
     // (with the kill chain and speed multiplier, plus `bonusPoints`), the
     // kill achievements and a little star dust.
+    static collisionDetection killPayer;
+
     public static void AwardDestroyedTarget(GameObject target, int bonusPoints = 0)
     {
         if (target == null || (!target.CompareTag("Enimey") && !target.CompareTag("Astr"))) return;
@@ -121,7 +123,9 @@ public class collisionDetection : MonoBehaviour {
         Codex.Discover(target);   // ultimate kills count as meeting it too
         SecretPowerController.OnKill();   // kills fill the secret power's meter
         RecordKillAchievement(target, bonusPoints);
-        var player = Object.FindFirstObjectByType<collisionDetection>();
+        // Cached: a death combo or shockwave pays several kills in one frame.
+        if (killPayer == null) killPayer = Object.FindFirstObjectByType<collisionDetection>();
+        var player = killPayer;
         if (player != null) player.awardKillDust(player.enemyDustValue);
         // ...and sometimes it sets off a DEATH COMBO (a chain victim never
         // rolls again: DeathCombo.Resolving).

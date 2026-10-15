@@ -57,9 +57,15 @@ public sealed class PlayGamesAccount : IPlayerAccount, IAccountProfile
         get { return IsSignedIn ? PlayGamesPlatform.Instance.GetUserDisplayName() : null; }
     }
 
+    // The log / focus listeners of a sign-in attempt that has not answered yet.
+    // A platform answer that never arrives would leak them, so a new attempt
+    // removes the previous attempt's first.
+    static Action dropListeners;
+
     public void SignIn(bool interactive, Action<bool> done)
     {
         Activate();
+        if (dropListeners != null) { dropListeners(); dropListeners = null; }
         // The plugin reports only Success / Canceled / InternalError; the
         // status code is in its own log line, which arrives just before the
         // callback. Listen while the attempt runs (SignInDiagnosis).
@@ -76,11 +82,17 @@ public sealed class PlayGamesAccount : IPlayerAccount, IAccountProfile
         Action<bool> focus = hasFocus => { if (!hasFocus) promptShown = true; };
         Application.logMessageReceived += listen;
         Application.focusChanged += focus;
-
-        Action<SignInStatus> callback = status =>
+        Action drop = () =>
         {
             Application.logMessageReceived -= listen;
             Application.focusChanged -= focus;
+        };
+        dropListeners = drop;
+
+        Action<SignInStatus> callback = status =>
+        {
+            drop();
+            if (dropListeners == drop) dropListeners = null;
             LastSignIn = SignInDiagnosis.FromPlayGames(status.ToString(), interactive, pluginLog,
                 Time.realtimeSinceStartup - startedAt, promptShown);
             if (status != SignInStatus.Success)

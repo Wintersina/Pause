@@ -48,6 +48,13 @@ public sealed class CloudSync
     public const long UrgentUploadIntervalMs = 5000;
     public const int MaxBackups = 4;
 
+    // A platform call (sign-in, cloud read, cloud write) that has not answered
+    // after this long is treated as lost, so one dropped callback (typically
+    // while the OS suspends the app) cannot disable cloud saves for the rest of
+    // the session. A late answer is still handled safely (see the tokens below).
+    public const long CallTimeoutMs = 30000;
+    public const int MaxLoadAttempts = 3;
+
     public enum State { Idle, SigningIn, Offline, Loading, Ready, ReadOnly, Disconnected }
 
     public static CloudSync Instance { get; private set; }
@@ -64,6 +71,11 @@ public sealed class CloudSync
     ProgressSnapshot pendingCloud;
     bool dirty;
     bool uploading;
+    long uploadStartedAt;
+    int uploadToken;        // a callback from a timed-out upload is ignored
+    long stageStartedAt;    // when SigningIn / Loading began
+    int loadToken;
+    int loadAttempts;
     long lastUploadAt = long.MinValue / 2;
 
     // Stops reconcile from being applied mid-run (the star dust ledger and
@@ -98,6 +110,7 @@ public sealed class CloudSync
             return;
         }
         Current = State.SigningIn;
+        stageStartedAt = clock();
         account.SignIn(false, ok =>
         {
             AccountLink.OnSignInResult(false, ok, account);
@@ -154,7 +167,54 @@ public sealed class CloudSync
         if (Current == State.Loading || Current == State.Ready) return;
         Debug.Log("[CloudSave] signed in to " + account.PlatformName + ".");
         Current = State.Loading;
-        account.LoadCloudSave(OnCloudLoaded);
+        loadAttempts = 1;
+        StartLoad();
+    }
+
+    void StartLoad()
+    {
+        stageStartedAt = clock();
+        int token = ++loadToken;
+        account.LoadCloudSave((ok, json) =>
+        {
+            if (token != loadToken) return;   // answered after a timeout retry already replaced it
+            OnCloudLoaded(ok, json);
+        });
+    }
+
+    // A sign-in or cloud read that never answered: sign-in falls back to
+    // Offline (a late success still carries on through OnSignedIn); a cloud read
+    // is asked again, and after MaxLoadAttempts the session plays read-only
+    // exactly like any failed read (nothing is ever uploaded over an unread save).
+    void ExpireStaleCalls(long now)
+    {
+        if (uploading && now - uploadStartedAt >= CallTimeoutMs)
+        {
+            uploading = false;
+            uploadToken++;
+            Debug.Log("[CloudSave] upload got no answer; will retry.");
+        }
+        if (Current == State.SigningIn && now - stageStartedAt >= CallTimeoutMs)
+        {
+            Current = State.Offline;
+            Debug.Log("[CloudSave] sign-in got no answer; playing with local saves only.");
+        }
+        else if (Current == State.Loading && !hasPending && now - stageStartedAt >= CallTimeoutMs)
+        {
+            if (loadAttempts < MaxLoadAttempts)
+            {
+                loadAttempts++;
+                Debug.Log("[CloudSave] cloud read got no answer; asking again.");
+                StartLoad();
+            }
+            else
+            {
+                loadToken++;
+                Current = State.ReadOnly;
+                Debug.Log("[CloudSave] cloud read never answered; keeping local progress, not uploading this session.");
+                ResyncAchievements();
+            }
+        }
     }
 
     void OnCloudLoaded(bool ok, string json)
@@ -237,10 +297,15 @@ public sealed class CloudSync
     // app pause (urgent = true, force = true for pause).
     public void Poll(bool urgent = false, bool force = false)
     {
-        if (hasPending) TryApplyPending();
-        RecordLocalChanges();
-        if (Current != State.Ready || !dirty || uploading) return;
         long now = clock();
+        ExpireStaleCalls(now);
+        if (hasPending) TryApplyPending();
+        // Capturing the whole snapshot (~250 prefs reads and a JSON pass) is a GC
+        // spike. Nothing synced changes mid-run (the run's dust is staged by the
+        // ledger and banked at its end), so the regular poll skips it then; a
+        // scene change or app pause (urgent / force) always looks.
+        if (urgent || force || CanApplyNow()) RecordLocalChanges();
+        if (Current != State.Ready || !dirty || uploading) return;
         if (!force)
         {
             if (!urgent && !CanApplyNow()) return;   // mid-run: wait for the end of the run or a pause
@@ -252,12 +317,18 @@ public sealed class CloudSync
     void Upload(long now)
     {
         var snapshot = ProgressSnapshot.Capture(LocalSavedAt());
+        // A device that never played has nothing worth uploading, and must never
+        // replace an account's save with empty values.
+        if (!snapshot.HasProgress()) { dirty = false; return; }
         string key = snapshot.ContentKey();
         uploading = true;
+        uploadStartedAt = now;
+        int token = ++uploadToken;
         lastUploadAt = now;
         UploadCount++;
         account.WriteCloudSave(snapshot.ToJson(), ok =>
         {
+            if (token != uploadToken) return;   // timed out earlier; a retry owns the flag now
             uploading = false;
             if (!ok) { Debug.Log("[CloudSave] upload failed; will retry."); return; }
             if (ProgressSnapshot.Capture(0).ContentKey() == key) dirty = false;
@@ -267,10 +338,13 @@ public sealed class CloudSync
     // Stamps local progress with the time it last changed.
     void RecordLocalChanges()
     {
-        string hash = Hash(ProgressSnapshot.Capture(0).ContentKey());
+        var content = ProgressSnapshot.Capture(0);
+        string hash = Hash(content.ContentKey());
         if (hash == PlayerPrefs.GetString(LocalHashKey, "")) return;
         PlayerPrefs.SetString(LocalHashKey, hash);
-        PlayerPrefs.SetString(LocalSavedAtKey, clock().ToString());
+        // Only real progress is dated. A fresh install / cleared data has none,
+        // so it keeps stamp 0 and can never look "newer" than a cloud save.
+        PlayerPrefs.SetString(LocalSavedAtKey, content.HasProgress() ? clock().ToString() : "0");
         PrefsSaver.MarkDirty();
         dirty = true;
     }

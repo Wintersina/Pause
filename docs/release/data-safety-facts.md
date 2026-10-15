@@ -13,7 +13,7 @@ Derived from the code and plugins at branch `feature/release-rc`, not from memor
 | Achievements (60 ids) | Google Play Games (only when signed in) | `AchievementIds`, `SocialBridge` |
 | Analytics, crash reports, telemetry | None. No Firebase, Crashlytics, Unity Analytics, GameAnalytics etc. in code or packages that is initialised; `UnityConnectSettings` has Analytics, Ads, Purchasing, Performance and Cloud Diagnostics all `m_Enabled: 0` | grep below |
 | Ads | None. No ad SDK in Packages or Assets, no `Advertisement` calls | grep below |
-| In-app purchases | None used. `Resources/BillingMode.json` is `{"androidStore":"GooglePlay"}` (Unity IAP configuration only); no script references `UnityEngine.Purchasing` and no product is defined | grep below |
+| In-app purchases | None used. `Resources/BillingMode.json` was deleted together with `com.unity.purchasing`; no script references `UnityEngine.Purchasing` and no product is defined | grep below |
 | Device identifiers | None read: no `SystemInfo.deviceUniqueIdentifier`, `Application.RequestAdvertisingIdentifierAsync`, no advertising ID | grep below |
 | Network calls of our own | None: no `UnityWebRequest`, `HttpClient`, `WebClient`, sockets or URLs in `Assets/Scripts`. The only `OpenURL` is `app-settings:` (iOS) | grep below |
 | Location, contacts, camera, microphone, storage | None used, none requested | permissions section of `google-play-audit.md` |
