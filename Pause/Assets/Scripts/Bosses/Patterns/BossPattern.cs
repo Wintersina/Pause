@@ -43,6 +43,7 @@ public sealed class PatternStream
     public string[] emitters;
     public int[] parts;                 // resolved by BossCatalog
     public float start, duration, interval = .5f;
+    public float beats;                 // beat-synced: beats between volleys (0 = the interval, rounded to the beat grid); .5 = every off-beat, 2 = every other beat
     public int count = 1;
     public float spread;                // aimed / fan: arc; ring: how far beside the ship the gap is aimed
     public float baseDeg = -90f;
@@ -134,6 +135,24 @@ public sealed class BossPatternRunner
     readonly int[] spotCount = new int[MaxStreams];
     readonly int[] lanes = new int[64];
 
+    // Beat sync (docs: BossBeatTuning): when the boss track's clock is running, a stream's volleys fall on the music's
+    // beat grid instead of on its own cooldown; without a clock (no map, music not playing) every stream keeps the
+    // timer above, exactly as before.
+    public const double GridBeats = .25;       // the finest subdivision a volley lands on (a 16th)
+    const double StartSlack = .12;             // beats: a pattern that starts just past a grid line still uses it
+    const double MaxLateBeats = 1.0;           // a volley this far behind (a stall) is skipped rather than fired in a burst
+    IBeatSource beat;
+    BeatTuning tune;
+    bool started;
+    double startBeat;
+    readonly bool[] beatMode = new bool[MaxStreams];
+    readonly double[] nextBeat = new double[MaxStreams];
+    float emitSpeed = 1f;
+
+    public bool BeatSynced => beat != null;
+    public double LastScheduledBeat { get; private set; }
+    public double LastEmitLateBeats { get; private set; }
+
     public BossPattern Pattern => pat;
     public float Clock => clock;
     public int Fired { get; private set; }
@@ -142,8 +161,12 @@ public sealed class BossPatternRunner
 
     // Plans the pattern (the places mines and bombs will be, the first wall's gap: all marked as telegraphs lasting
     // `tell` seconds); Step then plays it from time 0.
-    public void Begin(BossPattern pattern, IPatternHost h, float rateScale, int seed, float tell)
+    public void Begin(BossPattern pattern, IPatternHost h, float rateScale, int seed, float tell, IBeatSource beatSource = null, BeatTuning tuning = null)
     {
+        beat = beatSource != null && beatSource.Active ? beatSource : null;
+        tune = tuning ?? BeatTuning.Default;
+        started = false;
+        for (int i = 0; i < MaxStreams; i++) beatMode[i] = false;
         pat = pattern;
         host = h;
         rng = new System.Random(seed);
@@ -154,7 +177,7 @@ public sealed class BossPatternRunner
         for (int i = 0; i < pat.streams.Length && i < MaxStreams; i++) Plan(i, pat.streams[i], tell);
     }
 
-    public void Stop() { pat = null; host = null; }
+    public void Stop() { pat = null; host = null; beat = null; }
 
     void Plan(int i, PatternStream s, float tell)
     {
@@ -221,9 +244,18 @@ public sealed class BossPatternRunner
     {
         if (pat == null) return true;
         clock += dt;
+        if (beat != null && !started) BeginBeats(dt);
         for (int i = 0; i < pat.streams.Length && i < MaxStreams; i++)
         {
             var s = pat.streams[i];
+            if (beatMode[i])
+            {
+                if (beat != null && beat.Active) { StepBeats(i, s); continue; }
+                // the music stopped under the pattern: this stream goes back to its own timer from now on
+                beatMode[i] = false;
+                next[i] = clock + Mathf.Max(.02f, s.interval / rate);
+                continue;
+            }
             float step = Mathf.Max(.02f, s.interval / rate);
             while (next[i] <= clock && (next[i] < s.End - 1e-4f || emitted[i] == 0))
             {
@@ -236,6 +268,76 @@ public sealed class BossPatternRunner
             }
         }
         return clock >= pat.Duration;
+    }
+
+    // The pattern's first frame: each stream's first volley is the first grid line at or after its start time.
+    void BeginBeats(float dt)
+    {
+        started = true;
+        startBeat = beat.BeatNow;
+        double perSec = 1.0 / beat.SecondsPerBeat;
+        for (int i = 0; i < pat.streams.Length && i < MaxStreams; i++)
+        {
+            var s = pat.streams[i];
+            double at = startBeat + s.start * perSec;
+            nextBeat[i] = System.Math.Ceiling((at - StartSlack) / GridBeats) * GridBeats;
+            beatMode[i] = true;
+        }
+    }
+
+    // Beats between one stream's volleys: its own `beats`, or its interval in beats snapped to a musical division
+    // (a 16th, 8th, beat, beat and a half, two, three, four), then the boss's tuning and the ladder's pace.
+    static readonly float[] Divisions = { .25f, .5f, 1f, 1.5f, 2f, 3f, 4f };
+
+    public float VolleyBeats(PatternStream s)
+    {
+        double spb = beat != null ? beat.SecondsPerBeat : .4;
+        if (s.beats > 0f)
+        {
+            double e = s.beats * tune.beatsScale / rate;
+            return (float)System.Math.Max(GridBeats, System.Math.Round(e / GridBeats) * GridBeats);
+        }
+        return Snap(Snap(s.interval / spb) * tune.beatsScale / rate);
+    }
+
+    static float Snap(double b)
+    {
+        float best = Divisions[0];
+        double bestErr = double.MaxValue;
+        for (int i = 0; i < Divisions.Length; i++)
+        {
+            double err = System.Math.Abs(System.Math.Log(Divisions[i] / System.Math.Max(.01, b)));
+            if (err < bestErr) { bestErr = err; best = Divisions[i]; }
+        }
+        return best;
+    }
+
+    void StepBeats(int i, PatternStream s)
+    {
+        double now = beat.BeatNow;
+        double spb = beat.SecondsPerBeat;
+        double step = VolleyBeats(s);
+        emitSpeed = tune.speedScale;
+        while (nextBeat[i] <= now)
+        {
+            float at = clock - (float)((now - nextBeat[i]) * spb);
+            if (emitted[i] > 0 && at >= s.End - 1e-4f) { nextBeat[i] = 1e18; break; }
+            if (now - nextBeat[i] > MaxLateBeats && emitted[i] > 0)
+            {
+                // the game stood still while the music ran on: land on the next grid line, no catch-up burst
+                nextBeat[i] += System.Math.Ceiling((now - nextBeat[i]) / step) * step;
+                continue;
+            }
+            LastScheduledBeat = nextBeat[i];
+            LastEmitLateBeats = now - nextBeat[i];
+            Emit(i, s, Mathf.Max(s.start, at));
+            emitted[i]++;
+            nextBeat[i] += step;
+            Emissions++;
+            host.Emitted();
+            if (s.kind == StreamKind.Mines) { nextBeat[i] = 1e18; break; }
+        }
+        emitSpeed = 1f;
     }
 
     Vector2 Part(PatternStream s, int k)
@@ -253,6 +355,7 @@ public sealed class BossPatternRunner
 
     void Fire(int i, Vector2 at, Vector2 v)
     {
+        v *= emitSpeed;
         var sh = shot[i];
         host.Fire(at, v, ref sh);
         Fired++;
