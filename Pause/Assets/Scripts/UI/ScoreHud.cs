@@ -40,7 +40,7 @@ public class ScoreHud : MonoBehaviour
     public const string ChainName = "Chain";
     // One row (33) and the layout group's gap (7) in gameS1's read-out.
     public const float RowStep = 40f;
-    public const int FontSize = 26;
+    public const int FontSize = 22;
     public const int PopupPool = 12;
 
     static readonly Color ScoreColour = AkiraPalette.Bone;

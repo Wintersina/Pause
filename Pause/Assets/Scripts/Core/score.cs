@@ -76,7 +76,7 @@ public class score : MonoBehaviour {
         if (paysRealDust)
         {
             pauseCounter = PAUSECOUNTER;
-            pauseCounterText.text = "Pauses Remaining : " + pauseCounter.ToString();
+            pauseCounterText.text = "PAUSES  " + pauseCounter.ToString();
             speedValue.text = "Current Speed : 0";
             totalCurrency = currencyHolder;
             runStartCurrency = totalCurrency;
@@ -84,7 +84,7 @@ public class score : MonoBehaviour {
         else
         {
             pauseCounter = TUTPAUSECOUNTER;
-            pauseCounterText.text = "Pauses Remaining : " + pauseCounter.ToString();
+            pauseCounterText.text = "PAUSES  " + pauseCounter.ToString();
             speedValue.text = "Current Speed : 0";
             totalCurrency = 0f;
             runStartCurrency = 0f;
@@ -200,7 +200,7 @@ public class score : MonoBehaviour {
         if (pauseCounter != shownPauseCounter)
         {
             shownPauseCounter = pauseCounter;
-            pauseCounterText.text = "Pauses Remaining : " + pauseCounter.ToString();
+            pauseCounterText.text = "PAUSES  " + pauseCounter.ToString();
         }
         return earned;
     }
