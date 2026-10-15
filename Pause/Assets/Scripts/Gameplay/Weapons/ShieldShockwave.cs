@@ -78,14 +78,16 @@ using UnityEngine;
 public static class ShieldShockwave
 {
     // ------------------------------------------------------------- tunables
-    public static float Radius = 2.6f;          // world units from the ship's centre (to a body's edge)
-    public static float RadialPush = 3.4f;       // displacement right next to the hull (was 1.0; the lane's rails cap how far a body can go sideways)
-    public static float RadialFalloff = 1f;     // 1 = linear to zero at the ring; higher = tighter
+    public static float Radius = 3.2f;          // world units from the ship's centre (to a body's edge) (was 2.6)
+    public static float RadialPush = 8f;         // displacement right next to the hull (was 3.4, 1.0 before; the lane is only ~4.7 u wide, so this sends a body into a rail)
+    public static float RadialFalloff = .7f;    // 1 = linear to zero at the ring; lower = fuller push out to the ring (was 1)
+    public static float WallBias = 2.2f;        // multiplies the sideways share of a radial throw (direction only, the push's length is unchanged): the wave slams bodies into the side rails, not just up/down the lane
+    public static float ShotRadialPush = 3.4f;  // displacement of a projectile right next to the hull (shots keep the old throw; bodies take RadialPush)
     public static float ColumnMargin = .12f;    // added each side of the hull's width
     public static float ColumnPush = 1.25f;     // up-screen displacement for the whole column
     public static float PushSeconds = .28f;     // how long a shove takes (ease-out)
     public static float MineMaxSlide = .6f;     // a mine never slides further than this from its clamp
-    public static float EliteKick = 9f;         // u/s added to an elite's velocity next to the hull (before EliteResist; was 3.2)
+    public static float EliteKick = 16f;         // u/s added to an elite's velocity next to the hull (before EliteResist; was 9, 3.2 before that)
     public static float EliteColumnKick = 4f;   // u/s up-screen for an elite in the column (before EliteResist; was 2.4)
     public static float EliteResist = .45f;     // elites take this share of the kick (was .25); their own steering eases them back. Into a rail they lose one heart (EliteShip.Collide), never die of the wave
     public const float ShockwaveDamage = 0f;    // push only. Raise to make the wave hurt (no damage path is wired yet)
@@ -207,7 +209,7 @@ public static class ShieldShockwave
             if (go.TryGetComponent(out elite))
             {
                 if (!elite.InPlay) continue;   // parked on its site, or lifting off: not shoved
-                Vector2 kick = away * (EliteKick * k * EliteResist);
+                Vector2 kick = WallThrow(away) * (EliteKick * k * EliteResist);
                 if (inColumn) kick = new Vector2(kick.x * .35f, Mathf.Max(kick.y, EliteColumnKick * EliteResist));
                 elite.Velocity += kick;
                 kicked++;
@@ -218,7 +220,7 @@ public static class ShieldShockwave
             // less far (HazardSize.ShoveScale; 1 for everything else). The
             // column's clearing push is the same for every body.
             float mass = rock ? HazardSize.ShoveScale(EnemyIdentity.ScaleOf(go)) : 1f;
-            Vector2 move = away * (RadialPush * k * mass);
+            Vector2 move = WallThrow(away) * (RadialPush * k * mass);
             if (inColumn) move = new Vector2(0f, Mathf.Max(move.y, ColumnPush));
 
             RailMineMount mount;
@@ -285,6 +287,17 @@ public static class ShieldShockwave
         return pushed + kicked;
     }
 
+    // `away` with its sideways share multiplied by WallBias and renormalised:
+    // same length, steered toward the nearest side rail. Pure and
+    // allocation-free; a body straight above or below the ship keeps going
+    // straight (no sideways share to grow).
+    public static Vector2 WallThrow(Vector2 away)
+    {
+        var v = new Vector2(away.x * WallBias, away.y);
+        float m = v.magnitude;
+        return m > 1e-4f ? v / m : away;
+    }
+
     // The speed (u/s) a body at x `px`, shoved sideways by `dx` over PushSeconds
     // on EnemyShove's cubic ease-out, meets the rail at `lane` with (0 when it
     // never gets there). The ease-out is fastest at the start, so a rail close
@@ -339,7 +352,7 @@ public static class ShieldShockwave
         float k = edge < Radius ? Mathf.Pow(1f - edge / Radius, Mathf.Max(.01f, RadialFalloff)) : 0f;
         Vector2 away = centre > 1e-4f ? d / centre : Vector2.up;
         bool inColumn = p.y > ship.y && p.y - r <= top && Mathf.Abs(d.x) <= columnHalf + r;
-        move = away * (RadialPush * k);
+        move = away * (ShotRadialPush * k);
         if (inColumn) move = new Vector2(0f, Mathf.Max(move.y, ColumnPush));
         return k > 0f || inColumn;
     }
