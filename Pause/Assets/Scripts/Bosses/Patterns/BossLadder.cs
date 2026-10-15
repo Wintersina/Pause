@@ -1,5 +1,6 @@
 using UnityEngine;
 
+// These measurements describe the legacy timer rotation, not BossMusicDirector.
 // THE DIFFICULTY LADDER (docs/boss-attack-overhaul.md): boss 1 (Void Archon) easiest ... boss 7 (Dune-Eater) hardest,
 // in the order the game visits the worlds. Defined by numbers that are MEASURED on the real tables
 // (BossPatternTables played through PatternSim), so a tuning change that breaks the ladder fails BossLadderTest.

@@ -22,6 +22,22 @@ public sealed class BeatMap
     public bool steady = true;
     public float[] beats;             // explicit beat times when !steady
 
+    public float[] energy, bass, accents;
+    public MusicSection[] sections;
+    public int analysisVersion;
+
+    public MusicMoment MusicAt(double beat)
+    {
+        int i = Math.Max(0, (int)Math.Floor(beat));
+        var m = new MusicMoment { energy = Feature(energy, i), bass = Feature(bass, i), accent = Feature(accents, i), kind = "drive" };
+        if (sections != null)
+            for (int n = 0; n < sections.Length && sections[n].beat <= beat; n++)
+            { m.section = n; m.kind = sections[n].kind; }
+        return m;
+    }
+
+    static float Feature(float[] values, int i) => values == null || values.Length == 0 ? .5f : values[Math.Min(i, values.Length - 1)];
+
     bool Listed => !steady && beats != null && beats.Length >= 2;
 
     public int BarBeats => Math.Max(1, beatsPerBar);
@@ -111,4 +127,19 @@ public static class BeatMaps
         var f = JsonUtility.FromJson<BeatMapFile>(json);
         return f != null && f.bosses != null ? f : new BeatMapFile { bosses = new BeatMap[0] };
     }
+}
+
+[Serializable]
+public sealed class MusicSection
+{
+    public int beat;
+    public string kind;
+    public float energy;
+}
+
+public struct MusicMoment
+{
+    public float energy, bass, accent;
+    public int section;
+    public string kind;
 }

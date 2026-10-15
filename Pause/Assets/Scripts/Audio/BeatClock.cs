@@ -51,7 +51,13 @@ public static class BeatCalibration
 // The beat counter is monotonic across loop wraps (each wrap adds a whole number of bars, BeatMap.BeatsPerLoop) so
 // "next beat" bookkeeping never runs backwards. The class is plain C# apart from reading AudioSettings.dspTime
 // through `Now`, which the tests replace.
-public sealed class BeatClock : IBeatSource
+public interface IMusicBeatSource : IBeatSource
+{
+    MusicMoment MusicNow { get; }
+    MusicMoment MusicAhead(double beats);
+}
+
+public sealed class BeatClock : IMusicBeatSource
 {
     public const double MaxStale = .35;      // dsp seconds without a sample before the clock calls itself inactive
     public const double SnapSeconds = .08;   // a disagreement bigger than this re-anchors at once
@@ -158,6 +164,16 @@ public sealed class BeatClock : IBeatSource
     }
 
     public double BeatNow => BeatAtDsp(Now());
+
+    public MusicMoment MusicNow => MusicAtDsp(Now());
+    public MusicMoment MusicAhead(double beats) => MusicAtDsp(Now() + beats * SecondsPerBeat);
+
+    MusicMoment MusicAtDsp(double dsp)
+    {
+        double t = anchorClip + (dsp - anchorDsp) * pitch - Latency;
+        if (duration > 0) t -= System.Math.Floor(t / duration) * duration;
+        return map.MusicAt(map.BeatAt(t));
+    }
 
     public double SecondsPerBeat
     {

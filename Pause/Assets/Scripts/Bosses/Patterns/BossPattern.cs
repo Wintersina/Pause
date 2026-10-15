@@ -160,7 +160,7 @@ public sealed class BossPatternRunner
 
     // Plans the pattern (the places mines and bombs will be, the first wall's gap: all marked as telegraphs lasting
     // `tell` seconds); Step then plays it from time 0.
-    public void Begin(BossPattern pattern, IPatternHost h, float rateScale, int seed, float tell, IBeatSource beatSource = null, BeatTuning tuning = null)
+    public void Begin(BossPattern pattern, IPatternHost h, float rateScale, int seed, float tell, IBeatSource beatSource = null, BeatTuning tuning = null, bool prepare = true)
     {
         beat = beatSource != null && beatSource.Active ? beatSource : null;
         tune = tuning ?? BeatTuning.Default;
@@ -174,7 +174,34 @@ public sealed class BossPatternRunner
         clock = 0f;
         Fired = Emissions = 0;
         for (int i = 0; i < MaxStreams; i++) { next[i] = i < pat.streams.Length ? pat.streams[i].start : 1e9f; emitted[i] = 0; spotCount[i] = 0; }
-        for (int i = 0; i < pat.streams.Length && i < MaxStreams; i++) Plan(i, pat.streams[i], tell);
+        if (prepare) for (int i = 0; i < pat.streams.Length && i < MaxStreams; i++) Plan(i, pat.streams[i], tell);
+    }
+
+    // The musical director owns scheduling. These entry points reuse projectile geometry
+    // and telegraph placement without consulting stream starts, durations, or cooldowns.
+    public void PrepareMusical(float warningSeconds)
+    {
+        for (int i = 0; i < pat.streams.Length; i++)
+        {
+            emitted[i] = 0; // bombs must use the announced placement, not re-aim at emission
+            Plan(i, pat.streams[i], warningSeconds);
+        }
+    }
+
+    public void ResetMusicalPhrase()
+    {
+        for (int i = 0; i < MaxStreams; i++) emitted[i] = 0;
+    }
+
+    public void EmitMusical(float musicalPosition)
+    {
+        for (int i = 0; i < pat.streams.Length; i++)
+        {
+            Emit(i, pat.streams[i], musicalPosition);
+            emitted[i]++;
+            Emissions++;
+            host.Emitted();
+        }
     }
 
     public void Stop() { pat = null; host = null; beat = null; }

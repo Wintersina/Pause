@@ -1,5 +1,7 @@
 # Boss music and bullet timing
 
+This records the earlier beat-sync repair. Live mapped boss songs now use the continuous [musical director](boss-music-director.md), which replaces the timed rotation described below.
+
 ## Song connections
 
 `WorldMusic.BeginBoss` selects `WorldMusic/Boss_<world>`, starts the song at the entrance, and attaches its row from `Resources/BossBeatMaps.json`. All seven bosses have distinct songs and maps.

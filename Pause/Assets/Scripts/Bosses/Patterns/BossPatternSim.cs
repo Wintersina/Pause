@@ -5,7 +5,7 @@ using UnityEngine;
 // solver). It plays BossPatternRunner through the IPatternHost interface exactly as the game does, and moves the shots
 // by the same rules as BossProjectile.Step: straight lines, rails that mirror (Bounce) or take (Absorb) a shot, a
 // bomb's fuse and burst, a seed's homing, a mine standing still. No engine objects, no allocation after construction.
-public sealed class PatternSim : IPatternHost
+public sealed class PatternSim : IMusicPatternHost
 {
     public struct Shot
     {
@@ -37,6 +37,8 @@ public sealed class PatternSim : IPatternHost
     public int cap = 256;
 
     public Vector2 Player => player;
+    public int ActiveMusicShots => live;
+    public int MusicShotCapacity => cap;
     public float RailEdge => railEdge;
     public float ShipHalfWidth => shipHalf;
     public float SpawnTop => spawnTop;

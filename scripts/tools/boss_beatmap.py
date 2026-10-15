@@ -6,6 +6,7 @@ Writes Pause/Assets/Resources/BossBeatMaps.json, read by BeatMaps (Scripts/Audio
 Usage (needs ffmpeg on PATH and: pip install librosa numpy scipy, in a venv):
     python scripts/tools/boss_beatmap.py            # all bosses
     python scripts/tools/boss_beatmap.py Space Tide # some
+    python scripts/tools/boss_beatmap.py --arrangement-only # preserve beat grids, refresh musical features
 
 Method: decode to mono 22.05 kHz, librosa beat tracking from several start
 tempos, then fit beat_k = first + k*period by robust least squares. A track is
@@ -15,7 +16,7 @@ bpm + firstBeat; others store the explicit beat list. Downbeat (bar phase) is a
 low-frequency-energy guess over 4/4 and is the LEAST reliable field: check it
 by ear. Times are seconds from clip start (clip time == AudioSource.time).
 """
-import json, os, subprocess, sys, tempfile
+import hashlib, json, os, subprocess, sys, tempfile
 import numpy as np
 import librosa
 from scipy.signal import butter, sosfilt
@@ -133,15 +134,60 @@ def analyse(name):
     return out
 
 
+def arrangement(name, beatmap):
+    """Beat-indexed musical controls, independent of combat timers.
+
+    Energy is robust-normalized RMS; bass is low-band RMS; accent is spectral
+    onset strength. Section labels are heuristic, not hand-authored song form.
+    Eight-beat blocks avoid frame-to-frame state flicker; a preceding rise marks
+    a build and a strong energy/bass return marks a drop.
+    """
+    y = load(os.path.join(MUSIC, "Boss_%s.mp3" % name))
+    rms = librosa.feature.rms(y=y, hop_length=HOP)[0]
+    low = sosfilt(butter(4, 200, "low", fs=SR, output="sos"), y)
+    bass = librosa.feature.rms(y=low, hop_length=HOP)[0]
+    onset = librosa.onset.onset_strength(y=y, sr=SR, hop_length=HOP)
+    times = np.arange(len(rms)) * HOP / SR
+    grid = (np.asarray(beatmap["beats"]) if not beatmap["steady"] else
+            np.arange(beatmap["firstBeat"], beatmap["duration"], 60 / beatmap["bpm"]))
+    def perbeat(signal):
+        result = []
+        for i, t in enumerate(grid):
+            end = grid[i + 1] if i + 1 < len(grid) else beatmap["duration"]
+            chunk = signal[(times[:len(signal)] >= t) & (times[:len(signal)] < end)]
+            result.append(float(np.mean(chunk)) if len(chunk) else 0.)
+        result = np.asarray(result)
+        lo, hi = np.percentile(result, [10, 90])
+        return np.clip((result - lo) / max(hi - lo, 1e-8), 0, 1)
+    energy, low_energy, accents = perbeat(rms), perbeat(bass), perbeat(onset)
+    sections = []
+    blocks = [(i, float(np.mean(energy[i:i+8])), float(np.mean(low_energy[i:i+8])))
+              for i in range(0, len(grid), 8)]
+    for j, (i, e, b) in enumerate(blocks):
+        prev = blocks[j-1][1] if j else e
+        following = blocks[j+1][1] if j+1 < len(blocks) else e
+        if e < .28: kind = "breakdown"
+        elif e - prev > .18 and b > .45: kind = "drop"
+        elif following - e > .14 or (e - prev > .08 and e < .7): kind = "build"
+        elif e > .65: kind = "peak"
+        else: kind = "drive"
+        if not sections or sections[-1]["kind"] != kind:
+            sections.append({"beat": i, "kind": kind, "energy": round(e, 3)})
+    return {"energy": np.round(energy, 3).tolist(), "bass": np.round(low_energy, 3).tolist(),
+            "accents": np.round(accents, 3).tolist(), "sections": sections,
+            "analysisVersion": 1, "sourceSha256": hashlib.sha256(open(os.path.join(MUSIC, "Boss_%s.mp3" % name), "rb").read()).hexdigest()}
+
+
 def main():
-    names = sys.argv[1:] or BOSSES
+    features_only = "--arrangement-only" in sys.argv
+    names = [n for n in sys.argv[1:] if n != "--arrangement-only"] or BOSSES
     old = json.load(open(OUT))["bosses"] if os.path.exists(OUT) and sys.argv[1:] else []
     keep = {b["name"]: b for b in old}
     for n in names:
-        r = analyse(n)
-        r = {"name": n, "clip": "WorldMusic/Boss_%s" % n, **r}
+        r = keep[n] if features_only else {"name": n, "clip": "WorldMusic/Boss_%s" % n, **analyse(n)}
+        r.update(arrangement(n, r))
         keep[n] = r
-        print(n, {k: v for k, v in r.items() if k != "beats"})
+        print(n, {k: v for k, v in r.items() if k not in ("beats", "energy", "bass", "accents", "sections")})
     data = {"bosses": [keep[n] for n in BOSSES if n in keep]}
     os.makedirs(os.path.dirname(OUT), exist_ok=True)
     json.dump(data, open(OUT, "w"), indent=2)
