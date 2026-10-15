@@ -29,18 +29,28 @@ CORE = {
 }
 
 
-def world_palette(im):
+PRIMARY = {  # body accent per enemy (hue 0-255 PIL scale): orange 20, blue 150, violet 190, yellow 34
+    "tide_alien": 20, "tide_chaser": 20, "tide_big": 20, "tide_fighter_1": 20, "tide_fighter_2": 20, "tide_fighter_3": 20,
+    "tide_fighter_4": 20, "tide_rock_brain": 150, "tide_rock_staghorn": 20, "tide_rock_urchin": 190, "tide_rock_islet": 150,
+    "tide_mine": 20,
+}
+
+
+def world_palette(im, name="tide_mine"):
+    """Re-ink the old single-teal rupture paintings with the new multi-accent palette (no pink/red/lime):
+    teal/green body -> the enemy's primary accent, bright mint lights -> electric blue, brass -> sun yellow, greys stay."""
     a = np.array(im.convert("RGBA"))
-    hsv = np.array(im.convert("HSV"))
-    h, s = hsv[:, :, 0], hsv[:, :, 1]
+    hsv = np.array(im.convert("HSV")).astype(np.int32)
+    h, s, v = hsv[:, :, 0], hsv[:, :, 1], hsv[:, :, 2]
     active = a[:, :, 3] > 16
-    red = active & (s > 115) & ((h < 11) | (h >= 244))
-    lime = active & (s > 115) & (h >= 50) & (h < 93)
-    cyan = active & (s > 120) & (h >= 129) & (h < 151)
-    hsv[red, 0] = 18; hsv[red, 1] = np.minimum(hsv[red, 1], 110)
-    hsv[lime, 0] = 108
-    hsv[cyan, 0] = 111
-    a[:, :, :3] = np.array(Image.fromarray(hsv, "HSV").convert("RGB"))
+    teal = active & (s > 40) & (h >= 50) & (h < 160)
+    bright = teal & (v > 190)
+    brass = active & (s > 40) & ((h < 35) | (h >= 235))
+    body = teal & ~bright
+    hsv[body, 0] = PRIMARY[name]; hsv[body, 1] = np.clip(s[body] + 90, 0, 235); hsv[body, 2] = np.clip(v[body] * 1.2 + 15, 0, 255)
+    hsv[bright, 0] = 152; hsv[bright, 1] = 190; hsv[bright, 2] = 255
+    hsv[brass, 0] = 34; hsv[brass, 1] = np.clip(s[brass] + 60, 0, 240); hsv[brass, 2] = np.clip(v[brass] * 1.3 + 30, 0, 255)
+    a[:, :, :3] = np.array(Image.fromarray(hsv.astype(np.uint8), "HSV").convert("RGB"))
     a[a[:, :, 3] < 16, 3] = 0
     return Image.fromarray(a, "RGBA")
 
@@ -123,8 +133,8 @@ def death(name):
     cell = 256 if name == "tide_big" else 192
     first = flash(idle(name, cell), name)
     source = Image.open(HERE / f"{name}_painted_death_source.png").convert("RGBA")
-    left = world_palette(source.crop((0,0,887,887)))
-    right = world_palette(source.crop((887,0,1774,887)))
+    left = world_palette(source.crop((0,0,887,887)), name)
+    right = world_palette(source.crop((887,0,1774,887)), name)
     second = fit_painted(left, cell, cell-22)
     third = fit_painted(sparse_afterimage(right,name), cell, round(cell*.77))
     frames = [first,second,third]
