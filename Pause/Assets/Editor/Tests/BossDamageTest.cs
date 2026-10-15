@@ -42,6 +42,7 @@ public static class BossDamageTest
             ArtSlicesIntoItsCells(4);
             ArtSlicesIntoItsCells(5);
             OnlyKeyedBossesHaveDamage();
+            DamagedAttackPosesAreOneFrame();
             SmokeStrengthIsTunable();
             FightShowsTheDamage(0);
             FightShowsTheDamage(1);
@@ -452,6 +453,63 @@ public static class BossDamageTest
             left &= !a.DamageSmoke.enabled && !a.DamageArcs.enabled && (body.sprite == BossArt.Body(a.Boss, a.BodyFrame) || body.sprite == BossArt.AttackDamageBody(a.Boss, a.BodyFrame, a.DamageStage));   // (its first tick is tell0's drawing, damaged)
         }
         Check(a.Boss.artKey + ": retreating: overlay gone, retreat frames pristine, and it still leaves", left && a.State == BossActor.Mode.Gone);
+    }
+
+    // ---- a damaged attack pose is ONE drawing (the Frost-boss "frames overlaid" bug) --
+    //
+    // The damaged tell / fire drawings are the pristine pose plus damage transferred from the
+    // damaged IDLE hull. Copying idle pixels onto parts that moved in the pose stamped a second,
+    // offset hull over the pose (towers doubled), so a damaged boss firing looked like several
+    // frames drawn at once. The damage may only touch pixels where the pose still shows the idle
+    // hull's own pixels, and the silhouette must be the pose's own.
+    const int SameHull = 56;       // BossImpact build.py SAME_HULL: pose pixel == idle pixel within this
+    const int Slack = 6;           // rounding between the transfer maths and the compare
+
+    // A sprite's whole square cell (sprites are cut tight, so read the full rect off the source file;
+    // row 0 = bottom), null if unreadable.
+    static Color32[] CellPixels(Sprite sp, int cell)
+    {
+        var r = sp.rect;
+        if (Mathf.RoundToInt(r.width) != cell || Mathf.RoundToInt(r.height) != cell) return null;
+        return ShieldContour.ReadFromSourceFile(sp.texture, Mathf.RoundToInt(r.x), Mathf.RoundToInt(r.y), cell, cell);
+    }
+
+    static int Diff(Color32 a, Color32 b) => Mathf.Max(Mathf.Abs(a.r - b.r), Mathf.Max(Mathf.Abs(a.g - b.g), Mathf.Abs(a.b - b.b)));
+
+    static void DamagedAttackPosesAreOneFrame()
+    {
+        foreach (var boss in BossCatalog.All)
+        {
+            if (!BossArt.HasDamageArt(boss)) continue;
+            var poses = BossArt.AttackDamagePoses(boss);
+            const int cell = 384;
+            var idle = CellPixels(BossArt.Body(boss, BossArt.IdleStart(boss)), cell);
+            int ghost = 0, alphaOff = 0, checkedPoses = 0, flat = 0;
+            for (int p = 0; p < poses.Length && idle != null; p++)
+            {
+                var pose = CellPixels(BossArt.Body(boss, poses[p]), cell);
+                if (pose == null) continue;
+                var seen = new HashSet<Sprite>();
+                for (int stage = 1; stage <= BossArt.DamageStages; stage++)
+                {
+                    var sp = BossArt.AttackDamageBody(boss, poses[p], stage);
+                    if (sp == null) { flat++; continue; }
+                    // one drawing per (pose, stage): never the same sprite for two stages, never an atlas strip
+                    if (!seen.Add(sp) || sp.rect.width != cell || sp.rect.height != cell) flat++;
+                    var dmg = CellPixels(sp, cell);
+                    if (dmg == null) continue;
+                    checkedPoses++;
+                    for (int i = 0; i < dmg.Length; i++)
+                    {
+                        if (dmg[i].a != pose[i].a) { alphaOff++; continue; }
+                        if (dmg[i].a > 80 && Diff(dmg[i], pose[i]) > Slack && Diff(pose[i], idle[i]) > SameHull + Slack) ghost++;
+                    }
+                }
+            }
+            Check(boss.artKey + ": every damaged attack pose is one " + cell + "px drawing per stage (" + flat + " bad)", flat == 0);
+            Check(boss.artKey + ": damaged attack poses keep their pose's silhouette (" + alphaOff + " alpha px off)", checkedPoses > 0 && alphaOff == 0);
+            Check(boss.artKey + ": damage never stamps idle-hull pixels over parts the pose moved (" + ghost + " ghost px)", checkedPoses > 0 && ghost == 0);
+        }
     }
 
     // ---- the death strip -----------------------------------------------

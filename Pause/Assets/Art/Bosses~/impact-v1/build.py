@@ -14,6 +14,7 @@ SOURCE = HERE.parents[1] / "Resources" / "Bosses"
 OUT = HERE / "attack_damage"
 BOSSES = ("Space", "Frost", "Verdant", "Ember", "Tide", "Storm", "Desert")
 SIZE = 384
+SAME_HULL = 56   # max per-channel difference for "the pose did not move this pixel"
 
 
 def cell(atlas, index, columns=5):
@@ -41,6 +42,11 @@ def damage_attack(base, damaged, attack):
     d = np.asarray(damaged, dtype=np.int16)
     a = np.asarray(attack, dtype=np.int16).copy()
     shared = (b[:, :, 3] > 80) & (d[:, :, 3] > 80) & (a[:, :, 3] > 80)
+    # Only transfer where the pose still shows the idle hull's own pixels. The damaged idle
+    # cell is drawn in the IDLE pose: copying its pixels (the bright fracture copy above all)
+    # onto parts that moved in this pose stamped a second, offset hull over the attack frame, so a
+    # damaged boss firing read as several frames overlaid. Moved parts keep the pose's drawing.
+    shared &= np.max(np.abs(a[:, :, :3] - b[:, :, :3]), axis=2) <= SAME_HULL
     delta = d[:, :, :3] - b[:, :, :3]
     intensity = np.max(np.abs(delta), axis=2)
     changed = shared & (intensity > 22)
