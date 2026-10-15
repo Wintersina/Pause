@@ -5,17 +5,15 @@ using UnityEditor;
 //                            atlas cells: the same bilinear + HQ-compressed
 //                            import as the body and damage atlases, so a
 //                            damaged idle and a damaged tell match exactly;
-//   crack_*.png, boss_hit_burst*.png  hard-edged pixel art: Point filter, never
-//                            compressed or rescaled (compression would smear
-//                            the 1-3 px crack cores and the burst's sparks).
-// The full-screen crack overlays are mostly transparent but 1080 x 2400, so
-// they stay HQ-compressed (a smooth 4:1 ASTC keeps their white cores); the
-// strips are small and stay raw.
+//   boss_impact_<key>.png    the per-boss hit strips (3072 x 256, 12 cells): Point
+//                            filter, HQ-compressed in the editor (the Android /
+//                            iPhone diet makes them ASTC 4x4: this folder is on
+//                            its hard-outline list, 6x6 would block the 1 px edges).
 public class BossImpactImporter : AssetPostprocessor
 {
     const string Folder = "Assets/Art/Resources/BossImpact/";
 
-    public override uint GetVersion() { return 3; }
+    public override uint GetVersion() { return 4; }
 
     void OnPreprocessTexture()
     {
@@ -28,11 +26,9 @@ public class BossImpactImporter : AssetPostprocessor
         importer.wrapMode = UnityEngine.TextureWrapMode.Clamp;
         importer.npotScale = TextureImporterNPOTScale.None;
         importer.isReadable = false;
-        importer.maxTextureSize = 8192;   // boss_hit_burst.png is 4608 px wide
-        string name = System.IO.Path.GetFileName(assetPath);
+        importer.maxTextureSize = 4096;
         bool attack = assetPath.Contains("/BossImpact/attack/");
-        bool overlay = name.StartsWith("crack_0");
         importer.filterMode = attack ? UnityEngine.FilterMode.Bilinear : UnityEngine.FilterMode.Point;
-        importer.textureCompression = attack || overlay ? TextureImporterCompression.CompressedHQ : TextureImporterCompression.Uncompressed;
+        importer.textureCompression = TextureImporterCompression.CompressedHQ;
     }
 }

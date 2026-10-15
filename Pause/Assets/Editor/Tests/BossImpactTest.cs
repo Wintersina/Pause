@@ -8,9 +8,10 @@ using UnityEngine;
 //    attack drawing (never the pristine body frame), the same size as the body
 //    cell, on its own texture;
 //  * a tell / fire pose in a fight wears its stage's damaged drawing;
-//  * the shake peaks by weight and decays to 0 by 0.5 s; the cracks pool (<= 3
-//    overlays), fade out by 0.5 s and light hits are rate-limited; the burst
-//    strips and crack art load; a hit-stop is asked for; the boss flashes white.
+//  * the shake peaks by weight and decays to 0 by 0.5 s; the per-boss impact
+//    strips pool (6 renderers), end by 0.4 s, light hits are rate-limited, no
+//    screen overlay exists; the seven strips load and differ; a hit-stop is
+//    asked for; the boss flashes white.
 public static class BossImpactTest
 {
     static int fails;
@@ -32,7 +33,7 @@ public static class BossImpactTest
             FightPosesWearTheirDamage();
             ShakeScalesAndDecays();
             HitStopScales();
-            CracksPoolAndFade();
+            BurstsPoolAndFade();
             BurstAndArtLoad();
             HitDrivesEverything();
         }
@@ -156,7 +157,7 @@ public static class BossImpactTest
         BossImpact.ClockOverride = () => clockNow;
         var fx = BossImpact.Ensure();
         clockNow = 0f;
-        fx.Trigger(Vector3.zero, 1f, false, false);
+        fx.Trigger("Frost", Vector3.zero, 1f, false, false);
         Check("trigger starts the shake at the heavy amplitude", Mathf.Abs(fx.ShakeNow - heavy) < 1e-4f);
         float t = 0f;
         for (int i = 0; i < 28; i++) { fx.Step(.0166f); t += .0166f; }
@@ -165,17 +166,17 @@ public static class BossImpactTest
         Check("shake has decayed to 0 by .5 s", fx.ShakeNow == 0f);
         // a second hit during a shake does not stack past the stronger one
         clockNow = 10f;
-        fx.Trigger(Vector3.zero, 1f, false, false);
+        fx.Trigger("Frost", Vector3.zero, 1f, false, false);
         fx.Step(.05f);
-        fx.Trigger(Vector3.zero, 1f / 14f, false, false);
+        fx.Trigger("Frost", Vector3.zero, 1f / 14f, false, false);
         Check("a light hit during a heavy shake does not restart it smaller", fx.ShakeNow > BossImpact.ShakeEnvelope(light, 0f));
         for (int i = 0; i < 40; i++) fx.Step(.0166f);
         // a gatling stream pulses: after the first light shake decays a new one starts
         clockNow = 20f;
-        fx.Trigger(Vector3.zero, 1f / 14f, false, false);
+        fx.Trigger("Frost", Vector3.zero, 1f / 14f, false, false);
         float first = fx.ShakeNow;
         fx.Step(.01f);
-        fx.Trigger(Vector3.zero, 1f / 14f, false, false);
+        fx.Trigger("Frost", Vector3.zero, 1f / 14f, false, false);
         Check("an equal light hit right after does not re-peak the shake (no pile-up)", fx.ShakeNow < first);
     }
 
@@ -195,33 +196,39 @@ public static class BossImpactTest
         WorldTimeFx.ClockOverride = () => clockNow;
         BossImpact.ClockOverride = () => clockNow;
         var fx = BossImpact.Ensure();
-        fx.Trigger(Vector3.zero, 1f, false, false);
+        fx.Trigger("Frost", Vector3.zero, 1f, false, false);
         Check("a heavy hit asks for a hit-stop", WorldTimeFx.HitStopping && WorldTimeFx.Scale < .2f);
         clockNow = 100.1f;
         Check("... that is over after ~90 ms", !WorldTimeFx.HitStopping);
         WorldTimeFx.Reset();
         clockNow = 200f;
-        fx.Trigger(Vector3.zero, 1f / 14f, false, false);
+        fx.Trigger("Frost", Vector3.zero, 1f / 14f, false, false);
         bool first = WorldTimeFx.HitStopping;
         clockNow = 200.1f; WorldTimeFx.Reset();
-        fx.Trigger(Vector3.zero, 1f / 14f, false, false);
+        fx.Trigger("Frost", Vector3.zero, 1f / 14f, false, false);
         Check("light hits hit-stop at most once per .6 s (" + first + ", then none)", first && !WorldTimeFx.HitStopping);
     }
 
-    static void CracksPoolAndFade()
+    static void BurstsPoolAndFade()
     {
-        Check("crack alpha: full, then 0 by .5 s", BossImpact.CrackAlpha(0f) == 1f && BossImpact.CrackAlpha(.2f) < 1f && BossImpact.CrackAlpha(.5f) == 0f);
         FreshScene();
         clockNow = 0f;
         BossImpact.ClockOverride = () => clockNow;
         var fx = BossImpact.Ensure();
-        Check("the crack canvas is a screen overlay above gameplay, below pause (60 < 90)",
-              fx.OverlayCanvas.renderMode == RenderMode.ScreenSpaceOverlay && fx.OverlayCanvas.sortingOrder > 0 && fx.OverlayCanvas.sortingOrder < 90);
-        for (int i = 0; i < 8; i++) { fx.Trigger(new Vector3(0f, 2f, 0f), 1f, false, false); fx.Step(.02f); }
-        Check("eight heavy hits never show more than 3 cracks (" + fx.CracksShown + ")", fx.CracksShown <= BossImpact.MaxCracks && fx.CracksShown == 3);
-        Check("... the overlay is a real image", fx.CrackOverlay(0).sprite != null && fx.CrackOverlay(0).enabled);
-        for (int i = 0; i < 40; i++) fx.Step(.0166f);
-        Check("all cracks are gone by ~.6 s", fx.CracksShown == 0 && !fx.CrackOverlay(0).enabled);
+        Check("no screen-space overlay canvas is built (the old crack overlay is gone)", fx.GetComponentInChildren<Canvas>(true) == null);
+        for (int i = 0; i < 20; i++) { fx.Trigger("Frost", new Vector3(0f, 2f, 0f), 1f, false, false); fx.Step(.01f); }
+        Check("twenty heavy hits never show more than the 6 pooled bursts (" + fx.BurstsShown + ")",
+              fx.PoolSize == BossImpact.BurstPool && fx.BurstsShown <= BossImpact.BurstPool && fx.BurstsShown == BossImpact.BurstPool);
+        for (int i = 0; i < 30; i++) fx.Step(.0166f);
+        Check("all bursts are gone by ~.5 s (" + fx.BurstsShown + ")", fx.BurstsShown == 0);
+
+        // size cap: even the biggest burst stays small on screen (1.5 world units of a 10-unit-high view)
+        fx.Trigger("Frost", Vector3.zero, 1f, true, true);
+        Check("the heaviest burst is capped (" + fx.LastBurstSize + " <= 1.6 units)", fx.LastBurstSize <= BossImpact.BurstBig * 1.08f + 1e-3f && BossImpact.BurstBig <= 1.6f);
+        fx.Trigger("Frost", Vector3.zero, .1f, false, false);
+        clockNow = 50f;
+        fx.Trigger("Frost", Vector3.zero, .1f, false, false);
+        Check("a light burst is smaller than a heavy one", fx.LastBurstSize < BossImpact.BurstSmall * 1.1f);
 
         // gatling: 60 light hits over 2 s
         FreshScene();
@@ -231,25 +238,64 @@ public static class BossImpactTest
         for (int i = 0; i < 120; i++)
         {
             clockNow = i / 60f;
-            fx.Trigger(new Vector3(0f, 2f, 0f), 1f / 14f, false, false);
+            fx.Trigger("Verdant", new Vector3(0f, 2f, 0f), 1f / 14f, false, false);
             fx.Step(1f / 60f);
-            maxShown = Mathf.Max(maxShown, fx.CracksShown);
+            maxShown = Mathf.Max(maxShown, fx.BurstsShown);
         }
-        Check("a 2 s gatling stream keeps <= 2 cracks up (" + maxShown + ") and cracks only ~4 times (" + fx.CracksSpawned + ")",
-              maxShown <= BossImpact.MaxLightCracks && fx.CracksSpawned >= 2 && fx.CracksSpawned <= 5);
+        Check("a 2 s gatling stream shows <= 3 bursts at once (" + maxShown + ") and bursts only ~13 times (" + fx.BurstsSpawned + ")",
+              maxShown <= 3 && fx.BurstsSpawned >= 8 && fx.BurstsSpawned <= 16);
     }
 
     static void BurstAndArtLoad()
     {
         int n = 0, bad = 0;
         foreach (var s in BossImpact.AllSprites()) { n++; if (s == null) bad++; }
-        Check("crack, growth and both burst strips load (" + n + " sprites, " + bad + " missing)", n == 4 + 8 + 24 && bad == 0);
-        var big = BossImpact.Cell(true, 0); var small = BossImpact.Cell(false, 0);
-        Check("burst cells are square (384 / 192 px), 1 world unit at scale 1",
-              Mathf.RoundToInt(big.rect.width) == 384 && Mathf.RoundToInt(big.rect.height) == 384 &&
-              Mathf.RoundToInt(small.rect.width) == 192 && Mathf.RoundToInt(small.rect.height) == 192 &&
-              Mathf.Abs(big.bounds.size.x - 1f) < .01f && Mathf.Abs(small.bounds.size.x - 1f) < .01f);
-        Check("burst runs its 12 cells over .5 s", BossImpact.BurstCell(0f) == 0 && BossImpact.BurstCell(.49f) == 11 && BossImpact.BurstCell(.25f) == 6);
+        Check("the seven boss impact strips load (" + n + " sprites, " + bad + " missing)", n == 7 * 12 && bad == 0);
+        bool square = true, small = true;
+        foreach (var k in BossImpact.Keys)
+        {
+            var c = BossImpact.Cell(k, 0);
+            square &= c != null && Mathf.RoundToInt(c.rect.width) == 256 && Mathf.RoundToInt(c.rect.height) == 256 && Mathf.Abs(c.bounds.size.x - 1f) < .01f;
+            var tex = Resources.Load<Texture2D>(BossArt.ImpactFolder + BossImpact.StripName(k));
+            small &= tex != null && tex.width == 3072 && tex.height == 256;
+        }
+        Check("every strip is 3072 x 256: 12 square 256 px cells, 1 world unit at scale 1", square && small);
+        Check("each boss has its own distinct strip (7 different textures)",
+              BossImpact.Cell("Frost", 4).texture != BossImpact.Cell("Storm", 4).texture &&
+              BossImpact.Cell("Ember", 4).texture != BossImpact.Cell("Desert", 4).texture &&
+              BossImpact.Cell("Space", 4).texture != BossImpact.Cell("Tide", 4).texture &&
+              BossImpact.Cell("Verdant", 4).texture != BossImpact.Cell("Space", 4).texture);
+        Check("burst runs its 12 cells over .4 s", BossImpact.BurstCell(0f) == 0 && BossImpact.BurstCell(.39f) == 11 && BossImpact.BurstCell(.2f) == 6);
+        // no pink outside Space: the strips' opaque pixels (hue 290-350 deg, sat > .35)
+        foreach (var k in BossImpact.Keys)
+        {
+            if (k == "Space") continue;
+            Check(k + " strip has no pink pixels (pink only in Space)", PinkPixels(k) == 0);
+        }
+    }
+
+    // Opaque pink-ish pixels in a strip, read through a temporary readable copy (editor only).
+    static int PinkPixels(string key)
+    {
+        var src = Resources.Load<Texture2D>(BossArt.ImpactFolder + BossImpact.StripName(key));
+        if (src == null) return -1;
+        var rt = RenderTexture.GetTemporary(src.width, src.height, 0, RenderTextureFormat.ARGB32, RenderTextureReadWrite.sRGB);
+        Graphics.Blit(src, rt);
+        var prev = RenderTexture.active;
+        RenderTexture.active = rt;
+        var tex = new Texture2D(src.width, src.height, TextureFormat.RGBA32, false);
+        tex.ReadPixels(new Rect(0, 0, src.width, src.height), 0, 0);
+        RenderTexture.active = prev;
+        RenderTexture.ReleaseTemporary(rt);
+        int n = 0;
+        foreach (var c in tex.GetPixels32())
+        {
+            if (c.a < 128) continue;
+            Color.RGBToHSV(c, out float h, out float sat, out float v);
+            if (h >= 290f / 360f && h <= 350f / 360f && sat > .35f && v > .3f) n++;
+        }
+        Object.DestroyImmediate(tex);
+        return n;
     }
 
     // BossEncounter.OnShipAttackHit -> all of it, with a light and a heavy hit.
@@ -270,7 +316,7 @@ public static class BossImpactTest
         e.OnShipAttackHit(1f, a.transform.position);
         Check("a light boss hit shakes, bursts and flashes a little (" + lightShake + ")", lightShake > 0f && fx.BurstsShown >= 1);
         Check("a heavy boss hit shakes harder than a light one", fx.ShakeNow > lightShake * 1.5f);
-        Check("a heavy hit shows a crack and the boss pops white", fx.CracksShown >= 1);
+        Check("a heavy hit shows a burst themed to this boss (" + fx.LastBurstKey + ") and the boss pops white", fx.BurstsShown >= 1 && fx.LastBurstKey == e.Boss.artKey);
         e.Step(1f / 60f, 1f);
         Check("the boss body flashes white after a hit (" + a.WhiteAlpha + " vs light " + lightWhite + ")", a.WhiteAlpha > .5f);
         for (int i = 0; i < 20; i++) e.Step(1f / 60f, 1f);
