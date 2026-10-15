@@ -1,5 +1,6 @@
 using UnityEngine;
 
+// Legacy beat-runner tuning (previews / fallback). Mapped songs use BossMusicDirector.
 // BEAT SYNC KNOBS, one row per boss (index-aligned with WorldManager.Worlds / BossPatternTables). While the boss's
 // track is playing (BossBeat.Source), the pattern runner fires each stream's volleys on the beat grid and a pattern
 // starts on a bar line; with no beat map or no music every boss keeps its old cooldown timers and these numbers do

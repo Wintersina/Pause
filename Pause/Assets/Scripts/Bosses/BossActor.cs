@@ -14,7 +14,7 @@ using UnityEngine;
 // shot starts at its part's muzzle pixel in the drawing on screen the
 // moment it fires, every laser is rooted there for as long as it burns, and
 // the tell's charge gathers at those same parts.
-public class BossActor : MonoBehaviour, IPatternHost
+public class BossActor : MonoBehaviour, IMusicPatternHost
 {
     public enum Mode { Hidden, Arriving, Fighting, Dying, Retreating, Gone }
     const float MaxAlignHold = 2.5f;
@@ -87,6 +87,10 @@ public class BossActor : MonoBehaviour, IPatternHost
     public int ArmedHazards => armedCount;
     // Bullet-hell patterns (BossPatternRunner): the runner, the telegraph markers, and what the host answers while one plays.
     readonly BossPatternRunner runner = new BossPatternRunner();
+    BossMusicDirector musicDirector;
+    BossAttack musicAttack;
+    bool musicRunning;
+    public BossMusicDirector MusicDirector => musicDirector;
     BossPatternMarkers markers;
     Vector3 playerNow;
     BossProjectilePool poolNow;
@@ -372,6 +376,11 @@ public class BossActor : MonoBehaviour, IPatternHost
         if (markers == null) { markers = new BossPatternMarkers(); markers.Build(transform, boss); }
         markers.Clear();
         runner.Stop();
+        musicRunning = false;
+        musicDirector = new BossMusicDirector(World, boss, this);
+        musicAttack = new BossAttack { name = "song arrangement", kind = BossAttackKind.Pattern,
+            parts = boss.DefaultAttacks[0].parts, emitters = boss.DefaultAttacks[0].emitters,
+            tellSeconds = .9f, fireFrame = true };
         // Its hearts pop in round it now it has landed.
         if (hearts == null) hearts = BossHearts.Attach(this, Mathf.Max(1, BossConfig.Hearts));
         SetDamage(hearts != null ? hearts.Left : BossConfig.Hearts);   // a fresh fight starts pristine
@@ -407,7 +416,12 @@ public class BossActor : MonoBehaviour, IPatternHost
         if (mode != Mode.Fighting) return;
         BossBeat.Tick();
         TickFlash(realDt);
-        if (dt <= 0f) { RefreshFrame(); if (hearts != null) hearts.Step(realDt, 0f); return; }
+        if (dt <= 0f)
+        {
+            // Musical cues expire with the song even while gameplay is frozen.
+            if (musicRunning && markers != null) markers.Step(realDt);
+            RefreshFrame(); if (hearts != null) hearts.Step(realDt, 0f); return;
+        }
 
         animClock += dt;
         // It all but holds still while it aims and while its lasers burn,
@@ -427,13 +441,34 @@ public class BossActor : MonoBehaviour, IPatternHost
 
         if (fireLeft > 0f) fireLeft -= dt;
         StepAttacks(dt, realDt, player, progress01, pool, BossBeat.Source);
-        if (markers != null) markers.Step(dt);
+        if (markers != null) markers.Step(musicRunning ? realDt : dt);
         RefreshFrame();
         if (hearts != null) hearts.Step(realDt, dt);   // after the move: the ring is round where it is now
     }
 
     void StepAttacks(float dt, float realDt, Vector3 player, float progress01, BossProjectilePool pool, IBeatSource beatSource)
     {
+        // All mapped boss songs use the continuous director. Timed rotations remain only
+        // for missing music and explicit developer attack previews.
+        if (beatSource is IMusicBeatSource && beatSource.Active && BossBeatTuning.For(World).enabled && ForcedAttack < 0)
+        {
+            if (!musicRunning)
+            {
+                runner.Stop(); ClearArmed(); markers.Clear();
+                musicRunning = true; current = musicAttack; AttacksStarted++;
+            }
+            playerNow = player; poolNow = pool;
+            musicDirector.Step(beatSource, dt, realDt, progress01);
+            current.tell = musicDirector.Pose;
+            tellAge += dt;
+            phase = musicDirector.Preparing ? AttackPhase.Tell : AttackPhase.Pattern;
+            return;
+        }
+        if (musicRunning)
+        {
+            musicRunning = false; musicDirector.Suspend(); markers.Clear();
+            phase = AttackPhase.Cooldown; phaseTimer = 0;
+        }
         phaseTimer -= dt;
         switch (phase)
         {
@@ -601,6 +636,8 @@ public class BossActor : MonoBehaviour, IPatternHost
     // ---- IPatternHost: what a bullet-hell pattern asks of the boss that plays it ----
     Vector2 IPatternHost.Emitter(int part) => (Vector2)Emitter(part);
     Vector2 IPatternHost.Player => playerNow;
+    int IMusicPatternHost.ActiveMusicShots => poolNow != null ? poolNow.ActiveShots : 0;
+    int IMusicPatternHost.MusicShotCapacity => poolNow != null ? poolNow.Capacity : BossConfig.ProjectilePoolMax;
     float IPatternHost.RailEdge => BossRails.InnerEdge;
     float IPatternHost.ShipHalfWidth => ShipReach.HalfWidth;
     float IPatternHost.SpawnTop => CameraFit.ViewTop + .15f;
@@ -883,6 +920,7 @@ public class BossActor : MonoBehaviour, IPatternHost
     {
         if (markers != null) markers.Clear();
         runner.Stop();
+        musicDirector?.Suspend();
         mode = explode ? Mode.Dying : Mode.Retreating;
         outroClock = 0f;
         explosionsFired = 0;
