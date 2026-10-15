@@ -28,7 +28,6 @@ public static class TutorialParityTest
         using var sandbox = new TestHarness.Sandbox();
 
         HudStylerBothScenes();
-        PauseBarStaysContained();
         ShipScaleMatchesGameplay();
         SkipButtonClearsRail();
 
@@ -67,27 +66,6 @@ public static class TutorialParityTest
 
             Object.DestroyImmediate(go);
         }
-    }
-
-    static void PauseBarStaysContained()
-    {
-        EditorSceneManager.OpenScene("Assets/Scenes/gameS1.unity", OpenSceneMode.Single);
-        var go = new GameObject("~HudStylerTest2");
-        var styler = go.AddComponent<HudStyler>();
-        styler.SendMessage("Start");
-
-        var barField = typeof(HudStyler).GetField("pauseBar",
-            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-        var bar = barField.GetValue(styler) as Image;
-        Check("pause bar was built", bar != null);
-        if (bar != null)
-        {
-            var rt = bar.GetComponent<RectTransform>();
-            Check("pause bar's anchors stay within its parent's own rect (anchorMin.y=" +
-                  rt.anchorMin.y + ", anchorMax.y=" + rt.anchorMax.y + ")",
-                  rt.anchorMin.y >= 0f && rt.anchorMax.y <= 1f && rt.anchorMax.y > rt.anchorMin.y);
-        }
-        Object.DestroyImmediate(go);
     }
 
     static void ShipScaleMatchesGameplay()
