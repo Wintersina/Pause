@@ -3,7 +3,6 @@
   "default": "bottom",
   "fade": 0.3,
   "ships": {
-    "tide_alien": "top",
     "verdant_elite_resin_warden": "top",
     "verdant_alien": "top",
     "tide_elite_thunderfin": "top",
