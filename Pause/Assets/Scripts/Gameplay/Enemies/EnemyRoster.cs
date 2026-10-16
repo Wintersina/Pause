@@ -555,7 +555,7 @@ public static class EnemyRoster
             Scaled(Def("storm_rock_slag", "Anvil Chunk", R, 5, 3, "hazard_storm_rock_slag", Metal,
                 "Charcoal lightning-fused slate chunk, anvil-shaped, teal mineral stains and sun-yellow lightning in its cracks.",
                 "A lump of rock the lightning fused into the shape of an anvil, as if the sky were forging something. It spins " +
-                "as it sinks and arrives sooner than it looks."), 1.1f),
+                "as it sinks and arrives sooner than it looks."), 1.0f),
             Def("storm_rock_islet", "Cloud Islet", R, 5, 4, "hazard_storm_rock_islet", Metal,
                 "Pale sandstone island slab with hanging rock spurs, wrapped in violet storm cloud shot with lightning.",
                 "A scrap of sky-island the wind tore loose with its own cloud still wrapped round it. It tumbles as it " +

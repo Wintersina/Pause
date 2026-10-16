@@ -1035,11 +1035,11 @@ public static class EnemyRosterTest
         {
             int n = 0;
             foreach (var d in EnemyRoster.For(w, EnemyRole.Rock)) if (d.floating) n++;
-            // Tide's rocks are all wind-blown tumblers (art/tide-rocks): none is an upright floating chunk.
-            Check(W(w) + " has a floating world rock (" + n + ")", n >= 1 || w == 4);
+            // Tide and Storm rocks are all wind-blown tumblers (art/tide-rocks, art/enemy-colors-storm): none is an upright floating chunk.
+            Check(W(w) + " has a floating world rock (" + n + ")", n >= 1 || w == 4 || w == 5);
         }
-        // The four Tide rocks visibly spin as they drift in: a believable rolled spin rate (12..90 deg/s), no upright sway.
-        foreach (var key in new[] { "tide_rock_brain", "tide_rock_staghorn", "tide_rock_urchin", "tide_rock_islet" })
+        // The four Tide and four Storm rocks visibly spin as they drift in: a believable rolled spin rate (12..90 deg/s), no upright sway.
+        foreach (var key in new[] { "tide_rock_brain", "tide_rock_staghorn", "tide_rock_urchin", "tide_rock_islet", "storm_rock_hail", "storm_rock_ore", "storm_rock_slag", "storm_rock_islet" })
         {
             var d = EnemyRoster.Find(key);
             var go = EnemyFactory.Create(d, Vector3.zero, Quaternion.identity);

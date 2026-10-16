@@ -531,7 +531,7 @@ public static class EnemyBehaviours
             .Sizes(.76f, 1.02f, 1.24f);
         B("storm_rock_slag", "anvil chunk: sinks down the board, spinning")
             .Sink(1.3f, .5f).Spin(22f, 42f)
-            .Sizes(.8f, .96f, 1.4f);
+            .Sizes(.85f, .98f, 1.23f);
         B("storm_rock_islet", "cloud islet: a wind-blown chunk, wide slow sway and bob while it tumbles")
             .Sway(.7f, 4.4f).Bob(.15f, 3.2f).Spin(14f, 34f)
             .Sizes(.8f, .92f, 1.48f);
