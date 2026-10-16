@@ -47,7 +47,7 @@ FRAME_NAMES = ["idle0", "idle1", "idle2", "idle3", "hit", "tell0a", "tell0b",
 # The Iron Kraken (Tide) is measured on every cell of its expanded 35-cell
 # atlas (0..19 base, 20..25 tentacle idle, 26..34 the three tells): its
 # tentacles move, so each drawing has its own muzzle pixels.
-EXPANDED = {"Tide": 35, "Ember": 35}
+EXPANDED = {"Tide": 35, "Ember": 35, "Desert": 35}
 
 # name, reference frame, patch centre (cell px, y down), patch half size,
 # muzzle offset from the patch centre (cell px at the reference frame).

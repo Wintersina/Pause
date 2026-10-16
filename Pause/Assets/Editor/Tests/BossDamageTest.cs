@@ -1111,9 +1111,9 @@ public static class BossDamageTest
         for (int i = 0; i < BossArt.DeathStripCells; i++)
         {
             var s = BossArt.DeathStrip(d, i);
-            six &= s != null && seen.Add(s) && s.rect.width == 384f && s.rect.height == 384f;
+            six &= s != null && seen.Add(s) && s.rect.width == Cell(d) && s.rect.height == Cell(d);
         }
-        Check("Desert death strip: 6 distinct 384 px cells", six && seen.Count == 6);
+        Check("Desert death strip: 6 distinct cells of the atlas's own size (" + Cell(d) + " px)", six && seen.Count == 6);
         var b0 = Box(BossArt.DeathStrip(d, 0));
         var ibox = Box(BossArt.Body(d, BossArt.IdleFrame(d, 0f)));
         Check("Desert death cell 0 is registered to its idle cell", b0 != null && ibox != null &&
