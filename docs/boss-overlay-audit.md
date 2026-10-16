@@ -35,3 +35,24 @@ art (not touched here):
   wings and towers), so idle -> tell swaps between two noticeably different looks.
 
 Both need regenerated art (Codex), not code.
+
+## Art fix (branch art/boss-low-health-fx)
+
+The runtime was already one drawing, so the fix is art only (no resize, same grids, pivots and import settings):
+
+- `<Key>_damage_fx.png` for Frost, Verdant, Storm, Desert (cells re-composited deterministically, tools in
+  `Pause/Assets/Art/Bosses~/low-health-fx/tools`):
+  - Frost smoke: the left plume (two drawings joined by a rectangular seam) is rebuilt from the clean right plume
+    mirrored (frames offset so the two plumes do not move in lock step); arcs lose the cut-off boxy slivers.
+  - Verdant smoke: cells 2-4 were 50 % cross-fades of two frames and cell 1 / 5 carried a flat faint ghost layer, the left
+    plume was clipped by a diagonal / vertical cut. Rebuilt from the two clean drawings (right plume mirrored to the left,
+    ghost layer removed, small drifts between frames); the straight boxy arc polylines are redrawn as jagged sap-lightning.
+  - Storm / Desert smoke: flat bottoms / boxes are dissolved out (position-stable dither) so the plume fades inside the
+    cell; Desert's clipped right plume is rebuilt from the left one; nothing within 12 px of the cell border any more.
+  - Space / Tide / Ember fx cells were audited and have none of these defects (left untouched).
+- `Resources/BossImpact/attack/<key>_<pose>_stage4.png` and `_stage3.png` (Frost all, Verdant 3 of 7 so far) for Frost, Verdant, Storm,
+  Desert (stage 4 done for all 28 poses): regenerated with Codex from the clean pose plus the stage idle hull as references, registered back onto the pose
+  cell (silhouette overlap 81-97 %), so idle -> tell changes the pose, not the damage look; Desert keeps its pale rim.
+- Tests: `BossDamageTest.DamageFxCellsAreClean` (border margin, straight-edge run, ghost haze, clipped slivers),
+  and the attack-pose check now measures staying inside the pose's silhouette, no verbatim copy of the wrong-pose idle
+  hull, no translucent second layer and pose overlap, instead of requiring a pixel-identical silhouette.
