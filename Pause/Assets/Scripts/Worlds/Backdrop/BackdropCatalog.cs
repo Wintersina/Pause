@@ -325,8 +325,8 @@ public static class BackdropCatalog
         }},
         // Storm (StormDirector, docs in StormBackdrop.cs): flown at atmosphere level inside the
         // gas giant's thunderstorm: wind-sheared slate cloud bands, the thunderhead field of
-        // towering lit cumulonimbus, the calm eye of a cyclone, or the NIGHT side lit from inside
-        // by sheet lightning (StormTuning.Night; one of four variant sets per landing). Anvil
+        // towering lit cumulonimbus or the calm eye of a cyclone (one of three variant sets per
+        // landing: StormTuning.Variants; there is no night set any more). Anvil
         // towers, lightning-rod masts, skyhooks and floating refineries stand on the ground,
         // PINNED to the mid tile (GroundPlanner). Lightning (StormLightning) flashes soft glows
         // across the cloud layers and strikes the masts; heavy rain sheets fall through.
