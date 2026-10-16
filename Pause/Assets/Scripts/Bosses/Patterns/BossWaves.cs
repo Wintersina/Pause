@@ -71,7 +71,55 @@ public sealed class WaveGaps
     public float ReachLo => reachLo;
     public float ReachHi => reachHi;
 
-    public void Reset() { has = false; Count = 0; }
+    public void Reset() { has = false; Count = 0; shadows = 0; }
+
+    // ---- ricochet shadows (BossBounce): x ranges (ship-centre x, already padded) a bounced bullet sweeps through the
+    // ship's band in a game-time window. Every gap is planned so the ship never has to cross a live shadow, and a bullet
+    // is only made bouncy when its shadow misses the x range the ship uses for the wave it belongs to (Certify).
+    public const int MaxShadows = 48;
+    readonly float[] shT0 = new float[MaxShadows], shT1 = new float[MaxShadows], shX0 = new float[MaxShadows], shX1 = new float[MaxShadows];
+    int shadows;
+    public int Shadows => shadows;
+    public int PeakShadows { get; private set; }
+    // The x range (ship centres) the last Choose let the ship use: where it could start, the way to the gap, the gap.
+    public float PathLo { get; private set; }
+    public float PathHi { get; private set; }
+
+    // Drops the shadows that have ended by game time `now`.
+    public void ExpireShadows(float now)
+    {
+        for (int i = shadows - 1; i >= 0; i--)
+            if (shT1[i] < now)
+            {
+                shadows--;
+                shT0[i] = shT0[shadows]; shT1[i] = shT1[shadows]; shX0[i] = shX0[shadows]; shX1[i] = shX1[shadows];
+            }
+    }
+
+    // May a bounced bullet sweep [x0, x1] (ship centres) of the band? Not where the ship goes for the last wave, and
+    // only while there is room to remember it.
+    public bool Certify(float x0, float x1) => shadows < MaxShadows && (x1 < PathLo || x0 > PathHi);
+
+    public void AddShadow(float t0, float t1, float x0, float x1)
+    {
+        if (shadows >= MaxShadows) return;
+        shT0[shadows] = t0; shT1[shadows] = t1; shX0[shadows] = x0; shX1[shadows] = x1;
+        shadows++;
+        if (shadows > PeakShadows) PeakShadows = shadows;
+    }
+
+    public void ShadowAt(int i, out float t0, out float t1, out float x0, out float x1) { t0 = shT0[i]; t1 = shT1[i]; x0 = shX0[i]; x1 = shX1[i]; }
+
+    // Shrinks the ship's reach [el, eh] so it stops short of every live shadow beside where it starts ([lo, hi]).
+    void ClipToShadows(float lo, float hi, ref float el, ref float eh)
+    {
+        for (int i = 0; i < shadows; i++)
+        {
+            if (shX0[i] > hi) eh = Mathf.Min(eh, shX0[i]);
+            else if (shX1[i] < lo) el = Mathf.Max(el, shX1[i]);
+        }
+        if (el > eh) el = eh = Mathf.Clamp(.5f * (lo + hi), el, eh);
+    }
 
     // Picks the centre of a new wave's gap (clear width `width`) that reaches the ship's row at game time `arrival`.
     // `thick` is how long the previous wave takes to pass the ship. `want` in -1..1 is where the pattern would like the
@@ -87,6 +135,7 @@ public sealed class WaveGaps
     // ship's path from the last gap to the new one meets the wave early, the ship has that much less time.
     public float Choose(float playerX, float now, float arrival, float width, float thick, float lim, float want, WaveFront front = default)
     {
+        ExpireShadows(now);
         float c0 = Pick(playerX, now, arrival, width, thick, lim, want, 0f, out _, out _, out _, out _);
         float early = front.Early(Lo(playerX, now, lim), Hi(playerX, now, lim), c0);
         float c = c0;
@@ -103,6 +152,7 @@ public sealed class WaveGaps
         lastShift = c - .5f * (lo + hi);
         float nl = Mathf.Max(el, c - room), nh = Mathf.Min(eh, c + room);
         if (nl > nh) nl = nh = Mathf.Clamp(c, el, eh);
+        PathLo = Mathf.Min(Mathf.Min(lo, nl), c); PathHi = Mathf.Max(Mathf.Max(hi, nh), c);
         if (!has || arrival >= prevArrival)
         {
             prevCenter = c; prevWidth = width; prevArrival = arrival;
@@ -136,6 +186,7 @@ public sealed class WaveGaps
         float e = PlanSpeed * Mathf.Max(0f, travel);
         el = Mathf.Max(-lim, lo - e); eh = Mathf.Min(lim, hi + e);
         if (el > eh) el = eh = Mathf.Clamp(.5f * (lo + hi), -lim, lim);
+        if (shadows > 0) ClipToShadows(lo, hi, ref el, ref eh);
         float room = Mathf.Max(0f, (width - ShipWidth) * .5f);
         // leave some slack: the ship must be able to overlap the new gap by a few hair widths, not by a single point
         float slack = Mathf.Min(room, Slack);
@@ -240,9 +291,10 @@ public static class WaveMoves
             // 4 Iron Kraken: the TIDAL WALLS (sweeping gap), surf crossing at the peak, a swell of rings from the beak
             new BossWaveStyle { style = BossShotStyle.Shard, speed = 3.3f, pitch = .5f, moves = new[] {
                 WaveMove.Wall(0, true), WaveMove.Wall(1, true), WaveMove.Slant(2, 9f, true), WaveMove.Slant(2, -9f, true), WaveMove.Wall(3, true, 2), WaveMove.Ring(3, 26) } },
-            // 5 Tempest Engine: rain curtains and lightning slants
+            // 5 Tempest Engine: rain curtains and lightning slants, and an arc discharge fanned from the core drum (its
+            //   bolts are the only ones that reach the rails: the ricochets, BossBounce)
             new BossWaveStyle { style = BossShotStyle.Bolt, speed = 3.7f, pitch = .5f, moves = new[] {
-                WaveMove.Wall(0), WaveMove.Slant(1, 11f), WaveMove.Wall(2, true), WaveMove.Slant(2, -11f), WaveMove.Wall(3, false, 2) } },
+                WaveMove.Wall(0), WaveMove.Slant(1, 11f), WaveMove.Fan(1, 55f, 24), WaveMove.Wall(2, true), WaveMove.Slant(2, -11f), WaveMove.Wall(3, false, 2) } },
             // 6 Dune-Eater: closing pincers (two slants that close on the gap), sand walls
             new BossWaveStyle { style = BossShotStyle.Shard, speed = 3.4f, pitch = .52f, moves = new[] {
                 WaveMove.Slant(0, 12f), WaveMove.Slant(0, -12f), WaveMove.Wall(1, true), WaveMove.Ring(2, 26, sweep: true), WaveMove.Slant(3, 16f, rows: 2), WaveMove.Slant(3, -16f, rows: 2) } },
@@ -525,9 +577,10 @@ public sealed class BossWaveVoice
         if (m.sweep && Mathf.Abs(c) >= lim - .02f) sweepDir = -sweepDir;
         else if (m.sweep && Mathf.Abs(gaps.lastShift) < .05f) sweepDir = -sweepDir;   // pinned: turn round
         Waves++;
+        WaveEligible = WaveBouncy = 0;
         int fired = row
             ? Row(m, src, c, clear, r, spd, k, (float)spb, fanOut, formY, tilt, lift, edge, telegraph)
-            : Radial(m, src, c, clear, r, k, (float)spb, lateSeconds, telegraph);
+            : Radial(m, src, c, clear, r, k, (float)spb, lateSeconds, telegraph, gameNow);
         // the muzzles that fired flash (a breath holds its fire drawing, never into the next wave)
         LastHold = Mathf.Min(src.holdBeats * (float)spb, holdCap);
         for (int i = 0; i < src.parts.Length; i++) host.EmittedFrom(src.parts[i], LastHold);
@@ -540,6 +593,38 @@ public sealed class BossWaveVoice
     PShot Shot()
     {
         return new PShot { style = style.style, rail = BossRailMode.Absorb };
+    }
+
+    // ---- ricochets (BossBounce) ----
+    public BounceSelector bounce;                       // the running pick (tests read its counts)
+    public float BounceFraction = -1f;                  // < 0: BossBounce.FractionFor(world)
+    public int WaveEligible { get; private set; }       // the last wave's bullets that meet a rail
+    public int WaveBouncy { get; private set; }         // ... and of them made bouncy
+
+    // Makes `sh` bouncy or plain for a straight bullet leaving `from` at velocity `v` (world units / s, already scaled):
+    // picked by the accumulator, kept only if its ricochet shadow is certified fair (WaveGaps.Certify).
+    void Ricochet(ref PShot sh, Vector2 from, Vector2 v, float r, float gameNow)
+    {
+        sh.rail = BossRailMode.Absorb; sh.bounces = 0; sh.bouncy = false;
+        float edge = host.RailEdge;
+        float floor = host.ZoneBottom - 1f;
+        if (!BossBounce.MeetsRail(from, v, r, edge, floor)) return;
+        WaveEligible++;
+        if (!bounce.Offer(BounceFraction >= 0f ? BounceFraction : BossBounce.FractionFor(world))) return;
+        float R = PatternSim.ShipRadius + r + BossBounce.ShadowMargin;
+        // the gap chain is planned on the ship's row (WaveGaps): the shadow is the sweep through that row's band
+        float row = host.Player.y, band = R + BossBounce.RowSlack;
+        bool comes = BossBounce.Trace(from, v, r, edge, Mathf.Max(host.ZoneBottom - R, row - band), Mathf.Min(host.ZoneTop + R, row + band), out float t0, out float t1, out float x0, out float x1);
+        if (comes)
+        {
+            float pad = BossBounce.ShadowPad(r, t1);
+            x0 -= pad; x1 += pad;
+            if (!gaps.Certify(x0, x1)) { bounce.Veto(); return; }
+            gaps.AddShadow(gameNow + t0, gameNow + t1, x0, x1);
+        }
+        bounce.Take();
+        WaveBouncy++;
+        sh.rail = BossRailMode.Bounce; sh.bounces = BossBounce.MaxBounces; sh.bouncy = true;
     }
 
     // Wall / slant: a row of bullets with one gap, fired from the source muzzles. Each bullet flies from its nearest
@@ -576,7 +661,7 @@ public sealed class BossWaveVoice
     }
 
     // Ring / fan: from the source muzzle; the gap is a corridor along the heading from the muzzle to (c, ship row).
-    int Radial(WaveMove m, WaveSource src, float c, float clear, float r, int kk, float spb, float late, bool telegraph)
+    int Radial(WaveMove m, WaveSource src, float c, float clear, float r, int kk, float spb, float late, bool telegraph, float gameNow)
     {
         float scale = host.ShotSpeedScale;
         var from = host.Emitter(src.parts[0]);
@@ -602,7 +687,9 @@ public sealed class BossWaveVoice
                 if (off > arc) break;
                 float h = g + side * off;
                 if (Mathf.Sin(h * Mathf.Deg2Rad) > -.1f) break;     // the downward half only
-                host.Fire(from, new Vector2(Mathf.Cos(h * Mathf.Deg2Rad), Mathf.Sin(h * Mathf.Deg2Rad)) * rs / Mathf.Max(.01f, scale), ref sh);
+                var v = new Vector2(Mathf.Cos(h * Mathf.Deg2Rad), Mathf.Sin(h * Mathf.Deg2Rad)) * rs;
+                Ricochet(ref sh, from, v, r, gameNow);
+                host.Fire(from, v / Mathf.Max(.01f, scale), ref sh);
                 fired++;
             }
         LastSpeed = rs;

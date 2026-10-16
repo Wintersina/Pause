@@ -293,6 +293,8 @@ public static class CodexCatalogue
             if (compact) foreach (var w in PartsOf(a).Split(new[] { ", ", " and " }, System.StringSplitOptions.RemoveEmptyEntries)) if (!parts.Contains(w)) parts.Add(w);
         }
         if (compact) lines.Add("FIRES FROM  " + string.Join(", ", parts));
+        // the ricochets (BossBounce): the share of rail-reaching shots that bounce, and how to tell them
+        lines.Add("RINGED SHOTS  " + Mathf.RoundToInt(BossBounce.FractionFor(boss.WorldIndex) * 10f) + " in 10 bounce off the rails");
         int first = BossCatalog.UnlockedAttacks(boss, 0f), second = BossCatalog.UnlockedAttacks(boss, .5f);
         lines.Add("PHASES  " + first + " attacks, then " + second + ", then all " + boss.attacks.Length + " faster, and it enrages at the end");
         lines.Add("HEARTS  " + BossConfig.Hearts + " spin round it, all gone in " + BossConfig.HitPoints + " weapon hits");

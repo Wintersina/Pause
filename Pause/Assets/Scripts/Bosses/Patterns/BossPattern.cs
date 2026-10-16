@@ -30,6 +30,7 @@ public struct PShot
     public BossShotStyle style;
     public BossRailMode rail;
     public int bounces;
+    public bool bouncy;                  // a RICOCHET shot (BossBounce): picked to bounce off the rails, wears the ricochet cue
     public float homeDeg, homeSeconds;   // seeds: turn rate and how long it homes
     public float fuse;                   // > 0: it ends (or bursts) after this long
     public int burst;                    // > 0: it bursts into a ring of this many shots when its fuse is up
@@ -398,8 +399,34 @@ public sealed class BossPatternRunner
     {
         v *= emitSpeed;
         var sh = shot[i];
+        if (sh.rail == BossRailMode.Absorb && sh.fuse <= 0f && sh.burst == 0 && sh.homeSeconds <= 0f) Ricochet(ref sh, at, v * host.ShotSpeedScale);
         host.Fire(at, v, ref sh);
         Fired++;
+    }
+
+    // ---- ricochets in the timed rotation (BossBounce; the song's waves pick theirs in BossWaveVoice) ----
+    // About BounceFraction of the straight shots that meet a rail ricochet. With no gap chain to plan round, a picked
+    // shot is only made bouncy if its ricochet's sweep through the ship's band stays TimedClear u clear of the ship.
+    // Shots whose attack already ricochets (BossRailMode.Bounce in the tables) keep their own rule.
+    public const float TimedClear = 1.2f;
+    public float BounceFraction = BossBounce.BouncyFraction;
+    public BounceSelector bounce;
+
+    void Ricochet(ref PShot sh, Vector2 from, Vector2 v)
+    {
+        float r = sh.style == BossShotStyle.Bolt ? .13f : .12f;
+        float edge = host.RailEdge;
+        if (!BossBounce.MeetsRail(from, v, r, edge, host.ZoneBottom - 1f)) return;
+        if (!bounce.Offer(BounceFraction)) return;
+        float R = PatternSim.ShipRadius + r + BossBounce.ShadowMargin;
+        if (BossBounce.Trace(from, v, r, edge, host.ZoneBottom - R, host.ZoneTop + R, out _, out float t1, out float x0, out float x1))
+        {
+            float pad = BossBounce.ShadowPad(r, t1);
+            float px = host.Player.x;
+            if (x1 + pad > px - TimedClear && x0 - pad < px + TimedClear) { bounce.Veto(); return; }
+        }
+        bounce.Take();
+        sh.rail = BossRailMode.Bounce; sh.bounces = BossBounce.MaxBounces; sh.bouncy = true;
     }
 
     // A curtain / rain / lattice bullet (docs/boss-bullet-waves.md: the deploy): it leaves the stream's muzzle nearest

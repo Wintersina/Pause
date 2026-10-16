@@ -511,6 +511,7 @@ public class BossActor : MonoBehaviour, IMusicPatternHost
                         tell = Mathf.Max(tell, (float)((alignBeat - src.BeatNow) * src.SecondsPerBeat));
                     }
                     runner.Begin(current.pattern, this, BossLadder.RateAt(World, progress01), patternSeed++, tell, src, tune);
+                    runner.BounceFraction = BossBounce.FractionFor(World);
                 }
                 else
                 {
@@ -711,6 +712,7 @@ public class BossActor : MonoBehaviour, IMusicPatternHost
 
     void Volley(Vector3 player, BossProjectilePool pool)
     {
+        playerNow = player;
         volleysFired++;
         Fire();
         int frame = FiringFrame;
@@ -739,7 +741,31 @@ public class BossActor : MonoBehaviour, IMusicPatternHost
     void Shoot(BossProjectilePool pool, Vector3 from, Vector2 v, float gravity = 0f, float fall = 0f)
     {
         BossConfig.FitShot(ref v, ref gravity, ref fall);   // the same time to the ship on every screen
+        if (gravity <= 0f && current.rail == BossRailMode.Absorb && RicochetPick(from, v)) { pool.FireRicochet(boss, current.style, from, v); return; }
         pool.Fire(boss, current.style, from, v, current.rail, current.bounces, gravity, fall);
+    }
+
+    // The timed volleys' ricochets (BossBounce): the same pick and the same rule as BossPatternRunner's timed streams --
+    // a straight shot that meets a rail, picked by the running fraction, its ricochet's sweep through the ship's band
+    // kept BossPatternRunner.TimedClear u clear of the ship.
+    BounceSelector volleyBounce;
+    public BounceSelector VolleyBounce => volleyBounce;
+
+    bool RicochetPick(Vector2 from, Vector2 v)
+    {
+        var host = (IPatternHost)this;
+        float r = current.style == BossShotStyle.Bolt ? BossConfig.BoltHitRadius : BossConfig.ShardHitRadius;
+        float edge = BossRails.InnerEdge;
+        if (!BossBounce.MeetsRail(from, v, r, edge, host.ZoneBottom - 1f)) return false;
+        if (!volleyBounce.Offer(BossBounce.FractionFor(World))) return false;
+        float R = PatternSim.ShipRadius + r + BossBounce.ShadowMargin;
+        if (BossBounce.Trace(from, v, r, edge, host.ZoneBottom - R, host.ZoneTop + R, out _, out float t1, out float x0, out float x1))
+        {
+            float pad = BossBounce.ShadowPad(r, t1), px = playerNow.x;
+            if (x1 + pad > px - BossPatternRunner.TimedClear && x0 - pad < px + BossPatternRunner.TimedClear) { volleyBounce.Veto(); return false; }
+        }
+        volleyBounce.Take();
+        return true;
     }
 
     void Aimed(BossProjectilePool pool, Vector3 from, Vector3 player)

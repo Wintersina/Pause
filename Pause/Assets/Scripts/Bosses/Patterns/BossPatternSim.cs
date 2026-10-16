@@ -17,6 +17,7 @@ public sealed class PatternSim : IMusicPatternHost
         public Vector2 then;
         public BossRailMode rail;
         public bool alive;
+        public bool bouncy;             // a ricochet shot (BossBounce): keeps SpeedKeep of its speed per bounce
     }
 
     // ---- the stage (defaults: the authored 10 u view, the narrowest ship reach) ----
@@ -42,6 +43,11 @@ public sealed class PatternSim : IMusicPatternHost
     public int maxLive;
     public float minSpeed = float.MaxValue, maxSpeed;
     public int cap = 256;
+    // Ricochets (BossBounce): shots fired bouncy, ricochets made, and bouncy shots alive now / at most.
+    public int bouncyFired, ricochets, bouncyLive, maxBouncyLive;
+    // The boss-fight weather (WorldHazards.BossShotsDrift): every live shot drifts sideways at this speed (u/s), kept
+    // inside the rails like ShotShove.
+    public float driftVx;
 
     public Vector2 Player => player;
     public float ShotSpeedScale => shotScale;
@@ -62,6 +68,7 @@ public sealed class PatternSim : IMusicPatternHost
     {
         for (int i = 0; i < shots.Length; i++) shots[i].alive = false;
         live = fired = dropped = marks = 0;
+        bouncyFired = ricochets = bouncyLive = maxBouncyLive = 0;
         fires = offView = 0; worstEmitterDist = 0f;
         time = 0f;
         maxLive = 0;
@@ -96,6 +103,8 @@ public sealed class PatternSim : IMusicPatternHost
         s.rail = ps.rail; s.bounces = ps.rail == BossRailMode.Bounce ? ps.bounces : 0;
         s.homeLeft = ps.homeSeconds > 0f && ps.homeDeg > 0f ? ps.homeSeconds : 0f; s.homeDeg = ps.homeDeg;
         s.turnLeft = ps.turnAt > 0f ? ps.turnAt : 0f; s.then = ps.then;
+        s.bouncy = ps.bouncy && s.bounces > 0;
+        if (s.bouncy) bouncyFired++;
         live++;
         if (live > maxLive) maxLive = live;
         // a deploying shot's speed is the one it flies down its lane at (the spray out of the muzzle is not an attack)
@@ -152,19 +161,36 @@ public sealed class PatternSim : IMusicPatternHost
                 else s.turnLeft -= dt;
             }
             p += s.v * move;
+            if (driftVx != 0f)
+            {
+                float dx = driftVx * dt;
+                if (s.rail != BossRailMode.Pass)
+                {
+                    float lim = Mathf.Max(Mathf.Abs(p.x), railEdge - s.r);
+                    p.x = Mathf.Clamp(p.x + dx, -lim, lim);
+                }
+                else p.x += dx;
+            }
             if (s.rail != BossRailMode.Pass)
             {
                 float edge = railEdge - s.r;
                 int side = p.x > edge && s.v.x > 0f ? 1 : p.x < -edge && s.v.x < 0f ? -1 : 0;
                 if (side != 0)
                 {
-                    if (s.bounces > 0) { s.bounces--; p.x = side * edge - (p.x - side * edge); s.v.x = -s.v.x; }
+                    if (s.bounces > 0)
+                    {
+                        s.bounces--; p.x = side * edge - (p.x - side * edge); s.v.x = -s.v.x;
+                        if (s.bouncy) { s.v *= BossBounce.SpeedKeep; ricochets++; }
+                    }
                     else { s.alive = false; live--; continue; }
                 }
             }
             s.p = p;
             if (p.y < floorY || p.y > spawnTop + 1.5f || Mathf.Abs(p.x) > 4.2f) { s.alive = false; live--; }
         }
+        bouncyLive = 0;
+        for (int i = 0; i < cap; i++) if (shots[i].alive && shots[i].bouncy) bouncyLive++;
+        if (bouncyLive > maxBouncyLive) maxBouncyLive = bouncyLive;
     }
 
     // ---- the survivable-path solver ----
