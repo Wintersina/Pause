@@ -141,6 +141,7 @@ public static class AllTests
         ("StormFramingTest", StormFramingTest.Execute),
         ("TideEliteFramingTest", TideEliteFramingTest.Execute),
         ("VerdantFramingTest", VerdantFramingTest.Execute),
+        ("TideStormFramesTest", TideStormFramesTest.Execute),
         ("EliteHdTest", EliteHdTest.Execute),
         ("EnemyBehaviourTest", EnemyBehaviourTest.Execute),
         ("EnemyJitterTest", EnemyJitterTest.Execute),
