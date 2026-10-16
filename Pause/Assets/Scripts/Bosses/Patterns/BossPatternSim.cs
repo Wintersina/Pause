@@ -13,6 +13,8 @@ public sealed class PatternSim : IMusicPatternHost
         public float r, age, fuse, homeLeft, homeDeg;
         public int bounces, burst;
         public float burstSpeed, burstRot;
+        public float turnLeft;          // a deploying shot: seconds until it takes `then`
+        public Vector2 then;
         public BossRailMode rail;
         public bool alive;
     }
@@ -27,6 +29,11 @@ public sealed class PatternSim : IMusicPatternHost
     public Vector2[] emitters = { new Vector2(0f, 3.4f), new Vector2(-1.4f, 3.2f), new Vector2(1.4f, 3.2f), new Vector2(0f, 3.0f) };
     public float boltR = .13f, shardR = .12f;
     public float floorY = -6.5f;
+    // Where shots start (tests): every Fire is measured against the emitters as they are at that instant and the view.
+    public float viewTop = 5f;
+    public int fires, offView;
+    public float worstEmitterDist;
+    public int[] emittedParts = new int[16];
 
     public Shot[] shots = new Shot[256];
     public int live;
@@ -47,6 +54,7 @@ public sealed class PatternSim : IMusicPatternHost
     public float ZoneTop => zoneTop;
     public Vector2 Emitter(int part) => emitters[Mathf.Clamp(part, 0, emitters.Length - 1)];
     public void Emitted() { }
+    public void EmittedFrom(int part, float holdSeconds) { if (part >= 0 && part < emittedParts.Length) emittedParts[part]++; }
     public int marks;
     public void Mark(Vector2 a, Vector2 b, float halfWidth, float seconds) { marks++; }
 
@@ -54,6 +62,7 @@ public sealed class PatternSim : IMusicPatternHost
     {
         for (int i = 0; i < shots.Length; i++) shots[i].alive = false;
         live = fired = dropped = marks = 0;
+        fires = offView = 0; worstEmitterDist = 0f;
         time = 0f;
         maxLive = 0;
         minSpeed = float.MaxValue; maxSpeed = 0f;
@@ -61,8 +70,17 @@ public sealed class PatternSim : IMusicPatternHost
 
     public void Fire(Vector2 at, Vector2 velocity, ref PShot ps)
     {
-        float k = ps.fuse > 0f && ps.burst > 0 ? 1f : shotScale;
+        // as BossActor: a fused shot (bomb, mine) flies on its own clock, everything else scales with the view
+        float k = ps.fuse > 0f ? 1f : shotScale;
+        fires++;
+        float best = float.MaxValue;
+        for (int i = 0; i < emitters.Length; i++) best = Mathf.Min(best, (emitters[i] - at).magnitude);
+        if (best > worstEmitterDist) worstEmitterDist = best;
+        if (at.y > viewTop || Mathf.Abs(at.x) > CameraFit.GameplayHalfWidth) offView++;
+        var then = ps.then;
+        ps.then *= k;
         Spawn(at, velocity * k, ps.style == BossShotStyle.Bolt ? boltR : shardR, ref ps);
+        ps.then = then;
     }
 
     void Spawn(Vector2 at, Vector2 v, float r, ref PShot ps)
@@ -77,9 +95,11 @@ public sealed class PatternSim : IMusicPatternHost
         s.fuse = ps.fuse; s.burst = ps.burst; s.burstSpeed = ps.burstSpeed; s.burstRot = ps.burstRot;
         s.rail = ps.rail; s.bounces = ps.rail == BossRailMode.Bounce ? ps.bounces : 0;
         s.homeLeft = ps.homeSeconds > 0f && ps.homeDeg > 0f ? ps.homeSeconds : 0f; s.homeDeg = ps.homeDeg;
+        s.turnLeft = ps.turnAt > 0f ? ps.turnAt : 0f; s.then = ps.then;
         live++;
         if (live > maxLive) maxLive = live;
-        float sp = v.magnitude;
+        // a deploying shot's speed is the one it flies down its lane at (the spray out of the muzzle is not an attack)
+        float sp = ps.turnAt > 0f ? ps.then.magnitude : v.magnitude;
         if (sp > .01f) { if (sp < minSpeed) minSpeed = sp; if (sp > maxSpeed) maxSpeed = sp; }
     }
 
@@ -124,7 +144,14 @@ public sealed class PatternSim : IMusicPatternHost
                     s.v = new Vector2(Mathf.Cos(h), Mathf.Sin(h)) * sp;
                 }
             }
-            var p = s.p + s.v * dt;
+            float move = dt;
+            var p = s.p;
+            if (s.turnLeft > 0f)
+            {
+                if (s.turnLeft <= dt) { p += s.v * s.turnLeft; move = dt - s.turnLeft; s.turnLeft = 0f; s.v = s.then; }
+                else s.turnLeft -= dt;
+            }
+            p += s.v * move;
             if (s.rail != BossRailMode.Pass)
             {
                 float edge = railEdge - s.r;

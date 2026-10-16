@@ -73,6 +73,8 @@ public class BossProjectile : MonoBehaviour, IHostileShot
     bool patterned;
     float homeLeft, homeDeg, fuseLeft, fuseTotal, burstSpeed, burstRot;
     int burst;
+    float turnLeft;              // a deploying shot: seconds until it takes `turnTo` (PShot.turnAt / then)
+    Vector2 turnTo;
 
     public bool Active { get; private set; }
     public Vector2 Velocity => velocity;
@@ -86,6 +88,7 @@ public class BossProjectile : MonoBehaviour, IHostileShot
     public int BurstCount => burst;
     public float BurstSpeed => burstSpeed;
     public float HomeLeft => homeLeft;
+    public float TurnLeft => turnLeft;
     public float Radius => radius;
     public Vector3 LaunchedAt => launchedAt;
     // Why it last left play (tests): 0 none, 1 off screen, 2 splashed on a
@@ -150,7 +153,7 @@ public class BossProjectile : MonoBehaviour, IHostileShot
                        BossRailMode railMode, int bounces, float gravityPull, float maxFall)
     {
         patterned = false;
-        homeLeft = fuseLeft = fuseTotal = 0f;
+        homeLeft = fuseLeft = fuseTotal = turnLeft = 0f;
         burst = 0;
         Launch(def, shotStyle, at, v, railMode, bounces, gravityPull, maxFall, true);
     }
@@ -165,6 +168,8 @@ public class BossProjectile : MonoBehaviour, IHostileShot
         burst = ps.burst;
         burstSpeed = ps.burstSpeed;
         burstRot = ps.burstRot;
+        turnLeft = ps.turnAt > 0f ? ps.turnAt : 0f;
+        turnTo = ps.then;
         Launch(def, ps.style, at, v, ps.rail, ps.bounces, 0f, 0f, true);
     }
 
@@ -276,8 +281,23 @@ public class BossProjectile : MonoBehaviour, IHostileShot
             Face();
         }
         Vector3 p = transform.position;
-        p.x += velocity.x * dt;
-        p.y += velocity.y * dt;
+        float move = dt;
+        if (turnLeft > 0f)
+        {
+            // deploying: it reaches its place in the formation mid-frame, exactly, then turns down its lane
+            if (turnLeft <= dt)
+            {
+                p.x += velocity.x * turnLeft;
+                p.y += velocity.y * turnLeft;
+                move = dt - turnLeft;
+                turnLeft = 0f;
+                velocity = turnTo;
+                Face();
+            }
+            else turnLeft -= dt;
+        }
+        p.x += velocity.x * move;
+        p.y += velocity.y * move;
 
         // The rails' inner faces: the shot's edge touching one, moving into it.
         if (rail != BossRailMode.Pass)

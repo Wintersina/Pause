@@ -228,7 +228,8 @@ public static class BossPatternTest
     {
         // curtain: a wall of shots with exactly the stated gap between the two shots either side of it, all falling straight down
         var cur = new PatternStream { kind = StreamKind.Curtain, duration = .1f, interval = 2f, gap = 2.0f, gapStep = 1f, pitch = .5f, speed = 3f, style = BossShotStyle.Bolt };
-        var sim = Run(cur, 1f, 1, .05f, new Vector2(1.5f, -3f));
+        // (after its spray: the bullets leave the boss's muzzle and turn down their lanes in the formation under it)
+        var sim = Run(cur, 1f, 1, .8f, new Vector2(1.5f, -3f));
         int n = 0;
         bool down = true, row = true;
         float y0 = float.NaN;
@@ -299,7 +300,8 @@ public static class BossPatternTest
         Check("three bombs burst into rings of ten after their fuse (" + bombs + " -> " + afterBang + " shots)", bombs == 3 && afterBang >= 24 && afterBang <= 30);
 
         var mine = new PatternStream { kind = StreamKind.Mines, duration = 3f, interval = 9f, count = 8, gap = 1.4f, minSep = 1.5f, fuse = 3f, style = BossShotStyle.Shard };
-        var mn = Run(mine, 1f, 5, .05f, new Vector2(0f, -3.2f));
+        // (after the throw: each mine leaves the boss and settles on its marked spot)
+        var mn = Run(mine, 1f, 5, BossPatternRunner.MineThrow + .1f, new Vector2(0f, -3.2f));
         bool still = true, clear = true, apart = true;
         var pos = new List<Vector2>();
         for (int i = 0; i < mn.cap; i++) if (mn.shots[i].alive) { if (mn.shots[i].v.sqrMagnitude > 0f) still = false; pos.Add(mn.shots[i].p); if ((mn.shots[i].p - new Vector2(0f, -3.2f)).magnitude < 1.4f - .01f) clear = false; }
@@ -310,7 +312,7 @@ public static class BossPatternTest
 
         var rn = new PatternStream { kind = StreamKind.Rain, duration = 3f, interval = .25f, count = 6, pitch = .75f, free = 3, speed = 3.5f, speedJitter = 1.5f, style = BossShotStyle.Shard };
         var rr = Run(rn, 1f, 2, .02f);
-        Check("rain drops from above the view into at most (lanes - free) lanes a row (" + Live(rr) + " drops of 7 lanes - 3 free)", Live(rr) == 4 && Enumerable.Range(0, rr.cap).All(i => !rr.shots[i].alive || rr.shots[i].p.y >= rr.spawnTop - .4f));
+        Check("rain drops leave the boss's muzzles (never the top of the view) into at most (lanes - free) lanes a row (" + Live(rr) + " drops of 7 lanes - 3 free)", Live(rr) == 4 && rr.worstEmitterDist < .001f && Enumerable.Range(0, rr.cap).All(i => !rr.shots[i].alive || rr.shots[i].p.y < rr.spawnTop - 1f));
 
         var pin = new PatternStream { kind = StreamKind.Pincer, duration = 3f, interval = .5f, count = 1, gap = 2.4f, gapStep = .6f, side = 1.5f, speed = 4f, style = BossShotStyle.Bolt };
         var pn = Run(pin, 1f, 1, .02f, new Vector2(0f, -3.2f));

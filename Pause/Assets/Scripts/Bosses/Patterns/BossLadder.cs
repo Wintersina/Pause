@@ -40,7 +40,9 @@ public static class BossLadder
     // the fastest shot of the rotation (the aimed accent that makes the boss feel quicker up the ladder)
     public static readonly float[] SpeedFloor = { 4.4f, 4.8f, 5.1f, 5.4f, 5.7f, 6.0f, 6.4f };
     // the headline: shots per second over the phase-3 rotation, the ladder's floor and its pool
-    public static readonly float[] BulletsFloor = { 3.2f, 4.2f, 4.4f, 6.2f, 6.7f, 7.4f, 10.8f };
+    // (Tempest 7.4 -> 7.1: its lattice rows used to be counted out to x = +/-4.1, behind the walls and off the screen;
+    // they now form inside the rails under the boss -- the same grid in play, fewer bullets nobody could see)
+    public static readonly float[] BulletsFloor = { 3.2f, 4.2f, 4.4f, 6.2f, 6.7f, 7.1f, 10.8f };
 
     // how much of each slot's cooldown is kept (pace: the later bosses leave less room between attacks)
     public static readonly float[] Cooldown = { 1.0f, 1.0f, .95f, .85f, .8f, .75f, .7f };

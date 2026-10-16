@@ -346,11 +346,13 @@ public static class BossCatalog
                                      volleys = 2, volleyGap = .5f, count = 9, spreadDeg = 120f, rotateDeg = 6f,
                                      speed = 3.3f, style = BossShotStyle.Bolt,
                                      rail = BossRailMode.Bounce, bounces = 1, cooldown = 1.1f },
-                    // The chest furnace roars and hurls three triplets of
-                    // magma at the ship; they splash on a rail.
+                    // The chest furnace and the twin brass shoulder cannons
+                    // fire three volleys of magma slugs at the ship (the
+                    // fire drawing shows all three muzzles flaring); they
+                    // splash on a rail.
                     new BossAttack { name = "furnace slugs", kind = BossAttackKind.Aimed, tell = 1, tellSeconds = .6f,
-                                     emitters = new[] { "Furnace" },
-                                     volleys = 3, volleyGap = .36f, count = 3, spreadDeg = 24f, speed = 4.9f,
+                                     emitters = new[] { "Furnace", "CannonL", "CannonR" }, fireFrame = true,
+                                     volleys = 3, volleyGap = .36f, count = 1, spreadDeg = 0f, speed = 4.9f,
                                      style = BossShotStyle.Shard, rail = BossRailMode.Absorb, cooldown = 1.1f },
                     // The brow gem locks on to the ship, then burns a laser
                     // that rakes away from that side towards the other --
