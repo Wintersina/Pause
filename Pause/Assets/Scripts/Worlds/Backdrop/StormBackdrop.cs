@@ -87,10 +87,10 @@ public static class StormTuning
     public static float EyeX = 1.6f;                  // off-centre either side: the middle lane stays calm
     public static float EyeFirst = 12f, EyeGapMin = 20f, EyeGapMax = 28f;   // ground-plane units between eyes: rare
     public static float EyeAlpha = .96f;
-    // It turns slowly about its own centre, clockwise (seen from above), one full turn per EyeTurnSeconds. Only the rotation moves:
+    // It turns slowly about its own centre, clockwise (seen from above), one full turn per EyeTurnSeconds (the single rate constant). Only the rotation moves:
     // its position is the ground coordinate (pinned), its scale never changes. Drawn bilinear (the atlas is a soft one) so the
     // turn is smooth with no pixel crawl.
-    public static float EyeTurnSeconds = 90f;
+    public static float EyeTurnSeconds = 210f;   // 3.5 minutes per turn: barely perceptible in a glance, visible over a level
 
     // ---- launch sites ------------------------------------------------------------
     public static float SiteMin = 1.5f, SiteMax = 1.7f, SiteFirst = 3f, SiteGapMin = 5f, SiteGapMax = 8.5f;
