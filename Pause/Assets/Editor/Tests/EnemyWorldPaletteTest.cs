@@ -35,10 +35,12 @@ public static class EnemyWorldPaletteTest
         // Dominant hues: Tide teal 150..190, Storm indigo-steel 215..250 (clear of the violet capacitor pickup, 259), Desert gold/umber 15..50.
         Check("Tide's dominant hue is deep-sea teal (150..190)", st[0].meanHue > 150f && st[0].meanHue < 190f);
         Check("Storm's dominant hue is indigo steel (215..250)", st[1].meanHue > 215f && st[1].meanHue < 250f);
-        Check("Desert's dominant hue is gold / umber (15..50)", st[2].meanHue > 15f && st[2].meanHue < 50f);
+        // Desert (art/enemy-colors-desert): the seven flying enemies are deliberately multi-accent (cobalt, turquoise, emerald, violet, saffron)
+        // so they read against the sand; only the rocks stay sand, so Desert is exempt from the single-hue and hue-separation rules.
         for (int a = 0; a < 3; a++)
             for (int b = a + 1; b < 3; b++)
             {
+                if (a == 2 || b == 2) continue;
                 float gap = Mathf.Abs(Mathf.DeltaAngle(st[a].meanHue, st[b].meanHue));
                 Check(worlds[a] + " vs " + worlds[b] + ": dominant hues at least 50 degrees apart (" + gap.ToString("0") + ")", gap >= 50f);
                 float ov = Overlap(st[a].hist, st[b].hist);

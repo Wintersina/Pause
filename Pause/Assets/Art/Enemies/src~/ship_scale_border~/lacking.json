@@ -1,8 +1,5 @@
 {
  "elites": {
-  "desert_elite_glass_cannon": "desert",
-  "desert_elite_lens_matriarch": "desert",
-  "desert_elite_mirror_bastion": "desert",
   "ember_elite_brass_vulture": "ember",
   "ember_elite_cauterizer": "ember",
   "ember_elite_kilnback": "ember",
@@ -26,21 +23,9 @@
   "tide_elite_riptide": "tide",
   "tide_elite_thunderfin": "tide",
   "tide_elite_trawler": "tide",
-  "verdant_elite_resin_warden": "verdant",
-  "desert_elite_caravan_hauler": "desert",
-  "desert_elite_dune_stalker": "desert",
-  "desert_elite_scorpion_walker": "desert"
+  "verdant_elite_resin_warden": "verdant"
  },
  "enemies": {
-  "desert_alien": "desert",
-  "desert_fighter_1": "desert",
-  "desert_fighter_2": "desert",
-  "desert_fighter_3": "desert",
-  "desert_fighter_4": "desert",
-  "desert_rock_dune": "desert",
-  "desert_rock_husk": "desert",
-  "desert_rock_slab": "desert",
-  "desert_rock_spire": "desert",
   "ember_big": "ember",
   "frost_alien": "frost",
   "frost_big": "frost",

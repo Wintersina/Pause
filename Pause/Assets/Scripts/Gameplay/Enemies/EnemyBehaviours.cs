@@ -578,7 +578,7 @@ public static class EnemyBehaviours
             .Sizes(.8f, .92f, 1.48f);
         B("desert_mine", "mirage mine: creeps down its rail, the lens core lights white-gold, two heat-lances across the lane at random angles, riding up beside the ship to fire them")
             .Creep(1.45f, .7f).Laser().Muzzle(.5f).Timing(1f, RailMineLaser.ShotGapSeconds, RailMineLaser.ShotsPerRide, .15f);
-        B("desert_big", "Sandcrawler: holds its column, the bucket-wheel spins up, a fan of three sand-slugs")
+        B("desert_big", "Sandbarge: holds its column, the bucket-wheel spins up, a fan of three sand-slugs")
             .Bob(.04f, 3.6f).Shot(Shard, 3, 28f, 1.8f, .26f).Muzzle(.45f).Timing(1f, 3.6f, 2, .15f)
             .Pilot(PilotEntry.Drop, 1.5f, 9f, PilotExit.Climb).Slow().Volleys(3);
         B("desert_fighter_1", "Sand Skimmer: diagonal drift, then a straight dash trailing dust that never steers")

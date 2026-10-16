@@ -65,7 +65,7 @@ public static class ShipOutlineTest
             Verify(key, world, mode, fade, a, b);
             Object.DestroyImmediate(a); Object.DestroyImmediate(b);
         }
-        Check("every ship of the plan is wired (" + wired + ")", wired >= 60);
+        Check("every ship of the plan is wired (" + wired + ")", wired >= 50);   // Desert (15 ships) left the plan: no outline on Desert enemies
         Debug.Log("[OUTL] failures: " + fails);
         return fails;
     }

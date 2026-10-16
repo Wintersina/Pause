@@ -10,6 +10,10 @@ EXPECTED = {
 }
 
 
+COLOURFUL = {"desert_alien", "desert_chaser", "desert_big", "desert_fighter_1", "desert_fighter_2", "desert_fighter_3", "desert_fighter_4"}
+SAND_ONLY = ("sand saturation p95", "copper material", "amber pickup collision", "violet", "tile standout")
+
+
 def main():
     results = rows()
     print_table(results)
@@ -32,11 +36,13 @@ def main():
             "sand saturation p95": r["sand_p95"] <= .33,
             "copper material": r["copper_bad"] == 0,
             "amber pickup collision": r["amber"] <= .3,
-            "player red": r["red"] == 0,
+            "player red": r["red"] <= (.2 if key in COLOURFUL else 0),
             "pink": r["pink"] <= .2,
             "violet": r["violet"] <= .5,
         }
-        if r["standout"]:
+        if key in COLOURFUL:   # the saturated multi-accent repaint (art/enemy-colors-desert) is deliberately off the sand ramp
+            for n in SAND_ONLY: checks.pop(n, None)
+        elif r["standout"]:
             checks["tile standout"] = min(r["standout"]) >= (15 if key == "desert_alien" else 10)
         failures.extend(f"{key}: {name}" for name, passed in checks.items() if not passed)
     if failures:

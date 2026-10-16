@@ -2,7 +2,7 @@ using System.IO;
 using UnityEngine;
 
 // Desert's 12-unit roster and its Mirage Mine (docs/desert-world-plan.md sections 5 and 10, docs/desert-wire.md): the defs (names, roles, tiers, world 6),
-// the strips (11 idle strips of seven 192 cells / 1792 for the Sandcrawler, 12 death strips), the fourth mine atlas, the pinned behaviours and
+// the strips (11 idle strips of seven 192 cells / 1792 for the Sandbarge, 12 death strips), the fourth mine atlas, the pinned behaviours and
 // themed attacks, the palette, the explosion kind, the pilot density, the Scarab Drone's burrow, and the art rules: no pink on any body (pink is for
 // hostile shots and attack effects only) and no player red.
 //
@@ -23,7 +23,7 @@ public static class DesertRosterTest
     {
         ("desert_rock_dune", EnemyRole.Rock, 1, "Dune Boulder"), ("desert_rock_spire", EnemyRole.Rock, 2, "Glass Spire"),
         ("desert_rock_husk", EnemyRole.Rock, 3, "Fulgurite Husk"), ("desert_rock_slab", EnemyRole.Rock, 4, "Dune Slab"),
-        ("desert_mine", EnemyRole.Mine, 0, "Mirage Mine"), ("desert_big", EnemyRole.Big, 0, "Sandcrawler"),
+        ("desert_mine", EnemyRole.Mine, 0, "Mirage Mine"), ("desert_big", EnemyRole.Big, 0, "Sandbarge"),
         ("desert_fighter_1", EnemyRole.Fighter, 1, "Sand Skimmer"), ("desert_fighter_2", EnemyRole.Fighter, 2, "Glint Hawk"),
         ("desert_fighter_3", EnemyRole.Fighter, 3, "Lens Gunner"), ("desert_fighter_4", EnemyRole.Fighter, 4, "Dust Devil Tank"),
         ("desert_chaser", EnemyRole.Chaser, 0, "Scarab Drone"), ("desert_alien", EnemyRole.Alien, 0, "Mirage Wisp"),
@@ -89,7 +89,7 @@ public static class DesertRosterTest
         Check("the Mirage Mine row is the fourth mine atlas, 1254 x 314, routed by RailMineArt", mine != null && mine.width == 1254 && mine.height == 314 &&
               EnemyRoster.Find("desert_mine").StripPath == RailMineArt.DesertAtlasPath);
         if (mine != null) { Pink("desert_mine atlas", mine); Object.DestroyImmediate(mine); }
-        Check("Dune Boulder... Mirage Wisp strips are bordered, not repainted: the source script exists", File.Exists("Assets/Art/Enemies/src~/desert_enemies/add_border.py"));
+        Check("the seven Desert enemy strips are colourful flying repaints (build_color.py), no outline border script left", File.Exists("Assets/Art/Enemies/src~/desert_enemies/build_color.py") && !File.Exists("Assets/Art/Enemies/src~/desert_enemies/add_border.py"));
     }
 
     // No pink on any enemy body: the hostile pink (hue 312-326) is for shots and attack effects. A few antialiased texels are tolerated (<= 0.2 % of opaque pixels).
@@ -125,7 +125,7 @@ public static class DesertRosterTest
         BehaviourIs("desert_chaser", EnemyAttack.None, EnemyLateral.None);
         BehaviourIs("desert_alien", EnemyAttack.Shot, EnemyLateral.Sway);
         var big = EnemyBehaviours.For("desert_big");
-        Check("Sandcrawler: a fan of 3 sand-slugs (Shard), a 1 s bucket-wheel tell", big.shotCount == 3 && big.shotKind == EliteShots.Kind.Shard && big.tell >= 1f);
+        Check("Sandbarge: a fan of 3 sand-slugs (Shard), a 1 s bucket-wheel tell", big.shotCount == 3 && big.shotKind == EliteShots.Kind.Shard && big.tell >= 1f);
         var hawk = EnemyBehaviours.For("desert_fighter_2");
         Check("Glint Hawk: three quick glass shards straight down", hawk.shotKind == EliteShots.Kind.Shard && hawk.maxVolleys >= 3 && hawk.aimCone == 0f);
         var gunner = EnemyBehaviours.For("desert_fighter_3");
