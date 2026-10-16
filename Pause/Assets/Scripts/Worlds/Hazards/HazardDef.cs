@@ -4,7 +4,10 @@ using UnityEngine;
 // SHOVES or PULLS (never damages). Its force is a vector field (HazardForce) given a shape and, per kind of
 // target, a mix (how strongly, and whether its pull / swirl is kept, flipped or doubled).
 
-public enum HazardShape { Swirl, Front, Column }
+// Swirl: a vortex. Front: a horizontal band falling down the screen. Column: a vertical stream rising from the bottom.
+// Sweep: a VERTICAL band (a flare front) that crosses the screen sideways, with a hot shocked leading edge, shoving
+// everything along its direction of travel (Space's solar flares). `bands` of them in a train, `bandGap` apart.
+public enum HazardShape { Swirl, Front, Column, Sweep }
 
 // What a force acts on. Bosses, beams, mines on their rails and pickups are not targets at all.
 public enum HazardTarget { Player, Body, Elite, Hostile, Mine }
@@ -35,7 +38,11 @@ public sealed class HazardDef
     public TargetMix player, body, elite, hostile, mine;
     public float spinDegrees;         // Swirl: the painted body also turns continuously at this rate (the tornado); 0: the art's own loop only
     public int artRow = -1, artWarnCol;   // the approved hazard sheet (wx_hazard.png): this hazard's loop row (0 / 1) and its 2 warning cells' first column in row 2; -1: no art yet (staged worlds)
-    public float bossShotScale = .6f; // hostile gain while a boss fight runs (protects the bullet hell's authored gaps)
+    public float bossShotScale = .6f; // scales a Front / Sweep's rigid sideways push on boss shots (see WeatherWind.BossShotWind)
+    public float capMul = 1f;         // multiplies the body / shot / elite speed caps for this hazard (a flare flings harder than a breeze)
+    public int bands = 1;             // Sweep: bands in the train
+    public float bandGap = 0f;        // Sweep: distance between trailing bands (u)
+    public float shock = .35f;        // Sweep: how much stronger the leading half of a band is than the trailing half (0..1)
 
     public TargetMix MixOf(HazardTarget t)
     {
@@ -66,6 +73,7 @@ public sealed class HazardField
     public int variant;               // which drawn variant of the body (the tornado's four funnels)
     public bool hazArtHeld;           // this event holds the world's hazard sheet loaded (HazardArt.Acquire)
     public float frontY;              // Front: current centre y
+    public float sweepX;              // Sweep: current centre x of the LEADING band (it travels in direction `side`)
     public float viewBottom, viewTop; // the view when it began
     public float laneHalf = 3.7f;     // half the width the bounds cover
 
@@ -95,6 +103,13 @@ public sealed class HazardField
             {
                 case HazardShape.Swirl: return new Rect(centre.x - def.size, centre.y - def.size, def.size * 2f, def.size * 2f);
                 case HazardShape.Front: return new Rect(-laneHalf, frontY - def.size * .5f, laneHalf * 2f, def.size);
+                case HazardShape.Sweep:
+                {
+                    float trail = Mathf.Max(0, def.bands - 1) * def.bandGap;
+                    float lead = sweepX + side * def.size * .5f, tail = sweepX - side * (def.size * .5f + trail);
+                    float x0 = Mathf.Min(lead, tail), x1 = Mathf.Max(lead, tail);
+                    return new Rect(x0, viewBottom, x1 - x0, viewTop - viewBottom);
+                }
                 default: return new Rect(centre.x - def.size * .5f - 1.2f, viewBottom, def.size + 2.4f, viewTop - viewBottom);
             }
         }

@@ -41,6 +41,7 @@ public static class AllTests
     static readonly (string name, Func<int> execute)[] Suites =
     {
         ("WorldHazardsTest", WorldHazardsTest.Execute),
+        ("WeatherOverhaulTest", WeatherOverhaulTest.Execute),
         ("WeatherArtTest", WeatherArtTest.Execute),
         ("SpaceSunTest", SpaceSunTest.Execute),
         ("AccountCloudSaveTest", AccountCloudSaveTest.Execute),
