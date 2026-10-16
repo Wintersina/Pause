@@ -69,7 +69,8 @@ public sealed class BeatClock : IMusicBeatSource
     readonly double duration, beatsPerLoop;
     bool anchored, playing;
     double anchorDsp, anchorClip, lastSample;
-    long loops;
+    long loops;               // loops floor after Reset (kept 0 by Reset)
+    double lastUnwrapped;
     double pitch = 1.0;
 
     public bool UseLatencyOverride;
@@ -103,9 +104,13 @@ public sealed class BeatClock : IMusicBeatSource
     {
         Halt();
         loops = 0;
+        lastUnwrapped = 0;
     }
 
     // One reading of the source: its clip position (seconds) while it is playing.
+    // The anchor is kept UNWRAPPED (clip time + whole loops * duration). The source's wrapped reading is lifted to the
+    // loop nearest the prediction, so a snap or a nudge right at the loop point can neither drop nor double a loop
+    // (the old code counted wraps separately from the re-anchor and lost / doubled one when the two disagreed).
     public void Sample(double dsp, double clipTime, bool isPlaying)
     {
         if (!isPlaying) { Halt(); return; }
@@ -116,38 +121,25 @@ public sealed class BeatClock : IMusicBeatSource
         {
             anchored = true;
             anchorDsp = dsp;
-            anchorClip = clipTime;
+            // resume on the loop nearest where the counter last was, so the beat never runs backwards by a loop
+            double k = d > 0.0 ? System.Math.Round((lastUnwrapped - clipTime) / d) : 0.0;
+            if (k < loops) k = loops;
+            anchorClip = clipTime + k * d;
             return;
         }
         double predicted = anchorClip + (dsp - anchorDsp) * pitch;
-        int wraps = 0;
-        if (d > 0.0)
-        {
-            while (predicted >= d) { predicted -= d; wraps++; }
-        }
-        double diff = clipTime - predicted;
-        if (d > 0.0)
-        {
-            // the source may already have wrapped (or not yet) when the prediction has not: compare round the loop
-            if (diff > d * .5) { diff -= d; }
-            else if (diff < -d * .5) { diff += d; }
-        }
-        loops += wraps;
+        double measured = clipTime;
+        if (d > 0.0) measured = clipTime + System.Math.Round((predicted - clipTime) / d) * d;
+        double diff = measured - predicted;
         anchorDsp = dsp;
-        if (System.Math.Abs(diff) > SnapSeconds)
-        {
-            anchorClip = clipTime;
-        }
-        else
-        {
-            anchorClip = predicted + diff * Smoothing;
-        }
+        anchorClip = System.Math.Abs(diff) > SnapSeconds ? measured : predicted + diff * Smoothing;
+        lastUnwrapped = anchorClip;
     }
 
     // The clip time the music is at, in the unwrapped timeline (clip time + whole loops * duration), less latency.
     public double MusicTime(double dsp)
     {
-        return anchorClip + (dsp - anchorDsp) * pitch - Latency + loops * duration;
+        return anchorClip + (dsp - anchorDsp) * pitch - Latency;
     }
 
     public double BeatAtDsp(double dsp)
@@ -160,7 +152,7 @@ public sealed class BeatClock : IMusicBeatSource
             w = (long)System.Math.Floor(t / d);
             t -= w * d;
         }
-        return (loops + w) * beatsPerLoop + map.BeatAt(t);
+        return w * beatsPerLoop + map.BeatAt(t);
     }
 
     public double BeatNow => BeatAtDsp(Now());

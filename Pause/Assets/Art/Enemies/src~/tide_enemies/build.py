@@ -32,7 +32,11 @@ PHASE = [0.0, 1.0, -1.0, 0.62]
 
 
 def selected_source(name, candidate):
-    if candidate < 0:
+    flying = HERE / "flying_src" / f"{name}_flying.png"
+    if flying.exists():
+        # Recoloured multi-accent FLYING repaint (art/enemy-colors-tide); the old teal candidates stay as the record.
+        im = Image.open(flying).convert("RGBA")
+    elif candidate < 0:
         im = Image.open(HERE / "tide_fighter_3_selected_source.png").convert("RGBA")
     else:
         im = Image.open(HERE / f"{name}_candidates.png").convert("RGBA")
@@ -79,7 +83,8 @@ def key_pose(name, candidate, target):
     factor = target / max(src.size)
     size = (max(1, round(src.width * factor)), max(1, round(src.height * factor)))
     src = src.resize(size, Image.Resampling.NEAREST)
-    src = repair_red(src)
+    if not (HERE / "flying_src" / f"{name}_flying.png").exists():
+        src = repair_red(src)
     if name in {"tide_big", "tide_fighter_2", "tide_fighter_3", "tide_rock_islet"}:
         # Bring a few already-painted midtones above the brightest Tide ground set.
         arr = np.array(src)
@@ -248,7 +253,7 @@ def hit_pose(key, name):
 
 def main():
     for name,(candidate,target) in SPEC.items():
-        key = outer_rim(key_pose(name,candidate,target))
+        key = key_pose(name,candidate,target)  # no outer_rim: the user dislikes pale outlines, colour carries readability
         frames = []
         for p,light in zip(PHASE,[0,22,-15,37]):
             frames.append(pulse_lights(warp_idle(key,name,p),light,name))

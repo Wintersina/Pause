@@ -198,7 +198,11 @@ public class CameraKick : MonoBehaviour
     float phase;
     Vector3 applied;
 
+    // The kick on the main camera, once one has happened (null before: nothing shook yet). A static so per-frame readers need no GetComponent.
+    public static CameraKick Current;
     public float Amplitude => amplitude;
+    // The offset this kick has put on the camera right now (the camera's resting position is its position minus this).
+    public Vector3 Applied => applied;
 
     public static void Kick(float amount)
     {
@@ -208,6 +212,7 @@ public class CameraKick : MonoBehaviour
         var kick = cam.GetComponent<CameraKick>();
         if (kick == null) kick = cam.gameObject.AddComponent<CameraKick>();
         kick.amplitude = Mathf.Min(MaxAmplitude, Mathf.Max(kick.amplitude, amount));
+        Current = kick;
     }
 
     void LateUpdate()
@@ -225,6 +230,7 @@ public class CameraKick : MonoBehaviour
 
     void OnDisable()
     {
+        if (Current == this) Current = null;
         transform.position -= applied;
         applied = Vector3.zero;
     }

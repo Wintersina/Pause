@@ -4048,7 +4048,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: 'Pauses Remaining : 99'
+  m_Text: PAUSES  99
 --- !u!222 &2086372038
 CanvasRenderer:
   m_ObjectHideFlags: 0

@@ -15,8 +15,25 @@ public static class WeatherSprites
         return cache[i];
     }
 
+    // A soft horizontal gradient bar: opaque at the left (x = 0), fading to nothing at the right (x = 1 unit); 1 unit long, tinted at draw time.
+    static Sprite BuildEdge()
+    {
+        const int W = 64, H = 64;
+        var tex = new Texture2D(W, H, TextureFormat.RGBA32, false) { filterMode = FilterMode.Bilinear, wrapMode = TextureWrapMode.Clamp, name = "weather_edge" };
+        var px = new Color32[W * H];
+        for (int x = 0; x < W; x++)
+        {
+            float u = x / (float)(W - 1);
+            float a = (1f - u) * (1f - u) * (1f - .35f * u);          // quick falloff, a long soft tail
+            for (int y = 0; y < H; y++) px[y * W + x] = new Color32(255, 255, 255, (byte)Mathf.RoundToInt(a * 255f));
+        }
+        tex.SetPixels32(px); tex.Apply(false, true);
+        return Sprite.Create(tex, new Rect(0, 0, W, H), new Vector2(0f, .5f), W);   // pivot at the opaque end
+    }
+
     static Sprite Build(AmbientShape s)
     {
+        if (s == AmbientShape.Edge) return BuildEdge();
         int w, h;
         string[] rows;
         switch (s)

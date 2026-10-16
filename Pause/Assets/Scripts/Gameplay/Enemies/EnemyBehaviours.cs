@@ -436,7 +436,7 @@ public static class EnemyBehaviours
         B("verdant_chaser", "Dragonsting: weaving pursuit, longer and slower")
             .Chaser(ChaserStyle.Weaver, 4.6f, 2f, .9f, 1.2f, .8f)
             .Linger(6f);
-        B("verdant_alien", "Snap Sprout: marches sideways in step")
+        B("verdant_alien", "Snap Sprout: hops sideways in step on leaf wings")
             .March(.5f, .55f)
             .Descend(1f);
 

@@ -21,6 +21,8 @@ public class BossArtImporter : AssetPostprocessor
         importer.wrapMode = UnityEngine.TextureWrapMode.Clamp;
         importer.npotScale = TextureImporterNPOTScale.None;
         importer.isReadable = false;
+        // The Cinder Drake's atlas has 576 px cells (384 x 1.5: 2880 x 4032, its damage / fx / death sheets scale with it): still under
+        // this 4096 cap, so it imports at native size and BossArt slices it by the texture's own cell width. (A 2x atlas would need 8192.)
         // Space now carries three additional painted rows (1920 x 2688).
         // Never downscale it: runtime slicing is in fixed 384px cells.
         // The body atlases are 5 x 8 cells of 384 px (1920 x 3072): a 2048 cap

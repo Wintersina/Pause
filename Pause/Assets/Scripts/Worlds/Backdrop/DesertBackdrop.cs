@@ -474,7 +474,7 @@ public class DesertDirector : PlanetDirector
                 p.fade = 1f - Mathf.Clamp01((p.dyingT - DesertTuning.RazeFadeDelay) / DesertTuning.RazeFadeSeconds);
                 if (p.fade <= 0f) { Despawn(p); continue; }
             }
-            if (p.y < -HalfH - p.size * .9f - .5f)
+            if (p.y < GroundDespawnY(p, ambient))
             {
                 planner.Release(p.footprint);
                 p.footprint = -1;

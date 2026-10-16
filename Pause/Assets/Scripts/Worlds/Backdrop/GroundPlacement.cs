@@ -258,12 +258,16 @@ public class GroundPlanner
 
     public void Release(int slot) { if (slot >= 0 && slot < feet.Length) feet[slot].on = false; }
 
+    // A footprint is forgotten this far under the view: past where any piece (its smoke plume outliving it, BackdropDirector.GroundDespawnY) is recycled,
+    // so a recycled piece never releases a slot another piece has since claimed.
+    public const double ForgetBelow = 10.0;
+
     // Forget footprints that have scrolled out under the view.
     public void Prune()
     {
         double bottom = Travel - set.HalfHeight;
         for (int i = 0; i < feet.Length; i++)
-            if (feet[i].on && feet[i].gy + feet[i].ry < bottom - 3.0) feet[i].on = false;
+            if (feet[i].on && feet[i].gy + feet[i].ry < bottom - ForgetBelow) feet[i].on = false;
     }
 
     // Looks for a spot for a piece of drawn width `size` obeying `rule`, with
