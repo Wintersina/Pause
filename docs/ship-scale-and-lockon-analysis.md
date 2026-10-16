@@ -244,7 +244,7 @@ Audit (every elite, every world): which have a painted master in the repo, how t
 | World | Ships | Master in the repo | Live strip derived by | After this PR |
 |---|---|---|---|---|
 | Tide | Riptide, Bathyscaphe, Trawler, Pearl Warden (+ Thunderfin, PR #4) | `Elite/Tide/src~/*_master.png`, 1254 px (Riptide 1024 x 1536) | `build_tide_elites.py`: NEAREST decimation, noisy dither, then palette unify | 384 px cells, `build_tide_hd.py` (Thunderfin reproduced to 99.998%) |
-| Storm | Skyhook Harrier, Refinery Tender, Rod Dancer, Anvil Cloud, Static Bastion | `Elite/Storm/src~/*_master.png`, 1024-1536 px | `build_storm_elites.py`: NEAREST, then palette unify | 384 px, `build_storm_hd.py` |
+| Storm | Skyhook Harrier, Refinery Tender, Rod Dancer, Anvil Cloud, Static Bastion | `Enemies/src~/storm_elites/masters/*.png`, ~1100-1450 px (Codex redesign, Oct 16) | `storm_elites/build_strips.py`: Lanczos into a 384 px cell + drawn flames | 384 px, native |
 | Desert | Dune Stalker, Caravan Hauler, Lens Matriarch, Scorpion Walker, Mirror Bastion | `Elite/Desert/src~/*_master.png`, 1086-1448 px | `build.py`: NEAREST, 1-bit alpha, palette unify | 384 px, `build_desert_hd.py` (soft alpha) |
 | Frost | Floe Harrower, Glacier Tender, Whiteout Sentinel | `Elite/Frost/src~/*_master.png` / `*_alt.png`, 1024-1536 px | `build_new_elites.py`: NEAREST, classified into the Frost ramps; deaths by `build_death_strips.py` | 384 px, `build_frost_hd.py` + `build_death_strips_hd.py` |
 | Verdant | Timber Hauler, Thornlash, Sporebloom, Leafblade | `Elite/Verdant/new/src~/*_master.png`, 1254-1374 px | `build_verdant_elites.py`: NEAREST + NEAREST rotations | 384 px, `build_verdant_hd.py` (bicubic rotations) |
