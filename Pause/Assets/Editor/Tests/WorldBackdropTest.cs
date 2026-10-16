@@ -39,7 +39,8 @@ public static class WorldBackdropTest
     // plus fourteen loop sheets' worth of dust, shimmer, leaks and lights, and the worms'
     // two 2048 sheets (worm, worm_giant), besides one 4-tile variant set.
     public const long DesertTextureBudgetBytes = 12L * 1024 * 1024;     // measured ~10.7 MB ASTC (the worm sheets alone ~3.7 MB)
-    // Storm carries four 1024 atlases (landmarks, sites, weather, lightning) besides one 4-tile variant set.
+    // Storm carries four 1024 atlases (landmarks, sites, weather, lightning) besides one 4-tile variant set. Its tiles are
+    // 1024x2048 HD (2026-10, ASTC 6x6 = 0.93 MB each, 3.7 MB per set; see WorldBackdropImport.IsStormHdTile): 5.4 MB measured.
     public const long StormTextureBudgetBytes = 7L * 1024 * 1024;
     const float SeamTolerance = 0.02f;          // mean |top row - bottom row|, premultiplied RGBA
     // The guide's sky ramps (docs/art-style.md 1.3) peak at ~#123248 / #143430,
@@ -337,6 +338,7 @@ public static class WorldBackdropTest
                            "gantry_hatch_closed", "gantry_hatch_open", "cloud_bay_closed", "cloud_bay_open", "lights_off", "lights_on" } },
         { "weather", new[] { "cloud_bank_00", "cloud_bank_03", "cloud_wisp_00", "cloud_wisp_02", "mist_00", "mist_01", "gust_00", "gust_01", "pall_00", "rain_00", "rain_03" } },
         { "lightning", new[] { "bolt_00", "bolt_05", "strike_00", "strike_01", "flash_00", "flash_01", "arc_00", "debris_00", "debris_04" } },
+        { "eye", new[] { StormTuning.EyePiece } },
     };
 
     // Desert's shared atlases and the drawings the director relies on (ordered like the art:

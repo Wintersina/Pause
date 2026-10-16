@@ -333,7 +333,7 @@ public static class BackdropCatalog
         // The art is painted dark slate with storm-white light (value p90 ~.40-.50) and drawn as
         // painted (brightness 1: not Spec.Bright), so the dark worlds' shot outlines apply.
         new Spec { world = "Storm", folder = "Worlds/Storm/Backdrop3/", keyAtlas = "landmarks",
-                   variantSets = BackdropVariants.MaxVariants,
+                   variantSets = StormTuning.Variants,
                    brightness = () => StormTuning.Brightness, saturation = () => 1f,
                    variantBrightness = StormTuning.VariantBrightness, variantNight = StormTuning.Night,
                    cloudDensity = () => StormTuning.CloudDensity, ceilingHold = () => StormTuning.CeilingHold,
