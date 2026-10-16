@@ -489,7 +489,11 @@ public static class WeatherOverhaulTest
                 float width = mult * 2f * shipR;
                 float thick = .25f;
                 float want = (float)(rnd.NextDouble() * 2 - 1);
-                float c = (float)choose.Invoke(gaps, new object[] { shipX, spawn, arrival, width, thick, lim, want });
+                // Choose has trailing optional parameters (WaveFront front = default, added by #36): pad with Type.Missing so the default applies
+                var given = new object[] { shipX, spawn, arrival, width, thick, lim, want };
+                var args = new object[choose.GetParameters().Length];
+                for (int a = 0; a < args.Length; a++) args[a] = a < given.Length ? given[a] : System.Type.Missing;
+                float c = (float)choose.Invoke(gaps, BindingFlags.Default | BindingFlags.OptionalParamBinding, null, args, null);
                 float drift = DriftOver(spawn, arrival, phase, scale);
                 float room = Mathf.Max(0f, (width - shipW) * .5f);
                 float gl = c + drift - room, gh = c + drift + room;
