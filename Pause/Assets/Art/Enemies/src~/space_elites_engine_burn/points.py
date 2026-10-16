@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Measure each Space elite's muzzles + nozzles on the built 384 px strip and write them into the def JSON (cellPixels 384).
 Muzzles: lancer = nose tip; bastion = the twin-barrel turrets on the shoulders; reaver = the two magenta claw tips; hauler = the pincer tips.
-Nozzles = the engine-mouth centres the burn was drawn at (build_strips.py), nudged onto solid art. Writes a preview per ship.
+Nozzles = the centres of the engine-bell mouths the burn leaves (build_strips.find_openings). Writes a preview per ship.
   python3 points.py <preview dir>"""
 import json, sys
 from pathlib import Path
@@ -72,11 +72,10 @@ def main():
             muz = [dict(name="lclaw", x=lx, y=ly + 8, dir=90.0), dict(name="rclaw", x=rx, y=ry + 8, dir=90.0)]
         for m in muz:
             m["x"], m["y"] = solid_near(a, m["x"], m["y"], 24)
-        dys = cfg.get("dy", (0,) * len(cfg["nx"]))
-        nz = []
-        for i, (nx, dy) in enumerate(zip(cfg["nx"], dys)):
-            x, y = solid_near(a, x0 + round(nx * w), y1 - 36 + dy, 28)
-            nz.append(dict(name="abcd"[i], x=x, y=y, dir=-1.0))
+        # nozzles = the centre of each bell's mouth (where the flame leaves it), the same openings build_strips.py draws the burn from
+        seeds = [(x0 + round(nx * w), y1 - 14 + dy) for nx, dy in zip(cfg["nx"], cfg.get("dy", (0,) * len(cfg["nx"])))]
+        nz = [dict(name="abcd"[i], x=int(round(cx)), y=int(round(cy)), dir=-1.0)
+              for i, (cx, cy, rx, ry) in enumerate(bs.find_openings(Image.fromarray(arr), seeds, cfg.get("mouths", {})))]
         p = DEF / f"space_elite_{name}.json"
         d = json.load(open(p))
         d["muzzles"], d["nozzles"], d["cellPixels"] = muz, nz, S

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.IO;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 
@@ -50,6 +51,7 @@ public static class SpaceEliteTest
             Reaver();
             Lancer();
             Tug();
+            EngineFlames();
             Allocations();
         }
         finally
@@ -584,6 +586,74 @@ public static class SpaceEliteTest
     {
         foreach (var s in EliteSystem.Shots.All) if (s.Slung) return true;
         return false;
+    }
+
+    // ---- engine flames: baked into the strips, leaving each bell's mouth, in front of the hull ----------------
+    // The burn cells (2..11) must show every engine's flame OVER the hull (a flame under the hull reads as
+    // coming from behind the engine): the nozzle point sits in the dark bell mouth (cell 0), the flame covers it
+    // in every burn cell, runs out past the hull's bottom edge, each engine on its own phase, no runtime plume
+    // doubling it, and every cell keeps 6 px clear of the strip's border.
+    static Color32[] LoadCell(string key, int cell, int size)
+    {
+        var tex = new Texture2D(2, 2, TextureFormat.RGBA32, false);
+        string path = "Assets/Art/Resources/Elites/Space/" + key + ".png";
+        if (!tex.LoadImage(File.ReadAllBytes(path))) return null;
+        var px = tex.GetPixels32(); int w = tex.width;
+        Object.DestroyImmediate(tex);
+        var cellPx = new Color32[size * size];
+        for (int y = 0; y < size; y++)
+            for (int x = 0; x < size; x++)
+                cellPx[y * size + x] = px[y * w + cell * size + x];   // rows run bottom-up (row 0 = the cell's bottom)
+        return cellPx;
+    }
+
+    static void EngineFlames()
+    {
+        foreach (var e in Expected)
+        {
+            var def = EliteCatalog.Find(e.key);
+            int S = def.cellPixels;
+            var hullCell = LoadCell(e.key, 0, S);
+            Check(e.key + ": strip loads for the flame check", hullCell != null);
+            if (hullCell == null) continue;
+            Check(e.key + ": no runtime plume doubles the baked flames (exhaustScale 0)", def.exhaustScale <= 0f);
+            int hullBottom = 0;       // lowest hull row, counted from the top
+            for (int y = 0; y < S; y++) for (int x = 0; x < S; x++) if (hullCell[(S - 1 - y) * S + x].a > 128) hullBottom = Mathf.Max(hullBottom, y);
+            var lengths = new HashSet<int>();
+            for (int cell = 0; cell < 12; cell++)
+            {
+                var c = LoadCell(e.key, cell, S);
+                int minX = S, minY = S, maxX = -1, maxY = -1;
+                for (int y = 0; y < S; y++) for (int x = 0; x < S; x++)
+                    if (c[(S - 1 - y) * S + x].a > 0) { minX = Mathf.Min(minX, x); maxX = Mathf.Max(maxX, x); minY = Mathf.Min(minY, y); maxY = Mathf.Max(maxY, y); }
+                Check(e.key + " cell " + cell + ": 6 px clear of the border (" + minX + "," + minY + " .. " + maxX + "," + maxY + ")",
+                      minX >= 6 && minY >= 6 && maxX <= S - 7 && maxY <= S - 7);
+                if (cell < 2) continue;
+                foreach (var nz in def.nozzles)
+                {
+                    int nx = Mathf.RoundToInt(nz.x), ny = Mathf.RoundToInt(nz.y);
+                    var h0 = hullCell[(S - 1 - ny) * S + nx];
+                    if (cell == 2)
+                        Check(e.key + " " + nz.name + ": nozzle point is inside the dark bell mouth", h0.a == 255 && (h0.r * .3f + h0.g * .59f + h0.b * .11f) < 70f);
+                    var p = c[(S - 1 - ny) * S + nx];
+                    bool flameAtMouth = p.a == 255 && (p.r != h0.r || p.g != h0.g || p.b != h0.b) && Mathf.Max(p.r, Mathf.Max(p.g, p.b)) > 150;
+                    Check(e.key + " cell " + cell + " " + nz.name + ": flame covers the nozzle point (in front of the hull, not hidden by the bell)", flameAtMouth);
+                    // how far down the nozzle's column the flame reaches (rows that differ from the bare hull)
+                    int tip = ny;
+                    for (int y = ny; y < S; y++)
+                    {
+                        var q = c[(S - 1 - y) * S + nx]; var r0 = hullCell[(S - 1 - y) * S + nx];
+                        if (q.a > 0 && (q.r != r0.r || q.g != r0.g || q.b != r0.b || q.a != r0.a)) tip = y;
+                    }
+                    if (cell >= 3 && cell <= 10)
+                    {
+                        Check(e.key + " cell " + cell + " " + nz.name + ": flame leaves the bell and runs past the hull's bottom edge (tip " + tip + " vs " + hullBottom + ")", tip >= hullBottom + 10);
+                        if (cell == 3) lengths.Add(tip);
+                    }
+                }
+            }
+            Check(e.key + ": each engine keeps its own burn phase (flame lengths differ in cell 3)", lengths.Count >= 2);
+        }
     }
 
     // ---- allocations ------------------------------------------------------------------
