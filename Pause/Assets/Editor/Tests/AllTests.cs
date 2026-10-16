@@ -140,6 +140,7 @@ public static class AllTests
         ("EmberFramingTest", EmberFramingTest.Execute),
         ("StormFramingTest", StormFramingTest.Execute),
         ("TideEliteFramingTest", TideEliteFramingTest.Execute),
+        ("VerdantFramingTest", VerdantFramingTest.Execute),
         ("EliteHdTest", EliteHdTest.Execute),
         ("EnemyBehaviourTest", EnemyBehaviourTest.Execute),
         ("EnemyJitterTest", EnemyJitterTest.Execute),

@@ -404,17 +404,17 @@ public static class EnemyBehaviours
             .Descend(.9f);
 
         // ============================================================== VERDANT
-        B("verdant_rock_pod", "thorn pod: slow roll, small slow sway")
+        B("verdant_rock_pod", "thorn pod: a wind-blown bark boulder, slow roll, small slow sway")
             .Sway(.3f, 3.8f).Spin(12f, 30f)
             .Sizes(.78f, .98f, 1.32f);
-        B("verdant_rock_spore", "spore rock: each puff lifts it; slow drift")
-            .Drift(.4f, .22f).Pulse(.3f, 2.2f).Tilt(EnemyRoster.FloatSwayDegrees, EnemyRoster.FloatSwayPeriod)
+        B("verdant_rock_spore", "spore rock: a wind-blown mossy stone, each puff lifts it; slow drift and tumble")
+            .Drift(.4f, .22f).Pulse(.3f, 2.2f).Spin(12f, 30f)
             .Sizes(.8f, .96f, 1.4f);
-        B("verdant_rock_knot", "bramble knot: fast spin, rolls across a wide band")
-            .Drift(1.1f, .6f).Spin(90f, 140f)
+        B("verdant_rock_knot", "bramble knot: vine-wrapped granite, a fast tumble, rolls across a wide band")
+            .Drift(1.1f, .6f).Spin(60f, 88f)
             .Sizes(.76f, 1f, 1.3f);
-        B("verdant_rock_vine", "vine rock: swings like a pendulum")
-            .Sway(.55f, 2.6f).Tilt(14f, 2.6f)
+        B("verdant_rock_vine", "vine rock: a wind-blown clump of earth and roots, sways across the lane while it tumbles")
+            .Sway(.55f, 2.6f).Spin(14f, 34f)
             .Sizes(.78f, .98f, 1.32f);
         B("verdant_mine", "burr mine: swings on its rail, two lasers across the lane at random angles, riding up beside the ship to fire them")
             .Patrol(.7f, 1.9f).Laser().Muzzle(.5f).Timing(1f, RailMineLaser.ShotGapSeconds, RailMineLaser.ShotsPerRide, .15f);
