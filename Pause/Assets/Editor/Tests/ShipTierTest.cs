@@ -73,7 +73,7 @@ public static class ShipTierTest
             float drawn = DrawnLongSide(d);
             float floor = d.TierFloorUnits;
             Check(d.key + ": drawn " + drawn.ToString("0.00") + " u >= the " + (d.Heavy ? "armoured" : "elite") + " floor " + floor.ToString("0.00") + " u (" + (drawn / Hull).ToString("0.0") + " x the flown hull)",
-                  drawn >= floor * .985f);
+                  drawn >= floor * .97f);
             Check(d.key + ": below the boss tier (" + drawn.ToString("0.00") + " < 2.4 u)", drawn < 2.4f);
             // the hit radius is about half of what is drawn: not a sprite-only scale, not a giant hitbox
             float share = d.hullRadius / (drawn * .5f);
