@@ -448,6 +448,7 @@ public class BossActor : MonoBehaviour, IMusicPatternHost
         if (fireLeft > 0f) fireLeft -= dt;
         StepAttacks(dt, realDt, player, progress01, pool, BeatOverride ?? BossBeat.Source);
         if (markers != null) markers.Step(musicRunning ? realDt : dt);
+        BossTelegraphStyle.LiveIntensity = musicRunning && musicDirector != null ? musicDirector.Intensity : BossTelegraphStyle.NonMusicIntensity;
         RefreshFrame();
         if (hearts != null) hearts.Step(realDt, dt);   // after the move: the ring is round where it is now
     }
@@ -701,7 +702,11 @@ public class BossActor : MonoBehaviour, IMusicPatternHost
 
     void IPatternHost.Mark(Vector2 a, Vector2 b, float halfWidth, float seconds)
     {
-        if (markers != null) markers.Add(a, b, halfWidth, seconds);
+        if (markers == null) return;
+        // only a MAJOR attack gets a lane / line / ring overlay; ordinary bullet waves are read from their muzzles
+        if (!BossTelegraphStyle.OverlayAllowed(current)) { markers.Suppressed++; return; }
+        markers.Intensity = musicRunning && musicDirector != null ? musicDirector.Intensity : BossTelegraphStyle.NonMusicIntensity;
+        markers.Add(a, b, halfWidth, seconds);
     }
 
     void Volley(Vector3 player, BossProjectilePool pool)
@@ -919,6 +924,10 @@ public class BossActor : MonoBehaviour, IMusicPatternHost
             c.enabled = on;
             r.enabled = on && telling;
             if (!on) continue;
+            float inten = music ? musicDirector.Intensity : BossTelegraphStyle.NonMusicIntensity;
+            float glow = BossTelegraphStyle.MuzzleAlpha(inten), glowSize = BossTelegraphStyle.MuzzleSize(inten);
+            c.color = new Color(1f, 1f, 1f, glow);
+            r.color = new Color(1f, 1f, 1f, glow);
             Vector2 local = BossEmitters.Local(boss, current.parts[i], BodyFrame);
             var at = new Vector3(local.x, local.y, 0f);
             c.transform.localPosition = at;
@@ -927,7 +936,7 @@ public class BossActor : MonoBehaviour, IMusicPatternHost
                 float size = Mathf.Lerp(BossConfig.ChargeMinSize, BossConfig.ChargeMaxSize, Mathf.Floor(k * 4f) / 4f) *
                              (step % 2 == 0 ? 1f : .86f);
                 c.sprite = BossArt.Shot(boss, BossArt.Charge);
-                c.transform.localScale = Vector3.one * size;
+                c.transform.localScale = Vector3.one * size * glowSize;
                 // the ring closes in on the part in hard steps
                 r.sprite = BossAttackFx.Get(boss, BossAttackFx.Ring);
                 r.transform.localPosition = at;
@@ -937,7 +946,7 @@ public class BossActor : MonoBehaviour, IMusicPatternHost
             {
                 int f = fireLeft > BossArt.FireTicks * BossArt.Tick * .5f ? 0 : 1;
                 c.sprite = BossAttackFx.Get(boss, BossAttackFx.Flash0 + f);
-                c.transform.localScale = Vector3.one * BossConfig.MuzzleFlashSize;
+                c.transform.localScale = Vector3.one * BossConfig.MuzzleFlashSize * glowSize;
             }
         }
     }

@@ -620,6 +620,10 @@ public class BossBeam : MonoBehaviour
             int blink = Mathf.FloorToInt(age / (BossArt.TelegraphBlinkTicks * BossArt.Tick));
             sight.enabled = blink % 2 == 0 && length > 0f;
             if (art != null) PaintedSight(); else Span(sight.transform, width * BossConfig.BeamSightWidth, length);
+            // lighter toward a drop (the laser stays a major, always-warned attack)
+            var sightTint = new Color(1f, 1f, 1f, BossTelegraphStyle.SightAlpha(BossTelegraphStyle.LiveIntensity));
+            sight.color = sightTint;
+            lockOn.color = sightTint;
             if (art != null) Windup();
             return;
         }
