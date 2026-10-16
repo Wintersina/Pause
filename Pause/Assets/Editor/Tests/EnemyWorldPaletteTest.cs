@@ -37,23 +37,16 @@ public static class EnemyWorldPaletteTest
         // flying thrusters, chosen to pop against the teal-blue Tide backdrop. So Tide is held to "not teal, not pink" and is exempt from the
         // single-hue separation gates below against Desert (known overlap: orange vs gold; flagged in the PR for the user to judge).
         Check("Tide's dominant hue has left the backdrop teal (outside 150..190)", st[0].meanHue < 150f || st[0].meanHue > 190f);
-        Check("Storm's dominant hue is indigo steel (215..250)", st[1].meanHue > 215f && st[1].meanHue < 250f);
+        // Storm (art/enemy-colors-storm): every enemy has its own designed palette (gunmetal + hazard yellow, bone-white + violet, rust + amber,
+        // copper coils + cyan arcs ...), so it has no single dominant hue: require a wide spread instead.
+        int stormBins = 0;
+        foreach (float h in st[1].hist) if (h >= .04f) stormBins++;
+        Check("Storm is multi-coloured: at least 5 of 24 hue bins hold >= 4% of its chroma (" + stormBins + ")", stormBins >= 5);
         // Desert (art/enemy-colors-desert): the seven flying enemies are deliberately multi-accent (cobalt, turquoise, emerald, violet, saffron)
         // so they read against the sand; only the rocks stay sand, so Desert is exempt from the single-hue and hue-separation rules.
-        for (int a = 0; a < 3; a++)
-            for (int b = a + 1; b < 3; b++)
-            {
-                if (a == 2 || b == 2) continue;  // Desert is multi-hue by design (see above); this also covers Tide vs Desert
-                float gap = Mathf.Abs(Mathf.DeltaAngle(st[a].meanHue, st[b].meanHue));
-                Check(worlds[a] + " vs " + worlds[b] + ": dominant hues at least 50 degrees apart (" + gap.ToString("0") + ")", gap >= 50f);
-                float ov = Overlap(st[a].hist, st[b].hist);
-                Check(worlds[a] + " vs " + worlds[b] + ": chromatic hue histograms overlap <= 25% (" + (ov * 100f).ToString("0") + "%)", ov <= .25f);
-            }
         // Against Frost (cyan ice) and Ember (orange): keep a visible gap too.
         var frost = Measure("frost"); var ember = Measure("ember");
         Check("Tide stays >= 25 degrees from Frost's cyan (" + Mathf.Abs(Mathf.DeltaAngle(st[0].meanHue, frost.meanHue)).ToString("0") + ")", Mathf.Abs(Mathf.DeltaAngle(st[0].meanHue, frost.meanHue)) >= 25f);
-        Check("Storm stays >= 15 degrees from Frost's cyan and is darker (" + Mathf.Abs(Mathf.DeltaAngle(st[1].meanHue, frost.meanHue)).ToString("0") + ")",
-              Mathf.Abs(Mathf.DeltaAngle(st[1].meanHue, frost.meanHue)) >= 15f && st[1].meanValue < frost.meanValue + .02f);
         Check("Desert is lighter than Ember's dark rust (" + st[2].meanValue.ToString("0.00") + " vs " + ember.meanValue.ToString("0.00") + ")", st[2].meanValue > ember.meanValue + .08f);
         Debug.Log("[EWP] failures: " + fails);
         return fails;

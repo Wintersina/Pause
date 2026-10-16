@@ -545,21 +545,21 @@ public static class EnemyRoster
             // The gas giant: slate and graphite plating, storm-white lightning with a pale-yellow edge.
             // (Iron bursts as Metal: Storm has no explosion row of its own.)
             Scaled(Def("storm_rock_hail", "Hailstone", R, 5, 1, "hazard_storm_rock_hail", Metal,
-                "Pale cratered ball of frozen hail, pitted all over, a hairline of storm-white light in one crack.",
-                "A hailstone the size of a lifeboat, hurled up out of the cloud deck and never let go. It drifts " +
-                "slow and wide, and the white crack in it brightens when the storm is close."), 1.1f),
+                "Milky glacier-blue hailstone with a frost crust, navy craters and electric yellow-white lightning in its cracks.",
+                "A hailstone the size of a lifeboat, hurled up out of the cloud deck and never let go. It tumbles " +
+                "slow and wide, and the cracks in it flash when the storm is close."), 1.1f),
             Def("storm_rock_ore", "Ore Shard", R, 5, 2, "hazard_storm_rock_ore", Metal,
-                "Slanted blade of pale crystal ore, storm-white along its edge.",
-                "A shard of ore the refineries lost in the updraft. It slices across the lane on one slanted " +
-                "line, edge lit, so you can see it coming."),
+                "Slanted amethyst crystal blade shot with gold ore veins, one cyan-lit edge.",
+                "A shard of ore the updraft tore loose from the refineries below. The wind sends it tumbling across the lane " +
+                "on one slanted line, edge lit, so you can see it coming."),
             Scaled(Def("storm_rock_slag", "Anvil Chunk", R, 5, 3, "hazard_storm_rock_slag", Metal,
-                "Dark iron chunk veined with storm-white lightning, split plates and a riveted face.",
-                "A lump of slag cooled into the shape of an anvil, as if the sky were forging something. It spins " +
-                "as it sinks and arrives sooner than it looks."), 1.1f),
-            Floating(Def("storm_rock_islet", "Cloud Islet", R, 5, 4, "hazard_storm_rock_islet", Metal,
-                "Floating platform fragment with an antenna mast on top, cloud wrapped round its underside, struts hanging below.",
-                "A scrap of platform that floated off with its antenna and a cloud of its own. It dips and " +
-                "sways, wide and slow, humming faintly.")),
+                "Charcoal lightning-fused slate chunk, anvil-shaped, teal mineral stains and sun-yellow lightning in its cracks.",
+                "A lump of rock the lightning fused into the shape of an anvil, as if the sky were forging something. It spins " +
+                "as it sinks and arrives sooner than it looks."), 1.0f),
+            Def("storm_rock_islet", "Cloud Islet", R, 5, 4, "hazard_storm_rock_islet", Metal,
+                "Pale sandstone island slab with hanging rock spurs, wrapped in violet storm cloud shot with lightning.",
+                "A scrap of sky-island the wind tore loose with its own cloud still wrapped round it. It tumbles as it " +
+                "sways, wide and slow."),
             Def("storm_mine", "Rod Mine", M, 5, 0, "hazard_storm_mine", Mine,
                 "Neon pixel rail mine: a graphite sphere with four lightning-rod horns on a slate clamp, a storm-white eye that wakes, charges and bursts in arcs.",
                 "A lightning rod with a mind of its own, clamped to the rail. When the eye flares white a line " +

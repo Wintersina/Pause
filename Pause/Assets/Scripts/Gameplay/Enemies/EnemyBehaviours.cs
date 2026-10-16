@@ -526,14 +526,14 @@ public static class EnemyBehaviours
         B("storm_rock_hail", "hailstone: slow tumble, wide lazy drift, a faint bob")
             .Drift(.6f, .34f).Bob(.05f, 2.7f).Spin(16f, 38f)
             .Sizes(.8f, .96f, 1.4f);
-        B("storm_rock_ore", "ore shard: barely turns, one fast slanted slice across the lane")
-            .Glide(1.15f, 1f).Spin(5f, 9f)
+        B("storm_rock_ore", "ore shard: wind-blown, tumbles across the lane on one fast slanted line")
+            .Glide(1.15f, 1f).Spin(18f, 42f)
             .Sizes(.76f, 1.02f, 1.24f);
         B("storm_rock_slag", "anvil chunk: sinks down the board, spinning")
             .Sink(1.3f, .5f).Spin(22f, 42f)
-            .Sizes(.8f, .96f, 1.4f);
-        B("storm_rock_islet", "cloud islet: wide slow sway and bob, upright")
-            .Sway(.7f, 4.4f).Bob(.15f, 3.2f).Tilt(EnemyRoster.FloatSwayDegrees, EnemyRoster.FloatSwayPeriod)
+            .Sizes(.85f, .98f, 1.23f);
+        B("storm_rock_islet", "cloud islet: a wind-blown chunk, wide slow sway and bob while it tumbles")
+            .Sway(.7f, 4.4f).Bob(.15f, 3.2f).Spin(14f, 34f)
             .Sizes(.8f, .92f, 1.48f);
         B("storm_mine", "rod mine: creeps down its rail, the eye flares white, two lasers across the lane at random angles, riding up beside the ship to fire them")
             .Creep(1.3f, .65f).Laser().Muzzle(.5f).Timing(1f, RailMineLaser.ShotGapSeconds, RailMineLaser.ShotsPerRide, .15f);

@@ -1,0 +1,11 @@
+#!/bin/bash
+# usage: flying_run.sh <name> "<design brief>"
+# Runs Codex headless on flying_src/<name>_in.png and writes flying_src/<name>_flying.png (Tide method, art/enemy-colors-tide).
+# The brief carries the per-enemy redesign AND its own palette. No shared colour recipe and no reference images
+# (they get copied): colours are invented per enemy.
+D="$(cd "$(dirname "$0")" && pwd)"
+N="$1"; BRIEF="$2"
+PROMPT="You are REDESIGNING ONE game enemy for the STORM world (a gas-giant sky: dark violet-indigo clouds, white lightning, rain). Attached image: ${N}_in.png = the current sprite (transparent background, top-down view, facing down). Use it ONLY as the guide for silhouette, role, pose and camera. Use your image generation tool to paint a NEW image of this enemy, redesigned from the ground up: re-think its parts (weapons, engines, wings, coils, vents, plating) and give every surface new detail, real materials and its own colour scheme, as described in the design brief below. Do not just recolour the input and do not copy its palette. Same overall silhouette and footprint, same role, same top-down camera facing down, crisp hard pixel-art edges with dense 4-6 tone ramps, rivets, panel lines, scratches, wear, strong value contrast so it reads against a dark violet sky. Premium hand-finished 16-bit sprite quality: every part is a believable material, no flat fills, no hard colour bands, no region-by-region painting. Genuinely transparent square background, generous margin, the sprite centred and filling about the same area as the input. Everything is AIRBORNE, never a ground, water or crawling thing. FORBIDDEN: pink, magenta, red, lime green, muddy grey-brown; NO outline of any kind (no pale rim, no white border, no glow halo around the sprite): edges are just the painted body against transparency. DESIGN BRIEF: ${BRIEF} Output exactly one sprite image. Save the final PNG (RGBA, transparent background) to ${D}/flying_src/${N}_flying.png (copy it from the generated images folder if needed) and reply with just the path."
+cd "$D/flying_src"
+LOCK="${CODEX_LOCK:-/private/tmp/claude-501/-Users-sina-Developer-Pause/4bec0c4f-4fa4-46dd-8c13-2a797152b684/scratchpad/codex_lock.sh}"   # global one-at-a-time Codex lock
+printf "%s" "$PROMPT" | "$LOCK" ~/.local/bin/codex exec -s workspace-write -C "$D/flying_src" -i "$D/flying_src/${N}_in.png" -
