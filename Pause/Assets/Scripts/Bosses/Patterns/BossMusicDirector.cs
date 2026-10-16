@@ -7,19 +7,24 @@ public interface IMusicPatternHost : IPatternHost
     int MusicShotCapacity { get; }
 }
 
-// A continuous musical arrangement: pulse, signature, and forecast accents. The song
+// A continuous musical arrangement: gap-guaranteed WAVES (BossWaves.cs) on the arrangement's rhythm, and forecast accents. The song
 // owns every event and transition; the old attack durations/cooldowns are never read.
 // Only projectile geometry is shared with BossPatternRunner. No allocation during Step.
 public sealed class BossMusicDirector
 {
     readonly IPatternHost host;
     readonly IMusicPatternHost budget;
-    readonly BossPatternRunner pulse = new BossPatternRunner();
-    readonly BossPatternRunner signature = new BossPatternRunner();
+    readonly BossWaveVoice waves;
+    readonly bool accentWave;
     readonly BossPatternRunner accent = new BossPatternRunner();
     readonly PatternStream pulseShape, signatureShape, accentShape;
     IBeatSource source;
+    public const float MinWaveSpacing = .15f;   // game seconds: closer waves would only stack into a wall
+    const int WaveReserve = 40;
     long lastTick = long.MinValue, phrase = long.MinValue;
+    float gameClock, lastWaveGame = -10f;
+    public BossWaveVoice Waves => waves;
+    public int WaveEmissions { get; private set; }
     double startBeat, pendingAccent = double.NaN;
     int section = -1;
     public int Emissions { get; private set; }
@@ -38,8 +43,8 @@ public sealed class BossMusicDirector
         budget = host as IMusicPatternHost;
         var shapes = BossMusicVoices.For(world, boss);
         pulseShape = shapes[0]; signatureShape = shapes[1]; accentShape = shapes[2];
-        pulse.Begin(new BossPattern { name = "pulse", streams = new[] { pulseShape } }, host, 1, 71, 0, prepare: false);
-        signature.Begin(new BossPattern { name = "signature", streams = new[] { signatureShape } }, host, 1, 73, 0, prepare: false);
+        waves = new BossWaveVoice(world, host, pulseShape.parts);
+        accentWave = accentShape.kind == StreamKind.Lattice;
         accent.Begin(new BossPattern { name = "accent", streams = new[] { accentShape } }, host, 1, 79, 0, prepare: false);
     }
 
@@ -56,6 +61,7 @@ public sealed class BossMusicDirector
     {
         if (music == null || !music.Active) { Suspend(); return; }
         if (gameDt <= 0) return; // music continues; missed ticks are skipped on resume
+        gameClock += gameDt;
         double now = music.BeatNow;
         if (!ReferenceEquals(source, music))
         {
@@ -64,7 +70,6 @@ public sealed class BossMusicDirector
             lastTick = (long)Math.Floor(now * 4);
             pendingAccent = double.NaN;
             Preparing = true;
-            signature.PrepareMusical((float)((startBeat - now) * music.SecondsPerBeat));
             host.Mark(host.Emitter(pulseShape.parts[0]), host.Player, .08f, (float)((startBeat - now) * music.SecondsPerBeat));
         }
         if (now < startBeat) return;
@@ -87,21 +92,23 @@ public sealed class BossMusicDirector
             phrase = nextPhrase; section = moment.section;
             PhraseChanges++;
             Pose = (int)((phrase % 3 + 3) % 3);
-            // Phrase variants change the trajectory, not its firing clock.
-            signatureShape.spin = (phrase % 2 == 0 ? 1 : -1) * 70f;
-            signatureShape.rotStep = phrase % 2 == 0 ? 18f : -18f;
-            signatureShape.angle = phrase % 2 == 0 ? 14f : -14f;
-            signature.ResetMusicalPhrase();
+            // Phrase variants change which waves come first, never their firing clock.
+            waves.ResetPhrase();
         }
 
         LastScheduledBeat = scheduled;
         LastLateBeats = Math.Max(0, late);
-        // Even a breakdown keeps a clear pulse. Builds add offbeats; peaks add the signature.
-        int pulseTicks = Intensity >= .55f || moment.kind == "build" || peak ? 2 : 4;
-        if (tick % pulseTicks == 0 && Room(4)) Emit(pulse, scheduled);
-        int signatureTicks = peak || Intensity > .68f ? 4 : 8;
-        if (Intensity > .22f && tick % signatureTicks == 0 && Room(40))
-            Emit(signature, scheduled);
+        // WAVES: each spawns on a sixteenth chosen by the arrangement's rhythm; the gap is always reachable.
+        int bar = (int)(((tick - 4L * music.DownbeatBeat) % WaveRhythm.TicksPerBar + WaveRhythm.TicksPerBar) % WaveRhythm.TicksPerBar);
+        if (((WaveRhythm.Mask(moment.kind, Intensity) >> bar) & 1) != 0 && gameClock - lastWaveGame >= MinWaveSpacing && Room(WaveReserve))
+        {
+            bool telegraph = Intensity < .75f || waves.Waves % 4 == 0;
+            if (waves.Emit(Intensity, music.SecondsPerBeat, gameClock, telegraph) > 0)
+            {
+                lastWaveGame = gameClock;
+                Emissions++; WaveEmissions++;
+            }
+        }
 
         // Warn two beats ahead while the other voices keep firing. Re-plan each accent
         // from the current ship position; pause/resume never launches an expired plan.
@@ -122,11 +129,15 @@ public sealed class BossMusicDirector
         }
         if (!double.IsNaN(pendingAccent) && scheduled >= pendingAccent)
         {
-            if (Room(48)) { Emit(accent, scheduled); AccentEmissions++; }
+            if (Room(48))
+            {
+                // the Tempest Engine's lattice is a heavy three-row wave: it joins the gap chain like every other wave
+                if (accentWave) waves.EmitMove(WaveMove.Wall(0, false, 3), Intensity, music.SecondsPerBeat, gameClock, true);
+                else Emit(accent, scheduled);
+                AccentEmissions++;
+            }
             pendingAccent = double.NaN;
         }
-        // Strong transients add an offbeat response, without interrupting the pulse.
-        if (moment.accent > .8f && peak && tick % 4 == 3 && Room(40)) Emit(pulse, scheduled);
     }
 
     void Emit(BossPatternRunner voice, double beat)
