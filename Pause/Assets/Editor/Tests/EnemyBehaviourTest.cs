@@ -851,6 +851,9 @@ public static class EnemyBehaviourTest
         // their volleys fall on another rhythm and the shot pool peaks one pass later. Still a one-off growth:
         // the two measured passes after it read 0.)
         frames();
+        // (and more roster means more pilots, so the pools can peak a pass or two later still: keep warming, up to 8 more passes,
+        // until one reads 0 on the meter. A per-frame allocation never reads 0, so the two measured passes below still catch it.)
+        for (int warm = 0; warm < 8 && Measure(meter, frames) != 0; warm++) { }
         int shotsBefore = EliteSystem.Shots.Launched;
         long bytes = Measure(meter, frames);
         long again = Measure(meter, frames);
