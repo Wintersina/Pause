@@ -1133,3 +1133,18 @@ Paths are relative to `Pause/`. `files` lists every file removed for the item.
  ]
 }
 ```
+
+## Post-merge follow-up (chore/post-merge-cleanup, master 80c64e4b)
+
+#38, #28, #24, #39, #37 are merged. Same proof standard as above (guid and basename absent from every Assets / ProjectSettings /
+Packages / docs / scripts file, not in any build, `UnusedAssetGuardTest` and a full `AllTests.RunAll` green, Mac build green).
+
+- Deleted: `Art/Enemies/Elite/Space/*_strip_candidate.png` (4) and `*_concept.png` (4) with their metas. `Elite/Space/manifest.md` records them as superseded and not installed.
+- Deleted: `Audio/Music/BoostingMusic.mp3` (user approved) and its `UnusedAssetGuardTest` exemption.
+- Already gone via #28: `Staging/Ember` and the five repainted Ember elites' candidate / concept files.
+- Kept on purpose: `Elite/Ember/ember_elite_brass_vulture_{candidate,concept}.png` (Brass Vulture was not repainted, they are still its sources);
+  `Elite/Storm/contact_sheet.png`, `preview.gif` and the `*_concept.png` files (the Storm elites were not repainted: they are the live review aids and sources);
+  `Elite/Desert/STAND_IN.md` (named by `WorldFlagsTest` / `DesertEliteTest` messages, Glass Cannon is still a recolour stand-in).
+- Storage-only, deliberately kept (the pipelines read them as inputs, deleting them breaks `audit.py` / `restyle.py` / the outline pass): `src~/space_elites_restyle/original/*`,
+  `src~/ship_scale_border~/original/*` (Space, Ember, Storm), `src~/palette_unify/original/**`, `src~/desert_enemies/strips/original/*`, `Worlds/Desert/descent~/original/*`,
+  the old Storm `backdrop_v3~` sources (15.5 MB). Prune only by moving them to an art archive.
