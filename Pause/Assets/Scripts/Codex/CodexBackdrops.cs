@@ -46,7 +46,7 @@ public static class CodexBackdrops
     public const string Prefix = "bd_";
     public const string LockedTitle = "???";
 
-    // Names of each world's variants, index-aligned with WorldManager.Worlds and then variant 1..4
+    // Names of each world's variants, index-aligned with WorldManager.Worlds and then variant 1..4 (Storm 1..3)
     // (from the art: BackdropCatalog / each world's director docs).
     static readonly string[][] Titles =
     {
@@ -55,7 +55,7 @@ public static class CodexBackdrops
         new[] { "Canopy Sea", "Swamp Delta", "Ruined City", "Night Forest" },                       // Verdant
         new[] { "Caldera Fields", "Forge City", "Ash Ridges", "Cracked Crust" },                    // Ember
         new[] { "Open Sea", "Rig Field", "Drowned City", "Night Currents" },                        // Tide
-        new[] { "Banded Deck", "Thunderhead Field", "Eye of the Storm", "Night Side" },             // Storm
+        new[] { "Banded Deck", "Thunderhead Field", "Eye of the Storm" },                            // Storm (three ground sets, no night set)
         new[] { "Day Dunes", "Canyon and Ruins", "Salt Flat", "Night Dunes" },                      // Desert
     };
 

@@ -75,8 +75,8 @@ public static class CodexVettingTest
             Check(name + ": seven fighters / chasers / aliens / heavies (4 + 1 + 1 + 1), rocks, one mine",
                   fighters == 4 && chasers == 1 && aliens == 1 && bigs == 1 && rocks >= 3 && mines == 1);
             Check(name + ": at least four elites", elites >= 4);
-            Check(name + ": a boss, a world entry, a song, a boss song and four backdrops",
-                  Codex.Find(boss.id) != null && Codex.Find(CodexCatalogue.WorldIds[w]) != null && track != null && bossTrack != null && bd == 4);
+            Check(name + ": a boss, a world entry, a song, a boss song and its backdrops (four; Storm ships three)",
+                  Codex.Find(boss.id) != null && Codex.Find(CodexCatalogue.WorldIds[w]) != null && track != null && bossTrack != null && bd == (name == "Storm" ? StormTuning.Variants : 4));
             Check(name + ": its boss entry names the boss and carries its attacks", Codex.Find(boss.id).name == CodexCatalogue.BossDisplayName(boss.name) &&
                   Codex.Find(boss.id).lore.Contains("PHASES"));
         }
@@ -154,13 +154,13 @@ public static class CodexVettingTest
         var local = ProgressSnapshot.Capture(1000);
         Check("the snapshot carries entries, tracks and backdrops", local.codexSeen.Contains("enemy_chaser") && local.codexSeen.Contains("music_world_ember") && local.codexSeen.Contains("bd_frost_2"));
         var cloud = ProgressSnapshot.Fresh(900);
-        cloud.codexSeen = new[] { "bd_storm_4", "music_boss_storm", "hazard_storm_mine" };
+        cloud.codexSeen = new[] { "bd_storm_3", "music_boss_storm", "hazard_storm_mine" };
         string[] seen, fresh, acked;
         ProgressMerge.MergeCodex(local, cloud, out seen, out fresh, out acked);
-        Check("merging two devices unions them, nothing is lost", new[] { "enemy_chaser", "music_world_ember", "bd_frost_2", "bd_storm_4", "music_boss_storm", "hazard_storm_mine" }.All(seen.Contains));
+        Check("merging two devices unions them, nothing is lost", new[] { "enemy_chaser", "music_world_ember", "bd_frost_2", "bd_storm_3", "music_boss_storm", "hazard_storm_mine" }.All(seen.Contains));
         Check("... and backdrops / tracks never become NEW", !fresh.Any(id => id.StartsWith("bd_") || id.StartsWith("music_")));
         PlayerPrefs.SetString(Codex.PrefsKey, string.Join(",", seen));
         Codex.Reload();
-        Check("restoring it unlocks them here", CodexBackdrops.IsUnlocked(CodexBackdrops.Find("Storm", 4)) && CodexMusic.IsUnlocked(CodexMusic.Find("music_boss_storm")));
+        Check("restoring it unlocks them here", CodexBackdrops.IsUnlocked(CodexBackdrops.Find("Storm", 3)) && CodexMusic.IsUnlocked(CodexMusic.Find("music_boss_storm")));
     }
 }

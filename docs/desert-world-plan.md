@@ -126,7 +126,7 @@ Every enemy keeps a pink-leaning core and/or keyline (pink-cue rule); the materi
 | `desert_rock_husk` | Fulgurite Husk | rough twisted sand-glass tube with a dark hollow | `Sink` + spin; arrives sooner than it looks |
 | `desert_rock_slab` | Dune Slab (floating) | a floating chunk of crust with a crescent crest and dangling roots | upright `Sway` + `Bob`; wide and slow |
 | `desert_mine` | Mirage Mine | rusted brass lens-sphere on a clamp, dormant dull | rail mine: `Laser` x2, **heat-lance** (white-gold beam with pink keyline), core lights at windup |
-| `desert_big` | Sandcrawler | armoured rusted crawler hulk with treads, a bucket-wheel, a cabin | holds a column, rolls its bucket-wheel (tell), then a fan of 3 **sand-slug** shots that burst into grit; stand between them |
+| `desert_big` | Sandbarge | armoured rusted crawler hulk with treads, a bucket-wheel, a cabin | holds a column, rolls its bucket-wheel (tell), then a fan of 3 **sand-slug** shots that burst into grit; stand between them |
 | `desert_fighter_1` | Sand Skimmer | tiny wedge dune-skiff | diagonal `Drift` then a straight `Lunge` with a dust wake; the dash never tracks |
 | `desert_fighter_2` | Glint Hawk | angular scavenger glider with mirror-plate wings | `Track` to line up, then 3 quick **glass-shard** bolts straight down; keep moving |
 | `desert_fighter_3` | Lens Gunner | tripod gunship with a big mirror lens | `Brake` hover; lens flares white .9 s, then one aimed **heat-lance** (thin hot bolt, pink core); move after the flare |
@@ -135,7 +135,7 @@ Every enemy keeps a pink-leaning core and/or keyline (pink-cue rule); the materi
 | `desert_alien` | Mirage Wisp | shimmering heat-haze sprite with a hard bright core | `Pulse` + `Sway`; **mirage flicker**: it spawns 2 decoy afterimages that are harmless and visibly translucent (decision still OPEN, see section 11) |
 
 Screams (living occupants/creatures only): Sand Skimmer pilot, Glint Hawk pilot, Lens Gunner gunner, Scarab Drone creature (chitter), Mirage Wisp (reedy).
-No screams for the Sandcrawler, Dust Devil Tank, mine, rocks. Explosion material: **Dust/Grit** (a new `TargetExplosion.Kind` row: sand burst with glass
+No screams for the Sandbarge, Dust Devil Tank, mine, rocks. Explosion material: **Dust/Grit** (a new `TargetExplosion.Kind` row: sand burst with glass
 glints), or reuse `Rock` for the first pass (OPEN, section 11).
 
 ## 6. Elites (6; launch sites in the dunes)
@@ -180,7 +180,7 @@ carries the "hurts" signal); pointed shapes only (grit slugs get spiked pink rim
 | Unit | Attack | Primitive | Tell and counter |
 | --- | --- | --- | --- |
 | Mirage Mine | **heat-lance** rail beam (white-gold with pink keyline, heat shimmer) | `Laser` + Desert beam skin | core lights, off the aim line |
-| Sandcrawler | **sand-slug fan** of 3, bursts to grit | `Shot` Shard, Slug skin | bucket-wheel spin-up 1.0 s |
+| Sandbarge | **sand-slug fan** of 3, bursts to grit | `Shot` Shard, Slug skin | bucket-wheel spin-up 1.0 s |
 | Sand Skimmer | dash with a dust wake | `Lunge` + trail | straight, untracked |
 | Glint Hawk | **glass-shard** triple | `Shot` Bolt, Shard skin | wings tilt |
 | Lens Gunner | **heat-lance** aimed bolt | `Shot` + lens flare | lens flares .9 s |

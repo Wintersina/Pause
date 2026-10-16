@@ -15,7 +15,7 @@ Branch `feature/desert-wire` (jj workspace `.claude/worktrees/desert-wire-jj`), 
 | Strips | `Resources/Enemies/desert_*.png` (11), `Death/desert_*.png` (12) | the Scarab keeps the thin pale border (`add_border.py`) |
 | Mirage Mine | `rail_mines_neon_desert.png`, `RailMineArt.DesertWorld` | pivot (215, 158) in every 313/314 px panel, core offset (0, 0); clamp reach .409 u (`ClampReachFor`, `MountX(inner, world)`) |
 | Scarab Drone | `ChaserStyle.Burrow` | run, dive (hidden, collider off), resurface beside the pilot, lunge |
-| Themed attacks | section 10 of the plan | Sandcrawler shard fan, Hawk glass triple, Gunner heat-lance, Tank `Blast` ring (Desert ramp, Eruption strike style), Wisp bolt |
+| Themed attacks | section 10 of the plan | Sandbarge shard fan, Hawk glass triple, Gunner heat-lance, Tank `Blast` ring (Desert ramp, Eruption strike style), Wisp bolt |
 | Boss: Dune-Eater | `BossCatalog` (artKey `Desert`), `BossEmitterTable` (Maw / Boom / Lens, from the manifest), hearts ellipse 1.66 x 1.66, warning accent, attack-fx row 6, lore | atlas, shots, card, damage stages, damage fx, death strip all installed; themed table = burrower strike + sandstorm wall (not fighting themed, like Storm) |
 | Elites (6) | `Resources/Elites/Defs/desert_elite_*.json`, `Resources/Elites/Desert/` | five from Codex (art/desert-elites), muzzles snapped on the hover cell; Glass Cannon is a stand-in |
 | Backdrop (phase 11) | `BackdropCatalog` Desert spec, `DesertBackdrop.cs` (`DesertTuning`, `DesertDirector`), `DesertAmbient.cs`, `Backdrop3/` (4 tile sets + masks, 14 atlases, `points.json`, worm sheets) | see "Backdrop" below |
@@ -41,10 +41,10 @@ Art weaknesses (from the art agent, seen in game): the ridge mound reads as a fl
 ## Readability border (thin pale bone, never a repaint)
 `Art/Enemies/src~/desert_enemies/add_border_big.py` (originals kept in `original_big/`): the Dune-Eater atlas, its damage hull and death strip, and the three darkest
 elites (Dune Stalker, Caravan Hauler, Scorpion Walker). Offline median-luminance contrast against the four Desert mid tiles was only ~1.0-1.4:1 for them.
-`ReadabilitySweep` over the real Desert tiles (`READABILITY_WORLDS=Desert`): WEAK enemies were `desert_big` (Sandcrawler, canyon floor) and `desert_mine`; the Sandcrawler now has the thin bone border too (`add_border.py`, originals in `strips/original/`); the mine is rail-mounted (over the rail art, not the ground) and was flagged at one placement only, left as is. No enemy is LOW. Weak shots (gunship Slag/Glob/Shard/Orb/Shell, the Wisp, Gunner and Hawk bolts, elite shards, the hauler's slag) are listed in the sweep's worst.csv; shots are not repainted.
+`ReadabilitySweep` over the real Desert tiles (`READABILITY_WORLDS=Desert`): WEAK enemies were `desert_big` (Sandbarge, canyon floor) and `desert_mine`; the Sandbarge now has the thin bone border too (`add_border.py`, originals in `strips/original/`); the mine is rail-mounted (over the rail art, not the ground) and was flagged at one placement only, left as is. No enemy is LOW. Weak shots (gunship Slag/Glob/Shard/Orb/Shell, the Wisp, Gunner and Hawk bolts, elite shards, the hauler's slag) are listed in the sweep's worst.csv; shots are not repainted.
 
 ## Sound donors (docs only; `DesertSoundTest` pins them)
-rocks: frost_rock_chunk .85 / frost_rock_shard 1.0 / ember_rock_obsidian .9 / ember_rock_islet .88; mine ember_mine .9; Sandcrawler ember_big .85; Skimmer space_fighter_1 .95;
+rocks: frost_rock_chunk .85 / frost_rock_shard 1.0 / ember_rock_obsidian .9 / ember_rock_islet .88; mine ember_mine .9; Sandbarge ember_big .85; Skimmer space_fighter_1 .95;
 Hawk frost_fighter_2 1.15; Gunner frost_fighter_3 .9; Tank ember_fighter_4 .8; Scarab verdant_chaser 1.1; Wisp ember_alien 1.2; elites: coalrunner, singularity hauler,
 ash wraith, cauterizer, kilnback, eventide bastion; boss boss_space .8. Screams: Skimmer ember_fighter_1 1.3, Hawk verdant_fighter_2 1.15, Gunner ember_fighter_3, Scarab
 verdant_fighter_3 1.3, Wisp ember_alien 1.45, elites as listed in `BorrowTable`. Attacks: Desert strike / gust / hail play Storm's (strike: Tide's thunder).
