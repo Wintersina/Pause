@@ -642,7 +642,7 @@ public static class TutorialRobotTest
         ("tut_glow", 64, 64), ("tut_lamp", 24, 24), ("tut_jet_a", 60, 52), ("tut_jet_b", 60, 52),
         ("tut_eye_open", 52, 40), ("tut_eye_half", 52, 40), ("tut_eye_shut", 52, 40), ("tut_eye_happy", 52, 40),
         ("tut_mouth_rest", 72, 40), ("tut_mouth_a", 72, 40), ("tut_mouth_e", 72, 40), ("tut_mouth_o", 72, 40),
-        ("tut_mouth_big", 72, 40), ("tut_card", 96, 96), ("tut_button", 96, 80), ("tut_arrow", 0, 0),
+        ("tut_mouth_big", 72, 40), ("tut_button", 96, 80), ("tut_arrow", 0, 0),   // (tut_card went: the end card wears the dp_* plates)
     };
 
     static float Luminance(Color c)
@@ -676,7 +676,7 @@ public static class TutorialRobotTest
             Check(k.name + " is " + k.w + "x" + k.h + " (the layout's registration)",
                   Mathf.RoundToInt(sprite.rect.width) == k.w && Mathf.RoundToInt(sprite.rect.height) == k.h);
         }
-        Check("the 20 kit sprites are all there (" + Kit.Length + ")", Kit.Length == 20);
+        Check("the 19 kit sprites are all there (" + Kit.Length + ")", Kit.Length == 19);
         Check("the old SVG sources and palette.env are gone",
               !File.Exists("Assets/Art/UI/Tutorial/src~/palette.env") && !File.Exists("Assets/Art/UI/Tutorial/src~/render.sh"));
         Check("the staging folder is gone", !Directory.Exists("Assets/Art/Resources/Tutorial_new~"));
