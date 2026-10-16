@@ -643,7 +643,7 @@ public static class SpaceEliteTest
                     for (int y = ny; y < S; y++)
                     {
                         var q = c[(S - 1 - y) * S + nx]; var r0 = hullCell[(S - 1 - y) * S + nx];
-                        if (q.a > 0 && (q.r != r0.r || q.g != r0.g || q.b != r0.b || q.a != r0.a)) tip = y;
+                        if (q.a == 255 && (q.r != r0.r || q.g != r0.g || q.b != r0.b || q.a != r0.a)) tip = y;
                     }
                     if (cell >= 3 && cell <= 10)
                     {
