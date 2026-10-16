@@ -153,7 +153,7 @@ Same method; `px` = longest side on screen. The enemy flipbooks are the least re
 | Ship | World | Role | Long side (u) | px 1080 / 720 | x player | art->screen px @720 | x1.2 -> u | accent features @720 now -> x1.2 | pale outline |
 |---|---|---|---|---|---|---|---|---|---|
 | Mirage Wisp | desert | alien | 0.74 | 107 / 71 | 0.95 | 0.42 | 0.89 | 2.7! / 1.3! / 1.3! -> 3.2 / 1.6! / 1.5! | no |
-| Sandcrawler | desert | heavy | 1.18 | 171 / 114 | 1.50 | 0.49 | 1.41 | 5.7 / 5.2 / 5.1 -> 6.9 / 6.2 / 6.2 | yes |
+| Sandbarge | desert | heavy | 1.18 | 171 / 114 | 1.50 | 0.49 | 1.41 | 5.7 / 5.2 / 5.1 -> 6.9 / 6.2 / 6.2 | yes |
 | Scarab Drone | desert | chaser | 0.90 | 130 / 86 | 1.15 | 0.53 | 1.08 | 3.4 / 3.0 / 2.8! -> 4.0 / 3.6 / 3.3 | yes |
 | Sand Skimmer | desert | fighter | 0.87 | 126 / 84 | 1.12 | 0.52 | 1.05 | 6.7 / 5.6 / 4.2 -> 8.1 / 6.7 / 5.1 | no |
 | Glint Hawk | desert | fighter | 0.80 | 116 / 77 | 1.02 | 0.45 | 0.96 | 4.5 / 4.2 / 3.6 -> 5.4 / 5.0 / 4.3 | no |
