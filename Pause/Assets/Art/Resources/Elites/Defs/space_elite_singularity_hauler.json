@@ -10,23 +10,30 @@
   "attack": "gravity_sling",
   "cells": {
     "flight": [
-      3
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10
     ],
     "parked": 0,
     "parkedIdle": 1,
     "liftoff": 2,
-    "bankLeft": 4,
-    "bankRight": 5,
+    "bankLeft": -1,
+    "bankRight": -1,
     "tell": -1,
     "action": -1,
     "hit": -1,
-    "damaged": 6
+    "damaged": 11
   },
-  "cellWorldSize": 2.06,
+  "cellWorldSize": 2.2,
   "hullRadius": 0.404,
   "noseDeg": 90,
   "turnsToFace": false,
-  "maxBank": 3,
+  "maxBank": 0,
   "armored": true,
   "speed": 1.9,
   "accel": 3.5,
@@ -51,7 +58,7 @@
   "heartColor": "#C05CFF",
   "shotColor": "#E04FFF",
   "shotCore": "#9FF6FF",
-  "engineColor": "#6FD8FF",
+  "engineColor": "#FFD060",
   "hearts": 2,
   "heartSize": 0.18,
   "heartOrbit": 0.72,
@@ -59,44 +66,44 @@
   "exhaustShip": 3,
   "exhaustScale": 0,
   "glowScale": 0.08,
-  "cellPixels": 192,
+  "cellPixels": 384,
   "muzzles": [
     {
       "name": "lclaw",
-      "x": 41,
-      "y": 100,
-      "dir": 180.0
+      "x": 125,
+      "y": 19,
+      "dir": 90.0
     },
     {
       "name": "rclaw",
-      "x": 152,
-      "y": 103,
-      "dir": 0.0
+      "x": 256,
+      "y": 19,
+      "dir": 90.0
     }
   ],
   "nozzles": [
     {
       "name": "a",
-      "x": 64,
-      "y": 132,
+      "x": 123,
+      "y": 243,
       "dir": -1.0
     },
     {
       "name": "b",
-      "x": 75,
-      "y": 134,
+      "x": 170,
+      "y": 243,
       "dir": -1.0
     },
     {
       "name": "c",
-      "x": 116,
-      "y": 134,
+      "x": 213,
+      "y": 243,
       "dir": -1.0
     },
     {
       "name": "d",
-      "x": 126,
-      "y": 132,
+      "x": 260,
+      "y": 243,
       "dir": -1.0
     }
   ],

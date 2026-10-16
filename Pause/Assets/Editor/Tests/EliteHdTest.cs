@@ -18,6 +18,7 @@ public static class EliteHdResolution
         "tide_elite_thunderfin", "tide_elite_riptide", "tide_elite_bathyscaphe", "tide_elite_trawler", "tide_elite_pearl_warden",
         "storm_elite_skyhook_harrier", "storm_elite_refinery_tender", "storm_elite_rod_dancer", "storm_elite_anvil_cloud", "storm_elite_static_bastion",
         "desert_elite_dune_stalker", "desert_elite_caravan_hauler", "desert_elite_lens_matriarch", "desert_elite_scorpion_walker", "desert_elite_mirror_bastion",
+        "space_elite_rift_lancer", "space_elite_eventide_bastion", "space_elite_orbit_reaver", "space_elite_singularity_hauler",
         "frost_elite_floe_harrower", "frost_elite_glacier_tender", "frost_elite_whiteout_sentinel",
         "verdant_elite_timber_hauler", "verdant_elite_thornlash", "verdant_elite_sporebloom", "verdant_elite_leafblade",
     };
@@ -81,7 +82,7 @@ public static class EliteHdTest
             Check(d.key + ": cellPixels " + d.cellPixels + " is the expected " + EliteHdResolution.ExpectedCell(d.key) + " (HD list in EliteHdResolution)", EliteHdResolution.CellOk(d));
             if (!File.Exists(strip)) continue;
             var (w, h) = PngSize(strip);
-            Check(d.key + ": strip " + w + " x " + h + " = 7 cells of the def's " + d.cellPixels + " px", h == d.cellPixels && w == 7 * d.cellPixels);
+            Check(d.key + ": strip " + w + " x " + h + " = 7 cells of the def's " + d.cellPixels + " px", h == d.cellPixels && w % h == 0 && w >= 7 * h);
             if (File.Exists(death))
             {
                 var (dw, dh) = PngSize(death);

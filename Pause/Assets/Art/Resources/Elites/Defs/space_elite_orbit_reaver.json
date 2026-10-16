@@ -10,23 +10,30 @@
   "attack": "crescent_volley",
   "cells": {
     "flight": [
-      3
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10
     ],
     "parked": 0,
     "parkedIdle": 1,
     "liftoff": 2,
-    "bankLeft": 4,
-    "bankRight": 5,
+    "bankLeft": -1,
+    "bankRight": -1,
     "tell": -1,
     "action": -1,
     "hit": -1,
-    "damaged": 6
+    "damaged": 11
   },
-  "cellWorldSize": 1.87,
-  "hullRadius": 0.333,
+  "cellWorldSize": 2.1,
+  "hullRadius": 0.355,
   "noseDeg": 90,
   "turnsToFace": false,
-  "maxBank": 6,
+  "maxBank": 0,
   "speed": 2.9,
   "accel": 9,
   "turnRate": 260,
@@ -47,7 +54,7 @@
   "heartColor": "#E05CFF",
   "shotColor": "#FF4FD8",
   "shotCore": "#9FF6FF",
-  "engineColor": "#6FC8FF",
+  "engineColor": "#FF7AE8",
   "hearts": 2,
   "heartSize": 0.18,
   "heartOrbit": 0.9,
@@ -55,38 +62,38 @@
   "exhaustShip": 3,
   "exhaustScale": 0,
   "glowScale": 0.08,
-  "cellPixels": 192,
+  "cellPixels": 384,
   "muzzles": [
     {
       "name": "lclaw",
-      "x": 28,
-      "y": 130,
-      "dir": 270.0
+      "x": 155,
+      "y": 25,
+      "dir": 90.0
     },
     {
       "name": "rclaw",
-      "x": 163,
-      "y": 131,
-      "dir": 270.0
+      "x": 227,
+      "y": 25,
+      "dir": 90.0
     }
   ],
   "nozzles": [
     {
-      "name": "l",
-      "x": 81,
-      "y": 153,
+      "name": "a",
+      "x": 140,
+      "y": 227,
+      "dir": -1.0
+    },
+    {
+      "name": "b",
+      "x": 192,
+      "y": 243,
       "dir": -1.0
     },
     {
       "name": "c",
-      "x": 95,
-      "y": 162,
-      "dir": -1.0
-    },
-    {
-      "name": "r",
-      "x": 110,
-      "y": 153,
+      "x": 244,
+      "y": 227,
       "dir": -1.0
     }
   ],
