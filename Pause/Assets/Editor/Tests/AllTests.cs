@@ -288,6 +288,7 @@ public static class AllTests
         ("BackdropCellBleedTest", BackdropCellBleedTest.Execute),
         ("BackdropResolutionTest", BackdropResolutionTest.Execute),
         ("EnemyResolutionTest", EnemyResolutionTest.Execute),
+        ("FrameStillsTest", FrameStillsTest.Execute),
         ("VerdantBackdropTest", VerdantBackdropTest.Execute),
         ("EmberBackdropTest", EmberBackdropTest.Execute),
         ("TideBackdropTest", TideBackdropTest.Execute),
