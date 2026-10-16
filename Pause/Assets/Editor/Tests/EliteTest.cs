@@ -184,7 +184,7 @@ public static class EliteTest
             brains.Add(d.brain);
             attacks.Add(d.attack);
             var frames = EliteArt.Frames(d);
-            Check(d.key + ": strip loads as 7 cells, enough for its cell map", frames != null && frames.Length == EliteArt.FrameCount && frames[0] != null && frames.Length >= d.cells.Count);
+            Check(d.key + ": strip loads as 7 cells, enough for its cell map", frames != null && frames.Length >= EliteArt.FrameCount && frames[0] != null && frames.Length >= d.cells.Count);
             Check(d.key + ": a known brain and attack", System.Array.IndexOf(EliteBrains.Ids, d.brain) >= 0 && System.Array.IndexOf(EliteAttacks.Ids, d.attack) >= 0);
             Check(d.key + ": two hearts", d.hearts == 2);
             Check(d.key + ": hearts are not the player's red (hue gap " + HueGap(d.HeartColor, PlayerRed).ToString("0") + ")",
@@ -1197,7 +1197,7 @@ public static class EliteTest
             var entry = global::Codex.Find(d.codexId);
             Check(d.key + ": a codex entry in Enemies", entry != null && entry.category == CodexCategory.Enemies && entry.Sprite != null);
             var anim = CodexAnimations.For(entry);
-            Check(d.key + ": the codex animates its idle loop", anim != null && anim.HasArt && anim.idle.Length == 4);
+            Check(d.key + ": the codex animates its idle loop", anim != null && anim.HasArt && anim.idle.Length == d.cells.CodexLoop.Length);
         }
         Check("an elite object resolves to its entry", global::Codex.IdForName("ember_elite_sunstoke") == "elite_ember_sunstoke");
 

@@ -137,9 +137,11 @@ public static class SpaceEliteTest
             Check(x.key + ": launches from a " + x.from, LandingSite.KindOf(d.launchFrom) == x.from);
             var frames = EliteArt.Frames(d);
             var c = d.cells;
-            Check(x.key + ": Codex's flight strip (landed, idle, ignition, hover, banks, damaged) is installed",
-                  frames != null && frames.Length == 7 && c.parked == 0 && c.parkedIdle == 1 && c.liftoff == 2 && c.Flight0 == 3 &&
-                  c.bankLeft == 4 && c.bankRight == 5 && c.damaged == 6);
+            Check(x.key + ": the engine-burn strip (parked, pilot lights, ignition, an 8-drawing burn cycle, damaged) is installed",
+                  frames != null && frames.Length == 12 && c.parked == 0 && c.parkedIdle == 1 && c.liftoff == 2 && c.Flight0 == 3 &&
+                  c.flight.Length == 8 && c.damaged == 11);
+            Check(x.key + ": it stays level: no bank cells, no bank tilt, the codex loop is the burn cycle (" + c.CodexLoop.Length + " drawings)",
+                  !c.Banks && c.bankLeft < 0 && c.bankRight < 0 && d.maxBank == 0f && c.CodexLoop.Length == 8);
             Check(x.key + ": hearts orbit tighter than the player's (" + (d.hullRadius * d.heartOrbit + d.heartSize * 1.05f).ToString("0.00") + " u)",
                   d.hullRadius * d.heartOrbit + d.heartSize * 1.05f < .52f);
             Check(x.key + ": a codex entry", global::Codex.Find(d.codexId) != null);

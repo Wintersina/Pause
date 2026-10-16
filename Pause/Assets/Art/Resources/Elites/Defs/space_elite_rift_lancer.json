@@ -10,20 +10,27 @@
   "attack": "rift_rail",
   "cells": {
     "flight": [
-      3
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10
     ],
     "parked": 0,
     "parkedIdle": 1,
     "liftoff": 2,
-    "bankLeft": 4,
-    "bankRight": 5,
+    "bankLeft": -1,
+    "bankRight": -1,
     "tell": -1,
     "action": -1,
     "hit": -1,
-    "damaged": 6
+    "damaged": 11
   },
-  "cellWorldSize": 1.88,
-  "hullRadius": 0.309,
+  "cellWorldSize": 2.0,
+  "hullRadius": 0.335,
   "noseDeg": 90,
   "turnsToFace": true,
   "maxBank": 0,
@@ -56,26 +63,32 @@
   "exhaustShip": 3,
   "exhaustScale": 0,
   "glowScale": 0.08,
-  "cellPixels": 192,
+  "cellPixels": 384,
   "muzzles": [
     {
       "name": "prong",
-      "x": 95,
-      "y": 23,
+      "x": 191,
+      "y": 26,
       "dir": -1.0
     }
   ],
   "nozzles": [
     {
-      "name": "l",
-      "x": 83,
-      "y": 155,
+      "name": "a",
+      "x": 156,
+      "y": 243,
       "dir": -1.0
     },
     {
-      "name": "r",
-      "x": 107,
-      "y": 156,
+      "name": "b",
+      "x": 192,
+      "y": 243,
+      "dir": -1.0
+    },
+    {
+      "name": "c",
+      "x": 228,
+      "y": 243,
       "dir": -1.0
     }
   ],
