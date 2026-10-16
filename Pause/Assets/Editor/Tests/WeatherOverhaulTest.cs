@@ -475,31 +475,42 @@ public static class WeatherOverhaulTest
             reset.Invoke(gaps, null);
             float spb = 60f / Mathf.Lerp(90f, 160f, (float)rnd.NextDouble());
             float phase = (float)rnd.NextDouble();
-            float spawn = 0f, lo = 0f, hi = 0f, prevArrival = -99f;
-            bool first = true, fail = false;
+            int chainK = 3 + rnd.Next(4);
+            float spawn = 0f, shipX = 0f, prevArrival = -99f, pgl = -99f, pgh = 99f;
+            bool fail = false;
             float lim = 2.4f;
             for (int i = 0; i < 40 && !fail; i++)
             {
                 float step = i == 0 ? 0f : spb * new[] { .5f, 1f, 1f, 2f, 4f }[rnd.Next(5)];
                 if (i > 0 && rnd.Next(12) == 0) step += spb * 8f;               // a quiet spell
                 spawn += step;
-                float k = 3 + rnd.Next(4);
-                float arrival = spawn + k * spb;
+                float arrival = Mathf.Max(spawn + chainK * spb, prevArrival + .3f);   // a wave flies a fixed number of beats (BossWaveVoice quantises it); none overtakes another
                 float mult = Mathf.Lerp(1.7f, 3.1f, (float)rnd.NextDouble());
                 float width = mult * 2f * shipR;
                 float thick = .25f;
                 float want = (float)(rnd.NextDouble() * 2 - 1);
-                float shipX = first ? 0f : .5f * (lo + hi);
                 float c = (float)choose.Invoke(gaps, new object[] { shipX, spawn, arrival, width, thick, lim, want });
                 float drift = DriftOver(spawn, arrival, phase, scale);
                 float room = Mathf.Max(0f, (width - shipW) * .5f);
                 float gl = c + drift - room, gh = c + drift + room;
-                float start = Mathf.Max(first ? spawn : prevArrival + thick, spawn + reaction);
+                // the ship (5 u/s, a human's reaction) sees this wave at spawn + reaction. If the previous wave has not reached it yet it uses
+                // the time until then to lean toward the new gap (but must be inside the previous gap when that passes), holds there while it
+                // passes, then walks to the nearest point of the actual (drifted) gap
+                float pos = shipX;
+                float see = spawn + reaction;
+                float target = Mathf.Clamp(pos, gl, gh);
+                if (prevArrival > see)
+                {
+                    float t1 = prevArrival - see;
+                    pos += Mathf.Sign(target - pos) * Mathf.Min(Mathf.Abs(target - pos), 5f * t1);
+                    pos = Mathf.Clamp(pos, pgl, pgh);
+                }
+                float start = Mathf.Max(prevArrival + thick, see);
                 float budget = Mathf.Max(0f, arrival - start);
-                float el = first ? shipX - 5f * budget : lo - 5f * budget, eh = first ? shipX + 5f * budget : hi + 5f * budget;
-                float nl = Mathf.Max(el, gl), nh = Mathf.Min(eh, gh);
-                if (nl > nh + 1e-4f) { fail = true; break; }
-                lo = nl; hi = nh; prevArrival = arrival; first = false;
+                float end = pos + Mathf.Sign(target - pos) * Mathf.Min(Mathf.Abs(target - pos), 5f * budget);
+                if (end < gl - 1e-3f || end > gh + 1e-3f) { fail = true; break; }
+                pgl = gl; pgh = gh;
+                shipX = end; prevArrival = arrival;
             }
             if (fail) broken++;
         }
@@ -509,6 +520,10 @@ public static class WeatherOverhaulTest
     // ---- drawing ----
     static void Visuals()
     {
+        // (an empty scene: with a game scene open the editor's change tracking allocates on every Transform write and would drown the check)
+        UnityEditor.SceneManagement.EditorSceneManager.NewScene(UnityEditor.SceneManagement.NewSceneSetup.EmptyScene, UnityEditor.SceneManagement.NewSceneMode.Single);
+        foreach (var o in made) if (o != null) Object.DestroyImmediate(o);
+        made.Clear();
         var m = NewManager(); WorldHazards.ClearAll();
         var camGo = new GameObject("cam", typeof(Camera)); camGo.tag = "MainCamera"; made.Add(camGo);
         var cam = camGo.GetComponent<Camera>(); cam.orthographic = true; cam.orthographicSize = 5f; cam.aspect = 9f / 19f;
@@ -540,7 +555,7 @@ public static class WeatherOverhaulTest
         int gustShown = wv.Visible;
         Check("wind streaks: " + calmShown + " in the breeze, " + gustShown + " in a gust (>=)", calmShown > 5 && gustShown >= calmShown && gustShown <= WindVisuals.Streaks + 2);
         long bytes = TestHarness.AllocatedBytes(() => { for (int i = 0; i < 100; i++) wv.Draw(Dt, true, 4); });
-        Check("drawing the wind allocates no more than editor noise (<= 24 B per sprite-frame)", bytes <= 100L * Mathf.Max(1, gustShown) * 24, bytes + " B");
+        Check("drawing the wind allocates no more than editor noise (<= 40 B per sprite-frame: five Transform / colour writes at ~8 B)", bytes <= 100L * Mathf.Max(1, gustShown) * 40, bytes + " B for " + gustShown + " sprites");
         WeatherWind.Reset(null);
         wv.Draw(Dt, true, 0);
         for (int i = 0; i < 90; i++) wv.Draw(Dt, true, 0);
