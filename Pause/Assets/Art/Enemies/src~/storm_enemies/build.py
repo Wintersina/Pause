@@ -13,6 +13,7 @@ from PIL import Image, ImageDraw
 
 HERE = Path(__file__).resolve().parent
 DEST = HERE.parents[1]
+FLY = HERE.parent / 'storm_colors' / 'flying_src'   # Codex flying repaints (art/enemy-colors-storm); preferred when present
 SPEC = {
     'storm_alien': (1, 124),
     'storm_chaser': (1, 150),
@@ -36,9 +37,13 @@ PHASE = [0., 1., -1., .50]
 
 
 def source(name, choice):
-    im = Image.open(HERE / f'{name}_candidates.png').convert('RGBA')
-    cw = im.width // 3
-    im = im.crop((choice*cw, 0, (choice+1)*cw, im.height))
+    fly = FLY / f'{name}_flying.png'
+    if fly.exists():
+        im = Image.open(fly).convert('RGBA')
+    else:
+        im = Image.open(HERE / f'{name}_candidates.png').convert('RGBA')
+        cw = im.width // 3
+        im = im.crop((choice*cw, 0, (choice+1)*cw, im.height))
     a = np.asarray(im.getchannel('A'))
     yy, xx = np.where(a > 112)
     return im.crop((max(0, xx.min()-4), max(0, yy.min()-4),
@@ -72,9 +77,14 @@ def key_pose(name, choice, target):
     im = source(name,choice)
     factor = target/max(im.size)
     size = tuple(max(1,round(v*factor)) for v in im.size)
-    if name=='storm_big':
+    flying = (FLY / f'{name}_flying.png').exists()
+    if name=='storm_big' and not flying:
         size=(round(size[0]*1.30),size[1])
-    im = temper_palette(im.resize(size,Image.Resampling.NEAREST))
+    im = im.resize(size,Image.Resampling.NEAREST)
+    if not flying:
+        im = temper_palette(im)
+    else:
+        a = np.array(im); a[:,:,3] = np.where(a[:,:,3]<20,0,a[:,:,3]); im = Image.fromarray(a,'RGBA')
     canvas = Image.new('RGBA',(side,side))
     canvas.alpha_composite(im,((side-size[0])//2,(side-size[1])//2))
     return canvas
@@ -230,7 +240,8 @@ def main():
     ap=argparse.ArgumentParser();ap.add_argument('--out',type=Path,default=DEST)
     args=ap.parse_args();args.out.mkdir(parents=True,exist_ok=True)
     for name,(candidate,target) in SPEC.items():
-        key=cold_rim(key_pose(name,candidate,target))
+        key=key_pose(name,candidate,target)
+        if not (FLY / f'{name}_flying.png').exists(): key=cold_rim(key)   # the pale rim is an outline: not on the flying repaints
         frames=[light_cycle(local_motion(key,name,p,i),i,name) for i,p in enumerate(PHASE)]
         frames += [fx_pose(key,name,4),fx_pose(key,name,5),hit_pose(key,name)]
         side=key.width;strip=Image.new('RGBA',(7*side,side))

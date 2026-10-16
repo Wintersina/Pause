@@ -22,7 +22,7 @@ import numpy as np
 from PIL import Image, ImageDraw
 
 REPO = Path(__file__).resolve().parents[5]
-IDLE = REPO / "Pause/Assets/Art/Enemies"
+IDLE = REPO / "Pause/Assets/Art/Resources/Enemies"
 RES = REPO / "Pause/Assets/Art/Resources/Enemies/Death"
 OUT = Path(__file__).resolve().parent / "storm_death"
 
@@ -32,7 +32,7 @@ ARC = (150, 205, 245)       # cold white-blue, hue ~205, sat ~.4
 ARC_DIM = (96, 140, 190)
 SLATE = (66, 78, 100)
 SLATE_LT = (118, 132, 156)
-PINK = (255, 79, 216)       # hostile-pink core accent, tiny
+PINK = (255, 176, 32)       # amber core accent (pink is Space-only; the name is kept so the call sites stay unchanged)
 
 # key -> (cell side, chunks, spin deg, bolts, vapour puffs, pellets, flavour)
 UNITS = {
