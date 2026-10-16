@@ -652,7 +652,7 @@ public static class BossHeartsTest
             // Review crops: HEARTS_PREVIEW_DIR=<dir> (HEARTS_PREVIEW_STANDARD=1 renders
             // the standard outline everywhere, for a before / after).
             string previewDir = System.Environment.GetEnvironmentVariable("HEARTS_PREVIEW_DIR");
-            if (!string.IsNullOrEmpty(previewDir) && w == 1)
+            if (!string.IsNullOrEmpty(previewDir) && (w == 1 || w == 3))
             {
                 System.IO.Directory.CreateDirectory(previewDir);
                 System.IO.File.WriteAllBytes(System.IO.Path.Combine(previewDir, label.Replace(' ', '-') + ".png"), tex.EncodeToPNG());

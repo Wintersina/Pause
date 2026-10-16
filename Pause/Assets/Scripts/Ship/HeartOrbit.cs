@@ -256,6 +256,25 @@ public abstract class HeartOrbit : MonoBehaviour
     // Every heart (and its shield dart and crumble) wears HeartOutline's
     // thin two-tone trace: the elites' and the bosses' hearts.
     protected virtual bool Outlined { get { return false; } }
+    // Forces the bold (or standard) outline for this owner's hearts regardless of the world: an elite painted with pale hull plates
+    // (EliteDef.boldHearts) keeps its hearts readable over them. null = the world's own style.
+    protected virtual bool? BoldOutline { get { return null; } }
+    Sprite OutlineFor(Sprite s)
+    {
+        var saved = HeartOutline.Bold;
+        if (BoldOutline.HasValue) HeartOutline.Bold = BoldOutline;
+        var r = HeartOutline.For(s);
+        HeartOutline.Bold = saved;
+        return r;
+    }
+    Sprite[] OutlineShardsFor(Sprite s, int cols, int rows)
+    {
+        var saved = HeartOutline.Bold;
+        if (BoldOutline.HasValue) HeartOutline.Bold = BoldOutline;
+        var r = HeartOutline.ForShards(s, cols, rows);
+        HeartOutline.Bold = saved;
+        return r;
+    }
     // A heart's pop-in runs on unscaled time (it shows even while the world
     // is frozen) instead of gameplay time.
     protected virtual bool PopOnRealTime { get { return false; } }
@@ -291,7 +310,7 @@ public abstract class HeartOrbit : MonoBehaviour
         }
         hearts = new Transform[count];
         renderers = new SpriteRenderer[count];
-        var outlineSprite = Outlined ? HeartOutline.For(sprite) : null;
+        var outlineSprite = Outlined ? OutlineFor(sprite) : null;
         outlines = outlineSprite != null ? new SpriteRenderer[count] : null;
         theta = new float[count];
         dir = new float[count];
@@ -421,8 +440,8 @@ public abstract class HeartOrbit : MonoBehaviour
         var burstFrames = ShieldArt.Impact;
         // Outlined: the dart and the crumble keep their trace (the pieces one
         // up, their outlines between them and the shield burst).
-        Sprite ghostLine = outlines != null ? HeartOutline.For(heart) : null;
-        Sprite[] shardLines = outlines != null ? HeartOutline.ForShards(heart, ShardCols, ShardRows) : null;
+        Sprite ghostLine = outlines != null ? OutlineFor(heart) : null;
+        Sprite[] shardLines = outlines != null ? OutlineShardsFor(heart, ShardCols, ShardRows) : null;
         bool lined = ghostLine != null && shardLines != null;
         int pieceOrder = lined ? order + 2 : order + 1;
         ghostOutlines = lined ? new SpriteRenderer[MaxBreaks] : null;

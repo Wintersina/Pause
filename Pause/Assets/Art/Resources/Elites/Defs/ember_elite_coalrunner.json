@@ -8,6 +8,7 @@
   "heartSize": 0.18,
   "heartOrbit": 0.786,
   "heartStyle": "Halo",
+  "boldHearts": true,
   "exhaustShip": 3,
   "cellPixels": 192,
   "key": "ember_elite_coalrunner",

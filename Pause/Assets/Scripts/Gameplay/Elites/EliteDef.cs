@@ -184,6 +184,7 @@ public class EliteDef
     public float heartSize = .18f;
     public float heartOrbit = .85f;     // orbit radius, x the hull's half-size
     public string heartStyle = "Halo";  // HeartStyle name
+    public bool boldHearts;             // pale-hulled elite: its hearts wear the bold outline in every world (BossHeartsTest 3:1 over the hull)
 
     // ---- exhaust ----
     public int exhaustShip = 3;         // ShipExhaustStyle row whose plume drawings it borrows (3: Solar Fang tongues)
