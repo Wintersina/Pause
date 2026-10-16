@@ -19,6 +19,8 @@ These scripts use the analyzer's ffmpeg/librosa/numpy/scipy environment.
 
 ## Musical voices
 
+> Superseded in part by [bullet waves](boss-bullet-waves.md): the pulse and signature voices below are now gap-guaranteed waves spawned on the arrangement's rhythm. The forecast accent voice (bombs, mines, fan) is unchanged, except the Tempest Engine's lattice accent, which is a heavy three-row wave.
+
 - **Pulse:** continuous aimed fire on whole beats; builds and energetic sections add half-beats. Quiet passages retain a lighter pulse.
 - **Signature:** each boss's own shape joins according to energy and bass. Space spirals, Frost gapped rings, Verdant homing seeds, Ember flame fans, Tide moving curtains, Storm rain, Desert closing pincers.
 - **Accent:** forecast events are prepared two beats ahead while the other voices continue. This includes Ember bombs, Desert mine placements, Storm lattice rows, and fan accents. Looking ahead into the arrangement can prepare a drop accent during the preceding quiet passage.
