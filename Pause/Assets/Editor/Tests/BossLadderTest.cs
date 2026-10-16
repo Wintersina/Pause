@@ -65,7 +65,10 @@ public static class BossLadderTest
             var a = rows[w - 1];
             var b = rows[w];
             if (!(b.bulletsPerSecond > a.bulletsPerSecond)) { bullets = false; Debug.Log("[LADDER]   shots/s " + Names[w] + " " + b.bulletsPerSecond.ToString("F2") + " vs " + a.bulletsPerSecond.ToString("F2")); }
-            if (b.maxSimultaneous < a.maxSimultaneous) live = false;
+            // (within 10 %: since boss bullets leave the boss instead of dropping in from above the view, the curtain and
+            // rain bosses -- Iron Kraken, Tempest Engine -- no longer count ~1 s of each wall spent invisibly above the
+            // screen; their peaks fell from 50 / 53 to ~43 / 44 against the Drake's 47. docs/boss-bullet-waves.md)
+            if (b.maxSimultaneous < a.maxSimultaneous * .9f) { live = false; Debug.Log("[LADDER]   max live " + Names[w] + " " + b.maxSimultaneous + " vs " + a.maxSimultaneous); }
             if (b.maxSpeed < a.maxSpeed - .01f) speed = false;
             if (b.attacks < a.attacks) attacks = false;
             if (b.maxOverlap < a.maxOverlap) overlap = false;
@@ -74,7 +77,7 @@ public static class BossLadderTest
             if (BossLadder.GapTarget[w] > BossLadder.GapTarget[w - 1]) gapT = false;
         }
         Check("shots per second STRICTLY increases up the ladder (the headline knob)", bullets);
-        Check("max simultaneous shots is non-decreasing up the ladder", live);
+        Check("max simultaneous shots is non-decreasing up the ladder (within 10 %)", live);
         Check("the fastest shot is non-decreasing up the ladder", speed);
         Check("the number of attacks in the rotation is non-decreasing", attacks);
         Check("the most streams running at once inside an attack is non-decreasing", overlap);

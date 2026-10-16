@@ -100,6 +100,9 @@ PARTS = {
         ("Jaw", 20, (192, 176), 22, (0, 6)),
         ("Furnace", 20, (192, 225), 22, (0, 0)),
         ("Brow", 20, (192, 126), 16, (0, 0)),
+        # the twin brass shoulder cannons (their muzzles flash in the furnace-slug fire cell 31)
+        ("CannonL", 20, (108, 142), 16, (0, 0)),
+        ("CannonR", 20, (270, 142), 16, (0, 0)),
     ],
 }
 
@@ -441,6 +444,26 @@ def write_cs(results):
         fh.write("\n".join(lines) + "\n")
 
 
+# Points the patch matcher gets wrong, fixed by hand from the pixels (world, part, cell): (x, y) at 384 reference px.
+# The Drake's breath cell 28 rears its head over the flame: the matcher put the brow ~30 px (576 art px) above the
+# gem; this is the gem's colour peak.
+OVERRIDES = {
+    ("Ember", "Brow", 28): (191, 129),
+    # ... and the flame over the body drags the whole-body registration of that cell: the maw (the flame's root) and
+    # the shoulder cannons' bores (which do not move in it) by their pixels
+    ("Ember", "Jaw", 28): (192, 160),
+    ("Ember", "CannonL", 28): (108, 140),
+    ("Ember", "CannonR", 28): (270, 140),
+}
+
+
+def apply_overrides(world, table):
+    for name, pts in table:
+        for (w, n, f), xy in OVERRIDES.items():
+            if w == world and n == name and f < len(pts):
+                pts[f] = xy
+
+
 def main():
     out_dir = None
     if "--preview" in sys.argv:
@@ -449,6 +472,7 @@ def main():
     results = {}
     for world in ["Space", "Frost", "Verdant", "Ember", "Tide", "Storm", "Desert"]:
         frames, table = measure(world)
+        apply_overrides(world, table)
         results[world] = table
         if out_dir:
             preview(world, frames, table, out_dir)

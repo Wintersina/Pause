@@ -15,11 +15,12 @@ public sealed class BossMusicDirector
     readonly IPatternHost host;
     readonly IMusicPatternHost budget;
     readonly BossWaveVoice waves;
-    readonly bool accentWave;
+    readonly bool accentWave, accentFan;
     readonly BossPatternRunner accent = new BossPatternRunner();
     readonly PatternStream pulseShape, signatureShape, accentShape;
     IBeatSource source;
     public const float MinWaveSpacing = .15f;   // game seconds: closer waves would only stack into a wall
+    public const double AudioStepSeconds = .085; // the coarsest audio clock step a sixteenth may be seen late by
     const int WaveReserve = 40;
     long lastTick = long.MinValue, phrase = long.MinValue;
     float gameClock, lastWaveGame = -10f;
@@ -36,6 +37,21 @@ public sealed class BossMusicDirector
     public bool Preparing { get; private set; }
     public int Pose { get; private set; }
     public PatternStream Signature => signatureShape;
+    // Where the waves leave the boss (its muzzles per shape) and every part they use: the boss's flash / charge slots.
+    public BossWaveSources Sources => sources;
+    public int[] Parts => sources.all;
+    readonly BossWaveSources sources;
+
+    // The TELL of the next wave: on the beat before it leaves (or since the last wave, if that is nearer) the boss shows
+    // the tell drawings of the part about to fire and charges its muzzles; TellProgress runs 0..1 into the wave's beat.
+    public bool Telling { get; private set; }
+    public float TellProgress { get; private set; }
+    public int TellPose => tellSource.parts != null ? tellSource.pose : 0;
+    public WaveSource TellSource => tellSource;
+    public double NextWaveBeat => nextWaveBeat;
+    WaveSource tellSource;
+    double nextWaveBeat = double.NaN, lastWaveBeat = double.NegativeInfinity;
+    public const double TellBeats = 1.0;
 
     public BossMusicDirector(int world, BossDef boss, IPatternHost host)
     {
@@ -43,9 +59,26 @@ public sealed class BossMusicDirector
         budget = host as IMusicPatternHost;
         var shapes = BossMusicVoices.For(world, boss);
         pulseShape = shapes[0]; signatureShape = shapes[1]; accentShape = shapes[2];
-        waves = new BossWaveVoice(world, host, pulseShape.parts);
+        sources = BossWaveSources.For(world, boss, pulseShape.parts[0]);
+        waves = new BossWaveVoice(world, host, sources);
+        // the accent (bombs, mines, a fan) leaves its own body part: the Drake's furnace, the Dune-Eater's boom crane
+        accentShape.parts = sources.accent.parts;
         accentWave = accentShape.kind == StreamKind.Lattice;
+        // a plain accent fan joins the gap chain too: it is a fan wave out of the accent's muzzle with a guaranteed gap
+        accentFan = accentShape.kind == StreamKind.Fan;
         accent.Begin(new BossPattern { name = "accent", streams = new[] { accentShape } }, host, 1, 79, 0, prepare: false);
+        accent.AnnounceEmits = false;
+        tellSource = sources.wall;
+    }
+
+    // Slots (indices into `parts`, the boss's current attack parts) of the muzzles charging for the next wave.
+    public int TellMask(int[] parts)
+    {
+        if (!Telling || parts == null || tellSource.parts == null) return 0;
+        int m = 0;
+        for (int i = 0; i < parts.Length && i < 31; i++)
+            for (int j = 0; j < tellSource.parts.Length; j++) if (parts[i] == tellSource.parts[j]) m |= 1 << i;
+        return m;
     }
 
     public void Suspend()
@@ -53,6 +86,8 @@ public sealed class BossMusicDirector
         source = null;
         pendingAccent = double.NaN;
         Preparing = false;
+        Telling = false;
+        nextWaveBeat = double.NaN;
     }
 
     bool Room(int reserve) => budget == null || budget.ActiveMusicShots <= budget.MusicShotCapacity - reserve;
@@ -72,14 +107,18 @@ public sealed class BossMusicDirector
             Preparing = true;
             host.Mark(host.Emitter(pulseShape.parts[0]), host.Player, .08f, (float)((startBeat - now) * music.SecondsPerBeat));
         }
-        if (now < startBeat) return;
+        if (now < startBeat) { Forecast(music, now, (long)Math.Floor(now * 4 + 1e-8)); return; }
         Preparing = false;
         long tick = (long)Math.Floor(now * 4 + 1e-8);
-        if (tick <= lastTick) return;
+        if (tick <= lastTick) { UpdateTell(now); return; }
         lastTick = tick; // one current subdivision, never replay a backlog
         double scheduled = tick * .25;
         double late = now - scheduled;
-        double allowedLate = Math.Max(0, realDt) / music.SecondsPerBeat + 1e-6;
+        // A sixteenth is seen the first frame the clock is past it. The clock moves in AUDIO-BUFFER steps (dspTime:
+        // 20..45 ms on phones), which can be longer than a frame (8 ms at 120 Hz), so "late by more than a frame" is
+        // not a missed beat: a wave seen up to AudioStepSeconds late still fires, with its flight shortened by the
+        // lateness so it lands on the beat. (Only one current sixteenth is ever played: no backlog after a pause.)
+        double allowedLate = Math.Max(Math.Max(0, realDt), AudioStepSeconds) / music.SecondsPerBeat + 1e-6;
         if (!double.IsNaN(pendingAccent) && now - pendingAccent > allowedLate) pendingAccent = double.NaN;
         if (late > allowedLate) return;
 
@@ -100,15 +139,23 @@ public sealed class BossMusicDirector
         LastLateBeats = Math.Max(0, late);
         // WAVES: each spawns on a sixteenth chosen by the arrangement's rhythm; the gap is always reachable.
         int bar = (int)(((tick - 4L * music.DownbeatBeat) % WaveRhythm.TicksPerBar + WaveRhythm.TicksPerBar) % WaveRhythm.TicksPerBar);
-        if (((WaveRhythm.Mask(moment.kind, Intensity) >> bar) & 1) != 0 && gameClock - lastWaveGame >= MinWaveSpacing && Room(WaveReserve))
+        // the accent landing on this sixteenth IS its wave (one firing per sixteenth: one part, one drawing)
+        bool accentHere = !double.IsNaN(pendingAccent) && scheduled >= pendingAccent && Room(48);
+        if (!accentHere && ((WaveRhythm.Mask(moment.kind, Intensity) >> bar) & 1) != 0 && gameClock - lastWaveGame >= MinWaveSpacing && Room(WaveReserve))
         {
             bool telegraph = Intensity < .75f || waves.Waves % 4 == 0;
-            if (waves.Emit(Intensity, music.SecondsPerBeat, gameClock, telegraph) > 0)
+            // a held breath never runs into the next wave's drawing
+            int mask = WaveRhythm.Mask(moment.kind, Intensity), gapTicks = 1;
+            while (gapTicks < WaveRhythm.TicksPerBar && ((mask >> ((bar + gapTicks) % WaveRhythm.TicksPerBar)) & 1) == 0) gapTicks++;
+            float holdCap = (float)(gapTicks * .25 * music.SecondsPerBeat * .85);
+            if (waves.Emit(Intensity, music.SecondsPerBeat, gameClock, telegraph, (float)(Math.Max(0, late) * music.SecondsPerBeat), holdCap) > 0)
             {
                 lastWaveGame = gameClock;
+                lastWaveBeat = scheduled;
                 Emissions++; WaveEmissions++;
             }
         }
+        Forecast(music, now, tick);
 
         // Warn two beats ahead while the other voices keep firing. Re-plan each accent
         // from the current ship position; pause/resume never launches an expired plan.
@@ -132,12 +179,53 @@ public sealed class BossMusicDirector
             if (Room(48))
             {
                 // the Tempest Engine's lattice is a heavy three-row wave: it joins the gap chain like every other wave
-                if (accentWave) waves.EmitMove(WaveMove.Wall(0, false, 3), Intensity, music.SecondsPerBeat, gameClock, true);
-                else Emit(accent, scheduled);
+                if (accentWave || accentFan)
+                {
+                    var heavy = accentWave ? WaveMove.Wall(0, false, 3) : WaveMove.Fan(0, 60f, 20);
+                    if (waves.EmitMove(heavy, Intensity, music.SecondsPerBeat, gameClock, true, (float)(Math.Max(0, late) * music.SecondsPerBeat)) > 0)
+                    {
+                        lastWaveGame = gameClock; lastWaveBeat = scheduled;
+                        Emissions++;
+                    }
+                }
+                else
+                {
+                    Emit(accent, scheduled);
+                    for (int i = 0; i < sources.accent.parts.Length; i++) host.EmittedFrom(sources.accent.parts[i], 0f);
+                }
                 AccentEmissions++;
             }
             pendingAccent = double.NaN;
         }
+    }
+
+    // Finds the next sixteenth (within a bar) the rhythm spawns a wave on and the body part it will leave from, so the
+    // boss can tell it on the beat before.
+    void Forecast(IBeatSource music, double now, long tick)
+    {
+        var moment = music is IMusicBeatSource arranged ? arranged.MusicNow : new MusicMoment { energy = .5f, bass = .5f, accent = .5f, kind = "drive" };
+        float intensity = Preparing ? Mathf.Clamp01(moment.energy * .75f + moment.bass * .15f) : Intensity;
+        int mask = WaveRhythm.Mask(moment.kind, intensity);
+        nextWaveBeat = double.NaN;
+        long from = Preparing ? (long)Math.Ceiling(startBeat * 4 - 1e-8) : tick + 1;
+        for (long t = from; t < from + WaveRhythm.TicksPerBar; t++)
+        {
+            int bar = (int)(((t - 4L * music.DownbeatBeat) % WaveRhythm.TicksPerBar + WaveRhythm.TicksPerBar) % WaveRhythm.TicksPerBar);
+            if (((mask >> bar) & 1) == 0) continue;
+            nextWaveBeat = t * .25;
+            break;
+        }
+        tellSource = waves.Peek(intensity);
+        UpdateTell(now);
+    }
+
+    void UpdateTell(double now)
+    {
+        if (double.IsNaN(nextWaveBeat) || now >= nextWaveBeat) { Telling = false; TellProgress = 0f; return; }
+        double start = Math.Max(nextWaveBeat - TellBeats, Math.Max(lastWaveBeat, startBeat - 2));
+        if (now < start || nextWaveBeat - start < 1e-6) { Telling = false; TellProgress = 0f; return; }
+        Telling = true;
+        TellProgress = Mathf.Clamp01((float)((now - start) / (nextWaveBeat - start)));
     }
 
     void Emit(BossPatternRunner voice, double beat)

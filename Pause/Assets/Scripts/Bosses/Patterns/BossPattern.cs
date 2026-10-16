@@ -35,6 +35,11 @@ public struct PShot
     public int burst;                    // > 0: it bursts into a ring of this many shots when its fuse is up
     public float burstSpeed;
     public float burstRot;               // degrees the burst ring is turned by
+    // > 0: a DEPLOYING shot (docs/boss-bullet-waves.md). It leaves its muzzle on the boss, flies to its place in the
+    // formation, and after `turnAt` seconds takes the velocity `then` (a wall / curtain / rain drop falling down its
+    // lane; zero = a thrown mine settling on its spot). `then` is scaled with the launch velocity by the host.
+    public float turnAt;
+    public Vector2 then;
 }
 
 public sealed class PatternStream
@@ -113,6 +118,8 @@ public interface IPatternHost
     float ZoneTop { get; }
     void Fire(Vector2 at, Vector2 velocity, ref PShot shot);
     void Emitted();                         // the boss shows its fire pose
+    // `part` just fired: its muzzle flashes and the boss shows the fire drawing for at least `holdSeconds` (a breath).
+    void EmittedFrom(int part, float holdSeconds) => Emitted();
     void Mark(Vector2 a, Vector2 b, float halfWidth, float seconds);   // a telegraph (a == b: a spot)
     float ShotSpeedScale => 1f;             // what Fire multiplies a velocity by (BossConfig.ShotScale in the game)
 }
@@ -194,6 +201,9 @@ public sealed class BossPatternRunner
         for (int i = 0; i < MaxStreams; i++) emitted[i] = 0;
     }
 
+    // false: the caller flashes the muzzles itself (the musical director names the part that fired)
+    public bool AnnounceEmits = true;
+
     public void EmitMusical(float musicalPosition)
     {
         for (int i = 0; i < pat.streams.Length; i++)
@@ -201,7 +211,7 @@ public sealed class BossPatternRunner
             Emit(i, pat.streams[i], musicalPosition);
             emitted[i]++;
             Emissions++;
-            host.Emitted();
+            if (AnnounceEmits) host.Emitted();
         }
     }
 
@@ -392,6 +402,36 @@ public sealed class BossPatternRunner
         Fired++;
     }
 
+    // A curtain / rain / lattice bullet (docs/boss-bullet-waves.md: the deploy): it leaves the stream's muzzle nearest
+    // its lane, reaches its place `to` in the formation under the boss after `turn` seconds and then flies `then`.
+    void Deploy(int i, PatternStream s, Vector2 to, float turn, Vector2 then)
+    {
+        var from = WaveDeploy.Nearest(host, PartsOf(s), to.x);
+        var sh = shot[i];
+        float k = Mathf.Max(.01f, host.ShotSpeedScale);
+        sh.turnAt = turn;
+        sh.then = then * emitSpeed;                 // scaled by the host like any straight shot
+        host.Fire(from, (to - from) / turn / k, ref sh);
+        Fired++;
+    }
+
+    static readonly int[] PartZero = { 0 };
+    static int[] PartsOf(PatternStream s) => s.parts != null && s.parts.Length > 0 ? s.parts : PartZero;
+
+    // The formation line under a stream's muzzles, and the spray time to the farthest lane.
+    float FormY(PatternStream s) => WaveDeploy.FormY(host, WaveDeploy.LowestY(host, PartsOf(s)));
+    float Spray(PatternStream s)
+    {
+        var parts = PartsOf(s);
+        float reach = 0f;
+        for (int q = 0; q < parts.Length; q++)
+        {
+            var e = host.Emitter(parts[q]);
+            reach = Mathf.Max(reach, (host.RailEdge + Mathf.Abs(e.x)) / parts.Length);
+        }
+        return WaveDeploy.FanOut(reach);
+    }
+
     void Emit(int i, PatternStream s, float at)
     {
         int k = emitted[i];
@@ -470,10 +510,10 @@ public sealed class BossPatternRunner
             {
                 float gc = gapNow[i];
                 float edge = host.RailEdge - .15f;
-                float y = host.SpawnTop;
+                float y = FormY(s), t = Spray(s);
                 float sp = s.speed + Rand() * s.speedJitter;
-                for (float x = gc - s.gap * .5f; x > -edge; x -= s.pitch) Fire(i, new Vector2(x, y), new Vector2(0f, -sp));
-                for (float x = gc + s.gap * .5f; x < edge; x += s.pitch) Fire(i, new Vector2(x, y), new Vector2(0f, -sp));
+                for (float x = gc - s.gap * .5f; x > -edge; x -= s.pitch) Deploy(i, s, new Vector2(x, y), t, new Vector2(0f, -sp));
+                for (float x = gc + s.gap * .5f; x < edge; x += s.pitch) Deploy(i, s, new Vector2(x, y), t, new Vector2(0f, -sp));
                 // the next wall's gap: a step to one side, turning at the end of the lane
                 float lim = Mathf.Max(0f, host.ShipHalfWidth - .3f);
                 float nx = gc + gapDir[i] * s.gapStep;
@@ -488,11 +528,12 @@ public sealed class BossPatternRunner
                 for (int l = nl - 1; l > 0; l--) { int j = rng.Next(l + 1); int t = lanes[l]; lanes[l] = lanes[j]; lanes[j] = t; }
                 int c = Mathf.Clamp(s.count, 1, nl - Mathf.Max(1, s.free));
                 float w = host.RailEdge * 2f / nl;
+                float y0 = FormY(s), spray = Spray(s);
                 for (int d = 0; d < c; d++)
                 {
                     float x = -host.RailEdge + w * (lanes[d] + .5f) + (Rand() - .5f) * w * .35f;
                     float sp = s.speed + Rand() * s.speedJitter;
-                    Fire(i, new Vector2(x, host.SpawnTop + Rand() * .3f), new Vector2(0f, -sp));
+                    Deploy(i, s, new Vector2(x, y0 - Rand() * .3f), spray, new Vector2(0f, -sp));
                 }
                 break;
             }
@@ -502,11 +543,13 @@ public sealed class BossPatternRunner
                 float dir = ((k / run) % 2 == 0) ? 1f : -1f;
                 float ang = s.angle * Mathf.Deg2Rad;
                 var v = new Vector2(dir * Mathf.Sin(ang), -Mathf.Cos(ang)) * s.speed;
-                float fall = Mathf.Max(1f, host.SpawnTop - (host.ZoneBottom + host.ZoneTop) * .5f);
-                float drift = Mathf.Tan(ang) * fall;
-                float lo = Mathf.Max(-4.1f, -host.RailEdge - Mathf.Max(0f, -dir * drift) - .2f), hi = Mathf.Min(4.1f, host.RailEdge + Mathf.Max(0f, dir * drift) + .2f);
+                // the rows form under the boss inside the rails and drift from there (a bullet never starts off screen).
+                // A row used to come in from above spanning the rails plus its drift, i.e. partly behind the walls and
+                // off the screen; the part that was ever in play is the same grid.
+                float y = FormY(s), t = Spray(s);
+                float lo = -host.RailEdge + .15f, hi = host.RailEdge - .15f;
                 float offs = (k % 2 == 0) ? 0f : s.pitch * .5f;
-                for (float x = lo + offs; x < hi; x += s.pitch) Fire(i, new Vector2(x, host.SpawnTop), v);
+                for (float x = lo + offs; x < hi; x += s.pitch) Deploy(i, s, new Vector2(x, y), t, v);
                 break;
             }
             case StreamKind.Bomb:
@@ -544,12 +587,17 @@ public sealed class BossPatternRunner
             }
             case StreamKind.Mines:
             {
+                // thrown from the stream's part (the Dune-Eater's boom) onto the marked spots, where they settle
                 int c = spotCount[i];
                 for (int j = 0; j < c; j++)
                 {
+                    var to = spots[i * MaxSpots + j];
+                    var from = Part(s, j);
                     var sh = shot[i];
-                    sh.fuse = s.fuse;
-                    host.Fire(spots[i * MaxSpots + j], Vector2.zero, ref sh);
+                    sh.turnAt = MineThrow;
+                    sh.then = Vector2.zero;
+                    sh.fuse = MineThrow + s.fuse;
+                    host.Fire(from, (to - from) / MineThrow, ref sh);
                     Fired++;
                 }
                 break;
@@ -560,7 +608,9 @@ public sealed class BossPatternRunner
                 int n = 2;
                 for (int q = 0; q < n; q++)
                 {
-                    var from = PartCount(s) >= 2 ? Part(s, q) : Part(s, 0) + new Vector2(q == 0 ? -s.side : s.side, 0f);
+                    // both jaws leave the boss's own muzzle(s): with one part (the Dune-Eater's maw) the two streams
+                    // fork from it, aimed either side of the ship (never from empty air beside the boss)
+                    var from = PartCount(s) >= 2 ? Part(s, q) : Part(s, 0);
                     float side = from.x < player.x ? -1f : 1f;
                     var target = new Vector2(player.x + side * off, player.y);
                     float aim = AimDeg(from, target);
@@ -575,6 +625,8 @@ public sealed class BossPatternRunner
             }
         }
     }
+
+    public const float MineThrow = .45f;   // seconds a mine flies from the boss to its spot
 
     // `count` mines on marked spots: inside the ship's zone, `clear` from the ship, `minSep` from each other.
     void PlaceMines(int i, PatternStream s, Vector2 player, float tell)

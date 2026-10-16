@@ -96,6 +96,11 @@ public class BossActor : MonoBehaviour, IMusicPatternHost
     BossProjectilePool poolNow;
     int patternSeed = 11;
     public BossPatternRunner Runner => runner;
+    // Tests: drive the fight from this clock instead of the boss song's (BossBeat.Source).
+    public IBeatSource BeatOverride;
+    // The musical director's last fire: which pose's fire drawing is up (the source that fired).
+    int musicFirePose;
+    float fireStamp = -1f;
     public BossPatternMarkers Markers => markers;
     public bool PatternPhase => phase == AttackPhase.Pattern;
     public AttackHazard ArmedHazard(int i) => i >= 0 && i < armedCount ? armed[i] : null;
@@ -378,8 +383,9 @@ public class BossActor : MonoBehaviour, IMusicPatternHost
         runner.Stop();
         musicRunning = false;
         musicDirector = new BossMusicDirector(World, boss, this);
+        // its parts are every muzzle the song's waves leave from (BossWaveSources): the charge and flash slots
         musicAttack = new BossAttack { name = "song arrangement", kind = BossAttackKind.Pattern,
-            parts = boss.DefaultAttacks[0].parts, emitters = boss.DefaultAttacks[0].emitters,
+            parts = musicDirector.Parts, emitters = boss.DefaultAttacks[0].emitters,
             tellSeconds = .9f, fireFrame = true };
         // Its hearts pop in round it now it has landed.
         if (hearts == null) hearts = BossHearts.Attach(this, Mathf.Max(1, BossConfig.Hearts));
@@ -440,7 +446,7 @@ public class BossActor : MonoBehaviour, IMusicPatternHost
         else bodyRespawn = BossConfig.BodyRespawnSeconds;
 
         if (fireLeft > 0f) fireLeft -= dt;
-        StepAttacks(dt, realDt, player, progress01, pool, BossBeat.Source);
+        StepAttacks(dt, realDt, player, progress01, pool, BeatOverride ?? BossBeat.Source);
         if (markers != null) markers.Step(musicRunning ? realDt : dt);
         RefreshFrame();
         if (hearts != null) hearts.Step(realDt, dt);   // after the move: the ring is round where it is now
@@ -459,7 +465,9 @@ public class BossActor : MonoBehaviour, IMusicPatternHost
             }
             playerNow = player; poolNow = pool;
             musicDirector.Step(beatSource, dt, realDt, progress01);
-            current.tell = musicDirector.Pose;
+            // the pose on screen is the one of the body part about to fire (its tell on the beat before), or of the
+            // part that just fired while its fire drawing is up
+            current.tell = fireLeft > 0f ? musicFirePose : musicDirector.TellPose;
             tellAge += dt;
             phase = musicDirector.Preparing ? AttackPhase.Tell : AttackPhase.Pattern;
             return;
@@ -645,14 +653,44 @@ public class BossActor : MonoBehaviour, IMusicPatternHost
     float IPatternHost.ZoneBottom => ShipReach.BottomFor(PlayField.Live);
     float IPatternHost.ZoneTop => Mathf.Min(ShipReach.TopFor(PlayField.Live), BossConfig.ShipCeilingFor(PlayField.Live, boss));
 
+    // Shots that started outside the view (tests read it; it must stay 0: every shot leaves a muzzle on the boss).
+    public static int OffscreenSpawns;
+
     void IPatternHost.Fire(Vector2 at, Vector2 velocity, ref PShot shot)
     {
         if (poolNow == null) return;
+        // a boss shot starts on the boss, never off the screen (a muzzle above the view would be a bug in the table
+        // or the boss's rest height): counted, and pulled back to the view's edge so it is at least seen leaving
+        float top = CameraFit.ViewTop - .05f;
+        if (at.y > top || Mathf.Abs(at.x) > CameraFit.GameplayHalfWidth)
+        {
+            if (OffscreenSpawns++ == 0) Debug.LogWarning("[BOSS] shot spawned outside the view at " + at + " (BossWaveTest asserts this never happens)");
+            at = new Vector2(Mathf.Clamp(at.x, -CameraFit.GameplayHalfWidth, CameraFit.GameplayHalfWidth), Mathf.Min(at.y, top));
+        }
         // straight shots reach the ship's rows in the same time on every screen (BossConfig.ShotScale); a bomb's flight is
         // already worked out to its spot, and a mine stands still
-        if (!(shot.fuse > 0f)) velocity *= BossConfig.ShotScale;
+        var then = shot.then;
+        if (!(shot.fuse > 0f)) { velocity *= BossConfig.ShotScale; shot.then *= BossConfig.ShotScale; }
         poolNow.FireShot(boss, new Vector3(at.x, at.y, 0f), velocity, ref shot);
+        shot.then = then;
     }
+
+    // One part fired (the musical director's waves): its muzzle flashes, the fire drawing of its pose is held for at
+    // least `holdSeconds` (the Drake's breath is a stream), and the slot of every other part goes dark.
+    void IPatternHost.EmittedFrom(int part, float holdSeconds)
+    {
+        // the first part to fire in a frame names the drawing (a wave before an accent on the same sixteenth); a new
+        // firing ends the last one's flashes and held drawing
+        if (fireStamp != animClock) { fireStamp = animClock; musicFirePose = BossWaveSources.PoseOf(boss, part); fireLeft = 0f; firedMask = 0; }
+        fireLeft = Mathf.Max(fireLeft, Mathf.Max(BossArt.FireTicks * BossArt.Tick, holdSeconds));
+        var parts = current != null ? current.parts : null;
+        if (parts == null) return;
+        for (int i = 0; i < parts.Length && i < MaxParts; i++) if (parts[i] == part) firedMask |= 1 << i;
+    }
+
+    // Test reads: the slots (indices into CurrentAttack.parts) flashing / charging now.
+    public int FiredMask => fireLeft > 0f ? firedMask : 0;
+    public float FireLeft => fireLeft;
 
     void IPatternHost.Emitted()
     {
@@ -828,6 +866,14 @@ public class BossActor : MonoBehaviour, IMusicPatternHost
         // a damaged boss keeps its pose through a hit (the white flash is the hit now): the
         // pristine Hit drawing would read as it healing for two ticks per blow
         if (flashLeft > 0f && damageStage <= 0) SetFrame(BossArt.Hit);
+        else if (musicRunning && current != null)
+        {
+            // the song's waves: the source's tell drawings on the beat before (the first two: the third of an expanded
+            // atlas is its fire drawing), the fire drawing the instant the bullets leave (held for a breath), idle between
+            if (fireLeft > 0f) SetFrame(BossArt.FireFrame(boss, musicFirePose));
+            else if (musicDirector.Telling) SetFrame(BossArt.TellFrame(boss, musicDirector.TellPose, musicDirector.TellProgress * .66f));
+            else SetFrame(BossArt.IdleFrame(boss, animClock));
+        }
         else if (fireLeft > 0f && current != null && current.fireFrame && (phase == AttackPhase.Volleys || phase == AttackPhase.Pattern)) SetFrame(BossArt.FireFrame(boss, current.tell));
         else if (phase == AttackPhase.Tell && current != null)
             SetFrame(BossArt.TellFrame(boss, current.tell, tellAge / Mathf.Max(.01f, current.tellSeconds)));
@@ -858,16 +904,18 @@ public class BossActor : MonoBehaviour, IMusicPatternHost
     void RefreshGlows()
     {
         bool fighting = mode == Mode.Fighting && current != null && current.parts != null;
-        bool telling = fighting && phase == AttackPhase.Tell;
+        bool music = fighting && musicRunning && musicDirector != null;
         bool flashing = fighting && (phase == AttackPhase.Volleys || phase == AttackPhase.Pattern) && fireLeft > 0f;
+        bool telling = fighting && (music ? musicDirector.Telling && !flashing : phase == AttackPhase.Tell);
         int n = fighting ? Mathf.Min(MaxParts, current.parts.Length) : 0;
-        float k = telling ? Mathf.Clamp01(tellAge / Mathf.Max(.05f, current.tellSeconds)) : 0f;
+        float k = !telling ? 0f : music ? musicDirector.TellProgress : Mathf.Clamp01(tellAge / Mathf.Max(.05f, current.tellSeconds));
+        int chargeMask = music ? musicDirector.TellMask(current.parts) : -1;
         int step = Mathf.FloorToInt(tellAge / (2f * BossArt.Tick));
         for (int i = 0; i < MaxParts; i++)
         {
             var c = charges[i];
             var r = rings[i];
-            bool on = i < n && current.parts[i] >= 0 && (telling || (flashing && (firedMask & (1 << i)) != 0));
+            bool on = i < n && current.parts[i] >= 0 && ((telling && (chargeMask & (1 << i)) != 0) || (flashing && (firedMask & (1 << i)) != 0));
             c.enabled = on;
             r.enabled = on && telling;
             if (!on) continue;
