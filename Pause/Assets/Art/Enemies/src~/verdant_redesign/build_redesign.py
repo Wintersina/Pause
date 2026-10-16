@@ -32,6 +32,9 @@ SPOT = {
     "verdant_fighter_4": ((0, 62), (255, 220, 120)),
     "verdant_big": ((0, 24), (255, 226, 130)),
 }
+LIFT = {"verdant_fighter_4": (.4, 1.2), "verdant_rock_spore": (.52, 1.2), "verdant_fighter_2": (.7, 1.05), "verdant_rock_vine": (.58, 1.12),
+        "verdant_rock_knot": (.62, 1.12), "verdant_chaser": (.7, 1.1), "verdant_fighter_1": (.85, 1.0), "verdant_big": (.8, 1.1)}   # name -> (value gamma, saturation x)
+STRETCH = {"verdant_rock_knot": (1.16, .88)}
 GLOW = {   # rock glow colour (used for the tell flare)
     "verdant_rock_pod": (255, 190, 90), "verdant_rock_spore": (255, 245, 190),
     "verdant_rock_knot": (255, 226, 120), "verdant_rock_vine": (200, 255, 215),
@@ -67,6 +70,14 @@ def load(path, canvas=None):
     # drop stray specks: keep islands near the main body (dilated union)
     keep = largest(np.asarray(Image.fromarray(a[:, :, 3]).filter(ImageFilter.MaxFilter(15))) > 0)
     a[~keep, 3] = 0
+    stem = Path(path).stem
+    key = stem[:-2] if stem.endswith(("_a", "_b")) else stem
+    if key in LIFT:                                  # readability against the jungle backdrops (no outline): raise value, nudge saturation
+        g, sat = LIFT[key]
+        hsv = np.asarray(Image.fromarray(a[:, :, :3]).convert("HSV")).astype(np.float32) / 255
+        hsv[:, :, 2] = hsv[:, :, 2] ** g
+        hsv[:, :, 1] = np.minimum(1, hsv[:, :, 1] * sat)
+        a[:, :, :3] = np.asarray(Image.fromarray((hsv * 255).astype(np.uint8), "HSV").convert("RGB"))
     return Image.fromarray(a, "RGBA")
 
 
@@ -215,6 +226,9 @@ def build(name):
     spec = briefs.BRIEFS[name]
     side = spec["cell"]
     m = load(HERE / "src" / f"{name}.png")
+    if name in STRETCH:      # keeps two round tumbling rocks (Bramble Knot, Tide's Brain Coral) distinct drawings: a squat, wider silhouette
+        sx, sy = STRETCH[name]; m = m.resize((round(m.width * sx), round(m.height * sy)), Image.Resampling.LANCZOS)
+        a = np.array(m); a[:, :, 3] = np.where(a[:, :, 3] > 110, 255, 0); m = Image.fromarray(a, "RGBA")
     canvas = m.size
     f = spec["size"] / max(bbox(m)[2] - bbox(m)[0], bbox(m)[3] - bbox(m)[1])
     key, off = to_cell(m, f, spec["cell"], side)

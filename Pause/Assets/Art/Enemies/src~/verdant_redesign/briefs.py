@@ -80,7 +80,7 @@ BRIEFS = {
         wings=""),
     "verdant_rock_knot": dict(
         kind="rock", cell=192, size=164, facing="any",
-        brief="Bramble Knot: a hazard (NOT a craft: no engines, no thrusters, no jets, no machinery): a rough chunk of grey granite strangled "
+        brief="Bramble Knot: a hazard (NOT a craft: no engines, no thrusters, no jets, no machinery): a rough, angular, clearly NOT round, wide wedge-shaped chunk of grey granite (jagged outline, one long tapering side) strangled "
               "by thick walnut-brown thorny vines knotted around it, with long thorns, a few dry leaves, and one small glowing bile-yellow bud "
               "in the knot. PALETTE: warm grey granite, walnut and umber vines, bone thorns, a small gold-yellow glow.",
         wings=""),
