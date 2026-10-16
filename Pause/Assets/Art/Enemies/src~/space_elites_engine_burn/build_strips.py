@@ -93,177 +93,73 @@ def find_openings(hull_cell, seeds, manual):
     return out
 
 
-BAYER = np.array([[0, 8, 2, 10], [12, 4, 14, 6], [3, 11, 1, 9], [15, 7, 13, 5]]) / 16.0 + 1 / 32.0   # 4x4 ordered-dither thresholds
-
-
-def bayer(x, y):
-    return BAYER[y % 4, x % 4]
-
-
-def lerp_col(a, b, t):
-    return tuple(int(round(a[i] + (b[i] - a[i]) * t)) for i in range(3))
-
-
-def neck(t):
-    """Plume width vs the bore, by distance from the exit: a slight narrowing (vena contracta), then the flare."""
-    if t < .08:
-        return 1 - .18 * (t / .08)
-    if t < .30:
-        return .82 + .26 * ((t - .08) / .22)
-    return 1.08
-
-
-def plume_layer(cx, root_y, length, width, col, alpha, len_k, wid_k, unit, jitter, rnd, ragged=0.0, dissolve=True):
-    """One layer of a plume on a canvas of `unit`-px blocks, root at (cx, root_y), going down. Returns an RGBA cell-size image.
-    The edge flickers (`jitter` blocks), the far end dissolves in an ordered dither, and the root narrows then flares."""
-    n = CELL // unit
-    canvas = Image.new("RGBA", (n, n))
+def flame(canvas, x, y, length, width, cols, rnd, ragged=0.0):
+    """One engine plume leaving (x, y) downward, on a canvas of U-px blocks (the same recipe as the Tide elites):
+    a white core a few blocks wide, a mid-tone body and a darker outer layer, all hard-stepped (no dither). It widens slightly just below
+    the exit, then tapers raggedly (the edges lose blocks, more towards the tip, different every drawing) and ends in a few
+    detached single blocks."""
     d = ImageDraw.Draw(canvas)
-    L = length * len_k / unit
-    fill = col + (255,)
-    for row in range(int(L) + 1):
-        t = row / max(1, L)
-        hw = (width * wid_k / (2 * unit)) * neck(t) * (1 - t ** 1.7) ** .9
-        hw += jitter * (rnd.random() - .5) * 1.6
-        if ragged and row > L * .55:
-            hw *= 1 - ragged * rnd.random()
-        hw = max(hw, .5 if row < L else 0)
-        x0 = int(round(cx / unit - hw)); x1 = max(x0, int(round(cx / unit + hw - .01)))
-        yy = int(root_y / unit) + row
-        if dissolve and t > .78:
-            keep = (1 - t) / .22
-            for bx in range(x0, x1 + 1):
-                if keep > bayer(bx, yy):
-                    d.point((bx, yy), fill=fill)
-        else:
-            d.line([(x0, yy), (x1, yy)], fill=fill)
-    out = canvas.resize((CELL, CELL), Image.Resampling.NEAREST)
-    if alpha < 255:
-        out.putalpha(out.getchannel("A").point(lambda v: v * alpha // 255))
-    return out
+    tip_row = 0
+    for layer, (col, lk, wk) in enumerate(zip(cols, (1.0, .74, .36), (1.0, .66, .34))):
+        L = length * lk / U
+        for row in range(int(L) + 1):
+            t = row / max(1, L)
+            ramp = min(1.0, t / .25)
+            hw = (width * wk / (2 * U)) * (.9 + .2 * ramp * (2 - ramp)) * (1 - t ** 1.8) ** .85
+            if ragged and layer == 0 and row > L * .5:
+                hw *= 1 - ragged * rnd.random()
+            hw = max(hw, .5 if row < L else 0)
+            x0 = int(round(x / U - hw)); x1 = max(x0, int(round(x / U + hw - .01)))
+            yy = int(y / U) + row
+            if layer < 2 and row > 1 and x1 - x0 >= 2:                    # ragged edges: whole blocks drop out, more so near the tip
+                p_drop = .12 + .45 * t
+                if rnd.random() < p_drop: x0 += 1
+                if rnd.random() < p_drop: x1 -= 1
+            d.line([(x0, yy), (x1, yy)], fill=col + (255,))
+            if layer == 0:
+                tip_row = max(tip_row, yy)
+    for _ in range(rnd.randint(2, 4)):                                    # detached single blocks past the tip
+        sx = int(x / U + rnd.randint(-2, 2)); sy = tip_row + rnd.randint(2, 6)
+        if (sy + 1) * U <= CELL - 8:
+            d.point((sx, sy), fill=(cols[1] if rnd.random() < .6 else cols[0]) + (255,))
 
 
-def mouth_grid(op):
+def halo(canvas_size, op, lens_px, col):
+    """One very faint soft elliptical halo (low alpha) round the plume, from the mouth centre line down."""
     cx, cy, rx, ry = op
-    yy, xx = np.mgrid[0:CELL, 0:CELL]
-    e = ((xx - cx) / rx) ** 2 + ((yy - cy) / ry) ** 2
-    return xx, yy, e
+    m = Image.new("RGBA", (CELL, CELL))
+    ImageDraw.Draw(m).ellipse((cx - rx * 1.5, cy - ry, cx + rx * 1.5, cy + lens_px * 1.1), fill=col + (20,))
+    keep = Image.new("L", (CELL, CELL), 0)
+    ImageDraw.Draw(keep).rectangle((0, int(cy), CELL, CELL), fill=255)
+    m.putalpha(Image.fromarray(np.minimum(np.array(m.getchannel("A")), np.array(keep)), "L"))
+    return m
 
 
-def keep_mask(op):
-    """Soft root: below the mouth's centre line anything goes; above it the plume only lives inside the mouth and fades out
-    through an ordered-dither band at the ellipse edge (no hard clip line)."""
-    cx, cy, rx, ry = op
-    xx, yy, e = mouth_grid(op)
-    level = np.clip((1 - e) / .38, 0, 1)
-    inside = level > BAYER[yy % 4, xx % 4]
-    return Image.fromarray(np.where(yy >= int(cy), 255, np.where(inside, 255, 0)).astype(np.uint8), "L")
+def pilot_lights(mouths, col, strength):
+    """Cell 1: each bell's mouth glows from inside (a small lit ellipse, hard steps), nothing leaves it yet."""
+    im = Image.new("RGBA", (CELL, CELL))
+    d = ImageDraw.Draw(im)
+    for cx, cy, rx, ry in mouths:
+        a = round(255 * strength)
+        d.ellipse((cx - rx * .72, cy - ry * .6, cx + rx * .72, cy + ry * .6), fill=col + (a,))
+        d.ellipse((cx - rx * .36, cy - ry * .3, cx + rx * .36, cy + ry * .3), fill=(255, 255, 255, a))
+    return im
 
 
-def inner_glow(op, cols, strength):
-    """The bell's inside lit: hot white-yellow core -> flame colours -> engine colour at the wall, 4 dithered ramp steps."""
-    cx, cy, rx, ry = op
-    xx, yy, e = mouth_grid(op)
-    r = np.sqrt(e)
-    ramp = [(255, 250, 205), cols[2], cols[1], cols[0]]
-    t = np.clip(r * 1.05 + (BAYER[yy % 4, xx % 4] - .5) * .30, 0, .999)
-    idx = (t * 4).astype(int)
-    img = np.zeros((CELL, CELL, 4), np.uint8)
-    for k, c in enumerate(ramp):
-        m = (idx == k) & (r <= 1)
-        a = 255 if k < 3 else 150                       # the outermost step is translucent: the dark wall still shows through
-        img[m] = (*c, round(a * strength))
-    return Image.fromarray(img, "RGBA")
-
-
-def spill(hull_cell, mouths, col, strength):
-    """Emissive spill: hull pixels just round each mouth take the engine colour (dithered steps, strongest at the lip)."""
-    arr = np.array(hull_cell).astype(float)
-    solid = arr[..., 3] > 0
-    for i, op in enumerate(mouths):
-        cx, cy, rx, ry = op
-        xx, yy, e = mouth_grid(op)
-        dist = (np.sqrt(e) - 1) * min(rx, ry * 1.6)
-        ring = solid & (dist >= 0) & (dist <= 7)
-        amt = strength[i] * .5 * (1 - np.clip(dist, 0, 7) / 7)
-        step = np.floor(amt / .12 + BAYER[yy % 4, xx % 4]) * .12
-        amt = np.where(ring, step, 0)[..., None]
-        arr[..., :3] = arr[..., :3] * (1 - amt) + np.array(col, float) * amt
-    return Image.fromarray(arr.clip(0, 255).astype(np.uint8), "RGBA")
-
-
-def halo(mouths, col, strength, lens):
-    """Very soft low-alpha halo round the mouth and the first stretch of the plume (quantised, dithered)."""
-    out = Image.new("RGBA", (CELL, CELL))
-    yy, xx = np.mgrid[0:CELL, 0:CELL]
-    for i, (cx, cy, rx, ry) in enumerate(mouths):
-        if strength[i] <= 0:
-            continue
-        lpx = lens[i] * K
-        hy = cy + ry * .6 + .12 * lpx
-        r = np.sqrt(((xx - cx) / (rx * 1.9)) ** 2 + ((yy - hy) / (rx * 1.35 + .16 * lpx)) ** 2)
-        a = 78 * strength[i] * np.clip(1 - r, 0, 1) ** 1.6
-        q = np.floor(a / 13 + BAYER[yy % 4, xx % 4]) * 13
-        q = np.where(yy >= cy - ry * .5, q, 0)
-        img = np.zeros((CELL, CELL, 4), np.uint8)
-        img[..., :3] = col
-        img[..., 3] = np.clip(q, 0, 255)
-        out.alpha_composite(Image.fromarray(img, "RGBA"))
-    return out
-
-
-def lip_mask(hull_cell, op):
-    """The bell's lower lip: the hull rim just under the mouth. Re-composited OVER the flame so the plume comes out from behind it."""
-    cx, cy, rx, ry = op
-    xx, yy, e = mouth_grid(op)
-    dist_v = (np.sqrt(e) - 1) * ry
-    solid = np.array(hull_cell.getchannel("A")) > 128
-    m = solid & (e > 1) & (dist_v <= 6.5) & (yy > cy + ry * .25) & (np.abs(xx - cx) <= rx + 3)
-    return Image.fromarray(np.where(m, 255, 0).astype(np.uint8), "L")
-
-
-def engine_cell(hull_cell, mouths, cols, lens, wks, pulses, rnd, ragged=0.0, strong=None, glow=1.0, lit_spill=1.0):
-    """One drawing: hull, spill, inner glow, halo, flames (soft root, core + sheath, tip dissolve, sparks, shock diamonds), lip over it all."""
-    n = len(mouths)
-    strong = strong or [False] * n
-    hull_t = spill(hull_cell, mouths, cols[1], [lit_spill * (.55 + .45 * p) * (1 if lens[i] > 0 else .6) for i, p in enumerate(pulses)])
-    c = hull_t.copy()
-    for i, op in enumerate(mouths):
-        c.alpha_composite(inner_glow(op, cols, glow * (.8 + .2 * pulses[i])))
-    c.alpha_composite(halo(mouths, cols[1], [p * (1 if lens[i] > 0 else .45) for i, p in enumerate(pulses)], lens))
-    dark = lerp_col(cols[0], (20, 10, 50), .45)
-    for i, op in enumerate(mouths):
-        L = lens[i]
+def engine_cell(hull_cell, mouths, cols, lens, wks, seed, ragged=0.0):
+    """One drawing: hull, a faint halo, then each plume starting at its bell's mouth centre, over the hull."""
+    rnd = random.Random(seed)
+    c = hull_cell.copy()
+    for op, L in zip(mouths, lens):
+        if L > 0:
+            c.alpha_composite(halo(CELL, op, L * K, cols[0]))
+    for op, L, k in zip(mouths, lens, wks):
         if L <= 0:
             continue
         cx, cy, rx, ry = op
-        root = cy - ry * .5
-        length = L * K + ry * .5
-        width = 2 * rx * .88 * wks[i]
-        p = pulses[i]
-        mid = lerp_col(cols[1], (255, 255, 255), .16 * p)
-        fl = Image.new("RGBA", (CELL, CELL))
-        for col, alpha, lk, wk, unit, jit, dis in ((dark, 130, 1.12, 1.3, 2, 1.0, True), (cols[0], 255, 1.0, 1.0, 4, 0, True),
-                                                    (mid, 255, .72, .66, 4, 0, True), (cols[2], 255, .42, .34, 4, 0, False)):
-            fl.alpha_composite(plume_layer(cx, root, length, width, col, alpha, lk, wk, unit, jit, rnd, ragged if lk == 1.0 else 0, dis))
-        d = ImageDraw.Draw(fl)
-        if strong[i]:                                    # shock diamonds along the axis on the strongest drawings
-            for t in (.40, .64):
-                y0 = int(root + length * .72 * t * 1.1)
-                for dy in range(-4, 5):
-                    hw = 4 - abs(dy)
-                    d.line([(cx - hw, y0 + dy), (cx + hw, y0 + dy)], fill=(255, 255, 255, 255))
-        tip_y = int(root + length)
-        for _ in range(1 + (1 if strong[i] else 0) + rnd.randint(0, 1)):    # 1-3 detached embers past the tip
-            sx = int(cx + rnd.randint(-5, 5)); sy = tip_y + rnd.randint(3, 12)
-            if sy + 2 <= CELL - 8:
-                d.rectangle((sx, sy, sx + 1, sy + 1), fill=(cols[1] if rnd.random() < .6 else cols[2]) + (255,))
-        fl.putalpha(Image.fromarray(np.minimum(np.array(fl.getchannel("A")), np.array(keep_mask(op))), "L"))
-        c.alpha_composite(fl)
-    for op in mouths:                                    # the bell's lower lip stays in front of the flame root
-        lip = hull_t.copy()
-        lip.putalpha(lip_mask(hull_cell, op))
-        c.alpha_composite(lip)
+        fl = Image.new("RGBA", (CELL // U, CELL // U))
+        flame(fl, cx, cy, L * K, 2 * rx * .9 * k, cols, rnd, ragged)
+        c.alpha_composite(fl.resize((CELL, CELL), Image.Resampling.NEAREST))
     return c
 
 
@@ -291,17 +187,13 @@ def build(name, out_dir):
 
     cols = cfg["flame"]
     n = len(mouths)
-    rnd = random.Random(7)
-    cells = [hull_cell.copy(),                                                                       # 0 parked, engines off
-             engine_cell(hull_cell, mouths, cols, [0] * n, [1] * n, [.8] * n, rnd, glow=.7, lit_spill=.6)]   # 1 pilot lights
-    cells.append(engine_cell(hull_cell, mouths, cols, [12] * n, [.75] * n, [.9] * n, rnd))           # 2 ignition
+    cells = [hull_cell.copy()]                                                                       # 0 parked, engines off
+    c1 = hull_cell.copy(); c1.alpha_composite(pilot_lights(mouths, cols[1], .85)); cells.append(c1)  # 1 pilot lights
+    cells.append(engine_cell(hull_cell, mouths, cols, [12] * n, [.75] * n, 1))                       # 2 ignition
     for f in range(BURN):                                                                            # 3..10 burn cycle
         gs = [(f + 3 * i) % BURN for i in range(n)]
-        pulses = [.5 + .5 * math.cos(2 * math.pi * g / BURN) for g in gs]
-        cells.append(engine_cell(hull_cell, mouths, cols, [LENGTHS[g] for g in gs], [WIDTHS[g] for g in gs], pulses,
-                                 random.Random(100 + f), strong=[LENGTHS[g] >= 41 for g in gs]))
-    dmg = engine_cell(hull_cell, mouths, cols, [24 + 5 * (i % 2) for i in range(n)], [.8] * n, [.55 + .3 * (i % 2) for i in range(n)],
-                      random.Random(99), ragged=.5, lit_spill=.7)                                     # 11 damaged
+        cells.append(engine_cell(hull_cell, mouths, cols, [LENGTHS[g] for g in gs], [WIDTHS[g] for g in gs], 10 + f))
+    dmg = engine_cell(hull_cell, mouths, cols, [24 + 5 * (i % 2) for i in range(n)], [.8] * n, 99, ragged=.5)   # 11 damaged
     cracks(dmg, (ox, oy, ox + w, oy + h))
     cells.append(dmg)
     strip = Image.new("RGBA", (CELL * len(cells), CELL))
