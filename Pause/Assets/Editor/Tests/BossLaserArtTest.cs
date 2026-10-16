@@ -4,7 +4,7 @@ using UnityEditor.SceneManagement;
 using UnityEngine;
 
 // THE BOSSES' PAINTED LASER KITS (Art/Resources/Attacks/<World>/<w>_attack_laser*.png, AttackArt.BossLaser, BossBeam), once per
-// world that fires a beam: Space (pod lasers), Frost (glare beams), Verdant (acid cannons), Ember (brow laser). Tide's kit is
+// world that fires a beam: Space (pod lasers), Frost (glare beams), Verdant (acid cannons), Ember (jaw flamethrower). Tide's kit is
 // staged, not installed: its boss keeps the generic beam (checked at the end).
 //
 //   * the three slots exist with the right sizes, imported point-filtered, uncompressed, mip-free; the kit resolves to its
@@ -38,7 +38,7 @@ public static class BossLaserArtTest
         new Kit { world = 0, name = "Space",   attack = "pod lasers",   tell = .95f, hold = .9f, width = .32f, parts = 2 },
         new Kit { world = 1, name = "Frost",   attack = "glare beams",  tell = .8f,  hold = .6f, width = .26f, parts = 2 },
         new Kit { world = 2, name = "Verdant", attack = "acid cannons", tell = 1f,   hold = .8f, width = .3f,  parts = 2 },
-        new Kit { world = 3, name = "Ember",   attack = "brow laser",   tell = .8f,  hold = .8f, width = .34f, parts = 1 },
+        new Kit { world = 3, name = "Ember",   attack = "jaw flamethrower",   tell = .8f,  hold = .8f, width = .34f, parts = 1 },
     };
     static Kit kit;
     static string Dir => "Assets/Art/Resources/Attacks/" + kit.name + "/";

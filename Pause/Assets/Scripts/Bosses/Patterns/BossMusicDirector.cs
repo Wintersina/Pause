@@ -264,6 +264,15 @@ public static class BossMusicVoices
                 a.kind = StreamKind.Mines; a.count = 4; a.gap = 1.4f; a.minSep = 1.7f; a.burst = 0;
                 break;
         }
+        // each voice draws its world's own attack variants (Bosses/<Key>_attackshots.png rows; 0 where unpainted)
+        int[] arts = world >= 0 && world < VoiceArt.Length ? VoiceArt[world] : null;
+        if (arts != null) { p.art = arts[0]; s.art = arts[1]; a.art = arts[2]; }
         return new[] { p, s, a };
     }
+
+    // per world (Space, Frost, Verdant, Ember, Tide, Storm, Desert): pulse, signature, accent
+    public static readonly int[][] VoiceArt =
+    {
+        new[] { 1, 3, 2 }, new[] { 1, 3, 2 }, new[] { 1, 2, 3 }, new[] { 3, 1, 2 }, new[] { 1, 3, 2 }, new[] { 1, 2, 3 }, new[] { 2, 1, 3 },
+    };
 }

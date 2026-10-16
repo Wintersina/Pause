@@ -128,7 +128,7 @@ public static class NoPinkOutsideSpaceTest
             string n = Worlds[w];
             string dir = Path.Combine(Root, "Attacks", n);
             if (Directory.Exists(dir)) foreach (var f in Directory.GetFiles(dir, "*.png")) files.Add("Attacks/" + n + "/" + Path.GetFileName(f));
-            foreach (var suffix in new[] { "", "_shots", "_damage", "_damage_fx", "_death" })
+            foreach (var suffix in new[] { "", "_shots", "_attackshots", "_damage", "_damage_fx", "_death" })
                 if (File.Exists(Path.Combine(Root, "Bosses", n + suffix + ".png"))) files.Add("Bosses/" + n + suffix + ".png");
         }
         string worst = ""; float worstShare = 0f; int bad = 0;

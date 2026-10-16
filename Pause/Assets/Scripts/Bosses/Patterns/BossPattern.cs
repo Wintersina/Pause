@@ -28,6 +28,7 @@ public enum StreamKind
 public struct PShot
 {
     public BossShotStyle style;
+    public int art;                      // PatternStream.art: 0 the shared bolt / shard, k > 0 the boss's attack variant k (BossArt.AttackShot)
     public BossRailMode rail;
     public int bounces;
     public bool bouncy;                  // a RICOCHET shot (BossBounce): picked to bounce off the rails, wears the ricochet cue
@@ -64,6 +65,7 @@ public sealed class PatternStream
     public int bounces;
     public BossRailMode rail = BossRailMode.Absorb;
     public BossShotStyle style;
+    public int art;                     // 0: the boss's shared bolt / shard drawing; k: its attack variant k (Bosses/<Key>_attackshots.png row k; the hit size stays the style's)
     public float homeDeg = 70f, homeSeconds = 1.6f;
     public float fuse = 1.6f;
     public int burst = 8;
@@ -223,7 +225,7 @@ public sealed class BossPatternRunner
         var p = host.Player;
         shot[i] = new PShot
         {
-            style = s.style, rail = s.rail, bounces = s.bounces,
+            style = s.style, art = s.art, rail = s.rail, bounces = s.bounces,
             homeDeg = s.kind == StreamKind.Seeds ? s.homeDeg : 0f, homeSeconds = s.kind == StreamKind.Seeds ? s.homeSeconds : 0f,
             fuse = 0f, burst = 0, burstSpeed = s.burstSpeed,
         };

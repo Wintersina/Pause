@@ -84,6 +84,7 @@ public static class AllTests
         ("ShotMotionTest", ShotMotionTest.Execute),
         ("ShotSkinTest", ShotSkinTest.Execute),
         ("BossLaserArtTest", BossLaserArtTest.Execute),
+        ("BossAttackShotArtTest", BossAttackShotArtTest.Execute),
         ("MineFlameArtTest", MineFlameArtTest.Execute),
         ("VerdantAttackArtTest", VerdantAttackArtTest.Execute),
         ("AtomFlightTest", AtomFlightTest.Execute),

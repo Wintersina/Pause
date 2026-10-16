@@ -176,8 +176,11 @@ public static class BossAttackTest
                 if (a.parts != null) foreach (int p in a.parts) parts &= p >= 0;
                 if (a.radialFrom != null) parts &= a.radialPart >= 0;
             }
+            // (the Cinder Drake's jaw flamethrower rears into the same breath drawing (pose 0) as its fire breath: its brow cell is unused)
+            bool drake = boss.artKey == "Ember";
             Check(boss.artKey + ": each tell pose (0, 1, 2) maps to its own attack",
-                  tells.Count == boss.attacks.Length && tells.Contains(0) && tells.Contains(1) && tells.Contains(2));
+                  drake ? tells.Count == 2 && tells.Contains(0) && tells.Contains(1)
+                        : tells.Count == boss.attacks.Length && tells.Contains(0) && tells.Contains(1) && tells.Contains(2));
             Check(boss.artKey + ": every attack names body parts the table knows", parts);
             Check(boss.artKey + ": at least one attack ricochets off the rails", bounce);
             Check(boss.artKey + ": its laser attack grows out of a part", beam);

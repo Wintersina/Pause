@@ -398,6 +398,52 @@ public static class BossArt
         return lastShotSheet[Mathf.Clamp(cell, 0, ShotColumns - 1)];
     }
 
+    // ---- per-attack shot art (PatternStream.art) ------------------------------------------------------
+    //
+    // Resources/Bosses/<Key>_attackshots.png: 2 columns (frame a, b) x N rows of 128 px cells, one row per attack variant.
+    // PatternStream.art = k (1-based) draws row k-1 instead of the boss's shared bolt / shard pair; art 0, a missing
+    // file or a row outside it keeps the shared pair (so the game plays before the art lands). The variant is drawn at
+    // its stream's style size (Bolt or Shard) and keeps that style's hit radius: the hitbox never depends on the art.
+    // The variants carry their own dark keyline, so they wear no extra rim.
+    public const string AttackShotsSuffix = "_attackshots";
+    public const int AttackShotColumns = 2, AttackShotCell = 128;
+    static readonly Dictionary<string, Sprite[]> attackShots = new Dictionary<string, Sprite[]>();
+    static BossDef lastAttackBoss;
+    static Sprite[] lastAttackSheet;
+    static Texture2D injectedAttackShots;   // tests: served in place of the file for every boss
+
+    public static void InjectAttackShots(Texture2D tex) { injectedAttackShots = tex; lastAttackBoss = null; lastAttackSheet = null; attackShots.Clear(); }
+
+    static Sprite[] AttackShotSheet(BossDef boss)
+    {
+        if (boss == null) return null;
+        if (ReferenceEquals(boss, lastAttackBoss) && lastAttackSheet != null && (lastAttackSheet.Length == 0 || lastAttackSheet[0] != null)) return lastAttackSheet;
+        string path = Folder + boss.artKey + AttackShotsSuffix;
+        Sprite[] sheet;
+        if (!attackShots.TryGetValue(path, out sheet) || sheet == null || (sheet.Length > 0 && sheet[0] == null))
+        {
+            var tex = injectedAttackShots != null ? injectedAttackShots : Resources.Load<Texture2D>(path);
+            int rows = tex != null ? tex.height / AttackShotCell : 0;
+            sheet = tex == null || tex.width != AttackShotColumns * AttackShotCell || rows <= 0
+                ? new Sprite[0] : Slice(tex, AttackShotColumns, rows, AttackShotCell);
+            attackShots[path] = sheet;
+        }
+        lastAttackBoss = boss; lastAttackSheet = sheet;
+        return sheet;
+    }
+
+    // How many attack variants this boss's file holds (0: none painted yet).
+    public static int AttackShotVariants(BossDef boss) { var s = AttackShotSheet(boss); return s == null ? 0 : s.Length / AttackShotColumns; }
+
+    // Frame `frame` (0, 1) of variant `art` (1-based); null when art is 0 or not painted.
+    public static Sprite AttackShot(BossDef boss, int art, int frame)
+    {
+        if (art <= 0) return null;
+        var s = AttackShotSheet(boss);
+        int i = (art - 1) * AttackShotColumns + Mathf.Clamp(frame, 0, AttackShotColumns - 1);
+        return s != null && i >= 0 && i < s.Length ? s[i] : null;
+    }
+
     // ---- the shots' rim ----------------------------------------------------
     //
     // A boss shot's glow: a light "shadow" that hugs the drawing's own

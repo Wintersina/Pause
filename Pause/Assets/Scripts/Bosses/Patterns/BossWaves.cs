@@ -42,6 +42,7 @@ public struct WaveMove
 public sealed class BossWaveStyle
 {
     public BossShotStyle style = BossShotStyle.Shard;
+    public int art;                     // the world's wave drawing: its boss's attack variant (BossArt.AttackShot), 0 = the shared pair
     public float speed = 3.3f;          // nominal fall speed (authored view); quantised to the beat
     public float pitch = .55f;          // spacing between bullets of a wall
     public float rowSep = .5f;          // spacing between rows of a thick wave
@@ -277,26 +278,26 @@ public static class WaveMoves
         all = new[]
         {
             // 0 Void Archon: the pulsar's rotating comb of rings, mirrored sweeping fans, crossing walls at the peak
-            new BossWaveStyle { style = BossShotStyle.Shard, speed = 3.0f, pitch = .6f, moves = new[] {
+            new BossWaveStyle { style = BossShotStyle.Shard, art = 2, speed = 3.0f, pitch = .6f, moves = new[] {
                 WaveMove.Ring(0, 24, sweep: true), WaveMove.Fan(1, 50f, 28, sweep: true), WaveMove.Wall(2, true), WaveMove.Slant(3, 14f), WaveMove.Slant(3, -14f) } },
             // 1 Hoarfrost Leviathan: cold-snap rings with a gap, icicle rows, glacier slabs crossing
-            new BossWaveStyle { style = BossShotStyle.Shard, speed = 2.9f, pitch = .55f, moves = new[] {
+            new BossWaveStyle { style = BossShotStyle.Shard, art = 3, speed = 2.9f, pitch = .55f, moves = new[] {
                 WaveMove.Ring(0, 22), WaveMove.Wall(1), WaveMove.Ring(2, 26, sweep: true), WaveMove.Slant(3, 10f, rows: 2), WaveMove.Slant(3, -10f, rows: 2) } },
             // 2 Bloom Queen: vine fans and hedges of seeds with a path through them, the path sweeping like a vine
-            new BossWaveStyle { style = BossShotStyle.Bolt, speed = 3.1f, pitch = .6f, moves = new[] {
+            new BossWaveStyle { style = BossShotStyle.Bolt, art = 1, speed = 3.1f, pitch = .6f, moves = new[] {
                 WaveMove.Fan(0, 55f, 22), WaveMove.Wall(1, true), WaveMove.Fan(2, 70f, 30, sweep: true), WaveMove.Slant(3, 8f, true, 2), WaveMove.Slant(3, -8f, true, 2) } },
             // 3 Cinder Drake: flame fans and fire walls with a drifting gap
-            new BossWaveStyle { style = BossShotStyle.Shard, speed = 3.2f, pitch = .55f, moves = new[] {
+            new BossWaveStyle { style = BossShotStyle.Shard, art = 1, speed = 3.2f, pitch = .55f, moves = new[] {
                 WaveMove.Fan(0, 45f, 26), WaveMove.Wall(1, true), WaveMove.Fan(2, 65f, 34, sweep: true), WaveMove.Slant(3, 12f, rows: 2), WaveMove.Slant(3, -12f, rows: 2) } },
             // 4 Iron Kraken: the TIDAL WALLS (sweeping gap), surf crossing at the peak, a swell of rings from the beak
-            new BossWaveStyle { style = BossShotStyle.Shard, speed = 3.3f, pitch = .5f, moves = new[] {
+            new BossWaveStyle { style = BossShotStyle.Shard, art = 2, speed = 3.3f, pitch = .5f, moves = new[] {
                 WaveMove.Wall(0, true), WaveMove.Wall(1, true), WaveMove.Slant(2, 9f, true), WaveMove.Slant(2, -9f, true), WaveMove.Wall(3, true, 2), WaveMove.Ring(3, 26) } },
             // 5 Tempest Engine: rain curtains and lightning slants, and an arc discharge fanned from the core drum (its
             //   bolts are the only ones that reach the rails: the ricochets, BossBounce)
-            new BossWaveStyle { style = BossShotStyle.Bolt, speed = 3.7f, pitch = .5f, moves = new[] {
+            new BossWaveStyle { style = BossShotStyle.Bolt, art = 1, speed = 3.7f, pitch = .5f, moves = new[] {
                 WaveMove.Wall(0), WaveMove.Slant(1, 11f), WaveMove.Fan(1, 55f, 24), WaveMove.Wall(2, true), WaveMove.Slant(2, -11f), WaveMove.Wall(3, false, 2) } },
             // 6 Dune-Eater: closing pincers (two slants that close on the gap), sand walls
-            new BossWaveStyle { style = BossShotStyle.Shard, speed = 3.4f, pitch = .52f, moves = new[] {
+            new BossWaveStyle { style = BossShotStyle.Shard, art = 1, speed = 3.4f, pitch = .52f, moves = new[] {
                 WaveMove.Slant(0, 12f), WaveMove.Slant(0, -12f), WaveMove.Wall(1, true), WaveMove.Ring(2, 26, sweep: true), WaveMove.Slant(3, 16f, rows: 2), WaveMove.Slant(3, -16f, rows: 2) } },
         };
     }
@@ -592,7 +593,7 @@ public sealed class BossWaveVoice
 
     PShot Shot()
     {
-        return new PShot { style = style.style, rail = BossRailMode.Absorb };
+        return new PShot { style = style.style, art = style.art, rail = BossRailMode.Absorb };
     }
 
     // ---- ricochets (BossBounce) ----
