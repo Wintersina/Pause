@@ -102,6 +102,7 @@ public static class AllTests
         ("BossPatternTest", BossPatternTest.Execute),
         ("BeatSyncTest", BeatSyncTest.Execute),
         ("BossMusicDirectorTest", BossMusicDirectorTest.Execute),
+        ("BossWaveTest", BossWaveTest.Execute),
         ("BossLadderBotTest", BossLadderBotTest.Execute),
         ("BossFreeShotAtomsTest", BossFreeShotAtomsTest.Execute),
         ("BossHealAtomCapTest", BossHealAtomCapTest.Execute),

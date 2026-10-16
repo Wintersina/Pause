@@ -140,12 +140,37 @@ public static class CoverBoulders
             width = Mathf.Min(width * DecorScale, Edge * 2f * DecorMaxShare);
             bound = boundPx * width / v.artWidth;
             x = Random.Range(-Edge * .55f, Edge * .55f);
-            vel = new Vector2(Random.Range(-e.side, e.side) * .4f, -Random.Range(e.fall.x, e.fall.y) * DecorSpeed);
+            vel = Vector2.zero;    // anchored: the backdrop's ground carries it (CoverBoulder.groundTile), it has no motion of its own
         }
         float y = CameraFit.ViewTop + bound + SpawnMargin;
         slot.Spawn(world, variant, v, width, new Vector2(x, y), vel, side, Random.value, e.TintFor(CoverBoulderDirector.BackdropVariant(world)));
         Spawned++;
         return slot;
+    }
+
+    // The ground tile (the backdrop's "mid" layer) a landform of `world` is pinned to, or null when that world's backdrop is not up.
+    public static BackdropTile GroundTile(string world)
+    {
+        var wb = WorldBackdrop.Instance;
+        var set = wb != null ? wb.Current : null;
+        if (set == null || set.Spec.world != world) return null;
+        foreach (var t in set.Tiles) if (t.layer.name == "mid") return t;
+        return null;
+    }
+
+    // How fast the world's ground scrolls (u/s) -- the pace of a landform with no backdrop to be pinned to.
+    public static float GroundRate(string world)
+    {
+        return BackdropCatalog.For(world).Rate("mid") * WorldBackdrop.ScrollVelocity(moveBackGround.speed) * WorldBackdrop.ScrollBoost;
+    }
+
+    // Where the backdrop's root sits relative to the camera's resting position (the CameraKick's shake, see WorldBackdrop.FollowCamera).
+    public static Vector2 AnchorOrigin;
+
+    // WorldBackdrop.Step, after the tiles have moved: every landform is drawn on its ground tile's current travel.
+    public static void AnchorToBackdrop()
+    {
+        for (int i = 0; i < pool.Length; i++) if (pool[i] != null) pool[i].Anchor();
     }
 
     public static float LaneWidthLimit => Edge * 2f * MaxScreenShare;

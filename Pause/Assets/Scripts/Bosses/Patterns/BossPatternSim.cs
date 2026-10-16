@@ -37,6 +37,7 @@ public sealed class PatternSim : IMusicPatternHost
     public int cap = 256;
 
     public Vector2 Player => player;
+    public float ShotSpeedScale => shotScale;
     public int ActiveMusicShots => live;
     public int MusicShotCapacity => cap;
     public float RailEdge => railEdge;
@@ -161,6 +162,80 @@ public sealed class PatternSim : IMusicPatternHost
     bool[] reach, blocked, tmp;
     int gw, gh;
 
+    // One step of the flood fill: the shots as they are now block cells, the reachable set grows by `rad` cells and loses
+    // the blocked ones. Returns how many cells are still reachable (Solve's loop body, shared with the streaming tracker
+    // that plays a whole song through the musical director).
+    int ReachStep(int rad, float margin)
+    {
+        int cells = gw * gh;
+        // blocked cells
+        for (int i = 0; i < cells; i++) blocked[i] = false;
+        for (int k = 0; k < cap; k++)
+        {
+            if (!shots[k].alive) continue;
+            float R = ShipRadius + shots[k].r + margin;
+            float cx = (shots[k].p.x + shipHalf) / Cell, cy = (shots[k].p.y - zoneBottom) / Cell;
+            float rc = R / Cell;
+            int x0 = Mathf.Max(0, Mathf.FloorToInt(cx - rc)), x1 = Mathf.Min(gw - 1, Mathf.CeilToInt(cx + rc));
+            int y0 = Mathf.Max(0, Mathf.FloorToInt(cy - rc)), y1 = Mathf.Min(gh - 1, Mathf.CeilToInt(cy + rc));
+            for (int y = y0; y <= y1; y++)
+                for (int x = x0; x <= x1; x++)
+                {
+                    float dx = x - cx, dy = y - cy;
+                    if (dx * dx + dy * dy <= rc * rc) blocked[y * gw + x] = true;
+                }
+        }
+        // dilate, then remove the blocked
+        for (int i = 0; i < cells; i++) tmp[i] = false;
+        for (int y = 0; y < gh; y++)
+            for (int x = 0; x < gw; x++)
+            {
+                if (!reach[y * gw + x]) continue;
+                for (int dy = -rad; dy <= rad; dy++)
+                {
+                    int yy = y + dy;
+                    if (yy < 0 || yy >= gh) continue;
+                    for (int dx = -rad; dx <= rad; dx++)
+                    {
+                        int xx = x + dx;
+                        if (xx < 0 || xx >= gw) continue;
+                        if (dx * dx + dy * dy > rad * rad) continue;
+                        tmp[yy * gw + xx] = true;
+                    }
+                }
+            }
+        int n = 0;
+        for (int i = 0; i < cells; i++) { reach[i] = tmp[i] && !blocked[i]; if (reach[i]) n++; }
+        return n;
+    }
+
+    // Streaming use: TrackBegin from the ship's start, then TrackStep once per simulated frame after Advance.
+    public void TrackBegin(Vector2 start)
+    {
+        gw = Mathf.CeilToInt(shipHalf * 2f / Cell) + 1;
+        gh = Mathf.CeilToInt((zoneTop - zoneBottom) / Cell) + 1;
+        int cells = gw * gh;
+        if (reach == null || reach.Length != cells) { reach = new bool[cells]; blocked = new bool[cells]; tmp = new bool[cells]; }
+        for (int i = 0; i < cells; i++) reach[i] = false;
+        int sx = Mathf.Clamp(Mathf.RoundToInt((start.x + shipHalf) / Cell), 0, gw - 1);
+        int sy = Mathf.Clamp(Mathf.RoundToInt((start.y - zoneBottom) / Cell), 0, gh - 1);
+        reach[sy * gw + sx] = true;
+    }
+
+    // The mean x of the reachable cells: where a ship that has been dodging well could be standing.
+    public float ReachCentroid()
+    {
+        float sum = 0f; int n = 0;
+        for (int i = 0; i < reach.Length; i++) if (reach[i]) { sum += (i % gw) * Cell - shipHalf; n++; }
+        return n > 0 ? sum / n : 0f;
+    }
+
+    // Cells still reachable (0 = no survivable path is left).
+    public int TrackStep(float dt, float shipSpeed, float margin)
+    {
+        return ReachStep(Mathf.Max(1, Mathf.CeilToInt(shipSpeed * dt / Cell)), margin);
+    }
+
     public SolveResult Solve(BossPattern pattern, float rate, int seed, Vector2 start, float shipSpeed, float margin, float tail, float dt = .05f)
     {
         Reset();
@@ -183,44 +258,7 @@ public sealed class PatternSim : IMusicPatternHost
             runner.Step(dt);
             Advance(dt);
             res.stepsRun++;
-            // blocked cells
-            for (int i = 0; i < cells; i++) blocked[i] = false;
-            for (int k = 0; k < cap; k++)
-            {
-                if (!shots[k].alive) continue;
-                float R = ShipRadius + shots[k].r + margin;
-                float cx = (shots[k].p.x + shipHalf) / Cell, cy = (shots[k].p.y - zoneBottom) / Cell;
-                float rc = R / Cell;
-                int x0 = Mathf.Max(0, Mathf.FloorToInt(cx - rc)), x1 = Mathf.Min(gw - 1, Mathf.CeilToInt(cx + rc));
-                int y0 = Mathf.Max(0, Mathf.FloorToInt(cy - rc)), y1 = Mathf.Min(gh - 1, Mathf.CeilToInt(cy + rc));
-                for (int y = y0; y <= y1; y++)
-                    for (int x = x0; x <= x1; x++)
-                    {
-                        float dx = x - cx, dy = y - cy;
-                        if (dx * dx + dy * dy <= rc * rc) blocked[y * gw + x] = true;
-                    }
-            }
-            // dilate, then remove the blocked
-            for (int i = 0; i < cells; i++) tmp[i] = false;
-            for (int y = 0; y < gh; y++)
-                for (int x = 0; x < gw; x++)
-                {
-                    if (!reach[y * gw + x]) continue;
-                    for (int dy = -rad; dy <= rad; dy++)
-                    {
-                        int yy = y + dy;
-                        if (yy < 0 || yy >= gh) continue;
-                        for (int dx = -rad; dx <= rad; dx++)
-                        {
-                            int xx = x + dx;
-                            if (xx < 0 || xx >= gw) continue;
-                            if (dx * dx + dy * dy > rad * rad) continue;
-                            tmp[yy * gw + xx] = true;
-                        }
-                    }
-                }
-            int n = 0;
-            for (int i = 0; i < cells; i++) { reach[i] = tmp[i] && !blocked[i]; if (reach[i]) n++; }
+            int n = ReachStep(rad, margin);
             float share = n / (float)cells;
             if (t >= 1.2f && share < res.minReach) { res.minReach = share; res.worstAt = t; }
             if (n == 0) { res.survivable = false; break; }
