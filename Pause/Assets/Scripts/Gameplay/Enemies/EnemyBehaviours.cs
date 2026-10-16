@@ -486,14 +486,14 @@ public static class EnemyBehaviours
         B("tide_rock_brain", "brain coral: slow wide tumble, lazy sideways drift")
             .Drift(.55f, .3f).Bob(.06f, 3f).Spin(12f, 30f)
             .Sizes(.8f, .96f, 1.4f);
-        B("tide_rock_staghorn", "staghorn spire: barely turns, one slanted slice across the lane")
-            .Glide(1.2f, .9f).Spin(4f, 8f)
+        B("tide_rock_staghorn", "staghorn boulder: wind-blown, tumbles across the lane on one slanted line")
+            .Glide(1.2f, .9f).Spin(18f, 42f)
             .Sizes(.76f, 1.02f, 1.24f);
         B("tide_rock_urchin", "spine urchin: spins as it sinks down the board")
             .Sink(1.2f, .45f).Spin(25f, 45f)
             .Sizes(.8f, .96f, 1.4f);
-        B("tide_rock_islet", "kelp islet: wide slow sway and bob, upright")
-            .Sway(.65f, 4.6f).Bob(.16f, 3.4f).Tilt(EnemyRoster.FloatSwayDegrees, EnemyRoster.FloatSwayPeriod)
+        B("tide_rock_islet", "kelp islet: a wind-blown chunk, wide slow sway and bob while it tumbles")
+            .Sway(.65f, 4.6f).Bob(.16f, 3.4f).Spin(14f, 34f)
             .Sizes(.8f, .92f, 1.48f);
         B("tide_mine", "limpet mine: creeps down its rail, the eye flares, two lasers across the lane at random angles, riding up beside the ship to fire them")
             .Creep(1.2f, .6f).Laser().Muzzle(.5f).Timing(1f, RailMineLaser.ShotGapSeconds, RailMineLaser.ShotsPerRide, .15f);

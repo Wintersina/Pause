@@ -1035,7 +1035,18 @@ public static class EnemyRosterTest
         {
             int n = 0;
             foreach (var d in EnemyRoster.For(w, EnemyRole.Rock)) if (d.floating) n++;
-            Check(W(w) + " has a floating world rock (" + n + ")", n >= 1);
+            // Tide's rocks are all wind-blown tumblers (art/tide-rocks): none is an upright floating chunk.
+            Check(W(w) + " has a floating world rock (" + n + ")", n >= 1 || w == 4);
+        }
+        // The four Tide rocks visibly spin as they drift in: a believable rolled spin rate (12..90 deg/s), no upright sway.
+        foreach (var key in new[] { "tide_rock_brain", "tide_rock_staghorn", "tide_rock_urchin", "tide_rock_islet" })
+        {
+            var d = EnemyRoster.Find(key);
+            var go = EnemyFactory.Create(d, Vector3.zero, Quaternion.identity);
+            var spin = go.GetComponent<AsteroidSpin>();
+            Check(key + " tumbles (spin " + (spin != null ? spin.speedRange.ToString() : "none") + ", not floating, no sway)",
+                  !d.floating && spin != null && !spin.Sways && spin.speedRange.x >= 12f && spin.speedRange.y <= 90f && spin.speedRange.y > spin.speedRange.x);
+            UnityEngine.Object.DestroyImmediate(go);
         }
         foreach (var d in EnemyRoster.All)
         {

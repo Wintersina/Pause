@@ -494,21 +494,21 @@ public static class EnemyRoster
 
             // ================================================================ TIDE
             Def("tide_rock_brain", "Brain Coral", R, 4, 1, "hazard_tide_rock_brain", Ice,
-                "Violet maze-fold coral boulder in brass fittings, held aloft by four hover jets, a sun-yellow core glowing in the folds.",
-                "A reef that outgrew its ocean and took to the sky on hover jets. The folds are full of barnacles and the cracks glow when " +
+                "Violet-grey maze-fold coral boulder pitted with barnacles, strapped in brass fittings, a faint glow in the folds.",
+                "A reef that outgrew its ocean and got torn loose by the wind. The folds are full of barnacles and the cracks glow when " +
                 "something stirs them. It tumbles slow and wide - give it the room it asks for."),
-            Def("tide_rock_staghorn", "Staghorn Spire", R, 4, 2, "hazard_tide_rock_staghorn", Ice,
-                "Upright branched coral-orange blade riding twin thruster jets, with brass tips and electric-blue polyps.",
-                "A branch of coral sharp enough to open a hull. It slices across the lane on one " +
-                "slanted line, polyps lit, so you can see it coming."),
+            Def("tide_rock_staghorn", "Staghorn Boulder", R, 4, 2, "hazard_tide_rock_staghorn", Ice,
+                "Blue-slate reef boulder overgrown with chunky orange staghorn coral, strapped in brass, one small blue lamp.",
+                "A boulder of drowned reef, antlered with coral sharp enough to open a hull. The wind sends it " +
+                "tumbling across the lane on one slanted line, so you can see it coming."),
             Def("tide_rock_urchin", "Spine Urchin", R, 4, 3, "hazard_tide_rock_urchin", Ice,
-                "Indigo spiked drone shell with bone-white iron spines, hover jets underneath and a sun-yellow core.",
-                "A spiked drone with iron for spines and a lamp for a heart. It spins as it sinks and arrives " +
+                "Round shell of uneven bone-white iron spines around a sun-yellow core.",
+                "An urchin with iron for spines and a lamp for a heart. It spins as it sinks and arrives " +
                 "sooner than it looks."),
-            Floating(Def("tide_rock_islet", "Kelp Islet", R, 4, 4, "hazard_tide_rock_islet", Ice,
-                "Steel-blue floating reef slab held up by a row of hover jets, a glowing tangerine vent on top.",
-                "A slab of reef that lifted off on its own jets. It dips and " +
-                "sways, wide and slow.")),
+            Def("tide_rock_islet", "Kelp Islet", R, 4, 4, "hazard_tide_rock_islet", Ice,
+                "Jagged chunk of sunken reef-island rock wrapped in kelp and brass chain, a small glowing tide pool on one face.",
+                "A chunk of sunken island the wind pulled up with its kelp still wrapped round it. It tumbles " +
+                "as it sways, wide and slow."),
             Def("tide_mine", "Limpet Mine", M, 4, 0, "hazard_tide_mine", Mine,
                 "Neon pixel sea-mine: a barnacled iron sphere with four pearl horns on a brass clamp, a mint eye that wakes, charges and bursts in shell shards.",
                 "A limpet on the rail, horned and patient. When the eye flares mint a line blinks across " +

@@ -77,6 +77,18 @@ def repair_red(im):
     return Image.fromarray(out, "RGBA")
 
 
+def lift_red(im):
+    """The coral-orange rocks have a few shadow pixels that drift into red (hue < 16 deg); nudge them to orange (no red outside the player)."""
+    hsv = np.array(im.convert("RGB").convert("HSV")).astype(np.int32)
+    a = np.array(im)
+    deg = hsv[:, :, 0] * 360 / 255
+    bad = (a[:, :, 3] > 8) & (hsv[:, :, 1] > 130) & ((deg < 17) | (deg > 340))
+    hsv[bad, 0] = int(round(18 * 255 / 360))
+    rgb = np.array(Image.fromarray(hsv.astype(np.uint8), "HSV").convert("RGB"))
+    a[bad, :3] = rgb[bad]
+    return Image.fromarray(a, "RGBA")
+
+
 def key_pose(name, candidate, target):
     cell = 256 if name == "tide_big" else 192
     src = selected_source(name, candidate)
@@ -85,6 +97,8 @@ def key_pose(name, candidate, target):
     src = src.resize(size, Image.Resampling.NEAREST)
     if not (HERE / "flying_src" / f"{name}_flying.png").exists():
         src = repair_red(src)
+    elif name in ("tide_rock_staghorn", "tide_rock_islet"):
+        src = lift_red(src)
     if name in {"tide_big", "tide_fighter_2", "tide_fighter_3", "tide_rock_islet"}:
         # Bring a few already-painted midtones above the brightest Tide ground set.
         arr = np.array(src)

@@ -31,7 +31,7 @@ CORE = {
 
 PRIMARY = {  # body accent per enemy (hue 0-255 PIL scale): orange 20, blue 150, violet 190, yellow 34
     "tide_alien": 20, "tide_chaser": 20, "tide_big": 20, "tide_fighter_1": 20, "tide_fighter_2": 20, "tide_fighter_3": 20,
-    "tide_fighter_4": 20, "tide_rock_brain": 150, "tide_rock_staghorn": 20, "tide_rock_urchin": 190, "tide_rock_islet": 150,
+    "tide_fighter_4": 20, "tide_rock_brain": 188, "tide_rock_staghorn": 20, "tide_rock_urchin": 161, "tide_rock_islet": 145,
     "tide_mine": 20,
 }
 

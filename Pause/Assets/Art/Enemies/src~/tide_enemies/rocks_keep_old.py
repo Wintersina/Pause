@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
-"""Fallback (Codex quota exhausted): multi-accent recolour + hover thrusters for the four Tide hazard rocks.
-Writes flying_src/<rock>_flying.png from the *_in.png sources. Replace by Codex repaints via flying_all.sh when quota returns."""
+"""The two Tide rocks the user likes as they were: Brain Coral (violet-grey, brass fittings) and Spine Urchin (dark indigo, spines, yellow core).
+A by-material recolour of the original teal sources (hull hue-rotated with its luminance ramp intact, brass kept, glow accent), with NO thrusters or
+flames: they are rocks. Writes flying_src/<rock>_flying.png. (Staghorn and Islet are Codex redesigns: rocks_codex.sh.)"""
 import math
 from pathlib import Path
 import numpy as np
@@ -37,36 +38,10 @@ def recolour(im, hull, glow, warm=0.0):
     return Image.fromarray(np.dstack((rgb, rgba[:, :, 3])), "RGBA")
 
 
-def thruster(d, x, y, r, flame):
-    d.polygon([(x - r, y), (x + r, y), (x + r * .6, y + r * 1.4), (x - r * .6, y + r * 1.4)], fill=(60, 66, 92, 255), outline=(14, 18, 34, 255))
-    d.rectangle((x - r, y - r * .5, x + r, y), fill=(255, 196, 40, 255), outline=(14, 18, 34, 255))
-    for k, col in enumerate(((45, 156, 255, 255), (170, 225, 255, 255), (255, 255, 255, 255))):
-        s = 1 - k * .28
-        d.polygon([(x - r * .7 * s, y + r * 1.4), (x + r * .7 * s, y + r * 1.4), (x, y + r * 1.4 + flame * s)], fill=col)
-
-
-def add_thrusters(im, name):
-    ys, xs = np.where(np.asarray(im.getchannel("A")) > 100)
-    x0, x1, y0, y1 = xs.min(), xs.max(), ys.min(), ys.max()
-    w, hgt = x1 - x0, y1 - y0
-    pad = int(hgt * .3)
-    cv = Image.new("RGBA", (im.width, im.height + pad), (0, 0, 0, 0))
-    cv.alpha_composite(im, (0, 0))
-    d = ImageDraw.Draw(cv)
-    r = max(10, int(w * .045)); fl = int(hgt * .16)
-    if name == "tide_rock_staghorn":
-        pts = [(x0 + w * .38, y1 - hgt * .14), (x0 + w * .62, y1 - hgt * .14)]
-    elif name == "tide_rock_urchin":
-        pts = [(x0 + w * .30, y1 - hgt * .20), (x0 + w * .5, y1 - hgt * .12), (x0 + w * .70, y1 - hgt * .20)]
-    else:
-        pts = [(x0 + w * .22, y1 - hgt * .20), (x0 + w * .42, y1 - hgt * .12), (x0 + w * .62, y1 - hgt * .12), (x0 + w * .80, y1 - hgt * .20)]
-    for px, py in pts:
-        thruster(d, int(px), int(py), r, fl)
-    return cv
-
-
 for n, z in ZONES.items():
+    if n not in ("tide_rock_brain", "tide_rock_urchin"):
+        continue
     im = Image.open(H / f"{n}_in.png").convert("RGBA")
-    out = add_thrusters(recolour(im, **z), n)
+    out = recolour(im, **z)
     out.save(H / f"{n}_flying.png")
     print(n, out.size)
