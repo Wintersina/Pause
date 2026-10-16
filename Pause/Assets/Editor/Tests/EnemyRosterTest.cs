@@ -1018,10 +1018,6 @@ public static class EnemyRosterTest
 
     // ---- 8: floating rocks -------------------------------------------------------
 
-    // The first-pass grass-capped Spore Rock (commit 18b5e5f) the restored
-    // Verdant rock is held to.
-    const string FirstPassSpore = ArtSrc + "reference/verdant_rock_spore_firstpass.png";
-
     static void FloatingRocks()
     {
         var floatingKeys = new HashSet<string>();
@@ -1035,11 +1031,11 @@ public static class EnemyRosterTest
         {
             int n = 0;
             foreach (var d in EnemyRoster.For(w, EnemyRole.Rock)) if (d.floating) n++;
-            // Tide and Storm rocks are all wind-blown tumblers (art/tide-rocks, art/enemy-colors-storm): none is an upright floating chunk.
-            Check(W(w) + " has a floating world rock (" + n + ")", n >= 1 || w == 4 || w == 5);
+            // Verdant, Tide and Storm rocks are all wind-blown tumblers (art/verdant-enemies, art/tide-rocks, art/enemy-colors-storm): none is an upright floating chunk.
+            Check(W(w) + " has a floating world rock (" + n + ")", n >= 1 || w == 2 || w == 4 || w == 5);
         }
-        // The four Tide and four Storm rocks visibly spin as they drift in: a believable rolled spin rate (12..90 deg/s), no upright sway.
-        foreach (var key in new[] { "tide_rock_brain", "tide_rock_staghorn", "tide_rock_urchin", "tide_rock_islet", "storm_rock_hail", "storm_rock_ore", "storm_rock_slag", "storm_rock_islet" })
+        // The four Verdant, four Tide and four Storm rocks visibly spin as they drift in: a believable rolled spin rate (12..90 deg/s), no upright sway.
+        foreach (var key in new[] { "verdant_rock_pod", "verdant_rock_spore", "verdant_rock_knot", "verdant_rock_vine", "tide_rock_brain", "tide_rock_staghorn", "tide_rock_urchin", "tide_rock_islet", "storm_rock_hail", "storm_rock_ore", "storm_rock_slag", "storm_rock_islet" })
         {
             var d = EnemyRoster.Find(key);
             var go = EnemyFactory.Create(d, Vector3.zero, Quaternion.identity);
@@ -1069,23 +1065,9 @@ public static class EnemyRosterTest
             foreach (int k in new[] { 1, 2, 3 }) bobs |= keyPose.Length > 0 && IoU(keyPose, Mask(strip, k)) < .97f;
             // Steady-silhouette rocks: Space's Beacon Rock pulses its light; the Verdant Spore Rock's
             // vents blink like eyelids inside an unchanging body (frames differ in pixels, not outline).
-            bool steady = d.key == "space_rock_crater" || d.key == "verdant_rock_spore";
+            bool steady = d.key == "space_rock_crater";
             Check(d.key + (steady ? " keeps a steady idle silhouette" : " draws its float bob into the idle frames"),
                   steady ? !bobs : bobs);
-            if (d.key == "verdant_rock_spore")
-                Check(d.key + " animates inside the body (vent blink: idle frames differ in pixels)", FramesDiffer(strip, 0, 1, 2, 3, 4, 5));
-        }
-
-        // The restored Verdant Spore Rock keeps the first-pass grass-cap
-        // silhouette the player liked.
-        var spore = EnemyRoster.Find("verdant_rock_spore");
-        Check("the Verdant spore rock exists and floats", spore != null && spore.floating && spore.world == 2);
-        Check("the first-pass spore rock reference is kept (" + FirstPassSpore + ")", File.Exists(FirstPassSpore));
-        if (spore != null && File.Exists(FirstPassSpore))
-        {
-            float iou = IoU(Mask(spore), Mask(FirstPassSpore));
-            Check(string.Format("verdant_rock_spore keeps the first-pass grass-cap silhouette (IoU {0:F3} >= 0.85)", iou),
-                  iou >= .85f);
         }
     }
 }

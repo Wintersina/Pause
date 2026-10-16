@@ -407,43 +407,42 @@ public static class EnemyRoster
 
             // ============================================================== VERDANT
             Def("verdant_rock_pod", "Thorn Pod", R, 2, 1, "hazard_verdant_rock_pod", Spore,
-                "Armoured seed pod ringed with magenta thorns; its glowing seam breathes open.",
+                "Wind-blown boulder of dark bark and stone, ringed with bone thorns, a pollen-amber seam glowing down one side.",
                 "A seed the jungle flung into the sky. The seam glows when it's ready to burst - better it " +
                 "bursts behind you."),
-            // Floating: the first-pass grass-capped rock, restored and inked harder.
-            Floating(Def("verdant_rock_spore", "Spore Rock", R, 2, 2, "hazard_verdant_rock_spore", Spore,
-                "Chunky octagonal rock under a bright grass cap, one hard shadow plane, lime spore vents as hard hex lights that pulse and puff.",
-                "Rock gone mouldy with life. Its vents puff spores every few seconds; the smell is the least " +
-                "of your problems.")),
+            Def("verdant_rock_spore", "Spore Rock", R, 2, 2, "hazard_verdant_rock_spore", Spore,
+                "Faceted slate-blue boulder furred with teal moss and shelf fungus, pale spore vents that glow and puff.",
+                "Rock gone mouldy with life, torn loose by the wind. Its vents puff spores every few seconds; the " +
+                "smell is the least of your problems."),
             Def("verdant_rock_knot", "Bramble Knot", R, 2, 3, "hazard_verdant_rock_knot", Spore,
-                "Three thorny branches knotted round a glowing bile bud.",
-                "Branches tangled into a spinning thorn ball. It catches anything - including lost pilots."),
-            Floating(Def("verdant_rock_vine", "Vine Rock", R, 2, 4, "hazard_verdant_rock_vine", Spore,
-                "Floating wedge of earth under an angular bush, three vines dangling with lime buds that glow and whip.",
-                "A clump of jungle floor that floated off with its garden still attached. The buds on the " +
-                "vines light up before they whip - and they always whip.")),
+                "Grey granite strangled by thorny walnut vines, one gold bud glowing in the knot.",
+                "Granite and thorny vines tangled into a tumbling ball. It catches anything - including lost pilots."),
+            Def("verdant_rock_vine", "Vine Rock", R, 2, 4, "hazard_verdant_rock_vine", Spore,
+                "Torn chunk of rust-clay earth trailing pale roots and dark vines, tufts of moss and tiny mint buds that glow.",
+                "A clump of jungle floor the wind tore loose with its roots still hanging. It sways across the lane " +
+                "as it tumbles, and the buds on its vines glow before it whips round."),
             Def("verdant_mine", "Burr Mine", M, 2, 0, "hazard_verdant_mine", Mine,
                 "Neon pixel seed mine: a wooden clamp and vine-wrapped burr with magenta thorns, a lime core that bursts in leaves.",
                 "A seed burr dangling from the rail vines. When its husk splits and the seams glow, it's about " +
                 "to fire a laser across the lane, at any angle - it rides up the rail to keep pace with you, fires twice, then drops away."),
             Def("verdant_big", "Bloom Maw", B, 2, 0, "enemy_verdant_big", Spore,
-                "Five-petal carnivorous bud; the petals fold back to show a toothed glowing maw.",
-                "A flower that eats ships. Shut, it's just a big bud; when the petals snap open, it's " +
-                "hungry."),
+                "A heavy flower gunship: five petal-wings of cobalt armour around a toothed mouth cannon, a turbine pod between the petals.",
+                "A flower that eats ships, on turbine wings. The mouth glows amber before it lobs a resin " +
+                "glob at your spot."),
             Def("verdant_fighter_1", "Gnat", F, 2, 1, "enemy_verdant_fighter_1", Spore,
-                "Small bile bug, buzzing leaf wings, bile eyes.",
+                "A small bone-and-bark pod gunship on two amber resin wings, with a nose cannon and twin thrusters.",
                 "Little buzzing bugs that swarm anything new. You're very new."),
             Def("verdant_fighter_2", "Wasp", F, 2, 2, "enemy_verdant_fighter_2", Spore,
-                "Striped bruise abdomen, magenta stinger, bile thorax.",
+                "A banded black-and-yellow gunship: stinger-cannon abdomen, smoked-glass wings, twin engines.",
                 "Striped, angry and armed at both ends. The wings blur just before it dives."),
             Def("verdant_fighter_3", "Mantis", F, 2, 3, "enemy_verdant_fighter_3", Spore,
-                "Wasp body with bone-bladed scythe arms reaching down.",
+                "A moss-teal gunship with folded bone-blade scythe arms, sea-glass wing-sails and twin thrusters.",
                 "Scythe arms folded like it's praying. It isn't."),
             Def("verdant_fighter_4", "Hornet Queen", F, 2, 4, "enemy_verdant_fighter_4", Spore,
-                "Four-winged armoured queen with scythes and stinger.",
+                "A crowned bronze-and-walnut heavy gunship on four violet-gold wings, with scythe arms and a stinger cannon.",
                 "The swarm's queen: four wings, two scythes and one stinger, all pointed your way."),
             Def("verdant_chaser", "Dragonsting", C, 2, 0, "enemy_verdant_chaser", Spore,
-                "A four-winged dragonfly with bile compound eyes, forward mandibles and a long barbed tail.",
+                "A needle-slim indigo dragonfly interceptor on four teal glass wings, a twin-thruster tail boom behind it.",
                 "It rises out of the canopy on four blurring wings and snaps at your engines. Slide sideways " +
                 "and let it bite the air."),
             Def("verdant_alien", "Snap Sprout", A, 2, 0, "enemy_verdant_alien", Spore,
