@@ -37,6 +37,7 @@ PINK = WHITE                # no pink on Verdant bodies: the core accent is lime
 # key -> (cell side, chunks, spin deg, bolts, vapour puffs, pellets, flavour)
 UNITS = {
     "verdant_chaser":   (192, 9, 70, 5, 1, 10, "snap"),
+    "verdant_alien":    (192, 10, 60, 5, 1, 10, "snap"),
     "verdant_fighter_1": (192, 12, 50, 5, 2, 12, "vent"),
     "verdant_fighter_2": (192, 10, 55, 5, 1, 10, "snap"),
     "verdant_fighter_3": (192, 12, 60, 5, 1, 10, "rotor"),

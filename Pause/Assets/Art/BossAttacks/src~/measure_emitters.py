@@ -47,7 +47,7 @@ FRAME_NAMES = ["idle0", "idle1", "idle2", "idle3", "hit", "tell0a", "tell0b",
 # The Iron Kraken (Tide) is measured on every cell of its expanded 35-cell
 # atlas (0..19 base, 20..25 tentacle idle, 26..34 the three tells): its
 # tentacles move, so each drawing has its own muzzle pixels.
-EXPANDED = {"Tide": 35}
+EXPANDED = {"Tide": 35, "Ember": 35}
 
 # name, reference frame, patch centre (cell px, y down), patch half size,
 # muzzle offset from the patch centre (cell px at the reference frame).
@@ -94,10 +94,12 @@ PARTS = {
         ("Boom", 0, (328, 198), 18, (0, 9)),       # the side drill boom -> its tip (dune lob, burrower strike); manifest (328, 207)
         ("Lens", 0, (174, 96), 24, (0, -13)),      # the rear lens dish -> its centre (sun-lens beam, sandstorm wall); manifest (174, 83)
     ],
+    # The Cinder Drake v2 is measured on every cell of its expanded 35-cell atlas, seeded in the first
+    # idle wing-beat drawing (cell 20): the snout / maw, the chest furnace grate, the brow gem.
     "Ember": [
-        ("Jaw", 0, (192, 196), 26, (0, 8)),        # the burning maw
-        ("Furnace", 0, (192, 250), 22, (0, 0)),    # the chest furnace
-        ("Brow", 0, (192, 140), 22, (0, 0)),       # the brow gem between the eyes
+        ("Jaw", 20, (192, 176), 22, (0, 6)),
+        ("Furnace", 20, (192, 225), 22, (0, 0)),
+        ("Brow", 20, (192, 126), 16, (0, 0)),
     ],
 }
 
@@ -106,7 +108,7 @@ PARTS = {
 # (y0, y1, x0, x1): the Drake's wings flap between poses, so only its head
 # and neck are compared.
 BAND = {"Space": (96, 282, 0, 384), "Frost": (112, 292, 0, 384),
-        "Verdant": (40, 262, 0, 384), "Ember": (40, 236, 112, 272),
+        "Verdant": (40, 262, 0, 384), "Ember": (100, 290, 128, 256),
         "Tide": (56, 250, 112, 272),
         "Storm": (110, 200, 0, 384),
         "Desert": (120, 300, 40, 344)}
@@ -115,11 +117,18 @@ SCALES = [0.86 + 0.02 * i for i in range(18)]   # 0.86 .. 1.20
 
 
 def cells(world):
+    # Each cell is brought to the 384 px REFERENCE size the table is in: the Cinder Drake's atlas has 576 px
+    # cells, its points are measured on a 384 px copy of each, so the table stays in reference pixels and
+    # BossEmitters scales it onto the cell's world size like every other boss.
     im = Image.open(os.path.join(ATLAS, world + ".png")).convert("RGBA")
+    cs = im.width // COLS
     out = []
     for f in range(EXPANDED.get(world, 12)):
         r, c = divmod(f, COLS)
-        out.append(im.crop((c * CELL, r * CELL, c * CELL + CELL, r * CELL + CELL)))
+        cell = im.crop((c * cs, r * cs, c * cs + cs, r * cs + cs))
+        if cs != CELL:
+            cell = cell.resize((CELL, CELL), Image.LANCZOS)
+        out.append(cell)
     return out
 
 
@@ -315,9 +324,34 @@ def measure_tide(world):
     return frames, table
 
 
+def measure_expanded(world):
+    """Template-match every part in every one of the 35 drawings, seeded in the reference drawing (cells
+    0..19 take the reference drawing's points: nothing fires from them)."""
+    frames = cells(world)
+    table = []
+    regs = {}
+    for name, ref_f, seed, half, off in PARTS[world]:
+        ref = frames[ref_f]
+        pts = [None] * len(frames)
+        for f in range(20, len(frames)):
+            if f == ref_f:
+                x, y, s = seed[0], seed[1], 1.0
+            else:
+                if (ref_f, f) not in regs:
+                    regs[(ref_f, f)] = register(ref, frames[f], BAND[world])
+                x, y, s = match(ref, frames[f], seed, half, regs[(ref_f, f)])
+            pts[f] = snap_opaque(frames[f], x + off[0] * s, y + off[1] * s)
+        for f in range(20):
+            pts[f] = snap_or_keep(frames[f], pts[ref_f])
+        table.append((name, pts))
+    return frames, table
+
+
 def measure(world):
-    if world in EXPANDED:
+    if world == "Tide":
         return measure_tide(world)
+    if world in EXPANDED:
+        return measure_expanded(world)
     frames = cells(world)
     table = []
     regs = {}
@@ -372,12 +406,12 @@ def write_cs(results):
     w("// Muzzle points per boss, per named body part, per body drawing (BossArt")
     w("// flat frames 0..11: idle 0..3, hit, tell0 a/b, tell1 a/b, fire, tell2")
     w("// a/b), in cell pixels (384 per cell, x right, y down from the top-left).")
-    w("// The Iron Kraken's table also covers its expanded cells 20..34.")
+    w("// The Iron Kraken's and Cinder Drake's tables also cover their expanded cells 20..34.")
     w("public static class BossEmitterTable")
     w("{")
     w("    public const int CellPixels = %d;" % CELL)
     w("    public const int Frames = %d;   // the base drawings every boss has" % len(FRAMES))
-    w("    // The drawings measured for a boss: Frames, or every cell of an expanded atlas (Tide: 35).")
+    w("    // The drawings measured for a boss: Frames, or every cell of an expanded atlas (Tide, Ember: 35).")
     w("    public static int FrameCount(int world) { return Points[world][0].Length / 2; }")
     w("")
     w("    public static readonly string[] Worlds = { %s };" % ", ".join('"%s"' % k for k in results))

@@ -638,6 +638,7 @@ public class BossActor : MonoBehaviour, IMusicPatternHost
     Vector2 IPatternHost.Player => playerNow;
     int IMusicPatternHost.ActiveMusicShots => poolNow != null ? poolNow.ActiveShots : 0;
     int IMusicPatternHost.MusicShotCapacity => poolNow != null ? poolNow.Capacity : BossConfig.ProjectilePoolMax;
+    float IPatternHost.ShotSpeedScale => BossConfig.ShotScale;
     float IPatternHost.RailEdge => BossRails.InnerEdge;
     float IPatternHost.ShipHalfWidth => ShipReach.HalfWidth;
     float IPatternHost.SpawnTop => CameraFit.ViewTop + .15f;

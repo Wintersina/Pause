@@ -4,7 +4,8 @@
   "fade": 0.3,
   "ships": {
     "verdant_elite_resin_warden": "top",
-    "verdant_alien": "top",
+    "verdant_alien": "none",
+    "frost_big": "none",
     "tide_elite_thunderfin": "top",
     "ember_elite_coalrunner": "top",
     "ember_elite_sunstoke": "top"

@@ -114,6 +114,7 @@ public interface IPatternHost
     void Fire(Vector2 at, Vector2 velocity, ref PShot shot);
     void Emitted();                         // the boss shows its fire pose
     void Mark(Vector2 a, Vector2 b, float halfWidth, float seconds);   // a telegraph (a == b: a spot)
+    float ShotSpeedScale => 1f;             // what Fire multiplies a velocity by (BossConfig.ShotScale in the game)
 }
 
 public sealed class BossPatternRunner

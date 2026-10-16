@@ -96,3 +96,40 @@ public static class WeatherArt
         tex = null; world = -1;
     }
 }
+
+// The painted gust sheet of a world (Backdrop3/wx_gust.png, 2048 x 1024, 512 px cells, 4 x 2): row 0 = four gust RIBBONS (horizontal streamline
+// bundles flowing to +x, tiling horizontally), row 1 cells 0-1 = the gust's HEAD (the curling leading edge), cells 2-3 = the world's debris.
+// Loaded while the world's wind is drawn; a world without the file simply keeps the procedural streaks.
+public static class WindArt
+{
+    public const string File = "wx_gust";
+    static Texture2D tex;
+    static Sprite[,] cells;
+    static int world = -1;
+
+    public static bool LoadedFor(int w) { return cells != null && world == w; }
+    public static Sprite Cell(int row, int col) { return cells[Mathf.Clamp(row, 0, 1), Mathf.Clamp(col, 0, 3)]; }
+
+    public static void Load(int w)
+    {
+        if (world == w) return;
+        Unload();
+        world = w;
+        var entry = WorldWeatherTable.ForWorld(w);
+        if (entry == null || entry.wind == null) return;
+        tex = Resources.Load<Texture2D>(BackdropCatalog.Folder(entry.world) + File);
+        if (tex == null) return;
+        cells = new Sprite[2, 4];
+        for (int r = 0; r < 2; r++)
+            for (int c = 0; c < 4; c++)
+                cells[r, c] = Sprite.Create(tex, new Rect(c * 512, (1 - r) * 512, 512, 512), new Vector2(.5f, .5f), 512f, 0, SpriteMeshType.FullRect);
+    }
+
+    public static void Unload()
+    {
+        if (cells != null) foreach (var s in cells) if (s != null) HazardArt.Kill(s);
+        cells = null;
+        if (tex != null) Resources.UnloadAsset(tex);
+        tex = null; world = -1;
+    }
+}

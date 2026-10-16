@@ -5,12 +5,12 @@
 // Muzzle points per boss, per named body part, per body drawing (BossArt
 // flat frames 0..11: idle 0..3, hit, tell0 a/b, tell1 a/b, fire, tell2
 // a/b), in cell pixels (384 per cell, x right, y down from the top-left).
-// The Iron Kraken's table also covers its expanded cells 20..34.
+// The Iron Kraken's and Cinder Drake's tables also cover their expanded cells 20..34.
 public static class BossEmitterTable
 {
     public const int CellPixels = 384;
     public const int Frames = 12;   // the base drawings every boss has
-    // The drawings measured for a boss: Frames, or every cell of an expanded atlas (Tide: 35).
+    // The drawings measured for a boss: Frames, or every cell of an expanded atlas (Tide, Ember: 35).
     public static int FrameCount(int world) { return Points[world][0].Length / 2; }
 
     public static readonly string[] Worlds = { "Space", "Frost", "Verdant", "Ember", "Tide", "Storm", "Desert" };
@@ -58,9 +58,9 @@ public static class BossEmitterTable
         },
         new[]   // Ember
         {
-            new short[] { 192, 204, 191, 205, 191, 208, 191, 205, 190, 205, 192, 214, 191, 212, 192, 213, 190, 210, 191, 204, 195, 216, 192, 205 },   // Jaw
-            new short[] { 192, 250, 191, 251, 190, 252, 191, 251, 187, 252, 192, 255, 193, 261, 191, 255, 190, 267, 190, 258, 194, 258, 191, 250 },   // Furnace
-            new short[] { 192, 140, 191, 142, 190, 144, 190, 140, 190, 141, 192, 150, 191, 149, 191, 150, 191, 144, 191, 137, 194, 153, 193, 156 },   // Brow
+            new short[] { 192, 182, 192, 182, 192, 182, 192, 182, 192, 182, 192, 182, 192, 182, 192, 182, 192, 182, 192, 182, 192, 182, 192, 182, 192, 182, 192, 182, 192, 182, 192, 182, 192, 182, 192, 182, 187, 182, 192, 182, 192, 182, 192, 182, 192, 182, 192, 182, 192, 182, 192, 182, 192, 183, 192, 190, 182, 156, 192, 178, 192, 180, 192, 182, 192, 177, 192, 182, 192, 182 },   // Jaw
+            new short[] { 192, 225, 192, 225, 192, 225, 192, 225, 192, 225, 192, 225, 192, 225, 192, 225, 192, 225, 192, 225, 192, 225, 192, 225, 192, 225, 192, 225, 192, 225, 192, 225, 192, 225, 192, 225, 187, 225, 192, 225, 192, 225, 192, 225, 192, 225, 192, 225, 192, 225, 192, 225, 192, 225, 192, 225, 191, 208, 192, 222, 192, 223, 192, 225, 192, 219, 192, 225, 192, 225 },   // Furnace
+            new short[] { 192, 126, 192, 126, 192, 126, 192, 126, 192, 126, 192, 126, 192, 126, 192, 126, 192, 126, 192, 126, 192, 126, 192, 126, 192, 126, 192, 126, 192, 126, 192, 126, 192, 126, 192, 126, 187, 126, 192, 126, 192, 126, 192, 126, 192, 126, 192, 126, 192, 126, 192, 126, 192, 127, 192, 123, 181, 103, 192, 120, 192, 124, 192, 125, 192, 131, 192, 126, 192, 125 },   // Brow
         },
         new[]   // Tide
         {
