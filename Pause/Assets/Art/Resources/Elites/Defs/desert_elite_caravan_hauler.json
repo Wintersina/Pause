@@ -23,7 +23,7 @@
   "heartColor": "#FFF6DC",
   "shotColor": "#F4E3B0",
   "shotCore": "#FFF6DC",
-  "engineColor": "#FFF1C8",
+  "engineColor": "#FFD060",
   "hearts": 2,
   "heartSize": 0.18,
   "heartOrbit": 0.566,
@@ -39,7 +39,7 @@
   "role": "quicksand canister hauler",
   "brain": "hauler",
   "attack": "slag_drop",
-  "lore": "A rusted crawler-barge that still hauls its last caravan of sand-pit canisters. It lifts out of its bay and lets the canisters drop one at a time; each lands as a pool of quicksand that swallows shots. Watch the pool drawn on the ground before it lands.",
+  "lore": "A heavy-lift freighter that still hauls its last caravan of sand-pit canisters, now on lift fans instead of tracks. It rises out of its bay and lets the canisters drop one at a time; each lands as a pool of quicksand that swallows shots. Watch the pool drawn on the ground before it lands.",
   "hullRadius": 0.514,
   "turnsToFace": false,
   "speed": 1.68,
@@ -61,34 +61,40 @@
   "muzzles": [
     {
       "name": "port",
-      "x": 92,
-      "y": 210,
+      "x": 90,
+      "y": 162,
       "dir": -1.0
     },
     {
       "name": "star",
-      "x": 288,
-      "y": 210,
+      "x": 292,
+      "y": 162,
       "dir": -1.0
     },
     {
       "name": "canister",
-      "x": 192,
-      "y": 268,
+      "x": 191,
+      "y": 224,
       "dir": -1.0
     }
   ],
   "nozzles": [
     {
-      "name": "l",
-      "x": 128,
-      "y": 290,
+      "name": "a",
+      "x": 129,
+      "y": 270,
       "dir": -1.0
     },
     {
-      "name": "r",
-      "x": 256,
-      "y": 290,
+      "name": "b",
+      "x": 192,
+      "y": 270,
+      "dir": -1.0
+    },
+    {
+      "name": "c",
+      "x": 253,
+      "y": 270,
       "dir": -1.0
     }
   ],

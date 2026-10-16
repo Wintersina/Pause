@@ -23,7 +23,7 @@
   "heartColor": "#FFF6DC",
   "shotColor": "#F4E3B0",
   "shotCore": "#FFF6DC",
-  "engineColor": "#FFF1C8",
+  "engineColor": "#9AD8FF",
   "hearts": 2,
   "heartSize": 0.18,
   "heartOrbit": 0.609,
@@ -39,7 +39,7 @@
   "role": "glass ward bastion",
   "brain": "bastion",
   "attack": "ward_curtain",
-  "lore": "A shielded tank ringed in overlapping glass-mirror plates. It rolls out of a ruin dock and hangs a curtain of slow glass shards in front of itself with one gap in it. Find the gap and wait.",
+  "lore": "A shielded warship ringed in overlapping glass-mirror plates. It rises out of a ruin dock and hangs a curtain of slow glass shards in front of itself with one gap in it. Find the gap and wait.",
   "hullRadius": 0.478,
   "turnsToFace": false,
   "speed": 1.785,
@@ -62,39 +62,39 @@
     {
       "name": "core",
       "x": 192,
-      "y": 102,
+      "y": 38,
       "dir": -1.0
     },
     {
       "name": "portcap",
-      "x": 114,
-      "y": 124,
+      "x": 129,
+      "y": 61,
       "dir": -1.0
     },
     {
       "name": "starcap",
-      "x": 268,
-      "y": 124,
+      "x": 254,
+      "y": 61,
       "dir": -1.0
     }
   ],
   "nozzles": [
     {
       "name": "a",
-      "x": 164,
-      "y": 316,
+      "x": 138,
+      "y": 270,
       "dir": -1.0
     },
     {
       "name": "b",
       "x": 192,
-      "y": 316,
+      "y": 270,
       "dir": -1.0
     },
     {
       "name": "c",
-      "x": 220,
-      "y": 316,
+      "x": 246,
+      "y": 270,
       "dir": -1.0
     }
   ],

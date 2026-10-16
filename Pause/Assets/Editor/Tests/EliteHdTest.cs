@@ -5,7 +5,7 @@ using UnityEngine;
 using Object = UnityEngine.Object;
 
 // The HD elite rebuilds (docs/ship-scale-and-lockon-analysis.md 2.7, Elite/<World>/src~/build_*_hd.py): which elites are built on a
-// 384 px cell (painted master area-averaged, never upscaled, never block-doubled) and which stay on 192 (no master: Codex redraw), and
+// 384 px cell (painted master area-averaged, never upscaled, never block-doubled) and which stay on 192 (none left in Desert: the Glass Cannon was redrawn at 384 too), and
 // that every def agrees with its strips (cellPixels vs the PNG size, 7 flight + 3 death cells), the points scale with the cell,
 // hull / hit radius and size tier are untouched, HD strips are ASTC on phones and the per-world texture budget holds.
 //
@@ -17,7 +17,7 @@ public static class EliteHdResolution
     {
         "tide_elite_thunderfin", "tide_elite_riptide", "tide_elite_bathyscaphe", "tide_elite_trawler", "tide_elite_pearl_warden",
         "storm_elite_skyhook_harrier", "storm_elite_refinery_tender", "storm_elite_rod_dancer", "storm_elite_anvil_cloud", "storm_elite_static_bastion",
-        "desert_elite_dune_stalker", "desert_elite_caravan_hauler", "desert_elite_lens_matriarch", "desert_elite_scorpion_walker", "desert_elite_mirror_bastion",
+        "desert_elite_dune_stalker", "desert_elite_glass_cannon", "desert_elite_caravan_hauler", "desert_elite_lens_matriarch", "desert_elite_scorpion_walker", "desert_elite_mirror_bastion",
         "space_elite_rift_lancer", "space_elite_eventide_bastion", "space_elite_orbit_reaver", "space_elite_singularity_hauler",
         "frost_elite_floe_harrower", "frost_elite_glacier_tender", "frost_elite_whiteout_sentinel",
         "verdant_elite_timber_hauler", "verdant_elite_thornlash", "verdant_elite_sporebloom", "verdant_elite_leafblade",
