@@ -52,6 +52,7 @@ public static class BossDamageTest
             DamagedAttackPosesAreOneFrame();
             AttackPosesLoadPerStage();
             BossTextureBudget();
+            EveryBossOneDrawing();
             SmokeStrengthIsTunable();
             FightShowsTheDamage(0);
             FightShowsTheDamage(1);
@@ -571,6 +572,229 @@ public static class BossDamageTest
             Check(boss.artKey + ": damaged attack poses keep their pose's silhouette (" + alphaOff + " alpha px off)", checkedPoses > 0 && alphaOff == 0);
             Check(boss.artKey + ": damage never stamps idle-hull pixels over parts the pose moved (" + ghost + " ghost px)", checkedPoses > 0 && ghost == 0);
         }
+    }
+
+    // ---- one boss drawing, every boss x every heart count x every pose --------
+    //
+    // A live BossActor is stepped through its states (idle, every tell / fire drawing of the song's per-wave
+    // cadence, every attack of its rotation, hit flash, entrance, death, retreat) at each heart count from full
+    // down to one. Every step is a census of the actor's renderers: exactly ONE boss drawing (the Body renderer)
+    // is up with alpha, the only others are the hit-flash silhouette OF that same sprite and the smoke / arcs fx
+    // sheets; the Body sprite is the drawing for its (pose, damage stage) -- a damaged boss never shows a
+    // pristine pose or hull (an "old pose lingering"). Pixel level: no damaged attack drawing carries idle-hull
+    // pixels over parts its pose moved, nor a silhouette other than its pose's
+    // (0 ghost px). BOSSAUDIT_DOC=<path> also writes the boss x hearts x state table as markdown.
+    sealed class Manual : IMusicBeatSource
+    {
+        public bool Active { get; set; } = true;
+        public double BeatNow { get; set; }
+        public double SecondsPerBeat => .4;
+        public int BeatsPerBar => 4;
+        public int DownbeatBeat => 0;
+        public MusicMoment Moment = new MusicMoment { energy = .7f, bass = .7f, accent = .7f, kind = "drive" };
+        public MusicMoment MusicNow => Moment;
+        public MusicMoment MusicAhead(double beats) => Moment;
+    }
+
+    sealed class AuditRow
+    {
+        public int stage, steps, maxBodies, maxExtras, ghost, stale, badOverlay;
+        public readonly SortedSet<string> states = new SortedSet<string>();
+        public bool Pass => maxBodies == 1 && ghost == 0 && stale == 0 && badOverlay == 0;
+    }
+
+    static readonly Dictionary<Sprite, Color32[]> cellCache = new Dictionary<Sprite, Color32[]>();
+    static Color32[] CachedCell(Sprite sp, int cell)
+    {
+        if (sp == null) return null;
+        Color32[] px;
+        if (!cellCache.TryGetValue(sp, out px)) cellCache[sp] = px = CellPixels(sp, cell);
+        return px;
+    }
+
+    static readonly Dictionary<string, int> ghostCache = new Dictionary<string, int>();
+    static int GhostPixels(BossDef boss, int frame, int stage)
+    {
+        if (stage <= 0 || !BossArt.HasDamageArt(boss)) return 0;
+        string key = boss.artKey + "/" + frame + "/" + stage;
+        int n;
+        if (ghostCache.TryGetValue(key, out n)) return n;
+        var sp = BossArt.AttackDamageBody(boss, frame, stage);
+        int cell = Cell(boss);
+        var dmg = CachedCell(sp, cell);
+        var pose = CachedCell(BossArt.Body(boss, frame), cell);
+        if (sp == null || dmg == null || pose == null) return ghostCache[key] = 0;
+        var refs = new List<Color32[]>();
+        refs.Add(CachedCell(BossArt.Body(boss, BossArt.IdleStart(boss)), cell));   // the pristine idle hull the damage art was transferred from
+        n = 0;
+        foreach (var r in refs)
+        {
+            if (r == null) continue;
+            for (int i = 0; i < dmg.Length; i++)
+                if (dmg[i].a > 80 && Diff(dmg[i], pose[i]) > Slack && r[i].a > 80 && Diff(pose[i], r[i]) > SameHull + Slack && Diff(dmg[i], r[i]) <= Slack) n++;
+        }
+        for (int i = 0; i < dmg.Length; i++)
+            if (dmg[i].a != pose[i].a) n++;   // a different silhouette is a different drawing
+        return ghostCache[key] = n;
+    }
+
+    static string StateName(BossDef boss, int frame, bool flash)
+    {
+        string s;
+        int col = BossArt.AttackDamageColumn(boss, frame);
+        if (col >= 0)
+        {
+            var names = BossArt.HasExpandedCombat(boss)
+                ? new[] { "tell0_0", "tell0_1", "tell0_2", "tell1_0", "tell1_1", "tell1_2", "tell2_0", "tell2_1", "tell2_2" }
+                : new[] { "tell0_0", "tell0_1", "tell1_0", "tell1_1", "tell2_0", "tell2_1", "fire" };
+            s = names[col];
+        }
+        else if (BossArt.IsIdleFrame(frame)) s = "idle";
+        else if (frame == BossArt.Hit) s = "hit";
+        else if (frame >= BossArt.Death0 && frame < BossArt.Death0 + BossArt.DeathFrames) s = "death";
+        else if (frame >= BossArt.Retreat0 && frame < BossArt.Retreat0 + BossArt.RetreatFrames) s = "retreat";
+        else s = "frame" + frame;
+        return flash ? s + "+flash" : s;
+    }
+
+    // One census of the actor, recorded into `row`.
+    static void Census(BossActor a, BossDef boss, AuditRow row, string label, ref string firstFail)
+    {
+        var body = Body(a);
+        int bodies = 0, extras = 0;
+        string why = null;
+        foreach (var sr in a.GetComponentsInChildren<SpriteRenderer>())
+        {
+            if (!sr.enabled || sr.sprite == null || sr.color.a <= 0f) continue;
+            if (sr.transform.parent != a.transform) continue;   // the hearts ring and its outlines are not the boss's drawing
+            string n = sr.name;
+            if (n == "Body") bodies++;
+            else if (n == "HitFlash")
+            {
+                extras++;
+                if (sr.sprite != body.sprite) { row.badOverlay++; why = "flash silhouette is not the body sprite"; }
+            }
+            else if (n == "DamageSmoke" || n == "DamageArcs")
+            {
+                extras++;
+                if (sr.sprite.texture != BossArt.DamageFx(boss, 0).texture) { row.badOverlay++; why = n + " is not from the damage fx sheet"; }
+            }
+            else if (n.StartsWith("Charge") || n.StartsWith("Ring")) { }
+            else { row.badOverlay++; why = "unexpected renderer " + n; }
+        }
+        row.maxBodies = Mathf.Max(row.maxBodies, bodies);
+        row.maxExtras = Mathf.Max(row.maxExtras, extras);
+        bool visible = body.enabled && body.sprite != null;
+        if (!visible) { if (why != null && firstFail == null) firstFail = label + ": " + why; return; }
+        if (bodies != 1) why = "body renderers up: " + bodies;
+        int frame = a.BodyFrame, stage = a.DamageStage;
+        row.states.Add(StateName(boss, frame, a.WhiteAlpha > 0f));
+        row.steps++;
+        // the drawing is the one for (pose, stage): a damaged boss never shows a pristine pose / hull
+        if (stage > 0 && BossArt.HasDamageArt(boss) && a.State == BossActor.Mode.Fighting)
+        {
+            if (BossArt.IsIdleFrame(frame))
+            {
+                int c0 = (Mathf.Min(stage, BossArt.DamageStages) - 1) * BossArt.DamageColumns;
+                if (body.sprite != BossArt.DamageBody(boss, c0) && body.sprite != BossArt.DamageBody(boss, c0 + 1)) { row.stale++; why = "idle at stage " + stage + " is not the damaged hull"; }
+            }
+            else if (BossArt.AttackDamageColumn(boss, frame) >= 0)
+            {
+                var want = BossArt.AttackDamageBody(boss, frame, stage);
+                if (want == null || body.sprite != want) { row.stale++; why = "pose " + frame + " at stage " + stage + " is not its damaged drawing"; }
+                row.ghost = Mathf.Max(row.ghost, GhostPixels(boss, frame, stage));
+            }
+            else { row.stale++; why = "frame " + frame + " (not idle, not an attack pose) while damaged"; }
+        }
+        if (why != null && firstFail == null) firstFail = label + ": " + why;
+    }
+
+    static string Cells(AuditRow r) => r.maxBodies + " | " + r.maxExtras + " | " + r.ghost + " | " + r.stale + " | " + (r.Pass ? "pass" : "FAIL");
+
+    static void EveryBossOneDrawing()
+    {
+        string doc = System.Environment.GetEnvironmentVariable("BOSSAUDIT_DOC");
+        var md = new System.Text.StringBuilder();
+        md.AppendLine("| boss | cell px | layout | hearts left | stage | states seen | max body drawings | max overlays | ghost px | stale poses | result |");
+        md.AppendLine("|---|---|---|---|---|---|---|---|---|---|---|");
+        string firstFail = null;
+        for (int w = 0; w < BossCatalog.All.Length; w++)
+        {
+            var boss = BossCatalog.All[w];
+            FreshScene(w);
+            var actor = BossActor.Spawn(boss);
+            var pool = new BossProjectilePool(BossConfig.ProjectilePoolMax, BossConfig.BeamPoolMax);
+            var music = new Manual();
+            var player = new Vector3(0f, -3.2f, 0f);
+            var all = new Dictionary<int, AuditRow>();
+            var entrance = new AuditRow();
+            actor.BeginArrival();
+            for (int f = 0; f < 60 * 4; f++) { actor.StepArrival(Dt); Census(actor, boss, entrance, boss.artKey + " entrance", ref firstFail); }
+            actor.BeginFight();
+            int max = MaxHearts;
+            double beat = 0;
+            for (int left = max; left >= 1; left--)
+            {
+                var row = new AuditRow();
+                all[left] = row;
+                actor.SetHearts(left, actor.transform.position);
+                row.stage = actor.DamageStage;
+                string label = boss.artKey + " hearts " + left;
+                // the song's per-wave tell / fire cadence, with hits landing
+                actor.BeatOverride = music;
+                actor.ForcedAttack = -1;
+                for (int f = 0; f < 60 * 7; f++)
+                {
+                    beat += Dt / .4; music.BeatNow = beat;
+                    actor.StepFight(Dt, Dt, player, .8f, pool);
+                    pool.Step(Dt);
+                    if (f % 150 == 40) actor.Flash(1f);
+                    Census(actor, boss, row, label + " (music)", ref firstFail);
+                }
+                // every attack of its rotation on its own tell / fire cadence
+                actor.BeatOverride = null;
+                for (int at = 0; at < boss.attacks.Length; at++)
+                {
+                    actor.ForcedAttack = at;
+                    for (int f = 0; f < 60 * 3; f++)
+                    {
+                        actor.StepFight(Dt, Dt, player, .8f, pool);
+                        pool.Step(Dt);
+                        if (f == 70) actor.Flash(1f);
+                        Census(actor, boss, row, label + " (attack " + at + ")", ref firstFail);
+                    }
+                }
+                actor.ForcedAttack = -1;
+                pool.RecycleAll();
+            }
+            // death handoff at the last heart; a damaged boss retreating (a second actor)
+            var death = new AuditRow { stage = actor.DamageStage };
+            actor.BeginOutro(true);
+            for (int f = 0; f < 60 * 3; f++) { actor.StepOutro(Dt, 0); Census(actor, boss, death, boss.artKey + " death", ref firstFail); }
+            var actor2 = BossActor.Spawn(boss);
+            actor2.BeginFight();
+            actor2.SetHearts(2, actor2.transform.position);
+            var retreat = new AuditRow { stage = actor2.DamageStage };
+            actor2.BeginOutro(false);
+            for (int f = 0; f < 60 * 2; f++) { actor2.StepOutro(Dt, 0); Census(actor2, boss, retreat, boss.artKey + " retreat", ref firstFail); }
+
+            string head = "| " + boss.artKey + " | " + Cell(boss) + " | " + (BossArt.HasExpandedCombat(boss) ? "35-cell" : "20-cell") + " | ";
+            bool ok = entrance.Pass && death.maxBodies <= 1 && death.badOverlay == 0 && retreat.maxBodies <= 1 && retreat.badOverlay == 0;
+            md.AppendLine(head + "entrance | 0 | " + string.Join(", ", entrance.states) + " | " + Cells(entrance) + " |");
+            for (int left = max; left >= 1; left--)
+            {
+                var r = all[left];
+                ok &= r.Pass;
+                md.AppendLine(head + left + " | " + r.stage + " | " + string.Join(", ", r.states) + " | " + Cells(r) + " |");
+            }
+            md.AppendLine(head + "death handoff | " + death.stage + " | " + string.Join(", ", death.states) + " | " + Cells(death) + " |");
+            md.AppendLine(head + "retreat (2 left) | " + retreat.stage + " | " + string.Join(", ", retreat.states) + " | " + Cells(retreat) + " |");
+            Object.DestroyImmediate(actor.gameObject);
+            Object.DestroyImmediate(actor2.gameObject);
+            Check(boss.artKey + ": exactly one boss drawing, no ghost px, no stale pose at every heart count 1.." + max + ", entrance, death, retreat", ok);
+        }
+        Check("every state of every boss is one drawing" + (firstFail != null ? " (first failure: " + firstFail + ")" : ""), firstFail == null);
+        if (!string.IsNullOrEmpty(doc)) System.IO.File.WriteAllText(doc, md.ToString());
     }
 
     // ---- the death strip -----------------------------------------------
