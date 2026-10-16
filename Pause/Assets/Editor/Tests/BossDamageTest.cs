@@ -26,6 +26,13 @@ public static class BossDamageTest
         if (!ok) fails++;
     }
 
+    // The boss atlas's own cell size in px (384 for most; the Cinder Drake's art is 576 = 384 x 1.5, same world size).
+    static int Cell(BossDef b)
+    {
+        var s = BossArt.Body(b, 0);
+        return s == null ? 384 : Mathf.RoundToInt(s.rect.width);
+    }
+
     public static void Run() { TestHarness.Exit(Execute()); }
 
     public static int Execute()
@@ -178,27 +185,28 @@ public static class BossDamageTest
     {
         var space = BossCatalog.ForWorld(world);
         string key = space.damageKey, tag = space.artKey + ": ";
+        int c = Cell(space);
         var hull = Resources.Load<Texture2D>(BossArt.Folder + key + "_damage");
         var fx = Resources.Load<Texture2D>(BossArt.Folder + key + "_damage_fx");
-        Check(key + "_damage imports unscaled at 768x1536 (" + (hull ? hull.width + "x" + hull.height : "missing") + ")",
-              hull != null && hull.width == 768 && hull.height == 1536);
-        Check(key + "_damage_fx imports unscaled at 2304x768 (" + (fx ? fx.width + "x" + fx.height : "missing") + ")",
-              fx != null && fx.width == 2304 && fx.height == 768);
+        Check(key + "_damage imports unscaled at " + 2 * c + "x" + 4 * c + " (" + (hull ? hull.width + "x" + hull.height : "missing") + ")",
+              hull != null && hull.width == 2 * c && hull.height == 4 * c);
+        Check(key + "_damage_fx imports unscaled at " + 6 * c + "x" + 2 * c + " (" + (fx ? fx.width + "x" + fx.height : "missing") + ")",
+              fx != null && fx.width == 6 * c && fx.height == 2 * c);
 
         var seen = new HashSet<Sprite>();
         int hullOk = 0, fxOk = 0;
         for (int i = 0; i < BossArt.DamageCells; i++)
         {
             var s = BossArt.DamageBody(space, i);
-            if (s != null && s.rect.width == 384f && s.rect.height == 384f && seen.Add(s)) hullOk++;
+            if (s != null && s.rect.width == c && s.rect.height == c && seen.Add(s)) hullOk++;
         }
         for (int i = 0; i < BossArt.DamageFxCells; i++)
         {
             var s = BossArt.DamageFx(space, i);
-            if (s != null && s.rect.width == 384f && s.rect.height == 384f && seen.Add(s)) fxOk++;
+            if (s != null && s.rect.width == c && s.rect.height == c && seen.Add(s)) fxOk++;
         }
-        Check(tag + "8 distinct 384px hull cells (" + hullOk + ")", BossArt.DamageCells == 8 && hullOk == 8);
-        Check(tag + "12 distinct 384px fx cells (" + fxOk + ")", BossArt.DamageFxCells == 12 && fxOk == 12);
+        Check(tag + "8 distinct " + c + "px hull cells (" + hullOk + ")", BossArt.DamageCells == 8 && hullOk == 8);
+        Check(tag + "12 distinct " + c + "px fx cells (" + fxOk + ")", BossArt.DamageFxCells == 12 && fxOk == 12);
         var idle = BossArt.Body(space, BossArt.IdleFrame(space, 0f));
         var d0 = BossArt.DamageBody(space, 0);
         // (Height only for Space: the body slicer cuts 7 rows from every
@@ -210,11 +218,11 @@ public static class BossDamageTest
               (world == 0 ? Mathf.Abs(idle.bounds.size.y - d0.bounds.size.y) < 1e-4f : Mathf.Abs(d0.bounds.size.y - 1f) < 1e-4f));
         // row 0 of the strip is the top of the texture: stage 1, frame A
         Check(tag + "hull cell 0 is the top-left of the strip (stage 1, frame A)",
-              d0 != null && d0.rect.x == 0f && d0.rect.y == 1152f);
+              d0 != null && d0.rect.x == 0f && d0.rect.y == 3 * c);
         var s0 = BossArt.DamageFx(space, BossArt.Smoke0);
         var a0 = BossArt.DamageFx(space, BossArt.Arc0);
         Check(tag + "smoke row is the top fx row, arcs the bottom",
-              s0 != null && a0 != null && s0.rect.y == 384f && a0.rect.y == 0f);
+              s0 != null && a0 != null && s0.rect.y == c && a0.rect.y == 0f);
     }
 
     static void OnlyKeyedBossesHaveDamage()
@@ -482,7 +490,7 @@ public static class BossDamageTest
         {
             if (!BossArt.HasDamageArt(boss)) continue;
             var poses = BossArt.AttackDamagePoses(boss);
-            const int cell = 384;
+            int cell = Cell(boss);
             var idle = CellPixels(BossArt.Body(boss, BossArt.IdleStart(boss)), cell);
             int ghost = 0, alphaOff = 0, checkedPoses = 0, flat = 0;
             for (int p = 0; p < poses.Length && idle != null; p++)
@@ -542,9 +550,11 @@ public static class BossDamageTest
     static void DeathStripArt(int world, string name)
     {
         var em = BossCatalog.ForWorld(world);
+        int c = Cell(em);
+        float rk = c / 384f;
         var tex = Resources.Load<Texture2D>(BossArt.Folder + name + "_death");
-        Check(name + ": deathKey set and " + name + "_death imports unscaled at 2304x384 (" + (tex ? tex.width + "x" + tex.height : "missing") + ")",
-              em.deathKey == name && BossArt.HasDeathArt(em) && tex != null && tex.width == 2304 && tex.height == 384);
+        Check(name + ": deathKey set and " + name + "_death imports unscaled at " + 6 * c + "x" + c + " (" + (tex ? tex.width + "x" + tex.height : "missing") + ")",
+              em.deathKey == name && BossArt.HasDeathArt(em) && tex != null && tex.width == 6 * c && tex.height == c);
         var idle = BossArt.Body(em, BossArt.IdleFrame(em, 0f));
         var seen = new HashSet<Sprite>();
         bool same = true, inside = true;
@@ -554,12 +564,12 @@ public static class BossDamageTest
             var s = BossArt.DeathStrip(em, i);
             if (s == null || !seen.Add(s)) { same = false; continue; }
             // same scale, same anchor as the idle cell
-            same &= s.rect.width == 384f && s.rect.height == 384f && Mathf.Abs(s.bounds.size.x - idle.bounds.size.x) < 1e-4f &&
-                    Mathf.Abs(s.bounds.size.y - idle.bounds.size.y) < 1e-4f && s.pivot == idle.pivot && s.rect.x == i * 384f;
+            same &= s.rect.width == c && s.rect.height == c && Mathf.Abs(s.bounds.size.x - idle.bounds.size.x) < 1e-4f &&
+                    Mathf.Abs(s.bounds.size.y - idle.bounds.size.y) < 1e-4f && s.pivot == idle.pivot && s.rect.x == i * c;
             var box = Box(s);
             // content is never empty and stays inside its own 384 cell (the idle art itself spans 7..382 of it)
-            inside &= box != null && box[0] >= 0 && box[1] >= 0 && box[2] < 384 && box[3] < 384 &&
-                      box[2] - box[0] <= (ibox[2] - ibox[0]) + 16;
+            inside &= box != null && box[0] >= 0 && box[1] >= 0 && box[2] < c && box[3] < c &&
+                      box[2] - box[0] <= (ibox[2] - ibox[0]) + Mathf.RoundToInt(16 * rk);
         }
         Check(name + " death strip:"+" 6 distinct 384px cells, same scale / pivot as the idle cell", same && seen.Count == 6);
         Check(name + " death strip:"+" every cell is drawn and sits inside its cell, no wider than the idle art", inside);
@@ -568,7 +578,7 @@ public static class BossDamageTest
         float cx0 = (b0[0] + b0[2]) / 2f, cx1 = (ibox[0] + ibox[2]) / 2f;
         float cy0 = (b0[1] + b0[3]) / 2f, cy1 = (ibox[1] + ibox[3]) / 2f;
         Check(name + " death cell 0 is registered to the idle cell (centre off by " + Mathf.Abs(cx0 - cx1).ToString("0") + ", " +
-              Mathf.Abs(cy0 - cy1).ToString("0") + " px of 384)", Mathf.Abs(cx0 - cx1) <= 40f && Mathf.Abs(cy0 - cy1) <= 40f);
+              Mathf.Abs(cy0 - cy1).ToString("0") + " px of 384)", Mathf.Abs(cx0 - cx1) <= 40f * rk && Mathf.Abs(cy0 - cy1) <= 40f * rk);
         Check("strip timing: 6 cells at 0.12 s, clamped (cell at 0 s, .13 s, .5 s, .71 s, 3 s)",
               BossArt.DeathStripCell(0f) == 0 && BossArt.DeathStripCell(.13f) == 1 && BossArt.DeathStripCell(.5f) == 4 &&
               BossArt.DeathStripCell(.71f) == 5 && BossArt.DeathStripCell(3f) == 5 && BossArt.DeathStripCell(-1f) == 0);
