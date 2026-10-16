@@ -49,6 +49,16 @@ public static class BossTelegraphStyle
     // Is the dotted lane / aim / ring overlay drawn while `a` plays? Only a major bullet-hell pattern (none today).
     public static bool OverlayAllowed(BossAttack a) => a != null && a.kind == BossAttackKind.Pattern && a.IsMajor;
 
+    // Boss hazard previews (AttackPreview dots, the vine's ghost whip and dashes): factors on today's look, calm -> drop.
+    public const float PreviewAlphaCalm = .85f, PreviewAlphaBusy = .5f;
+    public const float PreviewDotCalm = .9f, PreviewDotBusy = .7f;
+    public const float PreviewSpacingCalm = 1.1f, PreviewSpacingBusy = 1.5f;   // wider spacing: fewer, lighter dots
+    public static float PreviewAlpha(float intensity) => Lerp(PreviewAlphaCalm, PreviewAlphaBusy, intensity);
+    public static float PreviewDot(float intensity) => Lerp(PreviewDotCalm, PreviewDotBusy, intensity);
+    public static float PreviewSpacing(float intensity) => Lerp(PreviewSpacingCalm, PreviewSpacingBusy, intensity);
+    // The intensity for a hazard armed by `by`: the live boss's, or -1 when `by` is not a boss (enemies, elites unchanged).
+    public static float OwnerIntensity(GameObject by) => by != null && by.GetComponent<BossActor>() != null ? Mathf.Clamp01(LiveIntensity) : -1f;
+
     static float Lerp(float calm, float busy, float intensity) => Mathf.Lerp(calm, busy, Mathf.Clamp01(intensity));
     public static float EdgeAlpha(float intensity) => Lerp(EdgeAlphaCalm, EdgeAlphaBusy, intensity);
     public static float AimAlpha(float intensity) => Lerp(AimAlphaCalm, AimAlphaBusy, intensity);

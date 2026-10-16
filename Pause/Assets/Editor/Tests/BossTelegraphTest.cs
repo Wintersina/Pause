@@ -1,3 +1,4 @@
+using UnityEditor.SceneManagement;
 using UnityEngine;
 
 // BOSS TELEGRAPHS (BossPatternMarkers / BossTelegraphStyle): light dotted lines that thin out as the song gets busy.
@@ -19,6 +20,8 @@ public static class BossTelegraphTest
         fails = 0;
         Style();
         for (int w = 0; w < 7; w++) Markers(w);
+        PreviewStyle();
+        for (int w = 0; w < 7; w++) MajorPreviews(w);
         Debug.Log("[TELE] failures: " + fails);
         return fails;
     }
@@ -144,5 +147,60 @@ public static class BossTelegraphTest
             Check(tag + "adding and stepping telegraphs allocates nothing (" + bytes + " bytes)", meter && bytes == 0);
         }
         finally { Object.DestroyImmediate(actor.gameObject); }
+    }
+
+    // The hazard preview (AttackPreview) softened for a boss: fewer, smaller, fainter dots toward a drop; unchanged otherwise.
+    static void PreviewStyle()
+    {
+        var shape = new AttackShape();
+        shape.AddQuad(new Vector2(0f, 0f), new Vector2(0f, -3f), 1f);
+        var plain = AttackPreview.Show(shape, 1f, Color.white);
+        int plainDots = plain.DotCount; float plainAlpha = AttackPreview.LastAlpha, plainSpacing = AttackPreview.LastSpacing; plain.End();
+        var calm = AttackPreview.Show(shape, 1f, Color.white, false, 0f);
+        int calmDots = calm.DotCount; float calmAlpha = AttackPreview.LastAlpha, calmDot = AttackPreview.LastDotSize; calm.End();
+        var busy = AttackPreview.Show(shape, 1f, Color.white, false, 1f);
+        int busyDots = busy.DotCount; float busyAlpha = AttackPreview.LastAlpha, busyDot = AttackPreview.LastDotSize, busySpacing = AttackPreview.LastSpacing; busy.End();
+        Check("an enemy's preview is unchanged (alpha " + plainAlpha.ToString("F2") + ", spacing " + plainSpacing.ToString("F2") + ")", Mathf.Approximately(plainAlpha, AttackPreview.Alpha) && Mathf.Approximately(plainSpacing, AttackPreview.DotSpacing));
+        Check("a boss's preview is lighter than an enemy's, and lighter again at a drop (alpha " + calmAlpha.ToString("F2") + " > " + busyAlpha.ToString("F2") + ", dots " + plainDots + " > " + calmDots + " > " + busyDots + ")",
+              calmAlpha < plainAlpha && busyAlpha < calmAlpha && calmDots < plainDots && busyDots < calmDots && busyDot < calmDot && calmDot < AttackPreview.DotSize);
+        Check("it stays dotted, never solid (gap between dots " + (busySpacing - busyDot).ToString("F2") + " u) and readable (alpha >= .2)", busySpacing > busyDot * 1.5f && busyAlpha >= .2f && busyDots >= 10);
+    }
+
+    // Every MAJOR attack's own preview in a live fight: dotted, light, never solid.
+    static void MajorPreviews(int world)
+    {
+        using var sandbox = new TestHarness.Sandbox();
+        var boss = BossCatalog.ForWorld(world);
+        for (int a = 0; a < boss.attacks.Length; a++)
+        {
+            var atk = boss.attacks[a];
+            if (atk.kind == BossAttackKind.Pattern || !atk.IsMajor) continue;
+            EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+            BossEncounter.ResetRun();
+            var camGo = new GameObject("Main Camera", typeof(Camera)); camGo.tag = "MainCamera";
+            PlayerPrefs.SetInt(WorldManager.PrefsCurrentWorld, world);
+            BossEncounter.Begin(world, null);
+            var e = BossEncounter.Instance;
+            e.Step(.1f, 1f);
+            for (int i = 0; i < 400 && e.State == BossEncounter.Phase.Intro; i++) e.Step(.1f, 1f);
+            e.Actor.ForcedAttack = a;
+            AttackPreview.EndAll();
+            int dots = 0; float spacing = 0f, alpha = 0f, dotSize = 0f, sightAlpha = -1f; bool dashed = false;
+            for (int i = 0; i < 400 && e.Actor.AttacksStarted == 0; i++) e.Step(1f / 30f, 1f);
+            for (int f = 0; f < 150; f++)
+            {
+                e.Step(1f / 30f, 1f);
+                if (AttackPreview.ActiveCount > 0 && AttackPreview.DotsInUse > dots) { dots = AttackPreview.DotsInUse; spacing = AttackPreview.LastSpacing; alpha = AttackPreview.LastAlpha; dotSize = AttackPreview.LastDotSize; }
+                foreach (var b in e.Pool.Beams) if (b != null && b.SightShown) { sightAlpha = Mathf.Max(sightAlpha, b.SightAlphaNow); dashed = b.SightDotted; }
+            }
+            string tag = boss.name + " / " + atk.name + " (" + atk.kind + "): ";
+            if (atk.kind == BossAttackKind.Beam)
+                Check(tag + "the laser's aim line is the painted dashed art, light (alpha " + sightAlpha.ToString("F2") + ")", dashed && sightAlpha > .5f && sightAlpha <= BossTelegraphStyle.SightAlphaCalm + .001f);
+            else
+                Check(tag + "the preview is dots, lighter than an enemy's (" + dots + " dots, alpha " + alpha.ToString("F2") + ", spacing " + spacing.ToString("F2") + ")",
+                      dots >= 5 && alpha <= AttackPreview.Alpha * BossTelegraphStyle.PreviewAlphaCalm + .001f && spacing >= AttackPreview.DotSpacing * BossTelegraphStyle.PreviewSpacingCalm - .001f && spacing > dotSize * 1.5f);
+            AttackPreview.EndAll();
+            BossEncounter.ResetRun();
+        }
     }
 }

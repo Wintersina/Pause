@@ -33,6 +33,7 @@ public sealed class AttackPreview
     // counters (tests, previews)
     public static int Shown, TooShort, Dropped;
     public static float MinShown = float.PositiveInfinity;
+    public static float LastSpacing, LastAlpha, LastDotSize;   // the look of the newest preview (tests)
 
     sealed class Dot { public SpriteRenderer sr; public bool used; }
 
@@ -44,7 +45,7 @@ public sealed class AttackPreview
     readonly int[] mine = new int[MaxDots / 2];
     int mineCount;
     float shownFor, untilLive, tintAlpha = 1f;
-    float dotScale = 1f, alphaScale = 1f;   // a bold preview (the elites' on a bright world): bigger, denser dots
+    float dotScale = 1f, alphaScale = 1f, spacingScale = 1f;   // a bold preview (the elites' on a bright world): bigger, denser dots
     Color tint = Color.white;
 
     public bool Active { get; private set; }
@@ -52,6 +53,9 @@ public sealed class AttackPreview
     public float UntilLive => untilLive;
     public int DotCount => mineCount;
     public bool Live { get; private set; }
+    public float Spacing => DotSpacing * spacingScale;
+    public float PaintedAlpha => Mathf.Min(1f, Alpha * alphaScale);
+    public float DotWorldSize => DotSize * dotScale;
 
     AttackPreview()
     {
@@ -92,7 +96,8 @@ public sealed class AttackPreview
     public static void ResetCounters() { Shown = TooShort = Dropped = 0; MinShown = float.PositiveInfinity; }
 
     // Draws `shape`'s outline; the hazard goes live in `secondsUntilLive`. Null if all MaxPreviews are busy.
-    public static AttackPreview Show(AttackShape shape, float secondsUntilLive, Color tint, bool bold = false)
+    // `soften` >= 0: a boss's preview, lighter toward a drop (BossTelegraphStyle.PreviewAlpha / PreviewDot / PreviewSpacing of that intensity).
+    public static AttackPreview Show(AttackShape shape, float secondsUntilLive, Color tint, bool bold = false, float soften = -1f)
     {
         EnsureRoot();
         AttackPreview p = null;
@@ -104,7 +109,15 @@ public sealed class AttackPreview
         if (p == null) return null;
         p.dotScale = bold ? BoldDotScale : 1f;
         p.alphaScale = bold ? BoldAlpha / Alpha : 1f;
+        p.spacingScale = 1f;
+        if (soften >= 0f)
+        {
+            p.dotScale *= BossTelegraphStyle.PreviewDot(soften);
+            p.alphaScale *= BossTelegraphStyle.PreviewAlpha(soften);
+            p.spacingScale = BossTelegraphStyle.PreviewSpacing(soften);
+        }
         p.Begin(shape, secondsUntilLive, tint);
+        LastSpacing = p.Spacing; LastAlpha = p.PaintedAlpha; LastDotSize = p.DotWorldSize;
         return p;
     }
 
@@ -127,7 +140,7 @@ public sealed class AttackPreview
             {
                 Vector2 a = shape.LoopAt(l, i), b = shape.LoopAt(l, (i + 1) % n);
                 float len = Vector2.Distance(a, b);
-                int steps = Mathf.Max(1, Mathf.CeilToInt(len / DotSpacing));
+                int steps = Mathf.Max(1, Mathf.CeilToInt(len / (DotSpacing * spacingScale)));
                 for (int s = 0; s < steps; s++) PlaceDot(Vector2.Lerp(a, b, (s + .5f) / steps));
             }
         }

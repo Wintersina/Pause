@@ -64,6 +64,7 @@ public abstract class AttackHazard : MonoBehaviour, IHostileZone, IAttackStep, I
     protected GameObject shooter;
     protected int ownerId;
     protected float t, age, tellTotal;
+    protected float softAlpha = 1f;                          // a boss-owned hazard's preview alpha factor (BossTelegraphStyle)
     GameObject hitbox;
     PolygonCollider2D poly;
     AttackPreview preview;
@@ -143,7 +144,9 @@ public abstract class AttackHazard : MonoBehaviour, IHostileZone, IAttackStep, I
         shape.Clear();
         OnArmed();
         EndPreview();
-        preview = AttackPreview.Show(shape, tellTotal, PreviewTint);
+        float soft = BossTelegraphStyle.OwnerIntensity(by);   // a boss's preview is lighter toward a drop
+        softAlpha = soft < 0f ? 1f : BossTelegraphStyle.PreviewAlpha(soft);
+        preview = AttackPreview.Show(shape, tellTotal, PreviewTint, false, soft);
     }
 
     // The windup is over: the hazard goes live. (A no-op once it is.)

@@ -407,6 +407,9 @@ public class BossBeam : MonoBehaviour
 
     public bool Active { get; private set; }
     public bool Live => Active && live && !fading;
+    public float SightAlphaNow => sight != null && sight.enabled ? sight.color.a : 0f;   // test reads
+    public bool SightDotted => art != null;                                          // the aim line is the painted dashed art
+    public bool SightShown => sight != null && sight.enabled;
     public bool Telegraphing => Active && !live;
     public GameObject Hitbox => hitbox;
     public Vector3 Origin => origin;
