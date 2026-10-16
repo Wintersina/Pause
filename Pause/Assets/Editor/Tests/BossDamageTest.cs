@@ -50,6 +50,8 @@ public static class BossDamageTest
             ArtSlicesIntoItsCells(5);
             OnlyKeyedBossesHaveDamage();
             DamagedAttackPosesAreOneFrame();
+            AttackPosesLoadPerStage();
+            BossTextureBudget();
             SmokeStrengthIsTunable();
             FightShowsTheDamage(0);
             FightShowsTheDamage(1);
@@ -483,6 +485,57 @@ public static class BossDamageTest
     }
 
     static int Diff(Color32 a, Color32 b) => Mathf.Max(Mathf.Abs(a.r - b.r), Mathf.Max(Mathf.Abs(a.g - b.g), Mathf.Abs(a.b - b.b)));
+
+    // The damaged attack poses load one damage stage at a time (a stage's poses are ~3 MB at the Cinder Drake's size; all four ~12 MB).
+    static void AttackPosesLoadPerStage()
+    {
+        foreach (var boss in BossCatalog.All)
+        {
+            if (!BossArt.HasDamageArt(boss)) continue;
+            var poses = BossArt.AttackDamagePoses(boss);
+            BossArt.ForgetAttackDamage(boss);
+            var before = BossArt.AttackDamageStagesLoaded(boss);
+            Check(boss.artKey + ": a forgotten boss has no attack-pose stage loaded", before == 0);
+            var s2 = BossArt.AttackDamageBody(boss, poses[0], 2);
+            Check(boss.artKey + ": asking for a stage-2 attack pose loads only stage 2 (" + BossArt.AttackDamageStagesLoaded(boss) + " loaded)",
+                  s2 != null && BossArt.AttackDamageStagesLoaded(boss) == 1);
+            int afterFirst = BossArt.AttackDamageStagesLoaded(boss);
+            var again = BossArt.AttackDamageBody(boss, poses[poses.Length - 1], 2);
+            Check(boss.artKey + ": a second stage-2 pose loads nothing more", again != null && BossArt.AttackDamageStagesLoaded(boss) == afterFirst);
+            Check(boss.artKey + ": a stage-0 (undamaged) request loads nothing", BossArt.AttackDamageBody(boss, poses[0], 0) == null &&
+                  BossArt.AttackDamageStagesLoaded(boss) == 1);
+        }
+    }
+
+    // Per-boss texture memory as the phones hold it (ASTC 6x6 atlases / sheets, ASTC 4x4 attack poses) stays under 25 MB.
+    // The Cinder Drake (576 px cells) is about 9 MB + 12 MB of poses; the 384 px bosses are well under.
+    const long PerBossTextureBytes = 25L * 1024 * 1024;
+    static void BossTextureBudget()
+    {
+        foreach (var boss in BossCatalog.All)
+        {
+            long bytes = 0;
+            foreach (var name in new[] { boss.artKey, boss.damageKey + "_damage", boss.damageKey + "_damage_fx", boss.deathKey + "_death" })
+            {
+                if (string.IsNullOrEmpty(name) || name.StartsWith("_") || name == "_damage" || name == "_damage_fx" || name == "_death") continue;
+                var t = Resources.Load<Texture2D>(BossArt.Folder + name);
+                if (t != null) bytes += (long)t.width * t.height * 16 / 36;
+            }
+            if (!string.IsNullOrEmpty(boss.damageKey))
+            {
+                var names = new List<string>();
+                foreach (var f in System.IO.Directory.GetFiles("Assets/Art/Resources/BossImpact/attack", boss.damageKey.ToLowerInvariant() + "_*_stage?.png"))
+                    names.Add(System.IO.Path.GetFileNameWithoutExtension(f));
+                foreach (var n in names)
+                {
+                    var t = Resources.Load<Texture2D>("BossImpact/attack/" + n);
+                    if (t != null) bytes += (long)t.width * t.height;
+                }
+            }
+            Debug.Log("[BOSSDAMAGE] " + boss.artKey + " boss texture memory " + bytes / 1024 + " KB (budget " + PerBossTextureBytes / 1024 + " KB)");
+            Check(boss.artKey + ": boss textures " + bytes / 1024 + " KB <= " + PerBossTextureBytes / 1024 + " KB", bytes > 0 && bytes <= PerBossTextureBytes);
+        }
+    }
 
     static void DamagedAttackPosesAreOneFrame()
     {
