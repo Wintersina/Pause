@@ -22,13 +22,20 @@ overlay (say Drake's fire breath), set `telegraph = 1` on it: the dotted lane ov
 
 ## What is drawn
 
-- Major attacks keep their own previews (laser aim line + reticle, vine arc, hazard outlines); the laser's aim line and
-  reticle ease to `SightAlpha` (1 -> .6) toward a drop.
-- The dotted overlay (`BossPatternMarkers`, opt-in via the flag; no attack uses it today): a lane is a brighter dotted
-  PAIR on the gap's two edges, an aim line one faint dotted line, a spot a dotted ring. One pooled tiled sprite per line
-  (`BossTelegraphStyle.Dash`), 16 marks x 2 renderers built at fight start, nothing allocated while playing. World cue
-  colour lightened `PaleMix` toward white (no pink outside Space). Drawn only for its last `VisibleSeconds(intensity)`
-  before the beat, a slow dip to 60 % instead of a hard blink, total capped at `MaxTotalWeight` (alpha x dotted length).
+Every major attack's preview is dotted and light, scaled by the song's intensity (calm -> drop); the actual laser beam,
+vine and hazard art are unchanged.
+
+- Hazards (Jet / Wave / Blast / Strike / Roll / Lash outlines, `AttackPreview`): when the hazard is armed by a boss
+  (`BossTelegraphStyle.OwnerIntensity`) its dotted outline gets `PreviewAlpha` x alpha, `PreviewDot` x dot size and
+  `PreviewSpacing` x spacing (fewer, smaller, fainter dots). Enemies and elites are unchanged. A boss strike no longer draws
+  its filled lane band under the outline.
+- Vine lash: the ghost whip and the dash arc ease with `PreviewAlpha`.
+- Laser aim line: the painted dashed sight (and reticle) eases to `SightAlpha` toward a drop; a boss with no painted tell
+  sheet (Tide, Storm, Desert) now gets a thin dotted line (`BossTelegraphStyle.Dash`) instead of a solid bar.
+- The dotted lane / aim / ring overlay (`BossPatternMarkers`, opt-in via the flag; no attack uses it today): a lane is a
+  brighter dotted PAIR on the gap's two edges. One pooled tiled sprite per line, 16 marks x 2 renderers built at fight
+  start, nothing allocated while playing. Drawn only for its last `VisibleSeconds(intensity)` before the beat, total capped
+  at `MaxTotalWeight` (alpha x dotted length). World cue colour lightened `PaleMix` toward white (no pink outside Space).
 - Muzzle charge / flash glow keeps its art; alpha and size ease down at a drop (`MuzzleGlow*`).
 
 ## Tuning (all in `Scripts/Bosses/Patterns/BossTelegraphStyle.cs`, calm -> drop)
@@ -43,9 +50,12 @@ overlay (say Drake's fire breath), set `telegraph = 1` on it: the dotted lane ov
 | `SightAlpha*` (laser aim line) | 1 | .6 |
 | `MuzzleGlow*` (alpha) | .85 | .45 |
 | `MuzzleSizeBusy` | 1 | .8 |
+| `PreviewAlpha*` (hazard dots, factor) | .85 | .7 |
+| `PreviewDot*` (dot size factor) | .9 | .8 |
+| `PreviewSpacing*` (dot spacing factor) | 1.1 | 1.4 |
 
 Dots: `DashPixels` 2, `GapPixels` 3 at `PixelsPerUnit` 12.5 (dot .16 u, period .4 u). Intensity is the music director's
 `Intensity` (0 calm .. 1 drop); scripted non-musical patterns use `NonMusicIntensity`.
 
-Test: `BossTelegraphTest` (in `AllTests`). Previews: `BossTelegraphPreview.Run` (old vs dotted overlay), `BossAttackPreview`;
+Test: `BossTelegraphTest` (in `AllTests`). Previews: `BossTelegraphPreview.Run` (old vs dotted overlay), `BossAttackPreview` (`BOSSATK_INTENSITY=0|1` pins calm / drop);
 captures in `docs/boss-telegraph-captures/`.

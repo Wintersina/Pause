@@ -185,12 +185,13 @@ public static class BossTelegraphTest
             for (int i = 0; i < 400 && e.State == BossEncounter.Phase.Intro; i++) e.Step(.1f, 1f);
             e.Actor.ForcedAttack = a;
             AttackPreview.EndAll();
-            int dots = 0; float spacing = 0f, alpha = 0f, dotSize = 0f, sightAlpha = -1f; bool dashed = false;
+            int bands = 0, dots = 0; float spacing = 0f, alpha = 0f, dotSize = 0f, sightAlpha = -1f; bool dashed = false;
             for (int i = 0; i < 400 && e.Actor.AttacksStarted == 0; i++) e.Step(1f / 30f, 1f);
             for (int f = 0; f < 150; f++)
             {
                 e.Step(1f / 30f, 1f);
                 if (AttackPreview.ActiveCount > 0 && AttackPreview.DotsInUse > dots) { dots = AttackPreview.DotsInUse; spacing = AttackPreview.LastSpacing; alpha = AttackPreview.LastAlpha; dotSize = AttackPreview.LastDotSize; }
+                foreach (var st in Object.FindObjectsByType<AttackStrike>(FindObjectsSortMode.None)) if (st.BandShown) bands++;
                 foreach (var b in e.Pool.Beams) if (b != null && b.SightShown) { sightAlpha = Mathf.Max(sightAlpha, b.SightAlphaNow); dashed = b.SightDotted; }
             }
             string tag = boss.name + " / " + atk.name + " (" + atk.kind + "): ";
@@ -198,7 +199,8 @@ public static class BossTelegraphTest
                 Check(tag + "the laser's aim line is the painted dashed art, light (alpha " + sightAlpha.ToString("F2") + ")", dashed && sightAlpha > .5f && sightAlpha <= BossTelegraphStyle.SightAlphaCalm + .001f);
             else
                 Check(tag + "the preview is dots, lighter than an enemy's (" + dots + " dots, alpha " + alpha.ToString("F2") + ", spacing " + spacing.ToString("F2") + ")",
-                      dots >= 5 && alpha <= AttackPreview.Alpha * BossTelegraphStyle.PreviewAlphaCalm + .001f && spacing >= AttackPreview.DotSpacing * BossTelegraphStyle.PreviewSpacingCalm - .001f && spacing > dotSize * 1.5f);
+                      dots >= 5 && alpha <= AttackPreview.Alpha * BossTelegraphStyle.PreviewAlphaCalm + .001f && spacing >= AttackPreview.DotSpacing * BossTelegraphStyle.PreviewSpacingCalm - .001f && spacing > dotSize * 1.5f && bands == 0);
+            if (atk.kind == BossAttackKind.Strike) Check(tag + "no filled lane band under the dotted outline (" + bands + " frames)", bands == 0);
             AttackPreview.EndAll();
             BossEncounter.ResetRun();
         }

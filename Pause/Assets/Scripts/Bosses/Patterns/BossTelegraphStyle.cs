@@ -35,6 +35,7 @@ public static class BossTelegraphStyle
     public static float SightAlpha(float intensity) => Lerp(SightAlphaCalm, SightAlphaBusy, intensity);
     // The song's intensity, as last set by the live boss (BossActor); calm when none.
     public static float LiveIntensity = NonMusicIntensity;
+    public static float ForcedIntensity = -1f;   // >= 0: previews / captures pin the intensity
 
     // WHICH attacks get a preview (the user's call: only the major ones). By default by kind:
     //   yes: Beam (boss lasers), Lash (vine lash), Jet, Wave, Blast, Strike, Roll: heavy area denial, nothing leaves the
@@ -50,9 +51,9 @@ public static class BossTelegraphStyle
     public static bool OverlayAllowed(BossAttack a) => a != null && a.kind == BossAttackKind.Pattern && a.IsMajor;
 
     // Boss hazard previews (AttackPreview dots, the vine's ghost whip and dashes): factors on today's look, calm -> drop.
-    public const float PreviewAlphaCalm = .85f, PreviewAlphaBusy = .5f;
-    public const float PreviewDotCalm = .9f, PreviewDotBusy = .7f;
-    public const float PreviewSpacingCalm = 1.1f, PreviewSpacingBusy = 1.5f;   // wider spacing: fewer, lighter dots
+    public const float PreviewAlphaCalm = .85f, PreviewAlphaBusy = .7f;
+    public const float PreviewDotCalm = .9f, PreviewDotBusy = .8f;
+    public const float PreviewSpacingCalm = 1.1f, PreviewSpacingBusy = 1.4f;   // wider spacing: fewer, lighter dots
     public static float PreviewAlpha(float intensity) => Lerp(PreviewAlphaCalm, PreviewAlphaBusy, intensity);
     public static float PreviewDot(float intensity) => Lerp(PreviewDotCalm, PreviewDotBusy, intensity);
     public static float PreviewSpacing(float intensity) => Lerp(PreviewSpacingCalm, PreviewSpacingBusy, intensity);

@@ -448,7 +448,7 @@ public class BossActor : MonoBehaviour, IMusicPatternHost
         if (fireLeft > 0f) fireLeft -= dt;
         StepAttacks(dt, realDt, player, progress01, pool, BeatOverride ?? BossBeat.Source);
         if (markers != null) markers.Step(musicRunning ? realDt : dt);
-        BossTelegraphStyle.LiveIntensity = musicRunning && musicDirector != null ? musicDirector.Intensity : BossTelegraphStyle.NonMusicIntensity;
+        BossTelegraphStyle.LiveIntensity = BossTelegraphStyle.ForcedIntensity >= 0f ? BossTelegraphStyle.ForcedIntensity : musicRunning && musicDirector != null ? musicDirector.Intensity : BossTelegraphStyle.NonMusicIntensity;
         RefreshFrame();
         if (hearts != null) hearts.Step(realDt, dt);   // after the move: the ring is round where it is now
     }

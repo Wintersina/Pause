@@ -116,6 +116,7 @@ public sealed class AttackStrike : AttackHazard
     protected override string Label => "strike";
     public StrikeSpec Spec => spec;
     public float LaneX => laneX;
+    public bool BandShown => band != null && band.enabled;
     public float ImpactY => impactY;
     public float LiveSeconds => liveTotal;
     public float HitHalf => spec.hitHalf;
@@ -168,7 +169,8 @@ public sealed class AttackStrike : AttackHazard
     {
         var r = shape.Bounds();
         if (band.sprite == null) band.sprite = AttackHazardArt.Band();
-        band.enabled = State == Phase.Tell && r.width > 0f;
+        // a boss's strike is previewed by its dotted outline and glyph only: no filled lane (BossTelegraphStyle)
+        band.enabled = State == Phase.Tell && r.width > 0f && softAlpha >= 1f;
         band.transform.position = new Vector3(r.center.x, r.center.y, 0f);
         band.transform.localScale = new Vector3(r.width, r.height, 1f);
         bool on = (Mathf.FloorToInt(t * 8f) & 1) == 0;
