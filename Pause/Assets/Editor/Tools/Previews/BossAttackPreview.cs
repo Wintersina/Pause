@@ -24,6 +24,8 @@ public static class BossAttackPreview
         string dir = System.Environment.GetEnvironmentVariable("BOSSATK_PREVIEW_DIR");
         if (string.IsNullOrEmpty(dir)) dir = "Builds/BossAttackPreview";
         Directory.CreateDirectory(dir);
+        string inten = System.Environment.GetEnvironmentVariable("BOSSATK_INTENSITY");   // pin the music intensity (0 calm .. 1 drop) for the telegraph look
+        BossTelegraphStyle.ForcedIntensity = !string.IsNullOrEmpty(inten) ? float.Parse(inten, System.Globalization.CultureInfo.InvariantCulture) : -1f;
         using (new TestHarness.Sandbox())
         {
             try

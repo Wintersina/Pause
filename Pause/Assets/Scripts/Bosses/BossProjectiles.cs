@@ -407,6 +407,9 @@ public class BossBeam : MonoBehaviour
 
     public bool Active { get; private set; }
     public bool Live => Active && live && !fading;
+    public float SightAlphaNow => sight != null && sight.enabled ? sight.color.a : 0f;   // test reads
+    public bool SightDotted => art != null || (sight != null && sight.sprite == BossTelegraphStyle.Dash);                                         // the aim line is the painted dashed art
+    public bool SightShown => sight != null && sight.enabled;
     public bool Telegraphing => Active && !live;
     public GameObject Hitbox => hitbox;
     public Vector3 Origin => origin;
@@ -505,6 +508,12 @@ public class BossBeam : MonoBehaviour
             lockOn.sprite = art.lockOn[0];
             Tile(sight);
             Tile(beam);
+        }
+        else
+        {
+            // no painted tell sheet for this boss: the aim line is still a dotted line (never a solid bar)
+            sight.sprite = BossTelegraphStyle.Dash;
+            Tile(sight);
         }
         sight.enabled = true;
         beam.enabled = flash.enabled = impact.enabled = spark.enabled = lockOn.enabled = false;
@@ -619,7 +628,11 @@ public class BossBeam : MonoBehaviour
         {
             int blink = Mathf.FloorToInt(age / (BossArt.TelegraphBlinkTicks * BossArt.Tick));
             sight.enabled = blink % 2 == 0 && length > 0f;
-            if (art != null) PaintedSight(); else Span(sight.transform, width * BossConfig.BeamSightWidth, length);
+            if (art != null) PaintedSight(); else DottedSight();
+            // lighter toward a drop (the laser stays a major, always-warned attack)
+            var sightTint = new Color(1f, 1f, 1f, BossTelegraphStyle.SightAlpha(BossTelegraphStyle.LiveIntensity));
+            sight.color = sightTint;
+            lockOn.color = sightTint;
             if (art != null) Windup();
             return;
         }
@@ -777,6 +790,16 @@ public class BossBeam : MonoBehaviour
     {
         if (DeathCrash.Running || length <= 0f) return;
         FriendlyFire.HostileBeam(burned, origin, Direction, length, width * BossConfig.BeamHitFraction * .5f, null, "boss laser");
+    }
+
+    // The fallback aim line: one tiled dotted sprite along the beam from the root.
+    void DottedSight()
+    {
+        float ppu = BossTelegraphStyle.PixelsPerUnit;
+        float w = Mathf.Max(BossTelegraphStyle.WidthBusy, width * BossConfig.BeamSightWidth * .5f);
+        sight.transform.localPosition = Vector3.zero;       // the dash sprite's pivot is its start
+        sight.transform.localScale = new Vector3(w * ppu, 1f, 1f);
+        sight.size = new Vector2(1f / ppu, Mathf.Max(.001f, length));
     }
 
     static void Span(Transform t, float w, float len)

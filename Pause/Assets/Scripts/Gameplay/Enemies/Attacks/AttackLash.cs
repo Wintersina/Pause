@@ -415,6 +415,7 @@ public sealed class AttackLash : AttackHazard
             sr.transform.position = new Vector3(p.x, p.y, 0f);
             sr.transform.rotation = Quaternion.Euler(0f, 0f, (a + Mathf.PI * .5f) * Mathf.Rad2Deg);
             sr.transform.localScale = Vector3.one * 1.4f;
+            sr.color = new Color(1f, 1f, 1f, softAlpha);
         }
         DashesShown = n;
     }
@@ -424,7 +425,7 @@ public sealed class AttackLash : AttackHazard
     {
         int frame = Mathf.FloorToInt(t * 8f) & 1;
         Chain(in spec, count, length, root, startRad, dir, 0f, joints);
-        DrawChain(frame, count, frame == 0 ? .55f : .3f);
+        DrawChain(frame, count, (frame == 0 ? .55f : .3f) * softAlpha);
         DrawDashes(frame);
         rootBud.transform.localScale = Vector3.one * (Mathf.Lerp(.6f, 1.1f, Mathf.Clamp01(tellTotal > 0f ? t / tellTotal : 1f)) / Mathf.Max(.01f, rootSprites[0] != null ? rootSprites[0].bounds.size.x : 1f));
     }

@@ -90,6 +90,11 @@ public sealed class BossAttack
     // kept sorted by it, so "the unlocked attacks" is a prefix: phase 1 = 2 attacks, phase 2 = 3, phase 3 = all five.
     public int minPhase = 1;
 
+    // Does this attack get an on-beat PREVIEW (a telegraph the player reads)? -1 = by its kind (BossTelegraphStyle.MajorByKind:
+    // lasers, vine lash and the other area hazards yes; bullet streams no), 1 = always, 0 = never. See docs/boss-telegraph-dotted.md.
+    public int telegraph = -1;
+    public bool IsMajor => telegraph < 0 ? BossTelegraphStyle.MajorByKind(kind) : telegraph > 0;
+
     // The area hazard kinds (Jet / Wave / Blast / Strike; BossExecutors). `count` is a strike's lanes; `volleys` /
     // `volleyGap` is how many times the hazard comes, each one `volleyGap` after the last (all armed at the start of
     // the tell, so every outline shows from the start of it and each aims where the ship was then).

@@ -370,7 +370,9 @@ public static class BossPatternTest
                   sc.PeakShots <= e.Pool.Capacity && e.Pool.Created <= BossConfig.ProjectilePoolMax && sc.PeakShots >= 20 && sc.PeakBeams <= BossConfig.BeamPoolMax);
             Check(Names[w] + ": every live shot carries the hostile hitbox tag and stays on the stage", hitboxOk && onStage);
             bool hasMarks = boss.attacks.Any(a => a.kind == BossAttackKind.Pattern && a.pattern.streams.Any(s => s.kind == StreamKind.Curtain || s.kind == StreamKind.Ring || s.kind == StreamKind.Mines || s.kind == StreamKind.Bomb));
-            Check(Names[w] + ": the telegraph markers show (" + markersSeen + " frames, up to " + maxMarkers + " at once)" + (hasMarks ? "" : " [none needed]"), !hasMarks || markersSeen > 10);
+            // only MAJOR attacks get a lane / line / ring overlay (docs/boss-telegraph-dotted.md): a bullet pattern has none
+            Check(Names[w] + ": ordinary bullet patterns draw no lane / line overlay (" + markersSeen + " frames shown, " + (e.Actor.Markers != null ? e.Actor.Markers.Suppressed : 0) + " asked for and dropped)",
+                  markersSeen == 0 && maxMarkers == 0 && (!hasMarks || e.Actor.Markers.Suppressed > 0));
             Check(Names[w] + ": the pattern's shots are told apart from its own (self-safe) and the hearts / clock are untouched (" + e.HeartsLeft + " hearts)", e.HeartsLeft == BossConfig.Hearts);
 
             // a steady pattern frame allocates (next to) nothing: the managed bytes of the frames spent inside a pattern (no laser or
