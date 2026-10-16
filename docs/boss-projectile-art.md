@@ -34,7 +34,7 @@ Status key: TODO = unchanged current art. Art column is the current look.
 | --- | --- | --- | --- | --- |
 | icicle spray | Fan, Bolt, Jaw | blue ice spear | ice shard | TODO |
 | cold snap | Ring, Shard, Crown | blue crystal cluster | snow-crystal ring | TODO |
-| glare beams | beam, painted kit | ice-white kit | keep | kept |
+| glare beams | beam, painted kit (EyeL/EyeR) | generic ice-white glowing column | CRYO LANCE (priority 5): jagged stacked-crystal ice-spike stream, pale-cyan to deep-blue with white-blue core, frost mist and snow flurry off the edges, drifting ice flakes, rime crystals growing outward; muzzle = frost gathering with cold vapour and forming crystals; impact = ice burst, snow puff, frost ring on the ground; 4-6 frames; no uniform pale keyline | TODO |
 | shatter | Aimed, Shard, EyeL/R | same crystal | frost orb | TODO |
 | frozen crown | Ring, Shard, Crown | same crystal | (reuses cold snap ring) | TODO |
 
@@ -85,6 +85,9 @@ Status key: TODO = unchanged current art. Art column is the current look.
 | lens beam | beam, generic | flat bar, no kit | sunlight lens laser kit (priority 1) | BLOCKED: Codex usage limit |
 | closing jaws | Pincer, Bolt, Maw | same rock | sand spit | TODO |
 | quicksand / maw | Fan/Aimed | same | sand/glass mix | TODO |
+
+### Beam kinds (each must read as a different KIND of attack)
+Priority order: Desert prismatic sunlight lens laser, Storm electric arc, Verdant vine, Ember jaw flamethrower, Frost cryo lance, then Space void/plasma rail, Tide pressure water jet, then the rest. Hitbox/width logic and the dotted telegraph stay unchanged. Codex resumes at 17:42 CDT.
 
 ## 3. Why the shots look the same
 1. Two shared sprites per boss for every stream (bolt, shard).
