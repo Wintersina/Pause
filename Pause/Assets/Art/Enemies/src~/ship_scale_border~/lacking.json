@@ -20,10 +20,6 @@
   "frost_rock_shard": "frost",
   "space_rock_cluster": "space",
   "space_rock_crater": "space",
-  "space_rock_dark": "space",
-  "verdant_chaser": "verdant",
-  "verdant_fighter_1": "verdant",
-  "verdant_fighter_2": "verdant",
-  "verdant_fighter_3": "verdant"
+  "space_rock_dark": "space"
  }
 }
