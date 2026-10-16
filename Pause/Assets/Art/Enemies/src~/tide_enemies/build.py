@@ -97,7 +97,7 @@ def key_pose(name, candidate, target):
     src = src.resize(size, Image.Resampling.NEAREST)
     if not (HERE / "flying_src" / f"{name}_flying.png").exists():
         src = repair_red(src)
-    elif name.startswith("tide_rock"):
+    elif name in ("tide_rock_staghorn", "tide_rock_islet"):
         src = lift_red(src)
     if name in {"tide_big", "tide_fighter_2", "tide_fighter_3", "tide_rock_islet"}:
         # Bring a few already-painted midtones above the brightest Tide ground set.

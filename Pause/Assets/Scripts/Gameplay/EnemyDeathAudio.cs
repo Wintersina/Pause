@@ -119,7 +119,7 @@ public static class EnemyDeathAudio
     public static readonly string[][] DeathAlias =
     {
         new[] { "tide_rock_brain",    "frost_rock_chunk",       "0.85" },   // brain coral: a heavy crunch, slower
-        new[] { "tide_rock_staghorn", "frost_rock_shard",       "1.00" },   // staghorn spire: brittle blade shatter
+        new[] { "tide_rock_staghorn", "frost_rock_shard",       "1.00" },   // staghorn boulder: brittle coral shatter
         new[] { "tide_rock_urchin",   "ember_rock_obsidian",    "1.12" },   // spine urchin: glassy spikes snapping
         new[] { "tide_rock_islet",    "ember_rock_islet",       "0.92" },   // kelp islet: the floating slab again, softer
         new[] { "storm_rock_hail",    "frost_rock_chunk",       "1.20" },   // hailstone: a hard-grain clatter, faster and smaller
