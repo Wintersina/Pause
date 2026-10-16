@@ -7,8 +7,7 @@ using UnityEngine.UI;
 // It was three lines of flat grey label text on a plain panel -- readable, but
 // it looked like a debug overlay rather than part of the game. This gives each
 // stat a colour and an icon-ish prefix, adds outlines so they hold up over a
-// bright starfield, and puts a subtle bar behind the pause counter so the
-// resource you actually spend is the thing your eye lands on.
+// bright starfield, and keeps the pause counter plain ("PAUSES  5").
 //
 // Purely presentational: it never changes what the numbers say.
 public class HudStyler : MonoBehaviour
@@ -22,18 +21,13 @@ public class HudStyler : MonoBehaviour
     static readonly Color Speed = AkiraPalette.Cyan;
     static readonly Color Pause = AkiraPalette.RedHi;
     static readonly Color PauseLow = AkiraPalette.Bone;
-    static readonly Color MeterOn = AkiraPalette.Red;
-    static readonly Color MeterOff = AkiraPalette.WithAlpha(AkiraPalette.Indigo1, .9f);
 
     // The panel is a chamfered NIGHT plate with an INK contour and the red
     // title-card tab (Art/UI/Hud/src~/hud_panel.svg), drawn final.
     const string PanelSprite = "Hud/hud_panel";
-    const string MeterSprite = "Hud/hud_meter";
     static readonly Color TextInk = AkiraPalette.WithAlpha(AkiraPalette.Ink, .95f);
 
     Text speedText, pauseText;
-    Image pauseBar;
-    Image pauseBarBack;
 
     // Reactive motion (unscaled: the HUD lives on through the freeze).
     // A stat that changes snaps to a punch pose for a couple of ticks.
@@ -76,17 +70,6 @@ public class HudStyler : MonoBehaviour
         Style(pauseText, Pause, 30);
         // Resume slow-mo indicator: SLOW-MO count-up + spool bar in this row.
         ResumeSpeedRow.Attach(speedText);
-
-        if (pauseText != null)
-        {
-            pauseBarBack = BuildPauseBar(pauseText, "PauseBarBack");
-            pauseBarBack.fillAmount = 1f;
-            pauseBarBack.color = MeterOff;
-            pauseBar = BuildPauseBar(pauseText, "PauseBar");
-            // ScoreHud's LOOP badge shares this row: drawn over the bar.
-            var loop = pauseText.transform.Find(ScoreHud.LoopBadgeName);
-            if (loop != null) loop.SetAsLastSibling();
-        }
 
         hudRoot = FindHudRoot(speedText ?? pauseText, out hudCanvas);
         if (hudRoot != null)
@@ -306,37 +289,6 @@ public class HudStyler : MonoBehaviour
         if (!Mathf.Approximately(rt.localScale.x, s)) rt.localScale = new Vector3(s, s, 1f);
     }
 
-    // A thin depleting bar under the pause counter, so the most important
-    // number is readable at a glance instead of being parsed as text.
-    //
-    // This used to hang 4-10px *below* the pause counter's own rect. The
-    // panel's VerticalLayoutGroup has no idea that extra height exists --
-    // PauseBar is a plain child of PauseCounter, invisible to the group's own
-    // spacing math -- so the fixed gap it left before the next stacked
-    // element (the blue-atom timer, gotAtomText) was not enough to clear it,
-    // and the two overlapped. Contained within the bottom of PauseCounter's
-    // own allocated rect instead, it cannot spill into whatever the layout
-    // group stacks next, on any screen size.
-    static Image BuildPauseBar(Text anchor, string name)
-    {
-        var holder = new GameObject(name, typeof(Image));
-        holder.transform.SetParent(anchor.transform, false);
-
-        var rt = holder.GetComponent<RectTransform>();
-        rt.anchorMin = new Vector2(0f, 0f);
-        rt.anchorMax = new Vector2(1f, 0.16f);
-        rt.offsetMin = Vector2.zero;
-        rt.offsetMax = Vector2.zero;
-
-        var img = holder.GetComponent<Image>();
-        img.sprite = Resources.Load<Sprite>(MeterSprite);
-        img.color = MeterOn;
-        img.raycastTarget = false;
-        img.type = Image.Type.Filled;
-        img.fillMethod = Image.FillMethod.Horizontal;
-        return img;
-    }
-
     void Update()
     {
         // Each stat is independently guarded rather than one shared early
@@ -362,13 +314,6 @@ public class HudStyler : MonoBehaviour
                 pauseText.text = "PAUSES  " + left;
             }
             Punch(pauseText.rectTransform, now - pausePunchAt);
-
-            if (pauseBar != null)
-            {
-                // five is a full run's allotment; anything above that just fills it
-                pauseBar.fillAmount = Mathf.Clamp01(left / 5f);
-                pauseBar.color = blinkOn ? PauseLow : MeterOn;
-            }
         }
 
         if (speedText != null)

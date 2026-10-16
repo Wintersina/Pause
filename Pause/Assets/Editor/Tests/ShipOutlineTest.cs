@@ -43,8 +43,8 @@ public static class ShipOutlineTest
 
         Check("the default mode is bottom and the fade is a share of the silhouette (" + def + ", " + fade + ")", def == "bottom" && fade >= .15f && fade <= .5f);
         foreach (var m in modes.Values) Check("modes.json has no full outline (" + m + ")", m != "full");
-        Check("the user's overrides: Glow Jelly, Resin Warden, Thunderfin, Coalrunner, Sunstoke all top",
-              modes["tide_alien"] == "top" && modes["verdant_elite_resin_warden"] == "top" && modes["tide_elite_thunderfin"] == "top" &&
+        Check("the user's overrides: Resin Warden, Thunderfin, Coalrunner, Sunstoke all top",
+              modes["verdant_elite_resin_warden"] == "top" && modes["tide_elite_thunderfin"] == "top" &&
               modes["ember_elite_coalrunner"] == "top" && modes["ember_elite_sunstoke"] == "top");
         Check("the flying Snap Sprout and Glacier Golem were redrawn without any outline (opted out)", modes["verdant_alien"] == "none" && modes["frost_big"] == "none");
         int wired = 0;

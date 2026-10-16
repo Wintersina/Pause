@@ -494,52 +494,52 @@ public static class EnemyRoster
 
             // ================================================================ TIDE
             Def("tide_rock_brain", "Brain Coral", R, 4, 1, "hazard_tide_rock_brain", Ice,
-                "Rounded maze-fold coral boulder pitted with barnacles, faint mint cracks.",
-                "A reef that outgrew its ocean. The folds are full of barnacles and the cracks glow when " +
+                "Violet maze-fold coral boulder in brass fittings, held aloft by four hover jets, a sun-yellow core glowing in the folds.",
+                "A reef that outgrew its ocean and took to the sky on hover jets. The folds are full of barnacles and the cracks glow when " +
                 "something stirs them. It tumbles slow and wide - give it the room it asks for."),
             Def("tide_rock_staghorn", "Staghorn Spire", R, 4, 2, "hazard_tide_rock_staghorn", Ice,
-                "Upright branched reef blade with rusted brass tips and glowing polyps.",
-                "A branch of drowned coral sharp enough to open a hull. It slices across the lane on one " +
+                "Upright branched coral-orange blade riding twin thruster jets, with brass tips and electric-blue polyps.",
+                "A branch of coral sharp enough to open a hull. It slices across the lane on one " +
                 "slanted line, polyps lit, so you can see it coming."),
             Def("tide_rock_urchin", "Spine Urchin", R, 4, 3, "hazard_tide_rock_urchin", Ice,
-                "Round shell of uneven bone-white iron spines around a mint core.",
-                "An urchin with iron for spines and a lamp for a heart. It spins as it sinks and arrives " +
+                "Indigo spiked drone shell with bone-white iron spines, hover jets underneath and a sun-yellow core.",
+                "A spiked drone with iron for spines and a lamp for a heart. It spins as it sinks and arrives " +
                 "sooner than it looks."),
             Floating(Def("tide_rock_islet", "Kelp Islet", R, 4, 4, "hazard_tide_rock_islet", Ice,
-                "Floating reef slab under a kelp cap, a tide pool on top, roots and drips hanging below.",
-                "A slab of reef that floated off with its tide pool and its kelp still on it. It dips and " +
-                "sways, dripping, wide and slow.")),
+                "Steel-blue floating reef slab held up by a row of hover jets, a glowing tangerine vent on top.",
+                "A slab of reef that lifted off on its own jets. It dips and " +
+                "sways, wide and slow.")),
             Def("tide_mine", "Limpet Mine", M, 4, 0, "hazard_tide_mine", Mine,
                 "Neon pixel sea-mine: a barnacled iron sphere with four pearl horns on a brass clamp, a mint eye that wakes, charges and bursts in shell shards.",
                 "A limpet on the rail, horned and patient. When the eye flares mint a line blinks across " +
                 "the lane, then a pressure jet burns it - twice, at two angles. Be off the line."),
             Def("tide_big", "Nautilus Bulwark", B, 4, 0, "enemy_tide_big", Ice,
-                "A huge layered spiral shell of plates and barnacles with tentacle pipes, its shell opening on a mint-lit maw.",
+                "A huge gold-and-orange spiral-shell gunship, its tentacle pipes now jet nozzles and stub wings, the shell opening on a lit maw.",
                 "A shell-plated hulk with a lantern in its mouth. When the shell cracks open it fans pearl " +
-                "shots across the water - stand between them."),
+                "shots across the lane - stand between them."),
             Def("tide_fighter_1", "Remora", F, 4, 1, "enemy_tide_fighter_1", Ice,
-                "Small suckerfish drone with an oval back disc, paired fins and a mint eye.",
+                "Small orange fighter with a pale ribbed back disc, blue swept wings and twin engine jets.",
                 "A little drone that clings to bigger things. It drifts alongside, then lets go and darts " +
                 "straight at you - and never steers."),
             Def("tide_fighter_2", "Needlefish", F, 4, 2, "enemy_tide_fighter_2", Ice,
-                "Narrow skiff with a needle-beak cannon, a dorsal blade and paired fins.",
+                "Narrow orange dart fighter with a needle-beak cannon, blue wing blades and a rear jet.",
                 "A long beak and a short temper. It lines up above you and spits quick bolts straight down."),
             Def("tide_fighter_3", "Lantern Angler", F, 4, 3, "enemy_tide_fighter_3", Ice,
-                "Armoured anglerfish gunship: hinged jaw of pearl teeth, a curved stalk carrying a bright mint lure.",
-                "It hangs in the dark behind its lure. When the lamp flares it has picked you out - move " +
+                "Armoured orange gunship with a toothed maw, blue wings with wingtip thrusters, violet rear jets and a curved stalk carrying a bright lure.",
+                "It hangs in the sky behind its lure. When the lamp flares it has picked you out - move " +
                 "after the light comes on."),
             Def("tide_fighter_4", "Hammerhead", F, 4, 4, "enemy_tide_fighter_4", Ice,
-                "Broad transverse hammer hull with twin tip cannons, plated gills and tail.",
+                "Broad orange wing-hull with twin tip cannons, blue wingtips and engine vents.",
                 "The deep fleet's heavy: a hammer of plate with a cannon on each end. It parks and rings " +
                 "itself in shots - the gaps open with distance."),
             Def("tide_chaser", "Wire Eel", C, 4, 0, "enemy_tide_chaser", Ice,
-                "Long segmented iron-and-brass mechanical eel, a sharp downward head, a mint eye and thruster fins.",
-                "It slips up out of the dark in an S, coils and whips forward again. Slide sideways and let " +
+                "Long segmented orange-and-gold mechanical serpent, a sharp downward head, swept wings and a jet nozzle on its tail.",
+                "It slips up out of the clouds in an S, coils and whips forward again. Slide sideways and let " +
                 "it overshoot."),
             // (the jelly's bell and tendrils draw 0.53 u of its cell: shown 17% larger, 0.62 u, inside the Alien role's 0.64 +/-15%)
             Scaled(Def("tide_alien", "Glow Jelly", A, 4, 0, "enemy_tide_alien", Ice,
-                "Translucent mint bell in a brass collar trailing glowing tendrils; a living jelly drone.",
-                "Jellies in a brass collar, drifting in lines with their lights on. They pulse as they sink - " +
+                "Orange bell in a gold collar ringed with hover-fan jets, trailing violet energy tendrils; an airborne jelly drone.",
+                "Jelly drones in a gold collar, drifting in lines with their lights on. They pulse as they sink - " +
                 "slip past on the down-beat."), 1.17f),
             // ================================================================ STORM
             // The gas giant: slate and graphite plating, storm-white lightning with a pale-yellow edge.
