@@ -139,10 +139,12 @@ public static class BossAttackTest
     internal static float Alpha(BossDef boss, int frame, int px, int py)
     {
         var t = Atlas(boss);
-        int cell = BossEmitterTable.CellPixels;
+        // the table is in 384 px reference pixels; an atlas with bigger cells (the Cinder Drake: 576) is sampled at the same spot
+        int cell = t.width / BossArt.BodyColumns;
+        if (px < 0 || py < 0 || px >= BossEmitterTable.CellPixels || py >= BossEmitterTable.CellPixels) return 0f;
+        float f = cell / (float)BossEmitterTable.CellPixels;
         int col = frame % BossArt.BodyColumns, row = frame / BossArt.BodyColumns;
-        int x = col * cell + px, y = t.height - 1 - (row * cell + py);
-        if (px < 0 || py < 0 || px >= cell || py >= cell) return 0f;
+        int x = col * cell + Mathf.Min(cell - 1, Mathf.RoundToInt((px + .5f) * f - .5f)), y = t.height - 1 - (row * cell + Mathf.Min(cell - 1, Mathf.RoundToInt((py + .5f) * f - .5f)));
         return t.GetPixel(x, y).a;
     }
 

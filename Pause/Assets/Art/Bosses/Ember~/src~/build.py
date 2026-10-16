@@ -3,7 +3,7 @@
 
     python3 Pause/Assets/Art/Bosses/Ember~/src~/build.py
 
-Cells (BossArt flat indices, 5 per row, 384 px):
+Cells (BossArt flat indices, 5 per row, 576 px = 384 x 1.5):
    0..3   idle          4 hit          5,6 tell0 a/b    7,8 tell1 a/b    9 fire    10,11 tell2 a/b
   12..16  death 0..4   17,18 retreat   19 portrait
   20..25  idle loop (six wing-beat drawings)
@@ -19,7 +19,7 @@ from __future__ import annotations
 import math
 
 import numpy as np
-from PIL import Image, ImageDraw, ImageFilter
+from PIL import Image
 
 from common import *
 
@@ -27,7 +27,7 @@ from common import *
 BROW = (192, 126)
 FACE = (192, 176)
 FURNACE = (192, 225)
-SHOULDER = {-1: (96, 150), 1: (288, 150)}
+SHOULDER = {-1: (96 * K, 150 * K), 1: (288 * K, 150 * K)}
 
 
 def painted(name: str) -> Image.Image | None:
@@ -56,16 +56,16 @@ def beat(im: Image.Image, deg: float, lift: float) -> Image.Image:
     yy, xx = np.indices((C, C)).astype(np.float32)
     sx, sy = xx.copy(), yy.copy()
     for side, (px, py) in SHOULDER.items():
-        out = (xx - 192) * side
-        w = np.clip((out - 84) / 34.0, 0, 1) ** 1.2     # 0 on the body, 1 on the wing
+        out = (xx - 192 * K) * side
+        w = np.clip((out - 84 * K) / (34.0 * K), 0, 1) ** 1.2     # 0 on the body, 1 on the wing
         th = math.radians(deg) * w * side
         dx, dy = xx - px, yy - py
         c, s = np.cos(th), np.sin(th)
         rx = px + dx * c + dy * s          # inverse rotation: sample where the pixel came from
         ry = py - dx * s + dy * c
-        m = (out > 84)
+        m = (out > 84 * K)
         sx = np.where(m, rx, sx)
-        sy = np.where(m, ry + lift * w, sy)
+        sy = np.where(m, ry + lift * K * w, sy)
     sxi = np.clip(np.rint(sx).astype(int), 0, C - 1)
     syi = np.clip(np.rint(sy).astype(int), 0, C - 1)
     return Image.fromarray(a[syi, sxi], "RGBA")
@@ -91,7 +91,7 @@ def idle(i: int) -> Image.Image:
 
 # ------------------------------------------------------------------ fx helpers
 def glow(layer: Image.Image, xy, r, color=AMBER, power=1.0):
-    d = ImageDraw.Draw(layer, "RGBA")
+    d = SD(layer)
     x, y = xy
     for grow, alpha in [(2.2, 14), (1.7, 28), (1.35, 60), (1.0, 120)]:
         rr = r * grow
@@ -123,7 +123,7 @@ def tell_pose(pose: int, stage: int) -> Image.Image:
     k = stage / 2.0
     im = idle([0, 2, 4][stage])
     layer = rgba()
-    d = ImageDraw.Draw(layer, "RGBA")
+    d = SD(layer)
     if pose == 0:        # fire breath: the snout glows, fire in the throat, a jet on the last stage
         glow(layer, FACE, 9 + 8 * k, ORANGE, .8 + .8 * k)
         if stage == 2:
@@ -159,7 +159,7 @@ def hit() -> Image.Image:
 
 
 def fireball(layer: Image.Image, cx, cy, r, power=1.0):
-    d = ImageDraw.Draw(layer, "RGBA")
+    d = SD(layer)
     rng = np.random.default_rng(int(r * 13 + cx))
     for rad, col, al in [(1.0, EMBER, 150), (.82, ORANGE, 200), (.6, AMBER, 230), (.38, YELLOW, 250), (.2, WHITE, 255)]:
         pts = []
@@ -174,7 +174,7 @@ def death_cell(i: int) -> Image.Image:
     keys = ["death_split", "death_overload", "death_peak", "death_shockwave", "death_fade"]
     if i == 0:
         im = idle(0)
-        layer = rgba(); d = ImageDraw.Draw(layer, "RGBA")
+        layer = rgba(); d = SD(layer)
         for line in ([(186, 110), (180, 130), (190, 150), (182, 170)], [(120, 150), (150, 170), (160, 200), (150, 226)],
                      [(262, 150), (236, 172), (228, 200), (240, 226)]):
             d.line(line, fill=(*ORANGE, 220), width=3)
@@ -208,7 +208,7 @@ def retreat(stage: int) -> Image.Image:
     a = np.asarray(im).copy()
     a[..., 3] = (a[..., 3].astype(np.float32) * (.85 if stage == 0 else .62)).astype(np.uint8)
     im = Image.fromarray(a, "RGBA")
-    layer = rgba(); d = ImageDraw.Draw(layer, "RGBA")
+    layer = rgba(); d = SD(layer)
     for k in range(10):
         x = 43 + k * 33 + ((k * 7 + stage * 9) % 13)
         y0 = 36 + ((k * 23 + stage * 27) % 77)
@@ -219,7 +219,7 @@ def retreat(stage: int) -> Image.Image:
 
 def portrait() -> Image.Image:
     im = idle(2)
-    layer = rgba(); d = ImageDraw.Draw(layer, "RGBA")
+    layer = rgba(); d = SD(layer)
     glow(layer, BROW, 6, SULFUR, .8)
     return over(im, layer)
 

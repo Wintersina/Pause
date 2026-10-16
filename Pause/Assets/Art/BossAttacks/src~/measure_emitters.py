@@ -117,11 +117,18 @@ SCALES = [0.86 + 0.02 * i for i in range(18)]   # 0.86 .. 1.20
 
 
 def cells(world):
+    # Each cell is brought to the 384 px REFERENCE size the table is in: the Cinder Drake's atlas has 576 px
+    # cells, its points are measured on a 384 px copy of each, so the table stays in reference pixels and
+    # BossEmitters scales it onto the cell's world size like every other boss.
     im = Image.open(os.path.join(ATLAS, world + ".png")).convert("RGBA")
+    cs = im.width // COLS
     out = []
     for f in range(EXPANDED.get(world, 12)):
         r, c = divmod(f, COLS)
-        out.append(im.crop((c * CELL, r * CELL, c * CELL + CELL, r * CELL + CELL)))
+        cell = im.crop((c * cs, r * cs, c * cs + cs, r * cs + cs))
+        if cs != CELL:
+            cell = cell.resize((CELL, CELL), Image.LANCZOS)
+        out.append(cell)
     return out
 
 

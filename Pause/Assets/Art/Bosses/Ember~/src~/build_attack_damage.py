@@ -5,7 +5,7 @@
 
 Reads Resources/Bosses/Ember.png and Ember_damage.png (install them first), writes
 Resources/BossImpact/attack/ember_<pose>_stage<N>.png and removes the old 20-cell set's ember_fire_* files.
-Same transfer as Art/Bosses~/impact-v1/build.py (damage_attack): one drawing per pose and stage, the pose's
+Same transfer as Art/Bosses~/impact-v1/build.py (damage_attack): one drawing per pose and stage (576 px files), the pose's
 own silhouette, hull pixels transferred only where the pose still shows the idle hull.
 """
 import importlib.util
@@ -26,15 +26,21 @@ SOURCE = ASSETS / "Art" / "Resources" / "Bosses"
 def main():
     body = Image.open(SOURCE / "Ember.png").convert("RGBA")
     damage = Image.open(SOURCE / "Ember_damage.png").convert("RGBA")
-    assert body.height == 2688
-    baseline = mod.cell(body, 20)
+    cs = body.width // 5                      # 576: the atlas's own cell size (the impact-v1 helper assumes 384)
+    assert body.height == cs * 7
+
+    def cell(atlas, index, columns=5):
+        x, y = index % columns * cs, index // columns * cs
+        return atlas.crop((x, y, x + cs, y + cs))
+
+    baseline = cell(body, 20)
     for stale in OUT.glob("ember_fire_stage*.png*"):
         stale.unlink()
     n = 0
     for name, index in mod.attacks(True):
-        pose = mod.cell(body, index)
+        pose = cell(body, index)
         for stage in range(1, 5):
-            damaged = mod.cell(damage, (stage - 1) * 2, 2)
+            damaged = cell(damage, (stage - 1) * 2, 2)
             mod.damage_attack(baseline, damaged, pose).save(OUT / f"ember_{name}_stage{stage}.png", optimize=True)
             n += 1
     print("wrote", n, "ember attack-damage drawings")

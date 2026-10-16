@@ -1,6 +1,6 @@
 # Cinder Drake v2 source notes
 
-Keys were made with Codex image generation (headless `codex exec`), then sampled with nearest-neighbour only by `build.py` / `build_damage.py`. `hull_a.png` is the selected hull (copied to `hull_key.png`); `t<pose>_<stage>.png` are the three drawings of each tell (pose 0 fire breath, 1 furnace slugs, 2 brow laser), `d1..d4` the damage stages, `death_*.png` / `smoke_key.png` the death strip and smoke plumes. Rebuild and install: `python3 install.py` (in this folder).
+Keys were made with Codex image generation (headless `codex exec`), then sampled with nearest-neighbour only by `build.py` / `build_damage.py`. `hull_a.png` is the selected hull (copied to `hull_key.png`); `t<pose>_<stage>.png` are the three drawings of each tell (pose 0 fire breath, 1 furnace slugs, 2 brow laser), `d1..d4` the damage stages, `death_*.png` / `smoke_key.png` the death strip and smoke plumes. The atlas is rendered at 576 px cells (384 x 1.5; the keys are 1254-1280 px, so the higher resolution is a re-fit of the same approved keys, no regeneration). Rebuild and install: `python3 install.py` (in this folder).
 
 ## Hull prompt
 

@@ -17,7 +17,7 @@ import math
 import random
 
 import numpy as np
-from PIL import Image, ImageDraw
+from PIL import Image
 
 from build import BASE, beat, fireball, glow, idle, pulse, registered
 from common import *
@@ -25,40 +25,10 @@ from common import *
 BG = (11, 11, 26, 255)
 
 
-# ------------------------------------------------------------------ procedural fallback hulls
-def fallback_damage(stage: int) -> Image.Image:
-    rng = random.Random(7000 + stage)
-    a = np.asarray(BASE).copy()
-    alpha = a[..., 3]
-    yy, xx = np.indices((C, C))
-    # tear membrane chunks out of the wings
-    for _ in range(stage * 3):
-        side = rng.choice((-1, 1))
-        cx = 192 + side * rng.randint(105, 165)
-        cy = rng.randint(70, 230)
-        r = rng.randint(10, 14 + stage * 5)
-        alpha[(xx - cx) ** 2 + (yy - cy) ** 2 < r * r] = 0
-    # scorch: darken random patches of the body
-    for _ in range(stage * 4):
-        cx, cy, r = rng.randint(120, 264), rng.randint(110, 280), rng.randint(8, 18)
-        m = ((xx - cx) ** 2 + (yy - cy) ** 2 < r * r) & (alpha > 0)
-        a[m, :3] = (a[m, :3] * .45).astype(np.uint8)
-    im = Image.fromarray(a, "RGBA")
-    d = ImageDraw.Draw(im, "RGBA")
-    for _ in range(stage * 3 + 1):
-        x, y = rng.randint(130, 254), rng.randint(110, 270)
-        pts = [(x, y)]
-        for _ in range(4):
-            x += rng.randint(-10, 10); y += rng.randint(6, 16)
-            pts.append((x, y))
-        d.line(pts, fill=(*ORANGE, 230), width=2)
-        d.line(pts, fill=(*YELLOW, 255), width=1)
-    return im
-
-
 def damage_body(stage: int) -> Image.Image:
     pa = registered(f"d{stage}", (1.0,))
-    return pa if pa is not None else fallback_damage(stage)
+    assert pa is not None, f"d{stage}.png (the painted damage key) is missing"
+    return pa
 
 
 def variant(body: Image.Image, stage: int, v: int) -> Image.Image:
@@ -83,14 +53,14 @@ def smoke_frame(k: int) -> Image.Image:
             if not bbox:
                 continue
             piece = piece.crop(bbox)
-            sz = (round(piece.width * 96 / piece.height), 96)
-            piece = piece.resize(sz, Image.Resampling.NEAREST)
-            tx = [118, 160, 242][n] - sz[0] // 2 + [-2, -1, 0, 1, 2, 0][k] * (1 if n != 2 else -1)
-            ty = 128 - sz[1] + [2, 1, 0, 1, 2, 3][k]
+            sz = (round(piece.width * 96 * K / piece.height), round(96 * K))
+            piece = piece.resize(sz, Image.Resampling.LANCZOS)
+            tx = round([118, 160, 242][n] * K) - sz[0] // 2 + round([-2, -1, 0, 1, 2, 0][k] * K) * (1 if n != 2 else -1)
+            ty = round(128 * K) - sz[1] + round([2, 1, 0, 1, 2, 3][k] * K)
             im.alpha_composite(piece, (tx, max(0, ty)))
         return im
     rng = random.Random(900 + k)
-    d = ImageDraw.Draw(im, "RGBA")
+    d = SD(im)
     for sx, sy in [(124, 112), (260, 112), (192, 120)]:
         for q in range(7):
             r = 8 + q * 2
@@ -107,7 +77,7 @@ def smoke_frame(k: int) -> Image.Image:
 
 def electric_frame(k: int) -> Image.Image:
     im = rgba()
-    d = ImageDraw.Draw(im, "RGBA")
+    d = SD(im)
     rng = random.Random(4910 + k)
     pairs = [((60, 150), (118, 128)), ((324, 150), (268, 128)), ((140, 190), (196, 150)),
              ((250, 200), (196, 232)), ((90, 230), (150, 250)), ((300, 220), (240, 260))]
@@ -138,7 +108,7 @@ def flash_body(body: Image.Image) -> Image.Image:
     layer = rgba()
     for x, y in [(192, 126), (112, 138), (272, 138), (192, 225), (70, 190), (314, 190), (192, 270)]:
         glow(layer, (x, y), 8, YELLOW, 1.1)
-        d = ImageDraw.Draw(layer, "RGBA")
+        d = SD(layer)
         d.line((x - 15, y, x + 15, y), fill=(*WHITE, 230), width=2)
         d.line((x, y - 15, x, y + 15), fill=(*WHITE, 230), width=2)
     im.alpha_composite(layer)
@@ -154,9 +124,10 @@ def death_key(name: str, margin: int, fallback) -> Image.Image:
     im = Image.fromarray(a, "RGBA")
     box = im.getchannel("A").point(lambda v: 255 if v > 128 else 0).getbbox()
     im = im.crop(box)
+    margin = round(margin * K)
     inner = C - 2 * margin
     s = min(inner / im.width, inner / im.height)
-    im = im.resize((max(1, round(im.width * s)), max(1, round(im.height * s))), Image.Resampling.NEAREST)
+    im = im.resize((max(1, round(im.width * s)), max(1, round(im.height * s))), Image.Resampling.LANCZOS)
     out = rgba(); out.alpha_composite(im, ((C - im.width) // 2, (C - im.height) // 2))
     return out
 
@@ -196,16 +167,16 @@ def main():
     strip.save(ROOT / "Ember_death.png")
 
     pristine = BASE
-    prev = Image.new("RGB", (C * 2 * 5, C * 2), BG[:3])
+    prev = Image.new("RGB", (REF * 2 * 5, REF * 2), BG[:3])
     for k, frame in enumerate([pristine] + bodies):
         view = frame.copy()
         if k:
             view.alpha_composite(smoke[2]); view.alpha_composite(arcs[3])
-        prev.paste(on_bg(view).resize((C * 2, C * 2), Image.Resampling.NEAREST), (k * C * 2, 0))
+        prev.paste(on_bg(view).resize((REF * 2, REF * 2), Image.Resampling.NEAREST), (k * REF * 2, 0))
     prev.save(ROOT / "damage_preview.png")
-    dp = Image.new("RGB", (C * 2 * 6, C * 2), BG[:3])
+    dp = Image.new("RGB", (REF * 2 * 6, REF * 2), BG[:3])
     for k, f in enumerate(death):
-        dp.paste(on_bg(f).resize((C * 2, C * 2), Image.Resampling.NEAREST), (k * C * 2, 0))
+        dp.paste(on_bg(f).resize((REF * 2, REF * 2), Image.Resampling.NEAREST), (k * REF * 2, 0))
     dp.save(ROOT / "Ember_death_preview.png")
     print("built Ember damage, fx, death")
 
