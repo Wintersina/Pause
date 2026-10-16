@@ -3,12 +3,12 @@ using System.IO;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 
-// Desert's six elites (Dune Stalker, Caravan Hauler, Lens Matriarch, Glass Cannon, Scorpion Walker, Mirror Bastion): the roster, their strips (7 flight
+// Desert's six elites (Dune Stalker, Caravan Hauler, Lens Matriarch, Glass Cannon, Scorpion Skiff, Mirror Bastion): the roster, their strips (7 flight
 // cells 1344 x 192, 3 death cells 576 x 192), muzzles and nozzles on the hull, the flight cell map and launch / lift-off cells, the director's rotation,
 // the codex entries and each one's brain and attack in simulation (composed from the older brains and attacks with Desert's own numbers and material).
 //
-// THE ART IS A STAND-IN: Codex has not delivered the Desert elite strips (Art/Enemies/Elite/Desert/STAND_IN.md), the defs carry the donors' sand-recoloured
-// strips and points. Everything here is about wiring and behaviour, so it holds when the real art replaces them (re-measure the points).
+// The art is the ground-up redesign (Art/Enemies/src~/desert_elites_redesign: six flying hulls, 384 px cells, own palette each); DesertFramingTest
+// guards the framing, ShipTierTest the sizes. Everything here is about wiring and behaviour, so it holds when the art changes (re-measure the points).
 // Desert's backdrop has its own director and sites now (DesertBackdrop.cs): each elite launches from its own kind (launchFrom), see DesertBackdropTest.
 //
 //   scripts/unity-batch.sh -executeMethod AllTests.RunSuites -suites DesertEliteTest
@@ -391,7 +391,7 @@ public static class DesertEliteTest
               wc.Fired == wc.Count - 1 && arcs >= 3 && wc.Gap == wc.Centre + (pilot.position.x > 0f ? -1 : 1));
     }
 
-    // Scorpion Walker: a claw dive (striker), shards off the sting.
+    // Scorpion Skiff: a claw dive (striker), shards off the sting.
     static void Walker()
     {
         Fresh(.05f);
@@ -399,7 +399,7 @@ public static class DesertEliteTest
         int before = EliteSystem.Shots.Launched;
         float y0 = e.Position.y;
         StartTell(e);
-        Check("Scorpion Walker: it tells before it strikes", e.Telling);
+        Check("Scorpion Skiff: it tells before it strikes", e.Telling);
         float lowest = y0;
         for (float t = 0f; t < 4f; t += Dt) { pilot.position = new Vector3(0f, -2.5f, 0f); EliteSystem.Step(Dt); lowest = Mathf.Min(lowest, e.Position.y); }
         Check("... then dives down the board and shoots (dropped " + (y0 - lowest).ToString("0.0") + " u, " + (EliteSystem.Shots.Launched - before) + " shots)", y0 - lowest > .5f || EliteSystem.Shots.Launched > before);

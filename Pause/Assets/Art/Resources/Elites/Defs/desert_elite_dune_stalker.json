@@ -23,7 +23,7 @@
   "heartColor": "#FFF6DC",
   "shotColor": "#F4E3B0",
   "shotCore": "#FFF6DC",
-  "engineColor": "#FFF1C8",
+  "engineColor": "#BFE3FF",
   "hearts": 2,
   "heartSize": 0.18,
   "heartOrbit": 0.746,
@@ -39,7 +39,7 @@
   "role": "burrowing interceptor",
   "brain": "interceptor",
   "attack": "lance_dash",
-  "lore": "A low copper sand-shark that lives in a worm-burrow hole at the edge of the dunes. It sights you, rears, and bursts through its own sand wake in one straight lance dash, grit needles spitting from its flanks. Step out of the wake, not along it.",
+  "lore": "A cobalt lance-fighter that hunts out of a worm-burrow hole at the edge of the dunes. It sights you, rears, and drives its brass drill-lance down the lane in one straight dash, grit needles spitting from its flanks. Step out of the sand wake, not along it.",
   "hullRadius": 0.39,
   "turnsToFace": true,
   "speed": 3.15,
@@ -62,21 +62,21 @@
     {
       "name": "hook",
       "x": 192,
-      "y": 56,
+      "y": 38,
       "dir": -1.0
     }
   ],
   "nozzles": [
     {
-      "name": "l",
-      "x": 176,
-      "y": 316,
+      "name": "a",
+      "x": 162,
+      "y": 279,
       "dir": -1.0
     },
     {
-      "name": "r",
-      "x": 208,
-      "y": 316,
+      "name": "b",
+      "x": 221,
+      "y": 279,
       "dir": -1.0
     }
   ],

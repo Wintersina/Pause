@@ -4,7 +4,7 @@
   "heartColor": "#FFF6DC",
   "shotColor": "#F4E3B0",
   "shotCore": "#FFF6DC",
-  "engineColor": "#FFF1C8",
+  "engineColor": "#FFC060",
   "hearts": 2,
   "heartSize": 0.18,
   "heartOrbit": 0.713,
@@ -12,14 +12,14 @@
   "exhaustShip": 3,
   "cellPixels": 384,
   "key": "desert_elite_scorpion_walker",
-  "displayName": "Scorpion Walker",
+  "displayName": "Scorpion Skiff",
   "role": "venom claw striker",
   "brain": "striker",
   "attack": "claw_dive",
-  "lore": "An armoured walker that lifts off a ruin dock with its tail curled over its back. It dives claws first, then lashes the sting across the lane: the pink tip is the part that hurts. Slip behind the lash.",
+  "lore": "A black-armoured gunship that lifts off a ruin dock with its stinger tail raised over its back. It dives claws first, then lashes the sting across the lane: the glowing white-gold tip is the part that hurts. Slip behind the lash.",
   "cellWorldSize": 2.02,
   "hullRadius": 0.408,
-  "noseDeg": 270,
+  "noseDeg": 90,
   "turnsToFace": true,
   "speed": 3.2,
   "accel": 7,
@@ -37,26 +37,26 @@
   "shotSpread": 18,
   "shotSize": 0.2,
   "shotKind": "shard",
-  "exhaustScale": 0.45,
+  "exhaustScale": 0,
   "muzzles": [
     {
       "name": "claw",
-      "x": 120,
-      "y": 264,
+      "x": 192,
+      "y": 38,
       "dir": -1.0
     }
   ],
   "nozzles": [
     {
-      "name": "l",
-      "x": 176,
-      "y": 320,
+      "name": "a",
+      "x": 164,
+      "y": 284,
       "dir": -1.0
     },
     {
-      "name": "r",
-      "x": 208,
-      "y": 320,
+      "name": "b",
+      "x": 220,
+      "y": 284,
       "dir": -1.0
     }
   ],

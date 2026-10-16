@@ -23,7 +23,7 @@
   "heartColor": "#FFF6DC",
   "shotColor": "#F4E3B0",
   "shotCore": "#FFF6DC",
-  "engineColor": "#FFF1C8",
+  "engineColor": "#9FF5DA",
   "hearts": 2,
   "heartSize": 0.18,
   "heartOrbit": 0.65,
@@ -39,7 +39,7 @@
   "role": "mirage blink skirmisher",
   "brain": "skirmisher",
   "attack": "blink_shards",
-  "lore": "A slim heliograph of mirror petals that signals across the dunes. It blinks beside you and fans out three real glass shards among three hollow decoy glints. The decoys are empty: watch which ones are solid.",
+  "lore": "A slim heliograph of six mirror panels that signals across the dunes. It blinks beside you and fans out real glass shards among hollow decoy glints. The decoys are empty: watch which ones are solid.",
   "hullRadius": 0.448,
   "turnsToFace": true,
   "speed": 2.835,
@@ -62,33 +62,33 @@
     {
       "name": "fan",
       "x": 192,
-      "y": 108,
+      "y": 38,
       "dir": -1.0
     },
     {
       "name": "portrod",
-      "x": 124,
-      "y": 134,
+      "x": 116,
+      "y": 141,
       "dir": -1.0
     },
     {
       "name": "starrod",
-      "x": 260,
-      "y": 134,
+      "x": 269,
+      "y": 141,
       "dir": -1.0
     }
   ],
   "nozzles": [
     {
-      "name": "l",
-      "x": 180,
-      "y": 326,
+      "name": "a",
+      "x": 168,
+      "y": 279,
       "dir": -1.0
     },
     {
-      "name": "r",
-      "x": 204,
-      "y": 326,
+      "name": "b",
+      "x": 215,
+      "y": 279,
       "dir": -1.0
     }
   ],
