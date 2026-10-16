@@ -154,8 +154,8 @@ public static class BossEncounterTest
         var tide = BossCatalog.Find("boss_tide");
         Check("the Iron Kraken is the fifth boss", tide != null && BossCatalog.All.Length == 7 && BossCatalog.All[4] == tide && tide.artKey == "Tide");
         Check("... named IRON KRAKEN, TYRANT OF THE DEEP", tide != null && tide.name == "IRON KRAKEN" && tide.title == "TYRANT OF THE DEEP");
-        Check("expandedCombat: Space and Tide only", BossCatalog.All[0].expandedCombat && tide.expandedCombat &&
-              !BossCatalog.All[1].expandedCombat && !BossCatalog.All[2].expandedCombat && !BossCatalog.All[3].expandedCombat &&
+        Check("expandedCombat: Space, Ember (Cinder Drake) and Tide only", BossCatalog.All[0].expandedCombat && tide.expandedCombat &&
+              !BossCatalog.All[1].expandedCombat && !BossCatalog.All[2].expandedCombat && BossCatalog.All[3].expandedCombat &&
               !BossCatalog.All[5].expandedCombat && !BossCatalog.All[6].expandedCombat);
         Check("Tide's atlas holds 35 cells", BossArt.BodyFrameCount(tide) == BossArt.BodyFrames);
         Check("its idle is the six tentacle cells at 20..25", BossArt.IdleStart(tide) == 20 && BossArt.IdleCount(tide) == 6 &&
@@ -168,8 +168,13 @@ public static class BossEncounterTest
         }
         Check("its three tells run 26..34, three drawings each", tells);
         Check("the other bosses keep the four-cell idle and the base tells",
-              BossArt.IdleStart(BossCatalog.All[1]) == 0 && BossArt.IdleCount(BossCatalog.All[3]) == 4 &&
-              BossArt.FireFrame(BossCatalog.All[3], 0) == BossArt.Fire);
+              BossArt.IdleStart(BossCatalog.All[1]) == 0 && BossArt.IdleCount(BossCatalog.All[1]) == 4 &&
+              BossArt.FireFrame(BossCatalog.All[1], 0) == BossArt.Fire);
+        var drake = BossCatalog.All[3];
+        Check("the Cinder Drake has the Kraken's layout: 35 cells, six idle cells at 20..25, tells 26..34",
+              BossArt.BodyFrameCount(drake) == BossArt.BodyFrames && BossArt.IdleStart(drake) == 20 && BossArt.IdleCount(drake) == 6 &&
+              BossArt.TellFrame(drake, 2, 0f) == 32 && BossArt.FireFrame(drake, 0) == 28 &&
+              BossEmitterTable.FrameCount(BossEmitters.World(drake)) == 35);
         Check("it has damage and death art now (Tide_damage, Tide_damage_fx, Tide_death: BossDamageTest covers them)",
               BossArt.HasDamageArt(tide) && BossArt.HasDeathArt(tide) && BossArt.DeathStrip(tide, 0) != null);
         bool muzzles = BossEmitterTable.FrameCount(BossEmitters.World(tide)) == 35;

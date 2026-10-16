@@ -44,7 +44,7 @@ public class BossHearts : HeartOrbit
             case "Space": return Around(0f, .05f, 1.78f, 1.69f);
             case "Frost": return Around(0f, -.10f, 1.94f, 1.80f);
             case "Verdant": return Around(.01f, -.16f, 1.72f, 1.67f);
-            case "Ember": return Around(.02f, .12f, 1.82f, 1.55f);
+            case "Ember": return Around(0f, .10f, 1.94f, 1.62f);
             case "Tide": return Around(0f, -.03f, 2.06f, 1.78f);
             case "Storm": return Around(0f, .01f, 1.61f, 1.57f);
             case "Desert": return Around(0f, 0f, 1.66f, 1.66f);
