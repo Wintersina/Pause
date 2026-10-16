@@ -20,9 +20,9 @@
   "noseDeg": 90,
   "maxBank": 3,
   "heartColor": "#7FD8FF",
-  "shotColor": "#FF4FD8",
-  "shotCore": "#E8FFFB",
-  "engineColor": "#5FF2D0",
+  "shotColor": "#7FF0FF",
+  "shotCore": "#F2FFFF",
+  "engineColor": "#A8A0FF",
   "hearts": 2,
   "heartSize": 0.18,
   "heartOrbit": 0.72,
@@ -64,19 +64,19 @@
   "muzzles": [
     {
       "name": "rod",
-      "x": 190,
-      "y": 68,
+      "x": 192,
+      "y": 39,
       "dir": -1.0
     },
     {
       "name": "coilp",
-      "x": 136,
-      "y": 152,
+      "x": 156,
+      "y": 156,
       "dir": -1.0
     },
     {
       "name": "coils",
-      "x": 250,
+      "x": 228,
       "y": 156,
       "dir": -1.0
     }
@@ -84,14 +84,14 @@
   "nozzles": [
     {
       "name": "l",
-      "x": 178,
-      "y": 304,
+      "x": 171,
+      "y": 272,
       "dir": -1.0
     },
     {
       "name": "r",
-      "x": 206,
-      "y": 304,
+      "x": 212,
+      "y": 272,
       "dir": -1.0
     }
   ],

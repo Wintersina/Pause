@@ -43,8 +43,8 @@ public static class ShipOutlineTest
 
         Check("the default mode is bottom and the fade is a share of the silhouette (" + def + ", " + fade + ")", def == "bottom" && fade >= .15f && fade <= .5f);
         foreach (var m in modes.Values) Check("modes.json has no full outline (" + m + ")", m != "full");
-        Check("the user's overrides: Resin Warden, Thunderfin both top (the Ember ships carry no outline any more)",
-              modes["verdant_elite_resin_warden"] == "top" && modes["tide_elite_thunderfin"] == "top");
+        Check("the user's override: Resin Warden top (the Ember ships and the Tide elites carry no outline any more)",
+              modes["verdant_elite_resin_warden"] == "top");
         Check("the flying Snap Sprout and Glacier Golem were redrawn without any outline (opted out)", modes["verdant_alien"] == "none" && modes["frost_big"] == "none");
         int wired = 0;
         foreach (var kv in keys)
@@ -68,7 +68,10 @@ public static class ShipOutlineTest
         bool spaceClean = true;
         foreach (var k in keys.Keys) if (k.StartsWith("space_") && (k.Contains("_elite_") || !k.Contains("_rock_"))) spaceClean = false;
         Check("Space's enemies and elites carry no outline pass (only its rocks do)", spaceClean);
-        Check("every ship of the plan is wired (" + wired + ")", wired >= 27);   // Desert (15), Ember (6), Space's 7 enemies + 4 elites and Storm's 5 elites left the plan
+        bool tideEliteClean = true;
+        foreach (var k in keys.Keys) if (k.StartsWith("tide_elite_")) tideEliteClean = false;
+        Check("the Tide elites carry no outline pass (redrawn from scratch)", tideEliteClean);
+        Check("every ship of the plan is wired (" + wired + ")", wired >= 22);   // Desert (15), Ember (6), Space's 7 enemies + 4 elites, Storm's 5 and the 5 Tide elites left the plan
         Debug.Log("[OUTL] failures: " + fails);
         return fails;
     }

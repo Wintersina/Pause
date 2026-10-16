@@ -20,9 +20,9 @@
   "noseDeg": 90,
   "maxBank": 3,
   "heartColor": "#7FD8FF",
-  "shotColor": "#FF4FD8",
-  "shotCore": "#E8FFFB",
-  "engineColor": "#5FF2D0",
+  "shotColor": "#7FF0FF",
+  "shotCore": "#F2FFFF",
+  "engineColor": "#96D7FF",
   "hearts": 2,
   "heartSize": 0.18,
   "heartOrbit": 0.588,
@@ -67,34 +67,34 @@
   "muzzles": [
     {
       "name": "port",
-      "x": 68,
-      "y": 188,
+      "x": 59,
+      "y": 130,
       "dir": -1.0
     },
     {
       "name": "star",
-      "x": 314,
-      "y": 188,
+      "x": 325,
+      "y": 130,
       "dir": -1.0
     },
     {
       "name": "winch",
-      "x": 190,
-      "y": 216,
+      "x": 192,
+      "y": 208,
       "dir": -1.0
     }
   ],
   "nozzles": [
     {
       "name": "l",
-      "x": 160,
-      "y": 292,
+      "x": 159,
+      "y": 279,
       "dir": -1.0
     },
     {
       "name": "r",
-      "x": 224,
-      "y": 292,
+      "x": 226,
+      "y": 279,
       "dir": -1.0
     }
   ],
