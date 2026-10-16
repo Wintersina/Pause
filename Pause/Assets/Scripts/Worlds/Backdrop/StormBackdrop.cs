@@ -30,8 +30,11 @@ public static class StormTuning
 {
     // ---- brightness ------------------------------------------------------------
     public static float Brightness = 1f;
-    public static readonly float[] VariantBrightness = { 1f, .6f, .6f, .6f, .55f };   // index = variant (0 none)
-    public static readonly bool[] Night = { false, false, false, false, true };
+    // Storm ships THREE ground sets (v1 banded deck, v2 thunderhead field, v3 the old eye-of-the-storm cyclone deck); there
+    // is no night set. A set that is not on disk is never picked (BackdropVariants), so v4 is simply gone.
+    public const int Variants = 3;
+    public static readonly float[] VariantBrightness = { 1f, .6f, .6f, .6f };   // index = variant (0 none)
+    public static readonly bool[] Night = { false, false, false, false };
 
     // ---- ground pieces -----------------------------------------------------------
     public static float LandmarkMin = 1.5f, LandmarkMax = 1.75f;
@@ -64,7 +67,6 @@ public static class StormTuning
         new[] { 2, 3, 2, 2, 2 },   // v1 banded deck: refineries and skyhooks on the bands
         new[] { 5, 1, 3, 1, 2 },   // v2 thunderhead field: towers and the masts that draw the bolts
         new[] { 3, 1, 2, 3, 2 },   // v3 eye of the storm: towers, skyhooks
-        new[] { 2, 2, 4, 1, 2 },   // v4 night: lit masts, refineries
     };
     public static readonly string[] Towers = { "anvil_tower_00", "anvil_tower_01", "anvil_tower_02", "anvil_tower_03" };
     public static readonly string[] Spires = { "spire_00", "spire_01" };
@@ -78,6 +80,17 @@ public static class StormTuning
     public const float RodTipY = 40f;
     // A strike bolt's lower end on its 256 cell (bottom centre, y from the top).
     public const float StrikeEndY = 226f;
+
+    // ---- the eye of the storm (a rare giant set-piece, atlas "eye", one 1024x1024 cell) ------------------------------
+    public const string EyePiece = "storm_eye";
+    public static float EyeSize = 5.6f;                // world units wide (the view is ~5 wide: the ring is ~65% of it, the arms fade out at its rim)
+    public static float EyeX = 1.6f;                  // off-centre either side: the middle lane stays calm
+    public static float EyeFirst = 12f, EyeGapMin = 20f, EyeGapMax = 28f;   // ground-plane units between eyes: rare
+    public static float EyeAlpha = .96f;
+    // It turns slowly about its own centre, clockwise (seen from above), one full turn per EyeTurnSeconds. Only the rotation moves:
+    // its position is the ground coordinate (pinned), its scale never changes. Drawn bilinear (the atlas is a soft one) so the
+    // turn is smooth with no pixel crawl.
+    public static float EyeTurnSeconds = 90f;
 
     // ---- launch sites ------------------------------------------------------------
     public static float SiteMin = 1.5f, SiteMax = 1.7f, SiteFirst = 3f, SiteGapMin = 5f, SiteGapMax = 8.5f;
@@ -243,13 +256,18 @@ public sealed class StormLightning
 
 public class StormDirector : PlanetDirector
 {
-    BackdropPool ground, sites, glow, bloom, bolts, debris, mist, wisps, ceiling, gusts, rain;
+    BackdropPool ground, sites, eye, glow, bloom, bolts, debris, mist, wisps, ceiling, gusts, rain;
     readonly SpriteRenderer[] lamps = new SpriteRenderer[3];
     BackdropAtlas landmarkArt, siteArt, weather, lightning;
     GroundPlanner planner;
     Sprite[] siteClosed, siteOpen, banks, wispArt, mistArt, gustArt, pallArt, rainArt, boltArt, strikeArt, flashArt, arcArt, debrisArt;
     Sprite lampsOff, lampsOn;
     float groundTravel, groundGap, siteTravel, siteGap, ceilingTravel;
+    float eyeTravel, eyeGap = StormTuning.EyeFirst;
+    int eyeSide;
+    Sprite eyeSprite;
+    public int EyesSpawned { get; private set; }
+    public BackdropPool Eye => eye;
     int lastCluster = -1, lastLone = -1;
     bool night;
     float mistIn = 2.5f, wispIn = 6f, debrisIn = 5f;
@@ -330,6 +348,10 @@ public class StormDirector : PlanetDirector
         // ground plane
         ground = LandmarkPool("ground", 12);
         sites = LandmarkPool("ground", 3);
+        // the EYE OF THE STORM: one rare giant spiral set-piece on the ground plane (under the pieces, over the mid tile)
+        var eyeArt = set.Atlas("eye");
+        eyeSprite = eyeArt != null && eyeArt.Has(StormTuning.EyePiece) ? eyeArt.Get(StormTuning.EyePiece) : null;
+        eye = Pool("ground", 1, false, -3);
         for (int i = 0; i < sites.items.Count; i++)
         {
             var go = new GameObject("lamps");
@@ -432,6 +454,7 @@ public class StormDirector : PlanetDirector
 
         StepPinned(ground, dt);
         StepPinned(sites, dt);
+        StepEye(dt, scrolled);
         StepSites(dt);
         StepLightning(dt, v);
 
@@ -470,6 +493,70 @@ public class StormDirector : PlanetDirector
             d.body.localRotation = Quaternion.Euler(0f, 0f, d.spin * d.age);
             if (Drift(d, dt, v)) Tinted(d, 1f);
         }
+    }
+
+    // ---------------------------------------------------------- the eye --
+
+    // A hurricane eye (a huge spiral cloud wall ringing a calm clear centre, lightning in the wall) drifts by RARELY:
+    // pinned to the mid tile like every ground piece (same rate, y = planner.Y(gy), x fixed, no sway), off-centre
+    // (EyeX either side) so the playfield middle stays calm, claiming its footprint so no tower or mast stands on it.
+    void StepEye(float dt, float scrolled)
+    {
+        if (eyeSprite == null || !planner.Ready) return;
+        eyeTravel += scrolled;
+        if (eyeTravel >= eyeGap) SpawnEye();
+        foreach (var p in eye.items)
+        {
+            if (!p.active) continue;
+            p.age += dt;
+            p.y = planner.Y(p.gy);
+            Place(p);
+            p.body.localRotation = Quaternion.Euler(0f, 0f, EyeAngle(p));
+            if (p.y < -HalfH - p.size * .6f - .5f)
+            {
+                planner.Release(p.footprint);
+                p.footprint = -1;
+                Despawn(p);
+                continue;
+            }
+            Tinted(p, StormTuning.EyeAlpha);
+        }
+    }
+
+    // The eye's rotation (degrees about z): negative = clockwise, from its spawn angle (`phase`), a pure function of its age.
+    public static float EyeAngle(BackdropPiece p) { return p.phase - 360f * p.age / StormTuning.EyeTurnSeconds; }
+
+    // `screenY` (previews / tests): place it at that screen height instead of above the top edge.
+    public bool SpawnEye(float screenY = float.NaN)
+    {
+        if (eyeSprite == null || !planner.Ready) return false;
+        if (!float.IsNaN(screenY))   // previews / tests: replace the eye that may already be drifting by
+            foreach (var q in eye.items)
+                if (q.active) { planner.Release(q.footprint); q.footprint = -1; Despawn(q); }
+        float size = StormTuning.EyeSize;
+        double gy = planner.GroundY(float.IsNaN(screenY) ? HalfH + size * .6f + .2f : screenY);
+        float x = (eyeSide++ % 2 == 0 ? -1f : 1f) * StormTuning.EyeX;
+        int foot = planner.Claim(x, gy, size * .36f, size * .36f);
+        if (foot < 0) { eyeGap = eyeTravel + .5f; return false; }
+        var p = eye.Spawn();
+        if (p == null) { planner.Release(foot); eyeGap = eyeTravel + .5f; return false; }
+        SetSprite(p, eyeSprite, size);
+        p.body.localScale = Vector3.one;
+        p.footprint = foot;
+        p.gy = gy;
+        p.x = x;
+        p.y = planner.Y(gy);
+        p.rate = set.Spec.Rate("ground");
+        p.color = Color.white;
+        p.age = 0f;
+        p.phase = Rand(0f, 360f);
+        Place(p);
+        p.body.localRotation = Quaternion.Euler(0f, 0f, EyeAngle(p));
+        Tinted(p, StormTuning.EyeAlpha);
+        EyesSpawned++;
+        eyeTravel = 0f;
+        eyeGap = Rand(StormTuning.EyeGapMin, StormTuning.EyeGapMax);
+        return true;
     }
 
     void Tinted(BackdropPiece p, float alpha)

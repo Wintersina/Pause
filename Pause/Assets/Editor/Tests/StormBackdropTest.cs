@@ -4,7 +4,7 @@ using UnityEditor.SceneManagement;
 using UnityEngine;
 
 // The Storm backdrop (StormDirector, StormLightning): a thunderstorm, never Tide's ocean.
-//   * its own spec (own folder, four variant sets, night = v4), layers rising far -> near, the ground pieces
+//   * its own spec (own folder, three variant sets, no night side), layers rising far -> near, the ground pieces
 //     PINNED to the mid tile, every layer behind gameplay;
 //   * LIGHTNING IS GENTLE (photosensitivity): over many seeded 10-minute runs no two light pulses start closer
 //     than MinPulseGap, never more than 2 in any second (a flash and its faint re-strike), none in the opening
@@ -46,6 +46,7 @@ public static class StormBackdropTest
             Lightning();
             Strikes();
             Pinned();
+            Eye();
             Palette();
             Resolution();
             AtlasContract();
@@ -100,8 +101,8 @@ public static class StormBackdropTest
     static void Catalog()
     {
         var spec = BackdropCatalog.For("Storm");
-        Check("Storm has its own spec, folder and four variant sets (not Tide's stand-in)",
-              spec.world == "Storm" && spec.folder == "Worlds/Storm/Backdrop3/" && spec.variantSets == BackdropVariants.MaxVariants);
+        Check("Storm has its own spec, folder and three variant sets (not Tide's stand-in)",
+              spec.world == "Storm" && spec.folder == "Worlds/Storm/Backdrop3/" && spec.variantSets == StormTuning.Variants);
         string[] want = { "sky", "far", "mid", "ground", "flow", "glow", "bolts", "mist", "wisps", "ceiling", "bloom", "gusts", "debris", "rain" };
         bool all = true;
         foreach (string n in want) all &= spec.Has(n);
@@ -115,8 +116,9 @@ public static class StormBackdropTest
             rising &= spec.layers[i].rate > spec.layers[i - 1].rate ||
                       (spec.layers[i].pinTo == spec.layers[i - 1].name && spec.layers[i].rate == spec.layers[i - 1].rate);
         Check("Storm rates strictly increase far -> near", rising);
-        Check("the night side is v4 only and never drawn brighter than the day",
-              !spec.Night(1) && !spec.Night(2) && !spec.Night(3) && spec.Night(4) && spec.VariantBrightness(4) <= spec.VariantBrightness(1));
+        Check("Storm ships three ground sets and no night side (the user dropped v4)",
+              spec.variantSets == 3 && !spec.Night(1) && !spec.Night(2) && !spec.Night(3) && !spec.Night(4) &&
+              !System.IO.File.Exists(Art + "v4/mid.png"));
         Check("the art is dark: Storm is drawn below the bright-world lift, so shots keep the thin outline", !spec.Bright);
         var set = new BackdropSet("Storm", new GameObject("~root").transform, 3f, 5f);
         Check("a Storm backdrop is built by the StormDirector (not TideDirector)", set.Director is StormDirector && !(set.Director is TideDirector));
@@ -203,7 +205,7 @@ public static class StormBackdropTest
         int totalFlashes = 0;
         float worstAlpha = 0f, worstBloom = 0f, worstFrameStep = 0f, worstGlowSum = 0f, worstBloomSum = 0f;
         int worstLive = 0, boltsSeen = 0;
-        for (int v = 1; v <= 4; v++)
+        for (int v = 1; v <= StormTuning.Variants; v++)
         {
             var wb = Fresh(v);
             var d = Director(wb);
@@ -307,7 +309,7 @@ public static class StormBackdropTest
 
         // no overlap, distinct pieces, towers where the storm is thick
         int seeds = 40, bad = 0, towers = 0, spires = 0, pieces = 0;
-        for (int v = 1; v <= 4; v++)
+        for (int v = 1; v <= StormTuning.Variants; v++)
             for (int s = 1; s <= seeds / 4; s++)
             {
                 StormDirector.SeedOverride = 5000 + s * 13 + v;
@@ -330,9 +332,83 @@ public static class StormBackdropTest
         Check("the storm's pieces turn up: " + towers + " thunderhead towers and " + spires + " lightning-rod masts among " + pieces, towers > 5 && spires > 3);
     }
 
+    // ---- the eye of the storm: a rare giant ground set-piece ---------------------------------------------------
+
+    static void Eye()
+    {
+        // it is rare, off-centre and anchored to the ground plane like every other piece (no sway, no drift)
+        for (int v = 1; v <= StormTuning.Variants; v++)
+        {
+            var wb = Fresh(v);
+            var d = Director(wb);
+            if (d == null) { Check("Storm director v" + v + " (eye)", false); return; }
+            bool spawned = d.SpawnEye();
+            Check("v" + v + ": the eye set-piece spawns (atlas 'eye' carries '" + StormTuning.EyePiece + "')", spawned && d.Eye.ActiveCount == 1);
+            if (!spawned) { Object.DestroyImmediate(wb.gameObject); continue; }
+            BackdropPiece p = null;
+            foreach (var q in d.Eye.items) if (q.active) p = q;
+            bool offCentre = Mathf.Abs(p.x) >= 1.2f && Mathf.Abs(p.x) <= 2f;
+            float x0 = p.x; double gy0 = p.gy;
+            Vector3 root0 = p.root.localScale, body0 = p.body.localScale;
+            // 40 s at JITTERY dt and a CHANGING scroll speed: the centre stays at a constant ground coordinate (x fixed, y from the
+            // tile travel, mid-tile rate, same scale), only the rotation changes: monotonic, clockwise, at 360 / EyeTurnSeconds per second
+            var jit = new System.Random(77 + v);
+            float savedSpeed = moveBackGround.speed;
+            float total = 0f, unwrapped = 0f, prevAngle = p.body.localEulerAngles.z;
+            bool pinned = true, steady = true, monotonic = true, rateOk = true;
+            float maxStep = 0f;
+            while (total < 40f && p.active)
+            {
+                moveBackGround.speed = .12f + (float)jit.NextDouble() * .5f;
+                float dt = 1f / 120f + (float)jit.NextDouble() * (1f / 20f - 1f / 120f);
+                wb.Step(dt);
+                total += dt;
+                if (!p.active) break;
+                if (Mathf.Abs(p.x - x0) > 1e-4f || System.Math.Abs(p.gy - gy0) > 1e-6 || System.Math.Abs(p.y + d.Planner.Travel - p.gy) > 1e-3 ||
+                    p.rate != wb.Current.Spec.Rate("mid")) pinned = false;
+                if ((p.root.localScale - root0).sqrMagnitude > 1e-10f || (p.body.localScale - body0).sqrMagnitude > 1e-10f || p.body.localPosition.sqrMagnitude > 1e-10f) steady = false;
+                float ang = p.body.localEulerAngles.z;
+                float step = Mathf.DeltaAngle(prevAngle, ang);          // < 0 = clockwise
+                if (step > 1e-3f) monotonic = false;
+                if (Mathf.Abs(Mathf.Abs(step) - 360f / StormTuning.EyeTurnSeconds * dt) > .05f) rateOk = false;
+                maxStep = Mathf.Max(maxStep, Mathf.Abs(step));
+                unwrapped += step;
+                prevAngle = ang;
+            }
+            moveBackGround.speed = savedSpeed;
+            float expected = -360f * total / StormTuning.EyeTurnSeconds;
+            Check("v" + v + ": eye pinned at ground coordinate " + gy0.ToString("F2") + " / x " + x0.ToString("F2") + " (off-centre, clear of the middle lane) across jittery dt and changing scroll speed",
+                  offCentre && pinned && steady);
+            Check("v" + v + ": only the rotation changes: clockwise, monotonic, " + (360f / StormTuning.EyeTurnSeconds).ToString("F1") + " deg/s (turned " + unwrapped.ToString("F1") + " of " + expected.ToString("F1") + " deg, largest step " + maxStep.ToString("F2") + ")",
+                  monotonic && rateOk && Mathf.Abs(unwrapped - expected) < 1f && total > 20f);
+            Object.DestroyImmediate(wb.gameObject);
+        }
+        // the sprite's bounding circle fits its cell: nothing is opaque outside radius 506 of the 1024 cell, so no rotation angle clips
+        var eyeTex = new Texture2D(2, 2, TextureFormat.RGBA32, false);
+        eyeTex.LoadImage(File.ReadAllBytes(Art + "eye.png"));
+        var eyePx = eyeTex.GetPixels32();
+        int ew = eyeTex.width, eh = eyeTex.height;
+        Object.DestroyImmediate(eyeTex);
+        float maxR = 0f;
+        for (int y = 0; y < eh; y++)
+            for (int x = 0; x < ew; x++)
+                if (eyePx[y * ew + x].a > 0) maxR = Mathf.Max(maxR, Mathf.Sqrt((x - ew * .5f + .5f) * (x - ew * .5f + .5f) + (y - eh * .5f + .5f) * (y - eh * .5f + .5f)));
+        Check("the eye art fits its cell at every rotation: farthest opaque texel " + maxR.ToString("F1") + " px from the centre <= 508 (cell half-size 512)", ew == 1024 && eh == 1024 && maxR <= 508f);
+        int worst = 0;
+        for (int v = 1; v <= StormTuning.Variants; v++)
+        {
+            var wb = Fresh(v, .25f);
+            var d = Director(wb);
+            Run(wb, 240f);
+            worst = Mathf.Max(worst, d.EyesSpawned);
+            Object.DestroyImmediate(wb.gameObject);
+        }
+        Check("the eye is RARE: at most 3 in 4 minutes at the opening speed (worst " + worst + ")", worst <= 3);
+    }
+
     // ---- the art is a storm, not an ocean -----------------------------------------------------------
 
-    struct Mix { public float teal, violet, red, mean; public int n; public float sat; }
+    struct Mix { public float teal, violet, red, pink, mean; public int n; public float sat; }
 
     static Mix Measure(string path, float minAlpha = .5f)
     {
@@ -341,7 +417,7 @@ public static class StormBackdropTest
         var px = tex.GetPixels32();
         var m = new Mix();
         double sum = 0, ssum = 0;
-        int teal = 0, violet = 0, red = 0, n = 0;
+        int teal = 0, violet = 0, red = 0, pink = 0, n = 0;
         for (int i = 0; i < px.Length; i += 3)
         {
             var c = px[i];
@@ -351,8 +427,9 @@ public static class StormBackdropTest
             h *= 360f;
             n++;
             sum += v; ssum += s;
-            if (v > .12f && s > .18f && h >= 95f && h <= 195f) teal++;
-            if (v > .12f && s > .30f && h >= 250f && h <= 300f) violet++;
+            if (v > .12f && s > .18f && h >= 95f && h <= 160f) teal++;   // green / mint (the ocean's colour); teal 160+ is storm colour now
+            if (v > .12f && s > .30f && h >= 292f && h <= 350f) pink++;
+            if (v > .12f && s > .30f && h >= 250f && h < 292f) violet++;
             if (s > .5f && v > .12f && (h < 15f || h > 340f)) red++;
         }
         Object.DestroyImmediate(tex);
@@ -360,39 +437,46 @@ public static class StormBackdropTest
         m.teal = n > 0 ? teal / (float)n : 0f;
         m.violet = n > 0 ? violet / (float)n : 0f;
         m.red = n > 0 ? red / (float)n : 0f;
+        m.pink = n > 0 ? pink / (float)n : 0f;
         m.mean = n > 0 ? (float)(sum / n) : 0f;
         m.sat = n > 0 ? (float)(ssum / n) : 0f;
         return m;
     }
 
-    public const float MaxTealShare = .01f, MaxVioletShare = .01f, MaxRedShare = .003f;
+    // 2026-10: Storm v1 / v2 are COLOURFUL (indigo / violet / teal / electric blue with amber rims). Still no ocean green, no
+    // pink (Space only), no red (the player's); violet stays a minority (the capacitor pickup is violet).
+    public const float MaxTealShare = .01f, MaxVioletShare = .30f, MaxRedShare = .003f, MaxPinkShare = .003f, MinMidSaturation = .22f;
+
+    // v1 / v2 are the new 1024x2048 HD sets; v3 is the original 512x1024 set the user kept.
+    static bool Hd(int v) { return v != 3; }
+    static bool Hd(string file) { return !file.StartsWith("v3/"); }
 
     static void Palette()
     {
-        float tideTeal = 0f, stormTeal = 0f;
         string[] roles = { "sky", "far", "mid" };
-        for (int v = 1; v <= 4; v++)
+        float midSat = 1f;
+        for (int v = 1; v <= StormTuning.Variants; v++)
             foreach (string r in roles)
             {
                 string path = Art + "v" + v + "/" + r + ".png";
                 if (!File.Exists(path)) { Check("Storm v" + v + "/" + r + ".png exists", false); continue; }
                 var m = Measure(path);
-                stormTeal = Mathf.Max(stormTeal, m.teal);
-                Check("Storm v" + v + " " + r + ": no green / teal / mint (" + (m.teal * 100f).ToString("F2") + "% <= " + MaxTealShare * 100f + "%), no violet field (" +
-                      (m.violet * 100f).ToString("F2") + "%), no red (" + (m.red * 100f).ToString("F2") + "%)",
-                      m.teal <= MaxTealShare && m.violet <= MaxVioletShare && m.red <= MaxRedShare);
-                var t = Measure("Assets/Art/Backgrounds/Resources/Worlds/Tide/Backdrop3/v" + v + "/" + r + ".png");
-                tideTeal = Mathf.Max(tideTeal, t.teal);
+                Check("Storm v" + v + " " + r + ": no ocean green / mint (" + (m.teal * 100f).ToString("F2") + "% <= " + MaxTealShare * 100f + "%), violet a minority (" +
+                      (m.violet * 100f).ToString("F1") + "% <= " + MaxVioletShare * 100f + "%), no pink (" + (m.pink * 100f).ToString("F2") + "%), no red (" + (m.red * 100f).ToString("F2") + "%)",
+                      m.teal <= MaxTealShare && m.violet <= MaxVioletShare && m.pink <= MaxPinkShare && m.red <= MaxRedShare);
+                if (r == "mid" && Hd(v))
+                {
+                    midSat = Mathf.Min(midSat, m.sat);
+                    Check("Storm v" + v + " mid is colourful, not gray (mean saturation " + m.sat.ToString("F2") + " >= " + MinMidSaturation + ")", m.sat >= MinMidSaturation);
+                }
             }
-        Check("the comparison holds: Tide's sea carries real teal (" + (tideTeal * 100f).ToString("F0") + "%) where Storm's worst layer carries " + (stormTeal * 100f).ToString("F2") + "%",
-              tideTeal > .2f && stormTeal < tideTeal * .05f);
-        foreach (string atlas in new[] { "landmarks", "sites", "weather", "lightning" })
+        foreach (string atlas in new[] { "landmarks", "sites", "weather", "lightning", "eye" })
         {
             string path = Art + atlas + ".png";
             if (!File.Exists(path)) { Check("Storm " + atlas + ".png exists", false); continue; }
             var m = Measure(path, .2f);
-            Check("Storm " + atlas + ": no green / teal (" + (m.teal * 100f).ToString("F2") + "%), no violet field (" + (m.violet * 100f).ToString("F2") + "%), no red (" + (m.red * 100f).ToString("F2") + "%)",
-                  m.teal <= MaxTealShare * 2f && m.violet <= MaxVioletShare * 2f && m.red <= MaxRedShare * 2f);
+            Check("Storm " + atlas + ": no ocean green (" + (m.teal * 100f).ToString("F2") + "%), no pink (" + (m.pink * 100f).ToString("F2") + "%), no red (" + (m.red * 100f).ToString("F2") + "%)",
+                  m.teal <= MaxTealShare * 2f && m.pink <= MaxPinkShare * 2f && m.red <= MaxRedShare * 2f);
         }
     }
 
@@ -407,8 +491,8 @@ public static class StormBackdropTest
     static void Resolution()
     {
         var files = new List<string>();
-        for (int v = 1; v <= 4; v++) foreach (string r in new[] { "sky", "far", "mid", "flow" }) files.Add("v" + v + "/" + r + ".png");
-        foreach (string a in new[] { "landmarks", "sites", "weather", "lightning" }) files.Add(a + ".png");
+        for (int v = 1; v <= StormTuning.Variants; v++) foreach (string r in new[] { "sky", "far", "mid", "flow" }) files.Add("v" + v + "/" + r + ".png");
+        foreach (string a in new[] { "landmarks", "sites", "weather", "lightning", "eye" }) files.Add(a + ".png");
         foreach (string f in files)
         {
             string path = Art + f;
@@ -429,7 +513,7 @@ public static class StormBackdropTest
                 }
             float dh = hN > 0 ? (float)hSame / hN : 0f, dv = vN > 0 ? (float)vSame / vN : 0f;
             bool flow = f.EndsWith("flow.png");
-            bool size = f.StartsWith("v") ? (w == 512 && h == 1024) : (w == 1024 && h == 1024);
+            bool size = f.StartsWith("v") ? (Hd(f) ? (w == 1024 && h == 2048) : (w == 512 && h == 1024)) : (w == 1024 && h == 1024);
             Check("Storm " + f + " is native " + w + "x" + h + " with real detail: identical texel pairs " + (dh * 100f).ToString("F0") + "% across, " +
                   (dv * 100f).ToString("F0") + "% down (<= " + MaxDupPairs * 100f + "%" + (flow ? ", down exempt: rain streaks" : "") + ")",
                   size && dh <= MaxDupPairs && (flow || dv <= MaxDupPairs));
@@ -556,7 +640,7 @@ public static class StormBackdropTest
 
         float worstMean = 0f, worstLane = 0f, sum = 0f;
         int runs = 0;
-        for (int v = 1; v <= 4; v++)
+        for (int v = 1; v <= StormTuning.Variants; v++)
             for (int seed = 1; seed <= 2; seed++)
             {
                 var w2 = Fresh(v);

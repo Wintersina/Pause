@@ -1,0 +1,12 @@
+Use case: stylized-concept
+Asset type: Unity 2D game world backdrop, square 1:1 raster image
+Primary request: “the eye of the storm,” a rare giant set-piece drifting slowly past on the cloud sea of the Storm world: one hurricane viewed straight down from atmosphere level, centered in a square image. A huge spiral cloud wall rings a calm clear center.
+Scene/backdrop: top-down gas-giant thunderstorm at atmosphere level, with the circular vortex fading outward into thin, dark-indigo wispy spiral arms toward all four corners. The corners must be the calmest, darkest, lowest-contrast areas because the artwork will be feathered into a circle.
+Subject: a roughly circular hurricane vortex. The wall is a thick ring of slate, charcoal, and steel-gray cauliflower cumulonimbus billows. Warm amber-peach sunlight catches only small crests of the wall. Electric blue-white lightning flickers inside the wall. Spiral rain bands curve outward from the wall as gray-blue arms with teal shadows, thinning toward the edges. The center is a round calm opening of deep blue-teal clear sky/cloud floor with a faint warm glow.
+Style/medium: crisp HD neon pixel art, deliberate 1–3 px pixel clusters, 5–8 tone painterly ramps, hard-edged pixel shapes, clean readable forms, no blur, no soft airbrush, no outlines, no photo realism, no 3D render.
+Composition/framing: straight-down view, centered eye, circular vortex dominates the image but remains fully contained, subtle spiral flow from the ring into the corners, square 1:1.
+Lighting/mood: dark-to-mid average brightness, ominous and majestic, small bright accents only; warm rim light on cloud crests and cold lightning within the storm wall.
+Color palette: slate/charcoal/steel gray, deep indigo, teal, electric blue from #2F6BFF to #6FC3FF, white-hot lightning #F4F8FF, amber/peach rim light #FFB347 and #FFD9A0. Gray is welcome; color lives in the accents.
+Materials/textures: layered cauliflower cumulonimbus pixel clusters, angular rain-band streaks, wispy dark-indigo cloud arms, sharp lightning flicker, a calm clean center with faint warm glow.
+Constraints: one hurricane only; clearly visible thick spiral wall and clear calm center; centered circular vortex; corners dark and low contrast; no text, no UI, no frame, no border, no watermark.
+Avoid: pink, magenta, red, ocean green, mint, blur, soft airbrush, smooth gradients, photorealism, 3D rendering, extra objects, symbols, lettering.
