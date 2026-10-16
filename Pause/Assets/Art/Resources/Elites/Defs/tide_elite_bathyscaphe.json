@@ -20,9 +20,9 @@
   "noseDeg": 90,
   "maxBank": 3,
   "heartColor": "#7FD8FF",
-  "shotColor": "#FF4FD8",
-  "shotCore": "#E8FFFB",
-  "engineColor": "#5FF2D0",
+  "shotColor": "#7FF0FF",
+  "shotCore": "#F2FFFF",
+  "engineColor": "#9FF2FF",
   "hearts": 2,
   "heartSize": 0.18,
   "heartOrbit": 0.546,
@@ -67,34 +67,34 @@
   "muzzles": [
     {
       "name": "portclaw",
-      "x": 74,
-      "y": 238,
+      "x": 87,
+      "y": 218,
       "dir": -1.0
     },
     {
       "name": "starclaw",
-      "x": 310,
-      "y": 238,
+      "x": 297,
+      "y": 218,
       "dir": -1.0
     },
     {
       "name": "rack",
-      "x": 190,
-      "y": 270,
+      "x": 192,
+      "y": 241,
       "dir": -1.0
     }
   ],
   "nozzles": [
     {
       "name": "l",
-      "x": 128,
-      "y": 286,
+      "x": 148,
+      "y": 266,
       "dir": -1.0
     },
     {
       "name": "r",
-      "x": 256,
-      "y": 286,
+      "x": 237,
+      "y": 266,
       "dir": -1.0
     }
   ],

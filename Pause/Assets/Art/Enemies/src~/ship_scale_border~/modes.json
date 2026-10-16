@@ -5,7 +5,6 @@
   "ships": {
     "verdant_elite_resin_warden": "top",
     "verdant_alien": "none",
-    "frost_big": "none",
-    "tide_elite_thunderfin": "top"
+    "frost_big": "none"
   }
 }
