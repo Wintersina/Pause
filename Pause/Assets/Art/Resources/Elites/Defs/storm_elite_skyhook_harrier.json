@@ -16,13 +16,13 @@
     "hit": -1,
     "damaged": 6
   },
-  "cellWorldSize": 2.06,
+  "cellWorldSize": 2.07,
   "noseDeg": 90,
   "maxBank": 3,
   "heartColor": "#FFF3A0",
   "shotColor": "#9CC8FF",
   "shotCore": "#F2F6FF",
-  "engineColor": "#9CC8FF",
+  "engineColor": "#FFC346",
   "hearts": 2,
   "heartSize": 0.18,
   "heartOrbit": 0.746,
@@ -60,22 +60,22 @@
   "muzzles": [
     {
       "name": "hook",
-      "x": 192,
-      "y": 60,
+      "x": 191,
+      "y": 38,
       "dir": -1.0
     }
   ],
   "nozzles": [
     {
       "name": "l",
-      "x": 172,
-      "y": 318,
+      "x": 168,
+      "y": 298,
       "dir": -1.0
     },
     {
       "name": "r",
-      "x": 214,
-      "y": 318,
+      "x": 211,
+      "y": 297,
       "dir": -1.0
     }
   ],

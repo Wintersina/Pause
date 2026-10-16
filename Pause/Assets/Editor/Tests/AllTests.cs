@@ -137,6 +137,7 @@ public static class AllTests
         ("ShipTierTest", ShipTierTest.Execute),
         ("ShipOutlineTest", ShipOutlineTest.Execute),
         ("EmberFramingTest", EmberFramingTest.Execute),
+        ("StormFramingTest", StormFramingTest.Execute),
         ("EliteHdTest", EliteHdTest.Execute),
         ("EnemyBehaviourTest", EnemyBehaviourTest.Execute),
         ("EnemyJitterTest", EnemyJitterTest.Execute),

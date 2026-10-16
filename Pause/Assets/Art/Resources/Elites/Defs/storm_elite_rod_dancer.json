@@ -16,13 +16,13 @@
     "hit": -1,
     "damaged": 6
   },
-  "cellWorldSize": 1.97,
+  "cellWorldSize": 2.08,
   "noseDeg": 90,
   "maxBank": 3,
   "heartColor": "#F2F6FF",
   "shotColor": "#9CC8FF",
   "shotCore": "#F2F6FF",
-  "engineColor": "#9CC8FF",
+  "engineColor": "#78F0EB",
   "hearts": 2,
   "heartSize": 0.18,
   "heartOrbit": 0.65,
@@ -60,34 +60,40 @@
   "muzzles": [
     {
       "name": "fan",
-      "x": 192,
-      "y": 152,
+      "x": 190,
+      "y": 138,
       "dir": -1.0
     },
     {
       "name": "portrod",
-      "x": 116,
-      "y": 58,
+      "x": 133,
+      "y": 48,
       "dir": -1.0
     },
     {
       "name": "starrod",
-      "x": 266,
-      "y": 60,
+      "x": 251,
+      "y": 48,
       "dir": -1.0
     }
   ],
   "nozzles": [
     {
       "name": "l",
-      "x": 176,
-      "y": 320,
+      "x": 169,
+      "y": 290,
+      "dir": -1.0
+    },
+    {
+      "name": "c",
+      "x": 192,
+      "y": 295,
       "dir": -1.0
     },
     {
       "name": "r",
-      "x": 212,
-      "y": 320,
+      "x": 219,
+      "y": 287,
       "dir": -1.0
     }
   ],

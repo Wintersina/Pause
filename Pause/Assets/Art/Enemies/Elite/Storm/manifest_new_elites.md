@@ -1,5 +1,7 @@
 # Storm elite flight art
 
+> **Ground-up redesign (art/storm-elites):** the five hulls were repainted from scratch with Codex (`Enemies/src~/storm_elites/`: briefs in `all.sh`, masters in `masters/`, `build_strips.py` builds the strips, `wire_defs.py` the def numbers, `contrast.py` the no-outline readability check). Each has its own invented palette and no outline: Skyhook Harrier graphite + safety orange, Refinery Tender emerald enamel + zinc + brass, Rod Dancer carbon black + royal blue + chrome, Anvil Cloud bone ceramic + black iron + brass, Static Bastion petrol teal + silver. Same 7-cell flight / 3-cell death layout at 384 px; drawn engine flames in each ship's own colour; muzzles / nozzles re-measured on cell 3. The older notes below (grey palette, 192 px coordinates) describe the superseded art.
+
 > **HD rebuild:** all five Storm elites are now 384 px cells (2688 x 384 flight strip, 1152 x 384 death strip), rebuilt from the same painted masters with an area-averaging downsample (`Storm/src~/build_storm_hd.py`, shared helpers `Elite/src~/elite_hd.py`, installed by `Elite/src~/install_hd.py`). Poses, frame order, hull radius and scale tier are unchanged; the 192 px coordinates below are x2 in the defs (`cellPixels` 384). See docs/ship-scale-and-lockon-analysis.md 2.6.
 
 

@@ -16,13 +16,13 @@
     "hit": -1,
     "damaged": 6
   },
-  "cellWorldSize": 2.51,
+  "cellWorldSize": 2.28,
   "noseDeg": 90,
   "maxBank": 3,
   "heartColor": "#FFF3A0",
   "shotColor": "#F2F6FF",
   "shotCore": "#FFF3A0",
-  "engineColor": "#9CC8FF",
+  "engineColor": "#FFD77A",
   "hearts": 2,
   "heartSize": 0.18,
   "heartOrbit": 0.53,
@@ -32,6 +32,7 @@
   "glowScale": 0.09,
   "cellPixels": 384,
   "armored": false,
+  "boldHearts": true,
   "hazardSeconds": 0.4,
   "hazardSize": 0.6,
   "displayName": "Anvil Cloud",
@@ -61,21 +62,21 @@
     {
       "name": "cannon",
       "x": 192,
-      "y": 72,
+      "y": 41,
       "dir": -1.0
     }
   ],
   "nozzles": [
     {
       "name": "l",
-      "x": 160,
-      "y": 300,
+      "x": 153,
+      "y": 301,
       "dir": -1.0
     },
     {
       "name": "r",
-      "x": 222,
-      "y": 302,
+      "x": 229,
+      "y": 301,
       "dir": -1.0
     }
   ],

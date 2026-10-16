@@ -68,7 +68,7 @@ public static class ShipOutlineTest
         bool spaceClean = true;
         foreach (var k in keys.Keys) if (k.StartsWith("space_") && (k.Contains("_elite_") || !k.Contains("_rock_"))) spaceClean = false;
         Check("Space's enemies and elites carry no outline pass (only its rocks do)", spaceClean);
-        Check("every ship of the plan is wired (" + wired + ")", wired >= 32);   // Desert (15), Ember (6) and Space's 7 enemies + 4 elites left the plan
+        Check("every ship of the plan is wired (" + wired + ")", wired >= 27);   // Desert (15), Ember (6), Space's 7 enemies + 4 elites and Storm's 5 elites left the plan
         Debug.Log("[OUTL] failures: " + fails);
         return fails;
     }
