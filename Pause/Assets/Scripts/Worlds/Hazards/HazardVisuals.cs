@@ -9,7 +9,7 @@ public sealed class HazardVisuals
     public const int SortingOrder = -7;
     readonly SpriteRenderer[] sr = new SpriteRenderer[Pool];
     readonly Transform root;
-    readonly SpriteRenderer[] artSr = new SpriteRenderer[6];   // the world's approved hazard sheet: a swirl's body or a front's tiles
+    readonly SpriteRenderer[] artSr = new SpriteRenderer[14];   // 14: a three-band flare train of three stacked tiles each needs nine   // the world's approved hazard sheet: a swirl's body or a front's tiles
     public int Drawn { get; private set; }
     int artDrawn;
     int artLast;
@@ -130,6 +130,9 @@ public sealed class HazardVisuals
                 }
                 break;
             }
+            case HazardShape.Sweep:
+                n = DrawFlare(f, n, warn, p, env);
+                break;
             case HazardShape.Front:
             {
                 float lane = f.laneHalf;
@@ -190,6 +193,85 @@ public sealed class HazardVisuals
                     Put(ref n, i % 2 == 0 ? AmbientShape.Ember : AmbientShape.Dot, pos, 0f, .12f + .16f * jx, WithA(pale, a * (1f - k * .6f)));
                 }
                 break;
+            }
+        }
+        return n;
+    }
+
+    public const float FlareTile = 2.1f, FlareLead = .78f;   // the Space flare sheet: cell width in band widths, the leading edge's place in the cell (0..1)
+
+    static readonly Color FlareHot = new Color(1f, .97f, .86f), FlareGold = new Color(1f, .78f, .32f), FlareOrange = new Color(1f, .5f, .16f),
+                          FlareMagenta = new Color(1f, .3f, .78f), FlareViolet = new Color(.6f, .34f, 1f);
+
+    // One Edge sprite: opaque at `from` on the x axis, fading to nothing `len` away in direction `dir` (+1 / -1), `h` tall, centred at y.
+    void EdgeX(ref int n, float from, float dir, float len, float y, float h, Color c)
+    {
+        Put(ref n, AmbientShape.Edge, new Vector2(from, y), 0f, dir > 0f ? len : -len, h, c);
+    }
+
+    // SOLAR FLARES (Space): bands of plasma crossing the screen sideways. Procedural layers (soft glow edges, a hot core, plasma arcs
+    // streaming behind the leading edge, sparks thrown ahead of it); the painted sheet (DrawBodyArt) goes on top when installed.
+    // The WARNING is the origin edge flickering and glowing, a few hot slivers and sparks drifting in. Pink is allowed here.
+    int DrawFlare(HazardField f, int n, bool warn, float p, float env)
+    {
+        var d = f.def;
+        float H = f.viewTop - f.viewBottom + 1.2f, midY = (f.viewTop + f.viewBottom) * .5f;
+        float tm = f.t, lane = f.laneHalf;
+        float flick = .7f + .3f * Hash((int)(tm * 16f), 5);
+        if (warn)
+        {
+            float x0 = -f.side * lane;
+            float w = .5f + 2.4f * p;
+            EdgeX(ref n, x0, f.side, w * 1.4f, midY, H, WithA(FlareMagenta, (.1f + .26f * p) * flick));
+            EdgeX(ref n, x0, f.side, w, midY, H, WithA(FlareOrange, (.14f + .3f * p) * flick));
+            // hot slivers: short bright bars on the edge, jumping about (the front's tip trying to break through)
+            for (int i = 0; i < 6; i++)
+            {
+                int cyc = (int)(tm * 7f) + i * 13;
+                if (Hash(cyc, 9 + i) > .35f + .5f * p) continue;
+                float y = f.viewBottom + Hash(cyc, 3) * (f.viewTop - f.viewBottom);
+                Put(ref n, AmbientShape.Streak, new Vector2(x0 + f.side * .08f, y), 0f, .55f, .6f + 1.8f * Hash(cyc, 4), WithA(FlareHot, (.35f + .5f * p) * flick));
+            }
+            for (int i = 0; i < 4 + (int)(14 * p); i++)       // sparks drifting in from the edge
+            {
+                float jx = Hash(i, 21), jy = Hash(i, 22);
+                float k = Mathf.Repeat(jx + tm * (.35f + .4f * jy), 1f);
+                Put(ref n, AmbientShape.Dot, new Vector2(x0 + f.side * k * (1.5f + 3f * p), f.viewBottom + Hash(i, 23) * (f.viewTop - f.viewBottom)), 0f, .05f + .07f * jy, WithA(i % 3 == 0 ? FlareMagenta : FlareGold, (1f - k) * (.4f + .4f * p)));
+            }
+            return n;
+        }
+        float fade = Mathf.Clamp01(env * 1.6f);
+        for (int b = 0; b < d.bands; b++)
+        {
+            float cx = f.sweepX - f.side * b * d.bandGap;
+            float lead = cx + f.side * d.size * .5f;
+            if (Mathf.Abs(cx) > lane + d.size * 1.6f) continue;            // wholly gone / not yet in view
+            float fl = .85f + .15f * Hash((int)(tm * 20f) + b * 7, 6);
+            // glow layers, widest and softest first
+            EdgeX(ref n, lead, -f.side, d.size * 2.1f, midY, H, WithA(FlareViolet, .26f * fade * fl));
+            EdgeX(ref n, lead, -f.side, d.size * 1.45f, midY, H, WithA(FlareMagenta, .34f * fade * fl));
+            EdgeX(ref n, lead, -f.side, d.size * .95f, midY, H, WithA(FlareOrange, .5f * fade * fl));
+            EdgeX(ref n, lead, f.side, d.size * .5f, midY, H, WithA(FlareGold, .42f * fade * fl));   // the shocked air ahead of it
+            EdgeX(ref n, lead, -f.side, d.size * .32f, midY, H, WithA(FlareGold, .8f * fade * fl));
+            EdgeX(ref n, lead, -f.side, .2f, midY, H, WithA(FlareHot, .95f * fade));                 // the white-hot core line
+            EdgeX(ref n, lead, f.side, .1f, midY, H, WithA(FlareHot, .8f * fade));
+            // plasma arcs: long streaks trailing the leading edge, undulating, hot near the front and violet at the tail
+            for (int i = 0; i < 12; i++)
+            {
+                float jy = Hash(i + b * 31, 31), ju = Hash(i + b * 31, 32);
+                float y = f.viewBottom + Mathf.Repeat(jy + tm * .03f * (i % 2 == 0 ? 1f : -1f), 1f) * (f.viewTop - f.viewBottom);
+                float u = .15f + .85f * ju;                                                           // how far behind the lead (0..1 of 1.7 widths)
+                float wob = Mathf.Sin(tm * (5f + 3f * jy) + i * 1.9f) * .18f;
+                float len = 1.0f + 2.2f * Hash(i, 33) * (1f - .4f * u);
+                Color c = u < .35f ? Color.Lerp(FlareHot, FlareGold, u / .35f) : u < .7f ? Color.Lerp(FlareGold, FlareMagenta, (u - .35f) / .35f) : Color.Lerp(FlareMagenta, FlareViolet, (u - .7f) / .3f);
+                Put(ref n, AmbientShape.Streak, new Vector2(lead - f.side * u * d.size * 1.7f, y + wob), -f.side * 90f, .6f, len, WithA(c, (.8f - .45f * u) * fade));
+            }
+            // sparks thrown ahead of the shock
+            for (int i = 0; i < 10; i++)
+            {
+                float jx = Hash(i + b * 17, 41), jy = Hash(i + b * 17, 42);
+                float k = Mathf.Repeat(jx + tm * (.9f + .7f * jy), 1f);
+                Put(ref n, AmbientShape.Dot, new Vector2(lead + f.side * (.1f + k * 2.2f), f.viewBottom + jy * (f.viewTop - f.viewBottom)), 0f, .05f + .09f * jx, WithA(i % 3 == 0 ? FlareHot : FlareGold, (1f - k) * .9f * fade));
             }
         }
         return n;
@@ -262,6 +344,32 @@ public sealed class HazardVisuals
                 r.transform.localScale = new Vector3(tile, tile, 1f);
                 r.color = new Color(1f, 1f, 1f, warn ? .35f + .55f * p : .95f * k * Mathf.Max(.3f, gate) * (1f - .08f * i));
             }
+        }
+        else if (d.shape == HazardShape.Sweep)
+        {
+            // the painted flare: per band a stack of square tiles (cell width = FlareTile x the band's width) laid up the view, the cell's
+            // hot leading edge (FlareLead of the cell's width) on the band's leading rim, the tail behind it; mirrored when it travels left
+            float W = d.size * FlareTile;
+            int perBand = Mathf.Max(1, Mathf.CeilToInt((f.viewTop - f.viewBottom) / (W * .92f)));
+            int used = 0;
+            int frame = (int)(f.t * 9f);
+            for (int b = 0; b < d.bands; b++)
+            {
+                float lead = f.sweepX - f.side * b * d.bandGap + f.side * d.size * .5f;
+                float cx = lead - f.side * (FlareLead - .5f) * W;
+                if (warn) { lead = -f.side * f.laneHalf; cx = lead - f.side * (FlareLead - .5f) * W; if (b > 0) break; }
+                for (int i = 0; i < perBand && used < artSr.Length; i++)
+                {
+                    var r = artSr[used++]; r.enabled = true;
+                    r.sprite = warn ? HazardArt.Cell(2, d.artWarnCol + ((int)(f.t * 4f) & 1)) : HazardArt.Cell(d.artRow, (frame + i * 2 + b * 3) % 6);
+                    r.transform.position = new Vector3(cx, f.viewBottom + W * .5f + i * W * .92f, 0f);
+                    r.transform.rotation = Quaternion.identity;
+                    r.transform.localScale = new Vector3(W * (f.side < 0f ? -1f : 1f), W, 1f);
+                    float edgeFade = Mathf.Clamp01(1.4f - Mathf.Abs(cx) / (f.laneHalf + W * .8f));   // dims as it leaves the view
+                    r.color = new Color(1f, 1f, 1f, warn ? (.3f + .5f * p) : .95f * k * Mathf.Clamp01(edgeFade + .3f));
+                }
+            }
+            artDrawn = used;
         }
         else if (d.shape == HazardShape.Front)
         {

@@ -67,7 +67,9 @@ public static class WorldHazardsTest
         if (WorldHazards.Instance != null) Object.DestroyImmediate(WorldHazards.Instance.gameObject);
         var go = new GameObject("~WorldHazardsTest");
         made.Add(go);
-        return go.AddComponent<WorldHazards>();
+        var mgr = go.AddComponent<WorldHazards>();
+        WeatherWind.Reset(null);   // a test starts with no wind unless it asks
+        return mgr;
     }
 
     static WorldHazards.Situation Open(int world)
@@ -104,6 +106,8 @@ public static class WorldHazardsTest
             foreach (var o in made) if (o != null) Object.DestroyImmediate(o);
             made.Clear();
             HostileShots.ResetCounters();
+            WeatherWind.Reset(null);
+            WorldHazards.BossRunningOverride = null;
             HazardCoverSeam.Cover = null;
             WorldHazards.SituationOverride = null;
             WorldHazards.ClearAll();
@@ -150,9 +154,9 @@ public static class WorldHazardsTest
         var g = Live(d, Vector2.zero, -1f);
         HazardForce.Sample(g, p, HazardTarget.Body, out Vector2 vm);
         Check("swirl: the other side spins the other way, still pulls in", Vector2.Dot(vm, new Vector2(-p.y, p.x)) * Vector2.Dot(v, new Vector2(-p.y, p.x)) < 0f && Vector2.Dot(vm, -p) > 0f);
-        var w = Live(Def("gravity_well"), Vector2.zero);
+        var w = Live(Def("whirlpool"), Vector2.zero);
         HazardForce.Sample(w, p, HazardTarget.Hostile, out Vector2 gw);
-        Check("gravity well: bends a bullet inward", Vector2.Dot(gw, -p) > 0f);
+        Check("whirlpool: bends a bullet inward", Vector2.Dot(gw, -p) > 0f);
         var warned = Live(d, Vector2.zero); warned.phase = HazardField.Phase.Warning; warned.t = .5f;
         Check("a warned hazard exerts nothing", !HazardForce.Sample(warned, p, HazardTarget.Body, out _));
     }
@@ -232,7 +236,8 @@ public static class WorldHazardsTest
         var a1 = Body(new Vector2(0.2f, 2f)); var a2 = Body(new Vector2(-0.45f, 2f));
         f.def = Def("whirlpool"); f.centre = new Vector2(-2f, 2f); f.t = 6f; f.side = 1f; f.liveFor = 60f;
         for (int i = 0; i < 90; i++) WorldHazards.Apply(Dt);
-        float gap = Mathf.Abs(a1.transform.position.x - a2.transform.position.x) - .6f - .03f;
+        Vector2 dd = a1.transform.position - a2.transform.position;
+        float gap = Mathf.Max(Mathf.Abs(dd.x), Mathf.Abs(dd.y)) - .6f - .03f;   // the boxes touch only when BOTH axes overlap
         Check("a field does not push a body into its neighbour (gap " + gap.ToString("F2") + ")", gap >= -.001f);
         f.def = Def("sandstorm_front"); f.frontY = 1f; f.side = 1f; f.t = 6f; f.liveFor = 30f;
         // a boss body is never moved
@@ -305,7 +310,7 @@ public static class WorldHazardsTest
     static void PushOnlyNoDamage()
     {
         // The hazard code has no path to damage, kill or score: hold it to that by its source.
-        string[] files = { "WorldHazards.cs", "HazardForce.cs", "HazardDef.cs", "HazardVisuals.cs", "WeatherLayer.cs" };
+        string[] files = { "WorldHazards.cs", "HazardForce.cs", "HazardDef.cs", "HazardVisuals.cs", "WeatherLayer.cs", "WeatherWind.cs", "WindVisuals.cs" };
         string[] banned = { "TakeDamage", "Damage(", "Kill(", "RunScore.", "ShoveCrash", "lifeControler", "ShipLives", "Object.Destroy(", "GameObject.Destroy(", "Hearts", "AddScore" };
         string dir = Application.dataPath + "/Scripts/Worlds/Hazards/";
         string hits = "";
@@ -545,10 +550,11 @@ public static class WorldHazardsTest
                         m.StepFields(Dt);
                         if (i % 20 != 0) continue;
                         if (h.shape == HazardShape.Front) ok &= f.laneHalf >= halfW - .05f;
+                        else if (h.shape == HazardShape.Sweep) ok &= f.laneHalf >= halfW - .05f;
                         else ok &= Mathf.Abs(f.centre.x) <= 2.1f && f.centre.y >= -top && f.centre.y <= top;
                         m.Visuals.Draw(WorldHazards.Fields, true);
                         foreach (var r in m.Visuals.Renderers)
-                            if (r.enabled) drawn &= Mathf.Abs(r.transform.position.x) <= halfW + 1.2f && r.transform.position.y >= -top - 1.2f && r.transform.position.y <= top + 1.2f;
+                            if (r.enabled) drawn &= Mathf.Abs(r.transform.position.x) <= halfW + 1.2f + (h.shape == HazardShape.Sweep ? h.size * 4f : 0f) && r.transform.position.y >= -top - 1.2f && r.transform.position.y <= top + 1.2f;
                     }
                 }
             Check("screen " + tag + ": every hazard spans / stays inside the view", ok);

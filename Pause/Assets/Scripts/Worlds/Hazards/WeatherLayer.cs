@@ -13,7 +13,7 @@ public sealed class WeatherLayer
     public static bool Reduced;
     public static float ReducedShare = .4f;
 
-    struct P { public Vector2 pos; public float seed, phase; public int kind; }
+    struct P { public Vector2 pos, vel; public float seed, phase; public int kind; }
 
     readonly SpriteRenderer[] sr = new SpriteRenderer[WorldWeatherTable.AmbientMax];
     readonly P[] ps = new P[WorldWeatherTable.AmbientMax];
@@ -59,7 +59,7 @@ public sealed class WeatherLayer
         int k = 0;
         for (int a = 0; a < entry.ambient.Length; a++)
         {
-            int n = entry.ambient[a].count;
+            int n = Mathf.CeilToInt(entry.ambient[a].count * WorldWeatherTable.AmbientBoost);
             if (Reduced) n = Mathf.CeilToInt(n * ReducedShare);
             for (int i = 0; i < n && k < ps.Length; i++, k++)
                 ps[k] = new P
@@ -113,6 +113,9 @@ public sealed class WeatherLayer
                     var hf = fields[f];
                     if (hf.Acting && HazardForce.Sample(hf, p.pos, HazardTarget.Body, out Vector2 w)) v += w * (WorldWeatherTable.AmbientWindGain * (1f + k.windLean));
                 }
+                // the always-on wind carries it too (the same function that bends the bullets), strongest on the light particles
+                if (WeatherWind.Profile != null) v += WeatherWind.Sample(WeatherWind.Profile, p.pos, HazardTarget.Hostile, WeatherWind.Clock, WeatherWind.GustEnvelope, WeatherWind.Side, WeatherWind.Fade) * (WindVisuals.VisualGain * .8f * (1f + k.windLean));
+                p.vel = v;
                 p.pos += v * dt;
                 if (p.pos.y > top + .4f) { p.pos.y = bottom - .3f; p.pos.x = (Hash(i, tick) - .5f) * 2f * halfW; }
                 else if (p.pos.y < bottom - .4f) { p.pos.y = top + .3f; p.pos.x = (Hash(i, tick + 5) - .5f) * 2f * halfW; }
@@ -123,7 +126,7 @@ public sealed class WeatherLayer
             var r = sr[i];
             bool art = k.artKind >= 0 && WeatherArt.LoadedFor(world);
             r.sprite = art ? WeatherArt.Get(k.artKind, (int)(p.seed * 4f)) : WeatherSprites.Get(k.shape);
-            Vector2 d = k.drift;
+            Vector2 d = p.vel.sqrMagnitude > 1e-4f ? p.vel : k.drift;
             float rot = 0f;
             if (art) rot = 0f;                                  // the painted particles carry their own slant
             else if (k.shape == AmbientShape.Streak) rot = Mathf.Atan2(d.y, d.x) * Mathf.Rad2Deg - 90f;

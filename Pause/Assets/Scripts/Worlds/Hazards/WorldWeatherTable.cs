@@ -4,7 +4,7 @@ using UnityEngine;
 // every world's ambient particles, its hazards, and the rate at which they happen. Worlds are in
 // WorldManager.Worlds order (Space, Frost, Verdant, Ember, Tide, Storm, Desert); colours come from WorldCue,
 // so pink exists only in Space.
-public enum AmbientShape { Dot, Streak, Flake, Leaf, Bubble, Ember, Grain }
+public enum AmbientShape { Dot, Streak, Flake, Leaf, Bubble, Ember, Grain, Edge }   // Edge: a soft gradient bar (glows, wind edges), never an ambient particle
 
 public sealed class AmbientKind
 {
@@ -27,6 +27,7 @@ public sealed class WorldWeatherEntry
     public float first;                       // earliest first event, seconds into the world
     public Vector2 gap;                       // seconds between events
     public Vector2 bossFirst;                 // seconds into a boss fight when the first event may come
+    public WindProfile wind;                  // the always-on wind with its gusts (null: this world has only events, Space)
 }
 
 public static class WorldWeatherTable
@@ -34,12 +35,13 @@ public static class WorldWeatherTable
     // ---- global tunables ----
     public const float MinWarning = 1.5f;     // the telegraph is never shorter than this
     public const float RampIn = .8f, RampOut = 1f;
-    public const float PlayerGain = .55f, ReturnRate = 2.2f, PlayerCap = .85f;   // the ship's finger-offset
-    public const float BodyMaxSpeed = 2.4f, ShotMaxSpeed = 4f, EliteAccel = 3f, EliteMaxSpeed = 6f, PilotShare = .5f;
+    public const float PlayerGain = .6f, ReturnRate = 2.2f, PlayerCap = 1.0f;   // the ship's finger-offset
+    public const float BodyMaxSpeed = 4.5f, ShotMaxSpeed = 7.5f, EliteAccel = 5f, EliteMaxSpeed = 7.5f, PilotShare = .6f;   // the old caps were 2.4 / 4 / 3 / 6: the weather could not push hard enough to read
     public const float MinGapAfterElite = 4f;
     public const float BossLeadSeconds = 14f;
     public const float LoopShorten = .08f, LoopShortenMax = 1.3f;
-    public const int MaxFields = 2, AmbientMax = 40;
+    public const int MaxFields = 2, AmbientMax = 72;
+    public const float AmbientBoost = 1.6f;   // the table's counts x this: the old layer (40 specks) read as nothing
     public const float AmbientMaxAlpha = .6f;
     public const float AmbientWindGain = 1.3f;   // how much a live hazard's field drags the ambient particles
 
@@ -70,19 +72,22 @@ public static class WorldWeatherTable
     {
         var space = new WorldWeatherEntry
         {
-            world = "Space", first = 34f, gap = new Vector2(70f, 110f), bossFirst = new Vector2(20f, 32f),
+            // SOLAR FLARES replace the old gravity well / ion wind: a flare is a hot plasma front that crosses the screen
+            // sideways after a long, readable warning and SHOVES everything in it along the way it travels.
+            world = "Space", first = 24f, gap = new Vector2(48f, 78f), bossFirst = new Vector2(16f, 28f),
             ambient = new[]
             {
-                Art(A(AmbientShape.Dot, 14, .09f, .45f, new Color(.78f, .93f, 1f), 0f, .25f, .05f, .2f), 0),
-                Art(A(AmbientShape.Grain, 8, .07f, .4f, new Color(.62f, .55f, .9f), .05f, .15f), 1),
-                Art(A(AmbientShape.Dot, 4, .1f, .45f, WorldCue.Body(0), 0f, .2f, .04f, .15f), 3),   // magenta: Space only
+                // drifting solar sparks and plasma motes (procedural until Codex's art is wired); pink is allowed here
+                Art(A(AmbientShape.Ember, 12, .10f, .5f, new Color(1f, .78f, .42f), .05f, .22f, .06f, .3f, 1.0f), 0),
+                Art(A(AmbientShape.Dot, 10, .08f, .45f, new Color(1f, .93f, .8f), .0f, .15f, .05f, .2f, 1.0f), 1),
+                Art(A(AmbientShape.Dot, 6, .11f, .4f, WorldCue.Body(0), .0f, .1f, .04f, .15f, 1.0f), 3),   // magenta: Space only
             },
             hazards = new[]
             {
-                // a drifting mass: pulls everything in and bends shots into curves
-                With(H("gravity_well", 0, HazardShape.Swirl, 2.6f, 2.3f, 11f), h => { h.pull = .9f; h.swirl = .35f; h.speed = .4f; h.hostile = M(1f, 1.2f, .7f); h.player = M(.8f); h.artRow = 0; h.artWarnCol = 0; }),
-                // an ion sheet sweeps down and shoves sideways
-                With(H("solar_wind", 0, HazardShape.Front, 2f, 5f, 0f), h => { h.speed = 3.2f; h.push = new Vector2(1f, 0f); h.hostile = M(1.2f); h.artRow = 1; h.artWarnCol = 2; }),
+                // the big one: a single wide plasma front crossing in about two seconds; the leading edge is the hard shove
+                With(H("solar_flare", 0, HazardShape.Sweep, 6.5f, 3.0f, 0f), h => { h.warning = 2.4f; h.speed = 5.2f; h.push = new Vector2(1f, -.12f); h.shock = .5f; h.capMul = 1.7f; h.player = M(.5f); h.body = M(.9f); h.elite = M(.4f); h.hostile = M(1.1f); h.mine = M(.7f); h.artRow = 0; h.artWarnCol = 0; }),
+                // a flare train: three narrower fronts a beat apart, each a separate punch with a gap you can step through
+                With(H("flare_storm", 0, HazardShape.Sweep, 5.4f, 2.1f, 0f), h => { h.warning = 2.6f; h.speed = 4.2f; h.bands = 3; h.bandGap = 5.4f; h.push = new Vector2(1f, -.1f); h.shock = .55f; h.capMul = 1.6f; h.player = M(.45f); h.body = M(.85f); h.elite = M(.4f); h.hostile = M(1.1f); h.mine = M(.7f); h.artRow = 1; h.artWarnCol = 2; }),
             },
         };
         var frost = new WorldWeatherEntry
@@ -97,9 +102,9 @@ public static class WorldWeatherTable
             hazards = new[]
             {
                 // a white wall: sideways drift plus a headwind (up-screen) that stalls shots and bodies
-                With(H("blizzard_front", 1, HazardShape.Front, 1.6f, 6f, 0f), h => { h.speed = 2.6f; h.push = new Vector2(1f, .9f); h.hostile = M(1.2f); h.player = M(.6f); h.artRow = 0; h.artWarnCol = 0; }),
+                With(H("blizzard_front", 1, HazardShape.Front, 2.8f, 6f, 0f), h => { h.speed = 2.6f; h.push = new Vector2(1f, .9f); h.hostile = M(1.2f); h.player = M(.6f); h.artRow = 0; h.artWarnCol = 0; }),
                 // a squall eddy: mostly spin
-                With(H("whiteout_eddy", 1, HazardShape.Swirl, 1.8f, 2f, 10f), h => { h.pull = .15f; h.swirl = 1f; h.speed = .8f; h.artRow = 1; h.artWarnCol = 2; }),
+                With(H("whiteout_eddy", 1, HazardShape.Swirl, 3.0f, 2f, 10f), h => { h.pull = .15f; h.swirl = 1f; h.speed = .8f; h.artRow = 1; h.artWarnCol = 2; }),
             },
         };
         var verdant = new WorldWeatherEntry
@@ -114,9 +119,9 @@ public static class WorldWeatherTable
             hazards = new[]
             {
                 // a pollen cloud rolls through and gently bends shots
-                With(H("spore_gust", 2, HazardShape.Front, 1.0f, 4.5f, 0f), h => { h.speed = 2f; h.push = new Vector2(1f, 0f); h.player = M(.5f); h.artRow = 0; h.artWarnCol = 0; }),
+                With(H("spore_gust", 2, HazardShape.Front, 2.2f, 4.5f, 0f), h => { h.speed = 2f; h.push = new Vector2(1f, 0f); h.player = M(.5f); h.artRow = 0; h.artWarnCol = 0; }),
                 // warm air column: lifts up-screen
-                With(H("vine_updraft", 2, HazardShape.Column, 2.2f, 1.8f, 9f), h => { h.lift = 1f; h.spread = .5f; h.artRow = 1; h.artWarnCol = 2; }),
+                With(H("vine_updraft", 2, HazardShape.Column, 3.4f, 1.8f, 9f), h => { h.lift = 1f; h.spread = .5f; h.artRow = 1; h.artWarnCol = 2; }),
             },
         };
         var ember = new WorldWeatherEntry
@@ -131,9 +136,9 @@ public static class WorldWeatherTable
             hazards = new[]
             {
                 // heat column, pulsing lift
-                With(H("ash_updraft", 3, HazardShape.Column, 2.8f, 2.2f, 8f), h => { h.lift = 1f; h.spread = .3f; h.pulseHz = .5f; h.pulseDepth = .5f; h.artRow = 0; h.artWarnCol = 0; }),
+                With(H("ash_updraft", 3, HazardShape.Column, 4.2f, 2.2f, 8f), h => { h.lift = 1f; h.spread = .3f; h.pulseHz = .5f; h.pulseDepth = .5f; h.artRow = 0; h.artWarnCol = 0; }),
                 // lava geyser: three hard bursts, outward and up
-                With(H("geyser_plume", 3, HazardShape.Column, 4.2f, 1.2f, 6f), h => { h.lift = 1f; h.spread = .9f; h.pulseHz = .5f; h.pulseDepth = 1f; h.player = M(.6f); h.artRow = 1; h.artWarnCol = 2; }),
+                With(H("geyser_plume", 3, HazardShape.Column, 6.0f, 1.2f, 6f), h => { h.lift = 1f; h.spread = .9f; h.pulseHz = .5f; h.pulseDepth = 1f; h.player = M(.6f); h.artRow = 1; h.artWarnCol = 2; }),
             },
         };
         var tide = new WorldWeatherEntry
@@ -148,9 +153,9 @@ public static class WorldWeatherTable
             hazards = new[]
             {
                 // strong pull and spin
-                With(H("whirlpool", 4, HazardShape.Swirl, 3f, 2.6f, 11f), h => { h.pull = .7f; h.swirl = .8f; h.speed = .5f; h.artRow = 0; h.artWarnCol = 0; }),
+                With(H("whirlpool", 4, HazardShape.Swirl, 4.6f, 2.6f, 11f), h => { h.pull = .7f; h.swirl = .8f; h.speed = .5f; h.artRow = 0; h.artWarnCol = 0; }),
                 // a surge sweeps sideways
-                With(H("current_surge", 4, HazardShape.Front, 2.6f, 5.5f, 0f), h => { h.speed = 3.4f; h.push = new Vector2(1f, 0f); h.artRow = 1; h.artWarnCol = 2; }),
+                With(H("current_surge", 4, HazardShape.Front, 4.4f, 5.5f, 0f), h => { h.speed = 3.4f; h.push = new Vector2(1f, 0f); h.artRow = 1; h.artWarnCol = 2; }),
             },
         };
         var storm = new WorldWeatherEntry
@@ -165,9 +170,9 @@ public static class WorldWeatherTable
             hazards = new[]
             {
                 // a funnel crosses the field: pulls ships, throws bullets outward and round
-                With(H("tornado", 5, HazardShape.Swirl, 3.2f, 2f, 12f), h => { h.pull = .6f; h.swirl = 1f; h.speed = 1.1f; h.artRow = 0; h.artWarnCol = 0; h.spinDegrees = 150f; h.hostile = M(1.2f, -.9f, 1.3f); h.mine = M(.5f, -.5f, 1f); }),
+                With(H("tornado", 5, HazardShape.Swirl, 4.8f, 2f, 12f), h => { h.pull = .6f; h.swirl = 1f; h.speed = 1.1f; h.artRow = 0; h.artWarnCol = 0; h.spinDegrees = 150f; h.hostile = M(1.2f, -.9f, 1.3f); h.mine = M(.5f, -.5f, 1f); }),
                 // a charged gust, fast
-                With(H("gust_front", 5, HazardShape.Front, 2.2f, 3.8f, 0f), h => { h.speed = 4.2f; h.push = new Vector2(1f, 0f); h.hostile = M(1.2f); h.artRow = 1; h.artWarnCol = 2; }),
+                With(H("gust_front", 5, HazardShape.Front, 4.4f, 3.8f, 0f), h => { h.speed = 4.2f; h.push = new Vector2(1f, 0f); h.hostile = M(1.2f); h.artRow = 1; h.artWarnCol = 2; }),
             },
         };
         var desert = new WorldWeatherEntry
@@ -182,12 +187,28 @@ public static class WorldWeatherTable
             hazards = new[]
             {
                 // the big wall of sand: the strongest sideways shove, bends bullets
-                With(H("sandstorm_front", 6, HazardShape.Front, 3f, 7f, 0f), h => { h.speed = 3f; h.push = new Vector2(1f, .2f); h.hostile = M(1.3f); h.player = M(.6f); h.artRow = 0; h.artWarnCol = 0; }),
+                With(H("sandstorm_front", 6, HazardShape.Front, 5.0f, 7f, 0f), h => { h.speed = 3f; h.push = new Vector2(1f, .2f); h.hostile = M(1.3f); h.player = M(.6f); h.artRow = 0; h.artWarnCol = 0; }),
                 // a small fast devil
-                With(H("dust_devil", 6, HazardShape.Swirl, 2.2f, 1.5f, 10f), h => { h.pull = .35f; h.swirl = 1f; h.speed = 1.6f; h.artRow = 1; h.artWarnCol = 2; }),
+                With(H("dust_devil", 6, HazardShape.Swirl, 3.8f, 1.5f, 10f), h => { h.pull = .35f; h.swirl = 1f; h.speed = 1.6f; h.artRow = 1; h.artWarnCol = 2; }),
             },
         };
+        // the always-on wind (WeatherWind): breeze, shear, turbulence and telegraphed gusts. Space has none: its weather is the flares.
+        frost.wind = W("Frost gale", bx: .45f, by: 0f, wobble: .6f, gust: 3.4f, gx: 1f, gy: .5f, every: 7f, every2: 12f, shear: .7f, len: 6f, rate: .8f, turb: .15f);
+        verdant.wind = W("Pollen drift", bx: .3f, by: .25f, wobble: .5f, gust: 2.6f, gx: 1f, gy: .9f, every: 8f, every2: 13f, shear: .9f, len: 5f, rate: .6f, turb: .1f);
+        ember.wind = W("Thermals", bx: 0f, by: .75f, wobble: .8f, gust: 3.2f, gx: .35f, gy: 1.6f, every: 7f, every2: 11f, shear: 1.3f, len: 3.2f, rate: .5f, turb: .2f, byX: true);
+        tide.wind = W("Currents", bx: .65f, by: 0f, wobble: .35f, gust: 3.8f, gx: 1f, gy: 0f, every: 8f, every2: 12f, shear: 1.4f, len: 7f, rate: .9f, turb: .1f);
+        storm.wind = W("Charged wind", bx: -.5f, by: -.3f, wobble: .5f, gust: 4.4f, gx: 1f, gy: -.6f, every: 6f, every2: 10f, live: 3f, shear: 1.9f, len: 3.8f, rate: 1.8f, turb: .35f);
+        desert.wind = W("Crosswind", bx: 1f, by: 0f, wobble: .3f, gust: 4.6f, gx: 1f, gy: .15f, every: 7f, every2: 11f, shear: .5f, len: 8f, rate: .5f, turb: .3f);
         return new[] { space, frost, verdant, ember, tide, storm, desert };
+    }
+
+    static WindProfile W(string name, float bx, float by, float wobble, float gust, float gx, float gy, float every, float every2, float shear, float len, float rate, float turb, float live = 3.4f, bool byX = false)
+    {
+        return new WindProfile
+        {
+            name = name, breeze = new Vector2(bx, by), wobble = wobble, gust = gust, gustDir = new Vector2(gx, gy), every = new Vector2(every, every2),
+            live = live, shear = shear, shearLen = len, shearRate = rate, turb = turb, shearByX = byX,
+        };
     }
 
     static HazardDef With(HazardDef d, System.Action<HazardDef> f) { f(d); return d; }
@@ -211,6 +232,8 @@ public static class WorldWeatherTable
             if (e.first < 8f) sb.Append(e.world).Append(" first event inside the calm start; ");
             if (e.gap.x < 30f || e.gap.y < e.gap.x) sb.Append(e.world).Append(" gap not rare; ");
             if (e.bossFirst.x < 10f || e.bossFirst.y < e.bossFirst.x) sb.Append(e.world).Append(" boss-fight first bad; ");
+            if (e.wind != null && (e.wind.warn < MinWarning - .2f || e.wind.gust > 6f || e.wind.every.x < 5f)) sb.Append(e.world).Append(" wind unfair; ");
+            if (i > 0 && e.wind == null) sb.Append(e.world).Append(" has no wind; ");
             int total = 0;
             if (e.ambient != null)
                 foreach (var a in e.ambient)
@@ -219,7 +242,7 @@ public static class WorldWeatherTable
                     if (a.alpha > AmbientMaxAlpha) sb.Append(e.world).Append(" ambient too opaque; ");
                     if (i > 0 && WorldCue.IsPink(a.color)) sb.Append(e.world).Append(" ambient pink; ");
                 }
-            if (total > AmbientMax) sb.Append(e.world).Append(" ambient over budget; ");
+            if (Mathf.CeilToInt(total * AmbientBoost) > AmbientMax) sb.Append(e.world).Append(" ambient over budget; ");
             if (e.hazards != null)
                 foreach (var h in e.hazards)
                 {
@@ -227,8 +250,9 @@ public static class WorldWeatherTable
                     if (h.warning < MinWarning) sb.Append(h.id).Append(" warning too short; ");
                     if (h.strength <= 0f || h.size <= 0f) sb.Append(h.id).Append(" empty; ");
                     if (h.elite.gain > .5f) sb.Append(h.id).Append(" elites pushed too hard; ");
-                    if (h.shape != HazardShape.Front && h.live < 4f) sb.Append(h.id).Append(" too short; ");
-                    if (h.shape == HazardShape.Front && h.speed < 1f) sb.Append(h.id).Append(" front too slow; ");
+                    if ((h.shape == HazardShape.Swirl || h.shape == HazardShape.Column) && h.live < 4f) sb.Append(h.id).Append(" too short; ");
+                    if ((h.shape == HazardShape.Front || h.shape == HazardShape.Sweep) && h.speed < 1f) sb.Append(h.id).Append(" front too slow; ");
+                    if (h.shape == HazardShape.Sweep && (h.bands < 1 || (h.bands > 1 && h.bandGap < h.size * 1.4f))) sb.Append(h.id).Append(" bands overlap; ");
                 }
         }
         return sb.ToString();

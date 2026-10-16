@@ -55,6 +55,7 @@ public sealed class WorldHazards : MonoBehaviour
         public bool coverOnScreen;        // a cover boulder is in view
     }
     public static System.Func<Situation> SituationOverride;
+    public static bool? BossRunningOverride;   // tests: pretend a boss encounter is (not) running
 
     public static Situation Read()
     {
@@ -117,11 +118,13 @@ public sealed class WorldHazards : MonoBehaviour
     readonly System.Random rng = new System.Random();
     HazardVisuals visuals;
     WeatherLayer weather;
+    WindVisuals wind;
 
     public float WorldSeconds => worldSeconds;
     public float UntilNext => untilNext;
     public System.Random Rng => rng;
     public HazardVisuals Visuals { get { return visuals ?? (visuals = new HazardVisuals()); } }
+    public WindVisuals Wind { get { return wind ?? (wind = new WindVisuals()); } }
     public WeatherLayer Weather { get { return weather ?? (weather = new WeatherLayer()); } }
 
     float Rand(float a, float b) { return a + (float)rng.NextDouble() * (b - a); }
@@ -139,6 +142,8 @@ public sealed class WorldHazards : MonoBehaviour
         PlayerOffset = Vector2.zero;
         if (visuals != null) visuals.Destroy();
         if (weather != null) weather.Destroy();
+        if (wind != null) wind.Destroy();
+        WeatherWind.Reset(null);
     }
 
     public static void ClearAll()
@@ -155,6 +160,7 @@ public sealed class WorldHazards : MonoBehaviour
         if (hazardsOn && flying && dt > 0f && !Disabled) Step(dt);
         else if (!hazardsOn && AnyActive) { ClearAll(); PlayerOffset = Vector2.zero; }
         Visuals.Draw(fields, hazardsOn);
+        Wind.Draw(flying ? dt : 0f, hazardsOn && weatherOn, world >= 0 ? world : (WorldManager.Instance != null ? WorldManager.SpawnWorld : 0));
         Weather.Step(flying ? dt : 0f, weatherOn, world >= 0 ? world : (WorldManager.Instance != null ? WorldManager.SpawnWorld : 0), fields);
     }
 
@@ -172,6 +178,8 @@ public sealed class WorldHazards : MonoBehaviour
         if (sit.world != world)
         {
             world = sit.world; worldSeconds = 0f;
+            var wen = WorldWeatherTable.ForWorld(world);
+            WeatherWind.Reset(wen != null ? wen.wind : null);
             for (int i = 0; i < fields.Length; i++) if (fields[i].Active) EndNow(fields[i]);
             var en = WorldWeatherTable.ForWorld(world);
             untilNext = en != null ? en.first + Rand(0f, 6f) : 30f;
@@ -189,6 +197,11 @@ public sealed class WorldHazards : MonoBehaviour
 
         if (EndsEvents(sit))
             for (int i = 0; i < fields.Length; i++) if (fields[i].Active) Fade(fields[i], .6f);
+
+        // the always-on wind: blows on a clean running board after the calm start; a gust is never scheduled while an event
+        // runs or is about to (the event is the big weather, the gust the small), nor while a boss intro / outro is on
+        bool windOn = !EndsEvents(sit) && worldSeconds >= 6f;
+        WeatherWind.Step(dt, windOn, !AnyActive && !sit.bossBusy && !sit.bossRunUp || sit.bossFight && !AnyActive);
 
         if (AnyActive) return;
         untilNext -= dt;
@@ -230,6 +243,15 @@ public sealed class WorldHazards : MonoBehaviour
                 f.vel = new Vector2(f.side * .15f, 0f);
                 f.liveFor = def.live;
                 break;
+            case HazardShape.Sweep:
+            {
+                // a vertical band train crossing sideways: it starts wholly off the near edge and ends wholly off the far one
+                float edge = f.laneHalf + def.size * .5f;
+                f.sweepX = -f.side * edge;
+                float travel = 2f * edge + Mathf.Max(0, def.bands - 1) * def.bandGap;
+                f.liveFor = travel / Mathf.Max(.1f, def.speed);
+                break;
+            }
             default:
                 f.frontY = top + def.size * .5f;
                 f.liveFor = (viewH + def.size) / Mathf.Max(.1f, def.speed);
@@ -284,6 +306,9 @@ public sealed class WorldHazards : MonoBehaviour
                     case HazardShape.Column:
                         f.centre.x = Mathf.Clamp(f.centre.x + f.vel.x * dt, -2f, 2f);
                         break;
+                    case HazardShape.Sweep:
+                        f.sweepX = -f.side * (f.laneHalf + f.def.size * .5f) + f.side * f.def.speed * liveT;
+                        break;
                     default:
                         f.frontY = f.viewTop + f.def.size * .5f - f.def.speed * liveT;
                         break;
@@ -305,16 +330,30 @@ public sealed class WorldHazards : MonoBehaviour
         LastShotsPushed = LastMinePushed = LastBodiesPushed = LastEliteKicks = 0;
         Vector2 playerV = Vector2.zero;
         Transform player = EliteSystem.Player;
+        bool boss = BossRunningOverride ?? BossEncounter.Running;
+        float rigid = 0f;
         for (int i = 0; i < fields.Length; i++)
         {
             var f = fields[i];
             if (!f.Acting) continue;
             Rect b = f.Bounds;
-            PushShots(f, b, dt);
+            PushShots(f, b, dt, boss);
             PushBodies(f, b, dt);
             PushElites(f, b, dt);
             if (player != null && HazardForce.Sample(f, player.position, HazardTarget.Player, out Vector2 pv)) playerV += pv;
+            rigid += HazardForce.RigidX(f, HazardTarget.Hostile) * f.def.bossShotScale;
         }
+        // the always-on wind: the same targets, the same caps (it is a field everywhere, so no bounds cull)
+        if (WeatherWind.Profile != null && WeatherWind.Fade > 0f)
+        {
+            PushShots(null, WorldRect, dt, boss);
+            PushBodies(null, WorldRect, dt);
+            PushElites(null, WorldRect, dt);
+            if (player != null) playerV += WeatherWind.Sample(player.position, HazardTarget.Player);
+        }
+        // boss fights: one rigid, slew-limited, capped sideways drift for every live hostile shot (see WeatherWind)
+        if (boss) BossShotsDrift(WeatherWind.StepBossWind(dt, rigid), dt);
+        else WeatherWind.StepBossWind(dt, 0f);
         // the ship: a finger-offset that follows the field and springs back, always capped
         PlayerOffset += playerV * (WorldWeatherTable.PlayerGain * dt);
         PlayerOffset *= Mathf.Exp(-WorldWeatherTable.ReturnRate * dt);
@@ -322,18 +361,20 @@ public sealed class WorldHazards : MonoBehaviour
         if (PlayerOffset.sqrMagnitude < 1e-8f) PlayerOffset = Vector2.zero;
     }
 
-    static void PushShots(HazardField f, Rect b, float dt)
+    // During a boss encounter every hostile shot gets only the rigid drift (BossShotsDrift): a swirl or a shearing field
+    // would close the gaps of the beat-locked waves (docs/weather-overhaul.md, fairness).
+    static void PushShots(HazardField f, Rect b, float dt, bool boss)
     {
-        float bossScale = BossEncounter.Running ? f.def.bossShotScale : 1f;
         var hostile = HostileShots.All;
-        for (int i = 0; i < hostile.Count; i++)
+        float cap = WorldWeatherTable.ShotMaxSpeed * Cap(f);
+        for (int i = 0; boss == false && i < hostile.Count; i++)
         {
             var s = hostile[i];
             if (s == null || (Object)s == null || !s.ShotShovable) continue;
             Vector2 p = s.ShotPosition;
             if (!b.Contains(p)) continue;
-            if (!HazardForce.Sample(f, p, HazardTarget.Hostile, out Vector2 v)) continue;
-            v = HazardForce.Clamp(v * bossScale, WorldWeatherTable.ShotMaxSpeed);
+            if (!Field(f, p, HazardTarget.Hostile, out Vector2 v)) continue;
+            v = HazardForce.Clamp(v, cap);
             s.ShotShove(v * dt);
             LastShotsPushed++;
         }
@@ -344,9 +385,36 @@ public sealed class WorldHazards : MonoBehaviour
             if (a == null || !a.Active) continue;
             Vector2 p = a.transform.position;
             if (!b.Contains(p)) continue;
-            if (!HazardForce.Sample(f, p, HazardTarget.Mine, out Vector2 v)) continue;
-            a.Shove(HazardForce.Clamp(v, WorldWeatherTable.ShotMaxSpeed) * dt);
+            if (!Field(f, p, HazardTarget.Mine, out Vector2 v)) continue;
+            a.Shove(HazardForce.Clamp(v, cap) * dt);
             LastMinePushed++;
+        }
+    }
+
+    // The whole play area, for the always-on wind (a field everywhere: the cull is the view test each pusher already does).
+    static readonly Rect WorldRect = new Rect(-30f, -60f, 60f, 120f);
+
+    // A hazard field's force on a target, or (f null) the wind's.
+    static bool Field(HazardField f, Vector2 p, HazardTarget t, out Vector2 v)
+    {
+        if (f != null) return HazardForce.Sample(f, p, t, out v);
+        v = WeatherWind.Sample(p, t);
+        return v.sqrMagnitude > 1e-6f;
+    }
+
+    static float Cap(HazardField f) { return f != null ? f.def.capMul : 1f; }
+
+    // Boss fights: every live hostile shot drifts the same sideways amount (see WeatherWind.BossShotWind).
+    static void BossShotsDrift(float vx, float dt)
+    {
+        if (Mathf.Abs(vx) < 1e-5f) return;
+        var hostile = HostileShots.All;
+        for (int i = 0; i < hostile.Count; i++)
+        {
+            var s = hostile[i];
+            if (s == null || (Object)s == null || !s.ShotShovable) continue;
+            s.ShotShove(new Vector2(vx * dt, 0f));
+            LastShotsPushed++;
         }
     }
 
@@ -376,9 +444,9 @@ public sealed class WorldHazards : MonoBehaviour
                 if (brain.Stage != EnemyBrain.PilotStage.Entering && brain.Stage != EnemyBrain.PilotStage.Engaging) continue;
                 share = WorldWeatherTable.PilotShare;
             }
-            if (!HazardForce.Sample(f, p, HazardTarget.Body, out Vector2 v)) continue;
+            if (!Field(f, p, HazardTarget.Body, out Vector2 v)) continue;
             float mass = rock ? HazardSize.ShoveScale(EnemyIdentity.ScaleOf(go)) : 1f;
-            v = HazardForce.Clamp(v * (share * mass), WorldWeatherTable.BodyMaxSpeed);
+            v = HazardForce.Clamp(v * (share * mass), WorldWeatherTable.BodyMaxSpeed * Cap(f));
             SpawnFootprint fp;
             Vector2 half = go.TryGetComponent(out fp) ? fp.half : new Vector2(t.Radius, t.Radius);
             Vector2 move = v * dt;
@@ -422,7 +490,7 @@ public sealed class WorldHazards : MonoBehaviour
             if (e == null || !e.InPlay) continue;
             Vector2 p = e.transform.position;
             if (!b.Contains(p)) continue;
-            if (!HazardForce.Sample(f, p, HazardTarget.Elite, out Vector2 v)) continue;
+            if (!Field(f, p, HazardTarget.Elite, out Vector2 v)) continue;
             if (e.Velocity.sqrMagnitude >= WorldWeatherTable.EliteMaxSpeed * WorldWeatherTable.EliteMaxSpeed) continue;
             e.Velocity += v * (WorldWeatherTable.EliteAccel * dt);
             LastEliteKicks++;

@@ -36,6 +36,25 @@ public static class HazardForce
                 v = s * w * new Vector2(d.push.x * f.side, d.push.y);
                 return true;
             }
+            case HazardShape.Sweep:
+            {
+                // a train of vertical bands crossing sideways: inside a band the push is along the travel direction, strongest at the
+                // shocked leading edge (`shock`), tapering to nothing at both rims. Bands do not overlap, so the strongest one counts.
+                float half = d.size * .5f;
+                float best = 0f;
+                for (int b = 0; b < d.bands; b++)
+                {
+                    float cx = f.sweepX - f.side * b * d.bandGap;
+                    float u = (p.x - cx) * f.side;            // + toward the leading rim
+                    if (Mathf.Abs(u) >= half) continue;
+                    float w = Mathf.Sin(Mathf.PI * (1f - Mathf.Abs(u) / half) * .5f);
+                    w *= 1f - d.shock + d.shock * 2f * Mathf.Clamp01(.5f + u / d.size);
+                    if (w > best) best = w;
+                }
+                if (best <= 0f) return false;
+                v = s * best * new Vector2(d.push.x * f.side, d.push.y);
+                return true;
+            }
             default:
             {
                 float half = d.size * .5f;
@@ -62,6 +81,18 @@ public static class HazardForce
         if (d.pulseHz <= 0f) return 1f;
         float sn = Mathf.Sin(2f * Mathf.PI * d.pulseHz * f.t);
         return d.pulseDepth >= 1f ? Mathf.Clamp01(sn * 1.6f) : 1f - d.pulseDepth + d.pulseDepth * (.5f + .5f * sn);
+    }
+
+    // The field's RIGID sideways part: what a Front or Sweep would do to a body that sits in it, as ONE number (u/s) that does not
+    // depend on where the target is. Boss waves use only this (WeatherWind.BossShotWind): every live bullet moves the same, so a
+    // wave's gap moves with its bullets instead of closing.
+    public static float RigidX(HazardField f, HazardTarget target)
+    {
+        var d = f.def;
+        if (d.shape != HazardShape.Front && d.shape != HazardShape.Sweep) return 0f;
+        float e = f.Envelope;
+        if (e <= 0f) return 0f;
+        return d.strength * e * d.MixOf(target).gain * d.push.x * f.side;
     }
 
     public static Vector2 Clamp(Vector2 v, float max)
