@@ -52,7 +52,7 @@ Pose cells: Space, Ember and Tide have the 35-cell atlas (tell pose p = cells 26
 | Iron Kraken | wall / slant (tidal walls) | port arm cluster LeftA + LeftB (1, 2), then the starboard cluster RightA + RightB (3, 4), alternating | 1: 29-31 / 2: 32-34 | shards |
 | | ring, fan, accent fan | hydraulic Beak (0) | 0: 26-28 | shards |
 | Tempest Engine | wall / slant (rain curtains) | Tesla CoilL + CoilR (2, 3) | 2: 10/11, 9 | bolts |
-| | ring, fan | Core drum (0) | 0: 5/6, 9 | bolts |
+| | fan (arc discharge; ring not in its menu) | Core drum (0) | 0: 5/6, 9 | bolts |
 | | accent lattice (a 3-row wall) | CoilL + CoilR | 2 | bolts |
 | Dune-Eater | wall / slant (sand walls, pincers) | Maw (0) | 0: 5/6, 9 | shards |
 | | ring | Maw (0) | 0 | shards |
@@ -77,6 +77,65 @@ For each wave the generator knows the game-clock time it reaches the ship's row 
 `room(prev gap) + room(new gap) + 4 u/s * (arrival - early - prevArrival - thickness - 0.14 s)`
 
 (`PlanSpeed` 4 u/s, a quarter below the 5 u/s the flood-fill solver uses). `early` (`WaveFront`) is how much sooner the wave meets any point of the ship's path from the old gap to the new one than it meets the gap: a ring from a muzzle off to one side reaches the row under that muzzle first; a tilted row reaches one side first. `thickness` covers the tilt across the gap and every row of a thick wave. A wave after a quiet spell is judged from the ship's own position instead. All of it is **game time**, so a pause or slow motion that squeezes two waves together shrinks the allowed shift to zero; a pause cannot trap the ship. Waves closer than 0.15 game seconds are dropped. A plain accent fan is a gap-chained fan wave too, and an accent takes its sixteenth's place (one firing, one drawing per sixteenth).
+
+## Ricochets (bouncing boss bullets)
+
+About 30 % of the boss bullets that meet a side rail **ricochet** off it instead of splashing. Code: `Scripts/Bosses/Patterns/BossBounce.cs` (rules, pick, trace), `WaveGaps` (shadows), `BossWaveVoice.Ricochet` (song waves), `BossPatternRunner.Ricochet` / `BossActor.RicochetPick` (timed rotation), `BossProjectile` (flight, cue), `PatternSim` (the same flight in tests).
+
+### Constants (`BossBounce`)
+
+| Constant | Value | Meaning |
+| --- | --- | --- |
+| `BouncyFraction` | 0.30 | share of the rail-meeting bullets that ricochet |
+| `PerBoss[7]` | 0.30 each | per-boss override (world order Space, Frost, Verdant, Ember, Tide, Storm, Desert) |
+| `MaxBounces` | 2 | ricochets per bullet; the 3rd rail contact splashes it as usual |
+| `SpeedKeep` | 0.96 | speed kept per ricochet (4 % lost); the angle is mirrored exactly |
+| `MaxCredit` | 2 | the pick never banks more than two bullets of credit |
+| `ShadowMargin` | 0.10 u | on top of ship radius + shot radius round a shadow |
+| `RowSlack` | 0.50 u | song shadows cover the ship's row this far up / down (plus R) |
+| `WaveGaps.MaxShadows` | 48 | live shadows remembered (none free: the bullet stays plain) |
+| `BossPatternRunner.TimedClear` | 1.2 u | timed rotation: a ricochet's sweep must stay this far from the ship |
+
+### Which bullets
+
+* Only **straight** bullets whose course meets a rail inside the field (`BossBounce.MeetsRail`): rings, fans, the accent fans, and in the timed rotation the aimed / fan / spiral / ring / pincer streams and aimed / fan volleys.
+* Never: walls and slants (they fall straight down their lanes and never touch a rail), lobs, homing seeds, bombs, mines, a bomb's burst shards, beams / lasers, vine lashes, hazard columns, the player's shots. Timed attacks the tables already author as `BossRailMode.Bounce` keep their own rule.
+* **The pick** (`BounceSelector`): each eligible bullet adds the fraction to a running credit; at a whole credit the bullet is picked. Over a fight that is exactly the fraction, spread evenly through each wave (a wave of 7+ such bullets is never all or none bouncy).
+
+### Physics
+
+A ricochet mirrors the shot off the rail's **inner face** (its centre at `RailEdge - radius`, the same contact the splash uses), flips the x velocity, keeps `SpeedKeep` of the speed, sparks there (the boss's spark drawing washed to the world's cue colour) and turns the art to its new heading. It still ends through the top / bottom of the view, on the ship (hearts), under the shield, to the bomb / ultimate, the pause-teleport and shot-vs-shot pops, exactly like any hostile shot. Hit radius, speed class, damage and tag are the shot's own. Everything runs in game time (pause freezes it, slow motion slows it). The boss-fight weather drift (`WeatherWind.BossShotWindCap`, 0.12 u/s) moves it like every other bullet and `ShotShove` keeps it inside the rails.
+
+### Fairness: shadows
+
+`BossBounce.Trace` follows a candidate's course after its **first** ricochet (both bounces, the speed loss) through a band of the field and returns the game-time window and the x range of that sweep: its **shadow**, grown by `R` and by the worst weather drift over its flight (`ShadowPad`).
+
+The band (R = ship radius + shot radius + `ShadowMargin`): for song waves the band of the **ship's row** the gap chain is planned on (`player.y +/- (R + RowSlack)`, `RowSlack` 0.5 u, inside the ship's zone); for the timed rotation the ship's whole zone (`ZoneBottom - R .. ZoneTop + R`).
+
+* **Song waves** (`BossWaveVoice.Ricochet`): a picked bullet is only made bouncy if its shadow misses `WaveGaps.PathLo .. PathHi`, every x the ship uses for this wave (where it could be when the last wave passed, the way across, and the new gap's reach). Certified shadows are remembered; every later `WaveGaps.Choose` clips the ship's reach so it stops short of each live shadow beside it, so the next gaps are always planned outside them. A shadow expires when its window ends.
+* **Timed rotation** (no gap chain): the shadow must stay `TimedClear` clear of the ship's x when fired.
+* A vetoed bullet stays plain and passes its credit on, so the fraction still holds.
+
+### The rails (where a ricochet happens)
+
+Shots meet `BossRails.InnerEdge`: the **drawn inner edge of the rail art**, measured from the walls at each boss intro (`BossRails.Measure` -> `WorldPainter.VisibleRailEdges`, the art's lane-facing column, not the quad or the screen edge). Every world lays its rails out on Frost's footprint (`WorldPainter.SetRailLayout`; Desert flies between Storm's rails), so the inner edge is the same in every world: `ReinforcedInnerEdge` 2.606 + `RailInset.Shift`.
+
+| Screen | `RailInset.Shift` | Rail inner face (x) | Ship reach |
+| --- | --- | --- | --- |
+| 16:9 (1080 x 1920) | 0.24 (BaseShift) | +/- 2.846 | +/- (edge - hull half width) |
+| 21:9 phone (1080 x 2520), 4:3 tablet | 0.48 (BaseShift + MaxShift) | +/- 3.086 | |
+| landscape / no screen | 0 | +/- 2.606 | |
+| not measured (editor tools) | | +/- 2.43 (`AuthoredInnerEdge`) | |
+
+Per-world rail art bounds (`WorldPainter.RailBounds`, fractions of the 725 px texture): Frost 140-583, Verdant 139-580, Ember 157-497, Tide / Storm / Space / Desert 159-499; the layout scales each so the drawn rail matches Frost's width and inner edge.
+
+### Storm
+
+The Tempest Engine's song used to be walls and slants only (rain curtains, lightning slants, the lattice accent): bullets falling straight down their lanes, none of which ever meets a rail. Its menu now has an **arc discharge** fan from the core drum (tier 1, 55 deg half arc, 24-count spacing), so its fight has ricochets like the others.
+
+### Readability
+
+A ricochet bullet wears the **ricochet cue**: a thin ring broken into three dashes round the shot (a procedural 32 px sprite, `BossRicochetCue`, no art asset), in the world's pale cue colour (`WorldCue.Trace`: pink only in Space), spinning (200 deg/s) and breathing (3 Hz), dimming as its bounces run out. It is a renderer of its own over the shot, so it works whatever drawing the shot wears (the per-attack projectile art). The rail contact sparks in the same colour. Silent (no ricochet sound). The in-game Codex's boss pages say it in one line (`CodexCatalogue.BossAttackLore`: "RINGED SHOTS  3 in 10 bounce off the rails").
 
 ## Telegraphs
 
@@ -103,6 +162,13 @@ The gap lane is marked (the world's own cue colour, pooled markers) for waves be
 * **live** (a real `BossActor` + `BossProjectilePool`, every boss, 60 fps and 120 fps with a 42 ms audio clock): every tell is followed by bullets within two beats; every shot leaves a muzzle of the part that fired, in the drawing on screen; none outside the view (and the `BossActor.OffscreenSpawns` guard stays 0); none culled straight away; the fire drawing shows as the bullets leave, the source's tell before, idle between, the Drake's breath held;
 * the Cinder Drake's cells (fire cells 28 / 31 / 34, cannons either side of the head in every cell, brow on its gem in cell 28, maw on the flame root, cannon bores in cells 28 / 31);
 * every boss's timed projectile attacks: every shot from the attack's own muzzles in its own pose.
+
+**Ricochets** (`BossWaveTest.RicochetSong`, `Ricochet` in `BossRicochetTest.cs`):
+
+* every boss's whole song + loop seam with ricochets on, on the **real drawn rails** of each screen (16:9: +/- 2.846, ship reach +/- 2.56; 21:9 phone: +/- 3.086, reach +/- 2.80), in four rigs per boss: authored + weather drift at 60 fps, phone + drift at 120 fps, authored at 120 fps, phone at 60 fps (28 songs). The drift is the worst sustained boss-fight weather (a triangle wave at `BossShotWindCap` 0.12 u/s and its slew limit) applied to every shot like `WorldHazards.BossShotsDrift`. Each: the flood fill (5 u/s, 0.04 u margin) never empties, every gap >= 1.7 ship widths, the share of rail-meeting bullets that bounce within 3 points of 30 % (measured 28.0-30.0 %), no wave of 7+ such bullets all or none bouncy, the pool never drops a shot (peak 122 / 144 live, at most 22 bouncy, 12 live shadows), the director allocates 0 B / frame;
+* pauses and 0.25x slow motion with ricochets in flight (phone, drift: Space, Frost, Tide, Desert);
+* the pick (exactly 30.00 % over 300 waves, never all or none), credit passed on after a veto, the per-boss table; `Trace` against the flown course (worst 0.017 u); the timed rotation's streams (30 % of the rail-meeting fan shots) and that bomb / mine / seed streams (with their burst shards) never bounce; walls and slants never meet a rail;
+* a real `BossProjectile`: angle in = angle out, 4 % speed lost per bounce, never past the inner face, 2 ricochets then splashed (end reason 2), the hitbox / speed / tag unchanged; still ends at the bottom, on the ship / shield (hitbox destroyed), to a pop; frozen by a pause, slowed by slow motion; bombs / mines / seeds / burst shards never bouncy, beams have no ricochet; the cue ring (its own renderer, survives an art swap, world cue colour, no pink outside Space); 132 bouncy shots stepped from the pre-warmed pool: no object made, 0 B / frame, ~0.3 ms / frame in the editor.
 
 `BossActor` counts and pulls back (and warns once about) any shot that would start above the view or outside its sides.
 

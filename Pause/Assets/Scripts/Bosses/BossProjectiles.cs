@@ -75,6 +75,12 @@ public class BossProjectile : MonoBehaviour, IHostileShot
     int burst;
     float turnLeft;              // a deploying shot: seconds until it takes `turnTo` (PShot.turnAt / then)
     Vector2 turnTo;
+    // A RICOCHET shot (BossBounce): bounces off the rails up to MaxBounces times, keeping SpeedKeep of its speed each
+    // time, and wears the ricochet cue: a thin dashed ring in the world's cue colour, spinning and breathing round the
+    // art (a renderer of its own, so whatever drawing the shot wears it reads the same), dimming as its bounces run out.
+    bool bouncy;
+    SpriteRenderer cue;
+    Color cueTint;
 
     public bool Active { get; private set; }
     public Vector2 Velocity => velocity;
@@ -83,6 +89,8 @@ public class BossProjectile : MonoBehaviour, IHostileShot
     public BossRailMode Rail => rail;
     public int BouncesLeft => bouncesLeft;
     public int Bounces { get; private set; }
+    public bool Bouncy => bouncy;
+    public SpriteRenderer Cue => cue;
     public bool Patterned => patterned;
     public float FuseLeft => fuseLeft;
     public int BurstCount => burst;
@@ -144,6 +152,11 @@ public class BossProjectile : MonoBehaviour, IHostileShot
         p.sr = go.AddComponent<SpriteRenderer>();
         p.sr.sortingOrder = 30;
         p.glow = HostileGlow.Attach(go.transform, HostileGlow.SortBehindShots);   // carries only the rim sprite
+        var cueGo = new GameObject("RicochetCue");
+        cueGo.transform.SetParent(go.transform, false);
+        p.cue = cueGo.AddComponent<SpriteRenderer>();
+        p.cue.sortingOrder = 31;
+        p.cue.enabled = false;
         HostileShots.Register(p);
         go.SetActive(false);
         return p;
@@ -155,7 +168,18 @@ public class BossProjectile : MonoBehaviour, IHostileShot
         patterned = false;
         homeLeft = fuseLeft = fuseTotal = turnLeft = 0f;
         burst = 0;
+        bouncy = false;
         Launch(def, shotStyle, at, v, railMode, bounces, gravityPull, maxFall, true);
+    }
+
+    // A legacy volley shot picked to ricochet (BossActor.Shoot): BossBounce's rules.
+    public void LaunchRicochet(BossDef def, BossShotStyle shotStyle, Vector3 at, Vector2 v)
+    {
+        patterned = false;
+        homeLeft = fuseLeft = fuseTotal = turnLeft = 0f;
+        burst = 0;
+        bouncy = true;
+        Launch(def, shotStyle, at, v, BossRailMode.Bounce, BossBounce.MaxBounces, 0f, 0f, true);
     }
 
     // A bullet-hell shot (BossPatternRunner): the pattern's extras on top of the plain flight.
@@ -170,6 +194,8 @@ public class BossProjectile : MonoBehaviour, IHostileShot
         burstRot = ps.burstRot;
         turnLeft = ps.turnAt > 0f ? ps.turnAt : 0f;
         turnTo = ps.then;
+        // (never a bomb, a mine or a homing seed: BossBounce only picks straight shots)
+        bouncy = ps.bouncy && ps.rail == BossRailMode.Bounce && ps.bounces > 0 && ps.fuse <= 0f && ps.burst == 0 && homeLeft <= 0f;
         Launch(def, ps.style, at, v, ps.rail, ps.bounces, 0f, 0f, true);
     }
 
@@ -220,6 +246,14 @@ public class BossProjectile : MonoBehaviour, IHostileShot
         // boss's painted colours, every hostile shot carries a magenta-pink
         // edge and never an atom's hue
         glowTint = HostileShotPalette.Trace(HostileShotPalette.Body(boss != null ? boss.flash : Color.white, boss != null ? boss.WorldIndex : 0));
+        cue.enabled = bouncy;
+        if (bouncy)
+        {
+            cue.sprite = BossRicochetCue.Ring;
+            cueTint = BossRicochetCue.Tint(boss != null ? boss.WorldIndex : 0);
+            cue.transform.localPosition = Vector3.zero;
+            cue.transform.localRotation = Quaternion.identity;
+        }
         Pulse();
         Active = true;
         gameObject.SetActive(true);
@@ -233,6 +267,7 @@ public class BossProjectile : MonoBehaviour, IHostileShot
         var c = glowTint;
         c.a = HostileGlow.PulseAlphaAt(age);
         glow.color = c;
+        if (bouncy) BossRicochetCue.Pose(cue, cueTint, age, radius, transform.localScale.x, bouncesLeft);
     }
 
     // Art points down the screen; turn it to face along its velocity.
@@ -307,13 +342,18 @@ public class BossProjectile : MonoBehaviour, IHostileShot
             if (side != 0)
             {
                 Vector3 contact = new Vector3(side * BossRails.InnerEdge, p.y, 0f);
-                if (pool != null) pool.Spark(boss, contact);
+                if (pool != null)
+                {
+                    if (bouncy && bouncesLeft > 0) pool.Spark(boss, contact, BossRicochetCue.SparkTint(boss != null ? boss.WorldIndex : 0));
+                    else pool.Spark(boss, contact);
+                }
                 if (bouncesLeft > 0)
                 {
                     bouncesLeft--;
                     Bounces++;
                     p.x = side * edge - (p.x - side * edge);   // mirrored off the face
                     velocity.x = -velocity.x;
+                    if (bouncy) velocity *= BossBounce.SpeedKeep;   // the angle is mirrored exactly; a little speed is lost
                     Face();
                 }
                 else
@@ -375,7 +415,64 @@ public class BossProjectile : MonoBehaviour, IHostileShot
     public void Recycle()
     {
         Active = false;
+        bouncy = false;
+        if (cue != null) cue.enabled = false;
         gameObject.SetActive(false);
+    }
+}
+
+// The ricochet cue (BossBounce): one procedural sprite (a thin ring broken into three dashes, white, so it is tinted
+// to the world's cue colour), built once and shared; no art asset. Pose() spins and breathes it round a shot.
+public static class BossRicochetCue
+{
+    public const float RingToHit = 2.1f;      // ring diameter / the shot's hit diameter
+    public const float SpinDeg = 200f;        // degrees a second
+    public const float BreathHz = 3f;
+    const int Px = 32;
+
+    static Sprite ring;
+
+    public static Sprite Ring
+    {
+        get
+        {
+            if (ring != null) return ring;
+            var tex = new Texture2D(Px, Px, TextureFormat.RGBA32, false) { filterMode = FilterMode.Point, wrapMode = TextureWrapMode.Clamp, name = "ricochet_cue" };
+            var px = new Color32[Px * Px];
+            float c = (Px - 1) * .5f, outer = Px * .5f - .5f, inner = outer - 2.2f;
+            for (int y = 0; y < Px; y++)
+                for (int x = 0; x < Px; x++)
+                {
+                    float dx = x - c, dy = y - c, d = Mathf.Sqrt(dx * dx + dy * dy);
+                    float a = Mathf.Repeat(Mathf.Atan2(dy, dx) * Mathf.Rad2Deg, 120f);
+                    bool on = d <= outer && d >= inner && a < 84f;     // three dashes, three gaps
+                    px[y * Px + x] = on ? new Color32(255, 255, 255, 255) : new Color32(255, 255, 255, 0);
+                }
+            tex.SetPixels32(px);
+            tex.Apply(false, true);
+            ring = Sprite.Create(tex, new Rect(0, 0, Px, Px), new Vector2(.5f, .5f), Px);   // 1 u across
+            ring.name = "ricochet_cue";
+            return ring;
+        }
+    }
+
+    // The world's pale cue colour (WorldCue.Trace: pink only in Space).
+    public static Color Tint(int world) => WorldCue.Trace(world);
+
+    // The ricochet spark at the rail: the boss's spark drawing, washed toward the cue colour.
+    public static Color SparkTint(int world) { var c = Color.Lerp(Color.white, WorldCue.Trace(world), .6f); c.a = 1f; return c; }
+
+    // `rootScale`: the shot root's scale (the ring is its child); `bouncesLeft`: the ring dims as they run out.
+    public static void Pose(SpriteRenderer r, Color tint, float age, float hitRadius, float rootScale, int bouncesLeft)
+    {
+        if (r == null) return;
+        float breath = .5f + .5f * Mathf.Sin(age * BreathHz * Mathf.PI * 2f);
+        float d = hitRadius * 2f * RingToHit * (1f + .08f * breath);
+        r.transform.localScale = Vector3.one * (d / Mathf.Max(1e-3f, rootScale));
+        r.transform.localRotation = Quaternion.Euler(0f, 0f, age * SpinDeg);
+        float left = Mathf.Clamp01(bouncesLeft / (float)BossBounce.MaxBounces);
+        tint.a = (.5f + .3f * breath) * (.45f + .55f * left);
+        r.color = tint;
     }
 }
 
@@ -839,8 +936,11 @@ public class BossSpark : MonoBehaviour
         return s;
     }
 
-    public void Play(BossDef def, Vector3 at, float size)
+    public void Play(BossDef def, Vector3 at, float size) => Play(def, at, size, Color.white);
+
+    public void Play(BossDef def, Vector3 at, float size, Color tint)
     {
+        sr.color = tint;
         boss = def;
         age = 0f;
         transform.position = new Vector3(at.x, at.y, 0f);
@@ -939,6 +1039,33 @@ public sealed class BossProjectilePool
         return p;
     }
 
+    // A legacy volley shot picked to ricochet (BossBounce): null when the pool is spent.
+    public BossProjectile FireRicochet(BossDef boss, BossShotStyle style, Vector3 at, Vector2 velocity)
+    {
+        BossProjectile p = null;
+        for (int i = 0; i < shots.Count; i++)
+            if (shots[i] != null && !shots[i].Active) { p = shots[i]; break; }
+        if (p == null)
+        {
+            if (shots.Count >= maxShots || root == null) return null;
+            p = BossProjectile.Create(root.transform, this);
+            shots.Add(p);
+        }
+        p.LaunchRicochet(boss, style, at, velocity);
+        PewSound.Play(OwnerId);
+        return p;
+    }
+
+    public int ActiveBouncy
+    {
+        get
+        {
+            int n = 0;
+            for (int i = 0; i < shots.Count; i++) if (shots[i] != null && shots[i].Active && shots[i].Bouncy) n++;
+            return n;
+        }
+    }
+
     // A bullet-hell shot (pattern streams): null when the pool is spent. `sound`: the pew (one per volley is plenty; PewSound caps the rest).
     public BossProjectile FireShot(BossDef boss, Vector3 at, Vector2 velocity, ref PShot ps, bool sound = true)
     {
@@ -999,7 +1126,18 @@ public sealed class BossProjectilePool
         return b;
     }
 
-    public void Spark(BossDef boss, Vector3 at)
+    public int RicochetSparks { get; private set; }
+
+    // A ricochet's spark (tinted to the world's cue: BossRicochetCue.SparkTint).
+    public void Spark(BossDef boss, Vector3 at, Color tint)
+    {
+        RicochetSparks++;
+        SparkTinted(boss, at, tint);
+    }
+
+    public void Spark(BossDef boss, Vector3 at) => SparkTinted(boss, at, Color.white);
+
+    void SparkTinted(BossDef boss, Vector3 at, Color tint)
     {
         SparksPlayed++;
         BossSpark s = null;
@@ -1011,7 +1149,7 @@ public sealed class BossProjectilePool
             s = BossSpark.Create(root.transform);
             sparks.Add(s);
         }
-        s.Play(boss, at, BossConfig.RailSparkSize);
+        s.Play(boss, at, BossConfig.RailSparkSize, tint);
     }
 
     public void Step(float dt)

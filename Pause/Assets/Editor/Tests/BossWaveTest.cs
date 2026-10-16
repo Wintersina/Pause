@@ -26,6 +26,16 @@ public static class BossWaveTest
             foreach (int w in new[] { 0, 1, 2, 3, 4, 5, 6 }) Song(w, false);
             foreach (int w in new[] { 0, 1, 2, 3, 4, 5, 6 }) Song(w, true);
             foreach (int w in new[] { 0, 4, 6 }) Stress(w);
+            // RICOCHETS (BossBounce): the real rails of each screen, the boss-fight weather drift, 60 and 120 fps
+            Ricochet.Run(Check);
+            foreach (int w in new[] { 0, 1, 2, 3, 4, 5, 6 })
+            {
+                RicochetSong(w, false, true, 60);
+                RicochetSong(w, true, true, 120);
+                RicochetSong(w, false, false, 120);
+                RicochetSong(w, true, false, 60);
+            }
+            RicochetStress();
             foreach (int w in new[] { 0, 1, 2, 3, 4, 5, 6 }) Live(w);
             // a phone's audio clock: 120 Hz frames, beat position in 42 ms buffer steps (the "no attack comes" report)
             foreach (int w in new[] { 0, 1, 2, 3, 4, 5, 6 }) Live(w, 120, .042);
@@ -194,6 +204,16 @@ public static class BossWaveTest
         public int fires, offView, strayFlash;
         public float worstEmitter;
         public BossMusicDirector director;
+        // ricochets
+        public int eligible, bouncy, vetoed, ricochets, maxBouncyLive, peakShadows, bigWaves, allOrNone, simBouncy;
+        public float railEdge, shipHalf;
+    }
+
+    // How a song is played: the view, the rails (the authored test lane or the real drawn rails of that screen), the
+    // boss-fight weather drift (a triangle wave at WeatherWind's cap and slew) and the frame rate.
+    sealed class Rig
+    {
+        public bool phone, realRails, drift;
     }
 
     // ---- the stage: the boss's REAL muzzles (BossEmitterTable, its idle drawing) on a boss resting at `bossY` and
@@ -240,8 +260,9 @@ public static class BossWaveTest
         for (int p = 0; p < st.local.Length; p++) sim.emitters[p] = at + st.local[p];
     }
 
-    static Stats Play(int world, Func<int, float> realDt, Func<double, float> gameScale, double seconds, double startClip, bool phone = false)
+    static Stats Play(int world, Func<int, float> realDt, Func<double, float> gameScale, double seconds, double startClip, bool phone = false, Rig rig = null)
     {
+        if (rig != null) phone = rig.phone;
         var map = BeatMaps.For(Names[world]);
         double dsp = 0;
         BeatClock.Now = () => dsp;
@@ -249,9 +270,17 @@ public static class BossWaveTest
         clock.Sample(0, startClip, true);
         var sim = new PatternSim { cap = BossConfig.ProjectilePoolMax };
         var stage = MakeStage(sim, world, phone);
+        if (rig != null && rig.realRails)
+        {
+            // the drawn rails' inner face on this screen (every world lays its rails out on Frost's footprint, Desert flies
+            // between Storm's: BossRails.ReinforcedInnerEdge + RailInset), and the ship's reach inside them
+            sim.railEdge = RealRail(phone);
+            sim.shipHalf = ShipReach.HalfWidthFor(sim.railEdge, ShipScale.HullHalfWidth);
+        }
         sim.player = new Vector2(0f, stage.playerY);
         var director = new BossMusicDirector(world, BossCatalog.ForWorld(world), sim);
-        var st = new Stats();
+        var st = new Stats { railEdge = sim.railEdge, shipHalf = sim.shipHalf };
+        float windTarget = WeatherWind.BossShotWindCap;
         sim.TrackBegin(sim.player);
         st.director = director;
         float gameT = 0f;
@@ -267,6 +296,12 @@ public static class BossWaveTest
             float dt = rdt * gameScale(dsp);
             gameT += dt;
             Sway(sim, stage, gameT);
+            if (rig != null && rig.drift && dt > 0f)
+            {
+                // the worst sustained weather: full cap one way, then the other, at the slew limit
+                if (Mathf.Abs(sim.driftVx - windTarget) < 1e-4f) windTarget = -windTarget;
+                sim.driftVx = Mathf.MoveTowards(sim.driftVx, windTarget, WeatherWind.BossShotWindSlew * dt);
+            }
             sim.Advance(dt);
             long a0 = GC.GetAllocatedBytesForCurrentThread();
             sw.Restart();
@@ -284,6 +319,8 @@ public static class BossWaveTest
                 if (director.Waves.LastClearWidth < need) st.gapFails++;
                 double tb = (director.Waves.LastArrival - director.Waves.LastSpawnGame) / clock.SecondsPerBeat;
                 if (director.Waves.LastTravelBeats < 2 || Math.Abs(tb - director.Waves.LastTravelBeats) > .25) st.travelFails++;
+                int we = director.Waves.WaveEligible, wb = director.Waves.WaveBouncy;
+                if (we > 6) { st.bigWaves++; if (wb == 0 || wb == we) st.allOrNone++; }
             }
             if (dt > 0f)
             {
@@ -294,6 +331,10 @@ public static class BossWaveTest
             st.peak = Math.Max(st.peak, sim.live);
         }
         st.dropped = sim.dropped;
+        var sel = director.Waves.bounce;
+        st.eligible = sel.eligible; st.bouncy = sel.picked; st.vetoed = sel.vetoed;
+        st.ricochets = sim.ricochets; st.maxBouncyLive = sim.maxBouncyLive; st.simBouncy = sim.bouncyFired;
+        st.peakShadows = director.Waves.gaps.PeakShadows;
         st.fires = sim.fires; st.offView = sim.offView; st.worstEmitter = sim.worstEmitterDist;
         for (int p = 0; p < sim.emittedParts.Length; p++)
             if (sim.emittedParts[p] > 0 && Array.IndexOf(director.Parts, p) < 0) st.strayFlash++;
@@ -468,6 +509,37 @@ public static class BossWaveTest
               launched > 100 && offMuzzle == 0 && offView == 0 && BossActor.OffscreenSpawns == 0 && culled == 0);
         Check(n + ": the source's fire drawing as the bullets leave (" + firePose + " of " + poseFrames + " wrong), its tell before (" + tellPose + " wrong), idle between (" + idlePose + " of " + frames + " frames wrong)" + (fanWaves > 0 ? ", " + fanWaves + " breaths held (" + shortBreath + " short)" : ""),
               poseFrames > 10 && firePose == 0 && tellPose == 0 && idlePose == 0 && shortBreath == 0);
+    }
+
+    // The drawn rails' inner face (world x) on the authored 16:9 screen or the 21:9 phone (1080 x 2520).
+    static float RealRail(bool phone) => BossRails.ReinforcedInnerEdge + (phone ? RailInset.ShiftFor(1080f, 2520f) : RailInset.ShiftFor(1080f, 1920f));
+
+    // ---- RICOCHETS: a whole song with ~30 % of the rail-meeting bullets bouncing, flood-filled every frame
+    static void RicochetSong(int world, bool phone, bool drift, int fps)
+    {
+        var rig = new Rig { phone = phone, realRails = true, drift = drift };
+        float dt = 1f / fps;
+        var st = Play(world, f => dt, t => 1f, BeatMaps.For(Names[world]).duration + 12, 0, phone, rig);
+        string n = Names[world] + " ricochets (" + (phone ? "21:9 phone" : "authored") + ", rails at " + st.railEdge.ToString("F2") + ", ship reach " + st.shipHalf.ToString("F2") + (drift ? ", weather drift" : "") + ", " + fps + " fps)";
+        float frac = st.eligible > 0 ? st.bouncy / (float)st.eligible : 0f;
+        Check(n + ": " + st.waves + " waves, never a moment with no reachable cell (min reach " + st.minReach + ", empty frames " + st.emptyFrames + "), every gap " + WaveGaps.MinMultiple + " ship widths clear",
+              st.waves > 30 && st.emptyFrames == 0 && st.gapFails == 0 && st.travelFails == 0);
+        Check(n + ": " + st.bouncy + " of " + st.eligible + " rail-meeting bullets bounce (" + (frac * 100f).ToString("F1") + " %, " + st.vetoed + " vetoed as unfair), " + st.ricochets + " ricochets, " + st.allOrNone + " of " + st.bigWaves + " waves of 7+ such bullets all or none bouncy",
+              st.eligible > 20 && st.bouncy == st.simBouncy && Mathf.Abs(frac - BossBounce.FractionFor(world)) <= .03f && st.ricochets > 0 && st.allOrNone == 0);
+        Check(n + ": peak " + st.peak + " live shots (" + st.maxBouncyLive + " bouncy, " + st.peakShadows + " shadows), dropped " + st.dropped + "; director " + (st.ms / Math.Max(1, st.steps) * 1000).ToString("F1") + " us/frame, " + (st.allocBytes / Math.Max(1, st.steps)) + " B/frame",
+              st.dropped == 0 && st.peak <= BossConfig.ProjectilePoolMax - 1 && st.peakShadows < WaveGaps.MaxShadows && st.allocBytes == 0);
+    }
+
+    // pauses and slow motion with ricochets in flight (game time: the ricochets freeze and slow with everything else)
+    static void RicochetStress()
+    {
+        foreach (int w in new[] { 0, 1, 4, 6 })
+        {
+            var st = Play(w, f => f % 5 == 0 ? 1f / 30f : 1f / 60f, t => { double c = t % 20; return c >= 10 && c < 12 ? 0f : c > 15 ? .25f : 1f; }, 90, 30, true,
+                          new Rig { phone = true, realRails = true, drift = true });
+            Check(Names[w] + " ricochets stay survivable through pauses and slow motion (21:9, drift; empty frames " + st.emptyFrames + ", min reach " + st.minReach + ", " + st.bouncy + " bouncy)",
+                  st.emptyFrames == 0 && st.bouncy > 0);
+        }
     }
 
     // ---- the Cinder Drake's own cells: its muzzles sit on the cannons / maw / furnace / brow in every drawing it

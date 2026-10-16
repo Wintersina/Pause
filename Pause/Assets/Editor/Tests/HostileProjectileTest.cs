@@ -167,6 +167,7 @@ public static class HostileProjectileTest
                     foreach (var r in s.GetComponentsInChildren<SpriteRenderer>(true))
                     {
                         if (r.gameObject == s.gameObject) continue;
+                        if (r == s.Cue && !s.Bouncy && !r.enabled) continue;   // the ricochet cue (BossBounce): off on a plain shot
                         kids++;
                         if (r.sprite == HostileGlow.Halo || r.sprite == HostileGlow.Sheath) halos++;
                     }
