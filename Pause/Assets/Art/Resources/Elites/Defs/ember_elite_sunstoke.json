@@ -8,6 +8,7 @@
   "heartSize": 0.18,
   "heartOrbit": 0.85,
   "heartStyle": "Halo",
+  "boldHearts": true,
   "exhaustShip": 3,
   "cellPixels": 192,
   "key": "ember_elite_sunstoke",
@@ -42,21 +43,21 @@
     {
       "name": "lance",
       "x": 96,
-      "y": 24,
+      "y": 19,
       "dir": -1.0
     }
   ],
   "nozzles": [
     {
       "name": "left",
-      "x": 86,
-      "y": 160,
+      "x": 80,
+      "y": 144,
       "dir": -1.0
     },
     {
       "name": "right",
-      "x": 106,
-      "y": 160,
+      "x": 112,
+      "y": 144,
       "dir": -1.0
     }
   ],

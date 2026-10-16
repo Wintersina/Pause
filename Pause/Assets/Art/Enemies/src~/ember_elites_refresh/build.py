@@ -34,12 +34,12 @@ class Ship:
 
 
 SHIPS = (
-    Ship("sunstoke", 1, 106, 150, (96, 83), (("heat-lance tip", 96, 24),), (("port boiler", 86, 160), ("starboard boiler", 106, 160)), "split wings flare and boiler vents cycle", "spear interceptor / lance dash"),
-    Ship("coalrunner", 1, 132, 120, (96, 76), (("port broadside", 30, 93), ("starboard broadside", 162, 93)), (("port", 69, 150), ("center", 96, 152), ("starboard", 123, 150)), "gun pods recoil and stern plates breathe", "broadside gunship / side volley"),
+    Ship("sunstoke", 1, 106, 150, (96, 74), (("lance", 96, 19),), (("left", 80, 144), ("right", 112, 144)), "split wings flare and boiler vents cycle", "spear interceptor / lance dash"),
+    Ship("coalrunner", 1, 132, 120, (96, 56), (("left", 40, 91), ("right", 153, 91)), (("left", 70, 140), ("center", 95, 142), ("right", 120, 140)), "gun pods recoil and stern plates breathe", "broadside gunship / side volley"),
     Ship("brass_vulture", 1, 126, 148, (96, 93), (("port recovery claw", 89, 25), ("starboard recovery claw", 103, 25)), (("tail", 96, 165),), "hook wings and recovery claw flex", "salvage striker / claw dive"),
-    Ship("kilnback", 0, 120, 150, (96, 79), (("port slag hatch", 76, 139), ("starboard slag hatch", 116, 139)), (("port", 79, 165), ("starboard", 113, 165)), "slab shields spread and hatches shift", "armored hauler / slag drop"),
-    Ship("ash_wraith", 1, 112, 150, (96, 77), (("beak shard gun", 96, 24),), (("port split tail", 83, 164), ("starboard split tail", 109, 164)), "crescent fins sweep and split tails flex", "shadow skirmisher / blink shard fan"),
-    Ship("cauterizer", 0, 132, 150, (96, 91), (("pressure cannon", 96, 24),), (("port", 66, 163), ("starboard", 126, 163)), "twin heat shields spread and six vents pulse", "siege catamaran / pressure cannon"),
+    Ship("kilnback", 0, 120, 150, (96, 95), (("l", 67, 107), ("r", 125, 107)), (("left", 79, 158), ("right", 112, 158)), "slab shields spread and hatches shift", "armored hauler / slag drop"),
+    Ship("ash_wraith", 1, 112, 150, (96, 87), (("beak", 96, 22),), (("left", 83, 129), ("right", 109, 129)), "crescent fins sweep and split tails flex", "shadow skirmisher / blink shard fan"),
+    Ship("cauterizer", 0, 132, 150, (96, 86), (("cannon", 96, 23),), (("left", 66, 150), ("right", 124, 150)), "twin heat shields spread and six vents pulse", "siege catamaran / pressure cannon"),
 )
 
 

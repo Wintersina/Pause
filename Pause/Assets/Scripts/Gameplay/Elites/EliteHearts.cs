@@ -47,6 +47,9 @@ public class EliteHearts : HeartOrbit
 
     protected override bool Outlined { get { return true; } }
 
+    // Pale-hulled elites (EliteDef.boldHearts) wear the bold outline in every world.
+    protected override bool? BoldOutline { get { return ship != null && ship.Def.boldHearts ? true : (bool?)null; } }
+
     protected override Sprite HeartSprite() { return Resources.Load<Sprite>(SpritePath); }
 
     protected override Color HeartTint { get { return ship != null ? ship.Def.HeartColor : Color.magenta; } }

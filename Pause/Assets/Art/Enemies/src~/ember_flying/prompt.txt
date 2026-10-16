@@ -1,0 +1,11 @@
+Use your built-in image generation tool to make two concept sheets of top-down pixel-art enemy sprites for a vertical phone shooter (HD neon pixel art, 1px dark outline, 5-6 step shading, rivets and panel seams). Each sheet: 3 distinct complete concepts side by side on a genuinely transparent canvas, 2172x724 px, all facing DOWN (nose pointing down the screen), isolated, no text/labels/grid/shadow/scenery.
+
+Both enemies must clearly read as FLYING aircraft/gunships (swept wings or fins, visible engine nozzles with small orange flames at the rear/top, no legs, no claws touching ground, no crab/insect look). Keep the same names and roles.
+
+COLOR: do NOT make them one orange color. Use several distinct saturated accent colors per craft: e.g. deep teal / cobalt blue / violet hull plating, bright gold or brass trim, hot orange-white engine and weapon glow, a cool cyan lens or canopy. Colors must be far from player red and no pink/magenta anywhere.
+
+Sheet 1 -> save as ember_chaser_flying_candidates.png in the current directory. "Cinder Fang": compact fast chaser drone/jet, round-ish riveted hull in teal and violet with gold trim, two forward-swept fang-shaped wing blades (like fangs, but as aerodynamic wings), one white-cyan eye lens, twin rear engine nozzles with orange flames. Reference of the old ground-looking design: ember_chaser_key.png in the current directory (keep its overall spirit/silhouette feel but make it a flyer).
+
+Sheet 2 -> save as ember_fighter_2_flying_candidates.png in the current directory. "Scorch": broad gunship with a heavy cannon pointing down, two swept-forward pincer-shaped wing arms (as wings with brass bands, not crab claws), cobalt blue and violet armor, gold bands, orange-white muzzle glow, twin rear engine nozzles with flames. Reference of the old design: ember_fighter_2_key.png in the current directory.
+
+After saving, print the two file paths.
