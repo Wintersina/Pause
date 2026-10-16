@@ -320,7 +320,8 @@ public static class CloakShieldTest
         // Star dust shows when the run ends (Flight Complete), not in the HUD.
         Check(scene + ": the star dust row (CurrecnyGatheredText) is gone", SceneUtil.FindAny("CurrecnyGatheredText") == null);
         Check(scene + ": no star dust text anywhere in the in-run HUD", !HudShowsDust(styler.HudRoot));
-        Check(scene + ": the pause bar is kept", pause != null && pause.transform.Find("PauseBar") != null);
+        Check(scene + ": no pause bar under the PAUSES row", pause != null && pause.transform.Find("PauseBar") == null);
+        Check(scene + ": PAUSES row has no REMAINING header", pause != null && !pause.GetComponent<Text>().text.ToUpper().Contains("REMAINING"));
         Object.DestroyImmediate(go);
     }
 

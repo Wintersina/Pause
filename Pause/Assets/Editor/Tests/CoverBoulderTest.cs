@@ -432,7 +432,7 @@ public static class CoverBoulderTest
             Check(nm + ": the landform blocks nothing (shots, beams, line of sight, ship, bodies, shoves, landing sites, hazard cover query) and pushes nothing", inert);
             b.Hold(new Vector2(.4f, 2f), 0f);
             Check(nm + ": it is bigger than a cover boulder and inside the lane (" + b.Width.ToString("0.0") + " u of " + (CoverBoulders.Edge * 2f).ToString("0.0") + ")", b.Width > T[w].widths[1] * 1.2f - .01f && b.Width <= CoverBoulders.Edge * 2f * CoverBoulders.DecorMaxShare + .001f);
-            Check(nm + ": it falls slowly (" + (-b.Vel.y).ToString("0.00") + " u/s)", -b.Vel.y <= T[w].fall.y * CoverBoulders.DecorSpeed + .001f);
+            Check(nm + ": it has no motion of its own (the ground carries it; " + b.Vel + " u/s)", b.Vel == Vector2.zero && b.Rotation == 0f);
         }
 
         // a boss starting: a landform sinks out (no rumble, no crumble, nothing destroyed); Space's cover boulder is destroyed as before

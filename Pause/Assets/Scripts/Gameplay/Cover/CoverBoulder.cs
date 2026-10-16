@@ -54,6 +54,12 @@ public sealed class CoverBoulder
     GameObject go;
     SpriteRenderer body, wash;
     CoverStormFx stormFx;   // the Storm landform's effects (built on first need, then pooled with the boulder)
+    // A LANDFORM is scenery painted on the ground: it is PINNED to the ground tile of the backdrop it was spawned over
+    // (groundTile / groundGy: y = gy - the tile's unwrapped travel, the same maths GroundPlanner uses for the pieces
+    // standing on that tile), so it scrolls with the ground at exactly the ground's rate and never moves against it.
+    // Without a live backdrop (tests, previews) it falls at the ground's nominal rate instead.
+    BackdropTile groundTile;
+    double groundGy;
     SpriteRenderer[] pieces;
     readonly Vector2[] pieceVel = new Vector2[CoverBoulderArt.Tiles * CoverBoulderArt.Tiles];
     readonly float[] pieceSpin = new float[CoverBoulderArt.Tiles * CoverBoulderArt.Tiles];
@@ -105,6 +111,14 @@ public sealed class CoverBoulder
         Rotation = entry.drift == CoverDrift.Tumble ? rng01 * 360f : 0f;
         bobY = 0f; flicker = 1f;
         chipped = burstDone = false;
+        groundTile = null;
+        if (Decorative)
+        {
+            // scenery: no own fall, drift, lean, bob or spin -- only the ground's scroll moves it
+            Vel = Vector2.zero; spin = 0f; Rotation = 0f;
+            groundTile = CoverBoulders.GroundTile(entry.world);
+            groundGy = Pos.y + (groundTile != null ? groundTile.travel : 0.0);
+        }
         DrawnFracture = v.frames != null && v.frames.Length >= CoverBoulderArt.FramesPerStrip;
         float b = 0f;
         for (int i = 0; i < v.circles.Length && i < MaxCircles; i++)
@@ -129,6 +143,7 @@ public sealed class CoverBoulder
     public void Release()
     {
         State = Phase.Off;
+        groundTile = null;
         if (stormFx != null) stormFx.Hide();
         if (go != null) go.SetActive(false);
         if (body != null) body.enabled = false;
@@ -155,7 +170,8 @@ public sealed class CoverBoulder
     public void Hold(Vector2 at, float rotDeg = 0f, bool settled = true)
     {
         if (settled) Age = Mathf.Max(Age, EmergeSeconds);
-        Pos = at; Vel = Vector2.zero; Rotation = rotDeg; spin = 0f;
+        Pos = at; Vel = Vector2.zero; Rotation = Decorative ? 0f : rotDeg; spin = 0f;
+        if (Decorative && groundTile != null) groundGy = Pos.y + groundTile.travel;
         Place();
     }
 
@@ -167,7 +183,8 @@ public sealed class CoverBoulder
     public SpriteRenderer GetComponentOnBody() { return body; }
     public static float Smooth(float x) { x = Mathf.Clamp01(x); return x * x * (3f - 2f * x); }
     float Recede() { return viewBottom < -99f ? 1f : Smooth((Pos.y - viewBottom) / (Bound + RecedeUnits)); }
-    float EmergeK() { return Mathf.Lerp(EmergeScale, 1f, Smooth(Age / EmergeSeconds)); }   // (the solid shape never shrinks on the way out)
+    // (a landform never changes size: it is painted on the ground, so it only fades in)
+    float EmergeK() { return Decorative ? 1f : Mathf.Lerp(EmergeScale, 1f, Smooth(Age / EmergeSeconds)); }   // (the solid shape never shrinks on the way out)
 
     public void Step(float dt, CoverBoulders.StepContext ctx)
     {
@@ -204,8 +221,27 @@ public sealed class CoverBoulder
         Place();
     }
 
+    // Called by WorldBackdrop after it has scrolled its tiles this frame (CoverBoulders.AnchorToBackdrop), so a landform
+    // is drawn on the very travel its ground tile is drawn at, whichever of the two updates first.
+    public void Anchor()
+    {
+        if (State == Phase.Off || !Decorative || groundTile == null) return;
+        Pos.y = (float)(groundGy - groundTile.travel);
+        Place();
+    }
+
+    // A landform is scenery: the ground carries it (see groundTile), nothing else moves it.
+    void DriftScenery(float dt)
+    {
+        if (groundTile != null) Pos.y = (float)(groundGy - groundTile.travel);
+        else Pos.y -= CoverBoulders.GroundRate(entry.world) * dt;
+        Rotation = 0f;
+        bobY = 0f;
+    }
+
     void Drift(float dt, CoverBoulders.StepContext ctx)
     {
+        if (Decorative) { DriftScenery(dt); return; }
         // sideways: inside the band that keeps one side of the lane free (docs 7); turn round at its edges
         Pos.x += Vel.x * dt;
         Pos.y += Vel.y * dt;
@@ -265,7 +301,8 @@ public sealed class CoverBoulder
         }
 
         var tr = go.transform;
-        tr.position = new Vector3(shaken.x, shaken.y, 0f);
+        Vector2 origin = Decorative ? CoverBoulders.AnchorOrigin : Vector2.zero;   // a landform rides the backdrop, which rides the shaken camera
+        tr.position = new Vector3(shaken.x + origin.x, shaken.y + origin.y, 0f);
         tr.rotation = Quaternion.Euler(0f, 0f, Rotation);
         tr.localScale = new Vector3(scale * ek, scale * ek, 1f);
 

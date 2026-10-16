@@ -159,6 +159,8 @@ public class WorldBackdrop : MonoBehaviour
             }
         }
         if (Current != null) Current.Tick(dt, v);
+        // decorative landforms (CoverBoulders) are drawn on the ground tile's travel as it is NOW, not a frame ago
+        CoverBoulders.AnchorToBackdrop();
     }
 
     void FollowCamera()
@@ -168,6 +170,10 @@ public class WorldBackdrop : MonoBehaviour
         {
             Vector3 p = cam.transform.position;
             transform.position = new Vector3(p.x, p.y, 0f);
+            // An explosion's CameraKick has shaken the camera by `Applied`, so the backdrop root sits that far off the camera's
+            // resting position. Landforms (world-space objects) are told, so they ride the backdrop's ground, not the camera.
+            var kick = CameraKick.Current;
+            CoverBoulders.AnchorOrigin = kick != null ? (Vector2)kick.Applied : Vector2.zero;
         }
         float hw, hh;
         ViewExtents(out hw, out hh);

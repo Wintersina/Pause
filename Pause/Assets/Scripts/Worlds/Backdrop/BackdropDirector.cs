@@ -106,6 +106,16 @@ public abstract class BackdropDirector
         return true;
     }
 
+    // A ground piece is recycled once it is wholly below the view. Its smoke / steam plumes rise ABOVE it (up to ~PlumeReach
+    // x its width over its centre), so the piece must outlive its plume's last pixel on screen: recycling at the plate's own
+    // edge made a plume still in view vanish in one frame (a cut-off column).
+    public const float PlumeReach = 1.3f;
+    protected float GroundDespawnY(BackdropPiece p, AmbientEmitters ambient)
+    {
+        float reach = ambient != null && ambient.HasRisingPlume(p) ? PlumeReach : 0f;   // only a piece with smoke / steam on it lingers
+        return -HalfH - p.size * (.9f + reach) - .5f;
+    }
+
     protected void Despawn(BackdropPiece p)
     {
         if (p.children != null)
