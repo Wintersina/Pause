@@ -48,6 +48,7 @@ public static class TideEliteTest
             Net();
             Thunder();
             Pearl();
+            EngineFlames();
             Allocations();
         }
         finally
@@ -408,6 +409,70 @@ public static class TideEliteTest
         }
         Check("Pearl Warden: a curtain of " + (pc.Count - 1) + " slow pearls with one gap beside the pilot (fired " + pc.Fired + ", pearl frames " + pearls + ")",
               pc.Fired == pc.Count - 1 && pearls > 10 && pc.Gap == pc.Centre + (pilot.position.x > 0f ? -1 : 1));
+    }
+
+    // ---- engine flames: baked into the strips, leaving each engine's mouth, in front of the hull ----------------
+    // The burn cells (2..6) must show every engine's flame OVER the hull (a flame under the hull reads as coming from behind the engine):
+    // the nozzle point is the exit (the dark bell mouth in cell 0; Bathyscaphe's lamp pods are lenses, so just solid hull), the flame covers it
+    // in every burn cell, runs out past the hull's bottom edge in the hover cell, each engine on its own phase, no runtime plume doubles it.
+    static Color32[] LoadCell(string key, int cell, int size)
+    {
+        var tex = new Texture2D(2, 2, TextureFormat.RGBA32, false);
+        if (!tex.LoadImage(File.ReadAllBytes("Assets/Art/Resources/Elites/Tide/" + key + ".png"))) return null;
+        var px = tex.GetPixels32(); int w = tex.width;
+        Object.DestroyImmediate(tex);
+        var c = new Color32[size * size];
+        for (int y = 0; y < size; y++) for (int x = 0; x < size; x++) c[y * size + x] = px[y * w + cell * size + x];   // rows run bottom-up
+        return c;
+    }
+
+    static void EngineFlames()
+    {
+        foreach (var e in Expected)
+        {
+            var def = EliteCatalog.Find(e.key);
+            int S = def.cellPixels;
+            var hull = LoadCell(e.key, 0, S);
+            Check(e.key + ": strip loads for the flame check", hull != null);
+            if (hull == null) continue;
+            Check(e.key + ": no runtime plume doubles the baked flames (exhaustScale 0)", def.exhaustScale <= 0f);
+            int hullBottom = 0;
+            for (int y = 0; y < S; y++) for (int x = 0; x < S; x++) if (hull[(S - 1 - y) * S + x].a > 128) hullBottom = Mathf.Max(hullBottom, y);
+            var lengths = new HashSet<int>();
+            foreach (var nz in def.nozzles)
+            {
+                int nx = Mathf.RoundToInt(nz.x), ny = Mathf.RoundToInt(nz.y);
+                var h0 = hull[(S - 1 - ny) * S + nx];
+                bool lens = e.key.EndsWith("bathyscaphe");
+                Check(e.key + " " + nz.name + ": nozzle point is on the hull at the exit (" + (lens ? "lamp-pod lens" : "dark bell mouth") + ")",
+                      h0.a == 255 && (lens || (h0.r * .3f + h0.g * .59f + h0.b * .11f) < 70f));
+                for (int cell = 2; cell <= 6; cell++)
+                {
+                    var c = LoadCell(e.key, cell, S);
+                    bool covered = false;
+                    for (int dy = -2; dy <= 2 && !covered; dy++)
+                        for (int dx = -5; dx <= 5 && !covered; dx++)
+                        {
+                            var p = c[(S - 1 - (ny + dy)) * S + nx + dx]; var q = hull[(S - 1 - (ny + dy)) * S + nx + dx];
+                            covered = p.a == 255 && (p.r != q.r || p.g != q.g || p.b != q.b) && Mathf.Max(p.r, Mathf.Max(p.g, p.b)) > 150;
+                        }
+                    Check(e.key + " cell " + cell + " " + nz.name + ": flame covers the nozzle point (in front of the hull, not hidden by the bell)", covered);
+                    if (cell == 3)
+                    {
+                        int tip = ny;
+                        for (int y = ny; y < S; y++)
+                            for (int dx = -3; dx <= 3; dx++)
+                            {
+                                var q = c[(S - 1 - y) * S + nx + dx]; var r0 = hull[(S - 1 - y) * S + nx + dx];
+                                if (q.a > 0 && (q.r != r0.r || q.g != r0.g || q.b != r0.b || q.a != r0.a)) tip = Mathf.Max(tip, y);
+                            }
+                        Check(e.key + " " + nz.name + ": flame leaves the engine and runs past the hull's bottom edge (tip " + tip + " vs " + hullBottom + ")", tip >= hullBottom + 10);
+                        lengths.Add(tip);
+                    }
+                }
+            }
+            Check(e.key + ": each engine keeps its own phase (flame lengths differ in the hover cell)", lengths.Count >= 2);
+        }
     }
 
     // ---- allocations ------------------------------------------------------------------------

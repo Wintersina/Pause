@@ -55,10 +55,12 @@ def main():
         for i, (nm, fx, fy) in enumerate(MUZZLES[name]):
             x, y = solid_near(a, ox + round(fx * w), oy + round(fy * h), 24)
             muz.append(dict(name=nm, x=x, y=y, dir=olds[i]["dir"] if i < len(olds) else -1.0))
-        nz = []
-        for i, (fx, fy) in enumerate(cfg["nz"]):
-            x, y = solid_near(a, ox + round(fx * w), oy + round(fy * h) - 6, 20)
-            nz.append(dict(name="lr"[i] if len(cfg["nz"]) == 2 else str(i), x=x, y=y, dir=-1.0))
+        hull_cell = Image.new("RGBA", (S, S)); hull_cell.alpha_composite(art, (ox, oy))
+        seeds = [(ox + round(fx * w), oy + round(fy * h) - 14) for fx, fy in cfg["nz"]]
+        mouths = bs.find_openings(hull_cell, seeds, cfg.get("mouths", {}))
+        nz = []   # the nozzle EXIT: the centre of each engine's mouth (where the baked flame leaves it)
+        for i, (mx, my, _, _) in enumerate(mouths):
+            nz.append(dict(name="lr"[i], x=int(round(mx)), y=int(round(my)), dir=-1.0))
         d["muzzles"], d["nozzles"], d["cellPixels"] = muz, nz, S
         d["engineColor"] = ENGINE[name]
         d["shotColor"], d["shotCore"] = SHOT, CORE
