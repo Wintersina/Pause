@@ -10,7 +10,7 @@ import numpy as np
 from PIL import Image, ImageDraw
 
 HERE = Path(__file__).resolve().parent
-IDLE = HERE / "desert_enemies" / "strips"
+IDLE = Path(__import__("os").environ.get("DESERT_IDLE", HERE / "desert_enemies" / "strips"))
 RES = HERE / "desert_death"
 OUT = RES
 
