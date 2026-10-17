@@ -33,44 +33,55 @@ def key_alpha(rgb):
     return (d > 150) & ~fringe
 
 
-def keep_main(mask, min_frac=.004):
-    """Drop stray specks: keep components >= min_frac of the mask area (coarse 3 px grid labelling, 8-connected on a dilated mask)."""
+def label_sheet(mask):
+    """Coarse (3 px) 8-connected labelling over the WHOLE sheet; returns per-pixel pose index (-1 = none) by component centroid, so a wing
+    tip that crosses a grid line still belongs to its own pose. Components < 1.5% of their pose's largest are dropped as specks."""
     h, w = mask.shape
     g = 3
     gh, gw = h // g, w // g
     coarse = mask[:gh * g, :gw * g].reshape(gh, g, gw, g).any((1, 3))
     d = coarse.copy()
-    for dy in (-2, -1, 0, 1, 2):
-        for dx in (-2, -1, 0, 1, 2):
+    for dy in (-1, 0, 1):
+        for dx in (-1, 0, 1):
             d |= np.roll(np.roll(coarse, dy, 0), dx, 1)
-    lab = np.zeros((gh, gw), int); n = 0; sizes = {}
+    lab = np.zeros((gh, gw), int); n = 0; comps = []
     for y, x in zip(*np.where(d)):
         if lab[y, x]:
             continue
-        n += 1; lab[y, x] = n; q = deque([(y, x)]); c = 0
+        n += 1; lab[y, x] = n; q = deque([(y, x)]); pts = []
         while q:
-            cy, cx = q.popleft(); c += int(coarse[cy, cx])
+            cy, cx = q.popleft()
+            if coarse[cy, cx]:
+                pts.append((cy, cx))
             for ny in (cy - 1, cy, cy + 1):
                 for nx in (cx - 1, cx, cx + 1):
                     if 0 <= ny < gh and 0 <= nx < gw and d[ny, nx] and not lab[ny, nx]:
                         lab[ny, nx] = n; q.append((ny, nx))
-        sizes[n] = c
-    tot = sum(sizes.values()) or 1
-    ok = [k for k, v in sizes.items() if v / tot >= min_frac]
-    keep = np.isin(lab, ok)
-    full = np.kron(keep, np.ones((g, g), bool))
-    out = np.zeros_like(mask); out[:full.shape[0], :full.shape[1]] = full
-    return mask & out
+        if pts:
+            p = np.array(pts)
+            comps.append((n, len(pts), int(p[:, 0].mean() * g * 2 // h), int(p[:, 1].mean() * g * 3 // w)))
+    pose = {}
+    for n, size, r, c in comps:
+        pose.setdefault((min(r, 1), min(c, 2)), []).append((n, size))
+    keep = {}
+    for k, lst in pose.items():
+        big = max(sz for _, sz in lst)
+        keep[k] = [n for n, sz in lst if sz >= .005 * big]
+    out = {}
+    for k, ns in keep.items():
+        m = np.isin(lab, ns)
+        full = np.kron(m, np.ones((g, g), bool))
+        f = np.zeros_like(mask); f[:full.shape[0], :full.shape[1]] = full
+        out[k] = mask & f
+    return out
 
 
-def extract(sheet, r, c):
-    H, W = sheet.shape[:2]
-    sq = sheet[r * H // 2:(r + 1) * H // 2, c * W // 3:(c + 1) * W // 3]
-    m = keep_main(key_alpha(sq))
+def extract(sheet, poses_mask, r, c):
+    m = poses_mask[(r, c)]
     ys, xs = np.where(m)
     if not len(xs):
         raise SystemExit(f"empty pose r{r} c{c}")
-    rgba = np.dstack((sq, np.where(m, 255, 0).astype(np.uint8)))
+    rgba = np.dstack((sheet, np.where(m, 255, 0).astype(np.uint8)))
     return Image.fromarray(rgba, "RGBA").crop((xs.min(), ys.min(), xs.max() + 1, ys.max() + 1))
 
 
@@ -92,7 +103,7 @@ def place(pose, scale, cell, piv, dy=0):
     raise SystemExit("cannot fit pose inside the margin")
 
 
-def flash(im, tint, amt=.38):
+def flash(im, tint, amt=.13):
     a = np.asarray(im).astype(np.float32).copy()
     s = a[..., 3] > 0
     a[s, :3] = a[s, :3] * (1 - amt) + np.array(tint, np.float32) * amt
@@ -104,7 +115,8 @@ def build(name, keep_idle=False):
     old = Image.open(RES / f"{name}.png").convert("RGBA")
     cells = [old.crop((i * cell, 0, (i + 1) * cell, cell)) for i in range(7)]
     sheet = np.asarray(Image.open(HERE / "sheets" / f"{name}.png").convert("RGB"))
-    poses = {(r, c): extract(sheet, r, c) for r in range(2) for c in range(3)}
+    pm = label_sheet(key_alpha(sheet))
+    poses = {(r, c): extract(sheet, pm, r, c) for r in range(2) for c in range(3)}
     piv0 = pivot(cells[0])
     areas = [pivot(poses[(0, c)])[2] for c in range(3)] + [pivot(cells[0])[2] * 0]   # idle poses only
     scale = (piv0[2] / np.median(areas[:3])) ** .5

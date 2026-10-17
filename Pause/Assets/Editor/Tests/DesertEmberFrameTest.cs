@@ -7,7 +7,8 @@ using UnityEngine;
 //  * the idle cells are distinct drawings (>= 5% of the silhouette changes between every pair);
 //  * both tell cells and the hit cell have a SILHOUETTE that differs from the idle drawing by >= 6% (a glint or a flash changes ~0-3%),
 //    and the two tell cells differ from each other by >= 4% (warm-up vs peak);
-//  * the pivot (bbox centre) stays within 6 px sideways / 9 px vertically across all seven cells (registered on one anchor).
+//  * the pivot stays within 6 px sideways (bbox centre) / 8 px vertically (alpha centroid: flame length changes the bbox, not the hull)
+//    across all seven cells (registered on one anchor).
 // Rock hazards are out of scope (near-still, engine-free).
 //
 //   Unity -batchmode -quit -projectPath <abs>/Pause -executeMethod DesertEmberFrameTest.Run
@@ -48,20 +49,21 @@ public static class DesertEmberFrameTest
         if (!sized) { Object.DestroyImmediate(t); return; }
         bool margins = true, any = true;
         float lox = 1e9f, hix = -1e9f, loy = 1e9f, hiy = -1e9f;
+        long sy; int cnt;
         for (int c = 0; c < cells; c++)
         {
-            int x0 = int.MaxValue, y0 = int.MaxValue, x1 = -1, y1 = -1;
+            int x0 = int.MaxValue, y0 = int.MaxValue, x1 = -1, y1 = -1; sy = 0; cnt = 0;
             for (int y = 0; y < h; y++)
                 for (int x = 0; x < h; x++)
-                    if (px[y * t.width + c * h + x].a > 8) { x0 = Mathf.Min(x0, x); x1 = Mathf.Max(x1, x); y0 = Mathf.Min(y0, y); y1 = Mathf.Max(y1, y); }
+                    if (px[y * t.width + c * h + x].a > 8) { x0 = Mathf.Min(x0, x); x1 = Mathf.Max(x1, x); y0 = Mathf.Min(y0, y); y1 = Mathf.Max(y1, y); sy += y; cnt++; }
             if (x1 < 0) { any = false; continue; }
             if (Mathf.Min(Mathf.Min(x0, y0), Mathf.Min(h - 1 - x1, h - 1 - y1)) < Margin) { margins = false; Debug.Log("[DEFR] " + name + " cell " + c + " is within " + Margin + " px of the edge"); }
             lox = Mathf.Min(lox, (x0 + x1) * .5f); hix = Mathf.Max(hix, (x0 + x1) * .5f);
-            loy = Mathf.Min(loy, (y0 + y1) * .5f); hiy = Mathf.Max(hiy, (y0 + y1) * .5f);
+            float cyc = (float)sy / cnt; loy = Mathf.Min(loy, cyc); hiy = Mathf.Max(hiy, cyc);
         }
         Check(name + ": every cell has art", any);
         Check(name + ": nothing within " + Margin + " px of a cell edge", margins);
-        Check(name + ": all seven cells share one pivot (<= 6 / 9 px)", hix - lox <= 6f && hiy - loy <= 9f);
+        Check(name + ": all seven cells share one pivot (<= 6 / 8 px)", hix - lox <= 6f && hiy - loy <= 8f);
         float minIdle = 9f;
         for (int a = 0; a < 4; a++) for (int b = a + 1; b < 4; b++) minIdle = Mathf.Min(minIdle, Change(px, t.width, h, a, b));
         Check(name + ": the four idle cells are distinct drawings (min change " + minIdle.ToString("0.000") + " >= 0.05)", minIdle >= .05f);

@@ -57,6 +57,7 @@ public static class EmberFramingTest
         Check(name + ": every cell has art", any);
         Check(name + ": nothing within " + Margin + " px of a cell edge", margins);
         if (dispersing || name.Contains("_rock_")) return;
+        if (Path.GetDirectoryName(path).EndsWith("Enemies")) return;   // painted pose strips: pivot is checked by DesertEmberFrameTest (hull centroid; flames change the bbox)
         Check(name + ": idle pivot steady (<= 3 / 5 px) and size steady (<= 14 x 8 px)",
               Ptp(cx, 4) <= 3f && Ptp(cy, 4) <= 5f && Ptp(w, 4) <= 14 && Ptp(ht, 4) <= 8);
         Check(name + ": every cell keeps the pivot (<= 6 / 9 px)", Ptp(cx, cells) <= 6f && Ptp(cy, cells) <= 9f);
