@@ -28,7 +28,8 @@ public static class EliteDeathStripTest
     // the sixteen strips built by src~/build_death_strips.py (the Tide and four Verdant ones predate it)
     static bool Authored(string key)
     {
-        return key.StartsWith("ember_") || key.StartsWith("frost_") || key.StartsWith("space_") || key == "verdant_elite_resin_warden";
+        if (key == "frost_elite_cryo_siren" || key == "frost_elite_rimebreaker" || key == "verdant_elite_resin_warden") return false;   // rebuilt with no pink core (FrostVerdantEliteFramesTest checks them)
+        return key.StartsWith("ember_") || key.StartsWith("frost_") || key.StartsWith("space_");
     }
 
     static Texture2D Read(string path)

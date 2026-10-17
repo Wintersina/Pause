@@ -10,19 +10,22 @@
   "launchFrom": "hangar,crawlerbay",
   "cells": {
     "flight": [
-      3
+      3,
+      4,
+      5,
+      6
     ],
     "parked": 0,
     "parkedIdle": 1,
     "liftoff": 2,
-    "bankLeft": 4,
-    "bankRight": 5,
+    "bankLeft": 7,
+    "bankRight": 8,
     "tell": -1,
     "action": -1,
     "hit": -1,
-    "damaged": 6
+    "damaged": 9
   },
-  "cellWorldSize": 2.32,
+  "cellWorldSize": 2.144,
   "hullRadius": 0.344,
   "noseDeg": 90,
   "turnsToFace": false,
@@ -57,26 +60,26 @@
   "exhaustShip": 3,
   "exhaustScale": 0,
   "glowScale": 0.08,
-  "cellPixels": 192,
+  "cellPixels": 384,
   "muzzles": [
     {
       "name": "prow",
-      "x": 98,
-      "y": 45,
+      "x": 193,
+      "y": 43,
       "dir": -1.0
     }
   ],
   "nozzles": [
     {
       "name": "l",
-      "x": 85,
-      "y": 137,
+      "x": 164,
+      "y": 233,
       "dir": -1.0
     },
     {
       "name": "r",
-      "x": 109,
-      "y": 137,
+      "x": 219,
+      "y": 233,
       "dir": -1.0
     }
   ],

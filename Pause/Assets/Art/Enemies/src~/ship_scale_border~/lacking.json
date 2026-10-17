@@ -1,11 +1,8 @@
 {
  "elites": {
-  "frost_elite_cryo_siren": "frost",
   "frost_elite_floe_harrower": "frost",
   "frost_elite_glacier_tender": "frost",
-  "frost_elite_rimebreaker": "frost",
-  "frost_elite_whiteout_sentinel": "frost",
-  "verdant_elite_resin_warden": "verdant"
+  "frost_elite_whiteout_sentinel": "frost"
  },
  "enemies": {
   "frost_alien": "frost",

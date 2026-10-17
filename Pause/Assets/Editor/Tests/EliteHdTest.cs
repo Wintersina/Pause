@@ -19,8 +19,8 @@ public static class EliteHdResolution
         "storm_elite_skyhook_harrier", "storm_elite_refinery_tender", "storm_elite_rod_dancer", "storm_elite_anvil_cloud", "storm_elite_static_bastion",
         "desert_elite_dune_stalker", "desert_elite_glass_cannon", "desert_elite_caravan_hauler", "desert_elite_lens_matriarch", "desert_elite_scorpion_walker", "desert_elite_mirror_bastion",
         "space_elite_rift_lancer", "space_elite_eventide_bastion", "space_elite_orbit_reaver", "space_elite_singularity_hauler",
-        "frost_elite_floe_harrower", "frost_elite_glacier_tender", "frost_elite_whiteout_sentinel",
-        "verdant_elite_timber_hauler", "verdant_elite_thornlash", "verdant_elite_sporebloom", "verdant_elite_leafblade",
+        "frost_elite_floe_harrower", "frost_elite_glacier_tender", "frost_elite_whiteout_sentinel", "frost_elite_cryo_siren", "frost_elite_rimebreaker",
+        "verdant_elite_timber_hauler", "verdant_elite_thornlash", "verdant_elite_sporebloom", "verdant_elite_leafblade", "verdant_elite_resin_warden",
     };
 
     public static int ExpectedCell(string key) { return Hd.Contains(key) ? 384 : 192; }
