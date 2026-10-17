@@ -46,7 +46,10 @@ MARGIN = 8
 
 
 def key_out(path):
-    im = np.array(Image.open(path).convert("RGB")).astype(float)
+    img = Image.open(path).convert("RGB")
+    if img.size != (1024, 1024):               # Codex sometimes returns 1254 px: the ship keeps its share of the canvas, so normalise
+        img = img.resize((1024, 1024), Image.Resampling.LANCZOS)
+    im = np.array(img).astype(float)
     r, g, b = im[..., 0], im[..., 1], im[..., 2]
     gn = g - np.maximum(r, b)
     a = np.clip(1 - (gn - 35) / 80, 0, 1)
@@ -105,9 +108,9 @@ def frame_of(name):
     return dict(bb=bb, s=s, top=top, cx=((bb[0] + bb[2]) / 2))
 
 
-def place(name, art, fr, shift=(0, 0)):
+def place(name, art, fr, shift=(0, 0), sf=1.0):
     """Scale `art` (a 1024 keyed image) by the ship's factor and put it on the anchor; returns a 384 RGBA cell."""
-    s, bb = fr["s"], fr["bb"]
+    s, bb = fr["s"] * sf, fr["bb"]
     big = art.resize((round(art.width * s), round(art.height * s)), Image.Resampling.LANCZOS)
     big = solid(big)
     cell = Image.new("RGBA", (CELL, CELL))
@@ -117,29 +120,48 @@ def place(name, art, fr, shift=(0, 0)):
     return cell
 
 
-def register(base, other, search=22):
-    """Translation (dx, dy) that best lays `other` (a cell) over `base` (both 384 cells): minimise the alpha mismatch over a search window,
-    on the central body so moved wings / hanging panels do not pull it."""
-    a = np.array(base.getchannel("A")) > 128
-    b = np.array(other.getchannel("A")) > 128
-    ys, xs = np.nonzero(a)
-    cx0 = (xs.min() + xs.max()) // 2
-    w = xs.max() - xs.min()
-    band = np.zeros_like(a); band[:, cx0 - w // 5: cx0 + w // 5] = True
-    best = (1e9, 0, 0)
-    for dy in range(-search, search + 1, 2):
-        for dx in range(-search, search + 1, 2):
-            sh = np.roll(np.roll(b, dy, 0), dx, 1)
-            e = np.count_nonzero((a ^ sh) & band)
-            if e < best[0]:
-                best = (e, dx, dy)
-    for dy in range(best[2] - 1, best[2] + 2):
-        for dx in range(best[1] - 1, best[1] + 2):
-            sh = np.roll(np.roll(b, dy, 0), dx, 1)
-            e = np.count_nonzero((a ^ sh) & band)
-            if e < best[0]:
-                best = (e, dx, dy)
-    return best[1], best[2]
+def register(base, art, fr, search=8):
+    """Best (scale factor, dx, dy) to lay a variant master `art` over pose A `base`: the central body (a band round the hull axis, where only
+    small parts move) must match in colour and silhouette. Coarse-to-fine over scale 0.97..1.03 and a +-8 px window (Codex keeps the canvas placement; a wide search latches onto repeating panel patterns)."""
+    A = np.array(base).astype(np.int32)
+    aa = A[..., 3] > 128
+    ys, xs = np.nonzero(aa)
+    cx0 = int((xs.min() + xs.max()) // 2)
+    x0, x1 = cx0 - 56, cx0 + 56
+    y0, y1 = int(ys.min()), int(ys.max())
+    Ab, aab = A[:, x0:x1], aa[:, x0:x1]
+
+    def err(V, vv, dx, dy):
+        Vs = np.roll(np.roll(V, dy, 0), dx, 1)[:, x0:x1]
+        vs = np.roll(np.roll(vv, dy, 0), dx, 1)[:, x0:x1]
+        inter = aab & vs
+        return int(np.abs(Ab - Vs).sum(-1)[inter].sum()) + 300 * int((aab ^ vs).sum())
+
+    best = (1e18, 1.0, 0, 0)
+    cache = {}
+
+    def vsf(sf):
+        if sf not in cache:
+            V = np.array(place("", art, fr, (0, 0), sf)).astype(np.int32)
+            cache[sf] = (V, V[..., 3] > 128)
+        return cache[sf]
+
+    for sf in [0.97, 0.98, 0.99, 1.0, 1.01, 1.02, 1.03]:
+        V, vv = vsf(sf)
+        for dy in range(-search, search + 1, 4):
+            for dx in range(-search, search + 1, 4):
+                e = err(V, vv, dx, dy)
+                if e < best[0]:
+                    best = (e, sf, dx, dy)
+    _, sf0, dx0, dy0 = best
+    for sf in [round(sf0 + .005 * i, 3) for i in range(-4, 5)]:
+        V, vv = vsf(sf)
+        for dy in range(dy0 - 4, dy0 + 5):
+            for dx in range(dx0 - 4, dx0 + 5):
+                e = err(V, vv, dx, dy)
+                if e < best[0]:
+                    best = (e, sf, dx, dy)
+    return best[1], best[2], best[3]
 
 
 def erode(m, r):
@@ -283,9 +305,10 @@ def hulls(name):
     for suffix in ("flightb", "damaged"):
         p = MASTERS / f"{name}_{suffix}.png"
         if p.exists():
-            c = place(name, drop_specks(key_out(p)), fr)
-            dx, dy = register(A, c)
-            outs.append(place(name, drop_specks(key_out(p)), fr, (dx, dy)))
+            art = drop_specks(key_out(p))
+            sf, dx, dy = register(A, art, fr)
+            print("  registered", name, suffix, "scale", round(sf, 3), "shift", dx, dy)
+            outs.append(place(name, art, fr, (dx, dy), sf))
         else:
             outs.append(None)
     return fr, A, outs[0], outs[1]

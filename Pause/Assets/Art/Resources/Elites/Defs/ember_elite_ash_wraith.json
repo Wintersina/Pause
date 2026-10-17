@@ -1,16 +1,16 @@
 {
   "world": "ember",
-  "heartColor": "#C85AFF",
-  "shotColor": "#B45CFF",
-  "shotCore": "#9FF6FF",
-  "engineColor": "#FF9A3C",
+  "heartColor": "#FFC24A",
+  "shotColor": "#FF8A2A",
+  "shotCore": "#FFE9B8",
+  "engineColor": "#7FD8FF",
   "hearts": 2,
   "heartSize": 0.18,
   "heartOrbit": 1.08,
   "heartStyle": "Halo",
   "boldHearts": true,
   "exhaustShip": 3,
-  "cellPixels": 192,
+  "cellPixels": 384,
   "key": "ember_elite_ash_wraith",
   "displayName": "Ash Wraith",
   "role": "shadow skirmisher",
@@ -37,29 +37,46 @@
   "shotSpread": 16,
   "shotSize": 0.2,
   "shotKind": "shard",
-  "exhaustScale": 0.4,
+  "exhaustScale": 0,
   "muzzles": [
     {
       "name": "beak",
-      "x": 96,
-      "y": 22,
+      "x": 192,
+      "y": 14,
       "dir": -1.0
     }
   ],
   "nozzles": [
     {
       "name": "a",
-      "x": 83,
-      "y": 129,
+      "x": 167,
+      "y": 244,
       "dir": -1.0
     },
     {
       "name": "b",
-      "x": 109,
-      "y": 129,
+      "x": 217,
+      "y": 244,
       "dir": -1.0
     }
   ],
   "codexId": "elite_ember_ash_wraith",
-  "followLag": 0.25
+  "followLag": 0.25,
+  "cells": {
+    "flight": [
+      3,
+      4
+    ],
+    "parked": 0,
+    "parkedIdle": 1,
+    "liftoff": 2,
+    "bankLeft": 5,
+    "bankRight": 6,
+    "tell": -1,
+    "action": -1,
+    "hit": -1,
+    "damaged": 7
+  },
+  "glowScale": 0.09,
+  "maxBank": 3
 }

@@ -24,7 +24,7 @@ OLD = {
     "ash_wraith": [("beak", 96, 22, -1.0)],
     "cauterizer": [("cannon", 96, 23, -1.0)],
 }
-MUZZLE_FIX = {}        # {ship: {muzzle name: (x, y)}} 384 px overrides after looking at the previews
+MUZZLE_FIX = {"sunstoke": {"lance": (192, 38)}, "brass_vulture": {"claw": (192, 62)}}        # {ship: {muzzle name: (x, y)}} 384 px overrides after looking at the previews
 ENGINE = {"sunstoke": "#FF9A3C", "coalrunner": "#FF9A3C", "brass_vulture": "#FF9A3C", "kilnback": "#FF9A3C", "ash_wraith": "#7FD8FF", "cauterizer": "#FF9A3C"}
 SHOT = "#FF8A2A"; CORE = "#FFE9B8"; HEART = "#FFC24A"      # Ember cue: orange / amber, no pink outside Space
 CELLS = {"flight": [3, 4], "parked": 0, "parkedIdle": 1, "liftoff": 2, "bankLeft": 5, "bankRight": 6,

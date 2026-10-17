@@ -1,8 +1,8 @@
 {
   "world": "ember",
-  "heartColor": "#C85AFF",
-  "shotColor": "#FF4FD8",
-  "shotCore": "#9FF6FF",
+  "heartColor": "#FFC24A",
+  "shotColor": "#FF8A2A",
+  "shotCore": "#FFE9B8",
   "engineColor": "#FF9A3C",
   "hearts": 2,
   "heartSize": 0.18,
@@ -10,7 +10,7 @@
   "heartStyle": "Halo",
   "boldHearts": true,
   "exhaustShip": 3,
-  "cellPixels": 192,
+  "cellPixels": 384,
   "key": "ember_elite_sunstoke",
   "displayName": "Sunstoke",
   "role": "spear interceptor",
@@ -38,29 +38,46 @@
   "shotSpread": 10,
   "shotSize": 0.2,
   "shotKind": "bolt",
-  "exhaustScale": 0.5,
+  "exhaustScale": 0,
   "muzzles": [
     {
       "name": "lance",
-      "x": 96,
-      "y": 19,
+      "x": 192,
+      "y": 38,
       "dir": -1.0
     }
   ],
   "nozzles": [
     {
-      "name": "left",
-      "x": 80,
-      "y": 144,
+      "name": "a",
+      "x": 160,
+      "y": 272,
       "dir": -1.0
     },
     {
-      "name": "right",
-      "x": 112,
-      "y": 144,
+      "name": "b",
+      "x": 223,
+      "y": 273,
       "dir": -1.0
     }
   ],
   "codexId": "elite_ember_sunstoke",
-  "followLag": 0.35
+  "followLag": 0.35,
+  "cells": {
+    "flight": [
+      3,
+      4
+    ],
+    "parked": 0,
+    "parkedIdle": 1,
+    "liftoff": 2,
+    "bankLeft": 5,
+    "bankRight": 6,
+    "tell": -1,
+    "action": -1,
+    "hit": -1,
+    "damaged": 7
+  },
+  "glowScale": 0.09,
+  "maxBank": 3
 }

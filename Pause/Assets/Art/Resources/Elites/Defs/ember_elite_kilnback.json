@@ -1,8 +1,8 @@
 {
   "world": "ember",
-  "heartColor": "#C85AFF",
-  "shotColor": "#FF4FD8",
-  "shotCore": "#9FF6FF",
+  "heartColor": "#FFC24A",
+  "shotColor": "#FF8A2A",
+  "shotCore": "#FFE9B8",
   "engineColor": "#FF9A3C",
   "hearts": 2,
   "heartSize": 0.18,
@@ -10,7 +10,7 @@
   "heartStyle": "Halo",
   "boldHearts": true,
   "exhaustShip": 3,
-  "cellPixels": 192,
+  "cellPixels": 384,
   "key": "ember_elite_kilnback",
   "displayName": "Kilnback",
   "role": "armored hauler",
@@ -39,35 +39,51 @@
   "shotInterval": 0.2,
   "shotSize": 0.34,
   "shotKind": "slag",
-  "exhaustScale": 0.3,
+  "exhaustScale": 0,
   "muzzles": [
     {
       "name": "l",
-      "x": 67,
-      "y": 107,
+      "x": 134,
+      "y": 185,
       "dir": 270.0
     },
     {
       "name": "r",
-      "x": 125,
-      "y": 107,
+      "x": 249,
+      "y": 185,
       "dir": 270.0
     }
   ],
   "nozzles": [
     {
-      "name": "l",
-      "x": 79,
-      "y": 158,
-      "dir": 270.0
+      "name": "a",
+      "x": 162,
+      "y": 282,
+      "dir": -1.0
     },
     {
-      "name": "r",
-      "x": 112,
-      "y": 158,
-      "dir": 270.0
+      "name": "b",
+      "x": 224,
+      "y": 282,
+      "dir": -1.0
     }
   ],
   "codexId": "elite_ember_kilnback",
-  "followLag": 0.25
+  "followLag": 0.25,
+  "cells": {
+    "flight": [
+      3,
+      4
+    ],
+    "parked": 0,
+    "parkedIdle": 1,
+    "liftoff": 2,
+    "bankLeft": 5,
+    "bankRight": 6,
+    "tell": -1,
+    "action": -1,
+    "hit": -1,
+    "damaged": 7
+  },
+  "glowScale": 0.09
 }
