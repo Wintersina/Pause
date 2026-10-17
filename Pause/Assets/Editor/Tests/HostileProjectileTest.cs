@@ -204,11 +204,10 @@ public static class HostileProjectileTest
             var beam = pool.Beam(BossCatalog.ForWorld(1), null, -1, new Vector3(0f, 3f, 0f), -90f, 0f, 0f, 1f, .3f);
             for (int i = 0; i < 20; i++) pool.Step(Dt);
             var sh = beam.Sheath;
-            Check("a live laser wears a glow sheath down its whole length (" + sh.bounds.size.y.ToString("F2") + " of " +
-                  beam.Length.ToString("F2") + " wu, " + sh.bounds.size.x.ToString("F2") + " wide over a " + beam.Width + " beam)",
-                  beam.Live && sh.enabled && sh.sprite == HostileGlow.Sheath &&
-                  Mathf.Abs(sh.bounds.size.y - beam.Length) < .05f && sh.bounds.size.x > beam.Width &&
-                  sh.bounds.size.x <= beam.Width + .3f && sh.sortingOrder < 26);
+            // 1754f042: a painted beam is its own glowing body, so the sheath is off along it (BossLaserArtTest); the sheath
+            // keeps the shared wrapper sprite and sizes itself to the beam's length for the generic (unpainted) beam.
+            Check("a live painted laser has no wrapper sheath along it, and the sheath keeps the shared wrapper sprite (" + beam.Length.ToString("F2") + " wu long, beam " + beam.Width + ")",
+                  beam.Live && !sh.enabled && sh.sprite == HostileGlow.Sheath);
             Check("... its hitbox is the beam's as before",
                   Mathf.Abs(beam.Hitbox.GetComponent<BoxCollider2D>().size.x - beam.Width * BossConfig.BeamHitFraction) < 1e-4f);
             for (int i = 0; i < 120 && beam.Active; i++) pool.Step(Dt);

@@ -397,8 +397,8 @@ public static class BossCatalog
                 id = CodexPrefix + "storm", name = "TEMPEST ENGINE", title = "STORM-MAKING TURBINE", artKey = "Storm",
                 damageKey = StormDamageKey, deathKey = StormDeathKey,
                 lore = "A floating turbine the size of a city block that builds the weather it hides in. " +
-                       "Its drum spits arcs the moment the core flares white, its crown calls the lightning down on your lane after the rods spark, and its twin coils cut the sky in half. " +
-                       "Watch which part lights up first, then leave the gap between the towers.",
+                       "Its drum spits arcs when the core flares white, its crown calls lightning down your lane after the rods spark, and its twin coils cut the sky in half. " +
+                       "Watch what lights up first, then slip between the towers.",
                 swayX = 1.05f, swayY = .16f, freqX = .28f, freqY = .56f, flash = StormYellow, heartColor = StormYellow,
                 attacks = new[]
                 {
