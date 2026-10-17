@@ -238,8 +238,8 @@ MANUAL = {
     "verdant_elite_resin_warden": {0: (150, 279, 18, 5), 1: (235, 279, 15, 5)},
     "frost_elite_cryo_siren": {0: (183, 295, 9, 3), 1: (203, 296, 9, 3)},
     "frost_elite_rimebreaker": {0: (166, 229, 13, 6), 1: (220, 229, 13, 6)},
-    "frost_elite_floe_harrower": {0: (167, 287, 8, 4), 1: (219, 287, 8, 4)},
-    "frost_elite_glacier_tender": {0: (154, 316, 9, 4), 1: (232, 316, 9, 4)},
+    "frost_elite_floe_harrower": {0: (167, 287, 11, 4), 1: (219, 287, 11, 4)},
+    "frost_elite_glacier_tender": {0: (154, 316, 12, 4), 1: (232, 316, 12, 4)},
     "frost_elite_whiteout_sentinel": {0: (165, 304, 12, 8), 1: (219, 304, 12, 8)},
 }
 # which hull the flame is painted on: Desert's parked cell 0 IS the hull; elsewhere un-dim it
@@ -247,7 +247,7 @@ MODE = {"desert": "cell0", "frost_elite_cryo_siren": "strip", "frost_elite_rimeb
 for _k in MANUAL:
     if _k.startswith("ember_"): MODE[_k] = "strip"
 FORCE_PALETTE = {"frost", "verdant"}   # their own cold / green fire, not whatever tiny glow the old strip had
-LENGTH = {"verdant_elite_leafblade": 22, "verdant_elite_sporebloom": 20, "verdant_elite_thornlash": 22, "verdant_elite_timber_hauler": 18, "storm_elite_anvil_cloud": 24, "storm_elite_refinery_tender": 22, "storm_elite_rod_dancer": 22, "storm_elite_skyhook_harrier": 20, "storm_elite_static_bastion": 20, "frost_elite_floe_harrower": 24, "frost_elite_glacier_tender": 22, "frost_elite_whiteout_sentinel": 24}   # key -> flame length in engine_fx units (px = L * 2)
+LENGTH = {"verdant_elite_leafblade": 22, "verdant_elite_sporebloom": 20, "verdant_elite_thornlash": 22, "verdant_elite_timber_hauler": 18, "storm_elite_anvil_cloud": 24, "storm_elite_refinery_tender": 22, "storm_elite_rod_dancer": 22, "storm_elite_skyhook_harrier": 20, "storm_elite_static_bastion": 20, "frost_elite_floe_harrower": 30, "frost_elite_glacier_tender": 28, "frost_elite_whiteout_sentinel": 30}   # key -> flame length in engine_fx units (px = L * 2)
 DEATH_FIX = {"frost_elite_cryo_siren", "frost_elite_rimebreaker", "verdant_elite_resin_warden"} | {f"ember_elite_{n}" for n in ("ash_wraith", "brass_vulture", "cauterizer", "coalrunner", "kilnback", "sunstoke")}
 LIFT = set()
 LIFT_WORLDS = {"desert", "storm", "frost", "verdant"}   # their lift-off ignition cell had detached wedges / tips only
