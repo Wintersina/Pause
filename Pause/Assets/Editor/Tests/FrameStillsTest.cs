@@ -23,7 +23,7 @@ public static class FrameStillsTest
     public static void Run() { TestHarness.Exit(Execute()); }
 
     const string Dir = "Assets/Art/Resources/Enemies/";
-    const int Margin = 6;
+    const int SafeMargin = 6;
     // fraction of the union silhouette that must differ between any two idle cells
     const float MinDifference = 0.04f;
 
@@ -122,7 +122,7 @@ public static class FrameStillsTest
         var px = Load("frost_big", out int w, out int h);
         Check("frost_big: sheet is 256 px cells, 7 cells (" + w + "x" + h + ")", h == 256 && w == 256 * 7);
         int m = Margin(px, w, h, 256, 2);
-        Check("frost_big cell 2: >= " + Margin + " px clear of the cell border (" + m + ")", m >= Margin);
+        Check("frost_big cell 2: >= " + SafeMargin + " px clear of the cell border (" + m + ")", m >= SafeMargin);
         for (int k = 0; k < 7; k++)
         {
             int mk = Margin(px, w, h, 256, k);
