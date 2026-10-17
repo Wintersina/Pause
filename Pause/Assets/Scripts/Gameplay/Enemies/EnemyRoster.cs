@@ -196,10 +196,47 @@ public static class EnemyRoster
     // Per-enemy idle holds: the Space alien hovers on a calm 3 fps loop
     // (8 ticks a drawing); everyone else uses its role's table.
     public const int SpaceAlienIdleTicks = 8;
+    // Deliberate wing beats / limb motion (the body keeps its size; only wings or limbs move): these keep their painted idle cells (body re-registered to cell 0, see PR #66) AND their original (livelier) hold
+    // pattern. CalmIdleTest exempts them. One line per enemy key; "?" = not clearly wings, kept original to be safe.
+    public static readonly string[] WingFlapKeys =
+    {
+        "desert_chaser",     // scarab: elytra beat
+        "desert_fighter_1",  // delta wings sweep open and shut
+        "desert_fighter_2",  // crystal wings open and close
+        "ember_chaser",      // bat-wing flap
+        "ember_fighter_1",   // swept wings flex
+        "ember_fighter_2",   // ? blade wings beat
+        "ember_fighter_3",   // ? crescent wings beat
+        "storm_fighter_1",   // swept wings flex
+        "storm_fighter_2",   // bat wings flex
+        "tide_fighter_4",    // manta wings flap
+        "space_fighter_2",   // limbs: crab claws open and close around a steady body
+        "space_fighter_3",   // limbs: crab claws open and close around a steady body
+        "frost_fighter_1",   // limbs: pincers open and close around a steady body
+        "verdant_alien",     // leaf wings beat
+        "verdant_big",       // ? petal wings open and close
+        "verdant_chaser",    // dragonfly wings
+        "verdant_fighter_1", // insect wings
+        "verdant_fighter_2", // wasp wings
+        "verdant_fighter_3", // insect wings
+        "verdant_fighter_4", // moth wings
+    };
+    public static bool FlapsWings(EnemyDef def) => def != null && System.Array.IndexOf(WingFlapKeys, def.key) >= 0;
+
+    static int[] OriginalIdleTicks(EnemyRole role)
+    {
+        switch (role)
+        {
+            case EnemyRole.Big: return new[] { 6, 2, 3, 3 };
+            case EnemyRole.Alien: return new[] { 4, 2, 3, 3 };
+            default: return new[] { 6, 3, 2, 3 };
+        }
+    }
+
     public static int[] IdleTicks(EnemyDef def) =>
         def != null && def.key == "space_alien"
             ? new[] { SpaceAlienIdleTicks, SpaceAlienIdleTicks, SpaceAlienIdleTicks, SpaceAlienIdleTicks }
-            : IdleTicks(def.role);
+            : FlapsWings(def) ? OriginalIdleTicks(def.role) : IdleTicks(def.role);
 
     // What EnemyFlipbook actually loops (the Steel Hound loops all four idle
     // cells now, like everyone else).

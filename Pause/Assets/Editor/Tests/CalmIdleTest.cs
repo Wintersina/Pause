@@ -7,7 +7,8 @@ using UnityEngine;
 //
 //   art   between any two idle cells the hull centroid moves <= 1.5% of the cell width
 //         and the silhouette's bounding box changes <= 3% in width and height.
-//         Exempt (deliberate): the four FLOATING rocks (their drawn bob is the point; the
+//         Exempt (deliberate): every WING FLAPPER (EnemyRoster.WingFlapKeys, art and hold pattern as painted; the
+//         Desert boss too), the four FLOATING rocks (their drawn bob is the point; the
 //         centroid limit still applies), the Space boss (its six idle cells are engine
 //         flames) and elites (their idle cells are engine-flame cells, owned by the
 //         elite-engines branch).
@@ -37,11 +38,12 @@ public static class CalmIdleTest
         {
             string key = Path.GetFileNameWithoutExtension(path);
             var d = EnemyRoster.Find(key);
-            if (d == null || d.role == EnemyRole.Mine) continue;
+            if (d == null || d.role == EnemyRole.Mine || EnemyRoster.FlapsWings(d)) continue;   // wing flappers keep their art
             bool floating = System.Array.IndexOf(FloatingRocks, key) >= 0;
             Strip(key, path, 7, 0, 4, 0, !floating);
         }
-        foreach (var boss in new[] { "Desert", "Ember", "Frost", "Storm", "Tide", "Verdant" })
+        // Desert boss: wing beat, kept as painted (allowlisted)
+        foreach (var boss in new[] { "Ember", "Frost", "Storm", "Tide", "Verdant" })
             Strip("boss " + boss, "Assets/Art/Resources/Bosses/" + boss + ".png", 5, 0, 4, 0, true);
 
         foreach (var d in EnemyRoster.All)
@@ -50,9 +52,12 @@ public static class CalmIdleTest
             var t = EnemyRoster.IdleTicks(d);
             int sum = 0, min = 99;
             foreach (var x in t) { sum += x; min = Mathf.Min(min, x); }
-            if (d.key == "space_alien") continue;
+            if (d.key == "space_alien" || EnemyRoster.FlapsWings(d)) continue;
             Check(d.key + " idle loop is calm (" + sum + " ticks, shortest hold " + min + ")", sum >= 16 && min >= 4);
         }
+        Check("wing-flap allowlist is not empty (" + EnemyRoster.WingFlapKeys.Length + ")", EnemyRoster.WingFlapKeys.Length > 0);
+        foreach (var k in EnemyRoster.WingFlapKeys) BodyRegistered(k);
+        foreach (var k in EnemyRoster.WingFlapKeys) Check(k + " (wing flapper) is a real enemy", EnemyRoster.Find(k) != null);
         Check("elite procedural squash is small (" + EliteShip.SquashMax + ")", EliteShip.SquashMax <= .04f);
         Check("elite procedural lean is small (" + EliteShip.LeanMax + ")", EliteShip.LeanMax <= 3f);
         Check("elite bank is capped (" + EliteShip.BankCap + ")", EliteShip.BankCap <= 4f);
@@ -60,6 +65,64 @@ public static class CalmIdleTest
         return fails;
     }
 
+    // Wing / limb flappers keep their wings moving, but the BODY must sit identically in all four idle cells
+    // (same place, same size), so only wings move and the loop seam (cell 3 -> 0) does not jump. The body is the
+    // part that survives an erosion (thin wings and limbs do not); the share of it that is opaque in all four cells
+    // must be high. desert_fighter_2 is a wing-only silhouette (no body to erode), so it is not measured.
+    public const float MinBodyOverlap = .6f;
+    static void BodyRegistered(string key)
+    {
+        if (key == "desert_fighter_2") return;
+        var tex = new Texture2D(2, 2);
+        tex.LoadImage(File.ReadAllBytes("Assets/Art/Resources/Enemies/" + key + ".png"));
+        int cell = tex.width / 7, h = tex.height;
+        var px = tex.GetPixels32();
+        int w = tex.width;
+        Object.DestroyImmediate(tex);
+        var masks = new bool[4][];
+        for (int k = 0; k < 4; k++)
+        {
+            masks[k] = new bool[cell * cell];
+            for (int y = 0; y < cell; y++)
+                for (int x = 0; x < cell; x++)
+                    masks[k][y * cell + x] = px[(h - 1 - y) * w + k * cell + x].a > 32;
+        }
+        int r = Mathf.Max(3, cell / 12);
+        var cores = new bool[4][]; int least = int.MaxValue;
+        for (int pass = 0; pass < 2; pass++)
+        {
+            least = int.MaxValue;
+            for (int k = 0; k < 4; k++)
+            {
+                cores[k] = Erode(masks[k], cell, r);
+                int n = 0; foreach (bool b in cores[k]) if (b) n++;
+                least = Mathf.Min(least, n);
+            }
+            if (least >= 30) break;
+            r = 1;
+        }
+        int all = 0;
+        for (int i = 0; i < cell * cell; i++) if (cores[0][i] && cores[1][i] && cores[2][i] && cores[3][i]) all++;
+        float share = least > 0 ? all / (float)least : 0f;
+        Check(key + " flapper: body sits identically in all four idle cells (stable share " + share.ToString("0.00") + ", need >= " + MinBodyOverlap + ")", share >= MinBodyOverlap);
+    }
+
+    static bool[] Erode(bool[] m, int n, int r)
+    {
+        var o = new bool[n * n];
+        for (int y = r; y < n - r; y++)
+            for (int x = r; x < n - r; x++)
+            {
+                bool all = true;
+                for (int dy = -r; dy <= r && all; dy++)
+                    for (int dx = -r; dx <= r; dx++)
+                        if (!m[(y + dy) * n + x + dx]) { all = false; break; }
+                o[y * n + x] = all;
+            }
+        return o;
+    }
+
+    // (every pair of idle cells is compared, so the loop seam 3 -> 0 is covered)
     // cols: cells across the sheet; first/count: the idle cells (row 0 for bosses)
     static void Strip(string key, string path, int cols, int first, int count, int row, bool size)
     {
