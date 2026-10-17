@@ -36,7 +36,7 @@ SHIPS = {
     "coalrunner": dict(seeds=((140, 280), (190, 284), (240, 280)), flame=ORANGE),
     "brass_vulture": dict(seeds=((192, 328),), flame=ORANGE),
     "kilnback": dict(seeds=((158, 316), (224, 316)), mouths={0: (162, 282, 14, 6), 1: (224, 282, 14, 6)}, flame=ORANGE),
-    "ash_wraith": dict(seeds=((166, 258), (218, 258)), flame=((30, 120, 255), (110, 225, 255), (255, 255, 255))),
+    "ash_wraith": dict(seeds=((166, 258), (218, 258)), lk=1.3, flame=((30, 120, 255), (110, 225, 255), (255, 255, 255))),
     "cauterizer": dict(seeds=((132, 300), (248, 300)), flame=ORANGE),
 }
 LENGTHS = (30, 38, 34, 42)       # flame length per drawing, 192-cell px (scaled by K); shortened when the cell has no room
@@ -320,6 +320,7 @@ def build(name, out_dir):
     bb = A.getchannel("A").point(lambda v: 255 if v > 128 else 0).getbbox()
     mouths = find_openings(A, cfg["seeds"], cfg.get("mouths", {}))
     cols = cfg["flame"]
+    lk = cfg.get("lk", 1.0)          # flame length factor (Ash Wraith's tail blades hang far below its bells)
     n = len(mouths)
     Bh = B or A
     cells = [A.copy()]                                                                       # 0 parked, engines off
@@ -327,7 +328,7 @@ def build(name, out_dir):
     cells.append(engine_cell(A, mouths, cols, [12] * n, [.75] * n, 1))                         # 2 ignition
     for f in range(BURN):                                                                    # 3, 4 flight loop
         gs = [(2 * f + i) % 4 for i in range(n)]
-        cells.append(engine_cell(Bh if POSE[f] else A, mouths, cols, [LENGTHS[g] for g in gs], [WIDTHS[g] for g in gs], 10 + f))
+        cells.append(engine_cell(Bh if POSE[f] else A, mouths, cols, [LENGTHS[g] * lk for g in gs], [WIDTHS[g] for g in gs], 10 + f))
     for sign in (-1, 1):                                                                     # 5, 6 banks
         b, dx = bank(A, sign, bb[1], bb[3] - bb[1])
         m2 = [(CELL / 2 + (x - CELL / 2) * .97 + dx(y), y, rx * .97, ry) for x, y, rx, ry in mouths]

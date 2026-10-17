@@ -500,6 +500,7 @@ public static class EliteTest
         var sun = EliteShip.CreateInPlay(EliteCatalog.Find("ember_elite_sunstoke"), new Vector2(0f, 1f));
         sun.AttackCooldown = 99f;
         var seen = new HashSet<int>();
+        Step(.1f);
         Step(1.5f, () => { sun.SetSeen(sun.Position + Vector2.down * 2f); sun.Velocity = Vector2.zero; seen.Add(sun.CurrentFrame); });
         Check("Ember: loops its two painted flight poses 3 / 4 (" + string.Join(",", seen) + ")", seen.SetEquals(new[] { 3, 4 }));
         sun.Velocity = Vector2.zero;
