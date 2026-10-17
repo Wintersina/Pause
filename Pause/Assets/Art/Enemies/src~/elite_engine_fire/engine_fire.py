@@ -125,7 +125,64 @@ def build(key, src_dir, out_dir, mode, length=None, cols=None, manual=None, keep
     cs = states(base, mouths, cols, L)
     for c in cs:                                                       # keep the 6 px framing margin: no flame pixel in the bottom rows
         c.paste((0, 0, 0, 0), (0, CELL - 6, CELL, CELL))
+    build.last = dict(L=L)
     return a, base, mouths, cols, cs
+
+
+def match_shift(R, C, m, rng=14):
+    """(dx, dy) that carries the reference hull R onto cell C around mouth m: matched on the bell body above the flame."""
+    cx, cy, rx, ry = m
+    x0, x1 = int(cx - rx - 10), int(cx + rx + 10); y0, y1 = int(cy - 26), int(cy - max(5, ry * .6))
+    ref = R[y0:y1, x0:x1].astype(int)
+    best = (1e18, 0, 0)
+    for dy in range(-rng, rng + 1):
+        for dx in range(-rng, rng + 1):
+            cur = C[y0 + dy:y1 + dy, x0 + dx:x1 + dx].astype(int)
+            if cur.shape != ref.shape: continue
+            e = np.abs(cur - ref).sum() + 400 * (np.abs(cur[..., 3] - ref[..., 3]) > 100).sum()
+            if e < best[0]: best = (e, dx, dy)
+    return best[1], best[2]
+
+
+def old_flame_on(C, m, dx, dy):
+    cx, cy, rx, ry = m
+    x0, x1 = int(cx + dx - rx - 2), int(cx + dx + rx + 3); y = int(cy + dy + ry + 4)
+    z = C[y:y + 40, x0:x1]
+    return int((z[..., 3] > 200).sum())
+
+
+def bank_cells(a, d, base, mouths, cols, L):
+    """Bank (steering) and damaged cells: the old pasted-on flames come out, the bell zones are re-cut from the fixed hull, the new flames go in.
+    Damaged: only the engine that still burned in the old cell sputters (short, ragged), the rest stay dark."""
+    c = d["cells"]; R = np.array(base)
+    out = {}
+    for name, idx in (("bankLeft", c.get("bankLeft")), ("bankRight", c.get("bankRight")), ("damaged", c.get("damaged"))):
+        if idx is None or idx < 0: continue
+        C = np.array(cell(a, idx)); X = C.copy(); yy, xx = np.indices((CELL, CELL))
+        sh = []; burning = []
+        for m in mouths:
+            dx, dy = match_shift(R, C, m)
+            sh.append((dx, dy)); burning.append(old_flame_on(C, m, dx, dy) > 150)
+        for m, (dx, dy) in zip(mouths, sh):
+            cx, cy, rx, ry = m
+            zone = (np.abs(xx - (cx + dx)) <= rx + 8) & (yy >= cy + dy - ry - 1) & (yy < CELL)
+            src = np.zeros_like(R)
+            sy, sx = np.clip(yy - dy, 0, CELL - 1), np.clip(xx - dx, 0, CELL - 1)
+            src = R[sy, sx]
+            X[zone] = src[zone]
+        mm = [(cx + dx, cy + dy, rx, ry) for (cx, cy, rx, ry), (dx, dy) in zip(mouths, sh)]
+        base_c = Image.fromarray(X, "RGBA")
+        if name == "damaged":
+            keep = [i for i, b in enumerate(burning) if b] or [0]
+            lens = [((L * .45, .8) if i in keep else (0, 0)) for i in range(len(mm))]
+            sel = [(m, l) for m, l in zip(mm, lens) if l[0] > 0]
+            im = T.engine_fx(base_c, [m for m, _ in sel], [l for _, l in sel], cols, 99, ragged=.6) if sel else base_c
+        else:
+            lens = [(L * (1.08 + .06 * (i % 2)), .96 + .06 * (i % 2)) for i in range(len(mm))]
+            im = T.engine_fx(base_c, mm, lens, cols, 40 + idx)
+        im = im.copy(); im.paste((0, 0, 0, 0), (0, CELL - 6, CELL, CELL))
+        out[idx] = im
+    return out
 
 
 def write(key, a, cs, out_dir, big):
@@ -165,6 +222,11 @@ def run(world, out_dir=None, keys=None, defs=True):
     for k in keys or allk:
         a, base, mouths, cols, cs = build(k, RES, out_dir, MODE.get(k, MODE.get(world, "cell0u")), length=LENGTH.get(k), manual=MANUAL.get(k))
         write(k, a, cs, out_dir, k in BIG)
+        banks = bank_cells(a, load_def(k), base, mouths, cols, build.last["L"])
+        p0 = out_dir / k.split("_")[0].capitalize() / f"{k}.png"
+        strip = np.array(Image.open(p0).convert("RGBA"))
+        for idx, im in banks.items(): strip[:, idx * CELL:(idx + 1) * CELL] = np.array(im)
+        Image.fromarray(strip).save(p0)
         if defs and k not in BIG:
             p = RES / "Defs" / f"{k}.json"; s = p.read_text()
             if '"flight": [\n      3\n    ]' in s:
