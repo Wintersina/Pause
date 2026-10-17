@@ -154,13 +154,13 @@ public static class CodexVettingTest
         var local = ProgressSnapshot.Capture(1000);
         Check("the snapshot carries entries, tracks and backdrops", local.codexSeen.Contains("enemy_chaser") && local.codexSeen.Contains("music_world_ember") && local.codexSeen.Contains("bd_frost_2"));
         var cloud = ProgressSnapshot.Fresh(900);
-        cloud.codexSeen = new[] { "bd_storm_3", "music_boss_storm", "hazard_storm_mine" };
+        cloud.codexSeen = new[] { "bd_storm_2", "music_boss_storm", "hazard_storm_mine" };
         string[] seen, fresh, acked;
         ProgressMerge.MergeCodex(local, cloud, out seen, out fresh, out acked);
-        Check("merging two devices unions them, nothing is lost", new[] { "enemy_chaser", "music_world_ember", "bd_frost_2", "bd_storm_3", "music_boss_storm", "hazard_storm_mine" }.All(seen.Contains));
+        Check("merging two devices unions them, nothing is lost", new[] { "enemy_chaser", "music_world_ember", "bd_frost_2", "bd_storm_2", "music_boss_storm", "hazard_storm_mine" }.All(seen.Contains));
         Check("... and backdrops / tracks never become NEW", !fresh.Any(id => id.StartsWith("bd_") || id.StartsWith("music_")));
         PlayerPrefs.SetString(Codex.PrefsKey, string.Join(",", seen));
         Codex.Reload();
-        Check("restoring it unlocks them here", CodexBackdrops.IsUnlocked(CodexBackdrops.Find("Storm", 3)) && CodexMusic.IsUnlocked(CodexMusic.Find("music_boss_storm")));
+        Check("restoring it unlocks them here", CodexBackdrops.IsUnlocked(CodexBackdrops.Find("Storm", 2)) && CodexMusic.IsUnlocked(CodexMusic.Find("music_boss_storm")));
     }
 }

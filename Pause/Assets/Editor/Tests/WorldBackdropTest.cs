@@ -42,9 +42,8 @@ public static class WorldBackdropTest
     // dune gradients), 2.25x the old 6x6 size: 24 MB measured on the Android target (the worm sheets alone ~6 MB).
     public const long DesertTextureBudgetBytes = 25L * 1024 * 1024;
     // Storm carries four 1024 atlases (landmarks, sites, weather, lightning) besides one 4-tile variant set. Its tiles are
-    // 1024x2048 HD (2026-10, ASTC 6x6 = 0.93 MB each, 3.7 MB per set; see WorldBackdropImport.IsStormHdTile). Its v3 set and the
-    // 1024 atlases are ASTC 4x4 since 1f0d8e87 (IsContinuousTone): 8.6 MB measured on the Android target.
-    public const long StormTextureBudgetBytes = 9L * 1024 * 1024;
+    // 1024x2048 HD (2026-10, ASTC 6x6 = 0.93 MB each, 3.7 MB per set; see WorldBackdropImport.IsStormHdTile). The 1024 atlases are ASTC 4x4 since 1f0d8e87 (IsContinuousTone): 7.8 MB measured on desktop after the eye atlas and v3 set were removed.
+    public const long StormTextureBudgetBytes = 8L * 1024 * 1024;
     const float SeamTolerance = 0.02f;          // mean |top row - bottom row|, premultiplied RGBA
     // The guide's sky ramps (docs/art-style.md 1.3) peak at ~#123248 / #143430,
     // so the opaque sky averages up to ~0.12 relative luminance.
@@ -341,7 +340,6 @@ public static class WorldBackdropTest
                            "gantry_hatch_closed", "gantry_hatch_open", "cloud_bay_closed", "cloud_bay_open", "lights_off", "lights_on" } },
         { "weather", new[] { "cloud_bank_00", "cloud_bank_03", "cloud_wisp_00", "cloud_wisp_02", "mist_00", "mist_01", "gust_00", "gust_01", "pall_00", "rain_00", "rain_03" } },
         { "lightning", new[] { "bolt_00", "bolt_05", "strike_00", "strike_01", "flash_00", "flash_01", "arc_00", "debris_00", "debris_04" } },
-        { "eye", new[] { StormTuning.EyePiece } },
     };
 
     // Desert's shared atlases and the drawings the director relies on (ordered like the art:

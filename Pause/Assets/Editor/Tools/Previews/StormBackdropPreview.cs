@@ -124,8 +124,6 @@ public static class StormBackdropPreview
         StormLife.Still = false;
     }
 
-    static float HalfEyeY(StormDirector d) { return 1.6f; }
-
     static void Variants(string dir)
     {
         var cam = Scene(5, 5);
@@ -142,25 +140,6 @@ public static class StormBackdropPreview
                 Capture(cam, Path.Combine(dir, "variant-v" + v + "-" + at.ToString("00") + "s.png"));
                 Debug.Log("[STORM-PREVIEW] v" + v + " " + at + "s ground " + d.Ground.ActiveCount + " sites " + d.Sites.ActiveCount +
                           " clusters " + d.Clusters + " flashes " + d.Flashes + " forks " + d.Forks + " strikes " + d.Strikes);
-            }
-            // the rare eye of the storm, brought on screen (a real run meets it far less often)
-            d.Showcase("spire_00", .2f, 9f, 9f);   // clears the ground plane (the eye claims a big footprint)
-            bool eyeOk = d.SpawnEye(HalfEyeY(d));
-            Debug.Log("[STORM-PREVIEW] eye spawned " + eyeOk + " live " + d.Eye.ActiveCount);
-            for (int i = 0; i < 20; i++) wb.Step(Dt);
-            Capture(cam, Path.Combine(dir, "eye-v" + v + ".png"));
-            if (v == 1)
-            {
-                // one full turn in 12 frames (every EyeTurnSeconds / 12 s), the eye held at the same ground spot
-                BackdropPiece eyePiece = null;
-                foreach (var q in d.Eye.items) if (q.active) eyePiece = q;
-                for (int k = 0; k < 12 && eyePiece != null; k++)
-                {
-                    eyePiece.age = StormTuning.EyeTurnSeconds * k / 12f;
-                    wb.Step(0.0001f);
-                    Capture(cam, Path.Combine(dir, "eyerot-" + k.ToString("00") + ".png"));
-                    Debug.Log("[STORM-PREVIEW] eye rot " + k + " angle " + eyePiece.body.localEulerAngles.z.ToString("F1") + " gy " + eyePiece.gy.ToString("F3") + " x " + eyePiece.x.ToString("F2"));
-                }
             }
         }
         Object.DestroyImmediate(wb.gameObject);

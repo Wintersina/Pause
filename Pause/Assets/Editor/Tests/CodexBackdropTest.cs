@@ -88,13 +88,13 @@ public static class CodexBackdropTest
             titles &= !string.IsNullOrEmpty(b.title) && b.title != b.world + " " + b.variant;
             aligned &= WorldManager.Worlds[b.worldIndex].displayName == b.world;
         }
-        Check("every world has four backdrops (Space's four skies, each planet's four variant sets) except Storm, which ships three ground sets: " + all.Count, all.Count == WorldManager.Worlds.Length * 4 - (4 - StormTuning.Variants));
+        Check("every world has four backdrops (Space's four skies, each planet's four variant sets) except Storm, which ships two ground sets: " + all.Count, all.Count == WorldManager.Worlds.Length * 4 - (4 - StormTuning.Variants));
         Check("ids are unique and every card thumbnail loads", unique && thumbs);
         Check("each has its own name and sits under its world, in world order", titles && aligned &&
               all.Select(b => b.worldIndex).SequenceEqual(all.Select(b => b.worldIndex).OrderBy(i => i)));
         Check("names are unique within a world", all.GroupBy(b => b.world).All(g => g.Select(b => b.title).Distinct().Count() == g.Count()));
         Check("ids follow bd_<world>_<variant>", B("Frost", 2).id == "bd_frost_2" && B("Space", 4).id == "bd_space_4");
-        Check("Storm and Desert have theirs (Storm's eye, Desert's salt flat)", B("Storm", 3).title == "Eye of the Storm" && B("Desert", 3).title == "Salt Flat");
+        Check("Storm and Desert have theirs (Storm's thunderhead field, Desert's salt flat), and Storm's removed eye deck is gone", B("Storm", 2).title == "Thunderhead Field" && CodexBackdrops.Find("Storm", 3) == null && B("Desert", 3).title == "Salt Flat");
     }
 
     static void Listing()
@@ -135,18 +135,18 @@ public static class CodexBackdropTest
         Check("a reset codex locks them again", CodexBackdrops.UnlockedCount == 0);
 
         DeveloperUnlocks.SetEnabled(true);
-        Check("developer mode shows every backdrop without writing", CodexBackdrops.IsUnlocked(B("Storm", 3)) && PlayerPrefs.GetString(Codex.PrefsKey) == "");
-        CodexBackdrops.SeenInPlay("Storm", 3);
+        Check("developer mode shows every backdrop without writing", CodexBackdrops.IsUnlocked(B("Storm", 2)) && PlayerPrefs.GetString(Codex.PrefsKey) == "");
+        CodexBackdrops.SeenInPlay("Storm", 2);
         Check("... and records nothing", PlayerPrefs.GetString(Codex.PrefsKey) == "");
         DeveloperUnlocks.SetEnabled(false);
-        Check("turning it off brings the real set back", !CodexBackdrops.IsUnlocked(B("Storm", 3)));
+        Check("turning it off brings the real set back", !CodexBackdrops.IsUnlocked(B("Storm", 2)));
 
         // three seen backdrops for the rest: Space 1, Frost 2, Storm 3 (world order)
         CodexBackdrops.SeenInPlay("Space", 1);
         CodexBackdrops.SeenInPlay("Frost", 2);
-        CodexBackdrops.SeenInPlay("Storm", 3);
+        CodexBackdrops.SeenInPlay("Storm", 2);
         Check("the viewer's list is the unlocked ones in world order",
-              string.Join(",", CodexBackdrops.UnlockedList().Select(b => b.id)) == "bd_space_1,bd_frost_2,bd_storm_3");
+              string.Join(",", CodexBackdrops.UnlockedList().Select(b => b.id)) == "bd_space_1,bd_frost_2,bd_storm_2");
     }
 
     // Opens world `world`'s detail on its BACKDROPS sub-tab and returns the gallery.
@@ -363,14 +363,14 @@ public static class CodexBackdropTest
         Tap(panel, "bd_frost_2");
         viewer = CodexBackdropViewer.Current;
         viewer.MoveNow(1);
-        Check("next from Frost 2 is Storm 3: its own set, director and name",
-              viewer.CurrentBackdrop.id == "bd_storm_3" && viewer.Set.Spec.world == "Storm" && viewer.Set.Variant == 3 && viewer.Set.Director is StormDirector &&
-              viewer.Title.text == "Eye of the Storm" && viewer.Sub.text == "STORM   3 / 3");
+        Check("next from Frost 2 is Storm 2: its own set, director and name",
+              viewer.CurrentBackdrop.id == "bd_storm_2" && viewer.Set.Spec.world == "Storm" && viewer.Set.Variant == 2 && viewer.Set.Director is StormDirector &&
+              viewer.Title.text == "Thunderhead Field" && viewer.Sub.text == "STORM   3 / 3");
         Check("only one set is alive after a step", Roots() == 1);
         viewer.MoveNow(1);
         Check("next from the last wraps to the first (Space, its sky variant 1)", viewer.CurrentBackdrop.id == "bd_space_1" && viewer.Set.Spec.world == "Space" && viewer.Set.Director is SpaceDirector && viewer.Index == 0);
         viewer.MoveNow(-1);
-        Check("previous from the first wraps to the last", viewer.CurrentBackdrop.id == "bd_storm_3");
+        Check("previous from the first wraps to the last", viewer.CurrentBackdrop.id == "bd_storm_2");
         viewer.MoveNow(-1);
         Check("previous steps back", viewer.CurrentBackdrop.id == "bd_frost_2" && viewer.Set.Variant == 2);
         for (int k = 0; k < 10; k++) viewer.Step(1f / 30f);
@@ -402,7 +402,7 @@ public static class CodexBackdropTest
         viewer.Close();
 
         // restore the three
-        PlayerPrefs.SetString(Codex.PrefsKey, "bd_space_1,bd_frost_2,bd_storm_3");
+        PlayerPrefs.SetString(Codex.PrefsKey, "bd_space_1,bd_frost_2,bd_storm_2");
         Codex.Reload();
         panel.Refresh();
     }
@@ -411,10 +411,10 @@ public static class CodexBackdropTest
     static void StormLightning(CodexPanel panel)
     {
         var v = panel.Backdrops;
-        PlayerPrefs.SetString(Codex.PrefsKey, "bd_space_1,bd_frost_2,bd_storm_2,bd_storm_3");
+        PlayerPrefs.SetString(Codex.PrefsKey, "bd_space_1,bd_frost_2,bd_storm_1,bd_storm_2");
         Codex.Reload();
         panel.Refresh();
-        foreach (string id in new[] { "bd_storm_2", "bd_storm_3" })
+        foreach (string id in new[] { "bd_storm_1", "bd_storm_2" })
         {
             Tap(panel, id);
             var viewer = CodexBackdropViewer.Current;
@@ -441,7 +441,7 @@ public static class CodexBackdropTest
                   last > 0 && peak <= 1.001f && worst <= 3);
             viewer.Close();
         }
-        PlayerPrefs.SetString(Codex.PrefsKey, "bd_space_1,bd_frost_2,bd_storm_3");
+        PlayerPrefs.SetString(Codex.PrefsKey, "bd_space_1,bd_frost_2,bd_storm_2");
         Codex.Reload();
         panel.Refresh();
     }
