@@ -41,6 +41,7 @@ public static class FrameStillsTest
         fails = 0;
         foreach (var (name, cell) in Idle) Sprite(name, cell, 4);
         FrostBigCellTwo();
+        foreach (var n in new[] { "space_rock_cluster", "space_rock_crater", "space_rock_dark" }) NoPaleRim(n);
         Debug.Log("[FRAME-STILLS] failures: " + fails);
         return fails;
     }
@@ -126,5 +127,39 @@ public static class FrameStillsTest
             int mk = Margin(px, w, h, 256, k);
             Check("frost_big cell " + k + ": does not touch the cell border (" + mk + ")", mk >= 2);
         }
+    }
+
+    // ROCKS HAVE NO OUTLINE: no pale / white rim hugging the silhouette in any cell of the strip
+    // (idle, tell, hit) nor in the first death cell (the intact hull).
+    static void NoPaleRim(string name)
+    {
+        var px = Load(name, out int w, out int h);
+        for (int k = 0; k < 7; k++) RimCheck(name + " cell " + k, px, w, h, 192, k);
+        var dp = Load("Death/" + name, out int dw, out int dh);
+        RimCheck(name + " death cell 0", dp, dw, dh, 192, 0);
+    }
+
+    static void RimCheck(string what, Color32[] px, int w, int h, int cell, int k)
+    {
+        int edge = 0, pale = 0;
+        for (int y = 0; y < cell; y++)
+            for (int x = 0; x < cell; x++)
+            {
+                if (At(px, w, h, cell, k, x, y).a <= 40) continue;
+                bool near = false;   // within 2 px of transparency (or of the cell border)
+                for (int dy = -2; dy <= 2 && !near; dy++)
+                    for (int dx = -2; dx <= 2 && !near; dx++)
+                    {
+                        int xx = x + dx, yy = y + dy;
+                        if (xx < 0 || yy < 0 || xx >= cell || yy >= cell || At(px, w, h, cell, k, xx, yy).a <= 40) near = true;
+                    }
+                if (!near) continue;
+                edge++;
+                var c = At(px, w, h, cell, k, x, y);
+                int mx = Mathf.Max(c.r, Mathf.Max(c.g, c.b)), mn = Mathf.Min(c.r, Mathf.Min(c.g, c.b));
+                if (mn > 150 && mx - mn < 70) pale++;
+            }
+        float share = edge == 0 ? 0f : (float)pale / edge;
+        Check(what + ": no pale / white rim on the outer edge (" + pale + " of " + edge + " edge px)", share < 0.03f);
     }
 }

@@ -115,6 +115,26 @@ def enforce_margin(im, margin=MARGIN):
     return im
 
 
+def dilate(m, n):
+    for _ in range(n):
+        p = np.pad(m, 1)
+        m = p[1:-1, 1:-1] | p[:-2, 1:-1] | p[2:, 1:-1] | p[1:-1, :-2] | p[1:-1, 2:]
+    return m
+
+
+def strip_rim(fr, ref):
+    """Remove any pale outline pixel the model carried over: pale, desaturated pixels hugging the silhouette of the
+    RIMLESS reference cell (outside it, within 4 px). Debris and the painted body are untouched."""
+    a = np.array(fr)
+    near = dilate(mask(ref), 4) & ~dilate(mask(ref), 1)
+    px = a[..., :3].astype(int)
+    mx, mn = px.max(-1), px.min(-1)
+    pale = (mn > 150) & ((mx - mn) < 85)
+    kill = near & pale & (a[..., 3] > 0)
+    a[kill, 3] = 0
+    return Image.fromarray(a)
+
+
 def sheet_path(sprite):
     return jobs.RES + sprite + ".png"
 
@@ -129,17 +149,20 @@ def main():
         os.makedirs(outdir, exist_ok=True)
     sheets = {}
     log = []
+    for sprite in dict.fromkeys(j[0] for j in jobs.JOBS):
+        sheets[sprite] = jobs.base_sheet(sprite)
     for sprite, cell, _, _ in jobs.JOBS:
         f = f"{src}/{sprite}_c{cell}.png"
         if not os.path.exists(f):
             continue
         if sprite not in sheets:
-            sheets[sprite] = Image.open(sheet_path(sprite)).convert("RGBA")
+            sheets[sprite] = jobs.base_sheet(sprite)
         sh = sheets[sprite]
         cw = sh.size[1]
         ref = sh.crop((0, 0, cw, cw))
         fr = to_cell(key_background(Image.open(f)), cw)
         fr, info = register(fr, ref)
+        fr = strip_rim(fr, ref)
         fr = enforce_margin(fr)
         sh.paste(Image.new("RGBA", (cw, cw), (0, 0, 0, 0)), (cell * cw, 0))
         sh.alpha_composite(fr, (cell * cw, 0))

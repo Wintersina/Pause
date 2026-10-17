@@ -80,8 +80,21 @@ JOBS = [
 ]
 
 
+RIMLESS = {"space_alien", "tide_rock_urchin", "verdant_rock_knot", "verdant_rock_spore"}
+ORIG = ROOT + "/Assets/Art/Enemies/src~/ship_scale_border~/original/"
+
+
+def base_sheet(sprite):
+    """The rimless source strip: the outline pass's original/ when the sprite has one (Space rocks, Frost rime)."""
+    p = ORIG + sprite + ".png"
+    return Image.open(p if os.path.exists(p) else RES + sprite + ".png").convert("RGBA")
+
+
+JOBS.sort(key=lambda j: j[1] != 3)   # the approved c3 frames first, then c1 / c2 / the minor cells (stable)
+
+
 def cell0(sprite):
-    a = Image.open(RES + sprite + ".png").convert("RGBA")
+    a = base_sheet(sprite)
     cw = a.size[1]
     return a.crop((0, 0, cw, cw)), cw
 
@@ -90,8 +103,7 @@ PROMPT = (
     "Edit the attached sprite (image {inp}; {desc}) into a NEW ANIMATION FRAME of the same object for a neon pixel-art "
     "top-down shooter. Use your image generation tool. Keep the IDENTICAL design, palette, rendering style, lighting rules, "
     "canvas size, position and overall scale: the body must sit on the same pixels as in the input so the frames register. "
-    "Change ONLY this: {change}. Keep every other detail painted exactly as in the input (including any thin pale outline "
-    "the input has, no new outline or halo). It must be a genuinely different drawing from the input, not a copy. "
+    "Change ONLY this: {change}. Keep every other detail painted exactly as in the input. {rim} It must be a genuinely different drawing from the input, not a copy. "
     "{world}Transparent background with a real alpha channel (no backdrop, no ground shadow, no text). "
     "Save the final PNG (RGBA) to {out} and reply with just the path."
 )
@@ -118,7 +130,8 @@ def main():
         c.resize((cw * 4, cw * 4), Image.NEAREST).save(f"{HERE}/in/{name}.png")
         world = ("No pink anywhere (cyan/white/ice tones only). " if sprite.startswith(("frost", "tide", "verdant"))
                  else "Pink/magenta glow is allowed (it is the Space world's cue). ")
-        p = PROMPT.format(inp=name + ".png", desc=desc, change=change, world=world, out=f"{HERE}/out/{name}.png")
+        rim = ("The sprite has NO outline: do not add any outline, pale rim, white border or halo around it." if os.path.exists(ORIG + sprite + ".png") or sprite in RIMLESS else "Keep its existing thin pale outline exactly as in the input, nothing more.")
+        p = PROMPT.format(rim=rim, inp=name + ".png", desc=desc, change=change, world=world, out=f"{HERE}/out/{name}.png")
         open(f"{HERE}/prompts/{name}.md", "w").write(p)
         lines.append(f'run_job {name}')
     lines.append('[ "$(ls $H/out/*.ok 2>/dev/null | wc -l)" -ge ' + str(len(JOBS)) + ' ] && touch $H/ALL_DONE')
