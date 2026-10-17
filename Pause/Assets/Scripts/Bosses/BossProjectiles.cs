@@ -62,6 +62,7 @@ public class BossProjectile : MonoBehaviour, IHostileShot
     GameObject hitbox;
     BossDef boss;
     BossShotStyle style;
+    int art;                     // PShot.art: the attack variant drawn (0: the shared pair)
     BossProjectilePool pool;
     Vector2 velocity;
     Vector3 launchedAt;
@@ -86,6 +87,7 @@ public class BossProjectile : MonoBehaviour, IHostileShot
     public Vector2 Velocity => velocity;
     public GameObject Hitbox => hitbox;
     public BossShotStyle Style => style;
+    public int Art => art;
     public BossRailMode Rail => rail;
     public int BouncesLeft => bouncesLeft;
     public int Bounces { get; private set; }
@@ -166,6 +168,7 @@ public class BossProjectile : MonoBehaviour, IHostileShot
                        BossRailMode railMode, int bounces, float gravityPull, float maxFall)
     {
         patterned = false;
+        art = 0;
         homeLeft = fuseLeft = fuseTotal = turnLeft = 0f;
         burst = 0;
         bouncy = false;
@@ -186,6 +189,7 @@ public class BossProjectile : MonoBehaviour, IHostileShot
     public void LaunchPattern(BossDef def, Vector3 at, Vector2 v, ref PShot ps)
     {
         patterned = true;
+        art = ps.art;
         homeDeg = ps.homeDeg;
         homeLeft = ps.homeSeconds > 0f && ps.homeDeg > 0f ? ps.homeSeconds : 0f;
         fuseLeft = fuseTotal = ps.fuse;
@@ -238,7 +242,9 @@ public class BossProjectile : MonoBehaviour, IHostileShot
         // wear HostileGlow's round halo.
         rim0 = BossArt.ShotRim(boss, FirstCell);
         rim1 = BossArt.ShotRim(boss, FirstCell + 1);
-        rimmed = rim0 != null && rim1 != null;
+        // a painted attack variant carries its own dark keyline: no rim round it (art 0 and the unpainted slots keep the shared pair and its rim)
+        if (art > 0 && BossArt.AttackShot(boss, art, 0) == null) art = 0;
+        rimmed = art == 0 && rim0 != null && rim1 != null;
         glow.sprite = rimmed ? rim0 : null;
         glow.enabled = rimmed;
         glowBase = 1f;
@@ -257,7 +263,7 @@ public class BossProjectile : MonoBehaviour, IHostileShot
         Pulse();
         Active = true;
         gameObject.SetActive(true);
-        sr.sprite = BossArt.Shot(boss, FirstCell);
+        sr.sprite = Drawing(0);
     }
 
     void Pulse()
@@ -277,6 +283,9 @@ public class BossProjectile : MonoBehaviour, IHostileShot
         float deg = Mathf.Atan2(velocity.y, velocity.x) * Mathf.Rad2Deg + 90f;
         transform.rotation = Quaternion.Euler(0f, 0f, deg);
     }
+
+    // frame 0 / 1 of this shot's drawing: its attack variant, or the boss's shared bolt / shard pair
+    Sprite Drawing(int frame) => (art > 0 ? BossArt.AttackShot(boss, art, frame) : null) ?? BossArt.Shot(boss, FirstCell + frame);
 
     int FirstCell => style == BossShotStyle.Bolt ? BossArt.Bolt0 : BossArt.Shard0;
 
@@ -367,7 +376,7 @@ public class BossProjectile : MonoBehaviour, IHostileShot
         }
         transform.position = p;
         int frame = BossArt.FrameAt(BossArt.ShotTicks, age, true);
-        sr.sprite = BossArt.Shot(boss, FirstCell + frame);
+        sr.sprite = Drawing(frame);
         if (rimmed) glow.sprite = frame == 0 ? rim0 : rim1;   // the rim follows the drawing
         Pulse();
 
@@ -693,7 +702,7 @@ public class BossBeam : MonoBehaviour
         sight.enabled = false;
         lockOn.enabled = false;
         beam.enabled = flash.enabled = true;
-        sheath.enabled = true;
+        sheath.enabled = art == null;   // a painted beam is just its own glowing body: no wrapper glow / border along it
         hitbox = BossHitbox.Box(transform, "BossBeamHit", new Vector2(width * BossConfig.BeamHitFraction, .01f));
         box = hitbox.GetComponent<BoxCollider2D>();
         Place(0f);
@@ -743,7 +752,8 @@ public class BossBeam : MonoBehaviour
             if (art == null) w *= step % 2 == 0 ? 1f : .85f;
         }
         if (art != null) PaintedBeam(w); else Span(beam.transform, w, length);
-        // the sheath: the same wrapper as a shot, along the beam's length
+        // the sheath: the same wrapper as a shot, along the beam's length (none on a painted beam)
+        if (art != null) sheath.enabled = false;
         sheath.transform.localPosition = new Vector3(0f, length * .5f, 0f);
         sheath.transform.localScale = new Vector3(HostileGlow.DiameterFor(w * (art != null ? BossConfig.BeamHitFraction : 1f) * HostileGlow.BeamBody) * HostileGlow.PulseScaleAt(age),
                                                   Mathf.Max(.001f, length) / HostileGlow.SheathHeight, 1f);
@@ -783,7 +793,7 @@ public class BossBeam : MonoBehaviour
     // ---- a boss's painted laser kit (AttackArt.BossLaser): visual only ----
     //
     // Every size below derives from the beam body: its 128 px frame is drawn at BodyScale so that its opaque columns
-    // (art.bodyOpaquePx) are exactly the hit shape's width (width x BeamHitFraction). The hit shape,
+    // (art.bodyOpaquePx) are BeamArtWidthBoost x the hit shape's width (width x BeamHitFraction). The hit shape,
     // tell and timings are the generic beam's, untouched.
 
     const float WindupFps = 12f, LoopFps = 12f, SparkFps = 15f;
@@ -791,7 +801,10 @@ public class BossBeam : MonoBehaviour
     const float LockScale = 1f;        // the reticle's 128 px cell
     const float FlareToBody = 1.5f;    // muzzle / windup / impact cells vs the body frame
 
-    float BodyScale => width * BossConfig.BeamHitFraction * 128f / art.bodyOpaquePx;
+    // The painted body is drawn BeamArtWidthBoost x wider than the hit shape (about 18 % bigger: the soft falloff has no border and reads
+    // thinner than its hit width); the hit shape, damage and timing are the generic beam's, untouched.
+    public const float BeamArtWidthBoost = 1.18f;
+    float BodyScale => width * BossConfig.BeamHitFraction * 128f / art.bodyOpaquePx * BeamArtWidthBoost;
 
     static void ResetPiece(SpriteRenderer r)
     {

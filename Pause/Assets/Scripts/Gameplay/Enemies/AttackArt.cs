@@ -42,6 +42,12 @@ public static class AttackArt
     public static string FolderOf(int world) => Folder + "/" + char.ToUpperInvariant(KeyOf(world)[0]) + KeyOf(world).Substring(1);
     public static string PathOf(int world, string file)
     {
+        // the boss laser kits (laser, laserbody, lasertell) exist for all seven worlds (EnemyRoster.WorldKeys: Storm and Desert too)
+        if (file.StartsWith("laser") && world >= 0 && world < EnemyRoster.WorldKeys.Length)
+        {
+            string k = EnemyRoster.WorldKeys[world];
+            return Folder + "/" + char.ToUpperInvariant(k[0]) + k.Substring(1) + "/" + k + "_attack_" + file;
+        }
         if (file == MineBeamFile && world >= 0 && world < MineBeamKeys.Length && MineBeamKeys[world] != null)
         {
             string k = MineBeamKeys[world];
@@ -162,8 +168,8 @@ public static class AttackArt
 
     // <w>_attack_laser (1024 x 384, 8 x 3 cells of 128), <w>_attack_laserbody (512 x 256: four 128 x 256 beam frames, root at the TOP)
     // and <w>_attack_lasertell (512 x 128: sight a,b then lock a,b) for the worlds whose boss fires a painted beam (Space pod lasers,
-    // Frost glare beams, Verdant acid cannons, Ember brow laser). Null when any of the three files is missing (BossBeam then draws
-    // the generic boss beam). Tide's kit stays staged (Attacks/Tide~): Tide's boss keeps the generic beam.
+    // Frost glare beams, Verdant acid cannons, Ember jaw flamethrower, Tide beak jet, Storm coil beams, Desert lens beam). Null when any of the three
+    // files is missing (BossBeam then draws the generic boss beam).
     //   laser row 0: windup 1-8 (energy gathering at the emitter); row 1: muzzle a-d (loop) then fade 1-4; row 2: impact 1-4 then spark a-d
     public sealed class LaserArt
     {
@@ -173,10 +179,12 @@ public static class AttackArt
         public int impactBasePx;    // the impact burst's base, in px below its cell centre
     }
 
-    // per world (ShotSkins.WorldKeys order: space, frost, verdant, ember, tide), measured on the delivered sheets
+    // per world (EnemyRoster.WorldKeys order: space, frost, verdant, ember, tide, storm, desert), measured on the delivered sheets
     // (union of the four body frames' columns with any alpha; the impact-1 cell's lowest pixel row less 66)
-    static readonly int[] LaserBodyOpaque = { 72, 94, 100, 100, 0 };
-    static readonly int[] LaserImpactBase = { 47, 45, 49, 53, 0 };
+    // (all seven worlds, EnemyRoster.WorldKeys order; 0 = no painted kit). Space (plasma rail), Frost (cryo lance), Ember (jaw flamethrower),
+    // Tide (pressure water jet), Storm (arc beam) and Desert (prismatic lens beam) are the custom per-boss kits; Verdant keeps its acid kit.
+    static readonly int[] LaserBodyOpaque = { 63, 85, 100, 90, 88, 88, 86 };
+    static readonly int[] LaserImpactBase = { 44, 44, 49, 45, 44, 44, 44 };
 
     public static bool HasBossLaser(int world) => world >= 0 && world < LaserBodyOpaque.Length && LaserBodyOpaque[world] > 0;
 
@@ -184,10 +192,10 @@ public static class AttackArt
     public static int WorldOfArtKey(string artKey)
     {
         if (string.IsNullOrEmpty(artKey)) return -1;
-        return System.Array.IndexOf(ShotSkins.WorldKeys, artKey.ToLowerInvariant());
+        return System.Array.IndexOf(EnemyRoster.WorldKeys, artKey.ToLowerInvariant());
     }
 
-    static readonly LaserArt[] lasers = new LaserArt[5];
+    static readonly LaserArt[] lasers = new LaserArt[7];
 
     public static LaserArt BossLaser(int world)
     {

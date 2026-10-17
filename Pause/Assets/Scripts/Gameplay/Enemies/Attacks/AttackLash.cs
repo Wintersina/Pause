@@ -245,7 +245,7 @@ public sealed class AttackLash : AttackHazard
     {
         rimmed = AttackHazardArt.LashArt(world);
         var trace = HostileShotPalette.Trace(PreviewTint);
-        rimTint = bold ? ShotOutline.BoldTrace(trace) : trace;
+        rimTint = ShotOutline.DarkEdge(trace);   // (no pale / white trace round the painted vine: a dark natural edge)
         for (int i = 0; i < 2; i++)
         {
             var l = linkSprites[i]; var t = tipSprites[i]; var r = rootSprites[i];

@@ -22,7 +22,7 @@ public static class MineFlameArtTest
     public static void Run() { TestHarness.Exit(Execute()); }
 
     const string Path_ = "Assets/Art/Resources/Attacks/Ember/ember_attack_mineflame.png";
-    public const long AttackTexturesBudget = 23L * 1024 * 1024;       // raised from 14 to 23 MB for the four world mine beams (Frost, Verdant, Tide, Storm: 4 x 2.25 MB); every Resources/Attacks sheet together (GPU, RGBA32): 4 laser kits + the flame ~ 11.3 MB + Verdant's lash, log and shots 2.5 MB = 13.8 MB (raised from 13 for the Verdant shots atlas, 1 MB)
+    public const long AttackTexturesBudget = 30L * 1024 * 1024;       // raised from 23 to 30 MB for the Storm, Desert and Tide boss laser kits (3 x 2.25 MB, Oct 16; they ship ASTC on Android); earlier: raised from 14 to 23 MB for the four world mine beams (Frost, Verdant, Tide, Storm: 4 x 2.25 MB); every Resources/Attacks sheet together (GPU, RGBA32): 4 laser kits + the flame ~ 11.3 MB + Verdant's lash, log and shots 2.5 MB = 13.8 MB (raised from 13 for the Verdant shots atlas, 1 MB)
     public const long WithBackdropBudget = AttackTexturesBudget + WorldBackdropTest.FrostTextureBudgetBytes;   // the largest world budget beside them
 
     public static int Execute()

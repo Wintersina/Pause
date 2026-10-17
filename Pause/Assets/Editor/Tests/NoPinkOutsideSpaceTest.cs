@@ -128,7 +128,7 @@ public static class NoPinkOutsideSpaceTest
             string n = Worlds[w];
             string dir = Path.Combine(Root, "Attacks", n);
             if (Directory.Exists(dir)) foreach (var f in Directory.GetFiles(dir, "*.png")) files.Add("Attacks/" + n + "/" + Path.GetFileName(f));
-            foreach (var suffix in new[] { "", "_shots", "_damage", "_damage_fx", "_death" })
+            foreach (var suffix in new[] { "", "_shots", "_attackshots", "_damage", "_damage_fx", "_death" })
                 if (File.Exists(Path.Combine(Root, "Bosses", n + suffix + ".png"))) files.Add("Bosses/" + n + suffix + ".png");
         }
         string worst = ""; float worstShare = 0f; int bad = 0;
@@ -162,8 +162,8 @@ public static class NoPinkOutsideSpaceTest
         else Check("boss attack fx sheet present", false);
 
         // control: Space's own laser kit and boss shots are pink (the rule is not "no pink anywhere")
-        var sp = Load("Attacks/Space/space_attack_laser.png", out int sw, out int sh);
-        Check("control: Space's painted laser kit still carries pink", sp != null && PinkShare(sp, 0, int.MaxValue, sw) > .3f);
+        var sp = Load("Attacks/Space/space_attack_laserbody.png", out int sw, out int sh);
+        Check("control: Space's painted laser kit (its plasma rail body) still carries pink", sp != null && PinkShare(sp, 0, int.MaxValue, sw) > .3f);
     }
 
     // ---- 3 ----

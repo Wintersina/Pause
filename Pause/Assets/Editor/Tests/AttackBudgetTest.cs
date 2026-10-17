@@ -133,7 +133,7 @@ public static class AttackBudgetTest
         { "boss:Verdant:acid cannons", new Pin(465, 2000, 2000) },   // 23.3 % bot, 100.0 % standing; shown in 2000/2000;
         { "boss:Ember:fire breath", new Pin(498, 2000, 2000) },   // 24.9 % bot, 100.0 % standing; shown in 2000/2000;
         { "boss:Ember:furnace slugs", new Pin(1161, 2000, 2000) },   // 58.1 % bot, 100.0 % standing; shown in 2000/2000;
-        { "boss:Ember:brow laser", new Pin(1195, 2000, 1722) },   // 59.8 % bot, 86.1 % standing; shown in 2000/2000;
+        { "boss:Ember:jaw flamethrower", new Pin(1195, 2000, 1722) },   // 59.8 % bot, 86.1 % standing; shown in 2000/2000;
         // Iron Kraken placeholders (generic kinds, before its themed water attacks): the port fan is very hard (93.7 % bot) -- tune when themed.
         { "boss:Tide:port cluster", new Pin(1873, 2000, 1989) },   // 93.7 % bot, 99.5 % standing; shown in 2000/2000;
         { "boss:Tide:beak jet", new Pin(0, 2000, 1202) },   // 0.0 % bot, 60.1 % standing; shown in 2000/2000;
@@ -192,7 +192,7 @@ public static class AttackBudgetTest
         { "themed:boss_frost_icicle_drop", "boss:Frost:glare beams" },
         { "themed:boss_frost_cold_blast", "boss:Frost:blowhole hail" },
         { "themed:boss_ember_flame_sweep", "boss:Ember:fire breath" },
-        { "themed:boss_ember_eruption_columns", "boss:Ember:brow laser" },
+        { "themed:boss_ember_eruption_columns", "boss:Ember:jaw flamethrower" },
         { "themed:boss_space_ion_arcs", "boss:Space:core burst" },
         { "themed:boss_space_scan_line", "boss:Space:pod lasers" },
         // the Tide roster's own themed rows (same id: held to its own pinned baseline)

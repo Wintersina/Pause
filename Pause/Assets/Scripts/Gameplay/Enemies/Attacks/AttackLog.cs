@@ -190,7 +190,7 @@ public sealed class AttackLog : AttackHazard
             rimSprites[i] = bs == null ? null : ShotOutline.For(bs, bs.bounds.size.y * spec.length / Mathf.Max(.01f, nat));
         }
         for (int i = 0; i < 2; i++) dashSprites[i] = AttackHazardArt.LashDash(s.world, i, bold);
-        glowTint = bold ? ShotOutline.BoldTrace(HostileShotPalette.Trace(PreviewTint)) : HostileShotPalette.Trace(PreviewTint);
+        glowTint = ShotOutline.DarkEdge(HostileShotPalette.Trace(PreviewTint));   // (a dark edge, never the pale trace)
         BeginTell(tellSeconds, by, s.world);
     }
 

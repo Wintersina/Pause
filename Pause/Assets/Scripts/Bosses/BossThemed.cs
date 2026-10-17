@@ -12,7 +12,7 @@ using UnityEngine;
 //   Void Archon          chin cannon, ion arcs  | core burst | pod lasers, scan line
 //   Hoarfrost Leviathan  icicle spray, icicle drop | glare beams | blowhole hail, cold blast
 //   Bloom Queen          stinger thorns, vine lash | spore bloom | acid cannons, trunk toss
-//   Cinder Drake         fire breath, flame sweep | furnace slugs | brow laser, eruption columns
+//   Cinder Drake         fire breath, flame sweep | furnace slugs | jaw flamethrower, eruption columns
 //   Iron Kraken          port cluster, thunder strike | beak jet | starboard cluster, surf wave
 //   Tempest Engine       core arc fan, crown lane strike | crown hail | coil beams, chain-lightning sweep
 //   Dune-Eater           grit fan, burrower strike | dune lob | lens beam, sandstorm wall

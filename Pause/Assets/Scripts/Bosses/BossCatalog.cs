@@ -362,11 +362,12 @@ public static class BossCatalog
                                      emitters = new[] { "Furnace", "CannonL", "CannonR" }, fireFrame = true,
                                      volleys = 3, volleyGap = .36f, count = 1, spreadDeg = 0f, speed = 4.9f,
                                      style = BossShotStyle.Shard, rail = BossRailMode.Absorb, cooldown = 1.1f },
-                    // The brow gem locks on to the ship, then burns a laser
+                    // It rears (the breath drawing) and, once locked on to the
+                    // ship, blows a very long flamethrower stream from its jaw
                     // that rakes away from that side towards the other --
                     // step out behind it.
-                    new BossAttack { name = "brow laser", kind = BossAttackKind.Beam, tell = 2, tellSeconds = .8f,
-                                     emitters = new[] { "Brow" },
+                    new BossAttack { name = "jaw flamethrower", kind = BossAttackKind.Beam, tell = 0, tellSeconds = .8f,
+                                     emitters = new[] { "Jaw" },
                                      aim = BossBeamAim.AtShip, sweepDeg = 55f, beamWidth = .34f, hold = .8f,
                                      cooldown = 1.3f },
                 },
