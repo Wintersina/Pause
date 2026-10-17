@@ -23,6 +23,8 @@ public static class EliteEngineFireTest
     static readonly string[] Keys =
     {
         // one line per world, added with that world's frames
+        "tide_elite_bathyscaphe", "tide_elite_pearl_warden", "tide_elite_riptide",
+        "tide_elite_thunderfin", "tide_elite_trawler",
         "storm_elite_anvil_cloud", "storm_elite_refinery_tender", "storm_elite_rod_dancer",
         "storm_elite_skyhook_harrier", "storm_elite_static_bastion",
         "frost_elite_cryo_siren", "frost_elite_rimebreaker", "frost_elite_floe_harrower",

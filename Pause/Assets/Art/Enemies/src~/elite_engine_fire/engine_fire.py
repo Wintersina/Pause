@@ -239,5 +239,31 @@ def run(world, out_dir=None, keys=None, defs=True):
     return done
 
 
+def run_tide(out_dir=None):
+    """Tide keeps its approved flight cell 3 (and banks / damaged): only three flicker cells (7, 8, 9) are appended, made by the SAME
+    engine_fx on the SAME hull (rebuilt from the Tide masters) at other flame lengths."""
+    out_dir = out_dir or RES
+    done = []
+    for name, cfg in T.SHIPS.items():
+        key = f"tide_elite_{name}"
+        art = T.hull(name); w, h = art.size; ox = (CELL - w) // 2; oy = (CELL - h - T.FLAME_ROOM + 20) // 2
+        hull_cell = Image.new("RGBA", (CELL, CELL)); hull_cell.alpha_composite(art, (ox, oy))
+        seeds = [(ox + round(fx * w), oy + round(fy * h) - 14) for fx, fy in cfg["nz"]]
+        mouths = T.find_openings(hull_cell, seeds, cfg.get("mouths", {}))
+        cols, ln = cfg["flame"], cfg["len"] * 1.4
+        a = np.array(Image.open(RES / "Tide" / f"{key}.png").convert("RGBA"))[:, :7 * CELL]
+        assert np.array_equal(np.array(T.engine_fx(hull_cell, mouths, [(ln * (1 + .08 * (i % 2)), .96 + .08 * (i % 2)) for i in range(len(mouths))], cols, 2)), a[:, 3 * CELL:4 * CELL]), key + ": hull rebuild differs from cell 3"
+        cs = states(hull_cell, mouths, cols, ln)[1:]
+        for c in cs: c.paste((0, 0, 0, 0), (0, CELL - 6, CELL, CELL))
+        strip = np.concatenate([a] + [np.array(c) for c in cs], 1)
+        Image.fromarray(strip).save(out_dir / "Tide" / f"{key}.png")
+        p = RES / "Defs" / f"{key}.json"; s = p.read_text()
+        if '"flight": [\n      3\n    ]' in s:
+            p.write_text(s.replace('"flight": [\n      3\n    ]', '"flight": [\n      3,\n      7,\n      8,\n      9\n    ]', 1))
+        done.append(key); print(key, [tuple(round(v) for v in m) for m in mouths])
+    return done
+
+
 if __name__ == "__main__":
-    run(sys.argv[1], Path(sys.argv[2]) if len(sys.argv) > 2 else None)
+    if sys.argv[1] == "tide": run_tide(Path(sys.argv[2]) if len(sys.argv) > 2 else None)
+    else: run(sys.argv[1], Path(sys.argv[2]) if len(sys.argv) > 2 else None)
