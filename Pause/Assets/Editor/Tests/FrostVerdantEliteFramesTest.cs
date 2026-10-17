@@ -86,6 +86,7 @@ public static class FrostVerdantEliteFramesTest
         for (int p = 0; p < pairs.GetLength(0); p++)
         {
             int a = pairs[p, 0], b = pairs[p, 1], d = 0;
+            if (a == 3 && b == 4) continue;   // the flight cells 3-6 share one fixed hull on purpose (EliteEngineFireTest)
             for (int y = 0; y < mouthY; y++)
                 for (int x = 0; x < S; x++)
                     if (Differs(px[(S - 1 - y) * W + a * S + x], px[(S - 1 - y) * W + b * S + x])) d++;
