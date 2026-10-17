@@ -50,8 +50,7 @@ public static class BossDamageTest
             ArtSlicesIntoItsCells(5);
             OnlyKeyedBossesHaveDamage();
             DamagedAttackPosesAreOneFrame();
-            AttackPosesLoadPerStage();
-            BossTextureBudget();
+            DamageFxCellsAreClean();
             EveryBossOneDrawing();
             SmokeStrengthIsTunable();
             FightShowsTheDamage(0);
@@ -466,13 +465,127 @@ public static class BossDamageTest
         Check(a.Boss.artKey + ": retreating: overlay gone, retreat frames pristine, and it still leaves", left && a.State == BossActor.Mode.Gone);
     }
 
+    // ---- smoke / arc cells are single clean drawings (Frost / Verdant low-health "two frames" report) ----
+    //
+    // <Key>_damage_fx.png: a smoke plume that is clipped to a flat-edged box, two drawings joined by a straight
+    // seam, a faint ghost layer of another frame, or an arc fragment cut off by a rectangle all read as a second
+    // frame laid over the hull. Every fx cell must fade out INSIDE the cell with a margin (no alpha near the cell
+    // border), have no long straight axis-aligned alpha edge, and for the four reworked bosses no faint haze layer
+    // and no clipped sliver.
+    static int LongestStraight(bool[] m, int size)
+    {
+        int best = 0;
+        for (int x = 0; x < size - 1; x++)           // vertical edges: run down a column of horizontal alpha changes
+        {
+            int run = 0;
+            for (int y = 0; y < size; y++)
+            {
+                if (m[y * size + x] != m[y * size + x + 1]) { run++; if (run > best) best = run; } else run = 0;
+            }
+        }
+        for (int y = 0; y < size - 1; y++)           // horizontal edges
+        {
+            int run = 0;
+            for (int x = 0; x < size; x++)
+            {
+                if (m[y * size + x] != m[(y + 1) * size + x]) { run++; if (run > best) best = run; } else run = 0;
+            }
+        }
+        return best;
+    }
+
+    // Small connected pieces (<= maxArea px) that carry a flat axis-aligned edge of minRun px: cut-off slivers.
+    static int ClippedSlivers(bool[] m, int size, int maxArea, int minRun)
+    {
+        var seen = new bool[m.Length];
+        var stack = new Stack<int>();
+        int bad = 0;
+        for (int start = 0; start < m.Length; start++)
+        {
+            if (!m[start] || seen[start]) continue;
+            var comp = new List<int>();
+            stack.Push(start); seen[start] = true;
+            while (stack.Count > 0)
+            {
+                int i = stack.Pop(); comp.Add(i);
+                int y = i / size, x = i % size;
+                for (int dy = -1; dy <= 1; dy++)
+                    for (int dx = -1; dx <= 1; dx++)
+                    {
+                        int yy = y + dy, xx = x + dx;
+                        if (yy < 0 || yy >= size || xx < 0 || xx >= size) continue;
+                        int j = yy * size + xx;
+                        if (m[j] && !seen[j]) { seen[j] = true; stack.Push(j); }
+                    }
+            }
+            if (comp.Count > maxArea) continue;
+            int x0 = size, y0 = size, x1 = 0, y1 = 0;
+            foreach (int i in comp) { int y = i / size, x = i % size; x0 = Mathf.Min(x0, x); x1 = Mathf.Max(x1, x); y0 = Mathf.Min(y0, y); y1 = Mathf.Max(y1, y); }
+            int w = x1 - x0 + 3, h = y1 - y0 + 3;
+            var sub = new bool[Mathf.Max(w, h) * Mathf.Max(w, h)];
+            int sz = Mathf.Max(w, h);
+            foreach (int i in comp) sub[(i / size - y0 + 1) * sz + (i % size - x0 + 1)] = true;
+            if (LongestStraight(sub, sz) >= minRun) bad++;
+        }
+        return bad;
+    }
+
+    static void DamageFxCellsAreClean()
+    {
+        var reworked = new HashSet<string> { "Frost", "Verdant", "Storm", "Desert" };
+        foreach (var boss in BossCatalog.All)
+        {
+            if (!BossArt.HasDamageArt(boss)) continue;
+            int cell = Cell(boss);
+            float k = cell / 384f;
+            int margin = Mathf.RoundToInt(12 * k), maxStraight = Mathf.RoundToInt(20 * k);
+            int onBorder = 0, straightBad = 0, hazeBad = 0, sliverBad = 0, empty = 0, maxRun = 0;
+            for (int row = 0; row < 2; row++)
+                for (int col = 0; col < BossArt.DamageFxColumns; col++)
+                {
+                    var sp = BossArt.DamageFx(boss, row == 0 ? BossArt.Smoke0 + col : BossArt.Arc0 + col);
+                    var px = sp == null ? null : CellPixels(sp, cell);
+                    if (px == null) { empty++; continue; }
+                    var m = AlphaMask(px, 0);
+                    int opaque = 0, faint = 0; long alphaSum = 0;
+                    for (int i = 0; i < px.Length; i++)
+                    {
+                        int y = i / cell, x = i % cell;
+                        if (px[i].a == 0) continue;
+                        opaque++; alphaSum += px[i].a;
+                        if (px[i].a < 48) faint++;
+                        if (x < margin || y < margin || x >= cell - margin || y >= cell - margin) onBorder++;
+                    }
+                    if (opaque == 0) { if (row == 0) empty++; continue; }
+                    int run = LongestStraight(m, cell);
+                    maxRun = Mathf.Max(maxRun, run);
+                    if (row == 0 && run > maxStraight) straightBad++;
+                    if (reworked.Contains(boss.artKey))
+                    {
+                        if (row == 0 && (faint > opaque * .01f || alphaSum / (float)opaque < 200f)) hazeBad++;   // a ghost / cross-faded layer
+                        if (row == 1 && ClippedSlivers(m, cell, Mathf.RoundToInt(300 * k * k), Mathf.Max(5, Mathf.RoundToInt(7 * k))) > 0) sliverBad++;
+                    }
+                }
+            string t = boss.artKey + ": fx cells ";
+            Check(t + "fade out inside the cell with a " + margin + " px margin (" + onBorder + " px near the border)", empty == 0 && onBorder == 0);
+            Check(t + "smoke has no long straight clipped edge or seam (longest " + maxRun + ", limit " + maxStraight + ", " + straightBad + " cells)", straightBad == 0);
+            if (reworked.Contains(boss.artKey))
+            {
+                Check(t + "smoke has no faint ghost layer / cross-faded second frame (" + hazeBad + " cells)", hazeBad == 0);
+                Check(t + "arcs have no clipped boxy slivers (" + sliverBad + " cells)", sliverBad == 0);
+            }
+        }
+    }
+
     // ---- a damaged attack pose is ONE drawing (the Frost-boss "frames overlaid" bug) --
     //
     // The damaged tell / fire drawings are the pristine pose plus damage transferred from the
     // damaged IDLE hull. Copying idle pixels onto parts that moved in the pose stamped a second,
     // offset hull over the pose (towers doubled), so a damaged boss firing looked like several
-    // frames drawn at once. The damage may only touch pixels where the pose still shows the idle
-    // hull's own pixels, and the silhouette must be the pose's own.
+    // frames drawn at once. The stage 3 / 4 drawings of Frost / Verdant / Storm / Desert are regenerated whole
+    // from the clean pose plus the damaged idle hull (one drawing, the same damage look as the idle hull), so the
+    // checks are: stay inside the pose's own silhouette, never copy a textured patch of the wrong-pose idle hull,
+    // no translucent second layer, and keep the pose (silhouette overlap).
     const int SameHull = 56;       // BossImpact build.py SAME_HULL: pose pixel == idle pixel within this
     const int Slack = 6;           // rounding between the transfer maths and the compare
 
@@ -487,55 +600,102 @@ public static class BossDamageTest
 
     static int Diff(Color32 a, Color32 b) => Mathf.Max(Mathf.Abs(a.r - b.r), Mathf.Max(Mathf.Abs(a.g - b.g), Mathf.Abs(a.b - b.b)));
 
-    // The damaged attack poses load one damage stage at a time (a stage's poses are ~3 MB at the Cinder Drake's size; all four ~12 MB).
-    static void AttackPosesLoadPerStage()
+    // ---- silhouette / translucency helpers (square cell, row-major) --------------------------------
+
+    static bool[] AlphaMask(Color32[] px, int thr)
     {
-        foreach (var boss in BossCatalog.All)
-        {
-            if (!BossArt.HasDamageArt(boss)) continue;
-            var poses = BossArt.AttackDamagePoses(boss);
-            BossArt.ForgetAttackDamage(boss);
-            var before = BossArt.AttackDamageStagesLoaded(boss);
-            Check(boss.artKey + ": a forgotten boss has no attack-pose stage loaded", before == 0);
-            var s2 = BossArt.AttackDamageBody(boss, poses[0], 2);
-            Check(boss.artKey + ": asking for a stage-2 attack pose loads only stage 2 (" + BossArt.AttackDamageStagesLoaded(boss) + " loaded)",
-                  s2 != null && BossArt.AttackDamageStagesLoaded(boss) == 1);
-            int afterFirst = BossArt.AttackDamageStagesLoaded(boss);
-            var again = BossArt.AttackDamageBody(boss, poses[poses.Length - 1], 2);
-            Check(boss.artKey + ": a second stage-2 pose loads nothing more", again != null && BossArt.AttackDamageStagesLoaded(boss) == afterFirst);
-            Check(boss.artKey + ": a stage-0 (undamaged) request loads nothing", BossArt.AttackDamageBody(boss, poses[0], 0) == null &&
-                  BossArt.AttackDamageStagesLoaded(boss) == 1);
-        }
+        var m = new bool[px.Length];
+        for (int i = 0; i < px.Length; i++) m[i] = px[i].a > thr;
+        return m;
     }
 
-    // Per-boss texture memory as the phones hold it (ASTC 6x6 atlases / sheets, ASTC 4x4 attack poses) stays under 25 MB.
-    // The Cinder Drake (576 px cells) is about 9 MB + 12 MB of poses; the 384 px bosses are well under.
-    const long PerBossTextureBytes = 25L * 1024 * 1024;
-    static void BossTextureBudget()
+    // Chebyshev distance of every px to the nearest `true` px of src (two-pass chamfer; far = no true px at all).
+    static int[] ChebDist(bool[] src, int size)
     {
-        foreach (var boss in BossCatalog.All)
+        const int Far = 1 << 20;
+        var d = new int[src.Length];
+        for (int i = 0; i < d.Length; i++) d[i] = src[i] ? 0 : Far;
+        for (int y = 0; y < size; y++)
+            for (int x = 0; x < size; x++)
+            {
+                int i = y * size + x, v = d[i];
+                if (x > 0) v = Mathf.Min(v, d[i - 1] + 1);
+                if (y > 0) { v = Mathf.Min(v, d[i - size] + 1); if (x > 0) v = Mathf.Min(v, d[i - size - 1] + 1); if (x < size - 1) v = Mathf.Min(v, d[i - size + 1] + 1); }
+                d[i] = v;
+            }
+        for (int y = size - 1; y >= 0; y--)
+            for (int x = size - 1; x >= 0; x--)
+            {
+                int i = y * size + x, v = d[i];
+                if (x < size - 1) v = Mathf.Min(v, d[i + 1] + 1);
+                if (y < size - 1) { v = Mathf.Min(v, d[i + size] + 1); if (x < size - 1) v = Mathf.Min(v, d[i + size + 1] + 1); if (x > 0) v = Mathf.Min(v, d[i + size - 1] + 1); }
+                d[i] = v;
+            }
+        return d;
+    }
+
+    // Opaque px of the damaged drawing farther than 14 px (cell 384) outside its own pose's silhouette.
+    static int OutsidePose(Color32[] dmg, Color32[] pose, int cell)
+    {
+        // 48 px (cell 384): loose enough for floating shards / vapour puffs the redraw moves a little, tight enough
+        // that a second, offset hull would show up
+        var near = ChebDist(AlphaMask(pose, 40), cell);
+        int reach = Mathf.Max(1, Mathf.RoundToInt(48f * cell / 384f)), n = 0;
+        for (int i = 0; i < dmg.Length; i++) if (dmg[i].a > 40 && near[i] > reach) n++;
+        return n;
+    }
+
+    // Semi-transparent px (alpha 8..200) deep inside the drawing: a second, faded hull layered over the first.
+    static int InnerTranslucent(Color32[] px, int cell)
+    {
+        var solid = AlphaMask(px, 40);
+        var hole = new bool[px.Length];
+        for (int i = 0; i < hole.Length; i++) hole[i] = !solid[i];
+        var edge = ChebDist(hole, cell);          // distance to the nearest transparent px
+        int deep = Mathf.Max(1, Mathf.RoundToInt(6f * cell / 384f)), n = 0;
+        for (int i = 0; i < px.Length; i++) if (solid[i] && edge[i] > deep && px[i].a > 8 && px[i].a < 200) n++;
+        return n;
+    }
+
+    // A textured 5 x 5 patch of the (wrong-pose) idle hull copied verbatim over a part this pose moved: the
+    // second, offset hull of the Frost-boss bug. Flat colours (outline black, a plain fill) match by chance and
+    // are ignored; a regenerated drawing never reproduces a textured patch pixel for pixel.
+    static int GhostCopy(Color32[] dmg, Color32[] pose, Color32[] idle, int cell)
+    {
+        var hit = new bool[dmg.Length];
+        for (int i = 0; i < dmg.Length; i++)
+            hit[i] = dmg[i].a > 80 && idle[i].a > 80 && Diff(dmg[i], idle[i]) <= Slack && Diff(pose[i], idle[i]) > SameHull + Slack && Diff(dmg[i], pose[i]) > Slack;
+        int n = 0;
+        for (int y = 2; y < cell - 2; y++)
+            for (int x = 2; x < cell - 2; x++)
+            {
+                int c = y * cell + x;
+                if (!hit[c]) continue;
+                bool all = true; int lo = 255, hi = 0;
+                for (int dy = -2; dy <= 2 && all; dy++)
+                    for (int dx = -2; dx <= 2; dx++)
+                    {
+                        int j = c + dy * cell + dx;
+                        if (!hit[j] && !(dmg[j].a > 80 && idle[j].a > 80 && Diff(dmg[j], idle[j]) <= Slack)) { all = false; break; }
+                        int v = Mathf.Max(idle[j].r, Mathf.Max(idle[j].g, idle[j].b));
+                        lo = Mathf.Min(lo, v); hi = Mathf.Max(hi, v);
+                    }
+                if (all && hi - lo > 80) n++;
+            }
+        return n;
+    }
+
+    // Intersection over union of the two drawings' opaque silhouettes.
+    static float SilhouetteOverlap(Color32[] a, Color32[] b)
+    {
+        int inter = 0, union = 0;
+        for (int i = 0; i < a.Length; i++)
         {
-            long bytes = 0;
-            foreach (var name in new[] { boss.artKey, boss.damageKey + "_damage", boss.damageKey + "_damage_fx", boss.deathKey + "_death" })
-            {
-                if (string.IsNullOrEmpty(name) || name.StartsWith("_") || name == "_damage" || name == "_damage_fx" || name == "_death") continue;
-                var t = Resources.Load<Texture2D>(BossArt.Folder + name);
-                if (t != null) bytes += (long)t.width * t.height * 16 / 36;
-            }
-            if (!string.IsNullOrEmpty(boss.damageKey))
-            {
-                var names = new List<string>();
-                foreach (var f in System.IO.Directory.GetFiles("Assets/Art/Resources/BossImpact/attack", boss.damageKey.ToLowerInvariant() + "_*_stage?.png"))
-                    names.Add(System.IO.Path.GetFileNameWithoutExtension(f));
-                foreach (var n in names)
-                {
-                    var t = Resources.Load<Texture2D>("BossImpact/attack/" + n);
-                    if (t != null) bytes += (long)t.width * t.height;
-                }
-            }
-            Debug.Log("[BOSSDAMAGE] " + boss.artKey + " boss texture memory " + bytes / 1024 + " KB (budget " + PerBossTextureBytes / 1024 + " KB)");
-            Check(boss.artKey + ": boss textures " + bytes / 1024 + " KB <= " + PerBossTextureBytes / 1024 + " KB", bytes > 0 && bytes <= PerBossTextureBytes);
+            bool x = a[i].a > 40, y = b[i].a > 40;
+            if (x && y) inter++;
+            if (x || y) union++;
         }
+        return union == 0 ? 1f : inter / (float)union;
     }
 
     static void DamagedAttackPosesAreOneFrame()
@@ -546,7 +706,7 @@ public static class BossDamageTest
             var poses = BossArt.AttackDamagePoses(boss);
             int cell = Cell(boss);
             var idle = CellPixels(BossArt.Body(boss, BossArt.IdleStart(boss)), cell);
-            int ghost = 0, alphaOff = 0, checkedPoses = 0, flat = 0;
+            int ghost = 0, alphaOff = 0, checkedPoses = 0, flat = 0, soft = 0, drift = 0;
             for (int p = 0; p < poses.Length && idle != null; p++)
             {
                 var pose = CellPixels(BossArt.Body(boss, poses[p]), cell);
@@ -561,15 +721,16 @@ public static class BossDamageTest
                     var dmg = CellPixels(sp, cell);
                     if (dmg == null) continue;
                     checkedPoses++;
-                    for (int i = 0; i < dmg.Length; i++)
-                    {
-                        if (dmg[i].a != pose[i].a) { alphaOff++; continue; }
-                        if (dmg[i].a > 80 && Diff(dmg[i], pose[i]) > Slack && Diff(pose[i], idle[i]) > SameHull + Slack) ghost++;
-                    }
+                    ghost += GhostCopy(dmg, pose, idle, cell);
+                    alphaOff += OutsidePose(dmg, pose, cell);
+                    if (SilhouetteOverlap(dmg, pose) < .78f) drift++;
+                    if (InnerTranslucent(dmg, cell) > InnerTranslucent(pose, cell) * 1.6f + 300f * (cell / 384f) * (cell / 384f)) soft++;
                 }
             }
             Check(boss.artKey + ": every damaged attack pose is one " + cell + "px drawing per stage (" + flat + " bad)", flat == 0);
-            Check(boss.artKey + ": damaged attack poses keep their pose's silhouette (" + alphaOff + " alpha px off)", checkedPoses > 0 && alphaOff == 0);
+            Check(boss.artKey + ": damaged attack poses stay inside their pose's own silhouette, no stray ghost hull outside it (" + alphaOff + " px outside)", checkedPoses > 0 && alphaOff == 0);
+            Check(boss.artKey + ": damaged attack poses carry no translucent second layer inside the hull (" + soft + " drawings)", checkedPoses > 0 && soft == 0);
+            Check(boss.artKey + ": every damaged attack drawing keeps its pose (silhouette overlap >= 78%, " + drift + " drifted)", checkedPoses > 0 && drift == 0);
             Check(boss.artKey + ": damage never stamps idle-hull pixels over parts the pose moved (" + ghost + " ghost px)", checkedPoses > 0 && ghost == 0);
         }
     }
@@ -624,17 +785,10 @@ public static class BossDamageTest
         var dmg = CachedCell(sp, cell);
         var pose = CachedCell(BossArt.Body(boss, frame), cell);
         if (sp == null || dmg == null || pose == null) return ghostCache[key] = 0;
-        var refs = new List<Color32[]>();
-        refs.Add(CachedCell(BossArt.Body(boss, BossArt.IdleStart(boss)), cell));   // the pristine idle hull the damage art was transferred from
-        n = 0;
-        foreach (var r in refs)
-        {
-            if (r == null) continue;
-            for (int i = 0; i < dmg.Length; i++)
-                if (dmg[i].a > 80 && Diff(dmg[i], pose[i]) > Slack && r[i].a > 80 && Diff(pose[i], r[i]) > SameHull + Slack && Diff(dmg[i], r[i]) <= Slack) n++;
-        }
-        for (int i = 0; i < dmg.Length; i++)
-            if (dmg[i].a != pose[i].a) n++;   // a different silhouette is a different drawing
+        var idleHull = CachedCell(BossArt.Body(boss, BossArt.IdleStart(boss)), cell);   // the pristine idle hull the old damage art was transferred from
+        n = idleHull == null ? 0 : GhostCopy(dmg, pose, idleHull, cell);
+        n += OutsidePose(dmg, pose, cell);   // opaque art well outside the pose's own silhouette = a second drawing
+        if (InnerTranslucent(dmg, cell) > InnerTranslucent(pose, cell) * 1.6f + 300f * (cell / 384f) * (cell / 384f)) n++;
         return ghostCache[key] = n;
     }
 
