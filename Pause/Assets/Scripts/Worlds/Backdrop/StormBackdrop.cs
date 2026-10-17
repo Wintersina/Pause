@@ -276,6 +276,8 @@ public class StormDirector : PlanetDirector
     float sheetIn;
     readonly List<Material> mats = new List<Material>();
     StormLightning storm;
+    StormLife life;
+    public StormLife Life => life;
 
     public static int SeedOverride;
     public StormDirector() : base(SeedOverride > 0 ? SeedOverride : 2077) { }
@@ -365,6 +367,8 @@ public class StormDirector : PlanetDirector
             go.transform.localPosition = new Vector3((StormTuning.LampsAt.x - 128f) / ppu, (128f - StormTuning.LampsAt.y) / ppu, 0f);
             go.transform.localScale = new Vector3(k, k, 1f);
         }
+        life = new StormLife(ground, set.Atlas("rotors"), landmarkArt.Get(StormLifeTuning.TurbinePiece),
+                             flashArt.Length > 0 ? flashArt[0] : null, 4242);   // own seed: never draws from the director's rng (that would reshuffle the whole backdrop)
         glow = Pool("glow", 4);
         bolts = Pool("bolts", 4);
         mist = Pool("mist", 3);
@@ -453,6 +457,7 @@ public class StormDirector : PlanetDirector
         if (debrisIn <= 0f) { debrisIn = Rand(StormTuning.DebrisEveryMin, StormTuning.DebrisEveryMax); SpawnDebris(); }
 
         StepPinned(ground, dt);
+        life.Step(dt);
         StepPinned(sites, dt);
         StepEye(dt, scrolled);
         StepSites(dt);
@@ -884,8 +889,9 @@ public class StormDirector : PlanetDirector
     }
 
     // Preview / tests: clears the ground plane and shows `name` alone at screen x, y.
-    public BackdropPiece Showcase(string name, float size, float x, float y, bool mirror = false)
+    public BackdropPiece Showcase(string name, float size, float x, float y, bool mirror = false, bool keep = false)
     {
+        if (!keep)
         foreach (var pool in new[] { ground, sites })
             foreach (var q in pool.items)
                 if (q.active) { planner.Release(q.footprint); q.footprint = -1; Despawn(q); }

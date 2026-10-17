@@ -32,6 +32,7 @@ public static class StormBackdropPreview
                 if (only == "" || only.Contains("variants")) Variants(dir);
                 if (only == "" || only.Contains("bolts")) Bolts(dir);
                 if (only == "" || only.Contains("pieces")) Pieces(dir);
+                if (only.Contains("life")) Life(dir);
             }
             catch (System.Exception e) { Debug.LogException(e); failures++; }
             finally
@@ -88,6 +89,39 @@ public static class StormBackdropPreview
             RailFit.RefreshTextureTiling(wall);
         }
         BossRails.Measure();
+    }
+
+    // Before / after clips of the backdrop's new life: frames of a ground with a turbine raft, a thunderhead tower, a mast and a
+    // skyhook, 15 fps for 8 s, once still (the old look) and once alive.
+    static void Life(string dir)
+    {
+        var cam = Scene(5, 5);
+        var wb = WorldBackdrop.Create("Storm");
+        BackdropVariants.For("Storm").Force = 2;
+        wb.Show("Space", false);
+        wb.Show("Storm", false);
+        var d = (StormDirector)wb.Current.Director;
+        foreach (bool still in new[] { true, false })
+        {
+            StormLife.Still = still;
+            wb.Show("Space", false);
+            wb.Show("Storm", false);
+            d = (StormDirector)wb.Current.Director;
+            moveBackGround.speed = .03f;
+            while (d.Clock < 17f) wb.Step(Dt);   // past the cloud ceiling, which hides the ground for the first ~14 s
+            d.Showcase(StormLifeTuning.TurbinePiece, 1.9f, -.9f, 1.5f);
+            d.Showcase("anvil_tower_00", 1.9f, .95f, .3f, false, true);
+            d.Showcase("spire_00", 1.7f, -.95f, -1.0f, false, true);
+            d.Showcase("skyhook_00", 1.7f, .9f, -1.7f, true, true);
+            string sub = Path.Combine(dir, still ? "before" : "after");
+            Directory.CreateDirectory(sub);
+            for (int f = 0; f < 120; f++)
+            {
+                for (int s = 0; s < 4; s++) wb.Step(Dt);
+                Capture(cam, Path.Combine(sub, f.ToString("000") + ".png"), 2);
+            }
+        }
+        StormLife.Still = false;
     }
 
     static float HalfEyeY(StormDirector d) { return 1.6f; }
