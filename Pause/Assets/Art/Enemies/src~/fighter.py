@@ -19,7 +19,7 @@ FRAMES = [
     (-4, 1.05, 0.93, 3, 0.25),   # 4 tell: wind-up squash
     (6, 0.96, 1.07, -3, 1.0),    # 5 tell: snap, visor flare
 ]
-IDLE_TICKS = [6, 3, 2, 3]
+IDLE_TICKS = [6, 4, 5, 4]
 TELL_TICKS = [2, 3]
 
 # per-frame secondary motion

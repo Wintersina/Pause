@@ -471,6 +471,7 @@ public static class EnemyRosterTest
         foreach (var other in EnemyRoster.All)
             if (other.key != "space_alien")
                 Check(other.key + " idle is unchanged",
+                      EnemyRoster.FlapsWings(other) ||   // wing / limb flappers keep the original livelier holds
                       System.Linq.Enumerable.SequenceEqual(EnemyRoster.IdleTicks(other), EnemyRoster.IdleTicks(other.role)));
 
         var go = EnemyFactory.Create(def, new Vector3(0f, 50f, 0f), Quaternion.identity);

@@ -29,7 +29,7 @@ FRAMES = [
     (0.1, -5, 0.92),   # 4 tell: clamp shut
     (1.6, 10, 1.06),   # 5 tell: slam open, core flare
 ]
-IDLE_TICKS = [6, 2, 3, 3]
+IDLE_TICKS = [6, 4, 6, 4]
 TELL_TICKS = [3, 4]
 # two small lights blinking out of step: (a, b) level per frame
 BLINK = [(0.6, 0.2), (0.2, 0.6), (1.0, 0.6), (0.6, 0.2), (0.1, 0.1), (1.5, 1.5)]
