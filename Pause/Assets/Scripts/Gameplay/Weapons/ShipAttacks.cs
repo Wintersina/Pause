@@ -1344,13 +1344,20 @@ public static class ShipVolley
         return kills;
     }
 
-    // The Gold Warden's blast art drew far too large: it plays at 30% of the old size.
-    public const int GoldWardenShip = 7;
+    // Blast / fireball burst art drew far too large next to every other weapon's
+    // 0.5-1.1 unit effects (median ~0.8): the Gold Warden plays at 30% of its old
+    // size, the Solar Fang's fireball burst (its hit radius is unchanged) at 40%.
+    public const int GoldWardenShip = 7, SolarFangShip = 3;
     public const float GoldWardenImpactScale = .3f;
+    public const float SolarFangBurstScale = .4f;
+    public const float MaxBurstWorld = 2f;   // guarded by HomingTargetTest
+    public static float BurstScaleFor(int ship)
+    {
+        return ship == GoldWardenShip ? GoldWardenImpactScale : ship == SolarFangShip ? SolarFangBurstScale : 1f;
+    }
     public static float BlastBurstSize(int ship, float radius)
     {
-        float s = radius * 2.3f;
-        return ship == GoldWardenShip ? s * GoldWardenImpactScale : s;
+        return radius * 2.3f * BurstScaleFor(ship);
     }
 
     static int Blast(int ship, ShipLoadout l, Vector3 at, GameObject first, ref float budget)
