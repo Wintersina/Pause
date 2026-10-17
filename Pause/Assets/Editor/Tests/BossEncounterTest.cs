@@ -154,9 +154,9 @@ public static class BossEncounterTest
         var tide = BossCatalog.Find("boss_tide");
         Check("the Iron Kraken is the fifth boss", tide != null && BossCatalog.All.Length == 7 && BossCatalog.All[4] == tide && tide.artKey == "Tide");
         Check("... named IRON KRAKEN, TYRANT OF THE DEEP", tide != null && tide.name == "IRON KRAKEN" && tide.title == "TYRANT OF THE DEEP");
-        Check("expandedCombat: Space, Ember (Cinder Drake) and Tide only", BossCatalog.All[0].expandedCombat && tide.expandedCombat &&
+        Check("expandedCombat: Space, Ember (Cinder Drake), Tide and Desert (the flying Dune-Eater) only", BossCatalog.All[0].expandedCombat && tide.expandedCombat &&
               !BossCatalog.All[1].expandedCombat && !BossCatalog.All[2].expandedCombat && BossCatalog.All[3].expandedCombat &&
-              !BossCatalog.All[5].expandedCombat && !BossCatalog.All[6].expandedCombat);
+              !BossCatalog.All[5].expandedCombat && BossCatalog.All[6].expandedCombat);
         Check("Tide's atlas holds 35 cells", BossArt.BodyFrameCount(tide) == BossArt.BodyFrames);
         Check("its idle is the six tentacle cells at 20..25", BossArt.IdleStart(tide) == 20 && BossArt.IdleCount(tide) == 6 &&
               BossArt.IdleFrame(tide, 0f) == 20 && BossArt.IdleFrame(tide, 5.5f * 2 * BossArt.Tick) == 25);
@@ -228,13 +228,14 @@ public static class BossEncounterTest
         var d = BossCatalog.Find("boss_desert");
         var storm = BossCatalog.Find("boss_storm");
         Check("the Dune-Eater is the seventh boss, on the Desert art", d != null && BossCatalog.All.Length == 7 && BossCatalog.All[6] == d && d.artKey == "Desert");
-        Check("... named DUNE-EATER, FERAL STRIP-MINER", d != null && d.name == "DUNE-EATER" && d.title == "FERAL STRIP-MINER");
-        Check("its atlas is the 20-cell base one, four idle cells", !d.expandedCombat && BossArt.BodyFrameCount(d) == BossArt.BaseBodyFrames &&
-              BossArt.IdleStart(d) == 0 && BossArt.IdleCount(d) == 4);
+        Check("... named DUNE-EATER, " + BossCatalog.DesertTitle + " (the title is a placeholder until chosen)", d != null && d.name == "DUNE-EATER" && d.title == BossCatalog.DesertTitle);
+        Check("it is a flying boss on the Kraken's layout: 35 cells, six idle cells at 20..25, tells 26..34", d.expandedCombat &&
+              BossArt.BodyFrameCount(d) == BossArt.BodyFrames && BossArt.IdleStart(d) == 20 && BossArt.IdleCount(d) == 6 &&
+              BossArt.TellFrame(d, 2, 0f) == 32 && BossArt.FireFrame(d, 0) == 28);
         Check("it has its own atlas, shots and card (not the Tempest Engine's)", BossArt.Body(d, BossArt.Idle0) != BossArt.Body(storm, BossArt.Idle0) &&
               BossArt.Shot(d, 0) != null && BossArt.Shot(d, 0) != BossArt.Shot(storm, 0));
-        Check("its emitter row has Maw, Boom, Lens over the 12 base drawings", BossEmitters.World(d) == 6 &&
-              string.Join(",", BossEmitterTable.Parts[6]) == "Maw,Boom,Lens" && BossEmitterTable.FrameCount(6) == BossEmitterTable.Frames);
+        Check("its emitter row has Maw, Boom, Lens over all 35 drawings", BossEmitters.World(d) == 6 &&
+              string.Join(",", BossEmitterTable.Parts[6]) == "Maw,Boom,Lens" && BossEmitterTable.FrameCount(6) == 35);
         bool parts = d.DefaultAttacks.Length == 3 && d.themed != null && d.themed.Length == 5;
         foreach (var a in d.themed) foreach (int part in a.parts) parts &= part >= 0;
         Check("three default attacks (grit fan, dune lob, lens beam) and a themed table of five that ends in the sandstorm wall", parts &&

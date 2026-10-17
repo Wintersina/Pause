@@ -226,6 +226,9 @@ public static class BossCatalog
     public const string StormDamageKey = "Storm";
     public const string StormDeathKey = "Storm";
 
+    // The Desert boss's title: the user's pick, final (the name card art Desert_card.png has it baked in).
+    public const string DesertTitle = "SKY-DREDGER";
+
     static BossDef[] Build()
     {
         var bosses = new[]
@@ -421,16 +424,16 @@ public static class BossCatalog
                 },
             },
             // ----------------------------------------------------------- Desert
-            // A feral strip-mining bucket-wheel excavator with a grafted worm-maw (docs/desert-world-plan.md section 7). Tells: the maw
-            // opens (0), the drill boom lowers (1), the rear lens dish flares (2). Its default pattern is the maw's grit fan, the boom's
+            // A flying brass-and-glass sand-dredging leviathan: sail-wings, turbine thrusters, a great maw, a crane boom that drops mines and a
+            // lens turret on its crown (docs/desert-world-plan.md section 7); 35-cell atlas like the Kraken's. Tells: the maw
+            // opens (0), the crane boom lowers (1), the crown lens flares (2). Its default pattern is the maw's grit fan, the boom's
             // dune lob and the lens beam; the themed table (BossThemed) adds the burrower strike and the sandstorm wall.
             // Battle damage (Desert_damage.png, Desert_damage_fx.png) and the six-cell death strip (Desert_death.png) are Codex's, installed.
             new BossDef
             {
-                id = CodexPrefix + "desert", name = "DUNE-EATER", title = "FERAL STRIP-MINER", artKey = "Desert", damageKey = "Desert", deathKey = "Desert",
-                lore = "A bucket-wheel excavator the size of a refinery that kept mining after the company stopped paying it, and grew a worm's maw to " +
-                       "do it faster. Its maw opens a moment before the grit fan, its drill boom lowers before the sand comes down on your lanes, " +
-                       "and the lens dish flares white a second before it cuts the sky in half. Watch which part moves first.",
+                id = CodexPrefix + "desert", name = "DUNE-EATER", title = DesertTitle, artKey = "Desert", damageKey = "Desert", deathKey = "Desert", expandedCombat = true,
+                lore = "A refinery-sized sand leviathan, half manta, half armoured sandworm, that dredged the dunes for a lifetime and now dredges the sky on sail-wings and turbines. " +
+                       "Its maw opens before the grit fan, its crane lowers before the mines drop, and the crown lens flares white before it cuts the sky in half.",
                 swayX = 1.1f, swayY = .16f, freqX = .27f, freqY = .54f, flash = DesertFlash, heartColor = DesertHeart,
                 attacks = new[]
                 {
@@ -440,7 +443,7 @@ public static class BossCatalog
                                      volleys = 3, volleyGap = .65f, count = 5, spreadDeg = 84f, rotateDeg = 10f,
                                      speed = 2.5f, style = BossShotStyle.Shard,
                                      rail = BossRailMode.Bounce, bounces = 1, cooldown = 1.2f },
-                    // The drill boom lowers, then slugs are flung up out of it and rain down on four of five columns.
+                    // The crane boom lowers, then slugs are flung up out of it and rain down on four of five columns.
                     new BossAttack { name = "dune lob", kind = BossAttackKind.Lob, tell = 1, tellSeconds = .9f,
                                      emitters = new[] { "Boom" },
                                      volleys = 2, volleyGap = .55f, count = 4, style = BossShotStyle.Bolt,
