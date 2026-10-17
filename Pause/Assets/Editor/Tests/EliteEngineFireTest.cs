@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 
@@ -44,6 +45,7 @@ public static class EliteEngineFireTest
         fails = 0;
         EliteCatalog.Reload();
         foreach (string key in Keys) One(key);
+        Seats();
         Debug.Log("[EEF] failures: " + fails);
         return fails;
     }
@@ -103,5 +105,51 @@ public static class EliteEngineFireTest
         Check(key + ": idle cells keep the " + Margin + " px framing margin (" + edge + " px inside it)", edge == 0);
         Check(key + ": no pink flame outside Space (" + pink + " px)", pink == 0);
         if (key.StartsWith("frost_")) Check(key + ": Frost fire stays cold, no red / orange (" + hot + " px)", hot == 0);
+    }
+
+    // ---- every flame root sits in its bell mouth, in every cell ------------------------------------------------
+    // engine_mouths.txt (written by engine_fire.py): one line per engine per cell, "key cell cx cy rx ry" -- the mouth the flame was seated
+    // on (flight, bank, damaged: the burning engine only, lift-off). The check reads the PIXELS: solid hull right above the flame root across the
+    // middle of the mouth, and the fire just under the root centred on the mouth (not hanging beside the bell with the mouth visible and empty).
+    const string MouthsFile = "Assets/Art/Enemies/src~/elite_engine_fire/engine_mouths.txt";
+
+    static void Seats()
+    {
+        var lines = File.ReadAllLines(MouthsFile);
+        var cache = new Dictionary<string, Color32[]>();
+        var width = new Dictionary<string, int>();
+        int total = 0, bad = 0;
+        string worst = "";
+        foreach (var ln in lines)
+        {
+            var p = ln.Split(' ');
+            if (p.Length != 6) continue;
+            string key = p[0]; int cell = int.Parse(p[1]); float cx = float.Parse(p[2]), cy = float.Parse(p[3]), rx = float.Parse(p[4]), ry = float.Parse(p[5]);
+            if (!cache.ContainsKey(key))
+            {
+                var t = new Texture2D(2, 2, TextureFormat.RGBA32, false);
+                t.LoadImage(File.ReadAllBytes(Dir(key) + key + ".png"));
+                cache[key] = t.GetPixels32(); width[key] = t.width; Object.DestroyImmediate(t);
+            }
+            var px = cache[key]; int W = width[key];
+            Color32 P(int x, int y) { return px[(S - 1 - y) * W + cell * S + x]; }
+            total++;
+            int yr = Mathf.FloorToInt(cy - ry * .5f);
+            int hullN = 0, hullAll = 0;
+            for (int x = Mathf.FloorToInt(cx - rx * .6f); x <= Mathf.FloorToInt(cx + rx * .6f); x++) { hullAll++; if (P(x, yr - 4).a > 128) hullN++; }
+            float w = Mathf.Max(rx, 6f);
+            int n = 0; float sx = 0;
+            for (int y = yr + 4; y < yr + 10; y++)
+                for (int x = Mathf.FloorToInt(cx - w); x <= Mathf.FloorToInt(cx + w); x++)
+                {
+                    var c = P(x, y);
+                    int mx = Mathf.Max(c.r, Mathf.Max(c.g, c.b)), mn = Mathf.Min(c.r, Mathf.Min(c.g, c.b));
+                    if (c.a > 200 && mx > 130 && (mx - mn > 50 || mn > 215)) { n++; sx += x; }
+                }
+            float off = n > 0 ? sx / n - cx : 99f;
+            bool ok = n >= 5 && hullN >= hullAll * .5f && Mathf.Abs(off) <= Mathf.Max(3.5f, rx * .55f);
+            if (!ok) { bad++; if (worst.Length < 300) worst += key + " cell " + cell + " (" + cx + "," + cy + ") off " + off.ToString("0.0") + "; "; }
+        }
+        Check("every flame root sits inside its bell mouth in every cell: flight, bank, damaged (burning engine), lift-off (" + total + " engines, " + bad + " off; " + worst + ")", total > 400 && bad == 0);
     }
 }

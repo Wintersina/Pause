@@ -131,14 +131,17 @@ def build(key, src_dir, out_dir, mode, length=None, cols=None, manual=None, keep
     return a, base, mouths, cols, cs
 
 
-def match_shift(R, C, m, rng=14):
+SEATS = {}   # key -> {cell: mouths as seated in that cell} (written to engine_mouths.txt, read by EliteEngineFireTest)
+
+
+def match_shift(R, C, m, rng=14, centre=(0, 0)):
     """(dx, dy) that carries the reference hull R onto cell C around mouth m: matched on the bell body above the flame."""
     cx, cy, rx, ry = m
     x0, x1 = int(cx - rx - 10), int(cx + rx + 10); y0, y1 = int(cy - 26), int(cy - max(5, ry * .6))
     ref = R[y0:y1, x0:x1].astype(int)
     best = (1e18, 0, 0)
-    for dy in range(-rng, rng + 1):
-        for dx in range(-rng, rng + 1):
+    for dy in range(centre[1] - rng, centre[1] + rng + 1):
+        for dx in range(centre[0] - rng, centre[0] + rng + 1):
             cur = C[y0 + dy:y1 + dy, x0 + dx:x1 + dx].astype(int)
             if cur.shape != ref.shape: continue
             e = np.abs(cur - ref).sum() + 400 * (np.abs(cur[..., 3] - ref[..., 3]) > 100).sum()
@@ -162,9 +165,20 @@ def bank_cells(a, d, base, mouths, cols, L):
         if idx is None or idx < 0: continue
         C = np.array(cell(a, idx)); X = C.copy(); yy, xx = np.indices((CELL, CELL))
         sh = []; burning = []
-        for m in mouths:
-            dx, dy = match_shift(R, C, m)
-            sh.append((dx, dy)); burning.append(old_flame_on(C, m, dx, dy) > 150)
+        raw = [match_shift(R, C, m) for m in mouths]
+        mdx = int(np.median([r[0] for r in raw])); mdy = int(np.median([r[1] for r in raw]))
+        for m, (dx, dy) in zip(mouths, raw):
+            if abs(dx - mdx) > 3 or abs(dy - mdy) > 3:        # the barrels move together: a lone outlier is a bad match on repeated texture
+                dx, dy = match_shift(R, C, m, rng=3, centre=(mdx, mdy))
+            if d["key"].split("_")[0] in DARK_MOUTH:
+                # the old flames hang detached under the bell, so the mouth's dark ellipse is visible in this very cell: seat on that, not on a shifted copy
+                try:
+                    op = T.find_openings(Image.fromarray(C, "RGBA"), [(int(m[0] + dx), int(m[1] + dy))], {})[0]
+                    if abs(op[0] - (m[0] + dx)) <= 10 and abs(op[1] - (m[1] + dy)) <= 10 and .6 * m[2] <= op[2] <= 1.4 * m[2]:
+                        dx, dy = int(round(op[0] - m[0])), int(round(op[1] - m[1]))
+                except Exception:
+                    pass
+            sh.append((dx, dy)); burning.append(old_flame_on(C, m, dx, dy))
         for m, (dx, dy) in zip(mouths, sh):
             cx, cy, rx, ry = m
             zone = (np.abs(xx - (cx + dx)) <= rx + 8) & (yy >= cy + dy - ry - 1) & (yy < CELL)
@@ -178,7 +192,7 @@ def bank_cells(a, d, base, mouths, cols, L):
             lens = [(L * .42, .9) for _ in mm]
             im = T.engine_fx(base_c, mm, lens, cols, 77)
         elif name == "damaged":
-            keep = [i for i, b in enumerate(burning) if b] or [0]
+            keep = [int(np.argmax(burning))]       # the damaged cell keeps exactly one sputtering engine: the one that burned most in the old cell
             lens = [((L * .6, .85) if i in keep else (0, 0)) for i in range(len(mm))]
             sel = [(m, l) for m, l in zip(mm, lens) if l[0] > 0]
             im = T.engine_fx(base_c, [m for m, _ in sel], [l for _, l in sel], cols, 99, ragged=.6) if sel else base_c
@@ -187,6 +201,8 @@ def bank_cells(a, d, base, mouths, cols, L):
             im = T.engine_fx(base_c, mm, lens, cols, 40 + idx)
         im = im.copy(); im.paste((0, 0, 0, 0), (0, CELL - 6, CELL, CELL))
         out[idx] = im
+        rec = [mm[int(np.argmax(burning))]] if name == "damaged" else mm
+        SEATS.setdefault(d["key"], {})[idx] = [list(map(float, m)) for m in rec]
     return out
 
 
@@ -254,6 +270,7 @@ FORCE_PALETTE = {"frost", "verdant"}   # their own cold / green fire, not whatev
 FACTOR = {"desert_elite_caravan_hauler": .72, **{f"ember_elite_{n}": .75 for n in ("ash_wraith", "brass_vulture", "cauterizer", "coalrunner", "kilnback", "sunstoke")}}
 LENGTH = {"frost_elite_cryo_siren": 30, "verdant_elite_leafblade": 22, "verdant_elite_sporebloom": 20, "verdant_elite_thornlash": 22, "verdant_elite_timber_hauler": 18, "storm_elite_anvil_cloud": 24, "storm_elite_refinery_tender": 22, "storm_elite_rod_dancer": 22, "storm_elite_skyhook_harrier": 20, "storm_elite_static_bastion": 20, "frost_elite_floe_harrower": 30, "frost_elite_glacier_tender": 28, "frost_elite_whiteout_sentinel": 30}   # key -> flame length in engine_fx units (px = L * 2)
 DEATH_FIX = {"frost_elite_cryo_siren", "frost_elite_rimebreaker", "verdant_elite_resin_warden"} | {f"ember_elite_{n}" for n in ("ash_wraith", "brass_vulture", "cauterizer", "coalrunner", "kilnback", "sunstoke")}
+DARK_MOUTH = {"desert", "storm"}
 LIFT = set()
 LIFT_WORLDS = {"desert", "storm", "frost", "verdant"}   # their lift-off ignition cell had detached wedges / tips only
 PASSING = set()   # elites left exactly as they are
@@ -302,9 +319,43 @@ def run(world, out_dir=None, keys=None, defs=True):
             m = re.search(r'"flight": \[[^\]]*\]', txt)
             blk = '"flight": [\n      ' + ',\n      '.join(str(i) for i in t) + '\n    ]'
             if m and m.group(0) != blk: p.write_text(txt.replace(m.group(0), blk, 1))
+        for t_ in targets(k): SEATS.setdefault(k, {})[t_] = [list(map(float, m)) for m in mouths]
         done.append(k)
         print(k, [tuple(round(v) for v in m) for m in mouths])
+    save_seats()
     return done
+
+
+MOUTHS_FILE = HERE / "engine_mouths.txt"
+
+
+def save_seats():
+    """engine_mouths.txt: one line per engine per cell, 'key cell cx cy rx ry' (merged with what other worlds wrote)."""
+    rows = {}
+    if MOUTHS_FILE.exists():
+        for ln in MOUTHS_FILE.read_text().splitlines():
+            p = ln.split()
+            if len(p) == 6: rows[(p[0], int(p[1]), len(rows))] = None
+    old = [ln for ln in (MOUTHS_FILE.read_text().splitlines() if MOUTHS_FILE.exists() else []) if ln.split()[0] not in SEATS]
+    new = [f"{k} {c} {m[0]:.0f} {m[1]:.0f} {m[2]:.0f} {m[3]:.0f}" for k in sorted(SEATS) for c in sorted(SEATS[k]) for m in SEATS[k][c]]
+    MOUTHS_FILE.write_text("\n".join(sorted(old + new)) + "\n")
+
+
+def seat_ok(cell_px, m, lone_ok=False):
+    """The flame root sits inside its bell mouth: hull right above the root across the middle of the mouth, and the fire just under the root
+    centred on the mouth (not hanging beside the bell). cell_px: 384x384x4 uint8. lone_ok: a dark / sputtering engine with no fire is fine."""
+    cx, cy, rx, ry = m
+    yr = int(cy - ry * .5)
+    row = cell_px[yr - 4, int(cx - rx * .6):int(cx + rx * .6) + 1]
+    hull = float((row[:, 3] > 128).mean()) if len(row) else 0
+    w = max(rx, 6)
+    band = cell_px[yr + 4:yr + 10, int(cx - w):int(cx + w) + 1].astype(int)
+    lum = band[..., :3].max(-1); sat = band[..., :3].max(-1) - band[..., :3].min(-1)
+    fire = (band[..., 3] > 200) & (lum > 130) & ((sat > 50) | (band[..., :3].min(-1) > 215))
+    ys, xs = np.nonzero(fire)
+    if len(xs) < 5: return lone_ok, hull, None
+    cxf = xs.mean() + int(cx - w)
+    return (hull >= .5 and abs(cxf - cx) <= max(3.5, rx * .55)), hull, round(float(cxf - cx), 1)
 
 
 def run_tide(out_dir=None):
@@ -328,10 +379,20 @@ def run_tide(out_dir=None):
         p = RES / "Defs" / f"{key}.json"; s = p.read_text()
         if '"flight": [\n      3\n    ]' in s:
             p.write_text(s.replace('"flight": [\n      3\n    ]', '"flight": [\n      3,\n      7,\n      8,\n      9\n    ]', 1))
+        for t_ in (3, 7, 8, 9): SEATS.setdefault(key, {})[t_] = [list(map(float, m)) for m in mouths]
         done.append(key); print(key, [tuple(round(v) for v in m) for m in mouths])
+    save_seats()
     return done
 
 
 if __name__ == "__main__":
-    if sys.argv[1] == "tide": run_tide(Path(sys.argv[2]) if len(sys.argv) > 2 else None)
+    if sys.argv[1] == "check":
+        bad = 0
+        for ln in MOUTHS_FILE.read_text().splitlines():
+            k, c, *v = ln.split(); w = k.split("_")[0].capitalize()
+            px = np.array(Image.open(RES / w / f"{k}.png").convert("RGBA"))[:, int(c) * CELL:(int(c) + 1) * CELL]
+            ok, hull, off = seat_ok(px, [float(x) for x in v])
+            if not ok: bad += 1; print("MISSEATED", k, "cell", c, "mouth", v, "hull-above", round(hull, 2), "fire dx", off)
+        print("seat check:", bad, "misseated")
+    elif sys.argv[1] == "tide": run_tide(Path(sys.argv[2]) if len(sys.argv) > 2 else None)
     else: run(sys.argv[1], Path(sys.argv[2]) if len(sys.argv) > 2 else None)
