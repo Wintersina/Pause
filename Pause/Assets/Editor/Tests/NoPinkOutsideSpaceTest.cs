@@ -162,8 +162,8 @@ public static class NoPinkOutsideSpaceTest
         else Check("boss attack fx sheet present", false);
 
         // control: Space's own laser kit and boss shots are pink (the rule is not "no pink anywhere")
-        var sp = Load("Attacks/Space/space_attack_laser.png", out int sw, out int sh);
-        Check("control: Space's painted laser kit still carries pink", sp != null && PinkShare(sp, 0, int.MaxValue, sw) > .3f);
+        var sp = Load("Attacks/Space/space_attack_laserbody.png", out int sw, out int sh);
+        Check("control: Space's painted laser kit (its plasma rail body) still carries pink", sp != null && PinkShare(sp, 0, int.MaxValue, sw) > .3f);
     }
 
     // ---- 3 ----

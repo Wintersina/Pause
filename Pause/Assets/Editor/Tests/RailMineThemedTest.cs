@@ -105,7 +105,7 @@ public static class RailMineThemedTest
             // SPACE IS PINK (user, 2026-10-12): the mine fires the painted ion kit as it is, never remapped (white-violet is Storm's)
             Check(t + "the mine's art is the painted laser kit itself, not remapped", src != null && a.kit == src && a.flame == null && MineCue.KeepsPink(0) && !MineCue.KeepsPink(5));
             float pb = PinkShare(a.kit.body[0], out int rb, out int ob), ps = PinkShare(a.kit.sight[0], out int rs, out int os);
-            Check(t + "its beam body is pink (" + (pb * 100f).ToString("F0") + "%) and its aim line is pink (" + (ps * 100f).ToString("F0") + "%)", pb > .3f && ps > .3f);
+            Check(t + "its beam body is pink (" + (pb * 100f).ToString("F0") + "%) and its aim line is pink (" + (ps * 100f).ToString("F0") + "%)", pb > .3f && ps > .2f);   // (the aim line is the new rail kit's dark-keylined magenta dashes: 25 %)
             Check(t + "the cue table: Space pink, every other world's mine cue not pink", WorldCue.IsPink(WorldCue.Body(0)) && MineCue.Hue[0] == WorldCue.Hue[0] && AllOthersNotPink());
             return;
         }

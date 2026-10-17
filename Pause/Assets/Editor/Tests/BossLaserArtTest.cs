@@ -4,8 +4,8 @@ using UnityEditor.SceneManagement;
 using UnityEngine;
 
 // THE BOSSES' PAINTED LASER KITS (Art/Resources/Attacks/<World>/<w>_attack_laser*.png, AttackArt.BossLaser, BossBeam), once per
-// world that fires a beam: Space (pod lasers), Frost (glare beams), Verdant (acid cannons), Ember (jaw flamethrower). Tide's kit is
-// staged, not installed: its boss keeps the generic beam (checked at the end).
+// world that fires a beam: Space (pod lasers), Frost (glare beams), Verdant (acid cannons), Ember (jaw flamethrower), Tide (beak jet),
+// Storm (coil beams), Desert (lens beam); a missing kit falls back to the generic beam (checked at the end).
 //
 //   * the three slots exist with the right sizes, imported point-filtered, uncompressed, mip-free; the kit resolves to its
 //     8 windup / 4 muzzle / 4 fade / 4 impact / 4 spark / 4 body / 2 sight / 2 lock cells; texture memory within budget;
@@ -39,6 +39,9 @@ public static class BossLaserArtTest
         new Kit { world = 1, name = "Frost",   attack = "glare beams",  tell = .8f,  hold = .6f, width = .26f, parts = 2 },
         new Kit { world = 2, name = "Verdant", attack = "acid cannons", tell = 1f,   hold = .8f, width = .3f,  parts = 2 },
         new Kit { world = 3, name = "Ember",   attack = "jaw flamethrower",   tell = .8f,  hold = .8f, width = .34f, parts = 1 },
+        new Kit { world = 4, name = "Tide",    attack = "beak jet",     tell = .9f,  hold = .8f, width = .34f, parts = 1 },
+        new Kit { world = 5, name = "Storm",   attack = "coil beams",   tell = 1f,   hold = .8f, width = .28f, parts = 2 },
+        new Kit { world = 6, name = "Desert",  attack = "lens beam",    tell = 1f,   hold = .8f, width = .3f,  parts = 1 },
     };
     static Kit kit;
     static string Dir => "Assets/Art/Resources/Attacks/" + kit.name + "/";
@@ -278,12 +281,11 @@ public static class BossLaserArtTest
         Check("the fade frames play on the way out, then it recycles", fadeSeen && !b.Active);
     }
 
-    // Tide's kit is staged (Attacks/Tide~), not shipped: its boss keeps the generic beam, and a world with its files missing falls back too
+    // every boss fires a painted kit now (Verdant's is its acid kit); an unknown boss and a world whose sheets are missing fall back to the generic beam
     static void TideStaysGeneric()
     {
-        Check("Tide's laser kit is not installed (staged); the Kraken keeps the generic beam",
-              !File.Exists("Assets/Art/Resources/Attacks/Tide/tide_attack_laser.png") && AttackArt.BossLaserFor("Tide") == null && AttackArt.BossLaserFor("Nope") == null);
+        Check("an unknown boss key resolves to no kit (the generic beam)", AttackArt.BossLaserFor("Nope") == null && AttackArt.BossLaserFor(null) == null);
         AttackArt.Clear();
-        Check("a world without the three sheets resolves to null (the generic path)", AttackArt.BossLaser(4) == null);
+        Check("a world with no sheets (the kit lookup of an out-of-range world) resolves to null", AttackArt.BossLaser(9) == null && AttackArt.BossLaser(-1) == null);
     }
 }

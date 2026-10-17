@@ -60,6 +60,15 @@ public static class ShotOutline
         return c;
     }
 
+    // The DARK edge for a painted plant weapon (the Verdant vine lash and rolling trunk, Oct 16): no pale / white trace round it, the outline is a
+    // deep shade of the shot's own hue, so the vine reads as a clean painted vine with a natural dark edge.
+    public static Color DarkEdge(Color trace)
+    {
+        var c = Color.Lerp(trace, Color.black, .86f);
+        c.a = trace.a;
+        return c;
+    }
+
     // Bold outlines for the current world? (Tests may force it: Bold.)
     public static bool? Bold;
     public static bool UseBold => Bold.HasValue ? Bold.Value : BackdropCatalog.CurrentIsBright;

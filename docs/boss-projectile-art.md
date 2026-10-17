@@ -23,68 +23,68 @@ Status key: TODO = unchanged current art. Art column is the current look.
 ### Space: Void Archon (pink allowed)
 | Attack | Kind / emitter | Current art | Needs | Status |
 | --- | --- | --- | --- | --- |
-| chin cannon | Aimed, Bolt, Chin | pink diamond bolt | rail dart | TODO |
-| ion arcs | Aimed, Shard, PodL/R | pink heart-shard | ion arc | TODO |
-| pulsar spiral | Spiral, Shard, Core | same shard | pulsar ring | TODO |
+| chin cannon | Aimed, Bolt, Chin | pink diamond bolt | rail dart | art wired (section 6) |
+| ion arcs | Aimed, Shard, PodL/R | pink heart-shard | ion arc | art wired (section 6) |
+| pulsar spiral | Spiral, Shard, Core | same shard | pulsar ring | art wired (section 6) |
 | pod lasers | beam, painted kit | magenta kit (done earlier) | keep | kept |
-| mirror sweep | Spiral, Bolt, PodL/R | same bolt | void orb | TODO |
+| mirror sweep | Spiral, Bolt, PodL/R | same bolt | void orb | art wired (section 6) |
 
 ### Frost: Hoarfrost Leviathan
 | Attack | Kind / emitter | Current art | Needs | Status |
 | --- | --- | --- | --- | --- |
-| icicle spray | Fan, Bolt, Jaw | blue ice spear | ice shard | TODO |
-| cold snap | Ring, Shard, Crown | blue crystal cluster | snow-crystal ring | TODO |
-| glare beams | beam, painted kit (EyeL/EyeR) | generic ice-white glowing column | CRYO LANCE (priority 5): jagged stacked-crystal ice-spike stream, pale-cyan to deep-blue with white-blue core, frost mist and snow flurry off the edges, drifting ice flakes, rime crystals growing outward; muzzle = frost gathering with cold vapour and forming crystals; impact = ice burst, snow puff, frost ring on the ground; 4-6 frames; no uniform pale keyline | TODO |
-| shatter | Aimed, Shard, EyeL/R | same crystal | frost orb | TODO |
-| frozen crown | Ring, Shard, Crown | same crystal | (reuses cold snap ring) | TODO |
+| icicle spray | Fan, Bolt, Jaw | blue ice spear | ice shard | art wired (section 6) |
+| cold snap | Ring, Shard, Crown | blue crystal cluster | snow-crystal ring | art wired (section 6) |
+| glare beams | beam, painted kit (EyeL/EyeR) | generic ice-white glowing column | CRYO LANCE (priority 5): jagged stacked-crystal ice-spike stream, pale-cyan to deep-blue with white-blue core, frost mist and snow flurry off the edges, drifting ice flakes, rime crystals growing outward; muzzle = frost gathering with cold vapour and forming crystals; impact = ice burst, snow puff, frost ring on the ground; 4-6 frames; no uniform pale keyline | art wired (section 6) |
+| shatter | Aimed, Shard, EyeL/R | same crystal | frost orb | art wired (section 6) |
+| frozen crown | Ring, Shard, Crown | same crystal | (reuses cold snap ring) | art wired (section 6) |
 
 ### Verdant: Bloom Queen
 | Attack | Kind / emitter | Current art | Needs | Status |
 | --- | --- | --- | --- | --- |
-| stinger thorns | Aimed, Bolt, Stinger | green-white seed spike | thorn | TODO |
-| vine lash | lash hazard | `verdant_attack_lash.png`, pale outline | clean vine, NO white outline | TODO (priority 3) |
-| spore seeds | Seeds, Shard, Petals | green burst | spore cloud / sap glob | TODO |
-| trunk toss | roll hazard | `verdant_attack_log.png` | check pale rim | TODO |
-| overgrowth / thorn storm | Seeds/Fan, Bolt/Shard | same pair | thorn + sap | TODO |
+| stinger thorns | Aimed, Bolt, Stinger | green-white seed spike | thorn | art wired (section 6) |
+| vine lash | lash hazard | `verdant_attack_lash.png`, pale outline | clean vine, NO white outline | DONE (section 6) |
+| spore seeds | Seeds, Shard, Petals | green burst | spore cloud / sap glob | art wired (section 6) |
+| trunk toss | roll hazard | `verdant_attack_log.png` | check pale rim | art wired (section 6) |
+| overgrowth / thorn storm | Seeds/Fan, Bolt/Shard | same pair | thorn + sap | art wired (section 6) |
 | acid cannons | beam (kit, used by pods) | lime kit | keep | kept |
 
 ### Ember: Cinder Drake
 | Attack | Kind / emitter | Current art | Needs | Status |
 | --- | --- | --- | --- | --- |
-| fire breath | Fan, Bolt, Jaw | orange fireball | mouth flame jet | TODO |
-| cinder spit | Aimed, Shard, Furnace | red-orange shard | molten brass slug | TODO |
-| magma bombs | Bomb, Shard, Furnace | same shard | ember bomb | TODO |
-| brow laser | beam, painted kit, Brow emitter | plain amber beam | long FLAMETHROWER from the jaw (re-map emitter/pose), no rim | TODO (priority 4) |
-| eruption columns | strike hazard | themed tint | lava column art | TODO |
-| slag storm | Fan/Aimed | same pair | slag | TODO |
+| fire breath | Fan, Bolt, Jaw | orange fireball | mouth flame jet | art wired (section 6) |
+| cinder spit | Aimed, Shard, Furnace | red-orange shard | molten brass slug | art wired (section 6) |
+| magma bombs | Bomb, Shard, Furnace | same shard | ember bomb | art wired (section 6) |
+| brow laser | beam, painted kit, Brow emitter | plain amber beam | long FLAMETHROWER from the jaw (re-map emitter/pose), no rim | DONE (section 6) |
+| eruption columns | strike hazard | themed tint | lava column art | art wired (section 6) |
+| slag storm | Fan/Aimed | same pair | slag | art wired (section 6) |
 
 ### Tide: Iron Kraken
 | Attack | Kind / emitter | Current art | Needs | Status |
 | --- | --- | --- | --- | --- |
-| port / starboard cluster | Fan, Bolt/Shard | teal orb / green spear | pressure-jet water bolt, brass harpoon | TODO |
-| tidal wall | Curtain, Shard | teal spear | bubble wall | TODO |
-| beak jet | beam, generic | flat teal bar (no kit) | water jet kit | TODO |
-| surf wave | wave hazard | themed | painted wave | TODO |
-| riptide / maelstrom | Aimed/Fan | same pair | bubble mine | TODO |
+| port / starboard cluster | Fan, Bolt/Shard | teal orb / green spear | pressure-jet water bolt, brass harpoon | art wired (section 6) |
+| tidal wall | Curtain, Shard | teal spear | bubble wall | art wired (section 6) |
+| beak jet | beam, generic | flat teal bar (no kit) | water jet kit | art wired (section 6) |
+| surf wave | wave hazard | themed | painted wave | art wired (section 6) |
+| riptide / maelstrom | Aimed/Fan | same pair | bubble mine | art wired (section 6) |
 
 ### Storm: Tempest Engine
 | Attack | Kind / emitter | Current art | Needs | Status |
 | --- | --- | --- | --- | --- |
-| core arc fan | Fan, Bolt, Core | white lightning ball | arc bolt | TODO |
-| crown fan / storm rain | Fan, Rain, Shard, Rods | white-blue spear | hail | TODO |
-| coil beams | beam, generic | flat grey bar (no kit) | ELECTRIC beam kit (priority 2) | TODO |
-| lightning lattice / cage storm | Lattice, Bolt, Core | same bolt | coil lightning chain | TODO |
-| thunderhead | Rain + Aimed + Fan | same pair | mix of the above | TODO |
+| core arc fan | Fan, Bolt, Core | white lightning ball | arc bolt | art wired (section 6) |
+| crown fan / storm rain | Fan, Rain, Shard, Rods | white-blue spear | hail | art wired (section 6) |
+| coil beams | beam, generic | flat grey bar (no kit) | ELECTRIC beam kit (priority 2) | art wired (section 6) |
+| lightning lattice / cage storm | Lattice, Bolt, Core | same bolt | coil lightning chain | art wired (section 6) |
+| thunderhead | Rain + Aimed + Fan | same pair | mix of the above | art wired (section 6) |
 
 ### Desert: Dune-Eater
 | Attack | Kind / emitter | Current art | Needs | Status |
 | --- | --- | --- | --- | --- |
-| grit fan | Fan, Shard, Maw | sand-brown rock shard | sand spit | TODO |
-| dune fan | Fan, Bolt, Boom | same rock | glass shard | TODO |
-| buried mines | Mines, Shard, Boom | same | buried glass mine | TODO |
-| lens beam | beam, generic | flat bar, no kit | sunlight lens laser kit (priority 1) | BLOCKED: Codex usage limit |
-| closing jaws | Pincer, Bolt, Maw | same rock | sand spit | TODO |
-| quicksand / maw | Fan/Aimed | same | sand/glass mix | TODO |
+| grit fan | Fan, Shard, Maw | sand-brown rock shard | sand spit | art wired (section 6) |
+| dune fan | Fan, Bolt, Boom | same rock | glass shard | art wired (section 6) |
+| buried mines | Mines, Shard, Boom | same | buried glass mine | art wired (section 6) |
+| lens beam | beam, generic | flat bar, no kit | sunlight lens laser kit (priority 1) | DONE (see section 6) |
+| closing jaws | Pincer, Bolt, Maw | same rock | sand spit | art wired (section 6) |
+| quicksand / maw | Fan/Aimed | same | sand/glass mix | art wired (section 6) |
 
 ### Beam kinds (each must read as a different KIND of attack)
 Priority order: Desert prismatic sunlight lens laser, Storm electric arc, Verdant vine, Ember jaw flamethrower, Frost cryo lance, then Space void/plasma rail, Tide pressure water jet, then the rest. Hitbox/width logic and the dotted telegraph stay unchanged. Codex resumes at 17:42 CDT.
@@ -103,3 +103,23 @@ Priority order: Desert prismatic sunlight lens laser, Storm electric arc, Verdan
 
 ## 5. Codex work log
 * Oct 16, 11:54 CDT: first Desert beam-body call failed with `usage_limit_reached`; limit resets 17:42 CDT. Prompt kept in the scratchpad (`bp/desert_body.txt`). No art produced yet.
+
+* Oct 16, 18:00-18:52 CDT: after the limit reset the whole queue (32 sheets) ran clean, one image per `codex exec`, no retries needed. Raws are not committed (staged under `Art/BossProjectiles~/`); `assemble.py` (chroma key, premultiplied resize, loop cross-fade, hue-targeted de-pinking) turned them into the shipped files.
+
+## 6. Status: what shipped on this branch
+
+Format: `Resources/Bosses/<Key>_attackshots.png` (256 x 128*N, 2 frames per row), stream field `PatternStream.art` (also `BossWaveStyle.art` and `BossMusicVoices.VoiceArt` for the beat-locked waves and voices). Timing, widths, hit radii (style's Bolt / Shard) and the dotted telegraphs are untouched.
+
+| Boss | Beam kit (laser / laserbody / lasertell) | Projectile rows (art id: look -> used by) |
+| --- | --- | --- |
+| Space: Void Archon | plasma RAIL: hard-edged mechanical stacked-ring beam, plasma muzzle ring, shockwave impact | 1 rail dart (chin cannon) / 2 ion arc (ion arcs) / 3 pulsar ring (pulsar spiral) / 4 void orb (mirror sweep) |
+| Frost: Hoarfrost Leviathan | CRYO LANCE: stacked ice crystals, navy keyline (no pale rim), frost star muzzle with vapour, ice-burst impact | 1 ice shard (icicle spray) / 2 frost orb (shatter) / 3 snow crystal (cold snap, frozen crown) |
+| Verdant: Bloom Queen | acid kit kept; NEW vine lash (`verdant_attack_lash.png`), clean painted vine with dark bark edges, no white outline | 1 thorn / 2 spore cloud / 3 sap glob |
+| Ember: Cinder Drake | very long FLAMETHROWER from the Jaw (emitter moved Brow -> Jaw, breath pose), pilot flame windup, roaring muzzle, dispersing-fireball impact | 1 molten brass slug / 2 magma bomb / 3 flame jet puff |
+| Tide: Iron Kraken | pressure WATER JET: foam-streaked column, spray, splash plume | 1 pressure water bolt / 2 brass harpoon / 3 bubble mine |
+| Storm: Tempest Engine | ELECTRIC arc: jagged forking lightning body, per-frame forks, coil flash, ionised ring, ground-strike impact | 1 arc bolt / 2 hail / 3 coil chain |
+| Desert: Dune-Eater | prismatic SUNLIGHT LENS beam: white-gold core, thin cyan/mint/gold fringes (no pink), glassy lens flare, heat-haze scorch with sand spray | 1 sand spit / 2 glass shard / 3 buried mine |
+
+Tests: `BossAttackShotArtTest` (plumbing, table ids, file format, animation, no two attacks/bosses share a sprite, readability, pale-rim scan of beam bodies / vine lash / trunk), `BossLaserArtTest` now covers all 7 kits, `NoPinkOutsideSpaceTest` scans the new files.
+
+Known gaps: the bomb burst shards, the themed hazards (surf wave, eruption columns, tidal wall rings) and the free-fall shots of the legacy tables still use the shared pair or procedural drawing; the Tide flare cells have the kraken's nozzle cut away (the boss draws its own beak).

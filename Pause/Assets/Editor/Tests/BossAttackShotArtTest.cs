@@ -35,6 +35,7 @@ public static class BossAttackShotArtTest
                 Plumbing();
                 TableIds();
                 Files();
+                PaleRims();
             }
             finally { BossArt.InjectAttackShots(null); BossEncounter.ResetRun(); BossRails.Reset(); }
         }
@@ -72,7 +73,8 @@ public static class BossAttackShotArtTest
         Time.timeScale = 1f;
 
         var boss = BossCatalog.ForWorld(5);   // Storm
-        BossArt.InjectAttackShots(null);
+        var empty = new Texture2D(2, 2, TextureFormat.RGBA32, false);   // a sheet of the wrong size: no variants (as if the file were missing)
+        BossArt.InjectAttackShots(empty);
         var pool = new BossProjectilePool(8, 1);
         Check("without a file there are no variants and an art id falls back to the shared pair",
               BossArt.AttackShot(boss, 1, 0) == null && BossArt.AttackShotVariants(boss) == 0);
@@ -111,7 +113,7 @@ public static class BossAttackShotArtTest
         f.Recycle();
         pool.Dispose();
         BossArt.InjectAttackShots(null);
-        Object.DestroyImmediate(tex);
+        Object.DestroyImmediate(tex); Object.DestroyImmediate(empty);
     }
 
     // ---- 2: the ids the tables use ----
@@ -227,15 +229,64 @@ public static class BossAttackShotArtTest
                 long h = Hash(a);
                 if (seen.ContainsKey(h)) { dups++; why += key + " = " + seen[h] + "; "; } else seen[h] = key;
                 Edge(a, out float dark, out float pale, out float core, out int opaque);
-                // dark keyline round the silhouette, no pale rim, a bright core, and it actually fills part of its cell
-                bool ok = dark >= .45f && pale <= .12f && core >= .7f && opaque >= 400 && opaque <= 128 * 128 * .8f;
+                // a dark keyline round the solid body (sparks and trails are bright by design, hence 35 %), no pale rim, a bright core, and it fills part of its cell
+                bool ok = dark >= .35f && pale <= .12f && core >= .7f && opaque >= 400 && opaque <= 128 * 128 * .8f;
                 if (!ok) { unreadable++; why += key + " (dark " + dark.ToString("P0") + ", pale " + pale.ToString("P0") + ", core " + core.ToString("F2") + ", opaque " + opaque + "); "; }
             }
             Check(Worlds[w] + ": every attack variant animates between its two frames (" + still + " still)", still == 0);
             Check(Worlds[w] + ": no two attacks of any boss share a sprite (" + dups + " repeats " + why + ")", dups == 0);
-            Check(Worlds[w] + ": every variant reads on any backdrop: dark edge, no pale rim, bright core (" + unreadable + " fail)", unreadable == 0);
+            Check(Worlds[w] + ": every variant reads on any backdrop: dark edge, no pale rim, bright core (" + unreadable + " fail " + (unreadable > 0 ? why : "") + ")", unreadable == 0);
             Object.DestroyImmediate(t);
         }
         Debug.Log("[SHOTART] " + checkedFiles + " per-attack shot files checked");
+    }
+
+    // ---- 4: no pale rim round any boss attack art (the white outline the user rejected) ----
+
+    // the share of a rectangle's silhouette-edge pixels (opaque beside a clear one, or on the rectangle's side edges) that are pale
+    static float PaleEdge(Color32[] all, int tw, int th, int x0, int yTop, int w, int h, out int edge)
+    {
+        int pale = 0; edge = 0;
+        for (int y = 0; y < h; y++)
+            for (int x = 0; x < w; x++)
+            {
+                var c = all[(th - 1 - (yTop + y)) * tw + x0 + x];
+                if (c.a < 200) continue;
+                bool border = x == 0 || x == w - 1 ||
+                              all[(th - 1 - (yTop + y)) * tw + x0 + x - 1].a < 40 || all[(th - 1 - (yTop + y)) * tw + x0 + x + 1].a < 40 ||
+                              (y > 0 && all[(th - 1 - (yTop + y - 1)) * tw + x0 + x].a < 40) || (y < h - 1 && all[(th - 1 - (yTop + y + 1)) * tw + x0 + x].a < 40);
+                if (!border) continue;
+                edge++;
+                if (Mathf.Min(c.r, Mathf.Min(c.g, c.b)) > 205) pale++;
+            }
+        return edge == 0 ? 0f : pale / (float)edge;
+    }
+
+    public const float MaxPaleRim = .2f;
+
+    static void PaleRims()
+    {
+        int bad = 0, files = 0; string why = "";
+        for (int w = 0; w < Worlds.Length; w++)
+        {
+            string dir = "Assets/Art/Resources/Attacks/" + Worlds[w] + "/" + Worlds[w].ToLowerInvariant() + "_attack_";
+            // the beam bodies (4 frames of 128 x 256), the vine lash and the trunk (cells), per world where they exist
+            var jobs = new List<(string file, int cw, int ch)> { (dir + "laserbody.png", 128, 256), (dir + "lash.png", 128, 128), (dir + "log.png", 256, 128) };
+            foreach (var (file, cw, ch) in jobs)
+            {
+                if (!File.Exists(file)) continue;
+                var t = Read(file);
+                var px = t.GetPixels32();
+                files++;
+                for (int cy = 0; cy + ch <= t.height; cy += ch)
+                    for (int cx = 0; cx + cw <= t.width; cx += cw)
+                    {
+                        float share = PaleEdge(px, t.width, t.height, cx, cy, cw, ch, out int edge);
+                        if (edge > 40 && share > MaxPaleRim) { bad++; why += Path.GetFileName(file) + "[" + cx / cw + "," + cy / ch + "] " + share.ToString("P0") + "; "; }
+                    }
+                Object.DestroyImmediate(t);
+            }
+        }
+        Check(files + " boss attack sheets (beam bodies, vine lash, trunk): no cell wears a pale rim (> " + (MaxPaleRim * 100f) + " % of its edge pixels near-white) (" + bad + " bad " + why + ")", bad == 0 && files >= 7);
     }
 }

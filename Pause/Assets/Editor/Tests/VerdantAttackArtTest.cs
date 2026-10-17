@@ -406,13 +406,27 @@ public static class VerdantAttackArtTest
                 var px = Rgba(t, (i % cols) * cw, (i / cols) * ch, cw, ch);
                 Shares(px, out float pink, out float green, out int pinkPx, out int opaque);
                 if (opaque == 0) continue;
-                // the lash's dash cells (6, 7) are the dotted tell arc: they stay fully pink, under the ordinary >= 30 % rule
-                if (name.EndsWith("lash") && i >= 6) { dashMin = Mathf.Min(dashMin, pink); workCells++; continue; }
+                // the lash (repainted, Oct 16: a clean painted vine, NO white / pale outline or accent): every cell, the dotted tell arc included, is green
+                // with at most a trace of pale pixels (specular glints), and never the pale rim the old art wore
+                if (name.EndsWith("lash"))
+                {
+                    workCells++;
+                    lowG = Mathf.Min(lowG, i >= 6 ? 1f : green);
+                    highP = Mathf.Max(highP, pink);
+                    dashMin = Mathf.Min(dashMin, i >= 6 ? green : 1f);
+                    continue;
+                }
                 workCells++;
                 lowP = Mathf.Min(lowP, pink); highP = Mathf.Max(highP, pink); lowG = Mathf.Min(lowG, green);
                 minPinkPx = Mathf.Min(minPinkPx, pinkPx);
             }
-            if (name.EndsWith("lash")) Check("verdant_attack_lash: the dotted tell arc (dash cells) stays pink-family: " + (dashMin * 100f).ToString("F0") + " % >= " + (ShotSkinTest.MinPinkShare * 100f) + " %", dashMin >= ShotSkinTest.MinPinkShare);
+            if (name.EndsWith("lash"))
+            {
+                Check("verdant_attack_lash: the dotted tell arc (dash cells) is leaf green: " + (dashMin * 100f).ToString("F0") + " % green >= " + (ExceptionGreenMin * 100f) + " %", dashMin >= ExceptionGreenMin);
+                Check("verdant_attack_lash: a clean vine, no white / pale outline or accent in any cell (pale share at most " + (highP * 100f).ToString("F1") + " % <= 6 %), green >= " + (ExceptionGreenMin * 100f) + " % (least " + (lowG * 100f).ToString("F1") + ")",
+                      workCells == cells && highP <= .06f && lowG >= ExceptionGreenMin);
+                continue;
+            }
             Debug.Log("[VERDANTART] " + name + " pink " + (lowP * 100f).ToString("F1") + ".." + (highP * 100f).ToString("F1") + " %, least green " + (lowG * 100f).ToString("F1") + " %, fewest pink px " + minPinkPx);
             Check(name + ": green with a pink accent in every one of its " + workCells + " cells: pink " + (ExceptionPinkMin * 100f) + ".." + (ExceptionPinkMax * 100f) +
                   " % (got " + (lowP * 100f).ToString("F1") + ".." + (highP * 100f).ToString("F1") + "), green >= " + (ExceptionGreenMin * 100f) + " % (least " + (lowG * 100f).ToString("F1") + ")",
