@@ -32,10 +32,10 @@ ORANGE = ((255, 98, 24), (255, 190, 70), (255, 255, 255))
 # per ship: seeds = a point inside each engine bell (384 cell px, from the old 192 nozzles x2), manual mouths {i: (cx, cy, rx, ry)} when the
 # dark-pixel search can't isolate a bell, flame colours (outer, mid, core), crack colour for the scripted damage fallback
 SHIPS = {
-    "sunstoke": dict(seeds=((160, 285), (224, 285)), flame=ORANGE),
+    "sunstoke": dict(seeds=((160, 285), (224, 285)), mouths={1: (223, 273, 11, 4.5)}, flame=ORANGE),
     "coalrunner": dict(seeds=((140, 280), (190, 284), (240, 280)), flame=ORANGE),
     "brass_vulture": dict(seeds=((192, 328),), flame=ORANGE),
-    "kilnback": dict(seeds=((158, 316), (224, 316)), flame=ORANGE),
+    "kilnback": dict(seeds=((158, 316), (224, 316)), mouths={0: (162, 282, 14, 6), 1: (224, 282, 14, 6)}, flame=ORANGE),
     "ash_wraith": dict(seeds=((166, 258), (218, 258)), flame=((30, 120, 255), (110, 225, 255), (255, 255, 255))),
     "cauterizer": dict(seeds=((132, 300), (248, 300)), flame=ORANGE),
 }
