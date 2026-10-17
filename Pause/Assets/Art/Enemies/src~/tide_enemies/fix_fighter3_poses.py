@@ -37,8 +37,11 @@ def main():
     out = np.array(Image.open(sys.argv[2]).convert("RGBA"))
     for c, (l, r) in CUTS.items():
         cell = poses[:, c * CELL:(c + 1) * CELL].copy()
-        cell[BAND[0]:BAND[1], :l] = 0
-        cell[BAND[0]:BAND[1], r:] = 0
+        yc, hh = (BAND[0] + BAND[1]) / 2, (BAND[1] - BAND[0]) / 2
+        for y in range(BAND[0], BAND[1]):                 # the cut follows the hull flank (a shallow arc), never a long straight edge
+            bulge = int(round(7 * ((y - yc) / hh) ** 2))
+            cell[y, :l + bulge] = 0
+            cell[y, r - bulge:] = 0
         for _ in range(5):                                # trim one-pixel slivers left at the cut columns
             al = cell[..., 3] > 0
             n = sum(np.roll(np.roll(al, dy, 0), dx, 1) for dy in (-1, 0, 1) for dx in (-1, 0, 1) if (dy, dx) != (0, 0))
