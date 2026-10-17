@@ -43,6 +43,9 @@ def selected_source(name, candidate):
         width = im.width // 3
         im = im.crop((candidate * width, 0, (candidate + 1) * width, im.height))
     a = np.asarray(im.getchannel("A"))
+    anchor = HERE / "flying_src" / f"{name}_flying_forward_swept.png"     # the Lantern Angler lost its wings: crop to the OLD box so scale and anchor stay unchanged
+    if anchor.exists():
+        a = np.asarray(Image.open(anchor).convert("RGBA").getchannel("A"))
     ys, xs = np.where(a > 112)
     if not len(xs):
         raise ValueError(name)
