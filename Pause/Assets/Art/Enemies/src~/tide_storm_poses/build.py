@@ -18,8 +18,9 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 from spec import SHIPS
 
-RES = HERE.parents[1] / "Resources" / "Enemies"
+RES = HERE.parents[2] / "Resources" / "Enemies"
 MARGIN = 6
+ANCHOR = {"storm_chaser": "mass", "tide_chaser": "mass", "tide_big": "mass"}
 
 TIDE_FLASH = dict(core=(247, 255, 249, 255), ring=(124, 242, 192, 255), pale=(220, 255, 237, 255))
 STORM_FLASH = dict(core=(255, 250, 225, 255), ring=(173, 216, 241, 255), pale=(242, 246, 255, 255))
@@ -45,7 +46,23 @@ def split_sheet(path):
     im = key_background(Image.open(path).convert("RGBA"))
     w, h = im.size
     cw = w / 3
-    return [im.crop((round(i * cw), 0, round((i + 1) * cw), h)) for i in range(3)]
+    # Poses can overhang the nominal thirds (wing tips): cut at the emptiest column near each boundary instead.
+    col = np.array(im.getchannel("A")).astype(np.float32).sum(0)
+    cuts = [0]
+    for k in (1, 2):
+        lo, hi = int(k * cw - cw * .18), int(k * cw + cw * .18)
+        cuts.append(lo + int(np.argmin(col[lo:hi])))
+    cuts.append(w)
+    out = []
+    for i in range(3):
+        region = im.crop((cuts[i], 0, cuts[i + 1], h))
+        bb = region.getchannel("A").point(lambda v: 255 if v > 40 else 0).getbbox()
+        ccx = (bb[0] + bb[2]) / 2
+        side = max(h, int(bb[2] - bb[0]) + 24)
+        tile = Image.new("RGBA", (side, h))
+        tile.alpha_composite(region, (int(side / 2 - ccx), 0))   # content centred on its own bbox, not the nominal third
+        out.append(tile)
+    return out
 
 
 def resize_rgba(im, size):
@@ -69,14 +86,14 @@ def xcorr(ref, mov):
     return c  # c[dy,dx] (mod n): ref(y) overlaps mov(y - d) ... shift mov by +d
 
 
-def register(pose, ref_alpha, cell, maxshift=18):
+def register(pose, ref_alpha, cell, maxshift=26, mrange=(0.60, 1.30), anchor=None):
     """Return a cell x cell RGBA of the pose scaled+shifted onto the idle anchor, plus (iou, scale, dx, dy)."""
     pose = pose.copy()
     bbox = pose.getchannel("A").point(lambda v: 255 if v > 40 else 0).getbbox()
     base = cell / pose.height
     ref = ref_alpha > 40
     best = (-1, None)
-    for m in np.arange(0.80, 1.30, 0.02):
+    for m in np.arange(mrange[0], mrange[1], 0.02):
         s = base * m
         size = (max(1, round(pose.width * s)), max(1, round(pose.height * s)))
         scaled = resize_rgba(pose, size)
@@ -96,8 +113,17 @@ def register(pose, ref_alpha, cell, maxshift=18):
                 if iou > best[0]:
                     best = (iou, (m, dx, dy, canvas))
     iou, (m, dx, dy, canvas) = best
-    out = Image.new("RGBA", (cell, cell))
-    out.alpha_composite(canvas, (dx, dy)) if False else None
+    if anchor:
+        # silhouettes that change a lot (folded blades, whipped tail): pin the body part that does not move instead
+        def pt(mask):
+            ys, xs = np.nonzero(mask)
+            if anchor == "low":
+                keep = ys >= np.percentile(ys, 65)
+                ys, xs = ys[keep], xs[keep]
+            return xs.mean(), ys.mean()
+        rx, ry = pt(ref)
+        px_, py_ = pt(alpha(canvas) > 40)
+        dx, dy = int(round(rx - px_)), int(round(ry - py_))
     arr = np.zeros((cell, cell, 4), np.uint8)
     src = np.array(canvas)
     ys, xs = slice(max(0, dy), min(cell, cell + dy)), slice(max(0, dx), min(cell, cell + dx))
@@ -164,8 +190,12 @@ def build(name, cell, src_dir, dest_dir):
     ref = alpha(orig.crop((0, 0, cell, cell)))
     thirds = split_sheet(src_dir / f"{name}.png")
     cells, info = [], []
+    # The three poses share one painted scale: take it from the best-matching pose, then only fine-tune it
+    # (a retracted or folded pose would otherwise be blown up to fill the idle silhouette).
+    first = [register(t, ref, cell, anchor=ANCHOR.get(name))[1] for t in thirds]
+    mstar = max(first, key=lambda r: r[0])[1]
     for i, t in enumerate(thirds):
-        reg, meta = register(t, ref, cell)
+        reg, meta = register(t, ref, cell, mrange=(mstar - .04, mstar + .045), anchor=ANCHOR.get(name))
         reg = fit_margin(reg)
         if i == 2:
             reg = impact_flash(reg, world)
