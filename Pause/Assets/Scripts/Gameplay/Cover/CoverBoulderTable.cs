@@ -146,7 +146,7 @@ public static class CoverBoulderTable
             crack = C(.61f, 1f, .88f), debris = C(.55f, .75f, .72f), chip2 = C(.90f, .95f, .80f),
         },
         new CoverBoulderEntry {
-            world = "Storm", folder = "Boulders/Storm", enabled = true,
+            world = "Storm", folder = "Boulders/Storm", enabled = false,   // removed from play (the user: it adds nothing); art and effects kept for the tests until the art is deleted
             concept = "floating thunderhead rock / storm island",
             widths = new[] { 2.4f, 2.9f, 2.6f }, drift = CoverDrift.Hover,
             fall = new Vector2(.7f, 1.0f), side = .20f, swayDeg = 1.5f, swayPeriod = 11f, bobAmp = .10f, bobPeriod = 5f,
