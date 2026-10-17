@@ -5,12 +5,7 @@
   "ships": {
     "verdant_alien": "none",
     "frost_big": "none",
-    "space_rock_cluster": "none",
-    "space_rock_crater": "none",
-    "space_rock_dark": "none",
-    "frost_rock_rime": "none",
     "frost_rock_shard": "none",
-    "frost_chaser": "none",
     "frost_fighter_2": "none"
   }
 }
