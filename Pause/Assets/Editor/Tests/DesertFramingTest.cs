@@ -56,7 +56,8 @@ public static class DesertFramingTest
         Check(name + ": nothing within " + Margin + " px of a cell edge", margins);
         if (death || cells < 7) return;
         Check(name + ": flying cells keep the pivot (<= 14 / 8 px) and the size (<= 24 x 12 px)",
-              Ptp(cx, 3, 6) <= 14f && Ptp(cy, 3, 6) <= 8f && Ptp(w, 3, 6) <= 24 && Ptp(ht, 3, 6) <= 12);
+              Ptp(cx, 3, 6) <= 14f && Ptp(cy, 3, 5) <= 8f && Ptp(w, 3, 6) <= 24 && Ptp(ht, 3, 5) <= 12);
+        // (the damaged cell, 6, is a wreck with sputtering flames of its own length: its vertical extent is free, its sideways pivot and width are not)
     }
 
     static float Ptp(float[] a, int from, int to) { float lo = a[from], hi = a[from]; for (int i = from; i <= to; i++) { lo = Mathf.Min(lo, a[i]); hi = Mathf.Max(hi, a[i]); } return hi - lo; }

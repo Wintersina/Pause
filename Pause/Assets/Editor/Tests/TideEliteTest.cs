@@ -439,6 +439,7 @@ public static class TideEliteTest
             int hullBottom = 0;
             for (int y = 0; y < S; y++) for (int x = 0; x < S; x++) if (hull[(S - 1 - y) * S + x].a > 128) hullBottom = Mathf.Max(hullBottom, y);
             var lengths = new HashSet<int>();
+            bool anyBurnsDamaged = false;   // the damaged cell (6) is a wreck: some engines are out, at least one still burns
             foreach (var nz in def.nozzles)
             {
                 int nx = Mathf.RoundToInt(nz.x), ny = Mathf.RoundToInt(nz.y);
@@ -456,7 +457,8 @@ public static class TideEliteTest
                             var p = c[(S - 1 - (ny + dy)) * S + nx + dx]; var q = hull[(S - 1 - (ny + dy)) * S + nx + dx];
                             covered = p.a == 255 && (p.r != q.r || p.g != q.g || p.b != q.b) && Mathf.Max(p.r, Mathf.Max(p.g, p.b)) > 150;
                         }
-                    Check(e.key + " cell " + cell + " " + nz.name + ": flame covers the nozzle point (in front of the hull, not hidden by the bell)", covered);
+                    if (cell == 6) anyBurnsDamaged |= covered;
+                    else Check(e.key + " cell " + cell + " " + nz.name + ": flame covers the nozzle point (in front of the hull, not hidden by the bell)", covered);
                     if (cell == 3)
                     {
                         int tip = ny;
@@ -472,6 +474,7 @@ public static class TideEliteTest
                 }
             }
             Check(e.key + ": each engine keeps its own phase (flame lengths differ in the hover cell)", lengths.Count >= 2);
+            Check(e.key + ": the damaged cell still has an engine burning (the others sputter out)", anyBurnsDamaged);
         }
     }
 
