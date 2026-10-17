@@ -24,7 +24,7 @@ FRAMES = [
     (-4, 1.08, 0.90, 4, 0.2, 4),     # 4 tell: crouch (anticipation)
     (26, 0.92, 1.10, -4, 1.4, 30),   # 5 tell: LUNGE
 ]
-IDLE_TICKS = [6, 3, 2, 3]
+IDLE_TICKS = [6, 4, 5, 4]
 TELL_TICKS = [2, 3]
 
 # per-frame twitch (deg) for antennae / feelers / mandibles, and a sensor

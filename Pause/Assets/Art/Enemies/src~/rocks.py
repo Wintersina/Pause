@@ -22,7 +22,7 @@ FRAMES = [
     (0.15, False),  # 4 tell: everything sucks in
     (1.5, True),    # 5 tell: pop
 ]
-IDLE_TICKS = [5, 3, 2, 3]
+IDLE_TICKS = [6, 4, 5, 4]
 TELL_TICKS = [2, 3]
 
 

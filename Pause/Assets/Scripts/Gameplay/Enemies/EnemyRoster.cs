@@ -185,11 +185,11 @@ public static class EnemyRoster
     {
         switch (role)
         {
-            case EnemyRole.Rock: return new[] { 5, 3, 2, 3 };
+            case EnemyRole.Rock: return new[] { 6, 4, 5, 4 };   // calm-idle pass: no 2-tick (12 fps) flicker steps
             case EnemyRole.Mine: return new[] { 6, 4, 6, 6 };
-            case EnemyRole.Big: return new[] { 6, 2, 3, 3 };
-            case EnemyRole.Alien: return new[] { 4, 2, 3, 3 };
-            default: return new[] { 6, 3, 2, 3 };   // fighter, chaser
+            case EnemyRole.Big: return new[] { 6, 4, 6, 4 };
+            case EnemyRole.Alien: return new[] { 6, 4, 5, 4 };
+            default: return new[] { 6, 4, 5, 4 };   // fighter, chaser
         }
     }
 

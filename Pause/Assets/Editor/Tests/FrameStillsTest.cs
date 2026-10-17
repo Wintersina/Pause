@@ -25,7 +25,7 @@ public static class FrameStillsTest
     const string Dir = "Assets/Art/Resources/Enemies/";
     const int SafeMargin = 6;
     // fraction of the union silhouette that must differ between any two idle cells
-    const float MinDifference = 0.04f;
+    const float MinDifference = 0.005f;   // calm-idle pass: idle cells only shimmer now (was .04, which asked for a visible wobble)
 
     // sprite, cell size
     static readonly (string name, int cell)[] Idle =
