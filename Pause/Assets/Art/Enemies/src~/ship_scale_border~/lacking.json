@@ -1,8 +1,5 @@
 {
  "elites": {
-  "frost_elite_floe_harrower": "frost",
-  "frost_elite_glacier_tender": "frost",
-  "frost_elite_whiteout_sentinel": "frost"
  },
  "enemies": {
   "frost_alien": "frost",

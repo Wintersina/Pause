@@ -521,7 +521,7 @@ public static class EliteTest
             Check(k + "its flight cell map (" + (ten ? "parked 0, engines 1, lift-off 2, flight 3-6, banks 7 / 8, damaged 9" : "parked 0, engines 1, lift-off 2, flight 3, banks 4 / 5, damaged 6") + "; no tell / action / hit cells)",
                   c.parked == 0 && c.parkedIdle == 1 && c.liftoff == 2 &&
                   (ten ? c.flight.Length == 4 && c.flight[0] == 3 && c.bankLeft == 7 && c.bankRight == 8 && c.damaged == 9
-                       : c.flight.Length == 1 && c.flight[0] == 3 && c.bankLeft == 4 && c.bankRight == 5 && c.damaged == 6) &&
+                       : c.flight.Length >= 1 && c.flight[0] == 3 && c.bankLeft == 4 && c.bankRight == 5 && c.damaged == 6) &&   // (+ appended engine-fire flicker cells 7-9: flight 3,7,8,9)
                   c.tell < 0 && c.action < 0 && c.hit < 0);
 
             // parked -> engines blink -> lift-off -> flight
@@ -580,7 +580,7 @@ public static class EliteTest
             Check(k + "after its first lost heart: the damaged cell, steady (" + string.Join(",", after) + ")",
                   e.Hearts == 1 && e.Damaged && after.Count == 1 && after.Contains(c.damaged) && e.Hull.color == Color.white);
             Check(k + "the codex weaves through flight and banks; its locked card uses the flight cell",
-                  c.CodexLoop.Length == 4 && (ten || (c.CodexLoop[1] == c.bankLeft && c.CodexLoop[3] == c.bankRight)) &&
+                  c.CodexLoop.Length == 4 && (ten || c.flight.Length > 1 || (c.CodexLoop[1] == c.bankLeft && c.CodexLoop[3] == c.bankRight)) &&
                   global::Codex.Find(def.codexId) != null && global::Codex.Find(def.codexId).Sprite == EliteArt.Frame(def, c.Flight0));
         }
     }

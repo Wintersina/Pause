@@ -63,7 +63,9 @@
   "codexId": "elite_desert_scorpion_walker",
   "cells": {
     "flight": [
-      3
+      3,
+      7,
+      8
     ],
     "parked": 0,
     "parkedIdle": 1,

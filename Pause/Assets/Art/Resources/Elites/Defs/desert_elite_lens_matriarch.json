@@ -5,7 +5,9 @@
   "launchFrom": "glasspad",
   "cells": {
     "flight": [
-      3
+      3,
+      7,
+      8
     ],
     "parked": 0,
     "parkedIdle": 1,

@@ -182,7 +182,7 @@ public static class StormEliteTest
             var frames = EliteArt.Frames(d);
             var c = d.cells;
             Check(x.key + ": the flight strip slices into 7 square cells of the def's cell size and the cell map is the flight layout",
-                  frames != null && frames.Length == 7 && Mathf.Approximately(frames[0].rect.width, d.cellPixels) && Mathf.Approximately(frames[0].rect.height, d.cellPixels) &&
+                  frames != null && frames.Length == 7 + c.flight.Length - 1 && Mathf.Approximately(frames[0].rect.width, d.cellPixels) && Mathf.Approximately(frames[0].rect.height, d.cellPixels) &&
                   c.parked == 0 && c.parkedIdle == 1 && c.liftoff == 2 && c.Flight0 == 3 && c.bankLeft == 4 && c.bankRight == 5 && c.damaged == 6 &&
                   c.tell < 0 && c.action < 0 && c.hit < 0 && EliteHdResolution.CellOk(d));
             var death = EliteArt.ExtraFrames(d, EliteArt.Extra.Death);

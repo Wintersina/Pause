@@ -45,6 +45,8 @@ public static class ShipOutlineTest
         foreach (var m in modes.Values) Check("modes.json has no full outline (" + m + ")", m != "full");
         Check("the Resin Warden, Cryo Siren and Rimebreaker were rebuilt from painted frames with no outline and left the plan",
               !modes.ContainsKey("verdant_elite_resin_warden") && !modes.ContainsKey("frost_elite_cryo_siren") && !modes.ContainsKey("frost_elite_rimebreaker"));
+        Check("Floe Harrower, Glacier Tender and Whiteout Sentinel got engine-fire flicker cells (ten cells, engine_fire.py) and left the outline plan (their hull already carries the outline)",
+              !keys.ContainsKey("frost_elite_floe_harrower") && !keys.ContainsKey("frost_elite_glacier_tender") && !keys.ContainsKey("frost_elite_whiteout_sentinel"));
         Check("the flying Snap Sprout and Glacier Golem were redrawn without any outline (opted out)", modes["verdant_alien"] == "none" && modes["frost_big"] == "none");
         int wired = 0;
         foreach (var kv in keys)
@@ -71,7 +73,7 @@ public static class ShipOutlineTest
         bool tideEliteClean = true;
         foreach (var k in keys.Keys) if (k.StartsWith("tide_elite_")) tideEliteClean = false;
         Check("the Tide elites carry no outline pass (redrawn from scratch)", tideEliteClean);
-        Check("every ship of the plan is wired (" + wired + ")", wired >= 13);   // 15 before the frame-fix stills pass: Frost shard and fighter_2 left the plan (redrawn rimless)
+        Check("every ship of the plan is wired (" + wired + ")", wired >= 10);   // 15 before the frame-fix stills pass: Frost shard and fighter_2 left the plan (redrawn rimless)
         Debug.Log("[OUTL] failures: " + fails);
         return fails;
     }

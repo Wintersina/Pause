@@ -172,7 +172,7 @@ public static class FrostEliteTest
             var c = d.cells;
             bool rebuilt = x.key == "frost_elite_cryo_siren";   // rebuilt from painted frames: 10 cells (FrostVerdantEliteFramesTest)
             Check(x.key + ": the " + (rebuilt ? "10-cell painted strip (3840 x 384)" : "7-cell flight strip") + " is installed with the flight cell map",
-                  frames != null && frames.Length == (rebuilt ? 10 : 7) && Mathf.Approximately(frames[0].rect.width, d.cellPixels) && Mathf.Approximately(frames[0].rect.height, d.cellPixels) &&
+                  frames != null && frames.Length == (rebuilt ? 10 : 7 + c.flight.Length - 1) && Mathf.Approximately(frames[0].rect.width, d.cellPixels) && Mathf.Approximately(frames[0].rect.height, d.cellPixels) &&
                   c.parked == 0 && c.parkedIdle == 1 && c.liftoff == 2 && c.Flight0 == 3 && c.damaged == (rebuilt ? 9 : 6) && c.tell < 0 && c.action < 0 && c.hit < 0);
             // every muzzle and nozzle on solid hull pixels of the hover cell, well inside the cell
             var tex = new Texture2D(2, 2);
