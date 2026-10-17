@@ -112,6 +112,7 @@ def build_cell(w, key, dm_img):
     for (cx, cy, rx, ry), n in zip(mouths, nz):
         if not (5 <= rx <= 32 and 3 <= ry <= 16) or abs(cx - n['x']) > 12 or abs(cy - n['y']) > 14:
             cx, cy, rx, ry = n['x'], n['y'], 11, 6
+        if w == "space": cx, cy = n["x"], n["y"]   # SpaceEliteTest wants the flame to cover the nozzle point
         fixed.append((cx, cy, rx, ry))
     mouths = fixed
     cols = flame_cols(w, key, flight, nz) or ((255, 150, 40), (255, 215, 110), (255, 255, 255))
@@ -122,6 +123,7 @@ def build_cell(w, key, dm_img):
     lens = [0] * n; wks = [.8] * n
     for rank, i in enumerate(order):
         lens[i], wks[i] = pat[rank % 5]
+    if w == "space": lens = [l if l else 9 for l in lens]; wks = [k if k else .6 for k in wks]   # every Space engine still burns (EngineFlames): a dead one only sputters
     if n == 1: lens[0] = 22
     if n >= 2 and all(l == 0 for l in lens): lens[0] = 24
     # keep every plume 8 px clear of the cell edge
@@ -136,6 +138,16 @@ def build_cell(w, key, dm_img):
         if lens[i] == 0:
             wisp(sm, cx, cy + ry, rnd, rows=min(6, int((bottom_room - cy) / sb.U) - 2))
     c.alpha_composite(sm.resize((CELL, CELL), Image.NEAREST))
+    if w != 'space':   # dark maroon scorch reads pink-ish outside Space: turn it to a warm brown (hue .06), bright lilac plates stay
+        import colorsys
+        arr = np.asarray(c).copy()
+        for y, x in zip(*np.nonzero((arr[..., 3] >= 96))):
+            r, g, b = arr[y, x, :3] / 255.0
+            hh, ss, vv = colorsys.rgb_to_hsv(r, g, b)
+            if ss > .3 and vv < .62 and .76 < hh < .98:
+                nr, ng, nb = colorsys.hsv_to_rgb(.06, ss * .8, vv)
+                arr[y, x, :3] = (round(nr * 255), round(ng * 255), round(nb * 255))
+        c = Image.fromarray(arr, 'RGBA')
     info = dict(iou=round(sc, 3), scale=round(s, 3), pos=(ox, oy), mouths=[tuple(round(v) for v in m) for m in mouths], lens=lens, cols=cols, bbox=c.getbbox())
     return c, info, flight, cs
 
