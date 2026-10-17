@@ -1,0 +1,28 @@
+HINTS = {
+ 'tide_elite_bathyscaphe': 'A cracked and shattered round porthole or two (dark, splintered glass), split and dented yellow hull plates showing dark frame and wiring underneath, one grey claw arm bent and hanging off its strut, soot and scorch streaks above the engines.',
+ 'tide_elite_pearl_warden': 'Ribbed pearl shell plates cracked, peeled back and chipped, one plate missing so the dark frame shows, one loose plate hanging by a hinge, black soot scorching around the engines and along the lower hull.',
+ 'tide_elite_riptide': 'One blade wing torn and ragged along its trailing edge, a chunk shot out of the other, cracked cobalt armour with exposed dark internals along the spine, scorched streaks, a dented lance prow.',
+ 'tide_elite_thunderfin': 'Torn and ragged wing trailing edges, a dented amber nacelle with exposed wiring and a torn-off cover, cracked violet plates, black scorch streaks, a bent antenna.',
+ 'tide_elite_trawler': 'Buckled and split orange hull panels with dark frame showing through, one side boom arm bent and drooping, dangling cables and a loose hanging hatch, scorch marks round the engines.',
+ 'storm_elite_anvil_cloud': 'The checkered tan armour panels partly blown off and buckled with dark internals exposed, one wing edge torn, a dangling bent antenna, scorched soot around the engines.',
+ 'storm_elite_refinery_tender': 'One green tank split open and dented with dark inside, brass pipes snapped and dangling, scorched black patches, bent frame plates, loose hanging hatch.',
+ 'storm_elite_rod_dancer': 'One of the twin lightning rods cracked and bent with exposed coil and a few pale-yellow sparks at the break, chipped and torn blue armour on the wings, scorch streaks, hanging plate.',
+ 'storm_elite_skyhook_harrier': 'A swept wing tip torn and chipped, armour plates missing from the fuselage showing dark internals, the hook prow dented, black scorch streaks, hanging loose panel.',
+ 'storm_elite_static_bastion': 'Teal armour plates cracked, buckled and missing in patches showing dark frame, one antenna bent, a dented hatch hanging, scorch marks round the engines.',
+ 'desert_elite_caravan_hauler': 'One yellow fuel tank split and dented, pipes severed and dangling, scorched soot patches and exposed dark frame, a hanging loose panel, chipped gunmetal armour.',
+ 'desert_elite_dune_stalker': 'Blue armour plates peeled back and chipped, torn wing tips, the golden spine plates cracked with dark internals showing, scorch streaks, a bent antenna.',
+ 'desert_elite_glass_cannon': 'The long gun barrel dented, the amber core housing cracked with exposed wiring, grey armour plates missing or hanging off, black scorching around the engines.',
+ 'desert_elite_lens_matriarch': 'Several of the blue crystal lens pods cracked and shattered with missing shards, dark frame struts bent and exposed, scorch marks, a loose hanging strut.',
+ 'desert_elite_mirror_bastion': 'Many of the silver scale plates missing or peeled back showing the dark underlayer, some bent and hanging, scorch marks, a cracked plate on the front, bent spikes.',
+ 'desert_elite_scorpion_walker': 'A claw cracked and chipped at the tip, black armour split with orange glow dulled, exposed mechanics on the spine, scorch streaks, a hanging loose plate.',
+ 'frost_elite_floe_harrower': 'The ice blades fractured with a chunk broken off one, the cracked ice showing dark frame inside, snapped plates, dented hull plating, scorch streaks and a few pale cyan-white sparks.',
+ 'frost_elite_glacier_tender': 'Ice plating fractured and chipped with chunks broken off, dented and missing hull panels exposing dark frame and wiring, scorch streaks, a hanging loose panel, a few pale cyan-white sparks.',
+ 'frost_elite_whiteout_sentinel': 'The ice-armour wedge cracked and shattered along one side, chunks missing showing dark frame beneath, dented plating, scorch streaks, a hanging panel, a few pale cyan-white sparks.',
+ 'space_elite_eventide_bastion': 'Layered dark plates cracked, peeled back and missing in patches showing dark frame, bent antennas, scorch streaks, a hanging panel, a few pale violet sparks.',
+ 'space_elite_orbit_reaver': 'One curved claw blade chipped and cracked, dark armour plates peeled and missing, exposed internals, scorch streaks, a hanging panel, a few magenta-white sparks.',
+ 'space_elite_rift_lancer': 'The two long prongs dented, one chipped, dark armour plates cracked and missing in patches, exposed wiring, scorch streaks, a few pale cyan sparks.',
+ 'space_elite_singularity_hauler': 'Gunmetal armour plates split and missing, claw arms dented and one bent, the central core housing cracked with its glow dulled, scorch streaks, a hanging panel, a few amber sparks.',
+}
+PREFIX = {
+ 'tide': 'Tide', 'storm': 'Storm', 'desert': 'Desert', 'frost': 'Frost', 'space': 'Space',
+}
