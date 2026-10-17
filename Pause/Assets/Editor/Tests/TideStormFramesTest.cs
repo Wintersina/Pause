@@ -69,7 +69,7 @@ public static class TideStormFramesTest
         Check(name + ": hit is a real recoil pose (" + hit.ToString("0.000") + " >= .06)", hit >= .06f);
         Check(name + ": tell A, tell B and hit differ from each other", Diff(px, t.width, h, 4, 5) >= .04f && Diff(px, t.width, h, 4, 6) >= .04f && Diff(px, t.width, h, 5, 6) >= .04f);
         bool idle = true;
-        for (int a = 0; a < 4; a++) for (int b = a + 1; b < 4; b++) if (Diff(px, t.width, h, a, b) < .015f) idle = false;
+        for (int a = 0; a < 4; a++) for (int b = a + 1; b < 4; b++) if (Diff(px, t.width, h, a, b) < .005f) idle = false;   // calm-idle pass: shimmer only (was .015)
         Check(name + ": four distinct idle drawings", idle);
         Object.DestroyImmediate(t);
     }

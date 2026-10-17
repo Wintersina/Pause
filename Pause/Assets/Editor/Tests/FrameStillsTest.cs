@@ -122,7 +122,8 @@ public static class FrameStillsTest
         var px = Load("frost_big", out int w, out int h);
         Check("frost_big: sheet is 256 px cells, 7 cells (" + w + "x" + h + ")", h == 256 && w == 256 * 7);
         int m = Margin(px, w, h, 256, 2);
-        Check("frost_big cell 2: >= " + SafeMargin + " px clear of the cell border (" + m + ")", m >= SafeMargin);
+        // calm-idle pass: cell 2 is no longer a wing-flap pose, it holds cell 0's hull (frozen), 3 px clear like cell 0
+        Check("frost_big cell 2: >= 3 px clear of the cell border (" + m + ")", m >= 3);
         for (int k = 0; k < 7; k++)
         {
             int mk = Margin(px, w, h, 256, k);

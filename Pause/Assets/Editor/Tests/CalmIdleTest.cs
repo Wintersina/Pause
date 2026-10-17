@@ -43,7 +43,8 @@ public static class CalmIdleTest
             Strip(key, path, 7, 0, 4, 0, !floating);
         }
         // Desert boss: wing beat, kept as painted (allowlisted)
-        foreach (var boss in new[] { "Ember", "Frost", "Storm", "Tide", "Verdant" })
+        // Frost and Verdant bosses: left as painted (their muzzle points sit on opaque pixels of the original idle cells; BossAttackTest)
+        foreach (var boss in new[] { "Ember", "Storm", "Tide" })
             Strip("boss " + boss, "Assets/Art/Resources/Bosses/" + boss + ".png", 5, 0, 4, 0, true);
 
         foreach (var d in EnemyRoster.All)
