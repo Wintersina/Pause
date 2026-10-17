@@ -1,0 +1,7 @@
+in/
+preview/
+__pycache__/
+out/*.log
+out/*.ok
+ALL_DONE
+QUEUE_EXITED

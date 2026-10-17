@@ -71,7 +71,7 @@ public static class ShipOutlineTest
         bool tideEliteClean = true;
         foreach (var k in keys.Keys) if (k.StartsWith("tide_elite_")) tideEliteClean = false;
         Check("the Tide elites carry no outline pass (redrawn from scratch)", tideEliteClean);
-        Check("every ship of the plan is wired (" + wired + ")", wired >= 15);   // Desert (15), Ember (6), Space's 7 enemies + 4 elites, Storm's 5 and the 5 Tide elites and the Verdant chaser + fighters 1-3 left the plan
+        Check("every ship of the plan is wired (" + wired + ")", wired >= 13);   // 15 before the frame-fix stills pass: Frost shard and fighter_2 left the plan (redrawn rimless)
         Debug.Log("[OUTL] failures: " + fails);
         return fails;
     }

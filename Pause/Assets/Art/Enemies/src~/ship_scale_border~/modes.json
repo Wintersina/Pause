@@ -4,6 +4,8 @@
   "fade": 0.3,
   "ships": {
     "verdant_alien": "none",
-    "frost_big": "none"
+    "frost_big": "none",
+    "frost_rock_shard": "none",
+    "frost_fighter_2": "none"
   }
 }
