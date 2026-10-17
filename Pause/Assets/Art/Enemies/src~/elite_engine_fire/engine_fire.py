@@ -71,6 +71,24 @@ def bare_hull(a, d, mode):
     return Image.fromarray(c0.astype(np.uint8), "RGBA")
 
 
+def strip_flame(a, mouths, dark=(14, 22, 38)):
+    """Mode 'strip': flight cell 3 with its old flame taken out. In each mouth zone, flame-coloured pixels (saturated blue / white) go:
+    inside the mouth ellipse they become the bell's dark floor, outside it transparent."""
+    c = np.array(cell(a, 3)).astype(int)
+    out = c.copy(); yy, xx = np.indices((CELL, CELL))
+    sat = c[..., :3].max(-1) - c[..., :3].min(-1); mn = c[..., :3].min(-1)
+    flameish = (c[..., 3] > 0) & ((sat > 110) | (mn > 215))
+    for cx, cy, rx, ry in mouths:
+        zone = (np.abs(xx - cx) <= rx + 5) & (yy >= cy - ry - 2) & flameish
+        inside = ((xx - cx) / max(rx, 1)) ** 2 + ((yy - cy) / max(ry, 1)) ** 2 <= 1.0
+        out[zone & inside] = (*dark, 255)
+        out[zone & ~inside & (yy > cy + ry * .5)] = (0, 0, 0, 0)
+        # the flame is gone below the mouth line anywhere in the zone
+        below = (np.abs(xx - cx) <= rx + 5) & (yy > cy + ry) & (c[..., 3] > 0) & flameish
+        out[below] = (0, 0, 0, 0)
+    return Image.fromarray(out.astype(np.uint8), "RGBA")
+
+
 def mouths_for(base, d, manual=None):
     seeds = [(int(n["x"]), int(n["y"])) for n in d["nozzles"]]
     return T.find_openings(base, seeds, manual or {})
@@ -91,15 +109,22 @@ def states(base, mouths, cols, length, seed0=10):
 def build(key, src_dir, out_dir, mode, length=None, cols=None, manual=None, keep_cell3=False):
     d = load_def(key); w = key.split("_")[0]
     a = np.array(Image.open(src_dir / w.capitalize() / f"{key}.png").convert("RGBA"))
-    base = bare_hull(a, d, mode)
+    if key not in BIG and a.shape[1] > 7 * CELL: a = a[:, :7 * CELL]      # re-runs: only the original 7 cells
+    if mode == "strip":
+        mouths = [manual[i] for i in range(len(d["nozzles"]))]
+        base = strip_flame(a, mouths)
+    else:
+        base = bare_hull(a, d, mode)
+        mouths = mouths_for(base, d, manual)
     base_alpha = np.array(base)[..., 3]
-    mouths = mouths_for(base, d, manual)
-    cols = cols or old_flame_colours(a, base_alpha) or WORLD_FLAME[w]
-    ylow = old_flame_length(a, d, base_alpha)
+    cols = cols or (WORLD_FLAME.get(w) if w in FORCE_PALETTE else None) or old_flame_colours(a, base_alpha) or WORLD_FLAME[w]
+    ylow = old_flame_length(a, d, base_alpha) if mode != "strip" else int(np.where((np.array(cell(a, 3))[..., 3] > 200).any(1))[0].max())
     # length in 192-cell units of engine_fx: its flame is L*K px long from the mouth
     my = max(m[1] for m in mouths)
     L = length or max(14, (ylow - my) * .9 / T.K)
     cs = states(base, mouths, cols, L)
+    for c in cs:                                                       # keep the 6 px framing margin: no flame pixel in the bottom rows
+        c.paste((0, 0, 0, 0), (0, CELL - 6, CELL, CELL))
     return a, base, mouths, cols, cs
 
 
@@ -119,9 +144,16 @@ def write(key, a, cs, out_dir, big):
 # hand-set bell mouths (cx, cy, rx, ry) where the dark-mouth detector grabs the whole bell
 MANUAL = {
     "desert_elite_glass_cannon": {0: (152, 288, 21, 9), 1: (234, 288, 21, 9)},
+    "frost_elite_cryo_siren": {0: (183, 295, 9, 3), 1: (203, 296, 9, 3)},
+    "frost_elite_rimebreaker": {0: (166, 229, 13, 6), 1: (220, 229, 13, 6)},
+    "frost_elite_floe_harrower": {0: (167, 287, 8, 4), 1: (219, 287, 8, 4)},
+    "frost_elite_glacier_tender": {0: (154, 316, 9, 4), 1: (232, 316, 9, 4)},
+    "frost_elite_whiteout_sentinel": {0: (165, 304, 12, 8), 1: (219, 304, 12, 8)},
 }
 # which hull the flame is painted on: Desert's parked cell 0 IS the hull; elsewhere un-dim it
-MODE = {"desert": "cell0"}
+MODE = {"desert": "cell0", "frost_elite_cryo_siren": "strip", "frost_elite_rimebreaker": "strip"}
+FORCE_PALETTE = {"frost", "verdant"}   # their own cold / green fire, not whatever tiny glow the old strip had
+LENGTH = {"frost_elite_floe_harrower": 24, "frost_elite_glacier_tender": 22, "frost_elite_whiteout_sentinel": 24}   # key -> flame length in engine_fx units (px = L * 2)
 BIG = {"frost_elite_cryo_siren", "frost_elite_rimebreaker"}
 
 
@@ -131,7 +163,7 @@ def run(world, out_dir=None, keys=None, defs=True):
     allk = sorted(Path(f).stem for f in glob.glob(str(RES / "Defs" / f"{world}_elite_*.json")))
     done = []
     for k in keys or allk:
-        a, base, mouths, cols, cs = build(k, RES, out_dir, MODE.get(world, "cell0u"), manual=MANUAL.get(k))
+        a, base, mouths, cols, cs = build(k, RES, out_dir, MODE.get(k, MODE.get(world, "cell0u")), length=LENGTH.get(k), manual=MANUAL.get(k))
         write(k, a, cs, out_dir, k in BIG)
         if defs and k not in BIG:
             p = RES / "Defs" / f"{k}.json"; s = p.read_text()
