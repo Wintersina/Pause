@@ -77,10 +77,12 @@ def strip_flame(a, mouths, dark=(14, 22, 38)):
     c = np.array(cell(a, 3)).astype(int)
     out = c.copy(); yy, xx = np.indices((CELL, CELL))
     sat = c[..., :3].max(-1) - c[..., :3].min(-1); mn = c[..., :3].min(-1)
-    flameish = (c[..., 3] > 0) & ((sat > 110) | (mn > 215))
+    sat_f = (c[..., 3] > 0) & (sat > 110)
+    white_f = (c[..., 3] > 0) & (mn > 215)
     for cx, cy, rx, ry in mouths:
-        zone = (np.abs(xx - cx) <= rx + 5) & (yy >= cy - ry - 2) & flameish
         inside = ((xx - cx) / max(rx, 1)) ** 2 + ((yy - cy) / max(ry, 1)) ** 2 <= 1.0
+        flameish = sat_f | (white_f & inside)      # (a pale hull outline outside the mouth is hull, not flame)
+        zone = (np.abs(xx - cx) <= rx + 5) & (yy >= cy - ry - 2) & flameish
         out[zone & inside] = (*dark, 255)
         out[zone & ~inside & (yy > cy + ry * .5)] = (0, 0, 0, 0)
         # the flame is gone below the mouth line anywhere in the zone
@@ -108,7 +110,7 @@ def states(base, mouths, cols, length, seed0=10):
 
 def build(key, src_dir, out_dir, mode, length=None, cols=None, manual=None, keep_cell3=False):
     d = load_def(key); w = key.split("_")[0]
-    a = np.array(Image.open(src_dir / w.capitalize() / f"{key}.png").convert("RGBA"))
+    a = git_orig(f"{w.capitalize()}/{key}.png")      # always the strip on origin/master, so re-runs are idempotent
     if a.shape[1] > n_orig(key) * CELL: a = a[:, :n_orig(key) * CELL]      # re-runs: only the original cells
     if mode == "strip":
         mouths = [manual[i] for i in range(len(d["nozzles"]))]
@@ -121,7 +123,7 @@ def build(key, src_dir, out_dir, mode, length=None, cols=None, manual=None, keep
     ylow = old_flame_length(a, d, base_alpha) if mode != "strip" else int(np.where((np.array(cell(a, 3))[..., 3] > 200).any(1))[0].max())
     # length in 192-cell units of engine_fx: its flame is L*K px long from the mouth
     my = max(m[1] for m in mouths)
-    L = length or max(14, (ylow - my) * .9 / T.K)
+    L = length or max(14, (ylow - my) * FACTOR.get(key, .9) / T.K)
     cs = states(base, mouths, cols, L)
     for c in cs:                                                       # keep the 6 px framing margin: no flame pixel in the bottom rows
         c.paste((0, 0, 0, 0), (0, CELL - 6, CELL, CELL))
@@ -177,7 +179,7 @@ def bank_cells(a, d, base, mouths, cols, L):
             im = T.engine_fx(base_c, mm, lens, cols, 77)
         elif name == "damaged":
             keep = [i for i, b in enumerate(burning) if b] or [0]
-            lens = [((L * .45, .8) if i in keep else (0, 0)) for i in range(len(mm))]
+            lens = [((L * .6, .85) if i in keep else (0, 0)) for i in range(len(mm))]
             sel = [(m, l) for m, l in zip(mm, lens) if l[0] > 0]
             im = T.engine_fx(base_c, [m for m, _ in sel], [l for _, l in sel], cols, 99, ragged=.6) if sel else base_c
         else:
@@ -194,7 +196,7 @@ def n_orig(key):
 
 def targets(key):
     """strip cells the four flight states are written to (appended past the original strip where needed)"""
-    return [3, 4, 5, 6] if key in BIG else [3, 4] if key.startswith("ember_") else [3, 7, 8, 9]   # Ember keeps its 8-cell strip: two flame states
+    return [3, 4, 5, 6] if key in BIG else [3, 4] if key.startswith("ember_") else [3, 7, 8] if key.startswith("desert_") else [3, 7, 8, 9]   # Ember keeps its 8-cell strip (two flame states), Desert gets two appended cells (texture budget)
 
 
 def write(key, a, cs, out_dir, big):
@@ -222,6 +224,8 @@ def write_old(key, a, cs, out_dir, big):
 # hand-set bell mouths (cx, cy, rx, ry) where the dark-mouth detector grabs the whole bell
 MANUAL = {
     "desert_elite_glass_cannon": {0: (152, 288, 21, 9), 1: (234, 288, 21, 9)},
+    "storm_elite_anvil_cloud": {0: (154, 304, 16, 8), 1: (230, 304, 17, 8)},
+    "storm_elite_skyhook_harrier": {0: (170, 306, 10, 5), 1: (214, 306, 10, 5)},
     "storm_elite_rod_dancer": {0: (171, 296, 6, 4), 1: (190, 298, 7, 4), 2: (210, 296, 6, 4)},
     "storm_elite_static_bastion": {0: (124, 296, 12, 6), 1: (191, 307, 13, 5), 2: (260, 296, 12, 6), 3: (150, 298, 6, 3), 4: (234, 298, 6, 3)},
     "storm_elite_refinery_tender": {0: (120, 289, 16, 7), 1: (190, 283, 8, 4), 2: (266, 289, 16, 7)},
@@ -245,9 +249,10 @@ MANUAL = {
 # which hull the flame is painted on: Desert's parked cell 0 IS the hull; elsewhere un-dim it
 MODE = {"desert": "cell0", "frost_elite_cryo_siren": "strip", "frost_elite_rimebreaker": "strip", "verdant_elite_resin_warden": "strip"}
 for _k in MANUAL:
-    if _k.startswith("ember_"): MODE[_k] = "strip"
+    if not _k.startswith("desert_"): MODE[_k] = "strip"     # the bare hull is always the flight cell 3 with its flame taken out (Desert's parked cell 0 is that hull exactly)
 FORCE_PALETTE = {"frost", "verdant"}   # their own cold / green fire, not whatever tiny glow the old strip had
-LENGTH = {"verdant_elite_leafblade": 22, "verdant_elite_sporebloom": 20, "verdant_elite_thornlash": 22, "verdant_elite_timber_hauler": 18, "storm_elite_anvil_cloud": 24, "storm_elite_refinery_tender": 22, "storm_elite_rod_dancer": 22, "storm_elite_skyhook_harrier": 20, "storm_elite_static_bastion": 20, "frost_elite_floe_harrower": 30, "frost_elite_glacier_tender": 28, "frost_elite_whiteout_sentinel": 30}   # key -> flame length in engine_fx units (px = L * 2)
+FACTOR = {"desert_elite_caravan_hauler": .72, **{f"ember_elite_{n}": .75 for n in ("ash_wraith", "brass_vulture", "cauterizer", "coalrunner", "kilnback", "sunstoke")}}
+LENGTH = {"frost_elite_cryo_siren": 30, "verdant_elite_leafblade": 22, "verdant_elite_sporebloom": 20, "verdant_elite_thornlash": 22, "verdant_elite_timber_hauler": 18, "storm_elite_anvil_cloud": 24, "storm_elite_refinery_tender": 22, "storm_elite_rod_dancer": 22, "storm_elite_skyhook_harrier": 20, "storm_elite_static_bastion": 20, "frost_elite_floe_harrower": 30, "frost_elite_glacier_tender": 28, "frost_elite_whiteout_sentinel": 30}   # key -> flame length in engine_fx units (px = L * 2)
 DEATH_FIX = {"frost_elite_cryo_siren", "frost_elite_rimebreaker", "verdant_elite_resin_warden"} | {f"ember_elite_{n}" for n in ("ash_wraith", "brass_vulture", "cauterizer", "coalrunner", "kilnback", "sunstoke")}
 LIFT = set()
 LIFT_WORLDS = {"desert", "storm", "frost", "verdant"}   # their lift-off ignition cell had detached wedges / tips only

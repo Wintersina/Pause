@@ -92,8 +92,11 @@ public static class EliteEngineFireTest
                     var p = P(fl[i], x, y);
                     if (p.a == 0) continue;
                     if (x < Margin || y < Margin || x >= S - Margin || y >= S - Margin) edge++;
-                    if (Engine(def, x, y) && p.a > 128 && p.r > p.g + 60 && p.r > p.b - 20) hot++;   // red / orange / pink fire
-                    if (Engine(def, x, y) && p.a > 128 && p.r > 170 && p.b > 140 && p.g < p.r - 70 && p.g < p.b - 40) pink++;
+                    var q = P(fl[0], x, y);
+                    bool flame = i > 0 && !(p.r == q.r && p.g == q.g && p.b == q.b && p.a == q.a);   // only what changes between cells is fire (the hull in the zone may be any colour)
+                    if (!flame || !Engine(def, x, y) || p.a <= 128) continue;
+                    if (p.r > p.g + 60 && p.r > p.b - 20) hot++;   // red / orange / pink fire
+                    if (p.r > 170 && p.b > 140 && p.g < p.r - 70 && p.g < p.b - 40) pink++;
                 }
         Check(key + ": the hull is pixel-identical across the idle loop cells (" + hullDiff + " px differ outside the engine regions)", hullDiff == 0);
         Check(key + ": at least two idle cells have different flames", flameDiffCells >= 1);
