@@ -89,10 +89,12 @@ PARTS = {
         ("CoilL", 0, (110, 168), 22, (0, 0)),      # the twin Tesla coil towers, at their bases (coil beams)
         ("CoilR", 0, (272, 168), 22, (0, 0)),
     ],
+    # The flying Dune-Eater is measured on every cell of its expanded 35-cell atlas, seeded in the first idle drawing (cell 20):
+    # the maw's throat (grit fan, pincer, wave walls), the mine in the crane's claw (mines, burrower strike), the crown lens (beam, sandstorm wall).
     "Desert": [
-        ("Maw", 0, (174, 270), 24, (0, 16)),       # the front bucket-wheel maw -> its throat (aimed sand-slug fan); measured (174, 286) in the manifest
-        ("Boom", 0, (328, 198), 18, (0, 9)),       # the side drill boom -> its tip (dune lob, burrower strike); manifest (328, 207)
-        ("Lens", 0, (174, 96), 24, (0, -13)),      # the rear lens dish -> its centre (sun-lens beam, sandstorm wall); manifest (174, 83)
+        ("Maw", 20, (190, 255), 26, (0, 6)),
+        ("Boom", 20, (334, 142), 20, (0, 6)),
+        ("Lens", 20, (190, 93), 24, (0, 0)),
     ],
     # The Cinder Drake v2 is measured on every cell of its expanded 35-cell atlas, seeded in the first
     # idle wing-beat drawing (cell 20): the snout / maw, the chest furnace grate, the brow gem.
@@ -114,7 +116,7 @@ BAND = {"Space": (96, 282, 0, 384), "Frost": (112, 292, 0, 384),
         "Verdant": (40, 262, 0, 384), "Ember": (100, 290, 128, 256),
         "Tide": (56, 250, 112, 272),
         "Storm": (110, 200, 0, 384),
-        "Desert": (120, 300, 40, 344)}
+        "Desert": (150, 215, 130, 254)}
 
 SCALES = [0.86 + 0.02 * i for i in range(18)]   # 0.86 .. 1.20
 
@@ -457,7 +459,21 @@ OVERRIDES = {
 }
 
 
+# The Dune-Eater's painted drawings are all registered over one hull, so its three parts sit at fixed points except the mine on the
+# lowered crane (measured by hand from the pixels, 384 reference px: the mine's centre + 6): tell1 a (cells 7, 29), tell1 b (8, 30),
+# the released mine (31). The death / retreat cells keep the matcher's snap (nothing fires from them).
+DESERT_FIXED = {"Maw": (190, 261), "Lens": (190, 93), "Boom": (334, 148)}
+DESERT_BOOM = {7: (327, 169), 29: (327, 169), 8: (333, 324), 30: (333, 324), 31: (323, 173)}
+DESERT_KEEP = set(range(12, 17))
+
+
 def apply_overrides(world, table):
+    if world == "Desert":
+        for name, pts in table:
+            for f in range(len(pts)):
+                if f in DESERT_KEEP:
+                    continue
+                pts[f] = DESERT_BOOM[f] if name == "Boom" and f in DESERT_BOOM else DESERT_FIXED[name]
     for name, pts in table:
         for (w, n, f), xy in OVERRIDES.items():
             if w == world and n == name and f < len(pts):

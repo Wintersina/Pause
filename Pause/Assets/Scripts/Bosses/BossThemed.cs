@@ -194,7 +194,7 @@ public static class BossThemed
 
     static BossAttack BurrowerStrike(int w)
     {
-        // the drill boom lowers (tell 1), then three lanes at the ship's row, 1.9 u apart: a ridge races down each (the strike's telegraph),
+        // the crane boom lowers (tell 1), then three lanes at the ship's row, 1.9 u apart: a ridge races down each (the strike's telegraph),
         // then a column of sand and shards erupts (Strike's Eruption look in Desert's ramp)
         return new BossAttack
         {

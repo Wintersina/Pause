@@ -18,12 +18,13 @@ ART = ROOT.parent
 REF = 384
 K = 1.5
 C = int(REF * K)
-# The approved hull key's content box (1254 px canvas); every painted key is a same-canvas edit
+# The approved hull key's content box (1254 px canvas, the Dune-Eater master); every painted key is a same-canvas edit
 # of it, so they all share one crop and one scale into the cell.
-KEY_BOX = (49, 122, 1205, 1151)
-FIT_W = 344 * K
+KEY_BOX = (18, 48, 1251, 1184)
+FIT_W = 350 * K
 
 # Palette (never the player's red; no pink)
+TEAL = (110, 235, 225)
 ORANGE = (255, 150, 40)
 AMBER = (255, 200, 70)
 YELLOW = (255, 238, 140)
@@ -104,7 +105,7 @@ def to_cell(im: Image.Image, dx: int = 0, dy: int = 0, scale: float = 1.0) -> Im
     return Image.fromarray(a, "RGBA")
 
 
-BAND = tuple(round(v * K) for v in (100, 215, 100, 284))    # y0, y1, x0, x1: head and neck, clear of wings, flames and the chest glow
+BAND = tuple(round(v * K) for v in (150, 215, 130, 254))    # y0, y1, x0, x1: the neck plates between the lens and the eye lamps, clear of the maw, lens, turbines and sails
 
 
 def _scaled(im: Image.Image, sc: float) -> Image.Image:

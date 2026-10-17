@@ -55,13 +55,13 @@ def smoke_frame(k: int) -> Image.Image:
             piece = piece.crop(bbox)
             sz = (round(piece.width * 96 * K / piece.height), round(96 * K))
             piece = piece.resize(sz, Image.Resampling.LANCZOS)
-            tx = round([118, 160, 242][n] * K) - sz[0] // 2 + round([-2, -1, 0, 1, 2, 0][k] * K) * (1 if n != 2 else -1)
-            ty = round(128 * K) - sz[1] + round([2, 1, 0, 1, 2, 3][k] * K)
+            tx = round([112, 190, 268][n] * K) - sz[0] // 2 + round([-2, -1, 0, 1, 2, 0][k] * K) * (1 if n != 2 else -1)
+            ty = round([150, 132, 150][n] * K) - sz[1] + round([2, 1, 0, 1, 2, 3][k] * K)
             im.alpha_composite(piece, (tx, max(0, ty)))
         return im
     rng = random.Random(900 + k)
     d = SD(im)
-    for sx, sy in [(124, 112), (260, 112), (192, 120)]:
+    for sx, sy in [(112, 150), (268, 150), (190, 132)]:
         for q in range(7):
             r = 8 + q * 2
             ox = int(math.sin(k * 1.1 + q * 1.7 + sx) * (4 + q))
@@ -79,8 +79,8 @@ def electric_frame(k: int) -> Image.Image:
     im = rgba()
     d = SD(im)
     rng = random.Random(4910 + k)
-    pairs = [((60, 150), (118, 128)), ((324, 150), (268, 128)), ((140, 190), (196, 150)),
-             ((250, 200), (196, 232)), ((90, 230), (150, 250)), ((300, 220), (240, 260))]
+    pairs = [((60, 230), (104, 196)), ((330, 230), (280, 196)), ((140, 200), (190, 150)),
+             ((240, 210), (190, 250)), ((120, 290), (160, 262)), ((260, 290), (222, 262))]
     for n in range(3 + (k % 2)):
         (x0, y0), (x1, y1) = pairs[(n + k) % len(pairs)]
         pts = [(x0, y0)]
@@ -88,12 +88,12 @@ def electric_frame(k: int) -> Image.Image:
             f = t / 8
             pts.append((round(x0 + (x1 - x0) * f + rng.randrange(-7, 8)), round(y0 + (y1 - y0) * f + rng.randrange(-7, 8))))
         pts.append((x1, y1))
-        d.line(pts, fill=(*EMBER, 130), width=7, joint="curve")
-        d.line(pts, fill=(*AMBER, 240), width=3, joint="curve")
+        d.line(pts, fill=(40, 150, 160, 130), width=7, joint="curve")
+        d.line(pts, fill=(*TEAL, 240), width=3, joint="curve")
         d.line(pts, fill=(*WHITE, 255), width=1, joint="curve")
         for _ in range(3):
             px, py = x1 + rng.randrange(-11, 12), y1 + rng.randrange(-11, 12)
-            d.line((px - 3, py, px + 3, py), fill=(*YELLOW, 235), width=1)
+            d.line((px - 3, py, px + 3, py), fill=(*TEAL, 235), width=1)
             d.line((px, py - 3, px, py + 3), fill=WHITE, width=1)
     return im
 
@@ -106,7 +106,7 @@ def flash_body(body: Image.Image) -> Image.Image:
     im = rgba()
     im.paste(sm, ((C - w) // 2, (C - w) // 2))
     layer = rgba()
-    for x, y in [(192, 126), (112, 138), (272, 138), (192, 225), (70, 190), (314, 190), (192, 270)]:
+    for x, y in [(190, 93), (95, 196), (285, 196), (190, 253), (108, 294), (268, 294), (334, 142)]:
         glow(layer, (x, y), 8, YELLOW, 1.1)
         d = SD(layer)
         d.line((x - 15, y, x + 15, y), fill=(*WHITE, 230), width=2)
@@ -134,7 +134,7 @@ def death_key(name: str, margin: int, fallback) -> Image.Image:
 
 def fb_fire(r, power=1.0):
     def f():
-        layer = rgba(); fireball(layer, 192, 190, r, power); return layer
+        layer = rgba(); fireball(layer, 190, 190, r, power); return layer
     return f
 
 

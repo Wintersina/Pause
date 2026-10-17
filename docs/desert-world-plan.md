@@ -149,16 +149,20 @@ glints), or reuse `Rock` for the first pass (OPEN, section 11).
 | `desert_elite_scorpion_walker` | Scorpion Walker | striker | tail **venom lash** (lash with pink-tipped sting) + `claw_dive` | ruin dock |
 | `desert_elite_mirror_bastion` | Mirror Bastion | shield platform (bastion) | `ward_curtain` of slow glass shards with one gap | ruin dock |
 
-## 7. Boss: HARVESTER ("DUNE-EATER") -- concept for approval
+## 7. Boss: DUNE-EATER, "SKY-DREDGER" (flying redesign, Oct 16; replaces the Harvester excavator concept)
 
-A colossal rust-copper strip-mining **bucket-wheel excavator that has gone feral** (a machine vs worms theme) with a grafted worm-maw. Silhouette inside the
-384 cell: a broad armoured chassis, a front rotary **maw-wheel** (ring of toothed buckets with a glowing core), a rear **lens array** (mirror dish), and a
-side **drill boom** hanging a vent stack. Three named firing parts (seed `measure_emitters.py`): **Maw** (aimed sand-slug fan), **Lens** (sun-lens heat-lance
-beam, sweeping, safe middle), **Boom** (lane eruptions: the Burrower strike, ridge telegraph then a column of sand and shards). Attacks (unlock in thirds):
-(1) *grit fan*, tell0 maw opens, `Fan` of 7 sand-slugs; (2) *dune lob*, tell1 boom lowers, `Lob` rain on 4 chosen columns with lane telegraphs; (3) *lens
-beam*, tell2 lens flares, `Beam` .8 s hold; signature phase 1+: *burrower strike* (`Strike`, ridge then eruption); phase 3: *sandstorm wall* (`Wave` band
-with a gap). Flash #F4E3B0, heart #FFF6DC, never red. Damage: stages crack the shell, snap the boom, shatter the lens, bucket-wheel loses teeth; late stages
-are dramatically wrecked; death: core overload, white-gold flash, sand shockwave ring. Smoke = dust and steam.
+Everything in this game floats, so the Desert boss is a flying creature, not a machine riding on the ground: a front-on **brass-and-glass sand leviathan,
+half manta, half armoured sandworm gunship** that dredges the sky the way it once dredged the dunes. No treads, wheels, legs or ground. Parts, inside the
+576 px cell of the 35-cell Kraken-layout atlas: a great **maw** at the lower centre (two hinged lower mandibles, ivory teeth, a sun-gold and teal-white
+throat), a big faceted glass **lens** turret in a brass gimbal on the crown, a long articulated **crane boom** on the right flank holding a spiked mine (a winch
+drum and counterweight balance it on the left), two huge lateen **sail-wings** in lapis, saffron, teal and cream panels, four **turbine** pods with glowing
+teal-white fans, lacquered hull plates in verdigris teal, saffron, lapis and terracotta with brass trim. Three named firing parts (`measure_emitters.py`):
+**Maw** (grit fan, pincer, sandstorm wave walls from the throat), **Lens** (the beam, the aimed stream, sandstorm wall), **Boom** (mines and the burrower
+strike from the mine's claw). Attacks (unlock in thirds, timing unchanged): (1) *grit fan*, tell0 maw opens, `Fan` of 5 sand-slugs; (2) *dune lob*, tell1 crane
+lowers, `Lob` on 4 chosen columns with lane telegraphs; (3) *lens beam*, tell2 lens flares, `Beam` .8 s hold; signature phase 1+: *burrower strike* (`Strike`);
+phase 3: *sandstorm wall* (`Wave` band with a gap). Flash #F4E3B0, heart #FFF6DC, never red, cue colour sun-white. Damage: four painted stages (torn sails,
+cracked lens, broken teeth, pods ripped off, the hull blown open); death: reactor overload, white-gold flash, sand shockwave ring. Smoke = dust and steam.
+Art source: `Art/Bosses/Desert~/src~/` (hull_key.png = the approved master, prompts in prompts.md; build.py / build_damage.py / install.py as for the Cinder Drake).
 
 ## 8. Enemy sound materials (authored by Codex; no beeps, no coins, no ambience)
 

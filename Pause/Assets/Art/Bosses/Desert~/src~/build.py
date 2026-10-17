@@ -6,13 +6,12 @@
 Cells (BossArt flat indices, 5 per row, 576 px = 384 x 1.5):
    0..3   idle          4 hit          5,6 tell0 a/b    7,8 tell1 a/b    9 fire    10,11 tell2 a/b
   12..16  death 0..4   17,18 retreat   19 portrait
-  20..25  idle loop (six wing-beat drawings)
-  26..28  tell0 (fire breath)  29..31 tell1 (furnace slugs)  32..34 tell2 (brow laser)
+  20..25  idle loop (six painted drawings: sails, turbines, cables and the mine move)
+  26..28  tell0 (the maw: grit fan)   29..31 tell1 (the crane boom: mines)   32..34 tell2 (the crown lens: beam)
 
-hull_key.png is the approved painting; t<pose>_<stage>.png are painted edits of it (jaw opening,
-furnace shutters, brow gem charging). Where a painted pose is missing the build falls back to a
-procedural glow on the hull so the atlas is always complete. The idle beat moves the outer wings by
-rotating them about the shoulders (nearest-neighbour), so the head, chest and cannons stay registered.
+hull_key.png is the approved painting; i1..i5 (the idle loop), t<pose>_<stage>.png (maw opening, boom lowering, lens
+charging) and d1..d4 are painted edits of it. Where a painted drawing is missing the build falls back to a procedural
+version on the hull so the atlas is always complete.
 """
 from __future__ import annotations
 
@@ -23,11 +22,13 @@ from PIL import Image
 
 from common import *
 
-# Measured anchors in the 384 cell (hull_key)
-BROW = (192, 126)
-FACE = (192, 176)
-FURNACE = (192, 225)
-SHOULDER = {-1: (96 * K, 150 * K), 1: (288 * K, 150 * K)}
+# Measured anchors in the 384 cell (hull_key): the crown lens, the maw's throat, the boom's mine, the eye lamps, the turbines
+LENS = (190, 93)
+MAW = (190, 253)
+MINE = (334, 142)
+EYES = [(160, 198), (218, 198)]
+TURBINES = [(95, 196), (285, 196), (108, 294), (268, 294)]
+SHOULDER = {-1: (104 * K, 190 * K), 1: (276 * K, 190 * K)}
 
 
 def painted(name: str) -> Image.Image | None:
@@ -56,14 +57,14 @@ def beat(im: Image.Image, deg: float, lift: float) -> Image.Image:
     yy, xx = np.indices((C, C)).astype(np.float32)
     sx, sy = xx.copy(), yy.copy()
     for side, (px, py) in SHOULDER.items():
-        out = (xx - 192 * K) * side
-        w = np.clip((out - 84 * K) / (34.0 * K), 0, 1) ** 1.2     # 0 on the body, 1 on the wing
+        out = (xx - 190 * K) * side
+        w = np.clip((out - 100 * K) / (40.0 * K), 0, 1) ** 1.2     # 0 on the body, 1 on the wing
         th = math.radians(deg) * w * side
         dx, dy = xx - px, yy - py
         c, s = np.cos(th), np.sin(th)
         rx = px + dx * c + dy * s          # inverse rotation: sample where the pixel came from
         ry = py - dx * s + dy * c
-        m = (out > 84 * K)
+        m = (out > 100 * K)
         sx = np.where(m, rx, sx)
         sy = np.where(m, ry + lift * K * w, sy)
     sxi = np.clip(np.rint(sx).astype(int), 0, C - 1)
@@ -72,21 +73,29 @@ def beat(im: Image.Image, deg: float, lift: float) -> Image.Image:
 
 
 def pulse(im: Image.Image, k: float) -> Image.Image:
-    """Breathe the molten glow: brighten the orange / yellow texels by k (-1..1)."""
+    """Breathe the glows: brighten the cyan-white (turbines, lens, throat) and amber (eye lamps, mine studs) texels by k (-1..1)."""
     a = np.asarray(im).astype(np.float32).copy()
     r, g, b = a[..., 0], a[..., 1], a[..., 2]
-    hot = (r > 190) & (g > 110) & (b < 150) & (a[..., 3] > 40)
-    a[hot, :3] = np.clip(a[hot, :3] * (1 + .10 * k) + np.array([10, 6, 0]) * k, 0, 255)
+    opaque = a[..., 3] > 40
+    cyan = opaque & (g > 190) & (b > 170) & (r < 215)
+    amber = opaque & (r > 200) & (g > 130) & (b < 120)
+    a[cyan, :3] = np.clip(a[cyan, :3] * (1 + .10 * k) + np.array([6, 10, 10]) * k, 0, 255)
+    a[amber, :3] = np.clip(a[amber, :3] * (1 + .10 * k) + np.array([10, 6, 0]) * k, 0, 255)
     return Image.fromarray(a.astype(np.uint8), "RGBA")
 
 
-IDLE_BEAT = [(0.0, 0, 0.0), (2.6, 1, 0.0), (4.4, 2, 0.0), (2.6, 3, 0.0), (0.0, 4, 0.0), (-2.2, 5, 0.0)]
 IDLE_PULSE = [0.0, .35, .8, .35, -.2, -.5]
+IDLE_BEAT = [0.0, 1.4, 2.4, 1.4, 0.0, -1.2]
 
 
 def idle(i: int) -> Image.Image:
-    deg, _, lift = IDLE_BEAT[i]
-    return pulse(beat(BASE, deg, lift), IDLE_PULSE[i])
+    """Idle drawing i of the loop: painted (i1..i5.png, registered to the hull) or, if missing, a small wing-beat of the hull."""
+    if i == 0:
+        return BASE
+    pa = registered(f"i{i}", (0.98, 1.0, 1.02))
+    if pa is not None:
+        return pa
+    return pulse(beat(BASE, IDLE_BEAT[i], 0.0), IDLE_PULSE[i])
 
 
 # ------------------------------------------------------------------ fx helpers
@@ -121,31 +130,24 @@ def tell_pose(pose: int, stage: int) -> Image.Image:
         return pa
     # procedural fallback: the idle hull plus a growing glow at the firing part
     k = stage / 2.0
-    im = idle([0, 2, 4][stage])
+    im = idle(0)
     layer = rgba()
     d = SD(layer)
-    if pose == 0:        # fire breath: the snout glows, fire in the throat, a jet on the last stage
-        glow(layer, FACE, 9 + 8 * k, ORANGE, .8 + .8 * k)
+    if pose == 0:        # the maw: the throat blazes sun-gold, sand-slugs at the last stage
+        glow(layer, MAW, 12 + 10 * k, AMBER, .8 + .8 * k)
         if stage == 2:
-            for i in range(9):
-                x = 192 + (i - 4) * 5 + (i % 2) * 2
-                d.polygon([(x - 6, 190), (x + 6, 190), (x + 2, 226 + (i % 3) * 10), (x - 2, 226 + (i % 3) * 10)], fill=(*AMBER, 200))
-    elif pose == 1:      # furnace slugs: the grate flares, the cannons glow
-        glow(layer, FURNACE, 15 + 8 * k, YELLOW, .7 + .9 * k)
-        for s in (-1, 1):
-            glow(layer, (192 + s * 82, 138), 7 + 4 * k, ORANGE, .5 + k)
+            for i in range(7):
+                x = MAW[0] + (i - 3) * 7
+                d.polygon([(x - 4, MAW[1] + 8), (x + 4, MAW[1] + 8), (x + 1, MAW[1] + 30 + (i % 3) * 9), (x - 1, MAW[1] + 30 + (i % 3) * 9)], fill=(*AMBER, 200))
+    elif pose == 1:      # the crane boom: the mine's studs flare and the winch glows
+        glow(layer, MINE, 10 + 6 * k, ORANGE, .7 + .9 * k)
         if stage == 2:
-            for x, y in [(176, 262), (208, 262), (192, 276)]:
-                d.ellipse((x - 6, y - 6, x + 6, y + 6), fill=(*WHITE, 240))
-                d.ellipse((x - 10, y - 10, x + 10, y + 10), outline=(*AMBER, 200), width=2)
-    else:                # brow laser: the gem blazes, light runs down the horns
-        glow(layer, BROW, 8 + 7 * k, SULFUR, .8 + 1.0 * k)
-        if stage >= 1:
-            for s in (-1, 1):
-                d.line([(192 + s * 6, 124), (192 + s * 24, 98), (192 + s * 36, 84)], fill=(*YELLOW, 120 + 70 * stage), width=1 + stage)
+            spark(d, *MINE, 18, WHITE)
+    else:                # the crown lens: the glass blazes white-teal
+        glow(layer, LENS, 14 + 10 * k, TEAL, .8 + 1.0 * k)
         if stage == 2:
-            spark(d, *BROW, 20, WHITE)
-            d.line([(192, 134), (192, 176)], fill=(*YELLOW, 200), width=3)
+            spark(d, *LENS, 28, WHITE)
+            d.line([(LENS[0], LENS[1] + 20), (LENS[0], LENS[1] + 70)], fill=(*WHITE, 200), width=3)
     return over(im, layer)
 
 
@@ -175,11 +177,11 @@ def death_cell(i: int) -> Image.Image:
     if i == 0:
         im = idle(0)
         layer = rgba(); d = SD(layer)
-        for line in ([(186, 110), (180, 130), (190, 150), (182, 170)], [(120, 150), (150, 170), (160, 200), (150, 226)],
-                     [(262, 150), (236, 172), (228, 200), (240, 226)]):
+        for line in ([(186, 110), (180, 150), (194, 190), (186, 230)], [(110, 190), (140, 200), (160, 232), (150, 270)],
+                     [(270, 190), (240, 204), (226, 232), (236, 270)]):
             d.line(line, fill=(*ORANGE, 220), width=3)
             d.line(line, fill=(*YELLOW, 240), width=1)
-        glow(layer, FURNACE, 14, YELLOW, 1.0)
+        glow(layer, MAW, 14, YELLOW, 1.0)
         return over(im, layer)
     pa = painted(keys[i - 1] if i - 1 < len(keys) else keys[-1])
     if pa is not None:
@@ -197,9 +199,9 @@ def death_cell(i: int) -> Image.Image:
     r = [0, 60, 110, 150, 120][i]
     if i <= 2:
         out = base.copy(); out = Image.blend(out, rgba(), .0)
-        fireball(layer, 192, 190, max(r, 24))
+        fireball(layer, 190, 190, max(r, 24))
         return over(out, layer)
-    fireball(layer, 192, 190, r, .8 if i == 3 else .45)
+    fireball(layer, 190, 190, r, .8 if i == 3 else .45)
     return layer
 
 
@@ -220,7 +222,7 @@ def retreat(stage: int) -> Image.Image:
 def portrait() -> Image.Image:
     im = idle(2)
     layer = rgba(); d = SD(layer)
-    glow(layer, BROW, 6, SULFUR, .8)
+    glow(layer, LENS, 6, TEAL, .8)
     return over(im, layer)
 
 

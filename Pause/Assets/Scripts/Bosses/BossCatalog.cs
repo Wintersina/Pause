@@ -444,7 +444,7 @@ public static class BossCatalog
                                      volleys = 3, volleyGap = .65f, count = 5, spreadDeg = 84f, rotateDeg = 10f,
                                      speed = 2.5f, style = BossShotStyle.Shard,
                                      rail = BossRailMode.Bounce, bounces = 1, cooldown = 1.2f },
-                    // The drill boom lowers, then slugs are flung up out of it and rain down on four of five columns.
+                    // The crane boom lowers, then slugs are flung up out of it and rain down on four of five columns.
                     new BossAttack { name = "dune lob", kind = BossAttackKind.Lob, tell = 1, tellSeconds = .9f,
                                      emitters = new[] { "Boom" },
                                      volleys = 2, volleyGap = .55f, count = 4, style = BossShotStyle.Bolt,
