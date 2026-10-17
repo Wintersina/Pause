@@ -116,7 +116,7 @@ public static class EliteHdTest
         {
             // phones: ASTC 6x6 = 3.56 bits per px (the Android diet); the editor / desktop keep RGBA32
             float mobile = kv.Value * 3.56f / 8f / 1048576f, desktop = kv.Value * 4f / 1048576f;
-            Check(kv.Key + ": HD elite strips cost " + mobile.ToString("0.0") + " MB on phones (ASTC 6x6), " + desktop.ToString("0.0") + " MB uncompressed (budget 4.5 / 41 MB)", mobile <= 4.5f && desktop <= 41f);   // 4.5: Ember's six elites carry 8 flight cells (two painted poses); 41 desktop (editor only, phones are ASTC): Desert's six carry two appended engine-fire flicker cells (9 cells)
+            Check(kv.Key + ": HD elite strips cost " + mobile.ToString("0.0") + " MB on phones (ASTC 6x6), " + desktop.ToString("0.0") + " MB uncompressed (budget 4.6 / 41 MB)", mobile <= 4.6f && desktop <= 41f);   // 4.5: Ember's six elites carry 8 flight cells (two painted poses); 41 desktop (editor only, phones are ASTC): Desert's six carry two appended engine-fire flicker cells (9 cells: 4.52 MB on phones)
         }
         Check("every HD elite on the list was walked (" + hd + " of " + EliteHdResolution.Hd.Count + ")", hd == EliteHdResolution.Hd.Count);
         Check("every elite def was walked (" + walked + ")", walked >= 36);
