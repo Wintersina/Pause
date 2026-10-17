@@ -487,26 +487,28 @@ public static class EliteTest
 
     static void CellMaps()
     {
-        // the Ember six keep the default layout, cell for cell
+        // the Ember six: the 384 px HD layout (parked 0, engines 1, lift-off 2, two painted flight poses 3 + 4, banks 5 / 6, damaged 7)
         foreach (var d in EliteCatalog.All)
         {
             if (d.world != "ember") continue;
             var c = d.cells;
-            Check(d.key + ": the default (Ember) cell layout: idle 0-3, tell 4, action 5, hit 6, no parked / lift-off / bank / damaged cells",
-                  c.flight.Length == 4 && c.flight[0] == 0 && c.flight[3] == 3 && c.tell == EliteArt.Tell && c.action == EliteArt.Action &&
-                  c.hit == EliteArt.Hit && c.parked < 0 && c.parkedIdle < 0 && c.liftoff < 0 && !c.Banks && c.damaged < 0 && c.Parked == 0);
+            Check(d.key + ": the Ember HD cell layout: parked 0, engines 1, lift-off 2, flight 3 + 4, banks 5 / 6, damaged 7, no tell / action / hit cells",
+                  c.flight.Length == 2 && c.flight[0] == 3 && c.flight[1] == 4 && c.parked == 0 && c.parkedIdle == 1 && c.liftoff == 2 && c.bankLeft == 5 && c.bankRight == 6 &&
+                  c.damaged == 7 && c.tell < 0 && c.action < 0 && c.hit < 0 && c.Banks);
         }
         Fresh(.05f);
         var sun = EliteShip.CreateInPlay(EliteCatalog.Find("ember_elite_sunstoke"), new Vector2(0f, 1f));
         sun.AttackCooldown = 99f;
         var seen = new HashSet<int>();
-        Step(1.5f, () => seen.Add(sun.CurrentFrame));
-        Check("Ember: still loops idle 0-3 (" + string.Join(",", seen) + ")", seen.SetEquals(new[] { 0, 1, 2, 3 }));
+        Step(.1f);
+        Step(1.5f, () => { sun.SetSeen(sun.Position + Vector2.down * 2f); sun.Velocity = Vector2.zero; seen.Add(sun.CurrentFrame); });
+        Check("Ember: loops its two painted flight poses 3 / 4 (" + string.Join(",", seen) + ")", seen.SetEquals(new[] { 3, 4 }));
+        sun.Velocity = Vector2.zero;
         sun.TakeHit(EliteDamage.PlayerWeapon, sun.transform.position + Vector3.left);
         EliteSystem.Step(Dt);
-        Check("Ember: a hit shows the hit cell, hull not tinted", sun.CurrentFrame == EliteArt.Hit && sun.Hull.color == Color.white);
+        Check("Ember: a hit flashes the frame it is on and the damaged cell stays (no hit cell)", sun.Damaged && sun.CurrentFrame == 7);
         Step(.5f);
-        Check("Ember: back on its idle loop after the hit (no damaged cell)", sun.CurrentFrame < 4 && !sun.Damaged);
+        Check("Ember: after its first lost heart the damaged cell, steady", sun.CurrentFrame == 7 && sun.Damaged);
 
         foreach (string key in new[] { "frost_elite_rimebreaker", "verdant_elite_resin_warden", "verdant_elite_timber_hauler", "verdant_elite_thornlash", "verdant_elite_sporebloom", "verdant_elite_leafblade" })
         {

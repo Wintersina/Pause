@@ -34,12 +34,10 @@ SHIPS = {
     "frost_elite_cryo_siren": "frost", "frost_elite_floe_harrower": "frost",
     "frost_elite_glacier_tender": "frost", "frost_elite_rimebreaker": "frost",
     "frost_elite_whiteout_sentinel": "frost",
-    "ember_elite_ash_wraith": "ember", "ember_elite_brass_vulture": "ember",
-    "ember_elite_cauterizer": "ember", "ember_elite_coalrunner": "ember",
-    "ember_elite_kilnback": "ember", "ember_elite_sunstoke": "ember",
+    # the six Ember elites are 384 px now: src~/ember_elites_384/death.py (this 192 px script no longer builds them)
     "verdant_elite_resin_warden": "verdant",
 }
-ORDER = ["ember_elite_kilnback", "space_elite_eventide_bastion", "space_elite_singularity_hauler"]
+ORDER = ["space_elite_eventide_bastion", "space_elite_singularity_hauler"]
 
 
 def flight_cell(key: str, world: str) -> Image.Image:

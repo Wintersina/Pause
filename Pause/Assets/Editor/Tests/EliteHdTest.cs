@@ -19,6 +19,7 @@ public static class EliteHdResolution
         "storm_elite_skyhook_harrier", "storm_elite_refinery_tender", "storm_elite_rod_dancer", "storm_elite_anvil_cloud", "storm_elite_static_bastion",
         "desert_elite_dune_stalker", "desert_elite_glass_cannon", "desert_elite_caravan_hauler", "desert_elite_lens_matriarch", "desert_elite_scorpion_walker", "desert_elite_mirror_bastion",
         "space_elite_rift_lancer", "space_elite_eventide_bastion", "space_elite_orbit_reaver", "space_elite_singularity_hauler",
+        "ember_elite_sunstoke", "ember_elite_coalrunner", "ember_elite_brass_vulture", "ember_elite_kilnback", "ember_elite_ash_wraith", "ember_elite_cauterizer",
         "frost_elite_floe_harrower", "frost_elite_glacier_tender", "frost_elite_whiteout_sentinel", "frost_elite_cryo_siren", "frost_elite_rimebreaker",
         "verdant_elite_timber_hauler", "verdant_elite_thornlash", "verdant_elite_sporebloom", "verdant_elite_leafblade", "verdant_elite_resin_warden",
     };
@@ -95,7 +96,7 @@ public static class EliteHdTest
             // no block doubling: the hover cell and the damaged cell
             var tex = new Texture2D(2, 2);
             tex.LoadImage(File.ReadAllBytes(strip));
-            foreach (int cell in new[] { 3, 6 })
+            foreach (int cell in new[] { 3, d.world == "ember" ? 7 : 6 })   // Ember: cell 7 is its damaged drawing (8 cells)
             {
                 BlockShares(tex, cell * 384, 384, out float al, out float off);
                 Check(d.key + ": cell " + cell + " is not block-doubled (aligned 2x2 flat " + (al * 100).ToString("0") + "% vs offset " + (off * 100).ToString("0") + "%)", al < .92f && al < off * 1.6f + .12f);
@@ -115,7 +116,7 @@ public static class EliteHdTest
         {
             // phones: ASTC 6x6 = 3.56 bits per px (the Android diet); the editor / desktop keep RGBA32
             float mobile = kv.Value * 3.56f / 8f / 1048576f, desktop = kv.Value * 4f / 1048576f;
-            Check(kv.Key + ": HD elite strips cost " + mobile.ToString("0.0") + " MB on phones (ASTC 6x6), " + desktop.ToString("0.0") + " MB uncompressed (budget 4 / 40 MB)", mobile <= 4f && desktop <= 40f);
+            Check(kv.Key + ": HD elite strips cost " + mobile.ToString("0.0") + " MB on phones (ASTC 6x6), " + desktop.ToString("0.0") + " MB uncompressed (budget 4 / 40 MB)", mobile <= 4.5f && desktop <= 40f);   // 4.5: Ember's six elites carry 8 flight cells (two painted poses)
         }
         Check("every HD elite on the list was walked (" + hd + " of " + EliteHdResolution.Hd.Count + ")", hd == EliteHdResolution.Hd.Count);
         Check("every elite def was walked (" + walked + ")", walked >= 36);

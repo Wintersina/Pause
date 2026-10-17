@@ -1,7 +1,7 @@
 using System.IO;
 using UnityEngine;
 
-// EMBER SPRITES MUST NEVER BE CLIPPED. Every installed Ember strip (enemies, hazards, the six elites and every death strip) is
+// EMBER SPRITES MUST NEVER BE CLIPPED. Every installed Ember strip (enemies, hazards, every death strip (the six elites: EmberEliteFramingTest)) is
 // measured cell by cell on its alpha: nothing may sit within 4 px of a cell edge (no cut-off wing, flame or horn), and the flight
 // frames must keep their framing: across the four idle cells the pivot (bbox centre) drifts <= 3 px sideways / 5 px vertically and
 // the bbox size changes <= 14 x 8 px; across all seven cells the pivot stays within 6 / 9 px (tell and hit marks add sparks only).
@@ -28,8 +28,8 @@ public static class EmberFramingTest
         int n = 0;
         foreach (var f in Directory.GetFiles(Root + "Enemies", "ember_*.png")) { Strip(f, false); n++; }
         foreach (var f in Directory.GetFiles(Root + "Enemies/Death", "ember_*.png")) { Strip(f, true); n++; }
-        foreach (var f in Directory.GetFiles(Root + "Elites/Ember", "ember_elite_*.png")) { Strip(f, f.EndsWith("_death.png")); n++; }
-        Check("Ember strips measured (" + n + ")", n >= 34);
+        // (the six elites are 384 px HD strips now: EmberEliteFramingTest)
+        Check("Ember strips measured (" + n + ")", n >= 22);
         Debug.Log("[EMBF] failures: " + fails);
         return fails;
     }
