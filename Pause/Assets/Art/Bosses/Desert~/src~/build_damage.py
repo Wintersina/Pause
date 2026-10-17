@@ -58,7 +58,11 @@ def smoke_frame(k: int) -> Image.Image:
             tx = round([112, 190, 268][n] * K) - sz[0] // 2 + round([-2, -1, 0, 1, 2, 0][k] * K) * (1 if n != 2 else -1)
             ty = round([150, 132, 150][n] * K) - sz[1] + round([2, 1, 0, 1, 2, 3][k] * K)
             im.alpha_composite(piece, (tx, max(0, ty)))
-        return im
+        # hard edges, no faint ghost layer (BossDamageTest: DamageFx smoke cells are single drawings): alpha < 90 -> 0, else solid
+        a = np.asarray(im).copy()
+        a[..., 3] = np.where(a[..., 3] < 90, 0, 255)
+        a[a[..., 3] == 0] = 0
+        return Image.fromarray(a, "RGBA")
     rng = random.Random(900 + k)
     d = SD(im)
     for sx, sy in [(112, 150), (268, 150), (190, 132)]:
