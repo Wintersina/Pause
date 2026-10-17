@@ -23,6 +23,8 @@ public static class EliteEngineFireTest
     static readonly string[] Keys =
     {
         // one line per world, added with that world's frames
+        "desert_elite_caravan_hauler", "desert_elite_dune_stalker", "desert_elite_glass_cannon",
+        "desert_elite_lens_matriarch", "desert_elite_mirror_bastion", "desert_elite_scorpion_walker",
     };
 
     static string Dir(string key) { return "Assets/Art/Resources/Elites/" + char.ToUpper(key[0]) + key.Substring(1, key.IndexOf('_') - 1) + "/"; }
