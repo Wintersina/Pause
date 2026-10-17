@@ -23,7 +23,7 @@ FRAMES = [
     (-12, 0.86, 8, 0.0, False),   # 4 tell: deep crouch
     (44, 1.12, -8, 0.0, True),    # 5 tell: SNAP
 ]
-IDLE_TICKS = [4, 2, 3, 3]
+IDLE_TICKS = [6, 4, 5, 4]
 TELL_TICKS = [2, 3]
 
 TWITCH = (0, -6, 8, 3, -10, 12)       # legs / tentacles / roots

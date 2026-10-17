@@ -891,7 +891,7 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
         else if (velocity.sqrMagnitude > .16f) want = Mathf.Atan2(velocity.y, velocity.x) * Mathf.Rad2Deg;
         else want = facing;
         facing = Mathf.MoveTowardsAngle(facing, want, Mathf.Min(Def.turnRate * 1.4f, Def.faceTurnMax) * dt);
-        float b = -Mathf.Clamp(velocity.x / Mathf.Max(.1f, Def.speed), -1f, 1f) * Def.maxBank;
+        float b = -Mathf.Clamp(velocity.x / Mathf.Max(.1f, Def.speed), -1f, 1f) * Mathf.Min(Def.maxBank, BankCap);
         bank = Mathf.Lerp(bank, b, 1f - Mathf.Exp(-6f * dt));
     }
 
@@ -1339,6 +1339,8 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
     }
 
     public const float BankEnter = .35f, BankExit = .2f;
+    // calm-idle pass: an upright hull never leans more than this into a sideways move (defs asked for up to 10 deg)
+    public const float BankCap = 4f;
     // Lost a heart and has a damaged drawing: shown from then on.
     public bool Damaged => Def.cells.damaged >= 0 && (Hearts < Def.hearts || Attack.ShowsDamaged) && InPlay;
     public int BankCell => bankCell;
@@ -1366,7 +1368,7 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
 
     // ---- procedural tell / action / hit (strips without those cells) ----
 
-    public const float FlashSeconds = .1f, RecoilKick = .14f, SquashMax = .07f, LeanMax = 6f;
+    public const float FlashSeconds = .1f, RecoilKick = .14f, SquashMax = .035f, LeanMax = 3f;   // calm-idle pass: was .07 / 6 (a visible squash-and-stretch wobble)
     static readonly Color HitTint = new Color(1f, .55f, .95f, 1f);
 
     public bool ChargeGlowOn { get; private set; }

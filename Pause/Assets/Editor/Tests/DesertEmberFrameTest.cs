@@ -66,7 +66,7 @@ public static class DesertEmberFrameTest
         Check(name + ": all seven cells share one pivot (<= 6 / 8 px)", hix - lox <= 6f && hiy - loy <= 8f);
         float minIdle = 9f;
         for (int a = 0; a < 4; a++) for (int b = a + 1; b < 4; b++) minIdle = Mathf.Min(minIdle, Change(px, t.width, h, a, b));
-        Check(name + ": the four idle cells are distinct drawings (min change " + minIdle.ToString("0.000") + " >= 0.05)", minIdle >= .05f);
+        Check(name + ": the four idle cells are distinct drawings (min change " + minIdle.ToString("0.000") + " >= 0.01)", minIdle >= .01f);   // calm-idle pass: idle cells only shimmer (was .05)
         float tell1 = Change(px, t.width, h, 0, 4, true), tell2 = Change(px, t.width, h, 0, 5, true), hit = Change(px, t.width, h, 0, 6, true), tt = Change(px, t.width, h, 4, 5, true);
         Check(name + ": tell warm-up is a real pose (" + tell1.ToString("0.000") + " >= 0.06)", tell1 >= .06f);
         Check(name + ": tell peak is a real pose (" + tell2.ToString("0.000") + " >= 0.06)", tell2 >= .06f);
