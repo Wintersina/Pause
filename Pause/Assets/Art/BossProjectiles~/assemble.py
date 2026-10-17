@@ -5,6 +5,8 @@ Outputs: Resources/Attacks/<World>/<w>_attack_laser{,body,tell}.png, Resources/B
 Resources/Attacks/Verdant/verdant_attack_lash.png.  Prints the measured constants (bodyOpaquePx, impactBasePx)."""
 import sys, os, json
 import numpy as np
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import stripmod
 from PIL import Image
 from collections import deque
 
@@ -169,6 +171,8 @@ def final_fix(a):
 
 def save(a, path):
     a = final_fix(a)
+    if path.endswith('_attack_laser.png'):
+        a = stripmod.strip_sheet(a, 128, 128)   # the muzzle / windup / impact cells: no border either
     os.makedirs(os.path.dirname(path), exist_ok=True)
     to_pil(a).save(path)
     print('wrote', path.replace(ROOT, ''), a.shape[1], 'x', a.shape[0])
@@ -211,7 +215,7 @@ def do_body(cfg, w):
             row = (1 - t) * pmz[252] + t * pmz[0]
             a_ = row[:, 3:4]
             fz[253 + j] = np.concatenate([np.where(a_ > 0, row[:, :3] * 255. / np.maximum(a_, 1e-3), 0), a_], 1)
-        frames.append(fz)
+        frames.append(stripmod.strip_cell(fz, wrap_v=True))   # no keyline round the beam: its own glowing body, soft falloff
     for f, fr in enumerate(frames):
         out[:, f * 128:(f + 1) * 128] = fr
         cols = np.where(fr[..., 3].max(0) > 0)[0]

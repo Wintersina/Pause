@@ -183,7 +183,7 @@ public static class AttackArt
     // (union of the four body frames' columns with any alpha; the impact-1 cell's lowest pixel row less 66)
     // (all seven worlds, EnemyRoster.WorldKeys order; 0 = no painted kit). Space (plasma rail), Frost (cryo lance), Ember (jaw flamethrower),
     // Tide (pressure water jet), Storm (arc beam) and Desert (prismatic lens beam) are the custom per-boss kits; Verdant keeps its acid kit.
-    static readonly int[] LaserBodyOpaque = { 66, 87, 100, 91, 89, 93, 86 };
+    static readonly int[] LaserBodyOpaque = { 63, 85, 100, 90, 88, 88, 86 };
     static readonly int[] LaserImpactBase = { 44, 44, 49, 45, 44, 44, 44 };
 
     public static bool HasBossLaser(int world) => world >= 0 && world < LaserBodyOpaque.Length && LaserBodyOpaque[world] > 0;

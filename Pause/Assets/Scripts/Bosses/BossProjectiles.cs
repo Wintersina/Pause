@@ -702,7 +702,7 @@ public class BossBeam : MonoBehaviour
         sight.enabled = false;
         lockOn.enabled = false;
         beam.enabled = flash.enabled = true;
-        sheath.enabled = true;
+        sheath.enabled = art == null;   // a painted beam is just its own glowing body: no wrapper glow / border along it
         hitbox = BossHitbox.Box(transform, "BossBeamHit", new Vector2(width * BossConfig.BeamHitFraction, .01f));
         box = hitbox.GetComponent<BoxCollider2D>();
         Place(0f);
@@ -752,7 +752,8 @@ public class BossBeam : MonoBehaviour
             if (art == null) w *= step % 2 == 0 ? 1f : .85f;
         }
         if (art != null) PaintedBeam(w); else Span(beam.transform, w, length);
-        // the sheath: the same wrapper as a shot, along the beam's length
+        // the sheath: the same wrapper as a shot, along the beam's length (none on a painted beam)
+        if (art != null) sheath.enabled = false;
         sheath.transform.localPosition = new Vector3(0f, length * .5f, 0f);
         sheath.transform.localScale = new Vector3(HostileGlow.DiameterFor(w * (art != null ? BossConfig.BeamHitFraction : 1f) * HostileGlow.BeamBody) * HostileGlow.PulseScaleAt(age),
                                                   Mathf.Max(.001f, length) / HostileGlow.SheathHeight, 1f);
@@ -792,7 +793,7 @@ public class BossBeam : MonoBehaviour
     // ---- a boss's painted laser kit (AttackArt.BossLaser): visual only ----
     //
     // Every size below derives from the beam body: its 128 px frame is drawn at BodyScale so that its opaque columns
-    // (art.bodyOpaquePx) are exactly the hit shape's width (width x BeamHitFraction). The hit shape,
+    // (art.bodyOpaquePx) are BeamArtWidthBoost x the hit shape's width (width x BeamHitFraction). The hit shape,
     // tell and timings are the generic beam's, untouched.
 
     const float WindupFps = 12f, LoopFps = 12f, SparkFps = 15f;
@@ -800,7 +801,10 @@ public class BossBeam : MonoBehaviour
     const float LockScale = 1f;        // the reticle's 128 px cell
     const float FlareToBody = 1.5f;    // muzzle / windup / impact cells vs the body frame
 
-    float BodyScale => width * BossConfig.BeamHitFraction * 128f / art.bodyOpaquePx;
+    // The painted body is drawn BeamArtWidthBoost x wider than the hit shape (about 18 % bigger: the soft falloff has no border and reads
+    // thinner than its hit width); the hit shape, damage and timing are the generic beam's, untouched.
+    public const float BeamArtWidthBoost = 1.18f;
+    float BodyScale => width * BossConfig.BeamHitFraction * 128f / art.bodyOpaquePx * BeamArtWidthBoost;
 
     static void ResetPiece(SpriteRenderer r)
     {

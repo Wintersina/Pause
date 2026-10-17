@@ -262,6 +262,25 @@ public static class BossAttackShotArtTest
         return edge == 0 ? 0f : pale / (float)edge;
     }
 
+    // the share of a beam body frame's silhouette-edge pixels (any alpha > 20 beside a clear one, or on the side columns) that are dark: a keyline
+    static float DarkEdge(Color32[] all, int tw, int th, int x0, int yTop, int w, int h, out int edge)
+    {
+        int dark = 0; edge = 0;
+        for (int y = 0; y < h; y++)
+            for (int x = 0; x < w; x++)
+            {
+                var c = all[(th - 1 - (yTop + y)) * tw + x0 + x];
+                if (c.a <= 20) continue;
+                bool border = x == 0 || x == w - 1 ||
+                              all[(th - 1 - (yTop + y)) * tw + x0 + x - 1].a <= 20 || all[(th - 1 - (yTop + y)) * tw + x0 + x + 1].a <= 20;
+                if (!border) continue;
+                edge++;
+                if ((.299f * c.r + .587f * c.g + .114f * c.b) / 255f < .34f) dark++;
+            }
+        return edge == 0 ? 0f : dark / (float)edge;
+    }
+
+    public const float MaxDarkBeamEdge = .15f;
     public const float MaxPaleRim = .2f;
 
     static void PaleRims()
@@ -283,10 +302,16 @@ public static class BossAttackShotArtTest
                     {
                         float share = PaleEdge(px, t.width, t.height, cx, cy, cw, ch, out int edge);
                         if (edge > 40 && share > MaxPaleRim) { bad++; why += Path.GetFileName(file) + "[" + cx / cw + "," + cy / ch + "] " + share.ToString("P0") + "; "; }
+                        // a beam is just its own glowing body with a soft falloff: no dark keyline either (the vine lash and trunk keep their natural dark edge)
+                        if (file.EndsWith("laserbody.png"))
+                        {
+                            float dk = DarkEdge(px, t.width, t.height, cx, cy, cw, ch, out int dedge);
+                            if (dedge > 40 && dk > MaxDarkBeamEdge) { bad++; why += Path.GetFileName(file) + "[" + cx / cw + "] dark edge " + dk.ToString("P0") + "; "; }
+                        }
                     }
                 Object.DestroyImmediate(t);
             }
         }
-        Check(files + " boss attack sheets (beam bodies, vine lash, trunk): no cell wears a pale rim (> " + (MaxPaleRim * 100f) + " % of its edge pixels near-white) (" + bad + " bad " + why + ")", bad == 0 && files >= 7);
+        Check(files + " boss attack sheets (beam bodies, vine lash, trunk): no cell wears a pale rim (> " + (MaxPaleRim * 100f) + " % of its edge pixels near-white) and no beam body a dark keyline (> " + (MaxDarkBeamEdge * 100f) + " %) (" + bad + " bad " + why + ")", bad == 0 && files >= 7);
     }
 }

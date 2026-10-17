@@ -253,7 +253,9 @@ public static class BossLaserArtTest
         Check("hit shape: " + hitW.ToString("F3") + " u wide (" + box.size.x.ToString("F3") + ")", Mathf.Abs(box.size.x - hitW) < 1e-4f);
         Check("the body is tiled, beam sprites come from the body sheet", beam.drawMode == SpriteDrawMode.Tiled && System.Array.IndexOf(art.body, beam.sprite) >= 0);
         float opaqueW = beam.transform.lossyScale.x * art.bodyOpaquePx / 128f;
-        Check("its opaque part (" + opaqueW.ToString("F3") + " u) is within the hit shape (" + hitW.ToString("F3") + " u)", opaqueW <= hitW + 1e-4f);
+        Check("its opaque part (" + opaqueW.ToString("F3") + " u) is the hit shape (" + hitW.ToString("F3") + " u) x " + BossBeam.BeamArtWidthBoost + " (about 18 % bigger, soft falloff, no border)",
+              Mathf.Abs(opaqueW - hitW * BossBeam.BeamArtWidthBoost) < 1e-3f);
+        Check("no wrapper glow / border along a painted beam (the sheath is off)", !b.Sheath.enabled);
         var seen = new System.Collections.Generic.HashSet<Sprite>();
         var muz = new System.Collections.Generic.HashSet<Sprite>();
         for (int i = 0; i < 22 && b.Live; i++) { b.Step(Dt); seen.Add(beam.sprite); if (flash.enabled) muz.Add(flash.sprite); }   // (inside the shortest hold, Frost's .6 s)
