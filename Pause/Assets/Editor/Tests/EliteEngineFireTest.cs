@@ -2,7 +2,7 @@ using System.IO;
 using UnityEngine;
 
 // Engine-fire frames, all worlds (art: Art/Enemies/src~/elite_engine_fire/engine_fire.py): every elite that was
-// redone has a flight loop of >= 4 cells that is ONE fixed hull (pixel-identical outside the engine zone) with only
+// redone has a flight loop of >= 2 cells that is ONE fixed hull (pixel-identical outside the engine zone) with only
 // the flames changing from cell to cell; the flames are cold / world palette (no pink outside Space, no pink or red in
 // Frost), the cells keep the 6 px framing margin, the flame leaves each bell (it covers the nozzle mouth row) and the
 // engine zone is the only thing that differs. Frost idles with the engines only: no sway.
@@ -23,6 +23,10 @@ public static class EliteEngineFireTest
     static readonly string[] Keys =
     {
         // one line per world, added with that world's frames
+        "ember_elite_ash_wraith", "ember_elite_brass_vulture", "ember_elite_cauterizer",
+        "ember_elite_coalrunner", "ember_elite_kilnback", "ember_elite_sunstoke",
+        "verdant_elite_leafblade", "verdant_elite_resin_warden", "verdant_elite_sporebloom",
+        "verdant_elite_thornlash", "verdant_elite_timber_hauler",
         "tide_elite_bathyscaphe", "tide_elite_pearl_warden", "tide_elite_riptide",
         "tide_elite_thunderfin", "tide_elite_trawler",
         "storm_elite_anvil_cloud", "storm_elite_refinery_tender", "storm_elite_rod_dancer",
@@ -55,8 +59,8 @@ public static class EliteEngineFireTest
     static void One(string key)
     {
         var def = EliteCatalog.Find(key);
-        Check(key + ": def exists with a flight loop of >= 3 cells (" + (def == null ? "-" : def.cells.flight.Length.ToString()) + ")", def != null && def.cells.flight.Length >= 3);
-        if (def == null || def.cells.flight.Length < 3) return;
+        Check(key + ": def exists with a flight loop of >= 2 cells (" + (def == null ? "-" : def.cells.flight.Length.ToString()) + ")", def != null && def.cells.flight.Length >= 2);
+        if (def == null || def.cells.flight.Length < 2) return;
         var t = new Texture2D(2, 2, TextureFormat.RGBA32, false);
         t.LoadImage(File.ReadAllBytes(Dir(key) + key + ".png"));
         int W = t.width; var px = t.GetPixels32(); Object.DestroyImmediate(t);

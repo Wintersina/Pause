@@ -12,7 +12,7 @@ Parked / lift-off / bank / damaged cells are not touched.
 
   python3 engine_fire.py <world|key> [--out DIR] [--src DIR]
 """
-import sys, json, random, importlib.util
+import sys, re, json, random, importlib.util
 from pathlib import Path
 import numpy as np
 from PIL import Image
@@ -109,7 +109,7 @@ def states(base, mouths, cols, length, seed0=10):
 def build(key, src_dir, out_dir, mode, length=None, cols=None, manual=None, keep_cell3=False):
     d = load_def(key); w = key.split("_")[0]
     a = np.array(Image.open(src_dir / w.capitalize() / f"{key}.png").convert("RGBA"))
-    if key not in BIG and a.shape[1] > 7 * CELL: a = a[:, :7 * CELL]      # re-runs: only the original 7 cells
+    if a.shape[1] > n_orig(key) * CELL: a = a[:, :n_orig(key) * CELL]      # re-runs: only the original cells
     if mode == "strip":
         mouths = [manual[i] for i in range(len(d["nozzles"]))]
         base = strip_flame(a, mouths)
@@ -117,7 +117,7 @@ def build(key, src_dir, out_dir, mode, length=None, cols=None, manual=None, keep
         base = bare_hull(a, d, mode)
         mouths = mouths_for(base, d, manual)
     base_alpha = np.array(base)[..., 3]
-    cols = cols or (WORLD_FLAME.get(w) if w in FORCE_PALETTE else None) or old_flame_colours(a, base_alpha) or WORLD_FLAME[w]
+    cols = cols or (WORLD_FLAME.get(w) if w in FORCE_PALETTE and key != "verdant_elite_resin_warden" else None) or old_flame_colours(a, base_alpha) or WORLD_FLAME[w]
     ylow = old_flame_length(a, d, base_alpha) if mode != "strip" else int(np.where((np.array(cell(a, 3))[..., 3] > 200).any(1))[0].max())
     # length in 192-cell units of engine_fx: its flame is L*K px long from the mouth
     my = max(m[1] for m in mouths)
@@ -156,7 +156,7 @@ def bank_cells(a, d, base, mouths, cols, L):
     Damaged: only the engine that still burned in the old cell sputters (short, ragged), the rest stay dark."""
     c = d["cells"]; R = np.array(base)
     out = {}
-    for name, idx in (("bankLeft", c.get("bankLeft")), ("bankRight", c.get("bankRight")), ("damaged", c.get("damaged"))):
+    for name, idx in (("bankLeft", c.get("bankLeft")), ("bankRight", c.get("bankRight")), ("damaged", c.get("damaged")), ("liftoff", c.get("liftoff") if (d["key"] in LIFT or d["key"].split("_")[0] in LIFT_WORLDS) and d["key"] not in BIG else None)):
         if idx is None or idx < 0: continue
         C = np.array(cell(a, idx)); X = C.copy(); yy, xx = np.indices((CELL, CELL))
         sh = []; burning = []
@@ -172,7 +172,10 @@ def bank_cells(a, d, base, mouths, cols, L):
             X[zone] = src[zone]
         mm = [(cx + dx, cy + dy, rx, ry) for (cx, cy, rx, ry), (dx, dy) in zip(mouths, sh)]
         base_c = Image.fromarray(X, "RGBA")
-        if name == "damaged":
+        if name == "liftoff":
+            lens = [(L * .42, .9) for _ in mm]
+            im = T.engine_fx(base_c, mm, lens, cols, 77)
+        elif name == "damaged":
             keep = [i for i, b in enumerate(burning) if b] or [0]
             lens = [((L * .45, .8) if i in keep else (0, 0)) for i in range(len(mm))]
             sel = [(m, l) for m, l in zip(mm, lens) if l[0] > 0]
@@ -185,7 +188,25 @@ def bank_cells(a, d, base, mouths, cols, L):
     return out
 
 
+def n_orig(key):
+    return 10 if key in BIG else 8 if key.startswith("ember_") else 7
+
+
+def targets(key):
+    """strip cells the four flight states are written to (appended past the original strip where needed)"""
+    return [3, 4, 5, 6] if key in BIG else [3, 4] if key.startswith("ember_") else [3, 7, 8, 9]   # Ember keeps its 8-cell strip: two flame states
+
+
 def write(key, a, cs, out_dir, big):
+    t = targets(key); n = max(n_orig(key), max(t) + 1)
+    strip = np.zeros((CELL, n * CELL, 4), np.uint8); strip[:, :a.shape[1]] = a
+    for i, c in zip(t, cs): strip[:, i * CELL:(i + 1) * CELL] = np.array(c)
+    w = key.split("_")[0]
+    p = out_dir / w.capitalize(); p.mkdir(parents=True, exist_ok=True)
+    Image.fromarray(strip).save(p / f"{key}.png")
+
+
+def write_old(key, a, cs, out_dir, big):
     N = a.shape[1] // CELL
     if big:
         strip = a.copy()
@@ -204,6 +225,17 @@ MANUAL = {
     "storm_elite_rod_dancer": {0: (171, 296, 6, 4), 1: (190, 298, 7, 4), 2: (210, 296, 6, 4)},
     "storm_elite_static_bastion": {0: (124, 296, 12, 6), 1: (191, 307, 13, 5), 2: (260, 296, 12, 6), 3: (150, 298, 6, 3), 4: (234, 298, 6, 3)},
     "storm_elite_refinery_tender": {0: (120, 289, 16, 7), 1: (190, 283, 8, 4), 2: (266, 289, 16, 7)},
+    "verdant_elite_leafblade": {0: (173, 322, 9, 5), 1: (209, 322, 9, 5)},
+    "verdant_elite_sporebloom": {0: (164, 316, 15, 7), 1: (222, 316, 15, 7)},
+    "verdant_elite_thornlash": {0: (173, 282, 6, 4), 1: (210, 282, 6, 4)},
+    "verdant_elite_timber_hauler": {0: (145, 278, 9, 4), 1: (191, 292, 9, 4), 2: (237, 278, 9, 4)},
+    "ember_elite_ash_wraith": {0: (169, 238, 10, 4), 1: (220, 238, 9, 4)},
+    "ember_elite_brass_vulture": {0: (193, 288, 11, 4)},
+    "ember_elite_cauterizer": {0: (136, 299, 16, 5), 1: (248, 299, 16, 5)},
+    "ember_elite_coalrunner": {0: (150, 281, 14, 5), 1: (192, 281, 12, 5), 2: (238, 281, 12, 5)},
+    "ember_elite_kilnback": {0: (164, 279, 16, 5), 1: (225, 279, 14, 5)},
+    "ember_elite_sunstoke": {0: (162, 269, 12, 4), 1: (224, 269, 11, 4)},
+    "verdant_elite_resin_warden": {0: (150, 279, 18, 5), 1: (235, 279, 15, 5)},
     "frost_elite_cryo_siren": {0: (183, 295, 9, 3), 1: (203, 296, 9, 3)},
     "frost_elite_rimebreaker": {0: (166, 229, 13, 6), 1: (220, 229, 13, 6)},
     "frost_elite_floe_harrower": {0: (167, 287, 8, 4), 1: (219, 287, 8, 4)},
@@ -211,29 +243,60 @@ MANUAL = {
     "frost_elite_whiteout_sentinel": {0: (165, 304, 12, 8), 1: (219, 304, 12, 8)},
 }
 # which hull the flame is painted on: Desert's parked cell 0 IS the hull; elsewhere un-dim it
-MODE = {"desert": "cell0", "frost_elite_cryo_siren": "strip", "frost_elite_rimebreaker": "strip"}
+MODE = {"desert": "cell0", "frost_elite_cryo_siren": "strip", "frost_elite_rimebreaker": "strip", "verdant_elite_resin_warden": "strip"}
+for _k in MANUAL:
+    if _k.startswith("ember_"): MODE[_k] = "strip"
 FORCE_PALETTE = {"frost", "verdant"}   # their own cold / green fire, not whatever tiny glow the old strip had
-LENGTH = {"storm_elite_anvil_cloud": 24, "storm_elite_refinery_tender": 22, "storm_elite_rod_dancer": 22, "storm_elite_skyhook_harrier": 20, "storm_elite_static_bastion": 20, "frost_elite_floe_harrower": 24, "frost_elite_glacier_tender": 22, "frost_elite_whiteout_sentinel": 24}   # key -> flame length in engine_fx units (px = L * 2)
-BIG = {"frost_elite_cryo_siren", "frost_elite_rimebreaker"}
+LENGTH = {"verdant_elite_leafblade": 22, "verdant_elite_sporebloom": 20, "verdant_elite_thornlash": 22, "verdant_elite_timber_hauler": 18, "storm_elite_anvil_cloud": 24, "storm_elite_refinery_tender": 22, "storm_elite_rod_dancer": 22, "storm_elite_skyhook_harrier": 20, "storm_elite_static_bastion": 20, "frost_elite_floe_harrower": 24, "frost_elite_glacier_tender": 22, "frost_elite_whiteout_sentinel": 24}   # key -> flame length in engine_fx units (px = L * 2)
+DEATH_FIX = {"frost_elite_cryo_siren", "frost_elite_rimebreaker", "verdant_elite_resin_warden"} | {f"ember_elite_{n}" for n in ("ash_wraith", "brass_vulture", "cauterizer", "coalrunner", "kilnback", "sunstoke")}
+LIFT = set()
+LIFT_WORLDS = {"desert", "storm", "frost", "verdant"}   # their lift-off ignition cell had detached wedges / tips only
+PASSING = set()   # elites left exactly as they are
+BIG = {"frost_elite_cryo_siren", "frost_elite_rimebreaker", "verdant_elite_resin_warden"}   # 10-cell strips: flight cells 3-6 rewritten
+EMBER = {k for k in ()}  # filled below
+
+
+def git_orig(rel):
+    import subprocess, io
+    top = subprocess.check_output(["git", "rev-parse", "--show-prefix"], cwd=RES, text=True).strip()
+    data = subprocess.check_output(["git", "show", f"origin/master:{top}{rel}"], cwd=RES)
+    return np.array(Image.open(io.BytesIO(data)).convert("RGBA"))
+
+
+def death_fix(key, out_dir, orig_a=None):
+    """Death strip cell 0 (the flash frame) is the old flight cell 3 under a flash overlay: wherever it still equals the old cell 3 it takes the new
+    cell 3 (so the old flame does not pop back for a frame); overlay pixels (flash rays, glow) stay. Always starts from origin/master's strips."""
+    w = key.split("_")[0].capitalize()
+    old3 = git_orig(f"{w}/{key}.png")[:, 3 * CELL:4 * CELL]
+    dth = git_orig(f"{w}/{key}_death.png")
+    new3 = np.array(Image.open(out_dir / w / f"{key}.png").convert("RGBA"))[:, 3 * CELL:4 * CELL]
+    c0 = dth[:, :CELL].copy(); yy, xx = np.indices((CELL, CELL))
+    for cx, cy, rx, ry in MANUAL[key].values():       # below each mouth the old flame is swapped for the new cell-3 flame (the flash rays elsewhere stay)
+        zone = (np.abs(xx - cx) <= rx + 12) & (yy >= cy)
+        c0[zone] = new3[zone]
+    dth[:, :CELL] = c0
+    Image.fromarray(dth).save(RES / w / f"{key}_death.png")
 
 
 def run(world, out_dir=None, keys=None, defs=True):
     import glob
     out_dir = out_dir or RES
-    allk = sorted(Path(f).stem for f in glob.glob(str(RES / "Defs" / f"{world}_elite_*.json")))
+    allk = sorted(Path(f).stem for f in glob.glob(str(RES / "Defs" / f"{world}_elite_*.json")) if Path(f).stem not in PASSING)
     done = []
     for k in keys or allk:
         a, base, mouths, cols, cs = build(k, RES, out_dir, MODE.get(k, MODE.get(world, "cell0u")), length=LENGTH.get(k), manual=MANUAL.get(k))
         write(k, a, cs, out_dir, k in BIG)
+        if k in DEATH_FIX: death_fix(k, out_dir, a)
         banks = bank_cells(a, load_def(k), base, mouths, cols, build.last["L"])
         p0 = out_dir / k.split("_")[0].capitalize() / f"{k}.png"
         strip = np.array(Image.open(p0).convert("RGBA"))
         for idx, im in banks.items(): strip[:, idx * CELL:(idx + 1) * CELL] = np.array(im)
         Image.fromarray(strip).save(p0)
-        if defs and k not in BIG:
-            p = RES / "Defs" / f"{k}.json"; s = p.read_text()
-            if '"flight": [\n      3\n    ]' in s:
-                p.write_text(s.replace('"flight": [\n      3\n    ]', '"flight": [\n      3,\n      7,\n      8,\n      9\n    ]', 1))
+        if defs:
+            p = RES / "Defs" / f"{k}.json"; txt = p.read_text(); t = targets(k)
+            m = re.search(r'"flight": \[[^\]]*\]', txt)
+            blk = '"flight": [\n      ' + ',\n      '.join(str(i) for i in t) + '\n    ]'
+            if m and m.group(0) != blk: p.write_text(txt.replace(m.group(0), blk, 1))
         done.append(k)
         print(k, [tuple(round(v) for v in m) for m in mouths])
     return done
