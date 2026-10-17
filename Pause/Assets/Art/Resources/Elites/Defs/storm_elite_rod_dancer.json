@@ -4,7 +4,10 @@
   "world": "storm",
   "cells": {
     "flight": [
-      3
+      3,
+      7,
+      8,
+      9
     ],
     "parked": 0,
     "parkedIdle": 1,

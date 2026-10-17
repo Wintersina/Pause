@@ -201,6 +201,9 @@ def write(key, a, cs, out_dir, big):
 # hand-set bell mouths (cx, cy, rx, ry) where the dark-mouth detector grabs the whole bell
 MANUAL = {
     "desert_elite_glass_cannon": {0: (152, 288, 21, 9), 1: (234, 288, 21, 9)},
+    "storm_elite_rod_dancer": {0: (171, 296, 6, 4), 1: (190, 298, 7, 4), 2: (210, 296, 6, 4)},
+    "storm_elite_static_bastion": {0: (124, 296, 12, 6), 1: (191, 307, 13, 5), 2: (260, 296, 12, 6), 3: (150, 298, 6, 3), 4: (234, 298, 6, 3)},
+    "storm_elite_refinery_tender": {0: (120, 289, 16, 7), 1: (190, 283, 8, 4), 2: (266, 289, 16, 7)},
     "frost_elite_cryo_siren": {0: (183, 295, 9, 3), 1: (203, 296, 9, 3)},
     "frost_elite_rimebreaker": {0: (166, 229, 13, 6), 1: (220, 229, 13, 6)},
     "frost_elite_floe_harrower": {0: (167, 287, 8, 4), 1: (219, 287, 8, 4)},
@@ -210,7 +213,7 @@ MANUAL = {
 # which hull the flame is painted on: Desert's parked cell 0 IS the hull; elsewhere un-dim it
 MODE = {"desert": "cell0", "frost_elite_cryo_siren": "strip", "frost_elite_rimebreaker": "strip"}
 FORCE_PALETTE = {"frost", "verdant"}   # their own cold / green fire, not whatever tiny glow the old strip had
-LENGTH = {"frost_elite_floe_harrower": 24, "frost_elite_glacier_tender": 22, "frost_elite_whiteout_sentinel": 24}   # key -> flame length in engine_fx units (px = L * 2)
+LENGTH = {"storm_elite_anvil_cloud": 24, "storm_elite_refinery_tender": 22, "storm_elite_rod_dancer": 22, "storm_elite_skyhook_harrier": 20, "storm_elite_static_bastion": 20, "frost_elite_floe_harrower": 24, "frost_elite_glacier_tender": 22, "frost_elite_whiteout_sentinel": 24}   # key -> flame length in engine_fx units (px = L * 2)
 BIG = {"frost_elite_cryo_siren", "frost_elite_rimebreaker"}
 
 
