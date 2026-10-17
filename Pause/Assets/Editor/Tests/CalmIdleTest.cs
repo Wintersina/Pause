@@ -55,6 +55,7 @@ public static class CalmIdleTest
             if (d.key == "space_alien" || EnemyRoster.FlapsWings(d)) continue;
             Check(d.key + " idle loop is calm (" + sum + " ticks, shortest hold " + min + ")", sum >= 16 && min >= 4);
         }
+        CodexPreviews();
         Check("wing-flap allowlist is not empty (" + EnemyRoster.WingFlapKeys.Length + ")", EnemyRoster.WingFlapKeys.Length > 0);
         foreach (var k in EnemyRoster.WingFlapKeys) BodyRegistered(k);
         foreach (var k in EnemyRoster.WingFlapKeys) Check(k + " (wing flapper) is a real enemy", EnemyRoster.Find(k) != null);
@@ -63,6 +64,32 @@ public static class CalmIdleTest
         Check("elite bank is capped (" + EliteShip.BankCap + ")", EliteShip.BankCap <= 4f);
         Debug.Log("[CALM-IDLE] failures: " + fails);
         return fails;
+    }
+
+    // The Codex screen plays the same idle cells (CodexAnimations -> CodexAnimator) and nothing procedural:
+    // no EliteShip squash / lean / bank, no scale pulse, no backdrop pan on a ship. Every idle drawing is laid
+    // out at ONE size (equal sprite bounds, so CodexAnimator.Place gives one scale), and the only whole-sprite
+    // motion is a ROCK's spin or sway (a rotation, never a stretch; rocks are left as they are).
+    static void CodexPreviews()
+    {
+        foreach (var d in EnemyRoster.All)
+        {
+            if (d.role == EnemyRole.Mine) continue;
+            Preview(d.key, CodexAnimations.Enemy(d), d.role == EnemyRole.Rock);
+        }
+        foreach (var e in EliteCatalog.All) Preview(e.key, CodexAnimations.Elite(e), false);
+        foreach (var b in BossCatalog.All) Preview("boss " + b.name, CodexAnimations.Boss(b), false);
+    }
+
+    static void Preview(string what, CodexAnimation a, bool rock)
+    {
+        if (a == null || !a.HasArt) return;   // no art loaded for it: nothing to animate
+        bool constant = true;
+        var size = a.idle[0].bounds.size;
+        foreach (var sp in a.idle) constant &= sp != null && (sp.bounds.size - size).sqrMagnitude < 1e-6f;
+        Check("Codex " + what + ": every idle drawing is shown at one scale", constant);
+        Check("Codex " + what + ": no pan, and no spin or sway unless it is a rock (spin " + a.spinDegreesPerSecond + ", sway " + a.swayDegrees + ")",
+              a.driftPeriod == 0f && (rock || (a.spinDegreesPerSecond == 0f && a.swayDegrees == 0f)));
     }
 
     // Wing / limb flappers keep their wings moving, but the BODY must sit identically in all four idle cells
