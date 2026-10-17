@@ -38,10 +38,13 @@ public static class WorldBackdropTest
     // Desert carries the same shared 1024 atlases as Tide (landmarks, pipes, fires, sites, weather)
     // plus fourteen loop sheets' worth of dust, shimmer, leaks and lights, and the worms'
     // two 2048 sheets (worm, worm_giant), besides one 4-tile variant set.
-    public const long DesertTextureBudgetBytes = 12L * 1024 * 1024;     // measured ~10.7 MB ASTC (the worm sheets alone ~3.7 MB)
+    // Since 1f0d8e87 (2026-10-13) Desert's continuous-tone art is ASTC 4x4 on phones (WorldBackdropImport.IsContinuousTone; 6x6 bands the
+    // dune gradients), 2.25x the old 6x6 size: 24 MB measured on the Android target (the worm sheets alone ~6 MB).
+    public const long DesertTextureBudgetBytes = 25L * 1024 * 1024;
     // Storm carries four 1024 atlases (landmarks, sites, weather, lightning) besides one 4-tile variant set. Its tiles are
-    // 1024x2048 HD (2026-10, ASTC 6x6 = 0.93 MB each, 3.7 MB per set; see WorldBackdropImport.IsStormHdTile): 5.4 MB measured.
-    public const long StormTextureBudgetBytes = 7L * 1024 * 1024;
+    // 1024x2048 HD (2026-10, ASTC 6x6 = 0.93 MB each, 3.7 MB per set; see WorldBackdropImport.IsStormHdTile). Its v3 set and the
+    // 1024 atlases are ASTC 4x4 since 1f0d8e87 (IsContinuousTone): 8.6 MB measured on the Android target.
+    public const long StormTextureBudgetBytes = 9L * 1024 * 1024;
     const float SeamTolerance = 0.02f;          // mean |top row - bottom row|, premultiplied RGBA
     // The guide's sky ramps (docs/art-style.md 1.3) peak at ~#123248 / #143430,
     // so the opaque sky averages up to ~0.12 relative luminance.
