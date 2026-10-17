@@ -92,9 +92,9 @@ PARTS = {
     # The flying Dune-Eater is measured on every cell of its expanded 35-cell atlas, seeded in the first idle drawing (cell 20):
     # the maw's throat (grit fan, pincer, wave walls), the mine in the crane's claw (mines, burrower strike), the crown lens (beam, sandstorm wall).
     "Desert": [
-        ("Maw", 20, (190, 255), 26, (0, 6)),
-        ("Boom", 20, (334, 142), 20, (0, 6)),
-        ("Lens", 20, (190, 93), 24, (0, 0)),
+        ("Maw", 20, (190, 249), 26, (0, 6)),
+        ("Boom", 20, (323, 146), 20, (0, 6)),
+        ("Lens", 20, (190, 101), 24, (0, 0)),
     ],
     # The Cinder Drake v2 is measured on every cell of its expanded 35-cell atlas, seeded in the first
     # idle wing-beat drawing (cell 20): the snout / maw, the chest furnace grate, the brow gem.
@@ -462,18 +462,20 @@ OVERRIDES = {
 # The Dune-Eater's painted drawings are all registered over one hull, so its three parts sit at fixed points except the mine on the
 # lowered crane (measured by hand from the pixels, 384 reference px: the mine's centre + 6): tell1 a (cells 7, 29), tell1 b (8, 30),
 # the released mine (31). The death / retreat cells keep the matcher's snap (nothing fires from them).
-DESERT_FIXED = {"Maw": (190, 261), "Lens": (190, 93), "Boom": (334, 148)}
-DESERT_BOOM = {7: (327, 169), 29: (327, 169), 8: (333, 324), 30: (333, 324), 31: (323, 173)}
+DESERT_FIXED = {"Maw": (190, 255), "Lens": (190, 101), "Boom": (323, 152)}
+DESERT_BOOM = {7: (316, 171), 29: (316, 171), 8: (322, 313), 30: (322, 313), 31: (313, 175)}
 DESERT_KEEP = set(range(12, 17))
 
 
-def apply_overrides(world, table):
+def apply_overrides(world, table, frames=None):
     if world == "Desert":
         for name, pts in table:
             for f in range(len(pts)):
                 if f in DESERT_KEEP:
                     continue
                 pts[f] = DESERT_BOOM[f] if name == "Boom" and f in DESERT_BOOM else DESERT_FIXED[name]
+                if frames is not None:       # the mine hangs a few px differently per drawing: land on its nearest opaque pixel
+                    pts[f] = snap_opaque(frames[f], *pts[f])
     for name, pts in table:
         for (w, n, f), xy in OVERRIDES.items():
             if w == world and n == name and f < len(pts):
@@ -488,7 +490,7 @@ def main():
     results = {}
     for world in ["Space", "Frost", "Verdant", "Ember", "Tide", "Storm", "Desert"]:
         frames, table = measure(world)
-        apply_overrides(world, table)
+        apply_overrides(world, table, frames)
         results[world] = table
         if out_dir:
             preview(world, frames, table, out_dir)

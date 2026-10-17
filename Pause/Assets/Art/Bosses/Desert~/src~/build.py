@@ -23,11 +23,11 @@ from PIL import Image
 from common import *
 
 # Measured anchors in the 384 cell (hull_key): the crown lens, the maw's throat, the boom's mine, the eye lamps, the turbines
-LENS = (190, 93)
-MAW = (190, 253)
-MINE = (334, 142)
-EYES = [(160, 198), (218, 198)]
-TURBINES = [(95, 196), (285, 196), (108, 294), (268, 294)]
+LENS = (190, 101)
+MAW = (190, 248)
+MINE = (323, 146)
+EYES = [(163, 197), (216, 197)]
+TURBINES = [(103, 195), (278, 195), (115, 286), (262, 286)]
 SHOULDER = {-1: (104 * K, 190 * K), 1: (276 * K, 190 * K)}
 
 

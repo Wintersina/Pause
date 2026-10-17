@@ -432,9 +432,8 @@ public static class BossCatalog
             new BossDef
             {
                 id = CodexPrefix + "desert", name = "DUNE-EATER", title = DesertTitle, artKey = "Desert", damageKey = "Desert", deathKey = "Desert", expandedCombat = true,
-                lore = "A sand leviathan the size of a refinery, half manta and half armoured sandworm, that spent a lifetime dredging the dunes and now dredges the sky itself on lateen sail-wings and turbine thrusters. " +
-                       "Its great maw opens a moment before the grit fan, its crane boom lowers before the mines drop on your lanes, " +
-                       "and the glass lens on its crown flares white a second before it cuts the sky in half. Watch which part moves first.",
+                lore = "A refinery-sized sand leviathan, half manta, half armoured sandworm, that dredged the dunes for a lifetime and now dredges the sky on sail-wings and turbines. " +
+                       "Its maw opens before the grit fan, its crane lowers before the mines drop, and the crown lens flares white before it cuts the sky in half.",
                 swayX = 1.1f, swayY = .16f, freqX = .27f, freqY = .54f, flash = DesertFlash, heartColor = DesertHeart,
                 attacks = new[]
                 {

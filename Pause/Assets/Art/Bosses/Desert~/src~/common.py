@@ -21,7 +21,7 @@ C = int(REF * K)
 # The approved hull key's content box (1254 px canvas, the Dune-Eater master); every painted key is a same-canvas edit
 # of it, so they all share one crop and one scale into the cell.
 KEY_BOX = (18, 48, 1251, 1184)
-FIT_W = 350 * K
+FIT_W = 322 * K
 
 # Palette (never the player's red; no pink)
 TEAL = (110, 235, 225)

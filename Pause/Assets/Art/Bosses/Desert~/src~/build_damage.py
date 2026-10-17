@@ -106,7 +106,7 @@ def flash_body(body: Image.Image) -> Image.Image:
     im = rgba()
     im.paste(sm, ((C - w) // 2, (C - w) // 2))
     layer = rgba()
-    for x, y in [(190, 93), (95, 196), (285, 196), (190, 253), (108, 294), (268, 294), (334, 142)]:
+    for x, y in [(190, 101), (103, 195), (278, 195), (190, 248), (115, 286), (262, 286), (323, 146)]:
         glow(layer, (x, y), 8, YELLOW, 1.1)
         d = SD(layer)
         d.line((x - 15, y, x + 15, y), fill=(*WHITE, 230), width=2)
