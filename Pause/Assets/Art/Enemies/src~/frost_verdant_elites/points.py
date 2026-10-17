@@ -20,7 +20,7 @@ CELLS = {"flight": [3, 4, 5, 6], "parked": 0, "parkedIdle": 1, "liftoff": 2, "ba
 CFG = {
     "cryo_siren":   dict(drawn=1.62, engine="#6FD8FF", muz=[("outlet", .5, .46, 270.0)]),
     "rimebreaker":  dict(drawn=1.72, engine="#6FD8FF", muz=[("prow", .5, .04, -1.0)]),
-    "resin_warden": dict(drawn=1.85, engine="#FFB45A", muz=[("lpod", .06, .30, -1.0), ("rpod", .94, .30, -1.0)],
+    "resin_warden": dict(drawn=1.85, engine="#FFB45A", muz=[("lpod", .29, .13, -1.0), ("rpod", .71, .13, -1.0)],
                          shot_core="#FFE9A8"),
 }
 
@@ -57,7 +57,17 @@ def main():
         for i, (nm, fx, fy, dr) in enumerate(CFG[name]["muz"]):
             x, y = solid_near(a, x0 + round(fx * w), y0 + round(fy * h), 24)
             muz.append(dict(name=nm, x=x, y=y, dir=dr))
-        nz = [dict(name="lr"[i], x=int(round(m[0])), y=int(round(m[1])), dir=-1.0) for i, m in enumerate(info[name]["mouths"])]
+        nz = []
+        lum = cell0[..., 0] * .3 + cell0[..., 1] * .59 + cell0[..., 2] * .11
+        for i, m in enumerate(info[name]["mouths"]):      # the exit: the darkest solid pixel within 6 px of the bell mouth's centre (the bore)
+            best = None
+            for yy in range(int(m[1]) - 6, int(m[1]) + 7):
+                for xx in range(int(m[0]) - 6, int(m[0]) + 7):
+                    if a[yy, xx] == 255:
+                        score = lum[yy, xx] + .8 * ((xx - m[0]) ** 2 + (yy - m[1]) ** 2) ** .5
+                        if best is None or score < best[0]:
+                            best = (score, xx, yy)
+            nz.append(dict(name="lr"[i], x=best[1], y=best[2], dir=-1.0))
         # drawn long side of the flight cells with the flames (alpha > 40), as ShipTierTest measures it
         best = 0
         for c in CELLS["flight"]:

@@ -74,7 +74,7 @@ public static class FrostVerdantEliteFramesTest
         Check(key + ": every cell has art", any);
         Check(key + ": nothing within " + Margin + " px of a cell edge", margins);
         Check(key + ": the nose line holds on one anchor across the cells (<= 10 px)", Ptp(top, Cells) <= 10f);
-        Check(key + ": the horizontal pivot holds across the cells (<= 12 px: banks lean)", Ptp(cx, Cells) <= 12f);
+        Check(key + ": the horizontal pivot holds across the cells (<= 18 px: banks lean, the damaged cell loses wing)", Ptp(cx, Cells) <= 18f);
         var flat = new float[] { wid[0], wid[1], wid[2], wid[3], wid[4], wid[5], wid[6] };
         Check(key + ": the hull width holds across the flat cells (<= 40 px: folded vs spread poses)", Ptp(flat, flat.Length) <= 40f);
 

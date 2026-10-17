@@ -32,7 +32,7 @@ SAFE = 8                                  # keep every pixel at least this far f
 ENGINE_ROOM = 70                          # px kept under the hull for the burn
 # fit box (w, h) of the master hull in the 384 cell, bell width hint, flame colours (outer, mid, core), number of engines
 SHIPS = {
-    "cryo_siren":   dict(key="frost_elite_cryo_siren",   world="Frost",   w=170, h=282, engines=2, flame=((60, 150, 255), (140, 230, 255), (255, 255, 255))),
+    "cryo_siren":   dict(key="frost_elite_cryo_siren",   world="Frost",   w=170, h=282, engines=2, min_rx=7, flame=((60, 150, 255), (140, 230, 255), (255, 255, 255))),
     "rimebreaker":  dict(key="frost_elite_rimebreaker",  world="Frost",   w=250, h=270, engines=2, flame=((50, 120, 255), (120, 215, 255), (255, 255, 255))),
     "resin_warden": dict(key="verdant_elite_resin_warden", world="Verdant", w=300, h=270, engines=2, flame=((255, 130, 30), (255, 205, 100), (255, 252, 235))),
 }
@@ -62,7 +62,7 @@ def register(master, frame):
     m = mask(master, sz)
     base = frame.getchannel("A").resize((sz, sz), Image.Resampling.BILINEAR)
     best = (-1, 1.0, 0, 0)
-    for s in np.arange(.86, 1.141, .02):
+    for s in np.arange(.76, 1.271, .02):
         n = max(1, int(round(sz * s)))
         sc = base.resize((n, n), Image.Resampling.BILINEAR)
         canvas = Image.new("L", (sz, sz), 0)
@@ -114,9 +114,9 @@ def mouths_of(hull_cell, n, hint=None):
             continue
         c = sp._component(e, (y, x)); seen |= c.astype(seen.dtype)
         yy, xx = np.nonzero(c)
-        comps.append((len(yy), xx.min() - 2, xx.max() + 2, yy.min() - 2, yy.max() + 2))
+        comps.append((len(yy), xx.min() - 2, xx.max() + 2, yy.min() - 2, yy.max() + 2, xx.mean(), yy.mean()))
     comps.sort(reverse=True)
-    out = [((x0 + x1) / 2, (y0 + y1) / 2, (x1 - x0) / 2, (y1 - y0) / 2) for _, x0, x1, y0, y1 in comps[:n]]
+    out = [(mx, my, (x1 - x0) / 2, (y1 - y0) / 2) for _, x0, x1, y0, y1, mx, my in comps[:n]]
     out.sort()
     return out
 
@@ -144,6 +144,9 @@ def build(name, out_dir, frames_dir):
         p = frames_dir / f"{name}_{f}.png"
         fr[f] = key_out(p) if p.exists() else None
     master = fr["master"]
+    for f in fr:                       # Codex returns 1024 or 1254 px canvases: put every frame on the master's canvas first
+        if fr[f] is not None and fr[f].size != master.size:
+            fr[f] = fr[f].resize(master.size, Image.Resampling.LANCZOS)
     box = master.getchannel("A").point(lambda v: 255 if v > 128 else 0).getbbox()
     mw, mh = box[2] - box[0], box[3] - box[1]
     s_m = min(cfg["w"] / mw, cfg["h"] / mh)
@@ -159,6 +162,11 @@ def build(name, out_dir, frames_dir):
             *reg, iou = register(master, fr[f])
             report.append(f"{f}: registered scale {reg[0]:.2f} shift ({reg[1]:.0f},{reg[2]:.0f}) iou {iou:.3f}")
         cells[f] = placed(fr[f], reg, s_m, box, ox, oy)
+        if f != "master":                 # one nose line: slide the cell vertically so its top meets the master's
+            t0 = cells["master"].getchannel("A").getbbox()[1]; t1 = cells[f].getchannel("A").getbbox()[1]
+            if abs(t1 - t0) > 1:
+                sh = Image.new("RGBA", (CELL, CELL)); sh.paste(cells[f], (0, t0 - t1)); cells[f] = sh
+                report.append(f"{f}: nose line moved {t0 - t1:+d} px")
     base = cells["master"]
     for f, alt in (("parked", None), ("liftoff", None), ("flightB", None), ("damaged", None)):
         if f not in cells:
@@ -174,20 +182,27 @@ def build(name, out_dir, frames_dir):
     mouths = {f: mouths_of(cells[f], n) for f in cells}
     mm = mouths["master"]
     for f in mouths:
-        if len(mouths[f]) != n:
-            mouths[f] = mm; report.append(f"{f}: bell search found {len(mouths[f])}/{n}, used the master's mouths")
+        bad = len(mouths[f]) != n or any(abs(a[0] - b[0]) > 14 or abs(a[1] - b[1]) > 16 for a, b in zip(mouths[f], mm))
+        if bad:
+            mouths[f] = mm; report.append(f"{f}: bell search off the master's bells, used the master's mouths")
+    for f in mouths:                   # a bell too small to carry a plume (Cryo Siren): floor the plume width
+        mouths[f] = [(cx, cy, max(rx, cfg.get("min_rx", 0)), max(ry, 3)) for cx, cy, rx, ry in mouths[f]]
     cols = cfg["flame"]
+    lowest = max(m[1] for f in mouths for m in mouths[f])                       # keep every plume (and its sparks) 14 px inside the cell
+    fk = min(1.0, (CELL - 14 - lowest) / (max(LENGTHS) * K))
+    LEN = [round(v * fk) for v in LENGTHS]
+    report.append(f"flame length factor {fk:.2f} (lowest mouth y {lowest:.0f})")
     out = []
     out.append(cells["parked"])
     c1 = cells["parked"].copy(); c1.alpha_composite(sp.pilot_lights(mouths["parked"], cols[1], .85)); out.append(c1)
-    out.append(sp.engine_cell(cells["liftoff"], mouths["liftoff"], cols, [12] * n, [.75] * n, 1))
+    out.append(sp.engine_cell(cells["liftoff"], mouths["liftoff"], cols, [round(12 * fk)] * n, [.75] * n, 1))
     for i in range(4):
         src = "master" if i % 2 == 0 else "flightB"
         gs = [(i + 2 * e) % 4 for e in range(n)]
-        out.append(sp.engine_cell(cells[src], mouths[src], cols, [LENGTHS[g] for g in gs], [WIDTHS[g] for g in gs], 10 + i))
-    out.append(sp.engine_cell(cells["bankL"], mouths["bankL"], cols, [LENGTHS[2]] * n, [.9] * n, 20))
-    out.append(sp.engine_cell(cells["bankR"], mouths["bankR"], cols, [LENGTHS[2]] * n, [.9] * n, 21))
-    out.append(sp.engine_cell(cells["damaged"], mouths["damaged"], cols, [22 + 6 * (e % 2) for e in range(n)], [.8] * n, 99, ragged=.5))
+        out.append(sp.engine_cell(cells[src], mouths[src], cols, [LEN[g] for g in gs], [WIDTHS[g] for g in gs], 10 + i))
+    out.append(sp.engine_cell(cells["bankL"], mouths["bankL"], cols, [LEN[2]] * n, [.9] * n, 20))
+    out.append(sp.engine_cell(cells["bankR"], mouths["bankR"], cols, [LEN[2]] * n, [.9] * n, 21))
+    out.append(sp.engine_cell(cells["damaged"], mouths["damaged"], cols, [round((22 + 6 * (e % 2)) * fk) for e in range(n)], [.8] * n, 99, ragged=.5))
     strip = Image.new("RGBA", (CELL * len(out), CELL))
     for i, c in enumerate(out):
         strip.alpha_composite(c, (i * CELL, 0))
