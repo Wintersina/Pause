@@ -225,6 +225,7 @@ public static class AllTests
         ("ShipReachTest", ShipReachTest.Execute),
         ("PowersReworkTest", PowersReworkTest.Execute),
         ("ShipAttacksTest", ShipAttacksTest.Execute),
+        ("HomingTargetTest", HomingTargetTest.Execute),
         ("ShipDamageTest", ShipDamageTest.Execute),
         ("ShipLivesIndicatorTest", ShipLivesIndicatorTest.Execute),
         ("ShipLivesTest", ShipLivesTest.Execute),

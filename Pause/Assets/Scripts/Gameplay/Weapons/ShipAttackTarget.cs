@@ -123,6 +123,69 @@ public static class ShipTargets
         return into.Count;
     }
 
+    // ---- homing target selection --------------------------------------
+    // Every homing player shot (ultimate volleys, seeker eyes, premium
+    // missiles, ricochet, re-targeting in flight) picks its marks here:
+    //   * only inside the visible camera bounds (never something that has
+    //     scrolled off the bottom or sits above the top), and
+    //   * while a boss is alive, the boss and nothing else.
+    public static bool IsBossTarget(ClearTarget t)
+    {
+        return t != null && t.TryGetComponent<BossTarget>(out _);
+    }
+
+    public static bool BossAlive()
+    {
+        var live = ClearTarget.Live;
+        for (int i = 0; i < live.Count; i++)
+        {
+            var t = live[i];
+            if (IsHazard(t) && IsBossTarget(t)) return true;
+        }
+        return false;
+    }
+
+    // Visible area, plus `topMargin` above so something just coming in can be shot.
+    public static bool InHomingView(Vector3 p, float topMargin = .4f)
+    {
+        Rect view = View();
+        view.yMax += topMargin;
+        return view.Contains(p);
+    }
+
+    // Can a homing shot lock on to (or keep chasing) this right now?
+    public static bool CanHome(ClearTarget t)
+    {
+        if (!IsHazard(t) || !InHomingView(t.transform.position)) return false;
+        return !BossAlive() || IsBossTarget(t);
+    }
+
+    public static int CollectHoming(List<ClearTarget> into, float topMargin = .4f)
+    {
+        Collect(into, topMargin);
+        if (into.Count > 0 && BossAlive())
+            for (int i = into.Count - 1; i >= 0; i--)
+                if (!IsBossTarget(into[i])) into.RemoveAt(i);
+        return into.Count;
+    }
+
+    public static ClearTarget NearestHoming(Vector3 from, float maxDistance, List<GameObject> exclude)
+    {
+        if (!BossAlive()) return Nearest(from, maxDistance, exclude);
+        ClearTarget best = null;
+        float bestSq = maxDistance > 0f ? maxDistance * maxDistance : float.MaxValue;
+        var live = ClearTarget.Live;
+        for (int i = 0; i < live.Count; i++)
+        {
+            var t = live[i];
+            if (!IsHazard(t) || !IsBossTarget(t) || !InHomingView(t.transform.position)) continue;
+            if (exclude != null && exclude.Contains(t.gameObject)) continue;
+            float sq = ((Vector2)(t.transform.position - from)).sqrMagnitude;
+            if (sq < bestSq) { bestSq = sq; best = t; }
+        }
+        return best;
+    }
+
     public static int CountOnScreen(bool enemiesOnly)
     {
         Rect view = View();

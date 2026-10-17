@@ -510,9 +510,21 @@ public class ShipPowerController : MonoBehaviour
 
     static IEnumerable<GameObject> Targets()
     {
-        foreach (var t in Object.FindObjectsByType<Transform>(FindObjectsSortMode.None))
-            if (IsTarget(t.gameObject))
-                yield return t.gameObject;
+        // Only what is on screen (never a hazard below or beyond the view), and the boss
+        // alone while one is up -- the volley used to snapshot every hazard in the scene.
+        var all = Object.FindObjectsByType<Transform>(FindObjectsSortMode.None);
+        var found = new List<GameObject>();
+        for (int i = 0; i < all.Length; i++)
+            if (IsTarget(all[i].gameObject)) found.Add(all[i].gameObject);
+        bool boss = false;
+        for (int i = 0; i < found.Count; i++) boss |= found[i].GetComponent<BossTarget>() != null;
+        for (int i = 0; i < found.Count; i++)
+        {
+            var go = found[i];
+            if (boss && go.GetComponent<BossTarget>() == null) continue;
+            if (!ShipTargets.InHomingView(go.transform.position)) continue;
+            yield return go;
+        }
     }
 
 }

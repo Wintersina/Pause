@@ -147,7 +147,7 @@ public class ShipAttackRunner : MonoBehaviour
 
     void QuickVolley(AttackRun run, Vector3 nose)
     {
-        ShipTargets.Collect(targets);
+        ShipTargets.CollectHoming(targets);
         int n = QuickVolleyShots(targets.Count);
         for (int i = 0; i < n; i++)
         {
@@ -200,7 +200,7 @@ public class ShipAttackRunner : MonoBehaviour
                 break;
             case ShipAttack.Ricochet:
                 {
-                    var first = ShipTargets.Nearest(nose, 0f, run.hit);
+                    var first = ShipTargets.NearestHoming(nose, 0f, run.hit);
                     Launch(run, AttackProjectile.Kind.Ricochet, nose, Vector3.up, l.speed, .2f, .5f,
                            first != null ? first.transform : null, 1f);
                 }
@@ -253,7 +253,7 @@ public class ShipAttackRunner : MonoBehaviour
         if (count <= 0) return 0;
         if (runs[0] == null) Setup(ship);
         Vector3 nose = Nose;
-        ShipTargets.Collect(targets);
+        ShipTargets.CollectHoming(targets);
         if (targets.Count == 0) return 0;
         if (missileRun == null) missileRun = new AttackRun();
         missileRun.Begin(loadout, ship, Time.unscaledTime);
@@ -261,7 +261,7 @@ public class ShipAttackRunner : MonoBehaviour
         int launched = 0;
         for (int i = 0; i < count; i++)
         {
-            var t = ShipTargets.Nearest(nose, 0f, missileRun.hit);
+            var t = ShipTargets.NearestHoming(nose, 0f, missileRun.hit);
             if (t != null) missileRun.hit.Add(t.gameObject);
             float a = (i - (count - 1) * .5f) * 16f;
             Vector3 dir = Quaternion.Euler(0f, 0f, -a) * Vector3.up;
@@ -314,7 +314,7 @@ public class ShipAttackRunner : MonoBehaviour
         var l = run.loadout;
         for (int i = 0; i < l.shots; i++)
         {
-            var t = ShipTargets.Nearest(nose, 0f, run.hit);
+            var t = ShipTargets.NearestHoming(nose, 0f, run.hit);
             if (t != null) run.hit.Add(t.gameObject); // claimed: the next eye picks another
             float a = (i - (l.shots - 1) * .5f) * 24f;
             Vector3 dir = Quaternion.Euler(0f, 0f, -a) * Vector3.up;
@@ -402,7 +402,7 @@ public class ShipAttackRunner : MonoBehaviour
                     while (run.fired < l.shots && run.t >= run.fired * BarrageGap)
                     {
                         Vector3 nose = Nose;
-                        var t = ShipTargets.Nearest(nose, 0f, run.hit);
+                        var t = ShipTargets.NearestHoming(nose, 0f, run.hit);
                         if (t != null) run.hit.Add(t.gameObject);
                         float a = l.shots <= 1 ? 0f : -l.width * .5f + l.width * run.fired / (l.shots - 1);
                         Vector3 dir = Quaternion.Euler(0f, 0f, -a) * Vector3.up;
@@ -973,6 +973,7 @@ public class AttackProjectile : MonoBehaviour
     }
 
     public bool Active { get; private set; }
+    public Transform TargetTransform => target;
     public ShipAttackRunner Owner => owner;
     public Transform Target => target;
     public Kind CurrentKind => kind;
@@ -1048,13 +1049,14 @@ public class AttackProjectile : MonoBehaviour
 
         if ((kind == Kind.Homing || kind == Kind.Ricochet) && target != null)
         {
+            // dropped when it dies, scrolls off the screen, or a boss is up and this isn't it
             var ct = target.GetComponent<ClearTarget>();
-            if (ct == null || !ct.isActiveAndEnabled) target = null;
+            if (ct == null || !ct.isActiveAndEnabled || !ShipTargets.CanHome(ct)) target = null;
         }
         if (kind == Kind.Homing && target == null && age < 1.2f)
         {
-            // lost its mark: the nearest thing still around, if any
-            var t = ShipTargets.Nearest(from, 3.5f, null);
+            // lost its mark: the nearest thing still around, if any (the boss, while one is up)
+            var t = ShipTargets.NearestHoming(from, ShipTargets.BossAlive() ? 0f : 3.5f, null);
             if (t != null) target = t.transform;
         }
         if ((kind == Kind.Homing || kind == Kind.Ricochet) && target != null)
@@ -1172,7 +1174,7 @@ public class AttackProjectile : MonoBehaviour
     void Burst(Vector3 at)
     {
         float r = run.loadout.width;
-        AttackPool.Sprite().Play(AttackSprite.Source.AttackBurst, ship, at, Vector3.one * r * 2.3f, 0f,
+        AttackPool.Sprite().Play(AttackSprite.Source.AttackBurst, ship, at, Vector3.one * ShipVolley.BlastBurstSize(ship, r), 0f,
             ShipFxArt.BurstTicks, false, 0f, null, Vector3.zero, 71);
         int kills = 0;
         if (owner != null)
@@ -1329,7 +1331,7 @@ public static class ShipVolley
         Vector3 pos = at;
         for (int i = 0; i < l.maxHits; i++)
         {
-            var t = ShipTargets.Nearest(pos, BounceReach, seen);
+            var t = ShipTargets.NearestHoming(pos, BounceReach, seen);
             if (t == null) break;
             seen.Add(t.gameObject);
             Vector3 to = t.transform.position;
@@ -1342,10 +1344,26 @@ public static class ShipVolley
         return kills;
     }
 
+    // Blast / fireball burst art drew far too large next to every other weapon's
+    // 0.5-1.1 unit effects (median ~0.8): the Gold Warden plays at 30% of its old
+    // size, the Solar Fang's fireball burst (its hit radius is unchanged) at 40%.
+    public const int GoldWardenShip = 7, SolarFangShip = 3;
+    public const float GoldWardenImpactScale = .3f;
+    public const float SolarFangBurstScale = .4f;
+    public const float MaxBurstWorld = 2f;   // guarded by HomingTargetTest
+    public static float BurstScaleFor(int ship)
+    {
+        return ship == GoldWardenShip ? GoldWardenImpactScale : ship == SolarFangShip ? SolarFangBurstScale : 1f;
+    }
+    public static float BlastBurstSize(int ship, float radius)
+    {
+        return radius * 2.3f * BurstScaleFor(ship);
+    }
+
     static int Blast(int ship, ShipLoadout l, Vector3 at, GameObject first, ref float budget)
     {
         float r = l.width;
-        AttackPool.Sprite().Play(AttackSprite.Source.AttackBurst, ship, at, Vector3.one * r * 2.3f, 0f,
+        AttackPool.Sprite().Play(AttackSprite.Source.AttackBurst, ship, at, Vector3.one * BlastBurstSize(ship, r), 0f,
             ShipFxArt.BurstTicks, false, 0f, null, Vector3.zero, 71);
         ShipTargets.Collect(found);
         int kills = 0;

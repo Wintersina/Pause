@@ -125,6 +125,7 @@ public static class WeaponFx
     // The ship's weapon burst where a shot connects.
     public static void Impact(int ship, Vector3 at, float worldSize)
     {
+        if (ship == ShipVolley.GoldWardenShip) worldSize *= ShipVolley.GoldWardenImpactScale;   // the Warden's impact drew too large
         Flipbook().Play(FlipbookFx.Mode.WeaponImpact, at, worldSize, ship, TargetExplosion.Kind.Metal,
                         Color.white, 1f, 74);
     }
@@ -261,7 +262,8 @@ public class WeaponShot : MonoBehaviour
     {
         if (!Active) return;
         age += dt;
-        if (target == null) { Finish(false); return; }
+        // a mark that has scrolled off the screen is let go: the shot never chases it out of view
+        if (target == null || !ShipTargets.InHomingView(target.position)) { Finish(false); return; }
         Vector3 pos = transform.position;
         Vector3 to = target.position - pos;
         to.z = 0f;
