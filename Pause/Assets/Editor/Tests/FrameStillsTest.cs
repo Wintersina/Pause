@@ -30,11 +30,10 @@ public static class FrameStillsTest
     // sprite, cell size
     static readonly (string name, int cell)[] Idle =
     {
-        ("tide_rock_urchin", 192), ("space_alien", 192),
+        ("space_rock_cluster", 192), ("space_rock_crater", 192), ("space_rock_dark", 192),
+        ("frost_rock_rime", 192), ("tide_rock_urchin", 192), ("space_alien", 192),
         ("verdant_rock_knot", 192), ("verdant_rock_spore", 192),
-        ("frost_fighter_2", 192), ("frost_rock_shard", 192),
-        // PENDING (own PR "Space rock idle frames"): space_rock_cluster / crater / dark (idle cells c1 / c2 await Codex image
-        // generation), frost_rock_rime (cell 3 too close to cell 0) and frost_chaser (cells 1 and 3 identical).
+        ("frost_chaser", 192), ("frost_fighter_2", 192), ("frost_rock_shard", 192),
     };
 
     public static int Execute()
@@ -42,7 +41,7 @@ public static class FrameStillsTest
         fails = 0;
         foreach (var (name, cell) in Idle) Sprite(name, cell, 4);
         FrostBigCellTwo();
-        foreach (var n in new string[0] /* Space rocks join with their own PR */) NoPaleRim(n);
+        foreach (var n in new[] { "space_rock_cluster", "space_rock_crater", "space_rock_dark" }) NoPaleRim(n);
         Debug.Log("[FRAME-STILLS] failures: " + fails);
         return fails;
     }

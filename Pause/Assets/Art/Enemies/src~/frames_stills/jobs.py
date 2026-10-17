@@ -73,6 +73,8 @@ JOBS = [
  # ---- Minor Frost items (cell index = the cell to redraw) ----
  ("frost_chaser", 2, "a small frost-gunship with a brass and dark-steel cylindrical hull with a cyan glowing core, a cluster of ice-crystal wings and a long ice spike nose, pointing right",
   "a different flight pose than the input: the ice-crystal wing cluster on top folds a bit lower and the spike nose tilts slightly upward, the lower ice shards flare; the cyan core glows a little brighter; a few ice specks trail behind"),
+ ("frost_chaser", 3, "a small frost-gunship with a brass and dark-steel cylindrical hull with a cyan glowing core, a cluster of ice-crystal wings and a long ice spike nose, pointing right",
+  "a different flight pose than the input: the ice-crystal wing cluster on top lifts and spreads, the spike nose tilts slightly downward, the rear brass nozzle ring turns a few degrees, and the cyan core glows a little dimmer; a few ice specks trail behind"),
  ("frost_fighter_2", 3, "a frost fighter: a dark steel barrel body with a cyan core, big jagged ice blades along its left, hanging icicles below, a small antenna on top and a white steam puff at the right",
   "a different pose than the input: the left ice blade swings outward and up, the icicles swing the other way, the antenna sways, and the steam puff is larger and drifts further right"),
  ("frost_rock_shard", 1, "a crystalline frost rock: a big cyan ice crystal over a dark metal and brass body with a glowing cyan core, icicles hanging below",

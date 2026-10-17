@@ -19,6 +19,7 @@ run_job space_alien_c3
 run_job tide_rock_urchin_c3
 run_job verdant_rock_knot_c3
 run_job verdant_rock_spore_c3
+run_job frost_chaser_c3
 run_job frost_fighter_2_c3
 run_job space_rock_cluster_c1
 run_job space_rock_cluster_c2
@@ -38,4 +39,4 @@ run_job verdant_rock_spore_c1
 run_job verdant_rock_spore_c2
 run_job frost_chaser_c2
 run_job frost_rock_shard_c1
-[ "$(ls $H/out/*.ok 2>/dev/null | wc -l)" -ge 27 ] && touch $H/ALL_DONE
+[ "$(ls $H/out/*.ok 2>/dev/null | wc -l)" -ge 28 ] && touch $H/ALL_DONE
