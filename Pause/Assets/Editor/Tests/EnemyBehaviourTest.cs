@@ -941,7 +941,7 @@ public static class EnemyBehaviourTest
         }
         Check("every roster key is a hazard or a pilot: rocks and rail mines ride the board (" + hazards + "), fighters, heavies, chasers and " +
               "aliens fly (" + pilots + "), and the factory builds them so (" + string.Join(",", wrong) + ")",
-              wrong.Count == 0 && hazards + pilots == EnemyRoster.All.Length && pilots == 7 * EnemyRoster.WorldKeys.Length);
+              wrong.Count == 0 && hazards + pilots == EnemyRoster.All.Length && pilots == 7 * EnemyRoster.WorldKeys.Length + System.Linq.Enumerable.Count(EnemyRoster.All, EnemyRoster.IsHelicopter));
 
         EnemyBrain.PilotsEnabled = false;
         var off = EnemyFactory.Create(EnemyRoster.Fighter(0, 2), new Vector3(0f, 40f, 0f), Quaternion.identity);
@@ -1069,7 +1069,7 @@ public static class EnemyBehaviourTest
         }
         Check(flown + " pilots flown at HUD 5 and at HUD 40: each enters from the top, keeps to its column and the lane, starts every " +
               "windup on station in view above the pilot, and leaves by the top or the bottom as its script says (" + string.Join(", ", bad) + ")",
-              bad.Count == 0 && flown == 6 * EnemyRoster.WorldKeys.Length);
+              bad.Count == 0 && flown == 6 * EnemyRoster.WorldKeys.Length + System.Linq.Enumerable.Count(EnemyRoster.All, EnemyRoster.IsHelicopter));
         Check("a pilot's time on screen does not depend on the scroll speed (worst difference HUD 5 vs 40: " + worstSpread.ToString("F2") + " s)",
               worstSpread <= .25f);
         // (13 s before HostileReach: a heavy holding in the player's reach climbs
