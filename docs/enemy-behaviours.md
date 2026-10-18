@@ -876,61 +876,52 @@ Capture: `EliteCapture.CaptureFrost` + `scripts/elite-gifs.sh <frames> <out>` (a
 
 ## Verdant elites
 
-Branch `feature/verdant-elites-wire`. Verdant had one elite (the Resin Warden, `warden` / `resin_mortar`); Codex drew four more
-(`Art/Enemies/Elite/Verdant/new/manifest_new_elites.md`: 7-cell flight strips, landed .. damaged, plus a 3-cell death strip each) and
-each got its own brain and attack (`Scripts/Gameplay/Elites/VerdantElites.cs`). Every attack is Verdant's own material built from the
-attack cores that already existed (`ShotMotion` Roll / Burst / Slash, `AttackLash`), and every one **draws its footprint from the
-first frame of its tell** (`EliteTelegraph`: the same dotted pink-white `AttackPreview` outline the themed hazards use; shown for the
-whole tell, aim locked when the tell begins, cleaned up if the elite dies or is removed mid-tell). The telegraph dots of these four are bold (`AttackPreview.Show(..., bold: true)`: hot pink, 1.9x, 95 % alpha): the default pale dots vanish on Verdant's bright canopy. Their shot art slots are not painted
-yet, so the procedural `ShotMotionArt` bodies (log, pod, crescent) are used. Everything below is from headless simulation and tests; none
-of it has been played.
+Branch `feat/elite-verdant` (stacked on `feat/elite-frost`, PR #85). Verdant had five elites that circled or tracked the pilot
+(Resin Warden, Timber Hauler, Thornlash, Sporebloom, Leafblade; Codex's strips, `Art/Enemies/Elite/Verdant/new/manifest_new_elites.md`).
+Like Space's and Frost's they are now mini-boss fights (`Scripts/Gameplay/Elites/VerdantElites.cs`, the rework section): none follows
+the pilot, each keeps its distance and throws HAZARDS in Verdant's own material (trunks, resin, spores, vines, leaf blades; Verdant cue
+colours, no pink, the shot cores are no longer pink either), every attack is telegraphed from the first frame of its tell
+(`EliteTelegraph` / `AttackLash`'s own preview) and its aim LOCKS there, and each launches from its OWN pad. Hearts: the armoured Hauler
+5, the other four 3 and `hurtHide` (a lost heart sends them off the board for `hideSeconds` 3.5 and they come back by another edge,
+`EliteBrain.OnReturn`). Framework: `Roams` brains (Leafblade, Sporebloom, Thornlash: no goal clamp, untouchable outside the board),
+`EliteFight` thinning, the 45 s engagement timer (escaping costs half the score), `EliteShip.PauseDamage` 2. Everything below is from
+headless simulation and tests; none of it has been played on a phone. The new ids are `raptor` / `leaf_swoop`, `canopy` /
+`canopy_mortar`, `floater` / `spore_drift`, `anchor` / `thorn_sweep`, `lumber` / `raft_roll`; the old `logger` / `thorn` / `drifter` /
+`diver` / `warden` brains and `log_roll` / `vine_lash` / `spore_burst` / `leaf_dive` / `resin_mortar` stay registered as the cores the
+new ones subclass (or, for `warden` / `resin_mortar`, unused: only the Warden ever used them).
 
-| Elite | Launches from | Brain | Attack |
+| Elite (hearts) | Pad (`launchFrom`) | Brain | Attack |
 |---|---|---|---|
-| Timber Hauler (hollow-log barge, grabber arms) | `riverbay` | `logger` (a `hauler`: the lane follows the pilot at 55% speed, x0.7, attacks within 1.7 u of the pilot's lane). Armoured | `log_roll`: tell 0.9 s planted; `shotCount` (2) ringed landing spots `lobSpacing` (1.5) apart and the lane each trunk will roll along (diagonal toward the nearer rail, one rail bounce, drawn as dotted lanes) show at once. Then two trunks (`shotMotion` roll) are lobbed out of the grabbers, 0.35 s apart, to land together after 1.1 s on the locked spots (which ride the board). A trunk rolls on at 1.4 u/s relative to the ground, bounces off a rail once, 5 s of life. Spots are never on the middle line so every roll direction is drawn |
-| Thornlash (vine-tower crawler) | `towerbay` | `thorn` (a `gunship`: a lane beside the pilot at its height, attacks within 0.95 u of the pilot's row) | `vine_lash`: tell 1.0 s planted; `AttackLash.Standard`: the whole swept area (start line, tip arc, end line) is drawn from the first frame, the sweep (0.4 s) is aimed once at the pilot's spot from the whip root nearer to it, and keeps `AttackLash`'s own fair corridor on the far side. Its action lasts 0.8 s so the whip has retracted before the next attack |
-| Sporebloom (spore silo flower) | `podpad` | `drifter` (a `bastion` swaying 0.55 u at 0.6 rad/s on top of its crawl, x0.65) | `spore_burst`: tell 1.0 s planted; `shotCount` (2) burst rings (radius = the spores' reach 1.44 u + 0.2) 1.6 u apart either side of the pilot's spot, 0.3 u above it, and the line each pod flies are drawn. Then two pods (`shotMotion` burst) leave the side vents 0.35 s apart, fly for 1.3 s (`BurstSeconds`) to their burst point and open into six spores that drift out at 1.6 u/s for 0.9 s; a pod hitting a rail or a hazard bursts early |
-| Leafblade (razor-winged diver) | `roothangar` | `diver` (a `striker`: circles at 1.9 u, a lap before it dives) | `leaf_dive`: tell 1.1 s held (blades spread); the dive lane (hull width, to a little past the locked spot) and the crescent's row (from the dive's end to the far rail, toward the side with the most floor) are drawn at once. Then a committed dive at `dashSpeed` (6) through the locked spot and, as it passes through, one crescent (`shotMotion` slash, 4.5 u/s, 1.1 u long) leaves a blade along the drawn row, crossing the lane lengthwise: sidestep the dive, then step up or down off the row |
+| Leafblade (3, hurtHide) | `roothangar` | `raptor` *(roams)*: SWOOPING PASSES. It waits off the view, comes in by one of three entries (left edge, right edge, top; never the last pass's) and takes a start point just inside it (`ReadyPoint`, a hull partly off the board), tells, slices along the lane and out the far side, then waits `PauseSeconds` (1.5, -0.3 per heart lost, at least 0.7) and re-enters elsewhere. Never circles, never stops on the board between passes | `leaf_swoop`: tell 1.1 s held on the edge; from the first frame a diagonal lane (hull + 0.22 wide; 15-60 deg off the horizontal from a side, 15-50 deg off the vertical from the top) is drawn toward the pilot's spot, out to the far edge of the view, with the row of each crescent across it (where the lane crosses the pilot's height; a second `RowGap` 1.5 lower once hurt), locked. Then it slices along it at `dashSpeed` (7), committed, no steering; as the blade crosses a row a leaf crescent (`shotMotion` slash, 4.5 u/s) leaves level along the row toward the side with the most floor. After a hit the passes carry two crescents |
+| Resin Warden (3, hurtHide) | `hatch` | `canopy`: holds `topMargin` (1.6) under the top on one of 4 perches (columns -0.82 .. 0.82 of the board) and HOPS to another after every mortar or `PerchMax` (4.5 s): a short visible leap (x2.6 speed, an arc `HopArc` 0.7 high, 0.45 s or more), preferring a perch at least 1 u from the pilot's column. Never comes down | `canopy_mortar`: tell 0.7 s planted; a ring on every spot of the wall (lobAhead 1.8 in front of the pilot, locked) is drawn from the first frame. The wall: resin globs `lobSpacing` (0.8) apart from both sides of ONE GAP out to both rails (pools overlap: no hole over 0.5 u), the gap beside the pilot toward the middle. Gap `GapBase` 1.8 u clear, -0.35 per heart lost (never under `GapMin` 1.1; the ship is .56 wide). Then the globs are lobbed out of the pods and land as sticky pools that ride the board and linger `poolSeconds` (4.5) + 35 % of it more for every heart lost |
+| Sporebloom (3, hurtHide) | `podpad` | `floater` *(roams)*: floats at one of 3 stations high on the board (a slow sway), takes 2 bursts (or 10 s), then SINKS off its nearer side drifting down into the canopy, is out of play 1.3 s and rises out of the other side at a different station (at least 1.4 u from the last) | `spore_drift`: `spore_burst` as before (2 pods, burst rings and flight lines drawn first; six spores per pod) and, at `CloudHearts` (2) hearts or fewer, a lingering SPORE CLOUD: a lane `CloudDiam` (1.3) wide, 1.7 u beside the pilot toward the middle, outlined with the rest at the first frame (locked); three cloud pools (`EliteShot.Cloud`: a plain big pool, no spores of its own) are lobbed onto it and linger `CloudSeconds` (3) |
+| Thornlash (3, hurtHide) | `towerbay` | `anchor` *(roams)*: latches onto one rail from just outside it (a hair of hull on the board), `Standoff` (3.4) above the pilot at arrival and then held; 1 + (hearts lost) sweeps from there, an attack gap (2.6) apart; then it SWINGS across the top (x2.2, not attacking) to the other rail and latches there | `thorn_sweep` (= `vine_lash`): tell 1.0 s planted; the whole swept area is drawn from the first frame and the sweep is aimed once, from the root nearer the pilot, keeping `AttackLash`'s own fair corridor (at least `MinCorridor` 1.4 u of open floor beyond the start line) |
+| Timber Hauler (5, armoured) | `riverbay` | `lumber`: a lumber barge sliding a slow sine along the top (`topMargin` 1.6 under it), its course nothing to do with the pilot; attacks from anywhere over the board with the pilot well below | `raft_roll` (= `log_roll`): 2 trunks onto ringed spots, each rolling down a drawn diagonal; at 2 hearts or fewer every other cast is a RAFT: two trunks lobbed together onto the two spots either side of one gap (`RaftClear` 1.5 u of free floor between their roll lanes, beside the pilot toward the middle, both rolling the same way: `EliteShot.RollToward`), spots, lanes and gap drawn from the first frame, locked |
 
-Rotation: `EliteDirector.NextDef` deals a world's elites as a shuffled deck (every elite once before any twice), so all five Verdant
-elites turn up within every five spawns; caps (3 alive, groups of 1-3), the 20 s calm start, the boss run-up rules and per-pad
-`launchFrom` are unchanged. All four keep 2 hearts and tell for at least 0.9 s (Resin Warden 0.7 s).
-
-| | Speed | Hull | Tell | Gap | Avoidance | Action |
-|---|---|---|---|---|---|---|
-| Resin Warden | 1.9 | 0.36 | 0.7 | 3.6 | 0.55 | 0.8 |
-| Timber Hauler | 1.5 | 0.32 | 0.9 | 4.2 | 0.45 | 0.9 |
-| Thornlash | 2.1 | 0.35 | 1.0 | 3.8 | 0.55 | 0.8 |
-| Sporebloom | 1.6 | 0.33 | 1.0 | 4.0 | 0.50 | 0.9 |
-| Leafblade | 3.0 | 0.34 | 1.1 | 3.8 | 0.60 | 0.7 |
-
-Framework additions: `EliteDef.shotMotion` (roll | burst | slash | flutter | streak | shatter: the shots of that elite wear that behaviour's
-`ShotMotionArt` body); brains `logger`, `thorn`, `drifter`, `diver` (thin subclasses, EliteTest wants every elite its own brain
-and attack); attacks `log_roll`, `vine_lash`, `spore_burst`, `leaf_dive`; `EliteShip.AttackClock`; an elite removed from the board
-mid-tell tidies what it drew (`OnDestroy`).
-
-Fairness: `AttackBudgetTest` has a Themed row per elite held to the pinned Resin Warden baseline (x1.15 + 0.02 rule, no loosening);
-the dodge bot is given everything the tell draws (rings, lanes, the whip's chain, the crescent's capsule). Measured (2000 rolls, seed 1; limit 3.2 %): Timber Hauler 0.0 % (standing still 37.6 %), Thornlash 0.0 % (78.0 %), Sporebloom 1.0 % (100 %),
-Leafblade 0.0 % (68.2 %). The first Leafblade run was 18 %: its dive coasted past its drawn lane and the lane was drawn from where it was, not where it would
-have stopped; it now brakes to rest before the tell ends, stops just past the locked spot (0.3 s) and draws the lane from its rest point.
-
-Sound: Thornlash (verdant_fighter_4, x0.90), Sporebloom (verdant_alien, x0.90) and Leafblade (verdant_fighter_4, x1.10) borrow screams
-through `EnemyDeathAudio.BorrowTable`; the Timber Hauler is a machine and has none. Their death cues are still to be authored
-(`EnemyDeathAudio.PendingClips`: silent, no warning): `verdant_elite_<timber_hauler|thornlash|sporebloom|leafblade>_0..2`.
+Framework hooks added: `EliteShot.Linger` (a pool stays longer), `EliteShot.Cloud` (a big plain pool), `EliteShot.RollToward` (a log's roll
+direction), `VerdantDirector.BringHome` (as Frost's: the site spawner is asked for one of the elite's pad kinds at the top of the
+view when none is in view or on its way; the pad then scrolls in at the ground's pace, so whether it arrives in time at real scroll
+speeds is unmeasured), `RaptorBrain` ... `LumberBrain`, `LumberBrain` joins `EliteDef.HeavyBrains`.
 
 ### Tests
 
-`VerdantEliteTest` (in `AllTests`): five Verdant defs, strips (1344 x 192 / death 576 x 192) slicing, points on the hull and inside the cell,
-texture memory, own pads, deck rotation, codex entries with death strips, each attack's first-frame telegraph and locked aim, clean-up on
-death, the trunk roll, spore rings, crescent capsule, zero allocation. `AttackFairnessTest` (`VerdantEliteSuite`): real tells, previews
-never too short, bot rates. `EliteTest` counts Verdant's five.
-Preview: `VerdantElitePreview` (attack-moment frames over the Verdant backdrop at phone portrait).
+`VerdantEliteTest` (in `AllTests`): the roster (hearts 5 / 3, hurtHide, one pad each, no pink in shots / cores / hearts, the four new
+strips, muzzles / nozzles on the hull, texture memory), the director's pads and deck, the codex, a minimum distance outside committed
+attacks for all five over 40 s, the Leafblade's passes (lane and rows drawn at the first frame, locked, diagonal bounds, speed, out the
+far side untouchable, another entry each time, one crescent, two once hurt), the Warden's perches and hops, its wall at 3 / 2 / 1 hearts
+(one gap, the rest sealed, narrowing, pools lingering longer, dry in the end) and the gap with the pilot anywhere, the Sporebloom's
+sink / under / rise cycle at a new station, its cloud lane outlined first and its pools, Thornlash's anchors alternating with a sweep
+more per heart lost and the corridor open, the Hauler's raft (gap, same direction, side by side) alternating with rows, the backdrop's
+`BringHome` for each pad, zero allocations (profiler meter). `EliteTest`'s Warden test now drives `canopy` / `canopy_mortar`;
+`AttackBudgetScenarios` knows `leaf_swoop` (a ram) and draws the swoop's lane and rows and the wall's rings for the dodge bot.
+Capture: `EliteCapture.CaptureVerdant` + `scripts/elite-gifs.sh <frames> <out>` (a GIF and an MP4 per elite from its pad).
 
 ### Progress
 
-* [x] Art installed, points measured, defs, brains, attacks, tests, preview
-* [ ] Authored death clips (Codex sound job); shot art for the log / pod / crescent / vine (`verdant_attack_*.png` slots)
-* [ ] Play it on a phone: trunk-roll readability at speed, the spore rings' width, the Leafblade's dive + crescent combination
+* [x] Brains, attacks, defs (hearts, hurtHide, pads), `BringHome`, tests, capture
+* [ ] Codex hull lights and pad art for Verdant (a later step on this branch; nothing blocks on it)
+* [ ] Authored death clips; shot art for the log / pod / crescent / vine (`verdant_attack_*.png` slots)
+* [ ] Play it on a phone: pass pacing, the wall's gap width, the spore cloud lane, the raft, the pad arriving in time
 
 ## Rails and view
 

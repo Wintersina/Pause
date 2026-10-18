@@ -5,15 +5,15 @@ using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 
-// Renders each elite's whole fight for review (the elite-overhaul GIFs), a world at a time (CaptureSpace, CaptureFrost, CaptureEmber): its home dock in
-// the world's real backdrop (Space: one of the drifting gantry / carrier / gate / derelict docks, SpaceDocks.cs; Frost: the icebreaker deck / offshore rig /
+// Renders each elite's whole fight for review (the elite-overhaul GIFs), a world at a time (CaptureSpace, CaptureFrost, CaptureEmber, CaptureVerdant): its home dock in
+// the world's real backdrop (Verdant: the root hangar / river bay / pod pad / tower bay / hatch on the canopy, VerdantDirector; Space: one of the drifting gantry / carrier / gate / derelict docks, SpaceDocks.cs; Frost: the icebreaker deck / offshore rig /
 // cave hangar / cryo silo, or the older hangar / rig bay / pad ring / crawler bay / silo hatch, on the ground, FrostDirector; brought into view like the elite director does), the launch (the
 // one small blinking light at the door / pad, the dock's doors opening, the elite simply leaving), the hull's animated lights, then the real brain and attacks at full speed against a scripted pilot
 // that dodges what it can see (hazards on their paths, locked lines and rings, the curtain's gap) and shoots when it has a clear
 // moment -- one guaranteed homing hit every ShootEvery seconds while the elite is on the board -- through the hide, the death or the
 // escape. Frames are 540 px wide portrait PNGs at 15 fps.
 //
-//   Unity -batchmode -quit -projectPath <abs>/Pause -executeMethod EliteCapture.CaptureSpace   (or CaptureFrost)
+//   Unity -batchmode -quit -projectPath <abs>/Pause -executeMethod EliteCapture.CaptureSpace   (or CaptureFrost / CaptureVerdant)
 //   (frames to $ELITE_CAPTURE_DIR/<name>/NNNN.png, else Builds/EliteCapture; $ELITE_CAPTURE_ONLY=<name>[,<name>] renders just those;
 //    $ELITE_CAPTURE_SECONDS caps a clip, default 70)
 //
@@ -55,11 +55,21 @@ public static class EliteCapture
         ("cauterizer", "ember_elite_cauterizer"),
     };
 
+    static readonly (string name, string key)[] VerdantClips =
+    {
+        ("leafblade", "verdant_elite_leafblade"),
+        ("resin_warden", "verdant_elite_resin_warden"),
+        ("sporebloom", "verdant_elite_sporebloom"),
+        ("thornlash", "verdant_elite_thornlash"),
+        ("timber_hauler", "verdant_elite_timber_hauler"),
+    };
+
     static string world = "Space";
 
     public static void CaptureSpace() { Capture("Space", SpaceClips); }
     public static void CaptureFrost() { Capture("Frost", FrostClips); }
     public static void CaptureEmber() { Capture("Ember", EmberClips); }
+    public static void CaptureVerdant() { Capture("Verdant", VerdantClips); }
 
     // Just the launch (a short, zoomed clip of the dock / pad: the blinking light, the doors, the elite leaving): a Space station, a Space
     // dock and a Frost ground pad. $ELITE_CAPTURE_DIR/<name>/NNNN.png as the others.
@@ -147,6 +157,7 @@ public static class EliteCapture
         cam.transform.position = new Vector3(0f, 0f, -10f);
 
         if (world == "Frost") { FrostBackdropSelection.Reset(); FrostBackdropSelection.Seed(def.key.Length * 7 + 3); }
+        if (world == "Verdant") { var v = BackdropVariants.For("Verdant"); v.Reset(); v.Seed(def.key.Length * 7 + 3); }
         var wb = WorldBackdrop.Create(world);
         wb.Show(world, false);
         Rails();
@@ -279,6 +290,7 @@ public static class EliteCapture
             for (int k = 0; k < barrage.Mines; k++) if (barrage.Marks.Shown(k)) dangers.Add(new Danger { a = barrage.Marks.At(k), radius = 1.1f, until = 9f });
         SenseFrost(e);
         SenseEmber(e);
+        SenseVerdant(e);
     }
 
     // Ember's telegraphs, read as a player would: the lance's locked lane, the dive's ring, the dump / spill lanes, the mortar's lanes
@@ -308,6 +320,49 @@ public static class EliteCapture
                 if (mortar.Doubled) dangers.Add(new Danger { a = new Vector2(mortar.LaneB, m.y), b = new Vector2(mortar.LaneB, -HalfH), radius = .7f, line = true, until = 9f });
             }
         }
+    }
+
+    // Verdant's telegraphs, read as a player would: the swoop's lane and its crescent rows, the wall of resin pools, the spore rings and the
+    // cloud lane, the whip's aim and the trunks' spots and roll lanes (a raft's two).
+    static void SenseVerdant(EliteShip e)
+    {
+        var swoop = e.Attack as LeafSwoopAttack;
+        if (swoop != null && (e.Telling || e.Acting))
+        {
+            dangers.Add(new Danger { a = swoop.LaneStart, b = swoop.LaneEnd, radius = e.Def.hullRadius + .6f, line = true, until = 9f });
+            for (int i = 0; i < swoop.Rows; i++)
+            {
+                Vector2 r = swoop.RowAt(i);
+                dangers.Add(new Danger { a = r, b = new Vector2(swoop.RowDeg(i) > 90f ? -EliteSystem.RailEdge : EliteSystem.RailEdge, r.y), radius = .7f, line = true, until = 9f });
+            }
+        }
+        var wall = e.Attack as CanopyMortarAttack;
+        if (wall != null && (e.Telling || e.Acting))
+            for (int i = 0; i < wall.Count; i++) dangers.Add(new Danger { a = wall.Spot(i), radius = wall.PoolRadius + .5f, until = 9f });
+        var spore = e.Attack as SporeBurstAttack;
+        if (spore != null && (e.Telling || e.Acting))
+        {
+            for (int i = 0; i < Mathf.Min(e.Def.shotCount, 4); i++) dangers.Add(new Danger { a = spore.Burst(i), radius = SporeBurstAttack.Reach + .5f, until = 9f });
+            var drift = spore as SporeDriftAttack;
+            if (drift != null && drift.HasCloud)
+                dangers.Add(new Danger { a = new Vector2(drift.CloudLaneX, drift.CloudRowY + SporeDriftAttack.CloudStep), b = new Vector2(drift.CloudLaneX, drift.CloudRowY - SporeDriftAttack.CloudStep), radius = SporeDriftAttack.CloudDiam * .5f + .55f, line = true, until = 9f });
+        }
+        var whip = e.Attack as VineLashAttack;
+        if (whip != null && (e.Telling || e.Acting) && whip.Lash != null)
+        {
+            dangers.Add(new Danger { a = whip.Lash.Root, b = e.Attack.Aim, radius = 1.2f, line = true, until = 9f });
+            dangers.Add(new Danger { a = e.Attack.Aim, radius = 1.7f, until = 9f });
+        }
+        var logs = e.Attack as LogRollAttack;
+        if (logs != null && (e.Telling || e.Acting))
+            for (int i = 0; i < logs.SpotCount; i++)
+            {
+                Vector2 sp = logs.Spot(i);
+                float dx = logs.Raft ? logs.RaftDirX : (sp.x > .25f ? 1f : -1f);
+                Vector2 d = new Vector2(dx * ShotMotions.RollSpeed * .65f, -ShotMotions.RollSpeed * .76f).normalized;
+                dangers.Add(new Danger { a = sp, radius = .8f, until = 9f });
+                dangers.Add(new Danger { a = sp, b = sp + d * LogRollAttack.LaneLength, radius = .6f, line = true, until = 9f });
+            }
     }
 
     // Frost's telegraphs, read as a player would: the ice-crack lane and the ship ploughing down it, the skid's path, the lance's sight,

@@ -164,9 +164,9 @@ public static class VerdantBackdropTest
                   mask != null && mask.Cols == 32 && mask.Rows == 64 && mask.Share(GroundClass.Canopy) > .1f);
         }
         var resin = EliteCatalog.Find("verdant_elite_resin_warden");
-        Check("the Resin Warden launches from a tower bay or a root hangar",
-              resin != null && LandingSite.Accepts(resin.launchFrom, LandingKind.TowerBay) &&
-              LandingSite.Accepts(resin.launchFrom, LandingKind.RootHangar) && !LandingSite.Accepts(resin.launchFrom, LandingKind.Hangar));
+        Check("the Resin Warden launches from a hatch (its own pad: the other four Verdant elites have theirs)",
+              resin != null && LandingSite.Accepts(resin.launchFrom, LandingKind.Hatch) && !LandingSite.Accepts(resin.launchFrom, LandingKind.TowerBay) &&
+              !LandingSite.Accepts(resin.launchFrom, LandingKind.RootHangar) && !LandingSite.Accepts(resin.launchFrom, LandingKind.Hangar));
     }
 
     // ---- four ground sets, random per landing ----------------------------------
@@ -710,10 +710,10 @@ public static class VerdantBackdropTest
         {
             wb.Step(Dt);
             LandingSites.Collect(sites);
-            foreach (var s in sites) if (s.kind == LandingKind.TowerBay || s.kind == LandingKind.RootHangar) found = true;
-            if (!found && i % 300 == 299) d.SpawnSite(float.NaN, 3);
+            foreach (var s in sites) if (s.kind == LandingKind.Hatch) found = true;
+            if (!found && i % 300 == 299) d.SpawnSite(float.NaN, 4);
         }
-        Check("a tower bay or root hangar comes into view", found);
+        Check("a hatch comes into view", found);
         if (!found) return;
         var dir = new GameObject("~Dir").AddComponent<EliteDirector>();
         Random.InitState(5);
@@ -724,7 +724,7 @@ public static class VerdantBackdropTest
         if (warden != null) dir.Spawn(resin, warden.Value, EliteDirector.ParkSeconds.y);
         var e = EliteShip.Live.Count > 0 ? EliteShip.Live[0] : null;
         Check("the director docks the Resin Warden in its own kind of site (" + (e != null ? e.Site.kind.ToString() : "-") + ")",
-              e != null && (e.Site.kind == LandingKind.TowerBay || e.Site.kind == LandingKind.RootHangar) && e.IsDocked);
+              e != null && e.Site.kind == LandingKind.Hatch && e.IsDocked);
         if (e == null) return;
         BackdropPiece site = null;
         foreach (var p in d.Sites.items) if (p.active && p.root == e.Site.anchor) site = p;

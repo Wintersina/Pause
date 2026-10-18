@@ -51,7 +51,9 @@ using UnityEngine;
 // (Frost's five: FrostElites.cs)
 //   foam_wake / mine_chain / drag_net / thunder_sweep / pearl_spiral: Tide's own five -- Riptide, Bathyscaphe, Trawler, Thunderfin, Pearl Warden (TideElites.cs)
 //   surf_dash / depth_charge / net_cast / thunder_strike / pearl_curtain: Tide's Riptide, Bathyscaphe, Trawler, Thunderfin, Pearl Warden (TideElites.cs)
-//   log_roll / vine_lash / spore_burst / leaf_dive: Verdant's Timber Hauler, Thornlash, Sporebloom, Leafblade (VerdantElites.cs)
+//   log_roll / vine_lash / spore_burst / leaf_dive: Verdant's Timber Hauler, Thornlash, Sporebloom, Leafblade (VerdantElites.cs); the cores of
+//   leaf_swoop (Leafblade: swooping passes, a crescent across a drawn row), canopy_mortar (Resin Warden: a pool wall with one gap),
+//   spore_drift (Sporebloom: + a spore cloud lane), thorn_sweep (Thornlash: anchor whip) and raft_roll (Timber Hauler: + a log raft)
 //   rift_snipe / swoop_volley / ward_barrage / tow_sling: the Space four's own attacks (SpaceElites.cs): Rift Lancer, Orbit Reaver,
 //                 Eventide Bastion, Singularity Hauler. (ward_curtain, crescent_volley, rift_rail and gravity_sling stay for
 //                 the other worlds that share them, and as the Space attacks' building blocks.)
@@ -202,6 +204,7 @@ public static class EliteAttacks
                                             "foam_wake", "mine_chain", "drag_net", "thunder_sweep", "pearl_spiral",
                                             "ice_run", "floe_barge", "tender_rig", "icicle_barrage",
                                             "log_roll", "vine_lash", "spore_burst", "leaf_dive",
+                                            "leaf_swoop", "canopy_mortar", "spore_drift", "thorn_sweep", "raft_roll",
                                             "surf_dash", "depth_charge", "net_cast", "thunder_strike", "pearl_curtain",
                                             "lance_pass", "coal_strafe", "scrap_dive", "ember_veil", "kiln_dump", "fire_mortar" };
 
@@ -240,6 +243,11 @@ public static class EliteAttacks
             case "vine_lash": return new VineLashAttack();
             case "spore_burst": return new SporeBurstAttack();
             case "leaf_dive": return new LeafDiveAttack();
+            case "leaf_swoop": return new LeafSwoopAttack();
+            case "canopy_mortar": return new CanopyMortarAttack();
+            case "spore_drift": return new SporeDriftAttack();
+            case "thorn_sweep": return new ThornSweepAttack();
+            case "raft_roll": return new RaftRollAttack();
             case "surf_dash": return new SurfDashAttack();
             case "depth_charge": return new DepthChargeAttack();
             case "net_cast": return new NetCastAttack();

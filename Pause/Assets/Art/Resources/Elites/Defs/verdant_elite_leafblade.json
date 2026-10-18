@@ -2,11 +2,11 @@
   "key": "verdant_elite_leafblade",
   "displayName": "Leafblade",
   "world": "verdant",
-  "role": "blade diver",
+  "role": "swooping blade",
   "codexId": "elite_verdant_leafblade",
-  "lore": "A razor-winged diver that nests in the root bunkers. It circles, spreads its blades and draws the lane it will dive down plus the row its crescent will cross. Sidestep the dive, then step up or down off the row.",
-  "brain": "diver",
-  "attack": "leaf_dive",
+  "lore": "A razor-winged raptor that nests in the root bunkers. It never circles: it sweeps in from a side or the top, draws the diagonal lane it will slice along and the row its leaf crescent will cross, and is gone out of the far side. Sidestep the lane, then step off the row.",
+  "brain": "raptor",
+  "attack": "leaf_swoop",
   "launchFrom": "roothangar",
   "cells": {
     "flight": [
@@ -42,7 +42,7 @@
   "avoidance": 0.6,
   "lookAhead": 0.4,
   "perception": 2.4,
-  "actionSeconds": 0.7,
+  "actionSeconds": 0.45,
   "shotCount": 1,
   "shotSpeed": 4.5,
   "shotSpread": 0,
@@ -55,9 +55,9 @@
   "poolSeconds": 4.5,
   "heartColor": "#5CD6FF",
   "shotColor": "#A6FF3C",
-  "shotCore": "#FF5CE0",
+  "shotCore": "#FFE9A8",
   "engineColor": "#FFB45A",
-  "hearts": 2,
+  "hearts": 3,
   "heartSize": 0.18,
   "heartOrbit": 0.667,
   "heartStyle": "Halo",
@@ -101,7 +101,9 @@
   ],
   "armored": false,
   "circleRadius": 1.9,
-  "dashSpeed": 6.0,
+  "dashSpeed": 7.0,
   "shotMotion": "slash",
-  "followLag": 0.35
+  "followLag": 0.35,
+  "hurtHide": true,
+  "hideSeconds": 3.5
 }

@@ -60,6 +60,12 @@ using UnityEngine;
 //                where) after every shot
 //   carrier      (Frost) Glacier Tender: hangs near the top, sliding at a crawl; scurries off sideways when the pilot comes close
 //   patrol       (Frost) Whiteout Sentinel: straight legs ACROSS THE TOP at a steady pace, never dodging, prow turned on the pilot
+//   raptor       (Verdant) Leafblade: swooping passes -- in from a side or the top, a diagonal lane drawn, sliced along it and out the far side,
+//                back in by another entry (VerdantElites.cs)
+//   canopy       (Verdant) Resin Warden: holds the top and HOPS between four canopy perches (a short visible leap) after each mortar
+//   floater      (Verdant) Sporebloom: floats high and slow, then sinks off its side into the canopy and rises elsewhere
+//   anchor       (Verdant) Thornlash: latches on just outside a rail, whips across the lane, swings across the top to the other rail
+//   lumber       (Verdant) Timber Hauler: a lumber barge sliding along the top, never chasing
 public abstract class EliteBrain
 {
     protected EliteShip ship;
@@ -113,7 +119,7 @@ public static class EliteBrains
 {
     public static readonly string[] Ids = { "interceptor", "gunship", "striker", "hauler", "skirmisher", "siege", "warden",
                                             "bastion", "reaver", "lancer", "tug", "icebreaker", "barge", "hopper", "carrier", "patrol",
-                                            "logger", "thorn", "drifter", "diver",
+                                            "logger", "thorn", "drifter", "diver", "raptor", "canopy", "floater", "anchor", "lumber",
                                             "breaker", "deep", "trawl", "tempest", "oyster",
                                             "surfer", "abyss", "netter", "stormray", "pearler",
                                             "sniper", "swooper", "fortress", "wrecker",
@@ -142,6 +148,11 @@ public static class EliteBrains
             case "thorn": return new ThornBrain();
             case "drifter": return new DrifterBrain();
             case "diver": return new DiverBrain();
+            case "raptor": return new RaptorBrain();
+            case "canopy": return new CanopyBrain();
+            case "floater": return new FloaterBrain();
+            case "anchor": return new AnchorBrain();
+            case "lumber": return new LumberBrain();
             case "breaker": return new BreakerBrain();
             case "deep": return new DeepBrain();
             case "trawl": return new TrawlBrain();
