@@ -269,11 +269,11 @@ public static class SpaceEliteTest
         Fresh(.05f);
         pilot.position = new Vector3(0f, -3f, 0f);
         var site = Body(new Vector2(.8f, 3f), kind);
-        int flares = EliteSystem.Fx.DockFlares;
+        int flares = EliteSystem.Fx.DockFlares, spawned0 = EliteSystem.Fx.Spawned;
         var e = EliteShip.Create(def, site, 2.5f, new Vector2(-1.4f, 1.4f));
         Check(k + "docked inside its " + kind + ": hidden, no collider, not a target",
               e.IsDocked && e.Hull.color.a == 0f && !e.Collider.enabled && !e.CompareTag("Enimey") && e.GetComponent<ClearTarget>() == null);
-        bool lightsEarly = false, lightsLate = false, rides = true;
+        bool lightsEarly = false, lightsLate = false, rides = true, blinkEarly = false, blinkLate = false, blinkOff = false;
         int guard = 0;
         while (e.State == EliteState.Parked && guard++ < 400)
         {
@@ -283,10 +283,14 @@ public static class SpaceEliteTest
             rides &= Vector2.Distance(e.transform.position, site.anchor.position) < .01f;
             if (e.StateTime < e.ParkSeconds - EliteShip.EngineTellSeconds - .05f) lightsEarly |= e.EngineLightsOn;
             else lightsLate |= e.EngineLightsOn;
+            if (e.StateTime < e.ParkSeconds - EliteShip.EngineTellSeconds - .05f) blinkEarly |= e.LaunchLightOn;
+            else { blinkLate |= e.LaunchLightOn; blinkOff |= !e.LaunchLightOn; }
         }
-        Check(k + "rides its body; only its engine lights blink at the dock, in its last parked second", rides && !lightsEarly && lightsLate);
-        Check(k + "launches with a dock flare (no ground dust) after rings close in on the door through the launch second (" + e.DockWarns + ")",
-              e.State == EliteState.LiftOff && EliteSystem.Fx.DockFlares == flares + 1 && e.DockWarns >= 3);
+        Check(k + "rides its body; only its pilot light blinks at the dock, in its last parked second", rides && !lightsEarly && lightsLate);
+        Check(k + "ONE small launch light blinks (on and off) in the launch tell only, no ring or burst spawned (" + (EliteSystem.Fx.Spawned - spawned0) + ")",
+              !blinkEarly && blinkLate && blinkOff && EliteSystem.Fx.Spawned == spawned0);
+        Check(k + "launches with no dock flare and no ground dust, the launch light out",
+              e.State == EliteState.LiftOff && EliteSystem.Fx.DockFlares == flares && EliteSystem.Fx.Spawned == spawned0 && !e.LaunchLightOn);
         bool steps = true, grows = true, hidden = true, sawFade = false;
         float lastScale = e.HullScale;
         Vector2 start = e.transform.position;

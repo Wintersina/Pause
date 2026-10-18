@@ -220,8 +220,8 @@ public sealed class EliteFx
         }
     }
 
-    // Lift-off out of a Space body (LandingSite.emerge): the hangar door /
-    // surface flashes open -- a ring and a glow in the ship's engine colour
+    // (A boss's arrival out of a Space body only: elites no longer flash -- see EliteLaunchTell.)
+    // The hangar door / surface flashes open -- a ring and a glow in the ship's engine colour
     // at the body's depth (`order`, behind the gameplay) and a few sparks
     // thrown out with the ship. Counted for tests.
     public int DockFlares { get; private set; }
@@ -273,6 +273,31 @@ public sealed class EliteFx
         Sparks(at, def.ShotColor, 10);
         Sparks(at, def.ShotCore, 6);
     }
+}
+
+// The elite launch tell, in one place: ONE small bright blinking light at the dock / pad during the last parked second
+// (EliteShip.EngineTellSeconds), in the elite's engine colour. No rings, no flare, no big glow. Tunables:
+//   CoreSize / GlowSize  world units: a few pixels, with a tight glow round them
+//   BlinkEvery           seconds per on/off cycle half (.25 s = 4 Hz)
+//   QuickEvery/QuickLast the last QuickLast seconds blink faster (QuickEvery per half)
+//   Core / Glow          colours: the engine colour (core lightened toward white, glow the engine colour, dim)
+// The hull's own pilot-light cell and a Space dock's lights follow On(), so they blink in step.
+public static class EliteLaunchTell
+{
+    public const float CoreSize = .06f, GlowSize = .16f, BlinkEvery = .25f, QuickEvery = .16f, QuickLast = .5f;
+    public const float CoreWhite = .5f, GlowAlpha = .45f;
+
+    // Lit at `k` seconds into the tell?
+    public static bool On(float k)
+    {
+        if (k < 0f) return false;
+        float slow = EliteShip.EngineTellSeconds - QuickLast;
+        if (k < slow) return Mathf.FloorToInt(k / BlinkEvery) % 2 == 0;
+        return Mathf.FloorToInt((k - slow) / QuickEvery) % 2 == 0;      // (quickens in the last QuickLast seconds)
+    }
+
+    public static Color Core(EliteDef d) { return Color.Lerp(d.EngineColor, Color.white, CoreWhite); }
+    public static Color Glow(EliteDef d) { var c = d.EngineColor; c.a = GlowAlpha; return c; }
 }
 
 // What happens to the ship itself when its last heart goes. Pluggable: the

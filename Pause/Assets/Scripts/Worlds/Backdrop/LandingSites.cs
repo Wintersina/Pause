@@ -16,9 +16,9 @@ using UnityEngine;
 // Space's station / planet / big asteroid) so an elite can ask for the kind
 // it launches from (EliteDef.launchFrom). `emerge`: the ship is not sitting
 // on top of the piece but inside it (a station's hangar, a planet's
-// surface, an asteroid's hollow): hidden while parked -- only its engine
-// lights blink at the dock in the launch tell -- it flies out with a flare
-// and fades in as it rises (EliteShip).
+// surface, an asteroid's hollow): hidden while parked -- only one small
+// light blinks at the dock in the launch tell (EliteLaunchTell) -- it flies out
+// without a flash and fades in as it rises (EliteShip).
 //
 // Frost's ground sites (FrostDirector) are emerge sites too, each its own
 // kind: an ice-shelf hangar, a rig's lift bay, a relay pad ring, a crawler

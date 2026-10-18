@@ -5,8 +5,8 @@ using UnityEngine;
 // engagement pattern. The rules they share: none of them follows the pilot -- they keep their distance and antagonise; each throws
 // HAZARDS (a rift mine, a volley that crosses on the pilot's spot, a curtain with a narrowing gap, a flung asteroid); every attack
 // is telegraphed before it can hurt and its aim LOCKS at the tell. Pink cues are Space's own (the pink-only-in-Space rule). They
-// launch from Space's docks as ever (stations, planets, big asteroids; EliteShip.DockWarn rings close in on the door in the launch
-// second).
+// launch from Space's docks as ever (stations, planets, big asteroids; one small light blinks at the door in the launch
+// second, EliteLaunchTell).
 //
 //   Rift Lancer         sniper   / rift_snipe    (station)   an edge sniper: perches at long range on a flank, a blinking sight line
 //                                                  tracks then locks, a rail of bolts; after 1-2 shots it leaves by its own side and

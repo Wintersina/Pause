@@ -4,8 +4,8 @@ using UnityEngine;
 // Space's elite launch sites. Space has no ground, so its elites don't sit
 // on a pad: they come OUT of the scenery that already drifts through the
 // backdrop -- a station's hangar, a planet's surface, a big asteroid's
-// hollow (LandingSite.emerge: hidden while docked, engine lights blinking
-// at the dock in the launch tell, then a flare and the ship flying out,
+// hollow (LandingSite.emerge: hidden while docked, one small light blinking
+// at the dock in the launch tell, then the ship flying out (no flash),
 // growing from the body's depth into the play layer; EliteShip).
 //
 // Sites are only offered on bodies still in the upper part of the view (a
