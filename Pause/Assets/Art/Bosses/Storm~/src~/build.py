@@ -12,6 +12,10 @@ from pathlib import Path
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 
+import sys
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import storm_recolor
+
 ROOT = Path(__file__).resolve().parent.parent
 SRC = ROOT / "src~"
 C = 384
@@ -52,11 +56,12 @@ def palette_clean(im: Image.Image) -> Image.Image:
 
 
 def source(name: str) -> Image.Image:
-    im = palette_clean(Image.open(SRC / name).convert("RGBA"))
+    im = Image.open(SRC / name).convert("RGBA")
     im = im.resize((344, 344), Image.Resampling.NEAREST)
     out = blank()
     out.alpha_composite(im, (20, 20))
-    return out
+    # Violet Squall repaint (storm_recolor.py); palette_clean is still used for the shot art below.
+    return storm_recolor.recolor(palette_clean(out))
 
 
 def rim(im: Image.Image) -> Image.Image:
@@ -362,7 +367,7 @@ def card():
 
 
 def deck(name,x,y):
-    im=Image.open(ROOT.parents[1]/"Worlds"/"Storm"/"descent~"/name).convert("RGBA")
+    im=Image.open(ROOT.parents[1]/"Backgrounds"/"Resources"/"Worlds"/"Storm"/"Planetfall"/name).convert("RGBA")
     return im.crop((x,y,x+C,y+C))
 
 

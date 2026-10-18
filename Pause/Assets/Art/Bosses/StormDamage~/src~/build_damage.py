@@ -7,6 +7,10 @@ from pathlib import Path
 import numpy as np
 from PIL import Image, ImageDraw
 
+import sys
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / 'Storm~' / 'src~'))
+import storm_recolor
+
 SRC = Path(__file__).resolve().parent
 OUT = SRC.parent
 CELL = 384
@@ -49,7 +53,7 @@ def fit(source: Image.Image, box: tuple[int, int, int, int], threshold: int = 72
     im = im.resize((x1-x0, y1-y0), Image.Resampling.NEAREST)
     cell = Image.new('RGBA', (CELL, CELL))
     cell.alpha_composite(im, (x0, y0))
-    return cell
+    return storm_recolor.recolor(cell)
 
 
 def variant(body: Image.Image, stage: int) -> Image.Image:
@@ -163,7 +167,7 @@ def on_bg(im: Image.Image) -> Image.Image:
 
 
 def main() -> None:
-    pristine = Image.open(SRC / 'pristine_cell.png').convert('RGBA')
+    pristine = storm_recolor.recolor(Image.open(SRC / 'pristine_cell.png').convert('RGBA'))
     names = [f'stage{k}_candidate_a.png' for k in range(1, 5)]
     bodies = [fit(Image.open(SRC / name), (20, 20, 364, 360)) for name in names]
     body_sheet = Image.new('RGBA', (CELL*2, CELL*4))
@@ -187,7 +191,7 @@ def main() -> None:
     fade_a = np.array(fade)
     fade_a[:, :, 3] = (fade_a[:, :, 3].astype(np.uint16)*135//255).astype(np.uint8)
     fade = Image.fromarray(fade_a, 'RGBA')
-    death = [flash(bodies[-1]), death_source('death_split_candidate_a.png', 12),
+    death = [flash(bodies[-1]), storm_recolor.recolor(death_source('death_split_candidate_a.png', 12)),
              burst, peak, shock, fade]
     death_sheet = Image.new('RGBA', (CELL*6, CELL))
     for k, frame in enumerate(death):
