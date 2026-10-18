@@ -4,7 +4,7 @@ using UnityEditor.SceneManagement;
 using UnityEngine;
 
 // The Storm backdrop (StormDirector, StormLightning): a thunderstorm, never Tide's ocean.
-//   * its own spec (own folder, three variant sets, no night side), layers rising far -> near, the ground pieces
+//   * its own spec (own folder, two variant sets, no night side), layers rising far -> near, the ground pieces
 //     PINNED to the mid tile, every layer behind gameplay;
 //   * LIGHTNING IS GENTLE (photosensitivity): over many seeded 10-minute runs no two light pulses start closer
 //     than MinPulseGap, never more than 2 in any second (a flash and its faint re-strike), none in the opening
@@ -46,7 +46,7 @@ public static class StormBackdropTest
             Lightning();
             Strikes();
             Pinned();
-            Eye();
+            EyeGone();
             Palette();
             Resolution();
             AtlasContract();
@@ -101,7 +101,7 @@ public static class StormBackdropTest
     static void Catalog()
     {
         var spec = BackdropCatalog.For("Storm");
-        Check("Storm has its own spec, folder and three variant sets (not Tide's stand-in)",
+        Check("Storm has its own spec, folder and two variant sets (not Tide's stand-in)",
               spec.world == "Storm" && spec.folder == "Worlds/Storm/Backdrop3/" && spec.variantSets == StormTuning.Variants);
         string[] want = { "sky", "far", "mid", "ground", "flow", "glow", "bolts", "mist", "wisps", "ceiling", "bloom", "gusts", "debris", "rain" };
         bool all = true;
@@ -116,8 +116,8 @@ public static class StormBackdropTest
             rising &= spec.layers[i].rate > spec.layers[i - 1].rate ||
                       (spec.layers[i].pinTo == spec.layers[i - 1].name && spec.layers[i].rate == spec.layers[i - 1].rate);
         Check("Storm rates strictly increase far -> near", rising);
-        Check("Storm ships three ground sets and no night side (the user dropped v4)",
-              spec.variantSets == 3 && !spec.Night(1) && !spec.Night(2) && !spec.Night(3) && !spec.Night(4) &&
+        Check("Storm ships two ground sets and no night side (the user dropped v4 and the gray eye deck v3)",
+              spec.variantSets == 2 && !spec.Night(1) && !spec.Night(2) && !spec.Night(3) && !spec.Night(4) &&
               !System.IO.File.Exists(Art + "v4/mid.png"));
         Check("the art is dark: Storm is drawn below the bright-world lift, so shots keep the thin outline", !spec.Bright);
         var set = new BackdropSet("Storm", new GameObject("~root").transform, 3f, 5f);
@@ -332,78 +332,12 @@ public static class StormBackdropTest
         Check("the storm's pieces turn up: " + towers + " thunderhead towers and " + spires + " lightning-rod masts among " + pieces, towers > 5 && spires > 3);
     }
 
-    // ---- the eye of the storm: a rare giant ground set-piece ---------------------------------------------------
+    // ---- the removed eye-of-the-storm deck stays gone ----------------------------------------------------------
 
-    static void Eye()
+    static void EyeGone()
     {
-        // it is rare, off-centre and anchored to the ground plane like every other piece (no sway, no drift)
-        for (int v = 1; v <= StormTuning.Variants; v++)
-        {
-            var wb = Fresh(v);
-            var d = Director(wb);
-            if (d == null) { Check("Storm director v" + v + " (eye)", false); return; }
-            bool spawned = d.SpawnEye();
-            Check("v" + v + ": the eye set-piece spawns (atlas 'eye' carries '" + StormTuning.EyePiece + "')", spawned && d.Eye.ActiveCount == 1);
-            if (!spawned) { Object.DestroyImmediate(wb.gameObject); continue; }
-            BackdropPiece p = null;
-            foreach (var q in d.Eye.items) if (q.active) p = q;
-            bool offCentre = Mathf.Abs(p.x) >= 1.2f && Mathf.Abs(p.x) <= 2f;
-            float x0 = p.x; double gy0 = p.gy;
-            Vector3 root0 = p.root.localScale, body0 = p.body.localScale;
-            // 40 s at JITTERY dt and a CHANGING scroll speed: the centre stays at a constant ground coordinate (x fixed, y from the
-            // tile travel, mid-tile rate, same scale), only the rotation changes: monotonic, clockwise, at 360 / EyeTurnSeconds per second
-            var jit = new System.Random(77 + v);
-            float savedSpeed = moveBackGround.speed;
-            float total = 0f, unwrapped = 0f, prevAngle = p.body.localEulerAngles.z;
-            bool pinned = true, steady = true, monotonic = true, rateOk = true;
-            float maxStep = 0f;
-            while (total < 40f && p.active)
-            {
-                moveBackGround.speed = .12f + (float)jit.NextDouble() * .5f;
-                float dt = 1f / 120f + (float)jit.NextDouble() * (1f / 20f - 1f / 120f);
-                wb.Step(dt);
-                total += dt;
-                if (!p.active) break;
-                if (Mathf.Abs(p.x - x0) > 1e-4f || System.Math.Abs(p.gy - gy0) > 1e-6 || System.Math.Abs(p.y + d.Planner.Travel - p.gy) > 1e-3 ||
-                    p.rate != wb.Current.Spec.Rate("mid")) pinned = false;
-                if ((p.root.localScale - root0).sqrMagnitude > 1e-10f || (p.body.localScale - body0).sqrMagnitude > 1e-10f || p.body.localPosition.sqrMagnitude > 1e-10f) steady = false;
-                float ang = p.body.localEulerAngles.z;
-                float step = Mathf.DeltaAngle(prevAngle, ang);          // < 0 = clockwise
-                if (step > 1e-3f) monotonic = false;
-                if (Mathf.Abs(Mathf.Abs(step) - 360f / StormTuning.EyeTurnSeconds * dt) > .05f) rateOk = false;
-                maxStep = Mathf.Max(maxStep, Mathf.Abs(step));
-                unwrapped += step;
-                prevAngle = ang;
-            }
-            moveBackGround.speed = savedSpeed;
-            float expected = -360f * total / StormTuning.EyeTurnSeconds;
-            Check("v" + v + ": eye pinned at ground coordinate " + gy0.ToString("F2") + " / x " + x0.ToString("F2") + " (off-centre, clear of the middle lane) across jittery dt and changing scroll speed",
-                  offCentre && pinned && steady);
-            Check("v" + v + ": only the rotation changes: clockwise, monotonic, " + (360f / StormTuning.EyeTurnSeconds).ToString("F1") + " deg/s (turned " + unwrapped.ToString("F1") + " of " + expected.ToString("F1") + " deg, largest step " + maxStep.ToString("F2") + ")",
-                  monotonic && rateOk && Mathf.Abs(unwrapped - expected) < 1f && total > 20f);
-            Object.DestroyImmediate(wb.gameObject);
-        }
-        // the sprite's bounding circle fits its cell: nothing is opaque outside radius 506 of the 1024 cell, so no rotation angle clips
-        var eyeTex = new Texture2D(2, 2, TextureFormat.RGBA32, false);
-        eyeTex.LoadImage(File.ReadAllBytes(Art + "eye.png"));
-        var eyePx = eyeTex.GetPixels32();
-        int ew = eyeTex.width, eh = eyeTex.height;
-        Object.DestroyImmediate(eyeTex);
-        float maxR = 0f;
-        for (int y = 0; y < eh; y++)
-            for (int x = 0; x < ew; x++)
-                if (eyePx[y * ew + x].a > 0) maxR = Mathf.Max(maxR, Mathf.Sqrt((x - ew * .5f + .5f) * (x - ew * .5f + .5f) + (y - eh * .5f + .5f) * (y - eh * .5f + .5f)));
-        Check("the eye art fits its cell at every rotation: farthest opaque texel " + maxR.ToString("F1") + " px from the centre <= 508 (cell half-size 512)", ew == 1024 && eh == 1024 && maxR <= 508f);
-        int worst = 0;
-        for (int v = 1; v <= StormTuning.Variants; v++)
-        {
-            var wb = Fresh(v, .25f);
-            var d = Director(wb);
-            Run(wb, 240f);
-            worst = Mathf.Max(worst, d.EyesSpawned);
-            Object.DestroyImmediate(wb.gameObject);
-        }
-        Check("the eye is RARE: at most 3 in 4 minutes at the opening speed (worst " + worst + ")", worst <= 3);
+        Check("Storm ships exactly two ground sets (v3, the gray eye deck, is removed)", StormTuning.Variants == 2 && StormTuning.ClusterWeights.Length == 3);
+        Check("no v3 tile set and no 'eye' atlas on disk", !Directory.Exists(Art + "v3") && !File.Exists(Art + "eye.png") && !File.Exists(Art + "eye.json"));
     }
 
     // ---- the art is a storm, not an ocean -----------------------------------------------------------
@@ -447,9 +381,9 @@ public static class StormBackdropTest
     // pink (Space only), no red (the player's); violet stays a minority (the capacitor pickup is violet).
     public const float MaxTealShare = .01f, MaxVioletShare = .30f, MaxRedShare = .003f, MaxPinkShare = .003f, MinMidSaturation = .22f;
 
-    // v1 / v2 are the new 1024x2048 HD sets; v3 is the original 512x1024 set the user kept.
-    static bool Hd(int v) { return v != 3; }
-    static bool Hd(string file) { return !file.StartsWith("v3/"); }
+    // v1 / v2 are the 1024x2048 HD sets.
+    static bool Hd(int v) { return true; }
+    static bool Hd(string file) { return true; }
 
     static void Palette()
     {
@@ -470,7 +404,7 @@ public static class StormBackdropTest
                     Check("Storm v" + v + " mid is colourful, not gray (mean saturation " + m.sat.ToString("F2") + " >= " + MinMidSaturation + ")", m.sat >= MinMidSaturation);
                 }
             }
-        foreach (string atlas in new[] { "landmarks", "sites", "weather", "lightning", "eye" })
+        foreach (string atlas in new[] { "landmarks", "sites", "weather", "lightning" })
         {
             string path = Art + atlas + ".png";
             if (!File.Exists(path)) { Check("Storm " + atlas + ".png exists", false); continue; }
@@ -492,7 +426,7 @@ public static class StormBackdropTest
     {
         var files = new List<string>();
         for (int v = 1; v <= StormTuning.Variants; v++) foreach (string r in new[] { "sky", "far", "mid", "flow" }) files.Add("v" + v + "/" + r + ".png");
-        foreach (string a in new[] { "landmarks", "sites", "weather", "lightning", "eye" }) files.Add(a + ".png");
+        foreach (string a in new[] { "landmarks", "sites", "weather", "lightning" }) files.Add(a + ".png");
         foreach (string f in files)
         {
             string path = Art + f;

@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 // One backdrop the codex BACKDROPS tab can list and open in the viewer: a
-// world's ground / sky variant (Frost's frozen ocean, Storm's eye of the
+// world's ground / sky variant (Frost's frozen ocean, Storm's thunderhead field of the
 // storm, Space's nebula skies ...).
 public sealed class CodexBackdrop
 {
@@ -46,7 +46,7 @@ public static class CodexBackdrops
     public const string Prefix = "bd_";
     public const string LockedTitle = "???";
 
-    // Names of each world's variants, index-aligned with WorldManager.Worlds and then variant 1..4 (Storm 1..3)
+    // Names of each world's variants, index-aligned with WorldManager.Worlds and then variant 1..4 (Storm 1..2)
     // (from the art: BackdropCatalog / each world's director docs).
     static readonly string[][] Titles =
     {
@@ -55,7 +55,7 @@ public static class CodexBackdrops
         new[] { "Canopy Sea", "Swamp Delta", "Ruined City", "Night Forest" },                       // Verdant
         new[] { "Caldera Fields", "Forge City", "Ash Ridges", "Cracked Crust" },                    // Ember
         new[] { "Open Sea", "Rig Field", "Drowned City", "Night Currents" },                        // Tide
-        new[] { "Banded Deck", "Thunderhead Field", "Eye of the Storm" },                            // Storm (three ground sets, no night set)
+        new[] { "Banded Deck", "Thunderhead Field" },                                              // Storm (two ground sets, no night set)
         new[] { "Day Dunes", "Canyon and Ruins", "Salt Flat", "Night Dunes" },                      // Desert
     };
 

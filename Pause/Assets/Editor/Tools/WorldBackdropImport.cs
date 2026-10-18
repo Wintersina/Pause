@@ -78,8 +78,7 @@ public class WorldBackdropImport : AssetPostprocessor
     // times their pixel size and keep bilinear filtering.
     public static bool IsSoftAtlas(string file)
     {
-        return file == "weather" || file == "smoke" || file == "steam" || file == "aurora" || file == "firesmoke" || file == "eruption" || file == "surf" ||
-               file == "eye";   // Storm's eye of the storm turns slowly: bilinear keeps the turn smooth (point sampling would crawl)
+        return file == "weather" || file == "smoke" || file == "steam" || file == "aurora" || file == "firesmoke" || file == "eruption" || file == "surf";
     }
 
     // Tide's and Desert's run C loops (smoke, surf, dust, worms ...) are nearest-neighbour pixel art: point-sampled,
@@ -109,7 +108,7 @@ public class WorldBackdropImport : AssetPostprocessor
     // (0.93 MB each; 4x4 would be 8 bpp = 2 MB each) and the sparse flow strips a plain quad.
     public static bool IsStormHdTile(string path, bool tile)
     {
-        return tile && path.Contains("/Worlds/Storm/Backdrop3/") && !path.Contains("/Backdrop3/v3/");   // v3 keeps its original 512x1024 art
+        return tile && path.Contains("/Worlds/Storm/Backdrop3/");
     }
 
     public static bool IsTile(string path)
