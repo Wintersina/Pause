@@ -38,6 +38,16 @@ public static class EliteSystem
     public static float ViewTop => CameraFit.ViewTop;
     public static float ViewBottom => CameraFit.ViewBottom;
 
+    // Half the visible width (world), or the rails' edge without a camera: what an elite leaving by a side has to clear.
+    public static float ViewHalfWidth
+    {
+        get
+        {
+            var c = Camera.main;
+            return c != null && c.orthographic ? c.orthographicSize * c.aspect : RailEdge;
+        }
+    }
+
     // World scroll (u/s) every board-locked hazard falls at.
     public static float Scroll => SpawnSpace.ScrollSpeed;
 
@@ -68,6 +78,7 @@ public static class EliteSystem
     {
         if (dt <= 0f) return;
         Steps++;
+        EliteFight.Step(dt);      // the spawners run thin while one is in play
         EliteEvasion.Sense(dt);   // the threat picture every elite reads this step
         stepping.Clear();
         var live = EliteShip.Live;
@@ -82,6 +93,7 @@ public static class EliteSystem
     // Everything gone (scene change, tests).
     public static void Clear()
     {
+        EliteFight.Reset();
         AttackPools.ClearAll();   // the themed hazards (jets, bands, rings, strikes, lashes) and their previews
         var live = EliteShip.Live;
         for (int i = live.Count - 1; i >= 0; i--)

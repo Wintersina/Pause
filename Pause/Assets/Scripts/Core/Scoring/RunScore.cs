@@ -26,7 +26,7 @@ public static class RunScore
 {
     public const string BestScoreKey = "BestScore";
 
-    public enum Source { Distance, Kill, Dust, Atom, Teleport, Boss, World, Elite, Shield }
+    public enum Source { Distance, Kill, Dust, Atom, Teleport, Boss, World, Elite, Shield, Escape }
 
     // Totals stay small on purpose: see ScoreRules (speed multiplier on
     // flight + kills, loop scaling on boss + world bonuses).
@@ -270,6 +270,21 @@ public static class RunScore
         parts.killCount++;
         Raise(points, at, Source.Elite);
         return points;
+    }
+
+    // An elite got away (EliteShip.Escaped): the pilot LOSES `points` (half of
+    // what its kill would have paid, no multipliers), taken off the KILLS row
+    // (so the death panel still adds up), and never past what the run has:
+    // the score cannot go below 0. Raises a negative "-N ESCAPED" popup (0:
+    // just "ESCAPED") at `at`. Returns the points actually lost.
+    public static int OnEliteEscaped(Vector3 at, int points)
+    {
+        if (!Live) return 0;
+        long have = Total;
+        int lost = (int)Math.Max(0L, Math.Min((long)Math.Max(0, points), have));
+        parts.kills -= lost;
+        Raise(-lost, at, Source.Escape);
+        return lost;
     }
 
     // ---- shielded projectile hits ----

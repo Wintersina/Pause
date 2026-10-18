@@ -482,6 +482,8 @@ public static class HostileReachTest
                         e.TakeHit(EliteDamage.PlayerWeapon, (Vector3)e.Position + Vector3.left);
                     }
                     if (e.State == EliteState.Dead) { Cleanup(ship, rock); continue; }
+                    // (a hide-when-hurt elite that was just hit is away, untouchable: no jump to aim at it, and no grace window to land in)
+                    if (e.Hidden) { Cleanup(ship, rock); continue; }
                     attempted++;
                     if (e.Hearts >= 2) fromTwo++; else fromOne++;
                     if (e.Grace > 0f) inGrace++;
@@ -504,7 +506,7 @@ public static class HostileReachTest
                 }
                 Check((evasion ? "" : "evasion off: ") + def.displayName + ": a pause jump aimed at it kills it in " + connected + "/" + attempted + " seeded runs (from 2 hearts " + fromTwo +
                       ", from 1 " + fromOne + ", in grace " + inGrace + ", mid-evasion " + midEvade + ", mid-attack " + midAttack + ", short hops " + shortJumps + ")" +
-                      (first != null ? " first miss: " + first : ""), connected == attempted && attempted >= Trials * 2 / 3 && inGrace > 0 && fromTwo > 0);
+                      (first != null ? " first miss: " + first : ""), connected == attempted && attempted >= Trials * 2 / 3 / (def.hurtHide ? 2 : 1) && (inGrace > 0 || def.hurtHide) && fromTwo > 0);
                 evaded += midEvade;
             }
             if (evasion) Check("... jumps landed mid-evasion across the elites (" + evaded + ")", evaded > 0);

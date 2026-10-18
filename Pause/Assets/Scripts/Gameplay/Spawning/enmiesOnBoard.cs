@@ -726,6 +726,8 @@ public class enmiesOnBoard : MonoBehaviour {
         // spawns that found no clear spot get first go at the board
         RetryDeferred(dt);
 
+        // an elite fight thins the board (EliteFight: ~35% of the normal spawn rate while one is in play, back to normal over 2 s after)
+        dt *= EliteFight.SpawnScale;
         railDelayTimer -= dt;
         smEnmDelayTimer -= dt;
         bigEnmDelayTimer -= dt;

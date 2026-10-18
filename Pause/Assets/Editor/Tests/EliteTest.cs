@@ -186,7 +186,7 @@ public static class EliteTest
             var frames = EliteArt.Frames(d);
             Check(d.key + ": strip loads as 7 cells, enough for its cell map", frames != null && frames.Length >= EliteArt.FrameCount && frames[0] != null && frames.Length >= d.cells.Count);
             Check(d.key + ": a known brain and attack", System.Array.IndexOf(EliteBrains.Ids, d.brain) >= 0 && System.Array.IndexOf(EliteAttacks.Ids, d.attack) >= 0);
-            Check(d.key + ": two hearts", d.hearts == 2);
+            Check(d.key + ": hearts: 2 (Space: 5 armoured / 3 not)", d.hearts == (d.world == "space" ? (d.armored ? 5 : 3) : 2));
             Check(d.key + ": hearts are not the player's red (hue gap " + HueGap(d.HeartColor, PlayerRed).ToString("0") + ")",
                   HueGap(d.HeartColor, PlayerRed) > 40f && HueGap(d.HeartColor, AkiraPalette.Red) > 40f);
             Check(d.key + ": shots are not the player's red", HueGap(d.ShotColor, PlayerRed) > 30f && HueGap(d.ShotCore, PlayerRed) > 30f &&
@@ -1064,9 +1064,13 @@ public static class EliteTest
             e = InPlay(brain, new Vector2(0f, 1f));
             total = RunScore.Total;
             dust = score.totalCurrency + score.tutorialCurrency;
-            ShipAttackHits.Hit(e.gameObject, 3);
-            Step(EliteShip.GraceSeconds + .1f);
-            ShipAttackHits.Hit(e.gameObject, 3);
+            // (as many hits as it has hearts; one that hides when hurt is waited out between them)
+            for (int n = 0; n < 12 && e != null; n++)
+            {
+                ShipAttackHits.Hit(e.gameObject, 3);
+                Step(EliteShip.GraceSeconds + .1f);
+                for (int w = 0; w < 600 && e != null && e.Hidden; w++) EliteSystem.Step(Dt);
+            }
             Check(Def(brain).displayName + " down pays " + ScoreRules.EliteDown + " points and " + ScoreRules.EliteDownDust * ScoreRules.DustRewardScale + " dust (15 x scale)",
                   e == null && RunScore.Total - total == 50 && ScoreRules.EliteDown == 50 && ScoreRules.EliteDownDust == 15f &&
                   Mathf.Abs(score.totalCurrency + score.tutorialCurrency - dust - 15f * ScoreRules.DustRewardScale) < .01f);
@@ -1084,8 +1088,7 @@ public static class EliteTest
         var dir = new GameObject("~Dir").AddComponent<EliteDirector>();
         int a = dir.SpawnGroup(3, 3);
         int b = dir.SpawnGroup(3, 3);
-        Check("at most three elites alive (" + a + " + " + b + ")", a == 3 && b == 0 && EliteDirector.AliveCount == 3);
-        Check("groups park on distinct sites", EliteShip.Live[0].Site.id != EliteShip.Live[1].Site.id && EliteShip.Live[1].Site.id != EliteShip.Live[2].Site.id);
+        Check("one elite alive at a time, a group of three asked for parks one (" + a + " + " + b + ")", a == 1 && b == 0 && EliteDirector.AliveCount == 1);
         Check("no sites, no elites", dir.SpawnGroup(3, 1) == 0);
         EliteSystem.Clear();
         LandingSites.Override = list => { };

@@ -134,6 +134,7 @@ public static class AllTests
         ("SoundMuteTest", SoundMuteTest.Execute),
         ("PrivacyLinkTest", PrivacyLinkTest.Execute),
         ("EliteTest", EliteTest.Execute),
+        ("EliteFoundationTest", EliteFoundationTest.Execute),
         ("EliteEvasionTest", EliteEvasionTest.Execute),
         ("EliteLockOnTest", EliteLockOnTest.Execute),
         ("ShipTierTest", ShipTierTest.Execute),

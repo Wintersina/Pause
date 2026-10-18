@@ -524,6 +524,8 @@ public class ScoreHud : MonoBehaviour
                 return new PopupStyle { colour = AkiraPalette.Cyan, size = 44, seconds = 1.6f, rise = 70f, suffix = "  WORLD" };
             case RunScore.Source.Elite:
                 return new PopupStyle { colour = AkiraPalette.Magenta, size = 40, seconds = 1.4f, rise = 64f, suffix = "  ELITE DOWN" };
+            case RunScore.Source.Escape:   // an elite got away: the points it cost (negative), in the warning amber
+                return new PopupStyle { colour = AkiraPalette.Amber, size = 34, seconds = 1.4f, rise = 64f, suffix = "  ESCAPED" };
             case RunScore.Source.Shield:   // a hostile shot absorbed by the shield
                 return new PopupStyle { colour = AkiraPalette.Cyan, size = 28, seconds = .8f, rise = 56f, suffix = "  ABSORB" };
             case RunScore.Source.Dust:
@@ -543,14 +545,15 @@ public class ScoreHud : MonoBehaviour
 
     public Text ShowPopup(int points, Vector3 at, RunScore.Source source)
     {
-        if (canvasRect == null || points <= 0) return null;
+        // (an escape is the one popup that is not a gain: "-N  ESCAPED", or just "ESCAPED" when nothing was left to lose)
+        if (canvasRect == null || (points <= 0 && source != RunScore.Source.Escape)) return null;
         if (popups == null) BuildPopups();
 
         int index = nextPopup;
         nextPopup = (nextPopup + 1) % popups.Length;
         var p = popups[index];
         var style = StyleFor(source, source == RunScore.Source.Kill && RunScore.Multiplier > 1);
-        p.text.text = "+" + RunScore.Format(points) + style.suffix;
+        p.text.text = (points < 0 ? "-" + RunScore.Format(-points) : points == 0 ? "" : "+" + RunScore.Format(points)) + (points == 0 ? style.suffix.TrimStart() : style.suffix);
         p.text.fontSize = style.size;
         p.text.color = style.colour;
         p.seconds = style.seconds;

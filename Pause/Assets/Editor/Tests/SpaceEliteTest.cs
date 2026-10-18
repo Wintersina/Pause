@@ -211,7 +211,7 @@ public static class SpaceEliteTest
             foreach (var o in EliteShip.Live) if (o != e && LandingSite.KindOf(o.Def.launchFrom) == want) same++;
             if (offered && same == 0) preferred &= e.Site.kind == want;
         }
-        Check("the director docks Space elites in the backdrop's bodies (" + made + ")", own && made == Mathf.Min(3, sites.Count));
+        Check("the director docks Space elites in the backdrop's bodies (" + made + ")", own && made == Mathf.Min(EliteDirector.MaxAlive, sites.Count));
         Check("... hidden inside them until the launch", docked);
         Check("... each in its own kind of body when one is free", preferred);
         var first = EliteShip.Live.Count > 0 ? EliteShip.Live[0] : null;
@@ -344,6 +344,7 @@ public static class SpaceEliteTest
         {
             e.TakeShipAttack(0, 1f, e.Position);
             Step(EliteShip.GraceSeconds + .05f);
+            for (int w = 0; w < 600 && Alive(e) && e.Hidden; w++) EliteSystem.Step(Dt);   // (the hide-when-hurt ones are waited out)
         }
         Check(k + "two hits shoot it down: paid, removed, its object gone",
               !Alive(e) && go == null && !EliteShip.Live.Contains(e) && RunScore.Total - total == ScoreRules.EliteDown);

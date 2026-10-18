@@ -609,6 +609,7 @@ public static class EliteEvasionTest
                 e.TakeShipAttack(0, 1f, e.Position);
                 hits++;
                 Step(EliteShip.GraceSeconds + .05f);
+                for (int w = 0; w < 600 && Alive(e) && e.Hidden; w++) Step(Dt);   // (a hide-when-hurt elite is waited out)
             }
             Check(def.key + ": the player still kills it, a heart a hit (" + hits + " hits for " + def.hearts + " hearts" + (plates > 0 ? " + " + plates + " plates" : "") + ")",
                   !Alive(e) && hits == def.hearts + plates && EliteShip.LastKillCause == EliteDamage.PlayerWeapon);
