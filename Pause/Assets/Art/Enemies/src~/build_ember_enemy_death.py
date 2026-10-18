@@ -32,7 +32,12 @@ ARC = (255, 128, 40)        # forge orange (hue ~24): cracks, embers
 ARC_DIM = (176, 86, 28)
 SLATE = (58, 52, 50)        # ash smoke
 SLATE_LT = (112, 102, 96)
+TINT = (255, 150, 56)
 PINK = (255, 222, 160)      # no pink on Ember: the core accent is the warm white-hot centre
+if __import__("os").environ.get("DEATH_PALETTE") == "tide":   # the Tide helicopters: sea-spark blue-white, no fire
+    WHITE, YELLOW, ARC, ARC_DIM = (236, 250, 255), (150, 220, 255), (110, 170, 255), (60, 96, 176)
+    SLATE, SLATE_LT, PINK = (34, 44, 80), (84, 104, 150), (236, 250, 255)
+    TINT = (150, 205, 255)
 
 # key -> (cell side, chunks, spin deg, bolts, vapour puffs, pellets, flavour)
 UNITS = {
@@ -47,6 +52,9 @@ UNITS = {
     "ember_fighter_2":     (192, 11, 50, 6, 2, 8,  "snap"),
     "ember_fighter_3":     (192, 12, 45, 7, 2, 10, "drum"),
     "ember_fighter_4":     (192, 14, 40, 9, 3, 12, "coil"),
+    "ember_fighter_5":     (192, 16, 80, 7, 3, 10, "rotor"),   # the twin-rotor gunship (EMBER_IDLE=helicopters/out)
+    "tide_fighter_5":      (192, 16, 80, 8, 2, 10, "rotor"),   # DEATH_PALETTE=tide EMBER_IDLE=helicopters/out
+    "tide_fighter_6":      (192, 16, 80, 7, 2, 10, "rotor"),
     # elites (flight strip cell 3 is the hull; run with EMBER_IDLE=<elite strips folder>)
 }
 
@@ -193,7 +201,7 @@ def build(key):
     frames = []
 
     # ---- cell 0: intact hull on the live pixels, a white-hot starburst
-    f = blend(base, .30, (255, 150, 56))
+    f = blend(base, .30, TINT)
     g = Image.new("RGBA", (S, S))
     gd = ImageDraw.Draw(g)
     for r_, al in ((.34, 55), (.24, 100), (.14, 170)):

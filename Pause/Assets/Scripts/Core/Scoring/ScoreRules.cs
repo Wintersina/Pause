@@ -72,7 +72,7 @@ public static class ScoreRules
 
     // ---- kills (before the chain multiplier) ----
     public static int Rock = 5;             // EnemyRole.Rock (asteroids, ground chunks)
-    public static int FighterPerTier = 5;   // EnemyRole.Fighter: 5 x tier (1-4)
+    public static int FighterPerTier = 5;   // EnemyRole.Fighter: 5 x tier (1-4; the helicopters are tiers 5-6)
     public static int Chaser = 20;          // EnemyRole.Chaser
     public static int Alien = 15;           // EnemyRole.Alien
     public static int Heavy = 40;           // EnemyRole.Big
@@ -270,7 +270,7 @@ public static class ScoreRules
         {
             case EnemyRole.Rock: return Rock;
             case EnemyRole.Big: return Heavy;
-            case EnemyRole.Fighter: return FighterPerTier * Mathf.Clamp(tier, 1, 4);
+            case EnemyRole.Fighter: return FighterPerTier * Mathf.Clamp(tier, 1, 6);
             case EnemyRole.Chaser: return Chaser;
             case EnemyRole.Alien: return Alien;
             case EnemyRole.Mine: return Mine;

@@ -68,7 +68,7 @@ public static class EnemyDeathAudio
         new[] { "verdant_elite_leafblade", Screech, ".8" }, new[] { "verdant_elite_resin_warden", Roar, ".85" }, new[] { "verdant_elite_sporebloom", Roar, ".9" },
         new[] { "verdant_elite_thornlash", Screech, ".75" }, new[] { "verdant_elite_timber_hauler", Whine, ".65" },
         // Ember
-        new[] { "ember_fighter_1", Yelp, "1.0" }, new[] { "ember_fighter_2", Human, "1.0" }, new[] { "ember_fighter_3", Human, ".95" }, new[] { "ember_fighter_4", Alien, ".9" },
+        new[] { "ember_fighter_1", Yelp, "1.0" }, new[] { "ember_fighter_2", Human, "1.0" }, new[] { "ember_fighter_3", Human, ".95" }, new[] { "ember_fighter_4", Alien, ".9" }, new[] { "ember_fighter_5", Whine, ".75" },
         new[] { "ember_chaser", Screech, "1.0" }, new[] { "ember_alien", Alien, "1.0" }, new[] { "ember_big", Roar, "1.1" }, new[] { "ember_mine", Whine, "1.3" },
         new[] { "ember_elite_ash_wraith", Roar, "1.05" }, new[] { "ember_elite_brass_vulture", Screech, ".8" }, new[] { "ember_elite_cauterizer", Whine, ".7" },
         new[] { "ember_elite_coalrunner", Human, ".85" }, new[] { "ember_elite_kilnback", Whine, ".55" }, new[] { "ember_elite_sunstoke", Roar, ".85" },
@@ -78,7 +78,7 @@ public static class EnemyDeathAudio
         new[] { "frost_elite_cryo_siren", Whine, "1.0" }, new[] { "frost_elite_floe_harrower", Whine, ".7" }, new[] { "frost_elite_glacier_tender", Whine, ".6" },
         new[] { "frost_elite_rimebreaker", Whine, ".8" }, new[] { "frost_elite_whiteout_sentinel", Whine, ".65" },
         // Tide (sea creatures and submersibles)
-        new[] { "tide_fighter_1", Yelp, ".95" }, new[] { "tide_fighter_2", Screech, "1.2" }, new[] { "tide_fighter_3", Alien, ".8" }, new[] { "tide_fighter_4", Roar, "1.25" },
+        new[] { "tide_fighter_1", Yelp, ".95" }, new[] { "tide_fighter_2", Screech, "1.2" }, new[] { "tide_fighter_3", Alien, ".8" }, new[] { "tide_fighter_4", Roar, "1.25" }, new[] { "tide_fighter_5", Whine, ".7" }, new[] { "tide_fighter_6", Whine, "1.0" },
         new[] { "tide_chaser", Screech, ".85" }, new[] { "tide_alien", Alien, "1.3" }, new[] { "tide_big", Roar, ".9" }, new[] { "tide_mine", Whine, "1.35" },
         new[] { "tide_elite_riptide", Roar, "1.2" }, new[] { "tide_elite_bathyscaphe", Whine, ".6" }, new[] { "tide_elite_trawler", Whine, ".5" },
         new[] { "tide_elite_thunderfin", Screech, ".7" }, new[] { "tide_elite_pearl_warden", Roar, ".95" },

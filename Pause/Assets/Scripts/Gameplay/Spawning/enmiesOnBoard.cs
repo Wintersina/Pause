@@ -864,10 +864,18 @@ public class enmiesOnBoard : MonoBehaviour {
     // the Kenney meteors used to fold in).
     // Later loops shift the window up (LoopRules.TierShift: +1, then +2), so
     // a loop meets the nastier hulls from its first fighters on.
+    public const float HelicopterChance = .14f;
+
     public static EnemyDef ChooseExtraDef(int world, int phaseIndex)
     {
         if (phaseIndex >= 2 && Random.value < .25f)
             return EnemyRoster.Pick(world, Random.value < .7f ? EnemyRole.Rock : EnemyRole.Big);
+        // The world's helicopters (fighter tier 5+, outside the 1-4 ladder) turn up now and then from phase 3
+        if (phaseIndex >= 3 && Random.value < HelicopterChance)
+        {
+            var heli = EnemyRoster.Helicopter(world);
+            if (heli != null) return heli;
+        }
         int maxTier = Mathf.Clamp(phaseIndex + LoopRules.TierShift(RunLoop.Index), 1, 4);
         int minTier = Mathf.Max(1, maxTier - 2);
         return EnemyRoster.Fighter(world, Random.Range(minTier, maxTier + 1));
