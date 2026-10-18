@@ -29,12 +29,15 @@ public struct LeaderboardRunStats
     // the ship id and its hearts. Shown beside the score on the boards.
     public int startShip;
     public int startHearts;
+    // The hearts the run FINISHED with (0 = died). Sampled during the run.
+    public bool hasEnd;
+    public int endHearts;
     // The run flew the premium (cheat) ship at any point, or ranked nothing
     // (RunScore.Unranked). Such a run is never submitted anywhere.
     public bool premiumRun;
 
     public bool UsedPremium { get { return premiumRun || PremiumShips.IsPremium(startShip); } }
-    public string Tag { get { return LeaderboardRunTag.Encode(startShip, startHearts); } }
+    public string Tag { get { return LeaderboardRunTag.Encode(startShip, startHearts, hasEnd ? endHearts : -1); } }
 }
 
 public sealed class LeaderboardBoard
