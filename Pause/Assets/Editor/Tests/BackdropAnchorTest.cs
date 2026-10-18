@@ -187,9 +187,8 @@ public static class BackdropAnchorTest
             Random.InitState(5 + v);
             var b = CoverBoulders.Spawn(idx, 1);
             if (b == null) { Check(world + " v" + v + " landform spawns", false); continue; }
-            Check(world + " v" + v + " landform is decorative scenery", b.Decorative);
             double gy0 = b.Pos.y + mid.travel;
-            float x0 = b.Pos.x, size0 = b.VisualScale;
+            float x0 = b.Pos.x, size0 = b.GetComponentOnBody().transform.parent.localScale.x;
             double worst = 0; float worstX = 0, worstRot = 0, worstSize = 0;
             int frames = 0;
             var rng = new System.Random(v);
@@ -203,10 +202,10 @@ public static class BackdropAnchorTest
                 frames++;
                 worst = System.Math.Max(worst, System.Math.Abs(b.Pos.y + mid.travel - gy0));
                 worstX = Mathf.Max(worstX, Mathf.Abs(b.Pos.x - x0));
-                worstRot = Mathf.Max(worstRot, Mathf.Abs(b.Rotation));
-                worstSize = Mathf.Max(worstSize, Mathf.Abs(b.VisualScale - size0));
                 // the drawn transform, not just the numbers
                 var tr = b.GetComponentOnBody().transform.parent;
+                worstRot = Mathf.Max(worstRot, Mathf.Abs(Mathf.DeltaAngle(0f, tr.eulerAngles.z)));
+                worstSize = Mathf.Max(worstSize, Mathf.Abs(tr.localScale.x - size0));
                 worst = System.Math.Max(worst, System.Math.Abs(tr.position.y + mid.travel - gy0));
             }
             Check(world + " v" + v + " landform crossed the view (" + frames + " frames)", frames > 100);

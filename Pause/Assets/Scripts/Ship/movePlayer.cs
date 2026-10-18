@@ -216,9 +216,7 @@ public class movePlayer : MonoBehaviour
     {
         float x = ShipReach.ClampX(finger.x + SecretPowerController.DashOffsetX + WorldHazards.PlayerOffsetX);
         float y = ClampPlayerY(finger.y + ShipReach.FingerOffset + WorldHazards.PlayerOffsetY);
-        // a cover boulder is solid: the hull slides round it (CoverBoulders.ResolveShip)
-        Vector2 p = CoverBoulders.ResolveShip(new Vector2(x, y));
-        return new Vector3(p.x, p.y);
+        return new Vector3(x, y);
     }
 
     // One frame of the launch glide from `pos` toward the live `target`.
@@ -302,8 +300,7 @@ public class movePlayer : MonoBehaviour
         // for a moment, then eases it back.
         float x = ShipReach.ClampX(fingerPos.x + SecretPowerController.DashOffsetX + WorldHazards.PlayerOffsetX);
         float y = ClampPlayerY(fingerPos.y + ShipReach.FingerOffset + WorldHazards.PlayerOffsetY);
-        Vector2 placed = CoverBoulders.ResolveShip(new Vector2(x, y));
-        this.transform.position = new Vector3(placed.x, placed.y);
+        this.transform.position = new Vector3(x, y);
             // Allow text to follow player----------------------------
 
             hypeText.gameObject.SetActive(true);

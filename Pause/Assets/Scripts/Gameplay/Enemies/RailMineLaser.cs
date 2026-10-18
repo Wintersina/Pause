@@ -131,8 +131,6 @@ public class RailMineLaser : MonoBehaviour
     int hitCount, world;
     float t, age, aimDelay, length, side, y, angle;
     Vector2 from, to, dir = Vector2.left;
-    bool cutByBoulder, impactSpent;
-    Vector2 cutNormal;
 
     public Phase State { get; private set; }
     public bool Active => State != Phase.Off;
@@ -146,7 +144,6 @@ public class RailMineLaser : MonoBehaviour
     public Vector2 Direction => dir;        // unit, From -> To
     public float Angle => angle;            // degrees off horizontal (+: rising toward the far rail)
     public float Length => length;
-    public bool CutByBoulder => cutByBoulder;   // the beam ends on a cover boulder's face, short of the far rail
     public float Y => y;
     public float PhaseTime => t;
     public int HitsThisPulse => hitCount;
@@ -347,7 +344,6 @@ public class RailMineLaser : MonoBehaviour
         State = Phase.Beam;
         t = age = 0f;
         hitCount = 0;
-        impactSpent = false;
         EnsureHitbox();
         box.enabled = true;
         sight.enabled = false;
@@ -419,17 +415,6 @@ public class RailMineLaser : MonoBehaviour
         // the mine's core to the opposite rail's face, at the angle
         length = Mathf.Abs(tx - from.x) / Mathf.Max(.05f, Mathf.Abs(dir.x));
         to = from + dir * length;
-        // a cover boulder is solid: the beam (drawn, aim line and hitbox) ends at its face, as the ship is stopped by it
-        cutByBoulder = false;
-        if (CoverBoulders.Any)
-        {
-            float cut; Vector2 face;
-            if (CoverBoulders.FirstHit(from, to, 0f, out cut, out face))
-            {
-                length *= cut; to = from + dir * length;
-                cutByBoulder = true; cutNormal = face;
-            }
-        }
         transform.position = new Vector3(from.x, from.y, 0f);
         // local +y runs along the beam, toward the far rail
         transform.rotation = Quaternion.Euler(0f, 0f, Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg - 90f);
@@ -487,7 +472,6 @@ public class RailMineLaser : MonoBehaviour
                     impact.transform.localPosition = new Vector3(0f, length, 0f);
                     impact.transform.localScale = Vector3.one * BossConfig.RailSparkSize;
                 }
-                if (cutByBoulder && !impactSpent) { impactSpent = true; CoverBoulders.Impact(to, cutNormal, 2); }   // chips off the face, once a pulse
                 if (box != null)
                 {
                     // the hitbox's centre sits level with the pilot along the

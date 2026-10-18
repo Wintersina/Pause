@@ -41,13 +41,6 @@ public static class WorldHazardsTest
         public void ShotShove(Vector2 by) { pos += by; shoved += by; }
     }
 
-    sealed class StubCover : ICoverQuery
-    {
-        public bool on;
-        public bool AnyOnScreen => on;
-        public bool AnyWithin(Rect world) => on;
-    }
-
     static HazardDef Def(string id)
     {
         foreach (var e in WorldWeatherTable.Entries) foreach (var h in e.hazards) if (h.id == id) return h;
@@ -91,7 +84,6 @@ public static class WorldHazardsTest
             PlayerOffsetIsCapped();
             PushOnlyNoDamage();
             SchedulingRules();
-            CoverSeam();
             BossFight();
             PoolsAndCost();
             AmbientPerWorld();
@@ -108,7 +100,6 @@ public static class WorldHazardsTest
             HostileShots.ResetCounters();
             WeatherWind.Reset(null);
             WorldHazards.BossRunningOverride = null;
-            HazardCoverSeam.Cover = null;
             WorldHazards.SituationOverride = null;
             WorldHazards.ClearAll();
             WorldHazards.PlayerOffset = Vector2.zero;
@@ -341,12 +332,12 @@ public static class WorldHazardsTest
         var open = Open(1);
         Check("an open board past the calm start is not blocked", WorldHazards.Blocked(open, 50f, 99f) == null);
         Check("the 8 s calm start blocks", WorldHazards.Blocked(open, 7f, 99f) != null);
-        string[] names = { "tutorial", "entry", "transition", "portal", "dead", "cinematic", "boss intro / outro", "boss soon", "elite", "cover" };
-        var states = new WorldHazards.Situation[10];
-        for (int i = 0; i < 10; i++) states[i] = open;
+        string[] names = { "tutorial", "entry", "transition", "portal", "dead", "cinematic", "boss intro / outro", "boss soon", "elite" };
+        var states = new WorldHazards.Situation[9];
+        for (int i = 0; i < 9; i++) states[i] = open;
         states[0].tutorial = true; states[1].entry = true; states[2].transition = true; states[3].portalOpen = true; states[4].playerDead = true;
-        states[5].cinematic = true; states[6].bossBusy = true; states[7].bossRunUp = true; states[8].eliteBusy = true; states[9].coverOnScreen = true;
-        for (int i = 0; i < 10; i++) Check("no event starts during: " + names[i], WorldHazards.Blocked(states[i], 50f, 99f) != null);
+        states[5].cinematic = true; states[6].bossBusy = true; states[7].bossRunUp = true; states[8].eliteBusy = true;
+        for (int i = 0; i < 9; i++) Check("no event starts during: " + names[i], WorldHazards.Blocked(states[i], 50f, 99f) != null);
         Check("no event right after an elite joined", WorldHazards.Blocked(open, 50f, 1f) != null);
 
         // first event: never before the world's `first`, and it does come
@@ -393,33 +384,6 @@ public static class WorldHazardsTest
     }
 
     static int CountActive() { int n = 0; foreach (var f in WorldHazards.Fields) if (f.Active) n++; return n; }
-
-    static void CoverSeam()
-    {
-        var m = NewManager(); WorldHazards.ClearAll();
-        var cover = new StubCover { on = true };
-        HazardCoverSeam.Cover = cover;
-        var sit = Open(2);
-        sit.coverOnScreen = HazardCoverSeam.CoverOnScreen;
-        int was = WorldHazards.Started;
-        for (int i = 0; i < 600 * 4; i++) { m.Tick(.25f, sit); m.StepFields(.25f); }
-        Check("no hazard starts while a boulder is on screen (600 s)", WorldHazards.Started == was);
-        Check("HazardBusy is false while idle", !HazardCoverSeam.HazardBusy);
-        m.Begin(Def("tornado"));
-        Check("HazardBusy is true from the first frame of the warning", HazardCoverSeam.HazardBusy && !WorldHazards.AnyActing);
-        WorldHazards.ClearAll();
-        // a boulder appearing mid-event fades it out
-        cover.on = false; sit.coverOnScreen = false;
-        m.Begin(Def("tornado"));
-        for (int i = 0; i < 4 * 60; i++) { m.Tick(Dt, sit); m.StepFields(Dt); }
-        Check("the tornado is acting", WorldHazards.AnyActing);
-        cover.on = true; sit.coverOnScreen = true;
-        for (int i = 0; i < 90; i++) { m.Tick(Dt, sit); m.StepFields(Dt); }
-        Check("a boulder appearing fades the hazard out in under 1.5 s", !WorldHazards.AnyActive);
-        HazardCoverSeam.Cover = null;
-        Check("no boulder system: nothing is blocked", !HazardCoverSeam.CoverOnScreen);
-        HazardCoverSeam.Cover = CoverHazardQuery.Instance;
-    }
 
     static void BossFight()
     {
@@ -651,7 +615,7 @@ public static class WorldHazardsTest
         foreach (var e0 in WorldWeatherTable.Entries) { bool every4 = true; foreach (var k0 in e0.ambient) every4 &= k0.artKind >= 0; Check(e0.world + ": every ambient kind is painted", every4); }
     }
 
-    // The seam with the cover boulders, BOTH directions, against the real boulder system.
+    // Boulders are backdrop: hazards and boulders share the screen freely.
     static void BoulderSeam()
     {
         EmptyScene();
@@ -659,40 +623,22 @@ public static class WorldHazardsTest
         CoverBoulders.Clear();
         CoverBoulders.TestAnyWorld = true;
         CoverBoulderDirector.WorldOverride = 5;
-        Check("the seam defaults to the real boulder query", HazardCoverSeam.Cover == CoverHazardQuery.Instance);
-        Check("no boulder, no hazard: the boulder director may spawn", CoverBoulderDirector.Blocked(5, 100f) == null);
-        // direction 1: a hazard is warning / acting -> the boulder director refuses
         m.Begin(Def("sandstorm_front"));
-        Check("a hazard in its warning blocks a boulder spawn (reason: hazard)", CoverBoulderDirector.Blocked(5, 100f) == "hazard");
+        Check("a hazard in its warning does not stop a boulder spawning", CoverBoulderDirector.Blocked(5, 100f) == null);
         for (int i = 0; i < 4 * 60; i++) m.StepFields(Dt);
-        Check("... and while it acts", WorldHazards.AnyActing && CoverBoulderDirector.Blocked(5, 100f) == "hazard");
+        Check("... nor while it acts", WorldHazards.AnyActing && CoverBoulderDirector.Blocked(5, 100f) == null);
         WorldHazards.ClearAll();
-        Check("... and not once it has ended", CoverBoulderDirector.Blocked(5, 100f) == null);
-        // direction 2: a boulder is on screen -> no hazard starts, a running one fades
-        // only Space boulders are interactive cover: a Storm landform is decorative and must NOT count
-        var land = CoverBoulders.Spawn(5, 0);
-        Check("a Storm landform spawned but is decorative (not interactive cover)", land != null && CoverBoulders.AliveAny == 1 && CoverBoulders.Alive == 0);
-        var sit0 = WorldHazards.Read(); sit0.world = 5;
-        Check("a decorative landform is not cover for the hazard seam", !HazardCoverSeam.CoverOnScreen && !sit0.coverOnScreen);
-        Check("... so hazards are not blocked by it (the cover reason)", WorldHazards.Blocked(sit0, 100f, 99f) == null || !WorldHazards.Blocked(sit0, 100f, 99f).ToLower().Contains("cover"));
-        CoverBoulders.Clear();
-        var b = CoverBoulders.Spawn(0, 0);   // Space: the interactive cover boulder (the hazard world stays Storm)
-        Check("a boulder spawned", b != null && CoverBoulders.Alive == 1);
+        var b = CoverBoulders.Spawn(5, 0);
         var sit = WorldHazards.Read(); sit.world = 5;
-        Check("the real boulder is seen by the hazards (CoverOnScreen)", HazardCoverSeam.CoverOnScreen && sit.coverOnScreen);
-        Check("no hazard starts while it is on screen", WorldHazards.Blocked(sit, 100f, 99f) != null);
-        if (b != null) Check("AnyWithin finds it at its own place and not far away", CoverHazardQuery.Instance.AnyWithin(new Rect(b.Pos.x - .1f, b.Pos.y - .1f, .2f, .2f)) && !CoverHazardQuery.Instance.AnyWithin(new Rect(b.Pos.x + 50f, b.Pos.y, 1f, 1f)));
-        CoverBoulders.Clear();
-        WorldHazards.ClearAll();
+        Check("a boulder on screen does not block a hazard start", b != null && CoverBoulders.AliveAny == 1 && (WorldHazards.Blocked(sit, 100f, 99f) ?? "").ToLower().Contains("boulder") == false);
         var open = Open(5);
         m.Tick(Dt, open);   // (the first tick adopts the world)
         m.Begin(Def("tornado"));
         for (int i = 0; i < 4 * 60; i++) { m.Tick(Dt, open); m.StepFields(Dt); }
         Check("a tornado is acting", WorldHazards.AnyActing);
         CoverBoulders.Spawn(0, 0);
-        open.coverOnScreen = HazardCoverSeam.CoverOnScreen;
-        for (int i = 0; i < 90; i++) { m.Tick(Dt, open); m.StepFields(Dt); }
-        Check("a boulder appearing mid-event fades the real hazard out", !WorldHazards.AnyActive);
+        for (int i = 0; i < 30; i++) { m.Tick(Dt, open); m.StepFields(Dt); }
+        Check("a boulder appearing mid-event leaves the hazard running", WorldHazards.AnyActive);
         CoverBoulders.Clear();
         CoverBoulderDirector.WorldOverride = -1;
         CoverBoulders.TestAnyWorld = false;

@@ -1,13 +1,13 @@
 using UnityEditor.SceneManagement;
 using UnityEngine;
 
-// Storm's backdrop is ALIVE (StormLife) and its cover boulder is gone.
+// Storm's backdrop is ALIVE (StormLife) and its boulder is gone.
 //   * the turbine raft's three fans have rotors cut into their own atlas ("rotors") and a rotation animator: each speed > 0,
 //     they really turn over time, the other landmarks show no rotor;
 //   * thunderhead towers breathe and drift, their heart glow pulses slowly and flickers rarely (<= 3 Hz, one at a time, small
 //     alpha); lightning-rod masts crackle at the tip;
 //   * a paused game is a still frame (dt 0); no per-frame allocation;
-//   * the world's cover boulder is off (CoverBoulderTable) while the other worlds keep theirs.
+//   * the world's boulder is off (CoverBoulderTable) while the other worlds keep theirs.
 public static class StormLifeTest
 {
     static int fails;
@@ -134,12 +134,12 @@ public static class StormLifeTest
 
     static void Boulder()
     {
-        Check("Storm's cover boulder is off", !CoverBoulderTable.Enabled(5) && CoverBoulderTable.Entries[5].world == "Storm");
+        Check("Storm's boulder is off", !CoverBoulderTable.Enabled(5) && CoverBoulderTable.Entries[5].world == "Storm");
         string why = CoverBoulderDirector.Blocked(5, 100000f);
         Check("the director never spawns it in Storm (blocked: " + why + ")", why != null);
         bool others = true;
         for (int w = 0; w < CoverBoulderTable.Entries.Length; w++)
             if (w != 5) others &= CoverBoulderTable.Entries[w].enabled;
-        Check("every other world keeps its cover boulder", others);
+        Check("every other world keeps its boulder", others);
     }
 }

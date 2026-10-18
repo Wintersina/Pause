@@ -1,5 +1,10 @@
 # Cover boulders (Space) and backdrop landforms (every other world)
 
+> **Update (feat/boulders-decorative-only): boulders are decorative only, in every world.** Space's boulder is now a backdrop landform like the others. Everything below that describes
+> blocking (the ship, shots, beams, shockwaves and shoves, rail-mine lasers, elite landing sites, the hazard seam), the lane/free-reach rules, the destruction sequence and the
+> boulder's own drift is removed. A boulder is pinned to the backdrop's ground, drawn behind gameplay (sorting order -7), and just fades out when a boss arrives, the world changes or the player dies.
+
+
 **Two kinds, one flag (`CoverBoulderEntry.interactive`, only Space is true).** Space's asteroids are interactive COVER boulders exactly as in sections 1-11 (you hide
 behind them). Every other world's boulder is a decorative backdrop LANDFORM seen from far above the ship (user, 2026-10-14: 'the ship will be much higher, it doesn't
 make sense for these to stop you'): it is drawn, drifts and emerges / recedes with the backdrop haze, and affects NOTHING: not the ship, shots, beams, hazards, bodies,

@@ -34,8 +34,7 @@ using UnityEngine;
 //             unshielded touch costs a heart and the beam burns on
 //   SOUND     firing plays the shared small pew (PewSound, through the effects bus) exactly once per shot,
 //             never during the windup
-//   BOULDER   a solid cover boulder on the beam's path ends it at its face (drawn length, aim line, hitbox); no boulder: the full
-//             span; a ship behind the boulder is not hit
+//   BOULDER   a decorative boulder on the beam's path changes nothing: the full span, a ship behind it is hit
 //   ANGLES    every shot a random angle within +/-MaxAngleDeg (a varied,
 //             deterministic stream that leaves UnityEngine.Random alone); the
 //             aim line, beam, hitbox, Touches, blink and burn all follow the
@@ -97,7 +96,7 @@ public static class RailMineLaserTest
         return fails;
     }
 
-    // ---- cover boulders ----------------------------------------------------
+    // ---- boulders ----------------------------------------------------------
 
     static void CoverBoulderClip()
     {
@@ -108,50 +107,19 @@ public static class RailMineLaserTest
             CoverBoulders.TestAnyWorld = true;
             CoverBoulders.Disabled = false;
             string tag = "world " + w + ": ";
-            // control: no boulder, the beam spans rail face to rail face
             var brain = Mine(w, true, 1f, out var rail);
             var l = LiveLaser(brain);
             float full = l != null ? l.Length : 0f;
-            Vector2 fullTo = l != null ? l.To : Vector2.zero;
-            Check(tag + "with no boulder the beam keeps its full length (" + full + ") and is not cut", l != null && !l.CutByBoulder &&
-                  Mathf.Abs(l.To.x + BossRails.DrawnInnerEdge) < .01f);
+            Check(tag + "with no boulder the beam spans rail face to rail face (" + full + ")", l != null && Mathf.Abs(l.To.x + BossRails.DrawnInnerEdge) < .01f);
             Cleanup(brain, rail);
 
-            // a boulder in the lane at the beam's height
+            // a boulder in the lane at the beam's height is backdrop: the beam is not cut by it
             var b = CoverBoulders.Spawn(0, 0);
-            b.Hold(new Vector2(0f, 1f), 0f);
+            b.Hold(new Vector2(0f, 1f));
             brain = Mine(w, true, 1f, out rail);
             l = LiveLaser(brain);
-            if (l == null) { Check(tag + "a beam to clip", false); Cleanup(brain, rail); continue; }
-            Check(tag + "the beam is cut by the boulder (length " + l.Length + " of " + full + ")", l.CutByBoulder && l.Length < full - .3f && l.Length > .1f);
-            Check(tag + "it ends on the boulder's face, not inside it and not short of it",
-                  !CoverBoulders.Inside(l.To - l.Direction * .03f, 0f) && CoverBoulders.Inside(l.To + l.Direction * .03f, 0f));
-            var box = l.Hitbox.GetComponent<BoxCollider2D>();
-            Check(tag + "the hitbox is cut with it (" + (box != null ? box.size.y : -1f) + ")", box != null && Mathf.Abs(box.size.y - l.Length) < .01f);
-
-            // a ship behind the boulder (the far side, same row) is not touched and not hurt; one in front of it is
-            Vector2 behind = new Vector2(-BossRails.DrawnInnerEdge + .5f, 1f);
-            Vector2 before = l.From + l.Direction * (l.Length * .5f);
-            Check(tag + "the cut beam's rect does not reach a ship behind the boulder", !l.Touches(behind, .3f, .3f));
-            Check(tag + "(control: it still reaches a ship in front of the boulder)", l.Touches(before, .2f, .2f));
-
-            Object.DestroyImmediate(ship.gameObject);
-            var rig = new DeathCrashTest.Rig(FirstShip);
-            try
-            {
-                collisionDetection.MAXLIFE = 3;
-                ship = rig.ship.transform;
-                EliteSystem.PlayerOverride = ship;
-                brain.TargetOverride = ship;
-                collisionDetection.lifeCounter = 0; PlayerInvuln.Reset();
-                ship.position = new Vector3(behind.x, behind.y, 0f);
-                rig.Hit(l.Hitbox);
-                Check(tag + "a ship standing behind the boulder loses no heart (" + collisionDetection.lifeCounter + ")", collisionDetection.lifeCounter == 0);
-                ship.position = new Vector3(before.x, before.y, 0f);
-                rig.Hit(l.Hitbox);
-                Check(tag + "(control: in front of the boulder the beam costs a heart: " + collisionDetection.lifeCounter + ")", collisionDetection.lifeCounter == 1);
-            }
-            finally { rig.Dispose(); collisionDetection.lifeCounter = 0; }
+            if (l == null) { Check(tag + "a beam under a boulder", false); Cleanup(brain, rail); continue; }
+            Check(tag + "the beam keeps its full length under a boulder (" + l.Length + " of " + full + ")", Mathf.Abs(l.Length - full) < .01f && Mathf.Abs(l.To.x + BossRails.DrawnInnerEdge) < .01f);
             Cleanup(brain, rail);
         }
         CoverBoulders.Dispose();

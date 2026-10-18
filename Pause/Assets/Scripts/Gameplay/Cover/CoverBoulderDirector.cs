@@ -1,15 +1,14 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-// When a cover boulder turns up (gameS1 only), and the one place the boulders are stepped from: docs/cover-boulders.md section 5.
+// When a decorative boulder turns up (gameS1 only), and the one place the boulders are stepped from: docs/cover-boulders.md section 5.
 //
 // RULES (Blocked says which one stops a spawn):
 //   * at most one on screen; the next one comes a random world-table gap after the last arrived
 //   * none in the first FirstSeconds of a world (inside it: the 8 s calm start), none before the world's art is wired
 //   * none during a boss (BossEncounter.Running), in its run-up (BossLeadSeconds), a planetfall / lift-off / portal arrival /
 //     world entry, while a portal or planet waits, in the tutorial, after a death, in a cinematic ultimate
-//   * none while an elite is parked or lifting off (their landing sites and entrances stay clear)
-//   * a world change, a death or the scene ending removes the boulder at once (a quiet fade: not the boss destruction)
+//   * a world change, a death, a boss or the scene ending fades the boulder out
 //
 // Stepped on running frames only (the same "flying" rule every hazard mover uses), so a frozen world freezes boulders.
 public class CoverBoulderDirector : MonoBehaviour
@@ -51,12 +50,6 @@ public class CoverBoulderDirector : MonoBehaviour
         CoverBoulders.Step(dt);
     }
 
-    // After every mover has run: bodies and atoms are pushed out of the boulder.
-    void LateUpdate()
-    {
-        if (CoverBoulders.Any) CoverBoulders.PushBodies();
-    }
-
     // The backdrop variant (1..4) the boulders must blend into: tests set BackdropVariantOverride (> 0); in play it is the live
     // backdrop set's own variant, and only while that set is this world's (a cross-fade in progress counts as no match: 0).
     public static int BackdropVariantOverride = -1;
@@ -80,7 +73,7 @@ public class CoverBoulderDirector : MonoBehaviour
         if (buttonClicks.playerDied) return "dead";
         if (!CoverBoulderTable.Enabled(worldIndex) && !CoverBoulders.TestAnyWorld) return "no art";
         if (CoverBoulderTable.For(worldIndex).Mask(BackdropVariant(worldIndex)) == 0) return "backdrop";   // nothing blends into this backdrop
-        if (CoverBoulders.AliveAny >= CoverBoulders.MaxAlive) return "alive";   // (one at a time, cover boulder or landform)
+        if (CoverBoulders.AliveAny >= CoverBoulders.MaxAlive) return "alive";   // (one at a time)
         if (BossEncounter.Running) return "boss";
         if (Planetfall.SuspendsSpawning || Liftoff.SuspendsSpawning || PortalArrival.SuspendsSpawning || WorldEntry.Active) return "transition";
         var wm = WorldManager.Instance;
@@ -88,21 +81,7 @@ public class CoverBoulderDirector : MonoBehaviour
         if (wm != null && wm.PortalIsOpen) return "portal";
         if (ShipPowerController.CinematicClearActive) return "cinematic";
         if (secondsInWorld < CoverBoulders.FirstSeconds) return "too early";
-        if (ElitesParked()) return "elite";
-        if (WorldHazards.AnyActive) return "hazard";   // a world hazard (tornado, sandstorm...) is warning, acting or fading: never both on screen (HazardCoverSeam)
-        if (CoverBoulders.Alive >= CoverBoulders.MaxAlive) return "alive";
         return null;
-    }
-
-    static bool ElitesParked()
-    {
-        var live = EliteShip.Live;
-        for (int i = 0; i < live.Count; i++)
-        {
-            var e = live[i];
-            if (e != null && (e.State == EliteState.Parked || e.State == EliteState.LiftOff)) return true;
-        }
-        return false;
     }
 
     // One running frame of scheduling (dt explicit for tests).
@@ -119,7 +98,7 @@ public class CoverBoulderDirector : MonoBehaviour
         worldSeconds += dt;
         if (BossEncounter.Running || Planetfall.SuspendsSpawning || Liftoff.SuspendsSpawning || PortalArrival.SuspendsSpawning)
         {
-            // a boss: the destruction sequence (OnBossBegin) has the boulder; a transition: it fades
+            // a boss: OnBossBegin has faded it; a transition: it fades here
             if (!BossEncounter.Running && CoverBoulders.AliveAny > 0) CoverBoulders.DismissAll();
             return;
         }

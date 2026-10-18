@@ -9,7 +9,7 @@ the user's vetting): `Pause/Assets/Art/Weather~/<World>/`. Codex prompts: `docs/
 
 * Hazards **push / pull only, never damage**. They shove or pull the player's ship, enemies, and every projectile.
 * Two layers: **ambient weather** (always on, a look; no gameplay effect) and **hazard events** (rare, timed, always telegraphed).
-* Hazards **avoid cover boulders** (`feat/cover-boulders`): never on screen together, through a small seam both sides query.
+* Hazards and boulders share the screen freely: boulders are decorative backdrop (see `docs/cover-boulders.md`) and the old cover seam is gone.
 * Hazards **are allowed during boss fights** and push / pull bullets too (a tornado scatters a bullet hell, a sandstorm bends it sideways).
 * Codex draws the effects; the user vets them before they are wired.
 
@@ -133,9 +133,9 @@ unchanged over a whole event).
   world's range (table 7); each loop shortens it (x 1 / (1 + .08 loop), at most x 1/1.3).
 * **Never starts** during: `WorldEntry.Active` (planetfall / portal arrival), a lift-off, `WorldTransition.InProgress`, the open portal, the boss
   run-up (`SecondsLeftInWorld < 14`), a boss intro / outro (a boss that is not in `Fight`), the player dead, an **elite that is Parked / lifting off /
-  joining** (their landing sites and entrances stay clean), a **cover boulder on screen** (seam), or within `MinGapAfterElite` of an elite joining.
+  joining** (their landing sites and entrances stay clean), or within `MinGapAfterElite` of an elite joining.
 * **Boss fights allow hazards.** When the Fight phase starts the next event is brought forward to `BossFightFirst`; thereafter the normal gap.
-* **Ends early** (fade-out in .6 s) if a hard block begins (transition, portal, death, boss intro) or a cover boulder appears; a boss fight starting
+* **Ends early** (fade-out in .6 s) if a hard block begins (transition, portal, death, boss intro); a boss fight starting
   does not end it.
 * One event at a time. Frozen world (finger up, `timeScale` 0): nothing advances (the manager runs on `WorldManager.Flying`).
 * Developer: `WorldHazards.Force(id)` starts one at once (tests, previews).
@@ -186,7 +186,7 @@ A world is about 120 s at baseline: one event, sometimes two. The hazard is rand
 ## 11. Integration points
 
 * `movePlayer.FollowTarget / moveLeft_Right`: `+ WorldHazards.PlayerOffsetX / Y` next to the dash offset.
-* **Cover boulders (on master): both directions wired.** `HazardCoverSeam.Cover` defaults to `CoverHazardQuery` (backed by `CoverBoulders.Alive` / bounds): no hazard starts while a boulder is alive and a running one fades out in .6 s when one appears. `CoverBoulderDirector.Blocked` returns "hazard" while `WorldHazards.AnyActive` (warning included), so a boulder never spawns during an event. `WorldHazardsTest.BoulderSeam` covers both directions against the real boulder system.
+* **Boulders: no seam.** Boulders are decorative backdrop and have no effect on hazards (and hazards none on them): `HazardCoverSeam` / `CoverHazardQuery` were removed. `WorldHazardsTest.BoulderSeam` checks neither blocks the other.
 * Boss branch: nothing to merge. Any boss shot class implementing `IHostileShot` with `ShotShovable` is pushed automatically; a shot that must
   resist the field returns `ShotShovable = false`.
 
