@@ -113,6 +113,7 @@ Sign-in flow in code: `PlayGamesAccount.SignIn` (silent `Authenticate` at start,
 - `Packages/manifest.json`: removed `com.unity.purchasing`, `com.unity.analytics`; deleted `Resources/BillingMode.json`.
 - `DeveloperUnlocks.Enabled` requires `Available`.
 - `BuildScript.BuildAndroidRelease` + `make android-release`: builds `Builds/Android/Release/Pause.aab` and `Pause.apk` (no PAUSE_DEV, not development). Needs `PAUSE_KEYSTORE_PASS`, `PAUSE_KEYALIAS_PASS`, and `PAUSE_KEYSTORE_PATH` if the keystore is not at `Pause/PauseKey.keystore` (the keystore lives in the main checkout; this worktree has none). Without them it builds `Pause-DEBUGSIGNED.*` for auditing only.
+- Play upload warnings: the AAB build also writes `Pause-1.0.0-v10000-IL2CPP.symbols.zip` (native debug symbols, `*.symbols.zip`) next to the `.aab`. Upload it in Play Console on the release's App bundle details -> Native debug symbols (or Test and release -> App bundle explorer -> Downloads -> Upload) to clear "no debug symbols" and get readable native crashes/ANRs. The "no deobfuscation file" warning is expected and harmless: Java minify (R8) is off, so there is no mapping file; IL2CPP managed code is not covered by a mapping file.
 - `ReleaseReadinessTest` (registered in `AllTests`).
 
 ## 12. Build result
