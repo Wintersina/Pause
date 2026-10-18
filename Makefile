@@ -28,7 +28,7 @@ ADB_DEVICE = $(ADB) $(if $(ANDROID_SERIAL),-s $(ANDROID_SERIAL))
 UNITY_CMD = UNITY="$(UNITY)" scripts/unity-batch.sh -projectPath "$(PROJECT)"
 
 .PHONY: test test-fast help mac-build mac-run mac-dev-build mac-dev-run \
-	apk-share android-build android-release android-deploy android-run android-dev-build android-dev-deploy android-log \
+	apk-share android-build android-release android-release-signed android-deploy android-run android-dev-build android-dev-deploy android-log \
 	ios-build ios-deploy ios-run ios-dev-build ios-dev-deploy ios-dev-run ios-devices
 
 help:
@@ -40,6 +40,7 @@ help:
 	@echo "  make android-deploy       Build, install, and launch on an Android device"
 	@echo "  make android-dev-deploy   Same, with the PAUSE_DEV developer build"
 	@echo "  make apk-share            Debug-key-signed release-style APK for friends -> build/share/ (NOT the release key; not for Play)"
+	@echo "  make android-release-signed  Prompts (hidden) for the keystore password, then runs android-release"
 	@echo "  make android-release      Signed Play AAB + APK + *.symbols.zip in Builds/Android/Release (needs PAUSE_KEYSTORE_PASS, PAUSE_KEYALIAS_PASS)"
 	@echo "  make android-log          Stream Unity logs from the Android device"
 	@echo "  make ios-deploy           Build, install, and launch on a connected iPhone"
@@ -84,6 +85,17 @@ android-run:
 
 android-release:
 	$(UNITY_CMD) -executeMethod BuildScript.BuildAndroidRelease
+
+# Prompts silently for the keystore password (skipped if PAUSE_KEYSTORE_PASS is already set),
+# exports it for Unity as env vars only (never on a command line), then runs android-release.
+android-release-signed:
+	@bash -c 'if [ -z "$$PAUSE_KEYSTORE_PASS" ]; then \
+		read -r -s -p "Keystore password: " PAUSE_KEYSTORE_PASS; echo >&2; \
+	fi; \
+	if [ -z "$$PAUSE_KEYSTORE_PASS" ]; then echo "android-release-signed: empty keystore password, aborting" >&2; exit 1; fi; \
+	export PAUSE_KEYSTORE_PASS; \
+	export PAUSE_KEYALIAS_PASS="$${PAUSE_KEYALIAS_PASS:-$$PAUSE_KEYSTORE_PASS}"; \
+	exec $(MAKE) android-release'
 
 android-dev-build:
 	$(UNITY_CMD) -buildTarget Android -executeMethod BuildScript.BuildAndroidDev
