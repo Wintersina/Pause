@@ -107,6 +107,9 @@ public static class BuildScript
     //   (PAUSE_KEYSTORE_PATH overrides the keystore file; default is
     //    Pause/PauseKey.keystore, alias pausealias.)
     //
+    // The AAB also gets a native debug symbols zip (*.symbols.zip) next to it
+    // for Play Console; it is not part of the bundle, so shipped size is unchanged.
+    //
     // Without the passwords it still builds, signed with the debug key, into
     // Pause-DEBUGSIGNED.* so the manifest and sizes can be audited; those
     // files must never be uploaded.
@@ -117,17 +120,24 @@ public static class BuildScript
         bool signed = ConfigureReleaseSigning();
         string stem = signed ? "Pause" : "Pause-DEBUGSIGNED";
         bool bundleWas = EditorUserBuildSettings.buildAppBundle;
+        var symbolsWas = UnityEditor.Android.UserBuildSettings.DebugSymbols.level;
         try
         {
             EditorUserBuildSettings.buildAppBundle = true;
+            UnityEditor.Android.UserBuildSettings.DebugSymbols.level = (dynamic)Enum.Parse(symbolsWas.GetType(), "Full");
             if (!Build(BuildTarget.Android, Path.Combine(dir, stem + ".aab"))) { EditorApplication.Exit(1); return; }
             if (Environment.GetEnvironmentVariable("PAUSE_SKIP_APK") != "1")
             {
                 EditorUserBuildSettings.buildAppBundle = false;
+                UnityEditor.Android.UserBuildSettings.DebugSymbols.level = (dynamic)Enum.Parse(symbolsWas.GetType(), "None");
                 if (!Build(BuildTarget.Android, Path.Combine(dir, stem + ".apk"))) { EditorApplication.Exit(1); return; }
             }
         }
-        finally { EditorUserBuildSettings.buildAppBundle = bundleWas; }
+        finally
+        {
+            EditorUserBuildSettings.buildAppBundle = bundleWas;
+            UnityEditor.Android.UserBuildSettings.DebugSymbols.level = symbolsWas;
+        }
         EditorApplication.Exit(0);
     }
 
