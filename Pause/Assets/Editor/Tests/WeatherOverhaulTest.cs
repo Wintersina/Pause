@@ -104,7 +104,8 @@ public static class WeatherOverhaulTest
             Check(h.id + ": art rows are wired", h.artRow >= 0);
             Check(h.id + ": elites take a small share", h.elite.gain <= .5f);
         }
-        Check("the flare train really has several bands", Def("flare_storm").bands >= 3 && Def("solar_flare").bands == 1);
+        Check("the flare train is exactly two bands and the lone flare one", Def("flare_storm").bands == 2 && Def("solar_flare").bands == 1);
+        foreach (var h in space.hazards) Check(h.id + ": never more than 2 flare waves", h.bands <= 2, h.bands.ToString());
         Check("Space has no wind (its weather is the flares)", space.wind == null);
         for (int w = 1; w < WorldWeatherTable.Entries.Length; w++)
             Check(WorldWeatherTable.Entries[w].world + " has a wind", WorldWeatherTable.Entries[w].wind != null);
@@ -130,7 +131,7 @@ public static class WeatherOverhaulTest
         var td = train.def;
         Check("train: the second band, one gap behind, shoves too", HazardForce.Sample(train, new Vector2(-td.bandGap, 0f), HazardTarget.Body, out Vector2 second) && second.x > 0f);
         Check("train: and there is quiet between bands (you can step through)", !HazardForce.Sample(train, new Vector2(-td.bandGap * .5f, 0f), HazardTarget.Body, out _));
-        Check("flare bounds cover the whole train", train.Bounds.width >= td.bandGap * 2f + td.size && train.Bounds.Contains(new Vector2(-td.bandGap * 2f, 0f)));
+        Check("flare bounds cover the whole train", train.Bounds.width >= td.bandGap * (td.bands - 1) + td.size && train.Bounds.Contains(new Vector2(-td.bandGap * (td.bands - 1), 0f)));
         Check("rigid part: positive with the side, zero for a swirl", HazardForce.RigidX(f, HazardTarget.Hostile) > 0f && HazardForce.RigidX(Live(Def("tornado"), 1f, 0f), HazardTarget.Hostile) == 0f);
     }
 

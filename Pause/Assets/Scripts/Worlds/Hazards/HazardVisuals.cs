@@ -221,16 +221,16 @@ public sealed class HazardVisuals
         if (warn)
         {
             float x0 = -f.side * lane;
-            float w = .5f + 2.4f * p;
-            EdgeX(ref n, x0, f.side, w * 1.4f, midY, H, WithA(FlareMagenta, (.1f + .26f * p) * flick));
-            EdgeX(ref n, x0, f.side, w, midY, H, WithA(FlareOrange, (.14f + .3f * p) * flick));
+            float w = .35f + 1.7f * p;
+            EdgeX(ref n, x0, f.side, w * 1.4f, midY, H, WithA(FlareMagenta, (.07f + .18f * p) * flick));
+            EdgeX(ref n, x0, f.side, w, midY, H, WithA(FlareOrange, (.10f + .21f * p) * flick));
             // hot slivers: short bright bars on the edge, jumping about (the front's tip trying to break through)
             for (int i = 0; i < 6; i++)
             {
                 int cyc = (int)(tm * 7f) + i * 13;
                 if (Hash(cyc, 9 + i) > .35f + .5f * p) continue;
                 float y = f.viewBottom + Hash(cyc, 3) * (f.viewTop - f.viewBottom);
-                Put(ref n, AmbientShape.Streak, new Vector2(x0 + f.side * .08f, y), 0f, .55f, .6f + 1.8f * Hash(cyc, 4), WithA(FlareHot, (.35f + .5f * p) * flick));
+                Put(ref n, AmbientShape.Streak, new Vector2(x0 + f.side * .08f, y), 0f, .55f, .6f + 1.8f * Hash(cyc, 4), WithA(FlareHot, (.25f + .35f * p) * flick));
             }
             for (int i = 0; i < 4 + (int)(14 * p); i++)       // sparks drifting in from the edge
             {
@@ -248,13 +248,13 @@ public sealed class HazardVisuals
             if (Mathf.Abs(cx) > lane + d.size * 1.6f) continue;            // wholly gone / not yet in view
             float fl = .85f + .15f * Hash((int)(tm * 20f) + b * 7, 6);
             // glow layers, widest and softest first
-            EdgeX(ref n, lead, -f.side, d.size * 2.1f, midY, H, WithA(FlareViolet, .26f * fade * fl));
-            EdgeX(ref n, lead, -f.side, d.size * 1.45f, midY, H, WithA(FlareMagenta, .34f * fade * fl));
-            EdgeX(ref n, lead, -f.side, d.size * .95f, midY, H, WithA(FlareOrange, .5f * fade * fl));
-            EdgeX(ref n, lead, f.side, d.size * .5f, midY, H, WithA(FlareGold, .42f * fade * fl));   // the shocked air ahead of it
-            EdgeX(ref n, lead, -f.side, d.size * .32f, midY, H, WithA(FlareGold, .8f * fade * fl));
-            EdgeX(ref n, lead, -f.side, .2f, midY, H, WithA(FlareHot, .95f * fade));                 // the white-hot core line
-            EdgeX(ref n, lead, f.side, .1f, midY, H, WithA(FlareHot, .8f * fade));
+            EdgeX(ref n, lead, -f.side, d.size * 2.1f, midY, H, WithA(FlareViolet, .18f * fade * fl));
+            EdgeX(ref n, lead, -f.side, d.size * 1.45f, midY, H, WithA(FlareMagenta, .24f * fade * fl));
+            EdgeX(ref n, lead, -f.side, d.size * .95f, midY, H, WithA(FlareOrange, .35f * fade * fl));
+            EdgeX(ref n, lead, f.side, d.size * .5f, midY, H, WithA(FlareGold, .29f * fade * fl));   // the shocked air ahead of it
+            EdgeX(ref n, lead, -f.side, d.size * .32f, midY, H, WithA(FlareGold, .56f * fade * fl));
+            EdgeX(ref n, lead, -f.side, .2f, midY, H, WithA(FlareHot, .71f * fade));                 // the white-hot core line
+            EdgeX(ref n, lead, f.side, .1f, midY, H, WithA(FlareHot, .6f * fade));
             // plasma arcs: long streaks trailing the leading edge, undulating, hot near the front and violet at the tail
             for (int i = 0; i < 12; i++)
             {
@@ -264,7 +264,7 @@ public sealed class HazardVisuals
                 float wob = Mathf.Sin(tm * (5f + 3f * jy) + i * 1.9f) * .18f;
                 float len = 1.0f + 2.2f * Hash(i, 33) * (1f - .4f * u);
                 Color c = u < .35f ? Color.Lerp(FlareHot, FlareGold, u / .35f) : u < .7f ? Color.Lerp(FlareGold, FlareMagenta, (u - .35f) / .35f) : Color.Lerp(FlareMagenta, FlareViolet, (u - .7f) / .3f);
-                Put(ref n, AmbientShape.Streak, new Vector2(lead - f.side * u * d.size * 1.7f, y + wob), -f.side * 90f, .6f, len, WithA(c, (.8f - .45f * u) * fade));
+                Put(ref n, AmbientShape.Streak, new Vector2(lead - f.side * u * d.size * 1.7f, y + wob), -f.side * 90f, .6f, len, WithA(c, (.8f - .45f * u) * .7f * fade));
             }
             // sparks thrown ahead of the shock
             for (int i = 0; i < 10; i++)
@@ -366,7 +366,7 @@ public sealed class HazardVisuals
                     r.transform.rotation = Quaternion.identity;
                     r.transform.localScale = new Vector3(W * (f.side < 0f ? -1f : 1f), W, 1f);
                     float edgeFade = Mathf.Clamp01(1.4f - Mathf.Abs(cx) / (f.laneHalf + W * .8f));   // dims as it leaves the view
-                    r.color = new Color(1f, 1f, 1f, warn ? (.3f + .5f * p) : .95f * k * Mathf.Clamp01(edgeFade + .3f));
+                    r.color = new Color(1f, 1f, 1f, warn ? (.21f + .35f * p) : .7f * k * Mathf.Clamp01(edgeFade + .3f));
                 }
             }
             artDrawn = used;
