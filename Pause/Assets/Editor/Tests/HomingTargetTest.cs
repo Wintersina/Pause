@@ -103,9 +103,9 @@ public static class HomingTargetTest
 
         // Gold Warden impact art at 30%
         Check("Gold Warden blast burst is 30% of the old size",
-              Mathf.Approximately(ShipVolley.BlastBurstSize(7, .95f), .95f * 2.3f * .3f));
-        Check("other ships' blast burst is unchanged",
-              Mathf.Approximately(ShipVolley.BlastBurstSize(1, .95f), .95f * 2.3f));
+              Mathf.Approximately(ShipVolley.BlastBurstSize(7, .95f), .95f * 2.3f * .3f * ShipFxArt.BurstScale));
+        Check("other ships' blast burst is only the global polish scale",
+              Mathf.Approximately(ShipVolley.BlastBurstSize(1, .95f), .95f * 2.3f * ShipFxArt.BurstScale));
         Check("Warden impact scale constant is .3 and ship 7 is the Gold Warden",
               Mathf.Approximately(ShipVolley.GoldWardenImpactScale, .3f) && ShipId.KeyOf(ShipVolley.GoldWardenShip) == "GoldWarden");
 
@@ -120,7 +120,7 @@ public static class HomingTargetTest
         Check("largest blast/fireball burst is under " + ShipVolley.MaxBurstWorld + " world units (" + worst + ")",
               worst > 0f && worst <= ShipVolley.MaxBurstWorld);
         Check("Solar Fang burst is 40% of the old size",
-              Mathf.Approximately(ShipVolley.BlastBurstSize(3, 1.7f), 1.7f * 2.3f * .4f));
+              Mathf.Approximately(ShipVolley.BlastBurstSize(3, 1.7f), 1.7f * 2.3f * .4f * ShipFxArt.BurstScale));
 
         Debug.Log("[HT] failures: " + fails);
         return fails;

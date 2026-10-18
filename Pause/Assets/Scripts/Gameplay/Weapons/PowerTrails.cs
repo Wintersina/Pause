@@ -80,7 +80,7 @@ public class PowerTrailSprite : MonoBehaviour
         pack.to = CounterWorldPosition(from);
         LastPackTarget = pack.to;
         pack.transform.position = from;
-        pack.transform.localScale = Vector3.one * .5f;
+        pack.transform.localScale = Vector3.one * .35f;
         pack.tint = Color.white;
         pack.sr.color = Color.white;
         pack.age = 0f; pack.life = PackLife; pack.flying = true;
@@ -138,7 +138,7 @@ public class PowerTrailSprite : MonoBehaviour
             Vector3 p = Vector3.Lerp(from, to, e);
             p.x += Mathf.Sin(k * Mathf.PI) * .6f;
             transform.position = p;
-            transform.localScale = Vector3.one * Mathf.Lerp(.55f, .3f, k);
+            transform.localScale = Vector3.one * Mathf.Lerp(.38f, .22f, k);
             sr.sprite = ShipFxArt.PowerLoop(IonId, Mathf.FloorToInt(age * 24f));
         }
         else

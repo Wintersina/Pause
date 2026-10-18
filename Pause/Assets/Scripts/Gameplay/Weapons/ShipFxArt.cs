@@ -115,6 +115,50 @@ public static class ShipFxArt
     public static Sprite MeterFlash(int ship)         => Get(Meter(), ship, MeterFlashAt, 1, 0);
     public static Sprite MeterIcon(int ship)          => Get(Meter(), ship, MeterIconAt, 1, 0);
 
+    // ---- the polish pass: thinner, fainter, smaller --------------------------
+    // Global dials for every ship attack and secret power drawing (AttackSprite,
+    // AttackProjectile, WeaponShot). Gameplay hit sizes never read these.
+    public const float AttackAlpha = .6f;       // attack loops (beams, cones, arcs)
+    public const float AttackBurstAlpha = .65f; // impact bursts
+    public const float PowerLoopAlpha = .4f;    // power loops
+    public const float PowerBurstAlpha = .45f;  // power bursts
+    public const float RimAlpha = .8f;          // the thin rim rings
+    public const float ShotScale = .72f;        // projectile body, of the size the attack asks for
+    public const float TrailScale = .55f;       // light streak behind a shot, of the old width
+    public const float BeamThin = .45f;         // arcs / chain / lance links: thickness in world units
+    public const float BurstScale = .7f;        // burst size (blasts, fireball) on top of the per-ship scales
+    public const float ImpactScale = .75f;      // weapon impact flipbook, of the old size
+
+    static Sprite rim;
+    // A thin, hard-edged circle outline, one world unit across at scale 1:
+    // the ship-centred defences are drawn with this instead of a filled blob,
+    // so the hull stays clearly visible underneath.
+    public static Sprite Rim
+    {
+        get
+        {
+            if (rim != null) return rim;
+            const int S = 128;
+            var tex = new Texture2D(S, S, TextureFormat.RGBA32, false);
+            tex.filterMode = FilterMode.Point;
+            var px = new Color32[S * S];
+            float c = (S - 1) * .5f;
+            for (int y = 0; y < S; y++)
+                for (int x = 0; x < S; x++)
+                {
+                    float d = Mathf.Sqrt((x - c) * (x - c) + (y - c) * (y - c));
+                    byte a = 0;
+                    if (d <= 63f && d >= 60.5f) a = 255;                 // the rim, ~2.5 px at 128
+                    else if (d < 60.5f && d >= 56f) a = (byte)(26 + (d - 56f) * 2f);   // a whisper inside it
+                    px[y * S + x] = new Color32(255, 255, 255, a);
+                }
+            tex.SetPixels32(px);
+            tex.Apply();
+            rim = Sprite.Create(tex, new Rect(0, 0, S, S), new Vector2(.5f, .5f), S);
+            return rim;
+        }
+    }
+
     static int Wrap(int i, int n) => ((i % n) + n) % n;
 
     // Fill fraction -> drawing, monotonic; the full drawing only when full.
