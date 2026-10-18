@@ -5,20 +5,21 @@ using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 
-// Renders each Space elite's whole fight for review (the elite-overhaul GIFs): its home dock in the Space backdrop (one of the
-// drifting gantry / carrier / gate / derelict docks, SpaceDocks.cs, brought into view like the elite director does), the launch (the
+// Renders each elite's whole fight for review (the elite-overhaul GIFs), a world at a time (CaptureSpace, CaptureFrost): its home dock in
+// the world's real backdrop (Space: one of the drifting gantry / carrier / gate / derelict docks, SpaceDocks.cs; Frost: the hangar /
+// rig bay / pad ring / crawler bay / silo hatch on the ground, FrostDirector; brought into view like the elite director does), the launch (the
 // rings closing in on the door, the engine lights, the dock's doors opening, the flare), the hull's animated lights, then the real brain and attacks at full speed against a scripted pilot
 // that dodges what it can see (hazards on their paths, locked lines and rings, the curtain's gap) and shoots when it has a clear
 // moment -- one guaranteed homing hit every ShootEvery seconds while the elite is on the board -- through the hide, the death or the
 // escape. Frames are 540 px wide portrait PNGs at 15 fps.
 //
-//   Unity -batchmode -quit -projectPath <abs>/Pause -executeMethod EliteCapture.CaptureSpace
+//   Unity -batchmode -quit -projectPath <abs>/Pause -executeMethod EliteCapture.CaptureSpace   (or CaptureFrost)
 //   (frames to $ELITE_CAPTURE_DIR/<name>/NNNN.png, else Builds/EliteCapture; $ELITE_CAPTURE_ONLY=<name>[,<name>] renders just those;
 //    $ELITE_CAPTURE_SECONDS caps a clip, default 70)
 //
-// then scripts/elite-gifs.sh <dir> turns every frame folder into /Users/sina/Developer/Pause/.claude/elite-gifs/space/<name>.gif and
+// then scripts/elite-gifs.sh <dir> [out-dir] turns every frame folder into /Users/sina/Developer/Pause/.claude/elite-gifs/<world>/<name>.gif and
 // <name>.mp4.
-// Needs a rendering editor (graphics on: no -nographics), as ElitePreview does. This renders the elite stack over the real Space
+// Needs a rendering editor (graphics on: no -nographics), as ElitePreview does. This renders the elite stack over the real world
 // backdrop with stand-in rails and the pilot's hull; it is not the full game scene (no HUD, spawners, weapons or boss).
 public static class EliteCapture
 {
@@ -27,7 +28,7 @@ public static class EliteCapture
     const float HalfH = 6.4f, HalfW = 2.95f;
     const float PilotSpeed = 5.2f, PilotHomeY = -3.1f;
 
-    static readonly (string name, string key)[] Clips =
+    static readonly (string name, string key)[] SpaceClips =
     {
         ("rift_lancer", "space_elite_rift_lancer"),
         ("orbit_reaver", "space_elite_orbit_reaver"),
@@ -35,8 +36,23 @@ public static class EliteCapture
         ("singularity_hauler", "space_elite_singularity_hauler"),
     };
 
-    public static void CaptureSpace()
+    static readonly (string name, string key)[] FrostClips =
     {
+        ("rimebreaker", "frost_elite_rimebreaker"),
+        ("floe_harrower", "frost_elite_floe_harrower"),
+        ("cryo_siren", "frost_elite_cryo_siren"),
+        ("glacier_tender", "frost_elite_glacier_tender"),
+        ("whiteout_sentinel", "frost_elite_whiteout_sentinel"),
+    };
+
+    static string world = "Space";
+
+    public static void CaptureSpace() { Capture("Space", SpaceClips); }
+    public static void CaptureFrost() { Capture("Frost", FrostClips); }
+
+    static void Capture(string worldName, (string name, string key)[] clips)
+    {
+        world = worldName;
         string dir = System.Environment.GetEnvironmentVariable("ELITE_CAPTURE_DIR");
         if (string.IsNullOrEmpty(dir)) dir = "Builds/EliteCapture";
         string only = System.Environment.GetEnvironmentVariable("ELITE_CAPTURE_ONLY");
@@ -45,7 +61,7 @@ public static class EliteCapture
         using (new TestHarness.Sandbox())
         {
             EliteCatalog.Reload();
-            foreach (var c in Clips)
+            foreach (var c in clips)
             {
                 if (!string.IsNullOrEmpty(only) && System.Array.IndexOf(only.Split(','), c.name) < 0) continue;
                 try { Clip(dir, c.name, EliteCatalog.Find(c.key)); }
@@ -97,8 +113,9 @@ public static class EliteCapture
         cam.aspect = HalfW / HalfH;
         cam.transform.position = new Vector3(0f, 0f, -10f);
 
-        var wb = WorldBackdrop.Create("Space");
-        wb.Show("Space", false);
+        if (world == "Frost") { FrostBackdropSelection.Reset(); FrostBackdropSelection.Seed(def.key.Length * 7 + 3); }
+        var wb = WorldBackdrop.Create(world);
+        wb.Show(world, false);
         Rails();
         pilot = new GameObject("~Pilot").transform;
         pilotArt = pilot.gameObject.AddComponent<SpriteRenderer>();
@@ -149,12 +166,13 @@ public static class EliteCapture
         public Vector2 pos, vel;
         public bool hurts, live;
         public float age;
+        public GameObject drone;   // a bolt that goes for one of the Tender's drones
     }
 
     static readonly List<Bolt> bolts = new List<Bolt>();
     static Vector2 pilotGoal = new Vector2(0f, PilotHomeY);
     static int hitsTaken, shotsHit;
-    static float lastShot = 3f, lastCosmetic;
+    static float lastShot = 3f, lastCosmetic, lastDroneShot;
     static float flash;
 
     static class PilotState
@@ -166,6 +184,7 @@ public static class EliteCapture
             dangers.Clear();
             hitsTaken = shotsHit = 0;
             lastShot = 3f;
+            lastDroneShot = 0f;
             lastCosmetic = 0f;
             flash = 0f;
             pilotGoal = new Vector2(0f, PilotHomeY);
@@ -225,6 +244,54 @@ public static class EliteCapture
         var barrage = e.Attack as WardBarrageAttack;
         if (barrage != null && barrage.MineDrop && (e.Telling || e.Acting))
             for (int k = 0; k < barrage.Mines; k++) if (barrage.Marks.Shown(k)) dangers.Add(new Danger { a = barrage.Marks.At(k), radius = 1.1f, until = 9f });
+        SenseFrost(e);
+    }
+
+    // Frost's telegraphs, read as a player would: the ice-crack lane and the ship ploughing down it, the skid's path, the lance's sight,
+    // the beam's arc, a mine's ring, the fog cone and the lanes marked with icicle glyphs.
+    static void SenseFrost(EliteShip e)
+    {
+        var run = e.Attack as IceRunAttack;
+        if (run != null)
+        {
+            if (e.Telling) dangers.Add(new Danger { a = new Vector2(run.LaneX, e.Position.y), b = new Vector2(run.LaneX, -HalfH - 1f), radius = e.Def.hullRadius + .55f, line = true, until = 9f });
+            else if (e.Acting) dangers.Add(new Danger { a = e.Position, v = e.Velocity, radius = e.Def.hullRadius + .55f, until = 9f });
+        }
+        var barge = e.Attack as FloeBargeAttack;
+        if (barge != null)
+        {
+            if (barge.Skid && (e.Telling || e.Acting))
+            {
+                dangers.Add(new Danger { a = barge.PathFrom, b = barge.BounceAt, radius = .85f, line = true, until = 9f });
+                dangers.Add(new Danger { a = barge.BounceAt, b = barge.PathEnd, radius = .85f, line = true, until = 9f });
+            }
+            else if (!barge.Skid && (e.Telling || e.Acting) && !barge.Lanced)
+            {
+                Vector2 k = e.MuzzleWorld(FloeCastAttack.Keel);
+                dangers.Add(new Danger { a = k, b = barge.LanceAim, radius = .6f, line = true, until = 9f });
+            }
+        }
+        var bloom = e.Attack as FrostBloomAttack;
+        if (bloom != null && bloom.Beam && (e.Telling || e.Acting))
+        {
+            Vector2 m = e.MuzzleWorld(0);
+            for (int k = 0; k <= 4; k++)
+            {
+                float r = Mathf.Lerp(bloom.BeamFrom, bloom.BeamTo, k / 4f) * Mathf.Deg2Rad;
+                dangers.Add(new Danger { a = m, b = m + new Vector2(Mathf.Cos(r), Mathf.Sin(r)) * 9f, radius = .5f, line = true, until = 9f });
+            }
+        }
+        var rig = e.Attack as TenderRigAttack;
+        if (rig != null)
+        {
+            if (rig.MinePending) dangers.Add(new Danger { a = rig.MineSpot, radius = 1.1f, until = 9f });
+            if (rig.Venting && (e.Telling || e.Acting))
+                dangers.Add(new Danger { a = rig.FogOrigin, b = rig.FogOrigin + Vector2.down * TenderRigAttack.FogLength, radius = TenderRigAttack.FogTip + .55f, line = true, until = 9f });
+        }
+        var icicles = e.Attack as IcicleBarrageAttack;
+        if (icicles != null && icicles.Planned && (e.Telling || e.Acting))
+            for (int c = 0; c < icicles.Columns; c++)
+                if (icicles.Marked(c)) dangers.Add(new Danger { a = new Vector2(icicles.ColumnX(c), HalfH), b = new Vector2(icicles.ColumnX(c), -HalfH), radius = .5f, line = true, until = 9f });
     }
 
     static float Clearance(Vector2 from, Vector2 to, float speed)
@@ -264,6 +331,8 @@ public static class EliteCapture
             int g = barrage.SecondRow ? barrage.Gap2 : barrage.Gap;
             homeX = barrage.Spot(g, g).x;
         }
+        var icicles = e != null ? e.Attack as IcicleBarrageAttack : null;
+        if (icicles != null && icicles.Planned && (e.Telling || e.Acting)) homeX = icicles.ColumnX(icicles.Safe);   // the bare lane
         Vector2 home = new Vector2(Mathf.Clamp(homeX, -2.1f, 2.1f), PilotHomeY);
         Vector2 best = here;
         float bestScore = float.MinValue;
@@ -293,6 +362,7 @@ public static class EliteCapture
             bolts.Add(b);
         }
         b.live = true;
+        b.drone = null;
         b.hurts = hurts;
         b.pos = at;
         b.vel = vel;
@@ -324,15 +394,43 @@ public static class EliteCapture
         if (lastCosmetic >= .22f) { lastCosmetic = 0f; SpawnBolt(p + Vector2.up * .4f, Vector2.up * 11f, false); }
         lastShot += dt;
         bool hittable = e != null && e.InPlay && !e.Offstage && !e.Hidden && e.State != EliteState.Retreat;
+        var shielded = e != null ? e.Attack as DroneDeployAttack : null;
+        if (shielded != null && shielded.Linked) hittable = false;   // (its shield link would soak it: the drones first)
         // (the pilot lets it show what it does first: two attacks before the first hit, one more before each next)
         int needed = shotsHit == 0 ? 2 : shotsHit + 2;
         if (hittable && lastShot >= ShootEvery && e.Attacks >= needed) { lastShot = 0f; SpawnBolt(p + Vector2.up * .4f, Vector2.up * 11f, true); }
+        // the Tender's shield is shot away the way a player does it: a bolt at a drone now and then (the drones die as they do to a pilot)
+        lastDroneShot += dt;
+        var rig = e != null ? e.Attack as TenderRigAttack : null;
+        if (rig != null && e.InPlay && rig.Live >= 1 && e.Attacks >= 1 && lastDroneShot >= 2.2f)
+        {
+            GameObject near = null;
+            float nd = float.MaxValue;
+            for (int k = 0; k < 4; k++)
+            {
+                var d = rig.Drone(k);
+                if (d == null) continue;
+                float dd = Vector2.Distance(d.transform.position, p);
+                if (dd < nd) { nd = dd; near = d; }
+            }
+            if (near != null) { lastDroneShot = 0f; SpawnBolt(p + Vector2.up * .4f, Vector2.up * 11f, true).drone = near; }
+        }
         for (int i = 0; i < bolts.Count; i++)
         {
             var b = bolts[i];
             if (!b.live) continue;
             b.age += dt;
-            if (b.hurts && e != null && e.InPlay && !e.Offstage)
+            if (b.hurts && b.drone != null)
+            {
+                if (b.drone.activeInHierarchy)
+                {
+                    Vector2 toD = (Vector2)b.drone.transform.position - b.pos;
+                    b.vel = Vector2.MoveTowards(b.vel, toD.normalized * 11f, 60f * dt);
+                    if (toD.magnitude < .35f) { EliteShip.FriendlyKill(b.drone); b.live = false; b.sr.enabled = false; continue; }
+                }
+                else { b.live = false; b.sr.enabled = false; continue; }
+            }
+            else if (b.hurts && e != null && e.InPlay && !e.Offstage)
             {
                 // homing: bends toward the elite
                 Vector2 to = (Vector2)e.Position - b.pos;
@@ -376,8 +474,8 @@ public static class EliteCapture
         rt = new RenderTexture(px, py, 24);
         png = new Texture2D(px, py, TextureFormat.RGB24, false);
 
-        // the dock: its home (the first kind of its launchFrom: a gantry / carrier / gate / derelict dock, brought into view as the elite
-        // director does a few seconds before a launch), else another of its kinds
+        // the dock: its home (the first kind of its launchFrom: Space's gantry / carrier / gate / derelict dock, Frost's hangar / rig bay /
+        // pad ring / crawler bay / hatch, brought into view as the elite director does a few seconds before a launch)
         var sites = new List<LandingSite>();
         var home = LandingSite.KindOf(def.launchFrom);
         LandingSites.BringHome(def.launchFrom);
@@ -385,10 +483,11 @@ public static class EliteCapture
         for (int i = 0; i < 2400 && pick < 0; i++)
         {
             WorldBackdrop.Instance.Step(1f / 15f);
+            if (i % 30 == 29) LandingSites.BringHome(def.launchFrom);   // (Frost's ground may have had no room at the top the first time: ask again)
             LandingSites.Collect(sites);
             for (int k = 0; k < sites.Count && pick < 0; k++) if (home == null || sites[k].kind == home.Value) pick = k;
         }
-        if (pick < 0) throw new System.Exception("the backdrop never offered a " + home + " dock");
+        if (pick < 0) throw new System.Exception("the " + world + " backdrop never offered a " + home + " dock");
         var site = sites[pick];
         var e = EliteShip.Create(def, site, 2.4f, EliteDirector.JoinPoint(def, EliteBrains.Create(def.brain).JoinFrom, site.Position));
         var title = Label(def.displayName.ToUpperInvariant(), HalfH - .2f, .06f, new Color(.75f, .95f, 1f));

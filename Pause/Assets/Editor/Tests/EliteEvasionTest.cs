@@ -602,8 +602,8 @@ public static class EliteEvasionTest
             e.AttackCooldown = 99f;
             Step(.3f);
             int hits = 0;
-            // (the Whiteout Sentinel's ice plates soak a hit each first: armour_shatter)
-            int plates = def.attack == "armour_shatter" ? def.hazardCount : 0;
+            // (the Whiteout Sentinel's ice plates soak a hit each first: icicle_barrage)
+            int plates = def.attack == "icicle_barrage" ? def.hazardCount : 0;
             for (int i = 0; i < def.hearts + plates + 2 && Alive(e); i++)
             {
                 e.TakeShipAttack(0, 1f, e.Position);

@@ -15,8 +15,8 @@ The framework (Unity project root `Pause/`, code in
 | `EliteCells` | `EliteDef.cs` | the def's `cells` map: which strip cell is flight / parked / lift-off / banks / tell / action / hit / damaged |
 | `EliteArt` / `EliteFxArt` | `EliteArt.cs` | slices `Resources/Elites/<World>/<key>.png`; optional `_parked/_liftoff/_death` strips; procedural placeholder FX sprites |
 | `EliteShip` | `EliteShip.cs` | life cycle Parked → LiftOff → Join → Follow → Attack → (hit) → Dead; steering, dodging, crashes, damage hooks, muzzles |
-| `EliteBrain` (+12) | `EliteBrains.cs` | personalities: `interceptor`, `gunship`, `striker`, `hauler`, `skirmisher`, `siege`, `breaker` (Rimebreaker), `warden` (Resin Warden), Space (SpaceElites.cs): `sniper`, `swooper`, `fortress`, `wrecker` (the old `bastion`, `reaver`, `lancer`, `tug` stay: Storm / Desert / Tide / Verdant reuse `bastion`) |
-| `EliteAttack` (+12) | `EliteAttacks.cs` | attacks: `lance_dash`, `broadside`, `claw_dive`, `slag_drop`, `blink_shards`, `siege_cannon`, `ice_ram`, `resin_mortar`, Space (SpaceElites.cs): `rift_snipe`, `swoop_volley`, `ward_barrage`, `tow_sling` (`ward_curtain`, `crescent_volley`, `rift_rail`, `gravity_sling` stay for the worlds that share them) |
+| `EliteBrain` (+12) | `EliteBrains.cs` | personalities: `interceptor`, `gunship`, `striker`, `hauler`, `skirmisher`, `siege`, `warden` (Resin Warden), Frost (FrostElites.cs): `icebreaker`, `barge`, `hopper`, `carrier`, `patrol`, Space (SpaceElites.cs): `sniper`, `swooper`, `fortress`, `wrecker` (the old `bastion`, `reaver`, `lancer`, `tug` stay: Storm / Desert / Tide / Verdant reuse `bastion`) |
+| `EliteAttack` (+12) | `EliteAttacks.cs` | attacks: `lance_dash`, `broadside`, `claw_dive`, `slag_drop`, `blink_shards`, `siege_cannon`, `resin_mortar`, Frost (FrostElites.cs): `ice_run`, `floe_barge`, `frost_bloom`, `tender_rig`, `icicle_barrage` (`floe_cast`, `drone_deploy`, `armour_shatter` are their building blocks), Space (SpaceElites.cs): `rift_snipe`, `swoop_volley`, `ward_barrage`, `tow_sling` (`ward_curtain`, `crescent_volley`, `rift_rail`, `gravity_sling` stay for the worlds that share them) |
 | `EliteShots` | `EliteShots.cs` | pooled shots (`bolt`, `shard`, `slag`, `shell`, `glob` = lobbed then pools; any kind can be `Sling`ed on a curve through a ringed spot), `shotBounces` off rails, friendly fire |
 | `EliteHearts` | `EliteHearts.cs` | the 2 hearts (shared `HeartOrbit` with the player's `ShipLivesIndicator`) |
 | `EliteFx`, `EliteDeath`, `EliteRewards` | `EliteFx.cs` | dust / shimmer / sparks / debris; pluggable death; 50 score + 15 dust + "ELITE DOWN" |
@@ -175,9 +175,9 @@ Personality numbers (shared base): `speed`, `accel`, `turnRate`,
 `avoidance` (0-1 dodge skill), `lookAhead` (s), `perception` (u/s to re-find
 the pilot after a teleport). Brain-specific: `laneOffset` (gunship),
 `circleRadius` (striker), `keepDistance` (skirmisher), `topMargin` (siege),
-`followDistance` (interceptor / hauler / breaker), `laneOffset` + `topMargin`
+`followDistance` (interceptor / hauler), `laneOffset` + `topMargin`
 (warden). `armored: true` = smashes rocks without losing a heart (haulers);
-an attack with `Ploughs` (ice_ram) does so only while it acts. Shot extras:
+an attack with `Ploughs` (ice_run) does so only while it acts. Shot extras:
 `shotBounces` (glances off rails), `lobSeconds` / `lobSpacing` / `lobAhead` /
 `poolSeconds` (glob). Keep `lore` to 3 sentences.
 
@@ -193,7 +193,7 @@ Match the role in Codex's README (`Art/Enemies/Elite/<World>/README.md`):
 | hauler / tank | `hauler` (blocks the lane ahead) | `slag_drop`: sinking blobs down the lane |
 | skirmisher / ghost | `skirmisher` (keeps distance, blinks) | `blink_shards`: blink then fan shards |
 | siege / artillery | `siege` (holds the top) | `siege_cannon`: sight line, piercing shell down the lane |
-| icebreaker / ram | `breaker` (prowls ahead, sweeping across the lane) | `ice_ram`: locks its lane, ploughs down it through rocks, rail-bouncing shards |
+| icebreaker / ram | `icebreaker` (Frost; roams: waits off the top, appears on a lane, runs the whole board, leaves by the bottom, new lane after a pause) | `ice_run`: an ice-crack lane drawn at the tell, ploughs down it through rocks, rail-bouncing shards |
 | mortar / area denial | `warden` (station high on the far side, crosses after attacking) | `resin_mortar`: ringed spots ahead of the pilot, lobbed globs land as pools riding the board |
 | shield fortress (Space) | `fortress` (top of the view, slides sideways at a crawl, never comes down) | `ward_barrage`: ward curtain whose gap narrows per heart lost (second row at <= 2 hearts), alternating with shootable shield mines |
 | swooper (Space) | `swooper` (`Roams`: big strafing loops off the view and back, a new side and slope each pass) | `swoop_volley`: a ring locks the pilot's spot, claws cross shards on it from the pass angle |

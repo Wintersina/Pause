@@ -2,12 +2,12 @@
   "key": "frost_elite_glacier_tender",
   "displayName": "Glacier Tender",
   "world": "frost",
-  "role": "drone tender",
+  "role": "drone carrier",
   "codexId": "elite_frost_glacier_tender",
-  "lore": "A fat rig tug that hangs back near the top and sends its little ice drones out on glowing tethers. While two or more drones are up, a shield link shrugs off your shots, so cut the drones down first. It hates company: fly at it and it scurries sideways.",
-  "brain": "tender",
-  "attack": "drone_deploy",
-  "launchFrom": "crawlerbay",
+  "lore": "A fat rig tug that hangs back near the top and sends its little ice drones out on glowing tethers. While two or more drones are up, a shield link shrugs off your shots, and every few seconds a drone drops a frost mine on your lane, so shoot the mine, then the drones. Cut them down and it vents a cold fog straight under itself: do not hug the Tender.",
+  "brain": "carrier",
+  "attack": "tender_rig",
+  "launchFrom": "hatch",
   "cells": {
     "flight": [
       3,
@@ -49,7 +49,7 @@
   "shotColor": "#66E6FF",
   "shotCore": "#EAFDFF",
   "engineColor": "#6FD8FF",
-  "hearts": 2,
+  "hearts": 5,
   "heartSize": 0.18,
   "heartOrbit": 0.599,
   "heartStyle": "Halo",
@@ -105,5 +105,6 @@
   "hazardSize": 0.7,
   "hazardCount": 3,
   "hazardSpeed": 2.4,
-  "followLag": 0.3
+  "followLag": 0.3,
+  "laneOffset": 1.4
 }

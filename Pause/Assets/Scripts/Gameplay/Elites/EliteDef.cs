@@ -106,8 +106,8 @@ public class EliteDef
     public string lore;
 
     // ---- personality ----
-    public string brain;                // EliteBrains: interceptor | gunship | striker | hauler | skirmisher | siege | breaker | warden | bastion | reaver | lancer | tug | herder | kiter | tender | ironclad
-    public string attack;               // EliteAttacks: lance_dash | broadside | claw_dive | slag_drop | blink_shards | siege_cannon | ice_ram | resin_mortar | ward_curtain | crescent_volley | rift_rail | gravity_sling | floe_cast | frost_bloom | drone_deploy | armour_shatter
+    public string brain;                // EliteBrains: interceptor | gunship | striker | hauler | skirmisher | siege | warden | bastion | reaver | lancer | tug | icebreaker | barge | hopper | carrier | patrol
+    public string attack;               // EliteAttacks: lance_dash | broadside | claw_dive | slag_drop | blink_shards | siege_cannon | resin_mortar | ward_curtain | crescent_volley | rift_rail | gravity_sling | floe_cast | frost_bloom | drone_deploy | armour_shatter | ice_run | floe_barge | tender_rig | icicle_barrage
 
     // ---- body ----
     public float cellWorldSize = 1.4f;  // one strip cell, world units
@@ -141,7 +141,7 @@ public class EliteDef
     // An elite's drawn silhouette is at least FloorHulls x the flown hull (0.58 u x ShipScale.Main = 0.78 u), the armoured / slow
     // classes HeavyFloorHulls x: the player's own ship never reads as the bigger one.
     public const float FloorHulls = 1.9f, HeavyFloorHulls = 2.1f;
-    public static readonly string[] HeavyBrains = { "hauler", "bastion", "siege", "tug", "fortress", "wrecker", "herder", "tender", "ironclad", "logger", "abyss", "netter", "pearler" };
+    public static readonly string[] HeavyBrains = { "hauler", "bastion", "siege", "tug", "fortress", "wrecker", "barge", "carrier", "patrol", "logger", "abyss", "netter", "pearler" };
     public bool Heavy { get { return System.Array.IndexOf(HeavyBrains, brain) >= 0; } }
     public float TierFloorUnits { get { return (Heavy ? HeavyFloorHulls : FloorHulls) * shopingShips.ReferenceHullSize * ShipScale.Main; } }
     public float laneOffset = 1.5f;     // gunship / hauler / warden / lancer / tug: lane distance from the pilot; bastion: how far off centre it may go
@@ -172,6 +172,7 @@ public class EliteDef
     public int hazardCount = 3;         // frost_bloom: shards in the burst ring; drone_deploy: most drones at once; armour_shatter: ice plates
     public float hazardSpeed = .2f;     // floe_cast: the slabs' sideways drift; frost_bloom: the ring shards' speed; drone_deploy: a drone's speed
     public int hazardArmour = 3;        // floe_cast: player hits a slab soaks before it breaks
+    public float skidSpeed = 3.2f;      // floe_barge: the speed of the single slab that skids diagonally down the board (u/s on screen)
 
     // ---- colours (hex) ----
     public string heartColor = "#C85AFF";   // hearts: magenta / violet / cyan, never the player's red

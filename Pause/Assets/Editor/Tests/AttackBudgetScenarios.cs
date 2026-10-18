@@ -622,7 +622,7 @@ public static class AttackBudgetScenarios
         public bool Telling => ship != null && ship.Telling && !Rams;
         // one attack per roll: once the first is over, no second is begun; done when its shots are gone too
         public bool Done => ship != null && ship.Attacks >= 1 && ship.State != EliteState.Attack && ActiveRosterShots() == 0 && t > 1f;
-        bool Rams => def.attack == "lance_dash" || def.attack == "claw_dive" || def.attack == "ice_ram" || def.attack == "leaf_dive";
+        bool Rams => def.attack == "lance_dash" || def.attack == "claw_dive" || def.attack == "ice_run" || def.attack == "leaf_dive";
         float tellLeft;
 
         public Transform Begin(System.Random rng, Vector2 start)

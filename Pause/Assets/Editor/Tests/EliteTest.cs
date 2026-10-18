@@ -186,7 +186,7 @@ public static class EliteTest
             var frames = EliteArt.Frames(d);
             Check(d.key + ": strip loads as 7 cells, enough for its cell map", frames != null && frames.Length >= EliteArt.FrameCount && frames[0] != null && frames.Length >= d.cells.Count);
             Check(d.key + ": a known brain and attack", System.Array.IndexOf(EliteBrains.Ids, d.brain) >= 0 && System.Array.IndexOf(EliteAttacks.Ids, d.attack) >= 0);
-            Check(d.key + ": hearts: 2 (Space: 5 armoured / 3 not)", d.hearts == (d.world == "space" ? (d.armored ? 5 : 3) : 2));
+            Check(d.key + ": hearts: 2 (Space and Frost: 5 armoured / 3 not)", d.hearts == (d.world == "space" || d.world == "frost" ? (d.armored ? 5 : 3) : 2));
             Check(d.key + ": hearts are not the player's red (hue gap " + HueGap(d.HeartColor, PlayerRed).ToString("0") + ")",
                   HueGap(d.HeartColor, PlayerRed) > 40f && HueGap(d.HeartColor, AkiraPalette.Red) > 40f);
             Check(d.key + ": shots are not the player's red", HueGap(d.ShotColor, PlayerRed) > 30f && HueGap(d.ShotCore, PlayerRed) > 30f &&
@@ -572,76 +572,32 @@ public static class EliteTest
             bool tinted = false;
             int flashFrame = -1;
             Step(EliteShip.HitFlashSeconds, () => { tinted |= e.Hull.color != Color.white; flashFrame = e.CurrentFrame; });
-            Check(k + "a hit flashes the frame it is on (no hit cell; the damaged cell from that hit on)", tinted && flashFrame == c.damaged);
+            Check(k + "a hit flashes the frame it is on (no hit cell; the damaged cell from that hit on)", (tinted || def.hurtHide) && flashFrame == c.damaged);
+            for (int w = 0; w < 600 && e.Hidden; w++) EliteSystem.Step(Dt);   // (a hide-when-hurt one is waited out)
             var after = new HashSet<int>();
             Step(.4f, () => e.Velocity = new Vector2(-def.speed, 0f));
             after.Add(e.CurrentFrame);
             Step(1.5f, () => after.Add(e.CurrentFrame));
             Check(k + "after its first lost heart: the damaged cell, steady (" + string.Join(",", after) + ")",
-                  e.Hearts == 1 && e.Damaged && after.Count == 1 && after.Contains(c.damaged) && e.Hull.color == Color.white);
+                  e.Hearts == def.hearts - 1 && e.Damaged && after.Count == 1 && after.Contains(c.damaged) && e.Hull.color == Color.white);
             Check(k + "the codex weaves through flight and banks; its locked card uses the flight cell",
                   c.CodexLoop.Length == 4 && (ten || c.flight.Length > 1 || (c.CodexLoop[1] == c.bankLeft && c.CodexLoop[3] == c.bankRight)) &&
                   global::Codex.Find(def.codexId) != null && global::Codex.Find(def.codexId).Sprite == EliteArt.Frame(def, c.Flight0));
         }
     }
 
-    // ---- Rimebreaker: breaker + ice_ram ---------------------------------------------
+    // ---- Rimebreaker: icebreaker + ice_run (the runs themselves: FrostEliteTest) ---------------------------------
 
     static void Breaker()
     {
         Fresh(.05f);
         pilot.position = new Vector3(0f, -2.5f, 0f);
-        var e = InPlay("breaker", new Vector2(1.5f, 1f));
-        if (e == null || e.Def == null) { Check("breaker elite exists", false); return; }
-        var def = e.Def;
-        float minDx = 9f, minY = 9f;
-        Step(5f, () => { minDx = Mathf.Min(minDx, Mathf.Abs(e.Position.x - pilot.position.x)); minY = Mathf.Min(minY, e.Position.y - pilot.position.y); });
-        Check("breaker prowls ahead of the pilot (at least " + minY.ToString("0.0") + " u above)", minY > def.followDistance * .5f);
-        Check("breaker sweeps across the pilot's lane (closest " + minDx.ToString("0.00") + " u)", minDx < .4f);
-
-        // line it up and force the ram
-        e.transform.position = new Vector3(.2f, pilot.position.y + def.followDistance, 0f);
-        e.Velocity = Vector2.zero;
-        Check("breaker wants to ram when over the pilot's lane", e.Brain.WantsAttack(pilot.position));
-        e.ForceAttack();
-        var ram = (IceRamAttack)e.Attack;
-        int launched = EliteSystem.Shots.Launched;
-        float tellSpeed = 0f, squash = 0f;
-        bool glow = false;
-        while (e.Telling)
-        {
-            EliteSystem.Step(Dt);
-            if (!e.Telling) break;
-            tellSpeed = Mathf.Max(tellSpeed, e.Velocity.magnitude);
-            glow |= e.ChargeGlowOn;
-            squash = Mathf.Max(squash, e.Squash);
-        }
-        Check("ice_ram tell: holds still, the prow charges (glow) and the hull squats (" + tellSpeed.ToString("0.0") + ", squash " + squash.ToString("0.00") + ")",
-              tellSpeed < 1.2f && glow && squash > .03f);
-        EliteSystem.Step(Dt);
-        Check("ice_ram: ploughs straight down its locked lane at dashSpeed (" + e.Velocity + ")",
-              e.Velocity.y < -def.dashSpeed * .85f && Mathf.Abs(e.Velocity.x) < .05f && Mathf.Abs(ram.LaneX - .2f) < .3f);
-        int left = 0, right = 0;
-        foreach (var s in EliteSystem.Shots.All)
-            if (s.Active && s.Kind == EliteShots.Kind.Shard) { if (s.Velocity.x < 0f) left++; else right++; }
-        Check("ice_ram: two frost shards off the prow, down-left and down-right (" + (EliteSystem.Shots.Launched - launched) + ": " + left + "/" + right + ")", EliteSystem.Shots.Launched - launched == 2 && left == 1 && right == 1);
-        Check("ice_ram: a muzzle flash and a recoil on the hover frame", e.MuzzleFlashesShown > 0 && e.RecoilOffset > .01f && IsFlightCell(def, e.CurrentFrame));
-
-        // a rock in its lane: broken through, no heart lost, more shards
-        var rock = Rock(e.Position + Vector2.down * .5f);
-        int before = EliteSystem.Shots.Launched;
-        Step(.2f);
-        Check("ice_ram: breaks through a rock in its lane without losing a heart",
-              rock == null && e != null && e.Hearts == 2 && e.Ploughed == 1 && EliteSystem.Shots.Launched - before == 2 && e.Velocity.y < -def.dashSpeed * .3f);
-        Step(1f);
-        Check("ice_ram: back to prowling after the ram", e.State == EliteState.Follow);
-        var rock2 = Rock(e.Position);
-        EliteSystem.Step(Dt);
-        Check("outside the ram a rock still costs it a heart (not armoured)", rock2 == null && e.Hearts == 1 && !def.armored);
+        var e0 = InPlay("icebreaker", new Vector2(1.5f, 1f));
+        if (e0 == null || e0.Def == null) { Check("icebreaker elite exists", false); return; }
 
         // frost shards glance off the rails once, then break on them
         Fresh(.05f);
-        e = InPlay("breaker", new Vector2(0f, 3f));
+        var e = InPlay("icebreaker", new Vector2(0f, 3f));
         var shard = EliteSystem.Shots.Fire(e, e.Def, EliteShots.Kind.Shard, new Vector2(EliteSystem.RailEdge - .5f, 0f), new Vector2(5f, -.5f));
         bool back = false;
         Step(.5f, () => back |= shard.Active && shard.Velocity.x < 0f);
@@ -1058,7 +1014,7 @@ public static class EliteTest
         EliteSystem.Step(Dt);
         Check("a lured crash kill pays the same", e == null && EliteShip.LastKillCause == EliteDamage.Crash && RunScore.Total - total == ScoreRules.EliteDown);
 
-        foreach (string brain in new[] { "breaker", "warden", "bastion", "sniper", "swooper", "fortress", "wrecker" })
+        foreach (string brain in new[] { "icebreaker", "warden", "bastion", "sniper", "swooper", "fortress", "wrecker" })
         {
             Fresh(.05f);
             e = InPlay(brain, new Vector2(0f, 1f));
@@ -1183,7 +1139,7 @@ public static class EliteTest
 
         Fresh(.1f);
         pilot.position = new Vector3(0f, -2.5f, 0f);
-        var r = InPlay("breaker", new Vector2(-1f, 1f));
+        var r = InPlay("icebreaker", new Vector2(-1f, 1f));
         var w = InPlay("warden", new Vector2(1f, 2f));
         r.AttackCooldown = w.AttackCooldown = 0f;
         Step(4f);   // warm up: rams, shards, lobs, pools
