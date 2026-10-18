@@ -65,7 +65,7 @@ public static class TideSoundTest
             elites++;
             all &= EnemyDeathAudio.DonorOf(e.key) == null && EnemyDeathAudio.CategoryOf(e.key) != "" && EnemyDeathAudio.Variants(e.key) >= 1;
         }
-        Check("all 12 Tide roster keys (4 rocks aliased, 8 shared) and 5 Tide elites (shared) resolve death clips (" + roster + " / " + elites + ")", all && roster == 12 && elites == 5 && rocks == 4);
+        Check("all 14 Tide roster keys (4 rocks aliased, 10 shared, two of them helicopters) and 5 Tide elites (shared) resolve death clips (" + roster + " / " + elites + ")", all && roster == 14 && elites == 5 && rocks == 4);
         bool own = true;
         foreach (var r in EnemyDeathAudio.DeathAlias) own &= !r[1].StartsWith("tide_");
         Check("no alias points at another alias, a donor is always a real authored key", own);

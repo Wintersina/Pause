@@ -518,9 +518,9 @@ public static class EnemyBehaviours
         B("tide_fighter_5", "Salvage Gyro: hovers heavily over the pilot, a twin pair of bolts from the nose guns")
             .Track(.5f, .5f).Brake(1.5f, .55f).Shot(Bolt, 2, 0f, 2.7f, .2f).Twin(.3f).Muzzle(.55f).Timing(.9f, 3f, 3, .15f)
             .Pilot(PilotEntry.Drop, 1.7f, 8f, PilotExit.Climb).Slow().Volleys(3);
-        B("tide_fighter_6", "Tandem Skimmer: fast strafing sweep over the lane, a short fan of three bolts")
-            .Track(.85f, 1.3f).Shot(Bolt, 3, 14f, 3.3f, .16f).Muzzle(.5f).Timing(.5f, 1.7f, 3, .15f)
-            .Pilot(PilotEntry.Drop, 2.3f, 5.5f, PilotExit.Peel).Volleys(4);
+        B("tide_fighter_6", "Tandem Skimmer: fast strafing sweep over the lane, a short fan of two bolts")
+            .Track(.85f, 1.3f).Shot(Bolt, 2, 16f, 3.1f, .16f).Muzzle(.5f).Timing(.6f, 2.2f, 3, .15f)
+            .Pilot(PilotEntry.Drop, 2.3f, 5.5f, PilotExit.Peel).Volleys(3);
         B("tide_chaser", "Wire Eel: surges in sinusoidal lunges on an S-curve, coils, then orbits")
             .Chaser(ChaserStyle.Slither, 4.2f, 2.3f, 1f, 1f, .8f)
             .Linger(6f);

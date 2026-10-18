@@ -62,7 +62,7 @@ public static class CodexVettingTest
             string name = WorldManager.Worlds[w].displayName;
             var defs = EnemyRoster.All.Where(d => d.world == w).ToList();
             int rocks = defs.Count(d => d.role == EnemyRole.Rock), mines = defs.Count(d => d.role == EnemyRole.Mine);
-            int fighters = defs.Count(d => d.role == EnemyRole.Fighter), chasers = defs.Count(d => d.role == EnemyRole.Chaser);
+            int fighters = defs.Count(d => d.role == EnemyRole.Fighter && !EnemyRoster.IsHelicopter(d)), chasers = defs.Count(d => d.role == EnemyRole.Chaser);
             int aliens = defs.Count(d => d.role == EnemyRole.Alien), bigs = defs.Count(d => d.role == EnemyRole.Big);
             int elites = EliteCatalog.All.Count(e => e.WorldIndex == w);
             var boss = BossCatalog.All[w];
@@ -72,7 +72,7 @@ public static class CodexVettingTest
             Debug.Log("[CVT] " + name.PadRight(10) + " " + (fighters + chasers + aliens + bigs).ToString().PadLeft(7) + " " + rocks.ToString().PadLeft(7) + " " + mines.ToString().PadLeft(5) +
                       " " + elites.ToString().PadLeft(6) + " " + (Codex.Find(boss.id) != null ? "yes" : "NO ").PadRight(5) + " " + (Codex.Find(CodexCatalogue.WorldIds[w]) != null ? "yes" : "NO").PadRight(12) +
                       (track != null ? "yes" : "NO").PadRight(7) + (bossTrack != null ? "yes" : "NO").PadRight(12) + bd);
-            Check(name + ": seven fighters / chasers / aliens / heavies (4 + 1 + 1 + 1), rocks, one mine",
+            Check(name + ": seven fighters / chasers / aliens / heavies (4 + 1 + 1 + 1, helicopters are extras), rocks, one mine",
                   fighters == 4 && chasers == 1 && aliens == 1 && bigs == 1 && rocks >= 3 && mines == 1);
             Check(name + ": at least four elites", elites >= 4);
             Check(name + ": a boss, a world entry, a song, a boss song and its backdrops (four; Storm ships three)",

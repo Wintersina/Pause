@@ -83,12 +83,15 @@ public static class AttackBudgetTest
         { "roster:ember_fighter_2", new Pin(19, 2000, 840) },   // 1.0 % bot, 42.0 % standing; shown in 2000/2000; Shot x1 volleys 4 cooldown 1.4 tell 0.5
         { "roster:ember_fighter_3", new Pin(14, 2000, 1989) },   // 0.7 % bot, 99.5 % standing; shown in 2000/2000; Shot x1 volleys 3 cooldown 1.8 tell 0.5
         { "roster:ember_fighter_4", new Pin(6, 2000, 173) },   // 0.3 % bot, 8.7 % standing; shown in 2000/2000; Ring x8 volleys 3 cooldown 3.8 tell 1.1
+        { "roster:ember_fighter_5", new Pin(23, 2000, 935) },   // 1.2 % bot, 46.8 % standing; shown in 2000/2000; Shot x2 volleys 3 cooldown 2.8 tell 0.8 (helicopter)
         { "roster:tide_mine", new Pin(32, 2000, 1188) },   // 1.6 % bot, 59.4 % standing; shown in 2000/2000; Laser x1 volleys 2 cooldown 1.0 tell 1.0
         { "roster:tide_big", new Pin(28, 2000, 475) },   // 1.4 % bot, 23.8 % standing; shown in 2000/2000; Shot x3 volleys 3 cooldown 3.6 tell 1.0
         { "roster:tide_fighter_1", new Pin(0, 2000, 0) },   // 0.0 % bot, 0.0 % standing; shown in 2000/2000; Lunge x1 volleys 0 cooldown 2.1 tell 0.45
         { "roster:tide_fighter_2", new Pin(26, 2000, 884) },   // 1.3 % bot, 44.2 % standing; shown in 2000/2000; Shot x1 volleys 4 cooldown 1.5 tell 0.5
         { "roster:tide_fighter_3", new Pin(0, 2000, 2000) },   // 0.0 % bot, 100.0 % standing; shown in 2000/2000; Shot x1 volleys 3 cooldown 2.0 tell 0.8
         { "roster:tide_fighter_4", new Pin(4, 2000, 162) },   // 0.2 % bot, 8.1 % standing; shown in 2000/2000; Ring x8 volleys 3 cooldown 3.8 tell 1.2
+        { "roster:tide_fighter_5", new Pin(22, 2000, 919) },   // 1.1 % bot, 46.0 % standing; shown in 2000/2000; Shot x2 volleys 3 cooldown 3.0 tell 0.9 (helicopter)
+        { "roster:tide_fighter_6", new Pin(43, 2000, 806) },   // 2.2 % bot, 40.3 % standing; shown in 2000/2000; Shot x2 volleys 3 cooldown 2.2 tell 0.6 (helicopter)
         { "roster:storm_mine", new Pin(31, 2000, 1189) },   // 1.6 % bot, 59.5 % standing; shown in 2000/2000; Laser x1 volleys 2 cooldown 1.0 tell 1.0
         { "roster:storm_big", new Pin(30, 2000, 537) },   // 1.5 % bot, 26.9 % standing; shown in 2000/2000; Shot x3 volleys 3 cooldown 3.6 tell 1.0
         { "roster:storm_fighter_1", new Pin(0, 2000, 0) },   // 0.0 % bot, 0.0 % standing; shown in 2000/2000; Lunge x1 volleys 0 cooldown 2.1 tell 0.45
