@@ -31,7 +31,8 @@ public class DockPopup : MonoBehaviour
     public const float ButtonHeight = 48f;
     // A locked ship's card: header and the action button.
     // The power preview at the top of the card: art frame, kind chips, name, line.
-    public const float PreviewHeight = 112f;
+    // ...and under it, both of the ship's weapons at once (name + line each) and what sets its power off.
+    public const float PreviewHeight = 171f;
     public const float BaseHeight = PreviewHeight + Pad + HeaderHeight + 10f + ButtonHeight + Pad;
     // Added for an owned ship: the swatches (their touch slots), the weapon
     // row and the START SPEED line.
@@ -265,7 +266,7 @@ public class DockPopup : MonoBehaviour
     Image previewArt;
     RectTransform previewArtRect;
     public RectTransform PreviewArtRect { get { return previewArtRect; } }
-    Text previewName, previewLine;
+    Text previewName, previewLine, powerNameText, powerLineText, triggerText;
     readonly Image[] previewChips = new Image[2];
     readonly Text[] previewChipLabels = new Text[2];
     // [0] ultimate (attack), [1] power; each 8 loop cells then 8 burst cells.
@@ -276,8 +277,14 @@ public class DockPopup : MonoBehaviour
     int previewTick = -2;
     public bool PreviewShowsPower { get { return previewPower; } }
     public bool PreviewAutoAlternates { get { return previewAuto; } }
-    public string PreviewName { get { return previewName != null ? previewName.text : ""; } }
-    public string PreviewLine { get { return previewLine != null ? previewLine.text : ""; } }
+    public string PreviewName { get { var t = previewPower ? powerNameText : previewName; return t != null ? t.text : ""; } }
+    public string PreviewLine { get { var t = previewPower ? powerLineText : previewLine; return t != null ? t.text : ""; } }
+    // the card lists both weapons at once (the frame's kind is only the bright one)
+    public string AttackNameText { get { return previewName != null ? previewName.text : ""; } }
+    public string AttackLineText { get { return previewLine != null ? previewLine.text : ""; } }
+    public string PowerNameText { get { return powerNameText != null ? powerNameText.text : ""; } }
+    public string PowerLineText { get { return powerLineText != null ? powerLineText.text : ""; } }
+    public string TriggerText { get { return triggerText != null ? triggerText.text : ""; } }
     public Sprite PreviewSprite { get { return previewArt != null && previewArt.enabled ? previewArt.sprite : null; } }
     public RectTransform PreviewRect { get { return previewRoot; } }
 
@@ -342,16 +349,39 @@ public class DockPopup : MonoBehaviour
             previewChipLabels[k] = label;
         }
         float textTop = PreviewArtTop + PreviewArtHeight + 3f;
-        previewName = Label("PowerName", previewRoot, font, SmallSize + 1, TextAnchor.MiddleCenter, DockArt.Gold);
-        previewName.fontStyle = FontStyle.Bold;
-        Place(previewName.rectTransform, new Vector2(.5f, 1f), new Vector2(0f, -textTop), new Vector2(w, 16f), new Vector2(.5f, 1f));
-        previewLine = Label("PowerLine", previewRoot, font, SmallSize - 1, TextAnchor.UpperCenter, AkiraPalette.Muted);
-        previewLine.horizontalOverflow = HorizontalWrapMode.Wrap;
-        previewLine.verticalOverflow = VerticalWrapMode.Truncate;
-        previewLine.resizeTextForBestFit = true;
-        previewLine.resizeTextMinSize = SmallSize - 1;
-        previewLine.resizeTextMaxSize = SmallSize - 1;
-        Place(previewLine.rectTransform, new Vector2(.5f, 1f), new Vector2(0f, -textTop - 16f), new Vector2(w, 26f), new Vector2(.5f, 1f));
+        // Two stacked blocks: the ultimate (gold) and the secret power (cyan), each a bold
+        // name and a wrapped line, then the power's trigger. The kind in the frame above
+        // is the bright one.
+        float y = textTop;
+        previewName = InfoName("AttackName", y, DockArt.Gold, w);
+        previewLine = InfoLine("AttackLine", y + 14f, w);
+        y += 14f + 26f + 2f;
+        powerNameText = InfoName("PowerName", y, DockArt.Cyan, w);
+        powerLineText = InfoLine("PowerLine", y + 14f, w);
+        y += 14f + 26f + 2f;
+        triggerText = Label("PowerTrigger", previewRoot, font, SmallSize - 1, TextAnchor.MiddleCenter, AkiraPalette.Muted);
+        triggerText.horizontalOverflow = HorizontalWrapMode.Wrap;
+        triggerText.verticalOverflow = VerticalWrapMode.Truncate;
+        Place(triggerText.rectTransform, new Vector2(.5f, 1f), new Vector2(0f, -y), new Vector2(w, 13f), new Vector2(.5f, 1f));
+    }
+
+    Text InfoName(string name, float top, Color colour, float w)
+    {
+        var t = Label(name, previewRoot, font, SmallSize + 1, TextAnchor.MiddleCenter, colour);
+        t.fontStyle = FontStyle.Bold;
+        t.horizontalOverflow = HorizontalWrapMode.Wrap;
+        t.verticalOverflow = VerticalWrapMode.Truncate;
+        Place(t.rectTransform, new Vector2(.5f, 1f), new Vector2(0f, -top), new Vector2(w, 14f), new Vector2(.5f, 1f));
+        return t;
+    }
+
+    Text InfoLine(string name, float top, float w)
+    {
+        var t = Label(name, previewRoot, font, SmallSize - 1, TextAnchor.UpperCenter, AkiraPalette.Muted);
+        t.horizontalOverflow = HorizontalWrapMode.Wrap;
+        t.verticalOverflow = VerticalWrapMode.Truncate;
+        Place(t.rectTransform, new Vector2(.5f, 1f), new Vector2(0f, -top), new Vector2(w, 26f), new Vector2(.5f, 1f));
+        return t;
     }
 
     // A new ship (or the card just opened): reload its cells, start on the
@@ -384,15 +414,20 @@ public class DockPopup : MonoBehaviour
         PowerPreview.Fit(ShipIndex, power, previewCells[power ? 1 : 0], PreviewArtHeight, PanelWidth - 2f * Pad, out artSize, out artAt);
         previewArtRect.sizeDelta = artSize;
         previewArtRect.anchoredPosition = artAt;
-        previewName.text = PowerPreview.Name(ShipIndex, power);
-        previewLine.text = PowerPreview.Line(ShipIndex, power);
+        previewName.text = PowerPreview.Name(ShipIndex, false);
+        previewLine.text = PowerPreview.Line(ShipIndex, false);
+        powerNameText.text = PowerPreview.Name(ShipIndex, true);
+        powerLineText.text = PowerPreview.Line(ShipIndex, true);
+        triggerText.text = "POWER FIRES  " + ShipLoadoutTable.TriggerLine(ShipLoadoutTable.For(ShipIndex)).ToUpperInvariant();
         for (int k = 0; k < 2; k++)
         {
             bool on = (k == 1) == power;
             previewChips[k].color = on ? DockArt.Cyan : new Color(.12f, .15f, .28f, 1f);
             previewChipLabels[k].color = on ? DockArt.Ink : AkiraPalette.Muted;
         }
-        previewName.color = power ? DockArt.Cyan : DockArt.Gold;
+        // the kind shown in the frame is the bright one
+        previewName.color = AkiraPalette.WithAlpha(DockArt.Gold, power ? .6f : 1f);
+        powerNameText.color = AkiraPalette.WithAlpha(DockArt.Cyan, power ? 1f : .6f);
         TickPreview(Time.unscaledTime);
     }
 

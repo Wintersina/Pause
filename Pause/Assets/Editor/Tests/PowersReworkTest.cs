@@ -14,7 +14,7 @@ using UnityEngine;
 //
 // Batch 2, ships 8-15:
 //   8  Lightning    Thunderclap: lightning KILLS hazards within 2.6 (a boss takes a weighted hit)
-//   9  Ligher       Flare Decoy: 2.5 s, shooters aim at the flare too, pops with kill radius 1.5
+//   9  Ligher       Flare Decoy: 4 s, shooters aim at the flare too, pops with kill radius 1.5
 //   10 Paranoid     Time Bubble: 0.45x for 2.5 s inside a visible, tinted dome sized to its radius
 //   11 Ninja        Blink Dash: also fires when a hazard is within 2.0; dodges to the safest side
 //   12 Saboteur     Black Hole: at 3+ enemies on screen
@@ -501,7 +501,7 @@ public static class PowersReworkTest
         var s = ligher.Secret;
         Vector2 pilot = ligher.transform.position;
         Check("with no flare a shooter aims at the pilot", ShipDecoy.AimPoint(pilot) == pilot);
-        Check("the decoy lasts 2.5 s and pops at 1.5", Mathf.Approximately(s.decoySeconds, 2.5f) && Mathf.Approximately(s.decoyBlastRadius, 1.5f));
+        Check("the decoy lasts 4 s and pops at 1.5", Mathf.Approximately(s.decoySeconds, 4f) && Mathf.Approximately(s.decoyBlastRadius, 1.5f));
         s.SetMeter(SecretPowerController.Full);
         s.Fire();
         Vector2 spot = ShipDecoy.Position;
@@ -509,10 +509,10 @@ public static class PowersReworkTest
         Check("the flare is drawn", s.DecoyFx != null && s.DecoyFx.Active);
         var next = Hazard(spot.x + 1.2f, spot.y);
         var wide = Hazard(spot.x + 2.4f, spot.y);
-        s.Step(2.4f);
-        Check("still the target at 2.4 s", ShipDecoy.Active && ShipDecoy.AimPoint(pilot) == spot);
+        s.Step(3.9f);
+        Check("still the target at 3.9 s", ShipDecoy.Active && ShipDecoy.AimPoint(pilot) == spot);
         s.Step(.2f);
-        Check("it pops after 2.5 s: aim back on the pilot", !ShipDecoy.Active && ShipDecoy.AimPoint(pilot) == pilot);
+        Check("it pops after 4 s: aim back on the pilot", !ShipDecoy.Active && ShipDecoy.AimPoint(pilot) == pilot);
         Check("the pop kills within 1.5", ShipAttackHits.AlreadyHit(next));
         Check("and not past it", wide != null && !ShipAttackHits.AlreadyHit(wide));
         Object.DestroyImmediate(wide);

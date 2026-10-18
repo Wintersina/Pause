@@ -126,8 +126,8 @@ public static class WeaponFx
     public static void Impact(int ship, Vector3 at, float worldSize)
     {
         if (ship == ShipVolley.GoldWardenShip) worldSize *= ShipVolley.GoldWardenImpactScale;   // the Warden's impact drew too large
-        Flipbook().Play(FlipbookFx.Mode.WeaponImpact, at, worldSize, ship, TargetExplosion.Kind.Metal,
-                        Color.white, 1f, 74);
+        Flipbook().Play(FlipbookFx.Mode.WeaponImpact, at, worldSize * ShipFxArt.ImpactScale, ship, TargetExplosion.Kind.Metal,
+                        new Color(1f, 1f, 1f, .85f), 1f, 74);
     }
 
     static Sprite solid;
@@ -156,12 +156,12 @@ public static class WeaponFx
 // so it stays readable through the cinematic slow motion.
 public class WeaponShot : MonoBehaviour
 {
-    public const float BodySize = .5f;
+    public const float BodySize = .36f;
     const int Segments = 8;
     const float SampleSpacing = .1f;
-    const float TrailWidth = .13f;
+    const float TrailWidth = .07f;
     const int PuffCount = 4;
-    const float PuffEvery = .055f, PuffLife = .32f, PuffSize = .2f;
+    const float PuffEvery = .055f, PuffLife = .32f, PuffSize = .13f;
     static readonly Color Bone = new Color(.957f, .918f, .831f, 1f); // #F4EAD4
 
     SpriteRenderer body;
@@ -239,9 +239,12 @@ public class WeaponShot : MonoBehaviour
         for (int i = 0; i < hist.Length; i++) hist[i] = from;
         histCount = 1;
         for (int i = 0; i < PuffCount; i++) { puffs[i].enabled = false; puffAge[i] = PuffLife; }
-        Tint(outer, style.main);
-        Tint(energy, style.energy);
-        Tint(core, Bone);
+        var mc = style.main; mc.a = .55f;
+        var ec = style.energy; ec.a = .45f;
+        var bc = Bone; bc.a = .8f;
+        Tint(outer, mc);
+        Tint(energy, ec);
+        Tint(core, bc);
         Active = true;
         gameObject.SetActive(true);
         body.sprite = WeaponArt.Shot(ship, WeaponArt.ShotLoopFrames); // launch smear
@@ -365,7 +368,7 @@ public class WeaponShot : MonoBehaviour
         onHit = null;
         bool landed = hit && target != null;
         target = null;
-        WeaponFx.Impact(ship, at, landed ? .8f : .45f);
+        WeaponFx.Impact(ship, at, landed ? .7f : .35f);
         gameObject.SetActive(false);
         if (landed) callback?.Invoke();
     }

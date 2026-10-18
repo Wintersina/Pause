@@ -35,12 +35,12 @@ public class SecretPowerController : MonoBehaviour
     public float novaBurnSeconds = 2f;     // the ring the nova leaves behind
     public float ionSlowSeconds = 2f;      // Ion Battery's slow-time after the +2 pauses
     public float ionSlowScale = .5f;
-    public float ghostAlpha = .4f;         // Phase Cloak: how solid the hull stays
+    public float ghostAlpha = .55f;        // Phase Cloak: how solid the hull stays (the rim, not the hull, carries the effect)
     public float magnetSeconds = 5f;
     public float magnetDustMultiplier = 2f;
     public float magnetSpeed = 7f;
     public float clapRadius = 2.6f;
-    public float decoySeconds = 2.5f;
+    public float decoySeconds = 4f;
     public float decoyBlastRadius = 1.5f;
     public float bubbleScale = .45f;
     public float bubbleRadius = 1.8f;      // the Time Bubble dome's radius (drawn, and the slow reads as inside it)
@@ -299,25 +299,25 @@ public class SecretPowerController : MonoBehaviour
         {
             case SecretPower.ShieldPulse:
                 collisionDetection.BeginCloak(pulseInvulnerable);
-                Burst(at, pulseShotRadius * 2f, transform);
+                Rim(at, pulseShotRadius * 1.4f, false, 0f, transform, 73);
                 KillWithin(at, pulseRadius);
                 HostileShots.ClearWithin(at, pulseShotRadius);
                 break;
 
             case SecretPower.EmpStun:
-                Burst(at, 6f, transform);
+                Rim(at, 3.6f, false, 0f, transform, 73);
                 Stun();
                 HostileShots.ClearIn(ShipTargets.View());
                 break;
 
             case SecretPower.SolarNova:
-                Burst(at, novaRadius * 2.3f, transform);
+                Rim(at, novaRadius * 1.9f, false, 0f, transform, 73);
                 if (KillWithin(at, novaRadius) > 0) WorldTimeFx.HitStop(.06f);
                 CameraKick.Kick(.04f);
                 // ...and the ring stays burning where it went off
                 novaAt = at;
                 novaLeft = novaBurnSeconds;
-                Loop(at, novaRadius * 2.2f, novaBurnSeconds, null, 66);
+                Rim(at, novaRadius * 2f, true, novaBurnSeconds, null, 66);
                 break;
 
             case SecretPower.CapacitorDump:
@@ -325,7 +325,7 @@ public class SecretPowerController : MonoBehaviour
                     // the rail goes off right now, on top of the usual countdown
                     var runner = GetComponent<ShipAttackRunner>();
                     if (runner != null && runner.Fire()) UltimateShotSound.Play(ship);
-                    Burst(at + Vector3.up * .5f, 1.6f, transform);
+                    Burst(at + Vector3.up * .5f, .9f, transform);
                 }
                 break;
 
@@ -334,7 +334,7 @@ public class SecretPowerController : MonoBehaviour
                 PowerTrailSprite.Pack(ship, at);
                 bubbleLeft = ionSlowSeconds;
                 WorldTimeFx.BubbleScale = ionSlowScale;
-                Burst(at, 2f, transform);
+                Rim(at, 1.3f, false, 0f, transform, 73);
                 break;
 
             case SecretPower.PhaseCloak:
@@ -344,11 +344,11 @@ public class SecretPowerController : MonoBehaviour
 
             case SecretPower.GoldMagnet:
                 magnetLeft = magnetSeconds;
-                magnetFx = Loop(at, 3.2f, magnetSeconds, transform, 41);
+                magnetFx = Rim(at, 1.8f, true, magnetSeconds, transform, 41);
                 break;
 
             case SecretPower.Thunderclap:
-                Burst(at, clapRadius * 2.2f, transform);
+                Rim(at, clapRadius * 1.5f, false, 0f, transform, 73);
                 Clap(at);
                 break;
 
@@ -359,18 +359,19 @@ public class SecretPowerController : MonoBehaviour
                     Vector3 spot = new Vector3(Mathf.Clamp(at.x + side * 1.2f, view.xMin, view.xMax), at.y + .9f, 0f);
                     decoyLeft = decoySeconds;
                     ShipDecoy.Place(spot);
-                    decoyFx = Loop(spot, .9f, decoySeconds, null, 66);
+                    // the flare is thrown from the hull and settles at its spot
+                    decoyFx = Loop(at, .6f, decoySeconds, null, 66);
                     decoyFx.SetColor(DecoyTint);
+                    decoyFx.Travel(spot, .3f, .5f);
                 }
                 break;
 
             case SecretPower.TimeBubble:
                 bubbleLeft = bubbleSeconds;
                 WorldTimeFx.BubbleScale = bubbleScale;
-                bubbleFx = Loop(at, bubbleRadius * 2f, bubbleSeconds, transform, 41);
+                bubbleFx = Rim(at, bubbleRadius * 2f, true, bubbleSeconds, transform, 41);
                 bubbleFx.Rename(BubbleDomeName);
                 bubbleFx.SetColor(BubbleTint);
-                Burst(at, bubbleRadius * 2.4f, transform).SetColor(BubbleTint);
                 break;
 
             case SecretPower.BlinkDash:
@@ -382,22 +383,24 @@ public class SecretPowerController : MonoBehaviour
                     Rect view = ShipTargets.View(-.8f);
                     holeAt = new Vector3(Mathf.Clamp(at.x, view.xMin, view.xMax), Mathf.Min(at.y + 2.6f, view.yMax), 0f);
                     holeLeft = holeSeconds;
-                    holeFx = Loop(holeAt, 2.4f, holeSeconds, null, 67);
-                    Burst(holeAt, 2.6f, null);
+                    // a small seed leaves the hull and opens into the hole where it hangs
+                    holeFx = Loop(at, 1.7f, holeSeconds, null, 67);
+                    holeFx.Travel(holeAt, .35f, .25f);
                 }
                 break;
 
             case SecretPower.TractorPull:
                 tractorLeft = tractorSeconds;
-                Loop(at + Vector3.up * 1.6f, tractorPullRadius * 1.1f, tractorSeconds, transform, 66);
-                Burst(at, 2.4f, transform);
+                Rim(at, tractorPullRadius * 1.1f, true, tractorSeconds, transform, 66);
+                Rim(at, 1.6f, false, 0f, transform, 73);
                 break;
 
             case SecretPower.Mending:
                 if (collisionDetection.lifeCounter > 0) { collisionDetection.lifeCounter--; Mends++; }
                 // a feather burst round the hull, a second one rising off it, and the word
-                Burst(at, 2.6f, transform).SetColor(PickupGlow.HealGreen);
-                Burst(at + Vector3.up * .7f, 1.5f, null);
+                Rim(at, 1.5f, false, 0f, transform, 73).SetColor(PickupGlow.HealGreen);
+                // a few feathers lift off the hull and drift up
+                Burst(at, .9f, null).Travel(at + Vector3.up * 1.1f, .5f, 1f);
                 var hud = ScoreHud.Current;
                 if (hud != null) hud.ShowWord(collisionDetection.HealWord, at + Vector3.up * collisionDetection.PickupWordLift, PickupGlow.HealGreen, 28);
                 break;
@@ -407,7 +410,7 @@ public class SecretPowerController : MonoBehaviour
                     // the blue-atom shield (same art, same absorb rule), on a timer
                     var hit = GetComponent<collisionDetection>();
                     if (hit != null) hit.RaiseShield(PremiumShips.Current(ship).shieldSeconds);
-                    Burst(at, 2.4f, transform);
+                    Rim(at, 1.5f, false, 0f, transform, 73);
                     AegisShields++;
                 }
                 break;
@@ -431,10 +434,11 @@ public class SecretPowerController : MonoBehaviour
     {
         collisionDetection.BeginCloak(seconds);
         Vector3 at = hull != null ? hull.position : Vector3.zero;
-        AttackPool.Sprite().Play(AttackSprite.Source.PowerBurst, shipId, at, Vector3.one * 2.4f, 0f,
-            ShipFxArt.PowerBurstTicks, false, 0f, hull, Vector3.zero, 73);
-        var aura = AttackPool.Sprite().Play(AttackSprite.Source.PowerLoop, shipId, at, Vector3.one * 1.6f, 0f,
+        AttackPool.Sprite().Play(AttackSprite.Source.Rim, shipId, at, Vector3.one * 1.7f, 0f,
+            ShipFxArt.PowerBurstTicks, false, 0f, hull, Vector3.zero, 73).SetColor(RimTint(shipId));
+        var aura = AttackPool.Sprite().Play(AttackSprite.Source.Rim, shipId, at, Vector3.one * 1.15f, 0f,
             ShipFxArt.PowerLoopTicks, true, seconds, hull, Vector3.zero, 40);
+        aura.SetColor(RimTint(shipId));
         aura.Rename(CloakAuraName);
         return aura;
     }
@@ -465,13 +469,31 @@ public class SecretPowerController : MonoBehaviour
             ShipFxArt.PowerBurstTicks, false, 0f, follow, Vector3.zero, 73);
     }
 
+    // The tint of a ship's thin rims: its weapon's energy colour, fainter and a touch lighter.
+    public static Color RimTint(int shipId)
+    {
+        var c = WeaponStyleTable.For(shipId).energy;
+        c.a = .85f;
+        return c;
+    }
+
+    // A thin outline ring (one-shot: opens out and fades; loop: held and breathing).
+    // The defences that sit on the hull use it so the ship stays visible.
+    AttackSprite Rim(Vector3 at, float size, bool loop, float life, Transform follow, int order)
+    {
+        var fx = AttackPool.Sprite().Play(AttackSprite.Source.Rim, ship, at, Vector3.one * size, 0f,
+            loop ? ShipFxArt.PowerLoopTicks : ShipFxArt.PowerBurstTicks, loop, life, follow, Vector3.zero, order);
+        fx.SetColor(RimTint(ship));
+        return fx;
+    }
+
     AttackSprite Loop(Vector3 at, float size, float life, Transform follow, int order)
     {
         return AttackPool.Sprite().Play(AttackSprite.Source.PowerLoop, ship, at, Vector3.one * size, 0f,
             ShipFxArt.PowerLoopTicks, true, life, follow, Vector3.zero, order);
     }
 
-    int KillWithin(Vector3 at, float radius)
+    int KillWithin(Vector3 at, float radius, bool arcs = false)
     {
         ShipTargets.Collect(scratch);
         float budget = 1f;
@@ -483,6 +505,8 @@ public class SecretPowerController : MonoBehaviour
             Vector2 d = t.transform.position - at;
             float r = radius + t.Radius * .5f;
             if (d.sqrMagnitude > r * r) continue;
+            // each strike is drawn leaving the hull and reaching its mark
+            if (arcs) ArcTo(t.transform.position);
             // a power that catches the boss is worth half an ultimate hit
             if (ShipAttackHits.Hit(t.gameObject, ship, .5f, ref budget)) kills++;
         }
@@ -525,7 +549,7 @@ public class SecretPowerController : MonoBehaviour
             if (lockedCount > before)
             {
                 AttackPool.Sprite().Play(AttackSprite.Source.PowerLoop, ship, t.transform.position,
-                    Vector3.one * Mathf.Max(.7f, t.Radius * 2.4f), 0f, ShipFxArt.PowerLoopTicks, true, stunSeconds,
+                    Vector3.one * Mathf.Max(.5f, t.Radius * 1.5f), 0f, ShipFxArt.PowerLoopTicks, true, stunSeconds,
                     t.transform, Vector3.zero, 67);
                 ArcTo(t.transform.position);
                 ArcCount++;
@@ -544,8 +568,8 @@ public class SecretPowerController : MonoBehaviour
         Vector3 d = to - a;
         float len = Mathf.Max(.2f, d.magnitude);
         float ang = Mathf.Atan2(d.y, d.x) * Mathf.Rad2Deg;
-        AttackPool.Sprite().Play(AttackSprite.Source.PowerLoop, ship, (a + to) * .5f, new Vector3(len, .55f, 1f),
-            ang, ShipFxArt.PowerLoopTicks, true, .35f, null, Vector3.zero, 70);
+        AttackPool.Sprite().Play(AttackSprite.Source.PowerLoop, ship, (a + to) * .5f, new Vector3(len, ShipFxArt.BeamThin, 1f),
+            ang, ShipFxArt.PowerLoopTicks, true, .3f, null, Vector3.zero, 70);
     }
 
     void ReleaseLocked()
@@ -562,14 +586,14 @@ public class SecretPowerController : MonoBehaviour
     // boss takes a half hit from the whole clap, like every power).
     void Clap(Vector3 at)
     {
-        ClapKills += KillWithin(at, clapRadius);
+        ClapKills += KillWithin(at, clapRadius, true);
         CameraKick.Kick(.05f);
     }
 
     // The shell, drawn on the hull for as long as it stands.
     AttackSprite ShellLoop(float seconds)
     {
-        var fx = Loop(transform.position, 1.25f, seconds, transform, 45);
+        var fx = Rim(transform.position, 1.05f, true, seconds, transform, 45);
         fx.Rename(ShellAuraName);
         return fx;
     }
@@ -586,8 +610,8 @@ public class SecretPowerController : MonoBehaviour
         if (shellFx != null && shellFx.Active) shellFx.Stop();
         shellFx = null;
         Vector3 at = transform.position;
-        Burst(at, 3.2f, null).SetColor(new Color(.75f, 1f, .85f, 1f));
-        Burst(at, 1.6f, transform);
+        Rim(at, 2f, false, 0f, null, 73).SetColor(new Color(.75f, 1f, .85f, .9f));
+        Burst(at, .9f, transform);
         CameraKick.Kick(.03f);
     }
 
@@ -631,9 +655,9 @@ public class SecretPowerController : MonoBehaviour
         DashOffsetX = dir * dashDistance;
         dashLeft = dashSeconds;
         collisionDetection.BeginCloak(.6f);
-        Burst(at, 1.4f, null);
+        Burst(at, .8f, null);
         transform.position = new Vector3(ShipReach.ClampX(at.x + DashOffsetX), at.y, at.z);
-        Burst(transform.position, 1.2f, transform);
+        Burst(transform.position, .7f, transform);
     }
 
     // A star dust pickup at a kill, the way the old shower dropped them.
@@ -708,7 +732,7 @@ public class SecretPowerController : MonoBehaviour
             decoyLeft = 0f;
             Vector3 spot = ShipDecoy.Position;
             ShipDecoy.Clear();
-            Burst(spot, decoyBlastRadius * 2.3f, null);
+            Rim(spot, decoyBlastRadius * 1.6f, false, 0f, null, 73).SetColor(DecoyTint);
             KillWithin(spot, decoyBlastRadius);
         }
 

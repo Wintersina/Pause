@@ -21,7 +21,7 @@ public enum ShipAttack
 {
     CometStreak,    // two comet streaks straight ahead, each stops at the first hit
     ChainLightning, // a bolt that jumps between nearby enemies
-    SkyJavelins,    // javelins strike three lanes straight down from the top
+    SkyJavelins,    // three rockets fly up from the nose, each opens into a javelin that strikes down its lane
     Blowtorch,      // a short-range flame cone held in front of the ship
     SeekerEyes,     // a few eyes that home on the nearest targets
     SolarFireball,  // a slow fireball that bursts over an area
@@ -140,7 +140,7 @@ public static class ShipLoadoutTable
         default(ShipLoadout), // 0: filled from the starter below
         // 1 Neon Comet (starter, free)
         Row(1, ShipAttack.CometStreak, "COMET STREAK", "Two comet streaks straight ahead.",
-            SecretPower.ShieldPulse, "SHIELD PULSE", "Pops what is about to hit you: 1.2 s of invulnerability, and the ring deletes enemy shots.",
+            SecretPower.ShieldPulse, "SHIELD PULSE", "Just before a hit: 1.2 s invulnerable, and a ring deletes enemy shots.",
             PowerTrigger.ImminentHit, 1, 0f,
             shots: 2, range: 11f, width: .3f, speed: 13f),
         // 2 Volt Viper (600)
@@ -174,13 +174,13 @@ public static class ShipLoadoutTable
             PowerTrigger.PickupsOnScreen, 4, 0f,
             width: 1.6f, volley: VolleyKind.Blast),
         // 8 Lightning (800)
-        Row(8, ShipAttack.SkyJavelins, "SKY JAVELINS", "Javelins strike three lanes from above.",
+        Row(8, ShipAttack.SkyJavelins, "SKY JAVELINS", "Three rockets climb to the top, then javelins strike down three lanes.",
             SecretPower.Thunderclap, "THUNDERCLAP", "Lightning strikes everything within 2.6 dead, bosses take a hit.",
             PowerTrigger.HazardsNearShip, 2, 2.0f,
             shots: 3, width: .32f, range: 1.2f, speed: 26f),
         // 9 Ligher (1000)
         Row(9, ShipAttack.Blowtorch, "BLOWTORCH", "A short flame cone in front.",
-            SecretPower.FlareDecoy, "FLARE DECOY", "A flare that hunters chase and shooters aim at for 2.5 s, then it pops.",
+            SecretPower.FlareDecoy, "FLARE DECOY", "A flare that hunters chase and shooters aim at for 4 s, then it pops.",
             PowerTrigger.EnemyClosing, 2, 2.4f,
             duration: 1.4f, range: 2.7f, width: 24f),
         // 10 Paranoid (1200)

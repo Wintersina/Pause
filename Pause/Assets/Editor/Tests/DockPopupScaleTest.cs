@@ -57,6 +57,10 @@ public static class DockPopupScaleTest
         popup.Show(4, anchor, .3f, false, false, 3200f, 0f);
         Check("preview starts on the ultimate with its name and line",
               !popup.PreviewShowsPower && popup.PreviewName == PowerPreview.Name(4, false) && popup.PreviewLine == PowerPreview.Line(4, false));
+        Check("the card lists both weapons and the trigger at once",
+              popup.AttackNameText == PowerPreview.Name(4, false) && popup.AttackLineText == PowerPreview.Line(4, false) &&
+              popup.PowerNameText == PowerPreview.Name(4, true) && popup.PowerLineText == PowerPreview.Line(4, true) &&
+              popup.TriggerText.EndsWith(ShipLoadoutTable.TriggerLine(ShipLoadoutTable.For(4)).ToUpperInvariant()));
         Check("preview shows a frame while up", popup.PreviewSprite != null);
         popup.TapPreviewChip(true);
         Check("tapping POWER switches to the power and stops auto-alternating",
@@ -88,7 +92,7 @@ public static class DockPopupScaleTest
         Check("the one scale constant is 0.85", Mathf.Approximately(DockPopup.PopupScale, .85f));
         Check("layout constants are the originals (width 300, locked 126, owned 214)",
               DockPopup.PanelWidth == OldWidth && DockPopup.BaseHeight == OldLockedHeight && DockPopup.OwnedHeight == OldOwnedHeight);
-        Check("the preview is 112 units tall", DockPopup.PreviewHeight == 112f);
+        Check("the preview is 171 units tall (art frame plus both weapons and the trigger)", DockPopup.PreviewHeight == 171f);
         PreviewChecks(popup, anchor);
         PlayerPrefs.SetString(ShipId.OwnedKey(2), "True");
         foreach (float wpp in new[] { .0066f, .0092f, .0132f, .0200f })   // world units per point: small to large phones

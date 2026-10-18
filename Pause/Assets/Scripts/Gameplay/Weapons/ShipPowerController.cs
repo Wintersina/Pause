@@ -438,7 +438,7 @@ public class ShipPowerController : MonoBehaviour
         if (!CinematicClearActive || CinematicExiting) return;
         if (onScreenAtStart <= 0) return;
         if (ClearTarget.CountOnScreen(Camera.main) > 0) return;
-        PowerFx.Ring(transform.position, 2.2f, ShipExhaust.TintFor(shipIndex), .3f);
+        PowerFx.Ring(transform.position, 1.4f, ShipExhaust.TintFor(shipIndex) * new Color(1f, 1f, 1f, .55f), .3f);
         BeginExit(early: true);
     }
 
