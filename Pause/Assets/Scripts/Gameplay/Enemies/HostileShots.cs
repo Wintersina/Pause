@@ -99,13 +99,6 @@ public static class HostileShots
             if (!a.ShotCollidable) continue;
             Vector2 pa = a.ShotPosition;
             float ra = a.ShotRadius;
-            // a cover boulder stops every shot, fixed pools included, and is never harmed (CoverBoulders)
-            if (CoverBoulders.Any && CoverBoulders.StopsShot(pa, ra))
-            {
-                CoverBoulders.Impact(pa, Vector2.up, 2);
-                Pop(a, pa);
-                continue;
-            }
             for (int j = i + 1; j < shots.Count && a.ShotCollidable; j++)
             {
                 var b = shots[j];

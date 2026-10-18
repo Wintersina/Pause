@@ -52,7 +52,6 @@ public sealed class WorldHazards : MonoBehaviour
         public bool bossFight;            // the boss fight itself: hazards are allowed
         public bool eliteBusy;            // an elite is parked, lifting off or joining
         public bool eliteJoined;          // an elite joined this frame
-        public bool coverOnScreen;        // a cover boulder is in view
     }
     public static System.Func<Situation> SituationOverride;
     public static bool? BossRunningOverride;   // tests: pretend a boss encounter is (not) running
@@ -80,7 +79,6 @@ public sealed class WorldHazards : MonoBehaviour
             if (e.State == EliteState.Parked || e.State == EliteState.LiftOff) s.eliteBusy = true;
             else if (e.State == EliteState.Join) { s.eliteBusy = true; s.eliteJoined = true; }
         }
-        s.coverOnScreen = HazardCoverSeam.CoverOnScreen;
         return s;
     }
 
@@ -99,7 +97,6 @@ public sealed class WorldHazards : MonoBehaviour
         if (s.bossRunUp && !s.bossFight) return "boss soon";
         if (s.eliteBusy) return "elite";
         if (sinceElite < WorldWeatherTable.MinGapAfterElite) return "elite just joined";
-        if (s.coverOnScreen) return "cover boulder";
         if (secondsInWorld < 8f) return "calm start";
         return null;
     }
@@ -107,7 +104,7 @@ public sealed class WorldHazards : MonoBehaviour
     // A block that also ENDS a running event (a clean board).
     public static bool EndsEvents(in Situation s)
     {
-        return Disabled || s.tutorial || s.world < 0 || s.entry || s.transition || s.portalOpen || s.playerDead || s.bossBusy || s.coverOnScreen;
+        return Disabled || s.tutorial || s.world < 0 || s.entry || s.transition || s.portalOpen || s.playerDead || s.bossBusy;
     }
 
     // ---- scheduler state ----

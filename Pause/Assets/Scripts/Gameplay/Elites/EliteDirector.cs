@@ -211,7 +211,6 @@ public class EliteDirector : MonoBehaviour
         {
             int i = (start + k) % sites.Count;
             if (!sites[i].Valid || usedSites.Contains(sites[i].id)) continue;
-            if (CoverBoulders.SiteCovered(sites[i].Position)) continue;   // a cover boulder is over it
             if (!prefer || LandingSite.Accepts(launchFrom, sites[i].kind)) return i;
             if (any < 0) any = i;
         }

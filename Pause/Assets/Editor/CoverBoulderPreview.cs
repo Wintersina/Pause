@@ -46,7 +46,6 @@ public static class CoverBoulderPreview
             Random.InitState(77);
             var b = CoverBoulders.Spawn(w, shape);
             b.Pos = new Vector2(.3f, CameraFit.ViewTop + 1.5f);
-            b.Vel = new Vector2(0f, -1.1f);
             var rt = new RenderTexture(540, 960, 24, RenderTextureFormat.ARGB32);
             var tx = new Texture2D(540, 960, TextureFormat.RGB24, false);
             int frames = Mathf.RoundToInt(seconds * 30f);
@@ -60,7 +59,7 @@ public static class CoverBoulderPreview
                 tx.Apply();
                 File.WriteAllBytes(Path.Combine(outDir, "v" + v + "_" + f.ToString("000") + ".png"), tx.EncodeToPNG());
                 RenderTexture.active = null;
-                if (f == Mathf.RoundToInt(frames * .8f) && Arg("-boss", "0") == "1") CoverBoulders.OnBossBegin();
+                if (f == Mathf.RoundToInt(frames * .8f) && Arg("-boss", "0") == "1") CoverBoulders.DismissAll();
             }
             cam.targetTexture = null;
             Object.DestroyImmediate(rt); Object.DestroyImmediate(tx);
