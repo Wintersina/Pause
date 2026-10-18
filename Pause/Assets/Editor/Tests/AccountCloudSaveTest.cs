@@ -37,6 +37,8 @@ public static class AccountCloudSaveTest
         public readonly List<string> writes = new List<string>();
         // Platform calls that never answer (a lost callback).
         public bool hangSignIn, hangLoad, hangWrite;
+        // The answer a hung sign-in gives later (the platform answering late).
+        public Action<bool> lateSignIn;
 
         public string PlatformName { get { return "fake"; } }
         public bool IsSignedIn { get { return signedIn; } }
@@ -46,7 +48,11 @@ public static class AccountCloudSaveTest
         {
             signIns++;
             if (interactive) interactiveSignIns++;
-            if (hangSignIn) return;
+            if (hangSignIn)
+            {
+                lateSignIn = ok => { signedIn = ok; done(ok); };
+                return;
+            }
             signedIn = signInResult;
             done(signInResult);
         }
@@ -85,6 +91,7 @@ public static class AccountCloudSaveTest
             FreshDeviceRestoresCloud();
             PurchasesStayPaidAcrossDevices();
             LostCallbacksRecover();
+            LateSignInSuccess();
             AchievementIdTable();
             AchievementResync();
             ResyncRunsAfterSignIn();
@@ -659,6 +666,55 @@ public static class AccountCloudSaveTest
             CloudSync.SetInstance(savedSync);
             AccountLink.Now = () => Time.realtimeSinceStartup;
             AccountLink.ResetSession();
+        }
+    }
+
+    // The launch sign-in is one attempt; a platform that answers late (after
+    // the menu is up) still gets cloud save, achievements and the SignedIn event.
+    static void LateSignInSuccess()
+    {
+        ClearProgress();
+        long now = 4000000;
+        var fake = new FakeAccount { hangSignIn = true, cloudJson = null };
+        var sync = new CloudSync(fake, () => now);
+        int signedInEvents = 0;
+        Action onSignedIn = () => signedInEvents++;
+        SocialBridge.SignedIn += onSignedIn;
+        try
+        {
+            sync.Start();
+            now += CloudSync.CallTimeoutMs;
+            for (int i = 0; i < 5; i++) sync.Poll();
+            Check("late sign-in: Offline meanwhile, still just one attempt", sync.Current == CloudSync.State.Offline
+                  && fake.signIns == 1 && fake.interactiveSignIns == 0);
+
+            fake.lateSignIn(true);
+            Check("late sign-in: success is picked up", sync.Current == CloudSync.State.Loading
+                  || sync.Current == CloudSync.State.Ready);
+            sync.Poll();
+            Check("late sign-in: cloud save read, state Ready", sync.Current == CloudSync.State.Ready && fake.loads == 1);
+            Check("late sign-in: SignedIn event fired once", signedInEvents == 1);
+            Check("late sign-in: no second sign-in attempt", fake.signIns == 1);
+        }
+        finally
+        {
+            SocialBridge.SignedIn -= onSignedIn;
+        }
+
+        // A late success after the player signed out in Pause is ignored.
+        ClearProgress();
+        var gone = new FakeAccount { hangSignIn = true };
+        var s2 = new CloudSync(gone, () => now);
+        s2.Start();
+        PlayerPrefs.SetInt(AccountLink.DisconnectedKey, 1);
+        try
+        {
+            gone.lateSignIn(true);
+            Check("late sign-in: ignored once disconnected", s2.Current == CloudSync.State.Disconnected && gone.loads == 0);
+        }
+        finally
+        {
+            PlayerPrefs.DeleteKey(AccountLink.DisconnectedKey);
         }
     }
 
