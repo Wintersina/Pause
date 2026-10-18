@@ -6,7 +6,9 @@ and given a drawn engine burn cycle. 12 square cells of 384 px (the HD elite siz
 
   0 parked (engines off)   1 parked idle (pilot lights)   2 ignition (stub flames)
   3..10 burn cycle, 8 drawings, each engine on its own phase (the ship stays level: no bank cells, no swing)
-  11 damaged (hull cracked, flames low and ragged)
+  11..16 damaged burn loop (11 in the main strip, 12..16 in the companion strip <name>_damaged.png): the painted damaged hull (masters/damaged/<name>.png, Codex) with its painted flames ERASED (bells restored
+         from cell 0) and a weaker, ragged, flickering burn drawn on every engine, six drawings, each engine on its own phase;
+         one engine sputters out for a beat now and then. Cell 11 is also the drawing the debris is cut from.
 
   python3 build_strips.py [--out <dir>] [name ...]     default out: Resources/Elites/Space  (the live strips)
 """
@@ -32,6 +34,10 @@ SHIPS = {
 LENGTHS = (28, 34, 41, 35, 30, 38, 44, 36)
 WIDTHS = (1.0, .92, .84, .92, 1.0, .9, .82, .9)
 TOP = 10 * K // 2
+# the damaged burn loop: flame length per drawing (192-cell px; 0 = the engine sputters out), width factor, drawings in the loop
+DMG = 6
+DLENGTHS = (17, 23, 13, 20, 10, 18)
+DWIDTHS = (.8, .72, .64, .76, .6, .72)
 
 
 def key_out(path):
@@ -163,15 +169,14 @@ def engine_cell(hull_cell, mouths, cols, lens, wks, seed, ragged=0.0):
     return c
 
 
-def cracks(im, bbox):
-    d = ImageDraw.Draw(im)
-    x0, y0, x1, y1 = bbox
-    cx = (x0 + x1) // 2
-    cy = y0 + (y1 - y0) // 3
-    d.line([(cx - 4, cy - 28), (cx + 12, cy - 10), (cx, cy + 6), (cx + 18, cy + 26)], fill=(255, 79, 216, 235), width=4)
-    d.line([(cx - 40, cy + 12), (cx - 24, cy + 24), (cx - 32, cy + 38)], fill=(110, 225, 255, 190), width=3)
-    d.rectangle((cx + 16, cy + 24, cx + 20, cy + 28), fill=(255, 235, 250, 255))
-    return im
+def clean_damaged(name, hull_cell, mouths):
+    """The painted damaged hull without its painted flames: under and round every bell mouth the pixels come from the bare hull (cell 0),
+    which has the empty bell and nothing below it (this also clears the flames' faint halo)."""
+    dm = Image.open(HERE / "masters" / "damaged" / f"{name}.png").convert("RGBA")
+    for cx, cy, rx, ry in mouths:
+        x0, x1, y0 = int(cx - rx * 1.9), int(cx + rx * 1.9), int(cy - ry * .6)
+        dm.paste(hull_cell.crop((x0, y0, x1, CELL)), (x0, y0))
+    return dm
 
 
 def build(name, out_dir):
@@ -193,14 +198,22 @@ def build(name, out_dir):
     for f in range(BURN):                                                                            # 3..10 burn cycle
         gs = [(f + 3 * i) % BURN for i in range(n)]
         cells.append(engine_cell(hull_cell, mouths, cols, [LENGTHS[g] for g in gs], [WIDTHS[g] for g in gs], 10 + f))
-    dmg = engine_cell(hull_cell, mouths, cols, [24 + 5 * (i % 2) for i in range(n)], [.8] * n, 99, ragged=.5)   # 11 damaged
-    cracks(dmg, (ox, oy, ox + w, oy + h))
-    cells.append(dmg)
-    strip = Image.new("RGBA", (CELL * len(cells), CELL))
-    for i, c in enumerate(cells):
-        strip.alpha_composite(c, (i * CELL, 0))
+    dhull = clean_damaged(name, hull_cell, mouths)                                                   # 11..16 damaged burn loop
+    for f in range(DMG):
+        gs = [(f + 2 * i) % DMG for i in range(n)]
+        lens = [DLENGTHS[g] if (f + i) % 5 != 3 else 5 for i, g in enumerate(gs)]
+        cells.append(engine_cell(dhull, mouths, cols, lens, [DWIDTHS[g] for g in gs], 50 + f, ragged=.55))
+    # The main strip keeps 12 cells (4608 px: textures wider than 4096 are downscaled on import, which breaks the square-cell slicing and
+    # exceeds old phones' limit); the other damaged drawings (12..16) are the companion strip space_elite_<name>_damaged.png that
+    # EliteArt appends to the frames (cell 11 = damaged loop drawing 0, cells 12..16 = drawings 1..5).
+    def save(path, cs):
+        st = Image.new("RGBA", (CELL * len(cs), CELL))
+        for i, c in enumerate(cs):
+            st.alpha_composite(c, (i * CELL, 0))
+        st.save(path)
     out_dir.mkdir(parents=True, exist_ok=True)
-    strip.save(out_dir / f"space_elite_{name}.png")
+    save(out_dir / f"space_elite_{name}.png", cells[:12])
+    save(out_dir / f"space_elite_{name}_damaged.png", cells[12:])
     print(name, json.dumps(dict(hull_w=w, hull_h=h, ox=ox, oy=oy, mouths=[tuple(round(v, 1) for v in m) for m in mouths], bbox_cell3=cells[3].getbbox())))
 
 

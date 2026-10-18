@@ -64,8 +64,8 @@ public static class ShipTierTest
 
     static void Elites()
     {
-        Check("the elite floor is 1.9 x the flown hull, the armoured floor 2.1 x (" + (EliteDef.FloorHulls * Hull).ToString("0.00") + " / " + (EliteDef.HeavyFloorHulls * Hull).ToString("0.00") + " u)",
-              Mathf.Approximately(EliteDef.FloorHulls, 1.9f) && Mathf.Approximately(EliteDef.HeavyFloorHulls, 2.1f) && Hull > .7f);
+        Check("the elite floor is 1.5 x the flown hull, the armoured floor 1.7 x (" + (EliteDef.FloorHulls * Hull).ToString("0.00") + " / " + (EliteDef.HeavyFloorHulls * Hull).ToString("0.00") + " u)",
+              Mathf.Approximately(EliteDef.FloorHulls, 1.5f) && Mathf.Approximately(EliteDef.HeavyFloorHulls, 1.7f) && Hull > .7f);
         int n = 0;
         foreach (var d in EliteCatalog.All)
         {
@@ -75,6 +75,9 @@ public static class ShipTierTest
             Check(d.key + ": drawn " + drawn.ToString("0.00") + " u >= the " + (d.Heavy ? "armoured" : "elite") + " floor " + floor.ToString("0.00") + " u (" + (drawn / Hull).ToString("0.0") + " x the flown hull)",
                   drawn >= floor * .97f);
             Check(d.key + ": below the boss tier (" + drawn.ToString("0.00") + " < 2.4 u)", drawn < 2.4f);
+            // Space / Frost elites were shrunk 2026-10-18 (too big): clearly bigger than the player's ship, never huge
+            if (d.world == "space" || d.world == "frost")
+                Check(d.key + ": drawn " + drawn.ToString("0.00") + " u is within the shrunk band (1.5 x the flown hull .. 1.7 u): bigger than the player, not huge", drawn >= Hull * 1.5f * .985f && drawn <= 1.7f);
             // the hit radius is about half of what is drawn: not a sprite-only scale, not a giant hitbox
             float share = d.hullRadius / (drawn * .5f);
             Check(d.key + ": hit radius " + d.hullRadius.ToString("0.00") + " u is " + share.ToString("0.00") + " of the drawn half-size (0.35-0.80: the armoured elites were drawn with a big hit share from the start)", share >= .35f && share <= .8f);
@@ -84,8 +87,8 @@ public static class ShipTierTest
         float heavy = EnemyRoster.BigWidth;
         float lowest = 9f;
         foreach (var d in EliteCatalog.All) lowest = Mathf.Min(lowest, DrawnLongSide(d));
-        Check("the smallest elite (" + lowest.ToString("0.00") + " u) out-sizes the heavies (" + heavy.ToString("0.00") + " u) and the player's ship (" + Hull.ToString("0.00") + " u) by 1.9x",
-              lowest > heavy && lowest >= Hull * 1.9f * .985f);
+        Check("the smallest elite (" + lowest.ToString("0.00") + " u) out-sizes the heavies (" + heavy.ToString("0.00") + " u) and the player's ship (" + Hull.ToString("0.00") + " u) by 1.5x",
+              lowest > heavy && lowest >= Hull * 1.5f * .985f);
     }
 
     static void Enemies()

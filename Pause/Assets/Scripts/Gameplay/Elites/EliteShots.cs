@@ -528,11 +528,11 @@ public class EliteShot : MonoBehaviour, IHostileShot
         lobTotal = Mathf.Max(.1f, seconds);
         velocity = (to - lobFrom) / lobTotal;
         HitOn(false);
-        mark.sprite = EliteFxArt.Ring;
+        mark.sprite = EliteFxArt.MarkRing;
         mark.enabled = true;
         mark.transform.position = new Vector3(to.x, to.y, 0f);
-        mark.transform.localScale = Vector3.one * def.shotSize * 2.4f / Mathf.Max(.01f, EliteFxArt.Ring.bounds.size.x);
-        mark.color = tint;
+        mark.transform.localScale = Vector3.one * def.shotSize * 2.4f / Mathf.Max(.01f, EliteFxArt.MarkRing.bounds.size.x);
+        mark.color = TelegraphStyle.WithAlpha(tint, TelegraphStyle.RingAlpha);
     }
 
     // Turns a just-fired shot into a slung one (gravity_sling): it curves
@@ -550,11 +550,11 @@ public class EliteShot : MonoBehaviour, IHostileShot
         slingTotal = Mathf.Max(.1f, seconds);
         velocity = 2f * (bend - slingFrom) / slingTotal;
         Face();
-        mark.sprite = EliteFxArt.Ring;
+        mark.sprite = EliteFxArt.MarkRing;
         mark.enabled = true;
         mark.transform.position = new Vector3(to.x, to.y, 0f);
-        mark.transform.localScale = Vector3.one * def.shotSize * 2.4f / Mathf.Max(.01f, EliteFxArt.Ring.bounds.size.x);
-        mark.color = tint;
+        mark.transform.localScale = Vector3.one * def.shotSize * 2.4f / Mathf.Max(.01f, EliteFxArt.MarkRing.bounds.size.x);
+        mark.color = TelegraphStyle.WithAlpha(tint, TelegraphStyle.RingAlpha);
     }
 
     // Turns a just-fired slab into a glide out to `to` (world, riding the
@@ -600,9 +600,9 @@ public class EliteShot : MonoBehaviour, IHostileShot
     public void Fuse(float seconds)
     {
         fuse = fuseTotal = Mathf.Max(.05f, seconds);
-        mark.sprite = EliteFxArt.Ring;
+        mark.sprite = EliteFxArt.MarkRing;
         mark.enabled = true;
-        mark.color = tint;
+        mark.color = TelegraphStyle.WithAlpha(tint, TelegraphStyle.RingAlpha);
     }
 
     // Turns a just-fired orb into a mine: it glides from where it is to `to` in `glide` seconds (both riding the board), then rides
@@ -808,7 +808,7 @@ public class EliteShot : MonoBehaviour, IHostileShot
             transform.rotation = Quaternion.Euler(0f, 0f, age * 240f);
             mark.transform.position = new Vector3(lobTo.x, lobTo.y, 0f);
             Color mc = tint;
-            mc.a = Mathf.FloorToInt(lobTime / ((k > .6f ? 2f : 4f) * EliteArt.Tick)) % 2 == 0 ? .9f : .35f;
+            mc.a = Mathf.FloorToInt(lobTime / ((k > .6f ? 2f : 4f) * EliteArt.Tick)) % 2 == 0 ? TelegraphStyle.RingAlpha : TelegraphStyle.RingAlphaLow;
             mark.color = mc;
             if (k >= 1f) Land();
             return;
@@ -872,9 +872,9 @@ public class EliteShot : MonoBehaviour, IHostileShot
             float k = 1f - fuse / fuseTotal;
             mark.transform.position = new Vector3(p.x, p.y, 0f);
             // the ring shows the fuse: wider as it runs down, blinking faster at the end
-            mark.transform.localScale = Vector3.one * def.hazardSize * sizeScale * (k < .5f ? 1.7f : k < .8f ? 2.1f : 2.5f) / Mathf.Max(.01f, EliteFxArt.Ring.bounds.size.x);
+            mark.transform.localScale = Vector3.one * def.hazardSize * sizeScale * (k < .5f ? 1.7f : k < .8f ? 2.1f : 2.5f) / Mathf.Max(.01f, EliteFxArt.MarkRing.bounds.size.x);
             Color mc = tint;
-            mc.a = Mathf.FloorToInt(age / ((k > .6f ? 2f : 4f) * EliteArt.Tick)) % 2 == 0 ? .95f : .35f;
+            mc.a = Mathf.FloorToInt(age / ((k > .6f ? 2f : 4f) * EliteArt.Tick)) % 2 == 0 ? TelegraphStyle.RingAlpha : TelegraphStyle.RingAlphaLow;
             mark.color = mc;
             float pulse = 1f + .12f * (Mathf.FloorToInt(age / ((k > .6f ? 2f : 4f) * EliteArt.Tick)) % 2);
             core.transform.localScale = Vector3.one * .5f * pulse;
@@ -896,7 +896,7 @@ public class EliteShot : MonoBehaviour, IHostileShot
             Face();
             mark.transform.position = new Vector3(slingTo.x, slingTo.y, 0f);
             Color mc = tint;
-            mc.a = Mathf.FloorToInt(slingTime / ((k > .6f ? 2f : 4f) * EliteArt.Tick)) % 2 == 0 ? .9f : .35f;
+            mc.a = Mathf.FloorToInt(slingTime / ((k > .6f ? 2f : 4f) * EliteArt.Tick)) % 2 == 0 ? TelegraphStyle.RingAlpha : TelegraphStyle.RingAlphaLow;
             mark.color = mc;
             if (k >= 1f)
             {
@@ -1122,7 +1122,7 @@ public class EliteShot : MonoBehaviour, IHostileShot
         mark.enabled = t > .05f;
         mark.sprite = AttackHazardArt.Band();
         var mc = tint;
-        mc.a = (Mathf.FloorToInt(age * 12f) & 1) == 0 ? .6f : .32f;   // (stepped)
+        mc.a = (Mathf.FloorToInt(age * 12f) & 1) == 0 ? TelegraphStyle.LineAlpha : TelegraphStyle.LineAlphaLow;   // (stepped)
         mark.color = mc;
         mark.transform.position = new Vector3(p.x + d.x * t * .5f, p.y + d.y * t * .5f, 0f);
         mark.transform.rotation = Quaternion.Euler(0f, 0f, Mathf.Atan2(d.y, d.x) * Mathf.Rad2Deg);
@@ -1155,7 +1155,7 @@ public static class ShotMotions
     public const int GhostCount = 4;
     public const float GhostGap = .35f;        // u between afterimages: 1.4 u in all
     public const float GhostAlpha = .6f;
-    public const float SightThickness = .03f;  // the hairline
+    public const float SightThickness = TelegraphStyle.LineWidth;  // the hairline
 
     public const float ShatterSeconds = 1.2f;  // flight before an ice shard splits by itself
     public const int ShatterChips = 3;

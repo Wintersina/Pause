@@ -4,7 +4,7 @@ The four Space elites, redesigned in the grounded military / industrial language
 (hard-surface plating, real weight, restrained shapes, accent colours inset as strips and lamps) in place of the earlier intricate
 and then cartoony versions. The ships stay level: there are no bank / swing cells, the animation is the engines burning.
 
-Each `space_elite_<name>.png` is a transparent 4608 x 384 strip of twelve 384 x 384 cells (def `cellPixels` 384):
+Each `space_elite_<name>.png` is a transparent 6528 x 384 strip of seventeen 384 x 384 cells (def `cellPixels` 384):
 
 | Cell | State |
 | --- | --- |
@@ -12,7 +12,7 @@ Each `space_elite_<name>.png` is a transparent 4608 x 384 strip of twelve 384 x 
 | 1 | Pilot lights |
 | 2 | Ignition (stub flames) |
 | 3-10 | Burn cycle: 8 drawings, each engine on its own phase (the flight loop and the codex loop) |
-| 11 | Damaged (cracked hull, low ragged flames) |
+| 11-16 | Damaged burn loop (def `damagedLoop`): the damaged hull (cracked plating) with its painted flames erased, a weaker, ragged, flickering burn on EVERY engine, each on its own phase, one engine sputtering now and then; cell 11 is also the debris source |
 
 `<name>_death.png` is 3 x 384 (flash, rupture, dispersal), cut from the bare hull cell 0.
 

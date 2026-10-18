@@ -95,11 +95,11 @@ All sizes are the drawn silhouette's longest side, in world units, from the idle
 | T0 fodder | rocks, mites / aliens | 0.52-0.74 | 0.7-0.9 | **x1.20** -> 0.62-0.89 | 0.8-1.1 | 90-129 / 60-86 |
 | T1 fighter | fighters, chasers | 0.75-0.90 | 0.95-1.15 | **x1.20** -> 0.90-1.08 | 1.15-1.4 | 131-157 / 87-104 |
 | T2 heavy | the world "Big" (Bastion, Magma Skull, ...) | 1.10-1.22 | 1.4-1.6 | **x1.20** -> 1.32-1.46 | 1.7-1.9 | 192-212 / 128-141 |
-| T3 elite | all elites | 0.95-1.69 | 1.2-2.2 | **floor 1.50 u** (1.65 u for armoured / slow classes) | >= 1.9 / 2.1 | >= 218 / 145 (240 / 160 heavy) |
+| T3 elite | all elites | 0.95-1.69 | 1.2-2.2 | **floor 1.17 u** (1.33 u for armoured / slow classes) | >= 1.5 / 1.7 | (was 1.50 / 1.65 u, 1.9 / 2.1 hulls: lowered 2026-10-18, see below) |
 | T4 boss | the seven bosses | 2.85-3.21 | 3.6-4.1 | unchanged | | 413-466 / 275-311 |
 | rail mines | | 0.65 u | 0.83 | unchanged (rail-mounted; collider pinned) | | 94 / 63 |
 
-Rules: (a) tiers strictly increase: fodder < fighter < heavy (1.35 x fighter) < elite floor (1.07 x heavy, 1.2 x for the armoured 1.65 u class) < boss (about 2 x elite); (b) elite floor = 1.9 x the flown hull (`ShipScale.Main` x `ReferenceHullSize`), armoured classes (hauler, bastion, siege, tug, herder, tender, ironclad, logger, abyss, netter, pearler brains) 2.1 x, so the player's own ship never reads as larger than the elite it is fighting; (c) elites that are already above the floor (Ember: Ash Wraith 1.51, Vulture 1.56, Cauterizer 1.69, Sunstoke 1.47 -> 1.5) are left alone, which keeps the originals the user already approved; (d) hit radius scales with the drawing (x0.95 of the size factor, 5% leniency), never sprite-only.
+Rules: (a) tiers strictly increase: fodder < fighter < heavy (1.35 x fighter) < elite floor (1.07 x heavy, 1.2 x for the armoured 1.65 u class) < boss (about 2 x elite); (b) elite floor = 1.5 x the flown hull (`ShipScale.Main` x `ReferenceHullSize`; was 1.9 x until 2026-10-18, when the user found the Space elites too big), armoured classes (hauler, bastion, siege, tug, herder, tender, ironclad, logger, abyss, netter, pearler brains) 1.7 x (was 2.1 x), so the player's own ship never reads as larger than the elite it is fighting; (c) elites that are already above the floor (Ember: Ash Wraith 1.51, Vulture 1.56, Cauterizer 1.69, Sunstoke 1.47 -> 1.5) are left alone, which keeps the originals the user already approved; (d) hit radius scales with the drawing (x0.95 of the size factor, 5% leniency), never sprite-only.
 
 ### 2.2 Elites (36)
 
@@ -392,3 +392,21 @@ The mechanical fix for the outline (a 1 px, world-tinted pale outline script run
 * **Tests**: new `ShipTierTest` (every elite's drawn silhouette >= floor, hit radius share, tier ordering, lanes) and `EliteLockOnTest` (data limits for all defs, brain lag, aim frozen after the commit, facing limit); adjusted pins: `EnemyRosterTest` (heavy 1.2-1.5 u; slot sampling per try), `EnemyBehaviourTest` (fixture spacing), `ShieldShockwaveTest` (elite offset by hull), `EliteEvasionTest` (look-ahead bound x hull), `HazardSizeTest` (mean-area tolerance .07), `RailsVettingTest` (<= 4 spawns in the 2 s after the calm window).
 * **Art**: nothing redrawn. The design-language outline is wired as a ONE-SIDED pale outline (never a full ring: Glow Jelly and Singularity looked bad with one): `Pause/Assets/Art/Enemies/src~/ship_scale_border~/` (`add_border.py`, one data place `modes.json`: default bottom half, a soft smoothstep fade of 30% of the silhouette across the midline; overrides: Glow Jelly, Resin Warden, Snap Sprout, Thunderfin, Coalrunner, Sunstoke top; `none` opts a ship out). 27 elites (1 px) and 38 enemies (2 px) outlined, interiors untouched, world-tinted pale tones, no pink outside Space; the originals are in `original/` (the live strips are regenerated from them, `--wire`). `EliteArtSync` keeps outlined strips; `ShipOutlineTest` checks side, fade, no pink, no full outline, originals == Codex strips. The Codex brief is `docs/ship-scale-codex-brief.md` (not run).
 * **Enemy sizes**: the uniform x1.2 stays; natural size variety between enemy types is kept (small ones may stay small), so there is no per-enemy floor for fodder (an experiment with per-enemy floors was dropped at the user's request). Only elites have a floor (`ShipTierTest`).
+
+
+### 2.7 Elite shrink (2026-10-18)
+
+The user, watching the Space elite fight clips: "some of the elites are just too big". The size-tier floors came down to `FloorHulls` 1.5 / `HeavyFloorHulls` 1.7 (x the flown hull 0.78 u: 1.17 u / 1.33 u), so an elite is still clearly bigger than the player's ship without filling the board. Drawn long side (u, flame included) old -> new:
+
+| Elite | old | new |
+| --- | --- | --- |
+| Eventide Bastion (space) | 2.19 | 1.60 |
+| Singularity Hauler (space) | 2.10 | 1.55 |
+| Rift Lancer (space) | 1.91 | 1.55 |
+| Orbit Reaver (space) | 1.94 | 1.55 |
+| Floe Harrower (frost) | 1.98 | 1.62 |
+| Whiteout Sentinel (frost) | 1.99 | 1.62 |
+| Rimebreaker (frost) | 1.78 | 1.60 |
+| Glacier Tender (frost) | 1.89 | 1.58 |
+
+Only `cellWorldSize` and `hullRadius` changed (muzzles / nozzles are cell pixels and follow; hit share is unchanged). `ShipTierTest` and `ElitePolishTest` enforce the floors and the Space / Frost band (<= 1.7 u).

@@ -7,6 +7,7 @@ from PIL import Image, ImageDraw, ImageFilter, ImageChops
 HERE = Path(__file__).resolve().parent
 ELITES = HERE.parent
 CELL = 384
+CELLS = 17          # 0 parked .. 2 ignition, 3..10 burn, 11..16 damaged burn loop
 NAMES = ("rift_lancer", "eventide_bastion", "orbit_reaver", "singularity_hauler")
 PALETTE = {
     "rift_lancer": ((55, 220, 255), (255, 55, 205)),
@@ -84,12 +85,17 @@ def glow_layer(size, points, colors, phase, damaged=False):
 
 def build_lights(name):
     base = Image.open(ELITES / f"space_elite_{name}.png").convert("RGBA")
+    comp = Image.open(ELITES / f"space_elite_{name}_damaged.png").convert("RGBA")      # cells 12..16 (the damaged burn loop's other drawings)
+    whole = Image.new("RGBA", (CELL * CELLS, CELL))
+    whole.alpha_composite(base, (0, 0))
+    whole.alpha_composite(comp, (CELL * 12, 0))
+    base = whole
     out = Image.new("RGBA", base.size)
     previews = []
     points = feature_points(base.crop((0, 0, CELL, CELL)))
     if len(points) < 6:
         raise RuntimeError(f"could not find enough hull features for {name}")
-    for frame in range(12):
+    for frame in range(CELLS):
         cell = base.crop((frame * CELL, 0, (frame + 1) * CELL, CELL))
         if frame == 0:
             phase, strength, damaged = 0, .18, False
@@ -100,13 +106,15 @@ def build_lights(name):
         elif 3 <= frame <= 10:
             phase, strength, damaged = frame - 3, 1.0, False
         else:
-            phase, strength, damaged = 7, .65, True
+            phase, strength, damaged = frame - 11, .65, True
         overlay = glow_layer((CELL, CELL), points, PALETTE[name], phase, damaged)
         overlay.putalpha(overlay.getchannel("A").point(lambda v: round(v * strength)))
         out.alpha_composite(overlay, (frame * CELL, 0))
         previews.append(Image.alpha_composite(cell, overlay))
-    out.save(HERE / f"space_elite_{name}_lights.png")
-    strip = Image.new("RGBA", (CELL * 12, CELL))
+    # (two files, like the hull: a texture wider than 4096 px is downscaled on import)
+    out.crop((0, 0, CELL * 12, CELL)).save(HERE / f"space_elite_{name}_lights.png")
+    out.crop((CELL * 12, 0, CELL * CELLS, CELL)).save(HERE / f"space_elite_{name}_lights_damaged.png")
+    strip = Image.new("RGBA", (CELL * CELLS, CELL))
     for i, image in enumerate(previews):
         strip.alpha_composite(image, (i * CELL, 0))
     strip.save(HERE / f"space_elite_{name}_preview_lights.png")

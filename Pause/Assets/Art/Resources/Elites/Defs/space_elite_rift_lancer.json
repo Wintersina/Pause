@@ -27,10 +27,18 @@
     "tell": -1,
     "action": -1,
     "hit": -1,
-    "damaged": 11
+    "damaged": 11,
+    "damagedLoop": [
+      11,
+      12,
+      13,
+      14,
+      15,
+      16
+    ]
   },
-  "cellWorldSize": 2.0,
-  "hullRadius": 0.335,
+  "cellWorldSize": 1.623,
+  "hullRadius": 0.272,
   "noseDeg": 90,
   "turnsToFace": true,
   "maxBank": 0,
