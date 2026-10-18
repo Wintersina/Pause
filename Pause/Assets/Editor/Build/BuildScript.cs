@@ -124,12 +124,12 @@ public static class BuildScript
         try
         {
             EditorUserBuildSettings.buildAppBundle = true;
-            UnityEditor.Android.UserBuildSettings.DebugSymbols.level = (dynamic)Enum.Parse(symbolsWas.GetType(), "Full");
+            UnityEditor.Android.UserBuildSettings.DebugSymbols.level = Unity.Android.Types.DebugSymbolLevel.Full;
             if (!Build(BuildTarget.Android, Path.Combine(dir, stem + ".aab"))) { EditorApplication.Exit(1); return; }
             if (Environment.GetEnvironmentVariable("PAUSE_SKIP_APK") != "1")
             {
                 EditorUserBuildSettings.buildAppBundle = false;
-                UnityEditor.Android.UserBuildSettings.DebugSymbols.level = (dynamic)Enum.Parse(symbolsWas.GetType(), "None");
+                UnityEditor.Android.UserBuildSettings.DebugSymbols.level = Unity.Android.Types.DebugSymbolLevel.None;
                 if (!Build(BuildTarget.Android, Path.Combine(dir, stem + ".apk"))) { EditorApplication.Exit(1); return; }
             }
         }
