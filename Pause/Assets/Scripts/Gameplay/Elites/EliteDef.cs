@@ -179,6 +179,11 @@ public class EliteDef
     public string shotCore = "#9FF6FF";
     public string engineColor = "#FF9A3C";
 
+    // ---- engagement (EliteShip: retreat, hurt-hide) ----
+    public float engageSeconds = 45f;   // seconds in play (hidden time not counted) before an elite that is still alive retreats to its dock / off the top; escaping costs the pilot Score / 2
+    public bool hurtHide;               // a non-armoured elite that, on losing a heart, breaks off, flies off-screen, waits hideSeconds and re-enters from another side
+    public float hideSeconds = 3.5f;    // how long it waits off-screen (EliteShip.Hide)
+
     // ---- hearts ----
     public int hearts = 2;
     public float heartSize = .18f;

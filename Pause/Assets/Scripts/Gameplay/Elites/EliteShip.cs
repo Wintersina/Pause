@@ -47,7 +47,17 @@ using UnityEngine;
 // muzzles and a squash and lean, fires with muzzle flashes and a recoil,
 // and flashes its current frame when hit.
 //
-// ENDING. Elites never retreat or time out: they die by crashing -- into
+// ENDING. An elite that is still alive Def.engageSeconds (45) after it
+// joined retreats (Retreat): it stops attacking, flies back to its dock (or
+// off the top of the view once the dock has scrolled away) and is removed --
+// ESCAPED: the pilot LOSES half of what its kill would have paid (RunScore
+// .OnEliteEscaped, floored at 0), no dust, no codex, no achievement. The clock
+// runs on the world's clock (a pause freezes it) and stops while it hides.
+// A non-armoured elite with Def.hurtHide (the Orbit Reaver, the Rift Lancer)
+// that loses a heart (and lives) HIDES (Hide): it breaks off, flies off the
+// nearest side or the top, is neither hittable nor attacking while away, waits
+// Def.hideSeconds, and re-enters from a different side to carry on.
+// Otherwise elites die by crashing -- into
 // rocks, enemies, mines, other elites and the side rails -- or to the
 // pilot. They read the board and dodge (EliteEvasion; `avoidance` is their
 // skill at it), but what arrives inside their reaction time or a
@@ -69,7 +79,7 @@ using UnityEngine;
 // Positions are world (screen) space: like the chaser it holds its place in
 // the world while the board pours past it. Stepped by EliteSystem on the
 // world's clock -- frozen at timeScale 0 -- with no per-frame allocation.
-public enum EliteState { Parked, LiftOff, Join, Follow, Attack, Dead }
+public enum EliteState { Parked, LiftOff, Join, Follow, Attack, Dead, Retreat, Hide }   // Retreat: flying home / off the top, still hittable; Hide: off-screen after a hit, untouchable (appended: the order of the first six is load-bearing for old tests)
 public enum EliteDamage { PlayerWeapon, Teleport, ShieldRam, PlayerContact, Crash, Rail, FriendlyFire, Domino, Combo, ShoveCrash }   // Combo: a DEATH COMBO link (DeathCombo), one heart, respects grace; ShoveCrash: a body the shield shockwave shoved crashed into it (ShoveCrash), one heart, respects grace
 
 [DisallowMultipleComponent]
@@ -91,6 +101,10 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
     // ---- counters (tests, previews) ----
     public static int Kills, CrashKills, FriendlyKills, Crashes;
     public static EliteDamage LastKillCause;
+    // Elites that got away (retreated and left) and the callback (ship, points the pilot lost).
+    public static int Escapes, Hides;
+    public static System.Action<EliteShip, int> EscapedCb;
+    public static int LastEscapeLoss { get; private set; }
     // Diagnostics (probes, tests): what the next hit comes from -- set by the
     // code about to call TakeHit, cleared by it -- and a death callback
     // (ship, cause, source). Constant strings only: nothing allocates.
@@ -115,7 +129,17 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
     public bool AimLocked { get { return aimLocked; } }
     public bool PlayerLost { get { return lost; } }
     public float StateTime { get { return stateTime; } }
-    public bool InPlay => State == EliteState.Join || State == EliteState.Follow || State == EliteState.Attack;
+    public bool InPlay => State == EliteState.Join || State == EliteState.Follow || State == EliteState.Attack || State == EliteState.Retreat;
+    // In the fight, on the board or away from it (hiding): the drawing stays the damaged one throughout.
+    bool Engaged => InPlay || State == EliteState.Hide;
+    public bool Hidden => State == EliteState.Hide;
+    // The side it left by while hiding / came back from (0 left, 1 right, 2 top).
+    public int HideSide => hideSide;
+    public bool Retreating => State == EliteState.Retreat;
+    // Seconds of play left before it retreats (frozen while it hides).
+    public float EngageLeft { get { return engageLeft; } set { engageLeft = value; } }
+    // Seconds left of the off-screen wait (while hiding).
+    public float HideLeft => hideLeft;
     public bool Telling => State == EliteState.Attack && attackPhase == 0;
     public bool Acting => State == EliteState.Attack && attackPhase == 1;
     public float AttackClock => attackClock;
@@ -154,6 +178,9 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
     Vector2 liftFrom, liftTo;
     Vector2 velocity;
     float facing = 90f, bank;
+    float engageLeft, hideLeft;     // see EngageLeft / HideLeft
+    int hidePhase, hideSide;        // 0 away, 1 waiting, 2 back in; the side it left by (0 left, 1 right, 2 top)
+    Vector2 hideTo;
     float stateTime, cooldown, escapeLeft, grace, hitFlash, frameHold, blinkCooldown, exhaustClock;
     int idleStep, attackPhase;
     float thrust, lastDt;
@@ -363,6 +390,7 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
         State = EliteState.Join;
         stateTime = 0f;
         escapeLeft = EscapeWindow;
+        engageLeft = Def.engageSeconds;
         gameObject.tag = "Enimey";
         col.enabled = true;
         SetHullScale(1f);
@@ -418,6 +446,7 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
         {
             case EliteState.Parked: StepParked(dt); break;
             case EliteState.LiftOff: StepLiftOff(dt); break;
+            case EliteState.Hide: StepHide(dt); break;
             default: StepPlay(dt); break;
         }
         if (State == EliteState.Dead) return;
@@ -505,6 +534,183 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
     // air: under .9, so it is still drawn behind the play layer.
     public const float HoverShare = .86f;
 
+    // ---- retreat ------------------------------------------------------------
+
+    // Seconds a retreat may take at most (a dock that never gets closer): then it leaves anyway.
+    public const float RetreatMaxSeconds = 12f;
+    public const float RetreatSpeedScale = 1.5f;
+
+    void BeginRetreat()
+    {
+        State = EliteState.Retreat;
+        stateTime = 0f;
+        evading = false;
+        forcedAttack = false;
+        reachRise = false;
+        cooldown = 999f;
+        sight.enabled = false;
+        ChargeGlowOn = false;
+    }
+
+    // Its dock, while that is still on the board.
+    bool DockUsable => site.Valid && site.Position.y > EliteSystem.ViewBottom + 2f && site.Position.y < EliteSystem.ViewTop + 1f;
+
+    // Where a retreat is heading: the dock, else straight up and out.
+    public Vector2 RetreatGoal
+    {
+        get
+        {
+            Vector2 p = transform.position;
+            if (DockUsable) return site.Position;
+            return new Vector2(p.x, EliteSystem.ViewTop + Def.cellWorldSize + 1.5f);
+        }
+    }
+
+    // Flies home, no longer attacking (it still dodges and can still be shot down: a kill pays as ever).
+    void StepRetreat(float dt)
+    {
+        Vector2 pos = transform.position;
+        Vector2 goal = RetreatGoal;
+        bool toDock = DockUsable;
+        Vector2 d = goal - pos;
+        float dist = d.magnitude;
+        float max = Def.speed * RetreatSpeedScale;
+        Vector2 want = dist > 1e-4f ? d / dist * max : Vector2.zero;
+        want += Avoid() * (EliteEvasion.Enabled ? EliteEvasion.ReflexWeight : 1f);
+        want += Walls();
+        if (want.sqrMagnitude > max * max * 2.25f) want = want.normalized * max * 1.5f;
+        Accelerate(want, Def.accel * RetreatSpeedScale, dt);
+        bool gone = toDock ? dist < .45f : pos.y > EliteSystem.ViewTop + Def.cellWorldSize * .55f;
+        if (gone || stateTime >= RetreatMaxSeconds) Escape(toDock);
+    }
+
+    // It got away: removed without a death, a reward or a codex entry; the pilot loses half what the kill paid.
+    void Escape(bool intoDock)
+    {
+        if (State == EliteState.Dead) return;
+        Vector3 at = transform.position;
+        State = EliteState.Dead;
+        Escapes++;
+        Live.Remove(this);
+        col.enabled = false;
+        if (target != null) ClearTarget.Release(gameObject);
+        if (footprint != null) footprint.enabled = false;
+        if (Attack != null) { Attack.OnDeath(); Attack.End(); }
+        if (intoDock && site.emerge) EliteSystem.Fx.DockFlare(at, Def.EngineColor, site.order, Def.cellWorldSize);
+        LastEscapeLoss = RunScore.OnEliteEscaped(at, Def.Score / 2);
+        if (EscapedCb != null) EscapedCb(this, LastEscapeLoss);
+        BossUtil.Kill(gameObject);
+    }
+
+    // ---- hurt -> hide ---------------------------------------------------------
+
+    public const float HideSpeedScale = 2f;
+    // Beyond the view's side edge (the rails' inner face at the least).
+    float OffsideX => Mathf.Max(EliteSystem.RailEdge, EliteSystem.ViewHalfWidth) + Def.cellWorldSize * .7f;
+
+    // Untouchable and not attacking: no collider, no hazard tag, not a target.
+    void SetHittable(bool on)
+    {
+        gameObject.tag = on ? "Enimey" : "Untagged";
+        col.enabled = on;
+        if (target != null) target.enabled = on;
+        if (footprint != null) footprint.enabled = on;
+    }
+
+    void BeginHide()
+    {
+        if (State == EliteState.Attack)
+        {
+            // (a wind-up or an action broken off: nothing more is fired)
+            if (attackPhase == 0) Attack.Cancel();
+            Attack.End();
+        }
+        Hides++;
+        State = EliteState.Hide;
+        stateTime = 0f;
+        hidePhase = 0;
+        attackPhase = 0;
+        forcedAttack = false;
+        evading = false;
+        reachRise = false;
+        sight.enabled = false;
+        cooldown = Def.attackGap * .5f;
+        SetHittable(false);
+        // the nearest way out: the left or right edge, or the top
+        Vector2 p = transform.position;
+        float half = OffsideX;
+        float dl = p.x + half, dr = half - p.x, dt = EliteSystem.ViewTop - p.y;
+        hideSide = dt < dl && dt < dr ? 2 : dl <= dr ? 0 : 1;
+        hideTo = hideSide == 2 ? new Vector2(p.x, EliteSystem.ViewTop + Def.cellWorldSize * .7f)
+                               : new Vector2(hideSide == 0 ? -half : half, p.y);
+    }
+
+    void StepHide(float dt)
+    {
+        Perceive(dt);   // (it keeps its eye on the pilot, so it does not come back "lost")
+        float speed = Def.speed * HideSpeedScale;
+        Vector2 pos = transform.position;
+        if (hidePhase == 1)
+        {
+            velocity = Vector2.zero;
+            hideLeft -= dt;
+            if (hideLeft <= 0f) BeginReentry();
+        }
+        else
+        {
+            Vector2 to = hideTo;
+            Vector2 next = Vector2.MoveTowards(pos, to, speed * dt);
+            velocity = dt > 0f ? (next - pos) / dt : Vector2.zero;
+            transform.position = new Vector3(next.x, next.y, 0f);
+            if ((next - to).sqrMagnitude < 1e-4f)
+            {
+                if (hidePhase == 0) { hidePhase = 1; hideLeft = Def.hideSeconds; velocity = Vector2.zero; }
+                else EndHide();
+            }
+        }
+        Face(dt);
+        thrust = Mathf.Lerp(thrust, Mathf.Clamp01(velocity.magnitude / Mathf.Max(.1f, Def.speed)) * .8f + .25f, 1f - Mathf.Exp(-6f * dt));
+    }
+
+    // Back in: from a side other than the one it left by.
+    void BeginReentry()
+    {
+        int side = (hideSide + 1 + Random.Range(0, 2)) % 3;
+        var p = EliteSystem.Player;
+        float edge = EliteSystem.RailEdge - Def.hullRadius - .6f;
+        float y = Mathf.Lerp(EliteSystem.ViewBottom, EliteSystem.ViewTop, .62f);
+        float half = OffsideX;
+        Vector2 from, to;
+        if (side == 2)
+        {
+            float x = Mathf.Clamp(p != null ? p.position.x : 0f, -edge, edge);
+            from = new Vector2(x, EliteSystem.ViewTop + Def.cellWorldSize * .7f);
+            to = new Vector2(x, EliteSystem.ViewTop - Def.hullRadius - 1.2f);
+        }
+        else
+        {
+            float sx = side == 0 ? -1f : 1f;
+            from = new Vector2(sx * half, y);
+            to = new Vector2(sx * edge, y);
+        }
+        hideSide = side;
+        hidePhase = 2;
+        hideTo = to;
+        transform.position = new Vector3(from.x, from.y, 0f);
+    }
+
+    // On the board again, hittable and hunting; a short breath before its next attack.
+    void EndHide()
+    {
+        State = EliteState.Follow;
+        stateTime = 0f;
+        SetHittable(true);
+        escapeLeft = EscapeWindow;
+        claim = transform.position;
+        planIn = 0f;
+        Physics2D.SyncTransforms();
+    }
+
     // ---- evasion -----------------------------------------------------------
 
     // The brain's wish, made safe: every ReactionSeconds it reads the board
@@ -586,6 +792,9 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
         PlaySeconds += dt;
         if (escapeLeft > 0f) escapeLeft -= dt;
         Perceive(dt);
+        // the engagement runs out: it is still here, so it goes home (once it is between attacks)
+        if (State != EliteState.Retreat) engageLeft -= dt;
+        if (engageLeft <= 0f && State == EliteState.Follow) BeginRetreat();
 
         Vector2 pos = transform.position;
         bool driven = false;
@@ -611,6 +820,11 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
                 if (MayCommit(false)) BeginAttack();
                 else { cooldown = EliteEvasion.HoldFireSeconds; HeldFire++; }
             }
+        }
+        else if (State == EliteState.Retreat)
+        {
+            StepRetreat(dt);
+            if (State == EliteState.Dead) return;
         }
         else if (State == EliteState.Attack)
         {
@@ -646,7 +860,7 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
         Face(dt);
         KeepInView(dt);
         Collide();
-        if (State != EliteState.Dead) Attack.Passive(dt);
+        if (State != EliteState.Dead && State != EliteState.Retreat) Attack.Passive(dt);
         thrust = Mathf.Lerp(thrust, Mathf.Clamp01(velocity.magnitude / Mathf.Max(.1f, Def.speed)) * .8f + .25f, 1f - Mathf.Exp(-6f * dt));
     }
 
@@ -876,7 +1090,7 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
     void KeepInView(float dt)
     {
         Vector3 p = transform.position;
-        float bottom = EliteSystem.ViewBottom + Def.hullRadius * .6f, top = EliteSystem.ViewTop + 1.5f;
+        float bottom = EliteSystem.ViewBottom + Def.hullRadius * .6f, top = EliteSystem.ViewTop + (State == EliteState.Retreat ? Def.cellWorldSize + 2f : 1.5f);   // (a retreating elite leaves over the top)
         if (p.y < bottom) { p.y = bottom; if (velocity.y < 0f) velocity.y = 0f; }
         if (p.y > top) { p.y = top; if (velocity.y > 0f) velocity.y = 0f; }
         transform.position = p;
@@ -1026,6 +1240,7 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
         if (heartsView != null) heartsView.Refresh();
         EliteSystem.Fx.Sparks(at, Def.HeartColor, 6);
         if (Hearts <= 0) Die(cause);
+        else if (Def.hurtHide && !Def.armored && State != EliteState.Retreat) BeginHide();
         return true;
     }
 
@@ -1342,7 +1557,7 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
     // calm-idle pass: an upright hull never leans more than this into a sideways move (defs asked for up to 10 deg)
     public const float BankCap = 4f;
     // Lost a heart and has a damaged drawing: shown from then on.
-    public bool Damaged => Def.cells.damaged >= 0 && (Hearts < Def.hearts || Attack.ShowsDamaged) && InPlay;
+    public bool Damaged => Def.cells.damaged >= 0 && (Hearts < Def.hearts || Attack.ShowsDamaged) && Engaged;
     public int BankCell => bankCell;
 
     void SetSprite(Sprite s)
@@ -1364,7 +1579,15 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
         }
         RenderEngines(thrust, Mathf.Clamp01(thrust));
         RenderProcedural();
+        // a damaged elite wears ONE held drawing: the engines and a hover bob keep it alive over it
+        float bob = Damaged && Def.cellPixels > 0 ? Mathf.Round(Mathf.Sin(exhaustClock * DamagedBobRate) * DamagedBobPixels) * Def.PixelWorld : 0f;
+        hullTf.localPosition = (Vector3)(recoilDir * recoilLen) + Vector3.up * bob;
     }
+
+    // Damaged (one held drawing: the flight loop's drawn flames are gone): a procedural plume of this length (x the cell), a
+    // glow pulse and a stepped hover bob of this many strip pixels at this rate (rad/s) keep the engines animating.
+    public const float DamagedExhaustScale = .4f, DamagedGlowScale = .12f, DamagedBobPixels = 5f, DamagedBobRate = 4.2f;
+    public bool DamagedEngines => Damaged;
 
     // ---- procedural tell / action / hit (strips without those cells) ----
 
@@ -1445,11 +1668,15 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
         EngineLightsOn = light > .05f;
         if (plumes == null) return;
         int ticks = Mathf.FloorToInt(exhaustClock * 24f);
-        float len = Def.cellWorldSize * Def.exhaustScale * plume;
+        bool damaged = Damaged;
+        float scale = damaged && Def.exhaustScale <= 0f ? DamagedExhaustScale : Def.exhaustScale;
+        float len = Def.cellWorldSize * scale * plume;
+        // (a damaged ship's engine light stutters in hard steps)
+        float pulse = damaged ? (ticks / 3 % 2 == 0 ? 1f : .8f) : 1f;
         for (int i = 0; i < plumes.Length; i++)
         {
             var p = plumes[i];
-            bool showPlume = len > .02f && Def.exhaustScale > 0f;
+            bool showPlume = len > .02f && scale > 0f;
             p.enabled = showPlume;
             if (showPlume)
             {
@@ -1469,7 +1696,7 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
                 Color c = Def.EngineColor;
                 c.a = Mathf.Clamp01(light);
                 g.color = c;
-                g.transform.localScale = Vector3.one * Def.cellWorldSize * Def.glowScale * (.7f + .5f * light);
+                g.transform.localScale = Vector3.one * Def.cellWorldSize * (damaged ? Mathf.Max(Def.glowScale, DamagedGlowScale) : Def.glowScale) * (.7f + .5f * light) * pulse;
             }
         }
     }

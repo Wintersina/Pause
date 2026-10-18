@@ -6,10 +6,11 @@ using UnityEngine.SceneManagement;
 // elite world is stepped from.
 //
 // RULES
-//   * at most MaxAlive elites at once (parked ones count)
-//   * groups of 1-3 (never past MaxAlive) at random times: GapSeconds
-//     between groups, a little shorter on later loops (LoopRules ->
-//     RunLoop.Index, GapLoopScale)
+//   * ONE elite at a time (MaxAlive; parked, launching, hiding and retreating
+//     ones count): the next one is not even timed until the last is dead or
+//     gone, then the ordinary gap runs (GapSeconds, a little shorter on later
+//     loops: LoopRules -> RunLoop.Index, GapLoopScale)
+//   * groups are always of size 1 (SpawnGroup still takes a size, capped by MaxAlive)
 //   * none in the first FirstSeconds of flight in a world, none during a
 //     boss (BossEncounter.Running) or in its run-up (SecondsLeftInWorld <
 //     BossLeadSeconds), none while a portal waits, none in the tutorial,
@@ -27,7 +28,7 @@ using UnityEngine.SceneManagement;
 // and the same "flying" rule every hazard mover uses).
 public class EliteDirector : MonoBehaviour
 {
-    public const int MaxAlive = 3;
+    public const int MaxAlive = 1;   // one elite fight at a time (was 3)
     public const float FirstSeconds = 20f;
     public const float BossLeadSeconds = 12f;
     public static readonly Vector2 GapSeconds = new Vector2(16f, 32f);
@@ -42,6 +43,7 @@ public class EliteDirector : MonoBehaviour
     float worldSeconds;
     int world = -1;
     float untilNext;
+    bool hadElite;   // one was alive last tick: when none is, the gap timer starts afresh
     readonly List<LandingSite> sites = new List<LandingSite>(16);
     readonly List<EliteDef> defs = new List<EliteDef>(8);
     readonly List<int> usedSites = new List<int>(8);
@@ -113,10 +115,14 @@ public class EliteDirector : MonoBehaviour
         // a boss clears the background of parked / rising elites
         if (BossEncounter.Running) { DismissParked(); return; }
 
+        // one at a time: while it is parked, in play, hiding or retreating the gap does not run; when it is dead or gone it does
+        if (AliveCount >= MaxAlive) { hadElite = true; return; }
+        if (hadElite) { hadElite = false; untilNext = NextGap(); }
+
         untilNext -= dt;
         if (untilNext > 0f) return;
         if (Blocked(world, worldSeconds) != null) { untilNext = 1f; return; }
-        int spawned = SpawnGroup(world, Random.Range(1, 4));
+        int spawned = SpawnGroup(world, 1);
         untilNext = spawned > 0 ? NextGap() : 1.5f;
     }
 

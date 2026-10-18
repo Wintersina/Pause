@@ -276,7 +276,7 @@ public static class VerdantEliteTest
         }
         Check("the director deals Verdant's five elites as a shuffled deck: all five in every five spawns", perDeck);
         Check("the first elite still waits for the calm start (" + EliteDirector.FirstSeconds + " s)", EliteDirector.Blocked(2, EliteDirector.FirstSeconds - .5f) == "too early");
-        Check("elites stay capped at " + EliteDirector.MaxAlive + " alive, whatever the world", EliteDirector.MaxAlive == 3);
+        Check("elites stay capped at " + EliteDirector.MaxAlive + " alive, whatever the world", EliteDirector.MaxAlive == 1);
         Object.DestroyImmediate(dir.gameObject);
     }
 

@@ -59,7 +59,7 @@
   "shotColor": "#E04FFF",
   "shotCore": "#9FF6FF",
   "engineColor": "#FFD060",
-  "hearts": 2,
+  "hearts": 5,
   "heartSize": 0.18,
   "heartOrbit": 0.72,
   "heartStyle": "Halo",

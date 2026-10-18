@@ -434,7 +434,7 @@ public static class CoverBoulderTest
             LandingSites.Override = list => list.AddRange(pads);
             var ed = new GameObject("~EliteDir").AddComponent<EliteDirector>();
             int made = ed.SpawnGroup(3, 2);
-            Check(nm + ": landing sites under it are still used (" + made + " parked)", made == 2);
+            Check(nm + ": landing sites under it are still used (" + made + " parked)", made == 1);
             Object.DestroyImmediate(ed.gameObject);
             LandingSites.Override = null;
             EliteSystem.Clear();
