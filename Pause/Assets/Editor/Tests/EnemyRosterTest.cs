@@ -51,6 +51,7 @@ public static class EnemyRosterTest
         DetailFloor();
         CellsHoldOnePoseEach();
         SpaceAlienSlowIdle();
+        HelicoptersAreRareExtras();
 
         Debug.Log("[ER] failures: " + fails);
         return fails;
@@ -94,6 +95,44 @@ public static class EnemyRosterTest
                 Check(d.key + " strip holds " + EnemyRoster.FrameCount + " square frames",
                       tex.width == tex.height * EnemyRoster.FrameCount);
         }
+    }
+
+    // The helicopters are fighters of tier 5+ (outside the four-tier ladder): the spawner fields them as a rare extra from
+    // phase 3 in their own world only, never from the phase 2 window, and the four-tier ladder still has its four.
+    static void HelicoptersAreRareExtras()
+    {
+        const int Ember = 3;
+        var heli = EnemyRoster.Helicopter(Ember);
+        Check("Ember has a helicopter", heli != null && EnemyRoster.IsHelicopter(heli));
+        if (heli != null)
+        {
+            Check("the Ember helicopter is a fighter of tier 5+ (" + heli.tier + ")", heli.role == EnemyRole.Fighter && heli.tier >= EnemyRoster.HelicopterTier);
+            Check("the helicopter has a behaviour with a shot", heli.Behaviour != null && heli.Behaviour.attack == EnemyAttack.Shot);
+            Check("the helicopter is a wing-flap (rotor) animation", EnemyRoster.FlapsWings(heli));
+            Check("the helicopter has a death strip", EnemyDeathFlipbook.Frames(heli) != null);
+        }
+        const int Tide = 4;
+        var tideHelis = EnemyRoster.For(Tide, EnemyRole.Fighter).FindAll(EnemyRoster.IsHelicopter);
+        Check("Tide has two helicopters (" + tideHelis.Count + ")", tideHelis.Count == 2);
+        foreach (var t in tideHelis)
+        {
+            Check(t.key + " has a shot, rotor animation and a death strip",
+                  t.Behaviour != null && t.Behaviour.attack == EnemyAttack.Shot && EnemyRoster.FlapsWings(t) && EnemyDeathFlipbook.Frames(t) != null);
+        }
+        Check("Space has no helicopter", EnemyRoster.Helicopter(0) == null);
+        int seen = 0, early = 0, n = 3000;
+        for (int k = 0; k < n; k++)
+        {
+            if (EnemyRoster.IsHelicopter(enmiesOnBoard.ChooseExtraDef(Ember, 3))) seen++;
+            if (EnemyRoster.IsHelicopter(enmiesOnBoard.ChooseExtraDef(Ember, 2))) early++;
+        }
+        Check("phase 3 sometimes fields the helicopter (" + seen + "/" + n + ")", seen > n * .05f && seen < n * .3f);
+        Check("phase 2 never does (" + early + ")", early == 0);
+        bool sawTide = false;
+        for (int k = 0; k < 600 && !sawTide; k++) sawTide = EnemyRoster.IsHelicopter(enmiesOnBoard.ChooseExtraDef(Tide, 4));
+        Check("Tide's phase 4 fields a helicopter", sawTide);
+        for (int tier = 1; tier <= 4; tier++)
+            Check("Ember still has its tier " + tier + " fighter", EnemyRoster.Fighter(Ember, tier) != null && !EnemyRoster.IsHelicopter(EnemyRoster.Fighter(Ember, tier)));
     }
 
     static void OnlySpaceHasSpaceRocks()

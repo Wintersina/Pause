@@ -207,6 +207,9 @@ public static class EnemyRoster
         "ember_fighter_1",   // swept wings flex
         "ember_fighter_2",   // ? blade wings beat
         "ember_fighter_3",   // ? crescent wings beat
+        "ember_fighter_5",   // helicopter: the rotors spin (hull, pods and canopy sit identically in all four idle cells)
+        "tide_fighter_5",    // helicopter: the rotor spins
+        "tide_fighter_6",    // helicopter: both rotors spin
         "storm_fighter_1",   // swept wings flex
         "storm_fighter_2",   // bat wings flex
         "tide_fighter_4",    // manta wings flap
@@ -309,6 +312,18 @@ public static class EnemyRoster
     {
         foreach (var d in For(world, EnemyRole.Fighter)) if (d.tier == tier) return d;
         return null;
+    }
+
+    // The tier a fighter has to be (5+) to be a helicopter: a rare extra outside the four-tier ladder.
+    public const int HelicopterTier = 5;
+    public static bool IsHelicopter(EnemyDef d) => d != null && d.role == EnemyRole.Fighter && d.tier >= HelicopterTier;
+
+    // One of the world's helicopters (null when it has none).
+    public static EnemyDef Helicopter(int world)
+    {
+        var list = new List<EnemyDef>();
+        foreach (var d in For(world, EnemyRole.Fighter)) if (IsHelicopter(d)) list.Add(d);
+        return list.Count > 0 ? list[Random.Range(0, list.Count)] : null;
     }
 
     // Marks a rock as one of the floating world rocks (rocks.py FLOATING).
@@ -519,6 +534,12 @@ public static class EnemyRoster
             Def("ember_fighter_4", "Pyre", F, 3, 4, "enemy_ember_fighter_4", Magma,
                 "Round gunmetal furnace dreadnought: a grated amber furnace eye, blue-lit pylons with cannon tips and a ring of vent ports.",
                 "The fire fleet's champion: horns, flames and a core like a small sun. Shield up, grin on."),
+            // The helicopters are fighter tier 5 and up (the four-tier ladder is untouched): the spawner fields them as a
+            // rare extra (enmiesOnBoard.ChooseExtraDef), never as a regular tier pick.
+            Def("ember_fighter_5", "Forge Gyro", F, 3, 5, "enemy_ember_fighter_5", Magma,
+                "Steampunk twin-rotor gunship from above: ash-violet plate, bronze rivet bands, a glowing amber canopy, a rocket pod under each rotor.",
+                "A forge-yard gyrocopter on two spinning rotors, a rocket pod hung beneath each. It hovers over your lane " +
+                "and lets both pods go together - take the gap between the two trails."),
             Def("ember_chaser", "Cinder Fang", C, 3, 0, "enemy_ember_chaser", Magma,
                 "Flying teal and violet furnace-hound jet: swept fang-blade wings with gold trim, one cyan eye and twin burning engines.",
                 "It rises out of the lava glow below and snaps its fang-wings at your heels until it " +
@@ -568,6 +589,15 @@ public static class EnemyRoster
                 "Broad orange wing-hull with twin tip cannons, blue wingtips and engine vents.",
                 "The deep fleet's heavy: a hammer of plate with a cannon on each end. It parks and rings " +
                 "itself in shots - the gaps open with distance."),
+            // The helicopters: fighter tiers 5 and 6, rare extras outside the four-tier ladder (enmiesOnBoard.ChooseExtraDef)
+            Def("tide_fighter_5", "Salvage Gyro", F, 4, 5, "enemy_tide_fighter_5", Ice,
+                "Navy-plated gunship from above: one big four-blade bone-and-brass rotor, a seafoam glass canopy, brass-capped stub wings with rocket pods and a nose gun.",
+                "A salvage crew's gunship on one great rotor, its canopy lit seafoam. It hangs over your lane and walks a " +
+                "pair of bolts down it - slide out from under the twin trails."),
+            Def("tide_fighter_6", "Tandem Skimmer", F, 4, 6, "enemy_tide_fighter_6", Ice,
+                "Long brass-ribbed navy hull with a seafoam glass dome, pontoon floats, twin gun pods and two spinning bone-and-brass rotors, fore and aft.",
+                "A slim submarine hull slung under two rotors. Faster and lighter than the salvage gunships, it " +
+                "sweeps across the lane spitting short bursts from its pods."),
             Def("tide_chaser", "Wire Eel", C, 4, 0, "enemy_tide_chaser", Ice,
                 "Long segmented orange-and-gold mechanical serpent, a sharp downward head, swept wings and a jet nozzle on its tail.",
                 "It slips up out of the clouds in an S, coils and whips forward again. Slide sideways and let " +

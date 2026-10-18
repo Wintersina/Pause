@@ -470,6 +470,9 @@ public static class EnemyBehaviours
         B("ember_fighter_4", "Pyre: hovers, a full ring of eight")
             .Track(.5f, .4f).Brake(1.8f, .65f).Ring(Bolt, 8, 2.2f, .18f).Muzzle(0f).Timing(1.1f, 3.8f, 2, .15f)
             .Pilot(PilotEntry.Drop, 1.5f, 9f, PilotExit.Climb).Volleys(3);
+        B("ember_fighter_5", "Forge Gyro: hovers over the pilot, a pair of rockets from the twin pods")
+            .Track(.6f, .6f).Brake(1.6f, .55f).Shot(Bolt, 2, 0f, 2.9f, .2f).Twin(.45f).Muzzle(.3f).Timing(.8f, 2.8f, 3, .15f)
+            .Pilot(PilotEntry.Drop, 1.8f, 7f, PilotExit.Climb).Volleys(3);
         B("ember_chaser", "Cinder Fang: short hard chase, wide burnt-out wander")
             .Chaser(ChaserStyle.Burner, 2.5f, 3f, 1.4f, .8f, 1.1f)
             .Linger(7f);
@@ -512,6 +515,12 @@ public static class EnemyBehaviours
         B("tide_fighter_4", "Hammerhead: hovers, tracks slowly, slams a surf wave with one gap")
             .Track(.55f, .45f).Brake(1.7f, .65f).Wave(EnemyBehaviour.HammerheadSurf()).Muzzle(0f).Timing(1.1f, 3.8f, 2, .15f)
             .Pilot(PilotEntry.Drop, 1.5f, 9f, PilotExit.Climb).Volleys(2);
+        B("tide_fighter_5", "Salvage Gyro: hovers heavily over the pilot, a twin pair of bolts from the nose guns")
+            .Track(.5f, .5f).Brake(1.5f, .55f).Shot(Bolt, 2, 0f, 2.7f, .2f).Twin(.3f).Muzzle(.55f).Timing(.9f, 3f, 3, .15f)
+            .Pilot(PilotEntry.Drop, 1.7f, 8f, PilotExit.Climb).Slow().Volleys(3);
+        B("tide_fighter_6", "Tandem Skimmer: fast strafing sweep over the lane, a short fan of three bolts")
+            .Track(.85f, 1.3f).Shot(Bolt, 3, 14f, 3.3f, .16f).Muzzle(.5f).Timing(.5f, 1.7f, 3, .15f)
+            .Pilot(PilotEntry.Drop, 2.3f, 5.5f, PilotExit.Peel).Volleys(4);
         B("tide_chaser", "Wire Eel: surges in sinusoidal lunges on an S-curve, coils, then orbits")
             .Chaser(ChaserStyle.Slither, 4.2f, 2.3f, 1f, 1f, .8f)
             .Linger(6f);
