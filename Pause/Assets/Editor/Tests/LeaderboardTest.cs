@@ -41,6 +41,7 @@ public static class LeaderboardTest
             OfflineQueue();
             Blocked();
             RunTagsAndParagon();
+            FurthestLoopShipHearts();
             PanelStates();
             SafeAreaFit();
             OptionsButton();
@@ -466,6 +467,75 @@ public static class LeaderboardTest
         fake.SetBoard(TopScoreId, FakeLeaderboards.Entry(1, "KANEDA", 750, true));
         panel = OpenPanel(fake);
         Check("own entry with another value: left blank", panel.PanelRoot.Find("List/Rows/Row0/Ship") == null);
+    }
+
+    // Furthest Loop rows carry the ship and hearts like every other board.
+    static void FurthestLoopShipHearts()
+    {
+        string worldId = LeaderboardBoards.Get(LeaderboardBoards.FurthestWorld).PlatformId(false);
+
+        // A run's loop submission carries the same tag as its score.
+        RealRunContext();
+        var fake = new FakeLeaderboards();
+        var service = Service(fake);
+        var run = new LeaderboardRunStats { score = 500, loop = 3, startShip = 7, startHearts = 4, hasEnd = true, endHearts = 1 };
+        service.SubmitRun(run);
+        now = 60f;
+        service.Tick();
+        bool sent = false; string tag = null;
+        foreach (var sub in fake.Submissions) if (sub.board == worldId) { sent = true; tag = sub.tag; }
+        Check("furthest loop: submitted with value 3 and the s7h4e1 tag", sent && tag == "s7h4e1" && fake.Submissions.Exists(x => x.board == worldId && x.score == 3));
+        Check("furthest loop: record keeps the tag",
+              LeadboardTag(LeaderboardService.SubmittedKey, LeaderboardBoards.FurthestWorld) == "s7h4e1");
+
+        // Paragon: never encoded or sent on this board either.
+        RealRunContext();
+        fake = new FakeLeaderboards();
+        service = Service(fake);
+        var paragon = new LeaderboardRunStats { score = 9, loop = 5, startShip = PremiumShips.Paragon, startHearts = 14 };
+        Check("furthest loop: Paragon run not submitted", service.SubmitRun(paragon) == 0 && fake.Submissions.Count == 0);
+        long v;
+        Check("furthest loop: premium tag refused", !service.Offer(LeaderboardBoards.FurthestWorld, 5, "s16h14")
+              && !service.HasPending(LeaderboardBoards.FurthestWorld, out v));
+
+        // Tying an old, tagless best now sends the tag (loops tie constantly); a tagged tie does not resend.
+        RealRunContext();
+        var old = new LeaderboardService.ScoreTable();
+        old.Set(LeaderboardBoards.FurthestWorld, 3);
+        old.Save(LeaderboardService.SubmittedKey);
+        fake = new FakeLeaderboards();
+        service = Service(fake);
+        Check("furthest loop: a tie of a tagless best is queued with the tag", service.Offer(LeaderboardBoards.FurthestWorld, 3, "s7h4e1"));
+        Check("furthest loop: a tie with no tag is still ignored", !service.Offer(LeaderboardBoards.FurthestWorld, 3));
+        now = 120f;
+        service.Tick();
+        Check("furthest loop: the tie went out with its tag", fake.SubmissionsTo(worldId) == 1 && fake.Submissions[0].tag == "s7h4e1");
+        Check("furthest loop: the tie updated the stored tag", LeadboardTag(LeaderboardService.SubmittedKey, LeaderboardBoards.FurthestWorld) == "s7h4e1");
+        Check("furthest loop: once tagged, a tie is ignored", !service.Offer(LeaderboardBoards.FurthestWorld, 3, "s2h3e0"));
+        Check("furthest loop: a lower loop is still ignored", !service.Offer(LeaderboardBoards.FurthestWorld, 2, "s2h3e0"));
+
+        // Rows: the Furthest Loop tab shows ship + hearts, hides Paragon, and fills the own row.
+        RealRunContext();
+        EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+        fake = new FakeLeaderboards();
+        fake.SetBoard(worldId,
+            FakeLeaderboards.Entry(1, "TETSUO", 5, false, 7, 4, 2),
+            FakeLeaderboards.Entry(2, "KAI", 4),
+            FakeLeaderboards.Entry(3, "CHEAT", 3, false, PremiumShips.Paragon, 14),
+            FakeLeaderboards.Entry(4, "KANEDA", 2, true));
+        var companion = new LeaderboardService.ScoreTable();
+        companion.Set(LeaderboardBoards.FurthestWorld, 2, "s3h2e1");
+        companion.Save(LeaderboardService.SubmittedKey);
+        var panel = OpenPanel(fake);
+        panel.SelectBoard(LeaderboardBoards.FurthestWorld);
+        var rows = panel.PanelRoot.Find("List/Rows");
+        Check("furthest loop tab: ship and hearts shown",
+              rows.Find("Row0/Ship") != null && rows.Find("Row0/Hearts/Count").GetComponent<Text>().text == "4 > 2");
+        Check("furthest loop tab: value formatted as a loop", rows.Find("Row0/Value").GetComponent<Text>().text == "Loop 5");
+        Check("furthest loop tab: untagged entry blank", rows.Find("Row1/Ship") == null && rows.Find("Row1/Hearts") == null);
+        Check("furthest loop tab: Paragon entry hidden", rows.Find("Row2/Ship") == null);
+        Check("furthest loop tab: own entry filled from the device record",
+              rows.Find("Row3/Ship") != null && rows.Find("Row3/Hearts/Count").GetComponent<Text>().text == "2 > 1");
     }
 
     static string LeadboardTag(string key, string board)
