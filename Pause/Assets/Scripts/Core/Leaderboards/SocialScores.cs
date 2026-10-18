@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using UnityEngine;
 using UnityEngine.SocialPlatforms;
 
 // Turns Unity Social API scores (both Play Games and Game Center hand out
@@ -63,16 +64,17 @@ public static class SocialScores
 
     static LeaderboardEntry Entry(IScore s, string localUserId, Func<IScore, string> tagOf)
     {
-        int ship = 0, hearts = 0;
+        int ship = 0, hearts = 0, end = -1;
         if (tagOf != null)
         {
             string tag = null;
             try { tag = tagOf(s); } catch (Exception) { }
-            LeaderboardRunTag.TryParse(tag, out ship, out hearts);
+            LeaderboardRunTag.TryParse(tag, out ship, out hearts, out end);
         }
         return new LeaderboardEntry
         {
             startShip = ship, startHearts = hearts,
+            hasEnd = end >= 0, endHearts = Mathf.Max(end, 0),
             rank = s.rank,
             playerId = s.userID,
             value = s.value,

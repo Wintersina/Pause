@@ -24,7 +24,7 @@ public interface ILeaderboardPlatform
     // Interactive sign-in (may show the store's UI).
     void SignIn(Action<bool> done);
 
-    // `tag` is the run's start ship and hearts (LeaderboardRunTag), kept with
+    // `tag` is the run's start ship, start and end hearts (LeaderboardRunTag), kept with
     // the score where the store allows it (Play Games score tag); may be empty.
     void Submit(string boardId, long score, string tag, Action<bool> done);
 
@@ -62,6 +62,9 @@ public struct LeaderboardEntry
     // without tags, a tag we can't read): the row shows nothing for it.
     public int startShip;
     public int startHearts;
+    // The hearts the run finished with (0 = died); only meaningful when hasEnd.
+    public bool hasEnd;
+    public int endHearts;
 }
 
 public sealed class LeaderboardPage
