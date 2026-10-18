@@ -1058,7 +1058,7 @@ public static class EliteTest
         EliteSystem.Step(Dt);
         Check("a lured crash kill pays the same", e == null && EliteShip.LastKillCause == EliteDamage.Crash && RunScore.Total - total == ScoreRules.EliteDown);
 
-        foreach (string brain in new[] { "breaker", "warden", "bastion", "reaver", "lancer", "tug" })
+        foreach (string brain in new[] { "breaker", "warden", "bastion", "sniper", "swooper", "fortress", "wrecker" })
         {
             Fresh(.05f);
             e = InPlay(brain, new Vector2(0f, 1f));

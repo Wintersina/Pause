@@ -32,6 +32,9 @@ using UnityEngine;
 //   orb    (frost_bloom) a slow cryo orb on a fuse (a blinking ring round
 //          it): at zero it bursts into a ring of hazardCount shards. Shot
 //          down first, it just pops
+//   mine   (Space: the Rift Lancer's rift mine, the Eventide Bastion's ward mine) an orb that rides the board on a fuse ring
+//          (EliteShot.Mine): at zero it pops into a fixed cross / ring of short bolts instead of the def's ring of shards. Shootable
+//          to defuse -- a ward mine takes `hits` shots.
 // Any kind can be slung (Sling, the Singularity Hauler's gravity_sling):
 // it curves past a bend point through a ringed spot on the board, deadly
 // all the way, then flies straight on.
@@ -197,6 +200,10 @@ public class EliteShot : MonoBehaviour, IHostileShot
     bool afloat;   // a slab out of its glide: it rides the board
     // an orb's fuse (frost_bloom): seconds left, and the whole of it
     float fuse, fuseTotal;
+    // a mine (Space): glides out of a pod / prong to its spot, then rides the board; pops into `mineArms` short bolts
+    int mineArms;
+    float mineArmSpeed, mineArmSeconds, mineSpin, mineGlide, mineT;
+    Vector2 mineFrom, mineTo, mineDrift;
     // the projectile behaviours of the skin (ShotMotion): see the header
     ShotMotion mot;
     int generation;                 // 0 a shot, 1 a chip / spore (never splits again)
@@ -257,6 +264,10 @@ public class EliteShot : MonoBehaviour, IHostileShot
     public int Armour => armour;
     public float FuseLeft => Active && Kind == EliteShots.Kind.Orb ? fuse : 0f;
     public int Bursts { get; private set; }
+    public bool IsMine => Active && mineArms > 0;
+    public int MineArms => mineArms;
+    public float MineArmSeconds => mineArmSeconds;
+    public float MineArmSpeed => mineArmSpeed;
     // A glob in the air: seconds until it lands, and the pool it will be.
     public float LobRemaining => airborne ? Mathf.Max(0f, lobTotal - lobTime) : 0f;
     public float PoolRadius => def != null ? def.shotSize * 2.1f * .42f : radius;
@@ -298,6 +309,7 @@ public class EliteShot : MonoBehaviour, IHostileShot
         lobFrom += by; lobTo += by;
         slingFrom += by; slingBend += by; slingTo += by;
         glideFrom += by; glideTo += by;
+        mineFrom += by; mineTo += by;
         if (mark != null && mark.enabled) mark.transform.position += (Vector3)by;
     }
     public Color BodyTint => tint;
@@ -371,6 +383,7 @@ public class EliteShot : MonoBehaviour, IHostileShot
         slung = false;
         gliding = false;
         fuse = 0f;
+        mineArms = 0;
         drift = 0f;
         armour = 1;
         afloat = false;
@@ -561,12 +574,30 @@ public class EliteShot : MonoBehaviour, IHostileShot
         mark.color = tint;
     }
 
+    // Turns a just-fired orb into a mine: it glides from where it is to `to` in `glide` seconds (both riding the board), then rides
+    // the board drifting `driftBy` u/s; its fuse ring runs for `fuseSeconds` in all, then it pops into `arms` bolts (`armSpeed`
+    // u/s, `armSeconds` of life: a short cross), the first at `spinDeg`. `hits` player shots defuse it.
+    public void Mine(Vector2 to, float glide, float fuseSeconds, int arms, float armSpeed, float armSeconds, float spinDeg, Vector2 driftBy, int hits)
+    {
+        mineArms = Mathf.Max(1, arms);
+        mineArmSpeed = armSpeed;
+        mineArmSeconds = armSeconds;
+        mineSpin = spinDeg;
+        mineDrift = driftBy;
+        mineFrom = transform.position;
+        mineTo = to;
+        mineGlide = Mathf.Max(0f, glide);
+        mineT = 0f;
+        armour = Mathf.Max(1, hits);
+        Fuse(fuseSeconds);
+    }
+
     // A player weapon touched it: a slab soaks it (armour) until it breaks,
     // anything else is shot down (an orb pops without bursting).
     public void Struck()
     {
         if (!Active) return;
-        if (Kind == EliteShots.Kind.Slab && armour > 1)
+        if ((Kind == EliteShots.Kind.Slab || mineArms > 0) && armour > 1)
         {
             armour--;
             EliteSystem.Fx.Sparks(transform.position, def.ShotCore, 5);
@@ -581,6 +612,21 @@ public class EliteShot : MonoBehaviour, IHostileShot
     void Burst()
     {
         Vector2 at = transform.position;
+        if (mineArms > 0)
+        {
+            // a mine: a fixed cross / ring of short bolts, none of the def's ring of shards
+            AttackAudio.Play(ShotSkins.WorldOf(def), "burst");
+            EliteSystem.Fx.Sparks(at, def.ShotCore, 10);
+            EndReason = 6;
+            Bursts++;
+            for (int i = 0; i < mineArms; i++)
+            {
+                float r = (mineSpin + i * 360f / mineArms) * Mathf.Deg2Rad;
+                Child(at, new Vector2(Mathf.Cos(r), Mathf.Sin(r)) * mineArmSpeed, 1f, mineArmSeconds);
+            }
+            Recycle();
+            return;
+        }
         int n = Mathf.Max(3, def.hazardCount);
         float speed = Mathf.Max(.5f, def.hazardSpeed);
         float spin = Mathf.Repeat(age * 37f, 360f / n);   // (never quite the same ring twice)
@@ -769,6 +815,20 @@ public class EliteShot : MonoBehaviour, IHostileShot
             // afloat: rides the board, drifting (a rail turns the drift round)
             velocity.y = -EliteSystem.Scroll;
             transform.rotation = Quaternion.Euler(0f, 0f, Mathf.Sin(age * 1.7f) * 4f);
+        }
+        if (mineArms > 0)
+        {
+            // glides out to its spot (riding the board), then drifts with it
+            float fall = EliteSystem.Scroll * dt;
+            mineFrom.y -= fall;
+            mineTo.y -= fall;
+            mineT += dt;
+            if (mineT < mineGlide)
+            {
+                float k = mineT / mineGlide, e = 1f - (1f - k) * (1f - k);
+                velocity = (Vector2.Lerp(mineFrom, mineTo, e) - (Vector2)p) / dt;
+            }
+            else velocity = mineDrift + new Vector2(0f, -EliteSystem.Scroll);
         }
         if (Kind == EliteShots.Kind.Orb && fuse > 0f)
         {

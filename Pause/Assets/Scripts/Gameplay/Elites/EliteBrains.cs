@@ -39,6 +39,12 @@ using UnityEngine;
 //                after each shot it dashes across to the other flank
 //   tug          (Space) a slow armoured salvage tug: hangs ahead of the
 //                pilot a lane to one side, swapping sides after each sling
+//   sniper       (Space) Rift Lancer: perches at long range on a flank at the edge of the view, shoots once or twice, leaves by
+//                its own side and comes back in from the OPPOSITE one (SpaceElites.cs)
+//   swooper      (Space) Orbit Reaver: big strafing loops that leave the view and come back round, crossing the board on a new
+//                side and slope each time (SpaceElites.cs)
+//   fortress     (Space) Eventide Bastion: holds the top of the view and slides sideways at a crawl (SpaceElites.cs)
+//   wrecker      (Space) Singularity Hauler: parks high, tows asteroids in and flings them down the board (SpaceElites.cs)
 //   herder       (Frost) Floe Harrower: holds a steady height ahead of the
 //                pilot and drifts, patiently, into the lane it is moving toward
 //   kiter        (Frost) Cryo Siren: keeps a fixed range above the pilot,
@@ -78,6 +84,13 @@ public abstract class EliteBrain
     public virtual bool Steadfast => false;
     // Where the lift-off would best end, relative to the pilot (direction).
     public virtual Vector2 JoinFrom => Vector2.down;
+    // Flies its own paths, off the view and back (the Space sniper and swooper): the ship does not clamp its goal to the view, plan
+    // evasions or keep it between the rails -- it is untouchable (no collider, not a target) while outside the board.
+    public virtual bool Roams => false;
+    // The share of its speed it keeps through an attack's wind-up when the attack does not hold it still.
+    public virtual float TellScale => .5f;
+    // It came back from hiding (EliteShip.Hide): start the next leg of the pattern afresh.
+    public virtual void OnReturn() { }
 
     protected Vector2 Pos => ship.Position;
     protected float Aggro => Mathf.Clamp01(def.aggression);
@@ -95,7 +108,8 @@ public static class EliteBrains
     public static readonly string[] Ids = { "interceptor", "gunship", "striker", "hauler", "skirmisher", "siege", "breaker", "warden",
                                             "bastion", "reaver", "lancer", "tug", "herder", "kiter", "tender", "ironclad",
                                             "logger", "thorn", "drifter", "diver",
-                                            "surfer", "abyss", "netter", "stormray", "pearler" };
+                                            "surfer", "abyss", "netter", "stormray", "pearler",
+                                            "sniper", "swooper", "fortress", "wrecker" };
 
     public static EliteBrain Create(string id)
     {
@@ -125,6 +139,10 @@ public static class EliteBrains
             case "netter": return new NetterBrain();
             case "stormray": return new StormrayBrain();
             case "pearler": return new PearlerBrain();
+            case "sniper": return new SniperBrain();
+            case "swooper": return new SwooperBrain();
+            case "fortress": return new FortressBrain();
+            case "wrecker": return new WreckerBrain();
             default: return new InterceptorBrain();
         }
     }

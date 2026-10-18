@@ -49,6 +49,9 @@ using UnityEngine;
 // (the Frost four: FrostElites.cs)
 //   surf_dash / depth_charge / net_cast / thunder_strike / pearl_curtain: Tide's Riptide, Bathyscaphe, Trawler, Thunderfin, Pearl Warden (TideElites.cs)
 //   log_roll / vine_lash / spore_burst / leaf_dive: Verdant's Timber Hauler, Thornlash, Sporebloom, Leafblade (VerdantElites.cs)
+//   rift_snipe / swoop_volley / ward_barrage / tow_sling: the Space four's own attacks (SpaceElites.cs): Rift Lancer, Orbit Reaver,
+//                 Eventide Bastion, Singularity Hauler. (ward_curtain, crescent_volley, rift_rail and gravity_sling stay for
+//                 the other worlds that share them, and as the Space attacks' building blocks.)
 //   gravity_sling Singularity Hauler: flings shots sideways out of both tow
 //                 claws that its core's gravity whips round, in curves
 //                 that close on a ringed well ahead of the pilot
@@ -88,6 +91,8 @@ public abstract class EliteAttack
     // Aims at where the pilot is (EliteShip.AimSeen: live for the first aimCommit of the tell, then frozen).
     public virtual bool Aimed => false;
     public virtual bool HoldsDuringTell => false;
+    // The action keeps it planted too (no steering while it plays): the hauler towing and flinging a rock.
+    public virtual bool HoldsDuringAction => false;
     public virtual bool DrivesMovement => false;
     public virtual float? FaceDeg => null;
     // Breaks through rocks while acting (EliteShip.CrashInto): no heart lost.
@@ -178,6 +183,7 @@ public static class EliteAttacks
 {
     public static readonly string[] Ids = { "lance_dash", "broadside", "claw_dive", "slag_drop", "blink_shards", "siege_cannon", "ice_ram", "resin_mortar",
                                             "ward_curtain", "crescent_volley", "rift_rail", "gravity_sling",
+                                            "rift_snipe", "swoop_volley", "ward_barrage", "tow_sling",
                                             "floe_cast", "frost_bloom", "drone_deploy", "armour_shatter",
                                             "log_roll", "vine_lash", "spore_burst", "leaf_dive",
                                             "surf_dash", "depth_charge", "net_cast", "thunder_strike", "pearl_curtain" };
@@ -197,6 +203,10 @@ public static class EliteAttacks
             case "crescent_volley": return new CrescentVolleyAttack();
             case "rift_rail": return new RiftRailAttack();
             case "gravity_sling": return new GravitySlingAttack();
+            case "rift_snipe": return new RiftSnipeAttack();
+            case "swoop_volley": return new SwoopVolleyAttack();
+            case "ward_barrage": return new WardBarrageAttack();
+            case "tow_sling": return new TowSlingAttack();
             case "floe_cast": return new FloeCastAttack();
             case "frost_bloom": return new FrostBloomAttack();
             case "drone_deploy": return new DroneDeployAttack();

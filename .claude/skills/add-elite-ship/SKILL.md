@@ -15,8 +15,8 @@ The framework (Unity project root `Pause/`, code in
 | `EliteCells` | `EliteDef.cs` | the def's `cells` map: which strip cell is flight / parked / lift-off / banks / tell / action / hit / damaged |
 | `EliteArt` / `EliteFxArt` | `EliteArt.cs` | slices `Resources/Elites/<World>/<key>.png`; optional `_parked/_liftoff/_death` strips; procedural placeholder FX sprites |
 | `EliteShip` | `EliteShip.cs` | life cycle Parked → LiftOff → Join → Follow → Attack → (hit) → Dead; steering, dodging, crashes, damage hooks, muzzles |
-| `EliteBrain` (+12) | `EliteBrains.cs` | personalities: `interceptor`, `gunship`, `striker`, `hauler`, `skirmisher`, `siege`, `breaker` (Rimebreaker), `warden` (Resin Warden), Space: `bastion`, `reaver`, `lancer`, `tug` |
-| `EliteAttack` (+12) | `EliteAttacks.cs` | attacks: `lance_dash`, `broadside`, `claw_dive`, `slag_drop`, `blink_shards`, `siege_cannon`, `ice_ram`, `resin_mortar`, Space: `ward_curtain`, `crescent_volley`, `rift_rail`, `gravity_sling` |
+| `EliteBrain` (+12) | `EliteBrains.cs` | personalities: `interceptor`, `gunship`, `striker`, `hauler`, `skirmisher`, `siege`, `breaker` (Rimebreaker), `warden` (Resin Warden), Space (SpaceElites.cs): `sniper`, `swooper`, `fortress`, `wrecker` (the old `bastion`, `reaver`, `lancer`, `tug` stay: Storm / Desert / Tide / Verdant reuse `bastion`) |
+| `EliteAttack` (+12) | `EliteAttacks.cs` | attacks: `lance_dash`, `broadside`, `claw_dive`, `slag_drop`, `blink_shards`, `siege_cannon`, `ice_ram`, `resin_mortar`, Space (SpaceElites.cs): `rift_snipe`, `swoop_volley`, `ward_barrage`, `tow_sling` (`ward_curtain`, `crescent_volley`, `rift_rail`, `gravity_sling` stay for the worlds that share them) |
 | `EliteShots` | `EliteShots.cs` | pooled shots (`bolt`, `shard`, `slag`, `shell`, `glob` = lobbed then pools; any kind can be `Sling`ed on a curve through a ringed spot), `shotBounces` off rails, friendly fire |
 | `EliteHearts` | `EliteHearts.cs` | the 2 hearts (shared `HeartOrbit` with the player's `ShipLivesIndicator`) |
 | `EliteFx`, `EliteDeath`, `EliteRewards` | `EliteFx.cs` | dust / shimmer / sparks / debris; pluggable death; 50 score + 15 dust + "ELITE DOWN" |
@@ -195,10 +195,10 @@ Match the role in Codex's README (`Art/Enemies/Elite/<World>/README.md`):
 | siege / artillery | `siege` (holds the top) | `siege_cannon`: sight line, piercing shell down the lane |
 | icebreaker / ram | `breaker` (prowls ahead, sweeping across the lane) | `ice_ram`: locks its lane, ploughs down it through rocks, rail-bouncing shards |
 | mortar / area denial | `warden` (station high on the far side, crosses after attacking) | `resin_mortar`: ringed spots ahead of the pilot, lobbed globs land as pools riding the board |
-| shield platform | `bastion` (high over the middle, lane follows at a crawl, clamped to laneOffset) | `ward_curtain`: a row of slow bolts across the pilot's height with one gap beside it (`lobSpacing`) |
-| orbiting raider | `reaver` (orbit wholly above the pilot, turns back each lap) | `crescent_volley`: races round, alternate claws fire at the locked spot |
-| flanking lancer | `lancer` (high flank, nose on, dashes to the other flank after firing) | `rift_rail`: tracking then locked sight line, a rail of fast bolts down it |
-| gravity tug | `tug` (a lane ahead, swaps sides after each sling) | `gravity_sling`: shots out of both claws curve through a ringed well ahead (`lobAhead`, `lobSeconds`) |
+| shield fortress (Space) | `fortress` (top of the view, slides sideways at a crawl, never comes down) | `ward_barrage`: ward curtain whose gap narrows per heart lost (second row at <= 2 hearts), alternating with shootable shield mines |
+| swooper (Space) | `swooper` (`Roams`: big strafing loops off the view and back, a new side and slope each pass) | `swoop_volley`: a ring locks the pilot's spot, claws cross shards on it from the pass angle |
+| edge sniper (Space) | `sniper` (`Roams`: perches at long range on a flank, 1-2 shots, leaves by its side, re-enters opposite) | `rift_snipe`: tracking then locked sight line, a rail of fast bolts; every third run a rift mine on the line |
+| wrecker (Space) | `wrecker` (parks high, slides at a crawl) | `tow_sling`: tows a Space rock in from above, flings it down a dotted lane; alternates with the gravity well (shots curve in, gentle pull on the pilot: `EliteWell`) |
 
 Each elite must feel **its own**: vary `shotKind`, `shotCount`, `shotSpread`,
 `shotSpeed`, `shotInterval`, `dashSpeed`, `actionSeconds`, `tellSeconds`,
