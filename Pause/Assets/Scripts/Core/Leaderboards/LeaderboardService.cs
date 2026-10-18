@@ -164,14 +164,25 @@ public sealed class LeaderboardService
         var submitted = ScoreTable.Load(SubmittedKey);
         var pending = ScoreTable.Load(PendingKey);
         long have;
-        if (submitted.TryGet(board.id, out have) && !board.IsBetter(value, have)) return false;
-        if (pending.TryGet(board.id, out have) && !board.IsBetter(value, have)) return false;
+        if (submitted.TryGet(board.id, out have) && !Supersedes(board, value, tag, have, submitted.TagOf(board.id))) return false;
+        if (pending.TryGet(board.id, out have) && !Supersedes(board, value, tag, have, pending.TagOf(board.id))) return false;
 
         pending.Set(board.id, value, tag);
         pending.Save(PendingKey);
         PrefsSaver.SaveNow();   // a run end: must survive the app being killed
         flushDueAt = clock() + DebounceSeconds;
         return true;
+    }
+
+    // A new value replaces a stored one when it is better, or when it ties a
+    // record that has no run tag and the new one has: the score is the same,
+    // but the row can now show the ship and hearts. Matters most for Furthest
+    // Loop, where a pilot keeps tying their best loop (the values are small
+    // whole numbers), so a tagless old best would otherwise never get a ship.
+    static bool Supersedes(LeaderboardBoard board, long value, string tag, long have, string haveTag)
+    {
+        if (board.IsBetter(value, have)) return true;
+        return value == have && string.IsNullOrEmpty(haveTag) && !string.IsNullOrEmpty(tag);
     }
 
     public bool HasPending(string boardId, out long value)
@@ -261,7 +272,7 @@ public sealed class LeaderboardService
         }
         var submitted = ScoreTable.Load(SubmittedKey);
         long have;
-        if (!submitted.TryGet(boardId, out have) || board.IsBetter(value, have))
+        if (!submitted.TryGet(boardId, out have) || Supersedes(board, value, tag, have, submitted.TagOf(boardId)))
         {
             submitted.Set(boardId, value, tag);
             submitted.Save(SubmittedKey);
