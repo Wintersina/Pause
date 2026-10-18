@@ -258,7 +258,9 @@ public partial class SpaceDirector : BackdropDirector
         // Open on a hero planet already in view. It is deliberately large,
         // off-centre and partially cropped, establishing the world's scale
         // before the normal body queues take over.
-        if (!Quiet) Enter(PlanHero(), HalfH * 0.3f);
+        // (PlanHero is always drawn, planet or not, so the director's own stream stays where it was.)
+        Plan heroPlan = PlanHero();
+        if (!Quiet) OpenSky(heroPlan);
         nextPlanet = NextPlanet();
         planetWait = Rand(3f, 5f);
         nextStructure = PlanStructure();
@@ -523,7 +525,8 @@ public partial class SpaceDirector : BackdropDirector
         var p = pool.Spawn();
         if (p == null) return false;
         Sprite[] art = n.kind == Planet
-            ? (referencePlanet.Length > 0 && !opening && Chance(0.16) ? referencePlanet
+            ? (opening && openingArt != null ? openingArt
+               : referencePlanet.Length > 0 && !opening && Chance(0.16) ? referencePlanet
                : neonPlanets.Length > 0 && !opening && Chance(0.45) ? neonPlanets
                : haloPlanets.Length > 0 && !opening && Chance(0.28) ? haloPlanets : giant)
             : n.kind == Station ? StationArt(n.ring, n.size)
@@ -556,7 +559,9 @@ public partial class SpaceDirector : BackdropDirector
         // reference planet is the one body that turns slowly in the picture.
         p.phase = n.kind == Station ? 0f : Rand(-14f, 14f);
         if (art == referencePlanet) p.spin = Rand(0.35f, 0.55f) * (Chance(0.5) ? 1f : -1f);
-        p.color = Lit(n.kind == Planet ? Pick(PlanetTints) : n.kind == Station ? StationTint : RockTint, tier);
+        Color body = n.kind == Planet ? Pick(PlanetTints) : n.kind == Station ? StationTint : RockTint;
+        if (opening && openingTinted) body = openingTint;
+        p.color = Lit(body, tier);
         if (planetClass) planetSide = x < 0f ? -1 : 1;
         else structureSide = x < 0f ? -1 : 1;
 

@@ -62,6 +62,7 @@ public static class AllTests
         ("AsteroidBackwardsAndShopColumnsTest", AsteroidBackwardsAndShopColumnsTest.Execute),
         ("AsteroidColliderTest", AsteroidColliderTest.Execute),
         ("AsteroidDriftTest", AsteroidDriftTest.Execute),
+        ("SpaceAsteroidFieldTest", SpaceAsteroidFieldTest.Execute),
         ("AtomClarityTest", AtomClarityTest.Execute),
         ("AttackBudgetCoreTest", AttackBudgetCoreTest.Execute),
         ("AttackBudgetFrostTest", AttackBudgetFrostTest.Execute),
