@@ -29,13 +29,13 @@ public static class SpaceEliteTest
     const float Dt = 1f / 30f;
     static Transform pilot;
 
-    // key -> brain, attack, where it launches from
+    // key -> brain, attack, its HOME (the first kind of its launchFrom: a backdrop dock; its second is the ordinary body it also takes)
     static readonly (string key, string brain, string attack, LandingKind from)[] Expected =
     {
-        ("space_elite_eventide_bastion", "fortress", "ward_barrage", LandingKind.Station),
-        ("space_elite_orbit_reaver", "swooper", "swoop_volley", LandingKind.Planet),
-        ("space_elite_rift_lancer", "sniper", "rift_snipe", LandingKind.Station),
-        ("space_elite_singularity_hauler", "wrecker", "tow_sling", LandingKind.Asteroid),
+        ("space_elite_eventide_bastion", "fortress", "ward_barrage", LandingKind.Gantry),
+        ("space_elite_orbit_reaver", "swooper", "swoop_volley", LandingKind.Carrier),
+        ("space_elite_rift_lancer", "sniper", "rift_snipe", LandingKind.Gate),
+        ("space_elite_singularity_hauler", "wrecker", "tow_sling", LandingKind.Derelict),
     };
 
     public static int Execute()
@@ -176,7 +176,7 @@ public static class SpaceEliteTest
         bool emerge = true, depth = true, inView = true;
         string bad = "";
         int samples = 0;
-        for (int i = 0; i < 15 * 240 && seen.Count < 3; i++)
+        for (int i = 0; i < 15 * 240 && !(seen.Contains(LandingKind.Station) && seen.Contains(LandingKind.Planet) && seen.Contains(LandingKind.Asteroid)); i++)
         {
             wb.Step(1f / 15f);
             if (LandingSites.Collect(sites) == 0) continue;
@@ -216,13 +216,12 @@ public static class SpaceEliteTest
         {
             own &= e.Def.WorldIndex == 0 && e.State == EliteState.Parked;
             docked &= e.IsDocked && e.Hull.color.a == 0f && !e.Collider.enabled;
-            var want = LandingSite.KindOf(e.Def.launchFrom);
             bool offered = false;
-            foreach (var st in sites) offered |= st.kind == want;
-            // (its own kind unless another elite of the group took the only one)
+            foreach (var st in sites) offered |= LandingSite.Accepts(e.Def.launchFrom, st.kind);
+            // (one of its own kinds unless another elite of the group took the only one)
             int same = 0;
-            foreach (var o in EliteShip.Live) if (o != e && LandingSite.KindOf(o.Def.launchFrom) == want) same++;
-            if (offered && same == 0) preferred &= e.Site.kind == want;
+            foreach (var o in EliteShip.Live) if (o != e && o.Def.launchFrom == e.Def.launchFrom) same++;
+            if (offered && same == 0) preferred &= LandingSite.Accepts(e.Def.launchFrom, e.Site.kind);
         }
         Check("the director docks Space elites in the backdrop's bodies (" + made + ")", own && made == Mathf.Min(EliteDirector.MaxAlive, sites.Count));
         Check("... hidden inside them until the launch", docked);
@@ -246,7 +245,7 @@ public static class SpaceEliteTest
         {
             EliteSystem.Clear();
             spawned += dir.SpawnGroup(0, 1);
-            foreach (var e in EliteShip.Live) match &= e.Site.kind == LandingSite.KindOf(e.Def.launchFrom);
+            foreach (var e in EliteShip.Live) match &= LandingSite.Accepts(e.Def.launchFrom, e.Site.kind);
         }
         Check("an elite launches from its own kind of body (" + spawned + " launches)", spawned == 12 && match);
         pads.RemoveAt(1);   // no planet in view: the Reaver takes whatever is free

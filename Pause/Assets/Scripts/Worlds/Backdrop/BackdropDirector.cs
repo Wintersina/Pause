@@ -39,6 +39,10 @@ public abstract class BackdropDirector
     // elites (yet) reports none.
     public virtual void LandingSites(List<LandingSite> into) { }
 
+    // The elite director wants a body of one of the kinds in `launchFrom` (comma separated, LandingSite.KindOf) in view in a few
+    // seconds: bring one in if this world can (Space's docks). True: one is on screen or entering.
+    public virtual bool BringHome(string launchFrom) { return false; }
+
     public void Tick(float dt, float velocity)
     {
         clock += dt;

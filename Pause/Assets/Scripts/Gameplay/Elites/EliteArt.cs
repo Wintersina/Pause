@@ -5,7 +5,8 @@ using UnityEngine;
 // which is which is the def's EliteCells map -- by default idle 0..3, tell,
 // action, hit), sliced so one cell is the def's cellWorldSize in the world, plus the optional strips that take over from
 // the procedural placeholders the moment they exist (see EliteDef):
-// <key>_parked, <key>_liftoff, <key>_death -- any number of square cells.
+// <key>_parked, <key>_liftoff, <key>_death -- any number of square cells -- and <key>_lights: the hull's animated lights, an
+// additive overlay with the SAME cells as the hull strip (the same count and size: cell i lights hull cell i; EliteShip draws it).
 //
 // EliteFxArt below draws the placeholder FX in code (glow dots, dust puffs,
 // heat streaks, shot drawings, debris sparks) in the house neon pixel style:
@@ -20,7 +21,7 @@ public static class EliteArt
     public static readonly int[] IdleTicks = { 6, 3, 2, 3 };
     public const int HitTicks = 3;
 
-    public enum Extra { Parked, Liftoff, Death }
+    public enum Extra { Parked, Liftoff, Death, Lights }
 
     static readonly Dictionary<string, Sprite[]> cache = new Dictionary<string, Sprite[]>();
     static readonly HashSet<string> missing = new HashSet<string>();
@@ -35,7 +36,7 @@ public static class EliteArt
 
     public static string ExtraPath(EliteDef def, Extra e) => StripPath(def) + "_" + Suffix(e);
 
-    public static string Suffix(Extra e) => e == Extra.Parked ? "parked" : e == Extra.Liftoff ? "liftoff" : "death";
+    public static string Suffix(Extra e) => e == Extra.Parked ? "parked" : e == Extra.Liftoff ? "liftoff" : e == Extra.Lights ? "lights" : "death";
 
     public static Sprite[] Frames(EliteDef def)
     {

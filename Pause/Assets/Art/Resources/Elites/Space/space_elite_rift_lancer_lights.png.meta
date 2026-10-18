@@ -1,0 +1,5543 @@
+fileFormatVersion: 2
+guid: a56ebe0480522426fb56af76f53431c9
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: -4894506466871523082
+    second: space_elite_rift_lancer_lights_0
+  - first:
+      213: -2410861755234052711
+    second: space_elite_rift_lancer_lights_1
+  - first:
+      213: -1049205325163587948
+    second: space_elite_rift_lancer_lights_2
+  - first:
+      213: -4623267356137881976
+    second: space_elite_rift_lancer_lights_3
+  - first:
+      213: -7630432549597790725
+    second: space_elite_rift_lancer_lights_4
+  - first:
+      213: -4871073428658715828
+    second: space_elite_rift_lancer_lights_5
+  - first:
+      213: 5361185513425417217
+    second: space_elite_rift_lancer_lights_6
+  - first:
+      213: 3889001834122147056
+    second: space_elite_rift_lancer_lights_7
+  - first:
+      213: 4726303143745363525
+    second: space_elite_rift_lancer_lights_8
+  - first:
+      213: 1246241309449769293
+    second: space_elite_rift_lancer_lights_9
+  - first:
+      213: -8821492141205847919
+    second: space_elite_rift_lancer_lights_10
+  - first:
+      213: -1372343676309850155
+    second: space_elite_rift_lancer_lights_11
+  - first:
+      213: -1137356554311692270
+    second: space_elite_rift_lancer_lights_12
+  - first:
+      213: -7007554600945664824
+    second: space_elite_rift_lancer_lights_13
+  - first:
+      213: -4734900096377489784
+    second: space_elite_rift_lancer_lights_14
+  - first:
+      213: 4436086855653540073
+    second: space_elite_rift_lancer_lights_15
+  - first:
+      213: -391210347194629745
+    second: space_elite_rift_lancer_lights_16
+  - first:
+      213: 861428116272048050
+    second: space_elite_rift_lancer_lights_17
+  - first:
+      213: -4543982157611391886
+    second: space_elite_rift_lancer_lights_18
+  - first:
+      213: -3536030345882583742
+    second: space_elite_rift_lancer_lights_19
+  - first:
+      213: -799116655467084745
+    second: space_elite_rift_lancer_lights_20
+  - first:
+      213: -8954652743517115010
+    second: space_elite_rift_lancer_lights_21
+  - first:
+      213: -3206426202737240874
+    second: space_elite_rift_lancer_lights_22
+  - first:
+      213: 5779815309762933441
+    second: space_elite_rift_lancer_lights_23
+  - first:
+      213: -105392843822906971
+    second: space_elite_rift_lancer_lights_24
+  - first:
+      213: 7315291588660727971
+    second: space_elite_rift_lancer_lights_25
+  - first:
+      213: 7629610180741717127
+    second: space_elite_rift_lancer_lights_26
+  - first:
+      213: -7028085224407372036
+    second: space_elite_rift_lancer_lights_27
+  - first:
+      213: -1246055195152546045
+    second: space_elite_rift_lancer_lights_28
+  - first:
+      213: 2545859213848890261
+    second: space_elite_rift_lancer_lights_29
+  - first:
+      213: 1509931535818260881
+    second: space_elite_rift_lancer_lights_30
+  - first:
+      213: 295949633432522085
+    second: space_elite_rift_lancer_lights_31
+  - first:
+      213: -6390554428437679360
+    second: space_elite_rift_lancer_lights_32
+  - first:
+      213: -3639342176831373232
+    second: space_elite_rift_lancer_lights_33
+  - first:
+      213: 2586503272700207599
+    second: space_elite_rift_lancer_lights_34
+  - first:
+      213: -406718028406915479
+    second: space_elite_rift_lancer_lights_35
+  - first:
+      213: -3781295170676885656
+    second: space_elite_rift_lancer_lights_36
+  - first:
+      213: -7778723436393124044
+    second: space_elite_rift_lancer_lights_37
+  - first:
+      213: 5595294462117833260
+    second: space_elite_rift_lancer_lights_38
+  - first:
+      213: 1509830299420896202
+    second: space_elite_rift_lancer_lights_39
+  - first:
+      213: -7671654716103835039
+    second: space_elite_rift_lancer_lights_40
+  - first:
+      213: 6138008346307006382
+    second: space_elite_rift_lancer_lights_41
+  - first:
+      213: -6103194882581072534
+    second: space_elite_rift_lancer_lights_42
+  - first:
+      213: 1451475257950753057
+    second: space_elite_rift_lancer_lights_43
+  - first:
+      213: -4780716860221035311
+    second: space_elite_rift_lancer_lights_44
+  - first:
+      213: -5868964195295022401
+    second: space_elite_rift_lancer_lights_45
+  - first:
+      213: -7131375806344610827
+    second: space_elite_rift_lancer_lights_46
+  - first:
+      213: 1915653414037450988
+    second: space_elite_rift_lancer_lights_47
+  - first:
+      213: 6879849393223018355
+    second: space_elite_rift_lancer_lights_48
+  - first:
+      213: 3495453464855440124
+    second: space_elite_rift_lancer_lights_49
+  - first:
+      213: 5008958374560230766
+    second: space_elite_rift_lancer_lights_50
+  - first:
+      213: -409766605630581358
+    second: space_elite_rift_lancer_lights_51
+  - first:
+      213: 1650445756418584760
+    second: space_elite_rift_lancer_lights_52
+  - first:
+      213: -4606904396788534112
+    second: space_elite_rift_lancer_lights_53
+  - first:
+      213: 6607586788860988517
+    second: space_elite_rift_lancer_lights_54
+  - first:
+      213: 498020154125437187
+    second: space_elite_rift_lancer_lights_55
+  - first:
+      213: 896652979516929057
+    second: space_elite_rift_lancer_lights_56
+  - first:
+      213: -2063165395823826855
+    second: space_elite_rift_lancer_lights_57
+  - first:
+      213: 2313082042721656524
+    second: space_elite_rift_lancer_lights_58
+  - first:
+      213: -4937498872710778157
+    second: space_elite_rift_lancer_lights_59
+  - first:
+      213: -3984965001257446479
+    second: space_elite_rift_lancer_lights_60
+  - first:
+      213: -501345016572025772
+    second: space_elite_rift_lancer_lights_61
+  - first:
+      213: 3341497801777017995
+    second: space_elite_rift_lancer_lights_62
+  - first:
+      213: 3010663379776592823
+    second: space_elite_rift_lancer_lights_63
+  - first:
+      213: -6813601901159526662
+    second: space_elite_rift_lancer_lights_64
+  - first:
+      213: -8571481939164766706
+    second: space_elite_rift_lancer_lights_65
+  - first:
+      213: -320026612817187629
+    second: space_elite_rift_lancer_lights_66
+  - first:
+      213: 3419047912518899421
+    second: space_elite_rift_lancer_lights_67
+  - first:
+      213: -1349688013443278421
+    second: space_elite_rift_lancer_lights_68
+  - first:
+      213: 7478368264356886639
+    second: space_elite_rift_lancer_lights_69
+  - first:
+      213: -5003242884631159253
+    second: space_elite_rift_lancer_lights_70
+  - first:
+      213: -1779445072231176874
+    second: space_elite_rift_lancer_lights_71
+  - first:
+      213: 7420573139077937065
+    second: space_elite_rift_lancer_lights_72
+  - first:
+      213: -2598095611495491864
+    second: space_elite_rift_lancer_lights_73
+  - first:
+      213: -3080759998725788114
+    second: space_elite_rift_lancer_lights_74
+  - first:
+      213: -2457896796726295995
+    second: space_elite_rift_lancer_lights_75
+  - first:
+      213: -1246720057368796378
+    second: space_elite_rift_lancer_lights_76
+  - first:
+      213: 7716494692909193858
+    second: space_elite_rift_lancer_lights_77
+  - first:
+      213: 2709993456744107509
+    second: space_elite_rift_lancer_lights_78
+  - first:
+      213: 6111807235625557158
+    second: space_elite_rift_lancer_lights_79
+  - first:
+      213: -7391397653062824558
+    second: space_elite_rift_lancer_lights_80
+  - first:
+      213: 3153620185564189065
+    second: space_elite_rift_lancer_lights_81
+  - first:
+      213: -7588360282487355040
+    second: space_elite_rift_lancer_lights_82
+  - first:
+      213: 7607849496099796204
+    second: space_elite_rift_lancer_lights_83
+  - first:
+      213: 3926337152099995471
+    second: space_elite_rift_lancer_lights_84
+  - first:
+      213: 8576875041581548707
+    second: space_elite_rift_lancer_lights_85
+  - first:
+      213: -1138978541192499449
+    second: space_elite_rift_lancer_lights_86
+  - first:
+      213: 1948053057593940597
+    second: space_elite_rift_lancer_lights_87
+  - first:
+      213: -5644426307266240156
+    second: space_elite_rift_lancer_lights_88
+  - first:
+      213: 838364711396419409
+    second: space_elite_rift_lancer_lights_89
+  - first:
+      213: -6336627603426629960
+    second: space_elite_rift_lancer_lights_90
+  - first:
+      213: -6624246139849218242
+    second: space_elite_rift_lancer_lights_91
+  - first:
+      213: 9193730236743491403
+    second: space_elite_rift_lancer_lights_92
+  - first:
+      213: -7550449402714794110
+    second: space_elite_rift_lancer_lights_93
+  - first:
+      213: 4059499371457958151
+    second: space_elite_rift_lancer_lights_94
+  - first:
+      213: 5224222395933545246
+    second: space_elite_rift_lancer_lights_95
+  - first:
+      213: -7795402470693080820
+    second: space_elite_rift_lancer_lights_96
+  - first:
+      213: -2009097008636221203
+    second: space_elite_rift_lancer_lights_97
+  - first:
+      213: 2261551764947812917
+    second: space_elite_rift_lancer_lights_98
+  - first:
+      213: 4545757399381932015
+    second: space_elite_rift_lancer_lights_99
+  - first:
+      213: -2838223868101749953
+    second: space_elite_rift_lancer_lights_100
+  - first:
+      213: -9042652126523902530
+    second: space_elite_rift_lancer_lights_101
+  - first:
+      213: -5801781587067028054
+    second: space_elite_rift_lancer_lights_102
+  - first:
+      213: 3815527571462749386
+    second: space_elite_rift_lancer_lights_103
+  - first:
+      213: 113210497961103869
+    second: space_elite_rift_lancer_lights_104
+  - first:
+      213: 3023615809646980235
+    second: space_elite_rift_lancer_lights_105
+  - first:
+      213: -6034447988351724253
+    second: space_elite_rift_lancer_lights_106
+  - first:
+      213: -200589226567849614
+    second: space_elite_rift_lancer_lights_107
+  - first:
+      213: 4295426060390718441
+    second: space_elite_rift_lancer_lights_108
+  - first:
+      213: -6344556519874002085
+    second: space_elite_rift_lancer_lights_109
+  - first:
+      213: -7682833461383140401
+    second: space_elite_rift_lancer_lights_110
+  - first:
+      213: -7358470997631541385
+    second: space_elite_rift_lancer_lights_111
+  - first:
+      213: 5023892291435665392
+    second: space_elite_rift_lancer_lights_112
+  - first:
+      213: 5780651983832548573
+    second: space_elite_rift_lancer_lights_113
+  - first:
+      213: -9090754345183943734
+    second: space_elite_rift_lancer_lights_114
+  - first:
+      213: 4303464936585282239
+    second: space_elite_rift_lancer_lights_115
+  - first:
+      213: -2342241039731985784
+    second: space_elite_rift_lancer_lights_116
+  - first:
+      213: -1653635203193586226
+    second: space_elite_rift_lancer_lights_117
+  - first:
+      213: 1948966861142219299
+    second: space_elite_rift_lancer_lights_118
+  - first:
+      213: 1256646880994376980
+    second: space_elite_rift_lancer_lights_119
+  - first:
+      213: -3181264883762819861
+    second: space_elite_rift_lancer_lights_120
+  - first:
+      213: -7366250814024941042
+    second: space_elite_rift_lancer_lights_121
+  - first:
+      213: -6307812757170851379
+    second: space_elite_rift_lancer_lights_122
+  - first:
+      213: -9123541313812255748
+    second: space_elite_rift_lancer_lights_123
+  - first:
+      213: 8071759636495277188
+    second: space_elite_rift_lancer_lights_124
+  - first:
+      213: 7413171975012176616
+    second: space_elite_rift_lancer_lights_125
+  - first:
+      213: 2495412752332102060
+    second: space_elite_rift_lancer_lights_126
+  - first:
+      213: 491555907261298615
+    second: space_elite_rift_lancer_lights_127
+  - first:
+      213: -5414205205677691357
+    second: space_elite_rift_lancer_lights_128
+  - first:
+      213: 2222604898574093460
+    second: space_elite_rift_lancer_lights_129
+  - first:
+      213: 436938794968096080
+    second: space_elite_rift_lancer_lights_130
+  - first:
+      213: 8018595532147291510
+    second: space_elite_rift_lancer_lights_131
+  - first:
+      213: -8932591986484676548
+    second: space_elite_rift_lancer_lights_132
+  - first:
+      213: -6571289502090395653
+    second: space_elite_rift_lancer_lights_133
+  - first:
+      213: -4312600181890358579
+    second: space_elite_rift_lancer_lights_134
+  - first:
+      213: -4291653352985729910
+    second: space_elite_rift_lancer_lights_135
+  - first:
+      213: -3611545139258989669
+    second: space_elite_rift_lancer_lights_136
+  - first:
+      213: -1020376221046400521
+    second: space_elite_rift_lancer_lights_137
+  - first:
+      213: 5029311229685417235
+    second: space_elite_rift_lancer_lights_138
+  - first:
+      213: -6178113252139746855
+    second: space_elite_rift_lancer_lights_139
+  - first:
+      213: 5756662481593898018
+    second: space_elite_rift_lancer_lights_140
+  - first:
+      213: -5748012165575352502
+    second: space_elite_rift_lancer_lights_141
+  - first:
+      213: -9026675243388732181
+    second: space_elite_rift_lancer_lights_142
+  - first:
+      213: -4439865665862130064
+    second: space_elite_rift_lancer_lights_143
+  - first:
+      213: -1598778175529715228
+    second: space_elite_rift_lancer_lights_144
+  - first:
+      213: 105046029074721114
+    second: space_elite_rift_lancer_lights_145
+  - first:
+      213: 5822723524984079226
+    second: space_elite_rift_lancer_lights_146
+  - first:
+      213: 2950528151726491021
+    second: space_elite_rift_lancer_lights_147
+  - first:
+      213: -7549583559998755037
+    second: space_elite_rift_lancer_lights_148
+  - first:
+      213: -8144281188762524991
+    second: space_elite_rift_lancer_lights_149
+  - first:
+      213: -6117273837685927776
+    second: space_elite_rift_lancer_lights_150
+  - first:
+      213: -6847329750151492542
+    second: space_elite_rift_lancer_lights_151
+  - first:
+      213: 5130219927358425669
+    second: space_elite_rift_lancer_lights_152
+  - first:
+      213: -5410044547444518601
+    second: space_elite_rift_lancer_lights_153
+  - first:
+      213: -5007019746705477847
+    second: space_elite_rift_lancer_lights_154
+  - first:
+      213: -6462820504893429506
+    second: space_elite_rift_lancer_lights_155
+  - first:
+      213: -6749410705386571707
+    second: space_elite_rift_lancer_lights_156
+  - first:
+      213: 2044287686871924896
+    second: space_elite_rift_lancer_lights_157
+  - first:
+      213: 1527026703845520381
+    second: space_elite_rift_lancer_lights_158
+  - first:
+      213: 6263498987950418247
+    second: space_elite_rift_lancer_lights_159
+  - first:
+      213: 7102544966792819711
+    second: space_elite_rift_lancer_lights_160
+  - first:
+      213: 3193150483277277319
+    second: space_elite_rift_lancer_lights_161
+  - first:
+      213: -7878201231847390110
+    second: space_elite_rift_lancer_lights_162
+  - first:
+      213: -1631153220948058439
+    second: space_elite_rift_lancer_lights_163
+  - first:
+      213: 8196892582959870149
+    second: space_elite_rift_lancer_lights_164
+  - first:
+      213: 4908222714225749695
+    second: space_elite_rift_lancer_lights_165
+  - first:
+      213: 3729088735371805098
+    second: space_elite_rift_lancer_lights_166
+  - first:
+      213: 7124027535254483636
+    second: space_elite_rift_lancer_lights_167
+  - first:
+      213: 638753737150183993
+    second: space_elite_rift_lancer_lights_168
+  - first:
+      213: 1956853343518957515
+    second: space_elite_rift_lancer_lights_169
+  - first:
+      213: -4560878970723523991
+    second: space_elite_rift_lancer_lights_170
+  - first:
+      213: 8678164619659121871
+    second: space_elite_rift_lancer_lights_171
+  - first:
+      213: 8323294688125974116
+    second: space_elite_rift_lancer_lights_172
+  - first:
+      213: -4002571351806470737
+    second: space_elite_rift_lancer_lights_173
+  - first:
+      213: 143658022104926917
+    second: space_elite_rift_lancer_lights_174
+  - first:
+      213: -4189779121604449009
+    second: space_elite_rift_lancer_lights_175
+  - first:
+      213: 3067796691562545556
+    second: space_elite_rift_lancer_lights_176
+  - first:
+      213: -1449592625079128169
+    second: space_elite_rift_lancer_lights_177
+  - first:
+      213: -6374423920273228856
+    second: space_elite_rift_lancer_lights_178
+  - first:
+      213: 3481227549674344757
+    second: space_elite_rift_lancer_lights_179
+  - first:
+      213: -125212787403535124
+    second: space_elite_rift_lancer_lights_180
+  - first:
+      213: -8009678927758081041
+    second: space_elite_rift_lancer_lights_181
+  - first:
+      213: -8777309252622381545
+    second: space_elite_rift_lancer_lights_182
+  - first:
+      213: 3581020602244142783
+    second: space_elite_rift_lancer_lights_183
+  - first:
+      213: 4086621069996525202
+    second: space_elite_rift_lancer_lights_184
+  - first:
+      213: -5598351853105338415
+    second: space_elite_rift_lancer_lights_185
+  - first:
+      213: -8875073866933847714
+    second: space_elite_rift_lancer_lights_186
+  - first:
+      213: 7610191288393230413
+    second: space_elite_rift_lancer_lights_187
+  - first:
+      213: 124299657206191697
+    second: space_elite_rift_lancer_lights_188
+  - first:
+      213: 6767552842357039289
+    second: space_elite_rift_lancer_lights_189
+  - first:
+      213: 3638433185866200330
+    second: space_elite_rift_lancer_lights_190
+  - first:
+      213: 2693672103282538866
+    second: space_elite_rift_lancer_lights_191
+  - first:
+      213: 7284429214460302923
+    second: space_elite_rift_lancer_lights_192
+  - first:
+      213: -5288941294063906544
+    second: space_elite_rift_lancer_lights_193
+  - first:
+      213: -3726168552626094206
+    second: space_elite_rift_lancer_lights_194
+  - first:
+      213: -8417553223702626098
+    second: space_elite_rift_lancer_lights_195
+  - first:
+      213: -1304048575296445945
+    second: space_elite_rift_lancer_lights_196
+  - first:
+      213: 107388970754446798
+    second: space_elite_rift_lancer_lights_197
+  - first:
+      213: 7301958222354118440
+    second: space_elite_rift_lancer_lights_198
+  - first:
+      213: 8760466483041295557
+    second: space_elite_rift_lancer_lights_199
+  - first:
+      213: 6441129709335177500
+    second: space_elite_rift_lancer_lights_200
+  - first:
+      213: 8145625695670487018
+    second: space_elite_rift_lancer_lights_201
+  - first:
+      213: -2405675857419272289
+    second: space_elite_rift_lancer_lights_202
+  - first:
+      213: 6734107041676032636
+    second: space_elite_rift_lancer_lights_203
+  - first:
+      213: -6973396149867489805
+    second: space_elite_rift_lancer_lights_204
+  - first:
+      213: 4553589097397669176
+    second: space_elite_rift_lancer_lights_205
+  - first:
+      213: 9201057367773056854
+    second: space_elite_rift_lancer_lights_206
+  - first:
+      213: 3774280815880058258
+    second: space_elite_rift_lancer_lights_207
+  - first:
+      213: -7748105988529267627
+    second: space_elite_rift_lancer_lights_208
+  - first:
+      213: 1461309579635899834
+    second: space_elite_rift_lancer_lights_209
+  - first:
+      213: -8107415822000009976
+    second: space_elite_rift_lancer_lights_210
+  - first:
+      213: -3065898274585900923
+    second: space_elite_rift_lancer_lights_211
+  - first:
+      213: -1206689383141015827
+    second: space_elite_rift_lancer_lights_212
+  - first:
+      213: 5024233401572793488
+    second: space_elite_rift_lancer_lights_213
+  - first:
+      213: -1993921764803738512
+    second: space_elite_rift_lancer_lights_214
+  - first:
+      213: -3344408619301226249
+    second: space_elite_rift_lancer_lights_215
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 1
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 4096
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 0
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 4096
+    resizeAlgorithm: 0
+    textureFormat: 50
+    textureCompression: 1
+    compressionQuality: 100
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 1
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: iOS
+    maxTextureSize: 4096
+    resizeAlgorithm: 0
+    textureFormat: 50
+    textureCompression: 1
+    compressionQuality: 100
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 1
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_0
+      rect:
+        serializedVersion: 2
+        x: 185
+        y: 344
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6f84543fc48331cb0800000000000000
+      internalID: -4894506466871523082
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_1
+      rect:
+        serializedVersion: 2
+        x: 569
+        y: 344
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 99513b4c106ea8ed0800000000000000
+      internalID: -2410861755234052711
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_2
+      rect:
+        serializedVersion: 2
+        x: 952
+        y: 343
+        width: 17
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4961d21d0597071f0800000000000000
+      internalID: -1049205325163587948
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_3
+      rect:
+        serializedVersion: 2
+        x: 1336
+        y: 343
+        width: 17
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 88efdbfa5dad6dfb0800000000000000
+      internalID: -4623267356137881976
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_4
+      rect:
+        serializedVersion: 2
+        x: 1720
+        y: 343
+        width: 17
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bfd35ae16024b1690800000000000000
+      internalID: -7630432549597790725
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_5
+      rect:
+        serializedVersion: 2
+        x: 2104
+        y: 343
+        width: 17
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c4304f15688766cb0800000000000000
+      internalID: -4871073428658715828
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_6
+      rect:
+        serializedVersion: 2
+        x: 2489
+        y: 344
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 10431b6d1d1c66a40800000000000000
+      internalID: 5361185513425417217
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_7
+      rect:
+        serializedVersion: 2
+        x: 2873
+        y: 344
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0f471b5309288f530800000000000000
+      internalID: 3889001834122147056
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_8
+      rect:
+        serializedVersion: 2
+        x: 3257
+        y: 344
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 54e11cf0ba3379140800000000000000
+      internalID: 4726303143745363525
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_9
+      rect:
+        serializedVersion: 2
+        x: 3641
+        y: 344
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d41db2a3ed98b4110800000000000000
+      internalID: 1246241309449769293
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_10
+      rect:
+        serializedVersion: 2
+        x: 4025
+        y: 344
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1908686c2a3c39580800000000000000
+      internalID: -8821492141205847919
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_11
+      rect:
+        serializedVersion: 2
+        x: 4409
+        y: 345
+        width: 15
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5d73cc782b474fce0800000000000000
+      internalID: -1372343676309850155
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_12
+      rect:
+        serializedVersion: 2
+        x: 144
+        y: 306
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2101a456d3c4730f0800000000000000
+      internalID: -1137356554311692270
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_13
+      rect:
+        serializedVersion: 2
+        x: 225
+        y: 309
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8ccba72d73a20ce90800000000000000
+      internalID: -7007554600945664824
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_14
+      rect:
+        serializedVersion: 2
+        x: 527
+        y: 305
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 886f47ce2714a4eb0800000000000000
+      internalID: -4734900096377489784
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_15
+      rect:
+        serializedVersion: 2
+        x: 608
+        y: 308
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9e04208ed75209d30800000000000000
+      internalID: 4436086855653540073
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_16
+      rect:
+        serializedVersion: 2
+        x: 910
+        y: 304
+        width: 17
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f81c10f0344229af0800000000000000
+      internalID: -391210347194629745
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_17
+      rect:
+        serializedVersion: 2
+        x: 991
+        y: 307
+        width: 17
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2b7ede5ce4864fb00800000000000000
+      internalID: 861428116272048050
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_18
+      rect:
+        serializedVersion: 2
+        x: 1295
+        y: 305
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2742cdd7d4880f0c0800000000000000
+      internalID: -4543982157611391886
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_19
+      rect:
+        serializedVersion: 2
+        x: 1376
+        y: 308
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 24dbaa6922f7deec0800000000000000
+      internalID: -3536030345882583742
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_20
+      rect:
+        serializedVersion: 2
+        x: 1678
+        y: 304
+        width: 17
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 73449c0c2a7f8e4f0800000000000000
+      internalID: -799116655467084745
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_21
+      rect:
+        serializedVersion: 2
+        x: 1759
+        y: 307
+        width: 17
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e7d6fa706ceaab380800000000000000
+      internalID: -8954652743517115010
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_22
+      rect:
+        serializedVersion: 2
+        x: 2062
+        y: 304
+        width: 17
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6d497536b5c7083d0800000000000000
+      internalID: -3206426202737240874
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_23
+      rect:
+        serializedVersion: 2
+        x: 2143
+        y: 307
+        width: 17
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1c2b8c5c667063050800000000000000
+      internalID: 5779815309762933441
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_24
+      rect:
+        serializedVersion: 2
+        x: 2446
+        y: 304
+        width: 17
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5a1411654c1998ef0800000000000000
+      internalID: -105392843822906971
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_25
+      rect:
+        serializedVersion: 2
+        x: 2527
+        y: 307
+        width: 17
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3a0968a11f2258560800000000000000
+      internalID: 7315291588660727971
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_26
+      rect:
+        serializedVersion: 2
+        x: 2830
+        y: 304
+        width: 17
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 78c50d53902d1e960800000000000000
+      internalID: 7629610180741717127
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_27
+      rect:
+        serializedVersion: 2
+        x: 2912
+        y: 308
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cfee60c89b9377e90800000000000000
+      internalID: -7028085224407372036
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_28
+      rect:
+        serializedVersion: 2
+        x: 3215
+        y: 305
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3070762e66f15bee0800000000000000
+      internalID: -1246055195152546045
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_29
+      rect:
+        serializedVersion: 2
+        x: 3296
+        y: 308
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 59b4e996775b45320800000000000000
+      internalID: 2545859213848890261
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_30
+      rect:
+        serializedVersion: 2
+        x: 3599
+        y: 305
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1918b9b5bba54f410800000000000000
+      internalID: 1509931535818260881
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_31
+      rect:
+        serializedVersion: 2
+        x: 3680
+        y: 308
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 56d0724af9c6b1400800000000000000
+      internalID: 295949633432522085
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_32
+      rect:
+        serializedVersion: 2
+        x: 3983
+        y: 305
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0033c2f1b903057a0800000000000000
+      internalID: -6390554428437679360
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_33
+      rect:
+        serializedVersion: 2
+        x: 4064
+        y: 308
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0508edd72957e7dc0800000000000000
+      internalID: -3639342176831373232
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_34
+      rect:
+        serializedVersion: 2
+        x: 4367
+        y: 306
+        width: 15
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fe16eabc50b15e320800000000000000
+      internalID: 2586503272700207599
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_35
+      rect:
+        serializedVersion: 2
+        x: 4447
+        y: 308
+        width: 17
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 96efe09ab1c0b5af0800000000000000
+      internalID: -406718028406915479
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_36
+      rect:
+        serializedVersion: 2
+        x: 141
+        y: 288
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 86777e09314268bc0800000000000000
+      internalID: -3781295170676885656
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_37
+      rect:
+        serializedVersion: 2
+        x: 162
+        y: 276
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 43f28cf7f3c6c0490800000000000000
+      internalID: -7778723436393124044
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_38
+      rect:
+        serializedVersion: 2
+        x: 207
+        y: 288
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c2a6e3c0baa76ad40800000000000000
+      internalID: 5595294462117833260
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_39
+      rect:
+        serializedVersion: 2
+        x: 228
+        y: 288
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: acbaa1c68aef3f410800000000000000
+      internalID: 1509830299420896202
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_40
+      rect:
+        serializedVersion: 2
+        x: 525
+        y: 287
+        width: 13
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1624e2f8eaec88590800000000000000
+      internalID: -7671654716103835039
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_41
+      rect:
+        serializedVersion: 2
+        x: 546
+        y: 275
+        width: 13
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: eaf030602169e2550800000000000000
+      internalID: 6138008346307006382
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_42
+      rect:
+        serializedVersion: 2
+        x: 591
+        y: 287
+        width: 13
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a65f5c427981d4ba0800000000000000
+      internalID: -6103194882581072534
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_43
+      rect:
+        serializedVersion: 2
+        x: 612
+        y: 287
+        width: 13
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1215c6e8e0da42410800000000000000
+      internalID: 1451475257950753057
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_44
+      rect:
+        serializedVersion: 2
+        x: 908
+        y: 287
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1dcedce485b77adb0800000000000000
+      internalID: -4780716860221035311
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_45
+      rect:
+        serializedVersion: 2
+        x: 929
+        y: 275
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fb234f3d8204d8ea0800000000000000
+      internalID: -5868964195295022401
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_46
+      rect:
+        serializedVersion: 2
+        x: 974
+        y: 287
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5fbb30fdc73480d90800000000000000
+      internalID: -7131375806344610827
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_47
+      rect:
+        serializedVersion: 2
+        x: 995
+        y: 287
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ce0777861a4c59a10800000000000000
+      internalID: 1915653414037450988
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_48
+      rect:
+        serializedVersion: 2
+        x: 1292
+        y: 287
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 377ae3772922a7f50800000000000000
+      internalID: 6879849393223018355
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_49
+      rect:
+        serializedVersion: 2
+        x: 1313
+        y: 275
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cfaed951868528030800000000000000
+      internalID: 3495453464855440124
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_50
+      rect:
+        serializedVersion: 2
+        x: 1358
+        y: 287
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e6d61626a15638540800000000000000
+      internalID: 5008958374560230766
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_51
+      rect:
+        serializedVersion: 2
+        x: 1379
+        y: 287
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 29552967177305af0800000000000000
+      internalID: -409766605630581358
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_52
+      rect:
+        serializedVersion: 2
+        x: 1676
+        y: 287
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8b07168cbaf87e610800000000000000
+      internalID: 1650445756418584760
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_53
+      rect:
+        serializedVersion: 2
+        x: 1697
+        y: 275
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0a4fb3b0cdcf010c0800000000000000
+      internalID: -4606904396788534112
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_54
+      rect:
+        serializedVersion: 2
+        x: 1742
+        y: 287
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 56c8f9c0d2dd2bb50800000000000000
+      internalID: 6607586788860988517
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_55
+      rect:
+        serializedVersion: 2
+        x: 1763
+        y: 287
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 309c1a901b259e600800000000000000
+      internalID: 498020154125437187
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_56
+      rect:
+        serializedVersion: 2
+        x: 2060
+        y: 287
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 124f6ea522d817c00800000000000000
+      internalID: 896652979516929057
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_57
+      rect:
+        serializedVersion: 2
+        x: 2081
+        y: 275
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 958ea0de00a2e53e0800000000000000
+      internalID: -2063165395823826855
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_58
+      rect:
+        serializedVersion: 2
+        x: 2126
+        y: 287
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cce52c4dcd7b91020800000000000000
+      internalID: 2313082042721656524
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_59
+      rect:
+        serializedVersion: 2
+        x: 2147
+        y: 287
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3d2be2d6fea7a7bb0800000000000000
+      internalID: -4937498872710778157
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_60
+      rect:
+        serializedVersion: 2
+        x: 2443
+        y: 286
+        width: 17
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1b39fa1d17f82b8c0800000000000000
+      internalID: -3984965001257446479
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_61
+      rect:
+        serializedVersion: 2
+        x: 2465
+        y: 275
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 454ef491d5dda09f0800000000000000
+      internalID: -501345016572025772
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_62
+      rect:
+        serializedVersion: 2
+        x: 2510
+        y: 287
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b84faa4fb826f5e20800000000000000
+      internalID: 3341497801777017995
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_63
+      rect:
+        serializedVersion: 2
+        x: 2531
+        y: 287
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7bb5cd9846608c920800000000000000
+      internalID: 3010663379776592823
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_64
+      rect:
+        serializedVersion: 2
+        x: 2827
+        y: 286
+        width: 17
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: afec570cb293171a0800000000000000
+      internalID: -6813601901159526662
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_65
+      rect:
+        serializedVersion: 2
+        x: 2849
+        y: 275
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e0e5869079afb0980800000000000000
+      internalID: -8571481939164766706
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_66
+      rect:
+        serializedVersion: 2
+        x: 2893
+        y: 286
+        width: 17
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3dc2c50cd790f8bf0800000000000000
+      internalID: -320026612817187629
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_67
+      rect:
+        serializedVersion: 2
+        x: 2915
+        y: 287
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: dd6dab726f5e27f20800000000000000
+      internalID: 3419047912518899421
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_68
+      rect:
+        serializedVersion: 2
+        x: 3211
+        y: 286
+        width: 17
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ba95c1917e1f44de0800000000000000
+      internalID: -1349688013443278421
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_69
+      rect:
+        serializedVersion: 2
+        x: 3233
+        y: 275
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f68fb88705088c760800000000000000
+      internalID: 7478368264356886639
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_70
+      rect:
+        serializedVersion: 2
+        x: 3277
+        y: 286
+        width: 17
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b2e1f80da19e09ab0800000000000000
+      internalID: -5003242884631159253
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_71
+      rect:
+        serializedVersion: 2
+        x: 3298
+        y: 286
+        width: 17
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 655675c72242e47e0800000000000000
+      internalID: -1779445072231176874
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_72
+      rect:
+        serializedVersion: 2
+        x: 3596
+        y: 287
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9a7bb8044fb2bf660800000000000000
+      internalID: 7420573139077937065
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_73
+      rect:
+        serializedVersion: 2
+        x: 3616
+        y: 274
+        width: 17
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8e65f408ec5b1fbd0800000000000000
+      internalID: -2598095611495491864
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_74
+      rect:
+        serializedVersion: 2
+        x: 3661
+        y: 286
+        width: 17
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e2e67bd8a11fe35d0800000000000000
+      internalID: -3080759998725788114
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_75
+      rect:
+        serializedVersion: 2
+        x: 3682
+        y: 286
+        width: 17
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5420f88c2ebc3edd0800000000000000
+      internalID: -2457896796726295995
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_76
+      rect:
+        serializedVersion: 2
+        x: 3980
+        y: 287
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 623ad2696b2c2bee0800000000000000
+      internalID: -1246720057368796378
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_77
+      rect:
+        serializedVersion: 2
+        x: 4000
+        y: 274
+        width: 17
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 28a1a0a1a0f761b60800000000000000
+      internalID: 7716494692909193858
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_78
+      rect:
+        serializedVersion: 2
+        x: 4046
+        y: 287
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5fd8dd4d0b4db9520800000000000000
+      internalID: 2709993456744107509
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_79
+      rect:
+        serializedVersion: 2
+        x: 4066
+        y: 286
+        width: 17
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6ac9f1f8c4081d450800000000000000
+      internalID: 6111807235625557158
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_80
+      rect:
+        serializedVersion: 2
+        x: 4363
+        y: 287
+        width: 17
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 29dc88feefa7c6990800000000000000
+      internalID: -7391397653062824558
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_81
+      rect:
+        serializedVersion: 2
+        x: 4384
+        y: 275
+        width: 17
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9811e05a9d8e3cb20800000000000000
+      internalID: 3153620185564189065
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_82
+      rect:
+        serializedVersion: 2
+        x: 4430
+        y: 288
+        width: 15
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 06988a6278ab0b690800000000000000
+      internalID: -7588360282487355040
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_83
+      rect:
+        serializedVersion: 2
+        x: 4451
+        y: 288
+        width: 15
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ce4b9affec2849960800000000000000
+      internalID: 7607849496099796204
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_84
+      rect:
+        serializedVersion: 2
+        x: 138
+        y: 255
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f4fc65356d62d7630800000000000000
+      internalID: 3926337152099995471
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_85
+      rect:
+        serializedVersion: 2
+        x: 183
+        y: 258
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3a4c168786e270770800000000000000
+      internalID: 8576875041581548707
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_86
+      rect:
+        serializedVersion: 2
+        x: 234
+        y: 264
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 70fad652d098130f0800000000000000
+      internalID: -1138978541192499449
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_87
+      rect:
+        serializedVersion: 2
+        x: 522
+        y: 254
+        width: 13
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 57a10854fefd80b10800000000000000
+      internalID: 1948053057593940597
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_88
+      rect:
+        serializedVersion: 2
+        x: 567
+        y: 257
+        width: 13
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 461a682dd28faa1b0800000000000000
+      internalID: -5644426307266240156
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_89
+      rect:
+        serializedVersion: 2
+        x: 618
+        y: 263
+        width: 13
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 157a10f534872ab00800000000000000
+      internalID: 838364711396419409
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_90
+      rect:
+        serializedVersion: 2
+        x: 905
+        y: 254
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8b622df74c6cf08a0800000000000000
+      internalID: -6336627603426629960
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_91
+      rect:
+        serializedVersion: 2
+        x: 950
+        y: 257
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e37e8898b33f114a0800000000000000
+      internalID: -6624246139849218242
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_92
+      rect:
+        serializedVersion: 2
+        x: 1001
+        y: 263
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b4f1dd990f0b69f70800000000000000
+      internalID: 9193730236743491403
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_93
+      rect:
+        serializedVersion: 2
+        x: 1289
+        y: 254
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 287df90b54a673790800000000000000
+      internalID: -7550449402714794110
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_94
+      rect:
+        serializedVersion: 2
+        x: 1334
+        y: 257
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7015ca19b2d365830800000000000000
+      internalID: 4059499371457958151
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_95
+      rect:
+        serializedVersion: 2
+        x: 1385
+        y: 263
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e135249079a208840800000000000000
+      internalID: 5224222395933545246
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_96
+      rect:
+        serializedVersion: 2
+        x: 1673
+        y: 254
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c01f22531ca21d390800000000000000
+      internalID: -7795402470693080820
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_97
+      rect:
+        serializedVersion: 2
+        x: 1718
+        y: 257
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: de820f05ae04e14e0800000000000000
+      internalID: -2009097008636221203
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_98
+      rect:
+        serializedVersion: 2
+        x: 1769
+        y: 263
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5324fd61955a26f10800000000000000
+      internalID: 2261551764947812917
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_99
+      rect:
+        serializedVersion: 2
+        x: 2057
+        y: 254
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fe773413546c51f30800000000000000
+      internalID: 4545757399381932015
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_100
+      rect:
+        serializedVersion: 2
+        x: 2102
+        y: 257
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f3392c4fd6a9c98d0800000000000000
+      internalID: -2838223868101749953
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_101
+      rect:
+        serializedVersion: 2
+        x: 2153
+        y: 263
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: eb5bc1b0dcb028280800000000000000
+      internalID: -9042652126523902530
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_102
+      rect:
+        serializedVersion: 2
+        x: 2441
+        y: 254
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: aadb77eb26eeb7fa0800000000000000
+      internalID: -5801781587067028054
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_103
+      rect:
+        serializedVersion: 2
+        x: 2486
+        y: 257
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: accfeb75c1a73f430800000000000000
+      internalID: 3815527571462749386
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_104
+      rect:
+        serializedVersion: 2
+        x: 2537
+        y: 263
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: df111db1954329100800000000000000
+      internalID: 113210497961103869
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_105
+      rect:
+        serializedVersion: 2
+        x: 2825
+        y: 254
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b8c634f1f8a06f920800000000000000
+      internalID: 3023615809646980235
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_106
+      rect:
+        serializedVersion: 2
+        x: 2870
+        y: 257
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 32599b6c685514ca0800000000000000
+      internalID: -6034447988351724253
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_107
+      rect:
+        serializedVersion: 2
+        x: 2921
+        y: 263
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 27927a4492d573df0800000000000000
+      internalID: -200589226567849614
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_108
+      rect:
+        serializedVersion: 2
+        x: 3209
+        y: 254
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9eb5b886e3b6c9b30800000000000000
+      internalID: 4295426060390718441
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_109
+      rect:
+        serializedVersion: 2
+        x: 3254
+        y: 257
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b538587c57b93f7a0800000000000000
+      internalID: -6344556519874002085
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_110
+      rect:
+        serializedVersion: 2
+        x: 3305
+        y: 263
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fcbe5c91ca7116590800000000000000
+      internalID: -7682833461383140401
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_111
+      rect:
+        serializedVersion: 2
+        x: 3593
+        y: 254
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 77f58205d9571e990800000000000000
+      internalID: -7358470997631541385
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_112
+      rect:
+        serializedVersion: 2
+        x: 3638
+        y: 257
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0f798dcdb6378b540800000000000000
+      internalID: 5023892291435665392
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_113
+      rect:
+        serializedVersion: 2
+        x: 3689
+        y: 263
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: dd40f722a50093050800000000000000
+      internalID: 5780651983832548573
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_114
+      rect:
+        serializedVersion: 2
+        x: 3977
+        y: 254
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ac3e8f2861727d180800000000000000
+      internalID: -9090754345183943734
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_115
+      rect:
+        serializedVersion: 2
+        x: 4022
+        y: 257
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fb2c3802f8af8bb30800000000000000
+      internalID: 4303464936585282239
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_116
+      rect:
+        serializedVersion: 2
+        x: 4072
+        y: 262
+        width: 17
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 882fe602f20be7fd0800000000000000
+      internalID: -2342241039731985784
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_117
+      rect:
+        serializedVersion: 2
+        x: 4360
+        y: 254
+        width: 17
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ecdb0954b8b1d09e0800000000000000
+      internalID: -1653635203193586226
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_118
+      rect:
+        serializedVersion: 2
+        x: 4406
+        y: 258
+        width: 15
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 32ad36db80f1c0b10800000000000000
+      internalID: 1948966861142219299
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_119
+      rect:
+        serializedVersion: 2
+        x: 4456
+        y: 263
+        width: 17
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 41db5c52ea1807110800000000000000
+      internalID: 1256646880994376980
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_120
+      rect:
+        serializedVersion: 2
+        x: 240
+        y: 237
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bec84ea7170e9d3d0800000000000000
+      internalID: -3181264883762819861
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_121
+      rect:
+        serializedVersion: 2
+        x: 624
+        y: 236
+        width: 13
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e028c97a9e1d5c990800000000000000
+      internalID: -7366250814024941042
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_122
+      rect:
+        serializedVersion: 2
+        x: 1007
+        y: 236
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: dc17723b7b52678a0800000000000000
+      internalID: -6307812757170851379
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_123
+      rect:
+        serializedVersion: 2
+        x: 1391
+        y: 236
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cfbae90838ba26180800000000000000
+      internalID: -9123541313812255748
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_124
+      rect:
+        serializedVersion: 2
+        x: 1775
+        y: 236
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 48c13a59f96a40070800000000000000
+      internalID: 8071759636495277188
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_125
+      rect:
+        serializedVersion: 2
+        x: 2159
+        y: 236
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8e25b7572a0e0e660800000000000000
+      internalID: 7413171975012176616
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_126
+      rect:
+        serializedVersion: 2
+        x: 2543
+        y: 236
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ca91cbe4dac71a220800000000000000
+      internalID: 2495412752332102060
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_127
+      rect:
+        serializedVersion: 2
+        x: 2927
+        y: 236
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7b7fd874e7b52d600800000000000000
+      internalID: 491555907261298615
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_128
+      rect:
+        serializedVersion: 2
+        x: 3311
+        y: 236
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 32ea2861d01ecd4b0800000000000000
+      internalID: -5414205205677691357
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_129
+      rect:
+        serializedVersion: 2
+        x: 3695
+        y: 236
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 49c4d8f116748de10800000000000000
+      internalID: 2222604898574093460
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_130
+      rect:
+        serializedVersion: 2
+        x: 4079
+        y: 236
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 05d19aed481501600800000000000000
+      internalID: 436938794968096080
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_131
+      rect:
+        serializedVersion: 2
+        x: 4462
+        y: 236
+        width: 17
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6757c23f626c74f60800000000000000
+      internalID: 8018595532147291510
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_132
+      rect:
+        serializedVersion: 2
+        x: 144
+        y: 213
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c38741a4aee090480800000000000000
+      internalID: -8932591986484676548
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_133
+      rect:
+        serializedVersion: 2
+        x: 186
+        y: 210
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bfff5a793071ec4a0800000000000000
+      internalID: -6571289502090395653
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_134
+      rect:
+        serializedVersion: 2
+        x: 528
+        y: 212
+        width: 13
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: dc2e324dbf09624c0800000000000000
+      internalID: -4312600181890358579
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_135
+      rect:
+        serializedVersion: 2
+        x: 570
+        y: 209
+        width: 13
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a84eb2c730cf074c0800000000000000
+      internalID: -4291653352985729910
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_136
+      rect:
+        serializedVersion: 2
+        x: 911
+        y: 212
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b93ed24a4d631edc0800000000000000
+      internalID: -3611545139258989669
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_137
+      rect:
+        serializedVersion: 2
+        x: 953
+        y: 209
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7f9164fab35e6d1f0800000000000000
+      internalID: -1020376221046400521
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_138
+      rect:
+        serializedVersion: 2
+        x: 1295
+        y: 212
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 315484ebae3bbc540800000000000000
+      internalID: 5029311229685417235
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_139
+      rect:
+        serializedVersion: 2
+        x: 1337
+        y: 209
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9d9b310fabee24aa0800000000000000
+      internalID: -6178113252139746855
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_140
+      rect:
+        serializedVersion: 2
+        x: 1679
+        y: 212
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2241933e606c3ef40800000000000000
+      internalID: 5756662481593898018
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_141
+      rect:
+        serializedVersion: 2
+        x: 1721
+        y: 209
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a4fd142c365fa30b0800000000000000
+      internalID: -5748012165575352502
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_142
+      rect:
+        serializedVersion: 2
+        x: 2063
+        y: 212
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bec700701becab280800000000000000
+      internalID: -9026675243388732181
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_143
+      rect:
+        serializedVersion: 2
+        x: 2105
+        y: 209
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 076a5d743bd6262c0800000000000000
+      internalID: -4439865665862130064
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_144
+      rect:
+        serializedVersion: 2
+        x: 2447
+        y: 212
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4e977e458bfffc9e0800000000000000
+      internalID: -1598778175529715228
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_145
+      rect:
+        serializedVersion: 2
+        x: 2489
+        y: 209
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a5960109ec2357100800000000000000
+      internalID: 105046029074721114
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_146
+      rect:
+        serializedVersion: 2
+        x: 2831
+        y: 212
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a738cf322387ec050800000000000000
+      internalID: 5822723524984079226
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_147
+      rect:
+        serializedVersion: 2
+        x: 2873
+        y: 209
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d85827fa8b162f820800000000000000
+      internalID: 2950528151726491021
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_148
+      rect:
+        serializedVersion: 2
+        x: 3215
+        y: 212
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 32f252860cd7a3790800000000000000
+      internalID: -7549583559998755037
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_149
+      rect:
+        serializedVersion: 2
+        x: 3257
+        y: 209
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1c2e9e8b863b9fe80800000000000000
+      internalID: -8144281188762524991
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_150
+      rect:
+        serializedVersion: 2
+        x: 3599
+        y: 212
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0a090f6fad31b1ba0800000000000000
+      internalID: -6117273837685927776
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_151
+      rect:
+        serializedVersion: 2
+        x: 3641
+        y: 209
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 24c8146fed569f0a0800000000000000
+      internalID: -6847329750151492542
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_152
+      rect:
+        serializedVersion: 2
+        x: 3983
+        y: 212
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 54a44d5c7d3323740800000000000000
+      internalID: 5130219927358425669
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_153
+      rect:
+        serializedVersion: 2
+        x: 4025
+        y: 209
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 731d782d529abe4b0800000000000000
+      internalID: -5410044547444518601
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_154
+      rect:
+        serializedVersion: 2
+        x: 4367
+        y: 213
+        width: 15
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 92fe046911e738ab0800000000000000
+      internalID: -5007019746705477847
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_155
+      rect:
+        serializedVersion: 2
+        x: 4409
+        y: 210
+        width: 15
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ef867b60ef27f46a0800000000000000
+      internalID: -6462820504893429506
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_156
+      rect:
+        serializedVersion: 2
+        x: 210
+        y: 168
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 548f63e29b64552a0800000000000000
+      internalID: -6749410705386571707
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_157
+      rect:
+        serializedVersion: 2
+        x: 231
+        y: 171
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0a0c4b2f1d4ce5c10800000000000000
+      internalID: 2044287686871924896
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_158
+      rect:
+        serializedVersion: 2
+        x: 594
+        y: 167
+        width: 13
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: df37f3552b6113510800000000000000
+      internalID: 1527026703845520381
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_159
+      rect:
+        serializedVersion: 2
+        x: 615
+        y: 170
+        width: 13
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 749adc3e42b6ce650800000000000000
+      internalID: 6263498987950418247
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_160
+      rect:
+        serializedVersion: 2
+        x: 977
+        y: 167
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ff3bce2340f419260800000000000000
+      internalID: 7102544966792819711
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_161
+      rect:
+        serializedVersion: 2
+        x: 998
+        y: 170
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 788eb1e4279505c20800000000000000
+      internalID: 3193150483277277319
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_162
+      rect:
+        serializedVersion: 2
+        x: 1361
+        y: 167
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 26401ba58b10ba290800000000000000
+      internalID: -7878201231847390110
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_163
+      rect:
+        serializedVersion: 2
+        x: 1382
+        y: 170
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9be182ba9cafc59e0800000000000000
+      internalID: -1631153220948058439
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_164
+      rect:
+        serializedVersion: 2
+        x: 1745
+        y: 167
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5c07b5d006631c170800000000000000
+      internalID: 8196892582959870149
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_165
+      rect:
+        serializedVersion: 2
+        x: 1766
+        y: 170
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fbeedefbd828d1440800000000000000
+      internalID: 4908222714225749695
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_166
+      rect:
+        serializedVersion: 2
+        x: 2129
+        y: 167
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: aa14fbf727260c330800000000000000
+      internalID: 3729088735371805098
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_167
+      rect:
+        serializedVersion: 2
+        x: 2150
+        y: 170
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4b2f1f07c41add260800000000000000
+      internalID: 7124027535254483636
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_168
+      rect:
+        serializedVersion: 2
+        x: 2513
+        y: 167
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 93a3ac1c32f4dd800800000000000000
+      internalID: 638753737150183993
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_169
+      rect:
+        serializedVersion: 2
+        x: 2534
+        y: 170
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bcf9bf18fb3282b10800000000000000
+      internalID: 1956853343518957515
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_170
+      rect:
+        serializedVersion: 2
+        x: 2897
+        y: 167
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 962a97e9db084b0c0800000000000000
+      internalID: -4560878970723523991
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_171
+      rect:
+        serializedVersion: 2
+        x: 2918
+        y: 170
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fc415212eb80f6870800000000000000
+      internalID: 8678164619659121871
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_172
+      rect:
+        serializedVersion: 2
+        x: 3281
+        y: 167
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 466f4ae8b68428370800000000000000
+      internalID: 8323294688125974116
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_173
+      rect:
+        serializedVersion: 2
+        x: 3302
+        y: 170
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fa59b63ef820478c0800000000000000
+      internalID: -4002571351806470737
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_174
+      rect:
+        serializedVersion: 2
+        x: 3665
+        y: 167
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5ca03b0c5306ef100800000000000000
+      internalID: 143658022104926917
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_175
+      rect:
+        serializedVersion: 2
+        x: 3686
+        y: 170
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f0d2b69561aead5c0800000000000000
+      internalID: -4189779121604449009
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_176
+      rect:
+        serializedVersion: 2
+        x: 4049
+        y: 167
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 49144bb46d0039a20800000000000000
+      internalID: 3067796691562545556
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_177
+      rect:
+        serializedVersion: 2
+        x: 4070
+        y: 170
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 79fe121103302ebe0800000000000000
+      internalID: -1449592625079128169
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_178
+      rect:
+        serializedVersion: 2
+        x: 4433
+        y: 168
+        width: 15
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8cb7c58b73f7987a0800000000000000
+      internalID: -6374423920273228856
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_179
+      rect:
+        serializedVersion: 2
+        x: 4453
+        y: 170
+        width: 17
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 53194a8130ecf4030800000000000000
+      internalID: 3481227549674344757
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_180
+      rect:
+        serializedVersion: 2
+        x: 186
+        y: 156
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cecc97d12a7234ef0800000000000000
+      internalID: -125212787403535124
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_181
+      rect:
+        serializedVersion: 2
+        x: 227
+        y: 143
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fe34c0ac377e7d090800000000000000
+      internalID: -8009678927758081041
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_182
+      rect:
+        serializedVersion: 2
+        x: 570
+        y: 155
+        width: 13
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 71e81b92dbbb03680800000000000000
+      internalID: -8777309252622381545
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_183
+      rect:
+        serializedVersion: 2
+        x: 612
+        y: 143
+        width: 13
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fb61e12c34752b130800000000000000
+      internalID: 3581020602244142783
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_184
+      rect:
+        serializedVersion: 2
+        x: 953
+        y: 155
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 29605c8163896b830800000000000000
+      internalID: 4086621069996525202
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_185
+      rect:
+        serializedVersion: 2
+        x: 995
+        y: 143
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1d7a104a6a8ae42b0800000000000000
+      internalID: -5598351853105338415
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_186
+      rect:
+        serializedVersion: 2
+        x: 1291
+        y: 139
+        width: 17
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e593e06175765d480800000000000000
+      internalID: -8875073866933847714
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_187
+      rect:
+        serializedVersion: 2
+        x: 1337
+        y: 155
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d48637108a4dc9960800000000000000
+      internalID: 7610191288393230413
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_188
+      rect:
+        serializedVersion: 2
+        x: 1378
+        y: 142
+        width: 17
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1565a7131e999b100800000000000000
+      internalID: 124299657206191697
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_189
+      rect:
+        serializedVersion: 2
+        x: 1675
+        y: 139
+        width: 17
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9b0606f347d2bed50800000000000000
+      internalID: 6767552842357039289
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_190
+      rect:
+        serializedVersion: 2
+        x: 1721
+        y: 155
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a053c8e84bf4e7230800000000000000
+      internalID: 3638433185866200330
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_191
+      rect:
+        serializedVersion: 2
+        x: 1763
+        y: 143
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 279f8899188d16520800000000000000
+      internalID: 2693672103282538866
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_192
+      rect:
+        serializedVersion: 2
+        x: 2105
+        y: 155
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b465267a6cd771560800000000000000
+      internalID: 7284429214460302923
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_193
+      rect:
+        serializedVersion: 2
+        x: 2147
+        y: 143
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0111d614ae7e996b0800000000000000
+      internalID: -5288941294063906544
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_194
+      rect:
+        serializedVersion: 2
+        x: 2489
+        y: 155
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 28f7d77817df94cc0800000000000000
+      internalID: -3726168552626094206
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_195
+      rect:
+        serializedVersion: 2
+        x: 2531
+        y: 143
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ec0c24fe0f7de2b80800000000000000
+      internalID: -8417553223702626098
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_196
+      rect:
+        serializedVersion: 2
+        x: 2873
+        y: 155
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 702e99bdab617ede0800000000000000
+      internalID: -1304048575296445945
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_197
+      rect:
+        serializedVersion: 2
+        x: 2915
+        y: 143
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ec51d9e23b58d7100800000000000000
+      internalID: 107388970754446798
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_198
+      rect:
+        serializedVersion: 2
+        x: 3257
+        y: 155
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 827f828d054c55560800000000000000
+      internalID: 7301958222354118440
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_199
+      rect:
+        serializedVersion: 2
+        x: 3299
+        y: 143
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5cc5464f9dd639970800000000000000
+      internalID: 8760466483041295557
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_200
+      rect:
+        serializedVersion: 2
+        x: 3641
+        y: 155
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c196325185d736950800000000000000
+      internalID: 6441129709335177500
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_201
+      rect:
+        serializedVersion: 2
+        x: 3683
+        y: 143
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ae7cbbfa9631b0170800000000000000
+      internalID: 8145625695670487018
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_202
+      rect:
+        serializedVersion: 2
+        x: 4025
+        y: 155
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f9f7ac1bd825d9ed0800000000000000
+      internalID: -2405675857419272289
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_203
+      rect:
+        serializedVersion: 2
+        x: 4067
+        y: 143
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c7a7e82fcaa547d50800000000000000
+      internalID: 6734107041676032636
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_204
+      rect:
+        serializedVersion: 2
+        x: 4408
+        y: 155
+        width: 17
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3f55219f525893f90800000000000000
+      internalID: -6973396149867489805
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_205
+      rect:
+        serializedVersion: 2
+        x: 4451
+        y: 144
+        width: 15
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 83dca7b7829913f30800000000000000
+      internalID: 4553589097397669176
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_206
+      rect:
+        serializedVersion: 2
+        x: 140
+        y: 140
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 65f8a1c3de8b0bf70800000000000000
+      internalID: 9201057367773056854
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_207
+      rect:
+        serializedVersion: 2
+        x: 524
+        y: 140
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2953a11b760f06430800000000000000
+      internalID: 3774280815880058258
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_208
+      rect:
+        serializedVersion: 2
+        x: 908
+        y: 140
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 55cd2a797a2397490800000000000000
+      internalID: -7748105988529267627
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_209
+      rect:
+        serializedVersion: 2
+        x: 2060
+        y: 140
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: abdb211025d974410800000000000000
+      internalID: 1461309579635899834
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_210
+      rect:
+        serializedVersion: 2
+        x: 2444
+        y: 140
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 80dce4bc34cac7f80800000000000000
+      internalID: -8107415822000009976
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_211
+      rect:
+        serializedVersion: 2
+        x: 2828
+        y: 140
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 58803d953cdb375d0800000000000000
+      internalID: -3065898274585900923
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_212
+      rect:
+        serializedVersion: 2
+        x: 3212
+        y: 140
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: deef4ab366af04fe0800000000000000
+      internalID: -1206689383141015827
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_213
+      rect:
+        serializedVersion: 2
+        x: 3596
+        y: 140
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 09c1661c8a9a9b540800000000000000
+      internalID: 5024233401572793488
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_214
+      rect:
+        serializedVersion: 2
+        x: 3980
+        y: 140
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 07404fa18ba2454e0800000000000000
+      internalID: -1993921764803738512
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_rift_lancer_lights_215
+      rect:
+        serializedVersion: 2
+        x: 4364
+        y: 141
+        width: 15
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7f8bbc684164691d0800000000000000
+      internalID: -3344408619301226249
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 5e97eb03825dee720800000000000000
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable: {}
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

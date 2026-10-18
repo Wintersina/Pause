@@ -4,7 +4,7 @@
   "world": "space",
   "role": "ion lancer",
   "codexId": "elite_space_rift_lancer",
-  "launchFrom": "station",
+  "launchFrom": "gate,station",
   "lore": "An edge sniper that keeps to the far flank of the board while a blinking sight line tracks you, then locks, and a rail of bolts follows it. After a shot or two it slips off its side and comes back in from the other. Every third run it leaves a rift on the line: shoot it before it pops into a cross of bolts.",
   "brain": "sniper",
   "attack": "rift_snipe",

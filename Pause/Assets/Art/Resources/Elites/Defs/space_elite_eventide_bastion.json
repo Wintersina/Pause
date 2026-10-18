@@ -4,7 +4,7 @@
   "world": "space",
   "role": "shield gunship",
   "codexId": "elite_space_eventide_bastion",
-  "launchFrom": "station",
+  "launchFrom": "gantry,station",
   "lore": "A shield platform that hangs at the top of the board, sliding sideways at a crawl, and draws a curtain of slow bolts across your row with one gap beside you. The more hearts it loses the narrower the gap, and badly hurt it follows with a second curtain gapped on your other side. Between curtains it drops shield mines that take two shots to defuse.",
   "brain": "fortress",
   "attack": "ward_barrage",

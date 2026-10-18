@@ -21,6 +21,9 @@ using UnityEngine.SceneManagement;
 //     else any free one -- at least a few seconds, and its lift-off ends at a
 //     join point at least EliteShip.MinJoinDistance from the pilot, on the
 //     side its brain likes (JoinFrom), and inside the rails
+//   * a few seconds before one is due (HomeLeadSeconds), if none of the kinds its def launches from is on screen, the backdrop is
+//     asked to bring one of those bodies into view (LandingSites.BringHome: Space's drifting docks), and the launch waits up to
+//     HomeWaitSeconds for it, so a launch comes from a recognisable place; past that, any free site
 //   * a boss arriving clears the parked ones quietly (the ones in play are
 //     blown away with the rest of the board by BossEncounter)
 //
@@ -34,6 +37,8 @@ public class EliteDirector : MonoBehaviour
     public static readonly Vector2 GapSeconds = new Vector2(16f, 32f);
     public const float GapLoopScale = .12f;   // each loop: gaps x 1 / (1 + this * loop), at most x 1/1.5
     public static readonly Vector2 ParkSeconds = new Vector2(2.5f, 5f);
+    // The next elite's home bodies are asked for this long before it is due, and its launch waits at most this long for them.
+    public const float HomeLeadSeconds = 7f, HomeWaitSeconds = 5f;
 
     public static EliteDirector Instance { get; private set; }
 
@@ -44,6 +49,9 @@ public class EliteDirector : MonoBehaviour
     int world = -1;
     float untilNext;
     bool hadElite;   // one was alive last tick: when none is, the gap timer starts afresh
+    bool homeAsked, homeComing, homeLate;  // the next elite's home bodies have been asked for (one request per elite, a second at the due time if its home left the view since) / the backdrop is bringing one
+    float homeWaited;
+    void ResetHome() { homeAsked = homeComing = homeLate = false; homeWaited = 0f; }
     readonly List<LandingSite> sites = new List<LandingSite>(16);
     readonly List<EliteDef> defs = new List<EliteDef>(8);
     readonly List<int> usedSites = new List<int>(8);
@@ -80,7 +88,9 @@ public class EliteDirector : MonoBehaviour
 
     // ---- scheduling (dt explicit for tests) ----------------------------------
 
-    public static int CurrentWorld => WorldManager.Instance != null ? WorldManager.SpawnWorld : -1;
+    // Tests / previews: a fixed world index instead of the WorldManager's (-1: the WorldManager's).
+    public static int WorldOverride = -1;
+    public static int CurrentWorld => WorldOverride >= 0 ? WorldOverride : WorldManager.Instance != null ? WorldManager.SpawnWorld : -1;
 
     // Why nothing may spawn right now, or null.
     public static string Blocked(int worldIndex, float secondsInWorld)
@@ -104,7 +114,7 @@ public class EliteDirector : MonoBehaviour
         int w = CurrentWorld;
         if (w != world)
         {
-            world = w; worldSeconds = 0f; untilNext = Mathf.Max(untilNext, FirstSeconds);
+            world = w; worldSeconds = 0f; untilNext = Mathf.Max(untilNext, FirstSeconds); ResetHome();
             // an elite of another world does not stay on (a dev jump, a way on that left it)
             var left = EliteShip.Live;
             for (int i = left.Count - 1; i >= 0; i--)
@@ -117,13 +127,40 @@ public class EliteDirector : MonoBehaviour
 
         // one at a time: while it is parked, in play, hiding or retreating the gap does not run; when it is dead or gone it does
         if (AliveCount >= MaxAlive) { hadElite = true; return; }
-        if (hadElite) { hadElite = false; untilNext = NextGap(); }
+        if (hadElite) { hadElite = false; untilNext = NextGap(); ResetHome(); homeWaited = 0f; }
 
         untilNext -= dt;
+        // a few seconds ahead: its home bodies into view, when none of them is
+        if (!homeAsked && untilNext <= HomeLeadSeconds && Blocked(world, worldSeconds) == null)
+        {
+            homeAsked = true;
+            homeWaited = 0f;
+            var next = PeekDef(world);
+            homeComing = next != null && !HomeInView(next) && LandingSites.BringHome(next.launchFrom);
+        }
         if (untilNext > 0f) return;
         if (Blocked(world, worldSeconds) != null) { untilNext = 1f; return; }
+        // (it is due: it waits a little for the body that is on its way into view)
+        var due = PeekDef(world);
+        if (due != null && !HomeInView(due))
+        {
+            // (its home was in view when it was asked for, and has drifted off since: ask again, once)
+            if (!homeComing && !homeLate) { homeLate = true; homeComing = LandingSites.BringHome(due.launchFrom); }
+            if (homeComing && homeWaited < HomeWaitSeconds) { homeWaited += .25f; untilNext = .25f; return; }
+        }
         int spawned = SpawnGroup(world, 1);
         untilNext = spawned > 0 ? NextGap() : 1.5f;
+        if (spawned > 0) { ResetHome(); homeWaited = 0f; }
+    }
+
+    // Is a free site of a kind `def` launches from on screen right now? (A def with no launchFrom takes any.)
+    public bool HomeInView(EliteDef def)
+    {
+        if (def == null || string.IsNullOrEmpty(def.launchFrom) || LandingSite.KindOf(def.launchFrom) == null) return true;
+        if (LandingSites.Gather(sites) == 0) return false;
+        for (int i = 0; i < sites.Count; i++)
+            if (sites[i].Valid && LandingSite.Accepts(def.launchFrom, sites[i].kind)) return true;
+        return false;
     }
 
     public static float NextGap()
@@ -182,6 +219,14 @@ public class EliteDirector : MonoBehaviour
 
     public EliteDef NextDef(int worldIndex)
     {
+        var next = PeekDef(worldIndex);
+        if (next != null) deck.RemoveAt(deck.Count - 1);
+        return next;
+    }
+
+    // The elite NextDef will deal next (the deck is shuffled once, so this and NextDef agree).
+    public EliteDef PeekDef(int worldIndex)
+    {
         if (EliteCatalog.ForWorld(worldIndex, defs) == 0) return null;
         if (deckWorld != worldIndex) { deck.Clear(); deckWorld = worldIndex; }
         if (deck.Count == 0)
@@ -193,9 +238,7 @@ public class EliteDirector : MonoBehaviour
                 var tmp = deck[i]; deck[i] = deck[j]; deck[j] = tmp;
             }
         }
-        var next = deck[deck.Count - 1];
-        deck.RemoveAt(deck.Count - 1);
-        return next;
+        return deck[deck.Count - 1];
     }
 
     // One elite of `def` parked on `site` for `park` seconds.
