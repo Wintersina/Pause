@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using UnityEngine;
 
 // In-memory store for tests and editor previews. Everything is synchronous
 // unless DeferLoads is set, in which case loads wait for CompleteLoads()
@@ -116,11 +117,12 @@ public sealed class FakeLeaderboards : ILeaderboardPlatform
         NativeUICalls.Add(boardId);
     }
 
-    public static LeaderboardEntry Entry(int rank, string name, long value, bool local = false, int ship = 0, int hearts = 0)
+    public static LeaderboardEntry Entry(int rank, string name, long value, bool local = false, int ship = 0, int hearts = 0, int endHearts = -1)
     {
         return new LeaderboardEntry
         {
             startShip = ship, startHearts = hearts,
+            hasEnd = endHearts >= 0, endHearts = Mathf.Max(endHearts, 0),
             rank = rank, playerId = local ? "local" : "p" + rank, playerName = name,
             value = value, isLocalPlayer = local,
         };

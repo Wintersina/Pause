@@ -20,6 +20,10 @@ public class LeaderboardRunTracker : MonoBehaviour
     bool ended;
     // Captured when the run starts, never re-read: what it STARTED with.
     int startShip, startHearts;
+    // The hearts left at the last sample: what the run FINISHED with. Cached
+    // (like runScore) because the next scene resets the static hit counter.
+    // The ship never changes mid-run, so only the hearts have a finish value.
+    int endHearts;
     bool premiumRun;
 
     void Start()
@@ -31,6 +35,7 @@ public class LeaderboardRunTracker : MonoBehaviour
         startShip = ShipId.Equipped();
         startHearts = ShipLives.Max(startShip);
         premiumRun = PremiumShips.IsPremium(startShip) || RunScore.Unranked;
+        endHearts = startHearts;
     }
 
     void Update()
@@ -54,6 +59,7 @@ public class LeaderboardRunTracker : MonoBehaviour
         if (RunScore.Unranked || PremiumShips.IsPremium(ShipId.Equipped())) premiumRun = true;
         // Cached rather than read at teardown: the next scene's run may
         // already have begun by then.
+        endHearts = ShipLives.Left;
         if (RunScore.Scoring) runScore = System.Math.Max(runScore, RunScore.Total);
     }
 
@@ -68,6 +74,8 @@ public class LeaderboardRunTracker : MonoBehaviour
             loop = furthestLoop,
             startShip = startShip,
             startHearts = startHearts,
+            hasEnd = true,
+            endHearts = endHearts,
             premiumRun = premiumRun,
         };
     }
@@ -77,6 +85,7 @@ public class LeaderboardRunTracker : MonoBehaviour
         // The speed at the moment of death (what the death card shows) is
         // part of the run too.
         Sample();
+        if (buttonClicks.playerDied) endHearts = 0;   // the fatal hit may not be counted yet
         ended = true;
         LeaderboardService.Instance.SubmitRun(Stats());
     }

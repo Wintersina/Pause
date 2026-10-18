@@ -41,7 +41,7 @@ help:
 	@echo "  make android-dev-deploy   Same, with the PAUSE_DEV developer build"
 	@echo "  make apk-share            Debug-key-signed release-style APK for friends -> build/share/ (NOT the release key; not for Play)"
 	@echo "  make android-release-signed  Prompts (hidden) for the keystore password, then runs android-release"
-	@echo "  make android-release      Signed Play AAB + APK in Builds/Android/Release (needs PAUSE_KEYSTORE_PASS, PAUSE_KEYALIAS_PASS)"
+	@echo "  make android-release      Signed Play AAB + APK + *.symbols.zip in Builds/Android/Release (needs PAUSE_KEYSTORE_PASS, PAUSE_KEYALIAS_PASS)"
 	@echo "  make android-log          Stream Unity logs from the Android device"
 	@echo "  make ios-deploy           Build, install, and launch on a connected iPhone"
 	@echo "  make ios-dev-deploy       Same, with the PAUSE_DEV developer build"

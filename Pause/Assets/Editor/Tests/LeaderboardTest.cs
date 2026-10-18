@@ -336,19 +336,34 @@ public static class LeaderboardTest
               && !LeaderboardRunTag.TryParse("s7h", out ship, out hearts) && !LeaderboardRunTag.TryParse("s7h4x", out ship, out hearts));
         Check("tag: absurd hearts read as unknown hearts", LeaderboardRunTag.TryParse("s7h999", out ship, out hearts) && ship == 7 && hearts == 0);
 
+        // End hearts: s<ship>h<start>e<end>, old tags still read (end unknown).
+        int end;
+        Check("tag: encode with end hearts", LeaderboardRunTag.Encode(7, 4, 2) == "s7h4e2" && LeaderboardRunTag.Encode(7, 4, 0) == "s7h4e0");
+        Check("tag: unknown end leaves the old form", LeaderboardRunTag.Encode(7, 4) == "s7h4");
+        Check("tag: end round trip", LeaderboardRunTag.TryParse("s7h4e2", out ship, out hearts, out end) && ship == 7 && hearts == 4 && end == 2);
+        Check("tag: a death reads end 0", LeaderboardRunTag.TryParse("s7h4e0", out ship, out hearts, out end) && end == 0);
+        Check("tag: old tag reads, end unknown", LeaderboardRunTag.TryParse("s7h4", out ship, out hearts, out end) && ship == 7 && hearts == 4 && end == -1);
+        Check("tag: the 3-argument parse still reads an end tag", LeaderboardRunTag.TryParse("s7h4e2", out ship, out hearts) && ship == 7 && hearts == 4);
+        Check("tag: bad end part is unknown", !LeaderboardRunTag.TryParse("s7h4e", out ship, out hearts) && !LeaderboardRunTag.TryParse("s7h4e2x", out ship, out hearts)
+              && !LeaderboardRunTag.TryParse("s7h4f2", out ship, out hearts));
+        Check("tag: absurd end hearts read as unknown end", LeaderboardRunTag.TryParse("s7h4e999", out ship, out hearts, out end) && hearts == 4 && end == -1);
+        Check("tag: Paragon never encoded with an end either", LeaderboardRunTag.Encode(PremiumShips.Paragon, 10, 3) == ""
+              && !LeaderboardRunTag.TryParse("s16h10e3", out ship, out hearts, out end) && end == -1 && LeaderboardRunTag.IsPremium("s16h10e3"));
+        Check("tag: well under the 64-character limit, URL-safe", LeaderboardRunTag.Encode(15, ShipLives.MostHearts, ShipLives.MostHearts).Length < 20);
+
         // A normal run carries its start ship and hearts to the store.
         RealRunContext();
         var fake = new FakeLeaderboards();
         var service = Service(fake);
-        var run = new LeaderboardRunStats { score = 500, loop = 1, startShip = 7, startHearts = 4 };
+        var run = new LeaderboardRunStats { score = 500, loop = 1, startShip = 7, startHearts = 4, hasEnd = true, endHearts = 2 };
         Check("start ship run: accepted", service.SubmitRun(run) > 0);
         now = 60f;
         service.Tick();
         bool tagged = fake.Submissions.Count > 0;
-        foreach (var sub in fake.Submissions) tagged &= sub.tag == "s7h4";
-        Check("start ship run: every board's submission carries s7h4", tagged);
+        foreach (var sub in fake.Submissions) tagged &= sub.tag == "s7h4e2";
+        Check("start ship run: every board's submission carries s7h4e2", tagged);
         Check("submitted record keeps the tag (companion for stores without tags)",
-              LeadboardTag(LeaderboardService.SubmittedKey, LeaderboardBoards.TopScore) == "s7h4");
+              LeadboardTag(LeaderboardService.SubmittedKey, LeaderboardBoards.TopScore) == "s7h4e2");
 
         // An old queue (written before tags existed) still loads and sends, tagless.
         RealRunContext();
@@ -426,22 +441,24 @@ public static class LeaderboardTest
         fake = new FakeLeaderboards();
         var mineNoTag = FakeLeaderboards.Entry(4, "KANEDA", 700, true);
         fake.SetBoard(TopScoreId,
-            FakeLeaderboards.Entry(1, "TETSUO", 1000, false, 7, 4),
+            FakeLeaderboards.Entry(1, "TETSUO", 1000, false, 7, 4, 2),
             FakeLeaderboards.Entry(2, "KAI", 900),
             FakeLeaderboards.Entry(3, "CHEAT", 800, false, PremiumShips.Paragon, 14),
             mineNoTag);
         var companion = new LeaderboardService.ScoreTable();
-        companion.Set(LeaderboardBoards.TopScore, 700, "s3h2");
+        companion.Set(LeaderboardBoards.TopScore, 700, "s3h2e1");
         companion.Save(LeaderboardService.SubmittedKey);
         var panel = OpenPanel(fake);
         var rows = panel.PanelRoot.Find("List/Rows");
         Check("row with ship and hearts: both shown",
               rows.Find("Row0/Ship") != null && rows.Find("Row0/Hearts/Heart") != null &&
-              rows.Find("Row0/Hearts/Count").GetComponent<Text>().text == "4");
+              rows.Find("Row0/Hearts/Count").GetComponent<Text>().text == "4 > 2");
         Check("old entry (no tag): blank, no ship and no hearts", rows.Find("Row1/Ship") == null && rows.Find("Row1/Hearts") == null);
         Check("a Paragon entry never shows the cheat ship", rows.Find("Row2/Ship") == null);
         Check("own entry: filled from the device's record of the submitted score",
-              rows.Find("Row3/Ship") != null && rows.Find("Row3/Hearts/Count").GetComponent<Text>().text == "2");
+              rows.Find("Row3/Ship") != null && rows.Find("Row3/Hearts/Count").GetComponent<Text>().text == "2 > 1");
+        Check("an entry without end hearts shows only the start hearts", FakeLeaderboards.Entry(5, "OLD", 1, false, 3, 2).hasEnd == false);
+        Check("row ships get a sprite to animate", rows.Find("Row0/Ship").GetComponent<Image>().sprite != null);
         var ownRow = panel.PanelRoot.Find("PlayerRow/Row");
         Check("own rank row also shows ship and hearts", ownRow != null && ownRow.Find("Ship") != null && ownRow.Find("Hearts") != null);
 

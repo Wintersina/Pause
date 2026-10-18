@@ -309,8 +309,8 @@ public sealed class LeaderboardService
         long have;
         string tag = submitted.TagOf(boardId);
         if (string.IsNullOrEmpty(tag) || !submitted.TryGet(boardId, out have)) return page;
-        int ship, hearts;
-        if (!LeaderboardRunTag.TryParse(tag, out ship, out hearts)) return page;
+        int ship, hearts, end;
+        if (!LeaderboardRunTag.TryParse(tag, out ship, out hearts, out end)) return page;
         for (int i = 0; i < page.entries.Count; i++)
         {
             var e = page.entries[i];
@@ -318,6 +318,8 @@ public sealed class LeaderboardService
             {
                 e.startShip = ship;
                 e.startHearts = hearts;
+                e.hasEnd = end >= 0;
+                e.endHearts = Mathf.Max(end, 0);
                 page.entries[i] = e;
             }
         }
@@ -325,6 +327,8 @@ public sealed class LeaderboardService
         {
             page.player.startShip = ship;
             page.player.startHearts = hearts;
+            page.player.hasEnd = end >= 0;
+            page.player.endHearts = Mathf.Max(end, 0);
         }
         return page;
     }
@@ -361,7 +365,7 @@ public sealed class LeaderboardService
         {
             public string board;
             public long value;
-            // Start ship and hearts of the run that made the value
+            // Start ship, start and end hearts of the run that made the value
             // (LeaderboardRunTag); empty on entries an older build wrote.
             public string tag;
         }

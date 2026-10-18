@@ -38,7 +38,7 @@ public class LeaderboardPanel : MonoBehaviour
     // art), the name, the hearts it started with (the HUD heart + a count), the score.
     public const float NameLeft = 130f, NameWidth = 210f;   // NameWidth: at the design width
     const float RankWidth = 62f, ShipLeft = 78f, ShipWidth = 46f;
-    const float BadgeWidth = 70f, HeartSize = 22f;
+    const float BadgeWidth = 108f, HeartSize = 22f;   // heart + "4 > 2"
     const float ValueWidth = 200f, ValueInset = 22f;
     // UiScale's floor: the buttons and the tab are 100-unit touch targets.
     public const float MinTapUnits = 100f;
@@ -94,6 +94,9 @@ public class LeaderboardPanel : MonoBehaviour
     public Button ViewAllButton { get; private set; }
     public Button CloseButton { get; private set; }
     public Button ActionButton { get; private set; }   // SIGN IN / RETRY, when shown
+    readonly List<Image> shipImages = new List<Image>();
+    readonly List<int> shipIds = new List<int>();
+    int shipDrawing = -1;
     public int RowCount { get; private set; }
     public bool PlayerRowShown { get; private set; }
     public string PlayerRankText { get; private set; }
@@ -488,6 +491,9 @@ public class LeaderboardPanel : MonoBehaviour
 
     void BuildRows(LeaderboardBoard board, LeaderboardPage top, LeaderboardEntry? player)
     {
+        shipImages.Clear();
+        shipIds.Clear();
+        shipDrawing = -1;
         int n = Mathf.Min(top.entries.Count, LeaderboardService.PanelRows);
         for (int i = 0; i < n; i++)
         {
@@ -549,6 +555,8 @@ public class LeaderboardPanel : MonoBehaviour
             image.sprite = ShipHullArt.StockRest(e.startShip);
             image.preserveAspect = true;
             image.raycastTarget = false;
+            shipImages.Add(image);
+            shipIds.Add(e.startShip);
         }
 
         var name = Child(rt, "Name");
@@ -575,7 +583,9 @@ public class LeaderboardPanel : MonoBehaviour
             count.anchorMax = new Vector2(1f, 1f);
             count.offsetMin = new Vector2(HeartSize + 4f, 0f);
             count.offsetMax = Vector2.zero;
-            Label(count, e.startHearts.ToString(), 24, AkiraPalette.Bone, TextAnchor.MiddleLeft, 2.5f);
+            // "4 > 2": hearts it started with, then finished with (0 = died).
+            string hearts = e.hasEnd ? e.startHearts + " > " + e.endHearts : e.startHearts.ToString();
+            Label(count, hearts, 24, AkiraPalette.Bone, TextAnchor.MiddleLeft, 2.5f);
         }
 
         if (e.rank > 0 || e.value != 0)
@@ -627,12 +637,30 @@ public class LeaderboardPanel : MonoBehaviour
     void Update()
     {
         if (CurrentState == State.Loading && loadingCells.Count > 0) AnimateLoading(Time.unscaledTime);
+        AnimateShips();
         if (!screenOverridden && (ScreenInfo.Width != screenSize.x || ScreenInfo.Height != screenSize.y
                                   || ScreenInfo.SafeArea != safeArea))
         {
             screenSize = new Vector2(ScreenInfo.Width, ScreenInfo.Height);
             safeArea = ScreenInfo.SafeArea;
             ApplyLayout();
+        }
+    }
+
+    // The row ships' idle flipbook (ShipHullArt's tick table), one shared
+    // clock: the drawing is worked out once a frame and sprites are swapped
+    // only when it changes (a few times a second) -- at most 11 images.
+    void AnimateShips()
+    {
+        if (shipImages.Count == 0) return;
+        int drawing = ShipHullArt.IdleDrawingAt(Time.unscaledTime * ShipHullArt.TicksPerSecond);
+        if (drawing == shipDrawing) return;
+        shipDrawing = drawing;
+        for (int i = 0; i < shipImages.Count; i++)
+        {
+            if (shipImages[i] == null) continue;
+            var sprite = ShipHullArt.Get(shipIds[i], ShipSkins.Stock, 0, drawing);
+            if (sprite != null) shipImages[i].sprite = sprite;
         }
     }
 
