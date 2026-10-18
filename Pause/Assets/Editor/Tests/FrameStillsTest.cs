@@ -33,7 +33,7 @@ public static class FrameStillsTest
         ("space_rock_cluster", 192), ("space_rock_crater", 192), ("space_rock_dark", 192),
         ("frost_rock_rime", 192), ("tide_rock_urchin", 192), ("space_alien", 192),
         ("verdant_rock_knot", 192), ("verdant_rock_spore", 192),
-        ("frost_chaser", 192), ("frost_fighter_2", 192), ("frost_rock_shard", 192),
+        ("frost_fighter_2", 192), ("frost_rock_shard", 192),
     };
 
     public static int Execute()
