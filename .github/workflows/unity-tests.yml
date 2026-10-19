@@ -2,7 +2,7 @@ name: Unity tests
 
 # Runs AllTests (the project's custom editor test runner) headless in the
 # GameCI Unity container. See docs/ci-unity-tests.md for one-time setup
-# (secrets UNITY_LICENSE, UNITY_EMAIL, UNITY_PASSWORD).
+# (secrets UNITY_EMAIL, UNITY_PASSWORD: Personal activation through the Unity Licensing Client).
 
 on:
   pull_request:
@@ -30,7 +30,7 @@ permissions:
   contents: read
 
 env:
-  UNITY_IMAGE_TAG: ubuntu-6000.3.23f1-base-3.2.2
+  UNITY_IMAGE_TAG: ubuntu-6000.3.23f1-android-3.2.2
 
 jobs:
   test:
@@ -41,7 +41,6 @@ jobs:
       - name: Check for secrets
         id: gate
         env:
-          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
           FORK: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository }}
@@ -51,7 +50,7 @@ jobs:
             echo "run=false" >> "$GITHUB_OUTPUT"; exit 0
           fi
           missing=""
-          for v in UNITY_LICENSE UNITY_EMAIL UNITY_PASSWORD; do
+          for v in UNITY_EMAIL UNITY_PASSWORD; do
             [ -n "${!v}" ] || missing="$missing $v"
           done
           if [ -n "$missing" ]; then
@@ -65,7 +64,7 @@ jobs:
       - name: Free disk space
         if: steps.gate.outputs.run == 'true'
         run: |
-          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL /usr/local/share/boost
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /usr/local/.ghcup /opt/hostedtoolcache /usr/local/share/boost /usr/share/swift /usr/local/lib/node_modules
           sudo docker image prune --all --force >/dev/null || true
           df -h /
 
@@ -85,7 +84,6 @@ jobs:
       - name: Run AllTests
         if: steps.gate.outputs.run == 'true'
         env:
-          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
           INPUT_SUITES: ${{ inputs.suites }}
@@ -116,13 +114,37 @@ jobs:
             method=AllTests.RunSuites; extra=(-suites "$list")
           fi
 
-          # License: Unity 6 Personal .ulf, placed where the editor looks for it.
-          mkdir -p ci-out/home/.local/share/unity3d/Unity
-          printf '%s' "$UNITY_LICENSE" > ci-out/home/.local/share/unity3d/Unity/Unity_lic.ulf
+          echo "::add-mask::$UNITY_EMAIL"
+          echo "::add-mask::$UNITY_PASSWORD"
+          # HOME for the container; holds the licensing client's state so the
+          # separate always() return step can hand the seat back.
+          mkdir -p ci-out/home
 
           cat > ci-out/run.sh <<'INNER'
           set -u
           export HOME=/ci-home
+          LIC=/opt/unity/Editor/Data/Resources/Licensing/Client/Unity.Licensing.Client
+          # EXACTLY ONE login attempt, no retries: repeated failures get the
+          # Unity account blocked. Any failure ends the job.
+          # (The password is only ever read from the environment, never interpolated.)
+          if ! "$LIC" --activate-all --include-personal --username "$UNITY_EMAIL" --password "$UNITY_PASSWORD" > /tmp/act.log 2>&1; then
+            cat /tmp/act.log
+            echo "Personal activation failed; not retrying." 
+            rm -f /workspace/ci-out/activated
+            exit 3
+          fi
+          touch /workspace/ci-out/activated
+          # Deactivate (return the entitlement-based Personal seat) once, on any exit from here on.
+          # Non-fatal; credentials come from the environment only; output is the client's own log.
+          release() {
+            if "$LIC" --deactivate-all --username "$UNITY_EMAIL" --password "$UNITY_PASSWORD" > /tmp/deact.log 2>&1; then
+              touch /workspace/ci-out/deactivated; echo "Unity seat deactivated"
+            else
+              echo "WARNING: Unity deactivation failed:"; cat /tmp/deact.log
+            fi
+          }
+          trap release EXIT
+          echo "Personal license activated"
           apt-get update -qq >/dev/null 2>&1
           DEBIAN_FRONTEND=noninteractive apt-get install -y -qq xvfb libgl1-mesa-dri libglx-mesa0 libegl1 >/dev/null 2>&1 || true
           xvfb-run -a -s "-screen 0 1280x720x24" \
@@ -140,15 +162,30 @@ jobs:
           touch ci-out/unity.log
           ( tail -n +1 -F ci-out/unity.log 2>/dev/null & echo $! > ci-out/tail.pid )
           docker run --rm \
-            -e HOST_UID="$(id -u)" -e HOST_GID="$(id -g)" \
+            -e HOST_UID="$(id -u)" -e HOST_GID="$(id -g)" -e UNITY_EMAIL -e UNITY_PASSWORD \
             -v "$PWD:/workspace" -v "$PWD/ci-out/home:/ci-home" \
             "unityci/editor:${UNITY_IMAGE_TAG}" \
             bash /workspace/ci-out/run.sh "$method" "${extra[@]}"
           code=$?
           kill "$(cat ci-out/tail.pid)" 2>/dev/null || true
-          rm -rf ci-out/home   # never upload the license
           echo "$code" > ci-out/exit-code.txt
           exit $code
+
+      - name: Return Unity Personal seat (backstop)
+        if: always() && steps.gate.outputs.run == 'true'
+        env:
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        run: |
+          # The container deactivates on exit. This only acts if activation succeeded but
+          # deactivation did not complete (e.g. the container was killed). One attempt, non-fatal.
+          if [ ! -f ci-out/activated ]; then echo "Activation did not succeed; nothing to return."; exit 0; fi
+          if [ -f ci-out/deactivated ]; then echo "Seat already deactivated."; exit 0; fi
+          mkdir -p ci-out/home
+          docker run --rm -e UNITY_EMAIL -e UNITY_PASSWORD -v "$PWD/ci-out/home:/ci-home" "unityci/editor:${UNITY_IMAGE_TAG}" \
+            bash -c 'HOME=/ci-home /opt/unity/Editor/Data/Resources/Licensing/Client/Unity.Licensing.Client --deactivate-all --username "$UNITY_EMAIL" --password "$UNITY_PASSWORD"' \
+            || echo "::warning::Seat deactivation failed; check https://id.unity.com"
+          sudo rm -rf ci-out/home || true
 
       - name: Summary
         if: always() && steps.gate.outputs.run == 'true'

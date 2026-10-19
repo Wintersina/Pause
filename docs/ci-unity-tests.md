@@ -6,7 +6,7 @@
 
 ## How it works
 
-- Image: `unityci/editor:ubuntu-6000.3.23f1-base-3.2.2` (GameCI, exact editor version
+- Image: `unityci/editor:ubuntu-6000.3.23f1-android-3.2.2` (GameCI, exact editor version; the android variant because `BuildScript.cs` references the Android build-support assemblies, so the base image fails to compile
   from `ProjectVersion.txt`). Bump the `UNITY_IMAGE_TAG` env when the project's Unity version changes.
 - The editor is launched directly in the container:
   `xvfb-run Unity -batchmode -quit -force-glcore -projectPath Pause -executeMethod AllTests.RunAll`.
@@ -25,25 +25,22 @@
 
 ## One-time setup (repo admin)
 
-Add three repository secrets (Settings > Secrets and variables > Actions > New repository secret),
-or with `gh secret set NAME`:
+Unity removed manual (.ulf) activation for Personal accounts, so CI activates the Personal seat
+with the account login through the Unity Licensing Client
+(`Unity.Licensing.Client --activate-all --include-personal --username ... --password ...`,
+the approach of game-ci/cli PR #246; game-ci/unity-test-runner@v4 does not support it yet).
+
+Add two repository secrets (Settings > Secrets and variables > Actions, or `gh secret set NAME`):
 
 1. `UNITY_EMAIL` - the Unity account email.
 2. `UNITY_PASSWORD` - its password.
-3. `UNITY_LICENSE` - the full contents of a Unity 6 Personal license file (`.ulf`).
 
-Where to find a `.ulf`:
-
-- macOS: `/Library/Application Support/Unity/Unity_lic.ulf` (Unity 6 / Hub licensing; may not exist
-  if you use the newer entitlement-based licensing).
-- Linux: `~/.local/share/unity3d/Unity/Unity_lic.ulf`; Windows: `C:\ProgramData\Unity\Unity_lic.ulf`.
-
-If you do not have one (Unity 6 Personal), follow GameCI's activation guide
-(https://game.ci/docs/github/activation): run the "Acquire activation file" flow with the same image
-to get a `.alf`, upload it at https://license.unity3d.com/manual, choose Unity Personal, and download the
-`.ulf`. Paste its whole contents into the `UNITY_LICENSE` secret.
-Note: Personal licenses are tied to the activating machine type; if Unity rejects it in CI, the log
-(artifact `unity-log`) says so near the top.
+Notes:
+- Use an account without 2FA / device verification; headless activation cannot answer a challenge.
+  A dedicated CI-only Unity account is recommended.
+- Personal activation is entitlement based (no .ulf), so the seat is returned with `--deactivate-all` (one extra login per run), done by an EXIT trap in the container, with an `if: always()` backstop step that only acts if activation succeeded but deactivation did not complete. Both are non-fatal. Activation is attempted exactly once per run, never retried.
+- The flags are undocumented by Unity and may change; they live in one place in the workflow.
+- Secrets are masked and passed to the container as environment variables, never echoed.
 
 Without the secrets the job fails fast with a message listing the missing ones.
 
