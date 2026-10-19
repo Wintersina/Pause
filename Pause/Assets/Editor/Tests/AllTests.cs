@@ -138,6 +138,7 @@ public static class AllTests
         ("PrivacyLinkTest", PrivacyLinkTest.Execute),
         ("EliteTest", EliteTest.Execute),
         ("EliteFoundationTest", EliteFoundationTest.Execute),
+        ("EliteFightZoneTest", EliteFightZoneTest.Execute),
         ("EliteEvasionTest", EliteEvasionTest.Execute),
         ("EliteLockOnTest", EliteLockOnTest.Execute),
         ("ShipTierTest", ShipTierTest.Execute),

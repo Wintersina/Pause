@@ -99,6 +99,12 @@ public class EnemyBrain : MonoBehaviour
         return Mathf.Max(stationY, Mathf.Min(need, cap));
     }
 
+    // The hold row clamped into the fighting zone (FightZone): the drawing's top and the pattern's upward reach stay under the band.
+    public static float ZoneHoldY(float holdY, float drawnHalfY, float up)
+    {
+        return Mathf.Min(holdY, FightZone.Top(drawnHalfY) - up);
+    }
+
     // The lowest a pilot can hold straight above a ship at `shipY` and still
     // start a fair windup (MinFireDistance + HoldMargin, x view).
     public static float FireNeed(float shipY, float view) => shipY + (MinFireDistance + HoldMargin) * view;
@@ -621,6 +627,8 @@ public class EnemyBrain : MonoBehaviour
                 holdY = rising ? riseHold : reachHold;
             }
         }
+        // never held above the fighting zone (under the HUD's top band, its whole drawing and its pattern's reach included)
+        if (!descends) holdY = ZoneHoldY(holdY, drawnHalfY, PatternUp(b));
 
         switch (Stage)
         {

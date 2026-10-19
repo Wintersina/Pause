@@ -24,8 +24,8 @@ using UnityEngine.SceneManagement;
 //   * a few seconds before one is due (HomeLeadSeconds), if none of the kinds its def launches from is on screen, the backdrop is
 //     asked to bring one of those bodies into view (LandingSites.BringHome: Space's drifting docks), and the launch waits up to
 //     HomeWaitSeconds for it, so a launch comes from a recognisable place; past that, any free site
-//   * a boss arriving clears the parked ones quietly (the ones in play are
-//     blown away with the rest of the board by BossEncounter)
+//   * a boss starting (its warning) destroys every elite: parked / hidden ones quietly, the others through the normal death with
+//     no reward and no escape penalty; none spawn until the boss is over
 //
 // Stepped on running frames only (moveBackGround's freeze sets timeScale 0
 // and the same "flying" rule every hazard mover uses).
@@ -122,8 +122,9 @@ public class EliteDirector : MonoBehaviour
         }
         worldSeconds += dt;
 
-        // a boss clears the background of parked / rising elites
-        if (BossEncounter.Running) { DismissParked(); return; }
+        // a boss clears every elite -- in play, launching or parked -- through its normal death, no reward and no escape penalty
+        // (EliteShip.DismissForBoss); none spawn until it is over (Blocked: "boss")
+        if (BossEncounter.Running) { DismissAll(); return; }
 
         // one at a time: while it is parked, in play, hiding or retreating the gap does not run; when it is dead or gone it does
         if (AliveCount >= MaxAlive) { hadElite = true; return; }
@@ -273,7 +274,7 @@ public class EliteDirector : MonoBehaviour
         var p = EliteSystem.Player;
         Vector2 pilot = p != null ? (Vector2)p.position : new Vector2(0f, -2.5f);
         float edge = EliteSystem.RailEdge - def.hullRadius - .4f;
-        float top = EliteSystem.ViewTop - def.hullRadius - .5f, bottom = EliteSystem.ViewBottom + def.hullRadius + .6f;
+        float top = Mathf.Min(EliteSystem.ViewTop - def.hullRadius - .5f, FightZone.Top(FightZone.HalfOf(def))), bottom = EliteSystem.ViewBottom + def.hullRadius + .6f;
         Vector2 best = Vector2.zero;
         float bestScore = float.MinValue;
         float prefer = Mathf.Atan2(from.y, from.x);
@@ -297,15 +298,21 @@ public class EliteDirector : MonoBehaviour
         return best;
     }
 
-    void DismissParked()
+    // Every elite goes: the ones on the board blow up (the normal death FX, no score, no dust, no ESCAPED loss), the parked ones
+    // and the hidden ones leave quietly. Their shots and hazards already in the air expire on their own; the boss's landing
+    // shockwave (BossEntrance.Finish) sweeps what is left.
+    public static int DismissAll()
     {
+        int n = 0;
         var live = EliteShip.Live;
         for (int i = live.Count - 1; i >= 0; i--)
         {
             var e = live[i];
-            if (e != null && (e.State == EliteState.Parked || e.State == EliteState.LiftOff))
-                BossUtil.Kill(e.gameObject);
+            if (e == null || e.State == EliteState.Dead) continue;
+            e.DismissForBoss();
+            n++;
         }
+        return n;
     }
 }
 

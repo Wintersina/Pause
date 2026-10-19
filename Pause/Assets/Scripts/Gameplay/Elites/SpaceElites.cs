@@ -300,8 +300,8 @@ public class SniperBrain : EliteBrain
     public Vector2 Station(Vector2 f)
     {
         float edge = EliteSystem.RailEdge - def.hullRadius - .45f;
-        float y = Mathf.Min(f.y + Standoff, EliteSystem.ViewTop - def.hullRadius - 1f);
-        return new Vector2(side * edge, ship.ReachY(y));
+        float y = Mathf.Min(f.y + Standoff, EliteSystem.ViewTop - def.hullRadius - 1f);   // (Station clamps it into the fighting zone)
+        return new Vector2(side * edge, ship.ZoneY(ship.ReachY(y)));
     }
 
     public override Vector2 Goal(Vector2 follow, float dt)
@@ -667,7 +667,7 @@ public class FortressBrain : EliteBrain
     protected override void OnBind() { phase = Random.value * Mathf.PI * 2f; }
 
     public float Amplitude => Mathf.Max(0f, Mathf.Min(def.laneOffset, EliteSystem.RailEdge - def.hullRadius - .6f));
-    public float Height => ship.ReachY(EliteSystem.ViewTop - def.topMargin);
+    public float Height => ship.ZoneY(ship.ReachY(EliteSystem.ViewTop - def.topMargin));
 
     public override Vector2 Goal(Vector2 follow, float dt)
     {
@@ -913,7 +913,7 @@ public class WreckerBrain : EliteBrain
     protected override void OnBind() { phase = Random.value * Mathf.PI * 2f; }
 
     public float Amplitude => Mathf.Max(0f, Mathf.Min(def.laneOffset, EliteSystem.RailEdge - def.hullRadius - .6f));
-    public float Height => ship.ReachY(EliteSystem.ViewTop - def.topMargin);
+    public float Height => ship.ZoneY(ship.ReachY(EliteSystem.ViewTop - def.topMargin));
 
     public override Vector2 Goal(Vector2 follow, float dt)
     {

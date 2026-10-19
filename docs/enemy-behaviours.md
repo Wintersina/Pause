@@ -1513,3 +1513,41 @@ Ember art wiring (same PR): hull `_lights` strips and a six-cell damaged burn lo
 `EliteCells.damagedLoop`, the same framework as Space's), four launch-strip sites (crucible silo, lava-moat bunker, brass gantry cradle, kiln mouth: docks
 atlas via `build_launch_atlas.py`, `EmberTuning.LaunchCellAt`) with homes: Sunstoke kiln/foundryhangar, Coalrunner crucible/magmabay, Brass Vulture
 brassgantry/slagpad, Ash Wraith kiln/hatch, Kilnback crucible/furnacebay, Cauterizer bunker/furnacebay. The launch strips are Codex's launch_v2 (closed, lamp, opening x2, open, closing; the first delivery's flat black panels were replaced) baked whole into the docks atlas. Tests: `EmberDockTest`.
+
+
+## Fighting zone, rails, boss clear, escape boost, cadence (`EliteFightZoneTest`)
+
+**Fighting zone** (`Scripts/Gameplay/FightZone.cs`). Nothing hostile perches, hovers, stands off, patrols or aims from the HUD's top
+band (the "red zone"). The edge is read from the live HUD layout, not guessed: `PlayField.Live.bandBottom` (the lowest edge of the
+score read-out / home-replay band, in world units, from `TopBand` and `HudStyler`; the same edge the player's reach stops at,
+`ShipReach.TopFor`). `FightZone.Top(halfHeight)` = that edge - the body's drawn half-height - `Margin` (0.1 u), so the whole hull is
+under the band and below the player's own top. With no band laid out (editor, batch) the band is `NoBandShare` (17%) of the view.
+* Elites: **every goal goes through `EliteShip.ClampGoal`** (the clamp lives there, plus `EliteShip.ZoneTop` / `ZoneY` / `InZone`), so
+  every brain inherits it: perches, standoffs, orbit points, hop targets, `topMargin` stations, rejoin (`BeginReentry`) and join
+  (`EliteDirector.JoinPoint`) points. A roaming brain (`Roams`: its path leaves the view) has every goal that lies INSIDE the view held at the zone top
+  automatically (`EliteShip.RoamGoal`, in `Navigate`); its legs off the view stay free (`ship.ZoneY(y)` gives the exact row). **New brains (Ember #89, Verdant
+  #90, Tide #101, Storm #104, Desert #107) get it by returning goals as usual; a roamer's hold point must use `ship.ZoneY`.** An
+  elite above the zone top (a descent) does not start an attack until it is in (`InZone`, `FightZone.AttackSlack`). The Frost sky
+  icicles (`icicle_barrage`) and the Singularity Hauler's towed rock are hazards that ENTER from above the view and fall through; they
+  are not spawned by anything holding there. Mortar / barrage rows are clamped to `ship.ZoneTop`.
+* Roster pilots: the hold row is clamped by `EnemyBrain.ZoneHoldY` (drawing top and the pattern's `rise` under the band). Chasers,
+  fighters, mines and rocks ride the scroll or chase the pilot, who cannot be above the band.
+
+**Under the rails.** The rails (`leftPipe` / `rightPipe`) sort at `EliteShip.RailOrder` (0). The elite layer is `PlayOrder` -3 (was 5):
+hull, plumes (-4), lights / glows (-2), hearts (-1) all sort UNDER the rails, over the backdrop, docks and weather (<= -7). A hull
+that exits a side or the hurt-hide loop passes beneath them. Shots (30) and the attacks' ring marks keep drawing over; rocks (2) and
+roster enemies (3) stay lane-bound and are unchanged.
+
+**A boss clears the elites.** The moment a boss encounter starts (`BossEncounter.Running`, i.e. its warning), `EliteDirector.DismissAll`
+destroys every elite: the ones on the board or lifting off through the normal death (`EliteDeath`: explosion, debris), parked and
+hidden ones quietly (`EliteShip.DismissForBoss`). No score, no dust, no codex entry, no `ESCAPED` loss. Spawns stay blocked while the
+boss runs (`Blocked` -> "boss"). Their shots and area hazards already in the air expire on their own; the landing shockwave sweeps the rest.
+
+**Escape boost** (`EliteShip.StepRetreat`, all elites). When the engagement timer runs out the elite spools its engines for
+`EscapeSpoolSeconds` (0.4 s: hull nearly still, `thrust` ramping so the plume / glow / damaged burn loop grow), then boosts at
+`EscapeBoostScale` (3x) its top speed, accelerating at `EscapeAccelScale` (6x), `thrust` `EscapeThrust` (1.7: a long trail), straight
+out of the top or the nearest side (a side where it is clearly nearer). It flies over the rails (no rail crash) and may cross the zone
+top. It no longer flies home to its dock. Costs the pilot half the kill's score as before.
+
+**Attack cadence** (`EliteTuning.AttackRate`, 1.7). Every gap between two attacks (the first wait, the cooldown after an attack and
+after a hurt-hide, the Rimebreaker's pause between runs) is divided by it; wind-ups, telegraphs and hazards are unchanged.
