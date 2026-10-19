@@ -152,9 +152,9 @@ public static class SpaceEliteTest
             Check(x.key + ": launches from a " + x.from, LandingSite.KindOf(d.launchFrom) == x.from);
             var frames = EliteArt.Frames(d);
             var c = d.cells;
-            Check(x.key + ": the engine-burn strip (parked, pilot lights, ignition, an 8-drawing burn cycle, damaged) is installed",
-                  frames != null && frames.Length == 12 && c.parked == 0 && c.parkedIdle == 1 && c.liftoff == 2 && c.Flight0 == 3 &&
-                  c.flight.Length == 8 && c.damaged == 11);
+            Check(x.key + ": the engine-burn strip (parked, pilot lights, ignition, an 8-drawing burn cycle, a 6-drawing damaged burn loop) is installed",
+                  frames != null && frames.Length == 17 && c.parked == 0 && c.parkedIdle == 1 && c.liftoff == 2 && c.Flight0 == 3 &&
+                  c.flight.Length == 8 && c.damaged == 11 && c.HasDamagedLoop && c.damagedLoop.Length == 6 && c.damagedLoop[0] == 11 && c.damagedLoop[5] == 16);
             Check(x.key + ": it stays level: no bank cells, no bank tilt, the codex loop is the burn cycle (" + c.CodexLoop.Length + " drawings)",
                   !c.Banks && c.bankLeft < 0 && c.bankRight < 0 && d.maxBank == 0f && c.CodexLoop.Length == 8);
             Check(x.key + ": hearts orbit tighter than the player's (" + (d.hullRadius * d.heartOrbit + d.heartSize * 1.05f).ToString("0.00") + " u)",
@@ -655,6 +655,7 @@ public static class SpaceEliteTest
         e.ForceAttack();
         var rail = (RiftSnipeAttack)e.Attack;
         bool sight = false, trackedEarly = false, lockedStill = true;
+        float maxW = 0f, maxA = 0f, minA = 9f;
         Vector2 lockedDir = Vector2.zero;
         float tellSpeed = 0f;
         int i0 = 0;
@@ -665,12 +666,15 @@ public static class SpaceEliteTest
             EliteSystem.Step(Dt);
             if (!e.Telling) break;
             sight |= e.SightShown;
+            if (e.SightShown) { maxW = Mathf.Max(maxW, e.SightWidth); maxA = Mathf.Max(maxA, e.SightAlpha); minA = Mathf.Min(minA, e.SightAlpha); }
             tellSpeed = Mathf.Max(tellSpeed, e.Velocity.magnitude);
             if (!rail.Locked) trackedEarly |= Vector2.Dot(d0, rail.Dir) < .9999f;
             else { if (lockedDir == Vector2.zero) lockedDir = rail.Dir; lockedStill &= Vector2.Dot(lockedDir, rail.Dir) > .9999f; }
         }
         pilot.position = new Vector3(0f, -2.5f, 0f);
         Check("rift_snipe tell: planted, a sight line tracks the pilot, then locks (" + tellSpeed.ToString("0.0") + ")", sight && trackedEarly && lockedStill && tellSpeed < 1.2f);
+        Check("rift_snipe sight: a subtle hairline (" + maxW.ToString("0.000") + " u <= " + TelegraphStyle.MaxLineWidth + ", alpha " + minA.ToString("0.00") + ".." + maxA.ToString("0.00") + ", gentle blink)",
+              maxW > 0f && maxW <= TelegraphStyle.MaxLineWidth + 1e-4f && maxA <= TelegraphStyle.LineAlpha + 1e-3f && minA >= TelegraphStyle.LineAlphaLow - 1e-3f);
         int before = EliteSystem.Shots.Launched;
         Step(def.actionSeconds + Dt);
         int rails = 0;
@@ -812,8 +816,10 @@ public static class SpaceEliteTest
         e.ForceAttack();
         Check("the first cast is the tow", !tow.SlingCast);
         bool sight = false, still = true;
-        while (e.Telling) { EliteSystem.Step(Dt); if (!e.Telling) break; sight |= e.SightShown; still &= e.Velocity.magnitude < 1.2f; }
+        float towW = 0f;
+        while (e.Telling) { EliteSystem.Step(Dt); if (!e.Telling) break; sight |= e.SightShown; if (e.SightShown) towW = Mathf.Max(towW, e.SightWidth); still &= e.Velocity.magnitude < 1.2f; }
         Check("tow tell: held while a sight line drops from the top of the view to the claws", sight && still);
+        Check("tow sight: a subtle hairline (" + towW.ToString("0.000") + " u)", towW > 0f && towW <= TelegraphStyle.MaxLineWidth + 1e-4f);
         Step(Dt * 3f);
         var rock = tow.Rock;
         Check("the asteroid drifts in from above the view (a real Space rock: tag Astr, hazard, tied to the hauler)",
@@ -979,7 +985,9 @@ public static class SpaceEliteTest
     static Color32[] LoadCell(string key, int cell, int size)
     {
         var tex = new Texture2D(2, 2, TextureFormat.RGBA32, false);
-        string path = "Assets/Art/Resources/Elites/Space/" + key + ".png";
+        // (cells 12.. are in the companion strip <key>_damaged.png)
+        string path = "Assets/Art/Resources/Elites/Space/" + key + (cell >= 12 ? "_damaged" : "") + ".png";
+        if (cell >= 12) cell -= 12;
         if (!tex.LoadImage(File.ReadAllBytes(path))) return null;
         var px = tex.GetPixels32(); int w = tex.width;
         Object.DestroyImmediate(tex);
@@ -1003,7 +1011,7 @@ public static class SpaceEliteTest
             int hullBottom = 0;       // lowest hull row, counted from the top
             for (int y = 0; y < S; y++) for (int x = 0; x < S; x++) if (hullCell[(S - 1 - y) * S + x].a > 128) hullBottom = Mathf.Max(hullBottom, y);
             var lengths = new HashSet<int>();
-            for (int cell = 0; cell < 12; cell++)
+            for (int cell = 0; cell < 17; cell++)
             {
                 var c = LoadCell(e.key, cell, S);
                 int minX = S, minY = S, maxX = -1, maxY = -1;

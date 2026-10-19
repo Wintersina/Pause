@@ -36,12 +36,14 @@ public sealed class EliteMarks
     public const int Order = 6;
     readonly SpriteRenderer[] rings;
     readonly Sprite art;
+    readonly bool sprite0;   // a custom mark (an icicle glyph), not the ring: drawn at full size
     float clock;
 
     // `sprite`: a mark other than the ring (Frost's icicle glyphs).
     public EliteMarks(EliteShip ship, int n, Sprite sprite = null)
     {
-        art = sprite != null ? sprite : EliteFxArt.Ring;
+        sprite0 = sprite != null;
+        art = sprite != null ? sprite : EliteFxArt.MarkRing;
         var root = new GameObject("Marks").transform;
         root.SetParent(ship.transform, false);
         rings = new SpriteRenderer[n];
@@ -81,9 +83,9 @@ public sealed class EliteMarks
         var r = rings[i];
         r.enabled = true;
         r.transform.position = new Vector3(at.x, at.y, 0f);
-        r.transform.localScale = Vector3.one * radius * 2f / Mathf.Max(.01f, art.bounds.size.x);
+        r.transform.localScale = Vector3.one * radius * (sprite0 ? 1f : TelegraphStyle.RingScale) * 2f / Mathf.Max(.01f, art.bounds.size.x);
         bool on = Mathf.FloorToInt(clock / ((fast ? 2f : 4f) * EliteArt.Tick)) % 2 == 0;
-        c.a = (on ? .95f : .4f) * alpha;
+        c.a = (on ? TelegraphStyle.RingAlpha : TelegraphStyle.RingAlphaLow) * alpha;
         r.color = c;
     }
 

@@ -282,18 +282,21 @@ public static class SpaceDockTest
             var alphas = new HashSet<float>();
             bool onCell = true, on = true;
             int n = 0;
+            bool lastLit = true, litAll = true;
             float minA = 9f, maxA = 0f;
             Step(hid ? 3f : 2f, () =>
             {
                 n++;
                 if (n < 3) return;
-                onCell &= e.LightCell == e.CurrentFrame && e.CurrentFrame == d.cells.damaged;
+                onCell &= e.LightCell == e.CurrentFrame && (d.cells.HasDamagedLoop ? System.Array.IndexOf(d.cells.damagedLoop, e.CurrentFrame) >= 0 : e.CurrentFrame == d.cells.damaged);
+                lastLit = e.Lights.sprite == lights[Mathf.Min(e.CurrentFrame, lights.Length - 1)];
+                litAll &= lastLit;
                 on &= e.Lights.enabled;
                 float a = e.Lights.color.a;
                 alphas.Add(a);
                 minA = Mathf.Min(minA, a); maxA = Mathf.Max(maxA, a);
             });
-            Check(x.key + ": damaged" + (hid ? " and hiding" : "") + ": the lights wear the damaged cell (" + d.cells.damaged + ") and stay on", e.Damaged && onCell && on && e.Lights.sprite == lights[d.cells.damaged]);
+            Check(x.key + ": damaged" + (hid ? " and hiding" : "") + ": the lights wear the damaged cell (" + d.cells.damaged + (d.cells.HasDamagedLoop ? ", the loop's drawing each frame" : "") + ") and stay on", e.Damaged && onCell && on && litAll);
             Check(x.key + ": ... and keep animating over the one held hull cell: they stutter (" + alphas.Count + " brightness steps " + minA.ToString("0.00") + ".." + maxA.ToString("0.00") + ")",
                   alphas.Count >= 3 && minA > .1f && maxA >= .99f);
             if (hid)

@@ -25,8 +25,8 @@
     "hit": -1,
     "damaged": 6
   },
-  "cellWorldSize": 2.62,
-  "hullRadius": 0.592,
+  "cellWorldSize": 2.144,
+  "hullRadius": 0.484,
   "noseDeg": 90,
   "turnsToFace": false,
   "maxBank": 3,

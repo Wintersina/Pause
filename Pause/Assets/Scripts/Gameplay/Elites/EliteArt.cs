@@ -19,6 +19,8 @@ public static class EliteArt
     public const float Tick = 1f / 24f;
     // Hold ticks per drawing (24 fps), the fighters' rhythm.
     public static readonly int[] IdleTicks = { 6, 3, 2, 3 };
+    // the damaged burn loop's holds (24 fps ticks): short and uneven, a stuttering burn
+    public static readonly int[] DamagedTicks = { 3, 2, 3, 2, 2, 3 };
     public const int HitTicks = 3;
 
     public enum Extra { Parked, Liftoff, Death, Lights }
@@ -76,6 +78,23 @@ public static class EliteArt
             frames[i] = Sprite.Create(tex, new Rect(i * w, 0, w, tex.height), new Vector2(.5f, .5f), ppu, 0, SpriteMeshType.FullRect);
             frames[i].name = def.key + "_" + i;
         }
+        // an optional companion strip <path>_damaged (more square cells, the damaged burn loop's later drawings) continues the cells
+        // after the strip's own: a strip wider than 4096 px would be downscaled on import and break the square-cell slicing
+        var more = Resources.Load<Texture2D>(path + "_damaged");
+        if (more != null)
+        {
+            int m = Mathf.Max(1, more.width / Mathf.Max(1, more.height));
+            float mw = more.width / (float)m;
+            float mppu = more.height / Mathf.Max(.01f, def.cellWorldSize);
+            var all = new Sprite[n + m];
+            System.Array.Copy(frames, all, n);
+            for (int i = 0; i < m; i++)
+            {
+                all[n + i] = Sprite.Create(more, new Rect(i * mw, 0, mw, more.height), new Vector2(.5f, .5f), mppu, 0, SpriteMeshType.FullRect);
+                all[n + i].name = def.key + "_" + (n + i);
+            }
+            frames = all;
+        }
         cache[path] = frames;
         return frames;
     }
@@ -119,7 +138,7 @@ public static class EliteArt
 // The procedural placeholder drawings, built once (never per frame).
 public static class EliteFxArt
 {
-    static Sprite glow, puff, streak, ring, bolt, slag, shell, shard, spark, sight, pool, slab, orb, plate, icicle;
+    static Sprite markRing, glow, puff, streak, ring, bolt, slag, shell, shard, spark, sight, pool, slab, orb, plate, icicle;
 
     // A soft-looking dot drawn in four hard steps (white: tint it).
     public static Sprite Glow => glow != null ? glow : (glow = Disc("EliteGlow", 16, new[] { 1f, .78f, .45f, .2f }));
@@ -127,6 +146,9 @@ public static class EliteFxArt
     public static Sprite Puff => puff != null ? puff : (puff = Blob("EliteDust", 24, 11));
     // A rising heat-shimmer streak.
     public static Sprite Streak => streak != null ? streak : (streak = StreakSprite());
+    // The telegraph marker ring (a landing / lock / fuse spot): a THIN ring, 1 u across -- a 2 px core line (about .02 u at 96 px per
+    // unit) between two faint dark rim lines (TelegraphStyle). Scaled by radius it stays a hairline.
+    public static Sprite MarkRing => markRing != null ? markRing : (markRing = MarkRingSprite("EliteMarkRing", 96));
     public static Sprite Ring => ring != null ? ring : (ring = RingSprite("EliteRing", 24));
     // Shots: white core, the colour comes from the tint (two layers). Every
     // shot is drawn HOSTILE -- pointed, angular, hard-edged, facing its
@@ -140,8 +162,8 @@ public static class EliteFxArt
     public static Sprite Shell => shell != null ? shell : (shell = Dart("EliteShell", 14, 24, .8f));
     public static Sprite Shard => shard != null ? shard : (shard = ArrowHead("EliteShard", 12, 16));
     public static Sprite Spark => spark != null ? spark : (spark = Diamond("EliteSpark", 6, 6));
-    // The siege cannon's blinking sight line: a 1 x 8 bar.
-    public static Sprite Sight => sight != null ? sight : (sight = Bar("EliteSight"));
+    // The warning sight line: a solid hairline with a faint dark rim (TelegraphStyle.Line1; EliteShip.ShowSight scales it).
+    public static Sprite Sight => TelegraphStyle.Line1;
 
     // floe_cast's ice slab: Frost's own floating chunk of ice (frost_rock_chunk's
     // first cell), the slag blob if that is missing.
@@ -233,6 +255,22 @@ public static class EliteFxArt
                 int band = Mathf.FloorToInt(d * steps.Length);
                 float a = band < steps.Length ? steps[band] : 0f;
                 t.SetPixel(x, y, new Color(1f, 1f, 1f, a));
+            }
+        return Make(t, n);
+    }
+
+    static Sprite MarkRingSprite(string name, int n)
+    {
+        var t = NewTex(n, n, name);
+        t.filterMode = FilterMode.Bilinear;
+        float c = (n - 1) * .5f, R = n * .5f;
+        var rim = new Color(TelegraphStyle.RimShade, TelegraphStyle.RimShade, TelegraphStyle.RimShade, TelegraphStyle.RimAlpha);
+        for (int y = 0; y < n; y++)
+            for (int x = 0; x < n; x++)
+            {
+                float d = Mathf.Sqrt((x - c) * (x - c) + (y - c) * (y - c));
+                Color col = d > R - 3.5f && d <= R - 1.5f ? Color.white : d > R - 4.5f && d <= R - .5f ? rim : new Color(0, 0, 0, 0);
+                t.SetPixel(x, y, col);
             }
         return Make(t, n);
     }

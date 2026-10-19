@@ -22,12 +22,13 @@ using UnityEngine;
 public sealed class AttackPreview
 {
     public const float MinLead = .4f;        // FR1: the footprint shows at least this long before it goes live
-    public const float DotSpacing = .16f;
-    public const float DotSize = .09f;
-    public const float Alpha = .5f;
-    public const float BoldDotScale = 1.9f, BoldAlpha = .95f;
+    // (the dots' weight lives in TelegraphStyle: a thin dotted hairline with a faint dark rim -- the telegraphs read too heavy before)
+    public const float DotSpacing = TelegraphStyle.DotSpacing;
+    public const float DotSize = TelegraphStyle.DotSize;
+    public const float Alpha = TelegraphStyle.DotAlpha;
+    public const float BoldDotScale = TelegraphStyle.BoldDotScale, BoldAlpha = TelegraphStyle.BoldDotAlpha;
     public const float BlinkFps = 8f;
-    public const int MaxDots = 720, MaxPreviews = 16;   // (a ring is ~150 dots, a column to the top of the view ~95: a ring and four columns fit)
+    public const int MaxDots = 1100, MaxPreviews = 16;   // (a ring is ~150 dots, a column to the top of the view ~95: a ring and four columns fit)
     public const int SortingOrder = 6;
 
     // counters (tests, previews)
@@ -157,13 +158,13 @@ public sealed class AttackPreview
             if (dots.Count >= MaxDots) { Dropped++; return; }
             var go = new GameObject("Dot");
             var sr = go.AddComponent<SpriteRenderer>();
-            sr.sprite = EliteFxArt.Spark;
+            sr.sprite = TelegraphStyle.Dot;
             sr.sortingOrder = SortingOrder;
             dots.Add(new Dot { sr = sr });
             idx = dots.Count - 1;
         }
         var d = dots[idx];
-        d.sr.transform.localScale = Vector3.one * (DotSize * dotScale / Mathf.Max(.01f, EliteFxArt.Spark.bounds.size.x));
+        d.sr.transform.localScale = Vector3.one * (DotSize * dotScale / Mathf.Max(.01f, TelegraphStyle.Dot.bounds.size.x));
         d.used = true;
         d.sr.transform.SetParent(node, false);
         d.sr.transform.localPosition = new Vector3(at.x, at.y, 0f);
@@ -176,7 +177,7 @@ public sealed class AttackPreview
     {
         bool on = (Mathf.FloorToInt(shownFor * BlinkFps) & 1) == 0;
         var c = tint;
-        c.a = Mathf.Min(1f, (on ? Alpha : Alpha * .6f) * alphaScale);
+        c.a = Mathf.Min(1f, (on ? Alpha : Alpha * TelegraphStyle.BlinkLowShare) * alphaScale);
         for (int i = 0; i < mineCount; i++) dots[mine[i]].sr.color = c;
     }
 

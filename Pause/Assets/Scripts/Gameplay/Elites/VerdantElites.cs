@@ -35,7 +35,7 @@ public sealed class EliteTelegraph
         for (int i = 0; i < RingPoints; i++)
         {
             float a = i * Mathf.PI * 2f / RingPoints;
-            shape.LoopPoint(c + new Vector2(Mathf.Cos(a), Mathf.Sin(a)) * r);
+            shape.LoopPoint(c + new Vector2(Mathf.Cos(a), Mathf.Sin(a)) * (r * TelegraphStyle.RingScale));
         }
         shape.EndLoop();
     }

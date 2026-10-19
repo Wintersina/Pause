@@ -809,9 +809,9 @@ public class DroneDeployAttack : EliteAttack
             line.enabled = true;
             line.transform.position = new Vector3(from.x, from.y, 0f);
             line.transform.rotation = Quaternion.Euler(0f, 0f, Deg(to) - 90f);
-            line.transform.localScale = new Vector3(.08f, to.magnitude, 1f);
+            line.transform.localScale = new Vector3(TelegraphStyle.ScaleX(TelegraphStyle.LineWidth), TelegraphStyle.ScaleY(to.magnitude), 1f);
             Color c = def.ShotColor;
-            c.a = Mathf.FloorToInt((clock + i * .1f) / (5f * EliteArt.Tick)) % 2 == 0 ? .85f : .5f;
+            c.a = Mathf.FloorToInt((clock + i * .1f) / (5f * EliteArt.Tick)) % 2 == 0 ? TelegraphStyle.LineAlpha : TelegraphStyle.LineAlphaLow;
             line.color = c;
         }
         bool linked = Linked;
@@ -996,13 +996,12 @@ public class ArmourShatterAttack : EliteAttack
 
     void Edge(SpriteRenderer sr, Vector2 from, float deg, bool on)
     {
-        sr.enabled = on;
-        if (!on) return;
+        sr.enabled = true;
         sr.transform.position = new Vector3(from.x, from.y, 0f);
         sr.transform.rotation = Quaternion.Euler(0f, 0f, deg - 90f);
-        sr.transform.localScale = new Vector3(.1f, ConeLength, 1f);
+        sr.transform.localScale = new Vector3(TelegraphStyle.ScaleX(TelegraphStyle.LineWidth), TelegraphStyle.ScaleY(ConeLength), 1f);
         Color c = def.ShotColor;
-        c.a = .8f;
+        c.a = on ? TelegraphStyle.LineAlpha : TelegraphStyle.LineAlphaLow;
         sr.color = c;
     }
 

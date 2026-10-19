@@ -140,6 +140,7 @@ public static class AllTests
         ("EliteEvasionTest", EliteEvasionTest.Execute),
         ("EliteLockOnTest", EliteLockOnTest.Execute),
         ("ShipTierTest", ShipTierTest.Execute),
+        ("ElitePolishTest", ElitePolishTest.Execute),
         ("ShipOutlineTest", ShipOutlineTest.Execute),
         ("EmberFramingTest", EmberFramingTest.Execute),
         ("DesertEmberFrameTest", DesertEmberFrameTest.Execute),

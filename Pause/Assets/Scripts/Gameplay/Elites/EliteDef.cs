@@ -48,7 +48,8 @@ public class EliteCells
     public int tell = 4;        // the attack's wind-up; -1: charge glow at the muzzles + a squash
     public int action = 5;      // the attack; -1: muzzle flashes + recoil on the flight frame
     public int hit = 6;         // a hit; -1: the current frame flashes
-    public int damaged = -1;    // after its first lost heart, replaces the flight / bank cells
+    public int damaged = -1;    // after its first lost heart, replaces the flight / bank cells (the first drawing of damagedLoop when there is one)
+    public int[] damagedLoop;   // optional: the damaged burn loop (every engine's flames drawn weak and ragged on the damaged hull), played in place of the one held `damaged` cell
 
     public int Count
     {
@@ -56,6 +57,7 @@ public class EliteCells
         {
             int n = 0;
             if (flight != null) foreach (int c in flight) n = Mathf.Max(n, c + 1);
+            if (damagedLoop != null) foreach (int c in damagedLoop) n = Mathf.Max(n, c + 1);
             foreach (int c in new[] { parked, parkedIdle, liftoff, bankLeft, bankRight, tell, action, hit, damaged }) n = Mathf.Max(n, c + 1);
             return n;
         }
@@ -65,6 +67,7 @@ public class EliteCells
     public int Parked => parked >= 0 ? parked : Flight0;
     // The drawing the debris is cut from.
     public int Debris => damaged >= 0 ? damaged : hit >= 0 ? hit : Flight0;
+    public bool HasDamagedLoop => damaged >= 0 && damagedLoop != null && damagedLoop.Length > 1;
     public bool Banks => bankLeft >= 0 && bankRight >= 0;
 
     // The codex's idle loop: the flight loop, or -- one flight cell with
@@ -138,9 +141,9 @@ public class EliteDef
     public const float MinFollowLag = .15f, MaxFollowLag = .6f;
 
     // ---- size tier (docs/ship-scale-and-lockon-analysis.md, 2.1) ----
-    // An elite's drawn silhouette is at least FloorHulls x the flown hull (0.58 u x ShipScale.Main = 0.78 u), the armoured / slow
+    // An elite's drawn silhouette is at least FloorHulls (lowered 1.9 -> 1.5, 2.1 -> 1.7 on 2026-10-18: the elites read too big) x the flown hull (0.58 u x ShipScale.Main = 0.78 u), the armoured / slow
     // classes HeavyFloorHulls x: the player's own ship never reads as the bigger one.
-    public const float FloorHulls = 1.9f, HeavyFloorHulls = 2.1f;
+    public const float FloorHulls = 1.5f, HeavyFloorHulls = 1.7f;
     public static readonly string[] HeavyBrains = { "hauler", "bastion", "siege", "tug", "fortress", "wrecker", "barge", "carrier", "patrol", "logger", "abyss", "netter", "pearler" };
     public bool Heavy { get { return System.Array.IndexOf(HeavyBrains, brain) >= 0; } }
     public float TierFloorUnits { get { return (Heavy ? HeavyFloorHulls : FloorHulls) * shopingShips.ReferenceHullSize * ShipScale.Main; } }

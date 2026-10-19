@@ -319,6 +319,26 @@ public static class EliteFoundationTest
             if (!e.Damaged) { Check(d.key + ": its armour soaked the hit (no heart, nothing to show)", e.Hearts == d.hearts); EliteSystem.Clear(); Fresh(.05f); continue; }
             var plume = e.HullTransform.Find("Plume0").GetComponent<SpriteRenderer>();
             var glow = e.HullTransform.Find("Glow0").GetComponent<SpriteRenderer>();
+            if (d.cells.HasDamagedLoop)
+            {
+                // a damaged BURN LOOP: every engine's flames are drawn in the cells and animate; no procedural plume doubles them
+                var shown = new HashSet<int>();
+                int fr = 0, plumes = 0, inLoop = 0, same = 0, worstSame = 0, last = -1;
+                Step(.5f);
+                Step(3f, () =>
+                {
+                    int cf = e.CurrentFrame;
+                    shown.Add(cf); fr++; if (plume.enabled) plumes++;
+                    if (System.Array.IndexOf(d.cells.damagedLoop, cf) >= 0) inLoop++;
+                    same = cf == last ? same + 1 : 1; last = cf; worstSame = Mathf.Max(worstSame, same);
+                });
+                bool loopOk = e.Damaged && e.DamagedLoops && plumes == 0 && inLoop == fr && shown.Count == d.cells.damagedLoop.Length && worstSame <= 5;
+                Check(d.key + ": [" + shown.Count + "/" + d.cells.damagedLoop.Length + " drawings, " + plumes + " plume frames, longest hold " + worstSame + " frames] damaged: the burn loop animates every engine (no drawing held more than 5 frames, no procedural plume over it)", loopOk);
+                worlds++;
+                EliteSystem.Clear();
+                Fresh(.05f);
+                continue;
+            }
             var sprites = new HashSet<Sprite>();
             var glowScales = new HashSet<float>();
             var offsets = new HashSet<float>();
@@ -337,6 +357,7 @@ public static class EliteFoundationTest
             Fresh(.05f);
         }
         Check("every world's elites checked (" + worlds + ")", worlds >= EliteCatalog.All.Length - 2);
+        // (an elite whose damaged hull keeps flames painted in the art but has no damaged burn loop is listed in ElitePolishTest.PaintedFlameDamaged: see ElitePolishTest)
         // an undamaged elite keeps its drawn flames: no procedural plume where exhaustScale is 0
         var h = InPlay(Space("eventide_bastion"), new Vector2(0f, 1f));
         Step(1f);
