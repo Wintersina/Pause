@@ -91,7 +91,7 @@ public static class HomePauseTest
         var png = new Texture2D(width, height, TextureFormat.RGB24, false);
         png.ReadPixels(new Rect(0, 0, width, height), 0, 0);
         png.Apply();
-        string path = "/private/tmp/pause-home-" + width + "x" + height + ".png";
+        string path = Path.Combine(Path.GetTempPath(), "pause-home-" + width + "x" + height + ".png");
         File.WriteAllBytes(path, png.EncodeToPNG());
         Debug.Log("[HP] screenshot " + path);
         RenderTexture.active = previous;
