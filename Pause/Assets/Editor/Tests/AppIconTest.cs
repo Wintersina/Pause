@@ -223,7 +223,10 @@ public static class AppIconTest
                 slots++;
                 iosSet &= PathOf(icon.GetTexture()) == AppIconSetter.PathOf(ship, AppIconSetter.Ios);
             }
-        Check(ship + ": every iOS icon slot (" + slots + ") uses the alpha-free 1024", slots > 0 && iosSet);
+        if (slots == 0 && !BuildPipeline.IsBuildTargetSupported(BuildTargetGroup.iOS, BuildTarget.iOS))
+            Debug.Log("[ICON] SKIP " + ship + ": every iOS icon slot uses the alpha-free 1024 (iOS build module not installed, 0 slots)");
+        else
+            Check(ship + ": every iOS icon slot (" + slots + ") uses the alpha-free 1024", slots > 0 && iosSet);
         var importer = AssetImporter.GetAtPath(AppIconSetter.PathOf(ship, AppIconSetter.Ios)) as TextureImporter;
         Check(ship + ": iOS icon imports without alpha",
               importer != null && importer.alphaSource == TextureImporterAlphaSource.None);
