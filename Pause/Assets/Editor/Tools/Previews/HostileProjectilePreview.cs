@@ -131,7 +131,7 @@ public static class HostileProjectilePreview
         EliteDef gun = null, strike = null, siege = null;
         foreach (var d in EliteCatalog.All)
         {
-            if (d.brain == "gunship") gun = d;
+            if (d.brain == "gunship" || gun == null) gun = BaseEliteDefs.For("gunship");
             if (d.brain == "striker") strike = d;
             if (d.brain == "siege") siege = d;
         }

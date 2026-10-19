@@ -46,6 +46,8 @@ using UnityEngine;
 //   floe_barge    Floe Harrower: floe_cast, and between casts a single slab that skids diagonally and bounces off one rail
 //   tender_rig    Glacier Tender: drone_deploy, its drones drop frost mines on the pilot's lane, and a cold fog cone when its shield is down
 //   icicle_barrage Whiteout Sentinel: plates, and once stripped a barrage of icicles down marked lanes with one safe lane
+//   lance_pass / coal_strafe / scrap_dive / ember_veil / kiln_dump / fire_mortar: Ember's own six -- Sunstoke, Coalrunner, Brass Vulture, Ash
+//                 Wraith, Kilnback, Cauterizer (EmberElites.cs). The base attacks above stay for Storm and Desert, which reuse them.
 // (Frost's five: FrostElites.cs)
 //   foam_wake / mine_chain / drag_net / thunder_sweep / pearl_spiral: Tide's own five -- Riptide, Bathyscaphe, Trawler, Thunderfin, Pearl Warden (TideElites.cs)
 //   surf_dash / depth_charge / net_cast / thunder_strike / pearl_curtain: Tide's Riptide, Bathyscaphe, Trawler, Thunderfin, Pearl Warden (TideElites.cs)
@@ -99,6 +101,9 @@ public abstract class EliteAttack
     // Breaks through rocks while acting (EliteShip.CrashInto): no heart lost.
     public virtual bool Ploughs => false;
     public virtual void OnPlough(Vector2 at) { }
+    // A committed run across the whole board from off the view (a side pass, a dive from the top): MayCommit does not run the dash
+    // checks (the rails, the hazards on the line) -- the run ploughs rocks, flies over the rails and is untouchable off the board.
+    public virtual bool CommitsBlind => false;
 
     public virtual void BeginTell(Vector2 seen)
     {
@@ -197,7 +202,8 @@ public static class EliteAttacks
                                             "foam_wake", "mine_chain", "drag_net", "thunder_sweep", "pearl_spiral",
                                             "ice_run", "floe_barge", "tender_rig", "icicle_barrage",
                                             "log_roll", "vine_lash", "spore_burst", "leaf_dive",
-                                            "surf_dash", "depth_charge", "net_cast", "thunder_strike", "pearl_curtain" };
+                                            "surf_dash", "depth_charge", "net_cast", "thunder_strike", "pearl_curtain",
+                                            "lance_pass", "coal_strafe", "scrap_dive", "ember_veil", "kiln_dump", "fire_mortar" };
 
     public static EliteAttack Create(string id)
     {
@@ -239,6 +245,12 @@ public static class EliteAttacks
             case "net_cast": return new NetCastAttack();
             case "thunder_strike": return new ThunderStrikeAttack();
             case "pearl_curtain": return new PearlCurtainAttack();
+            case "lance_pass": return new LancePassAttack();
+            case "coal_strafe": return new CoalStrafeAttack();
+            case "scrap_dive": return new ScrapDiveAttack();
+            case "ember_veil": return new EmberVeilAttack();
+            case "kiln_dump": return new KilnDumpAttack();
+            case "fire_mortar": return new FireMortarAttack();
             default: return new LanceDashAttack();
         }
     }

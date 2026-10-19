@@ -159,7 +159,7 @@ public static class ReadabilitySweep
         EliteDef gun = null;
         foreach (var d in EliteCatalog.All)
         {
-            if (d.brain == "gunship" && gun == null) gun = d;
+            if (gun == null) gun = BaseEliteDefs.For("gunship");
             if (d.world == wk) list.Add(new Item { kind = "shot", name = "elite_" + d.key + "/" + d.shotKind, def = d, shotKind = EliteShots.KindOf(d.shotKind) });
         }
         foreach (EliteShots.Kind k in System.Enum.GetValues(typeof(EliteShots.Kind)))

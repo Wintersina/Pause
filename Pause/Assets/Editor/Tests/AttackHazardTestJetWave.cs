@@ -453,7 +453,7 @@ public static partial class AttackHazardTest
         EliteEvasion.Enabled = false;
         Fresh();
         EliteDef def = null;
-        foreach (var d in EliteCatalog.All) if (d.brain == "gunship") { def = d; break; }
+        def = BaseEliteDefs.For("gunship");
         var elite = EliteShip.CreateInPlay(def, new Vector2(1.5f, 1.5f));
         elite.AttackCooldown = 99f;
         FriendlyFire.ResetHostileCounters();

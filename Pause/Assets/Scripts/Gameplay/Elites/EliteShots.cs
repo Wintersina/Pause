@@ -592,6 +592,9 @@ public class EliteShot : MonoBehaviour, IHostileShot
         radius *= s;
     }
 
+    // The skid may glance off the side rails `n` times before a further one breaks it (Skid starts it at once; the Coalrunner's coal clumps).
+    public void Ricochet(int n) { bounces = Mathf.Max(0, n); }
+
     public bool Skidding => Active && skid;
     public Vector2 SkidVelocity => skidV;
 

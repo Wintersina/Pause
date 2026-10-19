@@ -216,3 +216,5 @@ WorldHazardsTest 0.4
 WeatherArtTest 20.0
 SpaceSunTest 6.0
 TideDockTest 0.7
+EmberEliteTest 0.7
+EmberDockTest 0.7

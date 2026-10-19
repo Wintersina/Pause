@@ -234,3 +234,5 @@ ReleaseReadinessTest 0.0
 ResumeSlowMoTest 0.0
 UiScaleTest 0.0
 TideDockTest 0.7
+EmberEliteTest 0.7
+EmberDockTest 0.7

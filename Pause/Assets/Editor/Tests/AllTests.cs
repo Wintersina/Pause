@@ -247,6 +247,8 @@ public static class AllTests
         ("SpaceDockTest", SpaceDockTest.Execute),
         ("FrostDockTest", FrostDockTest.Execute),
         ("FrostEliteTest", FrostEliteTest.Execute),
+        ("EmberEliteTest", EmberEliteTest.Execute),
+        ("EmberDockTest", EmberDockTest.Execute),
         ("VerdantEliteTest", VerdantEliteTest.Execute),
         ("TideEliteTest", TideEliteTest.Execute),
         ("TideDockTest", TideDockTest.Execute),

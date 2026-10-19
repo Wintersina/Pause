@@ -416,7 +416,7 @@ public static class AttackLashTest
         EliteEvasion.Enabled = false;
         Fresh();
         EliteDef def = null;
-        foreach (var d in EliteCatalog.All) if (d.brain == "gunship") { def = d; break; }
+        def = BaseEliteDefs.For("gunship");
         var probe = Arm(new Vector2(0f, 3f), new Vector2(0f, -2.5f));
         Vector2 at = OnChain(probe, probe.SweepSeconds * .5f, .8f);
         probe.Cancel();

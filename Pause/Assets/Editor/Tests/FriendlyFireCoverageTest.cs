@@ -110,8 +110,7 @@ public static class FriendlyFireCoverageTest
 
     static EliteDef Def(string brain)
     {
-        foreach (var d in EliteCatalog.All) if (d.brain == brain) return d;
-        return null;
+        return BaseEliteDefs.For(brain);
     }
 
     // A point the hazard's live footprint covers, inside the playfield (null: none).

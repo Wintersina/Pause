@@ -152,7 +152,7 @@ public static class EliteFoundationTest
         Check("Orbit Reaver: 3 hearts", Space("orbit_reaver").hearts == 3 && !Space("orbit_reaver").armored);
         Check("Rift Lancer: 3 hearts", Space("rift_lancer").hearts == 3 && !Space("rift_lancer").armored);
         foreach (var d in EliteCatalog.All)
-            if (d.world != "space" && d.world != "frost" && d.world != "tide") Check(d.key + ": other worlds keep two hearts", d.hearts == 2);
+            if (d.world != "space" && d.world != "frost" && d.world != "tide" && d.world != "ember") Check(d.key + ": other worlds keep two hearts", d.hearts == 2);
         // five hearts lay out cleanly: shown, orbiting, never on top of each other
         foreach (var name in new[] { "eventide_bastion", "singularity_hauler" })
         {
@@ -308,10 +308,11 @@ public static class EliteFoundationTest
     static void DamagedEngines()
     {
         Fresh(.05f);
-        int worlds = 0;
+        int worlds = 0, looped = 0;
         foreach (var d in EliteCatalog.All)
         {
-            if (d.cells.damaged < 0) continue;
+            if (d.cells.damaged >= 0 && d.cells.HasDamagedLoop) looped++;
+            if (d.cells.damaged < 0 || d.cells.HasDamagedLoop) continue;   // (a damaged burn loop draws every engine in the art: EmberDockTest, SpaceDockTest)
             var e = InPlay(d, new Vector2(0f, 1f));
             Step(.5f);
             e.TakeHit(EliteDamage.Crash, e.Position + Vector2.left * .3f);
@@ -356,7 +357,7 @@ public static class EliteFoundationTest
             EliteSystem.Clear();
             Fresh(.05f);
         }
-        Check("every world's elites checked (" + worlds + ")", worlds >= EliteCatalog.All.Length - 2);
+        Check("every world's elites checked (" + worlds + " + " + looped + " with a damaged burn loop, covered by the dock tests)", worlds + looped >= EliteCatalog.All.Length - 2);
         // (an elite whose damaged hull keeps flames painted in the art but has no damaged burn loop is listed in ElitePolishTest.PaintedFlameDamaged: see ElitePolishTest)
         // an undamaged elite keeps its drawn flames: no procedural plume where exhaustScale is 0
         var h = InPlay(Space("eventide_bastion"), new Vector2(0f, 1f));
@@ -371,7 +372,7 @@ public static class EliteFoundationTest
         Fresh(.05f);
         Check("only the two non-armoured Space elites hide when hurt",
               Space("orbit_reaver").hurtHide && Space("rift_lancer").hurtHide && !Space("eventide_bastion").hurtHide && !Space("singularity_hauler").hurtHide);
-        foreach (var d in EliteCatalog.All) if (d.hurtHide) Check(d.key + ": hides only if Space, Frost or Tide and not armoured", (d.world == "space" || d.world == "frost" || d.world == "tide") && !d.armored);
+        foreach (var d in EliteCatalog.All) if (d.hurtHide) Check(d.key + ": hides only if Space, Frost, Tide or Ember and not armoured", (d.world == "space" || d.world == "frost" || d.world == "tide" || d.world == "ember") && !d.armored);
 
         // an armoured one just takes the hit
         var tank = InPlay(Space("eventide_bastion"), new Vector2(0f, 1f));

@@ -31,7 +31,7 @@ public static class EnemyResolutionTest
 
     static bool FlatUi(string rel)
     {
-        return rel.EndsWith("_card.png") || rel.EndsWith("_shots.png") || rel.EndsWith("/warning.png");
+        return rel.EndsWith("_lights.png") || rel.EndsWith("_lights_damaged.png") || rel.EndsWith("_card.png") || rel.EndsWith("_shots.png") || rel.EndsWith("/warning.png");
     }
 
     public static int Execute()
