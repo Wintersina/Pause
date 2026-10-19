@@ -35,10 +35,13 @@ public sealed class EliteMarks
 {
     public const int Order = 6;
     readonly SpriteRenderer[] rings;
+    readonly Sprite art;
     float clock;
 
-    public EliteMarks(EliteShip ship, int n)
+    // `sprite`: a mark other than the ring (Frost's icicle glyphs).
+    public EliteMarks(EliteShip ship, int n, Sprite sprite = null)
     {
+        art = sprite != null ? sprite : EliteFxArt.Ring;
         var root = new GameObject("Marks").transform;
         root.SetParent(ship.transform, false);
         rings = new SpriteRenderer[n];
@@ -47,7 +50,7 @@ public sealed class EliteMarks
             var go = new GameObject("Mark" + i);
             go.transform.SetParent(root, false);
             var sr = go.AddComponent<SpriteRenderer>();
-            sr.sprite = EliteFxArt.Ring;
+            sr.sprite = art;
             sr.sortingOrder = Order;
             sr.enabled = false;
             rings[i] = sr;
@@ -57,7 +60,7 @@ public sealed class EliteMarks
     public int Count => rings.Length;
     public bool Shown(int i) => i >= 0 && i < rings.Length && rings[i].enabled;
     public Vector2 At(int i) => rings[i].transform.position;
-    public float Radius(int i) => rings[i].transform.localScale.x * EliteFxArt.Ring.bounds.size.x * .5f;
+    public float Radius(int i) => rings[i].transform.localScale.x * art.bounds.size.x * .5f;
 
     public int ShownCount
     {
@@ -78,7 +81,7 @@ public sealed class EliteMarks
         var r = rings[i];
         r.enabled = true;
         r.transform.position = new Vector3(at.x, at.y, 0f);
-        r.transform.localScale = Vector3.one * radius * 2f / Mathf.Max(.01f, EliteFxArt.Ring.bounds.size.x);
+        r.transform.localScale = Vector3.one * radius * 2f / Mathf.Max(.01f, art.bounds.size.x);
         bool on = Mathf.FloorToInt(clock / ((fast ? 2f : 4f) * EliteArt.Tick)) % 2 == 0;
         c.a = (on ? .95f : .4f) * alpha;
         r.color = c;

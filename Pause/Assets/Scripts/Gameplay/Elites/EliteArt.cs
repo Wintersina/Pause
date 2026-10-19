@@ -119,7 +119,7 @@ public static class EliteArt
 // The procedural placeholder drawings, built once (never per frame).
 public static class EliteFxArt
 {
-    static Sprite glow, puff, streak, ring, bolt, slag, shell, shard, spark, sight, pool, slab, orb, plate;
+    static Sprite glow, puff, streak, ring, bolt, slag, shell, shard, spark, sight, pool, slab, orb, plate, icicle;
 
     // A soft-looking dot drawn in four hard steps (white: tint it).
     public static Sprite Glow => glow != null ? glow : (glow = Disc("EliteGlow", 16, new[] { 1f, .78f, .45f, .2f }));
@@ -162,6 +162,26 @@ public static class EliteFxArt
     public static Sprite Orb => orb != null ? orb : (orb = Burr("EliteOrb", 21, 10));
     // armour_shatter's ice plate rim: a chevron, apex at the top (its pivot).
     public static Sprite Plate => plate != null ? plate : (plate = Chevron("ElitePlate", 72, 44));
+
+    // icicle_barrage's lane glyph: a cap bar over a downward-pointing spike, in hard steps (tint it).
+    public static Sprite Icicle => icicle != null ? icicle : (icicle = IcicleGlyph("EliteIcicle", 9, 20));
+
+    static Sprite IcicleGlyph(string name, int w, int h)
+    {
+        var t = NewTex(w, h, name);
+        float cx = w * .5f;
+        for (int y = 0; y < h; y++)
+            for (int x = 0; x < w; x++)
+            {
+                int r = h - 1 - y;                                     // rows down from the top
+                float px = Mathf.Abs(x + .5f - cx);
+                bool cap = r < 3, spike = r >= 4 && px <= (1f - (r - 4f) / (h - 4f)) * cx;
+                if (!cap && !spike) { t.SetPixel(x, y, Color.clear); continue; }
+                float g = cap ? 1f : px < cx * .3f ? 1f : (x + .5f < cx ? .86f : .68f);
+                t.SetPixel(x, y, new Color(g, g, g, 1f));
+            }
+        return Make(t, h);
+    }
 
     static Sprite Chevron(string name, int w, int h)
     {

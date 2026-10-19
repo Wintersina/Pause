@@ -53,11 +53,12 @@ public sealed class EliteTelegraph
         shape.EndLoop();
     }
 
-    public void Show(float untilLive, Color shot)
+    // `world`: whose cue colour the outline takes (Verdant's by default; Frost's elites pass their own).
+    public void Show(float untilLive, Color shot, int world = 2)
     {
         End();
         seconds = untilLive;
-        preview = AttackPreview.Show(shape, untilLive, HostileShotPalette.Body(shot, 2), true);   // (bold: Verdant's canopy is bright)
+        preview = AttackPreview.Show(shape, untilLive, HostileShotPalette.Body(shot, world), true);   // (bold: Verdant's canopy is bright)
     }
 
     public void Step(float dt) { if (preview != null) preview.Step(dt); }

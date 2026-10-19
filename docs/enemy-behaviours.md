@@ -790,48 +790,63 @@ deals `EliteShip.PauseDamage` (2) hearts; a shielded ram still takes them all.
 
 ## Frost elites
 
-Branch `feature/frost-elites-wired`. Frost had one elite (the Rimebreaker, `breaker` / `ice_ram`); Codex drew four more
-(`Art/Enemies/Elite/Frost/manifest_new_elites.md`: 7-cell flight strips, landed .. damaged) and each got its own brain
-and attack (`Scripts/Gameplay/Elites/FrostElites.cs`), all launching from the Frost backdrop's ground sites. Like
-the others they keep 2 hearts, cruise at 1.4-2.9 u/s, wait 3-5 s between attacks and tell every attack for at
-least 0.6 s. Everything below is from headless simulation, tests and preview frames; none of it has been played.
+Branch `feat/elite-frost` (stacked on the Space elite PRs #82-#84). Like the Space four (above) the five Frost elites
+(`Scripts/Gameplay/Elites/FrostElites.cs`) are mini-boss fights, not followers: none of them follows the pilot, each keeps its
+distance and throws HAZARDS in Frost's own material (ice shards, slabs, icicles, frost mines, a cold fog; Frost cue colours, no
+pink), every attack is telegraphed and its aim LOCKS at the tell, and each launches from its OWN dock among Frost's ground sites.
+Hearts: the armoured two (Glacier Tender, Whiteout Sentinel) 5, the others 3; the three non-armoured ones `hurtHide` (a lost heart
+sends them off the board for `hideSeconds` 3.5 and they come back by another edge, `EliteBrain.OnReturn`). The framework is the
+Space one: `Roams` brains (the Rimebreaker and the Siren: no goal clamp, no planned evasions, untouchable outside the board),
+`EliteFight` thinning, the 45 s engagement timer (escaping costs half the score), `EliteShip.PauseDamage` 2. Everything below is
+from headless simulation, tests and capture footage (`EliteCapture.CaptureFrost`); none of it has been played on a phone.
 
-| Elite | Launches from | Brain | Attack |
+| Elite (hearts) | Dock (`launchFrom`) | Brain | Attack |
 |---|---|---|---|
-| Floe Harrower (wide ice barge) | `hangar`, `crawlerbay` | `herder`: holds `followDistance` (2.7) ahead of the pilot; its lane drifts (70% of its speed) toward where the pilot is heading, `Lead` 1.1 s of the pilot's drift ahead, at most `laneOffset` (1.2) | `floe_cast`: tell 0.8 s planted, chutes glowing, the gap chosen and (from 40% of the tell) a sight line blinking down its lane; then `shotCount` (4) ice slabs glide out of alternate chutes 60 ms apart (`hazardSeconds` 0.45) onto a staggered row across the whole board, led by the scroll so it is `lobAhead` (2.0) ahead of the pilot when the lance comes -- 5 slots, one left open beside the pilot toward the middle; the slabs ride the board drifting `hazardSpeed` (0.18 u/s), glance off the rails, block shots (`hazardArmour` 3 hits) and hurt on touch. 0.15 s after the last slab one lance (bolt, 7 u/s) goes down the gap's lane to the pilot's height: keep out of the gap's lane until it has passed, then slip in before the row arrives |
-| Cryo Siren (spine hull, coolant dish) | `rigbay` | `kiter`: keeps `keepDistance` (3.0) on a bearing within 40 deg of straight above the pilot, jittering; crowded (under 75% of that) it backpedals in stutter steps (0.22 s bursts straight away at x1.5, 0.22 s pauses) until back at 95% of its range, holding fire. `avoidance` 1.0: it flees whatever comes at it | `frost_bloom`: tell 0.6 s (the dish charges); a slow cryo orb (2.4 u/s) out of the forward outlet on a fuse ring that blinks faster as it runs down; after `hazardSeconds` (0.8) it bursts into a ring of `hazardCount` (8) shards at `hazardSpeed` (3.0). Shot first, it pops. Every third attack is a beam instead: a 0.96 s tell in which the sight line swings across the arc (16 deg either side of the pilot) then locks on its start, then a 0.55 s sweep of fast bolts (8 u/s, every 35 ms) across it |
-| Glacier Tender (boxy tug, 4 drone pods) | `crawlerbay` | `tender`: hovers `topMargin` (1.3) under the top, its lane crawling toward halfway between the pilot's and the middle; the pilot within `keepDistance` (1.9): it flees sideways at x1.7 until 1.4x that away. Armoured | `drone_deploy`: tell 0.8 s (pods glow); releases 2-3 drones -- Frost's Flake fighter (`frost_fighter_1`) at `hazardSize` (0.7) scale, its own movers off -- out of its pods, never more than `hazardCount` (3) alive, each on a blinking cyan tether, fanned 38 deg apart `lobAhead` (1.8) below it, never lower than 1.1 u above the pilot. While 2+ live it is shield-linked (a blinking ring): only a pause jump, a shielded ram or a rail costs it a heart. Its drones never crash into or worry it; killing it scuttles them. Drones killed by the pilot pay as Flakes |
-| Whiteout Sentinel (shield wedge, ice plates) | `padring`, `hatch` | `ironclad`: straight legs -- every 1.6 s it fixes a point `followDistance` (1.8) above the pilot and flies there at 60% of its 1.4 u/s -- never dodging (`Steadfast`: no evasion at all), its prow turned on the pilot (`turnsToFace`). Armoured | `armour_shatter`: `hazardCount` (3) plate rims on its prow soak every hit but a pause jump, a shielded ram or a rail, outermost first (0.3 s plate grace); each broken plate blinks a cone from its eye for 0.4 s, then sprays `shotCount` (5) shards along it (12 deg apart). Plated, its own attack is a shard from each side emitter at the pilot. Stripped (the damaged cell), it charges: a 0.9 s tell with a sight line tracking then locked, a 0.7 s dash at `dashSpeed` (6), then 1.6 s limping at 30% |
+| Rimebreaker (3, hurtHide) | `hangar` | `icebreaker` *(roams)*: icebreaker RUNS. Waits off the top, appears at the top (`ReadyPoint`) on a lane at least `MinLaneGap` (1.6) from the last, then runs; after the run (off the bottom) it waits `PauseSeconds` (1.8) and comes back on another lane. After a hit (and the hide) the runs come in PAIRS: the second `PairGap` (0.5) after the first, on the other side of the board. It never prowls: between runs it is at the top or off the view | `ice_run`: tell 1.0 s planted; from the first frame the lane is drawn down the whole board as an ice crack (the dotted lane outline plus a zigzag crack: `EliteTelegraph`), locked where it stands. Then it ploughs straight down it at `dashSpeed` (7) through the whole board and out of the bottom: rocks break (`Ploughs`, no heart lost), frost shards fly off the prow at the launch and off the first 3 rocks (`shotBounces` 1: they glance off a rail once); an enemy or a mine in the lane is a crash (a heart): lure it. Prow first (`turnsToFace`) |
+| Floe Harrower (3, hurtHide) | `crawlerbay` | `barge`: holds `topMargin` (1.5) under the top on the side of the board AWAY from the pilot, a slow sine (0.3 u) round `laneOffset` (1.5), always `LaneKeep` (1.2) clear of the pilot's lane. It crosses to the other side (high, x1.7, not attacking) only when the pilot takes its side by more than `FlipBand` (0.3). Never comes down | `floe_barge`: casts alternate cast, skid, skid, cast (every other at its last heart). Cast = `floe_cast` as before (`shotCount` 4 slabs in a staggered row with one gap beside the pilot toward the middle, then a lance down the gap). Skid: tell 0.7 s; the slab's whole path is drawn from the first frame of the tell (out to the far rail, then mirrored down to the bottom, a ring on the bounce) and locked; then one big slab (`hazardArmour` 3 shots) leaves a chute at `skidSpeed` (3.2, +12% per heart lost) straight across the screen and glances off ONE rail (`EliteShot.Skid`) |
+| Cryo Siren (3, hurtHide) | `rigbay` | `hopper` *(roams)*: perches on one of 4 fixed columns `keepDistance` (4.2) above the pilot (inside its reach), takes ONE bloom and HOPS: off a side or the top, `AwaySeconds` (0.8) out of sight while a trail of 4 blinking rings is drawn into the next perch (never the same twice running, never under the pilot's nose), then back in by a side or the top and settle. It also hops when the pilot comes within `MinRange` (3.3) or after `PerchMax` (5 s). It never closes | `frost_bloom`: tell 0.6 s; a slow cryo orb on a blinking fuse ring bursts after `hazardSeconds` (0.8) into a ring of `hazardCount` (8) shards; shot first it pops. Every third attack a beam sweep: the sight paints the arc (16 deg either side of the pilot), locks on its start, then a stream of fast bolts across it. At its last heart (below `DoubleBelow` 2) a bloom is TWO orbs, 11 deg either side of the aim |
+| Glacier Tender (5, armoured) | `hatch` | `carrier`: hangs `topMargin` (1.3) under the top, sliding a slow sine round the middle (it does not follow the pilot); the pilot within `keepDistance` (1.9) and it scurries sideways at x1.7 | `tender_rig`: `drone_deploy` (2-3 tethered ice drones, `hazardCount` 3 at most, shield link while two live) + FROST MINES: every `MineEvery` (4.2 s, -0.45 per heart lost, at least 2.4) one drone picks the pilot's lane, a ring marks the spot on the board for 0.9 s (locked), then a small mine (`MineScale` 0.5) slides out of the drone to it, rides the board on a fuse ring and pops into 5 short shards; one player shot defuses it (3 mines at most). When the shield is down (fewer than two drones) every other attack is the FOG instead: tell 0.8 s planted, a cold cone straight down from the belly pods (`AttackJet`, the themed frost jet: 3.6 u long, 1.15 u half-wide at the far end) outlined from the first frame, then a 0.55 s burn that hurts on touch |
+| Whiteout Sentinel (5, armoured) | `padring` | `patrol`: straight legs ACROSS THE TOP, edge to edge, `topMargin` (1.4) under the top, a beat's rest at each end, steady pace (60% of 1.8 u/s), never dodging (`Steadfast`), prow turned on the pilot. Never toward the pilot | `icicle_barrage`: plated = `armour_shatter` (3 ice plates soak hits and spray shards along a blinking cone). Stripped: NO charge. Tell 1.0 s planted: `Lanes` (4, +1 at 2 hearts lost, +1 at 4) lanes among `Lanes + 1` columns spread between the rails are marked with ice glyphs (3 down each lane) from the first frame, locked; the one bare column is the SAFE LANE, beside the pilot's toward the middle. Then the icicles fall out of the sky over their lanes one after another (a sweep from one end, `Gap` 0.42 s -0.05 per heart lost, at least 0.18; fall speed 5.4 +0.35 per heart), the lane's glyphs going out as its icicle drops |
 
-Framework hooks added for them (`EliteAttack`): `Passive` (every play step), `Absorbs` (a hit soaked, no heart),
-`OnDeath` (tidy up before `End`), `ShowsDamaged`, `Shoots`; `EliteBrain.Steadfast`; new shot kinds `slab` (glide,
-drift, armour) and `orb` (fuse, burst) in `EliteShots`; `ClearTarget.Mother` (a drone's elite: it neither crashes
-into it nor dodges it). New def fields: `hazardSize`, `hazardSeconds`, `hazardCount`, `hazardSpeed`,
-`hazardArmour`.
+Framework hooks added in the Frost rework: `EliteAttack.FireFrom` (a shot out of a point that is not a muzzle: a drone, the sky),
+`EliteShot.Skid` (a slab straight across the screen, one rail bounce) and `EliteShot.Shrink` (a small mine), `EliteMarks` with
+other sprites than the ring (`EliteFxArt.Icicle`), `EliteTelegraph.Show(..., world)` (the outline in the elite's own world colour),
+`EliteDef.skidSpeed`, `FrostDirector.BringHome`. Hooks from the first Frost batch (`Passive`, `Absorbs`, `OnDeath`, `ShowsDamaged`,
+`Shoots`, `Steadfast`, the `slab` / `orb` shots, `ClearTarget.Mother`) stay. The old `breaker` / `herder` / `kiter` / `tender` /
+`ironclad` brains and `ice_ram` are gone (only Frost used them); `floe_cast`, `frost_bloom`, `drone_deploy` and `armour_shatter` stay as
+the building blocks of the new ones.
 
-Rules kept: friendly fire (slabs, orb rings and sprays hit every other hazard; slabs are `Fixed` mass so other
-shots break on them), rails (slabs glance off, ring shards break), the pause jump and the shielded ram always get
-through shield link and plates, `PilotAirspace` / spawn space (drones carry a self-steering `SpawnFootprint`),
-lift-off joins away from the pilot as for every elite.
+### Docks
+
+Each Frost elite has its own kind of site (above). The ground is fixed, so Frost cannot drift a dock in as Space does, but
+`FrostDirector.BringHome(launchFrom)` (`LandingSites.BringHome`, asked `EliteDirector.HomeLeadSeconds` before a launch) asks the site spawner
+for one of the elite's kinds at the top of the view when none is in view or on its way (`SpawnSite`); it then scrolls in at the ground's
+own pace (slow: the director waits up to `HomeWaitSeconds`, and past that falls back to any free site). Whether a dock arrives in
+time at real scroll speeds is unmeasured.
 
 ### Tests
 
-`FrostEliteTest` (in `AllTests`): the roster, strips and cell maps, muzzles / nozzles on solid hull pixels,
-hearts, codex entries; the director launching each from its own site kinds and any free one otherwise; each
-one's life cycle off a pad, attack, and death taking its slabs / orb / drones with it; the herder cutting off the
-lane both ways at a steady height; the slab row (count, stagger, gap beside the pilot toward the middle, no
-overlaps, sight from the wind-up then the lance, the lance down the gap's lane, drift, armour); the kiter's range,
-backpedal and stutter, the orb's fuse and ring, the beam's painted tell and sweep, an orb popping with its Siren;
-the tender's hover, drones from the pods, tethers, fan, floor, shield link on / off, cap, flight; the ironclad's
-straight legs, no evasion, ploughing a rock, facing; plates in order with grace, the telegraphed spray, the
-stripped drawing, the charge and the limp; zero allocations (profiler meter). `EliteTest` counts Frost's five.
-Preview: `FrostElitePreview` (attack-moment frames over the Frost backdrop at phone portrait).
+`FrostEliteTest` (in `AllTests`): the roster (hearts 5 / 3, hurtHide, one dock each, no pink, strips and cell maps, muzzles / nozzles on
+solid hull pixels); the director launching each from its own site kind and any free one otherwise; each one's life cycle off a pad, attack, and
+death taking its slabs / orbs / drones / mines with it; the Rimebreaker's runs (the crack drawn, lane locked, ploughing straight at
+`dashSpeed`, a rock broken without a heart lost, out of the bottom untouchable, back in from the top on another lane after the pause,
+pairs once hurt on opposite sides); the Harrower on the far side of the pilot never in its lane, the cast kept (row, gap, lance), the
+skid (path drawn and locked, speed, ONE bounce where the telegraph said, off the bottom, armour, breaking with the Harrower) and the
+cast / skid / skid / cast order; the Siren's perches (new each time, off the view and back, the blink trail, never closer than its
+range, hopping when crowded), one orb then two at its last heart, the beam; the Tender hanging at the top, not chasing, the mine (the
+pilot's lane, ringed 0.9 s, locked, small, shootable, a ring of shards if left), the fog (shield down only, outlined first, planted,
+harmless until it ignites, a short burn), everything gone with it; the Sentinel's patrol (straight legs across the top, never
+toward the pilot, never dodging, a pilot parked under it changes nothing), plates, no charge, the barrage (glyphs from the first frame,
+one icicle per marked lane in sequence, none in the safe lane, exactly one bare lane whatever the pilot's x with room to fly through
+it, escalation per heart lost); the backdrop's `BringHome`; zero allocations (profiler meter).
+Capture: `EliteCapture.CaptureFrost` + `scripts/elite-gifs.sh <frames> <out>` (a GIF and an MP4 per elite from its dock).
 
 ### Progress
 
-* [x] Art installed, points measured, defs, brains, attacks, tests, preview
-* [ ] Play it on a phone: slab row readability at speed, whether the lance feels fair, the Siren's beam arc
-      width, drone count / Tender shield frustration, the Sentinel's spray cone and charge
+* [x] Brains, attacks, defs (hearts, hurtHide, docks), tests, capture
+* [ ] Codex hull lights and dock art for Frost (a later step on this branch; nothing blocks on it)
+* [ ] Play it on a phone: how long a Rimebreaker pair feels, the skid's speed, the Siren's trail length, Tender mine / fog
+      frequency, the barrage's lane count and the dock arriving in time at real scroll speeds
 
 ## Verdant elites
 

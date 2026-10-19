@@ -119,8 +119,12 @@ public static class FrostElitePreview
         switch (def.attack)
         {
             case "floe_cast":
+            case "floe_barge":
                 Attack();
                 Tick(2.2f);
+                break;
+            case "ice_run":
+                Tick(6f);
                 break;
             case "frost_bloom":
                 Attack();
@@ -130,12 +134,14 @@ public static class FrostElitePreview
                 Tick(.6f);
                 break;
             case "drone_deploy":
+            case "tender_rig":
                 Attack();
                 Tick(1.4f);
                 e.TakeShipAttack(0, 1f, e.Position + Vector2.down * .3f);
                 Tick(.8f);
                 break;
             case "armour_shatter":
+            case "icicle_barrage":
                 Tick(1f);
                 for (int i = 0; i < 3; i++) { e.TakeShipAttack(0, 1f, e.Position + Vector2.down * .3f); Tick(.7f); }
                 e.AttackCooldown = 0f;

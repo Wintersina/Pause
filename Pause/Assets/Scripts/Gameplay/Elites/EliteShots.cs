@@ -29,6 +29,7 @@ using UnityEngine;
 //          a spot on a row, then rides the board drifting sideways,
 //          glancing off the rails; soaks hazardArmour player hits (it
 //          blocks shots) and hurts on touch
+//          (floe_barge) a single slab can instead SKID: straight across the screen, glancing off one rail (EliteShot.Skid)
 //   orb    (frost_bloom) a slow cryo orb on a fuse (a blinking ring round
 //          it): at zero it bursts into a ring of hazardCount shards. Shot
 //          down first, it just pops
@@ -197,7 +198,11 @@ public class EliteShot : MonoBehaviour, IHostileShot
     float glideTime, glideTotal, drift;
     Vector2 glideFrom, glideTo;
     int armour;
+    float sizeScale = 1f;   // Shrink: a small mine (the Tender's frost mines)
     bool afloat;   // a slab out of its glide: it rides the board
+    // a skidding slab (floe_barge): a straight course across the screen at skidV (the board's scroll is already in it), glancing off ONE rail
+    bool skid;
+    Vector2 skidV;
     // an orb's fuse (frost_bloom): seconds left, and the whole of it
     float fuse, fuseTotal;
     // a mine (Space): glides out of a pod / prong to its spot, then rides the board; pops into `mineArms` short bolts
@@ -387,6 +392,8 @@ public class EliteShot : MonoBehaviour, IHostileShot
         drift = 0f;
         armour = 1;
         afloat = false;
+        skid = false;
+        sizeScale = 1f;
         rosterShot = false;
         shooter = from != null ? from.gameObject : null;
         ride = 0f;
@@ -563,6 +570,30 @@ public class EliteShot : MonoBehaviour, IHostileShot
         drift = sideways;
         velocity = (to - glideFrom) / glideTotal;
     }
+
+    // Turns a just-fired slab into a skid (floe_barge): it slides across the screen at `v` and glances off the first rail it meets (once;
+    // a second rail breaks it), the turn-round being exactly the one the attack drew in its telegraph.
+    public void Skid(Vector2 v)
+    {
+        skid = true;
+        skidV = v;
+        velocity = v;
+        gliding = false;
+        afloat = false;
+        bounces = 1;
+        Bounced = 0;
+    }
+
+    // Draws and hits this much smaller than the kind's size (a small mine); the fuse ring shrinks with it.
+    public void Shrink(float s)
+    {
+        sizeScale = s;
+        transform.localScale *= s;
+        radius *= s;
+    }
+
+    public bool Skidding => Active && skid;
+    public Vector2 SkidVelocity => skidV;
 
     // Lights a just-fired orb's fuse: it bursts in `seconds`. A blinking
     // ring round it shows the fuse, blinking faster near the end.
@@ -798,7 +829,12 @@ public class EliteShot : MonoBehaviour, IHostileShot
             float pulse = 1f + .08f * (Mathf.FloorToInt(age * 8f) % 2);
             core.transform.localScale = Vector3.one * .5f * pulse;
         }
-        if (gliding)
+        if (skid)
+        {
+            velocity = skidV;
+            transform.rotation = Quaternion.Euler(0f, 0f, Mathf.Floor(age * 6f) * 20f);   // (turning in steps)
+        }
+        else if (gliding)
         {
             // out of the chute onto its spot (both riding the board), easing in
             float fall = EliteSystem.Scroll * dt;
@@ -836,7 +872,7 @@ public class EliteShot : MonoBehaviour, IHostileShot
             float k = 1f - fuse / fuseTotal;
             mark.transform.position = new Vector3(p.x, p.y, 0f);
             // the ring shows the fuse: wider as it runs down, blinking faster at the end
-            mark.transform.localScale = Vector3.one * def.hazardSize * (k < .5f ? 1.7f : k < .8f ? 2.1f : 2.5f) / Mathf.Max(.01f, EliteFxArt.Ring.bounds.size.x);
+            mark.transform.localScale = Vector3.one * def.hazardSize * sizeScale * (k < .5f ? 1.7f : k < .8f ? 2.1f : 2.5f) / Mathf.Max(.01f, EliteFxArt.Ring.bounds.size.x);
             Color mc = tint;
             mc.a = Mathf.FloorToInt(age / ((k > .6f ? 2f : 4f) * EliteArt.Tick)) % 2 == 0 ? .95f : .35f;
             mark.color = mc;
@@ -920,6 +956,7 @@ public class EliteShot : MonoBehaviour, IHostileShot
                 Bounced++;
                 velocity.x = -velocity.x * (Kind == EliteShots.Kind.Slab ? 1f : (rolling ? 1f : .85f));
                 if (Kind == EliteShots.Kind.Slab) drift = velocity.x;
+                if (skid) skidV.x = velocity.x;
                 p.x = Mathf.Sign(p.x) * (edge - reach - .01f);
                 transform.position = p;
                 baseP = p;
