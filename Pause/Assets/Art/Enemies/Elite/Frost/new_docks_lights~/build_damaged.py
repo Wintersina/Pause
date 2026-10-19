@@ -14,7 +14,7 @@ DAMAGED_CELL = {"rimebreaker": 9, "cryo_siren": 9, "floe_harrower": 6, "glacier_
 SHIPS = {
     "rimebreaker": {"erase": True, "nozzles": [(164, 233), (219, 233)], "flame": ((30, 130, 228), (72, 196, 255), (205, 250, 255)), "half": 20, "lengths": (18, 27, 13, 24, 11, 21)},
     "floe_harrower": {"nozzles": [(166, 286), (218, 286)], "flame": ((24, 135, 232), (70, 205, 255), (210, 252, 255)), "half": 19, "lengths": (17, 26, 12, 23, 10, 20)},
-    "cryo_siren": {"nozzles": [(180, 310), (204, 310)], "flame": ((25, 145, 235), (90, 222, 255), (224, 255, 255)), "half": 13, "lengths": (16, 25, 11, 22, 9, 19)},
+    "cryo_siren": {"flame_dy": -3, "nozzles": [(183, 299), (202, 300)], "flame": ((25, 145, 235), (90, 222, 255), (224, 255, 255)), "half": 13, "lengths": (16, 25, 11, 22, 9, 19)},
     "glacier_tender": {"nozzles": [(154, 316), (230, 316)], "flame": ((22, 128, 219), (66, 192, 250), (202, 246, 255)), "half": 22, "lengths": (18, 28, 13, 24, 10, 22)},
     "whiteout_sentinel": {"nozzles": [(168, 302), (216, 302)], "flame": ((28, 137, 224), (70, 202, 255), (215, 253, 255)), "half": 18, "lengths": (17, 27, 12, 23, 10, 21)},
 }
@@ -69,7 +69,7 @@ def build(name, cfg):
         layer = Image.new("RGBA", (CELL, CELL)); draw = ImageDraw.Draw(layer); rng = random.Random(4100 + f * 47)
         for i, (x, y) in enumerate(cfg["nozzles"]):
             phase = (f * 2 + i * 3) % COUNT
-            flame(draw, x, y + 5, cfg["lengths"][phase], 8 + (i % 2) * 2, cfg["flame"], rng, dead=(f + i * 2) % COUNT == 2)
+            flame(draw, x, y + cfg.get("flame_dy", 5), cfg["lengths"][phase], 8 + (i % 2) * 2, cfg["flame"], rng, dead=(f == 2 and i == 0) or (f == 3 and i == 1))   # (drawing 0 is the damaged cell the tests read: both engines burn there)
         out = hull.copy(); out.alpha_composite(layer); frames.append(out)
     strip = Image.new("RGBA", (CELL * COUNT, CELL))
     for i, im in enumerate(frames): strip.alpha_composite(im, (i * CELL, 0))
