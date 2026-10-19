@@ -192,7 +192,8 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
     int hidePhase, hideSide;        // 0 away, 1 waiting, 2 back in; the side it left by (0 left, 1 right, 2 top)
     Vector2 hideTo;
     float stateTime, cooldown, escapeLeft, grace, hitFlash, frameHold, blinkCooldown, exhaustClock;
-    int idleStep, attackPhase;
+    int idleStep, attackPhase, damagedStep;
+    float damagedHold;
     float thrust, lastDt;
     Vector2 seen, lastPlayer, follow, aimSeen;
     bool aimLocked;
@@ -1676,7 +1677,21 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
     int FlightFrame(float dt)
     {
         var c = Def.cells;
-        if (Damaged) return c.damaged;
+        if (Damaged)
+        {
+            // the damaged burn loop: every engine's flames drawn weak and ragged on the damaged hull (no loop: the one held cell)
+            if (!c.HasDamagedLoop) return c.damaged;
+            int dn = c.damagedLoop.Length;
+            damagedHold -= dt;
+            if (damagedHold <= 0f)
+            {
+                damagedStep = (damagedStep + 1) % dn;
+                float hold = EliteArt.DamagedTicks[damagedStep % EliteArt.DamagedTicks.Length] * EliteArt.Tick;
+                damagedHold += hold;
+                if (damagedHold <= 0f) damagedHold = hold;
+            }
+            return c.damagedLoop[damagedStep % dn];
+        }
         if (c.Banks)
         {
             float side = velocity.x / Mathf.Max(.1f, Def.speed);
@@ -1726,7 +1741,7 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
         RenderEngines(thrust, Mathf.Clamp01(thrust));
         RenderProcedural();
         // a damaged elite wears ONE held drawing: the engines and a hover bob keep it alive over it
-        float bob = Damaged && Def.cellPixels > 0 ? Mathf.Round(Mathf.Sin(exhaustClock * DamagedBobRate) * DamagedBobPixels) * Def.PixelWorld : 0f;
+        float bob = Damaged && !Def.cells.HasDamagedLoop && Def.cellPixels > 0 ? Mathf.Round(Mathf.Sin(exhaustClock * DamagedBobRate) * DamagedBobPixels) * Def.PixelWorld : 0f;
         hullTf.localPosition = (Vector3)(recoilDir * recoilLen) + Vector3.up * bob;
         RenderLights();
     }
@@ -1735,6 +1750,8 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
     // glow pulse and a stepped hover bob of this many strip pixels at this rate (rad/s) keep the engines animating.
     public const float DamagedExhaustScale = .4f, DamagedGlowScale = .12f, DamagedBobPixels = 5f, DamagedBobRate = 4.2f;
     public bool DamagedEngines => Damaged;
+    // A damaged hull with a damaged burn loop draws every engine's flames in the art (animated): no procedural plume over it.
+    public bool DamagedLoops => Damaged && Def.cells.HasDamagedLoop;
 
     // ---- procedural tell / action / hit (strips without those cells) ----
 
@@ -1816,10 +1833,11 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
         if (plumes == null) return;
         int ticks = Mathf.FloorToInt(exhaustClock * 24f);
         bool damaged = Damaged;
-        float scale = damaged && Def.exhaustScale <= 0f ? DamagedExhaustScale : Def.exhaustScale;
+        bool loops = damaged && Def.cells.HasDamagedLoop;
+        float scale = damaged && Def.exhaustScale <= 0f && !loops ? DamagedExhaustScale : Def.exhaustScale;
         float len = Def.cellWorldSize * scale * plume;
         // (a damaged ship's engine light stutters in hard steps)
-        float pulse = damaged ? (ticks / 3 % 2 == 0 ? 1f : .8f) : 1f;
+        float pulse = damaged && !loops ? (ticks / 3 % 2 == 0 ? 1f : .8f) : 1f;
         for (int i = 0; i < plumes.Length; i++)
         {
             var p = plumes[i];
@@ -1843,7 +1861,7 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
                 Color c = Def.EngineColor;
                 c.a = Mathf.Clamp01(light);
                 g.color = c;
-                g.transform.localScale = Vector3.one * Def.cellWorldSize * (damaged ? Mathf.Max(Def.glowScale, DamagedGlowScale) : Def.glowScale) * (.7f + .5f * light) * pulse;
+                g.transform.localScale = Vector3.one * Def.cellWorldSize * (damaged && !loops ? Mathf.Max(Def.glowScale, DamagedGlowScale) : Def.glowScale) * (.7f + .5f * light) * pulse;
             }
         }
     }

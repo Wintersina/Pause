@@ -23,7 +23,15 @@
     "tell": -1,
     "action": -1,
     "hit": -1,
-    "damaged": 6
+    "damaged": 6,
+    "damagedLoop": [
+      6,
+      10,
+      11,
+      12,
+      13,
+      14
+    ]
   },
   "cellWorldSize": 2.2,
   "hullRadius": 0.486,

@@ -54,3 +54,11 @@ intended to sit beside the existing Frost `hangar`, `rigbay`, `padring`,
 
 `contact_sheet.png` is the final review sheet: the four sites across the top
 and one representative lit burn cell from each of the five ships below.
+
+## Installed (PR #93 follow-up)
+
+The damaged loop's drawing 0 replaces each ship's damaged cell in the installed hull and lights strips (cell 9 for Rimebreaker and
+Cryo Siren, cell 6 for Floe Harrower, Glacier Tender and Whiteout Sentinel: `build_damaged.py` DAMAGED_CELL), drawings 1-5 are the
+companion `_damaged` strips (cells 10-14); `cells.damagedLoop` = [damaged, 10..14]. Rimebreaker's painted flames are erased
+(not restored from the parked cell). The launch strips are the v2 ones; the docks atlas keeps their order (the rig is re-ordered by
+openness, see `build_launch_atlas.py` SITE_ORDER).

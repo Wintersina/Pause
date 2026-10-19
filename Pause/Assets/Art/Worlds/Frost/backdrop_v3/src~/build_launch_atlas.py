@@ -1,18 +1,16 @@
 #!/usr/bin/env python3
 """Bakes Frost's four new launch-site strips into the `docks` atlas (docks.png/.json) from Codex's masters (read-only inputs).
 
-Inputs  (Codex, untouched): Art/Enemies/Elite/Frost/new_docks_lights~/<site>_launch.png
-        (six cells, 768 px tall: 0 idle, 1 one small amber warning lamp blinks (not shown in game), 2 doors open, 3 open, 4 open hold, 5 closing;
+Inputs  (Codex, untouched): Art/Enemies/Elite/Frost/new_docks_lights~/<site>_launch_v2.png
+        (six cells, 768 px tall: 0 closed, 1 closed + amber lamp (not shown in game), 2 opening, 3 opening further, 4 open, 5 closing;
         NO flash / flare / halo / ring in any of them) for ice_locked_offshore_rig, cryo_silo, glacier_cave_hangar, icebreaker_deck.
         The first three are 768 px wide cells, the icebreaker's are 576 (a long hull in a narrow floe).
 Output: Art/Backgrounds/Resources/Worlds/Frost/Backdrop3/docks.png + docks.json   (BackdropAtlas manifest, y bottom-up)
 
-ORDER   Codex's strips are NOT in the manifest's order: cell 4 is exactly the closed base drawing, and the dark bay opening
-        (a hard-edged dark panel over the deck) shrinks 0 -> 4 (cell 5 is a half-open one), i.e. as delivered they play
-        "open ... closed". Read in order of opening size they are 4, 3, 5, 2, 1, 0, so the atlas re-orders them into the
-        launch order the game plays (OPEN_ORDER: new cell i = source cell OPEN_ORDER[i]):
-        0 idle (closed) <- 4, 1 warning-lamp blink <- 3 (a sliver of dark; the game never shows it: the ship's own blinking launch light is the tell), 2 doors opening <- 5,
-        3 open <- 1, 4 open hold <- 0 (widest), 5 closing <- 2.  Pixels are never touched, only re-ordered.
+ORDER   Codex's v2 strips are in the manifest's order already, so the atlas keeps their natural order (no re-ordering, pixels untouched):
+        0 closed, 1 closed + one small amber warning lamp (not shown in game: the ship's own blinking launch light is the tell),
+        2 doors opening, 3 opening further, 4 fully open (hold), 5 closing (half shut).
+        EXCEPT the rig (SITE_ORDER): its v2 strip has the open grate in cell 0, so it is re-ordered by how open the doors are.
 
 Cells   rig_00..05, silo_00..05, cave_00..05, icebreaker_00..05 -- every cell shrunk 3x (768 -> 256 px tall / wide, the way the
         other Frost landmarks and sites are drawn: ~1.5 u wide, ~250 px on a phone; LANCZOS on premultiplied alpha so no dark
@@ -36,7 +34,9 @@ out = sys.argv[2] if len(sys.argv) > 2 else os.path.join(ASSETS, 'Art/Background
 
 SITES = [('rig', 'ice_locked_offshore_rig'), ('silo', 'cryo_silo'), ('cave', 'glacier_cave_hangar'), ('icebreaker', 'icebreaker_deck')]
 CELLS, SHRINK, PAD = 6, 3, 6
-OPEN_ORDER = [4, 3, 5, 2, 1, 0]
+OPEN_ORDER = [0, 1, 2, 3, 4, 5]   # natural order (v2 strips)
+# the rig's v2 strip is not in manifest order (cell 0 is already the open grate, cell 3 the most shut): by openness it reads 3, 2, 1, 4 with 5 half shut
+SITE_ORDER = {'rig': [3, 0, 2, 1, 4, 5]}
 
 
 def shrink(cell, w, h):
@@ -53,11 +53,11 @@ def shrink(cell, w, h):
 
 rows = []
 for tag, name in SITES:
-    strip = Image.open(os.path.join(src, name + '_launch.png')).convert('RGBA')
+    strip = Image.open(os.path.join(src, name + '_launch_v2.png')).convert('RGBA')
     sw, sh = strip.size[0] // CELLS, strip.size[1]
     assert strip.size[0] == CELLS * sw, (name, strip.size)
     w, h = round(sw / SHRINK), round(sh / SHRINK)
-    rows.append((tag, [shrink(strip.crop((j * sw, 0, (j + 1) * sw, sh)), w, h) for j in OPEN_ORDER], w, h))
+    rows.append((tag, [shrink(strip.crop((j * sw, 0, (j + 1) * sw, sh)), w, h) for j in SITE_ORDER.get(tag, OPEN_ORDER)], w, h))
 
 W = PAD + CELLS * (max(r[2] for r in rows) + PAD)
 H = PAD + sum(h + PAD for _, _, _, h in rows)

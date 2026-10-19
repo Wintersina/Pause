@@ -54,6 +54,8 @@ public static class FrostDockTest
             LightsFollowHull();
             LightsParkedAndLaunch();
             LightsDamagedAndHiding();
+            DamagedLoops();
+            LaunchOrder();
             SiteArt();
             Rules();
             SitesAndLaunch();
@@ -141,7 +143,7 @@ public static class FrostDockTest
                   File.Exists("Assets/Art/Enemies/Elite/Frost/new_docks_lights~/" + x.key + "_lights.png") &&
                   File.ReadAllBytes("Assets/Art/Enemies/Elite/Frost/new_docks_lights~/" + x.key + "_lights.png").Length == File.ReadAllBytes("Assets/Art/Resources/Elites/Frost/" + x.key + "_lights.png").Length);
             if (lights == null || hull == null) continue;
-            bool aligned = lights.Length == hull.Length && lights.Length == 10 && lights[0].texture.width == hull[0].texture.width && lights[0].texture.height == hull[0].texture.height;
+            bool aligned = lights.Length == hull.Length && lights.Length == 15 && lights[0].texture.width == hull[0].texture.width && lights[0].texture.height == hull[0].texture.height;
             for (int i = 0; i < Mathf.Min(lights.Length, hull.Length); i++)
                 aligned &= Mathf.Approximately(lights[i].rect.width, hull[i].rect.width) && Mathf.Approximately(lights[i].rect.height, hull[i].rect.height) &&
                            Mathf.Approximately(lights[i].textureRect.x, hull[i].textureRect.x) && Mathf.Approximately(lights[i].textureRect.y, hull[i].textureRect.y) &&
@@ -306,7 +308,7 @@ public static class FrostDockTest
                 n++;
                 if (n < 3 || !Alive(e)) return;
                 follows &= e.LightCell == e.CurrentFrame && e.Lights.sprite == lights[e.CurrentFrame];
-                sawDamaged |= e.CurrentFrame == d.cells.damaged && e.Lights.sprite == lights[d.cells.damaged];
+                sawDamaged |= System.Array.IndexOf(d.cells.damagedLoop, e.CurrentFrame) >= 0 && e.Lights.sprite == lights[e.CurrentFrame];
                 on &= e.Lights.enabled;
                 float a = e.Lights.color.a;
                 alphas.Add(a);
@@ -318,6 +320,73 @@ public static class FrostDockTest
                   alphas.Count >= 3 && minA > .1f && maxA >= .99f);
             EliteSystem.Clear();
         }
+    }
+
+
+    // ---- the damaged burn loop (EliteCells.damagedLoop; companion _damaged strips) ----------------------------------------
+
+    static void DamagedLoops()
+    {
+        foreach (var x in Elites)
+        {
+            var d = EliteCatalog.Find(x.key);
+            var c = d.cells;
+            var hull = EliteArt.Frames(d);
+            var lights = EliteArt.ExtraFrames(d, EliteArt.Extra.Lights);
+            Check(x.key + ": a 6-drawing damaged loop starting at the damaged cell (" + c.damaged + ") and continuing in the companion strip (cells 10..14)",
+                  c.HasDamagedLoop && c.damagedLoop.Length == 6 && c.damagedLoop[0] == c.damaged && c.damagedLoop[5] == 14 && c.Count == 15);
+            Check(x.key + ": hull and lights strips both load all 15 cells (" + (hull != null ? hull.Length : 0) + " / " + (lights != null ? lights.Length : 0) + ")",
+                  hull != null && lights != null && hull.Length == 15 && lights.Length == 15 && hull[14] != null && lights[14] != null &&
+                  Mathf.Approximately(hull[14].rect.width, d.cellPixels) && Mathf.Approximately(lights[14].rect.width, d.cellPixels));
+            // the loop plays while damaged: several distinct loop cells, no procedural bob over it
+            Fresh(.05f);
+            var e = InPlay(d, new Vector2(0f, 1f));
+            Step(.5f);
+            for (int h = 0; h < 6 && Alive(e) && !e.Damaged; h++) { e.TakeHit(EliteDamage.PlayerWeapon, e.Position + Vector2.left * .3f); Step(.35f); }
+            if (!Alive(e) || !e.Damaged) { Check(x.key + ": shows damage after hits", false); EliteSystem.Clear(); continue; }
+            var seen = new HashSet<int>();
+            Step(3f, () => { if (Alive(e)) seen.Add(e.CurrentFrame); });
+            bool inLoop = true;
+            foreach (int f in seen) inLoop &= System.Array.IndexOf(c.damagedLoop, f) >= 0;
+            Check(x.key + ": damaged, it plays its burn loop (" + seen.Count + " distinct drawings, all in the loop)", seen.Count >= 4 && inLoop && e.DamagedLoops);
+            EliteSystem.Clear();
+        }
+    }
+
+    // ---- the launch strips are in launch order -----------------------------------------------------------------------------
+
+    static void LaunchOrder()
+    {
+        LoadAtlasPixels();
+        // played idle -> open hold -> closing: the closing cell (half shut) is closer to the idle cell than the fully open hold is
+        foreach (var tag in new[] { "rig", "silo", "cave", "icebreaker" })
+            Check(tag + ": the strip is in launch order (idle vs hold " + Diff(tag, 0, 4) + " px, idle vs closing " + Diff(tag, 0, 5) + " px)",
+                  atlasPx != null && Diff(tag, 0, 4) > 500 && Diff(tag, 0, 5) < Diff(tag, 0, 4));
+    }
+
+    static int Diff(string tag, int a, int b)
+    {
+        var ra = AtlasRect(tag + "_0" + a); var rb = AtlasRect(tag + "_0" + b);
+        int n = 0, w = atlasTex.width;
+        for (int y = 0; y < (int)ra.height; y++)
+            for (int x = 0; x < (int)ra.width; x++)
+            {
+                var p = atlasPx[((int)ra.y + y) * w + (int)ra.x + x];
+                var q = atlasPx[((int)rb.y + y) * w + (int)rb.x + x];
+                if (Mathf.Abs(p.r - q.r) + Mathf.Abs(p.g - q.g) + Mathf.Abs(p.b - q.b) + Mathf.Abs(p.a - q.a) > 40) n++;
+            }
+        return n;
+    }
+
+    [System.Serializable] class AtlasSprite { public string n; public int x, y, w, h; }
+    [System.Serializable] class AtlasManifest { public AtlasSprite[] sprites; }
+
+    // a cell's pixel rect in the atlas (the manifest's y runs from the bottom, like GetPixels32 rows)
+    static RectInt AtlasRect(string name)
+    {
+        var m = JsonUtility.FromJson<AtlasManifest>(File.ReadAllText("Assets/Art/Backgrounds/Resources/Worlds/Frost/Backdrop3/docks.json"));
+        foreach (var s in m.sprites) if (s.n == name) return new RectInt(s.x, s.y, s.w, s.h);
+        return default;
     }
 
     // ---- the sites --------------------------------------------------------------------------

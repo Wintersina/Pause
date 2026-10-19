@@ -19,6 +19,8 @@ public static class EliteArt
     public const float Tick = 1f / 24f;
     // Hold ticks per drawing (24 fps), the fighters' rhythm.
     public static readonly int[] IdleTicks = { 6, 3, 2, 3 };
+    // the damaged burn loop's holds (24 fps ticks): short and uneven, a stuttering burn
+    public static readonly int[] DamagedTicks = { 3, 2, 3, 2, 2, 3 };
     public const int HitTicks = 3;
 
     public enum Extra { Parked, Liftoff, Death, Lights }
@@ -75,6 +77,23 @@ public static class EliteArt
         {
             frames[i] = Sprite.Create(tex, new Rect(i * w, 0, w, tex.height), new Vector2(.5f, .5f), ppu, 0, SpriteMeshType.FullRect);
             frames[i].name = def.key + "_" + i;
+        }
+        // an optional companion strip <path>_damaged (more square cells, the damaged burn loop's later drawings) continues the cells
+        // after the strip's own: a strip wider than 4096 px would be downscaled on import and break the square-cell slicing
+        var more = Resources.Load<Texture2D>(path + "_damaged");
+        if (more != null)
+        {
+            int m = Mathf.Max(1, more.width / Mathf.Max(1, more.height));
+            float mw = more.width / (float)m;
+            float mppu = more.height / Mathf.Max(.01f, def.cellWorldSize);
+            var all = new Sprite[n + m];
+            System.Array.Copy(frames, all, n);
+            for (int i = 0; i < m; i++)
+            {
+                all[n + i] = Sprite.Create(more, new Rect(i * mw, 0, mw, more.height), new Vector2(.5f, .5f), mppu, 0, SpriteMeshType.FullRect);
+                all[n + i].name = def.key + "_" + (n + i);
+            }
+            frames = all;
         }
         cache[path] = frames;
         return frames;
