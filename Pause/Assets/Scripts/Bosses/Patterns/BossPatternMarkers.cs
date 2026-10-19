@@ -57,6 +57,7 @@ public sealed class BossPatternMarkers
         root.transform.SetParent(parent, false);
         for (int i = 0; i < Max; i++) marks[i] = new Mark { a = Make("MarkA", i), b = Make("MarkB", i) };
         tint = Color.Lerp(HostileGlow.Tint(def != null ? def.flash : Color.white), Color.white, BossTelegraphStyle.PaleMix);
+        if (def != null && def.WorldIndex == 2) { tint = VerdantMarkTint; blinkLow = VerdantBlinkLow; }
     }
 
     static void Line(SpriteRenderer sr, Vector2 from, Vector2 to, float width)
@@ -121,7 +122,13 @@ public sealed class BossPatternMarkers
         m.a.enabled = m.b.enabled = false;   // Step shows it when its last stretch begins
     }
 
-    static float Pulse(Mark m) => Mathf.FloorToInt((m.total - m.left) / (BossArt.TelegraphBlinkTicks * BossArt.Tick)) % 2 == 0 ? 1f : .6f;
+    // Verdant (jungle, world 2): the marks read over the green canopy by colour and a deeper blink, never a border: a saturated
+    // chartreuse (clear of the canopy's green and of Ember's amber) that blinks between full and 40 %.
+    static readonly Color VerdantMarkTint = new Color(.82f, 1f, .2f);
+    const float VerdantBlinkLow = .4f;
+    float blinkLow = .6f;
+
+    float Pulse(Mark m) => Mathf.FloorToInt((m.total - m.left) / (BossArt.TelegraphBlinkTicks * BossArt.Tick)) % 2 == 0 ? 1f : blinkLow;
 
     public void Step(float dt)
     {
