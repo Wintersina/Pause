@@ -22,6 +22,10 @@ public interface IShipAttackTarget
     void TakeShipAttack(int ship, float weight, Vector3 at);
 }
 
+// A target that takes every hit in full, outside the firing's boss allowance: ordinary small things that
+// happen to need more than one hit (Space's backdrop rocks), so one volley can break several of them.
+public interface IShipAttackTargetUncapped : IShipAttackTarget { }
+
 public static class ShipAttackHits
 {
     // Counters for tests and previews.
@@ -39,6 +43,11 @@ public static class ShipAttackHits
         var special = target.GetComponent<IShipAttackTarget>();
         if (special != null)
         {
+            if (special is IShipAttackTargetUncapped)
+            {
+                special.TakeShipAttack(ship, weight, target.transform.position);
+                return false;
+            }
             float w = Mathf.Min(weight, budget);
             if (w <= 0f) return false;
             budget -= w;
@@ -86,6 +95,12 @@ public static class ShipTargets
     public static bool IsHazard(ClearTarget t)
     {
         return t != null && t.isActiveAndEnabled && ClearTarget.IsHazard(t.gameObject);
+    }
+
+    // A hazard that is a real body in the lane: not scenery (ClearTarget.Scenery).
+    public static bool IsThreat(ClearTarget t)
+    {
+        return IsHazard(t) && !t.Scenery;
     }
 
     public static bool IsPickup(ClearTarget t)
@@ -194,7 +209,7 @@ public static class ShipTargets
         for (int i = 0; i < live.Count; i++)
         {
             var t = live[i];
-            if (!IsHazard(t)) continue;
+            if (!IsThreat(t)) continue;
             if (enemiesOnly && !t.CompareTag("Enimey")) continue;
             if (view.Contains(t.transform.position)) n++;
         }
@@ -221,7 +236,7 @@ public static class ShipTargets
         for (int i = 0; i < live.Count; i++)
         {
             var t = live[i];
-            if (!IsHazard(t)) continue;
+            if (!IsThreat(t)) continue;
             if (enemiesOnly && !t.CompareTag("Enimey")) continue;
             Vector2 d = t.transform.position - at;
             float r = radius + t.Radius;
@@ -263,7 +278,7 @@ public static class ShipTargets
         for (int i = 0; i < live.Count; i++)
         {
             var t = live[i];
-            if (!IsHazard(t)) continue;
+            if (!IsThreat(t)) continue;
             Vector3 p = t.transform.position;
             float r = t.Radius + hullRadius;
             float dx = p.x - ship.x, dy = p.y - ship.y;

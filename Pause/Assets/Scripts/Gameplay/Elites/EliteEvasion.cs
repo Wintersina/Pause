@@ -199,7 +199,7 @@ public static class EliteEvasion
         for (int i = 0; i < live.Count; i++)
         {
             var t = live[i];
-            if (t == null || !t.isActiveAndEnabled || t.Elite != null) continue;
+            if (t == null || !t.isActiveAndEnabled || t.Elite != null || t.Scenery) continue;
             bool rock = t.CompareTag("Astr");
             if (!rock && !t.CompareTag("Enimey")) continue;
             if (t.IsShotHitbox) continue;   // shots are read from their pool, below

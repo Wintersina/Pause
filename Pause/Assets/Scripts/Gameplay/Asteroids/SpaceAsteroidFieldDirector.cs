@@ -124,7 +124,7 @@ public class SpaceAsteroidFieldDirector : MonoBehaviour
         for (int i = 0; i < live.Count; i++)
         {
             var t = live[i];
-            if (t == null || !ClearTarget.IsHazard(t.gameObject)) continue;
+            if (t == null || t.Scenery || !ClearTarget.IsHazard(t.gameObject)) continue;
             Vector2 d = (Vector2)t.transform.position - at;
             if (d.sqrMagnitude < r2) return false;
         }

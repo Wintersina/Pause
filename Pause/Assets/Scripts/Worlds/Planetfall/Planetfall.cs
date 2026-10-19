@@ -506,7 +506,7 @@ public class Planetfall : MonoBehaviour
         int shipId = ShipId.Equipped();
         foreach (var target in clearing)
         {
-            if (target == null || !ClearTarget.IsHazard(target.gameObject)) continue;
+            if (target == null || target.Scenery || !ClearTarget.IsHazard(target.gameObject)) continue;
             var go = target.gameObject;
             if (Application.isPlaying && cam != null)
             {

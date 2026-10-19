@@ -35,6 +35,13 @@ using UnityEngine;
 //              velocity and pushed back against its travel, so they trail
 //              behind it while they grow through their four stages and fade.
 //              Bigger rocks smoke more, bigger and longer.
+//   breakable  the rocks are no longer only scenery: each carries a pooled, invisible, collider-less hit body
+//              (BackdropRockTarget: tag Astr, ClearTarget, registered as scenery) at its drawn position, so
+//              every ship attack and the ultimate hit it through the ordinary hazard plumbing. It takes
+//              RockHits (1 small, 2 medium, 3 big) full hits, blinks bright and smokes harder as it is hurt,
+//              then bursts in the rock explosion and pays what a hazard rock pays (score, star dust, codex,
+//              secret meter, rock count). Its smoke keeps drifting after it is gone. It never touches the
+//              ship and nothing else treats it as a body (ClearTarget.Scenery).
 //
 // Pixel look without mipmaps (the backdrop has none): the atlas carries
 // each rock pre-shrunk to 256 / 128 / 64 px (Codex's 512 original above
@@ -72,6 +79,23 @@ public partial class SpaceDirector
     public static readonly float[] AsteroidBlinkPeriods = { 1.4f, 2.2f, 1.1f };
     public const float CrackGain = 0.85f;               // additive strength of the brightest step
     public static readonly Color CrackTint = new Color(1f, 0.55f, 0.95f);        // magenta-pink, toward white
+    // ---- breakable ----
+    public const string RockObjectName = "space_drift_asteroid";   // the hit body's name (codex match: spacedriftasteroid)
+    public const int RockHitsSmall = 1, RockHitsMedium = 2, RockHitsBig = 3;   // full ship-attack hits to break it
+    public const float RockHitShare = 0.8f;             // hit radius as a share of the rock's drawn half-width
+    public const float RockHitFlash = 0.09f;            // s a hit lights the rock
+    public const float RockHurtSmoke = 0.45f;           // smoke gap x this on the last hit point (1 at full health)
+    public const int RockBreakPuffs = 2;                // extra puffs as it breaks (the smoke then lingers)
+    public const float RockBigShare = 0.5f;             // sizeT from here the burst is Medium, below Small
+    // The hit bodies exist while a run is on (the world manager) or when a test forces them.
+    public static bool RocksBreakableOverride;
+    public static bool RocksBreakable { get { return RocksBreakableOverride || WorldManager.Instance != null; } }
+
+    public static int RockHitsFor(float sizeT)
+    {
+        return sizeT < 1f / 3f ? RockHitsSmall : sizeT < 2f / 3f ? RockHitsMedium : RockHitsBig;
+    }
+
     // ---- sparks ----
     public const float AsteroidSparkMin = 1.6f, AsteroidSparkMax = 4.2f, AsteroidSparkLife = 0.24f;
     public const float AsteroidSparkPerSize = 0.07f, AsteroidSparkSizeMin = 0.035f, AsteroidSparkSizeMax = 0.09f;
@@ -202,6 +226,9 @@ public class SpaceAsteroidDrift
         public float sparkIn, sparkAge = -1f, sparkPace;
         public int sparkSpot;
         public float light;
+        public BackdropRockTarget target;       // the hit body (pooled with the rock)
+        public int maxHealth;
+        public float health, flash;
         public float ppu;                       // screen pixels per world unit when it spawned
         public int order;                       // the rock's sorting order
         public float vx { get { return piece.vx; } }
@@ -238,6 +265,7 @@ public class SpaceAsteroidDrift
     readonly System.Random rng;
     readonly float[] headingScratch = new float[SpaceDirector.AsteroidSlots + 1];
     Material additive;
+    Transform targetHolder;
     float spawnIn, lastV = WorldBackdrop.ScrollVelocity(0f);
     bool ready;
 
@@ -282,6 +310,8 @@ public class SpaceAsteroidDrift
             for (int k = 0; k < r.sparks.Length; k++) r.sparks[k] = Child(p.body, "spark");
             Rocks.Add(r);
         }
+        targetHolder = new GameObject("asteroid targets").transform;
+        targetHolder.SetParent(pool.items[0].root.parent, false);
         var holder = new GameObject("asteroid smoke").transform;
         holder.SetParent(pool.items[0].root.parent, false);
         for (int i = 0; i < Puffs.Length; i++)
@@ -497,13 +527,18 @@ public class SpaceAsteroidDrift
         r.emitEvery = Mathf.Lerp(SpaceDirector.PuffEmitSmall, SpaceDirector.PuffEmitBig, sizeT);
         r.puffLife = Mathf.Lerp(SpaceDirector.PuffLifeSmall, SpaceDirector.PuffLifeBig, sizeT);
         r.emitIn = Rand(0f, r.emitEvery);
-        r.livePuffs = 0;
+        r.livePuffs = 0;      // (a broken rock's last puffs may still be in the air: counted back in below)
+        for (int i = 0; i < PuffOwner.Length; i++) if (PuffOwner[i] == slot) r.livePuffs++;
         r.sparkPace = Mathf.Lerp(0.8f, 1.3f, sizeT);
         r.sparkIn = Rand(0.3f, SpaceDirector.AsteroidSparkMax) * r.sparkPace;
         r.sparkAge = -1f;
+        r.maxHealth = SpaceDirector.RockHitsFor(sizeT);
+        r.health = r.maxHealth;
+        r.flash = 0f;
         Spawned++;
         Pose(r, 0f);
         Paint(r);
+        SyncTarget(r);
         return true;
     }
 
@@ -535,6 +570,72 @@ public class SpaceAsteroidDrift
         return true;
     }
 
+    // ------------------------------------------------------------- hits --
+
+    // The rock's hit body follows it while it is in view (and a run is on); it is made on first need and
+    // recreated if something swept it away (a boss arriving clears the board's hazards).
+    void SyncTarget(Rock r)
+    {
+        bool want = r.active && SpaceDirector.RocksBreakable && director.DriftAlpha > 0.5f &&
+                    Mathf.Abs(r.piece.x) < HalfW + Reach(r) && Mathf.Abs(r.piece.y) < HalfH + Reach(r);
+        if (r.target == null)
+        {
+            if (!want) return;
+            var go = new GameObject(SpaceDirector.RockObjectName);
+            go.tag = "Astr";
+            go.transform.SetParent(targetHolder, false);
+            go.SetActive(false);
+            r.target = go.AddComponent<BackdropRockTarget>();
+            r.target.Owner = this;
+            r.target.Rock = r;
+            r.target.Clear = ClearTarget.Ensure(go);
+            r.target.Clear.Scenery = true;
+        }
+        var tr = r.target.transform;
+        if (want)
+        {
+            tr.position = r.piece.root.position;
+            r.target.Clear.SetRadius(Reach(r) * SpaceDirector.RockHitShare);
+            r.target.Clear.enabled = true;      // (a break released it: the slot's next rock is a fresh target)
+        }
+        if (r.target.gameObject.activeSelf != want) r.target.gameObject.SetActive(want);
+    }
+
+    public int Breaks, RockHits;
+
+    // A ship attack lands on a rock (`weight`: its share of one full hit).
+    internal void Hit(Rock r, int ship, float weight)
+    {
+        if (!r.active) return;
+        RockHits++;
+        r.health -= weight;
+        r.flash = SpaceDirector.RockHitFlash;
+        r.sparkIn = 0f;                         // the cracks spit a spark
+        if (r.health <= 0.0001f) { Break(r, ship); return; }
+        r.emitIn = 0f;                          // ... and a puff
+        Paint(r);
+    }
+
+    // Bursts like a destroyed hazard rock (explosion, sound, score, codex, meter), keeps its smoke in the air.
+    void Break(Rock r, int ship)
+    {
+        Breaks++;
+        var go = r.target.gameObject;
+        TargetExplosion.Spawn(go.transform.position, TargetExplosion.Kind.Rock,
+                              r.sizeT < SpaceDirector.RockBigShare ? TargetExplosion.Size.Small : TargetExplosion.Size.Medium, ship);
+        EnemyDeathAudio.Play(go);
+        collisionDetection.AwardDestroyedTarget(go);
+        ClearTarget.Release(go);
+        int index = Rocks.IndexOf(r);
+        for (int k = 0; k < SpaceDirector.RockBreakPuffs; k++) Puff(r, index);   // a last breath of smoke
+        r.active = false;                       // (its puffs stay: Retire would clear them)
+        r.crack.enabled = false;
+        foreach (var sp in r.sparks) sp.enabled = false;
+        r.sparkAge = -1f;
+        r.piece.Show(false);
+        SyncTarget(r);
+    }
+
     // ------------------------------------------------------------- frame --
 
     public void Tick(float dt, float v)
@@ -547,6 +648,7 @@ public class SpaceAsteroidDrift
             if (!r.active) continue;
             var p = r.piece;
             if (dt > 0f) Steer(r, i, dt);
+            if (r.flash > 0f) r.flash = Mathf.Max(0f, r.flash - dt);
             p.age += dt;
             r.baseX += p.vx * dt;
             r.baseY += (p.vy - p.rate * v) * dt;
@@ -557,6 +659,7 @@ public class SpaceAsteroidDrift
             Emit(r, i, dt);
             Sparks(r, dt);
             Paint(r);
+            SyncTarget(r);
         }
         TickPuffs(dt, v);
 
@@ -647,6 +750,7 @@ public class SpaceAsteroidDrift
         float alpha = director.DriftAlpha;
         Color c = p.color;
         c.a *= alpha;
+        if (r.flash > 0f) c = Color.Lerp(c, new Color(1f, 1f, 1f, c.a), 0.55f * r.flash / SpaceDirector.RockHitFlash);   // a hit lights it
         p.sr.color = c;
         // cracks: one of three brightness steps, additive, on the crack pixels only
         r.crackLevel = SpaceDirector.CrackLevel(r.pattern, p.age / r.blinkPeriod + r.blinkPhase, r.blinkSeed);
@@ -665,6 +769,7 @@ public class SpaceAsteroidDrift
             if (PuffOwner[i] == index) { PuffOwner[i] = -1; Puffs[i].enabled = false; }
         r.livePuffs = 0;
         r.piece.Show(false);
+        SyncTarget(r);
     }
 
     // A crack hot spot in world (pool) space.
@@ -682,11 +787,19 @@ public class SpaceAsteroidDrift
         if (dt <= 0f) return;
         r.emitIn -= dt;
         if (r.emitIn > 0f) return;
-        r.emitIn = r.emitEvery * Rand(0.8f, 1.2f);
+        // a hurt rock smokes harder: the gap closes to RockHurtSmoke x on its last hit point
+        float hurt = Mathf.Lerp(1f, SpaceDirector.RockHurtSmoke, Mathf.Clamp01((r.maxHealth - r.health) / Mathf.Max(1f, r.maxHealth - 1f)));
+        r.emitIn = r.emitEvery * hurt * Rand(0.8f, 1.2f);
         if (r.livePuffs >= SpaceDirector.AsteroidPuffsPer) return;
+        Puff(r, index);
+    }
+
+    // One smoke puff off a crack hot spot (false: the field-wide cap held it back).
+    bool Puff(Rock r, int index)
+    {
         int slot = -1;
         for (int i = 0; i < PuffOwner.Length; i++) if (PuffOwner[i] < 0) { slot = i; break; }
-        if (slot < 0) return;                                           // the field-wide cap
+        if (slot < 0) return false;
         var p = r.piece;
         float wx, wy;
         SpotAt(r, rng.Next(r.spots), out wx, out wy);
@@ -718,6 +831,7 @@ public class SpaceAsteroidDrift
         sr.enabled = true;
         r.livePuffs++;
         PuffsEmitted++;
+        return true;
     }
 
     void TickPuffs(float dt, float v)
@@ -735,7 +849,7 @@ public class SpaceAsteroidDrift
             {
                 PuffOwner[i] = -1;
                 sr.enabled = false;
-                Rocks[owner].livePuffs--;
+                if (Rocks[owner].livePuffs > 0) Rocks[owner].livePuffs--;
                 continue;
             }
             puffVx[i] *= drag;
@@ -804,6 +918,25 @@ public class SpaceAsteroidDrift
         if (fxAtlas != null) fxAtlas.Destroy();
         BackdropAtlas.Kill(additive);
         additive = null;
+        if (targetHolder != null)
+        {
+            if (Application.isPlaying) Object.Destroy(targetHolder.gameObject); else Object.DestroyImmediate(targetHolder.gameObject);
+        }
         Rocks.Clear();
+    }
+}
+
+// The hit body of one drifting backdrop rock: invisible, no collider (it can never touch the ship), tagged
+// like a hazard rock and registered as scenery, so the ship's attacks find it through ClearTarget and the
+// drift field decides what a hit does. Takes every hit in full (IShipAttackTargetUncapped).
+public class BackdropRockTarget : MonoBehaviour, IShipAttackTargetUncapped
+{
+    [System.NonSerialized] public SpaceAsteroidDrift Owner;
+    [System.NonSerialized] public SpaceAsteroidDrift.Rock Rock;
+    [System.NonSerialized] public ClearTarget Clear;
+
+    public void TakeShipAttack(int ship, float weight, Vector3 at)
+    {
+        if (Owner != null && Rock != null) Owner.Hit(Rock, ship, weight);
     }
 }

@@ -422,7 +422,7 @@ public sealed class WorldHazards : MonoBehaviour
         for (int i = 0; i < live.Count; i++)
         {
             var t = live[i];
-            if (t == null || !t.isActiveAndEnabled) continue;
+            if (t == null || !t.isActiveAndEnabled || t.Scenery) continue;
             var tr = t.transform;
             Vector3 p3 = tr.position;
             Vector2 p = p3;
