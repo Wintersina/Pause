@@ -1,0 +1,182 @@
+name: Unity tests
+
+# Runs AllTests (the project's custom editor test runner) headless in the
+# GameCI Unity container. See docs/ci-unity-tests.md for one-time setup
+# (secrets UNITY_LICENSE, UNITY_EMAIL, UNITY_PASSWORD).
+
+on:
+  pull_request:
+    branches: [master]
+  push:
+    branches: [master]
+  workflow_dispatch:
+    inputs:
+      suites:
+        description: "Comma-separated suites to run (empty = all). Example: ShopTest,CodexTest"
+        required: false
+        default: ""
+      graphics:
+        description: "Graphics suites: xvfb (software GL, default) or skip (exclude suites that read pixels back)"
+        required: false
+        default: xvfb
+        type: choice
+        options: [xvfb, skip]
+
+concurrency:
+  group: unity-tests-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  UNITY_IMAGE_TAG: ubuntu-6000.3.23f1-base-3.2.2
+
+jobs:
+  test:
+    name: AllTests
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - name: Check for secrets
+        id: gate
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+          FORK: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository }}
+        run: |
+          if [ "$FORK" = "true" ]; then
+            echo "::notice::Fork PR: repository secrets are not available, skipping Unity tests."
+            echo "run=false" >> "$GITHUB_OUTPUT"; exit 0
+          fi
+          missing=""
+          for v in UNITY_LICENSE UNITY_EMAIL UNITY_PASSWORD; do
+            [ -n "${!v}" ] || missing="$missing $v"
+          done
+          if [ -n "$missing" ]; then
+            echo "::error title=Unity secrets missing::Add these repository secrets:$missing (see docs/ci-unity-tests.md)"
+            echo "### Unity tests cannot run" >> "$GITHUB_STEP_SUMMARY"
+            echo "Missing secrets:$missing. See docs/ci-unity-tests.md." >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+          echo "run=true" >> "$GITHUB_OUTPUT"
+
+      - name: Free disk space
+        if: steps.gate.outputs.run == 'true'
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL /usr/local/share/boost
+          sudo docker image prune --all --force >/dev/null || true
+          df -h /
+
+      - uses: actions/checkout@v4
+        if: steps.gate.outputs.run == 'true'
+
+      - name: Cache Library
+        if: steps.gate.outputs.run == 'true'
+        uses: actions/cache@v4
+        with:
+          path: Pause/Library
+          key: Library-${{ hashFiles('Pause/ProjectSettings/ProjectVersion.txt', 'Pause/Packages/manifest.json') }}-${{ hashFiles('Pause/Assets/**/*.meta') }}
+          restore-keys: |
+            Library-${{ hashFiles('Pause/ProjectSettings/ProjectVersion.txt', 'Pause/Packages/manifest.json') }}-
+            Library-
+
+      - name: Run AllTests
+        if: steps.gate.outputs.run == 'true'
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+          INPUT_SUITES: ${{ inputs.suites }}
+          INPUT_GRAPHICS: ${{ inputs.graphics }}
+        run: |
+          set -uo pipefail
+          mkdir -p ci-out
+          ALLTESTS=Pause/Assets/Editor/Tests/AllTests.cs
+          TESTS_DIR=Pause/Assets/Editor/Tests
+
+          # All registered suites, in file order.
+          grep -oE '^\s*\("[A-Za-z0-9_]+", [A-Za-z0-9_]+\.Execute\)' "$ALLTESTS" | grep -oE '"[A-Za-z0-9_]+"' | tr -d '"' > ci-out/all-suites.txt
+          # Suites whose source reads rendered pixels back (need a GPU/GL context).
+          : > ci-out/graphics-suites.txt
+          while read -r s; do
+            f="$TESTS_DIR/$s.cs"
+            if [ -f "$f" ] && grep -qE 'Camera\.Render|Graphics\.Blit|ReadPixels|RenderTexture' "$f"; then echo "$s" >> ci-out/graphics-suites.txt; fi
+          done < ci-out/all-suites.txt
+          echo "Suites: $(wc -l < ci-out/all-suites.txt), graphics-dependent: $(wc -l < ci-out/graphics-suites.txt)"
+
+          method=AllTests.RunAll
+          extra=()
+          if [ -n "$INPUT_SUITES" ]; then
+            method=AllTests.RunSuites; extra=(-suites "$INPUT_SUITES")
+          elif [ "${INPUT_GRAPHICS:-xvfb}" = "skip" ]; then
+            list=$(grep -vxFf ci-out/graphics-suites.txt ci-out/all-suites.txt | paste -sd, -)
+            echo "::notice::Graphics suites excluded (graphics=skip): $(paste -sd, ci-out/graphics-suites.txt)"
+            method=AllTests.RunSuites; extra=(-suites "$list")
+          fi
+
+          # License: Unity 6 Personal .ulf, placed where the editor looks for it.
+          mkdir -p ci-out/home/.local/share/unity3d/Unity
+          printf '%s' "$UNITY_LICENSE" > ci-out/home/.local/share/unity3d/Unity/Unity_lic.ulf
+
+          cat > ci-out/run.sh <<'INNER'
+          set -u
+          export HOME=/ci-home
+          apt-get update -qq >/dev/null 2>&1
+          DEBIAN_FRONTEND=noninteractive apt-get install -y -qq xvfb libgl1-mesa-dri libglx-mesa0 libegl1 >/dev/null 2>&1 || true
+          xvfb-run -a -s "-screen 0 1280x720x24" \
+            /opt/unity/Editor/Unity -batchmode -quit -force-glcore \
+            -projectPath /workspace/Pause \
+            -executeMethod "$1" "${@:2}" \
+            -logFile /workspace/ci-out/unity.log
+          code=$?
+          chown -R "$HOST_UID:$HOST_GID" /workspace/Pause/Library /workspace/ci-out 2>/dev/null || true
+          exit $code
+          INNER
+          sed -i 's/^          //' ci-out/run.sh
+
+          # Tail the log so progress is visible in the Actions UI.
+          touch ci-out/unity.log
+          ( tail -n +1 -F ci-out/unity.log 2>/dev/null & echo $! > ci-out/tail.pid )
+          docker run --rm \
+            -e HOST_UID="$(id -u)" -e HOST_GID="$(id -g)" \
+            -v "$PWD:/workspace" -v "$PWD/ci-out/home:/ci-home" \
+            "unityci/editor:${UNITY_IMAGE_TAG}" \
+            bash /workspace/ci-out/run.sh "$method" "${extra[@]}"
+          code=$?
+          kill "$(cat ci-out/tail.pid)" 2>/dev/null || true
+          rm -rf ci-out/home   # never upload the license
+          echo "$code" > ci-out/exit-code.txt
+          exit $code
+
+      - name: Summary
+        if: always() && steps.gate.outputs.run == 'true'
+        run: |
+          log=ci-out/unity.log
+          {
+            echo "### Unity tests"
+            if [ ! -s "$log" ]; then echo "No Unity log was produced (license or container failure)."; exit 0; fi
+            echo '```'
+            grep -E '^\[ALL\] (RunAll|RunSuites|[0-9]+ suites|RESULT)' "$log" | tail -5
+            echo '```'
+            fails=$(grep -E '^\[ALL\] [A-Za-z0-9_]+: FAIL' "$log" || true)
+            if [ -n "$fails" ]; then echo "**Failed suites**"; echo '```'; echo "$fails"; echo '```'; fi
+            echo "Passed suites: $(grep -cE '^\[ALL\] [A-Za-z0-9_]+: PASS' "$log")"
+            if [ "${{ inputs.graphics }}" = "skip" ]; then echo "Graphics suites excluded: $(paste -sd, ci-out/graphics-suites.txt)"; fi
+          } >> "$GITHUB_STEP_SUMMARY"
+          if ! grep -q '^\[ALL\] RESULT: PASS' "$log"; then
+            echo "::error::No '[ALL] RESULT: PASS' line in the Unity log"
+            exit 1
+          fi
+
+      - name: Upload Unity log
+        if: always() && steps.gate.outputs.run == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: unity-log
+          path: |
+            ci-out/unity.log
+            ci-out/graphics-suites.txt
+            ci-out/exit-code.txt
+          if-no-files-found: ignore
