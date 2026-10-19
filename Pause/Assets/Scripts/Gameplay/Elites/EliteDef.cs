@@ -146,7 +146,9 @@ public class EliteDef
     public const float FloorHulls = 1.5f, HeavyFloorHulls = 1.7f;
     public static readonly string[] HeavyBrains = { "hauler", "bastion", "siege", "tug", "fortress", "wrecker", "barge", "carrier", "patrol", "logger", "abyss", "netter", "pearler" };
     public bool Heavy { get { return System.Array.IndexOf(HeavyBrains, brain) >= 0; } }
-    public float TierFloorUnits { get { return (Heavy ? HeavyFloorHulls : FloorHulls) * shopingShips.ReferenceHullSize * ShipScale.Main; } }
+    public float TierFloorUnits { get { return (Heavy || System.Array.IndexOf(TideHeavyBrains, brain) >= 0 ? HeavyFloorHulls : FloorHulls) * shopingShips.ReferenceHullSize * ShipScale.Main; } }
+    // Tide's own heavy brains (TideElites.cs: Bathyscaphe, Trawler, Pearl Warden): the same armoured / slow class as their base brains above.
+    public static readonly string[] TideHeavyBrains = { "deep", "trawl", "oyster" };
     public float laneOffset = 1.5f;     // gunship / hauler / warden / lancer / tug: lane distance from the pilot; bastion: how far off centre it may go
     public float circleRadius = 1.9f;   // striker / reaver: circling radius
     public float keepDistance = 2.6f;   // skirmisher / kiter: preferred distance; tender: how close the pilot may come before it flees

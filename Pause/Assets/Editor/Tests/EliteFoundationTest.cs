@@ -152,7 +152,7 @@ public static class EliteFoundationTest
         Check("Orbit Reaver: 3 hearts", Space("orbit_reaver").hearts == 3 && !Space("orbit_reaver").armored);
         Check("Rift Lancer: 3 hearts", Space("rift_lancer").hearts == 3 && !Space("rift_lancer").armored);
         foreach (var d in EliteCatalog.All)
-            if (d.world != "space" && d.world != "frost") Check(d.key + ": other worlds keep two hearts", d.hearts == 2);
+            if (d.world != "space" && d.world != "frost" && d.world != "tide") Check(d.key + ": other worlds keep two hearts", d.hearts == 2);
         // five hearts lay out cleanly: shown, orbiting, never on top of each other
         foreach (var name in new[] { "eventide_bastion", "singularity_hauler" })
         {
@@ -371,7 +371,7 @@ public static class EliteFoundationTest
         Fresh(.05f);
         Check("only the two non-armoured Space elites hide when hurt",
               Space("orbit_reaver").hurtHide && Space("rift_lancer").hurtHide && !Space("eventide_bastion").hurtHide && !Space("singularity_hauler").hurtHide);
-        foreach (var d in EliteCatalog.All) if (d.hurtHide) Check(d.key + ": hides only if Space or Frost and not armoured", (d.world == "space" || d.world == "frost") && !d.armored);
+        foreach (var d in EliteCatalog.All) if (d.hurtHide) Check(d.key + ": hides only if Space, Frost or Tide and not armoured", (d.world == "space" || d.world == "frost" || d.world == "tide") && !d.armored);
 
         // an armoured one just takes the hit
         var tank = InPlay(Space("eventide_bastion"), new Vector2(0f, 1f));

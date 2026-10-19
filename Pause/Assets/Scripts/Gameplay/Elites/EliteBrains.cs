@@ -42,6 +42,11 @@ using UnityEngine;
 //                side and slope each time (SpaceElites.cs)
 //   fortress     (Space) Eventide Bastion: holds the top of the view and slides sideways at a crawl (SpaceElites.cs)
 //   wrecker      (Space) Singularity Hauler: parks high, tows asteroids in and flings them down the board (SpaceElites.cs)
+//   breaker      (Tide) Riptide: rides a wave line across the top third, in from one side and out the other, laying foam in its wake
+//   deep         (Tide) Bathyscaphe: surfaces at a column at the top, lays mine chains, dives off the top and surfaces elsewhere
+//   trawl        (Tide) Trawler: works one flank against a rail, drags nets in from it, leaves by that side, returns on the other
+//   tempest      (Tide) Thunderfin: loiters on a small ellipse high over the board; thunder sweeps the way it flies
+//   oyster       (Tide) Pearl Warden: one of three stations at the top, a new one after every cast
 //   icebreaker   (Frost) Rimebreaker: pass-through runs -- waits off the top, appears on a new lane, ploughs the whole board and
 //                leaves by the bottom; after a hit the runs come in pairs (FrostElites.cs)
 //   barge        (Frost) Floe Harrower: holds high on the far side of the pilot and slides along the top, never into its lane
@@ -103,6 +108,7 @@ public static class EliteBrains
     public static readonly string[] Ids = { "interceptor", "gunship", "striker", "hauler", "skirmisher", "siege", "warden",
                                             "bastion", "reaver", "lancer", "tug", "icebreaker", "barge", "hopper", "carrier", "patrol",
                                             "logger", "thorn", "drifter", "diver",
+                                            "breaker", "deep", "trawl", "tempest", "oyster",
                                             "surfer", "abyss", "netter", "stormray", "pearler",
                                             "sniper", "swooper", "fortress", "wrecker" };
 
@@ -129,6 +135,11 @@ public static class EliteBrains
             case "thorn": return new ThornBrain();
             case "drifter": return new DrifterBrain();
             case "diver": return new DiverBrain();
+            case "breaker": return new BreakerBrain();
+            case "deep": return new DeepBrain();
+            case "trawl": return new TrawlBrain();
+            case "tempest": return new TempestBrain();
+            case "oyster": return new OysterBrain();
             case "surfer": return new SurferBrain();
             case "abyss": return new AbyssBrain();
             case "netter": return new NetterBrain();

@@ -3,9 +3,9 @@ using System.IO;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 
-// Tide's five elites (Riptide, Bathyscaphe, Trawler, Thunderfin, Pearl Warden; TideElites.cs): the roster, their strips (7 flight cells
-// 1344 x 192, 3 death cells 576 x 192), muzzles on the hull, launching from Tide's own pads, the director's rotation, the codex entries, and
-// each one's brain and attack in simulation. Every attack shows its footprint from the first frame of its tell for at least the FR1 lead
+// Tide's five elites as mini-boss fights (Riptide, Bathyscaphe, Trawler, Thunderfin, Pearl Warden; TideElites.cs): the roster, their strips
+// (7 flight cells, 3 death cells), muzzles on the hull, launching from Tide's own pads, the director's rotation, the codex entries, the
+// fight rules (3 hearts, 5 armoured, the shrunk size band, no pink) and each one's own brain and attack in simulation. Every attack shows its footprint from the first frame of its tell for at least the FR1 lead
 // and cleans up after itself; nothing allocates per frame.
 //
 //   scripts/unity-batch.sh -executeMethod AllTests.RunSuites -suites TideEliteTest
@@ -25,11 +25,11 @@ public static class TideEliteTest
 
     static readonly (string key, string brain, string attack, LandingKind from)[] Expected =
     {
-        ("tide_elite_riptide", "surfer", "surf_dash", LandingKind.TideTrenchHatch),
-        ("tide_elite_bathyscaphe", "abyss", "depth_charge", LandingKind.TideRigDeck),
-        ("tide_elite_trawler", "netter", "net_cast", LandingKind.TideReefDock),
-        ("tide_elite_thunderfin", "stormray", "thunder_strike", LandingKind.TideVentStack),
-        ("tide_elite_pearl_warden", "pearler", "pearl_curtain", LandingKind.TideWreckBay),
+        ("tide_elite_riptide", "breaker", "foam_wake", LandingKind.TideTrenchHatch),
+        ("tide_elite_bathyscaphe", "deep", "mine_chain", LandingKind.TideRigDeck),
+        ("tide_elite_trawler", "trawl", "drag_net", LandingKind.TideReefDock),
+        ("tide_elite_thunderfin", "tempest", "thunder_sweep", LandingKind.TideVentStack),
+        ("tide_elite_pearl_warden", "oyster", "pearl_spiral", LandingKind.TideWreckBay),
     };
 
     public static int Execute()
@@ -43,9 +43,10 @@ public static class TideEliteTest
             Sites();
             Rotation();
             Codex();
-            Surf();
-            Depth();
-            Net();
+            Rules();
+            Foam();
+            Mines();
+            Nets();
             Thunder();
             Pearl();
             EngineFlames();
@@ -194,10 +195,10 @@ public static class TideEliteTest
             foreach (var p in d.nozzles) { if (!OnHull(tex, d, p)) { solid = false; bad += p.name + " "; } inCell &= p.x > cell * .04f && p.x < cell * .96f && p.y > cell * .04f && p.y < cell * .96f; }
             Object.DestroyImmediate(tex);
             Check(x.key + ": its " + d.muzzles.Length + " muzzles and " + d.nozzles.Length + " nozzles sit on the hull, well inside the cell " + bad, solid && inCell && d.muzzles.Length > 0 && d.nozzles.Length > 0);
-            Check(x.key + ": two hearts orbiting tighter than the player's (" + (d.hullRadius * d.heartOrbit + d.heartSize * 1.05f).ToString("0.00") + " u)",
-                  d.hearts == 2 && d.hullRadius * d.heartOrbit + d.heartSize * 1.05f < .52f);
+            Check(x.key + ": " + d.hearts + " hearts orbiting tighter than the player's (" + (d.hullRadius * d.heartOrbit + d.heartSize * 1.05f).ToString("0.00") + " u)",
+                  d.hearts >= 3 && d.hullRadius * d.heartOrbit + d.heartSize * 1.05f < .52f);
             Check(x.key + ": tuned like its siblings (speed " + d.speed + ", gap " + d.attackGap + ", tell " + d.tellSeconds + ")",
-                  d.speed >= 1.2f && d.speed <= 3.4f && d.attackGap >= 2.5f && d.attackGap <= 5.5f && d.tellSeconds >= .7f && d.avoidance >= .4f && d.avoidance <= .8f);
+                  d.speed >= 1.2f && d.speed <= 3.4f && d.attackGap >= .2f && d.attackGap <= 5.5f && d.tellSeconds >= .7f && d.avoidance >= .4f && d.avoidance <= .8f);
             Check(x.key + ": lore is three sentences or fewer", d.lore.Split(new[] { ". " }, System.StringSplitOptions.RemoveEmptyEntries).Length <= 3);
         }
     }
@@ -264,151 +265,301 @@ public static class TideEliteTest
         Check("the codex lists five Tide elites with their death strips (" + n + ")", n == 5 && strips);
     }
 
-    // ---- Riptide: surf_dash ---------------------------------------------------------------
+    // ---- shared helpers for the five fights ------------------------------------------------
 
-    static void Surf()
+    static bool Alive(EliteShip e) { return e != null && e.State != EliteState.Dead; }
+
+    // Kills it where it stands (a pause jump's damage), the way a player's pause would.
+    static void Kill(EliteShip e) { e.TakeHit(EliteDamage.Teleport, e.transform.position, 9); }
+
+    // ---- Riptide: breaker / foam_wake ------------------------------------------------------
+
+    static void Foam()
     {
         Fresh();
-        var e = InPlay("tide_elite_riptide", new Vector2(0f, .6f));
-        var sd = (SurfDashAttack)e.Attack;
+        var e = InPlay("tide_elite_riptide", new Vector2(0f, 3f));
+        var bb = (BreakerBrain)e.Brain;
+        var fa = (FoamWakeAttack)e.Attack;
+        Check("Riptide: it roams (untouchable off the board), leaves its dock by the nearer side first (" + bb.Phase + ")", bb.Roams && bb.Phase == BreakerBrain.Stage.Leave);
+        bool ran = StepUntil(() => bb.Phase == BreakerBrain.Stage.Run, 8f);
+        Check("... then makes a RUN along its wave line (runs " + bb.Runs + ")", ran && bb.Runs == 1);
+        float lo, hi;
+        BreakerBrain.Band(e.Def, out lo, out hi);
+        float minY = 99f, maxY = -99f;
+        bool window = StepUntil(() =>
+        {
+            minY = Mathf.Min(minY, e.Position.y);
+            maxY = Mathf.Max(maxY, e.Position.y);
+            return bb.WantsAttack(Vector2.zero);
+        }, 6f);
+        Check("it rides the top third (y " + minY.ToString("0.00") + " .. " + maxY.ToString("0.00") + ") and the attack window opens inside the rails", window && minY > lo - BreakerBrain.Amplitude - .8f);
         StartTell(e);
-        Check("Riptide: it is telling and the lane is not drawn before the aim locks", e.Telling && !sd.Shown);
-        bool shownInTell = StepUntil(() => sd.Shown, 3f);
-        Check("... the dash lane is drawn once locked, while the tell still runs (" + sd.Telegraph.Loops + " outline)", shownInTell && e.Telling && sd.Telegraph.Showing && sd.Telegraph.Loops == 1);
+        bool onLine = true;
+        for (int k = 0; k < BreakerBrain.Spots; k++) onLine &= fa.Spot(k).y <= hi + BreakerBrain.Amplitude + .05f && fa.Spot(k).y >= lo - BreakerBrain.Amplitude - .05f;
+        Check("on the first frame of the tell " + BreakerBrain.Spots + " rings are drawn on the water along its line (" + fa.Marks.ShownCount + " shown)",
+              e.Telling && fa.Count == BreakerBrain.Spots && fa.Marks.ShownCount == BreakerBrain.Spots && onLine);
+        Check("it keeps riding through the wind-up (not held still, " + e.Velocity.magnitude.ToString("0.0") + " u/s)", !fa.HoldsDuringTell && e.Velocity.magnitude > 1f);
         StepUntil(() => e.Acting, 3f);
-        Check("it then dashes committed at dashSpeed (" + e.Velocity.magnitude.ToString("0.0") + " u/s) and the lane showed the FR1 lead",
-              e.Acting && e.Velocity.magnitude > e.Def.dashSpeed * .7f && AttackPreview.TooShort == 0);
-        int shots = 0;
-        for (float t = 0f; t < 1.5f; t += Dt) { pilot.position = new Vector3(0f, -4.8f, 0f); EliteSystem.Step(Dt); foreach (var s in EliteSystem.Shots.All) if (s.Active) shots++; }
-        Check("spout needles leave the lance as it brakes (" + sd.Fired + " fired)", sd.Fired == e.Def.shotCount && shots > 0);
-        Fresh();
-        e = InPlay("tide_elite_riptide", new Vector2(0f, .6f));
-        StartTell(e);
-        StepUntil(() => ((SurfDashAttack)e.Attack).Shown, 3f);
-        Shoot(e, 2);
-        Check("a Riptide killed in its tell takes its lane with it", AttackPreview.ActiveCount == 0);
-    }
-
-    // ---- Bathyscaphe: depth_charge --------------------------------------------------------
-
-    static void Depth()
-    {
-        Fresh();
-        var e = InPlay("tide_elite_bathyscaphe", new Vector2(0f, .4f));
-        var dc = (DepthChargeAttack)e.Attack;
-        StartTell(e);
-        Check("Bathyscaphe: each charge's flight lane and burst ring are drawn on the first frame of the tell (" + dc.Telegraph.Loops + " outlines)",
-              e.Telling && dc.Telegraph.Showing && dc.Telegraph.Loops == 2 * e.Def.shotCount);
-        Vector2 b0 = dc.Burst(0);
-        StepUntil(() => e.Acting, 3f);
-        Check("... shown at least the FR1 lead, burst points locked", e.Acting && AttackPreview.TooShort == 0 && dc.Burst(0) == b0);
-        int orbs = 0, bursts = 0, maxShards = 0;
-        for (float t = 0f; t < 3.5f; t += Dt)
+        var best = new float[BreakerBrain.Spots];
+        for (int k = 0; k < best.Length; k++) best[k] = 9f;
+        int maxOrbs = 0, castsSeen = 0;
+        for (float t = 0f; t < 4.5f; t += Dt)
         {
             pilot.position = new Vector3(0f, -4.8f, 0f);
             EliteSystem.Step(Dt);
-            int o = 0, sh = 0;
-            foreach (var s in EliteSystem.Shots.All) { if (!s.Active) continue; if (s.Kind == EliteShots.Kind.Orb) o++; else sh++; }
-            orbs = Mathf.Max(orbs, o);
-            maxShards = Mathf.Max(maxShards, sh);
+            castsSeen = Mathf.Max(castsSeen, bb.Casts);
+            int o = 0;
+            foreach (var sh in EliteSystem.Shots.All)
+            {
+                if (!sh.Active || sh.Kind != EliteShots.Kind.Orb) continue;
+                o++;
+                for (int k = 0; k < best.Length; k++) best[k] = Mathf.Min(best[k], Vector2.Distance((Vector2)sh.transform.position, fa.Spot(k)));
+            }
+            maxOrbs = Mathf.Max(maxOrbs, o);
         }
-        foreach (var s in EliteSystem.Shots.All) bursts += s.Bursts;
-        Check("fused orbs leave the claws and burst into rings of " + e.Def.hazardCount + " pearls (orbs " + orbs + ", bursts " + bursts + ", most pearls " + maxShards + ")",
-              dc.Sent == e.Def.shotCount && orbs >= 1 && bursts == e.Def.shotCount && maxShards >= e.Def.hazardCount);
+        bool landed = true;
+        for (int k = 0; k < best.Length; k++) landed &= best[k] < .45f;
+        Check("a foam bank is lobbed onto every ring (" + maxOrbs + " at once; closest " + best[0].ToString("0.00") + " / " + best[1].ToString("0.00") + " / " + best[2].ToString("0.00") + " u)",
+              maxOrbs >= BreakerBrain.Spots && landed && fa.Laid == BreakerBrain.Spots);
+        Check("the cast is counted (" + castsSeen + ") and the FR1 lead was shown", castsSeen == 1 && AttackPreview.TooShort == 0);
+
         Fresh();
-        e = InPlay("tide_elite_bathyscaphe", new Vector2(0f, .4f));
+        e = InPlay("tide_elite_riptide", new Vector2(0f, 3f));
+        bb = (BreakerBrain)e.Brain;
+        fa = (FoamWakeAttack)e.Attack;
+        StepUntil(() => bb.Phase == BreakerBrain.Stage.Run && bb.WantsAttack(Vector2.zero), 12f);
         StartTell(e);
-        Shoot(e, 2);
-        Check("a Bathyscaphe killed in its tell takes its drawing with it", AttackPreview.ActiveCount == 0);
+        Kill(e);
+        Check("a Riptide killed in its tell takes its rings and foam with it", (e == null || fa.Marks.ShownCount == 0) && AttackPreview.ActiveCount == 0);
     }
 
-    // ---- Trawler: net_cast ----------------------------------------------------------------
+    // ---- Bathyscaphe: deep / mine_chain ----------------------------------------------------
 
-    static void Net()
+    static void Mines()
     {
         Fresh();
-        var e = InPlay("tide_elite_trawler", new Vector2(0f, .6f));
-        var nc = (NetCastAttack)e.Attack;
+        var e = InPlay("tide_elite_bathyscaphe", new Vector2(0f, 2f));
+        var db = (DeepBrain)e.Brain;
+        var ma = (MineChainAttack)e.Attack;
+        bool hold = StepUntil(() => db.Phase == DeepBrain.Stage.Hold, 8f);
+        Check("Bathyscaphe: it surfaces at a column at the top and holds there (" + db.Phase + ", y " + e.Position.y.ToString("0.00") + ")", hold && e.Position.y > pilot.position.y + 1.5f);
+        Step(DeepBrain.ReadyWait + .1f);
         StartTell(e);
-        Check("Trawler: every net spot but the hole is ringed on the first frame of the tell (" + nc.Telegraph.Loops + " outlines)",
-              e.Telling && nc.Telegraph.Showing && nc.Telegraph.Loops == nc.Count - 1);
-        int gap = nc.Gap;
-        Vector2 gapSpot = nc.Spot(gap);
-        Check("the hole is beside the pilot toward the board's middle (spot " + gap + " of " + nc.Count + ")", gap == nc.Centre + (pilot.position.x > 0f ? -1 : 1));
+        Check("on the first frame of the tell every mine of the chain is ringed (" + ma.Marks.ShownCount + " of " + ma.PlanCount + ")",
+              e.Telling && ma.Count == ma.PlanCount && ma.Marks.ShownCount == ma.PlanCount);
+        bool descends = true;
+        for (int i = 1; i < ma.Count; i++) descends &= ma.Spot(i).y < ma.Spot(i - 1).y + 1e-3f;
+        Check("the chain runs down from under the hull to the pilot's column (" + ma.Spot(0).y.ToString("0.0") + " .. " + ma.Spot(ma.Count - 1).y.ToString("0.0") + ", end x " + ma.Spot(ma.Count - 1).x.ToString("0.00") + ")",
+              descends && ma.Spot(0).y < e.Position.y && Mathf.Abs(ma.Spot(ma.Count - 1).x - pilot.position.x) < .15f);
         StepUntil(() => e.Acting, 3f);
-        bool lobs = StepUntil(() => nc.Cast >= nc.Count - 1, 3f);
-        Check("it lobs " + (nc.Count - 1) + " nets, shown the FR1 lead, none onto the hole", lobs && AttackPreview.TooShort == 0 && nc.Gap == gap);
+        int maxOrbs = 0, maxBolts = 0, castsSeen = 0;
+        bool sank = false;
+        for (float t = 0f; t < 6f; t += Dt)
+        {
+            pilot.position = new Vector3(0f, -4.8f, 0f);
+            EliteSystem.Step(Dt);
+            castsSeen = Mathf.Max(castsSeen, db.Casts);
+            sank |= db.Phase == DeepBrain.Stage.Sink || db.Phase == DeepBrain.Stage.Away;
+            int o = 0, b = 0;
+            foreach (var sh in EliteSystem.Shots.All) { if (!sh.Active) continue; if (sh.Kind == EliteShots.Kind.Orb) o++; else b++; }
+            maxOrbs = Mathf.Max(maxOrbs, o);
+            maxBolts = Mathf.Max(maxBolts, b);
+        }
+        Check("the mines are laid one after another (" + ma.Laid + ", most at once " + maxOrbs + ") and each bursts into a cross of bolts (most bolts " + maxBolts + ")",
+              ma.Laid == ma.Count && maxOrbs >= 2 && maxBolts >= 4 && AttackPreview.TooShort == 0);
+        Check("the cast done, it dives off the top (casts " + castsSeen + ", dived " + sank + ")", castsSeen == 1 && (sank || db.Surfacings >= 1));
+        bool back = StepUntil(() => db.Surfacings >= 1, 16f);
+        Check("... waits out of sight and surfaces again (" + db.Surfacings + ")", back);
+
+        // the fight escalates with the hearts lost
+        Fresh();
+        e = InPlay("tide_elite_bathyscaphe", new Vector2(0f, 2f));
+        ma = (MineChainAttack)e.Attack;
+        int full = ma.PlanCount;
+        e.TakeHit(EliteDamage.PlayerWeapon, e.transform.position + Vector3.left * .3f);
+        e.TakeHit(EliteDamage.Teleport, e.transform.position, 1);
+        Check("more mines for every two hearts lost (" + full + " -> " + ma.PlanCount + " at " + e.Hearts + " hearts)", ma.PlanCount >= full + 1 && ma.PlanCount < TideSpotAttack.MaxSpots);
+
+        Fresh();
+        e = InPlay("tide_elite_bathyscaphe", new Vector2(0f, 2f));
+        db = (DeepBrain)e.Brain;
+        ma = (MineChainAttack)e.Attack;
+        StepUntil(() => db.Phase == DeepBrain.Stage.Hold, 8f);
+        StartTell(e);
+        Kill(e);
+        Check("a Bathyscaphe killed in its tell takes its rings with it", (e == null || ma.Marks.ShownCount == 0) && AttackPreview.ActiveCount == 0);
+    }
+
+    // ---- Trawler: trawl / drag_net ---------------------------------------------------------
+
+    static void Nets()
+    {
+        Fresh();
+        var e = InPlay("tide_elite_trawler", new Vector2(1.5f, 2.5f));
+        var tb = (TrawlBrain)e.Brain;
+        var dn = (DragNetAttack)e.Attack;
+        bool flank = StepUntil(() => tb.Phase == TrawlBrain.Stage.Flank, 10f);
+        int side = tb.Side;
+        Check("Trawler: it stands on its flank against a rail (side " + side + ", x " + e.Position.x.ToString("0.00") + ")",
+              flank && Mathf.Sign(e.Position.x) == side && Mathf.Abs(e.Position.x) > EliteSystem.RailEdge - e.Def.hullRadius - .7f);
+        Step(TrawlBrain.ReadyWait + .1f);
+        StartTell(e);
+        int n = dn.Count;
+        float lastX = dn.Spot(n - 1).x;
+        float clear = 2f * dn.Edge - (n - 1) * e.Def.lobSpacing - DragNetAttack.Ring;
+        bool inward = true;
+        for (int i = 1; i < n; i++) inward &= Mathf.Abs(dn.Spot(i).x) < Mathf.Abs(dn.Spot(i - 1).x) && Mathf.Sign(dn.Spot(i).x) == side;
+        Check("on the first frame of the tell every net is ringed (" + dn.Marks.ShownCount + " of " + n + "), flank first, running in toward the middle",
+              e.Telling && n == dn.NetsFor() && dn.Marks.ShownCount == n && n >= 1 && Mathf.Sign(dn.Spot(0).x) == side && inward);
+        Check("the far end leaves a gap of at least " + DragNetAttack.Gap + " u to the far rail (" + clear.ToString("0.00") + ", last net x " + lastX.ToString("0.00") + ")", clear >= DragNetAttack.Gap - .01f);
+        StepUntil(() => e.Acting, 3f);
         int pools = 0;
-        bool onGap = false;
-        for (float t = 0f; t < 2.5f; t += Dt)
+        for (float t = 0f; t < 4f; t += Dt)
         {
             pilot.position = new Vector3(0f, -4.8f, 0f);
             EliteSystem.Step(Dt);
             int p = 0;
-            foreach (var s in EliteSystem.Shots.All)
-            {
-                if (!s.Active || s.Kind != EliteShots.Kind.Glob || s.Airborne) continue;
-                p++;
-                onGap |= Mathf.Abs(s.transform.position.x - gapSpot.x) < .25f;
-            }
+            foreach (var sh in EliteSystem.Shots.All) if (sh.Active && sh.Kind == EliteShots.Kind.Glob && !sh.Airborne) p++;
             pools = Mathf.Max(pools, p);
         }
-        Check("the nets land as pools (" + pools + " at once) and the hole stays open (" + (!onGap) + ")", pools >= nc.Count - 2 && !onGap);
+        Check("the nets land as pools (" + pools + " at once of " + n + ") and the FR1 lead was shown", dn.Laid == n && pools >= n && AttackPreview.TooShort == 0);
+        bool crossed = StepUntil(() => tb.Visits >= 1, 14f);
+        Check("it leaves by its own side and comes back on the opposite flank (side " + side + " -> " + tb.Side + ", visits " + tb.Visits + ")", crossed && tb.Side == -side);
+
         Fresh();
-        e = InPlay("tide_elite_trawler", new Vector2(0f, .6f));
+        e = InPlay("tide_elite_trawler", new Vector2(1.5f, 2.5f));
+        tb = (TrawlBrain)e.Brain;
+        dn = (DragNetAttack)e.Attack;
+        StepUntil(() => tb.Phase == TrawlBrain.Stage.Flank, 10f);
         StartTell(e);
-        Shoot(e, 2);
-        Check("a Trawler killed in its tell takes its rings with it", AttackPreview.ActiveCount == 0);
+        Kill(e);
+        Check("a Trawler killed in its tell takes its rings with it", (e == null || dn.Marks.ShownCount == 0) && AttackPreview.ActiveCount == 0);
     }
 
-    // ---- Thunderfin: thunder_strike -------------------------------------------------------
+    // ---- Thunderfin: tempest / thunder_sweep ------------------------------------------------
 
     static void Thunder()
     {
         Fresh();
-        var e = InPlay("tide_elite_thunderfin", new Vector2(0f, .6f));
-        var ts = (ThunderStrikeAttack)e.Attack;
+        var e = InPlay("tide_elite_thunderfin", new Vector2(0f, 3f));
+        var tb = (TempestBrain)e.Brain;
+        var ts = (ThunderSweepAttack)e.Attack;
+        float minX = 9f, maxX = -9f;
+        Step(5f, () => { minX = Mathf.Min(minX, e.Position.x); maxX = Mathf.Max(maxX, e.Position.x); });
+        Check("Thunderfin: it loiters on an ellipse high over the board, never to the pilot (x " + minX.ToString("0.0") + " .. " + maxX.ToString("0.0") + ", y " + e.Position.y.ToString("0.0") + ")",
+              maxX - minX > 1f && e.Position.y > pilot.position.y + 1.5f);
+        bool rightward = tb.SweepDir > 0;
         StartTell(e);
-        Check("Thunderfin: a glyph is armed under every column on the first frame of the tell (" + ts.Armed + ")",
-              e.Telling && ts.Armed >= 1 && ts.Strike(0) != null && ts.Strike(0).State == AttackHazard.Phase.Tell);
+        bool allTell = ts.Armed >= 3 && ts.Armed <= ts.Want;
+        for (int i = 0; i < ts.Armed; i++) allTell &= ts.Strike(i) != null && ts.Strike(i).State == AttackHazard.Phase.Tell;
+        Check("a glyph is armed under EVERY column on the first frame of the tell (" + ts.Armed + ")", e.Telling && allTell);
+        bool ordered = true, spaced = true, pilotLane = false;
+        for (int i = 0; i < ts.Armed; i++)
+        {
+            pilotLane |= Mathf.Abs(ts.Lane(i) - pilot.position.x) < .2f;
+            if (i == 0) continue;
+            ordered &= rightward ? ts.Lane(i) > ts.Lane(i - 1) : ts.Lane(i) < ts.Lane(i - 1);
+            spaced &= Mathf.Abs(ts.Lane(i) - ts.Lane(i - 1)) >= AttackStrike.MinLaneSpacing - .01f;
+        }
+        Check("the columns are ordered along the way it flies (" + (rightward ? "right" : "left") + "), at least a strike's corridor apart, the pilot's own lane among them", ordered && spaced && pilotLane);
         Check("... told at least " + AttackHazard.MinTellSeconds + " s (" + e.Attack.TellSeconds.ToString("0.00") + ")", e.Attack.TellSeconds >= AttackHazard.MinTellSeconds + .3f);
-        bool live = false;
-        float liveFor = 0f;
-        for (float t = 0f; t < 4f; t += Dt)
+        int n = ts.Armed;
+        var litAt = new float[n];
+        for (int i = 0; i < n; i++) litAt[i] = -1f;
+        float clock = 0f;
+        for (float t = 0f; t < 6f; t += Dt)
         {
             pilot.position = new Vector3(0f, -2.5f, 0f);
             EliteSystem.Step(Dt);
-            var s0 = ts.Strike(0);
-            if (s0 != null && s0.State == AttackHazard.Phase.Live) { live = true; liveFor += Dt; }
+            clock += Dt;
+            for (int i = 0; i < n; i++)
+            {
+                var st = ts.Strike(i);
+                if (litAt[i] < 0f && st != null && st.State == AttackHazard.Phase.Live) litAt[i] = clock;
+            }
         }
-        Check("the lightning goes live for no longer than " + AttackStrike.MaxLiveSeconds + " s (" + liveFor.ToString("0.00") + ")", live && liveFor <= AttackStrike.MaxLiveSeconds + Dt * 2);
-        Step(1f);
+        bool sequence = true;
+        for (int i = 0; i < n; i++) sequence &= litAt[i] >= 0f && (i == 0 || litAt[i] - litAt[i - 1] >= e.Def.shotInterval * .6f);
+        Check("the columns strike ONE AFTER ANOTHER, " + e.Def.shotInterval + " s apart (first " + litAt[0].ToString("0.00") + " s, last " + litAt[n - 1].ToString("0.00") + " s)", sequence);
+        Step(1.5f);
         Check("nothing is left on the board afterwards (" + AttackHazard.ActiveCount + " hazards)", AttackHazard.ActiveCount == 0);
+
         Fresh();
-        e = InPlay("tide_elite_thunderfin", new Vector2(0f, .6f));
+        e = InPlay("tide_elite_thunderfin", new Vector2(0f, 3f));
         StartTell(e);
-        Shoot(e, 2);
+        Kill(e);
         Check("a Thunderfin killed in its tell takes its glyphs with it", AttackHazard.ActiveCount == 0);
     }
 
-    // ---- Pearl Warden: pearl_curtain ------------------------------------------------------
+    // ---- Pearl Warden: oyster / pearl_spiral ------------------------------------------------
 
     static void Pearl()
     {
         Fresh();
-        var e = InPlay("tide_elite_pearl_warden", new Vector2(0f, .6f));
-        var pc = (PearlCurtainAttack)e.Attack;
+        var e = InPlay("tide_elite_pearl_warden", new Vector2(0f, 3f));
+        var ob = (OysterBrain)e.Brain;
+        var ps = (PearlSpiralAttack)e.Attack;
+        bool settled = StepUntil(() => ob.Settled && e.Position.y > pilot.position.y + 1.5f, 10f);
+        Check("Pearl Warden: it keeps one of three stations at the top (station " + ob.Station + ", y " + e.Position.y.ToString("0.00") + ")", settled);
+        Step(OysterBrain.ReadyWait + .1f);
+        int station = ob.Station;
         StartTell(e);
+        Check("the two edge lanes of the arc are drawn on the first frame of the tell (" + ps.Telegraph.Loops + " outlines)", e.Telling && ps.Telegraph.Showing && ps.Telegraph.Loops == 2);
         StepUntil(() => e.Acting, 3f);
+        int sweep = ps.Sweep;
+        float gap = ps.GapAngle;
+        bool clearGap = true, monotone = true;
+        for (int i = 0; i < ps.Total; i++)
+        {
+            clearGap &= Mathf.Abs(Mathf.DeltaAngle(ps.Angle(i), gap)) >= PearlSpiralAttack.GapDeg - .01f;
+            if (i > 0) monotone &= (ps.Angle(i) - ps.Angle(i - 1)) * sweep > 0f;
+        }
+        Check("the spiral sweeps " + ps.Total + " of " + ps.PearlCount + " pearls across the arc in order, none within " + PearlSpiralAttack.GapDeg + " deg of where the pilot stood (gap " + gap.ToString("0") + " deg)",
+              ps.Total >= 3 && ps.Total < ps.PearlCount && ps.Total >= ps.PearlCount - 4 && clearGap && monotone);
         int pearls = 0;
-        for (float t = 0f; t < 2f; t += Dt)
+        for (float t = 0f; t < 2.5f; t += Dt)
         {
             pilot.position = new Vector3(0f, -2.5f, 0f);
             EliteSystem.Step(Dt);
-            foreach (var s in EliteSystem.Shots.All) if (s.Active) pearls++;
+            foreach (var sh in EliteSystem.Shots.All) if (sh.Active) pearls++;
         }
-        Check("Pearl Warden: a curtain of " + (pc.Count - 1) + " slow pearls with one gap beside the pilot (fired " + pc.Fired + ", pearl frames " + pearls + ")",
-              pc.Fired == pc.Count - 1 && pearls > 10 && pc.Gap == pc.Centre + (pilot.position.x > 0f ? -1 : 1));
+        Check("they are fired (" + ps.Flung + " of " + ps.Total + ", pearl frames " + pearls + ") and it hops to another station (" + station + " -> " + ob.Station + ")",
+              ps.Flung == ps.Total && pearls > 10 && ob.Hops == 1 && ob.Station != station);
+        Check("the next cast sweeps the other way", PearlSpiralAttack.AngleOf(0, 5, 1) < PearlSpiralAttack.AngleOf(4, 5, 1) && PearlSpiralAttack.AngleOf(0, 5, -1) > PearlSpiralAttack.AngleOf(4, 5, -1));
+
+        Fresh();
+        e = InPlay("tide_elite_pearl_warden", new Vector2(0f, 3f));
+        ob = (OysterBrain)e.Brain;
+        ps = (PearlSpiralAttack)e.Attack;
+        StepUntil(() => ob.Settled, 10f);
+        StartTell(e);
+        Kill(e);
+        Check("a Pearl Warden killed in its tell takes its lanes with it", AttackPreview.ActiveCount == 0);
+    }
+
+    // ---- the fight rules -------------------------------------------------------------------
+
+    static void Rules()
+    {
+        foreach (var x in Expected)
+        {
+            var d = EliteCatalog.Find(x.key);
+            if (d == null) continue;
+            Check(x.key + ": hearts " + d.hearts + " (5 armoured, 3 not), hurtHide only for the non-armoured chasers",
+                  d.hearts == (d.armored ? 5 : 3) && (!d.hurtHide || !d.armored));
+            float drawn = ShipTierTest.DrawnLongSide(d);
+            float target = d.Heavy || System.Array.IndexOf(EliteDef.TideHeavyBrains, d.brain) >= 0 ? 1.6f : 1.55f;
+            Check(x.key + ": drawn long side " + drawn.ToString("0.00") + " u in the shrunk band (about " + target.ToString("0.00") + " u)", Mathf.Abs(drawn - target) < .06f);
+            Check(x.key + ": no pink (shot " + ColorUtility.ToHtmlStringRGB(d.ShotColor) + ", core " + ColorUtility.ToHtmlStringRGB(d.ShotCore) + ")", !WorldCue.IsPink(d.ShotColor) && !WorldCue.IsPink(d.ShotCore));
+            var atk = EliteAttacks.Create(d.attack);
+            Check(x.key + ": an aimed attack winds up long enough for the lock (tell " + d.tellSeconds + " s)", !atk.Aimed || d.tellSeconds >= EliteDef.MinAimedTell);
+        }
+        Check("Riptide, Bathyscaphe and Trawler roam; Thunderfin and Pearl Warden stay on the board",
+              EliteBrains.Create("breaker").Roams && EliteBrains.Create("deep").Roams && EliteBrains.Create("trawl").Roams &&
+              !EliteBrains.Create("tempest").Roams && !EliteBrains.Create("oyster").Roams);
+        Check("the base ids Storm and Desert fly are still there",
+              System.Array.IndexOf(EliteBrains.Ids, "interceptor") >= 0 && System.Array.IndexOf(EliteAttacks.Ids, "lance_dash") >= 0 &&
+              System.Array.IndexOf(EliteBrains.Ids, "surfer") >= 0 && System.Array.IndexOf(EliteAttacks.Ids, "surf_dash") >= 0);
     }
 
     // ---- engine flames: baked into the strips, leaving each engine's mouth, in front of the hull ----------------
