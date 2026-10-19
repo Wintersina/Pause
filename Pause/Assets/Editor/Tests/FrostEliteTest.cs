@@ -327,7 +327,7 @@ public static class FrostEliteTest
         while (brain.Phase != IcebreakerBrain.Stage.Ready && guard++ < 30 * 15) EliteSystem.Step(Dt);
         float top = EliteSystem.ViewTop;
         Check("icebreaker leaves the view and appears at the top on a lane (y " + e.Position.y.ToString("0.0") + ", lane " + brain.Lane.ToString("0.00") + ")",
-              brain.Phase == IcebreakerBrain.Stage.Ready && e.Position.y > top - def.hullRadius - 1f && Mathf.Abs(e.Position.x) < EliteSystem.RailEdge && Mathf.Abs(e.Position.x - brain.Lane) < .2f);
+              brain.Phase == IcebreakerBrain.Stage.Ready && e.Position.y > e.ZoneTop - def.hullRadius - 1f && Mathf.Abs(e.Position.x) < EliteSystem.RailEdge && Mathf.Abs(e.Position.x - brain.Lane) < .2f);
 
         // watch a long fight: the pilot drifts about; every run is recorded
         var lanes = new List<float>();
@@ -416,7 +416,7 @@ public static class FrostEliteTest
             if (!e.Offstage) nearest = Mathf.Min(nearest, Mathf.Abs(e.Position.y - pilot.position.y) + 0f);
         });
         Check("icebreaker never prowls: between runs it waits at the top or off the view (" + brain.Phase + ", at y " + e.Position.y.ToString("0.0") + ")",
-              brain.Phase == IcebreakerBrain.Stage.Ready && e.Position.y > top - def.hullRadius - 1f);
+              brain.Phase == IcebreakerBrain.Stage.Ready && e.Position.y > e.ZoneTop - def.hullRadius - 1f);
 
         // a hit: it hides, comes back, and the runs come in pairs
         Fresh(.05f);

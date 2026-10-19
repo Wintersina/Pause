@@ -133,7 +133,7 @@ public static class EliteFightZoneTest
             float zone = e.ZoneTop;
             Check(def.key + ": a goal far above the board is clamped under the zone top (" + zone.ToString("0.00") + ")",
                   e.ClampGoal(new Vector2(0f, 99f)).y <= zone + 1e-4f);
-            float worst = 0f, above = 0f, run = 0f, longest = 0f, total = 0f;
+            float worst = 0f, above = 0f, held = 0f, total = 0f;
             for (int i = 0; i < 30 * 60 && Alive(e) && e.State != EliteState.Retreat; i++)
             {
                 float t = i * Dt;
@@ -141,14 +141,18 @@ public static class EliteFightZoneTest
                 pilot.position = new Vector3(Mathf.Sin(t * .7f) * 2f, Mathf.Lerp(-3f, 2.4f, .5f + .5f * Mathf.Sin(t * .31f)), 0f);
                 EliteSystem.Step(Dt);
                 if (!Alive(e)) break;
-                if (e.Offstage || e.Hidden || e.State == EliteState.Hide) { run = 0f; continue; }
+                if (e.Offstage || e.Hidden || e.State == EliteState.Hide) continue;
                 total += Dt;
                 float excess = e.Position.y - e.ZoneTop;
                 if (excess > worst) worst = excess;
-                if (excess > .1f) { above += Dt; run += Dt; longest = Mathf.Max(longest, run); } else run = 0f;
+                if (excess > .1f)
+                {
+                    above += Dt;
+                    if (e.Velocity.magnitude < 1.2f && e.Position.y < EliteSystem.ViewTop) held += Dt;   // (lingering in the band, not crossing it)
+                }
             }
             if (roams)
-                Check(def.key + ": (roams) crosses the zone top only in passing: longest stretch above " + longest.ToString("0.0") + " s, " + above.ToString("0.0") + " of " + total.ToString("0") + " s", longest <= 2.5f && above <= total * .15f);
+                Check(def.key + ": (roams) crosses the zone top only in passing: " + held.ToString("0.0") + " s held there, " + above.ToString("0.0") + " s above of " + total.ToString("0") + " s", held <= 1f);
             else
                 Check(def.key + ": holds under the zone top: highest " + worst.ToString("0.00") + " over, " + above.ToString("0.0") + " s above of " + total.ToString("0") + " s", worst <= .6f && above <= total * .03f);
             EliteSystem.Clear();
@@ -193,7 +197,7 @@ public static class EliteFightZoneTest
             string which = "";
             foreach (var sr in e.GetComponentsInChildren<SpriteRenderer>(true))
             {
-                if (sr.transform.parent != null && sr.transform.parent.name == "Marks") continue;   // (the attack's own ring marks)
+                if (sr.transform.parent != null && (sr.transform.parent.name == "Marks" || sr.transform.parent.name == "~HeartBreaks")) continue;   // (the attack's own ring marks, a lost heart's crumble)
                 if (sr.sortingOrder > highest) { highest = sr.sortingOrder; which = sr.name; }
             }
             var hearts = e.GetComponent<EliteHearts>();
@@ -222,8 +226,8 @@ public static class EliteFightZoneTest
         EliteDirector.WorldOverride = 1;
         var defs = new List<EliteDef>();
         EliteCatalog.ForWorld(1, defs);
-        var def = EliteCatalog.Find("space_elite_eventide_bastion");
         Check("setup: Frost has elites", defs.Count > 0);
+        var def = defs[0];
         var dir = new GameObject("~Dir").AddComponent<EliteDirector>();
         RunScore.OnElite(Vector3.zero, 300);
         long before = RunScore.Total;
@@ -311,7 +315,7 @@ public static class EliteFightZoneTest
             {
                 EliteSystem.Step(Dt);
             }
-            if (e != null) total += e.Attacks;
+            if (e != null) { total += e.Attacks; Debug.Log("[EFZ] " + def.key + ": " + e.Attacks + " attacks in " + seconds + " s (" + e.State + ", cooldown " + e.AttackCooldown.ToString("0.0") + ", at " + e.Position + ")"); }
             EliteSystem.Clear();
         }
         return total;

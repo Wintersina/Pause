@@ -626,7 +626,7 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
     // An elite that runs out of engagement time (and costs the pilot half its score by getting away) does not drift off: it
     // SPOOLS its engines (EscapeSpoolSeconds: the hull nearly still, flames and glows growing, the damaged burn loop or the
     // plume the elite already has), then BOOSTS straight out of the nearest edge -- the top or a side -- at EscapeBoostScale x
-    // its top speed, accelerating hard, the plume at EscapeThrust (a long trail). No new flash, no halo. It may cross the zone top
+    // its cruise speed, accelerating hard, the plume at EscapeThrust (a long trail). No new flash, no halo. It may cross the zone top
     // on the way out; it never holds there. The same for every elite of every world.
 
     public const float EscapeSpoolSeconds = .4f, EscapeBoostScale = 3f, EscapeAccelScale = 6f, EscapeThrust = 1.7f;
@@ -1226,7 +1226,8 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
     void KeepInView(float dt)
     {
         Vector3 p = transform.position;
-        float bottom = EliteSystem.ViewBottom + Def.hullRadius * .6f, top = EliteSystem.ViewTop + (State == EliteState.Retreat ? Def.cellWorldSize + 2f : 1.5f);   // (a retreating elite leaves over the top)
+        // (a retreating elite leaves over the top; anything else is held under the HUD band: a dash or a shove cannot carry it up into it)
+        float bottom = EliteSystem.ViewBottom + Def.hullRadius * .6f, top = State == EliteState.Retreat ? EliteSystem.ViewTop + Def.cellWorldSize + 2f : Mathf.Max(bottom, ZoneTop + .1f);
         if (p.y < bottom) { p.y = bottom; if (velocity.y < 0f) velocity.y = 0f; }
         if (p.y > top) { p.y = top; if (velocity.y > 0f) velocity.y = 0f; }
         transform.position = p;

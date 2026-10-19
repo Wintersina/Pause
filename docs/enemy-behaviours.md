@@ -1530,7 +1530,7 @@ under the band and below the player's own top. With no band laid out (editor, ba
   elite above the zone top (a descent) does not start an attack until it is in (`InZone`, `FightZone.AttackSlack`). The Frost sky
   icicles (`icicle_barrage`) and the Singularity Hauler's towed rock are hazards that ENTER from above the view and fall through; they
   are not spawned by anything holding there. Mortar / barrage rows are clamped to `ship.ZoneTop`.
-* Roster pilots: the hold row is clamped by `EnemyBrain.ZoneHoldY` (drawing top and the pattern's `rise` under the band). Chasers,
+* Roster pilots: the hold row is clamped by `EnemyBrain.ZoneHoldY` (drawing top and the pattern's `rise` under the band), except that it never drops onto a ship parked at the top of its reach (the player's reach touches the band's edge: the pilot then stands off above the hull, as `HostileReach` always required). Chasers,
   fighters, mines and rocks ride the scroll or chase the pilot, who cannot be above the band.
 
 **Under the rails.** The rails (`leftPipe` / `rightPipe`) sort at `EliteShip.RailOrder` (0). The elite layer is `PlayOrder` -3 (was 5):
@@ -1545,9 +1545,12 @@ boss runs (`Blocked` -> "boss"). Their shots and area hazards already in the air
 
 **Escape boost** (`EliteShip.StepRetreat`, all elites). When the engagement timer runs out the elite spools its engines for
 `EscapeSpoolSeconds` (0.4 s: hull nearly still, `thrust` ramping so the plume / glow / damaged burn loop grow), then boosts at
-`EscapeBoostScale` (3x) its top speed, accelerating at `EscapeAccelScale` (6x), `thrust` `EscapeThrust` (1.7: a long trail), straight
+`EscapeBoostScale` (3x) its cruise speed, accelerating at `EscapeAccelScale` (6x), `thrust` `EscapeThrust` (1.7: a long trail), straight
 out of the top or the nearest side (a side where it is clearly nearer). It flies over the rails (no rail crash) and may cross the zone
 top. It no longer flies home to its dock. Costs the pilot half the kill's score as before.
 
 **Attack cadence** (`EliteTuning.AttackRate`, 1.7). Every gap between two attacks (the first wait, the cooldown after an attack and
 after a hurt-hide, the Rimebreaker's pause between runs) is divided by it; wind-ups, telegraphs and hazards are unchanged.
+
+A hard backstop: `EliteShip.KeepInView` holds every non-escaping elite at the zone top, so a dash or shove cannot carry it up into the band.
+Suites that pin the elites' exact timing (`EliteTest`, `EliteFoundationTest`, `EliteEvasionTest`, `SpaceEliteTest`, `FrostEliteTest`, `TideEliteTest`) run at attack rate 1 (`AllTests.TimingPinned`).

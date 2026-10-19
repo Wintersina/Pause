@@ -16,7 +16,7 @@ public static class FightZone
     // Clear space between a hull's top and the band's bottom (world u).
     public const float Margin = .1f;
     // The band's depth as a share of the view's height when no band is laid out.
-    public const float NoBandShare = .17f;
+    public const float NoBandShare = .10f;
     // An attack may start this far over the zone top (a hull still settling onto its station).
     public const float AttackSlack = .35f;
 
