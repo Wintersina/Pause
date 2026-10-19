@@ -169,7 +169,7 @@ public static class ElitePolishTest
 
     // The elites with NO damaged loop whose single damaged cell has flames painted into the art (a held drawing: its painted flames sit
     // frozen under the procedural plume). They are listed here so the debt is visible; a new elite must have a loop or be added (never
-    // silently). Fixed so far: Space (the strips are built by a script from the bare hull: Art/Enemies/src~/space_elites_engine_burn).
+    // silently). Fixed so far: Space, then each world as its loops land (Space's strips are built by a script from the bare hull: Art/Enemies/src~/space_elites_engine_burn).
     static void PaintedFlameDamaged()
     {
         int painted = 0, withLoop = 0;
@@ -187,7 +187,8 @@ public static class ElitePolishTest
             if (best > 120) { painted++; list.Add(d.key); }
         }
         Debug.Log("[POLISH] held damaged cell with painted flames (no loop yet): " + string.Join(", ", list));
-        Check("elites with a damaged burn loop: " + withLoop + " (Space); held damaged cells with painted flames still listed: " + painted + " (the other worlds' elites)", withLoop == 4 && painted >= 25);
+        // The debt only shrinks: each world that gains loops moves its elites from the painted list to withLoop (29 = Space's 4 + 25 listed).
+        Check("elites with a damaged burn loop: " + withLoop + " (Space and the worlds wired since); held damaged cells with painted flames still listed: " + painted, withLoop >= 4 && withLoop + painted >= 29);
     }
 
     // ---- telegraphs ----------------------------------------------------------------------------------------------------
