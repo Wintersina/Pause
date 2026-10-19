@@ -43,6 +43,9 @@ public class BossWarningHud : MonoBehaviour
     public const float BannerW = 560f, BannerH = 120f;
     public const float BannerGap = 16f;
     public const float BannerMaxWidthShare = .92f;
+    // The whole banner (frame, stripes, text, the 3-2-1) draws at this share of
+    // its full size, so the warning is less intrusive.
+    public const float BannerSizeScale = .6f;
 
     public struct Layout
     {
@@ -95,7 +98,7 @@ public class BossWarningHud : MonoBehaviour
 
         float bandBottom = Mathf.Min(actions.yMin, l.chip.yMin);
         if (hud.height > 0f) bandBottom = Mathf.Min(bandBottom, hud.yMin);
-        l.bannerScale = Mathf.Min(s, safe.width * BannerMaxWidthShare / BannerW);
+        l.bannerScale = Mathf.Min(s, safe.width * BannerMaxWidthShare / BannerW) * BannerSizeScale;
         l.bannerTop = new Vector2(safe.center.x, bandBottom - BannerGap * s);
         float bw = BannerW * l.bannerScale, bh = BannerH * l.bannerScale;
         l.banner = new Rect(l.bannerTop.x - bw * .5f, l.bannerTop.y - bh, bw, bh);
