@@ -86,13 +86,14 @@ public static class BossConfig
     // fight clock runs out (weighted hits add up). One hit point per heart,
     // always: it IS Hearts, so the two can never diverge (each heart is
     // exactly one full hit, HeartWeight 1). History: 3 hits / 5 hearts, then
-    // 5 / 9, then 7 / 12 (a heart ~0.58 of a hit); now 12 / 12 on the user's ask.
+    // 5 / 9, then 7 / 12 (a heart ~0.58 of a hit), then 12 / 12; now 10 / 10 on the user's ask
+    // (2026-10-18: "boss elites hearts to be 10 instead of twelve").
     public static int HitPoints => Hearts;
 
     // ---- hearts (BossHearts) ----
     // The boss wears its health as Hearts hearts spinning round it. They
     // split the same HitPoints pool into equal segments: each heart is
-    // HeartWeight full hits (HitPoints / Hearts = 12 / 12 = 1), and goes the moment its segment
+    // HeartWeight full hits (HitPoints / Hearts = 10 / 10 = 1), and goes the moment its segment
     // is spent -- so the fight is exactly as long and as hard as before,
     // the last heart going with the last hit point. (A full-weight hit
     // takes one heart, sometimes two: 5 -> 4 -> 2 -> 0 under three of them.)
@@ -101,13 +102,16 @@ public static class BossConfig
     // so 5-4 hearts is phase 1, 3-2 phase 2 and the last heart phase 3, at
     // the same thirds as the clock's.
     public const int BaseHearts = 5;
-    public const int ExtraHearts = 7;   // added to every boss on the user's ask (4, then 7: 5 + 7 = 12 hearts; HeartOrbit's ceiling is 12)
+    public const int ExtraHearts = 5;   // added to every boss on the user's ask (4, then 7, now 5: 5 + 5 = 10 hearts; HeartOrbit's ceiling is 12)
     public static int Hearts = BaseHearts + ExtraHearts;
     public static float HeartWeight => HitPoints / (float)Mathf.Max(1, Hearts);
     // Each heart's world size: the player's (ShipLivesIndicator, 0.22) x 1.3.
     public static float HeartSize = .29f;
     // One revolution of the ring, in seconds of world time.
     public static float HeartRevolutionSeconds = 5f;
+    // The ring's plane turns round the boss this many degrees a second (a
+    // full precession in half a minute), on top of the Halo's nod and rock.
+    public static float HeartPrecession = 12f;
     // The ring's gap outside the body's drawn silhouette (BossHearts.Body),
     // between the silhouette and the heart's edge.
     public static float HeartClearance = .06f;

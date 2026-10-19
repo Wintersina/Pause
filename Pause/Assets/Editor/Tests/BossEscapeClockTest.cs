@@ -5,7 +5,7 @@ using UnityEngine;
 // they take to escape ... boss should be there for 2 min before escaping, this
 // rule should be for all bosses."
 //
-// Every boss (all worlds) wears 5 hearts + 7 (12) and stays EscapeSeconds
+// Every boss (all worlds) wears 5 hearts + 5 (10) and stays EscapeSeconds
 // (120) before it escapes: one rule, from BossConfig, not per boss.
 public static class BossEscapeClockTest
 {
@@ -43,8 +43,8 @@ public static class BossEscapeClockTest
     {
         const int OldHearts = 5;
         Check("the escape clock is one named constant, 120 s (2 minutes)", BossConfig.EscapeSeconds == 120f && BossConfig.FightSeconds == BossConfig.EscapeSeconds);
-        Check("hearts = the old " + OldHearts + " + 7 = 12 (" + BossConfig.Hearts + ")",
-              BossConfig.BaseHearts == OldHearts && BossConfig.ExtraHearts == 7 && BossConfig.Hearts == 12 && BossConfig.HitPoints == 12);
+        Check("hearts = the old " + OldHearts + " + 5 = 10 (" + BossConfig.Hearts + ")",
+              BossConfig.BaseHearts == OldHearts && BossConfig.ExtraHearts == 5 && BossConfig.Hearts == 10 && BossConfig.HitPoints == 10);
         Check("the hearts still split the hit points evenly (" + BossConfig.HitPoints + " hits, " + BossConfig.HeartWeight.ToString("F3") + " a heart)",
               Mathf.Abs(BossConfig.HeartWeight * BossConfig.Hearts - BossConfig.HitPoints) < 1e-4f && BossConfig.HitPoints == BossConfig.Hearts && Mathf.Abs(BossConfig.HeartWeight - 1f) < 1e-4f);
         Check("no boss has its own hearts or clock: the catalogue holds neither", typeof(BossDef).GetField("hearts") == null && typeof(BossDef).GetField("fightSeconds") == null);
@@ -75,7 +75,7 @@ public static class BossEscapeClockTest
         e.Step(Dt, 1f);
         for (int i = 0; i < 400 && e.State == BossEncounter.Phase.Intro; i++) e.Step(Dt, 1f);
         string name = e.Boss.artKey;
-        Check(name + ": fights with " + e.HeartsLeft + " hearts (5 + 7) and a " + e.Remaining.ToString("F0") + " s clock",
+        Check(name + ": fights with " + e.HeartsLeft + " hearts (5 + 5) and a " + e.Remaining.ToString("F0") + " s clock",
               e.State == BossEncounter.Phase.Fight && e.HeartsLeft == BossConfig.Hearts && e.Actor.Hearts != null && e.Actor.Hearts.ShownCount == BossConfig.Hearts &&
               Mathf.Abs(e.Remaining - 120f) < .01f);
 

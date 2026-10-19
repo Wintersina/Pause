@@ -99,6 +99,7 @@ public static class AllTests
         ("BossEncounterTest", BossEncounterTest.Execute),
         ("BossEntranceTest", BossEntranceTest.Execute),
         ("BossHeartsTest", BossHeartsTest.Execute),
+        ("HeartsInArtTest", HeartsInArtTest.Execute),
         ("BossEscapeClockTest", BossEscapeClockTest.Execute),
         ("BossThemedTest", BossThemedTest.Execute),
         ("BossLadderTest", BossLadderTest.Execute),

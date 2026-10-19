@@ -175,7 +175,7 @@ public class EliteDef
     public float skidSpeed = 3.2f;      // floe_barge: the speed of the single slab that skids diagonally down the board (u/s on screen)
 
     // ---- colours (hex) ----
-    public string heartColor = "#C85AFF";   // hearts: magenta / violet / cyan, never the player's red
+    public string heartColor = "#FFFFFF";   // (legacy field, ignored: Resolve forces the player's heart colour on every elite, in every world)
     public string shotColor = "#FF4FD8";
     public string shotCore = "#9FF6FF";
     public string engineColor = "#FF9A3C";
@@ -189,7 +189,7 @@ public class EliteDef
     public int hearts = 2;
     public float heartSize = .18f;
     public float heartOrbit = .85f;     // orbit radius, x the hull's half-size
-    public string heartStyle = "Halo";  // HeartStyle name
+    public string heartStyle = "Atom";  // (legacy field, ignored: EliteHearts spins every elite's hearts in the player's own Atom style)
     public bool boldHearts;             // pale-hulled elite: its hearts wear the bold outline in every world (BossHeartsTest 3:1 over the hull)
 
     // ---- exhaust ----
@@ -261,7 +261,10 @@ public class EliteDef
 
     public void Resolve()
     {
-        HeartColor = Hex(heartColor, new Color(.78f, .35f, 1f));
+        // THE PLAYER'S HEART COLOUR ON EVERY ELITE (user, 2026-10-18): taken from the player's own hearts (ShipLivesIndicator.HeartTint,
+        // over the same drawing), whatever the def's heartColor says (the old defs carried magenta / violet / cyan per world). It
+        // reads over every hull and backdrop with HeartOutline's trace (EliteDef.boldHearts still forces the bold outline on pale hulls).
+        HeartColor = ShipLivesIndicator.HeartTint;
         ShotColor = Hex(shotColor, new Color(1f, .31f, .85f));
         ShotCore = Hex(shotCore, new Color(.62f, .96f, 1f));
         EngineColor = Hex(engineColor, new Color(1f, .6f, .24f));

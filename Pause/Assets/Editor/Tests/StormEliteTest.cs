@@ -200,8 +200,8 @@ public static class StormEliteTest
                   d.hearts == 2 && d.hullRadius * d.heartOrbit + d.heartSize * 1.05f < .52f);
             Check(x.key + ": tuned like its siblings (speed " + d.speed + ", gap " + d.attackGap + ", tell " + d.tellSeconds + ")",
                   d.speed >= 1.2f && d.speed <= 3.4f && d.attackGap >= 2.5f && d.attackGap <= 5.5f && d.tellSeconds >= .7f && d.avoidance >= .4f && d.avoidance <= .9f);
-            Check(x.key + ": hearts and shots are in the Storm white / cold-blue family, never red or violet (hearts " + ColorUtility.ToHtmlStringRGB(d.HeartColor) + ")",
-                  Hue(d.HeartColor) > 40f && Hue(d.HeartColor) < 240f && ((Hue(d.ShotColor) > 150f && Hue(d.ShotColor) < 240f) || (Hue(d.ShotColor) > 40f && Hue(d.ShotColor) < 70f)));
+            Check(x.key + ": shots are in the Storm white / cold-blue family, never red or violet; hearts are the player's heart colour " + ColorUtility.ToHtmlStringRGB(d.HeartColor),
+                  d.HeartColor == ShipLivesIndicator.HeartTint && ((Hue(d.ShotColor) > 150f && Hue(d.ShotColor) < 240f) || (Hue(d.ShotColor) > 40f && Hue(d.ShotColor) < 70f)));
             Check(x.key + ": lore is three sentences or fewer", d.lore.Split(new[] { ". " }, System.StringSplitOptions.RemoveEmptyEntries).Length <= 3);
         }
         Check("each Storm elite shoots its own pattern (" + shots.Count + " distinct kind / count / spread / speed)", shots.Count == 5);

@@ -38,6 +38,13 @@ public class ShipLivesIndicator : HeartOrbit
 
     int shipId;
 
+    // THE heart: the drawing (the red is painted into it) and the tint over it.
+    // Every other heart in the game (EliteHearts, BossHearts, EliteDef.HeartColor,
+    // BossDef.heartColor) takes both from here, so the player's, the elites' and
+    // the bosses' hearts are one colour and can never drift apart.
+    public const string HeartSpritePath = "Vfx/lifeHeart";
+    public static readonly Color HeartTint = Color.white;
+
     // collisionDetection: the ship was hit by something at `worldPoint`; the
     // heart it costs shields against it.
     public static void Impact(Vector3 worldPoint)
@@ -68,7 +75,7 @@ public class ShipLivesIndicator : HeartOrbit
         return had;
     }
 
-    protected override Sprite HeartSprite() { return Resources.Load<Sprite>("Vfx/lifeHeart"); }
+    protected override Sprite HeartSprite() { return Resources.Load<Sprite>(HeartSpritePath); }
 
     protected override void ResolveStyle(out HeartStyle s, out OrbitStyle o)
     {

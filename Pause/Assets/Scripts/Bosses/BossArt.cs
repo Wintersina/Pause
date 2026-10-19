@@ -102,8 +102,8 @@ public static class BossArt
     public static bool HasDamageArt(BossDef boss) => boss != null && !string.IsNullOrEmpty(boss.damageKey);
     // The hearts lost spread over the DamageStages looks: with 5 hearts one lost
     // is one stage (as it always was); with more, the same four looks are
-    // spread evenly across the longer fight (12 hearts: 1-3 lost stage 1, 4-6
-    // stage 2, 7-9 stage 3, 10+ stage 4). Never pristine once a heart is lost.
+    // spread evenly across the longer fight (10 hearts: 1-2 lost stage 1, 3-4
+    // stage 2, 5-6 stage 3, 7+ stage 4). Never pristine once a heart is lost.
     public static int DamageStage(int maxHearts, int heartsLeft)
     {
         int lost = Mathf.Clamp(maxHearts - heartsLeft, 0, Mathf.Max(0, maxHearts));
