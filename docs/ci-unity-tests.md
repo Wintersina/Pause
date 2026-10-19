@@ -20,8 +20,13 @@
   (`make test`).
 - `Pause/Library` is cached (key: ProjectVersion + `Packages/manifest.json` + hash of all
   `Assets/**/*.meta`, with fallbacks to older keys), so only changed assets re-import.
-- Superseded runs on the same PR are cancelled. Timeout 120 min. Fork PRs have no secrets and are skipped
+- One Unity Personal seat serves the whole repo: every run joins the job-level concurrency group
+  `unity-personal-seat` and waits its turn. GitHub keeps only one pending run in a group, so a newer
+  queued run replaces an older one. Timeout 120 min. Fork PRs have no secrets and are skipped
   with a notice.
+- Draft PRs are not tested. Pushing to a draft skips the job before it joins the seat queue, so it
+  never knocks out a waiting run. Mark the PR ready for review to run the tests; later pushes to a
+  ready PR run them again.
 
 ## One-time setup (repo admin)
 

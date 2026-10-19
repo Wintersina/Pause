@@ -7,6 +7,9 @@ name: Unity tests
 on:
   pull_request:
     branches: [master]
+    # Draft PRs are not tested: agents push to drafts often, and every push would
+    # take the single seat's one pending slot. Marking a PR ready runs the tests.
+    types: [opened, synchronize, reopened, ready_for_review]
   push:
     branches: [master]
   workflow_dispatch:
@@ -22,13 +25,6 @@ on:
         type: choice
         options: [xvfb, skip]
 
-# One Unity Personal seat for the whole repo: every run (any branch or PR)
-# queues for it instead of racing. GitHub keeps at most one pending run per
-# group, so a newer queued run replaces an older queued one.
-concurrency:
-  group: unity-personal-seat
-  cancel-in-progress: false
-
 permissions:
   contents: read
 
@@ -38,6 +34,16 @@ env:
 jobs:
   test:
     name: AllTests
+    # Skip draft PRs before joining the seat queue, so a draft push never
+    # replaces a waiting run.
+    if: github.event_name != 'pull_request' || !github.event.pull_request.draft
+    # One Unity Personal seat for the whole repo: every run (any branch or PR)
+    # queues for it instead of racing. GitHub keeps at most one pending run per
+    # group, so a newer queued run replaces an older queued one. This sits on the
+    # job (not the workflow) so skipped draft runs never enter the group.
+    concurrency:
+      group: unity-personal-seat
+      cancel-in-progress: false
     runs-on: ubuntu-latest
     timeout-minutes: 120
     steps:
