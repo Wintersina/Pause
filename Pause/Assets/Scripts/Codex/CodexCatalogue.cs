@@ -487,10 +487,10 @@ public static class CodexCatalogue
         // Space's breakable backdrop asteroid (not a roster rock: it never crosses the lane).
         hazards.Add(new CodexEntry(DriftAsteroidId, "Drift Asteroid", CodexCategory.Hazards, DriftAsteroidArt,
             "Cracked rocks that glow and smoulder as they tumble through the deep of Space. They look like " +
-            "scenery - they aren't. They never touch your hull, but your weapons and your ultimate break them: " +
+            "scenery but never touch your hull, and your weapons and your ultimate break them: " +
             "small ones in " + SpaceDirector.RockHitsSmall + " hit, medium in " + SpaceDirector.RockHitsMedium +
-            ", big in " + SpaceDirector.RockHitsBig + ". A hurt rock smokes harder, and each one you break pays " +
-            "+" + ScoreRules.Rock + " POINTS and star dust like any asteroid. The smoke hangs on after it's gone.",
+            ", big in " + SpaceDirector.RockHitsBig + ". Each one you break pays " +
+            "+" + ScoreRules.Rock + " POINTS and star dust like any asteroid, and its smoke hangs on after it's gone.",
             new[] { Codex.Normalise(SpaceDirector.RockObjectName) }));
         enemies.AddRange(hazards);
         return enemies;

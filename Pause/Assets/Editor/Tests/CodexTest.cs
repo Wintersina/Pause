@@ -881,6 +881,9 @@ public static class CodexTest
                 temp.Add(go);
                 Hook(id, "picking up " + go.name, () => Codex.Discover(go), toasts);
             }
+            var rock = new GameObject(SpaceDirector.RockObjectName + "(Clone)");
+            temp.Add(rock);
+            Hook(CodexCatalogue.DriftAsteroidId, "breaking a drift asteroid (AwardDestroyedTarget)", () => Codex.Discover(rock), toasts);
             var heal = new GameObject(HealAtom.ObjectName);
             temp.Add(heal);
             Hook("atom_green", "picking up the heal atom", () => Codex.Discover(heal), toasts);
@@ -2151,7 +2154,7 @@ public static class CodexTest
         panel.ShowCategory(CodexCategory.Enemies);
         panel.SkipAnimations();
         int found = -1;
-        for (int i = 0; i < panel.VisibleCards; i++) if (Codex.IsDiscovered(panel.CardEntry(i))) { found = i; break; }
+        for (int i = 0; i < panel.VisibleCards; i++) if (Codex.IsDiscovered(panel.CardEntry(i)) && panel.CardEntry(i).id != CodexCatalogue.DriftAsteroidId) { found = i; break; }
         if (found >= 0)
         {
             ScrollTo(panel, found);
