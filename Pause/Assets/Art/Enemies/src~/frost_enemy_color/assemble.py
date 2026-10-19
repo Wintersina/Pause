@@ -43,6 +43,9 @@ for i in range(n):
     canvas=Image.new('RGBA',(cs,cs),(0,0,0,0)); canvas.alpha_composite(Image.fromarray(cell,'RGBA'),(round(ox-cx),round(oy-cy)))
     if i==0: base0=canvas.copy()
     if i<4: canvas=idle(base0,i)
+    elif (np.array(canvas)[...,3]>0).any():
+        ys=np.where(np.array(canvas)[...,3]>0)[0]
+        if ys.max()>=cs-2: canvas=Image.fromarray(np.roll(np.array(canvas),-(ys.max()-(cs-3)),axis=0),'RGBA')
     out.alpha_composite(canvas,(i*cs,0))
 (H/'out').mkdir(exist_ok=True); out.save(H/'out'/f'{k}.png')
 if '--wire' in sys.argv: out.save(RES/f'{k}.png')
