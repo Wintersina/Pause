@@ -215,8 +215,8 @@ public static class DesertEliteTest
                   d.hearts == 2 && d.hullRadius * d.heartOrbit + d.heartSize * 1.05f < .52f);
             Check(x.key + ": tuned like its siblings (speed " + d.speed + ", gap " + d.attackGap + ", tell " + d.tellSeconds + ")",
                   d.speed >= 1.2f && d.speed <= 3.4f && d.attackGap >= 2.5f && d.attackGap <= 5.5f && d.tellSeconds >= .7f && d.avoidance >= .4f && d.avoidance <= .9f);
-            Check(x.key + ": hearts and shots are pale bone gold (hue 35..55, S <= .33: never amber, red or violet; hearts " + ColorUtility.ToHtmlStringRGB(d.HeartColor) + ")",
-                  Hue(d.HeartColor) > 35f && Hue(d.HeartColor) < 55f && Sat(d.HeartColor) <= .33f && Hue(d.ShotColor) > 35f && Hue(d.ShotColor) < 55f && Sat(d.ShotColor) <= .33f);
+            Check(x.key + ": shots are pale bone gold (hue 35..55, S <= .33: never amber, red or violet); hearts are the elites' orange " + ColorUtility.ToHtmlStringRGB(d.HeartColor),
+                  d.HeartColor == EliteHearts.Orange && Hue(d.ShotColor) > 35f && Hue(d.ShotColor) < 55f && Sat(d.ShotColor) <= .33f);
             Check(x.key + ": lore is three sentences or fewer", d.lore.Split(new[] { ". " }, System.StringSplitOptions.RemoveEmptyEntries).Length <= 3);
         }
         Check("each Desert elite shoots its own pattern (" + shots.Count + " distinct kind / count / spread / speed)", shots.Count == 6);

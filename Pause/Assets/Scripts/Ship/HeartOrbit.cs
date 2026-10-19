@@ -3,8 +3,8 @@ using UnityEngine;
 
 // Hearts that orbit a hull and shield it: the shared engine behind the
 // player's lives (ShipLivesIndicator), the elite ships' two hearts
-// (EliteHearts) and the bosses' five (BossHearts: one flat, evenly spaced
-// ring round the body, over it and its shots).
+// (EliteHearts) and the bosses' ten (BossHearts: one tilted, evenly spaced,
+// precessing ring round the body).
 //
 // The hearts circle the hull slowly and continuously on tilted orbits drawn
 // as 3D: a heart swinging round the back draws behind the hull (under it,
@@ -28,6 +28,13 @@ using UnityEngine;
 // a heart back into orbit. All of it is pooled (built once with the
 // hearts) and runs on scaled time, so it holds still while the world is
 // frozen.
+//
+// A heart is never lost to the art: on a big hull the tilted orbit can swing a
+// heart round the back right over the drawn hull, where "behind" would hide it.
+// An owner that says so (HidesBehindHull) has such a heart drawn above the
+// hull instead, dimmed (GhostAlpha), and back at full strength when it clears
+// the art again -- 3D still reads, and the count always does. (The player's
+// ship, whose hearts orbit just outside its small hull, never uses it.)
 //
 // Subclass hooks: RemainingHearts (how many are left), TakeImpact (the hit
 // point the next lost heart shields against), HullBounds, HeartSprite,
@@ -118,6 +125,8 @@ public abstract class HeartOrbit : MonoBehaviour
     float[] flourishIn;  // seconds to its next flourish
     float[] popLeft;
     float[] depth;       // -1 back .. 1 front
+    bool[] ghostNow;     // this frame: a back heart over the hull
+    float[] ghostAmt;    // 0..1: eased towards 1 while a back heart is over the hull (drawn above it, dimmed)
     float[] shrink;
     float[] lean;
     float[] push;
@@ -171,6 +180,8 @@ public abstract class HeartOrbit : MonoBehaviour
     public float Shrink(int i) { return shrink != null && i >= 0 && i < shrink.Length ? shrink[i] : 1f; }
     // -1 at the back of its orbit .. 1 at the front.
     public float Depth(int i) { return depth != null && i >= 0 && i < depth.Length ? depth[i] : 0f; }
+    // Heart i is round the back but over the drawn hull: drawn above, dimmed.
+    public bool Ghosted(int i) { return ghostNow != null && i >= 0 && i < ghostNow.Length && ghostNow[i]; }
     public bool InFront(int i) { return renderers != null && i >= 0 && i < renderers.Length && renderers[i] != null && renderers[i].sortingOrder == frontOrder; }
     public int FrontOrder { get { return frontOrder; } }
     public int BackOrder { get { return backOrder; } }
@@ -253,6 +264,12 @@ public abstract class HeartOrbit : MonoBehaviour
     // second) a heart closes on its even spacing behind the one ahead.
     protected virtual float KeepGain { get { return .9f; } }
     protected virtual float KeepMax { get { return .8f; } }
+    // True when world point `at` (a heart's centre, round the back of its
+    // orbit) is over the hull's drawn art, so "behind the hull" would hide it:
+    // such a heart is drawn above the hull, dimmed, instead.
+    protected virtual bool HidesBehindHull(Vector2 at) { return false; }
+    // How strong (alpha share) a heart drawn above the hull for that reason shows.
+    protected virtual float GhostAlpha { get { return .62f; } }
     // Every heart (and its shield dart and crumble) wears HeartOutline's
     // thin two-tone trace: the elites' and the bosses' hearts.
     protected virtual bool Outlined { get { return false; } }
@@ -322,6 +339,8 @@ public abstract class HeartOrbit : MonoBehaviour
         flourishIn = new float[count];
         popLeft = new float[count];
         depth = new float[count];
+        ghostAmt = new float[count];
+        ghostNow = new bool[count];
         shrink = new float[count];
         lean = new float[count];
         push = new float[count];
@@ -772,7 +791,7 @@ public abstract class HeartOrbit : MonoBehaviour
     {
         Sw(hearts, a, b); Sw(renderers, a, b); Sw(theta, a, b); Sw(dir, a, b); Sw(dirTarget, a, b);
         Sw(rollBase, a, b); Sw(tiltOwn, a, b); Sw(rollOwn, a, b); Sw(loopT, a, b); Sw(flourishIn, a, b);
-        Sw(popLeft, a, b); Sw(depth, a, b); Sw(shrink, a, b); Sw(lean, a, b); Sw(push, a, b);
+        Sw(popLeft, a, b); Sw(depth, a, b); Sw(ghostAmt, a, b); Sw(ghostNow, a, b); Sw(shrink, a, b); Sw(lean, a, b); Sw(push, a, b);
         Sw(pos, a, b); Sw(tangent, a, b);
         if (outlines != null) Sw(outlines, a, b);
     }
@@ -1054,6 +1073,11 @@ public abstract class HeartOrbit : MonoBehaviour
             depth[i] = z;
 
             bool front = z >= 0f;
+            // round the back but over the drawn hull: above it, dimmed, not hidden
+            bool ghosted = !front && HidesBehindHull(at);
+            ghostNow[i] = ghosted;
+            ghostAmt[i] = Mathf.MoveTowards(ghostAmt[i], ghosted ? 1f : 0f, 5f * dt);
+            float seen = Mathf.Lerp(1f, GhostAlpha, ghostAmt[i]);
             float depthScale = 1f + DepthScale * z;
             hearts[i].position = new Vector3(at.x, at.y, p.z - .1f - .01f * z);
             hearts[i].rotation = Quaternion.Euler(0f, 0f, lean[i]);
@@ -1063,17 +1087,17 @@ public abstract class HeartOrbit : MonoBehaviour
             if (sr != null)
             {
                 if (!sr.enabled) sr.enabled = true;
-                int order = front ? frontOrder : backOrder;
+                int order = front || ghosted ? frontOrder : backOrder;
                 if (sr.sortingOrder != order) sr.sortingOrder = order;
                 float lit = front ? 1f : 1f - DimBack * -z;
                 Color tint = HeartTint;
-                sr.color = new Color(lit * tint.r, lit * tint.g, lit * tint.b, tint.a);
+                sr.color = new Color(lit * tint.r, lit * tint.g, lit * tint.b, tint.a * seen);
                 var line = outlines != null ? outlines[i] : null;
                 if (line != null)
                 {
                     if (line.sortingOrder != order - 1) line.sortingOrder = order - 1;
                     if (!line.enabled) line.enabled = true;
-                    line.color = new Color(lit, lit, lit, tint.a * HeartOutline.Pulse(clock));
+                    line.color = new Color(lit, lit, lit, tint.a * seen * HeartOutline.Pulse(clock));
                 }
             }
         }

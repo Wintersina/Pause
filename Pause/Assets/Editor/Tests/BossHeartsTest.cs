@@ -8,11 +8,11 @@ using Object = UnityEngine.Object;
 // Feature: "The bosses should have 5 spinning hearts around them", and
 // "make the enemy elite hearts more clear: give them an outline glow".
 //
-// Every boss wears BossConfig.Hearts (5) hearts spinning round it
+// Every boss wears BossConfig.Hearts (10) hearts spinning round it, in 3D, in the elites' orange
 // (BossHearts, on the shared HeartOrbit engine): they are its health -- five
 // equal shares of the same hit points (HeartWeight each), so the fight is as
 // long as before -- and the attack phases follow them. The ring clears the
-// body's drawn silhouette, stays inside the rails and under the HUD band on
+// body's drawn silhouette (a heart swung across it is drawn above, never hidden), stays inside the rails and under the HUD band on
 // every screen shape, re-spaces evenly after each loss, goes with the boss,
 // has no colliders, freezes with the world and allocates nothing. The elite
 // and boss hearts wear HeartOutline's thin two-tone trace, which reads over
@@ -21,7 +21,7 @@ using Object = UnityEngine.Object;
 // Drives BossEncounter frame by frame (Step(realDt, timeScale)) in edit mode.
 public static class BossHeartsTest
 {
-    static int N => BossConfig.Hearts;   // 5 + 4
+    static int N => BossConfig.Hearts;   // 5 + 5
 
     static int fails;
     static void Check(string what, bool ok)
@@ -155,7 +155,7 @@ public static class BossHeartsTest
     {
         Check("a boss has " + N + " hearts (BossConfig.Hearts = base " + BossConfig.BaseHearts + " + " + BossConfig.ExtraHearts + "), splitting its " + BossConfig.HitPoints + " hit points (" +
               BossConfig.HeartWeight.ToString("F2") + " hits a heart)",
-              BossConfig.Hearts == BossConfig.BaseHearts + BossConfig.ExtraHearts && Mathf.Abs(BossConfig.HeartWeight * BossConfig.Hearts - BossConfig.HitPoints) < 1e-4f && BossConfig.HitPoints == BossConfig.Hearts && BossConfig.HitPoints == 12);
+              BossConfig.Hearts == BossConfig.BaseHearts + BossConfig.ExtraHearts && Mathf.Abs(BossConfig.HeartWeight * BossConfig.Hearts - BossConfig.HitPoints) < 1e-4f && BossConfig.HitPoints == BossConfig.Hearts && BossConfig.HitPoints == 10);
         for (int w = 0; w < BossCatalog.All.Length; w++)
         {
             FreshScene(w);
@@ -166,20 +166,25 @@ public static class BossHeartsTest
                   h.Hearts.Length == N && h.ShownCount == N && e.HeartsLeft == N && h is HeartOrbit);
             if (h == null) continue;
             var r = h.Hearts[0].GetComponent<SpriteRenderer>();
-            Check(boss.artKey + ": the elite heart drawing in its own colour, never the player's red (hue gap " +
+            Check(boss.artKey + ": the elite heart drawing in the elites' neon orange, never the player's red (hue gap " +
                   HueGap(boss.heartColor, PlayerRed).ToString("F0") + " deg)",
-                  r.sprite != null && r.sprite.name.Contains("eliteHeart") && HueGap(boss.heartColor, PlayerRed) > 30f &&
+                  r.sprite != null && r.sprite.name.Contains("eliteHeart") && boss.heartColor == EliteHearts.Orange && HueGap(boss.heartColor, PlayerRed) > 30f &&
                   HueGap(r.color, PlayerRed) > 30f);
             bool sorted = true;
-            foreach (var t in h.Hearts) sorted &= t.GetComponent<SpriteRenderer>().sortingOrder == BossConfig.HeartSortingOrder;
-            Check(boss.artKey + ": hearts draw over the boss (-3), its charges (29) and shots (30-32): order " + BossConfig.HeartSortingOrder,
-                  sorted && BossConfig.HeartSortingOrder > 32);
+            foreach (var t in h.Hearts)
+            {
+                int o = t.GetComponent<SpriteRenderer>().sortingOrder;
+                sorted &= o == BossConfig.HeartSortingOrder || o == BossActor.PlayOrder - 1;
+            }
+            Check(boss.artKey + ": hearts round the front draw over the boss (-3), its charges (29) and shots (30-32): order " + BossConfig.HeartSortingOrder +
+                  "; round the back just under the body (" + (BossActor.PlayOrder - 1) + ")",
+                  sorted && BossConfig.HeartSortingOrder > 32 && h.BackOrder == BossActor.PlayOrder - 1 && h.FrontOrder == BossConfig.HeartSortingOrder);
             float size = h.heartSize;
             Check(boss.artKey + ": boss-sized hearts, the player's 0.22 x 1.3 (" + size.ToString("F3") + ")",
                   Mathf.Abs(size - .22f * 1.3f) < .01f);
             float rev = 2f * Mathf.PI / h.OrbitParams.speed;
-            Check(boss.artKey + ": one revolution every " + rev.ToString("F1") + " s (4-6 s), flat, no warp or flourish",
-                  rev >= 4f && rev <= 6f && h.OrbitParams.tilt == 0f && h.OrbitParams.flourishEvery == 0f);
+            Check(boss.artKey + ": one revolution every " + rev.ToString("F1") + " s (4-6 s), on a tilted precessing plane (3D like the player's), no flourish",
+                  rev >= 4f && rev <= 6f && h.OrbitParams.tilt >= 30f && h.OrbitParams.precession > 0f && h.OrbitParams.flourishEvery == 0f);
             Check(boss.artKey + ": every heart wears its outline", h.HasOutlines && h.HeartOutlineRenderer(N - 1) != null);
         }
     }
@@ -381,9 +386,10 @@ public static class BossHeartsTest
                         Vector3 p = h.Hearts[i].position;
                         inside &= Mathf.Abs(p.x) + vh <= edge + 1e-3f && p.y + vh <= band + 1e-3f;
                         float dx = p.x - (rest.x + body.center.x), dy = p.y - (rest.y + body.center.y);
-                        float ax = body.width * .5f + vh, ay = body.height * .5f + vh;
+                        float ax = body.width * .5f, ay = body.height * .5f;   // (a back heart's centre over the art is drawn above it)
                         float n = (dx / ax) * (dx / ax) + (dy / ay) * (dy / ay);
-                        clear &= n >= .999f;
+                        // the tilted ring crosses the art: a heart is off the silhouette's ellipse, or drawn above the body (never hidden under it)
+                        clear &= n >= .999f || h.InFront(i);
                         float share = Mathf.Sqrt(n);
                         minShare = Mathf.Min(minShare, share);
                         maxX = Mathf.Max(maxX, Mathf.Abs(p.x));
@@ -395,7 +401,7 @@ public static class BossHeartsTest
                      maxX.ToString("F2") + " (rail " + edge.ToString("F2") + "), top y " + maxY.ToString("F2") + " (band " + band.ToString("F2") +
                      "), closest to the silhouette " + minShare.ToString("F2") + " of its ellipse+heart");
                 Check(ScreenNames[sIdx] + " " + boss.artKey + ": at rest every heart stays inside the rails and under the HUD band", inside);
-                Check(ScreenNames[sIdx] + " " + boss.artKey + ": at rest the ring clears the body's silhouette", clear);
+                Check(ScreenNames[sIdx] + " " + boss.artKey + ": at rest every heart clears the body's silhouette or is drawn above it", clear);
 
                 // swayed to either side: never under a rail (the ring flattens against it)
                 bool railOk = true;
@@ -663,8 +669,12 @@ public static class BossHeartsTest
 
             int bossWorst = int.MaxValue, eliteWorst = int.MaxValue;
             float bossShare = 1f, eliteShare = 1f;
+            int bossHearts = 0;
             for (int i = 0; i < actor.Hearts.Hearts.Length; i++)
             {
+                // round the front, full strength (round the back a heart draws under the body, dimmed, or dimmed over it)
+                if (!actor.Hearts.InFront(i) || actor.Hearts.Ghosted(i)) continue;
+                bossHearts++;
                 float share;
                 int n = StandOut(with, without, actor.Hearts.Hearts[i].position, actor.Hearts.heartSize, out share);
                 bossWorst = Mathf.Min(bossWorst, n);
@@ -683,9 +693,9 @@ public static class BossHeartsTest
                     eliteWorst = Mathf.Min(eliteWorst, n);
                     eliteShare = Mathf.Min(eliteShare, share);
                 }
-            Check(label + ": every boss heart's outline stands " + MinContrast + ":1 clear of what is behind it (at least " +
+            Check(label + ": every boss heart's outline stands " + MinContrast + ":1 clear of what is behind it (" + bossHearts + " hearts in front, at least " +
                   bossWorst + " px a heart, " + (bossShare * 100f).ToString("F0") + "% of its outline pixels; need " + MinStandOut + ")",
-                  bossWorst >= MinStandOut && bossShare >= MinShare);
+                  bossHearts > 0 && bossWorst >= MinStandOut && bossShare >= MinShare);
             Check(label + ": every elite heart's outline stands " + MinContrast + ":1 clear of the backdrop and its ship (" + eliteHearts +
                   " hearts in front, at least " + eliteWorst + " px a heart, " + (eliteShare * 100f).ToString("F0") + "% of its outline pixels; need " + MinStandOut + ")",
                   eliteHearts > 0 && eliteWorst >= MinStandOut && eliteShare >= MinShare);

@@ -1,17 +1,22 @@
 using UnityEngine;
 
-// A boss's hearts (BossConfig.Hearts): its health, spinning round it.
+// A boss's hearts (BossConfig.Hearts, 10): its health, spinning round it.
 //
 // The shared HeartOrbit engine (the player's lives, the elites' hearts) on
-// a boss's terms: one flat ring in the screen plane round the body's drawn
-// silhouette (Body, measured from each atlas's idle drawings), the hearts
-// evenly spaced and turning together once every HeartRevolutionSeconds,
-// drawn over the boss and its shots (HeartSortingOrder) and under the HUD.
-// The ring is an ellipse just clear of the body (HeartClearance past it,
-// plus half a heart); where it would cross a rail or reach the HUD band it
-// flattens against that side instead (ClampRect), so a heart never goes
-// under either on any screen. The white Vfx/eliteHeart drawn in the boss's
-// own heartColor (never the player's red), with HeartOutline's trace.
+// a boss's terms: the player's own 3D spin (the Halo style: one tilted ring
+// whose plane nods, rocks and precesses round the boss) with the hearts evenly
+// spaced and turning together once every HeartRevolutionSeconds. A heart
+// swings round the back, behind the boss (under it, smaller and dimmer), and
+// comes round the front over it and its shots (HeartSortingOrder), under
+// the HUD. The ring is sized from the body's drawn silhouette (Body, measured
+// from each atlas's idle drawings): an ellipse just clear of it (HeartClearance
+// past it, plus half a heart), so the ring's wide ends pass outside the art.
+// Where the tilt swings a back heart across the art it is drawn above the body,
+// dimmed, rather than vanishing under it (HidesBehindHull). Where the ring would
+// cross a rail or reach the HUD band it flattens against that side instead
+// (ClampRect), so a heart never goes under either on any screen. The white
+// Vfx/eliteHeart drawn in the elites' neon orange (EliteHearts.Orange; never the
+// player's red), with HeartOutline's trace.
 //
 // Hearts are drawings only -- no collider, nothing to hit or block. They pop
 // in when the fight starts; each one lost (BossEncounter: every HeartWeight
@@ -115,7 +120,7 @@ public class BossHearts : HeartOrbit
 
     public override void BuildHearts() { BuildHearts(Mathf.Max(1, BossConfig.Hearts)); }
 
-    protected override int MaxHearts { get { return 12; } }
+    protected override int MaxHearts { get { return Mathf.Max(BossConfig.Hearts, 1); } }
     protected override int RemainingHearts() { return left; }
 
     protected override bool TakeImpact(out Vector3 at)
@@ -138,16 +143,28 @@ public class BossHearts : HeartOrbit
     // still pop in.
     protected override bool PopOnRealTime { get { return true; } }
 
+    // The player's Halo orbit (ShipHeartStyles) made a boss's: one revolution
+    // every HeartRevolutionSeconds, a steady spin (no loops or turn-backs: the
+    // hearts are its health), and the plane precessing round the boss so the
+    // ring tumbles slowly in 3D instead of sitting on one tilt.
     protected override void ResolveStyle(out HeartStyle s, out OrbitStyle o)
     {
         s = HeartStyle.Halo;
-        o = new OrbitStyle
-        {
-            radius = 1f,
-            speed = 2f * Mathf.PI / Mathf.Max(.5f, BossConfig.HeartRevolutionSeconds),
-            tilt = 0f,   // flat: every heart in front of the boss all the way round
-        };
+        o = ShipHeartStyles.Orbit(s);
+        o.radius = 1f;
+        o.speed = 2f * Mathf.PI / Mathf.Max(.5f, BossConfig.HeartRevolutionSeconds);
+        o.flourishEvery = 0f;
+        o.precession = BossConfig.HeartPrecession;
         styleKey = 0;
+    }
+
+    // A back heart over the body's ellipse would be hidden by it.
+    protected override bool HidesBehindHull(Vector2 at)
+    {
+        Rect b = Body(actor != null ? actor.Boss : null);
+        Vector3 p = transform.position;
+        float dx = (at.x - (p.x + b.center.x)) / (b.width * .5f), dy = (at.y - (p.y + b.center.y)) / (b.height * .5f);
+        return dx * dx + dy * dy < 1f;
     }
 
     protected override Bounds HullBounds()
@@ -161,7 +178,8 @@ public class BossHearts : HeartOrbit
 
     protected override void SortOrders(int hullOrder, out int front, out int back)
     {
-        front = back = BossConfig.HeartSortingOrder;
+        front = BossConfig.HeartSortingOrder;   // over the boss, its charges and its shots
+        back = BossActor.PlayOrder - 1;         // round the back: just under the body
     }
 
     // Clear of the silhouette's ellipse by HeartClearance at the heart's edge.
