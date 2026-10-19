@@ -1,0 +1,4643 @@
+fileFormatVersion: 2
+guid: 0c64f15ef621c4cb3a7d7ceca63079c3
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: -9121134156062511645
+    second: frost_elite_cryo_siren_lights_0
+  - first:
+      213: -8492630380056302940
+    second: frost_elite_cryo_siren_lights_1
+  - first:
+      213: 5210627365604850952
+    second: frost_elite_cryo_siren_lights_2
+  - first:
+      213: -6715111140562453799
+    second: frost_elite_cryo_siren_lights_3
+  - first:
+      213: -66132265984739291
+    second: frost_elite_cryo_siren_lights_4
+  - first:
+      213: 2335630120633925472
+    second: frost_elite_cryo_siren_lights_5
+  - first:
+      213: 5067597964096818822
+    second: frost_elite_cryo_siren_lights_6
+  - first:
+      213: -7632740318963541335
+    second: frost_elite_cryo_siren_lights_7
+  - first:
+      213: -141662887701763075
+    second: frost_elite_cryo_siren_lights_8
+  - first:
+      213: -7934770630665366029
+    second: frost_elite_cryo_siren_lights_9
+  - first:
+      213: -3429271263516256733
+    second: frost_elite_cryo_siren_lights_10
+  - first:
+      213: -4958848000561165180
+    second: frost_elite_cryo_siren_lights_11
+  - first:
+      213: 7327356286990454469
+    second: frost_elite_cryo_siren_lights_12
+  - first:
+      213: 5876158093842927577
+    second: frost_elite_cryo_siren_lights_13
+  - first:
+      213: -2561077494979088905
+    second: frost_elite_cryo_siren_lights_14
+  - first:
+      213: -5066664356054217150
+    second: frost_elite_cryo_siren_lights_15
+  - first:
+      213: 2353607837647872182
+    second: frost_elite_cryo_siren_lights_16
+  - first:
+      213: -4757425437155273087
+    second: frost_elite_cryo_siren_lights_17
+  - first:
+      213: 8034763804169409806
+    second: frost_elite_cryo_siren_lights_18
+  - first:
+      213: -2985967622404158635
+    second: frost_elite_cryo_siren_lights_19
+  - first:
+      213: -5699938285024095534
+    second: frost_elite_cryo_siren_lights_20
+  - first:
+      213: -1747384231657959159
+    second: frost_elite_cryo_siren_lights_21
+  - first:
+      213: 3877751602059447058
+    second: frost_elite_cryo_siren_lights_22
+  - first:
+      213: -3171635113325415745
+    second: frost_elite_cryo_siren_lights_23
+  - first:
+      213: -1020755019943718799
+    second: frost_elite_cryo_siren_lights_24
+  - first:
+      213: -2056739805891964087
+    second: frost_elite_cryo_siren_lights_25
+  - first:
+      213: -1975262192232156042
+    second: frost_elite_cryo_siren_lights_26
+  - first:
+      213: 5524213705769855796
+    second: frost_elite_cryo_siren_lights_27
+  - first:
+      213: -1045606327600079333
+    second: frost_elite_cryo_siren_lights_28
+  - first:
+      213: 3346999950911620223
+    second: frost_elite_cryo_siren_lights_29
+  - first:
+      213: -5469215685594604859
+    second: frost_elite_cryo_siren_lights_30
+  - first:
+      213: 2546389354355244101
+    second: frost_elite_cryo_siren_lights_31
+  - first:
+      213: 7845127562621573256
+    second: frost_elite_cryo_siren_lights_32
+  - first:
+      213: -1236016929486948433
+    second: frost_elite_cryo_siren_lights_33
+  - first:
+      213: -6283124954173735158
+    second: frost_elite_cryo_siren_lights_34
+  - first:
+      213: 9098760647234562402
+    second: frost_elite_cryo_siren_lights_35
+  - first:
+      213: 4125319149454556132
+    second: frost_elite_cryo_siren_lights_36
+  - first:
+      213: -5824887743656192611
+    second: frost_elite_cryo_siren_lights_37
+  - first:
+      213: 8439249960115479776
+    second: frost_elite_cryo_siren_lights_38
+  - first:
+      213: -7170155370252008728
+    second: frost_elite_cryo_siren_lights_39
+  - first:
+      213: 3761974421533691993
+    second: frost_elite_cryo_siren_lights_40
+  - first:
+      213: -2351004405509562592
+    second: frost_elite_cryo_siren_lights_41
+  - first:
+      213: 2050075697434916243
+    second: frost_elite_cryo_siren_lights_42
+  - first:
+      213: -4698504161269189047
+    second: frost_elite_cryo_siren_lights_43
+  - first:
+      213: 3993591911704685437
+    second: frost_elite_cryo_siren_lights_44
+  - first:
+      213: 4285902840556545136
+    second: frost_elite_cryo_siren_lights_45
+  - first:
+      213: 5584377058273271828
+    second: frost_elite_cryo_siren_lights_46
+  - first:
+      213: 153454367468832120
+    second: frost_elite_cryo_siren_lights_47
+  - first:
+      213: -7430682810829796023
+    second: frost_elite_cryo_siren_lights_48
+  - first:
+      213: 3993603653325120318
+    second: frost_elite_cryo_siren_lights_49
+  - first:
+      213: 4468252116907506880
+    second: frost_elite_cryo_siren_lights_50
+  - first:
+      213: -6810108141638143094
+    second: frost_elite_cryo_siren_lights_51
+  - first:
+      213: -4010741686942272352
+    second: frost_elite_cryo_siren_lights_52
+  - first:
+      213: 6251057546901236326
+    second: frost_elite_cryo_siren_lights_53
+  - first:
+      213: -7856510507530034207
+    second: frost_elite_cryo_siren_lights_54
+  - first:
+      213: -8482966023071914135
+    second: frost_elite_cryo_siren_lights_55
+  - first:
+      213: 2029111065809311812
+    second: frost_elite_cryo_siren_lights_56
+  - first:
+      213: -7697417653323738254
+    second: frost_elite_cryo_siren_lights_57
+  - first:
+      213: 7367782560565091882
+    second: frost_elite_cryo_siren_lights_58
+  - first:
+      213: -6256671925532261462
+    second: frost_elite_cryo_siren_lights_59
+  - first:
+      213: -5981697133240190634
+    second: frost_elite_cryo_siren_lights_60
+  - first:
+      213: 7239692840663258205
+    second: frost_elite_cryo_siren_lights_61
+  - first:
+      213: 4958300586511750452
+    second: frost_elite_cryo_siren_lights_62
+  - first:
+      213: -3369870540485966587
+    second: frost_elite_cryo_siren_lights_63
+  - first:
+      213: 5514276594902266109
+    second: frost_elite_cryo_siren_lights_64
+  - first:
+      213: -2139000670021590841
+    second: frost_elite_cryo_siren_lights_65
+  - first:
+      213: -815423996410210989
+    second: frost_elite_cryo_siren_lights_66
+  - first:
+      213: 8690551803080057465
+    second: frost_elite_cryo_siren_lights_67
+  - first:
+      213: -931613915631885056
+    second: frost_elite_cryo_siren_lights_68
+  - first:
+      213: 6549456476939681810
+    second: frost_elite_cryo_siren_lights_69
+  - first:
+      213: -1708742995808355532
+    second: frost_elite_cryo_siren_lights_70
+  - first:
+      213: -6886373160876116528
+    second: frost_elite_cryo_siren_lights_71
+  - first:
+      213: 6361267849030928882
+    second: frost_elite_cryo_siren_lights_72
+  - first:
+      213: -7390611159000475258
+    second: frost_elite_cryo_siren_lights_73
+  - first:
+      213: -3960569829508441497
+    second: frost_elite_cryo_siren_lights_74
+  - first:
+      213: 7725966142878771788
+    second: frost_elite_cryo_siren_lights_75
+  - first:
+      213: 4885895285694562081
+    second: frost_elite_cryo_siren_lights_76
+  - first:
+      213: 7396831528148545103
+    second: frost_elite_cryo_siren_lights_77
+  - first:
+      213: 3869524583735765707
+    second: frost_elite_cryo_siren_lights_78
+  - first:
+      213: 4263765266477716552
+    second: frost_elite_cryo_siren_lights_79
+  - first:
+      213: -2607792420905601730
+    second: frost_elite_cryo_siren_lights_80
+  - first:
+      213: -5896082629942651656
+    second: frost_elite_cryo_siren_lights_81
+  - first:
+      213: -8882719983014935578
+    second: frost_elite_cryo_siren_lights_82
+  - first:
+      213: -3968445762217801710
+    second: frost_elite_cryo_siren_lights_83
+  - first:
+      213: 94196764701930995
+    second: frost_elite_cryo_siren_lights_84
+  - first:
+      213: 1229273058944849754
+    second: frost_elite_cryo_siren_lights_85
+  - first:
+      213: -4944164973858865385
+    second: frost_elite_cryo_siren_lights_86
+  - first:
+      213: 703450672491745100
+    second: frost_elite_cryo_siren_lights_87
+  - first:
+      213: -1838030172335847751
+    second: frost_elite_cryo_siren_lights_88
+  - first:
+      213: -4864902413392179822
+    second: frost_elite_cryo_siren_lights_89
+  - first:
+      213: -398787428273691135
+    second: frost_elite_cryo_siren_lights_90
+  - first:
+      213: 1925202414493120277
+    second: frost_elite_cryo_siren_lights_91
+  - first:
+      213: 2973269645685249314
+    second: frost_elite_cryo_siren_lights_92
+  - first:
+      213: -553799484468265328
+    second: frost_elite_cryo_siren_lights_93
+  - first:
+      213: 4473610232620192971
+    second: frost_elite_cryo_siren_lights_94
+  - first:
+      213: -5727864401027062539
+    second: frost_elite_cryo_siren_lights_95
+  - first:
+      213: -5693193147320122083
+    second: frost_elite_cryo_siren_lights_96
+  - first:
+      213: 6520177650235542976
+    second: frost_elite_cryo_siren_lights_97
+  - first:
+      213: 2470951499483719248
+    second: frost_elite_cryo_siren_lights_98
+  - first:
+      213: 1909970670597451139
+    second: frost_elite_cryo_siren_lights_99
+  - first:
+      213: 5887020300596172888
+    second: frost_elite_cryo_siren_lights_100
+  - first:
+      213: -850873851219810196
+    second: frost_elite_cryo_siren_lights_101
+  - first:
+      213: 5153413074762269533
+    second: frost_elite_cryo_siren_lights_102
+  - first:
+      213: 4701726249605840382
+    second: frost_elite_cryo_siren_lights_103
+  - first:
+      213: 3620396051112486837
+    second: frost_elite_cryo_siren_lights_104
+  - first:
+      213: -4932126782247925653
+    second: frost_elite_cryo_siren_lights_105
+  - first:
+      213: 1066728705550678456
+    second: frost_elite_cryo_siren_lights_106
+  - first:
+      213: 3031797875936758718
+    second: frost_elite_cryo_siren_lights_107
+  - first:
+      213: 990069547585324022
+    second: frost_elite_cryo_siren_lights_108
+  - first:
+      213: -4803712391235837577
+    second: frost_elite_cryo_siren_lights_109
+  - first:
+      213: -8384485642248975942
+    second: frost_elite_cryo_siren_lights_110
+  - first:
+      213: 1522054390676527785
+    second: frost_elite_cryo_siren_lights_111
+  - first:
+      213: -9155133844843543795
+    second: frost_elite_cryo_siren_lights_112
+  - first:
+      213: 8075054048367232056
+    second: frost_elite_cryo_siren_lights_113
+  - first:
+      213: 7160734149001926801
+    second: frost_elite_cryo_siren_lights_114
+  - first:
+      213: 1529751557190046931
+    second: frost_elite_cryo_siren_lights_115
+  - first:
+      213: 748685717084847402
+    second: frost_elite_cryo_siren_lights_116
+  - first:
+      213: -7222556477695684843
+    second: frost_elite_cryo_siren_lights_117
+  - first:
+      213: 5667124701409126894
+    second: frost_elite_cryo_siren_lights_118
+  - first:
+      213: 8392080492657644594
+    second: frost_elite_cryo_siren_lights_119
+  - first:
+      213: 2048735444458828978
+    second: frost_elite_cryo_siren_lights_120
+  - first:
+      213: 6107790969475316784
+    second: frost_elite_cryo_siren_lights_121
+  - first:
+      213: -8599922197128130701
+    second: frost_elite_cryo_siren_lights_122
+  - first:
+      213: 4242121520173187193
+    second: frost_elite_cryo_siren_lights_123
+  - first:
+      213: 2941584860499268555
+    second: frost_elite_cryo_siren_lights_124
+  - first:
+      213: -7972921927901484311
+    second: frost_elite_cryo_siren_lights_125
+  - first:
+      213: -8689261416880259781
+    second: frost_elite_cryo_siren_lights_126
+  - first:
+      213: -3202802299267623515
+    second: frost_elite_cryo_siren_lights_127
+  - first:
+      213: 6653837805528014234
+    second: frost_elite_cryo_siren_lights_128
+  - first:
+      213: 8063325997506086983
+    second: frost_elite_cryo_siren_lights_129
+  - first:
+      213: -7592883879894859528
+    second: frost_elite_cryo_siren_lights_130
+  - first:
+      213: 7651452109832486580
+    second: frost_elite_cryo_siren_lights_131
+  - first:
+      213: 6800222391622833797
+    second: frost_elite_cryo_siren_lights_132
+  - first:
+      213: -1733279050867300530
+    second: frost_elite_cryo_siren_lights_133
+  - first:
+      213: -8678304759112359241
+    second: frost_elite_cryo_siren_lights_134
+  - first:
+      213: -4547229087086005811
+    second: frost_elite_cryo_siren_lights_135
+  - first:
+      213: -6036771682156019358
+    second: frost_elite_cryo_siren_lights_136
+  - first:
+      213: 7925793514655005610
+    second: frost_elite_cryo_siren_lights_137
+  - first:
+      213: 834506106455463071
+    second: frost_elite_cryo_siren_lights_138
+  - first:
+      213: -651478070261904319
+    second: frost_elite_cryo_siren_lights_139
+  - first:
+      213: -443215063540428869
+    second: frost_elite_cryo_siren_lights_140
+  - first:
+      213: 8728737781270789247
+    second: frost_elite_cryo_siren_lights_141
+  - first:
+      213: -2741065350920470652
+    second: frost_elite_cryo_siren_lights_142
+  - first:
+      213: -8790494780009633874
+    second: frost_elite_cryo_siren_lights_143
+  - first:
+      213: -7803275181013437033
+    second: frost_elite_cryo_siren_lights_144
+  - first:
+      213: 4115004192343478325
+    second: frost_elite_cryo_siren_lights_145
+  - first:
+      213: 851737919299141070
+    second: frost_elite_cryo_siren_lights_146
+  - first:
+      213: -2950863734915043825
+    second: frost_elite_cryo_siren_lights_147
+  - first:
+      213: -2296490168161196424
+    second: frost_elite_cryo_siren_lights_148
+  - first:
+      213: 4969405469548995586
+    second: frost_elite_cryo_siren_lights_149
+  - first:
+      213: 6634622024027573745
+    second: frost_elite_cryo_siren_lights_150
+  - first:
+      213: 4324014732417179178
+    second: frost_elite_cryo_siren_lights_151
+  - first:
+      213: 7301304587485587908
+    second: frost_elite_cryo_siren_lights_152
+  - first:
+      213: 7361627793071316092
+    second: frost_elite_cryo_siren_lights_153
+  - first:
+      213: 2636212161924590638
+    second: frost_elite_cryo_siren_lights_154
+  - first:
+      213: -1850575160910150199
+    second: frost_elite_cryo_siren_lights_155
+  - first:
+      213: 2986129628941688306
+    second: frost_elite_cryo_siren_lights_156
+  - first:
+      213: -1226158022299213423
+    second: frost_elite_cryo_siren_lights_157
+  - first:
+      213: -6327368515681291024
+    second: frost_elite_cryo_siren_lights_158
+  - first:
+      213: -7020542907705476464
+    second: frost_elite_cryo_siren_lights_159
+  - first:
+      213: -6579168010499986600
+    second: frost_elite_cryo_siren_lights_160
+  - first:
+      213: 3405301119052380034
+    second: frost_elite_cryo_siren_lights_161
+  - first:
+      213: 5794923865108008572
+    second: frost_elite_cryo_siren_lights_162
+  - first:
+      213: 472304519456564174
+    second: frost_elite_cryo_siren_lights_163
+  - first:
+      213: 3765465092773400129
+    second: frost_elite_cryo_siren_lights_164
+  - first:
+      213: -981344194594776436
+    second: frost_elite_cryo_siren_lights_165
+  - first:
+      213: 7113437186973292594
+    second: frost_elite_cryo_siren_lights_166
+  - first:
+      213: 8576358960909562343
+    second: frost_elite_cryo_siren_lights_167
+  - first:
+      213: 3814609722907287641
+    second: frost_elite_cryo_siren_lights_168
+  - first:
+      213: -4766801308840469216
+    second: frost_elite_cryo_siren_lights_169
+  - first:
+      213: 4423467412635201761
+    second: frost_elite_cryo_siren_lights_170
+  - first:
+      213: -4449740072487369478
+    second: frost_elite_cryo_siren_lights_171
+  - first:
+      213: -4089076201003658654
+    second: frost_elite_cryo_siren_lights_172
+  - first:
+      213: -5923199302378415478
+    second: frost_elite_cryo_siren_lights_173
+  - first:
+      213: -3384163389770474970
+    second: frost_elite_cryo_siren_lights_174
+  - first:
+      213: 4745112963232435203
+    second: frost_elite_cryo_siren_lights_175
+  - first:
+      213: -4953725729731866327
+    second: frost_elite_cryo_siren_lights_176
+  - first:
+      213: 2212144360057406982
+    second: frost_elite_cryo_siren_lights_177
+  - first:
+      213: -7533205790555039334
+    second: frost_elite_cryo_siren_lights_178
+  - first:
+      213: 7820228880474680019
+    second: frost_elite_cryo_siren_lights_179
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 1
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 4096
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 0
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 4096
+    resizeAlgorithm: 0
+    textureFormat: 50
+    textureCompression: 1
+    compressionQuality: 100
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 1
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: iOS
+    maxTextureSize: 4096
+    resizeAlgorithm: 0
+    textureFormat: 50
+    textureCompression: 1
+    compressionQuality: 100
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 1
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_0
+      rect:
+        serializedVersion: 2
+        x: 197
+        y: 306
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3ed26379fc83b6180800000000000000
+      internalID: -9121134156062511645
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_1
+      rect:
+        serializedVersion: 2
+        x: 581
+        y: 306
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4aaad0c4aad142a80800000000000000
+      internalID: -8492630380056302940
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_2
+      rect:
+        serializedVersion: 2
+        x: 964
+        y: 305
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 80d7ecf5bfddf4840800000000000000
+      internalID: 5210627365604850952
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_3
+      rect:
+        serializedVersion: 2
+        x: 1348
+        y: 305
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9dab18feef12fc2a0800000000000000
+      internalID: -6715111140562453799
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_4
+      rect:
+        serializedVersion: 2
+        x: 1732
+        y: 305
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 528b9c1fd0d051ff0800000000000000
+      internalID: -66132265984739291
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_5
+      rect:
+        serializedVersion: 2
+        x: 2116
+        y: 305
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 06f76135833d96020800000000000000
+      internalID: 2335630120633925472
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_6
+      rect:
+        serializedVersion: 2
+        x: 2501
+        y: 306
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 68ecb72cf79b35640800000000000000
+      internalID: 5067597964096818822
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_7
+      rect:
+        serializedVersion: 2
+        x: 2885
+        y: 306
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9aa5061be1f031690800000000000000
+      internalID: -7632740318963541335
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_8
+      rect:
+        serializedVersion: 2
+        x: 3269
+        y: 306
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: dfb2eacaa56b80ef0800000000000000
+      internalID: -141662887701763075
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_9
+      rect:
+        serializedVersion: 2
+        x: 3653
+        y: 306
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3f51df0d62802e190800000000000000
+      internalID: -7934770630665366029
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_10
+      rect:
+        serializedVersion: 2
+        x: 159
+        y: 283
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 32698a374f7c860d0800000000000000
+      internalID: -3429271263516256733
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_11
+      rect:
+        serializedVersion: 2
+        x: 186
+        y: 277
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 48c456f3402ae2bb0800000000000000
+      internalID: -4958848000561165180
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_12
+      rect:
+        serializedVersion: 2
+        x: 216
+        y: 283
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5ce8ac498bfffa560800000000000000
+      internalID: 7327356286990454469
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_13
+      rect:
+        serializedVersion: 2
+        x: 542
+        y: 282
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9df4b8337ae4c8150800000000000000
+      internalID: 5876158093842927577
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_14
+      rect:
+        serializedVersion: 2
+        x: 569
+        y: 277
+        width: 11
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7fd26856699357cd0800000000000000
+      internalID: -2561077494979088905
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_15
+      rect:
+        serializedVersion: 2
+        x: 599
+        y: 282
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 24e414dcc979fa9b0800000000000000
+      internalID: -5066664356054217150
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_16
+      rect:
+        serializedVersion: 2
+        x: 925
+        y: 281
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6b0a39fbbd1b9a020800000000000000
+      internalID: 2353607837647872182
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_17
+      rect:
+        serializedVersion: 2
+        x: 953
+        y: 276
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 186d3f455ca3afdb0800000000000000
+      internalID: -4757425437155273087
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_18
+      rect:
+        serializedVersion: 2
+        x: 982
+        y: 281
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e051fa12c17318f60800000000000000
+      internalID: 8034763804169409806
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_19
+      rect:
+        serializedVersion: 2
+        x: 1310
+        y: 282
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 55b48cb8446bf86d0800000000000000
+      internalID: -2985967622404158635
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_20
+      rect:
+        serializedVersion: 2
+        x: 1337
+        y: 276
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2d25d7f4450c5e0b0800000000000000
+      internalID: -5699938285024095534
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_21
+      rect:
+        serializedVersion: 2
+        x: 1367
+        y: 282
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 90198e1ac4b00c7e0800000000000000
+      internalID: -1747384231657959159
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_22
+      rect:
+        serializedVersion: 2
+        x: 1693
+        y: 281
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 21b84ff698a80d530800000000000000
+      internalID: 3877751602059447058
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_23
+      rect:
+        serializedVersion: 2
+        x: 1721
+        y: 276
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fb235112ba61cf3d0800000000000000
+      internalID: -3171635113325415745
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_24
+      rect:
+        serializedVersion: 2
+        x: 1750
+        y: 281
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 170de81b7bc85d1f0800000000000000
+      internalID: -1020755019943718799
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_25
+      rect:
+        serializedVersion: 2
+        x: 2077
+        y: 281
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 943576a2b0ef473e0800000000000000
+      internalID: -2056739805891964087
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_26
+      rect:
+        serializedVersion: 2
+        x: 2105
+        y: 276
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6743eb560857694e0800000000000000
+      internalID: -1975262192232156042
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_27
+      rect:
+        serializedVersion: 2
+        x: 2134
+        y: 281
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 43ba1cbc813f9ac40800000000000000
+      internalID: 5524213705769855796
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_28
+      rect:
+        serializedVersion: 2
+        x: 2461
+        y: 281
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b1e1f7cb5924d71f0800000000000000
+      internalID: -1045606327600079333
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_29
+      rect:
+        serializedVersion: 2
+        x: 2488
+        y: 275
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f744651e8bee27e20800000000000000
+      internalID: 3346999950911620223
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_30
+      rect:
+        serializedVersion: 2
+        x: 2518
+        y: 281
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5ca9324af417914b0800000000000000
+      internalID: -5469215685594604859
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_31
+      rect:
+        serializedVersion: 2
+        x: 2846
+        y: 282
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 54c3e2e50a7965320800000000000000
+      internalID: 2546389354355244101
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_32
+      rect:
+        serializedVersion: 2
+        x: 2872
+        y: 275
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8885fa3f3fd7fdc60800000000000000
+      internalID: 7845127562621573256
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_33
+      rect:
+        serializedVersion: 2
+        x: 2902
+        y: 281
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fa7bf8db629c8dee0800000000000000
+      internalID: -1236016929486948433
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_34
+      rect:
+        serializedVersion: 2
+        x: 3230
+        y: 282
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a0ff413c42bddc8a0800000000000000
+      internalID: -6283124954173735158
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_35
+      rect:
+        serializedVersion: 2
+        x: 3256
+        y: 275
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 26928b2f99a454e70800000000000000
+      internalID: 9098760647234562402
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_36
+      rect:
+        serializedVersion: 2
+        x: 3287
+        y: 282
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4ebfa58d8e3104930800000000000000
+      internalID: 4125319149454556132
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_37
+      rect:
+        serializedVersion: 2
+        x: 3613
+        y: 281
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d9598de6577d92fa0800000000000000
+      internalID: -5824887743656192611
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_38
+      rect:
+        serializedVersion: 2
+        x: 3641
+        y: 276
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0e4a96b202d3e1570800000000000000
+      internalID: 8439249960115479776
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_39
+      rect:
+        serializedVersion: 2
+        x: 3670
+        y: 281
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8e205cb0ead7e7c90800000000000000
+      internalID: -7170155370252008728
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_40
+      rect:
+        serializedVersion: 2
+        x: 141
+        y: 265
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9501f99fdc7353430800000000000000
+      internalID: 3761974421533691993
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_41
+      rect:
+        serializedVersion: 2
+        x: 524
+        y: 265
+        width: 11
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 02f593803fd8f5fd0800000000000000
+      internalID: -2351004405509562592
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_42
+      rect:
+        serializedVersion: 2
+        x: 908
+        y: 264
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 395f44c2cf4537c10800000000000000
+      internalID: 2050075697434916243
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_43
+      rect:
+        serializedVersion: 2
+        x: 1292
+        y: 264
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 946fadbeb5f8bceb0800000000000000
+      internalID: -4698504161269189047
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_44
+      rect:
+        serializedVersion: 2
+        x: 1676
+        y: 264
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d7be70b4fa61c6730800000000000000
+      internalID: 3993591911704685437
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_45
+      rect:
+        serializedVersion: 2
+        x: 2060
+        y: 264
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 074e5310de59a7b30800000000000000
+      internalID: 4285902840556545136
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_46
+      rect:
+        serializedVersion: 2
+        x: 2444
+        y: 264
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4102832e851bf7d40800000000000000
+      internalID: 5584377058273271828
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_47
+      rect:
+        serializedVersion: 2
+        x: 2827
+        y: 263
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 87546362fed212200800000000000000
+      internalID: 153454367468832120
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_48
+      rect:
+        serializedVersion: 2
+        x: 3211
+        y: 263
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 94d83ed5a59e0e890800000000000000
+      internalID: -7430682810829796023
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_49
+      rect:
+        serializedVersion: 2
+        x: 3596
+        y: 264
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e33652a1d512c6730800000000000000
+      internalID: 3993603653325120318
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_50
+      rect:
+        serializedVersion: 2
+        x: 168
+        y: 241
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0ccb82360ab620e30800000000000000
+      internalID: 4468252116907506880
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_51
+      rect:
+        serializedVersion: 2
+        x: 198
+        y: 250
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a83b9a70ab2ad71a0800000000000000
+      internalID: -6810108141638143094
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_52
+      rect:
+        serializedVersion: 2
+        x: 551
+        y: 241
+        width: 11
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0a474ff7fabf658c0800000000000000
+      internalID: -4010741686942272352
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_53
+      rect:
+        serializedVersion: 2
+        x: 581
+        y: 250
+        width: 11
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 66aa29928b730c650800000000000000
+      internalID: 6251057546901236326
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_54
+      rect:
+        serializedVersion: 2
+        x: 935
+        y: 240
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1e36c88a15118f290800000000000000
+      internalID: -7856510507530034207
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_55
+      rect:
+        serializedVersion: 2
+        x: 965
+        y: 249
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9672711c853764a80800000000000000
+      internalID: -8482966023071914135
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_56
+      rect:
+        serializedVersion: 2
+        x: 1319
+        y: 240
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 448d06f73c9d82c10800000000000000
+      internalID: 2029111065809311812
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_57
+      rect:
+        serializedVersion: 2
+        x: 1349
+        y: 249
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 27351dd4d674d2590800000000000000
+      internalID: -7697417653323738254
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_58
+      rect:
+        serializedVersion: 2
+        x: 1703
+        y: 240
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a2edcc0e33f9f3660800000000000000
+      internalID: 7367782560565091882
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_59
+      rect:
+        serializedVersion: 2
+        x: 1733
+        y: 249
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: aa38d727806db29a0800000000000000
+      internalID: -6256671925532261462
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_60
+      rect:
+        serializedVersion: 2
+        x: 2087
+        y: 240
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 659fe33562ebcfca0800000000000000
+      internalID: -5981697133240190634
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_61
+      rect:
+        serializedVersion: 2
+        x: 2117
+        y: 249
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d541ca2f74e887460800000000000000
+      internalID: 7239692840663258205
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_62
+      rect:
+        serializedVersion: 2
+        x: 2471
+        y: 240
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 435d4acfc1c6fc440800000000000000
+      internalID: 4958300586511750452
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_63
+      rect:
+        serializedVersion: 2
+        x: 2501
+        y: 249
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 505c7470990db31d0800000000000000
+      internalID: -3369870540485966587
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_64
+      rect:
+        serializedVersion: 2
+        x: 2855
+        y: 240
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: df07660e855a68c40800000000000000
+      internalID: 5514276594902266109
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_65
+      rect:
+        serializedVersion: 2
+        x: 2885
+        y: 249
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7c06a09393eb052e0800000000000000
+      internalID: -2139000670021590841
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_66
+      rect:
+        serializedVersion: 2
+        x: 3239
+        y: 240
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 355d3a012380fa4f0800000000000000
+      internalID: -815423996410210989
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_67
+      rect:
+        serializedVersion: 2
+        x: 3268
+        y: 248
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 972a7b402da0b9870800000000000000
+      internalID: 8690551803080057465
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_68
+      rect:
+        serializedVersion: 2
+        x: 3623
+        y: 240
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 00563f2641e3213f0800000000000000
+      internalID: -931613915631885056
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_69
+      rect:
+        serializedVersion: 2
+        x: 3652
+        y: 248
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2100fdb17f754ea50800000000000000
+      internalID: 6549456476939681810
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_70
+      rect:
+        serializedVersion: 2
+        x: 150
+        y: 232
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 43bf7627c435948e0800000000000000
+      internalID: -1708742995808355532
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_71
+      rect:
+        serializedVersion: 2
+        x: 225
+        y: 232
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0d5f1338810be60a0800000000000000
+      internalID: -6886373160876116528
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_72
+      rect:
+        serializedVersion: 2
+        x: 533
+        y: 232
+        width: 11
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2f90a9eb763c74850800000000000000
+      internalID: 6361267849030928882
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_73
+      rect:
+        serializedVersion: 2
+        x: 608
+        y: 232
+        width: 11
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6891dbade464f6990800000000000000
+      internalID: -7390611159000475258
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_74
+      rect:
+        serializedVersion: 2
+        x: 917
+        y: 231
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 76a150c59ba3909c0800000000000000
+      internalID: -3960569829508441497
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_75
+      rect:
+        serializedVersion: 2
+        x: 992
+        y: 231
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c4aebf4e545283b60800000000000000
+      internalID: 7725966142878771788
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_76
+      rect:
+        serializedVersion: 2
+        x: 1301
+        y: 231
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 12f749130ef2ec340800000000000000
+      internalID: 4885895285694562081
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_77
+      rect:
+        serializedVersion: 2
+        x: 1376
+        y: 231
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f4e24b2b513d6a660800000000000000
+      internalID: 7396831528148545103
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_78
+      rect:
+        serializedVersion: 2
+        x: 1685
+        y: 231
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bca26377b1053b530800000000000000
+      internalID: 3869524583735765707
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_79
+      rect:
+        serializedVersion: 2
+        x: 1760
+        y: 231
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8449d026befeb2b30800000000000000
+      internalID: 4263765266477716552
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_80
+      rect:
+        serializedVersion: 2
+        x: 2069
+        y: 231
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e3537ff1c924fcbd0800000000000000
+      internalID: -2607792420905601730
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_81
+      rect:
+        serializedVersion: 2
+        x: 2144
+        y: 231
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8f4daeb3618ec2ea0800000000000000
+      internalID: -5896082629942651656
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_82
+      rect:
+        serializedVersion: 2
+        x: 2453
+        y: 231
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6e38125fc3d3ab480800000000000000
+      internalID: -8882719983014935578
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_83
+      rect:
+        serializedVersion: 2
+        x: 2528
+        y: 231
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2188a90ea9f3de8c0800000000000000
+      internalID: -3968445762217801710
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_84
+      rect:
+        serializedVersion: 2
+        x: 2837
+        y: 231
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3f5bc0b5577ae4100800000000000000
+      internalID: 94196764701930995
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_85
+      rect:
+        serializedVersion: 2
+        x: 2912
+        y: 231
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a579d5a85514f0110800000000000000
+      internalID: 1229273058944849754
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_86
+      rect:
+        serializedVersion: 2
+        x: 3221
+        y: 231
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 71fb63ec62cc26bb0800000000000000
+      internalID: -4944164973858865385
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_87
+      rect:
+        serializedVersion: 2
+        x: 3296
+        y: 231
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c4f41ead8a823c900800000000000000
+      internalID: 703450672491745100
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_88
+      rect:
+        serializedVersion: 2
+        x: 3604
+        y: 230
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9b6c87beb410e76e0800000000000000
+      internalID: -1838030172335847751
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_89
+      rect:
+        serializedVersion: 2
+        x: 3680
+        y: 231
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 29d81d6c7056c7cb0800000000000000
+      internalID: -4864902413392179822
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_90
+      rect:
+        serializedVersion: 2
+        x: 177
+        y: 214
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 106ead462f8377af0800000000000000
+      internalID: -398787428273691135
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_91
+      rect:
+        serializedVersion: 2
+        x: 198
+        y: 214
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 51736945561b7ba10800000000000000
+      internalID: 1925202414493120277
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_92
+      rect:
+        serializedVersion: 2
+        x: 560
+        y: 214
+        width: 11
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 225558c5dfc234920800000000000000
+      internalID: 2973269645685249314
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_93
+      rect:
+        serializedVersion: 2
+        x: 581
+        y: 214
+        width: 11
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 09e79739d428058f0800000000000000
+      internalID: -553799484468265328
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_94
+      rect:
+        serializedVersion: 2
+        x: 944
+        y: 213
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bc411eaedc4751e30800000000000000
+      internalID: 4473610232620192971
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_95
+      rect:
+        serializedVersion: 2
+        x: 965
+        y: 213
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5f42d2fbca98280b0800000000000000
+      internalID: -5727864401027062539
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_96
+      rect:
+        serializedVersion: 2
+        x: 1328
+        y: 213
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d15cb401ff6bdf0b0800000000000000
+      internalID: -5693193147320122083
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_97
+      rect:
+        serializedVersion: 2
+        x: 1349
+        y: 213
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0cd0bba07035c7a50800000000000000
+      internalID: 6520177650235542976
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_98
+      rect:
+        serializedVersion: 2
+        x: 1712
+        y: 213
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 05622ff0c459a4220800000000000000
+      internalID: 2470951499483719248
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_99
+      rect:
+        serializedVersion: 2
+        x: 1733
+        y: 213
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 38d20689434918a10800000000000000
+      internalID: 1909970670597451139
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_100
+      rect:
+        serializedVersion: 2
+        x: 2096
+        y: 213
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8585c8ac5c5e2b150800000000000000
+      internalID: 5887020300596172888
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_101
+      rect:
+        serializedVersion: 2
+        x: 2117
+        y: 213
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c68ef5d8db61134f0800000000000000
+      internalID: -850873851219810196
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_102
+      rect:
+        serializedVersion: 2
+        x: 2480
+        y: 213
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d530f0633e9948740800000000000000
+      internalID: 5153413074762269533
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_103
+      rect:
+        serializedVersion: 2
+        x: 2501
+        y: 213
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: efdb2eafc13ef3140800000000000000
+      internalID: 4701726249605840382
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_104
+      rect:
+        serializedVersion: 2
+        x: 2864
+        y: 213
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5b769ccd60b3e3230800000000000000
+      internalID: 3620396051112486837
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_105
+      rect:
+        serializedVersion: 2
+        x: 2885
+        y: 213
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b680ce4b2d09d8bb0800000000000000
+      internalID: -4932126782247925653
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_106
+      rect:
+        serializedVersion: 2
+        x: 3248
+        y: 213
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8b97f0e1b18cdce00800000000000000
+      internalID: 1066728705550678456
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_107
+      rect:
+        serializedVersion: 2
+        x: 3269
+        y: 213
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ebb8ef1ea1c131a20800000000000000
+      internalID: 3031797875936758718
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_108
+      rect:
+        serializedVersion: 2
+        x: 3632
+        y: 213
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6f341c6020f6dbd00800000000000000
+      internalID: 990069547585324022
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_109
+      rect:
+        serializedVersion: 2
+        x: 3652
+        y: 212
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 771ee350809c55db0800000000000000
+      internalID: -4803712391235837577
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_110
+      rect:
+        serializedVersion: 2
+        x: 156
+        y: 181
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ab903653bb254ab80800000000000000
+      internalID: -8384485642248975942
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_111
+      rect:
+        serializedVersion: 2
+        x: 216
+        y: 181
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9aa1915776c6f1510800000000000000
+      internalID: 1522054390676527785
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_112
+      rect:
+        serializedVersion: 2
+        x: 539
+        y: 181
+        width: 11
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d03c1fa264e62f080800000000000000
+      internalID: -9155133844843543795
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_113
+      rect:
+        serializedVersion: 2
+        x: 599
+        y: 181
+        width: 11
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 834420f9fda501070800000000000000
+      internalID: 8075054048367232056
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_114
+      rect:
+        serializedVersion: 2
+        x: 923
+        y: 180
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 198d442f4c9006360800000000000000
+      internalID: 7160734149001926801
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_115
+      rect:
+        serializedVersion: 2
+        x: 983
+        y: 180
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3d4d9e0bfe4ca3510800000000000000
+      internalID: 1529751557190046931
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_116
+      rect:
+        serializedVersion: 2
+        x: 1307
+        y: 180
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a2d304761bdd36a00800000000000000
+      internalID: 748685717084847402
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_117
+      rect:
+        serializedVersion: 2
+        x: 1367
+        y: 180
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 51f80c8762354cb90800000000000000
+      internalID: -7222556477695684843
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_118
+      rect:
+        serializedVersion: 2
+        x: 1691
+        y: 180
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ee92555e3eba5ae40800000000000000
+      internalID: 5667124701409126894
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_119
+      rect:
+        serializedVersion: 2
+        x: 1751
+        y: 180
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2341853beb8a67470800000000000000
+      internalID: 8392080492657644594
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_120
+      rect:
+        serializedVersion: 2
+        x: 2075
+        y: 180
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2b478b538029e6c10800000000000000
+      internalID: 2048735444458828978
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_121
+      rect:
+        serializedVersion: 2
+        x: 2135
+        y: 180
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 03c3ae9b68b33c450800000000000000
+      internalID: 6107790969475316784
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_122
+      rect:
+        serializedVersion: 2
+        x: 2459
+        y: 180
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 37f4e287350f6a880800000000000000
+      internalID: -8599922197128130701
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_123
+      rect:
+        serializedVersion: 2
+        x: 2519
+        y: 180
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 97086fffb0b0fda30800000000000000
+      internalID: 4242121520173187193
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_124
+      rect:
+        serializedVersion: 2
+        x: 2843
+        y: 180
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bc3d9be68db92d820800000000000000
+      internalID: 2941584860499268555
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_125
+      rect:
+        serializedVersion: 2
+        x: 2903
+        y: 180
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9ea6289bfbd7a5190800000000000000
+      internalID: -7972921927901484311
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_126
+      rect:
+        serializedVersion: 2
+        x: 3227
+        y: 180
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b3d385e67ca896780800000000000000
+      internalID: -8689261416880259781
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_127
+      rect:
+        serializedVersion: 2
+        x: 3287
+        y: 180
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5a5595a274c5d83d0800000000000000
+      internalID: -3202802299267623515
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_128
+      rect:
+        serializedVersion: 2
+        x: 3610
+        y: 179
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a9ddf870b3e275c50800000000000000
+      internalID: 6653837805528014234
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_129
+      rect:
+        serializedVersion: 2
+        x: 3671
+        y: 180
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 748c58df540b6ef60800000000000000
+      internalID: 8063325997506086983
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_130
+      rect:
+        serializedVersion: 2
+        x: 171
+        y: 139
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8f0c31e0758a0a690800000000000000
+      internalID: -7592883879894859528
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_131
+      rect:
+        serializedVersion: 2
+        x: 204
+        y: 139
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4be7a7e972b6f2a60800000000000000
+      internalID: 7651452109832486580
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_132
+      rect:
+        serializedVersion: 2
+        x: 225
+        y: 148
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 586165e6c3e3f5e50800000000000000
+      internalID: 6800222391622833797
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_133
+      rect:
+        serializedVersion: 2
+        x: 554
+        y: 139
+        width: 11
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e47ad64f2e722f7e0800000000000000
+      internalID: -1733279050867300530
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_134
+      rect:
+        serializedVersion: 2
+        x: 587
+        y: 139
+        width: 11
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7b2a68c1dc7709780800000000000000
+      internalID: -8678304759112359241
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_135
+      rect:
+        serializedVersion: 2
+        x: 608
+        y: 148
+        width: 11
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: dc13aefcc3ff4e0c0800000000000000
+      internalID: -4547229087086005811
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_136
+      rect:
+        serializedVersion: 2
+        x: 938
+        y: 138
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 26104f6a324193ca0800000000000000
+      internalID: -6036771682156019358
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_137
+      rect:
+        serializedVersion: 2
+        x: 971
+        y: 138
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: aab3b1c75331efd60800000000000000
+      internalID: 7925793514655005610
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_138
+      rect:
+        serializedVersion: 2
+        x: 992
+        y: 147
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f941c26e1e2c49b00800000000000000
+      internalID: 834506106455463071
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_139
+      rect:
+        serializedVersion: 2
+        x: 1322
+        y: 138
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 14c0513952c75f6f0800000000000000
+      internalID: -651478070261904319
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_140
+      rect:
+        serializedVersion: 2
+        x: 1355
+        y: 138
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bbf029a7f3269d9f0800000000000000
+      internalID: -443215063540428869
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_141
+      rect:
+        serializedVersion: 2
+        x: 1376
+        y: 147
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f7c3d26e3c4b22970800000000000000
+      internalID: 8728737781270789247
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_142
+      rect:
+        serializedVersion: 2
+        x: 1706
+        y: 138
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 48ff04c0697c5f9d0800000000000000
+      internalID: -2741065350920470652
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_143
+      rect:
+        serializedVersion: 2
+        x: 1739
+        y: 138
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ea7a9955293e10680800000000000000
+      internalID: -8790494780009633874
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_144
+      rect:
+        serializedVersion: 2
+        x: 1760
+        y: 147
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 795721ff09235b390800000000000000
+      internalID: -7803275181013437033
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_145
+      rect:
+        serializedVersion: 2
+        x: 2090
+        y: 138
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 53050edb28e6b1930800000000000000
+      internalID: 4115004192343478325
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_146
+      rect:
+        serializedVersion: 2
+        x: 2123
+        y: 138
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ecd3e89ff1bf1db00800000000000000
+      internalID: 851737919299141070
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_147
+      rect:
+        serializedVersion: 2
+        x: 2144
+        y: 147
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f0e6ec3411d6c07d0800000000000000
+      internalID: -2950863734915043825
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_148
+      rect:
+        serializedVersion: 2
+        x: 2474
+        y: 138
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 87623900c5a3120e0800000000000000
+      internalID: -2296490168161196424
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_149
+      rect:
+        serializedVersion: 2
+        x: 2507
+        y: 138
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 204e95d02ffd6f440800000000000000
+      internalID: 4969405469548995586
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_150
+      rect:
+        serializedVersion: 2
+        x: 2528
+        y: 147
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1fd85214499e21c50800000000000000
+      internalID: 6634622024027573745
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_151
+      rect:
+        serializedVersion: 2
+        x: 2858
+        y: 138
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a2e18415d7cf10c30800000000000000
+      internalID: 4324014732417179178
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_152
+      rect:
+        serializedVersion: 2
+        x: 2891
+        y: 138
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4c9220e96d1735560800000000000000
+      internalID: 7301304587485587908
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_153
+      rect:
+        serializedVersion: 2
+        x: 2912
+        y: 147
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c7c98a66971c92660800000000000000
+      internalID: 7361627793071316092
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_154
+      rect:
+        serializedVersion: 2
+        x: 3242
+        y: 138
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e2c64187ef4b59420800000000000000
+      internalID: 2636212161924590638
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_155
+      rect:
+        serializedVersion: 2
+        x: 3275
+        y: 138
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9c50ac722bf6156e0800000000000000
+      internalID: -1850575160910150199
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_156
+      rect:
+        serializedVersion: 2
+        x: 3296
+        y: 147
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2fd965a831dd07920800000000000000
+      internalID: 2986129628941688306
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_157
+      rect:
+        serializedVersion: 2
+        x: 3625
+        y: 137
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1912c5276cfcbfee0800000000000000
+      internalID: -1226158022299213423
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_158
+      rect:
+        serializedVersion: 2
+        x: 3659
+        y: 138
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0f473dbdbdba038a0800000000000000
+      internalID: -6327368515681291024
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_159
+      rect:
+        serializedVersion: 2
+        x: 3679
+        y: 146
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 09ab3dffb65029e90800000000000000
+      internalID: -7020542907705476464
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_160
+      rect:
+        serializedVersion: 2
+        x: 200
+        y: 117
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 85be8886d8912b4a0800000000000000
+      internalID: -6579168010499986600
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_161
+      rect:
+        serializedVersion: 2
+        x: 584
+        y: 118
+        width: 11
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2877b52635f024f20800000000000000
+      internalID: 3405301119052380034
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_162
+      rect:
+        serializedVersion: 2
+        x: 968
+        y: 117
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c7e42307d84bb6050800000000000000
+      internalID: 5794923865108008572
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_163
+      rect:
+        serializedVersion: 2
+        x: 1351
+        y: 116
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ec325044576fd8600800000000000000
+      internalID: 472304519456564174
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_164
+      rect:
+        serializedVersion: 2
+        x: 1736
+        y: 117
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 14e44e43d8e914430800000000000000
+      internalID: 3765465092773400129
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_165
+      rect:
+        serializedVersion: 2
+        x: 2120
+        y: 117
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c8a59c687a09162f0800000000000000
+      internalID: -981344194594776436
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_166
+      rect:
+        serializedVersion: 2
+        x: 2504
+        y: 117
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 238d895de6108b260800000000000000
+      internalID: 7113437186973292594
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_167
+      rect:
+        serializedVersion: 2
+        x: 2888
+        y: 117
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7e1b0431909550770800000000000000
+      internalID: 8576358960909562343
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_168
+      rect:
+        serializedVersion: 2
+        x: 3272
+        y: 117
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 950e3a2155730f430800000000000000
+      internalID: 3814609722907287641
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_169
+      rect:
+        serializedVersion: 2
+        x: 3656
+        y: 117
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 02d52b7177be8ddb0800000000000000
+      internalID: -4766801308840469216
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_170
+      rect:
+        serializedVersion: 2
+        x: 197
+        y: 96
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1e033addc20536d30800000000000000
+      internalID: 4423467412635201761
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_171
+      rect:
+        serializedVersion: 2
+        x: 581
+        y: 96
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: af4c194daf85f32c0800000000000000
+      internalID: -4449740072487369478
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_172
+      rect:
+        serializedVersion: 2
+        x: 964
+        y: 95
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2625cab2cdea047c0800000000000000
+      internalID: -4089076201003658654
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_173
+      rect:
+        serializedVersion: 2
+        x: 1348
+        y: 95
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a8a94efed919ccda0800000000000000
+      internalID: -5923199302378415478
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_174
+      rect:
+        serializedVersion: 2
+        x: 1732
+        y: 95
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 62a59dab3590901d0800000000000000
+      internalID: -3384163389770474970
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_175
+      rect:
+        serializedVersion: 2
+        x: 2116
+        y: 95
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 30c029079170ad140800000000000000
+      internalID: 4745112963232435203
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_176
+      rect:
+        serializedVersion: 2
+        x: 2500
+        y: 95
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9219e9cd1b4d04bb0800000000000000
+      internalID: -4953725729731866327
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_177
+      rect:
+        serializedVersion: 2
+        x: 2884
+        y: 95
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6060b15339d13be10800000000000000
+      internalID: 2212144360057406982
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_178
+      rect:
+        serializedVersion: 2
+        x: 3268
+        y: 95
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a991d020f3da47790800000000000000
+      internalID: -7533205790555039334
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_cryo_siren_lights_179
+      rect:
+        serializedVersion: 2
+        x: 3652
+        y: 95
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3daa1f2cbb8078c60800000000000000
+      internalID: 7820228880474680019
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 5e97eb03825dee720800000000000000
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable: {}
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

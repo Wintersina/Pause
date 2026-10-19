@@ -1,0 +1,4643 @@
+fileFormatVersion: 2
+guid: 4ef947303f9ec4b49a06ba5bdfd23020
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 3433250884831274780
+    second: frost_elite_glacier_tender_lights_0
+  - first:
+      213: -4206714784475722064
+    second: frost_elite_glacier_tender_lights_1
+  - first:
+      213: 2090294315537362479
+    second: frost_elite_glacier_tender_lights_2
+  - first:
+      213: -3893029885650459353
+    second: frost_elite_glacier_tender_lights_3
+  - first:
+      213: 3290913785087219654
+    second: frost_elite_glacier_tender_lights_4
+  - first:
+      213: -5720079438031771353
+    second: frost_elite_glacier_tender_lights_5
+  - first:
+      213: -3456072144018531107
+    second: frost_elite_glacier_tender_lights_6
+  - first:
+      213: -3740059770667642874
+    second: frost_elite_glacier_tender_lights_7
+  - first:
+      213: -4855629816937570631
+    second: frost_elite_glacier_tender_lights_8
+  - first:
+      213: -6948027081468013796
+    second: frost_elite_glacier_tender_lights_9
+  - first:
+      213: 499819069653425953
+    second: frost_elite_glacier_tender_lights_10
+  - first:
+      213: 2546815053425986699
+    second: frost_elite_glacier_tender_lights_11
+  - first:
+      213: -241274019361383816
+    second: frost_elite_glacier_tender_lights_12
+  - first:
+      213: 5849210045100055601
+    second: frost_elite_glacier_tender_lights_13
+  - first:
+      213: -4801572078712254763
+    second: frost_elite_glacier_tender_lights_14
+  - first:
+      213: 8402801676881322608
+    second: frost_elite_glacier_tender_lights_15
+  - first:
+      213: 6755610921290102477
+    second: frost_elite_glacier_tender_lights_16
+  - first:
+      213: -3704464390616479500
+    second: frost_elite_glacier_tender_lights_17
+  - first:
+      213: -4580307367377335684
+    second: frost_elite_glacier_tender_lights_18
+  - first:
+      213: 8975479418127079699
+    second: frost_elite_glacier_tender_lights_19
+  - first:
+      213: 5272497926239223600
+    second: frost_elite_glacier_tender_lights_20
+  - first:
+      213: -1548298267176942924
+    second: frost_elite_glacier_tender_lights_21
+  - first:
+      213: -5142325055600321560
+    second: frost_elite_glacier_tender_lights_22
+  - first:
+      213: -680358549517220685
+    second: frost_elite_glacier_tender_lights_23
+  - first:
+      213: -102764473231858323
+    second: frost_elite_glacier_tender_lights_24
+  - first:
+      213: -1358745868426671692
+    second: frost_elite_glacier_tender_lights_25
+  - first:
+      213: 3850376958986826150
+    second: frost_elite_glacier_tender_lights_26
+  - first:
+      213: 7196416013665649097
+    second: frost_elite_glacier_tender_lights_27
+  - first:
+      213: 6947060889277252910
+    second: frost_elite_glacier_tender_lights_28
+  - first:
+      213: -6199977166295329184
+    second: frost_elite_glacier_tender_lights_29
+  - first:
+      213: -7839469662955174496
+    second: frost_elite_glacier_tender_lights_30
+  - first:
+      213: 105491948994568999
+    second: frost_elite_glacier_tender_lights_31
+  - first:
+      213: -9174582489263924792
+    second: frost_elite_glacier_tender_lights_32
+  - first:
+      213: 8628476483824424358
+    second: frost_elite_glacier_tender_lights_33
+  - first:
+      213: -1131808110773450075
+    second: frost_elite_glacier_tender_lights_34
+  - first:
+      213: -8551149520184310698
+    second: frost_elite_glacier_tender_lights_35
+  - first:
+      213: 513913719288592211
+    second: frost_elite_glacier_tender_lights_36
+  - first:
+      213: -1207347757659628385
+    second: frost_elite_glacier_tender_lights_37
+  - first:
+      213: -258804564378219317
+    second: frost_elite_glacier_tender_lights_38
+  - first:
+      213: -3794829581936297556
+    second: frost_elite_glacier_tender_lights_39
+  - first:
+      213: -5689849674831912571
+    second: frost_elite_glacier_tender_lights_40
+  - first:
+      213: 6249559896474281945
+    second: frost_elite_glacier_tender_lights_41
+  - first:
+      213: -8382802806612878704
+    second: frost_elite_glacier_tender_lights_42
+  - first:
+      213: -7598405746740080340
+    second: frost_elite_glacier_tender_lights_43
+  - first:
+      213: -8156943801081006335
+    second: frost_elite_glacier_tender_lights_44
+  - first:
+      213: -781610944254197241
+    second: frost_elite_glacier_tender_lights_45
+  - first:
+      213: 8747096252479784411
+    second: frost_elite_glacier_tender_lights_46
+  - first:
+      213: 8701255458570483012
+    second: frost_elite_glacier_tender_lights_47
+  - first:
+      213: -1898218236749312039
+    second: frost_elite_glacier_tender_lights_48
+  - first:
+      213: -7554091738728332547
+    second: frost_elite_glacier_tender_lights_49
+  - first:
+      213: 5220798460485690926
+    second: frost_elite_glacier_tender_lights_50
+  - first:
+      213: 6776304459638321487
+    second: frost_elite_glacier_tender_lights_51
+  - first:
+      213: -6753486368346133569
+    second: frost_elite_glacier_tender_lights_52
+  - first:
+      213: -9161816494479245091
+    second: frost_elite_glacier_tender_lights_53
+  - first:
+      213: -3726729889736443082
+    second: frost_elite_glacier_tender_lights_54
+  - first:
+      213: -5446062634917861264
+    second: frost_elite_glacier_tender_lights_55
+  - first:
+      213: 8520168879755562585
+    second: frost_elite_glacier_tender_lights_56
+  - first:
+      213: -4405029944090811394
+    second: frost_elite_glacier_tender_lights_57
+  - first:
+      213: 501467152681817498
+    second: frost_elite_glacier_tender_lights_58
+  - first:
+      213: 3127883846557290303
+    second: frost_elite_glacier_tender_lights_59
+  - first:
+      213: -9122071700602262425
+    second: frost_elite_glacier_tender_lights_60
+  - first:
+      213: 6147021460112274667
+    second: frost_elite_glacier_tender_lights_61
+  - first:
+      213: -8970970038561306379
+    second: frost_elite_glacier_tender_lights_62
+  - first:
+      213: -4063500421592510396
+    second: frost_elite_glacier_tender_lights_63
+  - first:
+      213: 1290486556052362452
+    second: frost_elite_glacier_tender_lights_64
+  - first:
+      213: -4239352083039452541
+    second: frost_elite_glacier_tender_lights_65
+  - first:
+      213: 7635487917093134868
+    second: frost_elite_glacier_tender_lights_66
+  - first:
+      213: -1820999465901069563
+    second: frost_elite_glacier_tender_lights_67
+  - first:
+      213: -8627448567031457412
+    second: frost_elite_glacier_tender_lights_68
+  - first:
+      213: 3721540288180052289
+    second: frost_elite_glacier_tender_lights_69
+  - first:
+      213: 9079046063652542672
+    second: frost_elite_glacier_tender_lights_70
+  - first:
+      213: 889820285722784643
+    second: frost_elite_glacier_tender_lights_71
+  - first:
+      213: -5421395255931581656
+    second: frost_elite_glacier_tender_lights_72
+  - first:
+      213: 7672974827049093862
+    second: frost_elite_glacier_tender_lights_73
+  - first:
+      213: -8815193904971186984
+    second: frost_elite_glacier_tender_lights_74
+  - first:
+      213: -7324509770749040208
+    second: frost_elite_glacier_tender_lights_75
+  - first:
+      213: 5294474986994127661
+    second: frost_elite_glacier_tender_lights_76
+  - first:
+      213: -4243621839403529148
+    second: frost_elite_glacier_tender_lights_77
+  - first:
+      213: -2612684717024510996
+    second: frost_elite_glacier_tender_lights_78
+  - first:
+      213: 3941243975399723419
+    second: frost_elite_glacier_tender_lights_79
+  - first:
+      213: 8634653084913174705
+    second: frost_elite_glacier_tender_lights_80
+  - first:
+      213: 5155247281620749180
+    second: frost_elite_glacier_tender_lights_81
+  - first:
+      213: 7442501010596168299
+    second: frost_elite_glacier_tender_lights_82
+  - first:
+      213: -7483259248326423619
+    second: frost_elite_glacier_tender_lights_83
+  - first:
+      213: -6581055777327222101
+    second: frost_elite_glacier_tender_lights_84
+  - first:
+      213: -1593961705612531216
+    second: frost_elite_glacier_tender_lights_85
+  - first:
+      213: 1379336205366029584
+    second: frost_elite_glacier_tender_lights_86
+  - first:
+      213: -7671010338563265426
+    second: frost_elite_glacier_tender_lights_87
+  - first:
+      213: -2479153690493896714
+    second: frost_elite_glacier_tender_lights_88
+  - first:
+      213: 2513503394993058403
+    second: frost_elite_glacier_tender_lights_89
+  - first:
+      213: 4897491135372613386
+    second: frost_elite_glacier_tender_lights_90
+  - first:
+      213: -288689964619161560
+    second: frost_elite_glacier_tender_lights_91
+  - first:
+      213: 5986926285185055969
+    second: frost_elite_glacier_tender_lights_92
+  - first:
+      213: 2171910916646125221
+    second: frost_elite_glacier_tender_lights_93
+  - first:
+      213: -3846580703980064185
+    second: frost_elite_glacier_tender_lights_94
+  - first:
+      213: 8983537315519585029
+    second: frost_elite_glacier_tender_lights_95
+  - first:
+      213: 2560508278257596227
+    second: frost_elite_glacier_tender_lights_96
+  - first:
+      213: -4457290392300241085
+    second: frost_elite_glacier_tender_lights_97
+  - first:
+      213: 9097437618046449993
+    second: frost_elite_glacier_tender_lights_98
+  - first:
+      213: -4977198488659349872
+    second: frost_elite_glacier_tender_lights_99
+  - first:
+      213: 3722872724102717744
+    second: frost_elite_glacier_tender_lights_100
+  - first:
+      213: 1477036710298627539
+    second: frost_elite_glacier_tender_lights_101
+  - first:
+      213: 8727760817709481550
+    second: frost_elite_glacier_tender_lights_102
+  - first:
+      213: 4590060094362945274
+    second: frost_elite_glacier_tender_lights_103
+  - first:
+      213: -7320994234689063721
+    second: frost_elite_glacier_tender_lights_104
+  - first:
+      213: 864131332621064567
+    second: frost_elite_glacier_tender_lights_105
+  - first:
+      213: 7893459428947620529
+    second: frost_elite_glacier_tender_lights_106
+  - first:
+      213: 8118713839673546439
+    second: frost_elite_glacier_tender_lights_107
+  - first:
+      213: 2288599927641741411
+    second: frost_elite_glacier_tender_lights_108
+  - first:
+      213: -5982912790223822425
+    second: frost_elite_glacier_tender_lights_109
+  - first:
+      213: -2045913188939247825
+    second: frost_elite_glacier_tender_lights_110
+  - first:
+      213: -1956620482756822745
+    second: frost_elite_glacier_tender_lights_111
+  - first:
+      213: -5188949030975330077
+    second: frost_elite_glacier_tender_lights_112
+  - first:
+      213: -7385274165480789078
+    second: frost_elite_glacier_tender_lights_113
+  - first:
+      213: 2364440546747612399
+    second: frost_elite_glacier_tender_lights_114
+  - first:
+      213: -5257525827658582914
+    second: frost_elite_glacier_tender_lights_115
+  - first:
+      213: -2993952393827073637
+    second: frost_elite_glacier_tender_lights_116
+  - first:
+      213: -2914106644025145576
+    second: frost_elite_glacier_tender_lights_117
+  - first:
+      213: 4020626424960992480
+    second: frost_elite_glacier_tender_lights_118
+  - first:
+      213: -4756500977117309541
+    second: frost_elite_glacier_tender_lights_119
+  - first:
+      213: -5933526679597874062
+    second: frost_elite_glacier_tender_lights_120
+  - first:
+      213: -6438483418964655020
+    second: frost_elite_glacier_tender_lights_121
+  - first:
+      213: -4316601031672045150
+    second: frost_elite_glacier_tender_lights_122
+  - first:
+      213: 2503841548381842331
+    second: frost_elite_glacier_tender_lights_123
+  - first:
+      213: 3314978315451000707
+    second: frost_elite_glacier_tender_lights_124
+  - first:
+      213: 433802884011195857
+    second: frost_elite_glacier_tender_lights_125
+  - first:
+      213: 5718746146207096181
+    second: frost_elite_glacier_tender_lights_126
+  - first:
+      213: -2926985727309103657
+    second: frost_elite_glacier_tender_lights_127
+  - first:
+      213: -304364292152513831
+    second: frost_elite_glacier_tender_lights_128
+  - first:
+      213: -2726841496305922011
+    second: frost_elite_glacier_tender_lights_129
+  - first:
+      213: 3042217923636399632
+    second: frost_elite_glacier_tender_lights_130
+  - first:
+      213: 7615578710144732936
+    second: frost_elite_glacier_tender_lights_131
+  - first:
+      213: 4638362101031933284
+    second: frost_elite_glacier_tender_lights_132
+  - first:
+      213: -8554175722242958711
+    second: frost_elite_glacier_tender_lights_133
+  - first:
+      213: -2766578498532800252
+    second: frost_elite_glacier_tender_lights_134
+  - first:
+      213: 6597865102353383690
+    second: frost_elite_glacier_tender_lights_135
+  - first:
+      213: -8617956938118267985
+    second: frost_elite_glacier_tender_lights_136
+  - first:
+      213: 7334334991827935117
+    second: frost_elite_glacier_tender_lights_137
+  - first:
+      213: 6373425452869022551
+    second: frost_elite_glacier_tender_lights_138
+  - first:
+      213: -8604535523809469717
+    second: frost_elite_glacier_tender_lights_139
+  - first:
+      213: 4830370284297253278
+    second: frost_elite_glacier_tender_lights_140
+  - first:
+      213: 6658318434982964292
+    second: frost_elite_glacier_tender_lights_141
+  - first:
+      213: 5782633428555050421
+    second: frost_elite_glacier_tender_lights_142
+  - first:
+      213: 504797057613275699
+    second: frost_elite_glacier_tender_lights_143
+  - first:
+      213: -410576832324818013
+    second: frost_elite_glacier_tender_lights_144
+  - first:
+      213: 5481084587101262469
+    second: frost_elite_glacier_tender_lights_145
+  - first:
+      213: -8229922450728453017
+    second: frost_elite_glacier_tender_lights_146
+  - first:
+      213: -2092793233855707966
+    second: frost_elite_glacier_tender_lights_147
+  - first:
+      213: 5285354077461811576
+    second: frost_elite_glacier_tender_lights_148
+  - first:
+      213: 4940809434303228734
+    second: frost_elite_glacier_tender_lights_149
+  - first:
+      213: 6804913475172235395
+    second: frost_elite_glacier_tender_lights_150
+  - first:
+      213: -1856236669595833101
+    second: frost_elite_glacier_tender_lights_151
+  - first:
+      213: -3820941365778057638
+    second: frost_elite_glacier_tender_lights_152
+  - first:
+      213: -3376894696704246107
+    second: frost_elite_glacier_tender_lights_153
+  - first:
+      213: -4560936227344762852
+    second: frost_elite_glacier_tender_lights_154
+  - first:
+      213: -4136075673038162977
+    second: frost_elite_glacier_tender_lights_155
+  - first:
+      213: -4622861079706204132
+    second: frost_elite_glacier_tender_lights_156
+  - first:
+      213: -3777276155030978939
+    second: frost_elite_glacier_tender_lights_157
+  - first:
+      213: -966961890155304076
+    second: frost_elite_glacier_tender_lights_158
+  - first:
+      213: 3375802876196265417
+    second: frost_elite_glacier_tender_lights_159
+  - first:
+      213: -2460090238081432802
+    second: frost_elite_glacier_tender_lights_160
+  - first:
+      213: -4363853237246782673
+    second: frost_elite_glacier_tender_lights_161
+  - first:
+      213: 7152030935348293976
+    second: frost_elite_glacier_tender_lights_162
+  - first:
+      213: -3827116344221938813
+    second: frost_elite_glacier_tender_lights_163
+  - first:
+      213: 6218043841766688284
+    second: frost_elite_glacier_tender_lights_164
+  - first:
+      213: 5853530267032661475
+    second: frost_elite_glacier_tender_lights_165
+  - first:
+      213: -2075697831703913570
+    second: frost_elite_glacier_tender_lights_166
+  - first:
+      213: -2404848690282723174
+    second: frost_elite_glacier_tender_lights_167
+  - first:
+      213: 7748756397104543249
+    second: frost_elite_glacier_tender_lights_168
+  - first:
+      213: -6124621160294498677
+    second: frost_elite_glacier_tender_lights_169
+  - first:
+      213: -2437229665802682771
+    second: frost_elite_glacier_tender_lights_170
+  - first:
+      213: -759206300858422928
+    second: frost_elite_glacier_tender_lights_171
+  - first:
+      213: -789985187996438615
+    second: frost_elite_glacier_tender_lights_172
+  - first:
+      213: 7282293706194631173
+    second: frost_elite_glacier_tender_lights_173
+  - first:
+      213: 4003900055568251350
+    second: frost_elite_glacier_tender_lights_174
+  - first:
+      213: 4160317545070319319
+    second: frost_elite_glacier_tender_lights_175
+  - first:
+      213: -1412151491102397356
+    second: frost_elite_glacier_tender_lights_176
+  - first:
+      213: 5616994120264844020
+    second: frost_elite_glacier_tender_lights_177
+  - first:
+      213: -744305729808599694
+    second: frost_elite_glacier_tender_lights_178
+  - first:
+      213: 7696805582365162779
+    second: frost_elite_glacier_tender_lights_179
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 1
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 4096
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 0
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 4096
+    resizeAlgorithm: 0
+    textureFormat: 50
+    textureCompression: 1
+    compressionQuality: 100
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 1
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: iOS
+    maxTextureSize: 4096
+    resizeAlgorithm: 0
+    textureFormat: 50
+    textureCompression: 1
+    compressionQuality: 100
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 1
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_0
+      rect:
+        serializedVersion: 2
+        x: 155
+        y: 290
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c17e9275d7b55af20800000000000000
+      internalID: 3433250884831274780
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_1
+      rect:
+        serializedVersion: 2
+        x: 223
+        y: 292
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0bec0ff013fbe95c0800000000000000
+      internalID: -4206714784475722064
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_2
+      rect:
+        serializedVersion: 2
+        x: 538
+        y: 289
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f2e6f99ea97320d10800000000000000
+      internalID: 2090294315537362479
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_3
+      rect:
+        serializedVersion: 2
+        x: 607
+        y: 292
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 72523d5f1fd29f9c0800000000000000
+      internalID: -3893029885650459353
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_4
+      rect:
+        serializedVersion: 2
+        x: 921
+        y: 288
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6c75f8ac6acabad20800000000000000
+      internalID: 3290913785087219654
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_5
+      rect:
+        serializedVersion: 2
+        x: 963
+        y: 279
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 729a911be023e90b0800000000000000
+      internalID: -5720079438031771353
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_6
+      rect:
+        serializedVersion: 2
+        x: 990
+        y: 291
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ddc17a132b09900d0800000000000000
+      internalID: -3456072144018531107
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_7
+      rect:
+        serializedVersion: 2
+        x: 1306
+        y: 289
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 60050aa4473a81cc0800000000000000
+      internalID: -3740059770667642874
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_8
+      rect:
+        serializedVersion: 2
+        x: 1374
+        y: 291
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9be14a068665d9cb0800000000000000
+      internalID: -4855629816937570631
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_9
+      rect:
+        serializedVersion: 2
+        x: 1689
+        y: 288
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c131e4f7e26a39f90800000000000000
+      internalID: -6948027081468013796
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_10
+      rect:
+        serializedVersion: 2
+        x: 1731
+        y: 279
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 12f98a2bbc6bfe600800000000000000
+      internalID: 499819069653425953
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_11
+      rect:
+        serializedVersion: 2
+        x: 1758
+        y: 291
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b8cc2182cca185320800000000000000
+      internalID: 2546815053425986699
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_12
+      rect:
+        serializedVersion: 2
+        x: 2073
+        y: 288
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 87a1f66ce82d6acf0800000000000000
+      internalID: -241274019361383816
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_13
+      rect:
+        serializedVersion: 2
+        x: 2115
+        y: 279
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 13cd5daab819c2150800000000000000
+      internalID: 5849210045100055601
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_14
+      rect:
+        serializedVersion: 2
+        x: 2142
+        y: 291
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5de0cec52a36d5db0800000000000000
+      internalID: -4801572078712254763
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_15
+      rect:
+        serializedVersion: 2
+        x: 2457
+        y: 288
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 072619cea9fbc9470800000000000000
+      internalID: 8402801676881322608
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_16
+      rect:
+        serializedVersion: 2
+        x: 2499
+        y: 279
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: dc6fe341750c0cd50800000000000000
+      internalID: 6755610921290102477
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_17
+      rect:
+        serializedVersion: 2
+        x: 2527
+        y: 292
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4f8883a8349179cc0800000000000000
+      internalID: -3704464390616479500
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_18
+      rect:
+        serializedVersion: 2
+        x: 2842
+        y: 289
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c7a8e5587ba7f60c0800000000000000
+      internalID: -4580307367377335684
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_19
+      rect:
+        serializedVersion: 2
+        x: 2883
+        y: 279
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3195b460afe4f8c70800000000000000
+      internalID: 8975479418127079699
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_20
+      rect:
+        serializedVersion: 2
+        x: 2911
+        y: 292
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 03ff874ddecab2940800000000000000
+      internalID: 5272497926239223600
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_21
+      rect:
+        serializedVersion: 2
+        x: 3226
+        y: 289
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4b2c092ede6538ae0800000000000000
+      internalID: -1548298267176942924
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_22
+      rect:
+        serializedVersion: 2
+        x: 3295
+        y: 292
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8eb1a5d6b9ac2a8b0800000000000000
+      internalID: -5142325055600321560
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_23
+      rect:
+        serializedVersion: 2
+        x: 3609
+        y: 288
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3b440200181ee86f0800000000000000
+      internalID: -680358549517220685
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_24
+      rect:
+        serializedVersion: 2
+        x: 3651
+        y: 279
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d652c7d8148e29ef0800000000000000
+      internalID: -102764473231858323
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_25
+      rect:
+        serializedVersion: 2
+        x: 3679
+        y: 292
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4b90664e4d3c42de0800000000000000
+      internalID: -1358745868426671692
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_26
+      rect:
+        serializedVersion: 2
+        x: 176
+        y: 272
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6a132cba1794f6530800000000000000
+      internalID: 3850376958986826150
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_27
+      rect:
+        serializedVersion: 2
+        x: 197
+        y: 281
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9c149767c3eced360800000000000000
+      internalID: 7196416013665649097
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_28
+      rect:
+        serializedVersion: 2
+        x: 559
+        y: 272
+        width: 11
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e25416a521be86060800000000000000
+      internalID: 6947060889277252910
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_29
+      rect:
+        serializedVersion: 2
+        x: 580
+        y: 280
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0661f6bbd9145f9a0800000000000000
+      internalID: -6199977166295329184
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_30
+      rect:
+        serializedVersion: 2
+        x: 943
+        y: 271
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0a50b1870eb943390800000000000000
+      internalID: -7839469662955174496
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_31
+      rect:
+        serializedVersion: 2
+        x: 1327
+        y: 271
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7232c726e58c67100800000000000000
+      internalID: 105491948994568999
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_32
+      rect:
+        serializedVersion: 2
+        x: 1348
+        y: 280
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8c997e4c5d55da080800000000000000
+      internalID: -9174582489263924792
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_33
+      rect:
+        serializedVersion: 2
+        x: 1711
+        y: 271
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6a59a2b75a18eb770800000000000000
+      internalID: 8628476483824424358
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_34
+      rect:
+        serializedVersion: 2
+        x: 2095
+        y: 271
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5aa417315820b40f0800000000000000
+      internalID: -1131808110773450075
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_35
+      rect:
+        serializedVersion: 2
+        x: 2478
+        y: 270
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 654892c31d6345980800000000000000
+      internalID: -8551149520184310698
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_36
+      rect:
+        serializedVersion: 2
+        x: 2862
+        y: 270
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 357756b0ec9c12700800000000000000
+      internalID: 513913719288592211
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_37
+      rect:
+        serializedVersion: 2
+        x: 3246
+        y: 270
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f9c55587c93ae3fe0800000000000000
+      internalID: -1207347757659628385
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_38
+      rect:
+        serializedVersion: 2
+        x: 3268
+        y: 280
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bcc8cf1be9a886cf0800000000000000
+      internalID: -258804564378219317
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_39
+      rect:
+        serializedVersion: 2
+        x: 3631
+        y: 271
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ca9fa81e99e065bc0800000000000000
+      internalID: -3794829581936297556
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_40
+      rect:
+        serializedVersion: 2
+        x: 227
+        y: 266
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 581a54aedd79901b0800000000000000
+      internalID: -5689849674831912571
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_41
+      rect:
+        serializedVersion: 2
+        x: 254
+        y: 257
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9d760ef3d95eab650800000000000000
+      internalID: 6249559896474281945
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_42
+      rect:
+        serializedVersion: 2
+        x: 610
+        y: 266
+        width: 11
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 09a11b9e24d4aab80800000000000000
+      internalID: -8382802806612878704
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_43
+      rect:
+        serializedVersion: 2
+        x: 637
+        y: 257
+        width: 11
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c21554e3b3a0d8690800000000000000
+      internalID: -7598405746740080340
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_44
+      rect:
+        serializedVersion: 2
+        x: 994
+        y: 265
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 107fdbb84d6bcce80800000000000000
+      internalID: -8156943801081006335
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_45
+      rect:
+        serializedVersion: 2
+        x: 1021
+        y: 256
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 702cb23ccf82725f0800000000000000
+      internalID: -781610944254197241
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_46
+      rect:
+        serializedVersion: 2
+        x: 1378
+        y: 265
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bd5453192bde36970800000000000000
+      internalID: 8747096252479784411
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_47
+      rect:
+        serializedVersion: 2
+        x: 1405
+        y: 256
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 445b5040db111c870800000000000000
+      internalID: 8701255458570483012
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_48
+      rect:
+        serializedVersion: 2
+        x: 1762
+        y: 265
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9df8364229c28a5e0800000000000000
+      internalID: -1898218236749312039
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_49
+      rect:
+        serializedVersion: 2
+        x: 1789
+        y: 256
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: df2826046997a2790800000000000000
+      internalID: -7554091738728332547
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_50
+      rect:
+        serializedVersion: 2
+        x: 2146
+        y: 265
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e26e721f980047840800000000000000
+      internalID: 5220798460485690926
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_51
+      rect:
+        serializedVersion: 2
+        x: 2173
+        y: 256
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f4133aee0054a0e50800000000000000
+      internalID: 6776304459638321487
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_52
+      rect:
+        serializedVersion: 2
+        x: 2530
+        y: 265
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fbb2943fdebc642a0800000000000000
+      internalID: -6753486368346133569
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_53
+      rect:
+        serializedVersion: 2
+        x: 2557
+        y: 256
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: dd0004d8070bad080800000000000000
+      internalID: -9161816494479245091
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_54
+      rect:
+        serializedVersion: 2
+        x: 2913
+        y: 264
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 63bbd6c09eef74cc0800000000000000
+      internalID: -3726729889736443082
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_55
+      rect:
+        serializedVersion: 2
+        x: 2941
+        y: 256
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 078613553e2bb64b0800000000000000
+      internalID: -5446062634917861264
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_56
+      rect:
+        serializedVersion: 2
+        x: 3297
+        y: 264
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 95e0b205478bd3670800000000000000
+      internalID: 8520168879755562585
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_57
+      rect:
+        serializedVersion: 2
+        x: 3324
+        y: 255
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ef3228dca903ed2c0800000000000000
+      internalID: -4405029944090811394
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_58
+      rect:
+        serializedVersion: 2
+        x: 3682
+        y: 265
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a95502ee7b195f600800000000000000
+      internalID: 501467152681817498
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_59
+      rect:
+        serializedVersion: 2
+        x: 3708
+        y: 255
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f3fcab449c9786b20800000000000000
+      internalID: 3127883846557290303
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_60
+      rect:
+        serializedVersion: 2
+        x: 269
+        y: 236
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 76c65fd7e14e76180800000000000000
+      internalID: -9122071700602262425
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_61
+      rect:
+        serializedVersion: 2
+        x: 652
+        y: 236
+        width: 11
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: be4f1bc137b9e4550800000000000000
+      internalID: 6147021460112274667
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_62
+      rect:
+        serializedVersion: 2
+        x: 1036
+        y: 235
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5f881e8b746b08380800000000000000
+      internalID: -8970970038561306379
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_63
+      rect:
+        serializedVersion: 2
+        x: 1420
+        y: 235
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 440145a55eb8b97c0800000000000000
+      internalID: -4063500421592510396
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_64
+      rect:
+        serializedVersion: 2
+        x: 1804
+        y: 235
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4d41be87faab8e110800000000000000
+      internalID: 1290486556052362452
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_65
+      rect:
+        serializedVersion: 2
+        x: 2188
+        y: 235
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3820f94ddbbca25c0800000000000000
+      internalID: -4239352083039452541
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_66
+      rect:
+        serializedVersion: 2
+        x: 2572
+        y: 235
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 412af195ec3b6f960800000000000000
+      internalID: 7635487917093134868
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_67
+      rect:
+        serializedVersion: 2
+        x: 2956
+        y: 235
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 50b6ac242a28ab6e0800000000000000
+      internalID: -1820999465901069563
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_68
+      rect:
+        serializedVersion: 2
+        x: 3340
+        y: 235
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c79132c0d35254880800000000000000
+      internalID: -8627448567031457412
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_69
+      rect:
+        serializedVersion: 2
+        x: 3724
+        y: 235
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 141e64eac2195a330800000000000000
+      internalID: 3721540288180052289
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_70
+      rect:
+        serializedVersion: 2
+        x: 149
+        y: 197
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0d81b63ca404ffd70800000000000000
+      internalID: 9079046063652542672
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_71
+      rect:
+        serializedVersion: 2
+        x: 173
+        y: 194
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 383717cd5d6495c00800000000000000
+      internalID: 889820285722784643
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_72
+      rect:
+        serializedVersion: 2
+        x: 263
+        y: 200
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 82bc53f0db553c4b0800000000000000
+      internalID: -5421395255931581656
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_73
+      rect:
+        serializedVersion: 2
+        x: 281
+        y: 203
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6ea86c8b3f1eb7a60800000000000000
+      internalID: 7672974827049093862
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_74
+      rect:
+        serializedVersion: 2
+        x: 532
+        y: 197
+        width: 11
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8dcf00c29d32aa580800000000000000
+      internalID: -8815193904971186984
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_75
+      rect:
+        serializedVersion: 2
+        x: 556
+        y: 194
+        width: 11
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0b920a0ab2d1a5a90800000000000000
+      internalID: -7324509770749040208
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_76
+      rect:
+        serializedVersion: 2
+        x: 646
+        y: 200
+        width: 11
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d23d9f703f0c97940800000000000000
+      internalID: 5294474986994127661
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_77
+      rect:
+        serializedVersion: 2
+        x: 664
+        y: 203
+        width: 11
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 44c4345bb60ab15c0800000000000000
+      internalID: -4243621839403529148
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_78
+      rect:
+        serializedVersion: 2
+        x: 916
+        y: 196
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ceb79aba711edbbd0800000000000000
+      internalID: -2612684717024510996
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_79
+      rect:
+        serializedVersion: 2
+        x: 940
+        y: 193
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b9159d6938c12b630800000000000000
+      internalID: 3941243975399723419
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_80
+      rect:
+        serializedVersion: 2
+        x: 1030
+        y: 199
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1b80bfc7b3374d770800000000000000
+      internalID: 8634653084913174705
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_81
+      rect:
+        serializedVersion: 2
+        x: 1048
+        y: 202
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c7b8d46c61e1b8740800000000000000
+      internalID: 5155247281620749180
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_82
+      rect:
+        serializedVersion: 2
+        x: 1300
+        y: 196
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b620211bc33194760800000000000000
+      internalID: 7442501010596168299
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_83
+      rect:
+        serializedVersion: 2
+        x: 1324
+        y: 193
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: dbbc8559c5f162890800000000000000
+      internalID: -7483259248326423619
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_84
+      rect:
+        serializedVersion: 2
+        x: 1414
+        y: 199
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ba2f06173a46ba4a0800000000000000
+      internalID: -6581055777327222101
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_85
+      rect:
+        serializedVersion: 2
+        x: 1432
+        y: 202
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0f9a36f164c11e9e0800000000000000
+      internalID: -1593961705612531216
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_86
+      rect:
+        serializedVersion: 2
+        x: 1684
+        y: 196
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 01d6da288f2642310800000000000000
+      internalID: 1379336205366029584
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_87
+      rect:
+        serializedVersion: 2
+        x: 1708
+        y: 193
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e6c66956db81b8590800000000000000
+      internalID: -7671010338563265426
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_88
+      rect:
+        serializedVersion: 2
+        x: 1798
+        y: 199
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6f733868ad6489dd0800000000000000
+      internalID: -2479153690493896714
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_89
+      rect:
+        serializedVersion: 2
+        x: 1816
+        y: 202
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 362bc484502c1e220800000000000000
+      internalID: 2513503394993058403
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_90
+      rect:
+        serializedVersion: 2
+        x: 2068
+        y: 196
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a0752865d3267f340800000000000000
+      internalID: 4897491135372613386
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_91
+      rect:
+        serializedVersion: 2
+        x: 2092
+        y: 193
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 820a7a8b10e5efbf0800000000000000
+      internalID: -288689964619161560
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_92
+      rect:
+        serializedVersion: 2
+        x: 2182
+        y: 199
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1ec77ec7cb5d51350800000000000000
+      internalID: 5986926285185055969
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_93
+      rect:
+        serializedVersion: 2
+        x: 2200
+        y: 202
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5ae3c7ea87d242e10800000000000000
+      internalID: 2171910916646125221
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_94
+      rect:
+        serializedVersion: 2
+        x: 2452
+        y: 196
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7427563da333e9ac0800000000000000
+      internalID: -3846580703980064185
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_95
+      rect:
+        serializedVersion: 2
+        x: 2476
+        y: 193
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 50bd206779febac70800000000000000
+      internalID: 8983537315519585029
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_96
+      rect:
+        serializedVersion: 2
+        x: 2566
+        y: 199
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 347bdf186b0c88320800000000000000
+      internalID: 2560508278257596227
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_97
+      rect:
+        serializedVersion: 2
+        x: 2584
+        y: 202
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 34fbe2201068422c0800000000000000
+      internalID: -4457290392300241085
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_98
+      rect:
+        serializedVersion: 2
+        x: 2836
+        y: 196
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9493fe53057904e70800000000000000
+      internalID: 9097437618046449993
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_99
+      rect:
+        serializedVersion: 2
+        x: 2860
+        y: 193
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 09e29da48507deab0800000000000000
+      internalID: -4977198488659349872
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_100
+      rect:
+        serializedVersion: 2
+        x: 2950
+        y: 199
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0312228940d4aa330800000000000000
+      internalID: 3722872724102717744
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_101
+      rect:
+        serializedVersion: 2
+        x: 2968
+        y: 202
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3ddaf85ff0d7f7410800000000000000
+      internalID: 1477036710298627539
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_102
+      rect:
+        serializedVersion: 2
+        x: 3220
+        y: 196
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e4e7528d83c3f1970800000000000000
+      internalID: 8727760817709481550
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_103
+      rect:
+        serializedVersion: 2
+        x: 3244
+        y: 193
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: af6033e265b23bf30800000000000000
+      internalID: 4590060094362945274
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_104
+      rect:
+        serializedVersion: 2
+        x: 3334
+        y: 199
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7d4fca6288a966a90800000000000000
+      internalID: -7320994234689063721
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_105
+      rect:
+        serializedVersion: 2
+        x: 3352
+        y: 202
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 779d9206ed20efb00800000000000000
+      internalID: 864131332621064567
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_106
+      rect:
+        serializedVersion: 2
+        x: 3604
+        y: 196
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1b2716f77833b8d60800000000000000
+      internalID: 7893459428947620529
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_107
+      rect:
+        serializedVersion: 2
+        x: 3627
+        y: 192
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7c61acee8377ba070800000000000000
+      internalID: 8118713839673546439
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_108
+      rect:
+        serializedVersion: 2
+        x: 3718
+        y: 199
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3681218328db2cf10800000000000000
+      internalID: 2288599927641741411
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_109
+      rect:
+        serializedVersion: 2
+        x: 3735
+        y: 201
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7a16190248c68fca0800000000000000
+      internalID: -5982912790223822425
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_110
+      rect:
+        serializedVersion: 2
+        x: 200
+        y: 191
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f2f4dfb5bc47b93e0800000000000000
+      internalID: -2045913188939247825
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_111
+      rect:
+        serializedVersion: 2
+        x: 583
+        y: 191
+        width: 11
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 729b60d9900b8d4e0800000000000000
+      internalID: -1956620482756822745
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_112
+      rect:
+        serializedVersion: 2
+        x: 967
+        y: 190
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3e8ab1b39562df7b0800000000000000
+      internalID: -5188949030975330077
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_113
+      rect:
+        serializedVersion: 2
+        x: 1351
+        y: 190
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: aabe5ad764c328990800000000000000
+      internalID: -7385274165480789078
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_114
+      rect:
+        serializedVersion: 2
+        x: 1735
+        y: 190
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fecfb61662e20d020800000000000000
+      internalID: 2364440546747612399
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_115
+      rect:
+        serializedVersion: 2
+        x: 2119
+        y: 190
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e74f7f48d148907b0800000000000000
+      internalID: -5257525827658582914
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_116
+      rect:
+        serializedVersion: 2
+        x: 2503
+        y: 190
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b91c18319285376d0800000000000000
+      internalID: -2993952393827073637
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_117
+      rect:
+        serializedVersion: 2
+        x: 2887
+        y: 190
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 817864562730f87d0800000000000000
+      internalID: -2914106644025145576
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_118
+      rect:
+        serializedVersion: 2
+        x: 3271
+        y: 190
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0e4495a6e622cc730800000000000000
+      internalID: 4020626424960992480
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_119
+      rect:
+        serializedVersion: 2
+        x: 3654
+        y: 189
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b95df15ff838dfdb0800000000000000
+      internalID: -4756500977117309541
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_120
+      rect:
+        serializedVersion: 2
+        x: 281
+        y: 176
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 274044d0ce0e7ada0800000000000000
+      internalID: -5933526679597874062
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_121
+      rect:
+        serializedVersion: 2
+        x: 664
+        y: 176
+        width: 11
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4548e586179e5a6a0800000000000000
+      internalID: -6438483418964655020
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_122
+      rect:
+        serializedVersion: 2
+        x: 1048
+        y: 175
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2a16a166b3a5814c0800000000000000
+      internalID: -4316601031672045150
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_123
+      rect:
+        serializedVersion: 2
+        x: 1432
+        y: 175
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b9be9215f9e6fb220800000000000000
+      internalID: 2503841548381842331
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_124
+      rect:
+        serializedVersion: 2
+        x: 1816
+        y: 175
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3876492e63b210e20800000000000000
+      internalID: 3314978315451000707
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_125
+      rect:
+        serializedVersion: 2
+        x: 2200
+        y: 175
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1ddf604bc6d250600800000000000000
+      internalID: 433802884011195857
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_126
+      rect:
+        serializedVersion: 2
+        x: 2584
+        y: 175
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 57dde4d12511d5f40800000000000000
+      internalID: 5718746146207096181
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_127
+      rect:
+        serializedVersion: 2
+        x: 2968
+        y: 175
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7dd3a152df14167d0800000000000000
+      internalID: -2926985727309103657
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_128
+      rect:
+        serializedVersion: 2
+        x: 3352
+        y: 175
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9daafe3f94ea6cbf0800000000000000
+      internalID: -304364292152513831
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_129
+      rect:
+        serializedVersion: 2
+        x: 3736
+        y: 175
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 52014e54b10582ad0800000000000000
+      internalID: -2726841496305922011
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_130
+      rect:
+        serializedVersion: 2
+        x: 215
+        y: 155
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 01e8cab4511283a20800000000000000
+      internalID: 3042217923636399632
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_131
+      rect:
+        serializedVersion: 2
+        x: 263
+        y: 161
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 80f4431ec78ffa960800000000000000
+      internalID: 7615578710144732936
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_132
+      rect:
+        serializedVersion: 2
+        x: 598
+        y: 155
+        width: 11
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 46594ab71c5ce5040800000000000000
+      internalID: 4638362101031933284
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_133
+      rect:
+        serializedVersion: 2
+        x: 646
+        y: 161
+        width: 11
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 98a1079a086794980800000000000000
+      internalID: -8554175722242958711
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_134
+      rect:
+        serializedVersion: 2
+        x: 982
+        y: 154
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 40908b773832b99d0800000000000000
+      internalID: -2766578498532800252
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_135
+      rect:
+        serializedVersion: 2
+        x: 1030
+        y: 160
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a0148b58a53509b50800000000000000
+      internalID: 6597865102353383690
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_136
+      rect:
+        serializedVersion: 2
+        x: 1366
+        y: 154
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fabf8dd13ddd66880800000000000000
+      internalID: -8617956938118267985
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_137
+      rect:
+        serializedVersion: 2
+        x: 1414
+        y: 160
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d8f1f9be0dac8c560800000000000000
+      internalID: 7334334991827935117
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_138
+      rect:
+        serializedVersion: 2
+        x: 1750
+        y: 154
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 753f0b87ea4f27850800000000000000
+      internalID: 6373425452869022551
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_139
+      rect:
+        serializedVersion: 2
+        x: 1798
+        y: 160
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bea5b16a78c869880800000000000000
+      internalID: -8604535523809469717
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_140
+      rect:
+        serializedVersion: 2
+        x: 2134
+        y: 154
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e91f3216e2ce80340800000000000000
+      internalID: 4830370284297253278
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_141
+      rect:
+        serializedVersion: 2
+        x: 2182
+        y: 160
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 44c289ed659176c50800000000000000
+      internalID: 6658318434982964292
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_142
+      rect:
+        serializedVersion: 2
+        x: 2518
+        y: 154
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5bda25f277a004050800000000000000
+      internalID: 5782633428555050421
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_143
+      rect:
+        serializedVersion: 2
+        x: 2566
+        y: 160
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 332a3b6df36610700800000000000000
+      internalID: 504797057613275699
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_144
+      rect:
+        serializedVersion: 2
+        x: 2902
+        y: 154
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3ab264cdb865d4af0800000000000000
+      internalID: -410576832324818013
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_145
+      rect:
+        serializedVersion: 2
+        x: 2950
+        y: 160
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5821a065469b01c40800000000000000
+      internalID: 5481084587101262469
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_146
+      rect:
+        serializedVersion: 2
+        x: 3286
+        y: 154
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 76c7153922179cd80800000000000000
+      internalID: -8229922450728453017
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_147
+      rect:
+        serializedVersion: 2
+        x: 3334
+        y: 160
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2c480b354a7e4f2e0800000000000000
+      internalID: -2092793233855707966
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_148
+      rect:
+        serializedVersion: 2
+        x: 3669
+        y: 153
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 871164bc789595940800000000000000
+      internalID: 5285354077461811576
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_149
+      rect:
+        serializedVersion: 2
+        x: 3717
+        y: 159
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e3bea82c008419440800000000000000
+      internalID: 4940809434303228734
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_150
+      rect:
+        serializedVersion: 2
+        x: 232
+        y: 139
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 388f8ee60c8ef6e50800000000000000
+      internalID: 6804913475172235395
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_151
+      rect:
+        serializedVersion: 2
+        x: 278
+        y: 143
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3fcafa175925d36e0800000000000000
+      internalID: -1856236669595833101
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_152
+      rect:
+        serializedVersion: 2
+        x: 616
+        y: 140
+        width: 11
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a56f331721a49fac0800000000000000
+      internalID: -3820941365778057638
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_153
+      rect:
+        serializedVersion: 2
+        x: 661
+        y: 143
+        width: 11
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5aefa073a2cd221d0800000000000000
+      internalID: -3376894696704246107
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_154
+      rect:
+        serializedVersion: 2
+        x: 1000
+        y: 139
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c18b7e58aac44b0c0800000000000000
+      internalID: -4560936227344762852
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_155
+      rect:
+        serializedVersion: 2
+        x: 1045
+        y: 142
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fd3fc68d615b996c0800000000000000
+      internalID: -4136075673038162977
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_156
+      rect:
+        serializedVersion: 2
+        x: 1383
+        y: 138
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c18022a475c48dfb0800000000000000
+      internalID: -4622861079706204132
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_157
+      rect:
+        serializedVersion: 2
+        x: 1429
+        y: 142
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 58e33d0995b649bc0800000000000000
+      internalID: -3777276155030978939
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_158
+      rect:
+        serializedVersion: 2
+        x: 1768
+        y: 139
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 47be3f9b849a492f0800000000000000
+      internalID: -966961890155304076
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_159
+      rect:
+        serializedVersion: 2
+        x: 1813
+        y: 142
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9cd9b6384d249de20800000000000000
+      internalID: 3375802876196265417
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_160
+      rect:
+        serializedVersion: 2
+        x: 2152
+        y: 139
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e1300cb66f00cddd0800000000000000
+      internalID: -2460090238081432802
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_161
+      rect:
+        serializedVersion: 2
+        x: 2197
+        y: 142
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f2397f5f99a7073c0800000000000000
+      internalID: -4363853237246782673
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_162
+      rect:
+        serializedVersion: 2
+        x: 2536
+        y: 139
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8513a0c1e3e114360800000000000000
+      internalID: 7152030935348293976
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_163
+      rect:
+        serializedVersion: 2
+        x: 2581
+        y: 142
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 38b4f8c36f953eac0800000000000000
+      internalID: -3827116344221938813
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_164
+      rect:
+        serializedVersion: 2
+        x: 2920
+        y: 139
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c160f42fdedea4650800000000000000
+      internalID: 6218043841766688284
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_165
+      rect:
+        serializedVersion: 2
+        x: 2965
+        y: 142
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3edaa78b3caeb3150800000000000000
+      internalID: 5853530267032661475
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_166
+      rect:
+        serializedVersion: 2
+        x: 3304
+        y: 139
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e9b5d30d1d3a133e0800000000000000
+      internalID: -2075697831703913570
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_167
+      rect:
+        serializedVersion: 2
+        x: 3349
+        y: 142
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a98822d8bd240aed0800000000000000
+      internalID: -2404848690282723174
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_168
+      rect:
+        serializedVersion: 2
+        x: 3688
+        y: 139
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 116b37473ec198b60800000000000000
+      internalID: 7748756397104543249
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_169
+      rect:
+        serializedVersion: 2
+        x: 3733
+        y: 142
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b8e3ecc1189f00ba0800000000000000
+      internalID: -6124621160294498677
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_170
+      rect:
+        serializedVersion: 2
+        x: 274
+        y: 115
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d6e79cd28883d2ed0800000000000000
+      internalID: -2437229665802682771
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_171
+      rect:
+        serializedVersion: 2
+        x: 658
+        y: 115
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 079681e44e1c675f0800000000000000
+      internalID: -759206300858422928
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_172
+      rect:
+        serializedVersion: 2
+        x: 1041
+        y: 114
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9afe6a338a86905f0800000000000000
+      internalID: -789985187996438615
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_173
+      rect:
+        serializedVersion: 2
+        x: 1425
+        y: 114
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 50a3bc3ea87ef0560800000000000000
+      internalID: 7282293706194631173
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_174
+      rect:
+        serializedVersion: 2
+        x: 1809
+        y: 114
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6d9ff4013e5b09730800000000000000
+      internalID: 4003900055568251350
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_175
+      rect:
+        serializedVersion: 2
+        x: 2193
+        y: 114
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7d6ddb2d3ca6cb930800000000000000
+      internalID: 4160317545070319319
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_176
+      rect:
+        serializedVersion: 2
+        x: 2577
+        y: 114
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 45cadc363b7076ce0800000000000000
+      internalID: -1412151491102397356
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_177
+      rect:
+        serializedVersion: 2
+        x: 2961
+        y: 114
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4f208db646293fd40800000000000000
+      internalID: 5616994120264844020
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_178
+      rect:
+        serializedVersion: 2
+        x: 3345
+        y: 114
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 275787ad1e1bba5f0800000000000000
+      internalID: -744305729808599694
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_glacier_tender_lights_179
+      rect:
+        serializedVersion: 2
+        x: 3729
+        y: 114
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b1d7e12d5eb80da60800000000000000
+      internalID: 7696805582365162779
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 5e97eb03825dee720800000000000000
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable: {}
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

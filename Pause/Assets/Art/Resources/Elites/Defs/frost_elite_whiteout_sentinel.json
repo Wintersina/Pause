@@ -7,7 +7,7 @@
   "lore": "A shield wedge of glacier plate that patrols the top of the board and never dodges a thing. Each of its three ice plates soaks a hit and sprays its shards back along the blinking cone, so shoot from the side of it. Strip it bare and it calls down icicles: glyphs mark the lanes, one lane is always left safe.",
   "brain": "patrol",
   "attack": "icicle_barrage",
-  "launchFrom": "padring",
+  "launchFrom": "silo,padring",
   "cells": {
     "flight": [
       3,

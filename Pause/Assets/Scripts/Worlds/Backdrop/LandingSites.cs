@@ -24,6 +24,10 @@ using UnityEngine;
 // kind: an ice-shelf hangar, a rig's lift bay, a relay pad ring, a crawler
 // garage, a silo hatch -- drawn shut until the launch tell opens them.
 //
+// Frost's four launch sites with a 6-cell launch strip (docks atlas, FrostTuning.SiteKinds): an ice-locked offshore rig (Rig, on water), a
+// cryo silo (Silo, on snow flats), a glacier cave hangar (Cave, on ridges) and an icebreaker deck (Icebreaker, on water). Their doors open
+// through the launch tell -- a small blinking lamp, no flash -- like Space's docks do.
+//
 // Verdant's (VerdantDirector) are emerge sites too: a root-braced hangar in
 // a giant tree, a river bay on stilts, a petal pod pad, a tower bay and a
 // hatch under the roots (Hatch, shared with Frost's silo hatch).
@@ -42,7 +46,8 @@ public enum LandingKind { Ground, Station, Planet, Asteroid, Hangar, RigBay, Pad
                          FoundryHangar, MagmaBay, SlagPad, FurnaceBay,
                          TideTrenchHatch, TideRigDeck, TideReefDock, TideVentStack, TideWreckBay,
                          DesertWormBurrow, DesertCrawlerBay, DesertGlassPad, DesertBuriedSilo, DesertRuinDock,
-                         Gantry, Carrier, Gate, Derelict }
+                         Gantry, Carrier, Gate, Derelict,
+                         Rig, Silo, Cave, Icebreaker }
 
 public struct LandingSite
 {
@@ -60,7 +65,7 @@ public struct LandingSite
     // "station" / "planet" / "asteroid" / "ground" / "hangar" / "rigbay" /
     // "padring" / "crawlerbay" / "hatch" / "roothangar" / "riverbay" / "podpad" /
     // "towerbay" / "foundryhangar" / "magmabay" / "slagpad" / "furnacebay" / "trenchhatch" / "rigdeck" /
-    // "reefdock" / "ventstack" / "wreckbay" / "wormburrow" / "caravanbay" / "glasspad" / "buriedsilo" / "ruindock" / Space's "gantry" / "carrier" / "gate" / "derelict" (EliteDef.launchFrom); anything else:
+    // "reefdock" / "ventstack" / "wreckbay" / "wormburrow" / "caravanbay" / "glasspad" / "buriedsilo" / "ruindock" / Space's "gantry" / "carrier" / "gate" / "derelict" / Frost's "rig" / "silo" / "cave" / "icebreaker" (EliteDef.launchFrom); anything else:
     // null (any pad). A launchFrom may list several, comma separated
     // ("hangar,crawlerbay"): KindOf is the first, Accepts takes any of them.
     public static LandingKind? KindOf(string s)
@@ -95,6 +100,10 @@ public struct LandingSite
             case "carrier": return LandingKind.Carrier;
             case "gate": return LandingKind.Gate;
             case "derelict": return LandingKind.Derelict;
+            case "rig": return LandingKind.Rig;
+            case "silo": return LandingKind.Silo;
+            case "cave": return LandingKind.Cave;
+            case "icebreaker": return LandingKind.Icebreaker;
             case "station": return LandingKind.Station;
             case "planet": return LandingKind.Planet;
             case "asteroid": return LandingKind.Asteroid;

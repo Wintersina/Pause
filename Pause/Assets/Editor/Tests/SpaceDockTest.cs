@@ -321,7 +321,7 @@ public static class SpaceDockTest
         bool none = true, clean = true;
         foreach (var d in EliteCatalog.All)
         {
-            if (d.world == "space") continue;
+            if (d.world == "space" || d.world == "frost") continue;   // (Frost has lights of its own now: FrostDockTest)
             none &= !EliteArt.HasExtra(d, EliteArt.Extra.Lights);
             var e = InPlay(d, new Vector2(0f, 1f));
             clean &= !e.HasLights && e.Lights == null && e.LightCell == -1 && e.HullTransform.Find("Lights") == null;

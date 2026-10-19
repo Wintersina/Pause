@@ -7,7 +7,7 @@
   "lore": "A wide ice barge that rides the top of the board on the far side of you and never comes down. When its chutes glow it lays a staggered row of floating slabs across the board with one gap, then sights a single lance down that gap. Between casts it slides single slabs across the ice that bounce off one wall: follow the dotted line, not the slab.",
   "brain": "barge",
   "attack": "floe_barge",
-  "launchFrom": "crawlerbay",
+  "launchFrom": "rig,crawlerbay",
   "cells": {
     "flight": [
       3,

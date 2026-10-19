@@ -1,0 +1,4643 @@
+fileFormatVersion: 2
+guid: baaed10d2ec6f430eabd9c1d5ff42244
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 3222716390237443881
+    second: frost_elite_floe_harrower_lights_0
+  - first:
+      213: 3429185881540742995
+    second: frost_elite_floe_harrower_lights_1
+  - first:
+      213: 2667205705344696447
+    second: frost_elite_floe_harrower_lights_2
+  - first:
+      213: 3294209823416770280
+    second: frost_elite_floe_harrower_lights_3
+  - first:
+      213: 6316512464551144065
+    second: frost_elite_floe_harrower_lights_4
+  - first:
+      213: -1961486248575629302
+    second: frost_elite_floe_harrower_lights_5
+  - first:
+      213: -4144798156654784322
+    second: frost_elite_floe_harrower_lights_6
+  - first:
+      213: -7950308826555955241
+    second: frost_elite_floe_harrower_lights_7
+  - first:
+      213: -6390792066177764365
+    second: frost_elite_floe_harrower_lights_8
+  - first:
+      213: -3589411522052485242
+    second: frost_elite_floe_harrower_lights_9
+  - first:
+      213: -5626948564756785225
+    second: frost_elite_floe_harrower_lights_10
+  - first:
+      213: 5757001367431179672
+    second: frost_elite_floe_harrower_lights_11
+  - first:
+      213: -3028666743674989058
+    second: frost_elite_floe_harrower_lights_12
+  - first:
+      213: 5950152020562955759
+    second: frost_elite_floe_harrower_lights_13
+  - first:
+      213: -3422732145197485480
+    second: frost_elite_floe_harrower_lights_14
+  - first:
+      213: -7262603499964688923
+    second: frost_elite_floe_harrower_lights_15
+  - first:
+      213: -4264291258704578415
+    second: frost_elite_floe_harrower_lights_16
+  - first:
+      213: 3193367821860872305
+    second: frost_elite_floe_harrower_lights_17
+  - first:
+      213: -3935662800308066170
+    second: frost_elite_floe_harrower_lights_18
+  - first:
+      213: -1894151378660597164
+    second: frost_elite_floe_harrower_lights_19
+  - first:
+      213: 2791744959740882475
+    second: frost_elite_floe_harrower_lights_20
+  - first:
+      213: 1013522079104528783
+    second: frost_elite_floe_harrower_lights_21
+  - first:
+      213: 7013823481787894762
+    second: frost_elite_floe_harrower_lights_22
+  - first:
+      213: -8202457999894237168
+    second: frost_elite_floe_harrower_lights_23
+  - first:
+      213: 2963624686613348564
+    second: frost_elite_floe_harrower_lights_24
+  - first:
+      213: 5139570430971274216
+    second: frost_elite_floe_harrower_lights_25
+  - first:
+      213: 3534431507235775486
+    second: frost_elite_floe_harrower_lights_26
+  - first:
+      213: -7458428003925784637
+    second: frost_elite_floe_harrower_lights_27
+  - first:
+      213: 5205528546190989932
+    second: frost_elite_floe_harrower_lights_28
+  - first:
+      213: -298339495888813730
+    second: frost_elite_floe_harrower_lights_29
+  - first:
+      213: 7468824263993781437
+    second: frost_elite_floe_harrower_lights_30
+  - first:
+      213: -1591157765808945464
+    second: frost_elite_floe_harrower_lights_31
+  - first:
+      213: -4773937878669805853
+    second: frost_elite_floe_harrower_lights_32
+  - first:
+      213: 937555284858719962
+    second: frost_elite_floe_harrower_lights_33
+  - first:
+      213: 8343412197919689901
+    second: frost_elite_floe_harrower_lights_34
+  - first:
+      213: -7777510894187549559
+    second: frost_elite_floe_harrower_lights_35
+  - first:
+      213: 4390327983221687942
+    second: frost_elite_floe_harrower_lights_36
+  - first:
+      213: -1482806944669200320
+    second: frost_elite_floe_harrower_lights_37
+  - first:
+      213: 6140592609142986950
+    second: frost_elite_floe_harrower_lights_38
+  - first:
+      213: 2587475675336971324
+    second: frost_elite_floe_harrower_lights_39
+  - first:
+      213: -5422636242795774938
+    second: frost_elite_floe_harrower_lights_40
+  - first:
+      213: -1034992107627483055
+    second: frost_elite_floe_harrower_lights_41
+  - first:
+      213: -2894170799898809541
+    second: frost_elite_floe_harrower_lights_42
+  - first:
+      213: -53293398842048936
+    second: frost_elite_floe_harrower_lights_43
+  - first:
+      213: 9147229409664657718
+    second: frost_elite_floe_harrower_lights_44
+  - first:
+      213: -2606040248701203499
+    second: frost_elite_floe_harrower_lights_45
+  - first:
+      213: -4661348354573764318
+    second: frost_elite_floe_harrower_lights_46
+  - first:
+      213: -7235119255098009346
+    second: frost_elite_floe_harrower_lights_47
+  - first:
+      213: -7371391492543341083
+    second: frost_elite_floe_harrower_lights_48
+  - first:
+      213: -3057428830135215167
+    second: frost_elite_floe_harrower_lights_49
+  - first:
+      213: -7330927668908967285
+    second: frost_elite_floe_harrower_lights_50
+  - first:
+      213: 6679447134603889340
+    second: frost_elite_floe_harrower_lights_51
+  - first:
+      213: 6062163025787493946
+    second: frost_elite_floe_harrower_lights_52
+  - first:
+      213: 3127052827722081674
+    second: frost_elite_floe_harrower_lights_53
+  - first:
+      213: 8591441242928321175
+    second: frost_elite_floe_harrower_lights_54
+  - first:
+      213: -8701631831483699301
+    second: frost_elite_floe_harrower_lights_55
+  - first:
+      213: -8663397369062897221
+    second: frost_elite_floe_harrower_lights_56
+  - first:
+      213: 3103281702748084141
+    second: frost_elite_floe_harrower_lights_57
+  - first:
+      213: 160934857260814004
+    second: frost_elite_floe_harrower_lights_58
+  - first:
+      213: -8084389159026979068
+    second: frost_elite_floe_harrower_lights_59
+  - first:
+      213: -8266476559569180155
+    second: frost_elite_floe_harrower_lights_60
+  - first:
+      213: -1879114382037126397
+    second: frost_elite_floe_harrower_lights_61
+  - first:
+      213: -4020200118257611406
+    second: frost_elite_floe_harrower_lights_62
+  - first:
+      213: -6179756148281635321
+    second: frost_elite_floe_harrower_lights_63
+  - first:
+      213: 3249376395781794636
+    second: frost_elite_floe_harrower_lights_64
+  - first:
+      213: 3743317058843530717
+    second: frost_elite_floe_harrower_lights_65
+  - first:
+      213: 2609974194845883008
+    second: frost_elite_floe_harrower_lights_66
+  - first:
+      213: -6201286972607773176
+    second: frost_elite_floe_harrower_lights_67
+  - first:
+      213: -609417412059222832
+    second: frost_elite_floe_harrower_lights_68
+  - first:
+      213: 1831028920051798859
+    second: frost_elite_floe_harrower_lights_69
+  - first:
+      213: -4334579120040320541
+    second: frost_elite_floe_harrower_lights_70
+  - first:
+      213: 8367410236349102900
+    second: frost_elite_floe_harrower_lights_71
+  - first:
+      213: -919410001740853898
+    second: frost_elite_floe_harrower_lights_72
+  - first:
+      213: -5129577167225906166
+    second: frost_elite_floe_harrower_lights_73
+  - first:
+      213: 2574177338780567951
+    second: frost_elite_floe_harrower_lights_74
+  - first:
+      213: -8658654543452977848
+    second: frost_elite_floe_harrower_lights_75
+  - first:
+      213: 3299904056564922651
+    second: frost_elite_floe_harrower_lights_76
+  - first:
+      213: 5302196012420870959
+    second: frost_elite_floe_harrower_lights_77
+  - first:
+      213: 1261094985922847749
+    second: frost_elite_floe_harrower_lights_78
+  - first:
+      213: 3261630456115438347
+    second: frost_elite_floe_harrower_lights_79
+  - first:
+      213: 6285134223633082117
+    second: frost_elite_floe_harrower_lights_80
+  - first:
+      213: 4575280977259632893
+    second: frost_elite_floe_harrower_lights_81
+  - first:
+      213: 3183192067780225326
+    second: frost_elite_floe_harrower_lights_82
+  - first:
+      213: 8655973539404764147
+    second: frost_elite_floe_harrower_lights_83
+  - first:
+      213: -8678845512783152553
+    second: frost_elite_floe_harrower_lights_84
+  - first:
+      213: 4895059726815483571
+    second: frost_elite_floe_harrower_lights_85
+  - first:
+      213: -1074760539754247041
+    second: frost_elite_floe_harrower_lights_86
+  - first:
+      213: 3208204267453685745
+    second: frost_elite_floe_harrower_lights_87
+  - first:
+      213: 9015543901702822168
+    second: frost_elite_floe_harrower_lights_88
+  - first:
+      213: -2320577513262359607
+    second: frost_elite_floe_harrower_lights_89
+  - first:
+      213: 3346426371842517298
+    second: frost_elite_floe_harrower_lights_90
+  - first:
+      213: -7024828543219535505
+    second: frost_elite_floe_harrower_lights_91
+  - first:
+      213: -800932216793094478
+    second: frost_elite_floe_harrower_lights_92
+  - first:
+      213: 3428779179432865485
+    second: frost_elite_floe_harrower_lights_93
+  - first:
+      213: -2622344790271093798
+    second: frost_elite_floe_harrower_lights_94
+  - first:
+      213: 6140144016004786067
+    second: frost_elite_floe_harrower_lights_95
+  - first:
+      213: 3007752463574081124
+    second: frost_elite_floe_harrower_lights_96
+  - first:
+      213: -6455152181796122382
+    second: frost_elite_floe_harrower_lights_97
+  - first:
+      213: 28524026072612073
+    second: frost_elite_floe_harrower_lights_98
+  - first:
+      213: 73630027591844043
+    second: frost_elite_floe_harrower_lights_99
+  - first:
+      213: -8069089119310144390
+    second: frost_elite_floe_harrower_lights_100
+  - first:
+      213: 2062513692810925204
+    second: frost_elite_floe_harrower_lights_101
+  - first:
+      213: 3568271542782862631
+    second: frost_elite_floe_harrower_lights_102
+  - first:
+      213: 7067525798845979407
+    second: frost_elite_floe_harrower_lights_103
+  - first:
+      213: 4235342902930116771
+    second: frost_elite_floe_harrower_lights_104
+  - first:
+      213: -4976976747542659284
+    second: frost_elite_floe_harrower_lights_105
+  - first:
+      213: -7813164717635324902
+    second: frost_elite_floe_harrower_lights_106
+  - first:
+      213: 5202190769774282111
+    second: frost_elite_floe_harrower_lights_107
+  - first:
+      213: -5600116780154731519
+    second: frost_elite_floe_harrower_lights_108
+  - first:
+      213: 6266424205919438129
+    second: frost_elite_floe_harrower_lights_109
+  - first:
+      213: -7377904173379304873
+    second: frost_elite_floe_harrower_lights_110
+  - first:
+      213: -13840521822243447
+    second: frost_elite_floe_harrower_lights_111
+  - first:
+      213: 4332181492210413516
+    second: frost_elite_floe_harrower_lights_112
+  - first:
+      213: 3218138781010799052
+    second: frost_elite_floe_harrower_lights_113
+  - first:
+      213: 5313863209084060100
+    second: frost_elite_floe_harrower_lights_114
+  - first:
+      213: 1874055281736548994
+    second: frost_elite_floe_harrower_lights_115
+  - first:
+      213: -8201849373429658922
+    second: frost_elite_floe_harrower_lights_116
+  - first:
+      213: -3499816288241023985
+    second: frost_elite_floe_harrower_lights_117
+  - first:
+      213: -8537207851115678810
+    second: frost_elite_floe_harrower_lights_118
+  - first:
+      213: -7329049422353388819
+    second: frost_elite_floe_harrower_lights_119
+  - first:
+      213: -9116510893168264365
+    second: frost_elite_floe_harrower_lights_120
+  - first:
+      213: 8730716814602303396
+    second: frost_elite_floe_harrower_lights_121
+  - first:
+      213: 4287865858267721318
+    second: frost_elite_floe_harrower_lights_122
+  - first:
+      213: 7259166965212245016
+    second: frost_elite_floe_harrower_lights_123
+  - first:
+      213: -4893924624609862586
+    second: frost_elite_floe_harrower_lights_124
+  - first:
+      213: 1220964735717342481
+    second: frost_elite_floe_harrower_lights_125
+  - first:
+      213: -3867233208655895057
+    second: frost_elite_floe_harrower_lights_126
+  - first:
+      213: 6770808051372022953
+    second: frost_elite_floe_harrower_lights_127
+  - first:
+      213: 4630792449480978593
+    second: frost_elite_floe_harrower_lights_128
+  - first:
+      213: -7128984982056329424
+    second: frost_elite_floe_harrower_lights_129
+  - first:
+      213: -2524999097789673502
+    second: frost_elite_floe_harrower_lights_130
+  - first:
+      213: 7058241098600542129
+    second: frost_elite_floe_harrower_lights_131
+  - first:
+      213: 7963757715031498895
+    second: frost_elite_floe_harrower_lights_132
+  - first:
+      213: 8807645339551417528
+    second: frost_elite_floe_harrower_lights_133
+  - first:
+      213: -8993892482198309142
+    second: frost_elite_floe_harrower_lights_134
+  - first:
+      213: -7037748892608672340
+    second: frost_elite_floe_harrower_lights_135
+  - first:
+      213: 2992071922447547149
+    second: frost_elite_floe_harrower_lights_136
+  - first:
+      213: -6102316048752298902
+    second: frost_elite_floe_harrower_lights_137
+  - first:
+      213: -3964428106001157993
+    second: frost_elite_floe_harrower_lights_138
+  - first:
+      213: 8490506523015294555
+    second: frost_elite_floe_harrower_lights_139
+  - first:
+      213: -6910793207230474857
+    second: frost_elite_floe_harrower_lights_140
+  - first:
+      213: -501061884454654771
+    second: frost_elite_floe_harrower_lights_141
+  - first:
+      213: 5735179224384476113
+    second: frost_elite_floe_harrower_lights_142
+  - first:
+      213: 7823978726895100248
+    second: frost_elite_floe_harrower_lights_143
+  - first:
+      213: 6975365717698827117
+    second: frost_elite_floe_harrower_lights_144
+  - first:
+      213: 7010879776388993413
+    second: frost_elite_floe_harrower_lights_145
+  - first:
+      213: 7909444274458198571
+    second: frost_elite_floe_harrower_lights_146
+  - first:
+      213: 8443773524951033844
+    second: frost_elite_floe_harrower_lights_147
+  - first:
+      213: 3582106897207963826
+    second: frost_elite_floe_harrower_lights_148
+  - first:
+      213: 3790255303837552548
+    second: frost_elite_floe_harrower_lights_149
+  - first:
+      213: 7353527696980342718
+    second: frost_elite_floe_harrower_lights_150
+  - first:
+      213: -6674065239981099664
+    second: frost_elite_floe_harrower_lights_151
+  - first:
+      213: -6448299025086825046
+    second: frost_elite_floe_harrower_lights_152
+  - first:
+      213: -5320385102365087123
+    second: frost_elite_floe_harrower_lights_153
+  - first:
+      213: 1863910250681230808
+    second: frost_elite_floe_harrower_lights_154
+  - first:
+      213: -5044492028728866341
+    second: frost_elite_floe_harrower_lights_155
+  - first:
+      213: 4905174653220622867
+    second: frost_elite_floe_harrower_lights_156
+  - first:
+      213: 7087870440287925933
+    second: frost_elite_floe_harrower_lights_157
+  - first:
+      213: 4505796550151078441
+    second: frost_elite_floe_harrower_lights_158
+  - first:
+      213: 2015945261727816105
+    second: frost_elite_floe_harrower_lights_159
+  - first:
+      213: 1605838591904013722
+    second: frost_elite_floe_harrower_lights_160
+  - first:
+      213: -5138698160186030228
+    second: frost_elite_floe_harrower_lights_161
+  - first:
+      213: -2282781930552728025
+    second: frost_elite_floe_harrower_lights_162
+  - first:
+      213: 8991739440679531225
+    second: frost_elite_floe_harrower_lights_163
+  - first:
+      213: -66845794317171371
+    second: frost_elite_floe_harrower_lights_164
+  - first:
+      213: -8777443776456113875
+    second: frost_elite_floe_harrower_lights_165
+  - first:
+      213: -2385824484933508307
+    second: frost_elite_floe_harrower_lights_166
+  - first:
+      213: -267544028490908251
+    second: frost_elite_floe_harrower_lights_167
+  - first:
+      213: 7284712479216863641
+    second: frost_elite_floe_harrower_lights_168
+  - first:
+      213: 6559753936729809479
+    second: frost_elite_floe_harrower_lights_169
+  - first:
+      213: -1656255552252074359
+    second: frost_elite_floe_harrower_lights_170
+  - first:
+      213: -6784663879925639838
+    second: frost_elite_floe_harrower_lights_171
+  - first:
+      213: -7695584234126340589
+    second: frost_elite_floe_harrower_lights_172
+  - first:
+      213: -4592745885173896111
+    second: frost_elite_floe_harrower_lights_173
+  - first:
+      213: 2455719751448072809
+    second: frost_elite_floe_harrower_lights_174
+  - first:
+      213: 7460728610390542956
+    second: frost_elite_floe_harrower_lights_175
+  - first:
+      213: -7507421114791341139
+    second: frost_elite_floe_harrower_lights_176
+  - first:
+      213: 6869387135511529521
+    second: frost_elite_floe_harrower_lights_177
+  - first:
+      213: -6295260797878315088
+    second: frost_elite_floe_harrower_lights_178
+  - first:
+      213: 2592573371832828929
+    second: frost_elite_floe_harrower_lights_179
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 1
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 4096
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 0
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 4096
+    resizeAlgorithm: 0
+    textureFormat: 50
+    textureCompression: 1
+    compressionQuality: 100
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 1
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: iOS
+    maxTextureSize: 4096
+    resizeAlgorithm: 0
+    textureFormat: 50
+    textureCompression: 1
+    compressionQuality: 100
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 1
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_0
+      rect:
+        serializedVersion: 2
+        x: 209
+        y: 246
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9279ee37b7369bc20800000000000000
+      internalID: 3222716390237443881
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_1
+      rect:
+        serializedVersion: 2
+        x: 593
+        y: 246
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 35f4502046ae69f20800000000000000
+      internalID: 3429185881540742995
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_2
+      rect:
+        serializedVersion: 2
+        x: 976
+        y: 245
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f7047f12571d30520800000000000000
+      internalID: 2667205705344696447
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_3
+      rect:
+        serializedVersion: 2
+        x: 1360
+        y: 245
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8eedb54816267bd20800000000000000
+      internalID: 3294209823416770280
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_4
+      rect:
+        serializedVersion: 2
+        x: 1744
+        y: 245
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 18ae5e4ce92c8a750800000000000000
+      internalID: 6316512464551144065
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_5
+      rect:
+        serializedVersion: 2
+        x: 2128
+        y: 245
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a0806d936a667c4e0800000000000000
+      internalID: -1961486248575629302
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_6
+      rect:
+        serializedVersion: 2
+        x: 2513
+        y: 246
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: eb0d5ee5908ba76c0800000000000000
+      internalID: -4144798156654784322
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_7
+      rect:
+        serializedVersion: 2
+        x: 2897
+        y: 246
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7d7ca7aae34daa190800000000000000
+      internalID: -7950308826555955241
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_8
+      rect:
+        serializedVersion: 2
+        x: 3281
+        y: 246
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3f3f616c9785f47a0800000000000000
+      internalID: -6390792066177764365
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_9
+      rect:
+        serializedVersion: 2
+        x: 3665
+        y: 246
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 68f0e5bfc39df2ec0800000000000000
+      internalID: -3589411522052485242
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_10
+      rect:
+        serializedVersion: 2
+        x: 198
+        y: 232
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7b7174cd71019e1b0800000000000000
+      internalID: -5626948564756785225
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_11
+      rect:
+        serializedVersion: 2
+        x: 252
+        y: 232
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 89d6c25ed3af4ef40800000000000000
+      internalID: 5757001367431179672
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_12
+      rect:
+        serializedVersion: 2
+        x: 282
+        y: 232
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ef59638a4a308f5d0800000000000000
+      internalID: -3028666743674989058
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_13
+      rect:
+        serializedVersion: 2
+        x: 581
+        y: 231
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fed4a39ccbf239250800000000000000
+      internalID: 5950152020562955759
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_14
+      rect:
+        serializedVersion: 2
+        x: 635
+        y: 231
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 85271349f330080d0800000000000000
+      internalID: -3422732145197485480
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_15
+      rect:
+        serializedVersion: 2
+        x: 665
+        y: 232
+        width: 11
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5e59810889c063b90800000000000000
+      internalID: -7262603499964688923
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_16
+      rect:
+        serializedVersion: 2
+        x: 964
+        y: 230
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1983c1281b132d4c0800000000000000
+      internalID: -4264291258704578415
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_17
+      rect:
+        serializedVersion: 2
+        x: 1018
+        y: 230
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1702e236d1f115c20800000000000000
+      internalID: 3193367821860872305
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_18
+      rect:
+        serializedVersion: 2
+        x: 1049
+        y: 231
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6882beff887b169c0800000000000000
+      internalID: -3935662800308066170
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_19
+      rect:
+        serializedVersion: 2
+        x: 1349
+        y: 231
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4526e145b5f96b5e0800000000000000
+      internalID: -1894151378660597164
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_20
+      rect:
+        serializedVersion: 2
+        x: 1403
+        y: 231
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b2ea7d4ef354eb620800000000000000
+      internalID: 2791744959740882475
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_21
+      rect:
+        serializedVersion: 2
+        x: 1433
+        y: 231
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f817a0906f0c01e00800000000000000
+      internalID: 1013522079104528783
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_22
+      rect:
+        serializedVersion: 2
+        x: 1732
+        y: 230
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: aebc24dbb4b165160800000000000000
+      internalID: 7013823481787894762
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_23
+      rect:
+        serializedVersion: 2
+        x: 1786
+        y: 230
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0103e3758e30b2e80800000000000000
+      internalID: -8202457999894237168
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_24
+      rect:
+        serializedVersion: 2
+        x: 1817
+        y: 231
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4d0ca2553f8e02920800000000000000
+      internalID: 2963624686613348564
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_25
+      rect:
+        serializedVersion: 2
+        x: 2116
+        y: 230
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8e3e42c831c635740800000000000000
+      internalID: 5139570430971274216
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_26
+      rect:
+        serializedVersion: 2
+        x: 2170
+        y: 230
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ef3acb7cab2dc0130800000000000000
+      internalID: 3534431507235775486
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_27
+      rect:
+        serializedVersion: 2
+        x: 2201
+        y: 231
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3c78d233f375e7890800000000000000
+      internalID: -7458428003925784637
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_28
+      rect:
+        serializedVersion: 2
+        x: 2500
+        y: 230
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c6a9ed7f1a0cd3840800000000000000
+      internalID: 5205528546190989932
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_29
+      rect:
+        serializedVersion: 2
+        x: 2554
+        y: 230
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e5104152fc51cdbf0800000000000000
+      internalID: -298339495888813730
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_30
+      rect:
+        serializedVersion: 2
+        x: 2584
+        y: 230
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: dbcea29b81896a760800000000000000
+      internalID: 7468824263993781437
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_31
+      rect:
+        serializedVersion: 2
+        x: 2885
+        y: 231
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8c68a5b31721be9e0800000000000000
+      internalID: -1591157765808945464
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_32
+      rect:
+        serializedVersion: 2
+        x: 2938
+        y: 230
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3e6ba12fac09fbdb0800000000000000
+      internalID: -4773937878669805853
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_33
+      rect:
+        serializedVersion: 2
+        x: 2968
+        y: 230
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ade4b4f609dd20d00800000000000000
+      internalID: 937555284858719962
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_34
+      rect:
+        serializedVersion: 2
+        x: 3269
+        y: 231
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: dac0aaf4031c9c370800000000000000
+      internalID: 8343412197919689901
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_35
+      rect:
+        serializedVersion: 2
+        x: 3323
+        y: 231
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 98c683b7c0bb01490800000000000000
+      internalID: -7777510894187549559
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_36
+      rect:
+        serializedVersion: 2
+        x: 3352
+        y: 230
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 686c26f2a049dec30800000000000000
+      internalID: 4390327983221687942
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_37
+      rect:
+        serializedVersion: 2
+        x: 3652
+        y: 230
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0409288a0f20c6be0800000000000000
+      internalID: -1482806944669200320
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_38
+      rect:
+        serializedVersion: 2
+        x: 3706
+        y: 230
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6c85b5a9174c73550800000000000000
+      internalID: 6140592609142986950
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_39
+      rect:
+        serializedVersion: 2
+        x: 3737
+        y: 231
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c349c6dea6f88e320800000000000000
+      internalID: 2587475675336971324
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_40
+      rect:
+        serializedVersion: 2
+        x: 276
+        y: 214
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 62cbff9411deeb4b0800000000000000
+      internalID: -5422636242795774938
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_41
+      rect:
+        serializedVersion: 2
+        x: 659
+        y: 214
+        width: 11
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 150f7876928f2a1f0800000000000000
+      internalID: -1034992107627483055
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_42
+      rect:
+        serializedVersion: 2
+        x: 1043
+        y: 213
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b3b29b0ddf6d5d7d0800000000000000
+      internalID: -2894170799898809541
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_43
+      rect:
+        serializedVersion: 2
+        x: 1427
+        y: 213
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 85e7525afe9a24ff0800000000000000
+      internalID: -53293398842048936
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_44
+      rect:
+        serializedVersion: 2
+        x: 1811
+        y: 213
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 639611a1fac71fe70800000000000000
+      internalID: 9147229409664657718
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_45
+      rect:
+        serializedVersion: 2
+        x: 2195
+        y: 213
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5db4bc1833c75dbd0800000000000000
+      internalID: -2606040248701203499
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_46
+      rect:
+        serializedVersion: 2
+        x: 2579
+        y: 213
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 229774f4e509f4fb0800000000000000
+      internalID: -4661348354573764318
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_47
+      rect:
+        serializedVersion: 2
+        x: 2962
+        y: 212
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ef85b4cee51b79b90800000000000000
+      internalID: -7235119255098009346
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_48
+      rect:
+        serializedVersion: 2
+        x: 3346
+        y: 212
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5ed1e9a2e7e83b990800000000000000
+      internalID: -7371391492543341083
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_49
+      rect:
+        serializedVersion: 2
+        x: 3731
+        y: 213
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1cb90cd8da4d195d0800000000000000
+      internalID: -3057428830135215167
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_50
+      rect:
+        serializedVersion: 2
+        x: 210
+        y: 202
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b8a39944020534a90800000000000000
+      internalID: -7330927668908967285
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_51
+      rect:
+        serializedVersion: 2
+        x: 282
+        y: 196
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cbac01a97c922bc50800000000000000
+      internalID: 6679447134603889340
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_52
+      rect:
+        serializedVersion: 2
+        x: 593
+        y: 202
+        width: 11
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a3e129a3721212450800000000000000
+      internalID: 6062163025787493946
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_53
+      rect:
+        serializedVersion: 2
+        x: 665
+        y: 196
+        width: 11
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a85614e9af5856b20800000000000000
+      internalID: 3127052827722081674
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_54
+      rect:
+        serializedVersion: 2
+        x: 977
+        y: 201
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 79212618a4eea3770800000000000000
+      internalID: 8591441242928321175
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_55
+      rect:
+        serializedVersion: 2
+        x: 1049
+        y: 195
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b9fae26d3f79d3780800000000000000
+      internalID: -8701631831483699301
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_56
+      rect:
+        serializedVersion: 2
+        x: 1361
+        y: 201
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bb9c3f45efd65c780800000000000000
+      internalID: -8663397369062897221
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_57
+      rect:
+        serializedVersion: 2
+        x: 1433
+        y: 195
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: da7d44a4442111b20800000000000000
+      internalID: 3103281702748084141
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_58
+      rect:
+        serializedVersion: 2
+        x: 1745
+        y: 201
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4be42076661cb3200800000000000000
+      internalID: 160934857260814004
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_59
+      rect:
+        serializedVersion: 2
+        x: 1817
+        y: 195
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 40f8d2e84ea7ecf80800000000000000
+      internalID: -8084389159026979068
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_60
+      rect:
+        serializedVersion: 2
+        x: 2129
+        y: 201
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 50a29c2ed53974d80800000000000000
+      internalID: -8266476559569180155
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_61
+      rect:
+        serializedVersion: 2
+        x: 2201
+        y: 195
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 303795eec6b0ce5e0800000000000000
+      internalID: -1879114382037126397
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_62
+      rect:
+        serializedVersion: 2
+        x: 2513
+        y: 201
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 27d8549da416538c0800000000000000
+      internalID: -4020200118257611406
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_63
+      rect:
+        serializedVersion: 2
+        x: 2585
+        y: 195
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 70e032f56881d3aa0800000000000000
+      internalID: -6179756148281635321
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_64
+      rect:
+        serializedVersion: 2
+        x: 2897
+        y: 201
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c4bec14bd9a181d20800000000000000
+      internalID: 3249376395781794636
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_65
+      rect:
+        serializedVersion: 2
+        x: 2969
+        y: 195
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: dd55706380fe2f330800000000000000
+      internalID: 3743317058843530717
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_66
+      rect:
+        serializedVersion: 2
+        x: 3280
+        y: 200
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 08a99b4b3bd783420800000000000000
+      internalID: 2609974194845883008
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_67
+      rect:
+        serializedVersion: 2
+        x: 3353
+        y: 195
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 806c47faa5a90f9a0800000000000000
+      internalID: -6201286972607773176
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_68
+      rect:
+        serializedVersion: 2
+        x: 3664
+        y: 200
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0dca542b71aea87f0800000000000000
+      internalID: -609417412059222832
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_69
+      rect:
+        serializedVersion: 2
+        x: 3737
+        y: 195
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b4397210a1f196910800000000000000
+      internalID: 1831028920051798859
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_70
+      rect:
+        serializedVersion: 2
+        x: 213
+        y: 181
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3e1eb23814b78d3c0800000000000000
+      internalID: -4334579120040320541
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_71
+      rect:
+        serializedVersion: 2
+        x: 228
+        y: 172
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 43b3e8b07430f1470800000000000000
+      internalID: 8367410236349102900
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_72
+      rect:
+        serializedVersion: 2
+        x: 270
+        y: 175
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 67d8b4389799d33f0800000000000000
+      internalID: -919410001740853898
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_73
+      rect:
+        serializedVersion: 2
+        x: 596
+        y: 181
+        width: 11
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a0c9b8b7eb410d8b0800000000000000
+      internalID: -5129577167225906166
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_74
+      rect:
+        serializedVersion: 2
+        x: 611
+        y: 172
+        width: 11
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f8940eaa6a059b320800000000000000
+      internalID: 2574177338780567951
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_75
+      rect:
+        serializedVersion: 2
+        x: 653
+        y: 175
+        width: 11
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 845c9a8719746d780800000000000000
+      internalID: -8658654543452977848
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_76
+      rect:
+        serializedVersion: 2
+        x: 980
+        y: 180
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b193c6c714d9bcd20800000000000000
+      internalID: 3299904056564922651
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_77
+      rect:
+        serializedVersion: 2
+        x: 995
+        y: 171
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f23b6d95e2f259940800000000000000
+      internalID: 5302196012420870959
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_78
+      rect:
+        serializedVersion: 2
+        x: 1037
+        y: 174
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 50425f7453f408110800000000000000
+      internalID: 1261094985922847749
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_79
+      rect:
+        serializedVersion: 2
+        x: 1364
+        y: 180
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b032b557e93a34d20800000000000000
+      internalID: 3261630456115438347
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_80
+      rect:
+        serializedVersion: 2
+        x: 1379
+        y: 171
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 507ec4db648493750800000000000000
+      internalID: 6285134223633082117
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_81
+      rect:
+        serializedVersion: 2
+        x: 1421
+        y: 174
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: df89925dec9ae7f30800000000000000
+      internalID: 4575280977259632893
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_82
+      rect:
+        serializedVersion: 2
+        x: 1748
+        y: 180
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e29a1e30258fc2c20800000000000000
+      internalID: 3183192067780225326
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_83
+      rect:
+        serializedVersion: 2
+        x: 1763
+        y: 171
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3f3d661a212302870800000000000000
+      internalID: 8655973539404764147
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_84
+      rect:
+        serializedVersion: 2
+        x: 1805
+        y: 174
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 75a31161dfb8e8780800000000000000
+      internalID: -8678845512783152553
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_85
+      rect:
+        serializedVersion: 2
+        x: 2132
+        y: 180
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3b6582be2eebee340800000000000000
+      internalID: 4895059726815483571
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_86
+      rect:
+        serializedVersion: 2
+        x: 2147
+        y: 171
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f7c4751cbfea511f0800000000000000
+      internalID: -1074760539754247041
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_87
+      rect:
+        serializedVersion: 2
+        x: 2189
+        y: 174
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1ff187098c4d58c20800000000000000
+      internalID: 3208204267453685745
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_88
+      rect:
+        serializedVersion: 2
+        x: 2516
+        y: 180
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8199fe58965ad1d70800000000000000
+      internalID: 9015543901702822168
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_89
+      rect:
+        serializedVersion: 2
+        x: 2531
+        y: 171
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9cbdc30fb07abcfd0800000000000000
+      internalID: -2320577513262359607
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_90
+      rect:
+        serializedVersion: 2
+        x: 2573
+        y: 174
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2392ca81e05e07e20800000000000000
+      internalID: 3346426371842517298
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_91
+      rect:
+        serializedVersion: 2
+        x: 2900
+        y: 180
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f61ff59b8abc28e90800000000000000
+      internalID: -7024828543219535505
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_92
+      rect:
+        serializedVersion: 2
+        x: 2915
+        y: 171
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2b6a1e0746482e4f0800000000000000
+      internalID: -800932216793094478
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_93
+      rect:
+        serializedVersion: 2
+        x: 2957
+        y: 174
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: dcee95b4f78759f20800000000000000
+      internalID: 3428779179432865485
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_94
+      rect:
+        serializedVersion: 2
+        x: 3284
+        y: 180
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ad39b499e4f8b9bd0800000000000000
+      internalID: -2622344790271093798
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_95
+      rect:
+        serializedVersion: 2
+        x: 3299
+        y: 171
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 397a4bf537c263550800000000000000
+      internalID: 6140144016004786067
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_96
+      rect:
+        serializedVersion: 2
+        x: 3341
+        y: 174
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 46e93ab0eeeadb920800000000000000
+      internalID: 3007752463574081124
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_97
+      rect:
+        serializedVersion: 2
+        x: 3667
+        y: 179
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2f054f0aa41ba66a0800000000000000
+      internalID: -6455152181796122382
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_98
+      rect:
+        serializedVersion: 2
+        x: 3683
+        y: 171
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9ec3f995376556000800000000000000
+      internalID: 28524026072612073
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_99
+      rect:
+        serializedVersion: 2
+        x: 3725
+        y: 174
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bc00a67be16950100800000000000000
+      internalID: 73630027591844043
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_100
+      rect:
+        serializedVersion: 2
+        x: 213
+        y: 154
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a7c9c86a236d40090800000000000000
+      internalID: -8069089119310144390
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_101
+      rect:
+        serializedVersion: 2
+        x: 237
+        y: 157
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 494df54a6458f9c10800000000000000
+      internalID: 2062513692810925204
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_102
+      rect:
+        serializedVersion: 2
+        x: 252
+        y: 148
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 72525b9001c058130800000000000000
+      internalID: 3568271542782862631
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_103
+      rect:
+        serializedVersion: 2
+        x: 596
+        y: 154
+        width: 11
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f0b9f19c445e41260800000000000000
+      internalID: 7067525798845979407
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_104
+      rect:
+        serializedVersion: 2
+        x: 620
+        y: 157
+        width: 11
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3a01f1f2ee5f6ca30800000000000000
+      internalID: 4235342902930116771
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_105
+      rect:
+        serializedVersion: 2
+        x: 635
+        y: 148
+        width: 11
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c2f375b640a3eeab0800000000000000
+      internalID: -4976976747542659284
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_106
+      rect:
+        serializedVersion: 2
+        x: 980
+        y: 153
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a143bb1d510129390800000000000000
+      internalID: -7813164717635324902
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_107
+      rect:
+        serializedVersion: 2
+        x: 1004
+        y: 156
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f75463651f4e13840800000000000000
+      internalID: 5202190769774282111
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_108
+      rect:
+        serializedVersion: 2
+        x: 1019
+        y: 147
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1044c2a85736842b0800000000000000
+      internalID: -5600116780154731519
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_109
+      rect:
+        serializedVersion: 2
+        x: 1364
+        y: 153
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 135ccb54d9fc6f650800000000000000
+      internalID: 6266424205919438129
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_110
+      rect:
+        serializedVersion: 2
+        x: 1388
+        y: 156
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 752cade7e3b6c9990800000000000000
+      internalID: -7377904173379304873
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_111
+      rect:
+        serializedVersion: 2
+        x: 1403
+        y: 147
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 98577456e14decff0800000000000000
+      internalID: -13840521822243447
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_112
+      rect:
+        serializedVersion: 2
+        x: 1748
+        y: 153
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ccf29b14d100f1c30800000000000000
+      internalID: 4332181492210413516
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_113
+      rect:
+        serializedVersion: 2
+        x: 1772
+        y: 156
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cc9ae00cb2029ac20800000000000000
+      internalID: 3218138781010799052
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_114
+      rect:
+        serializedVersion: 2
+        x: 1787
+        y: 147
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4c109724f62aeb940800000000000000
+      internalID: 5313863209084060100
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_115
+      rect:
+        serializedVersion: 2
+        x: 2132
+        y: 153
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2820a5d795bf10a10800000000000000
+      internalID: 1874055281736548994
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_116
+      rect:
+        serializedVersion: 2
+        x: 2156
+        y: 156
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6da077b337d2d2e80800000000000000
+      internalID: -8201849373429658922
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_117
+      rect:
+        serializedVersion: 2
+        x: 2171
+        y: 147
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f048440f0a72e6fc0800000000000000
+      internalID: -3499816288241023985
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_118
+      rect:
+        serializedVersion: 2
+        x: 2516
+        y: 153
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6a3f29401beb58980800000000000000
+      internalID: -8537207851115678810
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_119
+      rect:
+        serializedVersion: 2
+        x: 2540
+        y: 156
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: dea285f916cf94a90800000000000000
+      internalID: -7329049422353388819
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_120
+      rect:
+        serializedVersion: 2
+        x: 2555
+        y: 147
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 35bf9bdd4a5ab7180800000000000000
+      internalID: -9116510893168264365
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_121
+      rect:
+        serializedVersion: 2
+        x: 2900
+        y: 153
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4a776e08facb92970800000000000000
+      internalID: 8730716814602303396
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_122
+      rect:
+        serializedVersion: 2
+        x: 2924
+        y: 156
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 66ea29ea74f818b30800000000000000
+      internalID: 4287865858267721318
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_123
+      rect:
+        serializedVersion: 2
+        x: 2939
+        y: 147
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 81ce9b6e4edbdb460800000000000000
+      internalID: 7259166965212245016
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_124
+      rect:
+        serializedVersion: 2
+        x: 3284
+        y: 153
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 64c9798ab79451cb0800000000000000
+      internalID: -4893924624609862586
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_125
+      rect:
+        serializedVersion: 2
+        x: 3308
+        y: 156
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 11df5bb45fcb1f010800000000000000
+      internalID: 1220964735717342481
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_126
+      rect:
+        serializedVersion: 2
+        x: 3323
+        y: 147
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fe5a87ed2e3d45ac0800000000000000
+      internalID: -3867233208655895057
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_127
+      rect:
+        serializedVersion: 2
+        x: 3667
+        y: 152
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9ac5268ac0eb6fd50800000000000000
+      internalID: 6770808051372022953
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_128
+      rect:
+        serializedVersion: 2
+        x: 3691
+        y: 155
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1a0ffd3a231e34040800000000000000
+      internalID: 4630792449480978593
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_129
+      rect:
+        serializedVersion: 2
+        x: 3707
+        y: 147
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 03f10770ee1c01d90800000000000000
+      internalID: -7128984982056329424
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_130
+      rect:
+        serializedVersion: 2
+        x: 237
+        y: 139
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2ef8016d2b665fcd0800000000000000
+      internalID: -2524999097789673502
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_131
+      rect:
+        serializedVersion: 2
+        x: 620
+        y: 139
+        width: 11
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1bfe52d02e8e3f160800000000000000
+      internalID: 7058241098600542129
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_132
+      rect:
+        serializedVersion: 2
+        x: 1004
+        y: 138
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f80aab1b273f48e60800000000000000
+      internalID: 7963757715031498895
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_133
+      rect:
+        serializedVersion: 2
+        x: 1388
+        y: 138
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8b4469b75ca0b3a70800000000000000
+      internalID: 8807645339551417528
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_134
+      rect:
+        serializedVersion: 2
+        x: 1772
+        y: 138
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ae6738a60764f2380800000000000000
+      internalID: -8993892482198309142
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_135
+      rect:
+        serializedVersion: 2
+        x: 2156
+        y: 138
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cad49a57ba4e45e90800000000000000
+      internalID: -7037748892608672340
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_136
+      rect:
+        serializedVersion: 2
+        x: 2540
+        y: 138
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d0bf7ef8f89f58920800000000000000
+      internalID: 2992071922447547149
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_137
+      rect:
+        serializedVersion: 2
+        x: 2924
+        y: 138
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a6434f692e7305ba0800000000000000
+      internalID: -6102316048752298902
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_138
+      rect:
+        serializedVersion: 2
+        x: 3308
+        y: 138
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 790f93c54a58bf8c0800000000000000
+      internalID: -3964428106001157993
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_139
+      rect:
+        serializedVersion: 2
+        x: 3691
+        y: 137
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b5ea673b2b654d570800000000000000
+      internalID: 8490506523015294555
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_140
+      rect:
+        serializedVersion: 2
+        x: 198
+        y: 124
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 79558d6613ee710a0800000000000000
+      internalID: -6910793207230474857
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_141
+      rect:
+        serializedVersion: 2
+        x: 225
+        y: 121
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: dcca79eeededb09f0800000000000000
+      internalID: -501061884454654771
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_142
+      rect:
+        serializedVersion: 2
+        x: 242
+        y: 120
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1d313a84e13779f40800000000000000
+      internalID: 5735179224384476113
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_143
+      rect:
+        serializedVersion: 2
+        x: 581
+        y: 124
+        width: 11
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 851abcae23b549c60800000000000000
+      internalID: 7823978726895100248
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_144
+      rect:
+        serializedVersion: 2
+        x: 608
+        y: 121
+        width: 11
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d6350e5c92a7dc060800000000000000
+      internalID: 6975365717698827117
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_145
+      rect:
+        serializedVersion: 2
+        x: 626
+        y: 121
+        width: 11
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 581d2aae206ab4160800000000000000
+      internalID: 7010879776388993413
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_146
+      rect:
+        serializedVersion: 2
+        x: 965
+        y: 123
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b2204dd59adf3cd60800000000000000
+      internalID: 7909444274458198571
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_147
+      rect:
+        serializedVersion: 2
+        x: 992
+        y: 120
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4f7ed8ea84f4e2570800000000000000
+      internalID: 8443773524951033844
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_148
+      rect:
+        serializedVersion: 2
+        x: 1010
+        y: 120
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2b0be838e3336b130800000000000000
+      internalID: 3582106897207963826
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_149
+      rect:
+        serializedVersion: 2
+        x: 1349
+        y: 123
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4af07410e11b99430800000000000000
+      internalID: 3790255303837552548
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_150
+      rect:
+        serializedVersion: 2
+        x: 1376
+        y: 120
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: eb77280da7afc0660800000000000000
+      internalID: 7353527696980342718
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_151
+      rect:
+        serializedVersion: 2
+        x: 1393
+        y: 119
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 075f4236605f063a0800000000000000
+      internalID: -6674065239981099664
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_152
+      rect:
+        serializedVersion: 2
+        x: 1733
+        y: 123
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: aadb334833a0386a0800000000000000
+      internalID: -6448299025086825046
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_153
+      rect:
+        serializedVersion: 2
+        x: 1760
+        y: 120
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d6aaf3120f13a26b0800000000000000
+      internalID: -5320385102365087123
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_154
+      rect:
+        serializedVersion: 2
+        x: 1778
+        y: 120
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8d560116f70fdd910800000000000000
+      internalID: 1863910250681230808
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_155
+      rect:
+        serializedVersion: 2
+        x: 2117
+        y: 123
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bd9835b0a3d5ef9b0800000000000000
+      internalID: -5044492028728866341
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_156
+      rect:
+        serializedVersion: 2
+        x: 2144
+        y: 120
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 312177ebb5ea21440800000000000000
+      internalID: 4905174653220622867
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_157
+      rect:
+        serializedVersion: 2
+        x: 2162
+        y: 120
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: da67a5fbc9c2d5260800000000000000
+      internalID: 7087870440287925933
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_158
+      rect:
+        serializedVersion: 2
+        x: 2501
+        y: 123
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9228fe1f61ec78e30800000000000000
+      internalID: 4505796550151078441
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_159
+      rect:
+        serializedVersion: 2
+        x: 2528
+        y: 120
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9a91bebd8831afb10800000000000000
+      internalID: 2015945261727816105
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_160
+      rect:
+        serializedVersion: 2
+        x: 2546
+        y: 120
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a9d5d05f0b5194610800000000000000
+      internalID: 1605838591904013722
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_161
+      rect:
+        serializedVersion: 2
+        x: 2885
+        y: 123
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c678822df3dafa8b0800000000000000
+      internalID: -5138698160186030228
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_162
+      rect:
+        serializedVersion: 2
+        x: 2912
+        y: 120
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 72669b9cdede150e0800000000000000
+      internalID: -2282781930552728025
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_163
+      rect:
+        serializedVersion: 2
+        x: 2930
+        y: 120
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9d2b29a816319cc70800000000000000
+      internalID: 8991739440679531225
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_164
+      rect:
+        serializedVersion: 2
+        x: 3269
+        y: 123
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5550ffeaa14821ff0800000000000000
+      internalID: -66845794317171371
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_165
+      rect:
+        serializedVersion: 2
+        x: 3296
+        y: 120
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d21ce54e361403680800000000000000
+      internalID: -8777443776456113875
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_166
+      rect:
+        serializedVersion: 2
+        x: 3314
+        y: 120
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d23eb178549d3eed0800000000000000
+      internalID: -2385824484933508307
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_167
+      rect:
+        serializedVersion: 2
+        x: 3652
+        y: 122
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5adb504af1e794cf0800000000000000
+      internalID: -267544028490908251
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_168
+      rect:
+        serializedVersion: 2
+        x: 3680
+        y: 120
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 999839e576f781560800000000000000
+      internalID: 7284712479216863641
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_169
+      rect:
+        serializedVersion: 2
+        x: 3698
+        y: 120
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 74220cc437de80b50800000000000000
+      internalID: 6559753936729809479
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_170
+      rect:
+        serializedVersion: 2
+        x: 188
+        y: 108
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9862fb6b95cc309e0800000000000000
+      internalID: -1656255552252074359
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_171
+      rect:
+        serializedVersion: 2
+        x: 572
+        y: 108
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 265db9cd52808d1a0800000000000000
+      internalID: -6784663879925639838
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_172
+      rect:
+        serializedVersion: 2
+        x: 955
+        y: 107
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 31e8dc979eac33590800000000000000
+      internalID: -7695584234126340589
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_173
+      rect:
+        serializedVersion: 2
+        x: 1339
+        y: 107
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 15ca29a63f94340c0800000000000000
+      internalID: -4592745885173896111
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_174
+      rect:
+        serializedVersion: 2
+        x: 1723
+        y: 107
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 96219fc5a18741220800000000000000
+      internalID: 2455719751448072809
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_175
+      rect:
+        serializedVersion: 2
+        x: 2107
+        y: 107
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c6a0ceb7425d98760800000000000000
+      internalID: 7460728610390542956
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_176
+      rect:
+        serializedVersion: 2
+        x: 2491
+        y: 107
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: da35899a54840d790800000000000000
+      internalID: -7507421114791341139
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_177
+      rect:
+        serializedVersion: 2
+        x: 2875
+        y: 107
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1388dc44437f45f50800000000000000
+      internalID: 6869387135511529521
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_178
+      rect:
+        serializedVersion: 2
+        x: 3259
+        y: 107
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0b7550678adb2a8a0800000000000000
+      internalID: -6295260797878315088
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_floe_harrower_lights_179
+      rect:
+        serializedVersion: 2
+        x: 3643
+        y: 107
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1048b32eebbaaf320800000000000000
+      internalID: 2592573371832828929
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 5e97eb03825dee720800000000000000
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable: {}
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

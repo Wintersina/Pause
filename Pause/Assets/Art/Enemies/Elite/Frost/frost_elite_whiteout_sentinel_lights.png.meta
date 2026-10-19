@@ -1,0 +1,4823 @@
+fileFormatVersion: 2
+guid: 0bbbcf69b4c134545b71ea89b565022d
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: -6068948799286112795
+    second: frost_elite_whiteout_sentinel_lights_0
+  - first:
+      213: -8434521624337652278
+    second: frost_elite_whiteout_sentinel_lights_1
+  - first:
+      213: -7626299781396790522
+    second: frost_elite_whiteout_sentinel_lights_2
+  - first:
+      213: -754225640277556472
+    second: frost_elite_whiteout_sentinel_lights_3
+  - first:
+      213: -4643594794578747115
+    second: frost_elite_whiteout_sentinel_lights_4
+  - first:
+      213: -1543538767337088515
+    second: frost_elite_whiteout_sentinel_lights_5
+  - first:
+      213: -3434040198776964823
+    second: frost_elite_whiteout_sentinel_lights_6
+  - first:
+      213: 4805789106335903226
+    second: frost_elite_whiteout_sentinel_lights_7
+  - first:
+      213: 848109096658856413
+    second: frost_elite_whiteout_sentinel_lights_8
+  - first:
+      213: -1726434484856996612
+    second: frost_elite_whiteout_sentinel_lights_9
+  - first:
+      213: -5213076849001681924
+    second: frost_elite_whiteout_sentinel_lights_10
+  - first:
+      213: -7078770246278303694
+    second: frost_elite_whiteout_sentinel_lights_11
+  - first:
+      213: 9146711417429921944
+    second: frost_elite_whiteout_sentinel_lights_12
+  - first:
+      213: -325418152300979634
+    second: frost_elite_whiteout_sentinel_lights_13
+  - first:
+      213: 4861105218795848675
+    second: frost_elite_whiteout_sentinel_lights_14
+  - first:
+      213: 6585270815577741599
+    second: frost_elite_whiteout_sentinel_lights_15
+  - first:
+      213: 2771179431176168820
+    second: frost_elite_whiteout_sentinel_lights_16
+  - first:
+      213: -2869301166466555724
+    second: frost_elite_whiteout_sentinel_lights_17
+  - first:
+      213: 4744583914946416707
+    second: frost_elite_whiteout_sentinel_lights_18
+  - first:
+      213: -7477038852631771676
+    second: frost_elite_whiteout_sentinel_lights_19
+  - first:
+      213: 6730781046762111694
+    second: frost_elite_whiteout_sentinel_lights_20
+  - first:
+      213: 9166136877469676619
+    second: frost_elite_whiteout_sentinel_lights_21
+  - first:
+      213: -2787788006719800528
+    second: frost_elite_whiteout_sentinel_lights_22
+  - first:
+      213: -7625809429200325001
+    second: frost_elite_whiteout_sentinel_lights_23
+  - first:
+      213: -2433744044118428408
+    second: frost_elite_whiteout_sentinel_lights_24
+  - first:
+      213: 5249126598189761744
+    second: frost_elite_whiteout_sentinel_lights_25
+  - first:
+      213: 3849499370369890807
+    second: frost_elite_whiteout_sentinel_lights_26
+  - first:
+      213: -274329523764684817
+    second: frost_elite_whiteout_sentinel_lights_27
+  - first:
+      213: -2749500588118863211
+    second: frost_elite_whiteout_sentinel_lights_28
+  - first:
+      213: 2412837056819373858
+    second: frost_elite_whiteout_sentinel_lights_29
+  - first:
+      213: 7499622748790126201
+    second: frost_elite_whiteout_sentinel_lights_30
+  - first:
+      213: 2591445718886204742
+    second: frost_elite_whiteout_sentinel_lights_31
+  - first:
+      213: 168196864658408228
+    second: frost_elite_whiteout_sentinel_lights_32
+  - first:
+      213: -1920316162310137314
+    second: frost_elite_whiteout_sentinel_lights_33
+  - first:
+      213: -7904336822889217869
+    second: frost_elite_whiteout_sentinel_lights_34
+  - first:
+      213: 4262775669449363629
+    second: frost_elite_whiteout_sentinel_lights_35
+  - first:
+      213: -1570500938819204228
+    second: frost_elite_whiteout_sentinel_lights_36
+  - first:
+      213: 8714366694680399690
+    second: frost_elite_whiteout_sentinel_lights_37
+  - first:
+      213: 1527475669800673737
+    second: frost_elite_whiteout_sentinel_lights_38
+  - first:
+      213: -1536099728659663051
+    second: frost_elite_whiteout_sentinel_lights_39
+  - first:
+      213: -7826589627332074229
+    second: frost_elite_whiteout_sentinel_lights_40
+  - first:
+      213: 1370429517208205526
+    second: frost_elite_whiteout_sentinel_lights_41
+  - first:
+      213: 6180312709574560561
+    second: frost_elite_whiteout_sentinel_lights_42
+  - first:
+      213: 5672571768422034713
+    second: frost_elite_whiteout_sentinel_lights_43
+  - first:
+      213: -7082468931962152366
+    second: frost_elite_whiteout_sentinel_lights_44
+  - first:
+      213: -3444022968519464602
+    second: frost_elite_whiteout_sentinel_lights_45
+  - first:
+      213: -2665410794578200747
+    second: frost_elite_whiteout_sentinel_lights_46
+  - first:
+      213: -4216733681968421675
+    second: frost_elite_whiteout_sentinel_lights_47
+  - first:
+      213: 7813236647259988920
+    second: frost_elite_whiteout_sentinel_lights_48
+  - first:
+      213: -3493910133597770563
+    second: frost_elite_whiteout_sentinel_lights_49
+  - first:
+      213: -3708417930260129808
+    second: frost_elite_whiteout_sentinel_lights_50
+  - first:
+      213: 608167294592233068
+    second: frost_elite_whiteout_sentinel_lights_51
+  - first:
+      213: -2477792801109562815
+    second: frost_elite_whiteout_sentinel_lights_52
+  - first:
+      213: 6305884504454911414
+    second: frost_elite_whiteout_sentinel_lights_53
+  - first:
+      213: 6907693661345854197
+    second: frost_elite_whiteout_sentinel_lights_54
+  - first:
+      213: -5391806145986153223
+    second: frost_elite_whiteout_sentinel_lights_55
+  - first:
+      213: 7120497249038034530
+    second: frost_elite_whiteout_sentinel_lights_56
+  - first:
+      213: -5066418658638106864
+    second: frost_elite_whiteout_sentinel_lights_57
+  - first:
+      213: -1250300074071447701
+    second: frost_elite_whiteout_sentinel_lights_58
+  - first:
+      213: -5277000712573387236
+    second: frost_elite_whiteout_sentinel_lights_59
+  - first:
+      213: -7806880132676960673
+    second: frost_elite_whiteout_sentinel_lights_60
+  - first:
+      213: -5734703807586732414
+    second: frost_elite_whiteout_sentinel_lights_61
+  - first:
+      213: -5861783221250918529
+    second: frost_elite_whiteout_sentinel_lights_62
+  - first:
+      213: -3141502893424995019
+    second: frost_elite_whiteout_sentinel_lights_63
+  - first:
+      213: -6151836385456993283
+    second: frost_elite_whiteout_sentinel_lights_64
+  - first:
+      213: 3820498495340714769
+    second: frost_elite_whiteout_sentinel_lights_65
+  - first:
+      213: 2631756814065720320
+    second: frost_elite_whiteout_sentinel_lights_66
+  - first:
+      213: 3425412317690776912
+    second: frost_elite_whiteout_sentinel_lights_67
+  - first:
+      213: -3084163799270458524
+    second: frost_elite_whiteout_sentinel_lights_68
+  - first:
+      213: 3821500568918210949
+    second: frost_elite_whiteout_sentinel_lights_69
+  - first:
+      213: -3122716053923498310
+    second: frost_elite_whiteout_sentinel_lights_70
+  - first:
+      213: 2135554856375621337
+    second: frost_elite_whiteout_sentinel_lights_71
+  - first:
+      213: 268934017663021076
+    second: frost_elite_whiteout_sentinel_lights_72
+  - first:
+      213: -5055052638458620255
+    second: frost_elite_whiteout_sentinel_lights_73
+  - first:
+      213: -2617880785795652727
+    second: frost_elite_whiteout_sentinel_lights_74
+  - first:
+      213: -8106739533670122265
+    second: frost_elite_whiteout_sentinel_lights_75
+  - first:
+      213: 6801877830957106592
+    second: frost_elite_whiteout_sentinel_lights_76
+  - first:
+      213: 8639964545687236792
+    second: frost_elite_whiteout_sentinel_lights_77
+  - first:
+      213: 144086927522860907
+    second: frost_elite_whiteout_sentinel_lights_78
+  - first:
+      213: 7490470063762776955
+    second: frost_elite_whiteout_sentinel_lights_79
+  - first:
+      213: -7341393805533020396
+    second: frost_elite_whiteout_sentinel_lights_80
+  - first:
+      213: -9146891406309547881
+    second: frost_elite_whiteout_sentinel_lights_81
+  - first:
+      213: 2775229771613753348
+    second: frost_elite_whiteout_sentinel_lights_82
+  - first:
+      213: 2011196087025196198
+    second: frost_elite_whiteout_sentinel_lights_83
+  - first:
+      213: 3848964418181669733
+    second: frost_elite_whiteout_sentinel_lights_84
+  - first:
+      213: -8843251576453995528
+    second: frost_elite_whiteout_sentinel_lights_85
+  - first:
+      213: -308355323557271060
+    second: frost_elite_whiteout_sentinel_lights_86
+  - first:
+      213: -7913661768966516064
+    second: frost_elite_whiteout_sentinel_lights_87
+  - first:
+      213: -2103782160560216019
+    second: frost_elite_whiteout_sentinel_lights_88
+  - first:
+      213: 5330772907723849570
+    second: frost_elite_whiteout_sentinel_lights_89
+  - first:
+      213: 1351162313303889891
+    second: frost_elite_whiteout_sentinel_lights_90
+  - first:
+      213: 2905312629295814901
+    second: frost_elite_whiteout_sentinel_lights_91
+  - first:
+      213: 729315982583934169
+    second: frost_elite_whiteout_sentinel_lights_92
+  - first:
+      213: -7100217599756320641
+    second: frost_elite_whiteout_sentinel_lights_93
+  - first:
+      213: -2482284636056264659
+    second: frost_elite_whiteout_sentinel_lights_94
+  - first:
+      213: 1731972118097972070
+    second: frost_elite_whiteout_sentinel_lights_95
+  - first:
+      213: -7484662361271601222
+    second: frost_elite_whiteout_sentinel_lights_96
+  - first:
+      213: 5126460197092601073
+    second: frost_elite_whiteout_sentinel_lights_97
+  - first:
+      213: 797210848350487323
+    second: frost_elite_whiteout_sentinel_lights_98
+  - first:
+      213: 3258764505342252505
+    second: frost_elite_whiteout_sentinel_lights_99
+  - first:
+      213: 5038243186145347192
+    second: frost_elite_whiteout_sentinel_lights_100
+  - first:
+      213: -8075345586448582659
+    second: frost_elite_whiteout_sentinel_lights_101
+  - first:
+      213: 3389833699769856130
+    second: frost_elite_whiteout_sentinel_lights_102
+  - first:
+      213: 4108594708244670487
+    second: frost_elite_whiteout_sentinel_lights_103
+  - first:
+      213: 4960484785834919114
+    second: frost_elite_whiteout_sentinel_lights_104
+  - first:
+      213: -2028467151669661988
+    second: frost_elite_whiteout_sentinel_lights_105
+  - first:
+      213: 6826361865921274596
+    second: frost_elite_whiteout_sentinel_lights_106
+  - first:
+      213: 6342061540655732759
+    second: frost_elite_whiteout_sentinel_lights_107
+  - first:
+      213: -1175862954903533538
+    second: frost_elite_whiteout_sentinel_lights_108
+  - first:
+      213: 5893549981682574126
+    second: frost_elite_whiteout_sentinel_lights_109
+  - first:
+      213: -4298846899539538980
+    second: frost_elite_whiteout_sentinel_lights_110
+  - first:
+      213: -5124520176529535135
+    second: frost_elite_whiteout_sentinel_lights_111
+  - first:
+      213: 8125683797776375267
+    second: frost_elite_whiteout_sentinel_lights_112
+  - first:
+      213: -2334735847657554478
+    second: frost_elite_whiteout_sentinel_lights_113
+  - first:
+      213: -2764504908362204498
+    second: frost_elite_whiteout_sentinel_lights_114
+  - first:
+      213: -1551480243108972700
+    second: frost_elite_whiteout_sentinel_lights_115
+  - first:
+      213: -8075509791880312575
+    second: frost_elite_whiteout_sentinel_lights_116
+  - first:
+      213: -5720794866867215511
+    second: frost_elite_whiteout_sentinel_lights_117
+  - first:
+      213: 2215231378908670349
+    second: frost_elite_whiteout_sentinel_lights_118
+  - first:
+      213: 1760596657998511962
+    second: frost_elite_whiteout_sentinel_lights_119
+  - first:
+      213: -8185668253462165705
+    second: frost_elite_whiteout_sentinel_lights_120
+  - first:
+      213: 347095558744800040
+    second: frost_elite_whiteout_sentinel_lights_121
+  - first:
+      213: -4428524775203620618
+    second: frost_elite_whiteout_sentinel_lights_122
+  - first:
+      213: -5706193303487638819
+    second: frost_elite_whiteout_sentinel_lights_123
+  - first:
+      213: 6766122812010389948
+    second: frost_elite_whiteout_sentinel_lights_124
+  - first:
+      213: 7006570114600454580
+    second: frost_elite_whiteout_sentinel_lights_125
+  - first:
+      213: 8781675556637585005
+    second: frost_elite_whiteout_sentinel_lights_126
+  - first:
+      213: 7997380673700674707
+    second: frost_elite_whiteout_sentinel_lights_127
+  - first:
+      213: -7777304549613665530
+    second: frost_elite_whiteout_sentinel_lights_128
+  - first:
+      213: 2622440090382162047
+    second: frost_elite_whiteout_sentinel_lights_129
+  - first:
+      213: 5505889145012124349
+    second: frost_elite_whiteout_sentinel_lights_130
+  - first:
+      213: -5862532434893468183
+    second: frost_elite_whiteout_sentinel_lights_131
+  - first:
+      213: 8786798159490420222
+    second: frost_elite_whiteout_sentinel_lights_132
+  - first:
+      213: -6046015189118115573
+    second: frost_elite_whiteout_sentinel_lights_133
+  - first:
+      213: -3758788955816248087
+    second: frost_elite_whiteout_sentinel_lights_134
+  - first:
+      213: -1290044862263001209
+    second: frost_elite_whiteout_sentinel_lights_135
+  - first:
+      213: 2915152354322099428
+    second: frost_elite_whiteout_sentinel_lights_136
+  - first:
+      213: -8480681558147463460
+    second: frost_elite_whiteout_sentinel_lights_137
+  - first:
+      213: 3621851422221554746
+    second: frost_elite_whiteout_sentinel_lights_138
+  - first:
+      213: 8568337599829683564
+    second: frost_elite_whiteout_sentinel_lights_139
+  - first:
+      213: -8324881938836160865
+    second: frost_elite_whiteout_sentinel_lights_140
+  - first:
+      213: -2889628066109536526
+    second: frost_elite_whiteout_sentinel_lights_141
+  - first:
+      213: -7751143363635564353
+    second: frost_elite_whiteout_sentinel_lights_142
+  - first:
+      213: -3137263004657795780
+    second: frost_elite_whiteout_sentinel_lights_143
+  - first:
+      213: 6634139673610311489
+    second: frost_elite_whiteout_sentinel_lights_144
+  - first:
+      213: 1621052856525752885
+    second: frost_elite_whiteout_sentinel_lights_145
+  - first:
+      213: -2468535149083611661
+    second: frost_elite_whiteout_sentinel_lights_146
+  - first:
+      213: -5752644448236767844
+    second: frost_elite_whiteout_sentinel_lights_147
+  - first:
+      213: 4882947544953901099
+    second: frost_elite_whiteout_sentinel_lights_148
+  - first:
+      213: -8499326116595635928
+    second: frost_elite_whiteout_sentinel_lights_149
+  - first:
+      213: -984595825326356627
+    second: frost_elite_whiteout_sentinel_lights_150
+  - first:
+      213: -5281132911981934322
+    second: frost_elite_whiteout_sentinel_lights_151
+  - first:
+      213: 2188128695997683256
+    second: frost_elite_whiteout_sentinel_lights_152
+  - first:
+      213: 8950516641448730869
+    second: frost_elite_whiteout_sentinel_lights_153
+  - first:
+      213: -3213693664164276671
+    second: frost_elite_whiteout_sentinel_lights_154
+  - first:
+      213: -1347040251335162596
+    second: frost_elite_whiteout_sentinel_lights_155
+  - first:
+      213: 5031686480091292653
+    second: frost_elite_whiteout_sentinel_lights_156
+  - first:
+      213: -3636759008880103700
+    second: frost_elite_whiteout_sentinel_lights_157
+  - first:
+      213: 4884872594513097721
+    second: frost_elite_whiteout_sentinel_lights_158
+  - first:
+      213: -4791424840845761154
+    second: frost_elite_whiteout_sentinel_lights_159
+  - first:
+      213: 2985300689471195261
+    second: frost_elite_whiteout_sentinel_lights_160
+  - first:
+      213: -5403972833646128956
+    second: frost_elite_whiteout_sentinel_lights_161
+  - first:
+      213: 2876021955339769850
+    second: frost_elite_whiteout_sentinel_lights_162
+  - first:
+      213: -7283896728990839768
+    second: frost_elite_whiteout_sentinel_lights_163
+  - first:
+      213: 4473349027899338272
+    second: frost_elite_whiteout_sentinel_lights_164
+  - first:
+      213: -44727754345146765
+    second: frost_elite_whiteout_sentinel_lights_165
+  - first:
+      213: 3087841907120920870
+    second: frost_elite_whiteout_sentinel_lights_166
+  - first:
+      213: 5032823377185744202
+    second: frost_elite_whiteout_sentinel_lights_167
+  - first:
+      213: 8223887978708231137
+    second: frost_elite_whiteout_sentinel_lights_168
+  - first:
+      213: -4711029152265638170
+    second: frost_elite_whiteout_sentinel_lights_169
+  - first:
+      213: -6624092178739679693
+    second: frost_elite_whiteout_sentinel_lights_170
+  - first:
+      213: 5488797929031242436
+    second: frost_elite_whiteout_sentinel_lights_171
+  - first:
+      213: -6291217453744503431
+    second: frost_elite_whiteout_sentinel_lights_172
+  - first:
+      213: -3171839756531563416
+    second: frost_elite_whiteout_sentinel_lights_173
+  - first:
+      213: -6602027160616776346
+    second: frost_elite_whiteout_sentinel_lights_174
+  - first:
+      213: 3989722417901234303
+    second: frost_elite_whiteout_sentinel_lights_175
+  - first:
+      213: -7449905373236133783
+    second: frost_elite_whiteout_sentinel_lights_176
+  - first:
+      213: 2338289266173948073
+    second: frost_elite_whiteout_sentinel_lights_177
+  - first:
+      213: -4491598916879809403
+    second: frost_elite_whiteout_sentinel_lights_178
+  - first:
+      213: 5150634654855079856
+    second: frost_elite_whiteout_sentinel_lights_179
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: 50
+    textureCompression: 1
+    compressionQuality: 100
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 1
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: iOS
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: 50
+    textureCompression: 1
+    compressionQuality: 100
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 1
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_0
+      rect:
+        serializedVersion: 2
+        x: 201
+        y: 287
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5ed8482c833c6cba0800000000000000
+      internalID: -6068948799286112795
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_1
+      rect:
+        serializedVersion: 2
+        x: 585
+        y: 287
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ac5e00b454f82fa80800000000000000
+      internalID: -8434521624337652278
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_2
+      rect:
+        serializedVersion: 2
+        x: 968
+        y: 286
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 603843331c0f92690800000000000000
+      internalID: -7626299781396790522
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_3
+      rect:
+        serializedVersion: 2
+        x: 1352
+        y: 286
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 803c3c6b6c37885f0800000000000000
+      internalID: -754225640277556472
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_4
+      rect:
+        serializedVersion: 2
+        x: 1736
+        y: 286
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 511e74c1323ae8fb0800000000000000
+      internalID: -4643594794578747115
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_5
+      rect:
+        serializedVersion: 2
+        x: 2120
+        y: 286
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: df914db4baf349ae0800000000000000
+      internalID: -1543538767337088515
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_6
+      rect:
+        serializedVersion: 2
+        x: 2505
+        y: 287
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 929bc7f22a6d750d0800000000000000
+      internalID: -3434040198776964823
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_7
+      rect:
+        serializedVersion: 2
+        x: 2889
+        y: 287
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: afde794eab791b240800000000000000
+      internalID: 4805789106335903226
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_8
+      rect:
+        serializedVersion: 2
+        x: 3273
+        y: 287
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: dd9e02ddab615cb00800000000000000
+      internalID: 848109096658856413
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_9
+      rect:
+        serializedVersion: 2
+        x: 3657
+        y: 287
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cfc3d1aabf87a08e0800000000000000
+      internalID: -1726434484856996612
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_10
+      rect:
+        serializedVersion: 2
+        x: 199
+        y: 270
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cfb2174d93e67a7b0800000000000000
+      internalID: -5213076849001681924
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_11
+      rect:
+        serializedVersion: 2
+        x: 582
+        y: 269
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2303af747f723cd90800000000000000
+      internalID: -7078770246278303694
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_12
+      rect:
+        serializedVersion: 2
+        x: 965
+        y: 268
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8909be2a295afee70800000000000000
+      internalID: 9146711417429921944
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_13
+      rect:
+        serializedVersion: 2
+        x: 1350
+        y: 269
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e4ad2a42ae1eb7bf0800000000000000
+      internalID: -325418152300979634
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_14
+      rect:
+        serializedVersion: 2
+        x: 1733
+        y: 268
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3e3cf16f07d167340800000000000000
+      internalID: 4861105218795848675
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_15
+      rect:
+        serializedVersion: 2
+        x: 2117
+        y: 268
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f191240aae4936b50800000000000000
+      internalID: 6585270815577741599
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_16
+      rect:
+        serializedVersion: 2
+        x: 2501
+        y: 268
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 475ef14a205357620800000000000000
+      internalID: 2771179431176168820
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_17
+      rect:
+        serializedVersion: 2
+        x: 2886
+        y: 269
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4b0a5239ac13e28d0800000000000000
+      internalID: -2869301166466555724
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_18
+      rect:
+        serializedVersion: 2
+        x: 3270
+        y: 269
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 340d969cee528d140800000000000000
+      internalID: 4744583914946416707
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_19
+      rect:
+        serializedVersion: 2
+        x: 3653
+        y: 268
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4e5c61157c83c3890800000000000000
+      internalID: -7477038852631771676
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_20
+      rect:
+        serializedVersion: 2
+        x: 211
+        y: 255
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ec2003963b9886d50800000000000000
+      internalID: 6730781046762111694
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_21
+      rect:
+        serializedVersion: 2
+        x: 594
+        y: 254
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b4430300de8a43f70800000000000000
+      internalID: 9166136877469676619
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_22
+      rect:
+        serializedVersion: 2
+        x: 977
+        y: 253
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 03b3f560499cf49d0800000000000000
+      internalID: -2787788006719800528
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_23
+      rect:
+        serializedVersion: 2
+        x: 1362
+        y: 254
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 776b0b73abeab2690800000000000000
+      internalID: -7625809429200325001
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_24
+      rect:
+        serializedVersion: 2
+        x: 1745
+        y: 253
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8053918bfaa993ed0800000000000000
+      internalID: -2433744044118428408
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_25
+      rect:
+        serializedVersion: 2
+        x: 2129
+        y: 253
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0d4c72a74d4a8d840800000000000000
+      internalID: 5249126598189761744
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_26
+      rect:
+        serializedVersion: 2
+        x: 2513
+        y: 253
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7f9bcf5284b2c6530800000000000000
+      internalID: 3849499370369890807
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_27
+      rect:
+        serializedVersion: 2
+        x: 2897
+        y: 253
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fe79a9860c2613cf0800000000000000
+      internalID: -274329523764684817
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_28
+      rect:
+        serializedVersion: 2
+        x: 3282
+        y: 254
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 592927758cfc7d9d0800000000000000
+      internalID: -2749500588118863211
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_29
+      rect:
+        serializedVersion: 2
+        x: 3665
+        y: 253
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2272e98f48e1c7120800000000000000
+      internalID: 2412837056819373858
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_30
+      rect:
+        serializedVersion: 2
+        x: 190
+        y: 234
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 976f213c723041860800000000000000
+      internalID: 7499622748790126201
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_31
+      rect:
+        serializedVersion: 2
+        x: 229
+        y: 237
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6454be8b62aa6f320800000000000000
+      internalID: 2591445718886204742
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_32
+      rect:
+        serializedVersion: 2
+        x: 573
+        y: 234
+        width: 11
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4238c42482e855200800000000000000
+      internalID: 168196864658408228
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_33
+      rect:
+        serializedVersion: 2
+        x: 612
+        y: 237
+        width: 11
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e1a1019ef9aa955e0800000000000000
+      internalID: -1920316162310137314
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_34
+      rect:
+        serializedVersion: 2
+        x: 957
+        y: 233
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3b006aed9872e4290800000000000000
+      internalID: -7904336822889217869
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_35
+      rect:
+        serializedVersion: 2
+        x: 996
+        y: 236
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: da015bed2eb682b30800000000000000
+      internalID: 4262775669449363629
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_36
+      rect:
+        serializedVersion: 2
+        x: 1341
+        y: 233
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c7b834e87b5743ae0800000000000000
+      internalID: -1570500938819204228
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_37
+      rect:
+        serializedVersion: 2
+        x: 1380
+        y: 236
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a4f8bee8656afe870800000000000000
+      internalID: 8714366694680399690
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_38
+      rect:
+        serializedVersion: 2
+        x: 1725
+        y: 233
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9c1658d570fa23510800000000000000
+      internalID: 1527475669800673737
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_39
+      rect:
+        serializedVersion: 2
+        x: 1764
+        y: 236
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 537baa57f6daeaae0800000000000000
+      internalID: -1536099728659663051
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_40
+      rect:
+        serializedVersion: 2
+        x: 2109
+        y: 233
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b056d14733e526390800000000000000
+      internalID: -7826589627332074229
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_41
+      rect:
+        serializedVersion: 2
+        x: 2148
+        y: 236
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6d8b7e2926eb40310800000000000000
+      internalID: 1370429517208205526
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_42
+      rect:
+        serializedVersion: 2
+        x: 2493
+        y: 233
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 13b06072aa1e4c550800000000000000
+      internalID: 6180312709574560561
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_43
+      rect:
+        serializedVersion: 2
+        x: 2531
+        y: 235
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 91d64b308f509be40800000000000000
+      internalID: 5672571768422034713
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_44
+      rect:
+        serializedVersion: 2
+        x: 2876
+        y: 232
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 25ad7a9e70406bd90800000000000000
+      internalID: -7082468931962152366
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_45
+      rect:
+        serializedVersion: 2
+        x: 2915
+        y: 235
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6696c1b7b5f5430d0800000000000000
+      internalID: -3444022968519464602
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_46
+      rect:
+        serializedVersion: 2
+        x: 3260
+        y: 232
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 557bca8110f820bd0800000000000000
+      internalID: -2665410794578200747
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_47
+      rect:
+        serializedVersion: 2
+        x: 3299
+        y: 235
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5d4e8d5be072b75c0800000000000000
+      internalID: -4216733681968421675
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_48
+      rect:
+        serializedVersion: 2
+        x: 3645
+        y: 233
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8b3eef995513e6c60800000000000000
+      internalID: 7813236647259988920
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_49
+      rect:
+        serializedVersion: 2
+        x: 3684
+        y: 236
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: dbc64c9be33238fc0800000000000000
+      internalID: -3493910133597770563
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_50
+      rect:
+        serializedVersion: 2
+        x: 208
+        y: 222
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0f7d72c5a8d098cc0800000000000000
+      internalID: -3708417930260129808
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_51
+      rect:
+        serializedVersion: 2
+        x: 591
+        y: 222
+        width: 11
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c6e2e26aee4a07800800000000000000
+      internalID: 608167294592233068
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_52
+      rect:
+        serializedVersion: 2
+        x: 975
+        y: 221
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 14a28d6439c1d9dd0800000000000000
+      internalID: -2477792801109562815
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_53
+      rect:
+        serializedVersion: 2
+        x: 1359
+        y: 221
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6b5dcaafb80038750800000000000000
+      internalID: 6305884504454911414
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_54
+      rect:
+        serializedVersion: 2
+        x: 1743
+        y: 221
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5f2bcb559ce0ddf50800000000000000
+      internalID: 6907693661345854197
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_55
+      rect:
+        serializedVersion: 2
+        x: 2127
+        y: 221
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9f43ab290e47c25b0800000000000000
+      internalID: -5391806145986153223
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_56
+      rect:
+        serializedVersion: 2
+        x: 2511
+        y: 221
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 266ee01a58611d260800000000000000
+      internalID: 7120497249038034530
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_57
+      rect:
+        serializedVersion: 2
+        x: 2895
+        y: 221
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 01fe670b21770b9b0800000000000000
+      internalID: -5066418658638106864
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_58
+      rect:
+        serializedVersion: 2
+        x: 3278
+        y: 220
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b67a35ef4ba06aee0800000000000000
+      internalID: -1250300074071447701
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_59
+      rect:
+        serializedVersion: 2
+        x: 3662
+        y: 220
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c1e74978fc354c6b0800000000000000
+      internalID: -5277000712573387236
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_60
+      rect:
+        serializedVersion: 2
+        x: 226
+        y: 207
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f5e3cb7c1e368a390800000000000000
+      internalID: -7806880132676960673
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_61
+      rect:
+        serializedVersion: 2
+        x: 244
+        y: 207
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 28676b0554d3a60b0800000000000000
+      internalID: -5734703807586732414
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_62
+      rect:
+        serializedVersion: 2
+        x: 609
+        y: 207
+        width: 11
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f777ef2a733c6aea0800000000000000
+      internalID: -5861783221250918529
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_63
+      rect:
+        serializedVersion: 2
+        x: 627
+        y: 207
+        width: 11
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5359a8843c32764d0800000000000000
+      internalID: -3141502893424995019
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_64
+      rect:
+        serializedVersion: 2
+        x: 993
+        y: 206
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: dfb4388b66940aaa0800000000000000
+      internalID: -6151836385456993283
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_65
+      rect:
+        serializedVersion: 2
+        x: 1011
+        y: 206
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 11b92bfb323250530800000000000000
+      internalID: 3820498495340714769
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_66
+      rect:
+        serializedVersion: 2
+        x: 1377
+        y: 206
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 00cd995f0e0e58420800000000000000
+      internalID: 2631756814065720320
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_67
+      rect:
+        serializedVersion: 2
+        x: 1395
+        y: 206
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 05dc435ba52898f20800000000000000
+      internalID: 3425412317690776912
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_68
+      rect:
+        serializedVersion: 2
+        x: 1761
+        y: 206
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 46b7d5b7d59d235d0800000000000000
+      internalID: -3084163799270458524
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_69
+      rect:
+        serializedVersion: 2
+        x: 1779
+        y: 206
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 589b25f2582b80530800000000000000
+      internalID: 3821500568918210949
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_70
+      rect:
+        serializedVersion: 2
+        x: 2145
+        y: 206
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ab6fa773b42e9a4d0800000000000000
+      internalID: -3122716053923498310
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_71
+      rect:
+        serializedVersion: 2
+        x: 2163
+        y: 206
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9d611a4c3d303ad10800000000000000
+      internalID: 2135554856375621337
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_72
+      rect:
+        serializedVersion: 2
+        x: 2529
+        y: 206
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 410b2de60127bb300800000000000000
+      internalID: 268934017663021076
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_73
+      rect:
+        serializedVersion: 2
+        x: 2547
+        y: 206
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1a6d5cb7868d8d9b0800000000000000
+      internalID: -5055052638458620255
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_74
+      rect:
+        serializedVersion: 2
+        x: 2913
+        y: 206
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9836452ab4b6babd0800000000000000
+      internalID: -2617880785795652727
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_75
+      rect:
+        serializedVersion: 2
+        x: 2931
+        y: 206
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7ecf9f078531f7f80800000000000000
+      internalID: -8106739533670122265
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_76
+      rect:
+        serializedVersion: 2
+        x: 3297
+        y: 206
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0a58dcf69df156e50800000000000000
+      internalID: 6801877830957106592
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_77
+      rect:
+        serializedVersion: 2
+        x: 3315
+        y: 206
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8b038a15af157e770800000000000000
+      internalID: 8639964545687236792
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_78
+      rect:
+        serializedVersion: 2
+        x: 3681
+        y: 206
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b6f07c31c46eff100800000000000000
+      internalID: 144086927522860907
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_79
+      rect:
+        serializedVersion: 2
+        x: 3698
+        y: 205
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b73274736de73f760800000000000000
+      internalID: 7490470063762776955
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_80
+      rect:
+        serializedVersion: 2
+        x: 196
+        y: 183
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 41f73f0fa312e1a90800000000000000
+      internalID: -7341393805533020396
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_81
+      rect:
+        serializedVersion: 2
+        x: 211
+        y: 192
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 790a8df6ab6bf0180800000000000000
+      internalID: -9146891406309547881
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_82
+      rect:
+        serializedVersion: 2
+        x: 579
+        y: 183
+        width: 11
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 400502306c8938620800000000000000
+      internalID: 2775229771613753348
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_83
+      rect:
+        serializedVersion: 2
+        x: 594
+        y: 192
+        width: 11
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6acdac47f2439eb10800000000000000
+      internalID: 2011196087025196198
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_84
+      rect:
+        serializedVersion: 2
+        x: 963
+        y: 182
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 56326d2eeb44a6530800000000000000
+      internalID: 3848964418181669733
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_85
+      rect:
+        serializedVersion: 2
+        x: 978
+        y: 191
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8f3eb067b85764580800000000000000
+      internalID: -8843251576453995528
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_86
+      rect:
+        serializedVersion: 2
+        x: 1347
+        y: 182
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ce9a4ca877088bbf0800000000000000
+      internalID: -308355323557271060
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_87
+      rect:
+        serializedVersion: 2
+        x: 1362
+        y: 191
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0a2592cac860d2290800000000000000
+      internalID: -7913661768966516064
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_88
+      rect:
+        serializedVersion: 2
+        x: 1731
+        y: 182
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d282103754dddc2e0800000000000000
+      internalID: -2103782160560216019
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_89
+      rect:
+        serializedVersion: 2
+        x: 1746
+        y: 191
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 26ff72747b5baf940800000000000000
+      internalID: 5330772907723849570
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_90
+      rect:
+        serializedVersion: 2
+        x: 2115
+        y: 182
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3e79f5617fa40c210800000000000000
+      internalID: 1351162313303889891
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_91
+      rect:
+        serializedVersion: 2
+        x: 2130
+        y: 191
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5f812ae717eb15820800000000000000
+      internalID: 2905312629295814901
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_92
+      rect:
+        serializedVersion: 2
+        x: 2499
+        y: 182
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9dc2ee6a50d0f1a00800000000000000
+      internalID: 729315982583934169
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_93
+      rect:
+        serializedVersion: 2
+        x: 2514
+        y: 191
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f704c8a26b5f67d90800000000000000
+      internalID: -7100217599756320641
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_94
+      rect:
+        serializedVersion: 2
+        x: 2883
+        y: 182
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d20e47476472d8dd0800000000000000
+      internalID: -2482284636056264659
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_95
+      rect:
+        serializedVersion: 2
+        x: 2898
+        y: 191
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 66b4c1c0773390810800000000000000
+      internalID: 1731972118097972070
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_96
+      rect:
+        serializedVersion: 2
+        x: 3267
+        y: 182
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ab77ba4ec33212890800000000000000
+      internalID: -7484662361271601222
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_97
+      rect:
+        serializedVersion: 2
+        x: 3282
+        y: 191
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1fc22ea5368d42740800000000000000
+      internalID: 5126460197092601073
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_98
+      rect:
+        serializedVersion: 2
+        x: 3651
+        y: 182
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b13c403fa03401b00800000000000000
+      internalID: 797210848350487323
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_99
+      rect:
+        serializedVersion: 2
+        x: 3666
+        y: 191
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9d5939b4d05793d20800000000000000
+      internalID: 3258764505342252505
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_100
+      rect:
+        serializedVersion: 2
+        x: 238
+        y: 180
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 876c93aeb7f6be540800000000000000
+      internalID: 5038243186145347192
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_101
+      rect:
+        serializedVersion: 2
+        x: 621
+        y: 180
+        width: 11
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: df7b63169fb9eef80800000000000000
+      internalID: -8075345586448582659
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_102
+      rect:
+        serializedVersion: 2
+        x: 1005
+        y: 179
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2803e623acb1b0f20800000000000000
+      internalID: 3389833699769856130
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_103
+      rect:
+        serializedVersion: 2
+        x: 1389
+        y: 179
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 71829fe6e19a40930800000000000000
+      internalID: 4108594708244670487
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_104
+      rect:
+        serializedVersion: 2
+        x: 1773
+        y: 179
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ac48b6581ae27d440800000000000000
+      internalID: 4960484785834919114
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_105
+      rect:
+        serializedVersion: 2
+        x: 2157
+        y: 179
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cde6e227fdf69d3e0800000000000000
+      internalID: -2028467151669661988
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_106
+      rect:
+        serializedVersion: 2
+        x: 2541
+        y: 179
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4e2a28e03fb1cbe50800000000000000
+      internalID: 6826361865921274596
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_107
+      rect:
+        serializedVersion: 2
+        x: 2925
+        y: 179
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 718937a9e57830850800000000000000
+      internalID: 6342061540655732759
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_108
+      rect:
+        serializedVersion: 2
+        x: 3309
+        y: 179
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e180f6c5fde7eafe0800000000000000
+      internalID: -1175862954903533538
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_109
+      rect:
+        serializedVersion: 2
+        x: 3692
+        y: 178
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e232334ab781ac150800000000000000
+      internalID: 5893549981682574126
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_110
+      rect:
+        serializedVersion: 2
+        x: 214
+        y: 165
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cdb0829658d6754c0800000000000000
+      internalID: -4298846899539538980
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_111
+      rect:
+        serializedVersion: 2
+        x: 597
+        y: 165
+        width: 11
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 16f82a1ec0c02e8b0800000000000000
+      internalID: -5124520176529535135
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_112
+      rect:
+        serializedVersion: 2
+        x: 981
+        y: 164
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3ed9b93cc5a34c070800000000000000
+      internalID: 8125683797776375267
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_113
+      rect:
+        serializedVersion: 2
+        x: 1365
+        y: 164
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2dd3004dd1a599fd0800000000000000
+      internalID: -2334735847657554478
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_114
+      rect:
+        serializedVersion: 2
+        x: 1749
+        y: 164
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: eaa3f3dce6182a9d0800000000000000
+      internalID: -2764504908362204498
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_115
+      rect:
+        serializedVersion: 2
+        x: 2133
+        y: 164
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 467f37160f8087ae0800000000000000
+      internalID: -1551480243108972700
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_116
+      rect:
+        serializedVersion: 2
+        x: 2517
+        y: 164
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 10909c251a60eef80800000000000000
+      internalID: -8075509791880312575
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_117
+      rect:
+        serializedVersion: 2
+        x: 2901
+        y: 164
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 963608fe067ab90b0800000000000000
+      internalID: -5720794866867215511
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_118
+      rect:
+        serializedVersion: 2
+        x: 3285
+        y: 164
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d89662bc3351ebe10800000000000000
+      internalID: 2215231378908670349
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_119
+      rect:
+        serializedVersion: 2
+        x: 3668
+        y: 163
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a5fbdb81555ee6810800000000000000
+      internalID: 1760596657998511962
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_120
+      rect:
+        serializedVersion: 2
+        x: 214
+        y: 147
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 737023fc71aa66e80800000000000000
+      internalID: -8185668253462165705
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_121
+      rect:
+        serializedVersion: 2
+        x: 286
+        y: 153
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 82b791a529121d400800000000000000
+      internalID: 347095558744800040
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_122
+      rect:
+        serializedVersion: 2
+        x: 597
+        y: 147
+        width: 11
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6f8b8f62e28ba82c0800000000000000
+      internalID: -4428524775203620618
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_123
+      rect:
+        serializedVersion: 2
+        x: 669
+        y: 153
+        width: 11
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: dd218e55c678fc0b0800000000000000
+      internalID: -5706193303487638819
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_124
+      rect:
+        serializedVersion: 2
+        x: 981
+        y: 146
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cb1eb8c59d816ed50800000000000000
+      internalID: 6766122812010389948
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_125
+      rect:
+        serializedVersion: 2
+        x: 1053
+        y: 152
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4b9c0a695665c3160800000000000000
+      internalID: 7006570114600454580
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_126
+      rect:
+        serializedVersion: 2
+        x: 1365
+        y: 146
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d6e2d163467ced970800000000000000
+      internalID: 8781675556637585005
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_127
+      rect:
+        serializedVersion: 2
+        x: 1437
+        y: 152
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 39cb08dc9576cfe60800000000000000
+      internalID: 7997380673700674707
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_128
+      rect:
+        serializedVersion: 2
+        x: 1749
+        y: 146
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6038f32d7b6711490800000000000000
+      internalID: -7777304549613665530
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_129
+      rect:
+        serializedVersion: 2
+        x: 1821
+        y: 152
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f78d8ff2e57c46420800000000000000
+      internalID: 2622440090382162047
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_130
+      rect:
+        serializedVersion: 2
+        x: 2133
+        y: 146
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: dba70258109d86c40800000000000000
+      internalID: 5505889145012124349
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_131
+      rect:
+        serializedVersion: 2
+        x: 2205
+        y: 152
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9ed08fdbfc914aea0800000000000000
+      internalID: -5862532434893468183
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_132
+      rect:
+        serializedVersion: 2
+        x: 2517
+        y: 146
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: efd8b712f5af0f970800000000000000
+      internalID: 8786798159490420222
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_133
+      rect:
+        serializedVersion: 2
+        x: 2589
+        y: 152
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b01aff9f73d381ca0800000000000000
+      internalID: -6046015189118115573
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_134
+      rect:
+        serializedVersion: 2
+        x: 2901
+        y: 146
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9ec39ee0c5916dbc0800000000000000
+      internalID: -3758788955816248087
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_135
+      rect:
+        serializedVersion: 2
+        x: 2973
+        y: 152
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 78ffe706807d81ee0800000000000000
+      internalID: -1290044862263001209
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_136
+      rect:
+        serializedVersion: 2
+        x: 3285
+        y: 146
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4ec23810f93b47820800000000000000
+      internalID: 2915152354322099428
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_137
+      rect:
+        serializedVersion: 2
+        x: 3357
+        y: 152
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cd60a613e019e4a80800000000000000
+      internalID: -8480681558147463460
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_138
+      rect:
+        serializedVersion: 2
+        x: 3668
+        y: 145
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a3452cadda6634230800000000000000
+      internalID: 3621851422221554746
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_139
+      rect:
+        serializedVersion: 2
+        x: 3741
+        y: 152
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c6da87966a9d8e670800000000000000
+      internalID: 8568337599829683564
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_140
+      rect:
+        serializedVersion: 2
+        x: 298
+        y: 138
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f9efa96dbf3187c80800000000000000
+      internalID: -8324881938836160865
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_141
+      rect:
+        serializedVersion: 2
+        x: 681
+        y: 138
+        width: 11
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2f6ca82759af5e7d0800000000000000
+      internalID: -2889628066109536526
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_142
+      rect:
+        serializedVersion: 2
+        x: 1065
+        y: 137
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fb030679d286e6490800000000000000
+      internalID: -7751143363635564353
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_143
+      rect:
+        serializedVersion: 2
+        x: 1449
+        y: 137
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c3db5605be33674d0800000000000000
+      internalID: -3137263004657795780
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_144
+      rect:
+        serializedVersion: 2
+        x: 1833
+        y: 137
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1475edb42e2311c50800000000000000
+      internalID: 6634139673610311489
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_145
+      rect:
+        serializedVersion: 2
+        x: 2217
+        y: 137
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 53a895bfbf22f7610800000000000000
+      internalID: 1621052856525752885
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_146
+      rect:
+        serializedVersion: 2
+        x: 2601
+        y: 137
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3fd2e4b5c500ebdd0800000000000000
+      internalID: -2468535149083611661
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_147
+      rect:
+        serializedVersion: 2
+        x: 2985
+        y: 137
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c9579b76a508a20b0800000000000000
+      internalID: -5752644448236767844
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_148
+      rect:
+        serializedVersion: 2
+        x: 3369
+        y: 137
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b20d7d1dbe6b3c340800000000000000
+      internalID: 4882947544953901099
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_149
+      rect:
+        serializedVersion: 2
+        x: 3752
+        y: 136
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 829ed16ade35c0a80800000000000000
+      internalID: -8499326116595635928
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_150
+      rect:
+        serializedVersion: 2
+        x: 232
+        y: 123
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d67071040530652f0800000000000000
+      internalID: -984595825326356627
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_151
+      rect:
+        serializedVersion: 2
+        x: 303
+        y: 119
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e0941b1e895a5b6b0800000000000000
+      internalID: -5281132911981934322
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_152
+      rect:
+        serializedVersion: 2
+        x: 615
+        y: 123
+        width: 11
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 836d7cfa47bcd5e10800000000000000
+      internalID: 2188128695997683256
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_153
+      rect:
+        serializedVersion: 2
+        x: 687
+        y: 120
+        width: 11
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5f026c9a67f963c70800000000000000
+      internalID: 8950516641448730869
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_154
+      rect:
+        serializedVersion: 2
+        x: 999
+        y: 122
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 146909aa3aaa663d0800000000000000
+      internalID: -3213693664164276671
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_155
+      rect:
+        serializedVersion: 2
+        x: 1071
+        y: 119
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c15c301470a5e4de0800000000000000
+      internalID: -1347040251335162596
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_156
+      rect:
+        serializedVersion: 2
+        x: 1383
+        y: 122
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: de32af2d13424d540800000000000000
+      internalID: 5031686480091292653
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_157
+      rect:
+        serializedVersion: 2
+        x: 1454
+        y: 118
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ceeeff523f2a78dc0800000000000000
+      internalID: -3636759008880103700
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_158
+      rect:
+        serializedVersion: 2
+        x: 1767
+        y: 122
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9f37ef85ebd8ac340800000000000000
+      internalID: 4884872594513097721
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_159
+      rect:
+        serializedVersion: 2
+        x: 1839
+        y: 119
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e75e7694e70718db0800000000000000
+      internalID: -4791424840845761154
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_160
+      rect:
+        serializedVersion: 2
+        x: 2151
+        y: 122
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d78c8a7092bed6920800000000000000
+      internalID: 2985300689471195261
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_161
+      rect:
+        serializedVersion: 2
+        x: 2223
+        y: 119
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4c059aad65b3105b0800000000000000
+      internalID: -5403972833646128956
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_162
+      rect:
+        serializedVersion: 2
+        x: 2535
+        y: 122
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: af750460bbea9e720800000000000000
+      internalID: 2876021955339769850
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_163
+      rect:
+        serializedVersion: 2
+        x: 2607
+        y: 119
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 82c0fd744866aea90800000000000000
+      internalID: -7283896728990839768
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_164
+      rect:
+        serializedVersion: 2
+        x: 2919
+        y: 122
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 02e67447d37841e30800000000000000
+      internalID: 4473349027899338272
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_165
+      rect:
+        serializedVersion: 2
+        x: 2991
+        y: 119
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 37618aa2858116ff0800000000000000
+      internalID: -44727754345146765
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_166
+      rect:
+        serializedVersion: 2
+        x: 3303
+        y: 122
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 629d18cbad73ada20800000000000000
+      internalID: 3087841907120920870
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_167
+      rect:
+        serializedVersion: 2
+        x: 3375
+        y: 119
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a45207e423e28d540800000000000000
+      internalID: 5032823377185744202
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_168
+      rect:
+        serializedVersion: 2
+        x: 3687
+        y: 122
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1e3628b6b8e112270800000000000000
+      internalID: 8223887978708231137
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_169
+      rect:
+        serializedVersion: 2
+        x: 3759
+        y: 119
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6ee62b432ff0f9eb0800000000000000
+      internalID: -4711029152265638170
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_170
+      rect:
+        serializedVersion: 2
+        x: 225
+        y: 89
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 33e27c6624f7214a0800000000000000
+      internalID: -6624092178739679693
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_171
+      rect:
+        serializedVersion: 2
+        x: 609
+        y: 89
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4c29ec3b2a02c2c40800000000000000
+      internalID: 5488797929031242436
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_172
+      rect:
+        serializedVersion: 2
+        x: 992
+        y: 88
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 97542d0ee0b11b8a0800000000000000
+      internalID: -6291217453744503431
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_173
+      rect:
+        serializedVersion: 2
+        x: 1376
+        y: 88
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 864897beb8c5bf3d0800000000000000
+      internalID: -3171839756531563416
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_174
+      rect:
+        serializedVersion: 2
+        x: 1760
+        y: 88
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 66dc4f5c643e064a0800000000000000
+      internalID: -6602027160616776346
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_175
+      rect:
+        serializedVersion: 2
+        x: 2144
+        y: 88
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f786a6f86675e5730800000000000000
+      internalID: 3989722417901234303
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_176
+      rect:
+        serializedVersion: 2
+        x: 2528
+        y: 88
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9608cf9c88e9c9890800000000000000
+      internalID: -7449905373236133783
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_177
+      rect:
+        serializedVersion: 2
+        x: 2912
+        y: 88
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9a03864e2b5437020800000000000000
+      internalID: 2338289266173948073
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_178
+      rect:
+        serializedVersion: 2
+        x: 3296
+        y: 88
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 58489d52592aaa1c0800000000000000
+      internalID: -4491598916879809403
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_whiteout_sentinel_lights_179
+      rect:
+        serializedVersion: 2
+        x: 3680
+        y: 88
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0b7247aedeaba7740800000000000000
+      internalID: 5150634654855079856
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      frost_elite_whiteout_sentinel_lights_0: -6068948799286112795
+      frost_elite_whiteout_sentinel_lights_1: -8434521624337652278
+      frost_elite_whiteout_sentinel_lights_10: -5213076849001681924
+      frost_elite_whiteout_sentinel_lights_100: 5038243186145347192
+      frost_elite_whiteout_sentinel_lights_101: -8075345586448582659
+      frost_elite_whiteout_sentinel_lights_102: 3389833699769856130
+      frost_elite_whiteout_sentinel_lights_103: 4108594708244670487
+      frost_elite_whiteout_sentinel_lights_104: 4960484785834919114
+      frost_elite_whiteout_sentinel_lights_105: -2028467151669661988
+      frost_elite_whiteout_sentinel_lights_106: 6826361865921274596
+      frost_elite_whiteout_sentinel_lights_107: 6342061540655732759
+      frost_elite_whiteout_sentinel_lights_108: -1175862954903533538
+      frost_elite_whiteout_sentinel_lights_109: 5893549981682574126
+      frost_elite_whiteout_sentinel_lights_11: -7078770246278303694
+      frost_elite_whiteout_sentinel_lights_110: -4298846899539538980
+      frost_elite_whiteout_sentinel_lights_111: -5124520176529535135
+      frost_elite_whiteout_sentinel_lights_112: 8125683797776375267
+      frost_elite_whiteout_sentinel_lights_113: -2334735847657554478
+      frost_elite_whiteout_sentinel_lights_114: -2764504908362204498
+      frost_elite_whiteout_sentinel_lights_115: -1551480243108972700
+      frost_elite_whiteout_sentinel_lights_116: -8075509791880312575
+      frost_elite_whiteout_sentinel_lights_117: -5720794866867215511
+      frost_elite_whiteout_sentinel_lights_118: 2215231378908670349
+      frost_elite_whiteout_sentinel_lights_119: 1760596657998511962
+      frost_elite_whiteout_sentinel_lights_12: 9146711417429921944
+      frost_elite_whiteout_sentinel_lights_120: -8185668253462165705
+      frost_elite_whiteout_sentinel_lights_121: 347095558744800040
+      frost_elite_whiteout_sentinel_lights_122: -4428524775203620618
+      frost_elite_whiteout_sentinel_lights_123: -5706193303487638819
+      frost_elite_whiteout_sentinel_lights_124: 6766122812010389948
+      frost_elite_whiteout_sentinel_lights_125: 7006570114600454580
+      frost_elite_whiteout_sentinel_lights_126: 8781675556637585005
+      frost_elite_whiteout_sentinel_lights_127: 7997380673700674707
+      frost_elite_whiteout_sentinel_lights_128: -7777304549613665530
+      frost_elite_whiteout_sentinel_lights_129: 2622440090382162047
+      frost_elite_whiteout_sentinel_lights_13: -325418152300979634
+      frost_elite_whiteout_sentinel_lights_130: 5505889145012124349
+      frost_elite_whiteout_sentinel_lights_131: -5862532434893468183
+      frost_elite_whiteout_sentinel_lights_132: 8786798159490420222
+      frost_elite_whiteout_sentinel_lights_133: -6046015189118115573
+      frost_elite_whiteout_sentinel_lights_134: -3758788955816248087
+      frost_elite_whiteout_sentinel_lights_135: -1290044862263001209
+      frost_elite_whiteout_sentinel_lights_136: 2915152354322099428
+      frost_elite_whiteout_sentinel_lights_137: -8480681558147463460
+      frost_elite_whiteout_sentinel_lights_138: 3621851422221554746
+      frost_elite_whiteout_sentinel_lights_139: 8568337599829683564
+      frost_elite_whiteout_sentinel_lights_14: 4861105218795848675
+      frost_elite_whiteout_sentinel_lights_140: -8324881938836160865
+      frost_elite_whiteout_sentinel_lights_141: -2889628066109536526
+      frost_elite_whiteout_sentinel_lights_142: -7751143363635564353
+      frost_elite_whiteout_sentinel_lights_143: -3137263004657795780
+      frost_elite_whiteout_sentinel_lights_144: 6634139673610311489
+      frost_elite_whiteout_sentinel_lights_145: 1621052856525752885
+      frost_elite_whiteout_sentinel_lights_146: -2468535149083611661
+      frost_elite_whiteout_sentinel_lights_147: -5752644448236767844
+      frost_elite_whiteout_sentinel_lights_148: 4882947544953901099
+      frost_elite_whiteout_sentinel_lights_149: -8499326116595635928
+      frost_elite_whiteout_sentinel_lights_15: 6585270815577741599
+      frost_elite_whiteout_sentinel_lights_150: -984595825326356627
+      frost_elite_whiteout_sentinel_lights_151: -5281132911981934322
+      frost_elite_whiteout_sentinel_lights_152: 2188128695997683256
+      frost_elite_whiteout_sentinel_lights_153: 8950516641448730869
+      frost_elite_whiteout_sentinel_lights_154: -3213693664164276671
+      frost_elite_whiteout_sentinel_lights_155: -1347040251335162596
+      frost_elite_whiteout_sentinel_lights_156: 5031686480091292653
+      frost_elite_whiteout_sentinel_lights_157: -3636759008880103700
+      frost_elite_whiteout_sentinel_lights_158: 4884872594513097721
+      frost_elite_whiteout_sentinel_lights_159: -4791424840845761154
+      frost_elite_whiteout_sentinel_lights_16: 2771179431176168820
+      frost_elite_whiteout_sentinel_lights_160: 2985300689471195261
+      frost_elite_whiteout_sentinel_lights_161: -5403972833646128956
+      frost_elite_whiteout_sentinel_lights_162: 2876021955339769850
+      frost_elite_whiteout_sentinel_lights_163: -7283896728990839768
+      frost_elite_whiteout_sentinel_lights_164: 4473349027899338272
+      frost_elite_whiteout_sentinel_lights_165: -44727754345146765
+      frost_elite_whiteout_sentinel_lights_166: 3087841907120920870
+      frost_elite_whiteout_sentinel_lights_167: 5032823377185744202
+      frost_elite_whiteout_sentinel_lights_168: 8223887978708231137
+      frost_elite_whiteout_sentinel_lights_169: -4711029152265638170
+      frost_elite_whiteout_sentinel_lights_17: -2869301166466555724
+      frost_elite_whiteout_sentinel_lights_170: -6624092178739679693
+      frost_elite_whiteout_sentinel_lights_171: 5488797929031242436
+      frost_elite_whiteout_sentinel_lights_172: -6291217453744503431
+      frost_elite_whiteout_sentinel_lights_173: -3171839756531563416
+      frost_elite_whiteout_sentinel_lights_174: -6602027160616776346
+      frost_elite_whiteout_sentinel_lights_175: 3989722417901234303
+      frost_elite_whiteout_sentinel_lights_176: -7449905373236133783
+      frost_elite_whiteout_sentinel_lights_177: 2338289266173948073
+      frost_elite_whiteout_sentinel_lights_178: -4491598916879809403
+      frost_elite_whiteout_sentinel_lights_179: 5150634654855079856
+      frost_elite_whiteout_sentinel_lights_18: 4744583914946416707
+      frost_elite_whiteout_sentinel_lights_19: -7477038852631771676
+      frost_elite_whiteout_sentinel_lights_2: -7626299781396790522
+      frost_elite_whiteout_sentinel_lights_20: 6730781046762111694
+      frost_elite_whiteout_sentinel_lights_21: 9166136877469676619
+      frost_elite_whiteout_sentinel_lights_22: -2787788006719800528
+      frost_elite_whiteout_sentinel_lights_23: -7625809429200325001
+      frost_elite_whiteout_sentinel_lights_24: -2433744044118428408
+      frost_elite_whiteout_sentinel_lights_25: 5249126598189761744
+      frost_elite_whiteout_sentinel_lights_26: 3849499370369890807
+      frost_elite_whiteout_sentinel_lights_27: -274329523764684817
+      frost_elite_whiteout_sentinel_lights_28: -2749500588118863211
+      frost_elite_whiteout_sentinel_lights_29: 2412837056819373858
+      frost_elite_whiteout_sentinel_lights_3: -754225640277556472
+      frost_elite_whiteout_sentinel_lights_30: 7499622748790126201
+      frost_elite_whiteout_sentinel_lights_31: 2591445718886204742
+      frost_elite_whiteout_sentinel_lights_32: 168196864658408228
+      frost_elite_whiteout_sentinel_lights_33: -1920316162310137314
+      frost_elite_whiteout_sentinel_lights_34: -7904336822889217869
+      frost_elite_whiteout_sentinel_lights_35: 4262775669449363629
+      frost_elite_whiteout_sentinel_lights_36: -1570500938819204228
+      frost_elite_whiteout_sentinel_lights_37: 8714366694680399690
+      frost_elite_whiteout_sentinel_lights_38: 1527475669800673737
+      frost_elite_whiteout_sentinel_lights_39: -1536099728659663051
+      frost_elite_whiteout_sentinel_lights_4: -4643594794578747115
+      frost_elite_whiteout_sentinel_lights_40: -7826589627332074229
+      frost_elite_whiteout_sentinel_lights_41: 1370429517208205526
+      frost_elite_whiteout_sentinel_lights_42: 6180312709574560561
+      frost_elite_whiteout_sentinel_lights_43: 5672571768422034713
+      frost_elite_whiteout_sentinel_lights_44: -7082468931962152366
+      frost_elite_whiteout_sentinel_lights_45: -3444022968519464602
+      frost_elite_whiteout_sentinel_lights_46: -2665410794578200747
+      frost_elite_whiteout_sentinel_lights_47: -4216733681968421675
+      frost_elite_whiteout_sentinel_lights_48: 7813236647259988920
+      frost_elite_whiteout_sentinel_lights_49: -3493910133597770563
+      frost_elite_whiteout_sentinel_lights_5: -1543538767337088515
+      frost_elite_whiteout_sentinel_lights_50: -3708417930260129808
+      frost_elite_whiteout_sentinel_lights_51: 608167294592233068
+      frost_elite_whiteout_sentinel_lights_52: -2477792801109562815
+      frost_elite_whiteout_sentinel_lights_53: 6305884504454911414
+      frost_elite_whiteout_sentinel_lights_54: 6907693661345854197
+      frost_elite_whiteout_sentinel_lights_55: -5391806145986153223
+      frost_elite_whiteout_sentinel_lights_56: 7120497249038034530
+      frost_elite_whiteout_sentinel_lights_57: -5066418658638106864
+      frost_elite_whiteout_sentinel_lights_58: -1250300074071447701
+      frost_elite_whiteout_sentinel_lights_59: -5277000712573387236
+      frost_elite_whiteout_sentinel_lights_6: -3434040198776964823
+      frost_elite_whiteout_sentinel_lights_60: -7806880132676960673
+      frost_elite_whiteout_sentinel_lights_61: -5734703807586732414
+      frost_elite_whiteout_sentinel_lights_62: -5861783221250918529
+      frost_elite_whiteout_sentinel_lights_63: -3141502893424995019
+      frost_elite_whiteout_sentinel_lights_64: -6151836385456993283
+      frost_elite_whiteout_sentinel_lights_65: 3820498495340714769
+      frost_elite_whiteout_sentinel_lights_66: 2631756814065720320
+      frost_elite_whiteout_sentinel_lights_67: 3425412317690776912
+      frost_elite_whiteout_sentinel_lights_68: -3084163799270458524
+      frost_elite_whiteout_sentinel_lights_69: 3821500568918210949
+      frost_elite_whiteout_sentinel_lights_7: 4805789106335903226
+      frost_elite_whiteout_sentinel_lights_70: -3122716053923498310
+      frost_elite_whiteout_sentinel_lights_71: 2135554856375621337
+      frost_elite_whiteout_sentinel_lights_72: 268934017663021076
+      frost_elite_whiteout_sentinel_lights_73: -5055052638458620255
+      frost_elite_whiteout_sentinel_lights_74: -2617880785795652727
+      frost_elite_whiteout_sentinel_lights_75: -8106739533670122265
+      frost_elite_whiteout_sentinel_lights_76: 6801877830957106592
+      frost_elite_whiteout_sentinel_lights_77: 8639964545687236792
+      frost_elite_whiteout_sentinel_lights_78: 144086927522860907
+      frost_elite_whiteout_sentinel_lights_79: 7490470063762776955
+      frost_elite_whiteout_sentinel_lights_8: 848109096658856413
+      frost_elite_whiteout_sentinel_lights_80: -7341393805533020396
+      frost_elite_whiteout_sentinel_lights_81: -9146891406309547881
+      frost_elite_whiteout_sentinel_lights_82: 2775229771613753348
+      frost_elite_whiteout_sentinel_lights_83: 2011196087025196198
+      frost_elite_whiteout_sentinel_lights_84: 3848964418181669733
+      frost_elite_whiteout_sentinel_lights_85: -8843251576453995528
+      frost_elite_whiteout_sentinel_lights_86: -308355323557271060
+      frost_elite_whiteout_sentinel_lights_87: -7913661768966516064
+      frost_elite_whiteout_sentinel_lights_88: -2103782160560216019
+      frost_elite_whiteout_sentinel_lights_89: 5330772907723849570
+      frost_elite_whiteout_sentinel_lights_9: -1726434484856996612
+      frost_elite_whiteout_sentinel_lights_90: 1351162313303889891
+      frost_elite_whiteout_sentinel_lights_91: 2905312629295814901
+      frost_elite_whiteout_sentinel_lights_92: 729315982583934169
+      frost_elite_whiteout_sentinel_lights_93: -7100217599756320641
+      frost_elite_whiteout_sentinel_lights_94: -2482284636056264659
+      frost_elite_whiteout_sentinel_lights_95: 1731972118097972070
+      frost_elite_whiteout_sentinel_lights_96: -7484662361271601222
+      frost_elite_whiteout_sentinel_lights_97: 5126460197092601073
+      frost_elite_whiteout_sentinel_lights_98: 797210848350487323
+      frost_elite_whiteout_sentinel_lights_99: 3258764505342252505
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
