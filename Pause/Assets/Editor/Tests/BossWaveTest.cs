@@ -463,8 +463,8 @@ public static class BossWaveTest
                 }
                 if (fresh > 0 && !double.IsNaN(told) && music.BeatNow >= told - .3) answered = true;
                 if (!answered && music.BeatNow > told + 2) { missed++; answered = true; }
-                // the drawings (after the song's lead-in)
-                if (f > fps * 2)
+                // the drawings (after the song's lead-in; a special in progress shows its own tell: BossSpecialsTest)
+                if (f > fps * 2 && !actor.SpecialActive)
                 {
                     frames++;
                     int frame = actor.BodyFrame;
@@ -489,6 +489,7 @@ public static class BossWaveTest
                 }
                 pool.PlayerPos = player;
                 pool.Step(dt);
+                AttackPools.StepAll(dt);   // a special's hazards run their tells (nobody else steps them here)
                 seen.Clear();
                 foreach (var s in pool.Shots) if (s != null && s.Active) seen.Add(s);   // burst shards included
                 // half a second on: still flying (never culled at once as off screen)
@@ -501,7 +502,7 @@ public static class BossWaveTest
                 }
             }
         }
-        finally { pool.Dispose(); UnityEngine.Object.DestroyImmediate(actor.gameObject); }
+        finally { AttackPools.ClearAll(); pool.Dispose(); UnityEngine.Object.DestroyImmediate(actor.gameObject); }
         string n = Names[world] + " (live, " + fps + " fps" + (audioStep > 0 ? ", audio clock in " + (audioStep * 1000).ToString("F0") + " ms steps" : "") + ")";
         Check(n + ": every telegraph is followed by bullets within two beats (" + tells + " tells, " + missed + " unanswered)", tells >= 20 && missed == 0);
         if (audioStep > 0) return;
