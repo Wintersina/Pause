@@ -11,7 +11,10 @@ using UnityEngine;
 // and phase, sparks popping at crack hot spots, and pooled smoke puffs
 // trailing behind it, capped per rock and overall. All of it is behind
 // gameplay, keeps clear of the stations at its depth, freezes while paused
-// and allocates nothing per frame.
+// and allocates nothing per frame. The rocks are also breakable: each has an
+// invisible, collider-less hit body that the ship's attacks find as scenery
+// (1 / 2 / 3 hits by size), that smokes harder when hurt, bursts like a hazard
+// rock and leaves its smoke in the air -- and the dodge-field rocks stay as they were.
 //
 //   Unity -batchmode -quit -projectPath <abs>/Pause -executeMethod AsteroidDriftTest.Run
 public static class AsteroidDriftTest
@@ -45,6 +48,7 @@ public static class AsteroidDriftTest
             Art();
             SpaceOnly();
             LongRun();
+            Breakable();
             Determinism();
         }
         finally
@@ -53,6 +57,8 @@ public static class AsteroidDriftTest
             Time.timeScale = 1f;
             SpaceDirector.AsteroidSeedOverride = savedSeed;
             SpaceDirector.AsteroidPixelHeightOverride = savedPx;
+            SpaceDirector.RocksBreakableOverride = false;
+            SpaceAsteroidField.ClearAll();
         }
         Debug.Log("[AST] failures: " + fails);
         return fails;
@@ -160,6 +166,122 @@ public static class AsteroidDriftTest
             Check("no other world shows the drifting asteroids " + where, where.Length == 0);
         }
         finally { Object.DestroyImmediate(go); }
+    }
+
+    // ---- breakable rocks -------------------------------------------------------------
+
+    static SpaceAsteroidDrift.Rock Armed(SpaceAsteroidDrift drift, bool biggest)
+    {
+        SpaceAsteroidDrift.Rock best = null;
+        foreach (var r in drift.Rocks)
+        {
+            if (!r.active || r.target == null || !r.target.gameObject.activeSelf) continue;
+            if (best == null || (biggest && r.maxHealth > best.maxHealth)) best = r;
+        }
+        return best;
+    }
+
+    static void Breakable()
+    {
+        Time.timeScale = 1f;
+        moveBackGround.speed = 0.2f;
+        SpaceDirector.AsteroidSeedOverride = -1;
+        SpaceDirector.RocksBreakableOverride = true;
+        var go = new GameObject("~AsteroidBreakTest");
+        var wb = go.AddComponent<WorldBackdrop>();
+        try
+        {
+            wb.Show("Space", false);
+            var drift = (wb.Current.Director as SpaceDirector)?.AsteroidDrift;
+            if (drift == null || !drift.Ready) { Check("breakable: the drift field is ready", false); return; }
+            for (int i = 0; i < 4 * 30; i++) wb.Step(Dt);
+
+            var rock = Armed(drift, true);
+            Check("a rock in view carries a hit body", rock != null);
+            if (rock == null) return;
+            var body = rock.target.gameObject;
+            var clear = body.GetComponent<ClearTarget>();
+            Check("the hit body is an invisible, collider-less Astr hazard that the weapons find but nothing else treats as a body",
+                  body.CompareTag("Astr") && body.GetComponent<Collider2D>() == null && body.GetComponent<Renderer>() == null &&
+                  clear != null && clear.Scenery && ClearTarget.Live.Contains(clear) && ShipTargets.IsHazard(clear) &&
+                  !ShipTargets.IsThreat(clear) && FriendlyFire.Immune(body) && !FriendlyFire.CanHit(clear));
+            Check("it sits on the rock and is as big as its art (x" + SpaceDirector.RockHitShare + ")",
+                  ((Vector2)(body.transform.position - rock.piece.root.position)).magnitude < 0.01f &&
+                  Mathf.Abs(clear.Radius - Mathf.Max(0.05f, SpaceAsteroidDrift.Reach(rock) * SpaceDirector.RockHitShare)) < 0.01f);
+            Check("hit points follow the size: 1 small, 2 medium, 3 big",
+                  SpaceDirector.RockHitsFor(0f) == 1 && SpaceDirector.RockHitsFor(0.5f) == 2 && SpaceDirector.RockHitsFor(1f) == 3 &&
+                  rock.maxHealth == SpaceDirector.RockHitsFor(rock.sizeT) && Mathf.Approximately(rock.health, rock.maxHealth));
+            Check("the weapons' lock-on and the ultimate see it",
+                  ShipTargets.Collect(new List<ClearTarget>()) > 0 && ShipTargets.CountOnScreen(false) == CountThreats());   // (it is no threat)
+            Check("the ultimate's 'screen cleared' check ignores it", ClearTarget.CountOnScreen(null) == CountThreats());
+
+            // hit it once, with the firing's boss allowance already spent: scenery takes every hit in full
+            int puffsBefore = drift.PuffsEmitted;
+            float spent = 0f;
+            bool broke = ShipAttackHits.Hit(body, 0, 1f, ref spent);
+            if (rock.maxHealth > 1)
+            {
+                Check("a hit hurts it without breaking it, even with the allowance spent",
+                      rock.active && Mathf.Approximately(rock.health, rock.maxHealth - 1f) && rock.flash > 0f && !broke);
+                for (int i = 0; i < 2 * 30; i++) wb.Step(Dt);
+                Check("a hurt rock keeps smoking (its smoke is still emitted)", drift.PuffsEmitted > puffsBefore);
+            }
+            else Check("a small rock breaks on its one hit", !rock.active && drift.Breaks == 1);
+
+            int livePuffs = drift.LivePuffs;
+            int guard = 0;
+            while (rock.active && guard++ < 8) ShipAttackHits.Hit(body, 0, 1f, ref spent);
+            Check("it breaks after exactly its hit points (" + rock.maxHealth + ")", !rock.active && drift.Breaks == 1);
+            Check("the hit body is released and hidden", !body.activeSelf && !clear.enabled && !ClearTarget.Live.Contains(clear));
+            Check("its smoke stays in the air after it breaks", drift.LivePuffs >= livePuffs);
+
+            // a second hit on the broken rock does nothing; the slot is reused cleanly
+            ShipAttackHits.Hit(body, 0, 1f, ref spent);
+            Check("a broken rock cannot break twice", drift.Breaks == 1);
+            bool counts = true;
+            for (int i = 0; i < 60 * 30; i++)
+            {
+                moveBackGround.speed = Mathf.Repeat(i * 0.0004f, 0.6f);
+                wb.Step(Dt);
+                if (i % 30 != 0) continue;
+                foreach (var r in drift.Rocks)
+                {
+                    int owned = 0;
+                    for (int k = 0; k < drift.PuffOwner.Length; k++) if (drift.PuffOwner[k] == drift.Rocks.IndexOf(r)) owned++;
+                    counts &= r.livePuffs == owned && r.livePuffs >= 0;
+                    // a body is live only for a rock that is in play
+                    if (r.target != null && r.target.gameObject.activeSelf)
+                        counts &= r.active && Mathf.Abs(r.piece.x) < wb.Current.HalfWidth + SpaceAsteroidDrift.Reach(r);
+                }
+            }
+            Check("through 60 s of respawns each rock's puff count matches its puffs in the air, bodies only on rocks in view", counts);
+
+            // outside a run (the menu: no world manager) nothing is targetable
+            SpaceDirector.RocksBreakableOverride = false;
+            wb.Step(Dt);
+            bool any = false;
+            foreach (var r in drift.Rocks) any |= r.target != null && r.target.gameObject.activeSelf;
+            Check("outside a run the rocks have no hit bodies", !any);
+        }
+        finally { Object.DestroyImmediate(go); SpaceDirector.RocksBreakableOverride = false; }
+
+        // the dodge-field rocks are untouched: still capped by the boss allowance, still 1 / 2 / 3 hits
+        SpaceAsteroidField.ClearAll();
+        var a = SpaceAsteroidField.Spawn(2, 0, Vector2.zero, 0f, 0f, 0f);
+        float none = 0f;
+        ShipAttackHits.Hit(a.gameObject, 0, 1f, ref none);
+        Check("the field rock still honours the firing's allowance and its own hit points",
+              Mathf.Approximately(a.Health, SpaceAsteroidField.SizeHits[2]) && SpaceAsteroidField.SizeHits[0] == 1f &&
+              SpaceAsteroidField.SizeHits[1] == 2f && SpaceAsteroidField.SizeHits[2] == 3f);
+        SpaceAsteroidField.ClearAll();
+    }
+
+    static int CountThreats()
+    {
+        int n = 0;
+        foreach (var t in ClearTarget.Live)
+            if (ShipTargets.IsThreat(t)) n++;
+        return n;
     }
 
     // ---- a long Space run ------------------------------------------------------------

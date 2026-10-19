@@ -82,6 +82,7 @@ public static class FriendlyFire
     {
         if (go == null) return true;
         if (go.TryGetComponent(out BossTarget _)) return true;
+        if (go.TryGetComponent(out ClearTarget c) && c.Scenery) return true;   // the backdrop rocks
         return go.TryGetComponent(out EliteShotHitbox _);
     }
 

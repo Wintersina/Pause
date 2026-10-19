@@ -244,7 +244,7 @@ public class SecretPowerController : MonoBehaviour
         for (int i = 0; i < live.Count; i++)
         {
             var t = live[i];
-            if (!ShipTargets.IsHazard(t)) continue;
+            if (!ShipTargets.IsThreat(t)) continue;
             var chaser = t.GetComponent<ChaserEnemy>();
             if (chaser == null || !chaser.IsChasing) continue;
             if (((Vector2)(t.transform.position - at)).sqrMagnitude <= within * within) return true;
@@ -258,7 +258,7 @@ public class SecretPowerController : MonoBehaviour
         for (int i = 0; i < live.Count; i++)
         {
             var t = live[i];
-            if (!ShipTargets.IsHazard(t)) continue;
+            if (!ShipTargets.IsThreat(t)) continue;
             Vector3 p = t.transform.position;
             float dy = p.y - at.y;
             if (dy > 0f && dy <= ahead && Mathf.Abs(p.x - at.x) <= hullRadius + t.Radius) return true;
@@ -638,7 +638,7 @@ public class SecretPowerController : MonoBehaviour
         for (int i = 0; i < live.Count; i++)
         {
             var t = live[i];
-            if (!ShipTargets.IsHazard(t)) continue;
+            if (!ShipTargets.IsThreat(t)) continue;
             Vector3 p = t.transform.position;
             if (p.y < shipY - 1.2f || p.y > shipY + 3f) continue;
             best = Mathf.Min(best, ((Vector2)p - spot).magnitude - t.Radius);

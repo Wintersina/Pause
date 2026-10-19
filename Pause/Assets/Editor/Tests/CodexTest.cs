@@ -485,6 +485,7 @@ public static class CodexTest
               Array.TrueForAll(Codex.Entries, e =>
                   (e.category != CodexCategory.Enemies && e.category != CodexCategory.Hazards) ||
                   EnemyRoster.FindByCodexId(e.id) != null ||
+                  e.id == CodexCatalogue.DriftAsteroidId ||     // Space's breakable backdrop rock
                   EliteCatalog.FindByCodexId(e.id) != null ||   // the elite ships
                   BossCatalog.Find(e.id) != null));   // the secret end-of-level bosses
         foreach (string gone in new[] { "hazard_meteor_tiny", "hazard_meteor_small", "hazard_meteor_med",
@@ -644,6 +645,16 @@ public static class CodexTest
             Check("inventory: " + d.key + " art has every frame (idle + tell)",
                   frames != null && frames.Length >= EnemyRoster.TellFrame + 2 && Array.TrueForAll(frames, f => f != null));
             accounted.Add(d.codexId);
+        }
+        // ---- Space's breakable backdrop asteroid ----
+        {
+            var e = Codex.Find(CodexCatalogue.DriftAsteroidId);
+            Check("inventory: the drift asteroid is a Space hazard entry with the rock art", e != null && e.category == CodexCategory.Hazards &&
+                  !e.secret && e.Sprite != null && e.name == "Drift Asteroid" && EnemyRoster.FindByCodexId(e.id) == null);
+            Check("the drift asteroid's lore quotes its hits and its score",
+                  e != null && e.lore.Contains("small ones in 1 hit, medium in 2, big in 3") && e.lore.Contains("+" + ScoreRules.Rock + " POINTS"));
+            Check("the hit body's name resolves to its entry", Codex.IdForName(SpaceDirector.RockObjectName + "(Clone)") == CodexCatalogue.DriftAsteroidId);
+            accounted.Add(CodexCatalogue.DriftAsteroidId);
         }
 
         // ---- elites ----
@@ -870,6 +881,9 @@ public static class CodexTest
                 temp.Add(go);
                 Hook(id, "picking up " + go.name, () => Codex.Discover(go), toasts);
             }
+            var rock = new GameObject(SpaceDirector.RockObjectName + "(Clone)");
+            temp.Add(rock);
+            Hook(CodexCatalogue.DriftAsteroidId, "breaking a drift asteroid (AwardDestroyedTarget)", () => Codex.Discover(rock), toasts);
             var heal = new GameObject(HealAtom.ObjectName);
             temp.Add(heal);
             Hook("atom_green", "picking up the heal atom", () => Codex.Discover(heal), toasts);
@@ -1599,6 +1613,7 @@ public static class CodexTest
             foreach (var d in EnemyRoster.All) if (d.world == w && d.IsHazard) want.Add(d.codexId);
             var got = new HashSet<string>();
             for (int i = 0; i < panel.SectionAt(w).entries.Count; i++) got.Add(panel.CardEntry(panel.SectionStart(w) + i).id);
+            if (w == 0) want.Add(CodexCatalogue.DriftAsteroidId);   // (Space's breakable backdrop rock sits with its rocks)
             grouped &= want.SetEquals(got) && got.Count == panel.SectionAt(w).entries.Count;
             var es = panel.SectionAt(w).entries;
             mineLast &= EnemyRoster.FindByCodexId(es[es.Count - 1].id).role == EnemyRole.Mine;
@@ -1713,7 +1728,9 @@ public static class CodexTest
         }
         if (BossCatalog.Find(e.id) != null) return CodexAnimKind.Boss;
         if (EliteCatalog.FindByCodexId(e.id) != null) return CodexAnimKind.Enemy;
-        return EnemyRoster.FindByCodexId(e.id).role == EnemyRole.Mine ? CodexAnimKind.Mine : CodexAnimKind.Enemy;
+        var def = EnemyRoster.FindByCodexId(e.id);
+        if (def == null) return CodexAnimKind.Static;   // the drift asteroid: a still of its rock
+        return def.role == EnemyRole.Mine ? CodexAnimKind.Mine : CodexAnimKind.Enemy;
     }
 
     // A loose animator on a 200x200 box, outside any panel.

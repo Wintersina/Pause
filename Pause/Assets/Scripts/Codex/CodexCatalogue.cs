@@ -96,6 +96,8 @@ public static class CodexCatalogue
     public const string WorldPrefix = "world_";
     public const string PortalId = "world_portal";
     public const string VioletAtomId = "atom_violet";
+    // Space's drifting backdrop rocks, now breakable (SpaceAsteroidDrift): a hazard entry with no roster def.
+    public const string DriftAsteroidId = "hazard_space_drift_asteroid";
 
     // What the codex quotes for the atoms' charge cuts, from the gameplay
     // values (ShipPowerController): the red atom's own cut, the shared atom
@@ -482,8 +484,23 @@ public static class CodexCatalogue
             enemies.Add(new CodexEntry(e.codexId, e.displayName, CodexCategory.Enemies,
                                        () => EliteArt.Frame(e, e.cells.Flight0), EliteLore(e), new[] { Codex.Normalise(e.key) }));
         }
+        // Space's breakable backdrop asteroid (not a roster rock: it never crosses the lane).
+        hazards.Add(new CodexEntry(DriftAsteroidId, "Drift Asteroid", CodexCategory.Hazards, DriftAsteroidArt,
+            "Cracked rocks that glow and smoulder as they tumble through the deep of Space. They look like " +
+            "scenery but never touch your hull, and your weapons and your ultimate break them: " +
+            "small ones in " + SpaceDirector.RockHitsSmall + " hit, medium in " + SpaceDirector.RockHitsMedium +
+            ", big in " + SpaceDirector.RockHitsBig + ". Each one you break pays " +
+            "+" + ScoreRules.Rock + " POINTS and star dust like any asteroid, and its smoke hangs on after it's gone.",
+            new[] { Codex.Normalise(SpaceDirector.RockObjectName) }));
         enemies.AddRange(hazards);
         return enemies;
+    }
+
+    // The first of Codex's three Space rocks, the art the drifting field is cut from.
+    static Sprite DriftAsteroidArt()
+    {
+        var art = SpaceAsteroidField.Art;
+        return art.Length > 0 ? art[0] : null;
     }
 
     // "kn_enemyBlack3" -> "knenemyblack"; "kn_meteorGrey_big2" -> "knmeteorgreybig".

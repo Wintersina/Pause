@@ -31,6 +31,11 @@ public class ClearTarget : MonoBehaviour
 
     float radius = -1f;
 
+    // Scenery that still takes a hit (Space's drifting backdrop rocks, BackdropRockTarget): the ship's weapons
+    // and ultimate see it like any hazard, but nothing else treats it as a body -- not the elites' sensor,
+    // friendly fire, the weather, the secret powers' threat counts nor the ultimate's "screen cleared" check.
+    [System.NonSerialized] public bool Scenery;
+
     // ---- the elites' threat sensor (EliteEvasion.Sense) ----
     // Where it was the last time the sensor looked and how fast it was
     // moving (measured, so a weave, a lunge and a chaser all read true), and
@@ -117,7 +122,7 @@ public class ClearTarget : MonoBehaviour
         {
             var t = live[i];
             if (t == null) { live.RemoveAt(i); continue; }
-            if (!IsHazard(t.gameObject)) continue;
+            if (!IsHazard(t.gameObject) || t.Scenery) continue;
             if (cam == null || OnScreen(cam, t.transform.position)) n++;
         }
         return n;

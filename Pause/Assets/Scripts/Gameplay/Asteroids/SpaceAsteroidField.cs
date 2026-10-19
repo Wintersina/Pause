@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 // SPACE ASTEROID FIELD: the gameplay rocks of the Space world. They are a foreground-lane layer of their own; the
-// far-parallax rocks of the backdrop (SpaceAsteroidDrift) stay scenery and are never touched.
+// far-parallax rocks of the backdrop (SpaceAsteroidDrift) never touch the ship; they only take hits (scenery, ClearTarget.Scenery).
 //
 // A rock is a real hazard like any other "Astr" body, so every existing system already knows it:
 //   * touching it costs a heart (collisionDetection, unshielded) or smashes it (shielded / ramming), like a hazard rock
