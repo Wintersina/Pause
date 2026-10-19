@@ -22,9 +22,12 @@ on:
         type: choice
         options: [xvfb, skip]
 
+# One Unity Personal seat for the whole repo: every run (any branch or PR)
+# queues for it instead of racing. GitHub keeps at most one pending run per
+# group, so a newer queued run replaces an older queued one.
 concurrency:
-  group: unity-tests-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: true
+  group: unity-personal-seat
+  cancel-in-progress: false
 
 permissions:
   contents: read
