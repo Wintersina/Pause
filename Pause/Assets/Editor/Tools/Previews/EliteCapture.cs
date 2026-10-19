@@ -6,8 +6,8 @@ using UnityEditor.SceneManagement;
 using UnityEngine;
 
 // Renders each elite's whole fight for review (the elite-overhaul GIFs), a world at a time (CaptureSpace, CaptureFrost): its home dock in
-// the world's real backdrop (Space: one of the drifting gantry / carrier / gate / derelict docks, SpaceDocks.cs; Frost: the hangar /
-// rig bay / pad ring / crawler bay / silo hatch on the ground, FrostDirector; brought into view like the elite director does), the launch (the
+// the world's real backdrop (Space: one of the drifting gantry / carrier / gate / derelict docks, SpaceDocks.cs; Frost: the icebreaker deck / offshore rig /
+// cave hangar / cryo silo, or the older hangar / rig bay / pad ring / crawler bay / silo hatch, on the ground, FrostDirector; brought into view like the elite director does), the launch (the
 // one small blinking light at the door / pad, the dock's doors opening, the elite simply leaving), the hull's animated lights, then the real brain and attacks at full speed against a scripted pilot
 // that dodges what it can see (hazards on their paths, locked lines and rings, the curtain's gap) and shoots when it has a clear
 // moment -- one guaranteed homing hit every ShootEvery seconds while the elite is on the board -- through the hide, the death or the
@@ -501,14 +501,18 @@ public static class EliteCapture
         var sites = new List<LandingSite>();
         string from = launchFrom ?? def.launchFrom;
         var home = LandingSite.KindOf(from);
-        LandingSites.BringHome(from);
+        string homeWord = from != null ? from.Split(',')[0].Trim() : null;   // (the preferred kind: BringHome of the whole list is satisfied by any of them)
+        LandingSites.BringHome(homeWord);
         int pick = -1;
         for (int i = 0; i < 2400 && pick < 0; i++)
         {
             WorldBackdrop.Instance.Step(1f / 15f);
-            if (i % 30 == 29) LandingSites.BringHome(from);   // (Frost's ground may have had no room at the top the first time: ask again)
+            // (a preferred kind this world's variant never draws -- an icebreaker deck on the glacier -- gives way to its other kind after a while)
+            bool settle = i >= 600;
+            if (i % 30 == 29) LandingSites.BringHome(settle ? from : homeWord);   // (Frost's ground may have had no room at the top the first time: ask again)
             LandingSites.Collect(sites);
-            for (int k = 0; k < sites.Count && pick < 0; k++) if (home == null || sites[k].kind == home.Value) pick = k;
+            for (int k = 0; k < sites.Count && pick < 0; k++)
+                if (home == null || sites[k].kind == home.Value || (settle && LandingSite.Accepts(from, sites[k].kind))) pick = k;
         }
         if (pick < 0) throw new System.Exception("the " + world + " backdrop never offered a " + home + " dock");
         var site = sites[pick];

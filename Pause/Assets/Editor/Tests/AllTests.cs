@@ -245,6 +245,7 @@ public static class AllTests
         ("ShopTest", ShopTest.Execute),
         ("SpaceEliteTest", SpaceEliteTest.Execute),
         ("SpaceDockTest", SpaceDockTest.Execute),
+        ("FrostDockTest", FrostDockTest.Execute),
         ("FrostEliteTest", FrostEliteTest.Execute),
         ("VerdantEliteTest", VerdantEliteTest.Execute),
         ("TideEliteTest", TideEliteTest.Execute),

@@ -26,7 +26,15 @@ using UnityEngine;
 //              atlas): ice-shelf hangar, rig lift bay, relay pad ring,
 //              crawler garage, silo hatch. Drawn shut; the launch tell opens
 //              them (open drawing, lamp row blinking) while the elite
-//              emerges; they close again behind it.
+//              emerges; they close again behind it. Four more come with a
+//              6-cell launch strip each (docks atlas): an ice-locked offshore
+//              rig and an icebreaker deck in the leads, a cryo silo on the
+//              snow flats, a glacier cave hangar on the ridges. They play
+//              idle (the elite's one small blinking launch light is the tell:
+//              EliteLaunchTell, drawn by the ship at the pad) -> doors opening
+//              -> open -> closing through the launch (FrostTuning.LaunchCellAt)
+//              -- never a flash, flare, halo or ring, and no blink cell of
+//              the site's own.
 //   WEATHER    the CLOUD CEILING (cloud banks thick over the view at the
 //              start -- the planetfall drops through it -- held for
 //              FrostTuning.CeilingHold s, then clearing fast, gone by
@@ -115,6 +123,8 @@ public static class FrostTuning
     static readonly PieceRule Island = new PieceRule(GroundClass.Water | GroundClass.Open, .72f, .34f);       // refinery, relay, derrick, sites: in a lead or on a snow flat, never on a sheet / quay
     static readonly PieceRule IceRoad = new PieceRule(GroundClass.Canopy | GroundClass.Open, .72f, .26f);     // the convoy drives over the sheet ice
     static readonly PieceRule Shore = new PieceRule(GroundClass.Open | GroundClass.Canopy, .55f, .28f, GroundClass.Water);   // an ice cliff: ice / snow falling into water (never on a quay)
+    static readonly PieceRule Flats = new PieceRule(GroundClass.Open, .72f, .34f);                            // a cryo silo: squat on a snow flat
+    static readonly PieceRule Ridge = new PieceRule(GroundClass.Canopy, .7f, .34f);                           // a glacier cave hangar: cut into the ridge / pack ice
     static readonly PieceRule Plateau = new PieceRule(GroundClass.Open | GroundClass.Canopy, .85f, .34f);     // v4: on the plateau, never over a crevasse
     // the causeway: over water, both landfalls on land. Its two landfalls (the
     // snow shelves its abutments stand on) as a share of its drawn width from
@@ -142,22 +152,56 @@ public static class FrostTuning
         if (piece.StartsWith("cliff")) return Shore;
         if (piece.StartsWith("convoy")) return IceRoad;
         if (IsGlacier(variant)) return Plateau;
-        if (piece.StartsWith("icebreaker")) return Floating;
-        if (piece.StartsWith("rig_") || piece.StartsWith("platform") || piece.StartsWith("rigbay")) return Offshore;
+        if (piece.StartsWith("icebreaker")) return Floating;       // (the icebreaker deck site's cells too: icebreaker_00..05)
+        if (piece.StartsWith("rig_") || piece.StartsWith("platform") || piece.StartsWith("rigbay")) return Offshore;   // (the offshore rig site: rig_00..05)
+        if (piece.StartsWith("silo_")) return Flats;
+        if (piece.StartsWith("cave_")) return Ridge;
         return IsInland(variant) ? Unbuilt : Island;     // refinery, relay, derrick and the other launch sites
     }
 
     // launch sites: drawings (closed, open) and how often each comes
-    public static readonly string[] SiteNames = { "hangar", "rigbay", "padring", "crawlerbay", "hatch" };
-    public static readonly string[] SiteClosed = { "hangar_closed", "rigbay_closed", "padring_idle", "crawlerbay_closed", "hatch_closed" };
-    public static readonly string[] SiteOpen = { "hangar_open", "rigbay_open", "padring_active", "crawlerbay_open", "hatch_open" };
-    public static readonly LandingKind[] SiteKinds = { LandingKind.Hangar, LandingKind.RigBay, LandingKind.PadRing, LandingKind.CrawlerBay, LandingKind.Hatch };
-    public static readonly int[] SiteWeights = { 3, 2, 2, 3, 2 };
-    // where the elite comes out: fractions of the drawing's bounds from its centre (y up)
+    // Entries 0-4 are the old two-drawing sites (sites atlas); 5-8 the launch-strip ones (docks atlas: <name>_00..05, DocksAtlas), for which
+    // SiteClosed / SiteOpen name the idle and the open cell (the rule is picked by the name: Rule).
+    public static readonly string[] SiteNames = { "hangar", "rigbay", "padring", "crawlerbay", "hatch", "rig", "silo", "cave", "icebreaker" };
+    public static readonly string[] SiteClosed = { "hangar_closed", "rigbay_closed", "padring_idle", "crawlerbay_closed", "hatch_closed", "rig_00", "silo_00", "cave_00", "icebreaker_00" };
+    public static readonly string[] SiteOpen = { "hangar_open", "rigbay_open", "padring_active", "crawlerbay_open", "hatch_open", "rig_03", "silo_03", "cave_03", "icebreaker_03" };
+    public static readonly LandingKind[] SiteKinds = { LandingKind.Hangar, LandingKind.RigBay, LandingKind.PadRing, LandingKind.CrawlerBay, LandingKind.Hatch,
+                                                       LandingKind.Rig, LandingKind.Silo, LandingKind.Cave, LandingKind.Icebreaker };
+    public static readonly int[] SiteWeights = { 3, 2, 2, 3, 2, 2, 2, 2, 2 };
+    // where the elite comes out: fractions of the drawing's bounds from its centre (y up). The launch-strip sites' are the pad pixels of
+    // Codex's masters (build_art.py: .5 across; .5 / .519 / .4375 / .514 down the 768 px cell): the dark bay the elite rises from.
     public static readonly Vector2[] SitePads =
     {
         new Vector2(0f, -.05f), new Vector2(0f, -.03f), new Vector2(0f, 0f), new Vector2(0f, -.04f), new Vector2(0f, -.02f),
+        new Vector2(0f, 0f), new Vector2(0f, -.0195f), new Vector2(0f, .0625f), new Vector2(0f, -.0143f),
     };
+
+    // ---- the launch strips (the docks atlas): idle, blink, opening, open, open hold, closing ----
+    public const string DocksAtlas = "docks";
+    public const int LaunchCells = 6, LaunchIdle = 0, LaunchBlink = 1, LaunchOpening = 2, LaunchOpen = 3, LaunchHold = 4, LaunchClosing = 5;
+    public const int FirstLaunchSite = 5;                      // SiteNames[FirstLaunchSite..] have a strip
+    // The rig and the icebreaker deck are drawn in a frozen lead: the glacier (v4) has no sea, so they never come there (nothing that floats
+    // is drawn over its crevasses: FrostBackdropTest); its silo and cave, and the old five, do.
+    public static bool SiteFits(int kind, int variant) { return !(IsGlacier(variant) && (SiteKinds[kind] == LandingKind.Rig || SiteKinds[kind] == LandingKind.Icebreaker)); }
+    public static bool HasLaunchStrip(int kind) { return kind >= FirstLaunchSite && kind < SiteNames.Length; }
+    // drawn width of a strip site, as a share of the usual SiteMin..SiteMax (a 192 px wide icebreaker cell is 3/4 of a 256 px one)
+    public static readonly float[] SiteWidthK = { 1f, 1f, 1f, 1f, 1f, 1f, 1f, 1f, .85f };
+    // The tell: the site stays idle through its first share (the ship's own small blinking launch light, EliteShip.LaunchTell, is the
+    // tell; the strip's lamp-blink cell 1 is never shown), then the doors open (2); the lift-off has them open (3 for its first share,
+    // then 4 held until the elite is clear); then they close for LaunchCloseSeconds (5) and the site is idle again. No flash, flare,
+    // halo or ring at any point (as SpaceDirector.DockCellAt after the launch-tell change).
+    public const float LaunchBlinkShare = .4f, LaunchOpenShare = .25f, LaunchCloseSeconds = .6f;
+
+    // The cell a strip site shows at EliteShip.LaunchPhase `ph` in (0, 2): (0, 1] the tell, [1, 2) the lift-off.
+    public static int LaunchCellAt(float ph)
+    {
+        if (ph < 1f)
+        {
+            float t = ph * EliteShip.EngineTellSeconds;
+            return t >= LaunchBlinkShare * EliteShip.EngineTellSeconds ? LaunchOpening : LaunchIdle;
+        }
+        return ph - 1f < LaunchOpenShare ? LaunchOpen : LaunchHold;
+    }
     // the lamp row (lights_off / lights_on) under the door: cell point and scale
     public static Vector2 LampsAt = new Vector2(128f, 226f);
     public static float LampsScale = .6f;
@@ -208,7 +252,8 @@ public class FrostDirector : PlanetDirector
     BackdropPool ground, sites, auroraPool, mist, wisps, ceiling, blizzard;
     readonly BackdropPool[] snow = new BackdropPool[3];
     readonly SpriteRenderer[] lamps = new SpriteRenderer[3];
-    BackdropAtlas landmarkArt, siteArt, weather;
+    BackdropAtlas landmarkArt, siteArt, dockArt, weather;
+    Sprite[][] siteLaunch;                             // per site kind: its 6 launch cells (null: an old two-drawing site, or the atlas is missing)
     AmbientEmitters ambient;
     Sprite[] auroraFrames;
     Sprite[] siteClosed, siteOpen, banks, wispArt, mistArt, gustArt, snowArt;
@@ -335,8 +380,19 @@ public class FrostDirector : PlanetDirector
         tintCeiling = spec.Tint("ceiling");
         tintBlizzard = spec.Tint("blizzard");
 
+        dockArt = set.Atlas(FrostTuning.DocksAtlas);
         siteClosed = Sprites(siteArt, FrostTuning.SiteClosed);
         siteOpen = Sprites(siteArt, FrostTuning.SiteOpen);
+        // the launch-strip sites take their idle / open cells (and all six) from the docks atlas; without it they are simply never spawned
+        siteLaunch = new Sprite[FrostTuning.SiteNames.Length][];
+        for (int k = FrostTuning.FirstLaunchSite; k < siteLaunch.Length; k++)
+        {
+            var f = dockArt.Frames(FrostTuning.SiteNames[k]);
+            if (f.Length < FrostTuning.LaunchCells) { siteClosed[k] = siteOpen[k] = null; continue; }
+            siteLaunch[k] = f;
+            siteClosed[k] = f[FrostTuning.LaunchIdle];
+            siteOpen[k] = f[FrostTuning.LaunchOpen];
+        }
         lampsOff = siteArt.Get("lights_off");
         lampsOn = siteArt.Get("lights_on");
         banks = weather.Frames("cloud_bank");
@@ -659,17 +715,19 @@ public class FrostDirector : PlanetDirector
         if (kind < 0)
         {
             int total = 0;
-            foreach (int w in FrostTuning.SiteWeights) total += w;
+            for (int k = 0; k < FrostTuning.SiteWeights.Length; k++) if (FrostTuning.SiteFits(k, set.Variant)) total += FrostTuning.SiteWeights[k];
             int r = groundRng.Next(total);
             for (kind = 0; kind < FrostTuning.SiteWeights.Length - 1; kind++)
             {
+                if (!FrostTuning.SiteFits(kind, set.Variant)) continue;
                 r -= FrostTuning.SiteWeights[kind];
                 if (r < 0) break;
             }
         }
+        if (!FrostTuning.SiteFits(kind, set.Variant)) return false;
         var closed = siteClosed[kind];
         if (closed == null || siteOpen[kind] == null) return false;
-        float size = GRand(FrostTuning.SiteMin, FrostTuning.SiteMax);
+        float size = GRand(FrostTuning.SiteMin, FrostTuning.SiteMax) * FrostTuning.SiteWidthK[kind];
         double lo = float.IsNaN(y) ? planner.Travel + HalfH + .95f : planner.GroundY(y) - .3f;
         double hi = lo + (float.IsNaN(y) ? .9f : .6f);
         var rule = FrostTuning.Rule(FrostTuning.SiteClosed[kind], set.Variant);
@@ -685,7 +743,7 @@ public class FrostDirector : PlanetDirector
         p.life = 0f;
         ambient.Attach(p, SiteKey(kind), groundRng);
         int i = sites.items.IndexOf(p);
-        if (i >= 0 && lamps[i] != null) { lamps[i].sprite = lampsOff; lamps[i].enabled = lampsOff != null; }
+        if (i >= 0 && lamps[i] != null) { lamps[i].sprite = lampsOff; lamps[i].enabled = lampsOff != null && siteLaunch[kind] == null; }   // (a strip site has its own lamp drawn in)
         SitesSpawned++;
         return true;
     }
@@ -707,6 +765,32 @@ public class FrostDirector : PlanetDirector
         return 0;
     }
 
+    // The launch phase of the elite (if any) parked in / leaving site piece `p` (EliteShip.LaunchPhase), -1 with none.
+    static float PhaseOf(BackdropPiece p)
+    {
+        var live = EliteShip.Live;
+        for (int i = 0; i < live.Count; i++)
+        {
+            var e = live[i];
+            if (e != null && e.State != EliteState.Dead && e.Site.anchor == p.root) return e.LaunchPhase;
+        }
+        return -1f;
+    }
+
+    // The cell of a strip site: the launch tell and lift-off by the elite's phase, then closing
+    // behind it for the last LaunchCloseSeconds of the close delay (p.tier 3, p.life counting down), held open before that.
+    int LaunchCell(BackdropPiece p)
+    {
+        if (p.tier == 1 || p.tier == 2)
+        {
+            float ph = PhaseOf(p);
+            if (ph > 0f && ph < 2f) return FrostTuning.LaunchCellAt(ph);
+            return p.tier == 1 ? FrostTuning.LaunchOpening : FrostTuning.LaunchHold;
+        }
+        if (p.tier == 3) return p.life > FrostTuning.LaunchCloseSeconds ? FrostTuning.LaunchHold : FrostTuning.LaunchClosing;
+        return FrostTuning.LaunchIdle;
+    }
+
     void StepSites(float dt)
     {
         for (int i = 0; i < sites.items.Count; i++)
@@ -722,9 +806,11 @@ public class FrostDirector : PlanetDirector
                 else p.tier = 3;         // closing behind it
             }
             bool open = p.tier > 0;
-            var want = open ? siteOpen[p.kind] : siteClosed[p.kind];
+            var strip = siteLaunch[p.kind];
+            var want = strip != null ? strip[LaunchCell(p)] : open ? siteOpen[p.kind] : siteClosed[p.kind];
             if (p.sr.sprite != want) p.sr.sprite = want;
             var lamp = lamps[i];
+            if (strip != null) { if (lamp != null) lamp.enabled = false; continue; }
             if (lamp != null && lampsOn != null)
             {
                 bool lit = p.tier == 2 || p.tier == 3 || (p.tier == 1 && Mathf.Repeat(p.age * 4f, 1f) < .55f);
@@ -779,7 +865,7 @@ public class FrostDirector : PlanetDirector
             var k = LandingSite.KindOf(part.Trim());
             if (k == null) continue;
             for (int t = 0; t < FrostTuning.SiteKinds.Length; t++)
-                if (FrostTuning.SiteKinds[t] == k.Value && siteClosed[t] != null && siteOpen[t] != null && !want.Contains(t)) want.Add(t);
+                if (FrostTuning.SiteKinds[t] == k.Value && siteClosed[t] != null && siteOpen[t] != null && FrostTuning.SiteFits(t, set.Variant) && !want.Contains(t)) want.Add(t);
         }
         if (want.Count == 0) return false;
         for (int i = 0; i < sites.items.Count; i++)

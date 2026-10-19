@@ -1,0 +1,4823 @@
+fileFormatVersion: 2
+guid: c1628f5ff8ac14fa9bef4282f16f1700
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: -829668702676085963
+    second: frost_elite_rimebreaker_lights_0
+  - first:
+      213: -6987899219580298884
+    second: frost_elite_rimebreaker_lights_1
+  - first:
+      213: -8782521493109332090
+    second: frost_elite_rimebreaker_lights_2
+  - first:
+      213: 2103739137068847328
+    second: frost_elite_rimebreaker_lights_3
+  - first:
+      213: 6048014881764217872
+    second: frost_elite_rimebreaker_lights_4
+  - first:
+      213: 6422560224657032770
+    second: frost_elite_rimebreaker_lights_5
+  - first:
+      213: -3402508366802272135
+    second: frost_elite_rimebreaker_lights_6
+  - first:
+      213: -191688367489544875
+    second: frost_elite_rimebreaker_lights_7
+  - first:
+      213: 2320848764100287215
+    second: frost_elite_rimebreaker_lights_8
+  - first:
+      213: 9045352910046627923
+    second: frost_elite_rimebreaker_lights_9
+  - first:
+      213: -4024545701532722830
+    second: frost_elite_rimebreaker_lights_10
+  - first:
+      213: 5360828822708786841
+    second: frost_elite_rimebreaker_lights_11
+  - first:
+      213: -5921140736156241886
+    second: frost_elite_rimebreaker_lights_12
+  - first:
+      213: -8361593501998013491
+    second: frost_elite_rimebreaker_lights_13
+  - first:
+      213: -6639670537664629013
+    second: frost_elite_rimebreaker_lights_14
+  - first:
+      213: 5637114018727521315
+    second: frost_elite_rimebreaker_lights_15
+  - first:
+      213: 7729523448901790024
+    second: frost_elite_rimebreaker_lights_16
+  - first:
+      213: -7298650628624799411
+    second: frost_elite_rimebreaker_lights_17
+  - first:
+      213: 1317934783169433844
+    second: frost_elite_rimebreaker_lights_18
+  - first:
+      213: 8512690649909568859
+    second: frost_elite_rimebreaker_lights_19
+  - first:
+      213: 6509081645889743657
+    second: frost_elite_rimebreaker_lights_20
+  - first:
+      213: -5346598056041571122
+    second: frost_elite_rimebreaker_lights_21
+  - first:
+      213: -2749896105516028844
+    second: frost_elite_rimebreaker_lights_22
+  - first:
+      213: -4038517257134233629
+    second: frost_elite_rimebreaker_lights_23
+  - first:
+      213: 756210400880464269
+    second: frost_elite_rimebreaker_lights_24
+  - first:
+      213: -2831324336934413409
+    second: frost_elite_rimebreaker_lights_25
+  - first:
+      213: 928602432856274653
+    second: frost_elite_rimebreaker_lights_26
+  - first:
+      213: 1260770068244307019
+    second: frost_elite_rimebreaker_lights_27
+  - first:
+      213: 1240049272248964402
+    second: frost_elite_rimebreaker_lights_28
+  - first:
+      213: -372641431844087106
+    second: frost_elite_rimebreaker_lights_29
+  - first:
+      213: 5955948098372268831
+    second: frost_elite_rimebreaker_lights_30
+  - first:
+      213: -8453995221040790080
+    second: frost_elite_rimebreaker_lights_31
+  - first:
+      213: -1817447850658912564
+    second: frost_elite_rimebreaker_lights_32
+  - first:
+      213: 452217369373210295
+    second: frost_elite_rimebreaker_lights_33
+  - first:
+      213: 2523494736824245955
+    second: frost_elite_rimebreaker_lights_34
+  - first:
+      213: -2761283305536691368
+    second: frost_elite_rimebreaker_lights_35
+  - first:
+      213: 6105604988381544734
+    second: frost_elite_rimebreaker_lights_36
+  - first:
+      213: -515879382981089309
+    second: frost_elite_rimebreaker_lights_37
+  - first:
+      213: -7217772366349238863
+    second: frost_elite_rimebreaker_lights_38
+  - first:
+      213: 3072323482318434216
+    second: frost_elite_rimebreaker_lights_39
+  - first:
+      213: -7072796650633088421
+    second: frost_elite_rimebreaker_lights_40
+  - first:
+      213: 3778114792093386887
+    second: frost_elite_rimebreaker_lights_41
+  - first:
+      213: 3318107519666434170
+    second: frost_elite_rimebreaker_lights_42
+  - first:
+      213: -7839282002327033063
+    second: frost_elite_rimebreaker_lights_43
+  - first:
+      213: -6766189160955754254
+    second: frost_elite_rimebreaker_lights_44
+  - first:
+      213: -235245001111885768
+    second: frost_elite_rimebreaker_lights_45
+  - first:
+      213: 4911815530246238974
+    second: frost_elite_rimebreaker_lights_46
+  - first:
+      213: 9143465117263757812
+    second: frost_elite_rimebreaker_lights_47
+  - first:
+      213: -273197139780387963
+    second: frost_elite_rimebreaker_lights_48
+  - first:
+      213: 6956397926867222716
+    second: frost_elite_rimebreaker_lights_49
+  - first:
+      213: -5043867322396377593
+    second: frost_elite_rimebreaker_lights_50
+  - first:
+      213: -1726724075629252671
+    second: frost_elite_rimebreaker_lights_51
+  - first:
+      213: 4725318702949137395
+    second: frost_elite_rimebreaker_lights_52
+  - first:
+      213: -3115894263481324591
+    second: frost_elite_rimebreaker_lights_53
+  - first:
+      213: -2318360809522181601
+    second: frost_elite_rimebreaker_lights_54
+  - first:
+      213: 4307093472148587261
+    second: frost_elite_rimebreaker_lights_55
+  - first:
+      213: -2487743515599517362
+    second: frost_elite_rimebreaker_lights_56
+  - first:
+      213: 5705461863839344800
+    second: frost_elite_rimebreaker_lights_57
+  - first:
+      213: 5968031667314691103
+    second: frost_elite_rimebreaker_lights_58
+  - first:
+      213: -1284058461084207536
+    second: frost_elite_rimebreaker_lights_59
+  - first:
+      213: 4223831186438389920
+    second: frost_elite_rimebreaker_lights_60
+  - first:
+      213: -5425703462436849960
+    second: frost_elite_rimebreaker_lights_61
+  - first:
+      213: 6339624677557122362
+    second: frost_elite_rimebreaker_lights_62
+  - first:
+      213: 5391660239245356200
+    second: frost_elite_rimebreaker_lights_63
+  - first:
+      213: -5695023436832293877
+    second: frost_elite_rimebreaker_lights_64
+  - first:
+      213: 4554634479884333405
+    second: frost_elite_rimebreaker_lights_65
+  - first:
+      213: 5249280290366619010
+    second: frost_elite_rimebreaker_lights_66
+  - first:
+      213: -2483331750167099523
+    second: frost_elite_rimebreaker_lights_67
+  - first:
+      213: 6936896178555929283
+    second: frost_elite_rimebreaker_lights_68
+  - first:
+      213: 7862273180535694616
+    second: frost_elite_rimebreaker_lights_69
+  - first:
+      213: 3710542670787648070
+    second: frost_elite_rimebreaker_lights_70
+  - first:
+      213: -7929955445656843940
+    second: frost_elite_rimebreaker_lights_71
+  - first:
+      213: 3191425932124640456
+    second: frost_elite_rimebreaker_lights_72
+  - first:
+      213: 8290894404890331292
+    second: frost_elite_rimebreaker_lights_73
+  - first:
+      213: 3434303413671472086
+    second: frost_elite_rimebreaker_lights_74
+  - first:
+      213: 4963911414716942904
+    second: frost_elite_rimebreaker_lights_75
+  - first:
+      213: -7551440390608004286
+    second: frost_elite_rimebreaker_lights_76
+  - first:
+      213: 2338683950957120474
+    second: frost_elite_rimebreaker_lights_77
+  - first:
+      213: 3469677382649124820
+    second: frost_elite_rimebreaker_lights_78
+  - first:
+      213: -5408664730754462083
+    second: frost_elite_rimebreaker_lights_79
+  - first:
+      213: 6438414595209946806
+    second: frost_elite_rimebreaker_lights_80
+  - first:
+      213: 1639668185299983797
+    second: frost_elite_rimebreaker_lights_81
+  - first:
+      213: 7454528345353730616
+    second: frost_elite_rimebreaker_lights_82
+  - first:
+      213: -5499623731389896626
+    second: frost_elite_rimebreaker_lights_83
+  - first:
+      213: 1554090243891236139
+    second: frost_elite_rimebreaker_lights_84
+  - first:
+      213: -8728806131746135990
+    second: frost_elite_rimebreaker_lights_85
+  - first:
+      213: 6652273856308610091
+    second: frost_elite_rimebreaker_lights_86
+  - first:
+      213: -6331643354349749960
+    second: frost_elite_rimebreaker_lights_87
+  - first:
+      213: 3956848336900243863
+    second: frost_elite_rimebreaker_lights_88
+  - first:
+      213: 1795769773429733782
+    second: frost_elite_rimebreaker_lights_89
+  - first:
+      213: -2511091958095544601
+    second: frost_elite_rimebreaker_lights_90
+  - first:
+      213: 668802600322563394
+    second: frost_elite_rimebreaker_lights_91
+  - first:
+      213: 3956644555875198162
+    second: frost_elite_rimebreaker_lights_92
+  - first:
+      213: 6270011685889017119
+    second: frost_elite_rimebreaker_lights_93
+  - first:
+      213: -124377233511399870
+    second: frost_elite_rimebreaker_lights_94
+  - first:
+      213: 1282075654391920201
+    second: frost_elite_rimebreaker_lights_95
+  - first:
+      213: -4245969190522017664
+    second: frost_elite_rimebreaker_lights_96
+  - first:
+      213: 528614548798693626
+    second: frost_elite_rimebreaker_lights_97
+  - first:
+      213: -4796393676895210302
+    second: frost_elite_rimebreaker_lights_98
+  - first:
+      213: 1659155474118726806
+    second: frost_elite_rimebreaker_lights_99
+  - first:
+      213: -6009680370331876301
+    second: frost_elite_rimebreaker_lights_100
+  - first:
+      213: -5767333859043412332
+    second: frost_elite_rimebreaker_lights_101
+  - first:
+      213: -2599018572470059550
+    second: frost_elite_rimebreaker_lights_102
+  - first:
+      213: 1295709574979583907
+    second: frost_elite_rimebreaker_lights_103
+  - first:
+      213: 6838403770065790226
+    second: frost_elite_rimebreaker_lights_104
+  - first:
+      213: 8487953212222666826
+    second: frost_elite_rimebreaker_lights_105
+  - first:
+      213: -5271654858369917494
+    second: frost_elite_rimebreaker_lights_106
+  - first:
+      213: -7603477603298085771
+    second: frost_elite_rimebreaker_lights_107
+  - first:
+      213: 7928347933606335976
+    second: frost_elite_rimebreaker_lights_108
+  - first:
+      213: 8596801548363309589
+    second: frost_elite_rimebreaker_lights_109
+  - first:
+      213: -1844921560950496007
+    second: frost_elite_rimebreaker_lights_110
+  - first:
+      213: 7331648362899352182
+    second: frost_elite_rimebreaker_lights_111
+  - first:
+      213: 7163704552651045293
+    second: frost_elite_rimebreaker_lights_112
+  - first:
+      213: -2844342738023434857
+    second: frost_elite_rimebreaker_lights_113
+  - first:
+      213: -1583933392307214677
+    second: frost_elite_rimebreaker_lights_114
+  - first:
+      213: 2588221405983613233
+    second: frost_elite_rimebreaker_lights_115
+  - first:
+      213: -2670460282454730784
+    second: frost_elite_rimebreaker_lights_116
+  - first:
+      213: 4722433768421773478
+    second: frost_elite_rimebreaker_lights_117
+  - first:
+      213: -8173231418869162106
+    second: frost_elite_rimebreaker_lights_118
+  - first:
+      213: -4010293119610079366
+    second: frost_elite_rimebreaker_lights_119
+  - first:
+      213: -6619743134938166175
+    second: frost_elite_rimebreaker_lights_120
+  - first:
+      213: 6386843827211264358
+    second: frost_elite_rimebreaker_lights_121
+  - first:
+      213: 4516888236802486486
+    second: frost_elite_rimebreaker_lights_122
+  - first:
+      213: 1778941352190365328
+    second: frost_elite_rimebreaker_lights_123
+  - first:
+      213: 7482847197350124413
+    second: frost_elite_rimebreaker_lights_124
+  - first:
+      213: 1955523432760388583
+    second: frost_elite_rimebreaker_lights_125
+  - first:
+      213: -8083116395624511275
+    second: frost_elite_rimebreaker_lights_126
+  - first:
+      213: 2024070468295506920
+    second: frost_elite_rimebreaker_lights_127
+  - first:
+      213: 9045906456370931200
+    second: frost_elite_rimebreaker_lights_128
+  - first:
+      213: 1060660676363117888
+    second: frost_elite_rimebreaker_lights_129
+  - first:
+      213: -422366288597553270
+    second: frost_elite_rimebreaker_lights_130
+  - first:
+      213: 495903716362012203
+    second: frost_elite_rimebreaker_lights_131
+  - first:
+      213: 710802033877222745
+    second: frost_elite_rimebreaker_lights_132
+  - first:
+      213: 1465977566056750558
+    second: frost_elite_rimebreaker_lights_133
+  - first:
+      213: -5502894324289235715
+    second: frost_elite_rimebreaker_lights_134
+  - first:
+      213: 8841738779906720615
+    second: frost_elite_rimebreaker_lights_135
+  - first:
+      213: 8060734059184114702
+    second: frost_elite_rimebreaker_lights_136
+  - first:
+      213: 9090917234653609441
+    second: frost_elite_rimebreaker_lights_137
+  - first:
+      213: -6905317336132689741
+    second: frost_elite_rimebreaker_lights_138
+  - first:
+      213: -9176773616976371993
+    second: frost_elite_rimebreaker_lights_139
+  - first:
+      213: 5773563266153447751
+    second: frost_elite_rimebreaker_lights_140
+  - first:
+      213: -1310542474339951982
+    second: frost_elite_rimebreaker_lights_141
+  - first:
+      213: -8361687733181261248
+    second: frost_elite_rimebreaker_lights_142
+  - first:
+      213: 8243078863852413765
+    second: frost_elite_rimebreaker_lights_143
+  - first:
+      213: -7687884084950468366
+    second: frost_elite_rimebreaker_lights_144
+  - first:
+      213: -4422418221892501403
+    second: frost_elite_rimebreaker_lights_145
+  - first:
+      213: -7229629020403598611
+    second: frost_elite_rimebreaker_lights_146
+  - first:
+      213: 5375202055220459333
+    second: frost_elite_rimebreaker_lights_147
+  - first:
+      213: -2979330137222205546
+    second: frost_elite_rimebreaker_lights_148
+  - first:
+      213: -2837066261847193914
+    second: frost_elite_rimebreaker_lights_149
+  - first:
+      213: 161218025238521605
+    second: frost_elite_rimebreaker_lights_150
+  - first:
+      213: 5992395693315514199
+    second: frost_elite_rimebreaker_lights_151
+  - first:
+      213: 4517669799833032515
+    second: frost_elite_rimebreaker_lights_152
+  - first:
+      213: 8443982296933230827
+    second: frost_elite_rimebreaker_lights_153
+  - first:
+      213: 1477463160661011569
+    second: frost_elite_rimebreaker_lights_154
+  - first:
+      213: 29867411164279174
+    second: frost_elite_rimebreaker_lights_155
+  - first:
+      213: -6794839153311245924
+    second: frost_elite_rimebreaker_lights_156
+  - first:
+      213: 9062609000989531742
+    second: frost_elite_rimebreaker_lights_157
+  - first:
+      213: 5980155200248754452
+    second: frost_elite_rimebreaker_lights_158
+  - first:
+      213: 1187732065792003707
+    second: frost_elite_rimebreaker_lights_159
+  - first:
+      213: 8961727015360569264
+    second: frost_elite_rimebreaker_lights_160
+  - first:
+      213: 7204907757149349198
+    second: frost_elite_rimebreaker_lights_161
+  - first:
+      213: 5916002955186305705
+    second: frost_elite_rimebreaker_lights_162
+  - first:
+      213: -7742632509469913038
+    second: frost_elite_rimebreaker_lights_163
+  - first:
+      213: 2587856807828467722
+    second: frost_elite_rimebreaker_lights_164
+  - first:
+      213: -1782117981368206661
+    second: frost_elite_rimebreaker_lights_165
+  - first:
+      213: -6641251393475735448
+    second: frost_elite_rimebreaker_lights_166
+  - first:
+      213: 679545913329851608
+    second: frost_elite_rimebreaker_lights_167
+  - first:
+      213: 5344170654758074622
+    second: frost_elite_rimebreaker_lights_168
+  - first:
+      213: -1896335292401497884
+    second: frost_elite_rimebreaker_lights_169
+  - first:
+      213: 6325548526578151003
+    second: frost_elite_rimebreaker_lights_170
+  - first:
+      213: -7278466995637872053
+    second: frost_elite_rimebreaker_lights_171
+  - first:
+      213: 5028584043432332933
+    second: frost_elite_rimebreaker_lights_172
+  - first:
+      213: -6776701903513055529
+    second: frost_elite_rimebreaker_lights_173
+  - first:
+      213: 274370843235953319
+    second: frost_elite_rimebreaker_lights_174
+  - first:
+      213: -4310691337613059503
+    second: frost_elite_rimebreaker_lights_175
+  - first:
+      213: -4670819755088761161
+    second: frost_elite_rimebreaker_lights_176
+  - first:
+      213: -605923894983990332
+    second: frost_elite_rimebreaker_lights_177
+  - first:
+      213: 5564109260410144037
+    second: frost_elite_rimebreaker_lights_178
+  - first:
+      213: 4640370412958770611
+    second: frost_elite_rimebreaker_lights_179
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: 50
+    textureCompression: 1
+    compressionQuality: 100
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 1
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: iOS
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: 50
+    textureCompression: 1
+    compressionQuality: 100
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 1
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_0
+      rect:
+        serializedVersion: 2
+        x: 199
+        y: 321
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5339bbfe5bc6c74f0800000000000000
+      internalID: -829668702676085963
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_1
+      rect:
+        serializedVersion: 2
+        x: 583
+        y: 321
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c79dfaaeeaef50f90800000000000000
+      internalID: -6987899219580298884
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_2
+      rect:
+        serializedVersion: 2
+        x: 966
+        y: 320
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6872cfadb373e1680800000000000000
+      internalID: -8782521493109332090
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_3
+      rect:
+        serializedVersion: 2
+        x: 1350
+        y: 320
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0e0531d599bf13d10800000000000000
+      internalID: 2103739137068847328
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_4
+      rect:
+        serializedVersion: 2
+        x: 1734
+        y: 320
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 01415dfbd7ddee350800000000000000
+      internalID: 6048014881764217872
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_5
+      rect:
+        serializedVersion: 2
+        x: 2118
+        y: 320
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2464c330f74812950800000000000000
+      internalID: 6422560224657032770
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_6
+      rect:
+        serializedVersion: 2
+        x: 2503
+        y: 321
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 970c47beaacd7c0d0800000000000000
+      internalID: -3402508366802272135
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_7
+      rect:
+        serializedVersion: 2
+        x: 2887
+        y: 321
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 55d0634027cf65df0800000000000000
+      internalID: -191688367489544875
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_8
+      rect:
+        serializedVersion: 2
+        x: 3271
+        y: 321
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fea1a9197af453020800000000000000
+      internalID: 2320848764100287215
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_9
+      rect:
+        serializedVersion: 2
+        x: 3655
+        y: 321
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 358006f1c8c878d70800000000000000
+      internalID: 9045352910046627923
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_10
+      rect:
+        serializedVersion: 2
+        x: 185
+        y: 295
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 27911d5e101f528c0800000000000000
+      internalID: -4024545701532722830
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_11
+      rect:
+        serializedVersion: 2
+        x: 203
+        y: 304
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9969b3f496d756a40800000000000000
+      internalID: 5360828822708786841
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_12
+      rect:
+        serializedVersion: 2
+        x: 568
+        y: 294
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 220ff4c3fd1e3dda0800000000000000
+      internalID: -5921140736156241886
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_13
+      rect:
+        serializedVersion: 2
+        x: 586
+        y: 303
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: dc3a135f207a5fb80800000000000000
+      internalID: -8361593501998013491
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_14
+      rect:
+        serializedVersion: 2
+        x: 951
+        y: 293
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: be67fd013d62bd3a0800000000000000
+      internalID: -6639670537664629013
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_15
+      rect:
+        serializedVersion: 2
+        x: 969
+        y: 302
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 32ce0a4555d0b3e40800000000000000
+      internalID: 5637114018727521315
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_16
+      rect:
+        serializedVersion: 2
+        x: 1336
+        y: 294
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 849e7debf98c44b60800000000000000
+      internalID: 7729523448901790024
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_17
+      rect:
+        serializedVersion: 2
+        x: 1354
+        y: 303
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d4923255cebf5ba90800000000000000
+      internalID: -7298650628624799411
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_18
+      rect:
+        serializedVersion: 2
+        x: 1719
+        y: 293
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4f012fbd3be3a4210800000000000000
+      internalID: 1317934783169433844
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_19
+      rect:
+        serializedVersion: 2
+        x: 1737
+        y: 302
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b5526ae3b07232670800000000000000
+      internalID: 8512690649909568859
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_20
+      rect:
+        serializedVersion: 2
+        x: 2103
+        y: 293
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 92be5453547e45a50800000000000000
+      internalID: 6509081645889743657
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_21
+      rect:
+        serializedVersion: 2
+        x: 2121
+        y: 302
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ecc19d045611dc5b0800000000000000
+      internalID: -5346598056041571122
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_22
+      rect:
+        serializedVersion: 2
+        x: 2487
+        y: 293
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 45cac75cf0866d9d0800000000000000
+      internalID: -2749896105516028844
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_23
+      rect:
+        serializedVersion: 2
+        x: 2505
+        y: 302
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3e7aa3d93fd44f7c0800000000000000
+      internalID: -4038517257134233629
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_24
+      rect:
+        serializedVersion: 2
+        x: 2871
+        y: 293
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d819fef5a599e7a00800000000000000
+      internalID: 756210400880464269
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_25
+      rect:
+        serializedVersion: 2
+        x: 2890
+        y: 303
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f9b1b1d348d15b8d0800000000000000
+      internalID: -2831324336934413409
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_26
+      rect:
+        serializedVersion: 2
+        x: 3256
+        y: 294
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: dd636f32efe03ec00800000000000000
+      internalID: 928602432856274653
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_27
+      rect:
+        serializedVersion: 2
+        x: 3274
+        y: 303
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b4c952d72b72f7110800000000000000
+      internalID: 1260770068244307019
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_28
+      rect:
+        serializedVersion: 2
+        x: 3639
+        y: 293
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 23591683e3a853110800000000000000
+      internalID: 1240049272248964402
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_29
+      rect:
+        serializedVersion: 2
+        x: 3657
+        y: 302
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: eba1752979c14daf0800000000000000
+      internalID: -372641431844087106
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_30
+      rect:
+        serializedVersion: 2
+        x: 176
+        y: 280
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f1374205d37c7a250800000000000000
+      internalID: 5955948098372268831
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_31
+      rect:
+        serializedVersion: 2
+        x: 206
+        y: 280
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0c5830d33206daa80800000000000000
+      internalID: -8453995221040790080
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_32
+      rect:
+        serializedVersion: 2
+        x: 559
+        y: 280
+        width: 11
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cc6adaf1fc027c6e0800000000000000
+      internalID: -1817447850658912564
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_33
+      rect:
+        serializedVersion: 2
+        x: 589
+        y: 280
+        width: 11
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7b670ce2d49964600800000000000000
+      internalID: 452217369373210295
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_34
+      rect:
+        serializedVersion: 2
+        x: 943
+        y: 279
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3ce1af4d711450320800000000000000
+      internalID: 2523494736824245955
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_35
+      rect:
+        serializedVersion: 2
+        x: 973
+        y: 279
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 853e449a673fda9d0800000000000000
+      internalID: -2761283305536691368
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_36
+      rect:
+        serializedVersion: 2
+        x: 1327
+        y: 279
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e11c55753677bb450800000000000000
+      internalID: 6105604988381544734
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_37
+      rect:
+        serializedVersion: 2
+        x: 1357
+        y: 279
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3e7e6763f6a37d8f0800000000000000
+      internalID: -515879382981089309
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_38
+      rect:
+        serializedVersion: 2
+        x: 1711
+        y: 279
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1bd7f12364255db90800000000000000
+      internalID: -7217772366349238863
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_39
+      rect:
+        serializedVersion: 2
+        x: 1741
+        y: 279
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8af6ea6ede513aa20800000000000000
+      internalID: 3072323482318434216
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_40
+      rect:
+        serializedVersion: 2
+        x: 2095
+        y: 279
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b5231766be068dd90800000000000000
+      internalID: -7072796650633088421
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_41
+      rect:
+        serializedVersion: 2
+        x: 2125
+        y: 279
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7880067d26f8e6430800000000000000
+      internalID: 3778114792093386887
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_42
+      rect:
+        serializedVersion: 2
+        x: 2478
+        y: 278
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a70354485394c0e20800000000000000
+      internalID: 3318107519666434170
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_43
+      rect:
+        serializedVersion: 2
+        x: 2509
+        y: 279
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 91b2f2d9d86453390800000000000000
+      internalID: -7839282002327033063
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_44
+      rect:
+        serializedVersion: 2
+        x: 2862
+        y: 278
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2f842229ecaa912a0800000000000000
+      internalID: -6766189160955754254
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_45
+      rect:
+        serializedVersion: 2
+        x: 2892
+        y: 278
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8382a89faed3cbcf0800000000000000
+      internalID: -235245001111885768
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_46
+      rect:
+        serializedVersion: 2
+        x: 3246
+        y: 278
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ef2f29a63364a2440800000000000000
+      internalID: 4911815530246238974
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_47
+      rect:
+        serializedVersion: 2
+        x: 3276
+        y: 278
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4f18eaa741d14ee70800000000000000
+      internalID: 9143465117263757812
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_48
+      rect:
+        serializedVersion: 2
+        x: 3631
+        y: 279
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 58bbcb916a8653cf0800000000000000
+      internalID: -273197139780387963
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_49
+      rect:
+        serializedVersion: 2
+        x: 3661
+        y: 279
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cb04f23de071a8060800000000000000
+      internalID: 6956397926867222716
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_50
+      rect:
+        serializedVersion: 2
+        x: 134
+        y: 259
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 70efc52d465900ab0800000000000000
+      internalID: -5043867322396377593
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_51
+      rect:
+        serializedVersion: 2
+        x: 257
+        y: 268
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1cfe00f0a917908e0800000000000000
+      internalID: -1726724075629252671
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_52
+      rect:
+        serializedVersion: 2
+        x: 517
+        y: 259
+        width: 11
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3fbfac31354b39140800000000000000
+      internalID: 4725318702949137395
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_53
+      rect:
+        serializedVersion: 2
+        x: 640
+        y: 268
+        width: 11
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1dba4831dae12c4d0800000000000000
+      internalID: -3115894263481324591
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_54
+      rect:
+        serializedVersion: 2
+        x: 901
+        y: 258
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f1a4e3f702783dfd0800000000000000
+      internalID: -2318360809522181601
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_55
+      rect:
+        serializedVersion: 2
+        x: 1024
+        y: 267
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: df202d561bed5cb30800000000000000
+      internalID: 4307093472148587261
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_56
+      rect:
+        serializedVersion: 2
+        x: 1285
+        y: 258
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e49c8640472c97dd0800000000000000
+      internalID: -2487743515599517362
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_57
+      rect:
+        serializedVersion: 2
+        x: 1408
+        y: 267
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0a8aea9165fdd2f40800000000000000
+      internalID: 5705461863839344800
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_58
+      rect:
+        serializedVersion: 2
+        x: 1669
+        y: 258
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f1c03927e25b2d250800000000000000
+      internalID: 5968031667314691103
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_59
+      rect:
+        serializedVersion: 2
+        x: 1792
+        y: 267
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 056bd3402ab1e2ee0800000000000000
+      internalID: -1284058461084207536
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_60
+      rect:
+        serializedVersion: 2
+        x: 2053
+        y: 258
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0a080e2d5101e9a30800000000000000
+      internalID: 4223831186438389920
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_61
+      rect:
+        serializedVersion: 2
+        x: 2176
+        y: 267
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8d638d0927704b4b0800000000000000
+      internalID: -5425703462436849960
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_62
+      rect:
+        serializedVersion: 2
+        x: 2437
+        y: 258
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a35b7133e0fdaf750800000000000000
+      internalID: 6339624677557122362
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_63
+      rect:
+        serializedVersion: 2
+        x: 2560
+        y: 267
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8ac21dddb6603da40800000000000000
+      internalID: 5391660239245356200
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_64
+      rect:
+        serializedVersion: 2
+        x: 2821
+        y: 258
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b0c36149b5637f0b0800000000000000
+      internalID: -5695023436832293877
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_65
+      rect:
+        serializedVersion: 2
+        x: 2944
+        y: 267
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d51704f8def453f30800000000000000
+      internalID: 4554634479884333405
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_66
+      rect:
+        serializedVersion: 2
+        x: 3205
+        y: 258
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 28df2c9bc9039d840800000000000000
+      internalID: 5249280290366619010
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_67
+      rect:
+        serializedVersion: 2
+        x: 3327
+        y: 266
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d7747d33eee698dd0800000000000000
+      internalID: -2483331750167099523
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_68
+      rect:
+        serializedVersion: 2
+        x: 3589
+        y: 258
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3c24796325ec44060800000000000000
+      internalID: 6936896178555929283
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_69
+      rect:
+        serializedVersion: 2
+        x: 3711
+        y: 266
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 81529e43dc76c1d60800000000000000
+      internalID: 7862273180535694616
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_70
+      rect:
+        serializedVersion: 2
+        x: 116
+        y: 247
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 64a1a3856ee7e7330800000000000000
+      internalID: 3710542670787648070
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_71
+      rect:
+        serializedVersion: 2
+        x: 263
+        y: 247
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c5903f0798323f190800000000000000
+      internalID: -7929955445656843940
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_72
+      rect:
+        serializedVersion: 2
+        x: 499
+        y: 247
+        width: 11
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8c45243f9f83a4c20800000000000000
+      internalID: 3191425932124640456
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_73
+      rect:
+        serializedVersion: 2
+        x: 646
+        y: 247
+        width: 11
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c9803c1c88c2f0370800000000000000
+      internalID: 8290894404890331292
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_74
+      rect:
+        serializedVersion: 2
+        x: 883
+        y: 246
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6dbacce42c819af20800000000000000
+      internalID: 3434303413671472086
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_75
+      rect:
+        serializedVersion: 2
+        x: 1030
+        y: 246
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 83ac5bab12b53e440800000000000000
+      internalID: 4963911414716942904
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_76
+      rect:
+        serializedVersion: 2
+        x: 1267
+        y: 246
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 24bd54759f4e33790800000000000000
+      internalID: -7551440390608004286
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_77
+      rect:
+        serializedVersion: 2
+        x: 1414
+        y: 246
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: adbc4ba99aca47020800000000000000
+      internalID: 2338683950957120474
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_78
+      rect:
+        serializedVersion: 2
+        x: 1651
+        y: 246
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4d712064235c62030800000000000000
+      internalID: 3469677382649124820
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_79
+      rect:
+        serializedVersion: 2
+        x: 1798
+        y: 246
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d7e423e651090f4b0800000000000000
+      internalID: -5408664730754462083
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_80
+      rect:
+        serializedVersion: 2
+        x: 2035
+        y: 246
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6b6ed2056f7d95950800000000000000
+      internalID: 6438414595209946806
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_81
+      rect:
+        serializedVersion: 2
+        x: 2182
+        y: 246
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5bd9056f68541c610800000000000000
+      internalID: 1639668185299983797
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_82
+      rect:
+        serializedVersion: 2
+        x: 2419
+        y: 246
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 83ab3e8c80ec37760800000000000000
+      internalID: 7454528345353730616
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_83
+      rect:
+        serializedVersion: 2
+        x: 2566
+        y: 246
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e486234ca596da3b0800000000000000
+      internalID: -5499623731389896626
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_84
+      rect:
+        serializedVersion: 2
+        x: 2803
+        y: 246
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b2d8908c7dc319510800000000000000
+      internalID: 1554090243891236139
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_85
+      rect:
+        serializedVersion: 2
+        x: 2950
+        y: 246
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a402504021d0dd680800000000000000
+      internalID: -8728806131746135990
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_86
+      rect:
+        serializedVersion: 2
+        x: 3187
+        y: 246
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b2484e9b3df915c50800000000000000
+      internalID: 6652273856308610091
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_87
+      rect:
+        serializedVersion: 2
+        x: 3334
+        y: 246
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 839358b6aeb7128a0800000000000000
+      internalID: -6331643354349749960
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_88
+      rect:
+        serializedVersion: 2
+        x: 3570
+        y: 245
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 791c80f199c89e630800000000000000
+      internalID: 3956848336900243863
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_89
+      rect:
+        serializedVersion: 2
+        x: 3718
+        y: 246
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 699b9a3381bdbe810800000000000000
+      internalID: 1795769773429733782
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_90
+      rect:
+        serializedVersion: 2
+        x: 170
+        y: 220
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7eeff5f1b2fc62dd0800000000000000
+      internalID: -2511091958095544601
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_91
+      rect:
+        serializedVersion: 2
+        x: 209
+        y: 223
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 24d7519eb60184900800000000000000
+      internalID: 668802600322563394
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_92
+      rect:
+        serializedVersion: 2
+        x: 254
+        y: 214
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2d4ac67a243d8e630800000000000000
+      internalID: 3956644555875198162
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_93
+      rect:
+        serializedVersion: 2
+        x: 553
+        y: 220
+        width: 11
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f1586fa886e830750800000000000000
+      internalID: 6270011685889017119
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_94
+      rect:
+        serializedVersion: 2
+        x: 592
+        y: 223
+        width: 11
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 24e386aa09f164ef0800000000000000
+      internalID: -124377233511399870
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_95
+      rect:
+        serializedVersion: 2
+        x: 637
+        y: 214
+        width: 11
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 946f433d309dac110800000000000000
+      internalID: 1282075654391920201
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_96
+      rect:
+        serializedVersion: 2
+        x: 937
+        y: 219
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 088aeaf64894315c0800000000000000
+      internalID: -4245969190522017664
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_97
+      rect:
+        serializedVersion: 2
+        x: 976
+        y: 222
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: af0ef34a124065700800000000000000
+      internalID: 528614548798693626
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_98
+      rect:
+        serializedVersion: 2
+        x: 1021
+        y: 213
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2c43bbdfc59cf6db0800000000000000
+      internalID: -4796393676895210302
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_99
+      rect:
+        serializedVersion: 2
+        x: 1321
+        y: 219
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 694ddf5fc11860710800000000000000
+      internalID: 1659155474118726806
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_100
+      rect:
+        serializedVersion: 2
+        x: 1360
+        y: 222
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3340bb83b83599ca0800000000000000
+      internalID: -6009680370331876301
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_101
+      rect:
+        serializedVersion: 2
+        x: 1405
+        y: 213
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 49672ae696056ffa0800000000000000
+      internalID: -5767333859043412332
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_102
+      rect:
+        serializedVersion: 2
+        x: 1705
+        y: 219
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2ed7747e06e6eebd0800000000000000
+      internalID: -2599018572470059550
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_103
+      rect:
+        serializedVersion: 2
+        x: 1744
+        y: 222
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3affab45ef84bf110800000000000000
+      internalID: 1295709574979583907
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_104
+      rect:
+        serializedVersion: 2
+        x: 1789
+        y: 213
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 215a6795ff3e6ee50800000000000000
+      internalID: 6838403770065790226
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_105
+      rect:
+        serializedVersion: 2
+        x: 2089
+        y: 219
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a48faa4b9744bc570800000000000000
+      internalID: 8487953212222666826
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_106
+      rect:
+        serializedVersion: 2
+        x: 2128
+        y: 222
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: acd166436d157d6b0800000000000000
+      internalID: -5271654858369917494
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_107
+      rect:
+        serializedVersion: 2
+        x: 2173
+        y: 213
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 57477cd97650b7690800000000000000
+      internalID: -7603477603298085771
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_108
+      rect:
+        serializedVersion: 2
+        x: 2473
+        y: 219
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8e5de4e7076270e60800000000000000
+      internalID: 7928347933606335976
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_109
+      rect:
+        serializedVersion: 2
+        x: 2512
+        y: 222
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 51229bed579fd4770800000000000000
+      internalID: 8596801548363309589
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_110
+      rect:
+        serializedVersion: 2
+        x: 2557
+        y: 213
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9f426197d958566e0800000000000000
+      internalID: -1844921560950496007
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_111
+      rect:
+        serializedVersion: 2
+        x: 2857
+        y: 219
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 67aa0b0675f3fb560800000000000000
+      internalID: 7331648362899352182
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_112
+      rect:
+        serializedVersion: 2
+        x: 2896
+        y: 222
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: da93d90f5579a6360800000000000000
+      internalID: 7163704552651045293
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_113
+      rect:
+        serializedVersion: 2
+        x: 2941
+        y: 213
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 795b6a8895dd688d0800000000000000
+      internalID: -2844342738023434857
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_114
+      rect:
+        serializedVersion: 2
+        x: 3241
+        y: 219
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ba626a3c8fcb40ae0800000000000000
+      internalID: -1583933392307214677
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_115
+      rect:
+        serializedVersion: 2
+        x: 3280
+        y: 222
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 13127bfd7a53be320800000000000000
+      internalID: 2588221405983613233
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_116
+      rect:
+        serializedVersion: 2
+        x: 3325
+        y: 213
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0e71f75958e90fad0800000000000000
+      internalID: -2670460282454730784
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_117
+      rect:
+        serializedVersion: 2
+        x: 3624
+        y: 218
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6a0d61aed74798140800000000000000
+      internalID: 4722433768421773478
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_118
+      rect:
+        serializedVersion: 2
+        x: 3664
+        y: 222
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 68fdd330459d29e80800000000000000
+      internalID: -8173231418869162106
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_119
+      rect:
+        serializedVersion: 2
+        x: 3708
+        y: 212
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a77b278b7a39858c0800000000000000
+      internalID: -4010293119610079366
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_120
+      rect:
+        serializedVersion: 2
+        x: 119
+        y: 208
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 16c0ea111b2f124a0800000000000000
+      internalID: -6619743134938166175
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_121
+      rect:
+        serializedVersion: 2
+        x: 188
+        y: 211
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 661e2d43f90a2a850800000000000000
+      internalID: 6386843827211264358
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_122
+      rect:
+        serializedVersion: 2
+        x: 502
+        y: 208
+        width: 11
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6d0b0cc7be53fae30800000000000000
+      internalID: 4516888236802486486
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_123
+      rect:
+        serializedVersion: 2
+        x: 571
+        y: 211
+        width: 11
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 09e4f8d0cb110b810800000000000000
+      internalID: 1778941352190365328
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_124
+      rect:
+        serializedVersion: 2
+        x: 886
+        y: 207
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d7bd49251e968d760800000000000000
+      internalID: 7482847197350124413
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_125
+      rect:
+        serializedVersion: 2
+        x: 955
+        y: 210
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7eba2a7833a632b10800000000000000
+      internalID: 1955523432760388583
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_126
+      rect:
+        serializedVersion: 2
+        x: 1270
+        y: 207
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5d84aa0e67003df80800000000000000
+      internalID: -8083116395624511275
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_127
+      rect:
+        serializedVersion: 2
+        x: 1339
+        y: 210
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8ebbc1fed51f61c10800000000000000
+      internalID: 2024070468295506920
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_128
+      rect:
+        serializedVersion: 2
+        x: 1654
+        y: 207
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 006e66baef3898d70800000000000000
+      internalID: 9045906456370931200
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_129
+      rect:
+        serializedVersion: 2
+        x: 1723
+        y: 210
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 04569d9f34938be00800000000000000
+      internalID: 1060660676363117888
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_130
+      rect:
+        serializedVersion: 2
+        x: 2038
+        y: 207
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a8fea0b2914732af0800000000000000
+      internalID: -422366288597553270
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_131
+      rect:
+        serializedVersion: 2
+        x: 2107
+        y: 210
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b26cd887dcdc1e600800000000000000
+      internalID: 495903716362012203
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_132
+      rect:
+        serializedVersion: 2
+        x: 2422
+        y: 207
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 95580ee0fa64dd900800000000000000
+      internalID: 710802033877222745
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_133
+      rect:
+        serializedVersion: 2
+        x: 2491
+        y: 210
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: edd118944d2385410800000000000000
+      internalID: 1465977566056750558
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_134
+      rect:
+        serializedVersion: 2
+        x: 2806
+        y: 207
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: df41a3484cac1a3b0800000000000000
+      internalID: -5502894324289235715
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_135
+      rect:
+        serializedVersion: 2
+        x: 2875
+        y: 210
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 763c225239a24ba70800000000000000
+      internalID: 8841738779906720615
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_136
+      rect:
+        serializedVersion: 2
+        x: 3190
+        y: 207
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e0ccf825bea7ddf60800000000000000
+      internalID: 8060734059184114702
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_137
+      rect:
+        serializedVersion: 2
+        x: 3259
+        y: 210
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1ed31062f0d692e70800000000000000
+      internalID: 9090917234653609441
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_138
+      rect:
+        serializedVersion: 2
+        x: 3573
+        y: 206
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3b0e67ef7726b20a0800000000000000
+      internalID: -6905317336132689741
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_139
+      rect:
+        serializedVersion: 2
+        x: 3643
+        y: 210
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7ee52f7140d85a080800000000000000
+      internalID: -9176773616976371993
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_140
+      rect:
+        serializedVersion: 2
+        x: 179
+        y: 178
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 741025f6331df1050800000000000000
+      internalID: 5773563266153447751
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_141
+      rect:
+        serializedVersion: 2
+        x: 218
+        y: 187
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 29ad7e9209400dde0800000000000000
+      internalID: -1310542474339951982
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_142
+      rect:
+        serializedVersion: 2
+        x: 562
+        y: 178
+        width: 11
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 04a5dfc0f4155fb80800000000000000
+      internalID: -8361687733181261248
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_143
+      rect:
+        serializedVersion: 2
+        x: 601
+        y: 187
+        width: 11
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 543247f8d8c456270800000000000000
+      internalID: 8243078863852413765
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_144
+      rect:
+        serializedVersion: 2
+        x: 946
+        y: 177
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2f8f52a28262f4590800000000000000
+      internalID: -7687884084950468366
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_145
+      rect:
+        serializedVersion: 2
+        x: 985
+        y: 186
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 56002e3ee0a60a2c0800000000000000
+      internalID: -4422418221892501403
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_146
+      rect:
+        serializedVersion: 2
+        x: 1330
+        y: 177
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: deafcfcc5b23bab90800000000000000
+      internalID: -7229629020403598611
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_147
+      rect:
+        serializedVersion: 2
+        x: 1369
+        y: 186
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5477d594acd889a40800000000000000
+      internalID: 5375202055220459333
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_148
+      rect:
+        serializedVersion: 2
+        x: 1714
+        y: 177
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 69f214e760b47a6d0800000000000000
+      internalID: -2979330137222205546
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_149
+      rect:
+        serializedVersion: 2
+        x: 1753
+        y: 186
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6c64a5a2447b0a8d0800000000000000
+      internalID: -2837066261847193914
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_150
+      rect:
+        serializedVersion: 2
+        x: 2098
+        y: 177
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5076bb590f2cc3200800000000000000
+      internalID: 161218025238521605
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_151
+      rect:
+        serializedVersion: 2
+        x: 2137
+        y: 186
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 75fd6ad4224492350800000000000000
+      internalID: 5992395693315514199
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_152
+      rect:
+        serializedVersion: 2
+        x: 2482
+        y: 177
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 347de8f4fbcf1be30800000000000000
+      internalID: 4517669799833032515
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_153
+      rect:
+        serializedVersion: 2
+        x: 2521
+        y: 186
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: be86462392d0f2570800000000000000
+      internalID: 8443982296933230827
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_154
+      rect:
+        serializedVersion: 2
+        x: 2866
+        y: 177
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 17cecebaae0018410800000000000000
+      internalID: 1477463160661011569
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_155
+      rect:
+        serializedVersion: 2
+        x: 2905
+        y: 186
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 681bec0904c1a6000800000000000000
+      internalID: 29867411164279174
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_156
+      rect:
+        serializedVersion: 2
+        x: 3250
+        y: 177
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c9997f86ac1e3b1a0800000000000000
+      internalID: -6794839153311245924
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_157
+      rect:
+        serializedVersion: 2
+        x: 3289
+        y: 186
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e5e1d32eedad4cd70800000000000000
+      internalID: 9062609000989531742
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_158
+      rect:
+        serializedVersion: 2
+        x: 3634
+        y: 177
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 411388c6877cdf250800000000000000
+      internalID: 5980155200248754452
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_159
+      rect:
+        serializedVersion: 2
+        x: 3672
+        y: 185
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b7e8fdd550cab7010800000000000000
+      internalID: 1187732065792003707
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_160
+      rect:
+        serializedVersion: 2
+        x: 160
+        y: 171
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0bf969c3d337e5c70800000000000000
+      internalID: 8961727015360569264
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_161
+      rect:
+        serializedVersion: 2
+        x: 544
+        y: 172
+        width: 11
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e45e7509e69fcf360800000000000000
+      internalID: 7204907757149349198
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_162
+      rect:
+        serializedVersion: 2
+        x: 928
+        y: 171
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9aa7a0ae75dd91250800000000000000
+      internalID: 5916002955186305705
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_163
+      rect:
+        serializedVersion: 2
+        x: 1311
+        y: 170
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 23097ae31c4ac8490800000000000000
+      internalID: -7742632509469913038
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_164
+      rect:
+        serializedVersion: 2
+        x: 1696
+        y: 171
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a0031304e0ae9e320800000000000000
+      internalID: 2587856807828467722
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_165
+      rect:
+        serializedVersion: 2
+        x: 2080
+        y: 171
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bba36b45325a447e0800000000000000
+      internalID: -1782117981368206661
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_166
+      rect:
+        serializedVersion: 2
+        x: 2464
+        y: 171
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8609fc36b0985d3a0800000000000000
+      internalID: -6641251393475735448
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_167
+      rect:
+        serializedVersion: 2
+        x: 2848
+        y: 171
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8dc1894686b3e6900800000000000000
+      internalID: 679545913329851608
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_168
+      rect:
+        serializedVersion: 2
+        x: 3232
+        y: 171
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ef8fbe755ee4a2a40800000000000000
+      internalID: 5344170654758074622
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_169
+      rect:
+        serializedVersion: 2
+        x: 3616
+        y: 171
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4e84f59491ddea5e0800000000000000
+      internalID: -1896335292401497884
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_170
+      rect:
+        serializedVersion: 2
+        x: 133
+        y: 147
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b5eaf28eedcd8c750800000000000000
+      internalID: 6325548526578151003
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_171
+      rect:
+        serializedVersion: 2
+        x: 517
+        y: 147
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b4a999794d0bdfa90800000000000000
+      internalID: -7278466995637872053
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_172
+      rect:
+        serializedVersion: 2
+        x: 901
+        y: 147
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 58e4bff7b8e19c540800000000000000
+      internalID: 5028584043432332933
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_173
+      rect:
+        serializedVersion: 2
+        x: 1284
+        y: 146
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7de0464f58154f1a0800000000000000
+      internalID: -6776701903513055529
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_174
+      rect:
+        serializedVersion: 2
+        x: 1668
+        y: 146
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7aaadc704d2cec300800000000000000
+      internalID: 274370843235953319
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_175
+      rect:
+        serializedVersion: 2
+        x: 2053
+        y: 147
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 15a583541195d24c0800000000000000
+      internalID: -4310691337613059503
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_176
+      rect:
+        serializedVersion: 2
+        x: 2437
+        y: 147
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7beae080e2aed2fb0800000000000000
+      internalID: -4670819755088761161
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_177
+      rect:
+        serializedVersion: 2
+        x: 2821
+        y: 147
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4c3ee868d635797f0800000000000000
+      internalID: -605923894983990332
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_178
+      rect:
+        serializedVersion: 2
+        x: 3205
+        y: 147
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 525453674efa73d40800000000000000
+      internalID: 5564109260410144037
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: frost_elite_rimebreaker_lights_179
+      rect:
+        serializedVersion: 2
+        x: 3588
+        y: 146
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3b5e3aa0e48e56040800000000000000
+      internalID: 4640370412958770611
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      frost_elite_rimebreaker_lights_0: -829668702676085963
+      frost_elite_rimebreaker_lights_1: -6987899219580298884
+      frost_elite_rimebreaker_lights_10: -4024545701532722830
+      frost_elite_rimebreaker_lights_100: -6009680370331876301
+      frost_elite_rimebreaker_lights_101: -5767333859043412332
+      frost_elite_rimebreaker_lights_102: -2599018572470059550
+      frost_elite_rimebreaker_lights_103: 1295709574979583907
+      frost_elite_rimebreaker_lights_104: 6838403770065790226
+      frost_elite_rimebreaker_lights_105: 8487953212222666826
+      frost_elite_rimebreaker_lights_106: -5271654858369917494
+      frost_elite_rimebreaker_lights_107: -7603477603298085771
+      frost_elite_rimebreaker_lights_108: 7928347933606335976
+      frost_elite_rimebreaker_lights_109: 8596801548363309589
+      frost_elite_rimebreaker_lights_11: 5360828822708786841
+      frost_elite_rimebreaker_lights_110: -1844921560950496007
+      frost_elite_rimebreaker_lights_111: 7331648362899352182
+      frost_elite_rimebreaker_lights_112: 7163704552651045293
+      frost_elite_rimebreaker_lights_113: -2844342738023434857
+      frost_elite_rimebreaker_lights_114: -1583933392307214677
+      frost_elite_rimebreaker_lights_115: 2588221405983613233
+      frost_elite_rimebreaker_lights_116: -2670460282454730784
+      frost_elite_rimebreaker_lights_117: 4722433768421773478
+      frost_elite_rimebreaker_lights_118: -8173231418869162106
+      frost_elite_rimebreaker_lights_119: -4010293119610079366
+      frost_elite_rimebreaker_lights_12: -5921140736156241886
+      frost_elite_rimebreaker_lights_120: -6619743134938166175
+      frost_elite_rimebreaker_lights_121: 6386843827211264358
+      frost_elite_rimebreaker_lights_122: 4516888236802486486
+      frost_elite_rimebreaker_lights_123: 1778941352190365328
+      frost_elite_rimebreaker_lights_124: 7482847197350124413
+      frost_elite_rimebreaker_lights_125: 1955523432760388583
+      frost_elite_rimebreaker_lights_126: -8083116395624511275
+      frost_elite_rimebreaker_lights_127: 2024070468295506920
+      frost_elite_rimebreaker_lights_128: 9045906456370931200
+      frost_elite_rimebreaker_lights_129: 1060660676363117888
+      frost_elite_rimebreaker_lights_13: -8361593501998013491
+      frost_elite_rimebreaker_lights_130: -422366288597553270
+      frost_elite_rimebreaker_lights_131: 495903716362012203
+      frost_elite_rimebreaker_lights_132: 710802033877222745
+      frost_elite_rimebreaker_lights_133: 1465977566056750558
+      frost_elite_rimebreaker_lights_134: -5502894324289235715
+      frost_elite_rimebreaker_lights_135: 8841738779906720615
+      frost_elite_rimebreaker_lights_136: 8060734059184114702
+      frost_elite_rimebreaker_lights_137: 9090917234653609441
+      frost_elite_rimebreaker_lights_138: -6905317336132689741
+      frost_elite_rimebreaker_lights_139: -9176773616976371993
+      frost_elite_rimebreaker_lights_14: -6639670537664629013
+      frost_elite_rimebreaker_lights_140: 5773563266153447751
+      frost_elite_rimebreaker_lights_141: -1310542474339951982
+      frost_elite_rimebreaker_lights_142: -8361687733181261248
+      frost_elite_rimebreaker_lights_143: 8243078863852413765
+      frost_elite_rimebreaker_lights_144: -7687884084950468366
+      frost_elite_rimebreaker_lights_145: -4422418221892501403
+      frost_elite_rimebreaker_lights_146: -7229629020403598611
+      frost_elite_rimebreaker_lights_147: 5375202055220459333
+      frost_elite_rimebreaker_lights_148: -2979330137222205546
+      frost_elite_rimebreaker_lights_149: -2837066261847193914
+      frost_elite_rimebreaker_lights_15: 5637114018727521315
+      frost_elite_rimebreaker_lights_150: 161218025238521605
+      frost_elite_rimebreaker_lights_151: 5992395693315514199
+      frost_elite_rimebreaker_lights_152: 4517669799833032515
+      frost_elite_rimebreaker_lights_153: 8443982296933230827
+      frost_elite_rimebreaker_lights_154: 1477463160661011569
+      frost_elite_rimebreaker_lights_155: 29867411164279174
+      frost_elite_rimebreaker_lights_156: -6794839153311245924
+      frost_elite_rimebreaker_lights_157: 9062609000989531742
+      frost_elite_rimebreaker_lights_158: 5980155200248754452
+      frost_elite_rimebreaker_lights_159: 1187732065792003707
+      frost_elite_rimebreaker_lights_16: 7729523448901790024
+      frost_elite_rimebreaker_lights_160: 8961727015360569264
+      frost_elite_rimebreaker_lights_161: 7204907757149349198
+      frost_elite_rimebreaker_lights_162: 5916002955186305705
+      frost_elite_rimebreaker_lights_163: -7742632509469913038
+      frost_elite_rimebreaker_lights_164: 2587856807828467722
+      frost_elite_rimebreaker_lights_165: -1782117981368206661
+      frost_elite_rimebreaker_lights_166: -6641251393475735448
+      frost_elite_rimebreaker_lights_167: 679545913329851608
+      frost_elite_rimebreaker_lights_168: 5344170654758074622
+      frost_elite_rimebreaker_lights_169: -1896335292401497884
+      frost_elite_rimebreaker_lights_17: -7298650628624799411
+      frost_elite_rimebreaker_lights_170: 6325548526578151003
+      frost_elite_rimebreaker_lights_171: -7278466995637872053
+      frost_elite_rimebreaker_lights_172: 5028584043432332933
+      frost_elite_rimebreaker_lights_173: -6776701903513055529
+      frost_elite_rimebreaker_lights_174: 274370843235953319
+      frost_elite_rimebreaker_lights_175: -4310691337613059503
+      frost_elite_rimebreaker_lights_176: -4670819755088761161
+      frost_elite_rimebreaker_lights_177: -605923894983990332
+      frost_elite_rimebreaker_lights_178: 5564109260410144037
+      frost_elite_rimebreaker_lights_179: 4640370412958770611
+      frost_elite_rimebreaker_lights_18: 1317934783169433844
+      frost_elite_rimebreaker_lights_19: 8512690649909568859
+      frost_elite_rimebreaker_lights_2: -8782521493109332090
+      frost_elite_rimebreaker_lights_20: 6509081645889743657
+      frost_elite_rimebreaker_lights_21: -5346598056041571122
+      frost_elite_rimebreaker_lights_22: -2749896105516028844
+      frost_elite_rimebreaker_lights_23: -4038517257134233629
+      frost_elite_rimebreaker_lights_24: 756210400880464269
+      frost_elite_rimebreaker_lights_25: -2831324336934413409
+      frost_elite_rimebreaker_lights_26: 928602432856274653
+      frost_elite_rimebreaker_lights_27: 1260770068244307019
+      frost_elite_rimebreaker_lights_28: 1240049272248964402
+      frost_elite_rimebreaker_lights_29: -372641431844087106
+      frost_elite_rimebreaker_lights_3: 2103739137068847328
+      frost_elite_rimebreaker_lights_30: 5955948098372268831
+      frost_elite_rimebreaker_lights_31: -8453995221040790080
+      frost_elite_rimebreaker_lights_32: -1817447850658912564
+      frost_elite_rimebreaker_lights_33: 452217369373210295
+      frost_elite_rimebreaker_lights_34: 2523494736824245955
+      frost_elite_rimebreaker_lights_35: -2761283305536691368
+      frost_elite_rimebreaker_lights_36: 6105604988381544734
+      frost_elite_rimebreaker_lights_37: -515879382981089309
+      frost_elite_rimebreaker_lights_38: -7217772366349238863
+      frost_elite_rimebreaker_lights_39: 3072323482318434216
+      frost_elite_rimebreaker_lights_4: 6048014881764217872
+      frost_elite_rimebreaker_lights_40: -7072796650633088421
+      frost_elite_rimebreaker_lights_41: 3778114792093386887
+      frost_elite_rimebreaker_lights_42: 3318107519666434170
+      frost_elite_rimebreaker_lights_43: -7839282002327033063
+      frost_elite_rimebreaker_lights_44: -6766189160955754254
+      frost_elite_rimebreaker_lights_45: -235245001111885768
+      frost_elite_rimebreaker_lights_46: 4911815530246238974
+      frost_elite_rimebreaker_lights_47: 9143465117263757812
+      frost_elite_rimebreaker_lights_48: -273197139780387963
+      frost_elite_rimebreaker_lights_49: 6956397926867222716
+      frost_elite_rimebreaker_lights_5: 6422560224657032770
+      frost_elite_rimebreaker_lights_50: -5043867322396377593
+      frost_elite_rimebreaker_lights_51: -1726724075629252671
+      frost_elite_rimebreaker_lights_52: 4725318702949137395
+      frost_elite_rimebreaker_lights_53: -3115894263481324591
+      frost_elite_rimebreaker_lights_54: -2318360809522181601
+      frost_elite_rimebreaker_lights_55: 4307093472148587261
+      frost_elite_rimebreaker_lights_56: -2487743515599517362
+      frost_elite_rimebreaker_lights_57: 5705461863839344800
+      frost_elite_rimebreaker_lights_58: 5968031667314691103
+      frost_elite_rimebreaker_lights_59: -1284058461084207536
+      frost_elite_rimebreaker_lights_6: -3402508366802272135
+      frost_elite_rimebreaker_lights_60: 4223831186438389920
+      frost_elite_rimebreaker_lights_61: -5425703462436849960
+      frost_elite_rimebreaker_lights_62: 6339624677557122362
+      frost_elite_rimebreaker_lights_63: 5391660239245356200
+      frost_elite_rimebreaker_lights_64: -5695023436832293877
+      frost_elite_rimebreaker_lights_65: 4554634479884333405
+      frost_elite_rimebreaker_lights_66: 5249280290366619010
+      frost_elite_rimebreaker_lights_67: -2483331750167099523
+      frost_elite_rimebreaker_lights_68: 6936896178555929283
+      frost_elite_rimebreaker_lights_69: 7862273180535694616
+      frost_elite_rimebreaker_lights_7: -191688367489544875
+      frost_elite_rimebreaker_lights_70: 3710542670787648070
+      frost_elite_rimebreaker_lights_71: -7929955445656843940
+      frost_elite_rimebreaker_lights_72: 3191425932124640456
+      frost_elite_rimebreaker_lights_73: 8290894404890331292
+      frost_elite_rimebreaker_lights_74: 3434303413671472086
+      frost_elite_rimebreaker_lights_75: 4963911414716942904
+      frost_elite_rimebreaker_lights_76: -7551440390608004286
+      frost_elite_rimebreaker_lights_77: 2338683950957120474
+      frost_elite_rimebreaker_lights_78: 3469677382649124820
+      frost_elite_rimebreaker_lights_79: -5408664730754462083
+      frost_elite_rimebreaker_lights_8: 2320848764100287215
+      frost_elite_rimebreaker_lights_80: 6438414595209946806
+      frost_elite_rimebreaker_lights_81: 1639668185299983797
+      frost_elite_rimebreaker_lights_82: 7454528345353730616
+      frost_elite_rimebreaker_lights_83: -5499623731389896626
+      frost_elite_rimebreaker_lights_84: 1554090243891236139
+      frost_elite_rimebreaker_lights_85: -8728806131746135990
+      frost_elite_rimebreaker_lights_86: 6652273856308610091
+      frost_elite_rimebreaker_lights_87: -6331643354349749960
+      frost_elite_rimebreaker_lights_88: 3956848336900243863
+      frost_elite_rimebreaker_lights_89: 1795769773429733782
+      frost_elite_rimebreaker_lights_9: 9045352910046627923
+      frost_elite_rimebreaker_lights_90: -2511091958095544601
+      frost_elite_rimebreaker_lights_91: 668802600322563394
+      frost_elite_rimebreaker_lights_92: 3956644555875198162
+      frost_elite_rimebreaker_lights_93: 6270011685889017119
+      frost_elite_rimebreaker_lights_94: -124377233511399870
+      frost_elite_rimebreaker_lights_95: 1282075654391920201
+      frost_elite_rimebreaker_lights_96: -4245969190522017664
+      frost_elite_rimebreaker_lights_97: 528614548798693626
+      frost_elite_rimebreaker_lights_98: -4796393676895210302
+      frost_elite_rimebreaker_lights_99: 1659155474118726806
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

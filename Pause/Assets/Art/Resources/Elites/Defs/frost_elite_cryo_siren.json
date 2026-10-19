@@ -7,7 +7,7 @@
   "lore": "A slim, skittish spine of a ship with a coolant dish for a crown, keeping its distance and hopping from perch to perch: it leaves the screen and a trail of rings shows where it will land. Its cryo orbs drift down on a blinking fuse and burst into a ring of shards, unless you shoot them first. Every third song is a beam, and when it is nearly done it sings two orbs at once.",
   "brain": "hopper",
   "attack": "frost_bloom",
-  "launchFrom": "rigbay",
+  "launchFrom": "cave,rigbay",
   "cells": {
     "flight": [
       3,
@@ -23,7 +23,15 @@
     "tell": -1,
     "action": -1,
     "hit": -1,
-    "damaged": 9
+    "damaged": 9,
+    "damagedLoop": [
+      9,
+      10,
+      11,
+      12,
+      13,
+      14
+    ]
   },
   "cellWorldSize": 1.798,
   "hullRadius": 0.309,

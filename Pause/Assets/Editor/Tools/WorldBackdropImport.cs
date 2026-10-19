@@ -70,6 +70,10 @@ public class WorldBackdropImport : AssetPostprocessor
 
     // Frost's, Verdant's, Ember's and Tide's v3 backdrops (Spec.folder "Worlds/<World>/Backdrop3/"):
     // variant tile sets in v1..v4/, shared atlases beside them.
+    // Frost's launch-site strips (Backdrop3/docks: four 6-cell strips of 256 px cells, 1578 x 1054): wider than the 1024 atlases, so never clamped
+    // (a 1024 cap would shrink the cells by a third and make the cut rects drift).
+    public static bool IsFrostLaunchSites(string path) { return path.Contains("/Worlds/Frost/Backdrop3/") && path.EndsWith("/docks.png"); }
+
     public static bool IsBackdrop3(string path) { return path.Contains("/Backdrop3/"); }
 
     // Backdrop3 art is pixel art drawn near 1:1 (landmarks, sites, lights)
@@ -168,7 +172,7 @@ public class WorldBackdropImport : AssetPostprocessor
         ti.npotScale = TextureImporterNPOTScale.None;
         bool stormHd = IsStormHdTile(assetPath, tile);
         ti.maxTextureSize = sun ? PlanetSheetMaxSize : planetSheet ? PlanetSheetMaxSize : file == "station_ring_v2" ? 1024 : file == "reference_planet" ? 1024 :
-            sharpSpaceSky || stormHd || (!tile && assetPath.Contains("/Worlds/Space/")) || IsDesertWormSheet(assetPath, file) ? 2048 : 1024;
+            sharpSpaceSky || stormHd || (!tile && assetPath.Contains("/Worlds/Space/")) || IsDesertWormSheet(assetPath, file) || IsFrostLaunchSites(assetPath) ? 2048 : 1024;
         ti.textureCompression = sunDisc ? TextureImporterCompression.Uncompressed : TextureImporterCompression.Compressed;
         ti.sRGBTexture = true;
 
@@ -210,7 +214,7 @@ public class WorldBackdropImport : AssetPostprocessor
             var ps = ti.GetPlatformTextureSettings(platform);
             ps.overridden = true;
             ps.maxTextureSize = sun ? PlanetSheetMaxSize : planetSheet ? PlanetSheetMaxSize : file == "station_ring_v2" ? 1024 : file == "reference_planet" ? 1024 :
-                sharpSpaceSky || stormHd || (!tile && assetPath.Contains("/Worlds/Space/")) || IsDesertWormSheet(assetPath, file) ? 2048 : 1024;
+                sharpSpaceSky || stormHd || (!tile && assetPath.Contains("/Worlds/Space/")) || IsDesertWormSheet(assetPath, file) || IsFrostLaunchSites(assetPath) ? 2048 : 1024;
             ps.format = sunDisc ? TextureImporterFormat.RGBA32 : stormHd ? TextureImporterFormat.ASTC_6x6 : sun || planetSheet || IsContinuousTone(assetPath) ? TextureImporterFormat.ASTC_4x4 : TextureImporterFormat.ASTC_6x6;
             ps.textureCompression = sunDisc ? TextureImporterCompression.Uncompressed : TextureImporterCompression.Compressed;
             ti.SetPlatformTextureSettings(ps);

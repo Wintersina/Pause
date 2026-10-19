@@ -571,14 +571,15 @@ public static class EliteTest
             bool tinted = false;
             int flashFrame = -1;
             Step(EliteShip.HitFlashSeconds, () => { tinted |= e.Hull.color != Color.white; flashFrame = e.CurrentFrame; });
-            Check(k + "a hit flashes the frame it is on (no hit cell; the damaged cell from that hit on)", (tinted || def.hurtHide) && flashFrame == c.damaged);
+            Check(k + "a hit flashes the frame it is on (no hit cell; the damaged cell from that hit on)", (tinted || def.hurtHide) && (c.HasDamagedLoop ? System.Array.IndexOf(c.damagedLoop, flashFrame) >= 0 : flashFrame == c.damaged));
             for (int w = 0; w < 600 && e.Hidden; w++) EliteSystem.Step(Dt);   // (a hide-when-hurt one is waited out)
             var after = new HashSet<int>();
             Step(.4f, () => e.Velocity = new Vector2(-def.speed, 0f));
             after.Add(e.CurrentFrame);
             Step(1.5f, () => after.Add(e.CurrentFrame));
             Check(k + "after its first lost heart: the damaged cell, steady (" + string.Join(",", after) + ")",
-                  e.Hearts == def.hearts - 1 && e.Damaged && after.Count == 1 && after.Contains(c.damaged) && e.Hull.color == Color.white);
+                  e.Hearts == def.hearts - 1 && e.Damaged && e.Hull.color == Color.white &&
+                  (c.HasDamagedLoop ? after.IsSubsetOf(c.damagedLoop) : after.Count == 1 && after.Contains(c.damaged)));   // (a damaged burn loop plays its own drawings, nothing else)
             Check(k + "the codex weaves through flight and banks; its locked card uses the flight cell",
                   c.CodexLoop.Length == 4 && (ten || c.flight.Length > 1 || (c.CodexLoop[1] == c.bankLeft && c.CodexLoop[3] == c.bankRight)) &&
                   global::Codex.Find(def.codexId) != null && global::Codex.Find(def.codexId).Sprite == EliteArt.Frame(def, c.Flight0));

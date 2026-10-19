@@ -26,14 +26,15 @@ public static class FrostEliteTest
     const float Dt = 1f / 30f;
     static Transform pilot;
 
-    // key -> brain, attack, the one site kind it launches from, hearts, hides when hurt
+    // key -> brain, attack, its preferred (first) site kind it launches from, hearts, hides when hurt (launchFrom lists a second, older kind too:
+    // FrostDockTest checks the pairs)
     static readonly (string key, string brain, string attack, LandingKind from, int hearts, bool hides)[] Expected =
     {
-        ("frost_elite_rimebreaker", "icebreaker", "ice_run", LandingKind.Hangar, 3, true),
-        ("frost_elite_floe_harrower", "barge", "floe_barge", LandingKind.CrawlerBay, 3, true),
-        ("frost_elite_cryo_siren", "hopper", "frost_bloom", LandingKind.RigBay, 3, true),
-        ("frost_elite_glacier_tender", "carrier", "tender_rig", LandingKind.Hatch, 5, false),
-        ("frost_elite_whiteout_sentinel", "patrol", "icicle_barrage", LandingKind.PadRing, 5, false),
+        ("frost_elite_rimebreaker", "icebreaker", "ice_run", LandingKind.Icebreaker, 3, true),
+        ("frost_elite_floe_harrower", "barge", "floe_barge", LandingKind.Rig, 3, true),
+        ("frost_elite_cryo_siren", "hopper", "frost_bloom", LandingKind.Cave, 3, true),
+        ("frost_elite_glacier_tender", "carrier", "tender_rig", LandingKind.Silo, 5, false),
+        ("frost_elite_whiteout_sentinel", "patrol", "icicle_barrage", LandingKind.Silo, 5, false),
     };
 
     public static int Execute()
@@ -181,15 +182,15 @@ public static class FrostEliteTest
         Check("Frost has five elites (" + EliteCatalog.ForWorld(1, frost) + ")", frost.Count == 5);
         var brains = new HashSet<string>();
         var attacks = new HashSet<string>();
-        var docks = new HashSet<LandingKind>();
+        var homes = new HashSet<string>();
         foreach (var x in Expected)
         {
             var d = EliteCatalog.Find(x.key);
             Check(x.key + ": defined for Frost with its own brain / attack (" + (d != null ? d.brain + " / " + d.attack : "missing") + ")",
                   d != null && d.WorldIndex == 1 && d.brain == x.brain && d.attack == x.attack && brains.Add(d.brain) && attacks.Add(d.attack));
             if (d == null) continue;
-            Check(x.key + ": launches from its own dock, " + d.launchFrom + ", shared with no other Frost elite, never a Space body",
-                  LandingSite.KindOf(d.launchFrom) == x.from && LandingSite.Accepts(d.launchFrom, x.from) && docks.Add(x.from) &&
+            Check(x.key + ": launches from its own pair of docks, " + d.launchFrom + " (the pair is its own; a new kind first), never a Space body",
+                  LandingSite.KindOf(d.launchFrom) == x.from && LandingSite.Accepts(d.launchFrom, x.from) && homes.Add(d.launchFrom) &&
                   !LandingSite.Accepts(d.launchFrom, LandingKind.Station) && !LandingSite.Accepts(d.launchFrom, LandingKind.Planet));
             Check(x.key + ": " + x.hearts + " hearts" + (d.armored ? " (armoured)" : "") + ", " + (x.hides ? "hides when hurt (" + d.hideSeconds + " s)" : "no hiding"),
                   d.hearts == x.hearts && d.armored == (x.hearts == 5) && d.hurtHide == x.hides && (!x.hides || d.hideSeconds >= 2f));
@@ -241,7 +242,8 @@ public static class FrostEliteTest
         {
             Pad(new Vector2(-1.6f, 3f), LandingKind.Hangar, 1), Pad(new Vector2(-.8f, 3.3f), LandingKind.RigBay, 2),
             Pad(new Vector2(0f, 3f), LandingKind.PadRing, 3), Pad(new Vector2(.8f, 3.3f), LandingKind.CrawlerBay, 4),
-            Pad(new Vector2(1.6f, 3f), LandingKind.Hatch, 5),
+            Pad(new Vector2(1.6f, 3f), LandingKind.Hatch, 5), Pad(new Vector2(-2.2f, 3.1f), LandingKind.Rig, 6), Pad(new Vector2(-1.2f, 3.5f), LandingKind.Silo, 7),
+            Pad(new Vector2(1.2f, 3.5f), LandingKind.Cave, 8), Pad(new Vector2(2.2f, 3.1f), LandingKind.Icebreaker, 9),
         };
         LandingSites.Override = list => list.AddRange(pads);
         var dir = new GameObject("~Dir").AddComponent<EliteDirector>();

@@ -7,7 +7,7 @@
   "lore": "A fat rig tug that hangs back near the top and sends its little ice drones out on glowing tethers. While two or more drones are up, a shield link shrugs off your shots, and every few seconds a drone drops a frost mine on your lane, so shoot the mine, then the drones. Cut them down and it vents a cold fog straight under itself: do not hug the Tender.",
   "brain": "carrier",
   "attack": "tender_rig",
-  "launchFrom": "hatch",
+  "launchFrom": "silo,hatch",
   "cells": {
     "flight": [
       3,
@@ -23,7 +23,15 @@
     "tell": -1,
     "action": -1,
     "hit": -1,
-    "damaged": 6
+    "damaged": 6,
+    "damagedLoop": [
+      6,
+      10,
+      11,
+      12,
+      13,
+      14
+    ]
   },
   "cellWorldSize": 1.839,
   "hullRadius": 0.406,
