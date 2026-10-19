@@ -4,8 +4,8 @@
   "world": "frost",
   "role": "cryo kiter",
   "codexId": "elite_frost_cryo_siren",
-  "lore": "A slim, skittish spine of a ship with a coolant dish for a crown, keeping its distance and backing off in nervous little hops when you close in. Its cryo orbs drift down on a blinking fuse and burst into a ring of shards, unless you shoot them first. Every third song is a beam: watch the dish paint its arc, then get out of it.",
-  "brain": "kiter",
+  "lore": "A slim, skittish spine of a ship with a coolant dish for a crown, keeping its distance and hopping from perch to perch: it leaves the screen and a trail of rings shows where it will land. Its cryo orbs drift down on a blinking fuse and burst into a ring of shards, unless you shoot them first. Every third song is a beam, and when it is nearly done it sings two orbs at once.",
+  "brain": "hopper",
   "attack": "frost_bloom",
   "launchFrom": "rigbay",
   "cells": {
@@ -49,7 +49,7 @@
   "shotColor": "#8FE9FF",
   "shotCore": "#F5FDFF",
   "engineColor": "#6FD8FF",
-  "hearts": 2,
+  "hearts": 3,
   "heartSize": 0.18,
   "heartOrbit": 0.9,
   "heartStyle": "Halo",
@@ -80,10 +80,12 @@
     }
   ],
   "followDistance": 2.6,
-  "keepDistance": 3.0,
+  "keepDistance": 4.2,
   "hazardSize": 0.36,
   "hazardSeconds": 0.8,
   "hazardCount": 8,
   "hazardSpeed": 3.0,
-  "followLag": 0.15
+  "followLag": 0.15,
+  "hurtHide": true,
+  "hideSeconds": 3.5
 }

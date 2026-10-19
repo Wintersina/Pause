@@ -1,0 +1,5543 @@
+fileFormatVersion: 2
+guid: 874a3b4edf6614522b1072cc0120f8cc
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: -3908702321819311743
+    second: space_elite_eventide_bastion_lights_0
+  - first:
+      213: -2648551905487278428
+    second: space_elite_eventide_bastion_lights_1
+  - first:
+      213: 7872093016195277219
+    second: space_elite_eventide_bastion_lights_2
+  - first:
+      213: 1787997057853808334
+    second: space_elite_eventide_bastion_lights_3
+  - first:
+      213: -6918945243274423282
+    second: space_elite_eventide_bastion_lights_4
+  - first:
+      213: -5752844937499429480
+    second: space_elite_eventide_bastion_lights_5
+  - first:
+      213: -2800733301515304603
+    second: space_elite_eventide_bastion_lights_6
+  - first:
+      213: 3215776799470962256
+    second: space_elite_eventide_bastion_lights_7
+  - first:
+      213: 5347492050311208846
+    second: space_elite_eventide_bastion_lights_8
+  - first:
+      213: -4012781682081974688
+    second: space_elite_eventide_bastion_lights_9
+  - first:
+      213: -265024713755174065
+    second: space_elite_eventide_bastion_lights_10
+  - first:
+      213: -8260549986500029161
+    second: space_elite_eventide_bastion_lights_11
+  - first:
+      213: 960504331251093357
+    second: space_elite_eventide_bastion_lights_12
+  - first:
+      213: 6835717505981940748
+    second: space_elite_eventide_bastion_lights_13
+  - first:
+      213: 1780621675373605083
+    second: space_elite_eventide_bastion_lights_14
+  - first:
+      213: 7137176640328274457
+    second: space_elite_eventide_bastion_lights_15
+  - first:
+      213: -1870407879158470879
+    second: space_elite_eventide_bastion_lights_16
+  - first:
+      213: -7103737627276937501
+    second: space_elite_eventide_bastion_lights_17
+  - first:
+      213: 2817075350236261071
+    second: space_elite_eventide_bastion_lights_18
+  - first:
+      213: 3702947823400829575
+    second: space_elite_eventide_bastion_lights_19
+  - first:
+      213: -7258395543796301930
+    second: space_elite_eventide_bastion_lights_20
+  - first:
+      213: 227100389560959086
+    second: space_elite_eventide_bastion_lights_21
+  - first:
+      213: 1430952319071903835
+    second: space_elite_eventide_bastion_lights_22
+  - first:
+      213: 6907853950970796366
+    second: space_elite_eventide_bastion_lights_23
+  - first:
+      213: 1660845934416809554
+    second: space_elite_eventide_bastion_lights_24
+  - first:
+      213: 1146989428678898748
+    second: space_elite_eventide_bastion_lights_25
+  - first:
+      213: -3317336543555265351
+    second: space_elite_eventide_bastion_lights_26
+  - first:
+      213: 4610219852390035747
+    second: space_elite_eventide_bastion_lights_27
+  - first:
+      213: -4605269674025899129
+    second: space_elite_eventide_bastion_lights_28
+  - first:
+      213: 2886656826443561504
+    second: space_elite_eventide_bastion_lights_29
+  - first:
+      213: 306080830587319124
+    second: space_elite_eventide_bastion_lights_30
+  - first:
+      213: -5611373607279655831
+    second: space_elite_eventide_bastion_lights_31
+  - first:
+      213: 3871762216552595143
+    second: space_elite_eventide_bastion_lights_32
+  - first:
+      213: 8736060491447237659
+    second: space_elite_eventide_bastion_lights_33
+  - first:
+      213: -8788753644263520907
+    second: space_elite_eventide_bastion_lights_34
+  - first:
+      213: 1156543933640973256
+    second: space_elite_eventide_bastion_lights_35
+  - first:
+      213: -785762385027645963
+    second: space_elite_eventide_bastion_lights_36
+  - first:
+      213: -7258420905103008373
+    second: space_elite_eventide_bastion_lights_37
+  - first:
+      213: -2146385726443501219
+    second: space_elite_eventide_bastion_lights_38
+  - first:
+      213: -8042740367533562903
+    second: space_elite_eventide_bastion_lights_39
+  - first:
+      213: -583640435435549039
+    second: space_elite_eventide_bastion_lights_40
+  - first:
+      213: 279611101000214410
+    second: space_elite_eventide_bastion_lights_41
+  - first:
+      213: -3410587883661044096
+    second: space_elite_eventide_bastion_lights_42
+  - first:
+      213: -1721799280799908570
+    second: space_elite_eventide_bastion_lights_43
+  - first:
+      213: -3089002744765874600
+    second: space_elite_eventide_bastion_lights_44
+  - first:
+      213: -2358726987659124341
+    second: space_elite_eventide_bastion_lights_45
+  - first:
+      213: 5380056866297985416
+    second: space_elite_eventide_bastion_lights_46
+  - first:
+      213: 645135620102166526
+    second: space_elite_eventide_bastion_lights_47
+  - first:
+      213: -5293809190215159786
+    second: space_elite_eventide_bastion_lights_48
+  - first:
+      213: -1665919185845691391
+    second: space_elite_eventide_bastion_lights_49
+  - first:
+      213: 7032800692199356155
+    second: space_elite_eventide_bastion_lights_50
+  - first:
+      213: 7958711955580546228
+    second: space_elite_eventide_bastion_lights_51
+  - first:
+      213: -820641870127767097
+    second: space_elite_eventide_bastion_lights_52
+  - first:
+      213: 2112208883162419568
+    second: space_elite_eventide_bastion_lights_53
+  - first:
+      213: -4612204745844956386
+    second: space_elite_eventide_bastion_lights_54
+  - first:
+      213: 1519565855037383680
+    second: space_elite_eventide_bastion_lights_55
+  - first:
+      213: -2125638798049507143
+    second: space_elite_eventide_bastion_lights_56
+  - first:
+      213: -4898644344147669767
+    second: space_elite_eventide_bastion_lights_57
+  - first:
+      213: 8526285315542790063
+    second: space_elite_eventide_bastion_lights_58
+  - first:
+      213: 6723034014776843442
+    second: space_elite_eventide_bastion_lights_59
+  - first:
+      213: -4864596189474137388
+    second: space_elite_eventide_bastion_lights_60
+  - first:
+      213: 2989428531287792525
+    second: space_elite_eventide_bastion_lights_61
+  - first:
+      213: 1616945857343238967
+    second: space_elite_eventide_bastion_lights_62
+  - first:
+      213: 8588010910222395542
+    second: space_elite_eventide_bastion_lights_63
+  - first:
+      213: -3934932291460587377
+    second: space_elite_eventide_bastion_lights_64
+  - first:
+      213: -5598233760159578325
+    second: space_elite_eventide_bastion_lights_65
+  - first:
+      213: 2521178552745155438
+    second: space_elite_eventide_bastion_lights_66
+  - first:
+      213: -9215685055226861983
+    second: space_elite_eventide_bastion_lights_67
+  - first:
+      213: -6226563721294297860
+    second: space_elite_eventide_bastion_lights_68
+  - first:
+      213: -5894643213458045903
+    second: space_elite_eventide_bastion_lights_69
+  - first:
+      213: -2143539168618306737
+    second: space_elite_eventide_bastion_lights_70
+  - first:
+      213: -4103357164828971748
+    second: space_elite_eventide_bastion_lights_71
+  - first:
+      213: -8973996477150634267
+    second: space_elite_eventide_bastion_lights_72
+  - first:
+      213: 7605339911544567717
+    second: space_elite_eventide_bastion_lights_73
+  - first:
+      213: -6842308952141521416
+    second: space_elite_eventide_bastion_lights_74
+  - first:
+      213: 6867622148110657999
+    second: space_elite_eventide_bastion_lights_75
+  - first:
+      213: 6214585691522365624
+    second: space_elite_eventide_bastion_lights_76
+  - first:
+      213: -5934457238434516785
+    second: space_elite_eventide_bastion_lights_77
+  - first:
+      213: 4579388949051086661
+    second: space_elite_eventide_bastion_lights_78
+  - first:
+      213: -1598218754886725012
+    second: space_elite_eventide_bastion_lights_79
+  - first:
+      213: 5584190799973621174
+    second: space_elite_eventide_bastion_lights_80
+  - first:
+      213: -4010503917837972007
+    second: space_elite_eventide_bastion_lights_81
+  - first:
+      213: 5827553788774576004
+    second: space_elite_eventide_bastion_lights_82
+  - first:
+      213: 6043673552965255749
+    second: space_elite_eventide_bastion_lights_83
+  - first:
+      213: -9144455567461440707
+    second: space_elite_eventide_bastion_lights_84
+  - first:
+      213: -4358409910100944293
+    second: space_elite_eventide_bastion_lights_85
+  - first:
+      213: -8641879898406202804
+    second: space_elite_eventide_bastion_lights_86
+  - first:
+      213: -6818925668366458292
+    second: space_elite_eventide_bastion_lights_87
+  - first:
+      213: 3566653075910015892
+    second: space_elite_eventide_bastion_lights_88
+  - first:
+      213: 7190074892095420577
+    second: space_elite_eventide_bastion_lights_89
+  - first:
+      213: 8745645616250376748
+    second: space_elite_eventide_bastion_lights_90
+  - first:
+      213: -720875604196733347
+    second: space_elite_eventide_bastion_lights_91
+  - first:
+      213: 8971762110859655135
+    second: space_elite_eventide_bastion_lights_92
+  - first:
+      213: -3760003953815943019
+    second: space_elite_eventide_bastion_lights_93
+  - first:
+      213: -6423835540469990539
+    second: space_elite_eventide_bastion_lights_94
+  - first:
+      213: -1120745447392372815
+    second: space_elite_eventide_bastion_lights_95
+  - first:
+      213: -322953946120864424
+    second: space_elite_eventide_bastion_lights_96
+  - first:
+      213: 4812005709555152801
+    second: space_elite_eventide_bastion_lights_97
+  - first:
+      213: 412180059005715770
+    second: space_elite_eventide_bastion_lights_98
+  - first:
+      213: 4037899736105870709
+    second: space_elite_eventide_bastion_lights_99
+  - first:
+      213: 6556969509561331337
+    second: space_elite_eventide_bastion_lights_100
+  - first:
+      213: -6802814122919095794
+    second: space_elite_eventide_bastion_lights_101
+  - first:
+      213: -5429555195780049797
+    second: space_elite_eventide_bastion_lights_102
+  - first:
+      213: 7607165562707165744
+    second: space_elite_eventide_bastion_lights_103
+  - first:
+      213: 1136683951313538603
+    second: space_elite_eventide_bastion_lights_104
+  - first:
+      213: 1610515535356874875
+    second: space_elite_eventide_bastion_lights_105
+  - first:
+      213: -7714738886525556012
+    second: space_elite_eventide_bastion_lights_106
+  - first:
+      213: -6976468585238118753
+    second: space_elite_eventide_bastion_lights_107
+  - first:
+      213: 7491874669673463076
+    second: space_elite_eventide_bastion_lights_108
+  - first:
+      213: -4266594587673223201
+    second: space_elite_eventide_bastion_lights_109
+  - first:
+      213: 819318618946480615
+    second: space_elite_eventide_bastion_lights_110
+  - first:
+      213: -6311857504307358440
+    second: space_elite_eventide_bastion_lights_111
+  - first:
+      213: -9018800813538917808
+    second: space_elite_eventide_bastion_lights_112
+  - first:
+      213: 8615404688611314170
+    second: space_elite_eventide_bastion_lights_113
+  - first:
+      213: 1368010317747029324
+    second: space_elite_eventide_bastion_lights_114
+  - first:
+      213: -8955508588710489846
+    second: space_elite_eventide_bastion_lights_115
+  - first:
+      213: -4677786088802018569
+    second: space_elite_eventide_bastion_lights_116
+  - first:
+      213: 4929620258460092039
+    second: space_elite_eventide_bastion_lights_117
+  - first:
+      213: -2907665564103190804
+    second: space_elite_eventide_bastion_lights_118
+  - first:
+      213: -7742920924688190738
+    second: space_elite_eventide_bastion_lights_119
+  - first:
+      213: 1644175485823848091
+    second: space_elite_eventide_bastion_lights_120
+  - first:
+      213: 888663297091734464
+    second: space_elite_eventide_bastion_lights_121
+  - first:
+      213: -1343673640986742021
+    second: space_elite_eventide_bastion_lights_122
+  - first:
+      213: 2587506567144350230
+    second: space_elite_eventide_bastion_lights_123
+  - first:
+      213: 2346360711177563684
+    second: space_elite_eventide_bastion_lights_124
+  - first:
+      213: -1321520707181489218
+    second: space_elite_eventide_bastion_lights_125
+  - first:
+      213: 4306421969651484965
+    second: space_elite_eventide_bastion_lights_126
+  - first:
+      213: 3407177841425253694
+    second: space_elite_eventide_bastion_lights_127
+  - first:
+      213: 6468887370141606113
+    second: space_elite_eventide_bastion_lights_128
+  - first:
+      213: 4609482351979205282
+    second: space_elite_eventide_bastion_lights_129
+  - first:
+      213: -5821210397295759222
+    second: space_elite_eventide_bastion_lights_130
+  - first:
+      213: 4746300868809389780
+    second: space_elite_eventide_bastion_lights_131
+  - first:
+      213: 281177246902955736
+    second: space_elite_eventide_bastion_lights_132
+  - first:
+      213: 7415752008403960231
+    second: space_elite_eventide_bastion_lights_133
+  - first:
+      213: -3773369784411590564
+    second: space_elite_eventide_bastion_lights_134
+  - first:
+      213: -6330843327530641342
+    second: space_elite_eventide_bastion_lights_135
+  - first:
+      213: -5304643553579827821
+    second: space_elite_eventide_bastion_lights_136
+  - first:
+      213: -6868581359664633705
+    second: space_elite_eventide_bastion_lights_137
+  - first:
+      213: -2848464892540886982
+    second: space_elite_eventide_bastion_lights_138
+  - first:
+      213: -318535468588898583
+    second: space_elite_eventide_bastion_lights_139
+  - first:
+      213: -1758504378326174211
+    second: space_elite_eventide_bastion_lights_140
+  - first:
+      213: -6319575376756621805
+    second: space_elite_eventide_bastion_lights_141
+  - first:
+      213: 6386916906595681233
+    second: space_elite_eventide_bastion_lights_142
+  - first:
+      213: 4781767268023253602
+    second: space_elite_eventide_bastion_lights_143
+  - first:
+      213: 6496338985982042615
+    second: space_elite_eventide_bastion_lights_144
+  - first:
+      213: 1649619243912943310
+    second: space_elite_eventide_bastion_lights_145
+  - first:
+      213: 1913326798975184349
+    second: space_elite_eventide_bastion_lights_146
+  - first:
+      213: 489687620599490455
+    second: space_elite_eventide_bastion_lights_147
+  - first:
+      213: -4659536203283847263
+    second: space_elite_eventide_bastion_lights_148
+  - first:
+      213: -6171998764619439382
+    second: space_elite_eventide_bastion_lights_149
+  - first:
+      213: 6750514925219052235
+    second: space_elite_eventide_bastion_lights_150
+  - first:
+      213: -4054628280893069187
+    second: space_elite_eventide_bastion_lights_151
+  - first:
+      213: 2984882050899821171
+    second: space_elite_eventide_bastion_lights_152
+  - first:
+      213: 7010291445685955897
+    second: space_elite_eventide_bastion_lights_153
+  - first:
+      213: -8181085944292506913
+    second: space_elite_eventide_bastion_lights_154
+  - first:
+      213: 4419200543202043327
+    second: space_elite_eventide_bastion_lights_155
+  - first:
+      213: 5585483690593933229
+    second: space_elite_eventide_bastion_lights_156
+  - first:
+      213: -5007121147079000215
+    second: space_elite_eventide_bastion_lights_157
+  - first:
+      213: 4074740049285370791
+    second: space_elite_eventide_bastion_lights_158
+  - first:
+      213: -7485444803836572761
+    second: space_elite_eventide_bastion_lights_159
+  - first:
+      213: 4481252353445700103
+    second: space_elite_eventide_bastion_lights_160
+  - first:
+      213: -3763097501342817792
+    second: space_elite_eventide_bastion_lights_161
+  - first:
+      213: -2505164798961358191
+    second: space_elite_eventide_bastion_lights_162
+  - first:
+      213: 3912681459354544394
+    second: space_elite_eventide_bastion_lights_163
+  - first:
+      213: -7538333506777585381
+    second: space_elite_eventide_bastion_lights_164
+  - first:
+      213: 5881589749428432945
+    second: space_elite_eventide_bastion_lights_165
+  - first:
+      213: -8259633061561395754
+    second: space_elite_eventide_bastion_lights_166
+  - first:
+      213: -582776482275402303
+    second: space_elite_eventide_bastion_lights_167
+  - first:
+      213: -7987850935993347497
+    second: space_elite_eventide_bastion_lights_168
+  - first:
+      213: -258213440935628384
+    second: space_elite_eventide_bastion_lights_169
+  - first:
+      213: -4752558426620706584
+    second: space_elite_eventide_bastion_lights_170
+  - first:
+      213: 4347267880867360803
+    second: space_elite_eventide_bastion_lights_171
+  - first:
+      213: -1275984504283076640
+    second: space_elite_eventide_bastion_lights_172
+  - first:
+      213: -6223655254106519048
+    second: space_elite_eventide_bastion_lights_173
+  - first:
+      213: 4774071710507271933
+    second: space_elite_eventide_bastion_lights_174
+  - first:
+      213: -4825839635405991416
+    second: space_elite_eventide_bastion_lights_175
+  - first:
+      213: -4698657653923046616
+    second: space_elite_eventide_bastion_lights_176
+  - first:
+      213: 4454858024096992010
+    second: space_elite_eventide_bastion_lights_177
+  - first:
+      213: 1160932402428315862
+    second: space_elite_eventide_bastion_lights_178
+  - first:
+      213: 3579901410277309912
+    second: space_elite_eventide_bastion_lights_179
+  - first:
+      213: 5704841719985089089
+    second: space_elite_eventide_bastion_lights_180
+  - first:
+      213: 156915103859785656
+    second: space_elite_eventide_bastion_lights_181
+  - first:
+      213: 6099882139382303230
+    second: space_elite_eventide_bastion_lights_182
+  - first:
+      213: -7855677032381307022
+    second: space_elite_eventide_bastion_lights_183
+  - first:
+      213: -7614787209176869320
+    second: space_elite_eventide_bastion_lights_184
+  - first:
+      213: 7877561640680144042
+    second: space_elite_eventide_bastion_lights_185
+  - first:
+      213: -7855139610771210872
+    second: space_elite_eventide_bastion_lights_186
+  - first:
+      213: -1022116173133390861
+    second: space_elite_eventide_bastion_lights_187
+  - first:
+      213: 268478747675227625
+    second: space_elite_eventide_bastion_lights_188
+  - first:
+      213: -6015594006674018429
+    second: space_elite_eventide_bastion_lights_189
+  - first:
+      213: 7805560747312615491
+    second: space_elite_eventide_bastion_lights_190
+  - first:
+      213: -170846963719748271
+    second: space_elite_eventide_bastion_lights_191
+  - first:
+      213: 3181448073823571846
+    second: space_elite_eventide_bastion_lights_192
+  - first:
+      213: 4818275662115870417
+    second: space_elite_eventide_bastion_lights_193
+  - first:
+      213: 2034808526754876977
+    second: space_elite_eventide_bastion_lights_194
+  - first:
+      213: 4561754711533702673
+    second: space_elite_eventide_bastion_lights_195
+  - first:
+      213: 8814656806537124932
+    second: space_elite_eventide_bastion_lights_196
+  - first:
+      213: 2116431871879950664
+    second: space_elite_eventide_bastion_lights_197
+  - first:
+      213: -7383707055449431235
+    second: space_elite_eventide_bastion_lights_198
+  - first:
+      213: -362254282412054375
+    second: space_elite_eventide_bastion_lights_199
+  - first:
+      213: -4718094783759236699
+    second: space_elite_eventide_bastion_lights_200
+  - first:
+      213: 1979869075293498234
+    second: space_elite_eventide_bastion_lights_201
+  - first:
+      213: -3347130235387527462
+    second: space_elite_eventide_bastion_lights_202
+  - first:
+      213: 2711239840356607907
+    second: space_elite_eventide_bastion_lights_203
+  - first:
+      213: 7825469909310211108
+    second: space_elite_eventide_bastion_lights_204
+  - first:
+      213: -5034129149787136659
+    second: space_elite_eventide_bastion_lights_205
+  - first:
+      213: 4210125709915749213
+    second: space_elite_eventide_bastion_lights_206
+  - first:
+      213: -8084225847088820445
+    second: space_elite_eventide_bastion_lights_207
+  - first:
+      213: -2113604181489987766
+    second: space_elite_eventide_bastion_lights_208
+  - first:
+      213: -987513560230436854
+    second: space_elite_eventide_bastion_lights_209
+  - first:
+      213: -4709533629413215603
+    second: space_elite_eventide_bastion_lights_210
+  - first:
+      213: -3371443530072315864
+    second: space_elite_eventide_bastion_lights_211
+  - first:
+      213: 5201279716417875874
+    second: space_elite_eventide_bastion_lights_212
+  - first:
+      213: 4231538593242770938
+    second: space_elite_eventide_bastion_lights_213
+  - first:
+      213: -5015264194142167804
+    second: space_elite_eventide_bastion_lights_214
+  - first:
+      213: -5811779756178469353
+    second: space_elite_eventide_bastion_lights_215
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 1
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 4096
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 0
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 4096
+    resizeAlgorithm: 0
+    textureFormat: 50
+    textureCompression: 1
+    compressionQuality: 100
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 1
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: iOS
+    maxTextureSize: 4096
+    resizeAlgorithm: 0
+    textureFormat: 50
+    textureCompression: 1
+    compressionQuality: 100
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 1
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_0
+      rect:
+        serializedVersion: 2
+        x: 184
+        y: 356
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 181273f82ff71c9c0800000000000000
+      internalID: -3908702321819311743
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_1
+      rect:
+        serializedVersion: 2
+        x: 568
+        y: 356
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4ae2f3813147e3bd0800000000000000
+      internalID: -2648551905487278428
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_2
+      rect:
+        serializedVersion: 2
+        x: 951
+        y: 355
+        width: 17
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3a1272dd3ea4f3d60800000000000000
+      internalID: 7872093016195277219
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_3
+      rect:
+        serializedVersion: 2
+        x: 1335
+        y: 355
+        width: 17
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: eced1d4d9dd30d810800000000000000
+      internalID: 1787997057853808334
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_4
+      rect:
+        serializedVersion: 2
+        x: 1719
+        y: 355
+        width: 17
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e04df3a95f7faff90800000000000000
+      internalID: -6918945243274423282
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_5
+      rect:
+        serializedVersion: 2
+        x: 2103
+        y: 355
+        width: 17
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 895317c520ac920b0800000000000000
+      internalID: -5752844937499429480
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_6
+      rect:
+        serializedVersion: 2
+        x: 2488
+        y: 356
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 561c294b6ebc129d0800000000000000
+      internalID: -2800733301515304603
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_7
+      rect:
+        serializedVersion: 2
+        x: 2872
+        y: 356
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 056c86116fbb0ac20800000000000000
+      internalID: 3215776799470962256
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_8
+      rect:
+        serializedVersion: 2
+        x: 3256
+        y: 356
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e8f560200bb163a40800000000000000
+      internalID: 5347492050311208846
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_9
+      rect:
+        serializedVersion: 2
+        x: 3640
+        y: 356
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0663f4e125cbf48c0800000000000000
+      internalID: -4012781682081974688
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_10
+      rect:
+        serializedVersion: 2
+        x: 4024
+        y: 356
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f4b5cef4d61725cf0800000000000000
+      internalID: -265024713755174065
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_11
+      rect:
+        serializedVersion: 2
+        x: 4408
+        y: 357
+        width: 15
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 715de45bd81ac5d80800000000000000
+      internalID: -8260549986500029161
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_12
+      rect:
+        serializedVersion: 2
+        x: 188
+        y: 291
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d6f027da995645d00800000000000000
+      internalID: 960504331251093357
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_13
+      rect:
+        serializedVersion: 2
+        x: 571
+        y: 290
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c0409f0cad85dde50800000000000000
+      internalID: 6835717505981940748
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_14
+      rect:
+        serializedVersion: 2
+        x: 954
+        y: 289
+        width: 17
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bd03108caf906b810800000000000000
+      internalID: 1780621675373605083
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_15
+      rect:
+        serializedVersion: 2
+        x: 1339
+        y: 290
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9129bf907585c0360800000000000000
+      internalID: 7137176640328274457
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_16
+      rect:
+        serializedVersion: 2
+        x: 1722
+        y: 289
+        width: 17
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 127eaa991f9fa06e0800000000000000
+      internalID: -1870407879158470879
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_17
+      rect:
+        serializedVersion: 2
+        x: 2106
+        y: 289
+        width: 17
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3e6f494e3447a6d90800000000000000
+      internalID: -7103737627276937501
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_18
+      rect:
+        serializedVersion: 2
+        x: 2490
+        y: 289
+        width: 17
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fca67540b13481720800000000000000
+      internalID: 2817075350236261071
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_19
+      rect:
+        serializedVersion: 2
+        x: 2875
+        y: 290
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 782cc932d63836330800000000000000
+      internalID: 3702947823400829575
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_20
+      rect:
+        serializedVersion: 2
+        x: 3259
+        y: 290
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 69f3eb4a5bff44b90800000000000000
+      internalID: -7258395543796301930
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_21
+      rect:
+        serializedVersion: 2
+        x: 3643
+        y: 290
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e604220e992d62300800000000000000
+      internalID: 227100389560959086
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_22
+      rect:
+        serializedVersion: 2
+        x: 4027
+        y: 290
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b506dcc7d83cbd310800000000000000
+      internalID: 1430952319071903835
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_23
+      rect:
+        serializedVersion: 2
+        x: 4410
+        y: 290
+        width: 17
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e4994eba190addf50800000000000000
+      internalID: 6907853950970796366
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_24
+      rect:
+        serializedVersion: 2
+        x: 140
+        y: 261
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 25ec09be3928c0710800000000000000
+      internalID: 1660845934416809554
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_25
+      rect:
+        serializedVersion: 2
+        x: 236
+        y: 249
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c34b881fecceaef00800000000000000
+      internalID: 1146989428678898748
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_26
+      rect:
+        serializedVersion: 2
+        x: 523
+        y: 260
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9bc57f85df376f1d0800000000000000
+      internalID: -3317336543555265351
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_27
+      rect:
+        serializedVersion: 2
+        x: 620
+        y: 248
+        width: 13
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 321792e978acaff30800000000000000
+      internalID: 4610219852390035747
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_28
+      rect:
+        serializedVersion: 2
+        x: 906
+        y: 259
+        width: 17
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 78baec891abc610c0800000000000000
+      internalID: -4605269674025899129
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_29
+      rect:
+        serializedVersion: 2
+        x: 1003
+        y: 248
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 02aff98e6177f0820800000000000000
+      internalID: 2886656826443561504
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_30
+      rect:
+        serializedVersion: 2
+        x: 1291
+        y: 260
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 453b6bbc4ea6f3400800000000000000
+      internalID: 306080830587319124
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_31
+      rect:
+        serializedVersion: 2
+        x: 1387
+        y: 248
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 964081c3f656022b0800000000000000
+      internalID: -5611373607279655831
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_32
+      rect:
+        serializedVersion: 2
+        x: 1674
+        y: 259
+        width: 17
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7ce7564f8334bb530800000000000000
+      internalID: 3871762216552595143
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_33
+      rect:
+        serializedVersion: 2
+        x: 1771
+        y: 248
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b1c79093bb8bc3970800000000000000
+      internalID: 8736060491447237659
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_34
+      rect:
+        serializedVersion: 2
+        x: 2058
+        y: 259
+        width: 17
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 575c0471023180680800000000000000
+      internalID: -8788753644263520907
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_35
+      rect:
+        serializedVersion: 2
+        x: 2155
+        y: 248
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8cb9dcb749edc0010800000000000000
+      internalID: 1156543933640973256
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_36
+      rect:
+        serializedVersion: 2
+        x: 2442
+        y: 259
+        width: 17
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5fd309226496815f0800000000000000
+      internalID: -785762385027645963
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_37
+      rect:
+        serializedVersion: 2
+        x: 2538
+        y: 247
+        width: 17
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b8dd011c4a8e44b90800000000000000
+      internalID: -7258420905103008373
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_38
+      rect:
+        serializedVersion: 2
+        x: 2814
+        y: 244
+        width: 17
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d59cd58cd818632e0800000000000000
+      internalID: -2146385726443501219
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_39
+      rect:
+        serializedVersion: 2
+        x: 2826
+        y: 259
+        width: 17
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9e3a77c7f32726090800000000000000
+      internalID: -8042740367533562903
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_40
+      rect:
+        serializedVersion: 2
+        x: 2922
+        y: 247
+        width: 17
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 19e4f41cd1e76e7f0800000000000000
+      internalID: -583640435435549039
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_41
+      rect:
+        serializedVersion: 2
+        x: 3198
+        y: 244
+        width: 17
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a87af5e90d061e300800000000000000
+      internalID: 279611101000214410
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_42
+      rect:
+        serializedVersion: 2
+        x: 3211
+        y: 260
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 086d12fc3682ba0d0800000000000000
+      internalID: -3410587883661044096
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_43
+      rect:
+        serializedVersion: 2
+        x: 3306
+        y: 247
+        width: 17
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 62df5653da0fa18e0800000000000000
+      internalID: -1721799280799908570
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_44
+      rect:
+        serializedVersion: 2
+        x: 3582
+        y: 244
+        width: 17
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 85ef500be58a125d0800000000000000
+      internalID: -3089002744765874600
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_45
+      rect:
+        serializedVersion: 2
+        x: 3595
+        y: 260
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b8163724d4e144fd0800000000000000
+      internalID: -2358726987659124341
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_46
+      rect:
+        serializedVersion: 2
+        x: 3691
+        y: 248
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 889b713173dc9aa40800000000000000
+      internalID: 5380056866297985416
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_47
+      rect:
+        serializedVersion: 2
+        x: 3979
+        y: 260
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ef7142cad6bf3f800800000000000000
+      internalID: 645135620102166526
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_48
+      rect:
+        serializedVersion: 2
+        x: 4075
+        y: 248
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 610f68cd69c9886b0800000000000000
+      internalID: -5293809190215159786
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_49
+      rect:
+        serializedVersion: 2
+        x: 4363
+        y: 261
+        width: 15
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 10cd82fa35771e8e0800000000000000
+      internalID: -1665919185845691391
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_50
+      rect:
+        serializedVersion: 2
+        x: 4458
+        y: 248
+        width: 17
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bf6f9aad7f6899160800000000000000
+      internalID: 7032800692199356155
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_51
+      rect:
+        serializedVersion: 2
+        x: 128
+        y: 246
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4bc68064b56037e60800000000000000
+      internalID: 7958711955580546228
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_52
+      rect:
+        serializedVersion: 2
+        x: 512
+        y: 245
+        width: 13
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7c1e83b219e7c94f0800000000000000
+      internalID: -820641870127767097
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_53
+      rect:
+        serializedVersion: 2
+        x: 895
+        y: 245
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 071125cc9c2105d10800000000000000
+      internalID: 2112208883162419568
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_54
+      rect:
+        serializedVersion: 2
+        x: 1279
+        y: 245
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e136a8c58382effb0800000000000000
+      internalID: -4612204745844956386
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_55
+      rect:
+        serializedVersion: 2
+        x: 1663
+        y: 245
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 004e05a1815961510800000000000000
+      internalID: 1519565855037383680
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_56
+      rect:
+        serializedVersion: 2
+        x: 2047
+        y: 245
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9b8887976c63082e0800000000000000
+      internalID: -2125638798049507143
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_57
+      rect:
+        serializedVersion: 2
+        x: 2431
+        y: 245
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9fc0a125ce4840cb0800000000000000
+      internalID: -4898644344147669767
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_58
+      rect:
+        serializedVersion: 2
+        x: 3967
+        y: 245
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fafae8ef153735670800000000000000
+      internalID: 8526285315542790063
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_59
+      rect:
+        serializedVersion: 2
+        x: 4351
+        y: 246
+        width: 15
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2bc54a7f0d30d4d50800000000000000
+      internalID: 6723034014776843442
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_60
+      rect:
+        serializedVersion: 2
+        x: 50
+        y: 213
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4dadca61a8b7d7cb0800000000000000
+      internalID: -4864596189474137388
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_61
+      rect:
+        serializedVersion: 2
+        x: 77
+        y: 219
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d8b93d819659c7920800000000000000
+      internalID: 2989428531287792525
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_62
+      rect:
+        serializedVersion: 2
+        x: 101
+        y: 219
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 733bbf7b0bb807610800000000000000
+      internalID: 1616945857343238967
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_63
+      rect:
+        serializedVersion: 2
+        x: 167
+        y: 216
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6982cfeeb6ebe2770800000000000000
+      internalID: 8588010910222395542
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_64
+      rect:
+        serializedVersion: 2
+        x: 203
+        y: 213
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f802748ddef4469c0800000000000000
+      internalID: -3934932291460587377
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_65
+      rect:
+        serializedVersion: 2
+        x: 269
+        y: 222
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b27c61c4e041f42b0800000000000000
+      internalID: -5598233760159578325
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_66
+      rect:
+        serializedVersion: 2
+        x: 293
+        y: 219
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e6b55b339860df220800000000000000
+      internalID: 2521178552745155438
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_67
+      rect:
+        serializedVersion: 2
+        x: 434
+        y: 212
+        width: 13
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 166a351e44f4b1080800000000000000
+      internalID: -9215685055226861983
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_68
+      rect:
+        serializedVersion: 2
+        x: 461
+        y: 218
+        width: 13
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cf44be4094dc699a0800000000000000
+      internalID: -6226563721294297860
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_69
+      rect:
+        serializedVersion: 2
+        x: 485
+        y: 218
+        width: 13
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1348a208a35023ea0800000000000000
+      internalID: -5894643213458045903
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_70
+      rect:
+        serializedVersion: 2
+        x: 551
+        y: 215
+        width: 13
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f43ae5cab7e9042e0800000000000000
+      internalID: -2143539168618306737
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_71
+      rect:
+        serializedVersion: 2
+        x: 587
+        y: 212
+        width: 13
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c1da0db2662fd07c0800000000000000
+      internalID: -4103357164828971748
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_72
+      rect:
+        serializedVersion: 2
+        x: 653
+        y: 221
+        width: 13
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5ee54d310c5f57380800000000000000
+      internalID: -8973996477150634267
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_73
+      rect:
+        serializedVersion: 2
+        x: 677
+        y: 218
+        width: 13
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5a7f6bfca589b8960800000000000000
+      internalID: 7605339911544567717
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_74
+      rect:
+        serializedVersion: 2
+        x: 817
+        y: 212
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8fd1128924c3b01a0800000000000000
+      internalID: -6842308952141521416
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_75
+      rect:
+        serializedVersion: 2
+        x: 844
+        y: 218
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fc9adbd15f1be4f50800000000000000
+      internalID: 6867622148110657999
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_76
+      rect:
+        serializedVersion: 2
+        x: 868
+        y: 218
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8b87a6992c4ae3650800000000000000
+      internalID: 6214585691522365624
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_77
+      rect:
+        serializedVersion: 2
+        x: 934
+        y: 215
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fc07d50759294ada0800000000000000
+      internalID: -5934457238434516785
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_78
+      rect:
+        serializedVersion: 2
+        x: 970
+        y: 212
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5471a8c8cf14d8f30800000000000000
+      internalID: 4579388949051086661
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_79
+      rect:
+        serializedVersion: 2
+        x: 1036
+        y: 221
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c621c99928cf1d9e0800000000000000
+      internalID: -1598218754886725012
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_80
+      rect:
+        serializedVersion: 2
+        x: 1060
+        y: 218
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6bd9e6e32f70f7d40800000000000000
+      internalID: 5584190799973621174
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_81
+      rect:
+        serializedVersion: 2
+        x: 1201
+        y: 212
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9dd84fe6fe3d758c0800000000000000
+      internalID: -4010503917837972007
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_82
+      rect:
+        serializedVersion: 2
+        x: 1228
+        y: 218
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 48fe3619b41afd050800000000000000
+      internalID: 5827553788774576004
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_83
+      rect:
+        serializedVersion: 2
+        x: 1252
+        y: 218
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 542caee53117fd350800000000000000
+      internalID: 6043673552965255749
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_84
+      rect:
+        serializedVersion: 2
+        x: 1318
+        y: 215
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d332e1d5c1e581180800000000000000
+      internalID: -9144455567461440707
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_85
+      rect:
+        serializedVersion: 2
+        x: 1354
+        y: 212
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b5a14e25741d383c0800000000000000
+      internalID: -4358409910100944293
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_86
+      rect:
+        serializedVersion: 2
+        x: 1420
+        y: 221
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c42d8efd400e11880800000000000000
+      internalID: -8641879898406202804
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_87
+      rect:
+        serializedVersion: 2
+        x: 1444
+        y: 218
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c42693b9b3f4e51a0800000000000000
+      internalID: -6818925668366458292
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_88
+      rect:
+        serializedVersion: 2
+        x: 1585
+        y: 212
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 49bbbaa531c4f7130800000000000000
+      internalID: 3566653075910015892
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_89
+      rect:
+        serializedVersion: 2
+        x: 1612
+        y: 218
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1a87dcb050748c360800000000000000
+      internalID: 7190074892095420577
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_90
+      rect:
+        serializedVersion: 2
+        x: 1636
+        y: 218
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c225e000a56ce5970800000000000000
+      internalID: 8745645616250376748
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_91
+      rect:
+        serializedVersion: 2
+        x: 1702
+        y: 215
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d5ecb94157feef5f0800000000000000
+      internalID: -720875604196733347
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_92
+      rect:
+        serializedVersion: 2
+        x: 1738
+        y: 212
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fd7391bfa1a128c70800000000000000
+      internalID: 8971762110859655135
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_93
+      rect:
+        serializedVersion: 2
+        x: 1804
+        y: 221
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5988cba4358c1dbc0800000000000000
+      internalID: -3760003953815943019
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_94
+      rect:
+        serializedVersion: 2
+        x: 1828
+        y: 218
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 57bb1c26c93f9d6a0800000000000000
+      internalID: -6423835540469990539
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_95
+      rect:
+        serializedVersion: 2
+        x: 1969
+        y: 212
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1b79a8c14ff4270f0800000000000000
+      internalID: -1120745447392372815
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_96
+      rect:
+        serializedVersion: 2
+        x: 1996
+        y: 218
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 85db7aad813a48bf0800000000000000
+      internalID: -322953946120864424
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_97
+      rect:
+        serializedVersion: 2
+        x: 2020
+        y: 218
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1a7bf2f92bda7c240800000000000000
+      internalID: 4812005709555152801
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_98
+      rect:
+        serializedVersion: 2
+        x: 2086
+        y: 215
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a350980749b58b500800000000000000
+      internalID: 412180059005715770
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_99
+      rect:
+        serializedVersion: 2
+        x: 2122
+        y: 212
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 575eb319a60890830800000000000000
+      internalID: 4037899736105870709
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_100
+      rect:
+        serializedVersion: 2
+        x: 2188
+        y: 221
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 98e687457090ffa50800000000000000
+      internalID: 6556969509561331337
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_101
+      rect:
+        serializedVersion: 2
+        x: 2212
+        y: 218
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e02956a199c8791a0800000000000000
+      internalID: -6802814122919095794
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_102
+      rect:
+        serializedVersion: 2
+        x: 2353
+        y: 212
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b745723015856a4b0800000000000000
+      internalID: -5429555195780049797
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_103
+      rect:
+        serializedVersion: 2
+        x: 2380
+        y: 218
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 032ceb856c4129960800000000000000
+      internalID: 7607165562707165744
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_104
+      rect:
+        serializedVersion: 2
+        x: 2404
+        y: 218
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b2e4ee3080056cf00800000000000000
+      internalID: 1136683951313538603
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_105
+      rect:
+        serializedVersion: 2
+        x: 2470
+        y: 215
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b70d136b853b95610800000000000000
+      internalID: 1610515535356874875
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_106
+      rect:
+        serializedVersion: 2
+        x: 2506
+        y: 212
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4da60cd6bddbfe490800000000000000
+      internalID: -7714738886525556012
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_107
+      rect:
+        serializedVersion: 2
+        x: 2572
+        y: 221
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f9eb53ed8ca9e2f90800000000000000
+      internalID: -6976468585238118753
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_108
+      rect:
+        serializedVersion: 2
+        x: 2596
+        y: 218
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 42d32a3815c78f760800000000000000
+      internalID: 7491874669673463076
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_109
+      rect:
+        serializedVersion: 2
+        x: 2737
+        y: 212
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fdf1221f3d20ac4c0800000000000000
+      internalID: -4266594587673223201
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_110
+      rect:
+        serializedVersion: 2
+        x: 2764
+        y: 218
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7e92b2861fdce5b00800000000000000
+      internalID: 819318618946480615
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_111
+      rect:
+        serializedVersion: 2
+        x: 2788
+        y: 218
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 81550ee9a07c768a0800000000000000
+      internalID: -6311857504307358440
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_112
+      rect:
+        serializedVersion: 2
+        x: 2854
+        y: 215
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 05242099178c6d280800000000000000
+      internalID: -9018800813538917808
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_113
+      rect:
+        serializedVersion: 2
+        x: 2890
+        y: 212
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: af989ecfae0109770800000000000000
+      internalID: 8615404688611314170
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_114
+      rect:
+        serializedVersion: 2
+        x: 2956
+        y: 221
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c45816ec2262cf210800000000000000
+      internalID: 1368010317747029324
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_115
+      rect:
+        serializedVersion: 2
+        x: 2980
+        y: 218
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a0193fa0364a7b380800000000000000
+      internalID: -8955508588710489846
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_116
+      rect:
+        serializedVersion: 2
+        x: 3121
+        y: 212
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7fa11b1165a251fb0800000000000000
+      internalID: -4677786088802018569
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_117
+      rect:
+        serializedVersion: 2
+        x: 3148
+        y: 218
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 786451fb187896440800000000000000
+      internalID: 4929620258460092039
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_118
+      rect:
+        serializedVersion: 2
+        x: 3172
+        y: 218
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ce65efd2395e5a7d0800000000000000
+      internalID: -2907665564103190804
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_119
+      rect:
+        serializedVersion: 2
+        x: 3238
+        y: 215
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ee27508517e9b8490800000000000000
+      internalID: -7742920924688190738
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_120
+      rect:
+        serializedVersion: 2
+        x: 3274
+        y: 212
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b9e8fe4a4e841d610800000000000000
+      internalID: 1644175485823848091
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_121
+      rect:
+        serializedVersion: 2
+        x: 3339
+        y: 220
+        width: 17
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0cb84147f8a255c00800000000000000
+      internalID: 888663297091734464
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_122
+      rect:
+        serializedVersion: 2
+        x: 3364
+        y: 218
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bf2fdee41ff4a5de0800000000000000
+      internalID: -1343673640986742021
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_123
+      rect:
+        serializedVersion: 2
+        x: 3505
+        y: 212
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 61221ac738ba8e320800000000000000
+      internalID: 2587506567144350230
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_124
+      rect:
+        serializedVersion: 2
+        x: 3531
+        y: 217
+        width: 17
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 42eeba0a2a2ff8020800000000000000
+      internalID: 2346360711177563684
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_125
+      rect:
+        serializedVersion: 2
+        x: 3556
+        y: 218
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: eb3df152be309ade0800000000000000
+      internalID: -1321520707181489218
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_126
+      rect:
+        serializedVersion: 2
+        x: 3622
+        y: 215
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 529c30a07fb73cb30800000000000000
+      internalID: 4306421969651484965
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_127
+      rect:
+        serializedVersion: 2
+        x: 3658
+        y: 212
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e350cbcd13ab84f20800000000000000
+      internalID: 3407177841425253694
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_128
+      rect:
+        serializedVersion: 2
+        x: 3723
+        y: 220
+        width: 17
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1e02d4d1aca16c950800000000000000
+      internalID: 6468887370141606113
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_129
+      rect:
+        serializedVersion: 2
+        x: 3748
+        y: 218
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2a2172ce6cb28ff30800000000000000
+      internalID: 4609482351979205282
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_130
+      rect:
+        serializedVersion: 2
+        x: 3889
+        y: 212
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a80306a5cf7e63fa0800000000000000
+      internalID: -5821210397295759222
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_131
+      rect:
+        serializedVersion: 2
+        x: 3915
+        y: 217
+        width: 17
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4d6f2824e7f3ed140800000000000000
+      internalID: 4746300868809389780
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_132
+      rect:
+        serializedVersion: 2
+        x: 3939
+        y: 217
+        width: 17
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8dea2906731f6e300800000000000000
+      internalID: 281177246902955736
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_133
+      rect:
+        serializedVersion: 2
+        x: 4006
+        y: 215
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7a1ce4b492b0ae660800000000000000
+      internalID: 7415752008403960231
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_134
+      rect:
+        serializedVersion: 2
+        x: 4042
+        y: 212
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c5074f95c2c42abc0800000000000000
+      internalID: -3773369784411590564
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_135
+      rect:
+        serializedVersion: 2
+        x: 4107
+        y: 220
+        width: 17
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 24852ed29835428a0800000000000000
+      internalID: -6330843327530641342
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_136
+      rect:
+        serializedVersion: 2
+        x: 4132
+        y: 218
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 39dfec01bce1266b0800000000000000
+      internalID: -5304643553579827821
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_137
+      rect:
+        serializedVersion: 2
+        x: 4272
+        y: 212
+        width: 17
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 798e15a05a5eda0a0800000000000000
+      internalID: -6868581359664633705
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_138
+      rect:
+        serializedVersion: 2
+        x: 4299
+        y: 218
+        width: 17
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a30ede4a5483878d0800000000000000
+      internalID: -2848464892540886982
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_139
+      rect:
+        serializedVersion: 2
+        x: 4323
+        y: 218
+        width: 17
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9e66562dda5549bf0800000000000000
+      internalID: -318535468588898583
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_140
+      rect:
+        serializedVersion: 2
+        x: 4389
+        y: 215
+        width: 17
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: df536e9b5998897e0800000000000000
+      internalID: -1758504378326174211
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_141
+      rect:
+        serializedVersion: 2
+        x: 4426
+        y: 213
+        width: 15
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 31ebd196dab5c48a0800000000000000
+      internalID: -6319575376756621805
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_142
+      rect:
+        serializedVersion: 2
+        x: 4492
+        y: 222
+        width: 15
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1d382935613e2a850800000000000000
+      internalID: 6386916906595681233
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_143
+      rect:
+        serializedVersion: 2
+        x: 4516
+        y: 219
+        width: 15
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 26abd11deff3c5240800000000000000
+      internalID: 4781767268023253602
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_144
+      rect:
+        serializedVersion: 2
+        x: 122
+        y: 198
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7f12bff73e1a72a50800000000000000
+      internalID: 6496338985982042615
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_145
+      rect:
+        serializedVersion: 2
+        x: 248
+        y: 198
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ec6541856ff94e610800000000000000
+      internalID: 1649619243912943310
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_146
+      rect:
+        serializedVersion: 2
+        x: 506
+        y: 197
+        width: 13
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ddda62026908d8a10800000000000000
+      internalID: 1913326798975184349
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_147
+      rect:
+        serializedVersion: 2
+        x: 632
+        y: 197
+        width: 13
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7972db4eb48bbc600800000000000000
+      internalID: 489687620599490455
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_148
+      rect:
+        serializedVersion: 2
+        x: 889
+        y: 197
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1a7a139a280065fb0800000000000000
+      internalID: -4659536203283847263
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_149
+      rect:
+        serializedVersion: 2
+        x: 1015
+        y: 197
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ae265b003d7a85aa0800000000000000
+      internalID: -6171998764619439382
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_150
+      rect:
+        serializedVersion: 2
+        x: 1273
+        y: 197
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bca77a80f85aead50800000000000000
+      internalID: 6750514925219052235
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_151
+      rect:
+        serializedVersion: 2
+        x: 1399
+        y: 197
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d78ad159f011bb7c0800000000000000
+      internalID: -4054628280893069187
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_152
+      rect:
+        serializedVersion: 2
+        x: 1657
+        y: 197
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 372c254296e6c6920800000000000000
+      internalID: 2984882050899821171
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_153
+      rect:
+        serializedVersion: 2
+        x: 1783
+        y: 197
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 93d22108dee894160800000000000000
+      internalID: 7010291445685955897
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_154
+      rect:
+        serializedVersion: 2
+        x: 2041
+        y: 197
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fd2018dcda1f67e80800000000000000
+      internalID: -8181085944292506913
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_155
+      rect:
+        serializedVersion: 2
+        x: 2167
+        y: 197
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fb565c8ea77245d30800000000000000
+      internalID: 4419200543202043327
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_156
+      rect:
+        serializedVersion: 2
+        x: 2425
+        y: 197
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: da7d69cc2df938d40800000000000000
+      internalID: 5585483690593933229
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_157
+      rect:
+        serializedVersion: 2
+        x: 2551
+        y: 197
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 96f720978d1238ab0800000000000000
+      internalID: -5007121147079000215
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_158
+      rect:
+        serializedVersion: 2
+        x: 2809
+        y: 197
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7a356b56c726c8830800000000000000
+      internalID: 4074740049285370791
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_159
+      rect:
+        serializedVersion: 2
+        x: 2935
+        y: 197
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7ab07894c9b5e1890800000000000000
+      internalID: -7485444803836572761
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_160
+      rect:
+        serializedVersion: 2
+        x: 3193
+        y: 197
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 702a304d54b903e30800000000000000
+      internalID: 4481252353445700103
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_161
+      rect:
+        serializedVersion: 2
+        x: 3319
+        y: 197
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0022d41a2cac6cbc0800000000000000
+      internalID: -3763097501342817792
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_162
+      rect:
+        serializedVersion: 2
+        x: 3577
+        y: 197
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 19a681663eddb3dd0800000000000000
+      internalID: -2505164798961358191
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_163
+      rect:
+        serializedVersion: 2
+        x: 3703
+        y: 197
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a09a5189e03ac4630800000000000000
+      internalID: 3912681459354544394
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_164
+      rect:
+        serializedVersion: 2
+        x: 3961
+        y: 197
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b19e81a8d95726790800000000000000
+      internalID: -7538333506777585381
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_165
+      rect:
+        serializedVersion: 2
+        x: 4087
+        y: 197
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 130b24117ba9f9150800000000000000
+      internalID: 5881589749428432945
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_166
+      rect:
+        serializedVersion: 2
+        x: 4345
+        y: 198
+        width: 15
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6d59f8eed73ef5d80800000000000000
+      internalID: -8259633061561395754
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_167
+      rect:
+        serializedVersion: 2
+        x: 4470
+        y: 197
+        width: 17
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1cdd58680ef89e7f0800000000000000
+      internalID: -582776482275402303
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_168
+      rect:
+        serializedVersion: 2
+        x: 119
+        y: 180
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 752585925e3752190800000000000000
+      internalID: -7987850935993347497
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_169
+      rect:
+        serializedVersion: 2
+        x: 251
+        y: 180
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0a1fcc85e34aa6cf0800000000000000
+      internalID: -258213440935628384
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_170
+      rect:
+        serializedVersion: 2
+        x: 503
+        y: 179
+        width: 13
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8e0cbf68a458b0eb0800000000000000
+      internalID: -4752558426620706584
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_171
+      rect:
+        serializedVersion: 2
+        x: 635
+        y: 179
+        width: 13
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3207096da19945c30800000000000000
+      internalID: 4347267880867360803
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_172
+      rect:
+        serializedVersion: 2
+        x: 886
+        y: 179
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0e7ed439adaca4ee0800000000000000
+      internalID: -1275984504283076640
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_173
+      rect:
+        serializedVersion: 2
+        x: 1018
+        y: 179
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8f9cc7e458221a9a0800000000000000
+      internalID: -6223655254106519048
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_174
+      rect:
+        serializedVersion: 2
+        x: 1270
+        y: 179
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: df607053de8e04240800000000000000
+      internalID: 4774071710507271933
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_175
+      rect:
+        serializedVersion: 2
+        x: 1402
+        y: 179
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 80210a48b6c270db0800000000000000
+      internalID: -4825839635405991416
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_176
+      rect:
+        serializedVersion: 2
+        x: 1654
+        y: 179
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 82b1fb022c30bceb0800000000000000
+      internalID: -4698657653923046616
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_177
+      rect:
+        serializedVersion: 2
+        x: 1786
+        y: 179
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a0b891325c5d2dd30800000000000000
+      internalID: 4454858024096992010
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_178
+      rect:
+        serializedVersion: 2
+        x: 2038
+        y: 179
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6d80bfe7ed57c1010800000000000000
+      internalID: 1160932402428315862
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_179
+      rect:
+        serializedVersion: 2
+        x: 2170
+        y: 179
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8ddbf729d5d5ea130800000000000000
+      internalID: 3579901410277309912
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_180
+      rect:
+        serializedVersion: 2
+        x: 2422
+        y: 179
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 14a2a8b915bab2f40800000000000000
+      internalID: 5704841719985089089
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_181
+      rect:
+        serializedVersion: 2
+        x: 2554
+        y: 179
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8bfb471a4797d2200800000000000000
+      internalID: 156915103859785656
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_182
+      rect:
+        serializedVersion: 2
+        x: 2806
+        y: 179
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ef9c1a9bc7227a450800000000000000
+      internalID: 6099882139382303230
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_183
+      rect:
+        serializedVersion: 2
+        x: 2938
+        y: 179
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 277a7b63c570bf290800000000000000
+      internalID: -7855677032381307022
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_184
+      rect:
+        serializedVersion: 2
+        x: 3190
+        y: 179
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 83613dcc067d25690800000000000000
+      internalID: -7614787209176869320
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_185
+      rect:
+        serializedVersion: 2
+        x: 3322
+        y: 179
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: aacbbf83398b25d60800000000000000
+      internalID: 7877561640680144042
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_186
+      rect:
+        serializedVersion: 2
+        x: 3574
+        y: 179
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 88db1ee6420fcf290800000000000000
+      internalID: -7855139610771210872
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_187
+      rect:
+        serializedVersion: 2
+        x: 3706
+        y: 179
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3fbd33581c6b0d1f0800000000000000
+      internalID: -1022116173133390861
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_188
+      rect:
+        serializedVersion: 2
+        x: 3958
+        y: 179
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9e57ce0aff3d9b300800000000000000
+      internalID: 268478747675227625
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_189
+      rect:
+        serializedVersion: 2
+        x: 4090
+        y: 179
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 38fe9377f11548ca0800000000000000
+      internalID: -6015594006674018429
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_190
+      rect:
+        serializedVersion: 2
+        x: 4342
+        y: 180
+        width: 15
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3401d40e42ce25c60800000000000000
+      internalID: 7805560747312615491
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_191
+      rect:
+        serializedVersion: 2
+        x: 4473
+        y: 179
+        width: 17
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 155c788779701adf0800000000000000
+      internalID: -170846963719748271
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_192
+      rect:
+        serializedVersion: 2
+        x: 52
+        y: 161
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 68fca97ca26c62c20800000000000000
+      internalID: 3181448073823571846
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_193
+      rect:
+        serializedVersion: 2
+        x: 316
+        y: 161
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1d69356bf24fdd240800000000000000
+      internalID: 4818275662115870417
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_194
+      rect:
+        serializedVersion: 2
+        x: 437
+        y: 161
+        width: 13
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 13e092ff2971d3c10800000000000000
+      internalID: 2034808526754876977
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_195
+      rect:
+        serializedVersion: 2
+        x: 700
+        y: 161
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 11e4e6dadbb9e4f30800000000000000
+      internalID: 4561754711533702673
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_196
+      rect:
+        serializedVersion: 2
+        x: 820
+        y: 161
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 44cdf9ad9a3f35a70800000000000000
+      internalID: 8814656806537124932
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_197
+      rect:
+        serializedVersion: 2
+        x: 1084
+        y: 161
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 84138baf2931f5d10800000000000000
+      internalID: 2116431871879950664
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_198
+      rect:
+        serializedVersion: 2
+        x: 1203
+        y: 160
+        width: 17
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d33246abd8dc78990800000000000000
+      internalID: -7383707055449431235
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_199
+      rect:
+        serializedVersion: 2
+        x: 1467
+        y: 160
+        width: 17
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 998277246a309faf0800000000000000
+      internalID: -362254282412054375
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_200
+      rect:
+        serializedVersion: 2
+        x: 1588
+        y: 161
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5a1486daac5f58eb0800000000000000
+      internalID: -4718094783759236699
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_201
+      rect:
+        serializedVersion: 2
+        x: 1851
+        y: 160
+        width: 17
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a7b66a62f68e97b10800000000000000
+      internalID: 1979869075293498234
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_202
+      rect:
+        serializedVersion: 2
+        x: 1972
+        y: 161
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: adeb1c6e8ca9c81d0800000000000000
+      internalID: -3347130235387527462
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_203
+      rect:
+        serializedVersion: 2
+        x: 2236
+        y: 161
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3a7a751254240a520800000000000000
+      internalID: 2711239840356607907
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_204
+      rect:
+        serializedVersion: 2
+        x: 2356
+        y: 161
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 42481f0eb67a99c60800000000000000
+      internalID: 7825469909310211108
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_205
+      rect:
+        serializedVersion: 2
+        x: 2620
+        y: 161
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d6d9f71d53e232ab0800000000000000
+      internalID: -5034129149787136659
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_206
+      rect:
+        serializedVersion: 2
+        x: 2740
+        y: 161
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d5b7447e60f5d6a30800000000000000
+      internalID: 4210125709915749213
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_207
+      rect:
+        serializedVersion: 2
+        x: 3004
+        y: 161
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 32f4d349c6f0fcf80800000000000000
+      internalID: -8084225847088820445
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_208
+      rect:
+        serializedVersion: 2
+        x: 3124
+        y: 161
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a4f428ef138faa2e0800000000000000
+      internalID: -2113604181489987766
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_209
+      rect:
+        serializedVersion: 2
+        x: 3388
+        y: 161
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a00659726a5ab42f0800000000000000
+      internalID: -987513560230436854
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_210
+      rect:
+        serializedVersion: 2
+        x: 3508
+        y: 161
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d82b111cd1064aeb0800000000000000
+      internalID: -4709533629413215603
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_211
+      rect:
+        serializedVersion: 2
+        x: 3772
+        y: 161
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 82820c9d8f93631d0800000000000000
+      internalID: -3371443530072315864
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_212
+      rect:
+        serializedVersion: 2
+        x: 3892
+        y: 161
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2af28823858ae2840800000000000000
+      internalID: 5201279716417875874
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_213
+      rect:
+        serializedVersion: 2
+        x: 4156
+        y: 161
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: afd679f4ee179ba30800000000000000
+      internalID: 4231538593242770938
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_214
+      rect:
+        serializedVersion: 2
+        x: 4276
+        y: 162
+        width: 15
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 40d9b6599c3366ab0800000000000000
+      internalID: -5015264194142167804
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_eventide_bastion_lights_215
+      rect:
+        serializedVersion: 2
+        x: 4540
+        y: 162
+        width: 15
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 71e0d289a19685fa0800000000000000
+      internalID: -5811779756178469353
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 5e97eb03825dee720800000000000000
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable: {}
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

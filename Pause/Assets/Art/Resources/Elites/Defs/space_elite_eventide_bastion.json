@@ -4,10 +4,10 @@
   "world": "space",
   "role": "shield gunship",
   "codexId": "elite_space_eventide_bastion",
-  "launchFrom": "station",
-  "lore": "A broad shield platform that docks in the station rings and hangs high over the middle of the board. When its wing pods glow it draws a curtain of slow bolts across your row, centred on you. There is always one gap beside you, on the side toward the middle: slide into it.",
-  "brain": "bastion",
-  "attack": "ward_curtain",
+  "launchFrom": "gantry,station",
+  "lore": "A shield platform that hangs at the top of the board, sliding sideways at a crawl, and draws a curtain of slow bolts across your row with one gap beside you. The more hearts it loses the narrower the gap, and badly hurt it follows with a second curtain gapped on your other side. Between curtains it drops shield mines that take two shots to defuse.",
+  "brain": "fortress",
+  "attack": "ward_barrage",
   "cells": {
     "flight": [
       3,
@@ -39,10 +39,10 @@
   "accel": 3.5,
   "turnRate": 140,
   "followDistance": 3.0,
-  "laneOffset": 0.9,
+  "laneOffset": 1.5,
   "aggression": 0.45,
   "tellSeconds": 0.9,
-  "attackGap": 3.8,
+  "attackGap": 3.0,
   "avoidance": 0.5,
   "lookAhead": 0.4,
   "perception": 2.0,
@@ -106,5 +106,12 @@
       "dir": -1.0
     }
   ],
-  "followLag": 0.25
+  "followLag": 0.25,
+  "topMargin": 1.5,
+  "lobAhead": 3.0,
+  "hazardSize": 0.5,
+  "hazardSeconds": 3.2,
+  "hazardCount": 6,
+  "hazardSpeed": 2.4,
+  "hazardArmour": 2
 }

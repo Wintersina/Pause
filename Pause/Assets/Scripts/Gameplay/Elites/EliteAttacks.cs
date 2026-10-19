@@ -21,10 +21,6 @@ using UnityEngine;
 //                 shards at the pilot from its beak
 //   siege_cannon  Cauterizer: a long charge with a sight line down its
 //                 lane, then one piercing shell straight down it
-//   ice_ram       Rimebreaker: locks the lane below it, then ploughs
-//                 straight down it, breaking through rocks (no heart lost);
-//                 frost shards fly off the prow at the launch and off every
-//                 rock it breaks, glancing off the rails
 //   resin_mortar  Resin Warden: plants itself, then lobs resin globs in
 //                 high arcs onto a row of marked spots across the lane
 //                 ahead of the pilot; each lands as a sticky pool that
@@ -44,11 +40,18 @@ using UnityEngine;
 //   frost_bloom   Cryo Siren: a slow cryo orb that bursts into a ring of
 //                 shards; every third attack a telegraphed beam sweep
 //   drone_deploy  Glacier Tender: tethered ice drones; shielded while two live
-//   armour_shatter Whiteout Sentinel: ice plates soak hits and spray shards;
-//                 stripped, it charges
-// (the Frost four: FrostElites.cs)
+//   armour_shatter ice plates that soak hits and spray shards (the base of icicle_barrage)
+//   ice_run       Rimebreaker: a pass-through run -- an ice-crack lane drawn down the board, then it ploughs the whole way through
+//                 (rocks break, no heart lost) and out the bottom
+//   floe_barge    Floe Harrower: floe_cast, and between casts a single slab that skids diagonally and bounces off one rail
+//   tender_rig    Glacier Tender: drone_deploy, its drones drop frost mines on the pilot's lane, and a cold fog cone when its shield is down
+//   icicle_barrage Whiteout Sentinel: plates, and once stripped a barrage of icicles down marked lanes with one safe lane
+// (Frost's five: FrostElites.cs)
 //   surf_dash / depth_charge / net_cast / thunder_strike / pearl_curtain: Tide's Riptide, Bathyscaphe, Trawler, Thunderfin, Pearl Warden (TideElites.cs)
 //   log_roll / vine_lash / spore_burst / leaf_dive: Verdant's Timber Hauler, Thornlash, Sporebloom, Leafblade (VerdantElites.cs)
+//   rift_snipe / swoop_volley / ward_barrage / tow_sling: the Space four's own attacks (SpaceElites.cs): Rift Lancer, Orbit Reaver,
+//                 Eventide Bastion, Singularity Hauler. (ward_curtain, crescent_volley, rift_rail and gravity_sling stay for
+//                 the other worlds that share them, and as the Space attacks' building blocks.)
 //   gravity_sling Singularity Hauler: flings shots sideways out of both tow
 //                 claws that its core's gravity whips round, in curves
 //                 that close on a ringed well ahead of the pilot
@@ -88,6 +91,8 @@ public abstract class EliteAttack
     // Aims at where the pilot is (EliteShip.AimSeen: live for the first aimCommit of the tell, then frozen).
     public virtual bool Aimed => false;
     public virtual bool HoldsDuringTell => false;
+    // The action keeps it planted too (no steering while it plays): the hauler towing and flinging a rock.
+    public virtual bool HoldsDuringAction => false;
     public virtual bool DrivesMovement => false;
     public virtual float? FaceDeg => null;
     // Breaks through rocks while acting (EliteShip.CrashInto): no heart lost.
@@ -171,14 +176,24 @@ public abstract class EliteAttack
         return EliteSystem.Shots.Fire(ship, def, kind, at, new Vector2(Mathf.Cos(r), Mathf.Sin(r)) * speed);
     }
 
+    // A shot out of a point that is not a muzzle (a drone's belly, the sky over a lane): the attack says where it came from.
+    protected EliteShot FireFrom(Vector2 at, float deg, float speed, EliteShots.Kind kind)
+    {
+        float r = deg * Mathf.Deg2Rad;
+        Fired++;
+        return EliteSystem.Shots.Fire(ship, def, kind, at, new Vector2(Mathf.Cos(r), Mathf.Sin(r)) * speed);
+    }
+
     protected static float Deg(Vector2 v) => Mathf.Atan2(v.y, v.x) * Mathf.Rad2Deg;
 }
 
 public static class EliteAttacks
 {
-    public static readonly string[] Ids = { "lance_dash", "broadside", "claw_dive", "slag_drop", "blink_shards", "siege_cannon", "ice_ram", "resin_mortar",
+    public static readonly string[] Ids = { "lance_dash", "broadside", "claw_dive", "slag_drop", "blink_shards", "siege_cannon", "resin_mortar",
                                             "ward_curtain", "crescent_volley", "rift_rail", "gravity_sling",
+                                            "rift_snipe", "swoop_volley", "ward_barrage", "tow_sling",
                                             "floe_cast", "frost_bloom", "drone_deploy", "armour_shatter",
+                                            "ice_run", "floe_barge", "tender_rig", "icicle_barrage",
                                             "log_roll", "vine_lash", "spore_burst", "leaf_dive",
                                             "surf_dash", "depth_charge", "net_cast", "thunder_strike", "pearl_curtain" };
 
@@ -191,16 +206,23 @@ public static class EliteAttacks
             case "slag_drop": return new SlagDropAttack();
             case "blink_shards": return new BlinkShardsAttack();
             case "siege_cannon": return new SiegeCannonAttack();
-            case "ice_ram": return new IceRamAttack();
             case "resin_mortar": return new ResinMortarAttack();
             case "ward_curtain": return new WardCurtainAttack();
             case "crescent_volley": return new CrescentVolleyAttack();
             case "rift_rail": return new RiftRailAttack();
             case "gravity_sling": return new GravitySlingAttack();
+            case "rift_snipe": return new RiftSnipeAttack();
+            case "swoop_volley": return new SwoopVolleyAttack();
+            case "ward_barrage": return new WardBarrageAttack();
+            case "tow_sling": return new TowSlingAttack();
             case "floe_cast": return new FloeCastAttack();
             case "frost_bloom": return new FrostBloomAttack();
             case "drone_deploy": return new DroneDeployAttack();
             case "armour_shatter": return new ArmourShatterAttack();
+            case "ice_run": return new IceRunAttack();
+            case "floe_barge": return new FloeBargeAttack();
+            case "tender_rig": return new TenderRigAttack();
+            case "icicle_barrage": return new IcicleBarrageAttack();
             case "log_roll": return new LogRollAttack();
             case "vine_lash": return new VineLashAttack();
             case "spore_burst": return new SporeBurstAttack();
@@ -471,68 +493,6 @@ public class SiegeCannonAttack : EliteAttack
     }
 
     public override void End() { ship.ShowSight(Vector2.zero, 0f, 0f, false); }
-}
-
-// Rimebreaker: an icebreaker. The tell locks the lane straight below it
-// (the prow glows, the hull squats); the action ploughs down that lane at
-// dashSpeed -- committed, no steering, so a sidestep makes it miss -- and
-// breaks through any rock in its way without losing a heart. As it launches
-// it throws two frost shards off the prow, down and out to both sides;
-// every rock it breaks throws two more, flatter. Shards glance off the
-// rails (shotBounces), so they come back across the board.
-public class IceRamAttack : EliteAttack
-{
-    public const int MaxPloughShards = 3;   // rocks per ram that throw shards
-    int smashed;
-    float laneX;
-    public IceRamAttack() { Id = "ice_ram"; }
-    public override bool HoldsDuringTell => true;
-    public override bool DrivesMovement => true;
-    public override bool Ploughs => true;
-
-    // (straight down its lane, as far as the pilot's height and a little past)
-    public override void DashLine(Vector2 seen, bool locked, out Vector2 d, out float reach)
-    {
-        d = Vector2.down;
-        reach = Mathf.Max(1f, ship.Position.y - seen.y + DashPast);
-    }
-    public float LaneX => laneX;
-    public int Smashed => smashed;
-
-    public override void BeginTell(Vector2 seen)
-    {
-        base.BeginTell(seen);
-        laneX = ship.Position.x;
-        dir = Vector2.down;
-        aim = new Vector2(laneX, seen.y);
-    }
-
-    public override void BeginAction()
-    {
-        base.BeginAction();
-        smashed = 0;
-        ship.Drive(Vector2.down * def.dashSpeed);
-        // the launch: a shard down-left and one down-right off the prow
-        float spread = Mathf.Max(10f, def.shotSpread);
-        Fire(0, -90f - spread, def.shotSpeed);
-        Fire(0, -90f + spread, def.shotSpeed);
-    }
-
-    public override bool StepAction(float dt)
-    {
-        t += dt;
-        bool braking = t >= def.actionSeconds * .8f;
-        ship.Drive(Vector2.down * def.dashSpeed * (braking ? .35f : 1f));
-        return t >= def.actionSeconds;
-    }
-
-    public override void OnPlough(Vector2 at)
-    {
-        if (smashed++ >= MaxPloughShards) return;
-        // the broken rock's ice: two flat shards, out to both rails
-        Fire(0, -90f - 70f, def.shotSpeed * .9f);
-        Fire(0, -90f + 70f, def.shotSpeed * .9f);
-    }
 }
 
 // Resin Warden: a bio-industrial mortar. The tell plants it (the resin

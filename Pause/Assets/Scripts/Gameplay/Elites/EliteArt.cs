@@ -5,7 +5,8 @@ using UnityEngine;
 // which is which is the def's EliteCells map -- by default idle 0..3, tell,
 // action, hit), sliced so one cell is the def's cellWorldSize in the world, plus the optional strips that take over from
 // the procedural placeholders the moment they exist (see EliteDef):
-// <key>_parked, <key>_liftoff, <key>_death -- any number of square cells.
+// <key>_parked, <key>_liftoff, <key>_death -- any number of square cells -- and <key>_lights: the hull's animated lights, an
+// additive overlay with the SAME cells as the hull strip (the same count and size: cell i lights hull cell i; EliteShip draws it).
 //
 // EliteFxArt below draws the placeholder FX in code (glow dots, dust puffs,
 // heat streaks, shot drawings, debris sparks) in the house neon pixel style:
@@ -20,7 +21,7 @@ public static class EliteArt
     public static readonly int[] IdleTicks = { 6, 3, 2, 3 };
     public const int HitTicks = 3;
 
-    public enum Extra { Parked, Liftoff, Death }
+    public enum Extra { Parked, Liftoff, Death, Lights }
 
     static readonly Dictionary<string, Sprite[]> cache = new Dictionary<string, Sprite[]>();
     static readonly HashSet<string> missing = new HashSet<string>();
@@ -35,7 +36,7 @@ public static class EliteArt
 
     public static string ExtraPath(EliteDef def, Extra e) => StripPath(def) + "_" + Suffix(e);
 
-    public static string Suffix(Extra e) => e == Extra.Parked ? "parked" : e == Extra.Liftoff ? "liftoff" : "death";
+    public static string Suffix(Extra e) => e == Extra.Parked ? "parked" : e == Extra.Liftoff ? "liftoff" : e == Extra.Lights ? "lights" : "death";
 
     public static Sprite[] Frames(EliteDef def)
     {
@@ -118,7 +119,7 @@ public static class EliteArt
 // The procedural placeholder drawings, built once (never per frame).
 public static class EliteFxArt
 {
-    static Sprite glow, puff, streak, ring, bolt, slag, shell, shard, spark, sight, pool, slab, orb, plate;
+    static Sprite glow, puff, streak, ring, bolt, slag, shell, shard, spark, sight, pool, slab, orb, plate, icicle;
 
     // A soft-looking dot drawn in four hard steps (white: tint it).
     public static Sprite Glow => glow != null ? glow : (glow = Disc("EliteGlow", 16, new[] { 1f, .78f, .45f, .2f }));
@@ -161,6 +162,26 @@ public static class EliteFxArt
     public static Sprite Orb => orb != null ? orb : (orb = Burr("EliteOrb", 21, 10));
     // armour_shatter's ice plate rim: a chevron, apex at the top (its pivot).
     public static Sprite Plate => plate != null ? plate : (plate = Chevron("ElitePlate", 72, 44));
+
+    // icicle_barrage's lane glyph: a cap bar over a downward-pointing spike, in hard steps (tint it).
+    public static Sprite Icicle => icicle != null ? icicle : (icicle = IcicleGlyph("EliteIcicle", 9, 20));
+
+    static Sprite IcicleGlyph(string name, int w, int h)
+    {
+        var t = NewTex(w, h, name);
+        float cx = w * .5f;
+        for (int y = 0; y < h; y++)
+            for (int x = 0; x < w; x++)
+            {
+                int r = h - 1 - y;                                     // rows down from the top
+                float px = Mathf.Abs(x + .5f - cx);
+                bool cap = r < 3, spike = r >= 4 && px <= (1f - (r - 4f) / (h - 4f)) * cx;
+                if (!cap && !spike) { t.SetPixel(x, y, Color.clear); continue; }
+                float g = cap ? 1f : px < cx * .3f ? 1f : (x + .5f < cx ? .86f : .68f);
+                t.SetPixel(x, y, new Color(g, g, g, 1f));
+            }
+        return Make(t, h);
+    }
 
     static Sprite Chevron(string name, int w, int h)
     {

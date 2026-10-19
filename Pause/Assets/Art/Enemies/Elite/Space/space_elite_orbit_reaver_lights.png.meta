@@ -1,0 +1,5759 @@
+fileFormatVersion: 2
+guid: c286ed524af21480cb0702b4e568d08b
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 6736462410412597698
+    second: space_elite_orbit_reaver_lights_0
+  - first:
+      213: 1537561032916027
+    second: space_elite_orbit_reaver_lights_1
+  - first:
+      213: 7158611055479381977
+    second: space_elite_orbit_reaver_lights_2
+  - first:
+      213: 2759178524259376540
+    second: space_elite_orbit_reaver_lights_3
+  - first:
+      213: -1567469030266959993
+    second: space_elite_orbit_reaver_lights_4
+  - first:
+      213: -1930294665033534760
+    second: space_elite_orbit_reaver_lights_5
+  - first:
+      213: -7322388056800767295
+    second: space_elite_orbit_reaver_lights_6
+  - first:
+      213: 8342711157363168697
+    second: space_elite_orbit_reaver_lights_7
+  - first:
+      213: 9005223028039864889
+    second: space_elite_orbit_reaver_lights_8
+  - first:
+      213: -778271704196594658
+    second: space_elite_orbit_reaver_lights_9
+  - first:
+      213: 959377321891614602
+    second: space_elite_orbit_reaver_lights_10
+  - first:
+      213: 1872921976686565244
+    second: space_elite_orbit_reaver_lights_11
+  - first:
+      213: 4205656923362652700
+    second: space_elite_orbit_reaver_lights_12
+  - first:
+      213: 3196992379897120382
+    second: space_elite_orbit_reaver_lights_13
+  - first:
+      213: 3768653896561449828
+    second: space_elite_orbit_reaver_lights_14
+  - first:
+      213: -8308698922067699645
+    second: space_elite_orbit_reaver_lights_15
+  - first:
+      213: -6185179541801650558
+    second: space_elite_orbit_reaver_lights_16
+  - first:
+      213: 2897132663379338387
+    second: space_elite_orbit_reaver_lights_17
+  - first:
+      213: -4072659500495232987
+    second: space_elite_orbit_reaver_lights_18
+  - first:
+      213: -4258051909771198784
+    second: space_elite_orbit_reaver_lights_19
+  - first:
+      213: 5374295616033781300
+    second: space_elite_orbit_reaver_lights_20
+  - first:
+      213: -8539905513620235190
+    second: space_elite_orbit_reaver_lights_21
+  - first:
+      213: -3344772912973674177
+    second: space_elite_orbit_reaver_lights_22
+  - first:
+      213: 7329250565189312815
+    second: space_elite_orbit_reaver_lights_23
+  - first:
+      213: 4952233092773816876
+    second: space_elite_orbit_reaver_lights_24
+  - first:
+      213: 6091229705394704644
+    second: space_elite_orbit_reaver_lights_25
+  - first:
+      213: 4825854935374609115
+    second: space_elite_orbit_reaver_lights_26
+  - first:
+      213: -373136894408671678
+    second: space_elite_orbit_reaver_lights_27
+  - first:
+      213: -2721784506621139026
+    second: space_elite_orbit_reaver_lights_28
+  - first:
+      213: -7163590506846936153
+    second: space_elite_orbit_reaver_lights_29
+  - first:
+      213: 758336033725880959
+    second: space_elite_orbit_reaver_lights_30
+  - first:
+      213: -7434253567001034661
+    second: space_elite_orbit_reaver_lights_31
+  - first:
+      213: -3418922249094645854
+    second: space_elite_orbit_reaver_lights_32
+  - first:
+      213: 6941376643339687693
+    second: space_elite_orbit_reaver_lights_33
+  - first:
+      213: -454722981321797142
+    second: space_elite_orbit_reaver_lights_34
+  - first:
+      213: 7642027231132215552
+    second: space_elite_orbit_reaver_lights_35
+  - first:
+      213: -6069897854900121540
+    second: space_elite_orbit_reaver_lights_36
+  - first:
+      213: 8018134909847309578
+    second: space_elite_orbit_reaver_lights_37
+  - first:
+      213: 8214877065327071681
+    second: space_elite_orbit_reaver_lights_38
+  - first:
+      213: 5605129283744569216
+    second: space_elite_orbit_reaver_lights_39
+  - first:
+      213: -7589095652178093279
+    second: space_elite_orbit_reaver_lights_40
+  - first:
+      213: 8846431300784386080
+    second: space_elite_orbit_reaver_lights_41
+  - first:
+      213: 2548850168873698502
+    second: space_elite_orbit_reaver_lights_42
+  - first:
+      213: -5818637029896258349
+    second: space_elite_orbit_reaver_lights_43
+  - first:
+      213: 7318920735275821328
+    second: space_elite_orbit_reaver_lights_44
+  - first:
+      213: 3453509689124855898
+    second: space_elite_orbit_reaver_lights_45
+  - first:
+      213: -6196568749172150748
+    second: space_elite_orbit_reaver_lights_46
+  - first:
+      213: 554771805883113917
+    second: space_elite_orbit_reaver_lights_47
+  - first:
+      213: -5586965107234743934
+    second: space_elite_orbit_reaver_lights_48
+  - first:
+      213: 237249741302071853
+    second: space_elite_orbit_reaver_lights_49
+  - first:
+      213: 4093845730712785817
+    second: space_elite_orbit_reaver_lights_50
+  - first:
+      213: -883074730171062127
+    second: space_elite_orbit_reaver_lights_51
+  - first:
+      213: 7174731918389200299
+    second: space_elite_orbit_reaver_lights_52
+  - first:
+      213: 4607710825081476929
+    second: space_elite_orbit_reaver_lights_53
+  - first:
+      213: -736112246142801589
+    second: space_elite_orbit_reaver_lights_54
+  - first:
+      213: -7272817267055429275
+    second: space_elite_orbit_reaver_lights_55
+  - first:
+      213: 7362145743802631783
+    second: space_elite_orbit_reaver_lights_56
+  - first:
+      213: -504611598288571784
+    second: space_elite_orbit_reaver_lights_57
+  - first:
+      213: 8233806988172641302
+    second: space_elite_orbit_reaver_lights_58
+  - first:
+      213: -4055677877431739648
+    second: space_elite_orbit_reaver_lights_59
+  - first:
+      213: -1060430191631286509
+    second: space_elite_orbit_reaver_lights_60
+  - first:
+      213: -4156792573360030198
+    second: space_elite_orbit_reaver_lights_61
+  - first:
+      213: -5139118958826405932
+    second: space_elite_orbit_reaver_lights_62
+  - first:
+      213: -1768636244382681491
+    second: space_elite_orbit_reaver_lights_63
+  - first:
+      213: -2237706445956667281
+    second: space_elite_orbit_reaver_lights_64
+  - first:
+      213: 8162634583227745689
+    second: space_elite_orbit_reaver_lights_65
+  - first:
+      213: 7740336840958633671
+    second: space_elite_orbit_reaver_lights_66
+  - first:
+      213: 4154924212659374435
+    second: space_elite_orbit_reaver_lights_67
+  - first:
+      213: 7305970479662350558
+    second: space_elite_orbit_reaver_lights_68
+  - first:
+      213: 7637576901113972950
+    second: space_elite_orbit_reaver_lights_69
+  - first:
+      213: 8963439231276543393
+    second: space_elite_orbit_reaver_lights_70
+  - first:
+      213: 1851040536412592476
+    second: space_elite_orbit_reaver_lights_71
+  - first:
+      213: 8124771515816494880
+    second: space_elite_orbit_reaver_lights_72
+  - first:
+      213: -5188415868237730345
+    second: space_elite_orbit_reaver_lights_73
+  - first:
+      213: 5844784681320708348
+    second: space_elite_orbit_reaver_lights_74
+  - first:
+      213: -327603192244420574
+    second: space_elite_orbit_reaver_lights_75
+  - first:
+      213: 5991826374319653829
+    second: space_elite_orbit_reaver_lights_76
+  - first:
+      213: -1252516028789613480
+    second: space_elite_orbit_reaver_lights_77
+  - first:
+      213: 2106040017329889142
+    second: space_elite_orbit_reaver_lights_78
+  - first:
+      213: 976181393837525538
+    second: space_elite_orbit_reaver_lights_79
+  - first:
+      213: 3917112640989703118
+    second: space_elite_orbit_reaver_lights_80
+  - first:
+      213: 7569613140136233199
+    second: space_elite_orbit_reaver_lights_81
+  - first:
+      213: -1149233235582470048
+    second: space_elite_orbit_reaver_lights_82
+  - first:
+      213: 8010610839649103272
+    second: space_elite_orbit_reaver_lights_83
+  - first:
+      213: -7814438160556743519
+    second: space_elite_orbit_reaver_lights_84
+  - first:
+      213: 1263452923441792757
+    second: space_elite_orbit_reaver_lights_85
+  - first:
+      213: 8579924375273471947
+    second: space_elite_orbit_reaver_lights_86
+  - first:
+      213: -4353393250633356970
+    second: space_elite_orbit_reaver_lights_87
+  - first:
+      213: -5108035317089669575
+    second: space_elite_orbit_reaver_lights_88
+  - first:
+      213: -3609554126129554679
+    second: space_elite_orbit_reaver_lights_89
+  - first:
+      213: 3490717976330026833
+    second: space_elite_orbit_reaver_lights_90
+  - first:
+      213: -4154874384292165661
+    second: space_elite_orbit_reaver_lights_91
+  - first:
+      213: -9145103895105525760
+    second: space_elite_orbit_reaver_lights_92
+  - first:
+      213: -8247628939073724717
+    second: space_elite_orbit_reaver_lights_93
+  - first:
+      213: 6165419392721093716
+    second: space_elite_orbit_reaver_lights_94
+  - first:
+      213: 1761789604279716510
+    second: space_elite_orbit_reaver_lights_95
+  - first:
+      213: 3615083472346790723
+    second: space_elite_orbit_reaver_lights_96
+  - first:
+      213: -7843311050726852702
+    second: space_elite_orbit_reaver_lights_97
+  - first:
+      213: -6767640651071466627
+    second: space_elite_orbit_reaver_lights_98
+  - first:
+      213: 5674645044603710692
+    second: space_elite_orbit_reaver_lights_99
+  - first:
+      213: -2459935392851389379
+    second: space_elite_orbit_reaver_lights_100
+  - first:
+      213: 1714745461853878290
+    second: space_elite_orbit_reaver_lights_101
+  - first:
+      213: 1220800288095499055
+    second: space_elite_orbit_reaver_lights_102
+  - first:
+      213: -8591625003098873623
+    second: space_elite_orbit_reaver_lights_103
+  - first:
+      213: -7256688687061379648
+    second: space_elite_orbit_reaver_lights_104
+  - first:
+      213: 9074725146349787049
+    second: space_elite_orbit_reaver_lights_105
+  - first:
+      213: 5024071249349852509
+    second: space_elite_orbit_reaver_lights_106
+  - first:
+      213: -2182739196614134722
+    second: space_elite_orbit_reaver_lights_107
+  - first:
+      213: -6199920044183578604
+    second: space_elite_orbit_reaver_lights_108
+  - first:
+      213: 7166633057527557416
+    second: space_elite_orbit_reaver_lights_109
+  - first:
+      213: -6951255212606098746
+    second: space_elite_orbit_reaver_lights_110
+  - first:
+      213: 4355862103546295910
+    second: space_elite_orbit_reaver_lights_111
+  - first:
+      213: -8716621885350068760
+    second: space_elite_orbit_reaver_lights_112
+  - first:
+      213: 3300194262388528579
+    second: space_elite_orbit_reaver_lights_113
+  - first:
+      213: 3327790568197668492
+    second: space_elite_orbit_reaver_lights_114
+  - first:
+      213: -2528747326436702556
+    second: space_elite_orbit_reaver_lights_115
+  - first:
+      213: -5905448881548801744
+    second: space_elite_orbit_reaver_lights_116
+  - first:
+      213: -120029542052635414
+    second: space_elite_orbit_reaver_lights_117
+  - first:
+      213: -4248217304565015347
+    second: space_elite_orbit_reaver_lights_118
+  - first:
+      213: 426410783222982192
+    second: space_elite_orbit_reaver_lights_119
+  - first:
+      213: -5627561662942930555
+    second: space_elite_orbit_reaver_lights_120
+  - first:
+      213: -2703756580313201841
+    second: space_elite_orbit_reaver_lights_121
+  - first:
+      213: -6705213149332016272
+    second: space_elite_orbit_reaver_lights_122
+  - first:
+      213: 6630788228545559973
+    second: space_elite_orbit_reaver_lights_123
+  - first:
+      213: -4602167104881540383
+    second: space_elite_orbit_reaver_lights_124
+  - first:
+      213: -2907029008678650042
+    second: space_elite_orbit_reaver_lights_125
+  - first:
+      213: -6679618629993069871
+    second: space_elite_orbit_reaver_lights_126
+  - first:
+      213: -7786676425993630361
+    second: space_elite_orbit_reaver_lights_127
+  - first:
+      213: 1218023799034980403
+    second: space_elite_orbit_reaver_lights_128
+  - first:
+      213: 724732355683212402
+    second: space_elite_orbit_reaver_lights_129
+  - first:
+      213: 4154838583236910846
+    second: space_elite_orbit_reaver_lights_130
+  - first:
+      213: 5474794143132902273
+    second: space_elite_orbit_reaver_lights_131
+  - first:
+      213: -8545494713203653293
+    second: space_elite_orbit_reaver_lights_132
+  - first:
+      213: 5009475732766824988
+    second: space_elite_orbit_reaver_lights_133
+  - first:
+      213: 3963497677405153485
+    second: space_elite_orbit_reaver_lights_134
+  - first:
+      213: -7877924927493880110
+    second: space_elite_orbit_reaver_lights_135
+  - first:
+      213: -4066935996881646989
+    second: space_elite_orbit_reaver_lights_136
+  - first:
+      213: 1756941504246136231
+    second: space_elite_orbit_reaver_lights_137
+  - first:
+      213: -2662233346975659798
+    second: space_elite_orbit_reaver_lights_138
+  - first:
+      213: -7431557805016505281
+    second: space_elite_orbit_reaver_lights_139
+  - first:
+      213: -2034236712628703529
+    second: space_elite_orbit_reaver_lights_140
+  - first:
+      213: -5225107034918819701
+    second: space_elite_orbit_reaver_lights_141
+  - first:
+      213: -648550262335685814
+    second: space_elite_orbit_reaver_lights_142
+  - first:
+      213: 5959203923456692607
+    second: space_elite_orbit_reaver_lights_143
+  - first:
+      213: 3045992172978881140
+    second: space_elite_orbit_reaver_lights_144
+  - first:
+      213: -2929289977410896013
+    second: space_elite_orbit_reaver_lights_145
+  - first:
+      213: -543223072113542894
+    second: space_elite_orbit_reaver_lights_146
+  - first:
+      213: -601667101607650763
+    second: space_elite_orbit_reaver_lights_147
+  - first:
+      213: 6277948270550640495
+    second: space_elite_orbit_reaver_lights_148
+  - first:
+      213: 1739241741145367498
+    second: space_elite_orbit_reaver_lights_149
+  - first:
+      213: 2111027290413963061
+    second: space_elite_orbit_reaver_lights_150
+  - first:
+      213: 2640684122936261957
+    second: space_elite_orbit_reaver_lights_151
+  - first:
+      213: -232956549399521316
+    second: space_elite_orbit_reaver_lights_152
+  - first:
+      213: 4409201582721708839
+    second: space_elite_orbit_reaver_lights_153
+  - first:
+      213: -303257445493590360
+    second: space_elite_orbit_reaver_lights_154
+  - first:
+      213: -2514060335564063582
+    second: space_elite_orbit_reaver_lights_155
+  - first:
+      213: -658565892404062852
+    second: space_elite_orbit_reaver_lights_156
+  - first:
+      213: 8402125226152049211
+    second: space_elite_orbit_reaver_lights_157
+  - first:
+      213: -1184792380446870879
+    second: space_elite_orbit_reaver_lights_158
+  - first:
+      213: 14875263146229976
+    second: space_elite_orbit_reaver_lights_159
+  - first:
+      213: -2522010572282189355
+    second: space_elite_orbit_reaver_lights_160
+  - first:
+      213: -8835330319652912945
+    second: space_elite_orbit_reaver_lights_161
+  - first:
+      213: -9019973413414484550
+    second: space_elite_orbit_reaver_lights_162
+  - first:
+      213: 9197437492157331316
+    second: space_elite_orbit_reaver_lights_163
+  - first:
+      213: 8401498288535481437
+    second: space_elite_orbit_reaver_lights_164
+  - first:
+      213: -4041683993592328570
+    second: space_elite_orbit_reaver_lights_165
+  - first:
+      213: 4659908954673548100
+    second: space_elite_orbit_reaver_lights_166
+  - first:
+      213: -615298152038634552
+    second: space_elite_orbit_reaver_lights_167
+  - first:
+      213: -6727462543012266227
+    second: space_elite_orbit_reaver_lights_168
+  - first:
+      213: 1642459437637102866
+    second: space_elite_orbit_reaver_lights_169
+  - first:
+      213: -7294738838197356300
+    second: space_elite_orbit_reaver_lights_170
+  - first:
+      213: -6263026000786090362
+    second: space_elite_orbit_reaver_lights_171
+  - first:
+      213: -5785786733832800945
+    second: space_elite_orbit_reaver_lights_172
+  - first:
+      213: 1221239461668350084
+    second: space_elite_orbit_reaver_lights_173
+  - first:
+      213: -7115443060522238437
+    second: space_elite_orbit_reaver_lights_174
+  - first:
+      213: -721439757291719032
+    second: space_elite_orbit_reaver_lights_175
+  - first:
+      213: -5890265270784875201
+    second: space_elite_orbit_reaver_lights_176
+  - first:
+      213: -4859787911356928587
+    second: space_elite_orbit_reaver_lights_177
+  - first:
+      213: -9026088932590842114
+    second: space_elite_orbit_reaver_lights_178
+  - first:
+      213: -3484727882388949430
+    second: space_elite_orbit_reaver_lights_179
+  - first:
+      213: -3785219313476428244
+    second: space_elite_orbit_reaver_lights_180
+  - first:
+      213: -4485849844977233423
+    second: space_elite_orbit_reaver_lights_181
+  - first:
+      213: 1788863131943984397
+    second: space_elite_orbit_reaver_lights_182
+  - first:
+      213: 7286445363951246736
+    second: space_elite_orbit_reaver_lights_183
+  - first:
+      213: 4418734310787857483
+    second: space_elite_orbit_reaver_lights_184
+  - first:
+      213: 1503435377024260117
+    second: space_elite_orbit_reaver_lights_185
+  - first:
+      213: 1892594327297599493
+    second: space_elite_orbit_reaver_lights_186
+  - first:
+      213: 8790051747386519602
+    second: space_elite_orbit_reaver_lights_187
+  - first:
+      213: -8225698428621255670
+    second: space_elite_orbit_reaver_lights_188
+  - first:
+      213: 492937262385745045
+    second: space_elite_orbit_reaver_lights_189
+  - first:
+      213: 5486174116685931867
+    second: space_elite_orbit_reaver_lights_190
+  - first:
+      213: 7151331140216374835
+    second: space_elite_orbit_reaver_lights_191
+  - first:
+      213: 8052754576161245336
+    second: space_elite_orbit_reaver_lights_192
+  - first:
+      213: 3294885090697934261
+    second: space_elite_orbit_reaver_lights_193
+  - first:
+      213: -3598716149535767929
+    second: space_elite_orbit_reaver_lights_194
+  - first:
+      213: 90940888026648363
+    second: space_elite_orbit_reaver_lights_195
+  - first:
+      213: -604597195195310835
+    second: space_elite_orbit_reaver_lights_196
+  - first:
+      213: 6377919609710872021
+    second: space_elite_orbit_reaver_lights_197
+  - first:
+      213: 5940667851729057486
+    second: space_elite_orbit_reaver_lights_198
+  - first:
+      213: 4649060245961955925
+    second: space_elite_orbit_reaver_lights_199
+  - first:
+      213: 4891312375716762365
+    second: space_elite_orbit_reaver_lights_200
+  - first:
+      213: 8619388997237311268
+    second: space_elite_orbit_reaver_lights_201
+  - first:
+      213: -6160912325366780406
+    second: space_elite_orbit_reaver_lights_202
+  - first:
+      213: -2338603557543917393
+    second: space_elite_orbit_reaver_lights_203
+  - first:
+      213: -7649685304503309820
+    second: space_elite_orbit_reaver_lights_204
+  - first:
+      213: 8389009116669398068
+    second: space_elite_orbit_reaver_lights_205
+  - first:
+      213: 3059462269035811757
+    second: space_elite_orbit_reaver_lights_206
+  - first:
+      213: 3499170309636343214
+    second: space_elite_orbit_reaver_lights_207
+  - first:
+      213: -9018844264654478337
+    second: space_elite_orbit_reaver_lights_208
+  - first:
+      213: 2450137334046506550
+    second: space_elite_orbit_reaver_lights_209
+  - first:
+      213: 356969337081956779
+    second: space_elite_orbit_reaver_lights_210
+  - first:
+      213: -641176749827904927
+    second: space_elite_orbit_reaver_lights_211
+  - first:
+      213: 8606938245003085462
+    second: space_elite_orbit_reaver_lights_212
+  - first:
+      213: 868131368516434562
+    second: space_elite_orbit_reaver_lights_213
+  - first:
+      213: -7550739537909060178
+    second: space_elite_orbit_reaver_lights_214
+  - first:
+      213: -1878588355532246912
+    second: space_elite_orbit_reaver_lights_215
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: 50
+    textureCompression: 1
+    compressionQuality: 100
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 1
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: iOS
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: 50
+    textureCompression: 1
+    compressionQuality: 100
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 1
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_0
+      rect:
+        serializedVersion: 2
+        x: 140
+        y: 354
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2c12a67fed8bc7d50800000000000000
+      internalID: 6736462410412597698
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_1
+      rect:
+        serializedVersion: 2
+        x: 154
+        y: 362
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b3cff235766750000800000000000000
+      internalID: 1537561032916027
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_2
+      rect:
+        serializedVersion: 2
+        x: 227
+        y: 360
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9df5807b3de785360800000000000000
+      internalID: 7158611055479381977
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_3
+      rect:
+        serializedVersion: 2
+        x: 523
+        y: 353
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c9ddd52cf329a4620800000000000000
+      internalID: 2759178524259376540
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_4
+      rect:
+        serializedVersion: 2
+        x: 538
+        y: 362
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7870386c83b3f3ae0800000000000000
+      internalID: -1567469030266959993
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_5
+      rect:
+        serializedVersion: 2
+        x: 610
+        y: 359
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8d238d2ba373635e0800000000000000
+      internalID: -1930294665033534760
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_6
+      rect:
+        serializedVersion: 2
+        x: 906
+        y: 352
+        width: 17
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1c2d3d6abd6a16a90800000000000000
+      internalID: -7322388056800767295
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_7
+      rect:
+        serializedVersion: 2
+        x: 921
+        y: 361
+        width: 17
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9b5d156989347c370800000000000000
+      internalID: 8342711157363168697
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_8
+      rect:
+        serializedVersion: 2
+        x: 993
+        y: 358
+        width: 17
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 932db7dd1aaf8fc70800000000000000
+      internalID: 9005223028039864889
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_9
+      rect:
+        serializedVersion: 2
+        x: 1291
+        y: 353
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e14cf9c22060335f0800000000000000
+      internalID: -778271704196594658
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_10
+      rect:
+        serializedVersion: 2
+        x: 1305
+        y: 361
+        width: 17
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a8f4aec5794605d00800000000000000
+      internalID: 959377321891614602
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_11
+      rect:
+        serializedVersion: 2
+        x: 1378
+        y: 359
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c77dc685d94fdf910800000000000000
+      internalID: 1872921976686565244
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_12
+      rect:
+        serializedVersion: 2
+        x: 1674
+        y: 352
+        width: 17
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c12713470be7d5a30800000000000000
+      internalID: 4205656923362652700
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_13
+      rect:
+        serializedVersion: 2
+        x: 1689
+        y: 361
+        width: 17
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e76066191affd5c20800000000000000
+      internalID: 3196992379897120382
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_14
+      rect:
+        serializedVersion: 2
+        x: 1761
+        y: 358
+        width: 17
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 46bdfe170c2fc4430800000000000000
+      internalID: 3768653896561449828
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_15
+      rect:
+        serializedVersion: 2
+        x: 2058
+        y: 352
+        width: 17
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 348db7c0a5291bc80800000000000000
+      internalID: -8308698922067699645
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_16
+      rect:
+        serializedVersion: 2
+        x: 2073
+        y: 361
+        width: 17
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 28636ea2af3d92aa0800000000000000
+      internalID: -6185179541801650558
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_17
+      rect:
+        serializedVersion: 2
+        x: 2145
+        y: 358
+        width: 17
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 39428e3cecea43820800000000000000
+      internalID: 2897132663379338387
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_18
+      rect:
+        serializedVersion: 2
+        x: 2442
+        y: 352
+        width: 17
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 520acdd13c10b77c0800000000000000
+      internalID: -4072659500495232987
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_19
+      rect:
+        serializedVersion: 2
+        x: 2458
+        y: 362
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0cef9e2295c58e4c0800000000000000
+      internalID: -4258051909771198784
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_20
+      rect:
+        serializedVersion: 2
+        x: 2529
+        y: 358
+        width: 17
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 436f1a77365559a40800000000000000
+      internalID: 5374295616033781300
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_21
+      rect:
+        serializedVersion: 2
+        x: 2826
+        y: 352
+        width: 17
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a4c14458e292c7980800000000000000
+      internalID: -8539905513620235190
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_22
+      rect:
+        serializedVersion: 2
+        x: 2842
+        y: 362
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f390bdbc1caf491d0800000000000000
+      internalID: -3344772912973674177
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_23
+      rect:
+        serializedVersion: 2
+        x: 2914
+        y: 359
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f21a0f79e8ab6b560800000000000000
+      internalID: 7329250565189312815
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_24
+      rect:
+        serializedVersion: 2
+        x: 3211
+        y: 353
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c2aa7b382cdd9b440800000000000000
+      internalID: 4952233092773816876
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_25
+      rect:
+        serializedVersion: 2
+        x: 3226
+        y: 362
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 401db53f425688450800000000000000
+      internalID: 6091229705394704644
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_26
+      rect:
+        serializedVersion: 2
+        x: 3298
+        y: 359
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bdab198ce71e8f240800000000000000
+      internalID: 4825854935374609115
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_27
+      rect:
+        serializedVersion: 2
+        x: 3595
+        y: 353
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 24ebd24b8f952daf0800000000000000
+      internalID: -373136894408671678
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_28
+      rect:
+        serializedVersion: 2
+        x: 3610
+        y: 362
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ea76faf69674a3ad0800000000000000
+      internalID: -2721784506621139026
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_29
+      rect:
+        serializedVersion: 2
+        x: 3682
+        y: 359
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7a3270b6360d59c90800000000000000
+      internalID: -7163590506846936153
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_30
+      rect:
+        serializedVersion: 2
+        x: 3979
+        y: 353
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f7a1c96da96268a00800000000000000
+      internalID: 758336033725880959
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_31
+      rect:
+        serializedVersion: 2
+        x: 3994
+        y: 362
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b5009b8e4c934d890800000000000000
+      internalID: -7434253567001034661
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_32
+      rect:
+        serializedVersion: 2
+        x: 4066
+        y: 359
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2a7b804245c8d80d0800000000000000
+      internalID: -3418922249094645854
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_33
+      rect:
+        serializedVersion: 2
+        x: 4363
+        y: 354
+        width: 15
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d079476b749b45060800000000000000
+      internalID: 6941376643339687693
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_34
+      rect:
+        serializedVersion: 2
+        x: 4378
+        y: 363
+        width: 15
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ae19b139bdf70b9f0800000000000000
+      internalID: -454722981321797142
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_35
+      rect:
+        serializedVersion: 2
+        x: 4449
+        y: 359
+        width: 17
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0096f7b074fed0a60800000000000000
+      internalID: 7642027231132215552
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_36
+      rect:
+        serializedVersion: 2
+        x: 137
+        y: 336
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c30d5c78f0463cba0800000000000000
+      internalID: -6069897854900121540
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_37
+      rect:
+        serializedVersion: 2
+        x: 236
+        y: 330
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a0d8b96f733264f60800000000000000
+      internalID: 8018134909847309578
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_38
+      rect:
+        serializedVersion: 2
+        x: 521
+        y: 335
+        width: 13
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1c1d258aa2b110270800000000000000
+      internalID: 8214877065327071681
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_39
+      rect:
+        serializedVersion: 2
+        x: 620
+        y: 329
+        width: 13
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0871cb5e26b69cd40800000000000000
+      internalID: 5605129283744569216
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_40
+      rect:
+        serializedVersion: 2
+        x: 904
+        y: 335
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 12b967d86bd1ea690800000000000000
+      internalID: -7589095652178093279
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_41
+      rect:
+        serializedVersion: 2
+        x: 1003
+        y: 329
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 020762dc566d4ca70800000000000000
+      internalID: 8846431300784386080
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_42
+      rect:
+        serializedVersion: 2
+        x: 1288
+        y: 335
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6c4496569b55f5320800000000000000
+      internalID: 2548850168873698502
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_43
+      rect:
+        serializedVersion: 2
+        x: 1387
+        y: 329
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3dc7914237c004fa0800000000000000
+      internalID: -5818637029896258349
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_44
+      rect:
+        serializedVersion: 2
+        x: 1672
+        y: 335
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0192b55a1a7029560800000000000000
+      internalID: 7318920735275821328
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_45
+      rect:
+        serializedVersion: 2
+        x: 1771
+        y: 329
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a5028a8c3c45def20800000000000000
+      internalID: 3453509689124855898
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_46
+      rect:
+        serializedVersion: 2
+        x: 2056
+        y: 335
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 42eae4fad8d510aa0800000000000000
+      internalID: -6196568749172150748
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_47
+      rect:
+        serializedVersion: 2
+        x: 2155
+        y: 329
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: db1a015a402f2b700800000000000000
+      internalID: 554771805883113917
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_48
+      rect:
+        serializedVersion: 2
+        x: 2439
+        y: 334
+        width: 17
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 28955c206dc1772b0800000000000000
+      internalID: -5586965107234743934
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_49
+      rect:
+        serializedVersion: 2
+        x: 2539
+        y: 329
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d220d59f161ea4300800000000000000
+      internalID: 237249741302071853
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_50
+      rect:
+        serializedVersion: 2
+        x: 2823
+        y: 334
+        width: 17
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9939260800340d830800000000000000
+      internalID: 4093845730712785817
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_51
+      rect:
+        serializedVersion: 2
+        x: 2922
+        y: 328
+        width: 17
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 198a70e2630beb3f0800000000000000
+      internalID: -883074730171062127
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_52
+      rect:
+        serializedVersion: 2
+        x: 3207
+        y: 334
+        width: 17
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ba5ce3a9aa4c19360800000000000000
+      internalID: 7174731918389200299
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_53
+      rect:
+        serializedVersion: 2
+        x: 3306
+        y: 328
+        width: 17
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 14714bc2590e1ff30800000000000000
+      internalID: 4607710825081476929
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_54
+      rect:
+        serializedVersion: 2
+        x: 3592
+        y: 335
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b49e7ddefcdc8c5f0800000000000000
+      internalID: -736112246142801589
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_55
+      rect:
+        serializedVersion: 2
+        x: 3690
+        y: 328
+        width: 17
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 56975d88a33c11b90800000000000000
+      internalID: -7272817267055429275
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_56
+      rect:
+        serializedVersion: 2
+        x: 3976
+        y: 335
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 76682043c889b2660800000000000000
+      internalID: 7362145743802631783
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_57
+      rect:
+        serializedVersion: 2
+        x: 4075
+        y: 329
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 872b776cc624ff8f0800000000000000
+      internalID: -504611598288571784
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_58
+      rect:
+        serializedVersion: 2
+        x: 4359
+        y: 335
+        width: 17
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 614c827c4db544270800000000000000
+      internalID: 8233806988172641302
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_59
+      rect:
+        serializedVersion: 2
+        x: 4459
+        y: 330
+        width: 15
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 00b5548557657b7c0800000000000000
+      internalID: -4055677877431739648
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_60
+      rect:
+        serializedVersion: 2
+        x: 119
+        y: 300
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 31fb7beeb589841f0800000000000000
+      internalID: -1060430191631286509
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_61
+      rect:
+        serializedVersion: 2
+        x: 251
+        y: 306
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a0eb4eb9d2b1056c0800000000000000
+      internalID: -4156792573360030198
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_62
+      rect:
+        serializedVersion: 2
+        x: 503
+        y: 299
+        width: 13
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4df3da0098e2ea8b0800000000000000
+      internalID: -5139118958826405932
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_63
+      rect:
+        serializedVersion: 2
+        x: 635
+        y: 305
+        width: 13
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d6670b4d4ba8477e0800000000000000
+      internalID: -1768636244382681491
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_64
+      rect:
+        serializedVersion: 2
+        x: 886
+        y: 299
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f68a621e7d112f0e0800000000000000
+      internalID: -2237706445956667281
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_65
+      rect:
+        serializedVersion: 2
+        x: 1018
+        y: 305
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 995cb9ce7e0874170800000000000000
+      internalID: 8162634583227745689
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_66
+      rect:
+        serializedVersion: 2
+        x: 1270
+        y: 299
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7c66537c8533b6b60800000000000000
+      internalID: 7740336840958633671
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_67
+      rect:
+        serializedVersion: 2
+        x: 1402
+        y: 305
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3694b34ce8149a930800000000000000
+      internalID: 4154924212659374435
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_68
+      rect:
+        serializedVersion: 2
+        x: 1654
+        y: 299
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ed0c3cb4175046560800000000000000
+      internalID: 7305970479662350558
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_69
+      rect:
+        serializedVersion: 2
+        x: 1786
+        y: 305
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6d880a7d9bf1ef960800000000000000
+      internalID: 7637576901113972950
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_70
+      rect:
+        serializedVersion: 2
+        x: 2038
+        y: 299
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1ade9029d78846c70800000000000000
+      internalID: 8963439231276543393
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_71
+      rect:
+        serializedVersion: 2
+        x: 2170
+        y: 305
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c5998b58f8730b910800000000000000
+      internalID: 1851040536412592476
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_72
+      rect:
+        serializedVersion: 2
+        x: 2422
+        y: 299
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 027447195acf0c070800000000000000
+      internalID: 8124771515816494880
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_73
+      rect:
+        serializedVersion: 2
+        x: 2554
+        y: 305
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7dda0bad14b0ff7b0800000000000000
+      internalID: -5188415868237730345
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_74
+      rect:
+        serializedVersion: 2
+        x: 2806
+        y: 299
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cf8f3ce53b8dc1150800000000000000
+      internalID: 5844784681320708348
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_75
+      rect:
+        serializedVersion: 2
+        x: 2938
+        y: 305
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 220ccf2e1ae147bf0800000000000000
+      internalID: -327603192244420574
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_76
+      rect:
+        serializedVersion: 2
+        x: 3190
+        y: 299
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5c3c325675e372350800000000000000
+      internalID: 5991826374319653829
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_77
+      rect:
+        serializedVersion: 2
+        x: 3321
+        y: 304
+        width: 17
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 85c1384de4b2e9ee0800000000000000
+      internalID: -1252516028789613480
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_78
+      rect:
+        serializedVersion: 2
+        x: 3573
+        y: 298
+        width: 17
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 67f94bbcc382a3d10800000000000000
+      internalID: 2106040017329889142
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_79
+      rect:
+        serializedVersion: 2
+        x: 3705
+        y: 304
+        width: 17
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 22a08004ec71c8d00800000000000000
+      internalID: 976181393837525538
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_80
+      rect:
+        serializedVersion: 2
+        x: 3957
+        y: 298
+        width: 17
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ecb226771316c5630800000000000000
+      internalID: 3917112640989703118
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_81
+      rect:
+        serializedVersion: 2
+        x: 4089
+        y: 304
+        width: 17
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fe803f0ab0bac0960800000000000000
+      internalID: 7569613140136233199
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_82
+      rect:
+        serializedVersion: 2
+        x: 4341
+        y: 299
+        width: 17
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 068b80d067a1d00f0800000000000000
+      internalID: -1149233235582470048
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_83
+      rect:
+        serializedVersion: 2
+        x: 4474
+        y: 306
+        width: 15
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8adad2bdd186b2f60800000000000000
+      internalID: 8010610839649103272
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_84
+      rect:
+        serializedVersion: 2
+        x: 113
+        y: 276
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1a422c845e98d8390800000000000000
+      internalID: -7814438160556743519
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_85
+      rect:
+        serializedVersion: 2
+        x: 188
+        y: 276
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5f64d246dbfa88110800000000000000
+      internalID: 1263452923441792757
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_86
+      rect:
+        serializedVersion: 2
+        x: 257
+        y: 288
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bcff3ebc2c3021770800000000000000
+      internalID: 8579924375273471947
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_87
+      rect:
+        serializedVersion: 2
+        x: 497
+        y: 275
+        width: 13
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6596a6067e3a593c0800000000000000
+      internalID: -4353393250633356970
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_88
+      rect:
+        serializedVersion: 2
+        x: 572
+        y: 275
+        width: 13
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 93e68b051fc9c19b0800000000000000
+      internalID: -5108035317089669575
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_89
+      rect:
+        serializedVersion: 2
+        x: 641
+        y: 287
+        width: 13
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 90b908285a948edc0800000000000000
+      internalID: -3609554126129554679
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_90
+      rect:
+        serializedVersion: 2
+        x: 880
+        y: 275
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 15fb83e3185817030800000000000000
+      internalID: 3490717976330026833
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_91
+      rect:
+        serializedVersion: 2
+        x: 955
+        y: 275
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3e745edc2cbe656c0800000000000000
+      internalID: -4154874384292165661
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_92
+      rect:
+        serializedVersion: 2
+        x: 1024
+        y: 287
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 008a132d570161180800000000000000
+      internalID: -9145103895105525760
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_93
+      rect:
+        serializedVersion: 2
+        x: 1264
+        y: 275
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3de574f7d298a8d80800000000000000
+      internalID: -8247628939073724717
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_94
+      rect:
+        serializedVersion: 2
+        x: 1339
+        y: 275
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 454027a9548ff8550800000000000000
+      internalID: 6165419392721093716
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_95
+      rect:
+        serializedVersion: 2
+        x: 1408
+        y: 287
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e9a811c8f42237810800000000000000
+      internalID: 1761789604279716510
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_96
+      rect:
+        serializedVersion: 2
+        x: 1648
+        y: 275
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 34bbd9ab34b5b2230800000000000000
+      internalID: 3615083472346790723
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_97
+      rect:
+        serializedVersion: 2
+        x: 1723
+        y: 275
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2a7b78ea726f62390800000000000000
+      internalID: -7843311050726852702
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_98
+      rect:
+        serializedVersion: 2
+        x: 1792
+        y: 287
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d7354613fa28412a0800000000000000
+      internalID: -6767640651071466627
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_99
+      rect:
+        serializedVersion: 2
+        x: 2032
+        y: 275
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4ece80e3a9360ce40800000000000000
+      internalID: 5674645044603710692
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_100
+      rect:
+        serializedVersion: 2
+        x: 2107
+        y: 275
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d349ea22bcd8cddd0800000000000000
+      internalID: -2459935392851389379
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_101
+      rect:
+        serializedVersion: 2
+        x: 2176
+        y: 287
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 218730699effbc710800000000000000
+      internalID: 1714745461853878290
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_102
+      rect:
+        serializedVersion: 2
+        x: 2416
+        y: 275
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f2370a9d46721f010800000000000000
+      internalID: 1220800288095499055
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_103
+      rect:
+        serializedVersion: 2
+        x: 2491
+        y: 275
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9e06dee749a64c880800000000000000
+      internalID: -8591625003098873623
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_104
+      rect:
+        serializedVersion: 2
+        x: 2560
+        y: 287
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0c55c1236101b4b90800000000000000
+      internalID: -7256688687061379648
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_105
+      rect:
+        serializedVersion: 2
+        x: 2800
+        y: 275
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9a7db7ec076efed70800000000000000
+      internalID: 9074725146349787049
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_106
+      rect:
+        serializedVersion: 2
+        x: 2875
+        y: 275
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d5d30cfbe2619b540800000000000000
+      internalID: 5024071249349852509
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_107
+      rect:
+        serializedVersion: 2
+        x: 2944
+        y: 287
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e343e7ce34a55b1e0800000000000000
+      internalID: -2182739196614134722
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_108
+      rect:
+        serializedVersion: 2
+        x: 3184
+        y: 275
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4181d92819575f9a0800000000000000
+      internalID: -6199920044183578604
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_109
+      rect:
+        serializedVersion: 2
+        x: 3259
+        y: 275
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 82d608d9bcef47360800000000000000
+      internalID: 7166633057527557416
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_110
+      rect:
+        serializedVersion: 2
+        x: 3328
+        y: 287
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6c2f785a63e288f90800000000000000
+      internalID: -6951255212606098746
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_111
+      rect:
+        serializedVersion: 2
+        x: 3568
+        y: 275
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 666767c3181237c30800000000000000
+      internalID: 4355862103546295910
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_112
+      rect:
+        serializedVersion: 2
+        x: 3643
+        y: 275
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8ed3052f396580780800000000000000
+      internalID: -8716621885350068760
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_113
+      rect:
+        serializedVersion: 2
+        x: 3712
+        y: 287
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3c5537b4235accd20800000000000000
+      internalID: 3300194262388528579
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_114
+      rect:
+        serializedVersion: 2
+        x: 3952
+        y: 275
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c8e3150f3efae2e20800000000000000
+      internalID: 3327790568197668492
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_115
+      rect:
+        serializedVersion: 2
+        x: 4027
+        y: 275
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4a6850954b518ecd0800000000000000
+      internalID: -2528747326436702556
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_116
+      rect:
+        serializedVersion: 2
+        x: 4095
+        y: 286
+        width: 17
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0394e08d781ab0ea0800000000000000
+      internalID: -5905448881548801744
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_117
+      rect:
+        serializedVersion: 2
+        x: 4336
+        y: 276
+        width: 15
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: aec566774c1955ef0800000000000000
+      internalID: -120029542052635414
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_118
+      rect:
+        serializedVersion: 2
+        x: 4410
+        y: 275
+        width: 17
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: dcc1cb89edc4b05c0800000000000000
+      internalID: -4248217304565015347
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_119
+      rect:
+        serializedVersion: 2
+        x: 4479
+        y: 287
+        width: 17
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 036e66e195aeae500800000000000000
+      internalID: 426410783222982192
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_120
+      rect:
+        serializedVersion: 2
+        x: 116
+        y: 255
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5891ea0db72e6e1b0800000000000000
+      internalID: -5627561662942930555
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_121
+      rect:
+        serializedVersion: 2
+        x: 152
+        y: 264
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f438e4f17b35a7ad0800000000000000
+      internalID: -2703756580313201841
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_122
+      rect:
+        serializedVersion: 2
+        x: 260
+        y: 267
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 07379ca9a2c42f2a0800000000000000
+      internalID: -6705213149332016272
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_123
+      rect:
+        serializedVersion: 2
+        x: 500
+        y: 254
+        width: 13
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5adbc4f23ca450c50800000000000000
+      internalID: 6630788228545559973
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_124
+      rect:
+        serializedVersion: 2
+        x: 536
+        y: 263
+        width: 13
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1e24c84c661d120c0800000000000000
+      internalID: -4602167104881540383
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_125
+      rect:
+        serializedVersion: 2
+        x: 644
+        y: 266
+        width: 13
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 64ff3f9c48828a7d0800000000000000
+      internalID: -2907029008678650042
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_126
+      rect:
+        serializedVersion: 2
+        x: 883
+        y: 254
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1d28e240f3a3d43a0800000000000000
+      internalID: -6679618629993069871
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_127
+      rect:
+        serializedVersion: 2
+        x: 919
+        y: 263
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 76dcdbfcb0b20f390800000000000000
+      internalID: -7786676425993630361
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_128
+      rect:
+        serializedVersion: 2
+        x: 1027
+        y: 266
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 338a37d113a47e010800000000000000
+      internalID: 1218023799034980403
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_129
+      rect:
+        serializedVersion: 2
+        x: 1267
+        y: 254
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 27cdab9dc34ce0a00800000000000000
+      internalID: 724732355683212402
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_130
+      rect:
+        serializedVersion: 2
+        x: 1303
+        y: 263
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: efe5cec9da3f8a930800000000000000
+      internalID: 4154838583236910846
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_131
+      rect:
+        serializedVersion: 2
+        x: 1411
+        y: 266
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 18363d734406afb40800000000000000
+      internalID: 5474794143132902273
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_132
+      rect:
+        serializedVersion: 2
+        x: 1651
+        y: 254
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 355848595dd486980800000000000000
+      internalID: -8545494713203653293
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_133
+      rect:
+        serializedVersion: 2
+        x: 1687
+        y: 263
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c1a918a33ab358540800000000000000
+      internalID: 5009475732766824988
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_134
+      rect:
+        serializedVersion: 2
+        x: 1795
+        y: 266
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: dc8e1d9532c210730800000000000000
+      internalID: 3963497677405153485
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_135
+      rect:
+        serializedVersion: 2
+        x: 2035
+        y: 254
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2d64889740dfba290800000000000000
+      internalID: -7877924927493880110
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_136
+      rect:
+        serializedVersion: 2
+        x: 2071
+        y: 263
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 37ace9522475f87c0800000000000000
+      internalID: -4066935996881646989
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_137
+      rect:
+        serializedVersion: 2
+        x: 2179
+        y: 266
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7ad3bbb4df8e16810800000000000000
+      internalID: 1756941504246136231
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_138
+      rect:
+        serializedVersion: 2
+        x: 2419
+        y: 254
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ae8015440e8dd0bd0800000000000000
+      internalID: -2662233346975659798
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_139
+      rect:
+        serializedVersion: 2
+        x: 2455
+        y: 263
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f34a538ec8dcdd890800000000000000
+      internalID: -7431557805016505281
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_140
+      rect:
+        serializedVersion: 2
+        x: 2563
+        y: 266
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7de25badc70f4c3e0800000000000000
+      internalID: -2034236712628703529
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_141
+      rect:
+        serializedVersion: 2
+        x: 2803
+        y: 254
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b88e446e5d0bc77b0800000000000000
+      internalID: -5225107034918819701
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_142
+      rect:
+        serializedVersion: 2
+        x: 2839
+        y: 263
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a4bbe7af8f2eff6f0800000000000000
+      internalID: -648550262335685814
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_143
+      rect:
+        serializedVersion: 2
+        x: 2947
+        y: 266
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f7110c9256853b250800000000000000
+      internalID: 5959203923456692607
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_144
+      rect:
+        serializedVersion: 2
+        x: 3187
+        y: 254
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 472c6033eb9854a20800000000000000
+      internalID: 3045992172978881140
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_145
+      rect:
+        serializedVersion: 2
+        x: 3223
+        y: 263
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 37fbf4c19421957d0800000000000000
+      internalID: -2929289977410896013
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_146
+      rect:
+        serializedVersion: 2
+        x: 3331
+        y: 266
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 21930e87e751678f0800000000000000
+      internalID: -543223072113542894
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_147
+      rect:
+        serializedVersion: 2
+        x: 3571
+        y: 254
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 53a13a775f276a7f0800000000000000
+      internalID: -601667101607650763
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_148
+      rect:
+        serializedVersion: 2
+        x: 3607
+        y: 263
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f67e278a0b0cf1750800000000000000
+      internalID: 6277948270550640495
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_149
+      rect:
+        serializedVersion: 2
+        x: 3715
+        y: 266
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ac3608f0627032810800000000000000
+      internalID: 1739241741145367498
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_150
+      rect:
+        serializedVersion: 2
+        x: 3955
+        y: 254
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 537974cc220eb4d10800000000000000
+      internalID: 2111027290413963061
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_151
+      rect:
+        serializedVersion: 2
+        x: 3991
+        y: 263
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 54d31a7083895a420800000000000000
+      internalID: 2640684122936261957
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_152
+      rect:
+        serializedVersion: 2
+        x: 4099
+        y: 266
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cd7d0f8a04f54ccf0800000000000000
+      internalID: -232956549399521316
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_153
+      rect:
+        serializedVersion: 2
+        x: 4339
+        y: 255
+        width: 15
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 723b7318a71a03d30800000000000000
+      internalID: 4409201582721708839
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_154
+      rect:
+        serializedVersion: 2
+        x: 4375
+        y: 264
+        width: 15
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8a6bcd5c5fc9acbf0800000000000000
+      internalID: -303257445493590360
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_155
+      rect:
+        serializedVersion: 2
+        x: 4482
+        y: 266
+        width: 17
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2acfdc2e1734c1dd0800000000000000
+      internalID: -2514060335564063582
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_156
+      rect:
+        serializedVersion: 2
+        x: 251
+        y: 246
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c7551126fcd4cd6f0800000000000000
+      internalID: -658565892404062852
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_157
+      rect:
+        serializedVersion: 2
+        x: 635
+        y: 245
+        width: 13
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b3a342770685a9470800000000000000
+      internalID: 8402125226152049211
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_158
+      rect:
+        serializedVersion: 2
+        x: 1018
+        y: 245
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1a2ffd67b95ce8fe0800000000000000
+      internalID: -1184792380446870879
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_159
+      rect:
+        serializedVersion: 2
+        x: 1402
+        y: 245
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8d085c719f8d43000800000000000000
+      internalID: 14875263146229976
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_160
+      rect:
+        serializedVersion: 2
+        x: 1786
+        y: 245
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5d927572fb4000dd0800000000000000
+      internalID: -2522010572282189355
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_161
+      rect:
+        serializedVersion: 2
+        x: 2170
+        y: 245
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fc089d7c2e9926580800000000000000
+      internalID: -8835330319652912945
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_162
+      rect:
+        serializedVersion: 2
+        x: 2554
+        y: 245
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ab546f968fd92d280800000000000000
+      internalID: -9019973413414484550
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_163
+      rect:
+        serializedVersion: 2
+        x: 2938
+        y: 245
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 477b5e34bacd3af70800000000000000
+      internalID: 9197437492157331316
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_164
+      rect:
+        serializedVersion: 2
+        x: 3322
+        y: 245
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d5ca53d2e2e189470800000000000000
+      internalID: 8401498288535481437
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_165
+      rect:
+        serializedVersion: 2
+        x: 3706
+        y: 245
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 68e0c8352dd09e7c0800000000000000
+      internalID: -4041683993592328570
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_166
+      rect:
+        serializedVersion: 2
+        x: 4090
+        y: 245
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 44b8af841825ba040800000000000000
+      internalID: 4659908954673548100
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_167
+      rect:
+        serializedVersion: 2
+        x: 4473
+        y: 245
+        width: 17
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8cb68c837950677f0800000000000000
+      internalID: -615298152038634552
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_168
+      rect:
+        serializedVersion: 2
+        x: 161
+        y: 183
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d0ff104f57043a2a0800000000000000
+      internalID: -6727462543012266227
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_169
+      rect:
+        serializedVersion: 2
+        x: 545
+        y: 182
+        width: 13
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 21de85a08203bc610800000000000000
+      internalID: 1642459437637102866
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_170
+      rect:
+        serializedVersion: 2
+        x: 928
+        y: 182
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4f830040da1e3ca90800000000000000
+      internalID: -7294738838197356300
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_171
+      rect:
+        serializedVersion: 2
+        x: 1312
+        y: 182
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6861c1409034519a0800000000000000
+      internalID: -6263026000786090362
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_172
+      rect:
+        serializedVersion: 2
+        x: 1696
+        y: 182
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f457ab7be91c4bfa0800000000000000
+      internalID: -5785786733832800945
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_173
+      rect:
+        serializedVersion: 2
+        x: 2080
+        y: 182
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4886e6ae1d6b2f010800000000000000
+      internalID: 1221239461668350084
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_174
+      rect:
+        serializedVersion: 2
+        x: 2464
+        y: 182
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b1ebd065c3ed04d90800000000000000
+      internalID: -7115443060522238437
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_175
+      rect:
+        serializedVersion: 2
+        x: 2848
+        y: 182
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 88678c3fc5eecf5f0800000000000000
+      internalID: -721439757291719032
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_176
+      rect:
+        serializedVersion: 2
+        x: 3232
+        y: 182
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f352c06b1f2914ea0800000000000000
+      internalID: -5890265270784875201
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_177
+      rect:
+        serializedVersion: 2
+        x: 3616
+        y: 182
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5bd25d394a09e8cb0800000000000000
+      internalID: -4859787911356928587
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_178
+      rect:
+        serializedVersion: 2
+        x: 4000
+        y: 182
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: efe86d520f3ecb280800000000000000
+      internalID: -9026088932590842114
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_179
+      rect:
+        serializedVersion: 2
+        x: 4384
+        y: 183
+        width: 15
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a46be4f2472c3afc0800000000000000
+      internalID: -3484727882388949430
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_180
+      rect:
+        serializedVersion: 2
+        x: 101
+        y: 165
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c2e1a4fd613387bc0800000000000000
+      internalID: -3785219313476428244
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_181
+      rect:
+        serializedVersion: 2
+        x: 184
+        y: 155
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1f11462455f0fb1c0800000000000000
+      internalID: -4485849844977233423
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_182
+      rect:
+        serializedVersion: 2
+        x: 235
+        y: 158
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d0d505b6a8153d810800000000000000
+      internalID: 1788863131943984397
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_183
+      rect:
+        serializedVersion: 2
+        x: 485
+        y: 164
+        width: 13
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 09d1b990477ae1560800000000000000
+      internalID: 7286445363951246736
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_184
+      rect:
+        serializedVersion: 2
+        x: 568
+        y: 155
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b4c3757b17f725d30800000000000000
+      internalID: 4418734310787857483
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_185
+      rect:
+        serializedVersion: 2
+        x: 620
+        y: 158
+        width: 13
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 518594682864dd410800000000000000
+      internalID: 1503435377024260117
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_186
+      rect:
+        serializedVersion: 2
+        x: 868
+        y: 164
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5082e766388d34a10800000000000000
+      internalID: 1892594327297599493
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_187
+      rect:
+        serializedVersion: 2
+        x: 952
+        y: 155
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 23076481e798cf970800000000000000
+      internalID: 8790051747386519602
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_188
+      rect:
+        serializedVersion: 2
+        x: 1003
+        y: 158
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a0c8a8c5cd278dd80800000000000000
+      internalID: -8225698428621255670
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_189
+      rect:
+        serializedVersion: 2
+        x: 1252
+        y: 164
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 59c4e0514d347d600800000000000000
+      internalID: 492937262385745045
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_190
+      rect:
+        serializedVersion: 2
+        x: 1335
+        y: 154
+        width: 17
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b55e109ca4ec22c40800000000000000
+      internalID: 5486174116685931867
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_191
+      rect:
+        serializedVersion: 2
+        x: 1386
+        y: 157
+        width: 17
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 33649cb58c1ae3360800000000000000
+      internalID: 7151331140216374835
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_192
+      rect:
+        serializedVersion: 2
+        x: 1636
+        y: 164
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8980e772f9121cf60800000000000000
+      internalID: 8052754576161245336
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_193
+      rect:
+        serializedVersion: 2
+        x: 1719
+        y: 154
+        width: 17
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5b5f7ce6888c9bd20800000000000000
+      internalID: 3294885090697934261
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_194
+      rect:
+        serializedVersion: 2
+        x: 1771
+        y: 158
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 78285739abace0ec0800000000000000
+      internalID: -3598716149535767929
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_195
+      rect:
+        serializedVersion: 2
+        x: 2020
+        y: 164
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b2f036e7146134100800000000000000
+      internalID: 90940888026648363
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_196
+      rect:
+        serializedVersion: 2
+        x: 2104
+        y: 155
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d0d9f24ed0a0c97f0800000000000000
+      internalID: -604597195195310835
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_197
+      rect:
+        serializedVersion: 2
+        x: 2155
+        y: 158
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5d580d6e71ce28850800000000000000
+      internalID: 6377919609710872021
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_198
+      rect:
+        serializedVersion: 2
+        x: 2404
+        y: 164
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ec6b4e6afed717250800000000000000
+      internalID: 5940667851729057486
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_199
+      rect:
+        serializedVersion: 2
+        x: 2488
+        y: 155
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 55ad3f379a7c48040800000000000000
+      internalID: 4649060245961955925
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_200
+      rect:
+        serializedVersion: 2
+        x: 2539
+        y: 158
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: df2d110c0be61e340800000000000000
+      internalID: 4891312375716762365
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_201
+      rect:
+        serializedVersion: 2
+        x: 2788
+        y: 164
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4278d3120a83e9770800000000000000
+      internalID: 8619388997237311268
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_202
+      rect:
+        serializedVersion: 2
+        x: 2872
+        y: 155
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a0eef2ac1ea008aa0800000000000000
+      internalID: -6160912325366780406
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_203
+      rect:
+        serializedVersion: 2
+        x: 2923
+        y: 158
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fa84122747c9b8fd0800000000000000
+      internalID: -2338603557543917393
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_204
+      rect:
+        serializedVersion: 2
+        x: 3172
+        y: 164
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 40aed8dcebbd6d590800000000000000
+      internalID: -7649685304503309820
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_205
+      rect:
+        serializedVersion: 2
+        x: 3256
+        y: 155
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 43cc790485fbb6470800000000000000
+      internalID: 8389009116669398068
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_206
+      rect:
+        serializedVersion: 2
+        x: 3307
+        y: 158
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: da3179559b4657a20800000000000000
+      internalID: 3059462269035811757
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_207
+      rect:
+        serializedVersion: 2
+        x: 3556
+        y: 164
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ea5c7727bdc8f8030800000000000000
+      internalID: 3499170309636343214
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_208
+      rect:
+        serializedVersion: 2
+        x: 3640
+        y: 155
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ff363b8dce0a6d280800000000000000
+      internalID: -9018844264654478337
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_209
+      rect:
+        serializedVersion: 2
+        x: 3691
+        y: 158
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 63eb3c68ce2a00220800000000000000
+      internalID: 2450137334046506550
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_210
+      rect:
+        serializedVersion: 2
+        x: 3940
+        y: 164
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ba90a7488b534f400800000000000000
+      internalID: 356969337081956779
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_211
+      rect:
+        serializedVersion: 2
+        x: 4024
+        y: 155
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 16aa444a4251a17f0800000000000000
+      internalID: -641176749827904927
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_212
+      rect:
+        serializedVersion: 2
+        x: 4075
+        y: 158
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 69602297bbcf17770800000000000000
+      internalID: 8606938245003085462
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_213
+      rect:
+        serializedVersion: 2
+        x: 4323
+        y: 164
+        width: 17
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 28abbce41e83c0c00800000000000000
+      internalID: 868131368516434562
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_214
+      rect:
+        serializedVersion: 2
+        x: 4408
+        y: 156
+        width: 15
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: eadee635562663790800000000000000
+      internalID: -7550739537909060178
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_orbit_reaver_lights_215
+      rect:
+        serializedVersion: 2
+        x: 4459
+        y: 159
+        width: 15
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 080b05508d9ede5e0800000000000000
+      internalID: -1878588355532246912
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      space_elite_orbit_reaver_lights_0: 6736462410412597698
+      space_elite_orbit_reaver_lights_1: 1537561032916027
+      space_elite_orbit_reaver_lights_10: 959377321891614602
+      space_elite_orbit_reaver_lights_100: -2459935392851389379
+      space_elite_orbit_reaver_lights_101: 1714745461853878290
+      space_elite_orbit_reaver_lights_102: 1220800288095499055
+      space_elite_orbit_reaver_lights_103: -8591625003098873623
+      space_elite_orbit_reaver_lights_104: -7256688687061379648
+      space_elite_orbit_reaver_lights_105: 9074725146349787049
+      space_elite_orbit_reaver_lights_106: 5024071249349852509
+      space_elite_orbit_reaver_lights_107: -2182739196614134722
+      space_elite_orbit_reaver_lights_108: -6199920044183578604
+      space_elite_orbit_reaver_lights_109: 7166633057527557416
+      space_elite_orbit_reaver_lights_11: 1872921976686565244
+      space_elite_orbit_reaver_lights_110: -6951255212606098746
+      space_elite_orbit_reaver_lights_111: 4355862103546295910
+      space_elite_orbit_reaver_lights_112: -8716621885350068760
+      space_elite_orbit_reaver_lights_113: 3300194262388528579
+      space_elite_orbit_reaver_lights_114: 3327790568197668492
+      space_elite_orbit_reaver_lights_115: -2528747326436702556
+      space_elite_orbit_reaver_lights_116: -5905448881548801744
+      space_elite_orbit_reaver_lights_117: -120029542052635414
+      space_elite_orbit_reaver_lights_118: -4248217304565015347
+      space_elite_orbit_reaver_lights_119: 426410783222982192
+      space_elite_orbit_reaver_lights_12: 4205656923362652700
+      space_elite_orbit_reaver_lights_120: -5627561662942930555
+      space_elite_orbit_reaver_lights_121: -2703756580313201841
+      space_elite_orbit_reaver_lights_122: -6705213149332016272
+      space_elite_orbit_reaver_lights_123: 6630788228545559973
+      space_elite_orbit_reaver_lights_124: -4602167104881540383
+      space_elite_orbit_reaver_lights_125: -2907029008678650042
+      space_elite_orbit_reaver_lights_126: -6679618629993069871
+      space_elite_orbit_reaver_lights_127: -7786676425993630361
+      space_elite_orbit_reaver_lights_128: 1218023799034980403
+      space_elite_orbit_reaver_lights_129: 724732355683212402
+      space_elite_orbit_reaver_lights_13: 3196992379897120382
+      space_elite_orbit_reaver_lights_130: 4154838583236910846
+      space_elite_orbit_reaver_lights_131: 5474794143132902273
+      space_elite_orbit_reaver_lights_132: -8545494713203653293
+      space_elite_orbit_reaver_lights_133: 5009475732766824988
+      space_elite_orbit_reaver_lights_134: 3963497677405153485
+      space_elite_orbit_reaver_lights_135: -7877924927493880110
+      space_elite_orbit_reaver_lights_136: -4066935996881646989
+      space_elite_orbit_reaver_lights_137: 1756941504246136231
+      space_elite_orbit_reaver_lights_138: -2662233346975659798
+      space_elite_orbit_reaver_lights_139: -7431557805016505281
+      space_elite_orbit_reaver_lights_14: 3768653896561449828
+      space_elite_orbit_reaver_lights_140: -2034236712628703529
+      space_elite_orbit_reaver_lights_141: -5225107034918819701
+      space_elite_orbit_reaver_lights_142: -648550262335685814
+      space_elite_orbit_reaver_lights_143: 5959203923456692607
+      space_elite_orbit_reaver_lights_144: 3045992172978881140
+      space_elite_orbit_reaver_lights_145: -2929289977410896013
+      space_elite_orbit_reaver_lights_146: -543223072113542894
+      space_elite_orbit_reaver_lights_147: -601667101607650763
+      space_elite_orbit_reaver_lights_148: 6277948270550640495
+      space_elite_orbit_reaver_lights_149: 1739241741145367498
+      space_elite_orbit_reaver_lights_15: -8308698922067699645
+      space_elite_orbit_reaver_lights_150: 2111027290413963061
+      space_elite_orbit_reaver_lights_151: 2640684122936261957
+      space_elite_orbit_reaver_lights_152: -232956549399521316
+      space_elite_orbit_reaver_lights_153: 4409201582721708839
+      space_elite_orbit_reaver_lights_154: -303257445493590360
+      space_elite_orbit_reaver_lights_155: -2514060335564063582
+      space_elite_orbit_reaver_lights_156: -658565892404062852
+      space_elite_orbit_reaver_lights_157: 8402125226152049211
+      space_elite_orbit_reaver_lights_158: -1184792380446870879
+      space_elite_orbit_reaver_lights_159: 14875263146229976
+      space_elite_orbit_reaver_lights_16: -6185179541801650558
+      space_elite_orbit_reaver_lights_160: -2522010572282189355
+      space_elite_orbit_reaver_lights_161: -8835330319652912945
+      space_elite_orbit_reaver_lights_162: -9019973413414484550
+      space_elite_orbit_reaver_lights_163: 9197437492157331316
+      space_elite_orbit_reaver_lights_164: 8401498288535481437
+      space_elite_orbit_reaver_lights_165: -4041683993592328570
+      space_elite_orbit_reaver_lights_166: 4659908954673548100
+      space_elite_orbit_reaver_lights_167: -615298152038634552
+      space_elite_orbit_reaver_lights_168: -6727462543012266227
+      space_elite_orbit_reaver_lights_169: 1642459437637102866
+      space_elite_orbit_reaver_lights_17: 2897132663379338387
+      space_elite_orbit_reaver_lights_170: -7294738838197356300
+      space_elite_orbit_reaver_lights_171: -6263026000786090362
+      space_elite_orbit_reaver_lights_172: -5785786733832800945
+      space_elite_orbit_reaver_lights_173: 1221239461668350084
+      space_elite_orbit_reaver_lights_174: -7115443060522238437
+      space_elite_orbit_reaver_lights_175: -721439757291719032
+      space_elite_orbit_reaver_lights_176: -5890265270784875201
+      space_elite_orbit_reaver_lights_177: -4859787911356928587
+      space_elite_orbit_reaver_lights_178: -9026088932590842114
+      space_elite_orbit_reaver_lights_179: -3484727882388949430
+      space_elite_orbit_reaver_lights_18: -4072659500495232987
+      space_elite_orbit_reaver_lights_180: -3785219313476428244
+      space_elite_orbit_reaver_lights_181: -4485849844977233423
+      space_elite_orbit_reaver_lights_182: 1788863131943984397
+      space_elite_orbit_reaver_lights_183: 7286445363951246736
+      space_elite_orbit_reaver_lights_184: 4418734310787857483
+      space_elite_orbit_reaver_lights_185: 1503435377024260117
+      space_elite_orbit_reaver_lights_186: 1892594327297599493
+      space_elite_orbit_reaver_lights_187: 8790051747386519602
+      space_elite_orbit_reaver_lights_188: -8225698428621255670
+      space_elite_orbit_reaver_lights_189: 492937262385745045
+      space_elite_orbit_reaver_lights_19: -4258051909771198784
+      space_elite_orbit_reaver_lights_190: 5486174116685931867
+      space_elite_orbit_reaver_lights_191: 7151331140216374835
+      space_elite_orbit_reaver_lights_192: 8052754576161245336
+      space_elite_orbit_reaver_lights_193: 3294885090697934261
+      space_elite_orbit_reaver_lights_194: -3598716149535767929
+      space_elite_orbit_reaver_lights_195: 90940888026648363
+      space_elite_orbit_reaver_lights_196: -604597195195310835
+      space_elite_orbit_reaver_lights_197: 6377919609710872021
+      space_elite_orbit_reaver_lights_198: 5940667851729057486
+      space_elite_orbit_reaver_lights_199: 4649060245961955925
+      space_elite_orbit_reaver_lights_2: 7158611055479381977
+      space_elite_orbit_reaver_lights_20: 5374295616033781300
+      space_elite_orbit_reaver_lights_200: 4891312375716762365
+      space_elite_orbit_reaver_lights_201: 8619388997237311268
+      space_elite_orbit_reaver_lights_202: -6160912325366780406
+      space_elite_orbit_reaver_lights_203: -2338603557543917393
+      space_elite_orbit_reaver_lights_204: -7649685304503309820
+      space_elite_orbit_reaver_lights_205: 8389009116669398068
+      space_elite_orbit_reaver_lights_206: 3059462269035811757
+      space_elite_orbit_reaver_lights_207: 3499170309636343214
+      space_elite_orbit_reaver_lights_208: -9018844264654478337
+      space_elite_orbit_reaver_lights_209: 2450137334046506550
+      space_elite_orbit_reaver_lights_21: -8539905513620235190
+      space_elite_orbit_reaver_lights_210: 356969337081956779
+      space_elite_orbit_reaver_lights_211: -641176749827904927
+      space_elite_orbit_reaver_lights_212: 8606938245003085462
+      space_elite_orbit_reaver_lights_213: 868131368516434562
+      space_elite_orbit_reaver_lights_214: -7550739537909060178
+      space_elite_orbit_reaver_lights_215: -1878588355532246912
+      space_elite_orbit_reaver_lights_22: -3344772912973674177
+      space_elite_orbit_reaver_lights_23: 7329250565189312815
+      space_elite_orbit_reaver_lights_24: 4952233092773816876
+      space_elite_orbit_reaver_lights_25: 6091229705394704644
+      space_elite_orbit_reaver_lights_26: 4825854935374609115
+      space_elite_orbit_reaver_lights_27: -373136894408671678
+      space_elite_orbit_reaver_lights_28: -2721784506621139026
+      space_elite_orbit_reaver_lights_29: -7163590506846936153
+      space_elite_orbit_reaver_lights_3: 2759178524259376540
+      space_elite_orbit_reaver_lights_30: 758336033725880959
+      space_elite_orbit_reaver_lights_31: -7434253567001034661
+      space_elite_orbit_reaver_lights_32: -3418922249094645854
+      space_elite_orbit_reaver_lights_33: 6941376643339687693
+      space_elite_orbit_reaver_lights_34: -454722981321797142
+      space_elite_orbit_reaver_lights_35: 7642027231132215552
+      space_elite_orbit_reaver_lights_36: -6069897854900121540
+      space_elite_orbit_reaver_lights_37: 8018134909847309578
+      space_elite_orbit_reaver_lights_38: 8214877065327071681
+      space_elite_orbit_reaver_lights_39: 5605129283744569216
+      space_elite_orbit_reaver_lights_4: -1567469030266959993
+      space_elite_orbit_reaver_lights_40: -7589095652178093279
+      space_elite_orbit_reaver_lights_41: 8846431300784386080
+      space_elite_orbit_reaver_lights_42: 2548850168873698502
+      space_elite_orbit_reaver_lights_43: -5818637029896258349
+      space_elite_orbit_reaver_lights_44: 7318920735275821328
+      space_elite_orbit_reaver_lights_45: 3453509689124855898
+      space_elite_orbit_reaver_lights_46: -6196568749172150748
+      space_elite_orbit_reaver_lights_47: 554771805883113917
+      space_elite_orbit_reaver_lights_48: -5586965107234743934
+      space_elite_orbit_reaver_lights_49: 237249741302071853
+      space_elite_orbit_reaver_lights_5: -1930294665033534760
+      space_elite_orbit_reaver_lights_50: 4093845730712785817
+      space_elite_orbit_reaver_lights_51: -883074730171062127
+      space_elite_orbit_reaver_lights_52: 7174731918389200299
+      space_elite_orbit_reaver_lights_53: 4607710825081476929
+      space_elite_orbit_reaver_lights_54: -736112246142801589
+      space_elite_orbit_reaver_lights_55: -7272817267055429275
+      space_elite_orbit_reaver_lights_56: 7362145743802631783
+      space_elite_orbit_reaver_lights_57: -504611598288571784
+      space_elite_orbit_reaver_lights_58: 8233806988172641302
+      space_elite_orbit_reaver_lights_59: -4055677877431739648
+      space_elite_orbit_reaver_lights_6: -7322388056800767295
+      space_elite_orbit_reaver_lights_60: -1060430191631286509
+      space_elite_orbit_reaver_lights_61: -4156792573360030198
+      space_elite_orbit_reaver_lights_62: -5139118958826405932
+      space_elite_orbit_reaver_lights_63: -1768636244382681491
+      space_elite_orbit_reaver_lights_64: -2237706445956667281
+      space_elite_orbit_reaver_lights_65: 8162634583227745689
+      space_elite_orbit_reaver_lights_66: 7740336840958633671
+      space_elite_orbit_reaver_lights_67: 4154924212659374435
+      space_elite_orbit_reaver_lights_68: 7305970479662350558
+      space_elite_orbit_reaver_lights_69: 7637576901113972950
+      space_elite_orbit_reaver_lights_7: 8342711157363168697
+      space_elite_orbit_reaver_lights_70: 8963439231276543393
+      space_elite_orbit_reaver_lights_71: 1851040536412592476
+      space_elite_orbit_reaver_lights_72: 8124771515816494880
+      space_elite_orbit_reaver_lights_73: -5188415868237730345
+      space_elite_orbit_reaver_lights_74: 5844784681320708348
+      space_elite_orbit_reaver_lights_75: -327603192244420574
+      space_elite_orbit_reaver_lights_76: 5991826374319653829
+      space_elite_orbit_reaver_lights_77: -1252516028789613480
+      space_elite_orbit_reaver_lights_78: 2106040017329889142
+      space_elite_orbit_reaver_lights_79: 976181393837525538
+      space_elite_orbit_reaver_lights_8: 9005223028039864889
+      space_elite_orbit_reaver_lights_80: 3917112640989703118
+      space_elite_orbit_reaver_lights_81: 7569613140136233199
+      space_elite_orbit_reaver_lights_82: -1149233235582470048
+      space_elite_orbit_reaver_lights_83: 8010610839649103272
+      space_elite_orbit_reaver_lights_84: -7814438160556743519
+      space_elite_orbit_reaver_lights_85: 1263452923441792757
+      space_elite_orbit_reaver_lights_86: 8579924375273471947
+      space_elite_orbit_reaver_lights_87: -4353393250633356970
+      space_elite_orbit_reaver_lights_88: -5108035317089669575
+      space_elite_orbit_reaver_lights_89: -3609554126129554679
+      space_elite_orbit_reaver_lights_9: -778271704196594658
+      space_elite_orbit_reaver_lights_90: 3490717976330026833
+      space_elite_orbit_reaver_lights_91: -4154874384292165661
+      space_elite_orbit_reaver_lights_92: -9145103895105525760
+      space_elite_orbit_reaver_lights_93: -8247628939073724717
+      space_elite_orbit_reaver_lights_94: 6165419392721093716
+      space_elite_orbit_reaver_lights_95: 1761789604279716510
+      space_elite_orbit_reaver_lights_96: 3615083472346790723
+      space_elite_orbit_reaver_lights_97: -7843311050726852702
+      space_elite_orbit_reaver_lights_98: -6767640651071466627
+      space_elite_orbit_reaver_lights_99: 5674645044603710692
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

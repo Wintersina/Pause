@@ -4,10 +4,10 @@
   "world": "space",
   "role": "ion lancer",
   "codexId": "elite_space_rift_lancer",
-  "launchFrom": "station",
-  "lore": "A split-prong ion interceptor that shoots out of station hangars and takes a flank above you, nose on you. A blinking sight line tracks you, then locks and blinks faster: a rail of bolts follows it a moment later. Step off the line, then watch it dash across to your other side.",
-  "brain": "lancer",
-  "attack": "rift_rail",
+  "launchFrom": "gate,station",
+  "lore": "An edge sniper that keeps to the far flank of the board while a blinking sight line tracks you, then locks, and a rail of bolts follows it. After a shot or two it slips off its side and comes back in from the other. Every third run it leaves a rift on the line: shoot it before it pops into a cross of bolts.",
+  "brain": "sniper",
+  "attack": "rift_snipe",
   "cells": {
     "flight": [
       3,
@@ -41,7 +41,7 @@
   "laneOffset": 1.2,
   "aggression": 0.5,
   "tellSeconds": 0.85,
-  "attackGap": 3.4,
+  "attackGap": 2.4,
   "avoidance": 0.8,
   "lookAhead": 0.5,
   "perception": 2.4,
@@ -94,5 +94,10 @@
       "dir": -1.0
     }
   ],
-  "followLag": 0.3
+  "followLag": 0.3,
+  "lobSeconds": 0.5,
+  "hazardSize": 0.45,
+  "hazardSeconds": 2.0,
+  "hazardCount": 4,
+  "hazardSpeed": 3.2
 }

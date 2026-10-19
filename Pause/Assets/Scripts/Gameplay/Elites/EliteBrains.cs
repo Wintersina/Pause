@@ -22,9 +22,6 @@ using UnityEngine;
 //                anything about to hit it
 //   siege        holds near the top of the view, tracking the pilot's lane
 //                slowly; attacks when over it
-//   breaker      prowls ahead of the pilot, sweeping side to side across
-//                its lane like an icebreaker looking for a lead; attacks
-//                the moment it is over the pilot's lane
 //   warden       takes a station high on the side away from the pilot and
 //                holds it, bobbing; after each attack it crosses to the
 //                other side and plants again
@@ -39,15 +36,19 @@ using UnityEngine;
 //                after each shot it dashes across to the other flank
 //   tug          (Space) a slow armoured salvage tug: hangs ahead of the
 //                pilot a lane to one side, swapping sides after each sling
-//   herder       (Frost) Floe Harrower: holds a steady height ahead of the
-//                pilot and drifts, patiently, into the lane it is moving toward
-//   kiter        (Frost) Cryo Siren: keeps a fixed range above the pilot,
-//                backpedals in stutter steps when crowded, nervous
-//   tender       (Frost) Glacier Tender: hovers high and hangs back over the
-//                middle; flees sideways when the pilot comes close
-//   ironclad     (Frost) Whiteout Sentinel: straight legs at the pilot at a
-//                slow, steady pace, never dodging, its plates turned on it
-// (the Frost four: FrostElites.cs)
+//   sniper       (Space) Rift Lancer: perches at long range on a flank at the edge of the view, shoots once or twice, leaves by
+//                its own side and comes back in from the OPPOSITE one (SpaceElites.cs)
+//   swooper      (Space) Orbit Reaver: big strafing loops that leave the view and come back round, crossing the board on a new
+//                side and slope each time (SpaceElites.cs)
+//   fortress     (Space) Eventide Bastion: holds the top of the view and slides sideways at a crawl (SpaceElites.cs)
+//   wrecker      (Space) Singularity Hauler: parks high, tows asteroids in and flings them down the board (SpaceElites.cs)
+//   icebreaker   (Frost) Rimebreaker: pass-through runs -- waits off the top, appears on a new lane, ploughs the whole board and
+//                leaves by the bottom; after a hit the runs come in pairs (FrostElites.cs)
+//   barge        (Frost) Floe Harrower: holds high on the far side of the pilot and slides along the top, never into its lane
+//   hopper       (Frost) Cryo Siren: perches at long range, hops to a new perch (out of the view and back, a blink trail marking
+//                where) after every shot
+//   carrier      (Frost) Glacier Tender: hangs near the top, sliding at a crawl; scurries off sideways when the pilot comes close
+//   patrol       (Frost) Whiteout Sentinel: straight legs ACROSS THE TOP at a steady pace, never dodging, prow turned on the pilot
 public abstract class EliteBrain
 {
     protected EliteShip ship;
@@ -78,6 +79,13 @@ public abstract class EliteBrain
     public virtual bool Steadfast => false;
     // Where the lift-off would best end, relative to the pilot (direction).
     public virtual Vector2 JoinFrom => Vector2.down;
+    // Flies its own paths, off the view and back (the Space sniper and swooper): the ship does not clamp its goal to the view, plan
+    // evasions or keep it between the rails -- it is untouchable (no collider, not a target) while outside the board.
+    public virtual bool Roams => false;
+    // The share of its speed it keeps through an attack's wind-up when the attack does not hold it still.
+    public virtual float TellScale => .5f;
+    // It came back from hiding (EliteShip.Hide): start the next leg of the pattern afresh.
+    public virtual void OnReturn() { }
 
     protected Vector2 Pos => ship.Position;
     protected float Aggro => Mathf.Clamp01(def.aggression);
@@ -92,10 +100,11 @@ public abstract class EliteBrain
 
 public static class EliteBrains
 {
-    public static readonly string[] Ids = { "interceptor", "gunship", "striker", "hauler", "skirmisher", "siege", "breaker", "warden",
-                                            "bastion", "reaver", "lancer", "tug", "herder", "kiter", "tender", "ironclad",
+    public static readonly string[] Ids = { "interceptor", "gunship", "striker", "hauler", "skirmisher", "siege", "warden",
+                                            "bastion", "reaver", "lancer", "tug", "icebreaker", "barge", "hopper", "carrier", "patrol",
                                             "logger", "thorn", "drifter", "diver",
-                                            "surfer", "abyss", "netter", "stormray", "pearler" };
+                                            "surfer", "abyss", "netter", "stormray", "pearler",
+                                            "sniper", "swooper", "fortress", "wrecker" };
 
     public static EliteBrain Create(string id)
     {
@@ -106,16 +115,16 @@ public static class EliteBrains
             case "hauler": return new HaulerBrain();
             case "skirmisher": return new SkirmisherBrain();
             case "siege": return new SiegeBrain();
-            case "breaker": return new BreakerBrain();
             case "warden": return new WardenBrain();
             case "bastion": return new BastionBrain();
             case "reaver": return new ReaverBrain();
             case "lancer": return new LancerBrain();
             case "tug": return new TugBrain();
-            case "herder": return new HerderBrain();
-            case "kiter": return new KiterBrain();
-            case "tender": return new TenderBrain();
-            case "ironclad": return new IroncladBrain();
+            case "icebreaker": return new IcebreakerBrain();
+            case "barge": return new BargeBrain();
+            case "hopper": return new HopperBrain();
+            case "carrier": return new CarrierBrain();
+            case "patrol": return new PatrolBrain();
             case "logger": return new LoggerBrain();
             case "thorn": return new ThornBrain();
             case "drifter": return new DrifterBrain();
@@ -125,6 +134,10 @@ public static class EliteBrains
             case "netter": return new NetterBrain();
             case "stormray": return new StormrayBrain();
             case "pearler": return new PearlerBrain();
+            case "sniper": return new SniperBrain();
+            case "swooper": return new SwooperBrain();
+            case "fortress": return new FortressBrain();
+            case "wrecker": return new WreckerBrain();
             default: return new InterceptorBrain();
         }
     }
@@ -290,27 +303,6 @@ public class SiegeBrain : EliteBrain
     public override float MinAttackAbove => 1.5f;
     public override bool WantsAttack(Vector2 seen) => Mathf.Abs(Pos.x - seen.x) < .7f && Pos.y > seen.y + MinAttackAbove;
     public override float? FaceDeg(Vector2 seen) => -90f;
-    public override Vector2 JoinFrom => Vector2.up;
-}
-
-// Rimebreaker: prowls followDistance ahead of the pilot, sweeping across
-// its lane (laneOffset either side, a slow sine), so it keeps crossing over
-// the pilot -- and rams down the lane the moment it is over it.
-public class BreakerBrain : EliteBrain
-{
-    public BreakerBrain() { Id = "breaker"; }
-
-    public override Vector2 Goal(Vector2 seen, float dt)
-    {
-        Clock += dt;
-        float sweep = Mathf.Sin(Clock * Mathf.Lerp(.9f, 1.4f, Aggro)) * def.laneOffset;
-        return new Vector2(seen.x + sweep, seen.y + def.followDistance);
-    }
-
-    public override float MinAttackAbove => def.followDistance * .6f;
-    public override bool WantsAttack(Vector2 seen) =>
-        Mathf.Abs(Pos.x - seen.x) < .45f && Pos.y > seen.y + MinAttackAbove;
-
     public override Vector2 JoinFrom => Vector2.up;
 }
 

@@ -766,6 +766,30 @@ public class FrostDirector : PlanetDirector
         }
     }
 
+    // The elite director wants a site of one of `launchFrom`'s kinds in view soon (LandingSites.BringHome): the ground is fixed, so
+    // none is conjured -- but the site spawner is asked for one of that kind at the top of the view now (it scrolls in over the next
+    // seconds, as the ground pieces always do), unless one of them is already in view or on its way. False when none of the kinds is
+    // one of Frost's sites or there is no room for one on the ground.
+    public override bool BringHome(string launchFrom)
+    {
+        if (sites == null || !planner.Ready || string.IsNullOrEmpty(launchFrom)) return false;
+        var want = new List<int>(FrostTuning.SiteKinds.Length);   // (a rare call: one per elite)
+        foreach (string part in launchFrom.Split(','))
+        {
+            var k = LandingSite.KindOf(part.Trim());
+            if (k == null) continue;
+            for (int t = 0; t < FrostTuning.SiteKinds.Length; t++)
+                if (FrostTuning.SiteKinds[t] == k.Value && siteClosed[t] != null && siteOpen[t] != null && !want.Contains(t)) want.Add(t);
+        }
+        if (want.Count == 0) return false;
+        for (int i = 0; i < sites.items.Count; i++)
+        {
+            var p = sites.items[i];
+            if (p.active && want.Contains(p.kind) && p.y >= -HalfH * .15f) return true;   // (in view, or still on its way in from the top)
+        }
+        return SpawnSite(float.NaN, want[groundRng.Next(want.Count)]);
+    }
+
     // ----------------------------------------------------------- weather --
 
     void BuildCeiling()

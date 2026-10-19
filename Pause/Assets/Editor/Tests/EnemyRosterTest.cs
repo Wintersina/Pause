@@ -1000,7 +1000,7 @@ public static class EnemyRosterTest
         }
 
         // The elites: the same square-cell strips, any layout (EliteCells).
-        // The optional _parked / _liftoff / _death strips are FX sequences
+        // The optional _parked / _liftoff / _death / _lights strips are FX sequences
         // with their own framing and are left out.
         if (!Directory.Exists(EliteStrips)) return;
         var paths = Directory.GetFiles(EliteStrips, "*.png", SearchOption.AllDirectories);
@@ -1008,7 +1008,7 @@ public static class EnemyRosterTest
         foreach (var path in paths)
         {
             string key = Path.GetFileNameWithoutExtension(path);
-            if (key.EndsWith("_parked") || key.EndsWith("_liftoff") || key.EndsWith("_death")) continue;
+            if (key.EndsWith("_parked") || key.EndsWith("_liftoff") || key.EndsWith("_death") || key.EndsWith("_lights")) continue;
             var tex = new Texture2D(2, 2);
             tex.LoadImage(File.ReadAllBytes(path));
             if (tex.height > 0 && tex.width % tex.height == 0)

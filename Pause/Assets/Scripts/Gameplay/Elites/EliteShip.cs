@@ -66,13 +66,17 @@ using UnityEngine;
 // (perception), the best way to bait them into something. Their shots hit
 // everything (friendly fire, EliteShots) without paying the pilot.
 //
+// ROAMING. A brain with Roams (the Space Rift Lancer and Orbit Reaver) flies its own paths off the view and back: its goal is not
+// clamped to the view, it plans no evasions (the reflex still pushes it off what is about to hit it) and the rails do not crash it;
+// while it is outside the board it is untouchable, like a hiding elite (no collider, no hazard tag, not a target).
+//
 // DAMAGE (one heart each, then half a second of grace): a player weapon,
 // the ultimate, the red atom's free shot or a secret power
 // (ShipAttackHits -> TakeShipAttack), touching the pilot
 // (collisionDetection -> Rammed; the pilot loses a heart too unless
 // shielded), a crash, a rail, another elite, friendly fire. A shielded ram
-// (blue atom / Cloak) and a pause jump landing on it (TeleportFx ->
-// TeleportStrike) take every heart, grace or not.
+// (blue atom / Cloak) takes every heart, grace or not; a pause jump landing
+// on it (TeleportFx -> TeleportStrike) deals PauseDamage (2), grace or not.
 // Every kill, crash or lure included, pays ScoreRules.EliteDown +
 // EliteDownDust with an "ELITE DOWN" popup.
 //
@@ -91,6 +95,7 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
     public const int PlayOrder = 5;            // over rocks (2) and enemies (3), under mines (12)
     public const float GraceSeconds = .5f;     // after losing a heart
     public const float EscapeWindow = 2f;      // after joining: no attacks yet
+    public const int PauseDamage = 2;          // hearts a pause jump landing on an elite takes (a 4/5-heart one survives it); a shielded ram takes all
     public const float JoinSeconds = 1.1f;
     public const float LiftSeconds = 1.7f;
     public const float EngineTellSeconds = 1f; // parked: lights blink before launch
@@ -135,6 +140,8 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
     public bool Hidden => State == EliteState.Hide;
     // The side it left by while hiding / came back from (0 left, 1 right, 2 top).
     public int HideSide => hideSide;
+    // A roaming elite outside the board (no collider, not a target).
+    public bool Offstage => offstage;
     public bool Retreating => State == EliteState.Retreat;
     // Seconds of play left before it retreats (frozen while it hides).
     public float EngageLeft { get { return engageLeft; } set { engageLeft = value; } }
@@ -162,7 +169,9 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
     ClearTarget target;
     SpawnFootprint footprint;
     EliteHearts heartsView;
-    Sprite[] frames, parkedFrames, liftFrames;
+    Sprite[] frames, parkedFrames, liftFrames, lightFrames;
+    SpriteRenderer lights;      // the hull's animated lights: an additive layer over the hull, same cell, same transform (null: no _lights strip)
+    int lightCell = -1;         // the hull cell the lights show this frame, -1: dark
     SpriteRenderer[] plumes, glows, muzzleGlows;
     float[] muzzleFlash;
     float hullBase = 1f, lean, recoilLen;
@@ -172,6 +181,8 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
     float[] nozzleAngle;
     SpriteRenderer sight;
 
+    bool offstage;                  // a roaming elite outside the board: untouchable
+    float dockWarnClock;
     LandingSite site;
     Vector3 sitePos;
     float parkSeconds;
@@ -263,12 +274,19 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
         frames = EliteArt.Frames(def);
         parkedFrames = EliteArt.ExtraFrames(def, EliteArt.Extra.Parked);
         liftFrames = EliteArt.ExtraFrames(def, EliteArt.Extra.Liftoff);
+        lightFrames = EliteArt.ExtraFrames(def, EliteArt.Extra.Lights);
 
         hullTf = new GameObject("Hull").transform;
         hullTf.SetParent(transform, false);
         hull = hullTf.gameObject.AddComponent<SpriteRenderer>();
         hull.sortingOrder = PlayOrder;
         if (frames != null) hull.sprite = frames[0];
+        // (child of the hull, so the hull's rotation / bank / squash / recoil / bob all carry over; one cell, one sprite at a time)
+        if (lightFrames != null && lightFrames.Length > 0 && LightsMaterial != null)
+        {
+            lights = NewPiece(hullTf, "Lights", lightFrames[0], PlayOrder + 1);
+            lights.sharedMaterial = LightsMaterial;
+        }
 
         col = gameObject.AddComponent<CircleCollider2D>();
         col.isTrigger = true;
@@ -429,6 +447,7 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
             glows[i].sortingOrder = order + 1;
         }
         if (sight != null) sight.sortingOrder = order - 1;
+        if (lights != null) lights.sortingOrder = order + 1;
     }
 
     // ---- the step ----------------------------------------------------------
@@ -460,6 +479,7 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
         if (site.Valid) sitePos = site.Position;
         transform.position = new Vector3(sitePos.x, sitePos.y, 0f);
         bool siteLeaving = !site.Valid || sitePos.y < EliteSystem.ViewBottom + 2f;
+        DockWarn(dt);
         if (stateTime < parkSeconds && !siteLeaving) return;
         // a clear moment to rise into: it waits on its pad while the air it
         // would join is busy (not for ever, and never past its pad leaving)
@@ -475,6 +495,40 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
         }
         BeginLiftOff();
     }
+
+    // The launch tell, read from afar: in its last parked second rings in the elite's own colour close in on the dock every
+    // DockWarnEvery seconds (a Space body's door; the engine lights blink as ever). Nothing hurts yet.
+    public const float DockWarnEvery = .25f, DockWarnLife = .5f;
+    void DockWarn(float dt)
+    {
+        if (!site.emerge || !site.Valid) return;
+        float k = stateTime - (parkSeconds - EngineTellSeconds);
+        if (k < 0f) { dockWarnClock = -1f; return; }
+        int now = Mathf.FloorToInt(k / DockWarnEvery), was = Mathf.FloorToInt((k - dt) / DockWarnEvery);
+        if (dockWarnClock < 0f || now != was)
+        {
+            dockWarnClock = 0f;
+            float size = Def.cellWorldSize;
+            EliteSystem.Fx.Emit(EliteFxArt.Ring, sitePos, Vector2.zero, DockWarnLife, size * .9f, size * .3f, Def.ShotColor, site.order + 1);
+            DockWarns++;
+        }
+    }
+
+    // Where it is in leaving its dock, for the dock's own drawing (SpaceDocks): (0, 1] through the launch tell (its last parked
+    // second), 1 + (0, 1] through the lift-off, 2 once it is clear of it; 0 parked before the tell, -1 dead.
+    public float LaunchPhase
+    {
+        get
+        {
+            if (State == EliteState.Dead) return -1f;
+            if (State == EliteState.Parked) return Mathf.Clamp01((stateTime - (parkSeconds - EngineTellSeconds)) / EngineTellSeconds);
+            if (State == EliteState.LiftOff) return 1f + Mathf.Clamp01(liftClock / LiftSeconds);
+            return 2f;
+        }
+    }
+
+    // Launch rings sent (tests).
+    public int DockWarns { get; private set; }
 
     void StepLiftOff(float dt)
     {
@@ -626,6 +680,7 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
             Attack.End();
         }
         Hides++;
+        offstage = true;
         State = EliteState.Hide;
         stateTime = 0f;
         hidePhase = 0;
@@ -702,12 +757,35 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
     // On the board again, hittable and hunting; a short breath before its next attack.
     void EndHide()
     {
+        offstage = false;
         State = EliteState.Follow;
         stateTime = 0f;
         SetHittable(true);
         escapeLeft = EscapeWindow;
         claim = transform.position;
         planIn = 0f;
+        Physics2D.SyncTransforms();
+        Brain.OnReturn();
+    }
+
+    // A roamer: untouchable (no collider, not a target) while outside the board, hittable again when it flies back in.
+    void StepOffstage()
+    {
+        Vector2 p = transform.position;
+        float r = Def.hullRadius;
+        bool off = Mathf.Abs(p.x) > EliteSystem.RailEdge + r * .3f || p.y > EliteSystem.ViewTop + r * .5f || p.y < EliteSystem.ViewBottom - r * .5f;
+        if (off == offstage) return;
+        offstage = off;
+        SetHittable(!off);
+        if (!off) Physics2D.SyncTransforms();
+    }
+
+    // Placed at `p` outright, still (a roamer re-entering from the far side, out of sight).
+    public void Warp(Vector2 p)
+    {
+        transform.position = new Vector3(p.x, p.y, 0f);
+        velocity = Vector2.zero;
+        claim = p;
         Physics2D.SyncTransforms();
     }
 
@@ -718,6 +796,8 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
     // the wish itself whenever the way there is clear.
     Vector2 Navigate(Vector2 goal, float speedScale, float dt)
     {
+        // (a roamer flies where its brain says, off the view too; the reflex in Steer still turns it off what is about to hit it)
+        if (Brain.Roams) { evading = false; hitIn = -1f; claim = goal; return goal; }
         goal = ClampGoal(goal);
         if (!EliteEvasion.Enabled || Brain.Steadfast) { evading = false; hitIn = -1f; claim = goal; return goal; }
         planIn -= dt;
@@ -800,14 +880,14 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
         bool driven = false;
         if (State == EliteState.Join)
         {
-            Vector2 goal = ReachGoal(Brain.Goal(follow, dt));
+            Vector2 goal = GoalFor(Brain.Goal(follow, dt));
             Steer(Navigate(goal, 1.35f, dt), 1.35f, dt);
             if (stateTime >= JoinSeconds || (goal - pos).sqrMagnitude < .09f) { State = EliteState.Follow; stateTime = 0f; }
         }
         else if (State == EliteState.Follow)
         {
             StepReachRise(dt);
-            Vector2 goal = ReachGoal(Brain.Goal(follow, dt));
+            Vector2 goal = GoalFor(Brain.Goal(follow, dt));
             Steer(Navigate(goal, Brain.SpeedScale, dt), Brain.SpeedScale, dt);
             if (Brain.DodgesByBlink && blinkCooldown <= 0f && (ThreatSeverity() > .55f || Cornered))
             {
@@ -838,7 +918,7 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
                 }
                 Attack.StepTell(dt);
                 if (Attack.HoldsDuringTell) HoldTell(dt);
-                else Steer(Navigate(ReachGoal(Brain.Goal(follow, dt)), Brain.SpeedScale * .5f, dt), Brain.SpeedScale * .5f, dt);
+                else Steer(Navigate(GoalFor(Brain.Goal(follow, dt)), Brain.SpeedScale * Brain.TellScale, dt), Brain.SpeedScale * Brain.TellScale, dt);
                 if (State == EliteState.Attack && attackClock >= Attack.TellSeconds)
                 {
                     if (!MayCommit(true)) BreakOff();
@@ -849,7 +929,11 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
             {
                 bool done = Attack.StepAction(dt);
                 driven = Attack.DrivesMovement;
-                if (!driven) Steer(Navigate(ReachGoal(Brain.Goal(follow, dt)), Brain.SpeedScale, dt), Brain.SpeedScale, dt);
+                if (!driven)
+                {
+                    if (Attack.HoldsDuringAction) Brake(dt);
+                    else Steer(Navigate(GoalFor(Brain.Goal(follow, dt)), Brain.SpeedScale, dt), Brain.SpeedScale, dt);
+                }
                 else claim = transform.position;
                 if (done) EndAttack();
             }
@@ -858,7 +942,7 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
         Vector2 next = (Vector2)transform.position + velocity * dt;
         transform.position = new Vector3(next.x, next.y, 0f);
         Face(dt);
-        KeepInView(dt);
+        if (Brain.Roams) StepOffstage(); else KeepInView(dt);
         Collide();
         if (State != EliteState.Dead && State != EliteState.Retreat) Attack.Passive(dt);
         thrust = Mathf.Lerp(thrust, Mathf.Clamp01(velocity.magnitude / Mathf.Max(.1f, Def.speed)) * .8f + .25f, 1f - Mathf.Exp(-6f * dt));
@@ -915,6 +999,8 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
 
     public float ReachY(float y) => Mathf.Min(y, ReachCap);
     public Vector2 ReachGoal(Vector2 g) { g.y = ReachY(g.y); return g; }
+    // A brain's goal as flown: held inside the player's reach, except a roamer's (its path leaves the view).
+    Vector2 GoalFor(Vector2 g) => Brain.Roams ? g : ReachGoal(g);
 
     void StepReachRise(float dt)
     {
@@ -961,7 +1047,7 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
     // Arrive at `goal`, dodging, within accel and turn limits.
     public void Steer(Vector2 goal, float speedScale, float dt)
     {
-        goal = ClampGoal(goal);
+        if (!Brain.Roams) goal = ClampGoal(goal);
         // dodging: a little faster and sharper than its cruise, within limits
         bool hot = evading && EliteEvasion.Enabled;
         Vector2 pos = transform.position;
@@ -975,7 +1061,7 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
         if (EliteEvasion.Enabled) arrive = Mathf.Min(arrive, Mathf.Sqrt(2f * accel * dist) * .9f);
         Vector2 want = dist > 1e-4f ? d / dist * arrive : Vector2.zero;
         want += Avoid() * (EliteEvasion.Enabled ? EliteEvasion.ReflexWeight : 1f);
-        want += Walls();
+        if (!Brain.Roams) want += Walls();
         if (want.sqrMagnitude > max * max * 2.25f) want = want.normalized * max * 1.5f;
         // (slowing down is never weaker than its evasive thrust: it can always pull up short of a rail)
         if (EliteEvasion.Enabled && want.sqrMagnitude < velocity.sqrMagnitude) accel = Mathf.Max(accel, EliteEvasion.EvadeAccelFor(Def));
@@ -1113,12 +1199,12 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
 
     void Collide()
     {
-        if (!InPlay) return;
+        if (!InPlay || offstage) return;
         Vector2 pos = transform.position;
 
-        // the side rails
+        // the side rails (a roamer flies over them, in and out of the board)
         float edge = EliteSystem.RailEdge;
-        if (Mathf.Abs(pos.x) + Def.hullRadius * .7f > edge)
+        if (!Brain.Roams && Mathf.Abs(pos.x) + Def.hullRadius * .7f > edge)
         {
             float side = Mathf.Sign(pos.x);
             pos.x = side * (edge - Def.hullRadius * .7f - .01f);
@@ -1298,12 +1384,13 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
 
     // ---- hooks for the pilot's side ----------------------------------------
 
-    // TeleportFx.Strike: a pause jump landed on it -- every heart it has
-    // left, like a shielded ram: a guaranteed kill. It resolves on the
-    // landing frame, while the world is still frozen (the elite has not
-    // moved since the pilot aimed), and its grace window does not refuse
-    // it. (Were it ever to survive, it is flung out of the landing blast
-    // so the ship doesn't sit inside it.) A jump onto an elite's shot
+    // TeleportFx.Strike: a pause jump landed on it -- PauseDamage (2)
+    // hearts, through TakeHit as ever (a shield link or armour plate that lets
+    // a pause jump through still does). It resolves on the landing frame,
+    // while the world is still frozen (the elite has not moved since the pilot
+    // aimed), and its grace window does not refuse it. (A survivor is flung
+    // out of the landing blast so the ship doesn't sit inside it; a hurtHide
+    // elite breaks off and hides.) A jump onto an elite's shot
     // erases the shot. True when handled.
     public static bool TeleportStrike(GameObject go, Vector3 at)
     {
@@ -1312,7 +1399,7 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
         if (elite != null)
         {
             if (!elite.InPlay) return true;
-            elite.TakeHit(EliteDamage.Teleport, at, elite.Hearts);
+            elite.TakeHit(EliteDamage.Teleport, at, PauseDamage);
             if (elite != null && elite.State != EliteState.Dead) elite.Shove(at, TeleportFx.BlastRadius + elite.Def.hullRadius + .1f);
             return true;
         }
@@ -1500,6 +1587,7 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
         if (frames == null) return;
         var c = Def.cells;
         int frame;
+        lightCell = -1;     // (the drawn parked / lift-off strips carry their own light)
         if (State == EliteState.Parked)
         {
             if (parkedFrames != null) { SetSprite(parkedFrames[Mathf.FloorToInt(stateTime / (4f * EliteArt.Tick)) % parkedFrames.Length]); CurrentFrame = 0; return; }
@@ -1521,6 +1609,50 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
         else frame = FlightFrame(dt);
         CurrentFrame = frame;
         SetSprite(frames[Mathf.Min(frame, frames.Length - 1)]);
+        // the lights wear the hull's cell, the damaged one and the burn cycle included; parked they are off until the pilot lights
+        // blink on in the launch tell (the pilot-light cell)
+        lightCell = State != EliteState.Parked || (c.parkedIdle >= 0 && frame == c.parkedIdle) ? frame : -1;
+    }
+
+    // ---- the hull's lights (an optional <key>_lights strip: same cells as the hull, drawn additively over it) ----
+
+    // One shared additive material (the backdrop's additive sprite shader: texture x vertex colour x its alpha added on the hull).
+    static Material lightsMat;
+    public const string LightsShader = "BackdropShaders/BackdropAdditive";
+    public static Material LightsMaterial
+    {
+        get
+        {
+            if (lightsMat != null) return lightsMat;
+            var shader = Resources.Load<Shader>(LightsShader);
+            if (shader == null) return null;
+            lightsMat = new Material(shader) { name = "EliteLights", hideFlags = HideFlags.DontSave };
+            return lightsMat;
+        }
+    }
+
+    // A damaged hull wears ONE held drawing, so its lights stutter instead: this brightness (x the lights' own alpha) steps every
+    // DamagedLightTicks 24 fps ticks through an irregular pattern (never fully out).
+    public static readonly float[] DamagedLightFlicker = { 1f, 1f, .35f, 1f, .15f, .15f, 1f, .6f, 1f, 1f, .2f, .8f };
+    public const int DamagedLightTicks = 2;
+
+    public bool HasLights => lights != null;
+    public SpriteRenderer Lights => lights;
+    // The hull cell the lights show (-1: dark: parked engines-off, or docked).
+    public int LightCell => lights != null && lights.enabled ? lightCell : -1;
+
+    // Every state draws them (they keep going while damaged, hiding and retreating); they are as visible as the hull is (docked: not).
+    void RenderLights()
+    {
+        if (lights == null) return;
+        bool on = lightCell >= 0 && hull.color.a > .01f && hull.enabled;
+        lights.enabled = on;
+        if (!on) return;
+        var s = lightFrames[Mathf.Min(lightCell, lightFrames.Length - 1)];
+        if (lights.sprite != s) lights.sprite = s;
+        Color c = hull.color;
+        if (Damaged) c.a *= DamagedLightFlicker[Mathf.FloorToInt(exhaustClock * 24f / DamagedLightTicks) % DamagedLightFlicker.Length];
+        lights.color = c;
     }
 
     // The share of the lift-off drawn with the lift-off cell (then flight).
@@ -1575,6 +1707,7 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
         if (State == EliteState.Parked)
         {
             RenderEngines(0f, ParkedLightsOn ? .9f : 0f);
+            RenderLights();
             return;
         }
         RenderEngines(thrust, Mathf.Clamp01(thrust));
@@ -1582,6 +1715,7 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
         // a damaged elite wears ONE held drawing: the engines and a hover bob keep it alive over it
         float bob = Damaged && Def.cellPixels > 0 ? Mathf.Round(Mathf.Sin(exhaustClock * DamagedBobRate) * DamagedBobPixels) * Def.PixelWorld : 0f;
         hullTf.localPosition = (Vector3)(recoilDir * recoilLen) + Vector3.up * bob;
+        RenderLights();
     }
 
     // Damaged (one held drawing: the flight loop's drawn flames are gone): a procedural plume of this length (x the cell), a

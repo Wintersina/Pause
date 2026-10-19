@@ -613,9 +613,9 @@ public static class FrostBackdropTest
         var defs = new List<EliteDef>();
         EliteCatalog.ForWorld(1, defs);
         EliteDef rime = defs.Find(x => x.key == "frost_elite_rimebreaker");
-        Check("the Rimebreaker launches from a hangar or a crawler bay",
+        Check("the Rimebreaker launches from a hangar",
               rime != null && LandingSite.Accepts(rime.launchFrom, LandingKind.Hangar) &&
-              LandingSite.Accepts(rime.launchFrom, LandingKind.CrawlerBay) && !LandingSite.Accepts(rime.launchFrom, LandingKind.Station));
+              !LandingSite.Accepts(rime.launchFrom, LandingKind.CrawlerBay) && !LandingSite.Accepts(rime.launchFrom, LandingKind.Station));
         Check("Space elites keep their own kinds", LandingSite.KindOf("station") == LandingKind.Station &&
               LandingSite.Accepts("planet", LandingKind.Planet) && !LandingSite.Accepts("planet", LandingKind.Hangar));
         if (rime == null) return;

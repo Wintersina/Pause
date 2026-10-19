@@ -88,6 +88,8 @@ public static class EliteSystem
         if (shots != null && shots.Alive) shots.Step(dt);
         if (fx != null && fx.Alive) fx.Step(dt);
         AttackPools.StepAll(dt);   // the themed hazards (rings, strikes, ...) on the same clock
+        ThrownRock.StepAll(dt);    // the Singularity Hauler's flung asteroids
+        EliteWell.Step(dt);        // the gravity well's pull on the pilot (SpaceElites.cs)
     }
 
     // Everything gone (scene change, tests).
@@ -95,6 +97,8 @@ public static class EliteSystem
     {
         EliteFight.Reset();
         AttackPools.ClearAll();   // the themed hazards (jets, bands, rings, strikes, lashes) and their previews
+        ThrownRock.Clear();
+        EliteWell.Reset();
         var live = EliteShip.Live;
         for (int i = live.Count - 1; i >= 0; i--)
             if (live[i] != null) BossUtil.Kill(live[i].gameObject);
