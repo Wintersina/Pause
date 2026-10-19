@@ -2154,7 +2154,7 @@ public static class CodexTest
         panel.ShowCategory(CodexCategory.Enemies);
         panel.SkipAnimations();
         int found = -1;
-        for (int i = 0; i < panel.VisibleCards; i++) if (Codex.IsDiscovered(panel.CardEntry(i)) && panel.CardEntry(i).id != CodexCatalogue.DriftAsteroidId) { found = i; break; }
+        for (int i = 0; i < panel.VisibleCards; i++) if (Codex.IsDiscovered(panel.CardEntry(i))) { found = i; break; }
         if (found >= 0)
         {
             ScrollTo(panel, found);
