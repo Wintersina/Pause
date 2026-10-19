@@ -182,7 +182,6 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
     SpriteRenderer sight;
 
     bool offstage;                  // a roaming elite outside the board: untouchable
-    float dockWarnClock;
     LandingSite site;
     Vector3 sitePos;
     float parkSeconds;
@@ -392,8 +391,9 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
         liftAim = liftTo;
         claim = liftTo;
         liftFrom = transform.position;
-        if (site.emerge) EliteSystem.Fx.DockFlare(liftFrom, Def.EngineColor, site.order, hullTf.localScale.x * Def.cellWorldSize);
-        else EliteSystem.Fx.LiftOffDust(liftFrom, site.order, hullTf.localScale.x * Def.cellWorldSize);
+        // (no flash at the dock: out of a body it simply leaves; off a ground pad it kicks up a little dust)
+        SetLaunchLight(false);
+        if (!site.emerge) EliteSystem.Fx.LiftOffDust(liftFrom, site.order, hullTf.localScale.x * Def.cellWorldSize);
     }
 
     // Docked inside a Space body (LandingSite.emerge): the hull is not drawn.
@@ -479,7 +479,7 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
         if (site.Valid) sitePos = site.Position;
         transform.position = new Vector3(sitePos.x, sitePos.y, 0f);
         bool siteLeaving = !site.Valid || sitePos.y < EliteSystem.ViewBottom + 2f;
-        DockWarn(dt);
+        LaunchTell();
         if (stateTime < parkSeconds && !siteLeaving) return;
         // a clear moment to rise into: it waits on its pad while the air it
         // would join is busy (not for ever, and never past its pad leaving)
@@ -496,23 +496,39 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
         BeginLiftOff();
     }
 
-    // The launch tell, read from afar: in its last parked second rings in the elite's own colour close in on the dock every
-    // DockWarnEvery seconds (a Space body's door; the engine lights blink as ever). Nothing hurts yet.
-    public const float DockWarnEvery = .25f, DockWarnLife = .5f;
-    void DockWarn(float dt)
+    // The launch tell, read from afar: in its last parked second ONE small bright light blinks at the dock / pad (EliteLaunchTell:
+    // size, colour, rate). No rings, no flash. Nothing hurts yet.
+    void LaunchTell()
     {
-        if (!site.emerge || !site.Valid) return;
         float k = stateTime - (parkSeconds - EngineTellSeconds);
-        if (k < 0f) { dockWarnClock = -1f; return; }
-        int now = Mathf.FloorToInt(k / DockWarnEvery), was = Mathf.FloorToInt((k - dt) / DockWarnEvery);
-        if (dockWarnClock < 0f || now != was)
-        {
-            dockWarnClock = 0f;
-            float size = Def.cellWorldSize;
-            EliteSystem.Fx.Emit(EliteFxArt.Ring, sitePos, Vector2.zero, DockWarnLife, size * .9f, size * .3f, Def.ShotColor, site.order + 1);
-            DockWarns++;
-        }
+        SetLaunchLight(k >= 0f && site.Valid && EliteLaunchTell.On(k));
     }
+
+    void SetLaunchLight(bool on)
+    {
+        if (tellCore == null)
+        {
+            if (!on) return;
+            tellCore = NewPiece(transform, "~launch_light", EliteFxArt.Spark, site.order + 4);
+            tellGlow = NewPiece(tellCore.transform, "~launch_light_glow", EliteFxArt.Glow, site.order + 3);
+            tellCore.transform.localPosition = Vector3.zero;
+            tellCore.transform.localScale = Vector3.one * EliteLaunchTell.CoreSize / Mathf.Max(.0001f, tellCore.sprite.bounds.size.x);
+            tellGlow.transform.localScale = Vector3.one * (EliteLaunchTell.GlowSize / Mathf.Max(.0001f, tellGlow.sprite.bounds.size.x))
+                                            / tellCore.transform.localScale.x;
+            tellCore.color = EliteLaunchTell.Core(Def);
+            var g = EliteLaunchTell.Glow(Def);
+            tellGlow.color = g;
+        }
+        tellCore.sortingOrder = site.order + 4;
+        tellGlow.sortingOrder = site.order + 3;
+        tellCore.enabled = on;
+        tellGlow.enabled = on;
+        LaunchLightOn = on;
+    }
+
+    SpriteRenderer tellCore, tellGlow;
+    // The launch light is lit right now (tests, previews).
+    public bool LaunchLightOn { get; private set; }
 
     // Where it is in leaving its dock, for the dock's own drawing (SpaceDocks): (0, 1] through the launch tell (its last parked
     // second), 1 + (0, 1] through the lift-off, 2 once it is clear of it; 0 parked before the tell, -1 dead.
@@ -526,9 +542,6 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
             return 2f;
         }
     }
-
-    // Launch rings sent (tests).
-    public int DockWarns { get; private set; }
 
     void StepLiftOff(float dt)
     {
@@ -650,7 +663,6 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
         if (target != null) ClearTarget.Release(gameObject);
         if (footprint != null) footprint.enabled = false;
         if (Attack != null) { Attack.OnDeath(); Attack.End(); }
-        if (intoDock && site.emerge) EliteSystem.Fx.DockFlare(at, Def.EngineColor, site.order, Def.cellWorldSize);
         LastEscapeLoss = RunScore.OnEliteEscaped(at, Def.Score / 2);
         if (EscapedCb != null) EscapedCb(this, LastEscapeLoss);
         BossUtil.Kill(gameObject);
@@ -1699,14 +1711,15 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
 
     // The launch tell: running lights blink on in its last parked second.
     bool ParkedLightsOn => State == EliteState.Parked && stateTime >= parkSeconds - EngineTellSeconds &&
-                           Mathf.FloorToInt(stateTime / (3f * EliteArt.Tick)) % 2 == 0;
+                           EliteLaunchTell.On(stateTime - (parkSeconds - EngineTellSeconds));
 
     void Render()
     {
         hullTf.localRotation = Quaternion.Euler(0f, 0f, ArtRotation);
         if (State == EliteState.Parked)
         {
-            RenderEngines(0f, ParkedLightsOn ? .9f : 0f);
+            RenderEngines(0f, 0f);          // (the big engine glows stay off: the one small launch light is the tell)
+            EngineLightsOn = ParkedLightsOn;
             RenderLights();
             return;
         }

@@ -356,6 +356,30 @@ public static class SpaceDockTest
         return wb.Current.Director as SpaceDirector;
     }
 
+    // The side (px) of the biggest all-opaque, all-near-black square in a cell (a flat door panel is ~60 px; drawing detail stays under 30).
+    static int FlatDarkBlock(Rect r)
+    {
+        int best = 0, w = atlasTex.width;
+        for (int y = (int)r.y; y < r.yMax - 4; y += 3)
+            for (int x = (int)r.x; x < r.xMax - 4; x += 3)
+            {
+                int n = 0;
+                while (n < 80 && x + n < r.xMax && y + n < r.yMax)
+                {
+                    bool ok = true;
+                    for (int k = 0; k <= n && ok; k += 2)
+                    {
+                        var a = atlasPx[(y + n) * w + x + k]; var b = atlasPx[(y + k) * w + x + n];
+                        ok = a.a > 150 && Mathf.Max(a.r, Mathf.Max(a.g, a.b)) < 26 && b.a > 150 && Mathf.Max(b.r, Mathf.Max(b.g, b.b)) < 26;
+                    }
+                    if (!ok) break;
+                    n++;
+                }
+                if (n > best) best = n;
+            }
+        return best;
+    }
+
     static void DockArt()
     {
         Fresh(.3f);
@@ -386,7 +410,20 @@ public static class SpaceDockTest
                     opaque += atlasPx[(py + dy) * atlasTex.width + px + dx].a >= 200 ? 1 : 0;
                     ring++;
                 }
-            Check(d.tag + ": the pad pixel and its neighbourhood are opaque drawing (" + opaque + "/" + ring + ")", atlasPx[py * atlasTex.width + px].a >= 200 && opaque >= ring * .9f);
+            // (the bay's flat door panel is gone: the opening may be see-through, framed by the structure round it)
+            int wide = 0, wideAll = 0;
+            for (int dy = -40; dy <= 40; dy += 2)
+                for (int dx = -40; dx <= 40; dx += 2) { wide += atlasPx[(py + dy) * atlasTex.width + px + dx].a >= 200 ? 1 : 0; wideAll++; }
+            Check(d.tag + ": the pad sits on the drawing: opaque at it or framed by the structure round it (" + opaque + "/" + ring + ", " + wide + "/" + wideAll + ")",
+                  (atlasPx[py * atlasTex.width + px].a >= 200 && opaque >= ring * .9f) || wide >= wideAll * .35f);
+            // no black box: no cell has a flat opaque dark panel (the closed door Codex painted as a rectangle; the ring gate's round void is its portal)
+            if (d.kind != LandingKind.Gate)
+                for (int c = 0; c < cells.Length; c++)
+                {
+                    Rect rc = cells[c].textureRect;
+                    int box = FlatDarkBlock(rc);
+                    Check(d.tag + " cell " + c + ": no flat dark panel left on the dock (largest " + box + " px square)", box < 30);
+                }
             // the pad is far enough from the drawing's edge that an elite fits in the opening: not within 12% of the cell's border
             Check(d.tag + ": ... well inside the cell, not on its rim", Mathf.Abs(pad.x) < .38f && Mathf.Abs(pad.y) < .38f);
             // the launch strip is the right set of drawings: the doors open (more light / less opaque at the pad) by cell 4
@@ -472,24 +509,29 @@ public static class SpaceDockTest
             // first appearance order of the cells 1..5
             int pos = 0, lastIdx = -1;
             bool inOrder = true;
-            foreach (int c in new[] { SpaceDirector.DockBlink, SpaceDirector.DockOpening, SpaceDirector.DockFlare, SpaceDirector.DockOpen, SpaceDirector.DockClosing })
+            foreach (int c in new[] { SpaceDirector.DockOpening, SpaceDirector.DockOpen, SpaceDirector.DockClosing })
             {
                 int idx = order.IndexOf(c);
                 if (idx < 0 || idx < lastIdx) { inOrder = false; break; }
                 lastIdx = idx;
                 pos++;
             }
-            Check(k + "its launch strip plays idle, blink, opening, flare, open, closing, idle (" + string.Join(">", order) + ")", idleFirst && inOrder && closed);
-            Check(k + "the doors open in the launch tell and the flare is as the elite emerges (open cells " + Range(phaseOfCell, SpaceDirector.DockOpening) + ", flare " + Range(phaseOfCell, SpaceDirector.DockFlare) + ")",
-                  phaseOfCell.ContainsKey(SpaceDirector.DockOpening) && phaseOfCell[SpaceDirector.DockOpening].lo < 1f && phaseOfCell.ContainsKey(SpaceDirector.DockFlare) && phaseOfCell[SpaceDirector.DockFlare].lo >= 1f &&
-                  phaseOfCell[SpaceDirector.DockFlare].hi < 1f + SpaceDirector.DockFlareShare + .1f);
+            Check(k + "its launch strip plays idle, opening, open, closing, idle -- the blink and flare cells are skipped (" + string.Join(">", order) + ")",
+                  idleFirst && inOrder && closed && !order.Contains(SpaceDirector.DockBlink) && !order.Contains(SpaceDirector.DockFlare));
+            Check(k + "the doors open in the launch tell (open cell phases " + Range(phaseOfCell, SpaceDirector.DockOpening) + ")",
+                  phaseOfCell.ContainsKey(SpaceDirector.DockOpening) && phaseOfCell[SpaceDirector.DockOpening].lo < 1f);
             Check(k + "the elite rode the dock and came out into play (" + e.State + ")", rides && e.InPlay);
+            // after the launch nothing of it is left on the dock: only the dock's own sprite draws there, and it shows no flat panel
+            int helpers = 0;
+            foreach (var r in piece.root.GetComponentsInChildren<SpriteRenderer>()) if (r.enabled && r != piece.sr) helpers++;
+            Check(k + "after the launch no helper renderer is left on the dock (" + helpers + "), the elite's launch light is out",
+                  helpers == 0 && (!Alive(e) || !e.LaunchLightOn));
             Object.DestroyImmediate(wb.gameObject);
             EliteSystem.Clear();
         }
         // the cell function
-        Check("the launch cells by phase", SpaceDirector.DockCellAt(.05f) == SpaceDirector.DockBlink && SpaceDirector.DockCellAt(.6f) == SpaceDirector.DockOpening &&
-              SpaceDirector.DockCellAt(1.05f) == SpaceDirector.DockFlare && SpaceDirector.DockCellAt(1.5f) == SpaceDirector.DockOpen);
+        Check("the launch cells by phase", SpaceDirector.DockCellAt(.05f) == SpaceDirector.DockIdle && SpaceDirector.DockCellAt(.6f) == SpaceDirector.DockOpening &&
+              SpaceDirector.DockCellAt(1.05f) == SpaceDirector.DockOpen && SpaceDirector.DockCellAt(1.5f) == SpaceDirector.DockOpen);
     }
 
     const float DockCloseWait = SpaceDirector.DockCloseSeconds + .8f;

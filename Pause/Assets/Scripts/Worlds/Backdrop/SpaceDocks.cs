@@ -15,11 +15,10 @@ using UnityEngine;
 // sky quiet.
 //
 // Each offers one LandingSite at its pad (DockDefs: the pixel of the dark opening where the elite comes out, in the Codex master
-// -- the fractions of the cell from its centre are what the site uses), `emerge`: docked inside, hidden, engine lights blinking in
-// the launch tell, then a flare and the ship flying out. The dock itself plays its 6-cell launch strip through the elite's launch
-// (EliteShip.LaunchPhase): 0 idle; the tell's first DockBlinkShare lights blink (1, flickering with 0), then the doors / iris
-// open (2); the lift-off opens with the flare as the elite emerges (3, DockFlareShare of it), fully open (4) until the ship is
-// clear, then closing (5, DockCloseSeconds), idle again.
+// -- the fractions of the cell from its centre are what the site uses), `emerge`: docked inside, hidden, ONE small light blinking in
+// the launch tell (EliteLaunchTell), then the ship simply flying out (no flash). The dock itself plays its 6-cell launch strip through the elite's launch
+// (EliteShip.LaunchPhase): 0 idle through the tell's first DockBlinkShare (the light blink / flare cells 1 and 3 are never shown now),
+// then the doors / iris open (2), fully open (4) until the ship is clear, then closing (5, DockCloseSeconds), idle again.
 //
 // An elite is meant to launch from a body it knows (EliteDef.launchFrom: rift_lancer gate / station, orbit_reaver carrier /
 // asteroid, eventide_bastion gantry / station, singularity_hauler derelict / planet): when it is due and none of its kinds is in
@@ -213,11 +212,12 @@ public partial class SpaceDirector
     {
         if (ph < 1f)
         {
+            // (the dock's own lights stay out: the one small launch light is the tell; the doors then open)
             float t = ph * EliteShip.EngineTellSeconds;
-            if (t >= DockBlinkShare * EliteShip.EngineTellSeconds) return DockOpening;
-            return Mathf.FloorToInt(t / (3f * EliteArt.Tick)) % 2 == 0 ? DockBlink : DockIdle;
+            return t >= DockBlinkShare * EliteShip.EngineTellSeconds ? DockOpening : DockIdle;
         }
-        return ph - 1f < DockFlareShare ? DockFlare : DockOpen;
+        // (the strip's flare cell is skipped: doors open -> open, no flash)
+        return DockOpen;
     }
 
     // ---- LandingSites -----------------------------------------------------------------------------------------

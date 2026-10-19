@@ -244,7 +244,7 @@ public static class EliteFoundationTest
         Step(1.5f, () => { if (s != null && s.State == EliteState.Retreat) goal = s.RetreatGoal; });
         Check("it heads for its dock (goal " + goal + ")", Vector2.Distance(goal, (Vector2)site.anchor.position) < .01f || !Alive(s));
         Step(15f);
-        Check("it reaches the dock and is removed, the dock flaring", !Alive(s) && EliteSystem.Fx.DockFlares > flares);
+        Check("it reaches the dock and is removed, the dock not flaring", !Alive(s) && EliteSystem.Fx.DockFlares == flares);
         // the dock scrolled away: it leaves off the top instead
         var s2 = dir.Spawn(Space("eventide_bastion"), Body(new Vector2(2f, 3f), LandingKind.Station, 10), 2.6f);
         s2.ForceLiftOff();
@@ -435,5 +435,51 @@ public static class EliteFoundationTest
         EliteShip.TeleportStrike(e.gameObject, e.Position);
         EliteShip.TeleportStrike(e.gameObject, e.Position);
         Check("... and three of them kill it", !Alive(e));
+    }
+
+    // The launch tell is ONE small blinking light: for every world with elites, on a hidden-in-body site (emerge) and on a plain
+    // ground pad, nothing is emitted (no ring, flare, halo, glow burst) through the whole parked time and the lift-off, and the
+    // launch light shows (blinking) in the last parked second only.
+    static void LaunchTellIsOneLight()
+    {
+        for (int w = 0; w <= 6; w++)
+        {
+            var defs = new List<EliteDef>();
+            if (EliteCatalog.ForWorld(w, defs) == 0) continue;
+            foreach (bool emerge in new[] { true, false })
+            {
+                Fresh(.05f);
+                var def = defs[0];
+                string k = "world " + w + " " + def.key + (emerge ? " (out of a body)" : " (off a pad)") + ": ";
+                var anchor = new GameObject("~Pad").transform;
+                anchor.position = new Vector3(.8f, 3f, 0f);
+                var site = new LandingSite { anchor = anchor, local = Vector3.zero, scale = .3f, order = -300, id = 1,
+                                             kind = emerge ? LandingKind.Station : LandingKind.PadRing, emerge = emerge };
+                int spawned = EliteSystem.Fx.Spawned, flares = EliteSystem.Fx.DockFlares;
+                var e = EliteShip.Create(def, site, 2.5f, new Vector2(-1.4f, 1.4f));
+                int early = 0, on = 0, off = 0, guard = 0, spawnedInPark = 0;
+                while (e.State == EliteState.Parked && guard++ < 400)
+                {
+                    EliteSystem.Step(Dt);
+                    if (e.State != EliteState.Parked) break;
+                    spawnedInPark = EliteSystem.Fx.Spawned - spawned;
+                    bool tell = e.StateTime >= e.ParkSeconds - EliteShip.EngineTellSeconds + .02f;
+                    if (!tell) { if (e.LaunchLightOn) early++; }
+                    else if (e.LaunchLightOn) on++; else off++;
+                }
+                Check(k + "no ring / flare / halo spawned while parked (" + spawnedInPark + ")", spawnedInPark == 0 && EliteSystem.Fx.DockFlares == flares);
+                Check(k + "a launch blink light shows in the tell only, blinking (on " + on + ", off " + off + ", early " + early + ")", on > 0 && off > 0 && early == 0);
+                var light = e.transform.Find("~launch_light");
+                Check(k + "it is one small light (a few pixels, tight glow)", light != null &&
+                      light.GetComponent<SpriteRenderer>().bounds.size.x <= EliteLaunchTell.CoreSize * 1.2f &&
+                      light.GetChild(0).GetComponent<SpriteRenderer>().bounds.size.x <= EliteLaunchTell.GlowSize * 1.2f);
+                int dockFlares = EliteSystem.Fx.DockFlares;
+                for (int i = 0; i < 12 && e.State == EliteState.LiftOff; i++) EliteSystem.Step(Dt);
+                Check(k + "the lift-off has no flare and the light is out", EliteSystem.Fx.DockFlares == dockFlares && !e.LaunchLightOn);
+                EliteSystem.Clear();
+            }
+        }
+        Check("the tell blinks at 4 Hz, quicker in its last half second",
+              EliteLaunchTell.On(.1f) && !EliteLaunchTell.On(.3f) && EliteLaunchTell.On(.55f) && !EliteLaunchTell.On(.7f) && EliteLaunchTell.On(.85f) && !EliteLaunchTell.On(-.1f));
     }
 }

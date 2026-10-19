@@ -8,7 +8,7 @@ using UnityEngine;
 // Renders each elite's whole fight for review (the elite-overhaul GIFs), a world at a time (CaptureSpace, CaptureFrost): its home dock in
 // the world's real backdrop (Space: one of the drifting gantry / carrier / gate / derelict docks, SpaceDocks.cs; Frost: the hangar /
 // rig bay / pad ring / crawler bay / silo hatch on the ground, FrostDirector; brought into view like the elite director does), the launch (the
-// rings closing in on the door, the engine lights, the dock's doors opening, the flare), the hull's animated lights, then the real brain and attacks at full speed against a scripted pilot
+// one small blinking light at the door / pad, the dock's doors opening, the elite simply leaving), the hull's animated lights, then the real brain and attacks at full speed against a scripted pilot
 // that dodges what it can see (hazards on their paths, locked lines and rings, the curtain's gap) and shoots when it has a clear
 // moment -- one guaranteed homing hit every ShootEvery seconds while the elite is on the board -- through the hide, the death or the
 // escape. Frames are 540 px wide portrait PNGs at 15 fps.
@@ -50,7 +50,29 @@ public static class EliteCapture
     public static void CaptureSpace() { Capture("Space", SpaceClips); }
     public static void CaptureFrost() { Capture("Frost", FrostClips); }
 
-    static void Capture(string worldName, (string name, string key)[] clips)
+    // Just the launch (a short, zoomed clip of the dock / pad: the blinking light, the doors, the elite leaving): a Space station, a Space
+    // dock and a Frost ground pad. $ELITE_CAPTURE_DIR/<name>/NNNN.png as the others.
+    static readonly (string name, string key, string world, string kind)[] LaunchClips =
+    {
+        ("launch_space_station", "space_elite_rift_lancer", "Space", "station"),
+        ("launch_space_dock", "space_elite_orbit_reaver", "Space", "carrier"),
+        ("launch_frost_pad", "frost_elite_whiteout_sentinel", "Frost", "padring"),
+    };
+    static string launchFrom;      // the launch clips' site kind (null: the def's own launchFrom)
+    static bool launchOnly;
+
+    public static void CaptureLaunch()
+    {
+        launchOnly = true;
+        foreach (var c in LaunchClips)
+        {
+            launchFrom = c.kind;
+            Capture(c.world, new[] { (c.name, c.key) }, false);
+        }
+        EditorApplication.Exit(0);
+    }
+
+    static void Capture(string worldName, (string name, string key)[] clips, bool exit = true)
     {
         world = worldName;
         string dir = System.Environment.GetEnvironmentVariable("ELITE_CAPTURE_DIR");
@@ -71,7 +93,7 @@ public static class EliteCapture
             EliteSystem.PlayerOverride = null;
             LandingSites.Override = null;
         }
-        EditorApplication.Exit(code);
+        if (exit) EditorApplication.Exit(code);
     }
 
     // ---- the scene ---------------------------------------------------------------------------------
@@ -477,13 +499,14 @@ public static class EliteCapture
         // the dock: its home (the first kind of its launchFrom: Space's gantry / carrier / gate / derelict dock, Frost's hangar / rig bay /
         // pad ring / crawler bay / hatch, brought into view as the elite director does a few seconds before a launch)
         var sites = new List<LandingSite>();
-        var home = LandingSite.KindOf(def.launchFrom);
-        LandingSites.BringHome(def.launchFrom);
+        string from = launchFrom ?? def.launchFrom;
+        var home = LandingSite.KindOf(from);
+        LandingSites.BringHome(from);
         int pick = -1;
         for (int i = 0; i < 2400 && pick < 0; i++)
         {
             WorldBackdrop.Instance.Step(1f / 15f);
-            if (i % 30 == 29) LandingSites.BringHome(def.launchFrom);   // (Frost's ground may have had no room at the top the first time: ask again)
+            if (i % 30 == 29) LandingSites.BringHome(from);   // (Frost's ground may have had no room at the top the first time: ask again)
             LandingSites.Collect(sites);
             for (int k = 0; k < sites.Count && pick < 0; k++) if (home == null || sites[k].kind == home.Value) pick = k;
         }
@@ -494,6 +517,7 @@ public static class EliteCapture
         var state = Label("", HalfH - .75f, .042f, new Color(1f, .75f, .95f));
 
         int frame = 0, simFrame = 0;
+        float launchAfter = 0f;
         float clock = 0f, afterDeath = 0f;
         var log = new StringBuilder();
         var seenStates = new HashSet<string>();
@@ -503,7 +527,15 @@ public static class EliteCapture
         for (int step = 0; step < maxSeconds / SimDt; step++)
         {
             clock += SimDt;
-            StepPilot(e, SimDt, clock, simFrame++);
+            if (launchOnly)
+            {
+                // zoomed on the dock / pad, following it
+                cam.orthographicSize = 1.9f;
+                Vector2 sp = site.Valid ? site.Position : (Vector2)e.transform.position;
+                cam.transform.position = new Vector3(sp.x, sp.y + .3f, -10f);
+                if (e.State == EliteState.Join || e.State == EliteState.Follow || e.State == EliteState.Attack) { launchAfter += SimDt; if (launchAfter > .8f) break; }
+            }
+            else StepPilot(e, SimDt, clock, simFrame++);
             WorldBackdrop.Instance.Step(SimDt);
             EliteSystem.Step(SimDt);
             bool gone = e == null || e.State == EliteState.Dead;
@@ -515,6 +547,12 @@ public static class EliteCapture
                 string s = gone ? "DOWN" : Describe(e);
                 state.text = s + (gone ? "" : "   HEARTS " + e.Hearts + "/" + hearts0);
                 if (s != last) { last = s; seenStates.Add(s); log.Append((frame / Fps).ToString("0.0") + "s " + s + "; "); }
+                if (launchOnly)
+                {
+                    Vector2 sp = site.Valid ? site.Position : (Vector2)e.transform.position;
+                    cam.orthographicSize = 1.9f;
+                    cam.transform.position = new Vector3(sp.x, sp.y + .3f, -10f);
+                }
                 Shoot(Path.Combine(dir, frame.ToString("0000") + ".png"), px, py);
                 frame++;
             }
