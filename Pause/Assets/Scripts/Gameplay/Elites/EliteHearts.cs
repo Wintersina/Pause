@@ -1,9 +1,10 @@
 using UnityEngine;
 
 // An elite's hearts (EliteDef.hearts, 2 and up): the player's own orbit,
-// shield dart and crumble (HeartOrbit), in neon orange (Orange, on every elite
-// in every world -- never the player's red), drawn from the white heart
-// Vfx/eliteHeart tinted.
+// shield dart and crumble (HeartOrbit), and the player's own heart -- the
+// same drawing and colour (ShipLivesIndicator.HeartSpritePath / HeartTint), on
+// every elite in every world (user, 2026-10-18: "all the hearts the same colour
+// red").
 //
 // They spin round the elite in 3D exactly like the player's hearts: the
 // player's Atom style (ShipHeartStyles -- crossing tilted planes that
@@ -22,12 +23,8 @@ using UnityEngine;
 [DefaultExecutionOrder(50)]
 public class EliteHearts : HeartOrbit
 {
-    public const string SpritePath = "Vfx/eliteHeart";
+    public const string SpritePath = ShipLivesIndicator.HeartSpritePath;
     public const float OutlineGrow = 1.1f;
-    // The elites' heart colour, all worlds: a warm, saturated neon orange
-    // (#FF8C1A, hue 30 deg: 36 deg from the player's red, so never mistaken for
-    // a life) -- EliteDef.Resolve forces it, BossCatalog gives it to the bosses.
-    public static readonly Color Orange = new Color(1f, .549f, .102f);
     // The orbit passes this far (world) outside the hull's drawn silhouette,
     // past the heart's own half-size.
     public const float Clearance = .05f;
@@ -69,7 +66,7 @@ public class EliteHearts : HeartOrbit
 
     protected override Sprite HeartSprite() { return Resources.Load<Sprite>(SpritePath); }
 
-    protected override Color HeartTint { get { return ship != null ? ship.Def.HeartColor : Orange; } }
+    protected override Color HeartTint { get { return ship != null ? ship.Def.HeartColor : ShipLivesIndicator.HeartTint; } }
 
     // The player's Atom style for every elite (the def's heartStyle is
     // ignored): crossing tilted planes, all one way round, evenly fanned, the

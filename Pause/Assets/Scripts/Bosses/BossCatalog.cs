@@ -158,11 +158,10 @@ public sealed class BossDef
         }
     }
     [System.NonSerialized] int worldIndex = -1;
-    // Its hearts (BossHearts), tinting the white elite heart: the elites'
-    // neon orange (EliteHearts.Orange) on every boss, never the player's red
+    // Its hearts (BossHearts): the player's own heart colour (ShipLivesIndicator.HeartTint) on every boss
     // (the old per-world violet / ice / bile / amber / mint / yellow / bone
-    // hearts went with the user's "orange hearts" ask, 2026-10-18).
-    public Color heartColor = EliteHearts.Orange;
+    // hearts went with the user's "all hearts the same red" ask, 2026-10-18).
+    public Color heartColor = ShipLivesIndicator.HeartTint;
     // Battle damage art (BossArt): Resources/Bosses/<damageKey>_damage.png
     // and _damage_fx.png. Null: no damage art, it fights pristine.
     public string damageKey;
@@ -240,7 +239,7 @@ public static class BossCatalog
                 lore = "A capital carrier the size of a city, parked across the only lane out of deep space. " +
                        "It doesn't chase - it just fills the sky with fire and waits for you to blink. " +
                        "Hold your nerve for half a minute and even the Archon has to let you pass.",
-                swayX = 1.15f, swayY = .12f, freqX = .32f, freqY = .64f, flash = Magenta, heartColor = EliteHearts.Orange,
+                swayX = 1.15f, swayY = .12f, freqX = .32f, freqY = .64f, flash = Magenta, heartColor = ShipLivesIndicator.HeartTint,
                 attacks = new[]
                 {
                     // The chin cannon glows, then snaps three bolts at the ship;
@@ -273,7 +272,7 @@ public static class BossCatalog
                 lore = "Half whale, half ice fortress, it has slept under the Frost cliffs since before the first star map. " +
                        "Its glare freezes whole lanes solid, its jaw is full of icicles the size of your ship and its crown spouts hail. " +
                        "Slip between the shards - it is slow to turn and slower to forgive.",
-                swayX = 1.25f, swayY = .2f, freqX = .26f, freqY = .52f, flash = Ice, heartColor = EliteHearts.Orange,
+                swayX = 1.25f, swayY = .2f, freqX = .26f, freqY = .52f, flash = Ice, heartColor = ShipLivesIndicator.HeartTint,
                 attacks = new[]
                 {
                     // The jaw fills with cold light and sprays icicles that
@@ -307,7 +306,7 @@ public static class BossCatalog
                 lore = "The jungle planet's heart is a flower with teeth, and every vine on Verdant answers to her. " +
                        "She spits thorns from her stinger, flings spores off every petal and hoses acid from the cannons on her flanks. " +
                        "The pilot swears she smiled at him, which did not help.",
-                swayX = .8f, swayY = .26f, freqX = .22f, freqY = .66f, flash = BileLight, heartColor = EliteHearts.Orange,
+                swayX = .8f, swayY = .26f, freqX = .22f, freqY = .66f, flash = BileLight, heartColor = ShipLivesIndicator.HeartTint,
                 attacks = new[]
                 {
                     // The stinger swells and spits four thorns at the ship;
@@ -342,7 +341,7 @@ public static class BossCatalog
                 lore = "A riveted blue-steel dragon on lava-cell wings that rides the Ember updrafts the way the pilot rides the stars. " +
                        "It guards the forge gate to the deep worlds, breathing fire, hurling magma from its furnace and raking the sky with the gem on its brow. " +
                        "Everything in Ember burns - make sure it isn't you.",
-                swayX = 1.35f, swayY = .18f, freqX = .38f, freqY = .76f, flash = EmberFlash, heartColor = EliteHearts.Orange,
+                swayX = 1.35f, swayY = .18f, freqX = .38f, freqY = .76f, flash = EmberFlash, heartColor = ShipLivesIndicator.HeartTint,
                 attacks = new[]
                 {
                     // It rears and breathes two wide fans of fireballs from
@@ -380,7 +379,7 @@ public static class BossCatalog
                 lore = "A riveted iron kraken that has ruled the Tide trenches since the first hull went down. " +
                        "Its eight pipe-and-cable arms end in cannons, its beak spits a hydraulic jet and its one mint eye never blinks. " +
                        "Everything that sinks here ends up bolted to it.",
-                swayX = 1.2f, swayY = .2f, freqX = .3f, freqY = .6f, flash = Mint, heartColor = EliteHearts.Orange,
+                swayX = 1.2f, swayY = .2f, freqX = .3f, freqY = .6f, flash = Mint, heartColor = ShipLivesIndicator.HeartTint,
                 attacks = TideAttacks(),
             },
             // ----------------------------------------------------------- Storm
@@ -397,7 +396,7 @@ public static class BossCatalog
                 lore = "A floating turbine the size of a city block that builds the weather it hides in. " +
                        "Its drum spits arcs when the core flares white, its crown calls lightning down your lane after the rods spark, and its twin coils cut the sky in half. " +
                        "Watch what lights up first, then slip between the towers.",
-                swayX = 1.05f, swayY = .16f, freqX = .28f, freqY = .56f, flash = StormYellow, heartColor = EliteHearts.Orange,
+                swayX = 1.05f, swayY = .16f, freqX = .28f, freqY = .56f, flash = StormYellow, heartColor = ShipLivesIndicator.HeartTint,
                 attacks = new[]
                 {
                     // The drum's core flares white, then it vents fans of
@@ -433,7 +432,7 @@ public static class BossCatalog
                 id = CodexPrefix + "desert", name = "DUNE-EATER", title = DesertTitle, artKey = "Desert", damageKey = "Desert", deathKey = "Desert", expandedCombat = true,
                 lore = "A refinery-sized sand leviathan, half manta, half armoured sandworm, that dredged the dunes for a lifetime and now dredges the sky on sail-wings and turbines. " +
                        "Its maw opens before the grit fan, its crane lowers before the mines drop, and the crown lens flares white before it cuts the sky in half.",
-                swayX = 1.1f, swayY = .16f, freqX = .27f, freqY = .54f, flash = DesertFlash, heartColor = EliteHearts.Orange,
+                swayX = 1.1f, swayY = .16f, freqX = .27f, freqY = .54f, flash = DesertFlash, heartColor = ShipLivesIndicator.HeartTint,
                 attacks = new[]
                 {
                     // The maw opens, then a fan of sand-slugs leaves the throat; the fan turns a little between volleys.

@@ -8,7 +8,7 @@ using Object = UnityEngine.Object;
 // Feature: "The bosses should have 5 spinning hearts around them", and
 // "make the enemy elite hearts more clear: give them an outline glow".
 //
-// Every boss wears BossConfig.Hearts (10) hearts spinning round it, in 3D, in the elites' orange
+// Every boss wears BossConfig.Hearts (10) hearts spinning round it, in 3D, in the player's own heart red
 // (BossHearts, on the shared HeartOrbit engine): they are its health -- five
 // equal shares of the same hit points (HeartWeight each), so the fight is as
 // long as before -- and the attack phases follow them. The ring clears the
@@ -166,10 +166,9 @@ public static class BossHeartsTest
                   h.Hearts.Length == N && h.ShownCount == N && e.HeartsLeft == N && h is HeartOrbit);
             if (h == null) continue;
             var r = h.Hearts[0].GetComponent<SpriteRenderer>();
-            Check(boss.artKey + ": the elite heart drawing in the elites' neon orange, never the player's red (hue gap " +
-                  HueGap(boss.heartColor, PlayerRed).ToString("F0") + " deg)",
-                  r.sprite != null && r.sprite.name.Contains("eliteHeart") && boss.heartColor == EliteHearts.Orange && HueGap(boss.heartColor, PlayerRed) > 30f &&
-                  HueGap(r.color, PlayerRed) > 30f);
+            Check(boss.artKey + ": the player's own heart, same drawing and colour as ShipLivesIndicator's (red)",
+                  r.sprite != null && r.sprite == Resources.Load<Sprite>(ShipLivesIndicator.HeartSpritePath) &&
+                  boss.heartColor == ShipLivesIndicator.HeartTint && r.color == ShipLivesIndicator.HeartTint);
             bool sorted = true;
             foreach (var t in h.Hearts)
             {

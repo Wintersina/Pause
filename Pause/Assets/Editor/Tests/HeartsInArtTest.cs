@@ -2,11 +2,10 @@ using System.IO;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 
-// Feature: "elite hearts orange, boss hearts 10, hearts spin round them in 3D
+// Feature: "elite hearts the player's red, boss hearts 10, hearts spin round them in 3D
 // like the player's, and they must not disappear into big ships' art".
 //
-// Every elite def and every boss: the hearts are neon orange (never the
-// player's red), spin in the player's 3D style, orbit OUTSIDE the hull's real
+// Every elite def and every boss: the hearts are the player's own heart (same drawing and colour), spin in the player's 3D style, orbit OUTSIDE the hull's real
 // opaque silhouette (re-measured here from the PNG on disk, not from the
 // runtime measure), and -- the bug -- at sampled phases of the orbit (the
 // planes precess, so a long sweep) no heart is ever fully hidden: its centre is
@@ -35,7 +34,7 @@ public static class HeartsInArtTest
         using var sandbox = new TestHarness.Sandbox();
         try
         {
-            OrangeEverywhere();
+            SameRedEverywhere();
             EliteHeartsClearTheArt();
             BossHeartsClearTheArt();
         }
@@ -50,6 +49,26 @@ public static class HeartsInArtTest
         }
         Debug.Log("[HEARTSART] failures: " + fails);
         return fails;
+    }
+
+    static float HueOf(Sprite sp) { float h, sat, v; Color.RGBToHSV(DominantColor(sp), out h, out sat, out v); return h; }
+
+    // The average colour of the sprite's opaque, saturated pixels.
+    static Color DominantColor(Sprite sp)
+    {
+        if (sp == null) return Color.black;
+        int w, h;
+        var px = ShieldContour.ReadPixels(sp, out w, out h);
+        if (px == null) return Color.black;
+        float r = 0, g = 0, b = 0; int n = 0;
+        foreach (var c in px)
+        {
+            if (c.a < 200) continue;
+            float hh, ss, vv; Color.RGBToHSV(c, out hh, out ss, out vv);
+            if (ss < .5f) continue;
+            r += c.r; g += c.g; b += c.b; n++;
+        }
+        return n > 0 ? new Color(r / n / 255f, g / n / 255f, b / n / 255f) : Color.black;
     }
 
     static float HueGap(Color a, Color b)
@@ -87,18 +106,18 @@ public static class HeartsInArtTest
         return tex.LoadImage(File.ReadAllBytes(path)) ? tex : null;
     }
 
-    static void OrangeEverywhere()
+    static void SameRedEverywhere()
     {
-        Check("the elite orange is warm and saturated (" + ColorUtility.ToHtmlStringRGB(EliteHearts.Orange) + ")",
-              EliteHearts.Orange.r > .95f && EliteHearts.Orange.g > .4f && EliteHearts.Orange.g < .7f && EliteHearts.Orange.b < .2f);
-        Check("... 30+ degrees from the player's red (" + HueGap(EliteHearts.Orange, PlayerRed).ToString("F0") + ")",
-              HueGap(EliteHearts.Orange, PlayerRed) > 30f);
+        // one colour: the player's heart is a drawing (red painted in) under a tint; elites and bosses take both from it
+        var drawing = Resources.Load<Sprite>(ShipLivesIndicator.HeartSpritePath);
+        Check("the player's heart drawing exists and is red (hue " + (HueOf(drawing) * 360f).ToString("F0") + ")", drawing != null && HueGap(DominantColor(drawing), PlayerRed) < 25f);
         bool all = true;
-        foreach (var d in EliteCatalog.All) all &= d.HeartColor == EliteHearts.Orange;
-        Check("all " + EliteCatalog.All.Length + " elites resolve to the orange, whatever their json heartColor", all);
+        foreach (var d in EliteCatalog.All) all &= d.HeartColor == ShipLivesIndicator.HeartTint;
+        Check("all " + EliteCatalog.All.Length + " elites resolve to the player's heart tint, whatever their json heartColor", all);
         bool bosses = true;
-        foreach (var b in BossCatalog.All) bosses &= b.heartColor == EliteHearts.Orange;
+        foreach (var b in BossCatalog.All) bosses &= b.heartColor == ShipLivesIndicator.HeartTint;
         Check("... and so do all " + BossCatalog.All.Length + " bosses", bosses);
+        Check("elite and boss hearts draw the very same sprite as the player's", EliteHearts.SpritePath == ShipLivesIndicator.HeartSpritePath && BossHearts.SpritePath == ShipLivesIndicator.HeartSpritePath);
         Check("a boss has 10 hearts and 10 hit points", BossConfig.Hearts == 10 && BossConfig.HitPoints == 10);
     }
 
@@ -139,8 +158,8 @@ public static class HeartsInArtTest
                   eh.OrbitRadii.x >= silhouette * scale + visible - 1e-3f);
             bool ok = eh.Style == HeartStyle.Atom && eh.Hearts.Length == def.hearts;
             var r0 = eh.Hearts[0].GetComponent<SpriteRenderer>();
-            ok &= HueGap(r0.color, PlayerRed) > 30f && r0.sprite.name.Contains("eliteHeart");
-            Check(def.key + ": " + def.hearts + " orange hearts in the player's Atom 3D spin", ok);
+            ok &= r0.color == ShipLivesIndicator.HeartTint && r0.sprite == Resources.Load<Sprite>(ShipLivesIndicator.HeartSpritePath);
+            Check(def.key + ": " + def.hearts + " player-red hearts in the player's Atom 3D spin", ok);
 
             int frame = 0;
             string nm = ship.Hull.sprite != null ? ship.Hull.sprite.name : "";
@@ -198,8 +217,8 @@ public static class HeartsInArtTest
             var actor = BossActor.Spawn(boss);
             actor.BeginFight();
             var h = actor.Hearts;
-            Check(boss.artKey + ": 10 orange hearts in a tilted (3D) ring",
-                  h.Hearts.Length == 10 && h.OrbitParams.tilt >= 30f && h.OrbitParams.precession > 0f && HueGap(h.Hearts[0].GetComponent<SpriteRenderer>().color, PlayerRed) > 30f);
+            Check(boss.artKey + ": 10 player-red hearts in a tilted (3D) ring",
+                  h.Hearts.Length == 10 && h.OrbitParams.tilt >= 30f && h.OrbitParams.precession > 0f && h.Hearts[0].GetComponent<SpriteRenderer>().color == ShipLivesIndicator.HeartTint);
             // the first idle drawing of the body, exactly as the boss shows it at rest
             int f = BossArt.HasExpandedCombat(boss) ? BossArt.SpaceIdle0 : BossArt.Idle0;
             int col = f % BossArt.BodyColumns, row = f / BossArt.BodyColumns, x0 = col * cell, y0 = (rows - 1 - row) * cell;

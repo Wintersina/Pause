@@ -187,8 +187,7 @@ public static class EliteTest
             Check(d.key + ": strip loads as 7 cells, enough for its cell map", frames != null && frames.Length >= EliteArt.FrameCount && frames[0] != null && frames.Length >= d.cells.Count);
             Check(d.key + ": a known brain and attack", System.Array.IndexOf(EliteBrains.Ids, d.brain) >= 0 && System.Array.IndexOf(EliteAttacks.Ids, d.attack) >= 0);
             Check(d.key + ": hearts: 2 (Space and Frost: 5 armoured / 3 not)", d.hearts == (d.world == "space" || d.world == "frost" ? (d.armored ? 5 : 3) : 2));
-            Check(d.key + ": hearts are not the player's red (hue gap " + HueGap(d.HeartColor, PlayerRed).ToString("0") + ")",
-                  HueGap(d.HeartColor, PlayerRed) > 30f && HueGap(d.HeartColor, AkiraPalette.Red) > 30f);   // (the elites' neon orange sits 35 deg off the red)
+            Check(d.key + ": hearts are the player's own heart colour (ShipLivesIndicator.HeartTint)", d.HeartColor == ShipLivesIndicator.HeartTint);
             Check(d.key + ": shots are not the player's red", HueGap(d.ShotColor, PlayerRed) > 30f && HueGap(d.ShotCore, PlayerRed) > 30f &&
                   HueGap(d.ShotColor, AkiraPalette.Red) > 30f);
             Check(d.key + ": has muzzles and nozzles", d.muzzles.Length > 0 && d.nozzles.Length > 0);
@@ -230,7 +229,7 @@ public static class EliteTest
         Check("Storm has its five elites: Skyhook Harrier, Refinery Tender, Rod Dancer, Anvil Cloud, Static Bastion (" + storm.Count + ")",
               storm.Count == 5 && stormKeys.Contains("storm_elite_skyhook_harrier") && stormKeys.Contains("storm_elite_refinery_tender") &&
               stormKeys.Contains("storm_elite_rod_dancer") && stormKeys.Contains("storm_elite_anvil_cloud") && stormKeys.Contains("storm_elite_static_bastion"));
-        Check("the elite heart is white art (tinted per elite)", Resources.Load<Sprite>(EliteHearts.SpritePath) != null);
+        Check("the elite heart is the player's heart art (shared, untinted)", Resources.Load<Sprite>(EliteHearts.SpritePath) != null);
     }
 
     static string CopyPath(EliteDef d) => "Assets/Art/Resources/Elites/" + EliteArt.WorldFolder(d) + "/" + d.key + ".png";
@@ -824,7 +823,7 @@ public static class EliteTest
         Check("an elite wears its hearts (EliteHearts, the shared HeartOrbit)", h != null && h is HeartOrbit);
         Check("two hearts", h != null && h.Hearts.Length == 2 && h.ShownCount == 2);
         var r = h.Hearts[0].GetComponent<SpriteRenderer>();
-        Check("enemy-coloured hearts, never the player's red", HueGap(r.color, PlayerRed) > 30f && r.sprite.name.Contains("eliteHeart") && r.color == EliteHearts.Orange);
+        Check("the player's own hearts: same drawing, same colour", r.sprite == Resources.Load<Sprite>(ShipLivesIndicator.HeartSpritePath) && r.color == ShipLivesIndicator.HeartTint);
         Vector3 p0 = h.Hearts[0].position;
         for (int i = 0; i < 20; i++) h.Place(Dt, Dt);
         Check("the hearts orbit", Vector3.Distance(p0, h.Hearts[0].position) > .01f);

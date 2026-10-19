@@ -14,9 +14,9 @@ using UnityEngine;
 // Where the tilt swings a back heart across the art it is drawn above the body,
 // dimmed, rather than vanishing under it (HidesBehindHull). Where the ring would
 // cross a rail or reach the HUD band it flattens against that side instead
-// (ClampRect), so a heart never goes under either on any screen. The white
-// Vfx/eliteHeart drawn in the elites' neon orange (EliteHearts.Orange; never the
-// player's red), with HeartOutline's trace.
+// (ClampRect), so a heart never goes under either on any screen. The
+// player's own heart (same drawing and colour as ShipLivesIndicator's), with
+// HeartOutline's trace.
 //
 // Hearts are drawings only -- no collider, nothing to hit or block. They pop
 // in when the fight starts; each one lost (BossEncounter: every HeartWeight

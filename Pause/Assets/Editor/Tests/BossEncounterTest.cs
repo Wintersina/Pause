@@ -186,7 +186,7 @@ public static class BossEncounterTest
                     muzzles &= part >= 0 && Mathf.Abs(m.x) <= BossConfig.BossWorldSize * .5f && Mathf.Abs(m.y) <= BossConfig.BossWorldSize * .5f;
                 }
         Check("every attack's muzzles resolve in all 15 expanded drawings", muzzles);
-        Check("a mint accent of its own and the elites' orange hearts", BossWarningConfig.Accent(4) != BossWarningConfig.Accent(3) && tide.heartColor == EliteHearts.Orange);
+        Check("a mint accent of its own and the player's heart colour", BossWarningConfig.Accent(4) != BossWarningConfig.Accent(3) && tide.heartColor == ShipLivesIndicator.HeartTint);
         Check("the attack fx sheet has its row", BossAttackFx.Row(tide) == 4 && BossAttackFx.Get(tide, BossAttackFx.Ring) != null);
     }
 
@@ -208,7 +208,7 @@ public static class BossEncounterTest
         Check("three default attacks (core arc fan, crown hail, coil beams) and a themed table of five that ends in the chain-lightning sweep", parts &&
               storm.themed[1].kind == BossAttackKind.Strike && storm.themed[4].kind == BossAttackKind.Wave && storm.themed[4].minPhase == 3);
         Check("it does not fight themed yet (Storm is not live)", !storm.themedAttacks);
-        Check("a pale-yellow flash and an accent of its own, orange hearts", storm.heartColor == EliteHearts.Orange && BossWarningConfig.Accent(5) != BossWarningConfig.Accent(4));
+        Check("a pale-yellow flash and an accent of its own, the player's hearts", storm.heartColor == ShipLivesIndicator.HeartTint && BossWarningConfig.Accent(5) != BossWarningConfig.Accent(4));
         Check("the attack fx sheet has its row", BossAttackFx.Row(storm) == 5 && BossAttackFx.Get(storm, BossAttackFx.Ring) != null &&
               BossAttackFx.Get(storm, BossAttackFx.Ring) != BossAttackFx.Get(tide, BossAttackFx.Ring));
         // Damage / death art: Codex's Storm_damage*.png and Storm_death.png are staged elsewhere. Until they are installed the keys are the
