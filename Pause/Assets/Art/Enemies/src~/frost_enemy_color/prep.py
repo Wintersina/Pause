@@ -4,7 +4,7 @@ import sys, shutil
 from pathlib import Path
 from PIL import Image
 H=Path(__file__).resolve().parent; k=sys.argv[1]
-im=Image.open(H/'../ship_scale_border~/original'/f'{k}.png').convert('RGBA'); cs=im.height
+im=Image.open(H/'original'/f'{k}.png').convert('RGBA'); cs=im.height
 for i in range(im.width//cs):
     im.crop((i*cs,0,(i+1)*cs,cs)).resize((cs*4,cs*4),Image.NEAREST).save(H/'src'/f'{k}_c{i}_in.png')
 (H/'src'/f'{k}_in.png').write_bytes((H/'src'/f'{k}_c0_in.png').read_bytes())

@@ -10,6 +10,13 @@
     "space_rock_dark": "none",
     "frost_rock_rime": "none",
     "frost_rock_shard": "none",
-    "frost_fighter_2": "none"
-  }
+    "frost_fighter_2": "none",
+    "frost_alien": "none",
+    "frost_chaser": "none",
+    "frost_fighter_1": "none",
+    "frost_fighter_3": "none",
+    "frost_fighter_4": "none",
+    "frost_rock_chunk": "none"
+  },
+  "_retired": "Frost enemies were redrawn in colour without outlines (Art/Enemies/src~/frost_enemy_color); all ten stay 'none' so --wire can never re-add a border."
 }

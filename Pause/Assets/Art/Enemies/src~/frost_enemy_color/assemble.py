@@ -9,7 +9,7 @@ import numpy as np
 from PIL import Image
 H=Path(__file__).resolve().parent; k=sys.argv[1]
 RES=H.parents[2]/'Resources'/'Enemies'
-orig=Image.open(H/'../ship_scale_border~/original'/f'{k}.png').convert('RGBA'); cs=orig.height; n=orig.width//cs
+orig=Image.open(H/'original'/f'{k}.png').convert('RGBA'); cs=orig.height; n=orig.width//cs
 def load(i):
     p=H/'src'/(f'{k}_hero.png' if i==0 else f'{k}_c{i}_new.png'); return Image.open(p).convert('RGBA')
 def bbox(a,t): ys,xs=np.where(a>=t); return xs.min(),ys.min(),xs.max()+1,ys.max()+1
