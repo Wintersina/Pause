@@ -357,7 +357,7 @@ What changed (every number is a tunable):
 
 | Where | Tunable | Value | Effect |
 |---|---|---|---|
-| `EnemyDensity` | `RateAtLowSpeed` / `RateAtHighSpeed` between `LowHud` 5 and `HighHud` 35 | x0.90 -> x0.55 | every spawn timer's rate, falling with speed |
+| `EnemyDensity` | `RateAtLowSpeed` / `RateAtHighSpeed` between `LowHud` 5 and `HighHud` 35 | x0.90 -> x0.55, then x`HighSpeedSpawnCut` 0.75 at the high end (x0.4125 at HUD 35) | every spawn timer's rate, falling with speed; the cut also reaches asteroid hazards, rails and mines through the shared `Roll` |
 | `EnemyDensity` | `ThreatsAtLowSpeed` / `ThreatsAtHighSpeed` | 11 -> 10 | ceiling on bodies in (or 2.5 u above) the view plus weighted shots; a spawn past it is skipped |
 | `EnemyThreat` | `ShotWeight` | 0.5 | a live hostile projectile counts as half a body in that ceiling |
 | `EnemyThreat` | `MaxEnemyShots`, `VolleyGap` | 12, 0.4 s | roster shots alive at once; gap between two enemies' windups |
