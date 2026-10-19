@@ -1,14 +1,14 @@
 name: Unity tests
 
-# Runs AllTests (the project's custom editor test runner) headless in the
-# GameCI Unity container. See docs/ci-unity-tests.md for one-time setup
-# (secrets UNITY_EMAIL, UNITY_PASSWORD: Personal activation through the Unity Licensing Client).
+# Runs the project's custom editor test runner (AllTests) headless in the GameCI Unity
+# container, split into duration-balanced shards that run in parallel. PRs run only the
+# suites their diff can affect (plus a smoke set); master pushes and manual runs run
+# everything. See docs/ci-unity-tests.md (secrets UNITY_EMAIL, UNITY_PASSWORD).
 
 on:
   pull_request:
     branches: [master]
-    # Draft PRs are not tested: agents push to drafts often, and every push would
-    # take the single seat's one pending slot. Marking a PR ready runs the tests.
+    # Draft PRs are not tested: agents push to drafts often. Marking a PR ready runs the tests.
     types: [opened, synchronize, reopened, ready_for_review]
   push:
     branches: [master]
@@ -24,40 +24,93 @@ on:
         default: xvfb
         type: choice
         options: [xvfb, skip]
+      shards:
+        description: "Max parallel shards (empty = repo variable UNITY_CI_SHARDS, else 4). 1 = serial through the global seat queue"
+        required: false
+        default: ""
 
 permissions:
   contents: read
 
+# PRs: a newer push cancels the older run of the same PR only. master / manual runs are never
+# cancelled. Draft runs (all jobs skipped) get their own group so they cannot cancel a real run.
+# Serial fallback (shards = 1) queues every run on one global group, like the single-seat days.
+concurrency:
+  group: >-
+    ${{ (inputs.shards || vars.UNITY_CI_SHARDS) == '1' && 'unity-personal-seat' ||
+    github.event_name == 'pull_request' && format('unity-pr-{0}{1}', github.event.pull_request.number, github.event.pull_request.draft && '-draft' || '') ||
+    format('unity-{0}-{1}', github.event_name, github.run_id) }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' && !github.event.pull_request.draft && (inputs.shards || vars.UNITY_CI_SHARDS) != '1' }}
+
 env:
   UNITY_IMAGE_TAG: ubuntu-6000.3.23f1-android-3.2.2
+  MAX_SHARDS: ${{ inputs.shards || vars.UNITY_CI_SHARDS || '4' }}
 
 jobs:
-  test:
-    name: AllTests
-    # Skip draft PRs before joining the seat queue, so a draft push never
-    # replaces a waiting run.
+  plan:
+    name: Plan tests
     if: github.event_name != 'pull_request' || !github.event.pull_request.draft
-    # One Unity Personal seat for the whole repo: every run (any branch or PR)
-    # queues for it instead of racing. GitHub keeps at most one pending run per
-    # group, so a newer queued run replaces an older queued one. This sits on the
-    # job (not the workflow) so skipped draft runs never enter the group.
-    concurrency:
-      group: unity-personal-seat
-      cancel-in-progress: false
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      run: ${{ steps.plan.outputs.run }}
+      matrix: ${{ steps.plan.outputs.matrix }}
+    steps:
+      # Only the C# sources are needed to read the suite list and map files to suites.
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            .github
+            scripts
+            Pause/Assets/**/*.cs
+          sparse-checkout-cone-mode: false
+
+      - name: Choose suites and shards
+        id: plan
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EVENT: ${{ github.event_name }}
+          PR: ${{ github.event.pull_request.number }}
+          FORK: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository }}
+          INPUT_SUITES: ${{ inputs.suites }}
+          INPUT_GRAPHICS: ${{ inputs.graphics }}
+        run: |
+          set -euo pipefail
+          if [ "$FORK" = "true" ]; then
+            echo "::notice::Fork PR: repository secrets are not available, skipping Unity tests."
+            echo "run=false" >> "$GITHUB_OUTPUT"; echo 'matrix={"include":[]}' >> "$GITHUB_OUTPUT"; exit 0
+          fi
+          : > changed.txt
+          if [ "$EVENT" = "pull_request" ]; then
+            # Paginated PR file list (renames contribute both names). On any failure the planner runs everything.
+            gh api --paginate "repos/$GITHUB_REPOSITORY/pulls/$PR/files" --jq '.[] | .filename, (.previous_filename // empty)' > changed.txt \
+              || { echo "::warning::Could not list PR files; running the full suite"; : > changed.txt; }
+          fi
+          ROOT="$PWD" python3 -I scripts/tools/ci_plan.py --event "$EVENT" --files changed.txt \
+            --suites "$INPUT_SUITES" --graphics "${INPUT_GRAPHICS:-xvfb}" --max-shards "$MAX_SHARDS" --out plan.json > plan.md
+          cat plan.md >> "$GITHUB_STEP_SUMMARY"
+          echo "run=true" >> "$GITHUB_OUTPUT"
+          echo "matrix=$(python3 -c 'import json;print(json.dumps(json.load(open("plan.json"))["matrix"]))')" >> "$GITHUB_OUTPUT"
+
+  test:
+    name: Tests (shard ${{ matrix.shard }})
+    needs: plan
+    if: needs.plan.outputs.run == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.plan.outputs.matrix) }}
     steps:
       - name: Check for secrets
         id: gate
         env:
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
-          FORK: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository }}
         run: |
-          if [ "$FORK" = "true" ]; then
-            echo "::notice::Fork PR: repository secrets are not available, skipping Unity tests."
-            echo "run=false" >> "$GITHUB_OUTPUT"; exit 0
-          fi
           missing=""
           for v in UNITY_EMAIL UNITY_PASSWORD; do
             [ -n "${!v}" ] || missing="$missing $v"
@@ -71,18 +124,17 @@ jobs:
           echo "run=true" >> "$GITHUB_OUTPUT"
 
       - name: Free disk space
-        if: steps.gate.outputs.run == 'true'
         run: |
           sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /usr/local/.ghcup /opt/hostedtoolcache /usr/local/share/boost /usr/share/swift /usr/local/lib/node_modules
           sudo docker image prune --all --force >/dev/null || true
           df -h /
 
       - uses: actions/checkout@v4
-        if: steps.gate.outputs.run == 'true'
 
-      - name: Cache Library
-        if: steps.gate.outputs.run == 'true'
-        uses: actions/cache@v4
+      # Restore only; shard 0 saves (below, even when tests fail) so shards never race on one key.
+      - name: Restore Library cache
+        id: cache
+        uses: actions/cache/restore@v4
         with:
           path: Pause/Library
           key: Library-${{ hashFiles('Pause/ProjectSettings/ProjectVersion.txt', 'Pause/Packages/manifest.json') }}-${{ hashFiles('Pause/Assets/**/*.meta') }}
@@ -90,43 +142,24 @@ jobs:
             Library-${{ hashFiles('Pause/ProjectSettings/ProjectVersion.txt', 'Pause/Packages/manifest.json') }}-
             Library-
 
-      - name: Run AllTests
-        if: steps.gate.outputs.run == 'true'
+      - name: Run suites
         env:
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
-          INPUT_SUITES: ${{ inputs.suites }}
-          INPUT_GRAPHICS: ${{ inputs.graphics }}
+          SHARD: ${{ matrix.shard }}
+          SUITES: ${{ matrix.suites }}
         run: |
           set -uo pipefail
           mkdir -p ci-out
-          ALLTESTS=Pause/Assets/Editor/Tests/AllTests.cs
-          TESTS_DIR=Pause/Assets/Editor/Tests
-
-          # All registered suites, in file order.
-          grep -oE '^\s*\("[A-Za-z0-9_]+", [A-Za-z0-9_]+\.Execute\)' "$ALLTESTS" | grep -oE '"[A-Za-z0-9_]+"' | tr -d '"' > ci-out/all-suites.txt
-          # Suites whose source reads rendered pixels back (need a GPU/GL context).
-          : > ci-out/graphics-suites.txt
-          while read -r s; do
-            f="$TESTS_DIR/$s.cs"
-            if [ -f "$f" ] && grep -qE 'Camera\.Render|Graphics\.Blit|ReadPixels|RenderTexture' "$f"; then echo "$s" >> ci-out/graphics-suites.txt; fi
-          done < ci-out/all-suites.txt
-          echo "Suites: $(wc -l < ci-out/all-suites.txt), graphics-dependent: $(wc -l < ci-out/graphics-suites.txt)"
-
-          method=AllTests.RunAll
-          extra=()
-          if [ -n "$INPUT_SUITES" ]; then
-            method=AllTests.RunSuites; extra=(-suites "$INPUT_SUITES")
-          elif [ "${INPUT_GRAPHICS:-xvfb}" = "skip" ]; then
-            list=$(grep -vxFf ci-out/graphics-suites.txt ci-out/all-suites.txt | paste -sd, -)
-            echo "::notice::Graphics suites excluded (graphics=skip): $(paste -sd, ci-out/graphics-suites.txt)"
-            method=AllTests.RunSuites; extra=(-suites "$list")
-          fi
+          echo "$SUITES" | tr ',' '\n' > ci-out/suites.txt
+          echo "Shard $SHARD: $(wc -l < ci-out/suites.txt) suites"
+          method=AllTests.RunSuites
+          extra=(-suites "$SUITES")
 
           echo "::add-mask::$UNITY_EMAIL"
           echo "::add-mask::$UNITY_PASSWORD"
-          # HOME for the container; holds the licensing client's state so the
-          # separate always() return step can hand the seat back.
+          # HOME for the container (its own runner VM per shard, so licensing state is never
+          # shared); holds the client's state so the always() return step can hand the seat back.
           mkdir -p ci-out/home
 
           cat > ci-out/run.sh <<'INNER'
@@ -167,6 +200,8 @@ jobs:
           INNER
           sed -i 's/^          //' ci-out/run.sh
 
+          # Stagger logins so the shards do not hit the licensing service in the same second.
+          sleep $((SHARD * 20))
           # Tail the log so progress is visible in the Actions UI.
           touch ci-out/unity.log
           ( tail -n +1 -F ci-out/unity.log 2>/dev/null & echo $! > ci-out/tail.pid )
@@ -181,7 +216,7 @@ jobs:
           exit $code
 
       - name: Return Unity Personal seat (backstop)
-        if: always() && steps.gate.outputs.run == 'true'
+        if: always()
         env:
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
@@ -197,11 +232,11 @@ jobs:
           sudo rm -rf ci-out/home || true
 
       - name: Summary
-        if: always() && steps.gate.outputs.run == 'true'
+        if: always()
         run: |
           log=ci-out/unity.log
           {
-            echo "### Unity tests"
+            echo "### Unity tests, shard ${{ matrix.shard }}"
             if [ ! -s "$log" ]; then echo "No Unity log was produced (license or container failure)."; exit 0; fi
             echo '```'
             grep -E '^\[ALL\] (RunAll|RunSuites|[0-9]+ suites|RESULT)' "$log" | tail -5
@@ -209,7 +244,6 @@ jobs:
             fails=$(grep -E '^\[ALL\] [A-Za-z0-9_]+: FAIL' "$log" || true)
             if [ -n "$fails" ]; then echo "**Failed suites**"; echo '```'; echo "$fails"; echo '```'; fi
             echo "Passed suites: $(grep -cE '^\[ALL\] [A-Za-z0-9_]+: PASS' "$log")"
-            if [ "${{ inputs.graphics }}" = "skip" ]; then echo "Graphics suites excluded: $(paste -sd, ci-out/graphics-suites.txt)"; fi
           } >> "$GITHUB_STEP_SUMMARY"
           if ! grep -q '^\[ALL\] RESULT: PASS' "$log"; then
             echo "::error::No '[ALL] RESULT: PASS' line in the Unity log"
@@ -217,12 +251,38 @@ jobs:
           fi
 
       - name: Upload Unity log
-        if: always() && steps.gate.outputs.run == 'true'
+        if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: unity-log
+          name: unity-log-shard-${{ matrix.shard }}
           path: |
             ci-out/unity.log
-            ci-out/graphics-suites.txt
+            ci-out/suites.txt
             ci-out/exit-code.txt
           if-no-files-found: ignore
+
+      # Saved even when tests failed, by shard 0 only, and only when the exact key was not restored.
+      - name: Save Library cache
+        if: always() && matrix.shard == 0 && steps.cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: Pause/Library
+          key: ${{ steps.cache.outputs.cache-primary-key }}
+
+  # Stable required-check name. Fails if the plan failed or any shard did not succeed.
+  aggregate:
+    name: AllTests
+    needs: [plan, test]
+    if: always() && needs.plan.result != 'skipped'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require every shard
+        env:
+          PLAN: ${{ needs.plan.result }}
+          RUN: ${{ needs.plan.outputs.run }}
+          TEST: ${{ needs.test.result }}
+        run: |
+          echo "plan=$PLAN run=$RUN tests=$TEST"
+          [ "$PLAN" = "success" ] || { echo "::error::Test planning failed"; exit 1; }
+          [ "$RUN" = "true" ] || { echo "::notice::Unity tests skipped (fork PR)"; exit 0; }
+          [ "$TEST" = "success" ] || { echo "::error::Shards did not all pass (result: $TEST)"; exit 1; }

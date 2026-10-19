@@ -366,10 +366,14 @@ public static class BossWaveTest
         Check(n + ": peak " + st.peak + " live shots, dropped " + st.dropped + "; director " + (st.ms / Math.Max(1, st.steps) * 1000).ToString("F1") + " us/frame, " + (st.allocBytes / Math.Max(1, st.steps)) + " B/frame", st.dropped == 0 && st.peak <= BossConfig.ProjectilePoolMax);
     }
 
+    // The pause / slow-motion pattern repeats every 20 s, so 60 s from the 30 s mark still sees three pauses and three slow-motion
+    // stretches (it was 90 s: the extra cycle only repeated the first three).
+    const double StressSeconds = 60;
+
     // pauses and slow motion in the middle of a song must not squeeze a gap shut
     static void Stress(int world)
     {
-        var st = Play(world, f => f % 5 == 0 ? 1f / 30f : 1f / 60f, t => { double c = t % 20; return c >= 10 && c < 12 ? 0f : c > 15 ? .25f : 1f; }, 90, 30);
+        var st = Play(world, f => f % 5 == 0 ? 1f / 30f : 1f / 60f, t => { double c = t % 20; return c >= 10 && c < 12 ? 0f : c > 15 ? .25f : 1f; }, StressSeconds, 30);
         Check(Names[world] + " stays survivable through pauses and slow motion (empty frames " + st.emptyFrames + ", min reach " + st.minReach + ")", st.emptyFrames == 0);
     }
 
@@ -535,7 +539,7 @@ public static class BossWaveTest
     {
         foreach (int w in new[] { 0, 1, 4, 6 })
         {
-            var st = Play(w, f => f % 5 == 0 ? 1f / 30f : 1f / 60f, t => { double c = t % 20; return c >= 10 && c < 12 ? 0f : c > 15 ? .25f : 1f; }, 90, 30, true,
+            var st = Play(w, f => f % 5 == 0 ? 1f / 30f : 1f / 60f, t => { double c = t % 20; return c >= 10 && c < 12 ? 0f : c > 15 ? .25f : 1f; }, StressSeconds, 30, true,
                           new Rig { phone = true, realRails = true, drift = true });
             Check(Names[w] + " ricochets stay survivable through pauses and slow motion (21:9, drift; empty frames " + st.emptyFrames + ", min reach " + st.minReach + ", " + st.bouncy + " bouncy)",
                   st.emptyFrames == 0 && st.bouncy > 0);
