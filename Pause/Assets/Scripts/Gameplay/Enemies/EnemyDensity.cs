@@ -25,6 +25,10 @@ public static class EnemyDensity
     // Spawn rate at and below LowHud, at and above HighHud (linear between).
     public static float LowHud = 5f, HighHud = 35f;
     public static float RateAtLowSpeed = 1f, RateAtHighSpeed = .55f;
+    // Regular enemy spawns (and, through the shared Roll, asteroid hazards, rails
+    // and mines) come 25% less often at high speed: the rate at HighHud is
+    // RateAtHighSpeed * HighSpeedSpawnCut (x0.4125). Low speed is untouched.
+    public static float HighSpeedSpawnCut = .75f;
     // Threats (bodies in or just above the view + weighted shots) allowed.
     public static float ThreatsAtLowSpeed = 11f, ThreatsAtHighSpeed = 10f;
     // How far above the top of the view a body already counts.
@@ -67,7 +71,7 @@ public static class EnemyDensity
 
     public static float RateScale(float hud)
     {
-        return Disabled ? 1f : Mathf.Lerp(RateAtLowSpeed, RateAtHighSpeed, K(hud));
+        return Disabled ? 1f : Mathf.Lerp(RateAtLowSpeed, RateAtHighSpeed * HighSpeedSpawnCut, K(hud));
     }
 
     // The ceilings above are for the authored 10 u view. A taller view shows
