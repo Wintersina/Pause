@@ -43,7 +43,7 @@
   "glowScale": 0.09,
   "cellPixels": 384,
   "armored": true,
-  "hazardSeconds": 1.8,
+  "hazardSeconds": 1.0,
   "hazardSize": 0.36,
   "displayName": "Bathyscaphe",
   "role": "mine layer",
@@ -110,5 +110,5 @@
     }
   ],
   "followLag": 0.25,
-  "lobSeconds": 0.8
+  "lobSeconds": 0.6
 }
