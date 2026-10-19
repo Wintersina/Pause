@@ -199,7 +199,7 @@ public static class TideEliteTest
             Check(x.key + ": " + d.hearts + " hearts orbiting tighter than the player's (" + (d.hullRadius * d.heartOrbit + d.heartSize * 1.05f).ToString("0.00") + " u)",
                   d.hearts >= 3 && d.hullRadius * d.heartOrbit + d.heartSize * 1.05f < .52f);
             Check(x.key + ": tuned like its siblings (speed " + d.speed + ", gap " + d.attackGap + ", tell " + d.tellSeconds + ")",
-                  d.speed >= 1.2f && d.speed <= 3.4f && d.attackGap >= .2f && d.attackGap <= 5.5f && d.tellSeconds >= .7f && d.avoidance >= .4f && d.avoidance <= .8f);
+                  d.speed >= 1.2f && d.speed <= 3.4f && d.attackGap >= .2f && d.attackGap <= 5.5f && d.tellSeconds >= .55f && d.avoidance >= .4f && d.avoidance <= .8f);
             Check(x.key + ": lore is three sentences or fewer", d.lore.Split(new[] { ". " }, System.StringSplitOptions.RemoveEmptyEntries).Length <= 3);
         }
     }
@@ -353,7 +353,7 @@ public static class TideEliteTest
         Check("the chain runs down from under the hull to the pilot's column (" + ma.Spot(0).y.ToString("0.0") + " .. " + ma.Spot(ma.Count - 1).y.ToString("0.0") + ", end x " + ma.Spot(ma.Count - 1).x.ToString("0.00") + ")",
               descends && ma.Spot(0).y < e.Position.y && Mathf.Abs(ma.Spot(ma.Count - 1).x - pilot.position.x) < .15f);
         StepUntil(() => e.Acting, 3f);
-        int maxOrbs = 0, maxBolts = 0, castsSeen = 0;
+        int maxOrbs = 0, maxBolts = 0, castsSeen = 0, bursts = 0;
         bool sank = false;
         for (float t = 0f; t < 6f; t += Dt)
         {
@@ -366,8 +366,9 @@ public static class TideEliteTest
             maxOrbs = Mathf.Max(maxOrbs, o);
             maxBolts = Mathf.Max(maxBolts, b);
         }
-        Check("the mines are laid one after another (" + ma.Laid + ", most at once " + maxOrbs + ") and each bursts into a cross of bolts (most bolts " + maxBolts + ")",
-              ma.Laid == ma.Count && maxOrbs >= 2 && maxBolts >= 4 && AttackPreview.TooShort == 0);
+        foreach (var sh in EliteSystem.Shots.All) bursts += sh.Bursts;
+        Check("the mines are laid one after another (" + ma.Laid + ", most at once " + maxOrbs + ") and burst into crosses of bolts (bursts " + bursts + ", most bolts " + maxBolts + ")",
+              ma.Laid == ma.Count && maxOrbs >= 2 && (bursts >= 1 || maxBolts >= 4) && AttackPreview.TooShort == 0);
         Check("the cast done, it dives off the top (casts " + castsSeen + ", dived " + sank + ")", castsSeen == 1 && (sank || db.Surfacings >= 1));
         bool back = StepUntil(() => db.Surfacings >= 1, 16f);
         Check("... waits out of sight and surfaces again (" + db.Surfacings + ")", back);

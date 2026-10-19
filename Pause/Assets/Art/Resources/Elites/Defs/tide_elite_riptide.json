@@ -50,7 +50,7 @@
   "brain": "breaker",
   "attack": "foam_wake",
   "launchFrom": "carrierpad,trenchhatch",
-  "lore": "A needle-nosed rider that sleeps in the trench hatches. It never comes for you: it carves a wave line across the top of the board, in from one side and out the other, and rings the water behind it before it lobs banks of foam onto the rings. Keep off the rings; a shot pops a bank. Hurt, it dives away, waits, and comes back riding the other way.",
+  "lore": "A needle-nosed rider that sleeps in the trench hatches. It carves a wave line across the top of the board, rings the water behind it, then lobs banks of foam onto the rings: keep off them, a shot pops a bank. Hurt, it dives away and returns riding the other way.",
   "hullRadius": 0.343,
   "turnsToFace": true,
   "speed": 3.0,
@@ -58,7 +58,7 @@
   "turnRate": 220,
   "followDistance": 2.0,
   "aggression": 0.6,
-  "tellSeconds": 0.9,
+  "tellSeconds": 0.6,
   "attackGap": 0.3,
   "avoidance": 0.6,
   "lookAhead": 0.4,
@@ -69,7 +69,7 @@
   "shotSpeed": 5.5,
   "shotSpread": 16,
   "shotSize": 0.22,
-  "shotInterval": 0.25,
+  "shotInterval": 0.12,
   "shotKind": "shard",
   "muzzles": [
     {
@@ -96,5 +96,5 @@
   "followLag": 0.35,
   "hurtHide": true,
   "hideSeconds": 3.5,
-  "lobSeconds": 0.7
+  "lobSeconds": 0.6
 }

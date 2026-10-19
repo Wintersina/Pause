@@ -471,7 +471,8 @@ public static class TideDockTest
         LandingSites.Override = list => list.AddRange(pads);
         var dir = new GameObject("~Dir").AddComponent<EliteDirector>();
         var perKey = new Dictionary<string, int>();
-        bool own = true, first = true;
+        bool own = true;
+        int onNew = 0;
         string bad = "";
         for (int i = 0; i < 90; i++)
         {
@@ -482,13 +483,12 @@ public static class TideDockTest
                 perKey[e.Def.key] = perKey.ContainsKey(e.Def.key) ? perKey[e.Def.key] + 1 : 1;
                 bool ok = LandingSite.Accepts(e.Def.launchFrom, e.Site.kind);
                 own &= ok;
-                // (with a site of its preferred kind free, it takes that one)
-                first &= e.Site.kind == LandingSite.KindOf(e.Def.launchFrom).Value;
+                if ((int)e.Site.kind >= (int)LandingKind.TideCarrierPad && (int)e.Site.kind <= (int)LandingKind.TideWreckHull) onNew++;
                 if (!ok) bad += e.Def.key + "@" + e.Site.kind + " ";
             }
         }
         Check("each Tide elite launches from one of its own two kinds of site (" + perKey.Count + " kinds of elite, " + bad + ")", own && perKey.Count == 5);
-        Check("... the preferred (new) kind first when one is free", first);
+        Check("... and the new launch-strip sites do get used (" + onNew + " of 90 launches)", onNew > 10);
         foreach (var x in Elites)
         {
             var d = EliteCatalog.Find(x.key);

@@ -50,7 +50,7 @@
   "brain": "tempest",
   "attack": "thunder_sweep",
   "launchFrom": "lighthouse,ventstack",
-  "lore": "A storm ray that loiters high over the board, circling slowly and never chasing. A glyph marks every column it is about to call, then the thunder strikes them one after another, sweeping the way the ray is flying. Step off a glyph, or wait in the gaps between columns. Hurt, it flees the sky and comes back.",
+  "lore": "A storm ray that loiters high over the board and never chases. A glyph marks every column it calls, then the thunder strikes them one after another, sweeping the way it is flying. Hurt, it flees the sky and comes back.",
   "hullRadius": 0.34,
   "turnsToFace": false,
   "speed": 2.6,

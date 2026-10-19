@@ -232,7 +232,8 @@ public class BreakerBrain : EliteBrain
         switch (stage)
         {
             case Stage.Leave:
-                // just up from a dock / back from hiding: out of the view by the nearer side
+                // just up from a dock / back from hiding: out of the view by the nearer side (an attack forced in the meantime is finished first)
+                if (ship.State == EliteState.Attack) return Pos;
                 if (TideFlight.OffBoard(def, Pos)) { stage = Stage.Away; wait = afterLeave; afterLeave = .4f; }
                 return new Vector2(Mathf.Sign(Pos.x == 0f ? 1f : Pos.x) * (TideFlight.OffX(def) + 1f), Pos.y + .3f);
             case Stage.Away:
@@ -254,7 +255,9 @@ public class BreakerBrain : EliteBrain
         if (stage != Stage.Run || casts >= CastsAllowed) return false;
         float edge = EliteSystem.RailEdge - .45f;
         if (Mathf.Abs(Pos.x) >= edge) return false;
-        return Mathf.Abs(SpotBehind(def.tellSeconds, 0).x) < edge && Mathf.Abs(SpotBehind(def.tellSeconds, Spots - 1).x) < edge;
+        // the whole cast (the wind-up, then a bank every shotInterval) must fit before it rides out of the rails
+        float exitX = Pos.x + dirX * def.speed * Speedup * (def.tellSeconds + Spots * def.shotInterval);
+        return Mathf.Abs(exitX) < EliteSystem.RailEdge - .15f && Mathf.Abs(SpotBehind(def.tellSeconds, 0).x) < edge && Mathf.Abs(SpotBehind(def.tellSeconds, Spots - 1).x) < edge;
     }
 
     public void CastDone() { casts++; }

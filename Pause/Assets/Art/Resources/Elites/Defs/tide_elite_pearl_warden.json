@@ -50,7 +50,7 @@
   "brain": "oyster",
   "attack": "pearl_spiral",
   "launchFrom": "wreckhull,wreckbay",
-  "lore": "An armoured shell that keeps to one of three stations at the top of the board. Two thin lanes mark the arc it is about to sweep; then it spins out a spiral of slow pearls across it, leaving a gap where you stood when it locked. After every cast it hops to another station. Armour: only mines, rails and its own kind crack it.",
+  "lore": "An armoured shell that keeps to one of three stations at the top of the board. Two thin lanes mark the arc it sweeps with slow pearls, leaving a gap where you stood when it locked. After every cast it hops to another station.",
   "hullRadius": 0.411,
   "turnsToFace": false,
   "speed": 1.8,

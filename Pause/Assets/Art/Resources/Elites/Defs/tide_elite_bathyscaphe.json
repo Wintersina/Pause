@@ -50,7 +50,7 @@
   "brain": "deep",
   "attack": "mine_chain",
   "launchFrom": "subpen,rigdeck",
-  "lore": "An armoured deep-sea platform that surfaces at the top of the board, rings a chain of sea mines running down toward your column, and lays them one after another. Each mine bursts into a small cross of bolts when its fuse runs out; a shot defuses one. When it has laid its chain it dives off the top of the screen and surfaces somewhere else. Armour: only mines, rails and its own kind crack it.",
+  "lore": "An armoured deep-sea platform that surfaces at the top of the board and rings a chain of sea mines running down toward your column. Each mine bursts into a cross of bolts when its fuse runs out; a shot defuses one. Then it dives off the screen and surfaces somewhere else.",
   "hullRadius": 0.446,
   "turnsToFace": false,
   "speed": 2.0,
