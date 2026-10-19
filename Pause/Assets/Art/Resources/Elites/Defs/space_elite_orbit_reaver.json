@@ -4,7 +4,7 @@
   "world": "space",
   "role": "crescent raider",
   "codexId": "elite_space_orbit_reaver",
-  "launchFrom": "planet",
+  "launchFrom": "carrier,asteroid",
   "lore": "A crescent-clawed raider that flies great loops off the edge of the view and back, crossing the board on a new side and slope each pass. As it comes in a ring locks on the spot where you were and its claws cross their shards on it. Keep moving, and expect it back faster once it has been hurt.",
   "brain": "swooper",
   "attack": "swoop_volley",

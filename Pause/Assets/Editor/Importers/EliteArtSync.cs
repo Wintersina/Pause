@@ -12,7 +12,8 @@ using UnityEngine;
 // the pixel art stays crisp, alpha as transparency).
 //
 // Final strips are <world>_elite_<name>.png plus the optional
-// <world>_elite_<name>_parked / _liftoff / _death.png; anything ending in
+// <world>_elite_<name>_parked / _liftoff / _death / _lights.png (_lights: the hull's animated lights, an additive overlay with
+// the same cells as the hull strip; Space's four, masters from Codex's new_docks_lights~/); anything ending in
 // _candidate or _concept (Codex's working files) is skipped. A strip
 // delivered under its bare name (Frost/rimebreaker.png) is copied under the
 // convention name (Frost/frost_elite_rimebreaker.png): the def's key.

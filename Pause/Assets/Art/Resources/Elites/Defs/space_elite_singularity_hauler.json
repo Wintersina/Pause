@@ -4,7 +4,7 @@
   "world": "space",
   "role": "gravity tug",
   "codexId": "elite_space_singularity_hauler",
-  "launchFrom": "asteroid",
+  "launchFrom": "derelict,planet",
   "lore": "A salvage tug that parks high over the board, tows a huge asteroid down into its claws and flings it down a dotted lane: be elsewhere, or shoot the rock apart. Between throws it opens a ringed gravity well ahead of you that curves its shots in and gently tugs your ship. Stay out of the ring.",
   "brain": "wrecker",
   "attack": "tow_sling",

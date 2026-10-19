@@ -227,6 +227,7 @@ public partial class SpaceDirector : BackdropDirector
         BuildStationPuffs();
         BuildAsteroidDrift();
         BuildExtras();
+        BuildDocks();
 
         // Stars sit at their own small spread of depths: the farther, the
         // smaller, dimmer and slower. Most are pinpoints, a few glint.
@@ -365,6 +366,7 @@ public partial class SpaceDirector : BackdropDirector
         TickStationPuffs(dt);
         TickAsteroidDrift(dt, v);
         StepExtras(dt, v);
+        StepDocks(dt, v);
         foreach (var s in shooters.items)
         {
             if (!s.active) continue;
@@ -490,7 +492,8 @@ public partial class SpaceDirector : BackdropDirector
                 float scroll = (e.y + HalfH + e.size * 0.9f + 1f) / e.rate;     // until e is recycled (see Drift)
                 if (gap - (rate - e.rate) * scroll < reach + er + Clearance) return false;
             }
-        return true;
+        // (the launch docks, SpaceDocks, are structures too)
+        return planetClass || DocksFit(x, y, reach, rate);
     }
 
     // Bring the planned body in at the top (or at `y`, for the opening one).

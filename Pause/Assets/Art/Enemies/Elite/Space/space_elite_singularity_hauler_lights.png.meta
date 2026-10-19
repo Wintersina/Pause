@@ -1,0 +1,5759 @@
+fileFormatVersion: 2
+guid: 1568075f5ff93436b9f04a20787cd6d7
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 858478773105905550
+    second: space_elite_singularity_hauler_lights_0
+  - first:
+      213: 124397458203079316
+    second: space_elite_singularity_hauler_lights_1
+  - first:
+      213: -334409563693552514
+    second: space_elite_singularity_hauler_lights_2
+  - first:
+      213: 8074061073540822092
+    second: space_elite_singularity_hauler_lights_3
+  - first:
+      213: 3360410655573379201
+    second: space_elite_singularity_hauler_lights_4
+  - first:
+      213: 3815645676918149755
+    second: space_elite_singularity_hauler_lights_5
+  - first:
+      213: -5520060959396006450
+    second: space_elite_singularity_hauler_lights_6
+  - first:
+      213: 3992289455698933783
+    second: space_elite_singularity_hauler_lights_7
+  - first:
+      213: 2072263036951442819
+    second: space_elite_singularity_hauler_lights_8
+  - first:
+      213: -8707290672875691129
+    second: space_elite_singularity_hauler_lights_9
+  - first:
+      213: -5336503609002796039
+    second: space_elite_singularity_hauler_lights_10
+  - first:
+      213: -3721085592492180092
+    second: space_elite_singularity_hauler_lights_11
+  - first:
+      213: 669531228306031141
+    second: space_elite_singularity_hauler_lights_12
+  - first:
+      213: -644424309626969973
+    second: space_elite_singularity_hauler_lights_13
+  - first:
+      213: -5848260306381853684
+    second: space_elite_singularity_hauler_lights_14
+  - first:
+      213: 6946229232588044909
+    second: space_elite_singularity_hauler_lights_15
+  - first:
+      213: 2302825116670913189
+    second: space_elite_singularity_hauler_lights_16
+  - first:
+      213: 5967663055626307044
+    second: space_elite_singularity_hauler_lights_17
+  - first:
+      213: -5672710785647820387
+    second: space_elite_singularity_hauler_lights_18
+  - first:
+      213: 8320783630714234528
+    second: space_elite_singularity_hauler_lights_19
+  - first:
+      213: -8644958957338163964
+    second: space_elite_singularity_hauler_lights_20
+  - first:
+      213: -1731199383011290694
+    second: space_elite_singularity_hauler_lights_21
+  - first:
+      213: -3798432718251576992
+    second: space_elite_singularity_hauler_lights_22
+  - first:
+      213: -199860647586276758
+    second: space_elite_singularity_hauler_lights_23
+  - first:
+      213: 5555721438861978106
+    second: space_elite_singularity_hauler_lights_24
+  - first:
+      213: -5212471748972532150
+    second: space_elite_singularity_hauler_lights_25
+  - first:
+      213: 1963064920703909452
+    second: space_elite_singularity_hauler_lights_26
+  - first:
+      213: 2563025513192067000
+    second: space_elite_singularity_hauler_lights_27
+  - first:
+      213: 7609003343140395462
+    second: space_elite_singularity_hauler_lights_28
+  - first:
+      213: 8085962328248067466
+    second: space_elite_singularity_hauler_lights_29
+  - first:
+      213: 5694175152069421815
+    second: space_elite_singularity_hauler_lights_30
+  - first:
+      213: 7684237487973889814
+    second: space_elite_singularity_hauler_lights_31
+  - first:
+      213: -7872443446840009273
+    second: space_elite_singularity_hauler_lights_32
+  - first:
+      213: 8789519158376742494
+    second: space_elite_singularity_hauler_lights_33
+  - first:
+      213: -2292070090670160706
+    second: space_elite_singularity_hauler_lights_34
+  - first:
+      213: -1964769506188819909
+    second: space_elite_singularity_hauler_lights_35
+  - first:
+      213: 7849295230816221732
+    second: space_elite_singularity_hauler_lights_36
+  - first:
+      213: -1552907712404544072
+    second: space_elite_singularity_hauler_lights_37
+  - first:
+      213: -5813194144500015806
+    second: space_elite_singularity_hauler_lights_38
+  - first:
+      213: -8177382089916411815
+    second: space_elite_singularity_hauler_lights_39
+  - first:
+      213: 245174514430511142
+    second: space_elite_singularity_hauler_lights_40
+  - first:
+      213: -3827156574310596900
+    second: space_elite_singularity_hauler_lights_41
+  - first:
+      213: 4146543043157138930
+    second: space_elite_singularity_hauler_lights_42
+  - first:
+      213: 7986920354403576788
+    second: space_elite_singularity_hauler_lights_43
+  - first:
+      213: -3575495793682589762
+    second: space_elite_singularity_hauler_lights_44
+  - first:
+      213: 4102349871467796199
+    second: space_elite_singularity_hauler_lights_45
+  - first:
+      213: -8257702343260901417
+    second: space_elite_singularity_hauler_lights_46
+  - first:
+      213: 7250308382767323538
+    second: space_elite_singularity_hauler_lights_47
+  - first:
+      213: 4996183318117328101
+    second: space_elite_singularity_hauler_lights_48
+  - first:
+      213: 4686425510259706863
+    second: space_elite_singularity_hauler_lights_49
+  - first:
+      213: -1854937498978828106
+    second: space_elite_singularity_hauler_lights_50
+  - first:
+      213: -3813401860590329951
+    second: space_elite_singularity_hauler_lights_51
+  - first:
+      213: 6045936172635446597
+    second: space_elite_singularity_hauler_lights_52
+  - first:
+      213: -2867006322149900818
+    second: space_elite_singularity_hauler_lights_53
+  - first:
+      213: -3677043918028307454
+    second: space_elite_singularity_hauler_lights_54
+  - first:
+      213: 4905056986101253181
+    second: space_elite_singularity_hauler_lights_55
+  - first:
+      213: -6110153989789966681
+    second: space_elite_singularity_hauler_lights_56
+  - first:
+      213: -509208862743906735
+    second: space_elite_singularity_hauler_lights_57
+  - first:
+      213: 1449101430724393466
+    second: space_elite_singularity_hauler_lights_58
+  - first:
+      213: -9086087531061917116
+    second: space_elite_singularity_hauler_lights_59
+  - first:
+      213: -2416085580752801589
+    second: space_elite_singularity_hauler_lights_60
+  - first:
+      213: -2430818411931716186
+    second: space_elite_singularity_hauler_lights_61
+  - first:
+      213: 21178740784441552
+    second: space_elite_singularity_hauler_lights_62
+  - first:
+      213: 5390338646000682360
+    second: space_elite_singularity_hauler_lights_63
+  - first:
+      213: -4082161193552031879
+    second: space_elite_singularity_hauler_lights_64
+  - first:
+      213: -3082013831561142080
+    second: space_elite_singularity_hauler_lights_65
+  - first:
+      213: 3247509414665336465
+    second: space_elite_singularity_hauler_lights_66
+  - first:
+      213: -3134356752040045619
+    second: space_elite_singularity_hauler_lights_67
+  - first:
+      213: 3873498232991050594
+    second: space_elite_singularity_hauler_lights_68
+  - first:
+      213: -6974689450890256074
+    second: space_elite_singularity_hauler_lights_69
+  - first:
+      213: -974673848508708996
+    second: space_elite_singularity_hauler_lights_70
+  - first:
+      213: 7906579331809081232
+    second: space_elite_singularity_hauler_lights_71
+  - first:
+      213: -542233673466154639
+    second: space_elite_singularity_hauler_lights_72
+  - first:
+      213: 5669144308445947611
+    second: space_elite_singularity_hauler_lights_73
+  - first:
+      213: 6953754402384315782
+    second: space_elite_singularity_hauler_lights_74
+  - first:
+      213: 1112899152442784960
+    second: space_elite_singularity_hauler_lights_75
+  - first:
+      213: -7884136261225229007
+    second: space_elite_singularity_hauler_lights_76
+  - first:
+      213: -7771343769771684687
+    second: space_elite_singularity_hauler_lights_77
+  - first:
+      213: -4406461453668205449
+    second: space_elite_singularity_hauler_lights_78
+  - first:
+      213: 2878417685223641537
+    second: space_elite_singularity_hauler_lights_79
+  - first:
+      213: -3635972153696390540
+    second: space_elite_singularity_hauler_lights_80
+  - first:
+      213: -1606785938192850558
+    second: space_elite_singularity_hauler_lights_81
+  - first:
+      213: -3838677380093210762
+    second: space_elite_singularity_hauler_lights_82
+  - first:
+      213: -1993315123047750371
+    second: space_elite_singularity_hauler_lights_83
+  - first:
+      213: 7412773197653418435
+    second: space_elite_singularity_hauler_lights_84
+  - first:
+      213: -1141016334093840211
+    second: space_elite_singularity_hauler_lights_85
+  - first:
+      213: -2933147441330852994
+    second: space_elite_singularity_hauler_lights_86
+  - first:
+      213: -337222228598831709
+    second: space_elite_singularity_hauler_lights_87
+  - first:
+      213: 4072832961075306029
+    second: space_elite_singularity_hauler_lights_88
+  - first:
+      213: -5551726780786561740
+    second: space_elite_singularity_hauler_lights_89
+  - first:
+      213: 4485672318991972408
+    second: space_elite_singularity_hauler_lights_90
+  - first:
+      213: 1557246975233482153
+    second: space_elite_singularity_hauler_lights_91
+  - first:
+      213: 267242504302957802
+    second: space_elite_singularity_hauler_lights_92
+  - first:
+      213: -4539622247012079459
+    second: space_elite_singularity_hauler_lights_93
+  - first:
+      213: 1800636181188212572
+    second: space_elite_singularity_hauler_lights_94
+  - first:
+      213: 5273186483706192514
+    second: space_elite_singularity_hauler_lights_95
+  - first:
+      213: -6290666654386815106
+    second: space_elite_singularity_hauler_lights_96
+  - first:
+      213: -6280424475522393061
+    second: space_elite_singularity_hauler_lights_97
+  - first:
+      213: 1848642417001069354
+    second: space_elite_singularity_hauler_lights_98
+  - first:
+      213: 3054471512440653903
+    second: space_elite_singularity_hauler_lights_99
+  - first:
+      213: -292335808014292981
+    second: space_elite_singularity_hauler_lights_100
+  - first:
+      213: 4674171774787544033
+    second: space_elite_singularity_hauler_lights_101
+  - first:
+      213: -5959124511402004573
+    second: space_elite_singularity_hauler_lights_102
+  - first:
+      213: -3364413618365121570
+    second: space_elite_singularity_hauler_lights_103
+  - first:
+      213: 3817349650584154796
+    second: space_elite_singularity_hauler_lights_104
+  - first:
+      213: -1264921433357412487
+    second: space_elite_singularity_hauler_lights_105
+  - first:
+      213: 8694123857497426347
+    second: space_elite_singularity_hauler_lights_106
+  - first:
+      213: -4855615938419126682
+    second: space_elite_singularity_hauler_lights_107
+  - first:
+      213: -1200956506642242077
+    second: space_elite_singularity_hauler_lights_108
+  - first:
+      213: -5822008059282443816
+    second: space_elite_singularity_hauler_lights_109
+  - first:
+      213: -5528778739281055026
+    second: space_elite_singularity_hauler_lights_110
+  - first:
+      213: 1465537200805819323
+    second: space_elite_singularity_hauler_lights_111
+  - first:
+      213: -2440088206304986699
+    second: space_elite_singularity_hauler_lights_112
+  - first:
+      213: 4112405162404456098
+    second: space_elite_singularity_hauler_lights_113
+  - first:
+      213: -7515806516931758580
+    second: space_elite_singularity_hauler_lights_114
+  - first:
+      213: -808783218464615917
+    second: space_elite_singularity_hauler_lights_115
+  - first:
+      213: -1505663408917201626
+    second: space_elite_singularity_hauler_lights_116
+  - first:
+      213: 8492195050036145633
+    second: space_elite_singularity_hauler_lights_117
+  - first:
+      213: -7853961877887073447
+    second: space_elite_singularity_hauler_lights_118
+  - first:
+      213: -1007043845981852672
+    second: space_elite_singularity_hauler_lights_119
+  - first:
+      213: 8910872266423417125
+    second: space_elite_singularity_hauler_lights_120
+  - first:
+      213: 4214914774500949595
+    second: space_elite_singularity_hauler_lights_121
+  - first:
+      213: 597092626306211637
+    second: space_elite_singularity_hauler_lights_122
+  - first:
+      213: 2476415839473649773
+    second: space_elite_singularity_hauler_lights_123
+  - first:
+      213: 9114615452270642672
+    second: space_elite_singularity_hauler_lights_124
+  - first:
+      213: -1989843160340804141
+    second: space_elite_singularity_hauler_lights_125
+  - first:
+      213: -4560651839942798262
+    second: space_elite_singularity_hauler_lights_126
+  - first:
+      213: 7330895031474495903
+    second: space_elite_singularity_hauler_lights_127
+  - first:
+      213: 2648855252555614362
+    second: space_elite_singularity_hauler_lights_128
+  - first:
+      213: -7488140004180685175
+    second: space_elite_singularity_hauler_lights_129
+  - first:
+      213: 737477262897897299
+    second: space_elite_singularity_hauler_lights_130
+  - first:
+      213: -3703251967307657292
+    second: space_elite_singularity_hauler_lights_131
+  - first:
+      213: -5191387692887971597
+    second: space_elite_singularity_hauler_lights_132
+  - first:
+      213: -1518861289024104856
+    second: space_elite_singularity_hauler_lights_133
+  - first:
+      213: -1369299957864357507
+    second: space_elite_singularity_hauler_lights_134
+  - first:
+      213: -1980573352214696753
+    second: space_elite_singularity_hauler_lights_135
+  - first:
+      213: -8607058715126631918
+    second: space_elite_singularity_hauler_lights_136
+  - first:
+      213: -1405737995363739945
+    second: space_elite_singularity_hauler_lights_137
+  - first:
+      213: -5153458914096418554
+    second: space_elite_singularity_hauler_lights_138
+  - first:
+      213: 4911473385379009937
+    second: space_elite_singularity_hauler_lights_139
+  - first:
+      213: 5011107860315355274
+    second: space_elite_singularity_hauler_lights_140
+  - first:
+      213: 9130996626797537120
+    second: space_elite_singularity_hauler_lights_141
+  - first:
+      213: -6952618040976455014
+    second: space_elite_singularity_hauler_lights_142
+  - first:
+      213: -4185076737053902834
+    second: space_elite_singularity_hauler_lights_143
+  - first:
+      213: 3675614973381875135
+    second: space_elite_singularity_hauler_lights_144
+  - first:
+      213: 4527190226575275551
+    second: space_elite_singularity_hauler_lights_145
+  - first:
+      213: 1973343674981923721
+    second: space_elite_singularity_hauler_lights_146
+  - first:
+      213: 819360323757309491
+    second: space_elite_singularity_hauler_lights_147
+  - first:
+      213: -8972354760876531834
+    second: space_elite_singularity_hauler_lights_148
+  - first:
+      213: -4837434839031781021
+    second: space_elite_singularity_hauler_lights_149
+  - first:
+      213: -7671273621693846561
+    second: space_elite_singularity_hauler_lights_150
+  - first:
+      213: 610399535198706764
+    second: space_elite_singularity_hauler_lights_151
+  - first:
+      213: -2558566650014332710
+    second: space_elite_singularity_hauler_lights_152
+  - first:
+      213: 483877162913518027
+    second: space_elite_singularity_hauler_lights_153
+  - first:
+      213: -4157615350165491991
+    second: space_elite_singularity_hauler_lights_154
+  - first:
+      213: -4351674861424166587
+    second: space_elite_singularity_hauler_lights_155
+  - first:
+      213: -2898320219692652964
+    second: space_elite_singularity_hauler_lights_156
+  - first:
+      213: 1739368533221242756
+    second: space_elite_singularity_hauler_lights_157
+  - first:
+      213: 2795060886607492352
+    second: space_elite_singularity_hauler_lights_158
+  - first:
+      213: 7258349457267880309
+    second: space_elite_singularity_hauler_lights_159
+  - first:
+      213: -765925833241752311
+    second: space_elite_singularity_hauler_lights_160
+  - first:
+      213: 6361390881433181228
+    second: space_elite_singularity_hauler_lights_161
+  - first:
+      213: 4252684958756655807
+    second: space_elite_singularity_hauler_lights_162
+  - first:
+      213: 7866254708865826992
+    second: space_elite_singularity_hauler_lights_163
+  - first:
+      213: 4229814229795531655
+    second: space_elite_singularity_hauler_lights_164
+  - first:
+      213: 3598360070824890366
+    second: space_elite_singularity_hauler_lights_165
+  - first:
+      213: -3868926553723339249
+    second: space_elite_singularity_hauler_lights_166
+  - first:
+      213: -2400397574018902774
+    second: space_elite_singularity_hauler_lights_167
+  - first:
+      213: -3445934101121136722
+    second: space_elite_singularity_hauler_lights_168
+  - first:
+      213: -5962393323554557457
+    second: space_elite_singularity_hauler_lights_169
+  - first:
+      213: -1956173796722845691
+    second: space_elite_singularity_hauler_lights_170
+  - first:
+      213: -3023050503953136393
+    second: space_elite_singularity_hauler_lights_171
+  - first:
+      213: -6213956073697479533
+    second: space_elite_singularity_hauler_lights_172
+  - first:
+      213: 8171215770725341837
+    second: space_elite_singularity_hauler_lights_173
+  - first:
+      213: 6188479253400968341
+    second: space_elite_singularity_hauler_lights_174
+  - first:
+      213: 8446983408446042181
+    second: space_elite_singularity_hauler_lights_175
+  - first:
+      213: 1344290863277692718
+    second: space_elite_singularity_hauler_lights_176
+  - first:
+      213: 4098420990275683809
+    second: space_elite_singularity_hauler_lights_177
+  - first:
+      213: 2264203521002776920
+    second: space_elite_singularity_hauler_lights_178
+  - first:
+      213: 8050422285094176249
+    second: space_elite_singularity_hauler_lights_179
+  - first:
+      213: -863719170477460473
+    second: space_elite_singularity_hauler_lights_180
+  - first:
+      213: -6011637550830917230
+    second: space_elite_singularity_hauler_lights_181
+  - first:
+      213: 6902459779081197337
+    second: space_elite_singularity_hauler_lights_182
+  - first:
+      213: 637852619835228452
+    second: space_elite_singularity_hauler_lights_183
+  - first:
+      213: 2195470663325186900
+    second: space_elite_singularity_hauler_lights_184
+  - first:
+      213: 6470169897669362671
+    second: space_elite_singularity_hauler_lights_185
+  - first:
+      213: -1750712854503704343
+    second: space_elite_singularity_hauler_lights_186
+  - first:
+      213: -3669814142667725612
+    second: space_elite_singularity_hauler_lights_187
+  - first:
+      213: 7054607043679750479
+    second: space_elite_singularity_hauler_lights_188
+  - first:
+      213: 6950930308067787679
+    second: space_elite_singularity_hauler_lights_189
+  - first:
+      213: 4421696868918854934
+    second: space_elite_singularity_hauler_lights_190
+  - first:
+      213: -7265141329824358323
+    second: space_elite_singularity_hauler_lights_191
+  - first:
+      213: 8318417957119914074
+    second: space_elite_singularity_hauler_lights_192
+  - first:
+      213: -378286668405979336
+    second: space_elite_singularity_hauler_lights_193
+  - first:
+      213: 9057163367652962623
+    second: space_elite_singularity_hauler_lights_194
+  - first:
+      213: 534190425271278827
+    second: space_elite_singularity_hauler_lights_195
+  - first:
+      213: 7641062663183035285
+    second: space_elite_singularity_hauler_lights_196
+  - first:
+      213: 3036058238586612652
+    second: space_elite_singularity_hauler_lights_197
+  - first:
+      213: 549316024273184712
+    second: space_elite_singularity_hauler_lights_198
+  - first:
+      213: 890989748515017549
+    second: space_elite_singularity_hauler_lights_199
+  - first:
+      213: -8355903647003895417
+    second: space_elite_singularity_hauler_lights_200
+  - first:
+      213: -5381748375650839386
+    second: space_elite_singularity_hauler_lights_201
+  - first:
+      213: -8873536405664968121
+    second: space_elite_singularity_hauler_lights_202
+  - first:
+      213: 3048944386189173024
+    second: space_elite_singularity_hauler_lights_203
+  - first:
+      213: 1921528598502818020
+    second: space_elite_singularity_hauler_lights_204
+  - first:
+      213: -7329289071961483402
+    second: space_elite_singularity_hauler_lights_205
+  - first:
+      213: -6286359087680125751
+    second: space_elite_singularity_hauler_lights_206
+  - first:
+      213: -1588119609528969928
+    second: space_elite_singularity_hauler_lights_207
+  - first:
+      213: 8360269331488270902
+    second: space_elite_singularity_hauler_lights_208
+  - first:
+      213: 3713640093202808555
+    second: space_elite_singularity_hauler_lights_209
+  - first:
+      213: 6243297969362218060
+    second: space_elite_singularity_hauler_lights_210
+  - first:
+      213: -2767139970779140195
+    second: space_elite_singularity_hauler_lights_211
+  - first:
+      213: 6733838256446196747
+    second: space_elite_singularity_hauler_lights_212
+  - first:
+      213: -1658753558493167584
+    second: space_elite_singularity_hauler_lights_213
+  - first:
+      213: 6376988267423034437
+    second: space_elite_singularity_hauler_lights_214
+  - first:
+      213: -6651780685609766514
+    second: space_elite_singularity_hauler_lights_215
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: 50
+    textureCompression: 1
+    compressionQuality: 100
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 1
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: iOS
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: 50
+    textureCompression: 1
+    compressionQuality: 100
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 1
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_0
+      rect:
+        serializedVersion: 2
+        x: 112
+        y: 338
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e8fc03e45ede9eb00800000000000000
+      internalID: 858478773105905550
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_1
+      rect:
+        serializedVersion: 2
+        x: 236
+        y: 333
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 492f72344d2f9b100800000000000000
+      internalID: 124397458203079316
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_2
+      rect:
+        serializedVersion: 2
+        x: 257
+        y: 339
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e7c6d8a0640fb5bf0800000000000000
+      internalID: -334409563693552514
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_3
+      rect:
+        serializedVersion: 2
+        x: 496
+        y: 338
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c44b537a4c3dc0070800000000000000
+      internalID: 8074061073540822092
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_4
+      rect:
+        serializedVersion: 2
+        x: 619
+        y: 332
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 18883e0efa392ae20800000000000000
+      internalID: 3360410655573379201
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_5
+      rect:
+        serializedVersion: 2
+        x: 640
+        y: 338
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b721679e685e3f430800000000000000
+      internalID: 3815645676918149755
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_6
+      rect:
+        serializedVersion: 2
+        x: 879
+        y: 337
+        width: 17
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ec5f2b0ddcdc463b0800000000000000
+      internalID: -5520060959396006450
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_7
+      rect:
+        serializedVersion: 2
+        x: 1002
+        y: 331
+        width: 17
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 718f87f9b16776730800000000000000
+      internalID: 3992289455698933783
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_8
+      rect:
+        serializedVersion: 2
+        x: 1023
+        y: 337
+        width: 17
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 385b9a6b04822cc10800000000000000
+      internalID: 2072263036951442819
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_9
+      rect:
+        serializedVersion: 2
+        x: 1263
+        y: 337
+        width: 17
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7832c27244d792780800000000000000
+      internalID: -8707290672875691129
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_10
+      rect:
+        serializedVersion: 2
+        x: 1387
+        y: 332
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9fb5ccadd3ee0f5b0800000000000000
+      internalID: -5336503609002796039
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_11
+      rect:
+        serializedVersion: 2
+        x: 1408
+        y: 338
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 48dfda86e5c0c5cc0800000000000000
+      internalID: -3721085592492180092
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_12
+      rect:
+        serializedVersion: 2
+        x: 1647
+        y: 337
+        width: 17
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5224635da17aa4900800000000000000
+      internalID: 669531228306031141
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_13
+      rect:
+        serializedVersion: 2
+        x: 1770
+        y: 331
+        width: 17
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b80ee04318b8e07f0800000000000000
+      internalID: -644424309626969973
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_14
+      rect:
+        serializedVersion: 2
+        x: 1791
+        y: 337
+        width: 17
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c0ca71c9c3ec6dea0800000000000000
+      internalID: -5848260306381853684
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_15
+      rect:
+        serializedVersion: 2
+        x: 2031
+        y: 337
+        width: 17
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d6a38d03fa6f56060800000000000000
+      internalID: 6946229232588044909
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_16
+      rect:
+        serializedVersion: 2
+        x: 2154
+        y: 331
+        width: 17
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5aa64032e3745ff10800000000000000
+      internalID: 2302825116670913189
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_17
+      rect:
+        serializedVersion: 2
+        x: 2175
+        y: 337
+        width: 17
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4e504d95ee561d250800000000000000
+      internalID: 5967663055626307044
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_18
+      rect:
+        serializedVersion: 2
+        x: 2416
+        y: 338
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d914fe3889b7641b0800000000000000
+      internalID: -5672710785647820387
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_19
+      rect:
+        serializedVersion: 2
+        x: 2538
+        y: 331
+        width: 17
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0a66b9170ac597370800000000000000
+      internalID: 8320783630714234528
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_20
+      rect:
+        serializedVersion: 2
+        x: 2559
+        y: 337
+        width: 17
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 405070a91afe60880800000000000000
+      internalID: -8644958957338163964
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_21
+      rect:
+        serializedVersion: 2
+        x: 2800
+        y: 338
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ab19c3c555b89f7e0800000000000000
+      internalID: -1731199383011290694
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_22
+      rect:
+        serializedVersion: 2
+        x: 2922
+        y: 331
+        width: 17
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 061b4655191494bc0800000000000000
+      internalID: -3798432718251576992
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_23
+      rect:
+        serializedVersion: 2
+        x: 2944
+        y: 338
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a6a5a08ccc3f93df0800000000000000
+      internalID: -199860647586276758
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_24
+      rect:
+        serializedVersion: 2
+        x: 3184
+        y: 338
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: af9e3629633e91d40800000000000000
+      internalID: 5555721438861978106
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_25
+      rect:
+        serializedVersion: 2
+        x: 3307
+        y: 332
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a4eabb8af8499a7b0800000000000000
+      internalID: -5212471748972532150
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_26
+      rect:
+        serializedVersion: 2
+        x: 3328
+        y: 338
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c4e369505253e3b10800000000000000
+      internalID: 1963064920703909452
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_27
+      rect:
+        serializedVersion: 2
+        x: 3568
+        y: 338
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8bf8310ff12b19320800000000000000
+      internalID: 2563025513192067000
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_28
+      rect:
+        serializedVersion: 2
+        x: 3691
+        y: 332
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6c994a2f93c989960800000000000000
+      internalID: 7609003343140395462
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_29
+      rect:
+        serializedVersion: 2
+        x: 3712
+        y: 338
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a85aa6275eb173070800000000000000
+      internalID: 8085962328248067466
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_30
+      rect:
+        serializedVersion: 2
+        x: 3952
+        y: 338
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7fa24fbb126c50f40800000000000000
+      internalID: 5694175152069421815
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_31
+      rect:
+        serializedVersion: 2
+        x: 4075
+        y: 332
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6177c605845e3aa60800000000000000
+      internalID: 7684237487973889814
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_32
+      rect:
+        serializedVersion: 2
+        x: 4096
+        y: 338
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7cddfb425667fb290800000000000000
+      internalID: -7872443446840009273
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_33
+      rect:
+        serializedVersion: 2
+        x: 4336
+        y: 339
+        width: 15
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e5e398d0b15aaf970800000000000000
+      internalID: 8789519158376742494
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_34
+      rect:
+        serializedVersion: 2
+        x: 4459
+        y: 333
+        width: 15
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: eb4ce4d756ee030e0800000000000000
+      internalID: -2292070090670160706
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_35
+      rect:
+        serializedVersion: 2
+        x: 4479
+        y: 338
+        width: 17
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b32881e3b8cbbb4e0800000000000000
+      internalID: -1964769506188819909
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_36
+      rect:
+        serializedVersion: 2
+        x: 131
+        y: 321
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 42af7f1dc6c4eec60800000000000000
+      internalID: 7849295230816221732
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_37
+      rect:
+        serializedVersion: 2
+        x: 515
+        y: 320
+        width: 13
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8b5a929c9a6f27ae0800000000000000
+      internalID: -1552907712404544072
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_38
+      rect:
+        serializedVersion: 2
+        x: 898
+        y: 320
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 24d12b6a9b2635fa0800000000000000
+      internalID: -5813194144500015806
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_39
+      rect:
+        serializedVersion: 2
+        x: 1282
+        y: 320
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 95014e9905a148e80800000000000000
+      internalID: -8177382089916411815
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_40
+      rect:
+        serializedVersion: 2
+        x: 1666
+        y: 320
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6280c900ce8076300800000000000000
+      internalID: 245174514430511142
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_41
+      rect:
+        serializedVersion: 2
+        x: 2050
+        y: 320
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cde7a607f5533eac0800000000000000
+      internalID: -3827156574310596900
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_42
+      rect:
+        serializedVersion: 2
+        x: 2433
+        y: 319
+        width: 17
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2fd9f3dadea7b8930800000000000000
+      internalID: 4146543043157138930
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_43
+      rect:
+        serializedVersion: 2
+        x: 2817
+        y: 319
+        width: 17
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4dbef8deebd37de60800000000000000
+      internalID: 7986920354403576788
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_44
+      rect:
+        serializedVersion: 2
+        x: 3201
+        y: 319
+        width: 17
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: eb755a9f489416ec0800000000000000
+      internalID: -3575495793682589762
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_45
+      rect:
+        serializedVersion: 2
+        x: 3586
+        y: 320
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7e6153119797ee830800000000000000
+      internalID: 4102349871467796199
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_46
+      rect:
+        serializedVersion: 2
+        x: 3970
+        y: 320
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7dfe501587fb66d80800000000000000
+      internalID: -8257702343260901417
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_47
+      rect:
+        serializedVersion: 2
+        x: 4353
+        y: 320
+        width: 17
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 29912e27f054e9460800000000000000
+      internalID: 7250308382767323538
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_48
+      rect:
+        serializedVersion: 2
+        x: 80
+        y: 294
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5e4ad15c142065540800000000000000
+      internalID: 4996183318117328101
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_49
+      rect:
+        serializedVersion: 2
+        x: 290
+        y: 294
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: febcb5dfb27890140800000000000000
+      internalID: 4686425510259706863
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_50
+      rect:
+        serializedVersion: 2
+        x: 464
+        y: 293
+        width: 13
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6b0c0dc2c20f146e0800000000000000
+      internalID: -1854937498978828106
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_51
+      rect:
+        serializedVersion: 2
+        x: 674
+        y: 293
+        width: 13
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1af13b94633141bc0800000000000000
+      internalID: -3813401860590329951
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_52
+      rect:
+        serializedVersion: 2
+        x: 847
+        y: 293
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 54dde909aea77e350800000000000000
+      internalID: 6045936172635446597
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_53
+      rect:
+        serializedVersion: 2
+        x: 1057
+        y: 293
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: eedb477a0f85638d0800000000000000
+      internalID: -2867006322149900818
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_54
+      rect:
+        serializedVersion: 2
+        x: 1231
+        y: 293
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2048962d90488fcc0800000000000000
+      internalID: -3677043918028307454
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_55
+      rect:
+        serializedVersion: 2
+        x: 1441
+        y: 293
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d340d9b3753421440800000000000000
+      internalID: 4905056986101253181
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_56
+      rect:
+        serializedVersion: 2
+        x: 1615
+        y: 293
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7ae12abb15f543ba0800000000000000
+      internalID: -6110153989789966681
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_57
+      rect:
+        serializedVersion: 2
+        x: 1825
+        y: 293
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1563babbc3deee8f0800000000000000
+      internalID: -509208862743906735
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_58
+      rect:
+        serializedVersion: 2
+        x: 1999
+        y: 293
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: af976d5d21e3c1410800000000000000
+      internalID: 1449101430724393466
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_59
+      rect:
+        serializedVersion: 2
+        x: 2209
+        y: 293
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 44ac2f8d78bb7e180800000000000000
+      internalID: -9086087531061917116
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_60
+      rect:
+        serializedVersion: 2
+        x: 2383
+        y: 293
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bc0394c17f6587ed0800000000000000
+      internalID: -2416085580752801589
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_61
+      rect:
+        serializedVersion: 2
+        x: 2593
+        y: 293
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6a5b45b888ff34ed0800000000000000
+      internalID: -2430818411931716186
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_62
+      rect:
+        serializedVersion: 2
+        x: 2766
+        y: 292
+        width: 17
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0d82f39d3fd3b4000800000000000000
+      internalID: 21178740784441552
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_63
+      rect:
+        serializedVersion: 2
+        x: 2977
+        y: 293
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8754ee570745eca40800000000000000
+      internalID: 5390338646000682360
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_64
+      rect:
+        serializedVersion: 2
+        x: 3150
+        y: 292
+        width: 17
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 97f427ec5004957c0800000000000000
+      internalID: -4082161193552031879
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_65
+      rect:
+        serializedVersion: 2
+        x: 3360
+        y: 292
+        width: 17
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0c025f8dfbc7a35d0800000000000000
+      internalID: -3082013831561142080
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_66
+      rect:
+        serializedVersion: 2
+        x: 3534
+        y: 292
+        width: 17
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1963dd94b98711d20800000000000000
+      internalID: 3247509414665336465
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_67
+      rect:
+        serializedVersion: 2
+        x: 3744
+        y: 292
+        width: 17
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: dc35e4bf3278084d0800000000000000
+      internalID: -3134356752040045619
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_68
+      rect:
+        serializedVersion: 2
+        x: 3919
+        y: 293
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 26be887ce1e61c530800000000000000
+      internalID: 3873498232991050594
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_69
+      rect:
+        serializedVersion: 2
+        x: 4128
+        y: 292
+        width: 17
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 631a50dd5ece43f90800000000000000
+      internalID: -6974689450890256074
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_70
+      rect:
+        serializedVersion: 2
+        x: 4303
+        y: 294
+        width: 15
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c7786cf7c434972f0800000000000000
+      internalID: -974673848508708996
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_71
+      rect:
+        serializedVersion: 2
+        x: 4513
+        y: 294
+        width: 15
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 097fcece200d9bd60800000000000000
+      internalID: 7906579331809081232
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_72
+      rect:
+        serializedVersion: 2
+        x: 119
+        y: 270
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1717bcbc8599978f0800000000000000
+      internalID: -542233673466154639
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_73
+      rect:
+        serializedVersion: 2
+        x: 149
+        y: 276
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bd6295d46b8dcae40800000000000000
+      internalID: 5669144308445947611
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_74
+      rect:
+        serializedVersion: 2
+        x: 191
+        y: 276
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6850d6159c2b08060800000000000000
+      internalID: 6953754402384315782
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_75
+      rect:
+        serializedVersion: 2
+        x: 221
+        y: 276
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0cc7f2cf1efc17f00800000000000000
+      internalID: 1112899152442784960
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_76
+      rect:
+        serializedVersion: 2
+        x: 251
+        y: 270
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 135d4e4a7dbe59290800000000000000
+      internalID: -7884136261225229007
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_77
+      rect:
+        serializedVersion: 2
+        x: 503
+        y: 269
+        width: 13
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1bc40570404a62490800000000000000
+      internalID: -7771343769771684687
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_78
+      rect:
+        serializedVersion: 2
+        x: 533
+        y: 275
+        width: 13
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 77cb7a187aa19d2c0800000000000000
+      internalID: -4406461453668205449
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_79
+      rect:
+        serializedVersion: 2
+        x: 575
+        y: 275
+        width: 13
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1c115fa52a132f720800000000000000
+      internalID: 2878417685223641537
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_80
+      rect:
+        serializedVersion: 2
+        x: 605
+        y: 275
+        width: 13
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 472f6b5279e6a8dc0800000000000000
+      internalID: -3635972153696390540
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_81
+      rect:
+        serializedVersion: 2
+        x: 635
+        y: 269
+        width: 13
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2812cebc3bc83b9e0800000000000000
+      internalID: -1606785938192850558
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_82
+      rect:
+        serializedVersion: 2
+        x: 886
+        y: 269
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 67f8730d2474abac0800000000000000
+      internalID: -3838677380093210762
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_83
+      rect:
+        serializedVersion: 2
+        x: 916
+        y: 275
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d152355e4725654e0800000000000000
+      internalID: -1993315123047750371
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_84
+      rect:
+        serializedVersion: 2
+        x: 958
+        y: 275
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3c12baed2f57fd660800000000000000
+      internalID: 7412773197653418435
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_85
+      rect:
+        serializedVersion: 2
+        x: 988
+        y: 275
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: da01b6380bb4a20f0800000000000000
+      internalID: -1141016334093840211
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_86
+      rect:
+        serializedVersion: 2
+        x: 1018
+        y: 269
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e7be0ad41fd5b47d0800000000000000
+      internalID: -2933147441330852994
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_87
+      rect:
+        serializedVersion: 2
+        x: 1270
+        y: 269
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3a540067b22f15bf0800000000000000
+      internalID: -337222228598831709
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_88
+      rect:
+        serializedVersion: 2
+        x: 1300
+        y: 275
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d2e5562dffb958830800000000000000
+      internalID: 4072832961075306029
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_89
+      rect:
+        serializedVersion: 2
+        x: 1342
+        y: 275
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 43da13d38ed44f2b0800000000000000
+      internalID: -5551726780786561740
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_90
+      rect:
+        serializedVersion: 2
+        x: 1372
+        y: 275
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 838b150453f404e30800000000000000
+      internalID: 4485672318991972408
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_91
+      rect:
+        serializedVersion: 2
+        x: 1402
+        y: 269
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9add7529fd37c9510800000000000000
+      internalID: 1557246975233482153
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_92
+      rect:
+        serializedVersion: 2
+        x: 1654
+        y: 269
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ae41dd944af65b300800000000000000
+      internalID: 267242504302957802
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_93
+      rect:
+        serializedVersion: 2
+        x: 1684
+        y: 275
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d9862684e950001c0800000000000000
+      internalID: -4539622247012079459
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_94
+      rect:
+        serializedVersion: 2
+        x: 1726
+        y: 275
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c57707d01152df810800000000000000
+      internalID: 1800636181188212572
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_95
+      rect:
+        serializedVersion: 2
+        x: 1756
+        y: 275
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 282e2bb1b2f1e2940800000000000000
+      internalID: 5273186483706192514
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_96
+      rect:
+        serializedVersion: 2
+        x: 1786
+        y: 269
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e7ff0e8d10013b8a0800000000000000
+      internalID: -6290666654386815106
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_97
+      rect:
+        serializedVersion: 2
+        x: 2038
+        y: 269
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b1c91d1f63377d8a0800000000000000
+      internalID: -6280424475522393061
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_98
+      rect:
+        serializedVersion: 2
+        x: 2068
+        y: 275
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a2b7116db72b7a910800000000000000
+      internalID: 1848642417001069354
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_99
+      rect:
+        serializedVersion: 2
+        x: 2110
+        y: 275
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f48439348a9a36a20800000000000000
+      internalID: 3054471512440653903
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_100
+      rect:
+        serializedVersion: 2
+        x: 2140
+        y: 275
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b086e28a12a61fbf0800000000000000
+      internalID: -292335808014292981
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_101
+      rect:
+        serializedVersion: 2
+        x: 2170
+        y: 269
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1e36e5fd67efdd040800000000000000
+      internalID: 4674171774787544033
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_102
+      rect:
+        serializedVersion: 2
+        x: 2422
+        y: 269
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3af6f8564dfec4da0800000000000000
+      internalID: -5959124511402004573
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_103
+      rect:
+        serializedVersion: 2
+        x: 2452
+        y: 275
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: edb3cd7b3a33f41d0800000000000000
+      internalID: -3364413618365121570
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_104
+      rect:
+        serializedVersion: 2
+        x: 2494
+        y: 275
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ca2b7823843f9f430800000000000000
+      internalID: 3817349650584154796
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_105
+      rect:
+        serializedVersion: 2
+        x: 2524
+        y: 275
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 97714ff78a8127ee0800000000000000
+      internalID: -1264921433357412487
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_106
+      rect:
+        serializedVersion: 2
+        x: 2554
+        y: 269
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ba9026fb59bb7a870800000000000000
+      internalID: 8694123857497426347
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_107
+      rect:
+        serializedVersion: 2
+        x: 2806
+        y: 269
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 66e8dc8b7036d9cb0800000000000000
+      internalID: -4855615938419126682
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_108
+      rect:
+        serializedVersion: 2
+        x: 2836
+        y: 275
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3e525ee8b68555fe0800000000000000
+      internalID: -1200956506642242077
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_109
+      rect:
+        serializedVersion: 2
+        x: 2878
+        y: 275
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8d132033482143fa0800000000000000
+      internalID: -5822008059282443816
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_110
+      rect:
+        serializedVersion: 2
+        x: 2908
+        y: 275
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ec2bb638705d543b0800000000000000
+      internalID: -5528778739281055026
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_111
+      rect:
+        serializedVersion: 2
+        x: 2938
+        y: 269
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bb3b623c152a65410800000000000000
+      internalID: 1465537200805819323
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_112
+      rect:
+        serializedVersion: 2
+        x: 3190
+        y: 269
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5b9329a54b0132ed0800000000000000
+      internalID: -2440088206304986699
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_113
+      rect:
+        serializedVersion: 2
+        x: 3220
+        y: 275
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2a6a99de4b2321930800000000000000
+      internalID: 4112405162404456098
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_114
+      rect:
+        serializedVersion: 2
+        x: 3262
+        y: 275
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c0677b51bcd72b790800000000000000
+      internalID: -7515806516931758580
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_115
+      rect:
+        serializedVersion: 2
+        x: 3292
+        y: 275
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3129e1ba2ff96c4f0800000000000000
+      internalID: -808783218464615917
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_116
+      rect:
+        serializedVersion: 2
+        x: 3322
+        y: 269
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 62dbf206b1fca1be0800000000000000
+      internalID: -1505663408917201626
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_117
+      rect:
+        serializedVersion: 2
+        x: 3574
+        y: 269
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1ed2cb887665ad570800000000000000
+      internalID: 8492195050036145633
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_118
+      rect:
+        serializedVersion: 2
+        x: 3603
+        y: 274
+        width: 17
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 953c41db84f110390800000000000000
+      internalID: -7853961877887073447
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_119
+      rect:
+        serializedVersion: 2
+        x: 3646
+        y: 275
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 00c220725f24602f0800000000000000
+      internalID: -1007043845981852672
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_120
+      rect:
+        serializedVersion: 2
+        x: 3676
+        y: 275
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5293c0f4d17c9ab70800000000000000
+      internalID: 8910872266423417125
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_121
+      rect:
+        serializedVersion: 2
+        x: 3706
+        y: 269
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b5ebca4e7a26e7a30800000000000000
+      internalID: 4214914774500949595
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_122
+      rect:
+        serializedVersion: 2
+        x: 3958
+        y: 269
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 53f9cf0849c494800800000000000000
+      internalID: 597092626306211637
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_123
+      rect:
+        serializedVersion: 2
+        x: 3987
+        y: 274
+        width: 17
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d684afbd51ffd5220800000000000000
+      internalID: 2476415839473649773
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_124
+      rect:
+        serializedVersion: 2
+        x: 4029
+        y: 274
+        width: 17
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0f5c0e8667e9d7e70800000000000000
+      internalID: 9114615452270642672
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_125
+      rect:
+        serializedVersion: 2
+        x: 4060
+        y: 275
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3dd45253038a264e0800000000000000
+      internalID: -1989843160340804141
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_126
+      rect:
+        serializedVersion: 2
+        x: 4090
+        y: 269
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a445aff905f45b0c0800000000000000
+      internalID: -4560651839942798262
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_127
+      rect:
+        serializedVersion: 2
+        x: 4341
+        y: 269
+        width: 17
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f91a6bcb0329cb560800000000000000
+      internalID: 7330895031474495903
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_128
+      rect:
+        serializedVersion: 2
+        x: 4371
+        y: 275
+        width: 17
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a98410661df92c420800000000000000
+      internalID: 2648855252555614362
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_129
+      rect:
+        serializedVersion: 2
+        x: 4413
+        y: 275
+        width: 17
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 98e0b6e0758c41890800000000000000
+      internalID: -7488140004180685175
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_130
+      rect:
+        serializedVersion: 2
+        x: 4444
+        y: 276
+        width: 15
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 35fd4fcc9ab0c3a00800000000000000
+      internalID: 737477262897897299
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_131
+      rect:
+        serializedVersion: 2
+        x: 4473
+        y: 269
+        width: 17
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4bf4cd6d4f76b9cc0800000000000000
+      internalID: -3703251967307657292
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_132
+      rect:
+        serializedVersion: 2
+        x: 140
+        y: 258
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3f8e312066c74f7b0800000000000000
+      internalID: -5191387692887971597
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_133
+      rect:
+        serializedVersion: 2
+        x: 176
+        y: 255
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 86650a474bbebeae0800000000000000
+      internalID: -1518861289024104856
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_134
+      rect:
+        serializedVersion: 2
+        x: 200
+        y: 246
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d71a98471f44ffce0800000000000000
+      internalID: -1369299957864357507
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_135
+      rect:
+        serializedVersion: 2
+        x: 224
+        y: 246
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fcc63a997079384e0800000000000000
+      internalID: -1980573352214696753
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_136
+      rect:
+        serializedVersion: 2
+        x: 524
+        y: 257
+        width: 13
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 21272f363b59d8880800000000000000
+      internalID: -8607058715126631918
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_137
+      rect:
+        serializedVersion: 2
+        x: 560
+        y: 254
+        width: 13
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7d6131bbdb0dd7ce0800000000000000
+      internalID: -1405737995363739945
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_138
+      rect:
+        serializedVersion: 2
+        x: 584
+        y: 245
+        width: 13
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 60176bcfb6c3b78b0800000000000000
+      internalID: -5153458914096418554
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_139
+      rect:
+        serializedVersion: 2
+        x: 608
+        y: 245
+        width: 13
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1951d4b950f092440800000000000000
+      internalID: 4911473385379009937
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_140
+      rect:
+        serializedVersion: 2
+        x: 907
+        y: 257
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a88b3498c080b8540800000000000000
+      internalID: 5011107860315355274
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_141
+      rect:
+        serializedVersion: 2
+        x: 943
+        y: 254
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 067ae81dd01d7be70800000000000000
+      internalID: 9130996626797537120
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_142
+      rect:
+        serializedVersion: 2
+        x: 967
+        y: 245
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a9a40a07ab6538f90800000000000000
+      internalID: -6952618040976455014
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_143
+      rect:
+        serializedVersion: 2
+        x: 991
+        y: 245
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e08b62291ee9be5c0800000000000000
+      internalID: -4185076737053902834
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_144
+      rect:
+        serializedVersion: 2
+        x: 1291
+        y: 257
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fb598831858620330800000000000000
+      internalID: 3675614973381875135
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_145
+      rect:
+        serializedVersion: 2
+        x: 1327
+        y: 254
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f16b3a5668fc3de30800000000000000
+      internalID: 4527190226575275551
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_146
+      rect:
+        serializedVersion: 2
+        x: 1351
+        y: 245
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 98bbf0ffd99b26b10800000000000000
+      internalID: 1973343674981923721
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_147
+      rect:
+        serializedVersion: 2
+        x: 1375
+        y: 245
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 33e7a909fd3fe5b00800000000000000
+      internalID: 819360323757309491
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_148
+      rect:
+        serializedVersion: 2
+        x: 1675
+        y: 257
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 68f5b2fe1eacb7380800000000000000
+      internalID: -8972354760876531834
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_149
+      rect:
+        serializedVersion: 2
+        x: 1711
+        y: 254
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 369696bc4aafddcb0800000000000000
+      internalID: -4837434839031781021
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_150
+      rect:
+        serializedVersion: 2
+        x: 1735
+        y: 245
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fdb2d1409492a8590800000000000000
+      internalID: -7671273621693846561
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_151
+      rect:
+        serializedVersion: 2
+        x: 1759
+        y: 245
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c4c159aa423987800800000000000000
+      internalID: 610399535198706764
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_152
+      rect:
+        serializedVersion: 2
+        x: 2059
+        y: 257
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ad80cbb00352e7cd0800000000000000
+      internalID: -2558566650014332710
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_153
+      rect:
+        serializedVersion: 2
+        x: 2095
+        y: 254
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bc1526a47b317b600800000000000000
+      internalID: 483877162913518027
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_154
+      rect:
+        serializedVersion: 2
+        x: 2119
+        y: 245
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9eeaca4fdde2d46c0800000000000000
+      internalID: -4157615350165491991
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_155
+      rect:
+        serializedVersion: 2
+        x: 2143
+        y: 245
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 549b0da05cebb93c0800000000000000
+      internalID: -4351674861424166587
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_156
+      rect:
+        serializedVersion: 2
+        x: 2443
+        y: 257
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c5623ebbd1917c7d0800000000000000
+      internalID: -2898320219692652964
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_157
+      rect:
+        serializedVersion: 2
+        x: 2479
+        y: 254
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 487f424277a732810800000000000000
+      internalID: 1739368533221242756
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_158
+      rect:
+        serializedVersion: 2
+        x: 2503
+        y: 245
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 005f3d7411d0ac620800000000000000
+      internalID: 2795060886607492352
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_159
+      rect:
+        serializedVersion: 2
+        x: 2527
+        y: 245
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 571f9100066dab460800000000000000
+      internalID: 7258349457267880309
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_160
+      rect:
+        serializedVersion: 2
+        x: 2827
+        y: 257
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 90d84514382ee55f0800000000000000
+      internalID: -765925833241752311
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_161
+      rect:
+        serializedVersion: 2
+        x: 2863
+        y: 254
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c2cdb357d43384850800000000000000
+      internalID: 6361390881433181228
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_162
+      rect:
+        serializedVersion: 2
+        x: 2887
+        y: 245
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fb256543072940b30800000000000000
+      internalID: 4252684958756655807
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_163
+      rect:
+        serializedVersion: 2
+        x: 2911
+        y: 245
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0b001b20bfc8a2d60800000000000000
+      internalID: 7866254708865826992
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_164
+      rect:
+        serializedVersion: 2
+        x: 3211
+        y: 257
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 78bead8a1a153ba30800000000000000
+      internalID: 4229814229795531655
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_165
+      rect:
+        serializedVersion: 2
+        x: 3247
+        y: 254
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: eff87736b61ffe130800000000000000
+      internalID: 3598360070824890366
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_166
+      rect:
+        serializedVersion: 2
+        x: 3271
+        y: 245
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f0e7e3f3ccfce4ac0800000000000000
+      internalID: -3868926553723339249
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_167
+      rect:
+        serializedVersion: 2
+        x: 3295
+        y: 245
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a05d4e0df1310bed0800000000000000
+      internalID: -2400397574018902774
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_168
+      rect:
+        serializedVersion: 2
+        x: 3595
+        y: 257
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ea7054f31359d20d0800000000000000
+      internalID: -3445934101121136722
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_169
+      rect:
+        serializedVersion: 2
+        x: 3631
+        y: 254
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fe1be52ccd2514da0800000000000000
+      internalID: -5962393323554557457
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_170
+      rect:
+        serializedVersion: 2
+        x: 3655
+        y: 245
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 508586fcb464ad4e0800000000000000
+      internalID: -1956173796722845691
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_171
+      rect:
+        serializedVersion: 2
+        x: 3679
+        y: 245
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7f4cecd5597fb06d0800000000000000
+      internalID: -3023050503953136393
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_172
+      rect:
+        serializedVersion: 2
+        x: 3979
+        y: 257
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3947169bfd793c9a0800000000000000
+      internalID: -6213956073697479533
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_173
+      rect:
+        serializedVersion: 2
+        x: 4015
+        y: 254
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d8a5725537df56170800000000000000
+      internalID: 8171215770725341837
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_174
+      rect:
+        serializedVersion: 2
+        x: 4039
+        y: 245
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 59cd6dec715e1e550800000000000000
+      internalID: 6188479253400968341
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_175
+      rect:
+        serializedVersion: 2
+        x: 4063
+        y: 245
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5407b0ce7a6b93570800000000000000
+      internalID: 8446983408446042181
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_176
+      rect:
+        serializedVersion: 2
+        x: 4363
+        y: 258
+        width: 15
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e275874fa61e7a210800000000000000
+      internalID: 1344290863277692718
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_177
+      rect:
+        serializedVersion: 2
+        x: 4399
+        y: 255
+        width: 15
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1e503612d2480e830800000000000000
+      internalID: 4098420990275683809
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_178
+      rect:
+        serializedVersion: 2
+        x: 4422
+        y: 245
+        width: 17
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8592f882b111c6f10800000000000000
+      internalID: 2264203521002776920
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_179
+      rect:
+        serializedVersion: 2
+        x: 4447
+        y: 246
+        width: 15
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9f54de25a68d8bf60800000000000000
+      internalID: 8050422285094176249
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_180
+      rect:
+        serializedVersion: 2
+        x: 140
+        y: 225
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 704fef99df37304f0800000000000000
+      internalID: -863719170477460473
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_181
+      rect:
+        serializedVersion: 2
+        x: 524
+        y: 224
+        width: 13
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 299e250af7f529ca0800000000000000
+      internalID: -6011637550830917230
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_182
+      rect:
+        serializedVersion: 2
+        x: 907
+        y: 224
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9175e8829967acf50800000000000000
+      internalID: 6902459779081197337
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_183
+      rect:
+        serializedVersion: 2
+        x: 1291
+        y: 224
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 421c458049b1ad800800000000000000
+      internalID: 637852619835228452
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_184
+      rect:
+        serializedVersion: 2
+        x: 1675
+        y: 224
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 45bf94aafe0e77e10800000000000000
+      internalID: 2195470663325186900
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_185
+      rect:
+        serializedVersion: 2
+        x: 2059
+        y: 224
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fe30203dd39aac950800000000000000
+      internalID: 6470169897669362671
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_186
+      rect:
+        serializedVersion: 2
+        x: 2443
+        y: 224
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9e8b89b3fe734b7e0800000000000000
+      internalID: -1750712854503704343
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_187
+      rect:
+        serializedVersion: 2
+        x: 2827
+        y: 224
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4d4e5921b73321dc0800000000000000
+      internalID: -3669814142667725612
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_188
+      rect:
+        serializedVersion: 2
+        x: 3211
+        y: 224
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f490084babff6e160800000000000000
+      internalID: 7054607043679750479
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_189
+      rect:
+        serializedVersion: 2
+        x: 3595
+        y: 224
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f9380ee994aa67060800000000000000
+      internalID: 6950930308067787679
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_190
+      rect:
+        serializedVersion: 2
+        x: 3979
+        y: 224
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6158d5800e50d5d30800000000000000
+      internalID: 4421696868918854934
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_191
+      rect:
+        serializedVersion: 2
+        x: 4362
+        y: 224
+        width: 17
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d406fc0f3780d2b90800000000000000
+      internalID: -7265141329824358323
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_192
+      rect:
+        serializedVersion: 2
+        x: 142
+        y: 164
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a50fc532f05f07370800000000000000
+      internalID: 8318417957119914074
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_193
+      rect:
+        serializedVersion: 2
+        x: 527
+        y: 164
+        width: 13
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8374562874e00caf0800000000000000
+      internalID: -378286668405979336
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_194
+      rect:
+        serializedVersion: 2
+        x: 910
+        y: 164
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f31b2a1981281bd70800000000000000
+      internalID: 9057163367652962623
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_195
+      rect:
+        serializedVersion: 2
+        x: 1293
+        y: 163
+        width: 17
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bec95bc8c53d96700800000000000000
+      internalID: 534190425271278827
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_196
+      rect:
+        serializedVersion: 2
+        x: 1678
+        y: 164
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 59b668112028a0a60800000000000000
+      internalID: 7641062663183035285
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_197
+      rect:
+        serializedVersion: 2
+        x: 2062
+        y: 164
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cab6a5cd1ee322a20800000000000000
+      internalID: 3036058238586612652
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_198
+      rect:
+        serializedVersion: 2
+        x: 2446
+        y: 164
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8c7ab3083009f9700800000000000000
+      internalID: 549316024273184712
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_199
+      rect:
+        serializedVersion: 2
+        x: 2830
+        y: 164
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d4390c2a47e6d5c00800000000000000
+      internalID: 890989748515017549
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_200
+      rect:
+        serializedVersion: 2
+        x: 3214
+        y: 164
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 78911fe87edd90c80800000000000000
+      internalID: -8355903647003895417
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_201
+      rect:
+        serializedVersion: 2
+        x: 3598
+        y: 164
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6a4dbc6bd503055b0800000000000000
+      internalID: -5381748375650839386
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_202
+      rect:
+        serializedVersion: 2
+        x: 3982
+        y: 164
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 742d7de27addad480800000000000000
+      internalID: -8873536405664968121
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_203
+      rect:
+        serializedVersion: 2
+        x: 4366
+        y: 165
+        width: 15
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0212ab6e3c6005a20800000000000000
+      internalID: 3048944386189173024
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_204
+      rect:
+        serializedVersion: 2
+        x: 253
+        y: 137
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4e0c3836414aaaa10800000000000000
+      internalID: 1921528598502818020
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_205
+      rect:
+        serializedVersion: 2
+        x: 637
+        y: 137
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6775599db62294a90800000000000000
+      internalID: -7329289071961483402
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_206
+      rect:
+        serializedVersion: 2
+        x: 1021
+        y: 137
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9c4074067bd52c8a0800000000000000
+      internalID: -6286359087680125751
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_207
+      rect:
+        serializedVersion: 2
+        x: 1404
+        y: 136
+        width: 17
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 835913d11add5f9e0800000000000000
+      internalID: -1588119609528969928
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_208
+      rect:
+        serializedVersion: 2
+        x: 1788
+        y: 136
+        width: 17
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 63a63f199a4a50470800000000000000
+      internalID: 8360269331488270902
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_209
+      rect:
+        serializedVersion: 2
+        x: 2173
+        y: 137
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bee70033dff798330800000000000000
+      internalID: 3713640093202808555
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_210
+      rect:
+        serializedVersion: 2
+        x: 2557
+        y: 137
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c4ca0cabc66a4a650800000000000000
+      internalID: 6243297969362218060
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_211
+      rect:
+        serializedVersion: 2
+        x: 2941
+        y: 137
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d9face58bd42999d0800000000000000
+      internalID: -2767139970779140195
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_212
+      rect:
+        serializedVersion: 2
+        x: 3325
+        y: 137
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b0c49628736637d50800000000000000
+      internalID: 6733838256446196747
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_213
+      rect:
+        serializedVersion: 2
+        x: 3709
+        y: 137
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 02089105d6ceaf8e0800000000000000
+      internalID: -1658753558493167584
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_214
+      rect:
+        serializedVersion: 2
+        x: 4093
+        y: 137
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 54c6590ea0d9f7850800000000000000
+      internalID: 6376988267423034437
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: space_elite_singularity_hauler_lights_215
+      rect:
+        serializedVersion: 2
+        x: 4477
+        y: 138
+        width: 15
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e81fc6685b020b3a0800000000000000
+      internalID: -6651780685609766514
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      space_elite_singularity_hauler_lights_0: 858478773105905550
+      space_elite_singularity_hauler_lights_1: 124397458203079316
+      space_elite_singularity_hauler_lights_10: -5336503609002796039
+      space_elite_singularity_hauler_lights_100: -292335808014292981
+      space_elite_singularity_hauler_lights_101: 4674171774787544033
+      space_elite_singularity_hauler_lights_102: -5959124511402004573
+      space_elite_singularity_hauler_lights_103: -3364413618365121570
+      space_elite_singularity_hauler_lights_104: 3817349650584154796
+      space_elite_singularity_hauler_lights_105: -1264921433357412487
+      space_elite_singularity_hauler_lights_106: 8694123857497426347
+      space_elite_singularity_hauler_lights_107: -4855615938419126682
+      space_elite_singularity_hauler_lights_108: -1200956506642242077
+      space_elite_singularity_hauler_lights_109: -5822008059282443816
+      space_elite_singularity_hauler_lights_11: -3721085592492180092
+      space_elite_singularity_hauler_lights_110: -5528778739281055026
+      space_elite_singularity_hauler_lights_111: 1465537200805819323
+      space_elite_singularity_hauler_lights_112: -2440088206304986699
+      space_elite_singularity_hauler_lights_113: 4112405162404456098
+      space_elite_singularity_hauler_lights_114: -7515806516931758580
+      space_elite_singularity_hauler_lights_115: -808783218464615917
+      space_elite_singularity_hauler_lights_116: -1505663408917201626
+      space_elite_singularity_hauler_lights_117: 8492195050036145633
+      space_elite_singularity_hauler_lights_118: -7853961877887073447
+      space_elite_singularity_hauler_lights_119: -1007043845981852672
+      space_elite_singularity_hauler_lights_12: 669531228306031141
+      space_elite_singularity_hauler_lights_120: 8910872266423417125
+      space_elite_singularity_hauler_lights_121: 4214914774500949595
+      space_elite_singularity_hauler_lights_122: 597092626306211637
+      space_elite_singularity_hauler_lights_123: 2476415839473649773
+      space_elite_singularity_hauler_lights_124: 9114615452270642672
+      space_elite_singularity_hauler_lights_125: -1989843160340804141
+      space_elite_singularity_hauler_lights_126: -4560651839942798262
+      space_elite_singularity_hauler_lights_127: 7330895031474495903
+      space_elite_singularity_hauler_lights_128: 2648855252555614362
+      space_elite_singularity_hauler_lights_129: -7488140004180685175
+      space_elite_singularity_hauler_lights_13: -644424309626969973
+      space_elite_singularity_hauler_lights_130: 737477262897897299
+      space_elite_singularity_hauler_lights_131: -3703251967307657292
+      space_elite_singularity_hauler_lights_132: -5191387692887971597
+      space_elite_singularity_hauler_lights_133: -1518861289024104856
+      space_elite_singularity_hauler_lights_134: -1369299957864357507
+      space_elite_singularity_hauler_lights_135: -1980573352214696753
+      space_elite_singularity_hauler_lights_136: -8607058715126631918
+      space_elite_singularity_hauler_lights_137: -1405737995363739945
+      space_elite_singularity_hauler_lights_138: -5153458914096418554
+      space_elite_singularity_hauler_lights_139: 4911473385379009937
+      space_elite_singularity_hauler_lights_14: -5848260306381853684
+      space_elite_singularity_hauler_lights_140: 5011107860315355274
+      space_elite_singularity_hauler_lights_141: 9130996626797537120
+      space_elite_singularity_hauler_lights_142: -6952618040976455014
+      space_elite_singularity_hauler_lights_143: -4185076737053902834
+      space_elite_singularity_hauler_lights_144: 3675614973381875135
+      space_elite_singularity_hauler_lights_145: 4527190226575275551
+      space_elite_singularity_hauler_lights_146: 1973343674981923721
+      space_elite_singularity_hauler_lights_147: 819360323757309491
+      space_elite_singularity_hauler_lights_148: -8972354760876531834
+      space_elite_singularity_hauler_lights_149: -4837434839031781021
+      space_elite_singularity_hauler_lights_15: 6946229232588044909
+      space_elite_singularity_hauler_lights_150: -7671273621693846561
+      space_elite_singularity_hauler_lights_151: 610399535198706764
+      space_elite_singularity_hauler_lights_152: -2558566650014332710
+      space_elite_singularity_hauler_lights_153: 483877162913518027
+      space_elite_singularity_hauler_lights_154: -4157615350165491991
+      space_elite_singularity_hauler_lights_155: -4351674861424166587
+      space_elite_singularity_hauler_lights_156: -2898320219692652964
+      space_elite_singularity_hauler_lights_157: 1739368533221242756
+      space_elite_singularity_hauler_lights_158: 2795060886607492352
+      space_elite_singularity_hauler_lights_159: 7258349457267880309
+      space_elite_singularity_hauler_lights_16: 2302825116670913189
+      space_elite_singularity_hauler_lights_160: -765925833241752311
+      space_elite_singularity_hauler_lights_161: 6361390881433181228
+      space_elite_singularity_hauler_lights_162: 4252684958756655807
+      space_elite_singularity_hauler_lights_163: 7866254708865826992
+      space_elite_singularity_hauler_lights_164: 4229814229795531655
+      space_elite_singularity_hauler_lights_165: 3598360070824890366
+      space_elite_singularity_hauler_lights_166: -3868926553723339249
+      space_elite_singularity_hauler_lights_167: -2400397574018902774
+      space_elite_singularity_hauler_lights_168: -3445934101121136722
+      space_elite_singularity_hauler_lights_169: -5962393323554557457
+      space_elite_singularity_hauler_lights_17: 5967663055626307044
+      space_elite_singularity_hauler_lights_170: -1956173796722845691
+      space_elite_singularity_hauler_lights_171: -3023050503953136393
+      space_elite_singularity_hauler_lights_172: -6213956073697479533
+      space_elite_singularity_hauler_lights_173: 8171215770725341837
+      space_elite_singularity_hauler_lights_174: 6188479253400968341
+      space_elite_singularity_hauler_lights_175: 8446983408446042181
+      space_elite_singularity_hauler_lights_176: 1344290863277692718
+      space_elite_singularity_hauler_lights_177: 4098420990275683809
+      space_elite_singularity_hauler_lights_178: 2264203521002776920
+      space_elite_singularity_hauler_lights_179: 8050422285094176249
+      space_elite_singularity_hauler_lights_18: -5672710785647820387
+      space_elite_singularity_hauler_lights_180: -863719170477460473
+      space_elite_singularity_hauler_lights_181: -6011637550830917230
+      space_elite_singularity_hauler_lights_182: 6902459779081197337
+      space_elite_singularity_hauler_lights_183: 637852619835228452
+      space_elite_singularity_hauler_lights_184: 2195470663325186900
+      space_elite_singularity_hauler_lights_185: 6470169897669362671
+      space_elite_singularity_hauler_lights_186: -1750712854503704343
+      space_elite_singularity_hauler_lights_187: -3669814142667725612
+      space_elite_singularity_hauler_lights_188: 7054607043679750479
+      space_elite_singularity_hauler_lights_189: 6950930308067787679
+      space_elite_singularity_hauler_lights_19: 8320783630714234528
+      space_elite_singularity_hauler_lights_190: 4421696868918854934
+      space_elite_singularity_hauler_lights_191: -7265141329824358323
+      space_elite_singularity_hauler_lights_192: 8318417957119914074
+      space_elite_singularity_hauler_lights_193: -378286668405979336
+      space_elite_singularity_hauler_lights_194: 9057163367652962623
+      space_elite_singularity_hauler_lights_195: 534190425271278827
+      space_elite_singularity_hauler_lights_196: 7641062663183035285
+      space_elite_singularity_hauler_lights_197: 3036058238586612652
+      space_elite_singularity_hauler_lights_198: 549316024273184712
+      space_elite_singularity_hauler_lights_199: 890989748515017549
+      space_elite_singularity_hauler_lights_2: -334409563693552514
+      space_elite_singularity_hauler_lights_20: -8644958957338163964
+      space_elite_singularity_hauler_lights_200: -8355903647003895417
+      space_elite_singularity_hauler_lights_201: -5381748375650839386
+      space_elite_singularity_hauler_lights_202: -8873536405664968121
+      space_elite_singularity_hauler_lights_203: 3048944386189173024
+      space_elite_singularity_hauler_lights_204: 1921528598502818020
+      space_elite_singularity_hauler_lights_205: -7329289071961483402
+      space_elite_singularity_hauler_lights_206: -6286359087680125751
+      space_elite_singularity_hauler_lights_207: -1588119609528969928
+      space_elite_singularity_hauler_lights_208: 8360269331488270902
+      space_elite_singularity_hauler_lights_209: 3713640093202808555
+      space_elite_singularity_hauler_lights_21: -1731199383011290694
+      space_elite_singularity_hauler_lights_210: 6243297969362218060
+      space_elite_singularity_hauler_lights_211: -2767139970779140195
+      space_elite_singularity_hauler_lights_212: 6733838256446196747
+      space_elite_singularity_hauler_lights_213: -1658753558493167584
+      space_elite_singularity_hauler_lights_214: 6376988267423034437
+      space_elite_singularity_hauler_lights_215: -6651780685609766514
+      space_elite_singularity_hauler_lights_22: -3798432718251576992
+      space_elite_singularity_hauler_lights_23: -199860647586276758
+      space_elite_singularity_hauler_lights_24: 5555721438861978106
+      space_elite_singularity_hauler_lights_25: -5212471748972532150
+      space_elite_singularity_hauler_lights_26: 1963064920703909452
+      space_elite_singularity_hauler_lights_27: 2563025513192067000
+      space_elite_singularity_hauler_lights_28: 7609003343140395462
+      space_elite_singularity_hauler_lights_29: 8085962328248067466
+      space_elite_singularity_hauler_lights_3: 8074061073540822092
+      space_elite_singularity_hauler_lights_30: 5694175152069421815
+      space_elite_singularity_hauler_lights_31: 7684237487973889814
+      space_elite_singularity_hauler_lights_32: -7872443446840009273
+      space_elite_singularity_hauler_lights_33: 8789519158376742494
+      space_elite_singularity_hauler_lights_34: -2292070090670160706
+      space_elite_singularity_hauler_lights_35: -1964769506188819909
+      space_elite_singularity_hauler_lights_36: 7849295230816221732
+      space_elite_singularity_hauler_lights_37: -1552907712404544072
+      space_elite_singularity_hauler_lights_38: -5813194144500015806
+      space_elite_singularity_hauler_lights_39: -8177382089916411815
+      space_elite_singularity_hauler_lights_4: 3360410655573379201
+      space_elite_singularity_hauler_lights_40: 245174514430511142
+      space_elite_singularity_hauler_lights_41: -3827156574310596900
+      space_elite_singularity_hauler_lights_42: 4146543043157138930
+      space_elite_singularity_hauler_lights_43: 7986920354403576788
+      space_elite_singularity_hauler_lights_44: -3575495793682589762
+      space_elite_singularity_hauler_lights_45: 4102349871467796199
+      space_elite_singularity_hauler_lights_46: -8257702343260901417
+      space_elite_singularity_hauler_lights_47: 7250308382767323538
+      space_elite_singularity_hauler_lights_48: 4996183318117328101
+      space_elite_singularity_hauler_lights_49: 4686425510259706863
+      space_elite_singularity_hauler_lights_5: 3815645676918149755
+      space_elite_singularity_hauler_lights_50: -1854937498978828106
+      space_elite_singularity_hauler_lights_51: -3813401860590329951
+      space_elite_singularity_hauler_lights_52: 6045936172635446597
+      space_elite_singularity_hauler_lights_53: -2867006322149900818
+      space_elite_singularity_hauler_lights_54: -3677043918028307454
+      space_elite_singularity_hauler_lights_55: 4905056986101253181
+      space_elite_singularity_hauler_lights_56: -6110153989789966681
+      space_elite_singularity_hauler_lights_57: -509208862743906735
+      space_elite_singularity_hauler_lights_58: 1449101430724393466
+      space_elite_singularity_hauler_lights_59: -9086087531061917116
+      space_elite_singularity_hauler_lights_6: -5520060959396006450
+      space_elite_singularity_hauler_lights_60: -2416085580752801589
+      space_elite_singularity_hauler_lights_61: -2430818411931716186
+      space_elite_singularity_hauler_lights_62: 21178740784441552
+      space_elite_singularity_hauler_lights_63: 5390338646000682360
+      space_elite_singularity_hauler_lights_64: -4082161193552031879
+      space_elite_singularity_hauler_lights_65: -3082013831561142080
+      space_elite_singularity_hauler_lights_66: 3247509414665336465
+      space_elite_singularity_hauler_lights_67: -3134356752040045619
+      space_elite_singularity_hauler_lights_68: 3873498232991050594
+      space_elite_singularity_hauler_lights_69: -6974689450890256074
+      space_elite_singularity_hauler_lights_7: 3992289455698933783
+      space_elite_singularity_hauler_lights_70: -974673848508708996
+      space_elite_singularity_hauler_lights_71: 7906579331809081232
+      space_elite_singularity_hauler_lights_72: -542233673466154639
+      space_elite_singularity_hauler_lights_73: 5669144308445947611
+      space_elite_singularity_hauler_lights_74: 6953754402384315782
+      space_elite_singularity_hauler_lights_75: 1112899152442784960
+      space_elite_singularity_hauler_lights_76: -7884136261225229007
+      space_elite_singularity_hauler_lights_77: -7771343769771684687
+      space_elite_singularity_hauler_lights_78: -4406461453668205449
+      space_elite_singularity_hauler_lights_79: 2878417685223641537
+      space_elite_singularity_hauler_lights_8: 2072263036951442819
+      space_elite_singularity_hauler_lights_80: -3635972153696390540
+      space_elite_singularity_hauler_lights_81: -1606785938192850558
+      space_elite_singularity_hauler_lights_82: -3838677380093210762
+      space_elite_singularity_hauler_lights_83: -1993315123047750371
+      space_elite_singularity_hauler_lights_84: 7412773197653418435
+      space_elite_singularity_hauler_lights_85: -1141016334093840211
+      space_elite_singularity_hauler_lights_86: -2933147441330852994
+      space_elite_singularity_hauler_lights_87: -337222228598831709
+      space_elite_singularity_hauler_lights_88: 4072832961075306029
+      space_elite_singularity_hauler_lights_89: -5551726780786561740
+      space_elite_singularity_hauler_lights_9: -8707290672875691129
+      space_elite_singularity_hauler_lights_90: 4485672318991972408
+      space_elite_singularity_hauler_lights_91: 1557246975233482153
+      space_elite_singularity_hauler_lights_92: 267242504302957802
+      space_elite_singularity_hauler_lights_93: -4539622247012079459
+      space_elite_singularity_hauler_lights_94: 1800636181188212572
+      space_elite_singularity_hauler_lights_95: 5273186483706192514
+      space_elite_singularity_hauler_lights_96: -6290666654386815106
+      space_elite_singularity_hauler_lights_97: -6280424475522393061
+      space_elite_singularity_hauler_lights_98: 1848642417001069354
+      space_elite_singularity_hauler_lights_99: 3054471512440653903
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

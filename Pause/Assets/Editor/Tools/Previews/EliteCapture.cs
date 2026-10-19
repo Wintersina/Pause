@@ -5,8 +5,9 @@ using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 
-// Renders each Space elite's whole fight for review (the elite-overhaul GIFs): the Space backdrop's own dock, the launch (the rings
-// closing in on the door, the engine lights, the flare), then the real brain and attacks at full speed against a scripted pilot
+// Renders each Space elite's whole fight for review (the elite-overhaul GIFs): its home dock in the Space backdrop (one of the
+// drifting gantry / carrier / gate / derelict docks, SpaceDocks.cs, brought into view like the elite director does), the launch (the
+// rings closing in on the door, the engine lights, the dock's doors opening, the flare), the hull's animated lights, then the real brain and attacks at full speed against a scripted pilot
 // that dodges what it can see (hazards on their paths, locked lines and rings, the curtain's gap) and shoots when it has a clear
 // moment -- one guaranteed homing hit every ShootEvery seconds while the elite is on the board -- through the hide, the death or the
 // escape. Frames are 540 px wide portrait PNGs at 15 fps.
@@ -15,7 +16,8 @@ using UnityEngine;
 //   (frames to $ELITE_CAPTURE_DIR/<name>/NNNN.png, else Builds/EliteCapture; $ELITE_CAPTURE_ONLY=<name>[,<name>] renders just those;
 //    $ELITE_CAPTURE_SECONDS caps a clip, default 70)
 //
-// then scripts/elite-gifs.sh <dir> turns every frame folder into /Users/sina/Developer/Pause/.claude/elite-gifs/space/<name>.gif.
+// then scripts/elite-gifs.sh <dir> turns every frame folder into /Users/sina/Developer/Pause/.claude/elite-gifs/space/<name>.gif and
+// <name>.mp4.
 // Needs a rendering editor (graphics on: no -nographics), as ElitePreview does. This renders the elite stack over the real Space
 // backdrop with stand-in rails and the pilot's hull; it is not the full game scene (no HUD, spawners, weapons or boss).
 public static class EliteCapture
@@ -374,17 +376,19 @@ public static class EliteCapture
         rt = new RenderTexture(px, py, 24);
         png = new Texture2D(px, py, TextureFormat.RGB24, false);
 
-        // the dock: a body of the kind it launches from, in the Space backdrop
+        // the dock: its home (the first kind of its launchFrom: a gantry / carrier / gate / derelict dock, brought into view as the elite
+        // director does a few seconds before a launch), else another of its kinds
         var sites = new List<LandingSite>();
-        var want = LandingSite.KindOf(def.launchFrom);
+        var home = LandingSite.KindOf(def.launchFrom);
+        LandingSites.BringHome(def.launchFrom);
         int pick = -1;
         for (int i = 0; i < 2400 && pick < 0; i++)
         {
             WorldBackdrop.Instance.Step(1f / 15f);
             LandingSites.Collect(sites);
-            for (int k = 0; k < sites.Count && pick < 0; k++) if (want == null || sites[k].kind == want.Value) pick = k;
+            for (int k = 0; k < sites.Count && pick < 0; k++) if (home == null || sites[k].kind == home.Value) pick = k;
         }
-        if (pick < 0) throw new System.Exception("the backdrop never offered a " + want + " dock");
+        if (pick < 0) throw new System.Exception("the backdrop never offered a " + home + " dock");
         var site = sites[pick];
         var e = EliteShip.Create(def, site, 2.4f, EliteDirector.JoinPoint(def, EliteBrains.Create(def.brain).JoinFrom, site.Position));
         var title = Label(def.displayName.ToUpperInvariant(), HalfH - .2f, .06f, new Color(.75f, .95f, 1f));

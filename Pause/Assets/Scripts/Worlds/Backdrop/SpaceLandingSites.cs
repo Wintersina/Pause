@@ -14,7 +14,9 @@ using UnityEngine;
 // PlanetMinSize wide, and the planetoids (rocks) drawn at least
 // AsteroidMinSize wide -- the big asteroids, not the pre-shrunk pebbles.
 // A station is offered only while its hub is wholly on screen (an edge
-// peeker never is, SpaceStationPuffs). Each site says what it is (LandingKind) so an elite launches from the
+// peeker never is, SpaceStationPuffs). Space's four launch docks (gantry,
+// carrier, gate, derelict: SpaceDocks.cs) are offered by the same rules at
+// their own pad. Each site says what it is (LandingKind) so an elite launches from the
 // kind its def names (EliteDef.launchFrom).
 //
 // Kept in its own file (a partial of SpaceDirector) so the backdrop's own
@@ -42,6 +44,7 @@ public partial class SpaceDirector
         Sites(stations, LandingKind.Station, StationPad, 0f, StationIdBase, into);
         Sites(planets, LandingKind.Planet, PlanetPad, PlanetMinSize, PlanetIdBase, into);
         Sites(planetoids, LandingKind.Asteroid, AsteroidPad, AsteroidMinSize, AsteroidIdBase, into);
+        DockSites(into);   // the gantry / carrier / gate / derelict dock bodies (SpaceDocks.cs)
     }
 
     void Sites(BackdropPool pool, LandingKind kind, Vector2 pad, float minSize, int idBase, List<LandingSite> into)

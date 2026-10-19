@@ -169,7 +169,9 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
     ClearTarget target;
     SpawnFootprint footprint;
     EliteHearts heartsView;
-    Sprite[] frames, parkedFrames, liftFrames;
+    Sprite[] frames, parkedFrames, liftFrames, lightFrames;
+    SpriteRenderer lights;      // the hull's animated lights: an additive layer over the hull, same cell, same transform (null: no _lights strip)
+    int lightCell = -1;         // the hull cell the lights show this frame, -1: dark
     SpriteRenderer[] plumes, glows, muzzleGlows;
     float[] muzzleFlash;
     float hullBase = 1f, lean, recoilLen;
@@ -272,12 +274,19 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
         frames = EliteArt.Frames(def);
         parkedFrames = EliteArt.ExtraFrames(def, EliteArt.Extra.Parked);
         liftFrames = EliteArt.ExtraFrames(def, EliteArt.Extra.Liftoff);
+        lightFrames = EliteArt.ExtraFrames(def, EliteArt.Extra.Lights);
 
         hullTf = new GameObject("Hull").transform;
         hullTf.SetParent(transform, false);
         hull = hullTf.gameObject.AddComponent<SpriteRenderer>();
         hull.sortingOrder = PlayOrder;
         if (frames != null) hull.sprite = frames[0];
+        // (child of the hull, so the hull's rotation / bank / squash / recoil / bob all carry over; one cell, one sprite at a time)
+        if (lightFrames != null && lightFrames.Length > 0 && LightsMaterial != null)
+        {
+            lights = NewPiece(hullTf, "Lights", lightFrames[0], PlayOrder + 1);
+            lights.sharedMaterial = LightsMaterial;
+        }
 
         col = gameObject.AddComponent<CircleCollider2D>();
         col.isTrigger = true;
@@ -438,6 +447,7 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
             glows[i].sortingOrder = order + 1;
         }
         if (sight != null) sight.sortingOrder = order - 1;
+        if (lights != null) lights.sortingOrder = order + 1;
     }
 
     // ---- the step ----------------------------------------------------------
@@ -501,6 +511,19 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
             float size = Def.cellWorldSize;
             EliteSystem.Fx.Emit(EliteFxArt.Ring, sitePos, Vector2.zero, DockWarnLife, size * .9f, size * .3f, Def.ShotColor, site.order + 1);
             DockWarns++;
+        }
+    }
+
+    // Where it is in leaving its dock, for the dock's own drawing (SpaceDocks): (0, 1] through the launch tell (its last parked
+    // second), 1 + (0, 1] through the lift-off, 2 once it is clear of it; 0 parked before the tell, -1 dead.
+    public float LaunchPhase
+    {
+        get
+        {
+            if (State == EliteState.Dead) return -1f;
+            if (State == EliteState.Parked) return Mathf.Clamp01((stateTime - (parkSeconds - EngineTellSeconds)) / EngineTellSeconds);
+            if (State == EliteState.LiftOff) return 1f + Mathf.Clamp01(liftClock / LiftSeconds);
+            return 2f;
         }
     }
 
@@ -1564,6 +1587,7 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
         if (frames == null) return;
         var c = Def.cells;
         int frame;
+        lightCell = -1;     // (the drawn parked / lift-off strips carry their own light)
         if (State == EliteState.Parked)
         {
             if (parkedFrames != null) { SetSprite(parkedFrames[Mathf.FloorToInt(stateTime / (4f * EliteArt.Tick)) % parkedFrames.Length]); CurrentFrame = 0; return; }
@@ -1585,6 +1609,50 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
         else frame = FlightFrame(dt);
         CurrentFrame = frame;
         SetSprite(frames[Mathf.Min(frame, frames.Length - 1)]);
+        // the lights wear the hull's cell, the damaged one and the burn cycle included; parked they are off until the pilot lights
+        // blink on in the launch tell (the pilot-light cell)
+        lightCell = State != EliteState.Parked || (c.parkedIdle >= 0 && frame == c.parkedIdle) ? frame : -1;
+    }
+
+    // ---- the hull's lights (an optional <key>_lights strip: same cells as the hull, drawn additively over it) ----
+
+    // One shared additive material (the backdrop's additive sprite shader: texture x vertex colour x its alpha added on the hull).
+    static Material lightsMat;
+    public const string LightsShader = "BackdropShaders/BackdropAdditive";
+    public static Material LightsMaterial
+    {
+        get
+        {
+            if (lightsMat != null) return lightsMat;
+            var shader = Resources.Load<Shader>(LightsShader);
+            if (shader == null) return null;
+            lightsMat = new Material(shader) { name = "EliteLights", hideFlags = HideFlags.DontSave };
+            return lightsMat;
+        }
+    }
+
+    // A damaged hull wears ONE held drawing, so its lights stutter instead: this brightness (x the lights' own alpha) steps every
+    // DamagedLightTicks 24 fps ticks through an irregular pattern (never fully out).
+    public static readonly float[] DamagedLightFlicker = { 1f, 1f, .35f, 1f, .15f, .15f, 1f, .6f, 1f, 1f, .2f, .8f };
+    public const int DamagedLightTicks = 2;
+
+    public bool HasLights => lights != null;
+    public SpriteRenderer Lights => lights;
+    // The hull cell the lights show (-1: dark: parked engines-off, or docked).
+    public int LightCell => lights != null && lights.enabled ? lightCell : -1;
+
+    // Every state draws them (they keep going while damaged, hiding and retreating); they are as visible as the hull is (docked: not).
+    void RenderLights()
+    {
+        if (lights == null) return;
+        bool on = lightCell >= 0 && hull.color.a > .01f && hull.enabled;
+        lights.enabled = on;
+        if (!on) return;
+        var s = lightFrames[Mathf.Min(lightCell, lightFrames.Length - 1)];
+        if (lights.sprite != s) lights.sprite = s;
+        Color c = hull.color;
+        if (Damaged) c.a *= DamagedLightFlicker[Mathf.FloorToInt(exhaustClock * 24f / DamagedLightTicks) % DamagedLightFlicker.Length];
+        lights.color = c;
     }
 
     // The share of the lift-off drawn with the lift-off cell (then flight).
@@ -1639,6 +1707,7 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
         if (State == EliteState.Parked)
         {
             RenderEngines(0f, ParkedLightsOn ? .9f : 0f);
+            RenderLights();
             return;
         }
         RenderEngines(thrust, Mathf.Clamp01(thrust));
@@ -1646,6 +1715,7 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
         // a damaged elite wears ONE held drawing: the engines and a hover bob keep it alive over it
         float bob = Damaged && Def.cellPixels > 0 ? Mathf.Round(Mathf.Sin(exhaustClock * DamagedBobRate) * DamagedBobPixels) * Def.PixelWorld : 0f;
         hullTf.localPosition = (Vector3)(recoilDir * recoilLen) + Vector3.up * bob;
+        RenderLights();
     }
 
     // Damaged (one held drawing: the flight loop's drawn flames are gone): a procedural plume of this length (x the cell), a

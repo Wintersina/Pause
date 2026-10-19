@@ -241,6 +241,7 @@ public static class AllTests
         ("ShopHealthCarryoverTest", ShopHealthCarryoverTest.Execute),
         ("ShopTest", ShopTest.Execute),
         ("SpaceEliteTest", SpaceEliteTest.Execute),
+        ("SpaceDockTest", SpaceDockTest.Execute),
         ("FrostEliteTest", FrostEliteTest.Execute),
         ("VerdantEliteTest", VerdantEliteTest.Execute),
         ("TideEliteTest", TideEliteTest.Execute),
