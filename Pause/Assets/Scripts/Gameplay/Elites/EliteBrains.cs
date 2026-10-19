@@ -53,6 +53,12 @@ using UnityEngine;
 //   ashling      (Ember) Ash Wraith: blinks between high perches at range, never near the pilot
 //   kiln         (Ember) Kilnback: holds the top and slides; slag dumps and lava spills
 //   furnace      (Ember) Cauterizer: parks high; sight-line shells and firebombs
+//   burrower     (Desert) Dune Stalker: a rippling pass across the top, off one side and back from the other (DesertElites.cs)
+//   caravan      (Desert) Caravan Hauler: slow legs along the top with a rest at each end; throws only while resting (DesertElites.cs)
+//   glint        (Desert) Lens Matriarch: a zig-zag pass across the top, off one side and back from the other (DesertElites.cs)
+//   lenspost     (Desert) Glass Cannon: perches on one of three columns along the top, another after every cast (DesertElites.cs)
+//   flanker      (Desert) Scorpion Skiff: holds a flank, scuttles across to the other after every throw (DesertElites.cs)
+//   bulwark      (Desert) Mirror Bastion: crawls along the top, dust walls sweeping the board (DesertElites.cs)
 //   icebreaker   (Frost) Rimebreaker: pass-through runs -- waits off the top, appears on a new lane, ploughs the whole board and
 //                leaves by the bottom; after a hit the runs come in pairs (FrostElites.cs)
 //   barge        (Frost) Floe Harrower: holds high on the far side of the pilot and slides along the top, never into its lane
@@ -123,6 +129,7 @@ public static class EliteBrains
                                             "breaker", "deep", "trawl", "tempest", "oyster",
                                             "surfer", "abyss", "netter", "stormray", "pearler",
                                             "sniper", "swooper", "fortress", "wrecker",
+                                            "burrower", "caravan", "glint", "lenspost", "flanker", "bulwark",
                                             "stoker", "strafer", "scavenger", "ashling", "kiln", "furnace" };
 
     public static EliteBrain Create(string id)
@@ -158,6 +165,12 @@ public static class EliteBrains
             case "trawl": return new TrawlBrain();
             case "tempest": return new TempestBrain();
             case "oyster": return new OysterBrain();
+            case "burrower": return new BurrowerBrain();
+            case "caravan": return new CaravanBrain();
+            case "glint": return new GlintBrain();
+            case "lenspost": return new LenspostBrain();
+            case "flanker": return new FlankerBrain();
+            case "bulwark": return new BulwarkBrain();
             case "surfer": return new SurferBrain();
             case "abyss": return new AbyssBrain();
             case "netter": return new NetterBrain();

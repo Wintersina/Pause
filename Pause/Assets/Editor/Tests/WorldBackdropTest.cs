@@ -40,7 +40,7 @@ public static class WorldBackdropTest
     // two 2048 sheets (worm, worm_giant), besides one 4-tile variant set.
     // Since 1f0d8e87 (2026-10-13) Desert's continuous-tone art is ASTC 4x4 on phones (WorldBackdropImport.IsContinuousTone; 6x6 bands the
     // dune gradients), 2.25x the old 6x6 size: 24 MB measured on the Android target (the worm sheets alone ~6 MB).
-    public const long DesertTextureBudgetBytes = 25L * 1024 * 1024;
+    public const long DesertTextureBudgetBytes = 26L * 1024 * 1024;   // (+1 MB for the docks atlas: four 6-cell launch strips, ~0.7 MB ASTC 4x4)
     // Storm carries four 1024 atlases (landmarks, sites, weather, lightning) besides one 4-tile variant set. Its tiles are
     // 1024x2048 HD (2026-10, ASTC 6x6 = 0.93 MB each, 3.7 MB per set; see WorldBackdropImport.IsStormHdTile). The 1024 atlases are ASTC 4x4 since 1f0d8e87 (IsContinuousTone): 7.8 MB measured on desktop after the eye atlas and v3 set were removed.
     public const long StormTextureBudgetBytes = 8L * 1024 * 1024;

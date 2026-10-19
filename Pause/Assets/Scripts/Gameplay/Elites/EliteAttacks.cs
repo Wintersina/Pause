@@ -50,6 +50,7 @@ using UnityEngine;
 //                 Wraith, Kilnback, Cauterizer (EmberElites.cs). The base attacks above stay for Storm and Desert, which reuse them.
 // (Frost's five: FrostElites.cs)
 //   foam_wake / mine_chain / drag_net / thunder_sweep / pearl_spiral: Tide's own five -- Riptide, Bathyscaphe, Trawler, Thunderfin, Pearl Warden (TideElites.cs)
+//   worm_churn / quicksand_row / glass_fan / lens_beams / boulder_roll / dust_wall: Desert's own six -- Dune Stalker, Caravan Hauler, Lens Matriarch, Glass Cannon, Scorpion Skiff, Mirror Bastion (DesertElites.cs)
 //   surf_dash / depth_charge / net_cast / thunder_strike / pearl_curtain: Tide's Riptide, Bathyscaphe, Trawler, Thunderfin, Pearl Warden (TideElites.cs)
 //   log_roll / vine_lash / spore_burst / leaf_dive: Verdant's Timber Hauler, Thornlash, Sporebloom, Leafblade (VerdantElites.cs); the cores of
 //   leaf_swoop (Leafblade: swooping passes, a crescent across a drawn row), canopy_mortar (Resin Warden: a pool wall with one gap),
@@ -206,7 +207,8 @@ public static class EliteAttacks
                                             "log_roll", "vine_lash", "spore_burst", "leaf_dive",
                                             "leaf_swoop", "canopy_mortar", "spore_drift", "thorn_sweep", "raft_roll",
                                             "surf_dash", "depth_charge", "net_cast", "thunder_strike", "pearl_curtain",
-                                            "lance_pass", "coal_strafe", "scrap_dive", "ember_veil", "kiln_dump", "fire_mortar" };
+                                            "lance_pass", "coal_strafe", "scrap_dive", "ember_veil", "kiln_dump", "fire_mortar",
+                                            "worm_churn", "quicksand_row", "glass_fan", "lens_beams", "boulder_roll", "dust_wall" };
 
     public static EliteAttack Create(string id)
     {
@@ -235,6 +237,12 @@ public static class EliteAttacks
             case "drag_net": return new DragNetAttack();
             case "thunder_sweep": return new ThunderSweepAttack();
             case "pearl_spiral": return new PearlSpiralAttack();
+            case "worm_churn": return new WormChurnAttack();
+            case "quicksand_row": return new QuicksandRowAttack();
+            case "glass_fan": return new GlassFanAttack();
+            case "lens_beams": return new LensBeamsAttack();
+            case "boulder_roll": return new BoulderRollAttack();
+            case "dust_wall": return new DustWallAttack();
             case "ice_run": return new IceRunAttack();
             case "floe_barge": return new FloeBargeAttack();
             case "tender_rig": return new TenderRigAttack();

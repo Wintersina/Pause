@@ -8,11 +8,28 @@ using UnityEngine;
 public static class BaseEliteDefs
 {
     static EliteDef gunship;
+    static readonly System.Collections.Generic.Dictionary<string, EliteDef> fixtures = new System.Collections.Generic.Dictionary<string, EliteDef>();
+
+    // The base brains no shipped elite flies any more (Desert was the last world on them: interceptor, hauler, skirmisher, siege, striker, bastion) keep
+    // their old Desert defs as test-only fixtures (BaseEliteDefs~/<brain>.json: not imported, not in the catalogue; the art is the Desert strips).
+    static EliteDef Fixture(string brain)
+    {
+        EliteDef d;
+        if (fixtures.TryGetValue(brain, out d)) return d;
+        string path = "Assets/Editor/Tests/BaseEliteDefs~/" + brain + ".json";
+        if (System.IO.File.Exists(path))
+        {
+            d = JsonUtility.FromJson<EliteDef>(System.IO.File.ReadAllText(path));
+            d.Resolve();
+        }
+        fixtures[brain] = d;
+        return d;
+    }
 
     public static EliteDef For(string brain)
     {
         foreach (var d in EliteCatalog.All) if (d.brain == brain) return d;
-        if (brain != "gunship") return null;
+        if (brain != "gunship") return Fixture(brain);
         if (gunship != null) return gunship;
         var src = EliteCatalog.Find("ember_elite_coalrunner");
         if (src == null) return null;
@@ -48,5 +65,5 @@ public static class BaseEliteDefs
         return d2;
     }
 
-    public static void Reset() { gunship = null; sunstoke = null; }
+    public static void Reset() { gunship = null; sunstoke = null; fixtures.Clear(); }
 }

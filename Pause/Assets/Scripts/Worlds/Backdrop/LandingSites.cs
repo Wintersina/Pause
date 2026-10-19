@@ -36,6 +36,10 @@ using UnityEngine;
 // bunker (MoatBunker, "bunker"), a brass gantry cradle (BrassGantry, "brassgantry" -- not Space's "gantry") and a kiln mouth (KilnMouth,
 // "kiln"). They open through the launch tell like Space's docks do.
 //
+// Desert's four launch-strip sites (DesertTuning.SiteKinds 5-8, docks atlas): a buried bunker (DesertBuriedBunker, "buriedbunker"), a crawler hangar
+// (DesertCrawlerHangar, "crawlerhangar"), a mirror-array silo (DesertMirrorSilo, "mirrorsilo") and a canyon dock (DesertCanyonDock, "canyondock"). They
+// open through the launch tell like Space's docks do, with dust in the open bay.
+//
 // Verdant's (VerdantDirector) are emerge sites too: a root-braced hangar in
 // a giant tree, a river bay on stilts, a petal pod pad, a tower bay and a
 // hatch under the roots (Hatch, shared with Frost's silo hatch).
@@ -57,7 +61,8 @@ public enum LandingKind { Ground, Station, Planet, Asteroid, Hangar, RigBay, Pad
                          TideCarrierPad, TideLighthouseSilo, TideSubPen, TideWreckHull,
                          DesertWormBurrow, DesertCrawlerBay, DesertGlassPad, DesertBuriedSilo, DesertRuinDock,
                          Gantry, Carrier, Gate, Derelict,
-                         Rig, Silo, Cave, Icebreaker }
+                         Rig, Silo, Cave, Icebreaker,
+                         DesertBuriedBunker, DesertCrawlerHangar, DesertMirrorSilo, DesertCanyonDock }
 
 public struct LandingSite
 {
@@ -75,7 +80,7 @@ public struct LandingSite
     // "station" / "planet" / "asteroid" / "ground" / "hangar" / "rigbay" /
     // "padring" / "crawlerbay" / "hatch" / "roothangar" / "riverbay" / "podpad" /
     // "towerbay" / "foundryhangar" / "magmabay" / "slagpad" / "furnacebay" / "trenchhatch" / "rigdeck" /
-    // "reefdock" / "ventstack" / "wreckbay" / "wormburrow" / "caravanbay" / "glasspad" / "buriedsilo" / "ruindock" / Space's "gantry" / "carrier" / "gate" / "derelict" / Frost's "rig" / "silo" / "cave" / "icebreaker" (EliteDef.launchFrom); anything else:
+    // "reefdock" / "ventstack" / "wreckbay" / "wormburrow" / "caravanbay" / "glasspad" / "buriedsilo" / "ruindock" / "buriedbunker" / "crawlerhangar" / "mirrorsilo" / "canyondock" / Space's "gantry" / "carrier" / "gate" / "derelict" / Frost's "rig" / "silo" / "cave" / "icebreaker" (EliteDef.launchFrom); anything else:
     // null (any pad). A launchFrom may list several, comma separated
     // ("hangar,crawlerbay"): KindOf is the first, Accepts takes any of them.
     public static LandingKind? KindOf(string s)
@@ -114,6 +119,10 @@ public struct LandingSite
             case "glasspad": return LandingKind.DesertGlassPad;
             case "buriedsilo": return LandingKind.DesertBuriedSilo;
             case "ruindock": return LandingKind.DesertRuinDock;
+            case "buriedbunker": return LandingKind.DesertBuriedBunker;
+            case "crawlerhangar": return LandingKind.DesertCrawlerHangar;
+            case "mirrorsilo": return LandingKind.DesertMirrorSilo;
+            case "canyondock": return LandingKind.DesertCanyonDock;
             case "gantry": return LandingKind.Gantry;
             case "carrier": return LandingKind.Carrier;
             case "gate": return LandingKind.Gate;

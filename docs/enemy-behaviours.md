@@ -925,6 +925,44 @@ Capture: `EliteCapture.CaptureVerdant` + `scripts/elite-gifs.sh <frames> <out>` 
 * [ ] Authored death clips; shot art for the log / pod / crescent / vine (`verdant_attack_*.png` slots)
 * [ ] Play it on a phone: pass pacing, the wall's gap width, the spore cloud lane, the raft, the pad arriving in time
 
+## Desert elites
+
+`Pause/Assets/Scripts/Gameplay/Elites/DesertElites.cs`, tests in `DesertEliteTest`. Six mini-boss fights, none of which follows the pilot; every attack is
+telegraphed with the shared thin drawing (`EliteMarks` rings, `EliteTelegraph` lines; Desert's pale bone-gold cue colours, no pink, no green) and fixed at the
+tell. The hazards are Desert's own (churned sand, quicksand, glass shards, sun-lens beams, boulders, dust). Nothing flashes the screen: a lens beam is a thin
+drawn line and then a stream of thin bolts down it. A cast that lays things down lobs each onto a ringed spot that rides the board (`DesertSpotAttack`).
+Non-armoured ones have 3 hearts (Dune Stalker, Lens Matriarch and Scorpion Skiff `hurtHide`: hurt, they flee off the screen and return); Caravan Hauler and
+Mirror Bastion are armoured (5). Drawn long side about 1.55 u (1.6 u for the heavy ones: Caravan Hauler, Glass Cannon, Mirror Bastion; before: 1.80-2.25 u),
+`cellWorldSize` and `hullRadius` scaled together. Homes: the four new launch-strip sites first (below), the old Desert sites as fallbacks (`launchFrom` lists both).
+
+| Elite | brain / attack | home | pattern |
+| --- | --- | --- | --- |
+| Dune Stalker | `burrower` / `worm_churn` | canyondock (wormburrow) | roams: a rippling pass across the top, off one side and back from the other; flying on through the wind-up it rings a trail of four sand bursts leading toward the pilot, lobbed onto the rings nearest first so the churn travels like a worm surfacing (pools that ride the board); a second cast per pass at its last heart |
+| Caravan Hauler | `caravan` / `quicksand_row` | crawlerhangar (caravanbay) | plods along the top in legs with a rest at each end and throws only while resting; holds, rings a row of five slots with the one beside the pilot's (toward the middle) left open, lobs a quicksand canister onto each; a second row with the gap mirrored once two hearts are lost |
+| Lens Matriarch | `glint` / `glass_fan` | mirrorsilo (glasspad) | roams: a zig-zag pass across the top; halts, draws six thin rays (eight at its last heart) in a fan centred on the pilot's line with the central gap left open, then sends a glass shard down every ray |
+| Glass Cannon | `lenspost` / `lens_beams` | mirrorsilo (buriedsilo) | perches on one of three columns along the top and glides to another after every cast; holds, draws four thin beam lines either side of the pilot's own (six at its last heart), then runs a stream of bolts down each, outside in |
+| Scorpion Skiff | `flanker` / `boulder_roll` | buriedbunker (ruindock) | holds a flank high on the board and scuttles across to the other after every throw; holds, draws a boulder's path (out to a ringed bounce on the far rail and on down), then skids a boulder (`Kind.Slab`, soaks `hazardArmour` hits) down it; a second, higher one once it has lost a heart |
+| Mirror Bastion | `bulwark` / `dust_wall` | buriedbunker (ruindock) | crawls along the top; holds, draws the edges of each wave's gap across the board (the first not at the pilot's height, each later one a hand further), then sweeps two (three at <= 3 hearts) walls of dust sideways from the rail far from the pilot |
+
+### Docks, lights and burn loops (phase 2)
+
+Tests in `DesertDockTest`. Art by Codex (masters in `Art/Enemies/Elite/Desert/new_docks_lights~/`, `manifest.md`), installed byte for byte.
+
+- **Hull lights**: each elite's `<key>_lights` strip is an additive overlay over the flight cells (9 cells, aligned with the hull).
+- **Damaged burn loops**: `<key>_damaged` (6 cells, every engine's flames weak and ragged on the damaged hull) and `<key>_lights_damaged` continue the strips as cells 9-14
+  (`cells.damagedLoop`, shared with the other worlds); hurt, the ship plays them (`EliteShip.DamagedLoops`: no procedural plume over them).
+- **Four new launch sites** in the Desert docks atlas (`Backdrop3/docks.png`, built by `build_launch_atlas.py`, all six cells of each `<site>_launch_v2.png`
+  shrunk 3x): buried bunker (`buriedbunker`, `LandingKind.DesertBuriedBunker`), crawler hangar (`crawlerhangar`), mirror-array silo (`mirrorsilo`) and canyon
+  dock (`canyondock`). Pad points are the manifest's pad pixels (`DesertTuning.SitePads`). `DesertDirector.BringHome` asks the spawner for one when an elite
+  is due and none is in view. The old five sites stay as fallbacks.
+- **Launch**: the site stays closed through the first 40 % of the tell (the ship's one small blinking launch light is the tell), the doors open through
+  the rest and the lift-off, hold open until the elite is clear, then close for 0.6 s (`DesertTuning.LaunchCellAt`). No flash, flare or halo.
+- **Dust**: while the strip is in its open cells Desert's own ambient `smoke_b` flipbook (`DesertAmbientCatalog`) plays over the bay at alpha 0.6, above the
+  site and below the elite, fading in over the opening and out through the closing.
+
+Desert was the last world on the base brains and attacks (`interceptor` / `lance_dash`, `hauler` / `slag_drop`, `skirmisher` / `blink_shards`, `siege` /
+`siege_cannon`, `striker` / `claw_dive`, `bastion` / `ward_curtain`); they stay registered.
+
 ## Rails and view
 
 Branch `fix/rails-vetting` (from `integrate/oct05-full-master`). The roster vetted against the reinforced rails
