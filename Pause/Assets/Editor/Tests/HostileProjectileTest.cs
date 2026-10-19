@@ -803,7 +803,7 @@ public static class HostileProjectileTest
 
         // a resin pool swallows a shot and stays (a still board: the pool rides it)
         moveBackGround.speed = 0f;
-        var warden = Def("warden");
+        var warden = Def("canopy");
         var glob = shots.Fire(eb, warden, EliteShots.Kind.Glob, new Vector2(1f, 0f), Vector2.zero);
         glob.Lob(new Vector2(1f, -1f), .2f);
         for (int i = 0; i < 20 && glob.Airborne; i++) shots.Step(Dt);

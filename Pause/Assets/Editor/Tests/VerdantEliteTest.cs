@@ -601,6 +601,7 @@ public static class VerdantEliteTest
             float lifeLeft = 99f;
             foreach (var s in EliteSystem.Shots.All) if (s.Active && s.Pooled) lifeLeft = Mathf.Min(lifeLeft, s.LifeLeft);
             Check(k + "the pools land as sticky pools, " + lifeLeft.ToString("0.0") + " s of life left (" + pooled + " of " + m.Count + ")", pooled == m.Count);
+            moveBackGround.speed = .005f;   // the board nearly still: a pool riding it at the test's 1.5 u/s would leave the bottom of the view (and be culled) after ~3 s, before its linger is up
             string trace = "";
             for (float tt = 0f; tt < def.poolSeconds - 1e-3f; tt += .5f)
             {
