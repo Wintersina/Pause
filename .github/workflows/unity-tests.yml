@@ -171,7 +171,7 @@ jobs:
           touch ci-out/unity.log
           ( tail -n +1 -F ci-out/unity.log 2>/dev/null & echo $! > ci-out/tail.pid )
           docker run --rm \
-            -e HOST_UID="$(id -u)" -e HOST_GID="$(id -g)" -e UNITY_EMAIL -e UNITY_PASSWORD \
+            -e HOST_UID="$(id -u)" -e HOST_GID="$(id -g)" -e UNITY_EMAIL -e UNITY_PASSWORD -e GITHUB_ACTIONS \
             -v "$PWD:/workspace" -v "$PWD/ci-out/home:/ci-home" \
             "unityci/editor:${UNITY_IMAGE_TAG}" \
             bash /workspace/ci-out/run.sh "$method" "${extra[@]}"
