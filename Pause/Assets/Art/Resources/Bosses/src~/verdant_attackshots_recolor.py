@@ -35,5 +35,13 @@ for r in range(a.shape[0] // 128):
             yy = (np.arange(128)[:, None] - top) / max(1, bot - top)
             g = np.exp(-((yy - glint[f]) / .07) ** 2) * (.4 if r == 0 else .22) * m
             col = col * (1 - g[..., None]) + np.array([245, 255, 190]) * g[..., None]
+        # the ORIGINAL drawing's own dark keyline pixels (silhouette-edge pixels it painted dark) go back under the neon, as deep
+        # jungle green (their own value, hue pulled off the old brown/amber): not an added border, the art's baked edge
+        p = np.pad(al, 1, constant_values=0)
+        border = (al >= 200) & ((p[1:-1, :-2] < 40) | (p[1:-1, 2:] < 40) | (p[:-2, 1:-1] < 40) | (p[2:, 1:-1] < 40))
+        keep = border & (Y < .32)
+        k = np.clip(Y / .32, 0, 1)[..., None]
+        dk = np.array([10, 40, 10]) + k * np.array([22, 52, 10])
+        col = np.where(keep[..., None], dk, col)
         out[y0:y0 + 128, x0:x0 + 128, :3] = np.clip(col, 0, 255)
 Image.fromarray(out.round().astype(np.uint8), 'RGBA').save(dst)
