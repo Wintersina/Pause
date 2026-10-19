@@ -85,8 +85,9 @@ public static class BossLadderBotTest
             float seconds = 36f;
             var worlds = new System.Collections.Generic.List<int>();
             for (int w = 0; w < 7; w++) worlds.Add(w);
-            // the baseline: what the bot took from the OLD tables (info only: they were never meant to be a ladder)
-            if (TestHarness.FullLane || true)
+            // the baseline: what the bot took from the OLD tables (info only, no check reads it: they were never
+            // meant to be a ladder). It doubled the suite's time, so it only runs on request: PAUSE_LADDER_BASELINE=1.
+            if (System.Environment.GetEnvironmentVariable("PAUSE_LADDER_BASELINE") == "1")
                 for (int w = 0; w < 7; w++)
                 {
                     var old = new AttackBudgetScenarios.Rotation(w, seconds) { Legacy = true };
