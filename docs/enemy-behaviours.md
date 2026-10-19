@@ -772,6 +772,22 @@ this Unity Mono; `EliteTest`'s two older allocation checks still use it and prov
 * [ ] An exact predictor for weaving bodies (ask `EnemyBrain` where its pattern will be instead of extrapolating a
       straight line) would let elites thread alien lines; today they give weavers extra room instead
 
+## Space elites
+
+The four Space elites (`SpaceElites.cs`) are mini-boss fights, not followers: none of them closes on the pilot; each keeps its distance
+and throws hazards with its own engagement pattern, every attack is telegraphed and its aim locks at the tell. They launch from the
+Space backdrop's docks (stations, planets, big asteroids): in the last parked second rings in the elite's colour close in on the door
+(`EliteShip.DockWarn`) while the engine lights blink. Brains marked *roams* fly paths that leave the view (`EliteBrain.Roams`): no goal
+clamp, no planned evasions, no rail crash, and untouchable (no collider, not a target) while outside the board. A pause jump on any elite
+deals `EliteShip.PauseDamage` (2) hearts; a shielded ram still takes them all.
+
+| Elite (hearts) | Brain | Attack |
+|---|---|---|
+| Rift Lancer (3, hurtHide) | `sniper` *(roams)*: enters from a side, perches on that flank `Standoff` (4.6) over the pilot at the rail, takes 1-2 shots, leaves by its own side, waits `AwaySeconds`, re-enters from the OPPOSITE side. Within `MinRange` (3.3) of the pilot it leaves instead | `rift_snipe`: tell 0.85 s planted, a blinking sight line tracks then locks (blinks faster), then `shotCount` fast bolts down it. Every third run the first shot also sends a small pink rift mine gliding out along the line (`lobSeconds`) to the locked spot: it rides the board on a fuse ring (`hazardSeconds`) and pops into a short cross of `hazardCount` bolts; one player shot defuses it. The mine spot is ringed from the first frame of the tell |
+| Orbit Reaver (3, hurtHide) | `swooper` *(roams)*: straight strafing passes on a line `Offset` (3.0) to the side of the pilot, entered beyond one side of the view and left beyond the other, then a loop round out of sight; next pass from the side it left by, new slope. Lost heart (and hid): `LostBoost` (+30%) faster per heart | `swoop_volley`: a marker ring tracks the pilot's spot for `aimCommit` of the tell, then locks (blinks faster); the claws take turns firing `shotCount` shards at that spot from wherever the pass carries it, so they cross on it. One volley a pass |
+| Eventide Bastion (5, armoured) | `fortress`: `topMargin` under the top, a slow sine `laneOffset` either side of the middle | `ward_barrage`: casts alternate. Curtain: rings on the row's spots from the tell, one gap beside the pilot toward the middle, narrowing by `GapStep` (0.1) per heart lost down to `MinGap` (1.1); at <= 2 hearts a second row `RowDelay` (1.0 s, longer than a crossing needs) later with its gap on the other side of the pilot. Mine drop: the spot is ringed in the tell, a shield mine (`hazardArmour` shots to defuse) glides out of a pod, drifts down with the board and pops into a ring of `hazardCount` bolts (two mines at <= 3 hearts) |
+| Singularity Hauler (5, armoured) | `wrecker`: parks `topMargin` under the top, a crawl either side of the middle | `tow_sling`: casts alternate. Tow: a sight line drops from the top of the view to the claws; a Space rock (`space_rock_cluster` x `hazardSize`) drifts in from above into the claws (`hazardSeconds`); a dotted lane is locked from the claws to the pilot (0.9 s), then the rock is flung down it at `hazardSpeed`. A real hazard (hurts on touch, shot apart by weapons, glances off the rails twice). Sling: a ringed gravity well ahead of the pilot, `shotCount` shots curve in and cross; the well holds 2 s and pulls the pilot at most `EliteWell.Cap` (0.32 u) off the finger, fading near the ring |
+
 ## Frost elites
 
 Branch `feature/frost-elites-wired`. Frost had one elite (the Rimebreaker, `breaker` / `ice_ram`); Codex drew four more

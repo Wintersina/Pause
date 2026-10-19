@@ -162,6 +162,8 @@ public static class FriendlyFire
         if (!CanHit(t)) return false;
         var go = t.gameObject;
         if (go == shooter || t.IsShotHitbox || !t.enabled) return false;
+        // (an elite's own tow or drone: its shots do not spend it)
+        if (t.Mother != null && t.Mother.gameObject == shooter) return false;
         // An elite's own gate is joining the play (parked / lifting off it
         // has no collider for anyone) and its grace after a heart.
         var elite = t.Elite;

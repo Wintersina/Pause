@@ -141,7 +141,7 @@ public class EliteDef
     // An elite's drawn silhouette is at least FloorHulls x the flown hull (0.58 u x ShipScale.Main = 0.78 u), the armoured / slow
     // classes HeavyFloorHulls x: the player's own ship never reads as the bigger one.
     public const float FloorHulls = 1.9f, HeavyFloorHulls = 2.1f;
-    public static readonly string[] HeavyBrains = { "hauler", "bastion", "siege", "tug", "herder", "tender", "ironclad", "logger", "abyss", "netter", "pearler" };
+    public static readonly string[] HeavyBrains = { "hauler", "bastion", "siege", "tug", "fortress", "wrecker", "herder", "tender", "ironclad", "logger", "abyss", "netter", "pearler" };
     public bool Heavy { get { return System.Array.IndexOf(HeavyBrains, brain) >= 0; } }
     public float TierFloorUnits { get { return (Heavy ? HeavyFloorHulls : FloorHulls) * shopingShips.ReferenceHullSize * ShipScale.Main; } }
     public float laneOffset = 1.5f;     // gunship / hauler / warden / lancer / tug: lane distance from the pilot; bastion: how far off centre it may go

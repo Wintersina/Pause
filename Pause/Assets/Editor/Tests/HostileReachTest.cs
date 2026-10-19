@@ -408,9 +408,11 @@ public static class HostileReachTest
                          "), jump " + P(Share(b0.jump, b0.frames)) + " -> " + P(restJump) + ", ram " + P(Share(b0.ram, b0.frames)) + " -> " + P(restRam) +
                          ", attacks " + ab0 + " -> " + aa0 + "; top y " + P(f.ShareOf(b1.sumY / Mathf.Max(1, b1.frames))) + " -> " + P(f.ShareOf(a1.sumY / Mathf.Max(1, a1.frames))) +
                          ", jump " + P(Share(b1.jump, b1.frames)) + " -> " + P(topJump) + ", attacks " + ab1 + " -> " + aa1 + ";";
-                bool rr = restJump >= RestShare && restRam >= RestShare;
-                bool tt = topJump >= TopEliteFloor;
-                topSum += topJump; topN++;
+                // (a roamer's paths leave the view by design: it is untouchable outside the board, checked in SpaceEliteTest)
+                bool roams = EliteBrains.Create(def.brain).Roams;
+                bool rr = roams || (restJump >= RestShare && restRam >= RestShare);
+                bool tt = roams || topJump >= TopEliteFloor;
+                if (!roams) { topSum += topJump; topN++; }
                 // (one attack before can be a fluke on the way in: two or more must survive)
                 bool th = (ab0 <= 1 || aa0 > 0) && (ab1 <= 1 || aa1 > 0);
                 restOk &= rr;
@@ -431,7 +433,7 @@ public static class HostileReachTest
         }
     }
 
-    // ---- 4: a pause jump on an elite always kills it ----------------------------------------------
+    // ---- 4: a pause jump on an elite always connects (2 hearts) ----------------------------------------------
 
     static int Trials { get { return TestHarness.FullLane ? 24 : 12; } }
 
@@ -483,7 +485,7 @@ public static class HostileReachTest
                     }
                     if (e.State == EliteState.Dead) { Cleanup(ship, rock); continue; }
                     // (a hide-when-hurt elite that was just hit is away, untouchable: no jump to aim at it, and no grace window to land in)
-                    if (e.Hidden) { Cleanup(ship, rock); continue; }
+                    if (e.Hidden || e.Offstage) { Cleanup(ship, rock); continue; }   // (a roamer outside the board is untouchable too)
                     attempted++;
                     if (e.Hearts >= 2) fromTwo++; else fromOne++;
                     if (e.Grace > 0f) inGrace++;
@@ -496,15 +498,18 @@ public static class HostileReachTest
                     Vector3 to = (Vector3)(e.Position + off);
                     Vector3 from = k % 7 == 3 ? to + Vector3.right * .4f : ship.position;   // a short hop now and then
                     if (Vector3.Distance(from, to) < TeleportFx.MinimumJump) shortJumps++;
-                    int kills = EliteShip.Kills;
+                    int kills = EliteShip.Kills, hearts0 = e.Hearts;
                     ship.position = to;
                     TeleportFx.Play(from, to);
-                    bool dead = (e == null || e.State == EliteState.Dead) && EliteShip.Kills == kills + 1 && EliteShip.LastKillCause == EliteDamage.Teleport;
+                    // THE PAUSE DAMAGES 2: dead when it had <= 2 hearts, else left on (hearts - 2)
+                    bool dead = hearts0 <= EliteShip.PauseDamage
+                        ? (e == null || e.State == EliteState.Dead) && EliteShip.Kills == kills + 1 && EliteShip.LastKillCause == EliteDamage.Teleport
+                        : e != null && e.State != EliteState.Dead && e.Hearts == hearts0 - EliteShip.PauseDamage;
                     if (dead) connected++;
                     else Trial(ref first, def, k, "survived (hearts " + (e != null ? e.Hearts : -1) + ", grace " + (e != null ? F(e.Grace) : "-") + ", offset " + F(off.magnitude) + ")");
                     Cleanup(ship, rock);
                 }
-                Check((evasion ? "" : "evasion off: ") + def.displayName + ": a pause jump aimed at it kills it in " + connected + "/" + attempted + " seeded runs (from 2 hearts " + fromTwo +
+                Check((evasion ? "" : "evasion off: ") + def.displayName + ": a pause jump aimed at it takes 2 hearts in " + connected + "/" + attempted + " seeded runs (from 2 hearts " + fromTwo +
                       ", from 1 " + fromOne + ", in grace " + inGrace + ", mid-evasion " + midEvade + ", mid-attack " + midAttack + ", short hops " + shortJumps + ")" +
                       (first != null ? " first miss: " + first : ""), connected == attempted && attempted >= Trials * 2 / 3 / (def.hurtHide ? 2 : 1) && (inGrace > 0 || def.hurtHide) && fromTwo > 0);
                 evaded += midEvade;

@@ -10,8 +10,9 @@ using UnityEngine;
 // kind of site, the launch (docked and hidden, the engine-light tell, the
 // dock flare, flying out and fading in), joining, following the pilot,
 // attacking, a clean despawn -- and each one's own brain + attack
-// signature (bastion / ward_curtain, reaver / crescent_volley, lancer /
-// rift_rail, tug / gravity_sling) with zero per-frame allocation.
+// signature (fortress / ward_barrage, swooper / swoop_volley, sniper /
+// rift_snipe, wrecker / tow_sling: SpaceElites.cs) with zero per-frame
+// allocation, and the pause attack's 2 damage.
 //
 //   Unity -batchmode -quit -projectPath <abs>/Pause -executeMethod SpaceEliteTest.Run
 public static class SpaceEliteTest
@@ -31,10 +32,10 @@ public static class SpaceEliteTest
     // key -> brain, attack, where it launches from
     static readonly (string key, string brain, string attack, LandingKind from)[] Expected =
     {
-        ("space_elite_eventide_bastion", "bastion", "ward_curtain", LandingKind.Station),
-        ("space_elite_orbit_reaver", "reaver", "crescent_volley", LandingKind.Planet),
-        ("space_elite_rift_lancer", "lancer", "rift_rail", LandingKind.Station),
-        ("space_elite_singularity_hauler", "tug", "gravity_sling", LandingKind.Asteroid),
+        ("space_elite_eventide_bastion", "fortress", "ward_barrage", LandingKind.Station),
+        ("space_elite_orbit_reaver", "swooper", "swoop_volley", LandingKind.Planet),
+        ("space_elite_rift_lancer", "sniper", "rift_snipe", LandingKind.Station),
+        ("space_elite_singularity_hauler", "wrecker", "tow_sling", LandingKind.Asteroid),
     };
 
     public static int Execute()
@@ -50,7 +51,8 @@ public static class SpaceEliteTest
             Bastion();
             Reaver();
             Lancer();
-            Tug();
+            Wrecker();
+            PauseDamage();
             EngineFlames();
             Allocations();
         }
@@ -90,6 +92,17 @@ public static class SpaceEliteTest
         EliteSystem.PlayerOverride = pilot;
         LandingSites.Override = null;
         Random.InitState(4321);
+    }
+
+    // The nearest each may come to the pilot outside its committed attacks.
+    static float MinDistance(string brain)
+    {
+        switch (brain)
+        {
+            case "sniper": return SniperBrain.MinRange * .95f;
+            case "swooper": return 2.1f;
+            default: return 3f;
+        }
     }
 
     static EliteDef Def(string brain)
@@ -273,7 +286,8 @@ public static class SpaceEliteTest
             else lightsLate |= e.EngineLightsOn;
         }
         Check(k + "rides its body; only its engine lights blink at the dock, in its last parked second", rides && !lightsEarly && lightsLate);
-        Check(k + "launches with a dock flare (no ground dust)", e.State == EliteState.LiftOff && EliteSystem.Fx.DockFlares == flares + 1);
+        Check(k + "launches with a dock flare (no ground dust) after rings close in on the door through the launch second (" + e.DockWarns + ")",
+              e.State == EliteState.LiftOff && EliteSystem.Fx.DockFlares == flares + 1 && e.DockWarns >= 3);
         bool steps = true, grows = true, hidden = true, sawFade = false;
         float lastScale = e.HullScale;
         Vector2 start = e.transform.position;
@@ -297,29 +311,23 @@ public static class SpaceEliteTest
               e.CompareTag("Enimey") && e.Hull.sortingOrder == EliteShip.PlayOrder && Vector2.Distance(e.Position, pilot.position) >= 2f &&
               Vector2.Distance(start, e.Position) > 1f);
 
-        // follows: the pilot crosses the board, it comes along
-        float right = 0f, left = 0f, far = 0f, path = 0f;
-        int nr = 0, nl = 0;
+        // antagonises, keeps its distance: the pilot crosses the board, it never comes in on it (outside its committed attacks)
+        float nearest = 99f, path = 0f;
         Vector2 last = e.Position;
         e.AttackCooldown = 99f;
-        for (int i = 0; i < 30 * 8; i++)
+        for (int i = 0; i < 30 * 12; i++)
         {
-            float px = i < 30 * 4 ? 1.3f : -1.3f;
+            float px = Mathf.Sin(i * .03f) * 1.3f;
             pilot.position = new Vector3(px, -2.6f, 0f);
             EliteSystem.Step(Dt);
             if (!Alive(e)) break;
-            if (i >= 30 * 2 && i < 30 * 4) { right += e.Position.x; nr++; far = Mathf.Max(far, Vector2.Distance(e.Position, pilot.position)); }
-            if (i >= 30 * 6) { left += e.Position.x; nl++; far = Mathf.Max(far, Vector2.Distance(e.Position, pilot.position)); }
+            if (!e.Telling && !e.Acting) nearest = Mathf.Min(nearest, Vector2.Distance(e.Position, pilot.position));
             path += Vector2.Distance(e.Position, last);
             last = e.Position;
             e.AttackCooldown = 99f;
         }
-        right /= Mathf.Max(1, nr);
-        left /= Mathf.Max(1, nl);
-        // (it moves with the pilot and stays within reach of it: the lancer flips flanks, so its mean x need not follow the pilot's)
-        bool tracks = def.brain == "lancer" || right - left > .5f;
-        Check(k + "follows the pilot across the board (mean x " + right.ToString("0.0") + " -> " + left.ToString("0.0") + ", never more than " +
-              far.ToString("0.0") + " u away, " + path.ToString("0.0") + " u flown)", Alive(e) && tracks && far < 4.5f && path > 2f);
+        Check(k + "keeps its distance from the pilot (nearest " + nearest.ToString("0.0") + " u, " + path.ToString("0.0") + " u flown)",
+              Alive(e) && nearest >= MinDistance(def.brain) && path > 1f);
 
         // attacks: its own attack, then back to following
         int launched = EliteSystem.Shots.Launched, attacks = e.Attacks;
@@ -334,8 +342,8 @@ public static class SpaceEliteTest
             acted |= e.Acting;
             if (acted && e.State == EliteState.Follow) back = true;
         }
-        Check(k + "attacks (" + e.Attack.Id + "): a wind-up, shots out, back to following (" + (EliteSystem.Shots.Launched - launched) + " shots)",
-              told && acted && back && e.Attacks > attacks && EliteSystem.Shots.Launched > launched);
+        Check(k + "attacks (" + e.Attack.Id + "): a wind-up, something thrown, back to following (" + (EliteSystem.Shots.Launched - launched) + " shots, " + e.Attack.Fired + " fired)",
+              told && acted && back && e.Attacks > attacks && (EliteSystem.Shots.Launched > launched || e.Attack.Fired > 0));
 
         // despawns cleanly: shot down, paid, gone
         float total = RunScore.Total;
@@ -353,152 +361,303 @@ public static class SpaceEliteTest
         Check(k + "nothing left behind after a clear (" + EliteShip.Live.Count + " live)", EliteShip.Live.Count == 0);
     }
 
-    // ---- Eventide Bastion: bastion + ward_curtain ---------------------------------------
+    // ---- Eventide Bastion: fortress + ward_barrage ---------------------------------------
+
+    // Hearts the shot-down way (a player weapon, the grace waited out).
+    static void LoseHeart(EliteShip e)
+    {
+        e.TakeShipAttack(0, 1f, e.Position);
+        Step(EliteShip.GraceSeconds + .05f);
+    }
+
+    // The x where each live bolt of the curtain crosses the row's height.
+    static List<float> RowCrossings(float rowY, System.Func<EliteShot, bool> pick)
+    {
+        var xs = new List<float>();
+        foreach (var s in EliteSystem.Shots.All)
+        {
+            if (!s.Active || s.Kind != EliteShots.Kind.Bolt || !pick(s)) continue;
+            Vector2 v = s.Velocity, a = s.LaunchedAt;
+            if (v.y >= -.01f) continue;
+            xs.Add(a.x + v.x * (rowY - a.y) / v.y);
+        }
+        xs.Sort();
+        return xs;
+    }
 
     static void Bastion()
     {
         Fresh(.02f);
         pilot.position = new Vector3(1.4f, -2.5f, 0f);
-        var e = InPlay("bastion", new Vector2(-1f, 1f));
+        var e = InPlay("fortress", new Vector2(-1f, 1f));
         var def = e.Def;
-        var brain = (BastionBrain)e.Brain;
-        Step(5f);
-        Check("bastion holds high over the middle: lane follows the pilot, never more than laneOffset off centre (" + e.Position + ")",
-              Mathf.Abs(e.Position.x - def.laneOffset) < .35f && e.Position.y > pilot.position.y + def.followDistance - .5f);
-        Check("bastion is armoured (rocks don't cost it a heart)", def.armored);
-        e.ForceAttack();
-        var curtain = (WardCurtainAttack)e.Attack;
-        bool glow = false;
-        float tellSpeed = 0f;
-        while (e.Telling) { EliteSystem.Step(Dt); if (!e.Telling) break; glow |= e.ChargeGlowOn; tellSpeed = Mathf.Max(tellSpeed, e.Velocity.magnitude); }
-        Check("ward_curtain tell: holds still while the pods charge (" + tellSpeed.ToString("0.0") + ")", glow && tellSpeed < 1.2f);
-        int before = EliteSystem.Shots.Launched;
-        Step(def.actionSeconds + Dt);
-        int n = curtain.Count;
-        var crossings = new List<float>();
-        bool pods = true;
-        float podL = 0f, podR = 0f;
-        foreach (var s in EliteSystem.Shots.All)
+        var brain = (FortressBrain)e.Brain;
+        float minX = 9f, maxX = -9f, topDev = 0f, fastest = 0f, near = 99f;
+        Step(4f);   // (to its station first)
+        Step(14f, () =>
         {
-            if (!s.Active || s.Kind != EliteShots.Kind.Bolt) continue;
-            Vector2 v = s.Velocity, a = s.LaunchedAt;
-            if (v.y >= -.01f) { pods = false; continue; }
-            float k = (curtain.Row.y - a.y) / v.y;
-            crossings.Add(a.x + v.x * k);
-            if (a.x < e.Position.x) podL++; else podR++;
-        }
-        crossings.Sort();
-        Vector2 gapSpot = curtain.Spot(curtain.Gap);
-        bool onPilot = false, gapClear = true;
-        foreach (float x in crossings)
+            minX = Mathf.Min(minX, e.Position.x); maxX = Mathf.Max(maxX, e.Position.x);
+            topDev = Mathf.Max(topDev, Mathf.Abs(e.Position.y - brain.Height));
+            fastest = Mathf.Max(fastest, e.Velocity.magnitude);
+            near = Mathf.Min(near, Vector2.Distance(e.Position, pilot.position));
+        });
+        Check("fortress holds near the top of the view and slides sideways at a crawl (x " + minX.ToString("0.0") + ".." + maxX.ToString("0.0") +
+              ", " + fastest.ToString("0.0") + " u/s, " + topDev.ToString("0.0") + " off its height)",
+              maxX - minX > .8f && fastest < 1.6f && topDev < .5f && e.Position.y > pilot.position.y + 4f);
+        Check("... and never closes in on the pilot (nearest " + near.ToString("0.0") + " u)", near > 4f);
+        Check("fortress is armoured (rocks don't cost it a heart)", def.armored && def.hearts == 5);
+
+        // the curtain, hearts 5..1: the gap narrows a little per heart, a second row at <= 2
+        var widths = new List<float>();
+        bool narrows = true, doubled = true, otherSide = true, delayed = true, flanked = true, openGap = true;
+        float lastWidth = 99f;
+        for (int h = 5; h >= 1; h--)
         {
-            onPilot |= Mathf.Abs(x - curtain.Row.x) < .12f;
-            gapClear &= Mathf.Abs(x - gapSpot.x) > def.lobSpacing * .6f;
+            Fresh(.02f);
+            pilot.position = new Vector3(.4f, -2.5f, 0f);
+            e = InPlay("fortress", new Vector2(0f, 1f));
+            for (int k = def.hearts; k > h; k--) LoseHeart(e);
+            Step(.3f);
+            var barrage = (WardBarrageAttack)e.Attack;
+            e.ForceAttack();
+            Check("fortress " + h + " hearts: its first cast is a curtain", !barrage.MineDrop);
+            bool rings = false, ringsLocked = false;
+            while (e.Telling) { EliteSystem.Step(Dt); if (!e.Telling) break; rings |= barrage.Marks.ShownCount > 0; ringsLocked |= barrage.Marks.ShownCount >= barrage.Count - 1; }
+            int n = barrage.Count;
+            Vector2 gap1 = barrage.Spot(barrage.Gap, barrage.Gap), pilotAt = barrage.Row;
+            float width = barrage.GapWidth;
+            widths.Add(width);
+            narrows &= h == 5 || width < lastWidth - .05f || width <= WardBarrageAttack.MinGap + .001f;
+            lastWidth = width;
+            int before = EliteSystem.Shots.Launched;
+            Step(.7f);
+            int row1 = EliteSystem.Shots.Launched - before;
+            var xs1 = RowCrossings(barrage.Row.y, s => true);
+            // the gap between the two bolts beside the open slot
+            float lo = -99f, hi = 99f;
+            foreach (float x in xs1) { if (x < gap1.x) lo = Mathf.Max(lo, x); else hi = Mathf.Min(hi, x); }
+            flanked &= Mathf.Abs((hi - lo) - width) < .08f;
+            openGap &= xs1.TrueForAll(x => Mathf.Abs(x - gap1.x) > width * .4f);
+            Check("fortress " + h + " hearts: rings mark the row's spots from the tell (" + rings + "), " + (n - 1) + " bolts in the first row (" + row1 + "), gap " + width.ToString("0.00") + " u",
+                  rings && ringsLocked && row1 == n - 1);
+            if (h > 2)
+            {
+                Step(1.5f);
+                doubled &= EliteSystem.Shots.Launched - before == n - 1;
+            }
+            else
+            {
+                // the second row, RowDelay after the first, its gap on the other side of the pilot
+                Vector2 gap2 = barrage.Spot(barrage.Gap2, barrage.Gap2);
+                bool distinct = barrage.Gap2 != barrage.Gap;
+                Step(WardBarrageAttack.RowDelay - .7f + .4f);
+                int total = EliteSystem.Shots.Launched - before;
+                doubled &= total == 2 * (n - 1) && barrage.SecondRow;
+                var xs2 = RowCrossings(barrage.Row.y, s => s.Age < .6f);
+                otherSide &= distinct && (gap1.x - pilotAt.x) * (gap2.x - pilotAt.x) < 0f;
+                openGap &= xs2.TrueForAll(x => Mathf.Abs(x - gap2.x) > width * .4f);
+                delayed &= WardBarrageAttack.RowDelay >= WardBarrageAttack.CrossNeeded(def.lobSpacing);
+                Step(1f);
+            }
+            while (e.State == EliteState.Attack) EliteSystem.Step(Dt);
         }
-        Check("ward_curtain: " + (n - 1) + " slow bolts out of both pods onto a row across the pilot's height (" + (EliteSystem.Shots.Launched - before) + ")",
-              EliteSystem.Shots.Launched - before == n - 1 && crossings.Count == n - 1 && pods && podL > 0 && podR > 0);
-        Check("... one on the pilot, a gap beside it toward the middle of the board (gap x " + gapSpot.x.ToString("0.00") + ", pilot " + curtain.Row.x.ToString("0.00") + ")",
-              onPilot && gapClear && gapSpot.x < curtain.Row.x);
-        Check("... slow enough to read (" + def.shotSpeed + " u/s)", def.shotSpeed <= 4f);
-        // the gap is safe, standing still is not
+        Check("the gap narrows as hearts drop (" + string.Join(", ", widths.ConvertAll(w => w.ToString("0.00"))) + ")", narrows && widths[0] > widths[widths.Count - 1] + .2f && widths[widths.Count - 1] >= WardBarrageAttack.MinGap - .001f);
+        Check("... the two bolts beside the gap close in on its width, and nothing is aimed into it", flanked && openGap);
+        Check("... a second row follows at <= " + WardBarrageAttack.DoubleRowAt + " hearts and only then", doubled);
+        Check("... its gap is on the other side of the pilot, and the delay (" + WardBarrageAttack.RowDelay + " s) outlasts a crossing (" +
+              WardBarrageAttack.CrossNeeded(def.lobSpacing).ToString("0.00") + " s)", otherSide && delayed);
+
+        // the mine drop: telegraphed, slow, shootable (two shots), pops into a ring
         Fresh(.02f);
         pilot.position = new Vector3(0f, -2.5f, 0f);
-        e = InPlay("bastion", new Vector2(0f, 1f));
-        Step(1f);
+        e = InPlay("fortress", new Vector2(0f, 1f));
+        var bar = (WardBarrageAttack)e.Attack;
         e.ForceAttack();
-        Step(def.tellSeconds + def.actionSeconds + Dt * 2f);
-        curtain = (WardCurtainAttack)e.Attack;
-        float nearGap = 9f, nearPilot = 9f;
-        Vector2 gap = curtain.Spot(curtain.Gap), stay = curtain.Row;
-        Step(3f, () =>
+        while (e.State == EliteState.Attack) EliteSystem.Step(Dt);   // cast 1: the curtain
+        Step(.5f);
+        e.ForceAttack();
+        Check("the next cast is a mine drop", bar.MineDrop);
+        bool ringed = false;
+        while (e.Telling) { EliteSystem.Step(Dt); if (!e.Telling) break; ringed |= bar.Marks.ShownCount == bar.Mines && bar.Mines >= 1; }
+        Step(def.actionSeconds + .3f);
+        e.AttackCooldown = 99f;
+        EliteShot mine = bar.Mine(0);
+        Check("... the drop spot is ringed through the tell, then a mine glides out of a pod (" + (mine != null && mine.Active ? "live" : "none") + ")",
+              ringed && mine != null && mine.IsMine && mine.Kind == EliteShots.Kind.Orb && mine.MarkShown);
+        if (mine != null && mine.Active)
         {
-            foreach (var s in EliteSystem.Shots.All)
-            {
-                if (!s.Active) continue;
-                nearGap = Mathf.Min(nearGap, Vector2.Distance(s.transform.position, gap));
-                nearPilot = Mathf.Min(nearPilot, Vector2.Distance(s.transform.position, stay));
-            }
-        });
-        Check("... a ship in the gap stays clear (closest bolt " + nearGap.ToString("0.00") + " u), one that stays put is hit (" + nearPilot.ToString("0.00") + " u)",
-              nearGap > .3f && nearPilot < .15f);
+            Step(1.2f);
+            Vector2 v = mine.Velocity;
+            Check("... a slow shield mine drifting with the board (" + v.magnitude.ToString("0.0") + " u/s), a fuse ring on it (" + mine.FuseLeft.ToString("0.0") + " s left)",
+                  v.magnitude < EliteSystem.Scroll + 1f && mine.FuseLeft > 0f && mine.FuseLeft < def.hazardSeconds + WardBarrageAttack.MineGlide);
+            mine.Struck();
+            Check("... one shot only cracks it (" + def.hazardArmour + " defuse it)", mine.Active && mine.Armour == def.hazardArmour - 1);
+            int bolts0 = EliteSystem.Shots.Launched;
+            Step(def.hazardSeconds + 1f);
+            int popped = EliteSystem.Shots.Launched - bolts0;
+            Check("... left alone it pops into a ring of " + def.hazardCount + " short bolts (" + popped + ")", popped == def.hazardCount && !mine.Active);
+        }
+        // a second mine, shot down twice: gone, no ring
+        e.ForceAttack();
+        while (e.State == EliteState.Attack) EliteSystem.Step(Dt);   // a curtain
+        e.AttackCooldown = 99f;
+        e.ForceAttack();
+        while (e.Telling) EliteSystem.Step(Dt);
+        Step(def.actionSeconds + .3f);
+        e.AttackCooldown = 99f;
+        var m2 = bar.Mine(0);
+        if (m2 != null && m2.Active)
+        {
+            int launched = EliteSystem.Shots.Launched;
+            for (int k = 0; k < def.hazardArmour; k++) m2.Struck();
+            Step(def.hazardSeconds + 1f);
+            Check("a ward mine shot down " + def.hazardArmour + "x is defused: no ring", !m2.Active && EliteSystem.Shots.Launched == launched);
+        }
+        else Check("a second mine drop made a mine", false);
     }
 
-    // ---- Orbit Reaver: reaver + crescent_volley ----------------------------------------
+    // ---- Orbit Reaver: swooper + swoop_volley ----------------------------------------
 
     static void Reaver()
     {
         Fresh(.02f);
         pilot.position = new Vector3(0f, -2.5f, 0f);
-        var e = InPlay("reaver", new Vector2(1.5f, 0f));
+        var e = InPlay("swooper", new Vector2(1.5f, 0f));
         var def = e.Def;
-        var brain = (ReaverBrain)e.Brain;
-        float lowest = 9f, minX = 9f, maxX = -9f, cruise = 0f;
-        int turns = brain.Turns, cruiseN = 0;
-        Step(8f, () => { cruise += e.Velocity.magnitude; cruiseN++; lowest = Mathf.Min(lowest, e.Position.y - pilot.position.y); minX = Mathf.Min(minX, e.Position.x); maxX = Mathf.Max(maxX, e.Position.x); });
-        Check("reaver circles wholly above the pilot (lowest " + lowest.ToString("0.00") + " u above), swinging across it (" + minX.ToString("0.0") + ".." + maxX.ToString("0.0") + ")",
-              lowest > .6f && minX < -1f && maxX > 1f);
-        Check("... and turns round at the end of a lap (" + (brain.Turns - turns) + ")", brain.Turns > turns);
-        e.ForceAttack();
-        var volley = (CrescentVolleyAttack)e.Attack;
-        Vector2 locked = volley.Aim;
-        float tellSpeed = 0f;
-        while (e.Telling) { EliteSystem.Step(Dt); if (e.Telling) tellSpeed = Mathf.Max(tellSpeed, e.Velocity.magnitude); }
-        pilot.position = new Vector3(1.2f, -2.5f, 0f);     // the pilot moves off: the volley still goes to the locked spot
-        int before = EliteSystem.Shots.Launched, spinBefore = (int)brain.Spin, turnsBefore = brain.Turns;
-        float actSpeed = 0f;
-        int actN = 0;
-        cruise /= Mathf.Max(1, cruiseN);
+        var brain = (SwooperBrain)e.Brain;
+        var entries = new List<float>();
+        int leaves = 0, comebacks = 0;
+        bool wasOff = false, untouchable = true, touchable = true;
+        float near = 99f, topSpeed = 0f;
+        var dirs = new List<Vector2>();
+        int lastPasses = brain.Passes;
+        float clock = 0f;
+        for (int i = 0; i < 30 * 60; i++)
+        {
+            clock += Dt;
+            pilot.position = new Vector3(Mathf.Sin(clock * .5f) * 1.2f, -2.5f, 0f);
+            EliteSystem.Step(Dt);
+            if (!Alive(e)) break;
+            e.AttackCooldown = Mathf.Min(e.AttackCooldown, 1f);
+            if (e.Offstage)
+            {
+                if (!wasOff) { leaves++; wasOff = true; }
+                untouchable &= !e.Collider.enabled && !e.CompareTag("Enimey");
+            }
+            else
+            {
+                if (wasOff)
+                {
+                    comebacks++;
+                    wasOff = false;
+                    entries.Add(e.Position.x);
+                }
+                touchable &= e.Collider.enabled && e.CompareTag("Enimey");
+                if (!e.Telling && !e.Acting) near = Mathf.Min(near, Vector2.Distance(e.Position, pilot.position));
+            }
+            topSpeed = Mathf.Max(topSpeed, e.Velocity.magnitude);
+            if (brain.Passes != lastPasses) { lastPasses = brain.Passes; dirs.Add(brain.Dir); }
+        }
+        Check("reaver's passes leave the view and come back round (" + leaves + " exits, " + comebacks + " re-entries in 60 s)", leaves >= 3 && comebacks >= 3);
+        Check("... untouchable (no collider, not a target) while out of the board, hittable on it", untouchable && touchable);
+        int flips = 0;
+        for (int i = 1; i < entries.Count; i++) if (Mathf.Sign(entries[i]) != Mathf.Sign(entries[i - 1])) flips++;
+        bool alternates = entries.Count >= 3 && flips >= (entries.Count - 1) * .7f;
+        bool slopes = false;
+        for (int i = 1; i < dirs.Count; i++) slopes |= Vector2.Angle(dirs[i], dirs[i - 1]) > 8f;
+        Check("... each pass from a different side or angle (entries x " + string.Join(", ", entries.ConvertAll(x => x.ToString("0.0"))) + ")", alternates && slopes);
+        Check("... and it never comes near the pilot between volleys (nearest " + near.ToString("0.0") + " u, flying up to " + topSpeed.ToString("0.0") + " u/s)", near > 2.2f);
+
+        // the volley: lock ring, then shards crossing on the locked spot
+        Fresh(.02f);
+        pilot.position = new Vector3(0f, -2.5f, 0f);
+        e = InPlay("swooper", new Vector2(1.5f, 0f));
+        brain = (SwooperBrain)e.Brain;
+        var volley = (SwoopVolleyAttack)e.Attack;
+        e.AttackCooldown = 0f;
+        int guard = 0;
+        while (!e.Telling && guard++ < 30 * 20) { EliteSystem.Step(Dt); e.AttackCooldown = 0f; }
+        Check("reaver winds up mid-pass (no hold): it keeps flying through the tell", e.Telling && brain.Phase == SwooperBrain.Stage.Pass);
+        float tellSpeed = 99f;
+        bool ring = false, ringFast = false, early = false, lockedStill = true;
+        Vector2 locked = Vector2.zero;
+        int tellSteps = 0;
+        while (e.Telling)
+        {
+            pilot.position = new Vector3(-.8f + tellSteps * .02f, -2.5f, 0f);   // the pilot keeps moving
+            EliteSystem.Step(Dt);
+            tellSteps++;
+            if (!e.Telling) break;
+            tellSpeed = Mathf.Min(tellSpeed, e.Velocity.magnitude);
+            ring |= volley.Marks.Shown(0);
+            if (e.AimLocked) { if (locked == Vector2.zero) locked = volley.LockedAt; else lockedStill &= Vector2.Distance(locked, volley.LockedAt) < .001f; ringFast = true; }
+            else early = true;
+        }
+        Check("... a marker ring on the pilot's spot from the first frame, tracking, then locked (" + locked + ")", ring && ringFast && early && lockedStill && locked != Vector2.zero);
+        Check("... still flying fast through the wind-up (" + tellSpeed.ToString("0.0") + " u/s)", tellSpeed > def.speed);
+        pilot.position = new Vector3(1.6f, -2.5f, 0f);   // moves off: the shards still go to the locked spot
+        int before = EliteSystem.Shots.Launched;
         var froms = new List<Vector2>();
         bool aimed = true;
-        int guard = 0;
+        guard = 0;
         while (e.State == EliteState.Attack && guard++ < 200)
         {
             int was = EliteSystem.Shots.Launched;
             EliteSystem.Step(Dt);
-            if (e.Acting) { actSpeed += e.Velocity.magnitude; actN++; }
             if (EliteSystem.Shots.Launched == was) continue;
             foreach (var s in EliteSystem.Shots.All)
             {
                 if (!s.Active || s.Age > Dt * 1.5f) continue;
                 froms.Add(s.LaunchedAt);
-                Vector2 to = (locked - s.LaunchedAt).normalized;
-                aimed &= Vector2.Dot(s.Velocity.normalized, to) > .995f;
+                aimed &= Vector2.Dot(s.Velocity.normalized, (locked - s.LaunchedAt).normalized) > .995f;
             }
         }
-        actSpeed /= Mathf.Max(1, actN);
         bool both = false;
-        for (int i = 1; i < froms.Count; i++) both |= Vector2.Distance(froms[i], froms[0]) > .5f;
-        Check("crescent_volley: keeps circling through the wind-up (" + tellSpeed.ToString("0.0") + " u/s)", tellSpeed > def.speed * .3f);
-        Check("... races round while the claws take turns firing " + def.shotCount + " shards (" + (EliteSystem.Shots.Launched - before) + ", " + actSpeed.ToString("0.0") + " u/s vs " + cruise.ToString("0.0") + " cruising)",
-              EliteSystem.Shots.Launched - before == def.shotCount && both && actSpeed > cruise * 1.1f);
-        Check("... every shard at the spot it locked, not where the pilot went", aimed && froms.Count == def.shotCount);
-        Check("... then it turns round on its orbit", brain.Turns > turnsBefore && brain.Lapped < .5f && (int)brain.Spin != spinBefore);
+        for (int i = 1; i < froms.Count; i++) both |= Vector2.Distance(froms[i], froms[0]) > .3f;
+        Check("... " + def.shotCount + " shards from the claws, every one at the locked spot, crossing there from the pass angle (" + (EliteSystem.Shots.Launched - before) + ")",
+              EliteSystem.Shots.Launched - before == def.shotCount && aimed && both);
+
+        // hurt: it hides, then the loops are faster
+        Fresh(.02f);
+        pilot.position = new Vector3(0f, -2.5f, 0f);
+        e = InPlay("swooper", new Vector2(1.5f, 0f));
+        brain = (SwooperBrain)e.Brain;
+        e.AttackCooldown = 99f;
+        float v0 = 0f;
+        Step(20f, () => v0 = Mathf.Max(v0, e.Velocity.magnitude));
+        LoseHeart(e);
+        Check("reaver hit: it hides (off the board, untouchable)", e.Hidden && !e.Collider.enabled);
+        int g2 = 0;
+        while (e.Hidden && g2++ < 600) EliteSystem.Step(Dt);
+        float v1 = 0f;
+        e.AttackCooldown = 99f;
+        Step(20f, () => v1 = Mathf.Max(v1, e.Velocity.magnitude));
+        Check("... and comes back with faster loops (" + v0.ToString("0.0") + " -> " + v1.ToString("0.0") + " u/s)", v1 > v0 * 1.15f && Alive(e));
     }
 
-    // ---- Rift Lancer: lancer + rift_rail ------------------------------------------------
+    // ---- Rift Lancer: sniper + rift_snipe ------------------------------------------------
 
     static void Lancer()
     {
         Fresh(.02f);
         pilot.position = new Vector3(0f, -2.5f, 0f);
-        var e = InPlay("lancer", new Vector2(1.5f, 0f));
+        var e = InPlay("sniper", new Vector2(1.5f, 0f));
         var def = e.Def;
-        var brain = (LancerBrain)e.Brain;
-        Step(3f);
-        float side = brain.Side;
-        Check("lancer holds a flank above the pilot, nose on it (" + e.Position + ")",
-              Mathf.Abs(e.Position.x - side * def.laneOffset) < .5f && e.Position.y > pilot.position.y + def.followDistance - .6f &&
-              Mathf.Abs(Mathf.DeltaAngle(e.Facing, Mathf.Atan2(pilot.position.y - e.Position.y, pilot.position.x - e.Position.x) * Mathf.Rad2Deg)) < 25f);
+        var brain = (SniperBrain)e.Brain;
+        Step(4f);
+        float edge = EliteSystem.RailEdge;
+        Check("lancer perches at long range on a flank, at the edge of the board (" + e.Position + ", " + Vector2.Distance(e.Position, pilot.position).ToString("0.0") + " u off)",
+              brain.Phase == SniperBrain.Stage.Perch && Mathf.Abs(e.Position.x) > edge - 1f && Vector2.Distance(e.Position, pilot.position) >= SniperBrain.MinRange &&
+              Mathf.Abs(Mathf.DeltaAngle(e.Facing, Mathf.Atan2(pilot.position.y - e.Position.y, pilot.position.x - e.Position.x) * Mathf.Rad2Deg)) < 30f);
         e.ForceAttack();
-        var rail = (RiftRailAttack)e.Attack;
+        var rail = (RiftSnipeAttack)e.Attack;
         bool sight = false, trackedEarly = false, lockedStill = true;
         Vector2 lockedDir = Vector2.zero;
         float tellSpeed = 0f;
         int i0 = 0;
         while (e.Telling)
         {
-            // the pilot keeps moving all through the wind-up
-            pilot.position = new Vector3(Mathf.Sin(i0++ * .15f) * .9f, -2.5f, 0f);
+            pilot.position = new Vector3(Mathf.Sin(i0++ * .15f) * .9f, -2.5f, 0f);   // the pilot keeps moving all through the wind-up
             Vector2 d0 = rail.Dir;
             EliteSystem.Step(Dt);
             if (!e.Telling) break;
@@ -508,7 +667,7 @@ public static class SpaceEliteTest
             else { if (lockedDir == Vector2.zero) lockedDir = rail.Dir; lockedStill &= Vector2.Dot(lockedDir, rail.Dir) > .9999f; }
         }
         pilot.position = new Vector3(0f, -2.5f, 0f);
-        Check("rift_rail tell: planted, a sight line tracks the pilot, then locks (" + tellSpeed.ToString("0.0") + ")", sight && trackedEarly && lockedStill && tellSpeed < 1.2f);
+        Check("rift_snipe tell: planted, a sight line tracks the pilot, then locks (" + tellSpeed.ToString("0.0") + ")", sight && trackedEarly && lockedStill && tellSpeed < 1.2f);
         int before = EliteSystem.Shots.Launched;
         Step(def.actionSeconds + Dt);
         int rails = 0;
@@ -521,72 +680,292 @@ public static class SpaceEliteTest
             fast &= s.Velocity.magnitude > def.shotSpeed * .95f;
         }
         Check("... then a rail of " + def.shotCount + " fast bolts straight down the locked line (" + rails + ")",
-              EliteSystem.Shots.Launched - before == def.shotCount && rails == def.shotCount && parallel && fast && !e.SightShown);
-        Step(.3f);
-        Check("... and it dashes across to its other flank", brain.Side == -side && brain.Crossings == 1);
-        float speed = 0f;
-        Step(1.2f, () => speed = Mathf.Max(speed, e.Velocity.magnitude));
-        Check("... fast (" + speed.ToString("0.0") + " u/s) and settles there", speed > def.speed * 1.2f &&
-              Mathf.Abs(e.Position.x - (pilot.position.x - side * def.laneOffset)) < .9f);
+              EliteSystem.Shots.Launched - before == def.shotCount && rails == def.shotCount && parallel && fast && !e.SightShown && !rail.MineRun);
+
+        // runs: 1-2 shots, out its own side, back in from the OPPOSITE one; every third run a rift mine
+        Fresh(.02f);
+        pilot.position = new Vector3(0f, -2.5f, 0f);
+        e = InPlay("sniper", new Vector2(1.5f, 0f));
+        brain = (SniperBrain)e.Brain;
+        rail = (RiftSnipeAttack)e.Attack;
+        e.AttackCooldown = 0f;
+        float off = SpaceFlight.OffX(def);
+        var exitSides = new List<float>();
+        var entrySides = new List<float>();
+        var shotsPerRun = new List<int>();
+        var stage = brain.Phase;
+        int runShots = 0, minesSeen = 0;
+        float nearest = 99f;
+        bool mineOnThird = true, mineElse = true, offstageOk = true;
+        EliteShot lastMine = null;
+        float clock = 0f;
+        for (int i = 0; i < 30 * 90 && entrySides.Count < 6; i++)
+        {
+            clock += Dt;
+            pilot.position = new Vector3(Mathf.Sin(clock * .5f) * 1.2f, -2.5f, 0f);
+            int shotsBefore = brain.Shots;
+            var phaseBefore = brain.Phase;
+            float sideBefore = brain.Side;
+            int runBefore = brain.Runs;
+            EliteSystem.Step(Dt);
+            if (!Alive(e)) break;
+            if (brain.Shots != shotsBefore) runShots++;
+            if (brain.Phase == SniperBrain.Stage.Exit && phaseBefore != SniperBrain.Stage.Exit) { exitSides.Add(sideBefore); shotsPerRun.Add(runShots); runShots = 0; }
+            if (brain.Phase == SniperBrain.Stage.Enter && phaseBefore == SniperBrain.Stage.Away) entrySides.Add(Mathf.Sign(e.Position.x));
+            if (e.Offstage) offstageOk &= !e.Collider.enabled;
+            if (!e.Telling && !e.Acting && brain.Phase == SniperBrain.Stage.Perch) nearest = Mathf.Min(nearest, Vector2.Distance(e.Position, pilot.position));
+            if (rail.Mine != null && rail.Mine != lastMine && rail.Mine.Active) { lastMine = rail.Mine; minesSeen++; mineOnThird &= brain.Runs % SniperBrain.MineEvery == 0; }
+            e.AttackCooldown = Mathf.Min(e.AttackCooldown, 1.2f);
+        }
+        bool opposite = exitSides.Count >= 2 && entrySides.Count >= 2;
+        for (int i = 0; i < Mathf.Min(exitSides.Count, entrySides.Count); i++) opposite &= entrySides[i] == -exitSides[i];
+        bool oneOrTwo = shotsPerRun.Count > 0;
+        foreach (int n in shotsPerRun) oneOrTwo &= n >= 1 && n <= 2;
+        Check("lancer takes 1-2 shots a run (" + string.Join(",", shotsPerRun) + "), leaves by its own side (" + string.Join(",", exitSides) + ") and re-enters from the OPPOSITE one (" +
+              string.Join(",", entrySides) + ")", opposite && oneOrTwo);
+        Check("... a mine on every third run only (" + minesSeen + " seen in " + brain.Runs + " runs), untouchable while away, never within " + SniperBrain.MinRange + " u of the pilot at its perch (" + nearest.ToString("0.0") + ")",
+              minesSeen >= 1 && minesSeen <= brain.Runs / SniperBrain.MineEvery + 1 && mineOnThird && offstageOk && nearest >= SniperBrain.MinRange * .95f);
+
+        // the rift mine itself
+        Fresh(.02f);
+        pilot.position = new Vector3(0f, -2.5f, 0f);
+        e = InPlay("sniper", new Vector2(1.5f, 0f));
+        brain = (SniperBrain)e.Brain;
+        rail = (RiftSnipeAttack)e.Attack;
+        // (runs 1 and 2 are over: the third carries the mine)
+        for (int r = 0; r < 2; r++) { typeof(SniperBrain).GetMethod("BeginRun", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).Invoke(brain, new object[] { true }); }
+        Step(4f);
+        Check("the third run is a mine run (run " + brain.Runs + ")", brain.Runs % SniperBrain.MineEvery == 0 && brain.MineDue);
+        e.ForceAttack();
+        bool ringShown = false;
+        Vector2 spot = Vector2.zero;
+        while (e.Telling) { EliteSystem.Step(Dt); if (!e.Telling) break; ringShown |= rail.Marks.Shown(0); spot = rail.MineSpot; }
+        Check("... its spot is ringed from the tell (on the line the sight locked)", rail.MineRun && ringShown);
+        Step(def.actionSeconds + .1f);
+        var mine = rail.Mine;
+        Check("... a pink rift leaves the prong on the rail line", mine != null && mine.IsMine && mine.Active && mine.MarkShown);
+        if (mine != null)
+        {
+            Step(def.lobSeconds + .3f);
+            Vector2 d = (Vector2)mine.transform.position - spot;
+            Check("... settles on its spot (" + d.magnitude.ToString("0.0") + " u off, riding the board), fuse ring running (" + mine.FuseLeft.ToString("0.0") + " s)", mine.FuseLeft > 1f && mine.FuseLeft < def.hazardSeconds + .1f && d.magnitude < 1.2f);
+            for (int g = 0; g < 30 * 5 && mine.Active; g++) EliteSystem.Step(Dt);
+            Step(Dt);
+            var crossed = new List<Vector2>();
+            foreach (var s in EliteSystem.Shots.All) if (s.Active && s.IsChip) crossed.Add(s.Velocity.normalized);
+            bool cross = crossed.Count == def.hazardCount;
+            if (cross)
+            {
+                // a "+": the four bolts are at right angles
+                float a0 = Mathf.Atan2(crossed[0].y, crossed[0].x) * Mathf.Rad2Deg;
+                var seen = new HashSet<int>();
+                foreach (var c in crossed) seen.Add(Mathf.RoundToInt(Mathf.Repeat(Mathf.Atan2(c.y, c.x) * Mathf.Rad2Deg - a0, 360f) / 90f) % 4);
+                cross = seen.Count == 4;
+            }
+            Check("... pops into a short cross of " + def.hazardCount + " bolts after ~" + (def.lobSeconds + def.hazardSeconds).ToString("0.0") + " s (" + crossed.Count + ")", !mine.Active && cross);
+            Step(RiftSnipeAttack.ArmSeconds + .2f);
+            int live = 0;
+            foreach (var s in EliteSystem.Shots.All) if (s.Active && s.IsChip) live++;
+            Check("... and the bolts are short-lived (" + live + " left)", live == 0);
+        }
+        // a mine shot down before its fuse: no cross
+        Fresh(.02f);
+        pilot.position = new Vector3(0f, -2.5f, 0f);
+        e = InPlay("sniper", new Vector2(1.5f, 0f));
+        brain = (SniperBrain)e.Brain;
+        rail = (RiftSnipeAttack)e.Attack;
+        for (int r = 0; r < 2; r++) { typeof(SniperBrain).GetMethod("BeginRun", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).Invoke(brain, new object[] { true }); }
+        Step(4f);
+        e.ForceAttack();
+        while (e.State == EliteState.Attack) EliteSystem.Step(Dt);
+        mine = rail.Mine;
+        int chips = 0;
+        if (mine != null && mine.Active)
+        {
+            mine.Struck();
+            Step(def.hazardSeconds + 1f);
+            foreach (var s in EliteSystem.Shots.All) if (s.Active && s.IsChip) chips++;
+        }
+        Check("a rift mine is shootable: one shot defuses it, no cross", mine != null && !mine.Active && chips == 0);
     }
 
-    // ---- Singularity Hauler: tug + gravity_sling ----------------------------------------
+    // ---- Singularity Hauler: wrecker + tow_sling ----------------------------------------
 
-    static void Tug()
+    static void Wrecker()
     {
         Fresh(.05f);
         pilot.position = new Vector3(0f, -2.5f, 0f);
-        var e = InPlay("tug", new Vector2(.5f, 1f));
+        var e = InPlay("wrecker", new Vector2(.5f, 1f));
         var def = e.Def;
-        var brain = (TugBrain)e.Brain;
-        Step(4f);
-        float side = brain.Side;
-        Check("tug hangs ahead of the pilot, a lane to one side (" + e.Position + ")",
-              Mathf.Abs(e.Position.x - side * def.laneOffset) < .45f && Mathf.Abs(e.Position.y - (pilot.position.y + def.followDistance)) < .5f);
+        var brain = (WreckerBrain)e.Brain;
+        float near = 99f;
+        Step(3f);   // (to its station first)
+        Step(5f, () => near = Mathf.Min(near, Vector2.Distance(e.Position, pilot.position)));
+        Check("hauler parks high in the board and never comes down to the pilot (" + e.Position + ", nearest " + near.ToString("0.0") + ")",
+              e.Position.y > pilot.position.y + 4f && near > 4f && def.armored);
+
+        // TOW: a sight line, a rock into the claws, a lane, the fling
+        var tow = (TowSlingAttack)e.Attack;
         e.ForceAttack();
-        var sling = (GravitySlingAttack)e.Attack;
-        bool glow = false;
-        float tellSpeed = 0f;
-        while (e.Telling) { EliteSystem.Step(Dt); if (!e.Telling) break; glow |= e.ChargeGlowOn; tellSpeed = Mathf.Max(tellSpeed, e.Velocity.magnitude); }
-        Check("gravity_sling tell: holds while the core charges (" + tellSpeed.ToString("0.0") + ")", glow && tellSpeed < 1.2f);
+        Check("the first cast is the tow", !tow.SlingCast);
+        bool sight = false, still = true;
+        while (e.Telling) { EliteSystem.Step(Dt); if (!e.Telling) break; sight |= e.SightShown; still &= e.Velocity.magnitude < 1.2f; }
+        Check("tow tell: held while a sight line drops from the top of the view to the claws", sight && still);
+        Step(Dt * 3f);
+        var rock = tow.Rock;
+        Check("the asteroid drifts in from above the view (a real Space rock: tag Astr, hazard, tied to the hauler)",
+              rock != null && rock.transform.position.y > EliteSystem.ViewTop - .5f && rock.CompareTag("Astr") && ClearTarget.IsHazard(rock) &&
+              rock.GetComponent<ClearTarget>().Mother == e && tow.Thrown != null && !tow.Thrown.Flung);
+        pilot.position = new Vector3(1.0f, -2.5f, 0f);
+        int guard = 0;
+        while (tow.TowPhase == TowSlingAttack.Phase.Tow && guard++ < 200) EliteSystem.Step(Dt);
+        Vector2 claw = tow.ClawPoint;
+        float inClaws = rock != null ? Vector2.Distance(rock.transform.position, claw) : 99f;
+        Check("... into its claws (" + inClaws.ToString("0.00") + " u off them)", rock != null && inClaws < .8f);
+        Step(Dt * 2f);
+        bool laneUp = tow.Lane.Showing && tow.TowPhase == TowSlingAttack.Phase.Lane;
+        Vector2 dirLocked = tow.FlingDir;
+        Check("... then a dotted lane is marked from the claws down the board to the pilot (dir " + dirLocked + ")", laneUp && dirLocked.y < -.3f);
+        pilot.position = new Vector3(-1.0f, -2.5f, 0f);   // moves away: the lane is locked
+        guard = 0;
+        while (tow.TowPhase == TowSlingAttack.Phase.Lane && guard++ < 200) EliteSystem.Step(Dt);
+        var thrown = tow.Thrown;
+        Check("... and the rock is flung down it at " + def.hazardSpeed + " u/s (" + (thrown != null ? thrown.Velocity.magnitude.ToString("0.0") : "-") + "), the lane unchanged",
+              thrown != null && thrown.Flung && Mathf.Abs(thrown.Velocity.magnitude - def.hazardSpeed) < .1f && Vector2.Dot(thrown.Velocity.normalized, dirLocked) > .999f);
+        float bestOff = 99f;
+        Vector2 aimPoint = new Vector2(1.0f, -2.5f);
+        for (int i = 0; i < 30 * 4 && rock != null; i++)
+        {
+            EliteSystem.Step(Dt);
+            if (rock == null) break;
+            bestOff = Mathf.Min(bestOff, Vector2.Distance(rock.transform.position, aimPoint));
+        }
+        Check("... the hurtful hazard sweeps through the spot the lane was locked on (" + bestOff.ToString("0.0") + " u)", bestOff < 1.0f);
+        Step(3f);
+        Check("... and is gone off the bottom of the board (" + ThrownRock.All.Count + " left)", ThrownRock.All.Count == 0);
+
+        // shot apart, with the same hit every weapon makes
+        Fresh(.05f);
+        pilot.position = new Vector3(0f, -2.5f, 0f);
+        e = InPlay("wrecker", new Vector2(.5f, 1f));
+        tow = (TowSlingAttack)e.Attack;
+        e.ForceAttack();
+        while (e.Telling) EliteSystem.Step(Dt);
+        guard = 0;
+        while (tow.TowPhase != TowSlingAttack.Phase.Settle && guard++ < 300) EliteSystem.Step(Dt);
+        rock = tow.Rock;
+        bool shot = rock != null && ShipAttackHits.Hit(rock, 0);
+        Step(Dt);
+        Check("the flung asteroid is shot apart like any rock (a player weapon destroys it)", shot && rock == null);
+        Step(2f);
+
+        // it bounces off the rails like a body with weight
+        Fresh(.05f);
+        pilot.position = new Vector3(2.1f, -2.5f, 0f);
+        e = InPlay("wrecker", new Vector2(-.5f, 1f));
+        tow = (TowSlingAttack)e.Attack;
+        e.ForceAttack();
+        guard = 0;
+        while (tow.Thrown == null || !tow.Thrown.Flung) { EliteSystem.Step(Dt); if (guard++ > 600) break; }
+        thrown = tow.Thrown;
+        float vx0 = thrown != null ? thrown.Velocity.x : 0f;
+        int bounces = 0;
+        float vxAfter = vx0;
+        for (int i = 0; i < 30 * 3 && thrown != null; i++)
+        {
+            EliteSystem.Step(Dt);
+            if (thrown == null) break;
+            bounces = thrown.Bounces;
+            vxAfter = thrown.Velocity.x;
+        }
+        Check("... and glances off a side rail, reversing its sideways run (" + vx0.ToString("0.0") + " -> " + vxAfter.ToString("0.0") + ", " + bounces + " bounces)", vx0 > 0f && bounces >= 1 && vxAfter < 0f);
+        Step(3f);
+
+        // SLING: the well
+        Fresh(.05f);
+        pilot.position = new Vector3(0f, -2.5f, 0f);
+        e = InPlay("wrecker", new Vector2(.5f, 1f));
+        tow = (TowSlingAttack)e.Attack;
+        e.ForceAttack();
+        while (e.State == EliteState.Attack) EliteSystem.Step(Dt);     // cast 0: the tow
+        Step(1f);
+        e.ForceAttack();
+        Check("the next cast is the gravity sling", tow.SlingCast);
+        bool ringsUp = false;
+        while (e.Telling) { EliteSystem.Step(Dt); if (!e.Telling) break; ringsUp |= tow.Marks.Shown(0) && tow.Marks.Shown(1); }
+        Check("sling tell: the well is ringed ahead of the pilot from the first frame (" + tow.Well + ")", ringsUp && tow.Well.y > pilot.position.y && Mathf.Abs(tow.Well.x) < EliteSystem.RailEdge);
         var shots = new List<EliteShot>();
         var closest = new List<float>();
-        int guard = 0;
-        bool marked = true;
-        while ((e.State == EliteState.Attack || AnySlung()) && guard++ < 200)
+        guard = 0;
+        while ((e.State == EliteState.Attack || AnySlung()) && guard++ < 300)
         {
             EliteSystem.Step(Dt);
             foreach (var s in EliteSystem.Shots.All)
             {
                 if (!s.Active || !s.Slung) continue;
                 int i = shots.IndexOf(s);
-                if (i < 0) { shots.Add(s); closest.Add(9f); i = shots.Count - 1; marked &= s.MarkShown; }
+                if (i < 0) { shots.Add(s); closest.Add(9f); i = shots.Count - 1; }
                 closest[i] = Mathf.Min(closest[i], Vector2.Distance(s.transform.position, s.SlingTarget));
             }
         }
         bool through = shots.Count > 0, l = false, r = false;
-        foreach (float c in closest) through &= c < .2f;
+        foreach (float c in closest) through &= c < .3f;
         foreach (var s in shots) { if (s.LaunchedAt.x < e.Position.x) l = true; else r = true; }
-        Check("gravity_sling: " + def.shotCount + " shots flung out of both tow claws (" + shots.Count + ")", shots.Count == def.shotCount && l && r);
-        Check("... each whipped round a curve through the ringed well (closest " + (closest.Count > 0 ? closest[0].ToString("0.00") : "-") + " u)", through && marked);
-        Check("... the well lies ahead of the pilot, inside the rails (" + sling.Well + ")",
-              sling.Well.y > pilot.position.y && Mathf.Abs(sling.Well.x) < EliteSystem.RailEdge);
-        Step(.2f);
-        Check("... then the tug swaps sides", brain.Side == -side);
-
-        // armoured: a rock in its way doesn't cost it a heart
+        Check("gravity sling: " + def.shotCount + " shots out of both claws, each curved through the well (" + shots.Count + ", closest " + string.Join("/", closest.ConvertAll(c => c.ToString("0.00"))) + ")",
+              shots.Count == def.shotCount && l && r && through);
+        // the pull: gentle, bounded, toward the well, never into the ring
         Fresh(.05f);
-        e = InPlay("tug", new Vector2(0f, 1f));
-        var rock = EnemyFactory.Create(EnemyRoster.One(0, EnemyRole.Rock), e.Position, Quaternion.identity);
-        ClearTarget.Ensure(rock);
-        EliteSystem.Step(Dt);
-        Check("the hauler is armoured: smashes a rock without losing a heart", rock == null && e.Hearts == def.hearts);
+        pilot.position = new Vector3(0f, -2.5f, 0f);
+        Vector2 wellAt = new Vector2(0f, -.8f);
+        EliteWell.Open(wellAt, TowSlingAttack.WellRing, TowSlingAttack.WellSeconds);
+        float peak = 0f, closestEff = 99f;
+        bool bounded = true, toward = true;
+        for (float dist = 0f; dist <= EliteWell.Range + 1f; dist += .1f) bounded &= EliteWell.Strength(dist, TowSlingAttack.WellRing) >= 0f && EliteWell.Strength(dist, TowSlingAttack.WellRing) <= 1f;
+        bool nothingInside = EliteWell.Strength(TowSlingAttack.WellRing + EliteWell.Margin * .9f, TowSlingAttack.WellRing) == 0f && EliteWell.Strength(EliteWell.Range + .1f, TowSlingAttack.WellRing) == 0f;
+        pilot.position = new Vector3(wellAt.x + 1.5f, wellAt.y, 0f);
+        for (int i = 0; i < 30 * 5; i++)
+        {
+            EliteSystem.Step(Dt);
+            peak = Mathf.Max(peak, EliteWell.Offset.magnitude);
+            Vector2 effective = (Vector2)pilot.position + EliteWell.Offset;
+            closestEff = Mathf.Min(closestEff, Vector2.Distance(effective, wellAt));
+            if (EliteWell.Offset.sqrMagnitude > 1e-6f) toward &= Vector2.Dot(EliteWell.Offset, wellAt - (Vector2)pilot.position) > 0f;
+        }
+        Check("the well tugs the ship gently: up to " + peak.ToString("0.00") + " u off the finger (cap " + EliteWell.Cap + "), toward the well, never into its ring (closest " + closestEff.ToString("0.00") + " u)",
+              peak > .05f && peak <= EliteWell.Cap + 1e-4f && toward && closestEff > TowSlingAttack.WellRing + .25f && bounded && nothingInside);
+        Check("... and it lets go when the well closes (" + EliteWell.Offset.magnitude.ToString("0.000") + " u left)", !EliteWell.Up && EliteWell.Offset.magnitude < .01f);
     }
 
     static bool AnySlung()
     {
         foreach (var s in EliteSystem.Shots.All) if (s.Slung) return true;
         return false;
+    }
+
+    // ---- the pause attack: 2 damage -------------------------------------------------------
+
+    static void PauseDamage()
+    {
+        Check("the pause attack's damage is 2", EliteShip.PauseDamage == 2);
+        foreach (var x in Expected)
+        {
+            Fresh(.05f);
+            pilot.position = new Vector3(0f, -3f, 0f);
+            var def = EliteCatalog.Find(x.key);
+            var e = EliteShip.CreateInPlay(def, new Vector2(0f, 1.5f));
+            e.AttackCooldown = 99f;
+            int hearts = def.hearts;
+            Step(.3f);
+            EliteShip.TeleportStrike(e.gameObject, e.Position);
+            Check(def.displayName + " (" + hearts + " hearts): a pause jump takes 2 (" + e.Hearts + " left)", Alive(e) && e.Hearts == hearts - 2);
+            if (def.hurtHide) Check("... and the hurt one breaks off and hides", e.Hidden);
+            // a second strike in the grace window still connects
+            if (!e.Hidden)
+            {
+                EliteShip.TeleportStrike(e.gameObject, e.Position);
+                Check("... the next pause jump (inside the grace window) takes 2 more (" + e.Hearts + " left)", e.Hearts == Mathf.Max(0, hearts - 4));
+            }
+        }
     }
 
     // ---- engine flames: baked into the strips, leaving each bell's mouth, in front of the hull ----------------
@@ -663,12 +1042,14 @@ public static class SpaceEliteTest
     {
         Fresh(.1f);
         pilot.position = new Vector3(0f, -2.5f, 0f);
-        var a = InPlay("bastion", new Vector2(0f, 2.5f));
-        var b = InPlay("reaver", new Vector2(-1.5f, 0f));
-        var c = InPlay("lancer", new Vector2(1.5f, 0f));
-        var d = InPlay("tug", new Vector2(-1f, 1.2f));
+        var a = InPlay("fortress", new Vector2(0f, 2.5f));
+        var b = InPlay("swooper", new Vector2(-1.5f, 0f));
+        var c = InPlay("sniper", new Vector2(1.5f, 0f));
+        var d = InPlay("wrecker", new Vector2(-1f, 1.2f));
         a.AttackCooldown = b.AttackCooldown = c.AttackCooldown = d.AttackCooldown = 0f;
-        Step(5f, () => pilot.position = new Vector3(Mathf.Sin(Time.frameCount * .01f), -2.5f, 0f));   // warm up: every attack once
+        Step(25f, () => pilot.position = new Vector3(Mathf.Sin(Time.frameCount * .01f), -2.5f, 0f));   // warm up: every attack
+        d.AttackCooldown = 99f;   // (the hauler's tow builds a real rock: that allocates, as every spawn does)
+        Step(4f);
         long before = System.GC.GetAllocatedBytesForCurrentThread();
         for (int i = 0; i < 90; i++)
         {

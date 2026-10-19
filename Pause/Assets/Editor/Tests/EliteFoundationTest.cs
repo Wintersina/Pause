@@ -290,7 +290,7 @@ public static class EliteFoundationTest
         Step(4f);
         Check("in play: still thin", e.InPlay && Mathf.Approximately(EliteFight.SpawnScale, EliteFight.ThinScale));
         e.EngageLeft = 0f;
-        Step(1.5f);
+        for (int w = 0; w < 30 * 8 && Alive(e) && e.State != EliteState.Retreat; w++) Step(Dt);   // (it finishes the attack it is in first)
         Check("retreating: still thin", !Alive(e) || (e.State == EliteState.Retreat && EliteFight.SpawnScale < .4f));
         Step(20f);
         Check("gone: ramping back or back (" + EliteFight.SpawnScale.ToString("0.00") + ")", !Alive(e) && EliteFight.SpawnScale > EliteFight.ThinScale);
@@ -394,7 +394,7 @@ public static class EliteFoundationTest
             Check(name + ": the escape timer paused while it was hidden (" + eng0.ToString("0.00") + ")", !escapeTimerRan && Mathf.Approximately(eng0, engage));
             Check(name + ": nothing was fired while away ", !firedAway);
             Check(name + ": it came back, hittable, on a different side (" + exitSide + " -> " + e.HideSide + ")",
-                  e.InPlay && e.State == EliteState.Follow && e.Collider.enabled && e.tag == "Enimey" && e.HideSide != exitSide);
+                  e.InPlay && e.State == EliteState.Follow && (e.Offstage || (e.Collider.enabled && e.tag == "Enimey")) && e.HideSide != exitSide);
             float after = e.EngageLeft;
             Step(1f);
             Check(name + ": ... " + after.ToString("0.0") + " -> " + e.EngageLeft.ToString("0.0"), e.EngageLeft < after - .5f);
@@ -423,14 +423,17 @@ public static class EliteFoundationTest
 
     // ---- 2b. the pause attack -----------------------------------------------------------
 
-    // Where it lives: EliteShip.TeleportStrike (from TeleportFx.Strike) -> TakeHit(Teleport, at, elite.Hearts):
-    // it takes EVERY heart the elite has left, so with 3 or 5 hearts it is still a guaranteed kill.
+    // Where it lives: EliteShip.TeleportStrike (from TeleportFx.Strike) -> TakeHit(Teleport, at, PauseDamage): a pause jump deals 2
+    // hearts whatever the elite has (a 5-heart one is left on 3).
     static void PauseAttackRule()
     {
         Fresh(.05f);
         var e = InPlay(Space("eventide_bastion"), new Vector2(0f, 1f));
         Check("the pause jump on a 5-heart elite", e.Hearts == 5);
         EliteShip.TeleportStrike(e.gameObject, e.Position);
-        Check("... takes every heart it has (as designed: a guaranteed kill, whatever the count)", !Alive(e));
+        Check("... takes 2 hearts (" + e.Hearts + " left)", Alive(e) && e.Hearts == 3 && EliteShip.PauseDamage == 2);
+        EliteShip.TeleportStrike(e.gameObject, e.Position);
+        EliteShip.TeleportStrike(e.gameObject, e.Position);
+        Check("... and three of them kill it", !Alive(e));
     }
 }
