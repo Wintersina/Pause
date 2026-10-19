@@ -249,6 +249,7 @@ public static class AllTests
         ("FrostEliteTest", FrostEliteTest.Execute),
         ("VerdantEliteTest", VerdantEliteTest.Execute),
         ("TideEliteTest", TideEliteTest.Execute),
+        ("TideDockTest", TideDockTest.Execute),
         ("StormEliteTest", StormEliteTest.Execute),
         ("DesertEliteTest", DesertEliteTest.Execute),
         ("DesertFramingTest", DesertFramingTest.Execute),

@@ -17,7 +17,15 @@
     "tell": -1,
     "action": -1,
     "hit": -1,
-    "damaged": 6
+    "damaged": 6,
+    "damagedLoop": [
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ]
   },
   "cellWorldSize": 1.808,
   "noseDeg": 90,
@@ -41,7 +49,7 @@
   "role": "wave rider",
   "brain": "breaker",
   "attack": "foam_wake",
-  "launchFrom": "trenchhatch",
+  "launchFrom": "carrierpad,trenchhatch",
   "lore": "A needle-nosed rider that sleeps in the trench hatches. It never comes for you: it carves a wave line across the top of the board, in from one side and out the other, and rings the water behind it before it lobs banks of foam onto the rings. Keep off the rings; a shot pops a bank. Hurt, it dives away, waits, and comes back riding the other way.",
   "hullRadius": 0.343,
   "turnsToFace": true,

@@ -112,9 +112,10 @@ public static class TideTuning
         if (piece == "pipebridge_00") return PipeSpan0;
         if (piece == "pipebridge_01") return PipeSpan1;
         if (piece.StartsWith("tanker") || piece.StartsWith("trawlerbarge") || piece.StartsWith("mooring") ||
-            piece.StartsWith("whirlpool") || piece.StartsWith("oil_slick") || piece.StartsWith("plankton")) return Floating;
+            piece.StartsWith("whirlpool") || piece.StartsWith("oil_slick") || piece.StartsWith("plankton") ||
+            piece.StartsWith("carrierpad") || piece.StartsWith("subpen")) return Floating;
         if (piece.StartsWith("reef_head") || piece.StartsWith("wreck_hull") || piece.StartsWith("bubbling_vent") ||
-            piece.StartsWith("salvage_crawler")) return Shoal;
+            piece.StartsWith("salvage_crawler") || piece.StartsWith("wreckhull")) return Shoal;
         if (piece.StartsWith("oilrig") || piece.StartsWith("refineryrig") || piece.StartsWith("pump_platform") ||
             piece.StartsWith("crane_gantry") || piece.StartsWith("lighthouse") || piece.StartsWith("wind_turbine") ||
             piece.StartsWith("bridge_section") || piece.StartsWith("sunken_city") || piece.StartsWith("flare_stack") ||
@@ -146,10 +147,51 @@ public static class TideTuning
     // ---- launch sites ----
     public static float SiteMin = 1.5f, SiteMax = 1.7f, SiteFirst = 3f, SiteGapMin = 5f, SiteGapMax = 8.5f;
     public static float SiteCloseDelay = 1.4f, SiteMinSize = 1.2f;
-    public static readonly string[] SiteClosed = { "trench_hatch_closed", "rig_bay_closed", "reef_dock_closed", "vent_stack_closed", "wreck_bay_closed" };
-    public static readonly string[] SiteOpen = { "trench_hatch_open", "rig_bay_open", "reef_dock_open", "vent_stack_open", "wreck_bay_open" };
-    public static readonly LandingKind[] SiteKinds = { LandingKind.TideTrenchHatch, LandingKind.TideRigDeck, LandingKind.TideReefDock, LandingKind.TideVentStack, LandingKind.TideWreckBay };
-    public static readonly int[] SiteWeights = { 2, 3, 2, 2, 2 };
+    // Entries 0-4 are the old two-drawing sites (sites atlas); 5-8 the launch-strip ones (docks atlas: <name>_00..05, DocksAtlas), for which
+    // SiteClosed / SiteOpen name the idle and the open cell (Rule picks the ground by the name).
+    public static readonly string[] SiteNames = { "trench_hatch", "rig_bay", "reef_dock", "vent_stack", "wreck_bay", "carrierpad", "lighthousesilo", "subpen", "wreckhull" };
+    public static readonly string[] SiteClosed = { "trench_hatch_closed", "rig_bay_closed", "reef_dock_closed", "vent_stack_closed", "wreck_bay_closed", "carrierpad_00", "lighthousesilo_00", "subpen_00", "wreckhull_00" };
+    public static readonly string[] SiteOpen = { "trench_hatch_open", "rig_bay_open", "reef_dock_open", "vent_stack_open", "wreck_bay_open", "carrierpad_04", "lighthousesilo_04", "subpen_04", "wreckhull_04" };
+    public static readonly LandingKind[] SiteKinds = { LandingKind.TideTrenchHatch, LandingKind.TideRigDeck, LandingKind.TideReefDock, LandingKind.TideVentStack, LandingKind.TideWreckBay,
+                                                       LandingKind.TideCarrierPad, LandingKind.TideLighthouseSilo, LandingKind.TideSubPen, LandingKind.TideWreckHull };
+    public static readonly int[] SiteWeights = { 2, 3, 2, 2, 2, 2, 2, 2, 2 };
+    // where the elite comes out of the launch-strip sites: fractions of the drawing's bounds from its centre (y up), the pad pixels of Codex's
+    // masters (new_docks_lights~/manifest.md, 768 x 768 cells: (384,376), (384,369), (384,430), (384,430))
+    public static readonly Vector2[] SitePads =
+    {
+        new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(0f, 0f),
+        new Vector2(0f, .0104f), new Vector2(0f, .0195f), new Vector2(0f, -.0599f), new Vector2(0f, -.0599f),
+    };
+
+    // ---- the launch strips (the docks atlas): closed, lamp, opening, opening, open, closing ----
+    // Codex's launch_v2 strips: 0 closed, 1 closed + a small amber lamp (never shown: the ship's own launch light is the tell), 2-3 the doors
+    // opening, 4 fully open, 5 closing half shut. All six are in the atlas (build_launch_atlas.py), as <name>_00..05.
+    public const string DocksAtlas = "docks";
+    public const int LaunchCells = 6, LaunchIdle = 0, LaunchBlink = 1, LaunchOpening = 2, LaunchOpen = 3, LaunchHold = 4, LaunchClosing = 5;
+    public const int FirstLaunchSite = 5;                      // SiteNames[FirstLaunchSite..] have a strip
+    public static bool HasLaunchStrip(int kind) { return kind >= FirstLaunchSite && kind < SiteNames.Length; }
+    // drawn width of a strip site, as a share of the usual SiteMin..SiteMax
+    public static readonly float[] SiteWidthK = { 1f, 1f, 1f, 1f, 1f, 1f, 1f, 1f, 1f };
+    // The tell: the site stays closed through its first share (the ship's own small blinking launch light, EliteShip.LaunchTell, is the
+    // tell), then the doors open (2); the lift-off has them still opening (3 for its first share), then fully open (4, held until the elite
+    // is clear); then they close for LaunchCloseSeconds (5) and the site is closed again. No flash, flare, halo or ring.
+    public const float LaunchBlinkShare = .4f, LaunchOpenShare = .25f, LaunchCloseSeconds = .6f;
+
+    // The smoke overlay of an opening strip site (the existing ambient loops, no new art): a pooled renderer per site slot plays one of
+    // MistLoops at the pad point while the strip is in its open cells (2-4), fading in over the opening and out through the closing.
+    public static readonly string[] MistLoops = { "steam_vent", "smoke_b" };
+    public const float MistAlpha = .6f, MistFadeIn = .45f, MistWidthShare = .9f, MistFps = 7f;
+
+    // The cell a strip site shows at EliteShip.LaunchPhase `ph` in (0, 2): (0, 1] the tell, [1, 2) the lift-off.
+    public static int LaunchCellAt(float ph)
+    {
+        if (ph < 1f)
+        {
+            float t = ph * EliteShip.EngineTellSeconds;
+            return t >= LaunchBlinkShare * EliteShip.EngineTellSeconds ? LaunchOpening : LaunchIdle;
+        }
+        return ph - 1f < LaunchOpenShare ? LaunchOpen : LaunchHold;
+    }
     public static Vector2 LampsAt = new Vector2(128f, 214f);    // the lamp row's centre on the site's cell
     public static float LampsScale = .5f;
     public const float EmergeScalePerUnit = .22f, EmergeScaleMin = .26f, EmergeScaleMax = .4f;
@@ -193,7 +235,12 @@ public class TideDirector : PlanetDirector
 {
     BackdropPool ground, pipes, fires, sites, palls, mist, wisps, ceiling, gusts, rain, crests;
     readonly SpriteRenderer[] lamps = new SpriteRenderer[3];
-    BackdropAtlas landmarkArt, pipeArt, fireArt, siteArt, weather;
+    readonly SpriteRenderer[] mists = new SpriteRenderer[3];
+    readonly float[] mistA = new float[3];
+    Sprite[][] mistFrames;
+    float mistClock;
+    BackdropAtlas landmarkArt, pipeArt, fireArt, siteArt, dockArt, weather;
+    Sprite[][] siteLaunch;                             // per site kind: its 6 launch cells (null: an old two-drawing site, or the atlas is missing)
     AmbientEmitters ambient;
     GroundPlanner planner;
     readonly Sprite[][] crestArt = new Sprite[2][];
@@ -225,6 +272,8 @@ public class TideDirector : PlanetDirector
     public BackdropPool Pipes => pipes;
     public BackdropPool Fires => fires;
     public BackdropPool Sites => sites;
+    // The six launch cells of a launch-strip site kind (TideTuning.SiteNames index), null for an old two-drawing site (tests, previews).
+    public Sprite[] LaunchStrip(int kind) { return siteLaunch != null && kind >= 0 && kind < siteLaunch.Length ? siteLaunch[kind] : null; }
     public BackdropPool Ceiling => ceiling;
     public BackdropPool GustSheetPool => gusts;
     public BackdropPool Palls => palls;
@@ -265,8 +314,19 @@ public class TideDirector : PlanetDirector
         planner = new GroundPlanner(set, "mid", GroundMask.Load("Tide", set.Variant));
         openSea = set.Variant >= 0 && set.Variant < TideTuning.OpenSea.Length && TideTuning.OpenSea[set.Variant];
 
+        dockArt = set.Atlas(TideTuning.DocksAtlas);
         siteClosed = Sprites(siteArt, TideTuning.SiteClosed);
         siteOpen = Sprites(siteArt, TideTuning.SiteOpen);
+        // the launch-strip sites take their idle / open cells (and all six) from the docks atlas; without it they are simply never spawned
+        siteLaunch = new Sprite[TideTuning.SiteNames.Length][];
+        for (int k = TideTuning.FirstLaunchSite; k < siteLaunch.Length; k++)
+        {
+            var f = dockArt.Frames(TideTuning.SiteNames[k]);
+            if (f.Length < TideTuning.LaunchCells) { siteClosed[k] = siteOpen[k] = null; continue; }
+            siteLaunch[k] = f;
+            siteClosed[k] = f[TideTuning.LaunchIdle];
+            siteOpen[k] = f[TideTuning.LaunchOpen];
+        }
         lampsOff = siteArt.Get("lights_off");
         lampsOn = siteArt.Get("lights_on");
         banks = weather.Frames("cloud_bank");
@@ -304,7 +364,16 @@ public class TideDirector : PlanetDirector
             go.transform.localPosition = new Vector3((TideTuning.LampsAt.x - 128f) / ppu,
                                                      (128f - TideTuning.LampsAt.y) / ppu - (128f - rowY) / ppu * k, 0f);
             go.transform.localScale = new Vector3(k, k, 1f);
+            // the launch smoke: above the site, below the elite emerging from it (LandingSites order = site + 2)
+            var mg = new GameObject("mist");
+            mg.transform.SetParent(sites.items[i].body, false);
+            mists[i] = mg.AddComponent<SpriteRenderer>();
+            mists[i].sortingOrder = sites.items[i].sr.sortingOrder + 1;
+            mists[i].enabled = false;
+            if (ambient.PlumeMaterial != null) mists[i].sharedMaterial = ambient.PlumeMaterial;
         }
+        mistFrames = new Sprite[TideTuning.MistLoops.Length][];
+        for (int m = 0; m < mistFrames.Length; m++) mistFrames[m] = ambient.Frames(TideTuning.MistLoops[m]);
         crests = Pool("ground", TideTuning.CrestCount, false, -8);
         for (int i = 0; i < 2; i++) crestArt[i] = set.Atlas("surf").Frames(TideAmbientCatalog.Crests[i]);
         palls = Pool("palls", 4);
@@ -838,7 +907,7 @@ public class TideDirector : PlanetDirector
         }
         var closed = siteClosed[kind];
         if (closed == null || siteOpen[kind] == null) return false;
-        float size = Rand(TideTuning.SiteMin, TideTuning.SiteMax);
+        float size = Rand(TideTuning.SiteMin, TideTuning.SiteMax) * TideTuning.SiteWidthK[kind];
         double lo = float.IsNaN(y) ? planner.Travel + HalfH + .95f : planner.GroundY(y) - .3f;
         double hi = lo + (float.IsNaN(y) ? .9f : .6f);
         float x; double gy;
@@ -847,13 +916,13 @@ public class TideDirector : PlanetDirector
             // the elite must still get its site: relax the ground rule, keep the room
             if (!planner.Find(new PieceRule(GroundClass.Any, 0f), size, XMin(size), XMax(size), lo, hi, rng, out x, out gy)) return false;
         }
-        var p = Put(sites, siteArt, TideTuning.SiteClosed[kind], size, x, gy, false);
+        var p = Put(sites, siteLaunch[kind] != null ? dockArt : siteArt, TideTuning.SiteClosed[kind], size, x, gy, false);   // (doors face the viewer: never mirrored)
         if (p == null) return false;
         p.kind = kind;
         p.tier = 0;
         p.life = 0f;
         int i = sites.items.IndexOf(p);
-        if (i >= 0 && lamps[i] != null) { lamps[i].sprite = lampsOff; lamps[i].enabled = lampsOff != null; }
+        if (i >= 0 && lamps[i] != null) { lamps[i].sprite = lampsOff; lamps[i].enabled = lampsOff != null && siteLaunch[kind] == null; }   // (a strip site has no lamp row)
         SitesSpawned++;
         return true;
     }
@@ -871,12 +940,78 @@ public class TideDirector : PlanetDirector
         return 0;
     }
 
+    // The launch phase of the elite (if any) parked in / leaving site piece `p` (EliteShip.LaunchPhase), -1 with none.
+    static float PhaseOf(BackdropPiece p)
+    {
+        var live = EliteShip.Live;
+        for (int i = 0; i < live.Count; i++)
+        {
+            var e = live[i];
+            if (e != null && e.State != EliteState.Dead && e.Site.anchor == p.root) return e.LaunchPhase;
+        }
+        return -1f;
+    }
+
+    // The cell of a strip site: the launch tell and lift-off by the elite's phase, then closing behind it for the last
+    // LaunchCloseSeconds of the close delay (p.tier 3, p.life counting down), held open before that.
+    int LaunchCell(BackdropPiece p)
+    {
+        if (p.tier == 1 || p.tier == 2)
+        {
+            float ph = PhaseOf(p);
+            if (ph > 0f && ph < 2f) return TideTuning.LaunchCellAt(ph);
+            return p.tier == 1 ? TideTuning.LaunchOpening : TideTuning.LaunchHold;
+        }
+        if (p.tier == 3) return p.life > TideTuning.LaunchCloseSeconds ? TideTuning.LaunchHold : TideTuning.LaunchClosing;
+        return TideTuning.LaunchIdle;
+    }
+
+    // Is the launch smoke of site slot `i` showing (tests)?
+    public bool MistShowing(int i) { return i >= 0 && i < mists.Length && mists[i] != null && mists[i].enabled; }
+    public SpriteRenderer MistRenderer(int i) { return i >= 0 && i < mists.Length ? mists[i] : null; }
+    public float MistFade(int i) { return i >= 0 && i < mistA.Length ? mistA[i] : 0f; }
+
+    // The launch smoke of strip site `p` (slot i) in strip cell `cell`: a loop's plume rising from the pad point, as wide as the bay.
+    void StepMist(int i, BackdropPiece p, int cell, float dt)
+    {
+        var sr = mists[i];
+        if (sr == null) return;
+        var frames = mistFrames != null ? mistFrames[p.kind % mistFrames.Length] : null;
+        bool open = cell >= TideTuning.LaunchOpening && cell < TideTuning.LaunchClosing;
+        float target = open ? 1f : 0f;
+        mistA[i] = Mathf.MoveTowards(mistA[i], target, dt / (open ? TideTuning.MistFadeIn : TideTuning.LaunchCloseSeconds));
+        if (frames == null || frames.Length == 0 || frames[0] == null || mistA[i] <= .001f) { sr.enabled = false; return; }
+        int n = frames.Length;
+        var f = frames[((int)(mistClock * TideTuning.MistFps) + i * 3) % n];
+        sr.sprite = f;
+        // the plume's foot (the loop's anchor) on the pad point; the cell as wide as the bay
+        Bounds b = p.sr.sprite.bounds;
+        Vector3 pad = p.root.TransformPoint(new Vector3(b.center.x + TideTuning.SitePads[p.kind].x * b.size.x, b.center.y + TideTuning.SitePads[p.kind].y * b.size.y, 0f));
+        float siteW = b.size.x * p.root.lossyScale.x;
+        float world = siteW * TideTuning.MistWidthShare / Mathf.Max(.01f, f.bounds.size.x);   // world scale of the loop sprite
+        int li = ambient.Table.LoopIndex(TideTuning.MistLoops[p.kind % mistFrames.Length]);
+        Vector2 anchor = li >= 0 ? ambient.Table.loops[li].anchor : new Vector2(f.rect.width * .5f, f.rect.height);
+        float perPx = f.bounds.size.x / Mathf.Max(1f, f.rect.width);
+        Vector2 off = new Vector2(f.rect.width * .5f - anchor.x, anchor.y - f.rect.height * .5f) * perPx * world;
+        var t = sr.transform;
+        float k = Mathf.Max(.0001f, t.parent != null ? t.parent.lossyScale.x : 1f);
+        t.position = new Vector3(pad.x + off.x, pad.y + off.y, t.position.z);
+        t.localScale = new Vector3(world / k, world / k, 1f);
+        sr.color = new Color(1f, 1f, 1f, TideTuning.MistAlpha * mistA[i] * set.Alpha);
+        sr.enabled = true;
+    }
+
     void StepSites(float dt)
     {
+        mistClock += dt;
         for (int i = 0; i < sites.items.Count; i++)
         {
             var p = sites.items[i];
-            if (!p.active) continue;
+            if (!p.active)
+            {
+                if (i < mists.Length && mists[i] != null) { mists[i].enabled = false; mistA[i] = 0f; }
+                continue;
+            }
             int launch = LaunchState(p);
             if (launch > 0) { p.tier = launch; p.life = TideTuning.SiteCloseDelay; }
             else if (p.tier > 0)
@@ -885,9 +1020,11 @@ public class TideDirector : PlanetDirector
                 p.tier = p.life <= 0f ? 0 : 3;
             }
             bool open = p.tier > 0;
-            var want = open ? siteOpen[p.kind] : siteClosed[p.kind];
+            var strip = siteLaunch[p.kind];
+            var want = strip != null ? strip[LaunchCell(p)] : open ? siteOpen[p.kind] : siteClosed[p.kind];
             if (p.sr.sprite != want) p.sr.sprite = want;
             var lamp = lamps[i];
+            if (strip != null) { if (lamp != null) lamp.enabled = false; StepMist(i, p, LaunchCell(p), dt); continue; }
             if (lamp != null && lampsOn != null)
             {
                 bool lit = p.tier == 2 || p.tier == 3 || (p.tier == 1 && Mathf.Repeat(p.age * 4f, 1f) < .55f);
@@ -913,7 +1050,7 @@ public class TideDirector : PlanetDirector
             into.Add(new LandingSite
             {
                 anchor = p.root,
-                local = new Vector3(b.center.x, b.center.y, 0f),     // the measured emergence point: the cell centre
+                local = new Vector3(b.center.x + TideTuning.SitePads[p.kind].x * b.size.x, b.center.y + TideTuning.SitePads[p.kind].y * b.size.y, 0f),   // the measured emergence point: the cell centre (the strip sites: their pad pixel)
                 scale = Mathf.Clamp(p.size * TideTuning.EmergeScalePerUnit, TideTuning.EmergeScaleMin, TideTuning.EmergeScaleMax),
                 order = p.sr.sortingOrder + 2,
                 id = TideTuning.SiteIdBase + i,
@@ -921,6 +1058,30 @@ public class TideDirector : PlanetDirector
                 emerge = true,
             });
         }
+    }
+
+    // The elite director wants a site of one of `launchFrom`'s kinds in view soon (LandingSites.BringHome), as Frost's and Ember's: the ground
+    // is fixed, so none is conjured -- but the site spawner is asked for one of that kind at the top of the view now (it scrolls in over the
+    // next seconds, as the ground pieces always do), unless one of them is already in view or on its way. False when none of the kinds is
+    // one of Tide's sites or there is no room for one on the ground.
+    public override bool BringHome(string launchFrom)
+    {
+        if (sites == null || !planner.Ready || string.IsNullOrEmpty(launchFrom)) return false;
+        var want = new List<int>(TideTuning.SiteKinds.Length);   // (a rare call: one per elite)
+        foreach (string part in launchFrom.Split(','))
+        {
+            var k = LandingSite.KindOf(part.Trim());
+            if (k == null) continue;
+            for (int t = 0; t < TideTuning.SiteKinds.Length; t++)
+                if (TideTuning.SiteKinds[t] == k.Value && siteClosed[t] != null && siteOpen[t] != null && !want.Contains(t)) want.Add(t);
+        }
+        if (want.Count == 0) return false;
+        for (int i = 0; i < sites.items.Count; i++)
+        {
+            var p = sites.items[i];
+            if (p.active && want.Contains(p.kind) && p.y >= -HalfH * .15f) return true;   // (in view, or still on its way in from the top)
+        }
+        return SpawnSite(float.NaN, want[rng.Next(want.Count)]);
     }
 
     // --------------------------------------------------------------- weather --

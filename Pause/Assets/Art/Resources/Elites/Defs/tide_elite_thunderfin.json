@@ -17,7 +17,15 @@
     "tell": -1,
     "action": -1,
     "hit": -1,
-    "damaged": 6
+    "damaged": 6,
+    "damagedLoop": [
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ]
   },
   "cellWorldSize": 1.92,
   "noseDeg": 90,
@@ -41,7 +49,7 @@
   "role": "storm cell",
   "brain": "tempest",
   "attack": "thunder_sweep",
-  "launchFrom": "ventstack",
+  "launchFrom": "lighthouse,ventstack",
   "lore": "A storm ray that loiters high over the board, circling slowly and never chasing. A glyph marks every column it is about to call, then the thunder strikes them one after another, sweeping the way the ray is flying. Step off a glyph, or wait in the gaps between columns. Hurt, it flees the sky and comes back.",
   "hullRadius": 0.34,
   "turnsToFace": false,

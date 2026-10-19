@@ -26,7 +26,12 @@ public static class TideEliteFramingTest
     {
         fails = 0;
         int n = 0;
-        foreach (var f in Directory.GetFiles(Dir, "tide_elite_*.png")) { Strip(f, f.EndsWith("_death.png")); n++; }
+        // (the hull strips and their death strips; the _lights / _damaged companions are additive overlays and the burn loop, TideDockTest's)
+        foreach (var f in Directory.GetFiles(Dir, "tide_elite_*.png"))
+        {
+            if (f.EndsWith("_lights.png") || f.EndsWith("_damaged.png") || f.EndsWith("_lights_damaged.png")) continue;
+            Strip(f, f.EndsWith("_death.png")); n++;
+        }
         Check("Tide elite strips measured (" + n + ")", n >= 10);
         Debug.Log("[TEF] failures: " + fails);
         return fails;

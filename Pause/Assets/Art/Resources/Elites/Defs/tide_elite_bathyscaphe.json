@@ -17,7 +17,15 @@
     "tell": -1,
     "action": -1,
     "hit": -1,
-    "damaged": 6
+    "damaged": 6,
+    "damagedLoop": [
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ]
   },
   "cellWorldSize": 2.134,
   "noseDeg": 90,
@@ -41,7 +49,7 @@
   "role": "mine layer",
   "brain": "deep",
   "attack": "mine_chain",
-  "launchFrom": "rigdeck",
+  "launchFrom": "subpen,rigdeck",
   "lore": "An armoured deep-sea platform that surfaces at the top of the board, rings a chain of sea mines running down toward your column, and lays them one after another. Each mine bursts into a small cross of bolts when its fuse runs out; a shot defuses one. When it has laid its chain it dives off the top of the screen and surfaces somewhere else. Armour: only mines, rails and its own kind crack it.",
   "hullRadius": 0.446,
   "turnsToFace": false,

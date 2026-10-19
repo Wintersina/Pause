@@ -804,6 +804,13 @@ about 1.55 u (1.6 u for the heavy brains `deep` / `trawl` / `oyster`; before: 1.
 | Thunderfin | `tempest` / `thunder_sweep` | ventstack | loiters on a small ellipse high over the board; glyphs under every column at once, then the columns strike one after another, sweeping the way it flies |
 | Pearl Warden | `oyster` / `pearl_spiral` | wreckbay | one of three stations at the top; two lanes mark an arc, a spiral of slow pearls sweeps it (gap left where the pilot stood at the lock); hops to another station after each cast, sweeping the other way |
 
+Tide art wiring (same PR): hull `_lights` strips and a six-cell damaged burn loop per elite (`<key>_damaged` + `<key>_lights_damaged` companions, cells 10..15,
+`EliteCells.damagedLoop`, the framework of Space/Ember); four launch-strip sites (floating carrier pad, lighthouse silo, submarine pen, wreck hull bay: docks
+atlas via `Art/Worlds/Tide/backdrop_v3~/src~/build_launch_atlas.py`, `TideTuning.LaunchCellAt`, `TideDirector.BringHome`) with homes: Riptide carrierpad/trenchhatch,
+Bathyscaphe subpen/rigdeck, Trawler wreckhull/reefdock, Thunderfin lighthouse/ventstack, Pearl Warden wreckhull/wreckbay. Codex's launch_v2 strips (closed, lamp,
+opening x2, open, closing, mist in the opening bay) are baked whole; while a strip is in its open cells an existing ambient loop (`steam_vent` / `smoke_b`) plays over the
+bay as an overlay (above the site, below the elite, faded in/out). Tests: `TideDockTest`.
+
 The first-generation Tide ids (`surfer` / `surf_dash`, `abyss` / `depth_charge`, `netter` / `net_cast`, `stormray` / `thunder_strike`, `pearler` /
 `pearl_curtain`) stay registered; Storm and Desert still use the base brains / attacks. Elite size floors are 1.5 x the flown hull (1.7 x heavy).
 

@@ -17,7 +17,15 @@
     "tell": -1,
     "action": -1,
     "hit": -1,
-    "damaged": 6
+    "damaged": 6,
+    "damagedLoop": [
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ]
   },
   "cellWorldSize": 1.963,
   "noseDeg": 90,
@@ -41,7 +49,7 @@
   "role": "pearl shell",
   "brain": "oyster",
   "attack": "pearl_spiral",
-  "launchFrom": "wreckbay",
+  "launchFrom": "wreckhull,wreckbay",
   "lore": "An armoured shell that keeps to one of three stations at the top of the board. Two thin lanes mark the arc it is about to sweep; then it spins out a spiral of slow pearls across it, leaving a gap where you stood when it locked. After every cast it hops to another station. Armour: only mines, rails and its own kind crack it.",
   "hullRadius": 0.411,
   "turnsToFace": false,
