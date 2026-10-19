@@ -816,6 +816,35 @@ bay as an overlay (above the site, below the elite, faded in/out). Tests: `TideD
 The first-generation Tide ids (`surfer` / `surf_dash`, `abyss` / `depth_charge`, `netter` / `net_cast`, `stormray` / `thunder_strike`, `pearler` /
 `pearl_curtain`) stay registered; Storm and Desert still use the base brains / attacks. Elite size floors are 1.5 x the flown hull (1.7 x heavy).
 
+## Storm elites
+
+`Pause/Assets/Scripts/Gameplay/Elites/StormElites.cs`, tests in `StormEliteTest`. Five mini-boss fights, none of which follows the pilot; every attack is
+telegraphed with the shared thin drawing (`EliteMarks` rings, `EliteTelegraph` lines, the strike glyphs; Storm's cue colours, no pink, no green) and fixed at
+the tell. The hazards are Storm's own (static fields, flares, lightning, tether cables, hail). Lightning is the existing `AttackStrike` column; the columns of
+one cast go live at least `StormFlight.MinStrikeGap` (0.42 s) apart, so a fight stays under the weather's own limit (below 3 pulses a second, `StormTuning`),
+and there is no full-screen flash. A cast that lays things down lobs each onto a ringed spot that rides the board (`StormSpotAttack`). Non-armoured ones have
+3 hearts (Rod Dancer and Skyhook Harrier `hurtHide`: hurt, they flee off the screen and return); Refinery Tender and Static Bastion are armoured (5). Drawn long
+side about 1.55 u (1.6 u for the heavy ones: Anvil Cloud, Refinery Tender, Static Bastion; before: 1.71-2.09 u), `cellWorldSize` and `hullRadius` scaled together.
+Homes are the Storm backdrop's existing launch sites (`StormBackdrop.SiteKinds`).
+
+| Elite | brain / attack | home | pattern |
+| --- | --- | --- | --- |
+| Anvil Cloud | `thunderhead` / `static_field` | hangar | drifts along the top in a slow pendulum, still while it casts; rings four static fields in a diamond ahead of the pilot, lobs a charged cloud onto each (pools that ride the board); a fifth at the middle once two hearts are lost |
+| Refinery Tender | `airship` / `flare_drop` | rigbay | roams: crosses the whole top, leaves by the far side and returns from the other; rings a staircase of three fused flares down its heading, each bursts into an X of bolts (a shot defuses one); a second cast per pass at <= 3 hearts |
+| Rod Dancer | `dancer` / `rod_strikes` | towerbay | weaves a figure of eight across the top; glyphs under every column for the whole tell, then the columns strike outside in, the pilot's own lane last; one more column at its last heart |
+| Skyhook Harrier | `hooker` / `cable_rake` | padring | roams: swoops across the top on a dipping arc, off one side and back from the other; holds to hook in while four cables are drawn as thin lines along its heading, then drops them one after another; a second rake at its last heart |
+| Static Bastion | `citadel` / `hail_wall` | hatch | crawls along the top; the gap of a hail wall is drawn as two thin lines, the gap sits a step to the middle side of where the pilot stood; hail falls in two staggered waves (three at <= 2 hearts), the gap sliding a hand with each wave |
+
+Storm art wiring (same PR): hull `_lights` strips and a six-cell damaged burn loop per elite (`<key>_damaged` + `<key>_lights_damaged` companions, cells 10..15,
+`EliteCells.damagedLoop`, the framework of Space/Ember/Tide); four launch-strip sites (floating airship dock, lightning-rod silo, skyhook cradle, refinery bay: docks
+atlas via `Art/Worlds/Storm/backdrop_v3~/src~/build_launch_atlas.py`, `StormTuning.LaunchCellAt`, `StormDirector.BringHome`, pad point at pixel (384,430) of each 768 cell)
+with homes: Anvil Cloud airshipdock/hangar, Refinery Tender refinerybay/rigbay, Rod Dancer rodsilo/towerbay, Skyhook Harrier skyhookcradle/padring, Static Bastion
+airshipdock/hatch (the old kinds are the fallbacks). Codex's launch_v2 strips (closed, lamp, opening x2, open, closing, vapour in the opening bay) are baked whole; the
+launch has no flash, flare, halo or lightning. While a strip is in its open cells Storm's existing weather wisps (`cloud_wisp`, played as a flipbook at 5 fps) play over the bay
+as an overlay at alpha 0.6 (above the site, below the elite, faded in over the opening and out through the closing; no new art). Tests: `StormDockTest`.
+
+Storm and Desert's base brains and attacks (`interceptor` / `lance_dash`, `siege` / `siege_cannon`, ...) stay registered; Desert still flies them.
+
 ## Frost elites
 
 Branch `feat/elite-frost` (stacked on the Space elite PRs #82-#84). Like the Space four (above) the five Frost elites

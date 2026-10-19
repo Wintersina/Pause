@@ -59,6 +59,11 @@ using UnityEngine;
 //   lenspost     (Desert) Glass Cannon: perches on one of three columns along the top, another after every cast (DesertElites.cs)
 //   flanker      (Desert) Scorpion Skiff: holds a flank, scuttles across to the other after every throw (DesertElites.cs)
 //   bulwark      (Desert) Mirror Bastion: crawls along the top, dust walls sweeping the board (DesertElites.cs)
+//   thunderhead  (Storm) Anvil Cloud: a slow pendulum along the top, still while it casts (StormElites.cs)
+//   airship      (Storm) Refinery Tender: passes straight across the top, off one side and back from the other, laying flares (StormElites.cs)
+//   dancer       (Storm) Rod Dancer: weaves a figure of eight across the top; strikes outside in (StormElites.cs)
+//   hooker       (Storm) Skyhook Harrier: dipping passes across the top, off one side and back from the other, raking cables (StormElites.cs)
+//   citadel      (Storm) Static Bastion: crawls along the top and drops walls of hail with a moving gap (StormElites.cs)
 //   icebreaker   (Frost) Rimebreaker: pass-through runs -- waits off the top, appears on a new lane, ploughs the whole board and
 //                leaves by the bottom; after a hit the runs come in pairs (FrostElites.cs)
 //   barge        (Frost) Floe Harrower: holds high on the far side of the pilot and slides along the top, never into its lane
@@ -127,6 +132,7 @@ public static class EliteBrains
                                             "bastion", "reaver", "lancer", "tug", "icebreaker", "barge", "hopper", "carrier", "patrol",
                                             "logger", "thorn", "drifter", "diver", "raptor", "canopy", "floater", "anchor", "lumber",
                                             "breaker", "deep", "trawl", "tempest", "oyster",
+                                            "thunderhead", "airship", "dancer", "hooker", "citadel",
                                             "surfer", "abyss", "netter", "stormray", "pearler",
                                             "sniper", "swooper", "fortress", "wrecker",
                                             "burrower", "caravan", "glint", "lenspost", "flanker", "bulwark",
@@ -171,6 +177,11 @@ public static class EliteBrains
             case "lenspost": return new LenspostBrain();
             case "flanker": return new FlankerBrain();
             case "bulwark": return new BulwarkBrain();
+            case "thunderhead": return new ThunderheadBrain();
+            case "airship": return new AirshipBrain();
+            case "dancer": return new DancerBrain();
+            case "hooker": return new HookerBrain();
+            case "citadel": return new CitadelBrain();
             case "surfer": return new SurferBrain();
             case "abyss": return new AbyssBrain();
             case "netter": return new NetterBrain();

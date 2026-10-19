@@ -219,3 +219,4 @@ TideDockTest 0.7
 EmberEliteTest 0.7
 EmberDockTest 0.7
 DesertDockTest 0.7
+StormDockTest 0.7
