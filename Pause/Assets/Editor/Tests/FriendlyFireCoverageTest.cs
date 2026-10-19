@@ -345,6 +345,23 @@ public static class FriendlyFireCoverageTest
         for (int i = 0; i < 90; i++) { EliteSystem.Shots.Step(Dt); HazardRuntime.Ensure().Step(Dt); EliteSystem.Step(Dt); }
         Check("an elite's shot costs another elite, which came into its path later, one heart (" + hearts + " -> " + other.Hearts + ")", other.Hearts == hearts - 1 || other.State == EliteState.Dead);
         Check("... and never its own elite", shooterElite != null && shooterElite.Hearts == shooterElite.Def.hearts);
+
+        // a fresh formation cannot shoot itself apart: a roster shot spares an enemy in its first second on the board
+        FreshBoard();
+        var lead = Enemy(EnemyRole.Fighter, new Vector2(0f, 4f), true);
+        var fresh = Enemy(EnemyRole.Fighter, new Vector2(0f, 1f), false);
+        var fs = EliteSystem.Shots.Fire(null, Def("gunship"), EliteShots.Kind.Bolt, new Vector2(0f, 3f), Vector2.down * 4f);
+        fs.AsRosterShot(lead, 0f);
+        var ft = fresh.GetComponent<ClearTarget>();
+        ft.PlayfieldSeconds = FriendlyFire.HostileFireSpawnInProtectionSeconds + .2f;   // past the short grace, not the formation grace
+        for (int i = 0; i < 40; i++) { EliteSystem.Shots.Step(Dt); }
+        Check("a roster shot spares an enemy that has been on the board under a second (formation grace)", !Gone(fresh) && !Gone(lead));
+        FreshBoard();
+        var lead2 = Enemy(EnemyRole.Fighter, new Vector2(0f, 4f), true);
+        var fresh2 = Enemy(EnemyRole.Fighter, new Vector2(0f, 1f), false);
+        fresh2.GetComponent<ClearTarget>().PlayfieldSeconds = FriendlyFire.HostileFireSpawnInProtectionSeconds + .2f;
+        Check("... while a non-roster hit (a boss shot's rule) still only needs the short grace",
+              !FriendlyFire.SpawnProtected(fresh2.GetComponent<ClearTarget>()) && FriendlyFire.SpawnProtected(fresh2.GetComponent<ClearTarget>(), FriendlyFire.RosterShotGraceSeconds));
     }
 
     // ---- 5. mine blasts ----------------------------------------------------------------------

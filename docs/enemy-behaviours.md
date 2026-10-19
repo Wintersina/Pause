@@ -89,8 +89,9 @@ the brain is stepped with (never `Time.time`), so it cannot run or fire while th
 **Shots reuse the elite pool** (`EliteSystem.Shots`): pooled, glow-wrapped, registered with
 `HostileShots`, absorbed by a shield, erased by a blink, shot down by player weapons, cleared by the death
 domino, frozen by a pause, all through the existing paths. Differences for a roster enemy's shot (a small
-addition to `EliteShot`): it never hurts other hazards (no friendly fire: a line of aliens must not shoot
-each other), and it can ride the board. Shot speed is *relative to the board*, so a shot always leaves
+addition to `EliteShot`): it hurts other hazards like any hostile shot (FRIENDLY FIRE: a line of aliens can shoot each other,
+unpaid, through `FriendlyFire.HostileHit`; never its own shooter, and a fresh formation is spared for the first
+`RosterShotGraceSeconds` = 1 s each enemy has been on the board), and it can ride the board. Shot speed is *relative to the board*, so a shot always leaves
 its shooter the same way whatever the scroll speed.
 
 Per-world shot colours (all pass `HostileGlow.IsPlayerRed == false`): Space magenta, Frost cyan, Verdant
@@ -584,10 +585,11 @@ tests; none of it has been played.
 | A side rail | `EliteShip.Collide` | yes |
 | Another elite's body | `CrashInto` | yes, both |
 | An elite's shot, its own after 0.35 s, a landed resin pool | `EliteShot.Step` | yes |
+| Themed attack hazards (blast, strike, jet, wave, lash, log), rail-mine lasers | `AttackHazard`, `RailMineLaser` -> `FriendlyFire.HostileHit` | yes, a heart |
 | A rail mine's blast | `FriendlyFire.Detonate` | yes |
-| Boss shots and lasers | `FriendlyFire.Hit` | yes, but no elite is in play during a boss |
+| Boss shots and lasers | `FriendlyFire.HostileHit` / `HostileBeam` | yes, but no elite is in play during a boss. Boss rule: the boss is never hurt by its own attacks and takes only a sliver (`BossFriendlyFireWeight`, once a second) from an ordinary enemy's shot or laser; its shots and lasers kill minions |
 | The death domino | `DeathCrashDomino` | yes (a player death; unchanged) |
-| **Roster enemies' shots** (the new behaviour system) | `EliteShot.Step` skips `rosterShot` | **no** |
+| Roster enemies' shots | `EliteShot.Step` -> `FriendlyFire.HostileHit` (never the shooter) | yes, a heart |
 | Parked or lifting off | no collider, `TakeHit` refuses | no |
 
 So the new roster shots are not the problem: the bodies are. Before this branch an elite

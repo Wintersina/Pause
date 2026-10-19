@@ -53,6 +53,7 @@ public static class FriendlyFire
     public static readonly bool HostileFireAwardsPlayerCredit = false; // true: a hostile-fire kill pays like a weapon kill
     public const int HostileFireMaxKillsPerFrame = 2;
     public const float HostileFireSpawnInProtectionSeconds = .1f;     // just long enough for a spawn-in not to pop; short so a laser / flame already burning still catches an enemy that flies in
+    public const float RosterShotGraceSeconds = 1f;                    // a roster enemy's shot spares an enemy for its first second on the board, so a fresh formation cannot shoot itself apart; lasers, flames, blasts and elite fire keep the short grace
     public const float BossFriendlyFireWeight = .05f;                   // a boss hit by an ORDINARY enemy's fire loses this share of one ship hit (never by its own attacks)
     public const float BossFriendlyFireGap = 1f;                        // seconds between two such hits
     public const float HostileFireReach = .8f;                         // x a target's radius (the shots' hit tests)
@@ -150,13 +151,13 @@ public static class FriendlyFire
     // Past its spawn-in protection (tests, fixtures: a target that has been on the board a while).
     public static void Settle(GameObject go)
     {
-        if (go != null && go.TryGetComponent(out ClearTarget t)) t.PlayfieldSeconds = HostileFireSpawnInProtectionSeconds + 1f;
+        if (go != null && go.TryGetComponent(out ClearTarget t)) t.PlayfieldSeconds = Mathf.Max(HostileFireSpawnInProtectionSeconds, RosterShotGraceSeconds) + 1f;
     }
 
-    public static bool SpawnProtected(ClearTarget t) => t.PlayfieldSeconds < HostileFireSpawnInProtectionSeconds;
+    public static bool SpawnProtected(ClearTarget t, float minSeconds = 0f) => t.PlayfieldSeconds < Mathf.Max(HostileFireSpawnInProtectionSeconds, minSeconds);
 
     // May a hostile shot fired by `shooter` (null: the boss, a test) hit `t`?
-    public static bool HostileFireCanHit(ClearTarget t, GameObject shooter)
+    public static bool HostileFireCanHit(ClearTarget t, GameObject shooter, float graceSeconds = 0f)
     {
         if (!HostileFireAllowed) return false;
         if (IsBossBody(t)) return BossCanBeHurtBy(shooter);
@@ -170,7 +171,7 @@ public static class FriendlyFire
         var elite = t.Elite;
         if (elite != null || go.TryGetComponent(out elite))
             return HostileFireElitesLoseOneHeart && elite.InPlay;
-        return !SpawnProtected(t);
+        return !SpawnProtected(t, graceSeconds);
     }
 
     // The kill cap's "frame": Time.frameCount in play; in edit mode (tests
