@@ -14,9 +14,9 @@ green heal atom (`Pause/Assets/Art/Resources/Pickups/heal_atom_green.png`).
 > **Superseded (v1).** The flat-cartoon cel "Akira" guide (bold flat fills, thick ink, no
 > gradients) still governs **only the UI** (HUD, death panel, dock, quick actions, codex, menus)
 > **and the player ships**. The ships stay unchanged for now. Everything else in gameplay
-> converts to v2. The v1 text is in git history (`git log -- docs/art-style.md`), and its
-> samples remain in `docs/art-samples/` (top level). The v2 samples are in
-> `docs/art-samples/neon/`.
+> converts to v2. The v1 text and its sample images are in git history only
+> (`git log -- docs/art-style.md docs/art-samples`); `docs/art-samples/src/` stays because the
+> art scripts import its palette. The v2 samples are in `docs/art-samples/neon/`.
 
 Defining traits (keep all of them, on every converted asset):
 
