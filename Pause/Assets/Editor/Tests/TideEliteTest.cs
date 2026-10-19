@@ -353,7 +353,8 @@ public static class TideEliteTest
         Check("the chain runs down from under the hull to the pilot's column (" + ma.Spot(0).y.ToString("0.0") + " .. " + ma.Spot(ma.Count - 1).y.ToString("0.0") + ", end x " + ma.Spot(ma.Count - 1).x.ToString("0.00") + ")",
               descends && ma.Spot(0).y < e.Position.y && Mathf.Abs(ma.Spot(ma.Count - 1).x - pilot.position.x) < .15f);
         StepUntil(() => e.Acting, 3f);
-        int maxOrbs = 0, maxBolts = 0, castsSeen = 0, bursts = 0;
+        int maxOrbs = 0, maxBolts = 0, castsSeen = 0, bursts = 0, minesAlive = 0;
+        float lowestMine = 99f;
         bool sank = false;
         for (float t = 0f; t < 6f; t += Dt)
         {
@@ -362,13 +363,20 @@ public static class TideEliteTest
             castsSeen = Mathf.Max(castsSeen, db.Casts);
             sank |= db.Phase == DeepBrain.Stage.Sink || db.Phase == DeepBrain.Stage.Away;
             int o = 0, b = 0;
-            foreach (var sh in EliteSystem.Shots.All) { if (!sh.Active) continue; if (sh.Kind == EliteShots.Kind.Orb) o++; else b++; }
+            minesAlive = 0;
+            foreach (var sh in EliteSystem.Shots.All)
+            {
+                if (!sh.Active) continue;
+                if (sh.IsMine) { minesAlive++; lowestMine = Mathf.Min(lowestMine, sh.transform.position.y); }
+                if (sh.Kind == EliteShots.Kind.Orb) o++; else b++;
+            }
             maxOrbs = Mathf.Max(maxOrbs, o);
             maxBolts = Mathf.Max(maxBolts, b);
         }
         foreach (var sh in EliteSystem.Shots.All) bursts += sh.Bursts;
-        Check("the mines are laid one after another (" + ma.Laid + ", most at once " + maxOrbs + ") and burst into crosses of bolts (bursts " + bursts + ", most bolts " + maxBolts + ")",
-              ma.Laid == ma.Count && maxOrbs >= 2 && (bursts >= 1 || maxBolts >= 4) && AttackPreview.TooShort == 0);
+        // (the cross's bolts reuse the pooled shots, so the burst is read off the mines: all gone by the end, none of them before it fell out of the view)
+        Check("the mines are laid one after another (" + ma.Laid + ", most at once " + maxOrbs + ") and burst, not fall away (" + minesAlive + " left, lowest y " + lowestMine.ToString("0.0") + " vs view bottom " + EliteSystem.ViewBottom.ToString("0.0") + ")",
+              ma.Laid == ma.Count && maxOrbs >= 2 && minesAlive == 0 && lowestMine > EliteSystem.ViewBottom - .6f && AttackPreview.TooShort == 0);
         Check("the cast done, it dives off the top (casts " + castsSeen + ", dived " + sank + ")", castsSeen == 1 && (sank || db.Surfacings >= 1));
         bool back = StepUntil(() => db.Surfacings >= 1, 16f);
         Check("... waits out of sight and surfaces again (" + db.Surfacings + ")", back);
