@@ -169,17 +169,13 @@ public static class TargetExplosion
     }
 
     // Gameplay clock for explosions: scaled time, so a paused world (time
-    // scale 0) freezes them mid-blast, but never slower than half speed
-    // through the ultimate's cinematic slow motion, where a raw 0.06x would
-    // leave blasts hanging for seconds.
+    // scale 0) freezes them mid-blast.
     public static float Delta()
     {
         // The death crash plays its blasts over the frozen world.
         if (DeathCrash.Animating) return DeathCrash.FrameDt;
         if (Time.timeScale <= 0f) return 0f;
-        float dt = Time.deltaTime;
-        if (ShipPowerController.CinematicClearActive) dt = Mathf.Max(dt, Time.unscaledDeltaTime * .5f);
-        return dt;
+        return Time.deltaTime;
     }
 
     // The same rule the hazard movers use for whether the world is moving.

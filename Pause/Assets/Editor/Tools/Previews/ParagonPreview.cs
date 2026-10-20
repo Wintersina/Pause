@@ -53,7 +53,6 @@ public static class ParagonPreview
         collisionDetection.lifeCounter = 0;
         moveBackGround.speed = .2f;
         Time.timeScale = 1f;
-        WorldTimeFx.Reset();
     }
 
     static GameObject Ship(Vector3 at, float scale = 1f)

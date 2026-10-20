@@ -33,8 +33,6 @@ public class SecretPowerController : MonoBehaviour
     public float stunSeconds = 3f;
     public float novaRadius = 3f;
     public float novaBurnSeconds = 2f;     // the ring the nova leaves behind
-    public float ionSlowSeconds = 2f;      // Ion Battery's slow-time after the +2 pauses
-    public float ionSlowScale = .5f;
     public float ghostAlpha = .55f;        // Phase Cloak: how solid the hull stays (the rim, not the hull, carries the effect)
     public float magnetSeconds = 5f;
     public float magnetDustMultiplier = 2f;
@@ -42,9 +40,9 @@ public class SecretPowerController : MonoBehaviour
     public float clapRadius = 2.6f;
     public float decoySeconds = 4f;
     public float decoyBlastRadius = 1.5f;
-    public float bubbleScale = .45f;
-    public float bubbleRadius = 1.8f;      // the Time Bubble dome's radius (drawn, and the slow reads as inside it)
+    public float bubbleRadius = 1.8f;      // the Time Bubble dome's radius (drawn)
     public float bubbleSeconds = 2.5f;
+    public float bubbleEliteKick = 14f;    // u/s^2 outward on an elite inside the dome (before EliteResist)
     public float dashDistance = 1.25f;
     public float dashThreatRadius = 2f;    // Blink Dash also fires proactively when a hazard is this close
     public float dashSeconds = .7f;
@@ -312,7 +310,7 @@ public class SecretPowerController : MonoBehaviour
 
             case SecretPower.SolarNova:
                 Rim(at, novaRadius * 1.9f, false, 0f, transform, 73);
-                if (KillWithin(at, novaRadius) > 0) WorldTimeFx.HitStop(.06f);
+                KillWithin(at, novaRadius);
                 CameraKick.Kick(.04f);
                 // ...and the ring stays burning where it went off
                 novaAt = at;
@@ -332,8 +330,6 @@ public class SecretPowerController : MonoBehaviour
             case SecretPower.IonBattery:
                 score.incromentPause();
                 PowerTrailSprite.Pack(ship, at);
-                bubbleLeft = ionSlowSeconds;
-                WorldTimeFx.BubbleScale = ionSlowScale;
                 Rim(at, 1.3f, false, 0f, transform, 73);
                 break;
 
@@ -368,7 +364,7 @@ public class SecretPowerController : MonoBehaviour
 
             case SecretPower.TimeBubble:
                 bubbleLeft = bubbleSeconds;
-                WorldTimeFx.BubbleScale = bubbleScale;
+                ShieldShockwave.Prewarm();   // steps the shoves the dome gives
                 bubbleFx = Rim(at, bubbleRadius * 2f, true, bubbleSeconds, transform, 41);
                 bubbleFx.Rename(BubbleDomeName);
                 bubbleFx.SetColor(BubbleTint);
@@ -674,6 +670,48 @@ public class SecretPowerController : MonoBehaviour
 
     // Tractor Pull: every hazard near the ship is dragged in; what reaches
     // the field dies and drops star dust. The boss is never moved.
+    // Time Bubble: a dome around the hull for bubbleSeconds. Whatever hazard is inside it is shoved out to the rim
+    // (once, EnemyShove, so it keeps its own pattern afterwards), enemy shots that enter it pop, and an elite is
+    // nudged outward at EliteResist of the strength. A boss is never touched. Nothing outside the dome changes and
+    // time is never scaled.
+    void StepBubble(float dt)
+    {
+        Vector3 at = transform.position;
+        HostileShots.ClearWithin(at, bubbleRadius);
+        float lane = SpawnLane.LaneHalf;
+        ShipTargets.Collect(scratch);
+        for (int i = 0; i < scratch.Count; i++)
+        {
+            var t = scratch[i];
+            if (t == null || !t.isActiveAndEnabled) continue;
+            var go = t.gameObject;
+            bool rock = go.CompareTag("Astr");
+            if (!rock && !go.CompareTag("Enimey")) continue;
+            if (go.TryGetComponent(out BossTarget _) || go.TryGetComponent(out BossActor _) || RunScore.IsHostileShot(go)) continue;
+            Vector2 d = t.transform.position - at;
+            float dist = d.magnitude;
+            if (dist >= bubbleRadius + t.Radius * .5f) continue;
+            Vector2 away = dist > 1e-4f ? d / dist : Vector2.up;
+            if (go.TryGetComponent(out EliteShip elite))
+            {
+                if (elite.InPlay) elite.Velocity += away * (bubbleEliteKick * dt * ShieldShockwave.EliteResist);
+                continue;
+            }
+            if (EnemyShove.IsShoved(t.transform)) continue;
+            Vector2 move = away * (bubbleRadius + t.Radius * .5f - dist + .1f);
+            float halfX = t.Radius;
+            if (go.TryGetComponent(out RailMineMount mount) && mount.rail != null)
+            {
+                float along = Mathf.Clamp(mount.Shove + move.y, -ShieldShockwave.MineMaxSlide, ShieldShockwave.MineMaxSlide) - mount.Shove;
+                EnemyShove.Add(t.transform, mount, new Vector2(0f, along), halfX, .25f);
+                continue;
+            }
+            float x = t.transform.position.x;
+            move.x = Mathf.Clamp(x + move.x, -(lane - halfX), lane - halfX) - x;
+            EnemyShove.Add(t.transform, null, move, halfX, .25f);
+        }
+    }
+
     void StepTractor(float dt)
     {
         Vector3 at = transform.position;
@@ -736,10 +774,10 @@ public class SecretPowerController : MonoBehaviour
             KillWithin(spot, decoyBlastRadius);
         }
 
+        if (bubbleLeft > 0f && BubbleActive) StepBubble(dt);
         if (bubbleLeft > 0f && (bubbleLeft -= dt) <= 0f)
         {
             bubbleLeft = 0f;
-            WorldTimeFx.BubbleScale = 1f;
             if (bubbleFx != null && bubbleFx.Active && bubbleFx.name == BubbleDomeName) bubbleFx.Stop();
             bubbleFx = null;
         }
@@ -832,7 +870,6 @@ public class SecretPowerController : MonoBehaviour
     void EndAll()
     {
         ReleaseLocked();
-        if (bubbleLeft > 0f) WorldTimeFx.BubbleScale = 1f;
         stunLeft = magnetLeft = tractorLeft = decoyLeft = bubbleLeft = dashLeft = holeLeft = shellLeft = novaLeft = 0f;
         if (ghostLeft > 0f) { ghostLeft = 0f; SetHullAlpha(1f); }
         ShipHitbox.SetShield(gameObject, ShipHitbox.Source.Shell, false);

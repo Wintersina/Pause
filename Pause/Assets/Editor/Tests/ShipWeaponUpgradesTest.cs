@@ -38,7 +38,6 @@ public static class ShipWeaponUpgradesTest
         DockShowsTheWeaponLevel();
 
         AttackPool.StopAll();
-        WorldTimeFx.Reset();
         Debug.Log("[WU] failures: " + fails);
         return fails;
     }
@@ -72,7 +71,6 @@ public static class ShipWeaponUpgradesTest
         collisionDetection.lifeCounter = 0;
         moveBackGround.speed = .2f;
         Time.timeScale = 1f;
-        WorldTimeFx.Reset();
     }
 
     static GameObject Hazard(float x, float y)

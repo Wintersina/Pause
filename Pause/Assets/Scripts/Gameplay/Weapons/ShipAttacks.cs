@@ -10,8 +10,7 @@ using UnityEngine;
 // Rules:
 //  * Gameplay time. Everything steps on scaled time, so a paused world
 //    (timeScale 0) freezes every shot, beam, cone and orbit mid-flight, and
-//    there is no slow motion: these play at normal speed (a big hit may add
-//    a hit-stop of a few hundredths of a second, WorldTimeFx).
+//    there is no slow motion and no hit-stop: these play at normal speed.
 //  * Pooled. Projectiles and drawn effects come from AttackPool, capped,
 //    reused; runs are preallocated; target queries fill a list owned here.
 //    Nothing allocates per frame.
@@ -258,7 +257,6 @@ public partial class ShipAttackRunner : MonoBehaviour
             if (InRailLine(t.transform.position, t.Radius, nose, l.width, nose.y + len))
                 if (ShipAttackHits.Hit(t.gameObject, ship, 1f, ref run.budget)) kills++;
         }
-        if (kills > 0) WorldTimeFx.HitStop(.05f);
     }
 
     public static bool InRailLine(Vector3 p, float radius, Vector3 nose, float halfWidth, float top)
@@ -1201,41 +1199,3 @@ public static class ShipVolley
     }
 }
 
-// Small multipliers on the world's time scale that moveBackGround applies on
-// top of its own (running branch only; a frozen world stays at 0):
-//   * hit-stop: a few hundredths of a second near-frozen on a big hit
-//     (real time, so it can't stretch);
-//   * the Time Bubble power's slow-down (SecretPowerController).
-public static class WorldTimeFx
-{
-    public const float HitStopScale = .08f;
-    static float hitStopUntil = -1f;
-    public static float BubbleScale = 1f;
-
-    // Tests drive real time through this; null means Time.unscaledTime.
-    public static System.Func<float> ClockOverride;
-    static float Now => ClockOverride != null ? ClockOverride() : Time.unscaledTime;
-
-    public static void HitStop(float seconds)
-    {
-        hitStopUntil = Mathf.Max(hitStopUntil, Now + Mathf.Clamp(seconds, 0f, .12f));
-    }
-
-    public static bool HitStopping => Now < hitStopUntil;
-
-    public static float Scale
-    {
-        get
-        {
-            float s = Mathf.Clamp(BubbleScale, .1f, 1f);
-            if (HitStopping) s *= HitStopScale;
-            return s;
-        }
-    }
-
-    public static void Reset()
-    {
-        hitStopUntil = -1f;
-        BubbleScale = 1f;
-    }
-}

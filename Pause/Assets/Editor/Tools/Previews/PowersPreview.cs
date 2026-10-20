@@ -26,7 +26,7 @@ public static class PowersPreview
         using (new TestHarness.Sandbox())
         {
             try { foreach (int id in Ships) { One(dir, id, true); One(dir, id, false); } }
-            finally { AttackPool.StopAll(); WorldTimeFx.Reset(); }
+            finally { AttackPool.StopAll(); }
         }
         EditorApplication.Exit(0);
     }
@@ -47,7 +47,6 @@ public static class PowersPreview
         score.pauseCounter = 3;
         collisionDetection.cloakTimer = 0f;
         Time.timeScale = 1f;
-        WorldTimeFx.Reset();
         if (rt == null) rt = new RenderTexture(Width, Height, 24);
         if (png == null) png = new Texture2D(Width, Height, TextureFormat.RGB24, false);
         cam.targetTexture = rt;

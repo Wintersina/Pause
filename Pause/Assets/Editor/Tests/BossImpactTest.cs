@@ -10,8 +10,8 @@ using UnityEngine;
 //  * a tell / fire pose in a fight wears its stage's damaged drawing;
 //  * the shake peaks by weight and decays to 0 by 0.5 s; the per-boss impact
 //    strips pool (6 renderers), end by 0.4 s, light hits are rate-limited, no
-//    screen overlay exists; the seven strips load and differ; a hit-stop is
-//    asked for; the boss flashes white.
+//    screen overlay exists; the seven strips load and differ; no hit-stop
+//    is asked for; the boss flashes white.
 public static class BossImpactTest
 {
     static int fails;
@@ -32,12 +32,12 @@ public static class BossImpactTest
             EveryBossEveryAttackEveryStageIsDamaged();
             FightPosesWearTheirDamage();
             ShakeScalesAndDecays();
-            HitStopScales();
+            HitsNeverSlowTime();
             BurstsPoolAndFade();
             BurstAndArtLoad();
             HitDrivesEverything();
         }
-        finally { BossImpact.Dispose(); BossImpact.ClockOverride = null; WorldTimeFx.ClockOverride = null; WorldTimeFx.Reset(); }
+        finally { BossImpact.Dispose(); BossImpact.ClockOverride = null; }
         Debug.Log("[BOSSIMPACT] " + (fails == 0 ? "ALL PASS" : fails + " FAILED"));
         return fails;
     }
@@ -182,31 +182,16 @@ public static class BossImpactTest
 
     static float clockNow;
 
-    static void HitStopScales()
+    // A hit on a boss never touches the time scale: no hit-stop, heavy or light, kill or not.
+    static void HitsNeverSlowTime()
     {
-        float light = BossImpact.HitStopSeconds(.1f, false), mid = BossImpact.HitStopSeconds(.5f, false);
-        float heavy = BossImpact.HitStopSeconds(1f, false), kill = BossImpact.HitStopSeconds(1f, true);
-        Check("hit-stop 45 ms light .. 80 ms heavy .. 90 ms kill (" + light + " " + mid + " " + heavy + " " + kill + ")",
-              light >= .044f && light < mid && mid < heavy && Mathf.Abs(heavy - .08f) < 1e-4f && Mathf.Abs(kill - .09f) < 1e-4f);
-        Check("all inside 60-90 ms from a mid weight up", mid >= .06f && kill <= .09f);
-
         FreshScene();
         clockNow = 100f;
-        WorldTimeFx.Reset();
-        WorldTimeFx.ClockOverride = () => clockNow;
         BossImpact.ClockOverride = () => clockNow;
         var fx = BossImpact.Ensure();
-        fx.Trigger("Frost", Vector3.zero, 1f, false, false);
-        Check("a heavy hit asks for a hit-stop", WorldTimeFx.HitStopping && WorldTimeFx.Scale < .2f);
-        clockNow = 100.1f;
-        Check("... that is over after ~90 ms", !WorldTimeFx.HitStopping);
-        WorldTimeFx.Reset();
-        clockNow = 200f;
+        fx.Trigger("Frost", Vector3.zero, 1f, false, true);
         fx.Trigger("Frost", Vector3.zero, 1f / 14f, false, false);
-        bool first = WorldTimeFx.HitStopping;
-        clockNow = 200.1f; WorldTimeFx.Reset();
-        fx.Trigger("Frost", Vector3.zero, 1f / 14f, false, false);
-        Check("light hits hit-stop at most once per .6 s (" + first + ", then none)", first && !WorldTimeFx.HitStopping);
+        Check("boss hits leave the time scale at 1", Mathf.Approximately(Time.timeScale, 1f));
     }
 
     static void BurstsPoolAndFade()
@@ -305,8 +290,6 @@ public static class BossImpactTest
         var a = e.Actor;
         clockNow = 500f;
         BossImpact.ClockOverride = () => clockNow;
-        WorldTimeFx.ClockOverride = () => clockNow;
-        WorldTimeFx.Reset();
         var fx = BossImpact.Ensure();
         e.OnShipAttackHit(1f / 14f);
         float lightShake = fx.ShakeNow;

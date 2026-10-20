@@ -6,10 +6,10 @@ using UnityEngine;
 // timer, once all objects are destroyed in the level, the paused state or
 // slowed down can instantly end and the player can continue".
 //
-// The ultimate's cinematic clear holds the world at CinematicSlowScale until
+// The ultimate's cinematic state (no slow motion any more) holds until
 // a fixed hold after the last homing shot launches. It now also lifts the
 // moment every hazard that was on screen is gone, through the same exit
-// (an ease back to 1x) the hold timer uses. Hazards are tracked by the
+// (a short ease-out) the hold timer uses. Hazards are tracked by the
 // ClearTarget registry rather than a per-frame scene scan.
 public static class CinematicEarlyClearTest
 {
@@ -175,16 +175,14 @@ public static class CinematicEarlyClearTest
         var ship = Ship();
 
         Fire(ship);
-        Check("firing starts the cinematic slow motion",
-              ShipPowerController.CinematicClearActive &&
-              ShipPowerController.CinematicTimeScale <= ShipPowerController.CinematicSlowScale + 1e-4f);
+        Check("firing starts the cinematic state", ShipPowerController.CinematicClearActive);
 
-        // moveBackGround applies the cinematic scale while it's active.
+        // the world is never slowed for it
         var bgGo = new GameObject("bg", typeof(MeshRenderer));
         var bg = bgGo.AddComponent<moveBackGround>();
         bg.SendMessage("Update");
-        Check("moveBackGround holds the world at the cinematic scale",
-              Mathf.Approximately(Time.timeScale, ShipPowerController.CinematicSlowScale));
+        Check("moveBackGround never slows the world for it (weapons never slow time)",
+              !(Time.timeScale > 0f && Time.timeScale < .5f));
 
         MissileHits(ship, a);
         Tick(ship);
@@ -194,13 +192,11 @@ public static class CinematicEarlyClearTest
         MissileHits(ship, b);
         Check("ends on the same frame the last target is hit (no extra tick)",
               ShipPowerController.CinematicExiting && ShipPowerController.LastCinematicEndedEarly);
-        Check("the exit eases from slow motion rather than snapping",
-              ShipPowerController.CinematicTimeScale < 1f);
 
         ElapseEase();
         Tick(ship);
         Check("after the ease the cinematic has fully ended",
-              !ShipPowerController.CinematicClearActive && Mathf.Approximately(ShipPowerController.CinematicTimeScale, 1f));
+              !ShipPowerController.CinematicClearActive);
 
         // The standard path: moveBackGround is back in charge and runs at 1x.
         // (Its normal branch scrolls the material, which edit mode warns about.)
@@ -283,8 +279,7 @@ public static class CinematicEarlyClearTest
         Check("(re-fired for the destroy case)", ShipPowerController.CinematicClearActive);
         DestroyShip(ship);
         Check("the ship being destroyed mid-cinematic ends it",
-              !ShipPowerController.CinematicClearActive &&
-              Mathf.Approximately(ShipPowerController.CinematicTimeScale, 1f));
+              !ShipPowerController.CinematicClearActive);
 
         Object.DestroyImmediate(a);
         Object.DestroyImmediate(b);

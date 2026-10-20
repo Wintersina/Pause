@@ -59,12 +59,11 @@ public class ShipPowerController : MonoBehaviour
     public const float CooldownAtomCutSeconds = 12f; // violet capacitor (up to)
 
     [Header("Cinematic attack")]
-    [Tooltip("Real seconds the world is held slowed after the top tier's attack " +
-             "has played its slow-motion part -- the normal end of the slow motion.")]
+    [Tooltip("Real seconds the top tier's attack stays active after it has " +
+             "played its part -- the normal end of the cinematic state.")]
     public float cinematicHoldSeconds = 0.3f;
 
-    [Tooltip("Real seconds to ease from the cinematic slow motion back up to " +
-             "full speed when it ends, instead of snapping.")]
+    [Tooltip("Real seconds the closing ease-out lasts when the cinematic state ends.")]
     public float cinematicEaseOutSeconds = 0.2f;
 
     // How the countdown runs. A real run is Timed. The tutorial (Hints)
@@ -85,28 +84,14 @@ public class ShipPowerController : MonoBehaviour
     public int UltimatesFired { get; private set; }
 
     public static ShipPowerController Instance { get; private set; }
-    // True from the moment the ultimate fires until the world is fully back
-    // to normal speed -- including the short ease-out at the end.
+    // True from the moment the top tier's attack fires until it has ended --
+    // including the short ease-out at the end.
     public static bool CinematicClearActive { get; private set; }
     // True only during that closing ease-out.
     public static bool CinematicExiting => CinematicClearActive && exiting;
-    // Set when the slow motion ended early because every on-screen target
+    // Set when the attack's state ended early because every on-screen target
     // was gone, rather than by the hold timer running out.
     public static bool LastCinematicEndedEarly { get; private set; }
-
-    // Deliberately dramatic: threats crawl while the homing shots remain
-    // readable, giving every target impact its own moment on screen.
-    public const float CinematicSlowScale = 0.06f;
-    public static float CinematicTimeScale
-    {
-        get
-        {
-            if (!CinematicClearActive) return 1f;
-            if (!exiting) return CinematicSlowScale;
-            float t = Mathf.Clamp01((PauseClock.Now - exitStartedAt) / Mathf.Max(0.0001f, exitSeconds));
-            return Mathf.Lerp(CinematicSlowScale, 1f, t * t * (3f - 2f * t));
-        }
-    }
 
     static bool exiting;
     static float exitStartedAt; // PauseClock
@@ -351,9 +336,9 @@ public class ShipPowerController : MonoBehaviour
     }
 
     // The ship's main attack. Only the top price tier (ShipLoadoutTable)
-    // plays in the cinematic slow motion -- each of the three with its own
-    // verb (laser sweep, frost nova, sentries), the slow motion ending when
-    // the attack has played its part or the screen is clear; every other
+    // plays the cinematic attack -- each of the three with its own verb
+    // (laser sweep, frost nova, sentries), the state ending when the
+    // attack has played its part or the screen is clear; every other
     // ship fires its own directional or limited weapon at normal speed
     // (ShipAttackRunner).
     void Fire()
@@ -370,7 +355,7 @@ public class ShipPowerController : MonoBehaviour
         }
         if (!BeginCinematic()) return;
         onScreenAtStart = ClearTarget.CountOnScreen(Camera.main);
-        // nothing on screen: there is nothing to "clear", so the slow motion keeps its ordinary hold
+        // nothing on screen: there is nothing to "clear", so the state keeps its ordinary hold
         // rather than ending on the very first frame (CheckCleared)
         runner.Fire();
         StartCoroutine(CinematicClear());
@@ -378,14 +363,13 @@ public class ShipPowerController : MonoBehaviour
 
     // ---- cinematic attack ------------------------------------------------
     //
-    // The top tier's attack slows the world to CinematicSlowScale (moveBackGround
-    // applies CinematicTimeScale while CinematicClearActive) while its own verb
-    // plays at normal speed (the runner steps on gameplay time), and holds the
-    // slow motion until the attack has played the part that needs it plus
-    // cinematicHoldSeconds. It also ends the moment every hazard that was on
-    // screen is gone -- hit by the attack, scrolled off, or destroyed some other
-    // way -- so the player isn't left waiting in slow motion over an empty screen.
-    // Both endings go through BeginExit(), which eases back to full speed.
+    // The top tier's attack plays at normal speed (the runner steps on gameplay
+    // time; the world is never slowed). CinematicClearActive only marks it as
+    // running, so spawns, boss intros and free shots wait for it. It holds until
+    // the attack has played the part that needs it plus cinematicHoldSeconds. It
+    // also ends the moment every hazard that was on screen is gone -- hit by the
+    // attack, scrolled off, or destroyed some other way. Both endings go through
+    // BeginExit(), a short ease-out before the state clears.
 
     bool BeginCinematic()
     {
@@ -410,8 +394,7 @@ public class ShipPowerController : MonoBehaviour
         if (CinematicExiting)
         {
             // Lifting the finger mid-ease means the world is about to freeze
-            // anyway; finishing now hands timeScale straight back to
-            // moveBackGround rather than ramping up only to snap to 0.
+            // anyway; finish now.
             bool worldRuns = TouchInput.IsPressed || score.pauseCounter <= 0;
             if (!worldRuns || PauseClock.Now - exitStartedAt >= exitSeconds) FinishCinematic();
             return;
@@ -421,8 +404,8 @@ public class ShipPowerController : MonoBehaviour
         CheckCleared();
     }
 
-    // Called every frame and straight from the attack, so the slow motion
-    // starts lifting on the same frame the last target is destroyed.
+    // Called every frame and straight from the attack, so the state
+    // starts ending on the same frame the last target is destroyed.
     void CheckCleared()
     {
         if (!CinematicClearActive || CinematicExiting) return;
@@ -432,7 +415,7 @@ public class ShipPowerController : MonoBehaviour
         BeginExit(early: true);
     }
 
-    // The one way the slow motion ends while the player is alive.
+    // The one way the state ends while the player is alive.
     void BeginExit(bool early)
     {
         if (!CinematicClearActive || CinematicExiting) return;
@@ -451,7 +434,7 @@ public class ShipPowerController : MonoBehaviour
 
     // The attack is intentionally input-independent once it has begun:
     // lifting a finger cannot cancel it. Waits (real time, with a safety
-    // limit) while the runner says it still wants the slow motion, then
+    // limit) while the runner says it still wants the state held, then
     // starts the hold.
     IEnumerator CinematicClear()
     {
@@ -465,7 +448,7 @@ public class ShipPowerController : MonoBehaviour
         holdUntil = PauseClock.Now + cinematicHoldSeconds;
     }
 
-    // The slow motion never outlasts this, whatever an attack is doing.
+    // The state never outlasts this, whatever an attack is doing.
     public const float MaxCinematicSeconds = 6f;
 }
 
@@ -484,7 +467,6 @@ public static class ShipPowerBootstrap
     static void OnSceneLoaded(UnityEngine.SceneManagement.Scene scene,
                               UnityEngine.SceneManagement.LoadSceneMode mode)
     {
-        WorldTimeFx.Reset();
         if (scene.name != "gameS1") return;
         var host = new GameObject("~ShipPowerAttach");
         host.AddComponent<ShipPowerAttach>();

@@ -216,6 +216,7 @@ public static class ResumeSlowMoTest
 
     static void CinematicTakesPriority()
     {
+        // an ultimate's cinematic state no longer touches the resume slow-mo or the time scale
         Fresh(0.3f);
         LaunchedAndPaused();
         Frame(true);
@@ -223,32 +224,8 @@ public static class ResumeSlowMoTest
 
         SetCinematic(true);
         float s = Frame(true);
-        Check("cinematic scale wins over the resume slow-mo (" + s + ")",
-              Mathf.Approximately(s, ShipPowerController.CinematicSlowScale));
-        Check("and the resume effect is dropped", !ResumeSlowMo.IsActive);
-
+        Check("the resume slow-mo is unaffected by an ultimate (" + s + ")", ResumeSlowMo.IsActive && s < 1f);
         SetCinematic(false);
-        Check("after the cinematic it doesn't come back", Frame(true) == 1f);
-
-        // A resume while the cinematic is already running never starts it.
-        Fresh(0.3f);
-        LaunchedAndPaused();
-        SetCinematic(true);
-        ResumeSlowMo.OnResume();
-        Check("no effect starts under an active cinematic", !ResumeSlowMo.IsActive);
-        SetCinematic(false);
-
-        // The real moveBackGround applies the cinematic before ever asking us.
-        Fresh(0.3f);
-        LaunchedAndPaused();
-        Frame(true);
-        SetCinematic(true);
-        var bg = new GameObject("bg", typeof(MeshRenderer)).AddComponent<moveBackGround>();
-        bg.SendMessage("Update");
-        Check("moveBackGround: cinematic scale while both are active",
-              Mathf.Approximately(Time.timeScale, ShipPowerController.CinematicSlowScale));
-        SetCinematic(false);
-        Object.DestroyImmediate(bg.gameObject);
     }
 
     static void LaunchCountdownIsNotAResume()
@@ -326,10 +303,8 @@ public static class ResumeSlowMoTest
     {
         string src = File.ReadAllText("Assets/Scripts/Gameplay/moveBackGround.cs");
         Check("moveBackGround applies ResumeSlowMo on running frames",
-              src.Contains("Time.timeScale = ResumeSlowMo.Apply(1f) * WorldTimeFx.Scale;"));  // hit-stop / Time Bubble on top
+              src.Contains("Time.timeScale = ResumeSlowMo.Apply(1f);"));
         Check("moveBackGround reports freezes", src.Contains("Time.timeScale = ResumeSlowMo.Freeze();"));
-        int cinematic = src.IndexOf("ShipPowerController.CinematicTimeScale");
-        int apply = src.IndexOf("ResumeSlowMo.Apply");
-        Check("the cinematic branch comes first", cinematic >= 0 && cinematic < apply);
+        Check("no weapon cinematic or hit-stop scale in moveBackGround", !src.Contains("Cinematic") && !src.Contains("WorldTimeFx"));
     }
 }

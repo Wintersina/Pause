@@ -8,8 +8,6 @@ using UnityEngine;
 //     units across (weighty vs light hits);
 //   * camera shake: an offset that starts at its amplitude and decays to zero
 //     over ShakeSeconds (0.5 s), quadratically;
-//   * hit-stop (WorldTimeFx.HitStop, real time) -- 45 ms for a light hit up to
-//     90 ms for a kill;
 //   * the boss's own white flash (BossActor.Flash(strength)).
 // There is no screen overlay any more (the old full-screen cracks were too big).
 //
@@ -24,10 +22,8 @@ public class BossImpact : MonoBehaviour
     public const float ShakeSeconds = .5f;
     public const float ShakeLight = .09f, ShakeHeavy = .3f;   // world units, peak offset at weight ~0 / 1
     public const float ShakeHeartBonus = .08f, ShakeKillBonus = .2f, ShakeMax = .6f;
-    public const float HitStopLight = .045f, HitStopMid = .06f, HitStopHeavy = .08f, HitStopKill = .09f;
-    public const float LightWeight = .2f;         // below this: a light hit (no hit-stop, rate-limited burst)
+    public const float LightWeight = .2f;         // below this: a light hit (rate-limited burst)
     public const float BigWeight = .5f;           // from this: the big burst
-    public const float LightStopGap = .6f;        // light hits hit-stop at most this often
     public const float WhiteSeconds = .12f;       // the boss's white flash
     public const float LightBurstGap = .15f;      // light hits burst at most this often
     public const int BurstCells = 12, BurstPool = 6;
@@ -59,13 +55,6 @@ public class BossImpact : MonoBehaviour
         return amplitude * k * k;
     }
 
-    public static float HitStopSeconds(float weight, bool kill)
-    {
-        if (kill) return HitStopKill;
-        if (weight < LightWeight) return HitStopLight;
-        return Mathf.Lerp(HitStopMid, HitStopHeavy, Mathf.InverseLerp(LightWeight, 1f, Mathf.Clamp01(weight)));
-    }
-
     public static int BurstCell(float age) => Mathf.Clamp(Mathf.FloorToInt(age / BurstSeconds * BurstCells), 0, BurstCells - 1);
 
     // ---- state ---------------------------------------------------------------
@@ -76,7 +65,7 @@ public class BossImpact : MonoBehaviour
     public static BossImpact Instance => instance;
 
     float shakeAmp, shakeAge = 99f, shakeClock;
-    float lastBurstAt = -99f, lastStopAt = -99f;
+    float lastBurstAt = -99f;
     Vector3 shakeApplied;
     Camera shakeCam;
     Burst[] bursts;
@@ -140,13 +129,6 @@ public class BossImpact : MonoBehaviour
         // shake: restart only when stronger than what is left of the last one (a gatling pulses, never piles up)
         float amp = ShakeAmplitude(weight, heartLost, kill);
         if (amp > ShakeEnvelope(shakeAmp, shakeAge) * 1.05f) { shakeAmp = amp; shakeAge = 0f; }
-
-        // hit-stop (real time)
-        if (!light || now - lastStopAt >= LightStopGap)
-        {
-            WorldTimeFx.HitStop(light ? HitStopLight : HitStopSeconds(weight, kill));
-            lastStopAt = now;
-        }
 
         if (light && now - lastBurstAt < LightBurstGap) return;
         lastBurstAt = now;

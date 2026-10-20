@@ -860,7 +860,7 @@ public static class NextFeatures0907Test
         // statement before any yield -- moved here from right after the gun/
         // indicator checks, where nothing had triggered it yet and this
         // always read the inactive (1x) branch instead.
-        Check("cinematic clear uses super slow motion", ShipPowerController.CinematicTimeScale <= .1f);
+        Check("the cinematic attack never slows time", !(Time.timeScale > 0f && Time.timeScale < .5f));
 
         buttonClicks.playerDied = false;
         Object.DestroyImmediate(shipGo);

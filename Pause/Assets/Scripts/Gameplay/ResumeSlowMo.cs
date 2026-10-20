@@ -29,10 +29,6 @@ using UnityEngine.SceneManagement;
 // - The launch touch and anything during the 1s READY countdown is not a resume.
 // - Refreezing cancels it (timeScale 0 as always); the next resume starts fresh.
 // - Death cancels it.
-// - The ultimate's CinematicClear always wins: moveBackGround applies the
-//   cinematic scale without asking us, and seeing the cinematic (directly, or
-//   as a gap in our per-frame calls) cancels the effect so it never resumes
-//   underneath the cinematic's own ease back to 1x.
 // - Out of pauses the world never freezes, so there is no resume to react to.
 public static class ResumeSlowMo
 {
@@ -84,16 +80,11 @@ public static class ResumeSlowMo
     public static float Apply(float baseScale)
     {
         int frame = Time.frameCount;
-        // moveBackGround skips us while the cinematic runs; a gap in our
-        // frames means it took over, and its ease-out owns the way back.
+        // moveBackGround skips us while a boss entrance runs; a gap in our
+        // frames means it took over.
         if (active && lastFrame >= 0 && frame - lastFrame > 1) Cancel();
         lastFrame = frame;
 
-        if (ShipPowerController.CinematicClearActive)
-        {
-            Cancel();
-            return ShipPowerController.CinematicTimeScale;
-        }
         if (buttonClicks.playerDied)
         {
             Cancel();
@@ -138,7 +129,7 @@ public static class ResumeSlowMo
         }
         // Lifting and retouching during READY is still the launch.
         if (runSeconds < movePlayer.CountdownSeconds) return;
-        if (buttonClicks.playerDied || ShipPowerController.CinematicClearActive) return;
+        if (buttonClicks.playerDied) return;
         if (InTutorial || !SpeedQualifies) return;
 
         active = true;
