@@ -48,7 +48,9 @@ public static class CreditsTest
         Check("Special thanks section lists everyone",
               credits.Contains("Special thanks") && credits.IndexOf("Special thanks") > credits.IndexOf("Sina Serati") &&
               credits.Contains("Josh Morris") && credits.Contains("Pouya Vafaee") && credits.Contains("Preston Nalls") &&
-              credits.Contains("Cody Everett") && credits.IndexOf("Cody Everett") > credits.IndexOf("Special thanks"));
+              credits.Contains("Cody Everett") && credits.IndexOf("Cody Everett") > credits.IndexOf("Special thanks") &&
+              credits.Contains("Shahin Shamsipour") && credits.IndexOf("Shahin Shamsipour") > credits.IndexOf("Special thanks"));
+        Check("Shahin Shamsipour is credited once", credits.IndexOf("Shahin Shamsipour") == credits.LastIndexOf("Shahin Shamsipour"));
         Check("Cody Everett is credited once", credits.IndexOf("Cody Everett") == credits.LastIndexOf("Cody Everett"));
         Check("no iOS/Android duplicate lines", !credits.Contains("iOS Developer") && !credits.Contains("Android Developer"));
         Check("closing line is spelled right", credits.Contains("Thank you for playing.") && !credits.Contains("playting"));
@@ -119,5 +121,37 @@ public static class CreditsTest
               player.Finished && player.Frame == GateOpenFrames.Count - 1 && lockup.GetComponent<Image>().sprite == frames[frames.Length - 1]);
         Check("logo still on screen at 5 s while it plays out", textTop + (trt.anchoredPosition.y - at0.y) + lockup.anchoredPosition.y + lockup.rect.height * 0.5f < half);
         trt.anchoredPosition = at0;
+        Bounce(mover, trt);
+    }
+
+    // The roll rises to the top of the screen, turns round, then drifts and bounces off
+    // every edge at the same speed without ever leaving the visible area.
+    static void Bounce(CreditsMove mover, RectTransform trt)
+    {
+        mover.Seed(7);
+        Vector2 lo, hi;
+        mover.GetLimits(out lo, out hi);
+        bool inside = true, speedHeld = true, sawDown = false, sawLeft = false, sawRight = false, sawUp = false;
+        bool risingBeforeHit = true;
+        const float eps = 0.01f;
+        for (int i = 0; i < 60 * 600; i++)
+        {
+            float before = trt.anchoredPosition.y;
+            mover.Step(1f / 60f);
+            Vector2 p = trt.anchoredPosition;
+            if (!mover.Drifting && p.y < before) risingBeforeHit = false;
+            if (p.x < lo.x - eps || p.x > hi.x + eps || p.y < lo.y - eps || p.y > hi.y + eps) inside = false;
+            if (mover.Drifting)
+            {
+                if (Mathf.Abs(mover.Velocity.magnitude - CreditsMove.Speed) > 0.1f) speedHeld = false;
+                if (mover.Velocity.y < 0f) sawDown = true; else sawUp = true;
+                if (mover.Velocity.x < 0f) sawLeft = true; else if (mover.Velocity.x > 0f) sawRight = true;
+            }
+        }
+        Check("roll only rises until it meets the top of the screen", risingBeforeHit);
+        Check("roll turns round at the top and drifts", mover.Drifting && sawDown && sawUp);
+        Check("drift keeps the speed after every bounce", speedHeld);
+        Check("block stays inside the screen for 10 minutes of drift", inside);
+        Check("drift wanders both ways sideways", sawLeft && sawRight);
     }
 }
