@@ -28,6 +28,10 @@ using UnityEngine;
 // cryo silo (Silo, on snow flats), a glacier cave hangar (Cave, on ridges) and an icebreaker deck (Icebreaker, on water). Their doors open
 // through the launch tell -- a small blinking lamp, no flash -- like Space's docks do.
 //
+// Tide's four launch-strip sites (TideTuning.SiteKinds 5-8, docks atlas): a floating carrier pad (TideCarrierPad, "carrierpad"), a lighthouse
+// silo (TideLighthouseSilo, "lighthouse"), a submarine pen (TideSubPen, "subpen") and a wreck hull bay (TideWreckHull, "wreckhull"). They open
+// through the launch tell like Space's docks do.
+//
 // Verdant's (VerdantDirector) are emerge sites too: a root-braced hangar in
 // a giant tree, a river bay on stilts, a petal pod pad, a tower bay and a
 // hatch under the roots (Hatch, shared with Frost's silo hatch).
@@ -45,6 +49,7 @@ using UnityEngine;
 public enum LandingKind { Ground, Station, Planet, Asteroid, Hangar, RigBay, PadRing, CrawlerBay, Hatch, RootHangar, RiverBay, PodPad, TowerBay,
                          FoundryHangar, MagmaBay, SlagPad, FurnaceBay,
                          TideTrenchHatch, TideRigDeck, TideReefDock, TideVentStack, TideWreckBay,
+                         TideCarrierPad, TideLighthouseSilo, TideSubPen, TideWreckHull,
                          DesertWormBurrow, DesertCrawlerBay, DesertGlassPad, DesertBuriedSilo, DesertRuinDock,
                          Gantry, Carrier, Gate, Derelict,
                          Rig, Silo, Cave, Icebreaker }
@@ -91,6 +96,10 @@ public struct LandingSite
             case "reefdock": return LandingKind.TideReefDock;
             case "ventstack": return LandingKind.TideVentStack;
             case "wreckbay": return LandingKind.TideWreckBay;
+            case "carrierpad": return LandingKind.TideCarrierPad;
+            case "lighthouse": return LandingKind.TideLighthouseSilo;
+            case "subpen": return LandingKind.TideSubPen;
+            case "wreckhull": return LandingKind.TideWreckHull;
             case "wormburrow": return LandingKind.DesertWormBurrow;
             case "caravanbay": return LandingKind.DesertCrawlerBay;
             case "glasspad": return LandingKind.DesertGlassPad;

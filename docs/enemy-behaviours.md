@@ -788,6 +788,32 @@ deals `EliteShip.PauseDamage` (2) hearts; a shielded ram still takes them all.
 | Eventide Bastion (5, armoured) | `fortress`: `topMargin` under the top, a slow sine `laneOffset` either side of the middle | `ward_barrage`: casts alternate. Curtain: rings on the row's spots from the tell, one gap beside the pilot toward the middle, narrowing by `GapStep` (0.1) per heart lost down to `MinGap` (1.1); at <= 2 hearts a second row `RowDelay` (1.0 s, longer than a crossing needs) later with its gap on the other side of the pilot. Mine drop: the spot is ringed in the tell, a shield mine (`hazardArmour` shots to defuse) glides out of a pod, drifts down with the board and pops into a ring of `hazardCount` bolts (two mines at <= 3 hearts) |
 | Singularity Hauler (5, armoured) | `wrecker`: parks `topMargin` under the top, a crawl either side of the middle | `tow_sling`: casts alternate. Tow: a sight line drops from the top of the view to the claws; a Space rock (`space_rock_cluster` x `hazardSize`) drifts in from above into the claws (`hazardSeconds`); a dotted lane is locked from the claws to the pilot (0.9 s), then the rock is flung down it at `hazardSpeed`. A real hazard (hurts on touch, shot apart by weapons, glances off the rails twice). Sling: a ringed gravity well ahead of the pilot, `shotCount` shots curve in and cross; the well holds 2 s and pulls the pilot at most `EliteWell.Cap` (0.32 u) off the finger, fading near the ring |
 
+## Tide elites
+
+`Pause/Assets/Scripts/Gameplay/Elites/TideElites.cs`, tests in `TideEliteTest`. Five mini-boss fights, none of which follows the pilot; every attack is
+telegraphed with the shared thin drawing (`EliteMarks` rings, `EliteTelegraph` lanes, the strike glyphs; Tide's cue colours, no pink) and locked at the tell;
+the hazards are Tide's own (foam, sea mines, nets, thunder, pearls). A cast that lays things down lobs each onto a ringed spot that rides the board
+(`TideSpotAttack`). Non-armoured ones have 3 hearts (Riptide and Thunderfin `hurtHide`); Bathyscaphe and Pearl Warden are armoured (5). Drawn long side
+about 1.55 u (1.6 u for the heavy brains `deep` / `trawl` / `oyster`; before: 1.67-2.11 u), `cellWorldSize` and `hullRadius` scaled together.
+
+| Elite | brain / attack | dock | pattern |
+| --- | --- | --- | --- |
+| Riptide | `breaker` / `foam_wake` | trenchhatch | roams: rides a gentle wave line across the top third, in one side / out the other; rings on the water behind it, then foam banks are lobbed onto them (touch hurts, a shot pops one); hurt: two wakes a run |
+| Bathyscaphe | `deep` / `mine_chain` | rigdeck | roams: surfaces at a column at the top, rings a chain of sea mines down to the pilot's column and lays them one by one (each bursts into a cross of bolts); dives off the top, surfaces elsewhere; +1 mine per two hearts lost |
+| Trawler | `trawl` / `drag_net` | reefdock | roams: works one flank against a rail; drags a ringed row of nets in from it across the pilot's row (a gap of >= 1.5 u always left at the far end); leaves by its own side, returns on the opposite flank |
+| Thunderfin | `tempest` / `thunder_sweep` | ventstack | loiters on a small ellipse high over the board; glyphs under every column at once, then the columns strike one after another, sweeping the way it flies |
+| Pearl Warden | `oyster` / `pearl_spiral` | wreckbay | one of three stations at the top; two lanes mark an arc, a spiral of slow pearls sweeps it (gap left where the pilot stood at the lock); hops to another station after each cast, sweeping the other way |
+
+Tide art wiring (same PR): hull `_lights` strips and a six-cell damaged burn loop per elite (`<key>_damaged` + `<key>_lights_damaged` companions, cells 10..15,
+`EliteCells.damagedLoop`, the framework of Space/Ember); four launch-strip sites (floating carrier pad, lighthouse silo, submarine pen, wreck hull bay: docks
+atlas via `Art/Worlds/Tide/backdrop_v3~/src~/build_launch_atlas.py`, `TideTuning.LaunchCellAt`, `TideDirector.BringHome`) with homes: Riptide carrierpad/trenchhatch,
+Bathyscaphe subpen/rigdeck, Trawler wreckhull/reefdock, Thunderfin lighthouse/ventstack, Pearl Warden wreckhull/wreckbay. Codex's launch_v2 strips (closed, lamp,
+opening x2, open, closing, mist in the opening bay) are baked whole; while a strip is in its open cells an existing ambient loop (`steam_vent` / `smoke_b`) plays over the
+bay as an overlay (above the site, below the elite, faded in/out). Tests: `TideDockTest`.
+
+The first-generation Tide ids (`surfer` / `surf_dash`, `abyss` / `depth_charge`, `netter` / `net_cast`, `stormray` / `thunder_strike`, `pearler` /
+`pearl_curtain`) stay registered; Storm and Desert still use the base brains / attacks. Elite size floors are 1.5 x the flown hull (1.7 x heavy).
+
 ## Frost elites
 
 Branch `feat/elite-frost` (stacked on the Space elite PRs #82-#84). Like the Space four (above) the five Frost elites

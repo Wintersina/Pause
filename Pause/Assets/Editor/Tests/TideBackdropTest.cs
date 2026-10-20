@@ -948,7 +948,7 @@ public static class TideBackdropTest
             if (lamp != null && lamp.sprite != null && lamp.sprite.name == "lights_on") lit = true;
         }
         Check("the site stays shut while the elite waits, opens in the launch tell", shutWhileParked && opened && site.sr.sprite != closed);
-        Check("... its lamp row lights up", lit);
+        Check("... its lamp row lights up (a launch-strip site has none: its doors and smoke are the cue)", lit || TideTuning.HasLaunchStrip(site.kind));
         bool openLift = true;
         for (int i = 0; i < 30 * 4 && e != null && e.State == EliteState.LiftOff; i++)
         {

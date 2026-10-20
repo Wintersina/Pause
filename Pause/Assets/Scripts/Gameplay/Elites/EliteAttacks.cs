@@ -47,6 +47,7 @@ using UnityEngine;
 //   tender_rig    Glacier Tender: drone_deploy, its drones drop frost mines on the pilot's lane, and a cold fog cone when its shield is down
 //   icicle_barrage Whiteout Sentinel: plates, and once stripped a barrage of icicles down marked lanes with one safe lane
 // (Frost's five: FrostElites.cs)
+//   foam_wake / mine_chain / drag_net / thunder_sweep / pearl_spiral: Tide's own five -- Riptide, Bathyscaphe, Trawler, Thunderfin, Pearl Warden (TideElites.cs)
 //   surf_dash / depth_charge / net_cast / thunder_strike / pearl_curtain: Tide's Riptide, Bathyscaphe, Trawler, Thunderfin, Pearl Warden (TideElites.cs)
 //   log_roll / vine_lash / spore_burst / leaf_dive: Verdant's Timber Hauler, Thornlash, Sporebloom, Leafblade (VerdantElites.cs)
 //   rift_snipe / swoop_volley / ward_barrage / tow_sling: the Space four's own attacks (SpaceElites.cs): Rift Lancer, Orbit Reaver,
@@ -193,6 +194,7 @@ public static class EliteAttacks
                                             "ward_curtain", "crescent_volley", "rift_rail", "gravity_sling",
                                             "rift_snipe", "swoop_volley", "ward_barrage", "tow_sling",
                                             "floe_cast", "frost_bloom", "drone_deploy", "armour_shatter",
+                                            "foam_wake", "mine_chain", "drag_net", "thunder_sweep", "pearl_spiral",
                                             "ice_run", "floe_barge", "tender_rig", "icicle_barrage",
                                             "log_roll", "vine_lash", "spore_burst", "leaf_dive",
                                             "surf_dash", "depth_charge", "net_cast", "thunder_strike", "pearl_curtain" };
@@ -219,6 +221,11 @@ public static class EliteAttacks
             case "frost_bloom": return new FrostBloomAttack();
             case "drone_deploy": return new DroneDeployAttack();
             case "armour_shatter": return new ArmourShatterAttack();
+            case "foam_wake": return new FoamWakeAttack();
+            case "mine_chain": return new MineChainAttack();
+            case "drag_net": return new DragNetAttack();
+            case "thunder_sweep": return new ThunderSweepAttack();
+            case "pearl_spiral": return new PearlSpiralAttack();
             case "ice_run": return new IceRunAttack();
             case "floe_barge": return new FloeBargeAttack();
             case "tender_rig": return new TenderRigAttack();
