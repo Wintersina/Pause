@@ -1,7 +1,7 @@
 #!/bin/bash
 # unity-batch.sh -- run headless Unity batch jobs machine-wide: FIFO queue,
-# up to UNITY_BATCH_MAX_JOBS (2) MEDIUM jobs at once on different projects,
-# HEAVY (build) jobs alone.
+# up to UNITY_BATCH_MAX_JOBS (default 1: one Unity at a time) MEDIUM jobs at
+# once on different projects, HEAVY (build) jobs alone.
 #
 # Every agent / worktree runs Unity through this, so the Mac never has
 # several 2-5 GB batch editors resident at once (18 GB of RAM).
@@ -24,8 +24,8 @@
 #     tickets of dead pids are purged. Waiting prints
 #     "waiting: position N, holder pid ..." every ~60 s.
 #   * Class, from the -executeMethod argument:
-#       MEDIUM: AllTests.RunAll*, AllTests.RunSuites*, *Preview*  (test runs, each
-#               peaks ~0.8-2 GB, so 4 x 2 GB fits the budget)
+#       MEDIUM: AllTests.Run* (RunAll, RunSuites, RunFast),
+#               *Preview*  (test runs, each peaks ~0.8-2 GB)
 #       HEAVY: everything else (unknown methods too), 
 #              BuildScript.*, AndroidTextureDiet.*, EliteArtSync.*, TextureDiet*,
 #              names containing Build / ApplyAll / Sync, no -executeMethod at all,
@@ -47,8 +47,11 @@
 #         job seeing the lock without class "medium" (old-copy owner) waits like
 #         for a heavy holder. An old copy can therefore never run beside a new
 #         job. Only a tiny window while a crashed medium owner is repaired.
-#   * Memory guard (medium jobs): free+inactive memory >= 4 GB and swap used
-#     < 2 GB, else wait (re-checked every poll) and say why.
+#   * Memory guard (medium jobs): free+inactive memory >= MIN_FREE_MB (4 GB)
+#     is the real gate. Swap used is only a soft signal: it must be below
+#     MAX_SWAP_MB (4 GB) UNLESS free+inactive is >= 2x MIN_FREE_MB (macOS keeps
+#     GBs in swap long after pressure ends, which used to deadlock the queue
+#     while 6+ GB of RAM sat free). Else wait (re-checked every poll), say why.
 #   * Stagger: no two Unity processes start within 25 s of each other
 #     (Unity's licensing helper hangs when editors start together).
 #   * While waiting it also waits for any OTHER Unity -batchmode process (one
@@ -67,16 +70,15 @@
 #     log, a macOS crash report, and the log's tail on any failure.
 #   * exits with Unity's exit code (75 if it gave up waiting).
 #
-# Not added: -nographics (a dozen suites read rendered pixels back),
-# -buildTarget (switching the Library's target reimports every texture).
+# Not added in general: -nographics (suites read rendered pixels back), -buildTarget (switching the Library's target reimports every texture).
 #
 # Env: UNITY / UNITY_BATCH_UNITY_BIN (editor binary), UNITY_BATCH_LOCKDIR (old
 #      lock dir, alias UNITY_BATCH_LOCK), UNITY_BATCH_QUEUEDIR (queue + slots +
 #      mutex + stamp), UNITY_BATCH_LOGDIR (alias UNITY_BATCH_LOG_DIR),
 #      UNITY_BATCH_TIMEOUT (seconds to wait; 0 = forever, default),
 #      UNITY_BATCH_HEAVY=1, UNITY_BATCH_IGNORE_FOREIGN=1, UNITY_BATCH_RSS_LOG,
-#      UNITY_BATCH_MAX_JOBS (2, concurrent medium jobs), UNITY_BATCH_STAGGER (25), UNITY_BATCH_POLL (5), UNITY_BATCH_NOTE (60),
-#      UNITY_BATCH_MIN_FREE_MB (4096), UNITY_BATCH_MAX_SWAP_MB (2048),
+#      UNITY_BATCH_MAX_JOBS (1, concurrent medium jobs), UNITY_BATCH_STAGGER (25), UNITY_BATCH_POLL (5), UNITY_BATCH_NOTE (60),
+#      UNITY_BATCH_MIN_FREE_MB (4096), UNITY_BATCH_MAX_SWAP_MB (4096, ignored while free+inactive >= 2x MIN_FREE_MB),
 #      UNITY_BATCH_FAKE_FREE_MB / UNITY_BATCH_FAKE_SWAP_MB (tests),
 #      UNITY_BATCH_SKIP_HELPER_CLEANUP=1 (tests: never touch real helpers).
 
@@ -89,12 +91,12 @@ TIMEOUT="${UNITY_BATCH_TIMEOUT:-0}"
 IGNORE_FOREIGN="${UNITY_BATCH_IGNORE_FOREIGN:-0}"
 LOG_DIR="${UNITY_BATCH_LOGDIR:-${UNITY_BATCH_LOG_DIR:-/tmp/pause-unity-logs}}"
 RSS_LOG="${UNITY_BATCH_RSS_LOG:-}"
-MAX_JOBS="${UNITY_BATCH_MAX_JOBS:-2}"
+MAX_JOBS="${UNITY_BATCH_MAX_JOBS:-1}"
 STAGGER="${UNITY_BATCH_STAGGER:-25}"
 POLL="${UNITY_BATCH_POLL:-5}"
 NOTE_EVERY="${UNITY_BATCH_NOTE:-60}"
 MIN_FREE_MB="${UNITY_BATCH_MIN_FREE_MB:-4096}"
-MAX_SWAP_MB="${UNITY_BATCH_MAX_SWAP_MB:-2048}"
+MAX_SWAP_MB="${UNITY_BATCH_MAX_SWAP_MB:-4096}"
 SKIP_HELPERS="${UNITY_BATCH_SKIP_HELPER_CLEANUP:-0}"
 RUNNING="$QUEUE/running"
 MUTEX="$QUEUE/.mutex"
@@ -143,7 +145,7 @@ classify() {
         "") echo heavy ;;
         BuildScript.*|AndroidTextureDiet.*|EliteArtSync.*|TextureDiet*) echo heavy ;;
         *Build*|*ApplyAll*|*Sync*) echo heavy ;;
-        AllTests.RunAll*|AllTests.RunSuites*|*Preview*) echo medium ;;
+        AllTests.Run*|*Preview*) echo medium ;;
         *) echo heavy ;;
     esac
 }
@@ -333,7 +335,7 @@ try_start() {
     if [ -z "$reason" ] && [ "$class" = medium ]; then
         fr="$(free_mb)"; sw="$(swap_mb)"; fr="${fr:-999999}"; sw="${sw:-0}"
         if [ "$fr" -lt "$MIN_FREE_MB" ]; then reason="memory guard: only ${fr} MB free+inactive (need ${MIN_FREE_MB} MB)"
-        elif [ "$sw" -ge "$MAX_SWAP_MB" ]; then reason="memory guard: swap used ${sw} MB (limit ${MAX_SWAP_MB} MB)"; fi
+        elif [ "$sw" -ge "$MAX_SWAP_MB" ] && [ "$fr" -lt $((MIN_FREE_MB * 2)) ]; then reason="memory guard: swap used ${sw} MB (limit ${MAX_SWAP_MB} MB, ignored once free+inactive >= $((MIN_FREE_MB * 2)) MB; now ${fr} MB)"; fi
     fi
     if [ -n "$reason" ]; then
         why="position $my_pos, holder pid${holders:- none}: $reason"; return 1
