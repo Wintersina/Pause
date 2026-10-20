@@ -99,6 +99,14 @@ public class EnemyBrain : MonoBehaviour
         return Mathf.Max(stationY, Mathf.Min(need, cap));
     }
 
+    // The hold row clamped into the fighting zone (FightZone): the drawing's top and the pattern's upward reach stay under the band.
+    // `floor`: the standoff above a ship parked high (HostileReach.StandoffFor): the player's reach reaches into the band's edge,
+    // so a pilot can never be both clear of the hull and under the band; it stands off above the ship rather than on it.
+    public static float ZoneHoldY(float holdY, float drawnHalfY, float up, float floor = float.NegativeInfinity)
+    {
+        return Mathf.Max(Mathf.Min(holdY, FightZone.Top(drawnHalfY) - up), floor);
+    }
+
     // The lowest a pilot can hold straight above a ship at `shipY` and still
     // start a fair windup (MinFireDistance + HoldMargin, x view).
     public static float FireNeed(float shipY, float view) => shipY + (MinFireDistance + HoldMargin) * view;
@@ -621,6 +629,9 @@ public class EnemyBrain : MonoBehaviour
                 holdY = rising ? riseHold : reachHold;
             }
         }
+        // never held above the fighting zone (under the HUD's top band, its whole drawing and its pattern's reach included)
+        // (only where the HUD band is laid out, like every other band rule here: the batch tests' boards have none)
+        if (!descends && PlayField.Live.hasBand) holdY = ZoneHoldY(holdY, drawnHalfY, PatternUp(b), HostileReach.Enabled && t != null ? t.position.y + HostileReach.StandoffFor(drawnHalfY) + PatternDown(b) : float.NegativeInfinity);
 
         switch (Stage)
         {

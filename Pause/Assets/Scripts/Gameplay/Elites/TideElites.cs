@@ -195,7 +195,7 @@ public class BreakerBrain : EliteBrain
     // The top third of the view, under the very top, leaving room for the wave.
     public static void Band(EliteDef def, out float lo, out float hi)
     {
-        hi = EliteSystem.ViewTop - def.hullRadius - .5f - Amplitude;
+        hi = Mathf.Min(EliteSystem.ViewTop - def.hullRadius - .5f - Amplitude, FightZone.Top(FightZone.HalfOf(def)));
         lo = Mathf.Min(hi, EliteSystem.ViewTop - (EliteSystem.ViewTop - EliteSystem.ViewBottom) / 3f + def.hullRadius + Amplitude);
     }
 
@@ -311,7 +311,7 @@ public class DeepBrain : EliteBrain
     public int Casts => casts;
     public int Surfacings { get; private set; }
     public int CastsPerSurface => 1 + (ship != null && ship.Hearts <= 3 ? 1 : 0);
-    public float Height => ship.ReachY(EliteSystem.ViewTop - def.topMargin);
+    public float Height => ship.ZoneY(ship.ReachY(EliteSystem.ViewTop - def.topMargin));
 
     public DeepBrain() { Id = "deep"; }
 
@@ -445,7 +445,7 @@ public class TrawlBrain : EliteBrain
     public int Visits { get; private set; }
     public int CastsPerVisit => 1 + (ship != null && ship.Hearts <= 1 ? 1 : 0);
     public float FlankX => side * Mathf.Max(0f, EliteSystem.RailEdge - def.hullRadius - .25f);
-    float FlankY => ship.ReachY(EliteSystem.ViewTop - def.topMargin - .6f) + Mathf.Sin(Clock * .7f) * .45f;
+    float FlankY => ship.ZoneY(ship.ReachY(EliteSystem.ViewTop - def.topMargin - .6f)) + Mathf.Sin(Clock * .7f) * .45f;
 
     public TrawlBrain() { Id = "trawl"; }
 
@@ -565,7 +565,7 @@ public class TempestBrain : EliteBrain
     public int SweepDir => Mathf.Sin(angle) > 0f ? -1 : 1;   // (x = cos: it moves left while sin > 0)
     public float Angle => angle;
     public float Rx => Mathf.Max(.4f, TideFlight.Edge(def, .6f) * .8f);
-    public float Height => ship.ReachY(EliteSystem.ViewTop - def.topMargin);
+    public float Height => ship.ZoneY(ship.ReachY(EliteSystem.ViewTop - def.topMargin));
 
     public TempestBrain() { Id = "tempest"; }
 
@@ -671,7 +671,7 @@ public class OysterBrain : EliteBrain
     public int Station => station;
     public int Hops { get; private set; }
     public bool Settled => settled > 0f;
-    public float Height => ship.ReachY(EliteSystem.ViewTop - def.topMargin);
+    public float Height => ship.ZoneY(ship.ReachY(EliteSystem.ViewTop - def.topMargin));
 
     public OysterBrain() { Id = "oyster"; }
 

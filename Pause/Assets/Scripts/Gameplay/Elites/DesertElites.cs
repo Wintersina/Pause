@@ -45,7 +45,7 @@ public static class DesertFlight
     public static bool OffBoard(EliteDef def, Vector2 p) =>
         Mathf.Abs(p.x) > OffX(def) - .25f || p.y > AboveY(def) - .2f || p.y < FrostFlight.BelowY(def) + .2f;
     // The world y of the top of an elite's station (never above the player's reach).
-    public static float Height(EliteShip ship, EliteDef def) => ship.ReachY(EliteSystem.ViewTop - def.topMargin);
+    public static float Height(EliteShip ship, EliteDef def) => ship.ZoneY(ship.ReachY(EliteSystem.ViewTop - def.topMargin));
 }
 
 // An attack that LAYS things onto ringed spots: the spots (Plan) are drawn as thin blinking rings from the first frame of the tell
@@ -233,7 +233,7 @@ public class BurrowerBrain : DesertPassBrain
     public override float PassScale => 1.25f;
     protected override void Band(out float lo, out float hi)
     {
-        hi = EliteSystem.ViewTop - def.hullRadius - .9f;
+        hi = Mathf.Min(EliteSystem.ViewTop - def.hullRadius - .9f, FightZone.Top(FightZone.HalfOf(def)));
         lo = hi - 1.0f;
     }
     public override Vector2 PathAt(float along) => new Vector2(start.x + dirX * along, y0 + Ripple * Mathf.Sin(along * Wave));
@@ -398,7 +398,7 @@ public class GlintBrain : DesertPassBrain
     public override int CastsAllowed => 1 + (ship != null && ship.Hearts <= 1 ? 1 : 0);
     protected override void Band(out float lo, out float hi)
     {
-        hi = EliteSystem.ViewTop - def.hullRadius - .6f;
+        hi = Mathf.Min(EliteSystem.ViewTop - def.hullRadius - .6f, FightZone.Top(FightZone.HalfOf(def)));
         lo = hi - .8f;
     }
 

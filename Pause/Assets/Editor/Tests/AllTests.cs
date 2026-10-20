@@ -38,6 +38,11 @@ public static class AllTests
 {
     // One line per suite (merge-friendly); order doesn't matter, each suite
     // cleans up after itself through TestHarness.Sandbox.
+    static readonly HashSet<string> TimingPinned = new HashSet<string>
+    {
+        "EliteTest", "EliteFoundationTest", "EliteEvasionTest", "SpaceEliteTest", "FrostEliteTest", "TideEliteTest", "EmberEliteTest", "VerdantEliteTest", "StormEliteTest", "DesertEliteTest",
+    };
+
     static readonly (string name, Func<int> execute)[] Suites =
     {
         ("WorldHazardsTest", WorldHazardsTest.Execute),
@@ -138,6 +143,7 @@ public static class AllTests
         ("PrivacyLinkTest", PrivacyLinkTest.Execute),
         ("EliteTest", EliteTest.Execute),
         ("EliteFoundationTest", EliteFoundationTest.Execute),
+        ("EliteFightZoneTest", EliteFightZoneTest.Execute),
         ("EliteEvasionTest", EliteEvasionTest.Execute),
         ("EliteLockOnTest", EliteLockOnTest.Execute),
         ("ShipTierTest", ShipTierTest.Execute),
@@ -411,6 +417,7 @@ public static class AllTests
                 TestHarness.BeginRun();
                 Debug.Log("[ALL] shared art warmed in " + warm.Elapsed.TotalSeconds.ToString("F1") + "s");
             }
+            float liveAttackRate = EliteTuning.AttackRate;
             foreach (var suite in selected)
             {
                 QuietTraces();
@@ -419,6 +426,8 @@ public static class AllTests
                 lastLogAt = 0;
                 suiteClock.Restart();
                 int returned;
+                // (suites that pin the elites' exact timing run at the old attack cadence; the cadence itself is EliteFightZoneTest's)
+                EliteTuning.AttackRate = TimingPinned.Contains(suite.name) ? 1f : liveAttackRate;
                 try { returned = suite.execute(); }
                 catch (Exception e)
                 {
@@ -427,6 +436,7 @@ public static class AllTests
                     returned = 1;
                 }
                 suiteClock.Stop();
+                EliteTuning.AttackRate = liveAttackRate;
                 TestHarness.FlushGpu();   // hand back the GPU memory of what the suite destroyed
                 double seconds = suiteClock.Elapsed.TotalSeconds;
                 int failures = Math.Max(returned, loggedFails);

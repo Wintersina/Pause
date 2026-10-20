@@ -230,6 +230,7 @@ public static class EliteFoundationTest
 
     static void EscapeIntoDock()
     {
+        // (an escape no longer flies home to its dock: it spools its engines and boosts out of the top or the nearest side)
         Fresh(.05f);
         var site = Body(new Vector2(2f, 3f), LandingKind.Station, 9);
         var dir = new GameObject("~Dir").AddComponent<EliteDirector>();
@@ -242,25 +243,13 @@ public static class EliteFoundationTest
         s.EngageLeft = 0f;
         Vector2 goal = Vector2.zero;
         Step(1.5f, () => { if (s != null && s.State == EliteState.Retreat) goal = s.RetreatGoal; });
-        Check("it heads for its dock (goal " + goal + ")", Vector2.Distance(goal, (Vector2)site.anchor.position) < .01f || !Alive(s));
+        bool out_ = goal.y > EliteSystem.ViewTop || Mathf.Abs(goal.x) > EliteSystem.ViewHalfWidth;
+        Check("it heads out of the screen, not for its dock (goal " + goal + ")", out_ || !Alive(s));
         Step(15f);
-        Check("it reaches the dock and is removed, the dock not flaring", !Alive(s) && EliteSystem.Fx.DockFlares == flares);
-        // the dock scrolled away: it leaves off the top instead
-        var s2 = dir.Spawn(Space("eventide_bastion"), Body(new Vector2(2f, 3f), LandingKind.Station, 10), 2.6f);
-        s2.ForceLiftOff();
-        Step(5f);
-        s2.EngageLeft = 0f;
-        Step(.3f);
-        s2.Site.anchor.position = new Vector3(2f, EliteSystem.ViewBottom - 3f, 0f);
-        Step(.1f);
-        Check("the dock gone, the goal is off the top", s2.State != EliteState.Retreat || s2.RetreatGoal.y > EliteSystem.ViewTop);
-        Step(20f);
-        Check("... and it leaves", !Alive(s2));
+        Check("it leaves and is removed, the dock not flaring", !Alive(s) && EliteSystem.Fx.DockFlares == flares);
         Object.DestroyImmediate(dir.gameObject);
         LandingSites.Override = null;
     }
-
-    // ---- 4. the thinned board ------------------------------------------------------
 
     static void Thinning()
     {

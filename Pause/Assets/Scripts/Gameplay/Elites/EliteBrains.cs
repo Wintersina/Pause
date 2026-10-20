@@ -350,7 +350,7 @@ public class SiegeBrain : EliteBrain
     public SiegeBrain() { Id = "siege"; }
 
     // Near the top of the view -- no higher than the player's reach (EliteShip.ReachY).
-    public float Height => ship.ReachY(EliteSystem.ViewTop - def.topMargin);
+    public float Height => ship.ZoneY(ship.ReachY(EliteSystem.ViewTop - def.topMargin));
 
     public override Vector2 Goal(Vector2 seen, float dt)
     {
@@ -389,7 +389,7 @@ public class WardenBrain : EliteBrain
         {
             float edge = EliteSystem.RailEdge - def.hullRadius - .45f;
             // (high up -- no higher than the player's reach: EliteShip.ReachY)
-            return new Vector2(Mathf.Clamp(side * def.laneOffset, -edge, edge), ship.ReachY(EliteSystem.ViewTop - def.topMargin));
+            return new Vector2(Mathf.Clamp(side * def.laneOffset, -edge, edge), ship.ZoneY(ship.ReachY(EliteSystem.ViewTop - def.topMargin)));
         }
     }
 

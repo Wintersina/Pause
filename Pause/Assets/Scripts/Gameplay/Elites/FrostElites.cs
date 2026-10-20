@@ -93,7 +93,7 @@ public class IcebreakerBrain : EliteBrain
         ready = 0f;
     }
 
-    public Vector2 ReadyPoint => new Vector2(lane, EliteSystem.ViewTop - def.hullRadius - .35f);
+    public Vector2 ReadyPoint => new Vector2(lane, ship.ZoneY(EliteSystem.ViewTop - def.hullRadius - .35f));
 
     public override Vector2 Goal(Vector2 seen, float dt)
     {
@@ -133,7 +133,7 @@ public class IcebreakerBrain : EliteBrain
         lastLane = lane;
         pairLeft--;
         stage = Stage.Away;
-        wait = pairLeft > 0 ? PairGap : PauseSeconds;
+        wait = pairLeft > 0 ? PairGap : EliteTuning.Gap(PauseSeconds);
     }
 }
 
@@ -148,7 +148,7 @@ public class BargeBrain : EliteBrain
     public float Side => side;
     public bool Crossing => crossing;
     public int Crossings { get; private set; }
-    public float Height => ship.ReachY(EliteSystem.ViewTop - def.topMargin);
+    public float Height => ship.ZoneY(ship.ReachY(EliteSystem.ViewTop - def.topMargin));
 
     public BargeBrain() { Id = "barge"; }
 
@@ -219,7 +219,7 @@ public class HopperBrain : EliteBrain
     {
         float edge = FrostFlight.Edge(def, .5f);
         float y = Mathf.Min(f.y + def.keepDistance, EliteSystem.ViewTop - def.hullRadius - 1f);
-        return new Vector2(Columns[Mathf.Clamp(i, 0, Columns.Length - 1)] * edge, ship.ReachY(y));
+        return new Vector2(Columns[Mathf.Clamp(i, 0, Columns.Length - 1)] * edge, ship.ZoneY(ship.ReachY(y)));
     }
 
     // Where it comes in from for the perch it is going to (off the view).
@@ -323,7 +323,7 @@ public class CarrierBrain : EliteBrain
     public bool Fleeing => fleeing;
     public int Flights { get; private set; }
     public float Amplitude => Mathf.Max(0f, Mathf.Min(def.laneOffset, FrostFlight.Edge(def, .4f)));
-    public float Height => ship.ReachY(EliteSystem.ViewTop - def.topMargin);
+    public float Height => ship.ZoneY(ship.ReachY(EliteSystem.ViewTop - def.topMargin));
 
     public CarrierBrain() { Id = "carrier"; }
 
@@ -374,7 +374,7 @@ public class PatrolBrain : EliteBrain
     float side = 1f, rest;
     public float Side => side;
     public int Legs { get; private set; }
-    public float Height => ship.ReachY(EliteSystem.ViewTop - def.topMargin);
+    public float Height => ship.ZoneY(ship.ReachY(EliteSystem.ViewTop - def.topMargin));
     public float EndX => side * FrostFlight.Edge(def, EndMargin);
 
     public PatrolBrain() { Id = "patrol"; }
@@ -493,7 +493,7 @@ public class FloeCastAttack : EliteAttack
         int n = Count;
         settleAt = (n - 1) * SlabGap + def.hazardSeconds;
         // the row: lobAhead in front of the pilot once the slabs are out (it rides the board meanwhile)
-        row.y = Mathf.Min(ship.AimSeen.y + def.lobAhead + EliteSystem.Scroll * settleAt, EliteSystem.ViewTop - .6f);
+        row.y = Mathf.Min(ship.AimSeen.y + def.lobAhead + EliteSystem.Scroll * settleAt, Mathf.Min(EliteSystem.ViewTop - .6f, ship.ZoneTop));
         // they all drift the same way: toward the middle from the gap's side
         sideways = (Spot(gap).x > 0f ? -1f : 1f) * def.hazardSpeed;
     }
@@ -841,7 +841,7 @@ public class DroneDeployAttack : EliteAttack
         sg.transform.SetParent(ship.transform, false);
         shield = sg.AddComponent<SpriteRenderer>();
         shield.sprite = EliteFxArt.Ring;
-        shield.sortingOrder = EliteShip.PlayOrder + 3;
+        shield.sortingOrder = EliteShip.PlayOrder + 2;
         sg.transform.localScale = Vector3.one * def.hullRadius * 2.9f / Mathf.Max(.01f, EliteFxArt.Ring.bounds.size.x);
         shield.enabled = false;
     }
@@ -1502,7 +1502,7 @@ public class IcicleBarrageAttack : ArmourShatterAttack
 
     void ShowGlyphs(bool fast)
     {
-        float top = EliteSystem.ViewTop - .6f, low = EliteSystem.ViewBottom + 1.1f;
+        float top = Mathf.Min(EliteSystem.ViewTop - .6f, ship.ZoneTop), low = EliteSystem.ViewBottom + 1.1f;
         for (int c = 0; c < columns; c++)
         {
             for (int g = 0; g < Glyphs; g++)
