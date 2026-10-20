@@ -1197,6 +1197,7 @@ public class CodexPanel : MonoBehaviour
         // The codex owns Back/Escape while it is up (BackNavigator layer), so
         // the home screen's back-to-quit never sees those presses.
         BackNavigator.Register(this, OnBackPressed);
+        CodexTheme.Open();
 
         inDetail = false;
         detailEntry = null;
@@ -1214,7 +1215,8 @@ public class CodexPanel : MonoBehaviour
     {
         if (phase == Phase.Hidden || phase == Phase.Closing) return;
         if (CodexBackdropViewer.IsOpen) CodexBackdropViewer.Current.Close();
-        CodexMusicPlayer.Stop();   // the menu music comes back as the codex closes
+        CodexMusicPlayer.Stop();
+        CodexTheme.Close();   // the codex song ends and the menu music comes back as the codex closes
         phase = Phase.Closing;
         phaseAt = Time.unscaledTime;
     }
@@ -1887,6 +1889,7 @@ public class CodexPanel : MonoBehaviour
             {
                 phase = Phase.Hidden;
                 CodexMusicPlayer.Stop();
+                CodexTheme.Close();
                 HideWorldBackdrops();   // the thumbnails go with the panel
                 StopAnimations();
                 BackNavigator.Unregister(this);
