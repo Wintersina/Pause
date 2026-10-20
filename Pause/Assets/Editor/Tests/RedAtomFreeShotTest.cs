@@ -176,13 +176,16 @@ public static class RedAtomFreeShotTest
         switch (l.attack)
         {
             case ShipAttack.ScreenClear: return ShipAttackRunner.QuickVolleyShots(inView);
-            case ShipAttack.Ricochet: return 1;
-            case ShipAttack.SeekerEyes:
             case ShipAttack.ParagonBarrage: return l.shots;
+            case ShipAttack.ArcaneEye:
+            case ShipAttack.HeatWave:
+            case ShipAttack.BoomerangStar:
+            case ShipAttack.ProximityMines:
+            case ShipAttack.AbductHurl:
+            case ShipAttack.GaleWings:
             case ShipAttack.RailSlug:
             case ShipAttack.ChainLightning:
             case ShipAttack.Blowtorch:
-            case ShipAttack.TractorBeam:
             case ShipAttack.OrbitDisc:
                 return 0;
             default: return Mathf.Max(1, l.shots);
@@ -190,7 +193,7 @@ public static class RedAtomFreeShotTest
     }
 
     static bool Held(ShipAttack a) =>
-        a == ShipAttack.Blowtorch || a == ShipAttack.TractorBeam || a == ShipAttack.OrbitDisc;
+        a == ShipAttack.Blowtorch || a == ShipAttack.OrbitDisc;
 
     // ---- cases ---------------------------------------------------------
 
@@ -255,6 +258,13 @@ public static class RedAtomFreeShotTest
                     Steps(c.Runner, 1f);
                     int k = ShipAttackHits.Kills - kills;
                     count = k >= 1 && k <= l.maxHits;
+                }
+                else if (ShipAttackRunner.IsV3(l.attack))
+                {
+                    // the new verbs launch no projectiles; they run themselves out
+                    int frames = 0;
+                    while (c.Runner.ActiveRuns > 0 && frames < 1500) { c.Runner.Step(.02f); frames++; }
+                    count = launchedNow == 0 && AttackProjectile.LaunchCount == launches && c.Runner.ActiveRuns == 0;
                 }
                 else if (Held(l.attack))
                 {
@@ -388,7 +398,7 @@ public static class RedAtomFreeShotTest
     static void PausedAndDeadBehaviour()
     {
         FreshScene();
-        var r = Ship(14);
+        var r = Ship(1);
         var c = r.c;
         SetTimer(c, 20f);
         Time.timeScale = 0f;

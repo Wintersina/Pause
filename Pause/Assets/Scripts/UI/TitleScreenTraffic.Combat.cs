@@ -91,9 +91,11 @@ public partial class TitleScreenTraffic
         public float angle;
         public readonly Flyer[] hit = new Flyer[8];
         public int hitCount;
+        public readonly Vector2[] pts = new Vector2[8];   // mine spots, shove directions
+        public readonly Fx[] marks = new Fx[4];             // the eye's marks, the mines
     }
 
-    public enum BoltKind { Straight, Homing, Ricochet, Javelin, Fireball }
+    public enum BoltKind { Straight, Homing, Javelin }
 
     class Bolt
     {
@@ -318,6 +320,7 @@ public partial class TitleScreenTraffic
         u.l = ShipLoadoutTable.For(f.id);
         u.t = 0f; u.next = 0f; u.fired = 0; u.hops = 0; u.hitCount = 0; u.angle = 90f;
         u.held = u.disc = null;
+        for (int i = 0; i < u.marks.Length; i++) u.marks[i] = null;
         f.aim = Nearest(f, Nose(f), 5f * Mathf.Max(.6f, f.scale), true);
         // the tell: the attack's own burst flaring at the nose
         Play(FxSource.Burst, f.id, Nose(f), Vector3.one * .55f * f.scale, f.heading * Mathf.Rad2Deg - 90f, ShipFxArt.BurstTicks,
@@ -354,6 +357,7 @@ public partial class TitleScreenTraffic
         if (u.held != null) StopFx(u.held);
         if (u.disc != null) StopFx(u.disc);
         u.held = u.disc = null;
+        for (int i = 0; i < u.marks.Length; i++) if (u.marks[i] != null) { StopFx(u.marks[i]); u.marks[i] = null; }
         u.on = false;
         if (u.owner != null) { u.owner.ulting = false; u.owner.aim = null; }
         u.owner = null;
@@ -414,15 +418,71 @@ public partial class TitleScreenTraffic
                     Done(u);
                 }
                 break;
-            case ShipAttack.SolarFireball:
-                Launch(f, BoltKind.Fireball, nose, Dir(f.heading), Mathf.Max(2.2f, l.speed * .6f * s), .28f * s, .72f * s, null);
-                Done(u);
+            case ShipAttack.ArcaneEye:
+                {
+                    // the eye opens ahead and runes mark up to three ships; they blow up shortly after
+                    u.held = Play(FxSource.Loop, f.id, nose, Vector3.one * .6f * s, deg, ShipFxArt.LoopTicks, true, 1.2f, f,
+                                  ReferenceHull * s * .5f + .4f * s, f.layer, 1);
+                    int n = Pick(f, nose, 6f * s + 2f, Mathf.Min(3, l.shots));
+                    for (int i = 0; i < n; i++)
+                    {
+                        u.hit[i] = picks[i];
+                        Play(FxSource.Loop, f.id, picks[i].pos, Vector3.one * .4f * s, 0f, ShipFxArt.LoopTicks, true, .9f, null, 0f, f.layer, 3);
+                    }
+                    u.hitCount = n;
+                }
                 break;
-            case ShipAttack.SeekerEyes:
+            case ShipAttack.HeatWave:
+                u.point = new Vector2(nose.y, nose.y);   // where it started, where it is
+                u.held = Play(FxSource.Loop, f.id, new Vector2(view.center.x, nose.y), new Vector3(view.width, .9f * s, 1f), 0f,
+                              ShipFxArt.LoopTicks, true, 0f, null, 0f, f.layer, 1);
+                break;
+            case ShipAttack.BoomerangStar:
+                u.held = Play(FxSource.Loop, f.id, nose, Vector3.one * .8f * s, 0f, ShipFxArt.LoopTicks, true, 0f, null, 0f, f.layer, 3);
+                break;
+            case ShipAttack.ProximityMines:
+                {
+                    int n = Mathf.Min(3, l.shots);
+                    for (int i = 0; i < n; i++)
+                    {
+                        float a = (i - (n - 1) * .5f) * 36f;
+                        u.pts[i] = nose + Rotate(Dir(f.heading), -a * Mathf.Deg2Rad) * ((2f + 1.2f * i) * s);
+                        u.marks[i] = Play(FxSource.Loop, f.id, u.pts[i], Vector3.one * .5f * s, 0f, ShipFxArt.LoopTicks, true, 0f, null, 0f, f.layer, 1);
+                    }
+                    u.hitCount = n;
+                }
+                break;
+            case ShipAttack.AbductHurl:
+                {
+                    var grabbed = Nearest(f, nose, 8f * s + 1f, true);
+                    if (grabbed == null) { Done(u); break; }
+                    u.hit[0] = grabbed;
+                    u.hitCount = 1;
+                    Vector2 d = grabbed.pos - nose;
+                    Play(FxSource.Loop, f.id, (nose + grabbed.pos) * .5f, new Vector3(.35f * s, Mathf.Max(.4f, d.magnitude), 1f),
+                         Mathf.Atan2(d.y, d.x) * Mathf.Rad2Deg - 90f, ShipFxArt.LoopTicks, true, .5f, null, 0f, f.layer, 1);
+                }
+                break;
+            case ShipAttack.GaleWings:
+                {
+                    u.held = Play(FxSource.Loop, f.id, nose + Dir(f.heading) * (1.2f * s), new Vector3(3.2f * s, .6f * s, 1f), deg,
+                                  ShipFxArt.LoopTicks, true, .8f, f, ReferenceHull * s * .5f + 1.2f * s, f.layer, 1);
+                    // ships in the cone are shoved up and out (Step)
+                    int n = Pick(f, nose, 5f * s, 4);
+                    Vector2 fwd = Dir(f.heading);
+                    for (int i = 0; i < n; i++)
+                    {
+                        Vector2 away = (picks[i].pos - nose).normalized;
+                        u.hit[i] = picks[i];
+                        u.pts[i] = (away * .9f + fwd).normalized;
+                    }
+                    u.hitCount = n;
+                }
+                break;
             case ShipAttack.ParagonBarrage:
                 {
-                    // (Paragon's barrage is eight lances in the game; the title sky flies three, like the eyes)
-                    int shots = l.attack == ShipAttack.ParagonBarrage ? Mathf.Min(l.shots, 3) : l.shots;
+                    // (Paragon's barrage is eight lances in the game; the title sky flies three)
+                    int shots = Mathf.Min(l.shots, 3);
                     int n = Pick(f, nose, 6f * s + 2f, shots);
                     for (int i = 0; i < shots; i++)
                     {
@@ -433,41 +493,12 @@ public partial class TitleScreenTraffic
                     Done(u);
                 }
                 break;
-            case ShipAttack.Ricochet:
-                {
-                    var first = Nearest(f, nose, 99f, false);
-                    var b = Launch(f, BoltKind.Ricochet, nose, Dir(f.heading), Mathf.Max(3f, l.speed * .55f * s),
-                                   .18f * s, .5f * s, first);
-                    if (b != null) b.maxHops = Mathf.Min(3, l.maxHits);
-                    Done(u);
-                }
-                break;
-            case ShipAttack.FeatherFan:
-                for (int i = 0; i < l.shots; i++)
-                {
-                    float a = l.shots <= 1 ? 0f : -l.width * .5f + l.width * i / (l.shots - 1);
-                    Launch(f, BoltKind.Straight, nose, Rotate(Dir(f.heading), -a * Mathf.Deg2Rad),
-                           Mathf.Max(3f, l.speed * .55f * s), .16f * s, .44f * s, null);
-                }
-                Done(u);
-                break;
             case ShipAttack.Blowtorch:
                 {
                     float range = l.range * .7f * s;
                     float halfWidth = Mathf.Tan(l.width * Mathf.Deg2Rad) * range;
                     u.held = Play(FxSource.Loop, f.id, nose, new Vector3(halfWidth * 2f * 1.15f, range, 1f), deg,
                                   ShipFxArt.LoopTicks, true, l.duration * .8f, f, ReferenceHull * s * .5f + range * .5f, f.layer, 1);
-                }
-                break;
-            case ShipAttack.TractorBeam:
-                {
-                    Vector2 d = Dir(f.heading);
-                    float len = Mathf.Min(RayExit(nose, d) + .3f, 5.5f * s + 1f);
-                    u.point = new Vector2(len, 0f);
-                    u.held = Play(FxSource.Loop, f.id, nose, new Vector3(l.width * s * 2f * 1.5f, len, 1f), deg,
-                                  ShipFxArt.LoopTicks, true, l.duration * .8f, f, ReferenceHull * s * .5f + len * .5f, f.layer, 1);
-                    Play(FxSource.Burst, f.id, nose, Vector3.one * .9f * s, deg, ShipFxArt.BurstTicks, false, 0f, f,
-                         ReferenceHull * s * .5f, f.layer, 3);
                 }
                 break;
             case ShipAttack.OrbitDisc:
@@ -508,24 +539,6 @@ public partial class TitleScreenTraffic
                     u.fired++;
                 }
                 if (u.fired >= l.shots) Done(u);
-                break;
-
-            case ShipAttack.Gatling:
-                {
-                    int shots = Mathf.Min(10, l.shots);
-                    float every = l.duration / Mathf.Max(1, shots);
-                    while (u.fired < shots && u.t >= u.fired * every)
-                    {
-                        float a = Mathf.Sin(u.fired * 2.4f) * l.width;
-                        Vector2 nose = Nose(f);
-                        Launch(f, BoltKind.Straight, nose, Rotate(Dir(f.heading), -a * Mathf.Deg2Rad),
-                               Mathf.Max(3.5f, l.speed * .5f * s), .13f * s, .32f * s, null);
-                        Play(FxSource.Burst, f.id, nose, Vector3.one * .5f * s, f.heading * Mathf.Rad2Deg - 90f - a,
-                             ShipFxArt.BurstTicks, false, 0f, f, ReferenceHull * s * .5f, f.layer, 3);
-                        u.fired++;
-                    }
-                    if (u.fired >= shots) Done(u);
-                }
                 break;
 
             case ShipAttack.SkyJavelins:
@@ -571,9 +584,116 @@ public partial class TitleScreenTraffic
                 }
                 break;
 
-            case ShipAttack.TractorBeam:
-                KillInLine(f, Nose(f), Dir(f.heading), u.point.x, l.width * s);
-                if (u.held == null || !u.held.on) Done(u);
+            case ShipAttack.ArcaneEye:
+                if (u.t >= .9f)
+                {
+                    for (int k = 0; k < u.hitCount; k++)
+                        if (Shootable(u.hit[k], f))
+                        {
+                            Play(FxSource.Burst, f.id, u.hit[k].pos, Vector3.one * .9f * s, 0f, ShipFxArt.BurstTicks, false, 0f, null, 0f, f.layer, 3);
+                            ShootDown(u.hit[k], (u.hit[k].pos - f.pos).normalized, f.id, f.layer);
+                        }
+                    Done(u);
+                }
+                break;
+
+            case ShipAttack.HeatWave:
+                {
+                    float y = u.point.y + 9f * s * dt;
+                    u.point.y = y;
+                    if (u.held != null && u.held.on) u.held.sr.transform.position = new Vector3(view.center.x, y, 0f);
+                    for (int i = 0; i < pool.Length; i++)
+                    {
+                        var t = pool[i];
+                        if (!Shootable(t, f) || t.pos.y > y + .3f * s || t.pos.y < u.point.x - .2f) continue;
+                        bool seen = false;
+                        for (int k = 0; k < u.hitCount; k++) seen |= u.hit[k] == t;
+                        if (seen) continue;
+                        if (u.hitCount < u.hit.Length) u.hit[u.hitCount++] = t;
+                        ShootDown(t, Vector2.up, f.id, f.layer);
+                    }
+                    if (y > view.yMax + .6f) { if (u.held != null) StopFx(u.held); Done(u); }
+                }
+                break;
+
+            case ShipAttack.BoomerangStar:
+                {
+                    float k = u.t / 1.2f;
+                    float th = k * 2f * Mathf.PI;
+                    Vector2 at = Nose(f) + new Vector2(1.3f * s * Mathf.Sin(th), 2.2f * s * (1f - Mathf.Cos(th)));
+                    if (u.held != null && u.held.on) u.held.sr.transform.position = new Vector3(at.x, at.y, 0f);
+                    KillInRadius(f, at, .4f * s);
+                    if (k >= 1f) { if (u.held != null) StopFx(u.held); Done(u); }
+                }
+                break;
+
+            case ShipAttack.ProximityMines:
+                {
+                    int live = 0;
+                    for (int i = 0; i < u.hitCount; i++)
+                    {
+                        if (u.marks[i] == null || !u.marks[i].on) continue;
+                        bool trip = false;
+                        for (int k = 0; k < pool.Length && !trip; k++)
+                        {
+                            var t = pool[k];
+                            if (!Shootable(t, f)) continue;
+                            float r = .9f * s + t.radius;
+                            trip = (t.pos - u.pts[i]).sqrMagnitude <= r * r;
+                        }
+                        if (trip)
+                        {
+                            Play(FxSource.Burst, f.id, u.pts[i], Vector3.one * 1.4f * s, 0f, ShipFxArt.BurstTicks, false, 0f, null, 0f, f.layer, 3);
+                            KillInRadius(f, u.pts[i], 1.1f * s);
+                            StopFx(u.marks[i]);
+                        }
+                        else live++;
+                    }
+                    if (live == 0 || u.t > 1.5f)
+                    {
+                        for (int i = 0; i < u.hitCount; i++) if (u.marks[i] != null) StopFx(u.marks[i]);
+                        Done(u);
+                    }
+                }
+                break;
+
+            case ShipAttack.AbductHurl:
+                if (u.t >= .5f)
+                {
+                    var grabbed = u.hit[0];
+                    if (Shootable(grabbed, f))
+                    {
+                        Vector2 from = grabbed.pos;
+                        var next = NearestUnhit(u, from, 4f * s + 1f);
+                        ShootDown(grabbed, Vector2.up, f.id, f.layer);
+                        if (next != null)
+                            Launch(f, BoltKind.Straight, from, next.pos - from, Mathf.Max(4f, l.speed * .5f * s), .2f * s, .6f * s, null);
+                    }
+                    Done(u);
+                }
+                break;
+
+            case ShipAttack.GaleWings:
+                if (u.t < .4f)
+                {
+                    for (int k = 0; k < u.hitCount; k++)
+                        if (Shootable(u.hit[k], f)) u.hit[k].pos += u.pts[k] * (1.4f * s / .4f * dt);
+                }
+                else
+                {
+                    // a shoved ship that ends on another one breaks both
+                    for (int k = 0; k < u.hitCount; k++)
+                    {
+                        var a = u.hit[k];
+                        if (!Shootable(a, f)) continue;
+                        var b = NearestOn(f.layer, a, a.pos, (a.radius + .3f) * .8f + .3f * s);
+                        if (b == null) continue;
+                        Play(FxSource.Burst, f.id, (a.pos + b.pos) * .5f, Vector3.one * .8f * s, 0f, ShipFxArt.BurstTicks, false, 0f, null, 0f, f.layer, 3);
+                        ShootDown(b, (b.pos - a.pos).normalized, f.id, f.layer);
+                        ShootDown(a, (a.pos - b.pos).normalized, f.id, f.layer);
+                    }
+                    Done(u);
+                }
                 break;
 
             case ShipAttack.OrbitDisc:
@@ -790,8 +910,8 @@ public partial class TitleScreenTraffic
             b.age += dt;
             Vector2 from = b.pos;
             if (b.target != null && (!b.target.active || b.target.layer != b.layer || b.target.state == State.Plunge)) b.target = null;
-            if ((b.kind == BoltKind.Homing || b.kind == BoltKind.Ricochet) && b.target != null)
-                b.dir = PowerFx.SteerHeading(b.dir, b.target.pos - from, b.kind == BoltKind.Ricochet ? 900f : 420f, dt);
+            if (b.kind == BoltKind.Homing && b.target != null)
+                b.dir = PowerFx.SteerHeading(b.dir, b.target.pos - from, 420f, dt);
             Vector2 to = from + b.dir * b.speed * dt;
             b.travelled += b.speed * dt;
             b.pos = to;
@@ -822,26 +942,6 @@ public partial class TitleScreenTraffic
                         continue;
                     }
                     break;
-                case BoltKind.Fireball:
-                    {
-                        var hit = FirstAlong(b.layer, owner, from, to, b.radius);
-                        if (hit != null || b.travelled >= b.range) { Burst(b, hit != null ? hit.pos : to, owner); continue; }
-                    }
-                    break;
-                case BoltKind.Ricochet:
-                    {
-                        var hit = FirstAlong(b.layer, owner, from, to, b.radius);
-                        if (hit != null)
-                        {
-                            ShootDown(hit, b.dir, b.ship, b.layer);
-                            b.hops++;
-                            b.age = 0f;
-                            b.target = b.hops < b.maxHops ? NearestOn(b.layer, owner, to, 3.1f * b.scale + 1f) : null;
-                            if (b.target == null && b.hops >= b.maxHops) { FinishBolt(b, true); continue; }
-                        }
-                        else if (b.target == null && b.hops > 0 && b.age > .5f) { FinishBolt(b, false); continue; }
-                    }
-                    break;
                 default:
                     {
                         var hit = FirstAlong(b.layer, owner, from, to, b.radius);
@@ -866,20 +966,6 @@ public partial class TitleScreenTraffic
             if (d < bestD) { bestD = d; best = t; }
         }
         return best;
-    }
-
-    void Burst(Bolt b, Vector2 at, Flyer owner)
-    {
-        float r = b.burst;
-        Play(FxSource.Burst, b.ship, at, Vector3.one * r * 2.3f, 0f, ShipFxArt.BurstTicks, false, 0f, null, 0f, b.layer, 3);
-        for (int i = 0; i < pool.Length; i++)
-        {
-            var t = pool[i];
-            if (!Shootable(t, b.layer, owner)) continue;
-            float reach = r + t.radius * .5f;
-            if ((t.pos - at).sqrMagnitude <= reach * reach) ShootDown(t, (t.pos - at).normalized, b.ship, b.layer);
-        }
-        FinishBolt(b, false);
     }
 
     void FinishBolt(Bolt b, bool hit)

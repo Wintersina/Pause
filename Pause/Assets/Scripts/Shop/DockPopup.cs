@@ -264,6 +264,8 @@ public class DockPopup : MonoBehaviour
     const float PreviewArtTop = 8f, PreviewArtHeight = 62f, ChipWidth = 74f, ChipHeight = 16f;
     RectTransform previewRoot;
     Image previewArt;
+    Vector2 previewArtAt;
+    int previewSkinSeen = -1;   // the skin whose attack art the cells hold (Special skins can have their own strips)
     RectTransform previewArtRect;
     public RectTransform PreviewArtRect { get { return previewArtRect; } }
     Text previewName, previewLine, powerNameText, powerLineText, triggerText;
@@ -389,6 +391,7 @@ public class DockPopup : MonoBehaviour
     void ResetPreview()
     {
         previewShip = ShipIndex;
+        previewSkinSeen = ShipSkins.Shown(ShipIndex);
         PowerPreview.Fill(ShipIndex, false, previewCells[0]);
         PowerPreview.Fill(ShipIndex, true, previewCells[1]);
         previewAuto = true;
@@ -414,6 +417,7 @@ public class DockPopup : MonoBehaviour
         PowerPreview.Fit(ShipIndex, power, previewCells[power ? 1 : 0], PreviewArtHeight, PanelWidth - 2f * Pad, out artSize, out artAt);
         previewArtRect.sizeDelta = artSize;
         previewArtRect.anchoredPosition = artAt;
+        previewArtAt = artAt;
         previewName.text = PowerPreview.Name(ShipIndex, false);
         previewLine.text = PowerPreview.Line(ShipIndex, false);
         powerNameText.text = PowerPreview.Name(ShipIndex, true);
@@ -434,6 +438,15 @@ public class DockPopup : MonoBehaviour
     void TickPreview(float now)
     {
         if (previewShip < 0) return;
+        int skinNow = ShipSkins.Shown(ShipIndex);
+        if (skinNow != previewSkinSeen)
+        {
+            // a swatch was tapped: the shown skin may have its own attack art
+            previewSkinSeen = skinNow;
+            PowerPreview.Fill(ShipIndex, false, previewCells[0]);
+            PowerPreview.Fill(ShipIndex, true, previewCells[1]);
+            previewTick = -2;
+        }
         if (previewAuto && now - previewKindAt >= PreviewAutoSeconds)
         {
             previewKindAt = now;
@@ -448,6 +461,9 @@ public class DockPopup : MonoBehaviour
         var sprite = cell >= 0 ? previewCells[previewPower ? 1 : 0][cell] : null;
         previewArt.sprite = sprite;
         previewArt.enabled = sprite != null;
+        // the wave and the gust travel up the frame instead of sitting as a thin smudge
+        if (!previewPower && PowerPreview.Rises(ShipIndex))
+            previewArtRect.anchoredPosition = previewArtAt + Vector2.up * PowerPreview.RiseOffset(tick, PreviewArtHeight);
     }
     // ---- END power preview ------------------------------------------------
 
@@ -1050,14 +1066,29 @@ public static class PowerPreview
         return list.ToArray();
     }
 
+    // Which strip the attack preview's burst comes from (null: the ship's own _attack strip): the Paranoid's
+    // eye loops, then its rune mark detonates.
+    public static string BurstStrip(int ship) { return ship == 10 ? "mark" : null; }
+
+    // Attacks that travel up the screen (Solar Fang's heat wave, Dove's gust): the preview lifts them through
+    // the frame during the loop, so a wide thin strip reads as motion and not a smudge.
+    public static bool Rises(int ship) { return ship == 3 || ship == 14; }
+    public static float RiseOffset(int tick, float panelHeight)
+    {
+        return Mathf.Lerp(-.32f, .32f, Mathf.Clamp01(tick / (float)(LoopCycles * ShipFxArt.LoopFrames))) * panelHeight;
+    }
+
     // Fills `cells` (Cells long) with the ship's loop then burst sprites; false if any is missing.
     public static bool Fill(int ship, bool secretPower, Sprite[] cells)
     {
         bool ok = true;
+        string burstStrip = secretPower ? null : BurstStrip(ship);
+        if (burstStrip != null && ShipFxArt.Strip(ship, "attack_" + burstStrip) == null) ok = false;
         for (int i = 0; i < ShipFxArt.LoopFrames; i++)
         {
             cells[i] = secretPower ? ShipFxArt.PowerLoop(ship, i) : ShipFxArt.AttackLoop(ship, i);
-            cells[ShipFxArt.LoopFrames + i] = secretPower ? ShipFxArt.PowerBurst(ship, i) : ShipFxArt.AttackBurst(ship, i);
+            cells[ShipFxArt.LoopFrames + i] = secretPower ? ShipFxArt.PowerBurst(ship, i)
+                : burstStrip != null ? ShipFxArt.Extra(ship, burstStrip, true, i) : ShipFxArt.AttackBurst(ship, i);
         }
         for (int i = 0; i < cells.Length; i++) ok &= cells[i] != null;
         return ok;

@@ -58,7 +58,6 @@ public static class PowersReworkTest
         BlinkDashFiresEarlyAndDodgesSafely();
         BlackHoleAtThree();
         TractorPullKillsAndDrops();
-        TractorBeamPullsToCentre();
         MendingFiresWhenDamaged();
         ShellStaysDrawnAndShatters();
         DescriptionsMatch();
@@ -622,25 +621,6 @@ public static class PowersReworkTest
         Teardown(ufo);
     }
 
-    static void TractorBeamPullsToCentre()
-    {
-        FreshScene();
-        var ufo = Ship(13);
-        var beside = Hazard(1.2f, 1f);       // well outside the 0.38 beam line
-        float x0 = beside.transform.position.x;
-        var boss = Hazard(-1.2f, 1f);
-        boss.AddComponent<FakeBoss>();
-        ufo.Runner.Fire();
-        Steps(ufo.Runner, .1f);
-        Check("a target beside the beam is dragged towards its centre", beside != null && beside.transform.position.x < x0 - .5f);
-        Check("a boss beside it is left where it was", Mathf.Approximately(boss.transform.position.x, -1.2f));
-        Check("the pull was counted", ufo.Runner.BeamPulls > 0);
-        Steps(ufo.Runner, 1.2f);
-        Check("and once in the line it is destroyed", ShipAttackHits.AlreadyHit(beside));
-        Object.DestroyImmediate(boss);
-        Teardown(ufo);
-    }
-
     // ---- 14 Mending ------------------------------------------------------
 
     static void MendingFiresWhenDamaged()
@@ -795,7 +775,7 @@ public static class PowersReworkTest
         Check("Blink Dash mentions the close threat", b2.Contains("within 2"));
         Check("Black Hole says 3 enemies", ShipLoadoutTable.For(12).powerLine.Contains("3 enemies") &&
               ShipLoadoutTable.TriggerLine(ShipLoadoutTable.For(12)) == "3+ enemies on screen");
-        Check("UFO is the Tractor Pull", b2.Contains("TRACTOR PULL") && !b2.Contains("STAR SHOWER") && b2.Contains("pulls targets in"));
+        Check("UFO is the Tractor Pull", b2.Contains("TRACTOR PULL") && !b2.Contains("STAR SHOWER"));
         Check("Mending and Hard Shell lines match", b2.Contains("burst of feathers") && b2.Contains("shatters"));
         Check("Blink Dash trigger line", ShipLoadoutTable.TriggerLine(ShipLoadoutTable.For(11)).StartsWith("a hit or a threat within 2"));
     }

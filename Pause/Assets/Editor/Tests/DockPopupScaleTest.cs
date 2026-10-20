@@ -42,6 +42,19 @@ public static class DockPopupScaleTest
                 PowerPreview.Fit(ship, power, cells, 62f, 276f, out size, out at);
                 fit &= b.width > 0f && b.height > 0f && size.x > 0f && size.x <= 168.01f && b.height * size.x <= 62f * .86f + .01f;
             }
+        bool v3 = true;
+        foreach (int ship in new[] { 3, 10, 11, 12, 13, 14 })
+        {
+            v3 &= PowerPreview.Fill(ship, false, cells);
+            for (int i = 0; i < cells.Length; i++) v3 &= cells[i] != null;
+        }
+        var eyeBurst = new Sprite[PowerPreview.Cells];
+        PowerPreview.Fill(10, false, eyeBurst);
+        v3 &= PowerPreview.BurstStrip(10) == "mark" && eyeBurst[ShipFxArt.LoopFrames] == ShipFxArt.Extra(10, "mark", true, 0);
+        Check("the six v3 ships' dock previews find all 16 cells (Paranoid's burst is its mark strip)", v3);
+        Check("Solar Fang's wave and Dove's gust rise through the frame",
+              PowerPreview.Rises(3) && PowerPreview.Rises(14) && !PowerPreview.Rises(12) &&
+              PowerPreview.RiseOffset(0, 62f) < 0f && PowerPreview.RiseOffset(16, 62f) > 0f);
         Check("every ship's preview art fits the panel (visible box <= 85% of its height, zoom <= 3x)", fit);
         Check("every ship has a preview name and line for both kinds", text);
         foreach (bool power in new[] { false, true })
