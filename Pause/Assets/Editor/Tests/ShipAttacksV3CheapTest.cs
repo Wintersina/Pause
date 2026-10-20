@@ -139,10 +139,9 @@ public static class ShipAttacksV3CheapTest
         foreach (int id in ShipId.All)
         {
             var a = ShipLoadoutTable.For(id).attack;
-            if (a == ShipAttack.ScreenClear) continue;   // the top tier's shared volley (the hulls differ by volley kind)
             distinct &= seen.Add(a);
         }
-        Check("no two ships below the top tier share a ShipAttack", distinct);
+        Check("no two ships share a ShipAttack", distinct);
         Check("the six v3 attacks are the ships' own",
               ShipLoadoutTable.AttackFor(3) == ShipAttack.HeatWave && ShipLoadoutTable.AttackFor(10) == ShipAttack.ArcaneEye &&
               ShipLoadoutTable.AttackFor(11) == ShipAttack.BoomerangStar && ShipLoadoutTable.AttackFor(12) == ShipAttack.ProximityMines &&

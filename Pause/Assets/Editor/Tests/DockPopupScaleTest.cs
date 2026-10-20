@@ -31,7 +31,19 @@ public static class DockPopupScaleTest
                 frames &= PowerPreview.Fill(ship, power, cells);
                 text &= PowerPreview.Name(ship, power).Length > 0 && PowerPreview.Line(ship, power).Length > 0;
             }
-        Check("every ship (" + ShipId.Count + ") resolves 16 non-null attack and power preview frames", frames && ShipId.Count == shopingShips.RosterTotal - 1);
+        bool plans = true;
+        foreach (int ship in ShipId.All)
+            foreach (bool power in new[] { false, true })
+            {
+                bool all = PowerPreview.Fill(ship, power, cells);
+                int n = PowerPreview.CellCount(ship, power);
+                for (int i = 0; i < n; i++) all &= cells[i] != null;
+                foreach (int c in PowerPreview.Sequence(ship, power)) all &= c < n;
+                plans &= all && n >= 16 && n <= PowerPreview.Cells;
+            }
+        Check("every ship's dock preview plan finds all its cells (the nuke's shockwave and mushroom, the sentries' bolt, the nova's ice...)", plans);
+        Check("Paragon's attack preview ends on the shockwave and mushroom", PowerPreview.CellCount(16, false) == 48);
+        Check("every ship (" + ShipId.Count + ") resolves non-null attack and power preview frames", frames && ShipId.Count == shopingShips.RosterTotal - 1);
         bool fit = true;
         foreach (int ship in ShipId.All)
             foreach (bool power in new[] { false, true })
@@ -40,13 +52,13 @@ public static class DockPopupScaleTest
                 var b = PowerPreview.VisibleBounds(ship, power, cells);
                 Vector2 size, at;
                 PowerPreview.Fit(ship, power, cells, 62f, 276f, out size, out at);
-                fit &= b.width > 0f && b.height > 0f && size.x > 0f && size.x <= 168.01f && b.height * size.x <= 62f * .86f + .01f;
+                fit &= b.width > 0f && b.height > 0f && size.x > 0f && size.x <= 8f * 56f + .01f && b.height * size.x <= 62f * .86f + .01f;
             }
         bool v3 = true;
         foreach (int ship in new[] { 3, 10, 11, 12, 13, 14 })
         {
             v3 &= PowerPreview.Fill(ship, false, cells);
-            for (int i = 0; i < cells.Length; i++) v3 &= cells[i] != null;
+            for (int i = 0; i < PowerPreview.CellCount(ship, false); i++) v3 &= cells[i] != null;
         }
         var eyeBurst = new Sprite[PowerPreview.Cells];
         PowerPreview.Fill(10, false, eyeBurst);
@@ -55,7 +67,7 @@ public static class DockPopupScaleTest
         Check("Solar Fang's wave and Dove's gust rise through the frame",
               PowerPreview.Rises(3) && PowerPreview.Rises(14) && !PowerPreview.Rises(12) &&
               PowerPreview.RiseOffset(0, 62f) < 0f && PowerPreview.RiseOffset(16, 62f) > 0f);
-        Check("every ship's preview art fits the panel (visible box <= 85% of its height, zoom <= 3x)", fit);
+        Check("every ship's preview art fits the panel (visible box <= 85% of its height, zoom <= 3x, the ion laser 8x)", fit);
         Check("every ship has a preview name and line for both kinds", text);
         foreach (bool power in new[] { false, true })
         {

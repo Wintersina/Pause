@@ -127,6 +127,13 @@ public static class ShipFxArt
         return strip[(burst ? LoopFrames : 0) + (burst ? Mathf.Clamp(i, 0, BurstFrames - 1) : Wrap(i, LoopFrames))];
     }
 
+    // Cell `cell` (0-15) of a ship's extra strip (Strip's key suffix: "attack_ice"); null when the strip is missing.
+    public static Sprite Extra(int ship, string suffix, int cell)
+    {
+        var strip = Strip(ship, suffix);
+        return strip == null ? null : strip[Mathf.Clamp(cell, 0, StripCells - 1)];
+    }
+
     public static Sprite AttackLoop(int ship, int i)  => Fx(ship, false, false, i);
     public static Sprite AttackBurst(int ship, int i) => Fx(ship, false, true, i);
     public static Sprite PowerLoop(int ship, int i)   => Fx(ship, true, false, i);

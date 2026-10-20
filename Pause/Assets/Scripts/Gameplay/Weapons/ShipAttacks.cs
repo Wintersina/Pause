@@ -2,9 +2,10 @@ using System.Collections.Generic;
 using UnityEngine;
 
 // The directional and limited main attacks (every ship below the top price
-// tier; see ShipLoadoutTable). ShipPowerController.Fire() calls Fire() here
-// when the charge meter fills; the top tier runs the cinematic volley
-// instead.
+// tier; see ShipLoadoutTable) and the top tier's cinematic ones.
+// ShipPowerController.Fire() calls Fire() here when the charge meter fills
+// (the top tier wraps it in slow motion). The newer verbs (laser sweep,
+// frost nova, sentries, nuke) live in ShipAttacksV3.cs.
 //
 // Rules:
 //  * Gameplay time. Everything steps on scaled time, so a paused world
@@ -80,7 +81,6 @@ public partial class ShipAttackRunner : MonoBehaviour
     public bool Fire()
     {
         if (runs[0] == null) Setup(ship);
-        if (loadout.attack == ShipAttack.ScreenClear) return false;
         // The weapon level can change between firings (a colour bought, dev
         // mode switched): read it as the attack goes out.
         loadout = ShipWeaponUpgrades.LoadoutFor(ship);
@@ -106,9 +106,8 @@ public partial class ShipAttackRunner : MonoBehaviour
     // weapon at the same level, through the same hits and the same boss
     // rules, but it never touches the charge timer and never takes a run
     // slot from an attack in progress -- with every slot busy it refuses,
-    // and the controller keeps it queued. The top tier fires QuickVolley
-    // instead of the cinematic: a homing shot at each hazard in view, at
-    // normal speed, no slow motion.
+    // and the controller keeps it queued. The top tier fires its own verb,
+    // shortened (AttackRun.quick), at normal speed: no slow motion.
 
     public int FreeFireCount { get; private set; }
 
@@ -131,35 +130,12 @@ public partial class ShipAttackRunner : MonoBehaviour
         loadout = ShipWeaponUpgrades.LoadoutFor(ship);
         FreeFireCount++;
         run.Begin(loadout, ship, Time.unscaledTime);
+        run.quick = true;
         // the boss fight hands out only BossFreeShotAtoms.Count of these: each is charged (the
         // allowance only matters to capped targets now; the boss has no per-firing cap)
         if (BossEncounter.Running) run.budget = BossFreeShotAtoms.ChargedBudget;
         StartRun(run);
         return true;
-    }
-
-    // The top tier's free shot: at most this many homing shots, one per
-    // hazard in view (nearest the nose first is not needed -- each one homes).
-    public const int QuickVolleyMaxShots = 12;
-    public const float QuickVolleySpeed = 16f;
-
-    // How many shots QuickVolley launches with `inView` hazards on screen:
-    // one each up to the cap, or a single seeker when the screen is empty.
-    public static int QuickVolleyShots(int inView) { return Mathf.Clamp(inView, 1, QuickVolleyMaxShots); }
-
-    void QuickVolley(AttackRun run, Vector3 nose)
-    {
-        ShipTargets.CollectHoming(targets);
-        int n = QuickVolleyShots(targets.Count);
-        for (int i = 0; i < n; i++)
-        {
-            var t = i < targets.Count ? targets[i] : null;
-            float a = n <= 1 ? 0f : (i - (n - 1) * .5f) * (60f / (n - 1));
-            Vector3 dir = Quaternion.Euler(0f, 0f, -a) * Vector3.up;
-            // weight 1 each; the boss takes each one that is not inside its hit window
-            Launch(run, AttackProjectile.Kind.Homing, nose, dir, QuickVolleySpeed, .22f, .5f,
-                   t != null ? t.transform : null, 1f);
-        }
     }
 
     void StartRun(AttackRun run)
@@ -168,10 +144,11 @@ public partial class ShipAttackRunner : MonoBehaviour
         Vector3 nose = Nose;
         switch (l.attack)
         {
-            case ShipAttack.ScreenClear:
-                // only reached through FireFree (Fire() leaves the top tier
-                // to the cinematic)
-                QuickVolley(run, nose);
+            case ShipAttack.IonLaser:
+            case ShipAttack.FrostNova:
+            case ShipAttack.WardenSentries:
+            case ShipAttack.Nuke:
+                StartTop(run, nose);
                 break;
             case ShipAttack.RailSlug:
                 // upgraded: side rails either side of the main line
@@ -190,10 +167,6 @@ public partial class ShipAttackRunner : MonoBehaviour
             case ShipAttack.AbductHurl:
             case ShipAttack.GaleWings:
                 StartV3(run, nose);
-                break;
-            case ShipAttack.ParagonBarrage:
-                // the lances leave one by one in Step
-                run.hit.Clear();
                 break;
             case ShipAttack.Blowtorch:
                 run.visual = AttackPool.Sprite().Play(AttackSprite.Source.AttackLoop, ship, nose,
@@ -214,49 +187,6 @@ public partial class ShipAttackRunner : MonoBehaviour
     }
 
     static readonly int[] ShotLoop = { 2, 2, 2, 2 };
-
-    public const float BarrageGap = .05f;
-
-    // ---------------------------------------------------------- missiles
-    //
-    // A premium hull's timed homing missiles (ParagonMissiles): `count`
-    // homing missiles at the nearest hazards, each claiming a different one,
-    // from the nose at normal speed. Their own run (budget, claims), never
-    // one of the attack slots, so an ultimate in progress is not disturbed.
-    // Returns how many left; 0 (and nothing launched) with nothing to hunt.
-    public const float MissileSpeed = 8.5f;
-    AttackRun missileRun;
-    public int MissileVolleys { get; private set; }
-
-    public int FireMissiles(int count)
-    {
-        if (count <= 0) return 0;
-        if (runs[0] == null) Setup(ship);
-        Vector3 nose = Nose;
-        ShipTargets.CollectHoming(targets);
-        if (targets.Count == 0) return 0;
-        if (missileRun == null) missileRun = new AttackRun();
-        missileRun.Begin(loadout, ship, Time.unscaledTime);
-        missileRun.active = false;
-        int launched = 0;
-        for (int i = 0; i < count; i++)
-        {
-            var t = ShipTargets.NearestHoming(nose, 0f, missileRun.hit);
-            if (t != null) Claim(missileRun, t);
-            float a = (i - (count - 1) * .5f) * 16f;
-            Vector3 dir = Quaternion.Euler(0f, 0f, -a) * Vector3.up;
-            var p = Launch(missileRun, AttackProjectile.Kind.Homing, nose, dir, MissileSpeed, .22f, .75f,
-                           t != null ? t.transform : null, 1f / count);
-            if (p != null) launched++;
-        }
-        if (launched > 0)
-        {
-            MissileVolleys++;
-            AttackPool.Sprite().Play(AttackSprite.Source.AttackBurst, ship, nose, Vector3.one * .4f, 0f,
-                ShipFxArt.BurstTicks, false, 0f, transform, Vector3.up * noseOffset, 71);
-        }
-        return launched;
-    }
 
     // A homing shot of a firing marks its target so the next one picks another. The boss is never
     // marked: it is the only thing the shots can chase while it is up, and a claimed boss would leave
@@ -351,6 +281,7 @@ public partial class ShipAttackRunner : MonoBehaviour
         if (dt <= 0f) return;
         for (int i = 0; i < runs.Length; i++)
             if (runs[i] != null && runs[i].active) Step(runs[i], dt);
+        StepTopObjects(dt);
         var list = AttackPool.Projectiles;
         for (int i = 0; i < list.Count; i++)
         {
@@ -376,28 +307,11 @@ public partial class ShipAttackRunner : MonoBehaviour
                 if (run.fired >= l.shots) run.active = false;
                 break;
 
-            case ShipAttack.ParagonBarrage:
-                {
-                    // AEGIS BARRAGE: a fan of homing lances, one every 50 ms,
-                    // each claiming its own target (nearest not yet claimed);
-                    // a lance with nothing left to hunt flies the fan line.
-                    // Every lance claims its own target, but the boss is always a valid one:
-                    // all eight home on it (each is 1/shots of a hit; the hit window banks the shares).
-                    while (run.fired < l.shots && run.t >= run.fired * BarrageGap)
-                    {
-                        Vector3 nose = Nose;
-                        var t = ShipTargets.NearestHoming(nose, 0f, run.hit);
-                        if (t != null) Claim(run, t);
-                        float a = l.shots <= 1 ? 0f : -l.width * .5f + l.width * run.fired / (l.shots - 1);
-                        Vector3 dir = Quaternion.Euler(0f, 0f, -a) * Vector3.up;
-                        Launch(run, AttackProjectile.Kind.Homing, nose, dir, l.speed, .24f, .8f,
-                               t != null ? t.transform : null, 1f / Mathf.Max(1, l.shots));
-                        AttackPool.Sprite().Play(AttackSprite.Source.AttackBurst, ship, nose, Vector3.one * .3f,
-                            -a, ShipFxArt.BurstTicks, false, 0f, transform, Vector3.up * noseOffset, 71);
-                        run.fired++;
-                    }
-                    if (run.fired >= l.shots) { run.hit.Clear(); run.active = false; }
-                }
+            case ShipAttack.IonLaser:
+            case ShipAttack.FrostNova:
+            case ShipAttack.WardenSentries:
+            case ShipAttack.Nuke:
+                StepTop(run, dt);
                 break;
 
             case ShipAttack.SkyJavelins:
@@ -585,6 +499,7 @@ public partial class ShipAttackRunner : MonoBehaviour
     public void StopAll()
     {
         for (int i = 0; i < runs.Length; i++) if (runs[i] != null) runs[i].Stop();
+        StopTop();
         var list = AttackPool.Projectiles;
         for (int i = 0; i < list.Count; i++)
             if (list[i] != null && list[i].Active && list[i].Owner == this) list[i].Finish(false);
@@ -600,6 +515,8 @@ public partial class ShipAttackRunner : MonoBehaviour
 public class AttackRun
 {
     public bool active;
+    public bool quick;      // a red atom's free shot: the shortened version of the attack, no slow motion
+    public bool slowDone;   // a cinematic attack has played the part that needs the slow motion
     public ShipLoadout loadout;
     public int ship;
     public float t, next, startedAt;
@@ -617,6 +534,7 @@ public class AttackRun
         loadout = l;
         ship = shipId;
         t = next = 0f;
+        quick = slowDone = false;
         startedAt = now;
         fired = hops = 0;
         angle = 0f;
@@ -745,7 +663,7 @@ public static class AttackPool
 // riding along with a transform. Gameplay time: frozen while paused.
 public class AttackSprite : MonoBehaviour
 {
-    public enum Source { AttackLoop, AttackBurst, PowerLoop, PowerBurst, Shot, Rim }
+    public enum Source { AttackLoop, AttackBurst, PowerLoop, PowerBurst, Shot, Rim, Extra }
 
     SpriteRenderer sr;
     Source source;
@@ -765,6 +683,10 @@ public class AttackSprite : MonoBehaviour
     float travelSeconds, travelClock;
     Vector3 baseScale;
     float growFrom = 1f;
+    // Source.Extra: which strip (ShipFxArt.Extra suffix) and which cell the frame numbers start at
+    string extraSuffix;
+    int extraCell;
+    bool reversed;
 
     public bool Active { get; private set; }
     public float StartedAt { get; private set; }
@@ -800,6 +722,9 @@ public class AttackSprite : MonoBehaviour
         suffix = null;
         travelling = false;
         growFrom = 1f;
+        extraSuffix = null;
+        extraCell = 0;
+        reversed = false;
         baseScale = scale;
         alphaMul = AlphaFor(src);
         StartedAt = Time.unscaledTime;
@@ -818,6 +743,33 @@ public class AttackSprite : MonoBehaviour
 
     // Draws an extra strip of the ship ("mark" -> <Ship>_attack_mark.png); AttackLoop / AttackBurst sources only.
     public AttackSprite Strip(string stripSuffix) { suffix = stripSuffix; Apply(); return this; }
+
+    // Draws from a ship's extra strip instead (Source.Extra): frame i shows cell firstCell + i.
+    // Loops and bursts alike get the burst alpha unless `loopAlpha`.
+    public AttackSprite Strip(string suffix, int firstCell, bool loopAlpha = false)
+    {
+        source = Source.Extra;
+        extraSuffix = suffix;
+        extraCell = firstCell;
+        alphaMul = loopAlpha ? ShipFxArt.AttackAlpha : ShipFxArt.AttackBurstAlpha;
+        sr.color = Shown(tint);
+        Apply();
+        return this;
+    }
+
+    // Overrides the source's usual alpha (the mushroom cloud's 0.8).
+    public AttackSprite Alpha(float a)
+    {
+        alphaMul = a;
+        sr.color = Shown(tint);
+        return this;
+    }
+
+    // Plays the 8 drawings backwards (a pod folding away). Attack bursts and extra strips only.
+    public AttackSprite Reverse() { reversed = true; Apply(); return this; }
+
+    // Scale and position are the caller's to drive each step (a sweeping beam, a growing ring).
+    public Transform Body => transform;
 
     // A findable name while this effect plays (reset on the next Play).
     public void Rename(string n) { gameObject.name = n; renamed = true; }
@@ -911,7 +863,13 @@ public class AttackSprite : MonoBehaviour
         switch (source)
         {
             case Source.AttackLoop:  sr.sprite = suffix != null ? ShipFxArt.Extra(ship, suffix, false, Frame) : ShipFxArt.AttackLoop(ship, Frame); break;
-            case Source.AttackBurst: sr.sprite = suffix != null ? ShipFxArt.Extra(ship, suffix, true, Frame) : ShipFxArt.AttackBurst(ship, Frame); break;
+            case Source.AttackBurst:
+                {
+                    int bf = reversed ? ShipFxArt.BurstFrames - 1 - Frame : Frame;
+                    sr.sprite = suffix != null ? ShipFxArt.Extra(ship, suffix, true, bf) : ShipFxArt.AttackBurst(ship, bf);
+                }
+                break;
+            case Source.Extra:       sr.sprite = ShipFxArt.Extra(ship, extraSuffix, extraCell + (reversed ? ShipFxArt.BurstFrames - 1 - Frame : Frame)); break;
             case Source.PowerLoop:   sr.sprite = ShipFxArt.PowerLoop(ship, Frame); break;
             case Source.PowerBurst:  sr.sprite = ShipFxArt.PowerBurst(ship, Frame); break;
             case Source.Shot:        sr.sprite = WeaponArt.Shot(ship, Frame); break;
@@ -952,7 +910,6 @@ public class AttackProjectile : MonoBehaviour
     Transform target;
     GameObject lastSpecial;
     int hops;
-    Vector3 launchFrom;
     Vector3 rocketTo;      // Rocket: where the javelin manifests
     float rocketStopY;     // ...and where it will strike down to
 
@@ -1029,7 +986,6 @@ public class AttackProjectile : MonoBehaviour
         weight = hitWeight;
         target = homeOn;
         age = travelled = spinAngle = 0f;
-        launchFrom = at;
         lastSpecial = null;
         hops = 0;
         StopAtY = float.MinValue;
@@ -1105,10 +1061,7 @@ public class AttackProjectile : MonoBehaviour
                     if (hit != null)
                     {
                         var struckGo = hit.gameObject;
-                        Vector3 struck = hit.transform.position;
                         Strike(struckGo);
-                        // the top tier's volley goes on (pierce / bounce / blast)
-                        if (kind == Kind.Homing) ShipVolley.AfterHit(ship, launchFrom, struck, struckGo, ref run.budget);
                         if (kind == Kind.Homing || kind == Kind.Straight) { Finish(true); return; }
                     }
                 }
@@ -1228,100 +1181,11 @@ public class AttackProjectile : MonoBehaviour
     }
 }
 
-// What a shot of the top tier's volley does once it has landed on its mark
-// (ShipLoadout.volley): the Ion Lancer's lances pierce on through the line of
-// targets behind it (maxHits targets in all), the Jade Phantom's wisps hop on
-// to the nearest ones (maxHits bounces), the Gold Warden's missiles blast
-// everything within `width` of the mark. Hits go through ShipAttackHits like
-// every attack, so a boss only takes what is left in `budget`.
+// Burst-size scales for the fireball's (and the old blast's) burst art, kept
+// in one place (the top tier's volley that used to live here is gone: the
+// three cinematic attacks are in ShipAttacksV3.cs).
 public static class ShipVolley
 {
-    public const float LanceHalfWidth = .42f;
-    public const float BounceReach = 3.5f;
-
-    static readonly List<ClearTarget> found = new List<ClearTarget>(64);
-    static readonly List<GameObject> seen = new List<GameObject>(8);
-    static readonly ClearTarget[] picked = new ClearTarget[8];
-
-    // `first` is what the shot just hit, `at` where it was; `from` is where
-    // the shot left. Returns the extra kills.
-    public static int AfterHit(int ship, Vector3 from, Vector3 at, GameObject first, ref float budget)
-    {
-        var l = ShipLoadoutTable.For(ship);
-        switch (l.volley)
-        {
-            case VolleyKind.Pierce: return Pierce(ship, l, from, at, first, ref budget);
-            case VolleyKind.Bounce: return Bounce(ship, l, at, first, ref budget);
-            case VolleyKind.Blast:  return Blast(ship, l, at, first, ref budget);
-        }
-        return 0;
-    }
-
-    static int Pierce(int ship, ShipLoadout l, Vector3 from, Vector3 at, GameObject first, ref float budget)
-    {
-        int extra = Mathf.Clamp(l.maxHits - 1, 0, picked.Length);
-        Vector2 dir = at - from;
-        dir = dir.sqrMagnitude > 1e-6f ? dir.normalized : Vector2.up;
-        ShipTargets.Collect(found);
-        int n = 0;
-        for (; n < extra; n++)
-        {
-            ClearTarget best = null;
-            float bestAlong = float.MaxValue;
-            for (int i = 0; i < found.Count; i++)
-            {
-                var t = found[i];
-                if (t == null || !t.isActiveAndEnabled || t.gameObject == first) continue;
-                bool taken = false;
-                for (int k = 0; k < n; k++) taken |= picked[k] == t;
-                if (taken) continue;
-                Vector2 d = (Vector2)t.transform.position - (Vector2)at;
-                float along = Vector2.Dot(d, dir);
-                if (along <= 0f || along >= bestAlong) continue;
-                float side = Mathf.Abs(d.x * dir.y - d.y * dir.x);
-                if (side > LanceHalfWidth + t.Radius * .5f) continue;
-                best = t;
-                bestAlong = along;
-            }
-            if (best == null) break;
-            picked[n] = best;
-        }
-        int kills = 0;
-        Vector3 end = at;
-        for (int i = 0; i < n; i++)
-        {
-            var t = picked[i];
-            picked[i] = null;
-            if (t == null || !t.isActiveAndEnabled) continue;
-            end = t.transform.position;
-            Flash(ship, end);
-            if (ShipAttackHits.Hit(t.gameObject, ship, 1f, ref budget)) kills++;
-        }
-        if (n > 0) Beam(ship, at, end);
-        return kills;
-    }
-
-    static int Bounce(int ship, ShipLoadout l, Vector3 at, GameObject first, ref float budget)
-    {
-        seen.Clear();
-        seen.Add(first);
-        int kills = 0;
-        Vector3 pos = at;
-        for (int i = 0; i < l.maxHits; i++)
-        {
-            var t = ShipTargets.NearestHoming(pos, BounceReach, seen);
-            if (t == null) break;
-            seen.Add(t.gameObject);
-            Vector3 to = t.transform.position;
-            Beam(ship, pos, to);
-            Flash(ship, to);
-            if (ShipAttackHits.Hit(t.gameObject, ship, 1f, ref budget)) kills++;
-            pos = to;
-        }
-        seen.Clear();
-        return kills;
-    }
-
     // Blast burst art drew far too large next to every other weapon's
     // 0.5-1.1 unit effects (median ~0.8): the Gold Warden plays at 30% of its old size.
     public const int GoldWardenShip = 7;
@@ -1334,41 +1198,6 @@ public static class ShipVolley
     public static float BlastBurstSize(int ship, float radius)
     {
         return radius * 2.3f * BurstScaleFor(ship) * ShipFxArt.BurstScale;
-    }
-
-    static int Blast(int ship, ShipLoadout l, Vector3 at, GameObject first, ref float budget)
-    {
-        float r = l.width;
-        AttackPool.Sprite().Play(AttackSprite.Source.AttackBurst, ship, at, Vector3.one * BlastBurstSize(ship, r), 0f,
-            ShipFxArt.BurstTicks, false, 0f, null, Vector3.zero, 71);
-        ShipTargets.Collect(found);
-        int kills = 0;
-        for (int i = 0; i < found.Count; i++)
-        {
-            var t = found[i];
-            if (t == null || !t.isActiveAndEnabled || t.gameObject == first) continue;
-            Vector2 d = t.transform.position - at;
-            float reach = r + t.Radius * .5f;
-            if (d.sqrMagnitude > reach * reach) continue;
-            if (ShipAttackHits.Hit(t.gameObject, ship, 1f, ref budget)) kills++;
-        }
-        if (kills > 0) WorldTimeFx.HitStop(.05f);
-        return kills;
-    }
-
-    static void Flash(int ship, Vector3 at)
-    {
-        AttackPool.Sprite().Play(AttackSprite.Source.AttackBurst, ship, at, Vector3.one * .45f, 0f,
-            ShipFxArt.BurstTicks, false, 0f, null, Vector3.zero, 71);
-    }
-
-    static void Beam(int ship, Vector3 a, Vector3 b)
-    {
-        Vector3 d = b - a;
-        float len = Mathf.Max(.2f, d.magnitude);
-        float ang = Mathf.Atan2(d.y, d.x) * Mathf.Rad2Deg;
-        AttackPool.Sprite().Play(AttackSprite.Source.AttackLoop, ship, (a + b) * .5f, new Vector3(len, ShipFxArt.BeamThin, 1f),
-            ang, ShipFxArt.LoopTicks, true, .22f, null, Vector3.zero, 70);
     }
 }
 

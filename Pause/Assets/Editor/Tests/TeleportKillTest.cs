@@ -293,9 +293,8 @@ public static class TeleportKillTest
         return c;
     }
 
-    // What a landed homing shot of the cinematic volley calls.
-    static void UltimateHits(ShipPowerController c, GameObject target) =>
-        typeof(ShipPowerController).GetMethod("HitTarget", Inst).Invoke(c, new object[] { target, Color.white, new Vector3(0f, -3f, 0f) });
+    // What a hit of the cinematic attack calls: through ShipAttackHits, like every attack.
+    static void UltimateHits(ShipPowerController c, GameObject target) => ShipAttackHits.Hit(target, c.ShipIndex);
 
     static void UltimateKillsScore()
     {
@@ -307,10 +306,9 @@ public static class TeleportKillTest
         var ship = UltimateShip();
         try
         {
-            Check("the top-tier ship's ultimate is the cinematic volley", ship.Loadout.IsTopTier);
+            Check("the top-tier ship's ultimate is a cinematic attack", ship.Loadout.IsTopTier);
             var targets = new GameObject[4];
-            // spread wide: Gold Warden's missiles blast 1.6 round their mark
-            var spots = new[] { new Vector3(-2.5f, 2f, 0f), new Vector3(0f, 3.5f, 0f), new Vector3(2.5f, 2f, 0f), new Vector3(0f, 1f, 0f) };
+                        var spots = new[] { new Vector3(-2.5f, 2f, 0f), new Vector3(0f, 3.5f, 0f), new Vector3(2.5f, 2f, 0f), new Vector3(0f, 1f, 0f) };
             targets[0] = Spawn(EnemyRole.Alien, spots[0]);
             for (int i = 1; i < targets.Length; i++) targets[i] = Spawn(EnemyRole.Rock, spots[i]);
 

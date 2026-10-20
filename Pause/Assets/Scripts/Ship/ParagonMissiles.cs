@@ -1,13 +1,14 @@
 using UnityEngine;
 
-// A premium hull's timed homing missiles: every PremiumShips tier's
+// A premium hull's timed mini-warheads: every PremiumShips tier's
 // missileEvery seconds (10 s at tier 0, quicker with every skin) it fires
-// that tier's missiles at the nearest hazards (ShipAttackRunner.FireMissiles),
-// whatever the ultimate and the shield are doing. Attached by
+// that tier's `missiles` small warheads straight ahead; each detonates a few
+// units out with a small shockwave (ShipAttackRunner.FireMiniWarheads),
+// whatever the ultimate and the shield are doing. Nothing homes. Attached by
 // ShipPowerController for a premium ship only.
 //
 // Gameplay time: it holds while the world is frozen (a pause, a world
-// transition, a boss's entrance) and when nothing is on screen to hunt (it
+// transition, a boss's entrance) and when nothing is on screen to hit (it
 // fires on the first frame there is), and dies with the ship.
 public class ParagonMissiles : MonoBehaviour
 {
@@ -45,7 +46,7 @@ public class ParagonMissiles : MonoBehaviour
         if (timer > 0f) return;
         if (runner == null) runner = ShipAttackRunner.Attach(gameObject, ship);
         var tier = PremiumShips.Current(ship);
-        if (runner.FireMissiles(tier.missiles) <= 0) return;   // nothing to hunt: try again next frame
+        if (runner.FireMiniWarheads(tier.missiles) <= 0) return;   // nothing on screen: try again next frame
         Fired++;
         UltimateShotSound.Play(ship);
         timer = tier.missileEvery;

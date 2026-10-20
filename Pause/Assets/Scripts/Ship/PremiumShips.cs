@@ -24,8 +24,8 @@ public struct PremiumTier
 {
     public int hearts;          // the hull's own lives at this tier
     public int startSpeedHud;   // the run's starting HUD speed
-    public float missileEvery;  // seconds between homing-missile volleys
-    public int missiles;        // missiles per volley
+    public float missileEvery;  // seconds between mini-warhead volleys
+    public int missiles;        // mini-warheads per volley
     public float shieldEvery;   // seconds between shields
     public float shieldSeconds; // how long each shield holds
 }

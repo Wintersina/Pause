@@ -5,12 +5,12 @@ using UnityEngine;
 //   1  identity: id 16, roster / key / art / tables all have its row
 //   2  the IAP gate: no dust purchase, not owned, "COMING SOON" in the dock;
 //      developer mode owns it; a Grant (the future IAP) owns it
-//   3  stats by skin tier: hearts, start speed, missiles, shield cadence
+//   3  stats by skin tier: hearts, start speed, mini-warheads, shield cadence
 //   4  skins: four, 50,000 dust each, bought only once the ship is owned
 //   5  the economy around it: set bonus, Fleet Admiral and the price tiers
 //      ignore it; standard ships' hearts / rows are unchanged
-//   6  gameplay: homing missiles fire on their timer at the nearest hazards,
-//      the shield raises on its timer, the barrage and the damage states
+//   6  gameplay: mini-warheads fire on their timer straight ahead,
+//      the shield raises on its timer, the nuke and the damage states
 public static class PremiumShipTest
 {
     static int fails;
@@ -52,7 +52,7 @@ public static class PremiumShipTest
               ShipDamageTable.Total(P) > 0 && ShipExhaustStyle.Has(P) && ShipExhaustStyle.HasLayer(P, ExhaustLayer.Plume) &&
               ShipExhaustStyle.HasLayer(P, ExhaustLayer.PlumeBoost) && ShipExhaust.SpriteFor(P) != null &&
               WeaponStyleTable.For(P).artKey == "Paragon" && ShipLoadoutTable.For(P).shipId == P &&
-              ShipLoadoutTable.AttackFor(P) == ShipAttack.ParagonBarrage && ShipLoadoutTable.PowerFor(P) == SecretPower.AegisShield &&
+              ShipLoadoutTable.AttackFor(P) == ShipAttack.Nuke && ShipLoadoutTable.PowerFor(P) == SecretPower.AegisShield &&
               ShipWeaponUpgrades.Has(P));
         Check("three nozzles: a big centre engine and two smaller outboard ones",
               ShipNozzles.For(P)[0].scale > 1f && ShipNozzles.For(P)[1].scale < 1f && ShipNozzles.For(P)[2].scale < 1f &&
@@ -151,7 +151,7 @@ public static class PremiumShipTest
         Check("all four skins: tier 4, 14 hearts, speed 28", PremiumShips.TierOf(P) == 4 && ShipLives.Max(P) == 14 &&
               ShipStartSpeed.HudFor(P, 4) == 28);
         var l = ShipWeaponUpgrades.LoadoutFor(P);
-        Check("the barrage grows with the skins (8 lances + 2 per odd step)", l.shots == 12 && ShipWeaponUpgrades.CooldownScale(P) < 1f);
+        Check("the nuke grows with the skins (a faster warhead)", Mathf.Approximately(l.speed, 28f) && ShipWeaponUpgrades.CooldownScale(P) < 1f);
         PlayerPrefs.DeleteKey(ShipId.OwnedKey(P));
         for (int s = 1; s < ShipSkins.PerShip; s++) PlayerPrefs.DeleteKey(ShipSkins.OwnedKey(P, s));
         PlayerPrefs.SetFloat(StarDustLedger.CurrencyKey, 0f);
@@ -225,24 +225,19 @@ public static class PremiumShipTest
         try
         {
             var missiles = go.GetComponent<ParagonMissiles>();
-            Check("the controller gives a premium ship its missile system, its barrage and its timed shield",
+            Check("the controller gives a premium ship its mini-warhead system, its nuke and its timed shield",
                   missiles != null && power.Runner != null && power.Secret != null && power.Secret.Power == SecretPower.AegisShield &&
-                  power.Loadout.attack == ShipAttack.ParagonBarrage);
+                  power.Loadout.attack == ShipAttack.Nuke);
             for (int i = 0; i < 4; i++) hazards.Add(Hazard(-1.2f + i * .8f, 1.5f + i * .3f));
 
-            // ---- homing missiles on a timer
+            // ---- mini-warheads on a timer
             Check("the missile timer starts at the tier's 10 s", Mathf.Approximately(missiles.TimeLeft, 10f));
-            int before = AttackProjectile.LaunchCount;
+            int before = AttackProjectile.LaunchCount, volleys0 = power.Runner.MiniVolleys;
             for (int i = 0; i < 95; i++) missiles.Step(.1f);
-            Check("nothing fires before 10 s", missiles.Fired == 0 && AttackProjectile.LaunchCount == before);
+            Check("nothing fires before 10 s", missiles.Fired == 0 && power.Runner.MiniVolleys == volleys0);
             for (int i = 0; i < 10; i++) missiles.Step(.1f);
-            Check("a volley of 2 homing missiles goes out at 10 s", missiles.Fired == 1 && AttackProjectile.LaunchCount == before + 2);
-            int homing = 0, distinct = 0;
-            var seen = new System.Collections.Generic.HashSet<Transform>();
-            foreach (var p in AttackPool.Projectiles)
-                if (p != null && p.Active && p.CurrentKind == AttackProjectile.Kind.Homing)
-                { homing++; if (p.Target != null && seen.Add(p.Target)) distinct++; }
-            Check("they are homing and each hunts a different target", homing >= 2 && distinct == 2);
+            Check("a volley of 2 mini-warheads goes out at 10 s", missiles.Fired == 1 && power.Runner.MiniVolleys == volleys0 + 1 && power.Runner.WarheadsNow == 2);
+            Check("nothing homes: no projectile is launched", AttackProjectile.LaunchCount == before);
             // the volley fired at step 100 (10.0 s); 5 steps have run since
             for (int i = 0; i < 94; i++) missiles.Step(.1f);
             Check("the next volley is another 10 s away", missiles.Fired == 1);
@@ -260,12 +255,12 @@ public static class PremiumShipTest
             foreach (var h in hazards) if (h != null) Object.DestroyImmediate(h);
             hazards.Clear();
 
-            // ---- the barrage (the ultimate)
+            // ---- the nuke (the ultimate)
             for (int i = 0; i < 5; i++) hazards.Add(Hazard(-1.5f + i * .75f, 2f));
             int b0 = AttackProjectile.LaunchCount;
-            Check("the barrage fires", power.Runner.Fire());
+            Check("the nuke fires", power.Runner.Fire());
             for (int i = 0; i < 40; i++) power.Runner.Step(.05f);
-            Check("it launches its 8 lances, one every 50 ms", AttackProjectile.LaunchCount - b0 == 8 && ShipLoadoutTable.For(P).shots == 8);
+            Check("it detonates once, with no projectile launched", power.Runner.Detonations == 1 && AttackProjectile.LaunchCount == b0);
             AttackPool.StopAll();
             foreach (var h in hazards) if (h != null) Object.DestroyImmediate(h);
             hazards.Clear();
