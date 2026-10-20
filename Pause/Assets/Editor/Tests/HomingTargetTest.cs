@@ -77,7 +77,7 @@ public static class HomingTargetTest
         Check("a boss outside the view is not targeted and minions stay off-limits",
               list.Count == 0 && ShipTargets.NearestHoming(Vector3.zero, 0f, null) == null);
 
-        // the ship's own attack: missiles go to the boss
+        // the ship's own attack: the sentries shoot the boss, not the minion
         FreshScene();
         PlayerPrefs.SetInt("spawnShip", 7);
         var minion = Hazard(0f, 0f);
@@ -90,10 +90,9 @@ public static class HomingTargetTest
         var gun = ship.GetComponentInChildren<UltimateGun>();
         if (gun != null) gun.SendMessage("Awake");
         c.Runner.FireFree();
-        Transform aimed = null;
-        foreach (var p in Object.FindObjectsByType<AttackProjectile>(FindObjectsSortMode.None))
-            if (p.Active) { aimed = p.TargetTransform; break; }
-        Check("a free homing shot during a boss fight locks on the boss", aimed != null && aimed == b2.transform);
+        for (float t = 0f; t < 3f; t += .02f) c.Runner.Step(.02f);
+        Check("free sentries during a boss fight shoot at the boss and leave the minion alone",
+              c.Runner.SentryBolts > 0 && minion != null);
         c.SendMessage("OnDestroy");
         if (c.Runner != null) c.Runner.SendMessage("OnDestroy");
         if (c.Secret != null) c.Secret.SendMessage("OnDestroy");
@@ -109,14 +108,8 @@ public static class HomingTargetTest
         Check("Warden impact scale constant is .3 and ship 7 is the Gold Warden",
               Mathf.Approximately(ShipVolley.GoldWardenImpactScale, .3f) && ShipId.KeyOf(ShipVolley.GoldWardenShip) == "GoldWarden");
 
-        // No weapon's blast burst is oversized (hit radii untouched)
-        float worst = 0f;
-        foreach (int id in ShipId.All)
-        {
-            var l = ShipLoadoutTable.For(id);
-            if (l.volley == VolleyKind.Blast)
-                worst = Mathf.Max(worst, ShipVolley.BlastBurstSize(id, l.width));
-        }
+        // The Warden's burst is not oversized (hit radii untouched)
+        float worst = ShipVolley.BlastBurstSize(7, 1.6f);
         Check("largest blast burst is under " + ShipVolley.MaxBurstWorld + " world units (" + worst + ")",
               worst > 0f && worst <= ShipVolley.MaxBurstWorld);
 

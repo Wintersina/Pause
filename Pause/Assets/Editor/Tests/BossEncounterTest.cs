@@ -448,7 +448,7 @@ public static class BossEncounterTest
         // which hands a BossTarget the hit instead of destroying it.
         Check("the boss body is a registered attack target (IShipAttackTarget)",
               body.GetComponent<IShipAttackTarget>() is BossTarget && body.GetComponent<ClearTarget>() != null &&
-              File.ReadAllText("Assets/Scripts/Gameplay/Weapons/ShipPowerController.cs").Contains("ShipAttackHits.Hit(target, shipIndex)"));
+              File.ReadAllText("Assets/Scripts/Gameplay/Weapons/ShipAttacksV3.cs").Contains("ShipAttackHits.Hit("));
         Check("the boss starts with BossConfig.HitPoints (" + BossConfig.HitPoints + ")", e.HitPointsLeft == BossConfig.HitPoints);
         Check("a homing shot on the boss is intercepted", BossTarget.Intercept(body, 1));
         Check("... and takes one hit point (" + e.HitPointsLeft + " left)", e.HitPointsLeft == BossConfig.HitPoints - 1 && e.Hits == 1);

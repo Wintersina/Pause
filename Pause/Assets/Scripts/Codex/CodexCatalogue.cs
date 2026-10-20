@@ -452,7 +452,7 @@ public static class CodexCatalogue
         { "UFO", "Nobody knows who built this saucer, and it isn't telling." },
         { "Dove", "A peaceful-looking ship with a not-so-peaceful ultimate." },
         { "Turtle", "Never slow, always tough: a shell built to shrug off space itself." },
-        { "Paragon", "A prototype nobody was meant to fly: ten hearts of armour, a shield that raises itself and missiles that find their own way. Coming soon." },
+        { "Paragon", "A prototype nobody was meant to fly: ten hearts of armour, a shield that raises itself and a nuke that clears the screen. Coming soon." },
     };
 
     // ---------------------------------------------------------------------

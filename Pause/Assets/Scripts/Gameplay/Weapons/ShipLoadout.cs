@@ -5,9 +5,11 @@ using UnityEngine;
 // The main attack fires itself when the ultimate's charge meter fills
 // (ShipPowerController, the ChargeIndicator in front of the hull). Only the
 // top price tier -- the three most expensive hulls in shopingShips.Prices --
-// gets the cinematic auto-target-everything volley with its slow motion;
-// every cheaper ship has a directional or limited weapon that plays at
-// normal speed (ShipAttackRunner).
+// gets a cinematic attack: the world drops into slow motion while it plays
+// (ShipPowerController) and each of the three has its own verb (a sweeping
+// laser, a frost nova, deployed sentries); every cheaper ship has a
+// directional or limited weapon that plays at normal speed
+// (ShipAttackRunner).
 //
 // The secret power has its own, slower meter (SecretPowerController, the
 // SecretMeter badge beside the hull) filled by star dust and kills. When it
@@ -15,8 +17,8 @@ using UnityEngine;
 // fires itself. No new controls.
 //
 // One row per ShipId; the tests check every ship has one, that no two ships
-// share an attack + power pair, and that ScreenClear is exactly the top tier
-// by price.
+// share an attack or an attack + power pair, and that the cinematic attacks
+// (ShipLoadoutTable.IsCinematic) are exactly the top tier by price.
 public enum ShipAttack
 {
     CometStreak,    // two comet streaks straight ahead, each stops at the first hit
@@ -31,19 +33,10 @@ public enum ShipAttack
     RailSlug,       // a piercing slug that hits everything in a narrow line
     GaleWings,      // a feathered gust shoves everything up and outward; collisions hurt
     OrbitDisc,      // a disc that orbits the ship and smashes what it touches
-    ParagonBarrage, // premium: a fan of cyan homing lances, each claims its own target
-    ScreenClear,    // top tier only: the cinematic homing volley at everything (keep LAST: arrays are sized by it)
-}
-
-// What each shot of the top tier's volley does when it lands (ShipVolley).
-// Tuned from the loadout row: maxHits -- targets a lance pierces / bounces a
-// wisp makes; width -- a missile's blast radius.
-public enum VolleyKind
-{
-    Homing, // the shot simply hits its mark
-    Pierce, // ion lances: goes on through the line of targets behind the mark
-    Bounce, // wisps: hop on from the mark to the nearest ones
-    Blast,  // missiles: the blast takes everything round the mark
+    Nuke,           // premium: a warhead climbs from the nose, blinks, detonates; a thin shockwave kills everything it reaches
+    IonLaser,       // top tier (cinematic): a thin laser leaves the nose and sweeps the screen, damaging everything it crosses
+    FrostNova,      // top tier (cinematic): a frost ring grows over the screen, freezing all it reaches; frozen things shatter
+    WardenSentries, // top tier (cinematic): sentry pods deploy across the lower screen and shoot the nearest targets
 }
 
 public enum SecretPower
@@ -91,7 +84,6 @@ public struct ShipLoadout
     public PowerTrigger trigger;
     public int triggerCount;
     public float triggerRadius;
-    public VolleyKind volley;
 
     public string attackName, attackLine;
     public string powerName, powerLine;
@@ -110,20 +102,26 @@ public struct ShipLoadout
     public float width;
     public float speed;
 
-    public bool IsTopTier => attack == ShipAttack.ScreenClear;
+    // The top price tier flies a cinematic attack (slow motion while it plays).
+    public bool IsTopTier => ShipLoadoutTable.IsCinematic(attack);
 }
 
 public static class ShipLoadoutTable
 {
-    // How many of the priciest hulls get the screen-clearing volley.
+    // How many of the priciest hulls get a cinematic attack.
     public const int TopTierCount = 3;
+
+    // The attacks that play in slow motion: exactly the top price tier's.
+    public static bool IsCinematic(ShipAttack a)
+    {
+        return a == ShipAttack.IonLaser || a == ShipAttack.FrostNova || a == ShipAttack.WardenSentries;
+    }
 
     static ShipLoadout Row(int id, ShipAttack attack, string attackName, string attackLine,
                            SecretPower power, string powerName, string powerLine,
                            PowerTrigger trigger, int count, float radius,
                            int shots = 1, int maxHits = 1, float duration = 0f,
-                           float range = 0f, float width = 0f, float speed = 0f,
-                           VolleyKind volley = VolleyKind.Homing)
+                           float range = 0f, float width = 0f, float speed = 0f)
     {
         return new ShipLoadout
         {
@@ -131,7 +129,6 @@ public static class ShipLoadoutTable
             power = power, powerName = powerName, powerLine = powerLine,
             trigger = trigger, triggerCount = count, triggerRadius = radius,
             shots = shots, maxHits = maxHits, duration = duration, range = range, width = width, speed = speed,
-            volley = volley,
         };
     }
 
@@ -161,20 +158,20 @@ public static class ShipLoadoutTable
             PowerTrigger.TargetsOnScreen, 3, 0f,
             range: 11f, width: .42f),
         // 5 Ion Lancer (3200, top tier)
-        Row(5, ShipAttack.ScreenClear, "ION BARRAGE", "Piercing ion lances go through three targets each.",
+        Row(5, ShipAttack.IonLaser, "ION LASER", "A thin laser leaves the nose and sweeps the whole screen, burning everything it crosses.",
             SecretPower.IonBattery, "ION BATTERY", "Adds two pauses and 2 s of slow time when you run low.",
             PowerTrigger.LowPauses, 2, 0f,
-            maxHits: 3, volley: VolleyKind.Pierce),
+            shots: 1, duration: 1.2f, range: 16f, width: 70f),
         // 6 Jade Phantom (4400, top tier)
-        Row(6, ShipAttack.ScreenClear, "WISP STORM", "Bouncing wisps hop between four targets each.",
+        Row(6, ShipAttack.FrostNova, "FROST NOVA", "A frost ring sweeps the screen. Everything it reaches freezes solid, then shatters.",
             SecretPower.PhaseCloak, "PHASE CLOAK", "Ghosts the ship for 4 s: untouchable, passes through hazards.",
             PowerTrigger.ImminentHit, 1, 0f,
-            maxHits: 4, volley: VolleyKind.Bounce),
+            duration: 1.0f, width: 0f),
         // 7 Gold Warden (5800, top tier)
-        Row(7, ShipAttack.ScreenClear, "WARDEN SALVO", "Area missiles blast everything around their mark.",
+        Row(7, ShipAttack.WardenSentries, "WARDEN SENTRIES", "Three sentry pods deploy across the screen and shoot the nearest targets for 6 s.",
             SecretPower.GoldMagnet, "GOLD MAGNET", "Pulls in star dust for 5 s, worth double meanwhile.",
             PowerTrigger.PickupsOnScreen, 4, 0f,
-            width: 1.6f, volley: VolleyKind.Blast),
+            shots: 3, duration: 6f, range: 6f, speed: 3f),
         // 8 Lightning (800)
         Row(8, ShipAttack.SkyJavelins, "SKY JAVELINS", "Three rockets climb to the top, then javelins strike down three lanes.",
             SecretPower.Thunderclap, "THUNDERCLAP", "Lightning strikes everything within 2.6 dead, bosses take a hit.",
@@ -215,13 +212,13 @@ public static class ShipLoadoutTable
             SecretPower.HardShell, "HARD SHELL", "A shell shows on the hull for up to 8 s and shatters on the next hit.",
             PowerTrigger.HazardInLane, 1, 3.4f,
             duration: 5f, width: 1.05f, range: .42f, speed: 320f),
-        // 16 Paragon (premium, real-money IAP: PremiumShips). Its signature extras (a homing-missile
-        // volley and a shield, both on timers) are PremiumShips tiers; this row is its ultimate and
-        // its timed shield power.
-        Row(16, ShipAttack.ParagonBarrage, "AEGIS BARRAGE", "A fan of homing lances; each hunts its own target.",
+        // 16 Paragon (premium, real-money IAP: PremiumShips). Its signature extras (timed mini-warheads
+        // and a shield, both on timers) are PremiumShips tiers; this row is its ultimate and its timed
+        // shield power. range: the nuke's flight height (share of the screen); duration: its fuse.
+        Row(16, ShipAttack.Nuke, "NUKE", "A warhead climbs from the nose, blinks, then detonates: a red shockwave and a mushroom cloud take everything on screen.",
             SecretPower.AegisShield, "AEGIS SHIELD", "Raises the shield on its own every 8 s (quicker with every skin).",
             PowerTrigger.Always, 0, 0f,
-            shots: 8, width: 70f, speed: 9f),
+            duration: .6f, range: .55f, speed: 14f),
     };
 
     public static int Count => byShip.Length;
@@ -237,7 +234,7 @@ public static class ShipLoadoutTable
     public static ShipAttack AttackFor(int shipId) => For(shipId).attack;
     public static SecretPower PowerFor(int shipId) => For(shipId).power;
 
-    // The ships that get the screen-clearing volley, by price: rank every
+    // The ships that get the cinematic attack, by price: rank every
     // roster hull by shopingShips.Prices (ties broken by id) and take the
     // top TopTierCount. The table above must agree (tests).
     public static bool IsTopTierByPrice(int shipId)

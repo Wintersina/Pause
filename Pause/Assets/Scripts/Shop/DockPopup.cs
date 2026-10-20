@@ -271,7 +271,7 @@ public class DockPopup : MonoBehaviour
     Text previewName, previewLine, powerNameText, powerLineText, triggerText;
     readonly Image[] previewChips = new Image[2];
     readonly Text[] previewChipLabels = new Text[2];
-    // [0] ultimate (attack), [1] power; each 8 loop cells then 8 burst cells.
+    // [0] ultimate (attack), [1] power; each the ship's PowerPreview plan, cells end to end.
     readonly Sprite[][] previewCells = { new Sprite[PowerPreview.Cells], new Sprite[PowerPreview.Cells] };
     int previewShip = -1;
     bool previewPower, previewAuto = true;
@@ -453,7 +453,7 @@ public class DockPopup : MonoBehaviour
             ApplyPreviewKind(!previewPower);
             return;
         }
-        var seq = PowerPreview.Sequence(previewPower);
+        var seq = PowerPreview.Sequence(ShipIndex, previewPower);
         int tick = (int)((now - previewClockAt) * PowerPreview.Fps) % seq.Length;
         if (tick < 0 || tick == previewTick) return;
         previewTick = tick;
@@ -1039,34 +1039,112 @@ public class DockPopup : MonoBehaviour
 }
 
 // What the dock's power preview plays: the ship's attack (ULTIMATE) and secret
-// power strips from ShipFxArt, as one fixed tick sequence each (24 fps).
+// power strips from ShipFxArt, as one fixed tick sequence each (24 fps). By
+// default a strip's loop twice, then its burst; a ship whose attack needs more
+// than its own strip to read (a nuke's shockwave and mushroom, the sentries'
+// bolt, the frost nova's shatter, a beam that wants zooming) lists its own
+// parts in AttackPlan below.
 public static class PowerPreview
 {
-    public const int Cells = ShipFxArt.LoopFrames + ShipFxArt.BurstFrames;
+    // Room for every part of the longest plan (cells are laid end to end).
+    public const int Cells = 64;
     public const float Fps = 24f;
     const int LoopCycles = 2, HoldTicks = 8;
-    static int[] ultimate, power;
 
-    // Cell index per tick: the loop a couple of times, the burst, then a blank beat (-1).
-    public static int[] Sequence(bool secretPower)
+    // A run of cells from one strip: suffix "attack" / "power" / "attack_ice" ..., cells first..first+count-1
+    // played `repeat` times with the given ticks per cell.
+    public struct Part
     {
-        if (ultimate == null) { ultimate = Build(ShipFxArt.LoopTicks, ShipFxArt.BurstTicks); power = Build(ShipFxArt.PowerLoopTicks, ShipFxArt.PowerBurstTicks); }
-        return secretPower ? power : ultimate;
+        public string suffix;
+        public int first, count, repeat;
+        public int[] ticks;
+        public Part(string suffix, int first, int count, int repeat, int[] ticks)
+        {
+            this.suffix = suffix; this.first = first; this.count = count; this.repeat = repeat; this.ticks = ticks;
+        }
     }
 
-    static int[] Build(int[] loop, int[] burst)
+    public struct Plan
+    {
+        public Part[] parts;
+        public float maxZoom;   // how far past the base size the art may be scaled to fill the panel
+    }
+
+    static readonly int[] OneTick = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
+
+    static Part[] Default(string suffix, int[] loop, int[] burst)
+    {
+        return new[] { new Part(suffix, 0, 8, LoopCycles, loop), new Part(suffix, 8, 8, 1, burst) };
+    }
+
+    // The attack preview of each ship; ships not listed play the default (loop x2, burst).
+    public static Plan AttackPlan(int ship)
+    {
+        var plan = new Plan { parts = Default("attack", ShipFxArt.LoopTicks, ShipFxArt.BurstTicks), maxZoom = 3f };
+        string burstStrip = BurstStrip(ship);
+        if (burstStrip != null)   // the loop of the ship's own strip, the burst of another (the Paranoid's rune mark)
+            plan.parts = new[] { new Part("attack", 0, 8, LoopCycles, ShipFxArt.LoopTicks), new Part("attack_" + burstStrip, 8, 8, 1, ShipFxArt.BurstTicks) };
+        switch (ship)
+        {
+            case 5:   // ion laser: a thin horizontal beam, so zoom well past the usual cap to read as a beam
+                plan.maxZoom = 8f;
+                break;
+            case 6:   // frost nova: the ring, its shards, then the ice crust cracking
+                plan.parts = new[]
+                {
+                    new Part("attack", 0, 8, 1, ShipFxArt.LoopTicks), new Part("attack", 8, 8, 1, ShipFxArt.BurstTicks),
+                    new Part("attack_ice", 0, 8, 1, ShipFxArt.LoopTicks), new Part("attack_ice", 8, 8, 1, ShipFxArt.BurstTicks),
+                };
+                break;
+            case 7:   // warden sentries: hover, deploy, then a bolt
+                plan.parts = new[]
+                {
+                    new Part("attack", 0, 8, 2, ShipFxArt.LoopTicks), new Part("attack", 8, 8, 1, ShipFxArt.BurstTicks),
+                    new Part("attack_shot", 0, 8, 1, ShipFxArt.LoopTicks), new Part("attack_shot", 8, 8, 1, ShipFxArt.BurstTicks),
+                };
+                break;
+            case 16:  // nuke: the warhead, the core flash, the red shockwave, the mushroom cloud
+                plan.parts = new[]
+                {
+                    new Part("attack", 0, 8, 2, ShipFxArt.LoopTicks), new Part("attack", 8, 8, 1, ShipFxArt.BurstTicks),
+                    new Part("attack_shockwave", 0, 16, 1, OneTick), new Part("attack_mushroom", 0, 16, 1, OneTick),
+                };
+                break;
+        }
+        return plan;
+    }
+
+    static Plan PlanFor(int ship, bool secretPower)
+    {
+        if (!secretPower) return AttackPlan(ship);
+        return new Plan { parts = Default("power", ShipFxArt.PowerLoopTicks, ShipFxArt.PowerBurstTicks), maxZoom = 3f };
+    }
+
+    // How many cells a ship's plan lays out.
+    public static int CellCount(int ship, bool secretPower)
+    {
+        int n = 0;
+        foreach (var part in PlanFor(ship, secretPower).parts) n += part.count;
+        return n;
+    }
+
+    // Cell index (into Fill's array) per tick: each part's cells in order, then a blank beat (-1).
+    public static int[] Sequence(int ship, bool secretPower)
     {
         var list = new System.Collections.Generic.List<int>();
-        for (int c = 0; c < LoopCycles; c++)
-            for (int i = 0; i < loop.Length; i++)
-                for (int t = 0; t < loop[i]; t++) list.Add(i);
-        for (int i = 0; i < burst.Length; i++)
-            for (int t = 0; t < burst[i]; t++) list.Add(ShipFxArt.LoopFrames + i);
+        int at = 0;
+        foreach (var part in PlanFor(ship, secretPower).parts)
+        {
+            for (int r = 0; r < part.repeat; r++)
+                for (int i = 0; i < part.count; i++)
+                    for (int t = 0; t < part.ticks[Mathf.Min(i, part.ticks.Length - 1)]; t++) list.Add(at + i);
+            at += part.count;
+        }
         for (int t = 0; t < HoldTicks; t++) list.Add(-1);
         return list.ToArray();
     }
 
-    // Which strip the attack preview's burst comes from (null: the ship's own _attack strip): the Paranoid's
+    // Which strip the attack preview's burst comes from (null: the ship's own attack strip): the Paranoid's
     // eye loops, then its rune mark detonates.
     public static string BurstStrip(int ship) { return ship == 10 ? "mark" : null; }
 
@@ -1078,26 +1156,41 @@ public static class PowerPreview
         return Mathf.Lerp(-.32f, .32f, Mathf.Clamp01(tick / (float)(LoopCycles * ShipFxArt.LoopFrames))) * panelHeight;
     }
 
-    // Fills `cells` (Cells long) with the ship's loop then burst sprites; false if any is missing.
+    // The default sequence (the loop twice, the burst) of ship-agnostic callers.
+    public static int[] Sequence(bool secretPower) { return Sequence(0, secretPower); }
+
+    static Sprite Cell(int ship, bool secretPower, string suffix, int cell)
+    {
+        if (suffix == "attack" || suffix == "power")
+        {
+            bool burst = cell >= ShipFxArt.LoopFrames;
+            int i = burst ? cell - ShipFxArt.LoopFrames : cell;
+            if (secretPower) return burst ? ShipFxArt.PowerBurst(ship, i) : ShipFxArt.PowerLoop(ship, i);
+            return burst ? ShipFxArt.AttackBurst(ship, i) : ShipFxArt.AttackLoop(ship, i);
+        }
+        return ShipFxArt.Extra(ship, suffix, cell);
+    }
+
+    // Fills `cells` (Cells long) with the ship's plan sprites end to end; false if any is missing.
     public static bool Fill(int ship, bool secretPower, Sprite[] cells)
     {
         bool ok = true;
-        string burstStrip = secretPower ? null : BurstStrip(ship);
-        if (burstStrip != null && ShipFxArt.Strip(ship, "attack_" + burstStrip) == null) ok = false;
-        for (int i = 0; i < ShipFxArt.LoopFrames; i++)
-        {
-            cells[i] = secretPower ? ShipFxArt.PowerLoop(ship, i) : ShipFxArt.AttackLoop(ship, i);
-            cells[ShipFxArt.LoopFrames + i] = secretPower ? ShipFxArt.PowerBurst(ship, i)
-                : burstStrip != null ? ShipFxArt.Extra(ship, burstStrip, true, i) : ShipFxArt.AttackBurst(ship, i);
-        }
-        for (int i = 0; i < cells.Length; i++) ok &= cells[i] != null;
+        int at = 0;
+        for (int i = 0; i < cells.Length; i++) cells[i] = null;
+        foreach (var part in PlanFor(ship, secretPower).parts)
+            for (int i = 0; i < part.count && at < cells.Length; i++)
+            {
+                cells[at] = Cell(ship, secretPower, part.suffix, part.first + i);
+                ok &= cells[at] != null;
+                at++;
+            }
         return ok;
     }
 
-    const float FitFraction = .85f, MaxZoom = 3f, AlphaCut = .15f, BaseSide = 56f;
+    const float FitFraction = .85f, AlphaCut = .15f, BaseSide = 56f;
     static readonly System.Collections.Generic.Dictionary<int, Rect> bounds = new System.Collections.Generic.Dictionary<int, Rect>();
 
-    // The visible (alpha) box over all 16 cells, in 0..1 cell coordinates (y up).
+    // The visible (alpha) box over all the plan's cells, in 0..1 cell coordinates (y up).
     // Read through a temporary RenderTexture (the strips are not readable);
     // cached per ship and kind, so it costs once when a card opens.
     public static Rect VisibleBounds(int ship, bool secretPower, Sprite[] cells)
@@ -1106,31 +1199,41 @@ public static class PowerPreview
         Rect box;
         if (bounds.TryGetValue(key, out box)) return box;
         box = new Rect(0f, 0f, 1f, 1f);
-        var tex = cells != null && cells[0] != null ? cells[0].texture : null;
-        if (tex != null && tex.width >= Cells * 2)
+        float x0 = float.MaxValue, y0 = float.MaxValue, x1 = -1f, y1 = -1f;
+        Texture2D lastTex = null;
+        Color32[] px = null;
+        int cut = (int)(AlphaCut * 255f);
+        for (int c = 0; c < cells.Length && cells[c] != null; c++)
         {
-            var rt = RenderTexture.GetTemporary(tex.width, tex.height, 0, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Linear);
-            var prev = RenderTexture.active;
-            Graphics.Blit(tex, rt);
-            RenderTexture.active = rt;
-            var read = new Texture2D(tex.width, tex.height, TextureFormat.RGBA32, false);
-            read.ReadPixels(new Rect(0, 0, tex.width, tex.height), 0, 0);
-            RenderTexture.active = prev;
-            RenderTexture.ReleaseTemporary(rt);
-            var px = read.GetPixels32();
-            int cw = tex.width / ShipFxArt.StripCells, h = tex.height, cut = (int)(AlphaCut * 255f);
-            int x0 = int.MaxValue, y0 = int.MaxValue, x1 = -1, y1 = -1;
-            for (int c = 0; c < Cells; c++)
-                for (int y = 0; y < h; y++)
-                    for (int x = 0; x < cw; x++)
-                        if (px[y * tex.width + c * cw + x].a > cut)
-                        {
-                            if (x < x0) x0 = x; if (x > x1) x1 = x;
-                            if (y < y0) y0 = y; if (y > y1) y1 = y;
-                        }
-            Object.DestroyImmediate(read);
-            if (x1 >= x0 && y1 >= y0) box = Rect.MinMaxRect(x0 / (float)cw, y0 / (float)h, (x1 + 1) / (float)cw, (y1 + 1) / (float)h);
+            var sp = cells[c];
+            var tex = sp.texture;
+            if (tex == null) continue;
+            if (tex != lastTex)
+            {
+                lastTex = tex;
+                var rt = RenderTexture.GetTemporary(tex.width, tex.height, 0, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Linear);
+                var prev = RenderTexture.active;
+                Graphics.Blit(tex, rt);
+                RenderTexture.active = rt;
+                var read = new Texture2D(tex.width, tex.height, TextureFormat.RGBA32, false);
+                read.ReadPixels(new Rect(0, 0, tex.width, tex.height), 0, 0);
+                RenderTexture.active = prev;
+                RenderTexture.ReleaseTemporary(rt);
+                px = read.GetPixels32();
+                Object.DestroyImmediate(read);
+            }
+            Rect r = sp.rect;
+            int rx = (int)r.x, rw = (int)r.width, rh = (int)r.height;
+            for (int y = 0; y < rh; y++)
+                for (int x = 0; x < rw; x++)
+                    if (px[y * tex.width + rx + x].a > cut)
+                    {
+                        float fx = x / (float)rw, fy = y / (float)rh;
+                        if (fx < x0) x0 = fx; if (fx > x1) x1 = fx;
+                        if (fy < y0) y0 = fy; if (fy > y1) y1 = fy;
+                    }
         }
+        if (x1 >= x0 && y1 >= y0) box = Rect.MinMaxRect(x0, y0, x1 + 1f / 256f, y1 + 1f / 256f);
         bounds[key] = box;
         return box;
     }
@@ -1143,7 +1246,7 @@ public static class PowerPreview
         Rect b = VisibleBounds(ship, secretPower, cells);
         float side = Mathf.Min(FitFraction * panelHeight / Mathf.Max(.05f, b.height),
                                FitFraction * panelWidth / Mathf.Max(.05f, b.width),
-                               MaxZoom * BaseSide);
+                               PlanFor(ship, secretPower).maxZoom * BaseSide);
         size = new Vector2(side, side);
         at = new Vector2(-(b.center.x - .5f) * side, -(b.center.y - .5f) * side);
     }

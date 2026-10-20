@@ -4,9 +4,9 @@ using UnityEditor.SceneManagement;
 using UnityEngine;
 
 // Feature: every ship has its own main attack and its own secret power
-// (ShipLoadoutTable). Only the top price tier fires the cinematic
-// auto-target volley; the rest fire directional / limited weapons at normal
-// speed (ShipAttackRunner). The secret power has its own meter, filled by
+// (ShipLoadoutTable). Only the top price tier fires a cinematic attack
+// (slow motion, each with its own verb); the rest fire directional / limited
+// weapons at normal speed (ShipAttackRunner). The secret power has its own meter, filled by
 // star dust and kills, and fires itself on its trigger (SecretPowerController).
 //
 //   Unity -batchmode -quit -projectPath Pause -executeMethod ShipAttacksTest.Run
@@ -136,11 +136,9 @@ public static class ShipAttacksTest
         Check("a stray id falls back to the starter's loadout",
               ShipLoadoutTable.For(999).shipId == ShipId.Starter && ShipLoadoutTable.For(0).shipId == ShipId.Starter);
 
-        var nonVolley = new HashSet<ShipAttack>();
-        int below = 0;
-        foreach (int id in ShipId.All)
-            if (!ShipLoadoutTable.For(id).IsTopTier) { below++; nonVolley.Add(ShipLoadoutTable.For(id).attack); }
-        Check("every ship below the top tier attacks its own way", nonVolley.Count == below);
+        var attacks = new HashSet<ShipAttack>();
+        foreach (int id in ShipId.All) attacks.Add(ShipLoadoutTable.For(id).attack);
+        Check("every ship has its own distinct ShipAttack (" + attacks.Count + " of " + ShipId.Count + ")", attacks.Count == ShipId.Count);
 
         Check("the codex lists each ship's attack and secret power",
               CodexCatalogue.LoadoutLore(4).Contains("RAIL GUN") && CodexCatalogue.LoadoutLore(4).Contains("CAPACITOR DUMP"));
@@ -156,11 +154,11 @@ public static class ShipAttacksTest
         int count = 0;
         foreach (int id in ShipId.All)
         {
-            bool clears = ShipLoadoutTable.For(id).attack == ShipAttack.ScreenClear;
+            bool clears = ShipLoadoutTable.IsCinematic(ShipLoadoutTable.For(id).attack);
             if (clears) count++;
             match &= clears == top.Contains(id) && clears == ShipLoadoutTable.IsTopTierByPrice(id);
         }
-        Check("exactly the three priciest hulls use the screen clear (" + string.Join(",", top) + ")",
+        Check("exactly the three priciest hulls fly a cinematic attack (" + string.Join(",", top) + ")",
               match && count == ShipLoadoutTable.TopTierCount);
 
         FreshScene();
@@ -176,7 +174,7 @@ public static class ShipAttacksTest
         Hazard(0f, 1f);
         var rich = Ship(byPrice[0]);
         typeof(ShipPowerController).GetMethod("Fire", Inst).Invoke(rich, null);
-        Check("a top-tier ship fires the cinematic volley", ShipPowerController.CinematicClearActive && rich.Runner.FireCount == 0);
+        Check("a top-tier ship fires its cinematic attack", ShipPowerController.CinematicClearActive && rich.Runner.FireCount == 1 && rich.Loadout.IsTopTier);
         Teardown(rich);
     }
 
@@ -528,11 +526,12 @@ public static class ShipAttacksTest
         Check("no secret power changes the world speed", speedHeld);
 
         FreshScene();
-        var warden = Ship(7);
+        var warden = Ship(6);
         boss = Boss(0f, 1f);
-        typeof(ShipPowerController).GetMethod("HitTarget", Inst).Invoke(warden, new object[] { boss.gameObject, Color.white, new Vector3(0f, -3f, 0f) });
-        Check("a screen-clear homing shot lands on the boss as one full hit",
-              boss != null && boss.hits == 1 && Mathf.Approximately(boss.weight, 1f));
+        warden.Runner.Fire();
+        Steps(warden.Runner, 1.5f);
+        Check("a frost nova reaches the boss for one full hit, no freeze",
+              boss != null && boss.hits == 1 && Mathf.Approximately(boss.weight, 1f) && boss.GetComponent<FrozenState>() == null);
         Teardown(warden);
     }
 

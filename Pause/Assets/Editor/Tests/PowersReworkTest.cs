@@ -8,9 +8,10 @@ using UnityEngine;
 //   2 Volt Viper    EMP: at 3+ enemies, stuns them, cancels enemy shots, an arc per stunned enemy
 //   3 Solar Fang    Solar Nova: kills within 3.0 and leaves a 2 s burning ring
 //   4 Crimson Halo  Capacitor Dump: fires the rail gun at once (3+ targets, any charge)
-//   5 Ion Lancer    Ion Battery: +2 pauses and 2 s slow time at <= 2 pauses; piercing lances (3 targets)
-//   6 Jade Phantom  Phase Cloak: 4 s ghosted hull (passes through hazards, see CloakShieldTest); bouncing wisps (4)
-//   7 Gold Warden   Gold Magnet: 5 s pull and dust x2; area missiles (blast 1.6)
+//   5 Ion Lancer    Ion Battery: +2 pauses and 2 s slow time at <= 2 pauses; ION LASER (a sweeping beam)
+//   6 Jade Phantom  Phase Cloak: 4 s ghosted hull (passes through hazards, see CloakShieldTest); FROST NOVA
+//   7 Gold Warden   Gold Magnet: 5 s pull and dust x2; WARDEN SENTRIES
+//   16 Paragon      NUKE and its mini-warheads
 //
 // Batch 2, ships 8-15:
 //   8  Lightning    Thunderclap: lightning KILLS hazards within 2.6 (a boss takes a weighted hit)
@@ -47,11 +48,12 @@ public static class PowersReworkTest
         NovaLeavesABurningRing();
         CapacitorDumpFiresTheRail();
         IonBatteryAddsSlowTime();
-        IonLancesPierceThree();
+        IonLaserSweeps();
         PhaseCloakGhostsTheHull();
-        WispsBounceFour();
+        FrostNovaFreezesAndShatters();
         GoldMagnetDoublesDust();
-        MissilesBlast();
+        SentriesDeployAndShoot();
+        NukeDetonatesWithAShockwave();
         ThunderclapKills();
         DecoyRedirectsAim();
         TimeBubbleIsADome();
@@ -133,6 +135,8 @@ public static class PowersReworkTest
     {
         for (float t = 0f; t < seconds; t += dt) r.Step(dt);
     }
+
+    static bool Alive(GameObject go) => go != null;
 
     static void Run(SecretPowerController s, float seconds, float dt = .02f)
     {
@@ -330,24 +334,33 @@ public static class PowersReworkTest
         score.pauseCounter = 0;
     }
 
-    static void IonLancesPierceThree()
+    static void IonLaserSweeps()
     {
         FreshScene();
         var ion = Ship(5);
-        Check("Ion Lancer's volley pierces", ion.Loadout.volley == VolleyKind.Pierce && ion.Loadout.maxHits == 3);
-        var from = new Vector3(0f, -3f, 0f);
-        var first = Hazard(0f, -1f);
-        var line = new List<GameObject> { Hazard(.1f, 0f), Hazard(-.1f, 1.2f), Hazard(0f, 2.4f) };
-        var aside = Hazard(1.5f, .6f);
-        float budget = 1f;
-        int kills = ShipVolley.AfterHit(5, from, first.transform.position, first, ref budget);
-        Check("a lance goes on through two more targets (" + kills + ")", kills == 2);
-        Check("the next two in line die", ShipAttackHits.AlreadyHit(line[0]) && ShipAttackHits.AlreadyHit(line[1]));
-        Check("the fourth in line lives (3 targets in all)", !ShipAttackHits.AlreadyHit(line[2]));
-        Check("one off its line lives", !ShipAttackHits.AlreadyHit(aside));
-        Object.DestroyImmediate(first);
-        Object.DestroyImmediate(aside);
-        Kill(line);
+        var l = ion.Loadout;
+        Check("Ion Lancer flies the ion laser: one 1.2 s pass of +-70 degrees",
+              l.attack == ShipAttack.IonLaser && l.shots == 1 && Mathf.Approximately(l.duration, 1.2f) && Mathf.Approximately(l.width, 70f));
+        var r1 = Hazard(1.8f, 0f);
+        var r2 = Hazard(1.2f, 1.5f);
+        var l1 = Hazard(-1.8f, 0f);
+        var boss = Hazard(0f, 3f);
+        var fake = boss.AddComponent<FakeBoss>();
+        ion.Runner.Fire();
+        Steps(ion.Runner, .5f);
+        Check("the side with more targets is swept first", !Alive(r1) && Alive(l1));
+        Steps(ion.Runner, .85f);
+        Check("a full sweep burns everything it crosses", !Alive(r1) && !Alive(r2) && !Alive(l1));
+        Check("the boss takes about one hit from the whole sweep (" + fake.weight + ")", fake.hits >= 1 && fake.weight <= 1.01f);
+        Check("the run is over after the pass", ion.Runner.ActiveRuns == 0 && !ion.Runner.CinematicHold);
+        // a free shot: shorter, no second pass
+        var near = Hazard(.4f, 1f);
+        Check("a free shot starts a quick sweep", ion.Runner.FireFree() && ion.Runner.ActiveRuns == 1);
+        Steps(ion.Runner, .8f);
+        Check("it ends in 0.72 s and burns what it crosses", ion.Runner.ActiveRuns == 0 && !Alive(near));
+        Check("upgrades: a longer sweep, then a second pass",
+              Mathf.Approximately(ShipWeaponUpgrades.LoadoutAt(5, 1).duration, 1.5f) && ShipWeaponUpgrades.LoadoutAt(5, 3).shots == 2);
+        Object.DestroyImmediate(boss);
         Teardown(ion);
     }
 
@@ -372,24 +385,55 @@ public static class PowersReworkTest
         Teardown(jade);
     }
 
-    static void WispsBounceFour()
+    static void FrostNovaFreezesAndShatters()
     {
         FreshScene();
         var jade = Ship(6);
-        Check("Jade Phantom's volley bounces 4 times", jade.Loadout.volley == VolleyKind.Bounce && jade.Loadout.maxHits == 4);
-        var first = Hazard(0f, -2.6f);
-        var chain = new List<GameObject>();
-        for (int i = 0; i < 5; i++) chain.Add(Hazard(i % 2 == 0 ? .3f : -.3f, -1.2f + i * 1.4f));
-        float budget = 1f;
-        int kills = ShipVolley.AfterHit(6, new Vector3(0f, -3f, 0f), first.transform.position, first, ref budget);
-        Check("the wisp bounces on to 4 more targets (" + kills + ")", kills == 4);
-        bool four = true;
-        for (int i = 0; i < 4; i++) four &= ShipAttackHits.AlreadyHit(chain[i]);
-        Check("the first four in the chain die", four);
-        Check("the fifth lives", !ShipAttackHits.AlreadyHit(chain[4]));
-        Object.DestroyImmediate(first);
-        Kill(chain);
+        Check("Jade Phantom flies the frost nova", jade.Loadout.attack == ShipAttack.FrostNova && Mathf.Approximately(jade.Loadout.duration, 1f));
+        var near = Hazard(0f, 0f);
+        var mover = near.AddComponent<moveItemEnmInStrightLine>();
+        var far = Hazard(1.5f, 2f);
+        var boss = Hazard(0f, 3f);
+        var fake = boss.AddComponent<FakeBoss>();
+        jade.Runner.Fire();
+        Steps(jade.Runner, .6f);
+        var fs = near.GetComponent<FrozenState>();
+        Check("what the ring reaches freezes: its mover is suspended, not destroyed",
+              Alive(near) && fs != null && fs.IsFrozen && !mover.enabled && jade.Runner.FrozenNow >= 1);
+        Check("an ice overlay sits on it", SpritesActiveNamed("~atkfx") > 0);
+        Steps(jade.Runner, .5f);
+        Check("a boss does not freeze: one hit and no FrozenState", fake.hits == 1 && boss.GetComponent<FrozenState>() == null);
+        Steps(jade.Runner, .3f);
+        Check("frozen targets shatter about 1 s after freezing", !Alive(near) && Alive(far));
+        Steps(jade.Runner, 1f);
+        Check("the later one shatters too, and the run ends", !Alive(far) && jade.Runner.ShatterCount == 2 && jade.Runner.ActiveRuns == 0 && jade.Runner.FrozenNow == 0);
+        Object.DestroyImmediate(boss);
         Teardown(jade);
+
+        // a frozen target destroyed or despawned meanwhile ends the freeze safely
+        FreshScene();
+        jade = Ship(6);
+        var gone = Hazard(0f, 0f);
+        jade.Runner.Fire();
+        Steps(jade.Runner, .5f);
+        Check("it froze", jade.Runner.FrozenNow == 1);
+        Object.DestroyImmediate(gone);
+        Steps(jade.Runner, .1f);
+        Check("a target destroyed while frozen is simply forgotten", jade.Runner.FrozenNow == 0);
+        Steps(jade.Runner, 1.5f);
+        Check("and the run still ends", jade.Runner.ActiveRuns == 0);
+        Teardown(jade);
+
+        // the reusable state: thaws cleanly, and the ship going away thaws what it held
+        FreshScene();
+        var h = Hazard(0f, 0f);
+        var m = h.AddComponent<moveItemEnmInStrightLine>();
+        var st = FrozenState.Freeze(h);
+        Check("FrozenState suspends the mover", st != null && !m.enabled && st.IsFrozen);
+        st.Thaw();
+        Check("and Thaw switches it back on", m.enabled && !st.IsFrozen);
+        Object.DestroyImmediate(h);
+        Check("upgrade: the shatter splash hits what is within 0.8", Mathf.Approximately(ShipWeaponUpgrades.LoadoutAt(6, 1).width, .8f));
     }
 
     // ---- 7 Gold Magnet, Missiles ----------------------------------------
@@ -427,25 +471,74 @@ public static class PowersReworkTest
         Teardown(gold);
     }
 
-    static void MissilesBlast()
+    static void SentriesDeployAndShoot()
     {
         FreshScene();
         var gold = Ship(7);
-        Check("Gold Warden's volley blasts 1.6 around the mark",
-              gold.Loadout.volley == VolleyKind.Blast && Mathf.Approximately(gold.Loadout.width, 1.6f));
-        var first = Hazard(0f, 1f);
-        var inside = new List<GameObject> { Hazard(1.3f, 1f), Hazard(-.9f, 2f), Hazard(0f, -.4f) };
-        var outside = Hazard(2.2f, 1f);
-        float budget = 1f;
-        int kills = ShipVolley.AfterHit(7, new Vector3(0f, -3f, 0f), first.transform.position, first, ref budget);
-        bool all = true;
-        foreach (var go in inside) all &= ShipAttackHits.AlreadyHit(go);
-        Check("the blast takes everything within 1.6 (" + kills + ")", kills == 3 && all);
-        Check("and nothing past it", !ShipAttackHits.AlreadyHit(outside));
-        Object.DestroyImmediate(first);
-        Object.DestroyImmediate(outside);
-        Kill(inside);
+        var l = gold.Loadout;
+        Check("Gold Warden flies 3 sentries for 6 s at 3 shots a second",
+              l.attack == ShipAttack.WardenSentries && l.shots == 3 && Mathf.Approximately(l.duration, 6f) && Mathf.Approximately(l.speed, 3f));
+        var fake = Hazard(0f, 3f).GetComponent<ClearTarget>().gameObject.AddComponent<FakeBoss>();
+        gold.Runner.Fire();
+        Steps(gold.Runner, .1f);
+        Check("they launch from the ship, and the slow motion waits for them", gold.Runner.SentriesNow == 3 && gold.Runner.CinematicHold);
+        Steps(gold.Runner, 1f);
+        Check("once deployed the slow motion no longer needs the attack", !gold.Runner.CinematicHold && gold.Runner.ActiveRuns == 1);
+        Steps(gold.Runner, 7f);
+        Check("they shoot, then fold away", gold.Runner.SentriesNow == 0 && gold.Runner.ActiveRuns == 0 && gold.Runner.SentryBolts > 30);
+        Check("a sentry is worth about one boss hit (" + fake.weight + " over " + fake.hits + " bolts)", fake.weight > 2.4f && fake.weight <= 3.01f);
+        Object.DestroyImmediate(fake.gameObject);
+
+        // a bolt kills an ordinary target in range
+        var t = Hazard(0f, 3.5f);
+        gold.Runner.Fire();
+        Steps(gold.Runner, 1.8f);
+        Check("a sentry's bolt kills a target in range", !Alive(t));
+        Steps(gold.Runner, 7f);
+        Check("upgrade: a fourth sentry at the top level", ShipWeaponUpgrades.LoadoutAt(7, 1).shots == 4);
         Teardown(gold);
+    }
+
+    static void NukeDetonatesWithAShockwave()
+    {
+        FreshScene();
+        var p = Ship(16);
+        Check("Paragon flies the nuke", p.Loadout.attack == ShipAttack.Nuke && Mathf.Approximately(p.Loadout.duration, .6f));
+        var a = Hazard(0f, 0f);
+        var far = Hazard(-2.4f, -4.5f);
+        var boss = Hazard(0f, 2f);
+        var fake = boss.AddComponent<FakeBoss>();
+        int shots = AttackProjectile.LaunchCount;
+        p.Runner.Fire();
+        Steps(p.Runner, .3f);
+        Check("a warhead is in flight and nothing has been hit", p.Runner.WarheadsNow == 1 && Alive(a) && Alive(far));
+        Steps(p.Runner, .5f);
+        Check("it is still counting down", p.Runner.Detonations == 0 && Alive(a));
+        Steps(p.Runner, .3f);
+        Check("it detonates with a short hit-stop", p.Runner.Detonations == 1 && WorldTimeFx.HitStopping);
+        Steps(p.Runner, .1f);
+        Check("the shockwave kills what is near first", !Alive(a) && Alive(far));
+        Steps(p.Runner, 1f);
+        Check("and everything it reaches", !Alive(far) && p.Runner.ActiveRuns == 0 && p.Runner.WarheadsNow == 0);
+        Check("the boss takes one hit", fake.hits == 1 && fake.weight <= 1.01f);
+        Check("no homing shot was launched", AttackProjectile.LaunchCount == shots);
+        Object.DestroyImmediate(boss);
+        Teardown(p);
+
+        // the timed mini-warheads: small, straight ahead
+        FreshScene();
+        p = Ship(16);
+        Check("with nothing on screen the mini-warheads hold fire", p.Runner.FireMiniWarheads(2) == 0);
+        var in14 = Hazard(0f, 1.6f);
+        var short14 = Hazard(0f, -1f);
+        var wide = Hazard(2.4f, 1.3f);
+        Check("two mini-warheads leave the nose", p.Runner.FireMiniWarheads(2) == 2 && p.Runner.WarheadsNow == 2);
+        Steps(p.Runner, 1.2f);
+        Check("each detonates ahead with a small shockwave", p.Runner.MiniDetonations == 2 && !Alive(in14));
+        Check("what is outside radius 1.4 lives", Alive(short14) && Alive(wide));
+        Object.DestroyImmediate(short14);
+        Object.DestroyImmediate(wide);
+        Teardown(p);
     }
 
     // ---- batch 2 --------------------------------------------------------
@@ -765,7 +858,9 @@ public static class PowersReworkTest
         Check("EMP fires on 3 enemies", ShipLoadoutTable.TriggerLine(ShipLoadoutTable.For(2)) == "3+ enemies on screen");
         Check("Capacitor Dump fires the rail", CodexCatalogue.LoadoutLore(4).Contains("Fires the rail gun at once"));
         Check("Ion Battery fires at 2 pauses", ShipLoadoutTable.TriggerLine(ShipLoadoutTable.For(5)) == "down to 2 pauses");
-        Check("the three top-tier volleys are described", all.Contains("Piercing ion lances") && all.Contains("Bouncing wisps") && all.Contains("Area missiles"));
+        Check("the three top-tier attacks are described",
+              ShipLoadoutTable.For(5).attackName == "ION LASER" && ShipLoadoutTable.For(6).attackName == "FROST NOVA" &&
+              ShipLoadoutTable.For(7).attackName == "WARDEN SENTRIES" && all.Contains("sweeps") && all.Contains("freezes") && all.Contains("sentry"));
         Check("Gold Magnet says double", all.Contains("worth double"));
         string b2 = "";
         for (int id = 8; id <= 15; id++) b2 += CodexCatalogue.LoadoutLore(id) + "\n";

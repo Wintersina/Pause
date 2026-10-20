@@ -9,8 +9,8 @@ using UnityEngine;
 //   scripts/unity-batch.sh -executeMethod ParagonPreview.Run
 //
 //   flames   the hull with its three engine flames and the timed shield up
-//   missiles a volley of homing missiles leaving the nose (ParagonMissiles)
-//   barrage  the Aegis Barrage fan of lances (the ultimate)
+//   missiles a volley of mini-warheads leaving the nose (ParagonMissiles)
+//   barrage  the nuke (the ultimate)
 //   damage   the three damage states side by side (intact / damaged / wreck)
 public static class ParagonPreview
 {

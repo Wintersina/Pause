@@ -10,9 +10,9 @@ using UnityEngine.UI;
 // the nose), then a cosmetic copy of its gameplay attack (ShipLoadoutTable:
 // comet streaks, chain lightning, the fireball, the rail, javelins from
 // above, the blowtorch cone, seeker eyes, the ricochet star, the gatling,
-// the tractor beam, the feather fan, the shell disc; the top tier's volley
-// as a short homing salvo -- no slow motion, Time.timeScale is never
-// touched). Every drawing is the ship's own (WeaponArt shots,
+// the tractor beam, the feather fan, the shell disc, the ion laser's sweep,
+// the frost nova's ring, two warden sentries, the nuke -- no slow motion,
+// Time.timeScale is never touched). Every drawing is the ship's own (WeaponArt shots,
 // ShipFxArt attack loops and bursts, WeaponStyleTable colours), scaled to
 // the layer. None of gameplay's attack runner, attack pools, target lists
 // or hit routing is used: nothing here scores, unlocks, pays out, buzzes or
@@ -75,7 +75,7 @@ public partial class TitleScreenTraffic
     public float LastButtonImpactAt { get; private set; } = -1f;
     public int LastButtonHit { get; private set; } = -1;
     public Vector2 LastImpactPoint { get; private set; }
-    public readonly int[] AttacksFired = new int[(int)ShipAttack.ScreenClear + 1];
+    public readonly int[] AttacksFired = new int[System.Enum.GetValues(typeof(ShipAttack)).Length];
 
     // ------------------------------------------------------------- pools
 
@@ -389,22 +389,31 @@ public partial class TitleScreenTraffic
         float deg = f.heading * Mathf.Rad2Deg - 90f;
         switch (l.attack)
         {
-            case ShipAttack.ScreenClear:
+            case ShipAttack.IonLaser:
+                // a thin laser sweeping across the heading (Step)
+                u.held = Play(FxSource.Loop, f.id, nose, new Vector3(4f, .8f * s, 1f), deg, ShipFxArt.LoopTicks, true, IonSweepSeconds + .2f,
+                              null, 0f, f.layer, 1);
+                break;
+            case ShipAttack.FrostNova:
+                // a ring growing from the hull (Step), killing what it reaches
+                u.held = Play(FxSource.Loop, f.id, f.pos, Vector3.one * .3f, 0f, ShipFxArt.LoopTicks, true, NovaSweepSeconds + .2f,
+                              null, 0f, f.layer, 0);
+                break;
+            case ShipAttack.WardenSentries:
                 {
-                    // the top tier's volley, quick: a homing lance at each
-                    // ship on its layer (a few at most), no slow motion
-                    int n = Pick(f, nose, 99f, 4);
-                    int shots = Mathf.Max(3, n);
-                    for (int i = 0; i < shots; i++)
-                    {
-                        float a = (i - (shots - 1) * .5f) * (50f / Mathf.Max(1, shots - 1));
-                        Launch(f, BoltKind.Homing, nose, Rotate(Dir(f.heading), -a * Mathf.Deg2Rad), 16f * .5f * s,
-                               .16f * s, .5f * s, i < n ? picks[i] : null);
-                    }
-                    Play(FxSource.Burst, f.id, nose, Vector3.one * .8f * s, deg, ShipFxArt.BurstTicks, false, 0f, f,
-                         ReferenceHull * s * .5f, f.layer, 3);
-                    Done(u);
+                    // two sentries hover off the wings for a couple of seconds, shooting the nearest ship
+                    Vector2 fwd = Dir(f.heading), side = new Vector2(-fwd.y, fwd.x);
+                    u.held = Play(FxSource.Loop, f.id, f.pos + fwd * 2.2f * s - side * 1.5f * s, Vector3.one * .8f * s, 0f,
+                                  ShipFxArt.LoopTicks, true, SentrySeconds, null, 0f, f.layer, 1);
+                    u.disc = Play(FxSource.Loop, f.id, f.pos + fwd * 2.2f * s + side * 1.5f * s, Vector3.one * .8f * s, 0f,
+                                  ShipFxArt.LoopTicks, true, SentrySeconds, null, 0f, f.layer, 1);
                 }
+                break;
+            case ShipAttack.Nuke:
+                // a warhead climbs from the nose, then blows (Step)
+                u.point = nose + Dir(f.heading) * 3.5f * s;
+                u.held = Play(FxSource.Loop, f.id, nose, Vector3.one * .5f * s, 0f, ShipFxArt.LoopTicks, true, NukeFlightSeconds + .1f,
+                              null, 0f, f.layer, 1);
                 break;
             case ShipAttack.RailSlug:
                 {
@@ -477,20 +486,6 @@ public partial class TitleScreenTraffic
                         u.pts[i] = (away * .9f + fwd).normalized;
                     }
                     u.hitCount = n;
-                }
-                break;
-            case ShipAttack.ParagonBarrage:
-                {
-                    // (Paragon's barrage is eight lances in the game; the title sky flies three)
-                    int shots = Mathf.Min(l.shots, 3);
-                    int n = Pick(f, nose, 6f * s + 2f, shots);
-                    for (int i = 0; i < shots; i++)
-                    {
-                        float a = (i - (shots - 1) * .5f) * 24f;
-                        Launch(f, BoltKind.Homing, nose, Rotate(Dir(f.heading), -a * Mathf.Deg2Rad),
-                               Mathf.Max(2.5f, l.speed * .6f * s), .18f * s, .5f * s, i < n ? picks[i] : null);
-                    }
-                    Done(u);
                 }
                 break;
             case ShipAttack.Blowtorch:
@@ -707,10 +702,81 @@ public partial class TitleScreenTraffic
                 }
                 break;
 
+            case ShipAttack.IonLaser:
+                {
+                    float p = u.t / IonSweepSeconds;
+                    if (p >= 1f) { Done(u); break; }
+                    Vector2 nose = Nose(f);
+                    Vector2 d = Rotate(Dir(f.heading), Mathf.Lerp(-60f, 60f, p) * Mathf.Deg2Rad);
+                    float len = Mathf.Min(RayExit(nose, d) + .3f, 6f * s + 1f);
+                    if (u.held != null && u.held.on)
+                    {
+                        var tr = u.held.sr.transform;
+                        tr.position = new Vector3(nose.x + d.x * len * .5f, nose.y + d.y * len * .5f, 0f);
+                        tr.rotation = Quaternion.Euler(0f, 0f, Mathf.Atan2(d.y, d.x) * Mathf.Rad2Deg);
+                        tr.localScale = new Vector3(len / .6f, .8f * s, 1f);
+                    }
+                    KillInLine(f, nose, d, len, .25f * s);
+                }
+                break;
+
+            case ShipAttack.FrostNova:
+                {
+                    float p = u.t / NovaSweepSeconds;
+                    if (p >= 1f) { Done(u); break; }
+                    float r = 5f * s * p;
+                    if (u.held != null && u.held.on) u.held.sr.transform.localScale = Vector3.one * Mathf.Max(.3f, r / .35f);
+                    KillInRadius(f, f.pos, r);
+                }
+                break;
+
+            case ShipAttack.WardenSentries:
+                if (u.held == null || !u.held.on) { Done(u); break; }
+                if (u.t >= u.next)
+                {
+                    u.next = u.t + .5f;
+                    ShootFromSentry(f, u.held);
+                    ShootFromSentry(f, u.disc);
+                }
+                break;
+
+            case ShipAttack.Nuke:
+                {
+                    if (u.t < NukeFlightSeconds)
+                    {
+                        if (u.held != null && u.held.on)
+                        {
+                            Vector2 from = Nose(f);
+                            u.held.sr.transform.position = new Vector3(Mathf.Lerp(from.x, u.point.x, u.t / NukeFlightSeconds),
+                                                                       Mathf.Lerp(from.y, u.point.y, u.t / NukeFlightSeconds), 0f);
+                        }
+                        break;
+                    }
+                    if (u.t < NukeFlightSeconds + .3f) break;   // the fuse
+                    if (u.held != null && u.held.on) StopFx(u.held);
+                    Play(FxSource.Burst, f.id, u.point, Vector3.one * 1.6f * s, 0f, ShipFxArt.BurstTicks, false, 0f, null, 0f, f.layer, 3);
+                    KillInRadius(f, u.point, 3.2f * s);
+                    Done(u);
+                }
+                break;
+
             default:
                 Done(u);
                 break;
         }
+    }
+
+    const float IonSweepSeconds = 1f, NovaSweepSeconds = .9f, SentrySeconds = 2.4f, NukeFlightSeconds = .45f;
+
+    // A sentry bolt: the nearest ship in reach, shot down.
+    void ShootFromSentry(Flyer f, Fx sentry)
+    {
+        if (sentry == null || !sentry.on) return;
+        Vector2 at = sentry.sr.transform.position;
+        var t = Nearest(f, at, 4.5f * f.scale, false);
+        if (t == null) return;
+        Arc(f, at, t.pos);
+        ShootDown(t, (t.pos - at).normalized, f.id, f.layer);
     }
 
     void Arc(Flyer f, Vector2 a, Vector2 b)

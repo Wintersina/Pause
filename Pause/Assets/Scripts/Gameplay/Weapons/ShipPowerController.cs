@@ -58,10 +58,10 @@ public class ShipPowerController : MonoBehaviour
     public const float RedAtomCutSeconds = 5f;       // red pause atom
     public const float CooldownAtomCutSeconds = 12f; // violet capacitor (up to)
 
-    [Header("Cinematic clear")]
-    [Tooltip("Real seconds the world is held slowed after the last homing shot " +
-             "launches -- the normal end of the ultimate's slow motion.")]
-    public float cinematicHoldSeconds = 2.5f;
+    [Header("Cinematic attack")]
+    [Tooltip("Real seconds the world is held slowed after the top tier's attack " +
+             "has played its slow-motion part -- the normal end of the slow motion.")]
+    public float cinematicHoldSeconds = 0.3f;
 
     [Tooltip("Real seconds to ease from the cinematic slow motion back up to " +
              "full speed when it ends, instead of snapping.")]
@@ -160,7 +160,7 @@ public class ShipPowerController : MonoBehaviour
         indicator = ChargeIndicator.Attach(this);
         runner = ShipAttackRunner.Attach(gameObject, shipIndex);
         secret = SecretPowerController.Attach(gameObject, shipIndex);
-        // a premium hull's timed homing missiles (PremiumShips tiers)
+        // a premium hull's timed mini-warheads (PremiumShips tiers)
         if (PremiumShips.IsPremium(shipIndex)) ParagonMissiles.Attach(gameObject, shipIndex);
     }
 
@@ -228,10 +228,10 @@ public class ShipPowerController : MonoBehaviour
     // anything: while the world is frozen, through a world transition (one
     // picked up during it is dropped -- TransitionFrozen), while the ultimate is sliding out
     // or about to fire, through the top tier's cinematic, and while an attack
-    // of this ship is still mid-fire (a beam, blowtorch, orbit, burst) -- it
-    // then goes the moment that one ends. Projectiles already in flight don't
-    // hold it up. The top tier fires its quick, non-cinematic volley
-    // (ShipAttackRunner.QuickVolley) -- no slow motion.
+    // of this ship is still mid-fire (a beam, blowtorch, orbit, burst, sentries)
+    // -- it then goes the moment that one ends. Projectiles already in flight
+    // don't hold it up. The top tier fires its own verb, shortened
+    // (AttackRun.quick) -- no slow motion.
 
     public const int MaxPendingFreeShots = 3;
     public const string FreeShotLabel = "FREE SHOT";
@@ -351,33 +351,40 @@ public class ShipPowerController : MonoBehaviour
     }
 
     // The ship's main attack. Only the top price tier (ShipLoadoutTable)
-    // gets the cinematic volley at everything on screen, with its slow
-    // motion and early clear; every other ship fires its own directional or
-    // limited weapon at normal speed (ShipAttackRunner).
+    // plays in the cinematic slow motion -- each of the three with its own
+    // verb (laser sweep, frost nova, sentries), the slow motion ending when
+    // the attack has played its part or the screen is clear; every other
+    // ship fires its own directional or limited weapon at normal speed
+    // (ShipAttackRunner).
     void Fire()
     {
         UltimatesFired++;
         if (gun != null) gun.Fire();
         if (indicator != null) indicator.Release();
         UltimateShotSound.Play(shipIndex);
+        if (runner == null) runner = ShipAttackRunner.Attach(gameObject, shipIndex);
         if (!loadout.IsTopTier)
         {
-            if (runner == null) runner = ShipAttackRunner.Attach(gameObject, shipIndex);
             runner.Fire();
             return;
         }
         if (!BeginCinematic()) return;
-        StartCoroutine(CinematicClear(SnapshotTargets()));
+        onScreenAtStart = ClearTarget.CountOnScreen(Camera.main);
+        // nothing on screen: there is nothing to "clear", so the slow motion keeps its ordinary hold
+        // rather than ending on the very first frame (CheckCleared)
+        runner.Fire();
+        StartCoroutine(CinematicClear());
     }
 
-    // ---- cinematic clear -------------------------------------------------
+    // ---- cinematic attack ------------------------------------------------
     //
-    // The ultimate slows the world to CinematicSlowScale (moveBackGround
-    // applies CinematicTimeScale while CinematicClearActive), sends a homing
-    // shot at every hazard, and holds the slow motion until cinematicHoldSeconds
-    // after the last launch. It also ends the moment every hazard that was on
-    // screen is gone -- shot down, scrolled off, or destroyed some other way --
-    // so the player isn't left waiting in slow motion over an empty screen.
+    // The top tier's attack slows the world to CinematicSlowScale (moveBackGround
+    // applies CinematicTimeScale while CinematicClearActive) while its own verb
+    // plays at normal speed (the runner steps on gameplay time), and holds the
+    // slow motion until the attack has played the part that needs it plus
+    // cinematicHoldSeconds. It also ends the moment every hazard that was on
+    // screen is gone -- hit by the attack, scrolled off, or destroyed some other
+    // way -- so the player isn't left waiting in slow motion over an empty screen.
     // Both endings go through BeginExit(), which eases back to full speed.
 
     bool BeginCinematic()
@@ -388,25 +395,8 @@ public class ShipPowerController : MonoBehaviour
         exiting = false;
         launchesDone = false;
         holdUntil = float.MaxValue;
-        onScreenAtStart = 0; // counted by SnapshotTargets
+        onScreenAtStart = 0;
         return true;
-    }
-
-    List<GameObject> SnapshotTargets()
-    {
-        var targets = new List<GameObject>();
-        foreach (var target in Targets())
-        {
-            ClearTarget.Ensure(target);
-            targets.Add(target);
-        }
-        targets.Sort((a, b) => b.transform.position.y.CompareTo(a.transform.position.y));
-        // Counted once every snapshotted hazard is registered. Nothing on
-        // screen when it fired means there is nothing to "clear": keep the
-        // ordinary hold so the shot still gets its moment, rather than ending
-        // the slow motion on the very first frame.
-        onScreenAtStart = ClearTarget.CountOnScreen(Camera.main);
-        return targets;
     }
 
     // Per frame, on unscaled time. Ends the state on death, when the hold
@@ -431,7 +421,7 @@ public class ShipPowerController : MonoBehaviour
         CheckCleared();
     }
 
-    // Called every frame and straight from each hit, so the slow motion
+    // Called every frame and straight from the attack, so the slow motion
     // starts lifting on the same frame the last target is destroyed.
     void CheckCleared()
     {
@@ -459,74 +449,24 @@ public class ShipPowerController : MonoBehaviour
         exiting = false;
     }
 
-    // The ultimate is intentionally input-independent once it has begun:
-    // lifting a finger cannot cancel shots already hunting the screen's
-    // hazards. Unscaled timing keeps the sequence smooth while the world is
-    // slowed to make every impact readable. Shots keep launching even if the
-    // slow motion has already lifted (the screen cleared, but hazards above
-    // it were snapshotted too); a shot whose target is gone fizzles in
-    // PowerFx.HomeTo rather than retargeting.
-    IEnumerator CinematicClear(List<GameObject> targets)
+    // The attack is intentionally input-independent once it has begun:
+    // lifting a finger cannot cancel it. Waits (real time, with a safety
+    // limit) while the runner says it still wants the slow motion, then
+    // starts the hold.
+    IEnumerator CinematicClear()
     {
-        Color tint = ShipExhaust.TintFor(shipIndex);
-        for (int i = 0; i < targets.Count; i++)
+        float limit = Time.unscaledTime + MaxCinematicSeconds;
+        while (runner != null && runner.CinematicHold && Time.unscaledTime < limit)
         {
-            var target = targets[i];
-            if (target == null) continue;
-            Vector3 from = gun != null ? gun.MuzzlePosition : transform.position + Vector3.up;
-            PowerFx.HomingProjectile(from, target.transform, tint, shipIndex, 2.4f, () => HitTarget(target, tint, from));
-            yield return new WaitForSecondsRealtime(.11f);
+            CheckCleared();
+            yield return null;
         }
-
-        // Let the final dart land before returning the normal simulation rate.
-        // HomeTo has a 2.4s unscaled safety limit; keep the world slowed until
-        // even the last, farthest arc has had time to connect -- unless the
-        // screen clears first (TickCinematic).
         launchesDone = true;
         holdUntil = Time.unscaledTime + cinematicHoldSeconds;
     }
 
-    // One homing shot landed. Through ShipAttackHits, like every attack: a
-    // hazard is destroyed; the boss (BossTarget, an IShipAttackTarget) is
-    // hit, not destroyed, and one homing shot is one full ultimate hit.
-    void HitTarget(GameObject target, Color tint, Vector3 from)
-    {
-        if (target == null) return;
-        Vector3 at = target.transform.position;
-        ShipAttackHits.Hit(target, shipIndex);
-        // what this ship's volley does on landing: pierce on, bounce, blast
-        // (ShipVolley; a boss takes at most half a hit more from the extras)
-        float budget = .5f;
-        ShipVolley.AfterHit(shipIndex, from, at, target, ref budget);
-        CheckCleared();
-    }
-
-    // ---- helpers -------------------------------------------------------
-
-    static bool IsTarget(GameObject go)
-    {
-        return go != null && (go.CompareTag("Enimey") || go.CompareTag("Astr"));
-    }
-
-    static IEnumerable<GameObject> Targets()
-    {
-        // Only what is on screen (never a hazard below or beyond the view), and the boss
-        // alone while one is up -- the volley used to snapshot every hazard in the scene.
-        var all = Object.FindObjectsByType<Transform>(FindObjectsSortMode.None);
-        var found = new List<GameObject>();
-        for (int i = 0; i < all.Length; i++)
-            if (IsTarget(all[i].gameObject)) found.Add(all[i].gameObject);
-        bool boss = false;
-        for (int i = 0; i < found.Count; i++) boss |= found[i].GetComponent<BossTarget>() != null;
-        for (int i = 0; i < found.Count; i++)
-        {
-            var go = found[i];
-            if (boss && go.GetComponent<BossTarget>() == null) continue;
-            if (!ShipTargets.InHomingView(go.transform.position)) continue;
-            yield return go;
-        }
-    }
-
+    // The slow motion never outlasts this, whatever an attack is doing.
+    public const float MaxCinematicSeconds = 6f;
 }
 
 // Attaches the power controller to the player ship when the game scene loads.

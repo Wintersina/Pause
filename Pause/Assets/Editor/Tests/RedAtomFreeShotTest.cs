@@ -175,8 +175,6 @@ public static class RedAtomFreeShotTest
     {
         switch (l.attack)
         {
-            case ShipAttack.ScreenClear: return ShipAttackRunner.QuickVolleyShots(inView);
-            case ShipAttack.ParagonBarrage: return l.shots;
             case ShipAttack.ArcaneEye:
             case ShipAttack.HeatWave:
             case ShipAttack.BoomerangStar:
@@ -187,10 +185,18 @@ public static class RedAtomFreeShotTest
             case ShipAttack.ChainLightning:
             case ShipAttack.Blowtorch:
             case ShipAttack.OrbitDisc:
+            case ShipAttack.IonLaser:
+            case ShipAttack.FrostNova:
+            case ShipAttack.WardenSentries:
+            case ShipAttack.Nuke:
                 return 0;
             default: return Mathf.Max(1, l.shots);
         }
     }
+
+    // The v3 verbs: no projectiles, a run that lasts until the verb has played out (quick version).
+    static bool Verb(ShipAttack a) =>
+        a == ShipAttack.IonLaser || a == ShipAttack.FrostNova || a == ShipAttack.WardenSentries || a == ShipAttack.Nuke;
 
     static bool Held(ShipAttack a) =>
         a == ShipAttack.Blowtorch || a == ShipAttack.OrbitDisc;
@@ -258,6 +264,12 @@ public static class RedAtomFreeShotTest
                     Steps(c.Runner, 1f);
                     int k = ShipAttackHits.Kills - kills;
                     count = k >= 1 && k <= l.maxHits;
+                }
+                else if (Verb(l.attack))
+                {
+                    bool on = c.Runner.ActiveRuns == 1;
+                    Steps(c.Runner, 10f);
+                    count = on && c.Runner.ActiveRuns == 0 && launchedNow == 0 && !ShipPowerController.CinematicClearActive;
                 }
                 else if (ShipAttackRunner.IsV3(l.attack))
                 {
@@ -387,10 +399,10 @@ public static class RedAtomFreeShotTest
         for (int i = 0; i < 5; i++) c.ServiceFreeShots(true);
         bool waits = c.PendingFreeShots == 1 && c.Runner.FreeFireCount == 0;
         typeof(ShipPowerController).GetMethod("FinishCinematic", Stat).Invoke(null, null);
-        int launches = AttackProjectile.LaunchCount;
+        c.Runner.StopAll();   // the cinematic attack has played out
         c.ServiceFreeShots(true);
-        Check("a top-tier free shot waits out the cinematic, then fires its quick volley",
-              cine && waits && c.Runner.FreeFireCount == 1 && AttackProjectile.LaunchCount > launches);
+        Check("a top-tier free shot waits out the cinematic, then fires its quick version",
+              cine && waits && c.Runner.FreeFireCount == 1 && c.Runner.ActiveRuns == 1);
         Check("... without starting another cinematic", !ShipPowerController.CinematicClearActive);
         Teardown(r);
     }
