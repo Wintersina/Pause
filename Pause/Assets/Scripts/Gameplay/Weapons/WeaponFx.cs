@@ -152,8 +152,8 @@ public static class WeaponFx
 // One homing shot: a flipbook body that steers into its target, a long
 // hard-edged light streak behind it (weapon colour / energy / BONE core
 // bands, the Akira bike tail-light smeared across the frame -- a light, so no
-// ink), and little trail emblems dropped along the way. Runs on unscaled time
-// so it stays readable through the cinematic slow motion.
+// ink), and little trail emblems dropped along the way. Runs on the world clock
+// (frozen by a pause, eased by the resume ramp).
 public class WeaponShot : MonoBehaviour
 {
     public const float BodySize = .36f;
@@ -258,7 +258,7 @@ public class WeaponShot : MonoBehaviour
 
     void Update()
     {
-        if (Active) Tick(Time.unscaledDeltaTime);
+        if (Active) Tick(ShipAttackRunner.ScaledDelta());
     }
 
     public void Tick(float dt)

@@ -64,6 +64,15 @@ public class moveBackGround : MonoBehaviour {
     }
 
     void Update () {
+        // A pause freezes the ultimate's cinematic too (its slow motion used to
+        // run on through a lifted finger); the weapon clocks hold, and resume
+        // continues from the same moment.
+        if (ShipPowerController.CinematicClearActive && !buttonClicks.playerDied &&
+            !TouchInput.IsPressed && score.pauseCounter > 0)
+        {
+            Time.timeScale = ResumeSlowMo.Freeze();
+            return;
+        }
         if (ShipPowerController.CinematicClearActive)
         {
             Time.timeScale = ShipPowerController.CinematicTimeScale;

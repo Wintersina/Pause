@@ -103,13 +103,13 @@ public class ShipPowerController : MonoBehaviour
         {
             if (!CinematicClearActive) return 1f;
             if (!exiting) return CinematicSlowScale;
-            float t = Mathf.Clamp01((Time.unscaledTime - exitStartedAt) / Mathf.Max(0.0001f, exitSeconds));
+            float t = Mathf.Clamp01((PauseClock.Now - exitStartedAt) / Mathf.Max(0.0001f, exitSeconds));
             return Mathf.Lerp(CinematicSlowScale, 1f, t * t * (3f - 2f * t));
         }
     }
 
     static bool exiting;
-    static float exitStartedAt; // unscaled
+    static float exitStartedAt; // PauseClock
     static float exitSeconds;
 
     ShipLoadout loadout;
@@ -399,7 +399,7 @@ public class ShipPowerController : MonoBehaviour
         return true;
     }
 
-    // Per frame, on unscaled time. Ends the state on death, when the hold
+    // Per frame, on the pause-aware clock (PauseClock). Ends the state on death, when the hold
     // timer runs out, or when the screen has been cleared.
     void TickCinematic()
     {
@@ -413,11 +413,11 @@ public class ShipPowerController : MonoBehaviour
             // anyway; finishing now hands timeScale straight back to
             // moveBackGround rather than ramping up only to snap to 0.
             bool worldRuns = TouchInput.IsPressed || score.pauseCounter <= 0;
-            if (!worldRuns || Time.unscaledTime - exitStartedAt >= exitSeconds) FinishCinematic();
+            if (!worldRuns || PauseClock.Now - exitStartedAt >= exitSeconds) FinishCinematic();
             return;
         }
 
-        if (launchesDone && Time.unscaledTime >= holdUntil) { BeginExit(early: false); return; }
+        if (launchesDone && PauseClock.Now >= holdUntil) { BeginExit(early: false); return; }
         CheckCleared();
     }
 
@@ -438,7 +438,7 @@ public class ShipPowerController : MonoBehaviour
         if (!CinematicClearActive || CinematicExiting) return;
         LastCinematicEndedEarly = early;
         exitSeconds = Mathf.Max(0f, cinematicEaseOutSeconds);
-        exitStartedAt = Time.unscaledTime;
+        exitStartedAt = PauseClock.Now;
         exiting = true;
         if (exitSeconds <= 0f) FinishCinematic();
     }
@@ -455,14 +455,14 @@ public class ShipPowerController : MonoBehaviour
     // starts the hold.
     IEnumerator CinematicClear()
     {
-        float limit = Time.unscaledTime + MaxCinematicSeconds;
-        while (runner != null && runner.CinematicHold && Time.unscaledTime < limit)
+        float limit = PauseClock.Now + MaxCinematicSeconds;
+        while (runner != null && runner.CinematicHold && PauseClock.Now < limit)
         {
             CheckCleared();
             yield return null;
         }
         launchesDone = true;
-        holdUntil = Time.unscaledTime + cinematicHoldSeconds;
+        holdUntil = PauseClock.Now + cinematicHoldSeconds;
     }
 
     // The slow motion never outlasts this, whatever an attack is doing.
