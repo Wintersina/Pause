@@ -261,9 +261,10 @@ public partial class SpaceDirector
                 if (DockDefs[t].kind == k.Value && dockArt[t] != null && !want.Contains(t)) want.Add(t);
         }
         if (want.Count == 0) return false;
+        // one dock at a time (as on every ground world): a dock already drifting through serves, whatever its kind (the elite falls
+        // back to any free body); a second is never forced in beside it
         for (int i = 0; i < docks.items.Count; i++)
-            if (docks.items[i].active)
-                if (want.Contains(dockType[i])) return true;
+            if (docks.items[i].active && (DockGrade.Strict || want.Contains(dockType[i]))) return true;
         return SpawnDock(want[drng.Next(want.Count)], true);
     }
 }

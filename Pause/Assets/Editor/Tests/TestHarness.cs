@@ -185,6 +185,7 @@ public static class TestHarness
             }
             timeScale = Time.timeScale;
             KeepRuntimeArt(true);
+            DockGrade.Strict = false;      // suites place any dock kind anywhere; DockAuditTest turns the game's dock rules on
 
             // Start every suite with developer mode off. The editor shares
             // PlayerPrefs with the Mac player, where a developer build turns
@@ -220,6 +221,7 @@ public static class TestHarness
 
         public void Dispose()
         {
+            DockGrade.Strict = true;
             // Drop whatever scene the suite opened or dirtied (never saved).
             EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
             KeepRuntimeArt(false);

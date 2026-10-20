@@ -140,7 +140,10 @@ public static class FrostTuning
     public static readonly bool[] Inland = { false, false, false, true, false };
     static readonly PieceRule Unbuilt = new PieceRule(GroundClass.Water | GroundClass.Open | GroundClass.Canopy, .8f, .34f);
     // a launch site that finds no ground of its own kind: anywhere not painted industry
-    public static readonly PieceRule SiteRelaxed = new PieceRule(GroundClass.Water | GroundClass.Open | GroundClass.Canopy, .6f, .3f);
+    // Every launch dock stands on solid ground only: snow flat, ice sheet or painted quay -- never in a lead of open water.
+    public static readonly PieceRule SiteSolid = new PieceRule(GroundClass.Open | GroundClass.Canopy | GroundClass.Built, .8f, .34f);
+    public static readonly PieceRule SiteRelaxed = new PieceRule(GroundClass.Open | GroundClass.Canopy | GroundClass.Built, .6f, .3f);
+    public static readonly PieceRule SiteRelaxedOld = new PieceRule(GroundClass.Water | GroundClass.Open | GroundClass.Canopy, .6f, .3f);   // (suites only: DockGrade.Strict off)
 
     public static bool IsGlacier(int variant) { return variant >= 0 && variant < Glacier.Length && Glacier[variant]; }
     public static bool IsInland(int variant) { return variant >= 0 && variant < Inland.Length && Inland[variant]; }
@@ -182,7 +185,9 @@ public static class FrostTuning
     public const int FirstLaunchSite = 5;                      // SiteNames[FirstLaunchSite..] have a strip
     // The rig and the icebreaker deck are drawn in a frozen lead: the glacier (v4) has no sea, so they never come there (nothing that floats
     // is drawn over its crevasses: FrostBackdropTest); its silo and cave, and the old five, do.
-    public static bool SiteFits(int kind, int variant) { return !(IsGlacier(variant) && (SiteKinds[kind] == LandingKind.Rig || SiteKinds[kind] == LandingKind.Icebreaker)); }
+    // Also: the offshore rig, the icebreaker deck and the rig bay float on open water, so no dock is ever one of them (the elites that name
+    // them fall back to the dock that is on screen).
+    public static bool SiteFits(int kind, int variant) { return !DockGrade.Strict ? !(IsGlacier(variant) && (SiteKinds[kind] == LandingKind.Rig || SiteKinds[kind] == LandingKind.Icebreaker)) : SiteKinds[kind] != LandingKind.Rig && SiteKinds[kind] != LandingKind.Icebreaker && SiteKinds[kind] != LandingKind.RigBay; }
     public static bool HasLaunchStrip(int kind) { return kind >= FirstLaunchSite && kind < SiteNames.Length; }
     // drawn width of a strip site, as a share of the usual SiteMin..SiteMax (a 192 px wide icebreaker cell is 3/4 of a 256 px one)
     public static readonly float[] SiteWidthK = { 1f, 1f, 1f, 1f, 1f, 1f, 1f, 1f, .85f };
@@ -253,6 +258,7 @@ public class FrostDirector : PlanetDirector
     readonly BackdropPool[] snow = new BackdropPool[3];
     readonly SpriteRenderer[] lamps = new SpriteRenderer[3];
     BackdropAtlas landmarkArt, siteArt, dockArt, weather;
+    Color[] dockTints;                                 // per site kind: its DockGrade colour on this ground set
     Sprite[][] siteLaunch;                             // per site kind: its 6 launch cells (null: an old two-drawing site, or the atlas is missing)
     AmbientEmitters ambient;
     Sprite[] auroraFrames;
@@ -382,6 +388,7 @@ public class FrostDirector : PlanetDirector
 
         dockArt = set.Atlas(FrostTuning.DocksAtlas);
         siteClosed = Sprites(siteArt, FrostTuning.SiteClosed);
+        dockTints = DockGrade.Tints("Frost", set.Variant, FrostTuning.SiteClosed);
         siteOpen = Sprites(siteArt, FrostTuning.SiteOpen);
         // the launch-strip sites take their idle / open cells (and all six) from the docks atlas; without it they are simply never spawned
         siteLaunch = new Sprite[FrostTuning.SiteNames.Length][];
@@ -555,6 +562,7 @@ public class FrostDirector : PlanetDirector
 
     void Tinted(BackdropPiece p, Color tint, float alpha)
     {
+        tint.r *= p.dockTint.r; tint.g *= p.dockTint.g; tint.b *= p.dockTint.b;
         tint.a *= alpha * set.Alpha;
         p.sr.color = tint;
     }
@@ -699,6 +707,7 @@ public class FrostDirector : PlanetDirector
         p.vx = p.vy = 0f;
         p.rate = set.Spec.Rate("landmarks");
         p.color = tintGround;
+        p.dockTint = Color.white;
         p.kind = 0;
         Place(p);
         Tinted(p, tintGround, 1f);
@@ -712,6 +721,7 @@ public class FrostDirector : PlanetDirector
     public bool SpawnSite(float y, int kind = -1)
     {
         if (!planner.Ready) return false;
+        if (DockGrade.AnyOnGround(sites, HalfH)) return false;      // one dock at a time: the next comes once this one has scrolled off
         if (kind < 0)
         {
             int total = 0;
@@ -730,14 +740,16 @@ public class FrostDirector : PlanetDirector
         float size = GRand(FrostTuning.SiteMin, FrostTuning.SiteMax) * FrostTuning.SiteWidthK[kind];
         double lo = float.IsNaN(y) ? planner.Travel + HalfH + .95f : planner.GroundY(y) - .3f;
         double hi = lo + (float.IsNaN(y) ? .9f : .6f);
-        var rule = FrostTuning.Rule(FrostTuning.SiteClosed[kind], set.Variant);
+        var rule = DockGrade.Strict ? FrostTuning.SiteSolid : FrostTuning.Rule(FrostTuning.SiteClosed[kind], set.Variant);
         float x; double gy;
         if (!planner.Find(rule, size, XMin(size), XMax(size), lo, hi, groundRng, out x, out gy) &&
-            !planner.Find(rule = FrostTuning.SiteRelaxed, size, XMin(size), XMax(size), lo, hi, groundRng, out x, out gy) &&
-            !planner.Find(rule = new PieceRule(GroundClass.Any, 0f, FrostTuning.SiteRelaxed.core), size, XMin(size), XMax(size), lo, hi, groundRng, out x, out gy))
+            !planner.Find(rule = DockGrade.Strict ? FrostTuning.SiteRelaxed : FrostTuning.SiteRelaxedOld, size, XMin(size), XMax(size), lo, hi, groundRng, out x, out gy) &&
+            (DockGrade.Strict || !planner.Find(rule = new PieceRule(GroundClass.Any, 0f, FrostTuning.SiteRelaxed.core), size, XMin(size), XMax(size), lo, hi, groundRng, out x, out gy)))
             return false;
         var p = Put(sites, siteRules, closed, rule, size, x, gy, false);     // doors face the viewer: never mirrored
         if (p == null) return false;
+        p.dockTint = dockTints[kind];
+        Tinted(p, tintGround, 1f);
         p.kind = kind;
         p.tier = 0;
         p.life = 0f;
@@ -860,18 +872,25 @@ public class FrostDirector : PlanetDirector
     {
         if (sites == null || !planner.Ready || string.IsNullOrEmpty(launchFrom)) return false;
         var want = new List<int>(FrostTuning.SiteKinds.Length);   // (a rare call: one per elite)
+        bool mine = false;      // (one of the kinds it names is a dock of this world, even if none can be placed here)
         foreach (string part in launchFrom.Split(','))
         {
             var k = LandingSite.KindOf(part.Trim());
             if (k == null) continue;
             for (int t = 0; t < FrostTuning.SiteKinds.Length; t++)
+            {
+                if (FrostTuning.SiteKinds[t] == k.Value) mine = true;
                 if (FrostTuning.SiteKinds[t] == k.Value && siteClosed[t] != null && siteOpen[t] != null && FrostTuning.SiteFits(t, set.Variant) && !want.Contains(t)) want.Add(t);
+            }
         }
+        if (want.Count == 0 && mine && DockGrade.Strict)     // (none of the kinds it names has a dock here: any dock that stands on solid ground will do)
+            for (int t = 0; t < FrostTuning.SiteKinds.Length; t++)
+                if (siteClosed[t] != null && siteOpen[t] != null && FrostTuning.SiteFits(t, set.Variant)) want.Add(t);
         if (want.Count == 0) return false;
         for (int i = 0; i < sites.items.Count; i++)
         {
             var p = sites.items[i];
-            if (p.active && want.Contains(p.kind) && p.y >= -HalfH * .15f) return true;   // (in view, or still on its way in from the top)
+            if (p.active && (DockGrade.Strict || want.Contains(p.kind)) && p.y >= -HalfH * .15f) return true;   // (a dock in view, or still on its way in from the top: the one dock)
         }
         return SpawnSite(float.NaN, want[groundRng.Next(want.Count)]);
     }

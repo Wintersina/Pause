@@ -91,7 +91,7 @@ public static class StormTuning
     public static readonly string[] SiteOpen = { "skyhook_dock_open", "refinery_pad_open", "balloon_hangar_open", "gantry_hatch_open", "cloud_bay_open", "airshipdock_04", "rodsilo_04", "skyhookcradle_04", "refinerybay_04" };
     public static readonly LandingKind[] SiteKinds = { LandingKind.PadRing, LandingKind.RigBay, LandingKind.Hangar, LandingKind.TowerBay, LandingKind.Hatch,
                                                        LandingKind.StormAirshipDock, LandingKind.StormRodSilo, LandingKind.StormSkyhookCradle, LandingKind.StormRefineryBay };
-    public static readonly int[] SiteWeights = { 2, 3, 2, 2, 2, 2, 2, 2, 2 };
+    public static readonly int[] SiteWeights = { 0, 0, 0, 0, 0, 2, 2, 2, 2 };
     // where the elite comes out of the launch-strip sites: fractions of the drawing's bounds from its centre (y up), the pad pixel of Codex's
     // masters (new_docks_lights~/manifest.md: (384,430) on every 768 x 768 cell)
     public static readonly Vector2[] SitePads =
@@ -290,6 +290,7 @@ public class StormDirector : PlanetDirector
     readonly float[] mistA = new float[3];
     float mistClock;
     BackdropAtlas landmarkArt, siteArt, dockArt, weather, lightning;
+    Color[] dockTints;                                 // per site kind: its DockGrade colour on this ground set
     Sprite[][] siteLaunch;                             // per site kind: its 6 launch cells (null: an old two-drawing site, or the atlas is missing)
     GroundPlanner planner;
     Sprite[] siteClosed, siteOpen, banks, wispArt, mistArt, gustArt, pallArt, rainArt, boltArt, strikeArt, flashArt, arcArt, debrisArt;
@@ -362,6 +363,7 @@ public class StormDirector : PlanetDirector
 
         dockArt = set.Atlas(StormTuning.DocksAtlas);
         siteClosed = Sprites(siteArt, StormTuning.SiteClosed);
+        dockTints = DockGrade.Tints("Storm", set.Variant, StormTuning.SiteClosed);
         siteOpen = Sprites(siteArt, StormTuning.SiteOpen);
         // the launch-strip sites take their idle / open cells (and all six) from the docks atlas; without it they are simply never spawned
         siteLaunch = new Sprite[StormTuning.SiteNames.Length][];
@@ -543,7 +545,7 @@ public class StormDirector : PlanetDirector
 
     void Tinted(BackdropPiece p, float alpha)
     {
-        p.sr.color = new Color(1f, 1f, 1f, alpha * set.Alpha);
+        p.sr.color = new Color(p.dockTint.r, p.dockTint.g, p.dockTint.b, alpha * set.Alpha);
     }
 
     void StepPinned(BackdropPool pool, float dt)
@@ -790,6 +792,7 @@ public class StormDirector : PlanetDirector
         p.y = planner.Y(gy);
         p.rate = set.Spec.Rate("ground");
         p.color = Color.white;
+        p.dockTint = Color.white;
         p.kind = StormTuning.IsSpire(name) ? KindSpire : StormTuning.IsTower(name) ? KindTower : 0;
         Place(p);
         Tinted(p, 1f);
@@ -884,6 +887,8 @@ public class StormDirector : PlanetDirector
     public bool SpawnSite(float y, int kind = -1)
     {
         if (!planner.Ready) return false;
+        if (DockGrade.AnyOnGround(sites, HalfH)) return false;      // one dock at a time: the next comes once this one has scrolled off
+        if (DockGrade.Strict && kind >= 0 && StormTuning.SiteWeights[kind] <= 0) return false;   // (the old floating machines: no ground to stand on)
         if (kind < 0)
         {
             int total = 0;
@@ -901,12 +906,12 @@ public class StormDirector : PlanetDirector
         double lo = float.IsNaN(y) ? planner.Travel + HalfH + .95f : planner.GroundY(y) - .3f;
         double hi = lo + (float.IsNaN(y) ? .9f : .6f);
         float x; double gy;
-        if (!planner.Find(StormTuning.Rule(StormTuning.SiteClosed[kind]), size, XMin(size), XMax(size), lo, hi, rng, out x, out gy))
-        {
-            if (!planner.Find(new PieceRule(GroundClass.Any, 0f), size, XMin(size), XMax(size), lo, hi, rng, out x, out gy)) return false;
-        }
+        if (!planner.Find(StormTuning.Rule(StormTuning.SiteClosed[kind]), size, XMin(size), XMax(size), lo, hi, rng, out x, out gy) &&
+            (DockGrade.Strict || !planner.Find(new PieceRule(GroundClass.Any, 0f), size, XMin(size), XMax(size), lo, hi, rng, out x, out gy))) return false;   // (no 'anywhere' fallback)
         var p = Put(sites, siteLaunch[kind] != null ? dockArt : siteArt, StormTuning.SiteClosed[kind], size, x, gy, false);   // (doors face the viewer: never mirrored)
         if (p == null) return false;
+        p.dockTint = dockTints[kind];
+        Tinted(p, 1f);
         p.kind = kind;
         p.tier = 0;
         p.life = 0f;
@@ -1053,18 +1058,25 @@ public class StormDirector : PlanetDirector
     {
         if (sites == null || !planner.Ready || string.IsNullOrEmpty(launchFrom)) return false;
         var want = new List<int>(StormTuning.SiteKinds.Length);   // (a rare call: one per elite)
+        bool mine = false;      // (one of the kinds it names is a dock of this world, even if none can be placed here)
         foreach (string part in launchFrom.Split(','))
         {
             var k = LandingSite.KindOf(part.Trim());
             if (k == null) continue;
             for (int t = 0; t < StormTuning.SiteKinds.Length; t++)
-                if (StormTuning.SiteKinds[t] == k.Value && siteClosed[t] != null && siteOpen[t] != null && !want.Contains(t)) want.Add(t);
+            {
+                if (StormTuning.SiteKinds[t] == k.Value) mine = true;
+                if (StormTuning.SiteKinds[t] == k.Value && siteClosed[t] != null && siteOpen[t] != null && StormTuning.SiteWeights[t] > 0 && !want.Contains(t)) want.Add(t);
+            }
         }
+        if (want.Count == 0 && mine && DockGrade.Strict)     // (none of the kinds it names has a dock here: any dock will do)
+            for (int t = 0; t < StormTuning.SiteKinds.Length; t++)
+                if (siteClosed[t] != null && siteOpen[t] != null && StormTuning.SiteWeights[t] > 0) want.Add(t);
         if (want.Count == 0) return false;
         for (int i = 0; i < sites.items.Count; i++)
         {
             var p = sites.items[i];
-            if (p.active && want.Contains(p.kind) && p.y >= -HalfH * .15f) return true;   // (in view, or still on its way in from the top)
+            if (p.active && (DockGrade.Strict || want.Contains(p.kind)) && p.y >= -HalfH * .15f) return true;   // (a dock in view, or still on its way in from the top: the one dock)
         }
         return SpawnSite(float.NaN, want[rng.Next(want.Count)]);
     }

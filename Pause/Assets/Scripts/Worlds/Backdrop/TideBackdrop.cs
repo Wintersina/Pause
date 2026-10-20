@@ -86,6 +86,8 @@ public static class TideTuning
     static readonly PieceRule Platform = new PieceRule(GroundClass.Built | GroundClass.Open, .6f, .3f);   // rigs, refineries, stacks, sunken towers
     static readonly PieceRule Floating = new PieceRule(GroundClass.Water, .8f, .2f);                     // vessels, buoys, whirlpools, slicks
     static readonly PieceRule Shoal = new PieceRule(GroundClass.Open | GroundClass.Water, .85f, .3f);   // reefs, wrecks, vents, blooms
+    // Docks only stand on a painted deck / rig platform of the backdrop (the open-sea sets have none: no docks there).
+    public static readonly PieceRule DockDeck = new PieceRule(GroundClass.Built, .75f, .3f);
     static readonly PieceRule Anywhere = new PieceRule(GroundClass.Any, 0f, .2f);
     static readonly PieceRule SeaPlatform = new PieceRule(GroundClass.Any, 0f, .3f);                     // the sea sets: no deck to stand on
     // SPANS laid alone (SeaScene's banks): a bridge section or pipe bridge is
@@ -240,6 +242,7 @@ public class TideDirector : PlanetDirector
     Sprite[][] mistFrames;
     float mistClock;
     BackdropAtlas landmarkArt, pipeArt, fireArt, siteArt, dockArt, weather;
+    Color[] dockTints;                                 // per site kind: its DockGrade colour on this ground set
     Sprite[][] siteLaunch;                             // per site kind: its 6 launch cells (null: an old two-drawing site, or the atlas is missing)
     AmbientEmitters ambient;
     GroundPlanner planner;
@@ -316,6 +319,7 @@ public class TideDirector : PlanetDirector
 
         dockArt = set.Atlas(TideTuning.DocksAtlas);
         siteClosed = Sprites(siteArt, TideTuning.SiteClosed);
+        dockTints = DockGrade.Tints("Tide", set.Variant, TideTuning.SiteClosed);
         siteOpen = Sprites(siteArt, TideTuning.SiteOpen);
         // the launch-strip sites take their idle / open cells (and all six) from the docks atlas; without it they are simply never spawned
         siteLaunch = new Sprite[TideTuning.SiteNames.Length][];
@@ -519,7 +523,7 @@ public class TideDirector : PlanetDirector
 
     void Tinted(BackdropPiece p, float alpha)
     {
-        p.sr.color = new Color(1f, 1f, 1f, alpha * set.Alpha);
+        p.sr.color = new Color(p.dockTint.r, p.dockTint.g, p.dockTint.b, alpha * set.Alpha);
     }
 
     // Pinned pieces: placed from their ground coordinate every frame.
@@ -669,6 +673,7 @@ public class TideDirector : PlanetDirector
         p.y = planner.Y(gy);
         p.rate = set.Spec.Rate("ground");
         p.color = Color.white;
+        p.dockTint = Color.white;
         p.kind = 0;
         Place(p);
         Tinted(p, 1f);
@@ -894,6 +899,7 @@ public class TideDirector : PlanetDirector
     public bool SpawnSite(float y, int kind = -1)
     {
         if (!planner.Ready) return false;
+        if (DockGrade.AnyOnGround(sites, HalfH)) return false;      // one dock at a time: the next comes once this one has scrolled off
         if (kind < 0)
         {
             int total = 0;
@@ -911,13 +917,12 @@ public class TideDirector : PlanetDirector
         double lo = float.IsNaN(y) ? planner.Travel + HalfH + .95f : planner.GroundY(y) - .3f;
         double hi = lo + (float.IsNaN(y) ? .9f : .6f);
         float x; double gy;
-        if (!planner.Find(TideTuning.Rule(TideTuning.SiteClosed[kind], openSea), size, XMin(size), XMax(size), lo, hi, rng, out x, out gy))
-        {
-            // the elite must still get its site: relax the ground rule, keep the room
-            if (!planner.Find(new PieceRule(GroundClass.Any, 0f), size, XMin(size), XMax(size), lo, hi, rng, out x, out gy)) return false;
-        }
+        if (!planner.Find(TideTuning.DockDeck, size, XMin(size), XMax(size), lo, hi, rng, out x, out gy) &&
+            (DockGrade.Strict || !planner.Find(new PieceRule(GroundClass.Any, 0f), size, XMin(size), XMax(size), lo, hi, rng, out x, out gy))) return false;   // only on a painted deck / rig platform: no deck, no dock
         var p = Put(sites, siteLaunch[kind] != null ? dockArt : siteArt, TideTuning.SiteClosed[kind], size, x, gy, false);   // (doors face the viewer: never mirrored)
         if (p == null) return false;
+        p.dockTint = dockTints[kind];
+        Tinted(p, 1f);
         p.kind = kind;
         p.tier = 0;
         p.life = 0f;
@@ -1068,18 +1073,25 @@ public class TideDirector : PlanetDirector
     {
         if (sites == null || !planner.Ready || string.IsNullOrEmpty(launchFrom)) return false;
         var want = new List<int>(TideTuning.SiteKinds.Length);   // (a rare call: one per elite)
+        bool mine = false;      // (one of the kinds it names is a dock of this world, even if none can be placed here)
         foreach (string part in launchFrom.Split(','))
         {
             var k = LandingSite.KindOf(part.Trim());
             if (k == null) continue;
             for (int t = 0; t < TideTuning.SiteKinds.Length; t++)
+            {
+                if (TideTuning.SiteKinds[t] == k.Value) mine = true;
                 if (TideTuning.SiteKinds[t] == k.Value && siteClosed[t] != null && siteOpen[t] != null && !want.Contains(t)) want.Add(t);
+            }
         }
+        if (want.Count == 0 && mine && DockGrade.Strict)     // (none of the kinds it names has a dock here: any dock will do)
+            for (int t = 0; t < TideTuning.SiteKinds.Length; t++)
+                if (siteClosed[t] != null && siteOpen[t] != null) want.Add(t);
         if (want.Count == 0) return false;
         for (int i = 0; i < sites.items.Count; i++)
         {
             var p = sites.items[i];
-            if (p.active && want.Contains(p.kind) && p.y >= -HalfH * .15f) return true;   // (in view, or still on its way in from the top)
+            if (p.active && (DockGrade.Strict || want.Contains(p.kind)) && p.y >= -HalfH * .15f) return true;   // (a dock in view, or still on its way in from the top: the one dock)
         }
         return SpawnSite(float.NaN, want[rng.Next(want.Count)]);
     }

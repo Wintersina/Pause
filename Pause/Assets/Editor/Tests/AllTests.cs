@@ -256,6 +256,7 @@ public static class AllTests
         ("SpaceEliteTest", SpaceEliteTest.Execute),
         ("SpaceDockTest", SpaceDockTest.Execute),
         ("FrostDockTest", FrostDockTest.Execute),
+        ("DockAuditTest", DockAuditTest.Execute),
         ("FrostEliteTest", FrostEliteTest.Execute),
         ("EmberEliteTest", EmberEliteTest.Execute),
         ("EmberDockTest", EmberDockTest.Execute),
