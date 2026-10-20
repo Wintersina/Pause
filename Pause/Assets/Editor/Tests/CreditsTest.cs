@@ -33,6 +33,17 @@ public static class CreditsTest
         Check("scrolling credits text exists", text != null);
         if (text == null) return failures;
 
+        Check("the roll's text takes no raycasts (it must not block BACK)", !text.raycastTarget);
+        var backButton = mover.transform.parent != null ? mover.transform.parent.GetComponentInChildren<Button>(true) : null;
+        Check("BACK button exists", backButton != null);
+        if (backButton != null)
+        {
+            mover.KeepControlsReachable();
+            Transform t = backButton.transform;
+            while (t.parent != mover.transform.parent) t = t.parent;
+            Check("BACK is drawn above the roll", t.GetSiblingIndex() > mover.transform.GetSiblingIndex());
+        }
+
         string credits = text.text;
         foreach (string banned in new[] { "Phaser", "Mastermind", "Master Mind", "Creative director", "Beta",
                                           "Developed By", "Audio Engineer", "Kenney", "CC0", "Particles and sprites" })
