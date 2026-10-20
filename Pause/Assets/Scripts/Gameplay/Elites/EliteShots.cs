@@ -1010,7 +1010,7 @@ public class EliteShot : MonoBehaviour, IHostileShot
                 if (HostileShots.SegmentDistanceSq(at - ax, at + ax, t.transform.position) > R * R) continue;
             }
             else if (((Vector2)t.transform.position - at).sqrMagnitude > R * R) continue;
-            if (!FriendlyFire.HostileFireCanHit(t, shooter)) continue;   // its shooter, the boss, a target just come in
+            if (!FriendlyFire.HostileFireCanHit(t, shooter, rosterShot ? FriendlyFire.RosterShotGraceSeconds : 0f)) continue;   // its shooter, the boss, a target just come in
             string by = Kind == EliteShots.Kind.Glob ? (rolling ? "rolling log" : "resin pool") : Kind == EliteShots.Kind.Slab ? "ice slab" : rosterShot ? "enemy shot" : "elite shot";
             if (!FriendlyFire.HostileHit(t, p, by)) continue;   // the frame's kill cap: not spent, next frame
             pool.CountFriendly();
