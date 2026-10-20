@@ -45,7 +45,6 @@ public static class ShipAttacksTest
         MeterKeepsClearOfShipUi();
 
         AttackPool.StopAll();
-        WorldTimeFx.Reset();
         Debug.Log("[SA] failures: " + fails);
         return fails;
     }
@@ -69,7 +68,6 @@ public static class ShipAttacksTest
         collisionDetection.lifeCounter = 0;
         moveBackGround.speed = .2f;
         Time.timeScale = 1f;
-        WorldTimeFx.Reset();
     }
 
     static GameObject Hazard(float x, float y, string tag = "Enimey")
@@ -192,8 +190,7 @@ public static class ShipAttacksTest
         Check("the rail misses what is beside its line", Alive(offLine));
         Check("the rail misses what is behind the ship", Alive(behind));
         Check("two kills counted", ShipAttackHits.Kills - kills == 2);
-        Check("a rail kill adds a brief hit-stop", WorldTimeFx.HitStopping && WorldTimeFx.Scale < 1f);
-        WorldTimeFx.Reset();
+        Check("a rail kill never changes the time scale", Mathf.Approximately(Time.timeScale, 1f));
         Teardown(c);
         Object.DestroyImmediate(offLine);
         Object.DestroyImmediate(behind);
@@ -521,7 +518,6 @@ public static class ShipAttacksTest
             c.Secret.Step(.5f);
             speedHeld &= Mathf.Approximately(moveBackGround.speed, .2f);
             Teardown(c);
-            WorldTimeFx.Reset();
         }
         Check("no secret power changes the world speed", speedHeld);
 

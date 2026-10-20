@@ -64,26 +64,8 @@ public class moveBackGround : MonoBehaviour {
     }
 
     void Update () {
-        // A pause freezes the ultimate's cinematic too (its slow motion used to
-        // run on through a lifted finger); the weapon clocks hold, and resume
-        // continues from the same moment.
-        if (ShipPowerController.CinematicClearActive && !buttonClicks.playerDied &&
-            !TouchInput.IsPressed && score.pauseCounter > 0)
-        {
-            Time.timeScale = ResumeSlowMo.Freeze();
-            return;
-        }
-        if (ShipPowerController.CinematicClearActive)
-        {
-            Time.timeScale = ShipPowerController.CinematicTimeScale;
-            // the board keeps rolling in the ultimate's slow motion (the rail
-            // lanes and their mines do): the rail art rolls with it
-            moveBackground();
-            return;
-        }
         // A boss's entrance (BossEncounter / BossEntrance) owns the clock
-        // (it never overlaps the cinematic: the encounter waits one out):
-        // its slow motion while the world runs, frozen as ever while the
+        // (the encounter waits out an ultimate first): its slow motion while the world runs, frozen as ever while the
         // finger is up with pauses left. It is scripted, so it never counts
         // as a pause, and the speed is the encounter's (no ramp). The scale
         // is asked for every frame, never stored: the frame the intro ends
@@ -93,7 +75,7 @@ public class moveBackGround : MonoBehaviour {
             if ((TouchInput.IsPressed || score.pauseCounter <= 0) && !buttonClicks.playerDied)
             {
                 ResumeSlowMo.Apply(1f);   // (keeps the resume bookkeeping; the entrance's scale wins)
-                Time.timeScale = BossEncounter.EntranceTimeScale * WorldTimeFx.Scale; // hit-stop, Time Bubble on top
+                Time.timeScale = BossEncounter.EntranceTimeScale;
                 moveBackground();
             }
             else
@@ -105,13 +87,13 @@ public class moveBackGround : MonoBehaviour {
         // pauses when there is no touch on the touchscreen
         if (TouchInput.IsPressed && !buttonClicks.playerDied)
         {
-            Time.timeScale = ResumeSlowMo.Apply(1f) * WorldTimeFx.Scale; // hit-stop, Time Bubble
+            Time.timeScale = ResumeSlowMo.Apply(1f);
             moveBackground();
             if (!BossEncounter.SpeedLocked && !WorldEntry.Active) speedUp(); // a boss holds speed at 20; the entry waits
         }
         else if (score.pauseCounter <= 0 && !buttonClicks.playerDied)
         {
-            Time.timeScale = ResumeSlowMo.Apply(1f) * WorldTimeFx.Scale; // hit-stop, Time Bubble
+            Time.timeScale = ResumeSlowMo.Apply(1f);
             moveBackground();
             if (!BossEncounter.SpeedLocked && !WorldEntry.Active) speedUp(); // a boss holds speed at 20; the entry waits
         }

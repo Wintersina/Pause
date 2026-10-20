@@ -10,9 +10,8 @@ using UnityEngine;
 //   Paragon      NUKE           a warhead climbs from the nose, blinks and detonates: a red shockwave kills
 //                               what it reaches and a mushroom cloud rises behind the action. Its timed mini-warheads (ParagonMissiles) are the small version.
 //
-// The three top-tier verbs run in the cinematic slow motion (ShipPowerController): the runner steps on
-// gameplay time, which the slow motion does not scale, so a sweep takes the same ~1.2 s of real time while
-// the world crawls. A red atom's free shot plays the same verb, shortened (AttackRun.quick), at normal speed.
+// The three top-tier verbs are the cinematic attacks (ShipPowerController): the runner steps on gameplay
+// time and the world is never slowed. A red atom's free shot plays the same verb, shortened (AttackRun.quick).
 //
 // Every hit goes through ShipAttackHits like the other attacks. A boss (or an elite) takes a whole attack as
 // roughly one hit: the laser and the nova hit it once per pass / once, the nuke once, the sentries' bolts
@@ -82,7 +81,7 @@ public partial class ShipAttackRunner
         if (warheads != null) StepWarheads(dt);
     }
 
-    // True while a cinematic (top tier) attack still wants the world in slow motion.
+    // True while a cinematic (top tier) attack still holds the cinematic state.
     public bool CinematicHold
     {
         get
@@ -292,10 +291,8 @@ public partial class ShipAttackRunner
                 if (dv.sqrMagnitude > reach * reach) continue;
                 if (IsSpecial(t.gameObject))
                 {
-                    // bosses and elites don't freeze: one hit and a brief stall
-                    bool boss = ShipTargets.IsBossTarget(t);
+                    // bosses and elites don't freeze: one hit
                     HitOnce(run.hit, t.gameObject, 1f);
-                    if (boss) WorldTimeFx.HitStop(.1f);
                     continue;
                 }
                 if (Freeze(run, t)) run.hit.Add(t.gameObject);
@@ -402,7 +399,6 @@ public partial class ShipAttackRunner
                 else ShipAttackHits.Hit(t.gameObject, ship);
             }
         }
-        WorldTimeFx.HitStop(.03f);
     }
 
     // ===================================================== WARDEN SENTRIES
@@ -639,7 +635,7 @@ public partial class ShipAttackRunner
     // A warhead leaves the nose and flies up to ~55% of the screen height (or towards the densest cluster),
     // blinks its fuse (l.duration), detonates: a core flash, a red shockwave ring and a mushroom cloud; the ring grows to cover the
     // screen and kills every non-boss target as the ring reaches it. The boss and elites take one hit each.
-    // A short hit-stop, no slow motion. The premium hull's timed mini-warheads (FireMiniWarheads) are the
+    // The premium hull's timed mini-warheads (FireMiniWarheads) are the
     // same thing small: straight ahead, detonating at MiniRange with a MiniRadius shockwave.
 
     public const float MiniRange = 4f, MiniRadius = 1.4f, MiniSpeed = 16f, MiniStagger = .12f, MiniSpread = .35f;
@@ -849,11 +845,10 @@ public partial class ShipAttackRunner
                 Vector3.one * MushroomSize, 0f, ShockTicks, false, 0f, null, Vector3.zero, 1)
                 .Strip("attack_mushroom", 0, false).Alpha(MushroomAlpha);
         }
-        if (w.mini) { MiniDetonations++; WorldTimeFx.HitStop(.03f); }
+        if (w.mini) MiniDetonations++;
         else
         {
             Detonations++;
-            WorldTimeFx.HitStop(.08f);   // a short hit-stop, no white-out
             CameraKick.Kick(.04f);
         }
     }

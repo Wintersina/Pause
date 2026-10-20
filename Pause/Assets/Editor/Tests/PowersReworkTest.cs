@@ -8,7 +8,7 @@ using UnityEngine;
 //   2 Volt Viper    EMP: at 3+ enemies, stuns them, cancels enemy shots, an arc per stunned enemy
 //   3 Solar Fang    Solar Nova: kills within 3.0 and leaves a 2 s burning ring
 //   4 Crimson Halo  Capacitor Dump: fires the rail gun at once (3+ targets, any charge)
-//   5 Ion Lancer    Ion Battery: +2 pauses and 2 s slow time at <= 2 pauses; ION LASER (a sweeping beam)
+//   5 Ion Lancer    Ion Battery: +2 pauses at <= 2 pauses; ION LASER (a sweeping beam)
 //   6 Jade Phantom  Phase Cloak: 4 s ghosted hull (passes through hazards, see CloakShieldTest); FROST NOVA
 //   7 Gold Warden   Gold Magnet: 5 s pull and dust x2; WARDEN SENTRIES
 //   16 Paragon      NUKE and its mini-warheads
@@ -16,7 +16,7 @@ using UnityEngine;
 // Batch 2, ships 8-15:
 //   8  Lightning    Thunderclap: lightning KILLS hazards within 2.6 (a boss takes a weighted hit)
 //   9  Ligher       Flare Decoy: 4 s, shooters aim at the flare too, pops with kill radius 1.5
-//   10 Paranoid     Time Bubble: 0.45x for 2.5 s inside a visible, tinted dome sized to its radius
+//   10 Paranoid     Time Bubble: a visible, tinted dome for 2.5 s sized to its radius
 //   11 Ninja        Blink Dash: also fires when a hazard is within 2.0; dodges to the safest side
 //   12 Saboteur     Black Hole: at 3+ enemies on screen
 //   13 UFO          Tractor Pull: drags hazards in, kills drop dust; the Tractor Beam pulls to its centre
@@ -47,7 +47,7 @@ public static class PowersReworkTest
         EmpNeedsThreeAndCancelsShots();
         NovaLeavesABurningRing();
         CapacitorDumpFiresTheRail();
-        IonBatteryAddsSlowTime();
+        IonBatteryAddsPauses();
         IonLaserSweeps();
         PhaseCloakGhostsTheHull();
         FrostNovaFreezesAndShatters();
@@ -67,7 +67,6 @@ public static class PowersReworkTest
         CloakTrailAndIonPack();
 
         AttackPool.StopAll();
-        WorldTimeFx.Reset();
         HostileShots.ResetCounters();
         Debug.Log("[PR] failures: " + fails);
         return fails;
@@ -92,7 +91,6 @@ public static class PowersReworkTest
         collisionDetection.lifeCounter = 0;
         moveBackGround.speed = .2f;
         Time.timeScale = 1f;
-        WorldTimeFx.Reset();
         HostileShots.ResetCounters();
     }
 
@@ -128,7 +126,6 @@ public static class PowersReworkTest
         AttackPool.StopAll();
         collisionDetection.cloakTimer = 0f;
         collisionDetection.lifeCounter = 0;
-        WorldTimeFx.Reset();
     }
 
     static void Steps(ShipAttackRunner r, float seconds, float dt = .02f)
@@ -313,7 +310,7 @@ public static class PowersReworkTest
 
     // ---- 5 Ion Battery, Ion Lances ---------------------------------------
 
-    static void IonBatteryAddsSlowTime()
+    static void IonBatteryAddsPauses()
     {
         FreshScene();
         var ion = Ship(5);
@@ -325,11 +322,7 @@ public static class PowersReworkTest
         score.pauseCounter = 2;
         s.Step(.02f);
         Check("it fires at 2 pauses and adds 2", s.FireCount == 1 && score.pauseCounter == 4);
-        Check("with a slow-time on the world", WorldTimeFx.BubbleScale < 1f && WorldTimeFx.Scale < 1f);
-        s.Step(1.9f);
-        Check("still slow just before 2 s", WorldTimeFx.BubbleScale < 1f);
-        s.Step(.2f);
-        Check("normal speed after 2 s", Mathf.Approximately(WorldTimeFx.BubbleScale, 1f));
+        Check("and no slow-time on the world", Mathf.Approximately(Time.timeScale, 1f));
         Teardown(ion);
         score.pauseCounter = 0;
     }
@@ -515,7 +508,7 @@ public static class PowersReworkTest
         Steps(p.Runner, .5f);
         Check("it is still counting down", p.Runner.Detonations == 0 && Alive(a));
         Steps(p.Runner, .3f);
-        Check("it detonates with a short hit-stop", p.Runner.Detonations == 1 && WorldTimeFx.HitStopping);
+        Check("it detonates without touching the time scale", p.Runner.Detonations == 1 && Mathf.Approximately(Time.timeScale, 1f));
         Steps(p.Runner, .1f);
         Check("the shockwave kills what is near first", !Alive(a) && Alive(far));
         Steps(p.Runner, 1f);
@@ -620,16 +613,29 @@ public static class PowersReworkTest
         var s = paranoid.Secret;
         s.SetMeter(SecretPowerController.Full);
         s.Fire();
-        Check("the world runs at 0.45x", Mathf.Approximately(WorldTimeFx.BubbleScale, .45f));
+        Check("the world is not slowed", Mathf.Approximately(Time.timeScale, 1f));
         var dome = s.BubbleFx;
         Check("a dome is drawn", dome != null && dome.Active && dome.name == SecretPowerController.BubbleDomeName);
         Check("sized to the bubble radius", Mathf.Approximately(dome.transform.localScale.x, s.bubbleRadius * 2f));
         var c = dome.Renderer.color;
         Check("with a clear tint, not plain white", c.a < 1f && c.r < .99f);
+        // a hazard inside the dome is shoved out to the rim; one outside is left alone
+        var at = paranoid.transform.position;
+        var inside = Hazard(at.x + .4f, at.y + .6f);
+        var outside = Hazard(at.x + s.bubbleRadius + 1.5f, at.y + 1f);
+        Vector3 outsideAt = outside.transform.position;
+        s.Step(.02f);
+        for (int i = 0; i < 40; i++) EnemyShove.Step(.02f);
+        float dIn = ((Vector2)(inside.transform.position - at)).magnitude;
+        Check("a hazard inside the dome is pushed out to the rim (" + dIn.ToString("F2") + ")", dIn >= s.bubbleRadius - .05f);
+        Check("one outside the dome is untouched", (outside.transform.position - outsideAt).sqrMagnitude < 1e-6f);
+        Check("the dome never changes the time scale", Mathf.Approximately(Time.timeScale, 1f));
+        Object.DestroyImmediate(inside);
+        Object.DestroyImmediate(outside);
         s.Step(2.4f);
-        Check("slow and domed until 2.5 s", WorldTimeFx.BubbleScale < 1f && dome.Active);
+        Check("domed until 2.5 s", dome.Active);
         s.Step(.2f);
-        Check("normal speed and no dome after", Mathf.Approximately(WorldTimeFx.BubbleScale, 1f) && !dome.Active);
+        Check("no dome after", !dome.Active);
         Teardown(paranoid);
     }
 
@@ -866,7 +872,7 @@ public static class PowersReworkTest
         for (int id = 8; id <= 15; id++) b2 += CodexCatalogue.LoadoutLore(id) + "\n";
         Check("the codex says Thunderclap kills", b2.Contains("Lightning strikes everything within 2.6 dead"));
         Check("Flare Decoy mentions shooters", b2.Contains("shooters aim at"));
-        Check("Time Bubble mentions the dome and 0.45x", b2.Contains("visible dome") && b2.Contains("0.45x"));
+        Check("Time Bubble mentions the dome and no slow-down", b2.Contains("dome") && b2.Contains("blocks bullets") && !b2.Contains("0.45x"));
         Check("Blink Dash mentions the close threat", b2.Contains("within 2"));
         Check("Black Hole says 3 enemies", ShipLoadoutTable.For(12).powerLine.Contains("3 enemies") &&
               ShipLoadoutTable.TriggerLine(ShipLoadoutTable.For(12)) == "3+ enemies on screen");

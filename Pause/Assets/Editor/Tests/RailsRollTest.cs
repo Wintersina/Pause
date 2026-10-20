@@ -398,7 +398,7 @@ public static class RailsRollTest
         Check("the walls and the rail lanes roll by the one BoardRoll step, and the mount draws the mine on the art's pixel",
               walls.Contains("BoardRoll.Advance(speed, Time.deltaTime)") && walls.Contains("BoardRoll.RailOffset(") &&
               board.Contains("Vector3.down * BoardRoll.Advance(moveBackGround.speed, Time.deltaTime)") && board.Contains("+ BoardRoll.SnapLift"));
-        Check("the rail art keeps rolling in the ultimate's slow motion, when the lanes do",
-              walls.Contains("Time.timeScale = ShipPowerController.CinematicTimeScale;") && walls.IndexOf("moveBackground();") < walls.IndexOf("if (TouchInput.IsPressed"));
+        Check("no weapon slows the board: moveBackGround has no cinematic or hit-stop scale",
+              !walls.Contains("Cinematic") && !walls.Contains("WorldTimeFx"));
     }
 }

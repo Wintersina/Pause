@@ -449,14 +449,14 @@ public static class TitleScreenEliteTest
         Check("no currency, star dust, pauses or codex discoveries",
               score.totalCurrency == currency && StarDustLedger.Saved == saved && score.dustPickups == dust &&
               score.pauseCounter == pauses && Codex.DiscoveredCount == codex);
-        Check("time scale untouched", Time.timeScale == ts && !WorldTimeFx.HitStopping);
+        Check("time scale untouched", Time.timeScale == ts);
         Done(t);
 
         string[] files = { "Assets/Scripts/UI/TitleScreenTraffic.Elite.cs", "Assets/Scripts/UI/TitleScreenTraffic.Logo.cs" };
         string[] banned =
         {
             "ShipAttackHits", "AttackPool.", "ShipTargets.", "Codex.", "score.", "StarDustLedger", "Achievement", "Handheld", "Vibrat",
-            "Haptic", "timeScale =", "WorldTimeFx", "CameraKick", "DeathCrash.Begin", "PlayerPrefs.Set", "SocialBridge",
+            "Haptic", "timeScale =", "CameraKick", "DeathCrash.Begin", "PlayerPrefs.Set", "SocialBridge",
             "AddComponent<EliteShip>", "EliteDirector", "EliteSystem", "EliteBrains", "EliteAttacks", "RunScore", "ScoreRules",
         };
         string hit = null;

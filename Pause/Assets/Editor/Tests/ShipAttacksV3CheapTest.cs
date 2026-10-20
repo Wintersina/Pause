@@ -35,7 +35,6 @@ public static class ShipAttacksV3CheapTest
 
         AttackPool.StopAll();
         EnemyShove.Clear();
-        WorldTimeFx.Reset();
         Debug.Log("[V3] failures: " + fails);
         return fails;
     }
@@ -59,7 +58,6 @@ public static class ShipAttacksV3CheapTest
         collisionDetection.lifeCounter = 0;
         moveBackGround.speed = 0f;   // a still world: mines and bodies stay where the test put them
         Time.timeScale = 1f;
-        WorldTimeFx.Reset();
         EnemyShove.Clear();
     }
 

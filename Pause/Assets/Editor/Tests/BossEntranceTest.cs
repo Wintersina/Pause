@@ -538,7 +538,7 @@ public static class BossEntranceTest
         Check("collisionDetection honours the entrance's guard", collision.Contains("if (BossEncounter.ShieldsShip) return;"));
         string bg = File.ReadAllText("Assets/Scripts/Gameplay/moveBackGround.cs");
         Check("moveBackGround asks the entrance for its scale every frame (never stores it)",
-              bg.Contains("Time.timeScale = BossEncounter.EntranceTimeScale * WorldTimeFx.Scale;"));
+              bg.Contains("Time.timeScale = BossEncounter.EntranceTimeScale;"));
         Check("the ultimate's charge holds through the entrance",
               File.ReadAllText("Assets/Scripts/Gameplay/Weapons/ShipPowerController.cs").Contains("TransitionFrozen || BossEncounter.ScriptedEntrance"));
         Check("spawning is still suspended for the whole encounter",

@@ -451,7 +451,7 @@ public class BossEncounter : MonoBehaviour
             actor.Flash(Mathf.Lerp(.55f, 1f, BossImpact.Intensity(weight)));
         }
         if (ui != null) ui.HitFlash(boss.flash);
-        // themed burst, shake, hit-stop (BossImpact): scaled by the hit's weight
+        // themed burst, shake (BossImpact): scaled by the hit's weight
         BossImpact.Hit(boss.artKey, at, weight, heartLost, kill);
     }
 

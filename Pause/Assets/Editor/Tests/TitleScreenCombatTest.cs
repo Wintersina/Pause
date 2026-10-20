@@ -713,7 +713,7 @@ public static class TitleScreenCombatTest
         Check("no codex discoveries", Codex.DiscoveredCount == codex && discovered == 0);
         Check("no gameplay attacks (AttackProjectile / ~ShipAttacks)", AttackProjectile.LaunchCount == launches && GameObject.Find("~ShipAttacks") == null);
         Check("no gameplay death sequence (DeathCrash) created", DeathCrash.Instance == null);
-        Check("time scale untouched, no hit-stop", Time.timeScale == ts && !WorldTimeFx.HitStopping);
+        Check("time scale untouched, no hit-stop", Time.timeScale == ts);
         Done(t);
 
         // and the code can't: none of the gameplay hooks are referenced
@@ -726,7 +726,7 @@ public static class TitleScreenCombatTest
         string[] banned =
         {
             "ShipAttackHits", "ShipAttackRunner.Fire", "AttackPool.", "ShipTargets.", "Codex.", "score.", "StarDustLedger",
-            "Achievement", "Handheld", "Vibrat", "Haptic", "timeScale =", "WorldTimeFx", "CameraKick", "DeathCrash.Begin",
+            "Achievement", "Handheld", "Vibrat", "Haptic", "timeScale =", "CameraKick", "DeathCrash.Begin",
             "DeathCrash.Ensure", "PlayerPrefs.Set", "ShipSkins.Equip", "SocialBridge",
         };
         string hit = null;

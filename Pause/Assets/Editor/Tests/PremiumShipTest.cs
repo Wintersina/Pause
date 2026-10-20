@@ -194,7 +194,6 @@ public static class PremiumShipTest
         collisionDetection.lifeCounter = 0;
         moveBackGround.speed = .2f;
         Time.timeScale = 1f;
-        WorldTimeFx.Reset();
         HostileShots.ResetCounters();
     }
 
@@ -295,7 +294,6 @@ public static class PremiumShipTest
             AttackPool.StopAll();
             foreach (var h in hazards) if (h != null) Object.DestroyImmediate(h);
             Object.DestroyImmediate(go);
-            WorldTimeFx.Reset();
         }
     }
 }

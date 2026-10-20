@@ -57,7 +57,6 @@ public static class CooldownAtomTest
             RunScore.EndRun(RunScore.RunId);
             BossEncounter.ResetRun();
             AttackPool.StopAll();
-            WorldTimeFx.Reset();
             Time.timeScale = 1f;
             buttonClicks.playerDied = false;
             moveBackGround.speed = 0f;
@@ -258,7 +257,6 @@ public static class CooldownAtomTest
         collisionDetection.lifeCounter = 0;
         moveBackGround.speed = .2f;
         Time.timeScale = 1f;
-        WorldTimeFx.Reset();
     }
 
     static Rig Ship(int id)

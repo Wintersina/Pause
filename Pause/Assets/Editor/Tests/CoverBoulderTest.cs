@@ -82,7 +82,6 @@ public static class CoverBoulderTest
         collisionDetection.lifeCounter = 0;
         BossEncounter.ResetRun();
         BossRails.Reset();
-        WorldTimeFx.Reset();
         CoverBoulders.Disabled = false;
         CoverBoulders.TestAnyWorld = true;
         CoverBoulderDirector.WorldOverride = -1;

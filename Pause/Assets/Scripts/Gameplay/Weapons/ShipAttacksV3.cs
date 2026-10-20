@@ -241,7 +241,6 @@ public partial class ShipAttackRunner
             if (ShipAttackHits.Hit(t.gameObject, ship, w, ref run.budget)) kills++;
             Resolve(v, i);
         }
-        if (kills > 0) WorldTimeFx.HitStop(.04f);
         if (run.t >= gaze + .05f && v.resolved >= v.count)
         {
             Burst(run, eyePos, 1f);
@@ -318,7 +317,6 @@ public partial class ShipAttackRunner
                 }
             }
         }
-        if (kills > 0) WorldTimeFx.HitStop(.04f);
         if (done >= waves) run.active = false;
     }
 
@@ -366,7 +364,6 @@ public partial class ShipAttackRunner
                 if (ShipAttackHits.Hit(t.gameObject, ship, .5f, ref run.budget)) kills++;
             }
         }
-        if (kills > 0) WorldTimeFx.HitStop(.03f);
         if (u >= 1f)
         {
             v.Release();
@@ -427,7 +424,6 @@ public partial class ShipAttackRunner
             }
             CameraKick.Kick(.02f);
         }
-        if (kills > 0) WorldTimeFx.HitStop(.04f);
         if (live == 0) run.active = false;
     }
 
@@ -713,7 +709,6 @@ public partial class ShipAttackRunner
                 v.phase[j] = 3;
             }
         }
-        if (kills > 0) WorldTimeFx.HitStop(.04f);
         if (run.t < GustSeconds + .05f) return;
         for (int j = 0; j < v.count; j++) if (v.phase[j] == 1 || v.phase[j] == 2) return;
         v.Release();

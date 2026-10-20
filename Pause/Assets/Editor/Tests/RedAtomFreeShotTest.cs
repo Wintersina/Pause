@@ -54,7 +54,6 @@ public static class RedAtomFreeShotTest
         {
             RunScore.EndRun(RunScore.RunId);
             AttackPool.StopAll();
-            WorldTimeFx.Reset();
             Time.timeScale = 1f;
             buttonClicks.playerDied = false;
             moveBackGround.speed = 0f;
@@ -92,7 +91,6 @@ public static class RedAtomFreeShotTest
         collisionDetection.lifeCounter = 0;
         moveBackGround.speed = .2f;
         Time.timeScale = 1f;
-        WorldTimeFx.Reset();
     }
 
     static GameObject Hazard(float x, float y, string tag = "Enimey")

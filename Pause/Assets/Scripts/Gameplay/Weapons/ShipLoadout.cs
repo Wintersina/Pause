@@ -5,8 +5,7 @@ using UnityEngine;
 // The main attack fires itself when the ultimate's charge meter fills
 // (ShipPowerController, the ChargeIndicator in front of the hull). Only the
 // top price tier -- the three most expensive hulls in shopingShips.Prices --
-// gets a cinematic attack: the world drops into slow motion while it plays
-// (ShipPowerController) and each of the three has its own verb (a sweeping
+// gets a cinematic attack (ShipPowerController) and each of the three has its own verb (a sweeping
 // laser, a frost nova, deployed sentries); every cheaper ship has a
 // directional or limited weapon that plays at normal speed
 // (ShipAttackRunner).
@@ -45,12 +44,12 @@ public enum SecretPower
     EmpStun,        // freezes every enemy on screen and cancels their shots
     SolarNova,      // a flare that burns away everything close by, then a burning ring
     CapacitorDump,  // the main attack fires at once
-    IonBattery,     // +2 pauses and a couple of seconds of slow time
+    IonBattery,     // +2 pauses
     PhaseCloak,     // a few seconds of ghosting: invulnerable, passes through hazards
     GoldMagnet,     // pulls star dust in from across the screen, worth double meanwhile
     Thunderclap,    // lightning strikes everything close dead
     FlareDecoy,     // a flare that chasers and shooters aim at instead of you, then pops
-    TimeBubble,     // the world slows down inside a visible dome
+    TimeBubble,     // a visible dome around the hull
     BlinkDash,      // sidesteps to the safer side, at a hit or a close threat
     BlackHole,      // a little black hole ahead swallows what drifts in
     TractorPull,    // drags nearby enemies and debris in; kills drop star dust
@@ -102,7 +101,7 @@ public struct ShipLoadout
     public float width;
     public float speed;
 
-    // The top price tier flies a cinematic attack (slow motion while it plays).
+    // The top price tier flies a cinematic attack (the world is never slowed).
     public bool IsTopTier => ShipLoadoutTable.IsCinematic(attack);
 }
 
@@ -111,7 +110,7 @@ public static class ShipLoadoutTable
     // How many of the priciest hulls get a cinematic attack.
     public const int TopTierCount = 3;
 
-    // The attacks that play in slow motion: exactly the top price tier's.
+    // The cinematic attacks: exactly the top price tier's.
     public static bool IsCinematic(ShipAttack a)
     {
         return a == ShipAttack.IonLaser || a == ShipAttack.FrostNova || a == ShipAttack.WardenSentries;
@@ -159,7 +158,7 @@ public static class ShipLoadoutTable
             range: 11f, width: .42f),
         // 5 Ion Lancer (3200, top tier)
         Row(5, ShipAttack.IonLaser, "ION LASER", "A thin laser leaves the nose and sweeps the whole screen, burning everything it crosses.",
-            SecretPower.IonBattery, "ION BATTERY", "Adds two pauses and 2 s of slow time when you run low.",
+            SecretPower.IonBattery, "ION BATTERY", "Adds two pauses when you run low.",
             PowerTrigger.LowPauses, 2, 0f,
             shots: 1, duration: 1.2f, range: 16f, width: 70f),
         // 6 Jade Phantom (4400, top tier)
@@ -184,7 +183,7 @@ public static class ShipLoadoutTable
             duration: 1.4f, range: 2.7f, width: 24f),
         // 10 Paranoid (1200)
         Row(10, ShipAttack.ArcaneEye, "ARCANE EYE", "An eye marks four targets ahead; the marks detonate.",
-            SecretPower.TimeBubble, "TIME BUBBLE", "A visible dome slows the world to 0.45x for 2.5 s when it crowds you.",
+            SecretPower.TimeBubble, "TIME BUBBLE", "A dome shoves hazards out and blocks bullets for 2.5 s when it crowds you.",
             PowerTrigger.HazardsNearShip, 3, 2.6f,
             shots: 4, duration: .6f, range: 9f, width: 40f),
         // 11 Ninja (1600)

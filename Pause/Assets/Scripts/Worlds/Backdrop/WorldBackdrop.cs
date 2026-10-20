@@ -19,9 +19,7 @@ using UnityEngine.SceneManagement;
 //   Time.timeScale (the same value as Time.deltaTime). moveBackGround sets
 //   timeScale to 0 whenever the world is not running (finger lifted with
 //   pauses left, death), so scroll, flipbooks, twinkles, spawn timers and
-//   cross-fades all stop dead and the paused frame is a still image. The
-//   cinematic clear's slow timeScale slows the background with everything
-//   else. Nothing here uses unscaled time for animation.
+//   cross-fades all stop dead and the paused frame is a still image. Nothing here uses unscaled time for animation.
 public class WorldBackdrop : MonoBehaviour
 {
     public const float BaseSpeed = 0.2f;        // added to moveBackGround.speed
