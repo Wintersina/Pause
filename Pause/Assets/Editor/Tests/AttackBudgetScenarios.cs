@@ -750,6 +750,19 @@ public static class AttackBudgetScenarios
                 row.planOnly = true;
                 into.Add(row);
             }
+            // Storm's static fields and flares: a ring on every spot from the first frame of the tell; what lands there is dangerous from the landing on
+            var ssa = ship.Attack as StormSpotAttack;
+            if (ssa != null)
+            {
+                for (int i = 0; i < ssa.Count; i++)
+                {
+                    float land = tellLeft + def.lobSeconds + def.shotInterval * i;
+                    Vector2 from = ssa.Spot(i) + Vector2.up * (EliteSystem.Scroll * land);
+                    var ring = Hz.Circle(2700 + i, from, ssa.HazardRadius, land, ssa.HazardSeconds);
+                    ring.planOnly = ring.hasV = true; ring.va = ring.vb = board;
+                    into.Add(ring);
+                }
+            }
         }
 
         public void Collect(List<Hz> into)

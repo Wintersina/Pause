@@ -40,6 +40,10 @@ using UnityEngine;
 // (DesertCrawlerHangar, "crawlerhangar"), a mirror-array silo (DesertMirrorSilo, "mirrorsilo") and a canyon dock (DesertCanyonDock, "canyondock"). They
 // open through the launch tell like Space's docks do, with dust in the open bay.
 //
+// Storm's four launch-strip sites (StormTuning.SiteKinds 5-8, docks atlas): a floating airship dock (StormAirshipDock, "airshipdock"), a lightning-rod
+// silo (StormRodSilo, "rodsilo"), a skyhook cradle (StormSkyhookCradle, "skyhookcradle") and a refinery bay (StormRefineryBay, "refinerybay"). They
+// open through the launch tell like Space's docks do, with vapour in the open bay.
+//
 // Verdant's (VerdantDirector) are emerge sites too: a root-braced hangar in
 // a giant tree, a river bay on stilts, a petal pod pad, a tower bay and a
 // hatch under the roots (Hatch, shared with Frost's silo hatch).
@@ -62,7 +66,8 @@ public enum LandingKind { Ground, Station, Planet, Asteroid, Hangar, RigBay, Pad
                          DesertWormBurrow, DesertCrawlerBay, DesertGlassPad, DesertBuriedSilo, DesertRuinDock,
                          Gantry, Carrier, Gate, Derelict,
                          Rig, Silo, Cave, Icebreaker,
-                         DesertBuriedBunker, DesertCrawlerHangar, DesertMirrorSilo, DesertCanyonDock }
+                         DesertBuriedBunker, DesertCrawlerHangar, DesertMirrorSilo, DesertCanyonDock,
+                         StormAirshipDock, StormRodSilo, StormSkyhookCradle, StormRefineryBay }
 
 public struct LandingSite
 {
@@ -131,6 +136,10 @@ public struct LandingSite
             case "silo": return LandingKind.Silo;
             case "cave": return LandingKind.Cave;
             case "icebreaker": return LandingKind.Icebreaker;
+            case "airshipdock": return LandingKind.StormAirshipDock;
+            case "rodsilo": return LandingKind.StormRodSilo;
+            case "skyhookcradle": return LandingKind.StormSkyhookCradle;
+            case "refinerybay": return LandingKind.StormRefineryBay;
             case "station": return LandingKind.Station;
             case "planet": return LandingKind.Planet;
             case "asteroid": return LandingKind.Asteroid;

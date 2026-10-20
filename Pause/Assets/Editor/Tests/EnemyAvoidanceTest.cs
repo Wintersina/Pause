@@ -271,7 +271,7 @@ public static class EnemyAvoidanceTest
     static EliteDef EliteDefOf(string brain)
     {
         foreach (var d in EliteCatalog.All) if (d.brain == brain) return d;
-        return null;
+        return BaseEliteDefs.For(brain);   // (no world flies the base brains now: the test-only fixture defs)
     }
 
     static Summary Merge(Summary all, Summary one)

@@ -167,9 +167,8 @@ public static class EmberBackdropTest
                   mask.Share(GroundClass.Water).ToString("F2") + ", built " + mask.Share(GroundClass.Built).ToString("F2") : "-") + ")",
                   mask != null && mask.Cols == 32 && mask.Rows == 64 && mask.Share(GroundClass.Canopy) > .1f);
         }
-        var kiln = EliteCatalog.Find("storm_elite_static_bastion");   // (an elite with no launchFrom: Ember's now each have their own)
-        bool any = kiln != null;
-        foreach (var k in EmberTuning.SiteKinds) any &= LandingSite.Accepts(kiln != null ? kiln.launchFrom : null, k);
+        bool any = true;   // (an elite with no launchFrom: every def names its homes now, so the rule is asked of an empty one)
+        foreach (var k in EmberTuning.SiteKinds) any &= LandingSite.Accepts(null, k);
         Check("an Ember elite (no launchFrom) takes any of the five Ember site kinds", any);
         Check("the sites' kinds are Ember's own and parse from launchFrom strings",
               LandingSite.KindOf("foundryhangar") == LandingKind.FoundryHangar && LandingSite.KindOf("magmabay") == LandingKind.MagmaBay &&

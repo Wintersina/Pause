@@ -467,8 +467,7 @@ public static class StormBackdropTest
         foreach (string n in StormTuning.Refineries) names &= land.Has(n);
         foreach (string n in StormTuning.Neighbours) names &= land.Has(n);
         foreach (string n in StormTuning.Dishes) names &= land.Has(n);
-        foreach (string n in StormTuning.SiteClosed) names &= sites.Has(n);
-        foreach (string n in StormTuning.SiteOpen) names &= sites.Has(n);
+        for (int k = 0; k < StormTuning.FirstLaunchSite; k++) names &= sites.Has(StormTuning.SiteClosed[k]) && sites.Has(StormTuning.SiteOpen[k]);   // (the strip sites are in the docks atlas: StormDockTest)
         names &= sites.Has("lights_off") && sites.Has("lights_on");
         Check("every piece the director draws is in the landmarks / sites atlases", names);
         Check("weather: 4 cloud banks, wisps, mist, gusts, rain; lightning: >= 6 bolts, 2 strikes, 2 flashes, an arc, debris",
@@ -679,7 +678,7 @@ public static class StormBackdropTest
                     if (!tell && d.SiteOpen(site)) shutWhileParked = false;
                     if (tell && d.SiteOpen(site)) opened = true;
                 }
-                Check("the site stays shut while the elite waits, opens in the launch tell", shutWhileParked && opened && site.sr.sprite != closed);
+                Check("the site stays shut while the elite waits, opens in the launch tell", shutWhileParked && opened && site.sr.sprite != closed);   // (a strip site has no lamp row: its doors and vapour are the cue)
                 Run(wb, 8f + StormTuning.SiteCloseDelay, () => EliteSystem.Step(Dt));
                 Check("... then shuts again behind it", !d.SiteOpen(site) && site.sr.sprite == closed);
             }

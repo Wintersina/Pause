@@ -41,10 +41,6 @@ public static class EmberEliteTest
     // Storm's and Desert's elites keep flying the BASE brains and attacks, unchanged.
     static readonly (string key, string brain, string attack)[] BaseUsers =
     {
-        ("storm_elite_skyhook_harrier", "interceptor", "lance_dash"),
-        ("storm_elite_refinery_tender", "hauler", "slag_drop"),
-        ("storm_elite_rod_dancer", "skirmisher", "blink_shards"),
-        ("storm_elite_anvil_cloud", "siege", "siege_cannon"),
     };
 
     public static int Execute()

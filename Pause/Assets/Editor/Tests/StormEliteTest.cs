@@ -3,13 +3,11 @@ using System.IO;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 
-// Storm's five elites (Skyhook Harrier, Refinery Tender, Rod Dancer, Anvil Cloud, Static Bastion): the roster, their strips (7 flight cells
-// 1344 x 192, 3 death cells 576 x 192), muzzles and nozzles on the hull, the flight cell map and launch / lift-off cells, the director's
-// rotation, the codex entries and each one's brain and attack in simulation (all composed from the older brains and attacks with Storm's
-// own numbers and material: ion bolts, hail canisters, arc fans, a lightning shell, a curtain of arcs). Nothing allocates per frame.
-//
-// Storm's backdrop is still Tide's stand-in director (BackdropSet), so the elites carry no launchFrom: they take any free pad of the
-// stand-in's. A real Storm director will name its own LandingKinds later.
+// Storm's five elites as mini-boss fights (Anvil Cloud, Refinery Tender, Rod Dancer, Skyhook Harrier, Static Bastion; StormElites.cs): the
+// roster, their strips, muzzles and nozzles on the hull, the flight cell map, launching from Storm's launch sites, the director's rotation, the
+// codex entries, the fight rules (3 hearts, 5 armoured, hurtHide for the non-armoured chasers, the shrunk size band, no pink) and each one's own
+// brain and attack in simulation: static fields, flares, rod strikes, a cable rake, a hail wall. Every attack shows its footprint from the first
+// frame of its tell and cleans up after itself; nothing allocates per frame. Desert still flies the base brains and attacks.
 //
 //   scripts/unity-batch.sh -executeMethod AllTests.RunSuites -suites StormEliteTest
 public static class StormEliteTest
@@ -26,13 +24,13 @@ public static class StormEliteTest
     const float Dt = 1f / 30f;
     static Transform pilot;
 
-    static readonly (string key, string brain, string attack)[] Expected =
+    static readonly (string key, string brain, string attack, LandingKind from)[] Expected =
     {
-        ("storm_elite_skyhook_harrier", "interceptor", "lance_dash"),
-        ("storm_elite_refinery_tender", "hauler", "slag_drop"),
-        ("storm_elite_rod_dancer", "skirmisher", "blink_shards"),
-        ("storm_elite_anvil_cloud", "siege", "siege_cannon"),
-        ("storm_elite_static_bastion", "bastion", "ward_curtain"),
+        ("storm_elite_anvil_cloud", "thunderhead", "static_field", LandingKind.Hangar),
+        ("storm_elite_refinery_tender", "airship", "flare_drop", LandingKind.RigBay),
+        ("storm_elite_rod_dancer", "dancer", "rod_strikes", LandingKind.TowerBay),
+        ("storm_elite_skyhook_harrier", "hooker", "cable_rake", LandingKind.PadRing),
+        ("storm_elite_static_bastion", "citadel", "hail_wall", LandingKind.Hatch),
     };
 
     public static int Execute()
@@ -47,11 +45,12 @@ public static class StormEliteTest
             Sites();
             Rotation();
             Codex();
-            Harrier();
+            Anvil();
             Tender();
             Dancer();
-            Anvil();
+            Harrier();
             Bastion();
+            Rules();
             Allocations();
         }
         finally
@@ -100,6 +99,7 @@ public static class StormEliteTest
         var e = EliteShip.CreateInPlay(EliteCatalog.Find(key), at);
         e.AttackCooldown = 99f;
         e.EscapeLeft = 0f;
+        e.EngageLeft = 999f;   // (the engagement never runs out mid-test: a retreat would pop its flares)
         return e;
     }
 
@@ -178,16 +178,17 @@ public static class StormEliteTest
                   d != null && d.WorldIndex == 5 && d.brain == x.brain && d.attack == x.attack && brains.Add(d.brain) && attacks.Add(d.attack));
             if (d == null) continue;
             shots.Add(d.shotKind + "/" + d.shotCount + "/" + d.shotSpread + "/" + d.shotSpeed);
-            Check(x.key + ": no launchFrom (any pad of the stand-in backdrop), codex id elite_storm_*", string.IsNullOrEmpty(d.launchFrom) && d.codexId.StartsWith("elite_storm_"));
+            Check(x.key + ": launches from its own Storm launch site (" + d.launchFrom + "), codex id elite_storm_*", LandingSite.Accepts(d.launchFrom, x.from) && !LandingSite.Accepts(d.launchFrom, LandingKind.Station) && d.codexId.StartsWith("elite_storm_"));
             var frames = EliteArt.Frames(d);
             var c = d.cells;
             Check(x.key + ": the flight strip slices into 7 square cells of the def's cell size and the cell map is the flight layout",
-                  frames != null && frames.Length == 7 + c.flight.Length - 1 && Mathf.Approximately(frames[0].rect.width, d.cellPixels) && Mathf.Approximately(frames[0].rect.height, d.cellPixels) &&
+                  frames != null && frames.Length == 10 + 6 && Mathf.Approximately(frames[0].rect.width, d.cellPixels) && Mathf.Approximately(frames[0].rect.height, d.cellPixels) &&
                   c.parked == 0 && c.parkedIdle == 1 && c.liftoff == 2 && c.Flight0 == 3 && c.bankLeft == 4 && c.bankRight == 5 && c.damaged == 6 &&
+                  c.HasDamagedLoop && c.damagedLoop.Length == 6 && c.damagedLoop[0] == 10 && c.damagedLoop[5] == 15 &&
                   c.tell < 0 && c.action < 0 && c.hit < 0 && EliteHdResolution.CellOk(d));
             var death = EliteArt.ExtraFrames(d, EliteArt.Extra.Death);
             Check(x.key + ": the death strip slices into 3 cells of the def's cell size (" + (death != null ? death.Length.ToString() : "none") + ")",
-                  death != null && death.Length == 3 && Mathf.Approximately(death[0].rect.width, d.cellPixels));
+                  death != null && death.Length >= 3 && Mathf.Approximately(death[0].rect.width, d.cellPixels));
             var tex = new Texture2D(2, 2);
             tex.LoadImage(File.ReadAllBytes("Assets/Art/Resources/Elites/Storm/" + d.key + ".png"));
             bool solid = true, inCell = true;
@@ -196,8 +197,8 @@ public static class StormEliteTest
             foreach (var p in d.nozzles) { if (!OnHull(tex, d, p)) { solid = false; bad += p.name + " "; } inCell &= p.x > d.cellPixels * .04f && p.x < d.cellPixels * .96f && p.y > d.cellPixels * .04f && p.y < d.cellPixels * .96f; }
             Object.DestroyImmediate(tex);
             Check(x.key + ": its " + d.muzzles.Length + " muzzles and " + d.nozzles.Length + " nozzles sit on the hull, well inside the cell " + bad, solid && inCell && d.muzzles.Length > 0 && d.nozzles.Length > 0);
-            Check(x.key + ": two hearts orbiting tighter than the player's (" + (d.hullRadius * d.heartOrbit + d.heartSize * 1.05f).ToString("0.00") + " u)",
-                  d.hearts == 2 && d.hullRadius * d.heartOrbit + d.heartSize * 1.05f < .52f);
+            Check(x.key + ": " + d.hearts + " hearts orbiting tighter than the player's (" + (d.hullRadius * d.heartOrbit + d.heartSize * 1.05f).ToString("0.00") + " u)",
+                  d.hearts >= 3 && d.hullRadius * d.heartOrbit + d.heartSize * 1.05f < .52f);
             Check(x.key + ": tuned like its siblings (speed " + d.speed + ", gap " + d.attackGap + ", tell " + d.tellSeconds + ")",
                   d.speed >= 1.2f && d.speed <= 3.4f && d.attackGap >= 2.5f && d.attackGap <= 5.5f && d.tellSeconds >= .7f && d.avoidance >= .4f && d.avoidance <= .9f);
             Check(x.key + ": shots are in the Storm white / cold-blue family, never red or violet; hearts are the player's heart colour " + ColorUtility.ToHtmlStringRGB(d.HeartColor),
@@ -225,28 +226,38 @@ public static class StormEliteTest
             e.AttackCooldown = 99f;
             Step(2f, () => seen.Add(e.CurrentFrame));
             Check(x.key + ": then it flies on the hover cell", seen.Contains(def.cells.Flight0));
-            e.TakeShipAttack(0, 1f, e.Position + Vector2.down * .3f);
+            e.TakeHit(EliteDamage.Teleport, e.Position, 1);
             Step(.6f);
-            Check(x.key + ": the damaged cell replaces the flight cell after the first lost heart", e.Damaged && e.CurrentFrame == def.cells.damaged);
+            Check(x.key + ": the damaged burn loop replaces the flight cell after the first lost heart", e.Damaged && (def.hurtHide || (e.CurrentFrame >= 10 && e.CurrentFrame <= 15)));
         }
     }
 
     static void Sites()
     {
         Fresh(.05f);
-        var pads = new List<LandingSite> { Pad(new Vector2(-1.6f, 3f), LandingKind.TideTrenchHatch, 1), Pad(new Vector2(0f, 3f), LandingKind.TideWreckBay, 2), Pad(new Vector2(1.6f, 3f), LandingKind.TideVentStack, 3) };
+        var pads = new List<LandingSite>
+        {
+            Pad(new Vector2(-1.6f, 3f), LandingKind.Hangar, 1), Pad(new Vector2(-.8f, 3.3f), LandingKind.RigBay, 2), Pad(new Vector2(0f, 3f), LandingKind.TowerBay, 3),
+            Pad(new Vector2(.8f, 3.3f), LandingKind.PadRing, 4), Pad(new Vector2(1.6f, 3f), LandingKind.Hatch, 5),
+        };
         LandingSites.Override = list => list.AddRange(pads);
         var dir = new GameObject("~Dir").AddComponent<EliteDirector>();
         int spawned = 0;
         var seen = new HashSet<string>();
+        bool match = true;
         for (int i = 0; i < 40; i++)
         {
             EliteSystem.Clear();
             spawned += dir.SpawnGroup(5, 1);
-            foreach (var e in EliteShip.Live) { seen.Add(e.Def.key); }
+            foreach (var e in EliteShip.Live) { match &= LandingSite.Accepts(e.Def.launchFrom, e.Site.kind); seen.Add(e.Def.key); }
         }
-        Check("Storm's elites launch from the stand-in backdrop's pads, any kind (" + spawned + " launches)", spawned == 40);
+        Check("each Storm elite launches from its own launch site (" + spawned + " launches)", spawned == 40 && match);
         Check("all five Storm elites turn up (" + seen.Count + ")", seen.Count == 5);
+        pads.Clear();
+        pads.Add(Pad(new Vector2(0f, 3f), LandingKind.Ground, 9));
+        bool fallback = true;
+        for (int i = 0; i < 12; i++) { EliteSystem.Clear(); fallback &= dir.SpawnGroup(5, 1) == 1; }
+        Check("... and any free pad when none of theirs is in view", fallback);
         Object.DestroyImmediate(dir.gameObject);
         LandingSites.Override = null;
     }
@@ -282,7 +293,7 @@ public static class StormEliteTest
         Check("the codex lists five Storm elites with their death strips (" + n + ")", n == 5 && strips);
     }
 
-    // ---- the five attacks -------------------------------------------------------------------
+    // ---- the five fights --------------------------------------------------------------------
 
     static int Shots(System.Func<EliteShot, bool> pick)
     {
@@ -291,84 +302,305 @@ public static class StormEliteTest
         return n;
     }
 
-    // Skyhook Harrier: a committed hooked dash, ion bolts off the lance as it brakes.
+    // Kills it where it stands (a pause jump's damage), the way a player's pause would.
+    static void Kill(EliteShip e) { e.TakeHit(EliteDamage.Teleport, e.transform.position, 9); }
+
+    // ---- Anvil Cloud: thunderhead / static_field ---------------------------------------------
+
+    static void Anvil()
+    {
+        Fresh();
+        var e = InPlay("storm_elite_anvil_cloud", new Vector2(0f, 3f));
+        var sf = (StaticFieldAttack)e.Attack;
+        float minX = 9f, maxX = -9f;
+        Step(7f, () => { minX = Mathf.Min(minX, e.Position.x); maxX = Mathf.Max(maxX, e.Position.x); });
+        Check("Anvil Cloud: it drifts along the top, never down to the pilot (x " + minX.ToString("0.0") + " .. " + maxX.ToString("0.0") + ", y " + e.Position.y.ToString("0.0") + ")",
+              maxX - minX > .6f && e.Position.y > pilot.position.y + 1.5f);
+        StartTell(e);
+        bool below = true;
+        for (int i = 0; i < sf.Count; i++) below &= sf.Spot(i).y < e.Position.y;
+        Check("on the first frame of the tell every static field is ringed (" + sf.Marks.ShownCount + " of " + sf.PlanCount + "), all under the cloud",
+              e.Telling && sf.Count == sf.PlanCount && sf.Marks.ShownCount == sf.Count && sf.Count >= 4 && below);
+        Check("it holds still through the wind-up", sf.HoldsDuringTell && sf.HoldsDuringAction);
+        StepUntil(() => e.Acting, 3f);
+        int pools = 0;
+        for (float t = 0f; t < 4f; t += Dt)
+        {
+            pilot.position = new Vector3(0f, -4.8f, 0f);
+            e.AttackCooldown = 99f;   // (one cast: the counters below are its own)
+            EliteSystem.Step(Dt);
+            pools = Mathf.Max(pools, Shots(s => s.Kind == EliteShots.Kind.Glob && !s.Airborne));
+        }
+        Check("the fields land as pools (" + pools + " at once of " + sf.Count + ") and the FR1 lead was shown", sf.Laid == sf.Count && pools >= sf.Count - 1 && AttackPreview.TooShort == 0);
+
+        // the fight escalates with the hearts lost
+        Fresh();
+        e = InPlay("storm_elite_anvil_cloud", new Vector2(0f, 3f));
+        sf = (StaticFieldAttack)e.Attack;
+        int full = sf.PlanCount;
+        e.TakeHit(EliteDamage.Teleport, e.transform.position, 2);
+        Check("a fifth field once two hearts are lost (" + full + " -> " + sf.PlanCount + " at " + e.Hearts + " hearts)", full == 4 && sf.PlanCount == 5 && sf.PlanCount < StormSpotAttack.MaxSpots);
+
+        Fresh();
+        e = InPlay("storm_elite_anvil_cloud", new Vector2(0f, 3f));
+        sf = (StaticFieldAttack)e.Attack;
+        StartTell(e);
+        Shoot(e, 2);
+        Kill(e);
+        Check("an Anvil Cloud killed in its tell takes its rings with it", (e == null || sf.Marks.ShownCount == 0) && AttackPreview.ActiveCount == 0);
+    }
+
+    // ---- Refinery Tender: airship / flare_drop ------------------------------------------------
+
+    static void Tender()
+    {
+        Fresh(.1f);   // (the board scrolls 3 u/s: what a flare rides down is its own fuse long)
+        var e = InPlay("storm_elite_refinery_tender", new Vector2(0f, 3f));
+        var ab = (AirshipBrain)e.Brain;
+        var fd = (FlareDropAttack)e.Attack;
+        Check("Refinery Tender: it roams (untouchable off the board) and leaves its dock by the nearer side first (" + ab.Phase + ")", ab.Roams && ab.Phase == StormPassBrain.Stage.Leave);
+        bool passing = StepUntil(() => ab.Phase == StormPassBrain.Stage.Pass, 8f);
+        Check("... then makes a PASS across the top (passes " + ab.Passes + ")", passing && ab.Passes == 1);
+        bool window = StepUntil(() => ab.WantsAttack(Vector2.zero), 14f);
+        Check("the cast window opens inside the rails, high over the board (x " + e.Position.x.ToString("0.0") + ", y " + e.Position.y.ToString("0.0") + ")", window && e.Position.y > pilot.position.y + 1.5f);
+        StartTell(e);
+        bool stairs = true, inside = true;
+        for (int i = 0; i < fd.Count; i++)
+        {
+            inside &= Mathf.Abs(fd.Spot(i).x) <= EliteSystem.RailEdge;
+            if (i > 0) stairs &= fd.Spot(i).y <= fd.Spot(i - 1).y + 1e-3f && (fd.Spot(i).x - fd.Spot(i - 1).x) * ab.DirX >= -1e-3f;
+        }
+        Check("on the first frame of the tell a staircase of " + FlareDropAttack.Flares + " flares is ringed down its heading (" + fd.Marks.ShownCount + " shown)",
+              e.Telling && fd.Count == FlareDropAttack.Flares && fd.Marks.ShownCount == FlareDropAttack.Flares && stairs && inside);
+        Check("it keeps drifting through the wind-up (not held, " + e.Velocity.magnitude.ToString("0.0") + " u/s)", !fd.HoldsDuringTell && e.Velocity.magnitude > .3f);
+        StepUntil(() => e.Acting, 3f);
+        int maxOrbs = 0, maxBolts = 0, maxLaid = 0, maxCasts = 0, bursts = 0;
+        for (float t = 0f; t < 6f; t += Dt)
+        {
+            pilot.position = new Vector3(0f, -4.8f, 0f);
+            e.AttackCooldown = 99f;   // (one cast: the counters below are its own)
+            EliteSystem.Step(Dt);
+            maxLaid = Mathf.Max(maxLaid, fd.Laid);
+            maxCasts = Mathf.Max(maxCasts, ab.Casts);
+            maxOrbs = Mathf.Max(maxOrbs, Shots(s => s.Kind == EliteShots.Kind.Orb));
+            maxBolts = Mathf.Max(maxBolts, Shots(s => s.Kind != EliteShots.Kind.Orb));
+            int b = 0;
+            foreach (var sh in EliteSystem.Shots.All) b += sh.Bursts;
+            bursts = Mathf.Max(bursts, b);
+            // (trace for the CI log: where each flare is, its fuse, and what the ship is doing)
+            if (Mathf.RoundToInt(t / Dt) % 6 == 0)
+            {
+                var sb = new System.Text.StringBuilder("[SEL] TRACE flares t=" + t.ToString("0.00") + " ship " + (e != null ? e.State + " hearts " + e.Hearts + " at " + e.Position.ToString("0.0") : "gone") + " launched " + EliteSystem.Shots.Launched + ":");
+                foreach (var sh in EliteSystem.Shots.All)
+                    if (sh.Active) sb.Append(" [" + sh.Kind + " " + ((Vector2)sh.transform.position).ToString("0.0") + " fuse " + sh.FuseLeft.ToString("0.0") + " bursts " + sh.Bursts + "]");
+                Debug.Log(sb.ToString());
+            }
+        }
+        Check("the flares are lobbed one after another (" + maxLaid + ", most at once " + maxOrbs + ") and each bursts into an X of bolts (most bolts " + maxBolts + ", bursts " + bursts + ")",
+              maxLaid == FlareDropAttack.Flares && maxOrbs >= 2 && maxBolts >= 4 && AttackPreview.TooShort == 0);
+        Check("the cast is counted (" + maxCasts + ")", maxCasts == 1);
+        bool back = StepUntil(() => ab.Passes >= 2, 24f);
+        Check("it leaves by the far side and comes back for another pass (" + ab.Passes + ")", back);
+
+        Fresh();
+        e = InPlay("storm_elite_refinery_tender", new Vector2(0f, 3f));
+        ab = (AirshipBrain)e.Brain;
+        fd = (FlareDropAttack)e.Attack;
+        StepUntil(() => ab.WantsAttack(Vector2.zero), 20f);
+        StartTell(e);
+        Kill(e);
+        Check("a Tender killed in its tell takes its rings with it", (e == null || fd.Marks.ShownCount == 0) && AttackPreview.ActiveCount == 0);
+    }
+
+    // ---- Rod Dancer: dancer / rod_strikes ----------------------------------------------------
+
+    static void Dancer()
+    {
+        Fresh();
+        var e = InPlay("storm_elite_rod_dancer", new Vector2(0f, 3f));
+        var rs = (RodStrikesAttack)e.Attack;
+        float minX = 9f, maxX = -9f;
+        Step(7f, () => { minX = Mathf.Min(minX, e.Position.x); maxX = Mathf.Max(maxX, e.Position.x); });
+        Check("Rod Dancer: it weaves across the top, never to the pilot (x " + minX.ToString("0.0") + " .. " + maxX.ToString("0.0") + ", y " + e.Position.y.ToString("0.0") + ")",
+              maxX - minX > 1.2f && e.Position.y > pilot.position.y + 1.5f);
+        StartTell(e);
+        bool allTell = rs.Armed >= 3 && rs.Armed <= RodStrikesAttack.MaxColumns;
+        for (int i = 0; i < rs.Armed; i++) allTell &= rs.Strike(i) != null && rs.Strike(i).State == AttackHazard.Phase.Tell;
+        Check("a glyph is armed under EVERY column on the first frame of the tell (" + rs.Armed + ")", e.Telling && allTell);
+        bool outsideIn = true, spaced = true;
+        for (int i = 1; i < rs.Armed; i++)
+        {
+            outsideIn &= Mathf.Abs(rs.Lane(i) - pilot.position.x) <= Mathf.Abs(rs.Lane(i - 1) - pilot.position.x) + 1e-3f;
+            spaced &= Mathf.Abs(rs.Lane(i) - rs.Lane(i - 1)) >= AttackStrike.MinLaneSpacing - .01f;
+        }
+        Check("the columns strike OUTSIDE IN, the pilot's own lane last, a strike's corridor apart",
+              outsideIn && spaced && Mathf.Abs(rs.Lane(rs.Armed - 1) - pilot.position.x) < .2f);
+        Check("... told at least " + AttackHazard.MinTellSeconds + " s (" + e.Attack.TellSeconds.ToString("0.00") + ") and struck at least " + StormFlight.MinStrikeGap + " s apart (" + rs.Gap.ToString("0.00") + ")",
+              e.Attack.TellSeconds >= AttackHazard.MinTellSeconds + .2f && rs.Gap >= StormFlight.MinStrikeGap);
+        int n = rs.Armed;
+        var litAt = new float[n];
+        for (int i = 0; i < n; i++) litAt[i] = -1f;
+        float clock = 0f, liveFor = 0f;
+        for (float t = 0f; t < 4f; t += Dt)
+        {
+            pilot.position = new Vector3(0f, -2.5f, 0f);
+            e.AttackCooldown = 99f;   // (one cast: the strikes below are its own)
+            EliteSystem.Step(Dt);
+            clock += Dt;
+            for (int i = 0; i < n; i++)
+            {
+                var st = rs.Strike(i);
+                if (litAt[i] < 0f && st != null && st.State == AttackHazard.Phase.Live) litAt[i] = clock;
+            }
+            var s0 = rs.Strike(0);
+            if (s0 != null && s0.State == AttackHazard.Phase.Live) liveFor += Dt;
+        }
+        bool sequence = true;
+        for (int i = 0; i < n; i++) sequence &= litAt[i] >= 0f && (i == 0 || litAt[i] - litAt[i - 1] >= rs.Gap * .6f);
+        Check("the columns go live ONE AFTER ANOTHER (first " + litAt[0].ToString("0.00") + " s, last " + litAt[n - 1].ToString("0.00") + " s) for no longer than " + AttackStrike.MaxLiveSeconds + " s each",
+              sequence && liveFor <= AttackStrike.MaxLiveSeconds + Dt * 2);
+        Step(1.5f);
+        Check("nothing is left on the board afterwards (" + AttackHazard.ActiveCount + " hazards)", AttackHazard.ActiveCount == 0);
+
+        Fresh();
+        e = InPlay("storm_elite_rod_dancer", new Vector2(0f, 3f));
+        StartTell(e);
+        Kill(e);
+        Check("a Rod Dancer killed in its tell takes its glyphs with it", AttackHazard.ActiveCount == 0);
+        HurtFlees("storm_elite_rod_dancer");
+    }
+
+    // A hurt chaser breaks off, flies off-screen, waits and comes back into play.
+    static void HurtFlees(string key)
+    {
+        Fresh();
+        var e = InPlay(key, new Vector2(0f, 3f));
+        e.TakeHit(EliteDamage.Teleport, e.transform.position, 1);
+        Check(key + ": a lost heart sends it hiding (" + e.State + ", hearts " + e.Hearts + ")", e.State == EliteState.Hide && e.Hidden);
+        bool back = StepUntil(() => !e.Hidden && e.InPlay, 30f);
+        Check(key + ": ... and it returns to the fight", back);
+    }
+
+    // ---- Skyhook Harrier: hooker / cable_rake -----------------------------------------------
+
     static void Harrier()
     {
         Fresh();
-        var e = InPlay("storm_elite_skyhook_harrier", new Vector2(0f, .6f));
+        var e = InPlay("storm_elite_skyhook_harrier", new Vector2(0f, 3f));
+        var hb = (HookerBrain)e.Brain;
+        var cr = (CableRakeAttack)e.Attack;
+        Check("Skyhook Harrier: it roams and leaves its dock by the nearer side first (" + hb.Phase + ")", hb.Roams && hb.Phase == StormPassBrain.Stage.Leave);
+        bool passing = StepUntil(() => hb.Phase == StormPassBrain.Stage.Pass, 8f);
+        Check("... then swoops across the top on its arc (passes " + hb.Passes + ")", passing && hb.Passes == 1);
+        bool window = StepUntil(() => hb.WantsAttack(Vector2.zero), 14f);
+        Check("the rake window opens inside the rails (x " + e.Position.x.ToString("0.0") + ")", window);
+        Vector2 at = e.Position;
         StartTell(e);
-        Check("Skyhook Harrier: it holds still through the tell", e.Telling);
+        bool along = true, inside = true;
+        for (int i = 0; i < cr.Count; i++)
+        {
+            inside &= Mathf.Abs(cr.CableX(i)) <= EliteSystem.RailEdge && cr.CableY(i) < EliteSystem.ViewTop;
+            along &= (cr.CableX(i) - (i == 0 ? at.x : cr.CableX(i - 1))) * hb.DirX > .4f;
+        }
+        Check("on the first frame of the tell the " + CableRakeAttack.Cables + " cables are drawn as thin lines along its heading (" + cr.Telegraph.Loops + " outlines)",
+              e.Telling && cr.Telegraph.Showing && cr.Telegraph.Loops == CableRakeAttack.Cables && along && inside);
+        Check("the hooks go in: it holds through the wind-up", cr.HoldsDuringTell);
+        int before = EliteSystem.Shots.Launched;
         StepUntil(() => e.Acting, 3f);
-        Check("it then dashes committed at dashSpeed (" + e.Velocity.magnitude.ToString("0.0") + " u/s)", e.Acting && e.Velocity.magnitude > e.Def.dashSpeed * .7f);
-        int before = EliteSystem.Shots.Launched;
-        Step(1.5f);
-        Check("ion bolts leave the lance as it brakes (" + (EliteSystem.Shots.Launched - before) + ")", EliteSystem.Shots.Launched - before >= e.Def.shotCount);
+        Check("... shown at least the FR1 lead", e.Acting && AttackPreview.TooShort == 0);
+        Step(2.5f, () => e.AttackCooldown = 99f);
+        Check("the cables drop one after another (" + cr.Dropped + ", launched " + (EliteSystem.Shots.Launched - before) + ")", cr.Dropped == cr.Count && EliteSystem.Shots.Launched - before >= cr.Count);
+        Check("the cast is counted and the lines are gone (" + hb.Casts + ")", hb.Casts == 1 && AttackPreview.ActiveCount == 0);
+        bool back = StepUntil(() => hb.Passes >= 2, 24f);
+        Check("it leaves by the far side and comes back (" + hb.Passes + ")", back);
+
+        Fresh();
+        e = InPlay("storm_elite_skyhook_harrier", new Vector2(0f, 3f));
+        hb = (HookerBrain)e.Brain;
+        StepUntil(() => hb.WantsAttack(Vector2.zero), 20f);
+        StartTell(e);
+        Kill(e);
+        Check("a Harrier killed in its tell takes its lines with it", AttackPreview.ActiveCount == 0);
+        HurtFlees("storm_elite_skyhook_harrier");
     }
 
-    // Refinery Tender: armoured, canisters sinking down its lane.
-    static void Tender()
-    {
-        Fresh(.05f);
-        var e = InPlay("storm_elite_refinery_tender", new Vector2(0f, .6f));
-        Check("Refinery Tender: armoured", e.Def.armored);
-        e.ForceAttack();
-        int before = EliteSystem.Shots.Launched;
-        Step(2.5f);
-        bool sinking = false;
-        foreach (var s in EliteSystem.Shots.All) sinking |= s.Active && s.Kind == EliteShots.Kind.Slag && s.Velocity.y < 0f;
-        Check("it drops " + e.Def.shotCount + " canisters that sink down the lane (" + (EliteSystem.Shots.Launched - before) + ")",
-              EliteSystem.Shots.Launched - before >= e.Def.shotCount && sinking);
-    }
+    // ---- Static Bastion: citadel / hail_wall ------------------------------------------------
 
-    // Rod Dancer: blink, then an arc fan.
-    static void Dancer()
-    {
-        Fresh(.05f);
-        var e = InPlay("storm_elite_rod_dancer", new Vector2(0f, -.5f));
-        int blinks = e.Blinks, before = EliteSystem.Shots.Launched;
-        e.ForceAttack();
-        Step(2f);
-        Check("Rod Dancer: it blinks, then fans " + e.Def.shotCount + " arcs (" + (EliteSystem.Shots.Launched - before) + ")",
-              e.Blinks > blinks && EliteSystem.Shots.Launched - before >= e.Def.shotCount);
-    }
-
-    // Anvil Cloud: a sight line down the lane, then one lightning shell straight down it.
-    static void Anvil()
-    {
-        Fresh(.05f);
-        var e = InPlay("storm_elite_anvil_cloud", new Vector2(0f, 1f));
-        Step(5f);
-        e.ForceAttack();
-        bool sight = false;
-        float tell = 0f;
-        while (e.Telling && tell < 5f) { EliteSystem.Step(Dt); tell += Dt; sight |= e.transform.Find("Sight").GetComponent<SpriteRenderer>().enabled; }
-        int before = EliteSystem.Shots.Launched;
-        Step(.4f);
-        EliteShot shell = null;
-        foreach (var s in EliteSystem.Shots.All) if (s.Active && s.Kind == EliteShots.Kind.Shell) shell = s;
-        Check("Anvil Cloud: the lane is drawn through the tell (" + tell.ToString("0.00") + " s)", sight && tell >= AttackHazard.MinTellSeconds);
-        Check("... then a lightning shell goes straight down it",
-              EliteSystem.Shots.Launched > before && shell != null && shell.Velocity.y < -5f && Mathf.Abs(shell.Velocity.x) < .05f);
-    }
-
-    // Static Bastion: a curtain of slow arcs across the pilot's row with one gap beside the pilot.
     static void Bastion()
     {
         Fresh();
-        var e = InPlay("storm_elite_static_bastion", new Vector2(0f, .6f));
-        var wc = (WardCurtainAttack)e.Attack;
+        var e = InPlay("storm_elite_static_bastion", new Vector2(0f, 3f));
+        var hw = (HailWallAttack)e.Attack;
+        Step(4f);
+        Check("Static Bastion: it holds the top of the view (y " + e.Position.y.ToString("0.0") + ")", e.Position.y > pilot.position.y + 1.5f);
         StartTell(e);
+        Check("on the first frame of the tell the edges of every wave's gap are drawn (" + hw.Telegraph.Loops + " lines for " + hw.Waves + " waves)",
+              e.Telling && hw.Waves >= 2 && hw.Telegraph.Showing && hw.Telegraph.Loops == 2 * hw.Waves);
+        float g0 = hw.GapCentre(0);
+        Check("the gap is not where the pilot stands (gap x " + g0.ToString("0.00") + ", pilot x " + pilot.position.x.ToString("0.00") + ") and keeps inside the rails",
+              Mathf.Abs(g0 - pilot.position.x) > .5f && Mathf.Abs(g0) + HailWallAttack.GapHalf <= EliteSystem.RailEdge);
+        bool slides = true;
+        for (int w = 1; w < hw.Waves; w++) slides &= Mathf.Abs(hw.GapCentre(w) - hw.GapCentre(w - 1)) <= HailWallAttack.WaveSlide + .01f;
+        Check("each wave's gap slides at most a hand from the last", slides);
+        int before = EliteSystem.Shots.Launched;
         StepUntil(() => e.Acting, 3f);
-        int arcs = 0;
-        for (float t = 0f; t < 2f; t += Dt)
+        bool clean = true;
+        int waveSeen = 0;
+        for (float t = 0f; t < 4f; t += Dt)
         {
-            pilot.position = new Vector3(0f, -2.5f, 0f);
+            pilot.position = new Vector3(0f, -4.8f, 0f);
+            e.AttackCooldown = 99f;   // (one cast)
             EliteSystem.Step(Dt);
-            arcs = Mathf.Max(arcs, Shots(s => true));
+            if (hw.Sent > waveSeen)
+            {
+                // (the stones of a fresh wave are all up at the top: none inside its gap)
+                int w = hw.Sent - 1;
+                foreach (var s in EliteSystem.Shots.All)
+                    if (s.Active && s.transform.position.y > EliteSystem.ViewTop - .4f && Mathf.Abs(s.transform.position.x - hw.GapCentre(w)) < HailWallAttack.GapHalf - .02f) clean = false;
+                waveSeen = hw.Sent;
+            }
         }
-        Check("Static Bastion: a curtain of " + (wc.Count - 1) + " arcs with one gap beside the pilot (fired " + wc.Fired + ", most on screen " + arcs + ")",
-              wc.Fired == wc.Count - 1 && arcs >= 3 && wc.Gap == wc.Centre + (pilot.position.x > 0f ? -1 : 1));
+        Check("the hail falls in " + hw.Waves + " waves (" + hw.Sent + " sent, " + (EliteSystem.Shots.Launched - before) + " stones), none inside the gap", hw.Sent == hw.Waves && EliteSystem.Shots.Launched - before >= hw.Waves * 4 && clean);
+        Step(3f);
+        Check("nothing is left behind (" + AttackPreview.ActiveCount + " drawings)", AttackPreview.ActiveCount == 0);
+
+        Fresh();
+        e = InPlay("storm_elite_static_bastion", new Vector2(0f, 3f));
+        StartTell(e);
+        Kill(e);
+        Check("a Bastion killed in its tell takes its lines with it", AttackPreview.ActiveCount == 0);
     }
+
+    // ---- the fight rules ---------------------------------------------------------------------
+
+    static void Rules()
+    {
+        foreach (var x in Expected)
+        {
+            var d = EliteCatalog.Find(x.key);
+            if (d == null) continue;
+            bool chaser = x.key.EndsWith("rod_dancer") || x.key.EndsWith("skyhook_harrier");
+            Check(x.key + ": hearts " + d.hearts + " (5 armoured, 3 not), hurtHide only for the non-armoured chasers",
+                  d.hearts == (d.armored ? 5 : 3) && d.hurtHide == chaser && (!d.hurtHide || !d.armored));
+            bool heavy = x.key.EndsWith("anvil_cloud") || x.key.EndsWith("refinery_tender") || x.key.EndsWith("static_bastion");
+            float drawn = ShipTierTest.DrawnLongSide(d);
+            float target = heavy ? 1.6f : 1.55f;
+            Check(x.key + ": drawn long side " + drawn.ToString("0.00") + " u in the shrunk band (about " + target.ToString("0.00") + " u)", Mathf.Abs(drawn - target) < .06f);
+            Check(x.key + ": no pink, no green (shot " + ColorUtility.ToHtmlStringRGB(d.ShotColor) + ", core " + ColorUtility.ToHtmlStringRGB(d.ShotCore) + ")",
+                  !WorldCue.IsPink(d.ShotColor) && !WorldCue.IsPink(d.ShotCore) && !Green(d.ShotColor) && !Green(d.ShotCore));
+            var atk = EliteAttacks.Create(d.attack);
+            Check(x.key + ": an aimed attack winds up long enough for the lock (tell " + d.tellSeconds + " s)", !atk.Aimed || d.tellSeconds >= EliteDef.MinAimedTell);
+        }
+        Check("Tender and Harrier roam; Anvil, Dancer and Bastion stay on the board",
+              EliteBrains.Create("airship").Roams && EliteBrains.Create("hooker").Roams &&
+              !EliteBrains.Create("thunderhead").Roams && !EliteBrains.Create("dancer").Roams && !EliteBrains.Create("citadel").Roams);
+        Check("the base ids Desert flies are still there",
+              System.Array.IndexOf(EliteBrains.Ids, "interceptor") >= 0 && System.Array.IndexOf(EliteAttacks.Ids, "lance_dash") >= 0 &&
+              System.Array.IndexOf(EliteBrains.Ids, "siege") >= 0 && System.Array.IndexOf(EliteAttacks.Ids, "siege_cannon") >= 0 &&
+              System.Array.IndexOf(EliteBrains.Ids, "bastion") >= 0 && System.Array.IndexOf(EliteAttacks.Ids, "ward_curtain") >= 0);
+    }
+
+    static bool Green(Color c) { float h = Hue(c); return h > 85f && h < 165f; }
 
     // ---- allocations ------------------------------------------------------------------------
 

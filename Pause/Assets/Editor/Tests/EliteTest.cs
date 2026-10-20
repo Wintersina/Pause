@@ -185,7 +185,7 @@ public static class EliteTest
             var frames = EliteArt.Frames(d);
             Check(d.key + ": strip loads as 7 cells, enough for its cell map", frames != null && frames.Length >= EliteArt.FrameCount && frames[0] != null && frames.Length >= d.cells.Count);
             Check(d.key + ": a known brain and attack", System.Array.IndexOf(EliteBrains.Ids, d.brain) >= 0 && System.Array.IndexOf(EliteAttacks.Ids, d.attack) >= 0);
-            Check(d.key + ": hearts: 2 (Space, Frost, Tide, Ember, Verdant and Desert: 5 armoured / 3 not)", d.hearts == (d.world == "space" || d.world == "frost" || d.world == "tide" || d.world == "ember" || d.world == "verdant" || d.world == "desert" ? (d.armored ? 5 : 3) : 2));
+            Check(d.key + ": hearts: 2 (Space, Frost, Tide, Ember, Verdant, Desert and Storm: 5 armoured / 3 not)", d.hearts == (d.world == "space" || d.world == "frost" || d.world == "tide" || d.world == "ember" || d.world == "verdant" || d.world == "desert" || d.world == "storm" ? (d.armored ? 5 : 3) : 2));
             Check(d.key + ": hearts are the player's own heart colour (ShipLivesIndicator.HeartTint)", d.HeartColor == ShipLivesIndicator.HeartTint);
             Check(d.key + ": shots are not the player's red", HueGap(d.ShotColor, PlayerRed) > 30f && HueGap(d.ShotCore, PlayerRed) > 30f &&
                   HueGap(d.ShotColor, AkiraPalette.Red) > 30f);

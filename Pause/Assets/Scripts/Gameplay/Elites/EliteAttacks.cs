@@ -51,6 +51,7 @@ using UnityEngine;
 // (Frost's five: FrostElites.cs)
 //   foam_wake / mine_chain / drag_net / thunder_sweep / pearl_spiral: Tide's own five -- Riptide, Bathyscaphe, Trawler, Thunderfin, Pearl Warden (TideElites.cs)
 //   worm_churn / quicksand_row / glass_fan / lens_beams / boulder_roll / dust_wall: Desert's own six -- Dune Stalker, Caravan Hauler, Lens Matriarch, Glass Cannon, Scorpion Skiff, Mirror Bastion (DesertElites.cs)
+//   static_field / flare_drop / rod_strikes / cable_rake / hail_wall: Storm's own five -- Anvil Cloud, Refinery Tender, Rod Dancer, Skyhook Harrier, Static Bastion (StormElites.cs)
 //   surf_dash / depth_charge / net_cast / thunder_strike / pearl_curtain: Tide's Riptide, Bathyscaphe, Trawler, Thunderfin, Pearl Warden (TideElites.cs)
 //   log_roll / vine_lash / spore_burst / leaf_dive: Verdant's Timber Hauler, Thornlash, Sporebloom, Leafblade (VerdantElites.cs); the cores of
 //   leaf_swoop (Leafblade: swooping passes, a crescent across a drawn row), canopy_mortar (Resin Warden: a pool wall with one gap),
@@ -206,9 +207,11 @@ public static class EliteAttacks
                                             "ice_run", "floe_barge", "tender_rig", "icicle_barrage",
                                             "log_roll", "vine_lash", "spore_burst", "leaf_dive",
                                             "leaf_swoop", "canopy_mortar", "spore_drift", "thorn_sweep", "raft_roll",
+                                            "static_field", "flare_drop", "rod_strikes", "cable_rake", "hail_wall",
                                             "surf_dash", "depth_charge", "net_cast", "thunder_strike", "pearl_curtain",
                                             "lance_pass", "coal_strafe", "scrap_dive", "ember_veil", "kiln_dump", "fire_mortar",
-                                            "worm_churn", "quicksand_row", "glass_fan", "lens_beams", "boulder_roll", "dust_wall" };
+                                            "worm_churn", "quicksand_row", "glass_fan", "lens_beams", "boulder_roll", "dust_wall",
+                                            "static_field", "flare_drop", "rod_strikes", "cable_rake", "hail_wall" };
 
     public static EliteAttack Create(string id)
     {
@@ -243,6 +246,11 @@ public static class EliteAttacks
             case "lens_beams": return new LensBeamsAttack();
             case "boulder_roll": return new BoulderRollAttack();
             case "dust_wall": return new DustWallAttack();
+            case "static_field": return new StaticFieldAttack();
+            case "flare_drop": return new FlareDropAttack();
+            case "rod_strikes": return new RodStrikesAttack();
+            case "cable_rake": return new CableRakeAttack();
+            case "hail_wall": return new HailWallAttack();
             case "ice_run": return new IceRunAttack();
             case "floe_barge": return new FloeBargeAttack();
             case "tender_rig": return new TenderRigAttack();
