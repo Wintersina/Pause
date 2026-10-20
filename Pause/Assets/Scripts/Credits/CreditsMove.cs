@@ -42,7 +42,28 @@ public class CreditsMove : MonoBehaviour {
 
     public GateOpenPlayer Gate { get { return gate; } }
 
-    void Awake() { EnsureLockup(); }
+    void Awake()
+    {
+        EnsureLockup();
+        KeepControlsReachable();
+    }
+
+    // The roll bounces over the whole screen, so it must never swallow taps meant for
+    // the controls (BACK, the codex button): its text takes no raycasts, and every
+    // sibling Button is drawn above it.
+    public void KeepControlsReachable()
+    {
+        var text = GetComponent<Graphic>();
+        if (text != null) text.raycastTarget = false;
+        if (transform.parent == null) return;
+        var buttons = transform.parent.GetComponentsInChildren<Button>(true);
+        foreach (var button in buttons)
+        {
+            var t = button.transform;
+            while (t.parent != transform.parent) t = t.parent;
+            if (t != transform) t.SetAsLastSibling();
+        }
+    }
 
     // Reopening the screen starts the roll from its authored spot again.
     void OnEnable()
