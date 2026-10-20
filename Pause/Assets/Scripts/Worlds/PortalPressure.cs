@@ -206,6 +206,7 @@ public static class PortalPressure
 
     static void Clear()
     {
+        PostBossLeg.End();   // (the next world starts at its normal rock density)
         Active = false;
         Seconds = 0f;
         Destination = -1;

@@ -144,6 +144,7 @@ public static class AllTests
         ("EliteTest", EliteTest.Execute),
         ("EliteFoundationTest", EliteFoundationTest.Execute),
         ("EliteFightZoneTest", EliteFightZoneTest.Execute),
+        ("PostBossLegTest", PostBossLegTest.Execute),
         ("EliteEvasionTest", EliteEvasionTest.Execute),
         ("EliteLockOnTest", EliteLockOnTest.Execute),
         ("ShipTierTest", ShipTierTest.Execute),
