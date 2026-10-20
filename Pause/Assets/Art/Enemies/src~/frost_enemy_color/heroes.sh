@@ -1,0 +1,9 @@
+#!/bin/bash
+cd "$(dirname "$0")"
+./run_one.sh frost_chaser "Frost Lancer: a horizontal lance-ship. Palette invented for it: hull = pale bone-silver ice armour, darker second plates cobalt-navy (#27346B), polished chrome/steel trim bands and rivets, sun-gold (#FFD24A) glowing core capsule, gold-white engine flame at the rear. Ice blades keep pale silver-blue facets." > src/h1.log 2>&1 &
+./run_one.sh frost_fighter_1 "Flake: a round cannon-orb drone with ice drill. Palette invented for it: shell = frosted silver-lavender grey (#9FA8C8) enamel, darker second plates charcoal-graphite (#2B2F3A), burnt-copper orange trim pipes and rivets, electric blue (#35A0FF) core grille, blue-white jet at the drill tip. Ice drill and claws keep pale grey-blue facets." > src/h2.log 2>&1 &
+./run_one.sh frost_fighter_3 "Frost Kite: a sail-winged skiff. Palette invented for it: sail panels pale ivory-lavender frost canvas, darker second plates graphite-black iron frame, oxidised copper-orange trim struts and rivets, aurora-green (#6CFFB0) hexagon core, green-white vent flame. Hanging ice keeps pale blue-grey facets." > src/h3.log 2>&1 &
+wait
+./run_one.sh frost_fighter_4 "Hailstorm: a heavy cannon gunship. Palette invented for it: hull storm-slate blue-grey (#58657A), darker second plates deep indigo-violet (#2A2760), polished nickel trim pipes and rivets, electric violet-white (#B8A8FF) cannon core, cold violet-white exhaust. Snow and ice keep pale grey-blue." > src/h4.log 2>&1 &
+./run_one.sh frost_rock_chunk "Frozen Chunk: a floating block of bedrock under a snow cap. Palette invented for it: crust glacier blue-white, darker second plates basalt blue-black (#1E2A3A), verdigris green-bronze (#4FA58E) trim straps and rivets, vivid cyan-white crystal core, icicles pale blue." > src/h5.log 2>&1 &
+wait

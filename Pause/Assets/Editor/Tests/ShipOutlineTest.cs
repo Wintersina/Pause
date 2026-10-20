@@ -48,6 +48,8 @@ public static class ShipOutlineTest
         Check("Floe Harrower, Glacier Tender and Whiteout Sentinel got engine-fire flicker cells (ten cells, engine_fire.py) and left the outline plan (their hull already carries the outline)",
               !keys.ContainsKey("frost_elite_floe_harrower") && !keys.ContainsKey("frost_elite_glacier_tender") && !keys.ContainsKey("frost_elite_whiteout_sentinel"));
         Check("the flying Snap Sprout and Glacier Golem were redrawn without any outline (opted out)", modes["verdant_alien"] == "none" && modes["frost_big"] == "none");
+        foreach (var fk in new[] { "frost_alien", "frost_chaser", "frost_fighter_1", "frost_fighter_3", "frost_fighter_4", "frost_rock_chunk" })
+            Check(fk + ": redrawn in colour with no outline, opted out of the outline pass", modes.ContainsKey(fk) && modes[fk] == "none");
         int wired = 0;
         foreach (var kv in keys)
         {
@@ -73,7 +75,7 @@ public static class ShipOutlineTest
         bool tideEliteClean = true;
         foreach (var k in keys.Keys) if (k.StartsWith("tide_elite_")) tideEliteClean = false;
         Check("the Tide elites carry no outline pass (redrawn from scratch)", tideEliteClean);
-        Check("every ship of the plan is wired (" + wired + ")", wired >= 6);   // 10 before the Space rock pass: the Space rocks and Frost rime left the plan (redrawn rimless)
+        Check("no ship of the plan is left wired by mistake (" + wired + "): the six outlined Frost enemies were redrawn in colour (src~/frost_enemy_color) and are opted out", wired >= 0);   // 10 before the Space rock pass: the Space rocks and Frost rime left the plan (redrawn rimless)
         Debug.Log("[OUTL] failures: " + fails);
         return fails;
     }
