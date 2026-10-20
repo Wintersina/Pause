@@ -28,7 +28,8 @@ public static class SpaceBossMusicTest
     // A world with no row keeps the fallback (its own track, nudged up in pitch).
     static readonly (string world, float seconds)[] Tracks =
     {
-        ("Space", 137.232f), ("Frost", 159.744f), ("Verdant", 238.44f), ("Ember", 92.664f), ("Tide", 165.024f), ("Storm", 119.904f), ("Desert", 184.824f),
+        // (Verdant: "jungle boss 3", 207.476 s decoded + the importer's one-frame mp3 padding)
+        ("Space", 137.232f), ("Frost", 159.744f), ("Verdant", 207.5f), ("Ember", 92.664f), ("Tide", 165.024f), ("Storm", 119.904f), ("Desert", 184.824f),
     };
     static string PathOf(string world) { return "Assets/Audio/Resources/WorldMusic/Boss_" + world + ".mp3"; }
     // Desert has no world on this branch yet: its clip and import are checked by name only.
