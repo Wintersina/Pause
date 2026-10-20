@@ -447,7 +447,8 @@ public sealed class BossWaveVoice
     int index, sweepDir = 1;
     bool altWall;
     public int Waves { get; private set; }
-    public int Skipped { get; private set; }
+    public int Skipped { get; private set; }            // waves not fired because they could not arrive in time (MaxTravelBeats)
+    public int MaxTravelBeats = int.MaxValue;           // the most beats a wave may take to the ship's row (the director sets it per sixteenth)
     public float LastGapCenter { get; private set; }
     public float LastArrival { get; private set; }
     public float LastClearWidth { get; private set; }
@@ -519,7 +520,6 @@ public sealed class BossWaveVoice
         lateSeconds = Mathf.Clamp(lateSeconds, 0f, .1f);
         bool row = m.kind == WaveKind.Wall || m.kind == WaveKind.Slant;
         var src = SourceFor(m, row && altWall);
-        if (row) altWall = !altWall;
         var player = host.Player;
         float scale = host.ShotSpeedScale;
         float nominal = style.speed * (1f + .12f * Mathf.Clamp01(intensity)) * scale;
@@ -564,6 +564,10 @@ public sealed class BossWaveVoice
             spd = (float)(d0 / (k * spb - lateSeconds));
             thick = (2f * PatternSim.ShipRadius + 2f * r + .3f) / Mathf.Max(.5f, spd);
         }
+        // a wave that would still be in the air when a special lands (BossSpecials: the director's MaxTravelBeats) is
+        // not fired: nothing of it has been committed yet
+        if (k > MaxTravelBeats) { Skipped++; return 0; }
+        if (row) altWall = !altWall;
         float arrival = gameNow + (float)(k * spb) - lateSeconds;
         // where the pattern would like the gap: a steady sweep, or a hop to the far side of the ship
         float want = m.sweep ? sweepDir * .6f : (Waves % 2 == 0 ? 1f : -1f) * (player.x >= 0f ? -1f : 1f) * .9f;

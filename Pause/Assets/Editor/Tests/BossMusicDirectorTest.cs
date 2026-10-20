@@ -153,15 +153,17 @@ public static class BossMusicDirectorTest
         {
             actor.BeginFight();
             bool continuous = true;
-            // 20 s at 4 waves a bar = 50 sixteenths; an accent takes its sixteenth's place (one firing, one drawing)
+            // 20 s at 4 waves a bar = 50 sixteenths; an accent takes its sixteenth's place (one firing, one drawing); the
+            // Archon's one special (its pod lasers, BossSpecials) lands on the bar line 8 bars after the director's start
             for (int f = 0; f < 60 * 20; f++)
             {
                 music.BeatNow = f / 60.0 / .4;
                 step.Invoke(actor, new object[] { 1f / 60f, 1f / 60f, new Vector3(0, -3.2f), .8f, pool, music });
-                if (f > 120 && !actor.PatternPhase) continuous = false;
+                if (f > 120 && !actor.PatternPhase && !actor.SpecialActive) continuous = false;
                 pool.RecycleAll();
             }
-            Check("live actor uses the musical director without timed cooldowns", continuous && actor.MusicDirector.Emissions >= 45 && actor.AttacksStarted == 1);
+            // (the special's hold keeps about 12 of the 50 beats' waves in: BossSpecials.HoldBeats before it, then its lasers' ~3 s)
+            Check("live actor uses the musical director without timed cooldowns (" + actor.MusicDirector.Emissions + " waves, plus its one special: " + actor.Specials.Fired + ")", continuous && actor.MusicDirector.Emissions >= 30 && actor.Specials.Fired == 1 && actor.AttacksStarted == 2);
             actor.Markers.Clear(); // the scheduler-only fixture above does not tick marker lifetimes
             actor.Markers.Add(Vector2.zero, Vector2.one, .1f, .4f);
             actor.StepFight(0, .5f, Vector3.zero, .8f, pool);

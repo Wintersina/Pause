@@ -15,6 +15,14 @@ tempos, then fit beat_k = first + k*period by robust least squares. A track is
 bpm + firstBeat; others store the explicit beat list. Downbeat (bar phase) is a
 low-frequency-energy guess over 4/4 and is the LEAST reliable field: check it
 by ear. Times are seconds from clip start (clip time == AudioSource.time).
+
+The half-beat phase (which eighth is the beat) is decided by the KICK band when
+it can tell the two apart, and by the full band only as a tie-break: Boss_Space
+has its snare / stab layer on the off-beats, and the full-band comb (which that
+layer dominates) once put the whole map half a beat late (firstBeat .228 for
+kicks at .028; the shots landed between the kicks). A map already in the file
+keeps its half-beat phase and its downbeatBeat when re-analysed (both were
+checked by ear); delete the entry to re-decide them from scratch.
 """
 import hashlib, json, os, subprocess, sys, tempfile
 import numpy as np
@@ -51,7 +59,10 @@ def best_offset(env, ft, bpm, t0, t1, step=0.004):
     return float(offs[i]), float(sc[i])
 
 
-def analyse(name):
+KICK_MARGIN = .12   # the kick band decides the half-beat phase when the weaker candidate scores under 88 % of the stronger
+
+
+def analyse(name, old=None):
     path = os.path.join(MUSIC, "Boss_%s.mp3" % name)
     y = load(path)
     dur = len(y) / SR
@@ -96,16 +107,30 @@ def analyse(name):
     offs = np.array(offs)
     med = float(np.median(offs))
     drift_ms = float(np.percentile(np.abs(offs - med), 90) * 1000)
-    # 3. full-grid phase: kick-band + full-band score, best of the two half-beats
+    # 3. full-grid phase: which of the two half-beats is the beat. The kick band decides when it is clear about it
+    #    (the weaker candidate under 1 - KICK_MARGIN of the stronger); otherwise kick + full band together, as before.
     cands = [(med + k * half) % period for k in (0, 1)]
-    sk = [comb(kenv, ft, bpm, c, 0, dur) + comb(env, ft, bpm, c, 0, dur) for c in cands]
-    first = cands[int(np.argmax(sk))]
-    ambiguity = float(min(sk) / max(sk))  # near 1.0 = half-beat phase is a coin flip
+    sk = [comb(kenv, ft, bpm, c, 0, dur) for c in cands]
+    sf = [comb(env, ft, bpm, c, 0, dur) for c in cands]
+    both = [k + f for k, f in zip(sk, sf)]
+    kick_clear = min(sk) / max(sk) <= 1 - KICK_MARGIN
+    first = cands[int(np.argmax(sk if kick_clear else both))]
+    ambiguity = float(min(both) / max(both))  # near 1.0 = half-beat phase is a coin flip
+    if old is not None and old.get("steady"):
+        # a map that is already in the file was checked by ear: keep its half-beat phase (the new analysis only refines
+        # the position by a few ms), and say so
+        o = old["firstBeat"] % period
+        d = ((first - o + period / 2) % period) - period / 2   # signed, within half a period
+        if abs(d) > period / 4:   # nearer the other half-beat than the old one: a flip, not a refinement
+            other = cands[1 - cands.index(first)]
+            print("%s: keeping the existing half-beat phase (firstBeat %.3f, analysis preferred %.3f); delete the entry to re-decide" % (name, other, first))
+            first = other
     steady = drift_ms < 25 and (wt.max() - wt.min()) < 1.0
     nb = int((dur - first) / period) + 1
     out = {
         "bpm": round(float(bpm), 3), "firstBeat": round(float(first), 4), "beatsPerBar": 4,
-        "downbeatBeat": 0, "duration": round(float(dur), 3), "steady": bool(steady),
+        # the bar line stays what the file says (checked by ear); a new map starts at 0 and downbeatGuess is the hint
+        "downbeatBeat": int(old["downbeatBeat"]) if old is not None else 0, "duration": round(float(dur), 3), "steady": bool(steady),
         "windowDriftMs90": round(drift_ms, 1),
         "windowBpmMin": round(float(wt.min()), 1), "windowBpmMax": round(float(wt.max()), 1),
         "halfBeatPhaseRatio": round(ambiguity, 2),
@@ -181,10 +206,12 @@ def arrangement(name, beatmap):
 def main():
     features_only = "--arrangement-only" in sys.argv
     names = [n for n in sys.argv[1:] if n != "--arrangement-only"] or BOSSES
-    old = json.load(open(OUT))["bosses"] if os.path.exists(OUT) and sys.argv[1:] else []
+    # the maps already in the file: the ones not named are kept as they are, the named ones keep their ear-checked
+    # half-beat phase and bar line through the re-analysis (see analyse)
+    old = json.load(open(OUT))["bosses"] if os.path.exists(OUT) else []
     keep = {b["name"]: b for b in old}
     for n in names:
-        r = keep[n] if features_only else {"name": n, "clip": "WorldMusic/Boss_%s" % n, **analyse(n)}
+        r = keep[n] if features_only else {"name": n, "clip": "WorldMusic/Boss_%s" % n, **analyse(n, keep.get(n))}
         r.update(arrangement(n, r))
         keep[n] = r
         print(n, {k: v for k, v in r.items() if k not in ("beats", "energy", "bass", "accents", "sections")})

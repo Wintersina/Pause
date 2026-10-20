@@ -91,6 +91,12 @@ public class BossActor : MonoBehaviour, IMusicPatternHost
     BossAttack musicAttack;
     bool musicRunning;
     public BossMusicDirector MusicDirector => musicDirector;
+    // The signature specials of the musical fight (BossSpecials): the scheduler, and whether one is in progress (its
+    // Tell -> Beams / Hazards phases below own the boss and its drawing while it is; the director's waves are held).
+    BossSpecials specials;
+    bool specialRunning;
+    public BossSpecials Specials => specials;
+    public bool SpecialActive => specialRunning;
     BossPatternMarkers markers;
     Vector3 playerNow;
     BossProjectilePool poolNow;
@@ -382,7 +388,9 @@ public class BossActor : MonoBehaviour, IMusicPatternHost
         markers.Clear();
         runner.Stop();
         musicRunning = false;
+        specialRunning = false;
         musicDirector = new BossMusicDirector(World, boss, this);
+        specials = new BossSpecials(boss, World);
         // its parts are every muzzle the song's waves leave from (BossWaveSources): the charge and flash slots
         musicAttack = new BossAttack { name = "song arrangement", kind = BossAttackKind.Pattern,
             parts = musicDirector.Parts, emitters = boss.DefaultAttacks[0].emitters,
@@ -455,28 +463,49 @@ public class BossActor : MonoBehaviour, IMusicPatternHost
 
     void StepAttacks(float dt, float realDt, Vector3 player, float progress01, BossProjectilePool pool, IBeatSource beatSource)
     {
-        // All mapped boss songs use the continuous director. Timed rotations remain only
-        // for missing music and explicit developer attack previews.
+        // All mapped boss songs use the continuous director, with the boss's signature specials on the bar lines
+        // (BossSpecials). Timed rotations remain only for missing music and explicit developer attack previews.
         if (beatSource is IMusicBeatSource && beatSource.Active && BossBeatTuning.For(World).enabled && ForcedAttack < 0)
         {
+            playerNow = player; poolNow = pool;
             if (!musicRunning)
             {
                 runner.Stop(); ClearArmed(); markers.Clear();
-                musicRunning = true; current = musicAttack; AttacksStarted++;
+                musicRunning = true; specialRunning = false; current = musicAttack; AttacksStarted++;
+                musicDirector.HoldFromBeat = musicDirector.ArriveBeforeBeat = double.NaN;
+                musicDirector.Step(beatSource, dt, realDt, progress01);
+                // the specials count their bars from the director's start
+                specials.Begin(beatSource, musicDirector.StartBeat);
             }
-            playerNow = player; poolNow = pool;
-            musicDirector.Step(beatSource, dt, realDt, progress01);
-            // the pose on screen is the one of the body part about to fire (its tell on the beat before), or of the
-            // part that just fired while its fire drawing is up
-            current.tell = fireLeft > 0f ? musicFirePose : musicDirector.TellPose;
-            tellAge += dt;
-            phase = musicDirector.Preparing ? AttackPhase.Tell : AttackPhase.Pattern;
-            return;
+            else
+            {
+                // between specials: is the next one's tell due this frame? (its landing re-times its tell and volleys)
+                var special = specialRunning ? null : specials.Due(beatSource, realDt, progress01 + PatternHeadStart);
+                // the director plans its waves round the coming special's hold, and keeps its clock running through the
+                // special itself (held: nothing leaves; no backlog when the hold lifts)
+                musicDirector.HoldFromBeat = specials.HoldFromBeat;
+                musicDirector.ArriveBeforeBeat = specials.ArriveBeforeBeat;
+                musicDirector.Step(beatSource, dt, realDt, progress01);
+                if (special != null) { specialRunning = true; Launch(special, player, pool, beatSource, progress01); }
+            }
+            if (!specialRunning)
+            {
+                // the pose on screen is the one of the body part about to fire (its tell on the beat before), or of the
+                // part that just fired while its fire drawing is up
+                current.tell = fireLeft > 0f ? musicFirePose : musicDirector.TellPose;
+                tellAge += dt;
+                phase = musicDirector.Preparing ? AttackPhase.Tell : AttackPhase.Pattern;
+                return;
+            }
+            // a special in progress: the executors' phases below run it, in game time like the hazards it armed
         }
-        if (musicRunning)
+        else if (musicRunning)
         {
-            musicRunning = false; musicDirector.Suspend(); markers.Clear();
-            phase = AttackPhase.Cooldown; phaseTimer = 0;
+            musicRunning = false; musicDirector.Suspend(); specials.Suspend(); markers.Clear();
+            // the song stopped mid-special: it plays out as a timed attack (its hazards are already armed), then the
+            // old rotation takes over from its cooldown
+            if (specialRunning) specialRunning = false;
+            else { phase = AttackPhase.Cooldown; phaseTimer = 0; }
         }
         phaseTimer -= dt;
         switch (phase)
@@ -486,38 +515,7 @@ public class BossActor : MonoBehaviour, IMusicPatternHost
                 int unlocked = Mathf.Max(1, BossCatalog.UnlockedAttacks(boss, progress01 + PatternHeadStart));
                 attackIndex = ForcedAttack >= 0 && ForcedAttack < boss.attacks.Length
                     ? ForcedAttack : (attackIndex + 1) % unlocked;
-                current = boss.attacks[attackIndex];
-                phase = AttackPhase.Tell;
-                phaseTimer = current.tellSeconds;
-                tellAge = 0f;
-                volleysFired = 0;
-                firedMask = 0;
-                AttacksStarted++;
-                if (current.kind == BossAttackKind.Beam) phaseTimer = current.tellSeconds + SpawnBeams(player, pool);
-                else if (current.kind == BossAttackKind.Pattern)
-                {
-                    playerNow = player;
-                    poolNow = pool;
-                    // With the boss song playing the pattern waits for a bar line / beat and fires on the grid; the
-                    // telegraphs last until then (BossBeatTuning). Without it: the old timers, unchanged.
-                    var tune = BossBeatTuning.For(World);
-                    var src = tune.enabled ? beatSource : null;
-                    float tell = current.tellSeconds;
-                    alignBeat = -1.0;
-                    alignHold = 0f;
-                    if (src != null)
-                    {
-                        alignBeat = BeatAlign.Target(src, tell, tune.barWaitMax);
-                        tell = Mathf.Max(tell, (float)((alignBeat - src.BeatNow) * src.SecondsPerBeat));
-                    }
-                    runner.Begin(current.pattern, this, BossLadder.RateAt(World, progress01), patternSeed++, tell, src, tune);
-                    runner.BounceFraction = BossBounce.FractionFor(World);
-                }
-                else
-                {
-                    var exec = BossExecutors.For(current.kind);
-                    if (exec != null) { ClearArmed(); armedCount = exec.Arm(this, current, player, armed); }
-                }
+                Launch(boss.attacks[attackIndex], player, pool, beatSource, progress01);
                 return;
 
             case AttackPhase.Tell:
@@ -594,6 +592,44 @@ public class BossActor : MonoBehaviour, IMusicPatternHost
         }
     }
 
+    // Starts `a` (its tell begins this frame): the beams are spawned with their sight lines, a hazard kind arms its hazards
+    // on the boss's muzzles, a pattern plans and waits for the beat grid. Shared by the timed rotation and the specials.
+    void Launch(BossAttack a, Vector3 player, BossProjectilePool pool, IBeatSource beatSource, float progress01)
+    {
+        current = a;
+        phase = AttackPhase.Tell;
+        phaseTimer = current.tellSeconds;
+        tellAge = 0f;
+        volleysFired = 0;
+        firedMask = 0;
+        AttacksStarted++;
+        if (current.kind == BossAttackKind.Beam) phaseTimer = current.tellSeconds + SpawnBeams(player, pool);
+        else if (current.kind == BossAttackKind.Pattern)
+        {
+            playerNow = player;
+            poolNow = pool;
+            // With the boss song playing the pattern waits for a bar line / beat and fires on the grid; the
+            // telegraphs last until then (BossBeatTuning). Without it: the old timers, unchanged.
+            var tune = BossBeatTuning.For(World);
+            var src = tune.enabled ? beatSource : null;
+            float tell = current.tellSeconds;
+            alignBeat = -1.0;
+            alignHold = 0f;
+            if (src != null)
+            {
+                alignBeat = BeatAlign.Target(src, tell, tune.barWaitMax);
+                tell = Mathf.Max(tell, (float)((alignBeat - src.BeatNow) * src.SecondsPerBeat));
+            }
+            runner.Begin(current.pattern, this, BossLadder.RateAt(World, progress01), patternSeed++, tell, src, tune);
+            runner.BounceFraction = BossBounce.FractionFor(World);
+        }
+        else
+        {
+            var exec = BossExecutors.For(current.kind);
+            if (exec != null) { ClearArmed(); armedCount = exec.Arm(this, current, player, armed); }
+        }
+    }
+
     // Some hazard this attack armed has not ended yet (a taken-back pool item that someone else re-armed does not count).
     bool HazardsBusy()
     {
@@ -619,6 +655,16 @@ public class BossActor : MonoBehaviour, IMusicPatternHost
 
     void EndAttack(float progress01)
     {
+        if (specialRunning)
+        {
+            // a special is over: the song's waves have the boss again (the director resumes on its next sixteenth)
+            specialRunning = false;
+            specials.Done();
+            current = musicAttack;
+            phase = AttackPhase.Pattern;
+            tellAge = 0f;
+            return;
+        }
         phase = AttackPhase.Cooldown;
         float scale = BossCatalog.FinalPhase(progress01) ? BossConfig.FinalPhaseCooldownScale : 1f;
         phaseTimer = current.cooldown * scale * CooldownScale;
@@ -897,7 +943,7 @@ public class BossActor : MonoBehaviour, IMusicPatternHost
         // a damaged boss keeps its pose through a hit (the white flash is the hit now): the
         // pristine Hit drawing would read as it healing for two ticks per blow
         if (flashLeft > 0f && damageStage <= 0) SetFrame(BossArt.Hit);
-        else if (musicRunning && current != null)
+        else if (musicRunning && !specialRunning && current != null)
         {
             // the song's waves: the source's tell drawings on the beat before (the first two: the third of an expanded
             // atlas is its fire drawing), the fire drawing the instant the bullets leave (held for a breath), idle between
@@ -935,7 +981,8 @@ public class BossActor : MonoBehaviour, IMusicPatternHost
     void RefreshGlows()
     {
         bool fighting = mode == Mode.Fighting && current != null && current.parts != null;
-        bool music = fighting && musicRunning && musicDirector != null;
+        // (a special in progress is told and fired like a timed attack: all its parts charge, then flash)
+        bool music = fighting && musicRunning && !specialRunning && musicDirector != null;
         bool flashing = fighting && (phase == AttackPhase.Volleys || phase == AttackPhase.Pattern) && fireLeft > 0f;
         bool telling = fighting && (music ? musicDirector.Telling && !flashing : phase == AttackPhase.Tell);
         int n = fighting ? Mathf.Min(MaxParts, current.parts.Length) : 0;
@@ -1005,6 +1052,8 @@ public class BossActor : MonoBehaviour, IMusicPatternHost
         if (markers != null) markers.Clear();
         runner.Stop();
         musicDirector?.Suspend();
+        specials?.Suspend();
+        specialRunning = false;
         mode = explode ? Mode.Dying : Mode.Retreating;
         outroClock = 0f;
         explosionsFired = 0;

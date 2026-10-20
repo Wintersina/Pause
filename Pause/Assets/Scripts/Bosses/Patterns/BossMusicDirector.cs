@@ -52,6 +52,18 @@ public sealed class BossMusicDirector
     WaveSource tellSource;
     double nextWaveBeat = double.NaN, lastWaveBeat = double.NegativeInfinity;
     public const double TellBeats = 1.0;
+    // The first beat the director's waves start on (two beats after the song was first heard; the specials count from it).
+    public double StartBeat => startBeat;
+
+    // THE HOLD for a special attack (BossSpecials): from this beat on no wave leaves, no accent is planned and no wave is
+    // told, until the owner lifts it (NaN). The clock keeps running underneath (no backlog when it lifts: the next wave
+    // is the next rhythm sixteenth). Set by BossActor before every Step.
+    public double HoldFromBeat = double.NaN;
+    public bool HeldAt(double beat) => !double.IsNaN(HoldFromBeat) && beat >= HoldFromBeat - 1e-9;
+    public int HeldWaves { get; private set; }   // waves the hold kept in (tests)
+    // The beat the special lands on: every wave fired before the hold must reach the ship's row before it (a slow wave
+    // that could not is skipped, BossWaveVoice.MaxTravelBeats). NaN: no limit.
+    public double ArriveBeforeBeat = double.NaN;
 
     public BossMusicDirector(int world, BossDef boss, IPatternHost host)
     {
@@ -88,6 +100,8 @@ public sealed class BossMusicDirector
         Preparing = false;
         Telling = false;
         nextWaveBeat = double.NaN;
+        HoldFromBeat = double.NaN;
+        ArriveBeforeBeat = double.NaN;
     }
 
     bool Room(int reserve) => budget == null || budget.ActiveMusicShots <= budget.MusicShotCapacity - reserve;
@@ -139,9 +153,16 @@ public sealed class BossMusicDirector
         LastLateBeats = Math.Max(0, late);
         // WAVES: each spawns on a sixteenth chosen by the arrangement's rhythm; the gap is always reachable.
         int bar = (int)(((tick - 4L * music.DownbeatBeat) % WaveRhythm.TicksPerBar + WaveRhythm.TicksPerBar) % WaveRhythm.TicksPerBar);
+        // a special's hold (BossSpecials): nothing leaves from here on, and an accent planned for inside it is dropped
+        bool held = HeldAt(scheduled);
+        if (held && !double.IsNaN(pendingAccent)) pendingAccent = double.NaN;
         // the accent landing on this sixteenth IS its wave (one firing per sixteenth: one part, one drawing)
         bool accentHere = !double.IsNaN(pendingAccent) && scheduled >= pendingAccent && Room(48);
-        if (!accentHere && ((WaveRhythm.Mask(moment.kind, Intensity) >> bar) & 1) != 0 && gameClock - lastWaveGame >= MinWaveSpacing && Room(WaveReserve))
+        bool waveHere = ((WaveRhythm.Mask(moment.kind, Intensity) >> bar) & 1) != 0;
+        if (held && waveHere) HeldWaves++;
+        // (a wave leaving on this sixteenth arrives k beats on: it must be down before the special lands, a quarter beat clear)
+        waves.MaxTravelBeats = double.IsNaN(ArriveBeforeBeat) ? int.MaxValue : (int)Math.Floor(ArriveBeforeBeat - scheduled - .25 + 1e-9);
+        if (!accentHere && !held && waveHere && gameClock - lastWaveGame >= MinWaveSpacing && Room(WaveReserve))
         {
             bool telegraph = Intensity < .75f || waves.Waves % 4 == 0;
             // a held breath never runs into the next wave's drawing
@@ -162,7 +183,8 @@ public sealed class BossMusicDirector
         var upcoming = music is IMusicBeatSource forecast ? forecast.MusicAhead(2) : moment;
         bool dropAhead = upcoming.kind == "drop" && upcoming.section != moment.section;
         bool regularAccent = tick % 32 == 24 && (Intensity > .48f || peak);
-        if (tick % 16 == 8 && (regularAccent || dropAhead) && Room(56))
+        // (not into a hold: an accent lands two beats on and its bombs burst up to four beats later, all before the hold)
+        if (tick % 16 == 8 && (regularAccent || dropAhead) && Room(56) && !HeldAt(scheduled + 2 + 4))
         {
             pendingAccent = scheduled + 2;
             accentShape.fuse = (float)(4 * music.SecondsPerBeat);
@@ -210,6 +232,7 @@ public sealed class BossMusicDirector
         long from = Preparing ? (long)Math.Ceiling(startBeat * 4 - 1e-8) : tick + 1;
         for (long t = from; t < from + WaveRhythm.TicksPerBar; t++)
         {
+            if (HeldAt(t * .25)) break;   // a special's hold: no wave is coming (so none is told)
             int bar = (int)(((t - 4L * music.DownbeatBeat) % WaveRhythm.TicksPerBar + WaveRhythm.TicksPerBar) % WaveRhythm.TicksPerBar);
             if (((mask >> bar) & 1) == 0) continue;
             nextWaveBeat = t * .25;

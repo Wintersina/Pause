@@ -908,6 +908,12 @@ public static class AttackBudgetScenarios
         public string CurrentName => e != null && e.Actor != null && e.Actor.CurrentAttack != null ? e.Actor.CurrentAttack.name : "(cooldown)";
 
         public bool Legacy;   // the boss's old table (the one it fought before the overhaul), for the baseline
+        // The boss song's clock on its real map (BossSpecialsTest): the MUSICAL fight -- the director's waves and the specials
+        // on the bar lines -- instead of the timed rotation. The clock runs on the scenario's own frames (BeatClock.Now).
+        public BeatMap Music;
+        public int SpecialsFired, WavesFired;   // over every roll so far
+        BeatClock clock;
+        double dsp;
         public Rotation(int world, float seconds) { this.world = world; this.seconds = seconds; Name = "rotation:" + world; }
 
         public string Name { get; }
@@ -945,6 +951,14 @@ public static class AttackBudgetScenarios
             for (int i = 0; i < 400 && e.State == BossEncounter.Phase.Intro; i++) e.Step(.1f, 1f);
             // the last third of the fight's clock: phase 3, enrage on, the whole rotation unlocked
             RemainingField.SetValue(e, BossConfig.FightSeconds * .32f);
+            if (Music != null)
+            {
+                dsp = 0;
+                BeatClock.Now = () => dsp;
+                clock = new BeatClock(Music) { UseLatencyOverride = true };
+                clock.Sample(0, 0, true);
+                e.Actor.BeatOverride = clock;   // (before the fight's first step: the director runs from the start)
+            }
             return ship;
         }
 
@@ -953,6 +967,7 @@ public static class AttackBudgetScenarios
             t += dt;
             if (e == null) return;
             RemainingField.SetValue(e, Mathf.Max(BossConfig.FightSeconds * .2f, (float)RemainingField.GetValue(e)));   // never runs out: the fight is the whole window
+            if (clock != null) { dsp += dt; clock.Sample(dsp, dsp % Music.duration, true); }
             e.Step(dt, 1f);
             if (e.Pool != null) { PeakShots = Mathf.Max(PeakShots, e.Pool.ActiveShots); PeakBeams = Mathf.Max(PeakBeams, e.Pool.ActiveBeams); }
         }
@@ -1004,6 +1019,9 @@ public static class AttackBudgetScenarios
 
         public void End()
         {
+            if (e != null && e.Actor != null && e.Actor.Specials != null) SpecialsFired += e.Actor.Specials.Fired;
+            if (e != null && e.Actor != null && e.Actor.MusicDirector != null) WavesFired += e.Actor.MusicDirector.WaveEmissions;
+            clock = null;
             BossEncounter.ResetRun();
             BossRails.Reset();
             BossCatalog.UseOverhaul = true;
