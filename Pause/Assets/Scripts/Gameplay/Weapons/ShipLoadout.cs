@@ -215,7 +215,7 @@ public static class ShipLoadoutTable
         // 16 Paragon (premium, real-money IAP: PremiumShips). Its signature extras (timed mini-warheads
         // and a shield, both on timers) are PremiumShips tiers; this row is its ultimate and its timed
         // shield power. range: the nuke's flight height (share of the screen); duration: its fuse.
-        Row(16, ShipAttack.Nuke, "NUKE", "A warhead climbs from the nose, blinks, then detonates: a red shockwave and a mushroom cloud take everything on screen.",
+        Row(16, ShipAttack.Nuke, "NUKE", "A warhead climbs, blinks, then detonates: a red shockwave clears the screen.",
             SecretPower.AegisShield, "AEGIS SHIELD", "Raises the shield on its own every 8 s (quicker with every skin).",
             PowerTrigger.Always, 0, 0f,
             duration: .6f, range: .55f, speed: 14f),
