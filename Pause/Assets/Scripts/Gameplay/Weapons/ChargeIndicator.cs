@@ -89,7 +89,8 @@ public class ChargeIndicator : MonoBehaviour
     void LateUpdate()
     {
         // gameplay time: nothing moves while the world is frozen
-        Step(Time.timeScale > 0f ? Time.deltaTime : 0f, Time.unscaledDeltaTime);
+        float dt = Time.timeScale > 0f ? Time.deltaTime : 0f;
+        Step(dt, dt); // release / free-shot flashes freeze with a pause too
     }
 
     public void Step(float dt, float unscaledDt)

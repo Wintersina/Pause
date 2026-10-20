@@ -33,7 +33,7 @@ public class UltimateGun : MonoBehaviour
 
     float mountY, barrelLength;
     float extend; // 0 retracted .. 1 fully extended, eased toward Tick's target
-    float flashT = -1f; // seconds since Fire() on unscaled time; < 0 when idle
+    float flashT = -1f; // seconds since Fire() on the world clock; < 0 when idle
     const float MuzzleWorldSize = .62f;
     float firePop;
     int shipIndex;
@@ -117,7 +117,7 @@ public class UltimateGun : MonoBehaviour
 
     void Reposition(float extend01, float unscaledDt)
     {
-        Vector3 hover = HoverOffset(shipIndex, Time.unscaledTime);
+        Vector3 hover = HoverOffset(shipIndex, Time.time); // the world clock: the hover stops with a pause
         Vector3 target = Vector3.Lerp(restingOffset + hover, firingOffset + hover * .2f, extend01);
         var hull = transform.parent;
         bool spin = hull != null && ShipUiSlots.Spins(shipIndex);
@@ -163,7 +163,8 @@ public class UltimateGun : MonoBehaviour
     // works out how close to firing it is, this just eases toward it.
     public void Tick(float targetExtend01)
     {
-        Step(targetExtend01, Time.unscaledDeltaTime, Time.deltaTime);
+        float dt = ShipAttackRunner.ScaledDelta(); // frozen by a pause, eased by the resume ramp
+        Step(targetExtend01, dt, dt);
     }
 
     // One frame: unscaledDt drives the ultimate (as always), scaledDt the
@@ -182,8 +183,7 @@ public class UltimateGun : MonoBehaviour
         if (flashT >= 0f && muzzleRenderer != null)
         {
             // pinch, flash, forward smear, speed lines, held on the art's
-            // tick table -- unscaled so the
-            // cinematic slow motion doesn't hold the flash on screen
+            // tick table, on the step's clock (the world's: a pause holds the flash)
             flashT += unscaledDt;
             int frame = WeaponArt.FrameAt(WeaponArt.MuzzleTicks, flashT, false);
             if (frame >= WeaponArt.MuzzleFrames)

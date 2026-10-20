@@ -120,13 +120,13 @@ public static class PowerFx
         Runner.StartCoroutine(FollowWhileCloaked(go, Mathf.Max(0.01f, seconds)));
     }
 
-    // ---- coroutines (unscaled: powers can fire while the world is frozen) ----
+    // ---- coroutines (scaled: they freeze with a pause and ease in with the resume ramp) ----
 
     static IEnumerator FadeOut(GameObject go, float seconds)
     {
         var sr = go.GetComponent<SpriteRenderer>();
         Color start = sr.color;
-        for (float t = 0; t < seconds; t += Time.unscaledDeltaTime)
+        for (float t = 0; t < seconds; t += Time.deltaTime)
         {
             if (sr == null) yield break;
             var c = start; c.a = start.a * (1f - t / seconds); sr.color = c;
@@ -142,7 +142,7 @@ public static class PowerFx
 
         float target = radius * 2f / sr.sprite.bounds.size.x;
         Color start = sr.color;
-        for (float t = 0; t < seconds; t += Time.unscaledDeltaTime)
+        for (float t = 0; t < seconds; t += Time.deltaTime)
         {
             float k = t / seconds;
             go.transform.localScale = Vector3.one * Mathf.Lerp(0.2f, target, k);
@@ -157,7 +157,7 @@ public static class PowerFx
         Vector3 from = go.transform.position;
         var sr = go.GetComponent<SpriteRenderer>();
         Color start = sr != null ? sr.color : Color.white;
-        for (float t = 0; t < seconds; t += Time.unscaledDeltaTime)
+        for (float t = 0; t < seconds; t += Time.deltaTime)
         {
             float k = t / seconds;
             go.transform.position = Vector3.Lerp(from, to, k);
@@ -182,17 +182,17 @@ public static class PowerFx
         // makes the arc pronounced even for enemies initially near centre.
         Vector3 heading = Vector3.up;
         float speed = 5.8f + (style % 4) * .45f;
-        for (float t = 0; t < maxSeconds; t += Time.unscaledDeltaTime)
+        for (float t = 0; t < maxSeconds; t += Time.deltaTime)
         {
             if (target == null) { Object.Destroy(go); yield break; }
             Vector3 toTarget = target.position - go.transform.position;
             if (toTarget.sqrMagnitude <= .018f) break;
-            heading = SteerHeading(heading, toTarget, 235f, Time.unscaledDeltaTime);
+            heading = SteerHeading(heading, toTarget, 235f, Time.deltaTime);
             Vector3 side = new Vector3(-heading.y, heading.x, 0f);
             float wobble = style % 5 == 0 ? Mathf.Sin(t * 14f) * .42f
                 : style % 5 == 1 ? Mathf.Sin(t * 22f) * .22f
                 : style % 5 == 2 ? Mathf.Sin(t * 9f) * .12f : 0f;
-            go.transform.position += (heading * speed + side * wobble) * Time.unscaledDeltaTime;
+            go.transform.position += (heading * speed + side * wobble) * Time.deltaTime;
             go.transform.up = heading;
             float pulse = 1f + Mathf.Sin(t * (10f + style)) * .14f;
             go.transform.localScale = Vector3.one * .72f * pulse;
@@ -207,7 +207,7 @@ public static class PowerFx
         var player = Object.FindFirstObjectByType<movePlayer>();
         var sr = go.GetComponent<SpriteRenderer>();
         Color start = sr != null ? sr.color : Color.white;
-        for (float t = 0; t < seconds; t += Time.unscaledDeltaTime)
+        for (float t = 0; t < seconds; t += Time.deltaTime)
         {
             if (player != null) go.transform.position = player.transform.position;
             if (sr != null)
@@ -238,7 +238,7 @@ public static class PowerFx
                 c.a = start.a * (0.55f + 0.45f * Mathf.Sin(t * 9f)) * (0.35f + 0.65f * left);
                 sr.color = c;
             }
-            t += Time.unscaledDeltaTime;
+            t += Time.deltaTime;
             yield return null;
         }
         if (go != null) Object.Destroy(go);

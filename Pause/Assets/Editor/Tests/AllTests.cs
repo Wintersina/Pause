@@ -123,6 +123,7 @@ public static class AllTests
         ("BugBatch0907Test", BugBatch0907Test.Execute),
         ("CameraFitTest", CameraFitTest.Execute),
         ("CinematicEarlyClearTest", CinematicEarlyClearTest.Execute),
+        ("PauseFreezesWeaponsTest", PauseFreezesWeaponsTest.Execute),
         ("CloakShieldTest", CloakShieldTest.Execute),
         ("CoverBoulderTest", CoverBoulderTest.Execute),
         ("CodexTest", CodexTest.Execute),

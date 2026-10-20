@@ -104,7 +104,7 @@ public static class CinematicEarlyClearTest
     // Edit-mode unscaled time barely moves; push the ease's start into the
     // past so the next tick sees it as complete.
     static void ElapseEase() =>
-        typeof(ShipPowerController).GetField("exitStartedAt", Stat).SetValue(null, Time.unscaledTime - 10f);
+        typeof(ShipPowerController).GetField("exitStartedAt", Stat).SetValue(null, PauseClock.Now - 10f);
 
     static void Teardown(ShipPowerController c)
     {
@@ -251,7 +251,7 @@ public static class CinematicEarlyClearTest
 
         // Hold timer running out -- the original ending -- uses the same exit.
         typeof(ShipPowerController).GetField("launchesDone", Inst).SetValue(ship, true);
-        typeof(ShipPowerController).GetField("holdUntil", Inst).SetValue(ship, Time.unscaledTime - 1f);
+        typeof(ShipPowerController).GetField("holdUntil", Inst).SetValue(ship, PauseClock.Now - 1f);
         Tick(ship);
         Check("the hold timer expiring takes the same eased exit",
               ShipPowerController.CinematicExiting && !ShipPowerController.LastCinematicEndedEarly);
