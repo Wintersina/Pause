@@ -5,7 +5,7 @@ using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 
-// Renders each elite's whole fight for review (the elite-overhaul GIFs), a world at a time (CaptureSpace, CaptureFrost): its home dock in
+// Renders each elite's whole fight for review (the elite-overhaul GIFs), a world at a time (CaptureSpace, CaptureFrost, CaptureEmber): its home dock in
 // the world's real backdrop (Space: one of the drifting gantry / carrier / gate / derelict docks, SpaceDocks.cs; Frost: the icebreaker deck / offshore rig /
 // cave hangar / cryo silo, or the older hangar / rig bay / pad ring / crawler bay / silo hatch, on the ground, FrostDirector; brought into view like the elite director does), the launch (the
 // one small blinking light at the door / pad, the dock's doors opening, the elite simply leaving), the hull's animated lights, then the real brain and attacks at full speed against a scripted pilot
@@ -45,10 +45,21 @@ public static class EliteCapture
         ("whiteout_sentinel", "frost_elite_whiteout_sentinel"),
     };
 
+    static readonly (string name, string key)[] EmberClips =
+    {
+        ("sunstoke", "ember_elite_sunstoke"),
+        ("coalrunner", "ember_elite_coalrunner"),
+        ("brass_vulture", "ember_elite_brass_vulture"),
+        ("ash_wraith", "ember_elite_ash_wraith"),
+        ("kilnback", "ember_elite_kilnback"),
+        ("cauterizer", "ember_elite_cauterizer"),
+    };
+
     static string world = "Space";
 
     public static void CaptureSpace() { Capture("Space", SpaceClips); }
     public static void CaptureFrost() { Capture("Frost", FrostClips); }
+    public static void CaptureEmber() { Capture("Ember", EmberClips); }
 
     // Just the launch (a short, zoomed clip of the dock / pad: the blinking light, the doors, the elite leaving): a Space station, a Space
     // dock and a Frost ground pad. $ELITE_CAPTURE_DIR/<name>/NNNN.png as the others.
@@ -267,6 +278,36 @@ public static class EliteCapture
         if (barrage != null && barrage.MineDrop && (e.Telling || e.Acting))
             for (int k = 0; k < barrage.Mines; k++) if (barrage.Marks.Shown(k)) dangers.Add(new Danger { a = barrage.Marks.At(k), radius = 1.1f, until = 9f });
         SenseFrost(e);
+        SenseEmber(e);
+    }
+
+    // Ember's telegraphs, read as a player would: the lance's locked lane, the dive's ring, the dump / spill lanes, the mortar's lanes
+    // and bomb rings, the ember cloud's ring (the shots themselves are read from the pool above).
+    static void SenseEmber(EliteShip e)
+    {
+        var lance = e.Attack as LancePassAttack;
+        if (lance != null && (e.Telling || e.Acting))
+            dangers.Add(new Danger { a = e.Position, b = e.Position + lance.Dir * LancePassAttack.SightLength, radius = e.Def.hullRadius + .6f, line = true, until = 9f });
+        var dive = e.Attack as ScrapDiveAttack;
+        if (dive != null && (e.Telling || e.Acting) && dive.DivePhase == ScrapDiveAttack.Phase.Down)
+            dangers.Add(new Danger { a = e.Position, b = dive.Spot + (dive.Spot - e.Position).normalized * 1.5f, radius = e.Def.hullRadius + .6f, line = true, until = 9f });
+        var veil = e.Attack as EmberVeilAttack;
+        if (veil != null && (e.Telling || e.Acting)) dangers.Add(new Danger { a = veil.CloudAt, radius = 1.0f, until = 9f });
+        var kiln = e.Attack as KilnDumpAttack;
+        if (kiln != null && (e.Telling || e.Acting))
+            for (int i = 0; i < kiln.Lanes.Count; i++)
+                dangers.Add(new Danger { a = new Vector2(kiln.Lanes[i], kiln.LaneTop), b = new Vector2(kiln.Lanes[i], kiln.IsSpill ? kiln.StripBottom : -HalfH), radius = kiln.Half + .5f, line = true, until = 9f });
+        var mortar = e.Attack as FireMortarAttack;
+        if (mortar != null && (e.Telling || e.Acting))
+        {
+            if (mortar.Bombs) for (int k = 0; k < mortar.Spots; k++) dangers.Add(new Danger { a = mortar.Spot(k), radius = 1.5f, until = 9f });
+            else
+            {
+                Vector2 m = e.MuzzleWorld(0);
+                dangers.Add(new Danger { a = new Vector2(mortar.LaneA, m.y), b = new Vector2(mortar.LaneA, -HalfH), radius = .7f, line = true, until = 9f });
+                if (mortar.Doubled) dangers.Add(new Danger { a = new Vector2(mortar.LaneB, m.y), b = new Vector2(mortar.LaneB, -HalfH), radius = .7f, line = true, until = 9f });
+            }
+        }
     }
 
     // Frost's telegraphs, read as a player would: the ice-crack lane and the ship ploughing down it, the skid's path, the lance's sight,

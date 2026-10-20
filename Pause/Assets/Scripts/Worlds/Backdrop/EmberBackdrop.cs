@@ -101,13 +101,13 @@ public static class EmberTuning
         if (piece == "pipebridge_00") return PipeSpan0;
         if (piece == "pipebridge_01") return PipeSpan1;
         if (piece.StartsWith("lavafall")) return Bank;
-        if (piece.StartsWith("slagpad") || piece.StartsWith("hatch")) return Clearing;
+        if (piece.StartsWith("slagpad") || piece.StartsWith("hatch") || piece.StartsWith("crucible") || piece.StartsWith("bunker")) return Clearing;   // (the launch-strip sites: crucible silo, moat bunker; the gantry and the kiln mouth are Industry below)
         if (piece.StartsWith("lavafountain") || piece.StartsWith("eruptionscar") || piece.StartsWith("coalbed") ||
             piece.StartsWith("scorched") || piece.StartsWith("flarestack")) return Vent;
         if (piece.StartsWith("forgetower") || piece.StartsWith("refinery") || piece.StartsWith("smelter") ||
             piece.StartsWith("kiln") || piece.StartsWith("forgewell") || piece.StartsWith("coolingtower") ||
             piece.StartsWith("derrick") || piece == "pumphouse_00" || piece.StartsWith("foundryhangar") ||
-            piece.StartsWith("furnacebay")) return Industry;
+            piece.StartsWith("furnacebay") || piece.StartsWith("brassgantry") || piece.StartsWith("kilnmouth")) return Industry;
         return Anywhere;     // pipes: they connect what they connect
     }
 
@@ -134,10 +134,47 @@ public static class EmberTuning
     // ---- launch sites ----
     public static float SiteMin = 1.5f, SiteMax = 1.7f, SiteFirst = 3f, SiteGapMin = 5f, SiteGapMax = 8.5f;
     public static float SiteCloseDelay = 1.4f, SiteMinSize = 1.2f;
-    public static readonly string[] SiteClosed = { "foundryhangar_closed", "magmabay_closed", "slagpad_idle", "furnacebay_closed", "hatch_closed" };
-    public static readonly string[] SiteOpen = { "foundryhangar_open", "magmabay_open", "slagpad_active", "furnacebay_open", "hatch_open" };
-    public static readonly LandingKind[] SiteKinds = { LandingKind.FoundryHangar, LandingKind.MagmaBay, LandingKind.SlagPad, LandingKind.FurnaceBay, LandingKind.Hatch };
-    public static readonly int[] SiteWeights = { 3, 2, 2, 3, 2 };
+    // Entries 0-4 are the old two-drawing sites (sites atlas); 5-8 the launch-strip ones (docks atlas: <name>_00..05, DocksAtlas), for which
+    // SiteClosed / SiteOpen name the idle and the open cell (Rule picks the ground by the name).
+    public static readonly string[] SiteNames = { "foundryhangar", "magmabay", "slagpad", "furnacebay", "hatch", "crucible", "bunker", "brassgantry", "kilnmouth" };
+    public static readonly string[] SiteClosed = { "foundryhangar_closed", "magmabay_closed", "slagpad_idle", "furnacebay_closed", "hatch_closed", "crucible_00", "bunker_00", "brassgantry_00", "kilnmouth_00" };
+    public static readonly string[] SiteOpen = { "foundryhangar_open", "magmabay_open", "slagpad_active", "furnacebay_open", "hatch_open", "crucible_04", "bunker_04", "brassgantry_04", "kilnmouth_04" };
+    public static readonly LandingKind[] SiteKinds = { LandingKind.FoundryHangar, LandingKind.MagmaBay, LandingKind.SlagPad, LandingKind.FurnaceBay, LandingKind.Hatch,
+                                                       LandingKind.CrucibleSilo, LandingKind.MoatBunker, LandingKind.BrassGantry, LandingKind.KilnMouth };
+    public static readonly int[] SiteWeights = { 3, 2, 2, 3, 2, 2, 2, 2, 2 };
+    // where the elite comes out of the launch-strip sites: fractions of the drawing's bounds from its centre (y up), the pad pixels of Codex's
+    // masters (new_docks_lights~/manifest.md: (384,399) of 768x767, (384,384) of 767x768, (256,407) of 512x768, (384,276) of 768x512)
+    public static readonly Vector2[] SitePads =
+    {
+        new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(0f, 0f),
+        new Vector2(0f, -.0203f), new Vector2(0f, 0f), new Vector2(0f, -.0299f), new Vector2(0f, -.0391f),
+    };
+
+    // ---- the launch strips (the docks atlas): closed, lamp, opening, opening, open, closing ----
+    // Codex's launch_v2 strips (the first delivery had flat black panels and played backwards): 0 closed, 1 closed + a small amber lamp (never
+    // shown: the ship's own launch light is the tell), 2-3 the doors opening, 4 fully open, 5 closing half shut. All six are in the atlas
+    // (build_launch_atlas.py), as <name>_00..05.
+    public const string DocksAtlas = "docks";
+    public const int LaunchCells = 6, LaunchIdle = 0, LaunchBlink = 1, LaunchOpening = 2, LaunchOpen = 3, LaunchHold = 4, LaunchClosing = 5;
+    public const int FirstLaunchSite = 5;                      // SiteNames[FirstLaunchSite..] have a strip
+    public static bool HasLaunchStrip(int kind) { return kind >= FirstLaunchSite && kind < SiteNames.Length; }
+    // drawn width of a strip site, as a share of the usual SiteMin..SiteMax (the gantry is a tall, narrow piece)
+    public static readonly float[] SiteWidthK = { 1f, 1f, 1f, 1f, 1f, 1f, 1f, .8f, 1f };
+    // The tell: the site stays closed through its first share (the ship's own small blinking launch light, EliteShip.LaunchTell, is the
+    // tell; the strip's lamp cell 1 is never shown), then the doors open (2); the lift-off has them still opening (3 for its first share), then
+    // fully open (4, held until the elite is clear); then they close for LaunchCloseSeconds (5) and the site is closed again. No flash, flare, halo or ring.
+    public const float LaunchBlinkShare = .4f, LaunchOpenShare = .25f, LaunchCloseSeconds = .6f;
+
+    // The cell a strip site shows at EliteShip.LaunchPhase `ph` in (0, 2): (0, 1] the tell, [1, 2) the lift-off.
+    public static int LaunchCellAt(float ph)
+    {
+        if (ph < 1f)
+        {
+            float t = ph * EliteShip.EngineTellSeconds;
+            return t >= LaunchBlinkShare * EliteShip.EngineTellSeconds ? LaunchOpening : LaunchIdle;
+        }
+        return ph - 1f < LaunchOpenShare ? LaunchOpen : LaunchHold;
+    }
     public static Vector2 LampsAt = new Vector2(128f, 214f);    // the lamp row's centre on the site's cell
     public static float LampsScale = .5f;
     public const float EmergeScalePerUnit = .22f, EmergeScaleMin = .26f, EmergeScaleMax = .4f;
@@ -174,7 +211,8 @@ public class EmberDirector : PlanetDirector
 {
     BackdropPool ground, pipes, fires, sites, palls, mist, wisps, ceiling, gusts, embers;
     readonly SpriteRenderer[] lamps = new SpriteRenderer[3];
-    BackdropAtlas landmarkArt, pipeArt, fireArt, siteArt, weather, lights;
+    BackdropAtlas landmarkArt, pipeArt, fireArt, siteArt, dockArt, weather, lights;
+    Sprite[][] siteLaunch;                             // per site kind: its 6 launch cells (null: an old two-drawing site, or the atlas is missing)
     AmbientEmitters ambient;
     GroundPlanner planner;
     Sprite[] siteClosed, siteOpen, banks, wispArt, mistArt, gustArt, pallArt, emberArt;
@@ -204,6 +242,8 @@ public class EmberDirector : PlanetDirector
     public BackdropPool Pipes => pipes;
     public BackdropPool Fires => fires;
     public BackdropPool Sites => sites;
+    // The six launch cells of a launch-strip site kind (EmberTuning.SiteNames index), null for an old two-drawing site (tests, previews).
+    public Sprite[] LaunchStrip(int kind) { return siteLaunch != null && kind >= 0 && kind < siteLaunch.Length ? siteLaunch[kind] : null; }
     public BackdropPool Ceiling => ceiling;
     public BackdropPool GustSheetPool => gusts;
     public BackdropPool Palls => palls;
@@ -243,8 +283,19 @@ public class EmberDirector : PlanetDirector
         ambient = new AmbientEmitters(set, EmberAmbientCatalog.Table) { Wind = EmberTuning.Wind };
         planner = new GroundPlanner(set, "mid", GroundMask.Load("Ember", set.Variant));
 
+        dockArt = set.Atlas(EmberTuning.DocksAtlas);
         siteClosed = Sprites(siteArt, EmberTuning.SiteClosed);
         siteOpen = Sprites(siteArt, EmberTuning.SiteOpen);
+        // the launch-strip sites take their idle / open cells (and all six) from the docks atlas; without it they are simply never spawned
+        siteLaunch = new Sprite[EmberTuning.SiteNames.Length][];
+        for (int k = EmberTuning.FirstLaunchSite; k < siteLaunch.Length; k++)
+        {
+            var f = dockArt.Frames(EmberTuning.SiteNames[k]);
+            if (f.Length < EmberTuning.LaunchCells) { siteClosed[k] = siteOpen[k] = null; continue; }
+            siteLaunch[k] = f;
+            siteClosed[k] = f[EmberTuning.LaunchIdle];
+            siteOpen[k] = f[EmberTuning.LaunchOpen];
+        }
         lampsOff = siteArt.Get("lights_off");
         lampsOn = siteArt.Get("lights_on");
         banks = weather.Frames("cloud_bank");
@@ -764,7 +815,7 @@ public class EmberDirector : PlanetDirector
         }
         var closed = siteClosed[kind];
         if (closed == null || siteOpen[kind] == null) return false;
-        float size = Rand(EmberTuning.SiteMin, EmberTuning.SiteMax);
+        float size = Rand(EmberTuning.SiteMin, EmberTuning.SiteMax) * EmberTuning.SiteWidthK[kind];
         double lo = float.IsNaN(y) ? planner.Travel + HalfH + .95f : planner.GroundY(y) - .3f;
         double hi = lo + (float.IsNaN(y) ? .9f : .6f);
         float x; double gy;
@@ -773,13 +824,13 @@ public class EmberDirector : PlanetDirector
             // the elite must still get its site: relax the ground rule, keep the room
             if (!planner.Find(new PieceRule(GroundClass.Land, .5f), size, XMin(size), XMax(size), lo, hi, rng, out x, out gy)) return false;
         }
-        var p = Put(sites, siteArt, EmberTuning.SiteClosed[kind], size, x, gy, false);
+        var p = Put(sites, siteLaunch[kind] != null ? dockArt : siteArt, EmberTuning.SiteClosed[kind], size, x, gy, false);   // (doors face the viewer: never mirrored)
         if (p == null) return false;
         p.kind = kind;
         p.tier = 0;
         p.life = 0f;
         int i = sites.items.IndexOf(p);
-        if (i >= 0 && lamps[i] != null) { lamps[i].sprite = lampsOff; lamps[i].enabled = lampsOff != null; }
+        if (i >= 0 && lamps[i] != null) { lamps[i].sprite = lampsOff; lamps[i].enabled = lampsOff != null && siteLaunch[kind] == null; }   // (a strip site has no lamp row)
         SitesSpawned++;
         return true;
     }
@@ -797,6 +848,32 @@ public class EmberDirector : PlanetDirector
         return 0;
     }
 
+    // The launch phase of the elite (if any) parked in / leaving site piece `p` (EliteShip.LaunchPhase), -1 with none.
+    static float PhaseOf(BackdropPiece p)
+    {
+        var live = EliteShip.Live;
+        for (int i = 0; i < live.Count; i++)
+        {
+            var e = live[i];
+            if (e != null && e.State != EliteState.Dead && e.Site.anchor == p.root) return e.LaunchPhase;
+        }
+        return -1f;
+    }
+
+    // The cell of a strip site: the launch tell and lift-off by the elite's phase, then closing behind it for the last
+    // LaunchCloseSeconds of the close delay (p.tier 3, p.life counting down), held open before that.
+    int LaunchCell(BackdropPiece p)
+    {
+        if (p.tier == 1 || p.tier == 2)
+        {
+            float ph = PhaseOf(p);
+            if (ph > 0f && ph < 2f) return EmberTuning.LaunchCellAt(ph);
+            return p.tier == 1 ? EmberTuning.LaunchOpening : EmberTuning.LaunchHold;
+        }
+        if (p.tier == 3) return p.life > EmberTuning.LaunchCloseSeconds ? EmberTuning.LaunchHold : EmberTuning.LaunchClosing;
+        return EmberTuning.LaunchIdle;
+    }
+
     void StepSites(float dt)
     {
         for (int i = 0; i < sites.items.Count; i++)
@@ -811,9 +888,11 @@ public class EmberDirector : PlanetDirector
                 p.tier = p.life <= 0f ? 0 : 3;
             }
             bool open = p.tier > 0;
-            var want = open ? siteOpen[p.kind] : siteClosed[p.kind];
+            var strip = siteLaunch[p.kind];
+            var want = strip != null ? strip[LaunchCell(p)] : open ? siteOpen[p.kind] : siteClosed[p.kind];
             if (p.sr.sprite != want) p.sr.sprite = want;
             var lamp = lamps[i];
+            if (strip != null) { if (lamp != null) lamp.enabled = false; continue; }
             if (lamp != null && lampsOn != null)
             {
                 bool lit = p.tier == 2 || p.tier == 3 || (p.tier == 1 && Mathf.Repeat(p.age * 4f, 1f) < .55f);
@@ -839,7 +918,7 @@ public class EmberDirector : PlanetDirector
             into.Add(new LandingSite
             {
                 anchor = p.root,
-                local = new Vector3(b.center.x, b.center.y, 0f),     // the measured emergence point: the cell centre
+                local = new Vector3(b.center.x + EmberTuning.SitePads[p.kind].x * b.size.x, b.center.y + EmberTuning.SitePads[p.kind].y * b.size.y, 0f),   // the measured emergence point: the cell centre (the strip sites: their pad pixel)
                 scale = Mathf.Clamp(p.size * EmberTuning.EmergeScalePerUnit, EmberTuning.EmergeScaleMin, EmberTuning.EmergeScaleMax),
                 order = p.sr.sortingOrder + 2,
                 id = EmberTuning.SiteIdBase + i,
@@ -847,6 +926,30 @@ public class EmberDirector : PlanetDirector
                 emerge = true,
             });
         }
+    }
+
+    // The elite director wants a site of one of `launchFrom`'s kinds in view soon (LandingSites.BringHome), as Frost's: the ground is
+    // fixed, so none is conjured -- but the site spawner is asked for one of that kind at the top of the view now (it scrolls in over the
+    // next seconds, as the ground pieces always do), unless one of them is already in view or on its way. False when none of the kinds
+    // is one of Ember's sites or there is no room for one on the ground.
+    public override bool BringHome(string launchFrom)
+    {
+        if (sites == null || !planner.Ready || string.IsNullOrEmpty(launchFrom)) return false;
+        var want = new List<int>(EmberTuning.SiteKinds.Length);   // (a rare call: one per elite)
+        foreach (string part in launchFrom.Split(','))
+        {
+            var k = LandingSite.KindOf(part.Trim());
+            if (k == null) continue;
+            for (int t = 0; t < EmberTuning.SiteKinds.Length; t++)
+                if (EmberTuning.SiteKinds[t] == k.Value && siteClosed[t] != null && siteOpen[t] != null && !want.Contains(t)) want.Add(t);
+        }
+        if (want.Count == 0) return false;
+        for (int i = 0; i < sites.items.Count; i++)
+        {
+            var p = sites.items[i];
+            if (p.active && want.Contains(p.kind) && p.y >= -HalfH * .15f) return true;   // (in view, or still on its way in from the top)
+        }
+        return SpawnSite(float.NaN, want[rng.Next(want.Count)]);
     }
 
     // --------------------------------------------------------------- weather --

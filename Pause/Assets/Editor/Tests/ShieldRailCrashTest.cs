@@ -275,7 +275,7 @@ public static class ShieldRailCrashTest
 
     // ---- 6 ---------------------------------------------------------------------
 
-    static EliteDef AnyElite() { foreach (var d in EliteCatalog.All) if (d.brain == "interceptor" && d.WorldIndex <= 3) return d; return EliteCatalog.All[0]; }
+    static EliteDef AnyElite() { return BaseEliteDefs.LegacyInterceptor(); }
 
     static void ElitesAndBosses()
     {

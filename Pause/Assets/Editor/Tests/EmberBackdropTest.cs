@@ -167,7 +167,7 @@ public static class EmberBackdropTest
                   mask.Share(GroundClass.Water).ToString("F2") + ", built " + mask.Share(GroundClass.Built).ToString("F2") : "-") + ")",
                   mask != null && mask.Cols == 32 && mask.Rows == 64 && mask.Share(GroundClass.Canopy) > .1f);
         }
-        var kiln = EliteCatalog.Find("ember_elite_kilnback");
+        var kiln = EliteCatalog.Find("storm_elite_static_bastion");   // (an elite with no launchFrom: Ember's now each have their own)
         bool any = kiln != null;
         foreach (var k in EmberTuning.SiteKinds) any &= LandingSite.Accepts(kiln != null ? kiln.launchFrom : null, k);
         Check("an Ember elite (no launchFrom) takes any of the five Ember site kinds", any);
@@ -749,7 +749,7 @@ public static class EmberBackdropTest
             if (lamp != null && lamp.sprite != null && lamp.sprite.name == "lights_on") lit = true;
         }
         Check("the site stays shut while the elite waits, opens in the launch tell", shutWhileParked && opened && site.sr.sprite != closed);
-        Check("... its lamp row lights up", lit);
+        Check("... its lamp row lights up (a launch-strip site draws its own lamp)", lit || EmberTuning.HasLaunchStrip(site.kind));
         bool openLift = true;
         for (int i = 0; i < 30 * 4 && e != null && e.State == EliteState.LiftOff; i++)
         {

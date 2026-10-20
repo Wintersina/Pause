@@ -103,8 +103,7 @@ public static class EliteTest
 
     static EliteDef Def(string brain)
     {
-        foreach (var d in EliteCatalog.All) if (d.brain == brain) return d;
-        return null;
+        return BaseEliteDefs.For(brain);
     }
 
     static EliteShip InPlay(string brain, Vector2 at)
@@ -186,7 +185,7 @@ public static class EliteTest
             var frames = EliteArt.Frames(d);
             Check(d.key + ": strip loads as 7 cells, enough for its cell map", frames != null && frames.Length >= EliteArt.FrameCount && frames[0] != null && frames.Length >= d.cells.Count);
             Check(d.key + ": a known brain and attack", System.Array.IndexOf(EliteBrains.Ids, d.brain) >= 0 && System.Array.IndexOf(EliteAttacks.Ids, d.attack) >= 0);
-            Check(d.key + ": hearts: 2 (Space, Frost and Tide: 5 armoured / 3 not)", d.hearts == (d.world == "space" || d.world == "frost" || d.world == "tide" ? (d.armored ? 5 : 3) : 2));
+            Check(d.key + ": hearts: 2 (Space, Frost, Tide and Ember: 5 armoured / 3 not)", d.hearts == (d.world == "space" || d.world == "frost" || d.world == "tide" || d.world == "ember" ? (d.armored ? 5 : 3) : 2));
             Check(d.key + ": hearts are the player's own heart colour (ShipLivesIndicator.HeartTint)", d.HeartColor == ShipLivesIndicator.HeartTint);
             Check(d.key + ": shots are not the player's red", HueGap(d.ShotColor, PlayerRed) > 30f && HueGap(d.ShotCore, PlayerRed) > 30f &&
                   HueGap(d.ShotColor, AkiraPalette.Red) > 30f);
@@ -505,9 +504,9 @@ public static class EliteTest
         sun.Velocity = Vector2.zero;
         sun.TakeHit(EliteDamage.PlayerWeapon, sun.transform.position + Vector3.left);
         EliteSystem.Step(Dt);
-        Check("Ember: a hit flashes the frame it is on and the damaged cell stays (no hit cell)", sun.Damaged && sun.CurrentFrame == 7);
+        Check("Ember: a hit flashes the frame it is on and it wears the damaged burn loop (cells 8-13: EmberDockTest; no hit cell)", sun.Damaged && sun.CurrentFrame >= 8 && sun.CurrentFrame <= 13);
         Step(.5f);
-        Check("Ember: after its first lost heart the damaged cell, steady", sun.CurrentFrame == 7 && sun.Damaged);
+        Check("Ember: after its first lost heart the burn loop keeps going", sun.CurrentFrame >= 8 && sun.CurrentFrame <= 13 && sun.Damaged);
 
         foreach (string key in new[] { "frost_elite_rimebreaker", "verdant_elite_resin_warden", "verdant_elite_timber_hauler", "verdant_elite_thornlash", "verdant_elite_sporebloom", "verdant_elite_leafblade" })
         {

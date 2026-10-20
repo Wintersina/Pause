@@ -1459,3 +1459,26 @@ Full analysis: `docs/ship-scale-and-lockon-analysis.md`.
 * An **aimed attack** (`EliteAttack.Aimed`) reads `EliteShip.AimSeen`: live for the first `aimCommit` (0.5) of the tell, frozen after it. The shot / row / well / dive goes where the pilot was at the commit, so the second half of the tell is the player's window (>= 0.3 s: aimed tells are at least `EliteDef.MinAimedTell` = 0.6 s).
 * The hull turns to face the pilot at most `faceTurnMax` (300) deg/s.
 * Sizes: enemy roles Rock / Alien / Fighter / Chaser / Big are 1.2 x their legacy size (`EnemyRoster.TierScale`; mines and bosses unchanged); elites' drawn silhouette is >= 1.9 x the flown hull (2.1 x for armoured classes). Tests: `ShipTierTest`, `EliteLockOnTest`.
+
+
+## Ember elites
+
+`Pause/Assets/Scripts/Gameplay/Elites/EmberElites.cs`, tests in `EmberEliteTest`. Six mini-boss fights, none of which follows the pilot; every
+attack is telegraphed with the shared thin drawing (`ShowSight`, `EliteTelegraph`, `EliteMarks`) and locked at the tell; hazards are Ember's own
+(heat needles, coal, scrap, ember clouds, slag, lava, firebombs). Non-armoured ones (3 hearts) `hurtHide`; Kilnback and Cauterizer are armoured (5).
+
+| Elite | brain / attack | dock | pattern |
+| --- | --- | --- | --- |
+| Sunstoke | `stoker` / `lance_pass` | foundryhangar | waits off-screen; thin sight line locks a lane; rams the whole board and out the far edge (ploughs rocks), needles back along the lane; next pass from another edge; hurt: two passes |
+| Coalrunner | `strafer` / `coal_strafe` | magmabay | strafing runs across the top third, in one side / out the other; bolt lanes drawn and locked; <= 2 hearts: bouncing coal clumps |
+| Brass Vulture | `scavenger` / `scrap_dive` | slagpad | circles off-screen; thin ring, dives through it flinging scrap, back off-screen; +1 offset dive per heart lost |
+| Ash Wraith | `ashling` / `ember_veil` | hatch | blinks between 4 perches at range; ringed ember cloud left behind, then a shard fan |
+| Kilnback | `kiln` / `kiln_dump` | furnacebay | holds the top; slag dump down drawn lanes (more per heart lost) alternating with a lava spill strip; always a gap |
+| Cauterizer | `furnace` / `fire_mortar` | furnacebay, foundryhangar | sight-line shell (two lanes with a safe gap at <= 2 hearts) alternating with ringed firebombs |
+
+Storm and Desert still use the base brains / attacks. `EmberDirector.BringHome` asks the site spawner for a site of the elite's kind (as Frost's).
+
+Ember art wiring (same PR): hull `_lights` strips and a six-cell damaged burn loop per elite (`<key>_damaged` + `<key>_lights_damaged` companions, cells 8..13,
+`EliteCells.damagedLoop`, the same framework as Space's), four launch-strip sites (crucible silo, lava-moat bunker, brass gantry cradle, kiln mouth: docks
+atlas via `build_launch_atlas.py`, `EmberTuning.LaunchCellAt`) with homes: Sunstoke kiln/foundryhangar, Coalrunner crucible/magmabay, Brass Vulture
+brassgantry/slagpad, Ash Wraith kiln/hatch, Kilnback crucible/furnacebay, Cauterizer bunker/furnacebay. The launch strips are Codex's launch_v2 (closed, lamp, opening x2, open, closing; the first delivery's flat black panels were replaced) baked whole into the docks atlas. Tests: `EmberDockTest`.

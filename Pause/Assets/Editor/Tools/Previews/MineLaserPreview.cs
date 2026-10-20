@@ -113,7 +113,7 @@ public static class MineLaserPreview
         var pool = new BossProjectilePool(16, 1);
         var boss = BossCatalog.ForWorld(world);
         EliteDef gun = null;
-        foreach (var d in EliteCatalog.All) if (d.brain == "gunship") gun = d;
+        gun = BaseEliteDefs.For("gunship");
         // this world's ordinary enemy shot: its first roster shooter's style
         EnemyBehaviour rosterB = null;
         foreach (var def in EnemyRoster.All)

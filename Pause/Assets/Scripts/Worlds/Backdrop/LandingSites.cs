@@ -32,6 +32,10 @@ using UnityEngine;
 // silo (TideLighthouseSilo, "lighthouse"), a submarine pen (TideSubPen, "subpen") and a wreck hull bay (TideWreckHull, "wreckhull"). They open
 // through the launch tell like Space's docks do.
 //
+// Ember's four launch-strip sites (EmberTuning.SiteKinds 5-8, docks atlas): a crucible silo (CrucibleSilo, "crucible"), a lava-moat
+// bunker (MoatBunker, "bunker"), a brass gantry cradle (BrassGantry, "brassgantry" -- not Space's "gantry") and a kiln mouth (KilnMouth,
+// "kiln"). They open through the launch tell like Space's docks do.
+//
 // Verdant's (VerdantDirector) are emerge sites too: a root-braced hangar in
 // a giant tree, a river bay on stilts, a petal pod pad, a tower bay and a
 // hatch under the roots (Hatch, shared with Frost's silo hatch).
@@ -48,6 +52,7 @@ using UnityEngine;
 // dock -- drifting set pieces whose doors / iris open through the launch tell. Gantry / Carrier / Gate / Derelict.
 public enum LandingKind { Ground, Station, Planet, Asteroid, Hangar, RigBay, PadRing, CrawlerBay, Hatch, RootHangar, RiverBay, PodPad, TowerBay,
                          FoundryHangar, MagmaBay, SlagPad, FurnaceBay,
+                         CrucibleSilo, MoatBunker, BrassGantry, KilnMouth,
                          TideTrenchHatch, TideRigDeck, TideReefDock, TideVentStack, TideWreckBay,
                          TideCarrierPad, TideLighthouseSilo, TideSubPen, TideWreckHull,
                          DesertWormBurrow, DesertCrawlerBay, DesertGlassPad, DesertBuriedSilo, DesertRuinDock,
@@ -91,6 +96,10 @@ public struct LandingSite
             case "magmabay": return LandingKind.MagmaBay;
             case "slagpad": return LandingKind.SlagPad;
             case "furnacebay": return LandingKind.FurnaceBay;
+            case "crucible": return LandingKind.CrucibleSilo;
+            case "bunker": return LandingKind.MoatBunker;
+            case "brassgantry": return LandingKind.BrassGantry;
+            case "kiln": return LandingKind.KilnMouth;
             case "trenchhatch": return LandingKind.TideTrenchHatch;
             case "rigdeck": return LandingKind.TideRigDeck;
             case "reefdock": return LandingKind.TideReefDock;

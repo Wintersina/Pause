@@ -835,7 +835,7 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
     bool MayCommit(bool release)
     {
         if (!EliteEvasion.Enabled || forcedAttack) return true;
-        if (Attack.DrivesMovement)
+        if (Attack.DrivesMovement && !Attack.CommitsBlind)
         {
             Vector2 d;
             float reach;

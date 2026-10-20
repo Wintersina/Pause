@@ -217,7 +217,7 @@ public static class ShoveCrashTest
 
     // (a live world's interceptor: the defs sort by key, and desert_ comes first)
     // (the original four worlds' elites: the later worlds' hearts differ)
-    static EliteDef AnyElite() { foreach (var d in EliteCatalog.All) if (d.brain == "interceptor" && d.WorldIndex <= 3) return d; return EliteCatalog.All[0]; }
+    static EliteDef AnyElite() { return BaseEliteDefs.LegacyInterceptor(); }
 
     static void ElitesLoseOneHeartAndCount()
     {

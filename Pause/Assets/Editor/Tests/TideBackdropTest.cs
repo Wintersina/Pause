@@ -185,7 +185,7 @@ public static class TideBackdropTest
                   mask.Share(GroundClass.Water).ToString("F2") + ", built " + mask.Share(GroundClass.Built).ToString("F2") : "-") + ")",
                   mask != null && mask.Cols == 32 && mask.Rows == 64 && mask.Share(GroundClass.Water) > .5f);
         }
-        var kiln = EliteCatalog.Find("ember_elite_kilnback");
+        var kiln = EliteCatalog.Find("storm_elite_static_bastion");   // (an elite with no launchFrom: Ember's now each have their own)
         bool any = kiln != null;
         foreach (var k in TideTuning.SiteKinds) any &= LandingSite.Accepts(kiln != null ? kiln.launchFrom : null, k);
         Check("an elite with no launchFrom takes any of the five Tide site kinds", any);

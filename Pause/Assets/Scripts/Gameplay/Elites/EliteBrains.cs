@@ -47,6 +47,12 @@ using UnityEngine;
 //   trawl        (Tide) Trawler: works one flank against a rail, drags nets in from it, leaves by that side, returns on the other
 //   tempest      (Tide) Thunderfin: loiters on a small ellipse high over the board; thunder sweeps the way it flies
 //   oyster       (Tide) Pearl Warden: one of three stations at the top, a new one after every cast
+//   stoker       (Ember) Sunstoke: off-screen lance passes across the whole board from a new edge each time (EmberElites.cs)
+//   strafer      (Ember) Coalrunner: broadside strafing runs across the top third, in from one side and out the other
+//   scavenger    (Ember) Brass Vulture: circles high off-screen, dives through a ringed spot and pulls back up
+//   ashling      (Ember) Ash Wraith: blinks between high perches at range, never near the pilot
+//   kiln         (Ember) Kilnback: holds the top and slides; slag dumps and lava spills
+//   furnace      (Ember) Cauterizer: parks high; sight-line shells and firebombs
 //   icebreaker   (Frost) Rimebreaker: pass-through runs -- waits off the top, appears on a new lane, ploughs the whole board and
 //                leaves by the bottom; after a hit the runs come in pairs (FrostElites.cs)
 //   barge        (Frost) Floe Harrower: holds high on the far side of the pilot and slides along the top, never into its lane
@@ -110,7 +116,8 @@ public static class EliteBrains
                                             "logger", "thorn", "drifter", "diver",
                                             "breaker", "deep", "trawl", "tempest", "oyster",
                                             "surfer", "abyss", "netter", "stormray", "pearler",
-                                            "sniper", "swooper", "fortress", "wrecker" };
+                                            "sniper", "swooper", "fortress", "wrecker",
+                                            "stoker", "strafer", "scavenger", "ashling", "kiln", "furnace" };
 
     public static EliteBrain Create(string id)
     {
@@ -149,6 +156,12 @@ public static class EliteBrains
             case "swooper": return new SwooperBrain();
             case "fortress": return new FortressBrain();
             case "wrecker": return new WreckerBrain();
+            case "stoker": return new StokerBrain();
+            case "strafer": return new StraferBrain();
+            case "scavenger": return new ScavengerBrain();
+            case "ashling": return new AshlingBrain();
+            case "kiln": return new KilnBrain();
+            case "furnace": return new FurnaceBrain();
             default: return new InterceptorBrain();
         }
     }

@@ -68,9 +68,7 @@ public static class EliteLockOnTest
 
     static EliteDef ByBrain(string brain)
     {
-        foreach (var d in EliteCatalog.All) if (d.brain == brain && d.world == "ember") return d;
-        foreach (var d in EliteCatalog.All) if (d.brain == brain) return d;
-        return null;
+        return BaseEliteDefs.For(brain);
     }
 
     static EliteShip InPlay(EliteDef d, Vector2 at)

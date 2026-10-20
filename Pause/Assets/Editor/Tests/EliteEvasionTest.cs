@@ -107,8 +107,7 @@ public static class EliteEvasionTest
 
     static EliteDef Def(string brain)
     {
-        foreach (var d in EliteCatalog.All) if (d.brain == brain) return d;
-        return null;
+        return BaseEliteDefs.For(brain);
     }
 
     static EliteShip InPlay(string brain, Vector2 at)

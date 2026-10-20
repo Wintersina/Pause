@@ -122,8 +122,7 @@ public static class HostileProjectileTest
 
     static EliteDef Def(string brain)
     {
-        foreach (var d in EliteCatalog.All) if (d.brain == brain) return d;
-        return null;
+        return BaseEliteDefs.For(brain);
     }
 
     static GameObject Hazard(EnemyRole role, Vector2 at, int world = 3)

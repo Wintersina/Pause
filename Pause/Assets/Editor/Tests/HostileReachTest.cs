@@ -511,7 +511,7 @@ public static class HostileReachTest
                 }
                 Check((evasion ? "" : "evasion off: ") + def.displayName + ": a pause jump aimed at it takes 2 hearts in " + connected + "/" + attempted + " seeded runs (from 2 hearts " + fromTwo +
                       ", from 1 " + fromOne + ", in grace " + inGrace + ", mid-evasion " + midEvade + ", mid-attack " + midAttack + ", short hops " + shortJumps + ")" +
-                      (first != null ? " first miss: " + first : ""), connected == attempted && attempted >= Trials * 2 / 3 / (def.hurtHide ? 2 : 1) / (def.brain == "breaker" ? 4 : def.brain == "deep" || def.brain == "trawl" ? 2 : 1)   /* (Tide's three roamers spend half their time wholly off the board, untouchable) */ && (inGrace > 0 || def.hurtHide) && fromTwo > 0);
+                      (first != null ? " first miss: " + first : ""), connected == attempted && attempted >= Trials * 2 / 3 / (def.hurtHide ? 2 : 1) / (def.brain == "breaker" ? 4 : def.brain == "deep" || def.brain == "trawl" || def.brain == "stoker" || def.brain == "strafer" ? 2 : 1)   /* (Tide's three roamers, Sunstoke and the Coalrunner spend half their time wholly off the board, untouchable) */ && (inGrace > 0 || def.hurtHide) && fromTwo > 0);
                 evaded += midEvade;
             }
             if (evasion) Check("... jumps landed mid-evasion across the elites (" + evaded + ")", evaded > 0);
