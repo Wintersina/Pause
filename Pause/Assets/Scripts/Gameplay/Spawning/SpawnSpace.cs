@@ -109,6 +109,11 @@ public static class SpawnSpace
     // themselves out of the way after that (ResolveSteer).
     public const float SteerHorizon = .3f;
 
+    // Do ordinary enemies steer round, slow for or stop short of each other at run time? OFF: they follow their own paths and
+    // simply overlap (FriendlyFire's crashes and beams settle it); only elites keep clear of other enemies (their own code,
+    // EliteEvasion). Spawn-time placement (Fits) is unaffected. Static (not const) so a test of the avoidance rules may switch it on.
+    public static bool RegularsAvoid = false;
+
     // See ResolveSteer: the spare room a steerer that gave way wants before it returns to its wish.
     public const float YieldBand = .15f;
 
@@ -283,6 +288,7 @@ public static class SpawnSpace
     //   holding still (clear of steerers that already moved).
     public static Vector2 ResolveSteer(SpawnFootprint self, Vector2 from, Vector2 wish, float scrollStep, float dodgeStep)
     {
+        if (!RegularsAvoid) return wish;
         Vector2 half = self.half;
         // Hysteresis: one that gave way last frame only goes back to its wish once that is clear
         // with YieldBand to spare. The neighbour is carried along with the board, so the spot it
@@ -365,6 +371,7 @@ public static class SpawnSpace
     // read this much taller upward (something coming down on it).
     public static float SoftDrift(SpawnFootprint self, float dt, float cap = 1f, float lookUp = 0f)
     {
+        if (!RegularsAvoid) { self.softV = 0f; return 0f; }
         if (dt <= 0f) return self.softV;
         Vector2 c = self.transform.position;
         Vector2 half = self.half;
@@ -407,6 +414,7 @@ public static class SpawnSpace
     // A pilot's damped offset from its line: the drift integrated, with a slow way home.
     public static float SoftOffset(SpawnFootprint self, float dt)
     {
+        if (!RegularsAvoid) { self.SoftX = 0f; return 0f; }
         float v = SoftDrift(self, dt);
         float x = self.SoftX + v * dt;
         x = Mathf.MoveTowards(x, 0f, SoftReturn * dt);
@@ -426,6 +434,7 @@ public static class SpawnSpace
     public static Vector2 Steer(SpawnFootprint self, Vector2 from, Vector2 wish, float scrollStep, float dodgeStep, float dt,
                                 float cap = 1f, float lookUp = 0f)
     {
+        if (!RegularsAvoid) return wish;
         if (!Soft) return ResolveSteer(self, from, wish, scrollStep, dodgeStep);
         float v = SoftDrift(self, dt, cap, lookUp);
         float limit = SpawnLane.LaneHalf + .3f - self.half.x;
@@ -467,6 +476,7 @@ public static class SpawnSpace
     // slide, riding against the board)?
     public static bool ClearForSweep(SpawnFootprint self, Rect sweep)
     {
+        if (!RegularsAvoid) return true;
         for (int i = 0; i < enemies.Count; i++)
         {
             var f = enemies[i];
@@ -481,6 +491,7 @@ public static class SpawnSpace
     // sidestep early instead of being carried.
     public static bool ThreatAhead(SpawnFootprint self, Vector2 at, Vector2 half, float lookUp, out Rect threat)
     {
+        if (!RegularsAvoid) { threat = default; return false; }
         Rect probe = new Rect(at.x - half.x, at.y - half.y, half.x * 2f, half.y * 2f + Mathf.Max(0f, lookUp));
         float best = float.MaxValue;
         threat = default;

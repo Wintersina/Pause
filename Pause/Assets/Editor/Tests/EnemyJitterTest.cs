@@ -46,6 +46,7 @@ public static class EnemyJitterTest
     {
         fails = 0;
         using var sandbox = new TestHarness.Sandbox();
+        SpawnSpace.RegularsAvoid = true;   // this suite exercises the avoidance rules, which are off in play (ordinary enemies overlap; elites alone keep clear)
         try
         {
             EditorSceneLoader.Open("gameS1", OpenSceneMode.Single);
@@ -54,6 +55,7 @@ public static class EnemyJitterTest
         }
         finally
         {
+            SpawnSpace.RegularsAvoid = false;
             EnemyThreat.ForceShooting = false;
             EnemyThreat.Reset();
             EnemyBrain.PilotsEnabled = true;
