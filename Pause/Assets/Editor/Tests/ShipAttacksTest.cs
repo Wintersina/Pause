@@ -492,8 +492,9 @@ public static class ShipAttacksTest
         Teardown(gat);
     }
 
-    // Stands in for the end-of-level boss.
-    class FakeBoss : MonoBehaviour, IShipAttackTarget
+    // Stands in for the end-of-level boss: uncapped like BossTarget (no per-firing allowance; the real
+    // boss paces itself with its hit window, BossEncounterTest.BossHitWindowIsTheOnlyLimiter).
+    class FakeBoss : MonoBehaviour, IShipAttackTargetUncapped
     {
         public float weight;
         public int hits;
@@ -523,7 +524,7 @@ public static class ShipAttacksTest
         boss = Boss(0f, 1f);
         gat.Runner.Fire();
         Steps(gat.Runner, 2f);
-        Check("a gatling burst damages the boss but never more than one hit in total (" + boss.weight + ")",
+        Check("a gatling burst damages the boss; its 14 shells are 1/14 each, one hit in all (" + boss.weight + ")",
               boss.hits > 1 && boss.weight > .5f && boss.weight <= 1f + 1e-4f);
         Teardown(gat);
 
@@ -532,8 +533,8 @@ public static class ShipAttacksTest
         boss = Boss(0f, 1f);
         ufo.Runner.Fire();
         Steps(ufo.Runner, 2f);
-        Check("a held beam damages the boss, capped at one hit (" + boss.weight + ")",
-              boss.hits >= 2 && boss.weight <= 1f + 1e-4f && boss != null);
+        Check("a held beam keeps damaging the boss every tick, with no per-firing cap (" + boss.weight + " over " + boss.hits + " ticks)",
+              boss != null && boss.hits >= 5 && boss.weight > 1f && Mathf.Abs(boss.weight - boss.hits * .2f) < 1e-3f);
         Teardown(ufo);
 
         // The real boss body: a registered hazard that BossTarget answers for.
@@ -547,6 +548,21 @@ public static class ShipAttacksTest
         Check("the boss body (BossTarget) takes the rail as a hit and survives",
               body != null && ShipAttackHits.Kills == kills && ShipAttackHits.AttackTargetHits == bossHits + 1);
         Teardown(halo);
+        Object.DestroyImmediate(body);
+
+        // A barrage's homing shots all chase the boss: it is never "claimed" away from the next eye.
+        FreshScene();
+        var eyes = Ship(10);
+        body = Hazard(0f, 2f);
+        body.AddComponent<BossTarget>();
+        bossHits = ShipAttackHits.AttackTargetHits;
+        float bossWeight = ShipAttackHits.AttackTargetWeight;
+        eyes.Runner.Fire();
+        Steps(eyes.Runner, 2f);
+        Check("all three seeker eyes home on the boss (" + (ShipAttackHits.AttackTargetHits - bossHits) + " hits, weight " +
+              (ShipAttackHits.AttackTargetWeight - bossWeight).ToString("F2") + ")",
+              ShipAttackHits.AttackTargetHits - bossHits >= 2 && ShipAttackHits.AttackTargetWeight - bossWeight > .6f);
+        Teardown(eyes);
         Object.DestroyImmediate(body);
 
         // No secret power touches the world speed (a boss holds it at 0.20).

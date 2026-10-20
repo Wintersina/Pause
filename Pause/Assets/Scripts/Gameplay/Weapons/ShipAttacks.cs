@@ -15,8 +15,9 @@ using UnityEngine;
 //    reused; runs are preallocated; target queries fill a list owned here.
 //    Nothing allocates per frame.
 //  * Every hit goes through ShipAttackHits.Hit, so an IShipAttackTarget (the
-//    boss) takes a weighted hit instead of being destroyed, and one firing
-//    never deals it more than one full hit in total.
+//    boss) takes a weighted hit instead of being destroyed. Elites share one
+//    budget per firing; the boss has no cap at all (only its hit window,
+//    BossEncounter.TakePlayerHit).
 public class ShipAttackRunner : MonoBehaviour
 {
     public const int MaxRuns = 4;
@@ -103,7 +104,7 @@ public class ShipAttackRunner : MonoBehaviour
     //
     // The red atom's free shot (ShipPowerController.FreeShot): the same
     // weapon at the same level, through the same hits and the same boss
-    // budget, but it never touches the charge timer and never takes a run
+    // rules, but it never touches the charge timer and never takes a run
     // slot from an attack in progress -- with every slot busy it refuses,
     // and the controller keeps it queued. The top tier fires QuickVolley
     // instead of the cinematic: a homing shot at each hazard in view, at
@@ -130,7 +131,8 @@ public class ShipAttackRunner : MonoBehaviour
         loadout = ShipWeaponUpgrades.LoadoutFor(ship);
         FreeFireCount++;
         run.Begin(loadout, ship, Time.unscaledTime);
-        // the boss fight hands out only BossFreeShotAtoms.Count of these: each is charged
+        // the boss fight hands out only BossFreeShotAtoms.Count of these: each is charged (the
+        // allowance only matters to capped targets now; the boss has no per-firing cap)
         if (BossEncounter.Running) run.budget = BossFreeShotAtoms.ChargedBudget;
         StartRun(run);
         return true;
@@ -154,8 +156,7 @@ public class ShipAttackRunner : MonoBehaviour
             var t = i < targets.Count ? targets[i] : null;
             float a = n <= 1 ? 0f : (i - (n - 1) * .5f) * (60f / (n - 1));
             Vector3 dir = Quaternion.Euler(0f, 0f, -a) * Vector3.up;
-            // weight 1 each, one shared budget: the boss still takes at most
-            // one full hit from the whole volley
+            // weight 1 each; the boss takes each one that is not inside its hit window
             Launch(run, AttackProjectile.Kind.Homing, nose, dir, QuickVolleySpeed, .22f, .5f,
                    t != null ? t.transform : null, 1f);
         }
@@ -262,7 +263,7 @@ public class ShipAttackRunner : MonoBehaviour
         for (int i = 0; i < count; i++)
         {
             var t = ShipTargets.NearestHoming(nose, 0f, missileRun.hit);
-            if (t != null) missileRun.hit.Add(t.gameObject);
+            if (t != null) Claim(missileRun, t);
             float a = (i - (count - 1) * .5f) * 16f;
             Vector3 dir = Quaternion.Euler(0f, 0f, -a) * Vector3.up;
             var p = Launch(missileRun, AttackProjectile.Kind.Homing, nose, dir, MissileSpeed, .22f, .75f,
@@ -276,6 +277,14 @@ public class ShipAttackRunner : MonoBehaviour
                 ShipFxArt.BurstTicks, false, 0f, transform, Vector3.up * noseOffset, 71);
         }
         return launched;
+    }
+
+    // A homing shot of a firing marks its target so the next one picks another. The boss is never
+    // marked: it is the only thing the shots can chase while it is up, and a claimed boss would leave
+    // the rest of the barrage flying straight past it.
+    static void Claim(AttackRun run, ClearTarget t)
+    {
+        if (!ShipTargets.IsBossTarget(t)) run.hit.Add(t.gameObject);
     }
 
     // Rail i of an upgraded rail gun: 0 the main line, then alternating sides.
@@ -325,7 +334,7 @@ public class ShipAttackRunner : MonoBehaviour
         for (int i = 0; i < l.shots; i++)
         {
             var t = ShipTargets.NearestHoming(nose, 0f, run.hit);
-            if (t != null) run.hit.Add(t.gameObject); // claimed: the next eye picks another
+            if (t != null) Claim(run, t); // claimed: the next eye picks another
             float a = (i - (l.shots - 1) * .5f) * 24f;
             Vector3 dir = Quaternion.Euler(0f, 0f, -a) * Vector3.up;
             Launch(run, AttackProjectile.Kind.Homing, nose, dir, l.speed, .22f, .5f,
@@ -408,12 +417,13 @@ public class ShipAttackRunner : MonoBehaviour
                     // AEGIS BARRAGE: a fan of homing lances, one every 50 ms,
                     // each claiming its own target (nearest not yet claimed);
                     // a lance with nothing left to hunt flies the fan line.
-                    // One firing is still one full hit on a boss (shared budget).
+                    // Every lance claims its own target, but the boss is always a valid one:
+                    // all eight home on it (each is 1/shots of a hit; the hit window banks the shares).
                     while (run.fired < l.shots && run.t >= run.fired * BarrageGap)
                     {
                         Vector3 nose = Nose;
                         var t = ShipTargets.NearestHoming(nose, 0f, run.hit);
-                        if (t != null) run.hit.Add(t.gameObject);
+                        if (t != null) Claim(run, t);
                         float a = l.shots <= 1 ? 0f : -l.width * .5f + l.width * run.fired / (l.shots - 1);
                         Vector3 dir = Quaternion.Euler(0f, 0f, -a) * Vector3.up;
                         Launch(run, AttackProjectile.Kind.Homing, nose, dir, l.speed, .24f, .8f,
@@ -621,7 +631,8 @@ public class ShipAttackRunner : MonoBehaviour
     }
 
     // A held weapon touching something: ordinary hazards die at once, a
-    // boss takes `weight` at most once per tick.
+    // boss takes `weight` once per tick (the tick rate keeps a per-frame overlap from
+    // flooding it; the boss's hit window does the limiting).
     void Touch(AttackRun run, GameObject go, bool bossTick, float weight)
     {
         if (go.GetComponent<IShipAttackTarget>() != null)

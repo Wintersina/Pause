@@ -1126,13 +1126,18 @@ public class BossActor : MonoBehaviour, IMusicPatternHost
 // directional attack find it; all of them hit it through ShipAttackHits,
 // which hands the hit here instead of destroying it.
 //
-// Weighting (IShipAttackTarget): one firing of any attack is worth at most
-// one full ultimate hit, split over its contacts -- a rail slug, a fireball
-// blast or one homing shot of the volley is 1; a gatling shell 1/14, a beam
-// or cone tick 0.2, an orbit-disc pass 0.25, a seeker eye 1/3. So weak,
-// spread-out hits shave proportionally less of the fight than big ones.
-public class BossTarget : MonoBehaviour, IShipAttackTarget
+// Weighting (IShipAttackTarget): a rail slug, a fireball blast or one homing
+// shot of the volley is 1; a gatling shell 1/14, a beam or cone tick 0.2, an
+// orbit-disc pass 0.25, a seeker eye 1/3. So weak, spread-out hits shave
+// proportionally less of the fight than big ones. Nothing caps a firing, a
+// barrage or a ram (IShipAttackTargetUncapped): the only limit is the boss's
+// short hit window (BossEncounter.TakePlayerHit), and a hit it blocks still sparks.
+public class BossTarget : MonoBehaviour, IShipAttackTargetUncapped
 {
+    // A blocked hit shows a light spark, at most this often (a ram would spark every frame).
+    const float SparkGap = .05f;
+    float lastSpark = -99f;
+
     // The screen-clear volley's own entry point: one full hit.
     public static bool Intercept(GameObject target, int ship)
     {
@@ -1142,15 +1147,30 @@ public class BossTarget : MonoBehaviour, IShipAttackTarget
         return true;
     }
 
-    public void TakeShipAttack(int ship, float weight, Vector3 at)
+    public void TakeShipAttack(int ship, float weight, Vector3 at) => Strike(ship, weight, at);
+
+    // A player attack on the boss. True when it counted (landed or banked); false when
+    // the hit window blocked it: a small spark and flash, no sound, no shake, no hit-stop,
+    // no heart effect, so it never looks like the shot passed through.
+    public bool Strike(int ship, float weight, Vector3 at, bool discrete = false)
     {
         var encounter = BossEncounter.Instance;
         var actor = GetComponentInParent<BossActor>();
-        TargetExplosion.Spawn(transform.position + Vector3.down * .35f,
-                              actor != null ? actor.ExplosionKind : TargetExplosion.Kind.Metal,
+        var kind = actor != null ? actor.ExplosionKind : TargetExplosion.Kind.Metal;
+        var result = encounter != null ? encounter.TakePlayerHit(weight, at, discrete) : BossEncounter.HitResult.Blocked;
+        if (result == BossEncounter.HitResult.Blocked)
+        {
+            float now = Application.isPlaying ? Time.unscaledTime : 0f;
+            if (Application.isPlaying && now - lastSpark < SparkGap) return false;
+            lastSpark = now;
+            TargetExplosion.Spawn(at, kind, TargetExplosion.Size.Small, ship);
+            if (actor != null) actor.Flash(.3f);
+            return false;
+        }
+        TargetExplosion.Spawn(transform.position + Vector3.down * .35f, kind,
                               weight >= .5f ? TargetExplosion.Size.Medium : TargetExplosion.Size.Small, ship);
         collisionDetection.PlayExplosion();
-        if (encounter != null) encounter.OnShipAttackHit(weight, at);
+        return true;
     }
 }
 

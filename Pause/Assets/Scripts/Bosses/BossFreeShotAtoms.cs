@@ -5,7 +5,9 @@ using UnityEngine;
 // (jittered), both before the boss escapes (the fight clock,
 // BossConfig.FightSeconds, runs out). Each hands the player a CHARGED free
 // main-weapon shot (ShipPowerController.FreeShot; its hit budget is
-// ChargedBudget instead of 1, see ShipAttackRunner.FireFree).
+// ChargedBudget instead of 1, see ShipAttackRunner.FireFree). The boss itself has no
+// per-firing cap any more (BossTarget is uncapped), so the budget only matters to capped
+// targets; a free shot against the boss is an ordinary firing.
 //
 // Count is also the hard cap on red atoms per encounter
 // (BossEncounter.TryReserveRedAtom, MaxRedAtomsPerFight): the plan and every
@@ -27,7 +29,7 @@ public static class BossFreeShotAtoms
     public const int Count = 2;              // at most BossEncounter.MaxRedAtomsPerFight
     public static readonly float[] Shares = { .30f, .65f };   // of the fight, where each lands
     public const float ShareJitter = .04f;   // +-, of the fight
-    // Hit budget of one of these shots against a boss (a normal firing: 1).
+    // Hit budget of one of these shots against capped targets (a normal firing: 1).
     // With only 2 atoms (was 7) the fight would lose ~5 hits of damage; each
     // now carries 1.5, so the pair is worth 3 full hits (was up to 7).
     public const float ChargedBudget = 1.5f;

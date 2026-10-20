@@ -42,6 +42,7 @@ public static class BossEncounterTest
             ProjectilesFreezeAtTimeScaleZero();
             SpawningIsSuspended();
             UltimateHitsSpendHitPoints();
+            BossHitWindowIsTheOnlyLimiter();
             HitPointsOrTimerWhicheverFirst();
             ProjectilePoolIsBounded();
             CodexEntryIsSecretUntilMet();
@@ -470,6 +471,86 @@ public static class BossEncounterTest
 
     // Whichever comes first: hit points (DESTROYED, 300) or the fight clock
     // (SURVIVED, 150). Scoring unchanged, loop scaling as before.
+    // The boss's only damage limiter is BossConfig.HitInvulnerableSeconds after a lost hit point:
+    // no per-firing / per-barrage / per-ram cap (BossTarget is uncapped), blocked hits spark, and
+    // fractional weapons keep their value (banked inside the window).
+    static void BossHitWindowIsTheOnlyLimiter()
+    {
+        float win = BossConfig.HitInvulnerableSeconds;
+        Check("the hit window is about a quarter of a second (" + win + " s)", win >= .2f && win <= .3f);
+
+        // a firing's own allowance does not cap the boss: with none left, a hit still counts
+        FreshScene();
+        var e = StartFight();
+        var body = e.Actor.BodyHitbox;
+        float spent = 0f;
+        ShipAttackHits.Hit(body, 1, 1f, ref spent);
+        Check("an exhausted firing budget does not stop a hit on the boss (" + e.HitPointsLeft + " points left)",
+              e.HitPointsLeft == BossConfig.HitPoints - 1 && e.Hits == 1 && e.Invulnerable);
+
+        // inside the window: a full hit deals nothing, but is still reported to the caller as blocked
+        int hits = e.Hits; float dmg = e.Damage;
+        ShipAttackHits.Hit(body, 1, 1f, ref spent);
+        var target = body.GetComponent<BossTarget>();
+        Check("a full hit inside the window deals no damage", e.Hits == hits && Mathf.Approximately(e.Damage, dmg) && e.HitPointsLeft == BossConfig.HitPoints - 1);
+        Check("... and Strike says it was blocked (it only sparks)", !target.Strike(1, 1f, body.transform.position));
+
+        // a light share of a firing is banked, not lost, and never pays a whole hit point early
+        Check("a light share inside the window is banked", target.Strike(1, .2f, body.transform.position) &&
+              e.Hits == hits + 1 && Mathf.Abs(e.Damage - dmg - .2f) < 1e-4f && e.HitPointsLeft == BossConfig.HitPoints - 1);
+        for (int i = 0; i < 10; i++) target.Strike(1, .4f, body.transform.position);
+        Check("... the bank stops just short of a whole hit point while the window is open", e.HitPointsLeft == BossConfig.HitPoints - 1 && e.Damage - dmg < 1f);
+
+        // frozen time holds the window, game time spends it
+        e.Step(1f, 0f);
+        Check("a frozen world (timeScale 0) does not spend the window", e.Invulnerable);
+        e.Step(win + .01f, 1f);
+        Check("game time spends it: open again after " + win + " s", !e.Invulnerable);
+        int left = e.HitPointsLeft;
+        ShipAttackHits.Hit(body, 1, 1f, ref spent);
+        Check("a hit after the window counts again", e.HitPointsLeft == left - 1);
+
+        // a barrage spread over time takes several hearts: one full shot every 0.1 s for 1.2 s
+        FreshScene();
+        e = StartFight();
+        body = e.Actor.BodyHitbox;
+        int hearts = e.HeartsLeft, shots = 12;
+        for (int i = 0; i < shots; i++)
+        {
+            ShipAttackHits.Hit(body, 1, 1f, ref spent);
+            e.Step(.1f, 1f);
+        }
+        int lost = hearts - e.HeartsLeft;
+        int expected = Mathf.CeilToInt(shots * .1f / win);
+        Check("a barrage over 1.2 s takes several hearts (" + lost + " of " + shots + " shots, about one per " + win + " s)",
+              lost >= 3 && lost <= expected + 1 && lost < shots && e.HitPointsLeft == BossConfig.HitPoints - lost);
+
+        // a fractional weapon still kills: 14 gatling shells (1/14 each) every 0.05 s lose no weight to the window
+        FreshScene();
+        e = StartFight();
+        body = e.Actor.BodyHitbox;
+        int firings = BossConfig.HitPoints;
+        for (int f = 0; f < firings && e.State == BossEncounter.Phase.Fight; f++)
+            for (int i = 0; i < 14; i++)
+            {
+                ShipAttackHits.Hit(body, 12, 1f / 14f, ref spent);
+                e.Step(.05f, 1f);
+            }
+        Check("ten gatling firings (all 1/14 shells) destroy the boss (damage " + e.Damage.ToString("F2") + ")",
+              e.HitPointsLeft == 0 && e.Damage >= BossConfig.HitPoints - .01f);
+
+        // a ram is a discrete bump: it lands, opens the window, and a second one inside it is blocked
+        FreshScene();
+        e = StartFight();
+        target = e.Actor.BodyHitbox.GetComponent<BossTarget>();
+        Vector3 at = e.Actor.BodyHitbox.transform.position;
+        dmg = e.Damage;
+        Check("a ram damages the boss (" + BossRam.RamWeight + ") and opens the window", target.Strike(1, BossRam.RamWeight, at, true) &&
+              Mathf.Abs(e.Damage - dmg - BossRam.RamWeight) < 1e-4f && e.Invulnerable);
+        Check("... a second ram inside the window is blocked, a light shot still banks", !target.Strike(1, BossRam.RamWeight, at, true) &&
+              target.Strike(1, .1f, at));
+    }
+
     static void HitPointsOrTimerWhicheverFirst()
     {
         Check("the end rule is hit points or survival, whichever first",

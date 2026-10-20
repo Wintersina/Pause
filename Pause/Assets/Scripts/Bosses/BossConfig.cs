@@ -90,6 +90,21 @@ public static class BossConfig
     // (2026-10-18: "boss elites hearts to be 10 instead of twelve").
     public static int HitPoints => Hearts;
 
+    // ---- the boss's hit window (BossEncounter.TakePlayerHit) ----
+    // The ONLY limit on how fast the player's attacks can wear the boss down: no
+    // firing, barrage, beam or ram has a damage cap of its own. Once a hit
+    // point is lost (or a discrete bump such as a ram lands) the boss shrugs off
+    // everything for this long, in GAME seconds (the fight's scaled dt, so a
+    // hit-stop, a pause or a frozen screen holds the window instead of
+    // spending it). Blocked hits still spark, they just deal nothing.
+    public static float HitInvulnerableSeconds = .25f;
+    // Hits lighter than this (a gatling shell, a beam tick, one eye of three) are
+    // shares of one firing: inside the window they are banked, not lost, so a
+    // fractional weapon keeps its full value; the bank is held just short of a
+    // whole hit point, which only an open window pays out. Heavier hits are
+    // dropped inside the window.
+    public static float HitBankMaxWeight = .5f;
+
     // ---- hearts (BossHearts) ----
     // The boss wears its health as Hearts hearts spinning round it. They
     // split the same HitPoints pool into equal segments: each heart is

@@ -219,6 +219,7 @@ public class BossEncounter : MonoBehaviour
         hits = 0;
         hp = BossConfig.HitPoints;
         hitBank = 0f;
+        hitWindow = 0f;
         damage = 0f;
         heartsLeft = Mathf.Max(1, BossConfig.Hearts);
         remaining = BossConfig.FightSeconds;
@@ -364,6 +365,7 @@ public class BossEncounter : MonoBehaviour
         moveBackGround.speed = BossConfig.FightSpeed;
         remaining -= dt;
         fightClock += dt;
+        if (hitWindow > 0f) hitWindow = Mathf.Max(0f, hitWindow - dt);
         actor.StepFight(dt, realDt, PlayerPosition(), PhaseProgress01, pool);
 
         // Whichever comes first: hit points (DESTROYED) or the clock
@@ -385,25 +387,61 @@ public class BossEncounter : MonoBehaviour
     // A homing shot from the ultimate landed on the boss (BossTarget).
     public void OnUltimateHit() => OnShipAttackHit(1f);
 
-    // Any ship attack landed (BossTarget.TakeShipAttack). `weight` is the
-    // share of one full ultimate hit (one firing never totals more than 1).
+    // Any ship attack landed. `weight` is the share of one full ultimate hit
+    // (a firing's fractional shots add up to about 1, but nothing caps it).
     // Weights bank up and the boss loses a hit point per whole hit; the
     // fight clock is left alone (BossEndRule).
     // Each heart is HeartWeight of it (10/10 = 1): a heart goes the moment its
     // share is spent, the last with the last hit point.
+    // This is the raw bookkeeping, with no invulnerability: the player's
+    // weapons come through TakePlayerHit (BossTarget.Strike), which adds the window.
     float hitBank;
+    float hitWindow;    // game seconds of invulnerability left after a damaging hit
+
+    public enum HitResult { Blocked, Banked, Landed }
+    public float HitWindowLeft => hitWindow;
+    public bool Invulnerable => hitWindow > 0f;
+
+    // A player attack reaches the boss (BossTarget.Strike). The ONLY limiter is the
+    // hit window: BossConfig.HitInvulnerableSeconds after a hit point is lost.
+    //   Landed   the hit counted (full feedback); losing a hit point opens the window
+    //   Banked   inside the window, a light share of a firing (< HitBankMaxWeight) is
+    //            kept in the bank, held just short of a whole hit point, so a
+    //            fractional weapon (gatling, beam, seekers) loses nothing
+    //   Blocked  inside the window, nothing counted (the caller sparks only)
+    // `discrete` is for a single bump, not a stream of shares (a ram): it never banks,
+    // and landing opens the window even when it does not complete a hit point.
+    public HitResult TakePlayerHit(float weight, Vector3 at, bool discrete = false)
+    {
+        if (state != Phase.Fight || weight <= 0f) return HitResult.Blocked;
+        if (hitWindow > 0f)
+        {
+            if (discrete || weight >= BossConfig.HitBankMaxWeight) return HitResult.Blocked;
+            float room = 1f - 2e-4f - hitBank;   // never reaches the whole-hit threshold
+            if (room <= 0f) return HitResult.Blocked;
+            ApplyHit(Mathf.Min(weight, room), at, false);
+            return HitResult.Banked;
+        }
+        int before = hp;
+        ApplyHit(weight, at, true);
+        if (discrete || hp < before) hitWindow = BossConfig.HitInvulnerableSeconds;
+        return HitResult.Landed;
+    }
     public void OnShipAttackHit(float weight)
     {
         OnShipAttackHit(weight, actor != null ? actor.transform.position + Vector3.down : Vector3.zero);
     }
 
-    public void OnShipAttackHit(float weight, Vector3 at)
+    public void OnShipAttackHit(float weight, Vector3 at) => ApplyHit(weight, at, true);
+
+    // `payHitPoints` false: the weight only banks (inside the hit window).
+    void ApplyHit(float weight, Vector3 at, bool payHitPoints)
     {
         if (state != Phase.Fight || weight <= 0f) return;
         hits++;
         hitBank += weight;
         damage += weight;
-        while (hitBank >= 1f - 1e-4f && hp > 0) { hitBank -= 1f; hp--; }
+        while (payHitPoints && hitBank >= 1f - 1e-4f && hp > 0) { hitBank -= 1f; hp--; }
         int was = heartsLeft;
         heartsLeft = HeartsFor(damage, hp);
         bool heartLost = heartsLeft != was, kill = hp <= 0;

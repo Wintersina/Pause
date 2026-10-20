@@ -20,7 +20,7 @@ using Object = UnityEngine.Object;
 //             ship at the top is under the band, not on it
 //   RAM       a shielded ship rams an enemy at the top and kills it (paid); an
 //             unshielded one loses a heart; a shielded ram on a boss is a hit
-//             of BossRam.RamWeight, costs the shield, has a cooldown and
+//             of BossRam.RamWeight, costs the shield, is paced only by the boss hit window and
 //             leaves the body; an unshielded touch hurts the pilot and the
 //             boss not at all; the boss ceiling opens for a shield and closes
 //             before it ends
@@ -383,7 +383,6 @@ public static class PlayerZoneTopTest
             Use(FitDevice.Find(id));
             BossEncounter.ResetRun();
             BossRam.Reset();
-            BossRam.TestClock = 100f;
             BossEncounter.Begin(0, null);
             var e = BossEncounter.Instance;
             e.Step(.1f, 1f);
@@ -421,16 +420,19 @@ public static class PlayerZoneTopTest
                 Check(id + ": ... it costs the shield " + BossRam.RamShieldCost + " s (" + F(collisionDetection.invTimer) + " left) and leaves the body standing",
                       Mathf.Abs(collisionDetection.invTimer - (5.8f - BossRam.RamShieldCost)) < 1e-3f && e.Actor.BodyHitbox == body);
                 Ram(r, body);
-                Check(id + ": ... a second ram inside the " + BossRam.RamCooldown + " s cooldown is shrugged off", e.Hits == hits + 1);
-                BossRam.TestClock += BossRam.RamCooldown + .01f;
+                float shield = collisionDetection.invTimer;
                 Ram(r, body);
-                Check(id + ": ... after the cooldown it hits again", e.Hits == hits + 2);
+                Check(id + ": ... a second ram inside the " + BossConfig.HitInvulnerableSeconds + " s hit window is shrugged off, and costs no shield",
+                      e.Hits == hits + 1 && Mathf.Abs(collisionDetection.invTimer - shield) < 1e-4f);
+                e.Step(BossConfig.HitInvulnerableSeconds + .01f, 1f);
+                Ram(r, body);
+                Check(id + ": ... once the window has closed it hits again (no ram cooldown of its own)", e.Hits == hits + 2);
                 Check(id + ": ... it can never melt the boss: a full blue atom's worth of rams (" + (int)(5.8f / BossRam.RamShieldCost) + " at most) leaves it standing",
                       BossRam.RamWeight * Mathf.Floor(5.8f / BossRam.RamShieldCost) < BossConfig.HitPoints);
                 // unshielded: it hurts the pilot, not the boss
                 collisionDetection.atomCheck = false;
                 collisionDetection.invTimer = 0f;
-                BossRam.TestClock += 5f;
+                e.Step(BossConfig.HitInvulnerableSeconds + .01f, 1f);
                 hits = e.Hits;
                 Ram(r, body);
                 Check(id + ": an unshielded touch costs a heart and does not hurt the boss", collisionDetection.lifeCounter == 1 && e.Hits == hits);

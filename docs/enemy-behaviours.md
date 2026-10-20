@@ -1449,8 +1449,18 @@ then retreats (it was 36 s). The rules round it are unchanged: hits count only i
 warps in or out), the clock is never shaved, DeathCombo never chains a boss, rams and shockwaves pass through it.
 The attack phases stay at the thirds of the clock / of the hearts (40 s each); the damaged-hull looks
 (`BossArt.DamageStage`, 4 stages) spread across the 12 hearts (1-3 lost stage 1, 4-6 stage 2, 7-9 stage 3, 10+ stage 4).
+**Hit window (no per-firing cap).** Nothing caps a firing, a barrage, a beam or a ram against a boss (`BossTarget` is
+`IShipAttackTargetUncapped`; elites keep the one-budget-per-firing rule). The only limiter is
+`BossConfig.HitInvulnerableSeconds` = 0.25 s of invulnerability after a lost hit point (or after a discrete bump, a ram),
+`BossEncounter.TakePlayerHit`. It runs in game time (the fight's scaled dt), so a hit-stop, a pause or a frozen screen holds
+it instead of spending it. A hit the window blocks deals nothing but still sparks (`BossTarget.Strike`), with no sound,
+shake, hit-stop or heart effect. Light shares of a firing (weight under `HitBankMaxWeight` .5: gatling shell, beam tick,
+one eye of three) are banked inside the window, held just short of a whole hit point, so fractional weapons keep their
+full value; heavier hits inside the window are dropped. Homing barrages (seeker eyes, Paragon lances, missiles) no longer
+"claim" the boss away from the next shot, so every shot chases it. Rams have no cooldown of their own any more: a landed ram
+(`RamWeight` .3) costs the shield and opens the window, a contact the window blocks costs nothing.
 Supply: a fight guarantees `BossFreeShotAtoms.Count` = 2 free-shot atoms (~30% and ~65% of the fight), each a charged shot
-worth `ChargedBudget` 1.5 hits (3 in all), plus one each of capacitor (twice), shield and heal at fixed shares (`RollPlan`).
+(`ChargedBudget` 1.5 now only matters to capped targets; against a boss it is an ordinary firing), plus one each of capacitor (twice), shield and heal at fixed shares (`RollPlan`).
 Other damage: the ultimate (30-60 s countdown, cut by pickups; one firing is about 1-1.5 hits) and rams (`BossRam.RamWeight` .3,
 about four per blue atom). Estimate for 12 hits: free shots 3 + ultimate 2-3 firings (~2.5-3.5) = ~6, so about 6 more
 hits must come from rams (~20 rams = 5 shield atoms) in 120 s: see the PR notes on the balance (not retuned).
