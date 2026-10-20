@@ -291,15 +291,15 @@ public static class AchievementTrackingTest
         Check("a failed purchase changes nothing", !shopingShips.TryPurchase(2, 99999f) && C("spent") == 600);
 
         var res = ShipSkins.TryPurchase(2, 1);
-        Check("buying a skin: Fresh Paint, price spent counted", res == ShipSkins.PurchaseResult.Bought && U("skin_first") && C("spent") == 600 + 300 && !U("skin_special"));
+        Check("buying a skin: Fresh Paint, price spent counted", res == ShipSkins.PurchaseResult.Bought && U("skin_first") && C("spent") == 600 + 50 && !U("skin_special"));
         ShipSkins.TryPurchase(2, ShipSkins.Special);
-        Check("buying a Special skin: Special Edition", U("skin_special") && C("spent") == 600 + 300 + 750);
+        Check("buying a Special skin: Special Edition", U("skin_special") && C("spent") == 600 + 50 + 750);
         Check("not a full wardrobe yet", !U("skin_full_set"));
         ShipSkins.TryPurchase(2, 2); ShipSkins.TryPurchase(2, 3);
         Check("all skins of one ship: Full Wardrobe", U("skin_full_set"));
         AchievementStore.SetCounter("spent", 9900);
         PlayerPrefs.SetFloat(StarDustLedger.CurrencyKey, 5000f);
-        ShipSkins.TryPurchase(3, 1);
+        ShipSkins.TryPurchase(3, 2);
         Check("10,000 spent: Big Spender", U("dust_spent_10000"));
         Fresh();
         AchievementStore.SetCounter("spent", 5);

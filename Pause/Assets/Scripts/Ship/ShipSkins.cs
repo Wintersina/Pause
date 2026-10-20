@@ -56,6 +56,30 @@ public static class ShipSkins
     // The one config table: price in star dust by kind (Stock, Palette, Special).
     public static readonly float[] KindPrices = { 0f, 300f, 750f };
 
+    // A ship's first colour is its first heart and first weapon step
+    // (SkinHearts, ShipWeaponUpgrades), priced low so a new player feels the
+    // progression on their first run's dust. It is skin 1, the leftmost
+    // purchasable swatch (0 is the stock hull); every other skin, the ships
+    // of the last dock row and the premium ship keep their normal prices.
+    public const float FirstColourPrice = 50f;
+
+    // The last dock row holding a standard (dust-priced) ship.
+    static int LastStandardRow
+    {
+        get
+        {
+            int last = 0;
+            foreach (int id in ShipId.All)
+                if (!PremiumShips.IsPremium(id)) last = Mathf.Max(last, SpaceDock.RowOf(id));
+            return last;
+        }
+    }
+
+    public static bool FirstColourDiscounted(int id)
+    {
+        return !PremiumShips.IsPremium(id) && SpaceDock.RowOf(id) < LastStandardRow;
+    }
+
     public static float PriceOf(ShipSkinKind kind) { return KindPrices[(int)kind]; }
 
     public static float PriceOf(int id, int skin)
@@ -63,6 +87,7 @@ public static class ShipSkins
         if (!Has(id, skin) || skin == Stock) return 0f;
         // a premium ship's skins are all one (high) price
         if (PremiumShips.IsPremium(id)) return PremiumShips.SkinPrice;
+        if (skin == 1 && FirstColourDiscounted(id)) return FirstColourPrice;
         return PriceOf(Get(id, skin).kind);
     }
 
