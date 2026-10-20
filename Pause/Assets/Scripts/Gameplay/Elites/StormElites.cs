@@ -246,7 +246,7 @@ public class ThunderheadBrain : EliteBrain
     float phase;
     public int Dir => Mathf.Cos(phase) >= 0f ? 1 : -1;
     public float Rx => Mathf.Max(.4f, StormFlight.Edge(def, .5f) * .85f);
-    public float Height => ship.ReachY(EliteSystem.ViewTop - def.topMargin);
+    public float Height => ship.ZoneY(ship.ReachY(EliteSystem.ViewTop - def.topMargin));
 
     public ThunderheadBrain() { Id = "thunderhead"; }
 
@@ -320,7 +320,7 @@ public class AirshipBrain : StormPassBrain
     public override int CastsAllowed => 1 + (ship != null && ship.Hearts <= 3 ? 1 : 0);
     protected override void Band(out float lo, out float hi)
     {
-        hi = EliteSystem.ViewTop - def.hullRadius - .6f;
+        hi = Mathf.Min(EliteSystem.ViewTop - def.hullRadius - .6f, FightZone.Top(FightZone.HalfOf(def)));
         lo = hi - 1.2f;
     }
     public override Vector2 PathAt(float along) => new Vector2(start.x + dirX * along, y0);
@@ -389,7 +389,7 @@ public class DancerBrain : EliteBrain
     float angle;
     public float Angle => angle;
     public float Rx => Mathf.Max(.4f, StormFlight.Edge(def, .5f) * .9f);
-    public float Height => ship.ReachY(EliteSystem.ViewTop - def.topMargin) - Ry;
+    public float Height => ship.ZoneY(ship.ReachY(EliteSystem.ViewTop - def.topMargin)) - Ry;
 
     public DancerBrain() { Id = "dancer"; }
 
@@ -496,7 +496,7 @@ public class HookerBrain : StormPassBrain
     public override float PassScale => 1.15f;
     protected override void Band(out float lo, out float hi)
     {
-        hi = EliteSystem.ViewTop - def.hullRadius - .6f;
+        hi = Mathf.Min(EliteSystem.ViewTop - def.hullRadius - .6f, FightZone.Top(FightZone.HalfOf(def)));
         lo = hi - 1.0f;
     }
 
@@ -607,7 +607,7 @@ public class CitadelBrain : EliteBrain
 {
     public const float Pace = .22f;
     public float Rx => Mathf.Max(.3f, StormFlight.Edge(def, .5f) * .6f);
-    public float Height => ship.ReachY(EliteSystem.ViewTop - def.topMargin);
+    public float Height => ship.ZoneY(ship.ReachY(EliteSystem.ViewTop - def.topMargin));
 
     public CitadelBrain() { Id = "citadel"; }
 
