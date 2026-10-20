@@ -5,9 +5,10 @@ using UnityEngine;
 // thunderstorm, looking down on a churning cloud sea under a storm-cloud ceiling.
 // Nothing about it may read as Tide's ocean: no water, no green, no rigs.
 //
-//   GROUND     one of two tile sets per landing (BackdropVariants): v1 the banded deck
+//   GROUND     one of four tile sets per landing (BackdropVariants): v1 the banded deck
 //              (wind-sheared slate bands and cyclone scars), v2 the thunderhead field
-//              (towering lit cumulonimbus tops with lightning in the canyons).
+//              (towering lit cumulonimbus tops with lightning in the canyons), v3 the
+//              NIGHT side, v4 gust-front shelf arcs.
 //   PIECES     landmarks pinned to the mid tile (GroundPlanner): anvil thunderhead towers,
 //              lightning-rod masts, skyhook anchors, floating refineries, siphon towers, an
 //              airship dock, a gantry, a turbine raft, a relay dish; clusters (a storm
@@ -28,11 +29,11 @@ public static class StormTuning
 {
     // ---- brightness ------------------------------------------------------------
     public static float Brightness = 1f;
-    // Storm ships TWO ground sets (v1 banded deck, v2 thunderhead field; the gray eye-of-the-storm cyclone deck v3 was removed); there
-    // is no night set. A set that is not on disk is never picked (BackdropVariants), so v4 is simply gone.
-    public const int Variants = 2;
-    public static readonly float[] VariantBrightness = { 1f, .6f, .6f, .6f };   // index = variant (0 none)
-    public static readonly bool[] Night = { false, false, false, false };
+    // Storm ships FOUR ground sets (BackdropVariants rotates through them, never the same one twice in a row): v1 banded deck and v2 thunderhead
+    // field (day), v3 the NIGHT side (Night[3]), v4 the gust-front shelf arcs (day). A set that is not on disk is never picked.
+    public const int Variants = 4;
+    public static readonly float[] VariantBrightness = { 1f, .6f, .6f, .6f, .6f };   // index = variant (0 none)
+    public static readonly bool[] Night = { false, false, false, true, false };
 
     // ---- ground pieces -----------------------------------------------------------
     public static float LandmarkMin = 1.5f, LandmarkMax = 1.75f;
@@ -64,6 +65,8 @@ public static class StormTuning
         new[] { 2, 2, 2, 2, 2 },   // (none)
         new[] { 2, 3, 2, 2, 2 },   // v1 banded deck: refineries and skyhooks on the bands
         new[] { 5, 1, 3, 1, 2 },   // v2 thunderhead field: towers and the masts that draw the bolts
+        new[] { 2, 2, 4, 2, 2 },   // v3 night side: masts that draw the bolts
+        new[] { 3, 2, 2, 3, 2 },   // v4 gust-front shelf arcs: skyhooks on the shelves
     };
     public static readonly string[] Towers = { "anvil_tower_00", "anvil_tower_01", "anvil_tower_02", "anvil_tower_03" };
     public static readonly string[] Spires = { "spire_00", "spire_01" };

@@ -88,13 +88,13 @@ public static class CodexBackdropTest
             titles &= !string.IsNullOrEmpty(b.title) && b.title != b.world + " " + b.variant;
             aligned &= WorldManager.Worlds[b.worldIndex].displayName == b.world;
         }
-        Check("every world has four backdrops (Space's four skies, each planet's four variant sets) except Storm, which ships two ground sets: " + all.Count, all.Count == WorldManager.Worlds.Length * 4 - (4 - StormTuning.Variants));
+        Check("every world has four backdrops (Space's four skies, each planet's four variant sets): " + all.Count, all.Count == WorldManager.Worlds.Length * 4);
         Check("ids are unique and every card thumbnail loads", unique && thumbs);
         Check("each has its own name and sits under its world, in world order", titles && aligned &&
               all.Select(b => b.worldIndex).SequenceEqual(all.Select(b => b.worldIndex).OrderBy(i => i)));
         Check("names are unique within a world", all.GroupBy(b => b.world).All(g => g.Select(b => b.title).Distinct().Count() == g.Count()));
         Check("ids follow bd_<world>_<variant>", B("Frost", 2).id == "bd_frost_2" && B("Space", 4).id == "bd_space_4");
-        Check("Storm and Desert have theirs (Storm's thunderhead field, Desert's salt flat), and Storm's removed eye deck is gone", B("Storm", 2).title == "Thunderhead Field" && CodexBackdrops.Find("Storm", 3) == null && B("Desert", 3).title == "Salt Flat");
+        Check("Storm and Desert have theirs (Storm's thunderhead field, Desert's salt flat), and Storm's night side and gust front", B("Storm", 2).title == "Thunderhead Field" && B("Storm", 3).title == "Night Side" && B("Storm", 4).title == "Gust Front" && B("Desert", 3).title == "Salt Flat");
     }
 
     static void Listing()
