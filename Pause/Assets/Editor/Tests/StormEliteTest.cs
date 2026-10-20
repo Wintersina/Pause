@@ -387,14 +387,6 @@ public static class StormEliteTest
             int b = 0;
             foreach (var sh in EliteSystem.Shots.All) b += sh.Bursts;
             bursts = Mathf.Max(bursts, b);
-            // (trace for the CI log: where each flare is, its fuse, and what the ship is doing)
-            if (Mathf.RoundToInt(t / Dt) % 6 == 0)
-            {
-                var sb = new System.Text.StringBuilder("[SEL] TRACE flares t=" + t.ToString("0.00") + " ship " + (e != null ? e.State + " hearts " + e.Hearts + " at " + e.Position.ToString("0.0") : "gone") + " launched " + EliteSystem.Shots.Launched + ":");
-                foreach (var sh in EliteSystem.Shots.All)
-                    if (sh.Active) sb.Append(" [" + sh.Kind + " " + ((Vector2)sh.transform.position).ToString("0.0") + " fuse " + sh.FuseLeft.ToString("0.0") + " bursts " + sh.Bursts + "]");
-                Debug.Log(sb.ToString());
-            }
         }
         Check("the flares are lobbed one after another (" + maxLaid + ", most at once " + maxOrbs + ") and each bursts into an X of bolts (most bolts " + maxBolts + ", bursts " + bursts + ")",
               maxLaid == FlareDropAttack.Flares && maxOrbs >= 2 && maxBolts >= 4 && AttackPreview.TooShort == 0);
