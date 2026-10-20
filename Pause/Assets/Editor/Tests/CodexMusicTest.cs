@@ -54,6 +54,7 @@ public static class CodexMusicTest
             Tab(panel);
             Playback(panel);
             Leaving(panel);
+            Theme(panel);
             Volume(panel);
             Layouts(panel);
         }
@@ -85,12 +86,14 @@ public static class CodexMusicTest
         }
         int worlds = WorldManager.Worlds.Length, songs = 0;
         foreach (var w in WorldManager.Worlds) if (!string.IsNullOrEmpty(w.musicResource)) songs++;
-        Check("the menu theme comes first, then a theme per world with a song and a boss track per world", all[0].id == CodexMusic.MenuId && all.Count == 1 + songs + worlds);
+        Check("the menu theme comes first, then the Credits and Codex songs, a theme per world with a song and a boss track per world", all[0].id == CodexMusic.MenuId && all[1].id == CodexMusic.CreditsId && all.Count == 3 + songs + worlds);
         Check("ids are unique and every world / boss resource loads", unique && clips);
-        Check("the menu theme is always unlocked, nothing else is on a fresh profile",
-              CodexMusic.IsUnlocked(all[0]) && CodexMusic.UnlockedCount == 1);
+        Check("the menu theme and the codex song are always unlocked, nothing else is on a fresh profile",
+              CodexMusic.IsUnlocked(all[0]) && CodexMusic.IsUnlocked(CodexMusic.Find(CodexMusic.ThemeId)) && CodexMusic.UnlockedCount == 2);
+        Check("the Credits song is listed as Boom Boom, locked until Credits plays it",
+              CodexMusic.Find(CodexMusic.CreditsId).title == "Boom Boom" && !CodexMusic.IsUnlocked(CodexMusic.Find(CodexMusic.CreditsId)));
         Check("a locked track reads ???", CodexMusic.DisplayTitle(Ember) == "???");
-        Check("worlds the loop cannot reach are not listed", CodexMusic.ListedCount == 1 + 2 * WorldManager.LiveWorldCount - (WorldManager.Worlds[WorldManager.LiveWorldCount - 1].musicResource == "" ? 1 : 0));
+        Check("worlds the loop cannot reach are not listed", CodexMusic.ListedCount == 3 + 2 * WorldManager.LiveWorldCount - (WorldManager.Worlds[WorldManager.LiveWorldCount - 1].musicResource == "" ? 1 : 0));
     }
 
     static void Unlocking()
@@ -100,7 +103,7 @@ public static class CodexMusicTest
 
         CodexMusic.HeardWorld(WorldManager.Worlds[3]);   // Ember
         Check("hearing a world's song unlocks its track", CodexMusic.IsUnlocked(Ember) && CodexMusic.DisplayTitle(Ember) == "Anvil Arpeggio");
-        Check("... and only that track", !CodexMusic.IsUnlocked(Frost) && CodexMusic.UnlockedCount == 2);
+        Check("... and only that track", !CodexMusic.IsUnlocked(Frost) && CodexMusic.UnlockedCount == 3);
         Check("... stored in the codex's own pref", PlayerPrefs.GetString(Codex.PrefsKey).Contains(Ember.id));
         Codex.Reload();
         Check("... and survives a reload", CodexMusic.IsUnlocked(Ember));
@@ -215,6 +218,51 @@ public static class CodexMusicTest
         CodexPanel.Open(CodexUi.FindFont());
         panel.SkipAnimations();
         Object.DestroyImmediate(menuGo);
+    }
+
+    // The codex's own song: plays while the codex is open (menu theme paused), a preview takes over
+    // and gives it back, closing hands the menu theme back.
+    static void Theme(CodexPanel panel)
+    {
+        var menuGo = new GameObject(CodexMusic.MenuSourceName, typeof(AudioSource));
+        var menu = menuGo.GetComponent<AudioSource>();
+        CodexTheme.Testing = true;
+        CodexTheme.Play = src => { };
+        try
+        {
+            panel.Close();
+            panel.SkipAnimations();
+            Check("closed codex: no codex song", !CodexTheme.IsOpen && CodexTheme.Source == null);
+            CodexPanel.Open(CodexUi.FindFont());
+            panel.SkipAnimations();
+            var song = CodexTheme.Source;
+            Check("opening the codex starts its looping song and pauses the menu theme",
+                  CodexTheme.IsOpen && song != null && song.loop && song.clip == Resources.Load<AudioClip>(CodexMusic.ThemeResource)
+                  && CodexTheme.PausedMenu == menu);
+
+            panel.ShowTab(CodexPanel.MusicTab);
+            panel.SkipAnimations();
+            var v = panel.Music;
+            Check("the codex song is listed, always unlocked",
+                  v.RowIndexOf(CodexMusic.ThemeId) >= 0 && v.RowTitle(v.RowIndexOf(CodexMusic.ThemeId)).text == "Night Calm");
+            v.RowButton(v.RowIndexOf(Ember.id)).onClick.Invoke();
+            Check("a preview suspends the codex song", CodexTheme.IsSuspended && CodexTheme.IsOpen && CodexTheme.PausedMenu == menu);
+            v.StopButton.onClick.Invoke();
+            Check("stopping the preview brings the codex song back, not the menu theme",
+                  !CodexTheme.IsSuspended && CodexTheme.IsOpen && CodexTheme.Source == song && CodexTheme.PausedMenu == menu);
+            v.RowButton(v.RowIndexOf(Ember.id)).onClick.Invoke();
+            panel.Close();
+            Check("closing the codex ends the song (preview too) and releases the menu theme",
+                  !CodexTheme.IsOpen && !CodexTheme.IsSuspended && CodexTheme.PausedMenu == null && !CodexMusicPlayer.IsPlaying);
+            panel.SkipAnimations();
+            CodexPanel.Open(CodexUi.FindFont());
+            panel.SkipAnimations();
+        }
+        finally
+        {
+            CodexTheme.Reset();
+            Object.DestroyImmediate(menuGo);
+        }
     }
 
     static void Volume(CodexPanel panel)

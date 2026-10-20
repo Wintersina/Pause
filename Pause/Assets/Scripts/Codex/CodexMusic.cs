@@ -30,6 +30,9 @@ public sealed class CodexTrack
 public static class CodexMusic
 {
     public const string MenuId = "music_menu";
+    public const string CreditsId = "music_credits";
+    public const string ThemeId = "music_codex";
+    public const string ThemeResource = "CodexMusic/codex_night_calm";
     public const string LockedTitle = "???";
     // Where the menu theme lives: the home scene's own source (the wav is not under Resources).
     public const string MenuSourceName = "MainMenuMusic";
@@ -53,6 +56,10 @@ public static class CodexMusic
         var list = new List<CodexTrack>
         {
             new CodexTrack(MenuId, "Main Menu", "MENU THEME", null, -1),
+            // The Credits song; unlocks when the Credits scene starts it (MenuMusic).
+            new CodexTrack(CreditsId, "Boom Boom", "CREDITS THEME", MenuMusic.CreditsSong, -1),
+            // The codex's own song: plays whenever the codex is open (CodexTheme), so it is always unlocked.
+            new CodexTrack(ThemeId, "Night Calm", "CODEX THEME", ThemeResource, -1),
         };
         var worlds = WorldManager.Worlds;
         for (int i = 0; i < worlds.Length; i++)
@@ -89,7 +96,7 @@ public static class CodexMusic
     public static bool IsUnlocked(CodexTrack t)
     {
         if (t == null) return false;
-        return t.id == MenuId || Codex.IsTrackHeard(t.id);
+        return t.id == MenuId || t.id == ThemeId || Codex.IsTrackHeard(t.id);
     }
 
     public static string DisplayTitle(CodexTrack t) { return IsUnlocked(t) ? t.title : LockedTitle; }
@@ -118,6 +125,93 @@ public static class CodexMusic
     {
         if (theme == null) return;
         Codex.HearTrack(BossId(theme.displayName));
+    }
+}
+
+// The codex's own song. While the codex overlay is open (it lives inside the
+// home scene) the menu theme is paused and "Night Calm" loops; closing the codex
+// gives the menu theme back where it left off. A MUSIC-tab preview suspends it
+// (CodexMusicPlayer.Play) and its Stop brings it back while the codex is still
+// open. The source is registered as music, so the MUSIC toggle/slider apply.
+// It only plays in a running game (edit-mode tests open the panel without audio)
+// unless a test sets Testing.
+public static class CodexTheme
+{
+    public const string SourceName = "CodexTheme";
+
+    public static bool Testing;
+    public static Action<AudioSource> Play = src => src.Play();
+
+    static AudioSource source;
+    static AudioSource menu;       // the menu source this theme paused
+    static bool open, suspended;
+    static bool hooked;
+
+    public static bool IsOpen { get { return open; } }
+    public static bool IsSuspended { get { return suspended; } }
+    public static AudioSource Source { get { return source; } }
+    public static AudioSource PausedMenu { get { return menu; } }
+
+    public static void Reset()
+    {
+        Close();
+        Testing = false;
+        Play = src => src.Play();
+    }
+
+    public static void Open()
+    {
+        if (open || (!Application.isPlaying && !Testing)) return;
+        var clip = Resources.Load<AudioClip>(CodexMusic.ThemeResource);
+        if (clip == null) return;
+        if (!hooked)
+        {
+            hooked = true;
+            SceneManager.sceneLoaded += (s, m) => { source = null; menu = null; open = false; suspended = false; };
+        }
+        open = true;
+        suspended = false;
+        var go = GameObject.Find(CodexMusic.MenuSourceName);
+        var m = go != null ? go.GetComponent<AudioSource>() : null;
+        if (m != null && (Testing || m.isPlaying)) { m.Pause(); menu = m; }
+        if (source == null)
+        {
+            var host = new GameObject(SourceName);
+            source = host.AddComponent<AudioSource>();
+            source.clip = clip;
+            source.loop = true;
+            source.playOnAwake = false;
+            source.spatialBlend = 0f;
+            SoundSettings.MarkMusic(source);
+            SoundSettings.RegisterMusic(source);
+        }
+        Play(source);
+    }
+
+    // A MUSIC-tab preview takes over.
+    public static void Suspend()
+    {
+        if (!open || suspended) return;
+        suspended = true;
+        if (source != null) source.Pause();
+    }
+
+    // The preview ended; the codex is still open.
+    public static void Resume()
+    {
+        if (!open || !suspended) return;
+        suspended = false;
+        if (source != null) source.UnPause();
+    }
+
+    public static void Close()
+    {
+        if (source != null) UnityEngine.Object.Destroy(source.gameObject);
+        source = null;
+        if (menu != null) menu.UnPause();
+        menu = null;
+        open = false;
+        suspended = false;
     }
 }
 
@@ -181,6 +275,7 @@ public static class CodexMusicPlayer
 
         Hook();
         Duck();
+        CodexTheme.Suspend();
         nowPlaying = id;
         if (!Simulate)
         {
@@ -213,6 +308,7 @@ public static class CodexMusicPlayer
         nowPlaying = null;
         if (source != null) source.Stop();
         Unduck();
+        CodexTheme.Resume();
         if (was) Raise();
     }
 

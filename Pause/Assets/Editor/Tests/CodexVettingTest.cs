@@ -140,8 +140,9 @@ public static class CodexVettingTest
             CodexMusic.HeardWorld(theme);
             CodexMusic.HeardBoss(theme);
         }
+        Codex.HearTrack(CodexMusic.CreditsId);   // MenuMusic does this when Credits starts its song
         Check("every world's song and boss song unlocks through the hooks (" + CodexMusic.UnlockedCount + " / " + CodexMusic.ListedCount + ")",
-              CodexMusic.UnlockedCount == CodexMusic.ListedCount && CodexMusic.ListedCount == 1 + 2 * WorldManager.Worlds.Length);
+              CodexMusic.UnlockedCount == CodexMusic.ListedCount && CodexMusic.ListedCount == 3 + 2 * WorldManager.Worlds.Length);
         Check("every song has a real name, not just its world's", WorldManager.Worlds.All(w => CodexMusic.Find(CodexMusic.WorldId(w.displayName)).title != w.displayName));
         PlayerPrefs.SetString(Codex.PrefsKey, "");
         Codex.Reload();

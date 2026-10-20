@@ -17,6 +17,12 @@ using UnityEngine.SceneManagement;
 // into gameplay or the store (which has its own StoreMusic) and the next home
 // arrival starts the track fresh.
 //
+// Credits has its own song ("Boom Boom", CreditsSong): arriving there pauses the
+// carried menu music and loops the song; any other scene stops it, and Options
+// or home un-pause the menu music where it left off. The song source is created
+// at runtime (the Credits scene itself ships no AudioSource) and dies with the
+// scene.
+//
 // Volume stays under SoundSettings (the source is registered as music there, so
 // the MUSIC toggle/slider keep applying); pausing on app focus loss is the
 // platform's, as before. The Codex MUSIC tab still finds the source by name and
@@ -27,6 +33,8 @@ public static class MenuMusic
     public const string HomeScene = "startS4";
     public const string CreditsScene = "creditsS7";
     public const string OptionsScene = "leaderboardS3";
+    public const string CreditsSourceName = "CreditsMusic";
+    public const string CreditsSong = "CreditsMusic/credits_boom_boom";   // Resources path
 
     /// <summary>Menu scenes (besides home) the home music plays on through.</summary>
     public static readonly string[] CarriedScenes = { CreditsScene, OptionsScene };
@@ -40,17 +48,31 @@ public static class MenuMusic
     public static Action<GameObject> Persist = DefaultPersist;
     static void DefaultPersist(GameObject go) { UnityEngine.Object.DontDestroyOnLoad(go); }
 
+    // Tests (edit mode has no audio device to start playback on).
+    public static Action<AudioSource> Play = DefaultPlay;
+    static void DefaultPlay(AudioSource src) { src.Play(); }
+
     static AudioSource keeper;
+    static AudioSource credits;
+    static bool menuPaused;
 
     /// <summary>The carried home music source, or null when none is being carried.</summary>
     public static AudioSource Keeper { get { return keeper; } }
 
-    public static void Reset() { keeper = null; Persist = DefaultPersist; }
+    /// <summary>The Credits song's source while the Credits scene is up, else null.</summary>
+    public static AudioSource CreditsSource { get { return credits; } }
+
+    public static void Reset()
+    {
+        keeper = null; menuPaused = false; Persist = DefaultPersist; Play = DefaultPlay;
+        if (credits != null) UnityEngine.Object.DestroyImmediate(credits.gameObject);
+        credits = null;
+    }
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
     static void Init()
     {
-        keeper = null;
+        keeper = null; credits = null; menuPaused = false;
         SceneManager.sceneLoaded -= OnSceneLoaded;
         SceneManager.sceneLoaded += OnSceneLoaded;
     }
@@ -63,6 +85,41 @@ public static class MenuMusic
 
     /// <summary>One scene arrived (roots are its root objects).</summary>
     public static void Handle(string sceneName, IEnumerable<GameObject> roots)
+    {
+        Carry(sceneName, roots);
+        if (sceneName == CreditsScene) StartCredits(); else EndCredits();
+    }
+
+    // Credits: the menu music steps aside (kept, paused) for the song.
+    static void StartCredits()
+    {
+        if (keeper != null && !menuPaused) { keeper.Pause(); menuPaused = true; }
+        if (credits != null) return;
+        var clip = Resources.Load<AudioClip>(CreditsSong);
+        if (clip == null) return;
+        var go = new GameObject(CreditsSourceName);
+        credits = go.AddComponent<AudioSource>();
+        credits.clip = clip;
+        credits.loop = true;
+        credits.playOnAwake = false;
+        credits.spatialBlend = 0f;
+        SoundSettings.MarkMusic(credits);
+        SoundSettings.RegisterMusic(credits);   // MUSIC toggle / slider apply
+        Play(credits);
+        Codex.HearTrack(CodexMusic.CreditsId);
+    }
+
+    // Anywhere else: the song stops (its object goes with the scene) and the
+    // menu music, if it was stepped aside, carries on from where it was.
+    static void EndCredits()
+    {
+        if (credits != null) UnityEngine.Object.Destroy(credits.gameObject);
+        credits = null;
+        if (menuPaused && keeper != null) keeper.UnPause();
+        menuPaused = false;
+    }
+
+    static void Carry(string sceneName, IEnumerable<GameObject> roots)
     {
         if (!Carries(sceneName))
         {
