@@ -1530,7 +1530,7 @@ under the band and below the player's own top. With no band laid out (editor, ba
   elite above the zone top (a descent) does not start an attack until it is in (`InZone`, `FightZone.AttackSlack`). The Frost sky
   icicles (`icicle_barrage`) and the Singularity Hauler's towed rock are hazards that ENTER from above the view and fall through; they
   are not spawned by anything holding there. Mortar / barrage rows are clamped to `ship.ZoneTop`.
-* Roster pilots: the hold row is clamped by `EnemyBrain.ZoneHoldY` (drawing top and the pattern's `rise` under the band), except that it never drops onto a ship parked at the top of its reach (the player's reach touches the band's edge: the pilot then stands off above the hull, as `HostileReach` always required). Chasers,
+* Roster pilots (where the HUD band is laid out, i.e. on a device; the batch boards have none, so the `AttackBudget*` suites do not see this clamp: a pilot such as the Tide Hammerhead, station 1.5 u deep, sits lower on a phone than in those suites): the hold row is clamped by `EnemyBrain.ZoneHoldY` (drawing top and the pattern's `rise` under the band), except that it never drops onto a ship parked at the top of its reach (the player's reach touches the band's edge: the pilot then stands off above the hull, as `HostileReach` always required). Chasers,
   fighters, mines and rocks ride the scroll or chase the pilot, who cannot be above the band.
 
 **Under the rails.** The rails (`leftPipe` / `rightPipe`) sort at `EliteShip.RailOrder` (0). The elite layer is `PlayOrder` -3 (was 5):

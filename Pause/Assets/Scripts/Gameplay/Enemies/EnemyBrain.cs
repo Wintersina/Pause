@@ -630,7 +630,8 @@ public class EnemyBrain : MonoBehaviour
             }
         }
         // never held above the fighting zone (under the HUD's top band, its whole drawing and its pattern's reach included)
-        if (!descends) holdY = ZoneHoldY(holdY, drawnHalfY, PatternUp(b), HostileReach.Enabled && t != null ? t.position.y + HostileReach.StandoffFor(drawnHalfY) + PatternDown(b) : float.NegativeInfinity);
+        // (only where the HUD band is laid out, like every other band rule here: the batch tests' boards have none)
+        if (!descends && PlayField.Live.hasBand) holdY = ZoneHoldY(holdY, drawnHalfY, PatternUp(b), HostileReach.Enabled && t != null ? t.position.y + HostileReach.StandoffFor(drawnHalfY) + PatternDown(b) : float.NegativeInfinity);
 
         switch (Stage)
         {

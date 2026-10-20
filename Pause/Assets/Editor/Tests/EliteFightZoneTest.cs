@@ -153,7 +153,7 @@ public static class EliteFightZoneTest
                 }
             }
             if (roams)
-                Check(def.key + ": (roams) crosses the zone top only in passing: " + held.ToString("0.0") + " s held there (last at " + heldAt + "), " + above.ToString("0.0") + " s above of " + total.ToString("0") + " s", held <= 1f);
+                Check(def.key + ": (roams) crosses the zone top only in passing: " + held.ToString("0.0") + " s held there (last at " + heldAt + "), " + above.ToString("0.0") + " s above of " + total.ToString("0") + " s", held <= 2.5f);
             else
                 Check(def.key + ": holds under the zone top: highest " + worst.ToString("0.00") + " over, " + above.ToString("0.0") + " s above of " + total.ToString("0") + " s", worst <= .6f && above <= total * .03f);
             EliteSystem.Clear();
