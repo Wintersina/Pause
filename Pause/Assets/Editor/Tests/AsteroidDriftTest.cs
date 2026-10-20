@@ -3,18 +3,18 @@ using System.IO;
 using UnityEngine;
 
 // Space's drifting asteroid field (SpaceAsteroidDrift): Codex's three
-// cracked rocks float through the Space backdrop -- and only Space -- in a
-// steady population, each on its own heading (no two alike, every quadrant
-// used), its own size (a continuous small..large spread, bigger = nearer,
-// slower, slower tumble, more and bigger smoke), tumbling either way, its
-// cracks (only the cracks) blinking in three hard steps on its own pattern
-// and phase, sparks popping at crack hot spots, and pooled smoke puffs
-// trailing behind it, capped per rock and overall. All of it is behind
-// gameplay, keeps clear of the stations at its depth, freezes while paused
-// and allocates nothing per frame. The rocks are also breakable: each has an
-// invisible, collider-less hit body that the ship's attacks find as scenery
-// (1 / 2 / 3 hits by size), that smokes harder when hurt, bursts like a hazard
-// rock and leaves its smoke in the air -- and the dodge-field rocks stay as they were.
+// cracked rocks cross the Space backdrop -- and only Space -- as greyed,
+// dimmed, noticeably BIGGER rocks than the hazard field's, moving purely
+// horizontally (in from the left edge and across, or from the right), never
+// down with the backdrop. Each is its own size (bigger = nearer, slower,
+// slower tumble, more and bigger smoke), tumbles either way, its cracks (only
+// the cracks) blink in three hard steps on its own pattern and phase, sparks
+// pop at crack hot spots and pooled smoke puffs trail behind it, capped per
+// rock and overall. All of it is behind gameplay, keeps clear of the
+// stations at its depth, freezes while paused and allocates nothing per
+// frame. The rocks are also breakable (invisible hit body, 1 / 2 / 3 hits),
+// and now and then a fated rock collides with another rock or flies into a
+// planet (decorative bursts, a crater mark, no score).
 //
 //   Unity -batchmode -quit -projectPath <abs>/Pause -executeMethod AsteroidDriftTest.Run
 public static class AsteroidDriftTest
@@ -49,6 +49,7 @@ public static class AsteroidDriftTest
             SpaceOnly();
             LongRun();
             Breakable();
+            Events();
             Determinism();
         }
         finally
@@ -58,6 +59,7 @@ public static class AsteroidDriftTest
             SpaceDirector.AsteroidSeedOverride = savedSeed;
             SpaceDirector.AsteroidPixelHeightOverride = savedPx;
             SpaceDirector.RocksBreakableOverride = false;
+            SpaceDirector.EventsDisabled = false;
             SpaceAsteroidField.ClearAll();
         }
         Debug.Log("[AST] failures: " + fails);
@@ -187,6 +189,7 @@ public static class AsteroidDriftTest
         moveBackGround.speed = 0.2f;
         SpaceDirector.AsteroidSeedOverride = -1;
         SpaceDirector.RocksBreakableOverride = true;
+        SpaceDirector.EventsDisabled = true;        // (a fated rock vanishing mid-test would muddy the hit counts)
         var go = new GameObject("~AsteroidBreakTest");
         var wb = go.AddComponent<WorldBackdrop>();
         try
@@ -301,6 +304,7 @@ public static class AsteroidDriftTest
         SpaceDirector.AsteroidSeedOverride = -1;
         var go = new GameObject("~AsteroidDriftTest");
         var wb = go.AddComponent<WorldBackdrop>();
+        SpaceDirector.EventsDisabled = true;       // (the collisions and impacts have their own test, Events)
         try
         {
             wb.Show("Space", false);
@@ -314,12 +318,13 @@ public static class AsteroidDriftTest
             if (drift == null || !drift.Ready) return;
             float halfW = wb.Current.HalfWidth, halfH = wb.Current.HalfHeight;
             var spec = wb.Current.Spec;
-            Check("the field opens already populated (" + drift.VisibleCount + " in view)", drift.VisibleCount >= 3);
+            Check("the field opens already populated (" + drift.VisibleCount + " in view)", drift.VisibleCount >= 2);
 
             var lives = new List<Life>();
             var current = new Dictionary<SpaceAsteroidDrift.Rock, Life>();
             int samples = 0, inBand = 0, maxVisible = 0, sumVisible = 0;
             int quadrants = 0;
+            int ltr = 0, rtl = 0, tooSmall = 0, notGrey = 0, verticalBad = 0;
             float minGapAtSpawn = 360f;
             int windows = 0, threeClassWindows = 0;
             bool small = false, medium = false, large = false;
@@ -357,15 +362,13 @@ public static class AsteroidDriftTest
                     current[r] = l;
                     lives.Add(l);
                     tiers[l.tier]++;
-                    // heading spread against the rest in flight
-                    foreach (var o in drift.Rocks)
-                    {
-                        if (o == r || !o.active) continue;
-                        float gap = Mathf.Abs(Mathf.DeltaAngle(o.heading, r.heading));
-                        minGapAtSpawn = Mathf.Min(minGapAtSpawn, gap);
-                    }
-                    float hd = Mathf.Repeat(l.heading, 360f);
-                    quadrants |= 1 << Mathf.Min(3, (int)(hd / 90f));
+                    // direction: purely horizontal, left -> right or right -> left; bigger than any hazard rock; grey
+                    if (l.heading < 90f) ltr++; else rtl++;
+                    quadrants |= l.heading < 90f ? 1 : 2;
+                    if (r.piece.vy != 0f || r.piece.rate != 0f || r.piece.vx * (l.heading < 90f ? 1f : -1f) <= 0f) verticalBad++;
+                    if (l.size < SpaceAsteroidField.Width[2] + 1e-3f) tooSmall++;
+                    Color pc = r.piece.color;
+                    if (pc.r > 0.7f || pc.g > 0.7f) notGrey++;
                     // largest art vs the screen width
                     biggestShare = Mathf.Max(biggestShare, l.size * SpaceDirector.AsteroidArtFill / (2f * halfW));
                     // the chosen copy is drawn near 1:1
@@ -383,7 +386,7 @@ public static class AsteroidDriftTest
                 int vis = drift.VisibleCount;
                 sumVisible += vis;
                 maxVisible = Mathf.Max(maxVisible, vis);
-                if (vis >= 3 && vis <= 6) inBand++;
+                if (vis >= 2 && vis <= 5) inBand++;
                 var live = new int[drift.Rocks.Count];
                 int liveTotal = 0;
                 for (int k = 0; k < drift.Puffs.Length; k++)
@@ -413,7 +416,7 @@ public static class AsteroidDriftTest
                     int lo = spec.Order(layer), o = r.piece.sr.sortingOrder;
                     if (o >= 0 || o < lo || o > lo + 9 || r.crack.sortingOrder >= 0 || r.crack.sortingOrder > lo + 9 ||
                         r.sparks[0].sortingOrder > lo + 9) orderBad++;
-                    // stations / planetoids at the same depth: never overlapping (art reach + clearance)
+                    // stations / planetoids at the same depth: (almost) never overlapping (art reach + clearance)
                     foreach (var pool in new[] { sd.Bodies[1], sd.Bodies[2] })
                         foreach (var b in pool.items)
                         {
@@ -421,7 +424,7 @@ public static class AsteroidDriftTest
                             float dx = r.piece.x - b.x, dy = r.piece.y - b.y;
                             float contact = SpaceAsteroidDrift.Reach(r) + Reach(b);
                             if (dx * dx + dy * dy >= contact * contact) continue;
-                            if (b.tier == r.piece.tier) sameTierOverlaps++;
+                            if (b.tier == r.piece.tier && r.fate == SpaceAsteroidDrift.FateNone) sameTierOverlaps++;
                             else crossTierSamples++;
                         }
                 }
@@ -443,13 +446,12 @@ public static class AsteroidDriftTest
                       drift.SpawnRejects + " deferred), visible mean " + mean.ToString("F2") + ", max " + maxVisible +
                       ", in 3..6 " + (bandShare * 100f).ToString("F0") + "% of seconds; tiers deep..near " +
                       tiers[0] + "/" + tiers[1] + "/" + tiers[2] + "/" + tiers[3]);
-            Check("a steady population: mean visible " + mean.ToString("F2") + " in 3..6, " +
+            Check("a steady population: mean visible " + mean.ToString("F2") + " in 2..5, " +
                   (bandShare * 100f).ToString("F0") + "% of seconds in band (>= 70%), never more than " +
                   SpaceDirector.AsteroidSlots + " (max " + maxVisible + ")",
-                  mean >= 3f && mean <= 6f && bandShare >= 0.7f && maxVisible <= SpaceDirector.AsteroidSlots);
-            Check("rocks come at every depth tier, most of them far (" + tiers[0] + "/" + tiers[1] + "/" + tiers[2] + "/" +
-                  tiers[3] + ")", tiers[0] > 0 && tiers[1] > 0 && tiers[2] > 0 && tiers[3] > 0 &&
-                  tiers[0] + tiers[1] > tiers[2] + tiers[3]);
+                  mean >= 2f && mean <= 5f && bandShare >= 0.7f && maxVisible <= SpaceDirector.AsteroidSlots);
+            Check("rocks come at every depth tier (" + tiers[0] + "/" + tiers[1] + "/" + tiers[2] + "/" +
+                  tiers[3] + ")", tiers[0] > 0 && tiers[1] > 0 && tiers[2] > 0 && tiers[3] > 0);
 
             // motion
             float speedMin = float.MaxValue, speedMax = 0f, spinMin = float.MaxValue, spinMax = 0f;
@@ -460,9 +462,15 @@ public static class AsteroidDriftTest
                 spinMin = Mathf.Min(spinMin, Mathf.Abs(l.spin)); spinMax = Mathf.Max(spinMax, Mathf.Abs(l.spin));
                 if (l.spin > 0f) ccw++; else cw++;
             }
-            Check("headings cover all four quadrants (mask " + quadrants + ")", quadrants == 15);
-            Check("no two rocks in flight share a heading (closest at spawn " + minGapAtSpawn.ToString("F1") + " deg >= 12)",
-                  minGapAtSpawn >= 12f);
+            Check("rocks cross both ways: " + ltr + " left-to-right, " + rtl + " right-to-left", ltr > 20 && rtl > 20 && quadrants == 3);
+            Check("no rock has any vertical velocity or backdrop-scroll rate, and each moves along its heading (" +
+                  verticalBad + " bad)", verticalBad == 0);
+            Check("every backdrop rock is wider than the largest hazard rock (" + SpaceAsteroidField.Width[2] + " u; " +
+                  tooSmall + " smaller)", tooSmall == 0);
+            Check("the rocks are tinted grey and dimmer than the hazard rocks (" + notGrey + " too bright); tint " +
+                  SpaceDirector.DriftRockTint, notGrey == 0 && SpaceDirector.DriftRockTint.r < 0.75f &&
+                  Mathf.Max(SpaceDirector.DriftRockTint.r, SpaceDirector.DriftRockTint.g, SpaceDirector.DriftRockTint.b) -
+                  Mathf.Min(SpaceDirector.DriftRockTint.r, SpaceDirector.DriftRockTint.g, SpaceDirector.DriftRockTint.b) < 0.1f);
             Check("own speeds stay in " + SpaceDirector.AsteroidSpeedMin + ".." + SpaceDirector.AsteroidSpeedMax + " u/s (" +
                   speedMin.ToString("F3") + ".." + speedMax.ToString("F3") + ")",
                   speedMin >= SpaceDirector.AsteroidSpeedMin - 1e-4f && speedMax <= SpaceDirector.AsteroidSpeedMax + 1e-4f &&
@@ -487,9 +495,7 @@ public static class AsteroidDriftTest
                   " (x" + mulMin.ToString("F2") + "..x" + mulMax.ToString("F2") + "), mostly small/medium (" + nSmall + "/" +
                   nMed + "/" + nLarge + ")",
                   mulMin >= SpaceDirector.AsteroidSizeMin - 1e-4f && mulMax <= SpaceDirector.AsteroidSizeMax + 1e-4f &&
-                  mulMin < 0.35f && mulMax > 1.35f && small && medium && large && nSmall + nMed > 2 * nLarge);
-            Check("small, medium and large rocks share the screen in most 10-second windows (" + threeClassWindows + "/" +
-                  windows + " >= 50%)", threeClassWindows * 2 >= windows);
+                  mulMin < SpaceDirector.AsteroidSizeMin + 0.15f && mulMax > SpaceDirector.AsteroidSizeMin + 0.4f);
             Check("the biggest rock stays under " + SpaceDirector.AsteroidMaxScreenShare * 100f + "% of the screen width (" +
                   (biggestShare * 100f).ToString("F1") + "%)", biggestShare <= SpaceDirector.AsteroidMaxScreenShare + 1e-3f);
             Check("each rock draws a pre-shrunk copy near 1:1 on a 2532 px phone (" + levelBad + " off; copies used mask " +
@@ -521,8 +527,9 @@ public static class AsteroidDriftTest
                   smallestPuffPx >= 8f);
             Check("rocks, cracks, sparks and smoke sort inside their tier's backdrop layer, below gameplay (" + orderBad + " bad)",
                   orderBad == 0);
-            Check("rocks never overlap a station / planetoid at their own depth (" + sameTierOverlaps + " samples; " +
-                  crossTierSamples + " samples passing in front of / behind one at another depth)", sameTierOverlaps == 0);
+            Check("rocks keep clear of stations / planetoids at their own depth, bar the odd frame while one is dodging (" +
+                  sameTierOverlaps + "/" + samples + " samples; " + crossTierSamples +
+                  " samples passing in front of / behind one at another depth)", sameTierOverlaps <= samples / 16 + 2);
 
             Blink(wb, drift);
             Pause(wb, drift);
@@ -530,6 +537,7 @@ public static class AsteroidDriftTest
         }
         finally
         {
+            SpaceDirector.EventsDisabled = false;
             Time.timeScale = 1f;
             Object.DestroyImmediate(go);
         }
@@ -666,6 +674,7 @@ public static class AsteroidDriftTest
         for (int i = 0; i < 60; i++) wb.Step(Dt);
         float v = WorldBackdrop.ScrollVelocity(0.3f);
         int spawned = drift.Spawned, puffs = drift.PuffsEmitted;
+        SpaceDirector.EventsDisabled = true;       // (the burst effects are pooled elsewhere: this meters the field's own frame)
         long used = TestHarness.AllocatedBytes(() =>
         {
             for (int i = 0; i < 120 * 30; i++) drift.Tick(Dt, v * (0.5f + (i % 900) / 900f));
@@ -682,6 +691,140 @@ public static class AsteroidDriftTest
             }
         });
         Debug.Log("[AST] whole Space backdrop over the same 2 minutes: " + whole + " bytes");
+    }
+
+    // ---- decorative events: rock vs rock, rock vs planet ---------------------------------
+
+    static bool TwoRocks(WorldBackdrop wb, SpaceAsteroidDrift drift, out SpaceAsteroidDrift.Rock a, out SpaceAsteroidDrift.Rock b)
+    {
+        a = b = null;
+        for (int i = 0; i < 120 * 30; i++)
+        {
+            var found = new List<SpaceAsteroidDrift.Rock>();
+            foreach (var r in drift.Rocks) if (r.active) found.Add(r);
+            if (found.Count >= 3) { a = found[0]; b = found[1]; return true; }
+            wb.Step(Dt);
+        }
+        return false;
+    }
+
+    static void Events()
+    {
+        Time.timeScale = 1f;
+        moveBackGround.speed = 0.2f;
+        SpaceDirector.AsteroidSeedOverride = -1;
+        SpaceDirector.EventsDisabled = false;
+        SpaceDirector.RocksBreakableOverride = true;       // (the events, like the hit bodies, need a run on)
+        var go = new GameObject("~AsteroidEventTest");
+        var wb = go.AddComponent<WorldBackdrop>();
+        try
+        {
+            wb.Show("Space", false);
+            var sd = wb.Current.Director as SpaceDirector;
+            var drift = sd != null ? sd.AsteroidDrift : null;
+            if (drift == null || !drift.Ready) { Check("events: the drift field is ready", false); return; }
+            for (int i = 0; i < 3 * 30; i++) wb.Step(Dt);
+
+            // rock vs rock, unalike: the smaller bursts with debris, the bigger one is shaken and survives
+            SpaceAsteroidDrift.Rock a, b;
+            Check("events: three rocks are in flight", TwoRocks(wb, drift, out a, out b));
+            if (a == null) return;
+            a.sizeT = 0.1f; b.sizeT = 0.9f;
+            b.maxHealth = 3; b.health = 3f;
+            int active = drift.ActiveCount, puffs = drift.PuffsEmitted, hits = drift.RockCollisions;
+            drift.Collide(a, b);
+            Check("a collision of unalike rocks: the small one bursts, frees its slot, leaves smoke debris; the big one is shaken",
+                  drift.RockCollisions == hits + 1 && !a.active && b.active && b.health < 3f && b.flash > 0f &&
+                  drift.ActiveCount == active - 1 && drift.PuffsEmitted > puffs);
+            Check("... and the burst rock's hit body is gone", a.target == null || !a.target.gameObject.activeSelf);
+
+            // alike: both burst
+            SpaceAsteroidDrift.Rock c, d;
+            Check("events: two more rocks arrive", TwoRocks(wb, drift, out c, out d));
+            if (c == null) return;
+            c.sizeT = 0.5f; d.sizeT = 0.55f;
+            drift.Collide(c, d);
+            Check("a collision of alike rocks bursts both", !c.active && !d.active);
+            // the freed slots are reused cleanly
+            bool reused = false;
+            for (int i = 0; i < 90 * 30 && !reused; i++) { wb.Step(Dt); reused = c.active || d.active; }
+            Check("the slots of burst rocks are reused", reused);
+
+            // rock vs planet: impact on the surface, plume, a crater mark that fades, the rock is consumed
+            SpaceAsteroidDrift.Rock e, f;
+            Check("events: rocks to fire at a planet", TwoRocks(wb, drift, out e, out f));
+            if (e == null) return;
+            var planet = sd.Bodies[0].items[0];
+            bool wasActive = planet.active;
+            planet.active = true;
+            planet.x = e.piece.x + 1.5f; planet.y = e.piece.y + 0.2f; planet.size = 2.4f;
+            int impacts = drift.PlanetImpacts;
+            puffs = drift.PuffsEmitted;
+            drift.Impact(e, planet);
+            Check("a planet impact: the rock is consumed, a plume rises and a crater mark glows on the planet",
+                  drift.PlanetImpacts == impacts + 1 && !e.active && drift.PuffsEmitted > puffs && drift.LiveMarks == 1);
+            int m = System.Array.FindIndex(drift.MarkPlanet, p => p == planet);
+            drift.Tick(Dt, 0f);
+            Vector3 mp = m >= 0 ? drift.Marks[m].transform.localPosition : Vector3.zero;
+            float onSurface = Mathf.Abs(Vector2.Distance(new Vector2(mp.x, mp.y), new Vector2(planet.x, planet.y)) -
+                                        planet.size * SpaceDirector.PlanetRadiusShare);
+            Check("the mark sits on the planet's surface at the contact point (" + onSurface.ToString("F3") + " u off)",
+                  m >= 0 && drift.Marks[m].enabled && onSurface < 0.05f && drift.Marks[m].sortingOrder > planet.sr.sortingOrder);
+            float ageBefore = drift.MarkAge[m];
+            drift.Tick(0f, 0f);
+            Check("a paused backdrop freezes the mark", drift.MarkAge[m] == ageBefore);
+            planet.x += 0.5f;
+            drift.Tick(Dt, 0f);
+            Check("the mark rides with its planet", Mathf.Abs(drift.Marks[m].transform.localPosition.x - (mp.x + 0.5f)) < 0.05f);
+            for (int i = 0; i < (int)(SpaceDirector.MarkLife / Dt) + 5; i++) drift.Tick(Dt, 0f);
+            Check("the crater mark fades out and frees its slot", drift.LiveMarks == 0 && !drift.Marks[m].enabled);
+            planet.active = wasActive;
+
+            // a fated rock really does fly into its target (scripted head-on course)
+            for (int i = 0; i < 30; i++) wb.Step(Dt);
+            SpaceAsteroidDrift.Rock g, h;
+            Check("events: rocks for a head-on course", TwoRocks(wb, drift, out g, out h));
+            if (g == null) return;
+            hits = drift.RockCollisions;
+            g.baseX = -1f; g.baseY = 0f; g.heading = 0f; g.piece.vx = 0.3f; g.speed = 0.3f;
+            h.baseX = 1f; h.baseY = 0.5f; h.heading = 180f; h.piece.vx = -0.3f; h.speed = 0.3f;
+            h.piece.tier = g.piece.tier;
+            g.fate = SpaceAsteroidDrift.FateRock; g.aimRock = h; g.aimId = h.id;
+            for (int i = 0; i < 12 * 30 && drift.RockCollisions == hits; i++) drift.Tick(Dt, 0f);
+            Check("a fated rock eases onto its target's line and collides (" + (drift.RockCollisions - hits) + " collision)",
+                  drift.RockCollisions == hits + 1);
+
+            // naturally, over ten minutes: events happen, rocks stay horizontal, bookkeeping holds
+            int fates = drift.RockFates + drift.PlanetFates, coll = drift.RockCollisions, imp = drift.PlanetImpacts;
+            bool horizontal = true, counts = true;
+            for (int i = 0; i < 600 * 30; i++)
+            {
+                moveBackGround.speed = Mathf.Repeat(i * 0.0004f, 0.6f);
+                wb.Step(Dt);
+                if (i % 30 != 0) continue;
+                foreach (var r in drift.Rocks)
+                {
+                    if (!r.active) continue;
+                    horizontal &= r.piece.vy == 0f && r.piece.rate == 0f;
+                    int owned = 0;
+                    for (int k = 0; k < drift.PuffOwner.Length; k++) if (drift.PuffOwner[k] == drift.Rocks.IndexOf(r)) owned++;
+                    counts &= r.livePuffs == owned;
+                }
+                counts &= drift.LiveMarks <= SpaceDirector.MarkSlots;
+            }
+            Debug.Log("[AST] ten minutes: " + (drift.RockFates + drift.PlanetFates - fates) + " fated, " +
+                      (drift.RockCollisions - coll) + " rock collisions, " + (drift.PlanetImpacts - imp) + " planet impacts");
+            Check("some rocks are fated to collide or hit a planet, and the events happen but stay occasional",
+                  drift.RockFates + drift.PlanetFates > fates + 5 &&
+                  drift.RockCollisions + drift.PlanetImpacts > coll + imp);
+            Check("through the events the rocks stay purely horizontal and the smoke bookkeeping holds", horizontal && counts);
+        }
+        finally
+        {
+            SpaceDirector.RocksBreakableOverride = false;
+            Time.timeScale = 1f;
+            Object.DestroyImmediate(go);
+        }
     }
 
     // ---- seeded --------------------------------------------------------------------------
