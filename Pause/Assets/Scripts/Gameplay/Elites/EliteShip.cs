@@ -830,7 +830,7 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
     Vector2 Navigate(Vector2 goal, float speedScale, float dt)
     {
         // (a roamer flies where its brain says, off the view too; the reflex in Steer still turns it off what is about to hit it)
-        if (Brain.Roams) { goal = RoamGoal(goal); evading = false; hitIn = -1f; claim = goal; return goal; }
+        if (Brain.Roams) { evading = false; hitIn = -1f; claim = goal; return goal; }
         goal = ClampGoal(goal);
         if (!EliteEvasion.Enabled || Brain.Steadfast) { evading = false; hitIn = -1f; claim = goal; return goal; }
         planIn -= dt;
@@ -928,7 +928,7 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
                 if (BlinkSpotSafe) Blink(spot, false);   // (never out of one thing into another)
             }
             cooldown -= dt;
-            if (cooldown <= 0f && escapeLeft <= 0f && havePlayer && InZone && Brain.WantsAttack(seen))
+            if (cooldown <= 0f && escapeLeft <= 0f && havePlayer && (Brain.Roams || InZone) && Brain.WantsAttack(seen))
             {
                 if (MayCommit(false)) BeginAttack();
                 else { cooldown = EliteEvasion.HoldFireSeconds; HeldFire++; }
@@ -1141,13 +1141,6 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
     // way in or out, never hold there.
     public float ZoneTop => FightZone.Top(FightZone.HalfOf(Def));
     public float ZoneY(float y) => Mathf.Min(y, ZoneTop);
-    // A roamer's goal: its legs off the view are free, but a point INSIDE the view (a perch, a ready point, an orbit or a pass) is
-    // held under the zone top. Every roaming brain -- present and future -- inherits this; ZoneY is for brains that want the exact row.
-    Vector2 RoamGoal(Vector2 g)
-    {
-        if (g.y > ZoneTop && g.y <= EliteSystem.ViewTop && Mathf.Abs(g.x) <= EliteSystem.ViewHalfWidth) g.y = ZoneTop;
-        return g;
-    }
     public bool InZone => transform.position.y <= ZoneTop + FightZone.AttackSlack;
 
     // A soft push off the rails (the hard crash is Collide's).

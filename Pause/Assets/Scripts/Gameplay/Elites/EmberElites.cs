@@ -185,7 +185,7 @@ public class StokerBrain : EliteBrain
         Vector2 at;
         if (edge == 2) at = new Vector2(Mathf.Clamp(f.x + Random.Range(-2.4f, 2.4f), -EmberFlight.Edge(def, .5f), EmberFlight.Edge(def, .5f)), EmberFlight.AboveY(def));
         else at = new Vector2((edge == 0 ? -1f : 1f) * EmberFlight.OffX(def),
-                              Mathf.Clamp(f.y + Random.Range(.8f, 3.2f), EliteSystem.ViewBottom + 2.2f, EliteSystem.ViewTop - .8f));
+                              Mathf.Clamp(f.y + Random.Range(.8f, 3.2f), EliteSystem.ViewBottom + 2.2f, Mathf.Min(EliteSystem.ViewTop - .8f, ship.ZoneTop)));
         ship.Warp(at);
         stage = Stage.Ready;
         ready = 0f;
@@ -353,7 +353,7 @@ public class StraferBrain : EliteBrain
     // The top third of the view, under the very top.
     public static void Band(EliteDef def, out float lo, out float hi)
     {
-        hi = EliteSystem.ViewTop - def.hullRadius - .5f;
+        hi = Mathf.Min(EliteSystem.ViewTop - def.hullRadius - .5f, FightZone.Top(FightZone.HalfOf(def)));
         lo = Mathf.Min(hi, EliteSystem.ViewTop - (EliteSystem.ViewTop - EliteSystem.ViewBottom) / 3f + def.hullRadius);
     }
 
@@ -740,7 +740,7 @@ public class AshlingBrain : EliteBrain
     {
         float edge = EmberFlight.Edge(def, .5f);
         float y = Mathf.Min(f.y + def.keepDistance, EliteSystem.ViewTop - def.hullRadius - .9f) - (i % 2 == 1 ? .7f : 0f);
-        return new Vector2(Columns[Mathf.Clamp(i, 0, Columns.Length - 1)] * edge, ship.ReachY(y));
+        return new Vector2(Columns[Mathf.Clamp(i, 0, Columns.Length - 1)] * edge, ship.ZoneY(ship.ReachY(y)));
     }
 
     // The next perch for a pilot at `f`: not this one, not the last, none within MinRange of the pilot (else the farthest); locked in `Next`.
@@ -950,7 +950,7 @@ public abstract class EmberHoldBrain : EliteBrain
     protected override void OnBind() { phase = Random.value * Mathf.PI * 2f; }
 
     public float Amplitude => Mathf.Max(0f, Mathf.Min(def.laneOffset, EliteSystem.RailEdge - def.hullRadius - .6f));
-    public float Height => ship.ReachY(EliteSystem.ViewTop - def.topMargin);
+    public float Height => ship.ZoneY(ship.ReachY(EliteSystem.ViewTop - def.topMargin));
 
     public override Vector2 Goal(Vector2 follow, float dt)
     {

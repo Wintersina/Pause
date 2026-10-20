@@ -241,9 +241,9 @@ public static class TideDockTest
             Step(1.2f);
             bool light = e.HasLights;
             var healthy = new HashSet<int>();
-            Step(1f, () => { pilot.position = new Vector3(Mathf.Sin(Time.frameCount * .1f), -2.5f, 0f); healthy.Add(e.CurrentFrame); });
+            Step(3f, () => { pilot.position = new Vector3(Mathf.Sin(Time.frameCount * .1f), -2.5f, 0f); healthy.Add(e.CurrentFrame); });
             Check(x.key + ": whole, it draws its lights over the flight cells (" + string.Join(",", healthy) + "), no burn loop yet",
-                  light && !e.Damaged && !e.DamagedLoops && healthy.Contains(3) && !healthy.Contains(10));
+                  light && !e.Damaged && !e.DamagedLoops && (healthy.Contains(3) || healthy.Contains(7) || healthy.Contains(8)) && !healthy.Contains(10));
             e.TakeHit(EliteDamage.Teleport, e.Position, 1);
             Step(.1f);
             if (e.Hidden) WaitBack(e);

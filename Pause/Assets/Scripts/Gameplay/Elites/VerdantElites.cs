@@ -575,13 +575,13 @@ public class RaptorBrain : EliteBrain
         if (entry == 2)
         {
             float edge = FrostFlight.Edge(def, .5f);
-            readyAt = new Vector2(Random.Range(-edge, edge), EliteSystem.ViewTop - def.hullRadius * .3f);
+            readyAt = new Vector2(Random.Range(-edge, edge), ship.ZoneY(EliteSystem.ViewTop - def.hullRadius * .3f));
             from = new Vector2(readyAt.x, FrostFlight.AboveY(def));
         }
         else
         {
             float sx = entry == 0 ? -1f : 1f;
-            float y = Random.Range(EliteSystem.ViewTop - 3.6f, EliteSystem.ViewTop - 1.5f);
+            float y = ship.ZoneY(Random.Range(EliteSystem.ViewTop - 3.6f, EliteSystem.ViewTop - 1.5f));
             readyAt = new Vector2(sx * (EliteSystem.RailEdge + .05f), y);   // (a hull's width partly off the board)
             from = new Vector2(sx * SpaceFlight.OffX(def), y);
         }
@@ -815,7 +815,7 @@ public class CanopyBrain : EliteBrain
     // Where perch `i` is: its column, topMargin under the top (inside the player's reach) less the height of a hop's arc, so the top of a
     // leap reaches that line and the player's reach cap never flattens it.
     public Vector2 Station(int i) =>
-        new Vector2(Columns[Mathf.Clamp(i, 0, Columns.Length - 1)] * FrostFlight.Edge(def, .4f), ship.ReachY(EliteSystem.ViewTop - def.topMargin) - HopArc);
+        new Vector2(Columns[Mathf.Clamp(i, 0, Columns.Length - 1)] * FrostFlight.Edge(def, .4f), ship.ZoneY(ship.ReachY(EliteSystem.ViewTop - def.topMargin)) - HopArc);
 
     void BeginHop()
     {
@@ -1013,7 +1013,7 @@ public class FloaterBrain : EliteBrain
     }
 
     public Vector2 Station(int c) =>
-        new Vector2(Columns[Mathf.Clamp(c, 0, Columns.Length - 1)] * FrostFlight.Edge(def, .55f), ship.ReachY(EliteSystem.ViewTop - def.topMargin - .2f));
+        new Vector2(Columns[Mathf.Clamp(c, 0, Columns.Length - 1)] * FrostFlight.Edge(def, .55f), ship.ZoneY(ship.ReachY(EliteSystem.ViewTop - def.topMargin - .2f)));
 
     // A different station, at least MinMove from where it was.
     int Pick()
@@ -1186,7 +1186,7 @@ public class AnchorBrain : EliteBrain
     void Latch(Vector2 follow)
     {
         stage = Stage.Anchored;
-        anchorY = ship.ReachY(Mathf.Min(follow.y + Standoff, EliteSystem.ViewTop - def.hullRadius - 1.2f));
+        anchorY = ship.ZoneY(ship.ReachY(Mathf.Min(follow.y + Standoff, EliteSystem.ViewTop - def.hullRadius - 1.2f)));
         settled = false;
         anchored = 0f;
         sweepsLeft = SweepsPerAnchor;
@@ -1254,7 +1254,7 @@ public class LumberBrain : EliteBrain
     {
         Clock += dt;
         float edge = FrostFlight.Edge(def, .45f);
-        return new Vector2(Mathf.Sin(Clock * SlideRate + phase) * SlideAmp * edge, ship.ReachY(EliteSystem.ViewTop - def.topMargin) + Mathf.Sin(Clock * .8f) * .06f);
+        return new Vector2(Mathf.Sin(Clock * SlideRate + phase) * SlideAmp * edge, ship.ZoneY(ship.ReachY(EliteSystem.ViewTop - def.topMargin)) + Mathf.Sin(Clock * .8f) * .06f);
     }
 
     public override bool WantsAttack(Vector2 seen) => Pos.y > seen.y + MinAttackAbove;
