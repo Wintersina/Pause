@@ -327,6 +327,8 @@ public static class ShipWeaponUpgradesTest
         Check("the charge countdown is the cooldown range scaled by the level", inRange);
     }
 
+    // A capped target (an elite): the per-firing allowance still applies to these. The boss itself is
+    // uncapped (BossTarget) and paces itself with its hit window.
     class FakeBoss : MonoBehaviour, IShipAttackTarget
     {
         public float weight;
@@ -354,7 +356,7 @@ public static class ShipWeaponUpgradesTest
             if (go != null) Object.DestroyImmediate(go);
             SetLevel(id, 0);
         }
-        Check("a max-level firing still deals a boss at most one hit (" + got + ")", capped);
+        Check("a max-level firing still deals a capped target (an elite) at most one hit (" + got + ")", capped);
 
         SetLevel(12, ShipWeaponUpgrades.MaxLevel);
         FreshScene();

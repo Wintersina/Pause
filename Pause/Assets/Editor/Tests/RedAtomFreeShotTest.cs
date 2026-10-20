@@ -418,6 +418,8 @@ public static class RedAtomFreeShotTest
         Teardown(r);
     }
 
+    // A capped target (an elite): the per-firing allowance still applies to these. The boss itself is
+    // uncapped (BossTarget) and paces itself with its hit window.
     class FakeBoss : MonoBehaviour, IShipAttackTarget
     {
         public float weight;
@@ -440,7 +442,7 @@ public static class RedAtomFreeShotTest
             SetTimer(c, 20f);
             c.FreeShot();
             Steps(c.Runner, 3f);
-            Check(ShipLoadoutTable.For(id).attackName + " free volley: the boss takes at most one full hit (" +
+            Check(ShipLoadoutTable.For(id).attackName + " free volley: a capped target takes at most one full hit (" +
                   boss.weight + " over " + boss.hits + ")",
                   boss != null && boss.hits >= 1 && boss.weight <= 1f + 1e-4f &&
                   !ShipPowerController.CinematicClearActive);

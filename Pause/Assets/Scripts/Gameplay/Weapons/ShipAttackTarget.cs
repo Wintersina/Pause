@@ -13,17 +13,19 @@ using UnityEngine;
 // `weight` is the share of one full ultimate hit this contact is worth: a
 // single homing shot of the screen-clear volley, a rail slug or a fireball
 // burst are 1; a gatling shell, a beam tick or a disc pass are a fraction.
-// One firing of any attack never deals more than 1 in total to a single
-// boss (each attack carries a budget), so rapid-fire weapons can't end a
-// fight on their own. A boss using "ultimate hits shorten the fight" can
-// take seconds * weight off the clock, or bank weights into whole hits.
+// Other targets (elites) get one budget per firing, shared by its contacts.
+// The BOSS has no per-firing, per-barrage or per-ram cap (BossTarget is
+// IShipAttackTargetUncapped): every contact counts, and the only limit is the
+// boss's short hit window after a lost hit point (BossEncounter.TakePlayerHit,
+// BossConfig.HitInvulnerableSeconds). Weights bank into whole hits.
 public interface IShipAttackTarget
 {
     void TakeShipAttack(int ship, float weight, Vector3 at);
 }
 
-// A target that takes every hit in full, outside the firing's boss allowance: ordinary small things that
-// happen to need more than one hit (Space's backdrop rocks), so one volley can break several of them.
+// A target that takes every hit in full, outside the firing's allowance: the boss (which limits itself with
+// its own hit window) and ordinary small things that happen to need more than one hit (Space's backdrop rocks),
+// so one volley can break several of them.
 public interface IShipAttackTargetUncapped : IShipAttackTarget { }
 
 public static class ShipAttackHits
@@ -36,7 +38,8 @@ public static class ShipAttackHits
     // Destroys a hazard the way every player weapon does (explosion in the
     // weapon's colour, sound, star dust, codex, secret-meter credit), or hands
     // the hit to an IShipAttackTarget. Returns true when the target was
-    // destroyed. `budget` is what is left of this firing's boss allowance.
+    // destroyed. `budget` is what is left of this firing's allowance for capped
+    // targets (elites); uncapped ones (the boss, backdrop rocks) ignore it.
     public static bool Hit(GameObject target, int ship, float weight, ref float budget)
     {
         if (target == null) return false;
@@ -45,6 +48,8 @@ public static class ShipAttackHits
         {
             if (special is IShipAttackTargetUncapped)
             {
+                AttackTargetHits++;
+                AttackTargetWeight += weight;
                 special.TakeShipAttack(ship, weight, target.transform.position);
                 return false;
             }

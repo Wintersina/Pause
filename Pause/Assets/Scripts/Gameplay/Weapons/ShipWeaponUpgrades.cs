@@ -12,11 +12,12 @@ using UnityEngine;
 // effect, or a shorter cooldown (a cut of the charge time, additive). Every
 // track alternates "more" and "faster" so each colour bought is felt.
 //
-// Fairness: every hit still goes through ShipAttackHits with the firing's
-// boss budget, and multi-shot weapons split one full hit between their
-// shots, so a boss never takes more than one hit per firing at any level --
-// a faster cooldown is the only thing that speeds up a boss fight. Shot
-// counts stay well under AttackPool.MaxProjectiles.
+// Fairness: every hit goes through ShipAttackHits, and multi-shot weapons
+// split one full hit between their shots, so a firing is worth about one
+// hit on a boss at any level (held weapons -- flame, beam, disc -- add a
+// tick's worth for every extra tick, and the boss's own hit window,
+// BossConfig.HitInvulnerableSeconds, paces the rest). Shot counts stay well
+// under AttackPool.MaxProjectiles.
 //
 // The one place for the numbers: change a track here and the runner
 // (ShipAttackRunner), the charge timer (ShipPowerController) and the dock's
