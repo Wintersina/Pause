@@ -4,7 +4,7 @@ using UnityEditor.SceneManagement;
 using UnityEngine;
 
 // The Storm backdrop (StormDirector, StormLightning): a thunderstorm, never Tide's ocean.
-//   * its own spec (own folder, two variant sets, no night side), layers rising far -> near, the ground pieces
+//   * its own spec (own folder, four variant sets, v3 the night side), layers rising far -> near, the ground pieces
 //     PINNED to the mid tile, every layer behind gameplay;
 //   * LIGHTNING IS GENTLE (photosensitivity): over many seeded 10-minute runs no two light pulses start closer
 //     than MinPulseGap, never more than 2 in any second (a flash and its faint re-strike), none in the opening
@@ -101,7 +101,7 @@ public static class StormBackdropTest
     static void Catalog()
     {
         var spec = BackdropCatalog.For("Storm");
-        Check("Storm has its own spec, folder and two variant sets (not Tide's stand-in)",
+        Check("Storm has its own spec, folder and four variant sets (not Tide's stand-in)",
               spec.world == "Storm" && spec.folder == "Worlds/Storm/Backdrop3/" && spec.variantSets == StormTuning.Variants);
         string[] want = { "sky", "far", "mid", "ground", "flow", "glow", "bolts", "mist", "wisps", "ceiling", "bloom", "gusts", "debris", "rain" };
         bool all = true;
@@ -116,9 +116,11 @@ public static class StormBackdropTest
             rising &= spec.layers[i].rate > spec.layers[i - 1].rate ||
                       (spec.layers[i].pinTo == spec.layers[i - 1].name && spec.layers[i].rate == spec.layers[i - 1].rate);
         Check("Storm rates strictly increase far -> near", rising);
-        Check("Storm ships two ground sets and no night side (the user dropped v4 and the gray eye deck v3)",
-              spec.variantSets == 2 && !spec.Night(1) && !spec.Night(2) && !spec.Night(3) && !spec.Night(4) &&
-              !System.IO.File.Exists(Art + "v4/mid.png"));
+        Check("Storm ships four ground sets rotating, v3 the night side (darker), v1 / v2 / v4 day",
+              spec.variantSets == 4 && !spec.Night(1) && !spec.Night(2) && spec.Night(3) && !spec.Night(4) &&
+              spec.VariantBrightness(3) < 1f && spec.VariantBrightness(1) >= spec.VariantBrightness(3) &&
+              System.IO.File.Exists(Art + "v3/mid.png") && System.IO.File.Exists(Art + "v4/mid.png") &&
+              StormTuning.ClusterWeights.Length == 5 && StormTuning.VariantBrightness.Length == 5 && StormTuning.Night.Length == 5);
         Check("the art is dark: Storm is drawn below the bright-world lift, so shots keep the thin outline", !spec.Bright);
         var set = new BackdropSet("Storm", new GameObject("~root").transform, 3f, 5f);
         Check("a Storm backdrop is built by the StormDirector (not TideDirector)", set.Director is StormDirector && !(set.Director is TideDirector));
@@ -336,8 +338,11 @@ public static class StormBackdropTest
 
     static void EyeGone()
     {
-        Check("Storm ships exactly two ground sets (v3, the gray eye deck, is removed)", StormTuning.Variants == 2 && StormTuning.ClusterWeights.Length == 3);
-        Check("no v3 tile set and no 'eye' atlas on disk", !Directory.Exists(Art + "v3") && !File.Exists(Art + "eye.png") && !File.Exists(Art + "eye.json"));
+        Check("Storm ships exactly four ground sets (v1, v2, v4 day, v3 night; the old gray eye deck stays gone)", StormTuning.Variants == 4 && StormTuning.ClusterWeights.Length == 5);
+        Check("no 'eye' atlas on disk (the new v3 is the night side, not a cyclone eye)", !File.Exists(Art + "eye.png") && !File.Exists(Art + "eye.json"));
+        foreach (string v in new[] { "v1", "v2", "v3", "v4" })
+            foreach (string r in new[] { "sky", "far", "mid", "flow" })
+                Check("Storm " + v + "/" + r + ".png is installed", File.Exists(Art + v + "/" + r + ".png"));
     }
 
     // ---- the art is a storm, not an ocean -----------------------------------------------------------
@@ -379,6 +384,8 @@ public static class StormBackdropTest
 
     // 2026-10: Storm v1 / v2 are COLOURFUL (indigo / violet / teal / electric blue with amber rims). Still no ocean green, no
     // pink (Space only), no red (the player's); violet stays a minority (the capacitor pickup is violet).
+    // Tile red cap 0.6% (same as the atlas check): the v4 gust-front crest rims measure ~0.49%; the user approved the art on 2026-10-20.
+    public const float MaxTileRedShare = .006f;
     public const float MaxTealShare = .01f, MaxVioletShare = .30f, MaxRedShare = .003f, MaxPinkShare = .003f, MinMidSaturation = .22f;
 
     // v1 / v2 are the 1024x2048 HD sets.
@@ -397,7 +404,7 @@ public static class StormBackdropTest
                 var m = Measure(path);
                 Check("Storm v" + v + " " + r + ": no ocean green / mint (" + (m.teal * 100f).ToString("F2") + "% <= " + MaxTealShare * 100f + "%), violet a minority (" +
                       (m.violet * 100f).ToString("F1") + "% <= " + MaxVioletShare * 100f + "%), no pink (" + (m.pink * 100f).ToString("F2") + "%), no red (" + (m.red * 100f).ToString("F2") + "%)",
-                      m.teal <= MaxTealShare && m.violet <= MaxVioletShare && m.pink <= MaxPinkShare && m.red <= MaxRedShare);
+                      m.teal <= MaxTealShare && m.violet <= MaxVioletShare && m.pink <= MaxPinkShare && m.red <= MaxTileRedShare);
                 if (r == "mid" && Hd(v))
                 {
                     midSat = Mathf.Min(midSat, m.sat);
