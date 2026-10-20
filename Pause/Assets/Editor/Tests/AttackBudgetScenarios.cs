@@ -622,7 +622,7 @@ public static class AttackBudgetScenarios
         public bool Telling => ship != null && ship.Telling && !Rams;
         // one attack per roll: once the first is over, no second is begun; done when its shots are gone too
         public bool Done => ship != null && ship.Attacks >= 1 && ship.State != EliteState.Attack && ActiveRosterShots() == 0 && t > 1f;
-        bool Rams => def.attack == "lance_dash" || def.attack == "claw_dive" || def.attack == "ice_run" || def.attack == "leaf_dive";
+        bool Rams => def.attack == "lance_dash" || def.attack == "claw_dive" || def.attack == "ice_run" || def.attack == "leaf_dive" || def.attack == "leaf_swoop";
         float tellLeft;
 
         public Transform Begin(System.Random rng, Vector2 start)
@@ -654,7 +654,8 @@ public static class AttackBudgetScenarios
             if (ship == null || ship.State == EliteState.Dead) return;
             // (the drawing stays on screen until the crescent is away: a dive's lane and row are still known while it dives)
             var diving = ship.Attack as LeafDiveAttack;
-            if (!ship.Telling && !(ship.Acting && diving != null)) return;
+            var swoop = ship.Attack as LeafSwoopAttack;
+            if (!ship.Telling && !(ship.Acting && (diving != null || swoop != null))) return;
             var board = new Vector2(0f, -EliteSystem.Scroll);
             var lr = ship.Attack as LogRollAttack;
             if (lr != null)
@@ -671,6 +672,34 @@ public static class AttackBudgetScenarios
                     var lane = Hz.Segment(2610 + i, from, from + LogRollAttack.RollDir(sp.x) * LogRollAttack.LaneLength, def.shotSize * .4f + LogRollAttack.PathHalf, land, 4f);
                     lane.planOnly = lane.hasV = true; lane.va = lane.vb = board;
                     into.Add(lane);
+                }
+            }
+            // the Leafblade's swoop: the diagonal lane through the board and the row of each crescent, all drawn from the first frame of the tell
+            if (swoop != null)
+            {
+                var lane = Hz.Segment(2650, swoop.LaneStart, swoop.LaneEnd, def.hullRadius + LeafSwoopAttack.DiveHalfPad, tellLeft, 2.5f);
+                lane.planOnly = true;
+                into.Add(lane);
+                float rail = EliteSystem.RailEdge;
+                for (int i = 0; i < swoop.Rows; i++)
+                {
+                    var r = swoop.RowAt(i);
+                    var rowHz = Hz.Segment(2651 + i, r, new Vector2(swoop.RowDeg(i) > 90f ? -rail : rail, r.y), LeafSwoopAttack.SlashHalf, tellLeft + .1f, 3f);
+                    rowHz.planOnly = true;
+                    into.Add(rowHz);
+                }
+            }
+            // the Resin Warden's wall: a ring on every spot of it, from the landing on
+            var cm = ship.Attack as CanopyMortarAttack;
+            if (cm != null)
+            {
+                for (int i = 0; i < cm.Count; i++)
+                {
+                    float land = tellLeft + def.lobSeconds;
+                    Vector2 from = cm.Spot(i) + Vector2.up * (EliteSystem.Scroll * land);
+                    var ring = Hz.Circle(2660 + i, from, cm.PoolRadius + .05f, land, def.poolSeconds);
+                    ring.planOnly = ring.hasV = true; ring.va = ring.vb = board;
+                    into.Add(ring);
                 }
             }
             var sb = ship.Attack as SporeBurstAttack;

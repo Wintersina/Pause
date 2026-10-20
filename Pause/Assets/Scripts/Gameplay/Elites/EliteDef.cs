@@ -144,7 +144,7 @@ public class EliteDef
     // An elite's drawn silhouette is at least FloorHulls (lowered 1.9 -> 1.5, 2.1 -> 1.7 on 2026-10-18: the elites read too big) x the flown hull (0.58 u x ShipScale.Main = 0.78 u), the armoured / slow
     // classes HeavyFloorHulls x: the player's own ship never reads as the bigger one.
     public const float FloorHulls = 1.5f, HeavyFloorHulls = 1.7f;
-    public static readonly string[] HeavyBrains = { "hauler", "bastion", "siege", "tug", "fortress", "wrecker", "barge", "carrier", "patrol", "logger", "abyss", "netter", "pearler", "kiln", "furnace" };
+    public static readonly string[] HeavyBrains = { "hauler", "bastion", "siege", "tug", "fortress", "wrecker", "barge", "carrier", "patrol", "logger", "lumber", "abyss", "netter", "pearler", "kiln", "furnace" };
     public bool Heavy { get { return System.Array.IndexOf(HeavyBrains, brain) >= 0; } }
     public float TierFloorUnits { get { return (Heavy || System.Array.IndexOf(TideHeavyBrains, brain) >= 0 ? HeavyFloorHulls : FloorHulls) * shopingShips.ReferenceHullSize * ShipScale.Main; } }
     // Tide's own heavy brains (TideElites.cs: Bathyscaphe, Trawler, Pearl Warden): the same armoured / slow class as their base brains above.

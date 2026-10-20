@@ -2,11 +2,11 @@
   "key": "verdant_elite_sporebloom",
   "displayName": "Sporebloom",
   "world": "verdant",
-  "role": "spore burster",
+  "role": "spore balloon",
   "codexId": "elite_verdant_sporebloom",
-  "lore": "A slow armoured flower that drifts high over the canopy and breathes out seed pods. Each pod flies to a ringed spot, pops, and a ring of six spores drifts outward. Stay out of the dotted rings, or slip between the spores.",
-  "brain": "drifter",
-  "attack": "spore_burst",
+  "lore": "A slow spore balloon that floats high over the canopy, then sinks out of sight and rises again somewhere else. Its pods burst into rings of spores, the rings drawn first; hurt, it also leaves a lane of lingering spore cloud, outlined before it settles.",
+  "brain": "floater",
+  "attack": "spore_drift",
   "launchFrom": "podpad",
   "cells": {
     "flight": [
@@ -55,9 +55,9 @@
   "poolSeconds": 4.5,
   "heartColor": "#9C6BFF",
   "shotColor": "#A6FF3C",
-  "shotCore": "#FF5CE0",
+  "shotCore": "#FFE9A8",
   "engineColor": "#FFB45A",
-  "hearts": 2,
+  "hearts": 3,
   "heartSize": 0.18,
   "heartOrbit": 0.678,
   "heartStyle": "Halo",
@@ -101,5 +101,7 @@
   ],
   "armored": false,
   "shotMotion": "burst",
-  "followLag": 0.25
+  "followLag": 0.25,
+  "hurtHide": true,
+  "hideSeconds": 3.5
 }

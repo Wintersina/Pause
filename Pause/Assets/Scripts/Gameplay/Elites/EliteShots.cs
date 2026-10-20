@@ -215,6 +215,8 @@ public class EliteShot : MonoBehaviour, IHostileShot
     Vector2 baseP;                  // Flutter: the straight course the leaf weaves round
     float flutterPhase;
     bool rolling;                   // Roll: landed, rolling
+    float poolScale = 1f;           // Cloud: the landed pool is this many times the usual size
+    float rollToward;               // RollToward: a landed log rolls this way (+1 / -1), whatever its x (0: toward the nearer rail)
     bool slashShape;                // Slash: the capsule is the hitbox
     CapsuleCollider2D slashCol;
     SpriteRenderer[] ghosts;        // Streak: the afterimage
@@ -275,7 +277,9 @@ public class EliteShot : MonoBehaviour, IHostileShot
     public float MineArmSpeed => mineArmSpeed;
     // A glob in the air: seconds until it lands, and the pool it will be.
     public float LobRemaining => airborne ? Mathf.Max(0f, lobTotal - lobTime) : 0f;
-    public float PoolRadius => def != null ? def.shotSize * 2.1f * .42f : radius;
+    // Seconds before it dries up / is spent (a pool's, once it has landed).
+    public float LifeLeft => Active ? Mathf.Max(0f, life - age) : 0f;
+    public float PoolRadius => def != null ? def.shotSize * 2.1f * .42f * poolScale : radius;
     public float PoolSeconds => def != null ? def.poolSeconds : 0f;
     public int Bounced { get; private set; }
     public bool MarkShown => mark != null && mark.enabled;
@@ -400,6 +404,8 @@ public class EliteShot : MonoBehaviour, IHostileShot
         mot = ShotMotion.None;
         generation = 0;
         rolling = false;
+        poolScale = 1f;
+        rollToward = 0f;
         slashShape = false;
         chipLife = 0f;
         lastSpawned = 0;
@@ -534,6 +540,22 @@ public class EliteShot : MonoBehaviour, IHostileShot
         mark.transform.localScale = Vector3.one * def.shotSize * 2.4f / Mathf.Max(.01f, EliteFxArt.MarkRing.bounds.size.x);
         mark.color = TelegraphStyle.WithAlpha(tint, TelegraphStyle.RingAlpha);
     }
+
+    // The pool this glob leaves stays `extra` seconds longer (the Resin Warden's mortar lingers more for every heart it has lost).
+    public void Linger(float extra) { life += Mathf.Max(0f, extra); }
+
+    // A just-lobbed glob lands as a CLOUD: a plain pool `scale` times the usual size (no spores of its own) that stays `seconds`
+    // (the Sporebloom's lingering spore zone).
+    public void Cloud(float scale, float seconds)
+    {
+        poolScale = Mathf.Max(1f, scale);
+        mot &= ~ShotMotion.Burst;
+        life = def.lobSeconds + Mathf.Max(.1f, seconds);
+    }
+
+    // A just-lobbed log rolls on toward `dirX` (+1 right / -1 left) when it lands, not toward the nearer rail (the Timber Hauler's raft:
+    // two trunks that roll down side by side).
+    public void RollToward(float dirX) { rollToward = dirX >= 0f ? 1f : -1f; }
 
     // Turns a just-fired shot into a slung one (gravity_sling): it curves
     // from where it is past `bend` and through `to` (world), arriving in
@@ -693,7 +715,7 @@ public class EliteShot : MonoBehaviour, IHostileShot
         bool poolArt = pool != EliteFxArt.Pool;   // (the world's own painted pool is drawn as it is; today's puddle is tinted)
         body.color = poolArt ? Color.white : tint;
         core.enabled = !poolArt;
-        float size = def.shotSize * 2.1f;
+        float size = def.shotSize * 2.1f * poolScale;
         float k = size / Mathf.Max(.01f, pool.bounds.size.x);
         transform.localScale = Vector3.one * k;
         radius = size * .42f;
@@ -727,7 +749,7 @@ public class EliteShot : MonoBehaviour, IHostileShot
         rolling = true;
         mark.enabled = false;
         HitOn(true);
-        float dirX = p.x > .25f ? 1f : (p.x < -.25f ? -1f : ((pool != null && (pool.Launched & 1) == 1) ? -1f : 1f));   // toward the nearer rail
+        float dirX = rollToward != 0f ? rollToward : p.x > .25f ? 1f : (p.x < -.25f ? -1f : ((pool != null && (pool.Launched & 1) == 1) ? -1f : 1f));   // toward the nearer rail (or where the raft sends it)
         velocity = new Vector2(dirX * ShotMotions.RollSpeed * .65f, -EliteSystem.Scroll - ShotMotions.RollSpeed * .76f);
         bounces = 1;
         age = 0f;

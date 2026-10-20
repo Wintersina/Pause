@@ -2,11 +2,11 @@
   "key": "verdant_elite_thornlash",
   "displayName": "Thornlash",
   "world": "verdant",
-  "role": "vine whip",
+  "role": "anchor whip",
   "codexId": "elite_verdant_thornlash",
-  "lore": "A long-legged thorn crawler that docks in the old vine towers. It slides in beside you, swells a whip root and draws the whole swept fan in dots before it cracks the vine across your spot. Step out over the start line while the dots blink: the far side is always left open.",
-  "brain": "thorn",
-  "attack": "vine_lash",
+  "lore": "A thorned vine whip that latches onto a rail from just outside the board and sweeps across the lane, the whole arc drawn first with a corridor left open. It swings across the top to the other rail and whips from there, and every wound adds a sweep.",
+  "brain": "anchor",
+  "attack": "thorn_sweep",
   "launchFrom": "towerbay",
   "cells": {
     "flight": [
@@ -38,7 +38,7 @@
   "topMargin": 1.6,
   "aggression": 0.5,
   "tellSeconds": 1.0,
-  "attackGap": 3.8,
+  "attackGap": 2.6,
   "avoidance": 0.55,
   "lookAhead": 0.4,
   "perception": 2.0,
@@ -53,11 +53,11 @@
   "lobSpacing": 1.1,
   "lobAhead": 1.8,
   "poolSeconds": 4.5,
-  "heartColor": "#E05CFF",
+  "heartColor": "#A56BFF",
   "shotColor": "#A6FF3C",
-  "shotCore": "#FF5CE0",
+  "shotCore": "#FFE9A8",
   "engineColor": "#FFB45A",
-  "hearts": 2,
+  "hearts": 3,
   "heartSize": 0.18,
   "heartOrbit": 0.63,
   "heartStyle": "Halo",
@@ -96,5 +96,7 @@
   "armored": false,
   "hazardSeconds": 0.4,
   "hazardSize": 4.6,
-  "followLag": 0.4
+  "followLag": 0.4,
+  "hurtHide": true,
+  "hideSeconds": 3.5
 }

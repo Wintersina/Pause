@@ -211,7 +211,7 @@ public static class EliteEvasionTest
         var w = InPlay("interceptor", new Vector2(.4f, -1f));
         pilot.position = new Vector3(.4f, 1.2f, 0f);
         Step(.5f);
-        var warden = Def("warden");
+        var warden = Def("canopy");
         var glob = EliteSystem.Shots.Fire(null, warden, EliteShots.Kind.Glob, new Vector2(-2f, 3f), Vector2.zero);
         glob.Lob(w.Position + Vector2.up * (SpawnSpace.ScrollSpeed * warden.lobSeconds), warden.lobSeconds);
         Step(warden.lobSeconds + 1.2f);

@@ -185,7 +185,7 @@ public static class EliteTest
             var frames = EliteArt.Frames(d);
             Check(d.key + ": strip loads as 7 cells, enough for its cell map", frames != null && frames.Length >= EliteArt.FrameCount && frames[0] != null && frames.Length >= d.cells.Count);
             Check(d.key + ": a known brain and attack", System.Array.IndexOf(EliteBrains.Ids, d.brain) >= 0 && System.Array.IndexOf(EliteAttacks.Ids, d.attack) >= 0);
-            Check(d.key + ": hearts: 2 (Space, Frost, Tide and Ember: 5 armoured / 3 not)", d.hearts == (d.world == "space" || d.world == "frost" || d.world == "tide" || d.world == "ember" ? (d.armored ? 5 : 3) : 2));
+            Check(d.key + ": hearts: 2 (Space, Frost, Tide, Ember and Verdant: 5 armoured / 3 not)", d.hearts == (d.world == "space" || d.world == "frost" || d.world == "tide" || d.world == "ember" || d.world == "verdant" ? (d.armored ? 5 : 3) : 2));
             Check(d.key + ": hearts are the player's own heart colour (ShipLivesIndicator.HeartTint)", d.HeartColor == ShipLivesIndicator.HeartTint);
             Check(d.key + ": shots are not the player's red", HueGap(d.ShotColor, PlayerRed) > 30f && HueGap(d.ShotCore, PlayerRed) > 30f &&
                   HueGap(d.ShotColor, AkiraPalette.Red) > 30f);
@@ -605,23 +605,23 @@ public static class EliteTest
         Check("... and break on the second rail they meet", !shard.Active && shard.EndReason == 2);
     }
 
-    // ---- Resin Warden: warden + resin_mortar -------------------------------------------
+    // ---- Resin Warden: canopy + canopy_mortar (its hops, the wall's gap and the heart-by-heart changes: VerdantEliteTest) -------------
 
     static void Warden()
     {
         Fresh(.02f);
         pilot.position = new Vector3(1f, -2.5f, 0f);
-        var e = InPlay("warden", new Vector2(0f, 1f));
+        var e = InPlay("canopy", new Vector2(0f, 1f));
         if (e == null || e.Def == null) { Check("warden elite exists", false); return; }
         var def = e.Def;
-        var brain = (WardenBrain)e.Brain;
-        Step(4f);
-        Check("warden takes a station high on the side away from the pilot (" + e.Position + ")",
-              brain.Side < 0f && e.Position.x < -.5f && Mathf.Abs(e.Position.y - brain.Station.y) < .4f &&
-              brain.Station.y <= EliteSystem.ViewTop - def.topMargin + 1e-3f && brain.Settled);
-        Check("warden wants to attack once planted", brain.WantsAttack(pilot.position));
+        var brain = (CanopyBrain)e.Brain;
+        Step(2f);
+        Check("warden perches high on the top (" + e.Position + ")",
+              Mathf.Abs(e.Position.y - brain.Station(brain.Perch).y) < .5f && brain.Station(brain.Perch).y <= EliteSystem.ViewTop - def.topMargin - CanopyBrain.HopArc + 1e-3f && brain.Phase == CanopyBrain.Stage.Perch);
+        Step(CanopyBrain.PerchWait + .1f);
+        Check("warden wants to attack once perched", brain.WantsAttack(pilot.position));
         e.ForceAttack();
-        var mortar = (ResinMortarAttack)e.Attack;
+        var mortar = (CanopyMortarAttack)e.Attack;
         bool glow = false;
         float tellSpeed = 0f;
         while (e.Telling)
@@ -631,46 +631,42 @@ public static class EliteTest
             glow |= e.ChargeGlowOn;
             tellSpeed = Mathf.Max(tellSpeed, e.Velocity.magnitude);
         }
-        Check("resin_mortar tell: planted, the pods charge (" + tellSpeed.ToString("0.0") + ")", glow && tellSpeed < 1.2f);
-        Step(def.shotInterval * (def.shotCount - 1) + Dt * 2f);
+        Check("canopy_mortar tell: planted, the pods charge (" + tellSpeed.ToString("0.0") + ")", glow && tellSpeed < 1.2f);
+        Step(def.shotInterval * (mortar.Count - 1) + Dt * 2f);
         var globs = new List<EliteShot>();
         foreach (var s in EliteSystem.Shots.All) if (s.Active && s.Kind == EliteShots.Kind.Glob) globs.Add(s);
-        bool air = globs.Count == def.shotCount;
+        bool air = globs.Count == mortar.Count && mortar.Count >= 3;
         foreach (var g in globs) air &= g.Airborne && g.MarkShown && !g.Hitbox.GetComponent<Collider2D>().enabled;
-        Check("resin_mortar lobs " + def.shotCount + " globs: in the air, harmless, each landing spot ringed (" + globs.Count + ")", air);
+        Check("canopy_mortar lobs its " + mortar.Count + " globs: in the air, harmless, each landing spot ringed (" + globs.Count + ")", air);
         globs.Sort((a, b) => a.LobTarget.x.CompareTo(b.LobTarget.x));
-        bool row = globs.Count == def.shotCount;
-        for (int i = 1; row && i < globs.Count; i++)
-            row &= Mathf.Abs(globs[i].LobTarget.x - globs[i - 1].LobTarget.x - def.lobSpacing) < .05f &&
-                   Mathf.Abs(globs[i].LobTarget.y - globs[0].LobTarget.y) < .1f;
+        bool row = globs.Count == mortar.Count;
+        for (int i = 1; row && i < globs.Count; i++) row &= Mathf.Abs(globs[i].LobTarget.y - globs[0].LobTarget.y) < .1f;
         string rowInfo = "";
         foreach (var g in globs) rowInfo += g.LobTarget.ToString("0.00") + " ";
-        Check("... onto a row across the lane, lobSpacing apart, ahead of the pilot (" + rowInfo + "centre " + mortar.RowCentre + ")",
-              row && globs[0].LobTarget.y > pilot.position.y + def.lobAhead * .6f &&
-              Mathf.Abs(mortar.RowCentre.x - pilot.position.x) < .6f);
+        Check("... onto a wall across the board, ahead of the pilot (" + rowInfo + ")", row && globs[0].LobTarget.y > pilot.position.y + def.lobAhead * .6f);
         Vector2 spot = globs.Count > 0 ? globs[0].LobTarget : Vector2.zero;
         Step(def.lobSeconds + .1f);
         bool pooled = globs.Count > 0;
         foreach (var g in globs) pooled &= g.Pooled && !g.MarkShown && g.Hitbox.GetComponent<Collider2D>().enabled &&
                                            Mathf.Abs(g.Velocity.y + EliteSystem.Scroll) < 1e-3f;
         Check("globs land as sticky pools that ride the board, now hazardous", pooled && Mathf.Abs(globs[0].transform.position.x - spot.x) < .05f);
-        Step(.5f);
-        Check("after the barrage the warden crosses to its other station", brain.Side > 0f && e.State == EliteState.Follow);
-        Step(def.poolSeconds - 1.5f);
+        Step(.5f, () => e.AttackCooldown = 99f);
+        Check("after the barrage the warden hops to another perch", brain.Hops >= 1 && e.State == EliteState.Follow);
+        Step(def.poolSeconds - 1.5f, () => e.AttackCooldown = 99f);
         int live = 0;
         foreach (var g in globs) if (g.Pooled) live++;
         Check("pools linger for poolSeconds (" + live + " still there)", live == globs.Count);
         // shooting one out of the way
         if (globs.Count > 0) globs[0].Hitbox.GetComponent<EliteShotHitbox>().TakeShipAttack(3, 1f, globs[0].transform.position);
         Check("a player weapon clears a pool", globs.Count > 0 && !globs[0].Active);
-        Step(2f);
+        Step(2f, () => e.AttackCooldown = 99f);
         live = 0;
         foreach (var g in globs) if (g.Active) live++;
         Check("... and the rest dry up", live == 0);
 
         // a pool on the pilot's path costs a heart like any enemy shot
         Fresh(.05f);
-        e = InPlay("warden", new Vector2(0f, 3f));
+        e = InPlay("canopy", new Vector2(0f, 3f));
         var glob = EliteSystem.Shots.Fire(e, e.Def, EliteShots.Kind.Glob, e.MuzzleWorld(0), Vector2.zero);
         glob.Lob(new Vector2(0f, .6f), .2f);
         Step(.3f);
@@ -1014,7 +1010,7 @@ public static class EliteTest
         EliteSystem.Step(Dt);
         Check("a lured crash kill pays the same", e == null && EliteShip.LastKillCause == EliteDamage.Crash && RunScore.Total - total == ScoreRules.EliteDown);
 
-        foreach (string brain in new[] { "icebreaker", "warden", "bastion", "sniper", "swooper", "fortress", "wrecker" })
+        foreach (string brain in new[] { "icebreaker", "canopy", "bastion", "sniper", "swooper", "fortress", "wrecker" })
         {
             Fresh(.05f);
             e = InPlay(brain, new Vector2(0f, 1f));
@@ -1140,7 +1136,7 @@ public static class EliteTest
         Fresh(.1f);
         pilot.position = new Vector3(0f, -2.5f, 0f);
         var r = InPlay("icebreaker", new Vector2(-1f, 1f));
-        var w = InPlay("warden", new Vector2(1f, 2f));
+        var w = InPlay("canopy", new Vector2(1f, 2f));
         r.AttackCooldown = w.AttackCooldown = 0f;
         Step(4f);   // warm up: rams, shards, lobs, pools
         before = System.GC.GetAllocatedBytesForCurrentThread();
