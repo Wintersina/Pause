@@ -68,6 +68,20 @@ public static class DustEconomyTest
               ScoreRules.ScoreDustPerSqrtPoint == BaseBonusPerSqrt && ScoreRules.ScoreDustCap == BaseBonusCap);
         Check("shop prices / skin costs unchanged",
               shopingShips.Prices[2] == 600f && ShipSkins.KindPrices[1] == 300f && ShipSkins.KindPrices[2] == 750f);
+        int mid = ShipId.Starter, mid2 = 0, last = 0, para = 0;
+        foreach (int id in ShipId.All)
+        {
+            if (PremiumShips.IsPremium(id)) { para = id; continue; }
+            if (last == 0 || SpaceDock.RowOf(id) > SpaceDock.RowOf(last)) last = id;
+        }
+        foreach (int id in ShipId.All)
+            if (id != mid && !PremiumShips.IsPremium(id) && SpaceDock.RowOf(id) > 1 && SpaceDock.RowOf(id) < SpaceDock.RowOf(last)) { mid2 = id; break; }
+        Check("skin 1 (the leftmost colour) costs 50 on the starter and a mid-row ship; skin 2 and the Special keep their prices",
+              mid2 != 0 && ShipSkins.PriceOf(mid, 1) == 50f && ShipSkins.PriceOf(mid2, 1) == 50f &&
+              ShipSkins.PriceOf(mid, 2) == 300f && ShipSkins.PriceOf(mid2, 2) == 300f &&
+              ShipSkins.PriceOf(mid, ShipSkins.Special) == 750f && SkinHearts.GainIfBought(mid, 1) == 1);
+        Check("last-row ships and Paragon keep normal prices",
+              ShipSkins.PriceOf(last, 1) == 300f && para != 0 && ShipSkins.PriceOf(para, 1) == PremiumShips.SkinPrice);
     }
 
     struct Totals { public float pickup, flight, kills, elites, bonus; public float Reward { get { return flight + kills + elites + bonus; } } }
