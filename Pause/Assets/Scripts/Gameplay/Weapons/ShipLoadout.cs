@@ -23,13 +23,13 @@ public enum ShipAttack
     ChainLightning, // a bolt that jumps between nearby enemies
     SkyJavelins,    // three rockets fly up from the nose, each opens into a javelin that strikes down its lane
     Blowtorch,      // a short-range flame cone held in front of the ship
-    SeekerEyes,     // a few eyes that home on the nearest targets
-    SolarFireball,  // a slow fireball that bursts over an area
-    Ricochet,       // a shuriken that bounces from enemy to enemy
-    Gatling,        // a burst of rapid shells in a tight forward cone
-    TractorBeam,    // a forward beam held for a moment, sweeping with the ship
+    ArcaneEye,      // an eye gazes up its cone and marks targets; the marks detonate 0.8 s later
+    HeatWave,       // a thin wall of heat rolls up the whole screen from the nose, burning what it passes
+    BoomerangStar,  // a shuriken thrown on an ellipse that hits out and back to the ship
+    ProximityMines, // mines launched ahead hold their screen position and blow when something comes close
+    AbductHurl,     // a beam lifts the nearest enemy, then hurls it at the densest group
     RailSlug,       // a piercing slug that hits everything in a narrow line
-    FeatherFan,     // a fan of darts in a forward spread
+    GaleWings,      // a feathered gust shoves everything up and outward; collisions hurt
     OrbitDisc,      // a disc that orbits the ship and smashes what it touches
     ParagonBarrage, // premium: a fan of cyan homing lances, each claims its own target
     ScreenClear,    // top tier only: the cinematic homing volley at everything (keep LAST: arrays are sized by it)
@@ -97,10 +97,12 @@ public struct ShipLoadout
     public string powerName, powerLine;
 
     // Attack tuning. Meaning depends on the attack (see ShipAttackRunner):
-    // shots -- projectiles / javelins / darts / eyes; maxHits -- chain and
-    // ricochet hops; duration -- held beams, cones and the orbit; range --
-    // reach in world units; width -- lane half-width / cone half-angle /
-    // orbit radius; speed -- projectile speed (world units per second).
+    // shots -- projectiles / javelins / marks / mines / waves / stars; maxHits --
+    // chain hops, bodies a hurled enemy pierces; duration -- held cones and the
+    // orbit, an eye's gaze, the gap between heat waves; range -- reach in world
+    // units; width -- lane half-width / cone half-angle / orbit radius / a heat
+    // wave's thickness / a gust's half-angle; speed -- projectile speed (world
+    // units per second), a wave's climb, a star's speed.
     public int shots;
     public int maxHits;
     public float duration;
@@ -149,10 +151,10 @@ public static class ShipLoadoutTable
             PowerTrigger.EnemiesOnScreen, 3, 0f,
             maxHits: 5, range: 4.6f, width: 2.5f),
         // 3 Solar Fang (1400)
-        Row(3, ShipAttack.SolarFireball, "SOLAR FIREBALL", "A slow fireball that bursts wide.",
+        Row(3, ShipAttack.HeatWave, "HEAT WAVE", "A wall of heat rolls up the screen, burning everything it passes.",
             SecretPower.SolarNova, "SOLAR NOVA", "Burns away everything close by and leaves a burning ring for 2 s.",
             PowerTrigger.HazardsNearShip, 3, 2.3f,
-            range: 3.6f, width: 1.7f, speed: 4.6f),
+            duration: .4f, width: .7f, speed: 5f),
         // 4 Crimson Halo (2200)
         Row(4, ShipAttack.RailSlug, "RAIL GUN", "Pierces everything in a straight line.",
             SecretPower.CapacitorDump, "CAPACITOR DUMP", "Fires the rail gun at once.",
@@ -184,30 +186,30 @@ public static class ShipLoadoutTable
             PowerTrigger.EnemyClosing, 2, 2.4f,
             duration: 1.4f, range: 2.7f, width: 24f),
         // 10 Paranoid (1200)
-        Row(10, ShipAttack.SeekerEyes, "SEEKER EYES", "Three eyes hunt the nearest targets.",
+        Row(10, ShipAttack.ArcaneEye, "ARCANE EYE", "An eye marks four targets ahead; the marks detonate.",
             SecretPower.TimeBubble, "TIME BUBBLE", "A visible dome slows the world to 0.45x for 2.5 s when it crowds you.",
             PowerTrigger.HazardsNearShip, 3, 2.6f,
-            shots: 3, speed: 7.5f),
+            shots: 4, duration: .6f, range: 9f, width: 40f),
         // 11 Ninja (1600)
-        Row(11, ShipAttack.Ricochet, "RICOCHET STAR", "A shuriken that bounces between foes.",
+        Row(11, ShipAttack.BoomerangStar, "BOOMERANG STAR", "A shuriken arcs out and curves back, cutting both ways.",
             SecretPower.BlinkDash, "BLINK DASH", "Dodges to the safer side at the last moment, or when a threat gets within 2.",
             PowerTrigger.ThreatClose, 1, 2f,
-            maxHits: 5, range: 3.1f, speed: 11f),
+            range: 6f, speed: 12f),
         // 12 Saboteur (1800)
-        Row(12, ShipAttack.Gatling, "GATLING", "A burst of rapid shells up front.",
+        Row(12, ShipAttack.ProximityMines, "PROXIMITY MINES", "Four mines land ahead and blow when danger comes close.",
             SecretPower.BlackHole, "BLACK HOLE", "Swallows what drifts in once 3 enemies are on screen.",
             PowerTrigger.EnemiesOnScreen, 3, 0f,
-            shots: 14, duration: 1.1f, width: 7f, range: 11f, speed: 16f),
+            shots: 4),
         // 13 UFO (2000)
-        Row(13, ShipAttack.TractorBeam, "TRACTOR BEAM", "A beam held ahead that pulls targets in to its centre.",
+        Row(13, ShipAttack.AbductHurl, "ABDUCT & HURL", "Lifts the nearest enemy and hurls it into the crowd.",
             SecretPower.TractorPull, "TRACTOR PULL", "Pulls nearby enemies and debris in for 1.8 s, and kills drop star dust.",
             PowerTrigger.HazardsNearShip, 2, 3.5f,
-            duration: 1.5f, range: 11f, width: .38f),
+            maxHits: 1, range: 9f, speed: 15f),
         // 14 Dove (2400)
-        Row(14, ShipAttack.FeatherFan, "FEATHER FAN", "Five darts in a forward spread.",
+        Row(14, ShipAttack.GaleWings, "GALE WINGS", "A gust shoves enemies up and outward; collisions hurt.",
             SecretPower.Mending, "MENDING", "Repairs one heart in a burst of feathers as soon as the hull is damaged.",
             PowerTrigger.HullDamaged, 1, 0f,
-            shots: 5, width: 56f, range: 11f, speed: 12f),
+            width: 60f, range: 6f),
         // 15 Turtle (3000)
         Row(15, ShipAttack.OrbitDisc, "SHELL DISC", "A disc orbits you, smashing hazards.",
             SecretPower.HardShell, "HARD SHELL", "A shell shows on the hull for up to 8 s and shatters on the next hit.",

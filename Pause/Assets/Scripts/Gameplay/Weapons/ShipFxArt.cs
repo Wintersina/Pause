@@ -43,9 +43,23 @@ public static class ShipFxArt
     // Resources/Weapons/Powers2/<ShipId.KeyOf>_power.png / _attack.png: 16
     // cells of 256 px (0-7 loop, 8-15 burst or impact), one world unit across
     // at scale 1 like the old atlas. Null when the strip is missing.
-    public static Sprite[] Strip(int ship, bool power)
+    public static Sprite[] Strip(int ship, bool power) => Strip(ship, power ? "power" : "attack");
+
+    // The same, for any named strip of the ship: "attack_mark" -> <ShipKey>_attack_mark.png.
+    public static Sprite[] Strip(int ship, string suffix)
     {
-        string key = (ShipId.KeyOf(ShipId.IsValid(ship) ? ship : ShipId.Starter) ?? "") + (power ? "_power" : "_attack");
+        string key = (ShipId.KeyOf(ShipId.IsValid(ship) ? ship : ShipId.Starter) ?? "") + "_" + suffix;
+        // Skin variant: a ship wearing its Special skin uses <key>_special when that strip exists (any ship can add one).
+        if (ShipId.IsValid(ship) && ShipSkins.Has(ship, ShipSkins.Special) && ShipSkins.Shown(ship) == ShipSkins.Special)
+        {
+            var special = Load(key + "_special");
+            if (special != null) return special;
+        }
+        return Load(key);
+    }
+
+    static Sprite[] Load(string key)
+    {
         Sprite[] cells;
         if (strips.TryGetValue(key, out cells) && (cells == null || cells[0] != null)) return cells;
         var tex = Resources.Load<Texture2D>("Weapons/Powers2/" + key);
@@ -103,6 +117,14 @@ public static class ShipFxArt
         int at = power ? (burst ? PowerBurstAt : PowerLoopAt) : (burst ? AttackBurstAt : AttackLoopAt);
         int j = Mathf.Clamp(i, 0, burst ? BurstFrames - 1 : int.MaxValue) / 2;
         return Get(Attack(), ship, at, OldFrames, burst ? j : Wrap(j, OldFrames));
+    }
+
+    // A cell of an extra strip (loop 0-7, burst 8-15); the ship's own attack strip when that one is missing.
+    public static Sprite Extra(int ship, string suffix, bool burst, int i)
+    {
+        var strip = Strip(ship, "attack_" + suffix);
+        if (strip == null) return Fx(ship, false, burst, i);
+        return strip[(burst ? LoopFrames : 0) + (burst ? Mathf.Clamp(i, 0, BurstFrames - 1) : Wrap(i, LoopFrames))];
     }
 
     public static Sprite AttackLoop(int ship, int i)  => Fx(ship, false, false, i);

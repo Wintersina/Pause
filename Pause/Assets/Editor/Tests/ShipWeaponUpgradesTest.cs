@@ -198,7 +198,7 @@ public static class ShipWeaponUpgradesTest
     static void ProjectileCountsFollowTheLevel()
     {
         // ship -> what it launches; step long enough for any burst
-        foreach (int id in new[] { 1, 3, 8, 10, 12, 14 })
+        foreach (int id in new[] { 1, 8 })
         {
             string counts = "";
             bool ok = true;
@@ -219,7 +219,7 @@ public static class ShipWeaponUpgradesTest
             int at0 = Mathf.Max(1, ShipWeaponUpgrades.LoadoutAt(id, 0).shots);
             int atMax = Mathf.Max(1, ShipWeaponUpgrades.LoadoutAt(id, ShipWeaponUpgrades.MaxLevel).shots);
             Check(ShipLoadoutTable.For(id).attackName + " launches its level's shot count (" + counts + ")",
-                  ok && (atMax > at0 || id == 3 && atMax == 2));
+                  ok && atMax > at0);
             SetLevel(id, 0);
         }
 
@@ -232,7 +232,7 @@ public static class ShipWeaponUpgradesTest
     static void HopsBouncesAndRailsFollowTheLevel()
     {
         var foes = new List<GameObject>();
-        foreach (int id in new[] { 2, 11 })
+        foreach (int id in new[] { 2 })
         {
             string kills = "";
             bool ok = true;
@@ -241,11 +241,9 @@ public static class ShipWeaponUpgradesTest
                 SetLevel(id, lv);
                 FreshScene();
                 var c = Ship(id);
-                // chain: a tight grid; ricochet: a zigzag column (its tight
-                // turn circles a mark that sits too close)
+                // chain: a tight grid
                 for (int i = 0; i < 16; i++)
-                    foes.Add(id == 2 ? Hazard(-1.2f + (i % 4) * .8f, -1.6f + (i / 4) * .9f)
-                                     : Hazard(i % 2 == 0 ? -.9f : .9f, -1.6f + i * .75f));
+                    foes.Add(Hazard(-1.2f + (i % 4) * .8f, -1.6f + (i / 4) * .9f));
                 int k = ShipAttackHits.Kills;
                 c.Runner.Fire();
                 Steps(c.Runner, 5f);
@@ -282,7 +280,7 @@ public static class ShipWeaponUpgradesTest
 
     static void HeldWeaponsLastLonger()
     {
-        foreach (int id in new[] { 9, 13, 15 })
+        foreach (int id in new[] { 9, 15 })
         {
             float d0 = ShipWeaponUpgrades.LoadoutAt(id, 0).duration;
             float dMax = ShipWeaponUpgrades.LoadoutAt(id, ShipWeaponUpgrades.MaxLevel).duration;
@@ -340,7 +338,7 @@ public static class ShipWeaponUpgradesTest
     {
         bool capped = true;
         string got = "";
-        foreach (int id in new[] { 1, 3, 4, 8, 10, 12, 14 })
+        foreach (int id in new[] { 1, 3, 4, 8, 10, 11, 12, 13, 14 })
         {
             SetLevel(id, ShipWeaponUpgrades.MaxLevel);
             FreshScene();
@@ -360,12 +358,12 @@ public static class ShipWeaponUpgradesTest
 
         SetLevel(12, ShipWeaponUpgrades.MaxLevel);
         FreshScene();
-        var gat = Ship(12);
-        for (int i = 0; i < 4; i++) gat.Runner.Fire();
-        Steps(gat.Runner, .8f);
-        Check("a max-level gatling flood stays within the projectile cap",
-              AttackPool.ProjectilePoolSize <= AttackPool.MaxProjectiles);
-        Teardown(gat);
+        var sab = Ship(12);
+        for (int i = 0; i < 4; i++) sab.Runner.Fire();
+        Steps(sab.Runner, .8f);
+        Check("a max-level mine flood stays within the live-mine cap (" + sab.Runner.LiveMines + ")",
+              sab.Runner.LiveMines <= ShipAttackRunner.MineCap && AttackPool.SpritePoolSize <= AttackPool.MaxSprites);
+        Teardown(sab);
         SetLevel(12, 0);
     }
 

@@ -8,7 +8,7 @@ using UnityEngine;
 // skin as owned, so it flies every ship at MaxLevel.
 //
 // Each level adds the next step of the ship's own upgrade track below,
-// cumulatively: more projectiles / hops / bounces, a bigger or longer
+// cumulatively: more projectiles / marks / mines / hops, a bigger or longer
 // effect, or a shorter cooldown (a cut of the charge time, additive). Every
 // track alternates "more" and "faster" so each colour bought is felt.
 //
@@ -57,18 +57,18 @@ public static class ShipWeaponUpgrades
         null,
         /*  1 Neon Comet   */ new[] { Up("+1 STREAK", shots: 1), Cd(.15f), Up("+1 STREAK", shots: 1), Cd(.20f) },
         /*  2 Volt Viper   */ new[] { Up("+2 JUMPS", maxHits: 2), Cd(.15f), Up("+2 JUMPS", maxHits: 2, width: .5f), Cd(.20f) },
-        /*  3 Solar Fang   */ new[] { Up("BIGGER BLAST", width: .35f), Cd(.15f), Up("+1 FIREBALL", shots: 1), Cd(.20f) },
+        /*  3 Solar Fang   */ new[] { Up("THICKER BAND", width: .3f), Cd(.15f), Up("+1 WAVE", shots: 1), Cd(.20f) },
         /*  4 Crimson Halo */ new[] { Cd(.15f), Up("WIDER RAIL", width: .14f), Cd(.20f), Up("+2 SIDE RAILS", shots: 2) },
         /*  5 Ion Lancer   */ TopTier,
         /*  6 Jade Phantom */ TopTier,
         /*  7 Gold Warden  */ TopTier,
         /*  8 Lightning    */ new[] { Up("+2 JAVELINS", shots: 2), Cd(.15f), Up("WIDER JAVELINS", width: .12f), Cd(.20f) },
         /*  9 Ligher       */ new[] { Up("LONGER BURN", duration: .5f), Cd(.15f), Up("BIGGER FLAME", range: .6f, width: 6f), Cd(.20f) },
-        /* 10 Paranoid     */ new[] { Up("+1 EYE", shots: 1), Cd(.15f), Up("+1 EYE", shots: 1), Cd(.20f) },
-        /* 11 Ninja        */ new[] { Up("+2 BOUNCES", maxHits: 2), Cd(.15f), Up("+2 BOUNCES", maxHits: 2, range: .5f), Cd(.20f) },
-        /* 12 Saboteur     */ new[] { Up("+6 SHELLS", shots: 6), Cd(.15f), Up("+6 SHELLS", shots: 6, duration: .2f), Cd(.20f) },
-        /* 13 UFO          */ new[] { Up("LONGER BEAM", duration: .6f), Cd(.15f), Up("WIDER BEAM", width: .14f), Cd(.20f) },
-        /* 14 Dove         */ new[] { Up("+2 DARTS", shots: 2, width: 8f), Cd(.15f), Up("+2 DARTS", shots: 2, width: 8f), Cd(.20f) },
+        /* 10 Paranoid     */ new[] { Up("+1 MARK", shots: 1), Cd(.15f), Up("+1 MARK", shots: 1), Cd(.20f) },
+        /* 11 Ninja        */ new[] { Up("+1 STAR", shots: 1), Cd(.15f), Up("LONGER THROW", range: 1f), Cd(.20f) },
+        /* 12 Saboteur     */ new[] { Up("+1 MINE", shots: 1), Cd(.15f), Up("+1 MINE", shots: 1), Cd(.20f) },
+        /* 13 UFO          */ new[] { Up("+1 PIERCE", maxHits: 1), Cd(.15f), Up("+1 GRAB", shots: 1), Cd(.20f) },
+        /* 14 Dove         */ new[] { Up("WIDER GUST", width: 12f), Cd(.15f), Up("LONGER GUST", range: 1.5f), Cd(.20f) },
         /* 15 Turtle       */ new[] { Up("LONGER ORBIT", duration: 1.5f), Cd(.15f), Up("BIGGER DISC", range: .14f, speed: 60f), Cd(.20f) },
         // 16 Paragon: four skins like every ship. Its tiers' missiles, shield, hearts and speed are PremiumShips.
         /* 16 Paragon      */ new[] { Up("+2 LANCES", shots: 2), Cd(.15f), Up("+2 LANCES", shots: 2), Cd(.20f) },

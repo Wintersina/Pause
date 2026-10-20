@@ -109,18 +109,16 @@ public static class HomingTargetTest
         Check("Warden impact scale constant is .3 and ship 7 is the Gold Warden",
               Mathf.Approximately(ShipVolley.GoldWardenImpactScale, .3f) && ShipId.KeyOf(ShipVolley.GoldWardenShip) == "GoldWarden");
 
-        // No weapon's blast / fireball burst is oversized (hit radii untouched)
+        // No weapon's blast burst is oversized (hit radii untouched)
         float worst = 0f;
         foreach (int id in ShipId.All)
         {
             var l = ShipLoadoutTable.For(id);
-            if (l.attack == ShipAttack.SolarFireball || l.volley == VolleyKind.Blast)
+            if (l.volley == VolleyKind.Blast)
                 worst = Mathf.Max(worst, ShipVolley.BlastBurstSize(id, l.width));
         }
-        Check("largest blast/fireball burst is under " + ShipVolley.MaxBurstWorld + " world units (" + worst + ")",
+        Check("largest blast burst is under " + ShipVolley.MaxBurstWorld + " world units (" + worst + ")",
               worst > 0f && worst <= ShipVolley.MaxBurstWorld);
-        Check("Solar Fang burst is 40% of the old size",
-              Mathf.Approximately(ShipVolley.BlastBurstSize(3, 1.7f), 1.7f * 2.3f * .4f * ShipFxArt.BurstScale));
 
         Debug.Log("[HT] failures: " + fails);
         return fails;

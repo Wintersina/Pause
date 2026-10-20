@@ -35,7 +35,7 @@ public static class ShipAttacksTest
         OnlyTheTopPriceTierClearsTheScreen();
         RailHitsOnlyItsForwardLine();
         SpreadCountsAreRespected();
-        RicochetHomingAndChainCountsAreRespected();
+        ChainCountsAreRespected();
         OrbitDiscLastsItsDuration();
         SecretMeterFillsAndTriggers();
         CloakTriggersJustBeforeAHit();
@@ -204,29 +204,8 @@ public static class ShipAttacksTest
     static void SpreadCountsAreRespected()
     {
         FreshScene();
-        var dove = Ship(14);
-        int before = AttackProjectile.LaunchCount;
-        dove.Runner.Fire();
-        Check("the feather fan launches 5 darts at once", AttackProjectile.LaunchCount - before == 5);
-        float minX = float.MaxValue, maxX = float.MinValue;
-        Steps(dove.Runner, .2f);
-        foreach (var p in AttackPool.Projectiles)
-            if (p.Active) { minX = Mathf.Min(minX, p.transform.position.x); maxX = Mathf.Max(maxX, p.transform.position.x); }
-        Check("the darts fan out across a forward spread", maxX - minX > 1f && minX < 0f && maxX > 0f);
-        Teardown(dove);
-
-        FreshScene();
-        var gat = Ship(12);
-        before = AttackProjectile.LaunchCount;
-        gat.Runner.Fire();
-        Check("the gatling doesn't dump its burst in one frame", AttackProjectile.LaunchCount - before < 4);
-        Steps(gat.Runner, 1.3f);
-        Check("the gatling fires exactly 14 shells", AttackProjectile.LaunchCount - before == 14);
-        Teardown(gat);
-
-        FreshScene();
         var comet = Ship(1);
-        before = AttackProjectile.LaunchCount;
+        int before = AttackProjectile.LaunchCount;
         comet.Runner.Fire();
         Steps(comet.Runner, .5f);
         Check("the starter's comet fires 2 streaks", AttackProjectile.LaunchCount - before == 2);
@@ -244,40 +223,13 @@ public static class ShipAttacksTest
         Object.DestroyImmediate(between);
     }
 
-    static void RicochetHomingAndChainCountsAreRespected()
+    static void ChainCountsAreRespected()
     {
         FreshScene();
-        var ninja = Ship(11);
-        var foes = new List<GameObject>();
-        for (int i = 0; i < 8; i++) foes.Add(Hazard((i % 2 == 0 ? -.6f : .6f), -1.5f + i * 1.0f));
-        int kills = ShipAttackHits.Kills;
-        ninja.Runner.Fire();
-        Steps(ninja.Runner, 4f);
-        Check("the ricochet star stops after its max hits (" + (ShipAttackHits.Kills - kills) + ")",
-              ShipAttackHits.Kills - kills == ShipLoadoutTable.For(11).maxHits);
-        Teardown(ninja);
-        foreach (var f in foes) if (f != null) Object.DestroyImmediate(f);
-
-        FreshScene();
-        var paranoid = Ship(10);
-        foes.Clear();
-        for (int i = 0; i < 6; i++) foes.Add(Hazard(-1.2f + i * .5f, 1f + (i % 3)));
-        kills = ShipAttackHits.Kills;
-        int before = AttackProjectile.LaunchCount;
-        paranoid.Runner.Fire();
-        var marks = new HashSet<Transform>();
-        foreach (var p in AttackPool.Projectiles) if (p.Active && p.Target != null) marks.Add(p.Target);
-        Check("3 seeker eyes, each on its own target", AttackProjectile.LaunchCount - before == 3 && marks.Count == 3);
-        Steps(paranoid.Runner, 3f);
-        Check("the seekers kill exactly 3 of 6 (" + (ShipAttackHits.Kills - kills) + ")", ShipAttackHits.Kills - kills == 3);
-        Teardown(paranoid);
-        foreach (var f in foes) if (f != null) Object.DestroyImmediate(f);
-
-        FreshScene();
         var viper = Ship(2);
-        foes.Clear();
+        var foes = new List<GameObject>();
         for (int i = 0; i < 8; i++) foes.Add(Hazard(-1.2f + (i % 4) * .8f, -1.5f + (i / 4) * .9f));
-        kills = ShipAttackHits.Kills;
+        int kills = ShipAttackHits.Kills;
         viper.Runner.Fire();
         Steps(viper.Runner, 1f);
         Check("chain lightning jumps to at most its max hits (" + (ShipAttackHits.Kills - kills) + ")",
@@ -431,29 +383,22 @@ public static class ShipAttacksTest
     static void NothingAdvancesWhilePaused()
     {
         FreshScene();
-        var ufo = Ship(13);
+        var ufo = Ship(11);
         var gat = Ship(12);
         Hazard(0f, 3f);
         ufo.Runner.Fire();
         gat.Runner.Fire();
         Time.timeScale = 0f;
         Check("attacks read zero gameplay time while paused", ShipAttackRunner.ScaledDelta() == 0f);
-        var positions = new List<Vector3>();
-        foreach (var p in AttackPool.Projectiles) positions.Add(p.transform.position);
-        int launched = AttackProjectile.LaunchCount;
+        int mines = gat.Runner.LiveMines;
         for (int i = 0; i < 30; i++)
         {
             ufo.Runner.SendMessage("Update");
             gat.Runner.SendMessage("Update");
             ufo.Secret.SendMessage("Update");
-            foreach (var p in AttackPool.Projectiles) p.Tick(ShipAttackRunner.ScaledDelta());
         }
-        bool still = true;
-        int k = 0;
-        foreach (var p in AttackPool.Projectiles) still &= p.transform.position == positions[k++];
-        Check("no projectile moves at timeScale 0", still);
-        Check("no new shells while paused", AttackProjectile.LaunchCount == launched);
-        Check("the held beam doesn't run out while paused", ufo.Runner.ActiveRuns == 1);
+        Check("no mine drifts or expires while paused", mines == 4 && gat.Runner.LiveMines == mines && gat.Runner.ActiveRuns == 1);
+        Check("the boomerang star doesn't run out while paused", ufo.Runner.ActiveRuns == 1);
 
         ufo.Secret.SetMeter(SecretPowerController.Full); // calm screen: Star Shower would fire
         ufo.Secret.SendMessage("Update");
@@ -469,7 +414,7 @@ public static class ShipAttacksTest
     static void PoolsStayBounded()
     {
         FreshScene();
-        var gat = Ship(12);
+        var gat = Ship(1);
         for (int round = 0; round < 3; round++)
         {
             gat.Runner.Fire();
@@ -520,21 +465,21 @@ public static class ShipAttacksTest
         Teardown(halo);
 
         FreshScene();
-        var gat = Ship(12);
+        var mines = Ship(12);
         boss = Boss(0f, 1f);
-        gat.Runner.Fire();
-        Steps(gat.Runner, 2f);
-        Check("a gatling burst damages the boss; its 14 shells are 1/14 each, one hit in all (" + boss.weight + ")",
-              boss.hits > 1 && boss.weight > .5f && boss.weight <= 1f + 1e-4f);
-        Teardown(gat);
+        mines.Runner.Fire();
+        Steps(mines.Runner, 8f);
+        Check("proximity mines damage the boss; each is 1/4, one hit in all (" + boss.weight + ")",
+              boss.hits >= 1 && boss.weight <= 1f + 1e-4f);
+        Teardown(mines);
 
         FreshScene();
         var ufo = Ship(13);
         boss = Boss(0f, 1f);
         ufo.Runner.Fire();
         Steps(ufo.Runner, 2f);
-        Check("a held beam keeps damaging the boss every tick, with no per-firing cap (" + boss.weight + " over " + boss.hits + " ticks)",
-              boss != null && boss.hits >= 5 && boss.weight > 1f && Mathf.Abs(boss.weight - boss.hits * .2f) < 1e-3f);
+        Check("the abduct beam cannot lift a boss: it deals one hit instead (" + boss.weight + ")",
+              boss != null && boss.hits == 1 && Mathf.Approximately(boss.weight, 1f));
         Teardown(ufo);
 
         // The real boss body: a registered hazard that BossTarget answers for.
@@ -550,7 +495,7 @@ public static class ShipAttacksTest
         Teardown(halo);
         Object.DestroyImmediate(body);
 
-        // A barrage's homing shots all chase the boss: it is never "claimed" away from the next eye.
+        // The eye marks the real boss body.
         FreshScene();
         var eyes = Ship(10);
         body = Hazard(0f, 2f);
@@ -559,9 +504,9 @@ public static class ShipAttacksTest
         float bossWeight = ShipAttackHits.AttackTargetWeight;
         eyes.Runner.Fire();
         Steps(eyes.Runner, 2f);
-        Check("all three seeker eyes home on the boss (" + (ShipAttackHits.AttackTargetHits - bossHits) + " hits, weight " +
+        Check("the arcane eye marks the boss once; the mark is 1/4 of a hit (" + (ShipAttackHits.AttackTargetHits - bossHits) + " hits, weight " +
               (ShipAttackHits.AttackTargetWeight - bossWeight).ToString("F2") + ")",
-              ShipAttackHits.AttackTargetHits - bossHits >= 2 && ShipAttackHits.AttackTargetWeight - bossWeight > .6f);
+              ShipAttackHits.AttackTargetHits - bossHits == 1 && Mathf.Abs(ShipAttackHits.AttackTargetWeight - bossWeight - .25f) < 1e-3f);
         Teardown(eyes);
         Object.DestroyImmediate(body);
 
