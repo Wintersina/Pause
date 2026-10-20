@@ -98,22 +98,25 @@ public class SpaceAsteroidFieldDirector : MonoBehaviour
         untilNext = SpawnOne() != null ? Next(SpaceAsteroidField.Gap.x, SpaceAsteroidField.Gap.y) : 2f;
     }
 
-    // A rock from above the view: a size drawn small-leaning, a slow sideways heading, clear of other hazards.
+    // A rock from above the view: a size drawn small-leaning, then one of two patterns -- straight down, or a
+    // zig-zag weave across the lane while it descends -- clear of other hazards.
     public FieldAsteroid SpawnOne()
     {
         if (rng == null) Begin();
         int tier = SpaceAsteroidField.TierFor((float)rng.NextDouble());
         float reach = SpaceAsteroidField.Width[tier];
         float lane = SpaceAsteroidField.Edge * SpaceAsteroidField.LaneShare;
-        float x = Next(-lane, lane);
+        bool zig = rng.NextDouble() < SpaceAsteroidField.ZigChance;
+        float amp = zig ? Mathf.Min(Next(SpaceAsteroidField.ZigAmp.x, SpaceAsteroidField.ZigAmp.y), lane * .6f) : 0f;
+        float x = Next(-(lane - amp), lane - amp);          // (a weave starts with room to sway both ways)
         float y = CameraFit.ViewTop + reach + SpaceAsteroidField.SpawnMargin;
         var at = new Vector2(x, y);
         if (!Clear(at)) return null;
-        // heads toward the middle of the lane, so it crosses the view instead of leaving by a rail at once
-        float speed = Next(SpaceAsteroidField.Sideways.x, SpaceAsteroidField.Sideways.y);
-        float dir = x > lane * .5f ? -1f : x < -lane * .5f ? 1f : (rng.NextDouble() < .5 ? -1f : 1f);
         float spin = Next(SpaceAsteroidField.Spin.x, SpaceAsteroidField.Spin.y) * (rng.NextDouble() < .5 ? -1f : 1f);
-        return SpaceAsteroidField.Spawn(tier, rng.Next(3), at, dir * speed, 0f, spin);
+        if (!zig) return SpaceAsteroidField.Spawn(tier, rng.Next(3), at, 0f, 0f, spin);
+        float period = Next(SpaceAsteroidField.ZigPeriod.x, SpaceAsteroidField.ZigPeriod.y);
+        float phase = Next(0f, 6.2831853f);
+        return SpaceAsteroidField.Spawn(tier, rng.Next(3), at, 0f, 0f, spin, amp, period, phase);
     }
 
     // No other hazard near the spawn point.

@@ -10,8 +10,11 @@ using UnityEngine;
 //     (IShipAttackTarget) and then bursts in the rock explosion, paying the ordinary rock score
 //   * a large rock breaks into two medium ones, a medium into two small ones (Split), a small one just bursts
 //
-// It drifts in from the top at a share of the board's scroll plus a slow sideways heading, tumbling, and leaves once
-// it is past the view. FieldDirector decides when one turns up; the rules (Blocked) keep it away from bosses, elites,
+// It comes at the player from the TOP at a share of the board's scroll, tumbling, in full colour (the greyed,
+// bigger backdrop rocks of SpaceAsteroidDrift cross the sky sideways and are harmless, so the two never get
+// confused). Each rock picks one of two patterns when it is made: Straight (straight down the lane) or ZigZag
+// (a sine weave across the lane while it descends, ZigAmp wide, ZigPeriod seconds per sway, kept inside the rails).
+// A chunk of a split just flies straight with its parting kick. It leaves once it is past the view. FieldDirector decides when one turns up; the rules (Blocked) keep it away from bosses, elites,
 // transitions and the calm start, and at a modest rate (Gap) so the lane stays fair and dodgeable.
 public static class SpaceAsteroidField
 {
@@ -32,7 +35,11 @@ public static class SpaceAsteroidField
     public static readonly float[] TierWeight = { .35f, .45f, .20f };       // what the director draws
     public const float ScrollShare = .55f;                  // share of the board's scroll it falls at
     public const float ScrollK = 30f;                       // the board's scroll is speed * 30 u/s (moveItemEnmInStrightLine)
-    public static readonly Vector2 Sideways = new Vector2(.25f, .8f);       // u/s, either way
+    public const int Straight = 0, ZigZag = 1;              // motion patterns
+    public const float ZigChance = .5f;                     // share of the director's rocks that weave
+    public static readonly Vector2 ZigAmp = new Vector2(.45f, 1.0f);        // u, half-width of the weave
+    public static readonly Vector2 ZigPeriod = new Vector2(3f, 5f);         // s per full sway
+    public const float ZigEdgeMargin = .35f;                // a weaving rock stays this far (x its width) inside the rail face
     public static readonly Vector2 Spin = new Vector2(15f, 55f);            // deg/s, either way
     public const float ColliderShare = .38f;                // collider radius as a share of the drawn width (the art fills ~.86)
     public const float SplitKick = .55f;                    // u/s the two chunks part by
@@ -93,6 +100,13 @@ public static class SpaceAsteroidField
     // Builds one rock. `vx` / `vy` are its own velocity on top of the board's scroll.
     public static FieldAsteroid Spawn(int tier, int artIndex, Vector2 at, float vx, float vy, float spinDegrees)
     {
+        return Spawn(tier, artIndex, at, vx, vy, spinDegrees, 0f, 0f, 0f);
+    }
+
+    // The same, weaving: a sine sway of `zigAmp` u half-width, `zigPeriod` s per sway, starting at `zigPhase` radians.
+    public static FieldAsteroid Spawn(int tier, int artIndex, Vector2 at, float vx, float vy, float spinDegrees,
+                                      float zigAmp, float zigPeriod, float zigPhase)
+    {
         var sprites = Art;
         if (sprites.Length == 0) return null;
         tier = Mathf.Clamp(tier, 0, Width.Length - 1);
@@ -111,6 +125,7 @@ public static class SpaceAsteroidField
         col.radius = ColliderShare * w / scale;     // (collider units are local)
         var a = go.AddComponent<FieldAsteroid>();
         a.Init(tier, vx, vy, spinDegrees);
+        if (zigAmp > 0f && zigPeriod > .1f) a.SetZigZag(zigAmp, zigPeriod, zigPhase);
         ClearTarget.Ensure(go);
         Spawned++;
         return a;
@@ -133,6 +148,9 @@ public class FieldAsteroid : MonoBehaviour, IShipAttackTarget
     public float Health { get; private set; }
     public float Vx { get; private set; }
     public float Vy { get; private set; }
+    public int Pattern { get; private set; }        // SpaceAsteroidField.Straight / ZigZag
+    public float ZigAmp { get; private set; }
+    float zigRate, zigPhase, zigAge;
 
     static readonly Color HitBlink = new Color(.55f, .55f, .65f, 1f);   // a hit dims it for a blink
     float spin, flash;
@@ -147,6 +165,18 @@ public class FieldAsteroid : MonoBehaviour, IShipAttackTarget
         sr = GetComponent<SpriteRenderer>();
         SpaceAsteroidField.Register(this);
     }
+
+    // Makes it weave: x follows base + amp * sin(rate * t + phase) (integrated as a velocity, so it starts where it is).
+    public void SetZigZag(float amp, float period, float phase)
+    {
+        Pattern = SpaceAsteroidField.ZigZag;
+        ZigAmp = amp;
+        zigRate = 6.2831853f / period;
+        zigPhase = phase;
+    }
+
+    // Its sideways speed right now: its own heading plus the weave.
+    public float SideSpeed => Pattern == SpaceAsteroidField.ZigZag ? Vx + ZigAmp * zigRate * Mathf.Cos(zigAge * zigRate + zigPhase) : Vx;
 
     void OnDestroy() { SpaceAsteroidField.Unregister(this); }
 
@@ -163,7 +193,13 @@ public class FieldAsteroid : MonoBehaviour, IShipAttackTarget
         if (dt <= 0f || Broken) return !Broken;
         var tr = transform;
         Vector3 p = tr.position;
-        p.x += Vx * dt;
+        p.x += SideSpeed * dt;
+        if (Pattern == SpaceAsteroidField.ZigZag)
+        {
+            zigAge += dt;
+            float lim = Mathf.Max(.2f, SpaceAsteroidField.Edge - SpaceAsteroidField.Width[Tier] * SpaceAsteroidField.ZigEdgeMargin);
+            p.x = Mathf.Clamp(p.x, -lim, lim);
+        }
         p.y += (Vy - boardSpeed * SpaceAsteroidField.ScrollK * SpaceAsteroidField.ScrollShare) * dt;
         tr.position = p;
         tr.Rotate(0f, 0f, spin * dt, Space.World);

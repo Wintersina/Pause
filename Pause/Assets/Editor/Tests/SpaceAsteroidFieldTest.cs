@@ -35,6 +35,7 @@ public static class SpaceAsteroidFieldTest
             Hazard();
             Hits();
             Motion();
+            Patterns();
             Rules();
             Director();
             Picks();
@@ -171,6 +172,52 @@ public static class SpaceAsteroidFieldTest
         for (int i = 0; i < 40 * 30 && !gone; i++) gone = !a.Step(Dt, .2f, CameraFit.ViewBottom);
         Check("it leaves once past the bottom of the view", gone);
         Check("... and is no longer tracked", SpaceAsteroidField.Live.Count == 0);
+    }
+
+    // ---- the two descent patterns ----
+
+    static void Patterns()
+    {
+        Fresh();
+        // straight: no sideways movement at all
+        var s = SpaceAsteroidField.Spawn(1, 0, new Vector2(0f, 7f), 0f, 0f, 30f);
+        float x0 = s.transform.position.x, y0 = s.transform.position.y;
+        for (int i = 0; i < 60; i++) s.Step(Dt, .2f, CameraFit.ViewBottom);
+        Check("a straight rock falls without drifting sideways",
+              s.Pattern == SpaceAsteroidField.Straight && Mathf.Abs(s.transform.position.x - x0) < 1e-4f &&
+              s.transform.position.y < y0 - .5f);
+        // zig-zag: sways both ways about its start, descends, stays inside the rails
+        var z = SpaceAsteroidField.Spawn(1, 0, new Vector2(0f, 7f), 0f, 0f, 30f, .8f, 4f, 0f);
+        float minX = 0f, maxX = 0f, zy0 = z.transform.position.y;
+        bool inside = true;
+        for (int i = 0; i < 12 * 30; i++)
+        {
+            z.Step(Dt, .02f, CameraFit.ViewBottom - 100f);
+            float x = z.transform.position.x;
+            minX = Mathf.Min(minX, x); maxX = Mathf.Max(maxX, x);
+            inside &= Mathf.Abs(x) <= SpaceAsteroidField.Edge + 1e-3f;
+        }
+        Check("a zig-zag rock weaves both ways across the lane (" + minX.ToString("F2") + ".." + maxX.ToString("F2") + ")",
+              z.Pattern == SpaceAsteroidField.ZigZag && minX < -.3f && maxX > .3f && inside);
+        Check("... while still descending", z.transform.position.y < zy0 - 1f);
+        SpaceAsteroidField.ClearAll();
+
+        // the director picks both patterns, keeps every rock in the lane, and never sets a heading
+        var go = new GameObject("~dirPat");
+        var dir = go.AddComponent<SpaceAsteroidFieldDirector>();
+        dir.Begin();
+        int straight = 0, zig = 0, off = 0;
+        for (int i = 0; i < 60; i++)
+        {
+            var a = dir.SpawnOne();
+            if (a == null) { SpaceAsteroidField.ClearAll(); continue; }
+            if (a.Pattern == SpaceAsteroidField.ZigZag) zig++; else straight++;
+            if (a.Vx != 0f || a.Vy != 0f || Mathf.Abs(a.transform.position.x) > SpaceAsteroidField.Edge) off++;
+            SpaceAsteroidField.ClearAll();
+        }
+        Check("the director gives both straight (" + straight + ") and zig-zag (" + zig + ") rocks, all in the lane", straight > 5 && zig > 5 && off == 0);
+        Object.DestroyImmediate(go);
+        SpaceAsteroidField.ClearAll();
     }
 
     // ---- rules ----
