@@ -1181,7 +1181,7 @@ public class AnchorBrain : EliteBrain
     public override void OnJoin() { side = Pos.x >= 0f ? 1 : -1; Latch(ship.Follow); }
     public override void OnReturn() { side = -side; stage = Stage.Swing; rising = true; }
 
-    float TopY => EliteSystem.ViewTop - def.hullRadius - .25f;
+    float TopY => ship.ZoneY(EliteSystem.ViewTop - def.hullRadius - .25f);
 
     void Latch(Vector2 follow)
     {
