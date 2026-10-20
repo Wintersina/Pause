@@ -481,6 +481,7 @@ public class WorldManager : MonoBehaviour
     {
         if (buttonClicks.playerDied) return;
         distanceLeft = 0f;
+        PostBossLeg.Begin();
         if (!portalOpen) OpenPortal();
     }
 

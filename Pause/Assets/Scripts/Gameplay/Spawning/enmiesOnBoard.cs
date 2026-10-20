@@ -728,6 +728,7 @@ public class enmiesOnBoard : MonoBehaviour {
 
         // an elite fight thins the board (EliteFight: ~35% of the normal spawn rate while one is in play, back to normal over 2 s after)
         dt *= EliteFight.SpawnScale;
+        PostBossLeg.Step(dt);
         railDelayTimer -= dt;
         smEnmDelayTimer -= dt;
         bigEnmDelayTimer -= dt;
@@ -794,6 +795,13 @@ public class enmiesOnBoard : MonoBehaviour {
     // "small enemy" slot: one of the world's rocks
     void spawnAstroid2()
     {
+        SpawnRock();
+    }
+
+    // Every rock slot comes through here: on the way to the next planet after a boss (PostBossLeg) they are very few.
+    void SpawnRock()
+    {
+        if (PostBossLeg.Active && !PostBossLeg.AdmitRock(PostBossLeg.RocksInPlay())) return;
         Spawn(SlotKind.Rock);
     }
 
@@ -826,17 +834,17 @@ public class enmiesOnBoard : MonoBehaviour {
     // Next 3 functions spawn 3 different types of astroids.
     void spawnSmallAstroid()
     {
-        Spawn(SlotKind.Rock);
+        SpawnRock();
     }
 
     void spawnMidAstroid()
     {
-        Spawn(SlotKind.Rock);
+        SpawnRock();
     }
 
     void spawnLargeAstroid()
     {
-        Spawn(SlotKind.Rock);
+        SpawnRock();
     }
 
     // The current world's fighters, tiered so later phases meet the nastier
