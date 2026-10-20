@@ -36,6 +36,7 @@ for a in "$@"; do
     prev="$a"
 done
 echo "START ${FAKE_NAME:-?} $(date +%s) $proj $$" >> "$FAKE_LOG"
+echo "ARGS ${FAKE_NAME:-?} $*" >> "$FAKE_LOG"
 [ -n "$lf" ] && echo "fake unity log" > "$lf"
 sp=""
 trap 'kill $sp 2>/dev/null; echo "END ${FAKE_NAME:-?} $(date +%s) killed" >> "$FAKE_LOG"; exit 143' TERM
@@ -160,7 +161,7 @@ for m in BuildScript.BuildAndroidDev AndroidTextureDiet.Run EliteArtSync.Go Text
     UNITY_BATCH_TIMEOUT=0 env FAKE_NAME=x FAKE_SLEEP=0 "$SCRIPT" -executeMethod "$m" -projectPath "$D/pA" > "$D/c_$n.out" 2>&1
     check "$m is heavy" grep -q "class: heavy" "$D/c_$n.out"
 done
-for m in AllTests.RunAll AllTests.RunSuites BootPreview.Run ShipPreview.RunAll2; do
+for m in AllTests.RunAll AllTests.RunSuites AllTests.RunFast BootPreview.Run ShipPreview.RunAll2; do
     n="$(echo "$m" | tr -c 'A-Za-z0-9\n' '_')"
     env FAKE_NAME=x FAKE_SLEEP=0 "$SCRIPT" -executeMethod "$m" -projectPath "$D/pA" > "$D/c_$n.out" 2>&1
     check "$m is medium" grep -q "class: medium" "$D/c_$n.out"
@@ -239,10 +240,16 @@ job L1 AllTests.RunSuites A 2 UNITY_BATCH_FAKE_FREE_MB=1000 UNITY_BATCH_TIMEOUT=
 finish L1
 check "low free memory blocks a light job (75)" eq "$RC_L1" 75
 check "it says why" grep -q "memory guard: only 1000 MB" "$D/L1.out"
-job L2 AllTests.RunSuites A 1 UNITY_BATCH_FAKE_SWAP_MB=5000 UNITY_BATCH_TIMEOUT=3
+job L2 AllTests.RunSuites A 1 UNITY_BATCH_FAKE_FREE_MB=5000 UNITY_BATCH_FAKE_SWAP_MB=5000 UNITY_BATCH_TIMEOUT=3
 finish L2
 check "high swap blocks a light job (75)" eq "$RC_L2" 75
 check "it says why (swap)" grep -q "swap used 5000 MB" "$D/L2.out"
+job L2b AllTests.RunSuites A 1 UNITY_BATCH_FAKE_FREE_MB=9000 UNITY_BATCH_FAKE_SWAP_MB=5000 UNITY_BATCH_TIMEOUT=3
+finish L2b
+check "swap is ignored while free+inactive >= 2x min (runs)" eq "$RC_L2b" 0
+job L2c AllTests.RunSuites A 1 UNITY_BATCH_FAKE_FREE_MB=5000 UNITY_BATCH_FAKE_SWAP_MB=3000 UNITY_BATCH_TIMEOUT=3
+finish L2c
+check "swap under the new 4096 default does not block" eq "$RC_L2c" 0
 job L3 AllTests.RunSuites A 1 UNITY_BATCH_FAKE_FREE_MB=5000
 finish L3
 check "enough memory lets it run" eq "$RC_L3" 0
@@ -309,15 +316,15 @@ finish M1 M2 M3 M4 M5
 check "5th (different project) waits for a slot" ge "$(st M5)" "$(en M1)"
 check "slot-busy reason printed" grep -q "all 4 slots busy" "$D/M5.out"
 
-newtest max_jobs_default_2
+newtest max_jobs_default_1
 unset UNITY_BATCH_MAX_JOBS
 job M1 AllTests.RunSuites A 5
 job M2 AllTests.RunSuites B 5
 job M3 AllTests.RunSuites C 2
 finish M1 M2 M3
-check "default allows 2 concurrent" lt "$(st M2)" "$(en M1)"
-check "default: 3rd waits" ge "$(st M3)" "$(en M1)"
-check "default: reason says all 2 slots busy" grep -q "all 2 slots busy" "$D/M3.out"
+check "default is one Unity at a time (M2 waits for M1)" ge "$(st M2)" "$(en M1)"
+check "default: 3rd waits for 2nd" ge "$(st M3)" "$(en M2)"
+check "default: reason says all 1 slots busy" grep -q "all 1 slots busy" "$D/M3.out"
 
 newtest max_jobs_env
 job M1 AllTests.RunSuites A 5 UNITY_BATCH_MAX_JOBS=1
@@ -360,7 +367,7 @@ check "build ran after M1 and M2" ge "$(st B1)" "$(en M1)"
 newtest memory_guard_concurrent
 job M1 AllTests.RunSuites A 5
 job M2 AllTests.RunSuites B 1 UNITY_BATCH_FAKE_FREE_MB=3000 UNITY_BATCH_TIMEOUT=2
-job M3 AllTests.RunSuites C 1 UNITY_BATCH_FAKE_SWAP_MB=3000 UNITY_BATCH_TIMEOUT=2
+job M3 AllTests.RunSuites C 1 UNITY_BATCH_FAKE_FREE_MB=5000 UNITY_BATCH_FAKE_SWAP_MB=5000 UNITY_BATCH_TIMEOUT=2
 finish M2 M3
 check "low memory blocks a 2nd concurrent start (75)" eq "$RC_M2" 75
 check "high swap blocks a concurrent start (75)" eq "$RC_M3" 75
