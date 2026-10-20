@@ -255,6 +255,7 @@ public static class AllTests
         ("TideDockTest", TideDockTest.Execute),
         ("StormEliteTest", StormEliteTest.Execute),
         ("DesertEliteTest", DesertEliteTest.Execute),
+        ("DesertDockTest", DesertDockTest.Execute),
         ("DesertFramingTest", DesertFramingTest.Execute),
         ("TideSoundTest", TideSoundTest.Execute),
         ("StormSoundTest", StormSoundTest.Execute),

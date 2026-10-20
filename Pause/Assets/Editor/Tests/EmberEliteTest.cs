@@ -45,11 +45,6 @@ public static class EmberEliteTest
         ("storm_elite_refinery_tender", "hauler", "slag_drop"),
         ("storm_elite_rod_dancer", "skirmisher", "blink_shards"),
         ("storm_elite_anvil_cloud", "siege", "siege_cannon"),
-        ("desert_elite_dune_stalker", "interceptor", "lance_dash"),
-        ("desert_elite_caravan_hauler", "hauler", "slag_drop"),
-        ("desert_elite_lens_matriarch", "skirmisher", "blink_shards"),
-        ("desert_elite_glass_cannon", "siege", "siege_cannon"),
-        ("desert_elite_scorpion_walker", "striker", "claw_dive"),
     };
 
     public static int Execute()

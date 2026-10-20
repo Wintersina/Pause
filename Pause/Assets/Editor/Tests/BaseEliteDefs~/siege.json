@@ -1,0 +1,87 @@
+{
+  "key": "desert_elite_glass_cannon",
+  "codexId": "elite_desert_glass_cannon",
+  "world": "desert",
+  "launchFrom": "buriedsilo",
+  "cells": {
+    "flight": [
+      3,
+      7,
+      8
+    ],
+    "parked": 0,
+    "parkedIdle": 1,
+    "liftoff": 2,
+    "bankLeft": 4,
+    "bankRight": 5,
+    "tell": -1,
+    "action": -1,
+    "hit": -1,
+    "damaged": 6
+  },
+  "cellWorldSize": 2.51,
+  "noseDeg": 90,
+  "maxBank": 3,
+  "heartColor": "#FFF6DC",
+  "shotColor": "#F4E3B0",
+  "shotCore": "#FFF6DC",
+  "engineColor": "#FFE9A0",
+  "hearts": 2,
+  "heartSize": 0.18,
+  "heartOrbit": 0.53,
+  "heartStyle": "Halo",
+  "exhaustShip": 3,
+  "exhaustScale": 0,
+  "glowScale": 0.09,
+  "cellPixels": 384,
+  "armored": false,
+  "hazardSeconds": 0.4,
+  "hazardSize": 0.6,
+  "displayName": "Glass Cannon",
+  "role": "sun-lens siege cannon",
+  "brain": "siege",
+  "attack": "siege_cannon",
+  "lore": "A siege gun on a flying deck, its fused-glass sun lens focusing a lane of light before the shell leaves the barrel. A ringed lane preview shows where it will land. Leave the lane, it does not follow.",
+  "hullRadius": 0.549,
+  "turnsToFace": false,
+  "speed": 1.785,
+  "accel": 4.0,
+  "turnRate": 120,
+  "aggression": 0.5,
+  "tellSeconds": 1.35,
+  "attackGap": 3.99,
+  "avoidance": 0.55,
+  "lookAhead": 0.4,
+  "perception": 2.2,
+  "actionSeconds": 0.45,
+  "shotCount": 1,
+  "shotSpeed": 10.5,
+  "shotSpread": 0,
+  "shotSize": 0.46,
+  "shotInterval": 0.1,
+  "shotKind": "shell",
+  "muzzles": [
+    {
+      "name": "cannon",
+      "x": 192,
+      "y": 38,
+      "dir": -1.0
+    }
+  ],
+  "nozzles": [
+    {
+      "name": "a",
+      "x": 151,
+      "y": 280,
+      "dir": -1.0
+    },
+    {
+      "name": "b",
+      "x": 232,
+      "y": 280,
+      "dir": -1.0
+    }
+  ],
+  "topMargin": 1.6,
+  "followLag": 0.25
+}

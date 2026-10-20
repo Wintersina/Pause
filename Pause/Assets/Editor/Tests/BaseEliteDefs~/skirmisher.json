@@ -1,0 +1,100 @@
+{
+  "key": "desert_elite_lens_matriarch",
+  "codexId": "elite_desert_lens_matriarch",
+  "world": "desert",
+  "launchFrom": "glasspad",
+  "cells": {
+    "flight": [
+      3,
+      7,
+      8
+    ],
+    "parked": 0,
+    "parkedIdle": 1,
+    "liftoff": 2,
+    "bankLeft": 4,
+    "bankRight": 5,
+    "tell": -1,
+    "action": -1,
+    "hit": -1,
+    "damaged": 6
+  },
+  "cellWorldSize": 1.97,
+  "noseDeg": 90,
+  "maxBank": 3,
+  "heartColor": "#FFF6DC",
+  "shotColor": "#F4E3B0",
+  "shotCore": "#FFF6DC",
+  "engineColor": "#9FF5DA",
+  "hearts": 2,
+  "heartSize": 0.18,
+  "heartOrbit": 0.65,
+  "heartStyle": "Halo",
+  "exhaustShip": 3,
+  "exhaustScale": 0,
+  "glowScale": 0.09,
+  "cellPixels": 384,
+  "armored": false,
+  "hazardSeconds": 0.4,
+  "hazardSize": 0.6,
+  "displayName": "Lens Matriarch",
+  "role": "mirage blink skirmisher",
+  "brain": "skirmisher",
+  "attack": "blink_shards",
+  "lore": "A slim heliograph of six mirror panels that signals across the dunes. It blinks beside you and fans out real glass shards among hollow decoy glints. The decoys are empty: watch which ones are solid.",
+  "hullRadius": 0.448,
+  "turnsToFace": true,
+  "speed": 2.835,
+  "accel": 8.0,
+  "turnRate": 300,
+  "aggression": 0.5,
+  "tellSeconds": 0.7,
+  "attackGap": 3.04,
+  "avoidance": 0.8,
+  "lookAhead": 0.5,
+  "perception": 2.2,
+  "actionSeconds": 0.5,
+  "shotCount": 5,
+  "shotSpeed": 5.5,
+  "shotSpread": 40,
+  "shotSize": 0.2,
+  "shotInterval": 0.1,
+  "shotKind": "shard",
+  "muzzles": [
+    {
+      "name": "fan",
+      "x": 192,
+      "y": 38,
+      "dir": -1.0
+    },
+    {
+      "name": "portrod",
+      "x": 116,
+      "y": 141,
+      "dir": -1.0
+    },
+    {
+      "name": "starrod",
+      "x": 269,
+      "y": 141,
+      "dir": -1.0
+    }
+  ],
+  "nozzles": [
+    {
+      "name": "a",
+      "x": 168,
+      "y": 279,
+      "dir": -1.0
+    },
+    {
+      "name": "b",
+      "x": 215,
+      "y": 279,
+      "dir": -1.0
+    }
+  ],
+  "keepDistance": 2.6,
+  "blinkDistance": 1.7,
+  "followLag": 0.25
+}

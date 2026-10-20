@@ -26,7 +26,12 @@ public static class DesertFramingTest
     {
         fails = 0;
         int n = 0;
-        foreach (var f in Directory.GetFiles(Dir, "desert_elite_*.png")) { Strip(f, f.EndsWith("_death.png")); n++; }
+        // (the hull strips and their death strips; the _lights / _damaged companions are additive overlays and the burn loop, DesertDockTest's)
+        foreach (var f in Directory.GetFiles(Dir, "desert_elite_*.png"))
+        {
+            if (f.EndsWith("_lights.png") || f.EndsWith("_damaged.png") || f.EndsWith("_lights_damaged.png")) continue;
+            Strip(f, f.EndsWith("_death.png")); n++;
+        }
         Check("Desert elite strips measured (" + n + ")", n == 12);
         Debug.Log("[DESF] failures: " + fails);
         return fails;

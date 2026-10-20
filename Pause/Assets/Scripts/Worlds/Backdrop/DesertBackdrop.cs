@@ -109,7 +109,8 @@ public static class DesertTuning
             piece.StartsWith("crawler_caravan") || piece == "radio_mast" || piece == "collapsed_dome_cluster" || piece == "bucket_wheel_excavator" ||
             piece == "sunken_cargo_crawler" || piece == "pump_well_station" || piece == "lone_crawler" || piece == "pump_house" ||
             piece.StartsWith("worm_burrow") || piece.StartsWith("crawler_bay") || piece.StartsWith("glass_pad") || piece.StartsWith("buried_silo") ||
-            piece.StartsWith("ruin_dock"))
+            piece.StartsWith("ruin_dock") || piece.StartsWith("buriedbunker") || piece.StartsWith("crawlerhangar") || piece.StartsWith("mirrorsilo") ||
+            piece.StartsWith("canyondock"))
             return Structure;
         return Anywhere;     // pipes: they connect what they connect
     }
@@ -137,10 +138,53 @@ public static class DesertTuning
     // ---- launch sites ----
     public static float SiteMin = 1.5f, SiteMax = 1.7f, SiteFirst = 3f, SiteGapMin = 5f, SiteGapMax = 8.5f;
     public static float SiteCloseDelay = 1.4f, SiteMinSize = 1.2f;
-    public static readonly string[] SiteClosed = { "worm_burrow_closed", "crawler_bay_closed", "glass_pad_closed", "buried_silo_closed", "ruin_dock_closed" };
-    public static readonly string[] SiteOpen = { "worm_burrow_open", "crawler_bay_open", "glass_pad_open", "buried_silo_open", "ruin_dock_open" };
-    public static readonly LandingKind[] SiteKinds = { LandingKind.DesertWormBurrow, LandingKind.DesertCrawlerBay, LandingKind.DesertGlassPad, LandingKind.DesertBuriedSilo, LandingKind.DesertRuinDock };
-    public static readonly int[] SiteWeights = { 2, 2, 2, 2, 3 };
+    // Entries 0-4 are the old two-drawing sites (sites atlas, kept as the elites' fallback homes); 5-8 the launch-strip ones (docks atlas:
+    // <name>_00..05, DocksAtlas), for which SiteClosed / SiteOpen name the idle and the open cell (Rule picks the ground by the name).
+    public static readonly string[] SiteNames = { "worm_burrow", "crawler_bay", "glass_pad", "buried_silo", "ruin_dock", "buriedbunker", "crawlerhangar", "mirrorsilo", "canyondock" };
+    public static readonly string[] SiteClosed = { "worm_burrow_closed", "crawler_bay_closed", "glass_pad_closed", "buried_silo_closed", "ruin_dock_closed",
+                                                   "buriedbunker_00", "crawlerhangar_00", "mirrorsilo_00", "canyondock_00" };
+    public static readonly string[] SiteOpen = { "worm_burrow_open", "crawler_bay_open", "glass_pad_open", "buried_silo_open", "ruin_dock_open",
+                                                 "buriedbunker_04", "crawlerhangar_04", "mirrorsilo_04", "canyondock_04" };
+    public static readonly LandingKind[] SiteKinds = { LandingKind.DesertWormBurrow, LandingKind.DesertCrawlerBay, LandingKind.DesertGlassPad, LandingKind.DesertBuriedSilo, LandingKind.DesertRuinDock,
+                                                       LandingKind.DesertBuriedBunker, LandingKind.DesertCrawlerHangar, LandingKind.DesertMirrorSilo, LandingKind.DesertCanyonDock };
+    public static readonly int[] SiteWeights = { 2, 2, 2, 2, 3, 2, 2, 2, 2 };
+    // where the elite comes out of the launch-strip sites: fractions of the drawing's bounds from its centre (y up), the pad pixel of Codex's
+    // masters (new_docks_lights~/manifest.md, on 768 x 768 cells): (384,430) bunker and silo, (384,470) hangar, (360,470) canyon dock
+    public static readonly Vector2[] SitePads =
+    {
+        new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(0f, 0f),
+        new Vector2(0f, -.0599f), new Vector2(0f, -.1120f), new Vector2(0f, -.0599f), new Vector2(-.03125f, -.1120f),
+    };
+
+    // ---- the launch strips (the docks atlas): closed, lamp, opening, opening, open, closing ----
+    // Codex's launch_v2 strips: 0 closed, 1 closed + a small amber lamp (never shown: the ship's own launch light is the tell), 2-3 the doors
+    // opening, 4 fully open, 5 closing half shut. All six are in the atlas (build_launch_atlas.py), as <name>_00..05.
+    public const string DocksAtlas = "docks";
+    public const int LaunchCells = 6, LaunchIdle = 0, LaunchBlink = 1, LaunchOpening = 2, LaunchOpen = 3, LaunchHold = 4, LaunchClosing = 5;
+    public const int FirstLaunchSite = 5;                      // SiteNames[FirstLaunchSite..] have a strip
+    public static bool HasLaunchStrip(int kind) { return kind >= FirstLaunchSite && kind < SiteNames.Length; }
+    // drawn width of a site, as a share of the usual SiteMin..SiteMax
+    public static readonly float[] SiteWidthK = { 1f, 1f, 1f, 1f, 1f, 1f, 1f, 1f, 1f };
+    // The tell: the site stays closed through its first share (the ship's own small blinking launch light, EliteShip.LaunchTell, is the
+    // tell), then the doors open (2); the lift-off has them still opening (3 for its first share), then fully open (4, held until the elite
+    // is clear); then they close for LaunchCloseSeconds (5) and the site is closed again. No flash, flare, halo, ring or lightning.
+    public const float LaunchBlinkShare = .4f, LaunchOpenShare = .25f, LaunchCloseSeconds = .6f;
+
+    // The dust of an opening strip site: Desert's own ambient smoke_b (the pale puff, DesertAmbientCatalog) played as a flipbook at the pad point
+    // while the strip is in its open cells (2-4), fading in over the opening and out through the closing.
+    public const string MistLoop = "smoke_b";
+    public const float MistAlpha = .6f, MistFadeIn = .45f, MistWidthShare = .9f, MistRise = .42f;
+
+    // The cell a strip site shows at EliteShip.LaunchPhase `ph` in (0, 2): (0, 1] the tell, [1, 2) the lift-off.
+    public static int LaunchCellAt(float ph)
+    {
+        if (ph < 1f)
+        {
+            float t = ph * EliteShip.EngineTellSeconds;
+            return t >= LaunchBlinkShare * EliteShip.EngineTellSeconds ? LaunchOpening : LaunchIdle;
+        }
+        return ph - 1f < LaunchOpenShare ? LaunchOpen : LaunchHold;
+    }
     public const float EmergeScalePerUnit = .22f, EmergeScaleMin = .26f, EmergeScaleMax = .4f;
     public const int SiteIdBase = 900;
 
@@ -209,7 +253,11 @@ public static class DesertTuning
 public class DesertDirector : PlanetDirector
 {
     BackdropPool ground, pipes, fires, sites, palls, mist, wisps, ceiling, gusts, grit, wanderers, blasts;
-    BackdropAtlas landmarkArt, pipeArt, fireArt, siteArt, weather;
+    BackdropAtlas landmarkArt, pipeArt, fireArt, siteArt, dockArt, weather;
+    readonly SpriteRenderer[] mists = new SpriteRenderer[3];
+    readonly float[] mistA = new float[3];
+    float mistClock;
+    Sprite[][] siteLaunch;                             // per site kind: its 6 launch cells (null: an old two-drawing site, or the atlas is missing)
     AmbientEmitters ambient;
     GroundPlanner planner;
     readonly Sprite[][] wandererArt = new Sprite[DesertAmbientCatalog.WandererNames.Length][];
@@ -240,6 +288,8 @@ public class DesertDirector : PlanetDirector
     public BackdropPool Pipes => pipes;
     public BackdropPool Fires => fires;
     public BackdropPool Sites => sites;
+    // The six launch cells of a launch-strip site kind (DesertTuning.SiteNames index), null for an old two-drawing site (tests, previews).
+    public Sprite[] LaunchStrip(int kind) { return siteLaunch != null && kind >= 0 && kind < siteLaunch.Length ? siteLaunch[kind] : null; }
     public BackdropPool Ceiling => ceiling;
     public BackdropPool GustSheetPool => gusts;
     public BackdropPool Palls => palls;
@@ -274,6 +324,7 @@ public class DesertDirector : PlanetDirector
         pipeArt = set.Atlas("pipes");
         fireArt = set.Atlas("fires");
         siteArt = set.Atlas("sites");
+        dockArt = set.Atlas(DesertTuning.DocksAtlas);
         weather = set.Atlas("weather");
         night = set.Spec.Night(set.Variant);
         DesertTuning.LightBoostNow = night ? DesertTuning.NightLightBoost : 1f;
@@ -282,6 +333,16 @@ public class DesertDirector : PlanetDirector
 
         siteClosed = Sprites(siteArt, DesertTuning.SiteClosed);
         siteOpen = Sprites(siteArt, DesertTuning.SiteOpen);
+        // the launch-strip sites take their idle / open cells (and all six) from the docks atlas; without it they are simply never spawned
+        siteLaunch = new Sprite[DesertTuning.SiteNames.Length][];
+        for (int k = DesertTuning.FirstLaunchSite; k < siteLaunch.Length; k++)
+        {
+            var f = dockArt.Frames(DesertTuning.SiteNames[k]);
+            if (f.Length < DesertTuning.LaunchCells) { siteClosed[k] = siteOpen[k] = null; continue; }
+            siteLaunch[k] = f;
+            siteClosed[k] = f[DesertTuning.LaunchIdle];
+            siteOpen[k] = f[DesertTuning.LaunchOpen];
+        }
         banks = weather.Frames("cloud_bank");
         wispArt = weather.Frames("cloud_wisp");
         mistArt = weather.Frames("mist");
@@ -294,6 +355,15 @@ public class DesertDirector : PlanetDirector
         fires = LandmarkPool("ground", 6, -2);
         ground = LandmarkPool("ground", 8);
         sites = LandmarkPool("ground", 3);
+        // the launch dust: above the site, below the elite emerging from it (LandingSites order = site + 2)
+        for (int i = 0; i < sites.items.Count && i < mists.Length; i++)
+        {
+            var mg = new GameObject("dust");
+            mg.transform.SetParent(sites.items[i].body, false);
+            mists[i] = mg.AddComponent<SpriteRenderer>();
+            mists[i].sortingOrder = sites.items[i].sr.sortingOrder + 1;
+            mists[i].enabled = false;
+        }
         // Every pool's loops draw above EVERY pool's plates (pipes -4, fires -2,
         // ground / sites 0 of the layer's order): a fire's or pipe's plume rises
         // through the ground, so a landmark plate higher up the screen must not
@@ -1271,7 +1341,7 @@ public class DesertDirector : PlanetDirector
         }
         var closed = siteClosed[kind];
         if (closed == null || siteOpen[kind] == null) return false;
-        float size = Rand(DesertTuning.SiteMin, DesertTuning.SiteMax);
+        float size = Rand(DesertTuning.SiteMin, DesertTuning.SiteMax) * DesertTuning.SiteWidthK[kind];
         double lo = float.IsNaN(y) ? planner.Travel + HalfH + .95f : planner.GroundY(y) - .3f;
         double hi = lo + (float.IsNaN(y) ? .9f : .6f);
         float x; double gy;
@@ -1280,7 +1350,7 @@ public class DesertDirector : PlanetDirector
             // the elite must still get its site: relax the ground rule, keep the room
             if (!planner.Find(new PieceRule(GroundClass.Any, 0f), size, XMin(size), XMax(size), lo, hi, rng, out x, out gy)) return false;
         }
-        var p = Put(sites, siteArt, DesertTuning.SiteClosed[kind], size, x, gy, false);
+        var p = Put(sites, siteLaunch[kind] != null ? dockArt : siteArt, DesertTuning.SiteClosed[kind], size, x, gy, false);   // (doors face the viewer: never mirrored)
         if (p == null) return false;
         p.kind = kind;
         p.tier = 0;
@@ -1302,12 +1372,77 @@ public class DesertDirector : PlanetDirector
         return 0;
     }
 
+    // The launch phase of the elite (if any) parked in / leaving site piece `p` (EliteShip.LaunchPhase), -1 with none.
+    static float PhaseOf(BackdropPiece p)
+    {
+        var live = EliteShip.Live;
+        for (int i = 0; i < live.Count; i++)
+        {
+            var e = live[i];
+            if (e != null && e.State != EliteState.Dead && e.Site.anchor == p.root) return e.LaunchPhase;
+        }
+        return -1f;
+    }
+
+    // The cell of a strip site: the launch tell and lift-off by the elite's phase, then closing behind it for the last
+    // LaunchCloseSeconds of the close delay (p.tier 3, p.life counting down), held open before that.
+    int LaunchCell(BackdropPiece p)
+    {
+        if (p.tier == 1 || p.tier == 2)
+        {
+            float ph = PhaseOf(p);
+            if (ph > 0f && ph < 2f) return DesertTuning.LaunchCellAt(ph);
+            return p.tier == 1 ? DesertTuning.LaunchOpening : DesertTuning.LaunchHold;
+        }
+        if (p.tier == 3) return p.life > DesertTuning.LaunchCloseSeconds ? DesertTuning.LaunchHold : DesertTuning.LaunchClosing;
+        return DesertTuning.LaunchIdle;
+    }
+
+    // Is the launch dust of site slot `i` showing (tests)?
+    public bool MistShowing(int i) { return i >= 0 && i < mists.Length && mists[i] != null && mists[i].enabled; }
+    public SpriteRenderer MistRenderer(int i) { return i >= 0 && i < mists.Length ? mists[i] : null; }
+    public float MistFade(int i) { return i >= 0 && i < mistA.Length ? mistA[i] : 0f; }
+
+    // The dust of strip site `p` (slot i) in strip cell `cell`: Desert's ambient smoke_b flipbook (DesertAmbientCatalog: its own fps, a foot-anchored
+    // puff) over the pad point, as wide as the bay, rising out of it.
+    void StepMist(int i, BackdropPiece p, int cell, float dt)
+    {
+        if (i >= mists.Length) return;
+        var sr = mists[i];
+        if (sr == null) return;
+        bool open = cell >= DesertTuning.LaunchOpening && cell < DesertTuning.LaunchClosing;
+        float target = open ? 1f : 0f;
+        mistA[i] = Mathf.MoveTowards(mistA[i], target, dt / (open ? DesertTuning.MistFadeIn : DesertTuning.LaunchCloseSeconds));
+        var art = ambient != null ? ambient.Frames(DesertTuning.MistLoop) : null;
+        if (art == null || art.Length == 0 || mistA[i] <= .001f) { sr.enabled = false; return; }
+        var f = art[((int)(mistClock * DesertAmbientCatalog.FpsOf(DesertTuning.MistLoop)) + i) % art.Length];
+        if (f == null) { sr.enabled = false; return; }
+        sr.sprite = f;
+        if (ambient.PlumeMaterial != null) sr.sharedMaterial = ambient.PlumeMaterial;   // (the dust wears the ambient plumes' own grade)
+        Bounds b = p.sr.sprite.bounds;
+        Vector3 pad = p.root.TransformPoint(new Vector3(b.center.x + DesertTuning.SitePads[p.kind].x * b.size.x, b.center.y + DesertTuning.SitePads[p.kind].y * b.size.y, 0f));
+        float siteW = b.size.x * p.root.lossyScale.x;
+        float world = siteW * DesertTuning.MistWidthShare / Mathf.Max(.01f, f.bounds.size.x);   // world scale of the puff sprite
+        var t = sr.transform;
+        float k = Mathf.Max(.0001f, t.parent != null ? t.parent.lossyScale.x : 1f);
+        // the puff rises out of the bay: its foot (low in its cell) on the pad point
+        t.position = new Vector3(pad.x, pad.y + f.bounds.size.y * world * DesertTuning.MistRise, t.position.z);
+        t.localScale = new Vector3(world / k, world / k, 1f);
+        sr.color = new Color(1f, 1f, 1f, DesertTuning.MistAlpha * mistA[i] * set.Alpha);
+        sr.enabled = true;
+    }
+
     void StepSites(float dt)
     {
+        mistClock += dt;
         for (int i = 0; i < sites.items.Count; i++)
         {
             var p = sites.items[i];
-            if (!p.active) continue;
+            if (!p.active)
+            {
+                if (i < mists.Length && mists[i] != null) { mists[i].enabled = false; mistA[i] = 0f; }
+                continue;
+            }
             int launch = LaunchState(p);
             if (launch > 0) { p.tier = launch; p.life = DesertTuning.SiteCloseDelay; }
             else if (p.tier > 0)
@@ -1316,8 +1451,10 @@ public class DesertDirector : PlanetDirector
                 p.tier = p.life <= 0f ? 0 : 3;
             }
             bool open = p.tier > 0;
-            var want = open ? siteOpen[p.kind] : siteClosed[p.kind];
+            var strip = siteLaunch[p.kind];
+            var want = strip != null ? strip[LaunchCell(p)] : open ? siteOpen[p.kind] : siteClosed[p.kind];
             if (p.sr.sprite != want) p.sr.sprite = want;
+            if (strip != null) StepMist(i, p, LaunchCell(p), dt);
         }
     }
 
@@ -1337,7 +1474,7 @@ public class DesertDirector : PlanetDirector
             into.Add(new LandingSite
             {
                 anchor = p.root,
-                local = new Vector3(b.center.x, b.center.y, 0f),     // the measured emergence point: the cell centre
+                local = new Vector3(b.center.x + DesertTuning.SitePads[p.kind].x * b.size.x, b.center.y + DesertTuning.SitePads[p.kind].y * b.size.y, 0f),   // the cell centre (the strip sites: their pad pixel)
                 scale = Mathf.Clamp(p.size * DesertTuning.EmergeScalePerUnit, DesertTuning.EmergeScaleMin, DesertTuning.EmergeScaleMax),
                 order = p.sr.sortingOrder + 2,
                 id = DesertTuning.SiteIdBase + i,
@@ -1345,6 +1482,30 @@ public class DesertDirector : PlanetDirector
                 emerge = true,
             });
         }
+    }
+
+    // The elite director wants a site of one of `launchFrom`'s kinds in view soon (LandingSites.BringHome), as Frost's, Ember's and Tide's: the ground
+    // is fixed, so none is conjured -- but the site spawner is asked for one of that kind at the top of the view now (it scrolls in over the
+    // next seconds, as the ground pieces always do), unless one of them is already in view or on its way. False when none of the kinds is
+    // one of Desert's sites or there is no room for one on the ground.
+    public override bool BringHome(string launchFrom)
+    {
+        if (sites == null || !planner.Ready || string.IsNullOrEmpty(launchFrom)) return false;
+        var want = new List<int>(DesertTuning.SiteKinds.Length);   // (a rare call: one per elite)
+        foreach (string part in launchFrom.Split(','))
+        {
+            var k = LandingSite.KindOf(part.Trim());
+            if (k == null) continue;
+            for (int t = 0; t < DesertTuning.SiteKinds.Length; t++)
+                if (DesertTuning.SiteKinds[t] == k.Value && siteClosed[t] != null && siteOpen[t] != null && !want.Contains(t)) want.Add(t);
+        }
+        if (want.Count == 0) return false;
+        for (int i = 0; i < sites.items.Count; i++)
+        {
+            var p = sites.items[i];
+            if (p.active && want.Contains(p.kind) && p.y >= -HalfH * .15f) return true;   // (in view, or still on its way in from the top)
+        }
+        return SpawnSite(float.NaN, want[rng.Next(want.Count)]);
     }
 
     // --------------------------------------------------------------- weather --

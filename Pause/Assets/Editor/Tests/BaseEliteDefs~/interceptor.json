@@ -1,0 +1,88 @@
+{
+  "key": "desert_elite_dune_stalker",
+  "codexId": "elite_desert_dune_stalker",
+  "world": "desert",
+  "launchFrom": "wormburrow",
+  "cells": {
+    "flight": [
+      3,
+      7,
+      8
+    ],
+    "parked": 0,
+    "parkedIdle": 1,
+    "liftoff": 2,
+    "bankLeft": 4,
+    "bankRight": 5,
+    "tell": -1,
+    "action": -1,
+    "hit": -1,
+    "damaged": 6
+  },
+  "cellWorldSize": 2.06,
+  "noseDeg": 90,
+  "maxBank": 3,
+  "heartColor": "#FFF6DC",
+  "shotColor": "#F4E3B0",
+  "shotCore": "#FFF6DC",
+  "engineColor": "#BFE3FF",
+  "hearts": 2,
+  "heartSize": 0.18,
+  "heartOrbit": 0.746,
+  "heartStyle": "Halo",
+  "exhaustShip": 3,
+  "exhaustScale": 0,
+  "glowScale": 0.09,
+  "cellPixels": 384,
+  "armored": false,
+  "hazardSeconds": 0.4,
+  "hazardSize": 0.6,
+  "displayName": "Dune Stalker",
+  "role": "burrowing interceptor",
+  "brain": "interceptor",
+  "attack": "lance_dash",
+  "lore": "A cobalt lance-fighter that hunts out of a worm-burrow hole at the edge of the dunes. It sights you, rears, and drives its brass drill-lance down the lane in one straight dash, grit needles spitting from its flanks. Step out of the sand wake, not along it.",
+  "hullRadius": 0.39,
+  "turnsToFace": true,
+  "speed": 3.15,
+  "accel": 6.5,
+  "turnRate": 240,
+  "aggression": 0.5,
+  "tellSeconds": 0.85,
+  "attackGap": 3.23,
+  "avoidance": 0.6,
+  "lookAhead": 0.4,
+  "perception": 2.2,
+  "actionSeconds": 0.55,
+  "shotCount": 2,
+  "shotSpeed": 5.0,
+  "shotSpread": 14,
+  "shotSize": 0.2,
+  "shotInterval": 0.1,
+  "shotKind": "bolt",
+  "muzzles": [
+    {
+      "name": "hook",
+      "x": 192,
+      "y": 38,
+      "dir": -1.0
+    }
+  ],
+  "nozzles": [
+    {
+      "name": "a",
+      "x": 162,
+      "y": 279,
+      "dir": -1.0
+    },
+    {
+      "name": "b",
+      "x": 221,
+      "y": 279,
+      "dir": -1.0
+    }
+  ],
+  "followDistance": 2.0,
+  "dashSpeed": 8.4,
+  "followLag": 0.35
+}

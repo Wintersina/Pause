@@ -725,6 +725,19 @@ public static class AttackBudgetScenarios
                     into.Add(ring);
                 }
             }
+            // Desert's sand bursts and quicksand rows: a ring on every spot from the first frame of the tell; what lands there is dangerous from the landing on
+            var dsa = ship.Attack as DesertSpotAttack;
+            if (dsa != null)
+            {
+                for (int i = 0; i < dsa.Count; i++)
+                {
+                    float land = tellLeft + def.lobSeconds + def.shotInterval * i;
+                    Vector2 from = dsa.Spot(i) + Vector2.up * (EliteSystem.Scroll * land);
+                    var ring = Hz.Circle(2800 + i, from, dsa.HazardRadius, land, dsa.HazardSeconds);
+                    ring.planOnly = ring.hasV = true; ring.va = ring.vb = board;
+                    into.Add(ring);
+                }
+            }
             var ld = ship.Attack as LeafDiveAttack;
             if (ld != null)
             {

@@ -1,0 +1,107 @@
+{
+  "key": "desert_elite_mirror_bastion",
+  "codexId": "elite_desert_mirror_bastion",
+  "world": "desert",
+  "launchFrom": "ruindock",
+  "cells": {
+    "flight": [
+      3,
+      7,
+      8
+    ],
+    "parked": 0,
+    "parkedIdle": 1,
+    "liftoff": 2,
+    "bankLeft": 4,
+    "bankRight": 5,
+    "tell": -1,
+    "action": -1,
+    "hit": -1,
+    "damaged": 6
+  },
+  "cellWorldSize": 2.37,
+  "noseDeg": 90,
+  "maxBank": 3,
+  "heartColor": "#FFF6DC",
+  "shotColor": "#F4E3B0",
+  "shotCore": "#FFF6DC",
+  "engineColor": "#9AD8FF",
+  "hearts": 2,
+  "heartSize": 0.18,
+  "heartOrbit": 0.609,
+  "heartStyle": "Halo",
+  "exhaustShip": 3,
+  "exhaustScale": 0,
+  "glowScale": 0.09,
+  "cellPixels": 384,
+  "armored": true,
+  "hazardSeconds": 0.4,
+  "hazardSize": 0.6,
+  "displayName": "Mirror Bastion",
+  "role": "glass ward bastion",
+  "brain": "bastion",
+  "attack": "ward_curtain",
+  "lore": "A shielded warship ringed in overlapping glass-mirror plates. It rises out of a ruin dock and hangs a curtain of slow glass shards in front of itself with one gap in it. Find the gap and wait.",
+  "hullRadius": 0.478,
+  "turnsToFace": false,
+  "speed": 1.785,
+  "accel": 3.5,
+  "turnRate": 140,
+  "aggression": 0.5,
+  "tellSeconds": 1.0,
+  "attackGap": 3.8,
+  "avoidance": 0.5,
+  "lookAhead": 0.4,
+  "perception": 2.2,
+  "actionSeconds": 0.6,
+  "shotCount": 9,
+  "shotSpeed": 2.6,
+  "shotSpread": 0,
+  "shotSize": 0.22,
+  "shotInterval": 0.05,
+  "shotKind": "bolt",
+  "muzzles": [
+    {
+      "name": "core",
+      "x": 192,
+      "y": 38,
+      "dir": -1.0
+    },
+    {
+      "name": "portcap",
+      "x": 129,
+      "y": 61,
+      "dir": -1.0
+    },
+    {
+      "name": "starcap",
+      "x": 254,
+      "y": 61,
+      "dir": -1.0
+    }
+  ],
+  "nozzles": [
+    {
+      "name": "a",
+      "x": 138,
+      "y": 270,
+      "dir": -1.0
+    },
+    {
+      "name": "b",
+      "x": 192,
+      "y": 270,
+      "dir": -1.0
+    },
+    {
+      "name": "c",
+      "x": 246,
+      "y": 270,
+      "dir": -1.0
+    }
+  ],
+  "followDistance": 3.0,
+  "laneOffset": 0.9,
+  "lobSpacing": 0.62,
+  "followLag": 0.25
+}

@@ -195,13 +195,13 @@ public static class DesertBackdropTest
         EliteCatalog.ForWorld(6, defs);
         var wanted = new Dictionary<string, LandingKind>
         {
-            { "desert_elite_dune_stalker", LandingKind.DesertWormBurrow }, { "desert_elite_caravan_hauler", LandingKind.DesertCrawlerBay },
-            { "desert_elite_lens_matriarch", LandingKind.DesertGlassPad }, { "desert_elite_glass_cannon", LandingKind.DesertBuriedSilo },
-            { "desert_elite_scorpion_walker", LandingKind.DesertRuinDock }, { "desert_elite_mirror_bastion", LandingKind.DesertRuinDock },
+            { "desert_elite_dune_stalker", LandingKind.DesertCanyonDock }, { "desert_elite_caravan_hauler", LandingKind.DesertCrawlerHangar },
+            { "desert_elite_lens_matriarch", LandingKind.DesertMirrorSilo }, { "desert_elite_glass_cannon", LandingKind.DesertMirrorSilo },
+            { "desert_elite_scorpion_walker", LandingKind.DesertBuriedBunker }, { "desert_elite_mirror_bastion", LandingKind.DesertBuriedBunker },
         };
         bool mine = defs.Count == 6;
         foreach (var d in defs) mine &= wanted.ContainsKey(d.key) && LandingSite.KindOf(d.launchFrom) == wanted[d.key];
-        Check("each of Desert's six elites launches from its own site kind (" + defs.Count + " defs)", mine);
+        Check("each of Desert's six elites launches from its own (new) site kind first (" + defs.Count + " defs; DesertDockTest: the strip sites)", mine);
     }
 
     // ---- four ground sets, random per landing ----------------------------------
@@ -1032,7 +1032,7 @@ public static class DesertBackdropTest
         for (int i = 0; i < sites.Count; i++) if (sites[i].kind == kind) si = i;
         Check(tag + ": a site of the kind comes into view (spawned " + made + ", offered " + sites.Count + ")", made && si >= 0);
         EliteDef def = null;
-        foreach (var e0 in defs) if (LandingSite.KindOf(e0.launchFrom) == kind) { def = e0; break; }
+        foreach (var e0 in defs) if (LandingSite.Accepts(e0.launchFrom, kind) && !string.IsNullOrEmpty(e0.launchFrom)) { def = e0; break; }
         Check(tag + ": an elite launches from it (" + (def != null ? def.key : "-") + ")", def != null);
         if (si < 0 || def == null) { Object.DestroyImmediate(wb.gameObject); Object.DestroyImmediate(pilot.gameObject); EliteSystem.Clear(); return; }
         var dir = new GameObject("~Dir").AddComponent<EliteDirector>();
