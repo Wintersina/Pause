@@ -221,6 +221,7 @@ public class BackdropPiece
     public bool edge;                    // Space: a station peeking in across the screen edge
     public float x, y, vx, vy, age, life, size, phase, spin, rate;
     public Color color = Color.white;
+    public Color dockTint = Color.white;   // an elite dock's own per-backdrop colour (DockGrade), multiplied into its draw colour
     public Sprite[] frames;
     public float fps;
     public bool loop = true;

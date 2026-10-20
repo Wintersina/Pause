@@ -81,6 +81,9 @@ public static class EmberTuning
     static readonly PieceRule LavaRun = new PieceRule(GroundClass.Water, .45f, .2f);         // barges, pools, channels
     static readonly PieceRule Span = new PieceRule(GroundClass.Water, .3f, .2f, GroundClass.Land);
     static readonly PieceRule Bank = new PieceRule(GroundClass.Land, .6f, .28f, GroundClass.Water);
+    // Every launch dock stands on solid crust (forge floor, ash flat, crust): never in the lava, never on its bank line.
+    public static readonly PieceRule DockGround = new PieceRule(GroundClass.Land, .85f, .3f);
+    public static readonly PieceRule DockGroundRelaxed = new PieceRule(GroundClass.Land, .7f, .3f);
     static readonly PieceRule Anywhere = new PieceRule(GroundClass.Any, 0f, .2f);
     // SPANS laid alone by a lava channel: both ends come down on the crust
     // (never mirrored), so the viaduct / pipe crosses the lava from bank to
@@ -212,6 +215,7 @@ public class EmberDirector : PlanetDirector
     BackdropPool ground, pipes, fires, sites, palls, mist, wisps, ceiling, gusts, embers;
     readonly SpriteRenderer[] lamps = new SpriteRenderer[3];
     BackdropAtlas landmarkArt, pipeArt, fireArt, siteArt, dockArt, weather, lights;
+    Color[] dockTints;                                 // per site kind: its DockGrade colour on this ground set
     Sprite[][] siteLaunch;                             // per site kind: its 6 launch cells (null: an old two-drawing site, or the atlas is missing)
     AmbientEmitters ambient;
     GroundPlanner planner;
@@ -285,6 +289,7 @@ public class EmberDirector : PlanetDirector
 
         dockArt = set.Atlas(EmberTuning.DocksAtlas);
         siteClosed = Sprites(siteArt, EmberTuning.SiteClosed);
+        dockTints = DockGrade.Tints("Ember", set.Variant, EmberTuning.SiteClosed);
         siteOpen = Sprites(siteArt, EmberTuning.SiteOpen);
         // the launch-strip sites take their idle / open cells (and all six) from the docks atlas; without it they are simply never spawned
         siteLaunch = new Sprite[EmberTuning.SiteNames.Length][];
@@ -476,7 +481,7 @@ public class EmberDirector : PlanetDirector
 
     void Tinted(BackdropPiece p, float alpha)
     {
-        p.sr.color = new Color(1f, 1f, 1f, alpha * set.Alpha);
+        p.sr.color = new Color(p.dockTint.r, p.dockTint.g, p.dockTint.b, alpha * set.Alpha);
     }
 
     // Pinned pieces: placed from their ground coordinate every frame.
@@ -575,6 +580,7 @@ public class EmberDirector : PlanetDirector
         p.y = planner.Y(gy);
         p.rate = set.Spec.Rate("ground");
         p.color = Color.white;
+        p.dockTint = Color.white;
         p.kind = 0;
         Place(p);
         Tinted(p, 1f);
@@ -802,6 +808,7 @@ public class EmberDirector : PlanetDirector
     public bool SpawnSite(float y, int kind = -1)
     {
         if (!planner.Ready) return false;
+        if (DockGrade.AnyOnGround(sites, HalfH)) return false;      // one dock at a time: the next comes once this one has scrolled off
         if (kind < 0)
         {
             int total = 0;
@@ -819,13 +826,13 @@ public class EmberDirector : PlanetDirector
         double lo = float.IsNaN(y) ? planner.Travel + HalfH + .95f : planner.GroundY(y) - .3f;
         double hi = lo + (float.IsNaN(y) ? .9f : .6f);
         float x; double gy;
-        if (!planner.Find(EmberTuning.Rule(EmberTuning.SiteClosed[kind]), size, XMin(size), XMax(size), lo, hi, rng, out x, out gy))
-        {
-            // the elite must still get its site: relax the ground rule, keep the room
-            if (!planner.Find(new PieceRule(GroundClass.Land, .5f), size, XMin(size), XMax(size), lo, hi, rng, out x, out gy)) return false;
-        }
+        if (!planner.Find(EmberTuning.DockGround, size, XMin(size), XMax(size), lo, hi, rng, out x, out gy) &&
+            !planner.Find(EmberTuning.DockGroundRelaxed, size, XMin(size), XMax(size), lo, hi, rng, out x, out gy) &&
+            (DockGrade.Strict || !planner.Find(new PieceRule(GroundClass.Any, 0f), size, XMin(size), XMax(size), lo, hi, rng, out x, out gy))) return false;   // solid crust only, never lava
         var p = Put(sites, siteLaunch[kind] != null ? dockArt : siteArt, EmberTuning.SiteClosed[kind], size, x, gy, false);   // (doors face the viewer: never mirrored)
         if (p == null) return false;
+        p.dockTint = dockTints[kind];
+        Tinted(p, 1f);
         p.kind = kind;
         p.tier = 0;
         p.life = 0f;
@@ -936,18 +943,25 @@ public class EmberDirector : PlanetDirector
     {
         if (sites == null || !planner.Ready || string.IsNullOrEmpty(launchFrom)) return false;
         var want = new List<int>(EmberTuning.SiteKinds.Length);   // (a rare call: one per elite)
+        bool mine = false;      // (one of the kinds it names is a dock of this world, even if none can be placed here)
         foreach (string part in launchFrom.Split(','))
         {
             var k = LandingSite.KindOf(part.Trim());
             if (k == null) continue;
             for (int t = 0; t < EmberTuning.SiteKinds.Length; t++)
+            {
+                if (EmberTuning.SiteKinds[t] == k.Value) mine = true;
                 if (EmberTuning.SiteKinds[t] == k.Value && siteClosed[t] != null && siteOpen[t] != null && !want.Contains(t)) want.Add(t);
+            }
         }
+        if (want.Count == 0 && mine && DockGrade.Strict)     // (none of the kinds it names has a dock here: any dock will do)
+            for (int t = 0; t < EmberTuning.SiteKinds.Length; t++)
+                if (siteClosed[t] != null && siteOpen[t] != null) want.Add(t);
         if (want.Count == 0) return false;
         for (int i = 0; i < sites.items.Count; i++)
         {
             var p = sites.items[i];
-            if (p.active && want.Contains(p.kind) && p.y >= -HalfH * .15f) return true;   // (in view, or still on its way in from the top)
+            if (p.active && (DockGrade.Strict || want.Contains(p.kind)) && p.y >= -HalfH * .15f) return true;   // (a dock in view, or still on its way in from the top: the one dock)
         }
         return SpawnSite(float.NaN, want[rng.Next(want.Count)]);
     }

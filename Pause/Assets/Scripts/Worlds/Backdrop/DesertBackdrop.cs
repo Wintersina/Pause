@@ -83,6 +83,7 @@ public static class DesertTuning
     static readonly PieceRule Feature = new PieceRule(GroundClass.Any, 0f, .3f);                                              // rock, ribs, drifts, wreckage: anywhere
     static readonly PieceRule Hollow = new PieceRule(GroundClass.Open | GroundClass.Water, .75f, .3f);                         // wells, vents, glass: soft or flat ground
     static readonly PieceRule Dune = new PieceRule(GroundClass.Water, .8f, .3f);                                               // a dune ridge: sand
+    public static readonly PieceRule DockRelaxed = new PieceRule(GroundClass.Water | GroundClass.Open | GroundClass.Built, .6f, .3f);   // (dunes / flats / built ground, never the cliffs)
     static readonly PieceRule Anywhere = new PieceRule(GroundClass.Any, 0f, .2f);
     // a pipe bridge laid ALONE (a bank piece; runs between structures lay
     // their own): its pipes are sliced off at the cell edge, so both ends must
@@ -257,6 +258,7 @@ public class DesertDirector : PlanetDirector
     readonly SpriteRenderer[] mists = new SpriteRenderer[3];
     readonly float[] mistA = new float[3];
     float mistClock;
+    Color[] dockTints;                                 // per site kind: its DockGrade colour on this ground set
     Sprite[][] siteLaunch;                             // per site kind: its 6 launch cells (null: an old two-drawing site, or the atlas is missing)
     AmbientEmitters ambient;
     GroundPlanner planner;
@@ -332,6 +334,7 @@ public class DesertDirector : PlanetDirector
         planner = new GroundPlanner(set, "mid", GroundMask.Load("Desert", set.Variant));
 
         siteClosed = Sprites(siteArt, DesertTuning.SiteClosed);
+        dockTints = DockGrade.Tints("Desert", set.Variant, DesertTuning.SiteClosed);
         siteOpen = Sprites(siteArt, DesertTuning.SiteOpen);
         // the launch-strip sites take their idle / open cells (and all six) from the docks atlas; without it they are simply never spawned
         siteLaunch = new Sprite[DesertTuning.SiteNames.Length][];
@@ -526,7 +529,7 @@ public class DesertDirector : PlanetDirector
 
     void Tinted(BackdropPiece p, float alpha)
     {
-        p.sr.color = new Color(1f, 1f, 1f, alpha * set.Alpha);
+        p.sr.color = new Color(p.dockTint.r, p.dockTint.g, p.dockTint.b, alpha * set.Alpha);
     }
 
     // Pinned pieces: placed from their ground coordinate every frame.
@@ -689,6 +692,7 @@ public class DesertDirector : PlanetDirector
         p.y = planner.Y(gy);
         p.rate = set.Spec.Rate("ground");
         p.color = Color.white;
+        p.dockTint = Color.white;
         p.kind = 0;
         Place(p);
         Tinted(p, 1f);
@@ -1328,6 +1332,7 @@ public class DesertDirector : PlanetDirector
     public bool SpawnSite(float y, int kind = -1)
     {
         if (!planner.Ready) return false;
+        if (DockGrade.AnyOnGround(sites, HalfH)) return false;      // one dock at a time: the next comes once this one has scrolled off
         if (kind < 0)
         {
             int total = 0;
@@ -1345,13 +1350,13 @@ public class DesertDirector : PlanetDirector
         double lo = float.IsNaN(y) ? planner.Travel + HalfH + .95f : planner.GroundY(y) - .3f;
         double hi = lo + (float.IsNaN(y) ? .9f : .6f);
         float x; double gy;
-        if (!planner.Find(DesertTuning.Rule(DesertTuning.SiteClosed[kind]), size, XMin(size), XMax(size), lo, hi, rng, out x, out gy))
-        {
-            // the elite must still get its site: relax the ground rule, keep the room
-            if (!planner.Find(new PieceRule(GroundClass.Any, 0f), size, XMin(size), XMax(size), lo, hi, rng, out x, out gy)) return false;
-        }
+        if (!planner.Find(DesertTuning.Rule(DesertTuning.SiteClosed[kind]), size, XMin(size), XMax(size), lo, hi, rng, out x, out gy) &&
+            !planner.Find(DesertTuning.DockRelaxed, size, XMin(size), XMax(size), lo, hi, rng, out x, out gy) &&
+            (DockGrade.Strict || !planner.Find(new PieceRule(GroundClass.Any, 0f), size, XMin(size), XMax(size), lo, hi, rng, out x, out gy))) return false;   // sand / flats / built ground, never the cliffs
         var p = Put(sites, siteLaunch[kind] != null ? dockArt : siteArt, DesertTuning.SiteClosed[kind], size, x, gy, false);   // (doors face the viewer: never mirrored)
         if (p == null) return false;
+        p.dockTint = dockTints[kind];
+        Tinted(p, 1f);
         p.kind = kind;
         p.tier = 0;
         p.life = 0f;
@@ -1492,18 +1497,25 @@ public class DesertDirector : PlanetDirector
     {
         if (sites == null || !planner.Ready || string.IsNullOrEmpty(launchFrom)) return false;
         var want = new List<int>(DesertTuning.SiteKinds.Length);   // (a rare call: one per elite)
+        bool mine = false;      // (one of the kinds it names is a dock of this world, even if none can be placed here)
         foreach (string part in launchFrom.Split(','))
         {
             var k = LandingSite.KindOf(part.Trim());
             if (k == null) continue;
             for (int t = 0; t < DesertTuning.SiteKinds.Length; t++)
+            {
+                if (DesertTuning.SiteKinds[t] == k.Value) mine = true;
                 if (DesertTuning.SiteKinds[t] == k.Value && siteClosed[t] != null && siteOpen[t] != null && !want.Contains(t)) want.Add(t);
+            }
         }
+        if (want.Count == 0 && mine && DockGrade.Strict)     // (none of the kinds it names has a dock here: any dock will do)
+            for (int t = 0; t < DesertTuning.SiteKinds.Length; t++)
+                if (siteClosed[t] != null && siteOpen[t] != null) want.Add(t);
         if (want.Count == 0) return false;
         for (int i = 0; i < sites.items.Count; i++)
         {
             var p = sites.items[i];
-            if (p.active && want.Contains(p.kind) && p.y >= -HalfH * .15f) return true;   // (in view, or still on its way in from the top)
+            if (p.active && (DockGrade.Strict || want.Contains(p.kind)) && p.y >= -HalfH * .15f) return true;   // (a dock in view, or still on its way in from the top: the one dock)
         }
         return SpawnSite(float.NaN, want[rng.Next(want.Count)]);
     }

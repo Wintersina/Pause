@@ -160,6 +160,7 @@ public class VerdantDirector : PlanetDirector
 {
     BackdropPool ground, pipes, fires, sites, palls, mist, wisps, ceiling, pollen, spores, flies;
     readonly SpriteRenderer[] lamps = new SpriteRenderer[3];
+    Color[] dockTints;                                 // per site kind: its DockGrade colour on this ground set
     BackdropAtlas landmarkArt, pipeArt, fireArt, siteArt, weather, lights;
     AmbientEmitters ambient;
     GroundPlanner planner;
@@ -230,6 +231,7 @@ public class VerdantDirector : PlanetDirector
         planner = new GroundPlanner(set, "mid", GroundMask.Load("Verdant", set.Variant));
 
         siteClosed = Sprites(siteArt, VerdantTuning.SiteClosed);
+        dockTints = DockGrade.Tints("Verdant", set.Variant, VerdantTuning.SiteClosed);
         siteOpen = Sprites(siteArt, VerdantTuning.SiteOpen);
         lampsOff = siteArt.Get("lights_off");
         lampsOn = siteArt.Get("lights_on");
@@ -422,7 +424,7 @@ public class VerdantDirector : PlanetDirector
 
     void Tinted(BackdropPiece p, float alpha)
     {
-        p.sr.color = new Color(1f, 1f, 1f, alpha * set.Alpha);
+        p.sr.color = new Color(p.dockTint.r, p.dockTint.g, p.dockTint.b, alpha * set.Alpha);
     }
 
     // Pinned pieces: placed from their ground coordinate every frame.
@@ -521,6 +523,7 @@ public class VerdantDirector : PlanetDirector
         p.y = planner.Y(gy);
         p.rate = set.Spec.Rate("ground");
         p.color = Color.white;
+        p.dockTint = Color.white;
         p.kind = 0;
         Place(p);
         Tinted(p, 1f);
@@ -741,6 +744,7 @@ public class VerdantDirector : PlanetDirector
     public bool SpawnSite(float y, int kind = -1)
     {
         if (!planner.Ready) return false;
+        if (DockGrade.AnyOnGround(sites, HalfH)) return false;      // one dock at a time: the next comes once this one has scrolled off
         if (kind < 0)
         {
             int total = 0;
@@ -765,6 +769,8 @@ public class VerdantDirector : PlanetDirector
         }
         var p = Put(sites, siteArt, VerdantTuning.SiteClosed[kind], size, x, gy, false);
         if (p == null) return false;
+        p.dockTint = dockTints[kind];
+        Tinted(p, 1f);
         p.kind = kind;
         p.tier = 0;
         p.life = 0f;
@@ -847,18 +853,25 @@ public class VerdantDirector : PlanetDirector
     {
         if (sites == null || !planner.Ready || string.IsNullOrEmpty(launchFrom)) return false;
         var want = new List<int>(VerdantTuning.SiteKinds.Length);   // (a rare call: one per elite)
+        bool mine = false;      // (one of the kinds it names is a dock of this world, even if none can be placed here)
         foreach (string part in launchFrom.Split(','))
         {
             var k = LandingSite.KindOf(part.Trim());
             if (k == null) continue;
             for (int t = 0; t < VerdantTuning.SiteKinds.Length; t++)
+            {
+                if (VerdantTuning.SiteKinds[t] == k.Value) mine = true;
                 if (VerdantTuning.SiteKinds[t] == k.Value && siteClosed[t] != null && siteOpen[t] != null && !want.Contains(t)) want.Add(t);
+            }
         }
+        if (want.Count == 0 && mine && DockGrade.Strict)     // (none of the kinds it names has a dock here: any dock will do)
+            for (int t = 0; t < VerdantTuning.SiteKinds.Length; t++)
+                if (siteClosed[t] != null && siteOpen[t] != null) want.Add(t);
         if (want.Count == 0) return false;
         for (int i = 0; i < sites.items.Count; i++)
         {
             var p = sites.items[i];
-            if (p.active && want.Contains(p.kind) && p.y >= -HalfH * .15f) return true;   // (in view, or still on its way in from the top)
+            if (p.active && (DockGrade.Strict || want.Contains(p.kind)) && p.y >= -HalfH * .15f) return true;   // (a dock in view, or still on its way in from the top: the one dock)
         }
         return SpawnSite(float.NaN, want[rng.Next(want.Count)]);
     }
