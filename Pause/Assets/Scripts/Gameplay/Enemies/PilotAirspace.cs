@@ -95,6 +95,7 @@ public static class PilotAirspace
     {
         lo = -band;
         hi = band;
+        if (!SpawnSpace.RegularsAvoid) return;   // pilots no longer cut their band back for what passes (SpawnSpace.RegularsAvoid)
         float x = pilot.Anchor.x;
         float yLow = at.y - half.y - lookDown, yHigh = at.y + half.y + lookUp;
         var enemies = SpawnSpace.Live(SpawnLayer.Enemy);

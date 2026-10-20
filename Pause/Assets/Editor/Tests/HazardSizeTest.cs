@@ -48,6 +48,7 @@ public static class HazardSizeTest
     {
         fails = 0;
         using var sandbox = new TestHarness.Sandbox();
+        SpawnSpace.RegularsAvoid = true;   // this suite checks the avoidance rules (a riding mine keeping off a rock), which are off in play
         try
         {
             EditorSceneLoader.Open("gameS1", OpenSceneMode.Single);
@@ -71,6 +72,7 @@ public static class HazardSizeTest
         }
         finally
         {
+            SpawnSpace.RegularsAvoid = false;
             HazardSize.Enabled = true;
             EnemyThreat.ForceShooting = false;
             SpawnSpace.ClockOverride = null;

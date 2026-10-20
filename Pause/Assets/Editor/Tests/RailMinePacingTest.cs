@@ -53,6 +53,7 @@ public static class RailMinePacingTest
                         Lock(w, right, speed);
             Freeze();
             foreach (float speed in Speeds) Room(speed);
+            foreach (float speed in Speeds) SharedRail(speed);
         }
         finally
         {
@@ -284,9 +285,66 @@ public static class RailMinePacingTest
         Object.DestroyImmediate(rail);
     }
 
+    // Three mines on ONE rail, stacked on the same spot: none yields, stalls or
+    // jiggles for another. Each rides to its hold row on its own path, so its
+    // height never reverses in a visible step once it is riding (the old Slip
+    // rule froze and released a mine as its neighbours' envelopes crossed it).
+    static void SharedRail(float speed)
+    {
+        Fresh(speed);
+        var def = EnemyRoster.One(0, EnemyRole.Mine);
+        float x = enmiesOnBoard.WorldRailX(false);
+        float scroll = speed * BoardRoll.BoardScroll;
+        var rail = new GameObject("RailMineLane");
+        rail.transform.position = new Vector3(x, 6f, 0f);
+        var scroller = rail.AddComponent<RailLaneScroller>();
+        var mines = new GameObject[3];
+        var brains = new EnemyBrain[3];
+        var mounts = new RailMineMount[3];
+        var lastY = new float[3];
+        var lastDy = new float[3];
+        int reversals = 0, ridden = 0;
+        for (int k = 0; k < 3; k++)
+        {
+            mines[k] = EnemyFactory.Create(def, new Vector3(x, 6f + k * .3f, 0f), Quaternion.identity);
+            brains[k] = mines[k].GetComponent<EnemyBrain>();
+            mounts[k] = mines[k].AddComponent<RailMineMount>();
+            mounts[k].MountTo(rail.transform);
+            mounts[k].brain = brains[k];
+            brains[k].TargetOverride = ship;
+            lastY[k] = mines[k].transform.position.y;
+        }
+        for (int i = 0; i < 60 * 25; i++)
+        {
+            clock += Dt;
+            SpawnSpace.ClockOverride = clock;
+            rail.transform.position += Vector3.down * (scroll * Dt);
+            if (scroller != null) TestHarness.Send(scroller, "Update");
+            for (int k = 0; k < 3; k++)
+            {
+                if (mines[k] == null) continue;
+                brains[k].Step(Dt);
+                TestHarness.Send(mounts[k], "LateUpdate");
+                float y = mines[k].transform.position.y, dy = y - lastY[k];
+                if (mounts[k].RideState == RailMineMount.RidePhase.Holding)
+                {
+                    ridden++;
+                    if (Mathf.Abs(dy) > .02f && Mathf.Abs(lastDy[k]) > .02f && Mathf.Sign(dy) != Mathf.Sign(lastDy[k])) reversals++;
+                }
+                lastY[k] = y;
+                lastDy[k] = dy;
+            }
+        }
+        Check("three mines stacked on one rail @" + speed.ToString("F2") + ": each rides on its own path, none jiggles for another (" +
+              reversals + " height reversals; " + (ridden * Dt).ToString("F1") + " mine-seconds riding)", ridden * Dt > 1f && reversals == 0);
+        foreach (var m in mines) if (m != null) Object.DestroyImmediate(m);
+        if (rail != null) Object.DestroyImmediate(rail);
+    }
+
     // A rock coming down the lane beside a riding mine's rail: the mine holds
-    // against the board, the rock does not, so the mine must give way (go with
-    // the board) rather than let the rock through its body.
+    // against the board, the rock does not. Ordinary enemies no longer give way
+    // to each other (SpawnSpace.RegularsAvoid is off), so the mine keeps riding
+    // straight through the rock's spot; if they touch, friendly fire settles it.
     static void Room(float speed)
     {
         Fresh(speed);
@@ -321,8 +379,8 @@ public static class RailMinePacingTest
             if (mount.RideState == RailMineMount.RidePhase.Holding) ridden++;
             if (go.transform.position.y < CameraFit.ViewBottom - 1f) break;
         }
-        Check("a rock beside the rail @" + speed.ToString("F2") + " (" + scroll.ToString("F1") + " u/s): the riding mine never overlaps it (" +
-              overlaps + " frames overlapping; rode " + (ridden * Dt).ToString("F1") + " s)", rockFoot != null && overlaps == 0);
+        Check("a rock beside the rail @" + speed.ToString("F2") + " (" + scroll.ToString("F1") + " u/s): the riding mine does not give way to it, it rides on (" +
+              overlaps + " frames overlapping; rode " + (ridden * Dt).ToString("F1") + " s)", rockFoot != null && ridden * Dt > .5f);
         if (go != null) Object.DestroyImmediate(go);
         if (rock != null) Object.DestroyImmediate(rock);
         if (rail != null) Object.DestroyImmediate(rail);
