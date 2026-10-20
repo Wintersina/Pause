@@ -30,6 +30,7 @@ public sealed class CodexTrack
 public static class CodexMusic
 {
     public const string MenuId = "music_menu";
+    public const string CreditsId = "music_credits";
     public const string LockedTitle = "???";
     // Where the menu theme lives: the home scene's own source (the wav is not under Resources).
     public const string MenuSourceName = "MainMenuMusic";
@@ -53,6 +54,8 @@ public static class CodexMusic
         var list = new List<CodexTrack>
         {
             new CodexTrack(MenuId, "Main Menu", "MENU THEME", null, -1),
+            // The Credits song; unlocks when the Credits scene starts it (MenuMusic).
+            new CodexTrack(CreditsId, "Boom Boom", "CREDITS THEME", MenuMusic.CreditsSong, -1),
         };
         var worlds = WorldManager.Worlds;
         for (int i = 0; i < worlds.Length; i++)

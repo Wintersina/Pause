@@ -85,12 +85,14 @@ public static class CodexMusicTest
         }
         int worlds = WorldManager.Worlds.Length, songs = 0;
         foreach (var w in WorldManager.Worlds) if (!string.IsNullOrEmpty(w.musicResource)) songs++;
-        Check("the menu theme comes first, then a theme per world with a song and a boss track per world", all[0].id == CodexMusic.MenuId && all.Count == 1 + songs + worlds);
+        Check("the menu theme comes first, then the Credits song, a theme per world with a song and a boss track per world", all[0].id == CodexMusic.MenuId && all[1].id == CodexMusic.CreditsId && all.Count == 2 + songs + worlds);
         Check("ids are unique and every world / boss resource loads", unique && clips);
         Check("the menu theme is always unlocked, nothing else is on a fresh profile",
               CodexMusic.IsUnlocked(all[0]) && CodexMusic.UnlockedCount == 1);
+        Check("the Credits song is listed as Boom Boom, locked until Credits plays it",
+              CodexMusic.Find(CodexMusic.CreditsId).title == "Boom Boom" && !CodexMusic.IsUnlocked(CodexMusic.Find(CodexMusic.CreditsId)));
         Check("a locked track reads ???", CodexMusic.DisplayTitle(Ember) == "???");
-        Check("worlds the loop cannot reach are not listed", CodexMusic.ListedCount == 1 + 2 * WorldManager.LiveWorldCount - (WorldManager.Worlds[WorldManager.LiveWorldCount - 1].musicResource == "" ? 1 : 0));
+        Check("worlds the loop cannot reach are not listed", CodexMusic.ListedCount == 2 + 2 * WorldManager.LiveWorldCount - (WorldManager.Worlds[WorldManager.LiveWorldCount - 1].musicResource == "" ? 1 : 0));
     }
 
     static void Unlocking()

@@ -6,7 +6,8 @@ using UnityEditor.SceneManagement;
 // home arrival adopts the scene's MainMenuMusic, Options and Credits keep it (no
 // second source, no restart: same source object, playback untouched), coming
 // back home drops the scene's duplicate and keeps the carried one, and any other
-// scene (game, tutorial, store) ends it. The music toggle still scales the
+// scene (game, tutorial, store) ends it. Credits pauses it and loops its own song
+// (Boom Boom); Options or home un-pause the menu music. The music toggle still scales the
 // carried source through SoundSettings, and the Codex music tab still ducks
 // and un-ducks it. Scene arrivals are simulated by calling MenuMusic.Handle.
 public static class MenuMusicTest
@@ -44,6 +45,7 @@ public static class MenuMusicTest
         using var sandbox = new TestHarness.Sandbox();
         MenuMusic.Reset();
         MenuMusic.Persist = go => { };   // edit mode: no DontDestroyOnLoad
+        MenuMusic.Play = src => { };     // ... and no audio device
         bool simulate = CodexMusicPlayer.Simulate;
         PlayerPrefs.DeleteKey(SoundSettings.MusicOnKey);
         PlayerPrefs.DeleteKey(SoundSettings.MusicVolumeKey);
@@ -61,9 +63,24 @@ public static class MenuMusicTest
             Check("credits keeps the carried source", MenuMusic.Keeper != null && MenuMusic.Keeper.gameObject == first);
             Check("credits adds no second source", Count() == 1);
 
+            // Credits' own song: a looping music source that obeys the music setting.
+            var song = MenuMusic.CreditsSource;
+            Check("credits starts its own song (looping, Boom Boom clip)", song != null && song.loop && song.clip != null
+                  && song.clip == Resources.Load<AudioClip>(MenuMusic.CreditsSong));
+            Check("... and it is not the menu source", song != null && song.gameObject.name == MenuMusic.CreditsSourceName && Count() == 1);
+            float full = song != null ? song.volume : 0f;
+            SoundSettings.SetMusicVolume(.5f);
+            Check("music volume scales the credits song", song != null && full > 0f && Mathf.Approximately(song.volume, full * .5f));
+            SoundSettings.SetMusicOn(false);
+            Check("music off silences the credits song", song != null && song.volume == 0f);
+            SoundSettings.SetMusicOn(true);
+            SoundSettings.SetMusicVolume(1f);
+            Check("credits keeps the carried menu source around, paused", MenuMusic.Keeper != null);
+
             // Back home: the freshly loaded copy is dropped, the carried one stays.
             var dupe = Source(1f);
             MenuMusic.Handle("startS4", new[] { dupe });
+            Check("leaving credits ends its song", MenuMusic.CreditsSource == null);
             Check("returning home destroys the scene's duplicate", dupe == null || !dupe);
             Check("returning home keeps the same carried source", MenuMusic.Keeper != null && MenuMusic.Keeper.gameObject == first);
             Check("exactly one menu music source after the round trip", Count() == 1);
@@ -167,6 +184,7 @@ public static class MenuMusicTest
             var strayOptions = Source(1f);
             MenuMusic.Handle("leaderboardS3", new[] { strayOptions });
             Check("options alone does not adopt a source", MenuMusic.Keeper == null);
+            Check("options plays no credits song", MenuMusic.CreditsSource == null);
         }
         finally
         {

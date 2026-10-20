@@ -225,7 +225,7 @@ public static class CodexPreview
                     {
                         panel.ShowTab(CodexPanel.MusicTab);
                         panel.SkipAnimations();
-                        if (CodexMusic.All.Count > 1) CodexMusicPlayer.Play(CodexMusic.All[1].id);
+                        if (CodexMusic.All.Count > 2) CodexMusicPlayer.Play(CodexMusic.All[2].id);
                         panel.Music.Paint();
                     }, 1, 1080f / 800f);
                     string path = Path.Combine(dir, "music-" + tag + "-1080x" + h + ".png");
