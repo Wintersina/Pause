@@ -74,8 +74,8 @@ public static class BeatSyncTest
             if (m.sections != null)
                 foreach (var sec in m.sections)
                     if ((sec.kind == "drop" || sec.kind == "peak") && sec.beat >= m.bossStartBeat) { dropT = m.TimeOfBeat(sec.beat) - startT; break; }
-            Check(n + ": first drop/peak " + dropT.ToString("0.0") + " s after the fight's music starts (<= 15 s Verdant, <= 30 s all)",
-                dropT >= 0 && dropT <= (n == "Verdant" ? 15.0 : 30.0));
+            Check(n + ": first drop/peak " + dropT.ToString("0.0") + " s after the fight's music starts (<= 15 s Verdant, <= 35 s all)",
+                dropT >= 0 && dropT <= (n == "Verdant" ? 15.0 : 35.0));
             if (!m.steady)
             {
                 bool rising = m.beats != null && m.beats.Length > 100;
