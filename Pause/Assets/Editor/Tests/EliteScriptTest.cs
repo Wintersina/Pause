@@ -31,9 +31,6 @@ public static class EliteScriptTest
         "desert_elite_dune_stalker",
         "desert_elite_lens_matriarch",
         // ember
-        "ember_elite_sunstoke",
-        "ember_elite_brass_vulture",
-        "ember_elite_coalrunner",
         // frost
         "frost_elite_rimebreaker",
         "frost_elite_cryo_siren",

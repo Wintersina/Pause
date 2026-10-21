@@ -68,14 +68,22 @@ covers the board), **denier** (area denial: walls, pools, fields), **summoner** 
 
 ### Ember
 
+All six stay on screen (none roams). Sunstoke and the Coalrunner work the two side rails, the Vulture circles high inside the view, the
+Wraith and the Cauterizer hold the top, the Kilnback is planted there. Entrances and exits are in the def json (`script.entrance`, `lastExit`).
+
 | Elite | Role | Entrance | Phase 1 | Phase 2 | Last heart | Exit | Tempo / engage |
 |---|---|---|---|---|---|---|---|
-| Sunstoke | rammer | dash | locks a lane, lance pass across, turns at the far rail, return pass on the next lane (lanes cycle) | two passes back to back | triple pass | tell, boost | 0.8 / 42 |
-| Coalrunner | sweeper (stop and fire) | overshoot | fast straight strafe along the top; STOPS at each rail and fires its locked lane volley (fire at ends only) | coal clumps on the stop | volley and clumps both ends | tell, boost | 0.8 / 42 |
-| Brass Vulture | diver | swirl | circles high on screen, ring marks a spot (cycle of 3), dive and pull up | extra offset dive | double dive | tell, boost | 0.8 / 42 |
-| Ash Wraith | sniper / blinker | arc | blinks between three high perches in fixed order; ember cloud at each, then shard fan | two clouds | clouds at both ends | tell, boost | 0.8 / 42 |
-| Kilnback | anchor | slam | planted at the top centre; slag lanes, then lava lane, alternating (no sliding pendulum) | more blobs | slag and lava together | tell, boost | 1.35 / 55 |
-| Cauterizer | artillery | overshoot | parks high; sight line + piercing shell, firebomb beat, shell | two lanes with a gap | shell and bombs at once | tell, boost | 1.35 / 55 |
+| Sunstoke | rammer | dash (1.2 s) | works the rails: lance pass across on lane 0, a U-turn arc up/down the far rail to lane 1, return pass, then lane 2 (tokens `lane:N`, rails alternate; heat needles back along the lane) | pairs of passes back to back, the second a swift one (lanes 1,2 then 0,1) | triple swift pass (lanes 0,1,2) then a wide fan | tell, one scripted exit left at the last heart (back in from the right), boost | 0.8 / 42 |
+| Coalrunner | sweeper (stop and fire) | overshoot (1.4 s) | races rail to rail along the top third (`R`, `L` tokens, the band steps down on a 3-cycle), STOPS dead at each rail and fires the crossing bolt volley standing (tight, wide, tight, wide) | coal clump on every stop | two clumps and a wider volley, faster legs; one scripted exit right | tell, boost | 0.8 / 42 |
+| Brass Vulture | diver | swirl (1.6 s) | circles high INSIDE the view (flat ellipse, `wide` / `tight` tokens); the ring cycles through three slots (on the pilot, a hand either side) dive after dive, then pulls up to the circle | extra offset dive: pairs, the second a fast one (more scrap) | double fast dive; one scripted exit by the top | tell, boost | 0.8 / 42 |
+| Ash Wraith | sniper / blinker | arc (1.5 s) | blinks between three high perches in the script's order 2,1,0,1 (`perch:N`); an ember cloud where it stood, a shard fan from where it lands | a second cloud where it lands too; order 0,2,1; five shards | clouds at both ends, seven shards, faster; one scripted exit by the top | tell, boost | 0.8 / 42 |
+| Kilnback | anchor | slam (1.7 s) | planted at the top centre; slag lanes, then lava lane, alternating (no sliding pendulum) | heaves to the left then the right station (`L`, `R`); five blobs and two lava strips | slag (7 blobs) and lava (2 strips) back to back, quick; back at the centre | tell, boost (no scripted exit: armoured) | 1.35 / 55 |
+| Cauterizer | artillery | overshoot (2.0 s, wide) | parks high and TRACKS the pilot's column (`track`); sight line + piercing shell down it, holds (`hold`) for a firebomb beat, shell, bombs | shells come as two lanes with a gap (the pilot's column between them); bombs, three-spot bombs | shell and three bombs at once, then a double shell | tell, boost (no scripted exit: armoured) | 1.35 / 55 |
+
+Mechanics notes (Ember): the Kilnback's and the Cauterizer's casts are chosen by the variants through `hazardArmour` (a slab-only number that
+no Ember attack otherwise reads): Kilnback 0 dump / 1 spill, Cauterizer 0 shell / 1 bombs / 2 double shell / 3 shell and bombs. The Coalrunner's
+coal clumps are `hazardCount` (0 none, 1, 2); the Wraith's clouds a cast are `hazardCount` (1 where it stood, 2 and where it lands); the
+Kilnback's strips are `hazardCount` too (1 or 2).
 
 ### Tide
 

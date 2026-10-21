@@ -313,7 +313,7 @@ public static class EliteCapture
         if (mortar != null && (e.Telling || e.Acting))
         {
             if (mortar.Bombs) for (int k = 0; k < mortar.Spots; k++) dangers.Add(new Danger { a = mortar.Spot(k), radius = 1.5f, until = 9f });
-            else
+            if (mortar.Shell)
             {
                 Vector2 m = e.MuzzleWorld(0);
                 dangers.Add(new Danger { a = new Vector2(mortar.LaneA, m.y), b = new Vector2(mortar.LaneA, -HalfH), radius = .7f, line = true, until = 9f });
