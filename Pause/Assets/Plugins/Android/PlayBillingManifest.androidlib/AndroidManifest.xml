@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Declares the Play Billing permission Play Console asks for (one-time products,
+     the pre-registration reward). The billing library merges the same line in too. -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="me.hapticgate.pause.billing"
+    android:versionCode="1"
+    android:versionName="1.0" >
+
+    <uses-permission android:name="com.android.vending.BILLING" />
+</manifest>
