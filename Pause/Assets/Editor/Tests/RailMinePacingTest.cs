@@ -329,7 +329,14 @@ public static class RailMinePacingTest
                 if (mounts[k].RideState == RailMineMount.RidePhase.Holding)
                 {
                     ridden++;
-                    if (Mathf.Abs(dy) > .02f && Mathf.Abs(lastDy[k]) > .02f && Mathf.Sign(dy) != Mathf.Sign(lastDy[k])) reversals++;
+                    if (Mathf.Abs(dy) > .02f && Mathf.Abs(lastDy[k]) > .02f && Mathf.Sign(dy) != Mathf.Sign(lastDy[k]))
+                    {
+                        reversals++;
+                        Debug.Log("[MINEPACE] reversal frame " + i + " mine " + k + " y " + y.ToString("F3") + " dy " + dy.ToString("F4") + " lastDy " + lastDy[k].ToString("F4") +
+                                  " ride " + mounts[k].Ride.ToString("F3") + " slide " + mounts[k].Slide.ToString("F3") + " shove " + mounts[k].Shove.ToString("F3") +
+                                  " locked " + mounts[k].AimLocked + " brain " + brains[k].State + " volleys " + brains[k].Volleys + " rideSec " + mounts[k].RideSeconds.ToString("F2") +
+                                  " snap " + BoardRoll.SnapLift.ToString("F4"));
+                    }
                 }
                 lastY[k] = y;
                 lastDy[k] = dy;
