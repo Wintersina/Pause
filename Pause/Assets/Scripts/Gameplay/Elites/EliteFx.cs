@@ -312,6 +312,7 @@ public static class EliteDeath
     public static void Play(EliteShip ship, EliteDamage cause)
     {
         Played++;
+        if (ship != null) LegacyExplosionFx.Spawn(ship.Position, LegacyExplosionFx.EliteSize);
         // Its own authored death cue (Space elites today), whichever handler
         // draws the death; elites without one keep just the explosion.
         if (ship != null && ship.Def != null) EnemyDeathAudio.PlayElite(ship.Def.key);

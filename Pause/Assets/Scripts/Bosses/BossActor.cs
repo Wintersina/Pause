@@ -45,6 +45,7 @@ public class BossActor : MonoBehaviour, IMusicPatternHost
     float tellAge;         // world time inside the current tell
     float outroClock;
     int explosionsFired;
+    LegacyBossBlasts legacyBlasts;
     bool hasDeathArt;      // the outro plays the boss's death strip over the body
 
     // movement
@@ -1057,6 +1058,7 @@ public class BossActor : MonoBehaviour, IMusicPatternHost
         mode = explode ? Mode.Dying : Mode.Retreating;
         outroClock = 0f;
         explosionsFired = 0;
+        legacyBlasts = explode ? new LegacyBossBlasts(BossConfig.BossWorldSize) : null;
         retreatVy = 0f;
         hasDeathArt = explode && BossArt.HasDeathArt(boss);
         if (explode && boss != null) EnemyDeathAudio.PlayBossDeath(boss.artKey);
@@ -1088,6 +1090,7 @@ public class BossActor : MonoBehaviour, IMusicPatternHost
             if (f >= BossArt.DeathFrames) { body.enabled = false; mode = Mode.Gone; if (hearts != null) hearts.Hide(); return; }
             SetFrame(BossArt.Death(f));
             if (hasDeathArt) body.sprite = BossArt.DeathStrip(boss, BossArt.DeathStripCell(outroClock));
+            if (legacyBlasts != null) legacyBlasts.Step(dt, transform.position);   // legacy fireballs over the hull, left behind
             // Cartoon blasts on the hull as it breaks up.
             var at = BlastTimes;
             while (explosionsFired < at.Length && outroClock >= at[explosionsFired])
