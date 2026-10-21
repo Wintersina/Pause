@@ -144,6 +144,7 @@ public static class TargetExplosion
         // blast a size smaller (EnemySplit).
         if (EnemySplit.TrySplit(target, size)) size = EnemySplit.Smaller(size);
         EnemyDeathFlipbook.Spawn(target);
+        LegacyExplosionFx.ForShip(target, size);   // ships only; rocks and mines are filtered inside
         Spawn(target.transform.position, KindFor(target), size, ship);
     }
 

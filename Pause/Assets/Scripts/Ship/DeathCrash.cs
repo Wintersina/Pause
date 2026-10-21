@@ -336,6 +336,7 @@ public partial class DeathCrash : MonoBehaviour
 
         // The fatal blast on the hull, and the kick.
         Blast(shipTf.position, TargetExplosion.Kind.Metal, 1.05f, true);
+        LegacyExplosionFx.Spawn(shipTf.position, LegacyExplosionFx.PlayerSize);
         shake = .06f;
         for (int i = 0; i < 6; i++)
             Emit(ShipDamageFx.RowSpark, Random.Range(0, 4), shipTf.position,
