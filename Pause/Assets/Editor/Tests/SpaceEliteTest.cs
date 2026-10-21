@@ -46,6 +46,7 @@ public static class SpaceEliteTest
         {
             EliteCatalog.Reload();
             Roster();
+            Scripts();
             BackdropSites();
             foreach (var x in Expected) LaunchFollowAttackDespawn(EliteCatalog.Find(x.key), x.from);
             Bastion();
@@ -373,6 +374,13 @@ public static class SpaceEliteTest
         Step(EliteShip.GraceSeconds + .05f);
     }
 
+    // The script's next attacking beat is `attack` (the beats before it are stepped over, tokens delivered), and it begins now.
+    static void Cast(EliteShip e, string attack)
+    {
+        for (int i = 0; i < 20 && e.Script.Step.attack != attack; i++) e.Script.Advance();
+        e.ForceAttack();
+    }
+
     // The x where each live bolt of the curtain crosses the row's height.
     static List<float> RowCrossings(float rowY, System.Func<EliteShot, bool> pick)
     {
@@ -421,6 +429,7 @@ public static class SpaceEliteTest
             e = InPlay("fortress", new Vector2(0f, 1f));
             for (int k = def.hearts; k > h; k--) LoseHeart(e);
             Step(.3f);
+            e.AttackCooldown = 99f;
             var barrage = (WardBarrageAttack)e.Attack;
             e.ForceAttack();
             Check("fortress " + h + " hearts: its first cast is a curtain", !barrage.MineDrop);
@@ -443,7 +452,7 @@ public static class SpaceEliteTest
             openGap &= xs1.TrueForAll(x => Mathf.Abs(x - gap1.x) > width * .4f);
             Check("fortress " + h + " hearts: rings mark the row's spots from the tell (" + rings + "), " + (n - 1) + " bolts in the first row (" + row1 + "), gap " + width.ToString("0.00") + " u",
                   rings && ringsLocked && row1 == n - 1);
-            if (h > 2)
+            if (h > 3)
             {
                 Step(1.5f);
                 doubled &= EliteSystem.Shots.Launched - before == n - 1;
@@ -466,7 +475,7 @@ public static class SpaceEliteTest
         }
         Check("the gap narrows as hearts drop (" + string.Join(", ", widths.ConvertAll(w => w.ToString("0.00"))) + ")", narrows && widths[0] > widths[widths.Count - 1] + .2f && widths[widths.Count - 1] >= WardBarrageAttack.MinGap - .001f);
         Check("... the two bolts beside the gap close in on its width, and nothing is aimed into it", flanked && openGap);
-        Check("... a second row follows at <= " + WardBarrageAttack.DoubleRowAt + " hearts and only then", doubled);
+        Check("... a second row follows in phase 2 and the last phase (<= 3 hearts) and only then", doubled);
         Check("... its gap is on the other side of the pilot, and the delay (" + WardBarrageAttack.RowDelay + " s) outlasts a crossing (" +
               WardBarrageAttack.CrossNeeded(def.lobSpacing).ToString("0.00") + " s)", otherSide && delayed);
 
@@ -475,11 +484,8 @@ public static class SpaceEliteTest
         pilot.position = new Vector3(0f, -2.5f, 0f);
         e = InPlay("fortress", new Vector2(0f, 1f));
         var bar = (WardBarrageAttack)e.Attack;
-        e.ForceAttack();
-        while (e.State == EliteState.Attack) EliteSystem.Step(Dt);   // cast 1: the curtain
-        Step(.5f);
-        e.ForceAttack();
-        Check("the next cast is a mine drop", bar.MineDrop);
+        Cast(e, "mine");
+        Check("the script's mine beat is a mine drop", bar.MineDrop);
         bool ringed = false;
         while (e.Telling) { EliteSystem.Step(Dt); if (!e.Telling) break; ringed |= bar.Marks.ShownCount == bar.Mines && bar.Mines >= 1; }
         Step(def.actionSeconds + .3f);
@@ -501,10 +507,8 @@ public static class SpaceEliteTest
             Check("... left alone it pops into a ring of " + def.hazardCount + " short bolts (" + popped + ")", popped == def.hazardCount && !mine.Active);
         }
         // a second mine, shot down twice: gone, no ring
-        e.ForceAttack();
-        while (e.State == EliteState.Attack) EliteSystem.Step(Dt);   // a curtain
         e.AttackCooldown = 99f;
-        e.ForceAttack();
+        Cast(e, "mine");
         while (e.Telling) EliteSystem.Step(Dt);
         Step(def.actionSeconds + .3f);
         e.AttackCooldown = 99f;
@@ -528,12 +532,11 @@ public static class SpaceEliteTest
         var e = InPlay("swooper", new Vector2(1.5f, 0f));
         var def = e.Def;
         var brain = (SwooperBrain)e.Brain;
-        var entries = new List<float>();
-        int leaves = 0, comebacks = 0;
-        bool wasOff = false, untouchable = true, touchable = true;
-        float near = 99f, topSpeed = 0f;
-        var dirs = new List<Vector2>();
-        int lastPasses = brain.Passes;
+        e.EngageLeft = 9999f;   // (60 s is longer than its engagement: it would go home)
+        Check("reaver does not roam: it flies a racetrack inside the view", !brain.Roams);
+        bool onBoard = true, touchable = true;
+        float near = 99f, topSpeed = 0f, maxX = 0f;
+        int flips = 0, lastSign = 0;
         float clock = 0f;
         for (int i = 0; i < 30 * 60; i++)
         {
@@ -542,34 +545,21 @@ public static class SpaceEliteTest
             EliteSystem.Step(Dt);
             if (!Alive(e)) break;
             e.AttackCooldown = Mathf.Min(e.AttackCooldown, 1f);
-            if (e.Offstage)
-            {
-                if (!wasOff) { leaves++; wasOff = true; }
-                untouchable &= !e.Collider.enabled && !e.CompareTag("Enimey");
-            }
-            else
-            {
-                if (wasOff)
-                {
-                    comebacks++;
-                    wasOff = false;
-                    entries.Add(e.Position.x);
-                }
-                touchable &= e.Collider.enabled && e.CompareTag("Enimey");
-                if (!e.Telling && !e.Acting) near = Mathf.Min(near, Vector2.Distance(e.Position, pilot.position));
-            }
+            onBoard &= !e.Offstage && !e.Hidden;
+            touchable &= e.Collider.enabled && e.CompareTag("Enimey");
+            maxX = Mathf.Max(maxX, Mathf.Abs(e.Position.x));
+            if (!e.Telling && !e.Acting) near = Mathf.Min(near, Vector2.Distance(e.Position, pilot.position));
             topSpeed = Mathf.Max(topSpeed, e.Velocity.magnitude);
-            if (brain.Passes != lastPasses) { lastPasses = brain.Passes; dirs.Add(brain.Dir); }
+            int sign = e.Velocity.x > .8f ? 1 : e.Velocity.x < -.8f ? -1 : 0;
+            if (sign != 0 && sign != lastSign) { if (lastSign != 0) flips++; lastSign = sign; }
         }
-        Check("reaver's passes leave the view and come back round (" + leaves + " exits, " + comebacks + " re-entries in 60 s)", leaves >= 3 && comebacks >= 3);
-        Check("... untouchable (no collider, not a target) while out of the board, hittable on it", untouchable && touchable);
-        int flips = 0;
-        for (int i = 1; i < entries.Count; i++) if (Mathf.Sign(entries[i]) != Mathf.Sign(entries[i - 1])) flips++;
-        bool alternates = entries.Count >= 3 && flips >= (entries.Count - 1) * .7f;
-        bool slopes = false;
-        for (int i = 1; i < dirs.Count; i++) slopes |= Vector2.Angle(dirs[i], dirs[i - 1]) > 8f;
-        Check("... each pass from a different side or angle (entries x " + string.Join(", ", entries.ConvertAll(x => x.ToString("0.0"))) + ")", alternates && slopes);
+        Check("reaver stays on the board all the time and never past the rails (x up to " + maxX.ToString("0.0") + ")", onBoard && maxX <= EliteSystem.RailEdge + .2f);
+        Check("... a target all the time (collider on, a hazard)", touchable);
+        Check("... it turns round at the rails: " + brain.Turns + " U-turns, " + flips + " reversals of its sideways run in 60 s, " + brain.Laps + " laps", brain.Turns >= 6 && flips >= 6 && brain.Laps >= 4);
         Check("... and it never comes near the pilot between volleys (nearest " + near.ToString("0.0") + " u, flying up to " + topSpeed.ToString("0.0") + " u/s)", near > 2.2f);
+        Check("... its volleys are the script's: " + e.Attacks + " in 60 s", e.Attacks >= 6);
+        Check("... the same fixed sequence of beats whatever the random seed",
+              string.Join(",", BeatTrace("swooper", 7, 6)) == string.Join(",", BeatTrace("swooper", 4242, 6)));
 
         // the volley: lock ring, then shards crossing on the locked spot
         Fresh(.02f);
@@ -580,7 +570,7 @@ public static class SpaceEliteTest
         e.AttackCooldown = 0f;
         int guard = 0;
         while (!e.Telling && guard++ < 30 * 20) { EliteSystem.Step(Dt); e.AttackCooldown = 0f; }
-        Check("reaver winds up mid-pass (no hold): it keeps flying through the tell", e.Telling && brain.Phase == SwooperBrain.Stage.Pass);
+        Check("reaver winds up on a lane pass (no hold): it keeps flying through the tell", e.Telling && brain.InWindow && (brain.Segment & 1) == 0);
         float tellSpeed = 99f;
         bool ring = false, ringFast = false, early = false, lockedStill = true;
         Vector2 locked = Vector2.zero;
@@ -597,7 +587,7 @@ public static class SpaceEliteTest
             else early = true;
         }
         Check("... a marker ring on the pilot's spot from the first frame, tracking, then locked (" + locked + ")", ring && ringFast && early && lockedStill && locked != Vector2.zero);
-        Check("... still flying fast through the wind-up (" + tellSpeed.ToString("0.0") + " u/s)", tellSpeed > def.speed);
+        Check("... still flying through the wind-up (" + tellSpeed.ToString("0.0") + " u/s)", tellSpeed > def.speed * .8f);
         pilot.position = new Vector3(1.6f, -2.5f, 0f);   // moves off: the shards still go to the locked spot
         int before = EliteSystem.Shots.Launched;
         var froms = new List<Vector2>();
@@ -620,14 +610,16 @@ public static class SpaceEliteTest
         Check("... " + def.shotCount + " shards from the claws, every one at the locked spot, crossing there from the pass angle (" + (EliteSystem.Shots.Launched - before) + ")",
               EliteSystem.Shots.Launched - before == def.shotCount && aimed && both);
 
-        // hurt: it hides, then the loops are faster
+        // hurt: a flinch on the board, then the faster phase 2 loops with a bigger volley
         Fresh(.02f);
         pilot.position = new Vector3(0f, -2.5f, 0f);
         e = InPlay("swooper", new Vector2(1.5f, 0f));
         brain = (SwooperBrain)e.Brain;
+        e.EngageLeft = 9999f;
         e.AttackCooldown = 99f;
         float v0 = 0f;
         Step(20f, () => v0 = Mathf.Max(v0, e.Velocity.magnitude));
+        float p0 = brain.PointerSpeed;
         LoseHeart(e);
         Check("reaver hit: a flinch on the board, no hiding", e.InPlay && !e.Hidden);
         int g2 = 0;
@@ -635,7 +627,22 @@ public static class SpaceEliteTest
         float v1 = 0f;
         e.AttackCooldown = 99f;
         Step(20f, () => v1 = Mathf.Max(v1, e.Velocity.magnitude));
-        Check("... and comes back with faster loops (" + v0.ToString("0.0") + " -> " + v1.ToString("0.0") + " u/s)", v1 > v0 * 1.15f && Alive(e));
+        Check("... and comes back with faster loops: the track pointer runs " + brain.PointerSpeed.ToString("0.0") + " u/s (was " + p0.ToString("0.0") + "; ship top speed " + v0.ToString("0.0") + " -> " + v1.ToString("0.0") + ")",
+              brain.PointerSpeed > p0 * 1.2f && v1 >= v0 && Alive(e));
+        Check("... and a bigger volley (" + e.Def.shotCount + " shards in phase 2)", e.Script.Phase == 2 && e.Def.shotCount == 5);
+
+        // the last heart: the one scripted exit by the left, then the figure eight
+        e.TakeHit(EliteDamage.PlayerWeapon, e.Position + Vector2.left * .4f);
+        Check("reaver's last heart: the one scripted exit, by the left", e.Hidden && e.LastExitDone && e.HideSide == 0);
+        int g3 = 0;
+        while (e.Hidden && g3++ < 900) EliteSystem.Step(Dt);
+        e.AttackCooldown = 99f;
+        Step(1f);
+        Check("... back from the other side onto the figure eight (" + (brain.Eight ? "eight" : "racetrack") + ")", e.InPlay && brain.Eight && e.Script.Phase == 3);
+        bool crossesMid = false;
+        float minMidX = 9f;
+        Step(8f, () => { if (Mathf.Abs(e.Position.x) < .5f) crossesMid = true; minMidX = Mathf.Min(minMidX, Mathf.Abs(e.Position.x)); });
+        Check("... crossing the middle of the board (closest to x = 0: " + minMidX.ToString("0.0") + ")", crossesMid && !e.Hidden && !e.Offstage);
     }
 
     // ---- Rift Lancer: sniper + rift_snipe ------------------------------------------------
@@ -689,61 +696,64 @@ public static class SpaceEliteTest
         Check("... then a rail of " + def.shotCount + " fast bolts straight down the locked line (" + rails + ")",
               EliteSystem.Shots.Launched - before == def.shotCount && rails == def.shotCount && parallel && fast && !e.SightShown && !rail.MineRun);
 
-        // runs: 1-2 shots, out its own side, back in from the OPPOSITE one; every third run a rift mine
+        // the script: perch right (snipe, snipe, mine), cross to the left flank, (snipe, snipe, mine), cross back ...
         Fresh(.02f);
         pilot.position = new Vector3(0f, -2.5f, 0f);
         e = InPlay("sniper", new Vector2(1.5f, 0f));
         brain = (SniperBrain)e.Brain;
         rail = (RiftSnipeAttack)e.Attack;
+        Check("lancer does not roam: it never leaves the view", !brain.Roams);
         e.AttackCooldown = 0f;
-        float off = SpaceFlight.OffX(def);
-        var exitSides = new List<float>();
-        var entrySides = new List<float>();
-        var shotsPerRun = new List<int>();
-        var stage = brain.Phase;
-        int runShots = 0, minesSeen = 0;
+        e.EngageLeft = 9999f;
+        var steps = new List<int>();
+        var variants = new List<string>();
+        var sides = new List<float>();
+        int lastAttacks = e.Attacks, minesSeen = 0;
         float nearest = 99f;
-        bool mineOnThird = true, mineElse = true, offstageOk = true;
-        EliteShot lastMine = null;
+        bool onBoard = true, touchable = true;
         float clock = 0f;
-        for (int i = 0; i < 30 * 90 && entrySides.Count < 6; i++)
+        for (int i = 0; i < 30 * 120 && steps.Count < 9; i++)
         {
             clock += Dt;
             pilot.position = new Vector3(Mathf.Sin(clock * .5f) * 1.2f, -2.5f, 0f);
-            int shotsBefore = brain.Shots;
-            var phaseBefore = brain.Phase;
-            float sideBefore = brain.Side;
-            int runBefore = brain.Runs;
             EliteSystem.Step(Dt);
             if (!Alive(e)) break;
-            if (brain.Shots != shotsBefore) runShots++;
-            if (brain.Phase == SniperBrain.Stage.Exit && phaseBefore != SniperBrain.Stage.Exit) { exitSides.Add(sideBefore); shotsPerRun.Add(runShots); runShots = 0; }
-            if (brain.Phase == SniperBrain.Stage.Enter && phaseBefore == SniperBrain.Stage.Away) entrySides.Add(Mathf.Sign(e.Position.x));
-            if (e.Offstage) offstageOk &= !e.Collider.enabled;
+            onBoard &= !e.Offstage && !e.Hidden && Mathf.Abs(e.Position.x) <= EliteSystem.RailEdge + .2f;
+            touchable &= e.Collider.enabled && e.CompareTag("Enimey");
+            if (e.Attacks != lastAttacks)
+            {
+                lastAttacks = e.Attacks;
+                // (a wind-up broken off repeats its beat: the sequence is by beat)
+                if (steps.Count == 0 || steps[steps.Count - 1] != e.Script.StepIndex)
+                {
+                    steps.Add(e.Script.StepIndex);
+                    variants.Add(e.Script.VariantName);
+                    sides.Add(brain.Side);
+                    if (rail.MineRun) minesSeen++;
+                }
+            }
             if (!e.Telling && !e.Acting && brain.Phase == SniperBrain.Stage.Perch) nearest = Mathf.Min(nearest, Vector2.Distance(e.Position, pilot.position));
-            if (rail.Mine != null && rail.Mine != lastMine && rail.Mine.Active) { lastMine = rail.Mine; minesSeen++; mineOnThird &= brain.Runs % SniperBrain.MineEvery == 0; }
             e.AttackCooldown = Mathf.Min(e.AttackCooldown, 1.2f);
         }
-        bool opposite = exitSides.Count >= 2 && entrySides.Count >= 2;
-        for (int i = 0; i < Mathf.Min(exitSides.Count, entrySides.Count); i++) opposite &= entrySides[i] == -exitSides[i];
-        bool oneOrTwo = shotsPerRun.Count > 0;
-        foreach (int n in shotsPerRun) oneOrTwo &= n >= 1 && n <= 2;
-        Check("lancer takes 1-2 shots a run (" + string.Join(",", shotsPerRun) + "), leaves by its own side (" + string.Join(",", exitSides) + ") and re-enters from the OPPOSITE one (" +
-              string.Join(",", entrySides) + ")", opposite && oneOrTwo);
-        Check("... a mine on every third run only (" + minesSeen + " seen in " + brain.Runs + " runs), untouchable while away, never within " + SniperBrain.MinRange + " u of the pilot at its perch (" + nearest.ToString("0.0") + ")",
-              minesSeen >= 1 && minesSeen <= brain.Runs / SniperBrain.MineEvery + 1 && mineOnThird && offstageOk && nearest >= SniperBrain.MinRange * .95f);
+        string want = string.Join(",", ExpectedBeats(def, 1, steps.Count));
+        Check("lancer's phase 1 is its fixed loop: beats " + string.Join(",", steps) + " (script " + want + ")", steps.Count >= 6 && string.Join(",", steps) == want);
+        Check("... snipe, snipe, mine (" + string.Join("/", variants) + ")", variants.Count >= 6 && variants[0] == "" && variants[1] == "" && variants[2] == "mine" && variants[3] == "" && variants[4] == "" && variants[5] == "mine");
+        Check("... from the right flank, then the left (" + string.Join(",", sides) + ")", sides.Count >= 6 && sides[0] > 0f && sides[1] > 0f && sides[2] > 0f && sides[3] < 0f && sides[4] < 0f && sides[5] < 0f);
+        Check("... it never leaves the view and is a target all the time (" + e.Hearts + " hearts)", onBoard && touchable);
+        Check("... a rift mine on each mine beat (" + minesSeen + " seen), never within " + SniperBrain.MinRange + " u of the pilot at its perch (" + nearest.ToString("0.0") + ")",
+              minesSeen >= 2 && nearest >= SniperBrain.MinRange * .95f);
+        Check("... the same fixed sequence whatever the random seed",
+              string.Join(",", BeatTrace("sniper", 7, 6)) == string.Join(",", BeatTrace("sniper", 12345, 6)));
 
-        // the rift mine itself
+        // the rift mine itself: the script's mine beat
         Fresh(.02f);
         pilot.position = new Vector3(0f, -2.5f, 0f);
         e = InPlay("sniper", new Vector2(1.5f, 0f));
         brain = (SniperBrain)e.Brain;
         rail = (RiftSnipeAttack)e.Attack;
-        // (runs 1 and 2 are over: the third carries the mine)
-        for (int r = 0; r < 2; r++) { typeof(SniperBrain).GetMethod("BeginRun", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).Invoke(brain, new object[] { true }); }
         Step(4f);
-        Check("the third run is a mine run (run " + brain.Runs + ")", brain.Runs % SniperBrain.MineEvery == 0 && brain.MineDue);
-        e.ForceAttack();
+        Cast(e, "mine");
+        Check("the mine beat is a mine run", rail.MineRun && e.Telling);
         bool ringShown = false;
         Vector2 spot = Vector2.zero;
         while (e.Telling) { EliteSystem.Step(Dt); if (!e.Telling) break; ringShown |= rail.Marks.Shown(0); spot = rail.MineSpot; }
@@ -756,6 +766,7 @@ public static class SpaceEliteTest
             Step(def.lobSeconds + .3f);
             Vector2 d = (Vector2)mine.transform.position - spot;
             Check("... settles on its spot (" + d.magnitude.ToString("0.0") + " u off, riding the board), fuse ring running (" + mine.FuseLeft.ToString("0.0") + " s)", mine.FuseLeft > 1f && mine.FuseLeft < def.hazardSeconds + .1f && d.magnitude < 1.2f);
+            e.AttackCooldown = 99f;
             for (int g = 0; g < 30 * 5 && mine.Active; g++) EliteSystem.Step(Dt);
             Step(Dt);
             var crossed = new List<Vector2>();
@@ -781,10 +792,10 @@ public static class SpaceEliteTest
         e = InPlay("sniper", new Vector2(1.5f, 0f));
         brain = (SniperBrain)e.Brain;
         rail = (RiftSnipeAttack)e.Attack;
-        for (int r = 0; r < 2; r++) { typeof(SniperBrain).GetMethod("BeginRun", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).Invoke(brain, new object[] { true }); }
         Step(4f);
-        e.ForceAttack();
+        Cast(e, "mine");
         while (e.State == EliteState.Attack) EliteSystem.Step(Dt);
+        e.AttackCooldown = 99f;
         mine = rail.Mine;
         int chips = 0;
         if (mine != null && mine.Active)
@@ -794,6 +805,73 @@ public static class SpaceEliteTest
             foreach (var s in EliteSystem.Shots.All) if (s.Active && s.IsChip) chips++;
         }
         Check("a rift mine is shootable: one shot defuses it, no cross", mine != null && !mine.Active && chips == 0);
+
+        // phases: every shot from a new flank in phase 2; the last heart is the top-centre perch after the one scripted exit
+        Fresh(.02f);
+        pilot.position = new Vector3(0f, -2.5f, 0f);
+        e = InPlay("sniper", new Vector2(1.5f, 0f));
+        brain = (SniperBrain)e.Brain;
+        Step(4f);
+        float side0 = brain.Side;
+        LoseHeart(e);
+        e.AttackCooldown = 99f;
+        Check("lancer phase 2: its loop crosses before every shot (" + e.Script.Step.move + ")", e.Script.Phase == 2 && e.Script.Step.move == "cross" && e.Script.Step.attack == "quick");
+        e.AttackCooldown = 0f;
+        for (int g = 0; g < 30 * 6 && e.Attacks == 0; g++) EliteSystem.Step(Dt);
+        Check("... the first shot of phase 2 comes from the other flank (" + side0 + " -> " + brain.Side + ")", brain.Side == -side0);
+        e.AttackCooldown = 99f;
+        while (e.State == EliteState.Attack) EliteSystem.Step(Dt);
+        e.TakeHit(EliteDamage.PlayerWeapon, e.Position + Vector2.left * .4f);
+        Check("lancer's last heart: the one scripted exit, by the right", e.Hidden && e.LastExitDone && e.HideSide == 1);
+        int guardX = 0;
+        while (e.Hidden && guardX++ < 900) EliteSystem.Step(Dt);
+        Step(.5f);
+        e.AttackCooldown = 99f;
+        Step(5f);
+        Check("... and back on the board it perches at the top centre (x " + e.Position.x.ToString("0.0") + ")", e.InPlay && brain.Side == 0f && Mathf.Abs(e.Position.x) < 1.2f && e.Script.Phase == 3);
+    }
+
+    // The attacking beats' step indexes of `phase` of a def's script, in order and repeating, `n` of them.
+    static List<int> ExpectedBeats(EliteDef def, int phase, int n)
+    {
+        var sd = def.script;
+        var p = phase == 1 ? sd.phase1 : phase == 2 ? sd.phase2 : sd.last;
+        var list = new List<int>();
+        for (int k = 0; list.Count < n && k < 400; k++)
+        {
+            int i = k % p.loop.Length;
+            if (p.loop[i].attack != "-") list.Add(i);
+        }
+        return list;
+    }
+
+    // The first `n` beats (step indexes) a fresh elite of `brain` flies in its first phase with the world seeded `seed`, left to itself.
+    static List<int> BeatTrace(string brain, int seed, int n)
+    {
+        Fresh(.02f);
+        Random.InitState(seed);
+        pilot.position = new Vector3(0f, -2.5f, 0f);
+        var e = InPlay(brain, new Vector2(1.5f, 1f));
+        e.AttackCooldown = 0f;
+        e.EngageLeft = 9999f;
+        var steps = new List<int>();
+        int lastAttacks = e.Attacks;
+        float clock = 0f;
+        for (int i = 0; i < 30 * 150 && steps.Count < n; i++)
+        {
+            clock += Dt;
+            pilot.position = new Vector3(Mathf.Sin(clock * .5f) * 1.2f, -2.5f, 0f);
+            EliteSystem.Step(Dt);
+            if (!Alive(e)) break;
+            if (e.Attacks != lastAttacks)
+            {
+                lastAttacks = e.Attacks;
+                if (steps.Count == 0 || steps[steps.Count - 1] != e.Script.StepIndex) steps.Add(e.Script.StepIndex);
+            }
+            e.AttackCooldown = Mathf.Min(e.AttackCooldown, 1.2f);
+        }
+        EliteSystem.Clear();
+        return steps;
     }
 
     // ---- Singularity Hauler: wrecker + tow_sling ----------------------------------------
@@ -810,6 +888,17 @@ public static class SpaceEliteTest
         Step(5f, () => near = Mathf.Min(near, Vector2.Distance(e.Position, pilot.position)));
         Check("hauler parks high in the board and never comes down to the pilot (" + e.Position + ", nearest " + near.ToString("0.0") + ")",
               e.Position.y > pilot.position.y + 4f && near > 4f && def.armored);
+
+        // the V: the script's tokens haul it to the left station, down to the dip in the middle, then to the right station
+        float xLeft = e.Position.x, yLeft = e.Position.y;
+        e.Script.Advance();   // beat 1: "D"
+        Step(5f);
+        float xDip = e.Position.x, yDip = e.Position.y;
+        e.Script.Advance();   // beat 2: "R"
+        Step(5f);
+        float xRight = e.Position.x;
+        Check("hauler hauls itself in a V: left station (x " + xLeft.ToString("0.0") + "), a dip in the middle (" + xDip.ToString("0.0") + ", " + (yLeft - yDip).ToString("0.0") + " down), right station (" + xRight.ToString("0.0") + ")",
+              xLeft < -.8f && Mathf.Abs(xDip) < .6f && yLeft - yDip > .3f && xRight > .8f && e.Position.y > pilot.position.y + 4f);
 
         // TOW: a sight line, a rock into the claws, a lane, the fling
         var tow = (TowSlingAttack)e.Attack;
@@ -1044,6 +1133,65 @@ public static class SpaceEliteTest
                 }
             }
             Check(e.key + ": each engine keeps its own burn phase (flame lengths differ in cell 3)", lengths.Count >= 2);
+        }
+    }
+
+    // ---- the authored scripts: roles, phases, the fixed sequence ------------------------------
+
+    static bool SameBeats(ElitePhaseDef a, ElitePhaseDef b)
+    {
+        if (a.loop.Length != b.loop.Length) return false;
+        for (int i = 0; i < a.loop.Length; i++)
+            if (a.loop[i].attack != b.loop[i].attack || a.loop[i].move != b.loop[i].move) return false;
+        return true;
+    }
+
+    // A phase differs from another in its pace, its numbers or its beats.
+    static bool Differs(ElitePhaseDef a, ElitePhaseDef b)
+    {
+        if (!Mathf.Approximately(a.speed, b.speed) || !Mathf.Approximately(a.gap, b.gap)) return true;
+        if ((a.set == null ? 0 : a.set.Length) != (b.set == null ? 0 : b.set.Length)) return true;
+        return !SameBeats(a, b);
+    }
+
+    static void Scripts()
+    {
+        foreach (var x in Expected)
+        {
+            var d = EliteCatalog.Find(x.key);
+            var sd = d.script;
+            string k = d.displayName + ": ";
+            bool has = sd != null && sd.phase1 != null && sd.phase2 != null && sd.last != null && sd.phase1.loop != null && sd.phase1.loop.Length >= 2 &&
+                       sd.phase2.loop != null && sd.last.loop != null && sd.variants != null && sd.entrance != null;
+            Check(k + "an authored script: a loop for each of the three phases, its variants and an entrance", has);
+            if (!has) continue;
+            Check(k + "entrance '" + sd.entrance.kind + "' of " + sd.entrance.seconds + " s (1-2 s)", sd.entrance.seconds >= 1f && sd.entrance.seconds <= 2f);
+            Check(k + "phase 2 is a visibly different loop from phase 1, and the last heart from phase 2", Differs(sd.phase1, sd.phase2) && Differs(sd.phase2, sd.last));
+            bool tokens = false, known = true;
+            foreach (var p in new[] { sd.phase1, sd.phase2, sd.last })
+                foreach (var st in p.loop)
+                {
+                    tokens |= !string.IsNullOrEmpty(st.move);
+                    if (string.IsNullOrEmpty(st.attack) || st.attack == "-") continue;
+                    bool found = false;
+                    foreach (var v in sd.variants) found |= v.name == st.attack;
+                    known &= found;
+                }
+            Check(k + "it moves by tokens (the Reaver flies its track by itself) and every beat names a variant it defines", (tokens || x.brain == "swooper") && known);
+            bool exits = d.hurtHide && !d.armored;
+            Check(k + "exit: " + (exits ? "the one scripted exit by the " + sd.lastExit : "none (armoured, it stays)"),
+                  exits ? (sd.lastExit == "left" || sd.lastExit == "right" || sd.lastExit == "top") : (!d.hurtHide && sd.lastExit == "none"));
+            Check(k + "it stays inside the view: its brain does not roam", !EliteBrains.Create(d.brain).Roams);
+        }
+        // the fixed sequence of the first phase, whatever the random seed
+        foreach (var x in Expected)
+        {
+            var d = EliteCatalog.Find(x.key);
+            var a = BeatTrace(x.brain, 3, 5);
+            var b = BeatTrace(x.brain, 999, 5);
+            string want = string.Join(",", ExpectedBeats(d, 1, a.Count));
+            Check(d.displayName + ": its first beats are its loop, " + string.Join(",", a) + " (script " + want + "), identical on another seed (" + string.Join(",", b) + ")",
+                  a.Count >= 4 && string.Join(",", a) == want && string.Join(",", a) == string.Join(",", b));
         }
     }
 

@@ -5,7 +5,7 @@
   "role": "ion lancer",
   "codexId": "elite_space_rift_lancer",
   "launchFrom": "gate,station",
-  "lore": "An edge sniper that keeps to the far flank of the board while a blinking sight line tracks you, then locks, and a rail of bolts follows it. After a shot or two it slips off its side and comes back in from the other. Every third run it leaves a rift on the line: shoot it before it pops into a cross of bolts.",
+  "lore": "An edge sniper that keeps to the far flank of the board while a blinking sight line tracks you, then locks, and a rail of bolts follows it. After a shot or two it dashes across to the other flank. Now and then it leaves a rift on the line: shoot it before it pops into a cross of bolts.",
   "brain": "sniper",
   "attack": "rift_snipe",
   "cells": {
@@ -109,5 +109,138 @@
   "hazardCount": 4,
   "hazardSpeed": 3.2,
   "engageSeconds": 48,
-  "script": { "tempo": 1.2 }
+  "script": {
+    "tempo": 1.2,
+    "exitTell": 1.4,
+    "lastExit": "right",
+    "lastExitSeconds": 1.6,
+    "note": "sniper: perch R, snipe, snipe, mine, cross L ...; phase 2 crosses after every shot; last: top-centre long rails; exits right once",
+    "entrance": {
+      "kind": "dash",
+      "seconds": 1.2,
+      "amp": 1.4
+    },
+    "phase1": {
+      "speed": 1.0,
+      "gap": 1.0,
+      "loop": [
+        {
+          "wait": 1.6,
+          "move": "R",
+          "attack": ""
+        },
+        {
+          "wait": 1.5,
+          "attack": ""
+        },
+        {
+          "wait": 1.7,
+          "attack": "mine"
+        },
+        {
+          "wait": 0.8,
+          "move": "L",
+          "attack": "-"
+        },
+        {
+          "wait": 1.0,
+          "attack": ""
+        },
+        {
+          "wait": 1.5,
+          "attack": ""
+        },
+        {
+          "wait": 1.7,
+          "attack": "mine"
+        },
+        {
+          "wait": 0.8,
+          "move": "R",
+          "attack": "-"
+        }
+      ]
+    },
+    "phase2": {
+      "speed": 1.15,
+      "gap": 0.85,
+      "loop": [
+        {
+          "wait": 1.2,
+          "move": "cross",
+          "attack": "quick"
+        },
+        {
+          "wait": 1.2,
+          "move": "cross",
+          "attack": "quick"
+        },
+        {
+          "wait": 1.3,
+          "move": "cross",
+          "attack": "mine"
+        }
+      ]
+    },
+    "last": {
+      "speed": 1.2,
+      "gap": 0.8,
+      "loop": [
+        {
+          "wait": 1.4,
+          "move": "C",
+          "attack": "long"
+        },
+        {
+          "wait": 1.2,
+          "attack": "long"
+        },
+        {
+          "wait": 1.4,
+          "attack": "mine"
+        }
+      ]
+    },
+    "variants": [
+      {
+        "name": "mine",
+        "set": [
+          {
+            "key": "tellSeconds",
+            "value": 1.05
+          }
+        ]
+      },
+      {
+        "name": "quick",
+        "set": [
+          {
+            "key": "tellSeconds",
+            "value": 0.6
+          },
+          {
+            "key": "shotInterval",
+            "value": 0.04
+          }
+        ]
+      },
+      {
+        "name": "long",
+        "set": [
+          {
+            "key": "shotCount",
+            "value": 8
+          },
+          {
+            "key": "tellSeconds",
+            "value": 0.7
+          },
+          {
+            "key": "actionSeconds",
+            "value": 0.55
+          }
+        ]
+      }
+    ]
+  }
 }

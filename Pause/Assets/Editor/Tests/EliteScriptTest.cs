@@ -31,8 +31,6 @@ public static class EliteScriptTest
         // ember
         // frost
         // space
-        "space_elite_rift_lancer",
-        "space_elite_orbit_reaver",
         // tide
         // verdant
         "verdant_elite_leafblade",
