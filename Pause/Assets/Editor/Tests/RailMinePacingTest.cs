@@ -303,6 +303,7 @@ public static class RailMinePacingTest
         var mounts = new RailMineMount[3];
         var lastY = new float[3];
         var lastDy = new float[3];
+        var wasHolding = new bool[3];
         int reversals = 0, ridden = 0;
         for (int k = 0; k < 3; k++)
         {
@@ -329,17 +330,15 @@ public static class RailMinePacingTest
                 if (mounts[k].RideState == RailMineMount.RidePhase.Holding)
                 {
                     ridden++;
-                    if (Mathf.Abs(dy) > .02f && Mathf.Abs(lastDy[k]) > .02f && Mathf.Sign(dy) != Mathf.Sign(lastDy[k]))
+                    // (the frame it first catches the board is not a reversal: it stops falling and starts riding; wasHolding skips that hand-over)
+                    if (wasHolding[k] && Mathf.Abs(dy) > .02f && Mathf.Abs(lastDy[k]) > .02f && Mathf.Sign(dy) != Mathf.Sign(lastDy[k]))
                     {
                         reversals++;
-                        Debug.Log("[MINEPACE] reversal frame " + i + " mine " + k + " y " + y.ToString("F3") + " dy " + dy.ToString("F4") + " lastDy " + lastDy[k].ToString("F4") +
-                                  " ride " + mounts[k].Ride.ToString("F3") + " slide " + mounts[k].Slide.ToString("F3") + " shove " + mounts[k].Shove.ToString("F3") +
-                                  " locked " + mounts[k].AimLocked + " brain " + brains[k].State + " volleys " + brains[k].Volleys + " rideSec " + mounts[k].RideSeconds.ToString("F2") +
-                                  " snap " + BoardRoll.SnapLift.ToString("F4"));
                     }
                 }
                 lastY[k] = y;
                 lastDy[k] = dy;
+                wasHolding[k] = mounts[k].RideState == RailMineMount.RidePhase.Holding;
             }
         }
         Check("three mines stacked on one rail @" + speed.ToString("F2") + ": each rides on its own path, none jiggles for another (" +
