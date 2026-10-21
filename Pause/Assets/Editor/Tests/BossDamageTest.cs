@@ -74,6 +74,7 @@ public static class BossDamageTest
             DeathStripArt(3, "Ember");
             DeathStripArt(4, "Tide");
             StormDeathStrip();
+            StormDamageKeepsRepaintColours();
             DesertOwnStrips();
             for (int w = 0; w < 6; w++) DeathStripPlaysOnce(w);
             EveryBossHasDeathArt();
@@ -1045,6 +1046,32 @@ public static class BossDamageTest
             Check("Storm death cell 0 is registered to its idle cell", b0 != null && ibox != null &&
                   Mathf.Abs((b0[0] + b0[2]) / 2f - (ibox[0] + ibox[2]) / 2f) <= 40f && Mathf.Abs((b0[1] + b0[3]) / 2f - (ibox[1] + ibox[3]) / 2f) <= 40f);
         }
+    }
+
+    // The Violet Squall repaint is teal-slate / blue (mean blue clearly above mean red); the pre-repaint gunmetal was
+    // near neutral (blue - red ~ 5). Every damaged Storm drawing (hull stages + each damaged attack pose) must keep the repaint.
+    static void StormDamageKeepsRepaintColours()
+    {
+        var em = BossCatalog.ForWorld(5);
+        int cell = Cell(em), bad = 0, n = 0;
+        var sprites = new List<Sprite>();
+        for (int stage = 1; stage <= BossArt.DamageStages; stage++)
+        {
+            var hull = BossArt.DamageIdleCell(em, BossArt.IdleStart(em), stage, 0f);
+            foreach (int frame in BossArt.AttackDamagePoses(em)) sprites.Add(BossArt.AttackDamageBody(em, frame, stage));
+            if (hull >= 0) sprites.Add(BossArt.DamageBody(em, hull));
+        }
+        foreach (var sp in sprites)
+        {
+            if (sp == null) { bad++; continue; }
+            var px = CellPixels(sp, cell);
+            if (px == null) { bad++; continue; }
+            double r = 0, b = 0; int k = 0;
+            foreach (var c in px) if (c.a > 200) { r += c.r; b += c.b; k++; }
+            n++;
+            if (k == 0 || (b - r) / k < 9.0) bad++;
+        }
+        Check("Storm: every damaged drawing keeps the Violet Squall repaint (" + n + " checked, " + bad + " grey / missing)", n > 0 && bad == 0);
     }
 
     static void DeathStripPlaysOnce(int world)
