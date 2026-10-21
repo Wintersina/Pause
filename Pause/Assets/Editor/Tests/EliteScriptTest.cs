@@ -37,9 +37,6 @@ public static class EliteScriptTest
         // frost
         "frost_elite_rimebreaker",
         "frost_elite_cryo_siren",
-        // space
-        "space_elite_rift_lancer",
-        "space_elite_orbit_reaver",
         // storm
         "storm_elite_refinery_tender",
         "storm_elite_skyhook_harrier",

@@ -36,12 +36,12 @@ using UnityEngine;
 //                after each shot it dashes across to the other flank
 //   tug          (Space) a slow armoured salvage tug: hangs ahead of the
 //                pilot a lane to one side, swapping sides after each sling
-//   sniper       (Space) Rift Lancer: perches at long range on a flank at the edge of the view, shoots once or twice, leaves by
-//                its own side and comes back in from the OPPOSITE one (SpaceElites.cs)
-//   swooper      (Space) Orbit Reaver: big strafing loops that leave the view and come back round, crossing the board on a new
-//                side and slope each time (SpaceElites.cs)
-//   fortress     (Space) Eventide Bastion: holds the top of the view and slides sideways at a crawl (SpaceElites.cs)
-//   wrecker      (Space) Singularity Hauler: parks high, tows asteroids in and flings them down the board (SpaceElites.cs)
+//   sniper       (Space) Rift Lancer: perches on the right / left flank or the top centre at long range, shoots from the perch only and
+//                dashes across the board (inside the view) between perches; the script's tokens say which (SpaceElites.cs)
+//   swooper      (Space) Orbit Reaver: flies a racetrack over the top (a pass per lane, a U-turn at each rail), a figure eight at the last
+//                heart; one volley a pass (SpaceElites.cs)
+//   fortress     (Space) Eventide Bastion: crawls between three stations along the top of the view (SpaceElites.cs)
+//   wrecker      (Space) Singularity Hauler: hauls itself in a V along the top, tows asteroids in and flings them down the board (SpaceElites.cs)
 //   breaker      (Tide) Riptide: rides a wave line across the top third, in from one side and out the other, laying foam in its wake
 //   deep         (Tide) Bathyscaphe: surfaces at a column at the top, lays mine chains, dives off the top and surfaces elsewhere
 //   trawl        (Tide) Trawler: works one flank against a rail, drags nets in from it, leaves by that side, returns on the other

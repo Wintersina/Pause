@@ -8,18 +8,24 @@ using UnityEngine;
 // launch from Space's docks as ever (stations, planets, big asteroids; one small light blinks at the door in the launch
 // second, EliteLaunchTell).
 //
-//   Rift Lancer         sniper   / rift_snipe    (station)   an edge sniper: perches at long range on a flank, a blinking sight line
-//                                                  tracks then locks, a rail of bolts; after 1-2 shots it leaves by its own side and
-//                                                  re-enters from the OPPOSITE one. Every third run it leaves a RIFT MINE on the line.
-//   Orbit Reaver        swooper  / swoop_volley  (planet)    big strafing loops off the view and back round, a new side and slope each
-//                                                  pass; locks the pilot's spot (a marker ring) and crosses its claw shards on it
-//   Eventide Bastion    fortress / ward_barrage  (station)   holds the top and slides at a crawl; ward curtains with a gap that narrows
-//                                                  as hearts drop (two staggered rows at <= 2), shield mines between them
-//   Singularity Hauler  wrecker  / tow_sling     (asteroid)  parks high; tows a big asteroid into its claws, flings it down a marked
-//                                                  lane; alternates with a gravity well that curves its shots in and gently tugs the pilot
+// Each one flies an AUTHORED SCRIPT (EliteScript.cs, the "script" block of its def json; docs/elites/elite-scripts.md): an entrance,
+// a fixed loop per phase, a desperation loop and an exit, with the brain reading the script's move tokens and the attacks reading the
+// beat's variant. None of them rolls dice or leaves the view (only the single scripted last-heart exit does).
 //
-// The lancer and reaver ROAM (EliteBrain.Roams): their paths leave the view, so the ship neither clamps their goal nor plans
-// evasions, and they are untouchable while outside the board. Everything an attack leaves on the board rides it.
+//   Rift Lancer         sniper   / rift_snipe    (station)   perches on the right / left flank (or the top centre) and snipes: a
+//                                                  blinking sight line tracks then locks, a rail of bolts; between perches it dashes
+//                                                  across the board. The "mine" beat also leaves a RIFT MINE on the line.
+//   Orbit Reaver        sweeper  / swoop_volley  (planet)    a racetrack over the top of the board: a pass along each lane, a U-turn
+//                                                  round each rail, one volley a pass (a marker ring locks the pilot's spot and the
+//                                                  claw shards cross on it); a figure eight at the last heart
+//   Eventide Bastion    anchor   / ward_barrage  (station)   crawls between three stations along the top; ward curtains with the gap
+//                                                  on the left / right of the pilot, narrowing as hearts drop (two staggered rows in
+//                                                  phase 2), shield mines between them
+//   Singularity Hauler  summoner / tow_sling     (asteroid)  hauls itself in a V along the top; tows a big asteroid into its claws and
+//                                                  flings it down a marked lane from the left / right, opens a gravity well from the dip
+//
+// Nothing here ROAMS (EliteBrain.Roams is false for all four): the ship clamps their goals and plans evasions like any other elite.
+// Everything an attack leaves on the board rides it.
 
 // ---- shared bits ----------------------------------------------------------------------------------------------------
 
@@ -253,107 +259,92 @@ public sealed class ThrownRock : MonoBehaviour, IMovementFootprint
 
 // ---- Rift Lancer: sniper -------------------------------------------------------------------------------------------
 
-// An edge sniper. A RUN is: enter from a side of the view, perch at long range on that flank (the rail side, Standoff above the
-// pilot), take one or two shots (rift_snipe), leave off its own side, wait out of sight (AwaySeconds), then the next run enters from
-// the OPPOSITE side. It never closes on the pilot: if the pilot comes within MinRange of it, it peels off instead. Every MineEvery-th
-// run its first shot also leaves a rift mine on the rail line (RiftSnipeAttack).
+// An edge sniper on a script. It perches at long range on a flank of the board (the rail side, or the top centre), Standoff over the
+// pilot, and the script's tokens move it: "R" / "L" / "C" go to that perch, "cross" to the other flank. A move is a fast dash across
+// the board INSIDE the view (the sniper never leaves it, except for the one scripted last-heart exit); it shoots from a perch only.
+// It never closes on the pilot: if the pilot comes within MinRange of it, it dashes to the other flank instead. A beat whose variant is
+// "mine" also leaves a rift mine on the rail line (RiftSnipeAttack).
 public class SniperBrain : EliteBrain
 {
-    public enum Stage { Enter, Perch, Exit, Away }
+    public enum Stage { Enter, Perch, Cross }
     public const float Standoff = 4.6f;       // u above the pilot (never above the player's reach)
-    public const float MinRange = 3.3f;       // u: closer to the pilot than this and it leaves
-    public const float SettleDistance = .4f, PerchWait = .35f, AwaySeconds = 1.1f, EnterScale = 1.7f, ExitScale = 2f;
-    public const int MineEvery = 3;
+    public const float MinRange = 3.3f;       // u: closer to the pilot than this and it dashes across
+    public const float SettleDistance = .4f, PerchWait = .35f, EnterScale = 1.7f, DashScale = 1.8f, CentreLift = .8f;
     Stage stage = Stage.Enter;
-    float side = 1f, perched, away;
-    int shotsLeft;
-    bool mineTaken;
+    float side = 1f, perched;
     public Stage Phase => stage;
     public float Side => side;
-    public int Runs { get; private set; } = 1;
-    public int ShotsLeft => shotsLeft;
     public int Shots { get; private set; }
-    // The next shot is the first of a mine run.
-    public bool MineDue => Runs % MineEvery == 0 && !mineTaken;
+    public int Crossings { get; private set; }
     public bool PeeledOff { get; private set; }
 
     public SniperBrain() { Id = "sniper"; }
 
-    public override bool Roams => true;
-    public override float TellScale => 1f;
+    public override void OnJoin() { side = Pos.x >= 0f ? 1f : -1f; stage = Stage.Enter; perched = 0f; }
+    public override void OnReturn() { stage = Stage.Enter; perched = 0f; }
 
-    protected override void OnBind() { side = Random.value < .5f ? -1f : 1f; }
-    public override void OnJoin() { side = Pos.x >= 0f ? 1f : -1f; BeginRun(false); }
-    public override void OnReturn() { side = Pos.x >= 0f ? 1f : -1f; BeginRun(false); }
-
-    void BeginRun(bool next)
+    // "R" "L" "C": that perch; "cross": the other flank (from the centre: away from the pilot).
+    public override void OnScriptMove(string token)
     {
-        if (next) Runs++;
-        stage = Stage.Enter;
-        shotsLeft = Random.Range(1, 3);   // 1 or 2
-        mineTaken = false;
+        float to;
+        switch (token)
+        {
+            case "R": to = 1f; break;
+            case "L": to = -1f; break;
+            case "C": to = 0f; break;
+            case "cross": to = side > 0f ? -1f : side < 0f ? 1f : (ship.Seen.x > 0f ? -1f : 1f); break;
+            default: return;
+        }
+        if (Mathf.Approximately(to, side)) return;
+        side = to;
+        if (stage == Stage.Perch) stage = Stage.Cross;
         perched = 0f;
-        PeeledOff = false;
+        Crossings++;
     }
 
-    // Where it perches on its flank: the rail side, Standoff over the pilot (kept inside the player's reach).
+    // Where it perches: the rail side (or the top centre), Standoff over the pilot (kept inside the player's reach).
     public Vector2 Station(Vector2 f)
     {
         float edge = EliteSystem.RailEdge - def.hullRadius - .45f;
-        float y = Mathf.Min(f.y + Standoff, EliteSystem.ViewTop - def.hullRadius - 1f);   // (Station clamps it into the fighting zone)
+        float y = Mathf.Min(f.y + Standoff + (side == 0f ? CentreLift : 0f), EliteSystem.ViewTop - def.hullRadius - 1f);
         return new Vector2(side * edge, ship.ZoneY(ship.ReachY(y)));
     }
 
     public override Vector2 Goal(Vector2 follow, float dt)
     {
         Clock += dt;
-        float off = SpaceFlight.OffX(def);
         Vector2 st = Station(follow);
-        switch (stage)
+        if (stage != Stage.Perch)
         {
-            case Stage.Enter:
-                if ((Pos - st).sqrMagnitude < SettleDistance * SettleDistance) { stage = Stage.Perch; perched = 0f; }
-                return st;
-            case Stage.Perch:
-                perched += dt;
-                if ((Pos - ship.Seen).magnitude < MinRange) { PeeledOff = true; stage = Stage.Exit; }
-                return st + new Vector2(0f, Mathf.Sin(Clock * 1.4f) * .15f);
-            case Stage.Exit:
-                if (Mathf.Abs(Pos.x) > off - .25f) { stage = Stage.Away; away = 0f; }
-                return new Vector2(side * (off + 1f), Pos.y + .6f);
-            default:
-                away += dt;
-                if (away >= AwaySeconds)
-                {
-                    // out of sight: back in from the opposite side
-                    side = -side;
-                    BeginRun(true);
-                    ship.Warp(new Vector2(side * off, Station(follow).y + 1f));
-                    stage = Stage.Enter;
-                }
-                return Pos;
+            if ((Pos - st).sqrMagnitude < SettleDistance * SettleDistance) { stage = Stage.Perch; perched = 0f; }
+            return st;
         }
+        perched += dt;
+        if ((Pos - ship.Seen).magnitude < MinRange)
+        {
+            // the pilot is on it: across to the other flank
+            PeeledOff = true;
+            OnScriptMove("cross");
+            return st;
+        }
+        return st + new Vector2(0f, Mathf.Sin(Clock * 1.4f) * .15f);
     }
 
-    public override float SpeedScale => stage == Stage.Enter ? EnterScale : stage == Stage.Exit ? ExitScale : 1f;
+    public override float SpeedScale => stage == Stage.Enter ? EnterScale : stage == Stage.Cross ? DashScale : 1f;
 
     public override bool WantsAttack(Vector2 seen) =>
-        stage == Stage.Perch && perched > PerchWait && shotsLeft > 0 && (seen - Pos).magnitude >= MinRange * 1.05f;
+        stage == Stage.Perch && perched > PerchWait && (seen - Pos).magnitude >= MinRange * 1.05f;
 
     public override float? FaceDeg(Vector2 seen) => stage == Stage.Perch ? FaceTowards(seen) : (float?)null;
 
-    // The attack's callbacks.
-    public void MineTaken() { mineTaken = true; }
-
+    // The attack's callback: a shot is out.
     public void ShotDone()
     {
         Shots++;
-        shotsLeft--;
         perched = 0f;
-        if (shotsLeft <= 0) stage = Stage.Exit;
     }
 
-    public override Vector2 JoinFrom => new Vector2(side, 1f);
+    public override Vector2 JoinFrom => new Vector2(side == 0f ? 1f : side, 1f);
 }
 
 // Rift Lancer: a rift snipe. The rift_rail of old -- planted, nose on the pilot, a blinking sight line from the prong tracks the
@@ -395,8 +386,7 @@ public class RiftSnipeAttack : EliteAttack
         base.BeginTell(seen);
         fired = 0;
         mine = null;
-        var sn = ship.Brain as SniperBrain;
-        mineRun = sn != null && sn.MineDue;
+        mineRun = ship.Script.VariantName == "mine";   // (the script's beat: every third snipe of the loop)
         mineAt = ClampSpot(seen);
         marks.HideAll();
     }
@@ -444,8 +434,6 @@ public class RiftSnipeAttack : EliteAttack
         // a small pink rift sent along the line: glides out to the spot, rides the board, fuse ring, then a short cross
         m.Mine(mineAt, def.lobSeconds, def.lobSeconds + def.hazardSeconds, Mathf.Max(2, def.hazardCount), def.hazardSpeed, ArmSeconds, 0f, Vector2.zero, 1);
         mine = m;
-        var sn = ship.Brain as SniperBrain;
-        if (sn != null) sn.MineTaken();
     }
 
     public override bool StepAction(float dt)
@@ -484,93 +472,146 @@ public class RiftSnipeAttack : EliteAttack
 
 // ---- Orbit Reaver: swooper -----------------------------------------------------------------------------------------
 
-// A swooper. Flies big loops: a PASS is a straight strafing run across the board on a line Offset to one side of the pilot (so it is
-// never nearer than that), entered from beyond a side of the view and left beyond the other; then it loops round out of sight and
-// comes back for the next pass from the side it left by, on a new slope. It never parks. Lost a heart (and hidden, and back): its
-// passes and loops are LostBoost faster for every heart gone. It fires one volley a pass (SwoopVolleyAttack), in the window
-// FireFrom..FireTo along the run.
+// A swooper on a racetrack. It flies a stadium over the top of the board, INSIDE the view: a pass along the upper lane (right to left),
+// a U-turn round the left rail, a pass back along the lower lane, a U-turn round the right rail. It fires one volley a pass, from the
+// first part of the lane (SwoopVolleyAttack). At its last heart (OnPhase 3) the track becomes a figure eight with a volley at each
+// crossing. The brain keeps a pointer on the track (Goal) that runs at its flying speed and waits for the ship when it lags; the ship
+// chases it, so the loop is the same every fight. It never parks and never leaves the view; the script sets how fast (phase speed).
 public class SwooperBrain : EliteBrain
 {
-    public enum Stage { Loop, Pass }
-    public const float Offset = 3f;           // u: how far to the side of the pilot the pass runs
-    public const float Lead = 2.4f;           // u: the point it chases ahead of itself on the line
-    public const float Boost = 1.5f, LoopScale = 1.3f, LostBoost = .3f;
-    public const float FireFrom = -4f, FireTo = -2.2f;   // along the run (0 = abreast of the pilot) in which it may start its wind-up
-    public const float MinSlope = .2f, MaxSlope = .9f;
-    Stage stage = Stage.Loop;
-    float s, span0, span1, entrySide = 1f;
-    Vector2 u = Vector2.right, n = Vector2.up;
-    bool volleyed;
-    public Stage Phase => stage;
-    public int Passes { get; private set; }
-    public Vector2 Dir => u;
-    public Vector2 Normal => n;
-    public float EntrySide => entrySide;
-    public float EntrySpan => span0;
-    public float ExitSpan => span1;
-    public bool Volleyed => volleyed;
+    public const float LaneGap = 1.4f;        // u between the upper and the lower lane (the U-turn is a half circle of half of it)
+    public const float Depth = 2.4f;          // u under the top of the view the upper lane runs
+    public const float Boost = 1.35f;         // x the def's speed
+    public const float Stall = 2.8f;          // u: the pointer waits for the ship when it is further behind than this
+    public const float FireFrom = .12f, FireTo = .6f;   // along a lane (0..1) in which it may start its wind-up
+    public const float CrossArc = .4f;        // rad either side of a crossing of the eight
+    float s, a;                               // the pointer: arc length on the stadium, angle on the eight
+    int seg = -1, cross = int.MinValue, visit, doneVisit = -1;
+    bool windowOpen, eight;
+    public bool Eight => eight;
+    public bool InWindow => windowOpen;
+    public bool Volleyed => doneVisit == visit;
+    public int Laps { get; private set; }
+    public int Turns { get; private set; }     // U-turns flown round a rail
+    public int Segment => seg;                 // 0 upper lane, 1 left U-turn, 2 lower lane, 3 right U-turn
 
     public SwooperBrain() { Id = "swooper"; }
 
-    public override bool Roams => true;
     public override float TellScale => 1f;
-    public override void OnJoin() { entrySide = Pos.x >= 0f ? 1f : -1f; stage = Stage.Loop; Plan(); }
-    public override void OnReturn() { entrySide = Pos.x >= 0f ? 1f : -1f; stage = Stage.Loop; Plan(); }
-
-    float Speedup => 1f + LostBoost * Mathf.Max(0, def.hearts - (ship != null ? ship.Hearts : def.hearts));
-
-    // The next pass: in from the side opposite the last one's, running down across the board on a new slope.
-    void Plan()
+    public override void OnJoin() { Snap(); }
+    public override void OnReturn() { Snap(); }
+    public override void OnPhase(int phase)
     {
-        Passes++;
-        entrySide = -entrySide;
-        float slope = Random.Range(MinSlope, MaxSlope);
-        u = new Vector2(-entrySide, -slope).normalized;
-        n = new Vector2(-u.y, u.x);
-        if (n.y < 0f) n = -n;
-        // both ends of the run wholly out of the view (where the line crosses x = +-OffX, and a little more)
-        float c = OnLine(ship != null ? ship.Follow : Pos, 0f).x;
-        float ux = Mathf.Max(.45f, Mathf.Abs(u.x)), off = SpaceFlight.OffX(def);
-        span0 = Mathf.Max(3f, (off - entrySide * c) / ux) + 1.2f;
-        span1 = Mathf.Max(3f, (off + entrySide * c) / ux) + 1.2f + Lead;
-        s = -span0;
-        volleyed = false;
+        bool want = phase >= 3;
+        if (want == eight) return;
+        eight = want;
+        Snap();
     }
 
-    // The point on the line `along` from abreast of the pilot (an anchor kept between the rails).
-    public Vector2 OnLine(Vector2 f, float along)
+    float Rad => LaneGap * .5f;
+    public float Half => Mathf.Max(.4f, EliteSystem.RailEdge - def.hullRadius - .35f - Rad);   // x of the U-turn centres
+    public float TopY => ship.ZoneY(ship.ReachY(EliteSystem.ViewTop - Depth));
+    public float TrackLength => 4f * Half + 2f * Mathf.PI * Rad;
+
+    // The stadium at arc length p: upper lane right to left, left U-turn down, lower lane left to right, right U-turn up.
+    public Vector2 Track(float p, out int segment, out float frac)
     {
-        float ax = Mathf.Clamp(f.x, -EliteSystem.RailEdge + .6f, EliteSystem.RailEdge - .6f);
-        return new Vector2(ax, f.y) + n * Offset + u * along;
+        float lane = 2f * Half, arc = Mathf.PI * Rad, yU = TopY, yL = yU - LaneGap;
+        p = Mathf.Repeat(p, 2f * lane + 2f * arc);
+        if (p < lane) { segment = 0; frac = p / lane; return new Vector2(Half - p, yU); }
+        p -= lane;
+        if (p < arc)
+        {
+            segment = 1; frac = p / arc;
+            float t = p / Rad;
+            return new Vector2(-Half - Mathf.Sin(t) * Rad, yU - Rad + Mathf.Cos(t) * Rad);
+        }
+        p -= arc;
+        if (p < lane) { segment = 2; frac = p / lane; return new Vector2(-Half + p, yL); }
+        p -= lane;
+        segment = 3; frac = p / arc;
+        float u = p / Rad;
+        return new Vector2(Half + Mathf.Sin(u) * Rad, yU - Rad - Mathf.Cos(u) * Rad);
     }
 
-    // How far along the run the ship is now (0: abreast of the pilot).
-    public float Along(Vector2 f) => Vector2.Dot(Pos - OnLine(f, 0f), u);
+    // The figure eight at angle q: a horizontal 8 across the two lanes, crossing in the middle at q = 0, pi ...
+    public Vector2 Eight8(float q)
+    {
+        float ax = Half + Rad - .1f;
+        return new Vector2(ax * Mathf.Sin(q), TopY - Rad + Rad * Mathf.Sin(2f * q));
+    }
+
+    float Eight8Speed(float q)
+    {
+        float ax = Half + Rad - .1f;
+        return new Vector2(ax * Mathf.Cos(q), 2f * Rad * Mathf.Cos(2f * q)).magnitude;
+    }
+
+    // The pointer goes to the nearest point of the track (joining, returning from the exit, a new phase).
+    void Snap()
+    {
+        float best = float.MaxValue;
+        if (eight)
+        {
+            float bestQ = a;
+            float baseQ = Mathf.Floor(a / (Mathf.PI * 2f)) * Mathf.PI * 2f;
+            for (int i = 0; i < 64; i++)
+            {
+                float q = baseQ + i * Mathf.PI * 2f / 64f;
+                float d = (Eight8(q) - Pos).sqrMagnitude;
+                if (d < best) { best = d; bestQ = q; }
+            }
+            a = bestQ;
+            cross = int.MinValue;
+        }
+        else
+        {
+            float bestS = s, len = TrackLength;
+            for (int i = 0; i < 64; i++)
+            {
+                float p = i * len / 64f;
+                float d = (Track(p, out _, out _) - Pos).sqrMagnitude;
+                if (d < best) { best = d; bestS = p; }
+            }
+            s = bestS;
+            seg = -1;
+        }
+    }
 
     public override Vector2 Goal(Vector2 follow, float dt)
     {
         Clock += dt;
-        if (stage == Stage.Loop)
+        float v = def.speed * SpeedScale * ship.Script.SpeedScale;
+        if (eight)
         {
-            Vector2 entry = OnLine(follow, -span0);
-            if ((Pos - entry).sqrMagnitude < 1.5f * 1.5f) { stage = Stage.Pass; s = -span0; }
-            return entry;
+            if ((Pos - Eight8(a)).sqrMagnitude < Stall * Stall) a += v * dt / Mathf.Max(.8f, Eight8Speed(a));
+            int k = Mathf.RoundToInt(a / Mathf.PI);
+            if (k != cross) { cross = k; visit++; if ((k & 1) == 0) Laps++; }
+            windowOpen = Mathf.Abs(a - k * Mathf.PI) <= CrossArc;
+            return Eight8(a);
         }
-        s += def.speed * SpeedScale * dt;
-        if (s >= span1) { stage = Stage.Loop; Plan(); return OnLine(follow, -span0); }
-        return OnLine(follow, s + Lead);
+        Vector2 at = Track(s, out int sg, out float fr);
+        if ((Pos - at).sqrMagnitude < Stall * Stall)
+        {
+            s += v * dt;
+            at = Track(s, out sg, out fr);
+        }
+        if (sg != seg)
+        {
+            seg = sg;
+            visit++;
+            if (seg == 0) Laps++;
+            if ((seg & 1) == 1) Turns++;
+        }
+        windowOpen = (seg & 1) == 0 && fr >= FireFrom && fr <= FireTo;
+        return at;
     }
 
-    public override float SpeedScale => (stage == Stage.Pass ? Boost : LoopScale) * Speedup;
+    public override float SpeedScale => Boost;
 
-    public override bool WantsAttack(Vector2 seen)
-    {
-        if (stage != Stage.Pass || volleyed) return false;
-        float a = Along(ship.Follow);
-        return a >= FireFrom && a <= FireTo;
-    }
+    public override bool WantsAttack(Vector2 seen) => windowOpen && doneVisit != visit;
 
-    public void VolleyDone() { volleyed = true; }
+    public void VolleyDone() { doneVisit = visit; }
 
     public override Vector2 JoinFrom => new Vector2(-1f, .6f);
 }
@@ -655,24 +696,35 @@ public class SwoopVolleyAttack : EliteAttack
 
 // ---- Eventide Bastion: fortress ------------------------------------------------------------------------------------
 
-// A fortress. Holds near the top of the view (topMargin under it, never above the player's reach) and slides sideways at a crawl, a
-// slow sine laneOffset either side of the middle: it never comes down to the pilot. It attacks whenever it is over it.
+// A fortress. Holds near the top of the view (topMargin under it, never above the player's reach) and crawls between three stations
+// (the script's tokens "L" "C" "R"), swaying a little either side of the one it holds: it never comes down to the pilot. It attacks
+// whenever it is over it.
 public class FortressBrain : EliteBrain
 {
-    public const float SlideRate = .55f;   // rad/s
-    float phase;
+    public const float SlideRate = .55f, Sway = .5f, Crawl = .35f;
+    float stationX, want;
+    bool init;
 
     public FortressBrain() { Id = "fortress"; }
 
-    protected override void OnBind() { phase = Random.value * Mathf.PI * 2f; }
-
     public float Amplitude => Mathf.Max(0f, Mathf.Min(def.laneOffset, EliteSystem.RailEdge - def.hullRadius - .6f));
+    public float Reach => Mathf.Max(0f, Amplitude - Sway);   // x of the left and right stations
+    public float Station => stationX;
     public float Height => ship.ZoneY(ship.ReachY(EliteSystem.ViewTop - def.topMargin));
+
+    public override void OnScriptMove(string token)
+    {
+        if (token == "L") want = -Reach;
+        else if (token == "R") want = Reach;
+        else if (token == "C") want = 0f;
+    }
 
     public override Vector2 Goal(Vector2 follow, float dt)
     {
         Clock += dt;
-        return new Vector2(Mathf.Sin(Clock * SlideRate + phase) * Amplitude, Height + Mathf.Sin(Clock * 1.1f) * .1f);
+        if (!init) { stationX = Mathf.Clamp(Pos.x, -Amplitude, Amplitude); init = true; }
+        stationX = Mathf.MoveTowards(stationX, want, def.speed * Crawl * dt);
+        return new Vector2(stationX + Mathf.Sin(Clock * SlideRate) * Sway, Height + Mathf.Sin(Clock * 1.1f) * .1f);
     }
 
     public override float SpeedScale => .7f;
@@ -681,13 +733,13 @@ public class FortressBrain : EliteBrain
     public override Vector2 JoinFrom => Vector2.up;
 }
 
-// Eventide Bastion: ward barrage. Casts alternate: a CURTAIN, then a MINE DROP.
+// Eventide Bastion: ward barrage. The script's beat says what is cast: a CURTAIN (variants gapL gapR doubleL doubleR) or a MINE DROP (mine).
 //
 // CURTAIN (the ward curtain, escalating): from the first frame of the tell a ring marks each spot of a row across the pilot's height
-// (centred on it), live until the commit, then locked and blinking faster; the one spot beside the pilot toward the middle is left
-// out -- the gap. Then shotCount slow bolts out of the pods, shotInterval apart, each at its spot. THE FIGHT ESCALATES with the
+// (centred on it), live until the commit, then locked and blinking faster; the one spot beside the pilot on the beat's side (left or
+// right, the other if the rail leaves no room) is left out -- the gap. Then shotCount slow bolts out of the pods, shotInterval apart, each at its spot. THE FIGHT ESCALATES with the
 // hearts it has lost: the gap narrows by GapStep a heart (the two bolts beside it close in, down to MinGap -- still a ship's width
-// and then some) and at <= DoubleRowAt hearts a SECOND ROW follows RowDelay after the first, its gap on the OTHER side of the
+// and then some) and on a double beat (phase 2 and the last heart) a SECOND ROW follows RowDelay after the first, its gap on the OTHER side of the
 // pilot (the first row's gap now takes bolts): its spots ring up in the delay, and the delay is longer than a ship needs to cross
 // between the gaps (AssumedPilotSpeed, ReactionSeconds). Without room beyond the pilot (a rail) the second gap stays where it was.
 //
@@ -698,11 +750,11 @@ public class WardBarrageAttack : EliteAttack
 {
     public const float RowDelay = 1f, AssumedPilotSpeed = 4f, ReactionSeconds = .35f, GapStep = .1f, MinGap = 1.1f;
     public const float SpotRing = .34f, MineTell = .8f, MineGlide = .9f, MineRing = .55f, ArmSeconds = 1.1f, MineDrift = .25f;
-    public const int DoubleRowAt = 2, TwoMinesAt = 3;
+    public const int TwoMinesAt = 3;
     readonly Vector2[] spot = new Vector2[2];
     readonly EliteShot[] live = new EliteShot[4];
     EliteMarks marks;
-    int casts, slot, gap, gap2, dropped, mineCount;
+    int slot, gap, gap2, dropped, mineCount;
     float next;
     bool mines, second;
     Vector2 row;
@@ -720,7 +772,10 @@ public class WardBarrageAttack : EliteAttack
     public int Gap2 => gap2;
     public Vector2 Row => row;
     public int HeartsLost => Mathf.Max(0, def.hearts - ship.Hearts);
-    public bool DoubleRow => ship.Hearts <= DoubleRowAt;
+    // The script's beats: "gapL" / "gapR" a single row with its gap on that side of the pilot, "doubleL" / "doubleR" the same with a
+    // second row behind it, "mine" a mine drop.
+    string Beat => ship.Script.VariantName;
+    public bool DoubleRow => Beat.StartsWith("double", System.StringComparison.Ordinal);
     public bool SecondRow => second;
     public int Mines => mineCount;
     public EliteMarks Marks => marks;
@@ -749,6 +804,17 @@ public class WardBarrageAttack : EliteAttack
     {
         row = p + new Vector2(((Count - 1) * .5f - Centre) * def.lobSpacing, 0f);
         int toward = p.x > 0f ? -1 : 1;
+        string beat = Beat;
+        if (beat.Length > 1 && (beat.StartsWith("gap", System.StringComparison.Ordinal) || beat.StartsWith("double", System.StringComparison.Ordinal)))
+        {
+            // the script says which side the gap is on (unless the rail leaves no room for it there)
+            int want = beat[beat.Length - 1] == 'L' ? -1 : beat[beat.Length - 1] == 'R' ? 1 : 0;
+            if (want != 0)
+            {
+                float gx = row.x + (Centre + want - (Count - 1) * .5f) * def.lobSpacing;
+                toward = Mathf.Abs(gx) <= EliteSystem.RailEdge - .45f ? want : -want;
+            }
+        }
         gap = Centre + toward;
         gap2 = Centre - toward;
         // no room beyond the pilot: the second gap stays put
@@ -776,7 +842,7 @@ public class WardBarrageAttack : EliteAttack
     public override void BeginTell(Vector2 seen)
     {
         base.BeginTell(seen);
-        mines = casts++ % 2 == 1;
+        mines = Beat.StartsWith("mine", System.StringComparison.Ordinal);
         second = false;
         marks.HideAll();
         if (mines) PlanMines(seen); else PlanRow(seen);
@@ -901,24 +967,36 @@ public class WardBarrageAttack : EliteAttack
 
 // ---- Singularity Hauler: wrecker ------------------------------------------------------------------------------------
 
-// A wrecker. Parks high in the board (topMargin under the top, never above the player's reach), drifting a crawl either side of the
-// middle; it never comes down to the pilot. It attacks from where it is.
+// A wrecker. Parks high in the board (topMargin under the top, never above the player's reach) and hauls itself in a V: across to the
+// left or right (the script's tokens "L" "R", where it tows) and down to a dip in the middle ("D", where it opens the well). It never
+// comes down to the pilot. It attacks from where it is.
 public class WreckerBrain : EliteBrain
 {
-    public const float SlideRate = .4f;
-    float phase;
+    public const float Dip = .7f;
+    float stationX, wantX, dip, wantDip;
+    bool init;
 
     public WreckerBrain() { Id = "wrecker"; }
 
-    protected override void OnBind() { phase = Random.value * Mathf.PI * 2f; }
-
-    public float Amplitude => Mathf.Max(0f, Mathf.Min(def.laneOffset, EliteSystem.RailEdge - def.hullRadius - .6f));
+    public float Reach => Mathf.Max(0f, EliteSystem.RailEdge - def.hullRadius - .7f);   // x of the left and right stations
     public float Height => ship.ZoneY(ship.ReachY(EliteSystem.ViewTop - def.topMargin));
+    public float Station => stationX;
+    public float DipNow => dip;
+
+    public override void OnScriptMove(string token)
+    {
+        if (token == "L") { wantX = -Reach; wantDip = 0f; }
+        else if (token == "R") { wantX = Reach; wantDip = 0f; }
+        else if (token == "D") { wantX = 0f; wantDip = Dip; }
+    }
 
     public override Vector2 Goal(Vector2 follow, float dt)
     {
         Clock += dt;
-        return new Vector2(Mathf.Sin(Clock * SlideRate + phase) * Amplitude, Height + Mathf.Sin(Clock * .9f) * .1f);
+        if (!init) { stationX = Pos.x; init = true; }
+        stationX = Mathf.MoveTowards(stationX, wantX, def.speed * .6f * dt);
+        dip = Mathf.MoveTowards(dip, wantDip, .5f * dt);
+        return new Vector2(stationX, Height - dip + Mathf.Sin(Clock * .9f) * .1f);
     }
 
     public override float SpeedScale => .75f;
@@ -927,7 +1005,7 @@ public class WreckerBrain : EliteBrain
     public override Vector2 JoinFrom => Vector2.up;
 }
 
-// Singularity Hauler: tow and sling. Casts alternate: a TOW, then a SLING.
+// Singularity Hauler: tow and sling. The script's beat says what is cast: a TOW (the plain attack) or a SLING (variants sling*).
 //
 // TOW: the tell plants it and a blinking sight line drops from the top of the view to its tow claws -- the way the asteroid comes.
 // The action tows a big Space rock (hazardSize x the roster rock) down from above the view into the claws (hazardSeconds, easing
@@ -946,7 +1024,7 @@ public class TowSlingAttack : EliteAttack
     public const float LaneSeconds = .9f, SettleSeconds = .35f, WellSeconds = 2f, WellRing = .45f, Recoil = 1.2f, SightWidth = .09f, Bulge = 1.1f;
     readonly EliteTelegraph lane = new EliteTelegraph();
     EliteMarks marks;
-    int casts, fired;
+    int fired;
     bool sling, laneShown;
     Phase phase;
     float phaseT, next, wellLeft;
@@ -1000,7 +1078,7 @@ public class TowSlingAttack : EliteAttack
     public override void BeginTell(Vector2 seen)
     {
         base.BeginTell(seen);
-        sling = casts++ % 2 == 1;
+        sling = ship.Script.VariantName.StartsWith("sling", System.StringComparison.Ordinal);   // (the script's beat: "sling*" the well, else the tow)
         marks.HideAll();
         laneShown = false;
         if (sling) well = WellFor(seen);
