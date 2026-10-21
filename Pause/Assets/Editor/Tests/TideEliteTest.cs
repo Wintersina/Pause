@@ -480,6 +480,7 @@ public static class TideEliteTest
         for (float t = 0f; t < 6f; t += Dt)
         {
             pilot.position = new Vector3(0f, -2.5f, 0f);
+            if (!e.Telling && !e.Acting) e.AttackCooldown = 99f;   // (one attack only: a second one would put its own glyphs on the board)
             EliteSystem.Step(Dt);
             clock += Dt;
             for (int i = 0; i < n; i++)

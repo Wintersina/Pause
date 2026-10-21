@@ -24,15 +24,34 @@ public static class EliteScriptTest
 
     // Elites whose roaming brain has not been rebuilt to turn round at the edge yet (each world's PR removes its keys). They are
     // simulated and reported, not asserted.
+    // (one key per line, a comment line between worlds: each world PR deletes only its own lines, so the PRs merge in any order)
     static readonly HashSet<string> PendingRoamers = new HashSet<string>
     {
-        "desert_elite_dune_stalker", "desert_elite_lens_matriarch",
-        "ember_elite_sunstoke", "ember_elite_brass_vulture", "ember_elite_coalrunner",
-        "frost_elite_rimebreaker", "frost_elite_cryo_siren",
-        "space_elite_rift_lancer", "space_elite_orbit_reaver",
-        "storm_elite_refinery_tender", "storm_elite_skyhook_harrier",
-        "tide_elite_riptide", "tide_elite_bathyscaphe", "tide_elite_thunderfin", "tide_elite_trawler",
-        "verdant_elite_leafblade", "verdant_elite_sporebloom", "verdant_elite_thornlash",
+        // desert
+        "desert_elite_dune_stalker",
+        "desert_elite_lens_matriarch",
+        // ember
+        "ember_elite_sunstoke",
+        "ember_elite_brass_vulture",
+        "ember_elite_coalrunner",
+        // frost
+        "frost_elite_rimebreaker",
+        "frost_elite_cryo_siren",
+        // space
+        "space_elite_rift_lancer",
+        "space_elite_orbit_reaver",
+        // storm
+        "storm_elite_refinery_tender",
+        "storm_elite_skyhook_harrier",
+        // tide
+        "tide_elite_riptide",
+        "tide_elite_bathyscaphe",
+        "tide_elite_thunderfin",
+        "tide_elite_trawler",
+        // verdant
+        "verdant_elite_leafblade",
+        "verdant_elite_sporebloom",
+        "verdant_elite_thornlash",
     };
 
     public static int Execute()
