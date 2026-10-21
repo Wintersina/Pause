@@ -168,6 +168,16 @@ if you extended them. Message: `art: restyle <Key> in the Paragon style (hull, d
 Dock / codex / hearts / weapons read the sheet and tables above and need no change. Push the branch
 (`git push origin <branch>`), never merge to master; the final PR to Wintersina/Pause is opened by the coordinator.
 
+## Tests (CI only) and what a restyle must wire
+
+Add the ship's id to `PaintedShips.restyled` (`Scripts/Ship/PaintedShips.cs`). The vector-art tests
+(`ShipArtTest` flat fills, `ShipSkinsTest` flat-fill / friendly-red pixel checks, `ShipDamageTest`'s 2.5x
+damage ratio -> "clearly worse" 1.3x rule) skip painted ids; sheet contract checks (alpha identical across
+states and to stock for every skin, damage progression) still run. `ExhaustStyleTest` requires the BOOST
+strip > 1.08x the cruise strip in brightness and longer: `build_restyle.heat()` grows the hotter bands one ring
+outward in the boost frames (NeonComet ratio 1.22); check it with the sum of alpha*(r+g+b) over both strips.
+Failures seen on NeonComet's first PR run: [SD] x5, [SA] x1, [SK] x6 (all the exemptions above) and [EX] x1 (boost).
+
 ## Pitfalls
 
 - A faint alpha rim fails the art test: `downscale_rgba` thresholds alpha at 128 -> binary. Keep it.

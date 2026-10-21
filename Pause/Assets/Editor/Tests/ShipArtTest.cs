@@ -219,7 +219,7 @@ public static class ShipArtTest
                     }
                 }
             // (Paragon is painted pixel art, not flat vector cels: its palette is PremiumShipTest's / the user's eye)
-            if (!PremiumShips.IsPremium(id))
+            if (!PaintedShips.Is(id))
                 Check(who + " flat fills are guide palette + identity hue (" + off + " of " + flat + " off)",
                       flat > 0 && off <= flat / 200);
             Check(who + " clean alpha: no faint pixel beyond 2 px of the ink outline (" + stray + " of " + faint + ")",

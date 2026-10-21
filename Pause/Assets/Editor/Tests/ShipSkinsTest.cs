@@ -247,6 +247,7 @@ public static class ShipSkinsTest
                 Check(id + " " + s.name + " wears no enemy colour", friendly);
             }
             // the rendered pixels: flat fills only in guide + identity hue
+            if (PaintedShips.Is(id)) continue;   // painted skins are Codex art, not flat vector fills (alpha == stock is ShipDamageTest's)
             for (int n = 1; n < ShipSkins.CountFor(id); n++)
             {
                 var png = Decode(ShipHullArt.SkinPng(id, n));

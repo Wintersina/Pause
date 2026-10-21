@@ -284,6 +284,24 @@ def write_skins(sheet, cfg, key, codex):
             fh.write(buf.getvalue())
 
 
+def heat(idx):
+    """Boost flames burn hotter than cruise (ExhaustStyleTest wants boost > 1.08x the cruise brightness):
+    one ring of each hotter band grows outward (outer -> mid next to mid/core, mid -> core next to core).
+    Band indices: 0 outer, 1 mid, 2 core, 3 dark, 4 accent."""
+    def near(m):
+        out = np.zeros_like(m)
+        out[1:] |= m[:-1]
+        out[:-1] |= m[1:]
+        out[:, 1:] |= m[:, :-1]
+        out[:, :-1] |= m[:, 1:]
+        return out
+    new = idx.copy()
+    new[(idx == 1) & near(idx == 2)] = 2
+    new[(idx == 0) & near((idx == 1) | (idx == 2))] = 1
+    new[(idx == 3) & near(idx == 0)] = 0
+    return new
+
+
 def write_flames(cfg, codex):
     fl = cfg["flame"]
     if not all(os.path.exists(os.path.join(codex, f)) for f in ("flame_cruise.png", "flame_boost.png")):
@@ -305,6 +323,8 @@ def write_flames(cfg, codex):
             solid = a[..., 3] > 110
             d = ((a[..., None, :3] - cols[None, None]) ** 2).sum(-1)
             idx[solid] = d.argmin(-1)[solid]
+            if f == "flame_boost.png":
+                idx = heat(idx)
             box = (x0 + i * bp.STRIDE, top, x0 + i * bp.STRIDE + bp.FRAME_W, top + bp.FRAME_H)
             atlas.paste(Image.new("RGBA", (bp.FRAME_W, bp.FRAME_H), (0, 0, 0, 0)), box)
             atlas.alpha_composite(bp.paint(idx), (box[0], box[1]))
