@@ -629,7 +629,7 @@ public static class SpaceEliteTest
         float v0 = 0f;
         Step(20f, () => v0 = Mathf.Max(v0, e.Velocity.magnitude));
         LoseHeart(e);
-        Check("reaver hit: it hides (off the board, untouchable)", e.Hidden && !e.Collider.enabled);
+        Check("reaver hit: a flinch on the board, no hiding", e.InPlay && !e.Hidden && e.Collider.enabled && e.Flinching);
         int g2 = 0;
         while (e.Hidden && g2++ < 600) EliteSystem.Step(Dt);
         float v1 = 0f;

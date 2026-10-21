@@ -119,5 +119,7 @@
   "topMargin": 1.5,
   "hazardSize": 1.6,
   "hazardSeconds": 1.4,
-  "hazardSpeed": 7.5
+  "hazardSpeed": 7.5,
+  "engageSeconds": 55,
+  "script": { "tempo": 1.35 }
 }

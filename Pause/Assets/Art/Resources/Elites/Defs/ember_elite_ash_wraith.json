@@ -92,5 +92,7 @@
   "hideSeconds": 3.5,
   "hazardSize": 0.75,
   "hazardSeconds": 2.6,
-  "hazardSpeed": 0.4
+  "hazardSpeed": 0.4,
+  "engageSeconds": 42,
+  "script": { "tempo": 0.8 }
 }

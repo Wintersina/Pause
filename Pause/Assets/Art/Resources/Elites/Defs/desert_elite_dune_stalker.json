@@ -96,5 +96,7 @@
   "hurtHide": true,
   "lobSeconds": 0.7,
   "lobAhead": 1.6,
-  "poolSeconds": 2.4
+  "poolSeconds": 2.4,
+  "engageSeconds": 48,
+  "script": { "tempo": 1.1 }
 }

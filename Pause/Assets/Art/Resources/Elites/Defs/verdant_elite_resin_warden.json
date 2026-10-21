@@ -95,5 +95,7 @@
   ],
   "followLag": 0.2,
   "hurtHide": true,
-  "hideSeconds": 3.5
+  "hideSeconds": 3.5,
+  "engageSeconds": 48,
+  "script": { "tempo": 1.1 }
 }

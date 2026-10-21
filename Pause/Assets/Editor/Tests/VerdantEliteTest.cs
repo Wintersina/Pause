@@ -474,7 +474,7 @@ public static class VerdantEliteTest
         Step(3f);
         e.TakeHit(EliteDamage.PlayerWeapon, e.Position, 1);
         Step(.1f);
-        Check("... a hit sends it hiding (3 hearts: " + e.Hearts + ")", e.Hidden && e.Hearts == def.hearts - 1);
+        Check("... a hit is a flinch, no hiding (3 hearts: " + e.Hearts + ")", e.InPlay && !e.Hidden && e.Flinching && e.Hearts == def.hearts - 1);
         int lastEntry = brain.LastEntry;
         WaitBack(e);
         Check("... and back on the board, its passes now carry two crescents", !e.Hidden && brain.Crescents == 2);

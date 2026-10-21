@@ -90,5 +90,7 @@
   "hazardSize": 0.6,
   "hazardArmour": 3,
   "skidSpeed": 3.2,
-  "topMargin": 1.7
+  "topMargin": 1.7,
+  "engageSeconds": 48,
+  "script": { "tempo": 1.1 }
 }

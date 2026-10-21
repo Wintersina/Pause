@@ -114,5 +114,7 @@
   "hazardCount": 3,
   "hazardSpeed": 2.4,
   "followLag": 0.3,
-  "laneOffset": 1.4
+  "laneOffset": 1.4,
+  "engageSeconds": 55,
+  "script": { "tempo": 1.35 }
 }

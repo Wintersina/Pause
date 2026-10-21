@@ -114,6 +114,11 @@ public abstract class EliteBrain
     public virtual float TellScale => .5f;
     // It came back from hiding (EliteShip.Hide): start the next leg of the pattern afresh.
     public virtual void OnReturn() { }
+    // A script beat started with this move token (EliteStep.move): "L" "R" "perch:2" ... Each brain reads the tokens it knows and
+    // ignores the rest. Deterministic: the brain does what the script says, it does not roll for it.
+    public virtual void OnScriptMove(string token) { }
+    // The script moved to phase 2 or the last-heart phase (EliteScriptRunner.Phase 2 / 3).
+    public virtual void OnPhase(int phase) { }
 
     protected Vector2 Pos => ship.Position;
     protected float Aggro => Mathf.Clamp01(def.aggression);
@@ -232,11 +237,16 @@ public class GunshipBrain : EliteBrain
 
     public GunshipBrain() { Id = "gunship"; }
 
-    protected override void OnBind() { side = Random.value < .5f ? -1f : 1f; }
+    protected override void OnBind() { side = ship.Script.Alternate("side"); }
     public override void OnJoin()
     {
         var p = EliteSystem.Player;
         side = p == null || Pos.x >= p.position.x ? 1f : -1f;
+    }
+
+    public override void OnScriptMove(string token)
+    {
+        if (token == "cross") side = -side;
     }
 
     public override Vector2 Goal(Vector2 seen, float dt)
