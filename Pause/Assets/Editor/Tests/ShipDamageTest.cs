@@ -179,8 +179,9 @@ public static class ShipDamageTest
               d2 >= .2f && (changed[1] >= changed[0] * 2.5f ||
                             // Painted hulls (Paragon, restyled ships: PaintedShips) have three separately painted
                             // masters (Codex): every pixel of the repaint differs a little, so the ratio rule is
-                            // "clearly worse" there
-                            (painted && changed[1] > changed[0] * 1.3f)));
+                            // "clearly worse" there (x1.2: a pale skin like NeonComet Bone repaints 59% of its hull
+                            // at the first step just from shading noise, and still reaches 77% when critical)
+                            (painted && changed[1] > changed[0] * 1.2f)));
     }
 
     static bool Same(Color32 a, Color32 b)
