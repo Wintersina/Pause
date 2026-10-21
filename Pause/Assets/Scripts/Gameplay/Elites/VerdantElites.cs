@@ -515,35 +515,56 @@ public class LeafDiveAttack : EliteAttack
 // attack is drawn from the first frame of its tell (EliteTelegraph / AttackLash's own preview) and its aim LOCKS there; they launch
 // from Verdant's own pads, one kind each (the backdrop brings the pad into view: VerdantDirector.BringHome).
 //
-//   Leafblade      raptor   / leaf_swoop    (roothangar) SWOOPING PASSES: in from a side or the top, a diagonal lane drawn, sliced along
-//                                                  it and out the far side; a crescent is left across a drawn row (two once hurt)
-//   Resin Warden   canopy   / canopy_mortar (hatch)      holds the top, HOPS between four canopy perches; a wall of resin pools with one
-//                                                  gap: the pools linger longer and the gap narrows for every heart lost
-//   Sporebloom     floater  / spore_drift   (podpad)     floats high and slow, then SINKS off its side into the canopy and comes back up
-//                                                  elsewhere; pods that burst into spore rings; at two hearts a lingering spore cloud lane
-//   Thornlash      anchor   / thorn_sweep   (towerbay)   latches on just outside a rail and whips the thorned vine across the lane (the
-//                                                  fair corridor of AttackLash), swings across the top to the other rail and whips there;
-//                                                  one more sweep per anchor for every heart lost
-//   Timber Hauler  lumber   / raft_roll     (riverbay)   a lumber barge on the top rail, never chasing: trunks onto ringed spots, and at
-//                                                  two hearts a log RAFT -- two trunks rolling down side by side with one gap
+// Every one flies a SCRIPT (EliteScript.cs, the "script" block of its def json, docs/elites/elite-scripts.md): the brain reads the move
+// token of each beat (OnScriptMove) and does what it says, the attack is varied by the beat's variant; no coin flips. They all stay
+// on the view (the only exit is the one scripted last-heart exit of a hurtHide elite).
 //
-// The Leafblade, Sporebloom and Thornlash ROAM (EliteBrain.Roams): their paths leave the view and they are untouchable while outside the
-// board. The first four are not armoured (3 hearts, they hide when hurt: EliteDef.hurtHide); the Hauler is (5 hearts, no hiding).
+//   Leafblade      raptor   / leaf_swoop    (roothangar) diver: SWOOPING PASSES from the left rail, the right rail and the top in turn, a
+//                                                  diagonal lane drawn, sliced along it, a brake at the far rail, a climb back up it; one
+//                                                  crescent across a drawn row (two once hurt); the exit at its last heart is to the left
+//   Resin Warden   canopy   / canopy_mortar (hatch)      sniper / mortar: walks the four canopy perches in a fixed order with a visible
+//                                                  hop, a wall of resin pools with one gap from each: the gap narrows and the pools linger
+//   Sporebloom     floater  / spore_drift   (podpad)     summoner: floats over three stations, DIPS visibly into the canopy and rises;
+//                                                  pods that burst into spore rings; a lingering spore cloud lane once hurt
+//   Thornlash      anchor   / thorn_sweep   (towerbay)   rammer: latches just outside a rail and whips the thorned vine across the lane
+//                                                  (the fair corridor of AttackLash), swings across the top to the other rail; double
+//                                                  whips once hurt; the exit at its last heart is over the top
+//   Timber Hauler  lumber   / raft_roll     (riverbay)   denier: a lumber barge on the top rail, never chasing: it rolls between three
+//                                                  stations lobbing rows of trunks onto ringed spots, and a log RAFT -- two trunks
+//                                                  rolling down side by side with one gap -- from its second phase
+//
+// The Leafblade and Thornlash ROAM (EliteBrain.Roams: their start / latch points sit a hull's width over the rail, so the ship does not
+// clamp their goals) but never leave the view. The first four are not armoured (3 hearts); the Hauler is (5 hearts, no hiding).
+
+// Move tokens are "<prefix>N" with one digit ("e:1" "perch:3" "col:0" "dip:2"). Read without allocating (a script beat is mid-fight).
+public static class VerdantTokens
+{
+    // The digit of `token` if it is `prefix` + one digit, else -1.
+    public static int Index(string token, string prefix)
+    {
+        if (token == null || token.Length != prefix.Length + 1 || string.CompareOrdinal(token, 0, prefix, 0, prefix.Length) != 0) return -1;
+        int d = token[token.Length - 1] - '0';
+        return d >= 0 && d <= 9 ? d : -1;
+    }
+
+    public static bool StartsWith(string s, string prefix) { return s != null && s.Length >= prefix.Length && string.CompareOrdinal(s, 0, prefix, 0, prefix.Length) == 0; }
+}
 
 // ---- Leafblade: raptor + leaf_swoop --------------------------------------------------------------------------------------------
 
-// A raptor making PASSES. One pass is: it comes in from a side of the board (or over the top) and takes up its start point just
-// inside that edge, wholly in sight (the lane is drawn from the first frame of the tell, LeafSwoopAttack), slices along the lane at
-// dashSpeed and out of the far side; then it waits PauseSeconds (a little less for every heart lost) off the view and re-enters
-// from ANOTHER of the three entries. It never circles, never comes down to the pilot and never stops on the board between passes.
+// A raptor making PASSES, on a script. Each beat of its loop names the entry of the next pass in its move token ("e:0" the left
+// rail, "e:1" the right rail, "e:2" the top): it flies there IN SIGHT (a quick climb along the rail or over the top, no warp, no
+// leaving the view), takes up its start point wholly on the board, draws the lane (LeafSwoopAttack), slices along it, brakes at the
+// far rail and climbs back up the rail it ended on for the next entry. It never circles, never comes down to the pilot and never
+// stops on the board between passes, and it never leaves the view (bar the one scripted exit at its last heart).
 public class RaptorBrain : EliteBrain
 {
-    public enum Stage { Leave, Away, Enter, Ready, Pass }
-    public const int Entries = 3;   // 0 the left edge, 1 the right edge, 2 the top
-    public const float PauseSeconds = 1.5f, PausePerHeart = .3f, MinPause = .7f, EnterScale = 2.4f, ReadyWait = .1f, SettleDistance = .15f;
-    Stage stage = Stage.Leave;
-    int entry = -1, lastEntry = -1;
-    float wait, ready;
+    public enum Stage { Enter, Ready, Pass }
+    public const int Entries = 3;   // 0 the left rail, 1 the right rail, 2 the top
+    public const float EnterScale = 1.8f, ReadyWait = .1f, SettleDistance = .15f, SideInset = .5f;
+    Stage stage = Stage.Enter;
+    int entry, lastEntry = -1;
+    float ready, topSign = 1f;
     Vector2 readyAt;
     public Stage Phase => stage;
     public int Entry => entry;
@@ -551,43 +572,42 @@ public class RaptorBrain : EliteBrain
     public Vector2 ReadyPoint => readyAt;
     public int Passes { get; private set; }
     public int PassesStarted { get; private set; }
-    // Crescents a pass leaves: one, two once it has lost a heart.
-    public int Crescents => ship != null && ship.Hearts < def.hearts ? 2 : 1;
-    public float PauseNow => Mathf.Max(MinPause, PauseSeconds - PausePerHeart * (ship != null ? Mathf.Max(0, def.hearts - ship.Hearts) : 0));
+    // Crescents a pass leaves: the def's shotCount (1; 2 in the "twin" variant), never more than the two rows the attack can draw.
+    public int Crescents => Mathf.Clamp(def != null ? def.shotCount : 1, 1, 2);
+    // Between a pass and the next start point (flying back up, not a threat to anyone).
+    public bool Recovering => stage == Stage.Enter && PassesStarted > 0;
 
     public RaptorBrain() { Id = "raptor"; }
 
+    // (its start points sit at the rail's edge of the board, a hull partly over the rail: the ship does not clamp its goal)
     public override bool Roams => true;
     public override float TellScale => 1f;
     public override Vector2 JoinFrom => Vector2.up;
-    public override void OnJoin() { stage = Stage.Leave; lastEntry = -1; }
-    public override void OnReturn() { BeginEnter(); }
+    public override void OnJoin() { stage = Stage.Enter; lastEntry = -1; SetEntry(0); }
+    public override void OnReturn() { stage = Stage.Enter; ready = 0f; }
 
-    // The next entry (never the last one's) and where the Leafblade starts from: a side's edge of the board at a height in the upper
-    // part of the view, or the top at a column; it is placed beyond the view and flies in to it.
-    void BeginEnter()
+    public override void OnScriptMove(string token)
     {
-        int pick = Random.Range(0, Entries);
-        for (int guard = 0; pick == lastEntry && guard < 12; guard++) pick = Random.Range(0, Entries);
-        if (pick == lastEntry) pick = (pick + 1) % Entries;
-        entry = pick;
-        Vector2 from;
-        if (entry == 2)
+        int n = VerdantTokens.Index(token, "e:");
+        if (n >= 0) SetEntry(Mathf.Clamp(n, 0, Entries - 1));
+    }
+
+    // The next pass starts from entry `n`: the side rails at the upper part of the view, or the top at an alternating column.
+    void SetEntry(int n)
+    {
+        entry = n;
+        if (n == 2)
         {
+            topSign = ship.Script.Alternate("top");
             float edge = FrostFlight.Edge(def, .5f);
-            readyAt = new Vector2(Random.Range(-edge, edge), ship.ZoneY(EliteSystem.ViewTop - def.hullRadius * .3f));
-            from = new Vector2(readyAt.x, FrostFlight.AboveY(def));
+            readyAt = new Vector2(topSign * edge * .55f + ship.Script.Offset("topx", .25f), ship.ZoneY(EliteSystem.ViewTop - def.hullRadius * .5f - .3f));
         }
         else
         {
-            float sx = entry == 0 ? -1f : 1f;
-            float y = ship.ZoneY(Random.Range(EliteSystem.ViewTop - 3.6f, EliteSystem.ViewTop - 1.5f));
-            readyAt = new Vector2(sx * (EliteSystem.RailEdge + .05f), y);   // (a hull's width partly off the board)
-            from = new Vector2(sx * SpaceFlight.OffX(def), y);
+            float sx = n == 0 ? -1f : 1f;
+            readyAt = new Vector2(sx * (EliteSystem.RailEdge - SideInset), ship.ZoneY(EliteSystem.ViewTop - def.hullRadius - 1.1f));
         }
-        ship.Warp(from);
-        stage = Stage.Enter;
-        ready = 0f;
+        if (stage != Stage.Pass) { stage = Stage.Enter; ready = 0f; }
     }
 
     public override Vector2 Goal(Vector2 seen, float dt)
@@ -595,14 +615,6 @@ public class RaptorBrain : EliteBrain
         Clock += dt;
         switch (stage)
         {
-            case Stage.Leave:
-                // just lifted off a pad: up and out of the view, then the first pass
-                if (Pos.y > FrostFlight.AboveY(def) - .2f) { stage = Stage.Away; wait = .5f; }
-                return new Vector2(Pos.x, FrostFlight.AboveY(def) + .6f);
-            case Stage.Away:
-                wait -= dt;
-                if (wait <= 0f) BeginEnter();
-                return Pos;
             case Stage.Enter:
                 if ((Pos - readyAt).sqrMagnitude < SettleDistance * SettleDistance) { stage = Stage.Ready; ready = 0f; }
                 return readyAt;
@@ -614,10 +626,10 @@ public class RaptorBrain : EliteBrain
         }
     }
 
-    public override float SpeedScale => stage == Stage.Enter || stage == Stage.Leave ? EnterScale : 1f;
+    public override float SpeedScale => stage == Stage.Enter ? EnterScale : 1f;
     public override bool WantsAttack(Vector2 seen) => stage == Stage.Ready && ready >= ReadyWait;
     // nose along the way it will go: down and in from a side, straight down from the top
-    public override float? FaceDeg(Vector2 seen) => stage == Stage.Leave ? (float?)null : entry == 0 ? -35f : entry == 1 ? -145f : -90f;
+    public override float? FaceDeg(Vector2 seen) => stage == Stage.Enter ? (float?)null : entry == 0 ? -35f : entry == 1 ? -145f : -90f;
 
     public void PassStarted() { stage = Stage.Pass; PassesStarted++; }
 
@@ -625,8 +637,8 @@ public class RaptorBrain : EliteBrain
     {
         Passes++;
         lastEntry = entry;
-        stage = Stage.Away;
-        wait = PauseNow;
+        stage = Stage.Enter;
+        ready = 0f;
     }
 }
 
@@ -639,14 +651,15 @@ public class RaptorBrain : EliteBrain
 // leaves the view by the far edge; the brain brings it back in by another entry. Rows hold to the part of the lane inside the board.
 public class LeafSwoopAttack : EliteAttack
 {
-    public const float DiveHalfPad = .22f, SlashHalf = .18f, RowGap = 1.5f, EdgeIn = .45f, CheckAhead = 3f, MaxRunSeconds = 8f;
+    public const float DiveHalfPad = .22f, SlashHalf = .18f, RowGap = 1.5f, EdgeIn = .6f, BottomIn = 1.2f, CheckAhead = 3f, MaxRunSeconds = 8f, StopSeconds = .3f, StopScale = .12f;
     public const float SideMinDeg = 15f, SideMaxDeg = 60f, TopMinDeg = 15f, TopMaxDeg = 50f;   // the lane's slope bounds
     readonly EliteTelegraph telegraph = new EliteTelegraph();
     readonly Vector2[] rowAt = new Vector2[2];
     readonly float[] rowDeg = new float[2];
     Vector2 start, end;
     int rows, fired;
-    bool ran;
+    bool ran, stopping;
+    float stopT;
     public LeafSwoopAttack() { Id = "leaf_swoop"; }
     public override bool HoldsDuringTell => true;
     public override bool DrivesMovement => true;
@@ -705,17 +718,15 @@ public class LeafSwoopAttack : EliteAttack
         dir = LaneDir(def, start, EntryNow, seen);
         aim = start + dir * 2f;
         float rail = EliteSystem.RailEdge, edgeIn = rail - EdgeIn;
-        // the lane out to the edge of the view (the far rail or the bottom)
-        float tx = dir.x > .001f ? (rail + .1f - start.x) / dir.x : dir.x < -.001f ? (-rail - .1f - start.x) / dir.x : 99f;
-        float ty = (EliteSystem.ViewBottom - .3f - start.y) / dir.y;
-        end = start + dir * Mathf.Min(tx, ty);
-        // the part of it inside the board proper (rows are drawn there), and the point of it nearest where the pilot stands
+        // the lane out to where it brakes: just short of the far rail (or the bottom of the fight), always inside the view
+        float tx = dir.x > .001f ? (edgeIn - start.x) / dir.x : dir.x < -.001f ? (-edgeIn - start.x) / dir.x : 99f;
+        float ty = (EliteSystem.ViewBottom + BottomIn - start.y) / dir.y;
+        float tOut = Mathf.Max(.5f, Mathf.Min(tx, ty));
+        end = start + dir * tOut;
+        // the part of it that rows may use: from just inside the start edge
         float tIn = Mathf.Abs(start.x) > edgeIn && Mathf.Abs(dir.x) > .001f ? (Mathf.Abs(start.x) - edgeIn) / Mathf.Abs(dir.x) : 0f;
-        float outX = dir.x > .001f ? (edgeIn - start.x) / dir.x : dir.x < -.001f ? (-edgeIn - start.x) / dir.x : 99f;
-        float outY = (EliteSystem.ViewBottom + 1.2f - start.y) / dir.y;
-        float tOut = Mathf.Min(outX, outY);
         var rb = Raptor;
-        rows = rb != null ? rb.Crescents : 1;
+        rows = rb != null ? rb.Crescents : Mathf.Clamp(def.shotCount, 1, 2);
         float step = RowGap / Mathf.Max(.2f, -dir.y);
         float tp = Vector2.Dot(seen + Vector2.up * 1f - start, dir);
         float lo = tIn + .4f, hi = Mathf.Max(lo, tOut - (rows - 1) * step - .2f);
@@ -741,32 +752,44 @@ public class LeafSwoopAttack : EliteAttack
         base.BeginAction();
         telegraph.GoLive();
         ran = true;
+        stopping = false;
         fired = 0;
         ship.Drive(dir * def.dashSpeed);
         var rb = Raptor;
         if (rb != null) rb.PassStarted();
     }
 
+    void FireRow(int i)
+    {
+        int m = def.muzzles.Length > 2 ? (rowDeg[i] > 90f ? 1 : 2) : 0;
+        var shot = Fire(m, rowDeg[i], def.shotSpeed);
+        if (shot != null)
+        {
+            Vector3 p = shot.transform.position;
+            float lim = EliteSystem.RailEdge - .3f;   // (a crescent that starts on a rail is gone at once: it starts between them)
+            shot.transform.position = new Vector3(Mathf.Clamp(p.x, -lim, lim), rowAt[i].y, p.z);   // (on the row it drew, not where the hull has got to)
+        }
+    }
+
     public override bool StepAction(float dt)
     {
         t += dt;
-        ship.Drive(dir * def.dashSpeed);
-        // as the blade crosses a drawn row its crescent leaves, level along the row
-        while (fired < rows && Vector2.Dot((Vector2)ship.Position - rowAt[fired], dir) >= 0f)
+        if (!stopping)
         {
-            int m = def.muzzles.Length > 2 ? (rowDeg[fired] > 90f ? 1 : 2) : 0;
-            var shot = Fire(m, rowDeg[fired], def.shotSpeed);
-            if (shot != null)
+            ship.Drive(dir * def.dashSpeed);
+            // as the blade crosses a drawn row its crescent leaves, level along the row
+            while (fired < rows && Vector2.Dot((Vector2)ship.Position - rowAt[fired], dir) >= 0f) { FireRow(fired); fired++; }
+            if (Vector2.Dot((Vector2)ship.Position - end, dir) >= 0f || t >= MaxRunSeconds)
             {
-                Vector3 p = shot.transform.position;
-                float lim = EliteSystem.RailEdge - .3f;   // (a crescent that starts on a rail is gone at once: it starts between them)
-                shot.transform.position = new Vector3(Mathf.Clamp(p.x, -lim, lim), rowAt[fired].y, p.z);   // (on the row it drew, not where the hull has got to)
+                while (fired < rows) { FireRow(fired); fired++; }   // (a row the blade never reached is still drawn and thrown)
+                stopping = true;
+                stopT = t;
             }
-            fired++;
+            return false;
         }
-        Vector2 q = ship.Position;
-        // out of the view by the far edge (or the bottom)
-        return q.y < FrostFlight.BelowY(def) || Mathf.Abs(q.x) > SpaceFlight.OffX(def) || t >= MaxRunSeconds;
+        // the pass ends where it was drawn to end: a quick flare, never a coast out of the view
+        ship.Drive(dir * def.dashSpeed * StopScale);
+        return t >= stopT + StopSeconds;
     }
 
     public override void End()
@@ -781,15 +804,15 @@ public class LeafSwoopAttack : EliteAttack
 // ---- Resin Warden: canopy + canopy_mortar ---------------------------------------------------------------------------------------
 
 // A mortar on the canopy. It holds topMargin under the top of the view (never above the player's reach) on one of four perches
-// spread along the top and does NOT follow the pilot: after each mortar, or when PerchMax has passed, it HOPS to another perch -- a
-// short visible leap (HopScale x its speed, an arc HopArc high), preferring a perch HopAway or more from the pilot's column.
+// spread along the top and does NOT follow the pilot. The script walks it round the perches in a fixed order (move token "perch:N"):
+// a different token is a HOP -- a short visible leap (HopScale x its speed, an arc HopArc high) -- and the same token is a rest.
 public class CanopyBrain : EliteBrain
 {
     public enum Stage { Perch, Hop }
-    public const float PerchWait = .55f, PerchMax = 4.5f, HopScale = 2.6f, HopMin = .45f, HopSpeed = 5.5f, HopArc = .7f, HopAway = 1f, SettleDistance = .25f;
+    public const float PerchWait = .55f, HopScale = 2.6f, HopMin = .45f, HopSpeed = 5.5f, HopArc = .7f, SettleDistance = .25f;
     static readonly float[] Columns = { -.82f, -.28f, .28f, .82f };
     Stage stage = Stage.Perch;
-    int perch = -1, lastPerch = -1;
+    int perch = -1;
     float perched, hopT, hopLen;
     Vector2 hopFrom;
     public Stage Phase => stage;
@@ -802,7 +825,16 @@ public class CanopyBrain : EliteBrain
 
     public override Vector2 JoinFrom => Vector2.up;
     public override void OnJoin() { perch = Nearest(Pos.x); stage = Stage.Perch; perched = 0f; }
-    public override void OnReturn() { perch = Nearest(Pos.x); stage = Stage.Perch; perched = 0f; }
+    public override void OnReturn() { stage = Stage.Perch; perched = 0f; }
+
+    public override void OnScriptMove(string token)
+    {
+        int n = VerdantTokens.Index(token, "perch:");
+        if (n < 0) return;
+        n = Mathf.Clamp(n, 0, Columns.Length - 1);
+        if (ship.State == EliteState.Join) { perch = n; stage = Stage.Perch; perched = 0f; return; }   // (the entrance lands on it)
+        if (n != perch) BeginHop(n);
+    }
 
     int Nearest(float x)
     {
@@ -817,21 +849,9 @@ public class CanopyBrain : EliteBrain
     public Vector2 Station(int i) =>
         new Vector2(Columns[Mathf.Clamp(i, 0, Columns.Length - 1)] * FrostFlight.Edge(def, .4f), ship.ZoneY(ship.ReachY(EliteSystem.ViewTop - def.topMargin)) - HopArc);
 
-    void BeginHop()
+    void BeginHop(int to)
     {
-        var f = ship.Follow;
-        int pick = -1;
-        float edge = FrostFlight.Edge(def, .4f);
-        for (int tries = 0; tries < 8 && pick < 0; tries++)
-        {
-            int c = Random.Range(0, Columns.Length);
-            if (c == perch || (c == lastPerch && tries < 5)) continue;
-            if (Mathf.Abs(Columns[c] * edge - f.x) < HopAway && tries < 6) continue;
-            pick = c;
-        }
-        if (pick < 0) pick = (perch + 1) % Columns.Length;
-        lastPerch = perch;
-        perch = pick;
+        perch = to;
         hopFrom = Pos;
         hopLen = Mathf.Max(HopMin, Vector2.Distance(Pos, Station(perch)) / HopSpeed);
         hopT = 0f;
@@ -847,7 +867,6 @@ public class CanopyBrain : EliteBrain
         if (stage == Stage.Perch)
         {
             perched += dt;
-            if (perched > PerchMax) BeginHop();
             return st + new Vector2(Mathf.Sin(Clock * 1.3f) * .08f, Mathf.Sin(Clock * .9f) * .08f);
         }
         hopT += dt;
@@ -859,9 +878,6 @@ public class CanopyBrain : EliteBrain
     public override float SpeedScale => stage == Stage.Hop ? HopScale : 1f;
     public override float MinAttackAbove => 1.8f;
     public override bool WantsAttack(Vector2 seen) => stage == Stage.Perch && perched > PerchWait && Pos.y > seen.y + MinAttackAbove;
-
-    // The mortar is done: it hops.
-    public void MortarDone() { if (stage == Stage.Perch) BeginHop(); }
 }
 
 // Resin Warden: a wall of resin pools with ONE gap. The tell plants it and draws a ring on every spot of the row (lobAhead in front
@@ -967,130 +983,90 @@ public class CanopyMortarAttack : EliteAttack
         return t >= def.actionSeconds && lobbed >= count;
     }
 
-    // the mortar is spent: it hops to another perch
-    public override void End()
-    {
-        telegraph.End();
-        var cb = ship.Brain as CanopyBrain;
-        if (cb != null) cb.MortarDone();
-    }
+    // (the script's next beat sends it to its next perch)
+    public override void End() { telegraph.End(); }
 }
 
 // ---- Sporebloom: floater + spore_drift ------------------------------------------------------------------------------------------
 
-// A spore balloon. It floats at one of three stations high on the board (a slow sway, nothing to do with the pilot) and takes
-// AttacksPerFloat bursts (or FloatMax seconds); then it SINKS off its nearer side, drifting down into the canopy, is out of play for
-// UnderSeconds, and RISES again out of the other side to a different station (at least MinMove from the last).
+// A spore balloon on a script. It floats at one of three stations high on the board (a slow sway, nothing to do with the pilot). The
+// move token of a beat sends it to a station: "col:N" drifts there; "dip:N" DIPS first -- it sinks a little way into the canopy, in
+// sight and still hittable, slides across under the station and RISES up onto it. It never leaves the view.
 public class FloaterBrain : EliteBrain
 {
-    public enum Stage { Float, Sink, Under, Rise }
-    public const int AttacksPerFloat = 2;
-    public const float FloatMax = 10f, UnderSeconds = 1.3f, SinkScale = 1.5f, RiseScale = 1.7f, SettleDistance = .4f, SinkDrop = 1.4f, MinMove = 1.4f, AttackWait = .6f;
+    public enum Stage { Float, Dip, Rise }
+    public const float DipDepth = 1.5f, DipScale = 1.6f, RiseScale = 1.7f, SettleDistance = .4f, AttackWait = .5f;
     static readonly float[] Columns = { -.75f, 0f, .75f };
     Stage stage = Stage.Float;
-    int col = -1, lastCol = -1, attacks, sinkSide = 1;
-    float floated, under, sinkY;
+    int col = 1;
+    float floated, dipX;
     public Stage Phase => stage;
     public int Column => col;
-    public int Sinks { get; private set; }
-    public int SinkSide => sinkSide;
+    public int Dips { get; private set; }
     public int ColumnCount => Columns.Length;
 
     public FloaterBrain() { Id = "floater"; }
 
-    public override bool Roams => true;
     public override float TellScale => 1f;
     public override Vector2 JoinFrom => Vector2.up;
-    public override void OnJoin() { col = Nearest(Pos.x); stage = Stage.Float; floated = 0f; attacks = 0; }
-    public override void OnReturn() { lastCol = col; col = Pick(); stage = Stage.Float; floated = 0f; attacks = 0; }
+    public override void OnJoin() { stage = Stage.Float; floated = 0f; }
+    public override void OnReturn() { stage = Stage.Float; floated = 0f; }
 
-    int Nearest(float x)
+    public override void OnScriptMove(string token)
     {
-        float edge = FrostFlight.Edge(def, .55f);
-        int best = 0;
-        for (int i = 1; i < Columns.Length; i++) if (Mathf.Abs(Columns[i] * edge - x) < Mathf.Abs(Columns[best] * edge - x)) best = i;
-        return best;
+        int n = VerdantTokens.Index(token, "dip:");
+        bool dip = n >= 0;
+        if (!dip) n = VerdantTokens.Index(token, "col:");
+        if (n < 0) return;
+        n = Mathf.Clamp(n, 0, Columns.Length - 1);
+        if (!dip && n == col && stage != Stage.Float && ship.State != EliteState.Join) return;   // (a dip in progress goes on to its station)
+        floated = 0f;
+        if (ship.State == EliteState.Join) { col = n; stage = Stage.Float; return; }   // (the entrance lands on it)
+        col = n;
+        if (!dip) { stage = Stage.Float; return; }
+        stage = Stage.Dip;
+        dipX = (Pos.x + Station(n).x) * .5f;
+        Dips++;
     }
 
     public Vector2 Station(int c) =>
         new Vector2(Columns[Mathf.Clamp(c, 0, Columns.Length - 1)] * FrostFlight.Edge(def, .55f), ship.ZoneY(ship.ReachY(EliteSystem.ViewTop - def.topMargin - .2f)));
 
-    // A different station, at least MinMove from where it was.
-    int Pick()
-    {
-        float edge = FrostFlight.Edge(def, .55f);
-        float from = col >= 0 ? Columns[col] * edge : 0f;
-        int pick = -1;
-        for (int tries = 0; tries < 8 && pick < 0; tries++)
-        {
-            int c = Random.Range(0, Columns.Length);
-            if (c != col && Mathf.Abs(Columns[c] * edge - from) >= MinMove) pick = c;
-        }
-        return pick >= 0 ? pick : (col + 1) % Columns.Length;
-    }
-
     public override Vector2 Goal(Vector2 seen, float dt)
     {
         Clock += dt;
-        if (col < 0) col = Nearest(Pos.x);
-        float off = SpaceFlight.OffX(def);
+        Vector2 st = Station(col);
         switch (stage)
         {
             case Stage.Float:
-            {
                 floated += dt;
-                if (floated > FloatMax || attacks >= AttacksPerFloat) { BeginSink(); return Pos; }
-                return Station(col) + new Vector2(Mathf.Sin(Clock * .6f) * .35f, Mathf.Sin(Clock * .9f) * .12f);
-            }
-            case Stage.Sink:
-                if (Mathf.Abs(Pos.x) > off - .25f) { stage = Stage.Under; under = 0f; Sinks++; }
-                return new Vector2(sinkSide * (off + .8f), sinkY);
-            case Stage.Under:
+                return st + new Vector2(Mathf.Sin(Clock * .6f) * .35f, Mathf.Sin(Clock * .9f) * .12f);
+            case Stage.Dip:
             {
-                under += dt;
-                if (under >= UnderSeconds)
-                {
-                    lastCol = col;
-                    col = Pick();
-                    Vector2 st = Station(col);
-                    // it rises out of the side its new station is on
-                    float sx = Columns[col] < -.01f ? -1f : Columns[col] > .01f ? 1f : -sinkSide;
-                    ship.Warp(new Vector2(sx * off, st.y - 1f));
-                    stage = Stage.Rise;
-                }
-                return Pos;
+                float low = st.y - DipDepth;
+                if (Pos.y < low + .3f) stage = Stage.Rise;
+                return new Vector2(dipX, low);
             }
             default:
-            {
-                Vector2 st = Station(col);
-                if ((Pos - st).sqrMagnitude < SettleDistance * SettleDistance) { stage = Stage.Float; floated = 0f; attacks = 0; }
+                if ((Pos - st).sqrMagnitude < SettleDistance * SettleDistance) { stage = Stage.Float; floated = 0f; }
                 return st;
-            }
         }
     }
 
-    void BeginSink()
-    {
-        sinkSide = Pos.x >= 0f ? 1 : -1;
-        sinkY = Pos.y - SinkDrop;
-        stage = Stage.Sink;
-    }
-
-    public override float SpeedScale => stage == Stage.Sink ? SinkScale : stage == Stage.Rise ? RiseScale : .65f;
+    public override float SpeedScale => stage == Stage.Dip ? DipScale : stage == Stage.Rise ? RiseScale : .65f;
     public override float MinAttackAbove => 1.5f;
     public override bool WantsAttack(Vector2 seen) =>
-        stage == Stage.Float && floated > AttackWait && attacks < AttacksPerFloat && Pos.y > seen.y + MinAttackAbove && (Pos - Station(col)).sqrMagnitude < .8f * .8f;
-
-    public void BurstDone() { attacks++; }
+        stage == Stage.Float && floated > AttackWait && Pos.y > seen.y + MinAttackAbove && (Pos - Station(col)).sqrMagnitude < .8f * .8f;
 }
 
-// Sporebloom: spore_burst (the pods and their rings, drawn first) and, once it is down to CloudHearts, a lingering SPORE CLOUD: the
+// Sporebloom: spore_burst (the pods and their rings, drawn first) and, in a beat whose variant starts "cloud", a lingering SPORE CLOUD: the
 // zone is a lane (CloudDiam wide, CloudPools pools stacked CloudStep apart) at CloudOffset beside the pilot toward the middle, outlined
 // with the rest at the first frame of the tell, locked; the pods' vents then lob the pools onto it, each a cloud-sized pool that rides
 // the board and lingers CloudSeconds. A cloud pool is a plain pool (no spores of its own).
 public class SporeDriftAttack : SporeBurstAttack
 {
-    public const int CloudHearts = 2, CloudPools = 3;
+    public const string CloudVariant = "cloud";
+    public const int CloudPools = 3;
     public const float CloudSeconds = 3f, CloudDiam = 1.3f, CloudStep = 1.1f, CloudOffset = 1.7f;
     bool cloud;
     float laneX, rowY, liveY, nextCloud;
@@ -1103,7 +1079,7 @@ public class SporeDriftAttack : SporeBurstAttack
 
     protected override void DrawMore(Vector2 seen)
     {
-        cloud = ship.Hearts <= CloudHearts;
+        cloud = VerdantTokens.StartsWith(ship.Script.VariantName, CloudVariant);
         if (!cloud) return;
         float lim = Mathf.Max(0f, EliteSystem.RailEdge - CloudDiam * .5f - .1f);
         laneX = Mathf.Clamp(seen.x + (seen.x >= 0f ? -1f : 1f) * CloudOffset, -lim, lim);
@@ -1142,34 +1118,27 @@ public class SporeDriftAttack : SporeBurstAttack
         return done && cloudSent >= CloudPools;
     }
 
-    public override void End()
-    {
-        base.End();
-        var fb = ship.Brain as FloaterBrain;
-        if (fb != null) fb.BurstDone();
-    }
 }
 
 // ---- Thornlash: anchor + thorn_sweep --------------------------------------------------------------------------------------------
 
-// A whip anchored to the rails. It latches onto one side just outside a rail (a hair of the hull on the board), at a height it takes
-// when it arrives (Standoff above the pilot, inside the player's reach, then held: it does not slide up and down with the pilot), and
-// takes 1 + (hearts lost) sweeps from there, an attack gap apart; then it SWINGS across the top (high, SwingScale x its speed, not
-// attacking) to the other rail and latches on there.
+// A whip anchored to the rails, on a script. It latches onto one side just outside a rail (a hair of the hull on the board), at a
+// height it takes when it arrives (Standoff above the pilot, inside the player's reach, then held: it does not slide up and down with
+// the pilot). The move tokens of the loop are "L" and "R": the rail to be on for the beat. The same rail again is a second whip from
+// the same latch; the other rail SWINGS it across the top (high, SwingScale x its speed, not attacking) and down onto that rail.
 public class AnchorBrain : EliteBrain
 {
     public enum Stage { Anchored, Swing }
     public const float LatchWait = .8f, SwingScale = 2.2f, Standoff = 3.4f, SettleDistance = .3f, Inset = .08f;
     Stage stage = Stage.Anchored;
-    int side = 1, sweepsLeft;
+    int side = 1;
     float anchored, anchorY;
     bool settled, rising;
     public Stage Phase => stage;
     public int Side => side;
     public int Anchors { get; private set; }
     public int Swings { get; private set; }
-    public int SweepsLeft => sweepsLeft;
-    public int SweepsPerAnchor => 1 + (ship != null ? Mathf.Max(0, def.hearts - ship.Hearts) : 0);
+    public bool Settled => settled;
     public float AnchorX => side * (EliteSystem.RailEdge + Inset);
     public float AnchorY => anchorY;
 
@@ -1179,7 +1148,21 @@ public class AnchorBrain : EliteBrain
     public override float TellScale => 1f;
     public override Vector2 JoinFrom => Vector2.up;
     public override void OnJoin() { side = Pos.x >= 0f ? 1 : -1; Latch(ship.Follow); }
-    public override void OnReturn() { side = -side; stage = Stage.Swing; rising = true; }
+    // Back from the scripted exit over the top: along the top to its rail and down onto it.
+    public override void OnReturn() { stage = Stage.Swing; rising = false; settled = false; }
+
+    public override void OnScriptMove(string token)
+    {
+        int s = token == "L" ? -1 : token == "R" ? 1 : 0;
+        if (s == 0) return;
+        if (ship.State == EliteState.Join) { side = s; Latch(ship.Follow); return; }   // (the entrance lands on it)
+        if (s == side) return;
+        side = s;
+        stage = Stage.Swing;
+        rising = true;
+        settled = false;
+        Swings++;
+    }
 
     float TopY => ship.ZoneY(EliteSystem.ViewTop - def.hullRadius - .25f);
 
@@ -1189,7 +1172,6 @@ public class AnchorBrain : EliteBrain
         anchorY = ship.ZoneY(ship.ReachY(Mathf.Min(follow.y + Standoff, EliteSystem.ViewTop - def.hullRadius - 1.2f)));
         settled = false;
         anchored = 0f;
-        sweepsLeft = SweepsPerAnchor;
     }
 
     public override Vector2 Goal(Vector2 follow, float dt)
@@ -1200,11 +1182,9 @@ public class AnchorBrain : EliteBrain
             Vector2 st = new Vector2(AnchorX, anchorY + Mathf.Sin(Clock * 1.1f) * .1f);
             if (!settled && (Pos - new Vector2(AnchorX, anchorY)).sqrMagnitude < SettleDistance * SettleDistance) { settled = true; Anchors++; }
             if (settled) anchored += dt;
-            // spent its sweeps (and not mid-attack: the brain's goal is only read between them): over the top to the other rail
-            if (settled && sweepsLeft <= 0) { side = -side; stage = Stage.Swing; rising = true; Swings++; return Pos; }
             return st;
         }
-        // swing: up to the top, along it, then down the other rail to its latch height
+        // swing: up to the top, along it, then down the rail to its latch height
         if (rising)
         {
             if (Pos.y > TopY - .25f) rising = false;
@@ -1216,63 +1196,58 @@ public class AnchorBrain : EliteBrain
 
     public override float SpeedScale => stage == Stage.Swing ? SwingScale : .8f;
     public override float MinAttackAbove => 1.5f;
-    public override bool WantsAttack(Vector2 seen) => stage == Stage.Anchored && settled && anchored >= LatchWait && sweepsLeft > 0 && Pos.y > seen.y + MinAttackAbove;
-
-    public void SweepDone() { sweepsLeft = Mathf.Max(0, sweepsLeft - 1); }
+    public override bool WantsAttack(Vector2 seen) => stage == Stage.Anchored && settled && anchored >= LatchWait && Pos.y > seen.y + MinAttackAbove;
 }
 
 // Thornlash: a thorn sweep. vine_lash (the whip's whole swept area drawn from the first frame of the tell, aimed once, AttackLash's fair
-// corridor beyond the start line) from the root nearer the pilot, and each whip counts against the anchor's sweeps.
+// corridor beyond the start line) from the root nearer the pilot; the script's variants set its reach, its speed and its wind-up.
 public class ThornSweepAttack : VineLashAttack
 {
     public ThornSweepAttack() { Id = "thorn_sweep"; }
-
-    public override void End()
-    {
-        bool lit = Lit;
-        base.End();
-        var ab = ship.Brain as AnchorBrain;
-        if (lit && ab != null) ab.SweepDone();
-    }
 }
 
 // ---- Timber Hauler: lumber + raft_roll -------------------------------------------------------------------------------------------
 
-// A lumber barge on the top rail. It slides a slow sine along the top (topMargin under it, never above the player's reach), its
-// course nothing to do with the pilot, and never comes down: it attacks from anywhere over the board with the pilot well below.
+// A lumber barge on the top rail. It glides along the top (topMargin under it, never above the player's reach) between three
+// stations, its course nothing to do with the pilot: the move token of a beat is the station to be on ("L" "C" "R"), and the barge
+// rolls there at a crawl and lobs from it. It never comes down: it attacks from the top with the pilot well below.
 public class LumberBrain : EliteBrain
 {
-    public const float SlideRate = .35f, SlideAmp = .8f;
-    float phase;
+    public const float Reach = .8f, ArriveWithin = .6f;
+    int station = 1;   // 0 left, 1 centre, 2 right
     public LumberBrain() { Id = "lumber"; }
-    protected override void OnBind() { phase = Random.value * 6.28f; }
+    public int Station => station;
     public override Vector2 JoinFrom => Vector2.up;
     public override float SpeedScale => .8f;
     public override float MinAttackAbove => 1.8f;
 
+    public override void OnScriptMove(string token)
+    {
+        if (token == "L") station = 0;
+        else if (token == "C") station = 1;
+        else if (token == "R") station = 2;
+    }
+
+    public float StationX(int s) => (s - 1) * Reach * FrostFlight.Edge(def, .45f);
+
     public override Vector2 Goal(Vector2 seen, float dt)
     {
         Clock += dt;
-        float edge = FrostFlight.Edge(def, .45f);
-        return new Vector2(Mathf.Sin(Clock * SlideRate + phase) * SlideAmp * edge, ship.ZoneY(ship.ReachY(EliteSystem.ViewTop - def.topMargin)) + Mathf.Sin(Clock * .8f) * .06f);
+        return new Vector2(StationX(station), ship.ZoneY(ship.ReachY(EliteSystem.ViewTop - def.topMargin)) + Mathf.Sin(Clock * .8f) * .06f);
     }
 
-    public override bool WantsAttack(Vector2 seen) => Pos.y > seen.y + MinAttackAbove;
+    // (it throws from its station: not while it is still rolling toward it)
+    public override bool WantsAttack(Vector2 seen) => Pos.y > seen.y + MinAttackAbove && Mathf.Abs(Pos.x - StationX(station)) < ArriveWithin;
 }
 
-// Timber Hauler: log_roll (trunks lobbed onto ringed spots, each rolling down a drawn diagonal), and, once it is down to RaftHearts,
-// every other cast is a RAFT: two trunks lobbed together onto the two spots either side of ONE gap (RaftClear of free floor between
-// their roll lanes, beside the pilot toward the middle), both rolling down the same diagonal toward the side with the most floor.
-// The raft's spots, lanes and gap are all drawn from the first frame of the tell, locked.
+// Timber Hauler: log_roll (trunks lobbed onto ringed spots, each rolling down a drawn diagonal). A beat whose variant is "raft" casts
+// a RAFT: two trunks lobbed together onto the two spots either side of ONE gap (RaftClear of free floor between their roll lanes,
+// beside the pilot toward the middle), both rolling down the same diagonal toward the side with the most floor. The raft's spots,
+// lanes and gap are all drawn from the first frame of the tell, locked.
 public class RaftRollAttack : LogRollAttack
 {
-    public const int RaftHearts = 2;
-    int sinceRaft;
+    public const string RaftVariant = "raft";
     public RaftRollAttack() { Id = "raft_roll"; }
 
-    protected override bool WantsRaft()
-    {
-        if (ship.Hearts > RaftHearts) { sinceRaft = 0; return false; }
-        return sinceRaft++ % 2 == 0;
-    }
+    protected override bool WantsRaft() => ship.Script.VariantName == RaftVariant;
 }

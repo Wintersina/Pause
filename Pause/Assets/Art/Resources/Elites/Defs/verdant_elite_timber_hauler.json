@@ -4,7 +4,7 @@
   "world": "verdant",
   "role": "lumber barge",
   "codexId": "elite_verdant_timber_hauler",
-  "lore": "An armoured lumber barge that slides along the top and never chases. It lobs trunks onto a row of ringed spots, each rolling down a drawn diagonal; hurt, it drops a log raft, two trunks rolling down together with one gap between them.",
+  "lore": "An armoured lumber barge that rolls between three stations along the top and never chases. It lobs trunks onto a row of ringed spots, each rolling down a drawn diagonal; hurt, it drops a log raft, two trunks rolling down together with one gap between them.",
   "brain": "lumber",
   "attack": "raft_roll",
   "launchFrom": "riverbay",
@@ -103,5 +103,155 @@
   "shotMotion": "roll",
   "followLag": 0.25,
   "engageSeconds": 55,
-  "script": { "tempo": 1.35 }
+  "script": {
+    "tempo": 1.35,
+    "exitTell": 1.6,
+    "lastExit": "none",
+    "entrance": {
+      "kind": "slam",
+      "seconds": 1.7,
+      "amp": 1.4
+    },
+    "phase1": {
+      "speed": 1.0,
+      "gap": 1.0,
+      "loop": [
+        {
+          "wait": 2.0,
+          "move": "L",
+          "attack": "pair"
+        },
+        {
+          "wait": 2.2,
+          "move": "C",
+          "attack": "trio"
+        },
+        {
+          "wait": 2.0,
+          "move": "R",
+          "attack": "pair"
+        },
+        {
+          "wait": 2.4,
+          "move": "C",
+          "attack": "wide"
+        }
+      ]
+    },
+    "phase2": {
+      "speed": 1.1,
+      "gap": 0.85,
+      "loop": [
+        {
+          "wait": 2.0,
+          "move": "L",
+          "attack": "raft"
+        },
+        {
+          "wait": 2.0,
+          "move": "C",
+          "attack": "trio"
+        },
+        {
+          "wait": 2.0,
+          "move": "R",
+          "attack": "raft"
+        },
+        {
+          "wait": 2.0,
+          "move": "C",
+          "attack": "wide"
+        }
+      ]
+    },
+    "last": {
+      "speed": 1.2,
+      "gap": 0.7,
+      "loop": [
+        {
+          "wait": 1.6,
+          "move": "C",
+          "attack": "raft"
+        },
+        {
+          "wait": 0.7,
+          "move": "L",
+          "attack": "trio"
+        },
+        {
+          "wait": 1.6,
+          "move": "R",
+          "attack": "raft"
+        },
+        {
+          "wait": 0.7,
+          "move": "C",
+          "attack": "trio"
+        }
+      ]
+    },
+    "variants": [
+      {
+        "name": "pair",
+        "set": [
+          {
+            "key": "shotCount",
+            "value": 2
+          },
+          {
+            "key": "lobSpacing",
+            "value": 1.5
+          }
+        ]
+      },
+      {
+        "name": "trio",
+        "set": [
+          {
+            "key": "shotCount",
+            "value": 3
+          },
+          {
+            "key": "lobSpacing",
+            "value": 1.1
+          },
+          {
+            "key": "shotInterval",
+            "value": 0.3
+          }
+        ]
+      },
+      {
+        "name": "wide",
+        "set": [
+          {
+            "key": "shotCount",
+            "value": 2
+          },
+          {
+            "key": "lobSpacing",
+            "value": 2.4
+          },
+          {
+            "key": "tellSeconds",
+            "value": 1.0
+          }
+        ]
+      },
+      {
+        "name": "raft",
+        "set": [
+          {
+            "key": "shotCount",
+            "value": 2
+          },
+          {
+            "key": "tellSeconds",
+            "value": 1.0
+          }
+        ]
+      }
+    ],
+    "note": "denier: lobs trunk rows from three barge stations (L C R); rafts from the second phase; a second wave at the last heart"
+  }
 }

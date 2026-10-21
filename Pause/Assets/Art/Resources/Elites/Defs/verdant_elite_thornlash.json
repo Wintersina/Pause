@@ -100,5 +100,132 @@
   "hurtHide": true,
   "hideSeconds": 3.5,
   "engageSeconds": 42,
-  "script": { "tempo": 0.8 }
+  "script": {
+    "tempo": 0.8,
+    "exitTell": 1.4,
+    "lastExit": "top",
+    "entrance": {
+      "kind": "arc",
+      "seconds": 1.6,
+      "amp": 1.8
+    },
+    "phase1": {
+      "speed": 1.0,
+      "gap": 1.0,
+      "loop": [
+        {
+          "wait": 1.3,
+          "move": "R",
+          "attack": "whip"
+        },
+        {
+          "wait": 1.3,
+          "move": "L",
+          "attack": "snap"
+        },
+        {
+          "wait": 1.6,
+          "move": "L",
+          "attack": "long"
+        },
+        {
+          "wait": 0.8,
+          "move": "R",
+          "attack": "-"
+        }
+      ]
+    },
+    "phase2": {
+      "speed": 1.15,
+      "gap": 0.85,
+      "loop": [
+        {
+          "wait": 1.0,
+          "move": "R",
+          "attack": "whip"
+        },
+        {
+          "wait": 0.7,
+          "move": "R",
+          "attack": "snap"
+        },
+        {
+          "wait": 1.0,
+          "move": "L",
+          "attack": "whip"
+        },
+        {
+          "wait": 0.7,
+          "move": "L",
+          "attack": "snap"
+        }
+      ]
+    },
+    "last": {
+      "speed": 1.2,
+      "gap": 0.8,
+      "loop": [
+        {
+          "wait": 0.9,
+          "move": "R",
+          "attack": "snap"
+        },
+        {
+          "wait": 0.5,
+          "move": "L",
+          "attack": "snap"
+        }
+      ]
+    },
+    "variants": [
+      {
+        "name": "whip",
+        "set": [
+          {
+            "key": "hazardSize",
+            "value": 4.6
+          },
+          {
+            "key": "hazardSeconds",
+            "value": 0.4
+          },
+          {
+            "key": "tellSeconds",
+            "value": 1.0
+          }
+        ]
+      },
+      {
+        "name": "snap",
+        "set": [
+          {
+            "key": "hazardSeconds",
+            "value": 0.28
+          },
+          {
+            "key": "tellSeconds",
+            "value": 0.8
+          }
+        ]
+      },
+      {
+        "name": "long",
+        "set": [
+          {
+            "key": "hazardSize",
+            "value": 5.8
+          },
+          {
+            "key": "hazardSeconds",
+            "value": 0.5
+          },
+          {
+            "key": "tellSeconds",
+            "value": 1.1
+          }
+        ]
+      }
+    ],
+    "note": "rammer (melee): latches the right rail, whips, swings over the top to the left rail, whips; double whips once hurt; its one scripted exit goes over the top"
+  }
 }

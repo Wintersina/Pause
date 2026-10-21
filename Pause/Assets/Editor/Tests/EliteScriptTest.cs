@@ -33,9 +33,6 @@ public static class EliteScriptTest
         // space
         // tide
         // verdant
-        "verdant_elite_leafblade",
-        "verdant_elite_sporebloom",
-        "verdant_elite_thornlash",
     };
 
     public static int Execute()

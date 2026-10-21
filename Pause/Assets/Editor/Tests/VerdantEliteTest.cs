@@ -3,15 +3,17 @@ using System.IO;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 
-// Verdant's five elites as mini-boss fights (VerdantElites.cs): the roster (hearts, hiding, one pad each, no pink), the four new strips
-// (7 flight cells, 3 death cells), anchors and muzzles inside the cell and on the hull, launching from their own Verdant pads (and the
-// backdrop bringing the pad into view), all five turning up in the director's rotation, the codex entries with their death strips, and
-// each one's brain and attack in simulation: none follows the pilot (a minimum distance outside committed attacks); the Leafblade's
-// swooping passes (a diagonal lane and crescent rows drawn first, out the far side, back by another entry, two crescents once hurt);
-// the Resin Warden's perches and its pool wall with a gap that narrows as hearts go; the Sporebloom sinking out of sight, rising
-// elsewhere and leaving a spore cloud lane (outlined first) at two hearts; Thornlash's anchors alternating sides with the whip's
-// fair corridor open and a sweep more per heart lost; the Timber Hauler's raft with its gap. Every attack must show its footprint
-// from the first frame of its tell (AttackPreview), for at least the FR1 lead, and clean up after itself; nothing allocates per frame.
+// Verdant's five elites as mini-boss fights on a script (VerdantElites.cs, the "script" blocks of the defs): the roster (hearts, hiding, one
+// pad each, no pink), the four new strips (7 flight cells, 3 death cells), anchors and muzzles inside the cell and on the hull, launching
+// from their own Verdant pads (and the backdrop bringing the pad into view), all five turning up in the director's rotation, the codex
+// entries with their death strips, and each one's brain and attack in simulation: none follows the pilot (a minimum distance outside
+// committed attacks) and none leaves the view bar the one scripted exit; the loops are fixed (the same variants in the same order under any
+// random seed), the phases differ, the entrances differ. The Leafblade's swooping passes from the left rail, the right rail and the top (a
+// diagonal lane and crescent rows drawn first, a brake at the far rail, a climb back, two crescents once hurt); the Resin Warden's perches
+// in a fixed order and its pool wall with a gap that narrows as hearts go; the Sporebloom dipping into the canopy in sight and leaving a
+// spore cloud lane (outlined first) in its cloud beats; Thornlash's rails alternating with the whip's fair corridor open and double whips
+// once hurt; the Timber Hauler's stations and its raft with its gap. Every attack must show its footprint from the first frame of its
+// tell (AttackPreview), for at least the FR1 lead, and clean up after itself; nothing allocates per frame.
 //
 //   scripts/unity-batch.sh -executeMethod AllTests.RunSuites -suites VerdantEliteTest
 public static class VerdantEliteTest
@@ -52,6 +54,7 @@ public static class VerdantEliteTest
             Rotation();
             Codex();
             Distances();
+            Scripts();
             Leafblade();
             Warden();
             Sporebloom();
@@ -340,6 +343,94 @@ public static class VerdantEliteTest
 
     static Vector3 Wander(int i, float amp = 1.4f) => new Vector3(Mathf.Sin(i * .03f) * amp, -2.5f, 0f);
 
+    // ---- the authored scripts ---------------------------------------------------------------------
+
+    static readonly string[] AllKeys = { "verdant_elite_timber_hauler", "verdant_elite_thornlash", "verdant_elite_sporebloom", "verdant_elite_leafblade", "verdant_elite_resin_warden" };
+
+    static string Signature(EliteStep[] loop)
+    {
+        var sb = new System.Text.StringBuilder();
+        if (loop != null) foreach (var s in loop) sb.Append(s.move).Append('/').Append(s.attack).Append(';');
+        return sb.ToString();
+    }
+
+    // The attack names of a loop, repeated, '-' left out, neighbours that repeat folded (a broken-off wind-up just plays its beat again).
+    static List<string> LoopAttacks(EliteStep[] loop, int n)
+    {
+        var res = new List<string>();
+        for (int round = 0; round < 6 && res.Count < n; round++)
+            foreach (var s in loop)
+            {
+                if (s.attack == "-" || res.Count >= n) continue;
+                if (res.Count == 0 || res[res.Count - 1] != s.attack) res.Add(s.attack);
+            }
+        return res;
+    }
+
+    // The variants of the first attacks of one fight, in order (neighbours that repeat folded).
+    static List<string> Played(string key, int seed, int n)
+    {
+        Fresh(.05f);
+        Random.InitState(seed);
+        var e = InPlay(key, new Vector2(1.2f, 1.8f));
+        e.AttackCooldown = 0f;
+        e.EngageLeft = 9999f;
+        var seq = new List<string>();
+        int seen = 0, f = 0;
+        for (int i = 0; i < 30 * 150 && Alive(e) && seq.Count < n; i++)
+        {
+            pilot.position = Wander(f++, 1.8f);
+            EliteSystem.Step(Dt);
+            if (Alive(e) && e.Attacks > seen)
+            {
+                seen = e.Attacks;
+                string v = e.Script.VariantName;
+                if (seq.Count == 0 || seq[seq.Count - 1] != v) seq.Add(v);
+            }
+        }
+        return seq;
+    }
+
+    static void Scripts()
+    {
+        var kinds = new HashSet<string>();
+        foreach (string key in AllKeys)
+        {
+            var d = EliteCatalog.Find(key);
+            var sd = d.script;
+            bool loops = sd.phase1 != null && sd.phase2 != null && sd.last != null && sd.phase1.loop.Length >= 2 && sd.phase2.loop.Length >= 2 && sd.last.loop.Length >= 2;
+            Check(key + ": authored script with a loop for each of phase 1, phase 2 and the last heart", loops);
+            if (!loops) continue;
+            Check(key + ": entrance '" + sd.entrance.kind + "' (" + sd.entrance.seconds + " s) is its own signature in the world, 1-2 s", sd.entrance.seconds >= 1f && sd.entrance.seconds <= 2f && kinds.Add(sd.entrance.kind));
+            Check(key + ": the phases are visibly different loops (" + Signature(sd.phase1.loop) + " | " + Signature(sd.phase2.loop) + " | " + Signature(sd.last.loop) + ")",
+                  Signature(sd.phase1.loop) != Signature(sd.phase2.loop) && Signature(sd.phase2.loop) != Signature(sd.last.loop) && Signature(sd.phase1.loop) != Signature(sd.last.loop));
+            bool known = true;
+            string unknown = "";
+            var names = new HashSet<string>();
+            foreach (var v in sd.variants)
+            {
+                names.Add(v.name);
+                foreach (var s in v.set) if (EliteTune.IndexOf(s.key) < 0) { known = false; unknown += v.name + "." + s.key + " "; }
+            }
+            foreach (var ph in new[] { sd.phase1, sd.phase2, sd.last })
+                foreach (var s in ph.loop)
+                    if (s.attack != "" && s.attack != "-" && !names.Contains(s.attack)) { known = false; unknown += s.attack + " "; }
+            Check(key + ": every beat names a variant that exists and every variant sets known keys " + unknown, known);
+            bool exitOk = d.armored ? sd.lastExit == "none" : (!d.hurtHide || sd.lastExit == "none" || sd.lastExit == "left" || sd.lastExit == "right" || sd.lastExit == "top");
+            Check(key + ": at most the one scripted exit (lastExit '" + sd.lastExit + "', hurtHide " + d.hurtHide + ")", exitOk);
+            var brain = EliteBrains.Create(d.brain);
+            bool mayRoam = d.brain == "raptor" || d.brain == "anchor";
+            Check(key + ": brain " + d.brain + (brain.Roams ? " roams (start points a hull over the rail; it never leaves the view)" : " keeps to the view"), brain.Roams == mayRoam);
+            // the same fixed sequence whatever the dice
+            var a = Played(key, 1357, 5);
+            var b = Played(key, 24680, 5);
+            var want = LoopAttacks(sd.phase1.loop, 5);
+            Check(key + ": plays its phase 1 loop in order, the same under two seeds (" + string.Join(",", a) + " | " + string.Join(",", b) + ")",
+                  a.Count >= 4 && string.Join(",", a) == string.Join(",", b) && string.Join(",", a.GetRange(0, 4)) == string.Join(",", want.GetRange(0, 4)));
+        }
+        Check("the five Verdant elites enter five different ways (" + string.Join(", ", kinds) + ")", kinds.Count == 5);
+    }
+
     // ---- none of them follows the pilot ------------------------------------------------------
 
     // Whatever the pilot does, outside a committed attack (and off the board) each one stays well away: 40 s of fighting with a pilot
@@ -357,7 +448,7 @@ public static class VerdantEliteTest
             Step(40f, () =>
             {
                 pilot.position = Wander(f++, 1.8f);
-                if (!Alive(e) || e.Offstage || e.Acting) return;
+                if (!Alive(e) || e.Offstage || e.Acting || (e.Brain is RaptorBrain rb && rb.Recovering)) return;   // (the Leafblade climbing back up the rail after a pass)
                 min = Mathf.Min(min, Vector2.Distance(e.Position, pilot.position));
                 minY = Mathf.Min(minY, e.Position.y - pilot.position.y);
                 sumY += e.Position.y - pilot.position.y;
@@ -371,6 +462,26 @@ public static class VerdantEliteTest
 
     // ---- Leafblade: raptor + leaf_swoop --------------------------------------------------------
 
+    // The entries of its first `passes` passes (one fight, one seed): the script says which, not the dice.
+    static List<int> LeafEntries(int seed, int passes)
+    {
+        Fresh(.05f);
+        Random.InitState(seed);
+        var e = InPlay("verdant_elite_leafblade", new Vector2(1.2f, 1.5f));
+        var brain = (RaptorBrain)e.Brain;
+        e.AttackCooldown = 0f;
+        e.EngageLeft = 9999f;
+        var entries = new List<int>();
+        int started = 0;
+        for (int i = 0; i < 30 * 90 && entries.Count < passes && Alive(e); i++)
+        {
+            pilot.position = Wander(i);
+            EliteSystem.Step(Dt);
+            if (Alive(e) && brain.PassesStarted > started) { started = brain.PassesStarted; entries.Add(brain.Entry); }
+        }
+        return entries;
+    }
+
     static void Leafblade()
     {
         Fresh(.05f);
@@ -382,21 +493,21 @@ public static class VerdantEliteTest
         e.EngageLeft = 9999f;
         int guard = 0;
         while (brain.Phase != RaptorBrain.Stage.Ready && guard++ < 30 * 20) EliteSystem.Step(Dt);
-        Check("Leafblade leaves the view, comes in by an edge of the board and waits there (entry " + brain.Entry + ", at " + e.Position + ")",
-              brain.Phase == RaptorBrain.Stage.Ready && (Mathf.Abs(e.Position.x) <= EliteSystem.RailEdge + .2f) && e.Position.y < EliteSystem.ViewTop + .2f && e.Position.y > EliteSystem.ViewTop - 4f);
+        Check("Leafblade flies to its first start point IN SIGHT and waits there (entry " + brain.Entry + ", at " + e.Position + ")",
+              brain.Phase == RaptorBrain.Stage.Ready && brain.Entry == 0 && e.Position.x < 0f && Mathf.Abs(e.Position.x) <= EliteSystem.RailEdge + .2f &&
+              e.Position.y < EliteSystem.ViewTop + .2f && e.Position.y > EliteSystem.ViewTop - 4f && !e.Offstage);
+        Check("... Roams, but only along the rails and the top: a roamer that never leaves the view", brain.Roams);
 
         // a long fight: every pass recorded
         var entries = new List<int>();
         var dirs = new List<Vector2>();
-        var loopsAtTell = new List<int>();
-        var rowsAtTell = new List<int>();
         var crescents = new List<int>();
         var fires = new List<int>();
-        var farExits = new List<bool>();
+        var endsOn = new List<bool>();
         var seenShots = new HashSet<int>();
-        int started = 0, loops = 0, cres = 0;
-        float tellLen = 0f, tellSpeed = 0f, runSpeed = 0f, minSlope = 9f, maxSlope = 0f, nearest = 99f, rowY = 0f;
-        bool inTell = false, telegraph = false, locked = true, level = true, onRow = true, shown = true, passEnded = true;
+        int started = 0, loops = 0, cres = 0, offFrames = 0, frames = 0;
+        float tellLen = 0f, tellWant = 0f, tellSpeed = 0f, runRatio = 0f, runRatioMin = 9f, minSlope = 9f, maxSlope = 0f, nearest = 99f, rowY = 0f;
+        bool inTell = false, telegraph = false, locked = true, level = true, onRow = true, passEnded = true;
         Vector2 lockedDir = Vector2.zero;
         var last = brain.Phase;
         int curEntry = -1;
@@ -405,10 +516,12 @@ public static class VerdantEliteTest
             pilot.position = Wander(i);
             EliteSystem.Step(Dt);
             if (!Alive(e)) break;
-            if (!e.Offstage && brain.Phase != RaptorBrain.Stage.Pass) nearest = Mathf.Min(nearest, Vector2.Distance(e.Position, pilot.position));
+            frames++;
+            if (e.Offstage || e.Hidden) offFrames++;
+            if (brain.Phase != RaptorBrain.Stage.Pass && !brain.Recovering) nearest = Mathf.Min(nearest, Vector2.Distance(e.Position, pilot.position));
             if (e.Telling)
             {
-                if (!inTell) { inTell = true; tellLen = 0f; telegraph = sw.Telegraph.Showing; loops = sw.Telegraph.Loops; lockedDir = sw.Dir; curEntry = brain.Entry; rowsAtTell.Add(sw.Rows); loopsAtTell.Add(loops); }
+                if (!inTell) { inTell = true; tellLen = 0f; tellWant = e.Def.tellSeconds; telegraph = sw.Telegraph.Showing; loops = sw.Telegraph.Loops; lockedDir = sw.Dir; curEntry = brain.Entry; }
                 tellLen += Dt;
                 tellSpeed = Mathf.Max(tellSpeed, e.Velocity.magnitude);
                 locked &= Vector2.Dot(sw.Dir, lockedDir) > .999f;
@@ -427,7 +540,8 @@ public static class VerdantEliteTest
             }
             if (e.Acting)
             {
-                runSpeed = Mathf.Max(runSpeed, e.Velocity.magnitude);
+                float v = e.Velocity.magnitude / Mathf.Max(.1f, e.Def.dashSpeed);
+                runRatio = Mathf.Max(runRatio, v);
                 foreach (var s in EliteSystem.Shots.All)
                 {
                     if (!s.Active || !s.SlashCapsule || !seenShots.Add(s.GetInstanceID())) continue;
@@ -439,59 +553,65 @@ public static class VerdantEliteTest
                     rowY = s.transform.position.y;
                 }
             }
-            if (!passEnded && brain.Phase == RaptorBrain.Stage.Away && last == RaptorBrain.Stage.Pass)
+            if (!passEnded && brain.Phase == RaptorBrain.Stage.Enter && last == RaptorBrain.Stage.Pass)
             {
                 passEnded = true;
                 crescents.Add(cres);
                 fires.Add(sw.RowsFired);
                 Vector2 p = e.Position;
-                bool far = curEntry == 0 ? p.x > 0f || p.y < EliteSystem.ViewBottom : curEntry == 1 ? p.x < 0f || p.y < EliteSystem.ViewBottom : p.y < EliteSystem.ViewBottom || Mathf.Abs(p.x) > EliteSystem.RailEdge;
-                farExits.Add(far && e.Offstage);
+                endsOn.Add(!e.Offstage && Mathf.Abs(p.x) < EliteSystem.RailEdge && p.y > EliteSystem.ViewBottom && p.y < EliteSystem.ViewTop);
             }
             last = brain.Phase;
         }
-        Check("Leafblade's tell draws the diagonal lane and its crescent row from the first frame (" + loops + " outlines) and holds still on the edge (" + tellLen.ToString("0.00") + " s, " + tellSpeed.ToString("0.0") + " u/s)",
-              telegraph && loops == 1 + sw.Rows && Mathf.Abs(tellLen - def.tellSeconds) < .12f && tellSpeed < 1.2f && AttackPreview.TooShort == 0);
+        runRatioMin = runRatio;
+        Check("Leafblade's tell draws the diagonal lane and its crescent row from the first frame (" + loops + " outlines) and holds still on the rail (" + tellLen.ToString("0.00") + " s of " + tellWant.ToString("0.00") + ", " + tellSpeed.ToString("0.0") + " u/s)",
+              telegraph && loops == 1 + sw.Rows && Mathf.Abs(tellLen - tellWant) < .12f && tellSpeed < 1.2f && AttackPreview.TooShort == 0);
         Check("... the lane is locked at the tell and it keeps its distance between passes (" + nearest.ToString("0.0") + " u at the closest)", locked && entries.Count >= 3 && nearest > 3.5f);
-        Check("... a pass slices the lane at dashSpeed (" + runSpeed.ToString("0.0") + " u/s), the lane diagonal: " + minSlope.ToString("0.00") + ".." + maxSlope.ToString("0.00") + " off the horizontal",
-              runSpeed > def.dashSpeed * .9f && runSpeed < def.dashSpeed * 1.2f && minSlope >= Mathf.Sin(LeafSwoopAttack.SideMinDeg * Mathf.Deg2Rad) - .02f && maxSlope <= Mathf.Sin(LeafSwoopAttack.SideMaxDeg * Mathf.Deg2Rad) + .02f);
-        bool allFar = farExits.Count >= 3;
-        foreach (bool b in farExits) allFar &= b;
-        Check("... and leaves the view by the far side, untouchable outside the board (" + farExits.Count + " passes)", allFar);
-        bool other = entries.Count >= 3;
-        for (int i = 1; i < entries.Count; i++) other &= entries[i] != entries[i - 1];
-        Check("... then re-enters from another entry each time (" + string.Join(", ", entries) + ")", other && entries.Exists(x => x == 0) | entries.Exists(x => x == 1) | entries.Exists(x => x == 2));
+        Check("... a pass slices the lane at its variant's dashSpeed (x" + runRatioMin.ToString("0.00") + "), the lane diagonal: " + minSlope.ToString("0.00") + ".." + maxSlope.ToString("0.00") + " off the horizontal",
+              runRatioMin > .9f && runRatioMin < 1.2f && minSlope >= Mathf.Sin(LeafSwoopAttack.SideMinDeg * Mathf.Deg2Rad) - .02f && maxSlope <= Mathf.Sin(LeafSwoopAttack.SideMaxDeg * Mathf.Deg2Rad) + .02f);
+        bool allOn = endsOn.Count >= 3;
+        foreach (bool b in endsOn) allOn &= b;
+        Check("... brakes at the far rail INSIDE the view and climbs back (no warp: off-screen " + offFrames + " of " + frames + " frames; " + endsOn.Count + " passes)", allOn && offFrames == 0);
+        Check("... and the script picks the entries: left rail, right rail, top, round again (" + string.Join(", ", entries) + ")",
+              entries.Count >= 5 && entries[0] == 0 && entries[1] == 1 && entries[2] == 2 && entries[3] == 0 && entries[4] == 1);
+        var again = LeafEntries(777, 5);
+        Check("... the same entries whatever the random seed (" + string.Join(", ", again) + ")", string.Join(",", again) == string.Join(",", entries));
         bool oneCres = crescents.Count >= 3;
         foreach (int c in crescents) oneCres &= c == 1;
-        Check("... leaving one level crescent across its drawn row at full hearts (seen " + string.Join(", ", crescents) + ", fired " + string.Join(", ", fires) + "; entries " + string.Join(", ", entries) + "; level " + level + ", on the row " + onRow + ", y " + rowY.ToString("0.0") + ")", oneCres && level && onRow);
+        Check("... leaving one level crescent across its drawn row at full hearts (seen " + string.Join(", ", crescents) + ", fired " + string.Join(", ", fires) + "; level " + level + ", on the row " + onRow + ", y " + rowY.ToString("0.0") + ")", oneCres && level && onRow);
+        _ = def;
 
-        // hurt: it hides, comes back, and its passes carry two crescents
+        // hurt: a flinch, phase 2: its passes carry two crescents, in another order
         Fresh(.05f);
         e = InPlay("verdant_elite_leafblade", new Vector2(1.2f, 1.5f));
         brain = (RaptorBrain)e.Brain;
         sw = (LeafSwoopAttack)e.Attack;
-        e.AttackCooldown = 0f;
-        Check("Leafblade: one crescent per pass at full hearts", brain.Crescents == 1);
-        Step(3f);
+        e.AttackCooldown = 99f;
+        Step(3f, () => e.AttackCooldown = 99f);
         e.TakeHit(EliteDamage.PlayerWeapon, e.Position, 1);
-        Step(.1f);
-        Check("... a hit is a flinch, no hiding (3 hearts: " + e.Hearts + ")", e.InPlay && !e.Hidden && e.Flinching && e.Hearts == def.hearts - 1);
-        int lastEntry = brain.LastEntry;
-        WaitBack(e);
-        Check("... and back on the board, its passes now carry two crescents", !e.Hidden && brain.Crescents == 2);
+        Step(.1f, () => e.AttackCooldown = 99f);
+        Check("... a hit is a flinch, no hiding (3 hearts: " + e.Hearts + ") and the second phase starts (" + e.Script.Phase + ")", e.InPlay && !e.Hidden && e.Flinching && e.Hearts == e.Def.hearts - 1 && e.Script.Phase == 2);
+        e.AttackCooldown = 0f;
         seenShots.Clear();
-        int two = 0, outlines = 0;
+        int two = 0, outlines = 0, firstEntry = -1;
         bool tellRows = false;
         int pass0 = brain.PassesStarted;
-        for (int i = 0; i < 30 * 40 && Alive(e) && !(brain.PassesStarted > pass0 && brain.Phase == RaptorBrain.Stage.Away); i++)
+        for (int i = 0; i < 30 * 40 && Alive(e) && !(brain.PassesStarted > pass0 && brain.Phase == RaptorBrain.Stage.Enter); i++)
         {
             pilot.position = Wander(i);
             EliteSystem.Step(Dt);
-            if (e.Telling) { tellRows |= sw.Rows == 2; outlines = Mathf.Max(outlines, sw.Telegraph.Loops); }
+            if (e.Telling) { tellRows |= sw.Rows == 2; outlines = Mathf.Max(outlines, sw.Telegraph.Loops); if (firstEntry < 0) firstEntry = brain.Entry; }
             if (e.Acting) foreach (var s in EliteSystem.Shots.All) if (s.Active && s.SlashCapsule && seenShots.Add(s.GetInstanceID())) two++;
         }
-        Check("... a pass of two crescents, two rows drawn with the lane (" + two + " crescents, " + outlines + " outlines)", two == 2 && tellRows && outlines == 3);
-        Check("Leafblade: a re-entry never from the entry of its last pass (last " + lastEntry + ", now " + brain.LastEntry + ")", brain.Passes >= 1);
+        Check("... a pass of two crescents, two rows drawn with the lane (" + two + " crescents, " + outlines + " outlines), first from the right rail (entry " + firstEntry + ")", two == 2 && tellRows && outlines == 3 && firstEntry == 1);
+
+        // the last heart: the one scripted exit, by the left, and back from the right
+        int hidesBefore = EliteShip.Hides;
+        e.TakeHit(EliteDamage.Teleport, e.Position, 1);
+        Step(.1f);
+        Check("... the last heart: its one scripted exit, to the left (" + e.Hearts + " hearts, phase " + e.Script.Phase + ", hidden " + e.Hidden + ")", e.Hearts == 1 && e.Script.Phase == 3 && e.Hidden && EliteShip.Hides == hidesBefore + 1);
+        WaitBack(e);
+        Check("... and it comes back on the board, hunting (" + e.Position + ")", Alive(e) && !e.Hidden && e.InPlay);
 
         // a tell cut short takes the drawing with it
         Fresh();
@@ -502,10 +622,28 @@ public static class VerdantEliteTest
         int shownN = AttackPreview.ActiveCount;
         LoseHeart(e);
         Check("a Leafblade hit in its tell takes its drawing with it (" + shownN + " -> " + AttackPreview.ActiveCount + ")", shownN >= 1 && AttackPreview.ActiveCount == 0);
-        _ = shown;
     }
 
     // ---- Resin Warden: canopy + canopy_mortar ---------------------------------------------------------
+
+    // The perches it stands on, in order, over `seconds` of fighting (one seed).
+    static List<int> PerchOrder(int seed, float seconds)
+    {
+        Fresh(.05f);
+        Random.InitState(seed);
+        var e = InPlay("verdant_elite_resin_warden", new Vector2(0f, 3f));
+        var brain = (CanopyBrain)e.Brain;
+        e.AttackCooldown = 0f;
+        e.EngageLeft = 9999f;
+        var list = new List<int> { brain.Perch };
+        int f = 0;
+        Step(seconds, () =>
+        {
+            pilot.position = Wander(f++, 1.8f);
+            if (Alive(e) && brain.Perch != list[list.Count - 1]) list.Add(brain.Perch);
+        });
+        return list;
+    }
 
     static void Warden()
     {
@@ -542,11 +680,16 @@ public static class VerdantEliteTest
             if (brain.Perch != last) { last = brain.Perch; perches.Add(last); }
         });
         var distinct = new HashSet<int>(perches);
-        bool differ = perches.Count >= 4;
+        bool differ = perches.Count >= 5;
         for (int i = 1; i < perches.Count; i++) differ &= perches[i] != perches[i - 1];
         float topY = EliteSystem.ViewTop - def.topMargin;
         Check("Resin Warden hops between " + brain.PerchCount + " perches along the top, a different one each hop (perches " + string.Join(",", perches) + ", " + brain.Hops + " hops)",
               distinct.Count >= 3 && differ && brain.Hops >= 4);
+        var order = PerchOrder(2468, 40f);
+        bool fixedOrder = perches.Count >= 5 && order.Count >= 5;
+        int[] script = { 0, 2, 1, 3, 0 };
+        for (int i = 0; i < 5 && fixedOrder; i++) fixedOrder &= perches[i] == script[i] && order[i] == script[i];
+        Check("... in the script's order, perch 0, 2, 1, 3 and round again, the same under another seed (" + string.Join(",", perches) + " | " + string.Join(",", order) + ")", fixedOrder);
         float longest = 0f;
         foreach (float h in hopSecs) longest = Mathf.Max(longest, h);
         Check("... each hop a short visible leap (" + hopSecs.Count + " hops, longest " + longest.ToString("0.00") + " s, an arc up to " + arc.ToString("0.00") + " u)", hopSecs.Count >= 3 && longest < 1.6f && arc > .25f);
@@ -563,11 +706,12 @@ public static class VerdantEliteTest
             e = InPlay("verdant_elite_resin_warden", new Vector2(-1f, 3f));
             for (int i = 0; i < lost; i++) LoseHeart(e);
             brain = (CanopyBrain)e.Brain;
-            for (int i = 0; i < 30 * 8 && !(brain.Phase == CanopyBrain.Stage.Perch && e.State == EliteState.Follow && (e.Position - brain.Station(brain.Perch)).magnitude < .3f); i++) { e.AttackCooldown = 99f; EliteSystem.Step(Dt); }
+            for (int i = 0; i < 30 * 12 && !(brain.Phase == CanopyBrain.Stage.Perch && e.State == EliteState.Follow && (e.Position - brain.Station(brain.Perch)).magnitude < .3f); i++) { e.AttackCooldown = 99f; EliteSystem.Step(Dt); }
             StepHold(e, 1f);
             pilot.position = new Vector3(.4f, -2.5f, 0f);
             StartTell(e);
             var m = (CanopyMortarAttack)e.Attack;
+            float lob = e.Def.lobSeconds, poolLife = e.Def.poolSeconds;   // (this beat's variant is on the numbers now)
             string k = "Resin Warden at " + e.Hearts + " hearts: ";
             Check(k + "a ring on every spot of the wall is drawn on the first frame of the tell (" + m.Telegraph.Loops + " outlines for " + m.Count + " pools)", e.Telling && m.Telegraph.Showing && m.Telegraph.Loops == m.Count && m.Count >= 3);
             // the geometry: pools sorted by x, the one wide step is the gap
@@ -596,7 +740,7 @@ public static class VerdantEliteTest
             StepUntil(() => { locked &= (m.Spot(0) - first).sqrMagnitude < 1e-6f; tellSpeed = Mathf.Max(tellSpeed, e.Velocity.magnitude); return e.Acting; }, 3f);
             Check(k + "the wall is locked at the tell, shown at least the FR1 lead and the warden planted (" + tellSpeed.ToString("0.0") + " u/s)", e.Acting && locked && tellSpeed < 1.2f && AttackPreview.TooShort == 0);
             // pools: landed at lobSeconds, still there at poolSeconds + linger - .3, gone by poolSeconds + linger + .5
-            StepHold(e, def.lobSeconds + .3f);
+            StepHold(e, lob + .3f);
             int pooled = 0;
             foreach (var s in EliteSystem.Shots.All) if (s.Active && s.Pooled) pooled++;
             float lifeLeft = 99f;
@@ -604,7 +748,7 @@ public static class VerdantEliteTest
             Check(k + "the pools land as sticky pools, " + lifeLeft.ToString("0.0") + " s of life left (" + pooled + " of " + m.Count + ")", pooled == m.Count);
             moveBackGround.speed = .005f;   // the board nearly still: a pool riding it at the test's 1.5 u/s would leave the bottom of the view (and be culled) after ~3 s, before its linger is up
             string trace = "";
-            for (float tt = 0f; tt < def.poolSeconds - 1e-3f; tt += .5f)
+            for (float tt = 0f; tt < poolLife - 1e-3f; tt += .5f)
             {
                 StepHold(e, .5f);
                 int nn = 0;
@@ -666,48 +810,63 @@ public static class VerdantEliteTest
 
     // ---- Sporebloom: floater + spore_drift ----------------------------------------------------
 
+    // The stations it floats over, in order, over `seconds` (one seed).
+    static List<int> FloatStations(int seed, float seconds)
+    {
+        Fresh(.05f);
+        Random.InitState(seed);
+        var e = InPlay("verdant_elite_sporebloom", new Vector2(0f, 3f));
+        var brain = (FloaterBrain)e.Brain;
+        e.AttackCooldown = 0f;
+        e.EngageLeft = 9999f;
+        var list = new List<int> { brain.Column };
+        int f = 0;
+        Step(seconds, () =>
+        {
+            pilot.position = Wander(f++);
+            if (Alive(e) && brain.Column != list[list.Count - 1]) list.Add(brain.Column);
+        });
+        return list;
+    }
+
     static void Sporebloom()
     {
         Fresh(.05f);
         var e = InPlay("verdant_elite_sporebloom", new Vector2(0f, 3f));
-        var def = e.Def;
         var brain = (FloaterBrain)e.Brain;
         e.AttackCooldown = 0f;
         e.EngageLeft = 9999f;
         var phases = new List<FloaterBrain.Stage> { brain.Phase };
         var cols = new List<int> { brain.Column };
-        Vector2 sinkFrom = Vector2.zero, riseAt = Vector2.zero;
-        float dropped = 0f, sinkStartY = 0f, underX = 0f, minY = 99f;
-        bool untouchable = true, sawUnder = false;
-        int f = 0, sinks0 = 0, pods = 0;
+        float dropped = 0f, dipStartY = 0f, minY = 99f;
+        bool inView = true;
+        int f = 0;
         Step(70f, () =>
         {
             pilot.position = Wander(f++);
             if (!Alive(e)) return;
             if (brain.Phase != phases[phases.Count - 1])
             {
-                if (brain.Phase == FloaterBrain.Stage.Sink) { sinkFrom = e.Position; sinkStartY = e.Position.y; }
-                if (brain.Phase == FloaterBrain.Stage.Under) { dropped = Mathf.Max(dropped, sinkStartY - e.Position.y); underX = Mathf.Abs(e.Position.x); }
-                if (brain.Phase == FloaterBrain.Stage.Rise) riseAt = e.Position;
+                if (brain.Phase == FloaterBrain.Stage.Dip) dipStartY = e.Position.y;
                 phases.Add(brain.Phase);
             }
+            if (brain.Phase != FloaterBrain.Stage.Float) dropped = Mathf.Max(dropped, dipStartY - e.Position.y);
             if (brain.Column != cols[cols.Count - 1]) cols.Add(brain.Column);
-            if (brain.Phase == FloaterBrain.Stage.Under) { sawUnder = true; untouchable &= e.Offstage && !e.Collider.enabled; }
+            inView &= !e.Offstage && !e.Hidden && e.Collider.enabled;
             if (brain.Phase == FloaterBrain.Stage.Float && !e.Offstage && !e.Acting) minY = Mathf.Min(minY, e.Position.y - pilot.position.y);
         });
-        sinks0 = brain.Sinks;
-        foreach (var s in EliteSystem.Shots.All) if (s.Active && (s.Motion & ShotMotion.Burst) != 0) pods++;
         bool order = false;
         for (int i = 0; i + 3 < phases.Count; i++)
-            order |= phases[i] == FloaterBrain.Stage.Float && phases[i + 1] == FloaterBrain.Stage.Sink && phases[i + 2] == FloaterBrain.Stage.Under && phases[i + 3] == FloaterBrain.Stage.Rise;
-        Check("Sporebloom floats, then sinks off its side into the canopy, is out of sight, and rises again (" + sinks0 + " sinks; " + phases.Count + " phase changes)",
-              sinks0 >= 2 && order && sawUnder && dropped > .3f && underX > EliteSystem.RailEdge);
-        Check("... untouchable while it is under (no collider, not a target)", untouchable);
-        bool moved = cols.Count >= 3;
-        for (int i = 1; i < cols.Count; i++) moved &= cols[i] != cols[i - 1];
-        Check("... and comes up at a different spot each time (stations " + string.Join(",", cols) + ")", moved);
+            order |= phases[i] == FloaterBrain.Stage.Float && phases[i + 1] == FloaterBrain.Stage.Dip && phases[i + 2] == FloaterBrain.Stage.Rise && phases[i + 3] == FloaterBrain.Stage.Float;
+        Check("Sporebloom floats, then DIPS into the canopy, rises and floats on (" + brain.Dips + " dips, " + (phases.Count - 1) + " phase changes, " + dropped.ToString("0.0") + " u down)",
+              brain.Dips >= 2 && order && dropped > .3f);
+        Check("... all of it in sight and shootable: no hiding, no warp, no untouchable stretch", inView);
+        var other = FloatStations(31337, 45f);
+        bool stations = cols.Count >= 6 && other.Count >= 6;
+        int[] script = { 0, 2, 1, 0, 2, 1 };
+        for (int i = 0; i < 6 && stations; i++) stations &= cols[i] == script[i] && other[i] == script[i];
+        Check("... over the script's stations, 0, 2, 1 and round again, the same under another seed (" + string.Join(",", cols) + " | " + string.Join(",", other) + ")", stations);
         Check("... floating high over the board, never down at the pilot (lowest " + minY.ToString("0.0") + " u above)", minY > 4f);
-        _ = sinkFrom; _ = riseAt; _ = pods; _ = def;
 
         // the burst: its rings are drawn first; no cloud at 3 hearts
         Fresh();
@@ -731,6 +890,7 @@ public static class VerdantEliteTest
         pilot.position = new Vector3(.5f, -2.5f, 0f);
         e = InPlay("verdant_elite_sporebloom", new Vector2(0f, 1.4f));
         LoseHeart(e);
+        e.Script.Advance();   // (phase 2 opens on a trio of pods; its second beat is the cloud)
         sd = (SporeDriftAttack)e.Attack;
         StepHold(e, 2f);
         pilot.position = new Vector3(.5f, -2.5f, 0f);
@@ -771,25 +931,26 @@ public static class VerdantEliteTest
     sealed class ThornLog
     {
         public readonly List<int> sides = new List<int>();
-        public readonly Dictionary<int, int> sweepsAt = new Dictionary<int, int>(), wanted = new Dictionary<int, int>();
+        public readonly Dictionary<int, int> sweepsAt = new Dictionary<int, int>();
         public float minRoom = 99f, minDist = 99f, offX = -9f, height = 99f;
         public bool corridorOk = true, outlined = true, wasActing;
-        public int lastAnchors, f;
+        public int lastAnchors, f, offFrames, frames;
     }
 
     // Watches the Thornlash until it has latched `untilAnchors` times.
     static void ThornWatch(ThornLog L, EliteShip e, AnchorBrain brain, ThornSweepAttack vs, int untilAnchors)
     {
-        for (int i = 0; i < 30 * 120 && Alive(e) && brain.Anchors < untilAnchors; i++)
+        for (int i = 0; i < 30 * 160 && Alive(e) && brain.Anchors < untilAnchors; i++)
         {
             pilot.position = Wander(L.f++, 1.6f);
             EliteSystem.Step(Dt);
             if (!Alive(e)) break;
+            L.frames++;
+            if (e.Offstage || e.Hidden) L.offFrames++;
             if (brain.Anchors != L.lastAnchors)
             {
                 L.lastAnchors = brain.Anchors;
                 L.sides.Add(brain.Side);
-                L.wanted[brain.Anchors] = brain.SweepsLeft;
                 L.offX = Mathf.Max(L.offX, Mathf.Abs(e.Position.x) - EliteSystem.RailEdge);
                 L.height = Mathf.Min(L.height, e.Position.y - pilot.position.y);
             }
@@ -806,6 +967,8 @@ public static class VerdantEliteTest
         }
     }
 
+    static int Sweeps(ThornLog L, int anchor) { return L.sweepsAt.TryGetValue(anchor, out int n) ? n : 0; }
+
     static void Thornlash()
     {
         Fresh(.05f);
@@ -816,31 +979,52 @@ public static class VerdantEliteTest
         e.AttackCooldown = 0f;
         e.EngageLeft = 9999f;
         var L = new ThornLog();
-        // three phases of fighting, a heart lost between them (the anchor it hit was cut short: it hid, and came back to the other rail)
-        ThornWatch(L, e, brain, vs, 3);
-        LoseHeart(e); e.AttackCooldown = 0f; L.wasActing = false;
-        ThornWatch(L, e, brain, vs, 6);
-        LoseHeart(e); e.AttackCooldown = 0f; L.wasActing = false;
-        ThornWatch(L, e, brain, vs, 9);
-        bool alt = L.sides.Count >= 6;
+        // phase 1 at full hearts: right rail (1 whip), swing to the left rail (2 whips), swing back ...
+        ThornWatch(L, e, brain, vs, 5);
+        bool alt = L.sides.Count >= 5 && L.sides[0] == 1;
         for (int i = 1; i < L.sides.Count; i++) alt &= L.sides[i] != L.sides[i - 1];
-        Check("Thornlash latches on one side then the other, alternating (" + string.Join(" ", L.sides) + "), just outside a rail (" + L.offX.ToString("0.00") + " u past it), well above the pilot (" + L.height.ToString("0.0") + " u)",
+        Check("Thornlash latches on one rail then the other, alternating (" + string.Join(" ", L.sides) + "), just outside a rail (" + L.offX.ToString("0.00") + " u past it), well above the pilot (" + L.height.ToString("0.0") + " u)",
               alt && L.offX > -.05f && L.offX < .35f && L.height > 2.5f);
-        Check("... it keeps its distance (" + L.minDist.ToString("0.0") + " u at the closest outside a sweep)", L.minDist > 3f);
+        Check("... it keeps its distance (" + L.minDist.ToString("0.0") + " u at the closest outside a sweep) and its swings stay in the view (off-screen " + L.offFrames + " of " + L.frames + " frames)", L.minDist > 3f && L.offFrames <= L.frames / 20);
         Check("... every whip's swept area is drawn from the first frame of the tell", L.outlined && AttackPreview.TooShort == 0);
         Check("... and the fair corridor stays open beyond the start line (room " + L.minRoom.ToString("0.00") + " u, at least " + AttackLash.MinCorridor + ")", L.corridorOk && L.minRoom < 99f);
         string summary = "";
-        foreach (var kv in L.sweepsAt) summary += kv.Key + ":" + kv.Value + "/" + (L.wanted.TryGetValue(kv.Key, out int w) ? w : -1) + " ";
-        // anchors left whole (2, 5, 8 come after a latch with sweeps to spare and end with the swing; 3 and 6 were cut by the lost heart)
-        bool sweeps = true;
-        foreach (int a in new[] { 1, 2, 4, 5, 7, 8 })
-            sweeps &= L.sweepsAt.TryGetValue(a, out int n) && L.wanted.TryGetValue(a, out int want) && n == want;
-        Check("... one sweep per anchor at full hearts, one more for every heart lost (anchor:sweeps/wanted " + summary + ")",
-              sweeps && L.wanted[1] == 1 && L.wanted[2] == 1 && L.wanted[4] == 2 && L.wanted[5] == 2 && L.wanted[7] == 3 && L.wanted[8] == 3);
+        foreach (var kv in L.sweepsAt) summary += kv.Key + ":" + kv.Value + " ";
+        Check("... the script's loop: one whip from the right rail, two from the left, one, two (anchor:whips " + summary + ")",
+              Sweeps(L, 1) == 1 && Sweeps(L, 2) == 2 && Sweeps(L, 3) == 1 && Sweeps(L, 4) == 2);
+
+        // phase 2 (a heart lost, a flinch): double whips from each rail
+        e.AttackCooldown = 99f;
+        StepUntil(() => { e.AttackCooldown = 99f; return e.State == EliteState.Follow; }, 8f);
+        Step(.2f, () => e.AttackCooldown = 99f);
+        e.TakeHit(EliteDamage.Teleport, e.Position, 1);
+        Step(.1f);
+        Check("... a lost heart is a flinch on the board and starts the second phase (" + e.Script.Phase + ")", e.InPlay && !e.Hidden && e.Script.Phase == 2);
+        e.AttackCooldown = 0f;
+        L.wasActing = false;
+        int baseAnchors = brain.Anchors;
+        ThornWatch(L, e, brain, vs, baseAnchors + 4);
+        Check("... phase 2 whips twice from every rail it latches (anchor:whips " + (baseAnchors + 1) + ":" + Sweeps(L, baseAnchors + 1) + " " + (baseAnchors + 2) + ":" + Sweeps(L, baseAnchors + 2) + " " + (baseAnchors + 3) + ":" + Sweeps(L, baseAnchors + 3) + ")",
+              Sweeps(L, baseAnchors + 1) == 2 && Sweeps(L, baseAnchors + 2) == 2 && Sweeps(L, baseAnchors + 3) == 2);
+
+        // the last heart: the one scripted exit, over the top, and back down to a rail
+        int hides = EliteShip.Hides;
+        e.AttackCooldown = 99f;
+        StepUntil(() => { e.AttackCooldown = 99f; return e.State == EliteState.Follow; }, 8f);
+        Step(.2f, () => e.AttackCooldown = 99f);
+        e.TakeHit(EliteDamage.Teleport, e.Position, 1);
+        Step(.1f);
+        Check("... the last heart: its one scripted exit, over the top (phase " + e.Script.Phase + ")", e.Hearts == 1 && e.Script.Phase == 3 && e.Hidden && EliteShip.Hides == hides + 1);
+        WaitBack(e);
+        e.AttackCooldown = 0f;
+        int anchorsBack = brain.Anchors;
+        ThornWatch(L, e, brain, vs, anchorsBack + 2);
+        Check("... and it comes back down onto a rail and whips again (anchors " + anchorsBack + " -> " + brain.Anchors + ")", Alive(e) && brain.Anchors >= anchorsBack + 2 && L.sweepsAt.Count > 0);
+        _ = def;
 
         // the corridor, whatever the pilot does: Aim from both rails
         var spec = LashSpec.Standard(2);
-        spec.length = def.hazardSize;
+        spec.length = EliteCatalog.Find("verdant_elite_thornlash").hazardSize;
         float room = 99f;
         for (int side = -1; side <= 1; side += 2)
             for (float px = -1.9f; px <= 1.91f; px += .3f)
@@ -849,6 +1033,16 @@ public static class VerdantEliteTest
                 room = Mathf.Min(room, r);
             }
         Check("... AttackLash.Aim from either rail leaves a corridor of at least " + AttackLash.MinCorridor + " u for every pilot spot across the lane (" + room.ToString("0.00") + ")", room >= AttackLash.MinCorridor - .01f);
+        // (the longest whip a variant sets is fair too)
+        spec.length = 5.8f;
+        room = 99f;
+        for (int side = -1; side <= 1; side += 2)
+            for (float px = -1.9f; px <= 1.91f; px += .3f)
+            {
+                AttackLash.Aim(spec, new Vector2(side * (EliteSystem.RailEdge + .08f), EliteSystem.ViewTop - 2f), new Vector2(px, -2.5f), EliteSystem.RailEdge, out _, out _, out _, out float r);
+                room = Mathf.Min(room, r);
+            }
+        Check("... and so does the 'long' whip (" + room.ToString("0.00") + ")", room >= AttackLash.MinCorridor - .01f);
 
         // the whip is gone with it
         Fresh();
@@ -862,8 +1056,39 @@ public static class VerdantEliteTest
 
     // ---- Timber Hauler: lumber + raft_roll -----------------------------------------------------
 
+    // The barge's stations in order over `seconds` (one seed); the lowest it flew.
+    static List<int> HaulerRoute(int seed, float seconds, out float lowest)
+    {
+        Fresh(.05f);
+        Random.InitState(seed);
+        var e = InPlay("verdant_elite_timber_hauler", new Vector2(0f, 3f));
+        var brain = (LumberBrain)e.Brain;
+        e.AttackCooldown = 0f;
+        e.EngageLeft = 9999f;
+        var list = new List<int> { brain.Station };
+        float low = 99f;
+        int f = 0;
+        Step(seconds, () =>
+        {
+            pilot.position = Wander(f++, 1.8f);
+            if (!Alive(e)) return;
+            if (brain.Station != list[list.Count - 1]) list.Add(brain.Station);
+            low = Mathf.Min(low, e.Position.y);
+        });
+        lowest = low;
+        return list;
+    }
+
     static void Hauler()
     {
+        float lowest;
+        var route = HaulerRoute(1357, 55f, out lowest);
+        var route2 = HaulerRoute(9091, 55f, out _);
+        bool stations = route.Count >= 6 && route2.Count >= 6;
+        int[] script = { 0, 1, 2, 1, 0, 1 };
+        for (int i = 0; i < 6 && stations; i++) stations &= route[i] == script[i] && route2[i] == script[i];
+        Check("Timber Hauler rolls between three stations on the top, left, centre, right, centre and round again, the same under another seed (" + string.Join(",", route) + " | " + string.Join(",", route2) + "), never coming down (lowest " + lowest.ToString("0.0") + ")",
+              stations && lowest > 0.5f);
         Fresh(.05f);
         var e = InPlay("verdant_elite_timber_hauler", new Vector2(0f, 3f));
         var def = e.Def;
