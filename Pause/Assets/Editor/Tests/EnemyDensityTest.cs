@@ -119,6 +119,29 @@ public static class EnemyDensityTest
         Check("past the high-speed end it holds (no further cut at the cap)",
               Mathf.Approximately(EnemyDensity.RateScale(35f), EnemyDensity.RateScale(50f)) &&
               Mathf.Approximately(EnemyDensity.RateScale(0f), EnemyDensity.RateScale(5f)));
+        // Run length: a fast start's short level gets part of its enemies back.
+        {
+            float stock = WorldManager.BaselineWorldSeconds, cap = SpeedRamp.Cap;
+            Check("a stock-length level gets no make-up, at any speed on the way",
+                  Mathf.Approximately(EnemyDensity.RunLengthFactor(stock, 0f, 0f), 1f) &&
+                  Mathf.Approximately(EnemyDensity.RunLengthFactor(stock, 0f, cap), 1f) &&
+                  Mathf.Approximately(EnemyDensity.RunLengthFactor(stock * 1.5f, 0f, .1f), 1f));
+            float early = EnemyDensity.RunLengthFactor(70f, .30f, .30f), late = EnemyDensity.RunLengthFactor(70f, .30f, cap);
+            Check("a fast start gets the make-up early (x" + early + "), tapering as it nears the cap (x" + late + "), never under x1",
+                  Mathf.Approximately(early, EnemyDensity.MaxRunBoost) && late < early && late > 1f);
+            Check("a longer fast-ish start gets a smaller make-up than a shorter one",
+                  EnemyDensity.RunLengthFactor(95f, .1f, .1f) < EnemyDensity.RunLengthFactor(79f, .2f, .2f) &&
+                  EnemyDensity.RunLengthFactor(79f, .2f, .2f) <= EnemyDensity.MaxRunBoost + 1e-4f);
+            bool steady = true;
+            for (float v = 0f; v <= cap + .1f; v += .05f)
+                steady &= Mathf.Approximately(EnemyDensity.RunLengthFactor(62f, cap, Mathf.Min(v, cap)), EnemyDensity.RunLengthFactor(62f, cap, cap));
+            Check("a start at the cap has one steady factor all run (x" + EnemyDensity.RunLengthFactor(62f, cap, cap) + ")",
+                  steady && Mathf.Approximately(EnemyDensity.RunLengthFactor(62f, cap, cap), 1f + (EnemyDensity.MaxRunBoost - 1f) * (1f - EnemyDensity.TaperAway)) &&
+                  EnemyDensity.RunLengthFactor(62f, cap, cap) <= EnemyDensity.RunLengthFactor(70f, .30f, cap) + 1e-4f);
+            Check("the make-up never undoes the high-speed cut: x" + EnemyDensity.MaxRunBoost + " of x" + EnemyDensity.RateScale(35f) +
+                  " stays under the low-speed rate",
+                  EnemyDensity.MaxRunBoost * EnemyDensity.RateScale(35f) < EnemyDensity.RateScale(5f));
+        }
         Check("the threat ceiling does not rise with speed", EnemyDensity.MaxThreats(35f) <= EnemyDensity.MaxThreats(5f));
         // The speed cap: anything above HUD 35 is a limit break (the boost, at
         // most 45). It fields exactly what 35 fields.

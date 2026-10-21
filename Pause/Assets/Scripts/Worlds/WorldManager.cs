@@ -214,6 +214,9 @@ public class WorldManager : MonoBehaviour
     // A level has been begun (Start / arrival) or flown: until then (a bare
     // component in a headless test) there is no level clock.
     bool levelBegun;
+    // The level's expected length and natural speed when its flight began
+    // (EnemyDensity.RunLengthFactor); -1 until the first flown frame.
+    float levelStartSeconds = -1f, levelStartSpeed;
 
     // The ramp last given to the walls (ApplyDifficulty), for turning the
     // distance left into an estimate in seconds.
@@ -276,6 +279,16 @@ public class WorldManager : MonoBehaviour
             float total = levelSeconds + SecondsLeftInWorld;
             if (levelSeconds <= 0f || float.IsInfinity(total) || float.IsNaN(total) || total <= 0f) return 0f;
             return Mathf.Clamp(BaselineWorldSeconds * levelSeconds / total, 0f, BaselineWorldSeconds);
+        }
+    }
+
+    // The spawn-rate make-up for a short (fast-start) level; 1 outside one.
+    public float SpawnRunFactor
+    {
+        get
+        {
+            if (!levelBegun || levelStartSeconds <= 0f || distanceLeft <= 0f) return 1f;
+            return EnemyDensity.RunLengthFactor(levelStartSeconds, levelStartSpeed, SpeedRamp.Natural);
         }
     }
 
@@ -397,6 +410,7 @@ public class WorldManager : MonoBehaviour
 
         distanceLeft = WorldDistance;
         levelSeconds = 0f;
+        levelStartSeconds = -1f;
         levelBegun = true;
         portalOpen = false;
         PortalPressure.Reset();
@@ -457,6 +471,11 @@ public class WorldManager : MonoBehaviour
             return;
         }
 
+        if (levelStartSeconds < 0f)
+        {
+            levelStartSpeed = SpeedRamp.Natural;
+            levelStartSeconds = SecondsLeftInWorld;
+        }
         distanceLeft -= dt * Mathf.Max(0f, moveBackGround.speed);
         levelSeconds += dt;
         levelBegun = true;
@@ -613,6 +632,7 @@ public class WorldManager : MonoBehaviour
         portalOpen = false;
         distanceLeft = WorldDistance;
         levelSeconds = 0f;
+        levelStartSeconds = -1f;
         levelBegun = true;
 
         var theme = Current;
