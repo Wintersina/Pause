@@ -343,7 +343,7 @@ public class LancePassAttack : EliteAttack
 public class StraferBrain : EliteBrain
 {
     public enum Stage { Run, Stop }
-    public const float StopSpeed = .6f, Settle = .3f, RunScale = 1.5f, RailMargin = .7f;
+    public const float HaltSpeed = .6f, Settle = .3f, RunScale = 1.5f, RailMargin = .7f;
     public const int Bands = 3;
     Stage stage = Stage.Run;
     float side = 1f;
@@ -392,7 +392,7 @@ public class StraferBrain : EliteBrain
     {
         Clock += dt;
         Vector2 st = Station;
-        if ((st - Pos).sqrMagnitude < Settle * Settle && ship.Velocity.sqrMagnitude < StopSpeed * StopSpeed) stage = Stage.Stop;
+        if ((st - Pos).sqrMagnitude < Settle * Settle && ship.Velocity.sqrMagnitude < HaltSpeed * HaltSpeed) stage = Stage.Stop;
         else if (stage == Stage.Stop && (st - Pos).sqrMagnitude > 1f) stage = Stage.Run;
         return st;
     }
@@ -536,7 +536,7 @@ public class ScavengerBrain : EliteBrain
     public Vector2 Centre(Vector2 f)
     {
         float e = EmberFlight.Edge(def, .5f);
-        return new Vector2(Mathf.Clamp(f.x * .5f, -e, e), EmberFlight.HighY(ship, Ry + .15f));
+        return new Vector2(Mathf.Clamp(f.x * .5f, -e, e), EmberFlight.HighY(ship, Ry + .35f));
     }
 
     public Vector2 OnCircle(Vector2 c) => c + new Vector2(Mathf.Cos(angle) * rx, Mathf.Sin(angle) * Ry);
@@ -548,7 +548,7 @@ public class ScavengerBrain : EliteBrain
         switch (stage)
         {
             case Stage.Climb:
-                if (Pos.y > c.y - Ry - .25f)
+                if (Pos.y > c.y - Ry - .1f)
                 {
                     stage = Stage.Circle;
                     circled = 0f;
@@ -582,7 +582,7 @@ public class ScavengerBrain : EliteBrain
 public class ScrapDiveAttack : EliteAttack
 {
     public enum Phase { Down, Turn, Up }
-    public const float Ring = .55f, OffsetX = 1.7f, Through = 1.0f, TurnRate = 300f, UpScale = .9f, MaxSeconds = 4f, ExitDrop = .35f;
+    public const float Ring = .55f, OffsetX = 1.7f, Through = .6f, TurnRate = 380f, UpScale = .9f, MaxSeconds = 4f, ExitDrop = .9f, ClimbDecel = 10f, Floor = 2.1f;
     public const int Slots = 3;
     EliteMarks marks;
     Vector2 spot;
@@ -611,7 +611,7 @@ public class ScrapDiveAttack : EliteAttack
         p.x += wobble;
         float edge = EliteSystem.RailEdge - Ring;
         p.x = Mathf.Clamp(p.x, -edge, edge);
-        p.y = Mathf.Clamp(p.y, EliteSystem.ViewBottom + 1.3f, Mathf.Max(EliteSystem.ViewBottom + 1.4f, ship.Position.y - 2.5f));
+        p.y = Mathf.Clamp(p.y, EliteSystem.ViewBottom + Floor, Mathf.Max(EliteSystem.ViewBottom + Floor + .1f, ship.Position.y - 2.5f));
         return p;
     }
 
@@ -670,7 +670,7 @@ public class ScrapDiveAttack : EliteAttack
                     for (int i = 0; i < n; i++) Fire(0, heading + (i - (n - 1) * .5f) * def.shotSpread, def.shotSpeed);
                     marks.HideAll();
                 }
-                if (past >= Through || p.y < EliteSystem.ViewBottom + .3f)
+                if (past >= Through || p.y < EliteSystem.ViewBottom + 1.6f)
                 {
                     phase = Phase.Turn;
                     turnDir = p.x < 0f ? 1f : -1f;   // swing away from the nearer rail (through 0 deg for +, through 180 for -)
@@ -683,14 +683,18 @@ public class ScrapDiveAttack : EliteAttack
                 if (Mathf.Abs(Mathf.DeltaAngle(heading, 90f)) < 12f) { heading = 90f; phase = Phase.Up; }
                 break;
             default:
-                ship.Drive(Vector2.up * def.dashSpeed * UpScale);
+            {
+                // the climb brakes into its circle's height (inside the view and the pilot's reach): no overshooting the top
+                float left = EmberFlight.HighY(ship, ExitDrop) - p.y;
+                ship.Drive(Vector2.up * Mathf.Min(def.dashSpeed * UpScale, Mathf.Max(1.2f, Mathf.Sqrt(2f * ClimbDecel * Mathf.Max(0f, left)))));
                 break;
+            }
         }
-        // back up at its circle (inside the view): the climb ends there
-        bool home = phase == Phase.Up && p.y >= EmberFlight.HighY(ship, ExitDrop);
+        // back up at its circle: the climb ends there
+        bool home = phase == Phase.Up && p.y >= EmberFlight.HighY(ship, ExitDrop) - .1f;
         if (home || t >= MaxSeconds)
         {
-            ship.Drive(Vector2.up * 1.5f);
+            ship.Drive(Vector2.zero);
             return true;
         }
         return false;
