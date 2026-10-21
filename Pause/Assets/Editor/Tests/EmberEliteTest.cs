@@ -307,15 +307,30 @@ public static class EmberEliteTest
         return ok;
     }
 
-    // A ship whose script is one plain attack, forever: tests that force casts through the def's numbers (hazardArmour) are not
-    // overruled by a script step's variant.
-    static EliteShip PlainInPlay(string brain, Vector2 at)
+    // A ship whose script is the given attacks (variant names, "" plain) round and round, with the catalog's own variants; the casts of
+    // the real script, one at a time, without its movement beats or its phases.
+    static EliteShip CastsInPlay(string brain, Vector2 at, params string[] attacks)
     {
-        var d = Def(brain).Instance();
-        d.script = new EliteScriptDef { phase1 = new ElitePhaseDef { loop = new[] { new EliteStep { wait = 1f, attack = "" } } } };
+        var src = Def(brain);
+        var d = src.Instance();
+        var loop = new EliteStep[attacks.Length];
+        for (int i = 0; i < loop.Length; i++) loop[i] = new EliteStep { wait = 1f, attack = attacks[i] };
+        d.script = new EliteScriptDef { variants = src.script.variants, phase1 = new ElitePhaseDef { loop = loop } };
         var e = EliteShip.CreateInPlay(d, at);
         e.AttackCooldown = 99f;
         return e;
+    }
+
+    // The next cast begins now (its wind-up has started); false when it never does.
+    static bool NextTell(EliteShip e, float max = 15f)
+    {
+        e.AttackCooldown = 0f;
+        for (float t = 0f; t < max && Alive(e); t += Dt)
+        {
+            if (e.Telling) return true;
+            EliteSystem.Step(Dt);
+        }
+        return e.Telling;
     }
 
     // A hit that is a flinch (a phase change), taken between attacks.
@@ -712,10 +727,10 @@ public static class EmberEliteTest
         // the real casts: a dump (lanes drawn, blobs down them), then a spill (a strip drawn, pools)
         Fresh(.05f);
         pilot.position = new Vector3(.6f, -3f, 0f);
-        e = PlainInPlay("kiln", new Vector2(0f, 3.4f));
+        e = CastsInPlay("kiln", new Vector2(0f, 3.4f), "", "lava");
         dump = (KilnDumpAttack)e.Attack;
         Step(1.5f);
-        e.ForceAttack();
+        NextTell(e);
         bool drawn = false, locked = true;
         int loops = 0;
         var lanes0 = new List<float>();
@@ -731,8 +746,7 @@ public static class EmberEliteTest
         Check("a dump draws a lane under each blob at the tell (" + loops + " outlines for " + n + "), locked, then " + n + " slag blobs sink (" + ActiveShots(e, EliteShots.Kind.Slag) + ")",
               !dump.IsSpill && drawn && loops == n && locked && ActiveShots(e, EliteShots.Kind.Slag) >= 1 && dump.Dumped == n);
         Step(1f);
-        e.Def.hazardArmour = 1;      // (the script's `lava` beat)
-        e.ForceAttack();
+        NextTell(e);      // (the script's `lava` beat)
         bool spillDrawn = false;
         while (e.Telling) { EliteSystem.Step(Dt); spillDrawn |= dump.Telegraph.Showing; }
         int strip = dump.Lanes.Count;
@@ -824,11 +838,11 @@ public static class EmberEliteTest
 
         // the script's four casts, forced one by one (hazardArmour is the cast: the script's variants set it)
         Fresh(.05f);
-        e = PlainInPlay("furnace", new Vector2(0f, 3.4f));
+        e = CastsInPlay("furnace", new Vector2(0f, 3.4f), "", "bombs", "double", "both");
         mortar = (FireMortarAttack)e.Attack;
         Step(2f);
         pilot.position = new Vector3(e.MuzzleWorld(0).x, -3f, 0f);
-        e.ForceAttack();
+        NextTell(e);
         bool sight = false, sight2 = false;
         float tellLen = 0f;
         while (e.Telling) { EliteSystem.Step(Dt); sight |= e.SightShown; sight2 |= mortar.Sight2.Shown; tellLen += Dt; pilot.position = new Vector3(e.MuzzleWorld(0).x, -3f, 0f); }
@@ -836,8 +850,7 @@ public static class EmberEliteTest
         Check("shell: a long wind-up (" + tellLen.ToString("0.00") + " s) with a thin sight line down its lane, then one piercing shell",
               mortar.Shell && !mortar.Bombs && !mortar.Doubled && sight && !sight2 && tellLen >= e.Def.tellSeconds - .1f && mortar.ShellFired && EliteSystem.Shots.Launched >= 1);
         Step(1.5f);
-        e.Def.hazardArmour = 1;
-        e.ForceAttack();
+        NextTell(e);
         bool rings = false;
         int spots = 0;
         while (e.Telling) { EliteSystem.Step(Dt); rings |= mortar.Marks.Shown(0) && mortar.Marks.Shown(1); spots = mortar.Spots; }
@@ -845,9 +858,8 @@ public static class EmberEliteTest
         Step(1.4f, () => orbs = Mathf.Max(orbs, ActiveShots(e, EliteShots.Kind.Orb)));
         Check("then bombs: " + spots + " ringed spots at the tell, " + orbs + " firebombs lobbed onto them", mortar.Bombs && !mortar.Shell && rings && spots >= 2 && orbs >= 1);
         Step(2f);
-        e.Def.hazardArmour = 2;
         pilot.position = new Vector3(e.MuzzleWorld(0).x, -3f, 0f);
-        e.ForceAttack();
+        NextTell(e);
         bool both = false;
         while (e.Telling) { EliteSystem.Step(Dt); both |= e.SightShown && mortar.Sight2.Shown; pilot.position = new Vector3(e.MuzzleWorld(0).x, -3f, 0f); }
         int shells = 0;
@@ -855,9 +867,7 @@ public static class EmberEliteTest
         Check("a double shell: two lanes (" + mortar.LaneA.ToString("0.0") + ", " + mortar.LaneB.ToString("0.0") + "), both drawn with a sight line, two shells (" + shells + ")",
               mortar.Doubled && both && shells >= 2 && mortar.LaneB - mortar.LaneA > EmberLanes.MinGap);
         Step(2f);
-        e.Def.hazardArmour = 3;
-        e.Def.shotCount = 3;
-        e.ForceAttack();
+        NextTell(e);
         bool lane = false, ringsToo = false;
         while (e.Telling) { EliteSystem.Step(Dt); lane |= e.SightShown; ringsToo |= mortar.Marks.Shown(0); }
         Step(.3f);
