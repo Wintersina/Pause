@@ -37,7 +37,7 @@ public static class ShipNozzles
         /*  1 NeonComet    235x220 */ new[] { N(93.5f, 8.5f, Twin), N(139.5f, 8.5f, Twin) },
         /*  2 VoltViper    243x200 */ new[] { N(99.5f, 8.5f, Twin), N(143.5f, 8.5f, Twin) },
         /*  3 SolarFang    242x234 */ new[] { N(121.5f, 12.5f) },
-        /*  4 CrimsonHalo  195x242 */ new[] { N(89.5f, 11.5f, Twin), N(105.5f, 12.5f, Twin) },
+        /*  4 CrimsonHalo  201x242 */ new[] { N(97.5f, 12.5f, Twin), N(113.5f, 12.5f, Twin) },
         /*  5 IonLancer    207x242 */ new[] { N(86.5f, 8.5f, Twin), N(120.5f, 8.5f, Twin) },
         /*  6 JadePhantom  242x238 */ new[] { N(113.5f, 12.5f, Twin), N(129.5f, 12.5f, Twin) },
         /*  7 GoldWarden   224x242 */ new[] { N(112.5f, 8.5f), N(75.5f, 24.5f, 0.5f), N(149.5f, 24.5f, 0.5f) },

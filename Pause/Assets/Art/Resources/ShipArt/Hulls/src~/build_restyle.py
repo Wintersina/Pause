@@ -61,6 +61,19 @@ SHIPS = {
                    bands=dict(outer=(0xD8, 0x23, 0x2C), mid=(0xF2, 0x86, 0x2B), core=(0xF4, 0xEA, 0xD4),
                               dark=(0x86, 0x12, 0x1F), accent=(0x6E, 0xF2, 0xEE))),
     ),
+    "CrimsonHalo": dict(
+        id=4, hull_w=190, world_w=195 / 423.913, nozzles=2, noz_scale=(.72, .72),
+        noz_cells=[(120, 236, .72), (136, 236, .72)],
+        emitters=parse_emitters(
+            "E(1, Sparks, 38.8f, 84.3f), E(1, Smoke, 61.5f, 109.4f), E(1, Smolder, 39.7f, 84.0f), "
+            "E(2, Arc, 82.5f, 45.7f), E(2, Flame, 99.2f, 93.9f), E(2, Leak, 65.7f, 103.6f), "
+            "E(2, Smolder, 100.9f, 93.7f), E(2, Smolder, 77.5f, 76.3f), E(2, Smolder, 51.0f, 71.9f), "
+            "E(2, Smolder, 48.5f, 110.1f)"),
+        skins=[("Night", "night"), ("Sodium", "sodium"), ("Bone", "bone"), ("Seraph", "stock")],
+        flame=dict(x=(0, 300), y=1086, frames=6,
+                   bands=dict(outer=(0xC8, 0x28, 0x5E), mid=(0xFF, 0xB4, 0x3C), core=(0xF4, 0xEA, 0xD4),
+                              dark=(0x6E, 0x11, 0x36), accent=(0xFF, 0x7A, 0xA2))),
+    ),
 }
 
 
