@@ -307,32 +307,6 @@ public static class EmberEliteTest
         return ok;
     }
 
-    // A ship whose script is the given attacks (variant names, "" plain) round and round, with the catalog's own variants; the casts of
-    // the real script, one at a time, without its movement beats or its phases.
-    static EliteShip CastsInPlay(string brain, Vector2 at, params string[] attacks)
-    {
-        var src = Def(brain);
-        var d = src.Instance();
-        var loop = new EliteStep[attacks.Length];
-        for (int i = 0; i < loop.Length; i++) loop[i] = new EliteStep { wait = 1f, attack = attacks[i] };
-        d.script = new EliteScriptDef { variants = src.script.variants, phase1 = new ElitePhaseDef { loop = loop } };
-        var e = EliteShip.CreateInPlay(d, at);
-        e.AttackCooldown = 99f;
-        return e;
-    }
-
-    // The next cast begins now (its wind-up has started); false when it never does.
-    static bool NextTell(EliteShip e, float max = 15f)
-    {
-        e.AttackCooldown = 0f;
-        for (float t = 0f; t < max && Alive(e); t += Dt)
-        {
-            if (e.Telling) return true;
-            EliteSystem.Step(Dt);
-        }
-        return e.Telling;
-    }
-
     // A hit that is a flinch (a phase change), taken between attacks.
     static void HitBetweenAttacks(EliteShip e)
     {
@@ -600,7 +574,7 @@ public static class EmberEliteTest
 
         // hurt: the second dive of each pair is a fast one
         var h = VultureRun(1357, 4, true);
-        Check("phase 2: pairs of dives, the second a fast variant with a bigger fan (" + h.done + " dives)", h.fast && h.done >= 4 && h.inView);
+        Check("phase 2: pairs of dives, the second a fast variant with a bigger fan (" + h.done + " dives, fast seen " + h.fast + ", in view " + h.inView + ")", h.fast && h.done >= 4 && h.inView);
     }
 
     // ---- Ash Wraith: ashling + ember_veil -------------------------------------------------
@@ -724,36 +698,39 @@ public static class EmberEliteTest
         Check("kiln dump: shotCount blobs (" + string.Join(",", blobs) + ")", string.Join(",", blobs) == "3,3,5,5,7,7");
         Check("... a dump and a spill always leave a clear gap of at least " + EmberLanes.MinGap + " u whatever the pilot's x and the script's numbers (worst " + worst.ToString("0.00") + ")", gaps);
 
-        // the real casts: a dump (lanes drawn, blobs down them), then a spill (a strip drawn, pools)
+        // the real casts, watched in the script's own loop: a dump (a lane drawn under each blob, blobs sink down them), then a spill (one
+        // strip drawn, molten pools land down it and cool)
         Fresh(.05f);
         pilot.position = new Vector3(.6f, -3f, 0f);
-        e = CastsInPlay("kiln", new Vector2(0f, 3.4f), "", "lava");
+        e = InPlay("kiln", new Vector2(0f, 3.4f));
         dump = (KilnDumpAttack)e.Attack;
-        Step(1.5f);
-        NextTell(e);
-        bool drawn = false, locked = true;
-        int loops = 0;
-        var lanes0 = new List<float>();
-        while (e.Telling)
+        e.EngageLeft = 9999f;
+        e.AttackCooldown = 0f;
+        bool dumpDrawn = false, spillDrawn = false, dumpLocked = true, lanesMatch = true;
+        int slag = 0, pools = 0, stripLanes = 0, seenA = e.Attacks;
+        var lanesNow = new List<float>();
+        for (int i = 0; i < 30 * 16; i++)
         {
             EliteSystem.Step(Dt);
-            drawn |= dump.Telegraph.Showing;
-            loops = dump.Telegraph.Loops;
-            if (e.AimLocked) { if (lanes0.Count == 0) lanes0.AddRange(dump.Lanes); else for (int i = 0; i < lanes0.Count; i++) locked &= Mathf.Approximately(lanes0[i], dump.Lanes[i]); }
+            if (!Alive(e)) break;
+            if (e.Telling)
+            {
+                if (e.Attacks > seenA) { seenA = e.Attacks; lanesNow.Clear(); }
+                if (dump.IsSpill) { spillDrawn |= dump.Telegraph.Showing; stripLanes = dump.Lanes.Count; }
+                else { dumpDrawn |= dump.Telegraph.Showing; lanesMatch &= dump.Telegraph.Loops == dump.Lanes.Count; }
+                if (e.AimLocked)
+                {
+                    if (lanesNow.Count == 0) lanesNow.AddRange(dump.Lanes);
+                    else for (int k = 0; k < lanesNow.Count && k < dump.Lanes.Count; k++) dumpLocked &= Mathf.Approximately(lanesNow[k], dump.Lanes[k]);
+                }
+            }
+            slag = Mathf.Max(slag, ActiveShots(e, EliteShots.Kind.Slag));
+            pools = Mathf.Max(pools, ActiveShots(e, EliteShots.Kind.Glob));
         }
-        int n = dump.Lanes.Count;
-        Step(2f);
-        Check("a dump draws a lane under each blob at the tell (" + loops + " outlines for " + n + "), locked, then " + n + " slag blobs sink (" + ActiveShots(e, EliteShots.Kind.Slag) + ")",
-              !dump.IsSpill && drawn && loops == n && locked && ActiveShots(e, EliteShots.Kind.Slag) >= 1 && dump.Dumped == n);
-        Step(1f);
-        NextTell(e);      // (the script's `lava` beat)
-        bool spillDrawn = false;
-        while (e.Telling) { EliteSystem.Step(Dt); spillDrawn |= dump.Telegraph.Showing; }
-        int strip = dump.Lanes.Count;
-        int pools = 0;
-        Step(1.2f, () => pools = Mathf.Max(pools, ActiveShots(e, EliteShots.Kind.Glob)));
-        Check("then a spill: a lane is drawn at the tell, and molten pools land down it (" + pools + " pools, " + strip + " strip)", dump.IsSpill && spillDrawn && pools >= KilnDumpAttack.SpillLen - 1);
-        Step(def.poolSeconds + def.lobSeconds + 1f);
+        Check("a dump draws a lane under each blob at the tell (outlines match the lanes), locked, then slag blobs sink (" + slag + ")", dumpDrawn && lanesMatch && dumpLocked && slag >= 1);
+        Check("then a spill: one lane is drawn at the tell (" + stripLanes + "), and molten pools land down it (" + pools + " pools)", spillDrawn && stripLanes == 1 && pools >= KilnDumpAttack.SpillLen - 1);
+        e.AttackCooldown = 99f;
+        Step(def.poolSeconds + def.lobSeconds + 4f);
         Check("... which cool and are gone (" + ActiveShots(e, EliteShots.Kind.Glob) + " left)", ActiveShots(e, EliteShots.Kind.Glob) == 0);
 
         // the script: planted at the centre in phase 1 (slag, lava, slag, lava), off-centre in phase 2, never a pendulum
@@ -836,42 +813,33 @@ public static class EmberEliteTest
         }
         Check("the double lane always leaves a safe gap of at least " + EmberLanes.MinGap + " u, between its two lanes and beyond them (worst " + worst.ToString("0.00") + ")", gaps);
 
-        // the script's four casts, forced one by one (hazardArmour is the cast: the script's variants set it)
+        // the real casts, watched in the script's own loop: a shell (a thin sight line down its lane), then bombs (ringed spots, lobbed)
         Fresh(.05f);
-        e = CastsInPlay("furnace", new Vector2(0f, 3.4f), "", "bombs", "double", "both");
+        e = InPlay("furnace", new Vector2(0f, 3.4f));
         mortar = (FireMortarAttack)e.Attack;
-        Step(2f);
-        pilot.position = new Vector3(e.MuzzleWorld(0).x, -3f, 0f);
-        NextTell(e);
-        bool sight = false, sight2 = false;
-        float tellLen = 0f;
-        while (e.Telling) { EliteSystem.Step(Dt); sight |= e.SightShown; sight2 |= mortar.Sight2.Shown; tellLen += Dt; pilot.position = new Vector3(e.MuzzleWorld(0).x, -3f, 0f); }
-        Step(.3f);
+        e.EngageLeft = 9999f;
+        e.AttackCooldown = 0f;
+        bool shellSight = false, shellOnly = false, bombRings = false, bombOnly = false, shellOut = false;
+        int bombSpots = 0, orbs = 0, seenA = e.Attacks;
+        float tellLen = 0f, tellNow = 0f;
+        for (int i = 0; i < 30 * 16; i++)
+        {
+            pilot.position = new Vector3(e.MuzzleWorld(0).x, -3f, 0f);
+            EliteSystem.Step(Dt);
+            if (!Alive(e)) break;
+            if (e.Telling)
+            {
+                if (e.Attacks > seenA) { seenA = e.Attacks; tellNow = 0f; }
+                tellNow += Dt;
+                if (!mortar.Bombs) { shellSight |= e.SightShown && !mortar.Sight2.Shown; shellOnly |= mortar.Shell && !mortar.Doubled; tellLen = Mathf.Max(tellLen, tellNow); }
+                else { bombRings |= mortar.Marks.Shown(0) && mortar.Marks.Shown(1); bombOnly |= !mortar.Shell; bombSpots = Mathf.Max(bombSpots, mortar.Spots); }
+            }
+            shellOut |= mortar.ShellFired;
+            orbs = Mathf.Max(orbs, ActiveShots(e, EliteShots.Kind.Orb));
+        }
         Check("shell: a long wind-up (" + tellLen.ToString("0.00") + " s) with a thin sight line down its lane, then one piercing shell",
-              mortar.Shell && !mortar.Bombs && !mortar.Doubled && sight && !sight2 && tellLen >= e.Def.tellSeconds - .1f && mortar.ShellFired && EliteSystem.Shots.Launched >= 1);
-        Step(1.5f);
-        NextTell(e);
-        bool rings = false;
-        int spots = 0;
-        while (e.Telling) { EliteSystem.Step(Dt); rings |= mortar.Marks.Shown(0) && mortar.Marks.Shown(1); spots = mortar.Spots; }
-        int orbs = 0;
-        Step(1.4f, () => orbs = Mathf.Max(orbs, ActiveShots(e, EliteShots.Kind.Orb)));
-        Check("then bombs: " + spots + " ringed spots at the tell, " + orbs + " firebombs lobbed onto them", mortar.Bombs && !mortar.Shell && rings && spots >= 2 && orbs >= 1);
-        Step(2f);
-        pilot.position = new Vector3(e.MuzzleWorld(0).x, -3f, 0f);
-        NextTell(e);
-        bool both = false;
-        while (e.Telling) { EliteSystem.Step(Dt); both |= e.SightShown && mortar.Sight2.Shown; pilot.position = new Vector3(e.MuzzleWorld(0).x, -3f, 0f); }
-        int shells = 0;
-        Step(.3f, () => shells = Mathf.Max(shells, ActiveShots(e, EliteShots.Kind.Shell)));
-        Check("a double shell: two lanes (" + mortar.LaneA.ToString("0.0") + ", " + mortar.LaneB.ToString("0.0") + "), both drawn with a sight line, two shells (" + shells + ")",
-              mortar.Doubled && both && shells >= 2 && mortar.LaneB - mortar.LaneA > EmberLanes.MinGap);
-        Step(2f);
-        NextTell(e);
-        bool lane = false, ringsToo = false;
-        while (e.Telling) { EliteSystem.Step(Dt); lane |= e.SightShown; ringsToo |= mortar.Marks.Shown(0); }
-        Step(.3f);
-        Check("the last heart's cast: a shell AND firebombs at once (" + mortar.Spots + " spots)", mortar.Shell && mortar.Bombs && lane && ringsToo && mortar.ShellFired && mortar.Spots == 3);
+              shellSight && shellOnly && shellOut && tellLen >= e.Def.tellSeconds - .1f && EliteSystem.Shots.Launched >= 1);
+        Check("then bombs: " + bombSpots + " ringed spots at the tell, " + orbs + " firebombs lobbed onto them", bombRings && bombOnly && bombSpots >= 2 && orbs >= 1);
         EliteSystem.Clear();
 
         // it tracks the pilot's column at a crawl, and holds where it is when the script says so
@@ -916,7 +884,7 @@ public static class EmberEliteTest
         }
         Check("furnace: the phase-1 loop is shell, bombs, shell, bombs (" + runs[0] + "), the same under another seed", runs[0] == "shell,bombs,shell,bombs" && runs[0] == runs[1]);
 
-        // phase 2: the shells come as two lanes with a gap
+        // phase 2: the shells come as two lanes with a gap; the last heart: a shell and bombs at once
         Fresh(.05f);
         e = InPlay("furnace", new Vector2(0f, 3.4f));
         mortar = (FireMortarAttack)e.Attack;
@@ -925,14 +893,31 @@ public static class EmberEliteTest
         for (int i = 0; i < 2; i++) { Step(EliteShip.GraceSeconds + .2f); e.TakeHit(EliteDamage.Teleport, e.Position, 1); }
         Step(.3f);
         e.AttackCooldown = 0f;
-        bool doubled = false;
-        for (int i = 0; i < 30 * 40 && !doubled; i++)
+        bool doubled = false, bothSights = false, gapOk = false;
+        int shells = 0;
+        for (int i = 0; i < 30 * 40 && !(doubled && shells >= 2); i++)
         {
+            pilot.position = new Vector3(e.MuzzleWorld(0).x, -3f, 0f);
             EliteSystem.Step(Dt);
             if (!Alive(e)) break;
-            doubled |= e.Telling && mortar.Doubled;
+            if (e.Telling && mortar.Doubled) { doubled = true; bothSights |= e.SightShown && mortar.Sight2.Shown; gapOk = mortar.LaneB - mortar.LaneA > EmberLanes.MinGap; }
+            shells = Mathf.Max(shells, ActiveShots(e, EliteShots.Kind.Shell));
         }
-        Check("furnace at " + e.Hearts + " hearts (phase " + e.Script.Phase + "): a cast of two lanes with a gap between them (" + doubled + ")", e.Script.Phase == 2 && doubled);
+        Check("furnace at " + e.Hearts + " hearts (phase " + e.Script.Phase + "): a cast of two lanes with a gap (" + mortar.LaneA.ToString("0.0") + ", " + mortar.LaneB.ToString("0.0") + "), both drawn, two shells (" + shells + ")",
+              e.Script.Phase == 2 && doubled && bothSights && gapOk && shells >= 2);
+        e.AttackCooldown = 99f;
+        for (int i = 0; i < 2; i++) { Step(EliteShip.GraceSeconds + .2f); e.TakeHit(EliteDamage.Teleport, e.Position, 1); }
+        Step(.3f);
+        e.AttackCooldown = 0f;
+        bool both = false, bothRings = false, bothLane = false;
+        for (int i = 0; i < 30 * 40 && !(both && mortar.ShellFired); i++)
+        {
+            pilot.position = new Vector3(e.MuzzleWorld(0).x, -3f, 0f);
+            EliteSystem.Step(Dt);
+            if (!Alive(e)) break;
+            if (e.Telling && mortar.Shell && mortar.Bombs) { both = true; bothLane |= e.SightShown; bothRings |= mortar.Marks.Shown(0); }
+        }
+        Check("the last heart's cast (phase " + e.Script.Phase + "): a shell AND firebombs at once (" + mortar.Spots + " spots)", e.Script.Phase == 3 && both && bothLane && bothRings && mortar.ShellFired && mortar.Spots == 3);
         EliteSystem.Clear();
     }
 
