@@ -317,6 +317,7 @@ public static class TideEliteTest
         e = InPlay("tide_elite_riptide", new Vector2(0f, 3f));
         bb = (BreakerBrain)e.Brain;
         fa = (FoamWakeAttack)e.Attack;
+        Step(3f);   // (up to speed on its first pass)
         bool window = StepUntil(() => bb.Phase == BreakerBrain.Stage.Ride && bb.WantsAttack(Vector2.zero), 14f);
         Check("the attack window opens on a pass, with the whole trail of rings behind it (" + bb.Phase + ")", window);
         StartTell(e);

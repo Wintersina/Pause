@@ -202,6 +202,7 @@ public class BreakerBrain : EliteBrain
 {
     public enum Stage { Ride, Turn }
     public const float Amplitude = .5f, WaveLength = 3.4f, Behind = .45f, SpotStep = .5f, Bulge = .4f, Lead = 1.1f, Cruise = .62f, LaneStep = .85f;
+    public const float MinStep = .3f;
     public const int Spots = 3, MaxWake = 4;
     static readonly int[] LaneOrder = { 1, 2, 1, 0 };
     Stage stage = Stage.Ride;
@@ -251,10 +252,13 @@ public class BreakerBrain : EliteBrain
     // The wave line of this pass at world x.
     public float WaveY(float x) => laneY + Amplitude * Mathf.Sin((x - passX0) * dirX * 2f * Mathf.PI / WaveLength);
 
-    // Wake spot k of a cast: on the water of this pass, behind where the ship is now.
-    public Vector2 WakeSpot(int spotIndex)
+    // Wake spot k of an n-ring cast: on the water of this pass, behind where the ship is now, SpotStep apart (closer together when
+    // the pass is young; the last rings may lie back in the bulge by the rail).
+    public Vector2 WakeSpot(int spotIndex, int n)
     {
-        float along = (Pos.x - passX0) * dirX - Behind - SpotStep * spotIndex;   // (the last rings may lie back in the bulge by the rail)
+        float now = (Pos.x - passX0) * dirX;
+        float span = Mathf.Min(SpotStep * (n - 1), Mathf.Max(MinStep * (n - 1), now - Behind + Bulge * .75f));
+        float along = now - Behind - (n > 1 ? span * spotIndex / (n - 1) : 0f);
         float x = passX0 + dirX * along;
         return new Vector2(x, WaveY(x));
     }
@@ -341,7 +345,7 @@ public class BreakerBrain : EliteBrain
     {
         if (stage != Stage.Ride) return false;
         float now = (Pos.x - passX0) * dirX;
-        return now >= Behind + SpotStep * (PlannedSpots() - 1) - Bulge * .8f + .1f && dirX * Pos.x < PassEnd + .2f;
+        return now >= Behind + MinStep * (PlannedSpots() - 1) - Bulge * .75f + .05f && dirX * Pos.x < PassEnd + .2f;
     }
 
     public void CastDone() { Casts++; }
@@ -362,7 +366,7 @@ public class FoamWakeAttack : TideSpotAttack
     {
         var bb = ship.Brain as BreakerBrain;
         count = Mathf.Clamp(def.shotCount, 2, BreakerBrain.MaxWake);
-        for (int k = 0; k < count; k++) spot[k] = bb != null ? bb.WakeSpot(k) : ship.Position + Vector2.down * (1f + k * .8f);
+        for (int k = 0; k < count; k++) spot[k] = bb != null ? bb.WakeSpot(k, count) : ship.Position + Vector2.down * (1f + k * .8f);
     }
 
     protected override void Lay(int i, Vector2 target)
