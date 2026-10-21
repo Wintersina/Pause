@@ -365,6 +365,7 @@ public static class VerdantEliteTest
             });
             Check(key + ": keeps its distance outside committed attacks (closest " + min.ToString("0.0") + " u, lowest " + minY.ToString("0.0") + " u above the pilot, average " + (n > 0 ? sumY / n : 0f).ToString("0.0") + ", " + e.Attacks + " attacks)",
                   Alive(e) && n > 100 && min > 3f && e.Attacks >= 3);
+            if (!(Alive(e) && n > 100)) Debug.Log("[VEL] INFO  " + key + " alive " + Alive(e) + ", samples " + n);
         }
     }
 

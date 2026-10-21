@@ -491,6 +491,7 @@ public static class TideEliteTest
         bool sequence = true;
         for (int i = 0; i < n; i++) sequence &= litAt[i] >= 0f && (i == 0 || litAt[i] - litAt[i - 1] >= e.Def.shotInterval * .6f);
         Check("the columns strike ONE AFTER ANOTHER, " + e.Def.shotInterval + " s apart (first " + litAt[0].ToString("0.00") + " s, last " + litAt[n - 1].ToString("0.00") + " s)", sequence);
+        e.AttackCooldown = 99f;
         Step(1.5f);
         Check("nothing is left on the board afterwards (" + AttackHazard.ActiveCount + " hazards)", AttackHazard.ActiveCount == 0);
 
