@@ -46,7 +46,7 @@ public class LegacyExplosionFx : MonoBehaviour
     public static bool IsRockLike(GameObject go)
     {
         if (go == null) return true;
-        if (go.CompareTag("Astr") || go.GetComponent<SpaceAsteroidField>() != null) return true;
+        if (go.CompareTag("Astr")) return true;
         var def = EnemyIdentity.Of(go);
         if (def != null) return def.role == EnemyRole.Rock || def.role == EnemyRole.Mine;
         string n = go.name.ToLowerInvariant();
@@ -89,7 +89,7 @@ public class LegacyExplosionFx : MonoBehaviour
         if (dt <= 0f) return;
         clock += dt;
         // left behind: the world scrolls past it, same rule as FlipbookFx
-        if (TargetExplosion.WorldScrolling)
+        if (TargetExplosion.WorldScrolling || buttonClicks.playerDied)   // after the player dies the world is frozen but its last speed stays in moveBackGround.speed
             transform.position += Vector3.down * (moveBackGround.speed * dt * 30f);
         int f = Mathf.FloorToInt(clock * Fps);
         var fr = Frames();
