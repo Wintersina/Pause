@@ -676,9 +676,15 @@ public class enmiesOnBoard : MonoBehaviour {
         if (world != null && world.DistanceLeft > 0f && world.SecondsLeftInWorld <= DensityFinalStretch)
             return DensityFinalMultiplier;
 
-        int tick = Mathf.FloorToInt(elapsedFlightSeconds / DensityTickSeconds);
+        // The ramp runs on the level clock (0..120 across the level, however
+        // fast the start), so a fast start climbs through the same ramp
+        // sooner instead of sitting at its first steps; a stock start's clock
+        // is its seconds flown. (Past the level: seconds flown.)
+        float rampClock = elapsedFlightSeconds;
+        if (world != null && world.HasLevelClock && world.DistanceLeft > 0f) rampClock = world.LevelClockSeconds;
+        int tick = Mathf.FloorToInt(rampClock / DensityTickSeconds);
 
-        if (elapsedFlightSeconds <= DensityFirstMinute)
+        if (rampClock <= DensityFirstMinute)
         {
             int firstMinuteTicks = Mathf.RoundToInt(DensityFirstMinute / DensityTickSeconds); // 6
             return Mathf.Lerp(1f, DensityFirstMinuteCeiling, (float)tick / firstMinuteTicks);
@@ -694,7 +700,15 @@ public class enmiesOnBoard : MonoBehaviour {
     {
         // ... and EnemyDensity.RateScale: fewer, smarter enemies, cut harder the faster the board scrolls
         return Random.Range(range.x, range.y) / Mathf.Max(0.1f, DensityMultiplier() * LoopDifficulty.DensityScale)
-               / Mathf.Max(0.1f, EnemyDensity.RateScale(EnemyDensity.Hud) * PortalPressure.DensityScale);
+               / Mathf.Max(0.1f, EnemyDensity.RateScale(EnemyDensity.Hud) * PortalPressure.DensityScale)
+               / Mathf.Max(0.1f, RunFactor());
+    }
+
+    // A fast start's spawn make-up (EnemyDensity.RunLengthFactor); 1 without a world.
+    static float RunFactor()
+    {
+        var w = WorldManager.Instance;
+        return w != null ? w.SpawnRunFactor : 1f;
     }
 
     // The calm window's clock (Update; tests step it): a new world starts a
@@ -1091,6 +1105,7 @@ public class RailMineMount : MonoBehaviour, IMovementFootprint
                 if (y > row) return;                       // still coming down to the band
                 RideState = y >= row - HoldBand ? RidePhase.Holding : RidePhase.Skipped;
                 RideSeconds = 0f;
+                if (RideState == RidePhase.Holding) goto case RidePhase.Holding;   // ride from this very frame: counter-scroll at once, so the board's step never carries it past the row first (that overshoot, then the climb back, read as a jiggle)
                 break;
             }
             case RidePhase.Holding:
