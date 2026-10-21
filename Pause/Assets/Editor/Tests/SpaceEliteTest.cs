@@ -532,6 +532,7 @@ public static class SpaceEliteTest
         var e = InPlay("swooper", new Vector2(1.5f, 0f));
         var def = e.Def;
         var brain = (SwooperBrain)e.Brain;
+        e.EngageLeft = 9999f;   // (60 s is longer than its engagement: it would go home)
         Check("reaver does not roam: it flies a racetrack inside the view", !brain.Roams);
         bool onBoard = true, touchable = true;
         float near = 99f, topSpeed = 0f, maxX = 0f;
@@ -614,6 +615,7 @@ public static class SpaceEliteTest
         pilot.position = new Vector3(0f, -2.5f, 0f);
         e = InPlay("swooper", new Vector2(1.5f, 0f));
         brain = (SwooperBrain)e.Brain;
+        e.EngageLeft = 9999f;
         e.AttackCooldown = 99f;
         float v0 = 0f;
         Step(20f, () => v0 = Mathf.Max(v0, e.Velocity.magnitude));
@@ -1174,7 +1176,7 @@ public static class SpaceEliteTest
                     foreach (var v in sd.variants) found |= v.name == st.attack;
                     known &= found;
                 }
-            Check(k + "it moves by tokens and every beat names a variant it defines", tokens && known);
+            Check(k + "it moves by tokens (the Reaver flies its track by itself) and every beat names a variant it defines", (tokens || x.brain == "swooper") && known);
             bool exits = d.hurtHide && !d.armored;
             Check(k + "exit: " + (exits ? "the one scripted exit by the " + sd.lastExit : "none (armoured, it stays)"),
                   exits ? (sd.lastExit == "left" || sd.lastExit == "right" || sd.lastExit == "top") : (!d.hurtHide && sd.lastExit == "none"));
