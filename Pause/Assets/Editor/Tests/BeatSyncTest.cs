@@ -68,6 +68,14 @@ public static class BeatSyncTest
             Check(n + ": first beat inside the first beat", m.firstBeat >= 0f && m.firstBeat < 60f / m.bpm + .01f);
             if (clip != null) Check(n + ": duration matches the clip (" + m.duration + " vs " + clip.length + ")", Near(m.duration, clip.length, .1));
             Check(n + ": 4 beats a bar", m.beatsPerBar == 4);
+            // the fight starts the track on a bar line and reaches its first drop / peak soon after that start
+            Check(n + ": boss start beat " + m.bossStartBeat + " is a bar line", (m.bossStartBeat - m.downbeatBeat) % m.beatsPerBar == 0);
+            double startT = m.StartSeconds, dropT = -1;
+            if (m.sections != null)
+                foreach (var sec in m.sections)
+                    if ((sec.kind == "drop" || sec.kind == "peak") && sec.beat >= m.bossStartBeat) { dropT = m.TimeOfBeat(sec.beat) - startT; break; }
+            Check(n + ": first drop/peak " + dropT.ToString("0.0") + " s after the fight's music starts (<= 15 s Verdant, <= 30 s all)",
+                dropT >= 0 && dropT <= (n == "Verdant" ? 15.0 : 30.0));
             if (!m.steady)
             {
                 bool rising = m.beats != null && m.beats.Length > 100;
