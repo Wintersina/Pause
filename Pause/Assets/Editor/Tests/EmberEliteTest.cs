@@ -508,6 +508,8 @@ public static class EmberEliteTest
     {
         public List<int> slots = new List<int>();
         public bool inView = true, ring, ringLocked = true, through, flung, fast;
+        public int frames, outFrames;
+        public string outAt = "";
         public float circleLo = 99f, ringY = 99f, minToSpot = 99f;
         public HashSet<float> radii = new HashSet<float>();
         public int done;
@@ -534,6 +536,8 @@ public static class EmberEliteTest
             EliteSystem.Step(Dt);
             if (!Alive(e)) break;
             log.inView &= InView(e);
+            log.frames++;
+            if (!InView(e)) { log.outFrames++; if (log.outAt == "") log.outAt = e.Position + " " + e.State + " " + brain.Phase + " " + dive.DivePhase + " top " + EliteSystem.ViewTop + " zone " + e.ZoneTop; }
             if (brain.Phase == ScavengerBrain.Stage.Circle) { log.circleLo = Mathf.Min(log.circleLo, e.Position.y); log.radii.Add(brain.RadiusX); }
             if (e.Telling)
             {
@@ -574,7 +578,7 @@ public static class EmberEliteTest
 
         // hurt: the second dive of each pair is a fast one
         var h = VultureRun(1357, 4, true);
-        Check("phase 2: pairs of dives, the second a fast variant with a bigger fan (" + h.done + " dives, fast seen " + h.fast + ", in view " + h.inView + ")", h.fast && h.done >= 4 && h.inView);
+        Check("phase 2: pairs of dives, the second a fast variant with a bigger fan (" + h.done + " dives, fast seen " + h.fast + ", out of view " + h.outFrames + " of " + h.frames + " frames, first at " + h.outAt + ")", h.fast && h.done >= 4 && h.outFrames <= h.frames / 30);
     }
 
     // ---- Ash Wraith: ashling + ember_veil -------------------------------------------------
