@@ -86,6 +86,14 @@ public static class StarDustLedger
         PrefsSaver.MarkDirty();
     }
 
+    // Records dust spent outside the ledger (the death-screen upgrade offer,
+    // which writes the new balance to PlayerPrefs itself): lowers the baseline
+    // so the next absolute commit keeps the purchase instead of undoing it.
+    public static void Spend(float amount)
+    {
+        if (active && amount > 0f) baseline -= amount;
+    }
+
     // Writes and saves the run's balance. Safe to call any number of times.
     public static void Commit(int token)
     {
