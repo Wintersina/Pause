@@ -38,9 +38,6 @@ public static class EliteScriptTest
         // space
         "space_elite_rift_lancer",
         "space_elite_orbit_reaver",
-        // storm
-        "storm_elite_refinery_tender",
-        "storm_elite_skyhook_harrier",
         // tide
         "tide_elite_riptide",
         "tide_elite_bathyscaphe",
