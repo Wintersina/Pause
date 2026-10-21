@@ -4,7 +4,7 @@
   "world": "frost",
   "role": "cryo kiter",
   "codexId": "elite_frost_cryo_siren",
-  "lore": "A slim, skittish spine of a ship with a coolant dish for a crown, keeping its distance and hopping from perch to perch: it leaves the screen and a trail of rings shows where it will land. Its cryo orbs drift down on a blinking fuse and burst into a ring of shards, unless you shoot them first. Every third song is a beam, and when it is nearly done it sings two orbs at once.",
+  "lore": "A slim, skittish spine of a ship with a coolant dish for a crown, keeping its distance and working three perches in turn: it streaks across the board and a trail of rings shows where it will land. Its cryo orbs drift down on a blinking fuse and burst into a ring of shards, unless you shoot them first. The centre perch sings a beam; hurt, it sings two orbs at once, and on its last heart every song is a beam.",
   "brain": "hopper",
   "attack": "frost_bloom",
   "launchFrom": "cave,rigbay",
@@ -97,5 +97,86 @@
   "hurtHide": true,
   "hideSeconds": 3.5,
   "engageSeconds": 48,
-  "script": { "tempo": 1.2 }
+  "script": {
+    "tempo": 1.2,
+    "exitTell": 1.4,
+    "lastExit": "top",
+    "note": "sniper: perches 1 left, 2 right, 3 centre, a visible blink-trail hop between; one scripted exit over the top at the last heart",
+    "entrance": {
+      "kind": "swirl",
+      "seconds": 1.8,
+      "amp": 1.6
+    },
+    "phase1": {
+      "speed": 1.0,
+      "gap": 1.0,
+      "loop": [
+        {
+          "wait": 2.4,
+          "move": "perch:1",
+          "attack": ""
+        },
+        {
+          "wait": 2.4,
+          "move": "perch:2",
+          "attack": ""
+        },
+        {
+          "wait": 2.4,
+          "move": "perch:3",
+          "attack": "beam"
+        }
+      ]
+    },
+    "phase2": {
+      "speed": 1.1,
+      "gap": 0.95,
+      "loop": [
+        {
+          "wait": 2.2,
+          "move": "perch:2",
+          "attack": "twin"
+        },
+        {
+          "wait": 2.2,
+          "move": "perch:1",
+          "attack": "twin"
+        },
+        {
+          "wait": 2.2,
+          "move": "perch:3",
+          "attack": "beam"
+        }
+      ]
+    },
+    "last": {
+      "speed": 1.25,
+      "gap": 0.85,
+      "loop": [
+        {
+          "wait": 2.0,
+          "move": "perch:3",
+          "attack": "beam"
+        },
+        {
+          "wait": 1.8,
+          "move": "perch:1",
+          "attack": "beam"
+        },
+        {
+          "wait": 1.8,
+          "move": "perch:2",
+          "attack": "beam"
+        }
+      ]
+    },
+    "variants": [
+      {
+        "name": "twin"
+      },
+      {
+        "name": "beam"
+      }
+    ]
+  }
 }

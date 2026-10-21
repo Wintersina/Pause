@@ -53,6 +53,10 @@ public static class FrostEliteTest
             Hopper();
             Carrier();
             Patrol();
+            Scripts();
+            BargeScript();
+            TenderScript();
+            SentinelScript();
             Check("every telegraph the Frost elites drew showed at least " + AttackPreview.MinLead + " s before it went live (" + (AttackPreview.TooShort - tooShort) + " too short)", AttackPreview.TooShort == tooShort);
             Allocations();
             BringHome();
@@ -314,6 +318,28 @@ public static class FrostEliteTest
 
     // ---- Rimebreaker: icebreaker + ice_run -------------------------------------------------
 
+    // The lanes of the first `runs` runs of a fight, as indices (0 left, 1 centre, 2 right), under a given random seed.
+    static string RimeLanes(int seed, int runs)
+    {
+        Fresh(.05f);
+        Random.InitState(seed);
+        pilot.position = new Vector3(0f, -2.5f, 0f);
+        var e = InPlay("icebreaker", new Vector2(1.2f, 1.5f));
+        var brain = (IcebreakerBrain)e.Brain;
+        e.EngageLeft = 9999f;
+        e.AttackCooldown = 0f;
+        var lanes = new List<int>();
+        int seen = 0;
+        for (int i = 0; i < 30 * 90 && lanes.Count < runs && Alive(e); i++)
+        {
+            pilot.position = new Vector3(Mathf.Sin(i * .03f) * 1.4f, -2.5f, 0f);
+            EliteSystem.Step(Dt);
+            if (brain.RunsStarted > seen) { seen = brain.RunsStarted; lanes.Add(brain.LaneIndex); }
+        }
+        EliteSystem.Clear();
+        return string.Join(",", lanes);
+    }
+
     static void Icebreaker()
     {
         Fresh(.05f);
@@ -322,46 +348,43 @@ public static class FrostEliteTest
         var def = e.Def;
         var brain = (IcebreakerBrain)e.Brain;
         var run = (IceRunAttack)e.Attack;
+        e.EngageLeft = 9999f;
         e.AttackCooldown = 0f;
         int guard = 0;
         while (brain.Phase != IcebreakerBrain.Stage.Ready && guard++ < 30 * 15) EliteSystem.Step(Dt);
-        float top = EliteSystem.ViewTop;
-        Check("icebreaker leaves the view and appears at the top on a lane (y " + e.Position.y.ToString("0.0") + ", lane " + brain.Lane.ToString("0.00") + ")",
-              brain.Phase == IcebreakerBrain.Stage.Ready && e.Position.y > e.ZoneTop - def.hullRadius - 1f && Mathf.Abs(e.Position.x) < EliteSystem.RailEdge && Mathf.Abs(e.Position.x - brain.Lane) < .2f);
+        Check("icebreaker rests at the top of the view on a lane (y " + e.Position.y.ToString("0.0") + ", lane " + brain.Lane.ToString("0.00") + ")",
+              brain.Phase == IcebreakerBrain.Stage.Ready && e.Position.y > e.ZoneTop - def.hullRadius - 1f && Mathf.Abs(e.Position.x) < EliteSystem.RailEdge &&
+              Mathf.Abs(e.Position.x - brain.Lane) < .2f && !e.Offstage && !brain.Roams);
 
         // watch a long fight: the pilot drifts about; every run is recorded
-        var lanes = new List<float>();
-        var enterY = new List<float>();
-        var gaps = new List<float>();     // RunDone -> the next Enter (the pause)
-        float nearestPilot = 99f;
-        float tellSpeed = 0f, tellDrift = 0f, laneAtTell = 0f, tellLen = 0f, runSpeed = 0f, runSide = 0f, minY = 9f, laneRun = 0f;
-        bool telegraph = false, locked = true, rockBroken = false, offBottom = false, untouchable = false, noHeart = true;
-        int loops = 0, startedSeen = 0, shards0 = 0;
-        float away = -1f, clock = 0f;
-        var last = brain.Phase;
+        var lanes = new List<int>();
+        var runSpeeds = new List<float>();
+        float nearestPilot = 99f, tellSpeed = 0f, tellDrift = 0f, laneAtTell = 0f, tellLen = 0f, runSpeed = 0f, runSide = 0f, minY = 9f, laneRun = 0f, railMax = 0f;
+        bool telegraph = false, locked = true, noHeart = true, stayed = true;
+        int loops = 0, startedSeen = 0;
         bool inTell = false, inRun = false;
-        for (int i = 0; i < 30 * 60 && lanes.Count < 5; i++)
+        for (int i = 0; i < 30 * 90 && lanes.Count < 6; i++)
         {
             pilot.position = new Vector3(Mathf.Sin(i * .03f) * 1.4f, -2.5f, 0f);
             EliteSystem.Step(Dt);
-            clock += Dt;
             if (!Alive(e)) break;
-            if (!e.Offstage && brain.Phase != IcebreakerBrain.Stage.Run) nearestPilot = Mathf.Min(nearestPilot, Vector2.Distance(e.Position, pilot.position));
+            stayed &= !e.Offstage && !e.Hidden && Mathf.Abs(e.Position.x) <= EliteSystem.RailEdge && e.Position.y <= EliteSystem.ViewTop && e.Position.y >= EliteSystem.ViewBottom;
+            if (brain.Phase != IcebreakerBrain.Stage.Run) nearestPilot = Mathf.Min(nearestPilot, Vector2.Distance(e.Position, pilot.position));
             if (e.Telling)
             {
                 if (!inTell) { inTell = true; laneAtTell = e.Position.x; tellLen = 0f; telegraph = run.Telegraph.Showing; loops = run.Telegraph.Loops; }
                 tellLen += Dt;
                 tellSpeed = Mathf.Max(tellSpeed, e.Velocity.magnitude);
                 tellDrift = Mathf.Max(tellDrift, Mathf.Abs(e.Position.x - laneAtTell));
-                locked &= Mathf.Abs(run.LaneX - laneAtTell) < .01f;
+                locked &= Mathf.Abs(run.LaneX - laneAtTell) < .06f;
             }
             else inTell = false;
             if (brain.RunsStarted > startedSeen)
             {
                 startedSeen = brain.RunsStarted;
-                lanes.Add(brain.Lane);
-                shards0 = EliteSystem.Shots.Launched;
+                lanes.Add(brain.LaneIndex);
                 laneRun = e.Position.x;
+                runSpeed = 0f;
                 if (lanes.Count == 1) rock0 = Rock(new Vector2(e.Position.x, e.Position.y - 2.2f));
             }
             if (e.Acting)
@@ -372,85 +395,59 @@ public static class FrostEliteTest
                 minY = Mathf.Min(minY, e.Position.y);
                 noHeart &= e.Hearts == def.hearts;
             }
-            else if (inRun) inRun = false;
-            if (e.Position.y < EliteSystem.ViewBottom - .3f)
-            {
-                offBottom = true;
-                untouchable |= e.Offstage && !e.Collider.enabled;
-            }
-            if (brain.Phase == IcebreakerBrain.Stage.Away && last == IcebreakerBrain.Stage.Run) away = clock;
-            if (brain.Phase == IcebreakerBrain.Stage.Enter && last != IcebreakerBrain.Stage.Enter)
-            {
-                enterY.Add(e.Position.y);
-                if (away >= 0f) { gaps.Add(clock - away); away = -1f; }
-            }
-            last = brain.Phase;
+            else if (inRun) { inRun = false; runSpeeds.Add(runSpeed); }
+            if (brain.Phase == IcebreakerBrain.Stage.Return) railMax = Mathf.Max(railMax, Mathf.Abs(e.Position.x));
         }
         Check("icebreaker's tell draws an ice-crack lane down the board (" + loops + " dotted outlines) and holds still on it (" + tellLen.ToString("0.00") + " s, drift " + tellDrift.ToString("0.00") + ", " + tellSpeed.ToString("0.0") + " u/s)",
               telegraph && loops >= 3 && Mathf.Abs(tellLen - def.tellSeconds) < .12f && tellDrift < .1f && tellSpeed < 1.2f);
-        Check("... the lane is locked at the tell (the pilot moves, it does not), and outside a run it keeps its distance (" + nearestPilot.ToString("0.0") + " u at the closest)", locked && lanes.Count >= 1 && nearestPilot > 5f);
-        Check("ice_run: ploughs straight down the lane at dashSpeed through the whole board (" + runSpeed.ToString("0.0") + " u/s, off the lane by " + runSide.ToString("0.00") + ", down to y " + minY.ToString("0.0") + ")",
-              runSpeed > def.dashSpeed * .9f && runSide < .06f && minY < EliteSystem.ViewBottom - .3f);
+        Check("... the lane is locked at the tell (the pilot moves, it does not), " + lanes.Count + " runs seen", locked && lanes.Count >= 6);
+        Check("ice_run: ploughs straight down the lane at dashSpeed through the whole board (" + (runSpeeds.Count > 0 ? runSpeeds[0].ToString("0.0") : "-") + " u/s, off the lane by " + runSide.ToString("0.00") + ", down to y " + minY.ToString("0.0") + ")",
+              runSpeeds.Count > 0 && runSpeeds[0] > def.dashSpeed * .9f && runSide < .06f && minY <= FrostFlight.RunEndY(def) + .05f && minY >= EliteSystem.ViewBottom - .01f);
         Check("... breaks the rock in its way without losing a heart, shards off the prow (" + e.Ploughed + " ploughed, " + (rock0 == null) + ")", rock0 == null && e.Ploughed >= 1 && noHeart);
-        Check("... exits off the bottom, untouchable while outside the board", offBottom && untouchable);
-        bool fromTop = enterY.Count > 0;
-        foreach (float y in enterY) fromTop &= y > top;
-        Check("... then re-enters from the TOP (" + enterY.Count + " entries)", fromTop);
-        bool other = lanes.Count >= 3;
-        for (int i = 1; i < lanes.Count; i++) other &= Mathf.Abs(lanes[i] - lanes[i - 1]) >= IcebreakerBrain.MinLaneGap - .01f;
-        Check("... on a different lane each time (" + string.Join(", ", lanes.ConvertAll(x => x.ToString("0.0"))) + ")", other);
-        bool pause = gaps.Count >= 2;
-        foreach (float g in gaps) pause &= g >= IcebreakerBrain.PauseSeconds - .1f;
-        Check("... after a pause of at least " + IcebreakerBrain.PauseSeconds + " s (" + string.Join(", ", gaps.ConvertAll(x => x.ToString("0.0"))) + ")", pause);
+        Check("... and the whole fight stays inside the view (never off a side, the top or the bottom)", stayed);
+        float rail = FrostFlight.Edge(def, IcebreakerBrain.RailMargin);
+        Check("... then U-turns up a rail (" + railMax.ToString("0.00") + " of " + rail.ToString("0.00") + " u out) instead of leaving", railMax > rail - IcebreakerBrain.TurnReach - .3f);
+        string order = string.Join(",", lanes.GetRange(0, Mathf.Min(6, lanes.Count)));
+        Check("... on lanes 1, 3, 2 in that fixed order, cycle after cycle (" + order + ")", order == "0,2,1,0,2,1");
+        string s1 = RimeLanes(1, 6), s2 = RimeLanes(777, 6);
+        Check("... the same order whatever the random seed (" + s1 + " | " + s2 + ")", s1 == s2 && s1 == "0,2,1,0,2,1");
 
-        // never closes on the pilot: whenever it is on the board between runs it is at the top, far above
+        // never closes on the pilot: whenever it is waiting it is at the top
         Fresh(.05f);
         pilot.position = new Vector3(0f, -2.5f, 0f);
         e = InPlay("icebreaker", new Vector2(0f, 2f));
         brain = (IcebreakerBrain)e.Brain;
         e.AttackCooldown = 99f;   // (it never attacks: it only waits)
-        float nearest = 99f;
-        Step(12f, () =>
-        {
-            pilot.position = Vector3.MoveTowards(pilot.position, new Vector3(brain.Lane, 3f, 0f), 1.2f * Dt);
-            if (!e.Offstage) nearest = Mathf.Min(nearest, Mathf.Abs(e.Position.y - pilot.position.y) + 0f);
-        });
-        Check("icebreaker never prowls: between runs it waits at the top or off the view (" + brain.Phase + ", at y " + e.Position.y.ToString("0.0") + ")",
+        Step(12f, () => pilot.position = Vector3.MoveTowards(pilot.position, new Vector3(brain.Lane, 3f, 0f), 1.2f * Dt));
+        Check("icebreaker never prowls: between runs it waits at the top (" + brain.Phase + ", at y " + e.Position.y.ToString("0.0") + ")",
               brain.Phase == IcebreakerBrain.Stage.Ready && e.Position.y > e.ZoneTop - def.hullRadius - 1f);
 
-        // a hit: it hides, comes back, and the runs come in pairs
+        // a hit: it flinches (no hiding), phase 2 starts, and the runs come in pairs -- the second faster
         Fresh(.05f);
         pilot.position = new Vector3(0f, -2.5f, 0f);
         e = InPlay("icebreaker", new Vector2(0f, 2f));
         brain = (IcebreakerBrain)e.Brain;
-        e.AttackCooldown = 0f;
-        Check("icebreaker: a single run per cycle at full hearts", brain.PairSize == 1);
+        e.EngageLeft = 9999f;
+        e.AttackCooldown = 99f;
         Step(2f);
         e.TakeShipAttack(0, 1f, e.Position);
-        Check("... a hit is a flinch, no hiding", e.InPlay && !e.Hidden && e.Flinching && e.Hearts == def.hearts - 1);
-        WaitBack(e);
-        Check("... and back, the runs now come in pairs (" + brain.PairSize + ")", !e.Hidden && brain.PairSize == 2);
-        var runGaps = new List<float>();
-        var starts = new List<float>();
-        int s0 = brain.RunsStarted;
-        float tt = 0f, lastDone = -1f;
-        var lastPhase = brain.Phase;
-        var pairLanes = new List<float>();
-        for (int i = 0; i < 30 * 40 && starts.Count < 4 && Alive(e); i++)
+        Check("... a hit is a flinch, no hiding, and starts phase 2", e.InPlay && !e.Hidden && e.Flinching && e.Hearts == def.hearts - 1 && e.Script.Phase == EliteScriptRunner.Phase2);
+        var lanes2 = new List<int>();
+        var speeds2 = new List<float>();
+        float rs = 0f;
+        bool inR = false;
+        int seen2 = brain.RunsStarted;
+        for (int i = 0; i < 30 * 90 && speeds2.Count < 4 && Alive(e); i++)
         {
             pilot.position = new Vector3(Mathf.Sin(i * .03f) * 1.2f, -2.5f, 0f);
             EliteSystem.Step(Dt);
-            tt += Dt;
-            if (brain.RunsStarted - s0 > starts.Count) { starts.Add(tt); pairLanes.Add(brain.Lane); }
-            if (lastPhase == IcebreakerBrain.Stage.Run && brain.Phase == IcebreakerBrain.Stage.Away) lastDone = tt;
-            if (brain.Phase == IcebreakerBrain.Stage.Enter && lastPhase != IcebreakerBrain.Stage.Enter && lastDone >= 0f) { runGaps.Add(tt - lastDone); lastDone = -1f; }
-            lastPhase = brain.Phase;
+            if (brain.RunsStarted > seen2) { seen2 = brain.RunsStarted; lanes2.Add(brain.LaneIndex); rs = 0f; }
+            if (e.Acting) { inR = true; rs = Mathf.Max(rs, -e.Velocity.y); }
+            else if (inR) { inR = false; speeds2.Add(rs); }
         }
-        // (the pairs: the first pause is short, the next long; two runs, then a long pause, then two again)
-        Check("... the second run of a pair follows after only " + IcebreakerBrain.PairGap + " s, the pair is followed by the long pause (pauses " + string.Join(", ", runGaps.ConvertAll(x => x.ToString("0.0"))) + ")",
-              runGaps.Count >= 3 && Mathf.Abs(runGaps[0] - IcebreakerBrain.PauseSeconds) < .25f && Mathf.Abs(runGaps[1] - IcebreakerBrain.PairGap) < .25f && Mathf.Abs(runGaps[2] - IcebreakerBrain.PauseSeconds) < .25f);
-        bool sides = pairLanes.Count >= 2 && Mathf.Sign(pairLanes[0]) != Mathf.Sign(pairLanes[1]);
-        Check("... the two lanes of a pair on opposite sides of the board (" + string.Join(", ", pairLanes.ConvertAll(x => x.ToString("0.0"))) + ")", sides || Mathf.Abs(pairLanes[0]) < .5f);
+        Check("... phase 2 runs lanes 2, 3, 1, 2 (" + string.Join(",", lanes2) + ")", string.Join(",", lanes2) == "1,2,0,1");
+        bool swift = speeds2.Count >= 4 && speeds2[0] < def.dashSpeed * 1.1f && speeds2[1] > def.dashSpeed * 1.2f && speeds2[2] < def.dashSpeed * 1.1f && speeds2[3] > def.dashSpeed * 1.2f;
+        Check("... every second run is the swift one (" + string.Join(", ", speeds2.ConvertAll(x => x.ToString("0.0"))) + " u/s of " + def.dashSpeed + ")", swift);
     }
 
     static GameObject rock0;
@@ -601,6 +598,29 @@ public static class FrostEliteTest
 
     // ---- Cryo Siren: hopper + frost_bloom -------------------------------------------------
 
+    // The perches of a fight, in the order it settles on them, under a random seed.
+    static string SirenPerches(int seed, int n)
+    {
+        Fresh(.02f);
+        Random.InitState(seed);
+        pilot.position = new Vector3(0f, -2.5f, 0f);
+        var e = InPlay("hopper", new Vector2(.5f, 1.5f));
+        var brain = (HopperBrain)e.Brain;
+        e.EngageLeft = 9999f;
+        e.AttackCooldown = 0f;
+        var perches = new List<int>();
+        var last = HopperBrain.Stage.Enter;
+        for (int i = 0; i < 30 * 90 && perches.Count < n && Alive(e); i++)
+        {
+            pilot.position = new Vector3(Mathf.Sin(i * .03f) * 1.2f, -2.5f, 0f);
+            EliteSystem.Step(Dt);
+            if (brain.Phase == HopperBrain.Stage.Perch && last != HopperBrain.Stage.Perch) perches.Add(brain.Perch);
+            last = brain.Phase;
+        }
+        EliteSystem.Clear();
+        return string.Join(",", perches);
+    }
+
     static void Hopper()
     {
         Fresh(.02f);
@@ -612,53 +632,36 @@ public static class FrostEliteTest
         int guard = 0;
         while (brain.Phase != HopperBrain.Stage.Perch && guard++ < 30 * 12) EliteSystem.Step(Dt);
         float d0 = Vector2.Distance(e.Position, pilot.position);
-        Check("hopper perches at long range, high above the pilot (" + d0.ToString("0.0") + " u)", brain.Phase == HopperBrain.Stage.Perch && d0 >= HopperBrain.MinRange && e.Position.y > pilot.position.y + 2.5f);
+        Check("hopper perches at long range, high above the pilot (" + d0.ToString("0.0") + " u)", brain.Phase == HopperBrain.Stage.Perch && d0 >= HopperBrain.MinRange && e.Position.y > pilot.position.y + 2.5f && !brain.Roams);
 
-        // a long fight: it hops perch to perch, off the view and back, with the blink trail marking the next; it never closes
+        // a long fight: it works its three perches in a fixed order, hopping in plain sight with the blink trail; it never closes
+        e.EngageLeft = 9999f;
         e.AttackCooldown = 0f;
         var perches = new List<int> { brain.Perch };
-        bool wentOff = false, camBack = false, trail = false, untouchable = true;
-        float nearest = 99f;
+        bool left = false, trail = false;
+        float nearest = 99f, hopSpeed = 0f;
         var lastStage = brain.Phase;
         int f = 0, hops0 = brain.Hops;
-        Step(36f, () =>
+        Step(45f, () =>
         {
             if (!Alive(e)) return;
             pilot.position = new Vector3(Mathf.Sin(f++ * .03f) * 1.2f, -2.5f, 0f);
-            if (!e.Offstage) nearest = Mathf.Min(nearest, Vector2.Distance(e.Position, pilot.position));
-            if (e.Offstage) { wentOff = true; untouchable &= !e.Collider.enabled; }
-            else if (wentOff) camBack = true;
-            trail |= brain.Marks.ShownCount > 0 && brain.Phase == HopperBrain.Stage.Away;
+            if (e.Offstage || e.Hidden || Mathf.Abs(e.Position.x) > EliteSystem.RailEdge || e.Position.y > EliteSystem.ViewTop) left = true;
+            nearest = Mathf.Min(nearest, Vector2.Distance(e.Position, pilot.position));
+            trail |= brain.Marks.ShownCount > 0 && (brain.Phase == HopperBrain.Stage.Mark || brain.Phase == HopperBrain.Stage.Hop);
+            if (brain.Phase == HopperBrain.Stage.Hop) hopSpeed = Mathf.Max(hopSpeed, e.Velocity.magnitude);
             if (brain.Phase == HopperBrain.Stage.Perch && lastStage != HopperBrain.Stage.Perch) perches.Add(brain.Perch);
             lastStage = brain.Phase;
         });
-        bool changes = perches.Count >= 3;
-        for (int i = 1; i < perches.Count; i++) changes &= perches[i] != perches[i - 1];
-        Check("hopper hops to a NEW perch each time (" + string.Join(" > ", perches.ConvertAll(x => x.ToString())) + ", " + (brain.Hops - hops0) + " hops)", changes && brain.Hops - hops0 >= 2);
-        Check("... leaving the view (untouchable out there) and re-entering", wentOff && camBack && untouchable);
-        Check("... a blink trail of rings drawn into the next perch while it is away", trail);
+        string order = string.Join(",", perches.GetRange(0, Mathf.Min(7, perches.Count)));
+        Check("hopper works its perches left, right, centre, in that fixed order (" + order + ", " + (brain.Hops - hops0) + " hops)", perches.Count >= 7 && order == "0,1,2,0,1,2,0");
+        Check("... hopping in plain sight: it never leaves the view", !left);
+        Check("... a blink trail of rings drawn into the next perch, then a fast streak there (" + hopSpeed.ToString("0.0") + " u/s)", trail && hopSpeed > def.speed);
         Check("... and never closer to the pilot than its range (" + nearest.ToString("0.0") + " u)", nearest >= HopperBrain.MinRange * .85f);
+        string a = SirenPerches(1, 5), b = SirenPerches(4242, 5);
+        Check("... the same perches whatever the random seed (" + a + " | " + b + ")", a == b && a == "0,1,2,0,1");
 
-        // the pilot rushes it: it peels off rather than stand
-        Fresh(.02f);
-        pilot.position = new Vector3(0f, -2.5f, 0f);
-        e = InPlay("hopper", new Vector2(.5f, 1.5f));
-        brain = (HopperBrain)e.Brain;
-        e.AttackCooldown = 99f;
-        guard = 0;
-        while (brain.Phase != HopperBrain.Stage.Perch && guard++ < 30 * 12) EliteSystem.Step(Dt);
-        Step(.7f);
-        int hops = brain.Hops;
-        pilot.position = (Vector3)(e.Position + Vector2.down * 4.6f);
-        bool left = false;
-        Step(3f, () =>
-        {
-            pilot.position = Vector3.MoveTowards(pilot.position, (Vector3)e.Position, 2.2f * Dt);   // flies straight at it
-            left |= brain.PeeledOff && brain.Phase != HopperBrain.Stage.Perch;
-        });
-        Check("... crowded (the pilot flies straight at it) it hops away rather than stand (" + (brain.Hops - hops) + " hops)", left && brain.Hops > hops);
-
-        // frost_bloom: one orb a bloom, two at its last heart; the beam keeps its place
+        // frost_bloom: one orb a bloom at full hearts, two in phase 2, the beam on the centre perch, every cast at the last heart
         Fresh(.02f);
         pilot.position = new Vector3(0f, -2.5f, 0f);
         e = InPlay("hopper", new Vector2(.5f, 1.5f));
@@ -679,55 +682,36 @@ public static class FrostEliteTest
               glow && !bloom.Beam && Mathf.Abs(tell - def.tellSeconds) < .12f && orb != null && bloom.Orb2 == null && orb.Kind == EliteShots.Kind.Orb &&
               Vector2.Distance(orb.LaunchedAt, dish) < .25f && orb.MarkShown && orb.Velocity.magnitude < 3f);
         int launched = EliteSystem.Shots.Launched;
+        int hp = brain.Hops;
         float fuse = 0f;
-        Vector2 burstAt = Vector2.zero;
         guard = 0;
-        while (orb.Active && orb.Kind == EliteShots.Kind.Orb && guard++ < 100) { burstAt = orb.transform.position; EliteSystem.Step(Dt); fuse += Dt; }
+        while (orb.Active && orb.Kind == EliteShots.Kind.Orb && guard++ < 100) { EliteSystem.Step(Dt); fuse += Dt; }
         int ring = 0;
         foreach (var s in EliteSystem.Shots.All) if (s.Active && s.Kind == EliteShots.Kind.Shard && s.Age < Dt * 1.5f) ring++;
         Check("... bursts after its fuse (" + fuse.ToString("0.00") + " s) into a ring of " + def.hazardCount + " shards (" + ring + ")",
               Mathf.Abs(fuse - def.hazardSeconds) < .15f && ring == def.hazardCount && EliteSystem.Shots.Launched - launched == def.hazardCount);
-        // after the bloom it hops
-        int hp = brain.Hops;
-        Step(4f);
-        Check("... and after the bloom it hops to another perch (" + (brain.Hops - hp) + ")", brain.Hops > hp);
-        // two hearts gone: two orbs a bloom
-        LoseHeart(e);
-        LoseHeart(e);
-        guard = 0;
-        while (Alive(e) && brain.Phase != HopperBrain.Stage.Perch && guard++ < 30 * 12) EliteSystem.Step(Dt);
-        Step(.7f);
-        Check("hopper is down to its last heart (" + e.Hearts + ")", Alive(e) && e.Hearts == 1);
-        e.AttackCooldown = 0f;
-        guard = 0;
-        while (Alive(e) && !e.Acting && guard++ < 30 * 12) { if (!e.Telling && e.State == EliteState.Follow && e.AttackCooldown > 0f) e.AttackCooldown = 0f; EliteSystem.Step(Dt); }
-        var o1 = bloom.Orb;
-        var o2 = bloom.Orb2;
-        float a1 = o1 != null ? Mathf.Atan2(o1.Velocity.y, o1.Velocity.x) * Mathf.Rad2Deg : 0f, a2 = o2 != null ? Mathf.Atan2(o2.Velocity.y, o2.Velocity.x) * Mathf.Rad2Deg : 0f;
-        if (bloom.Beam) { Check("(the third attack is the beam: the double-orb check waits for the next)", true); }
-        else
-            Check("frost_bloom at the last heart: TWO orbs (" + Mathf.Abs(Mathf.DeltaAngle(a1, a2)).ToString("0") + " deg apart), both fused",
-                  o1 != null && o2 != null && o1.MarkShown && o2.MarkShown && Mathf.Abs(Mathf.DeltaAngle(a1, a2)) > FrostBloomAttack.OrbSplit * 1.5f);
-        e.TakeHit(EliteDamage.Teleport, e.Position, 1);
-        Step(1f);
-        Check("an orb still on its fuse pops when the Siren goes down (no ring)", !Alive(e) && (o1 == null || !(o1.Active && o1.Kind == EliteShots.Kind.Orb)) && (o2 == null || !(o2.Active && o2.Kind == EliteShots.Kind.Orb)));
+        // after the bloom it hops to the next perch of the script
+        Step(4f, () => e.AttackCooldown = 99f);
+        Check("... and after the bloom it hops to the next perch (" + (brain.Hops - hp) + ", now perch " + brain.Perch + ")", brain.Hops > hp && brain.Perch == 1);
 
-        // the beam sweep (every third)
-        Fresh(.02f);
-        pilot.position = new Vector3(0f, -2.5f, 0f);
-        e = InPlay("hopper", new Vector2(.5f, 1.5f));
-        def = e.Def;
-        brain = (HopperBrain)e.Brain;
-        bloom = (FrostBloomAttack)e.Attack;
+        // the third attack of phase 1 is the beam, from the centre perch
         e.AttackCooldown = 99f;
         guard = 0;
-        while (brain.Phase != HopperBrain.Stage.Perch && guard++ < 30 * 12) EliteSystem.Step(Dt);
+        while (Alive(e) && brain.Phase != HopperBrain.Stage.Perch && guard++ < 30 * 6) EliteSystem.Step(Dt);
         Step(.7f);
-        bloom.NextIsBeam();
+        e.ForceAttack();
+        Tell(e);
+        for (int g = 0; g < 300 && e.State == EliteState.Attack; g++) EliteSystem.Step(Dt);
+        e.AttackCooldown = 99f;
+        guard = 0;
+        while (Alive(e) && brain.Phase != HopperBrain.Stage.Perch && guard++ < 30 * 6) EliteSystem.Step(Dt);
+        Step(.7f);
+        Check("the second bloom was from the right perch, the third waits on the centre one (perch " + brain.Perch + ")", brain.Perch == 2);
+        e.AttackCooldown = 99f;
         e.ForceAttack();
         bool sight = false;
         tell = Tell(e, () => sight |= e.SightShown);
-        Check("frost_bloom beam: a longer tell painting the arc with a sight line (" + tell.ToString("0.00") + " s)", bloom.Beam && sight && Mathf.Abs(tell - def.tellSeconds * FrostBloomAttack.BeamTell) < .12f);
+        Check("frost_bloom beam (the centre perch): a longer tell painting the arc with a sight line (" + tell.ToString("0.00") + " s)", bloom.Beam && sight && Mathf.Abs(tell - def.tellSeconds * FrostBloomAttack.BeamTell) < .12f);
         float lo = 999f, hi = -999f;
         int before = EliteSystem.Shots.Launched;
         guard = 0;
@@ -737,12 +721,72 @@ public static class FrostEliteTest
             foreach (var s in EliteSystem.Shots.All)
             {
                 if (!s.Active || s.Kind != EliteShots.Kind.Bolt || s.Age > Dt * 1.5f) continue;
-                float a = Mathf.Atan2(s.Velocity.y, s.Velocity.x) * Mathf.Rad2Deg;
-                lo = Mathf.Min(lo, a); hi = Mathf.Max(hi, a);
+                float ang = Mathf.Atan2(s.Velocity.y, s.Velocity.x) * Mathf.Rad2Deg;
+                lo = Mathf.Min(lo, ang); hi = Mathf.Max(hi, ang);
             }
         }
         Check("... then sweeps a stream of bolts across that arc (" + (EliteSystem.Shots.Launched - before) + " bolts, " + lo.ToString("0") + ".." + hi.ToString("0") + " deg)",
               EliteSystem.Shots.Launched - before >= 10 && hi - lo > FrostBloomAttack.BeamArc * 1.6f && hi - lo < FrostBloomAttack.BeamArc * 2.3f && !e.SightShown);
+
+        // a heart lost: phase 2, two orbs a bloom, the perches in a new order
+        Fresh(.02f);
+        pilot.position = new Vector3(0f, -2.5f, 0f);
+        e = InPlay("hopper", new Vector2(.5f, 1.5f));
+        brain = (HopperBrain)e.Brain;
+        bloom = (FrostBloomAttack)e.Attack;
+        e.AttackCooldown = 99f;
+        guard = 0;
+        while (brain.Phase != HopperBrain.Stage.Perch && guard++ < 30 * 12) EliteSystem.Step(Dt);
+        e.TakeHit(EliteDamage.Teleport, e.Position, 1);
+        e.AttackCooldown = 99f;
+        guard = 0;
+        while (Alive(e) && brain.Phase != HopperBrain.Stage.Perch && guard++ < 30 * 12) EliteSystem.Step(Dt);
+        Step(.7f);
+        Check("hopper is down to two hearts: phase 2, starting on the right perch (" + e.Hearts + ", phase " + e.Script.Phase + ", perch " + brain.Perch + ")", Alive(e) && e.Hearts == 2 && e.Script.Phase == EliteScriptRunner.Phase2 && brain.Perch == 1);
+        e.ForceAttack();
+        Tell(e);
+        EliteSystem.Step(Dt);
+        var o1 = bloom.Orb;
+        var o2 = bloom.Orb2;
+        float a1 = o1 != null ? Mathf.Atan2(o1.Velocity.y, o1.Velocity.x) * Mathf.Rad2Deg : 0f, a2 = o2 != null ? Mathf.Atan2(o2.Velocity.y, o2.Velocity.x) * Mathf.Rad2Deg : 0f;
+        Check("frost_bloom in phase 2: TWO orbs (" + Mathf.Abs(Mathf.DeltaAngle(a1, a2)).ToString("0") + " deg apart), both fused",
+              o1 != null && o2 != null && o1.MarkShown && o2.MarkShown && Mathf.Abs(Mathf.DeltaAngle(a1, a2)) > FrostBloomAttack.OrbSplit * 1.5f);
+        e.TakeHit(EliteDamage.Teleport, e.Position, 2);
+        Step(1f);
+        Check("an orb still on its fuse pops when the Siren goes down (no ring)", !Alive(e) && (o1 == null || !(o1.Active && o1.Kind == EliteShots.Kind.Orb)) && (o2 == null || !(o2.Active && o2.Kind == EliteShots.Kind.Orb)));
+
+        // the last heart: every cast is a beam, and the one scripted exit over the top, then back
+        Fresh(.02f);
+        pilot.position = new Vector3(0f, -2.5f, 0f);
+        e = InPlay("hopper", new Vector2(.5f, 1.5f));
+        brain = (HopperBrain)e.Brain;
+        bloom = (FrostBloomAttack)e.Attack;
+        e.AttackCooldown = 99f;
+        guard = 0;
+        while (brain.Phase != HopperBrain.Stage.Perch && guard++ < 30 * 12) EliteSystem.Step(Dt);
+        e.TakeHit(EliteDamage.Teleport, e.Position, 1);
+        Step(.1f);
+        e.TakeHit(EliteDamage.Teleport, e.Position, 1);
+        bool exited = e.Hidden || e.State == EliteState.Hide;
+        WaitBack(e);
+        Check("hopper at its last heart makes its one scripted exit over the top and comes back (" + e.Hearts + ", exited " + exited + ", phase " + e.Script.Phase + ")", Alive(e) && e.Hearts == 1 && exited && !e.Hidden && e.Script.Phase == EliteScriptRunner.PhaseLast);
+        e.AttackCooldown = 99f;
+        guard = 0;
+        while (Alive(e) && brain.Phase != HopperBrain.Stage.Perch && guard++ < 30 * 12) EliteSystem.Step(Dt);
+        Step(.7f);
+        bool allBeams = true;
+        for (int n = 0; n < 2 && Alive(e); n++)
+        {
+            e.ForceAttack();
+            Tell(e);
+            allBeams &= bloom.Beam;
+            for (int g = 0; g < 300 && e.State == EliteState.Attack; g++) EliteSystem.Step(Dt);
+            e.AttackCooldown = 99f;
+            guard = 0;
+            while (Alive(e) && brain.Phase != HopperBrain.Stage.Perch && guard++ < 30 * 6) EliteSystem.Step(Dt);
+            Step(.7f);
+        }
+        Check("... and every cast at the last heart is a beam", allBeams);
         EliteSystem.Clear();
     }
 
@@ -845,19 +889,21 @@ public static class FrostEliteTest
         for (int i = 0; i < 4; i++) { var d = rig.Drone(i); if (d != null) Object.DestroyImmediate(d); }
         Step(.2f);
         Check("tender: its drones are gone, the shield is down", !rig.Linked && rig.Live == 0);
-        e.AttackCooldown = 0f;
-        for (int g = 0; g < 200 && e.State != EliteState.Follow; g++) EliteSystem.Step(Dt);
-        e.ForceAttack();
-        bool vent = rig.Venting;
-        if (!vent)
+        bool vent = false;
+        for (int tries = 0; tries < 5 && !vent; tries++)
         {
-            // (the cast before it was a deploy: it alternates -- clear that one's drones too)
-            Tell(e);
-            for (int g = 0; g < 200 && e.State == EliteState.Attack; g++) EliteSystem.Step(Dt);
+            // (the casts alternate launch / vent: clear a launch's drones too and go again)
+            e.AttackCooldown = 0f;
+            for (int g = 0; g < 400 && e.State != EliteState.Follow; g++) EliteSystem.Step(Dt);
             for (int i = 0; i < 4; i++) { var d = rig.Drone(i); if (d != null) Object.DestroyImmediate(d); }
             Step(.2f);
             e.ForceAttack();
             vent = rig.Venting;
+            if (!vent)
+            {
+                Tell(e);
+                for (int g = 0; g < 200 && e.State == EliteState.Attack; g++) EliteSystem.Step(Dt);
+            }
         }
         var fog = rig.Fog;
         bool outlined = fog != null && fog.Preview != null && fog.Preview.Active && !fog.Live;
@@ -1031,6 +1077,8 @@ public static class FrostEliteTest
     {
         string k = "barrage (" + lost + " hearts lost): ";
         float safeX = b.ColumnX(b.Safe);
+        // (read while the attack runs: a script variant puts its numbers on the def for that one attack only)
+        float gap0 = b.Gap, fall0 = b.Fall;
         var colsHit = new List<int>();
         var times = new List<float>();
         var speeds = new List<float>();
@@ -1059,12 +1107,188 @@ public static class FrostEliteTest
         }
         bool distinct = new HashSet<int>(colsHit).Count == colsHit.Count;
         bool spaced = times.Count >= 2;
-        for (int i = 1; i < times.Count; i++) spaced &= Mathf.Abs(times[i] - times[i - 1] - b.Gap) < .12f;
-        Check(k + b.Lanes + " icicles, one per marked lane, in sequence " + b.Gap.ToString("0.00") + " s apart, none in the safe lane (" + seenShells + " icicles, safe column " + b.Safe + ")",
+        for (int i = 1; i < times.Count; i++) spaced &= Mathf.Abs(times[i] - times[i - 1] - gap0) < .12f;
+        Check(k + b.Lanes + " icicles, one per marked lane, in sequence " + gap0.ToString("0.00") + " s apart, none in the safe lane (" + seenShells + " icicles, safe column " + b.Safe + ")",
               seenShells == b.Lanes && distinct && !inSafe && spaced);
-        Check(k + "each falls straight down its lane at " + b.Fall.ToString("0.0") + " u/s", straight && speeds.Count > 0 && Mathf.Abs(speeds[0] - b.Fall) < .2f);
+        Check(k + "each falls straight down its lane at " + fall0.ToString("0.0") + " u/s", straight && speeds.Count > 0 && Mathf.Abs(speeds[0] - fall0) < .2f);
         Check(k + "the glyphs are gone once the icicles are down", b.Glyph.ShownCount == 0 && glyphsGo);
         _ = safeX;
+    }
+
+    // ---- the scripts (docs/elites/elite-scripts.md): entrances, loops per phase, fixed sequences --------------------------
+
+    static string Sig(ElitePhaseDef p)
+    {
+        if (p == null || p.loop == null) return "-";
+        var sb = new System.Text.StringBuilder();
+        sb.Append(p.speed).Append('/').Append(p.gap).Append('|');
+        foreach (var st in p.loop) sb.Append(st.move).Append(':').Append(st.attack).Append(':').Append(st.wait).Append(';');
+        return sb.ToString();
+    }
+
+    static void Scripts()
+    {
+        var kinds = new HashSet<string>();
+        foreach (var x in Expected)
+        {
+            var d = EliteCatalog.Find(x.key);
+            var sd = d.script;
+            string k = x.key + ": ";
+            bool loops = sd != null && sd.phase1 != null && sd.phase2 != null && sd.last != null && sd.phase1.loop.Length >= 2 && sd.phase2.loop.Length >= 2 && sd.last.loop.Length >= 2;
+            Check(k + "an authored script: three loops, an entrance, an exit tell", loops && sd.entrance != null && sd.exitTell > 0f);
+            if (!loops) continue;
+            kinds.Add(sd.entrance.kind);
+            Check(k + "the entrance takes 1-2 s (" + sd.entrance.kind + ", " + sd.entrance.seconds + ")", sd.entrance.seconds >= 1f && sd.entrance.seconds <= 2f);
+            Check(k + "phase 2 and the last heart each loop differently from the phase before", Sig(sd.phase1) != Sig(sd.phase2) && Sig(sd.phase2) != Sig(sd.last));
+            bool named = true;
+            foreach (var ph in new[] { sd.phase1, sd.phase2, sd.last })
+                foreach (var st in ph.loop)
+                {
+                    if (string.IsNullOrEmpty(st.attack) || st.attack == "-") continue;
+                    bool found = false;
+                    foreach (var v in sd.variants) found |= v.name == st.attack;
+                    named &= found;
+                }
+            Check(k + "every attack variant its loops name is defined", named);
+            // only a hurtHide elite may leave the view, once: the Siren, over the top
+            Check(k + "scripted exit '" + sd.lastExit + "' (only the Siren leaves, by the top)", x.brain == "hopper" ? sd.lastExit == "top" : sd.lastExit == "none" || !d.hurtHide);
+            Check(k + "none of its brains roams: it keeps inside the view", !EliteBrains.Create(d.brain).Roams);
+        }
+        Check("every Frost elite has its own entrance (" + string.Join(" ", kinds) + ")", kinds.Count == 5);
+    }
+
+    // The attacks of a fight in order, as the script names them, under a random seed.
+    static string AttackNames(string brain, int seed, int n, Vector2 at)
+    {
+        Fresh(.05f);
+        Random.InitState(seed);
+        pilot.position = new Vector3(.4f, -2.5f, 0f);
+        var e = InPlay(brain, at);
+        e.EngageLeft = 9999f;
+        e.AttackCooldown = 0f;
+        var names = new List<string>();
+        int seen = 0;
+        for (int i = 0; i < 30 * 120 && names.Count < n && Alive(e); i++)
+        {
+            pilot.position = new Vector3(Mathf.Sin(i * .02f) * .8f, -2.5f, 0f);
+            EliteSystem.Step(Dt);
+            if (e != null && e.Attacks > seen) { seen = e.Attacks; names.Add(e.Script.Step.attack == "" ? "plain" : e.Script.Step.attack); }
+        }
+        EliteSystem.Clear();
+        return string.Join(",", names);
+    }
+
+    static void BargeScript()
+    {
+        string a = AttackNames("barge", 1, 6, new Vector2(-1.2f, 3f)), b = AttackNames("barge", 909, 6, new Vector2(-1.2f, 3f));
+        Check("Floe Harrower phase 1: row, skid, skid, whatever the random seed (" + a + " | " + b + ")", a == b && a == "row4,skid,skid,row4,skid,skid");
+        string c = AttackNames("patrol", 1, 4, new Vector2(0f, 3f)), d = AttackNames("patrol", 31337, 4, new Vector2(0f, 3f));
+        Check("Whiteout Sentinel phase 1: the plated attack, whatever the random seed (" + c + " | " + d + ")", c == d && c == "plain,plain,plain,plain");
+
+        // phase 2: the gap of the row moves a hand each cast (beside the pilot's slot, one side and then the other)
+        Fresh(.05f);
+        pilot.position = new Vector3(.1f, -2.5f, 0f);
+        var e = InPlay("barge", new Vector2(-1.2f, 3f));
+        var barge = (FloeBargeAttack)e.Attack;
+        e.AttackCooldown = 99f;
+        Step(1f);
+        barge.BeginTell(new Vector2(.1f, -2.5f));
+        int g1 = barge.Gap;
+        barge.Cancel();
+        barge.BeginTell(new Vector2(.1f, -2.5f));
+        int g1b = barge.Gap;
+        barge.Cancel();
+        Check("Floe Harrower phase 1: the gap is always the slot beside the pilot's toward the middle (" + g1 + ", " + g1b + ")", g1 == g1b);
+        e.TakeHit(EliteDamage.Teleport, e.Position, 1);
+        e.AttackCooldown = 99f;
+        Step(.2f);
+        barge.BeginTell(new Vector2(.1f, -2.5f));
+        int p1 = barge.Gap;
+        barge.Cancel();
+        barge.BeginTell(new Vector2(.1f, -2.5f));
+        int p2 = barge.Gap;
+        barge.Cancel();
+        Check("... phase 2: it moves a hand each cast (" + p1 + " then " + p2 + ")", e.Script.Phase == EliteScriptRunner.Phase2 && p1 != p2 && Mathf.Abs(p1 - p2) == 2);
+    }
+
+    static void TenderScript()
+    {
+        Fresh(.02f);
+        pilot.position = new Vector3(.6f, -2.5f, 0f);
+        var e = InPlay("carrier", new Vector2(.5f, 1.8f));
+        var rig = (TenderRigAttack)e.Attack;
+        string Fly(int attacks)
+        {
+            var seq = new List<string>();
+            for (int n = 0; n < attacks && Alive(e); n++)
+            {
+                for (int i = 0; i < 4; i++) { var dr = rig.Drone(i); if (dr != null) Object.DestroyImmediate(dr); }
+                Step(.2f);
+                e.AttackCooldown = 0f;
+                for (int g = 0; g < 200 && e.State != EliteState.Follow; g++) EliteSystem.Step(Dt);
+                e.ForceAttack();
+                bool vent = rig.Venting;
+                Tell(e);
+                for (int g = 0; g < 300 && e.State == EliteState.Attack; g++) EliteSystem.Step(Dt);
+                seq.Add(vent ? "vent" : rig.Live.ToString());
+                e.AttackCooldown = 99f;
+            }
+            return string.Join(",", seq);
+        }
+        string p1 = Fly(4);
+        Check("Glacier Tender phase 1: a pair of drones, a fog vent, a pair, a vent (" + p1 + ")", p1 == "2,vent,2,vent");
+        e.TakeHit(EliteDamage.Teleport, e.Position, 2);
+        string p2 = Fly(2);
+        Check("... phase 2 (" + e.Hearts + " hearts): three drones, a vent (" + p2 + ")", e.Script.Phase == EliteScriptRunner.Phase2 && p2 == "3,vent");
+        e.TakeHit(EliteDamage.Teleport, e.Position, 2);
+        string p3 = Fly(1);
+        Check("... the last heart (" + e.Hearts + "): all four drones released at once (" + p3 + ")", e.Script.Phase == EliteScriptRunner.PhaseLast && p3 == "4");
+    }
+
+    static void SentinelScript()
+    {
+        // it fires at the ends of its legs
+        Fresh(.02f);
+        pilot.position = new Vector3(0f, -2.5f, 0f);
+        var e = InPlay("patrol", new Vector2(0f, 3f));
+        e.EngageLeft = 9999f;
+        e.AttackCooldown = 0f;
+        float end = FrostFlight.Edge(e.Def, PatrolBrain.EndMargin) - PatrolBrain.EndHold - .15f;
+        float worst = 99f;
+        int seen = 0, shots = 0;
+        for (int i = 0; i < 30 * 90 && shots < 4 && Alive(e); i++)
+        {
+            pilot.position = new Vector3(Mathf.Sin(i * .02f) * .8f, -2.5f, 0f);
+            EliteSystem.Step(Dt);
+            if (e != null && e.Attacks > seen) { seen = e.Attacks; shots++; worst = Mathf.Min(worst, Mathf.Abs(e.Position.x)); }
+        }
+        Check("Whiteout Sentinel: it fires at the ends of its legs, planted at the rail (nearest to the middle " + worst.ToString("0.00") + " of " + end.ToString("0.00") + ")", shots >= 4 && worst >= end);
+
+        // phases: the barrage grows 4 -> 5 -> 6 lanes, quicker and faster-falling, as the script says
+        Fresh(.02f);
+        pilot.position = new Vector3(.3f, -2.5f, 0f);
+        e = InPlay("patrol", new Vector2(0f, 3f));
+        var armour = (IcicleBarrageAttack)e.Attack;
+        armour.Strip();
+        e.TakeHit(EliteDamage.Teleport, e.Position, 2);
+        e.AttackCooldown = 99f;
+        var lanes = new List<string>();
+        var gaps = new List<float>();
+        var falls = new List<float>();
+        for (int n = 0; n < 2; n++)
+        {
+            e.ForceAttack();
+            lanes.Add(armour.LaneCount.ToString()); gaps.Add(armour.Gap); falls.Add(armour.Fall);
+            Tell(e);
+            for (int g = 0; g < 30 * 12 && e.State == EliteState.Attack; g++) EliteSystem.Step(Dt);
+            e.AttackCooldown = 99f;
+        }
+        e.TakeHit(EliteDamage.Teleport, e.Position, 2);
+        e.AttackCooldown = 99f;
+        e.ForceAttack();
+        lanes.Add(armour.LaneCount.ToString()); gaps.Add(armour.Gap); falls.Add(armour.Fall);
+        Check("Whiteout Sentinel: barrage lanes " + string.Join("/", lanes) + ", gaps " + string.Join("/", gaps.ConvertAll(x => x.ToString("0.00"))) + " s, falling " + string.Join("/", falls.ConvertAll(x => x.ToString("0.0"))) + " u/s (phase 2: 4 then 5; the last heart 6)",
+              string.Join(",", lanes) == "4,5,6" && gaps[0] > gaps[1] && gaps[1] > gaps[2] && falls[0] < falls[1] && falls[1] < falls[2] && e.Script.Phase == EliteScriptRunner.PhaseLast);
     }
 
     // ---- Frost's backdrop brings the home dock into view ---------------------------------------

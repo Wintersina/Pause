@@ -4,7 +4,7 @@
   "world": "frost",
   "role": "icebreaker runs",
   "codexId": "elite_frost_rimebreaker",
-  "lore": "A compact icebreaker in rime-steel plate that clears shipping lanes by ramming straight through them. It draws a crack down one lane of the ice, then ploughs the whole board along it, rocks and all, and is gone off the bottom before it comes round on another. Hurt it and it hides, then runs in pairs.",
+  "lore": "A compact icebreaker in rime-steel plate that clears shipping lanes by ramming straight through them. It draws a crack down one lane of the ice, then ploughs the whole board along it, rocks and all, and swings back up the rail to come round on the next. Hurt it and it runs in pairs.",
   "brain": "icebreaker",
   "attack": "ice_run",
   "launchFrom": "icebreaker,hangar",
@@ -95,5 +95,107 @@
   "hurtHide": true,
   "hideSeconds": 3.5,
   "engageSeconds": 42,
-  "script": { "tempo": 0.8 }
+  "script": {
+    "tempo": 0.8,
+    "exitTell": 1.4,
+    "lastExit": "none",
+    "note": "rammer: lanes 1,3,2 each cycle, U-turn up the nearer rail between runs; hurt: pairs; last: a triple",
+    "entrance": {
+      "kind": "dash",
+      "seconds": 1.4,
+      "amp": 1.6
+    },
+    "phase1": {
+      "speed": 1.0,
+      "gap": 1.0,
+      "loop": [
+        {
+          "wait": 4.5,
+          "move": "lane:1",
+          "attack": ""
+        },
+        {
+          "wait": 4.5,
+          "move": "lane:3",
+          "attack": ""
+        },
+        {
+          "wait": 4.5,
+          "move": "lane:2",
+          "attack": ""
+        }
+      ]
+    },
+    "phase2": {
+      "speed": 1.15,
+      "gap": 1.0,
+      "loop": [
+        {
+          "wait": 4.5,
+          "move": "lane:2",
+          "attack": ""
+        },
+        {
+          "wait": 1.2,
+          "move": "lane:3",
+          "attack": "swift"
+        },
+        {
+          "wait": 4.5,
+          "move": "lane:1",
+          "attack": ""
+        },
+        {
+          "wait": 1.2,
+          "move": "lane:2",
+          "attack": "swift"
+        }
+      ]
+    },
+    "last": {
+      "speed": 1.3,
+      "gap": 1.0,
+      "loop": [
+        {
+          "wait": 4.5,
+          "move": "lane:1",
+          "attack": "rush"
+        },
+        {
+          "wait": 1.0,
+          "move": "lane:2",
+          "attack": "rush"
+        },
+        {
+          "wait": 1.0,
+          "move": "lane:3",
+          "attack": "rush"
+        }
+      ]
+    },
+    "variants": [
+      {
+        "name": "swift",
+        "set": [
+          {
+            "key": "dashSpeed",
+            "value": 9
+          }
+        ]
+      },
+      {
+        "name": "rush",
+        "set": [
+          {
+            "key": "dashSpeed",
+            "value": 10.5
+          },
+          {
+            "key": "shotSpread",
+            "value": 75
+          }
+        ]
+      }
+    ]
+  }
 }
