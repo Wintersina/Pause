@@ -98,5 +98,47 @@
   "lobAhead": 1.6,
   "poolSeconds": 2.4,
   "engageSeconds": 48,
-  "script": { "tempo": 1.1 }
+  "script": {
+    "tempo": 1.1,
+    "exitTell": 1.4,
+    "lastExit": "left",
+    "lastExitSeconds": 1.2,
+    "note": "diver: circles a low rippling stadium mid-board (low run left to right, up the right rail, top run back, dive down the left rail); casts at the start of the low run. Twin trails from phase 2.",
+    "entrance": { "kind": "slam", "seconds": 1.5, "amp": 2.0 },
+    "phase1": {
+      "speed": 1.0, "gap": 1.0,
+      "set": [ { "key": "hazardCount", "value": 4 } ],
+      "loop": [
+        { "wait": 1.6, "move": "steady", "attack": "trail" },
+        { "wait": 1.2, "move": "fast", "attack": "-" },
+        { "wait": 1.2, "move": "steady", "attack": "long" },
+        { "wait": 1.2, "attack": "-" }
+      ]
+    },
+    "phase2": {
+      "speed": 1.15, "gap": 0.85,
+      "set": [ { "key": "hazardCount", "value": 4 } ],
+      "loop": [
+        { "wait": 1.2, "move": "fast", "attack": "twin" },
+        { "wait": 1.0, "attack": "-" },
+        { "wait": 1.0, "attack": "long" },
+        { "wait": 1.0, "move": "steady", "attack": "-" }
+      ]
+    },
+    "last": {
+      "speed": 1.3, "gap": 0.7,
+      "set": [ { "key": "hazardCount", "value": 8 } ],
+      "loop": [
+        { "wait": 1.0, "move": "fast", "attack": "quick" },
+        { "wait": 0.9, "attack": "-" },
+        { "wait": 1.0, "attack": "quick" }
+      ]
+    },
+    "variants": [
+      { "name": "trail", "set": [ { "key": "shotInterval", "value": 0.26 } ] },
+      { "name": "long", "set": [ { "key": "lobAhead", "value": 2.8 }, { "key": "shotInterval", "value": 0.2 } ] },
+      { "name": "twin", "set": [ { "key": "hazardCount", "value": 8 }, { "key": "shotInterval", "value": 0.2 } ] },
+      { "name": "quick", "set": [ { "key": "shotInterval", "value": 0.15 } ] }
+    ]
+  }
 }

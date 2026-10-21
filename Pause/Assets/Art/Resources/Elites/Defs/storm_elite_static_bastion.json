@@ -127,5 +127,27 @@
   "launchFrom": "airshipdock,hatch",
   "topMargin": 1.5,
   "engageSeconds": 55,
-  "script": { "tempo": 1.35 }
+  "script": {
+    "tempo": 1.35, "exitTell": 1.4, "lastExit": "none",
+    "entrance": { "kind": "slam", "seconds": 1.9, "amp": 1.5 },
+    "phase1": { "speed": 1.0, "gap": 1.0,
+      "loop": [
+        { "wait": 2.2, "move": "R", "attack": "wall" },
+        { "wait": 2.2, "move": "L", "attack": "wall" } ] },
+    "phase2": { "speed": 1.25, "gap": 0.85,
+      "loop": [
+        { "wait": 1.6, "move": "R", "attack": "wall3" },
+        { "wait": 1.2, "move": "C", "attack": "wall3" },
+        { "wait": 1.6, "move": "L", "attack": "wall3" },
+        { "wait": 1.2, "move": "C", "attack": "wall3" } ] },
+    "last": { "speed": 1.4, "gap": 0.7,
+      "loop": [
+        { "wait": 1.2, "move": "R", "attack": "close" },
+        { "wait": 1.2, "move": "L", "attack": "close" } ] },
+    "variants": [
+      { "name": "wall", "set": [{ "key": "shotCount", "value": 2 }, { "key": "shotSpeed", "value": 3.4 }] },
+      { "name": "wall3", "set": [{ "key": "shotCount", "value": 3 }, { "key": "shotSpeed", "value": 3.8 }] },
+      { "name": "close", "set": [{ "key": "shotCount", "value": 3 }, { "key": "shotInterval", "value": 0.55 }, { "key": "shotSpeed", "value": 4.2 }] } ],
+    "note": "crawls to a rail end and plants; the gap slides a hand per wave; phase 2 also plants mid-board with three waves; the last heart closes the gap in"
+  }
 }

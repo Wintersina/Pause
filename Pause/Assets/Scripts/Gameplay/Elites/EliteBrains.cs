@@ -42,11 +42,11 @@ using UnityEngine;
 //                heart; one volley a pass (SpaceElites.cs)
 //   fortress     (Space) Eventide Bastion: crawls between three stations along the top of the view (SpaceElites.cs)
 //   wrecker      (Space) Singularity Hauler: hauls itself in a V along the top, tows asteroids in and flings them down the board (SpaceElites.cs)
-//   breaker      (Tide) Riptide: rides a wave line across the top third, in from one side and out the other, laying foam in its wake
-//   deep         (Tide) Bathyscaphe: surfaces at a column at the top, lays mine chains, dives off the top and surfaces elsewhere
-//   trawl        (Tide) Trawler: works one flank against a rail, drags nets in from it, leaves by that side, returns on the other
-//   tempest      (Tide) Thunderfin: loiters on a small ellipse high over the board; thunder sweeps the way it flies
-//   oyster       (Tide) Pearl Warden: one of three stations at the top, a new one after every cast
+//   breaker      (Tide) Riptide: rides a sine wave across the top, a rolling U-turn at each rail onto the next lane, laying foam in its wake
+//   deep         (Tide) Bathyscaphe: holds a column at the top, lays mine chains, sinks, slides low and rises at the next column
+//   trawl        (Tide) Trawler: works one flank against a rail, drags nets in from it, then sails over the top to the other flank
+//   tempest      (Tide) Thunderfin: loiters on a slow ellipse high over the board; thunder sweeps the way it flies, flipping each cast
+//   oyster       (Tide) Pearl Warden: one of three stations at the top, the next one in the script order after every cast
 //   stoker       (Ember) Sunstoke: off-screen lance passes across the whole board from a new edge each time (EmberElites.cs)
 //   strafer      (Ember) Coalrunner: broadside strafing runs across the top third, in from one side and out the other
 //   scavenger    (Ember) Brass Vulture: circles high off-screen, dives through a ringed spot and pulls back up

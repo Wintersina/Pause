@@ -105,5 +105,116 @@
   "followLag": 0.35,
   "topMargin": 1.4,
   "engageSeconds": 55,
-  "script": { "tempo": 1.35 }
+  "script": {
+    "tempo": 1.35,
+    "exitTell": 1.4,
+    "lastExit": "none",
+    "note": "anchor: patrol legs, fires at the ends; plated: side shards; stripped: icicle barrages (4, 5, then 6 lanes)",
+    "entrance": {
+      "kind": "slam",
+      "seconds": 1.7,
+      "amp": 1.5
+    },
+    "phase1": {
+      "speed": 1.0,
+      "gap": 1.0,
+      "loop": [
+        {
+          "wait": 3.0,
+          "move": "",
+          "attack": ""
+        },
+        {
+          "wait": 3.0,
+          "move": "",
+          "attack": ""
+        }
+      ]
+    },
+    "phase2": {
+      "speed": 1.0,
+      "gap": 1.0,
+      "loop": [
+        {
+          "wait": 2.6,
+          "move": "",
+          "attack": "barrageA"
+        },
+        {
+          "wait": 2.6,
+          "move": "",
+          "attack": "barrageB"
+        }
+      ]
+    },
+    "last": {
+      "speed": 1.0,
+      "gap": 0.8,
+      "loop": [
+        {
+          "wait": 2.0,
+          "move": "",
+          "attack": "barrageC"
+        },
+        {
+          "wait": 1.4,
+          "move": "",
+          "attack": "barrageC"
+        }
+      ]
+    },
+    "variants": [
+      {
+        "name": "barrageA",
+        "set": [
+          {
+            "key": "shotCount",
+            "value": 4
+          },
+          {
+            "key": "shotInterval",
+            "value": 0.42
+          },
+          {
+            "key": "shotSpeed",
+            "value": 5.0
+          }
+        ]
+      },
+      {
+        "name": "barrageB",
+        "set": [
+          {
+            "key": "shotCount",
+            "value": 5
+          },
+          {
+            "key": "shotInterval",
+            "value": 0.32
+          },
+          {
+            "key": "shotSpeed",
+            "value": 5.8
+          }
+        ]
+      },
+      {
+        "name": "barrageC",
+        "set": [
+          {
+            "key": "shotCount",
+            "value": 6
+          },
+          {
+            "key": "shotInterval",
+            "value": 0.22
+          },
+          {
+            "key": "shotSpeed",
+            "value": 6.6
+          }
+        ]
+      }
+    ]
+  }
 }

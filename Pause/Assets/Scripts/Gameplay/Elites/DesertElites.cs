@@ -8,28 +8,31 @@ using UnityEngine;
 // tell (the pilot is never hit by what it was not shown). Lens beams are streams of thin bolts down drawn lines: nothing flashes the screen.
 // Desert was the last world on the BASE brains and attacks (interceptor / lance_dash ... bastion / ward_curtain); they stay registered.
 //
-//   Dune Stalker      3  burrower  / worm_churn    (wormburrow)  hurtHide  roams: a rippling pass across the top, off one side and back
-//                                                              from the other; the tell rings a trail of four sand bursts leading
-//                                                              toward the pilot, which erupt one after another like a worm surfacing
+//   Dune Stalker      3  burrower  / worm_churn    (wormburrow)  hurtHide  a LOW rippling band: it circles a stadium track mid-board (a
+//                                                              rippling low run, a rise up the rail, the top run back, a dive down the
+//                                                              other rail); the tell rings a trail of four sand bursts (twin trails
+//                                                              from phase 2) aimed along the pilot's row, cast at the start of the low run
 //   Caravan Hauler    5  caravan   / quicksand_row (caravanbay)  armored  plods along the top in legs with a rest at each end; the
 //                                                              tell rings a ROW of quicksand pools with one slot left open beside the
-//                                                              pilot (a second row, gap mirrored, once it has lost two hearts)
-//   Lens Matriarch    3  glint     / glass_fan     (glasspad)    hurtHide  roams: a zig-zag pass across the top; it halts mid-pass and
-//                                                              the tell draws a fan of glass-shard rays with the pilot's own line left
-//                                                              out; the shards fly down them
-//   Glass Cannon      3  lenspost  / lens_beams    (buriedsilo)  perches on one of three columns along the top and moves to another
-//                                                              after every cast; the tell draws four thin beam lines either side of
-//                                                              the pilot's, then a stream of bolts runs down each, outside in
+//                                                              pilot (a second row from phase 2, gap mirrored; a leg shake at the end)
+//   Lens Matriarch    3  glint     / glass_fan     (glasspad)    hurtHide  a zig-zag circuit across the top (a lane, a turn at the rail
+//                                                              one lane lower, back); it halts mid-run and the tell draws a fan of
+//                                                              glass-shard rays with the pilot's own line left out
+//   Glass Cannon      3  lenspost  / lens_beams    (buriedsilo)  perches on one of three columns along the top in the script's order
+//                                                              (left, centre, right, centre); the tell draws thin beam lines either
+//                                                              side of the pilot's, then a stream of bolts runs down each, outside in
 //   Scorpion Skiff    3  flanker   / boulder_roll  (ruindock)    hurtHide  holds a flank, then scuttles across to the other after
-//                                                              every throw; the tell draws the path of a boulder (a skid slab) to the
-//                                                              far rail and down; two boulders once it has lost a heart
-//   Mirror Bastion    5  bulwark   / dust_wall     (ruindock)    armored  crawls along the top; the tell draws the gap (thin edges) of
-//                                                              a WALL of dust sweeping sideways across the board in waves from
-//                                                              alternate rails; the gap is not at the pilot's height
+//                                                              every throw (a script beat); the tell draws the path of a boulder (a
+//                                                              skid slab) to the far rail and down; two boulders from phase 2
+//   Mirror Bastion    5  bulwark   / dust_wall     (ruindock)    armored  slides UP AND DOWN one side rail (three slots); the tell draws
+//                                                              the gap of a WALL of dust sweeping from the opposite rail in waves; the
+//                                                              rails swap each phase; the last phase adds the mirror wall
 //
-// The Stalker and the Matriarch ROAM (EliteBrain.Roams): their paths leave the view, so the ship neither clamps their goal nor plans
-// evasions, and they are untouchable while outside the board. Everything an attack leaves on the board rides it.
-// See docs/enemy-behaviours.md ("Desert elites") for the design.
+// Nobody leaves the view except for the one scripted last-heart exit (Stalker left, Matriarch top, Skiff right): the Stalker and the
+// Matriarch fly closed circuits that turn round at the rails (DesertTrack), nobody warps. Every choice (perch, flank, slot, pace) is a
+// script move token (EliteBrain.OnScriptMove) or a Script.Cycle counter: no coin flips. The attacks are varied by the script's variants
+// (hazardCount = rays / beams / rows / waves / bursts, shotSpread, shotInterval, skidSpeed ...). Everything an attack leaves on the board
+// rides it. See docs/enemy-behaviours.md ("Desert elites") and docs/elites/elite-scripts.md for the design.
 
 // ---- shared bits ---------------------------------------------------------------------------------------------------
 
@@ -146,107 +149,156 @@ public abstract class DesertSpotAttack : EliteAttack
     public override void OnDeath() { marks.HideAll(); }
 }
 
-// A roamer that makes PASSES: in from a side of the view at a height in a band near the top, along its path at a steady pace, out of
-// the other side; a short pause off the board, then the next pass from the opposite side at a new height. Subclasses give the band,
-// the path's shape and when a cast fits.
-public abstract class DesertPassBrain : EliteBrain
+// A closed circuit a brain flies: a STADIUM -- a low straight run, a half-ellipse turn up the right rail, the high straight run back, a
+// half-ellipse turn down the left rail -- so it turns round at the rails and never leaves the view. Point(u) is the position u units
+// along it (u wraps); the straights carry a ripple (sine) or a zig-zag (triangle) that dies away at the turns. No allocation.
+public sealed class DesertTrack
 {
-    public enum Stage { Leave, Away, Pass }
-    public const float PauseSeconds = 1.2f, LeaveScale = 2.2f;
-    protected Stage stage = Stage.Leave;
-    protected float wait, s, length, dirX = 1f, y0, afterLeave = .4f;
-    protected int casts;
-    protected Vector2 start;
-    public Stage Phase => stage;
-    public float DirX => dirX;
-    public Vector2 Start => start;
-    public int Passes { get; private set; }
-    public int Casts => casts;
-    public abstract int CastsAllowed { get; }
-    protected abstract void Band(out float lo, out float hi);
-    public virtual float PassScale => 1f;
-    // The path `along` u from where the pass entered.
-    public abstract Vector2 PathAt(float along);
-    // Along the path at world x (the path runs straight across, so this is a plain offset).
-    public float AlongAt(float x) => (x - start.x) * dirX;
-    // How far along the pass the ship is.
-    public float Along => (Pos.x - start.x) * dirX;
-    // The x the ship will be at in `seconds` (it keeps its pace through a wind-up that does not hold it).
-    public float XAfter(float seconds) => Pos.x + dirX * def.speed * PassScale * seconds;
+    public float cx, cy, half = 1f, rx = .7f, ry = 1f, amp, period = 3.4f;
+    public bool triangle;
+    public float Straight => Mathf.Max(.2f, 2f * half);
+    public float Arc => Mathf.PI * (rx + ry) * .5f;
+    public float Length => 2f * (Straight + Arc);
+    public float Wrap(float u) => Mathf.Repeat(u, Length);
 
-    public override bool Roams => true;
-    public override float TellScale => 1f;
-    public override Vector2 JoinFrom => new Vector2(-1f, .8f);
-    protected override void OnBind() { dirX = Random.value < .5f ? -1f : 1f; }
-    public override void OnJoin() { stage = Stage.Leave; }
-    public override void OnReturn() { stage = Stage.Leave; }
-
-    void BeginPass()
+    float Ripple(float x, float f)
     {
-        Passes++;
-        dirX = -dirX;
-        float lo, hi;
-        Band(out lo, out hi);
-        y0 = Random.Range(lo, hi);
-        float off = DesertFlight.OffX(def);
-        start = new Vector2(-dirX * off, y0);
-        length = 2f * off;
-        s = 0f;
-        casts = 0;
-        ship.Warp(start);
-        stage = Stage.Pass;
+        float env = Mathf.Clamp01(Mathf.Min(f, 1f - f) * 5f);
+        if (triangle)
+        {
+            float k = Mathf.Repeat(x / Mathf.Max(.5f, period), 1f);
+            return -amp * (1f - Mathf.Abs(2f * k - 1f)) * env;
+        }
+        return amp * Mathf.Sin(x * (Mathf.PI * 2f / Mathf.Max(.5f, period))) * env;
+    }
+
+    public Vector2 Point(float u)
+    {
+        u = Wrap(u);
+        float s = Straight, a = Arc;
+        if (u < s)
+        {
+            float x = -half + u;
+            return new Vector2(cx + x, cy - ry + Ripple(x, u / s));
+        }
+        if (u < s + a)
+        {
+            float ang = (-90f + 180f * (u - s) / a) * Mathf.Deg2Rad;
+            return new Vector2(cx + half + rx * Mathf.Cos(ang), cy + ry * Mathf.Sin(ang));
+        }
+        if (u < 2f * s + a)
+        {
+            float v = u - s - a;
+            float x = half - v;
+            return new Vector2(cx + x, cy + ry + Ripple(x, v / s));
+        }
+        float ang2 = (90f + 180f * (u - 2f * s - a) / a) * Mathf.Deg2Rad;
+        return new Vector2(cx - half + rx * Mathf.Cos(ang2), cy + ry * Mathf.Sin(ang2));
+    }
+
+    // On the low run, between `from` and `to` (shares of its length).
+    public bool OnLowRun(float u, float from, float to)
+    {
+        u = Wrap(u);
+        return u >= Straight * from && u <= Straight * to;
+    }
+
+    // On either straight run, `margin` u clear of its ends (the turns are not).
+    public bool OnStraight(float u, float margin)
+    {
+        u = Wrap(u);
+        float s = Straight, a = Arc;
+        return (u >= margin && u <= s - margin) || (u >= s + a + margin && u <= 2f * s + a - margin);
+    }
+
+    public float StartOfHighRun => Straight + Arc;
+
+    // The u of the point of the circuit nearest `p` (a coarse scan: a ship that comes back re-enters the circuit where it is).
+    public float Nearest(Vector2 p)
+    {
+        float best = 0f, bd = float.MaxValue, len = Length;
+        for (int i = 0; i < 96; i++)
+        {
+            float u = len * i / 96f;
+            float d = (Point(u) - p).sqrMagnitude;
+            if (d < bd) { bd = d; best = u; }
+        }
+        return best;
+    }
+}
+
+// A brain that flies a DesertTrack: a carrot runs ahead along the circuit at the ship's pace and the ship chases it (the carrot waits when
+// the ship falls behind -- a flinch, an evasion). Script tokens "steady" / "fast" / "slow" set the pace. Subclasses lay the circuit out
+// (Build) and say when a cast fits. Nothing here leaves the view.
+public abstract class DesertTrackBrain : EliteBrain
+{
+    public const float Lead = 1.3f, MaxLag = 2.4f;
+    protected readonly DesertTrack track = new DesertTrack();
+    protected float u, pace = 1f;
+    public int Casts { get; private set; }
+    public DesertTrack Track => track;
+    public float U => u;
+    public virtual float PassScale => 1f;
+    protected virtual float StartU => 0f;
+    protected abstract void Build();
+
+    public float PaceSpeed => def.speed * SpeedScale * (ship != null ? ship.Script.SpeedScale : 1f);
+    public Vector2 PointAfter(float seconds) { Build(); return track.Point(u + PaceSpeed * seconds); }
+    public void CastDone() { Casts++; }
+
+    public override bool Roams => false;
+    public override float TellScale => 1f;
+    public override float SpeedScale => PassScale * pace;
+    public override void OnJoin() { Build(); u = StartU; }
+    public override void OnReturn() { Build(); u = track.Nearest(Pos); }
+
+    public override void OnScriptMove(string token)
+    {
+        if (token == "fast") pace = 1.35f;
+        else if (token == "slow") pace = .8f;
+        else if (token == "steady") pace = 1f;
     }
 
     public override Vector2 Goal(Vector2 seen, float dt)
     {
         Clock += dt;
-        switch (stage)
-        {
-            case Stage.Leave:
-                // just up from a dock / back from hiding / done with a pass: out of the view by the nearer side
-                if (DesertFlight.OffBoard(def, Pos)) { stage = Stage.Away; wait = afterLeave; afterLeave = .4f; }
-                return new Vector2(Mathf.Sign(Pos.x == 0f ? 1f : Pos.x) * (DesertFlight.OffX(def) + 1f), Pos.y + .3f);
-            case Stage.Away:
-                wait -= dt;
-                if (wait <= 0f) BeginPass();
-                return Pos;
-            default:
-                s += def.speed * PassScale * dt;
-                // the carrot is past the far edge: it flies on out and waits there
-                if (s >= length) { stage = Stage.Leave; afterLeave = PauseSeconds; }
-                return PathAt(s + 1.8f);
-        }
+        Build();
+        if (ship.State != EliteState.Join && ship.State != EliteState.Hide && (Pos - track.Point(u)).sqrMagnitude < MaxLag * MaxLag)
+            u = track.Wrap(u + PaceSpeed * dt);
+        return track.Point(u + Lead);
     }
-
-    public override float SpeedScale => stage == Stage.Leave ? LeaveScale : PassScale;
 }
 
 // ---- Dune Stalker: burrower / worm_churn ---------------------------------------------------------------------------
 
-// A burrower surfacing: a PASS is a rippling line across the top (a sine on the straight, like a worm under the sand), in from one
-// side and out of the other. One churn a pass (two at its last heart), cast where the whole trail fits between the rails.
-public class BurrowerBrain : DesertPassBrain
+// A burrower rippling under the sand: it circles a low, wide stadium mid-board -- a rippling run along the bottom (left to right), up
+// the right rail, back along the top, down the left rail -- and casts a churn at the start of the low run (WantsAttack; the script says
+// which laps), its tokens set the pace. It never leaves the view.
+public class BurrowerBrain : DesertTrackBrain
 {
-    public const float Ripple = .4f, Wave = 1.9f;
+    public const float Ripple = .38f, Period = 3.3f;
     public BurrowerBrain() { Id = "burrower"; }
-    public override int CastsAllowed => 1 + (ship != null && ship.Hearts <= 1 ? 1 : 0);
-    public override float PassScale => 1.25f;
-    protected override void Band(out float lo, out float hi)
-    {
-        hi = Mathf.Min(EliteSystem.ViewTop - def.hullRadius - .9f, FightZone.Top(FightZone.HalfOf(def)));
-        lo = hi - 1.0f;
-    }
-    public override Vector2 PathAt(float along) => new Vector2(start.x + dirX * along, y0 + Ripple * Mathf.Sin(along * Wave));
+    public override float PassScale => 1.2f;
 
-    public override bool WantsAttack(Vector2 seen)
+    protected override void Build()
     {
-        if (stage != Stage.Pass || casts >= CastsAllowed) return false;
-        float edge = EliteSystem.RailEdge - .5f;
-        float x0 = XAfter(def.tellSeconds);
-        return Mathf.Abs(Pos.x) < edge && Mathf.Abs(x0) < edge && Pos.y > seen.y + 2.2f;
+        float edge = DesertFlight.Edge(def, .5f);
+        float high = DesertFlight.Height(ship, def) - .15f;
+        float low = Mathf.Max(Mathf.Lerp(EliteSystem.ViewBottom, EliteSystem.ViewTop, .47f), high - 3.0f);
+        low = Mathf.Min(low, high - 2.0f);
+        track.rx = Mathf.Clamp(edge * .32f, .4f, .9f);
+        track.half = Mathf.Max(.3f, edge - track.rx);
+        track.cx = 0f;
+        track.ry = (high - low) * .5f;
+        track.cy = (high + low) * .5f;
+        track.amp = Ripple;
+        track.period = Period;
+        track.triangle = false;
     }
 
-    public void CastDone() { casts++; }
+    public override float MinAttackAbove => 1.2f;
+    // The start of the low run: the whole wind-up still lies on the run or its turn.
+    public override bool WantsAttack(Vector2 seen) => track.OnLowRun(u, 0f, .6f) && Pos.y > seen.y + MinAttackAbove;
 }
 
 // Dune Stalker: a worm churn. The ship keeps flying through the wind-up: from the first frame of the tell Bursts thin rings mark a
@@ -257,35 +309,43 @@ public class BurrowerBrain : DesertPassBrain
 public class WormChurnAttack : DesertSpotAttack
 {
     public const int Bursts = 4;
-    public const float Ring = .4f, Pitch = .85f, Under = 1.1f;
+    public const float Ring = .4f, Pitch = .85f, Under = 1.1f, TwinOffset = .6f;
     Vector2 origin;
     public WormChurnAttack() { Id = "worm_churn"; }
     protected override float RingRadius => Ring;
     public override bool Aimed => true;
     public Vector2 Origin => origin;
+    // hazardCount >= 8 (the script's "twin" beat): two trails side by side, their bursts interleaved.
+    public int Trails => def.hazardCount >= 8 ? 2 : 1;
 
     public override void BeginTell(Vector2 seen)
     {
         var bb = ship.Brain as BurrowerBrain;
-        // where the ship will be when the tell ends, and the path's height there
-        float x0 = bb != null ? bb.XAfter(def.tellSeconds) : ship.Position.x;
-        float y = bb != null ? bb.PathAt(bb.AlongAt(x0)).y : ship.Position.y;
-        origin = new Vector2(Mathf.Clamp(x0, -EliteSystem.RailEdge + .45f, EliteSystem.RailEdge - .45f), y - Under);
+        // where the ship will be when the tell ends (its circuit a pace ahead)
+        Vector2 at = bb != null ? bb.PointAfter(def.tellSeconds) : (Vector2)ship.Position;
+        origin = new Vector2(Mathf.Clamp(at.x, -EliteSystem.RailEdge + .45f, EliteSystem.RailEdge - .45f), at.y - Under);
         base.BeginTell(seen);
     }
 
     protected override void Plan(Vector2 pilot)
     {
-        count = Bursts;
+        int trails = Trails;
+        count = Bursts * trails;
         float edge = EliteSystem.RailEdge - .45f;
-        Vector2 to = new Vector2(pilot.x, pilot.y + def.lobAhead);
+        // (always down the board: the trail leads toward the pilot's row, never up)
+        Vector2 to = new Vector2(pilot.x, Mathf.Min(pilot.y + def.lobAhead, origin.y - 1.2f));
         Vector2 d = to - origin;
         float len = Mathf.Max(d.magnitude, Bursts * Pitch);
-        Vector2 u = d.sqrMagnitude > 1e-4f ? d.normalized : Vector2.down;
-        for (int k = 0; k < count; k++)
+        Vector2 dir = d.sqrMagnitude > 1e-4f ? d.normalized : Vector2.down;
+        Vector2 perp = new Vector2(-dir.y, dir.x);
+        for (int k = 0; k < Bursts; k++)
         {
-            Vector2 p = origin + u * (len * (k + 1) / count);
-            spot[k] = new Vector2(Mathf.Clamp(p.x, -edge, edge), Mathf.Max(EliteSystem.ViewBottom + .8f, p.y));
+            for (int t = 0; t < trails; t++)
+            {
+                float off = trails == 1 ? 0f : (t == 0 ? -TwinOffset : TwinOffset);
+                Vector2 p = origin + dir * (len * (k + 1) / Bursts) + perp * off;
+                spot[k * trails + t] = new Vector2(Mathf.Clamp(p.x, -edge, edge), Mathf.Max(EliteSystem.ViewBottom + .8f, p.y));
+            }
         }
     }
 
@@ -310,8 +370,9 @@ public class WormChurnAttack : DesertSpotAttack
 public class CaravanBrain : EliteBrain
 {
     public const float Pace = .55f, Rest = 1.6f, EndMargin = .5f;
-    float side = 1f, rest;
+    float side = 1f, rest, shake;
     public float Side => side;
+    public bool Shaking => shake > 0f;
     public bool Resting => rest > 0f;
     public int Legs { get; private set; }
     public float Height => DesertFlight.Height(ship, def);
@@ -319,15 +380,22 @@ public class CaravanBrain : EliteBrain
 
     public CaravanBrain() { Id = "caravan"; }
 
-    protected override void OnBind() { side = Random.value < .5f ? -1f : 1f; }
-    public override void OnJoin() { rest = 0f; side = Pos.x >= 0f ? -1f : 1f; }
+    protected override void OnBind() { side = ship.Script.Alternate("leg"); }
+    public override void OnJoin() { rest = 0f; shake = 0f; side = Pos.x >= 0f ? -1f : 1f; }
     public override Vector2 JoinFrom => Vector2.up;
+    public override void OnScriptMove(string token) { if (token == "shake") shake = 2.4f; }
 
     public override Vector2 Goal(Vector2 seen, float dt)
     {
         Clock += dt;
+        if (shake > 0f) shake -= dt;
         if (ship.State == EliteState.Attack) return new Vector2(Pos.x, Height);
-        if (rest > 0f) { rest -= dt; return new Vector2(Pos.x, Height); }
+        if (rest > 0f)
+        {
+            rest -= dt;
+            // (the leg shake: a quick shudder of the whole hull while it rests)
+            return new Vector2(Pos.x + (shake > 0f ? Mathf.Sin(Clock * 38f) * .12f : 0f), Height);
+        }
         float endX = EndX;
         if (Mathf.Abs(Pos.x - endX) < .15f) { side = -side; Legs++; rest = Rest; return new Vector2(Pos.x, Height); }
         return new Vector2(endX, Height);
@@ -342,8 +410,8 @@ public class CaravanBrain : EliteBrain
 // Caravan Hauler: a quicksand row. The tell holds it nose down: thin rings mark a ROW of five slots across the board (Slots), centred
 // a lobAhead above the pilot's height, with ONE slot left open: the one beside the pilot's, toward the middle of the board (so the pilot
 // has to move one slot). The action lobs a sand canister out of the hold onto each ringed slot, shotInterval apart; each lands as a
-// pool of quicksand that rides the board for poolSeconds. Once it has lost two hearts a second row follows a hand above, its open slot
-// mirrored. Go through the gap.
+// pool of quicksand that rides the board for poolSeconds. With hazardCount 2 (the script's later phases) a second row follows a hand above,
+// its open slot mirrored. Go through the gap.
 public class QuicksandRowAttack : DesertSpotAttack
 {
     public const int Slots = 5;
@@ -368,7 +436,7 @@ public class QuicksandRowAttack : DesertSpotAttack
         int gap = near < mid ? near + 1 : near > mid ? near - 1 : mid + 1;
         GapSlot = gap;
         float y = Mathf.Clamp(pilot.y + def.lobAhead, EliteSystem.ViewBottom + .8f, ship.Position.y - 1.4f);
-        int rows = HeartsLost >= 2 && y + RowGap < ship.Position.y - 1.0f ? 2 : 1;
+        int rows = Mathf.Clamp(def.hazardCount, 1, 2) >= 2 && y + RowGap < ship.Position.y - 1.0f ? 2 : 1;
         Rows = rows;
         count = 0;
         for (int r = 0; r < rows; r++)
@@ -389,37 +457,36 @@ public class QuicksandRowAttack : DesertSpotAttack
 
 // ---- Lens Matriarch: glint / glass_fan ---------------------------------------------------------------------------------
 
-// A heliograph signalling across the dunes: a PASS is a zig-zag across the top (a triangle wave, Dip u deep), in from one side and out
-// of the other at a steady pace. One fan a pass (two at its last heart), cast where the ship is between the rails.
-public class GlintBrain : DesertPassBrain
+// A heliograph signalling across the dunes: it flies a zig-zag circuit across the top -- a lane (a triangle wave, Dip u deep), a turn
+// round the rail one lane lower, the lane back -- and casts a fan where it is on a straight lane between the rails (the tell halts it
+// mid-run). It never leaves the view; it starts on the high lane, flying left.
+public class GlintBrain : DesertTrackBrain
 {
-    public const float Dip = .85f, Period = 3.4f;
+    public const float Dip = .75f, Period = 3.4f;
     public GlintBrain() { Id = "glint"; }
-    public override int CastsAllowed => 1 + (ship != null && ship.Hearts <= 1 ? 1 : 0);
-    protected override void Band(out float lo, out float hi)
+    protected override float StartU => track.StartOfHighRun;
+
+    protected override void Build()
     {
-        hi = Mathf.Min(EliteSystem.ViewTop - def.hullRadius - .6f, FightZone.Top(FightZone.HalfOf(def)));
-        lo = hi - .8f;
+        float edge = DesertFlight.Edge(def, .5f);
+        float high = DesertFlight.Height(ship, def) - .1f;
+        track.rx = Mathf.Clamp(edge * .4f, .5f, .9f);
+        track.half = Mathf.Max(.3f, edge - track.rx);
+        track.cx = 0f;
+        track.ry = .5f;
+        track.cy = high - track.ry;
+        track.amp = Dip;
+        track.period = Period;
+        track.triangle = true;
     }
 
-    public override Vector2 PathAt(float along)
-    {
-        float k = Mathf.Repeat(along, Period) / Period;   // 0 .. 1
-        float tri = k < .5f ? k * 2f : 2f - k * 2f;         // 0 .. 1 .. 0
-        return new Vector2(start.x + dirX * along, y0 - Dip * tri);
-    }
-
-    public override bool WantsAttack(Vector2 seen)
-    {
-        if (stage != Stage.Pass || casts >= CastsAllowed) return false;
-        return Mathf.Abs(Pos.x) < EliteSystem.RailEdge - .6f && Pos.y > seen.y + 2.2f;
-    }
-
-    public void CastDone() { casts++; }
+    public override float MinAttackAbove => 2.2f;
+    public override bool WantsAttack(Vector2 seen) =>
+        track.OnStraight(u, .5f) && Mathf.Abs(Pos.x) < EliteSystem.RailEdge - .6f && Pos.y > seen.y + MinAttackAbove;
 }
 
 // Lens Matriarch: a glass fan. The tell HALTS it where it is (the panels turn): from the first frame thin rays are drawn from its
-// muzzle, Rays of them (Rays + 2 at its last heart) in a fan centred on the pilot's lane when the tell began, shotSpread degrees apart
+// muzzle, Want of them (hazardCount: 6 or 8) in a fan centred on the pilot's lane when the tell began, shotSpread degrees apart
 // and the CENTRAL gap left open -- there is no ray on the pilot's own line. The action sends a glass shard (shotSpeed) down every ray
 // at once. Hold still in the gap, or slip sideways between two rays.
 public class GlassFanAttack : EliteAttack
@@ -437,7 +504,8 @@ public class GlassFanAttack : EliteAttack
     public EliteTelegraph Telegraph => tele;
     public int Count => count;
     public float RayDeg(int i) => deg[Mathf.Clamp(i, 0, MaxRays - 1)];
-    public int Want => ship.Hearts <= 1 ? MaxRays : Rays;
+    // (the script's hazardCount, in pairs: 6 rays, or 8 with hazardCount 8; without a script value, 6)
+    public int Want => def.hazardCount >= 4 ? Mathf.Min(MaxRays, def.hazardCount & ~1) : Rays;
     public float Spread => Mathf.Max(8f, def.shotSpread);
 
     public override void BeginTell(Vector2 seen)
@@ -491,8 +559,8 @@ public class GlassFanAttack : EliteAttack
 
 // ---- Glass Cannon: lenspost / lens_beams -----------------------------------------------------------------------------------
 
-// A siege deck on three perches. It holds a perch (the left, the middle or the right column of the top) and, after every cast, glides to
-// ANOTHER one, never the same twice running and never to the pilot's lane on purpose. It casts only on a perch.
+// A siege deck on three perches (the left, the middle or the right column of the top). The SCRIPT sends it from one to the next with
+// "perch:0|1|2" tokens (left, centre, right, centre ...); it glides there during the beat's wait and casts only on a perch.
 public class LenspostBrain : EliteBrain
 {
     public const int Perches = 3;
@@ -505,7 +573,8 @@ public class LenspostBrain : EliteBrain
 
     public LenspostBrain() { Id = "lenspost"; }
 
-    protected override void OnBind() { perch = Random.Range(0, Perches); }
+    bool seeded;
+    protected override void OnBind() { perch = 1; }
     public override Vector2 JoinFrom => Vector2.up;
     public override Vector2 Goal(Vector2 seen, float dt)
     {
@@ -517,12 +586,14 @@ public class LenspostBrain : EliteBrain
     public override bool WantsAttack(Vector2 seen) => OnPerch && Pos.y > seen.y + MinAttackAbove;
     public override float? FaceDeg(Vector2 seen) => -90f;
 
-    // After a cast: another perch.
-    public void Relocate()
+    // "perch:N" (no allocation: the digit is read in place). The first token only places it; later ones that change it count as moves.
+    public override void OnScriptMove(string token)
     {
-        int n = (perch + 1 + Random.Range(0, Perches - 1)) % Perches;
+        if (token == null || token.Length != 7 || !token.StartsWith("perch:", System.StringComparison.Ordinal)) return;
+        int n = Mathf.Clamp(token[6] - '0', 0, Perches - 1);
+        if (seeded && n != perch) Moves++;
+        seeded = true;
         perch = n;
-        Moves++;
     }
 }
 
@@ -546,7 +617,10 @@ public class LensBeamsAttack : EliteAttack
     public EliteTelegraph Telegraph => tele;
     public int Count => count;
     public float BeamDeg(int i) => deg[Mathf.Clamp(i, 0, MaxBeams - 1)];
-    public int Want => ship.Hearts <= 1 ? MaxBeams : Beams;
+    // (the script's hazardCount, in pairs: 4 beams, 6 at most; without a script value, 4)
+    public int Want => def.hazardCount >= 4 ? Mathf.Min(MaxBeams, def.hazardCount & ~1) : Beams;
+    // The angle between neighbouring beams: the script's shotSpread, else FanDeg.
+    public float Fan => def.shotSpread >= 6f ? def.shotSpread : FanDeg;
     public int Streak => Mathf.Max(2, def.shotCount);
 
     public override void BeginTell(Vector2 seen)
@@ -563,7 +637,7 @@ public class LensBeamsAttack : EliteAttack
         {
             int pair = pairs - 1 - k / 2;
             float side = k % 2 == 0 ? -1f : 1f;
-            deg[k] = centre + side * (pair + 1) * FanDeg;
+            deg[k] = centre + side * (pair + 1) * Fan;
             sent[k] = 0;
             tele.Lane(o, o + Unit(deg[k]) * Reach, Half);
         }
@@ -603,18 +677,13 @@ public class LensBeamsAttack : EliteAttack
     public override void End()
     {
         tele.End();
-        if (acted)
-        {
-            var lb = ship.Brain as LenspostBrain;
-            if (lb != null) lb.Relocate();
-        }
-        acted = false;
+        acted = false;   // (the next perch is the script's next beat)
     }
 }
 
 // ---- Scorpion Skiff: flanker / boulder_roll ---------------------------------------------------------------------------------
 
-// A skiff that holds a FLANK: near a rail, high on the board, bobbing, and after every throw scuttles across the top to the other rail.
+// A skiff that holds a FLANK: near a rail, high on the board, bobbing; the script beat "cross" (after every throw) scuttles it across the top to the other rail.
 // It never comes down and never takes the pilot's lane.
 public class FlankerBrain : EliteBrain
 {
@@ -629,7 +698,7 @@ public class FlankerBrain : EliteBrain
 
     public FlankerBrain() { Id = "flanker"; }
 
-    protected override void OnBind() { side = Random.value < .5f ? -1f : 1f; }
+    protected override void OnBind() { side = ship.Script.Alternate("flank"); }
     public override void OnJoin() { side = Pos.x >= 0f ? 1f : -1f; crossing = false; }
     public override void OnReturn() { crossing = false; }
     public override Vector2 JoinFrom => new Vector2(side, 1f);
@@ -646,7 +715,12 @@ public class FlankerBrain : EliteBrain
     public override bool WantsAttack(Vector2 seen) => !crossing && Pos.y > seen.y + MinAttackAbove;
     public override float? FaceDeg(Vector2 seen) => -90f;
 
-    // After a throw: across to the other flank.
+    // "cross": across to the other flank (not while it is already crossing).
+    public override void OnScriptMove(string token)
+    {
+        if (token == "cross" && !crossing) Cross();
+    }
+
     public void Cross()
     {
         side = -side;
@@ -656,7 +730,7 @@ public class FlankerBrain : EliteBrain
 }
 
 // Scorpion Skiff: boulder roll. The tell holds it still: the path of each boulder is drawn from the first frame as thin lanes -- out of
-// its claw to a ringed bounce point on the FAR rail, then (mirrored) on down to the bottom of the view -- Boulders of them (two once it
+// its claw to a ringed bounce point on the FAR rail, then (mirrored) on down to the bottom of the view -- Boulders of them (hazardCount: two once it
 // has lost a heart), the second a hand higher. The action sends a boulder (a skid slab, EliteShots.Kind.Slab) down each path,
 // BoulderGap apart; it glances off the far rail exactly where the ring is and rolls on out of the bottom. A boulder soaks hazardArmour
 // player hits before it breaks. Step off the lane.
@@ -683,7 +757,7 @@ public class BoulderRollAttack : EliteAttack
     public Vector2 PathEnd(int i) => bottom[Mathf.Clamp(i, 0, MaxBoulders - 1)];
     public Vector2 From => from;
     public EliteShot Rock(int i) => rocks[Mathf.Clamp(i, 0, MaxBoulders - 1)];
-    public int Want => ship.Hearts < def.hearts ? MaxBoulders : 1;
+    public int Want => Mathf.Clamp(def.hazardCount, 1, MaxBoulders);   // (the script's hazardCount: 1 or 2 boulders)
     public float Speed => def.skidSpeed;
     float Radius => def.hazardSize * .42f;
 
@@ -743,12 +817,7 @@ public class BoulderRollAttack : EliteAttack
     public override void End()
     {
         lanes.End();
-        if (acted)
-        {
-            var fb = ship.Brain as FlankerBrain;
-            if (fb != null) fb.Cross();
-        }
-        acted = false;
+        acted = false;   // (the scuttle across is the script's next beat)
     }
 
     // Its boulders break up with it.
@@ -770,26 +839,49 @@ public class BoulderRollAttack : EliteAttack
 
 // ---- Mirror Bastion: bulwark / dust_wall ------------------------------------------------------------------------------------
 
-// A glass fortress. It crawls along the top (a slow pendulum over about half the width) and holds still while it casts. It never comes
-// down and never follows the pilot.
+// A glass fortress. It stands on ONE side rail and slides up and down it between three slots (the top, a hand lower, two hands lower),
+// holding still while it casts; the dust wall sweeps from the opposite rail. Script tokens: "slot:0|1|2" (slide to that slot), "swap"
+// (cross to the other rail); the rails also swap whenever the script enters a new phase. It never follows the pilot.
 public class BulwarkBrain : EliteBrain
 {
-    public const float Pace = .2f;
-    public float Rx => Mathf.Max(.3f, DesertFlight.Edge(def, .5f) * .5f);
+    public const int Slots = 3;
+    public const float SlotStep = .9f, Margin = .3f;
+    float side = 1f;
+    int slot;
+    public float Side => side;
+    public int Slot => slot;
+    public int Swaps { get; private set; }
     public float Height => DesertFlight.Height(ship, def);
+    public float RailX => side * DesertFlight.Edge(def, Margin);
+    public float SlotY(int i) => Height - Mathf.Clamp(i, 0, Slots - 1) * SlotStep;
+    public bool AtSlot => Mathf.Abs(Pos.y - SlotY(slot)) < .3f && Mathf.Abs(Pos.x - RailX) < .3f;
 
     public BulwarkBrain() { Id = "bulwark"; }
 
-    protected override void OnBind() { Clock = Random.value * 6.28f; }
+    protected override void OnBind() { side = ship.Script.Alternate("rail"); }
+    public override void OnJoin() { slot = 0; }
     public override Vector2 JoinFrom => Vector2.up;
-    public override float SpeedScale => .7f;
-    public override float MinAttackAbove => 2.2f;
-    public override bool WantsAttack(Vector2 seen) => Pos.y > seen.y + MinAttackAbove;
+    public override float SpeedScale => 1f;
+    public override float MinAttackAbove => 1.2f;
+    public override bool WantsAttack(Vector2 seen) => AtSlot && Pos.y > seen.y + MinAttackAbove;
     public override float? FaceDeg(Vector2 seen) => -90f;
+
+    public override void OnScriptMove(string token)
+    {
+        if (token == null) return;
+        if (token == "swap") { Swap(); return; }
+        if (token.Length == 6 && token.StartsWith("slot:", System.StringComparison.Ordinal)) slot = Mathf.Clamp(token[5] - '0', 0, Slots - 1);
+    }
+
+    // (a new phase: the other rail)
+    public override void OnPhase(int phase) { Swap(); }
+
+    void Swap() { side = -side; Swaps++; }
+
     public override Vector2 Goal(Vector2 follow, float dt)
     {
         Clock += dt;
-        return new Vector2(Mathf.Sin(Clock * Pace) * Rx, Height);
+        return new Vector2(RailX, SlotY(slot) + Mathf.Sin(Clock * .8f) * .05f);
     }
 }
 
@@ -797,7 +889,7 @@ public class BulwarkBrain : EliteBrain
 // board, from the first frame. A wave is a wall of dust that sweeps SIDEWAYS across the board (shotSpeed) from the rail far from the
 // pilot to the other: a grain every Spacing up the board except inside the gap, the waves WaveGap apart (each staggered half a grain). The
 // first gap sits HandOff above or below the pilot's height (toward the middle of the board's height, so the pilot has to move); each
-// later wave slides its gap a hand (WaveSlide) the same way. Three waves at <= 3 hearts, two otherwise.
+// later wave slides its gap a hand (WaveSlide) the same way. hazardCount waves (two or three).
 public class DustWallAttack : EliteAttack
 {
     public const float GapHalf = .75f, HandOff = 1.4f, WaveSlide = .6f, Half = .035f, WaveGap = 1.0f, Lip = .12f;
@@ -806,7 +898,7 @@ public class DustWallAttack : EliteAttack
     readonly float[] gap = new float[MaxWaves];
     int waves, fired;
     float next;
-    bool acted, fromLeft;
+    bool acted, fromLeft, mirror;
     public DustWallAttack() { Id = "dust_wall"; }
     public override bool HoldsDuringTell => true;
     public override bool HoldsDuringAction => true;
@@ -816,11 +908,14 @@ public class DustWallAttack : EliteAttack
     public int Waves => waves;
     public int Sent => fired;
     public float GapCentre(int w) => gap[Mathf.Clamp(w, 0, MaxWaves - 1)];
-    public bool FromLeft(int w) => fromLeft;
-    public int WaveCount => ship.Hearts <= 3 ? MaxWaves : 2;
+    // Every wave comes from the rail OPPOSITE the bastion's; a "mirror" beat sends every other wave from the bastion's own rail.
+    public bool FromLeft(int w) => mirror && w % 2 == 1 ? !fromLeft : fromLeft;
+    public bool Mirror => mirror;
+    // (the script's hazardCount: two or three waves)
+    public int WaveCount => Mathf.Clamp(def.hazardCount, 2, MaxWaves);
     public float Spacing => Mathf.Max(.45f, def.lobSpacing);
     public float Low => EliteSystem.ViewBottom + .35f;
-    public float High => ship.Position.y - 1.0f;
+    public float High => DesertFlight.Height(ship, def) - 1.0f;   // (the wall spans the same board whichever slot the bastion slides to)
 
     public bool InGap(int w, float y) => Mathf.Abs(y - gap[w]) < GapHalf;
 
@@ -835,7 +930,9 @@ public class DustWallAttack : EliteAttack
         float way = seen.y + HandOff + GapHalf <= hi ? 1f : -1f;
         float g = Mathf.Clamp(seen.y + way * HandOff, lo, hi);
         float slide = g >= hi - .01f ? -1f : g <= lo + .01f ? 1f : way;
-        fromLeft = seen.x >= 0f;   // (every wave comes from the rail FAR from the pilot, so it crosses the whole board and never starts on top of it)
+        var bb = ship.Brain as BulwarkBrain;
+        fromLeft = (bb != null ? bb.Side : ship.Position.x) >= 0f;   // (the waves come from the rail opposite the bastion: they cross the whole board)
+        mirror = ship.Script.VariantName == "mirror";
         tele.Clear();
         float e = EliteSystem.RailEdge;
         for (int w = 0; w < waves; w++)
