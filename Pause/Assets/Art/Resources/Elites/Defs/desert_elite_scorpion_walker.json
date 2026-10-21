@@ -92,5 +92,46 @@
   "skidSpeed": 3.2,
   "topMargin": 1.7,
   "engageSeconds": 48,
-  "script": { "tempo": 1.1 }
+  "script": {
+    "tempo": 1.1,
+    "exitTell": 1.4,
+    "lastExit": "right",
+    "lastExitSeconds": 1.2,
+    "note": "flanker: holds a flank, throws a boulder, scuttles across (a script beat), throws from the other flank. Two boulders from phase 2, boulders back to back from both flanks at the last heart.",
+    "entrance": { "kind": "swirl", "seconds": 1.6, "amp": 1.6 },
+    "phase1": {
+      "speed": 1.0, "gap": 1.0,
+      "set": [ { "key": "hazardCount", "value": 1 } ],
+      "loop": [
+        { "wait": 2.2, "attack": "" },
+        { "wait": 1.4, "move": "cross", "attack": "-" },
+        { "wait": 1.8, "attack": "fast" },
+        { "wait": 1.4, "move": "cross", "attack": "-" }
+      ]
+    },
+    "phase2": {
+      "speed": 1.15, "gap": 0.85,
+      "set": [ { "key": "hazardCount", "value": 2 } ],
+      "loop": [
+        { "wait": 1.8, "attack": "fast" },
+        { "wait": 1.2, "move": "cross", "attack": "-" },
+        { "wait": 1.8, "attack": "slow" },
+        { "wait": 1.2, "move": "cross", "attack": "-" }
+      ]
+    },
+    "last": {
+      "speed": 1.3, "gap": 0.7,
+      "set": [ { "key": "hazardCount", "value": 2 } ],
+      "loop": [
+        { "wait": 1.2, "attack": "fast" },
+        { "wait": 0.8, "move": "cross", "attack": "-" },
+        { "wait": 1.0, "attack": "fast" },
+        { "wait": 0.8, "move": "cross", "attack": "-" }
+      ]
+    },
+    "variants": [
+      { "name": "fast", "set": [ { "key": "skidSpeed", "value": 4.2 } ] },
+      { "name": "slow", "set": [ { "key": "skidSpeed", "value": 2.6 } ] }
+    ]
+  }
 }

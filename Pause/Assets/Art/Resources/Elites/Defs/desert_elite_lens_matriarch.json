@@ -107,5 +107,43 @@
   "followLag": 0.25,
   "hurtHide": true,
   "engageSeconds": 48,
-  "script": { "tempo": 1.1 }
+  "script": {
+    "tempo": 1.1,
+    "exitTell": 1.4,
+    "lastExit": "top",
+    "lastExitSeconds": 1.2,
+    "note": "sweeper: zig-zags a circuit across the top (high lane, turn at the rail, lower lane, turn), halting mid-run for a glass fan. Dense double fans from phase 2.",
+    "entrance": { "kind": "arc", "seconds": 1.5, "amp": 1.8 },
+    "phase1": {
+      "speed": 1.0, "gap": 1.0,
+      "set": [ { "key": "hazardCount", "value": 6 } ],
+      "loop": [
+        { "wait": 2.0, "move": "steady", "attack": "fan" },
+        { "wait": 1.2, "move": "fast", "attack": "-" },
+        { "wait": 2.0, "move": "steady", "attack": "wide" }
+      ]
+    },
+    "phase2": {
+      "speed": 1.15, "gap": 0.85,
+      "set": [ { "key": "hazardCount", "value": 6 } ],
+      "loop": [
+        { "wait": 1.6, "move": "steady", "attack": "fan" },
+        { "wait": 0.7, "attack": "dense" },
+        { "wait": 1.4, "move": "fast", "attack": "-" }
+      ]
+    },
+    "last": {
+      "speed": 1.3, "gap": 0.75,
+      "set": [ { "key": "hazardCount", "value": 8 } ],
+      "loop": [
+        { "wait": 1.2, "move": "fast", "attack": "dense" },
+        { "wait": 0.8, "attack": "wide" }
+      ]
+    },
+    "variants": [
+      { "name": "fan", "set": [ { "key": "shotSpread", "value": 18 } ] },
+      { "name": "wide", "set": [ { "key": "shotSpread", "value": 22 } ] },
+      { "name": "dense", "set": [ { "key": "hazardCount", "value": 8 }, { "key": "shotSpread", "value": 12 } ] }
+    ]
+  }
 }
