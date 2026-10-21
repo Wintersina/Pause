@@ -120,6 +120,10 @@ public static class StormLifeTest
               StormLifeTuning.FlickerSecondAt >= .4f && StormLifeTuning.FlickerGapMin >= 3f && StormLifeTuning.FlickerPeak <= .2f);
 
         Check("a tower's lightning is its own layer (thunder atlas found)", d.Life.HasBolts);
+        // a tower that stays put (the ground is still), freshly in view: the lightning layer is measured over its whole life
+        moveBackGround.speed = 0f;
+        tower = d.Showcase("anvil_tower_00", 1.7f, 0f, 0f);
+        for (int i = 0; i < 5; i++) wb.Step(Dt);
         float idleB = 9f, peakB = 0f; int strikesUp = 0; bool boltUp = false;
         for (int i = 0; i < 60 * 40; i++)
         {
@@ -133,6 +137,7 @@ public static class StormLifeTest
         Check("the bolts idle dim (" + idleB.ToString("0.00") + ") and strike bright (" + peakB.ToString("0.00") + ")", idleB < .15f && peakB > .5f);
         Check("bolt strikes happen, but never more than 2.5 per second (" + strikesUp + " in 40 s)", strikesUp >= 1 && strikesUp <= 40 * 2.5f && StormLifeTuning.BoltMinGap >= .4f);
 
+        moveBackGround.speed = .25f;
         var mast = d.Showcase("spire_00", 1.7f, 0f, 0f);
         for (int i = 0; i < 30; i++) wb.Step(Dt);
         Check("a lightning-rod mast crackles a faint glow at its tip", mast != null && d.Life.TipAlpha(mast) > .05f && d.Life.TipAlpha(mast) < .5f);

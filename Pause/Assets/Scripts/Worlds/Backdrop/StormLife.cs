@@ -47,6 +47,7 @@ public sealed class StormLife
         public SpriteRenderer bolts;       // towers: the lightning layer over the cloud
         public Sprite boltsFor;            // the tower sprite the bolts were resolved for
         public float strikeAt = -1f, strikePeak = 1f;   // clock when a strike began, -1 none
+        public float lift;                 // the heart's eased-in share of a strike's light
         public bool again;                 // this strike has a re-strike         // masts: the rod tip's crackle
         public readonly float[] angle = new float[StormLifeTuning.Rotors];
         public float phase, bobPeriod, breathePeriod, heartPeriod;
@@ -218,7 +219,7 @@ public sealed class StormLife
         {
             var p = ground.items[i];
             var e = extras[i];
-            if (!p.active) { e.flickerAt = -1f; continue; }
+            if (!p.active) { e.flickerAt = -1f; e.strikeAt = -1f; e.lift = 0f; if (e.bolts != null && e.bolts.enabled) e.bolts.enabled = false; continue; }
             float k = Mathf.Max(.0001f, p.root.localScale.x);
             float sgn = p.body.localScale.x < 0f ? -1f : 1f;
             float a = p.sr.color.a;
@@ -283,7 +284,8 @@ public sealed class StormLife
                         pulse += StormLifeTuning.FlickerPeak * (Bump(ft) + .6f * Bump(ft - StormLifeTuning.FlickerSecondAt));
                         if (ft > StormLifeTuning.FlickerSecondAt + .5f) e.flickerAt = -1f;
                     }
-                    pulse += strike * StormLifeTuning.BoltHeartLift;
+                    e.lift += (strike * StormLifeTuning.BoltHeartLift - e.lift) * Mathf.Min(1f, dt * 8f);   // eased, so the heart never snaps
+                    pulse += e.lift;
                     var c = StormLifeTuning.HeartTint; c.a = pulse * a;
                     e.heart.color = c;
                 }
