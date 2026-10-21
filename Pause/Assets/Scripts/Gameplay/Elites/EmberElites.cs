@@ -582,7 +582,7 @@ public class ScavengerBrain : EliteBrain
 public class ScrapDiveAttack : EliteAttack
 {
     public enum Phase { Down, Turn, Up }
-    public const float Ring = .55f, OffsetX = 1.7f, Through = .3f, TurnRate = 480f, UpScale = .9f, MaxSeconds = 4f, ExitDrop = .9f, ClimbDecel = 10f, Floor = 2.6f;
+    public const float Ring = .55f, OffsetX = 1.7f, Through = .3f, TurnRate = 480f, UpScale = .9f, MaxSeconds = 4f, ExitDrop = .9f, ClimbDecel = 10f, Floor = 2.6f, RailRoom = .7f;
     public const int Slots = 3;
     EliteMarks marks;
     Vector2 spot;
@@ -609,7 +609,7 @@ public class ScrapDiveAttack : EliteAttack
     {
         if (s > 0) p.x += (s == 1 ? 1f : -1f) * (p.x > 0f ? -1f : 1f) * OffsetX;
         p.x += wobble;
-        float edge = EliteSystem.RailEdge - Ring;
+        float edge = EliteSystem.RailEdge - Ring - RailRoom;
         p.x = Mathf.Clamp(p.x, -edge, edge);
         p.y = Mathf.Clamp(p.y, EliteSystem.ViewBottom + Floor, Mathf.Max(EliteSystem.ViewBottom + Floor + .1f, ship.Position.y - 2.5f));
         return p;
@@ -690,6 +690,9 @@ public class ScrapDiveAttack : EliteAttack
                 break;
             }
         }
+        // (never into a side rail: the swing of the turn gives way at the edge)
+        float lim = EliteSystem.RailEdge - def.hullRadius - .45f;
+        if (Mathf.Abs(p.x) > lim && Mathf.Sign(ship.Velocity.x) == Mathf.Sign(p.x)) ship.Drive(new Vector2(0f, ship.Velocity.y));
         // back up at its circle: the climb ends there
         bool home = phase == Phase.Up && p.y >= EmberFlight.HighY(ship, ExitDrop) - .1f;
         if (home || t >= MaxSeconds)
