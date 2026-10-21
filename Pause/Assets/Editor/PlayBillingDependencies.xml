@@ -2,7 +2,7 @@
 <dependencies><!--  Play Billing client for the pre-registration reward (PlayBilling)  -->
 
   <androidPackages>
-    <androidPackage spec='com.android.billingclient:billing:7.1.1'>
+    <androidPackage spec='com.android.billingclient:billing:8.0.0'>
       <repositories>
         <repository>https://maven.google.com/</repository>
       </repositories>
