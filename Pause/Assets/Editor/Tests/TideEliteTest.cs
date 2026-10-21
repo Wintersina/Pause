@@ -782,7 +782,7 @@ public static class TideEliteTest
             Fly(x.key, 0, 60f, 11, out a1, out w1, out ph1, out s1);
             Fly(x.key, 0, 60f, 987, out a2, out w2, out ph2, out s2);
             int n = Mathf.Min(a1.Split(',').Length, a2.Split(',').Length);
-            Check(x.key + ": phase 1 flies the authored loop, the same under any random seed (" + a1 + " | where " + w1 + ")",
+            Check(x.key + ": phase 1 flies the authored loop, the same under any random seed (" + a1 + " | where " + w1 + " | " + lastDiag + ")",
                   ph1 == 1 && ph2 == 1 && a1.Length > 0 && a1.Split(',').Length >= 3 && n >= 3 &&
                   Prefix(a1, n) == Prefix(a2, n) && Prefix(a1, n) == ExpectedAttacks(d, 1, n) &&
                   (x.brain == "breaker" || Prefix(w1, n) == ExpectedWhere(d, 1, n) && Prefix(w2, n) == ExpectedWhere(d, 1, n)));
@@ -796,7 +796,7 @@ public static class TideEliteTest
                   (x.brain == "breaker" || Prefix(wP, n2) == ExpectedWhere(d, 2, n2)));
             Fly(x.key, lostLast, 70f, 6, out aL, out wL, out ph4, out s4);
             int n3 = aL.Split(',').Length;
-            Check(x.key + ": the last heart flies the desperation loop (" + aL + " | where " + wL + ") and stays on screen (" + s3 + "/" + s4 + ")",
+            Check(x.key + ": the last heart flies the desperation loop (" + aL + " | where " + wL + " | " + lastDiag + ") and stays on screen (" + s3 + "/" + s4 + ")",
                   ph4 == 3 && aL.Length > 0 && n3 >= 2 && Prefix(aL, n3) == ExpectedAttacks(d, 3, n3) &&
                   (x.brain == "breaker" || Prefix(wL, n3) == ExpectedWhere(d, 3, n3)) && s3 && s4);
         }
