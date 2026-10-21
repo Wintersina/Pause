@@ -6,8 +6,8 @@ apply from: '../shared/common.gradle'
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 // Android Resolver Dependencies Start
+    implementation 'com.android.billingclient:billing:8.0.0' // Assets/Editor/PlayBillingDependencies.xml:9
     implementation 'com.google.android.gms:play-services-games-v2:22.1.0' // Assets/GooglePlayGames/com.google.play.games/Editor/GooglePlayGamesPluginDependencies.xml:9
-    implementation 'com.android.billingclient:billing:7.1.1' // Assets/Editor/PlayBillingDependencies.xml:6
 // Android Resolver Dependencies End
 **DEPS**}
 
