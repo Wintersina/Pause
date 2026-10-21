@@ -107,5 +107,7 @@
       "dir": -1.0
     }
   ],
-  "followLag": 0.35
+  "followLag": 0.35,
+  "engageSeconds": 42,
+  "script": { "tempo": 0.8 }
 }

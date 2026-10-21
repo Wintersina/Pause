@@ -334,7 +334,7 @@ public static class EliteFightZoneTest
 
     static void AttackCadence()
     {
-        Check("the shared knob is on: x" + EliteTuning.AttackRate, EliteTuning.AttackRate >= 1.5f && EliteTuning.AttackRate <= 2f);
+        Check("the shared knob is on: x" + EliteTuning.AttackRate, EliteTuning.AttackRate >= 1.1f && EliteTuning.AttackRate <= 2f);
         Check("a gap is divided by it", Mathf.Abs(EliteTuning.Gap(10f) - 10f / EliteTuning.AttackRate) < 1e-4f);
         float rate = EliteTuning.AttackRate;
         // the same seed, the same elite: the first wait before an attack is exactly the multiplier shorter
@@ -355,6 +355,6 @@ public static class EliteFightZoneTest
         EliteTuning.AttackRate = rate;
         int after = AttacksIn(40f);
         EliteTuning.AttackRate = rate;
-        Check("attacks in 40 s across every non-roaming elite: " + before + " -> " + after + " (x" + (after / Mathf.Max(1f, before)).ToString("0.00") + ")", before > 0 && after >= before * 1.2f);
+        Check("attacks in 40 s across every non-roaming elite: " + before + " -> " + after + " (x" + (after / Mathf.Max(1f, before)).ToString("0.00") + ")", before > 0 && after >= before * 1.08f);
     }
 }

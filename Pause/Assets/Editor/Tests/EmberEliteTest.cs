@@ -360,7 +360,7 @@ public static class EmberEliteTest
         Check("stoker: a single pass per cycle at full hearts", brain.PairSize == 1);
         Step(1f);
         e.TakeShipAttack(0, 1f, e.Position);
-        Check("... a hit sends it hiding", e.Hidden && e.Hearts == def.hearts - 1);
+        Check("... a hit is a flinch, no hiding", e.InPlay && !e.Hidden && e.Flinching && e.Hearts == def.hearts - 1);
         WaitBack(e);
         Check("... and back, two passes back to back (" + brain.PairSize + ")", !e.Hidden && brain.PairSize == 2);
         bool second = false;
@@ -594,7 +594,7 @@ public static class EmberEliteTest
         Step(3f, () => pilot.position = Vector3.MoveTowards(pilot.position, new Vector3(e.Position.x, e.Position.y - 1.2f, 0f), 2f * Dt));
         Check("pressed, it blinks away rather than let the pilot near (" + (brain.Flees - flees) + " blinks)", brain.Flees > flees);
         e.TakeShipAttack(0, 1f, e.Position);
-        Check("hurt it hides, then comes back (" + e.Hidden + ")", e.Hidden);
+        Check("hurt it flinches on the board (" + e.Hidden + ")", !e.Hidden && e.Flinching);
         WaitBack(e);
         Check("... back on the board", Alive(e) && !e.Hidden && e.Hearts == def.hearts - 1);
         EliteSystem.Clear();

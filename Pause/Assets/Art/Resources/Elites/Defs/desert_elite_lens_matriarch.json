@@ -105,5 +105,7 @@
   "keepDistance": 2.6,
   "blinkDistance": 1.7,
   "followLag": 0.25,
-  "hurtHide": true
+  "hurtHide": true,
+  "engageSeconds": 48,
+  "script": { "tempo": 1.1 }
 }

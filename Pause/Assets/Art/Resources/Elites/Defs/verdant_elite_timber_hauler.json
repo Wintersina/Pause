@@ -101,5 +101,7 @@
   ],
   "armored": true,
   "shotMotion": "roll",
-  "followLag": 0.25
+  "followLag": 0.25,
+  "engageSeconds": 55,
+  "script": { "tempo": 1.35 }
 }

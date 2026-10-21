@@ -95,5 +95,7 @@
   "hazardSize": 0.6,
   "hazardSeconds": 0.8,
   "hazardCount": 6,
-  "hazardSpeed": 2.4
+  "hazardSpeed": 2.4,
+  "engageSeconds": 55,
+  "script": { "tempo": 1.35 }
 }

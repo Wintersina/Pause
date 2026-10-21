@@ -110,5 +110,7 @@
   "hurtHide": true,
   "hideSeconds": 3.5,
   "topMargin": 1.5,
-  "skidSpeed": 3.2
+  "skidSpeed": 3.2,
+  "engageSeconds": 48,
+  "script": { "tempo": 1.1 }
 }

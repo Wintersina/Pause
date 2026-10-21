@@ -95,5 +95,7 @@
   "hazardSpeed": 3.0,
   "followLag": 0.15,
   "hurtHide": true,
-  "hideSeconds": 3.5
+  "hideSeconds": 3.5,
+  "engageSeconds": 48,
+  "script": { "tempo": 1.2 }
 }

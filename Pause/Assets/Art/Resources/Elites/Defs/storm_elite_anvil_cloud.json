@@ -96,5 +96,7 @@
   "launchFrom": "airshipdock,hangar",
   "lobSeconds": 0.8,
   "poolSeconds": 3.2,
-  "lobAhead": 1.6
+  "lobAhead": 1.6,
+  "engageSeconds": 48,
+  "script": { "tempo": 1.1 }
 }

@@ -364,7 +364,8 @@ public static class VerdantEliteTest
                 n++;
             });
             Check(key + ": keeps its distance outside committed attacks (closest " + min.ToString("0.0") + " u, lowest " + minY.ToString("0.0") + " u above the pilot, average " + (n > 0 ? sumY / n : 0f).ToString("0.0") + ", " + e.Attacks + " attacks)",
-                  Alive(e) && n > 100 && min > 3f && e.Attacks >= 3);
+                  Alive(e) && n > 60 && min > 3f && e.Attacks >= 3);   // (n: samples outside attacks and off the board; a quicker tempo spends more of the 40 s acting)
+            if (!(Alive(e) && n > 60)) Debug.Log("[VEL] INFO  " + key + " alive " + Alive(e) + ", samples " + n);
         }
     }
 
@@ -474,7 +475,7 @@ public static class VerdantEliteTest
         Step(3f);
         e.TakeHit(EliteDamage.PlayerWeapon, e.Position, 1);
         Step(.1f);
-        Check("... a hit sends it hiding (3 hearts: " + e.Hearts + ")", e.Hidden && e.Hearts == def.hearts - 1);
+        Check("... a hit is a flinch, no hiding (3 hearts: " + e.Hearts + ")", e.InPlay && !e.Hidden && e.Flinching && e.Hearts == def.hearts - 1);
         int lastEntry = brain.LastEntry;
         WaitBack(e);
         Check("... and back on the board, its passes now carry two crescents", !e.Hidden && brain.Crescents == 2);

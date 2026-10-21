@@ -690,7 +690,7 @@ public static class FrostDockTest
                     EliteSystem.Clear();
                     if (dir.SpawnGroup(1, 1) != 1) continue;
                     var live = EliteShip.Live[0];
-                    if (live.Def != d) continue;
+                    if (live.Def.key != d.key) continue;
                     mine++;
                     home &= live.Site.kind == wantKind;
                 }
@@ -706,7 +706,7 @@ public static class FrostDockTest
             {
                 EliteSystem.Clear();
                 any &= dir.SpawnGroup(1, 1) == 1;
-                saw |= EliteShip.Live.Count > 0 && EliteShip.Live[0].Def == d;
+                saw |= EliteShip.Live.Count > 0 && EliteShip.Live[0].Def.key == d.key;
             }
             Check(x.key + ": with none of its kinds in view it takes any free site (" + rest.Count + " left, saw it " + saw + ")", any && saw);
             Object.DestroyImmediate(dir.gameObject);

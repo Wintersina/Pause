@@ -99,5 +99,7 @@
   "laneOffset": 1.7,
   "lobSeconds": 0.7,
   "lobSpacing": 1.1,
-  "poolSeconds": 3.2
+  "poolSeconds": 3.2,
+  "engageSeconds": 55,
+  "script": { "tempo": 1.35 }
 }

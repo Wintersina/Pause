@@ -103,5 +103,7 @@
   "followDistance": 1.8,
   "hazardCount": 3,
   "followLag": 0.35,
-  "topMargin": 1.4
+  "topMargin": 1.4,
+  "engageSeconds": 55,
+  "script": { "tempo": 1.35 }
 }
