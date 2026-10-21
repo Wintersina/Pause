@@ -412,7 +412,7 @@ public class StormDirector : PlanetDirector
             mists[i].enabled = false;
         }
         life = new StormLife(ground, set.Atlas("rotors"), landmarkArt.Get(StormLifeTuning.TurbinePiece),
-                             flashArt.Length > 0 ? flashArt[0] : null, 4242);   // own seed: never draws from the director's rng (that would reshuffle the whole backdrop)
+                             flashArt.Length > 0 ? flashArt[0] : null, 4242, landmarkArt, set.Atlas(StormLifeTuning.BoltAtlas));   // own seed: never draws from the director's rng (that would reshuffle the whole backdrop)
         glow = Pool("glow", 4);
         bolts = Pool("bolts", 4);
         mist = Pool("mist", 3);
@@ -654,7 +654,7 @@ public class StormDirector : PlanetDirector
         {
             // sheet flashes love a thunderhead tower: light it from inside when one is on screen
             BackdropPiece tower = kind == StormLightning.Kind.Sheet ? FindTower() : null;
-            if (tower != null) { gx = tower.x + Rand(-.3f, .3f); gy = tower.y + tower.size * Rand(.1f, .3f); }
+            if (tower != null) { gx = tower.x + Rand(-.3f, .3f); gy = tower.y + tower.size * Rand(.1f, .3f); life.Strike(tower, Mathf.Clamp01(peak / .8f)); }   // its own bolts flash with the weather
             else { gx = Rand(-HalfW * .8f, HalfW * .8f); gy = Rand(-HalfH * .1f, HalfH * .85f); }
         }
         SpawnGlow(glow, gx, gy, Rand(StormTuning.GlowMin, StormTuning.GlowMax), peak, "glow");
