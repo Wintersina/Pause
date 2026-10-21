@@ -61,6 +61,18 @@ SHIPS = {
                    bands=dict(outer=(0xD8, 0x23, 0x2C), mid=(0xF2, 0x86, 0x2B), core=(0xF4, 0xEA, 0xD4),
                               dark=(0x86, 0x12, 0x1F), accent=(0x6E, 0xF2, 0xEE))),
     ),
+    "SolarFang": dict(
+        id=3, hull_w=232, world_w=242 / 834.4828, nozzles=1, noz_cells=[(128, 232, 1.0)],
+        emitters=parse_emitters(
+            "E(1, Sparks, 46.3f, 91.5f), E(1, Smoke, 64.0f, 106.8f), E(1, Smolder, 46.8f, 91.0f), "
+            "E(2, Arc, 69.9f, 76.2f), E(2, Flame, 103.3f, 108.8f), E(2, Leak, 83.6f, 102.7f), "
+            "E(2, Smolder, 103.3f, 109.8f), E(2, Smolder, 70.4f, 76.2f), E(2, Smolder, 82.9f, 63.1f), "
+            "E(2, Smolder, 53.3f, 46.4f), E(2, Smolder, 78.4f, 106.3f), E(2, Smolder, 24.3f, 96.8f)"),
+        skins=[("Night", "night"), ("Neon", "stock"), ("Bone", "bone"), ("Eclipse", "stock")],
+        flame=dict(x=(1300, 1650), y=1280, frames=7,
+                   bands=dict(outer=(0xF0, 0x7A, 0x1E), mid=(0xFF, 0xB4, 0x3C), core=(0xF4, 0xEA, 0xD4),
+                              dark=(0x9A, 0x3E, 0x12), accent=(0xF2, 0x86, 0x2B))),
+    ),
 }
 
 
