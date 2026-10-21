@@ -383,7 +383,7 @@ public class TideDirector : PlanetDirector
         palls = Pool("palls", 4);
         mist = Pool("mist", 3);
         wisps = Pool("wisps", 4);
-        ceiling = Pool("ceiling", 26);
+        ceiling = Pool("ceiling", 34);
         gusts = Pool("gusts", TideTuning.GustSheets + 1);
         rain = Pool("rain", TideTuning.RainCount);
 
@@ -1101,7 +1101,10 @@ public class TideDirector : PlanetDirector
     void BuildCeiling()
     {
         if (banks.Length == 0) return;
-        float[] rows = { 1.05f, .8f, .55f, .3f, .05f, -.25f, -.55f };
+        // Two more rows than the other worlds', down past the bottom of the view: the Tide banks are painted with a flat
+        // cut along their lower edge, and the last row (-.55) left that edge on screen on a tall phone (a hard line
+        // across the entry clouds). The extra rows put every flat edge below the screen; the rows above hide the rest.
+        float[] rows = { 1.05f, .8f, .55f, .3f, .05f, -.25f, -.55f, -.85f, -1.1f };
         for (int r = 0; r < rows.Length; r++)
             for (int c = 0; c < 3; c++)
                 SpawnBank(HalfW * (-.62f + .62f * c + Rand(-.12f, .12f) + (r % 2 == 0 ? 0f : .2f)), HalfH * rows[r] + Rand(-.3f, .3f));
