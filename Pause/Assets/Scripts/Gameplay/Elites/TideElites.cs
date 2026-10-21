@@ -254,7 +254,7 @@ public class BreakerBrain : EliteBrain
     // Wake spot k of a cast: on the water of this pass, behind where the ship is now.
     public Vector2 WakeSpot(int spotIndex)
     {
-        float along = Mathf.Max(0f, (Pos.x - passX0) * dirX - Behind - SpotStep * spotIndex);
+        float along = (Pos.x - passX0) * dirX - Behind - SpotStep * spotIndex;   // (the last rings may lie back in the bulge by the rail)
         float x = passX0 + dirX * along;
         return new Vector2(x, WaveY(x));
     }
@@ -341,7 +341,7 @@ public class BreakerBrain : EliteBrain
     {
         if (stage != Stage.Ride) return false;
         float now = (Pos.x - passX0) * dirX;
-        return now >= Behind + SpotStep * (PlannedSpots() - 1) + .1f && dirX * Pos.x < PassEnd + .2f;
+        return now >= Behind + SpotStep * (PlannedSpots() - 1) - Bulge * .8f + .1f && dirX * Pos.x < PassEnd + .2f;
     }
 
     public void CastDone() { Casts++; }

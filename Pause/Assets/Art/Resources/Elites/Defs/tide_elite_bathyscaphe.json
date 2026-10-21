@@ -46,6 +46,7 @@
   "hazardSeconds": 0.6,
   "hazardSize": 0.36,
   "displayName": "Bathyscaphe",
+  "laneOffset": 0,
   "role": "mine layer",
   "brain": "deep",
   "attack": "mine_chain",

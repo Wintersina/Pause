@@ -46,6 +46,8 @@
   "hazardSeconds": 0.4,
   "hazardSize": 0.6,
   "displayName": "Pearl Warden",
+  "hazardCount": 0,
+  "shotSpread": 0,
   "role": "pearl shell",
   "brain": "oyster",
   "attack": "pearl_spiral",

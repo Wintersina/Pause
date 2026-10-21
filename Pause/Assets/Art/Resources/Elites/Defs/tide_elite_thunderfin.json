@@ -46,6 +46,7 @@
   "hazardSeconds": 0.4,
   "hazardSize": 0.6,
   "displayName": "Thunderfin",
+  "hazardCount": 0,
   "role": "storm cell",
   "brain": "tempest",
   "attack": "thunder_sweep",

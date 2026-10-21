@@ -711,6 +711,8 @@ public static class TideEliteTest
         return 0;
     }
 
+    static string lastDiag = "";
+
     // Flies the script from `hits` lost hearts for `seconds` and records what each attack was (variant name, and where it stood).
     static void Fly(string key, int hits, float seconds, int seed, out string attacks, out string places, out int phase, out bool onScreen)
     {
@@ -719,7 +721,7 @@ public static class TideEliteTest
         var e = EliteShip.CreateInPlay(EliteCatalog.Find(key), new Vector2(0f, 2f));
         e.EscapeLeft = 0f;
         e.EngageLeft = 9999f;
-        e.AttackCooldown = 99f;
+        if (hits > 0) e.AttackCooldown = 99f;   // (the first phase's loop starts at once; later phases are entered idle)
         for (int i = 0; i < hits; i++)
         {
             e.TakeHit(EliteDamage.Teleport, e.Position + Vector2.left, 1);
@@ -746,6 +748,7 @@ public static class TideEliteTest
             }
         }
         onScreen = frames > 0 && on / (float)frames >= .85f;
+        lastDiag = e == null ? "gone" : "state " + e.State + " pos " + e.Position.ToString("0.00") + " zoneTop " + e.ZoneTop.ToString("0.00") + " inZone " + e.InZone + " attacks " + e.Attacks;
         attacks = string.Join(",", names);
         places = string.Join(",", spots);
     }
@@ -787,7 +790,7 @@ public static class TideEliteTest
             int lost2 = d.armored ? 2 : 1, lostLast = d.hearts - 1;
             Fly(x.key, lost2, 60f, 5, out aP, out wP, out ph3, out s3);
             int n2 = aP.Split(',').Length;
-            Check(x.key + ": phase 2 (after " + lost2 + " lost) flies its own loop (" + aP + " | where " + wP + ")",
+            Check(x.key + ": phase 2 (after " + lost2 + " lost) flies its own loop (" + aP + " | where " + wP + " | " + lastDiag + ")",
                   ph3 == 2 && aP.Length > 0 && n2 >= 2 && Prefix(aP, n2) == ExpectedAttacks(d, 2, n2) &&
                   (x.brain == "breaker" || Prefix(wP, n2) == ExpectedWhere(d, 2, n2)));
             Fly(x.key, lostLast, 70f, 6, out aL, out wL, out ph4, out s4);

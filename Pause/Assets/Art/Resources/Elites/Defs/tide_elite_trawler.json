@@ -46,6 +46,7 @@
   "hazardSeconds": 0.4,
   "hazardSize": 0.6,
   "displayName": "Trawler",
+  "hazardCount": 0,
   "role": "net hauler",
   "brain": "trawl",
   "attack": "drag_net",
