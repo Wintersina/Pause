@@ -589,7 +589,7 @@ public static class SpaceDockTest
                 EliteSystem.Clear();
                 if (dir.SpawnGroup(0, 1) != 1) continue;
                 var live = EliteShip.Live[0];
-                if (live.Def != d) continue;
+                if (live.Def.key != d.key) continue;
                 mine++;
                 home &= live.Site.kind == x.home;
             }

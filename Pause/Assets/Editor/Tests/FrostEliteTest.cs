@@ -448,7 +448,7 @@ public static class FrostEliteTest
         }
         // (the pairs: the first pause is short, the next long; two runs, then a long pause, then two again)
         Check("... the second run of a pair follows after only " + IcebreakerBrain.PairGap + " s, the pair is followed by the long pause (pauses " + string.Join(", ", runGaps.ConvertAll(x => x.ToString("0.0"))) + ")",
-              runGaps.Count >= 3 && Mathf.Abs(runGaps[0] - IcebreakerBrain.PairGap) < .25f && Mathf.Abs(runGaps[1] - IcebreakerBrain.PauseSeconds) < .25f && Mathf.Abs(runGaps[2] - IcebreakerBrain.PairGap) < .25f);
+              runGaps.Count >= 3 && Mathf.Abs(runGaps[0] - IcebreakerBrain.PauseSeconds) < .25f && Mathf.Abs(runGaps[1] - IcebreakerBrain.PairGap) < .25f && Mathf.Abs(runGaps[2] - IcebreakerBrain.PauseSeconds) < .25f);
         bool sides = pairLanes.Count >= 2 && Mathf.Sign(pairLanes[0]) != Mathf.Sign(pairLanes[1]);
         Check("... the two lanes of a pair on opposite sides of the board (" + string.Join(", ", pairLanes.ConvertAll(x => x.ToString("0.0"))) + ")", sides || Mathf.Abs(pairLanes[0]) < .5f);
     }

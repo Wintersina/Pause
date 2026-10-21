@@ -31,7 +31,7 @@ public static class EliteScriptTest
         "frost_elite_rimebreaker", "frost_elite_cryo_siren",
         "space_elite_rift_lancer", "space_elite_orbit_reaver",
         "storm_elite_refinery_tender", "storm_elite_skyhook_harrier",
-        "tide_elite_riptide", "tide_elite_thunderfin", "tide_elite_trawler",
+        "tide_elite_riptide", "tide_elite_bathyscaphe", "tide_elite_thunderfin", "tide_elite_trawler",
         "verdant_elite_leafblade", "verdant_elite_sporebloom", "verdant_elite_thornlash",
     };
 

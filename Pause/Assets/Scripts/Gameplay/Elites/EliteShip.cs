@@ -1324,7 +1324,7 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
             }
         }
 
-        if (grace > 0f || State == EliteState.Join) return;   // (the entrance is a scripted path: nothing on the board crashes it)
+        if (grace > 0f || (State == EliteState.Join && EliteEvasion.Enabled)) return;   // (the entrance is a scripted path: nothing on the board crashes it)
         var live = ClearTarget.Live;
         for (int i = 0; i < live.Count; i++)
         {
