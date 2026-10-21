@@ -29,6 +29,29 @@ public static class EnemyDensity
     // and mines) come 25% less often at high speed: the rate at HighHud is
     // RateAtHighSpeed * HighSpeedSpawnCut (x0.4125). Low speed is untouched.
     public static float HighSpeedSpawnCut = .75f;
+    // ---- run length (a fast start's world is flown in fewer seconds) ----
+    // A world is a fixed distance, so a fast start reaches its boss sooner and
+    // the time-cadenced spawner fields fewer enemies for the same stretch.
+    // The spawn rate is raised by RunLengthFactor to make up part of that:
+    // up to x MaxRunBoost when the level is expected to take 120/MaxRunBoost
+    // seconds or less, tapering as the speed climbs toward the cap (the board
+    // thins out as you get faster, TaperAway of the boost gone at the cap).
+    // A stock start (120 s) is x1 throughout; a start at the cap never climbs,
+    // so it gets one steady factor, the fully tapered one (the fastest start is the sparsest). A fast start stays sparser per distance
+    // than a stock one on purpose (the high-speed cut above is kept).
+    public static float MaxRunBoost = 1.6f, TaperAway = .6f;
+
+    // startSeconds: the level's expected length from its start speed;
+    // startSpeed / speed: natural speed (0..1 scale) at the start and now.
+    public static float RunLengthFactor(float startSeconds, float startSpeed, float speed)
+    {
+        if (Disabled || startSeconds <= 0f || float.IsNaN(startSeconds) || float.IsInfinity(startSeconds)) return 1f;
+        float boost = Mathf.Clamp(WorldManager.BaselineWorldSeconds / startSeconds, 1f, MaxRunBoost);
+        float cap = SpeedRamp.Cap;
+        float climb = startSpeed >= cap ? 1f : Mathf.Clamp01((speed - startSpeed) / (cap - startSpeed));
+        return 1f + (boost - 1f) * (1f - TaperAway * climb);
+    }
+
     // Threats (bodies in or just above the view + weighted shots) allowed.
     public static float ThreatsAtLowSpeed = 11f, ThreatsAtHighSpeed = 10f;
     // How far above the top of the view a body already counts.

@@ -28,26 +28,13 @@ public static class EliteScriptTest
     static readonly HashSet<string> PendingRoamers = new HashSet<string>
     {
         // desert
-        "desert_elite_dune_stalker",
-        "desert_elite_lens_matriarch",
         // ember
-        "ember_elite_sunstoke",
-        "ember_elite_brass_vulture",
-        "ember_elite_coalrunner",
         // frost
-        "frost_elite_rimebreaker",
-        "frost_elite_cryo_siren",
         // space
         "space_elite_rift_lancer",
         "space_elite_orbit_reaver",
-        // storm
-        "storm_elite_refinery_tender",
-        "storm_elite_skyhook_harrier",
         // tide
-        "tide_elite_riptide",
-        "tide_elite_bathyscaphe",
-        "tide_elite_thunderfin",
-        "tide_elite_trawler",
+        // verdant
     };
 
     public static int Execute()

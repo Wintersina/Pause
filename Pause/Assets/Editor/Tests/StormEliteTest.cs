@@ -50,6 +50,9 @@ public static class StormEliteTest
             Dancer();
             Harrier();
             Bastion();
+            DancerOrders();
+            Scripts();
+            Determinism();
             Rules();
             Allocations();
         }
@@ -312,10 +315,18 @@ public static class StormEliteTest
         Fresh();
         var e = InPlay("storm_elite_anvil_cloud", new Vector2(0f, 3f));
         var sf = (StaticFieldAttack)e.Attack;
+        var tb = (ThunderheadBrain)e.Brain;
         float minX = 9f, maxX = -9f;
         Step(7f, () => { minX = Mathf.Min(minX, e.Position.x); maxX = Mathf.Max(maxX, e.Position.x); });
-        Check("Anvil Cloud: it drifts along the top, never down to the pilot (x " + minX.ToString("0.0") + " .. " + maxX.ToString("0.0") + ", y " + e.Position.y.ToString("0.0") + ")",
-              maxX - minX > .6f && e.Position.y > pilot.position.y + 1.5f);
+        Check("Anvil Cloud: it holds the first station the script names (left: " + tb.Station + ", x " + e.Position.x.ToString("0.00") + " of " + tb.StationX(0).ToString("0.00") + "), high over the board, never down to the pilot (y " + e.Position.y.ToString("0.0") + ")",
+              tb.Station == 0 && tb.Settled && e.Position.y > pilot.position.y + 1.5f);
+        float still0 = e.Position.x;
+        float still1 = still0;
+        Step(3f, () => still1 = Mathf.Max(still1, Mathf.Abs(e.Position.x - still0)));
+        Check("... and it stays on that station (no pendulum: moved " + still1.ToString("0.00") + " u in 3 s)", still1 < .25f);
+        tb.OnScriptMove("R");
+        Step(7f, () => { minX = Mathf.Min(minX, e.Position.x); maxX = Mathf.Max(maxX, e.Position.x); });
+        Check("a token hops it to the next station (right: " + tb.Station + ", x " + minX.ToString("0.0") + " .. " + maxX.ToString("0.0") + ")", tb.Station == 2 && tb.Settled && maxX - minX > .6f);
         StartTell(e);
         bool below = true;
         for (int i = 0; i < sf.Count; i++) below &= sf.Spot(i).y < e.Position.y;
@@ -339,7 +350,13 @@ public static class StormEliteTest
         sf = (StaticFieldAttack)e.Attack;
         int full = sf.PlanCount;
         e.TakeHit(EliteDamage.Teleport, e.transform.position, 2);
-        Check("a fifth field once two hearts are lost (" + full + " -> " + sf.PlanCount + " at " + e.Hearts + " hearts)", full == 4 && sf.PlanCount == 5 && sf.PlanCount < StormSpotAttack.MaxSpots);
+        Check("a fifth field once it is in phase 3 (" + full + " -> " + sf.PlanCount + " at " + e.Hearts + " hearts)", full == 4 && sf.PlanCount == 5 && sf.PlanCount < StormSpotAttack.MaxSpots);
+
+        Fresh();
+        e = InPlay("storm_elite_anvil_cloud", new Vector2(0f, 3f));
+        sf = (StaticFieldAttack)e.Attack;
+        e.TakeHit(EliteDamage.Teleport, e.transform.position, 1);
+        Check("... and from phase 2, the first lost heart (" + e.Script.Phase + ", " + sf.PlanCount + " fields)", e.Script.Phase == 2 && sf.PlanCount == 5);
 
         Fresh();
         e = InPlay("storm_elite_anvil_cloud", new Vector2(0f, 3f));
@@ -358,11 +375,21 @@ public static class StormEliteTest
         var e = InPlay("storm_elite_refinery_tender", new Vector2(0f, 3f));
         var ab = (AirshipBrain)e.Brain;
         var fd = (FlareDropAttack)e.Attack;
-        Check("Refinery Tender: it roams (untouchable off the board) and leaves its dock by the nearer side first (" + ab.Phase + ")", ab.Roams && ab.Phase == StormPassBrain.Stage.Leave);
-        bool passing = StepUntil(() => ab.Phase == StormPassBrain.Stage.Pass, 8f);
-        Check("... then makes a PASS across the top (passes " + ab.Passes + ")", passing && ab.Passes == 1);
+        Check("Refinery Tender: it does not roam (always a target, between the rails)", !ab.Roams);
+        // a racetrack: legs across the top and a U-turn at each rail, never out of the view
+        float minX = 9f, maxX = -9f, minY = 99f, maxY = -99f;
+        bool sawRight = false, sawLeft = false, off = false;
+        Step(14f, () =>
+        {
+            minX = Mathf.Min(minX, e.Position.x); maxX = Mathf.Max(maxX, e.Position.x);
+            minY = Mathf.Min(minY, e.Position.y); maxY = Mathf.Max(maxY, e.Position.y);
+            sawRight |= e.Velocity.x > .3f; sawLeft |= e.Velocity.x < -.3f;
+            off |= e.Offstage || e.Position.y > EliteSystem.ViewTop || Mathf.Abs(e.Position.x) > EliteSystem.RailEdge;
+        });
+        Check("... it flies legs across the top and TURNS ROUND at the rail instead of leaving (x " + minX.ToString("0.0") + " .. " + maxX.ToString("0.0") + ", y " + minY.ToString("0.0") + " .. " + maxY.ToString("0.0") + ", legs " + ab.Legs + ")",
+              sawRight && sawLeft && maxX - minX > 1.2f && ab.Legs >= 3 && !off && e.Position.y > pilot.position.y + 1.5f);
         bool window = StepUntil(() => ab.WantsAttack(Vector2.zero), 14f);
-        Check("the cast window opens inside the rails, high over the board (x " + e.Position.x.ToString("0.0") + ", y " + e.Position.y.ToString("0.0") + ")", window && e.Position.y > pilot.position.y + 1.5f);
+        Check("the cast window opens on a straight leg inside the rails, high over the board (x " + e.Position.x.ToString("0.0") + ", y " + e.Position.y.ToString("0.0") + ")", window && ab.OnLeg && e.Position.y > pilot.position.y + 1.5f);
         StartTell(e);
         bool stairs = true, inside = true;
         for (int i = 0; i < fd.Count; i++)
@@ -391,8 +418,22 @@ public static class StormEliteTest
         Check("the flares are lobbed one after another (" + maxLaid + ", most at once " + maxOrbs + ") and each bursts into an X of bolts (most bolts " + maxBolts + ", bursts " + bursts + ")",
               maxLaid == FlareDropAttack.Flares && maxOrbs >= 2 && maxBolts >= 4 && AttackPreview.TooShort == 0);
         Check("the cast is counted (" + maxCasts + ")", maxCasts == 1);
-        bool back = StepUntil(() => ab.Passes >= 2, 24f);
-        Check("it leaves by the far side and comes back for another pass (" + ab.Passes + ")", back);
+        float dir0 = ab.DirX;
+        bool turned = StepUntil(() => ab.DirX != dir0, 12f);
+        Check("it turns round at the rail and flies the next leg back (heading " + dir0 + " -> " + ab.DirX + ")", turned);
+
+        // the script names the tier of a leg: a token moves the next U-turn onto it, and phase 2 spaces the tiers wider
+        Fresh();
+        e = InPlay("storm_elite_refinery_tender", new Vector2(0f, 3f));
+        ab = (AirshipBrain)e.Brain;
+        int legs = ab.Legs;
+        int want = ab.Tier == 2 ? 0 : 2;
+        ab.OnScriptMove("tier:" + want);
+        bool tiered = StepUntil(() => ab.Legs > legs && ab.Tier == want, 12f);
+        Check("a 'tier:" + want + "' token puts a following leg on that tier (tier " + ab.Tier + ", legs " + legs + " -> " + ab.Legs + ")", tiered);
+        float narrow = ab.TierStep;
+        e.TakeHit(EliteDamage.Teleport, e.transform.position, 2);
+        Check("a later phase spaces the tiers wider (" + narrow.ToString("0.00") + " -> " + ab.TierStep.ToString("0.00") + " u)", ab.TierStep > narrow + .05f);
 
         Fresh();
         e = InPlay("storm_elite_refinery_tender", new Vector2(0f, 3f));
@@ -483,21 +524,31 @@ public static class StormEliteTest
         var e = InPlay("storm_elite_skyhook_harrier", new Vector2(0f, 3f));
         var hb = (HookerBrain)e.Brain;
         var cr = (CableRakeAttack)e.Attack;
-        Check("Skyhook Harrier: it roams and leaves its dock by the nearer side first (" + hb.Phase + ")", hb.Roams && hb.Phase == StormPassBrain.Stage.Leave);
-        bool passing = StepUntil(() => hb.Phase == StormPassBrain.Stage.Pass, 8f);
-        Check("... then swoops across the top on its arc (passes " + hb.Passes + ")", passing && hb.Passes == 1);
+        Check("Skyhook Harrier: it does not roam (always a target, between the rails)", !hb.Roams);
+        float minX = 9f, maxX = -9f, minY = 99f, maxY = -99f;
+        bool sawRight = false, sawLeft = false, off = false;
+        Step(12f, () =>
+        {
+            minX = Mathf.Min(minX, e.Position.x); maxX = Mathf.Max(maxX, e.Position.x);
+            minY = Mathf.Min(minY, e.Position.y); maxY = Mathf.Max(maxY, e.Position.y);
+            sawRight |= e.Velocity.x > .3f; sawLeft |= e.Velocity.x < -.3f;
+            off |= e.Offstage || e.Position.y > EliteSystem.ViewTop || Mathf.Abs(e.Position.x) > EliteSystem.RailEdge;
+        });
+        Check("... it swoops in V shapes across the top, dips and hooks round at the rail instead of leaving (x " + minX.ToString("0.0") + " .. " + maxX.ToString("0.0") + ", y " + minY.ToString("0.0") + " .. " + maxY.ToString("0.0") + ", legs " + hb.Legs + ")",
+              sawRight && sawLeft && maxX - minX > 1.2f && maxY - minY > .5f && hb.Legs >= 2 && !off && e.Position.y > pilot.position.y + 1.5f);
         bool window = StepUntil(() => hb.WantsAttack(Vector2.zero), 14f);
-        Check("the rake window opens inside the rails (x " + e.Position.x.ToString("0.0") + ")", window);
-        Vector2 at = e.Position;
+        Check("the rake window opens on the way down to the dip, on a straight leg (x " + e.Position.x.ToString("0.0") + ", heading " + hb.DirX + ")", window && hb.OnLeg && hb.DirX * e.Position.x < 0f);
         StartTell(e);
-        bool along = true, inside = true;
+        bool along = true, inside = true, onV = true;
         for (int i = 0; i < cr.Count; i++)
         {
             inside &= Mathf.Abs(cr.CableX(i)) <= EliteSystem.RailEdge && cr.CableY(i) < EliteSystem.ViewTop;
-            along &= (cr.CableX(i) - (i == 0 ? at.x : cr.CableX(i - 1))) * hb.DirX > .4f;
+            onV &= Mathf.Abs(cr.CableY(i) - hb.PathY(cr.CableX(i))) < .01f;
+            if (i > 0) along &= (cr.CableX(i) - cr.CableX(i - 1)) * hb.DirX > .4f;
         }
-        Check("on the first frame of the tell the " + CableRakeAttack.Cables + " cables are drawn as thin lines along its heading (" + cr.Telegraph.Loops + " outlines)",
-              e.Telling && cr.Telegraph.Showing && cr.Telegraph.Loops == CableRakeAttack.Cables && along && inside);
+        Check("on the first frame of the tell the " + CableRakeAttack.Cables + " cables are drawn as thin lines along its heading, centred under the dip (" + cr.Telegraph.Loops + " outlines)",
+              e.Telling && cr.Telegraph.Showing && cr.Count == CableRakeAttack.Cables && cr.Telegraph.Loops == cr.Count && along && inside && onV &&
+              Mathf.Abs(cr.CableX(0) + cr.CableX(cr.Count - 1)) < .05f);
         Check("the hooks go in: it holds through the wind-up", cr.HoldsDuringTell);
         int before = EliteSystem.Shots.Launched;
         StepUntil(() => e.Acting, 3f);
@@ -505,8 +556,18 @@ public static class StormEliteTest
         Step(2.5f, () => e.AttackCooldown = 99f);
         Check("the cables drop one after another (" + cr.Dropped + ", launched " + (EliteSystem.Shots.Launched - before) + ")", cr.Dropped == cr.Count && EliteSystem.Shots.Launched - before >= cr.Count);
         Check("the cast is counted and the lines are gone (" + hb.Casts + ")", hb.Casts == 1 && AttackPreview.ActiveCount == 0);
-        bool back = StepUntil(() => hb.Passes >= 2, 24f);
-        Check("it leaves by the far side and comes back (" + hb.Passes + ")", back);
+        float dir0 = hb.DirX;
+        bool turned = StepUntil(() => hb.DirX != dir0, 12f);
+        Check("it hooks round at the rail and swoops back the other way (heading " + dir0 + " -> " + hb.DirX + ")", turned);
+
+        // the script sets the depth of the next V; the later phases rake wider
+        Fresh();
+        e = InPlay("storm_elite_skyhook_harrier", new Vector2(0f, 3f));
+        hb = (HookerBrain)e.Brain;
+        float shallow = hb.Dip;
+        hb.OnScriptMove("dip:2");
+        bool deeper = StepUntil(() => hb.Dip > shallow + .3f, 12f);
+        Check("a 'dip:2' token makes the next V deeper (" + shallow.ToString("0.00") + " -> " + hb.Dip.ToString("0.00") + " u)", deeper);
 
         Fresh();
         e = InPlay("storm_elite_skyhook_harrier", new Vector2(0f, 3f));
@@ -525,8 +586,16 @@ public static class StormEliteTest
         Fresh();
         var e = InPlay("storm_elite_static_bastion", new Vector2(0f, 3f));
         var hw = (HailWallAttack)e.Attack;
+        var cb = (CitadelBrain)e.Brain;
         Step(4f);
         Check("Static Bastion: it holds the top of the view (y " + e.Position.y.ToString("0.0") + ")", e.Position.y > pilot.position.y + 1.5f);
+        bool planted = StepUntil(() => cb.Planted && cb.TargetX > 0f, 12f);
+        Check("... crawls to the rail end the script names (right: x " + e.Position.x.ToString("0.00") + " of " + cb.TargetX.ToString("0.00") + ") and plants", planted);
+        float x0 = e.Position.x;
+        cb.OnScriptMove("L");
+        Step(3f);
+        Check("... a token sends it crawling back (x " + x0.ToString("0.00") + " -> " + e.Position.x.ToString("0.00") + ", at a crawl: under " + (e.Def.speed * 1.2f).ToString("0.0") + " u/s)",
+              e.Position.x < x0 - .8f && e.Velocity.magnitude < e.Def.speed * 1.2f);
         StartTell(e);
         Check("on the first frame of the tell the edges of every wave's gap are drawn (" + hw.Telegraph.Loops + " lines for " + hw.Waves + " waves)",
               e.Telling && hw.Waves >= 2 && hw.Telegraph.Showing && hw.Telegraph.Loops == 2 * hw.Waves);
@@ -550,7 +619,7 @@ public static class StormEliteTest
                 // (the stones of a fresh wave are all up at the top: none inside its gap)
                 int w = hw.Sent - 1;
                 foreach (var s in EliteSystem.Shots.All)
-                    if (s.Active && s.transform.position.y > EliteSystem.ViewTop - .4f && Mathf.Abs(s.transform.position.x - hw.GapCentre(w)) < HailWallAttack.GapHalf - .02f) clean = false;
+                    if (s.Active && s.transform.position.y > EliteSystem.ViewTop - .4f && Mathf.Abs(s.transform.position.x - hw.GapCentre(w)) < hw.GapHalfOf(w) - .02f) clean = false;
                 waveSeen = hw.Sent;
             }
         }
@@ -558,12 +627,184 @@ public static class StormEliteTest
         Step(3f);
         Check("nothing is left behind (" + AttackPreview.ActiveCount + " drawings)", AttackPreview.ActiveCount == 0);
 
+        // the phases: three waves from phase 2, a gap that closes in at the last heart
+        Fresh();
+        e = InPlay("storm_elite_static_bastion", new Vector2(0f, 3f));
+        hw = (HailWallAttack)e.Attack;
+        StartTell(e);
+        int waves1 = hw.Waves;
+        float open1 = hw.GapHalfOf(hw.Waves - 1);
+        e.TakeHit(EliteDamage.Teleport, e.transform.position, 1);
+        Step(EliteShip.GraceSeconds + .1f);
+        e.TakeHit(EliteDamage.Teleport, e.transform.position, 1);
+        Step(EliteShip.GraceSeconds + .1f);
+        Check("two lost hearts take the armoured Bastion into phase 2 (" + e.Script.Phase + ", " + e.Hearts + " hearts)", e.Script.Phase == 2);
+        e.AttackCooldown = 99f;
+        StartTell(e);
+        int waves2 = hw.Waves;
+        float open2 = hw.GapHalfOf(hw.Waves - 1);
+        Check("phase 2 drops three waves (" + waves1 + " -> " + waves2 + "), the gap still full width (" + open1.ToString("0.00") + " / " + open2.ToString("0.00") + ")", waves1 == 2 && waves2 == 3 && Mathf.Approximately(open2, HailWallAttack.GapHalf));
+        for (int i = 0; i < 2; i++)
+        {
+            e.TakeHit(EliteDamage.Teleport, e.transform.position, 1);
+            Step(EliteShip.GraceSeconds + .1f);
+        }
+        Check("... and the last heart the last phase (" + e.Script.Phase + ", " + e.Hearts + " hearts)", e.Script.Phase == 3 && e.Hearts == 1);
+        e.AttackCooldown = 99f;
+        StartTell(e);
+        Check("the last heart's wall CLOSES IN: each wave's gap narrower than the last (" + hw.GapHalfOf(0).ToString("0.00") + " -> " + hw.GapHalfOf(hw.Waves - 1).ToString("0.00") + ")",
+              hw.Closing && hw.Waves == 3 && hw.GapHalfOf(hw.Waves - 1) < hw.GapHalfOf(0) - .1f && hw.GapHalfOf(hw.Waves - 1) >= HailWallAttack.MinGapHalf - .001f);
+
         Fresh();
         e = InPlay("storm_elite_static_bastion", new Vector2(0f, 3f));
         StartTell(e);
         Kill(e);
         Check("a Bastion killed in its tell takes its lines with it", AttackPreview.ActiveCount == 0);
     }
+
+    // ---- Rod Dancer: the order of the columns follows the script's variant --------------------
+
+    static void DancerOrders()
+    {
+        Check("rod strike orders by variant name: out / pair -> outside in, in / in4 -> inside out, endsA / endsB -> from both ends",
+              RodStrikesAttack.OrderFor("out") == RodStrikesAttack.Order.OutsideIn && RodStrikesAttack.OrderFor("pair") == RodStrikesAttack.Order.OutsideIn &&
+              RodStrikesAttack.OrderFor("in") == RodStrikesAttack.Order.InsideOut && RodStrikesAttack.OrderFor("in4") == RodStrikesAttack.Order.InsideOut &&
+              RodStrikesAttack.OrderFor("endsA") == RodStrikesAttack.Order.Ends && RodStrikesAttack.OrderFor("endsB") == RodStrikesAttack.Order.Ends &&
+              RodStrikesAttack.OrderFor("") == RodStrikesAttack.Order.OutsideIn);
+        Fresh();
+        var e = InPlay("storm_elite_rod_dancer", new Vector2(0f, 3f));
+        var rs = (RodStrikesAttack)e.Attack;
+        e.TakeHit(EliteDamage.Teleport, e.transform.position, 1);
+        Step(EliteShip.GraceSeconds + .1f);
+        Check("a lost heart is phase 2 (" + e.Script.Phase + ")", e.Script.Phase == 2);
+        StartTell(e);
+        bool inside = rs.Sequence == RodStrikesAttack.Order.InsideOut && Mathf.Abs(rs.Lane(0) - pilot.position.x) < .2f;
+        for (int i = 1; i < rs.Armed; i++) inside &= Mathf.Abs(rs.Lane(i) - pilot.position.x) >= Mathf.Abs(rs.Lane(i - 1) - pilot.position.x) - 1e-3f;
+        Check("phase 2 strikes INSIDE OUT: the pilot's own lane first, the others farther and farther (" + rs.Armed + " columns)", rs.Armed >= 3 && inside);
+
+        // the last heart: the one scripted exit by the top, back in, then the columns from both ends in
+        e.AttackCooldown = 99f;
+        e.TakeHit(EliteDamage.Teleport, e.transform.position, 1);
+        bool back = StepUntil(() => !e.Hidden && e.InPlay && e.State != EliteState.Hide, 30f);
+        e.AttackCooldown = 99f;
+        Step(1.5f);
+        Check("the last heart's exit comes back (" + e.State + ", phase " + e.Script.Phase + ")", back && e.Script.Phase == 3);
+        StartTell(e);
+        bool ends = rs.Sequence == RodStrikesAttack.Order.Ends && rs.Armed >= 3;
+        float lo = 99f, hi = -99f;
+        for (int i = 0; i < rs.Armed; i++) { lo = Mathf.Min(lo, rs.Lane(i)); hi = Mathf.Max(hi, rs.Lane(i)); }
+        ends &= Mathf.Approximately(rs.Lane(0), lo) && Mathf.Approximately(rs.Lane(1), hi);
+        Check("the last phase strikes from BOTH ENDS in: left-most, right-most, then the next in (" + rs.Lane(0).ToString("0.0") + ", " + rs.Lane(1).ToString("0.0") + ")", ends);
+    }
+
+    // ---- the scripts: shapes, tokens, variants, phases ------------------------------------------
+
+    static readonly Dictionary<string, string[]> Tokens = new Dictionary<string, string[]>
+    {
+        { "thunderhead", new[] { "L", "C", "R" } },
+        { "airship", new[] { "tier:0", "tier:1", "tier:2" } },
+        { "dancer", new[] { "cw", "ccw" } },
+        { "hooker", new[] { "dip:1", "dip:2" } },
+        { "citadel", new[] { "L", "C", "R" } },
+    };
+
+    static bool Differ(ElitePhaseDef a, ElitePhaseDef b)
+    {
+        if (a == null || b == null || a.loop == null || b.loop == null) return false;
+        if (a.loop.Length != b.loop.Length || !Mathf.Approximately(a.speed, b.speed)) return true;
+        for (int i = 0; i < a.loop.Length; i++)
+            if (a.loop[i].attack != b.loop[i].attack || a.loop[i].move != b.loop[i].move) return true;
+        return false;
+    }
+
+    static bool HasVariant(EliteScriptDef sd, string name)
+    {
+        if (name == "" || name == "-") return true;
+        if (sd.variants != null) foreach (var v in sd.variants) if (v.name == name) return true;
+        return false;
+    }
+
+    static void Scripts()
+    {
+        var kinds = new HashSet<string>();
+        foreach (var x in Expected)
+        {
+            var d = EliteCatalog.Find(x.key);
+            var sd = d.script;
+            bool tokensOk = true, variantsOk = true, loops = sd.phase1 != null && sd.phase2 != null && sd.last != null &&
+                sd.phase1.loop.Length >= 2 && sd.phase2.loop.Length >= 2 && sd.last.loop.Length >= 2;
+            var ph = new[] { sd.phase1, sd.phase2, sd.last };
+            var known = Tokens[d.brain];
+            foreach (var p in ph)
+                foreach (var st in p.loop)
+                {
+                    tokensOk &= st.move == "" || System.Array.IndexOf(known, st.move) >= 0;
+                    variantsOk &= HasVariant(sd, st.attack);
+                }
+            Check(x.key + ": a three-phase script (loops of " + sd.phase1.loop.Length + " / " + sd.phase2.loop.Length + " / " + sd.last.loop.Length + " steps), every move token one its brain reads, every attack variant defined", loops && tokensOk && variantsOk);
+            Check(x.key + ": phase 2 and the last heart each loop differently from the phase before", Differ(sd.phase1, sd.phase2) && Differ(sd.phase2, sd.last));
+            kinds.Add(sd.entrance.kind);
+            bool exits = d.hurtHide ? (sd.lastExit == "top" || sd.lastExit == "left" || sd.lastExit == "right") : (sd.lastExit == "none" || !d.hurtHide);
+            Check(x.key + ": leaves the view only on its one scripted exit (hurtHide " + d.hurtHide + ", lastExit '" + sd.lastExit + "')", exits);
+            Check(x.key + ": tempo and engage kept (" + sd.tempo + " / " + d.engageSeconds + ")", sd.tempo > 0f && d.engageSeconds >= 42f);
+        }
+        Check("the five Storm entrances are five different signatures (" + string.Join(",", kinds) + ")", kinds.Count == 5);
+    }
+
+    // ---- no coin flips: the same sequence whatever the seed --------------------------------------
+
+    static List<int> TellLog(string key, int seed, float seconds, System.Func<EliteShip, int> read)
+    {
+        Fresh();
+        Random.InitState(seed);
+        var e = EliteShip.CreateInPlay(EliteCatalog.Find(key), new Vector2(0f, 3f));
+        e.EscapeLeft = 0f;
+        e.EngageLeft = 9999f;
+        var log = new List<int>();
+        bool was = false;
+        for (float t = 0f; t < seconds; t += Dt)
+        {
+            pilot.position = new Vector3(0f, -2.5f, 0f);
+            EliteSystem.Step(Dt);
+            if (e == null || e.State == EliteState.Dead) break;
+            bool tell = e.Telling;
+            if (tell && !was) log.Add(read(e));
+            was = tell;
+        }
+        return log;
+    }
+
+    static void Determinism()
+    {
+        var anvilA = TellLog("storm_elite_anvil_cloud", 11, 60f, e => ((ThunderheadBrain)e.Brain).Station);
+        var anvilB = TellLog("storm_elite_anvil_cloud", 987, 60f, e => ((ThunderheadBrain)e.Brain).Station);
+        Check("Anvil Cloud: the same stations in the same order whatever the seed (" + string.Join(",", anvilA) + " / " + string.Join(",", anvilB) + ")",
+              Same(anvilA, anvilB, 4) && Distinct(anvilA) >= 2);
+        var basA = TellLog("storm_elite_static_bastion", 5, 60f, e => ((CitadelBrain)e.Brain).TargetX > 0f ? 1 : -1);
+        var basB = TellLog("storm_elite_static_bastion", 4242, 60f, e => ((CitadelBrain)e.Brain).TargetX > 0f ? 1 : -1);
+        Check("Static Bastion: the same rail ends in the same order whatever the seed (" + string.Join(",", basA) + " / " + string.Join(",", basB) + ")",
+              Same(basA, basB, 3) && Distinct(basA) >= 2);
+        var danA = TellLog("storm_elite_rod_dancer", 3, 45f, e => ((DancerBrain)e.Brain).Way > 0f ? 1 : -1);
+        var danB = TellLog("storm_elite_rod_dancer", 777, 45f, e => ((DancerBrain)e.Brain).Way > 0f ? 1 : -1);
+        Check("Rod Dancer: the same weave directions in the same order whatever the seed (" + string.Join(",", danA) + " / " + string.Join(",", danB) + ")",
+              Same(danA, danB, 4) && Distinct(danA) >= 2);
+        var tenA = TellLog("storm_elite_refinery_tender", 8, 60f, e => ((AirshipBrain)e.Brain).Tier);
+        var tenB = TellLog("storm_elite_refinery_tender", 6001, 60f, e => ((AirshipBrain)e.Brain).Tier);
+        Check("Refinery Tender: the same tiers in the same order whatever the seed (" + string.Join(",", tenA) + " / " + string.Join(",", tenB) + ")", Same(tenA, tenB, 3));
+        var harA = TellLog("storm_elite_skyhook_harrier", 2, 45f, e => ((HookerBrain)e.Brain).DirX > 0f ? 1 : -1);
+        var harB = TellLog("storm_elite_skyhook_harrier", 31337, 45f, e => ((HookerBrain)e.Brain).DirX > 0f ? 1 : -1);
+        Check("Skyhook Harrier: the same swoop headings in the same order whatever the seed (" + string.Join(",", harA) + " / " + string.Join(",", harB) + ")", Same(harA, harB, 3));
+    }
+
+    static bool Same(List<int> a, List<int> b, int atLeast)
+    {
+        int n = Mathf.Min(a.Count, b.Count);
+        if (n < atLeast) return false;
+        for (int i = 0; i < n; i++) if (a[i] != b[i]) return false;
+        return true;
+    }
+
+    static int Distinct(List<int> a) { return new HashSet<int>(a).Count; }
 
     // ---- the fight rules ---------------------------------------------------------------------
 
@@ -585,8 +826,8 @@ public static class StormEliteTest
             var atk = EliteAttacks.Create(d.attack);
             Check(x.key + ": an aimed attack winds up long enough for the lock (tell " + d.tellSeconds + " s)", !atk.Aimed || d.tellSeconds >= EliteDef.MinAimedTell);
         }
-        Check("Tender and Harrier roam; Anvil, Dancer and Bastion stay on the board",
-              EliteBrains.Create("airship").Roams && EliteBrains.Create("hooker").Roams &&
+        Check("none of the five Storm elites roams: all of them keep to the board (Tender and Harrier turn round at the rail)",
+              !EliteBrains.Create("airship").Roams && !EliteBrains.Create("hooker").Roams &&
               !EliteBrains.Create("thunderhead").Roams && !EliteBrains.Create("dancer").Roams && !EliteBrains.Create("citadel").Roams);
         Check("the base ids Desert flies are still there",
               System.Array.IndexOf(EliteBrains.Ids, "interceptor") >= 0 && System.Array.IndexOf(EliteAttacks.Ids, "lance_dash") >= 0 &&

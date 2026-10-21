@@ -115,5 +115,43 @@
   "poolSeconds": 3.4,
   "topMargin": 1.5,
   "engageSeconds": 55,
-  "script": { "tempo": 1.35 }
+  "script": {
+    "tempo": 1.35,
+    "exitTell": 1.6,
+    "lastExit": "none",
+    "note": "anchor: plods legs with a rest at each end and throws only while resting, a quicksand row each rest; second row from phase 2; leg shake at the last heart.",
+    "entrance": { "kind": "overshoot", "seconds": 1.8, "amp": 0.8 },
+    "phase1": {
+      "speed": 1.0, "gap": 1.0,
+      "set": [ { "key": "hazardCount", "value": 1 } ],
+      "loop": [
+        { "wait": 2.0, "attack": "row" },
+        { "wait": 2.0, "attack": "high" },
+        { "wait": 2.0, "attack": "slow" }
+      ]
+    },
+    "phase2": {
+      "speed": 1.1, "gap": 0.9,
+      "set": [ { "key": "hazardCount", "value": 2 } ],
+      "loop": [
+        { "wait": 1.6, "attack": "rush" },
+        { "wait": 1.6, "attack": "high" },
+        { "wait": 1.6, "attack": "slow" }
+      ]
+    },
+    "last": {
+      "speed": 1.2, "gap": 0.8,
+      "set": [ { "key": "hazardCount", "value": 2 } ],
+      "loop": [
+        { "wait": 1.2, "move": "shake", "attack": "rush" },
+        { "wait": 1.2, "move": "shake", "attack": "high" }
+      ]
+    },
+    "variants": [
+      { "name": "row", "set": [ { "key": "shotInterval", "value": 0.2 } ] },
+      { "name": "high", "set": [ { "key": "lobAhead", "value": 2.6 }, { "key": "shotInterval", "value": 0.22 } ] },
+      { "name": "slow", "set": [ { "key": "shotInterval", "value": 0.32 }, { "key": "lobSeconds", "value": 0.95 } ] },
+      { "name": "rush", "set": [ { "key": "shotInterval", "value": 0.1 }, { "key": "lobSeconds", "value": 0.7 } ] }
+    ]
+  }
 }

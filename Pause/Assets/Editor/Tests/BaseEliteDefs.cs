@@ -42,6 +42,7 @@ public static class BaseEliteDefs
         d2.tellSeconds = .5f; d2.attackGap = 3.2f; d2.actionSeconds = .6f;
         d2.shotCount = 4; d2.shotSpeed = 5.5f; d2.shotSpread = 0f; d2.shotSize = .2f; d2.shotInterval = .14f; d2.shotKind = "bolt";
         d2.laneOffset = 1.7f;
+        d2.script = new EliteScriptDef();   // (the Coalrunner's own script is not the fixture's)
         d2.Resolve();
         gunship = d2;
         return d2;

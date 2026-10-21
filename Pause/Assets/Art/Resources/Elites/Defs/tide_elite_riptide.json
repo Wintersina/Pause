@@ -98,5 +98,26 @@
   "hideSeconds": 3.5,
   "lobSeconds": 0.6,
   "engageSeconds": 42,
-  "script": { "tempo": 0.8 }
+  "script": {
+    "tempo": 0.8, "exitTell": 1.4, "lastExit": "right",
+    "entrance": { "kind": "arc", "seconds": 1.4, "amp": 1.8 },
+    "phase1": { "speed": 1.0, "gap": 1.0,
+      "loop": [
+        { "wait": 1.4, "move": "pace:1", "attack": "" },
+        { "wait": 3.4, "move": "pace:0.85", "attack": "-" },
+        { "wait": 1.0, "move": "pace:1.1", "attack": "long" },
+        { "wait": 3.4, "move": "pace:1", "attack": "-" } ] },
+    "phase2": { "speed": 1.2, "gap": 0.8,
+      "loop": [
+        { "wait": 1.0, "move": "pace:1.1", "attack": "" },
+        { "wait": 0.5, "move": "", "attack": "quick" },
+        { "wait": 2.6, "move": "pace:1.25", "attack": "-" } ] },
+    "last": { "speed": 1.3, "gap": 0.7,
+      "loop": [
+        { "wait": 0.8, "move": "pace:1.2", "attack": "long" },
+        { "wait": 0.5, "move": "", "attack": "quick" } ] },
+    "variants": [
+      {"name": "long", "set": [{"key": "shotCount", "value": 4}, {"key": "shotInterval", "value": 0.1}]},
+      {"name": "quick", "set": [{"key": "shotCount", "value": 2}, {"key": "shotInterval", "value": 0.08}]} ]
+  }
 }

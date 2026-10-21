@@ -16,14 +16,14 @@
   "role": "strafing gunship",
   "brain": "strafer",
   "attack": "coal_strafe",
-  "lore": "A broadside gunship that rakes the top of the sky, in one edge and out the other. Its side cannons cross their bolts on lanes you can see before they fly. Hurt it and it starts dropping burning coal that bounces down the board.",
+  "lore": "A broadside gunship that races along the top of the sky from rail to rail and stops dead to fire. Its side cannons cross their bolts on lanes you can see before they fly. Hurt it and it starts dropping burning coal that bounces down the board.",
   "cellWorldSize": 1.895,
   "hullRadius": 0.345,
   "noseDeg": 90,
   "turnsToFace": false,
   "maxBank": 10,
-  "speed": 3.2,
-  "accel": 6,
+  "speed": 3.4,
+  "accel": 8,
   "turnRate": 200,
   "laneOffset": 1.7,
   "aggression": 0.5,
@@ -102,6 +102,128 @@
   "launchFrom": "crucible,magmabay",
   "hurtHide": true,
   "hideSeconds": 3.5,
+  "hazardCount": 0,
   "engageSeconds": 42,
-  "script": { "tempo": 0.8 }
+  "script": {
+    "tempo": 0.8,
+    "exitTell": 1.2,
+    "lastExit": "right",
+    "lastExitSeconds": 1.6,
+    "note": "sweeper: races rail to rail along the top, stops and fires; coal on the stops from phase 2",
+    "entrance": {
+      "kind": "overshoot",
+      "seconds": 1.4,
+      "amp": 2.0
+    },
+    "phase1": {
+      "speed": 1.0,
+      "gap": 1.0,
+      "loop": [
+        {
+          "wait": 2.4,
+          "move": "R",
+          "attack": "tight"
+        },
+        {
+          "wait": 2.4,
+          "move": "L",
+          "attack": "wide"
+        }
+      ]
+    },
+    "phase2": {
+      "speed": 1.1,
+      "gap": 0.9,
+      "loop": [
+        {
+          "wait": 2.2,
+          "move": "R",
+          "attack": "coal"
+        },
+        {
+          "wait": 2.2,
+          "move": "L",
+          "attack": "coal"
+        }
+      ]
+    },
+    "last": {
+      "speed": 1.25,
+      "gap": 0.75,
+      "loop": [
+        {
+          "wait": 1.8,
+          "move": "R",
+          "attack": "coals"
+        },
+        {
+          "wait": 1.8,
+          "move": "L",
+          "attack": "coals"
+        }
+      ]
+    },
+    "variants": [
+      {
+        "name": "tight",
+        "set": [
+          {
+            "key": "shotCount",
+            "value": 2
+          },
+          {
+            "key": "shotSpread",
+            "value": 10
+          }
+        ]
+      },
+      {
+        "name": "wide",
+        "set": [
+          {
+            "key": "shotCount",
+            "value": 3
+          },
+          {
+            "key": "shotSpread",
+            "value": 14
+          }
+        ]
+      },
+      {
+        "name": "coal",
+        "set": [
+          {
+            "key": "hazardCount",
+            "value": 1
+          },
+          {
+            "key": "shotCount",
+            "value": 3
+          },
+          {
+            "key": "shotSpread",
+            "value": 14
+          }
+        ]
+      },
+      {
+        "name": "coals",
+        "set": [
+          {
+            "key": "hazardCount",
+            "value": 2
+          },
+          {
+            "key": "shotCount",
+            "value": 3
+          },
+          {
+            "key": "shotSpread",
+            "value": 12
+          }
+        ]
+      }
+    ]
+  }
 }

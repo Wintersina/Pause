@@ -46,6 +46,8 @@
   "hazardSeconds": 0.4,
   "hazardSize": 0.6,
   "displayName": "Pearl Warden",
+  "hazardCount": 0,
+  "shotSpread": 0,
   "role": "pearl shell",
   "brain": "oyster",
   "attack": "pearl_spiral",
@@ -103,5 +105,28 @@
   "followLag": 0.25,
   "topMargin": 1.7,
   "engageSeconds": 55,
-  "script": { "tempo": 1.35 }
+  "script": {
+    "tempo": 1.35, "exitTell": 1.4, "lastExit": "none",
+    "entrance": { "kind": "overshoot", "seconds": 1.8, "amp": 1.6 },
+    "phase1": { "speed": 1.0, "gap": 1.0,
+      "loop": [
+        { "wait": 1.8, "move": "st:0", "attack": "" },
+        { "wait": 2.2, "move": "st:1", "attack": "" },
+        { "wait": 2.2, "move": "st:2", "attack": "dense" },
+        { "wait": 2.2, "move": "st:1", "attack": "" } ] },
+    "phase2": { "speed": 1.2, "gap": 0.85,
+      "loop": [
+        { "wait": 1.6, "move": "st:2", "attack": "wide" },
+        { "wait": 1.8, "move": "st:0", "attack": "wide" },
+        { "wait": 1.8, "move": "st:1", "attack": "dense" } ] },
+    "last": { "speed": 1.3, "gap": 0.75,
+      "loop": [
+        { "wait": 1.2, "move": "st:1", "attack": "double" },
+        { "wait": 1.2, "move": "st:0", "attack": "double" },
+        { "wait": 1.2, "move": "st:2", "attack": "double" } ] },
+    "variants": [
+      {"name": "dense", "set": [{"key": "shotCount", "value": 9}, {"key": "shotInterval", "value": 0.1}]},
+      {"name": "wide", "set": [{"key": "shotCount", "value": 9}, {"key": "shotSpread", "value": 14}, {"key": "shotInterval", "value": 0.1}]},
+      {"name": "double", "set": [{"key": "hazardCount", "value": 2}, {"key": "shotCount", "value": 6}, {"key": "shotSpread", "value": 8}, {"key": "shotInterval", "value": 0.1}]} ]
+  }
 }

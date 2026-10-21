@@ -116,5 +116,126 @@
   "followLag": 0.3,
   "laneOffset": 1.4,
   "engageSeconds": 55,
-  "script": { "tempo": 1.35 }
+  "script": {
+    "tempo": 1.35,
+    "exitTell": 1.4,
+    "lastExit": "none",
+    "note": "summoner: pair of drones, fog vent, refill; trio in phase 2; all four at once at the last heart",
+    "entrance": {
+      "kind": "overshoot",
+      "seconds": 1.9,
+      "amp": 1.4
+    },
+    "phase1": {
+      "speed": 1.0,
+      "gap": 1.0,
+      "loop": [
+        {
+          "wait": 2.2,
+          "move": "C",
+          "attack": "pair"
+        },
+        {
+          "wait": 3.0,
+          "move": "L",
+          "attack": "vent"
+        },
+        {
+          "wait": 2.2,
+          "move": "R",
+          "attack": "pair"
+        },
+        {
+          "wait": 3.0,
+          "move": "C",
+          "attack": "vent"
+        }
+      ]
+    },
+    "phase2": {
+      "speed": 1.15,
+      "gap": 0.9,
+      "loop": [
+        {
+          "wait": 2.0,
+          "move": "C",
+          "attack": "trio"
+        },
+        {
+          "wait": 2.8,
+          "move": "R",
+          "attack": "vent"
+        },
+        {
+          "wait": 2.0,
+          "move": "L",
+          "attack": "trio"
+        },
+        {
+          "wait": 2.8,
+          "move": "C",
+          "attack": "vent"
+        }
+      ]
+    },
+    "last": {
+      "speed": 1.3,
+      "gap": 0.75,
+      "set": [
+        {
+          "key": "hazardCount",
+          "value": 4
+        }
+      ],
+      "loop": [
+        {
+          "wait": 1.8,
+          "move": "C",
+          "attack": "all"
+        },
+        {
+          "wait": 2.4,
+          "move": "L",
+          "attack": "vent"
+        },
+        {
+          "wait": 1.8,
+          "move": "R",
+          "attack": "all"
+        }
+      ]
+    },
+    "variants": [
+      {
+        "name": "pair",
+        "set": [
+          {
+            "key": "shotCount",
+            "value": 2
+          }
+        ]
+      },
+      {
+        "name": "trio",
+        "set": [
+          {
+            "key": "shotCount",
+            "value": 3
+          }
+        ]
+      },
+      {
+        "name": "all",
+        "set": [
+          {
+            "key": "shotCount",
+            "value": 4
+          }
+        ]
+      },
+      {
+        "name": "vent"
+      }
+    ]
+  }
 }

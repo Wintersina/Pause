@@ -303,6 +303,7 @@ public static class RailMinePacingTest
         var mounts = new RailMineMount[3];
         var lastY = new float[3];
         var lastDy = new float[3];
+        var wasHolding = new bool[3];
         int reversals = 0, ridden = 0;
         for (int k = 0; k < 3; k++)
         {
@@ -329,10 +330,15 @@ public static class RailMinePacingTest
                 if (mounts[k].RideState == RailMineMount.RidePhase.Holding)
                 {
                     ridden++;
-                    if (Mathf.Abs(dy) > .02f && Mathf.Abs(lastDy[k]) > .02f && Mathf.Sign(dy) != Mathf.Sign(lastDy[k])) reversals++;
+                    // (the frame it first catches the board is not a reversal: it stops falling and starts riding; wasHolding skips that hand-over)
+                    if (wasHolding[k] && Mathf.Abs(dy) > .02f && Mathf.Abs(lastDy[k]) > .02f && Mathf.Sign(dy) != Mathf.Sign(lastDy[k]))
+                    {
+                        reversals++;
+                    }
                 }
                 lastY[k] = y;
                 lastDy[k] = dy;
+                wasHolding[k] = mounts[k].RideState == RailMineMount.RidePhase.Holding;
             }
         }
         Check("three mines stacked on one rail @" + speed.ToString("F2") + ": each rides on its own path, none jiggles for another (" +

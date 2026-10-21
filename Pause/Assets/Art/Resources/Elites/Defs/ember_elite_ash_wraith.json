@@ -32,6 +32,7 @@
   "lookAhead": 0.5,
   "actionSeconds": 0.5,
   "blinkDistance": 1.5,
+  "hazardCount": 1,
   "shotCount": 3,
   "shotSpeed": 6,
   "shotSpread": 16,
@@ -94,5 +95,126 @@
   "hazardSeconds": 2.6,
   "hazardSpeed": 0.4,
   "engageSeconds": 42,
-  "script": { "tempo": 0.8 }
+  "script": {
+    "tempo": 0.8,
+    "exitTell": 1.2,
+    "lastExit": "top",
+    "lastExitSeconds": 1.6,
+    "note": "sniper/blinker: perches 0 left, 1 middle, 2 right in the script's order; a cloud where it stood (phase 2: and where it lands)",
+    "entrance": {
+      "kind": "arc",
+      "seconds": 1.5,
+      "amp": 1.8
+    },
+    "phase1": {
+      "speed": 1.0,
+      "gap": 1.0,
+      "loop": [
+        {
+          "wait": 2.4,
+          "move": "perch:2"
+        },
+        {
+          "wait": 2.4,
+          "move": "perch:1"
+        },
+        {
+          "wait": 2.4,
+          "move": "perch:0"
+        },
+        {
+          "wait": 2.4,
+          "move": "perch:1"
+        }
+      ]
+    },
+    "phase2": {
+      "speed": 1.2,
+      "gap": 0.85,
+      "set": [
+        {
+          "key": "hazardCount",
+          "value": 2
+        }
+      ],
+      "loop": [
+        {
+          "wait": 2.2,
+          "move": "perch:0",
+          "attack": "fan5"
+        },
+        {
+          "wait": 2.2,
+          "move": "perch:2"
+        },
+        {
+          "wait": 2.2,
+          "move": "perch:1",
+          "attack": "fan5"
+        }
+      ]
+    },
+    "last": {
+      "speed": 1.35,
+      "gap": 0.7,
+      "set": [
+        {
+          "key": "hazardCount",
+          "value": 2
+        },
+        {
+          "key": "shotCount",
+          "value": 5
+        },
+        {
+          "key": "shotSpread",
+          "value": 22
+        }
+      ],
+      "loop": [
+        {
+          "wait": 1.8,
+          "move": "perch:2",
+          "attack": "fan7"
+        },
+        {
+          "wait": 1.8,
+          "move": "perch:0",
+          "attack": "fan7"
+        },
+        {
+          "wait": 1.8,
+          "move": "perch:1"
+        }
+      ]
+    },
+    "variants": [
+      {
+        "name": "fan5",
+        "set": [
+          {
+            "key": "shotCount",
+            "value": 5
+          },
+          {
+            "key": "shotSpread",
+            "value": 16
+          }
+        ]
+      },
+      {
+        "name": "fan7",
+        "set": [
+          {
+            "key": "shotCount",
+            "value": 7
+          },
+          {
+            "key": "shotSpread",
+            "value": 20
+          }
+        ]
+      }
+    ]
+  }
 }

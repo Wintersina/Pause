@@ -114,5 +114,44 @@
   "followLag": 0.25,
   "topMargin": 1.6,
   "engageSeconds": 55,
-  "script": { "tempo": 1.35 }
+  "script": {
+    "tempo": 1.35,
+    "exitTell": 1.6,
+    "lastExit": "none",
+    "note": "anchor/wall: slides up and down ONE side rail through three slots; a dust wall sweeps from the opposite rail. Rails swap each phase; phase 2 sends three waves, the last phase adds the mirror wall from its own rail.",
+    "entrance": { "kind": "slam", "seconds": 2.0, "amp": 1.0 },
+    "phase1": {
+      "speed": 1.0, "gap": 1.0,
+      "set": [ { "key": "hazardCount", "value": 2 } ],
+      "loop": [
+        { "wait": 2.4, "move": "slot:0", "attack": "" },
+        { "wait": 2.2, "move": "slot:1", "attack": "slow" },
+        { "wait": 2.2, "move": "slot:2", "attack": "" },
+        { "wait": 2.2, "move": "slot:1", "attack": "slow" }
+      ]
+    },
+    "phase2": {
+      "speed": 1.1, "gap": 0.9,
+      "set": [ { "key": "hazardCount", "value": 3 } ],
+      "loop": [
+        { "wait": 2.0, "move": "slot:0", "attack": "fast" },
+        { "wait": 1.8, "move": "slot:2", "attack": "" },
+        { "wait": 1.8, "move": "slot:1", "attack": "fast" }
+      ]
+    },
+    "last": {
+      "speed": 1.2, "gap": 0.8,
+      "set": [ { "key": "hazardCount", "value": 3 } ],
+      "loop": [
+        { "wait": 1.6, "move": "slot:0", "attack": "mirror" },
+        { "wait": 1.6, "move": "slot:2", "attack": "mirror" },
+        { "wait": 1.6, "move": "slot:1", "attack": "mirror" }
+      ]
+    },
+    "variants": [
+      { "name": "slow", "set": [ { "key": "shotSpeed", "value": 2.2 } ] },
+      { "name": "fast", "set": [ { "key": "shotSpeed", "value": 3.6 } ] },
+      { "name": "mirror", "set": [ { "key": "shotSpeed", "value": 3.0 }, { "key": "lobSpacing", "value": 0.7 } ] }
+    ]
+  }
 }

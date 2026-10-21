@@ -97,6 +97,31 @@
   "lobSeconds": 0.8,
   "poolSeconds": 3.2,
   "lobAhead": 1.6,
+  "laneOffset": 1.3,
   "engageSeconds": 48,
-  "script": { "tempo": 1.1 }
+  "script": {
+    "tempo": 1.1, "exitTell": 1.4, "lastExit": "none",
+    "entrance": { "kind": "arc", "seconds": 1.7, "amp": 1.5 },
+    "phase1": { "speed": 1.0, "gap": 1.0,
+      "loop": [
+        { "wait": 1.8, "move": "L", "attack": "diamond" },
+        { "wait": 1.8, "move": "C", "attack": "diamond" },
+        { "wait": 1.8, "move": "R", "attack": "diamond" },
+        { "wait": 1.2, "move": "C", "attack": "-" } ] },
+    "phase2": { "speed": 1.15, "gap": 0.8,
+      "loop": [
+        { "wait": 1.4, "move": "L", "attack": "wide" },
+        { "wait": 1.4, "move": "R", "attack": "wide" },
+        { "wait": 1.4, "move": "C", "attack": "diamond" },
+        { "wait": 1.0, "move": "C", "attack": "-" } ] },
+    "last": { "speed": 1.3, "gap": 0.65, "set": [{ "key": "poolSeconds", "value": 4.4 }],
+      "loop": [
+        { "wait": 1.1, "move": "C", "attack": "wide" },
+        { "wait": 1.1, "move": "L", "attack": "wide" },
+        { "wait": 1.1, "move": "R", "attack": "wide" } ] },
+    "variants": [
+      { "name": "diamond", "set": [{ "key": "laneOffset", "value": 1.3 }] },
+      { "name": "wide", "set": [{ "key": "laneOffset", "value": 1.7 }] } ],
+    "note": "stationary caster: holds station L/C/R, one diamond of static fields per station; fifth field from phase 2; wide diamond and long pools at the last heart"
+  }
 }

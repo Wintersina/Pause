@@ -5,12 +5,13 @@ using UnityEngine;
 
 // Ember's six elites as mini-boss fights (EmberElites.cs): the roster (hearts, hiding, a dock each, never pink, the base brains and attacks
 // still Storm's and Desert's), their strips on the hull, the director launching them from Ember's own kinds of site (and BringHome asking
-// the backdrop for one), the whole life cycle off a pad, and each one's brain and attack in simulation -- Sunstoke's lance passes (a thin
-// sight line locked, rammed across the whole board from off the view and out of the far edge, needles back along the lane, a new edge each
-// time, two passes once hurt), the Coalrunner's strafing runs across the top third (in one side, out the other, bolt lanes drawn and locked,
-// coal clumps that bounce at <= 2 hearts), the Vulture's off-screen circle and ringed dive (an offset dive for every heart lost), the
-// Wraith's perches and ember clouds (ringed first), the Kilnback's dump and spill and the Cauterizer's shell, double lane and firebombs --
-// keeping their distance, never following, always leaving a gap -- tell timings, clean-up on death and zero per-frame allocation.
+// the backdrop for one), the whole life cycle off a pad, and each one's scripted fight in simulation (the def json "script": a fixed loop
+// that is the same under every random seed, a different loop in phase 2, the last heart's one exit) -- Sunstoke's rail-to-rail lance passes
+// (a thin sight line locked, rammed across and braked at the far rail inside the view, needles back along the lane), the Coalrunner's
+// stop-and-fire strafe along the top third (bolt lanes drawn and locked, coal clumps from phase 2), the Vulture's high circle and ringed
+// dive (a ring slot cycle), the Wraith's scripted perches and ember clouds, the Kilnback's planted dump and spill and the Cauterizer's
+// tracking shell, double lane and firebombs -- none of them ever leaving the view, tell timings, clean-up on death and zero per-frame
+// allocation.
 //
 //   scripts/unity-batch.sh -executeMethod AllTests.RunSuites -suites EmberEliteTest
 public static class EmberEliteTest
@@ -288,90 +289,134 @@ public static class EmberEliteTest
         EliteSystem.Clear();
     }
 
+    // ---- script helpers --------------------------------------------------------------------
+
+    static string Seq<T>(List<T> l) { return string.Join(",", l); }
+
+    // The elite's centre is inside the view (between the rails, under the top, over the bottom).
+    static bool InView(EliteShip e)
+    {
+        Vector2 p = e.Position;
+        return !e.Hidden && !e.Offstage && Mathf.Abs(p.x) <= EliteSystem.RailEdge && p.y <= EliteSystem.ViewTop && p.y >= EliteSystem.ViewBottom;
+    }
+
+    static bool Alternating(List<float> l)
+    {
+        bool ok = l.Count >= 3;
+        for (int i = 1; i < l.Count; i++) ok &= l[i] == -l[i - 1];
+        return ok;
+    }
+
+    // A hit that is a flinch (a phase change), taken between attacks.
+    static void HitBetweenAttacks(EliteShip e)
+    {
+        e.AttackCooldown = 99f;
+        Step(3f);
+        e.TakeShipAttack(0, 1f, e.Position);
+    }
+
     // ---- Sunstoke: stoker + lance_pass ---------------------------------------------------
 
-    static void Stoker()
+    sealed class StokerLog
+    {
+        public List<int> lanes = new List<int>();
+        public List<float> sides = new List<float>();
+        public List<float> ends = new List<float>();
+        public bool inView = true, sight, locked = true, noHeart = true, needles, swift, rockGone;
+        public int ploughed;
+        public float drift, nearest = 99f;
+    }
+
+    // A Sunstoke fight (from `hearts` lost already: 0 or 1) until it has started `passes` passes.
+    static StokerLog StokerRun(int seed, int passes, int lost, bool rock)
     {
         Fresh(.05f);
+        Random.InitState(seed);
+        var log = new StokerLog();
         var e = InPlay("stoker", new Vector2(1.2f, 1.5f));
         var def = e.Def;
         var brain = (StokerBrain)e.Brain;
         var lance = (LancePassAttack)e.Attack;
+        e.EngageLeft = 9999f;
+        if (lost > 0) HitBetweenAttacks(e);
         e.AttackCooldown = 0f;
-        var edges = new List<int>();
-        float nearest = 99f, tellDrift = 0f, locked = 0f;
-        bool sight = false, lockedSame = true, startsOff = true, exitsOff = true, ploughed = false, noHeart = true, untouchable = true, needles = false;
-        Vector2 lockDir = Vector2.zero, tellPos = Vector2.zero;
-        int startedSeen = 0, passDone = 0;
+        int started = 0;
         bool inAct = false;
+        Vector2 tellPos = Vector2.zero, lockDir = Vector2.zero;
         Rock0 = null;
-        for (int i = 0; i < 30 * 70 && edges.Count < 5; i++)
+        for (int i = 0; i < 30 * 90 && log.lanes.Count < passes; i++)
         {
             pilot.position = new Vector3(Mathf.Sin(i * .03f) * 1.4f, -2.5f, 0f);
             EliteSystem.Step(Dt);
             if (!Alive(e)) break;
-            if (!e.Offstage && brain.Phase != StokerBrain.Stage.Run) nearest = Mathf.Min(nearest, Vector2.Distance(e.Position, pilot.position));
+            log.inView &= InView(e);
+            if (brain.Phase != StokerBrain.Stage.Run) log.nearest = Mathf.Min(log.nearest, Vector2.Distance(e.Position, pilot.position));
             if (e.Telling)
             {
                 if (tellPos == Vector2.zero) tellPos = e.Position;
-                tellDrift = Mathf.Max(tellDrift, Vector2.Distance(e.Position, tellPos));
-                sight |= e.SightShown;
-                if (e.AimLocked) { if (lockDir == Vector2.zero) lockDir = lance.Dir; else lockedSame &= Vector2.Distance(lockDir, lance.Dir) < .001f; }
+                log.drift = Mathf.Max(log.drift, Vector2.Distance(e.Position, tellPos));
+                log.sight |= e.SightShown;
+                if (e.AimLocked) { if (lockDir == Vector2.zero) lockDir = lance.Dir; else log.locked &= Vector2.Distance(lockDir, lance.Dir) < .001f; }
+                log.swift |= e.Script.VariantName == "swift";
             }
             else tellPos = Vector2.zero;
-            if (brain.PassesStarted > startedSeen)
+            if (brain.PassesStarted > started)
             {
-                startedSeen = brain.PassesStarted;
-                edges.Add(brain.Edge);
-                startsOff &= e.Offstage;
-                lockedSame &= lockDir != Vector2.zero && Vector2.Distance(lockDir, lance.Dir) < .001f;
-                locked += 1f;
-                if (edges.Count == 1) Rock0 = Rock(e.Position + lance.Dir * 3.2f);
+                started = brain.PassesStarted;
+                log.lanes.Add(brain.Lane);
+                log.sides.Add(brain.Side);
+                log.locked &= lockDir != Vector2.zero && Vector2.Distance(lockDir, lance.Dir) < .001f;
                 lockDir = Vector2.zero;
+                if (rock && log.lanes.Count == 1) Rock0 = Rock(e.Position + lance.Dir * 2.5f);
             }
-            if (e.Acting)
-            {
-                inAct = true;
-                noHeart &= e.Hearts == def.hearts;
-            }
+            if (e.Acting) { inAct = true; log.noHeart &= e.Hearts == def.hearts - lost; }
             else if (inAct)
             {
                 inAct = false;
-                passDone++;
-                exitsOff &= e.Offstage && !e.Collider.enabled;
-                untouchable &= !e.CompareTag("Enimey");
-                needles |= lance.NeedlesFlung;
+                log.ends.Add(e.Position.x);
+                log.needles |= lance.NeedlesFlung;
             }
         }
-        Check("lance pass: a thin sight line while it waits at its edge, holding still on it (drift " + tellDrift.ToString("0.00") + ")", sight && tellDrift < .5f);
-        Check("... the lane is locked at the tell (it does not change through the ram), and outside a pass it keeps its distance (" + nearest.ToString("0.0") + " u at the closest)", lockedSame && edges.Count >= 3 && nearest > 3f);
-        Check("... a pass starts off the view and ends off it, untouchable out there (" + passDone + " passes)", startsOff && exitsOff && untouchable && passDone >= 2);
-        Check("... it ploughs the rock in its lane without losing a heart", Rock0 == null && e.Ploughed >= 1 && noHeart);
-        Check("... heat needles flung back along the lane as it leaves the board", needles);
-        bool other = edges.Count >= 3;
-        for (int i = 1; i < edges.Count; i++) other &= edges[i] != edges[i - 1];
-        Check("... and every pass from another edge than the last (" + string.Join(",", edges) + ")", other);
+        log.rockGone = Rock0 == null;
+        log.ploughed = e.Ploughed;
+        EliteSystem.Clear();
+        return log;
+    }
 
-        // a hit: it hides, comes back, and the passes come in pairs
+    static void Stoker()
+    {
+        var a = StokerRun(1357, 6, 0, true);
+        var b = StokerRun(99, 6, 0, false);
+        var def = Def("stoker");
+        Check("lance pass: the fixed phase-1 loop, lane 0, 1, 2, 0, 1, 2 (" + Seq(a.lanes) + ")", Seq(a.lanes) == "0,1,2,0,1,2");
+        Check("... rail to rail, every pass from the rail the last one ended at (" + Seq(a.sides) + ")", Alternating(a.sides));
+        Check("... the same fight under another random seed (" + Seq(b.lanes) + " / " + Seq(b.sides) + ")", Seq(a.lanes) == Seq(b.lanes) && Seq(a.sides) == Seq(b.sides));
+        Check("... it never leaves the view, not for a pass and not for the turn", a.inView && b.inView);
+        Check("... a thin sight line while it waits at its rail, holding still on it (drift " + a.drift.ToString("0.00") + ")", a.sight && a.drift < .5f);
+        Check("... the lane is locked at the tell (it does not change through the ram), and outside a pass it keeps its distance (" + a.nearest.ToString("0.0") + " u at the closest)", a.locked && a.nearest > 1.5f);
+        bool atRails = a.ends.Count >= 4;
+        foreach (float x in a.ends) atRails &= Mathf.Abs(x) > EliteSystem.RailEdge - def.hullRadius - 1.4f && Mathf.Abs(x) < EliteSystem.RailEdge - def.hullRadius * .7f;
+        Check("... every pass brakes at the far rail inside the view (end x " + Seq(a.ends.ConvertAll(v => Mathf.Round(v * 10f) / 10f)) + ")", atRails);
+        Check("... it ploughs the rock in its lane without losing a heart", a.rockGone && a.ploughed >= 1 && a.noHeart);
+        Check("... heat needles flung back along the lane as it arrives", a.needles);
+
+        // hurt: phase 2 (pairs, the swift variant), then the last heart and its one scripted exit
+        var b2 = StokerRun(1357, 4, 1, false);
         Fresh(.05f);
-        e = InPlay("stoker", new Vector2(0f, 2f));
-        brain = (StokerBrain)e.Brain;
-        e.AttackCooldown = 0f;
-        Check("stoker: a single pass per cycle at full hearts", brain.PairSize == 1);
-        Step(1f);
-        e.TakeShipAttack(0, 1f, e.Position);
-        Check("... a hit is a flinch, no hiding", e.InPlay && !e.Hidden && e.Flinching && e.Hearts == def.hearts - 1);
+        var e = InPlay("stoker", new Vector2(0f, 2f));
+        e.EngageLeft = 9999f;
+        int hides = EliteShip.Hides;
+        HitBetweenAttacks(e);
+        Check("stoker: a hit is a flinch, no hiding, and the script moves to phase 2 (x" + e.Script.SpeedScale.ToString("0.00") + ")",
+              e.InPlay && !e.Hidden && e.Flinching && e.Hearts == def.hearts - 1 && e.Script.Phase == 2 && e.Script.SpeedScale > 1.1f && EliteShip.Hides == hides);
+        Check("... phase 2 is a different loop: lanes 1, 2, 0, 1 with a swift second pass (" + Seq(b2.lanes) + ")", Seq(b2.lanes) == "1,2,0,1" && b2.swift && b2.inView);
+        e.AttackCooldown = 99f;
+        Step(EliteShip.GraceSeconds + .2f);
+        e.TakeHit(EliteDamage.Teleport, e.Position, 1);
+        Step(.3f);
+        Check("... the last heart: desperation phase (" + e.Script.Phase + ") and the one scripted exit (" + e.Script.LastExit + ")", e.Script.Phase == 3 && e.Hidden && e.LastExitDone && EliteShip.Hides == hides + 1);
         WaitBack(e);
-        Check("... and back, two passes back to back (" + brain.PairSize + ")", !e.Hidden && brain.PairSize == 2);
-        bool second = false;
-        int doneAt = brain.Passes;
-        for (int i = 0; i < 30 * 40 && !second; i++)
-        {
-            EliteSystem.Step(Dt);
-            if (!Alive(e)) break;
-            if (brain.Passes > doneAt && brain.Phase == StokerBrain.Stage.Away && brain.PassesLeft == 1) second = true;
-        }
-        Check("... the second follows the first after a short gap (PairGap " + StokerBrain.PairGap + " s)", second);
+        Check("... back on the board from the other side, hearts " + e.Hearts, Alive(e) && !e.Hidden && e.Hearts == 1);
         EliteSystem.Clear();
     }
 
@@ -386,217 +431,244 @@ public static class EmberEliteTest
 
     // ---- Coalrunner: strafer + coal_strafe -----------------------------------------------
 
-    static void Strafer()
+    sealed class StraferLog
+    {
+        public List<float> sides = new List<float>();
+        public List<int> bands = new List<int>();
+        public bool inView = true, stood = true, atRails = true, inBand = true, lanes, bolts, noClump = true, clump, drawn, bounced;
+        public float maxSpeed, minY = 99f, maxY = -99f;
+        public int most;
+    }
+
+    static StraferLog StraferRun(int seed, int volleys, bool hurt, float seconds = 70f)
     {
         Fresh(.05f);
+        Random.InitState(seed);
+        var log = new StraferLog();
         var e = InPlay("strafer", new Vector2(0f, 2f));
         var def = e.Def;
         var brain = (StraferBrain)e.Brain;
         var strafe = (CoalStrafeAttack)e.Attack;
+        e.EngageLeft = 9999f;
+        if (hurt) HitBetweenAttacks(e);
         e.AttackCooldown = 0f;
         float lo, hi;
         StraferBrain.Band(def, out lo, out hi);
-        float nearest = 99f, minY = 99f, maxY = -99f, offFirst = 0f;
-        var sides = new List<float>();
-        bool crossed = true, entersOff = true, lanes = false, lockedAngles = true, bolts = false, noClump = true;
-        int runSeen = 0, volleys = 0, lanesN = 0;
-        float firstAngle = 0f, runMin = 99f, runMax = -99f;
-        float startX = 0f;
-        for (int i = 0; i < 30 * 40 && sides.Count < 4; i++)
+        int seen = e.Attacks;
+        for (int i = 0; i < seconds * 30 && log.sides.Count < volleys + (hurt ? 99 : 0); i++)
         {
             pilot.position = new Vector3(Mathf.Sin(i * .03f) * 1.4f, -2.5f, 0f);
             EliteSystem.Step(Dt);
             if (!Alive(e)) break;
-            if (!e.Offstage) nearest = Mathf.Min(nearest, Vector2.Distance(e.Position, pilot.position));
-            if (brain.Runs > runSeen)
+            log.inView &= InView(e);
+            float speed = e.Velocity.magnitude;
+            if (!e.Telling && !e.Acting) log.maxSpeed = Mathf.Max(log.maxSpeed, speed);
+            else log.stood &= speed < 1.2f;
+            if (e.Attacks > seen && e.Telling)
             {
-                if (runSeen > 0) crossed &= (startX < 0f ? runMax > 2.5f : runMin < -2.5f);
-                runSeen = brain.Runs;
-                sides.Add(Mathf.Sign(brain.Start.x));
-                startX = brain.Start.x;
-                entersOff &= e.Offstage;
-                runMin = 99f; runMax = -99f;
+                seen = e.Attacks;
+                log.sides.Add(brain.Side);
+                log.bands.Add(brain.BandIndex);
+                log.atRails &= Mathf.Abs(e.Position.x) > EliteSystem.RailEdge - def.hullRadius - 1.3f;
+                log.inBand &= e.Position.y >= lo - 1.2f && e.Position.y <= EliteSystem.ViewTop;
+                log.minY = Mathf.Min(log.minY, e.Position.y); log.maxY = Mathf.Max(log.maxY, e.Position.y);
+                if (strafe.Telegraph.Showing) log.lanes |= strafe.Telegraph.Loops >= 2;
+                if (!hurt) log.noClump &= strafe.Clumps == 0;
             }
-            if (brain.Phase == StraferBrain.Stage.Run)
-            {
-                runMin = Mathf.Min(runMin, e.Position.x); runMax = Mathf.Max(runMax, e.Position.x);
-                if (!e.Offstage) { minY = Mathf.Min(minY, e.Position.y); maxY = Mathf.Max(maxY, e.Position.y); }
-            }
-            if (e.Telling)
-            {
-                if (strafe.Telegraph.Showing) { lanes = true; lanesN = strafe.Telegraph.Loops; firstAngle = strafe.Angle(0); }
-                noClump &= strafe.Clumps == 0;
-            }
-            if (e.Acting) { bolts |= ActiveShots(e, EliteShots.Kind.Bolt) > 0; lockedAngles &= Mathf.Approximately(firstAngle, strafe.Angle(0)); }
-            volleys = Mathf.Max(volleys, brain.Volleys);
-        }
-        offFirst = nearest;
-        bool alternates = sides.Count >= 3;
-        for (int i = 1; i < sides.Count; i++) alternates &= sides[i] == -sides[i - 1];
-        Check("coal strafe: runs enter off the view from alternating sides (" + string.Join(",", sides) + ") and leave by the other", alternates && entersOff && crossed);
-        Check("... across the top third only (y " + minY.ToString("0.0") + " .. " + maxY.ToString("0.0") + ", band " + lo.ToString("0.0") + " .. " + hi.ToString("0.0") + "), never nearer the pilot than " + offFirst.ToString("0.0") + " u",
-              minY >= lo - .3f && maxY <= EliteSystem.ViewTop && offFirst > 4f);
-        Check("... the bolt lanes are drawn at the tell (" + lanesN + " thin outlines) and the bolts leave down them (angles locked), a volley or two a run (" + volleys + ")",
-              lanes && lanesN >= 2 && lockedAngles && bolts && volleys >= 1 && noClump);
-
-        // coal: none at 3 hearts, one at 2, two at 1; they skid and bounce
-        Check("coal clumps: none at 3 hearts, one at 2, two at 1 (" + strafe.ClumpsFor(3) + "/" + strafe.ClumpsFor(2) + "/" + strafe.ClumpsFor(1) + ")",
-              strafe.ClumpsFor(3) == 0 && strafe.ClumpsFor(2) == 1 && strafe.ClumpsFor(1) == 2);
-        LoseHeart(e);
-        Check("... hurt (hid, came back): " + e.Hearts + " hearts", Alive(e) && e.Hearts == def.hearts - 1 && !e.Hidden);
-        bool clump = false, bounced = false, drawn = false;
-        e.AttackCooldown = 0f;
-        for (int i = 0; i < 30 * 40 && !(bounced && drawn); i++)
-        {
-            pilot.position = new Vector3(Mathf.Sin(i * .03f) * 1.4f, -2.5f, 0f);
-            EliteSystem.Step(Dt);
-            if (!Alive(e)) break;
-            if (e.Telling && strafe.Clumps >= 1) drawn |= strafe.Telegraph.Showing;
+            if (e.Telling && strafe.Clumps >= 1) log.drawn |= strafe.Telegraph.Showing;
+            if (e.Acting) log.bolts |= ActiveShots(e, EliteShots.Kind.Bolt) > 0;
             foreach (var s in EliteSystem.Shots.All)
-                if (s.Active && s.Owner == e && s.Kind == EliteShots.Kind.Slag && s.Skidding) { clump = true; bounced |= s.Bounced >= 1; }
+                if (s.Active && s.Owner == e && s.Kind == EliteShots.Kind.Slag && s.Skidding) { log.clump = true; log.bounced |= s.Bounced >= 1; }
+            if (hurt && log.bounced && log.drawn) break;
         }
-        Check("... then clumps skid down the board (path drawn at the tell) and glance off a rail", clump && drawn && bounced);
         EliteSystem.Clear();
+        return log;
+    }
+
+    static void Strafer()
+    {
+        var a = StraferRun(1357, 4, false);
+        var b = StraferRun(99, 4, false);
+        var def = Def("strafer");
+        Check("coal strafe: it stops at the rails and fires there, alternating right, left, right, left (" + Seq(a.sides) + ")", a.atRails && a.sides.Count >= 4 && Seq(a.sides.GetRange(0, 4)) == "1,-1,1,-1");
+        Check("... the height steps down the bands from the counter, never a coin (" + Seq(a.bands) + "), the same under another seed (" + Seq(b.bands) + ")",
+              a.bands.Count >= 4 && Seq(a.bands.GetRange(0, 4)) == "0,1,2,0" && Seq(a.bands) == Seq(b.bands) && Seq(a.sides) == Seq(b.sides));
+        Check("... it never leaves the view and keeps to the top third (y " + a.minY.ToString("0.0") + " .. " + a.maxY.ToString("0.0") + ")", a.inView && b.inView && a.inBand);
+        Check("... it races between the rails (" + a.maxSpeed.ToString("0.0") + " u/s against a base " + def.speed + ") and stands still to fire", a.maxSpeed > def.speed * 1.05f && a.stood);
+        Check("... the bolt lanes are drawn at the tell and the bolts leave down them, no coal in phase 1", a.lanes && a.bolts && a.noClump);
+
+        // phase 2: coal clumps on the stop, skidding down the board and glancing off a rail
+        var h = StraferRun(1357, 99, true, 60f);
+        Check("coal: from phase 2 clumps skid down the board (path drawn at the tell) and glance off a rail", h.clump && h.drawn && h.bounced);
     }
 
     // ---- Brass Vulture: scavenger + scrap_dive -------------------------------------------
 
-    static void Scavenger()
+    sealed class VultureLog
+    {
+        public List<int> slots = new List<int>();
+        public bool inView = true, ring, ringLocked = true, through, flung, fast;
+        public int frames, outFrames;
+        public string outAt = "";
+        public float circleLo = 99f, ringY = 99f, minToSpot = 99f;
+        public HashSet<float> radii = new HashSet<float>();
+        public int done;
+    }
+
+    static VultureLog VultureRun(int seed, int dives, bool hurt)
     {
         Fresh(.05f);
+        Random.InitState(seed);
+        var log = new VultureLog();
         var e = InPlay("scavenger", new Vector2(0f, 2f));
-        var def = e.Def;
         var brain = (ScavengerBrain)e.Brain;
         var dive = (ScrapDiveAttack)e.Attack;
+        e.EngageLeft = 9999f;
+        if (hurt) HitBetweenAttacks(e);
         e.AttackCooldown = 0f;
-        float nearest = 99f;
-        bool circleOff = true, ring = false, ringLocked = true, through = false, flung = false, backOff = true, circled = false;
-        float minToSpot = 99f;
         Vector2 lockedSpot = Vector2.zero;
-        int divesSeen = 0, done = 0;
+        float toSpot = 99f;
+        int seen = e.Attacks;
         bool inDive = false;
-        for (int i = 0; i < 30 * 40 && done < 3; i++)
+        for (int i = 0; i < 30 * 80 && log.done < dives; i++)
         {
             pilot.position = new Vector3(Mathf.Sin(i * .03f) * 1.2f, -2.5f, 0f);
             EliteSystem.Step(Dt);
             if (!Alive(e)) break;
-            if (!e.Offstage && brain.Phase == ScavengerBrain.Stage.Circle) nearest = Mathf.Min(nearest, Vector2.Distance(e.Position, pilot.position));
-            if (brain.Phase == ScavengerBrain.Stage.Circle && e.Position.y > EliteSystem.ViewTop)
-            {
-                circled = true;
-                circleOff &= e.Offstage;
-            }
-            else if (brain.Phase == ScavengerBrain.Stage.Circle && e.Position.y < EliteSystem.ViewTop - .2f) circleOff = false;
+            log.inView &= InView(e);
+            log.frames++;
+            if (!InView(e)) { log.outFrames++; if (log.outAt == "") log.outAt = e.Position + " " + e.State + " " + brain.Phase + " " + dive.DivePhase + " top " + EliteSystem.ViewTop + " zone " + e.ZoneTop; }
+            if (brain.Phase == ScavengerBrain.Stage.Circle) { log.circleLo = Mathf.Min(log.circleLo, e.Position.y); log.radii.Add(brain.RadiusX); }
             if (e.Telling)
             {
-                ring |= dive.Marks.Shown(0);
-                if (e.AimLocked) { if (lockedSpot == Vector2.zero) lockedSpot = dive.Spot; else ringLocked &= Vector2.Distance(lockedSpot, dive.Spot) < .001f; }
-            }
-            if (brain.Dives > divesSeen)
-            {
-                divesSeen = brain.Dives;
-                ringLocked &= lockedSpot != Vector2.zero && Vector2.Distance(lockedSpot, dive.Spot) < .001f;
-                lockedSpot = Vector2.zero;
-                minToSpot = 99f;
+                if (e.Attacks > seen) { seen = e.Attacks; log.slots.Add(dive.Slot); lockedSpot = Vector2.zero; }
+                log.ring |= dive.Marks.Shown(0);
+                log.fast |= e.Script.VariantName == "fast";
+                if (e.AimLocked) { if (lockedSpot == Vector2.zero) lockedSpot = dive.Spot; else log.ringLocked &= Vector2.Distance(lockedSpot, dive.Spot) < .001f; }
+                log.ringY = Mathf.Min(log.ringY, dive.Spot.y);
             }
             if (e.Acting)
             {
+                if (!inDive) toSpot = 99f;
                 inDive = true;
-                minToSpot = Mathf.Min(minToSpot, Vector2.Distance(e.Position, dive.Spot));
-                flung |= dive.Flung;
+                toSpot = Mathf.Min(toSpot, Vector2.Distance(e.Position, dive.Spot));
+                log.flung |= dive.Flung;
             }
             else if (inDive)
             {
                 inDive = false;
-                done++;
-                through |= minToSpot < .6f;
-                backOff &= e.Offstage;
+                log.done++;
+                log.through |= toSpot < .6f;
             }
         }
-        Check("scrap dive: it circles wholly off the view (" + circled + ") and keeps its distance (" + nearest.ToString("0.0") + " u)", circled && circleOff && nearest > 3f);
-        Check("... a thin ring marks the spot at the tell, locked by the commit; it dives straight through it (" + minToSpot.ToString("0.00") + " u) flinging scrap", ring && ringLocked && through && flung);
-        Check("... and pulls back up off the view (" + done + " dives)", backOff && done >= 2);
-
-        // every heart lost: another, offset dive
-        Fresh(.05f);
-        e = InPlay("scavenger", new Vector2(0f, 2f));
-        brain = (ScavengerBrain)e.Brain;
-        dive = (ScrapDiveAttack)e.Attack;
-        Check("a cycle is one dive at full hearts (" + brain.PlanDives + ")", brain.PlanDives == 1);
-        LoseHeart(e);
-        Check("... two after a lost heart (" + brain.PlanDives + ")", brain.PlanDives == 2);
-        LoseHeart(e);
-        Check("... three after two (" + brain.PlanDives + ")", brain.PlanDives == 3);
-        var pos = new Vector2(.4f, -2.5f);
-        Vector2 s0 = dive.SpotFor(pos, 0), s1 = dive.SpotFor(pos, 1), s2 = dive.SpotFor(pos, 2);
-        Check("... the later dives ring spots offset from the first (" + s0.x.ToString("0.0") + ", " + s1.x.ToString("0.0") + ", " + s2.x.ToString("0.0") + ")",
-              Mathf.Abs(s1.x - s0.x) >= 1.2f && Mathf.Abs(s2.x - s0.x) >= 1.2f && Mathf.Abs(s2.x - s1.x) >= 1.2f);
-        pilot.position = new Vector3(0f, -2.5f, 0f);
-        e.AttackCooldown = 0f;
-        int starts = brain.Dives, seenIdx = 0;
-        for (int i = 0; i < 30 * 40 && brain.Dives - starts < 3; i++)
-        {
-            EliteSystem.Step(Dt);
-            if (!Alive(e)) break;
-            seenIdx = Mathf.Max(seenIdx, brain.DiveIndex);
-        }
-        Check("... and with two hearts lost it dives three times in a cycle (" + (brain.Dives - starts) + ", index " + seenIdx + ")", brain.Dives - starts >= 3 && seenIdx >= 2);
         EliteSystem.Clear();
+        return log;
+    }
+
+    static void Scavenger()
+    {
+        var a = VultureRun(1357, 6, false);
+        var b = VultureRun(99, 6, false);
+        Check("scrap dive: the ring cycles on the pilot, a hand to one side, a hand to the other (" + Seq(a.slots) + "), the same under another seed (" + Seq(b.slots) + ")",
+              a.slots.Count >= 6 && Seq(a.slots.GetRange(0, 6)) == "0,1,2,0,1,2" && Seq(a.slots) == Seq(b.slots));
+        Check("... it circles high inside the view, never leaving it (lowest circle point " + a.circleLo.ToString("0.0") + ", rings down at " + a.ringY.ToString("0.0") + ")", a.inView && b.inView && a.circleLo > a.ringY + 1f);
+        Check("... the script widens and narrows the circle (" + a.radii.Count + " widths)", a.radii.Count >= 2);
+        Check("... a thin ring marks the spot at the tell, locked by the commit; it dives straight through it (" + a.minToSpot.ToString("0.00") + " u) flinging scrap", a.ring && a.ringLocked && a.through && a.flung);
+        Check("... and climbs back to its circle (" + a.done + " dives)", a.done >= 6);
+
+        // hurt: the second dive of each pair is a fast one
+        var h = VultureRun(1357, 4, true);
+        Check("phase 2: pairs of dives, the second a fast variant with a bigger fan (" + h.done + " dives, fast seen " + h.fast + ", out of view " + h.outFrames + " of " + h.frames + " frames, first at " + h.outAt + ")", h.fast && h.done >= 4 && h.outFrames <= h.frames / 30);
     }
 
     // ---- Ash Wraith: ashling + ember_veil -------------------------------------------------
 
     static void Ashling()
     {
-        Fresh(.05f);
-        var e = InPlay("ashling", new Vector2(1f, 2f));
-        var def = e.Def;
-        var brain = (AshlingBrain)e.Brain;
-        var veil = (EmberVeilAttack)e.Attack;
-        e.AttackCooldown = 0f;
-        var perches = new List<int>();
+        List<int> run1 = null, run2 = null;
+        bool ringed = false, cloud = false, expired = false, fanned = false, view = true;
         float nearest = 99f;
-        bool ringed = false, cloud = false, expired = false, fanned = false;
-        int attacksSeen = 0;
-        EliteShot cloudShot = null;
-        float cloudAge = 0f;
-        for (int i = 0; i < 30 * 50 && perches.Count < 6; i++)
+        EliteDef def = null;
+        for (int pass = 0; pass < 2; pass++)
         {
-            EliteSystem.Step(Dt);
-            if (!Alive(e)) break;
-            nearest = Mathf.Min(nearest, Vector2.Distance(e.Position, pilot.position));
-            if (e.Telling) ringed |= veil.Marks.Shown(0) && Vector2.Distance(veil.Marks.At(0), veil.CloudAt) < .01f && veil.Marks.Shown(1);
-            if (e.Attacks > attacksSeen && e.Acting)
+            Fresh(.05f);
+            Random.InitState(pass == 0 ? 1357 : 99);
+            var e = InPlay("ashling", new Vector2(1f, 2f));
+            def = e.Def;
+            var brain = (AshlingBrain)e.Brain;
+            var veil = (EmberVeilAttack)e.Attack;
+            e.EngageLeft = 9999f;
+            e.AttackCooldown = 0f;
+            var perches = new List<int>();
+            int attacksSeen = 0;
+            EliteShot cloudShot = null;
+            float cloudAge = 0f;
+            for (int i = 0; i < 30 * 70 && perches.Count < 7; i++)
             {
-                attacksSeen = e.Attacks;
-                foreach (var s in EliteSystem.Shots.All)
-                    if (s.Active && s.Owner == e && s.Kind == EliteShots.Kind.Orb && cloudShot == null) { cloudShot = s; cloud = true; cloudAge = 0f; }
-                fanned |= ActiveShots(e, EliteShots.Kind.Shard) >= def.shotCount;
+                EliteSystem.Step(Dt);
+                if (!Alive(e)) break;
+                view &= InView(e);
+                nearest = Mathf.Min(nearest, Vector2.Distance(e.Position, pilot.position));
+                if (pass == 0)
+                {
+                    if (e.Telling) ringed |= veil.Marks.Shown(0) && Vector2.Distance(veil.Marks.At(0), veil.CloudAt) < .01f && veil.Marks.Shown(1);
+                    if (e.Attacks > attacksSeen && e.Acting)
+                    {
+                        attacksSeen = e.Attacks;
+                        foreach (var s in EliteSystem.Shots.All)
+                            if (s.Active && s.Owner == e && s.Kind == EliteShots.Kind.Orb && cloudShot == null) { cloudShot = s; cloud = true; cloudAge = 0f; }
+                        fanned |= ActiveShots(e, EliteShots.Kind.Shard) >= def.shotCount;
+                    }
+                    if (cloudShot != null) { cloudAge += Dt; if (!cloudShot.Active) { expired = cloudAge < def.hazardSeconds + 1f; cloudShot = null; } }
+                }
+                if (e.Attacks > perches.Count && !e.Telling && !e.Acting) perches.Add(brain.Perch);
             }
-            if (e.Attacks > perches.Count && !e.Telling && !e.Acting) perches.Add(brain.Perch);
-            if (cloudShot != null) { cloudAge += Dt; if (!cloudShot.Active) { expired = cloudAge < def.hazardSeconds + 1f; cloudShot = null; } }
+            if (pass == 0) run1 = perches; else run2 = perches;
+            EliteSystem.Clear();
         }
-        bool changed = perches.Count >= 3;
-        for (int i = 1; i < perches.Count; i++) changed &= perches[i] != perches[i - 1];
-        var distinct = new HashSet<int>(perches);
-        Check("ember veil: it blinks to a different perch every attack (" + string.Join(",", perches) + "), at least three of its four in use", changed && distinct.Count >= 3);
-        Check("... never near the pilot (" + nearest.ToString("0.0") + " u at the closest, MinRange " + AshlingBrain.MinRange + ")", nearest > AshlingBrain.MinRange * .9f);
+        // (the first hop may be the fallback: it starts on the perch the script names first)
+        bool order = run1.Count >= 6;
+        int[] pattern = { 1, 0, 1, 2 };
+        for (int i = 1; i < run1.Count; i++) order &= run1[i] == pattern[(i - 1) % 4];
+        Check("ember veil: the perches follow the script, 1, 0, 1, 2 round and round (" + Seq(run1) + ")", order);
+        Check("... the same under another random seed (" + Seq(run2) + ")", Seq(run1) == Seq(run2));
+        Check("... never near the pilot (" + nearest.ToString("0.0") + " u at the closest, MinRange " + AshlingBrain.MinRange + ") and never out of the view", nearest > AshlingBrain.MinRange * .9f && view);
         Check("... the cloud is ringed at the tell (and the perch it will blink to), then left drifting where it stood, short-lived (gone after ~" + def.hazardSeconds + " s)", ringed && cloud && expired);
         Check("... and a fan of shards follows the blink (" + def.shotCount + ")", fanned);
 
         // closing in on it: it blinks away
         Fresh(.05f);
-        e = InPlay("ashling", new Vector2(.4f, 1.5f));
-        brain = (AshlingBrain)e.Brain;
+        var w = InPlay("ashling", new Vector2(.4f, 1.5f));
+        var wb = (AshlingBrain)w.Brain;
         Step(1.5f);
-        int flees = brain.Flees;
+        int flees = wb.Flees;
         // (a real approach, not a jump: a jump loses the elite)
-        Step(3f, () => pilot.position = Vector3.MoveTowards(pilot.position, new Vector3(e.Position.x, e.Position.y - 1.2f, 0f), 2f * Dt));
-        Check("pressed, it blinks away rather than let the pilot near (" + (brain.Flees - flees) + " blinks)", brain.Flees > flees);
-        e.TakeShipAttack(0, 1f, e.Position);
-        Check("hurt it flinches on the board (" + e.Hidden + ")", !e.Hidden && e.Flinching);
-        WaitBack(e);
-        Check("... back on the board", Alive(e) && !e.Hidden && e.Hearts == def.hearts - 1);
+        Step(3f, () => pilot.position = Vector3.MoveTowards(pilot.position, new Vector3(w.Position.x, w.Position.y - 1.2f, 0f), 2f * Dt));
+        Check("pressed, it blinks away rather than let the pilot near (" + (wb.Flees - flees) + " blinks)", wb.Flees > flees);
+        EliteSystem.Clear();
+
+        // phase 2: a second cloud where it lands; then the last heart with its one scripted exit
+        Fresh(.05f);
+        var e2 = InPlay("ashling", new Vector2(1f, 2f));
+        var veil2 = (EmberVeilAttack)e2.Attack;
+        e2.EngageLeft = 9999f;
+        int hides = EliteShip.Hides;
+        Check("a cast leaves one cloud at full hearts (" + veil2.CloudsPerCast + ")", veil2.CloudsPerCast == 1);
+        HitBetweenAttacks(e2);
+        Check("hurt it flinches on the board, no hiding, and the script moves to phase 2: two clouds a cast (" + veil2.CloudsPerCast + ")",
+              !e2.Hidden && e2.Flinching && e2.Script.Phase == 2 && veil2.CloudsPerCast == 2 && EliteShip.Hides == hides);
+        e2.AttackCooldown = 0f;
+        int clouds0 = veil2.Clouds, attacks0 = e2.Attacks;
+        for (int i = 0; i < 30 * 30 && e2.Attacks < attacks0 + 2; i++) { EliteSystem.Step(Dt); if (!Alive(e2)) break; }
+        Step(1.5f);
+        Check("... and the casts leave two clouds each (" + (veil2.Clouds - clouds0) + " in " + (e2.Attacks - attacks0) + " casts)", e2.Attacks > attacks0 && veil2.Clouds - clouds0 >= 2 * (e2.Attacks - attacks0) - 1);
+        e2.AttackCooldown = 99f;
+        Step(EliteShip.GraceSeconds + .3f);
+        e2.TakeHit(EliteDamage.Teleport, e2.Position, 1);
+        Step(.3f);
+        Check("... the last heart: the one scripted exit (" + e2.Script.LastExit + ")", e2.Script.Phase == 3 && e2.Hidden && EliteShip.Hides == hides + 1);
+        WaitBack(e2);
+        Check("... back on the board, one heart left", Alive(e2) && !e2.Hidden && e2.Hearts == 1);
         EliteSystem.Clear();
     }
 
@@ -611,72 +683,113 @@ public static class EmberEliteTest
         var blobs = new List<int>();
         bool gaps = true;
         float worst = 99f;
-        for (int lost = 0; lost < def.hearts; lost++)
-        {
-            blobs.Add(dump.Blobs);
-            for (float x = -2.9f; x <= 2.9f; x += .25f)
-                foreach (bool spill in new[] { false, true })
-                {
-                    dump.Plan(spill, x);
-                    float g = EmberLanes.Gap(new List<float>(dump.Lanes), dump.Half, dump.Edge);
-                    worst = Mathf.Min(worst, g);
-                    gaps &= g >= EmberLanes.MinGap - 1e-3f && dump.Lanes.Count >= 1;
-                }
-            if (lost < def.hearts - 1) { e.TakeHit(EliteDamage.Teleport, e.Position, 1); Step(.6f); }
-        }
-        bool more = blobs.Count == def.hearts;
-        for (int i = 1; i < blobs.Count; i++) more &= blobs[i] > blobs[i - 1] || blobs[i] == KilnDumpAttack.MaxBlobs;
-        Check("kiln dump: more blobs for every heart lost (" + string.Join(",", blobs) + ")", more);
-        Check("... a dump and a spill always leave a clear gap of at least " + EmberLanes.MinGap + " u whatever the pilot's x and the hearts (worst " + worst.ToString("0.00") + ")", gaps);
+        // the script's numbers: 3 blobs in phase 1, 5 in phase 2, 7 at the end; one strip or two
+        foreach (int count in new[] { 3, 5, 7 })
+            foreach (int strips in new[] { 1, 2 })
+            {
+                e.Def.shotCount = count;
+                e.Def.hazardCount = strips;
+                blobs.Add(dump.Blobs);
+                for (float x = -2.9f; x <= 2.9f; x += .25f)
+                    foreach (bool spill in new[] { false, true })
+                    {
+                        dump.Plan(spill, x);
+                        float g = EmberLanes.Gap(new List<float>(dump.Lanes), dump.Half, dump.Edge);
+                        worst = Mathf.Min(worst, g);
+                        gaps &= g >= EmberLanes.MinGap - 1e-3f && dump.Lanes.Count >= 1;
+                    }
+            }
+        Check("kiln dump: shotCount blobs (" + string.Join(",", blobs) + ")", string.Join(",", blobs) == "3,3,5,5,7,7");
+        Check("... a dump and a spill always leave a clear gap of at least " + EmberLanes.MinGap + " u whatever the pilot's x and the script's numbers (worst " + worst.ToString("0.00") + ")", gaps);
 
-        // the real casts: a dump (lanes drawn, blobs down them), then a spill (a strip drawn, pools)
+        // the real casts, watched in the script's own loop: a dump (a lane drawn under each blob, blobs sink down them), then a spill (one
+        // strip drawn, molten pools land down it and cool)
         Fresh(.05f);
         pilot.position = new Vector3(.6f, -3f, 0f);
         e = InPlay("kiln", new Vector2(0f, 3.4f));
         dump = (KilnDumpAttack)e.Attack;
-        Step(1.5f);
-        e.ForceAttack();
-        bool drawn = false, locked = true;
-        int loops = 0;
-        var lanes0 = new List<float>();
-        while (e.Telling)
+        e.EngageLeft = 9999f;
+        e.AttackCooldown = 0f;
+        bool dumpDrawn = false, spillDrawn = false, dumpLocked = true, lanesMatch = true;
+        int slag = 0, pools = 0, stripLanes = 0, seenA = e.Attacks;
+        var lanesNow = new List<float>();
+        for (int i = 0; i < 30 * 16; i++)
         {
             EliteSystem.Step(Dt);
-            drawn |= dump.Telegraph.Showing;
-            loops = dump.Telegraph.Loops;
-            if (e.AimLocked) { if (lanes0.Count == 0) lanes0.AddRange(dump.Lanes); else for (int i = 0; i < lanes0.Count; i++) locked &= Mathf.Approximately(lanes0[i], dump.Lanes[i]); }
+            if (!Alive(e)) break;
+            if (e.Telling)
+            {
+                if (e.Attacks > seenA) { seenA = e.Attacks; lanesNow.Clear(); }
+                if (dump.IsSpill) { spillDrawn |= dump.Telegraph.Showing; stripLanes = dump.Lanes.Count; }
+                else { dumpDrawn |= dump.Telegraph.Showing; lanesMatch &= dump.Telegraph.Loops == dump.Lanes.Count; }
+                if (e.AimLocked)
+                {
+                    if (lanesNow.Count == 0) lanesNow.AddRange(dump.Lanes);
+                    else for (int k = 0; k < lanesNow.Count && k < dump.Lanes.Count; k++) dumpLocked &= Mathf.Approximately(lanesNow[k], dump.Lanes[k]);
+                }
+            }
+            slag = Mathf.Max(slag, ActiveShots(e, EliteShots.Kind.Slag));
+            pools = Mathf.Max(pools, ActiveShots(e, EliteShots.Kind.Glob));
         }
-        int n = dump.Lanes.Count;
-        Step(2f);
-        Check("a dump draws a lane under each blob at the tell (" + loops + " outlines for " + n + "), locked, then " + n + " slag blobs sink (" + ActiveShots(e, EliteShots.Kind.Slag) + ")",
-              !dump.IsSpill && drawn && loops == n && locked && ActiveShots(e, EliteShots.Kind.Slag) >= 1 && dump.Dumped == n);
-        Step(1f);
-        e.ForceAttack();
-        bool spillDrawn = false;
-        while (e.Telling) { EliteSystem.Step(Dt); spillDrawn |= dump.Telegraph.Showing; }
-        int strips = dump.Lanes.Count;
-        int pools = 0;
-        Step(1.2f, () => pools = Mathf.Max(pools, ActiveShots(e, EliteShots.Kind.Glob)));
-        Check("then a spill: a lane is drawn at the tell, and molten pools land down it (" + pools + " pools, " + strips + " strip)", dump.IsSpill && spillDrawn && pools >= KilnDumpAttack.SpillLen - 1);
-        Step(def.poolSeconds + def.lobSeconds + 1f);
+        Check("a dump draws a lane under each blob at the tell (outlines match the lanes), locked, then slag blobs sink (" + slag + ")", dumpDrawn && lanesMatch && dumpLocked && slag >= 1);
+        Check("then a spill: one lane is drawn at the tell (" + stripLanes + "), and molten pools land down it (" + pools + " pools)", spillDrawn && stripLanes == 1 && pools >= KilnDumpAttack.SpillLen - 1);
+        e.AttackCooldown = 99f;
+        Step(def.poolSeconds + def.lobSeconds + 4f);
         Check("... which cool and are gone (" + ActiveShots(e, EliteShots.Kind.Glob) + " left)", ActiveShots(e, EliteShots.Kind.Glob) == 0);
 
-        // it holds the top and slides; the pilot's moves do not draw it
+        // the script: planted at the centre in phase 1 (slag, lava, slag, lava), off-centre in phase 2, never a pendulum
+        var kinds = new List<string>();
+        float minX = 99f, maxX = -99f, nearestToPilot = 99f;
+        var runs = new List<string>();
+        for (int seed = 1; seed <= 2; seed++)
+        {
+            Fresh(.05f);
+            Random.InitState(seed * 77);
+            e = InPlay("kiln", new Vector2(0f, 3.4f));
+            dump = (KilnDumpAttack)e.Attack;
+            e.EngageLeft = 9999f;
+            e.AttackCooldown = 0f;
+            kinds.Clear();
+            int seen = e.Attacks;
+            for (int i = 0; i < 30 * 45 && kinds.Count < 4; i++)
+            {
+                EliteSystem.Step(Dt);
+                if (!Alive(e)) break;
+                if (e.Attacks > seen && e.Telling) { seen = e.Attacks; kinds.Add(dump.IsSpill ? "lava" : "slag"); }
+                if (seed == 1)
+                {
+                    minX = Mathf.Min(minX, e.Position.x); maxX = Mathf.Max(maxX, e.Position.x);
+                    nearestToPilot = Mathf.Min(nearestToPilot, Vector2.Distance(e.Position, pilot.position));
+                }
+            }
+            runs.Add(Seq(kinds));
+            EliteSystem.Clear();
+        }
+        Check("kiln: the phase-1 loop is slag, lava, slag, lava (" + runs[0] + "), the same under another seed", runs[0] == "slag,lava,slag,lava" && runs[0] == runs[1]);
+        Check("... planted at the top centre, never a pendulum (x " + minX.ToString("0.00") + " .. " + maxX.ToString("0.00") + "), " + nearestToPilot.ToString("0.0") + " u from the pilot at the closest",
+              maxX - minX < .8f && nearestToPilot > 4f);
+
+        // phase 2: it takes the left and right stations, and the casts get bigger
         Fresh(.05f);
         e = InPlay("kiln", new Vector2(0f, 3.4f));
+        dump = (KilnDumpAttack)e.Attack;
+        e.EngageLeft = 9999f;
         e.AttackCooldown = 99f;
-        float top = float.MaxValue, bottom = float.MinValue, minY = 99f, nearestToPilot = 99f;
-        int f = 0;
-        Step(14f, () =>
+        for (int i = 0; i < 2; i++) { Step(EliteShip.GraceSeconds + .2f); e.TakeHit(EliteDamage.Teleport, e.Position, 1); }
+        Step(.3f);
+        Check("kiln: two hearts lost, the script is in phase 2 (" + e.Script.Phase + ", " + e.Hearts + " hearts), no hiding", e.Script.Phase == 2 && !e.Hidden && Alive(e));
+        e.AttackCooldown = 0f;
+        float lowX = 99f, highX = -99f;
+        int maxBlobs = 0, seen2 = e.Attacks;
+        for (int i = 0; i < 30 * 50; i++)
         {
-            pilot.position = new Vector3(Mathf.Sin(f++ * .02f) * 2.2f, -2.5f, 0f);
-            top = Mathf.Min(top, e.Position.x);
-            bottom = Mathf.Max(bottom, e.Position.x);
-            minY = Mathf.Min(minY, e.Position.y);
-            nearestToPilot = Mathf.Min(nearestToPilot, Vector2.Distance(e.Position, pilot.position));
-        });
-        Check("kiln holds the top (y >= " + minY.ToString("0.0") + "), slides a crawl, never follows (x " + top.ToString("0.0") + " .. " + bottom.ToString("0.0") + ", " + nearestToPilot.ToString("0.0") + " u from the pilot at the closest)",
-              minY > EliteSystem.ViewTop - e.Def.topMargin - 1f && nearestToPilot > 4f && bottom - top <= 2f * e.Def.laneOffset + .3f);
+            EliteSystem.Step(Dt);
+            if (!Alive(e)) break;
+            lowX = Mathf.Min(lowX, e.Position.x); highX = Mathf.Max(highX, e.Position.x);
+            if (e.Telling && !dump.IsSpill) maxBlobs = Mathf.Max(maxBlobs, dump.Blobs);
+            if (e.Attacks - seen2 >= 5 && !e.Telling && !e.Acting) break;
+        }
+        Check("... it heaves to the left and the right station (x " + lowX.ToString("0.0") + " .. " + highX.ToString("0.0") + ") and dumps " + maxBlobs + " blobs", lowX < -.8f && highX > .8f && maxBlobs >= 5);
         EliteSystem.Clear();
     }
 
@@ -704,45 +817,111 @@ public static class EmberEliteTest
         }
         Check("the double lane always leaves a safe gap of at least " + EmberLanes.MinGap + " u, between its two lanes and beyond them (worst " + worst.ToString("0.00") + ")", gaps);
 
-        // full hearts: a shell down one lane (the pilot in it), then bombs
+        // the real casts, watched in the script's own loop: a shell (a thin sight line down its lane), then bombs (ringed spots, lobbed)
         Fresh(.05f);
         e = InPlay("furnace", new Vector2(0f, 3.4f));
         mortar = (FireMortarAttack)e.Attack;
-        Step(2f);
-        pilot.position = new Vector3(e.MuzzleWorld(0).x, -3f, 0f);
-        Check("a shell is due when the pilot is in its lane", mortar.ShellDue(pilot.position.x));
-        e.ForceAttack();
-        bool sight = false, sight2 = false;
-        float tellLen = 0f;
-        while (e.Telling) { EliteSystem.Step(Dt); sight |= e.SightShown; sight2 |= mortar.Sight2.Shown; tellLen += Dt; pilot.position = new Vector3(e.MuzzleWorld(0).x, -3f, 0f); }
-        Step(.3f);
+        e.EngageLeft = 9999f;
+        e.AttackCooldown = 0f;
+        bool shellSight = false, shellOnly = false, bombRings = false, bombOnly = false, shellOut = false;
+        int bombSpots = 0, orbs = 0, seenA = e.Attacks;
+        float tellLen = 0f, tellNow = 0f;
+        for (int i = 0; i < 30 * 16; i++)
+        {
+            pilot.position = new Vector3(e.MuzzleWorld(0).x, -3f, 0f);
+            EliteSystem.Step(Dt);
+            if (!Alive(e)) break;
+            if (e.Telling)
+            {
+                if (e.Attacks > seenA) { seenA = e.Attacks; tellNow = 0f; }
+                tellNow += Dt;
+                if (!mortar.Bombs) { shellSight |= e.SightShown && !mortar.Sight2.Shown; shellOnly |= mortar.Shell && !mortar.Doubled; tellLen = Mathf.Max(tellLen, tellNow); }
+                else { bombRings |= mortar.Marks.Shown(0) && mortar.Marks.Shown(1); bombOnly |= !mortar.Shell; bombSpots = Mathf.Max(bombSpots, mortar.Spots); }
+            }
+            shellOut |= mortar.ShellFired;
+            orbs = Mathf.Max(orbs, ActiveShots(e, EliteShots.Kind.Orb));
+        }
         Check("shell: a long wind-up (" + tellLen.ToString("0.00") + " s) with a thin sight line down its lane, then one piercing shell",
-              !mortar.Bombs && !mortar.Doubled && sight && !sight2 && tellLen >= e.Def.tellSeconds - .1f && mortar.ShellFired && EliteSystem.Shots.Launched >= 1);
-        Step(1.5f);
-        e.ForceAttack();
-        bool rings = false;
-        int spots = 0;
-        while (e.Telling) { EliteSystem.Step(Dt); rings |= mortar.Marks.Shown(0) && mortar.Marks.Shown(1); spots = mortar.Spots; }
-        int orbs = 0;
-        Step(1.4f, () => orbs = Mathf.Max(orbs, ActiveShots(e, EliteShots.Kind.Orb)));
-        Check("then bombs: " + spots + " ringed spots at the tell, " + orbs + " firebombs lobbed onto them", mortar.Bombs && rings && spots >= 2 && orbs >= 1);
-        float lx = e.MuzzleWorld(0).x;
-        Check("... and a shell is due again, but only with the pilot in its lane (in it " + mortar.ShellDue(lx) + ", 3 u off " + mortar.ShellDue(lx + 3f) + ")", mortar.ShellDue(lx) && !mortar.ShellDue(lx + 3f));
+              shellSight && shellOnly && shellOut && tellLen >= e.Def.tellSeconds - .1f && EliteSystem.Shots.Launched >= 1);
+        Check("then bombs: " + bombSpots + " ringed spots at the tell, " + orbs + " firebombs lobbed onto them", bombRings && bombOnly && bombSpots >= 2 && orbs >= 1);
+        EliteSystem.Clear();
 
-        // two lanes at <= 2 hearts
+        // it tracks the pilot's column at a crawl, and holds where it is when the script says so
+        Fresh(.05f);
+        e = InPlay("furnace", new Vector2(0f, 3.4f));
+        var brain = (FurnaceBrain)e.Brain;
+        e.AttackCooldown = 99f;
+        pilot.position = new Vector3(1.5f, -2.5f, 0f);
+        Step(9f);
+        float right = e.Position.x;
+        pilot.position = new Vector3(-1.5f, -2.5f, 0f);
+        Step(9f);
+        float left = e.Position.x;
+        brain.OnScriptMove("hold");
+        float held = e.Position.x;
+        pilot.position = new Vector3(1.5f, -2.5f, 0f);
+        Step(5f);
+        Check("furnace: parks high and tracks the pilot's column (x " + right.ToString("0.0") + " under a pilot at 1.5, " + left.ToString("0.0") + " under one at -1.5), then holds on `hold` (" + e.Position.x.ToString("0.0") + " from " + held.ToString("0.0") + ")",
+              Mathf.Abs(right - 1.5f) < .6f && Mathf.Abs(left + 1.5f) < .6f && Mathf.Abs(e.Position.x - held) < .3f && e.Position.y > EliteSystem.ViewTop - e.Def.topMargin - 1.2f);
+        EliteSystem.Clear();
+
+        // the script's loop: shell, bombs, shell, bombs -- the same whatever the random seed
+        var runs = new List<string>();
+        for (int seed = 1; seed <= 2; seed++)
+        {
+            Fresh(.05f);
+            Random.InitState(seed * 31);
+            e = InPlay("furnace", new Vector2(0f, 3.4f));
+            mortar = (FireMortarAttack)e.Attack;
+            e.EngageLeft = 9999f;
+            e.AttackCooldown = 0f;
+            var casts = new List<string>();
+            int seen = e.Attacks;
+            for (int i = 0; i < 30 * 70 && casts.Count < 4; i++)
+            {
+                EliteSystem.Step(Dt);
+                if (!Alive(e)) break;
+                if (e.Attacks > seen && e.Telling) { seen = e.Attacks; casts.Add(mortar.Bombs ? (mortar.Shell ? "both" : "bombs") : mortar.Doubled ? "double" : "shell"); }
+            }
+            runs.Add(Seq(casts));
+            EliteSystem.Clear();
+        }
+        Check("furnace: the phase-1 loop is shell, bombs, shell, bombs (" + runs[0] + "), the same under another seed", runs[0] == "shell,bombs,shell,bombs" && runs[0] == runs[1]);
+
+        // phase 2: the shells come as two lanes with a gap; the last heart: a shell and bombs at once
         Fresh(.05f);
         e = InPlay("furnace", new Vector2(0f, 3.4f));
         mortar = (FireMortarAttack)e.Attack;
-        for (int i = 0; i < def.hearts - FireMortarAttack.TwoLanesAt; i++) { e.TakeHit(EliteDamage.Teleport, e.Position, 1); Step(.7f); }
-        Step(1f);
-        pilot.position = new Vector3(e.MuzzleWorld(0).x, -3f, 0f);
-        e.ForceAttack();
-        bool both = false;
-        while (e.Telling) { EliteSystem.Step(Dt); both |= e.SightShown && mortar.Sight2.Shown; pilot.position = new Vector3(e.MuzzleWorld(0).x, -3f, 0f); }
+        e.EngageLeft = 9999f;
+        e.AttackCooldown = 99f;
+        for (int i = 0; i < 2; i++) { Step(EliteShip.GraceSeconds + .2f); e.TakeHit(EliteDamage.Teleport, e.Position, 1); }
+        Step(.3f);
+        e.AttackCooldown = 0f;
+        bool doubled = false, bothSights = false, gapOk = false;
         int shells = 0;
-        Step(.3f, () => shells = Mathf.Max(shells, ActiveShots(e, EliteShots.Kind.Shell)));
-        Check("at " + e.Hearts + " hearts it fires two lanes (" + mortar.LaneA.ToString("0.0") + ", " + mortar.LaneB.ToString("0.0") + "), both drawn with a sight line, two shells (" + shells + ")",
-              !mortar.Bombs && mortar.Doubled && both && shells >= 2 && mortar.LaneB - mortar.LaneA > EmberLanes.MinGap);
+        for (int i = 0; i < 30 * 40 && !(doubled && shells >= 2); i++)
+        {
+            pilot.position = new Vector3(e.MuzzleWorld(0).x, -3f, 0f);
+            EliteSystem.Step(Dt);
+            if (!Alive(e)) break;
+            if (e.Telling && mortar.Doubled) { doubled = true; bothSights |= e.SightShown && mortar.Sight2.Shown; gapOk = mortar.LaneB - mortar.LaneA > EmberLanes.MinGap; }
+            shells = Mathf.Max(shells, ActiveShots(e, EliteShots.Kind.Shell));
+        }
+        Check("furnace at " + e.Hearts + " hearts (phase " + e.Script.Phase + "): a cast of two lanes with a gap (" + mortar.LaneA.ToString("0.0") + ", " + mortar.LaneB.ToString("0.0") + "), both drawn, two shells (" + shells + ")",
+              e.Script.Phase == 2 && doubled && bothSights && gapOk && shells >= 2);
+        e.AttackCooldown = 99f;
+        for (int i = 0; i < 2; i++) { Step(EliteShip.GraceSeconds + .2f); e.TakeHit(EliteDamage.Teleport, e.Position, 1); }
+        Step(.3f);
+        e.AttackCooldown = 0f;
+        bool both = false, bothRings = false, bothLane = false;
+        for (int i = 0; i < 30 * 40 && !(both && mortar.ShellFired); i++)
+        {
+            pilot.position = new Vector3(e.MuzzleWorld(0).x, -3f, 0f);
+            EliteSystem.Step(Dt);
+            if (!Alive(e)) break;
+            if (e.Telling && mortar.Shell && mortar.Bombs) { both = true; bothLane |= e.SightShown; bothRings |= mortar.Marks.Shown(0); }
+        }
+        Check("the last heart's cast (phase " + e.Script.Phase + "): a shell AND firebombs at once (" + mortar.Spots + " spots)", e.Script.Phase == 3 && both && bothLane && bothRings && mortar.ShellFired && mortar.Spots == 3);
         EliteSystem.Clear();
     }
 
@@ -750,26 +929,34 @@ public static class EmberEliteTest
 
     static void Allocations()
     {
-        Fresh(.1f);
-        pilot.position = new Vector3(0f, -2.5f, 0f);
-        var all = new[] { InPlay("stoker", new Vector2(-1.2f, 3f)), InPlay("strafer", new Vector2(1.2f, 1.6f)), InPlay("scavenger", new Vector2(0f, 3f)),
-                          InPlay("ashling", new Vector2(.5f, 3f)), InPlay("kiln", new Vector2(-.5f, 2f)), InPlay("furnace", new Vector2(.8f, 2.5f)) };
-        foreach (var x in all) x.AttackCooldown = 0f;
-        int f = 0;
-        Step(24f, () => pilot.position = new Vector3(Mathf.Sin(f++ * .03f), -2.5f, 0f));   // warm up: every attack
-        foreach (var x in all) if (Alive(x)) x.AttackCooldown = 99f;                        // (a cast builds its telegraph: a spawn, not a frame)
-        Step(6f);
-        long control;
-        bool meter = TestHarness.AllocMeterWorks(out control);
-        long allocated = TestHarness.AllocatedBytes(() =>
+        // (one at a time: none of them roams any more, so six together would crowd the top and crash into each other)
+        long total = 0, control = 0;
+        bool meter = true;
+        foreach (string brain in new[] { "stoker", "strafer", "scavenger", "ashling", "kiln", "furnace" })
         {
-            for (int i = 0; i < 90; i++)
+            Fresh(.1f);
+            pilot.position = new Vector3(0f, -2.5f, 0f);
+            var x = InPlay(brain, new Vector2(-1.2f, 2.5f));
+            x.EngageLeft = 9999f;
+            x.AttackCooldown = 0f;
+            int f = 0;
+            Step(24f, () => pilot.position = new Vector3(Mathf.Sin(f++ * .03f), -2.5f, 0f));   // warm up: its attacks
+            if (!Alive(x)) { Check(brain + ": alive after its warm-up", false); continue; }
+            x.AttackCooldown = 99f;                                                              // (a cast builds its telegraph: a spawn, not a frame)
+            Step(6f);
+            bool ok = TestHarness.AllocMeterWorks(out control);
+            meter &= ok;
+            total += TestHarness.AllocatedBytes(() =>
             {
-                pilot.position = new Vector3(Mathf.Sin(i * .05f), -2.5f, 0f);
-                EliteSystem.Step(Dt);
-            }
-        });
-        Check("zero per-frame allocations stepping the six Ember elites between attacks (" + allocated + " bytes over 90 frames; meter control " + control + ")", meter && allocated == 0);
+                for (int i = 0; i < 90; i++)
+                {
+                    pilot.position = new Vector3(Mathf.Sin(i * .05f), -2.5f, 0f);
+                    EliteSystem.Step(Dt);
+                }
+            });
+            EliteSystem.Clear();
+        }
+        Check("zero per-frame allocations stepping each of the six Ember elites between attacks (" + total + " bytes over 90 frames each; meter control " + control + ")", meter && total == 0);
     }
 
     // ---- BringHome: the backdrop brings the dock of an elite into view ------------------
