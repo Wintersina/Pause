@@ -6,21 +6,23 @@ using UnityEngine;
 // and its aim LOCKS at the tell. They launch from Frost's ground sites (hangar, rigbay, padring, crawlerbay, hatch), and the backdrop
 // brings one of the kind into view when none is (FrostDirector.BringHome).
 //
-//   Rimebreaker       icebreaker / ice_run        (hangar)     pass-through RUNS: an ice-crack lane is drawn down the board from the
-//                                                   top, then it ploughs the whole way through (rocks break, no heart lost) and out
-//                                                   the bottom; it re-enters on another lane after a pause. After a hit: pairs of runs
-//   Floe Harrower     barge / floe_barge          (crawlerbay) holds high on the far side of the pilot, sliding along the top; floe_cast
-//                                                   (a slab row with a gap + a lance down it) and, between casts, single slabs that
-//                                                   skid diagonally and bounce off one rail
-//   Cryo Siren        hopper / frost_bloom        (rigbay)     a long-range kiter that HOPS between perches (out of the view and back,
-//                                                   a blink trail marking the next one); orb -> shard ring, a beam every third; two
-//                                                   orbs a bloom at its last heart
-//   Glacier Tender    carrier / tender_rig        (hatch)      hangs near the top; tethered ice drones (shield while two live) that also
-//                                                   drop frost mines on the pilot's lane; a cold fog cone when its shield is down
-//   Whiteout Sentinel patrol / icicle_barrage     (padring)    patrols straight legs across the TOP; ice plates soak hits and spray
-//                                                   shards; stripped, it calls down an ICICLE BARRAGE down marked lanes with one safe one
+//   Rimebreaker       icebreaker / ice_run        (hangar)     rammer: an ice-crack lane is drawn down a fixed column (1, 3, 2), then it
+//                                                   ploughs the whole board to the bottom of the view (rocks break, no heart lost),
+//                                                   U-turns up the nearer rail and rests at the top. Hurt: runs in pairs, then triples
+//   Floe Harrower     barge / floe_barge          (crawlerbay) sweeper: holds high on the far side of the pilot, working a flank per beat;
+//                                                   floe_cast (a slab row with a gap + a lance down it) and, between casts, single slabs
+//                                                   that skid diagonally and bounce off one rail
+//   Cryo Siren        hopper / frost_bloom        (rigbay)     sniper: three fixed perches (left, right, centre), one bloom each, a short
+//                                                   VISIBLE hop between them with a blink trail; orb -> shard ring, a beam on the
+//                                                   centre perch; two orbs once hurt, a beam every cast at the last heart
+//   Glacier Tender    carrier / tender_rig        (hatch)      summoner: hangs near the top over a scripted spot; tethered ice drones (pair,
+//                                                   trio, all four) that also drop frost mines on the pilot's lane; a cold fog vent
+//   Whiteout Sentinel patrol / icicle_barrage     (padring)    anchor: patrols straight legs across the TOP and fires at the ends; ice
+//                                                   plates soak hits and spray shards; stripped, it calls down an ICICLE BARRAGE down
+//                                                   marked lanes with one safe one (the script says how many, how fast)
 //
-// The Rimebreaker and the Siren ROAM (EliteBrain.Roams): their paths leave the view and they are untouchable while outside the board.
+// None of them leaves the view (no Roams; only a scripted last-heart exit may). Each plays a script (docs/elites/elite-scripts.md) from its
+// def json: move tokens the brains read in OnScriptMove, attack variants the attacks read by name (VariantName).
 // See docs/enemy-behaviours.md ("Frost elites") for the design.
 
 // ---- shared bits ---------------------------------------------------------------------------------------------------------------
@@ -30,99 +32,124 @@ public static class FrostFlight
     // World y at which an elite is wholly above the view / wholly below it.
     public static float AboveY(EliteDef def) => EliteSystem.ViewTop + def.cellWorldSize * .7f;
     public static float BelowY(EliteDef def) => EliteSystem.ViewBottom - def.cellWorldSize * .8f;
+    // Where an ice run ends: on the floor of the view (KeepInView holds a ship at ViewBottom + .6 hull).
+    public static float RunEndY(EliteDef def) => EliteSystem.ViewBottom + def.hullRadius * .6f + .2f;
     // The x range a ship's centre may keep between the rails.
     public static float Edge(EliteDef def, float margin) => Mathf.Max(0f, EliteSystem.RailEdge - def.hullRadius - margin);
+
+    // The script side of the attacks: a variant is a tag as well as a set of numbers. "Declares" is true when the elite's script has any
+    // variant by that name prefix (a scripted elite picks its attack by the step; an unscripted one keeps its old counter).
+    public static bool Is(string name, string prefix) => !string.IsNullOrEmpty(name) && name.StartsWith(prefix, System.StringComparison.Ordinal);
+
+    public static bool Declares(EliteShip s, string prefix)
+    {
+        var v = s != null && s.Script != null ? s.Script.Data.variants : null;
+        if (v == null) return false;
+        for (int i = 0; i < v.Length; i++) if (Is(v[i].name, prefix)) return true;
+        return false;
+    }
 }
 
 // ---- brains --------------------------------------------------------------------------------------------------------------------
 
-// Rimebreaker: an icebreaker making RUNS. One run is: wait off the top, appear at the top on a lane (the lane is drawn on the board
-// as an ice crack from the first frame of the tell), plough straight down the whole board and out of the bottom (IceRunAttack);
-// then wait PauseSeconds and come back on a DIFFERENT lane (at least MinLaneGap from the last, the lanes of a pair on opposite sides).
-// After it has lost a heart (and hidden, and come back) the runs come in PAIRS: the second follows PairGap after the first.
-// It never prowls, never comes down to the pilot and never stops on the board between runs.
+// Rimebreaker: an icebreaker making RUNS, always inside the view. One run is: rest at the top on a lane, tell (the lane is drawn on the
+// board as an ice crack from the first frame), plough straight down the whole board to the bottom of the view (IceRunAttack), then a
+// U-TURN: along the bottom to the nearer rail, up the rail and across the top to the next lane, where it rests until the next beat.
+// The lanes are fixed columns (token "lane:1" left, "lane:2" centre, "lane:3" right) and the script says which one comes next
+// (phase 1: 1, 3, 2). It never prowls, never comes down to the pilot between runs and never leaves the view.
 public class IcebreakerBrain : EliteBrain
 {
-    public enum Stage { Leave, Away, Enter, Ready, Run }
-    public const float PauseSeconds = 1.8f, PairGap = .5f, EnterScale = 2.4f, ReadyWait = .1f, SettleDistance = .15f;
-    public const float MinLaneGap = 1.6f, NearPilot = 2.6f;   // a lane is within NearPilot of where it sees the pilot, when it can be
-    Stage stage = Stage.Leave;
-    float wait, ready, lane, lastLane;
-    int pairLeft;
+    public enum Stage { Enter, Ready, Run, Return }
+    public const float EnterScale = 2.2f, ReturnScale = 2.3f, ReadyWait = .1f, SettleDistance = .15f, LaneSpread = .75f, TurnReach = .9f, RailMargin = .35f;
+    public const int Lanes = 3;
+    static readonly int[] Order = { 0, 2, 1 };   // the unscripted order: lanes 1, 3, 2
+    Stage stage = Stage.Enter;
+    int laneIdx, turn;
+    float ready, lane, lastLane, railSide = 1f;
+    bool tokened;
     public Stage Phase => stage;
     public float Lane => lane;
+    public int LaneIndex => laneIdx;
     public float LastLane => lastLane;
     public int Runs { get; private set; }
     public int RunsStarted { get; private set; }
-    public int PairSize => ship != null && ship.Hearts < def.hearts ? 2 : 1;
-    public int PairLeft => pairLeft;
-    public float WaitLeft => wait;
+    public int Turn => turn;
+    public float RailSide => railSide;
 
     public IcebreakerBrain() { Id = "icebreaker"; }
 
-    public override bool Roams => true;
     public override float TellScale => 1f;
+    public override bool Steadfast => true;
     public override Vector2 JoinFrom => Vector2.up;
 
-    public override void OnJoin() { stage = Stage.Leave; pairLeft = 0; }
-    public override void OnReturn() { pairLeft = 0; BeginEnter(); }
+    protected override void OnBind() { laneIdx = Order[0]; lane = LaneX(laneIdx); }
+    public override void OnJoin() { stage = Stage.Enter; ready = 0f; }
+    public override void OnReturn() { stage = Stage.Enter; ready = 0f; }
 
-    // A lane between the rails, not the last one's, and (a pair) on the other side of the board from it.
-    public float PickLane(Vector2 seen, bool second)
+    // The centre of lane i (0 left .. 2 right).
+    public float LaneX(int i) => (Mathf.Clamp(i, 0, Lanes - 1) - 1) * FrostFlight.Edge(def, .5f) * LaneSpread;
+
+    // "lane:1" .. "lane:3"
+    public override void OnScriptMove(string token)
     {
-        float edge = FrostFlight.Edge(def, .5f);
-        for (int tries = 0; tries < 8; tries++)
-        {
-            float x = Random.Range(-edge, edge);
-            if (Mathf.Abs(x - lastLane) < MinLaneGap) continue;
-            if (second && Mathf.Abs(lastLane) > .5f && Mathf.Sign(x) == Mathf.Sign(lastLane)) continue;
-            if (tries < 5 && Mathf.Abs(x - seen.x) > NearPilot) continue;
-            return x;
-        }
-        // (a tight board: the far side of the middle from the last lane)
-        return Mathf.Clamp(-Mathf.Sign(lastLane == 0f ? 1f : lastLane) * edge * .7f, -edge, edge);
+        if (token.Length != 6 || token[0] != 'l' || token[4] != ':') return;
+        int i = token[5] - '1';
+        if (i < 0 || i >= Lanes) return;
+        tokened = true;
+        laneIdx = i;
+        lane = LaneX(i);
     }
 
-    void BeginEnter()
-    {
-        if (pairLeft <= 0) pairLeft = PairSize;
-        bool second = pairLeft < PairSize;
-        lane = PickLane(ship.Follow, second);
-        ship.Warp(new Vector2(lane, FrostFlight.AboveY(def)));
-        stage = Stage.Enter;
-        ready = 0f;
-    }
+    // Where it rests on its lane: the top, as flown (inside the zone and the player's reach).
+    public Vector2 ReadyPoint => ship.ClampGoal(ship.ReachGoal(new Vector2(lane, EliteSystem.ViewTop - def.hullRadius - .35f)));
 
-    public Vector2 ReadyPoint => new Vector2(lane, ship.ZoneY(EliteSystem.ViewTop - def.hullRadius - .35f));
+    Vector2 TurnPoint(int i)
+    {
+        float railX = railSide * FrostFlight.Edge(def, RailMargin);
+        if (i == 0) return new Vector2(railX, EliteSystem.ViewBottom + def.hullRadius + .5f);
+        return new Vector2(railX, ReadyPoint.y - .8f);
+    }
 
     public override Vector2 Goal(Vector2 seen, float dt)
     {
         Clock += dt;
         switch (stage)
         {
-            case Stage.Leave:
-                // just lifted off a dock: up and out of the view, then the first run's lane
-                if (Pos.y > FrostFlight.AboveY(def) - .2f) { stage = Stage.Away; wait = .5f; }
-                return new Vector2(Pos.x, FrostFlight.AboveY(def) + .6f);
-            case Stage.Away:
-                wait -= dt;
-                if (wait <= 0f) BeginEnter();
-                return Pos;
             case Stage.Enter:
-                if ((Pos - ReadyPoint).sqrMagnitude < SettleDistance * SettleDistance) { stage = Stage.Ready; ready = 0f; }
-                return ReadyPoint;
+            {
+                Vector2 rp = ReadyPoint;
+                if ((Pos - rp).sqrMagnitude < SettleDistance * SettleDistance) { stage = Stage.Ready; ready = 0f; }
+                return rp;
+            }
             case Stage.Ready:
+            {
                 ready += dt;
-                return ReadyPoint;
+                Vector2 rp = ReadyPoint;
+                // (the next lane came: slide across to it)
+                if (Mathf.Abs(Pos.x - rp.x) > .5f) { stage = Stage.Enter; ready = 0f; }
+                return rp;
+            }
+            case Stage.Return:
+            {
+                // the U-turn: round the bottom corner, up the rail, then over to the lane
+                Vector2 wp = TurnPoint(turn);
+                if ((Pos - wp).sqrMagnitude < TurnReach * TurnReach)
+                {
+                    if (turn == 0) turn = 1;
+                    else { stage = Stage.Enter; ready = 0f; }
+                    wp = TurnPoint(turn);
+                }
+                return wp;
+            }
             default:
                 return Pos;
         }
     }
 
-    public override float SpeedScale => stage == Stage.Enter || stage == Stage.Leave ? EnterScale : 1f;
+    public override float SpeedScale => stage == Stage.Enter ? EnterScale : stage == Stage.Return ? ReturnScale : 1f;
     public override bool WantsAttack(Vector2 seen) => stage == Stage.Ready && ready >= ReadyWait;
     // prow first: nose down through the whole run, and at the top waiting for it
-    public override float? FaceDeg(Vector2 seen) => stage == Stage.Leave ? (float?)null : -90f;
+    public override float? FaceDeg(Vector2 seen) => stage == Stage.Return ? (float?)null : -90f;
 
     // The attack's callbacks.
     public void RunStarted() { stage = Stage.Run; RunsStarted++; }
@@ -131,9 +158,11 @@ public class IcebreakerBrain : EliteBrain
     {
         Runs++;
         lastLane = lane;
-        pairLeft--;
-        stage = Stage.Away;
-        wait = pairLeft > 0 ? PairGap : EliteTuning.Gap(PauseSeconds);
+        // up the rail nearer to where the run ended
+        railSide = lane > .1f ? 1f : lane < -.1f ? -1f : ship.Script.Alternate("rail");
+        if (!tokened) { laneIdx = Order[(ship.Script.Cycle("lane", Lanes) + 1) % Lanes]; lane = LaneX(laneIdx); }
+        turn = 0;
+        stage = Stage.Return;
     }
 }
 
@@ -152,7 +181,22 @@ public class BargeBrain : EliteBrain
 
     public BargeBrain() { Id = "barge"; }
 
-    protected override void OnBind() { side = Random.value < .5f ? -1f : 1f; }
+    protected override void OnBind() { side = ship.Script.Alternate("side"); }
+
+    // "L" / "R": the flank this beat is worked from (the pilot taking that flank still sends it across to the other).
+    public override void OnScriptMove(string token)
+    {
+        if (token != "L" && token != "R") return;
+        float s = token == "L" ? -1f : 1f;
+        if (s == side) return;
+        // (the pilot has that flank: it stays on the far side)
+        Vector2 p = ship.Seen;
+        if (Mathf.Abs(p.x) > FlipBand && Mathf.Sign(p.x) == s) return;
+        side = s;
+        crossing = true;
+        Crossings++;
+    }
+
     public override void OnJoin() { var p = EliteSystem.Player; side = Pos.x >= (p != null ? p.position.x : 0f) ? 1f : -1f; crossing = false; }
     public override Vector2 JoinFrom => Vector2.up;
 
@@ -174,45 +218,37 @@ public class BargeBrain : EliteBrain
     public override bool WantsAttack(Vector2 seen) => !crossing && Pos.y > seen.y + MinAttackAbove && Mathf.Abs(Pos.x - seen.x) > LaneKeep * .8f;
 }
 
-// Cryo Siren: a long-range kiter that HOPS. A hop is: fly off the view by a side or the top, wait AwaySeconds out of sight while a
-// BLINK TRAIL of rings is drawn into the next perch (where it will be), come back in from a side or the top and settle there. It
-// perches on one of Perches fixed columns (never the same twice running) Standoff above the pilot (keepDistance, inside the player's
-// reach), takes ONE bloom and hops again; it also hops when the pilot comes within MinRange or after PerchMax seconds. It never closes.
+// Cryo Siren: a long-range sniper that works three FIXED PERCHES (token "perch:1" left, "perch:2" right, "perch:3" centre), Standoff
+// above the pilot (keepDistance, inside the player's reach), one bloom per perch. Between perches it HOPS in plain sight: the BLINK
+// TRAIL of rings is drawn into the next perch for a beat (Mark), then it streaks there fast (Hop). It never leaves the view and
+// never closes on the pilot.
 public class HopperBrain : EliteBrain
 {
-    public enum Stage { Enter, Perch, Exit, Away }
-    public const float MinRange = 3.3f, PerchWait = .5f, PerchMax = 5f, AwaySeconds = .8f, EnterScale = 2f, ExitScale = 2.2f, SettleDistance = .35f;
-    public const float TrailRing = .26f;
+    public enum Stage { Enter, Perch, Mark, Hop }
+    public const float MinRange = 3.3f, PerchWait = .5f, MarkSeconds = .45f, EnterScale = 2f, HopScale = 3.2f, MarkScale = .25f, SettleDistance = .35f;
+    public const float TrailRing = .26f, TrailStep = .9f;
     public const int TrailRings = 4;
-    static readonly float[] Columns = { -.78f, -.3f, .3f, .78f };
+    static readonly float[] Columns = { -.78f, .78f, 0f };
     Stage stage = Stage.Enter;
-    int perch = -1, lastPerch = -1, entry;       // entry: 0 left side, 1 right side, 2 the top
-    float perched, away;
+    int perch;
+    bool tokened;
+    float perched, markT;
+    Vector2 from;
     EliteMarks marks;
     public Stage Phase => stage;
     public int Perch => perch;
     public int Hops { get; private set; }
-    public bool PeeledOff { get; private set; }
     public EliteMarks Marks => marks;
     public int ColumnCount => Columns.Length;
 
     public HopperBrain() { Id = "hopper"; }
 
-    public override bool Roams => true;
     public override float TellScale => 1f;
     public override Vector2 JoinFrom => new Vector2(.5f, 1f);
     protected override void OnBind() { marks = new EliteMarks(ship, TrailRings); }
 
-    public override void OnJoin() { perch = Nearest(Pos.x); stage = Stage.Enter; perched = 0f; }
-    public override void OnReturn() { marks.HideAll(); ChooseNext(); stage = Stage.Enter; perched = 0f; }
-
-    int Nearest(float x)
-    {
-        float edge = FrostFlight.Edge(def, .5f);
-        int best = 0;
-        for (int i = 1; i < Columns.Length; i++) if (Mathf.Abs(Columns[i] * edge - x) < Mathf.Abs(Columns[best] * edge - x)) best = i;
-        return best;
-    }
+    public override void OnJoin() { stage = Stage.Enter; perched = 0f; }
+    public override void OnReturn() { marks.HideAll(); stage = Stage.Enter; perched = 0f; }
 
     // Where perch `i` is now: its column, Standoff above the pilot (kept inside the player's reach and the view).
     public Vector2 Station(int i, Vector2 f)
@@ -222,112 +258,108 @@ public class HopperBrain : EliteBrain
         return new Vector2(Columns[Mathf.Clamp(i, 0, Columns.Length - 1)] * edge, ship.ZoneY(ship.ReachY(y)));
     }
 
-    // Where it comes in from for the perch it is going to (off the view).
-    Vector2 EntryPoint(int i, Vector2 f)
+    // "perch:1" .. "perch:3"
+    public override void OnScriptMove(string token)
     {
-        Vector2 st = Station(i, f);
-        if (entry == 2) return new Vector2(st.x, FrostFlight.AboveY(def));
-        return new Vector2((entry == 0 ? -1f : 1f) * SpaceFlight.OffX(def), st.y + .4f);
+        if (token.Length != 7 || token[0] != 'p' || token[5] != ':') return;
+        int n = token[6] - '1';
+        if (n < 0 || n >= Columns.Length) return;
+        tokened = true;
+        GoTo(n);
     }
 
-    // The next perch: not this one, not under the pilot's nose; and the edge it comes in by.
-    void ChooseNext()
+    void GoTo(int n)
     {
-        var f = ship != null ? ship.Follow : Vector2.zero;
-        float edge = FrostFlight.Edge(def, .5f);
-        int pick = -1;
-        for (int tries = 0; tries < 8 && pick < 0; tries++)
-        {
-            int c = Random.Range(0, Columns.Length);
-            if (c == perch || c == lastPerch && tries < 6) continue;
-            if (Mathf.Abs(Columns[c] * edge - f.x) < 1f && tries < 6) continue;
-            pick = c;
-        }
-        if (pick < 0) pick = (perch + 1) % Columns.Length;
-        lastPerch = perch;
-        perch = pick;
-        // by the nearer side of the new perch, or over the top
-        entry = Random.value < .4f ? 2 : (Columns[perch] < 0f ? 0 : 1);
+        if (n == perch) return;
+        perch = n;
+        // (still on its way in: it just flies to the new perch; settled or hopping: the blink trail first)
+        if (stage != Stage.Enter) BeginMark();
+    }
+
+    void BeginMark()
+    {
+        stage = Stage.Mark;
+        markT = 0f;
+        from = Pos;
+        Hops++;
+        EliteSystem.Fx.Sparks(Pos, def.EngineColor, 6);
+    }
+
+    // The trail: rings along the way, the biggest on the perch itself.
+    void Trail(Vector2 st, bool fast)
+    {
+        Vector2 d = from - st;
+        float len = d.magnitude;
+        Vector2 dir = len > .01f ? d / len : Vector2.up;
+        for (int i = 0; i < TrailRings; i++)
+            marks.Set(i, st + dir * Mathf.Min(len, i * TrailStep), i == 0 ? TrailRing * 1.6f : TrailRing, def.ShotColor, fast, 1f - i * .18f);
     }
 
     public override Vector2 Goal(Vector2 follow, float dt)
     {
         Clock += dt;
         marks.Step(dt);
-        float off = SpaceFlight.OffX(def);
+        Vector2 st = Station(perch, follow);
         switch (stage)
         {
             case Stage.Enter:
-            {
-                Vector2 st = Station(perch, follow);
-                if ((Pos - st).sqrMagnitude < SettleDistance * SettleDistance) { stage = Stage.Perch; perched = 0f; PeeledOff = false; }
+                if ((Pos - st).sqrMagnitude < SettleDistance * SettleDistance) { stage = Stage.Perch; perched = 0f; }
                 return st;
-            }
             case Stage.Perch:
-            {
                 perched += dt;
-                if ((Pos - ship.Seen).magnitude < MinRange) { PeeledOff = true; stage = Stage.Exit; }
-                else if (perched > PerchMax) stage = Stage.Exit;
-                return Station(perch, follow) + new Vector2(Mathf.Sin(Clock * 1.7f) * .12f, Mathf.Sin(Clock * 1.1f) * .1f);
-            }
-            case Stage.Exit:
-            {
-                // off by the side it is nearer to, or over the top when it is near the middle
-                bool top = Mathf.Abs(Pos.x) < 1f;
-                if (top ? Pos.y > FrostFlight.AboveY(def) - .2f : Mathf.Abs(Pos.x) > off - .25f)
-                {
-                    Hops++;
-                    ChooseNext();
-                    stage = Stage.Away;
-                    away = 0f;
-                }
-                return top ? new Vector2(Pos.x, FrostFlight.AboveY(def) + .8f) : new Vector2(Mathf.Sign(Pos.x) * (off + 1f), Pos.y + .6f);
-            }
+                return st + new Vector2(Mathf.Sin(Clock * 1.7f) * .12f, Mathf.Sin(Clock * 1.1f) * .1f);
+            case Stage.Mark:
+                markT += dt;
+                Trail(st, markT > MarkSeconds * .55f);
+                if (markT >= MarkSeconds) { stage = Stage.Hop; EliteSystem.Fx.Sparks(Pos, def.ShotColor, 8); }
+                return Pos;
             default:
-            {
-                away += dt;
-                // the blink trail: rings along the way in, ending on the perch itself
-                Vector2 st = Station(perch, follow), from = EntryPoint(perch, follow);
-                Vector2 d = (from - st).normalized;
-                for (int i = 0; i < TrailRings; i++)
-                    marks.Set(i, st + d * (i * .9f), i == 0 ? TrailRing * 1.6f : TrailRing, def.ShotColor, away > AwaySeconds * .55f, 1f - i * .18f);
-                if (away >= AwaySeconds)
+                Trail(st, true);
+                if ((Pos - st).sqrMagnitude < SettleDistance * SettleDistance)
                 {
                     marks.HideAll();
-                    ship.Warp(from);
-                    stage = Stage.Enter;
+                    stage = Stage.Perch;
+                    perched = 0f;
+                    EliteSystem.Fx.Sparks(Pos, def.ShotColor, 8);
                 }
-                return Pos;
-            }
+                return st;
         }
     }
 
-    public override float SpeedScale => stage == Stage.Enter ? EnterScale : stage == Stage.Exit ? ExitScale : 1f;
+    public override float SpeedScale => stage == Stage.Enter ? EnterScale : stage == Stage.Hop ? HopScale : stage == Stage.Mark ? MarkScale : 1f;
     public override float MinAttackAbove => 1.2f;
 
     public override bool WantsAttack(Vector2 seen) =>
         stage == Stage.Perch && perched > PerchWait && Pos.y > seen.y + MinAttackAbove && (seen - Pos).magnitude >= MinRange * 1.05f;
 
-    // The bloom is done: it hops.
-    public void BloomDone() { if (stage == Stage.Perch) stage = Stage.Exit; }
+    // The bloom is done. A scripted Siren hops when the next step's token comes; an unscripted one walks the perches in order.
+    public void BloomDone() { if (!tokened && stage == Stage.Perch) GoTo((perch + 1) % Columns.Length); }
 }
 
-// Glacier Tender: a slow support tug. Hangs topMargin under the top of the view (never above the player's reach), sliding a slow sine
-// either side of the middle -- it does not follow the pilot. When the pilot comes within keepDistance it scurries off sideways, fast,
-// until the pilot is 1.4x that away again. Attacks (releases drones, or vents fog) while it has room for more drones.
+// Glacier Tender: a slow support tug. Hangs topMargin under the top of the view (never above the player's reach) over the spot the
+// script gives it (token "C" the middle, "L" / "R" a hand off it), a slow bob, no sliding about -- it does not follow the pilot. When
+// the pilot comes within keepDistance it scurries off sideways, fast, until the pilot is 1.4x that away again. Attacks (releases
+// drones, or vents fog) while it has room for more drones, or when the beat is a vent.
 public class CarrierBrain : EliteBrain
 {
     public const float FleeScale = 1.7f, Release = 1.4f, SlideRate = .35f;
     bool fleeing, init;
-    float trackX, fleeSide = 1f, phase;
+    float trackX, fleeSide = 1f, hang;
     public bool Fleeing => fleeing;
+    public float Hang => hang;
     public int Flights { get; private set; }
     public float Amplitude => Mathf.Max(0f, Mathf.Min(def.laneOffset, FrostFlight.Edge(def, .4f)));
     public float Height => ship.ZoneY(ship.ReachY(EliteSystem.ViewTop - def.topMargin));
 
     public CarrierBrain() { Id = "carrier"; }
 
-    protected override void OnBind() { phase = Random.value * Mathf.PI * 2f; }
+    // "C" / "L" / "R": where it hangs this beat.
+    public override void OnScriptMove(string token)
+    {
+        if (token == "C") hang = 0f;
+        else if (token == "L") hang = -1f;
+        else if (token == "R") hang = 1f;
+    }
 
     public override Vector2 Goal(Vector2 seen, float dt)
     {
@@ -349,8 +381,8 @@ public class CarrierBrain : EliteBrain
             trackX = Mathf.Clamp(Pos.x + fleeSide * 1.6f, -edge, edge);
             return new Vector2(trackX, Mathf.Max(Pos.y, seen.y + def.keepDistance) + .4f);
         }
-        trackX = Mathf.MoveTowards(trackX, Mathf.Sin(Clock * SlideRate + phase) * Amplitude, def.speed * .35f * dt);
-        return new Vector2(trackX, Height + Mathf.Sin(Clock * .9f) * .1f);
+        trackX = Mathf.MoveTowards(trackX, hang * Amplitude, def.speed * .35f * dt);
+        return new Vector2(trackX + Mathf.Sin(Clock * SlideRate) * .12f, Height + Mathf.Sin(Clock * .9f) * .1f);
     }
 
     public override float SpeedScale => fleeing ? FleeScale : .7f;
@@ -359,18 +391,21 @@ public class CarrierBrain : EliteBrain
     public override bool WantsAttack(Vector2 seen)
     {
         var dd = ship.Attack as DroneDeployAttack;
-        return !fleeing && Pos.y > seen.y + MinAttackAbove && (dd == null || dd.Live < dd.Cap);
+        // (a vent beat goes off whatever its drones are doing; a launch beat waits for room)
+        bool vent = FrostFlight.Is(ship.Script.Step.attack, "vent");
+        return !fleeing && Pos.y > seen.y + MinAttackAbove && (vent || dd == null || dd.Live < dd.Cap);
     }
 
     public override Vector2 JoinFrom => Vector2.up;
 }
 
 // Whiteout Sentinel: a slow ironclad PATROLLING the top. Flies straight legs from one side of the board to the other along the top
-// (topMargin under it, never above the player's reach), a beat's rest at each end, at a steady slow pace, never dodging anything
-// (Steadfast), its prow (and its plates) turned on the pilot. It does not come down to the pilot or toward its lane.
+// (topMargin under it, never above the player's reach), a rest at each end, at a steady slow pace, never dodging anything
+// (Steadfast), its prow (and its plates) turned on the pilot. It does not come down to the pilot or toward its lane. It fires at the
+// ENDS of its legs (WantsAttack: resting at one, or within EndHold of it) -- the anchor planted at the rail.
 public class PatrolBrain : EliteBrain
 {
-    public const float Pace = .6f, Rest = .6f, EndMargin = .5f;
+    public const float Pace = .6f, Rest = 1.2f, EndMargin = .5f, EndHold = .9f;
     float side = 1f, rest;
     public float Side => side;
     public int Legs { get; private set; }
@@ -379,7 +414,7 @@ public class PatrolBrain : EliteBrain
 
     public PatrolBrain() { Id = "patrol"; }
 
-    protected override void OnBind() { side = Random.value < .5f ? -1f : 1f; }
+    protected override void OnBind() { side = ship.Script.Alternate("side", -1f); }
     public override void OnJoin() { rest = 0f; side = Pos.x >= 0f ? -1f : 1f; }
     public override Vector2 JoinFrom => Vector2.up;
 
@@ -395,7 +430,8 @@ public class PatrolBrain : EliteBrain
     public override bool Steadfast => true;
     public override float SpeedScale => Pace;
     public override float MinAttackAbove => 1.5f;
-    public override bool WantsAttack(Vector2 seen) => Pos.y > seen.y + MinAttackAbove;
+    public override bool WantsAttack(Vector2 seen) =>
+        Pos.y > seen.y + MinAttackAbove && (rest > 0f || Mathf.Abs(Pos.x) > FrostFlight.Edge(def, EndMargin) - EndHold);
     public override float? FaceDeg(Vector2 seen) => FaceTowards(seen);
 }
 
@@ -468,7 +504,10 @@ public class FloeCastAttack : EliteAttack
         sideways = 0f;
         settleAt = 0f;
         int mine = Mathf.Clamp(Mathf.FloorToInt((seen.x + edge) / slot), 0, n);
-        gap = Mathf.Clamp(mine + (seen.x > 0f ? -1 : 1), 0, n);
+        int toward = seen.x > 0f ? -1 : 1;
+        // (scripted, from phase 2: the gap moves a hand each cast -- beside the pilot's slot on one side, then the other)
+        if (FrostFlight.Declares(ship, "row") && ship.Script.Phase >= EliteScriptRunner.Phase2) toward = ship.Script.Alternate("gaphand", toward) > 0f ? 1 : -1;
+        gap = Mathf.Clamp(mine + toward, 0, n);
         if (gap == mine) gap = mine == 0 ? 1 : mine - 1;
     }
 
@@ -553,11 +592,11 @@ public class FloeCastAttack : EliteAttack
 // slow cryo orb (EliteShots.Kind.Orb, shotSpeed x OrbShare) at the pilot,
 // its fuse ring blinking; hazardSeconds later it bursts into a ring of
 // hazardCount shards (hazardSpeed). Shoot the orb first and it just pops.
-// Every BeamEvery-th attack is a beam sweep instead: a longer tell
+// A scripted Siren's step names it (variant "beam" / "twin"); an unscripted one beams every BeamEvery-th attack instead: a longer tell
 // (BeamTell) in which a sight line paints the arc it will sweep -- BeamArc
 // either side of the pilot -- then locks on its start; the action sweeps a
 // stream of fast bolts (shotSpeed) across that arc. Get out of the arc.
-// At its last heart (below DoubleBelow) a bloom is TWO orbs, OrbSplit degrees either side of the aim.
+// A "twin" bloom (unscripted: at the last heart, below DoubleBelow) is TWO orbs, OrbSplit degrees either side of the aim.
 public class FrostBloomAttack : EliteAttack
 {
     public const int BeamEvery = 3, DoubleBelow = 2;
@@ -572,7 +611,7 @@ public class FrostBloomAttack : EliteAttack
     public int BeamShots => beamShots;
     public EliteShot Orb { get; private set; }
     public EliteShot Orb2 { get; private set; }
-    public int Orbs => ship != null && ship.Hearts < DoubleBelow ? 2 : 1;
+    public int Orbs => ship == null ? 1 : FrostFlight.Declares(ship, "twin") ? (FrostFlight.Is(ship.Script.VariantName, "twin") ? 2 : 1) : ship.Hearts < DoubleBelow ? 2 : 1;
 
     public FrostBloomAttack() { Id = "frost_bloom"; }
 
@@ -593,7 +632,8 @@ public class FrostBloomAttack : EliteAttack
         base.BeginTell(seen);
         acted = false;
         casts++;
-        beam = casts % BeamEvery == 0;
+        // (scripted: the step says -- a "beam" beat; unscripted: every third)
+        beam = FrostFlight.Declares(ship, "beam") ? FrostFlight.Is(ship.Script.VariantName, "beam") : casts % BeamEvery == 0;
         float c = Deg(seen - ship.MuzzleWorld(0));
         float s = seen.x >= ship.Position.x ? 1f : -1f;
         // sweeps from past the pilot's outer side back across it
@@ -729,7 +769,7 @@ public class DroneDeployAttack : EliteAttack
     public override void BeginAction()
     {
         base.BeginAction();
-        int want = Random.Range(2, 4);
+        int want = Mathf.Clamp(def.shotCount, 2, 4);   // (the script's variants say how many: pair 2, trio 3, all 4)
         int pods = Mathf.Max(1, def.muzzles.Length);
         for (int i = 0; i < Cap && want > 0; i++)
         {
@@ -1050,9 +1090,9 @@ public class ArmourShatterAttack : EliteAttack
 // Rimebreaker: an ice run. From the first frame of the tell an ICE-CRACK LANE is drawn down the board from the elite (the lane's
 // outline and a zigzag crack down its middle: EliteTelegraph, the dotted telegraph the other themed hazards use), locked where it
 // stands. The action ploughs straight down that lane at dashSpeed -- committed, no steering, so a sidestep is all it takes -- through
-// the WHOLE board, breaking every rock in the way (no heart lost) and out of the bottom; frost shards fly off the prow at the launch
+// the WHOLE board, breaking every rock in the way (no heart lost) down to the bottom of the view; frost shards fly off the prow at the launch
 // and off the first MaxPloughShards rocks it breaks, glancing off the rails (shotBounces). Anything else in the lane (an enemy, a
-// mine) is a crash and costs it a heart: lure it. The run over, the brain waits and brings it back on another lane (IcebreakerBrain).
+// mine) is a crash and costs it a heart: lure it. The run over, the brain U-turns it up the nearer rail to its next lane (IcebreakerBrain).
 public class IceRunAttack : EliteAttack
 {
     public const int MaxPloughShards = 3;     // rocks per run that throw shards
@@ -1125,8 +1165,8 @@ public class IceRunAttack : EliteAttack
     {
         t += dt;
         ship.Drive(Vector2.down * def.dashSpeed);
-        // out of the bottom: wholly below the view
-        return ship.Position.y < FrostFlight.BelowY(def) || t >= MaxRunSeconds;
+        // down to the bottom of the view (it never leaves it: the brain turns it up the rail)
+        return ship.Position.y <= FrostFlight.RunEndY(def) || t >= MaxRunSeconds;
     }
 
     public override void OnPlough(Vector2 at)
@@ -1192,7 +1232,9 @@ public class FloeBargeAttack : FloeCastAttack
     public override void BeginTell(Vector2 seen)
     {
         base.BeginTell(seen);
-        skid = casts++ % Every != 0;
+        int c = casts++;
+        // (scripted: the step says -- a "skid" beat; unscripted: cast, skid, skid)
+        skid = FrostFlight.Declares(ship, "skid") ? FrostFlight.Is(ship.Script.VariantName, "skid") : c % Every != 0;
         slab = null;
         skidLane.Clear();
         if (!skid) return;
@@ -1306,7 +1348,9 @@ public class TenderRigAttack : DroneDeployAttack
     {
         base.BeginTell(seen);
         // shield down: every other attack is the fog; shielded, it only launches
-        venting = !Linked && casts++ % 2 == 1;
+        // (scripted: a "vent" beat vents when the shield is down; unscripted: every other attack while it is)
+        if (FrostFlight.Declares(ship, "vent")) venting = !Linked && FrostFlight.Is(ship.Script.VariantName, "vent");
+        else venting = !Linked && casts++ % 2 == 1;
         if (!venting) return;
         Vector2 o = FogOrigin;
         fog = AttackJet.Arm(FogSpec(Mathf.Max(1, def.WorldIndex)), o, o + Vector2.down * FogLength, TellSeconds, ship.gameObject);
@@ -1455,14 +1499,15 @@ public class IcicleBarrageAttack : ArmourShatterAttack
     public override bool HoldsDuringTell => Stripped;
     public override float TellSeconds => Stripped ? BaseTell * BarrageTell : base.TellSeconds;
     public int HeartsLost => Mathf.Max(0, def.hearts - ship.Hearts);
-    public int LaneCount => Mathf.Min(MaxLanes, BaseLanes + (HeartsLost >= 2 ? 1 : 0) + (HeartsLost >= 4 ? 1 : 0));
+    // (a scripted barrage beat names its lanes in shotCount; otherwise the lanes grow with the hearts lost)
+    public int LaneCount => ship.Script.Varied ? Mathf.Clamp(def.shotCount, 3, MaxLanes) : Mathf.Min(MaxLanes, BaseLanes + (HeartsLost >= 2 ? 1 : 0) + (HeartsLost >= 4 ? 1 : 0));
     public int Columns => columns;
     public int Safe => safe;
     public int Lanes => lanes;
     public int Dropped => dropped;
     public bool Planned => planned;
-    public float Gap => Mathf.Max(SeqGapMin, SeqGap - SeqGapStep * HeartsLost);
-    public float Fall => FallSpeed + FallStep * HeartsLost;
+    public float Gap => ship.Script.Varied ? Mathf.Max(SeqGapMin, def.shotInterval) : Mathf.Max(SeqGapMin, SeqGap - SeqGapStep * HeartsLost);
+    public float Fall => ship.Script.Varied ? Mathf.Max(1f, def.shotSpeed) : FallSpeed + FallStep * HeartsLost;
     public bool Marked(int column) => column >= 0 && column < columns && marked[column];
     public EliteMarks Glyph => glyphs;
     public int Barrages { get; private set; }
@@ -1489,7 +1534,7 @@ public class IcicleBarrageAttack : ArmourShatterAttack
         safe = Mathf.Clamp(safe, 0, columns - 1);
         for (int i = 0; i < columns; i++) marked[i] = i != safe;
         // the sweep: from one end to the other
-        bool fromLeft = Random.value < .5f;
+        bool fromLeft = ship.Script.Alternate("sweep") > 0f;
         int n = 0;
         for (int k = 0; k < columns; k++)
         {

@@ -35,8 +35,6 @@ public static class EliteScriptTest
         "ember_elite_brass_vulture",
         "ember_elite_coalrunner",
         // frost
-        "frost_elite_rimebreaker",
-        "frost_elite_cryo_siren",
         // space
         "space_elite_rift_lancer",
         "space_elite_orbit_reaver",
