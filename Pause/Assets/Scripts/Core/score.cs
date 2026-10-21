@@ -59,6 +59,7 @@ public class score : MonoBehaviour {
         paysRealDust = PaysRealDust(gameObject.scene.name,
             PlayerPrefs.GetString("HasDoneTut") == "true", startMenu.youAreInTutorial);
         ledgerRun = StarDustLedger.BeginRun(paysRealDust);
+        if (paysRealDust) UpgradeOfferStore.RunStarted();
         // Practice runs score nothing; developer runs score but never save a
         // best (or reach a leaderboard).
         scoreRun = RunScore.BeginRun(paysRealDust, !DeveloperUnlocks.Enabled);

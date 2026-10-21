@@ -54,6 +54,26 @@ public class playerIsDead : MonoBehaviour
 
         var canvas = SceneUtil.FindAny("PopUpCanvas");
         if (canvas == null) return;
+
+        // After a second death in a row, maybe offer an affordable upgrade
+        // first (UpgradeOfferRules); either answer goes on to the results.
+        UpgradeOfferRules.Candidate offer;
+        if (score.paysRealDust)
+        {
+            UpgradeOfferStore.RunDied();
+            if (UpgradeOfferStore.TryGetOffer(out offer))
+            {
+                float balance = PlayerPrefs.GetFloat(StarDustLedger.CurrencyKey);
+                UpgradeOfferCard.Show(canvas.transform, deathHighScoreText.font, offer, balance, bought =>
+                {
+                    // The panel's TOTAL line is built from this: keep it the real balance.
+                    if (bought) results.dustAtStart -= offer.price;
+                    DeathPanelView.Build(canvas.transform, deathScoreText, deathSpareText,
+                                         deathHighScoreText, FindButton("Replay"), FindButton("MainMenu"), results);
+                });
+                return;
+            }
+        }
         DeathPanelView.Build(canvas.transform, deathScoreText, deathSpareText,
                              deathHighScoreText, FindButton("Replay"), FindButton("MainMenu"), results);
     }
