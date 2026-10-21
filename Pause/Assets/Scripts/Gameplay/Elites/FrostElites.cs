@@ -60,7 +60,7 @@ public static class FrostFlight
 public class IcebreakerBrain : EliteBrain
 {
     public enum Stage { Enter, Ready, Run, Return }
-    public const float EnterScale = 2.2f, ReturnScale = 2.3f, ReadyWait = .1f, SettleDistance = .15f, LaneSpread = .75f, TurnReach = .9f, RailMargin = .35f;
+    public const float EnterScale = 2.2f, ReturnScale = 2.3f, ReadyWait = .1f, SettleDistance = .25f, LaneSpread = .75f, TurnReach = .9f, RailMargin = .35f;
     public const int Lanes = 3;
     static readonly int[] Order = { 0, 2, 1 };   // the unscripted order: lanes 1, 3, 2
     Stage stage = Stage.Enter;
