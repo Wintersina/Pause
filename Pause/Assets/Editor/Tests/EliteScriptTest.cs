@@ -48,10 +48,6 @@ public static class EliteScriptTest
         "tide_elite_bathyscaphe",
         "tide_elite_thunderfin",
         "tide_elite_trawler",
-        // verdant
-        "verdant_elite_leafblade",
-        "verdant_elite_sporebloom",
-        "verdant_elite_thornlash",
     };
 
     public static int Execute()

@@ -97,5 +97,167 @@
   "hurtHide": true,
   "hideSeconds": 3.5,
   "engageSeconds": 48,
-  "script": { "tempo": 1.1 }
+  "script": {
+    "tempo": 1.1,
+    "exitTell": 1.4,
+    "lastExit": "none",
+    "entrance": {
+      "kind": "overshoot",
+      "seconds": 1.6,
+      "amp": 1.5
+    },
+    "phase1": {
+      "speed": 1.0,
+      "gap": 1.0,
+      "loop": [
+        {
+          "wait": 2.0,
+          "move": "perch:0",
+          "attack": "row"
+        },
+        {
+          "wait": 1.8,
+          "move": "perch:2",
+          "attack": "snap"
+        },
+        {
+          "wait": 2.0,
+          "move": "perch:1",
+          "attack": "row"
+        },
+        {
+          "wait": 1.8,
+          "move": "perch:3",
+          "attack": "heavy"
+        }
+      ]
+    },
+    "phase2": {
+      "speed": 1.1,
+      "gap": 0.85,
+      "loop": [
+        {
+          "wait": 1.6,
+          "move": "perch:3",
+          "attack": "wide"
+        },
+        {
+          "wait": 1.4,
+          "move": "perch:1",
+          "attack": "snap"
+        },
+        {
+          "wait": 1.6,
+          "move": "perch:2",
+          "attack": "wide"
+        },
+        {
+          "wait": 1.4,
+          "move": "perch:0",
+          "attack": "heavy"
+        }
+      ]
+    },
+    "last": {
+      "speed": 1.2,
+      "gap": 0.7,
+      "loop": [
+        {
+          "wait": 1.4,
+          "move": "perch:1",
+          "attack": "row"
+        },
+        {
+          "wait": 0.5,
+          "move": "perch:1",
+          "attack": "snap"
+        },
+        {
+          "wait": 1.4,
+          "move": "perch:2",
+          "attack": "row"
+        },
+        {
+          "wait": 0.5,
+          "move": "perch:2",
+          "attack": "snap"
+        }
+      ]
+    },
+    "variants": [
+      {
+        "name": "row",
+        "set": [
+          {
+            "key": "lobSpacing",
+            "value": 0.8
+          },
+          {
+            "key": "tellSeconds",
+            "value": 0.7
+          }
+        ]
+      },
+      {
+        "name": "snap",
+        "set": [
+          {
+            "key": "lobSpacing",
+            "value": 0.8
+          },
+          {
+            "key": "tellSeconds",
+            "value": 0.7
+          },
+          {
+            "key": "shotInterval",
+            "value": 0.12
+          },
+          {
+            "key": "lobSeconds",
+            "value": 0.9
+          }
+        ]
+      },
+      {
+        "name": "heavy",
+        "set": [
+          {
+            "key": "lobSpacing",
+            "value": 0.8
+          },
+          {
+            "key": "tellSeconds",
+            "value": 0.9
+          },
+          {
+            "key": "poolSeconds",
+            "value": 6
+          },
+          {
+            "key": "lobSeconds",
+            "value": 1.1
+          }
+        ]
+      },
+      {
+        "name": "wide",
+        "set": [
+          {
+            "key": "lobSpacing",
+            "value": 0.9
+          },
+          {
+            "key": "tellSeconds",
+            "value": 0.8
+          },
+          {
+            "key": "poolSeconds",
+            "value": 5.5
+          }
+        ]
+      }
+    ],
+    "note": "sniper / mortar: walks the four canopy perches in a fixed order, a resin wall with one gap from each; the gap narrows and the pools linger as hearts go"
+  }
 }

@@ -4,7 +4,7 @@
   "world": "verdant",
   "role": "spore balloon",
   "codexId": "elite_verdant_sporebloom",
-  "lore": "A slow spore balloon that floats high over the canopy, then sinks out of sight and rises again somewhere else. Its pods burst into rings of spores, the rings drawn first; hurt, it also leaves a lane of lingering spore cloud, outlined before it settles.",
+  "lore": "A slow spore balloon that floats high over the canopy, dips into the leaves in plain sight and rises again at another spot. Its pods burst into rings of spores, the rings drawn first; hurt, it also leaves a lane of lingering spore cloud, outlined before it settles.",
   "brain": "floater",
   "attack": "spore_drift",
   "launchFrom": "podpad",
@@ -105,5 +105,168 @@
   "hurtHide": true,
   "hideSeconds": 3.5,
   "engageSeconds": 48,
-  "script": { "tempo": 1.1 }
+  "script": {
+    "tempo": 1.1,
+    "exitTell": 1.4,
+    "lastExit": "none",
+    "entrance": {
+      "kind": "swirl",
+      "seconds": 1.8,
+      "amp": 1.6
+    },
+    "phase1": {
+      "speed": 1.0,
+      "gap": 1.0,
+      "loop": [
+        {
+          "wait": 2.0,
+          "move": "col:0",
+          "attack": "pair"
+        },
+        {
+          "wait": 1.8,
+          "move": "col:2",
+          "attack": "pair"
+        },
+        {
+          "wait": 2.4,
+          "move": "dip:1",
+          "attack": "-"
+        },
+        {
+          "wait": 1.8,
+          "move": "col:1",
+          "attack": "trio"
+        }
+      ]
+    },
+    "phase2": {
+      "speed": 1.1,
+      "gap": 0.85,
+      "loop": [
+        {
+          "wait": 1.6,
+          "move": "col:0",
+          "attack": "trio"
+        },
+        {
+          "wait": 1.6,
+          "move": "col:2",
+          "attack": "cloud"
+        },
+        {
+          "wait": 2.4,
+          "move": "dip:1",
+          "attack": "-"
+        },
+        {
+          "wait": 1.4,
+          "move": "col:1",
+          "attack": "quad"
+        }
+      ]
+    },
+    "last": {
+      "speed": 1.2,
+      "gap": 0.7,
+      "loop": [
+        {
+          "wait": 1.4,
+          "move": "col:0",
+          "attack": "cloud4"
+        },
+        {
+          "wait": 2.2,
+          "move": "dip:2",
+          "attack": "-"
+        },
+        {
+          "wait": 1.2,
+          "move": "col:2",
+          "attack": "cloud4"
+        },
+        {
+          "wait": 2.2,
+          "move": "dip:1",
+          "attack": "-"
+        }
+      ]
+    },
+    "variants": [
+      {
+        "name": "pair",
+        "set": [
+          {
+            "key": "shotCount",
+            "value": 2
+          },
+          {
+            "key": "lobSpacing",
+            "value": 1.6
+          }
+        ]
+      },
+      {
+        "name": "trio",
+        "set": [
+          {
+            "key": "shotCount",
+            "value": 3
+          },
+          {
+            "key": "lobSpacing",
+            "value": 1.3
+          }
+        ]
+      },
+      {
+        "name": "quad",
+        "set": [
+          {
+            "key": "shotCount",
+            "value": 4
+          },
+          {
+            "key": "lobSpacing",
+            "value": 1.0
+          },
+          {
+            "key": "shotInterval",
+            "value": 0.3
+          }
+        ]
+      },
+      {
+        "name": "cloud",
+        "set": [
+          {
+            "key": "shotCount",
+            "value": 2
+          },
+          {
+            "key": "lobSpacing",
+            "value": 1.6
+          }
+        ]
+      },
+      {
+        "name": "cloud4",
+        "set": [
+          {
+            "key": "shotCount",
+            "value": 4
+          },
+          {
+            "key": "lobSpacing",
+            "value": 1.0
+          },
+          {
+            "key": "shotInterval",
+            "value": 0.3
+          }
+        ]
+      }
+    ],
+    "note": "summoner / denier: floats over three stations, dips visibly into the canopy and rises; more pods and a lingering cloud as it is hurt"
+  }
 }
