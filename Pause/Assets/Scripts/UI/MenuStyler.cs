@@ -4,7 +4,8 @@ using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 // Shared runtime styling for the menu screens' text buttons (startS4, the
-// Options screen leaderboardS3, and the space dock's BACK / LIFT-OFF in
+// Options screen leaderboardS3, the Credits screen creditsS7 (BACK), and the
+// space dock's BACK / LIFT-OFF in
 // shopS6), so the scenes themselves are not edited.
 //
 // Akira look (docs/art-style.md): BONE type, a thick INK outline and a hard
@@ -14,7 +15,7 @@ using UnityEngine.UI;
 // PAUSE logo, never layout.
 public class MenuStyler : MonoBehaviour
 {
-    public static readonly string[] Scenes = { "startS4", "leaderboardS3", "shopS6" };
+    public static readonly string[] Scenes = { "startS4", "leaderboardS3", "shopS6", "creditsS7" };
     public const string PrimaryButton = "PlayButton";
     const float BeatSeconds = 2.6f;
 
