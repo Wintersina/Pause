@@ -114,5 +114,7 @@
   "launchFrom": "rodsilo,towerbay",
   "hurtHide": true,
   "lobSpacing": 1.9,
-  "topMargin": 1.5
+  "topMargin": 1.5,
+  "engageSeconds": 42,
+  "script": { "tempo": 0.8 }
 }

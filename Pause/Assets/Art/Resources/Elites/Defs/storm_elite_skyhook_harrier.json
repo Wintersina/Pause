@@ -96,5 +96,7 @@
   "launchFrom": "skyhookcradle,padring",
   "hurtHide": true,
   "lobSpacing": 0.95,
-  "topMargin": 1.5
+  "topMargin": 1.5,
+  "engageSeconds": 42,
+  "script": { "tempo": 0.8 }
 }

@@ -326,7 +326,9 @@ public static class DesertEliteTest
         Fresh();
         var e = InPlay(key, new Vector2(0f, 3f));
         e.TakeHit(EliteDamage.Teleport, e.transform.position, 1);
-        Check(key + ": a lost heart sends it hiding (" + e.State + ", hearts " + e.Hearts + ")", e.State == EliteState.Hide && e.Hidden);
+        Check(key + ": a lost heart is a flinch, not a disappearance (" + e.State + ", hearts " + e.Hearts + ")", e.InPlay && !e.Hidden && e.Flinching);
+        e.TakeHit(EliteDamage.Teleport, e.transform.position, 1);
+        Check(key + ": its last heart sends it on its one scripted exit (" + e.State + ", hearts " + e.Hearts + ")", e.State == EliteState.Hide && e.Hidden);
         bool back = StepUntil(() => !e.Hidden && e.InPlay, 30f);
         Check(key + ": ... and it returns to the fight", back);
     }

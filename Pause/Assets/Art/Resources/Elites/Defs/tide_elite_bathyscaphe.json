@@ -110,5 +110,7 @@
     }
   ],
   "followLag": 0.25,
-  "lobSeconds": 0.6
+  "lobSeconds": 0.6,
+  "engageSeconds": 55,
+  "script": { "tempo": 1.35 }
 }

@@ -189,6 +189,11 @@ public class EliteDef
     public float engageSeconds = 45f;   // seconds in play (hidden time not counted) before an elite that is still alive retreats to its dock / off the top; escaping costs the pilot Score / 2
     public bool hurtHide;               // a non-armoured elite that, on losing a heart, breaks off, flies off-screen, waits hideSeconds and re-enters from another side
     public float hideSeconds = 3.5f;    // how long it waits off-screen (EliteShip.Hide)
+    // (hurtHide no longer sends an elite away on every lost heart: a hit is a visible flinch. It now means "may make the ONE scripted
+    // exit-and-return at its last heart", and only if script.lastExit names a side -- or, for the old roamers, "auto".)
+
+    // ---- the authored fight (EliteScript.cs) ----
+    public EliteScriptDef script = new EliteScriptDef();
 
     // ---- hearts ----
     public int hearts = 2;
@@ -252,6 +257,9 @@ public class EliteDef
         return motionSkin;
     }
 
+    // A private copy a ship flies with: its script varies the numbers per phase and per attack, the catalog's def stays as authored.
+    public EliteDef Instance() { return (EliteDef)MemberwiseClone(); }
+
     public int Score => score > 0 ? score : ScoreRules.EliteDown;
     public float Dust => dust > 0f ? dust : ScoreRules.EliteDownDust;
     public float PixelWorld => cellWorldSize / Mathf.Max(1, cellPixels);
@@ -287,6 +295,8 @@ public class EliteDef
         if (cells == null) cells = new EliteCells();
         if (cells.flight == null || cells.flight.Length == 0) cells.flight = new[] { 0 };
         hearts = Mathf.Max(1, hearts);
+        if (script == null) script = new EliteScriptDef();
+        if (script.entrance == null) script.entrance = new EliteEntranceDef();
     }
 
     static Color Hex(string s, Color fallback)

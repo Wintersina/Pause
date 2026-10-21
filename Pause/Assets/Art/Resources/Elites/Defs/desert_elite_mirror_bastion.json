@@ -112,5 +112,7 @@
   "laneOffset": 0.9,
   "lobSpacing": 0.62,
   "followLag": 0.25,
-  "topMargin": 1.6
+  "topMargin": 1.6,
+  "engageSeconds": 55,
+  "script": { "tempo": 1.35 }
 }

@@ -53,10 +53,10 @@ using UnityEngine;
 // ESCAPED: the pilot LOSES half of what its kill would have paid (RunScore
 // .OnEliteEscaped, floored at 0), no dust, no codex, no achievement. The clock
 // runs on the world's clock (a pause freezes it) and stops while it hides.
-// A non-armoured elite with Def.hurtHide (the Orbit Reaver, the Rift Lancer)
-// that loses a heart (and lives) HIDES (Hide): it breaks off, flies off the
-// nearest side or the top, is neither hittable nor attacking while away, waits
-// Def.hideSeconds, and re-enters from a different side to carry on.
+// A lost heart is a visible FLINCH (knock-back and shudder, FlinchSeconds), never a disappearance; the script (EliteScript.cs) may
+// move the fight into a new phase. A non-armoured elite with Def.hurtHide makes ONE scripted exit-and-return at its last heart
+// (Hide: out by the script's side, Script.LastExitSeconds away, back in from the opposite side). The last seconds of the engagement
+// are an exit warning (ExitWarning: pulsing hull and engines, no new attacks) before the escape boost.
 // Otherwise elites die by crashing -- into
 // rocks, enemies, mines, other elites and the side rails -- or to the
 // pilot. They read the board and dodge (EliteEvasion; `avoidance` is their
@@ -97,7 +97,8 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
     public const float GraceSeconds = .5f;     // after losing a heart
     public const float EscapeWindow = 2f;      // after joining: no attacks yet
     public const int PauseDamage = 2;          // hearts a pause jump landing on an elite takes (a 4/5-heart one survives it); a shielded ram takes all
-    public const float JoinSeconds = 1.1f;
+    public const float JoinSeconds = 1.1f;       // (the unscripted join; a script's entrance is its own 1-2 s: EliteScriptRunner.EntranceSeconds)
+    public const float EntranceBreath = .9f;     // seconds of quiet after the entrance before the first attack
     public const float LiftSeconds = 1.7f;
     public const float EngineTellSeconds = 1f; // parked: lights blink before launch
     public const float MinJoinDistance = 2.6f; // lift-off ends at least this far from the pilot
@@ -121,6 +122,8 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
     public float PlaySeconds { get; private set; }
 
     public EliteDef Def { get; private set; }
+    // The authored fight: phases, loops, variants, the entrance and the exit (EliteScript.cs).
+    public EliteScriptRunner Script { get; private set; }
     public EliteBrain Brain { get; private set; }
     public EliteAttack Attack { get; private set; }
     public EliteState State { get; private set; }
@@ -139,6 +142,14 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
     // In the fight, on the board or away from it (hiding): the drawing stays the damaged one throughout.
     bool Engaged => InPlay || State == EliteState.Hide;
     public bool Hidden => State == EliteState.Hide;
+    // A lost heart is a short visible knock-back and shudder (FlinchSeconds), never a disappearance.
+    public bool Flinching => flinch > 0f;
+    // The scripted arrival is playing (the join: a signature path, crash-proof).
+    public bool Entering => State == EliteState.Join;
+    // The last seconds before it escapes: it pulses and stops attacking (Script.ExitTell), then the escape boost.
+    public bool ExitWarning => exitWarn;
+    // The scripted last-heart exit-and-return has been used.
+    public bool LastExitDone => lastExitDone;
     // The side it left by while hiding / came back from (0 left, 1 right, 2 top).
     public int HideSide => hideSide;
     // A roaming elite outside the board (no collider, not a target).
@@ -190,6 +201,11 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
     Vector2 velocity;
     float facing = 90f, bank;
     float engageLeft, hideLeft;     // see EngageLeft / HideLeft
+    float flinch, hideWait;
+    bool exitWarn, lastExitDone, warnTinted, entryInit;
+    Vector2 entryFrom;
+    float entrySide = 1f;
+    public const float FlinchSeconds = .45f, FlinchKick = 1.7f, PhaseKick = 3.2f;
     int hidePhase, hideSide;        // 0 away, 1 waiting, 2 back in; the side it left by (0 left, 1 right, 2 top)
     Vector2 hideTo;
     float stateTime, cooldown, escapeLeft, grace, hitFlash, frameHold, blinkCooldown, exhaustClock;
@@ -266,10 +282,13 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
 
     void Init(EliteDef def)
     {
+        // (a private copy: the script varies its numbers per phase and per attack)
+        def = def.Instance();
         Def = def;
         Hearts = def.hearts;
         Brain = EliteBrains.Create(def.brain);
         Attack = EliteAttacks.Create(def.attack);
+        Script = new EliteScriptRunner(this, def);
         Brain.Bind(this);
         Attack.Bind(this);
         frames = EliteArt.Frames(def);
@@ -299,7 +318,7 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
         sight = NewPiece(transform, "Sight", EliteFxArt.Sight, PlayOrder - 1);
         sight.enabled = false;
 
-        cooldown = EliteTuning.Gap(def.attackGap * Mathf.Lerp(.6f, 1.1f, Random.value));
+        cooldown = Script.WaitSeconds();
         facing = def.turnsToFace ? def.noseDeg : 90f;
         Live.Add(this);
     }
@@ -409,8 +428,10 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
     {
         State = EliteState.Join;
         stateTime = 0f;
-        escapeLeft = EscapeWindow;
+        escapeLeft = Script.EntranceSeconds + EntranceBreath;
         engageLeft = Def.engageSeconds;
+        entryFrom = transform.position;
+        entryInit = false;
         gameObject.tag = "Enimey";
         col.enabled = true;
         SetHullScale(1f);
@@ -438,6 +459,7 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
         if (p != null) { seen = p.position; lastPlayer = seen; follow = seen; aimSeen = seen; havePlayer = true; lost = false; }
         Codex.Discover(gameObject);
         Brain.OnJoin();
+        Script.Begin();
     }
 
     void SetOrders(int order)
@@ -704,13 +726,14 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
         if (footprint != null) footprint.enabled = on;
     }
 
-    void BeginHide()
+    void BeginHide(int forcedSide = -1)
     {
         if (State == EliteState.Attack)
         {
             // (a wind-up or an action broken off: nothing more is fired)
             if (attackPhase == 0) Attack.Cancel();
             Attack.End();
+            Script.Revert();
         }
         Hides++;
         offstage = true;
@@ -728,7 +751,9 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
         Vector2 p = transform.position;
         float half = OffsideX;
         float dl = p.x + half, dr = half - p.x, dt = EliteSystem.ViewTop - p.y;
-        hideSide = dt < dl && dt < dr ? 2 : dl <= dr ? 0 : 1;
+        hideSide = forcedSide >= 0 ? forcedSide : dt < dl && dt < dr ? 2 : dl <= dr ? 0 : 1;
+        hideWait = forcedSide >= 0 || Script.LastExit != "" ? Script.LastExitSeconds : Def.hideSeconds;
+        EliteSystem.Fx.Sparks(p, Def.EngineColor, 10);
         hideTo = hideSide == 2 ? new Vector2(p.x, EliteSystem.ViewTop + Def.cellWorldSize * .7f)
                                : new Vector2(hideSide == 0 ? -half : half, p.y);
     }
@@ -752,7 +777,7 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
             transform.position = new Vector3(next.x, next.y, 0f);
             if ((next - to).sqrMagnitude < 1e-4f)
             {
-                if (hidePhase == 0) { hidePhase = 1; hideLeft = Def.hideSeconds; velocity = Vector2.zero; }
+                if (hidePhase == 0) { hidePhase = 1; hideLeft = hideWait > 0f ? hideWait : Def.hideSeconds; velocity = Vector2.zero; }
                 else EndHide();
             }
         }
@@ -763,7 +788,8 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
     // Back in: from a side other than the one it left by.
     void BeginReentry()
     {
-        int side = (hideSide + 1 + Random.Range(0, 2)) % 3;
+        // (scripted: back in from the OPPOSITE side -- left <-> right, the top the top)
+        int side = hideSide == 0 ? 1 : hideSide == 1 ? 0 : 2;
         var p = EliteSystem.Player;
         float edge = EliteSystem.RailEdge - Def.hullRadius - .6f;
         float y = Mathf.Lerp(EliteSystem.ViewBottom, EliteSystem.ViewTop, .62f);
@@ -877,6 +903,7 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
     {
         BreakOffs++;
         Attack.Cancel();
+        Script.Revert();
         State = EliteState.Follow;
         stateTime = 0f;
         attackPhase = 0;
@@ -900,6 +927,9 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
         Steer(nav, 1f, dt);
     }
 
+    // The brain's speed scale x the phase's.
+    float BrainSpeed => Brain.SpeedScale * Script.SpeedScale;
+
     void StepPlay(float dt)
     {
         PlaySeconds += dt;
@@ -907,28 +937,50 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
         Perceive(dt);
         // the engagement runs out: it is still here, so it goes home (once it is between attacks)
         if (State != EliteState.Retreat) engageLeft -= dt;
+        if (flinch > 0f) flinch = Mathf.Max(0f, flinch - dt);
+        StepExitWarning();
         if (engageLeft <= 0f && State == EliteState.Follow) BeginRetreat();
 
         Vector2 pos = transform.position;
         bool driven = false;
         if (State == EliteState.Join)
         {
-            Vector2 goal = GoalFor(Brain.Goal(follow, dt));
-            Steer(Navigate(goal, 1.35f, dt), 1.35f, dt);
-            if (stateTime >= JoinSeconds || (goal - pos).sqrMagnitude < .09f) { State = EliteState.Follow; stateTime = 0f; }
+            // THE ENTRANCE: a signature path from the lift-off's end to the brain's first spot, then the sparks that sign it.
+            Vector2 goal = ClampGoal(GoalFor(Brain.Goal(follow, dt)));
+            if (!entryInit) { entryInit = true; entrySide = entryFrom.x >= goal.x ? 1f : -1f; }
+            float k = stateTime / Script.EntranceSeconds;
+            Vector2 path = EliteEntrance.Path(Script.EntranceKind, entryFrom, goal, k, entrySide, Script.EntranceAmp);
+            float railX = EliteSystem.RailEdge - Def.hullRadius * .7f - .05f;
+            path.x = Mathf.Clamp(path.x, -railX, railX);
+            path.y = Mathf.Min(path.y, EliteSystem.ViewTop - Def.hullRadius);
+            velocity = (path - pos) / dt;
+            claim = goal;
+            if (k >= 1f)
+            {
+                State = EliteState.Follow;
+                stateTime = 0f;
+                velocity = Vector2.ClampMagnitude(velocity, Def.speed);
+                EliteSystem.Fx.Sparks(path, Def.ShotColor, EliteEntrance.Sparks(Script.EntranceKind));
+            }
         }
         else if (State == EliteState.Follow)
         {
             StepReachRise(dt);
             Vector2 goal = GoalFor(Brain.Goal(follow, dt));
-            Steer(Navigate(goal, Brain.SpeedScale, dt), Brain.SpeedScale, dt);
+            Steer(Navigate(goal, BrainSpeed, dt), BrainSpeed, dt);
             if (Brain.DodgesByBlink && blinkCooldown <= 0f && (ThreatSeverity() > .55f || Cornered))
             {
                 Vector2 spot = BlinkSpot();
                 if (BlinkSpotSafe) Blink(spot, false);   // (never out of one thing into another)
             }
             cooldown -= dt;
-            if (cooldown <= 0f && escapeLeft <= 0f && havePlayer && (Brain.Roams || InZone) && Brain.WantsAttack(seen))
+            if (cooldown <= 0f && escapeLeft <= 0f && !exitWarn && Script.IsBeat)
+            {
+                // (a movement beat of the script: no attack, on to the next step)
+                Script.Advance();
+                cooldown = Script.WaitSeconds();
+            }
+            else if (cooldown <= 0f && escapeLeft <= 0f && !exitWarn && havePlayer && (Brain.Roams || InZone) && Brain.WantsAttack(seen))
             {
                 if (MayCommit(false)) BeginAttack();
                 else { cooldown = EliteEvasion.HoldFireSeconds; HeldFire++; }
@@ -951,7 +1003,7 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
                 }
                 Attack.StepTell(dt);
                 if (Attack.HoldsDuringTell) HoldTell(dt);
-                else Steer(Navigate(GoalFor(Brain.Goal(follow, dt)), Brain.SpeedScale * Brain.TellScale, dt), Brain.SpeedScale * Brain.TellScale, dt);
+                else Steer(Navigate(GoalFor(Brain.Goal(follow, dt)), BrainSpeed * Brain.TellScale, dt), BrainSpeed * Brain.TellScale, dt);
                 if (State == EliteState.Attack && attackClock >= Attack.TellSeconds)
                 {
                     if (!MayCommit(true)) BreakOff();
@@ -965,7 +1017,7 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
                 if (!driven)
                 {
                     if (Attack.HoldsDuringAction) Brake(dt);
-                    else Steer(Navigate(GoalFor(Brain.Goal(follow, dt)), Brain.SpeedScale, dt), Brain.SpeedScale, dt);
+                    else Steer(Navigate(GoalFor(Brain.Goal(follow, dt)), BrainSpeed, dt), BrainSpeed, dt);
                 }
                 else claim = transform.position;
                 if (done) EndAttack();
@@ -990,6 +1042,7 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
         tellAnchor = transform.position;
         aimSeen = seen;
         aimLocked = false;
+        Script.BeginAttack();    // (the step's variant goes on the def's numbers before the attack reads them)
         Attack.BeginTell(seen);
     }
 
@@ -1001,7 +1054,13 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
         attackPhase = 0;
         forcedAttack = false;
         sight.enabled = false;
-        cooldown = EliteTuning.Gap(Def.attackGap * Mathf.Lerp(1.25f, .6f, Mathf.Clamp01(Def.aggression)) * Random.Range(.8f, 1.2f));
+        Script.Revert();
+        if (ApplyPhase()) cooldown = Mathf.Max(Script.WaitSeconds(), EliteTuning.Gap(EliteScriptRunner.PhaseBreath));
+        else
+        {
+            Script.Advance();
+            cooldown = Script.WaitSeconds();
+        }
     }
 
     // ---- the player's reach (HostileReach) --------------------------------------
@@ -1265,7 +1324,7 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
             }
         }
 
-        if (grace > 0f) return;
+        if (grace > 0f || State == EliteState.Join) return;   // (the entrance is a scripted path: nothing on the board crashes it)
         var live = ClearTarget.Live;
         for (int i = 0; i < live.Count; i++)
         {
@@ -1371,8 +1430,52 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
         if (heartsView != null) heartsView.Refresh();
         EliteSystem.Fx.Sparks(at, Def.HeartColor, 6);
         if (Hearts <= 0) Die(cause);
-        else if (Def.hurtHide && !Def.armored && State != EliteState.Retreat) BeginHide();
+        else HeartLost(at);
         return true;
+    }
+
+    // ---- a lost heart: flinch, maybe a new phase, maybe the one scripted exit ------------------------------
+
+    // The hit is SEEN: a knock-back away from the impact and a shudder (no invulnerable disappearance). A wind-up in progress is
+    // broken off. When the hearts take it into a new phase (Script.OnHearts) the loop restarts after a breath with a harder kick
+    // and a ring of sparks. At its last heart a hurtHide elite may make ONE scripted exit-and-return (Script.LastExit).
+    void HeartLost(Vector3 at)
+    {
+        Vector2 pos = transform.position;
+        Vector2 away = pos - (Vector2)at;
+        away = away.sqrMagnitude > 1e-6f ? away.normalized : Vector2.up;
+        flinch = FlinchSeconds;
+        if (State == EliteState.Attack && attackPhase == 0) BreakOff();
+        // (an action in progress finishes under the old phase's numbers: EndAttack takes the new phase)
+        bool phased = State != EliteState.Attack && ApplyPhase();
+        velocity += away * (phased ? PhaseKick : FlinchKick);
+        if (phased) cooldown = Mathf.Max(Script.WaitSeconds(), EliteTuning.Gap(EliteScriptRunner.PhaseBreath));
+        if (Hearts == 1 && Def.hurtHide && !Def.armored && !lastExitDone && State != EliteState.Retreat)
+        {
+            lastExitDone = true;
+            string how = Script.LastExit;
+            if (how == "none") return;
+            int side = how == "left" ? 0 : how == "right" ? 1 : how == "top" ? 2 : -1;
+            BeginHide(side);
+        }
+    }
+
+    // The hearts took it into a new phase of the script: the loop restarts at its first step, with the new phase's numbers.
+    bool ApplyPhase()
+    {
+        if (!Script.OnHearts(Hearts)) return false;
+        EliteSystem.Fx.Sparks(transform.position, Def.ShotColor, 12);
+        Script.Begin();
+        Brain.OnPhase(Script.Phase);
+        return true;
+    }
+
+    void StepExitWarning()
+    {
+        bool want = State != EliteState.Retreat && State != EliteState.Dead && engageLeft > 0f && engageLeft <= Script.ExitTell;
+        if (want && !exitWarn) EliteSystem.Fx.Sparks(transform.position, Def.EngineColor, 10);
+        exitWarn = want;
+        if (!want && warnTinted) { warnTinted = false; hull.color = Color.white; }
     }
 
     public bool TakeImpact(out Vector3 at)
@@ -1787,7 +1890,8 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
 
     void Render()
     {
-        hullTf.localRotation = Quaternion.Euler(0f, 0f, ArtRotation);
+        float shudder = flinch > 0f ? Mathf.Sin(exhaustClock * 70f) * 7f * (flinch / FlinchSeconds) : 0f;
+        hullTf.localRotation = Quaternion.Euler(0f, 0f, ArtRotation + shudder);
         if (State == EliteState.Parked)
         {
             RenderEngines(0f, 0f);          // (the big engine glows stay off: the one small launch light is the tell)
@@ -1795,8 +1899,15 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
             RenderLights();
             return;
         }
+        if (exitWarn) thrust = Mathf.Max(thrust, Mathf.FloorToInt(exhaustClock * 8f) % 2 == 0 ? 1.25f : .6f);
         RenderEngines(thrust, Mathf.Clamp01(thrust));
         RenderProcedural();
+        if (exitWarn)
+        {
+            // the exit tell: the hull pulses to the engine colour and back in hard steps until it goes
+            hull.color = Mathf.FloorToInt(exhaustClock * 6f) % 2 == 0 ? Color.Lerp(Color.white, Def.EngineColor, .55f) : Color.white;
+            warnTinted = true;
+        }
         // a damaged elite wears ONE held drawing: the engines and a hover bob keep it alive over it
         float bob = Damaged && !Def.cells.HasDamagedLoop && Def.cellPixels > 0 ? Mathf.Round(Mathf.Sin(exhaustClock * DamagedBobRate) * DamagedBobPixels) * Def.PixelWorld : 0f;
         hullTf.localPosition = (Vector3)(recoilDir * recoilLen) + Vector3.up * bob;

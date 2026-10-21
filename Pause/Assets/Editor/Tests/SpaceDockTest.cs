@@ -600,7 +600,7 @@ public static class SpaceDockTest
             {
                 EliteSystem.Clear();
                 any &= dir.SpawnGroup(0, 1) == 1;
-                saw |= EliteShip.Live.Count > 0 && EliteShip.Live[0].Def == d;
+                saw |= EliteShip.Live.Count > 0 && EliteShip.Live[0].Def.key == d.key;
             }
             Check(x.key + ": with none of its kinds in view it takes any free body (" + only.Count + " left, saw it " + saw + ")", any && saw);
             Object.DestroyImmediate(dir.gameObject);

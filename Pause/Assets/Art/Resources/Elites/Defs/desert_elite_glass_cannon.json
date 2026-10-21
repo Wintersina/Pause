@@ -91,5 +91,7 @@
     }
   ],
   "topMargin": 1.6,
-  "followLag": 0.25
+  "followLag": 0.25,
+  "engageSeconds": 48,
+  "script": { "tempo": 1.2 }
 }

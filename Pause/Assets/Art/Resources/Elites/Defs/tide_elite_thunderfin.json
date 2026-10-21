@@ -109,5 +109,7 @@
   "followLag": 0.3,
   "hurtHide": true,
   "hideSeconds": 3.5,
-  "topMargin": 1.6
+  "topMargin": 1.6,
+  "engageSeconds": 48,
+  "script": { "tempo": 1.1 }
 }

@@ -113,5 +113,7 @@
   "lobSeconds": 0.85,
   "lobAhead": 1.6,
   "poolSeconds": 3.4,
-  "topMargin": 1.5
+  "topMargin": 1.5,
+  "engageSeconds": 55,
+  "script": { "tempo": 1.35 }
 }

@@ -427,7 +427,7 @@ public static class FrostEliteTest
         Check("icebreaker: a single run per cycle at full hearts", brain.PairSize == 1);
         Step(2f);
         e.TakeShipAttack(0, 1f, e.Position);
-        Check("... a hit sends it hiding", e.Hidden && e.Hearts == def.hearts - 1);
+        Check("... a hit is a flinch, no hiding", e.InPlay && !e.Hidden && e.Flinching && e.Hearts == def.hearts - 1);
         WaitBack(e);
         Check("... and back, the runs now come in pairs (" + brain.PairSize + ")", !e.Hidden && brain.PairSize == 2);
         var runGaps = new List<float>();

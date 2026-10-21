@@ -366,7 +366,7 @@ public static class EliteFoundationTest
         // an armoured one just takes the hit
         var tank = InPlay(Space("eventide_bastion"), new Vector2(0f, 1f));
         tank.TakeHit(EliteDamage.PlayerWeapon, tank.Position + Vector2.left);
-        Check("armoured: a lost heart, no hiding", tank.State == EliteState.Follow && tank.Hearts == 4);
+        Check("armoured: a lost heart, a flinch, no hiding", tank.State == EliteState.Follow && tank.Hearts == 4 && tank.Flinching);
         EliteSystem.Clear();
         Fresh(.05f);
 
@@ -377,8 +377,16 @@ public static class EliteFoundationTest
             e.AttackCooldown = 0f;
             Step(2.5f);
             float engage = e.EngageLeft;
+            // the first lost heart is a visible flinch: knocked back, shuddering, still on the board and shootable
+            Vector2 before = e.Position;
             e.TakeHit(EliteDamage.PlayerWeapon, e.Position + Vector2.left * .4f);
-            Check(name + ": a lost heart (" + e.Hearts + "/" + def.hearts + ") sends it hiding", e.State == EliteState.Hide && e.Hidden && e.Hearts == def.hearts - 1);
+            Check(name + ": a lost heart (" + e.Hearts + "/" + def.hearts + ") is a flinch, not a disappearance", e.InPlay && !e.Hidden && e.Flinching && e.Hearts == def.hearts - 1);
+            Step(EliteShip.GraceSeconds + .2f);
+            Check(name + ": ... and still on the board after the flinch", e.InPlay && !e.Hidden && !e.Flinching);
+            engage = e.EngageLeft;
+            // the last heart: the one scripted exit-and-return
+            e.TakeHit(EliteDamage.PlayerWeapon, e.Position + Vector2.left * .4f);
+            Check(name + ": the last heart sends it on its scripted exit (" + e.Hearts + "/" + def.hearts + ")", e.State == EliteState.Hide && e.Hidden && e.Hearts == 1 && e.LastExitDone);
             Check(name + ": not InPlay, collider and hazard tag off", !e.InPlay && !e.Collider.enabled && e.tag == "Untagged");
             int exitSide = e.HideSide;
             int hearts = e.Hearts, attacks = e.Attacks, shots = EliteSystem.Shots.Launched;
@@ -416,13 +424,14 @@ public static class EliteFoundationTest
         // hurt twice: hides twice, dies on the last
         var r = InPlay(Space("orbit_reaver"), new Vector2(0f, 1f));
         r.TakeHit(EliteDamage.PlayerWeapon, r.Position + Vector2.left);
-        Step(14f);
-        Check("it returned after the first hide", r.InPlay);
+        Step(1f);
+        Check("hurt once (1 of 3): flinches, no hiding", r.InPlay && !r.Hidden && r.Hearts == 2);
         r.TakeHit(EliteDamage.PlayerWeapon, r.Position + Vector2.left);
-        Check("hurt again (2 of 3): hides again", r.Hidden && r.Hearts == 1);
+        Check("hurt again (2 of 3): the one scripted exit", r.Hidden && r.Hearts == 1);
         Step(14f);
+        Check("it returned after the exit", r.InPlay);
         r.TakeHit(EliteDamage.PlayerWeapon, r.Position + Vector2.left);
-        Check("the last heart kills it (no hiding)", !Alive(r));
+        Check("the last heart kills it (the exit is used once)", !Alive(r));
     }
 
     static bool TakeShipAttack_Test(this EliteShip e)

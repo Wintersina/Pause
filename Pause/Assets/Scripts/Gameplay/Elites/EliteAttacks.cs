@@ -442,7 +442,7 @@ public class SlagDropAttack : EliteAttack
         while (t >= next && dropped < n)
         {
             int m = def.muzzles.Length > 0 ? dropped % def.muzzles.Length : 0;
-            Fire(m, -90f + Random.Range(-def.shotSpread, def.shotSpread), def.shotSpeed);
+            Fire(m, -90f + ship.Script.Offset("slag", def.shotSpread), def.shotSpeed);
             dropped++;
             next += def.shotInterval;
         }

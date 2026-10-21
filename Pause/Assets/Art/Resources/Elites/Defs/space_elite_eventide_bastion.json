@@ -121,5 +121,7 @@
   "hazardSeconds": 3.2,
   "hazardCount": 6,
   "hazardSpeed": 2.4,
-  "hazardArmour": 2
+  "hazardArmour": 2,
+  "engageSeconds": 55,
+  "script": { "tempo": 1.35 }
 }

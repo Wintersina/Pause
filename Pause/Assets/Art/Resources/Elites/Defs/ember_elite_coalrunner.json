@@ -101,5 +101,7 @@
   "glowScale": 0.09,
   "launchFrom": "crucible,magmabay",
   "hurtHide": true,
-  "hideSeconds": 3.5
+  "hideSeconds": 3.5,
+  "engageSeconds": 42,
+  "script": { "tempo": 0.8 }
 }

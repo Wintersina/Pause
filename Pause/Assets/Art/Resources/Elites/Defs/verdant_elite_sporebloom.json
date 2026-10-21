@@ -103,5 +103,7 @@
   "shotMotion": "burst",
   "followLag": 0.25,
   "hurtHide": true,
-  "hideSeconds": 3.5
+  "hideSeconds": 3.5,
+  "engageSeconds": 48,
+  "script": { "tempo": 1.1 }
 }
