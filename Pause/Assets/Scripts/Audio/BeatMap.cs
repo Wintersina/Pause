@@ -18,6 +18,7 @@ public sealed class BeatMap
     public float firstBeat;           // clip time of beat 0
     public int beatsPerBar = 4;
     public int downbeatBeat;          // which beat index is a bar line (mod beatsPerBar)
+    public int bossStartBeat;         // the fight's first pass starts playing here (a bar line), skipping a long intro; 0 = from the top
     public float duration;            // the clip's length, seconds (the loop point)
     public bool steady = true;
     public float[] beats;             // explicit beat times when !steady
@@ -25,6 +26,9 @@ public sealed class BeatMap
     public float[] energy, bass, accents;
     public MusicSection[] sections;
     public int analysisVersion;
+
+    // Clip time the boss fight starts the track at (0 = the top of the clip). Loops still wrap to the top.
+    public float StartSeconds => bossStartBeat > 0 ? (float)TimeOfBeat(bossStartBeat) : 0f;
 
     public MusicMoment MusicAt(double beat)
     {
