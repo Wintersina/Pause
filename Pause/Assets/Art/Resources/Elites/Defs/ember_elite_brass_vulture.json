@@ -15,7 +15,7 @@
   "role": "scrap diver",
   "brain": "scavenger",
   "attack": "scrap_dive",
-  "lore": "A salvage craft that circles high above the screen where you cannot see it. A ring marks a spot, and it comes down through it claw first, flinging scrap, then pulls straight back up. Every time it is hurt it comes down once more, beside the last ring.",
+  "lore": "A salvage craft that circles high over the board. A ring marks a spot, and it comes down through it claw first, flinging scrap, then pulls straight back up to its circle. The rings walk from the pilot to either side of it, and once hurt it comes down twice in a row.",
   "cellWorldSize": 1.74,
   "hullRadius": 0.299,
   "noseDeg": 90,
@@ -84,5 +84,93 @@
   "hurtHide": true,
   "hideSeconds": 3.5,
   "engageSeconds": 42,
-  "script": { "tempo": 0.8 }
+  "script": {
+    "tempo": 0.8,
+    "exitTell": 1.2,
+    "lastExit": "top",
+    "lastExitSeconds": 1.6,
+    "note": "diver: circles high inside the view; ring slots cycle on-pilot, one side, other side",
+    "entrance": {
+      "kind": "swirl",
+      "seconds": 1.6,
+      "amp": 1.6
+    },
+    "phase1": {
+      "speed": 1.0,
+      "gap": 1.0,
+      "loop": [
+        {
+          "wait": 2.4,
+          "move": "wide"
+        },
+        {
+          "wait": 2.0
+        },
+        {
+          "wait": 2.4,
+          "move": "tight"
+        }
+      ]
+    },
+    "phase2": {
+      "speed": 1.2,
+      "gap": 0.8,
+      "loop": [
+        {
+          "wait": 2.2,
+          "move": "tight"
+        },
+        {
+          "wait": 0.9,
+          "attack": "fast"
+        },
+        {
+          "wait": 2.2,
+          "move": "wide"
+        },
+        {
+          "wait": 0.9,
+          "attack": "fast"
+        }
+      ]
+    },
+    "last": {
+      "speed": 1.3,
+      "gap": 0.7,
+      "loop": [
+        {
+          "wait": 1.8,
+          "move": "tight",
+          "attack": "fast"
+        },
+        {
+          "wait": 0.6,
+          "attack": "fast"
+        },
+        {
+          "wait": 2.6,
+          "move": "wide"
+        }
+      ]
+    },
+    "variants": [
+      {
+        "name": "fast",
+        "set": [
+          {
+            "key": "dashSpeed",
+            "value": 9.6
+          },
+          {
+            "key": "shotCount",
+            "value": 7
+          },
+          {
+            "key": "shotSpread",
+            "value": 14
+          }
+        ]
+      }
+    ]
+  }
 }

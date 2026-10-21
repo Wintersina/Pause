@@ -16,7 +16,7 @@
   "role": "siege kiln",
   "brain": "furnace",
   "attack": "fire_mortar",
-  "lore": "A siege kiln that parks high and sights one lane with a thin line before the shell comes. Between shots it lobs firebombs onto ringed spots that burst into rings of fire. Nearly spent, it fires two lanes at once: the gap between them is yours.",
+  "lore": "A siege kiln that parks high and sights one lane with a thin line before the shell comes. Between shots it lobs firebombs onto ringed spots that burst into rings of fire. Hurt, it fires two lanes at once, following you: the gap between them is yours.",
   "cellWorldSize": 1.81,
   "hullRadius": 0.376,
   "noseDeg": 90,
@@ -96,6 +96,129 @@
   "hazardSeconds": 0.8,
   "hazardCount": 6,
   "hazardSpeed": 2.4,
+  "hazardArmour": 0,
   "engageSeconds": 55,
-  "script": { "tempo": 1.35 }
+  "script": {
+    "tempo": 1.35,
+    "exitTell": 1.4,
+    "lastExit": "none",
+    "lastExitSeconds": 1.6,
+    "note": "artillery: tracks the pilot's column for a shell, holds for bombs; hazardArmour is the cast (0 shell, 1 bombs, 2 double shell, 3 both)",
+    "entrance": {
+      "kind": "overshoot",
+      "seconds": 2.0,
+      "amp": 2.2
+    },
+    "phase1": {
+      "speed": 1.0,
+      "gap": 1.0,
+      "loop": [
+        {
+          "wait": 2.0,
+          "move": "track"
+        },
+        {
+          "wait": 1.6,
+          "move": "hold",
+          "attack": "bombs"
+        },
+        {
+          "wait": 2.0,
+          "move": "track"
+        },
+        {
+          "wait": 1.6,
+          "move": "hold",
+          "attack": "bombs"
+        }
+      ]
+    },
+    "phase2": {
+      "speed": 1.1,
+      "gap": 0.9,
+      "loop": [
+        {
+          "wait": 1.8,
+          "move": "track",
+          "attack": "double"
+        },
+        {
+          "wait": 1.4,
+          "move": "hold",
+          "attack": "bombs3"
+        },
+        {
+          "wait": 1.8,
+          "move": "track",
+          "attack": "double"
+        },
+        {
+          "wait": 1.4,
+          "move": "hold",
+          "attack": "bombs"
+        }
+      ]
+    },
+    "last": {
+      "speed": 1.1,
+      "gap": 0.75,
+      "loop": [
+        {
+          "wait": 1.6,
+          "move": "track",
+          "attack": "both"
+        },
+        {
+          "wait": 1.4,
+          "attack": "double"
+        }
+      ]
+    },
+    "variants": [
+      {
+        "name": "bombs",
+        "set": [
+          {
+            "key": "hazardArmour",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "name": "bombs3",
+        "set": [
+          {
+            "key": "hazardArmour",
+            "value": 1
+          },
+          {
+            "key": "shotCount",
+            "value": 3
+          }
+        ]
+      },
+      {
+        "name": "double",
+        "set": [
+          {
+            "key": "hazardArmour",
+            "value": 2
+          }
+        ]
+      },
+      {
+        "name": "both",
+        "set": [
+          {
+            "key": "hazardArmour",
+            "value": 3
+          },
+          {
+            "key": "shotCount",
+            "value": 3
+          }
+        ]
+      }
+    ]
+  }
 }

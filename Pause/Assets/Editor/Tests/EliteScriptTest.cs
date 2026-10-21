@@ -29,9 +29,6 @@ public static class EliteScriptTest
     {
         // desert
         // ember
-        "ember_elite_sunstoke",
-        "ember_elite_brass_vulture",
-        "ember_elite_coalrunner",
         // frost
         // space
         "space_elite_rift_lancer",

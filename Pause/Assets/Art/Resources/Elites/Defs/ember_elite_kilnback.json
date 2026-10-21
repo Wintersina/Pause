@@ -100,6 +100,122 @@
   "lobSeconds": 0.7,
   "lobSpacing": 1.1,
   "poolSeconds": 3.2,
+  "hazardCount": 1,
+  "hazardArmour": 0,
   "engageSeconds": 55,
-  "script": { "tempo": 1.35 }
+  "script": {
+    "tempo": 1.35,
+    "exitTell": 1.4,
+    "lastExit": "none",
+    "lastExitSeconds": 1.6,
+    "note": "anchor: planted at the top centre; slag lanes then lava, hazardArmour is the cast (0 dump, 1 spill)",
+    "entrance": {
+      "kind": "slam",
+      "seconds": 1.7,
+      "amp": 1.4
+    },
+    "phase1": {
+      "speed": 1.0,
+      "gap": 1.0,
+      "loop": [
+        {
+          "wait": 2.0,
+          "move": "C"
+        },
+        {
+          "wait": 2.0,
+          "attack": "lava"
+        }
+      ]
+    },
+    "phase2": {
+      "speed": 1.0,
+      "gap": 0.9,
+      "loop": [
+        {
+          "wait": 1.8,
+          "move": "L",
+          "attack": "slag5"
+        },
+        {
+          "wait": 1.8,
+          "attack": "lava2"
+        },
+        {
+          "wait": 1.8,
+          "move": "R",
+          "attack": "slag5"
+        },
+        {
+          "wait": 1.8,
+          "attack": "lava2"
+        }
+      ]
+    },
+    "last": {
+      "speed": 1.0,
+      "gap": 0.7,
+      "loop": [
+        {
+          "wait": 1.4,
+          "move": "C",
+          "attack": "slag7"
+        },
+        {
+          "wait": 0.8,
+          "attack": "lava2"
+        },
+        {
+          "wait": 1.4,
+          "attack": "slag7"
+        },
+        {
+          "wait": 0.8,
+          "attack": "lava2"
+        }
+      ]
+    },
+    "variants": [
+      {
+        "name": "slag5",
+        "set": [
+          {
+            "key": "shotCount",
+            "value": 5
+          }
+        ]
+      },
+      {
+        "name": "slag7",
+        "set": [
+          {
+            "key": "shotCount",
+            "value": 7
+          }
+        ]
+      },
+      {
+        "name": "lava",
+        "set": [
+          {
+            "key": "hazardArmour",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "name": "lava2",
+        "set": [
+          {
+            "key": "hazardArmour",
+            "value": 1
+          },
+          {
+            "key": "hazardCount",
+            "value": 2
+          }
+        ]
+      }
+    ]
+  }
 }
