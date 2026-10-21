@@ -34,7 +34,7 @@ public static class ShipNozzles
     {
         null,
         // BEGIN GENERATED NOZZLES
-        /*  1 NeonComet    243x220 */ new[] { N(98.5f, 8.5f, Twin), N(144.5f, 8.5f, Twin) },
+        /*  1 NeonComet    235x220 */ new[] { N(93.5f, 8.5f, Twin), N(139.5f, 8.5f, Twin) },
         /*  2 VoltViper    243x200 */ new[] { N(99.5f, 8.5f, Twin), N(143.5f, 8.5f, Twin) },
         /*  3 SolarFang    242x234 */ new[] { N(121.5f, 12.5f) },
         /*  4 CrimsonHalo  195x242 */ new[] { N(89.5f, 11.5f, Twin), N(105.5f, 12.5f, Twin) },
