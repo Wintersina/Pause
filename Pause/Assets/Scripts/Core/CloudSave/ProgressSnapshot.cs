@@ -91,7 +91,6 @@ public class ProgressSnapshot
     {
         var keys = AchievementStore.SyncKeys();
         keys.AddRange(AchievementMigration.LegacyKeys());
-        keys.AddRange(UpgradeOfferStore.SyncKeys);   // the death-screen offer's backoff
         return keys;
     }
 

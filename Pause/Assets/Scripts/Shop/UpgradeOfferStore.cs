@@ -5,19 +5,17 @@ using UnityEngine;
 // toggle, the candidates read from the ship/skin systems, and the purchase.
 //
 // Saved (PlayerPrefs):
-//   offerStreak, offerDeclined   ints, synced with the cloud save as counters
-//                                (ProgressSnapshot.CounterKeys, merged by max)
-//   offerLastDied                int, this device only (was the last run a death)
-//   offerEnabled                 int, this device only; absent = ON, 0 = OFF
+// All of it is per-device pacing state and is NOT in the cloud save (a max
+// merge could never let a buy's reset win):
+//   offerStreak, offerDeclined   ints
+//   offerLastDied                int (was the last run a death)
+//   offerEnabled                 int; absent = ON, 0 = OFF
 public static class UpgradeOfferStore
 {
     public const string StreakKey = "offerStreak";
     public const string DeclinedKey = "offerDeclined";
     public const string LastDiedKey = "offerLastDied";
     public const string EnabledKey = "offerEnabled";
-
-    // The keys the cloud save carries.
-    public static readonly string[] SyncKeys = { StreakKey, DeclinedKey };
 
     public static bool Enabled
     {

@@ -205,9 +205,23 @@ public static class UpgradeOfferTest
         ClearShips();
         UpgradeOfferStore.Declined();
         Check("a decline is saved", UpgradeOfferStore.Load().declined == 1);
-        Check("the backoff counters are in the cloud save",
-              ProgressSnapshot.CounterKeys().Contains(UpgradeOfferStore.StreakKey) &&
-              ProgressSnapshot.CounterKeys().Contains(UpgradeOfferStore.DeclinedKey));
+        Check("the backoff counters are local only (not in the cloud save)",
+              !ProgressSnapshot.CounterKeys().Contains(UpgradeOfferStore.StreakKey) &&
+              !ProgressSnapshot.CounterKeys().Contains(UpgradeOfferStore.DeclinedKey));
+
+        // three declines stop offers; a buy resets them and they stay reset
+        PlayerPrefs.SetFloat(StarDustLedger.CurrencyKey, 100000f);
+        UpgradeOfferStore.Declined();
+        UpgradeOfferStore.Declined();
+        Check("three declines are saved", UpgradeOfferStore.Load().declined == 3);
+        UpgradeOfferStore.RunStarted(); UpgradeOfferStore.RunDied();
+        UpgradeOfferStore.RunStarted(); UpgradeOfferStore.RunDied();
+        Check("no offer after three declines", !UpgradeOfferStore.TryGetOffer(out c));
+        R.Candidate pick = UpgradeOfferStore.NextSkin(1);
+        Check("a buy resets declines", UpgradeOfferStore.Buy(pick) && UpgradeOfferStore.Load().declined == 0);
+        UpgradeOfferStore.RunStarted(); UpgradeOfferStore.RunDied();
+        UpgradeOfferStore.RunStarted(); UpgradeOfferStore.RunDied();
+        Check("the reset stays: offers resume", UpgradeOfferStore.Load().declined == 0 && UpgradeOfferStore.TryGetOffer(out c));
         ClearShips();
     }
 }
