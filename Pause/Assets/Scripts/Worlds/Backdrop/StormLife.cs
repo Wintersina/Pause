@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 // The small, calm motion on Storm's ground landmarks (a backdrop must stay secondary to the bullets):
@@ -7,6 +8,10 @@ using UnityEngine;
 //   * every thunderhead tower breathes (a 1-2 % scale swell, a slow drift) and its heart glows: a soft pulse a few seconds
 //     long, and now and then one tower flickers once or twice inside (never more than ~2 per second, one tower at a time,
 //     seconds apart: photosensitivity-safe, the world's real flashes are StormLightning's);
+//   * the lightning INSIDE every thunderhead tower is its own layer (atlas "thunder", cut out of the tower art; the tower
+//     cell of "landmarks" is the lightning-free cloud): it hangs dark and barely smouldering, then strikes (a quick flash in,
+//     sometimes a re-strike, a slow fade out) and lights the tower's heart with it. Strikes come from StormLife's own
+//     flickers and from the weather's sheet flashes (StormDirector.Strike); never closer than BoltMinGap seconds anywhere;
 //   * lightning-rod masts crackle a faint glow at the tip;
 //   * every landmark bobs a hair on the wind.
 // Everything is driven by the scaled dt the director gets, so a paused game is a still frame. Pooled children, no allocation.
@@ -25,6 +30,10 @@ public static class StormLifeTuning
     public static float HeartBase = .045f, HeartSwing = .05f, HeartPeriodMin = 3.4f, HeartPeriodMax = 5.6f, HeartSize = .75f;
     public static float FlickerPeak = .16f, FlickerGapMin = 3f, FlickerGapMax = 7f, FlickerSecondAt = .45f;
     public static float TipBase = .22f, TipSwing = .12f, TipSize = .16f;
+    // The bolts inside a tower: a faint smoulder between strikes, a strike's rise / fall, a re-strike, the heart's lift.
+    public static float BoltIdle = .05f, BoltIdleSwing = .04f, BoltRise = .05f, BoltFall = .5f;
+    public static float BoltRestrikeChance = .4f, BoltRestrikeAt = .22f, BoltRestrikePeak = .7f, BoltMinGap = .4f, BoltHeartLift = .03f;
+    public const string BoltAtlas = "thunder";
     public static readonly Color HeartTint = new Color(.72f, .84f, 1f, 1f);
 }
 
@@ -34,7 +43,11 @@ public sealed class StormLife
     {
         public SpriteRenderer[] rotors;
         public SpriteRenderer heart;       // towers: the glowing core
-        public SpriteRenderer tip;         // masts: the rod tip's crackle
+        public SpriteRenderer tip;
+        public SpriteRenderer bolts;       // towers: the lightning layer over the cloud
+        public Sprite boltsFor;            // the tower sprite the bolts were resolved for
+        public float strikeAt = -1f, strikePeak = 1f;   // clock when a strike began, -1 none
+        public bool again;                 // this strike has a re-strike         // masts: the rod tip's crackle
         public readonly float[] angle = new float[StormLifeTuning.Rotors];
         public float phase, bobPeriod, breathePeriod, heartPeriod;
         public float flickerAt = -1f;      // clock when this tower's flicker began, -1 none
@@ -43,6 +56,8 @@ public sealed class StormLife
     readonly BackdropPool ground;
     readonly Extras[] extras;
     readonly Sprite turbine, glowSprite;
+    readonly Dictionary<Sprite, Sprite> boltOf = new Dictionary<Sprite, Sprite>();
+    float lastStrike = -9f;
     readonly System.Random rng;
     float clock, nextFlicker;
 
@@ -50,8 +65,14 @@ public sealed class StormLife
     // Preview only (before / after clips): a static frame of the old look, fans parked, no bob, breathing or glow.
     public static bool Still;
 
-    public StormLife(BackdropPool ground, BackdropAtlas rotorArt, Sprite turbine, Sprite glowSprite, int seed)
+    public StormLife(BackdropPool ground, BackdropAtlas rotorArt, Sprite turbine, Sprite glowSprite, int seed, BackdropAtlas landmarkArt = null, BackdropAtlas boltArt = null)
     {
+        if (landmarkArt != null && boltArt != null)
+            for (int k = 0; k < StormTuning.Towers.Length; k++)
+            {
+                Sprite tower = landmarkArt.Get(StormTuning.Towers[k]), bolt = boltArt.Get("bolts_" + k.ToString("00"));
+                if (tower != null && bolt != null) boltOf[tower] = bolt;
+            }
         this.ground = ground;
         this.turbine = turbine;
         this.glowSprite = glowSprite;
@@ -85,6 +106,15 @@ public sealed class StormLife
                     e.rotors[k] = sr;
                 }
             }
+            if (boltOf.Count > 0)
+            {
+                var go = new GameObject("bolts");
+                go.transform.SetParent(p.body, false);
+                e.bolts = go.AddComponent<SpriteRenderer>();
+                e.bolts.sortingOrder = order;
+                e.bolts.sharedMaterial = p.sr.sharedMaterial;
+                e.bolts.enabled = false;
+            }
             if (glowSprite != null)
             {
                 e.heart = MakeGlow(p, "heart", order, StormLifeTuning.HeartSize, new Vector3(0f, .05f, 0f));
@@ -117,6 +147,10 @@ public sealed class StormLife
         return true;
     }
     public float HeartAlpha(BackdropPiece p) { var e = extras[ground.items.IndexOf(p)]; return e.heart != null && e.heart.enabled ? e.heart.color.a : 0f; }
+    public float BoltAlpha(BackdropPiece p) { var e = extras[ground.items.IndexOf(p)]; return e.bolts != null && e.bolts.enabled ? e.bolts.color.a : 0f; }
+    public bool HasBolts { get { return boltOf.Count > 0; } }
+    public float LastStrike { get { return lastStrike; } }
+    public int Strikes { get; private set; }
     public float TipAlpha(BackdropPiece p) { var e = extras[ground.items.IndexOf(p)]; return e.tip != null && e.tip.enabled ? e.tip.color.a : 0f; }
     public static float FanSpeedAt(int rotor, float t)
     {
@@ -126,6 +160,29 @@ public sealed class StormLife
     static float Smooth(float x) { x = Mathf.Clamp01(x); return x * x * (3f - 2f * x); }
     // One flicker bump: up in .07 s, down over .28 s.
     static float Bump(float t) { return t <= 0f ? 0f : t < .07f ? Smooth(t / .07f) : Mathf.Max(0f, 1f - Smooth((t - .07f) / .28f)); }
+
+    // One strike's light: up in BoltRise, down over BoltFall (smoothstepped).
+    static float Flash(float t) { return t <= 0f ? 0f : t < StormLifeTuning.BoltRise ? Smooth(t / StormLifeTuning.BoltRise) : Mathf.Max(0f, 1f - Smooth((t - StormLifeTuning.BoltRise) / StormLifeTuning.BoltFall)); }
+    public static float StrikeLevel(float t, bool again)
+    {
+        float v = Flash(t);
+        if (again) v = Mathf.Max(v, StormLifeTuning.BoltRestrikePeak * Flash(t - StormLifeTuning.BoltRestrikeAt));
+        return v;
+    }
+    public static float StrikeLength(bool again) { return StormLifeTuning.BoltRise + StormLifeTuning.BoltFall + (again ? StormLifeTuning.BoltRestrikeAt : 0f); }
+
+    // Strike the tower's lightning (the weather's sheet flash found this tower, or its own flicker). False: too soon after another.
+    public bool Strike(BackdropPiece p, float peak)
+    {
+        if (clock - lastStrike < StormLifeTuning.BoltMinGap) return false;
+        int i = ground.items.IndexOf(p);
+        if (i < 0 || !p.active || extras[i].bolts == null) return false;
+        var e = extras[i];
+        e.strikeAt = clock; e.strikePeak = Mathf.Clamp01(peak);
+        e.again = (float)rng.NextDouble() < StormLifeTuning.BoltRestrikeChance;
+        lastStrike = clock; Strikes++;
+        return true;
+    }
 
     void StepStill(BackdropPiece p, Extras e, float a)
     {
@@ -138,6 +195,7 @@ public sealed class StormLife
                 e.rotors[r].color = new Color(1f, 1f, 1f, a);
             }
         if (e.heart != null) { e.heart.enabled = false; e.tip.enabled = false; }
+        if (e.bolts != null) e.bolts.enabled = false;
     }
 
     public void Step(float dt)
@@ -153,7 +211,7 @@ public sealed class StormLife
             {
                 int i = (start + j) % extras.Length;
                 var p = ground.items[i];
-                if (p.active && p.kind == StormDirector.KindTower && p.y < 2.2f && p.y > -2.2f) { extras[i].flickerAt = clock; break; }
+                if (p.active && p.kind == StormDirector.KindTower && p.y < 2.2f && p.y > -2.2f) { extras[i].flickerAt = clock; Strike(p, 1f); break; }
             }
         }
         for (int i = 0; i < extras.Length; i++)
@@ -190,6 +248,29 @@ public sealed class StormLife
                     sr.color = new Color(1f, 1f, 1f, a);
                 }
             }
+            float strike = 0f;
+            if (e.bolts != null)
+            {
+                if (e.strikeAt >= 0f)
+                {
+                    float st = clock - e.strikeAt;
+                    if (st > StrikeLength(e.again)) e.strikeAt = -1f; else strike = StrikeLevel(st, e.again) * e.strikePeak;
+                }
+                if (tower && e.boltsFor != p.sr.sprite)   // a new tower drawing in this slot: find its bolts once
+                {
+                    e.boltsFor = p.sr.sprite;
+                    Sprite art;
+                    e.bolts.sprite = boltOf.TryGetValue(p.sr.sprite, out art) ? art : null;
+                }
+                float level = StormLifeTuning.BoltIdle + StormLifeTuning.BoltIdleSwing * (.5f + .5f * Mathf.Sin(6.2832f * t / (e.heartPeriod * 1.3f))) + strike * (1f - StormLifeTuning.BoltIdle);
+                bool show = tower && e.bolts.sprite != null && level * a > .004f;
+                if (e.bolts.enabled != show) e.bolts.enabled = show;
+                if (show)
+                {
+                    Color pc = p.sr.color;
+                    e.bolts.color = new Color(pc.r, pc.g, pc.b, Mathf.Min(1f, level) * a);
+                }
+            }
             if (e.heart != null)
             {
                 if (e.heart.enabled != tower) e.heart.enabled = tower;
@@ -202,6 +283,7 @@ public sealed class StormLife
                         pulse += StormLifeTuning.FlickerPeak * (Bump(ft) + .6f * Bump(ft - StormLifeTuning.FlickerSecondAt));
                         if (ft > StormLifeTuning.FlickerSecondAt + .5f) e.flickerAt = -1f;
                     }
+                    pulse += strike * StormLifeTuning.BoltHeartLift;
                     var c = StormLifeTuning.HeartTint; c.a = pulse * a;
                     e.heart.color = c;
                 }

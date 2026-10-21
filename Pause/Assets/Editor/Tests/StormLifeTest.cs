@@ -119,6 +119,20 @@ public static class StormLifeTest
         Check("flicker spacing constants keep it under 3 Hz and seconds apart",
               StormLifeTuning.FlickerSecondAt >= .4f && StormLifeTuning.FlickerGapMin >= 3f && StormLifeTuning.FlickerPeak <= .2f);
 
+        Check("a tower's lightning is its own layer (thunder atlas found)", d.Life.HasBolts);
+        float idleB = 9f, peakB = 0f; int strikesUp = 0; bool boltUp = false;
+        for (int i = 0; i < 60 * 40; i++)
+        {
+            wb.Step(Dt);
+            float b = d.Life.BoltAlpha(tower);
+            idleB = Mathf.Min(idleB, b); peakB = Mathf.Max(peakB, b);
+            bool up = b > .4f;
+            if (up && !boltUp) strikesUp++;
+            boltUp = up;
+        }
+        Check("the bolts idle dim (" + idleB.ToString("0.00") + ") and strike bright (" + peakB.ToString("0.00") + ")", idleB < .15f && peakB > .5f);
+        Check("bolt strikes happen, but never more than 2.5 per second (" + strikesUp + " in 40 s)", strikesUp >= 1 && strikesUp <= 40 * 2.5f && StormLifeTuning.BoltMinGap >= .4f);
+
         var mast = d.Showcase("spire_00", 1.7f, 0f, 0f);
         for (int i = 0; i < 30; i++) wb.Step(Dt);
         Check("a lightning-rod mast crackles a faint glow at its tip", mast != null && d.Life.TipAlpha(mast) > .05f && d.Life.TipAlpha(mast) < .5f);
