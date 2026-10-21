@@ -44,10 +44,6 @@ public static class EliteScriptTest
         "storm_elite_refinery_tender",
         "storm_elite_skyhook_harrier",
         // tide
-        "tide_elite_riptide",
-        "tide_elite_bathyscaphe",
-        "tide_elite_thunderfin",
-        "tide_elite_trawler",
         // verdant
         "verdant_elite_leafblade",
         "verdant_elite_sporebloom",

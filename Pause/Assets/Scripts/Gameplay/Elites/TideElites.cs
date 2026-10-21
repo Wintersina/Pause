@@ -9,25 +9,26 @@ using UnityEngine;
 // (interceptor / lance_dash ... siege / siege_cannon): nothing below changes them. The first generation of Tide's own ids (surfer /
 // surf_dash, abyss / depth_charge, netter / net_cast, stormray / thunder_strike, pearler / pearl_curtain) are kept, unused by the five.
 //
-//   Riptide      3  breaker   / foam_wake     (trenchhatch) hurtHide  rides a wave line across the top third, in from one side and out
-//                                              the other; rings on the water behind it, then foam is lobbed onto them (touch hurts, a shot
-//                                              pops it) -- the wake it leaves; re-enters from the other side. Hurt: two wakes a run
-//   Bathyscaphe  5  deep      / mine_chain    (rigdeck)     armored   surfaces at the top, lays a CHAIN of sea mines down a line to the
-//                                              pilot's column (rings first), each bursting after a fuse into a small cross of bolts, then
-//                                              dives off the top and surfaces again at another column. More mines for every two hearts lost
+//   Riptide      3  breaker   / foam_wake     (trenchhatch) hurtHide  a WAVE RIDER: a sine wave across the top of the view, a rolling U-turn
+//                                              at each rail onto a lower lane (down, down, up, up), foam rings on the water behind it, then
+//                                              foam lobbed onto them. Hurt: wakes in pairs; at the last heart one scripted exit right
+//   Bathyscaphe  5  deep      / mine_chain    (rigdeck)     armored   holds a column at the top (left, right, centre, a script order) and
+//                                              lays a CHAIN of sea mines down to the pilot's column; between columns it SINKS, slides low
+//                                              along the zone and rises again (it never leaves the view). Longer, forked chains later
 //   Trawler      3  trawl     / drag_net      (reefdock)              stands on one FLANK against a rail and drags a line of nets in from
 //                                              it, one after another, across the pilot's row -- ringed first, the far side always left open
-//                                              -- then leaves by that side and re-enters on the opposite flank
-//   Thunderfin   3  tempest   / thunder_sweep (ventstack)   hurtHide  circles slowly in a small ellipse high over the board; thunder
-//                                              glyphs mark every column at once and the columns then strike one after another, sweeping the
-//                                              way it is flying (the pilot's own lane included)
-//   Pearl Warden 5  oyster    / pearl_spiral  (wreckbay)    armored   keeps one of three stations at the top; sweeps a spiral of slow
-//                                              pearls down an arc (the two edge lanes drawn), with a gap left in the direction the pilot stood
-//                                              at the lock; hops to another station after every cast
+//                                              -- then sails over the top to the other flank. Later: wider rows, then nets from BOTH rails
+//   Thunderfin   3  tempest   / thunder_sweep (ventstack)   hurtHide  circles slowly in an ellipse high over the board; thunder glyphs mark
+//                                              every column at once and the columns then strike one after another, sweeping the way it is
+//                                              flying (the direction flips each cast); later outside in and middle out, then both at once
+//   Pearl Warden 5  oyster    / pearl_spiral  (wreckbay)    armored   keeps one of three stations at the top (a script order); sweeps a
+//                                              spiral of slow pearls down an arc (the two edge lanes drawn), with a gap left in the direction
+//                                              the pilot stood at the lock; later a wider arc, then a double spiral
 //
-// Riptide, Bathyscaphe and Trawler ROAM (EliteBrain.Roams): their paths leave the view, so the ship neither clamps their goal nor plans
-// evasions, and they are untouchable while outside the board. Everything an attack leaves on the board rides it.
-
+// THE SCRIPT (def json "script", EliteScript.cs): the fixed loops, the variants and the move tokens ("pace:1.2", "col:2", "L", "R",
+// "st:1") are authored there; the brains below read the tokens (OnScriptMove) and use no randomness. All five stay inside the view: a
+// brain keeps to the board and turns round at the rail; only Riptide's and Thunderfin's one scripted last-heart exit leaves it.
+//
 // ---- shared bits ---------------------------------------------------------------------------------------------------
 
 public static class TideFlight
@@ -42,6 +43,37 @@ public static class TideFlight
     // Is a roamer's centre outside the board (past a rail, above the top or under the bottom)?
     public static bool OffBoard(EliteDef def, Vector2 p) =>
         Mathf.Abs(p.x) > OffX(def) - .25f || p.y > AboveY(def) - .2f || p.y < FrostFlight.BelowY(def) + .2f;
+
+    // A script move token "name:number" ("col:2", "pace:1.15"): true and the number. No allocation (it runs in the fight loop).
+    public static bool TokenFloat(string token, string name, out float v)
+    {
+        v = 0f;
+        if (token == null) return false;
+        int n = name.Length;
+        if (token.Length <= n + 1 || token[n] != ':' || !token.StartsWith(name, System.StringComparison.Ordinal)) return false;
+        float whole = 0f, frac = 0f, scale = 1f;
+        bool dot = false, any = false, neg = false;
+        for (int i = n + 1; i < token.Length; i++)
+        {
+            char c = token[i];
+            if (c == '-' && i == n + 1) { neg = true; continue; }
+            if (c == '.') { dot = true; continue; }
+            if (c < '0' || c > '9') return false;
+            any = true;
+            if (!dot) whole = whole * 10f + (c - '0');
+            else { scale *= .1f; frac += (c - '0') * scale; }
+        }
+        v = (whole + frac) * (neg ? -1f : 1f);
+        return any;
+    }
+
+    public static bool TokenInt(string token, string name, out int v)
+    {
+        float f;
+        bool ok = TokenFloat(token, name, out f);
+        v = Mathf.RoundToInt(f);
+        return ok;
+    }
 }
 
 public static class TideHazards
@@ -162,111 +194,163 @@ public abstract class TideSpotAttack : EliteAttack
 
 // ---- Riptide: breaker ------------------------------------------------------------------------------------------------
 
-// A wave rider. A RUN is: in from a side of the view at a height in the top third, along a gentle wave line (Amplitude, WaveLength) at a
-// steady pace and out of the other side; it never comes down to the pilot. The sides alternate. One wake a run (FoamWakeAttack), two at
-// its last heart, laid in the window where the whole wind-up still fits between the rails. Each heart lost makes the run LostBoost faster.
+// A wave rider that stays in the view. Its RIDE is a sine wave (Amplitude, WaveLength) along a lane across the top of the board, at a
+// slow steady pace; at the end of a pass it makes a rolling U-turn (a half loop that bulges Bulge toward the rail) onto the next lane
+// and comes back the other way. The lanes go down, down, up, up (LaneOrder, a counter, never a coin). The script says how fast
+// ("pace:1.2") and when to lay a foam wake (FoamWakeAttack, behind it on the water it has just crossed).
 public class BreakerBrain : EliteBrain
 {
-    public enum Stage { Leave, Away, Run }
-    public const float PauseSeconds = 1.0f, Lead = 2.2f, LostBoost = .1f, LeaveScale = 2.2f;
-    public const float Amplitude = .5f, WaveLength = 3.4f, Behind = .6f, SpotStep = .8f;
-    public const int Spots = 3;
-    Stage stage = Stage.Leave;
-    float wait, s, length, dirX = 1f, y0, afterLeave = .4f;
-    int casts;
-    Vector2 start;
+    public enum Stage { Ride, Turn }
+    public const float Amplitude = .5f, WaveLength = 3.4f, Behind = .45f, SpotStep = .5f, Bulge = .4f, Lead = 1.1f, Cruise = .62f, LaneStep = .85f;
+    public const int Spots = 3, MaxWake = 4;
+    static readonly int[] LaneOrder = { 1, 2, 1, 0 };
+    Stage stage = Stage.Ride;
+    float dirX = 1f, passX0, laneY, nextY, fromY, k, pace = 1f, cx;
+    int lane, nextLane;
+    Vector2 carrot;
+    bool started;
     public Stage Phase => stage;
     public float DirX => dirX;
-    public Vector2 Start => start;
-    public int Runs { get; private set; }
-    public int Casts => casts;
-    public int CastsAllowed => 1 + (ship != null && ship.Hearts <= 1 ? 1 : 0);
-    float Speedup => 1f + LostBoost * Mathf.Max(0, def.hearts - (ship != null ? ship.Hearts : def.hearts));
+    public int Lane => lane;
+    public float Pace => pace;
+    public float PassX0 => passX0;
+    public int Passes { get; private set; }
+    public int Turns { get; private set; }
+    public int Casts { get; private set; }
+    public float PassEnd => Mathf.Max(.5f, TideFlight.Edge(def, .45f) - Bulge);
 
     public BreakerBrain() { Id = "breaker"; }
 
-    public override bool Roams => true;
     public override float TellScale => 1f;
     public override Vector2 JoinFrom => new Vector2(-1f, .8f);
-    protected override void OnBind() { dirX = Random.value < .5f ? -1f : 1f; }
-    public override void OnJoin() { stage = Stage.Leave; }
-    public override void OnReturn() { stage = Stage.Leave; }
+    public override float SpeedScale => Cruise * pace;
+    public override void OnJoin() { Restart(); }
+    public override void OnReturn() { Restart(); }
 
-    // The top third of the view, under the very top, leaving room for the wave.
+    public override void OnScriptMove(string token)
+    {
+        float v;
+        if (TideFlight.TokenFloat(token, "pace", out v)) pace = Mathf.Clamp(v, .5f, 1.6f);
+    }
+
+    // The top of the view, under the very top, leaving room for the wave.
     public static void Band(EliteDef def, out float lo, out float hi)
     {
         hi = Mathf.Min(EliteSystem.ViewTop - def.hullRadius - .5f - Amplitude, FightZone.Top(FightZone.HalfOf(def)));
         lo = Mathf.Min(hi, EliteSystem.ViewTop - (EliteSystem.ViewTop - EliteSystem.ViewBottom) / 3f + def.hullRadius + Amplitude);
     }
 
-    // The wave line `along` u from where the run entered.
-    public Vector2 PathAt(float along) =>
-        new Vector2(start.x + dirX * along, y0 + Amplitude * Mathf.Sin(along * 2f * Mathf.PI / WaveLength));
-
-    // Wake spot k of a cast whose wind-up lasts `tellSeconds`: on the line, behind where the ship will be when it goes out.
-    public Vector2 SpotBehind(float tellSeconds, int k)
+    // Lane i of the ride: the highest where the wave's crest still fits the zone, then LaneStep lower each.
+    public float LaneAt(int i)
     {
-        float now = (Pos.x - start.x) * dirX;
-        return PathAt(now + def.speed * Speedup * tellSeconds - Behind - SpotStep * k);
-    }
-
-    void BeginRun()
-    {
-        Runs++;
-        dirX = -dirX;
         float lo, hi;
         Band(def, out lo, out hi);
-        y0 = Random.Range(lo, hi);
-        float off = TideFlight.OffX(def);
-        start = new Vector2(-dirX * off, y0);
-        length = 2f * off;
-        s = 0f;
-        casts = 0;
-        ship.Warp(start);
-        stage = Stage.Run;
+        return Mathf.Min(hi, ship.ZoneTop - Amplitude - .05f) - i * LaneStep;
+    }
+
+    // The wave line of this pass at world x.
+    public float WaveY(float x) => laneY + Amplitude * Mathf.Sin((x - passX0) * dirX * 2f * Mathf.PI / WaveLength);
+
+    // Wake spot k of a cast: on the water of this pass, behind where the ship is now.
+    public Vector2 WakeSpot(int spotIndex)
+    {
+        float along = Mathf.Max(0f, (Pos.x - passX0) * dirX - Behind - SpotStep * spotIndex);
+        float x = passX0 + dirX * along;
+        return new Vector2(x, WaveY(x));
+    }
+
+    // How many rings the coming cast lays (the step's variant is not on the def's numbers yet).
+    public int PlannedSpots()
+    {
+        int n = def.shotCount;
+        var sd = ship.Script.Data;
+        string a = ship.Script.Step.attack;
+        if (sd.variants != null && !string.IsNullOrEmpty(a))
+            for (int i = 0; i < sd.variants.Length; i++)
+            {
+                if (sd.variants[i].name != a || sd.variants[i].set == null) continue;
+                for (int j = 0; j < sd.variants[i].set.Length; j++)
+                    if (sd.variants[i].set[j].key == "shotCount") n = Mathf.RoundToInt(sd.variants[i].set[j].value);
+            }
+        return Mathf.Clamp(n, 2, MaxWake);
+    }
+
+    void Restart()
+    {
+        started = true;
+        stage = Stage.Ride;
+        lane = 0;
+        pace = 1f;
+        dirX = Pos.x > .3f ? -1f : 1f;
+        laneY = LaneAt(0);
+        passX0 = -dirX * PassEnd;
+        cx = passX0;
+        carrot = new Vector2(cx, laneY);
     }
 
     public override Vector2 Goal(Vector2 seen, float dt)
     {
         Clock += dt;
-        switch (stage)
+        if (!started) Restart();
+        float step = def.speed * SpeedScale * ship.Script.SpeedScale * .95f * dt;
+        bool keepUp = (carrot - Pos).sqrMagnitude < Lead * Lead;
+        float pe = PassEnd;
+        if (stage == Stage.Ride)
         {
-            case Stage.Leave:
-                // just up from a dock / back from hiding: out of the view by the nearer side (an attack forced in the meantime is finished first)
-                if (ship.State == EliteState.Attack) return Pos;
-                if (TideFlight.OffBoard(def, Pos)) { stage = Stage.Away; wait = afterLeave; afterLeave = .4f; }
-                return new Vector2(Mathf.Sign(Pos.x == 0f ? 1f : Pos.x) * (TideFlight.OffX(def) + 1f), Pos.y + .3f);
-            case Stage.Away:
-                wait -= dt;
-                if (wait <= 0f) BeginRun();
-                return Pos;
-            default:
-                s += def.speed * Speedup * dt;
-                // the carrot is past the far edge: it flies on out and waits there
-                if (s >= length) { stage = Stage.Leave; afterLeave = PauseSeconds; }
-                return PathAt(s + Lead);
+            if (keepUp) cx += dirX * step;
+            if (dirX * cx >= pe)
+            {
+                cx = dirX * pe;
+                fromY = WaveY(cx);
+                nextLane = LaneOrder[ship.Script.Cycle("lane", LaneOrder.Length)];
+                nextY = LaneAt(nextLane);
+                k = 0f;
+                stage = Stage.Turn;
+                carrot = new Vector2(cx, fromY);
+            }
+            else carrot = new Vector2(cx, WaveY(cx));
         }
+        else
+        {
+            float len = Mathf.Abs(nextY - fromY) + Bulge * 3f + .3f;
+            if (keepUp) k += step / len;
+            if (k >= 1f)
+            {
+                Turns++;
+                Passes++;
+                lane = nextLane;
+                laneY = nextY;
+                dirX = -dirX;
+                passX0 = -dirX * pe;
+                cx = passX0;
+                stage = Stage.Ride;
+                carrot = new Vector2(cx, laneY);
+            }
+            else
+            {
+                float e = k * k * (3f - 2f * k);
+                carrot = new Vector2(dirX * (pe + Bulge * Mathf.Sin(Mathf.PI * k)), Mathf.Lerp(fromY, nextY, e));
+            }
+        }
+        carrot.y = ship.ReachY(carrot.y);   // (inside the player's reach, so the carrot is never out of the ship's)
+        return carrot;
     }
 
-    public override float SpeedScale => stage == Stage.Leave ? LeaveScale : Speedup;
-
+    // Wakes go on the water it has just crossed: a long enough stretch of this pass behind it.
     public override bool WantsAttack(Vector2 seen)
     {
-        if (stage != Stage.Run || casts >= CastsAllowed) return false;
-        float edge = EliteSystem.RailEdge - .45f;
-        if (Mathf.Abs(Pos.x) >= edge) return false;
-        // the whole cast (the wind-up, then a bank every shotInterval) must fit before it rides out of the rails
-        float exitX = Pos.x + dirX * def.speed * Speedup * (def.tellSeconds + Spots * def.shotInterval);
-        return Mathf.Abs(exitX) < EliteSystem.RailEdge - .15f && Mathf.Abs(SpotBehind(def.tellSeconds, 0).x) < edge && Mathf.Abs(SpotBehind(def.tellSeconds, Spots - 1).x) < edge;
+        if (stage != Stage.Ride) return false;
+        float now = (Pos.x - passX0) * dirX;
+        return now >= Behind + SpotStep * (PlannedSpots() - 1) + .1f && dirX * Pos.x < PassEnd + .2f;
     }
 
-    public void CastDone() { casts++; }
+    public void CastDone() { Casts++; }
 }
 
-// Riptide: a foam wake. The tell does NOT stop it (it keeps riding its line): from the first frame BreakerBrain.Spots thin rings mark
-// spots on the water behind where it will be when it goes out, along its own line. The action lobs a foam bank out of the lance onto
-// each ring, one after another (shotInterval apart); a bank rides the board for hazardSeconds, hurts on touch and takes one player shot
-// to pop. (The rings and the foam are all the pilot has to read: stay off them.)
+// Riptide: a foam wake. The tell does NOT stop it (it keeps riding its line): from the first frame thin rings mark spots on the water
+// BEHIND it, along the wave line it has just crossed (shotCount of them, 2 to BreakerBrain.MaxWake). The action lobs a foam bank out
+// of the lance onto each ring, one after another (shotInterval apart); a bank rides the board for hazardSeconds, hurts on touch and
+// takes one player shot to pop. (The rings and the foam are all the pilot has to read: stay off them.)
 public class FoamWakeAttack : TideSpotAttack
 {
     public const float Ring = .5f;
@@ -277,8 +361,8 @@ public class FoamWakeAttack : TideSpotAttack
     protected override void Plan(Vector2 pilot)
     {
         var bb = ship.Brain as BreakerBrain;
-        count = BreakerBrain.Spots;
-        for (int k = 0; k < count; k++) spot[k] = bb != null ? bb.SpotBehind(TellSeconds, k) : ship.Position + Vector2.down * (1f + k * .8f);
+        count = Mathf.Clamp(def.shotCount, 2, BreakerBrain.MaxWake);
+        for (int k = 0; k < count; k++) spot[k] = bb != null ? bb.WakeSpot(k) : ship.Position + Vector2.down * (1f + k * .8f);
     }
 
     protected override void Lay(int i, Vector2 target)
@@ -296,38 +380,41 @@ public class FoamWakeAttack : TideSpotAttack
 
 // ---- Bathyscaphe: deep -----------------------------------------------------------------------------------------------
 
-// A mine layer that surfaces and dives. It RISES to a station at the top (a column, never the one it last used), holds there sliding
-// a little, lays CastsPerSurface chains of mines (MineChainAttack; one more at <= 3 hearts), then SINKS off the top of the view, waits
-// out of sight (AwaySeconds) and surfaces again at another column. It never comes down to the pilot.
+// A mine layer that SUBMERGES and resurfaces without ever leaving the view. It holds a station at the top (one of three columns, a
+// little sliding), lays a chain of mines (MineChainAttack), and when the script names another column ("col:0|1|2") it SINKS straight
+// down (Dip), slides along the low line to that column and RISES onto the station. It never comes down to the pilot.
 public class DeepBrain : EliteBrain
 {
-    public enum Stage { Rise, Hold, Sink, Away }
-    public const float AwaySeconds = 1.6f, SinkScale = 2f, RiseScale = 1.5f, HoldScale = .75f, ReadyWait = .5f, SettleDistance = .35f, Reposition = 2f, MaxHold = 9f;
+    public enum Stage { Hold, Sink, Slide, Rise }
+    public const float ReadyWait = .5f, SettleDistance = .35f, Dip = 1.1f, SinkScale = 1.1f, SlideScale = 1.3f, RiseScale = 1.2f, HoldScale = .75f, Reach = .85f;
+    public static readonly float[] Columns = { -1f, 0f, 1f };
     Stage stage = Stage.Rise;
-    float wait, held, stationX, phase;
-    int casts;
+    int column = 1, target = 1;
+    float held;
     public Stage Phase => stage;
-    public float StationX => stationX;
-    public int Casts => casts;
-    public int Surfacings { get; private set; }
-    public int CastsPerSurface => 1 + (ship != null && ship.Hearts <= 3 ? 1 : 0);
+    public int Column => column;
+    public int Target => target;
+    public int Dives { get; private set; }
+    public int Casts { get; private set; }
     public float Height => ship.ZoneY(ship.ReachY(EliteSystem.ViewTop - def.topMargin));
+    public float StationOf(int i) => Columns[Mathf.Clamp(i, 0, Columns.Length - 1)] * TideFlight.Edge(def, .5f) * Reach;
+    public float StationX => StationOf(target);
 
     public DeepBrain() { Id = "deep"; }
 
-    public override bool Roams => true;
     public override float TellScale => 1f;
     public override Vector2 JoinFrom => Vector2.up;
-    protected override void OnBind() { phase = Random.value * 6.28f; stationX = RandomX(99f); }
-    public override void OnJoin() { stage = Stage.Rise; casts = 0; }
-    public override void OnReturn() { stage = Stage.Rise; casts = 0; }
+    public override void OnJoin() { stage = Stage.Rise; held = 0f; }
+    public override void OnReturn() { stage = Stage.Rise; held = 0f; }
 
-    float RandomX(float avoid)
+    public override void OnScriptMove(string token)
     {
-        float edge = TideFlight.Edge(def, .9f);
-        float x = Random.Range(-edge, edge);
-        for (int tries = 0; tries < 8 && Mathf.Abs(x - avoid) < Reposition; tries++) x = Random.Range(-edge, edge);
-        return x;
+        int c;
+        if (!TideFlight.TokenInt(token, "col", out c)) return;
+        target = Mathf.Clamp(c, 0, Columns.Length - 1);
+        if (stage != Stage.Hold) return;
+        if (Mathf.Abs(Pos.x - StationOf(target)) > SettleDistance + .2f) { stage = Stage.Sink; Dives++; }
+        else column = target;
     }
 
     public override Vector2 Goal(Vector2 follow, float dt)
@@ -335,52 +422,45 @@ public class DeepBrain : EliteBrain
         Clock += dt;
         switch (stage)
         {
+            case Stage.Sink:
+            {
+                float low = Height - Dip;
+                if (Pos.y <= low + .25f) stage = Stage.Slide;
+                return new Vector2(Pos.x, low);
+            }
+            case Stage.Slide:
+            {
+                float tx = StationOf(target);
+                if (Mathf.Abs(Pos.x - tx) < .3f) stage = Stage.Rise;
+                return new Vector2(tx, Height - Dip);
+            }
             case Stage.Rise:
             {
-                Vector2 st = new Vector2(stationX, Height);
-                if ((Pos - st).sqrMagnitude < SettleDistance * SettleDistance) { stage = Stage.Hold; held = 0f; }
+                Vector2 st = new Vector2(StationOf(target), Height);
+                if ((Pos - st).sqrMagnitude < SettleDistance * SettleDistance) { column = target; stage = Stage.Hold; held = 0f; }
                 return st;
             }
-            case Stage.Hold:
-                held += dt;
-                if (held > MaxHold) stage = Stage.Sink;
-                return new Vector2(stationX + Mathf.Sin(Clock * .5f + phase) * .45f, Height + Mathf.Sin(Clock * .9f) * .08f);
-            case Stage.Sink:
-                if (TideFlight.OffBoard(def, Pos)) { stage = Stage.Away; wait = AwaySeconds; }
-                return new Vector2(Pos.x, TideFlight.AboveY(def) + 1f);
             default:
-                wait -= dt;
-                if (wait <= 0f)
-                {
-                    stationX = RandomX(stationX);
-                    casts = 0;
-                    Surfacings++;
-                    ship.Warp(new Vector2(stationX, TideFlight.AboveY(def) + .3f));
-                    stage = Stage.Rise;
-                }
-                return Pos;
+                held += dt;
+                return new Vector2(StationOf(column) + Mathf.Sin(Clock * .5f) * .35f, Height + Mathf.Sin(Clock * .9f) * .08f);
         }
     }
 
-    public override float SpeedScale => stage == Stage.Sink ? SinkScale : stage == Stage.Rise ? RiseScale : HoldScale;
+    public override float SpeedScale => stage == Stage.Sink ? SinkScale : stage == Stage.Slide ? SlideScale : stage == Stage.Rise ? RiseScale : HoldScale;
     public override float MinAttackAbove => 1.5f;
-    public override bool WantsAttack(Vector2 seen) => stage == Stage.Hold && held >= ReadyWait && casts < CastsPerSurface && Pos.y > seen.y + MinAttackAbove;
+    public override bool WantsAttack(Vector2 seen) => stage == Stage.Hold && held >= ReadyWait && Pos.y > seen.y + MinAttackAbove;
     public override float? FaceDeg(Vector2 seen) => stage == Stage.Hold ? -90f : (float?)null;
 
     // The attack's callback.
-    public void CastDone()
-    {
-        casts++;
-        if (casts >= CastsPerSurface) stage = Stage.Sink;
-        else held = 0f;
-    }
+    public void CastDone() { Casts++; }
 }
 
 // Bathyscaphe: a mine chain. The tell holds it at its station, nose down: a thin ring marks every mine of a CHAIN that runs from just
-// under the hull down to the pilot's column (a little ahead of it), the pilot's spot followed for the first aimCommit of the tell and
-// then locked (and blinking faster). The action lays the mines one after another, shotInterval apart, out of the claws; each is lobbed
-// onto its ring (lobSeconds), rides the board for hazardSeconds more and bursts into a small cross of four bolts (hazardSpeed). A mine
-// takes one player shot to defuse. THE FIGHT ESCALATES: shotCount mines, one more for every two hearts lost (MaxSpots - 1 at most).
+// under the hull down to the pilot's column (a little ahead of it, plus laneOffset: a fork to one side), the pilot's spot followed for
+// the first aimCommit of the tell and then locked (and blinking faster). The action lays the mines one after another, shotInterval
+// apart, out of the claws; each is lobbed onto its ring (lobSeconds), rides the board for hazardSeconds more and bursts into a small
+// cross of four bolts (hazardSpeed). A mine takes one player shot to defuse. The script makes the chain longer (shotCount: 2 .. 5)
+// and forks it (laneOffset) as the fight goes on.
 public class MineChainAttack : TideSpotAttack
 {
     public const float Ring = .5f, ArmSeconds = .5f, Drop = 1.2f;
@@ -391,8 +471,7 @@ public class MineChainAttack : TideSpotAttack
     public override bool HoldsDuringAction => true;
     public override float? FaceDeg => -90f;
     protected override float RingRadius => Ring;
-    public int HeartsLost => Mathf.Max(0, def.hearts - ship.Hearts);
-    public int PlanCount => Mathf.Clamp(Mathf.Max(2, def.shotCount) + HeartsLost / 2, 2, MaxSpots - 1);
+    public int PlanCount => Mathf.Clamp(Mathf.Max(2, def.shotCount), 2, MaxSpots - 1);
 
     public override bool FriendlyInLine(Vector2 seen) =>
         EliteOnLine(ship.Position, Vector2.down, 8f, .6f);
@@ -402,7 +481,7 @@ public class MineChainAttack : TideSpotAttack
         count = PlanCount;
         float edge = EliteSystem.RailEdge - .35f;
         Vector2 from = ship.Position + Vector2.down * (def.hullRadius + .5f);
-        Vector2 to = new Vector2(Mathf.Clamp(pilot.x, -edge, edge), Mathf.Max(EliteSystem.ViewBottom + 1.4f, pilot.y + def.lobAhead));
+        Vector2 to = new Vector2(Mathf.Clamp(pilot.x + def.laneOffset, -edge, edge), Mathf.Max(EliteSystem.ViewBottom + 1.4f, pilot.y + def.lobAhead));
         if (to.y > from.y - Drop) to.y = from.y - Drop;
         for (int i = 0; i < count; i++)
         {
@@ -429,84 +508,79 @@ public class MineChainAttack : TideSpotAttack
 
 // ---- Trawler: trawl --------------------------------------------------------------------------------------------------
 
-// A net hauler that works a FLANK. It enters on one side, takes a station against that rail at the top (bobbing a little up and down),
-// drags its nets (DragNetAttack; a second cast at its last heart), then leaves by the side it stands on, waits out of sight
-// (AwaySeconds) and comes in on the OPPOSITE flank. It never crosses the board and never comes down to the pilot.
+// A net hauler that works a FLANK. It stands against a rail near the top (bobbing a little), drags its nets (DragNetAttack), and when
+// the script says so ("L" / "R") sails over the TOP of the board in one arc to the other flank. It never leaves the view and never
+// comes down to the pilot.
 public class TrawlBrain : EliteBrain
 {
-    public enum Stage { Enter, Flank, Leave, Away }
-    public const float AwaySeconds = 1.2f, EnterScale = 1.5f, LeaveScale = 2f, ReadyWait = .6f, SettleDistance = .3f, MaxFlank = 8f;
-    Stage stage = Stage.Enter;
-    float wait, held;
-    int side = 1, casts;
+    public enum Stage { Flank, Cross }
+    public const float ReadyWait = .6f, Hang = .9f, CrossScale = 1.1f, Lead = 1.2f;
+    Stage stage = Stage.Flank;
+    int side = -1, to = -1;
+    float held, k;
+    Vector2 carrot;
     public Stage Phase => stage;
     public int Side => side;
-    public int Casts => casts;
-    public int Visits { get; private set; }
-    public int CastsPerVisit => 1 + (ship != null && ship.Hearts <= 1 ? 1 : 0);
-    public float FlankX => side * Mathf.Max(0f, EliteSystem.RailEdge - def.hullRadius - .25f);
-    float FlankY => ship.ZoneY(ship.ReachY(EliteSystem.ViewTop - def.topMargin - .6f)) + Mathf.Sin(Clock * .7f) * .45f;
+    public int Casts { get; private set; }
+    public int Crossings { get; private set; }
+    public float FlankOf(int s) => s * Mathf.Max(0f, EliteSystem.RailEdge - def.hullRadius - .3f);
+    public float FlankX => FlankOf(side);
+    public float Height => ship.ZoneY(ship.ReachY(EliteSystem.ViewTop - def.topMargin));
+    float FlankY => Height - Hang + Mathf.Sin(Clock * .7f) * .3f;
 
     public TrawlBrain() { Id = "trawl"; }
 
-    public override bool Roams => true;
     public override float TellScale => 1f;
     public override Vector2 JoinFrom => new Vector2(side, .5f);
-    protected override void OnBind() { side = Random.value < .5f ? -1 : 1; }
-    public override void OnJoin() { stage = Stage.Enter; casts = 0; }
-    public override void OnReturn() { stage = Stage.Enter; casts = 0; }
+    public override void OnJoin() { stage = Stage.Flank; to = side; held = 0f; }
+    public override void OnReturn() { stage = Stage.Flank; to = side; held = 0f; }
+
+    public override void OnScriptMove(string token)
+    {
+        int want = token == "L" ? -1 : token == "R" ? 1 : 0;
+        if (want == 0 || want == side) return;
+        to = want;
+        if (stage == Stage.Flank) { stage = Stage.Cross; k = 0f; carrot = Pos; }
+    }
 
     public override Vector2 Goal(Vector2 follow, float dt)
     {
         Clock += dt;
-        switch (stage)
+        if (stage == Stage.Flank)
         {
-            case Stage.Enter:
-            {
-                Vector2 st = new Vector2(FlankX, FlankY);
-                if ((Pos - st).sqrMagnitude < SettleDistance * SettleDistance) { stage = Stage.Flank; held = 0f; }
-                return st;
-            }
-            case Stage.Flank:
-                held += dt;
-                if (held > MaxFlank) stage = Stage.Leave;
-                return new Vector2(FlankX, FlankY);
-            case Stage.Leave:
-                if (Mathf.Abs(Pos.x) > TideFlight.OffX(def) - .25f) { stage = Stage.Away; wait = AwaySeconds; }
-                return new Vector2(side * (TideFlight.OffX(def) + 1f), Pos.y);
-            default:
-                wait -= dt;
-                if (wait <= 0f)
-                {
-                    side = -side;
-                    casts = 0;
-                    Visits++;
-                    ship.Warp(new Vector2(side * TideFlight.OffX(def), FlankY));
-                    stage = Stage.Enter;
-                }
-                return Pos;
+            held += dt;
+            return new Vector2(FlankOf(side), FlankY);
         }
+        float width = Mathf.Abs(FlankOf(to) - FlankOf(side)) + Hang * 2f;
+        if ((carrot - Pos).sqrMagnitude < Lead * Lead) k += def.speed * SpeedScale * ship.Script.SpeedScale * .9f * dt / Mathf.Max(1f, width);
+        if (k >= 1f)
+        {
+            side = to;
+            stage = Stage.Flank;
+            held = 0f;
+            Crossings++;
+            return new Vector2(FlankOf(side), FlankY);
+        }
+        float e = k * k * (3f - 2f * k);
+        carrot = new Vector2(Mathf.Lerp(FlankOf(side), FlankOf(to), e), ship.ReachY(FlankY + Hang * Mathf.Sin(Mathf.PI * k)));
+        return carrot;
     }
 
-    public override float SpeedScale => stage == Stage.Leave ? LeaveScale : stage == Stage.Enter ? EnterScale : 1f;
+    public override float SpeedScale => stage == Stage.Cross ? CrossScale : 1f;
     public override float MinAttackAbove => 1.2f;
-    public override bool WantsAttack(Vector2 seen) => stage == Stage.Flank && held >= ReadyWait && casts < CastsPerVisit && Pos.y > seen.y + MinAttackAbove;
+    public override bool WantsAttack(Vector2 seen) => stage == Stage.Flank && held >= ReadyWait && Pos.y > seen.y + MinAttackAbove;
     public override float? FaceDeg(Vector2 seen) => stage == Stage.Flank ? -90f : (float?)null;
 
     // The attack's callback.
-    public void CastDone()
-    {
-        casts++;
-        if (casts >= CastsPerVisit) stage = Stage.Leave;
-        else held = 0f;
-    }
+    public void CastDone() { Casts++; held = 0f; }
 }
 
 // Trawler: a net drag. The tell holds it on its flank, nose down: a thin ring marks every net spot of a ROW across the pilot's height
-// (a little ahead of it, followed for the first aimCommit of the tell, then locked), starting at the flank's own rail and running in
-// toward the middle, lobSpacing apart. The row is only as long as leaves a gap at least Gap wide, between its far end and the far
-// rail, for the pilot to live in. The action lobs the nets out one after another, shotInterval apart, flank first; each lands as a pool
-// that rides the board for poolSeconds. (Stand on the open side, or go round the row's end.)
+// (a little ahead of it, lobAhead, followed for the first aimCommit of the tell, then locked), starting at the flank's own rail and
+// running in toward the middle, lobSpacing apart. The row is only as long as leaves a gap at least Gap wide, between its far end and
+// the far rail, for the pilot to live in. With hazardCount >= 2 ("both rails") the nets come in from BOTH rails, shotCount / 2 each,
+// and the open gap is in the middle. The action lobs the nets out one after another, shotInterval apart, flank first; each lands as
+// a pool that rides the board for poolSeconds. (Stand on the open side, or go round the row's end.)
 public class DragNetAttack : TideSpotAttack
 {
     public const float Ring = .42f, Gap = 1.5f;
@@ -521,13 +595,21 @@ public class DragNetAttack : TideSpotAttack
 
     public float Edge => Mathf.Max(.3f, EliteSystem.RailEdge - def.shotSize - .1f);
     public int Side => ship.Position.x >= 0f ? 1 : -1;
+    public bool Both => def.hazardCount >= 2;
 
     // How many nets the row can hold and still leave the pilot a gap.
     public int NetsFor()
     {
-        int want = Mathf.Max(2, def.shotCount) + (ship.Hearts <= 1 ? 1 : 0);
         float room = 2f * Edge - Gap - 2f * Ring;
-        int fit = 1 + Mathf.FloorToInt(Mathf.Max(0f, room) / Mathf.Max(.3f, def.lobSpacing));
+        float sp = Mathf.Max(.3f, def.lobSpacing);
+        if (Both)
+        {
+            int per = Mathf.Max(1, def.shotCount / 2);
+            int fitPer = 1 + Mathf.FloorToInt(Mathf.Max(0f, room) / (2f * sp));
+            return Mathf.Clamp(Mathf.Min(per, fitPer) * 2, 2, MaxSpots);
+        }
+        int want = Mathf.Max(2, def.shotCount);
+        int fit = 1 + Mathf.FloorToInt(Mathf.Max(0f, room) / sp);
         return Mathf.Clamp(Mathf.Min(want, fit), 1, MaxSpots);
     }
 
@@ -536,7 +618,15 @@ public class DragNetAttack : TideSpotAttack
         count = NetsFor();
         int sd = Side;
         float y = Mathf.Max(EliteSystem.ViewBottom + 1.2f, Mathf.Min(pilot.y + def.lobAhead, ship.Position.y - 1.2f));
-        for (int i = 0; i < count; i++) spot[i] = new Vector2(sd * (Edge - i * def.lobSpacing), y);
+        for (int i = 0; i < count; i++)
+        {
+            if (Both)
+            {
+                int j = i / 2;
+                spot[i] = new Vector2((i % 2 == 0 ? -1 : 1) * (Edge - j * def.lobSpacing), y);
+            }
+            else spot[i] = new Vector2(sd * (Edge - i * def.lobSpacing), y);
+        }
     }
 
     protected override void Lay(int i, Vector2 target)
@@ -555,43 +645,52 @@ public class DragNetAttack : TideSpotAttack
 
 // ---- Thunderfin: tempest ---------------------------------------------------------------------------------------------
 
-// A storm cell that loiters. It circles a small, slow ellipse high over the board (about 80 % of the width, a hair of height), pausing
-// the circle while it attacks. It never comes down and never follows the pilot's lane. SweepDir is the way it is flying along the
-// top (+1 right): the thunder it calls sweeps that way.
+// A storm cell that loiters. It circles a slow ellipse high over the board (about 80 % of the width, Ry tall), pausing the circle
+// while it attacks. It never comes down and never follows the pilot's lane. The script flies it right or left along the top of the
+// ellipse ("R" / "L"): the direction flips from cast to cast. SweepDir is the way it is flying along now (+1 right): the thunder it
+// calls sweeps that way.
 public class TempestBrain : EliteBrain
 {
-    public const float Ry = .12f, Pace = .55f;
-    float angle;
-    public int SweepDir => Mathf.Sin(angle) > 0f ? -1 : 1;   // (x = cos: it moves left while sin > 0)
+    public const float Ry = .35f, Pace = .55f;
+    float angle = Mathf.PI * 1.5f;
+    int dir = 1;
+    public int SweepDir => Mathf.Sin(angle) * dir > 0f ? -1 : 1;   // (x = cos: it moves left while sin * dir > 0)
+    public int Dir => dir;
     public float Angle => angle;
     public float Rx => Mathf.Max(.4f, TideFlight.Edge(def, .6f) * .8f);
     public float Height => ship.ZoneY(ship.ReachY(EliteSystem.ViewTop - def.topMargin));
 
     public TempestBrain() { Id = "tempest"; }
 
-    protected override void OnBind() { angle = Random.value * 6.28f; }
     public override Vector2 JoinFrom => Vector2.up;
     public override float MinAttackAbove => 1.5f;
     public override bool WantsAttack(Vector2 seen) => Pos.y > seen.y + MinAttackAbove;
     public override float? FaceDeg(Vector2 seen) => -90f;
 
+    public override void OnScriptMove(string token)
+    {
+        if (token == "R") dir = 1;
+        else if (token == "L") dir = -1;
+    }
+
     public override Vector2 Goal(Vector2 follow, float dt)
     {
         Clock += dt;
-        if (ship.State != EliteState.Attack) angle += def.speed * Pace / Rx * dt;
-        return new Vector2(Mathf.Cos(angle) * Rx, Height + Mathf.Sin(angle * 2f) * Ry);
+        if (ship.State != EliteState.Attack) angle += dir * def.speed * Pace * ship.Script.SpeedScale / Rx * dt;
+        return new Vector2(Mathf.Cos(angle) * Rx, Height - Ry - Ry * Mathf.Sin(angle));
     }
 }
 
 // Thunderfin: a thunder sweep. The lure coils pulse and a lane glyph is drawn under EVERY column for the whole tell (>= .7 s): the
-// pilot's lane first and the others either side at least a strike's corridor apart (StrikeLanes), shotCount of them (one more at its
-// last heart). Then the columns strike ONE AFTER ANOTHER, shotInterval apart, sweeping the way the fish is flying (TempestBrain.SweepDir)
-// -- the last glyph is the last column. (AttackStrike: .25 s live each.) Step off the glyph, or wait in the gaps between the columns.
+// pilot's lane first and the others either side at least a strike's corridor apart (StrikeLanes), shotCount of them (3 fit the board).
+// Then the columns strike ONE AFTER ANOTHER, shotInterval apart, in the ORDER hazardCount says: 0 sweeping the way the fish is flying
+// (TempestBrain.SweepDir) -- the last glyph is the last column; 1 BOTH ways at once, from the two outer columns in; 2 from the middle
+// out both ways. (AttackStrike: .25 s live each.) Step off the glyph, or wait in the gaps between the columns.
 public class ThunderSweepAttack : EliteAttack
 {
     readonly AttackStrike[] armed = new AttackStrike[5];
     readonly float[] lanes = new float[5];
-    int count;
+    int count, first;
     public ThunderSweepAttack() { Id = "thunder_sweep"; }
     public override bool HoldsDuringTell => true;
     public override bool HoldsDuringAction => true;
@@ -599,7 +698,18 @@ public class ThunderSweepAttack : EliteAttack
     public int Armed => count;
     public AttackStrike Strike(int i) => armed[i];
     public float Lane(int i) => lanes[i];
-    public int Want => Mathf.Clamp(def.shotCount + (ship.Hearts <= 1 ? 1 : 0), 2, armed.Length);
+    public int Want => Mathf.Clamp(def.shotCount, 2, armed.Length);
+
+    // The place of column i (in the sweep's order) in the strike sequence.
+    int Rank(int i, int n)
+    {
+        switch (def.hazardCount)
+        {
+            case 1: return Mathf.Min(i, n - 1 - i);
+            case 2: return Mathf.FloorToInt(Mathf.Abs(i - (n - 1) * .5f));
+            default: return i;
+        }
+    }
 
     public override void BeginTell(Vector2 seen)
     {
@@ -616,7 +726,12 @@ public class ThunderSweepAttack : EliteAttack
             while (j >= 0 && (rightward ? lanes[j] > x : lanes[j] < x)) { lanes[j + 1] = lanes[j]; j--; }
             lanes[j + 1] = x;
         }
-        for (int i = 0; i < count; i++) armed[i] = AttackStrike.Arm(spec, lanes[i], seen.y, TellSeconds + i * Mathf.Max(.1f, def.shotInterval), ship.gameObject);
+        first = 0;
+        for (int i = 0; i < count; i++)
+        {
+            if (Rank(i, count) < Rank(first, count)) first = i;
+            armed[i] = AttackStrike.Arm(spec, lanes[i], seen.y, TellSeconds + Rank(i, count) * Mathf.Max(.1f, def.shotInterval), ship.gameObject);
+        }
     }
 
     public override void Cancel() { Drop(); }
@@ -637,7 +752,7 @@ public class ThunderSweepAttack : EliteAttack
         base.BeginAction();
         if (count > 0)
         {
-            if (armed[0] != null) armed[0].Ignite();
+            if (armed[first] != null) armed[first].Ignite();
             Fired++;
             ship.OnFired(0, -90f);
         }
@@ -661,28 +776,42 @@ public class ThunderSweepAttack : EliteAttack
 // ---- Pearl Warden: oyster --------------------------------------------------------------------------------------------
 
 // A shell that keeps one of three stations at the top (left, middle, right), sliding a few hairs, and never comes down to the pilot.
-// After every cast it hops to ANOTHER station. It only attacks settled on its station.
+// The script sends it from station to station ("st:0|1|2"), in a fixed order; it only attacks settled on its station.
 public class OysterBrain : EliteBrain
 {
     public const float ReadyWait = .7f, SettleDistance = .3f;
     public static readonly float[] Columns = { -.65f, 0f, .65f };
     int station = 1;
     float settled;
+    bool placed;
     public int Station => station;
     public int Hops { get; private set; }
+    public int Casts { get; private set; }
     public bool Settled => settled > 0f;
     public float Height => ship.ZoneY(ship.ReachY(EliteSystem.ViewTop - def.topMargin));
 
     public OysterBrain() { Id = "oyster"; }
 
-    protected override void OnBind() { station = Random.Range(0, Columns.Length); }
     public override Vector2 JoinFrom => Vector2.up;
     public override float SpeedScale => .8f;
     public override float MinAttackAbove => 1.5f;
     public override bool WantsAttack(Vector2 seen) => settled >= ReadyWait && Pos.y > seen.y + MinAttackAbove;
     public override float? FaceDeg(Vector2 seen) => -90f;
+    public override void OnJoin() { placed = false; }
 
     public Vector2 StationPos(int i) => new Vector2(Columns[Mathf.Clamp(i, 0, Columns.Length - 1)] * TideFlight.Edge(def, .6f), Height);
+
+    public override void OnScriptMove(string token)
+    {
+        int s;
+        if (!TideFlight.TokenInt(token, "st", out s)) return;
+        s = Mathf.Clamp(s, 0, Columns.Length - 1);
+        if (!placed) { placed = true; station = s; return; }   // (the first station: it flies straight to it)
+        if (s == station) return;
+        station = s;
+        Hops++;
+        settled = 0f;
+    }
 
     public override Vector2 Goal(Vector2 follow, float dt)
     {
@@ -692,24 +821,19 @@ public class OysterBrain : EliteBrain
         return st + new Vector2(Mathf.Sin(Clock * .45f) * .2f, Mathf.Sin(Clock * .8f) * .07f);
     }
 
-    // The attack's callback: on to another station.
-    public void CastDone()
-    {
-        station = (station + 1 + Random.Range(0, Columns.Length - 1)) % Columns.Length;
-        Hops++;
-        settled = 0f;
-    }
+    // The attack's callback.
+    public void CastDone() { Casts++; }
 }
 
 // Pearl Warden: a pearl spiral. The tell holds it on its station, nose down: two thin lanes mark the edges of the ARC the spiral will
-// sweep (ArcDeg either side of straight down). The pilot's spot is followed for the first aimCommit of the tell and then locked: that
-// direction is left OUT of the spiral (GapDeg either side) -- the pilot who stood still at the lock is in the gap. The action sweeps
-// shotCount pearls (more for every two hearts lost) from one edge of the arc to the other, shotInterval apart, out of the two shells in
-// turn; the sweep runs the other way each cast.
+// sweep (ArcDeg + shotSpread either side of straight down). The pilot's spot is followed for the first aimCommit of the tell and then
+// locked: that direction is left OUT of the spiral (GapDeg either side) -- the pilot who stood still at the lock is in the gap. The
+// action sweeps shotCount pearls from one edge of the arc to the other, shotInterval apart, out of the two shells in turn; the sweep
+// runs the other way each cast. With hazardCount >= 2 it is a DOUBLE spiral: both sweeps at once, interleaved.
 public class PearlSpiralAttack : EliteAttack
 {
     public const float ArcDeg = 58f, GapDeg = 13f, LaneLength = 5f;
-    public const int MaxPearls = 13;
+    public const int MaxPearls = 13, DoublePearls = 6;
     readonly EliteTelegraph tele = new EliteTelegraph();
     readonly float[] angle = new float[MaxPearls];
     int total, fired, sweep = 1;
@@ -727,11 +851,12 @@ public class PearlSpiralAttack : EliteAttack
     public int Sweep => sweep;
     public float GapAngle => gapDeg;
     public float Angle(int i) => angle[Mathf.Clamp(i, 0, MaxPearls - 1)];
-    public int HeartsLost => Mathf.Max(0, def.hearts - ship.Hearts);
-    public int PearlCount => Mathf.Clamp(Mathf.Max(5, def.shotCount) + (HeartsLost / 2) * 2, 5, MaxPearls);
+    public bool Double => def.hazardCount >= 2;
+    public float Arc => ArcDeg + Mathf.Max(0f, def.shotSpread);
+    public int PearlCount => Mathf.Clamp(Mathf.Max(5, def.shotCount), 5, MaxPearls);
 
-    // The angle of pearl i of n in a sweep that runs `way` (+1 counter-clockwise, -1 clockwise).
-    public static float AngleOf(int i, int n, int way) => -90f + way * (-ArcDeg + 2f * ArcDeg * i / Mathf.Max(1, n - 1));
+    // The angle of pearl i of n in a sweep that runs `way` (+1 counter-clockwise, -1 clockwise) over an arc of `arc` either side.
+    public static float AngleOf(int i, int n, int way, float arc = ArcDeg) => -90f + way * (-arc + 2f * arc * i / Mathf.Max(1, n - 1));
 
     public override void BeginTell(Vector2 seen)
     {
@@ -741,8 +866,8 @@ public class PearlSpiralAttack : EliteAttack
         tele.Clear();
         Vector2 o = ship.Position;
         float half = def.shotSize * .5f + .04f;
-        tele.Lane(o, o + Unit(-90f - ArcDeg) * LaneLength, half);
-        tele.Lane(o, o + Unit(-90f + ArcDeg) * LaneLength, half);
+        tele.Lane(o, o + Unit(-90f - Arc) * LaneLength, half);
+        tele.Lane(o, o + Unit(-90f + Arc) * LaneLength, half);
         tele.Show(TellSeconds, def.ShotColor, def.WorldIndex);
     }
 
@@ -750,19 +875,25 @@ public class PearlSpiralAttack : EliteAttack
     public override void Cancel() { tele.End(); }
     public override void OnDeath() { tele.End(); }
 
+    void Add(float a)
+    {
+        if (Mathf.Abs(Mathf.DeltaAngle(a, gapDeg)) < GapDeg || total >= MaxPearls) return;
+        angle[total++] = a;
+    }
+
     public override void BeginAction()
     {
         base.BeginAction();
         acted = true;
         tele.GoLive();
         gapDeg = Deg(ship.AimSeen - ship.Position);
-        int n = PearlCount;
+        int n = Double ? Mathf.Min(PearlCount, DoublePearls) : PearlCount;
         total = 0;
+        float arc = Arc;
         for (int i = 0; i < n; i++)
         {
-            float a = AngleOf(i, n, sweep);
-            if (Mathf.Abs(Mathf.DeltaAngle(a, gapDeg)) < GapDeg) continue;
-            angle[total++] = a;
+            Add(AngleOf(i, n, sweep, arc));
+            if (Double) Add(AngleOf(i, n, -sweep, arc));
         }
         fired = 0;
         next = 0f;

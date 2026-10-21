@@ -111,5 +111,25 @@
   "hideSeconds": 3.5,
   "topMargin": 1.6,
   "engageSeconds": 48,
-  "script": { "tempo": 1.1 }
+  "script": {
+    "tempo": 1.1, "exitTell": 1.4, "lastExit": "top",
+    "entrance": { "kind": "swirl", "seconds": 1.7, "amp": 1.8 },
+    "phase1": { "speed": 1.0, "gap": 1.0,
+      "loop": [
+        { "wait": 2.4, "move": "R", "attack": "" },
+        { "wait": 3.0, "move": "L", "attack": "slow" } ] },
+    "phase2": { "speed": 1.35, "gap": 0.85,
+      "loop": [
+        { "wait": 1.8, "move": "R", "attack": "quick" },
+        { "wait": 2.2, "move": "L", "attack": "out" } ] },
+    "last": { "speed": 1.5, "gap": 0.75,
+      "loop": [
+        { "wait": 1.6, "move": "R", "attack": "both" },
+        { "wait": 1.8, "move": "L", "attack": "both" } ] },
+    "variants": [
+      {"name": "slow", "set": [{"key": "shotInterval", "value": 0.42}]},
+      {"name": "quick", "set": [{"key": "shotInterval", "value": 0.18}]},
+      {"name": "both", "set": [{"key": "hazardCount", "value": 1}, {"key": "shotInterval", "value": 0.22}]},
+      {"name": "out", "set": [{"key": "hazardCount", "value": 2}, {"key": "shotInterval", "value": 0.22}]} ]
+  }
 }

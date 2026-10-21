@@ -112,5 +112,27 @@
   "followLag": 0.25,
   "lobSeconds": 0.6,
   "engageSeconds": 55,
-  "script": { "tempo": 1.35 }
+  "script": {
+    "tempo": 1.35, "exitTell": 1.4, "lastExit": "none",
+    "entrance": { "kind": "slam", "seconds": 1.7, "amp": 1.6 },
+    "phase1": { "speed": 1.0, "gap": 1.0,
+      "loop": [
+        { "wait": 1.8, "move": "col:0", "attack": "" },
+        { "wait": 2.2, "move": "col:2", "attack": "long" },
+        { "wait": 2.2, "move": "col:1", "attack": "" } ] },
+    "phase2": { "speed": 1.15, "gap": 0.85, "set": [{"key": "shotCount", "value": 4}],
+      "loop": [
+        { "wait": 1.6, "move": "col:2", "attack": "long" },
+        { "wait": 1.6, "move": "col:0", "attack": "" },
+        { "wait": 1.4, "move": "col:1", "attack": "long" } ] },
+    "last": { "speed": 1.25, "gap": 0.75, "set": [{"key": "shotCount", "value": 4}],
+      "loop": [
+        { "wait": 1.2, "move": "col:0", "attack": "forkR" },
+        { "wait": 1.0, "move": "col:2", "attack": "forkL" },
+        { "wait": 1.0, "move": "col:1", "attack": "long" } ] },
+    "variants": [
+      {"name": "long", "set": [{"key": "shotCount", "value": 5}]},
+      {"name": "forkR", "set": [{"key": "shotCount", "value": 5}, {"key": "laneOffset", "value": 1.2}]},
+      {"name": "forkL", "set": [{"key": "shotCount", "value": 5}, {"key": "laneOffset", "value": -1.2}]} ]
+  }
 }
