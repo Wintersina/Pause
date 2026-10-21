@@ -582,7 +582,7 @@ public class ScavengerBrain : EliteBrain
 public class ScrapDiveAttack : EliteAttack
 {
     public enum Phase { Down, Turn, Up }
-    public const float Ring = .55f, OffsetX = 1.7f, Through = .6f, TurnRate = 380f, UpScale = .9f, MaxSeconds = 4f, ExitDrop = .9f, ClimbDecel = 10f, Floor = 2.1f;
+    public const float Ring = .55f, OffsetX = 1.7f, Through = .3f, TurnRate = 480f, UpScale = .9f, MaxSeconds = 4f, ExitDrop = .9f, ClimbDecel = 10f, Floor = 2.6f;
     public const int Slots = 3;
     EliteMarks marks;
     Vector2 spot;
@@ -670,7 +670,7 @@ public class ScrapDiveAttack : EliteAttack
                     for (int i = 0; i < n; i++) Fire(0, heading + (i - (n - 1) * .5f) * def.shotSpread, def.shotSpeed);
                     marks.HideAll();
                 }
-                if (past >= Through || p.y < EliteSystem.ViewBottom + 1.6f)
+                if (past >= Through || p.y < EliteSystem.ViewBottom + 2.0f)
                 {
                     phase = Phase.Turn;
                     turnDir = p.x < 0f ? 1f : -1f;   // swing away from the nearer rail (through 0 deg for +, through 180 for -)
