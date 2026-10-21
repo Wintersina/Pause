@@ -79,7 +79,7 @@ public static class ShipHullArt
         /*  2 VoltViper    */ new HullRect(7, 28, 243, 200, 867.8571f, "#2E9BE6", "#174C8C", "#8FD3FF"),
         /*  3 SolarFang    */ new HullRect(7, 11, 242, 234, 834.4828f, "#F07A1E", "#9A3E12", "#FFC27A"),
         /*  4 CrimsonHalo  */ new HullRect(31, 7, 195, 242, 423.9130f, "#C8285E", "#6E1136", "#FF7AA2"),
-        /*  5 IonLancer    */ new HullRect(25, 7, 207, 242, 440.4255f, "#3A5BE0", "#1C2A80", "#9AB0FF"),
+        /*  5 IonLancer    */ new HullRect(28, 7, 200, 241, 425.5319f, "#3A5BE0", "#1C2A80", "#9AB0FF"),
         /*  6 JadePhantom  */ new HullRect(7, 9, 242, 238, 432.1429f, "#22B07A", "#0E5A44", "#8EF0C4"),
         /*  7 GoldWarden   */ new HullRect(16, 7, 224, 242, 439.2157f, "#D99A1A", "#7E4E0C", "#FFD36A"),
         /*  8 Lightning    */ new HullRect(7, 11, 243, 234, 867.8571f, "#EEDC32", "#8E8414", "#FFF6A8"),

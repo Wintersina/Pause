@@ -61,6 +61,18 @@ SHIPS = {
                    bands=dict(outer=(0xD8, 0x23, 0x2C), mid=(0xF2, 0x86, 0x2B), core=(0xF4, 0xEA, 0xD4),
                               dark=(0x86, 0x12, 0x1F), accent=(0x6E, 0xF2, 0xEE))),
     ),
+    "IonLancer": dict(
+        id=5, hull_w=198, world_w=207 / 440.4255, nozzles=2, noz_scale=(.72, .72),
+        emitters=parse_emitters(
+            "E(1, Sparks, 36.5f, 99.0f), E(1, Smoke, 55.4f, 113.0f), E(1, Smolder, 36.5f, 99.2f), "
+            "E(2, Arc, 88.1f, 93.0f), E(2, Flame, 72.6f, 113.0f), E(2, Leak, 64.0f, 99.0f), "
+            "E(2, Smolder, 105.3f, 112.0f), E(2, Smolder, 88.1f, 93.0f), E(2, Smolder, 51.6f, 96.9f), "
+            "E(2, Smolder, 74.7f, 72.5f), E(2, Smolder, 49.4f, 76.5f), E(2, Smolder, 27.5f, 109.8f)"),
+        skins=[("Night", "night"), ("Sodium", "sodium"), ("Bone", "bone"), ("Lance", "stock")],
+        flame=dict(x=(600, 900), y=1086, frames=6,
+                   bands=dict(outer=(0x3A, 0x5B, 0xE0), mid=(0x6E, 0xF2, 0xEE), core=(0xF4, 0xEA, 0xD4),
+                              dark=(0x1C, 0x2A, 0x80), accent=(0x9A, 0xB0, 0xFF))),
+    ),
 }
 
 
