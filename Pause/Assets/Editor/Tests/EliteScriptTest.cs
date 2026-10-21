@@ -39,10 +39,6 @@ public static class EliteScriptTest
         "space_elite_rift_lancer",
         "space_elite_orbit_reaver",
         // tide
-        "tide_elite_riptide",
-        "tide_elite_bathyscaphe",
-        "tide_elite_thunderfin",
-        "tide_elite_trawler",
         // verdant
         "verdant_elite_leafblade",
         "verdant_elite_sporebloom",
