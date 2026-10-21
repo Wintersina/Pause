@@ -9,26 +9,37 @@ using UnityEngine;
 // MinStrikeGap apart so the weather's own limit (StormTuning: below 3 pulses a second) holds for a fight as it does for the sky.
 // Desert still uses the BASE brains and attacks (interceptor / lance_dash ... siege / siege_cannon): nothing below changes them.
 //
-//   Anvil Cloud       3  thunderhead / static_field (hangar)   a flat thunderhead drifting along the top; the tell rings four static
-//                                                              fields in a diamond ahead of the pilot, each lobbed onto its ring and
-//                                                              lying as a pool; a fifth at the centre once it has lost two hearts
-//   Refinery Tender   5  airship      / flare_drop   (rigbay)   armored  a slow airship that crosses the whole top and leaves by the far
-//                                                              side, laying a staircase of fused flares down its heading (ringed);
-//                                                              each bursts into an X of bolts. Returns from the other side, lower
-//   Rod Dancer        3  dancer       / rod_strikes  (towerbay) hurtHide  weaves a figure of eight across the top; glyphs under every
-//                                                              rod column at once, then the columns strike OUTSIDE IN, the pilot's
-//                                                              own lane last
-//   Skyhook Harrier   3  hooker       / cable_rake   (padring)  hurtHide  swoops across the top on a dipping arc (off one side, back
-//                                                              from the other); the tell draws the cables it will drop (thin lines),
-//                                                              hooks in, then rakes them down one after another along the arc
-//   Static Bastion    5  citadel      / hail_wall    (hatch)    armored  crawls along the top; the tell draws the gap (thin edges) of a
-//                                                              WALL of hail falling in two staggered waves (three at <= 2 hearts), the
-//                                                              gap sliding a hand with each wave; it is NOT where the pilot stands
+// Every fight is an authored script (the def's "script" block, EliteScript.cs, docs/elites/elite-scripts.md): the script's steps hand the
+// brain MOVE TOKENS (OnScriptMove) and name an attack VARIANT; the brains and attacks below do what the token and the variant say, with
+// no coin flips (stations, sides, tiers, dips come from tokens or the script's counters). All five stay inside the view: only Rod Dancer
+// and Skyhook Harrier ever leave it, on their one scripted exit at the last heart.
 //
-// Tender and Harrier ROAM (EliteBrain.Roams): their paths leave the view, so the ship neither clamps their goal nor plans evasions,
-// and they are untouchable while outside the board. Everything an attack leaves on the board rides it. See docs/enemy-behaviours.md.
+//   Anvil Cloud       3  thunderhead / static_field (hangar)   a stationary caster: it HOLDS one of three stations (left, centre,
+//                                                              right) and hops to the next on a token; the tell rings a diamond of
+//                                                              static fields ahead of the pilot (leaning toward its own station), each
+//                                                              lobbed onto its ring and lying as a pool; a fifth at the centre from
+//                                                              phase 2, a wider diamond and longer pools at the last heart
+//   Refinery Tender   5  airship      / flare_drop   (rigbay)   armored  a slow airship flying racetrack legs across the top, a wide
+//                                                              U-turn at each rail onto another TIER (a tier lower, or back up),
+//                                                              laying a staircase of fused flares down its heading (ringed); each
+//                                                              bursts into an X of bolts
+//   Rod Dancer       3  dancer       / rod_strikes  (towerbay) hurtHide  weaves a figure of eight across the top (direction by token);
+//                                                              glyphs under every rod column at once, then the columns strike OUTSIDE
+//                                                              IN (phase 1), INSIDE OUT (phase 2) or from BOTH ENDS in (last heart)
+//   Skyhook Harrier   3  hooker       / cable_rake   (padring)  hurtHide  swoops in V shapes from a top corner down under the middle and
+//                                                              up to the opposite corner, a hook over the top at each rail; the tell
+//                                                              draws the cables it will drop under the dip, then rakes them down one
+//                                                              after another
+//   Static Bastion    5  citadel      / hail_wall    (hatch)    armored  crawls to a rail end (or the centre) on a token and plants;
+//                                                              the tell draws the gap (thin edges) of a WALL of hail falling in
+//                                                              staggered waves, the gap sliding a hand with each wave and, at the last
+//                                                              heart, closing in; it is NOT where the pilot stands
+//
+// Nothing roams: Tender and Harrier turn round at the rails inside the view (StormRailBrain). Everything an attack leaves on the board
+// rides it. See docs/enemy-behaviours.md.
 
 // ---- shared bits ---------------------------------------------------------------------------------------------------
+
 
 public static class StormFlight
 {
@@ -161,118 +172,151 @@ public abstract class StormSpotAttack : EliteAttack
     }
 }
 
-// A roamer that makes PASSES: in from a side of the view at a height in a band near the top, along its path at a steady pace, out of
-// the other side; a short pause off the board, then the next pass from the opposite side at a new height. Subclasses give the band,
-// the path's shape and when a cast fits.
-public abstract class StormPassBrain : EliteBrain
+// A flier on a racetrack inside the view: a straight LEG across the top, then a U-TURN arc at the rail, then the next leg back. The
+// subclass lays one leg and its arc (Lay) from where the last one ended; the brain walks a carrot along those points at the pace the
+// phase says and the ship follows it. The carrot stands still through an entrance and through a wind-up that holds the ship (TellK 0)
+// and drifts on through one that does not. Nothing leaves the view and nothing is warped: the turn IS the stage presence.
+public abstract class StormRailBrain : EliteBrain
 {
-    public enum Stage { Leave, Away, Pass }
-    public const float PauseSeconds = 1.2f, LeaveScale = 2.2f;
-    protected Stage stage = Stage.Leave;
-    protected float wait, s, length, dirX = 1f, y0, afterLeave = .4f;
-    protected int casts;
-    protected Vector2 start;
-    public Stage Phase => stage;
+    const int Cap = 48;
+    public const float Lead = .7f;
+    protected readonly Vector2[] pt = new Vector2[Cap];
+    protected readonly float[] cum = new float[Cap];
+    protected int n, legPts;
+    protected float s, total, dirX = 1f;
+    protected bool started;
+
+    public int Legs { get; private set; }
     public float DirX => dirX;
-    public Vector2 Start => start;
-    public int Passes { get; private set; }
-    public int Casts => casts;
-    public abstract int CastsAllowed { get; }
-    protected abstract void Band(out float lo, out float hi);
-    public virtual float PassScale => 1f;
-    // The path `along` u from where the pass entered.
-    public abstract Vector2 PathAt(float along);
-    // Along the path at world x (the path runs straight across, so this is a plain offset).
-    public float AlongAt(float x) => (x - start.x) * dirX;
-    // How far along the pass the ship is.
-    public float Along => (Pos.x - start.x) * dirX;
+    // The edge the legs and their arcs stay inside (the goal clamp's own).
+    public float Rail => Mathf.Max(.8f, EliteSystem.RailEdge - def.hullRadius - .35f);
+    // The top of the racetrack: under the HUD band and the view's top.
+    public float TopY => Mathf.Min(EliteSystem.ViewTop - def.hullRadius - .6f, ship.ZoneTop);
+    protected abstract float Pace { get; }
+    // Share of the pace through a wind-up / an action.
+    protected abstract float TellK { get; }
+    protected virtual float ActK => 1f;
+    // The first point of the first leg (heading dirX).
+    protected abstract Vector2 StartPoint();
+    // Fills pt[] with the straight run from `from` (setting legPts after it) and then the U-turn arc.
+    protected abstract void Lay(Vector2 from);
 
-    public override bool Roams => true;
-    public override float TellScale => 1f;
-    public override Vector2 JoinFrom => new Vector2(-1f, .8f);
-    protected override void OnBind() { dirX = Random.value < .5f ? -1f : 1f; }
-    public override void OnJoin() { stage = Stage.Leave; }
-    public override void OnReturn() { stage = Stage.Leave; }
+    public float LegLength => legPts > 0 ? cum[legPts - 1] : 0f;
+    // The carrot (the goal) is still on the straight run.
+    public bool OnLeg => started && s + Lead < LegLength;
+    public float LegEndX => legPts > 0 ? pt[legPts - 1].x : 0f;
+    public Vector2 Carrot => PointAt(s + Lead);
 
-    void BeginPass()
+    protected void Add(Vector2 p)
     {
-        Passes++;
-        dirX = -dirX;
-        float lo, hi;
-        Band(out lo, out hi);
-        y0 = Random.Range(lo, hi);
-        float off = StormFlight.OffX(def);
-        start = new Vector2(-dirX * off, y0);
-        length = 2f * off;
-        s = 0f;
-        casts = 0;
-        ship.Warp(start);
-        stage = Stage.Pass;
+        if (n >= Cap) return;
+        pt[n] = p;
+        cum[n] = n == 0 ? 0f : cum[n - 1] + Vector2.Distance(pt[n - 1], p);
+        n++;
     }
+
+    // A half ellipse leaving `from` outward (dirOut) by rx and coming back to from.x, dy higher (or lower) than it began.
+    protected void AddArc(Vector2 from, float dirOut, float rx, float dy, int steps)
+    {
+        for (int i = 1; i <= steps; i++)
+        {
+            float a = Mathf.PI * i / steps;
+            Add(new Vector2(from.x + dirOut * rx * Mathf.Sin(a), from.y + dy * (1f - Mathf.Cos(a)) * .5f));
+        }
+    }
+
+    protected Vector2 PointAt(float d)
+    {
+        if (n == 0) return ship != null ? ship.Position : Vector2.zero;
+        if (d <= 0f) return pt[0];
+        if (d >= cum[n - 1]) return pt[n - 1];
+        int i = 1;
+        while (i < n - 1 && cum[i] < d) i++;
+        float seg = cum[i] - cum[i - 1];
+        return seg > 1e-4f ? Vector2.Lerp(pt[i - 1], pt[i], (d - cum[i - 1]) / seg) : pt[i];
+    }
+
+    void BeginLeg(Vector2 from)
+    {
+        n = 0;
+        legPts = 0;
+        Lay(from);
+        total = n > 0 ? cum[n - 1] : 0f;
+        Legs++;
+    }
+
+    // Back from hiding: the racetrack starts afresh from its first corner.
+    public override void OnReturn() { started = false; }
 
     public override Vector2 Goal(Vector2 seen, float dt)
     {
         Clock += dt;
-        // (an attack begun outside a pass -- only a forced one -- is cast on the spot: it neither leaves nor starts a pass mid-cast)
-        if (stage != Stage.Pass && ship.State == EliteState.Attack) return Pos;
-        switch (stage)
+        if (!started)
         {
-            case Stage.Leave:
-                // just up from a dock / back from hiding / done with a pass: out of the view by the nearer side
-                if (StormFlight.OffBoard(def, Pos)) { stage = Stage.Away; wait = afterLeave; afterLeave = .4f; }
-                return new Vector2(Mathf.Sign(Pos.x == 0f ? 1f : Pos.x) * (StormFlight.OffX(def) + 1f), Pos.y + .3f);
-            case Stage.Away:
-                wait -= dt;
-                if (wait <= 0f) BeginPass();
-                return Pos;
-            default:
-                s += def.speed * PassScale * dt;
-                // the carrot is past the far edge: it flies on out and waits there
-                if (s >= length) { stage = Stage.Leave; afterLeave = PauseSeconds; }
-                return PathAt(s + 1.8f);
+            started = true;
+            dirX = ship.Script.Alternate("rail");   // (+1 first: in from the left; the same every fight)
+            s = 0f;
+            BeginLeg(StartPoint());
         }
+        float k = 1f;
+        if (ship.State == EliteState.Join) k = 0f;
+        else if (ship.Telling) k = TellK;
+        else if (ship.Acting) k = ActK;
+        s += def.speed * Pace * ship.Script.SpeedScale * k * dt;
+        for (int guard = 0; guard < 3 && total > .05f && s + Lead >= total; guard++)
+        {
+            s -= total;
+            dirX = -dirX;
+            BeginLeg(pt[n - 1]);
+        }
+        return PointAt(s + Lead);
     }
-
-    public override float SpeedScale => stage == Stage.Leave ? LeaveScale : PassScale;
 }
 
 // ---- Anvil Cloud: thunderhead / static_field --------------------------------------------------------------------------
 
-// A thunderhead. It drifts side to side along the top (a slow pendulum, about 85 % of the width) and holds still while it casts. It
-// never comes down and never follows the pilot's lane.
+// A thunderhead. It HOLDS one of three stations along the top (left, centre, right: tokens "L" "C" "R") and flies to the next when the
+// script says; it casts only once it has settled on its station. It never slides, never comes down and never follows the pilot's lane.
 public class ThunderheadBrain : EliteBrain
 {
-    public const float Pace = .6f, Ry = .08f;
-    float phase;
-    public int Dir => Mathf.Cos(phase) >= 0f ? 1 : -1;
-    public float Rx => Mathf.Max(.4f, StormFlight.Edge(def, .5f) * .85f);
+    public const float Bob = .06f;
+    int station = 1;
+    public int Station => station;
+    public float Reach => Mathf.Max(.4f, StormFlight.Edge(def, .5f) * .8f);
+    public float StationX(int i) => (i - 1) * Reach;
     public float Height => ship.ZoneY(ship.ReachY(EliteSystem.ViewTop - def.topMargin));
+    public bool Settled => Mathf.Abs(Pos.x - StationX(station)) < .3f;
 
     public ThunderheadBrain() { Id = "thunderhead"; }
 
-    protected override void OnBind() { phase = Random.value * 6.28f; }
     public override Vector2 JoinFrom => Vector2.up;
-    public override float SpeedScale => .8f;
+    public override float SpeedScale => .9f;
     public override float MinAttackAbove => 1.5f;
-    public override bool WantsAttack(Vector2 seen) => Pos.y > seen.y + MinAttackAbove;
+    public override bool WantsAttack(Vector2 seen) => Pos.y > seen.y + MinAttackAbove && Settled;
     public override float? FaceDeg(Vector2 seen) => -90f;
+
+    public override void OnScriptMove(string token)
+    {
+        if (token == "L") station = 0;
+        else if (token == "C") station = 1;
+        else if (token == "R") station = 2;
+    }
 
     public override Vector2 Goal(Vector2 follow, float dt)
     {
         Clock += dt;
-        if (ship.State != EliteState.Attack) phase += def.speed * Pace / Rx * dt;
-        return new Vector2(Mathf.Sin(phase) * Rx, Height + Mathf.Sin(phase * 2f) * Ry);
+        return new Vector2(StationX(station), Height + Mathf.Sin(Clock * 1.4f) * Bob);
     }
 }
 
-// Anvil Cloud: static fields. The tell holds it nose down: thin rings mark a DIAMOND of fields, Diamond u across, centred a lobAhead
-// above where it sees the pilot (followed for the first aimCommit of the tell, then locked and blinking faster). The action lobs a
-// charged cloud out of the cannon onto each ring, shotInterval apart; each lands as a pool that rides the board for poolSeconds and
-// crackles on touch. At <= 1 heart (two lost) a fifth field fills the middle of the diamond. Go round the diamond, or through the
-// gaps between its corners.
+// Anvil Cloud: static fields. The tell holds it nose down: thin rings mark a DIAMOND of fields, Diamond u across (the def's laneOffset,
+// so a script variant widens it), centred a lobAhead above where it sees the pilot, leaning a third of the way toward its own station
+// (followed for the first aimCommit of the tell, then locked and blinking faster). The action lobs a charged cloud out of the cannon
+// onto each ring, shotInterval apart; each lands as a pool that rides the board for poolSeconds and crackles on touch. From phase 2 a
+// fifth field fills the middle of the diamond. Go round the diamond, or through the gaps between its corners.
 public class StaticFieldAttack : StormSpotAttack
 {
-    public const float Ring = .45f, Diamond = 1.3f;
+    public const float Ring = .45f, Lean = .35f;
     public StaticFieldAttack() { Id = "static_field"; }
     protected override float RingRadius => Ring;
     public override float HazardSeconds => def.poolSeconds;
@@ -281,18 +325,19 @@ public class StaticFieldAttack : StormSpotAttack
     public override bool HoldsDuringAction => true;
     public override float? FaceDeg => -90f;
     protected override bool PopsOnDeath => false;   // (pools lapse on their own)
-    public int HeartsLost => Mathf.Max(0, def.hearts - ship.Hearts);
-    public int PlanCount => HeartsLost >= 2 ? 5 : 4;
+    public float Diamond => Mathf.Clamp(def.laneOffset, 1f, 1.9f);
+    public int PlanCount => ship.Script.Phase >= EliteScriptRunner.Phase2 ? 5 : 4;
 
     protected override void Plan(Vector2 pilot)
     {
         count = PlanCount;
+        float d = Diamond;
         float edge = EliteSystem.RailEdge - .45f;
-        float cx = Mathf.Clamp(pilot.x, -edge + Diamond, edge - Diamond);
-        float cy = Mathf.Max(EliteSystem.ViewBottom + .8f + Diamond, pilot.y + def.lobAhead);
-        cy = Mathf.Min(cy, ship.Position.y - 1.2f - Diamond);
+        float cx = Mathf.Clamp(Mathf.Lerp(pilot.x, ship.Position.x, Lean), -edge + d, edge - d);
+        float cy = Mathf.Max(EliteSystem.ViewBottom + .8f + d, pilot.y + def.lobAhead);
+        cy = Mathf.Min(cy, ship.Position.y - 1.2f - d);
         var c = new Vector2(cx, cy);
-        for (int i = 0; i < 4; i++) spot[i] = c + Unit(90f + i * 90f) * Diamond;
+        for (int i = 0; i < 4; i++) spot[i] = c + Unit(90f + i * 90f) * d;
         if (count > 4) spot[4] = c;
     }
 
@@ -308,60 +353,104 @@ public class StaticFieldAttack : StormSpotAttack
 
 // ---- Refinery Tender: airship / flare_drop -----------------------------------------------------------------------------
 
-// A slow airship. A PASS is: in from a side at a height in the top band, straight across at a steady pace, out of the far side; it
-// casts FlareDropAttack once on the way (twice with <= 3 hearts) where the whole staircase of flares fits between the rails, then
-// leaves, waits off the board and comes back from the other side.
-public class AirshipBrain : StormPassBrain
+// A slow airship on a racetrack across the top. Each LEG runs rail to rail at one TIER (a height); at the rail it makes a wide U-turn
+// onto the next tier, the script naming it ("tier:0" ... "tier:2", the top one first) -- without a token it steps down a tier and back
+// up. A cast (FlareDropAttack) fits on a straight leg with room ahead; it drifts on at TellDrift while it rings the flares, so the
+// whole staircase stays between the rails. Phase 2 spaces the tiers wider ("lowers faster").
+public class AirshipBrain : StormRailBrain
 {
+    public const float TellDrift = .4f, StepNormal = .5f, StepWide = .75f, StepLast = .6f;
+    public const int Tiers = 3;
+    float tierStep = StepNormal;
+    int tier, tierWay = 1, pending = -1;
+    public int Tier => tier;
+    public float TierStep => tierStep;
+    public int Casts { get; private set; }
+
     public AirshipBrain() { Id = "airship"; }
-    // (it slows to a drift while it rings the flares, so the whole staircase stays between the rails)
-    public const float TellDrift = .4f;
+    protected override float Pace => .85f;
+    protected override float TellK => TellDrift;
     public override float TellScale => TellDrift;
-    public override int CastsAllowed => 1 + (ship != null && ship.Hearts <= 3 ? 1 : 0);
-    protected override void Band(out float lo, out float hi)
+    public override Vector2 JoinFrom => new Vector2(-1f, .8f);
+    public float TurnRx => Mathf.Min(.7f, Rail * .4f);
+    public float LegHalf => Mathf.Max(.3f, Rail - TurnRx);
+    public float TierY(int t) => TopY - t * tierStep;
+
+    public override void OnScriptMove(string token)
     {
-        hi = Mathf.Min(EliteSystem.ViewTop - def.hullRadius - .6f, FightZone.Top(FightZone.HalfOf(def)));
-        lo = hi - 1.2f;
+        // "tier:N" (no string work: tokens arrive mid-fight)
+        if (token != null && token.Length == 6 && token[0] == 't' && token[4] == ':' && token[5] >= '0' && token[5] <= '9')
+            pending = Mathf.Clamp(token[5] - '0', 0, Tiers - 1);
     }
-    public override Vector2 PathAt(float along) => new Vector2(start.x + dirX * along, y0);
+
+    public override void OnPhase(int phase) { tierStep = phase == EliteScriptRunner.Phase2 ? StepWide : phase == EliteScriptRunner.PhaseLast ? StepLast : StepNormal; }
+
+    protected override Vector2 StartPoint() => new Vector2(-dirX * LegHalf, TierY(tier));
+
+    // The tier of the leg after this one: the token's, else a step along the up-and-down walk.
+    int NextTier()
+    {
+        if (pending >= 0 && pending != tier) { int t = pending; pending = -1; return t; }
+        pending = -1;
+        int next = tier + tierWay;
+        if (next >= Tiers) { tierWay = -1; next = tier - 1; }
+        else if (next < 0) { tierWay = 1; next = tier + 1; }
+        return next;
+    }
+
+    protected override void Lay(Vector2 from)
+    {
+        float y = from.y;
+        Add(from);
+        var end = new Vector2(dirX * LegHalf, y);
+        Add(end);
+        legPts = n;
+        int next = NextTier();
+        AddArc(end, dirX, TurnRx, TierY(next) - y, 10);
+        tier = next;
+    }
 
     // The x the ship will be at in `seconds` (it drifts at TellDrift of its pace through the wind-up).
-    public float XAfter(float seconds) => Pos.x + dirX * def.speed * PassScale * TellDrift * seconds;
+    public float XAfter(float seconds) => Pos.x + dirX * def.speed * Pace * ship.Script.SpeedScale * TellDrift * seconds;
 
     public override bool WantsAttack(Vector2 seen)
     {
-        if (stage != Stage.Pass || casts >= CastsAllowed) return false;
+        if (!OnLeg) return false;
         float edge = EliteSystem.RailEdge - FlareDropAttack.RailMargin;
         float x0 = XAfter(def.tellSeconds);
-        float x1 = x0 + dirX * (FlareDropAttack.Flares - 1) * FlareDropAttack.Step;
-        return Mathf.Abs(Pos.x) < edge && Mathf.Abs(x0) < edge && Mathf.Abs(x1) < edge;
+        float x1 = x0 + dirX * FlareDropAttack.MaxSpan;
+        // (still on the straight run when the tell is over, and the whole staircase between the rails)
+        return Mathf.Abs(Pos.x) < edge && Mathf.Abs(x0) < edge && Mathf.Abs(x1) < edge && dirX * (LegEndX - x0) > .1f;
     }
 
-    public void CastDone() { casts++; }
+    public void CastDone() { Casts++; }
 }
 
-// Refinery Tender: a flare drop. The ship keeps flying through the wind-up: from the first frame of the tell Flares thin rings mark a
-// STAIRCASE down its heading, Step across and Drop down apiece, starting a little ahead of where it will be when it goes out. The action
-// lobs a fused flare out of the hull onto each ring, shotInterval apart; a flare rides the board, then bursts after its fuse into an X
-// of four short bolts. A shot defuses one. (Read the rings, slip between the Xs.)
+// Refinery Tender: a flare drop. The ship keeps flying through the wind-up: from the first frame of the tell Count thin rings (3, or 4
+// from a variant) mark a STAIRCASE down its heading, Step across (the def's lobSpacing) and Drop down apiece, starting a little ahead
+// of where it will be when it goes out. The action lobs a fused flare out of the hull onto each ring, shotInterval apart; a flare rides
+// the board, then bursts after its fuse into an X of four short bolts. A shot defuses one. (Read the rings, slip between the Xs.)
 public class FlareDropAttack : StormSpotAttack
 {
-    public const int Flares = 3;
-    public const float Ring = .5f, Step = .7f, Drop = .85f, ArmSeconds = .55f, Under = 1.5f, RailMargin = .9f;
+    public const int Flares = 3, MaxFlares = 4;
+    public const float Ring = .5f, Drop = .85f, ArmSeconds = .55f, Under = 1.5f, RailMargin = .9f, MaxSpan = 1.5f;
     public FlareDropAttack() { Id = "flare_drop"; }
     protected override float RingRadius => Ring;
     public override float HazardSeconds => def.hazardSeconds + ArmSeconds;
     public override float HazardRadius => Ring;
+    public int PlanCount => Mathf.Clamp(def.shotCount, Flares, MaxFlares);
+    public float Step => Mathf.Clamp(def.lobSpacing, .45f, .8f);
 
     protected override void Plan(Vector2 pilot)
     {
         var ab = ship.Brain as AirshipBrain;
-        count = Flares;
+        count = PlanCount;
         float edge = EliteSystem.RailEdge - FlareDropAttack.RailMargin;   // (a flare laid against a rail is lost to it)
         float x0 = ab != null ? ab.XAfter(TellSeconds) : ship.Position.x;
         float dir = ab != null ? ab.DirX : 1f;
+        float step = Step;
         for (int k = 0; k < count; k++)
-            spot[k] = new Vector2(Mathf.Clamp(x0 + dir * k * Step, -edge, edge), Mathf.Max(EliteSystem.ViewBottom + 1.4f, ship.Position.y - Under - k * Drop));
+            spot[k] = new Vector2(Mathf.Clamp(x0 + dir * k * step, -edge, edge), Mathf.Max(EliteSystem.ViewBottom + 1.4f, ship.Position.y - Under - k * Drop));
     }
 
     protected override void Lay(int i, Vector2 target)
@@ -381,67 +470,116 @@ public class FlareDropAttack : StormSpotAttack
 
 // ---- Rod Dancer: dancer / rod_strikes ---------------------------------------------------------------------------------
 
-// A lightning-rod dancer. It weaves a figure of eight across the top (about 90 % of the width, a hand of height), pausing the weave
-// while it casts. It never comes down and never follows the pilot's lane.
+// A lightning-rod dancer. It weaves a figure of eight across the top (about 90 % of the width, a hand of height that grows with the
+// phase), pausing the weave while it casts. The script turns the weave round ("cw" / "ccw"). It never comes down and never follows
+// the pilot's lane.
 public class DancerBrain : EliteBrain
 {
-    public const float Pace = .5f, Ry = .3f;
-    float angle;
+    public const float Pace = .5f, RyNormal = .3f, RyPhase2 = .38f, RyLast = .46f;
+    float angle, way = 1f, ry = RyNormal;
     public float Angle => angle;
+    public float Way => way;
+    public float Ry => ry;
     public float Rx => Mathf.Max(.4f, StormFlight.Edge(def, .5f) * .9f);
-    public float Height => ship.ZoneY(ship.ReachY(EliteSystem.ViewTop - def.topMargin)) - Ry;
+    public float Height => ship.ZoneY(ship.ReachY(EliteSystem.ViewTop - def.topMargin)) - ry;
 
     public DancerBrain() { Id = "dancer"; }
 
-    protected override void OnBind() { angle = Random.value * 6.28f; }
     public override Vector2 JoinFrom => Vector2.up;
     public override float MinAttackAbove => 1.5f;
     public override bool WantsAttack(Vector2 seen) => Pos.y > seen.y + MinAttackAbove;
     public override float? FaceDeg(Vector2 seen) => -90f;
 
+    public override void OnScriptMove(string token)
+    {
+        if (token == "cw") way = 1f;
+        else if (token == "ccw") way = -1f;
+    }
+
+    public override void OnPhase(int phase) { ry = phase == EliteScriptRunner.Phase2 ? RyPhase2 : phase == EliteScriptRunner.PhaseLast ? RyLast : RyNormal; }
+
     public override Vector2 Goal(Vector2 follow, float dt)
     {
         Clock += dt;
-        if (ship.State != EliteState.Attack) angle += def.speed * Pace / Rx * dt;
-        return new Vector2(Mathf.Sin(angle) * Rx, Height + Mathf.Sin(angle * 2f) * Ry);
+        if (ship.State != EliteState.Attack && ship.State != EliteState.Join) angle += way * def.speed * Pace * ship.Script.SpeedScale / Rx * dt;
+        return new Vector2(Mathf.Sin(angle) * Rx, Height + Mathf.Sin(angle * 2f) * ry);
     }
 }
 
 // Rod Dancer: rod strikes. The rod coils pulse and a lane glyph is drawn under EVERY column for the whole tell (>= .7 s): the pilot's
-// lane and the others either side at least a strike's corridor apart (StrikeLanes), shotCount of them (one more at its last heart,
-// four at the most). Then the columns strike ONE AFTER ANOTHER, shotInterval (>= StormFlight.MinStrikeGap) apart, OUTSIDE IN: the
-// column farthest from the pilot's lane first, the pilot's own lane last. (AttackStrike: .25 s live each.) Step off the glyph.
+// lane and the others either side at least a strike's corridor apart (StrikeLanes), shotCount of them (2 to 4). Then the columns strike
+// ONE AFTER ANOTHER, shotInterval (>= StormFlight.MinStrikeGap) apart, in the order the script's variant names: OUTSIDE IN (the column
+// farthest from the pilot's lane first, the pilot's own lane last: the default and every variant not named below), INSIDE OUT (variants
+// "in*": the pilot's lane first), or from BOTH ENDS in (variants "ends*": left-most, right-most, next left-most ...). (AttackStrike:
+// .25 s live each.) Step off the glyph.
 public class RodStrikesAttack : EliteAttack
 {
     public const int MaxColumns = 4;
+    public enum Order { OutsideIn, InsideOut, Ends }
     readonly AttackStrike[] armed = new AttackStrike[MaxColumns];
     readonly float[] lanes = new float[MaxColumns];
+    readonly float[] tmp = new float[MaxColumns];
     int count;
+    Order order;
     public RodStrikesAttack() { Id = "rod_strikes"; }
     public override bool HoldsDuringTell => true;
     public override bool HoldsDuringAction => true;
     public override bool Shoots => false;   // (lightning, not shots)
     public int Armed => count;
+    public Order Sequence => order;
     public AttackStrike Strike(int i) => armed[i];
     public float Lane(int i) => lanes[i];
     public float Gap => Mathf.Max(StormFlight.MinStrikeGap, def.shotInterval);
-    public int Want => Mathf.Clamp(def.shotCount + (ship.Hearts <= 1 ? 1 : 0), 2, MaxColumns);
+    public int Want => Mathf.Clamp(def.shotCount, 2, MaxColumns);
+
+    // The order a variant name asks for.
+    public static Order OrderFor(string variant)
+    {
+        if (!string.IsNullOrEmpty(variant))
+        {
+            if (variant.Length >= 2 && variant[0] == 'i' && variant[1] == 'n') return Order.InsideOut;
+            if (variant.Length >= 4 && variant[0] == 'e' && variant[1] == 'n' && variant[2] == 'd' && variant[3] == 's') return Order.Ends;
+        }
+        return Order.OutsideIn;
+    }
 
     public override void BeginTell(Vector2 seen)
     {
         base.BeginTell(seen);
         var spec = StrikeSpec.Standard(Mathf.Max(0, def.WorldIndex));
         count = StrikeLanes.Pick(seen.x, Want, Mathf.Max(AttackStrike.MinLaneSpacing, def.lobSpacing), BossRails.DrawnInnerEdge, spec.hitHalf, lanes);
-        // outside in: farthest from the pilot's lane (lanes[0]) first, the pilot's lane last
-        float pilotLane = lanes[0];
+        order = OrderFor(ship.Script.VariantName);
+        Sort(lanes[0]);
+        for (int i = 0; i < count; i++) armed[i] = AttackStrike.Arm(spec, lanes[i], seen.y, TellSeconds + i * Gap, ship.gameObject);
+    }
+
+    // lanes[0] is the pilot's lane. Orders lanes[0..count) as the attack's sequence.
+    void Sort(float pilotLane)
+    {
+        if (order == Order.Ends)
+        {
+            for (int i = 1; i < count; i++)
+            {
+                float x = lanes[i];
+                int j = i - 1;
+                while (j >= 0 && lanes[j] > x) { lanes[j + 1] = lanes[j]; j--; }
+                lanes[j + 1] = x;
+            }
+            for (int i = 0; i < count; i++) tmp[i] = lanes[i];
+            int lo = 0, hi = count - 1;
+            for (int i = 0; i < count; i++) lanes[i] = (i % 2 == 0) ? tmp[lo++] : tmp[hi--];
+            return;
+        }
+        // by distance from the pilot's lane: farthest first (outside in) or nearest first (inside out)
+        float sign = order == Order.OutsideIn ? 1f : -1f;
         for (int i = 1; i < count; i++)
         {
             float x = lanes[i];
+            float dx = Mathf.Abs(x - pilotLane);
             int j = i - 1;
-            while (j >= 0 && Mathf.Abs(lanes[j] - pilotLane) < Mathf.Abs(x - pilotLane)) { lanes[j + 1] = lanes[j]; j--; }
+            while (j >= 0 && sign * Mathf.Abs(lanes[j] - pilotLane) < sign * dx) { lanes[j + 1] = lanes[j]; j--; }
             lanes[j + 1] = x;
         }
-        for (int i = 0; i < count; i++) armed[i] = AttackStrike.Arm(spec, lanes[i], seen.y, TellSeconds + i * Gap, ship.gameObject);
     }
 
     public override void Cancel() { Drop(); }
@@ -485,50 +623,77 @@ public class RodStrikesAttack : EliteAttack
 
 // ---- Skyhook Harrier: hooker / cable_rake ------------------------------------------------------------------------------
 
-// A skyhook raider. A PASS is: in from a side at a height in the upper band, a dipping arc across the board (Dip u lower in the
-// middle) at a steady pace, out of the far side; off the board, then back from the other side at a new height. One cable rake a pass
-// (two at its last heart), cast where the whole rake fits between the rails. It never comes down to the pilot.
-public class HookerBrain : StormPassBrain
+// A skyhook raider. Each LEG is a V swoop: from a top corner down under the middle of the board (Dip u) and up to the opposite corner
+// (a hook's rise short of the top), where it hooks over the top at the rail (HookRx out, back to the top) and swoops again the other
+// way. The script sets the depth of the next V ("dip:1" shallow, "dip:2" deep). One rake per beat, cast on the way DOWN to the dip
+// (where the whole rake fits between the rails). It never comes down to the pilot and never leaves the view.
+public class HookerBrain : StormRailBrain
 {
-    public const float Dip = .9f;
+    public const float DipShallow = .9f, DipDeep = 1.4f, HookRise = .5f, HookRx = .5f;
+    float dip = DipShallow, dipNext = DipShallow;
+    public float Dip => dip;
+    public int Casts { get; private set; }
+
     public HookerBrain() { Id = "hooker"; }
-    public override int CastsAllowed => 1 + (ship != null && ship.Hearts <= 1 ? 1 : 0);
-    public override float PassScale => 1.15f;
-    protected override void Band(out float lo, out float hi)
+    protected override float Pace => 1f;
+    protected override float TellK => 0f;   // (the hooks go in: it holds through the wind-up)
+    public override float SpeedScale => 1.25f;
+    public override Vector2 JoinFrom => new Vector2(-1f, .8f);
+    public float CornerX => Mathf.Max(.4f, Rail - HookRx);
+
+    public override void OnScriptMove(string token)
     {
-        hi = Mathf.Min(EliteSystem.ViewTop - def.hullRadius - .6f, FightZone.Top(FightZone.HalfOf(def)));
-        lo = hi - 1.0f;
+        if (token == "dip:1") dipNext = DipShallow;
+        else if (token == "dip:2") dipNext = DipDeep;
     }
 
-    // The arc `along` u from where the pass entered: a half sine dip.
-    public override Vector2 PathAt(float along)
+    protected override Vector2 StartPoint() => new Vector2(-dirX * CornerX, TopY);
+
+    protected override void Lay(Vector2 from)
     {
-        float k = length > .01f ? Mathf.Clamp01(along / length) : 0f;
-        return new Vector2(start.x + dirX * along, y0 - Dip * Mathf.Sin(k * Mathf.PI));
+        dip = dipNext;
+        float top = from.y;
+        Add(from);
+        Add(new Vector2(0f, top - dip));
+        var end = new Vector2(dirX * CornerX, top - HookRise);
+        Add(end);
+        legPts = n;
+        AddArc(end, dirX, HookRx, HookRise, 8);
+    }
+
+    // The height of the V at world x (for the heading it flies now): down to the dip in the first half, up in the second.
+    public float PathY(float x)
+    {
+        float c = CornerX;
+        float t = Mathf.Clamp01(Mathf.Abs(x) / c);
+        float top = TopY;
+        return x * dirX < 0f ? top - dip * (1f - t) : Mathf.Lerp(top - dip, top - HookRise, t);
     }
 
     public override bool WantsAttack(Vector2 seen)
     {
-        if (stage != Stage.Pass || casts >= CastsAllowed) return false;
-        float edge = EliteSystem.RailEdge - .45f;
-        float x1 = Pos.x + dirX * (CableRakeAttack.Cables - 1) * CableRakeAttack.Step;
-        return Mathf.Abs(Pos.x) < edge && Mathf.Abs(x1) < edge;
+        if (!OnLeg) return false;
+        float along = dirX * Pos.x;
+        // on the way down to the dip, with the whole rake between the rails
+        return along < -.25f && along > -CornerX - .1f;
     }
 
-    public void CastDone() { casts++; }
+    public void CastDone() { Casts++; }
 }
 
-// Skyhook Harrier: a cable rake. The tell HOLDS it where it is (the hooks go in): from the first frame thin lines mark the Cables
-// cables it will drop, Step apart along its heading from its own column, each from the arc's height down to the bottom of the view.
-// The action drops them one after another, shotInterval apart (the ship flying on along its arc the while): a bolt falls from the
-// top of each line at shotSpeed. Wait for a cable's turn to pass and slip between two lines, or stay out of the swath.
+// Skyhook Harrier: a cable rake. The tell HOLDS it where it is (the hooks go in): from the first frame thin lines mark the cables it
+// will drop (Cables to MaxCables from the def's shotCount, a variant widens the rake), lobSpacing apart, centred under the dip of its V
+// and ordered along its heading, each from the V's height down to the bottom of the view. The action drops them one after another,
+// shotInterval apart (the ship flying on along its V the while): a bolt falls from the top of each line at shotSpeed. Wait for a
+// cable's turn to pass and slip between two lines, or stay out of the swath.
 public class CableRakeAttack : EliteAttack
 {
-    public const int Cables = 4;
+    public const int Cables = 4, MaxCables = 6;
     public const float Step = .95f, Half = .045f;
     readonly EliteTelegraph tele = new EliteTelegraph();
-    readonly float[] cableX = new float[Cables];
-    readonly float[] cableY = new float[Cables];
+    readonly float[] cableX = new float[MaxCables];
+    readonly float[] cableY = new float[MaxCables];
+    int count = Cables;
     int fired;
     float next;
     bool acted;
@@ -538,9 +703,9 @@ public class CableRakeAttack : EliteAttack
     public override float? FaceDeg => -90f;
     public EliteTelegraph Telegraph => tele;
     public int Dropped => fired;
-    public float CableX(int i) => cableX[Mathf.Clamp(i, 0, Cables - 1)];
-    public float CableY(int i) => cableY[Mathf.Clamp(i, 0, Cables - 1)];
-    public int Count => Cables;
+    public float CableX(int i) => cableX[Mathf.Clamp(i, 0, MaxCables - 1)];
+    public float CableY(int i) => cableY[Mathf.Clamp(i, 0, MaxCables - 1)];
+    public int Count => count;
 
     public override void BeginTell(Vector2 seen)
     {
@@ -549,13 +714,14 @@ public class CableRakeAttack : EliteAttack
         fired = 0;
         tele.Clear();
         var hb = ship.Brain as HookerBrain;
-        float x0 = ship.Position.x;
+        count = Mathf.Clamp(def.shotCount, Cables, MaxCables);
         float dir = hb != null ? hb.DirX : 1f;
-        float step = Mathf.Max(.6f, def.lobSpacing > .5f ? def.lobSpacing : Step);
-        for (int i = 0; i < Cables; i++)
+        float step = Mathf.Clamp(def.lobSpacing, .6f, 1.1f);
+        float edge = EliteSystem.RailEdge - .35f;
+        for (int i = 0; i < count; i++)
         {
-            cableX[i] = x0 + dir * (i + 1) * step;
-            cableY[i] = hb != null ? hb.PathAt(hb.AlongAt(cableX[i])).y : ship.Position.y;
+            cableX[i] = Mathf.Clamp(dir * (i - (count - 1) * .5f) * step, -edge, edge);
+            cableY[i] = hb != null ? hb.PathY(cableX[i]) : ship.Position.y;
             tele.Lane(new Vector2(cableX[i], cableY[i]), new Vector2(cableX[i], EliteSystem.ViewBottom - .3f), Half);
         }
         tele.Show(TellSeconds, def.ShotColor, def.WorldIndex);
@@ -577,14 +743,14 @@ public class CableRakeAttack : EliteAttack
     public override bool StepAction(float dt)
     {
         t += dt;
-        while (t >= next && fired < Cables)
+        while (t >= next && fired < count)
         {
             FireFrom(new Vector2(cableX[fired], cableY[fired]), -90f, def.shotSpeed, EliteShots.KindOf(def.shotKind));
             if (fired == 0) ship.OnFired(0, -90f);
             fired++;
             next += def.shotInterval;
         }
-        return fired >= Cables && t >= def.actionSeconds;
+        return fired >= count && t >= def.actionSeconds;
     }
 
     public override void End()
@@ -601,25 +767,40 @@ public class CableRakeAttack : EliteAttack
 
 // ---- Static Bastion: citadel / hail_wall ----------------------------------------------------------------------------------
 
-// A floating fortress. It crawls along the top (a slow pendulum over about 60 % of the width) and holds still while it casts. It
-// never comes down and never follows the pilot.
+// A floating fortress. It CRAWLS along the top to the spot the script names (a rail end "L" / "R", or the middle "C") and PLANTS there
+// to drop its wall; it casts only once it has arrived, and crawls to the next spot after the cast. It never comes down and never
+// follows the pilot.
 public class CitadelBrain : EliteBrain
 {
-    public const float Pace = .22f;
-    public float Rx => Mathf.Max(.3f, StormFlight.Edge(def, .5f) * .6f);
+    public const float Crawl = .55f;
+    float targetX, carrotX;
+    public float TargetX => targetX;
+    public float LegX => Mathf.Max(.3f, StormFlight.Edge(def, .5f) * .85f);
     public float Height => ship.ZoneY(ship.ReachY(EliteSystem.ViewTop - def.topMargin));
+    public bool Planted => Mathf.Abs(Pos.x - targetX) < .3f;
 
     public CitadelBrain() { Id = "citadel"; }
 
     public override Vector2 JoinFrom => Vector2.up;
-    public override float SpeedScale => .7f;
+    public override float SpeedScale => .8f;
     public override float MinAttackAbove => 1.5f;
-    public override bool WantsAttack(Vector2 seen) => Pos.y > seen.y + MinAttackAbove;
+    public override bool WantsAttack(Vector2 seen) => Pos.y > seen.y + MinAttackAbove && Planted;
     public override float? FaceDeg(Vector2 seen) => -90f;
+
+    public override void OnScriptMove(string token)
+    {
+        if (token == "L") targetX = -LegX;
+        else if (token == "R") targetX = LegX;
+        else if (token == "C") targetX = 0f;
+    }
+
     public override Vector2 Goal(Vector2 follow, float dt)
     {
         Clock += dt;
-        return new Vector2(Mathf.Sin(Clock * Pace) * Rx, Height);
+        // (the entrance lands on the middle of the top; the crawl starts from there)
+        if (ship.State == EliteState.Join) carrotX = 0f;
+        else carrotX = Mathf.MoveTowards(carrotX, targetX, def.speed * Crawl * ship.Script.SpeedScale * dt);
+        return new Vector2(carrotX, Height);
     }
 }
 
@@ -627,13 +808,15 @@ public class CitadelBrain : EliteBrain
 // the view, from the first frame. The gap of the first wave sits HandOff to the side of where it saw the pilot at the start of the
 // tell (toward the middle of the board, so the pilot has to move); each later wave slides it a hand (WaveSlide) further the same
 // way. The action lets Waves walls of hail fall from the top of the view, shotInterval apart: a stone every Spacing across the board
-// except inside the gap, each wave staggered half a stone from the last. (Two waves; three at <= 2 hearts.)
+// except inside the gap, each wave staggered half a stone from the last. (The def's shotCount waves, 2 or 3; at the last heart the
+// gap CLOSES IN, a hand narrower with every wave.)
 public class HailWallAttack : EliteAttack
 {
-    public const float GapHalf = .8f, HandOff = 1.3f, WaveSlide = .35f, Edge = .25f, Top = .25f;
+    public const float GapHalf = .8f, HandOff = 1.3f, WaveSlide = .35f, Edge = .25f, Top = .25f, ClosePerWave = .15f, MinGapHalf = .45f;
     public const int MaxWaves = 3;
     readonly EliteTelegraph tele = new EliteTelegraph();
     readonly float[] gap = new float[MaxWaves];
+    readonly float[] half = new float[MaxWaves];
     int waves, fired;
     float next;
     bool acted;
@@ -646,12 +829,14 @@ public class HailWallAttack : EliteAttack
     public int Waves => waves;
     public int Sent => fired;
     public float GapCentre(int w) => gap[Mathf.Clamp(w, 0, MaxWaves - 1)];
-    public int WaveCount => Mathf.Clamp(Mathf.Max(2, def.shotCount) + (ship.Hearts <= 2 ? 1 : 0), 2, MaxWaves);
+    public float GapHalfOf(int w) => half[Mathf.Clamp(w, 0, MaxWaves - 1)];
+    public int WaveCount => Mathf.Clamp(def.shotCount, 2, MaxWaves);
+    public bool Closing => ship.Script.Phase >= EliteScriptRunner.PhaseLast;
     public float Spacing => Mathf.Max(.5f, def.lobSpacing);
     public float Fall => Mathf.Max(.8f, def.shotSpeed);
 
     // Is column x of wave w inside the wave's gap?
-    public bool InGap(int w, float x) => Mathf.Abs(x - gap[w]) < GapHalf;
+    public bool InGap(int w, float x) => Mathf.Abs(x - gap[w]) < half[w];
 
     public override void BeginTell(Vector2 seen)
     {
@@ -660,17 +845,19 @@ public class HailWallAttack : EliteAttack
         fired = 0;
         waves = WaveCount;
         float limit = Mathf.Max(0f, EliteSystem.RailEdge - Edge - GapHalf);
-        // toward the middle of the board; dead centre: the side with room (alternates per cast)
-        float way = seen.x > .2f ? -1f : seen.x < -.2f ? 1f : (Random.value < .5f ? -1f : 1f);
+        // toward the middle of the board; dead centre: the side with room (the script's counter alternates it per cast)
+        float way = seen.x > .2f ? -1f : seen.x < -.2f ? 1f : ship.Script.Alternate("gapway", -1f);
         float g = Mathf.Clamp(seen.x + way * HandOff, -limit, limit);
         // if the clamp ate the offset (pilot at a rail), the slide goes the way there is room
         float slide = Mathf.Abs(g) >= limit - .01f ? -Mathf.Sign(g) : way;
+        bool closing = Closing;
         tele.Clear();
         for (int w = 0; w < waves; w++)
         {
+            half[w] = closing ? Mathf.Max(MinGapHalf, GapHalf - ClosePerWave * w) : GapHalf;
             gap[w] = Mathf.Clamp(g + slide * WaveSlide * w, -limit, limit);
-            tele.Lane(new Vector2(gap[w] - GapHalf, EliteSystem.ViewTop), new Vector2(gap[w] - GapHalf, EliteSystem.ViewBottom), .04f);
-            tele.Lane(new Vector2(gap[w] + GapHalf, EliteSystem.ViewTop), new Vector2(gap[w] + GapHalf, EliteSystem.ViewBottom), .04f);
+            tele.Lane(new Vector2(gap[w] - half[w], EliteSystem.ViewTop), new Vector2(gap[w] - half[w], EliteSystem.ViewBottom), .04f);
+            tele.Lane(new Vector2(gap[w] + half[w], EliteSystem.ViewTop), new Vector2(gap[w] + half[w], EliteSystem.ViewBottom), .04f);
         }
         tele.Show(TellSeconds, def.ShotColor, def.WorldIndex);
     }
