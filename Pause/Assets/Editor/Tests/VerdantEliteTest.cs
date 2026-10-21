@@ -364,8 +364,8 @@ public static class VerdantEliteTest
                 n++;
             });
             Check(key + ": keeps its distance outside committed attacks (closest " + min.ToString("0.0") + " u, lowest " + minY.ToString("0.0") + " u above the pilot, average " + (n > 0 ? sumY / n : 0f).ToString("0.0") + ", " + e.Attacks + " attacks)",
-                  Alive(e) && n > 100 && min > 3f && e.Attacks >= 3);
-            if (!(Alive(e) && n > 100)) Debug.Log("[VEL] INFO  " + key + " alive " + Alive(e) + ", samples " + n);
+                  Alive(e) && n > 60 && min > 3f && e.Attacks >= 3);   // (n: samples outside attacks and off the board; a quicker tempo spends more of the 40 s acting)
+            if (!(Alive(e) && n > 60)) Debug.Log("[VEL] INFO  " + key + " alive " + Alive(e) + ", samples " + n);
         }
     }
 

@@ -706,7 +706,7 @@ public static class FrostDockTest
             {
                 EliteSystem.Clear();
                 any &= dir.SpawnGroup(1, 1) == 1;
-                saw |= EliteShip.Live.Count > 0 && EliteShip.Live[0].Def == d;
+                saw |= EliteShip.Live.Count > 0 && EliteShip.Live[0].Def.key == d.key;
             }
             Check(x.key + ": with none of its kinds in view it takes any free site (" + rest.Count + " left, saw it " + saw + ")", any && saw);
             Object.DestroyImmediate(dir.gameObject);
