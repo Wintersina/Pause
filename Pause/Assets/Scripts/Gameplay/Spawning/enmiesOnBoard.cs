@@ -1105,6 +1105,7 @@ public class RailMineMount : MonoBehaviour, IMovementFootprint
                 if (y > row) return;                       // still coming down to the band
                 RideState = y >= row - HoldBand ? RidePhase.Holding : RidePhase.Skipped;
                 RideSeconds = 0f;
+                if (RideState == RidePhase.Holding) goto case RidePhase.Holding;   // ride from this very frame: counter-scroll at once, so the board's step never carries it past the row first (that overshoot, then the climb back, read as a jiggle)
                 break;
             }
             case RidePhase.Holding:
