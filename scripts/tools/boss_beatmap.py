@@ -130,7 +130,7 @@ def analyse(name, old=None):
     out = {
         "bpm": round(float(bpm), 3), "firstBeat": round(float(first), 4), "beatsPerBar": 4,
         # the bar line stays what the file says (checked by ear); a new map starts at 0 and downbeatGuess is the hint
-        "downbeatBeat": int(old["downbeatBeat"]) if old is not None else 0, "duration": round(float(dur), 3), "steady": bool(steady),
+        "downbeatBeat": int(old["downbeatBeat"]) if old is not None else 0, "bossStartBeat": int(old.get("bossStartBeat", 0)) if old is not None else 0, "duration": round(float(dur), 3), "steady": bool(steady),
         "windowDriftMs90": round(drift_ms, 1),
         "windowBpmMin": round(float(wt.min()), 1), "windowBpmMax": round(float(wt.max()), 1),
         "halfBeatPhaseRatio": round(ambiguity, 2),

@@ -312,7 +312,7 @@ public class WorldMusic : MonoBehaviour
             preBossClip = source.clip;
             bossTrackPlaying = true;
             if (BossClip(theme) == next) CodexMusic.HeardBoss(theme);
-            EnsureRunner().StartCoroutine(Swap(source, next));
+            EnsureRunner().StartCoroutine(Swap(source, next, BossClip(theme) == next ? BossStartSeconds(theme) : 0f));
             // the boss song's beat clock (Scripts/Audio/BeatClock.cs): the fight's volleys follow it
             if (BossClip(theme) == next) BossBeat.Attach(source, theme.displayName);
         }
@@ -343,7 +343,14 @@ public class WorldMusic : MonoBehaviour
         }
     }
 
-    static IEnumerator Swap(AudioSource main, AudioClip next)
+    // Where the boss song starts playing: a map with a long quiet intro (Verdant) names a bar to start at instead.
+    public static float BossStartSeconds(WorldTheme theme)
+    {
+        var map = theme == null ? null : BeatMaps.For(theme.displayName);
+        return map == null ? 0f : map.StartSeconds;
+    }
+
+    static IEnumerator Swap(AudioSource main, AudioClip next, float startAt = 0f)
     {
         float fade = runner != null ? runner.crossfadeSeconds : 1.5f;
 
@@ -369,7 +376,7 @@ public class WorldMusic : MonoBehaviour
 
         main.clip = next;
         main.loop = true;
-        main.time = 0f;
+        main.time = startAt > 0f && startAt < next.length ? startAt : 0f;
         main.Play();
         yield return null;
     }

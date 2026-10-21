@@ -2527,6 +2527,7 @@
       "firstBeat": 0.026,
       "beatsPerBar": 4,
       "downbeatBeat": 0,
+      "bossStartBeat": 64,
       "duration": 207.476,
       "steady": false,
       "windowDriftMs90": 0.0,
