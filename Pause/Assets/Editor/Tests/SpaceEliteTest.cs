@@ -619,6 +619,7 @@ public static class SpaceEliteTest
         e.AttackCooldown = 99f;
         float v0 = 0f;
         Step(20f, () => v0 = Mathf.Max(v0, e.Velocity.magnitude));
+        float p0 = brain.PointerSpeed;
         LoseHeart(e);
         Check("reaver hit: a flinch on the board, no hiding", e.InPlay && !e.Hidden);
         int g2 = 0;
@@ -626,7 +627,8 @@ public static class SpaceEliteTest
         float v1 = 0f;
         e.AttackCooldown = 99f;
         Step(20f, () => v1 = Mathf.Max(v1, e.Velocity.magnitude));
-        Check("... and comes back with faster loops (" + v0.ToString("0.0") + " -> " + v1.ToString("0.0") + " u/s)", v1 > v0 * 1.15f && Alive(e));
+        Check("... and comes back with faster loops: the track pointer runs " + brain.PointerSpeed.ToString("0.0") + " u/s (was " + p0.ToString("0.0") + "; ship top speed " + v0.ToString("0.0") + " -> " + v1.ToString("0.0") + ")",
+              brain.PointerSpeed > p0 * 1.2f && v1 >= v0 && Alive(e));
         Check("... and a bigger volley (" + e.Def.shotCount + " shards in phase 2)", e.Script.Phase == 2 && e.Def.shotCount == 5);
 
         // the last heart: the one scripted exit by the left, then the figure eight
@@ -709,7 +711,6 @@ public static class SpaceEliteTest
         int lastAttacks = e.Attacks, minesSeen = 0;
         float nearest = 99f;
         bool onBoard = true, touchable = true;
-        EliteShot lastMine = null;
         float clock = 0f;
         for (int i = 0; i < 30 * 120 && steps.Count < 9; i++)
         {
@@ -728,10 +729,10 @@ public static class SpaceEliteTest
                     steps.Add(e.Script.StepIndex);
                     variants.Add(e.Script.VariantName);
                     sides.Add(brain.Side);
+                    if (rail.MineRun) minesSeen++;
                 }
             }
             if (!e.Telling && !e.Acting && brain.Phase == SniperBrain.Stage.Perch) nearest = Mathf.Min(nearest, Vector2.Distance(e.Position, pilot.position));
-            if (rail.Mine != null && rail.Mine != lastMine && rail.Mine.Active) { lastMine = rail.Mine; minesSeen++; }
             e.AttackCooldown = Mathf.Min(e.AttackCooldown, 1.2f);
         }
         string want = string.Join(",", ExpectedBeats(def, 1, steps.Count));

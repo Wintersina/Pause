@@ -581,7 +581,7 @@ public class SwooperBrain : EliteBrain
     public override Vector2 Goal(Vector2 follow, float dt)
     {
         Clock += dt;
-        float v = def.speed * SpeedScale * ship.Script.SpeedScale;
+        float v = PointerSpeed;
         if (eight)
         {
             if ((Pos - Eight8(a)).sqrMagnitude < Stall * Stall) a += v * dt / Mathf.Max(.8f, Eight8Speed(a));
@@ -608,6 +608,9 @@ public class SwooperBrain : EliteBrain
     }
 
     public override float SpeedScale => Boost;
+
+    // How fast the pointer runs along the track: the def's speed, the brain's boost, the script phase's pace.
+    public float PointerSpeed => def.speed * SpeedScale * ship.Script.SpeedScale;
 
     public override bool WantsAttack(Vector2 seen) => windowOpen && doneVisit != visit;
 
