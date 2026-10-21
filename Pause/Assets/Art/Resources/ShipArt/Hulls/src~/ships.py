@@ -46,6 +46,10 @@ OLD_RECTS = {
     "UFO": (26, 26), "Dove": (20, 24), "Turtle": (22, 29),
 }
 
+# Hulls repainted by Codex in the Paragon style (build_restyle.py): the vector pipeline
+# (build.py / build_skins.py) must not regenerate them, nor their C# rows.
+RESTYLED = {"NeonComet"}
+
 ORDER = ["NeonComet", "VoltViper", "SolarFang", "CrimsonHalo", "IonLancer", "JadePhantom",
          "GoldWarden", "Lightning", "Ligher", "Paranoid", "Ninja", "Saboteur", "UFO", "Dove",
          "Turtle"]

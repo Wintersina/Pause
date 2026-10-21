@@ -26,7 +26,7 @@ from PIL import Image
 
 from hullkit import *  # noqa: F401,F403
 import damage
-from ships import BUILDERS, HUES, OLD_RECTS, ORDER, SPINNERS
+from ships import BUILDERS, HUES, OLD_RECTS, ORDER, RESTYLED, SPINNERS
 
 OUT_DIR = os.path.abspath(os.path.join(HERE, ".."))
 BUILD = os.path.join(HERE, "build")
@@ -255,8 +255,8 @@ def num(v):
 
 def main():
     only_svg = "--svg-only" in sys.argv
-    keys = [k for k in ORDER if not any(a for a in sys.argv[1:] if not a.startswith("--"))
-            or k in sys.argv[1:]]
+    keys = [k for k in ORDER if k not in RESTYLED and (not any(a for a in sys.argv[1:] if not a.startswith("--"))
+            or k in sys.argv[1:])]
     rects, nozzles = {}, {}
     for key in keys:
         ship, cells = build_ship(key, not only_svg)

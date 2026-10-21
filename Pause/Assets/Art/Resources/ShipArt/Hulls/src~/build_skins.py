@@ -30,7 +30,7 @@ from PIL import Image, ImageChops
 
 from build import BUILD, CELL, COLUMNS, OUT_DIR, SCRIPTS, STATES, load, patch, poses
 from hullkit import Pose, render, svg
-from ships import ORDER, SPINNERS
+from ships import ORDER, RESTYLED, SPINNERS
 from skins import SKINS, livery
 
 SKIN_DIR = os.path.abspath(os.path.join(OUT_DIR, "..", "Skins"))
@@ -160,7 +160,7 @@ def main():
     if "--verify-stock" in sys.argv:
         sys.exit(1 if verify_stock() else 0)
     only = [a for a in sys.argv[1:] if not a.startswith("--")]
-    keys = [k for k in ORDER if not only or k in only]
+    keys = [k for k in ORDER if k not in RESTYLED and (not only or k in only)]
     total = 0
     for key in keys:
         for index in range(1, len(SKINS[key])):

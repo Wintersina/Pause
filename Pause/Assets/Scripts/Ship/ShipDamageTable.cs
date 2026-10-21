@@ -56,7 +56,7 @@ public static class ShipDamageTable
         new DamageEmitter[0],
         // BEGIN GENERATED EMITTERS
         //  1 NeonComet: 1) left wing panel blown, wiring sparks; scorched right wing; 2) right wingtip torn off, spine cracked, right pod burning, canopy cracked
-        new[] { E(1, Sparks, 32.6f, 82.6f), E(1, Smoke, 52.2f, 106.4f), E(1, Smolder, 32.8f, 82.3f), E(2, Arc, 107.2f, 92.3f), E(2, Flame, 75.8f, 104.6f), E(2, Leak, 69.9f, 92.3f), E(2, Smolder, 108.4f, 92.6f), E(2, Smolder, 82.2f, 90.1f), E(2, Smolder, 55.2f, 97.6f), E(2, Smolder, 75.2f, 61.3f), E(2, Smolder, 53.2f, 61.9f) },
+        new[] { E(1, Sparks, 32.6f, 82.6f), E(1, Smoke, 57.2f, 101.4f), E(1, Smolder, 32.8f, 82.3f), E(2, Arc, 106.2f, 91.3f), E(2, Flame, 70.8f, 99.6f), E(2, Leak, 69.9f, 92.3f), E(2, Smolder, 107.4f, 91.6f), E(2, Smolder, 82.2f, 90.1f), E(2, Smolder, 55.2f, 97.6f), E(2, Smolder, 75.2f, 61.3f), E(2, Smolder, 53.2f, 61.9f) },
         //  2 VoltViper: 1) hull panel blown over the right wing root; left engine smoking; 2) left wingtip torn, right wing bent, right leg on fire, canopy cracked
         new[] { E(1, Sparks, 75.0f, 63.1f), E(1, Smoke, 53.0f, 100.9f), E(1, Smolder, 75.2f, 63.3f), E(2, Arc, 17.2f, 70.6f), E(2, Flame, 75.0f, 100.9f), E(2, Leak, 69.5f, 89.5f), E(2, Smolder, 16.5f, 70.6f), E(2, Smolder, 93.9f, 55.5f), E(2, Smolder, 69.2f, 23.1f), E(2, Smolder, 48.1f, 79.4f), E(2, Smolder, 76.5f, 85.6f) },
         //  3 SolarFang: 1) left flank panel blown, reactor cracked; nozzle smoking; 2) left fang bent, reactor housing open and arcing, right tip torn, canopy cracked
