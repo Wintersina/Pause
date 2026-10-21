@@ -69,6 +69,7 @@ public static class DesertEliteTest
             Cannon();
             Scorpion();
             Bastion();
+            Choreography();
             Rules();
             Allocations();
         }
@@ -344,11 +345,19 @@ public static class DesertEliteTest
         var e = InPlay(key, new Vector2(0f, 3f));
         var bb = (BurrowerBrain)e.Brain;
         var wc = (WormChurnAttack)e.Attack;
-        Check("Dune Stalker: it roams (untouchable off the board) and leaves its burrow by the nearer side first (" + bb.Phase + ")", bb.Roams && bb.Phase == DesertPassBrain.Stage.Leave);
-        bool passing = StepUntil(() => bb.Phase == DesertPassBrain.Stage.Pass, 8f);
-        Check("... then makes a rippling PASS across the top (passes " + bb.Passes + ")", passing && bb.Passes == 1);
+        Check("Dune Stalker: it stays on the board (it does not roam off the view)", !bb.Roams);
+        float minX = 9f, maxX = -9f, minY = 99f, maxY = -99f;
+        bool onView = true;
+        Step(16f, () =>
+        {
+            Vector2 p = e.Position;
+            minX = Mathf.Min(minX, p.x); maxX = Mathf.Max(maxX, p.x); minY = Mathf.Min(minY, p.y); maxY = Mathf.Max(maxY, p.y);
+            onView &= Mathf.Abs(p.x) <= EliteSystem.RailEdge && p.y <= EliteSystem.ViewTop && p.y >= EliteSystem.ViewBottom;
+        });
+        Check("... it circles a low rippling band, turning round at both rails and never leaving the view (x " + minX.ToString("0.0") + " .. " + maxX.ToString("0.0") + ", y " + minY.ToString("0.0") + " .. " + maxY.ToString("0.0") + ")",
+              onView && minX < -.8f && maxX > .8f && maxY - minY > 1.5f);
         bool window = StepUntil(() => bb.WantsAttack(PilotAt), 14f);
-        Check("the cast window opens inside the rails, high over the board (x " + e.Position.x.ToString("0.0") + ", y " + e.Position.y.ToString("0.0") + ")", window && e.Position.y > pilot.position.y + 1.5f);
+        Check("the cast window opens at the start of the low run, inside the rails, above the pilot (x " + e.Position.x.ToString("0.0") + ", y " + e.Position.y.ToString("0.0") + ")", window && e.Position.y > pilot.position.y + 1.0f);
         StartTell(e);
         bool inside = true, spaced = true, below = true;
         for (int i = 0; i < wc.Count; i++)
@@ -371,8 +380,19 @@ public static class DesertEliteTest
         }
         Check("the bursts land one after another as pools (" + pools + " at once of " + wc.Count + ") and the FR1 lead was shown", wc.Laid == wc.Count && pools >= wc.Count - 1 && AttackPreview.TooShort == 0);
         Check("the cast is counted (" + counted + ")", counted == 1);
-        bool back = StepUntil(() => bb.Passes >= 2, 24f);
-        Check("it leaves by the far side and comes back for another pass (" + bb.Passes + ")", back);
+        bool back = StepUntil(() => !bb.WantsAttack(PilotAt), 6f) && StepUntil(() => bb.WantsAttack(PilotAt), 20f);
+        Check("it flies on round its circuit and the cast window opens again a lap later (x " + e.Position.x.ToString("0.0") + ")", back && Mathf.Abs(e.Position.x) <= EliteSystem.RailEdge);
+
+        // phase 2: the twin trail (hazardCount 8: two trails side by side, their bursts interleaved)
+        Fresh();
+        e = InPlay(key, new Vector2(0f, 3f));
+        wc = (WormChurnAttack)e.Attack;
+        e.TakeHit(EliteDamage.Teleport, e.transform.position, 1);
+        Check("a lost heart starts phase 2 (its numbers: " + e.Script.Phase + ")", e.Script.Phase == 2);
+        e.SetSeen(pilot.position);   // (phase 2's loop starts on its twin beat)
+        e.ForceAttack();
+        EliteSystem.Step(Dt);
+        Check("the twin beat rings TWO trails (" + wc.Count + " bursts, " + wc.Trails + " trails)", e.Telling && e.Script.VariantName == "twin" && wc.Trails == 2 && wc.Count == 2 * WormChurnAttack.Bursts && wc.Count <= DesertSpotAttack.MaxSpots);
 
         Fresh();
         e = InPlay(key, new Vector2(0f, 3f));
@@ -449,12 +469,17 @@ public static class DesertEliteTest
         var e = InPlay(key, new Vector2(0f, 3f));
         var gb = (GlintBrain)e.Brain;
         var gf = (GlassFanAttack)e.Attack;
-        Check("Lens Matriarch: it roams and leaves its pad by the nearer side first (" + gb.Phase + ")", gb.Roams && gb.Phase == DesertPassBrain.Stage.Leave);
-        bool passing = StepUntil(() => gb.Phase == DesertPassBrain.Stage.Pass, 8f);
-        Check("... then zig-zags across the top (passes " + gb.Passes + ")", passing && gb.Passes == 1);
-        float lo = 99f, hi = -99f;
-        StepUntil(() => { lo = Mathf.Min(lo, e.Position.y); hi = Mathf.Max(hi, e.Position.y); return gb.Phase != DesertPassBrain.Stage.Pass; }, 14f);
-        Check("the pass dips and climbs (y " + lo.ToString("0.0") + " .. " + hi.ToString("0.0") + ")", hi - lo > .3f);
+        Check("Lens Matriarch: it stays on the board (it does not roam off the view)", !gb.Roams);
+        float lo = 99f, hi = -99f, minX = 9f, maxX = -9f;
+        bool onView = true;
+        Step(16f, () =>
+        {
+            Vector2 p = e.Position;
+            lo = Mathf.Min(lo, p.y); hi = Mathf.Max(hi, p.y); minX = Mathf.Min(minX, p.x); maxX = Mathf.Max(maxX, p.x);
+            onView &= Mathf.Abs(p.x) <= EliteSystem.RailEdge && p.y <= EliteSystem.ViewTop && p.y >= EliteSystem.ViewBottom;
+        });
+        Check("... it zig-zags a circuit across the top and turns round at both rails (x " + minX.ToString("0.0") + " .. " + maxX.ToString("0.0") + ", y " + lo.ToString("0.0") + " .. " + hi.ToString("0.0") + ")",
+              onView && minX < -.8f && maxX > .8f && hi - lo > .3f);
         Fresh();
         e = InPlay(key, new Vector2(0f, 3f));
         gb = (GlintBrain)e.Brain;
@@ -514,7 +539,7 @@ public static class DesertEliteTest
         int want = lbm.Count * lbm.Streak;
         Check("a stream of " + lbm.Streak + " bolts runs down each beam (" + (EliteSystem.Shots.Launched - before) + " of " + want + ") and the lines are gone",
               EliteSystem.Shots.Launched - before >= want && AttackPreview.ActiveCount == 0);
-        Check("it then moves to ANOTHER perch (" + perch + " -> " + lb.Perch + ", moves " + lb.Moves + ")", lb.Moves == 1 && lb.Perch != perch);
+        Check("it then moves to the script's NEXT perch, centre after left (" + perch + " -> " + lb.Perch + ", moves " + lb.Moves + ")", lb.Moves == 1 && perch == 0 && lb.Perch == 1);
         bool arrived = StepUntil(() => lb.OnPerch, 10f);
         Check("... and settles on it", arrived);
         e.TakeHit(EliteDamage.Teleport, e.transform.position, 2);
@@ -591,8 +616,15 @@ public static class DesertEliteTest
         Fresh();
         var e = InPlay(key, new Vector2(0f, 3f));
         var dw = (DustWallAttack)e.Attack;
+        var bb = (BulwarkBrain)e.Brain;
         Step(4f);
-        Check("Mirror Bastion: it holds the top of the view (y " + e.Position.y.ToString("0.0") + ")", e.Position.y > pilot.position.y + 1.5f);
+        Check("Mirror Bastion: it holds the top of one side rail (x " + e.Position.x.ToString("0.0") + ", y " + e.Position.y.ToString("0.0") + ")", e.Position.y > pilot.position.y + 1.5f && bb.AtSlot && bb.Slot == 0);
+        float top = e.Position.y;
+        bb.OnScriptMove("slot:2");
+        bool slid = StepUntil(() => bb.AtSlot, 8f);
+        Check("a 'slot:2' beat slides it DOWN the same rail (y " + top.ToString("0.0") + " -> " + e.Position.y.ToString("0.0") + ")", slid && e.Position.y < top - 1.2f && Mathf.Sign(e.Position.x) == bb.Side);
+        bb.OnScriptMove("slot:0");
+        StepUntil(() => bb.AtSlot, 8f);
         StartTell(e);
         Check("on the first frame of the tell the edges of every wave's gap are drawn across the board (" + dw.Telegraph.Loops + " lines for " + dw.Waves + " waves)",
               e.Telling && dw.Waves >= 2 && dw.Telegraph.Showing && dw.Telegraph.Loops == 2 * dw.Waves);
@@ -602,7 +634,8 @@ public static class DesertEliteTest
         bool slides = true;
         for (int w = 1; w < dw.Waves; w++) slides &= Mathf.Abs(dw.GapCentre(w) - dw.GapCentre(w - 1)) <= DustWallAttack.WaveSlide + .01f;
         Check("each wave's gap slides at most a hand from the last", slides);
-        Check("the wall starts on the rail far from the pilot (from the " + (dw.FromLeft(0) ? "left" : "right") + ", pilot x " + pilot.position.x.ToString("0.0") + ")", dw.FromLeft(0) == (pilot.position.x >= 0f));
+        Check("the wall sweeps from the rail OPPOSITE the bastion's (it stands on the " + (bb.Side > 0f ? "right" : "left") + " rail; the wall comes from the " + (dw.FromLeft(0) ? "left" : "right") + ")",
+              dw.FromLeft(0) == (bb.Side >= 0f) && Mathf.Abs(e.Position.x) > EliteSystem.RailEdge * .5f && Mathf.Sign(e.Position.x) == bb.Side);
         StepUntil(() => e.Acting, 3f);
         int before = EliteSystem.Shots.Launched;
         bool clean = true, sideways = true;
@@ -645,6 +678,73 @@ public static class DesertEliteTest
         Check("a Bastion killed in its tell takes its lines with it", AttackPreview.ActiveCount == 0);
     }
 
+    // ---- the scripted choreography ------------------------------------------------------------
+
+    // What a fight did at the start of each attack: the script's beat (variant) and the brain's scripted choice (perch / flank / rail+slot).
+    static string Signature(EliteShip e)
+    {
+        string v = e.Script.VariantName;
+        var lb = e.Brain as LenspostBrain;
+        if (lb != null) return v + "@" + lb.Perch;
+        var fb = e.Brain as FlankerBrain;
+        if (fb != null) return v + "@" + fb.Side;
+        var bb = e.Brain as BulwarkBrain;
+        if (bb != null) return v + "@" + bb.Side + "/" + bb.Slot;
+        return v + "@" + e.Script.Phase + "." + e.Script.StepIndex;
+    }
+
+    static string Fight(string key, int seed, float seconds)
+    {
+        Fresh();
+        Random.InitState(seed);
+        var e = EliteShip.CreateInPlay(EliteCatalog.Find(key), new Vector2(0f, 3f));
+        e.EscapeLeft = 0f;
+        e.EngageLeft = 9999f;
+        var sb = new System.Text.StringBuilder();
+        int seen = 0;
+        for (float t = 0f; t < seconds && e != null && e.State != EliteState.Dead; t += Dt)
+        {
+            pilot.position = new Vector3(0f, -2.5f, 0f);
+            EliteSystem.Step(Dt);
+            if (e != null && e.Attacks > seen) { seen = e.Attacks; sb.Append(Signature(e)).Append(';'); }
+        }
+        return sb.ToString();
+    }
+
+    // Every Desert elite flies a fixed, learnable script: the same attack sequence (beats and perches / flanks / rails) whatever the random
+    // seed, an entrance of its own, and a visibly different loop in each phase.
+    static void Choreography()
+    {
+        var entrances = new HashSet<string>();
+        foreach (var x in Expected)
+        {
+            var d = EliteCatalog.Find(x.key);
+            var sd = d.script;
+            entrances.Add(sd.entrance.kind + "/" + sd.entrance.seconds + "/" + sd.entrance.amp);
+            Check(x.key + ": a scripted entrance of " + sd.entrance.seconds + " s (" + sd.entrance.kind + "), three phases with loops",
+                  sd.entrance.seconds >= 1f && sd.entrance.seconds <= 2f && sd.phase1 != null && sd.phase2 != null && sd.last != null &&
+                  sd.phase1.loop.Length >= 2 && sd.phase2.loop.Length >= 2 && sd.last.loop.Length >= 2);
+            Check(x.key + ": phase 1, phase 2 and the last heart each play a different loop", Loop(sd.phase1) != Loop(sd.phase2) && Loop(sd.phase2) != Loop(sd.last) && Loop(sd.phase1) != Loop(sd.last));
+            bool exits = d.hurtHide && !d.armored;
+            Check(x.key + ": leaves the view only by the one scripted exit (lastExit '" + sd.lastExit + "')", exits ? (sd.lastExit == "left" || sd.lastExit == "right" || sd.lastExit == "top") : sd.lastExit == "none" || !d.hurtHide);
+            string a = Fight(x.key, 11, 40f), b = Fight(x.key, 4242, 40f);
+            int n = a.Split(';').Length - 1;
+            Check(x.key + ": the same attack sequence whatever the seed (" + n + " attacks: " + a + ")", n >= 3 && First(a, 3) == First(b, 3));
+        }
+        Check("the six entrances are all different signatures (" + entrances.Count + ")", entrances.Count == 6);
+    }
+
+    static string First(string seq, int n) { var p = seq.Split(';'); return string.Join(";", p, 0, Mathf.Min(n, p.Length)); }
+
+    static string Loop(ElitePhaseDef p)
+    {
+        var sb = new System.Text.StringBuilder();
+        sb.Append(p.speed).Append('/').Append(p.gap).Append('|');
+        foreach (var s in p.loop) sb.Append(s.move).Append(':').Append(s.attack).Append(':').Append(s.wait).Append(',');
+        if (p.set != null) foreach (var s in p.set) sb.Append(s.key).Append('=').Append(s.value).Append(',');
+        return sb.ToString();
+    }
+
     // ---- the fight rules ---------------------------------------------------------------------
 
     static void Rules()
@@ -666,8 +766,8 @@ public static class DesertEliteTest
             Check(x.key + ": an aimed attack winds up long enough for the lock (tell " + d.tellSeconds + " s)", !atk.Aimed || d.tellSeconds >= EliteDef.MinAimedTell);
             Check(x.key + ": a drawn tell of at least " + AttackHazard.MinTellSeconds + " s", d.tellSeconds >= AttackHazard.MinTellSeconds);
         }
-        Check("Stalker and Matriarch roam; Hauler, Cannon, Skiff and Bastion stay on the board",
-              EliteBrains.Create("burrower").Roams && EliteBrains.Create("glint").Roams &&
+        Check("none of the six Desert elites roams: they all stay on the board (the one scripted exit is the last heart's)",
+              !EliteBrains.Create("burrower").Roams && !EliteBrains.Create("glint").Roams &&
               !EliteBrains.Create("caravan").Roams && !EliteBrains.Create("lenspost").Roams && !EliteBrains.Create("flanker").Roams && !EliteBrains.Create("bulwark").Roams);
         Check("the base ids Desert used to fly are still registered",
               System.Array.IndexOf(EliteBrains.Ids, "interceptor") >= 0 && System.Array.IndexOf(EliteAttacks.Ids, "lance_dash") >= 0 &&
