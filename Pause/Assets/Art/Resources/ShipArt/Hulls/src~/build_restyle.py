@@ -86,6 +86,21 @@ SHIPS = {
                    bands=dict(outer=(0x22, 0xB0, 0x7A), mid=(0x8E, 0xF0, 0xC4), core=(0xF4, 0xEA, 0xD4),
                               dark=(0x0E, 0x5A, 0x44), accent=(0x1F, 0xB5, 0xB9))),
     ),
+    "Dove": dict(
+        id=14, hull_w=192, world_w=202 / 1010, nozzles=1, noz_cells=[(128, 236, 1.0)], fill_holes=True,
+        emitters=parse_emitters(
+            "E(1, Sparks, 47.1f, 59.1f), E(1, Smoke, 64.0f, 107.2f), E(1, Smolder, 47.1f, 59.1f), "
+            "E(2, Arc, 97.9f, 60.1f), E(2, Flame, 72.5f, 89.5f), E(2, Leak, 54.6f, 87.6f), "
+            "E(2, Smolder, 99.8f, 60.1f), E(2, Smolder, 72.5f, 88.6f), E(2, Smolder, 57.9f, 16.5f), "
+            "E(2, Smolder, 82.6f, 43.5f), E(2, Smolder, 42.0f, 38.3f), E(2, Smolder, 79.3f, 19.8f)"),
+        skins=[("Night", "night"), ("Sodium", "sodium"), ("Bone", "bone"), ("Courier", "stock")],
+        # rows 1-2 are COMPOSED from row 0: the key poses' damage painting is pasted only inside these
+        # ellipses (cx, cy, rx, ry in the key pose's 256 cell), so damage sits on the same panels in every cell.
+        damage_zones=dict(s1=[], s2=[]),
+        flame=dict(x=(1400, 0), y=(698, 504), frames=7,
+                   bands=dict(outer=(0x36, 0xC2, 0xC2), mid=(0xA6, 0xF2, 0xEE), core=(0xF4, 0xEA, 0xD4),
+                              dark=(0x14, 0x6A, 0x70), accent=(0xFF, 0xB4, 0x3C))),
+    ),
 }
 
 
@@ -159,6 +174,73 @@ def fill_enclosed(img):
     return Image.fromarray(arr), n
 
 
+def zone_mask(zones, col, bbox0, bbox_c, soft=False):
+    """float 256x256 map of the union of ellipses, moved with column `col` (bob = y shift, bank = x stretch):
+    value = normalised radius (<=1 inside), 9 outside."""
+    yy, xx = np.mgrid[0:CELL, 0:CELL].astype(np.float64)
+    dy = {1: -4, 2: -4, 5: 4}.get(col, 0)
+    yk = yy - dy
+    if col in (6, 7):
+        kw = bbox0[1] - bbox0[0] + 1
+        bw = bbox_c[1] - bbox_c[0] + 1
+        xk = bbox0[0] + (xx - bbox_c[0]) * (kw / bw)
+    else:
+        xk = xx
+    m = np.full((CELL, CELL), 9.0)
+    for cx, cy, rx, ry in zones:
+        m = np.minimum(m, np.sqrt(((xk - cx) / rx) ** 2 + ((yk - cy) / ry) ** 2))
+    return m
+
+
+def _bbx(arr):
+    xs = np.nonzero(arr[..., 3].any(axis=0))[0]
+    return xs.min(), xs.max()
+
+
+def _resample_key(key, col, b0, bc):
+    """The key pose moved like column `col` does (bob = y shift, bank = x stretch about the same mapping as zone_mask)."""
+    dy = {1: -4, 2: -4, 5: 4}.get(col, 0)
+    out = np.zeros_like(key)
+    if dy:
+        src = roll_y(Image.fromarray(key), dy)
+        return np.array(src)
+    if col in (6, 7):
+        kw = b0[1] - b0[0] + 1
+        bw = bc[1] - bc[0] + 1
+        xk = np.clip(np.round(b0[0] + (np.arange(CELL) - bc[0]) * (kw / bw)).astype(int), 0, CELL - 1)
+        out = key[:, xk]
+    else:
+        out = key
+    return out
+
+
+def compose_rows(cfg, row0, key_cell_st, key_cell0, st):
+    """Row `st` (1/2) cells = row 0 cells with the damage painting of key pose `st` pasted inside the damage zones.
+    Core of an ellipse (radius < .7) always takes the damage painting; its ring only where the painting differs
+    clearly from the intact key (no visible ellipse seam). Same physical panels in every column."""
+    z = cfg["damage_zones"]
+    k_st = np.array(key_cell_st)
+    k_0 = np.array(key_cell0)
+    keyf = np.array(row0[0])
+    b0 = _bbx(keyf)
+    out = []
+    for c in range(COLS):
+        cell = np.array(row0[c])
+        if c == 8:
+            out.append(Image.fromarray(cell))
+            continue
+        bc = _bbx(cell)
+        zones = list(z["s1"]) + (list(z["s2"]) if st == 2 else [])
+        r = zone_mask(zones, c, b0, bc)
+        patch = _resample_key(k_st, c, b0, bc)
+        ref = _resample_key(k_0, c, b0, bc)
+        diff = np.abs(patch[..., :3].astype(int) - ref[..., :3].astype(int)).sum(-1)
+        take = ((r < .7) | ((r <= 1.0) & (diff > 70))) & (patch[..., 3] > 0) & (cell[..., 3] > 0)
+        cell[take] = patch[take]
+        out.append(Image.fromarray(cell))
+    return out
+
+
 def build_sheet(cfg, codex):
     keys = [Image.open(os.path.join(codex, f"key_state{s}.png")).convert("RGB") for s in range(3)]
     k0 = np.array(bp.key_green(keys[0]))[..., 3]
@@ -174,6 +256,10 @@ def build_sheet(cfg, codex):
         hull_mask = (np.array(bp.key_green(keys[st]))[..., 3] > 0) if cfg.get("fill_holes") else None
         flash_src = Image.fromarray(hit_flash(np.array(keys[st]), hull_mask))
         flash = bp.fit_cells([flash_src], 1024, scale, anchor)[0]
+        if st and cfg.get("damage_zones"):
+            per_state.append(compose_rows(cfg, per_state[0], key_cell, per_state[0][0], st))
+            per_state[-1][8] = per_state[0][8]
+            continue
         rp = os.path.join(codex, f"hull_redo_state{st}.png")
         redo = None
         if os.path.exists(rp) and "--no-redo" not in sys.argv:
@@ -362,6 +448,16 @@ def write_skins(sheet, cfg, key, codex):
                     tile[a, 3] = base[reg][..., 3][a]
                     out.alpha_composite(Image.fromarray(tile), (c * CELL, st * CELL))
             print(f"  skin {name}: Codex sheets, {holes} silhouette pixels from the fallback")
+            if cfg.get("damage_zones"):
+                # damage rows composed from the skin's own intact row, like the stock sheet
+                o = np.array(out)
+                cells0 = [Image.fromarray(o[0:CELL, c * CELL:(c + 1) * CELL].copy()) for c in range(COLS)]
+                for st in (1, 2):
+                    kst = Image.fromarray(o[st * CELL:(st + 1) * CELL, 0:CELL].copy())
+                    comp = compose_rows(cfg, cells0, kst, cells0[0], st)
+                    for c in range(COLS):
+                        o[st * CELL:(st + 1) * CELL, c * CELL:(c + 1) * CELL] = np.array(comp[c])
+                out = Image.fromarray(o)
             fb = out
         else:
             print(f"  skin {name}: palette-shift fallback")
@@ -398,9 +494,10 @@ def write_flames(cfg, codex):
     bp.BANDS.clear()
     bp.BANDS.update(fl["bands"])
     atlas = Image.open(bp.ATLAS).convert("RGBA")
-    top = atlas.height - fl["y"] - bp.FRAME_H
+    ys = fl["y"] if isinstance(fl["y"], (tuple, list)) else (fl["y"], fl["y"])
     cols = np.array([bp.BANDS[k] for k in ("outer", "mid", "core", "dark", "accent")], float)
-    for x0, f in zip(fl["x"], ("flame_cruise.png", "flame_boost.png")):
+    for x0, yy, f in zip(fl["x"], ys, ("flame_cruise.png", "flame_boost.png")):
+        top = atlas.height - yy - bp.FRAME_H
         im = Image.open(os.path.join(codex, f)).convert("RGB")
         n = fl["frames"]
         w = im.width // n

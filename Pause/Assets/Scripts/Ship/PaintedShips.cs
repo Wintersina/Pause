@@ -6,7 +6,7 @@
 public static class PaintedShips
 {
     // 1 NeonComet, 3 SolarFang, 6 JadePhantom. (Paragon, id 16, is painted too: see PremiumShips.IsPremium.)
-    static readonly int[] restyled = { 1, 3, 6 };
+    static readonly int[] restyled = { 1, 3, 6, 14 };
 
     public static bool Is(int id)
     {
