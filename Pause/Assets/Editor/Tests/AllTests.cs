@@ -96,6 +96,7 @@ public static class AllTests
         ("VerdantAttackArtTest", VerdantAttackArtTest.Execute),
         ("AtomFlightTest", AtomFlightTest.Execute),
         ("AtomSpacingTest", AtomSpacingTest.Execute),
+        ("PowerUpRefundTest", PowerUpRefundTest.Execute),
         ("BackNavigationTest", BackNavigationTest.Execute),
         ("BackdropCellClipTest", BackdropCellClipTest.Execute),
         ("BackdropLoopGuardTest", BackdropLoopGuardTest.Execute),

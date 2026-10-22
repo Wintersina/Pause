@@ -197,7 +197,26 @@ public class spawnGoodStuff : MonoBehaviour {
             cooldownSpawned++;
         }
 
+        // A power-up refund (PowerUpRefund): the guaranteed drop its use
+        // meter earned, after the same atom spacing as any atom.
+        if (PowerUpRefund.Due && AtomSpacing.Ready) spawnRefund();
+    }
 
+    // The refund's drop: an ordinary atom (same prefab, spawn and visuals),
+    // marked so collecting and using it never feeds the meter again.
+    void spawnRefund()
+    {
+        var kind = PowerUpRefund.Pick(score.pauseCounter, collisionDetection.atomCheck, Random.value);
+        GameObject prefab = kind == PowerUpRefund.Kind.Pause ? redAtom
+            : kind == PowerUpRefund.Kind.Shield ? Atom
+            : kind == PowerUpRefund.Kind.Capacitor ? cooldownAtom : null;
+        if (prefab == null) return;
+        Vector3 pos = new Vector3(Random.Range(-RailInset.PickupLaneHalf, RailInset.PickupLaneHalf), transform.position.y, transform.rotation.z);
+        var go = Place(prefab, pos);
+        AtomSpin.AddTo(go);
+        go.AddComponent<RefundMark>().kind = kind;
+        AtomSpacing.Released();
+        PowerUpRefund.OnIssued(kind);
     }
     // Each star in a cluster used to share vPos.x, so a whole burst landed
     // in one straight vertical line at a single horizontal spot. Rolling a

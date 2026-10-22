@@ -58,6 +58,7 @@ public class score : MonoBehaviour {
         tutorialCurrency = 0;
         paysRealDust = PaysRealDust(gameObject.scene.name,
             PlayerPrefs.GetString("HasDoneTut") == "true", startMenu.youAreInTutorial);
+        PowerUpRefund.BeginRun(paysRealDust);   // off in the tutorial and practice runs
         ledgerRun = StarDustLedger.BeginRun(paysRealDust);
         if (paysRealDust) UpgradeOfferStore.RunStarted();
         // Practice runs score nothing; developer runs score but never save a
@@ -220,6 +221,7 @@ public class score : MonoBehaviour {
         pauseCounter = pauseCounter - 1;
         pauseCounterBool = true;
         AchievementTracker.OnPauseSpent();
+        PowerUpRefund.OnPauseSpent();
     }
 
     // The one rule for tutorial runs: anything in the tutorial scene, or any
