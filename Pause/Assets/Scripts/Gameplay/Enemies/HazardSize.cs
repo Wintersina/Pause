@@ -44,6 +44,12 @@ public static class HazardSize
     // Share of spawns drawn from the small and the large tier; the rest are
     // typical.
     public static float SmallShare = .28f, LargeShare = .17f;
+    // No rock is ever drawn narrower than this (u, drawn silhouette): ~84 px on a
+    // phone (145 px/u), about half a fighter, so the smallest rock still reads.
+    // The nominal rock is LegacyWidth x TierScale = 0.69 u, so this is 0.84x of
+    // it; SpaceAsteroidField's small tier uses the same floor.
+    public const float MinDrawnWidth = .58f;
+    public static float MinScale => MinDrawnWidth / (EnemyRoster.LegacyWidth(EnemyRole.Rock) * EnemyRoster.TierScale);
     // Spread inside a tier, as a share of its centre (+/-).
     public static float Jitter = .05f;
     // Weight: motion amplitude and pace go as size^-exponent, clamped.
@@ -132,10 +138,10 @@ public static class HazardSize
         if (u < small) { centre = b.sizeSmall; v = u / Mathf.Max(1e-5f, small); }
         else if (u < small + typical) { centre = b.sizeTypical; v = (u - small) / Mathf.Max(1e-5f, typical); }
         else { centre = b.sizeLarge; v = (u - small - typical) / Mathf.Max(1e-5f, large); }
-        return centre * (1f + Jitter * (2f * Mathf.Clamp01(v) - 1f));
+        return Mathf.Max(MinScale, centre * (1f + Jitter * (2f * Mathf.Clamp01(v) - 1f)));
     }
 
-    public static float Min(EnemyBehaviour b) => b != null && b.sizeLarge > 0f ? b.sizeSmall * (1f - Jitter) : 1f;
+    public static float Min(EnemyBehaviour b) => b != null && b.sizeLarge > 0f ? Mathf.Max(MinScale, b.sizeSmall * (1f - Jitter)) : 1f;
     public static float Max(EnemyBehaviour b) => b != null && b.sizeLarge > 0f ? b.sizeLarge * (1f + Jitter) : 1f;
 
     // Expected area (size^2) of a draw, nominal = 1: what the density was
@@ -145,7 +151,8 @@ public static class HazardSize
         if (b == null || b.sizeLarge <= 0f) return 1f;
         float small = SmallShare, large = LargeShare, typical = 1f - small - large;
         float spread = 1f + Jitter * Jitter / 3f;   // E[(1 + J(2v-1))^2], v uniform
-        return (small * b.sizeSmall * b.sizeSmall + typical * b.sizeTypical * b.sizeTypical +
+        float lo = Mathf.Max(MinScale, b.sizeSmall);   // (the floor lifts the small tier)
+        return (small * lo * lo + typical * b.sizeTypical * b.sizeTypical +
                 large * b.sizeLarge * b.sizeLarge) * spread;
     }
 

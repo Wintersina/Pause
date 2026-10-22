@@ -30,7 +30,7 @@ public static class SpaceAsteroidField
     public const float ClearRadius = 1.3f;                  // a new rock keeps this far from any other hazard
 
     // size tiers: 0 small, 1 medium, 2 large
-    public static readonly float[] Width = { .55f, .85f, 1.25f };           // drawn width (u)
+    public static readonly float[] Width = { HazardSize.MinDrawnWidth, .85f, 1.25f };   // drawn width (u); the small tier is the shared minimum
     public static readonly float[] SizeHits = { 1f, 2f, 3f };               // full ship-attack hits to break it
     public static readonly float[] TierWeight = { .35f, .45f, .20f };       // what the director draws
     public const float ScrollShare = .55f;                  // share of the board's scroll it falls at

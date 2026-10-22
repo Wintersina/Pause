@@ -143,7 +143,9 @@ public static class HazardSizeTest
                                     HazardSize.Reach(hi), HazardSize.Reach(lo), HazardSize.Pace(hi), HazardSize.Pace(lo)));
             Check(d.key + " varies, small < typical < large", HazardSize.Varies(d) && b.sizeSmall < b.sizeTypical && b.sizeTypical < b.sizeLarge);
             Check(string.Format("{0} range {1:F2}-{2:F2} stays within 0.70x-1.60x", d.key, lo, hi), lo >= .7f - 1e-4f && hi <= 1.6f + 1e-4f);
-            Check(string.Format("{0} mean area {1:F3} is today's (within 3%)", d.key, area), Mathf.Abs(area - 1f) <= .03f);
+            Check(string.Format("{0} smallest drawn width {1:F2} u is at least the minimum {2:F2} u", d.key, lo * EnemyRoster.LegacyWidth(EnemyRole.Rock) * EnemyRoster.TierScale, HazardSize.MinDrawnWidth),
+                  lo * EnemyRoster.LegacyWidth(EnemyRole.Rock) * EnemyRoster.TierScale >= HazardSize.MinDrawnWidth - 1e-4f);
+            Check(string.Format("{0} mean area {1:F3} is today's (within 6%: the minimum lifts the small tier)", d.key, area), Mathf.Abs(area - 1f) <= .06f);
         }
         bool none = true;
         foreach (var d in EnemyRoster.All)
