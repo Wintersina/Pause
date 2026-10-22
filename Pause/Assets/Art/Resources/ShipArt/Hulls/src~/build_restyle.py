@@ -61,6 +61,18 @@ SHIPS = {
                    bands=dict(outer=(0xD8, 0x23, 0x2C), mid=(0xF2, 0x86, 0x2B), core=(0xF4, 0xEA, 0xD4),
                               dark=(0x86, 0x12, 0x1F), accent=(0x6E, 0xF2, 0xEE))),
     ),
+    "VoltViper": dict(
+        id=2, hull_w=232, world_w=243 / 867.8571, nozzles=2, noz_scale=(.72, .72),
+        emitters=parse_emitters(
+            "E(1, Sparks, 75.0f, 63.1f), E(1, Smoke, 53.0f, 100.9f), E(1, Smolder, 75.2f, 63.3f), "
+            "E(2, Arc, 17.2f, 70.6f), E(2, Flame, 75.0f, 100.9f), E(2, Leak, 69.5f, 89.5f), "
+            "E(2, Smolder, 16.5f, 70.6f), E(2, Smolder, 93.9f, 55.5f), E(2, Smolder, 69.2f, 23.1f), "
+            "E(2, Smolder, 48.1f, 79.4f), E(2, Smolder, 76.5f, 85.6f)"),
+        skins=[("Night", "night"), ("Sodium", "sodium"), ("Bone", "bone"), ("Storm", "stock")],
+        flame=dict(x=(600, 950), y=1280, frames=7,
+                   bands=dict(outer=(0x2E, 0x9B, 0xE6), mid=(0x6E, 0xF2, 0xEE), core=(0xF4, 0xEA, 0xD4),
+                              dark=(0x17, 0x4C, 0x8C), accent=(0xF2, 0x86, 0x2B))),
+    ),
     "SolarFang": dict(
         id=3, hull_w=232, world_w=242 / 834.4828, nozzles=1, noz_cells=[(128, 232, 1.0)],
         emitters=parse_emitters(
@@ -72,6 +84,19 @@ SHIPS = {
         flame=dict(x=(1300, 1650), y=1280, frames=7,
                    bands=dict(outer=(0xF0, 0x7A, 0x1E), mid=(0xFF, 0xB4, 0x3C), core=(0xF4, 0xEA, 0xD4),
                               dark=(0x9A, 0x3E, 0x12), accent=(0xF2, 0x86, 0x2B))),
+    ),
+    "JadePhantom": dict(
+        id=6, hull_w=232, world_w=242 / 432.1429, nozzles=2, noz_scale=(.72, .72), fill_holes=True,
+        noz_cells=[(114, 231, .72), (142, 231, .72)],
+        emitters=parse_emitters(
+            "E(1, Sparks, 26.4f, 65.1f), E(1, Smoke, 61.2f, 109.1f), E(1, Smolder, 26.4f, 65.7f), "
+            "E(2, Arc, 106.2f, 58.5f), E(2, Flame, 91.5f, 91.5f), E(2, Leak, 65.8f, 100.3f), "
+            "E(2, Smolder, 91.3f, 93.3f), E(2, Smolder, 106.2f, 58.5f), E(2, Smolder, 81.1f, 59.5f), "
+            "E(2, Smolder, 64.6f, 88.6f), E(2, Smolder, 49.2f, 58.0f), E(2, Smolder, 62.3f, 105.9f)"),
+        skins=[("Night", "night"), ("Sodium", "sodium"), ("Bone", "bone"), ("Wraith", "stock")],
+        flame=dict(x=(1200, 1600), y=1086, frames=8,
+                   bands=dict(outer=(0x22, 0xB0, 0x7A), mid=(0x8E, 0xF0, 0xC4), core=(0xF4, 0xEA, 0xD4),
+                              dark=(0x0E, 0x5A, 0x44), accent=(0x1F, 0xB5, 0xB9))),
     ),
     "CrimsonHalo": dict(
         id=4, hull_w=190, world_w=195 / 423.913, nozzles=2, noz_scale=(.72, .72),
@@ -101,9 +126,11 @@ def is_green(rgb):
     return (g > 100) & (g > r * 1.55) & (g > b * 1.4) & (g - r > 65) & (g - b > 65)
 
 
-def hit_flash(rgb):
-    """Bone-white hull washed from the key pose (keeps ink + a hint of panel lines)."""
-    hull = ~is_green(rgb)
+def hit_flash(rgb, hull=None):
+    """Bone-white hull washed from the key pose (keeps ink + a hint of panel lines).
+    `hull`: optional explicit mask (green ships: is_green mistakes deep jade armour for background)."""
+    if hull is None:
+        hull = ~is_green(rgb)
     peak = rgb.astype(np.int16).max(axis=2)
     out = np.empty_like(rgb)
     out[:] = GREEN
@@ -127,6 +154,42 @@ def roll_y(img, dy):
     return Image.fromarray(out)
 
 
+def fill_enclosed(img):
+    """Close transparent pixels fully enclosed by the hull (bright highlights the green key took out):
+    they shred the baked hitbox / shield contour. Filled from the neighbouring paint, alpha 255."""
+    arr = np.array(img)
+    a = arr[..., 3] > 0
+    h, w = a.shape
+    out = np.zeros((h, w), bool)
+    stack = [(y, x) for y in range(h) for x in range(w) if (y in (0, h - 1) or x in (0, w - 1)) and not a[y, x]]
+    for y, x in stack:
+        out[y, x] = True
+    while stack:
+        y, x = stack.pop()
+        for dy, dx in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+            yy, xx = y + dy, x + dx
+            if 0 <= yy < h and 0 <= xx < w and not a[yy, xx] and not out[yy, xx]:
+                out[yy, xx] = True
+                stack.append((yy, xx))
+    hole = ~a & ~out
+    n = int(hole.sum())
+    while hole.any():
+        todo = np.argwhere(hole)
+        paint = []
+        for y, x in todo:
+            nb = [arr[yy, xx, :3] for yy, xx in ((y + 1, x), (y - 1, x), (y, x + 1), (y, x - 1))
+                  if 0 <= yy < h and 0 <= xx < w and arr[yy, xx, 3] > 0]
+            if nb:
+                paint.append((y, x, np.mean(nb, axis=0)))
+        if not paint:
+            break
+        for y, x, c in paint:
+            arr[y, x, :3] = c.astype(np.uint8)
+            arr[y, x, 3] = 255
+            hole[y, x] = False
+    return Image.fromarray(arr), n
+
+
 def build_sheet(cfg, codex):
     keys = [Image.open(os.path.join(codex, f"key_state{s}.png")).convert("RGB") for s in range(3)]
     k0 = np.array(bp.key_green(keys[0]))[..., 3]
@@ -139,7 +202,8 @@ def build_sheet(cfg, codex):
     per_state = []
     for st in range(3):
         key_cell = bp.fit_cells([keys[st]], 1024, scale, anchor)[0]
-        flash_src = Image.fromarray(hit_flash(np.array(keys[st])))
+        hull_mask = (np.array(bp.key_green(keys[st]))[..., 3] > 0) if cfg.get("fill_holes") else None
+        flash_src = Image.fromarray(hit_flash(np.array(keys[st]), hull_mask))
         flash = bp.fit_cells([flash_src], 1024, scale, anchor)[0]
         rp = os.path.join(codex, f"hull_redo_state{st}.png")
         redo = None
@@ -165,8 +229,12 @@ def build_sheet(cfg, codex):
                 pieces.append(key_cell)
             else:
                 pieces.append(bp.warp(key_cell, 0, -1 if c == 6 else 1))
+        if cfg.get("fill_holes"):
+            filled = [fill_enclosed(p) for p in pieces]
+            print(f"  state {st}: closed {sum(n for _, n in filled)} enclosed transparent px")
+            pieces = [p for p, _ in filled]
         per_state.append(pieces)
-    sheet = Image.new("RGBA", (CELL * COLS, CELL * STATES), (0, 0, 0, 0))
+    sheet =Image.new("RGBA", (CELL * COLS, CELL * STATES), (0, 0, 0, 0))
     for st in range(3):
         for c in range(COLS):
             base = np.array(per_state[0][c])
@@ -342,6 +410,26 @@ def write_skins(sheet, cfg, key, codex):
                     a = base[reg][..., 3] > 0
                     hole = a & (tile[..., 3] < 128)
                     holes += int(hole.sum())
+                    if cfg.get("fill_holes") and c != 8:
+                        # the skin's own neighbouring paint (the red-armour recolour would leave green flecks here)
+                        pending = hole.copy()
+                        for _ in range(60):
+                            if not pending.any():
+                                break
+                            have = (tile[..., 3] >= 128) & ~pending
+                            fills = []
+                            for y, x in np.argwhere(pending):
+                                nb = [tile[yy, xx, :3] for yy, xx in ((y + 1, x), (y - 1, x), (y, x + 1), (y, x - 1))
+                                      if 0 <= yy < CELL and 0 <= xx < CELL and have[yy, xx]]
+                                if nb:
+                                    fills.append((y, x, np.mean(nb, axis=0)))
+                            if not fills:
+                                break
+                            for y, x, col in fills:
+                                tile[y, x, :3] = col.astype(np.uint8)
+                                tile[y, x, 3] = 255
+                                pending[y, x] = False
+                        hole = pending
                     tile[hole] = fba[reg][hole]
                     tile[~a] = 0
                     tile[a, 3] = base[reg][..., 3][a]

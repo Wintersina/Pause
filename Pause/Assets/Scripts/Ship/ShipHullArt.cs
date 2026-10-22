@@ -76,11 +76,11 @@ public static class ShipHullArt
         new HullRect(0, 0, Cell, Cell, 100f),
         // BEGIN GENERATED RECTS
         /*  1 NeonComet    */ new HullRect(11, 18, 235, 220, 734.3750f, "#D8232C", "#86121F", "#FF5B45"),
-        /*  2 VoltViper    */ new HullRect(7, 28, 243, 200, 867.8571f, "#2E9BE6", "#174C8C", "#8FD3FF"),
+        /*  2 VoltViper    */ new HullRect(11, 28, 234, 200, 835.7142f, "#2E9BE6", "#174C8C", "#8FD3FF"),
         /*  3 SolarFang    */ new HullRect(11, 12, 235, 227, 810.3449f, "#F07A1E", "#9A3E12", "#FFC27A"),
         /*  4 CrimsonHalo  */ new HullRect(23, 7, 201, 242, 436.9565f, "#C8285E", "#6E1136", "#FF7AA2"),
         /*  5 IonLancer    */ new HullRect(25, 7, 207, 242, 440.4255f, "#3A5BE0", "#1C2A80", "#9AB0FF"),
-        /*  6 JadePhantom  */ new HullRect(7, 9, 242, 238, 432.1429f, "#22B07A", "#0E5A44", "#8EF0C4"),
+        /*  6 JadePhantom  */ new HullRect(7, 10, 242, 236, 432.1429f, "#22B07A", "#0E5A44", "#8EF0C4"),
         /*  7 GoldWarden   */ new HullRect(16, 7, 224, 242, 439.2157f, "#D99A1A", "#7E4E0C", "#FFD36A"),
         /*  8 Lightning    */ new HullRect(7, 11, 243, 234, 867.8571f, "#EEDC32", "#8E8414", "#FFF6A8"),
         /*  9 Ligher       */ new HullRect(45, 7, 167, 242, 835.0000f, "#C8662E", "#6E3014", "#F2A472"),
