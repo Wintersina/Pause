@@ -42,6 +42,7 @@ spec.loader.exec_module(bp)
 
 CELL, COLS, STATES = bp.CELL, bp.COLS, bp.STATES
 GREEN = np.array([0, 255, 0], dtype=np.uint8)
+KEYRGB = GREEN          # background key colour of the Codex paintings (a ship hook may change it)
 
 KINDS = {"Sparks": "sparks", "Arc": "arc", "Smoke": "smoke", "Flame": "flame", "Leak": "leak", "Smolder": "smolder"}
 
@@ -75,7 +76,7 @@ def hit_flash(rgb, hull=None):
         hull = ~is_green(rgb)
     peak = rgb.astype(np.int16).max(axis=2)
     out = np.empty_like(rgb)
-    out[:] = GREEN
+    out[:] = KEYRGB
     out[hull] = (244, 234, 212)
     out[hull & (peak < 45)] = (6, 8, 20)
     out[hull & (peak >= 45) & (peak < 85)] = (92, 88, 91)
@@ -216,7 +217,8 @@ def build_sheet(cfg, codex):
         redo = None
         if os.path.exists(rp) and "--no-redo" not in sys.argv:
             rcells, rn = bp.codex_cells(rp, 3, 2)
-            redo = bp.fit_cells(rcells[:5], rn, scale * 1024 / rn, (anchor[0] * rn / 1024, anchor[1] * rn / 1024))
+            nred = 3 if cfg.get('stopgap_banks') else 5
+            redo = bp.fit_cells(rcells[:nred], rn, scale * 1024 / rn, (anchor[0] * rn / 1024, anchor[1] * rn / 1024))
         pieces = []
         for c in range(COLS):
             if c == 0:
@@ -228,8 +230,11 @@ def build_sheet(cfg, codex):
             elif c == 8:
                 pieces.append(flash)
             elif redo is not None:
-                pieces.append({2: lambda: roll_y(redo[0], -dy_px), 3: lambda: redo[1], 4: lambda: redo[2],
-                               6: lambda: redo[3], 7: lambda: redo[4]}[c]())
+                if cfg.get('stopgap_banks') and c in (6, 7):
+                    pieces.append(bank_stopgap(key_cell, -1 if c == 6 else 1))
+                else:
+                    pieces.append({2: lambda: roll_y(redo[0], -dy_px), 3: lambda: redo[1], 4: lambda: redo[2],
+                                   6: lambda: redo[3], 7: lambda: redo[4]}[c]())
             elif c == 2:
                 pieces.append(roll_y(key_cell, -dy_px))
             elif c in (3, 4):
@@ -331,6 +336,8 @@ def recolour(sheet, mode):
         newh, news, newv = 170 + 0 * h, s * .8, v * .55
     elif mode == "sodium":
         newh, news, newv = 17 + 0 * h, s * .9, np.clip(v * 1.05 + 10, 0, 255)
+    elif mode == "neon":
+        newh, news, newv = 125 + 0 * h, s * .85, v * .9
     elif mode == "bone":
         newh, news, newv = 30 + 0 * h, s * .12, np.clip(v * 1.15 + 40, 0, 255)
     hsv[..., 0] = np.where(red, newh, h)
@@ -364,6 +371,9 @@ def compose_states(img, cfg):
     z = cfg.get("damage_zones")
     if not z:
         return img
+    if cfg.get("patch_from_idle"):
+        import damage_patch                    # stamps the idle damage layer onto every column (Turtle)
+        return damage_patch.compose(img, cfg)
     a = np.array(img)
     out = a.copy()
     alpha0 = a[:CELL, :, 3]
@@ -403,13 +413,97 @@ def compose_states(img, cfg):
     return Image.fromarray(out)
 
 
+def bank_stopgap(cell, d):
+    """Modest tilt for a spinner (UFO never banks in game): idle cell squeezed ~5% across, shifted 3 px, near side shaded."""
+    a = np.array(cell)
+    h, w = a.shape[:2]
+    xs = np.nonzero(a[..., 3] > 0)[1]
+    cx = (xs.min() + xs.max()) / 2
+    out = np.zeros_like(a)
+    k = 0.95
+    for x in range(w):
+        sx = int(round(cx + (x - 3 * d - cx) / k))
+        if 0 <= sx < w:
+            out[:, x] = a[:, sx]
+    m = out[..., 3] > 0
+    xs2 = np.nonzero(m.any(axis=0))[0]
+    x0, x1 = xs2.min(), xs2.max()
+    for x in range(w):
+        t = (x - x0) / max(1, x1 - x0)          # 0 left .. 1 right
+        near = (1 - t) if d < 0 else t
+        f = 1.0 - 0.16 * max(0.0, near - 0.45) / 0.55
+        col = out[:, x, :3].astype(np.float32) * f
+        out[:, x, :3] = np.where(m[:, x, None], col, 0).astype(np.uint8)
+    out[~m] = 0
+    out[m, 3] = 255
+    return Image.fromarray(out)
+
+
+def spine_x(cell, fallback=None):
+    """Centre column of the cyan canopy glass in a 256 cell (upper part of the hull)."""
+    a = cell[..., 3] > 0
+    ys = np.nonzero(a.any(axis=1))[0]
+    top, bot = ys.min(), ys.max()
+    r, g, b = [cell[..., i].astype(int) for i in range(3)]
+    glass = a & (b > 140) & (g > 110) & (r < 110) & (b > r + 70)
+    glass[:top] = False
+    glass[top + int((bot - top) * .55):] = False
+    xs = np.nonzero(glass)[1]
+    return int(round(xs.mean())) if len(xs) > 15 else fallback
+
+
+def split_livery(stock, other):
+    """Split livery: clean left/right division on the spine. Left half = stock sheet, right half = `other` sheet."""
+    s_, n_ = np.array(stock), np.array(other)
+    out = s_.copy()
+    for st in range(STATES):
+        sp0 = spine_x(s_[st * CELL:(st + 1) * CELL, 0:CELL])
+        for c in range(COLS):
+            reg = (slice(st * CELL, (st + 1) * CELL), slice(c * CELL, (c + 1) * CELL))
+            sp = spine_x(s_[reg], sp0) if c < 8 else sp0
+            out[reg][:, sp:] = n_[reg][:, sp:]
+    return Image.fromarray(out)
+
+
+def bank_cell(cell, bank):
+    """Stopgap bank from the CLEAN idle cell: the near half squeezed ~10% (about -5% overall width), the whole
+    ship shifted 3 px toward the low side, the near side shaded. Wings, pods and nose stay the idle ones."""
+    arr = np.array(cell)
+    out = np.zeros_like(arr)
+    ys, xs = np.mgrid[0:CELL, 0:CELL]
+    dd = xs - 128 - 3.0 * bank
+    near = (dd < 0) == (bank < 0)
+    k = np.where(near, .90, 1.0)
+    sx = np.rint(128 + dd / k).astype(int)
+    ok = (sx >= 0) & (sx < CELL)
+    out[ys[ok], xs[ok]] = arr[ys[ok], sx[ok]]
+    shade = 1 - .16 * np.clip((np.abs(dd) - 18) / 70, 0, 1) * near
+    out[..., :3] = np.clip(out[..., :3] * shade[..., None], 0, 255).astype(np.uint8)
+    out[out[..., 3] == 0] = 0
+    return Image.fromarray(out)
+
+
+def apply_banks(img, cfg):
+    """cfg bank_from_idle: columns 6 / 7 of every row = bank_cell(column 0 of that row)."""
+    if not cfg.get("bank_from_idle"):
+        return img
+    out = img.copy()
+    for r in range(STATES):
+        idle = img.crop((0, r * CELL, CELL, (r + 1) * CELL))
+        for c, b in ((6, -1), (7, 1)):
+            out.paste(bank_cell(idle, b), (c * CELL, r * CELL))
+        if r:   # the hit-flash silhouette column stays the clean flat one in every damage row
+            out.paste(img.crop((8 * CELL, 0, 9 * CELL, CELL)), (8 * CELL, r * CELL))
+    return out
+
+
 def write_skin_refs(sheet, codex):
     """3 x 3 reference sheets of the FINAL flipbook (cells 512 px, green bg) for the skin briefs."""
     for st in range(3):
-        out = Image.new("RGB", (1536, 1536), (0, 255, 0))
+        out = Image.new("RGB", (1536, 1536), tuple(int(v) for v in KEYRGB))
         for c in range(COLS):
             cell = sheet.crop((c * CELL, st * CELL, (c + 1) * CELL, (st + 1) * CELL)).resize((512, 512), Image.NEAREST)
-            bg = Image.new("RGBA", (512, 512), (0, 255, 0, 255))
+            bg = Image.new("RGBA", (512, 512), tuple(int(v) for v in KEYRGB) + (255,))
             bg.alpha_composite(cell)
             out.paste(bg.convert("RGB"), ((c % 3) * 512, (c // 3) * 512))
         out.save(os.path.join(codex, "skinref_state%d.png" % st))
@@ -417,6 +511,7 @@ def write_skin_refs(sheet, codex):
 
 def write_skins(sheet, cfg, key, codex):
     base = np.array(sheet)
+    built = {}
     for name, mode in cfg["skins"]:
         fb = recolour(sheet, mode)
         paths = [os.path.join(codex, f"skin_{name}_state{st}.png") for st in range(3)]
@@ -460,7 +555,7 @@ def write_skins(sheet, cfg, key, codex):
                     tile[a, 3] = base[reg][..., 3][a]
                     out.alpha_composite(Image.fromarray(tile), (c * CELL, st * CELL))
             print(f"  skin {name}: Codex sheets, {holes} silhouette pixels from the fallback")
-            fb = compose_states(out, cfg)
+            fb = apply_banks(compose_states(out, cfg), cfg)
             if cfg.get("compose_from_key"):
                 # hit-flash column: the same solid silhouette in all three damage rows
                 fa = np.array(fb)
@@ -475,6 +570,11 @@ def write_skins(sheet, cfg, key, codex):
                 fb = Image.fromarray(fa)
         else:
             print(f"  skin {name}: palette-shift fallback")
+        built[name] = fb
+        sl = cfg.get("split_livery")
+        if sl and name == sl[0] and sl[1] in built:
+            fb = split_livery(sheet, built[sl[1]])
+            print(f"  skin {name}: split livery (left stock, right {sl[1]})")
         assert (np.array(fb)[..., 3] == base[..., 3]).all()
         buf = io.BytesIO()
         fb.save(buf, "PNG", optimize=True)
@@ -536,13 +636,16 @@ def write_flames(key, cfg, codex):
 def main():
     key = shiplib.resolve(sys.argv[1])
     cfg = load_cfg(key)
+    hook = os.path.join(shiplib.src_dir(key), "build_hook.py")     # optional per-ship tweak (e.g. another chroma key)
+    if os.path.exists(hook):
+        exec(compile(open(hook).read(), hook, "exec"), globals())
     codex = os.path.join(shiplib.src_dir(key), "codex")
     raw = build_sheet(cfg, codex)
-    sheet = compose_states(raw, cfg)
+    sheet = apply_banks(compose_states(raw, cfg), cfg)
     sheet.save(shiplib.hull_path(key), optimize=True)
     data = measure(sheet, cfg)
     data["skins"] = [n for n, _ in cfg["skins"]]
-    write_skin_refs(raw, codex)
+    write_skin_refs(sheet, codex)
     if "--no-skins" not in sys.argv:
         write_skins(sheet, cfg, key, codex)
     if "--no-flame" not in sys.argv:

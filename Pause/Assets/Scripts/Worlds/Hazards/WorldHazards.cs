@@ -324,7 +324,7 @@ public sealed class WorldHazards : MonoBehaviour
     // ---- applying the forces ----
     public static void Apply(float dt)
     {
-        LastShotsPushed = LastMinePushed = LastBodiesPushed = LastEliteKicks = 0;
+        LastShotsPushed = LastMinePushed = LastBodiesPushed = LastEliteKicks = LastStunned = 0;
         Vector2 playerV = Vector2.zero;
         Transform player = EliteSystem.Player;
         bool boss = BossRunningOverride ?? BossEncounter.Running;
@@ -337,6 +337,7 @@ public sealed class WorldHazards : MonoBehaviour
             PushShots(f, b, dt, boss);
             PushBodies(f, b, dt);
             PushElites(f, b, dt);
+            if (f.def.stuns && f.phase == HazardField.Phase.Live) StunScreen(f);
             if (player != null && HazardForce.Sample(f, player.position, HazardTarget.Player, out Vector2 pv)) playerV += pv;
             rigid += HazardForce.RigidX(f, HazardTarget.Hostile) * f.def.bossShotScale;
         }
@@ -457,6 +458,40 @@ public sealed class WorldHazards : MonoBehaviour
             if (fp != null && WouldTouchNew(fp, p, new Vector2(nx, ny), half)) continue;
             tr.position = new Vector3(nx, ny, p3.z);
             LastBodiesPushed++;
+        }
+    }
+
+    // A stunning flare holds every enemy and elite in view for as long as it is live: re-asserted each frame for a moment, so the
+    // stun lapses by itself right after the flare ends (or is cut short). Bosses, rails' mines and rocks are not touched.
+    public const float StunHold = .35f;
+    public static int LastStunned;
+
+    static void StunScreen(HazardField f)
+    {
+        float top = f.viewTop - .2f, bottom = f.viewBottom;
+        var live = ClearTarget.Live;
+        for (int i = 0; i < live.Count; i++)
+        {
+            var t = live[i];
+            if (t == null || !t.isActiveAndEnabled || t.Scenery) continue;
+            var go = t.gameObject;
+            if (!go.CompareTag("Enimey")) continue;
+            Vector3 p = go.transform.position;
+            if (p.y > top || p.y < bottom || Mathf.Abs(p.x) > f.laneHalf) continue;
+            if (go.TryGetComponent(out BossTarget _) || go.TryGetComponent(out BossActor _)) continue;
+            if (go.TryGetComponent(out EliteShip _)) continue;          // elites: below
+            if (RunScore.IsHostileShot(go)) continue;
+            if (go.TryGetComponent(out RailMineMount mount) && mount.rail != null) continue;
+            if (FrozenState.Freeze(go, StunHold) != null) LastStunned++;
+        }
+        var elites = EliteShip.Live;
+        for (int i = 0; i < elites.Count; i++)
+        {
+            var e = elites[i];
+            if (e == null || !e.InPlay) continue;
+            Vector2 p = e.transform.position;
+            if (p.y > top || p.y < bottom || Mathf.Abs(p.x) > f.laneHalf) continue;
+            if (e.Stun(StunHold)) LastStunned++;
         }
     }
 
