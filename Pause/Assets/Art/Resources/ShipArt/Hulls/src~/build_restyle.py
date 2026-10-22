@@ -61,6 +61,21 @@ SHIPS = {
                    bands=dict(outer=(0xD8, 0x23, 0x2C), mid=(0xF2, 0x86, 0x2B), core=(0xF4, 0xEA, 0xD4),
                               dark=(0x86, 0x12, 0x1F), accent=(0x6E, 0xF2, 0xEE))),
     ),
+    "Ninja": dict(
+        id=11, hull_w=242, world_w=242 / 806.6667, nozzles=1, noz_scale=(1.0,),
+        noz_cells=[(128, 200, 1.0)],
+        emitters=parse_emitters(
+            "E(1, Sparks, 64.0f, 31.9f), E(1, Smoke, 75.9f, 75.9f), E(1, Smolder, 63.8f, 31.9f), "
+            "E(2, Arc, 38.3f, 64.0f), E(2, Flame, 64.0f, 95.2f), E(2, Leak, 102.5f, 64.0f), "
+            "E(2, Smolder, 103.0f, 64.0f), E(2, Smolder, 37.9f, 63.5f), E(2, Smolder, 76.7f, 82.0f), "
+            "E(2, Smolder, 75.3f, 47.6f), E(2, Smolder, 55.9f, 91.2f)"),
+        skins=[("Night", "night"), ("Sodium", "sodium"), ("Bone", "bone"), ("Ronin", "stock")],
+        flame=dict(kind="spin", frames=8, size=120, stride=122,
+                   slots=[("ring_cruise.png", 0, 382, False), ("ring_boost.png", 976, 382, True),
+                          ("wake_cruise.png", 0, 260, False), ("wake_boost.png", 976, 260, True)],
+                   bands=dict(outer=(0x4A, 0x58, 0xC8), mid=(0x9F, 0xA8, 0xF0), core=(0xF4, 0xEA, 0xD4),
+                              dark=(0x23, 0x2A, 0x6E), accent=(0xD8, 0x23, 0x2C))),
+    ),
 }
 
 
@@ -302,8 +317,43 @@ def heat(idx):
     return new
 
 
+def write_spin_flames(cfg, codex):
+    fl = cfg["flame"]
+    if not all(os.path.exists(os.path.join(codex, f)) for f, *_ in fl["slots"]):
+        print("  no spin flame strips yet")
+        return
+    bp.BANDS.clear()
+    bp.BANDS.update(fl["bands"])
+    atlas = Image.open(bp.ATLAS).convert("RGBA")
+    sz, n = fl["size"], fl["frames"]
+    cols = np.array([bp.BANDS[k] for k in ("outer", "mid", "core", "dark", "accent")], float)
+    for f, x0, y, boost in fl["slots"]:
+        im = Image.open(os.path.join(codex, f)).convert("RGB")
+        w = im.width // n
+        top = atlas.height - y - sz
+        for i in range(n):
+            keyed = bp.key_green(im.crop((i * w, 0, (i + 1) * w, im.height)))
+            a = np.array(keyed.resize((sz, sz), Image.BOX)).astype(float)
+            idx = np.full((sz, sz), -1)
+            solid = a[..., 3] > 110
+            d = ((a[..., None, :3] - cols[None, None]) ** 2).sum(-1)
+            idx[solid] = d.argmin(-1)[solid]
+            if boost:
+                idx = heat(idx)
+            img = np.zeros((sz, sz, 4), np.uint8)
+            for k, c in enumerate(cols):
+                img[idx == k] = (*[int(v) for v in c], 255)
+            box = (x0 + i * fl["stride"], top)
+            atlas.paste(Image.new("RGBA", (sz, sz), (0, 0, 0, 0)), box)
+            atlas.alpha_composite(Image.fromarray(img), box)
+    atlas.save(bp.ATLAS, optimize=True)
+    print("  spin flames pasted")
+
+
 def write_flames(cfg, codex):
     fl = cfg["flame"]
+    if fl.get("kind") == "spin":
+        return write_spin_flames(cfg, codex)
     if not all(os.path.exists(os.path.join(codex, f)) for f in ("flame_cruise.png", "flame_boost.png")):
         print("  no flame strips yet")
         return
