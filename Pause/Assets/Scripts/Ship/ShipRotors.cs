@@ -9,7 +9,7 @@ using UnityEngine;
 //   { "rotors": [ { "x": 51.5, "y": 43.5, "scale": 1.0, "speed_deg_per_s": 540, "direction": 1 }, ... ] }
 //
 //   x, y             hub centre in the 256 px hull cell, x right, y DOWN (image pixels, idle cell)
-//   scale            1.0 = one rotor-sheet pixel per hull-cell pixel (the sheet's rotor has radius 21 px)
+//   scale            1.0 = one rotor-sheet pixel per hull-cell pixel (Turtle's rotor has radius 48 px)
 //   speed_deg_per_s  angular speed; direction +1 counter-clockwise, -1 clockwise
 //
 // Art: <Key>_rotor.png, a 2-cell sheet of square cells: left the blades (pivot = hub), right a static
