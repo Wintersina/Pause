@@ -122,8 +122,8 @@ public class EliteDirector : MonoBehaviour
         }
         worldSeconds += dt;
 
-        // a boss clears every elite -- in play, launching or parked -- through its normal death, no reward and no escape penalty
-        // (EliteShip.DismissForBoss); none spawn until it is over (Blocked: "boss")
+        // a boss sends every elite in play boosting away (flat -25 score, EliteShip.DismissForBoss); launching or parked ones are removed
+        // with no reward and no penalty; none spawn until it is over (Blocked: "boss")
         if (BossEncounter.Running) { DismissAll(); return; }
 
         // one at a time: while it is parked, in play, hiding or retreating the gap does not run; when it is dead or gone it does
