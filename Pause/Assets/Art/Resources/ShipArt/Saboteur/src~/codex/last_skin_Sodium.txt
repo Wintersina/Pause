@@ -1,0 +1,16 @@
+Implemented Sodium colourway sheets and checker:
+
+- [skin_Sodium_state0.png](/Users/sina/Developer/Pause/.claude/worktrees/agent-a71e29e38407814db/Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/skin_Sodium_state0.png)
+- [skin_Sodium_state1.png](/Users/sina/Developer/Pause/.claude/worktrees/agent-a71e29e38407814db/Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/skin_Sodium_state1.png)
+- [skin_Sodium_state2.png](/Users/sina/Developer/Pause/.claude/worktrees/agent-a71e29e38407814db/Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/skin_Sodium_state2.png)
+- [check_skin_Sodium.py](/Users/sina/Developer/Pause/.claude/worktrees/agent-a71e29e38407814db/Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/tools/check_skin_Sodium.py)
+
+Validation summary:
+
+- State 0: silhouette 0%, core 0%, minimum changed 23.419%
+- State 1: silhouette 0%, core 0%, minimum changed 21.828%
+- State 2: silhouette 0%, core 0%, minimum changed 20.596%
+
+All 27 cells pass.
+
+Caveat: generated candidates had minor geometry drift, so the shipped results use their Sodium ramp as visual guidance while preserving the approved reference raster exactly. Near-black selective ink remains unchanged.
