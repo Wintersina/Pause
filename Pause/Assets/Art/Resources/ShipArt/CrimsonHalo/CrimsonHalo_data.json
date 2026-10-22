@@ -1,0 +1,185 @@
+{
+  "id": 4,
+  "key": "CrimsonHalo",
+  "painted": true,
+  "rect": {
+    "x": 23,
+    "y": 7,
+    "w": 201,
+    "h": 242,
+    "ppu": 436.9565
+  },
+  "hue": [
+    "#C8285E",
+    "#6E1136",
+    "#FF7AA2"
+  ],
+  "nozzles": [
+    {
+      "x": 97.5,
+      "y": 12.5,
+      "scale": 0.72
+    },
+    {
+      "x": 113.5,
+      "y": 12.5,
+      "scale": 0.72
+    }
+  ],
+  "damageNote": "1) left wing panel blown, left halo cracked; tail smoking; 2) right wingtip torn, right halo cracked and arcing, right tail fin bent, canopy cracked",
+  "emitters": [
+    {
+      "state": 1,
+      "kind": "Sparks",
+      "u": 38.8,
+      "v": 84.3
+    },
+    {
+      "state": 1,
+      "kind": "Smoke",
+      "u": 61.5,
+      "v": 109.4
+    },
+    {
+      "state": 1,
+      "kind": "Smolder",
+      "u": 39.7,
+      "v": 84.0
+    },
+    {
+      "state": 2,
+      "kind": "Arc",
+      "u": 82.5,
+      "v": 45.7
+    },
+    {
+      "state": 2,
+      "kind": "Flame",
+      "u": 97.2,
+      "v": 91.9
+    },
+    {
+      "state": 2,
+      "kind": "Leak",
+      "u": 65.7,
+      "v": 103.6
+    },
+    {
+      "state": 2,
+      "kind": "Smolder",
+      "u": 99.9,
+      "v": 92.7
+    },
+    {
+      "state": 2,
+      "kind": "Smolder",
+      "u": 77.5,
+      "v": 76.3
+    },
+    {
+      "state": 2,
+      "kind": "Smolder",
+      "u": 51.0,
+      "v": 71.9
+    },
+    {
+      "state": 2,
+      "kind": "Smolder",
+      "u": 51.5,
+      "v": 107.1
+    }
+  ],
+  "skins": [
+    {
+      "name": "Stock",
+      "kind": "Stock",
+      "hue": "#C8285E",
+      "shadow": "#6E1136",
+      "highlight": "#FF7AA2",
+      "pattern": "",
+      "accent": "",
+      "accentShadow": "",
+      "accentHighlight": ""
+    },
+    {
+      "name": "Night",
+      "kind": "Palette",
+      "hue": "#2A2E6B",
+      "shadow": "#1A1F45",
+      "highlight": "#6EF2EE",
+      "pattern": "",
+      "accent": "",
+      "accentShadow": "",
+      "accentHighlight": ""
+    },
+    {
+      "name": "Sodium",
+      "kind": "Palette",
+      "hue": "#F2862B",
+      "shadow": "#A9481A",
+      "highlight": "#FFB43C",
+      "pattern": "",
+      "accent": "",
+      "accentShadow": "",
+      "accentHighlight": ""
+    },
+    {
+      "name": "Bone",
+      "kind": "Palette",
+      "hue": "#F4EAD4",
+      "shadow": "#B9AE98",
+      "highlight": "#F4EAD4",
+      "pattern": "",
+      "accent": "",
+      "accentShadow": "",
+      "accentHighlight": ""
+    },
+    {
+      "name": "Seraph",
+      "kind": "Special",
+      "hue": "#C8285E",
+      "shadow": "#6E1136",
+      "highlight": "#FF7AA2",
+      "pattern": "chevrons",
+      "accent": "#F4EAD4",
+      "accentShadow": "#B9AE98",
+      "accentHighlight": "#F4EAD4"
+    }
+  ],
+  "exhaust": {
+    "kind": "HaloRings",
+    "outer": "#C8285E",
+    "mid": "#FFB43C",
+    "core": "#F4EAD4",
+    "dark": "#6E1136",
+    "accent": "#FF7AA2",
+    "ticks": [
+      2,
+      2,
+      1,
+      2,
+      2,
+      2
+    ],
+    "strips": [
+      {
+        "layer": "Plume",
+        "x": 0,
+        "y": 194,
+        "w": 48,
+        "h": 192,
+        "frames": 6,
+        "stride": 50
+      },
+      {
+        "layer": "PlumeBoost",
+        "x": 0,
+        "y": 0,
+        "w": 48,
+        "h": 192,
+        "frames": 6,
+        "stride": 50
+      }
+    ]
+  }
+}

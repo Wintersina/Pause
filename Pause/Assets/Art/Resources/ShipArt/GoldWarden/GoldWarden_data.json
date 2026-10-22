@@ -1,0 +1,202 @@
+{
+  "id": 7,
+  "key": "GoldWarden",
+  "painted": false,
+  "rect": {
+    "x": 16,
+    "y": 7,
+    "w": 224,
+    "h": 242,
+    "ppu": 439.2157
+  },
+  "hue": [
+    "#D99A1A",
+    "#7E4E0C",
+    "#FFD36A"
+  ],
+  "nozzles": [
+    {
+      "x": 112.5,
+      "y": 8.5,
+      "scale": 1.0
+    },
+    {
+      "x": 75.5,
+      "y": 24.5,
+      "scale": 0.5
+    },
+    {
+      "x": 149.5,
+      "y": 24.5,
+      "scale": 0.5
+    }
+  ],
+  "damageNote": "1) right wing panel blown; left engine smoking; 2) left gun barrel bent, left wingtip torn, belly panel open and arcing, canopy cracked",
+  "emitters": [
+    {
+      "state": 1,
+      "kind": "Sparks",
+      "u": 87.4,
+      "v": 67.1
+    },
+    {
+      "state": 1,
+      "kind": "Smoke",
+      "u": 45.5,
+      "v": 104.5
+    },
+    {
+      "state": 1,
+      "kind": "Smolder",
+      "u": 87.4,
+      "v": 66.6
+    },
+    {
+      "state": 2,
+      "kind": "Arc",
+      "u": 63.0,
+      "v": 98.2
+    },
+    {
+      "state": 2,
+      "kind": "Flame",
+      "u": 82.5,
+      "v": 105.5
+    },
+    {
+      "state": 2,
+      "kind": "Leak",
+      "u": 21.1,
+      "v": 85.8
+    },
+    {
+      "state": 2,
+      "kind": "Smolder",
+      "u": 21.1,
+      "v": 85.3
+    },
+    {
+      "state": 2,
+      "kind": "Smolder",
+      "u": 63.0,
+      "v": 97.7
+    },
+    {
+      "state": 2,
+      "kind": "Smolder",
+      "u": 44.8,
+      "v": 78.4
+    },
+    {
+      "state": 2,
+      "kind": "Smolder",
+      "u": 91.5,
+      "v": 82.9
+    },
+    {
+      "state": 2,
+      "kind": "Smolder",
+      "u": 65.0,
+      "v": 17.5
+    },
+    {
+      "state": 2,
+      "kind": "Smolder",
+      "u": 82.9,
+      "v": 51.8
+    }
+  ],
+  "skins": [
+    {
+      "name": "Stock",
+      "kind": "Stock",
+      "hue": "#D99A1A",
+      "shadow": "#7E4E0C",
+      "highlight": "#FFD36A",
+      "pattern": "",
+      "accent": "",
+      "accentShadow": "",
+      "accentHighlight": ""
+    },
+    {
+      "name": "Night",
+      "kind": "Palette",
+      "hue": "#2A2E6B",
+      "shadow": "#1A1F45",
+      "highlight": "#6EF2EE",
+      "pattern": "",
+      "accent": "",
+      "accentShadow": "",
+      "accentHighlight": ""
+    },
+    {
+      "name": "Neon",
+      "kind": "Palette",
+      "hue": "#1FB5B9",
+      "shadow": "#0F5E6A",
+      "highlight": "#6EF2EE",
+      "pattern": "",
+      "accent": "",
+      "accentShadow": "",
+      "accentHighlight": ""
+    },
+    {
+      "name": "Bone",
+      "kind": "Palette",
+      "hue": "#F4EAD4",
+      "shadow": "#B9AE98",
+      "highlight": "#F4EAD4",
+      "pattern": "",
+      "accent": "",
+      "accentShadow": "",
+      "accentHighlight": ""
+    },
+    {
+      "name": "Regent",
+      "kind": "Special",
+      "hue": "#D99A1A",
+      "shadow": "#7E4E0C",
+      "highlight": "#FFD36A",
+      "pattern": "split",
+      "accent": "#2A2E6B",
+      "accentShadow": "#1A1F45",
+      "accentHighlight": "#6EF2EE"
+    }
+  ],
+  "exhaust": {
+    "kind": "Afterburner",
+    "outer": "#D99A1A",
+    "mid": "#FFD36A",
+    "core": "#F4EAD4",
+    "dark": "#7E4E0C",
+    "accent": "#D8232C",
+    "ticks": [
+      2,
+      2,
+      1,
+      2,
+      2,
+      2
+    ],
+    "strips": [
+      {
+        "layer": "Plume",
+        "x": 0,
+        "y": 194,
+        "w": 48,
+        "h": 192,
+        "frames": 6,
+        "stride": 50
+      },
+      {
+        "layer": "PlumeBoost",
+        "x": 0,
+        "y": 0,
+        "w": 48,
+        "h": 192,
+        "frames": 6,
+        "stride": 50
+      }
+    ]
+  }
+}
