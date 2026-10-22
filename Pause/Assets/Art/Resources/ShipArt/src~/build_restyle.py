@@ -476,7 +476,7 @@ def main():
     sheet.save(shiplib.hull_path(key), optimize=True)
     data = measure(sheet, cfg)
     data["skins"] = [n for n, _ in cfg["skins"]]
-    write_skin_refs(raw, codex)
+    write_skin_refs(sheet, codex)
     if "--no-skins" not in sys.argv:
         write_skins(sheet, cfg, key, codex)
     if "--no-flame" not in sys.argv:
