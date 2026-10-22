@@ -347,6 +347,38 @@ def split_livery(stock, other):
     return Image.fromarray(out)
 
 
+def bank_cell(cell, bank):
+    """Stopgap bank from the CLEAN idle cell: the near half squeezed ~10% (about -5% overall width), the whole
+    ship shifted 3 px toward the low side, the near side shaded. Wings, pods and nose stay the idle ones."""
+    arr = np.array(cell)
+    out = np.zeros_like(arr)
+    ys, xs = np.mgrid[0:CELL, 0:CELL]
+    dd = xs - 128 - 3.0 * bank
+    near = (dd < 0) == (bank < 0)
+    k = np.where(near, .90, 1.0)
+    sx = np.rint(128 + dd / k).astype(int)
+    ok = (sx >= 0) & (sx < CELL)
+    out[ys[ok], xs[ok]] = arr[ys[ok], sx[ok]]
+    shade = 1 - .16 * np.clip((np.abs(dd) - 18) / 70, 0, 1) * near
+    out[..., :3] = np.clip(out[..., :3] * shade[..., None], 0, 255).astype(np.uint8)
+    out[out[..., 3] == 0] = 0
+    return Image.fromarray(out)
+
+
+def apply_banks(img, cfg):
+    """cfg bank_from_idle: columns 6 / 7 of every row = bank_cell(column 0 of that row)."""
+    if not cfg.get("bank_from_idle"):
+        return img
+    out = img.copy()
+    for r in range(STATES):
+        idle = img.crop((0, r * CELL, CELL, (r + 1) * CELL))
+        for c, b in ((6, -1), (7, 1)):
+            out.paste(bank_cell(idle, b), (c * CELL, r * CELL))
+        if r:   # the hit-flash silhouette column stays the clean flat one in every damage row
+            out.paste(img.crop((8 * CELL, 0, 9 * CELL, CELL)), (8 * CELL, r * CELL))
+    return out
+
+
 def write_skin_refs(sheet, codex):
     """3 x 3 reference sheets of the FINAL flipbook (cells 512 px, green bg) for the skin briefs."""
     for st in range(3):
@@ -405,7 +437,7 @@ def write_skins(sheet, cfg, key, codex):
                     tile[a, 3] = base[reg][..., 3][a]
                     out.alpha_composite(Image.fromarray(tile), (c * CELL, st * CELL))
             print(f"  skin {name}: Codex sheets, {holes} silhouette pixels from the fallback")
-            fb = compose_states(out, cfg)
+            fb = apply_banks(compose_states(out, cfg), cfg)
         else:
             print(f"  skin {name}: palette-shift fallback")
         built[name] = fb
@@ -476,7 +508,7 @@ def main():
     cfg = load_cfg(key)
     codex = os.path.join(shiplib.src_dir(key), "codex")
     raw = build_sheet(cfg, codex)
-    sheet = compose_states(raw, cfg)
+    sheet = apply_banks(compose_states(raw, cfg), cfg)
     sheet.save(shiplib.hull_path(key), optimize=True)
     data = measure(sheet, cfg)
     data["skins"] = [n for n, _ in cfg["skins"]]
