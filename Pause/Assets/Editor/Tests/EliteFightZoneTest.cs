@@ -250,11 +250,14 @@ public static class EliteFightZoneTest
         BossEncounter.Begin(1, null);
         Check("a boss is running", BossEncounter.Running && EliteDirector.Blocked(1, 100f) == "boss");
         dir.Tick(Dt);
-        Check("every elite is gone (" + EliteShip.Live.Count + " left)", EliteShip.Live.Count == 0 && !Alive(live) && !Alive(launching) && !Alive(parked));
-        Check("... three dismissed", EliteShip.Dismissed == gone + 3);
-        Check("the ones on the board died through the normal death FX (" + (EliteDeath.Played - deaths) + ")", EliteDeath.Played - deaths >= 1);
-        Check("no reward, no dust, no kill count, no escape, no score change",
-              EliteRewards.Paid == paid && Mathf.Approximately(EliteRewards.LastDust, dust) && EliteShip.Kills == kills && EliteShip.Escapes == escapes && RunScore.Total == before);
+        Check("the launching and parked elites are removed, the one in play boosts away",
+              !Alive(launching) && !Alive(parked) && Alive(live) && live.Retreating && EliteShip.Dismissed == gone + 2);
+        dir.Tick(Dt);
+        Check("... a second tick does not restart or double-penalise it", live.Retreating && RunScore.Total == before);
+        for (int i = 0; i < 600 && Alive(live); i++) { Step(.05f); }
+        Check("it escaped (not killed): flat 25 lost, no reward",
+              !Alive(live) && EliteShip.Escapes == escapes + 1 && EliteShip.Kills == kills && EliteRewards.Paid == paid &&
+              Mathf.Approximately(EliteRewards.LastDust, dust) && RunScore.Total == before - EliteShip.BossArrivalEscapePenalty);
         Check("none spawn while it lasts", dir.SpawnGroup(1, 1) >= 0 && EliteDirector.Blocked(1, 100f) == "boss");
         for (int i = 0; i < 90; i++) dir.Tick(Dt);
         Check("... however long the director ticks", EliteShip.Live.Count == 0);
