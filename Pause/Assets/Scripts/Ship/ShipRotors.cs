@@ -96,7 +96,8 @@ public class ShipRotors : MonoBehaviour
     public int shipId;
     public bool unscaledTime;
     // Set by an owner that wants them off (the dock hides them on an unbought ink silhouette).
-    public bool hidden;
+    bool hiddenByOwner;
+    public bool hidden { get { return hiddenByOwner; } set { if (hiddenByOwner == value) return; hiddenByOwner = value; Sync(); } }
 
     SpriteRenderer hull;
     Transform[] blades;
@@ -180,7 +181,7 @@ public class ShipRotors : MonoBehaviour
     void Sync()
     {
         if (hull == null || blades == null) return;
-        bool show = !hidden && hull.enabled && hull.sprite != null;
+        bool show = !hiddenByOwner && hull.enabled && hull.sprite != null;
         Color tint = hull.color;
         int layer = hull.sortingLayerID, order = hull.sortingOrder + 1;
         for (int i = 0; i < blades.Length; i++)
