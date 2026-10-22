@@ -62,7 +62,7 @@ SHIPS = {
                               dark=(0x86, 0x12, 0x1F), accent=(0x6E, 0xF2, 0xEE))),
     ),
     "IonLancer": dict(
-        id=5, hull_w=198, world_w=207 / 440.4255, nozzles=2, noz_scale=(.72, .72),
+        id=5, hull_w=198, world_w=207 / 440.4255, nozzles=2, noz_scale=(.72, .72), fill_holes=True,
         emitters=parse_emitters(
             "E(1, Sparks, 36.5f, 99.0f), E(1, Smoke, 55.4f, 113.0f), E(1, Smolder, 36.5f, 99.2f), "
             "E(2, Arc, 88.1f, 93.0f), E(2, Flame, 72.6f, 113.0f), E(2, Leak, 64.0f, 99.0f), "
@@ -72,6 +72,18 @@ SHIPS = {
         flame=dict(x=(600, 900), y=1086, frames=6,
                    bands=dict(outer=(0x3A, 0x5B, 0xE0), mid=(0x6E, 0xF2, 0xEE), core=(0xF4, 0xEA, 0xD4),
                               dark=(0x1C, 0x2A, 0x80), accent=(0x9A, 0xB0, 0xFF))),
+    ),
+    "VoltViper": dict(
+        id=2, hull_w=232, world_w=243 / 867.8571, nozzles=2, noz_scale=(.72, .72),
+        emitters=parse_emitters(
+            "E(1, Sparks, 75.0f, 63.1f), E(1, Smoke, 53.0f, 100.9f), E(1, Smolder, 75.2f, 63.3f), "
+            "E(2, Arc, 17.2f, 70.6f), E(2, Flame, 75.0f, 100.9f), E(2, Leak, 69.5f, 89.5f), "
+            "E(2, Smolder, 16.5f, 70.6f), E(2, Smolder, 93.9f, 55.5f), E(2, Smolder, 69.2f, 23.1f), "
+            "E(2, Smolder, 48.1f, 79.4f), E(2, Smolder, 76.5f, 85.6f)"),
+        skins=[("Night", "night"), ("Sodium", "sodium"), ("Bone", "bone"), ("Storm", "stock")],
+        flame=dict(x=(600, 950), y=1280, frames=7,
+                   bands=dict(outer=(0x2E, 0x9B, 0xE6), mid=(0x6E, 0xF2, 0xEE), core=(0xF4, 0xEA, 0xD4),
+                              dark=(0x17, 0x4C, 0x8C), accent=(0xF2, 0x86, 0x2B))),
     ),
     "SolarFang": dict(
         id=3, hull_w=232, world_w=242 / 834.4828, nozzles=1, noz_cells=[(128, 232, 1.0)],
