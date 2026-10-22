@@ -334,7 +334,23 @@ public static class WorldPaceTest
         popup.ShowSkins(7, 4, 0f);
         Check("colour 5 (previewed, not owned): START SPD 30", popup.StartSpeedText == "START SPD 30");
         popup.Show(2, ship, .3f, false, false, 600f, 0f);
-        Check("a locked ship's BUY popup has no line", popup.StartSpeedText == "");
+        Check("a locked ship's BUY popup has no skin-row line", popup.StartSpeedText == "");
+        // every roster ship, locked, shows its base start in the header slot
+        bool all = true;
+        for (int id = ShipId.First; id <= ShipId.Last; id++)
+        {
+            string gain;
+            string line = ShipStartSpeed.LockedLabel(id, 0, out gain);
+            all &= line == ShipStartSpeed.Label(ShipStartSpeed.HudFor(id, PremiumShips.IsPremium(id) ? 0 : ShipSkins.Stock));
+        }
+        Check("every roster ship yields a locked start-speed label", all);
+        string g;
+        Check("Volt Viper locked vs a start-0 ship: START SPD 5 +5",
+              ShipStartSpeed.LockedLabel(2, 0, out g) == "START SPD 5" && g == "+5");
+        ShipStartSpeed.LockedLabel(2, 5, out g);
+        Check("no gain shown when it is no faster than the equipped ship", g == "");
+        popup.Show(2, ship, .3f, false, false, 600f, 0f);
+        Check("locked popup header carries the speed (" + popup.SkinNameText + ")", popup.SkinNameText.StartsWith("START SPD "));
         PlayerPrefs.SetString(ShipId.OwnedKey(2), "True");
         popup.Show(2, ship, .3f, true, false, 0f, 0f);
         popup.ShowSkins(2, 3, 0f);
