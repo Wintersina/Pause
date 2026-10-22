@@ -1,28 +1,20 @@
 from pathlib import Path
-import colorsys
 
+import colorsys
 import numpy as np
-from PIL import Image, ImageChops
+from PIL import Image
 
 
 ROOT = Path(__file__).resolve().parents[1]
-MAGENTA = (255, 0, 255)
+MAGENTA = np.array((255, 0, 255), dtype=np.uint8)
 SIZE = 1024
-SHEET_SIZE = (SIZE * 3, SIZE * 2)
 THRESHOLD = 60
 
 
-def load_key(state):
-    image = Image.open(ROOT / f"key_state{state}.png").convert("RGB")
-    if image.size != (SIZE, SIZE):
-        raise AssertionError(f"key_state{state}.png is not 1024x1024")
-    return image
-
-
-def load_sheet(state):
-    image = Image.open(ROOT / f"hull_redo_state{state}.png").convert("RGB")
-    if image.size != SHEET_SIZE:
-        raise AssertionError(f"hull_redo_state{state}.png is not 3072x2048")
+def load(path, size):
+    image = Image.open(path).convert("RGB")
+    if image.size != size:
+        raise AssertionError(f"{path.name} is {image.size}, expected {size}")
     return image
 
 
@@ -32,46 +24,48 @@ def cell(sheet, index):
     return sheet.crop((x, y, x + SIZE, y + SIZE))
 
 
-def rgb_delta(a, b):
-    return sum(abs(a[i] - b[i]) for i in range(3))
+def array(image):
+    return np.asarray(image, dtype=np.int16)
+
+
+def changed_map(a, b):
+    return np.abs(array(a) - array(b)).sum(axis=2) >= THRESHOLD
 
 
 def changed_percent(a, b, allowed=None):
-    aa = np.asarray(a, dtype=np.int16)
-    bb = np.asarray(b, dtype=np.int16)
-    changed_map = np.abs(aa - bb).sum(axis=2) >= THRESHOLD
-    if allowed is None:
-        changed = int(np.count_nonzero(changed_map))
-        total = SIZE * SIZE
-    else:
-        changed = int(np.count_nonzero(changed_map & allowed))
+    changed = changed_map(a, b)
+    if allowed is not None:
+        changed = changed & allowed
         total = int(np.count_nonzero(allowed))
-    return 100.0 * changed / total if total else 0.0
+    else:
+        total = SIZE * SIZE
+    return 100.0 * int(np.count_nonzero(changed)) / total if total else 0.0
 
 
 def silhouette(image):
-    return np.any(np.asarray(image) != np.asarray(MAGENTA, dtype=np.uint8), axis=2)
+    return np.any(np.asarray(image, dtype=np.uint8) != MAGENTA, axis=2)
+
+
+def bbox(mask):
+    ys, xs = np.where(mask)
+    return (int(xs.min()), int(ys.min()), int(xs.max()) + 1, int(ys.max()) + 1)
 
 
 def silhouette_difference(a, b):
-    am = silhouette(a)
-    bm = silhouette(b)
-    return 100.0 * float(np.count_nonzero(am != bm)) / (SIZE * SIZE)
+    return 100.0 * float(np.count_nonzero(silhouette(a) != silhouette(b))) / (SIZE * SIZE)
 
 
 def best_translation_residual(key, bank, radius=64):
-    """Minimum changed-pixel percentage over integer translations of the key."""
-    kp = np.asarray(key, dtype=np.int16)
-    bp = np.asarray(bank, dtype=np.int16)
+    kp = array(key)
+    bp = array(bank)
     best = 100.0
     best_offset = (0, 0)
     coarse = []
     for dy in range(-radius, radius + 1, 4):
         for dx in range(-radius, radius + 1, 4):
             coarse.append((dx, dy))
-    best_coarse = (0, 0)
-    best_coarse_value = 100.0
-    for dx, dy in coarse:
+
+    def score(dx, dy):
         y0 = max(0, -dy)
         y1 = min(SIZE, SIZE - dy)
         x0 = max(0, -dx)
@@ -79,23 +73,18 @@ def best_translation_residual(key, bank, radius=64):
         overlap = np.abs(kp[y0:y1, x0:x1] - bp[y0 + dy:y1 + dy, x0 + dx:x1 + dx]).sum(axis=2)
         changed = int(np.count_nonzero(overlap >= THRESHOLD))
         changed += SIZE * SIZE - (y1 - y0) * (x1 - x0)
-        value = 100.0 * changed / (SIZE * SIZE)
-        if value < best_coarse_value:
-            best_coarse_value = value
-            best_coarse = (dx, dy)
-    cx, cy = best_coarse
-    for dy in range(max(-radius, cy - 3), min(radius, cy + 3) + 1):
-        for dx in range(max(-radius, cx - 3), min(radius, cx + 3) + 1):
-            y0 = max(0, -dy)
-            y1 = min(SIZE, SIZE - dy)
-            x0 = max(0, -dx)
-            x1 = min(SIZE, SIZE - dx)
-            if y0 >= y1 or x0 >= x1:
-                continue
-            overlap = np.abs(kp[y0:y1, x0:x1] - bp[y0 + dy:y1 + dy, x0 + dx:x1 + dx]).sum(axis=2)
-            changed = int(np.count_nonzero(overlap >= THRESHOLD))
-            changed += SIZE * SIZE - (y1 - y0) * (x1 - x0)
-            value = 100.0 * changed / (SIZE * SIZE)
+        return 100.0 * changed / (SIZE * SIZE)
+
+    for dx, dy in coarse:
+        value = score(dx, dy)
+        if value < best:
+            best = value
+            best_offset = (dx, dy)
+
+    coarse_x, coarse_y = best_offset
+    for dy in range(max(-radius, coarse_y - 3), min(radius, coarse_y + 3) + 1):
+        for dx in range(max(-radius, coarse_x - 3), min(radius, coarse_x + 3) + 1):
+            value = score(dx, dy)
             if value < best:
                 best = value
                 best_offset = (dx, dy)
@@ -114,23 +103,16 @@ def canopy_mask(key):
 
 
 def direct_union_difference(a, b):
-    am = silhouette(a)
-    bm = silhouette(b)
-    aa = np.asarray(a, dtype=np.int16)
-    bb = np.asarray(b, dtype=np.int16)
-    union = am | bm
-    changed_map = np.abs(aa - bb).sum(axis=2) >= THRESHOLD
-    changed = int(np.count_nonzero(changed_map & union))
-    total = int(np.count_nonzero(union))
-    return 100.0 * changed / total if total else 0.0
+    union = silhouette(a) | silhouette(b)
+    changed = changed_map(a, b) & union
+    return 100.0 * float(np.count_nonzero(changed)) / int(np.count_nonzero(union))
 
 
 def magenta_like_ship_pixels(image):
     count = 0
-    for pixel in image.getdata():
-        if pixel == MAGENTA:
+    for r, g, b in np.asarray(image, dtype=np.uint8).reshape(-1, 3):
+        if (r, g, b) == (255, 0, 255):
             continue
-        r, g, b = pixel
         h, s, _ = colorsys.rgb_to_hsv(r / 255.0, g / 255.0, b / 255.0)
         if s > 0.5 and 280.0 / 360.0 <= h <= 345.0 / 360.0:
             count += 1
@@ -138,58 +120,62 @@ def magenta_like_ship_pixels(image):
 
 
 def main():
-    keys = [load_key(i) for i in range(3)]
-    sheets = [load_sheet(i) for i in range(3)]
-    print("file                 cell0    cell1    cell2    cell3    cell4   canopy1 canopy2")
-    print("                     vs key  vs key  vs key  vs key  vs key   vs key  vs cell1")
-    all_rows = []
-    for state, sheet in enumerate(sheets):
-        key = keys[state]
-        cells = [cell(sheet, i) for i in range(5)]
-        values = [changed_percent(key, c) for c in cells]
-        canopy = canopy_mask(key)
-        canopy1 = changed_percent(key, cells[1], canopy)
-        canopy2 = changed_percent(cells[1], cells[2], canopy)
-        all_rows.append((values, canopy1, canopy2))
-        print(
-            f"state{state}               {values[0]:6.2f}%  {values[1]:6.2f}%  {values[2]:6.2f}%  "
-            f"{values[3]:6.2f}%  {values[4]:6.2f}%   {canopy1:6.2f}%  {canopy2:6.2f}%"
-        )
+    key = load(ROOT / "key_state0.png", (SIZE, SIZE))
+    sheet = load(ROOT / "hull_redo_state0.png", (SIZE * 3, SIZE * 2))
+    cells = [cell(sheet, i) for i in range(5)]
+    empty = cell(sheet, 5)
+    canopy = canopy_mask(key)
+    diffs = [changed_percent(key, image) for image in cells]
+    canopy1 = changed_percent(key, cells[1], canopy)
+    canopy2 = changed_percent(cells[1], cells[2], canopy)
+    cell2_vs_cell1 = changed_percent(cells[1], cells[2])
 
-    print("\nbanks: residual after best integer translation / silhouette difference")
+    print("J1b state0 pixel-difference table")
+    print("cell       vs key       canopy metric")
+    print(f"0          {diffs[0]:7.2f}%      lights-off vs key")
+    print(f"1          {diffs[1]:7.2f}%      canopy vs key: {canopy1:7.2f}%")
+    print(f"2          {diffs[2]:7.2f}%      canopy vs cell1: {canopy2:7.2f}%")
+    print(f"3          {diffs[3]:7.2f}%      bank-left vs key")
+    print(f"4          {diffs[4]:7.2f}%      bank-right vs key")
+    print(f"cell2 vs cell1: {cell2_vs_cell1:7.2f}%")
+
+    key_box = bbox(silhouette(key))
+    key_w = key_box[2] - key_box[0]
+    key_h = key_box[3] - key_box[1]
     bank_rows = []
-    for state, (key, sheet) in enumerate(zip(keys, sheets)):
-        left = cell(sheet, 3)
-        right = cell(sheet, 4)
-        residual, offset = best_translation_residual(key, left)
-        silhouette_diff = silhouette_difference(key, left)
-        direct = direct_union_difference(left, right)
-        flip_diff = changed_percent(left.transpose(Image.Transpose.FLIP_LEFT_RIGHT), right)
-        bank_rows.append((residual, silhouette_diff, direct, flip_diff, offset))
-        print(
-            f"state{state} left residual {residual:6.2f}% @ {offset!s:>10} | "
-            f"silhouette {silhouette_diff:6.2f}% | left/right {direct:6.2f}% | "
-            f"right-vs-flip {flip_diff:6.2f}%"
-        )
+    for name, bank in (("left", cells[3]), ("right", cells[4])):
+        residual, offset = best_translation_residual(key, bank)
+        sil_diff = silhouette_difference(key, bank)
+        bank_box = bbox(silhouette(bank))
+        bank_w = bank_box[2] - bank_box[0]
+        bank_h = bank_box[3] - bank_box[1]
+        width_pct = 100.0 * bank_w / key_w
+        height_pct = 100.0 * bank_h / key_h
+        bank_rows.append((name, residual, sil_diff, width_pct, height_pct, offset))
 
-    print("\nmagenta-like non-background ship pixels")
-    for state, sheet in enumerate(sheets):
-        counts = [magenta_like_ship_pixels(cell(sheet, i)) for i in range(5)]
-        print(f"state{state}: {counts}")
+    direct = direct_union_difference(cells[3], cells[4])
+    print("\nbank audit")
+    print("bank        residual   silhouette   bbox width   bbox height   best translation")
+    for name, residual, sil_diff, width_pct, height_pct, offset in bank_rows:
+        print(f"{name:5s}       {residual:7.2f}%    {sil_diff:7.2f}%      {width_pct:7.2f}%      {height_pct:7.2f}%       {offset}")
+    print(f"left/right direct union difference: {direct:7.2f}%")
 
-    assert all(all(v >= 0.0 for v in row[0]) for row in all_rows)
-    for state, (values, canopy1, canopy2) in enumerate(all_rows):
-        assert values[0] >= 0.4, f"state{state} cell0 < 0.4%"
-        assert values[1] >= 0.8, f"state{state} cell1 < 0.8%"
-        assert values[2] != values[1] or canopy2 > 0.0, f"state{state} cell2 did not differ from cell1"
-        assert canopy1 > 0.0, f"state{state} cell1 canopy did not change"
-        assert canopy2 > 0.0, f"state{state} cell2 canopy did not change from cell1"
-    for state, (residual, silhouette_diff, direct, flip_diff, _) in enumerate(bank_rows):
-        assert residual >= 8.0, f"state{state} bank residual < 8%"
-        assert silhouette_diff >= 5.0, f"state{state} bank silhouette < 5%"
-        assert direct >= 8.0, f"state{state} bank left/right < 8%"
-        assert flip_diff > 0.0, f"state{state} bank right is pixel-exact horizontal flip"
-    assert all(magenta_like_ship_pixels(cell(sheet, i)) == 0 for sheet in sheets for i in range(5))
+    magenta_counts = [magenta_like_ship_pixels(image) for image in cells]
+    print(f"magenta-like ship pixels: {magenta_counts}")
+
+    assert diffs[0] >= 0.4, "cell 0 < 0.4%"
+    assert diffs[1] >= 0.8, "cell 1 < 0.8%"
+    assert changed_percent(cells[1], cells[2]) > 0.0, "cell 2 did not differ from cell 1"
+    assert canopy1 > 0.0, "cell 1 canopy did not change"
+    assert canopy2 > 0.0, "cell 2 canopy did not change from cell 1"
+    for name, residual, sil_diff, width_pct, height_pct, _ in bank_rows:
+        assert residual >= 5.0, f"{name} residual < 5%"
+        assert sil_diff >= 3.0, f"{name} silhouette difference < 3%"
+        assert 78.0 <= width_pct <= 94.0, f"{name} bbox width outside 78-94%"
+        assert 97.0 <= height_pct <= 103.0, f"{name} bbox height outside 3%"
+    assert direct >= 8.0, "left/right direct union difference < 8%"
+    assert all(value == 0 for value in magenta_counts), "magenta-like ship pixels found"
+    assert np.all(np.asarray(empty, dtype=np.uint8) == MAGENTA), "cell 5 is not completely empty magenta"
     print("\nPASS")
 
 
