@@ -8,7 +8,7 @@ description: Add a new PLAYER ship (hull) to Pause end to end -- roster id, hull
 A Pause player ship is **data plus art, no prefab**. Every hull flies on the shared
 `ship1` prefab (`spawnShips.PrefabPathFor`); its identity is its GameObject name
 `ship<id>` and everything else is a table row indexed by that id. So "add a ship" =
-one hull sheet + one flame strip + one row in each table below + tests. Unity project
+one ship FOLDER (hull sheet, skins, flame strips, data file) + one row in each gameplay table below + tests. Unity project
 root is `Pause/` (code in `Pause/Assets/Scripts`, art in `Pause/Assets/Art`).
 
 Unity: `/Applications/Unity/Hub/Editor/6000.3.23f1/Unity.app/Contents/MacOS/Unity`; run batch
@@ -35,16 +35,38 @@ run hangs or reports compiler errors without any `error CS` line, kill the stale
 - Never renumber or reorder ships: ids are the saved `boughtship<id>` / `spawnShip` values.
   New ships go at the END; `ShipId.keys`, `shopingShips.Roster / Prices`, every table below.
 
-## Where a ship's data lives (the checklist; every row is indexed by id)
+## The ship folder (art + art data): add a folder, touch nothing shared
+
+Everything a ship owns on the art side lives in ONE folder, `Pause/Assets/Art/Resources/ShipArt/<Key>/`
+(`<Key>` = the art key, e.g. `Paragon`; same name as its `ShipId.keys` entry):
+
+```
+ShipArt/<Key>/
+  <Key>.png               hull sheet          <Key>_<Skin>.bytes   skin sheets (PNG bytes)
+  <Key>_flame.png         flame strips        <Key>_data.json      the ship's data file (below)
+  <Key>_shield.bytes      baked silhouette    <Key>_hitbox.bytes   baked hit zones (Unity bake)
+  src~/                   Codex paintings, briefs, tools, restyle.json, data.json (hidden from Unity)
+```
+Each file has its `.meta`. `<Key>_data.json` replaces the rows that used to sit in shared C# tables:
+`painted`, `rect` (+ppu), `hue`, `nozzles`, `damageNote` + `emitters`, `skins`, `exhaust` (style row + the strips of
+`<Key>_flame.png`). The loaders (`ShipData`, `ShipHullArt`, `ShipNozzles`, `ShipDamageTable`, `ShipSkins`,
+`ShipExhaustStyle`, `PaintedShips`, `ShieldSilhouettes`, `ShipHitbox`) find the files from the art key alone, and
+`ShieldSilhouetteBaker` bakes one pair of files per ship, so a ship's art PR touches only its own folder.
+Shared pipeline tools live in `ShipArt/src~/` (`shiplib.py` has the helpers: `python3 build_restyle.py <Ship>`).
+The only shared edits for a brand-new roster slot are the id/key registry (`ShipId.keys`, `shopingShips`) and the
+gameplay tables below, never the art tables.
+
+## Where a ship's gameplay data lives (the checklist; every row is indexed by id)
 
 | What | File (Pause/Assets/Scripts/...) |
 | --- | --- |
 | id, art key, count | `Ship/ShipId.cs` (`keys`), `Shop/shopingShips.cs` (`shipTotal`, `Roster`, `Prices`) |
-| hull sheet rect + pixels-per-unit | `Ship/ShipHullArt.cs` (`rects`) |
-| nozzle points (where flames mount) | `Ship/ShipNozzles.cs` |
-| damage emitters (sparks / smoke / arc / flame / leak / smolder per state) | `Ship/ShipDamageTable.cs` |
-| exhaust theme row + atlas strips | `Ship/ShipExhaustStyle.cs` (`ExhaustKind`, `table`, `strips`) |
-| skins (name, colours) | `Ship/ShipSkins.cs` (`table`) |
+| hull sheet rect + pixels-per-unit, hue | `ShipArt/<Key>/<Key>_data.json` (`rect`, `hue`; read by `Ship/ShipHullArt.cs`) |
+| nozzle points (where flames mount) | `<Key>_data.json` `nozzles` (`Ship/ShipNozzles.cs`) |
+| damage emitters (sparks / smoke / arc / flame / leak / smolder per state) | `<Key>_data.json` `emitters` (`Ship/ShipDamageTable.cs`) |
+| exhaust theme row + flame strips | `<Key>_data.json` `exhaust` (`Ship/ShipExhaustStyle.cs` reads it; a NEW flame style also needs an `ExhaustKind` value) |
+| skins (name, kind, colours) | `<Key>_data.json` `skins` (`Ship/ShipSkins.cs`) |
+| painted (hi-res neon pixel art) flag | `<Key>_data.json` `painted` (`Ship/PaintedShips.cs`) |
 | heart orbit style | `Ship/ShipHeartStyles.cs` |
 | hearts, start speed | `Ship/ShipLives.cs`, `Ship/SkinHearts.cs`, `Ship/ShipStartSpeed.cs` (by dock row / column, unless premium) |
 | ultimate (attack) + secret power rows | `Gameplay/Weapons/ShipLoadout.cs` (`ShipAttack`, `SecretPower`, `PowerTrigger`, `Row(...)`) |
@@ -57,8 +79,8 @@ run hangs or reports compiler errors without any `error CS` line, kill the stale
 | ownership / cloud save | `Ship/ShipId.IsOwned` (`boughtship<id>`), `Core/CloudSave/ProgressSnapshot.cs` (follows `shipTotal`), `Core/DeveloperUnlocks.cs` |
 | achievements | `Achievements/AchievementCatalog.cs` / `AchievementTracker.cs` (Fleet Admiral counts dust ships only) |
 
-Baked data regenerates by itself (`ShieldSilhouetteBaker.Bake`: `hull_silhouettes.bytes`,
-`hull_hitboxes.bytes`); run `-executeMethod ShieldSilhouetteBaker.Bake` after the art is final and commit them.
+Baked data regenerates by itself (`ShieldSilhouetteBaker.Bake`: `<Key>_shield.bytes`, `<Key>_hitbox.bytes`, one pair per
+ship); run `-executeMethod ShieldSilhouetteBaker.Bake` after the art is final and commit your ship's pair.
 
 ## Procedure
 
@@ -75,12 +97,12 @@ roster id, which is the debug grant. The IAP gate is `ShipId.IsOwned`; the futur
 ### 2. Art (Codex), then assemble with scripts
 
 Reference: the approved hero art; strip anything baked in that is a separate game piece (flames).
-The briefs that worked are in `Hulls/src~/paragon/codex/briefs/` (`common` preamble + one JOB each).
+The briefs that worked are in `ShipArt/Paragon/src~/codex/briefs/` (`common` preamble + one JOB each).
 Always: green `#00FF00` chroma background, "redraw, never filter-warp", IMAGE GENERATION for the painted
 content, nearest-neighbour clean-up, no pink, a `tools/check_*.py` that prints a table, a `preview_*.png`.
 Codex shares the user's ChatGPT usage; jobs take 5-15 minutes; run at most 2 at once.
 
-| Job | Output (all in `src~/<ship>/codex/`) | What it must contain |
+| Job | Output (all in `ShipArt/<Key>/src~/codex/`) | What it must contain |
 | --- | --- | --- |
 | J1 hull | `hull_state{0,1,2}.png`, 3x3 cells of 1024 px | key pose, bob up, bob up + lights off, glint 1, glint 2 + lights off, bob down, bank L, bank R, hit flash (bone-white); state 1 = damaged (blown panel, wires, scorch, cracks), state 2 = wreck (adds torn pod, glowing tears, cracked canopy, embers); damage INSIDE the intact silhouette |
 | J1b strict redo | `hull_redo_state{0,1,2}.png`, 3x2 cells | lights-off, glint 1, glint 2, bank L, bank R, each PAINTED (see audit below) |
@@ -102,30 +124,30 @@ message; repeat until it passes. Repo limit: `jj` refuses new files over 1 MiB, 
 
 Assemble with scripts only (no hand painting):
 
-- `Hulls/src~/paragon/build_paragon.py`: keys + fits the sheets (243 px wide, the intact sheet sets the
+- `ShipArt/Paragon/src~/build_paragon.py`: keys + fits the sheets (243 px wide, the intact sheet sets the
   scale), uses J1 for idle + flash, J1b for the painted poses, binary alpha (the art test wants no faint
   rim), damage rows take the intact alpha EXACTLY (tests compare), measures rect / nozzles, nudges each
-  damage emitter onto paint in all 27 cells, writes `data.json`, builds the skin sheets (Codex paintings when
-  present, the palette-shift script as per-pixel fallback + silhouette guard), pastes the flame strips into
-  the exhaust atlas; `patch_cs.py` writes the `BEGIN/END PARAGON` blocks next to the generated blocks that
-  the vector pipeline (`build.py`) owns.
+  damage emitter onto paint in all 27 cells, writes `src~/data.json`, builds the skin sheets (Codex paintings when
+  present, the palette-shift script as per-pixel fallback + silhouette guard) into the ship folder and writes
+  `Paragon_flame.png`; `patch_cs.py` merges the measured rows into `Paragon_data.json`. For an existing
+  ship's restyle use `ShipArt/src~/build_restyle.py <Ship>` + `patch_restyle.py <Ship>` (restyle-ship skill).
 - `Weapons/src~/paragon_weapons.py` (scripted placeholders for every weapon cell) then
   `ingest_paragon_codex.py` (overwrites with Codex's: charge, ready/shot/impact, shot redo, muzzle/release/trail,
   fx row 16, meter row 16, gun tile 16). Always run them in that order: the first one resets the atlas.
 - Skins: 4 besides stock (`ShipSkins.PerShip = 5`, `ShipWeaponUpgrades.MaxLevel = 4` assume it), written
-  as PNG bytes to `Resources/ShipArt/Skins/<Key>_<Skin>.bytes` (+ copy a neighbour's `.bytes.meta` with a
-  new guid). The skin table rows use the colours the brief named, not measured medians.
+  as PNG bytes to `Resources/ShipArt/<Key>/<Key>_<Skin>.bytes` (+ copy a neighbour's `.bytes.meta` with a
+  new guid). The `skins` of the data file use the colours the brief named, not measured medians.
 - Import settings: hull sheet = copy a neighbour's `.meta` (new guid, empty `internalIDToNameTable`);
   weapon atlas likewise; atlases keep their metas.
 
 ### 3. Wire the tables (Paragon is the worked example)
 
-1. `ShipId.keys` + `shopingShips` (`shipTotal`, `Roster`, `Prices`).
+1. `ShipId.keys` + `shopingShips` (`shipTotal`, `Roster`, `Prices`); create `ShipArt/<Key>/` (+ folder `.meta`).
 2. Run `build_paragon.py` + `patch_cs.py`: rect (+ppu = rect width / 0.34 world units), nozzles (3: big
-   centre `scale 1.5`, two outboard `.55`), emitters, skins block.
-3. Exhaust: new `ExhaustKind`, a `Row(...)` (its `outer` must be one of the hull's identity tones:
-   Paragon's identity hue is its blue, not its red armour), two `Strip`s in free atlas space,
-   `sprites` array sized for the new id.
+   centre `scale 1.5`, two outboard `.55`), emitters, skins, all into `<Key>_data.json`.
+3. Exhaust: new `ExhaustKind` if the flame is a new design, the `exhaust` block of the data file (its `outer`
+   must be one of the hull's identity tones: Paragon's identity hue is its blue, not its red armour), the
+   strips of `<Key>_flame.png` (written by `shiplib.write_flame_sheet`, no atlas slot to find).
 4. Heart style, weapon style row (`ChargeStyle` / `ShotStyle` enum values + artKey), loadout row
    (new `ShipAttack` value goes BEFORE `ScreenClear`, which must stay last: title traffic sizes an array by it),
    `ShipWeaponUpgrades` track (4 steps), runner cases, title-traffic case, `ShipFxArt.Rows`,
@@ -160,9 +182,9 @@ widened. What the Paragon pass had to touch (each hard-codes the 15-ship dust ec
   plume scale, `CodexTest` hearts <= `MostHearts`, `RedAtomFreeShotTest` (the new attack launches `shots`);
 - `TitleScreenTrafficTest`: the sky flies every roster ship (cap Paragon's barrage to 3 lances in
   `TitleScreenTraffic.Combat`), its flipbook-pool peak bound and a "tumbling flyer" exemption were RNG-sensitive;
-- `ShipHitboxTest` needs the baked `hull_hitboxes.bytes` / `hull_silhouettes.bytes`: run
+- `ShipHitboxTest` needs the baked `<Key>_hitbox.bytes` / `<Key>_shield.bytes`: run
   `-executeMethod BakeThenTests.Run -suites ...` (bakes, then runs the suites; the import hook never fires
-  in `-batchmode -quit`) and commit the two `.bytes`.
+  in `-batchmode -quit`) and commit the ship's two `.bytes`.
 
 `UnusedAssetGuardTest` failed with 11 `Art/Enemies/storm_*` orphans on master before this work (see the
 `baseline-jj` log); not a Paragon issue.

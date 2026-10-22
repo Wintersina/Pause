@@ -1,6 +1,6 @@
 ---
 name: restyle-ship
-description: Restyle ONE existing player ship (hull flipbook, damage rows, silhouette column, every skin, exhaust flames, nozzle/emitter points, baked hitbox + shield silhouettes) from the old flat-cartoon vector look into Paragon's hi-res neon pixel-art look, art side only. Worked example NeonComet (the first restyled ship). Use when the user says "restyle <ship>", "redo the ship art in the Paragon style", or when auditing that a restyled ship missed a piece. Not for adding a new ship (add-ship), enemies (add-elite-ship) or weapon FX.
+description: Restyle ONE existing player ship (hull flipbook, damage rows, silhouette column, every skin, exhaust flames, nozzle/emitter points, baked hitbox + shield silhouettes), all inside that ship's own folder ShipArt/<Key>/ from the old flat-cartoon vector look into Paragon's hi-res neon pixel-art look, art side only. Worked example NeonComet (the first restyled ship). Use when the user says "restyle <ship>", "redo the ship art in the Paragon style", or when auditing that a restyled ship missed a piece. Not for adding a new ship (add-ship), enemies (add-elite-ship) or weapon FX.
 ---
 
 # Restyle a player ship in the Paragon style
@@ -9,8 +9,27 @@ Goal: ship `<Key>` (e.g. `VoltViper`) keeps its name, roster id, price, stats, a
 identity, but its ART (hull sheet, damage rows, silhouette column, skins, flames) is repainted by Codex
 in Paragon's hi-res neon pixel-art style: densely painted plated hull, rim lights, glowing canopy/engines,
 saturated cores, real damage (blown panels, cracks, scorch). Worked example: NeonComet. Style reference:
-`Pause/Assets/Art/Resources/ShipArt/Hulls/Paragon.png` (+ `src~/paragon/`). Everything lives under
-`Pause/Assets/Art/Resources/ShipArt/Hulls/`; call it `HULLS` below. `src~` hides from Unity.
+`Pause/Assets/Art/Resources/ShipArt/Paragon/Paragon.png` (+ `Paragon/src~/`). **One folder per ship**:
+everything of ship `<Key>` lives in `Pause/Assets/Art/Resources/ShipArt/<Key>/` (call it `SHIP` below) and a
+restyle touches NO file outside it (that is what keeps ship PRs from conflicting). The shared tools live in
+`ShipArt/src~/` (call it `TOOLS`). `src~` hides from Unity. Addressing is by ship NAME only:
+`python3 TOOLS/build_restyle.py VoltViper` (any case).
+
+```
+ShipArt/<Key>/
+  <Key>.png               hull sheet (2304 x 768)            <Key>.png.meta
+  <Key>_<Skin>.bytes      4 skin sheets (PNG bytes)          + .meta each
+  <Key>_flame.png         flame strips (Plume, PlumeBoost; a spinner also Ring/Wake)
+  <Key>_shield.bytes      baked shield silhouette (Unity bake)
+  <Key>_hitbox.bytes      baked hull + shield hit polygons (Unity bake)
+  <Key>_data.json         rect/ppu, hue, nozzles, damage emitters + note, skins, exhaust style + flame
+                          strips, "painted" flag  (this REPLACES the rows in ShipHullArt / ShipNozzles /
+                          ShipDamageTable / ShipSkins / ShipExhaustStyle / PaintedShips)
+  src~/                   Codex paintings, briefs, tools, restyle.json (build config), data.json (measured)
+```
+The ship registry is derived from these folders: `ShipId.cs` maps id -> `<Key>` (roster order, save-game ids,
+never touched by a restyle), `PaintedShips.Is(id)` reads `"painted"` from the ship's data file, `ships.py`'s
+`RESTYLED` is computed from the same flag. There is no hand-edited shared list or table.
 
 Sheet contract (never change): `<Key>.png` = 2304 x 768, 9 columns x 3 rows of 256 px cells. Row 0 intact,
 row 1 damaged, row 2 wreck. Columns: 0 key pose, 1 bob up, 2 bob up lights off, 3 glint 1, 4 glint 2 (lights
@@ -31,32 +50,34 @@ share row 0's alpha EXACTLY, alpha is binary (0/255, no faint rim), no outline h
 
 ## 1. Prepare (per ship)
 
-1. `mkdir -p HULLS/src~/<key lower>/codex/{briefs,tools}`.
-2. Gather the OLD facts into a `SHIPS["<Key>"]` entry in `src~/build_restyle.py` (copy the NeonComet entry):
+1. `mkdir -p SHIP/src~/codex/{briefs,tools}`.
+2. Gather the OLD facts into `SHIP/src~/restyle.json` (copy `NeonComet/src~/restyle.json`; the OLD values are
+   in `SHIP/<Key>_data.json`, which already exists for every roster ship):
    - `hull_w`: width in px of the old rest drawing in its 256 cell (open old `<Key>.png`, bbox of cell 0 alpha).
-   - `world_w`: old rect width / old ppu, from `Scripts/Ship/ShipHullArt.cs` row (`new HullRect(x, y, w, h, ppu, ...)`).
+   - `world_w`: old rect width / old ppu, from `rect` in `<Key>_data.json` (`w / ppu`).
      The script keeps `world_w`, so the sprite keeps its world size (ppu = new rect width / world_w).
-   - `nozzles` / `noz_scale` (count + scale: `Twin` = .72, single big = 1.5, see `Scripts/Ship/ShipNozzles.cs`),
+   - `nozzles` / `noz_scale` (count + scale: twin = .72, single big = 1.5, see `nozzles` in `<Key>_data.json`),
      or `noz_cells=[(x_px, y_px, scale)...]` (rest-cell pixel coords of each nozzle lip) when auto-detect (lowest
      row's separate column groups) does not fit, e.g. one centre nozzle or nozzles not on the lowest row.
-   - `emitters`: paste the old row from `Scripts/Ship/ShipDamageTable.cs` into `parse_emitters("E(1, Sparks, ...)")`.
+   - `emitters`: the old `emitters` of `<Key>_data.json` as `[state, "kind", u, v]` (kind lower case).
      They are nudged onto paint automatically; since the briefs keep the damage in the same places they mostly stay.
-   - `skins`: `[(name, fallback_mode)]` for the 4 non-stock skins from `ShipSkins.cs` (recolour modes in
+   - `skins`: `[[name, fallback_mode]]` for the 4 non-stock skins from `skins` in `<Key>_data.json` (recolour modes in
      `recolour()`: night / sodium / bone / stock; add a mode per new colour, it is only the fallback + silhouette guard).
-   - `flame`: atlas slots from `ShipExhaustStyle.cs` strips (`x` of Plume and PlumeBoost, `y`, `frames`) and the
-     five band colours from that ship's `Row(...)` (outer, mid, core, dark, accent) + tick list.
-3. Add the key to `RESTYLED` in `src~/ships.py` (stops the old vector pipeline `build.py` / `build_skins.py`
-   from regenerating the sheet/skins/C# rows). Already done for NeonComet.
+   - `flame`: `frames` (= the ship's current Plume strip frame count in `exhaust.strips`) and the five band
+     colours `bands` (hex) from `exhaust` in `<Key>_data.json` (outer, mid, core, dark, accent; the tick list stays).
+3. Nothing to register: `patch_restyle.py` (step 4) sets `"painted": true` in the data file, which is what stops
+   the old vector pipeline (`build.py` / `build_skins.py` / `exhaust.py`) from regenerating the ship and what
+   makes the tests treat it as painted art.
 4. Reference images (1024 px cells on flat `#00FF00`): upscale the OLD cell 0 of each damage row 4x nearest
-   (`ref_old_state{0,1,2}.png`), plus `paragon_ship_alone.png` (= `src~/paragon/ship_alone.png`) and
-   `paragon_damaged.png` (= `src~/paragon/codex/tools/j1b_ref_state1.png`) for style. See `src~/neoncomet/codex/`.
+   (`ref_old_state{0,1,2}.png`), plus `paragon_ship_alone.png` (= `Paragon/src~/ship_alone.png`) and
+   `paragon_damaged.png` (= `Paragon/src~/codex/tools/j1b_ref_state1.png`) for style. See `NeonComet/src~/codex/`.
 
 ## 2. Codex rules (all jobs)
 
 Run through `scripts/codex-art.sh <workdir=worktree root> <brief.md> <last-message-file> <ref images...>`
 (a mkdir lock so only ONE codex runs at a time, model `gpt-5.6-luna`, `--skip-git-repo-check -s workspace-write`,
 `-c model_reasoning_effort="high"`, no `--full-auto`; refs are attached with `-i`). Run it in the background
-and wait for the notification; a job takes 10-40 min (skins longest). Briefs: copy `src~/neoncomet/codex/briefs/`
+and wait for the notification; a job takes 10-40 min (skins longest). Briefs: copy `NeonComet/src~/codex/briefs/`
 (j1, j1b, j2, skin_*, mk_skin_briefs.py) and replace the ship description/palette/damage placement.
 Every brief must: say "use IMAGE GENERATION, then nearest-neighbour clean-up, never filter/warp a reference",
 flat `#00FF00` background, no pink/magenta (pink is Space-only), no outline/halo around the ship (only Paragon's
@@ -86,10 +107,9 @@ that epoch + ~5 min and retry; the image cap is separate from the text cap. Neve
   banks: residual after best integer translation >= 5% and silhouette diff >= 3%. (Paragon's first pass cheated:
   glint = copy, banks = scripted squash; hence the explicit numbers.) NeonComet passed first time.
 - **J2 flames** (`briefs/j2.md`): refs = paragon_ship_alone (its jet), the new key_state0, an upscaled crop of the
-  old flame strip (`ref_old_flame.png`: atlas crop `[x, H-y-192, x+frames*50, H-y]` of
-  `Art/Resources/ShipArt/Exhaust/exhaust_atlas.png`, H=1472; atlas y counts from the BOTTOM). Output
-  `flame_cruise.png` + `flame_boost.png`, N cells (N = old `frames`, 6 or 7, stride 50 so N*50 must not reach
-  the next strip) 1:4 on green, head at top. ONLY the five band colours of the ship's exhaust Row (+ green key),
+  old flame strip (`ref_old_flame.png`: crop the Plume strip out of `SHIP/<Key>_flame.png` using its `exhaust.strips`
+  entry in `<Key>_data.json`; `y` counts from the BOTTOM of the sheet). Output
+  `flame_cruise.png` + `flame_boost.png`, N cells (N = old `frames`, 6 or 7) 1:4 on green, head at top. ONLY the five band colours of the ship's exhaust Row (+ green key),
   hard-stepped, no outline. The script snaps every pixel to the nearest band so the skin recolour shader
   (`ExhaustRemap`) still finds the five bands exactly: THIS is how flames get tinted per skin, nothing is
   repainted per skin for flames.
@@ -97,25 +117,45 @@ that epoch + ~5 min and retry; the image cap is separate from the text cap. Neve
 
 ## 4. Assemble
 
-`python3 src~/build_restyle.py <Key> [--no-skins] [--no-flame] [--no-codex] [--no-redo]` (cwd anywhere; it imports
-`paragon/build_paragon.py` for key/fit/warp helpers). It: keys the green (despill), fits every Codex cell with the
+`python3 TOOLS/build_restyle.py <Key> [--no-skins] [--no-flame] [--no-codex] [--no-redo]` (cwd anywhere; it imports
+`Paragon/src~/build_paragon.py` for key/fit/warp helpers and reads `SHIP/src~/restyle.json`). It: keys the green (despill), fits every Codex cell with the
 SAME scale + anchor (the intact key's bbox width -> `hull_w`, centred on the cell), builds bob/flash itself, takes
-the redo poses, forces rows 1-2 onto row 0's alpha exactly, writes `<Key>.png`, writes
+the redo poses, forces rows 1-2 onto row 0's alpha exactly, writes `SHIP/<Key>.png`, writes
 `codex/skinref_state{0,1,2}.png` (3x3 refs of the final flipbook for the skin briefs), builds skins
-(`Skins/<Key>_<Name>.bytes`), pastes flames into the atlas, measures rect/ppu/nozzles/emitters into
-`src~/<key lower>/data.json`. Then `python3 src~/patch_restyle.py <Key>` rewrites that ship's rows IN PLACE in
-`ShipHullArt.cs` (rect + ppu, colours kept), `ShipNozzles.cs`, `ShipDamageTable.cs` (emitters). Exhaust Row
-colours/ticks, skin colours, hearts, attacks are untouched. Order: J1 -> J1b -> build (`--no-skins --no-flame`) ->
-J2 -> skins -> final build -> patch -> bake.
+(`SHIP/<Key>_<Name>.bytes`), writes the flame sheet `SHIP/<Key>_flame.png` (its Plume/PlumeBoost strips; other
+layers are kept; the strip layout is recorded in the data file), measures rect/ppu/nozzles/emitters into
+`SHIP/src~/data.json`. Then `python3 TOOLS/patch_restyle.py <Key>` MERGES that into `SHIP/<Key>_data.json`
+(rect + ppu, nozzles, emitters, flame strips, `"painted": true`); it patches no C# file. Exhaust colours/ticks,
+skin colours, hearts, attacks are untouched. Order: J1 -> J1b -> build (`--no-skins --no-flame`) ->
+J2 -> skins -> final build -> patch -> **overlay** (below) -> bake.
+
+### 4b. Damage overlay (REQUIRED last art step: damage must sit on the same panels in EVERY cell)
+
+Codex paints the damaged / wreck states for the idle pose only well; its banks, glints and lights-off cells
+drift (different damage per cell, crumpled banks). So the damaged rows are finished by a damage OVERLAY, never by
+trusting those cells:
+
+`python3 TOOLS/damage_overlay.py <Key> --skins [--preview DIR]` (run after the final build + patch). Per state
+(row 1, row 2) the damage layer = the pixels of the IDLE damaged cell (col 0) that differ from the intact idle cell
+(binary alpha, clipped to the silhouette). It is mapped onto the intact cell of every other column of the same row:
+bob cells (1, 2, 5) = integer translation measured from the intact alphas; glint / lights-off cells (3, 4) = same
+geometry; bank cells (6, 7) = piecewise-affine warp through 9 landmarks found on the STOCK intact cells (nose, wing
+tips, canopy, the two wing slab lights, the two nozzle glows; `stock_landmarks` finds them by colour, so a new ship
+may need its landmark colours / ranges adapted: view `marks.png`-style overlays first); hit-flash cell (8) = ink
+where the layer is dark. Alpha stays exactly the intact alpha (script asserts it). Skins reuse the stock geometry and
+take their OWN idle damaged cell as the layer, so skin damage matches stock cell for cell. Column 0 is never touched,
+so the idle cells are the only damage that Codex has to paint (key_state1 / key_state2 + one idle cell per skin).
+Verify with a contact sheet: per row, diff (damaged vs intact) per cell in one colour; the blobs must sit at the same
+wing / fuselage spots in all 9 columns. The script is idempotent. Worked example: IonLancer.
 
 ## 5. Skins (every ship has 4 non-stock skins; each is repainted by Codex, never just hue-shifted)
 
-How Paragon's were made (`src~/paragon/codex/briefs/skin_Aurum.md`, `build_paragon.py: codex_skin_sheet`) and
+How Paragon's were made (`Paragon/src~/codex/briefs/skin_Aurum.md`, `build_paragon.py: codex_skin_sheet`) and
 how NeonComet's are made (same): per skin one Codex job with refs `skinref_state{0,1,2}.png` (the FINAL
 approved flipbook, three 3x3 sheets, 512 px cells) -> outputs `skin_<Name>_state{0,1,2}.png` (3x3 grid,
 1024 px cells, 3072x3072). The brief says: the drawing must stay identical cell for cell (silhouette, panel
 lines, damage, cracks, glints, bank perspective, light dashes) and ONLY colours change; names the armour
-target as base/shadow/highlight hex (the `ShipSkins.cs` row colours: hue, hueShadow, hueHighlight); canopy,
+target as base/shadow/highlight hex (the `skins` of `<Key>_data.json`: hue, hueShadow, hueHighlight); canopy,
 engine glow, ink edge, glints and all damage effects stay; hit-flash stays bone-white; and demands
 `tools/check_skin_<Name>.py` with: silhouette diff vs ref cell < 1.5%, canopy/blue region diff < 6%, fraction
 changed > 12% (a special livery skin: > 3%). Generate the four briefs with `briefs/mk_skin_briefs.py` (edit the
@@ -124,14 +164,14 @@ split livery pattern in the `accent*` colours from the ShipSkins row, described 
 four jobs one after another (`scripts/codex-art.sh` serialises; a chain script is fine). `build_restyle.py`
 then keys + downsamples each cell, imposes the stock alpha exactly, fills any silhouette pixel Codex left green
 from the palette-shift fallback (it prints the count; a few hundred is fine, thousands = redo), and writes
-`.bytes` PNGs (copy a neighbour's `.bytes.meta` ONLY for a brand new skin; existing ones keep theirs).
+`.bytes` PNGs (a new skin file gets a `.meta` copied from a sibling `.bytes.meta` with a fresh guid; existing ones keep theirs).
 All three damage states of every skin come from the Codex sheets, so damage looks right per skin.
 Check any skin colour rows that break the art rules (no pink outside Space: e.g. Seraph #C8285E, Jester
 #B83CC0 are pink-ish: keep the table colours but paint them clearly red/violet, flag it to the user).
 
 ## 6. Verify (do all of it; Codex's report is not evidence)
 
-1. View frames: `Read` the sheet on a dark background (composite `<Key>.png` over `#0e1424`, save a PNG in the
+1. View frames: `Read` the sheet on a dark background (composite `SHIP/<Key>.png` over `#0e1424`, save a PNG in the
    scratchpad) and every skin's row 0; zoom crops of glint cells and banks (nearest upscale). Look for:
    misaligned cells (hull jumping between columns), clipped tips, green fringe, pink, damage that does not
    progress row 0 -> 1 -> 2.
@@ -145,8 +185,9 @@ Check any skin colour rows that break the art rules (no pink outside Space: e.g.
 
 ## 7. Bake hitbox + shield silhouettes (Unity, one at a time)
 
-`ShipHitbox` / the shield contour read `Resources/Shield/hull_silhouettes.bytes` + `hull_hitboxes.bytes`, baked
-from every stock rest drawing. After the sheet is final (and again after any later ship lands):
+`ShipHitbox` / the shield contour read the ship's own `<Key>_shield.bytes` + `<Key>_hitbox.bytes`, baked from its
+stock rest drawing. The baker iterates the ships and writes ONLY the files whose bytes changed, so after your
+restyle exactly your two files differ and two ship PRs never touch the same bake output. After the sheet is final:
 
 ```
 cp -Rc <idle worktree>/Pause/Library Pause/Library     # APFS clone, only once per worktree (e.g. ../rec-ships)
@@ -156,21 +197,42 @@ UNITY_BATCH_IGNORE_FOREIGN=1 UNITY_BATCH_MAX_SWAP_MB=8000 scripts/unity-batch.sh
 (~30 s; if it hangs or shows fake compiler errors kill the stale `Unity.Licensing.Client` helper and rerun.)
 Unity also rewrites ~100 unrelated `.meta` files and drops untracked `.meta` for other files: revert them
 (`git ls-files -m | grep '\.meta$' > list` then `git checkout --pathspec-from-file=list`, delete untracked
-`*.cs.meta` it created) and commit only `hull_silhouettes.bytes` + `hull_hitboxes.bytes`. When several agents
-restyle ships in parallel, the two `.bytes` conflict: whoever merges last re-runs the bake on the merged tree.
+`*.cs.meta` it created) and commit only `SHIP/<Key>_shield.bytes` + `SHIP/<Key>_hitbox.bytes` (+ their new `.meta`
+if Unity made them). `git status` must show no other ship's `*_shield.bytes` / `*_hitbox.bytes` modified.
 
 ## 8. Commit
 
-One commit per ship, only your files, by path: `Hulls/<Key>.png`, `Hulls/src~/<key lower>/` (codex outputs,
-briefs, data.json; keep working PNGs under ~2 MB each, quantize big Codex sheets if needed), `Skins/<Key>_*.bytes`,
-`Exhaust/exhaust_atlas.png`, `Shield/hull_*.bytes`, the three patched `.cs` files, `src~/ships.py`/`build_restyle.py`
-if you extended them. Message: `art: restyle <Key> in the Paragon style (hull, damage, skins, flames)`.
-Dock / codex / hearts / weapons read the sheet and tables above and need no change. Push the branch
+One commit per ship, only files inside `ShipArt/<Key>/` (by path): `<Key>.png`, `<Key>_*.bytes`, `<Key>_flame.png`,
+`<Key>_data.json`, `src~/` (codex outputs, briefs, `restyle.json`, `data.json`; keep working PNGs under ~2 MB each,
+quantize big Codex sheets if needed) and the new `.meta` files. A restyle edits NO shared file (no `.cs`, no
+`ships.py`, no atlas). Message: `art: restyle <Key> in the Paragon style (hull, damage, skins, flames)`.
+Dock / codex / hearts / weapons read the sheet and data file above and need no change. Push the branch
 (`git push origin <branch>`), never merge to master; the final PR to Wintersina/Pause is opened by the coordinator.
+
+## Moving an older branch onto the per-ship layout (branches started before the refactor)
+
+The old layout kept every ship in shared type folders and shared C# tables; branches started then still carry
+files at the old paths. After rebasing/merging `master` (which has the per-ship folders), redo these moves with
+plain `git mv` (keep each `.meta` with its asset), where `<Key>` is the CamelCase art key and `<key>` its lower case:
+
+| old path (Pause/Assets/Art/Resources/ShipArt/...) | new path (ShipArt/<Key>/...) |
+|---|---|
+| `Hulls/<Key>.png` (+ `.meta`) | `<Key>/<Key>.png` |
+| `Skins/<Key>_<Skin>.bytes` (+ `.meta`) | `<Key>/<Key>_<Skin>.bytes` |
+| `Hulls/src~/<key>/...` (codex, briefs, tools, data.json) | `<Key>/src~/...` |
+| `Hulls/src~/<tool>.py` (shared tools) | `src~/<tool>.py` (already moved on master; resolve conflicts to master's, re-apply only your own tool edits) |
+| the ship's slot in `Exhaust/exhaust_atlas.png` | `<Key>/<Key>_flame.png`: re-run `python3 src~/build_restyle.py <Key> --no-skins` (it rewrites the flame sheet from `codex/flame_*.png`) |
+| `Shield/hull_silhouettes.bytes`, `Shield/hull_hitboxes.bytes` (shared bake) | `<Key>/<Key>_shield.bytes`, `<Key>/<Key>_hitbox.bytes`: take master's, re-run the bake (step 7) |
+| your row in `ShipHullArt.cs` / `ShipNozzles.cs` / `ShipDamageTable.cs` / `ShipSkins.cs` / `ShipExhaustStyle.cs` | `<Key>/<Key>_data.json`: take master's file, run `python3 src~/patch_restyle.py <Key>` (merges your `src~/data.json`); if you changed skin names/colours or the exhaust style row, edit them in the data file directly |
+| your id in `PaintedShips.restyled`, your name in `ships.py RESTYLED`, your `SHIPS["<Key>"]` entry in `build_restyle.py` | gone: `"painted": true` in the data file (set by `patch_restyle.py`), and `<Key>/src~/restyle.json` (convert your `SHIPS` entry: tuples become lists, `parse_emitters(...)` becomes `[state, "kind", u, v]` rows, flame `x`/`y` drop, band tuples become `#RRGGBB`) |
+
+Conflicts in the deleted shared files/tables: take master's side and drop yours (the data file replaces your edit).
+Then `python3 src~/patch_restyle.py <Key>` must leave `git diff` empty on `<Key>_data.json` except your changes, and
+`git status` must show nothing outside `ShipArt/<Key>/` (plus `src~/` tooling you deliberately changed).
 
 ## Tests (CI only) and what a restyle must wire
 
-Add the ship's id to `PaintedShips.restyled` (`Scripts/Ship/PaintedShips.cs`). The vector-art tests
+`patch_restyle.py` sets `"painted": true` in the ship's data file (there is no `PaintedShips` list to edit). The vector-art tests
 (`ShipArtTest` flat fills, `ShipSkinsTest` flat-fill / friendly-red pixel checks, `ShipDamageTest`'s 2.5x
 damage ratio -> "clearly worse" 1.3x rule) skip painted ids; sheet contract checks (alpha identical across
 states and to stock for every skin, damage progression) still run. `ExhaustStyleTest` requires the BOOST
@@ -184,6 +246,6 @@ Failures seen on NeonComet's first PR run: [SD] x5, [SA] x1, [SK] x6 (all the ex
 - Banks: Codex's painted banks differ ~15% in silhouette; fine. Emitters are nudged against the ACTUAL sheet alpha.
 - Rect width changes the sprite bounds; ppu = rect width / world_w keeps the old world size (so hull_w must match
   the old drawing width, otherwise the ship visibly shrinks or grows in game).
-- Flame strips: more frames than the old strip overwrites the next strip in the atlas. Keep the old frame count.
-- Do not regenerate a restyled ship with `build.py` / `build_skins.py` (blocked by `RESTYLED`).
+- Flame strips: each ship has its own `<Key>_flame.png` now, so a different frame count is possible, but `ExhaustStyleTest` wants 6-8 drawings, one 1-tick smear and a boost strip with the same count: keep the old frame count and tick list unless you also edit `exhaust.ticks` in the data file.
+- Do not regenerate a restyled ship with `build.py` / `build_skins.py` / `exhaust.py` (blocked by `"painted": true`; `exhaust.py <Ship>` would overwrite the Codex flames if you name it explicitly).
 - Skin count: every ship has exactly 4 non-stock skins (PerShip = 5), so 4 Codex skin jobs per ship.

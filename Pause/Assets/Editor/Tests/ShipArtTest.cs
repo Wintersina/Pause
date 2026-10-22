@@ -3,7 +3,7 @@ using System.IO;
 using UnityEditor;
 using UnityEngine;
 
-// The Akira hull redraw (ShipHullArt + Art/Resources/ShipArt/Hulls):
+// The Akira hull redraw (ShipHullArt + Art/Resources/ShipArt/<Key>/):
 //   - every roster ship has its sheet, rest, idle, bank, hit and damage frames
 //   - in-game hull size and collider stay within 10% of the 2016 art's
 //   - each sheet uses only the style guide's palette plus its identity hue
@@ -72,7 +72,7 @@ public static class ShipArtTest
     {
         string who = Label(id);
         var sheet = ShipHullArt.SheetFor(id);
-        Check(who + " has its Akira sheet (" + ShipHullArt.Folder + ShipId.KeyOf(id) + ")",
+        Check(who + " has its Akira sheet (" + ShipData.HullPath(ShipId.KeyOf(id)) + ")",
               sheet != null && sheet.name == ShipId.KeyOf(id));
         if (sheet == null) return;
         Check(who + " sheet is " + ShipHullArt.Columns + "x" + ShipHullArt.States + " cells of " + ShipHullArt.Cell + " px",
@@ -275,7 +275,7 @@ public static class ShipArtTest
 
     static void Exhaust()
     {
-        // Each ship's plume is its own flipbook in the shared exhaust atlas
+        // Each ship's plume is its own flipbook in its own flame sheet
         // (ShipExhaustStyle; ExhaustStyleTest covers the per-ship details).
         bool all = true;
         foreach (int id in ShipId.All)
@@ -284,10 +284,10 @@ public static class ShipArtTest
             for (int f = 0; f < ShipExhaust.FrameCount(id); f++)
             {
                 var s = ShipExhaust.Frame(id, false, f);
-                all &= s != null && s.texture.name == "exhaust_atlas";
+                all &= s != null && s.texture.name == ShipId.KeyOf(id) + "_flame";
             }
         }
-        Check("every nozzle ship's exhaust is a flipbook in the exhaust atlas", all);
+        Check("every nozzle ship's exhaust is a flipbook in its own flame sheet", all);
         var seen = new HashSet<int>();
         for (int t = 0; t < 16; t++) seen.Add(ShipExhaust.FrameAt(ShipId.Starter, t));
         Check("the exhaust loop visits every frame", seen.Count == ShipExhaust.FrameCount(ShipId.Starter));

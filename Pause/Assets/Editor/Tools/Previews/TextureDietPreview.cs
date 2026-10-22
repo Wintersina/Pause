@@ -12,9 +12,9 @@ public static class TextureDietPreview
 {
     static readonly string[] Targets =
     {
-        "ShipArt/Hulls/Ninja", "ShipArt/Hulls/UFO", "ShipArt/Hulls/CrimsonHalo",
+        "ShipArt/Ninja/Ninja", "ShipArt/UFO/UFO", "ShipArt/CrimsonHalo/CrimsonHalo",
         "Elites/Frost/frost_elite_rimebreaker", "Bosses/Space", "Worlds/Space/rail_space_wide_v1",
-        "ShipArt/Exhaust/exhaust_atlas", "Pickups/heal_atom_green", "HapticGate/Film/gate_film_046", "HapticGate/Film/gate_film_100",
+        "ShipArt/Ninja/Ninja_flame", "Pickups/heal_atom_green", "HapticGate/Film/gate_film_046", "HapticGate/Film/gate_film_100",
         "Bosses/Frost_shots", "Enemies/frost_alien", "Weapons/Explosions", "Weapons/AttackFx", "Vfx/teleport_portal_atlas",
         "Bosses/Tide_damage_fx", "Bosses/Ember", "Worlds/Ember/Backdrop3/v1/mid", "Worlds/Frost/Backdrop3/v1/sky", "Worlds/Ember/Backdrop3/v1/far", "Elites/Tide/tide_elite_riptide", "HapticGate/gate_steam",
         "Assets/Art/UI/Title/pause_title_2.png", "Assets/Art/UI/Splash/HapticGate_title_red.png",
@@ -36,8 +36,8 @@ public static class TextureDietPreview
             if (!AndroidTextureDiet.Eligible(ap)) continue;
             AssetDatabase.ImportAsset(ap, ImportAssetOptions.ForceUpdate | ImportAssetOptions.ForceSynchronousImport);
         }
-        var ninja = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Art/Resources/ShipArt/Hulls/Ninja.png");
-        var nti = (TextureImporter)AssetImporter.GetAtPath("Assets/Art/Resources/ShipArt/Hulls/Ninja.png");
+        var ninja = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Art/Resources/ShipArt/Ninja/Ninja.png");
+        var nti = (TextureImporter)AssetImporter.GetAtPath("Assets/Art/Resources/ShipArt/Ninja/Ninja.png");
         var nps = nti.GetPlatformTextureSettings("Android");
         Debug.Log("[DIETPREV] Ninja after force: tex.format=" + ninja.format + " graphicsFormat=" + ninja.graphicsFormat + " override=" + nps.overridden + " fmt=" + nps.format + " readable=" + nti.isReadable + " target=" + EditorUserBuildSettings.activeBuildTarget);
         try { Previews(); } catch (System.Exception e) { Debug.LogError("[DIETPREV] " + e); }

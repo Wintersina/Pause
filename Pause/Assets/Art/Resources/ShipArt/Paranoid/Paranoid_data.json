@@ -1,0 +1,197 @@
+{
+  "id": 10,
+  "key": "Paranoid",
+  "painted": false,
+  "rect": {
+    "x": 7,
+    "y": 39,
+    "w": 243,
+    "h": 178,
+    "ppu": 810.0
+  },
+  "hue": [
+    "#5DBB3A",
+    "#2A5E1E",
+    "#B6EE8A"
+  ],
+  "nozzles": [
+    {
+      "x": 28.5,
+      "y": 10.5,
+      "scale": 0.72
+    },
+    {
+      "x": 214.5,
+      "y": 10.5,
+      "scale": 0.72
+    }
+  ],
+  "damageNote": "1) disc rim panel blown; left pod smoking; 2) right pod torn open, right strut bent, disc wiring arcing, canopy cracked",
+  "emitters": [
+    {
+      "state": 1,
+      "kind": "Sparks",
+      "u": 45.7,
+      "v": 39.8
+    },
+    {
+      "state": 1,
+      "kind": "Smoke",
+      "u": 17.7,
+      "v": 92.8
+    },
+    {
+      "state": 1,
+      "kind": "Smolder",
+      "u": 45.7,
+      "v": 39.8
+    },
+    {
+      "state": 2,
+      "kind": "Arc",
+      "u": 90.1,
+      "v": 65.2
+    },
+    {
+      "state": 2,
+      "kind": "Flame",
+      "u": 110.3,
+      "v": 92.8
+    },
+    {
+      "state": 2,
+      "kind": "Leak",
+      "u": 64.0,
+      "v": 97.4
+    },
+    {
+      "state": 2,
+      "kind": "Smolder",
+      "u": 107.4,
+      "v": 61.7
+    },
+    {
+      "state": 2,
+      "kind": "Smolder",
+      "u": 90.1,
+      "v": 65.2
+    },
+    {
+      "state": 2,
+      "kind": "Smolder",
+      "u": 16.9,
+      "v": 81.3
+    },
+    {
+      "state": 2,
+      "kind": "Smolder",
+      "u": 114.0,
+      "v": 80.2
+    },
+    {
+      "state": 2,
+      "kind": "Smolder",
+      "u": 46.7,
+      "v": 73.9
+    },
+    {
+      "state": 2,
+      "kind": "Smolder",
+      "u": 114.2,
+      "v": 32.5
+    }
+  ],
+  "skins": [
+    {
+      "name": "Stock",
+      "kind": "Stock",
+      "hue": "#5DBB3A",
+      "shadow": "#2A5E1E",
+      "highlight": "#B6EE8A",
+      "pattern": "",
+      "accent": "",
+      "accentShadow": "",
+      "accentHighlight": ""
+    },
+    {
+      "name": "Night",
+      "kind": "Palette",
+      "hue": "#2A2E6B",
+      "shadow": "#1A1F45",
+      "highlight": "#6EF2EE",
+      "pattern": "",
+      "accent": "",
+      "accentShadow": "",
+      "accentHighlight": ""
+    },
+    {
+      "name": "Sodium",
+      "kind": "Palette",
+      "hue": "#F2862B",
+      "shadow": "#A9481A",
+      "highlight": "#FFB43C",
+      "pattern": "",
+      "accent": "",
+      "accentShadow": "",
+      "accentHighlight": ""
+    },
+    {
+      "name": "Bone",
+      "kind": "Palette",
+      "hue": "#F4EAD4",
+      "shadow": "#B9AE98",
+      "highlight": "#F4EAD4",
+      "pattern": "",
+      "accent": "",
+      "accentShadow": "",
+      "accentHighlight": ""
+    },
+    {
+      "name": "Signal",
+      "kind": "Special",
+      "hue": "#5DBB3A",
+      "shadow": "#2A5E1E",
+      "highlight": "#B6EE8A",
+      "pattern": "diagonal",
+      "accent": "#FFB43C",
+      "accentShadow": "#F2862B",
+      "accentHighlight": "#F4EAD4"
+    }
+  ],
+  "exhaust": {
+    "kind": "PodJets",
+    "outer": "#5DBB3A",
+    "mid": "#1FB5B9",
+    "core": "#B6EE8A",
+    "dark": "#2A5E1E",
+    "accent": "#F4EAD4",
+    "ticks": [
+      2,
+      2,
+      1,
+      2,
+      2,
+      2
+    ],
+    "strips": [
+      {
+        "layer": "Plume",
+        "x": 0,
+        "y": 194,
+        "w": 48,
+        "h": 192,
+        "frames": 6,
+        "stride": 50
+      },
+      {
+        "layer": "PlumeBoost",
+        "x": 0,
+        "y": 0,
+        "w": 48,
+        "h": 192,
+        "frames": 6,
+        "stride": 50
+      }
+    ]
+  }
+}

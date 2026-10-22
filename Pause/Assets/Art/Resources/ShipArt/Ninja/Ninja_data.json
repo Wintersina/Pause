@@ -1,0 +1,206 @@
+{
+  "id": 11,
+  "key": "Ninja",
+  "painted": true,
+  "rect": {
+    "x": 7,
+    "y": 2,
+    "w": 243,
+    "h": 251,
+    "ppu": 810.0
+  },
+  "hue": [
+    "#4A58C8",
+    "#232A6E",
+    "#9FA8F0"
+  ],
+  "nozzles": [
+    {
+      "x": 121.5,
+      "y": 53.5,
+      "scale": 1.0
+    }
+  ],
+  "damageNote": "1) top blade panel blown; hub smoking; 2) right blade tip torn, bottom blade bent, left blade wiring arcing, canopy cracked",
+  "emitters": [
+    {
+      "state": 1,
+      "kind": "Sparks",
+      "u": 64.0,
+      "v": 31.9
+    },
+    {
+      "state": 1,
+      "kind": "Smoke",
+      "u": 75.9,
+      "v": 75.9
+    },
+    {
+      "state": 1,
+      "kind": "Smolder",
+      "u": 63.8,
+      "v": 31.9
+    },
+    {
+      "state": 2,
+      "kind": "Arc",
+      "u": 38.3,
+      "v": 64.0
+    },
+    {
+      "state": 2,
+      "kind": "Flame",
+      "u": 64.0,
+      "v": 95.2
+    },
+    {
+      "state": 2,
+      "kind": "Leak",
+      "u": 102.5,
+      "v": 64.0
+    },
+    {
+      "state": 2,
+      "kind": "Smolder",
+      "u": 103.0,
+      "v": 64.0
+    },
+    {
+      "state": 2,
+      "kind": "Smolder",
+      "u": 37.9,
+      "v": 63.5
+    },
+    {
+      "state": 2,
+      "kind": "Smolder",
+      "u": 76.7,
+      "v": 78.0
+    },
+    {
+      "state": 2,
+      "kind": "Smolder",
+      "u": 74.3,
+      "v": 48.6
+    },
+    {
+      "state": 2,
+      "kind": "Smolder",
+      "u": 60.9,
+      "v": 89.2
+    }
+  ],
+  "skins": [
+    {
+      "name": "Stock",
+      "kind": "Stock",
+      "hue": "#4A58C8",
+      "shadow": "#232A6E",
+      "highlight": "#9FA8F0",
+      "pattern": "",
+      "accent": "",
+      "accentShadow": "",
+      "accentHighlight": ""
+    },
+    {
+      "name": "Night",
+      "kind": "Palette",
+      "hue": "#2A2E6B",
+      "shadow": "#1A1F45",
+      "highlight": "#6EF2EE",
+      "pattern": "",
+      "accent": "",
+      "accentShadow": "",
+      "accentHighlight": ""
+    },
+    {
+      "name": "Sodium",
+      "kind": "Palette",
+      "hue": "#F2862B",
+      "shadow": "#A9481A",
+      "highlight": "#FFB43C",
+      "pattern": "",
+      "accent": "",
+      "accentShadow": "",
+      "accentHighlight": ""
+    },
+    {
+      "name": "Bone",
+      "kind": "Palette",
+      "hue": "#F4EAD4",
+      "shadow": "#B9AE98",
+      "highlight": "#F4EAD4",
+      "pattern": "",
+      "accent": "",
+      "accentShadow": "",
+      "accentHighlight": ""
+    },
+    {
+      "name": "Ronin",
+      "kind": "Special",
+      "hue": "#4A58C8",
+      "shadow": "#232A6E",
+      "highlight": "#9FA8F0",
+      "pattern": "split",
+      "accent": "#D8232C",
+      "accentShadow": "#86121F",
+      "accentHighlight": "#FF5B45"
+    }
+  ],
+  "exhaust": {
+    "kind": "SpinBlades",
+    "outer": "#4A58C8",
+    "mid": "#9FA8F0",
+    "core": "#F4EAD4",
+    "dark": "#232A6E",
+    "accent": "#D8232C",
+    "ticks": [
+      2,
+      2,
+      1,
+      2,
+      2,
+      2,
+      2,
+      2
+    ],
+    "strips": [
+      {
+        "layer": "Ring",
+        "x": 0,
+        "y": 366,
+        "w": 120,
+        "h": 120,
+        "frames": 8,
+        "stride": 122
+      },
+      {
+        "layer": "RingBoost",
+        "x": 0,
+        "y": 244,
+        "w": 120,
+        "h": 120,
+        "frames": 8,
+        "stride": 122
+      },
+      {
+        "layer": "Wake",
+        "x": 0,
+        "y": 122,
+        "w": 120,
+        "h": 120,
+        "frames": 8,
+        "stride": 122
+      },
+      {
+        "layer": "WakeBoost",
+        "x": 0,
+        "y": 0,
+        "w": 120,
+        "h": 120,
+        "frames": 8,
+        "stride": 122
+      }
+    ]
+  }
+}

@@ -117,7 +117,7 @@ public static class VerdantTuning
 
     // ---- launch sites ----
     public static float SiteMin = 1.5f, SiteMax = 1.7f, SiteFirst = 3f, SiteGapMin = 5f, SiteGapMax = 8.5f;
-    public static float SiteCloseDelay = 1.4f, SiteMinSize = 1.2f;
+    public static float SiteCloseDelay = .9f, SiteMinSize = 1.2f;
     public static readonly string[] SiteClosed = { "roothangar_closed", "riverbay_closed", "podpad_idle", "towerbay_closed", "hatch_closed" };
     public static readonly string[] SiteOpen = { "roothangar_open", "riverbay_open", "podpad_active", "towerbay_open", "hatch_open" };
     public static readonly LandingKind[] SiteKinds = { LandingKind.RootHangar, LandingKind.RiverBay, LandingKind.PodPad, LandingKind.TowerBay, LandingKind.Hatch };

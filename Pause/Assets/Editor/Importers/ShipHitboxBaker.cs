@@ -3,8 +3,8 @@ using System.IO;
 using UnityEditor;
 using UnityEngine;
 
-// Bakes ShipHitbox's two polygons per roster ship into
-// Resources/Shield/hull_hitboxes.bytes (ShieldSilhouetteBaker writes it with
+// Bakes ShipHitbox's two polygons per roster ship into that ship's own folder,
+// ShipArt/<Key>/<Key>_hitbox.bytes (ShieldSilhouetteBaker writes it with
 // the silhouettes: on hull import and before every build).
 //
 // Hull (the damage hitbox), from the ship's baked rest silhouette S:
@@ -29,7 +29,12 @@ using UnityEngine;
 // at least the margin everywhere.
 public static class ShipHitboxBaker
 {
-    public const string AssetPath = "Assets/Art/Resources/Shield/hull_hitboxes.bytes";
+    // The baked file of ship `id` (null for an id with no art key).
+    public static string AssetPath(int id)
+    {
+        string key = ShipId.ArtKeyOf(id);
+        return key == null ? null : "Assets/Art/Resources/" + ShipData.HitboxPath(key) + ".bytes";
+    }
 
     public const float InsetPx = 2f;      // graze allowance, sprite pixels
     public const float ThinPx = 6f;       // opening radius: thinner parts are not body
@@ -52,44 +57,47 @@ public static class ShipHitboxBaker
     // Bake
     // ------------------------------------------------------------------
 
-    public static byte[] Compute() { List<Report> r; return Compute(out r); }
+    // The bytes of ship `id`'s file, or null if it has no art.
+    public static byte[] Compute(int id) { Report r; return Compute(id, out r); }
 
-    public static byte[] Compute(out List<Report> reports)
+    public static byte[] Compute(int id, out Report report)
     {
-        reports = new List<Report>();
-        var list = new List<KeyValuePair<int, ShipHitbox.Shape>>();
-        foreach (int id in ShipId.All)
-        {
-            var rep = Build(id);
-            if (rep == null) { Debug.LogWarning("ShipHitboxBaker: no art for ship " + id); continue; }
-            reports.Add(rep);
-            list.Add(new KeyValuePair<int, ShipHitbox.Shape>(id, rep.shape));
-        }
-        return ShipHitbox.Encode(ShipHitbox.ShieldMargin, list);
+        report = Build(id);
+        if (report == null) { Debug.LogWarning("ShipHitboxBaker: no art for ship " + id); return null; }
+        return ShipHitbox.Encode(ShipHitbox.ShieldMargin,
+                                 new List<KeyValuePair<int, ShipHitbox.Shape>> { new KeyValuePair<int, ShipHitbox.Shape>(id, report.shape) });
     }
 
+    // Every roster ship has an up-to-date hitbox file.
     public static bool IsCurrent()
     {
-        if (!File.Exists(AssetPath)) return false;
-        var have = File.ReadAllBytes(AssetPath);
-        var want = Compute();
-        return have.Length == want.Length && System.Linq.Enumerable.SequenceEqual(have, want);
+        foreach (int id in ShipId.All)
+        {
+            var want = Compute(id);
+            if (want == null) continue;
+            string path = AssetPath(id);
+            if (!File.Exists(path) || !System.Linq.Enumerable.SequenceEqual(File.ReadAllBytes(path), want)) return false;
+        }
+        return true;
     }
 
-    // Writes the file only when it differs. Returns true if it wrote.
+    // Writes each file only when it differs. Returns true if it wrote any.
     public static bool BakeIfStale()
     {
-        var bytes = Compute();
-        if (File.Exists(AssetPath))
+        bool wrote = false;
+        foreach (int id in ShipId.All)
         {
-            var have = File.ReadAllBytes(AssetPath);
-            if (have.Length == bytes.Length && System.Linq.Enumerable.SequenceEqual(have, bytes)) return false;
+            var bytes = Compute(id);
+            if (bytes == null) continue;
+            string path = AssetPath(id);
+            if (File.Exists(path) && System.Linq.Enumerable.SequenceEqual(File.ReadAllBytes(path), bytes)) continue;
+            File.WriteAllBytes(path, bytes);
+            AssetDatabase.ImportAsset(path, ImportAssetOptions.ForceSynchronousImport);
+            Debug.Log("ShipHitboxBaker: baked " + path + " (" + bytes.Length + " bytes)");
+            wrote = true;
         }
-        File.WriteAllBytes(AssetPath, bytes);
-        AssetDatabase.ImportAsset(AssetPath, ImportAssetOptions.ForceSynchronousImport);
-        ShipHitbox.Invalidate();
-        Debug.Log("ShipHitboxBaker: baked " + AssetPath + " (" + bytes.Length + " bytes)");
-        return true;
+        if (wrote) ShipHitbox.Invalidate();
+        return wrote;
     }
 
     public static Report Build(int id)
