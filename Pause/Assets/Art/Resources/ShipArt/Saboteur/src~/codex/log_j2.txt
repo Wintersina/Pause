@@ -1,0 +1,2434 @@
+2026-10-22T17:15:13.553190Z ERROR rmcp::transport::worker: worker quit with fatal: Transport channel closed, when Client(HttpRequest(HttpRequest("http/request failed: error sending request for url (http://127.0.0.1:8080/mcp)")))
+OpenAI Codex v0.163.0
+--------
+workdir: /Users/sina/Developer/Pause/.claude/worktrees/agent-a71e29e38407814db
+model: gpt-5.6-luna
+provider: openai
+approval: never
+sandbox: workspace-write [workdir, /tmp, $TMPDIR]
+reasoning effort: high
+reasoning summaries: none
+session id: 01a1649c-16d1-7a63-b96a-51c31bd369ab
+--------
+user
+You are making game art for "Pause" (Unity, vertical 2D shooter, phone portrait, the player flies UP the screen). Work ONLY inside this directory tree; do not edit any .cs/.meta/.json or any existing file; do not delete anything; do not commit.
+New files go ONLY to ./Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/ (the trailing ~ matters: Unity ignores it). Put helpers in its tools/ subfolder.
+Read ./docs/art-style.md first (neon pixel art). We are restyling the player ship "Saboteur" in the style of our premium ship "Paragon".
+
+REFERENCES (attached images, in order): (1) paragon_ship_alone.png: the style target (its jet flame: hard-stepped pixel bands, white-hot core, bright sparks). (2) key_state0.png: the NEW Saboteur hull (violet armour, one nozzle at the rear). (3) ref_old_flame.png: the OLD Saboteur exhaust, 8 frames on green: a stuttering gatling-style muzzle flash with smoke cels (orange burst, bone-white core, violet smoke).
+
+JOB J2: EXHAUST FLIPBOOK (the plume the game attaches under Saboteur's single nozzle).
+The game mounts one flame sprite under the nozzle, pointing straight DOWN the screen, hot head at the TOP of the sprite (attached to the nozzle), tail at the bottom. Redraw the old exhaust as a looping flipbook in the painted neon pixel style of Paragon's jet, keeping the identity: a stuttering orange-and-bone-white pulse train with violet smoke puffs trailing down.
+Make two PNG files in the output folder:
+ flame_cruise.png : 8 cells side by side in one row, each cell exactly 1 : 4 (wide : tall), e.g. 256 x 1024 each (2048 x 1024 total), flame head touching the top area (about 3% down), tail ending about 80% down, centred horizontally, flat #00FF00 background, NO backdrop rectangle or box of any other colour.
+ flame_boost.png : same layout but clearly longer (tail reaching about 97% down), hotter and brighter: wider bone-white core, bigger orange burst, more sparks.
+Frame behaviour (hold times in ticks 2,2,1,2,2,2,2,2): frames 0,1,3,4,5,6,7 are the normal stutter loop (pulses and smoke puffs moving down and fading, tail wavers a few pixels, a few spark pixels); frame 2 is the 1-tick burst frame: brightest and longest, near-solid white-orange streak.
+Style: hard-stepped pixel bands, NO smooth gradients or blur, no outline. Use ONLY these five band colours plus the green key: violet #B83CC0 (outer flame / smoke), orange #F2862B (mid), bone-white #F4EAD4 (white-hot core), deep violet #5E1A66 (dark smoke edge), indigo #3A2A5C (accent / smoke shadow). NO pink fringes. Use IMAGE GENERATION for the painted content, then snap every pixel to the nearest of those five colours (nearest-neighbour only).
+Write tools/check_j2.py verifying both files: 8 equal cells, only those 5 colours + key, no pixel rectangle backdrop, boost brighter and longer than cruise; prints a table; save preview_j2.png (both sheets on dark #0b0b1a).
+Finish with a short summary and honest caveats.
+
+2026-10-22T17:15:13.805048Z ERROR rmcp::transport::worker: worker quit with fatal: Transport channel closed, when Client(HttpRequest(HttpRequest("http/request failed: error sending request for url (http://127.0.0.1:8080/mcp)")))
+warning: Codex is ignoring 1 unrecognized configuration setting. Check for typos or deprecated settings.
+  user (/Users/sina/.codex/config.toml): `features.rmcp_client` is ignored.
+warning: Codex is ignoring 1 unrecognized configuration setting. Check for typos or deprecated settings.
+  user (/Users/sina/.codex/config.toml): `features.rmcp_client` is ignored.
+2026-10-22T17:15:14.809464Z ERROR rmcp::transport::worker: worker quit with fatal: Transport channel closed, when Client(HttpRequest(HttpRequest("http/request failed: error sending request for url (http://127.0.0.1:8080/mcp)")))
+codex
+I’m using the image-generation skill because you explicitly require generated painted content. I’ll first read the local art-style and image-generation instructions, then create only new files under the requested `src~/codex/` folder and verify the sheets with a new checker.
+exec
+/bin/zsh -lc "sed -n '1,240p' docs/art-style.md && printf '\\n--- SKILL ---\\n' && sed -n '1,260p' /Users/sina/.codex/skills/.system/imagegen/SKILL.md && printf '\\n--- TARGET DIR ---\\n' && find Pause/Assets/Art/Resources/ShipArt/Saboteur/src\\~/codex -maxdepth 2 -type f -print 2>/dev/null | sort" in /Users/sina/Developer/Pause/.claude/worktrees/agent-a71e29e38407814db
+ succeeded in 0ms:
+# Pause art style v2: neon pixel art
+
+**Neon pixel art** is detailed, hand-placed-looking pixel art lit by neon. Solid materials are
+painted with short ramps and texture, and saturated neon cores and lights glow past their 1 px
+dark outlines. The colour sense is cyberpunk / *Akira*: dark bases, one electric hue per world,
+and white-hot centres.
+
+The benchmark is the **original rail-mine atlas**, which the user picked as "the theme I actually
+want". It is no longer in the tree; view it with
+`git show 18b5e5f^:Pause/Assets/Art/Resources/Vfx/rail_bomb_themes_atlas.png`. It has 4 worlds,
+and each world has 4 key poses: dormant → waking → charging → burst. The second benchmark is the
+green heal atom (`Pause/Assets/Art/Resources/Pickups/heal_atom_green.png`).
+
+> **Superseded (v1).** The flat-cartoon cel "Akira" guide (bold flat fills, thick ink, no
+> gradients) still governs **only the UI** (HUD, death panel, dock, quick actions, codex, menus)
+> **and the player ships**. The ships stay unchanged for now. Everything else in gameplay
+> converts to v2. The v1 text and its sample images are in git history only
+> (`git log -- docs/art-style.md docs/art-samples`); `docs/art-samples/src/` stays because the
+> art scripts import its palette. The v2 samples are in `docs/art-samples/neon/`.
+
+Defining traits (keep all of them, on every converted asset):
+
+1. **1 px dark selective outline.** Ink on the shadow side and darkened local colour on the lit side.
+2. **4–6 tone painterly material ramps** with texture: scratches, grain, facets, rivets, cracks.
+3. **Rim light.** One pixel on the side away from the key light, usually in the world's neon colour.
+4. **Saturated neon cores and lights.** Their glow and bloom spill past the outline.
+5. **Elemental particle FX.** Sparks, snowflakes, leaves, energy arcs, embers.
+6. **One elemental palette per world** on a dark base.
+7. **Key-pose animation.** Clear frame sequences; the dormant → charge → burst pattern is the model.
+
+### Rugged industrial rail pattern
+
+The current gameplay direction is **rugged cyberpunk with a restrained steampunk layer**. This
+applies to enemies, bosses, rail mines, rails and world landmarks; it does **not** change the
+protected flat-cartoon UI or player ships.
+
+- Start with weathered gunmetal or each world's local material, then add sparse brass/copper
+  brackets, rivets, recoil collars, vent seams and exposed cable runs. Brass is a structural
+  accent, never the dominant surface colour.
+- Wear must be directional and readable: clipped paint scuffs on leading armour faces, small
+  edge chips, soot around vents and heat stains near reactors. Do not scatter noise uniformly.
+- Steam, smoke, frost vapour and spores are small secondary motion cues. They must never cover
+  a core, telegraph or collision silhouette.
+- Rails are heavy industrial infrastructure: layered dark metal, bolts, cable bundles, magenta
+  status lamps and occasional cyan power conduits. Rail mines physically clamp to and ride the
+  rails, so their clamps, pivots and emissive cores must visually align with the side structure.
+- Bosses use the same vocabulary at a larger scale, but remain compact inside their atlas cells.
+  The concept-art scale is not gameplay scale: body silhouettes stay within the documented
+  boss-cell budget and tells/fire/death poses communicate through shape and light before detail.
+
+This pattern keeps the four worlds distinct: Space is gunmetal/cyan-magenta, Frost is
+icebreaker steel/cyan, Verdant is corroded plant-metal/lime, and Ember is basalt/brass/amber.
+
+### Replacement policy: full raster rebuilds
+
+When an existing gameplay asset is migrated to this direction, it is a **fresh raster redraw**.
+Do not "upgrade" a legacy SVG or flat sprite by adding a few scratches, overlays or colour
+shifts. Recreate every material plane, outline, light, glow and effect in the neon pixel-art
+language above. The old asset may be used only to preserve the gameplay contract: its key,
+transparent canvas, frame count, cell dimensions, pose order, silhouette budget and collision
+read. Stage and review each completed sheet before replacing its live resource.
+
+---
+
+## 1. Palette
+
+All hexes below are sampled from the reference atlas. Each cell was median-cut with Pillow, then
+cleaned into even ramps. The values in `pixelkit.PAL` are the source of truth, and this table
+mirrors them. Swatch: `docs/art-samples/neon/palette.png`.
+
+**Shared**
+
+| Role | Hex | Use |
+|---|---|---|
+| `INK` | `#05060c` | outline, deepest shadow, sockets |
+| `PLAYER_RED` | `#d8232c` | **player only**; never on an enemy, rock, mine or boss |
+| White-hot | `#f5fdfd` / `#fffbe0` | the single brightest pixel of a neon core (cool or warm worlds) |
+
+**Space**: steel sphere, cyan core and lights.
+
+| Ramp | Dark → light |
+|---|---|
+| metal | `#0b0f15` `#1a2129` `#2f343b` `#4b5059` `#7a7c82` `#b0b4b6` |
+| trim (blue-steel) | `#0a1118` `#162e3c` `#2f4550` `#476d7b` |
+| neon cyan | `#0b4f7a` `#0b91cc` `#0bd0f6` `#7af6fc` `#f5fdfd`, glow `#15d8fc` |
+| background | `#03050a` `#070c16` `#0c1424` `#132036` `#1c2e48`, bg accent `#22668a` |
+
+**Frost**: ice-crystal shell, snowflake core.
+
+| Ramp | Dark → light |
+|---|---|
+| ice | `#0a1734` `#1c3c68` `#2a62ae` `#4a96e6` `#9fd2f2` `#e2fbff` |
+| metal (blue-grey) | `#0c1020` `#1e2638` `#33405c` `#4f6188` `#7d93bd` |
+| neon ice-blue | `#1569c8` `#1898f7` `#46ddfd` `#aaf2fb` `#f8fefc`, glow `#46c8fd` |
+| background | `#03060e` `#07101f` `#0d1a31` `#142645` `#1d3558`, bg accent `#2e6c98` |
+
+**Verdant**: vine-wrapped bark sphere, lime core, magenta thorns.
+
+| Ramp | Dark → light |
+|---|---|
+| bark | `#0c0703` `#281b0a` `#3e2610` `#5a3a17` `#7d5426` `#a07a3c` |
+| vine | `#0e1c03` `#1f3f04` `#306203` `#4dae03` `#a6d32a` |
+| neon lime | `#3d8f02` `#70d804` `#b8f018` `#e6fc5e` `#fbffd8`, glow `#8ef014` |
+| thorn magenta | `#3a0a2a` `#8c1462` `#e0309e` `#ff9ad6` |
+| background | `#030603` `#060f07` `#0b1a0d` `#122615` `#1b351c`, bg accent `#3f7a22` |
+
+**Ember**: basalt with magma cracks and an orange burst.
+
+| Ramp | Dark → light |
+|---|---|
+| basalt | `#0e0808` `#1d1212` `#2e1d1a` `#47302b` `#6a4a40` `#957060` |
+| magma | `#6a2404` `#c24a06` `#f77a0a` `#fcb809` `#fcee09` `#fdfa92` |
+| neon amber | `#c24a06` `#fc7a08` `#fcb809` `#fdf06a` `#fffbe0`, glow `#fc8a10` |
+| background | `#060303` `#100707` `#1a0c0a` `#26130f` `#341c16`, bg accent `#8f4a1c` |
+
+**The enemy-never-red rule stays: red means friendly / the player.** The reference had two
+breaches, and v2 fixes both.
+
+- **Ember magma.** The reference cracks used `#cf0d03` and its burst used `#f91302`. Both are
+  pure red. Ember's warm colours must keep a **hue of at least 18°** (orange to yellow). The
+  darkest magma tone, `#6a2404`, is the reddest allowed.
+- **Verdant thorns.** The reference thorns were crimson (`#6b1c26`, `#a11e18`). They are now
+  **magenta**, at a hue of about 320°.
+
+A converted asset may not use any other hue in the 345°–15° range at a saturation above 0.5.
+
+Rules:
+
+- Each asset uses **its own world's ramps, plus `INK`**. Mixing worlds is allowed only in
+  set-piece moments, such as portals.
+- A ramp is used whole or in part, but **never extended with in-between tones**. A new tone
+  needs a palette change in `pixelkit.PAL` and in this table.
+- Neon ramps are for **emissive pixels only**: cores, lights, energy and FX. Rim lights may
+  borrow neon step 1. Materials never use neon tones for diffuse light.
+
+---
+
+## 2. Pixel technique
+
+### 2.1 The game pixel
+
+**1 game pixel = 1/64 world unit (PPU 64).** Every enemy, rock, mine, boss, projectile, FX and
+background shares this pixel, so pixel size matches across the whole playfield.
+
+Measured against the current game:
+
+- **Screen.** It is 10 u tall, which is 640 game px. Its width is about 5.7 u, which is about
+  365 game px.
+- **Phone.** One world unit is about 190 px on a 1080-wide phone, so **1 game pixel is about
+  3 screen px**. That is chunky enough to read as pixel art and fine enough for "HD" detail.
+- **Export.** Every sprite is drawn at native game-pixel size, then **upscaled ×4 with
+  nearest-neighbour**, so the texture PPU is 256. The ×4 copy keeps edges clean when sprites
+  rotate, sway or scale (enemy sway, boss tilts), which raw 64-PPU texels would not.
+- **Loader rule.** `EnemyArt` sets `ppu = tex.height / FrameWorldSize`. Converted enemy art must
+  therefore use `FrameWorldSize = frame_px / 64`, where `frame_px` is the native frame height.
+  Any other value changes the pixel size. Bosses (`BossConfig.BossWorldSize`) and backgrounds
+  follow the same rule.
+- **Cell rule.** `EnemyArt` cuts a strip at `width / FrameCount`, so every pose must be composed
+  inside its own cell: the hull on the same anchor through the idle loop, at least 4 px of clear
+  margin, nothing on the cell outline. Frames 0-5 share one scale, chosen to keep the enemy's
+  in-game size; the hit frame (6) may be drawn smaller when its smoke and debris alone would not
+  fit, and a burst frame only when sharing a scale would push the enemy out of the roster's size
+  band. Never cut a free-layout pose sheet at grid multiples and never fit each frame to the cell
+  on its own (the body then changes size between idle frames).
+  `Art/Enemies/src~/recell.py SHEET OUT.png --match OLD.png` rebuilds a strip from a pose sheet at
+  the old strip's size; `Art/Enemies/src~/audit_cells.py STRIP.png` audits one (cut scars,
+  straddling pieces, anchor and scale drift). `EnemyRosterTest.CellsHoldOnePoseEach` holds the
+  shipped enemy and elite strips to it.
+
+| Asset class | Gameplay size today | Native frame (game px) | Silhouette inside the frame |
+|---|---|---|---|
+| Rocks | frame 0.66 u | **42–44** | 30–36 |
+| Aliens | frame 0.67 u | **44** | 30–36 |
+| Mines | frame 0.85 u | **54–64** | 44–52 (the recreation uses 64 = 1.0 u to leave room for the burst) |
+| Fighters, chasers | frame 0.9–0.95 u | **58–61** | 46–52 |
+| Heavies ("Big") | frame 1.3 u, about 1.1 u drawn | **84** | 64–72 |
+| Enemy and boss projectiles | 0.42–0.46 u | **28–30** | 12–20 core |
+| Bosses | cell 3.3 u | **208–212** | 128–192 body |
+| Walls | as now (e.g. 64×448 tex) | 1 game px = 1/64 u | – |
+| Backgrounds | full screen and up | **365 × 640** per screen (tiles 128–256) | – |
+| Player ships, atoms, UI | **unchanged** | – | – |
+
+The heal atom family is denser, at about 168 px per unit. It is a protected exception.
+
+### 2.2 Import settings (Unity)
+
+- **Filter mode: Point.** No mipmaps. Wrap mode: Clamp.
+- **Compression: None** (RGBA32). No lossy compression on sprites; ASTC or ETC smears pixel
+  edges and neon gradients. Backgrounds may use RGBA32 or, if memory forces it, RGB24.
+- **Sprite pivot:** centre, as now. **Pixels Per Unit:** 256 for ×4 exports, or set by the
+  loader as above.
+- Never resample in Unity. Never draw a sprite at a non-integer multiple of another sprite's
+  pixel. Scale a gameplay object only through `FrameWorldSize`.
+
+### 2.3 Outline
+
+- **Exactly 1 game pixel** of outer outline, on every solid object, using 4-connectivity.
+- **Selective outline (sel-out).** On the shadow side (bottom-right) the outline is `INK`. On
+  the lit side (top-left) it is the neighbouring local colour, darkened to about 25% of its
+  value and mixed with ink.
+- **Every overlapping part gets its own outline.** Pods over a sphere, a clamp over a body, a
+  wing over a hull: the ink line is what separates parts.
+- **Interior lines:** panel seams and grooves are 1 px, drawn **two ramp steps darker** than
+  the surface, not black. Use black only for sockets and deep cuts.
+- Glow, particles and energy arcs are **never outlined**.
+
+### 2.4 Shading
+
+- **Key light from the top-left**, toward the viewer: `(-0.55, -0.65, 0.52)`.
+- **Ramps:** 4–6 tones per material, lit with hard bands. Most of an object sits in the middle
+  three tones. The top tone is a hot spot of a few pixels; the bottom tone sits on the
+  bottom-right edge.
+- **Texture:** quantise it to the ramp. Add value noise and grain at 0.10–0.16 of the ramp
+  range. Add 1 px scratches one tone up, rivets as single top-tone pixels, and facets or cracks
+  as one-tone-down lines. Texture lives in the mid-tones and never breaks the silhouette.
+- **Rim light:** 1 px on the bottom-right edge, the edge facing away from the key light. Use
+  neon step 1 for the "lit by its own core" look, or ramp step 3 for plain parts. The rim stops
+  where another part covers the edge.
+
+### 2.5 Dithering
+
+- **The default is no dithering.** Bands are hard.
+- **Ordered (Bayer 4×4) dithering** is allowed only on band borders of large, slow surfaces:
+  rocks, boss armour, background gradients. Keep it at strength 0.3–0.6
+  (`shade(dither=...)`), and only between adjacent ramp tones.
+- **Never dither** on sprites smaller than 32 px, on neon, or on animated pixels. Dither
+  flickers when it moves.
+
+### 2.6 Anti-aliasing
+
+- **No soft anti-aliasing.** No bilinear, no supersample-and-shrink, no semi-transparent edge
+  pixels on solid objects. Solid pixels have alpha 255.
+- **Hand AA only.** One intermediate ramp tone at the steps of a curve's stair (the kit's
+  ramp quantisation does this naturally).
+- **Glow layers are the only partial alpha**, and they are stepped (see §3).
+
+---
+
+## 3. Glow and bloom
+
+
+--- SKILL ---
+---
+name: "imagegen"
+description: "Generate or edit raster images when the task benefits from AI-created bitmap visuals such as photos, illustrations, textures, sprites, mockups, or transparent-background cutouts. Use when Codex should create a brand-new image, transform an existing image, or derive visual variants from references, and the output should be a bitmap asset rather than repo-native code or vector. Do not use when the task is better handled by editing existing SVG/vector/code-native assets, extending an established icon or logo system, or building the visual directly in HTML/CSS/canvas."
+---
+
+# Image Generation Skill
+
+Generates or edits images for the current project (for example website assets, game assets, UI mockups, product mockups, wireframes, logo design, photorealistic images, or infographics).
+
+## Top-level modes and rules
+
+This skill has exactly two top-level modes:
+
+- **Default built-in tool mode (preferred):** built-in `image_gen` tool for image generation, editing, and transparent-image requests. Does not require `OPENAI_API_KEY`.
+- **Fallback CLI mode:** `scripts/image_gen.py` CLI. Use when the user explicitly asks for or confirms the CLI/API/model path. Requires `OPENAI_API_KEY`.
+
+Within CLI fallback, the CLI exposes three subcommands:
+
+- `generate`
+- `edit`
+- `generate-batch`
+
+Rules:
+- Use the built-in `image_gen` tool by default for normal image generation and editing requests.
+- Do not switch to CLI fallback for ordinary quality, size, or file-path control.
+- For transparent images, ask built-in `image_gen` for a transparent background and preserve the generated alpha.
+- Never silently switch from built-in `image_gen` or CLI `gpt-image-2` to CLI `gpt-image-1.5`; ask the user first unless they explicitly requested `gpt-image-1.5`.
+- The word `batch` by itself does not mean CLI fallback. If the user asks for many assets or says to batch-generate assets without explicitly asking for CLI/API/model controls, stay on the built-in path and issue one built-in call per requested asset or variant.
+- If the built-in tool fails or is unavailable, tell the user the CLI fallback exists and that it requires `OPENAI_API_KEY`. Proceed only if the user explicitly asks for that fallback.
+- If the user explicitly asks for CLI mode, use the bundled `scripts/image_gen.py` workflow. Do not create one-off SDK runners.
+- Never modify `scripts/image_gen.py`. If something is missing, ask the user before doing anything else.
+
+Built-in save-path policy:
+- In built-in tool mode, Codex saves generated images under `$CODEX_HOME/*` by default.
+- Do not describe or rely on OS temp as the default built-in destination.
+- Do not describe or rely on a destination-path argument (if any) on the built-in `image_gen` tool. If a specific location is needed, generate first and then move or copy the selected output from `$CODEX_HOME/generated_images/...`.
+- Save-path precedence in built-in mode:
+  1. If the user names a destination, move or copy the selected output there.
+  2. If the image is meant for the current project, move or copy the final selected image into the workspace before finishing.
+  3. If the image is only for preview or brainstorming, render it inline; the underlying file can remain at the default `$CODEX_HOME/*` path.
+- Never leave a project-referenced asset only at the default `$CODEX_HOME/*` path.
+- Do not overwrite an existing asset unless the user explicitly asked for replacement; otherwise create a sibling versioned filename such as `hero-v2.png` or `item-icon-edited.png`.
+
+Shared prompt guidance for both modes lives in `references/prompting.md` and `references/sample-prompts.md`.
+
+Fallback-only docs/resources for CLI mode:
+- `references/cli.md`
+- `references/image-api.md`
+- `references/codex-network.md`
+- `scripts/image_gen.py`
+
+## When to use
+- Generate a new image (concept art, product shot, cover, website hero)
+- Generate a new image using one or more reference images for style, composition, or mood
+- Edit an existing image (inpainting, lighting or weather transformations, background replacement, object removal, compositing, transparent background)
+- Produce many assets or variants for one task
+
+## When not to use
+- Extending or matching an existing SVG/vector icon set, logo system, or illustration library inside the repo
+- Creating simple shapes, diagrams, wireframes, or icons that are better produced directly in SVG, HTML/CSS, or canvas
+- Making a small project-local asset edit when the source file already exists in an editable native format
+- Any task where the user clearly wants deterministic code-native output instead of a generated bitmap
+
+## Decision tree
+
+Think about two separate questions:
+
+1. **Intent:** is this a new image or an edit of an existing image?
+2. **Execution strategy:** is this one asset or many assets/variants?
+
+Intent:
+- If the user wants to modify an existing image while preserving parts of it, treat the request as **edit**.
+- If the user provides images only as references for style, composition, mood, or subject guidance, treat the request as **generate**.
+- If the user provides no images, treat the request as **generate**.
+
+Built-in edit semantics:
+- Built-in edit mode is for images already visible in the conversation context, such as attached images or images generated earlier in the thread.
+- If the user wants to edit a local image file with the built-in tool, first load it with built-in `view_image` tool so the image is visible in the conversation context, then proceed with the built-in edit flow.
+- Do not promise arbitrary filesystem-path editing through the built-in tool.
+- If a local file still needs direct file-path control, masks, or other explicit CLI-only parameters, use the explicit CLI fallback only when the user asks for it.
+- For edits, preserve invariants aggressively and save non-destructively by default.
+
+Execution strategy:
+- In the built-in default path, produce many assets or variants by issuing one `image_gen` call per requested asset or variant.
+- In the CLI fallback path, use the CLI `generate-batch` subcommand only when the user explicitly chose CLI mode and needs many prompts/assets.
+- For many distinct assets, do not use `n` as a substitute for separate prompts. `n` is for variants of one prompt; distinct assets need distinct built-in calls or distinct CLI `generate-batch` jobs.
+
+Assume the user wants a new image unless they clearly ask to change an existing one.
+
+## Workflow
+1. Decide the top-level mode: built-in by default, including transparent-output requests; fallback CLI only if explicitly requested or confirmed.
+2. Decide the intent: `generate` or `edit`.
+3. Decide whether the output is preview-only or meant to be consumed by the current project.
+4. Decide the execution strategy: single asset vs repeated built-in calls vs CLI `generate-batch`.
+5. Collect inputs up front: prompt(s), exact text (verbatim), constraints/avoid list, and any input images.
+6. For every input image, label its role explicitly:
+   - reference image
+   - edit target
+   - supporting insert/style/compositing input
+7. If the edit target is only on the local filesystem and you are staying on the built-in path, inspect it with `view_image` first so the image is available in conversation context.
+8. If the user asked for a photo, illustration, sprite, product image, banner, or other explicitly raster-style asset, use `image_gen` rather than substituting SVG/HTML/CSS placeholders. If the request is for an icon, logo, or UI graphic that should match existing repo-native SVG/vector/code assets, prefer editing those directly instead.
+9. Augment the prompt based on specificity:
+   - If the user's prompt is already specific and detailed, normalize it into a clear spec without adding creative requirements.
+   - If the user's prompt is generic, add tasteful augmentation only when it materially improves output quality.
+10. Use the built-in `image_gen` tool by default.
+11. For transparent-output requests, ask built-in `image_gen` for a transparent background and preserve the generated alpha channel.
+12. Inspect outputs and validate: subject, style, composition, text accuracy, and invariants/avoid items.
+13. Iterate with a single targeted change, then re-check.
+14. For preview-only work, render the image inline; the underlying file may remain at the default `$CODEX_HOME/generated_images/...` path.
+15. For project-bound work, move or copy the selected artifact into the workspace and update any consuming code or references. Never leave a project-referenced asset only at the default `$CODEX_HOME/generated_images/...` path.
+16. For batches or multi-asset requests, persist every requested deliverable final in the workspace unless the user explicitly asked to keep outputs preview-only. Discarded variants do not need to be kept unless requested.
+17. If the user explicitly chooses or confirms the CLI fallback, then use the fallback-only docs for model, quality, size, `input_fidelity`, masks, output format, output paths, and network setup.
+18. Always report the final saved path(s) for any workspace-bound asset(s), plus the final prompt or prompt set and whether the built-in tool or fallback CLI mode was used.
+
+## Transparent image requests
+
+Ask built-in `image_gen` for a genuinely transparent background and preserve its alpha.
+
+## Prompt augmentation
+
+Reformat user prompts into a structured, production-oriented spec. Make the user's goal clearer and more actionable, but do not blindly add detail.
+
+Treat this as prompt-shaping guidance, not a closed schema. Use only the lines that help, and add a short extra labeled line when it materially improves clarity.
+
+### Specificity policy
+
+Use the user's prompt specificity to decide how much augmentation is appropriate:
+
+- If the prompt is already specific and detailed, preserve that specificity and only normalize/structure it.
+- If the prompt is generic, you may add tasteful augmentation when it will materially improve the result.
+
+Allowed augmentations:
+- composition or framing hints
+- polish level or intended-use hints
+- practical layout guidance
+- reasonable scene concreteness that supports the stated request
+
+Not allowed augmentations:
+- extra characters or objects that are not implied by the request
+- brand names, slogans, palettes, or narrative beats that are not implied
+- arbitrary side-specific placement unless the surrounding layout supports it
+
+## Use-case taxonomy (exact slugs)
+
+Classify each request into one of these buckets and keep the slug consistent across prompts and references.
+
+Generate:
+- photorealistic-natural — candid/editorial lifestyle scenes with real texture and natural lighting.
+- product-mockup — product/packaging shots, catalog imagery, merch concepts.
+- ui-mockup — app/web interface mockups and wireframes; specify the desired fidelity.
+- infographic-diagram — diagrams/infographics with structured layout and text.
+- scientific-educational — classroom explainers, scientific diagrams, and learning visuals with required labels and accuracy constraints.
+- ads-marketing — campaign concepts and ad creatives with audience, brand position, scene, and exact tagline/copy.
+- productivity-visual — slide, chart, workflow, and data-heavy business visuals.
+- logo-brand — logo/mark exploration, vector-friendly.
+- illustration-story — comics, children’s book art, narrative scenes.
+- stylized-concept — style-driven concept art, 3D/stylized renders.
+- historical-scene — period-accurate/world-knowledge scenes.
+
+Edit:
+- text-localization — translate/replace in-image text, preserve layout.
+- identity-preserve — try-on, person-in-scene; lock face/body/pose.
+- precise-object-edit — remove/replace a specific element (including interior swaps).
+- lighting-weather — time-of-day/season/atmosphere changes only.
+- background-extraction — transparent background / clean cutout. Ask built-in `image_gen` for actual transparency.
+- style-transfer — apply reference style while changing subject/scene.
+- compositing — multi-image insert/merge with matched lighting/perspective.
+- sketch-to-render — drawing/line art to photoreal render.
+
+## Shared prompt schema
+
+Use the following labeled spec as shared prompt scaffolding for both top-level modes:
+
+```text
+Use case: <taxonomy slug>
+Asset type: <where the asset will be used>
+Primary request: <user's main prompt>
+Input images: <Image 1: role; Image 2: role> (optional)
+Scene/backdrop: <environment>
+Subject: <main subject>
+Style/medium: <photo/illustration/3D/etc>
+Composition/framing: <wide/close/top-down; placement>
+Lighting/mood: <lighting + mood>
+Color palette: <palette notes>
+Materials/textures: <surface details>
+Text (verbatim): "<exact text>"
+Constraints: <must keep/must avoid>
+Avoid: <negative constraints>
+```
+
+Notes:
+- `Asset type` and `Input images` are prompt scaffolding, not dedicated CLI flags.
+- `Scene/backdrop` refers to the visual setting. It is not the same as the fallback CLI `background` parameter, which controls output transparency behavior.
+- Fallback-only execution notes such as `Quality:`, `Input fidelity:`, masks, output format, and output paths belong in the CLI path only. Do not treat them as built-in `image_gen` tool arguments.
+
+Augmentation rules:
+- Keep it short.
+- Add only the details needed to improve the prompt materially.
+- For edits, explicitly list invariants (`change only X; keep Y unchanged`).
+- If any critical detail is missing and blocks success, ask a question; otherwise proceed.
+
+## Examples
+
+### Generation example (hero image)
+```text
+Use case: product-mockup
+Asset type: landing page hero
+Primary request: a minimal hero image of a ceramic coffee mug
+Style/medium: clean product photography
+Composition/framing: wide composition with usable negative space for page copy if needed
+Lighting/mood: soft studio lighting
+Constraints: no logos, no text, no watermark
+```
+
+### Edit example (invariants)
+```text
+Use case: precise-object-edit
+Asset type: product photo background replacement
+Primary request: replace only the background with a warm sunset gradient
+Constraints: change only the background; keep the product and its edges unchanged; no text; no watermark
+```
+
+## Prompting best practices
+- Structure prompt as scene/backdrop -> subject -> details -> constraints.
+- Include intended use (ad, UI mock, infographic) to set the mode and polish level.
+- Use camera/composition language for photorealism.
+- Only use SVG/vector stand-ins when the user explicitly asked for vector output or a non-image placeholder.
+- Quote exact text and specify typography + placement.
+- For tricky words, spell them letter-by-letter and require verbatim rendering.
+- For multi-image inputs, reference images by index and describe how they should be used.
+- For edits, repeat invariants every iteration to reduce drift.
+- Iterate with single-change follow-ups.
+- If the prompt is generic, add only the extra detail that will materially help.
+- If the prompt is already detailed, normalize it instead of expanding it.
+- For CLI fallback only, see `references/cli.md` and `references/image-api.md` for model, `quality`, `input_fidelity`, masks, output format, and output-path guidance.
+- For transparent images, ask built-in `image_gen` for actual transparency and preserve its alpha.
+
+More principles shared by both modes: `references/prompting.md`.
+Copy/paste specs shared by both modes: `references/sample-prompts.md`.
+
+## Guidance by asset type
+Asset-type templates (website assets, game assets, wireframes, logo) are consolidated in `references/sample-prompts.md`.
+
+## gpt-image-2 guidance for CLI fallback
+
+The fallback CLI defaults to `gpt-image-2`.
+
+- Use `gpt-image-2` for new CLI/API workflows unless the user confirms a different model.
+- CLI `gpt-image-2` does not support `background=transparent`; ask before using `gpt-image-1.5` unless the user explicitly requested that model.
+- `gpt-image-2` always uses high fidelity for image inputs; do not set `input_fidelity` with this model.
+- `gpt-image-2` supports `quality` values `low`, `medium`, `high`, and `auto`.
+- Use `quality low` for fast drafts, thumbnails, and quick iterations. Use `medium`, `high`, or `auto` for final assets, dense text, diagrams, identity-sensitive edits, or high-resolution outputs.
+- Square images are typically fastest to generate. Use `1024x1024` for fast square drafts.
+- If the user asks for 4K-style output, use `3840x2160` for landscape or `2160x3840` for portrait.
+- `gpt-image-2` size may be `auto` or `WIDTHxHEIGHT` if all constraints hold: max edge `<= 3840px`, both edges multiples of `16px`, long-to-short ratio `<= 3:1`, total pixels between `655,360` and `8,294,400`.
+
+Popular `gpt-image-2` sizes:
+- `1024x1024` square
+- `1536x1024` landscape
+- `1024x1536` portrait
+
+--- TARGET DIR ---
+Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/briefs/j1.md
+Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/briefs/j1b.md
+Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/briefs/j1c.md
+Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/briefs/j2.md
+Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/briefs/mk_briefs.py
+Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/briefs/skin_Bone.md
+Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/briefs/skin_Jester.md
+Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/briefs/skin_Night.md
+Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/briefs/skin_Sodium.md
+Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/hull_redo_state0.png
+Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/hull_redo_state1.png
+Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/hull_redo_state2.png
+Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/key_state0.png
+Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/key_state1.png
+Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/key_state2.png
+Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/last_j1.txt
+Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/last_j1b.txt
+Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/last_j1c.txt
+Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/log_j1.txt
+Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/log_j1b.txt
+Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/log_j1c.txt
+Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/log_j2.txt
+Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/paragon_damaged.png
+Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/paragon_ship_alone.png
+Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/preview_j1.png
+Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/preview_j1b.png
+Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/preview_j1c.png
+Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/ref_neoncomet_banks.png
+Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/ref_old_flame.png
+Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/ref_old_state0.png
+Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/ref_old_state1.png
+Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/ref_old_state2.png
+Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/tools/build_j1b.py
+Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/tools/build_j1c.py
+Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/tools/candidate_s0_left.png
+Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/tools/candidate_s0_right.png
+Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/tools/candidate_s1_left.png
+Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/tools/candidate_s1_right.png
+Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/tools/candidate_s2_left.png
+Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/tools/candidate_s2_right.png
+Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/tools/check_j1.py
+Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/tools/check_j1b.py
+Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/tools/check_j1c.py
+Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/tools/generated_j1_raw.png
+Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/tools/generated_j2_raw.png
+Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/tools/make_j1.py
+Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/tools/probe.png
+Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/v1/check_j1.py
+Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/v1/key_state0.png
+Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/v1/key_state1.png
+Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/v1/key_state2.png
+Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/v1/preview_j1.png
+
+codex
+The target folder already contains prior J2 work-in-progress artifacts, so I’ll leave every existing file untouched and create fresh deliverables only where names are absent. I’m generating a new 8-cell exhaust sheet now, using the supplied Paragon flame, Saboteur hull, and old exhaust as references; the final exact dimensions, palette, and key background will be enforced locally afterward.
+exec
+/bin/zsh -lc "find /Users/sina/.codex -type f -path '*/generated_images/*' -print 2>/dev/null | sort | tail -20" in /Users/sina/Developer/Pause/.claude/worktrees/agent-a71e29e38407814db
+ succeeded in 260ms:
+/Users/sina/.codex/generated_images/01a16493-0d5b-7763-879e-2f2352fd9e2e/exec-274d08c9-0295-4bea-a178-5e9a31932cf1.png
+/Users/sina/.codex/generated_images/01a16493-0d5b-7763-879e-2f2352fd9e2e/exec-3141a4eb-d1af-4e41-a291-ea340a248596.png
+/Users/sina/.codex/generated_images/01a16493-0d5b-7763-879e-2f2352fd9e2e/exec-8b593dbf-3724-4fbc-85d7-fb60f0be3693.png
+/Users/sina/.codex/generated_images/01a16493-0d5b-7763-879e-2f2352fd9e2e/exec-ba8c04bd-0519-4b07-b3cc-7028916f4cae.png
+/Users/sina/.codex/generated_images/01a16493-0d5b-7763-879e-2f2352fd9e2e/exec-d18c2d90-a3dd-4aa8-ae83-52d034320cff.png
+/Users/sina/.codex/generated_images/01a16494-e1d9-79d0-aa8c-382c41050aa3/exec-2decaac1-d928-4695-bc59-52d3d9ab92ed.png
+/Users/sina/.codex/generated_images/01a16494-e1d9-79d0-aa8c-382c41050aa3/exec-cbb8e465-0499-45d2-b059-d9e2d56fcf49.png
+/Users/sina/.codex/generated_images/01a16494-e1d9-79d0-aa8c-382c41050aa3/exec-e0cd1dea-4b8b-4d3b-a67f-5eba43247f2c.png
+/Users/sina/.codex/generated_images/01a16495-14d8-7452-8e15-e0df93c50bb8/exec-0a084220-7e28-4490-b926-253f4571ff94.png
+/Users/sina/.codex/generated_images/01a16495-14d8-7452-8e15-e0df93c50bb8/exec-2282e898-0a96-4b75-90e1-7d72e6589c37.png
+/Users/sina/.codex/generated_images/01a16495-14d8-7452-8e15-e0df93c50bb8/exec-7a815984-4775-42ca-b289-98c835206e47.png
+/Users/sina/.codex/generated_images/01a16495-14d8-7452-8e15-e0df93c50bb8/exec-dd007e53-5a4c-451b-8119-f4a7ee44a614.png
+/Users/sina/.codex/generated_images/01a1649a-94cc-7893-a482-7e3644ffd407/exec-726e170b-d970-4c59-888b-4479cd095356.png
+/Users/sina/.codex/generated_images/01a1649a-94cc-7893-a482-7e3644ffd407/exec-a7778936-d739-4e27-a188-538505a62d2b.png
+/Users/sina/.codex/generated_images/01a1649a-94cc-7893-a482-7e3644ffd407/exec-f55e2af0-faf4-4ede-be5a-6efa6eb17831.png
+/Users/sina/.codex/generated_images/01a1649a-b3bc-7e02-84c4-0d7cf03f2758/exec-3f0ae79e-c4e7-4ed0-81d2-b486274d45b6.png
+/Users/sina/.codex/generated_images/01a1649a-b3bc-7e02-84c4-0d7cf03f2758/exec-a4b5b886-b516-456a-ad4d-4ba021936906.png
+/Users/sina/.codex/generated_images/01a1649a-b3ef-77e1-bb64-a7b5f31e174d/exec-331be423-b84d-411d-b266-db76b90fc645.png
+/Users/sina/.codex/generated_images/01a1649a-b60d-7510-a05e-7bf527460207/exec-b1cc31f7-dc9d-49f3-9a35-d8867492f44a.png
+/Users/sina/.codex/generated_images/01a1649c-16d1-7a63-b96a-51c31bd369ab/exec-2ff85dd2-ef92-4de1-b26d-be0e0a82aba6.png
+
+exec
+/bin/zsh -lc "find /Users/sina/.codex/generated_images -type f -name '*.png' -print0 | xargs -0 stat -f '%m %z %N' | sort -nr | head -10 | while read m z p; do s="'$(sips -g pixelWidth -g pixelHeight "$p" 2>/dev/null | awk '"'/pixelWidth|pixelHeight/{print "'$2}'"' | tr '\\n' 'x'); printf '%s %s %s %s\\n' \""'$m" "$z" "$s" "$p"; done' in /Users/sina/Developer/Pause/.claude/worktrees/agent-a71e29e38407814db
+ succeeded in 1158ms:
+1792689353 1440615 2103x748x /Users/sina/.codex/generated_images/01a1649c-16d1-7a63-b96a-51c31bd369ab/exec-2ff85dd2-ef92-4de1-b26d-be0e0a82aba6.png
+1792689348 1785414 1254x1254x /Users/sina/.codex/generated_images/01a1649a-b60d-7510-a05e-7bf527460207/exec-b1cc31f7-dc9d-49f3-9a35-d8867492f44a.png
+1792689345 1829162 1254x1254x /Users/sina/.codex/generated_images/01a1649a-b3bc-7e02-84c4-0d7cf03f2758/exec-a4b5b886-b516-456a-ad4d-4ba021936906.png
+1792689341 1647276 1254x1254x /Users/sina/.codex/generated_images/01a1649a-94cc-7893-a482-7e3644ffd407/exec-f55e2af0-faf4-4ede-be5a-6efa6eb17831.png
+1792689315 1623377 1254x1254x /Users/sina/.codex/generated_images/01a1649a-94cc-7893-a482-7e3644ffd407/exec-a7778936-d739-4e27-a188-538505a62d2b.png
+1792689275 1669147 1254x1254x /Users/sina/.codex/generated_images/01a1649a-94cc-7893-a482-7e3644ffd407/exec-726e170b-d970-4c59-888b-4479cd095356.png
+1792689271 1847016 1254x1254x /Users/sina/.codex/generated_images/01a1649a-b3bc-7e02-84c4-0d7cf03f2758/exec-3f0ae79e-c4e7-4ed0-81d2-b486274d45b6.png
+1792689257 1308030 978x1608x /Users/sina/.codex/generated_images/01a1649a-b3ef-77e1-bb64-a7b5f31e174d/exec-331be423-b84d-411d-b266-db76b90fc645.png
+1792689095 2016045 1254x1254x /Users/sina/.codex/generated_images/01a16495-14d8-7452-8e15-e0df93c50bb8/exec-dd007e53-5a4c-451b-8119-f4a7ee44a614.png
+1792689089 2137875 1254x1254x /Users/sina/.codex/generated_images/01a16493-0d5b-7763-879e-2f2352fd9e2e/exec-00dd49e1-27ff-4e41-b082-ffdcf7416ba3.png
+
+codex
+The generated reference came back as a strong match: eight vertical, hard-stepped orange/bone pulses with violet smoke and green key. I’m going to preserve that painted structure, quantize it to the exact six-color set, then build the cruise and boost variants with nearest-neighbour pixel operations so the boost is measurably longer/brighter without introducing forbidden colors.
+exec
+/bin/zsh -lc "cp /Users/sina/.codex/generated_images/01a1649c-16d1-7a63-b96a-51c31bd369ab/exec-2ff85dd2-ef92-4de1-b26d-be0e0a82aba6.png Pause/Assets/Art/Resources/ShipArt/Saboteur/src\\~/codex/tools/generated_j2_raw_v2.png
+python3 - <<'PY'
+from PIL import Image
+p='Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/tools/generated_j2_raw_v2.png'
+im=Image.open(p)
+print(im.mode, im.size)
+PY" in /Users/sina/Developer/Pause/.claude/worktrees/agent-a71e29e38407814db
+ succeeded in 0ms:
+RGB (2103, 748)
+
+apply patch
+patch: completed
+/Users/sina/Developer/Pause/.claude/worktrees/agent-a71e29e38407814db/Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/tools/build_j2.py
+/Users/sina/Developer/Pause/.claude/worktrees/agent-a71e29e38407814db/Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/tools/check_j2.py
+diff --git a/Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/tools/build_j2.py b/Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/tools/build_j2.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..8e71ce56230ef0431a0a404e45aa5beb2f48b315
+--- /dev/null
++++ b/Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/tools/build_j2.py
+@@ -0,0 +1,91 @@
++#!/usr/bin/env python3
++"""Build the J2 Saboteur exhaust sheets from the generated painted source."""
++
++from pathlib import Path
++
++from PIL import Image
++
++
++ROOT = Path(__file__).resolve().parents[1]
++SOURCE = ROOT / "tools" / "generated_j2_raw_v2.png"
++CELL_W, CELL_H, FRAMES = 256, 1024, 8
++KEY = (0, 255, 0)
++PALETTE = [
++    (184, 60, 192),   # violet
++    (242, 134, 43),   # orange
++    (244, 234, 212),  # bone-white
++    (94, 26, 102),    # deep violet
++    (58, 42, 92),     # indigo
++    KEY,
++]
++
++
++def nearest(rgb):
++    return min(PALETTE, key=lambda c: sum((int(rgb[i]) - c[i]) ** 2 for i in range(3)))
++
++
++def snap(image):
++    image = image.convert("RGB")
++    return Image.new("RGB", image.size, KEY).putdata if False else image
++
++
++def quantize(image):
++    out = Image.new("RGB", image.size)
++    out.putdata([nearest(px) for px in image.getdata()])
++    return out
++
++
++def make_frame(source, target_height):
++    # Equal source cells first, then nearest-neighbour scaling to the game cell.
++    frame = source.resize((CELL_W, CELL_H), Image.Resampling.NEAREST)
++    pixels = frame.load()
++    non_key = [
++        (x, y)
++        for y in range(CELL_H)
++        for x in range(CELL_W)
++        if pixels[x, y] != KEY
++    ]
++    if not non_key:
++        return Image.new("RGB", (CELL_W, CELL_H), KEY)
++
++    y0 = min(y for _, y in non_key)
++    y1 = max(y for _, y in non_key) + 1
++    painted = frame.crop((0, y0, CELL_W, y1))
++    painted = painted.resize((CELL_W, target_height), Image.Resampling.NEAREST)
++
++    result = Image.new("RGB", (CELL_W, CELL_H), KEY)
++    # About 3% down, leaving a clean key-colored row above the nozzle-contact head.
++    top = 30
++    result.paste(painted, (0, top))
++    return result
++
++
++def build_sheet(source, heights):
++    source = quantize(source)
++    frames = []
++    for i in range(FRAMES):
++        left = (source.width * i) // FRAMES
++        right = (source.width * (i + 1)) // FRAMES
++        frames.append(make_frame(source.crop((left, 0, right, source.height)), heights[i]))
++
++    sheet = Image.new("RGB", (CELL_W * FRAMES, CELL_H), KEY)
++    for i, frame in enumerate(frames):
++        sheet.paste(frame, (CELL_W * i, 0))
++    return quantize(sheet)
++
++
++def main():
++    source = Image.open(SOURCE)
++    cruise = build_sheet(source, [770, 760, 940, 780, 770, 760, 760, 775])
++    boost = build_sheet(source, [930, 920, 975, 940, 930, 920, 930, 935])
++    cruise.save(ROOT / "flame_cruise.png", format="PNG", optimize=False)
++    boost.save(ROOT / "flame_boost.png", format="PNG", optimize=False)
++
++    preview = Image.new("RGB", (CELL_W * FRAMES, CELL_H * 2), (11, 11, 26))
++    preview.paste(cruise, (0, 0))
++    preview.paste(boost, (0, CELL_H))
++    preview.save(ROOT / "preview_j2.png", format="PNG", optimize=False)
++
++
++if __name__ == "__main__":
++    main()
+diff --git a/Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/tools/check_j2.py b/Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/tools/check_j2.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..76ac08bd04d3b4a209c8ef4a6ce84399209bd6e2
+--- /dev/null
++++ b/Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/tools/check_j2.py
+@@ -0,0 +1,91 @@
++#!/usr/bin/env python3
++"""Validate the J2 exhaust sheets and print a compact per-cell audit table."""
++
++from pathlib import Path
++import sys
++
++from PIL import Image
++
++
++ROOT = Path(__file__).resolve().parents[1]
++EXPECTED = {
++    (184, 60, 192),   # violet
++    (242, 134, 43),   # orange
++    (244, 234, 212),  # bone-white
++    (94, 26, 102),    # deep violet
++    (58, 42, 92),     # indigo
++    (0, 255, 0),      # key
++}
++KEY = (0, 255, 0)
++CELL_W, CELL_H, FRAMES = 256, 1024, 8
++
++
++def audit(path):
++    image = Image.open(path).convert("RGB")
++    assert image.size == (CELL_W * FRAMES, CELL_H), f"{path.name}: expected 2048x1024, got {image.size}"
++    colors = set(image.getdata())
++    assert colors <= EXPECTED, f"{path.name}: forbidden colors: {sorted(colors - EXPECTED)}"
++
++    rows = []
++    for i in range(FRAMES):
++        cell = image.crop((i * CELL_W, 0, (i + 1) * CELL_W, CELL_H))
++        data = list(cell.getdata())
++        painted = [(x, y) for y in range(CELL_H) for x in range(CELL_W) if cell.getpixel((x, y)) != KEY]
++        assert painted, f"{path.name} frame {i}: empty cell"
++        xs = [p[0] for p in painted]
++        ys = [p[1] for p in painted]
++        bbox = (min(xs), min(ys), max(xs), max(ys))
++        # All corners and the entire outer edge remain key green: no backdrop rectangle.
++        edge = [cell.getpixel((x, y)) for x in range(CELL_W) for y in (0, CELL_H - 1)]
++        edge += [cell.getpixel((x, y)) for y in range(CELL_H) for x in (0, CELL_W - 1)]
++        assert all(px == KEY for px in edge), f"{path.name} frame {i}: non-key edge/backdrop pixel"
++        assert (bbox[2] - bbox[0] + 1) * (bbox[3] - bbox[1] + 1) < CELL_W * CELL_H * 0.72, (
++            f"{path.name} frame {i}: painted rectangle-like backdrop"
++        )
++
++        counts = {color: data.count(color) for color in EXPECTED if color != KEY}
++        rows.append({
++            "frame": i,
++            "painted": len(painted),
++            "tail": max(ys) / (CELL_H - 1) * 100.0,
++            "bone": counts[(244, 234, 212)],
++            "orange": counts[(242, 134, 43)],
++            "violet": counts[(184, 60, 192)],
++        })
++    return rows
++
++
++def print_table(name, rows):
++    print(f"\n{name}")
++    print("frame  painted  tail%  bone  orange  violet")
++    for row in rows:
++        print(f"{row['frame']:>5}  {row['painted']:>7}  {row['tail']:>5.1f}  {row['bone']:>4}  {row['orange']:>6}  {row['violet']:>6}")
++
++
++def main():
++    cruise = audit(ROOT / "flame_cruise.png")
++    boost = audit(ROOT / "flame_boost.png")
++    print_table("flame_cruise.png", cruise)
++    print_table("flame_boost.png", boost)
++
++    cruise_bone = sum(row["bone"] for row in cruise)
++    boost_bone = sum(row["bone"] for row in boost)
++    cruise_hot = sum(row["bone"] + row["orange"] for row in cruise)
++    boost_hot = sum(row["bone"] + row["orange"] for row in boost)
++    cruise_tail = min(row["tail"] for row in cruise)
++    boost_tail = min(row["tail"] for row in boost)
++    assert boost_bone > cruise_bone, "boost is not brighter: bone-white count did not increase"
++    assert boost_hot > cruise_hot, "boost is not hotter: bone/orange count did not increase"
++    assert boost_tail > cruise_tail, "boost is not longer: shortest boost tail did not exceed cruise"
++    assert cruise[2]["bone"] == max(row["bone"] for row in cruise), "cruise burst frame 2 is not brightest"
++    assert boost[2]["bone"] == max(row["bone"] for row in boost), "boost burst frame 2 is not brightest"
++
++    print("\nPASS: 8 equal 256x1024 cells, exact six-color palette, green edges, boost longer/hotter.")
++
++
++if __name__ == "__main__":
++    try:
++        main()
++    except (AssertionError, FileNotFoundError) as exc:
++        print(f"FAIL: {exc}", file=sys.stderr)
++        raise SystemExit(1)
+
+exec
+/bin/zsh -lc "python3 Pause/Assets/Art/Resources/ShipArt/Saboteur/src\\~/codex/tools/build_j2.py && python3 Pause/Assets/Art/Resources/ShipArt/Saboteur/src\\~/codex/tools/check_j2.py" in /Users/sina/Developer/Pause/.claude/worktrees/agent-a71e29e38407814db
+codex
+The first build completed and produced the requested raster outputs; the validator didn’t emit its table, so I’m checking the generated files and rerunning the audit directly. That’s a tooling sanity check, not a finished validation claim.
+exec
+/bin/zsh -lc "ls -lh Pause/Assets/Art/Resources/ShipArt/Saboteur/src\\~/codex/flame_*.png Pause/Assets/Art/Resources/ShipArt/Saboteur/src\\~/codex/preview_j2.png Pause/Assets/Art/Resources/ShipArt/Saboteur/src\\~/codex/tools/check_j2.py && python3 -u Pause/Assets/Art/Resources/ShipArt/Saboteur/src\\~/codex/tools/check_j2.py; printf 'exit=%s\\n' "'$?' in /Users/sina/Developer/Pause/.claude/worktrees/agent-a71e29e38407814db
+ succeeded in 0ms:
+zsh:1: no matches found: Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/flame_*.png
+exit=1
+
+exec
+/bin/zsh -lc "find Pause/Assets/Art/Resources/ShipArt/Saboteur/src\\~/codex -maxdepth 1 -type f -print | sort | tail -20; sed -n '1,220p' Pause/Assets/Art/Resources/ShipArt/Saboteur/src\\~/codex/tools/build_j2.py; sed -n '1,80p' Pause/Assets/Art/Resources/ShipArt/Saboteur/src\\~/codex/tools/check_j2.py" in /Users/sina/Developer/Pause/.claude/worktrees/agent-a71e29e38407814db
+ succeeded in 0ms:
+Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/key_state0.png
+Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/key_state1.png
+Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/key_state2.png
+Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/last_j1.txt
+Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/last_j1b.txt
+Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/last_j1c.txt
+Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/log_j1.txt
+Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/log_j1b.txt
+Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/log_j1c.txt
+Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/log_j2.txt
+Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/paragon_damaged.png
+Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/paragon_ship_alone.png
+Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/preview_j1.png
+Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/preview_j1b.png
+Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/preview_j1c.png
+Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/ref_neoncomet_banks.png
+Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/ref_old_flame.png
+Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/ref_old_state0.png
+Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/ref_old_state1.png
+Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/ref_old_state2.png
+#!/usr/bin/env python3
+"""Build the J2 Saboteur exhaust sheets from the generated painted source."""
+
+from pathlib import Path
+
+from PIL import Image
+
+
+ROOT = Path(__file__).resolve().parents[1]
+SOURCE = ROOT / "tools" / "generated_j2_raw_v2.png"
+CELL_W, CELL_H, FRAMES = 256, 1024, 8
+KEY = (0, 255, 0)
+PALETTE = [
+    (184, 60, 192),   # violet
+    (242, 134, 43),   # orange
+    (244, 234, 212),  # bone-white
+    (94, 26, 102),    # deep violet
+    (58, 42, 92),     # indigo
+    KEY,
+]
+
+
+def nearest(rgb):
+    return min(PALETTE, key=lambda c: sum((int(rgb[i]) - c[i]) ** 2 for i in range(3)))
+
+
+def snap(image):
+    image = image.convert("RGB")
+    return Image.new("RGB", image.size, KEY).putdata if False else image
+
+
+def quantize(image):
+    out = Image.new("RGB", image.size)
+    out.putdata([nearest(px) for px in image.getdata()])
+    return out
+
+
+def make_frame(source, target_height):
+    # Equal source cells first, then nearest-neighbour scaling to the game cell.
+    frame = source.resize((CELL_W, CELL_H), Image.Resampling.NEAREST)
+    pixels = frame.load()
+    non_key = [
+        (x, y)
+        for y in range(CELL_H)
+        for x in range(CELL_W)
+        if pixels[x, y] != KEY
+    ]
+    if not non_key:
+        return Image.new("RGB", (CELL_W, CELL_H), KEY)
+
+    y0 = min(y for _, y in non_key)
+    y1 = max(y for _, y in non_key) + 1
+    painted = frame.crop((0, y0, CELL_W, y1))
+    painted = painted.resize((CELL_W, target_height), Image.Resampling.NEAREST)
+
+    result = Image.new("RGB", (CELL_W, CELL_H), KEY)
+    # About 3% down, leaving a clean key-colored row above the nozzle-contact head.
+    top = 30
+    result.paste(painted, (0, top))
+    return result
+
+
+def build_sheet(source, heights):
+    source = quantize(source)
+    frames = []
+    for i in range(FRAMES):
+        left = (source.width * i) // FRAMES
+        right = (source.width * (i + 1)) // FRAMES
+        frames.append(make_frame(source.crop((left, 0, right, source.height)), heights[i]))
+
+    sheet = Image.new("RGB", (CELL_W * FRAMES, CELL_H), KEY)
+    for i, frame in enumerate(frames):
+        sheet.paste(frame, (CELL_W * i, 0))
+    return quantize(sheet)
+
+
+def main():
+    source = Image.open(SOURCE)
+    cruise = build_sheet(source, [770, 760, 940, 780, 770, 760, 760, 775])
+    boost = build_sheet(source, [930, 920, 975, 940, 930, 920, 930, 935])
+    cruise.save(ROOT / "flame_cruise.png", format="PNG", optimize=False)
+    boost.save(ROOT / "flame_boost.png", format="PNG", optimize=False)
+
+    preview = Image.new("RGB", (CELL_W * FRAMES, CELL_H * 2), (11, 11, 26))
+    preview.paste(cruise, (0, 0))
+    preview.paste(boost, (0, CELL_H))
+    preview.save(ROOT / "preview_j2.png", format="PNG", optimize=False)
+
+
+if __name__ == "__main__":
+    main()
+#!/usr/bin/env python3
+"""Validate the J2 exhaust sheets and print a compact per-cell audit table."""
+
+from pathlib import Path
+import sys
+
+from PIL import Image
+
+
+ROOT = Path(__file__).resolve().parents[1]
+EXPECTED = {
+    (184, 60, 192),   # violet
+    (242, 134, 43),   # orange
+    (244, 234, 212),  # bone-white
+    (94, 26, 102),    # deep violet
+    (58, 42, 92),     # indigo
+    (0, 255, 0),      # key
+}
+KEY = (0, 255, 0)
+CELL_W, CELL_H, FRAMES = 256, 1024, 8
+
+
+def audit(path):
+    image = Image.open(path).convert("RGB")
+    assert image.size == (CELL_W * FRAMES, CELL_H), f"{path.name}: expected 2048x1024, got {image.size}"
+    colors = set(image.getdata())
+    assert colors <= EXPECTED, f"{path.name}: forbidden colors: {sorted(colors - EXPECTED)}"
+
+    rows = []
+    for i in range(FRAMES):
+        cell = image.crop((i * CELL_W, 0, (i + 1) * CELL_W, CELL_H))
+        data = list(cell.getdata())
+        painted = [(x, y) for y in range(CELL_H) for x in range(CELL_W) if cell.getpixel((x, y)) != KEY]
+        assert painted, f"{path.name} frame {i}: empty cell"
+        xs = [p[0] for p in painted]
+        ys = [p[1] for p in painted]
+        bbox = (min(xs), min(ys), max(xs), max(ys))
+        # All corners and the entire outer edge remain key green: no backdrop rectangle.
+        edge = [cell.getpixel((x, y)) for x in range(CELL_W) for y in (0, CELL_H - 1)]
+        edge += [cell.getpixel((x, y)) for y in range(CELL_H) for x in (0, CELL_W - 1)]
+        assert all(px == KEY for px in edge), f"{path.name} frame {i}: non-key edge/backdrop pixel"
+        assert (bbox[2] - bbox[0] + 1) * (bbox[3] - bbox[1] + 1) < CELL_W * CELL_H * 0.72, (
+            f"{path.name} frame {i}: painted rectangle-like backdrop"
+        )
+
+        counts = {color: data.count(color) for color in EXPECTED if color != KEY}
+        rows.append({
+            "frame": i,
+            "painted": len(painted),
+            "tail": max(ys) / (CELL_H - 1) * 100.0,
+            "bone": counts[(244, 234, 212)],
+            "orange": counts[(242, 134, 43)],
+            "violet": counts[(184, 60, 192)],
+        })
+    return rows
+
+
+def print_table(name, rows):
+    print(f"\n{name}")
+    print("frame  painted  tail%  bone  orange  violet")
+    for row in rows:
+        print(f"{row['frame']:>5}  {row['painted']:>7}  {row['tail']:>5.1f}  {row['bone']:>4}  {row['orange']:>6}  {row['violet']:>6}")
+
+
+def main():
+    cruise = audit(ROOT / "flame_cruise.png")
+    boost = audit(ROOT / "flame_boost.png")
+    print_table("flame_cruise.png", cruise)
+    print_table("flame_boost.png", boost)
+
+    cruise_bone = sum(row["bone"] for row in cruise)
+    boost_bone = sum(row["bone"] for row in boost)
+    cruise_hot = sum(row["bone"] + row["orange"] for row in cruise)
+    boost_hot = sum(row["bone"] + row["orange"] for row in boost)
+    cruise_tail = min(row["tail"] for row in cruise)
+    boost_tail = min(row["tail"] for row in boost)
+    assert boost_bone > cruise_bone, "boost is not brighter: bone-white count did not increase"
+    assert boost_hot > cruise_hot, "boost is not hotter: bone/orange count did not increase"
+    assert boost_tail > cruise_tail, "boost is not longer: shortest boost tail did not exceed cruise"
+    assert cruise[2]["bone"] == max(row["bone"] for row in cruise), "cruise burst frame 2 is not brightest"
+
+ succeeded in 17554ms:
+/Users/sina/Developer/Pause/.claude/worktrees/agent-a71e29e38407814db/Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/tools/build_j2.py:34: DeprecationWarning: Image.Image.getdata is deprecated and will be removed in Pillow 14 (2027-10-15). Use get_flattened_data instead.
+  out.putdata([nearest(px) for px in image.getdata()])
+/Users/sina/Developer/Pause/.claude/worktrees/agent-a71e29e38407814db/Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/tools/check_j2.py:26: DeprecationWarning: Image.Image.getdata is deprecated and will be removed in Pillow 14 (2027-10-15). Use get_flattened_data instead.
+  colors = set(image.getdata())
+/Users/sina/Developer/Pause/.claude/worktrees/agent-a71e29e38407814db/Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/tools/check_j2.py:32: DeprecationWarning: Image.Image.getdata is deprecated and will be removed in Pillow 14 (2027-10-15). Use get_flattened_data instead.
+  data = list(cell.getdata())
+
+flame_cruise.png
+frame  painted  tail%  bone  orange  violet
+    0    62300   78.1  7120   21590   12087
+    1    59155   77.1  6393   19946   11927
+    2    96603   94.7  26828   43086    8977
+    3    60578   79.1  6808   19727   13015
+    4    64966   78.1  7995   24554   11254
+    5    58579   77.1  7791   18420   12692
+    6    61994   77.1  7242   22181   11458
+    7    62560   78.6  7859   21783   12882
+
+flame_boost.png
+frame  painted  tail%  bone  orange  violet
+    0    75230   93.7  8618   26004   14682
+    1    71614   92.8  7738   24118   14381
+    2   100185   98.1  27837   44665    9330
+    3    73031   94.7  8210   23730   15721
+    4    78494   93.7  9640   29705   13581
+    5    70891   92.8  9464   22221   15348
+    6    75917   93.7  8863   27099   14078
+    7    75511   94.2  9518   26240   15589
+
+PASS: 8 equal 256x1024 cells, exact six-color palette, green edges, boost longer/hotter.
+
+exec
+/bin/zsh -lc "python3 -u Pause/Assets/Art/Resources/ShipArt/Saboteur/src\\~/codex/tools/build_j2.py; echo BUILD_EXIT="'$?' in /Users/sina/Developer/Pause/.claude/worktrees/agent-a71e29e38407814db
+ succeeded in 15880ms:
+/Users/sina/Developer/Pause/.claude/worktrees/agent-a71e29e38407814db/Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/tools/build_j2.py:34: DeprecationWarning: Image.Image.getdata is deprecated and will be removed in Pillow 14 (2027-10-15). Use get_flattened_data instead.
+  out.putdata([nearest(px) for px in image.getdata()])
+BUILD_EXIT=0
+
+exec
+/bin/zsh -lc "find Pause/Assets/Art/Resources/ShipArt/Saboteur/src\\~/codex -maxdepth 1 -type f \\( -name 'flame_*.png' -o -name 'preview_j2.png' \\) -print -exec ls -lh {} \\;" in /Users/sina/Developer/Pause/.claude/worktrees/agent-a71e29e38407814db
+ succeeded in 0ms:
+Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/flame_cruise.png
+-rw-r--r--@ 1 sina  staff    47K Oct 22 12:17 Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/flame_cruise.png
+Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/flame_boost.png
+-rw-r--r--@ 1 sina  staff    47K Oct 22 12:17 Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/flame_boost.png
+Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/preview_j2.png
+-rw-r--r--@ 1 sina  staff    94K Oct 22 12:17 Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/preview_j2.png
+
+exec
+/bin/zsh -lc "python3 -u Pause/Assets/Art/Resources/ShipArt/Saboteur/src\\~/codex/tools/check_j2.py; echo CHECK_EXIT="'$?' in /Users/sina/Developer/Pause/.claude/worktrees/agent-a71e29e38407814db
+ succeeded in 1680ms:
+/Users/sina/Developer/Pause/.claude/worktrees/agent-a71e29e38407814db/Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/tools/check_j2.py:26: DeprecationWarning: Image.Image.getdata is deprecated and will be removed in Pillow 14 (2027-10-15). Use get_flattened_data instead.
+  colors = set(image.getdata())
+/Users/sina/Developer/Pause/.claude/worktrees/agent-a71e29e38407814db/Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/tools/check_j2.py:32: DeprecationWarning: Image.Image.getdata is deprecated and will be removed in Pillow 14 (2027-10-15). Use get_flattened_data instead.
+  data = list(cell.getdata())
+
+flame_cruise.png
+frame  painted  tail%  bone  orange  violet
+    0    62300   78.1  7120   21590   12087
+    1    59155   77.1  6393   19946   11927
+    2    96603   94.7  26828   43086    8977
+    3    60578   79.1  6808   19727   13015
+    4    64966   78.1  7995   24554   11254
+    5    58579   77.1  7791   18420   12692
+    6    61994   77.1  7242   22181   11458
+    7    62560   78.6  7859   21783   12882
+
+flame_boost.png
+frame  painted  tail%  bone  orange  violet
+    0    75230   93.7  8618   26004   14682
+    1    71614   92.8  7738   24118   14381
+    2   100185   98.1  27837   44665    9330
+    3    73031   94.7  8210   23730   15721
+    4    78494   93.7  9640   29705   13581
+    5    70891   92.8  9464   22221   15348
+    6    75917   93.7  8863   27099   14078
+    7    75511   94.2  9518   26240   15589
+
+PASS: 8 equal 256x1024 cells, exact six-color palette, green edges, boost longer/hotter.
+CHECK_EXIT=0
+
+codex
+The audit now passes: both sheets are 2048×1024 with eight equal 256×1024 cells, exact allowed colors only, green outer edges, and the boost sheet is longer and hotter in every measured aggregate. I’m doing a visual pass on the combined preview next, especially frame 2 and the lower-tail reach.
+codex
+The visual pass caught one issue in the preview only: the green key was still visible across the preview sheets, so the dark preview background was being covered. I’m correcting the preview renderer to replace key-green with `#0b0b1a` for display while leaving the two game sheets’ required green key intact.
+apply patch
+patch: completed
+/Users/sina/Developer/Pause/.claude/worktrees/agent-a71e29e38407814db/Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/tools/build_j2.py
+diff --git a/Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/tools/build_j2.py b/Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/tools/build_j2.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..e841f2bb8fcbe51b9307db963792431bd5483c7d
+--- /dev/null
++++ b/Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/tools/build_j2.py
+@@ -0,0 +1,98 @@
++#!/usr/bin/env python3
++"""Build the J2 Saboteur exhaust sheets from the generated painted source."""
++
++from pathlib import Path
++
++from PIL import Image
++
++
++ROOT = Path(__file__).resolve().parents[1]
++SOURCE = ROOT / "tools" / "generated_j2_raw_v2.png"
++CELL_W, CELL_H, FRAMES = 256, 1024, 8
++KEY = (0, 255, 0)
++PREVIEW_BG = (11, 11, 26)
++PALETTE = [
++    (184, 60, 192),   # violet
++    (242, 134, 43),   # orange
++    (244, 234, 212),  # bone-white
++    (94, 26, 102),    # deep violet
++    (58, 42, 92),     # indigo
++    KEY,
++]
++
++
++def nearest(rgb):
++    return min(PALETTE, key=lambda c: sum((int(rgb[i]) - c[i]) ** 2 for i in range(3)))
++
++
++def snap(image):
++    image = image.convert("RGB")
++    return Image.new("RGB", image.size, KEY).putdata if False else image
++
++
++def quantize(image):
++    out = Image.new("RGB", image.size)
++    out.putdata([nearest(px) for px in image.getdata()])
++    return out
++
++
++def make_frame(source, target_height):
++    # Equal source cells first, then nearest-neighbour scaling to the game cell.
++    frame = source.resize((CELL_W, CELL_H), Image.Resampling.NEAREST)
++    pixels = frame.load()
++    non_key = [
++        (x, y)
++        for y in range(CELL_H)
++        for x in range(CELL_W)
++        if pixels[x, y] != KEY
++    ]
++    if not non_key:
++        return Image.new("RGB", (CELL_W, CELL_H), KEY)
++
++    y0 = min(y for _, y in non_key)
++    y1 = max(y for _, y in non_key) + 1
++    painted = frame.crop((0, y0, CELL_W, y1))
++    painted = painted.resize((CELL_W, target_height), Image.Resampling.NEAREST)
++
++    result = Image.new("RGB", (CELL_W, CELL_H), KEY)
++    # About 3% down, leaving a clean key-colored row above the nozzle-contact head.
++    top = 30
++    result.paste(painted, (0, top))
++    return result
++
++
++def build_sheet(source, heights):
++    source = quantize(source)
++    frames = []
++    for i in range(FRAMES):
++        left = (source.width * i) // FRAMES
++        right = (source.width * (i + 1)) // FRAMES
++        frames.append(make_frame(source.crop((left, 0, right, source.height)), heights[i]))
++
++    sheet = Image.new("RGB", (CELL_W * FRAMES, CELL_H), KEY)
++    for i, frame in enumerate(frames):
++        sheet.paste(frame, (CELL_W * i, 0))
++    return quantize(sheet)
++
++
++def preview_layer(sheet):
++    layer = Image.new("RGB", sheet.size)
++    layer.putdata([PREVIEW_BG if px == KEY else px for px in sheet.getdata()])
++    return layer
++
++
++def main():
++    source = Image.open(SOURCE)
++    cruise = build_sheet(source, [770, 760, 940, 780, 770, 760, 760, 775])
++    boost = build_sheet(source, [930, 920, 975, 940, 930, 920, 930, 935])
++    cruise.save(ROOT / "flame_cruise.png", format="PNG", optimize=False)
++    boost.save(ROOT / "flame_boost.png", format="PNG", optimize=False)
++
++    preview = Image.new("RGB", (CELL_W * FRAMES, CELL_H * 2), PREVIEW_BG)
++    preview.paste(preview_layer(cruise), (0, 0))
++    preview.paste(preview_layer(boost), (0, CELL_H))
++    preview.save(ROOT / "preview_j2.png", format="PNG", optimize=False)
++
++
++if __name__ == "__main__":
++    main()
+diff --git a/Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/tools/check_j2.py b/Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/tools/check_j2.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..76ac08bd04d3b4a209c8ef4a6ce84399209bd6e2
+--- /dev/null
++++ b/Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/tools/check_j2.py
+@@ -0,0 +1,91 @@
++#!/usr/bin/env python3
++"""Validate the J2 exhaust sheets and print a compact per-cell audit table."""
++
++from pathlib import Path
++import sys
++
++from PIL import Image
++
++
++ROOT = Path(__file__).resolve().parents[1]
++EXPECTED = {
++    (184, 60, 192),   # violet
++    (242, 134, 43),   # orange
++    (244, 234, 212),  # bone-white
++    (94, 26, 102),    # deep violet
++    (58, 42, 92),     # indigo
++    (0, 255, 0),      # key
++}
++KEY = (0, 255, 0)
++CELL_W, CELL_H, FRAMES = 256, 1024, 8
++
++
++def audit(path):
++    image = Image.open(path).convert("RGB")
++    assert image.size == (CELL_W * FRAMES, CELL_H), f"{path.name}: expected 2048x1024, got {image.size}"
++    colors = set(image.getdata())
++    assert colors <= EXPECTED, f"{path.name}: forbidden colors: {sorted(colors - EXPECTED)}"
++
++    rows = []
++    for i in range(FRAMES):
++        cell = image.crop((i * CELL_W, 0, (i + 1) * CELL_W, CELL_H))
++        data = list(cell.getdata())
++        painted = [(x, y) for y in range(CELL_H) for x in range(CELL_W) if cell.getpixel((x, y)) != KEY]
++        assert painted, f"{path.name} frame {i}: empty cell"
++        xs = [p[0] for p in painted]
++        ys = [p[1] for p in painted]
++        bbox = (min(xs), min(ys), max(xs), max(ys))
++        # All corners and the entire outer edge remain key green: no backdrop rectangle.
++        edge = [cell.getpixel((x, y)) for x in range(CELL_W) for y in (0, CELL_H - 1)]
++        edge += [cell.getpixel((x, y)) for y in range(CELL_H) for x in (0, CELL_W - 1)]
++        assert all(px == KEY for px in edge), f"{path.name} frame {i}: non-key edge/backdrop pixel"
++        assert (bbox[2] - bbox[0] + 1) * (bbox[3] - bbox[1] + 1) < CELL_W * CELL_H * 0.72, (
++            f"{path.name} frame {i}: painted rectangle-like backdrop"
++        )
++
++        counts = {color: data.count(color) for color in EXPECTED if color != KEY}
++        rows.append({
++            "frame": i,
++            "painted": len(painted),
++            "tail": max(ys) / (CELL_H - 1) * 100.0,
++            "bone": counts[(244, 234, 212)],
++            "orange": counts[(242, 134, 43)],
++            "violet": counts[(184, 60, 192)],
++        })
++    return rows
++
++
++def print_table(name, rows):
++    print(f"\n{name}")
++    print("frame  painted  tail%  bone  orange  violet")
++    for row in rows:
++        print(f"{row['frame']:>5}  {row['painted']:>7}  {row['tail']:>5.1f}  {row['bone']:>4}  {row['orange']:>6}  {row['violet']:>6}")
++
++
++def main():
++    cruise = audit(ROOT / "flame_cruise.png")
++    boost = audit(ROOT / "flame_boost.png")
++    print_table("flame_cruise.png", cruise)
++    print_table("flame_boost.png", boost)
++
++    cruise_bone = sum(row["bone"] for row in cruise)
++    boost_bone = sum(row["bone"] for row in boost)
++    cruise_hot = sum(row["bone"] + row["orange"] for row in cruise)
++    boost_hot = sum(row["bone"] + row["orange"] for row in boost)
++    cruise_tail = min(row["tail"] for row in cruise)
++    boost_tail = min(row["tail"] for row in boost)
++    assert boost_bone > cruise_bone, "boost is not brighter: bone-white count did not increase"
++    assert boost_hot > cruise_hot, "boost is not hotter: bone/orange count did not increase"
++    assert boost_tail > cruise_tail, "boost is not longer: shortest boost tail did not exceed cruise"
++    assert cruise[2]["bone"] == max(row["bone"] for row in cruise), "cruise burst frame 2 is not brightest"
++    assert boost[2]["bone"] == max(row["bone"] for row in boost), "boost burst frame 2 is not brightest"
++
++    print("\nPASS: 8 equal 256x1024 cells, exact six-color palette, green edges, boost longer/hotter.")
++
++
++if __name__ == "__main__":
++    try:
++        main()
++    except (AssertionError, FileNotFoundError) as exc:
++        print(f"FAIL: {exc}", file=sys.stderr)
++        raise SystemExit(1)
+
+exec
+/bin/zsh -lc "python3 -u Pause/Assets/Art/Resources/ShipArt/Saboteur/src\\~/codex/tools/build_j2.py && python3 -u Pause/Assets/Art/Resources/ShipArt/Saboteur/src\\~/codex/tools/check_j2.py" in /Users/sina/Developer/Pause/.claude/worktrees/agent-a71e29e38407814db
+ succeeded in 17869ms:
+/Users/sina/Developer/Pause/.claude/worktrees/agent-a71e29e38407814db/Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/tools/build_j2.py:35: DeprecationWarning: Image.Image.getdata is deprecated and will be removed in Pillow 14 (2027-10-15). Use get_flattened_data instead.
+  out.putdata([nearest(px) for px in image.getdata()])
+/Users/sina/Developer/Pause/.claude/worktrees/agent-a71e29e38407814db/Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/tools/build_j2.py:80: DeprecationWarning: Image.Image.getdata is deprecated and will be removed in Pillow 14 (2027-10-15). Use get_flattened_data instead.
+  layer.putdata([PREVIEW_BG if px == KEY else px for px in sheet.getdata()])
+/Users/sina/Developer/Pause/.claude/worktrees/agent-a71e29e38407814db/Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/tools/check_j2.py:26: DeprecationWarning: Image.Image.getdata is deprecated and will be removed in Pillow 14 (2027-10-15). Use get_flattened_data instead.
+  colors = set(image.getdata())
+/Users/sina/Developer/Pause/.claude/worktrees/agent-a71e29e38407814db/Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/tools/check_j2.py:32: DeprecationWarning: Image.Image.getdata is deprecated and will be removed in Pillow 14 (2027-10-15). Use get_flattened_data instead.
+  data = list(cell.getdata())
+
+flame_cruise.png
+frame  painted  tail%  bone  orange  violet
+    0    62300   78.1  7120   21590   12087
+    1    59155   77.1  6393   19946   11927
+    2    96603   94.7  26828   43086    8977
+    3    60578   79.1  6808   19727   13015
+    4    64966   78.1  7995   24554   11254
+    5    58579   77.1  7791   18420   12692
+    6    61994   77.1  7242   22181   11458
+    7    62560   78.6  7859   21783   12882
+
+flame_boost.png
+frame  painted  tail%  bone  orange  violet
+    0    75230   93.7  8618   26004   14682
+    1    71614   92.8  7738   24118   14381
+    2   100185   98.1  27837   44665    9330
+    3    73031   94.7  8210   23730   15721
+    4    78494   93.7  9640   29705   13581
+    5    70891   92.8  9464   22221   15348
+    6    75917   93.7  8863   27099   14078
+    7    75511   94.2  9518   26240   15589
+
+PASS: 8 equal 256x1024 cells, exact six-color palette, green edges, boost longer/hotter.
+
+exec
+/bin/zsh -lc "git status --short -- Pause/Assets/Art/Resources/ShipArt/Saboteur/src\\~/codex && git diff --stat -- Pause/Assets/Art/Resources/ShipArt/Saboteur/src\\~/codex && python3 - <<'PY'
+from pathlib import Path
+from PIL import Image
+root=Path('Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex')
+for n in ('flame_cruise.png','flame_boost.png','preview_j2.png'):
+    im=Image.open(root/n)
+    print(n, im.mode, im.size, len(set(im.getdata())))
+PY" in /Users/sina/Developer/Pause/.claude/worktrees/agent-a71e29e38407814db
+ succeeded in 236ms:
+?? Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/briefs/j1c.md
+?? Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/flame_boost.png
+?? Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/flame_cruise.png
+?? Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/hull_redo_state0.png
+?? Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/hull_redo_state1.png
+?? Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/hull_redo_state2.png
+?? Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/key_state0.png
+?? Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/key_state1.png
+?? Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/key_state2.png
+?? Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/last_j1.txt
+?? Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/last_j1b.txt
+?? Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/last_j1c.txt
+?? Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/log_j1.txt
+?? Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/log_j1b.txt
+?? Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/log_j1c.txt
+?? Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/log_j2.txt
+?? Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/preview_j1.png
+?? Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/preview_j1b.png
+?? Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/preview_j1c.png
+?? Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/preview_j2.png
+?? Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/tools/
+?? Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/v1/
+<stdin>:6: DeprecationWarning: Image.Image.getdata is deprecated and will be removed in Pillow 14 (2027-10-15). Use get_flattened_data instead.
+flame_cruise.png RGB (2048, 1024) 6
+flame_boost.png RGB (2048, 1024) 6
+preview_j2.png RGB (2048, 2048) 6
+
+exec
+/bin/zsh -lc "sed -n '1,240p' Pause/Assets/Art/Resources/ShipArt/Saboteur/src\\~/codex/tools/check_j1c.py; sed -n '1,220p' Pause/Assets/Art/Resources/ShipArt/Saboteur/src\\~/codex/tools/check_j1b.py" in /Users/sina/Developer/Pause/.claude/worktrees/agent-a71e29e38407814db
+ succeeded in 0ms:
+#!/usr/bin/env python3
+"""Audit J1c dimensions, exact silhouette preservation, damage budgets, and dark-blob ratio."""
+
+from pathlib import Path
+
+from PIL import Image
+
+
+ROOT = Path(__file__).resolve().parents[1]
+GREEN = (0, 255, 0)
+FILES = [ROOT / "key_state0.png", ROOT / "key_state1.png", ROOT / "key_state2.png"]
+
+
+def mask(im):
+    return { (x, y) for y in range(im.height) for x in range(im.width)
+             if im.getpixel((x, y)) != GREEN }
+
+
+def changed_pixels(base, other):
+    return [(x, y) for y in range(1024) for x in range(1024)
+            if base.getpixel((x, y)) != other.getpixel((x, y))]
+
+
+def main():
+    images = [Image.open(path).convert("RGB") for path in FILES]
+    for path, im in zip(FILES, images):
+        assert im.size == (1024, 1024), f"{path.name}: expected 1024x1024, got {im.size}"
+    base, state1, state2 = images
+    base_mask = mask(base)
+    print("file          size       silhouette diff    changed pixels    near-black changed")
+    print("------------  ---------  -----------------  ----------------  ------------------")
+    print(f"{FILES[0].name:12}  1024x1024  {'0.000%':17}  {'n/a':16}  {'n/a':18}")
+    stats = {}
+    for path, im in zip(FILES[1:], images[1:]):
+        sil = len(base_mask ^ mask(im)) / len(base_mask) * 100.0
+        changed = changed_pixels(base, im)
+        changed_set = set(changed)
+        near_black = sum(max(im.getpixel(p)) < 25 for p in changed)
+        changed_pct = len(changed) / (1024 * 1024) * 100.0
+        black_share = near_black / len(changed) * 100.0 if changed else 0.0
+        stats[path.name] = changed_pct
+        print(f"{path.name:12}  1024x1024  {sil:16.3f}%  {changed_pct:15.3f}%  {black_share:17.3f}%")
+        assert sil < 1.5, f"{path.name}: silhouette difference too high"
+        assert black_share < 45.0, f"{path.name}: near-black changed-pixel share too high"
+        if path.name == "key_state1.png":
+            assert 3.0 <= changed_pct <= 12.0, f"state1 changed-pixel budget: {changed_pct:.3f}%"
+        else:
+            assert 8.0 <= changed_pct <= 20.0, f"state2 changed-pixel budget: {changed_pct:.3f}%"
+    assert stats["key_state2.png"] >= 1.5 * stats["key_state1.png"], "state2 is not 1.5x state1"
+    print("state2/state1 changed-pixel ratio: %.3fx" % (stats["key_state2.png"] / stats["key_state1.png"]))
+    print("PASS")
+
+
+if __name__ == "__main__":
+    main()
+#!/usr/bin/env python3
+"""Audit J1b pose sheets and print the requested per-cell metrics."""
+
+from math import atan2, degrees
+from pathlib import Path
+
+import numpy as np
+from PIL import Image
+
+
+ROOT = Path(__file__).resolve().parents[1]
+GREEN = (0, 255, 0)
+SIZE = 1024
+FILES = [ROOT / f"hull_redo_state{i}.png" for i in range(3)]
+CORE_BOX = (444, 454, 620, 686)
+
+
+def diff(a, b, threshold=60):
+    aa = np.asarray(a, dtype=np.int16)
+    bb = np.asarray(b, dtype=np.int16)
+    return int(np.sum(np.sum(np.abs(aa - bb), axis=2) > threshold))
+
+
+def mask(im):
+    return {(x, y) for y in range(SIZE) for x in range(SIZE) if im.getpixel((x, y)) != GREEN}
+
+
+def bbox(mask_set):
+    xs = [p[0] for p in mask_set]
+    ys = [p[1] for p in mask_set]
+    return min(xs), min(ys), max(xs) + 1, max(ys) + 1
+
+
+def core_mask(im):
+    x0, y0, x1, y1 = CORE_BOX
+    out = set()
+    for y in range(y0, y1):
+        for x in range(x0, x1):
+            r, g, b = im.getpixel((x, y))
+            if b > 115 and g > 95 and b > r + 40 and g > r + 30:
+                out.add((x, y))
+    return out
+
+
+def shifted_diff(key, bank, tx, ty):
+    aa = np.asarray(key, dtype=np.int16)
+    bb = np.asarray(bank, dtype=np.int16)
+    count = 0
+    ax0, ax1 = max(0, -tx), min(SIZE, SIZE - tx)
+    ay0, ay1 = max(0, -ty), min(SIZE, SIZE - ty)
+    bx0, bx1 = max(0, tx), min(SIZE, SIZE + tx)
+    by0, by1 = max(0, ty), min(SIZE, SIZE + ty)
+    if ax1 > ax0 and ay1 > ay0:
+        count += int(np.sum(np.sum(np.abs(aa[ay0:ay1, ax0:ax1] - bb[by0:by1, bx0:bx1]), axis=2) > 60))
+    outside = np.any(bb != np.asarray(GREEN, dtype=np.int16), axis=2)
+    inside = np.zeros((SIZE, SIZE), dtype=bool)
+    inside[by0:by1, bx0:bx1] = True
+    count += int(np.sum(outside & ~inside))
+    return count
+
+
+def best_translation(key, bank):
+    best = None
+    # The builder centers every bank; this local exhaustive window covers the possible
+    # integer anchor correction without making the audit needlessly expensive.
+    for ty in range(-8, 9):
+        for tx in range(-8, 9):
+            value = shifted_diff(key, bank, tx, ty)
+            if best is None or value < best[0]:
+                best = value, tx, ty
+    return best
+
+
+def lean_angle(sil):
+    ys = [p[1] for p in sil]
+    top_cut = sorted(ys)[max(1, len(ys) // 20)]
+    bottom_cut = sorted(ys)[-max(1, len(ys) // 20)]
+    top = [p for p in sil if p[1] <= top_cut]
+    bottom = [p for p in sil if p[1] >= bottom_cut]
+    top_x = sum(p[0] for p in top) / len(top)
+    top_y = sum(p[1] for p in top) / len(top)
+    bottom_x = sum(p[0] for p in bottom) / len(bottom)
+    bottom_y = sum(p[1] for p in bottom) / len(bottom)
+    return degrees(atan2(top_x - bottom_x, bottom_y - top_y))
+
+
+def cell(sheet, index):
+    return sheet.crop(((index % 3) * SIZE, (index // 3) * SIZE,
+                       ((index % 3) + 1) * SIZE, ((index // 3) + 1) * SIZE))
+
+
+def pct(n, d=SIZE * SIZE):
+    return n * 100.0 / d
+
+
+def main():
+    sheets = [Image.open(path).convert("RGB") for path in FILES]
+    for path, sheet in zip(FILES, sheets):
+        if sheet.size != (SIZE * 3, SIZE * 2):
+            raise SystemExit(f"FAIL {path.name}: expected 3072x2048, got {sheet.size}")
+
+    print("J1b audit: thresholded RGB difference threshold=60; all percentages are per 1024x1024 cell")
+    print("file                 c0     c1     c2     c3     c4  c2-c1  core1  core2   bank   silΔ   bboxW   lean°")
+    print("-------------------  -----  -----  -----  -----  -----  ------  ------  ------  ------  ------  ------  ------")
+    for path, sheet in zip(FILES, sheets):
+        key = Image.open(ROOT / f"key_state{FILES.index(path)}.png").convert("RGB")
+        cells = [cell(sheet, i) for i in range(6)]
+        values = [pct(diff(key, cells[i])) for i in range(5)]
+        cell2_from_cell1 = pct(diff(cells[1], cells[2]))
+        key_core = core_mask(key)
+        core1 = pct(sum(sum(abs(a - b) for a, b in zip(key.getpixel(p), cells[1].getpixel(p))) > 60
+                        for p in key_core), len(key_core))
+        core2 = pct(sum(sum(abs(a - b) for a, b in zip(key.getpixel(p), cells[2].getpixel(p))) > 60
+                        for p in key_core), len(key_core))
+        bank_metrics = []
+        for index in (3, 4):
+            bank = cells[index]
+            residual, tx, ty = best_translation(key, bank)
+            bank_sil = mask(bank)
+            key_sil = mask(key)
+            sil_delta = len(key_sil ^ bank_sil) * 100.0 / len(key_sil)
+            key_box = bbox(key_sil)
+            bank_box = bbox(bank_sil)
+            width_ratio = (bank_box[2] - bank_box[0]) * 100.0 / (key_box[2] - key_box[0])
+            angle = lean_angle(bank_sil)
+            bank_metrics.append((pct(residual), sil_delta, width_ratio, angle, tx, ty))
+        residual = max(m[0] for m in bank_metrics)
+        sil_delta = max(m[1] for m in bank_metrics)
+        width_ratio = max(m[2] for m in bank_metrics)
+        angle = bank_metrics[0][3]
+        print(f"{path.name:19}  {values[0]:5.2f}  {values[1]:5.2f}  {values[2]:5.2f}  {values[3]:5.2f}  {values[4]:5.2f}  {cell2_from_cell1:6.2f}  {core1:6.2f}  {core2:6.2f}  {residual:6.2f}  {sil_delta:6.2f}  {width_ratio:6.2f}  {angle:6.2f}")
+        for side, metric in zip(("LEFT", "RIGHT"), bank_metrics):
+            residual, sil_delta, width_ratio, angle, tx, ty = metric
+            print(f"  bank {side:5}: residual={residual:.2f}% silhouetteΔ={sil_delta:.2f}% bboxW={width_ratio:.2f}% lean={angle:.2f}° best_translation=({tx:+d},{ty:+d})")
+
+        assert values[0] >= 0.4, f"{path.name} cell0 diff below 0.4%"
+        assert values[1] >= 0.8, f"{path.name} cell1 diff below 0.8%"
+        assert cell2_from_cell1 > 0.0, f"{path.name} cell2 does not differ from cell1"
+        assert all(cells[5].getpixel((x, y)) == GREEN for y in range(SIZE) for x in range(SIZE)), \
+            f"{path.name} cell5 is not empty"
+        for side, metric in zip(("LEFT", "RIGHT"), bank_metrics):
+            residual, sil_delta, width_ratio, angle, _, _ = metric
+            assert residual >= 5.0, f"{path.name} {side} bank residual below 5%"
+            assert 3.0 <= sil_delta <= 22.0, f"{path.name} {side} silhouette delta outside 3-22%"
+            assert 80.0 <= width_ratio <= 100.0, f"{path.name} {side} bbox width outside 80-100%"
+            assert width_ratio <= 100.0, f"{path.name} {side} bank wider than key"
+    print("PASS")
+
+
+if __name__ == "__main__":
+    main()
+
+apply patch
+patch: completed
+/Users/sina/Developer/Pause/.claude/worktrees/agent-a71e29e38407814db/Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/tools/build_j2.py
+/Users/sina/Developer/Pause/.claude/worktrees/agent-a71e29e38407814db/Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/tools/check_j2.py
+diff --git a/Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/tools/build_j2.py b/Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/tools/build_j2.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..90fef6848b07973af4409286ddbca28d2be5c89a
+--- /dev/null
++++ b/Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/tools/build_j2.py
+@@ -0,0 +1,93 @@
++#!/usr/bin/env python3
++"""Build the J2 Saboteur exhaust sheets from the generated painted source."""
++
++from pathlib import Path
++
++from PIL import Image
++
++
++ROOT = Path(__file__).resolve().parents[1]
++SOURCE = ROOT / "tools" / "generated_j2_raw_v2.png"
++CELL_W, CELL_H, FRAMES = 256, 1024, 8
++KEY = (0, 255, 0)
++PREVIEW_BG = (11, 11, 26)
++PALETTE = [
++    (184, 60, 192),   # violet
++    (242, 134, 43),   # orange
++    (244, 234, 212),  # bone-white
++    (94, 26, 102),    # deep violet
++    (58, 42, 92),     # indigo
++    KEY,
++]
++
++
++def nearest(rgb):
++    return min(PALETTE, key=lambda c: sum((int(rgb[i]) - c[i]) ** 2 for i in range(3)))
++
++
++def quantize(image):
++    out = Image.new("RGB", image.size)
++    out.putdata([nearest(px) for px in image.getdata()])
++    return out
++
++
++def make_frame(source, target_height):
++    # Equal source cells first, then nearest-neighbour scaling to the game cell.
++    frame = source.resize((CELL_W, CELL_H), Image.Resampling.NEAREST)
++    pixels = frame.load()
++    non_key = [
++        (x, y)
++        for y in range(CELL_H)
++        for x in range(CELL_W)
++        if pixels[x, y] != KEY
++    ]
++    if not non_key:
++        return Image.new("RGB", (CELL_W, CELL_H), KEY)
++
++    y0 = min(y for _, y in non_key)
++    y1 = max(y for _, y in non_key) + 1
++    painted = frame.crop((0, y0, CELL_W, y1))
++    painted = painted.resize((CELL_W, target_height), Image.Resampling.NEAREST)
++
++    result = Image.new("RGB", (CELL_W, CELL_H), KEY)
++    # About 3% down, leaving a clean key-colored row above the nozzle-contact head.
++    top = 30
++    result.paste(painted, (0, top))
++    return result
++
++
++def build_sheet(source, heights):
++    source = quantize(source)
++    frames = []
++    for i in range(FRAMES):
++        left = (source.width * i) // FRAMES
++        right = (source.width * (i + 1)) // FRAMES
++        frames.append(make_frame(source.crop((left, 0, right, source.height)), heights[i]))
++
++    sheet = Image.new("RGB", (CELL_W * FRAMES, CELL_H), KEY)
++    for i, frame in enumerate(frames):
++        sheet.paste(frame, (CELL_W * i, 0))
++    return quantize(sheet)
++
++
++def preview_layer(sheet):
++    layer = Image.new("RGB", sheet.size)
++    layer.putdata([PREVIEW_BG if px == KEY else px for px in sheet.getdata()])
++    return layer
++
++
++def main():
++    source = Image.open(SOURCE)
++    cruise = build_sheet(source, [770, 760, 940, 780, 770, 760, 760, 775])
++    boost = build_sheet(source, [930, 920, 975, 940, 930, 920, 930, 935])
++    cruise.save(ROOT / "flame_cruise.png", format="PNG", optimize=False)
++    boost.save(ROOT / "flame_boost.png", format="PNG", optimize=False)
++
++    preview = Image.new("RGB", (CELL_W * FRAMES, CELL_H * 2), PREVIEW_BG)
++    preview.paste(preview_layer(cruise), (0, 0))
++    preview.paste(preview_layer(boost), (0, CELL_H))
++    preview.save(ROOT / "preview_j2.png", format="PNG", optimize=False)
++
++
++if __name__ == "__main__":
++    main()
+diff --git a/Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/tools/check_j2.py b/Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/tools/check_j2.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..73601add14debaa22fd6861d54d5e97d20627432
+--- /dev/null
++++ b/Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/tools/check_j2.py
+@@ -0,0 +1,102 @@
++#!/usr/bin/env python3
++"""Validate the J2 exhaust sheets and print a compact per-cell audit table."""
++
++from pathlib import Path
++import sys
++
++from PIL import Image
++
++
++ROOT = Path(__file__).resolve().parents[1]
++EXPECTED = {
++    (184, 60, 192),   # violet
++    (242, 134, 43),   # orange
++    (244, 234, 212),  # bone-white
++    (94, 26, 102),    # deep violet
++    (58, 42, 92),     # indigo
++    (0, 255, 0),      # key
++}
++KEY = (0, 255, 0)
++PREVIEW_BG = (11, 11, 26)
++CELL_W, CELL_H, FRAMES = 256, 1024, 8
++
++
++def audit(path):
++    image = Image.open(path).convert("RGB")
++    assert image.size == (CELL_W * FRAMES, CELL_H), f"{path.name}: expected 2048x1024, got {image.size}"
++    colors = set(image.getdata())
++    assert colors <= EXPECTED, f"{path.name}: forbidden colors: {sorted(colors - EXPECTED)}"
++
++    rows = []
++    for i in range(FRAMES):
++        cell = image.crop((i * CELL_W, 0, (i + 1) * CELL_W, CELL_H))
++        data = list(cell.getdata())
++        painted = [(x, y) for y in range(CELL_H) for x in range(CELL_W) if cell.getpixel((x, y)) != KEY]
++        assert painted, f"{path.name} frame {i}: empty cell"
++        xs = [p[0] for p in painted]
++        ys = [p[1] for p in painted]
++        bbox = (min(xs), min(ys), max(xs), max(ys))
++        # All corners and the entire outer edge remain key green: no backdrop rectangle.
++        edge = [cell.getpixel((x, y)) for x in range(CELL_W) for y in (0, CELL_H - 1)]
++        edge += [cell.getpixel((x, y)) for y in range(CELL_H) for x in (0, CELL_W - 1)]
++        assert all(px == KEY for px in edge), f"{path.name} frame {i}: non-key edge/backdrop pixel"
++        assert (bbox[2] - bbox[0] + 1) * (bbox[3] - bbox[1] + 1) < CELL_W * CELL_H * 0.72, (
++            f"{path.name} frame {i}: painted rectangle-like backdrop"
++        )
++
++        counts = {color: data.count(color) for color in EXPECTED if color != KEY}
++        rows.append({
++            "frame": i,
++            "painted": len(painted),
++            "tail": max(ys) / (CELL_H - 1) * 100.0,
++            "bone": counts[(244, 234, 212)],
++            "orange": counts[(242, 134, 43)],
++            "violet": counts[(184, 60, 192)],
++        })
++    return rows
++
++
++def print_table(name, rows):
++    print(f"\n{name}")
++    print("frame  painted  tail%  bone  orange  violet")
++    for row in rows:
++        print(f"{row['frame']:>5}  {row['painted']:>7}  {row['tail']:>5.1f}  {row['bone']:>4}  {row['orange']:>6}  {row['violet']:>6}")
++
++
++def save_preview(cruise, boost):
++    preview = Image.new("RGB", (CELL_W * FRAMES, CELL_H * 2), PREVIEW_BG)
++    for y_offset, sheet in ((0, cruise), (CELL_H, boost)):
++        layer = Image.new("RGB", sheet.size)
++        layer.putdata([PREVIEW_BG if px == KEY else px for px in sheet.getdata()])
++        preview.paste(layer, (0, y_offset))
++    preview.save(ROOT / "preview_j2.png", format="PNG", optimize=False)
++
++
++def main():
++    cruise = audit(ROOT / "flame_cruise.png")
++    boost = audit(ROOT / "flame_boost.png")
++    save_preview(Image.open(ROOT / "flame_cruise.png").convert("RGB"), Image.open(ROOT / "flame_boost.png").convert("RGB"))
++    print_table("flame_cruise.png", cruise)
++    print_table("flame_boost.png", boost)
++
++    cruise_bone = sum(row["bone"] for row in cruise)
++    boost_bone = sum(row["bone"] for row in boost)
++    cruise_hot = sum(row["bone"] + row["orange"] for row in cruise)
++    boost_hot = sum(row["bone"] + row["orange"] for row in boost)
++    cruise_tail = min(row["tail"] for row in cruise)
++    boost_tail = min(row["tail"] for row in boost)
++    assert boost_bone > cruise_bone, "boost is not brighter: bone-white count did not increase"
++    assert boost_hot > cruise_hot, "boost is not hotter: bone/orange count did not increase"
++    assert boost_tail > cruise_tail, "boost is not longer: shortest boost tail did not exceed cruise"
++    assert cruise[2]["bone"] == max(row["bone"] for row in cruise), "cruise burst frame 2 is not brightest"
++    assert boost[2]["bone"] == max(row["bone"] for row in boost), "boost burst frame 2 is not brightest"
++
++    print("\nPASS: 8 equal 256x1024 cells, exact six-color palette, green edges, boost longer/hotter.")
++
++
++if __name__ == "__main__":
++    try:
++        main()
++    except (AssertionError, FileNotFoundError) as exc:
++        print(f"FAIL: {exc}", file=sys.stderr)
++        raise SystemExit(1)
+
+exec
+/bin/zsh -lc "python3 -u Pause/Assets/Art/Resources/ShipArt/Saboteur/src\\~/codex/tools/check_j2.py && python3 - <<'PY'
+from pathlib import Path
+from PIL import Image
+root=Path('Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex')
+print('preview corner:', Image.open(root/'preview_j2.png').getpixel((0,0)))
+print('final corners:', Image.open(root/'flame_cruise.png').getpixel((0,0)), Image.open(root/'flame_boost.png').getpixel((0,0)))
+PY" in /Users/sina/Developer/Pause/.claude/worktrees/agent-a71e29e38407814db
+ succeeded in 2170ms:
+/Users/sina/Developer/Pause/.claude/worktrees/agent-a71e29e38407814db/Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/tools/check_j2.py:27: DeprecationWarning: Image.Image.getdata is deprecated and will be removed in Pillow 14 (2027-10-15). Use get_flattened_data instead.
+  colors = set(image.getdata())
+/Users/sina/Developer/Pause/.claude/worktrees/agent-a71e29e38407814db/Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/tools/check_j2.py:33: DeprecationWarning: Image.Image.getdata is deprecated and will be removed in Pillow 14 (2027-10-15). Use get_flattened_data instead.
+  data = list(cell.getdata())
+/Users/sina/Developer/Pause/.claude/worktrees/agent-a71e29e38407814db/Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/tools/check_j2.py:70: DeprecationWarning: Image.Image.getdata is deprecated and will be removed in Pillow 14 (2027-10-15). Use get_flattened_data instead.
+  layer.putdata([PREVIEW_BG if px == KEY else px for px in sheet.getdata()])
+
+flame_cruise.png
+frame  painted  tail%  bone  orange  violet
+    0    62300   78.1  7120   21590   12087
+    1    59155   77.1  6393   19946   11927
+    2    96603   94.7  26828   43086    8977
+    3    60578   79.1  6808   19727   13015
+    4    64966   78.1  7995   24554   11254
+    5    58579   77.1  7791   18420   12692
+    6    61994   77.1  7242   22181   11458
+    7    62560   78.6  7859   21783   12882
+
+flame_boost.png
+frame  painted  tail%  bone  orange  violet
+    0    75230   93.7  8618   26004   14682
+    1    71614   92.8  7738   24118   14381
+    2   100185   98.1  27837   44665    9330
+    3    73031   94.7  8210   23730   15721
+    4    78494   93.7  9640   29705   13581
+    5    70891   92.8  9464   22221   15348
+    6    75917   93.7  8863   27099   14078
+    7    75511   94.2  9518   26240   15589
+
+PASS: 8 equal 256x1024 cells, exact six-color palette, green edges, boost longer/hotter.
+preview corner: (11, 11, 26)
+final corners: (0, 255, 0) (0, 255, 0)
+
+codex
+One wording-level refinement remains: the boost sheet currently reaches ~98% in its burst but the normal boost frames were closer to 93–95%. I’m tightening those normal target lengths so every boost cell lands around the requested ~97% tail reach, then I’ll run the same audit once more.
+apply patch
+patch: completed
+/Users/sina/Developer/Pause/.claude/worktrees/agent-a71e29e38407814db/Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/tools/build_j2.py
+diff --git a/Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/tools/build_j2.py b/Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/tools/build_j2.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..1da1e31a9e4cc22c3dacee99a346bc493abeeba9
+--- /dev/null
++++ b/Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/tools/build_j2.py
+@@ -0,0 +1,93 @@
++#!/usr/bin/env python3
++"""Build the J2 Saboteur exhaust sheets from the generated painted source."""
++
++from pathlib import Path
++
++from PIL import Image
++
++
++ROOT = Path(__file__).resolve().parents[1]
++SOURCE = ROOT / "tools" / "generated_j2_raw_v2.png"
++CELL_W, CELL_H, FRAMES = 256, 1024, 8
++KEY = (0, 255, 0)
++PREVIEW_BG = (11, 11, 26)
++PALETTE = [
++    (184, 60, 192),   # violet
++    (242, 134, 43),   # orange
++    (244, 234, 212),  # bone-white
++    (94, 26, 102),    # deep violet
++    (58, 42, 92),     # indigo
++    KEY,
++]
++
++
++def nearest(rgb):
++    return min(PALETTE, key=lambda c: sum((int(rgb[i]) - c[i]) ** 2 for i in range(3)))
++
++
++def quantize(image):
++    out = Image.new("RGB", image.size)
++    out.putdata([nearest(px) for px in image.getdata()])
++    return out
++
++
++def make_frame(source, target_height):
++    # Equal source cells first, then nearest-neighbour scaling to the game cell.
++    frame = source.resize((CELL_W, CELL_H), Image.Resampling.NEAREST)
++    pixels = frame.load()
++    non_key = [
++        (x, y)
++        for y in range(CELL_H)
++        for x in range(CELL_W)
++        if pixels[x, y] != KEY
++    ]
++    if not non_key:
++        return Image.new("RGB", (CELL_W, CELL_H), KEY)
++
++    y0 = min(y for _, y in non_key)
++    y1 = max(y for _, y in non_key) + 1
++    painted = frame.crop((0, y0, CELL_W, y1))
++    painted = painted.resize((CELL_W, target_height), Image.Resampling.NEAREST)
++
++    result = Image.new("RGB", (CELL_W, CELL_H), KEY)
++    # About 3% down, leaving a clean key-colored row above the nozzle-contact head.
++    top = 30
++    result.paste(painted, (0, top))
++    return result
++
++
++def build_sheet(source, heights):
++    source = quantize(source)
++    frames = []
++    for i in range(FRAMES):
++        left = (source.width * i) // FRAMES
++        right = (source.width * (i + 1)) // FRAMES
++        frames.append(make_frame(source.crop((left, 0, right, source.height)), heights[i]))
++
++    sheet = Image.new("RGB", (CELL_W * FRAMES, CELL_H), KEY)
++    for i, frame in enumerate(frames):
++        sheet.paste(frame, (CELL_W * i, 0))
++    return quantize(sheet)
++
++
++def preview_layer(sheet):
++    layer = Image.new("RGB", sheet.size)
++    layer.putdata([PREVIEW_BG if px == KEY else px for px in sheet.getdata()])
++    return layer
++
++
++def main():
++    source = Image.open(SOURCE)
++    cruise = build_sheet(source, [770, 760, 940, 780, 770, 760, 760, 775])
++    boost = build_sheet(source, [970, 960, 975, 980, 970, 960, 970, 975])
++    cruise.save(ROOT / "flame_cruise.png", format="PNG", optimize=False)
++    boost.save(ROOT / "flame_boost.png", format="PNG", optimize=False)
++
++    preview = Image.new("RGB", (CELL_W * FRAMES, CELL_H * 2), PREVIEW_BG)
++    preview.paste(preview_layer(cruise), (0, 0))
++    preview.paste(preview_layer(boost), (0, CELL_H))
++    preview.save(ROOT / "preview_j2.png", format="PNG", optimize=False)
++
++
++if __name__ == "__main__":
++    main()
+diff --git a/Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/tools/check_j2.py b/Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/tools/check_j2.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..73601add14debaa22fd6861d54d5e97d20627432
+--- /dev/null
++++ b/Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/tools/check_j2.py
+@@ -0,0 +1,102 @@
++#!/usr/bin/env python3
++"""Validate the J2 exhaust sheets and print a compact per-cell audit table."""
++
++from pathlib import Path
++import sys
++
++from PIL import Image
++
++
++ROOT = Path(__file__).resolve().parents[1]
++EXPECTED = {
++    (184, 60, 192),   # violet
++    (242, 134, 43),   # orange
++    (244, 234, 212),  # bone-white
++    (94, 26, 102),    # deep violet
++    (58, 42, 92),     # indigo
++    (0, 255, 0),      # key
++}
++KEY = (0, 255, 0)
++PREVIEW_BG = (11, 11, 26)
++CELL_W, CELL_H, FRAMES = 256, 1024, 8
++
++
++def audit(path):
++    image = Image.open(path).convert("RGB")
++    assert image.size == (CELL_W * FRAMES, CELL_H), f"{path.name}: expected 2048x1024, got {image.size}"
++    colors = set(image.getdata())
++    assert colors <= EXPECTED, f"{path.name}: forbidden colors: {sorted(colors - EXPECTED)}"
++
++    rows = []
++    for i in range(FRAMES):
++        cell = image.crop((i * CELL_W, 0, (i + 1) * CELL_W, CELL_H))
++        data = list(cell.getdata())
++        painted = [(x, y) for y in range(CELL_H) for x in range(CELL_W) if cell.getpixel((x, y)) != KEY]
++        assert painted, f"{path.name} frame {i}: empty cell"
++        xs = [p[0] for p in painted]
++        ys = [p[1] for p in painted]
++        bbox = (min(xs), min(ys), max(xs), max(ys))
++        # All corners and the entire outer edge remain key green: no backdrop rectangle.
++        edge = [cell.getpixel((x, y)) for x in range(CELL_W) for y in (0, CELL_H - 1)]
++        edge += [cell.getpixel((x, y)) for y in range(CELL_H) for x in (0, CELL_W - 1)]
++        assert all(px == KEY for px in edge), f"{path.name} frame {i}: non-key edge/backdrop pixel"
++        assert (bbox[2] - bbox[0] + 1) * (bbox[3] - bbox[1] + 1) < CELL_W * CELL_H * 0.72, (
++            f"{path.name} frame {i}: painted rectangle-like backdrop"
++        )
++
++        counts = {color: data.count(color) for color in EXPECTED if color != KEY}
++        rows.append({
++            "frame": i,
++            "painted": len(painted),
++            "tail": max(ys) / (CELL_H - 1) * 100.0,
++            "bone": counts[(244, 234, 212)],
++            "orange": counts[(242, 134, 43)],
++            "violet": counts[(184, 60, 192)],
++        })
++    return rows
++
++
++def print_table(name, rows):
++    print(f"\n{name}")
++    print("frame  painted  tail%  bone  orange  violet")
++    for row in rows:
++        print(f"{row['frame']:>5}  {row['painted']:>7}  {row['tail']:>5.1f}  {row['bone']:>4}  {row['orange']:>6}  {row['violet']:>6}")
++
++
++def save_preview(cruise, boost):
++    preview = Image.new("RGB", (CELL_W * FRAMES, CELL_H * 2), PREVIEW_BG)
++    for y_offset, sheet in ((0, cruise), (CELL_H, boost)):
++        layer = Image.new("RGB", sheet.size)
++        layer.putdata([PREVIEW_BG if px == KEY else px for px in sheet.getdata()])
++        preview.paste(layer, (0, y_offset))
++    preview.save(ROOT / "preview_j2.png", format="PNG", optimize=False)
++
++
++def main():
++    cruise = audit(ROOT / "flame_cruise.png")
++    boost = audit(ROOT / "flame_boost.png")
++    save_preview(Image.open(ROOT / "flame_cruise.png").convert("RGB"), Image.open(ROOT / "flame_boost.png").convert("RGB"))
++    print_table("flame_cruise.png", cruise)
++    print_table("flame_boost.png", boost)
++
++    cruise_bone = sum(row["bone"] for row in cruise)
++    boost_bone = sum(row["bone"] for row in boost)
++    cruise_hot = sum(row["bone"] + row["orange"] for row in cruise)
++    boost_hot = sum(row["bone"] + row["orange"] for row in boost)
++    cruise_tail = min(row["tail"] for row in cruise)
++    boost_tail = min(row["tail"] for row in boost)
++    assert boost_bone > cruise_bone, "boost is not brighter: bone-white count did not increase"
++    assert boost_hot > cruise_hot, "boost is not hotter: bone/orange count did not increase"
++    assert boost_tail > cruise_tail, "boost is not longer: shortest boost tail did not exceed cruise"
++    assert cruise[2]["bone"] == max(row["bone"] for row in cruise), "cruise burst frame 2 is not brightest"
++    assert boost[2]["bone"] == max(row["bone"] for row in boost), "boost burst frame 2 is not brightest"
++
++    print("\nPASS: 8 equal 256x1024 cells, exact six-color palette, green edges, boost longer/hotter.")
++
++
++if __name__ == "__main__":
++    try:
++        main()
++    except (AssertionError, FileNotFoundError) as exc:
++        print(f"FAIL: {exc}", file=sys.stderr)
++        raise SystemExit(1)
+
+exec
+/bin/zsh -lc "python3 -u Pause/Assets/Art/Resources/ShipArt/Saboteur/src\\~/codex/tools/build_j2.py >/tmp/j2_build.log 2>&1 && python3 -u Pause/Assets/Art/Resources/ShipArt/Saboteur/src\\~/codex/tools/check_j2.py 2>/tmp/j2_check.err; status="'$?; cat /tmp/j2_build.log /tmp/j2_check.err; exit $status' in /Users/sina/Developer/Pause/.claude/worktrees/agent-a71e29e38407814db
+ exited 1 in 18076ms:
+
+flame_cruise.png
+frame  painted  tail%  bone  orange  violet
+    0    62300   78.1  7120   21590   12087
+    1    59155   77.1  6393   19946   11927
+    2    96603   94.7  26828   43086    8977
+    3    60578   79.1  6808   19727   13015
+    4    64966   78.1  7995   24554   11254
+    5    58579   77.1  7791   18420   12692
+    6    61994   77.1  7242   22181   11458
+    7    62560   78.6  7859   21783   12882
+
+flame_boost.png
+frame  painted  tail%  bone  orange  violet
+    0    78439   97.7  8994   27149   15267
+    1    74752   96.7  8094   25201   15005
+    2   100185   98.1  27837   44665    9330
+    3    76091   98.6  8573   24761   16377
+    4    81838   97.7  10068   30940   14170
+    5    73991   96.7  9877   23165   16028
+    6    79175   97.7  9240   28260   14577
+    7    78739   98.1  9936   27343   16307
+
+PASS: 8 equal 256x1024 cells, exact six-color palette, green edges, boost longer/hotter.
+zsh:1: read-only variable: status
+
+exec
+/bin/zsh -lc "python3 -u Pause/Assets/Art/Resources/ShipArt/Saboteur/src\\~/codex/tools/check_j2.py >/tmp/j2_check.out 2>/tmp/j2_check.err; rc="'$?; cat /tmp/j2_check.out /tmp/j2_check.err; exit $rc' in /Users/sina/Developer/Pause/.claude/worktrees/agent-a71e29e38407814db
+ succeeded in 2033ms:
+
+flame_cruise.png
+frame  painted  tail%  bone  orange  violet
+    0    62300   78.1  7120   21590   12087
+    1    59155   77.1  6393   19946   11927
+    2    96603   94.7  26828   43086    8977
+    3    60578   79.1  6808   19727   13015
+    4    64966   78.1  7995   24554   11254
+    5    58579   77.1  7791   18420   12692
+    6    61994   77.1  7242   22181   11458
+    7    62560   78.6  7859   21783   12882
+
+flame_boost.png
+frame  painted  tail%  bone  orange  violet
+    0    78439   97.7  8994   27149   15267
+    1    74752   96.7  8094   25201   15005
+    2   100185   98.1  27837   44665    9330
+    3    76091   98.6  8573   24761   16377
+    4    81838   97.7  10068   30940   14170
+    5    73991   96.7  9877   23165   16028
+    6    79175   97.7  9240   28260   14577
+    7    78739   98.1  9936   27343   16307
+
+PASS: 8 equal 256x1024 cells, exact six-color palette, green edges, boost longer/hotter.
+/Users/sina/Developer/Pause/.claude/worktrees/agent-a71e29e38407814db/Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/tools/check_j2.py:27: DeprecationWarning: Image.Image.getdata is deprecated and will be removed in Pillow 14 (2027-10-15). Use get_flattened_data instead.
+  colors = set(image.getdata())
+/Users/sina/Developer/Pause/.claude/worktrees/agent-a71e29e38407814db/Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/tools/check_j2.py:33: DeprecationWarning: Image.Image.getdata is deprecated and will be removed in Pillow 14 (2027-10-15). Use get_flattened_data instead.
+  data = list(cell.getdata())
+/Users/sina/Developer/Pause/.claude/worktrees/agent-a71e29e38407814db/Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/tools/check_j2.py:70: DeprecationWarning: Image.Image.getdata is deprecated and will be removed in Pillow 14 (2027-10-15). Use get_flattened_data instead.
+  layer.putdata([PREVIEW_BG if px == KEY else px for px in sheet.getdata()])
+
+exec
+/bin/zsh -lc "python3 - <<'PY'
+from PIL import Image
+im=Image.new('RGB',(1,1))
+print(hasattr(im, 'get_flattened_data'))
+PY" in /Users/sina/Developer/Pause/.claude/worktrees/agent-a71e29e38407814db
+ succeeded in 0ms:
+True
+
+apply patch
+patch: completed
+/Users/sina/Developer/Pause/.claude/worktrees/agent-a71e29e38407814db/Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/tools/build_j2.py
+/Users/sina/Developer/Pause/.claude/worktrees/agent-a71e29e38407814db/Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/tools/check_j2.py
+diff --git a/Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/tools/build_j2.py b/Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/tools/build_j2.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..36b568e0929833f3568b7c8f69e4facffc012cfd
+--- /dev/null
++++ b/Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/tools/build_j2.py
+@@ -0,0 +1,93 @@
++#!/usr/bin/env python3
++"""Build the J2 Saboteur exhaust sheets from the generated painted source."""
++
++from pathlib import Path
++
++from PIL import Image
++
++
++ROOT = Path(__file__).resolve().parents[1]
++SOURCE = ROOT / "tools" / "generated_j2_raw_v2.png"
++CELL_W, CELL_H, FRAMES = 256, 1024, 8
++KEY = (0, 255, 0)
++PREVIEW_BG = (11, 11, 26)
++PALETTE = [
++    (184, 60, 192),   # violet
++    (242, 134, 43),   # orange
++    (244, 234, 212),  # bone-white
++    (94, 26, 102),    # deep violet
++    (58, 42, 92),     # indigo
++    KEY,
++]
++
++
++def nearest(rgb):
++    return min(PALETTE, key=lambda c: sum((int(rgb[i]) - c[i]) ** 2 for i in range(3)))
++
++
++def quantize(image):
++    out = Image.new("RGB", image.size)
++    out.putdata([nearest(px) for px in image.get_flattened_data()])
++    return out
++
++
++def make_frame(source, target_height):
++    # Equal source cells first, then nearest-neighbour scaling to the game cell.
++    frame = source.resize((CELL_W, CELL_H), Image.Resampling.NEAREST)
++    pixels = frame.load()
++    non_key = [
++        (x, y)
++        for y in range(CELL_H)
++        for x in range(CELL_W)
++        if pixels[x, y] != KEY
++    ]
++    if not non_key:
++        return Image.new("RGB", (CELL_W, CELL_H), KEY)
++
++    y0 = min(y for _, y in non_key)
++    y1 = max(y for _, y in non_key) + 1
++    painted = frame.crop((0, y0, CELL_W, y1))
++    painted = painted.resize((CELL_W, target_height), Image.Resampling.NEAREST)
++
++    result = Image.new("RGB", (CELL_W, CELL_H), KEY)
++    # About 3% down, leaving a clean key-colored row above the nozzle-contact head.
++    top = 30
++    result.paste(painted, (0, top))
++    return result
++
++
++def build_sheet(source, heights):
++    source = quantize(source)
++    frames = []
++    for i in range(FRAMES):
++        left = (source.width * i) // FRAMES
++        right = (source.width * (i + 1)) // FRAMES
++        frames.append(make_frame(source.crop((left, 0, right, source.height)), heights[i]))
++
++    sheet = Image.new("RGB", (CELL_W * FRAMES, CELL_H), KEY)
++    for i, frame in enumerate(frames):
++        sheet.paste(frame, (CELL_W * i, 0))
++    return quantize(sheet)
++
++
++def preview_layer(sheet):
++    layer = Image.new("RGB", sheet.size)
++    layer.putdata([PREVIEW_BG if px == KEY else px for px in sheet.get_flattened_data()])
++    return layer
++
++
++def main():
++    source = Image.open(SOURCE)
++    cruise = build_sheet(source, [770, 760, 940, 780, 770, 760, 760, 775])
++    boost = build_sheet(source, [970, 960, 975, 980, 970, 960, 970, 975])
++    cruise.save(ROOT / "flame_cruise.png", format="PNG", optimize=False)
++    boost.save(ROOT / "flame_boost.png", format="PNG", optimize=False)
++
++    preview = Image.new("RGB", (CELL_W * FRAMES, CELL_H * 2), PREVIEW_BG)
++    preview.paste(preview_layer(cruise), (0, 0))
++    preview.paste(preview_layer(boost), (0, CELL_H))
++    preview.save(ROOT / "preview_j2.png", format="PNG", optimize=False)
++
++
++if __name__ == "__main__":
++    main()
+diff --git a/Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/tools/check_j2.py b/Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/tools/check_j2.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..6ab41a219b66fb1d1f623d94c095560bcdeac50d
+--- /dev/null
++++ b/Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/tools/check_j2.py
+@@ -0,0 +1,102 @@
++#!/usr/bin/env python3
++"""Validate the J2 exhaust sheets and print a compact per-cell audit table."""
++
++from pathlib import Path
++import sys
++
++from PIL import Image
++
++
++ROOT = Path(__file__).resolve().parents[1]
++EXPECTED = {
++    (184, 60, 192),   # violet
++    (242, 134, 43),   # orange
++    (244, 234, 212),  # bone-white
++    (94, 26, 102),    # deep violet
++    (58, 42, 92),     # indigo
++    (0, 255, 0),      # key
++}
++KEY = (0, 255, 0)
++PREVIEW_BG = (11, 11, 26)
++CELL_W, CELL_H, FRAMES = 256, 1024, 8
++
++
++def audit(path):
++    image = Image.open(path).convert("RGB")
++    assert image.size == (CELL_W * FRAMES, CELL_H), f"{path.name}: expected 2048x1024, got {image.size}"
++    colors = set(image.get_flattened_data())
++    assert colors <= EXPECTED, f"{path.name}: forbidden colors: {sorted(colors - EXPECTED)}"
++
++    rows = []
++    for i in range(FRAMES):
++        cell = image.crop((i * CELL_W, 0, (i + 1) * CELL_W, CELL_H))
++        data = list(cell.get_flattened_data())
++        painted = [(x, y) for y in range(CELL_H) for x in range(CELL_W) if cell.getpixel((x, y)) != KEY]
++        assert painted, f"{path.name} frame {i}: empty cell"
++        xs = [p[0] for p in painted]
++        ys = [p[1] for p in painted]
++        bbox = (min(xs), min(ys), max(xs), max(ys))
++        # All corners and the entire outer edge remain key green: no backdrop rectangle.
++        edge = [cell.getpixel((x, y)) for x in range(CELL_W) for y in (0, CELL_H - 1)]
++        edge += [cell.getpixel((x, y)) for y in range(CELL_H) for x in (0, CELL_W - 1)]
++        assert all(px == KEY for px in edge), f"{path.name} frame {i}: non-key edge/backdrop pixel"
++        assert (bbox[2] - bbox[0] + 1) * (bbox[3] - bbox[1] + 1) < CELL_W * CELL_H * 0.72, (
++            f"{path.name} frame {i}: painted rectangle-like backdrop"
++        )
++
++        counts = {color: data.count(color) for color in EXPECTED if color != KEY}
++        rows.append({
++            "frame": i,
++            "painted": len(painted),
++            "tail": max(ys) / (CELL_H - 1) * 100.0,
++            "bone": counts[(244, 234, 212)],
++            "orange": counts[(242, 134, 43)],
++            "violet": counts[(184, 60, 192)],
++        })
++    return rows
++
++
++def print_table(name, rows):
++    print(f"\n{name}")
++    print("frame  painted  tail%  bone  orange  violet")
++    for row in rows:
++        print(f"{row['frame']:>5}  {row['painted']:>7}  {row['tail']:>5.1f}  {row['bone']:>4}  {row['orange']:>6}  {row['violet']:>6}")
++
++
++def save_preview(cruise, boost):
++    preview = Image.new("RGB", (CELL_W * FRAMES, CELL_H * 2), PREVIEW_BG)
++    for y_offset, sheet in ((0, cruise), (CELL_H, boost)):
++        layer = Image.new("RGB", sheet.size)
++        layer.putdata([PREVIEW_BG if px == KEY else px for px in sheet.get_flattened_data()])
++        preview.paste(layer, (0, y_offset))
++    preview.save(ROOT / "preview_j2.png", format="PNG", optimize=False)
++
++
++def main():
++    cruise = audit(ROOT / "flame_cruise.png")
++    boost = audit(ROOT / "flame_boost.png")
++    save_preview(Image.open(ROOT / "flame_cruise.png").convert("RGB"), Image.open(ROOT / "flame_boost.png").convert("RGB"))
++    print_table("flame_cruise.png", cruise)
++    print_table("flame_boost.png", boost)
++
++    cruise_bone = sum(row["bone"] for row in cruise)
++    boost_bone = sum(row["bone"] for row in boost)
++    cruise_hot = sum(row["bone"] + row["orange"] for row in cruise)
++    boost_hot = sum(row["bone"] + row["orange"] for row in boost)
++    cruise_tail = min(row["tail"] for row in cruise)
++    boost_tail = min(row["tail"] for row in boost)
++    assert boost_bone > cruise_bone, "boost is not brighter: bone-white count did not increase"
++    assert boost_hot > cruise_hot, "boost is not hotter: bone/orange count did not increase"
++    assert boost_tail > cruise_tail, "boost is not longer: shortest boost tail did not exceed cruise"
++    assert cruise[2]["bone"] == max(row["bone"] for row in cruise), "cruise burst frame 2 is not brightest"
++    assert boost[2]["bone"] == max(row["bone"] for row in boost), "boost burst frame 2 is not brightest"
++
++    print("\nPASS: 8 equal 256x1024 cells, exact six-color palette, green edges, boost longer/hotter.")
++
++
++if __name__ == "__main__":
++    try:
++        main()
++    except (AssertionError, FileNotFoundError) as exc:
++        print(f"FAIL: {exc}", file=sys.stderr)
++        raise SystemExit(1)
+
+exec
+/bin/zsh -lc "python3 -u Pause/Assets/Art/Resources/ShipArt/Saboteur/src\\~/codex/tools/check_j2.py" in /Users/sina/Developer/Pause/.claude/worktrees/agent-a71e29e38407814db
+ succeeded in 2306ms:
+
+flame_cruise.png
+frame  painted  tail%  bone  orange  violet
+    0    62300   78.1  7120   21590   12087
+    1    59155   77.1  6393   19946   11927
+    2    96603   94.7  26828   43086    8977
+    3    60578   79.1  6808   19727   13015
+    4    64966   78.1  7995   24554   11254
+    5    58579   77.1  7791   18420   12692
+    6    61994   77.1  7242   22181   11458
+    7    62560   78.6  7859   21783   12882
+
+flame_boost.png
+frame  painted  tail%  bone  orange  violet
+    0    78439   97.7  8994   27149   15267
+    1    74752   96.7  8094   25201   15005
+    2   100185   98.1  27837   44665    9330
+    3    76091   98.6  8573   24761   16377
+    4    81838   97.7  10068   30940   14170
+    5    73991   96.7  9877   23165   16028
+    6    79175   97.7  9240   28260   14577
+    7    78739   98.1  9936   27343   16307
+
+PASS: 8 equal 256x1024 cells, exact six-color palette, green edges, boost longer/hotter.
+
+codex
+Completed J2 exhaust flipbook.
+
+Files:
+
+- [flame_cruise.png](/Users/sina/Developer/Pause/.claude/worktrees/agent-a71e29e38407814db/Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/flame_cruise.png)
+- [flame_boost.png](/Users/sina/Developer/Pause/.claude/worktrees/agent-a71e29e38407814db/Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/flame_boost.png)
+- [preview_j2.png](/Users/sina/Developer/Pause/.claude/worktrees/agent-a71e29e38407814db/Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/preview_j2.png)
+- [check_j2.py](/Users/sina/Developer/Pause/.claude/worktrees/agent-a71e29e38407814db/Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/tools/check_j2.py)
+
+Validation passes: 8 equal 256×1024 cells, exact palette, green key background, and boost tails reach roughly 97–98% while measuring brighter/hotter.
+
+Caveat: boost is nearest-neighbour retimed from the generated painted source, not separately generated artwork. No existing files, Unity metadata, code, or commits were changed.
+tokens used
+120,464
+Completed J2 exhaust flipbook.
+
+Files:
+
+- [flame_cruise.png](/Users/sina/Developer/Pause/.claude/worktrees/agent-a71e29e38407814db/Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/flame_cruise.png)
+- [flame_boost.png](/Users/sina/Developer/Pause/.claude/worktrees/agent-a71e29e38407814db/Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/flame_boost.png)
+- [preview_j2.png](/Users/sina/Developer/Pause/.claude/worktrees/agent-a71e29e38407814db/Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/preview_j2.png)
+- [check_j2.py](/Users/sina/Developer/Pause/.claude/worktrees/agent-a71e29e38407814db/Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/tools/check_j2.py)
+
+Validation passes: 8 equal 256×1024 cells, exact palette, green key background, and boost tails reach roughly 97–98% while measuring brighter/hotter.
+
+Caveat: boost is nearest-neighbour retimed from the generated painted source, not separately generated artwork. No existing files, Unity metadata, code, or commits were changed.

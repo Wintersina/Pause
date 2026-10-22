@@ -381,6 +381,25 @@ def compose_states(img, cfg):
             cur = a[reg]
             out[reg] = np.where(m[..., None], cur, c0)
             out[reg][..., 3] = c0[..., 3]
+    if cfg.get("flash_clean"):
+        # hit-flash column: the solid bone-white silhouette of row 0 in every damage row (no damage texture)
+        for st in (1, 2):
+            out[st * CELL:(st + 1) * CELL, 8 * CELL:9 * CELL] = a[0:CELL, 8 * CELL:9 * CELL]
+    sb = cfg.get("stopgap_banks")
+    if sb:
+        # modest bank cells built from the composed idle cell of each row (damage stays on the same panels)
+        xs = np.arange(CELL)
+        for st in range(3):
+            idle = out[st * CELL:(st + 1) * CELL, 0:CELL]
+            for col, d in ((6, -1), (7, 1)):
+                src = np.round(127.5 + (xs - sb["shift"] * d - 127.5) / sb["squeeze"]).astype(int)
+                ok = (src >= 0) & (src < CELL)
+                cell = np.zeros_like(idle)
+                cell[:, ok] = idle[:, src[ok]]
+                f = 1 - (1 - sb["shade"]) * np.clip((xs - 127.5) * d / 110.0, 0, 1)
+                cell[..., :3] = np.clip(cell[..., :3].astype(float) * f[None, :, None] + 0.5, 0, 255).astype(np.uint8)
+                cell[cell[..., 3] == 0] = 0
+                out[st * CELL:(st + 1) * CELL, col * CELL:(col + 1) * CELL] = cell
     return Image.fromarray(out)
 
 

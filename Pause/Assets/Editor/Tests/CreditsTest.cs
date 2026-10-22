@@ -88,6 +88,11 @@ public static class CreditsTest
         Check("gate-opening frames are installed (" + (frames == null ? 0 : frames.Length) + ")",
               frames != null && frames.Length == GateOpenFrames.Count);
         if (frames == null) return;
+        bool sharedHold = true;
+        for (int i = GateOpenFrames.LastUniqueFrame + 1; i < frames.Length; i++)
+            sharedHold &= frames[i] == frames[GateOpenFrames.LastUniqueFrame];
+        Check("final hold reuses its identical sprite without shortening the animation", sharedHold &&
+              GateOpenFrames.Count == 69 && Mathf.Abs(GateOpenFrames.Duration - 4.6f) < .001f);
         bool square = true, small = true;
         for (int i = 0; i < frames.Length; i++)
         {
