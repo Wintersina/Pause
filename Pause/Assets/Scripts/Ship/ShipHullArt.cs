@@ -77,7 +77,7 @@ public static class ShipHullArt
         // BEGIN GENERATED RECTS
         /*  1 NeonComet    */ new HullRect(11, 18, 235, 220, 734.3750f, "#D8232C", "#86121F", "#FF5B45"),
         /*  2 VoltViper    */ new HullRect(7, 28, 243, 200, 867.8571f, "#2E9BE6", "#174C8C", "#8FD3FF"),
-        /*  3 SolarFang    */ new HullRect(7, 11, 242, 234, 834.4828f, "#F07A1E", "#9A3E12", "#FFC27A"),
+        /*  3 SolarFang    */ new HullRect(11, 12, 235, 227, 810.3449f, "#F07A1E", "#9A3E12", "#FFC27A"),
         /*  4 CrimsonHalo  */ new HullRect(23, 7, 201, 242, 436.9565f, "#C8285E", "#6E1136", "#FF7AA2"),
         /*  5 IonLancer    */ new HullRect(25, 7, 207, 242, 440.4255f, "#3A5BE0", "#1C2A80", "#9AB0FF"),
         /*  6 JadePhantom  */ new HullRect(7, 9, 242, 238, 432.1429f, "#22B07A", "#0E5A44", "#8EF0C4"),

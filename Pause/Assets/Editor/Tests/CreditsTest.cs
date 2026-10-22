@@ -56,12 +56,13 @@ public static class CreditsTest
         Check("Sina Serati is credited once",
               credits.IndexOf("Sina Serati") >= 0 &&
               credits.IndexOf("Sina Serati") == credits.LastIndexOf("Sina Serati"));
+        var shah = System.Text.RegularExpressions.Regex.Match(credits, @"(?m)^[ \t]*Shah[ \t]*\r?$");
         Check("Special thanks section lists everyone",
               credits.Contains("Special thanks") && credits.IndexOf("Special thanks") > credits.IndexOf("Sina Serati") &&
               credits.Contains("Josh Morris") && credits.Contains("Pouya Vafaee") && credits.Contains("Preston Nalls") &&
               credits.Contains("Cody Everett") && credits.IndexOf("Cody Everett") > credits.IndexOf("Special thanks") &&
-              credits.Contains("Shahin Shamsipour") && credits.IndexOf("Shahin Shamsipour") > credits.IndexOf("Special thanks"));
-        Check("Shahin Shamsipour is credited once", credits.IndexOf("Shahin Shamsipour") == credits.LastIndexOf("Shahin Shamsipour"));
+              shah.Success && shah.Index > credits.IndexOf("Special thanks"));
+        Check("Shah is credited once", System.Text.RegularExpressions.Regex.Matches(credits, @"(?m)^[ \t]*Shah[ \t]*\r?$").Count == 1);
         Check("Cody Everett is credited once", credits.IndexOf("Cody Everett") == credits.LastIndexOf("Cody Everett"));
         Check("no iOS/Android duplicate lines", !credits.Contains("iOS Developer") && !credits.Contains("Android Developer"));
         Check("closing line is spelled right", credits.Contains("Thank you for playing.") && !credits.Contains("playting"));

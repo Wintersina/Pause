@@ -5,8 +5,8 @@
 // Add a ship's id here when its art is restyled (src~/build_restyle.py, the restyle-ship skill).
 public static class PaintedShips
 {
-    // 1 NeonComet. (Paragon, id 16, is painted too: see PremiumShips.IsPremium.)
-    static readonly int[] restyled = { 1, 4 };
+    // 1 NeonComet, 3 SolarFang. (Paragon, id 16, is painted too: see PremiumShips.IsPremium.)
+    static readonly int[] restyled = { 1, 3, 4 };
 
     public static bool Is(int id)
     {
