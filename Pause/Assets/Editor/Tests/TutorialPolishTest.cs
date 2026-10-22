@@ -233,7 +233,7 @@ public static class TutorialPolishTest
             // other prompts keep the arrow to themselves
             Check("arrows stay off during the atom steps and the wall",
                   !Hints.StarArrowsAllowed(TutorialCue.SpawnGreenAtom) && !Hints.StarArrowsAllowed(TutorialCue.SpawnCapacitorAtom) &&
-                  !Hints.StarArrowsAllowed(TutorialCue.SpawnWall) && !Hints.StarArrowsAllowed(TutorialCue.PointAtWall) &&
+                  !Hints.StarArrowsAllowed(TutorialCue.SpawnWall) && !Hints.StarArrowsAllowed(TutorialCue.SpawnEnemy) && !Hints.StarArrowsAllowed(TutorialCue.PointAtWall) &&
                   Hints.StarArrowsAllowed(TutorialCue.SpawnStars));
 
             // advance on collect
@@ -413,7 +413,7 @@ public static class TutorialPolishTest
         }
         competent += TutorialScript.EndingSeconds + TutorialLiftOff.Seconds;
         Debug.Log("[TP] pacing:" + table + "\n  total competent " + competent.ToString("0.0") + " s");
-        Check("a competent player flies in, plays 8 steps and lifts off in 30-60 s (" + competent.ToString("0.0") + ")", competent >= 30f && competent <= 60f);
+        Check("a competent player flies in, plays " + TutorialScript.Steps.Length + " steps and lifts off in 30-60 s (" + competent.ToString("0.0") + ")", competent >= 30f && competent <= 60f);
 
         // fake clock: a player who does NOTHING never advances any step, however long
         var none = new TutorialSignals { worldMoving = false };
@@ -447,6 +447,7 @@ public static class TutorialPolishTest
             case TutorialAdvance.CollectGreenAtom: now.greenAtomsCollected += 1; break;
             case TutorialAdvance.CollectBlueAtom: now.blueAtomsCollected += 1; break;
             case TutorialAdvance.CollectRedAtom: now.redAtomsCollected += 1; break;
+            case TutorialAdvance.TeleportKill: now.enemiesTeleported += 1; break;
             case TutorialAdvance.FirePower: now.powersFired += 1; break;
         }
         return now;

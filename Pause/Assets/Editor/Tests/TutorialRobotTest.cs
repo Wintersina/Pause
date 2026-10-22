@@ -82,7 +82,12 @@ public static class TutorialRobotTest
             freezeAt = IndexOf(TutorialAdvance.WallFrozen), jumpAt = IndexOf(TutorialAdvance.CrossWall),
             atomAt = IndexOf(TutorialAdvance.CollectRedAtom);
         Check("star dust, then the heal, then the wall (freeze, jump), then the pause atom",
-              dustAt == 1 && healAt == 2 && freezeAt == 3 && jumpAt == 4 && atomAt == 5);
+              dustAt == 1 && healAt == 2 && freezeAt == 3 && jumpAt == 4 && atomAt == 6);
+        int strikeAt = IndexOf(TutorialAdvance.TeleportKill);
+        Check("the alien-strike step comes right after the wall jump, before the pause atom", strikeAt == jumpAt + 1 && strikeAt + 1 == atomAt);
+        Check("it is cued as one alien and says to let go and touch on it",
+              steps[strikeAt].cue == TutorialCue.SpawnEnemy && steps[strikeAt].amount == 1f
+              && steps[strikeAt].line.Contains("Let go") && steps[strikeAt].line.Contains("*on*"));
         Check("the wall step is cued as a wall of aliens", steps[freezeAt].cue == TutorialCue.SpawnWall);
         int powerAt = IndexOf(TutorialAdvance.FirePower);
         Check("a power step comes after the atoms are taught", powerAt > atomAt
@@ -227,6 +232,8 @@ public static class TutorialRobotTest
                 now.blueAtomsCollected += Mathf.CeilToInt(s.amount); break;
             case TutorialAdvance.CollectRedAtom:
                 now.redAtomsCollected += Mathf.CeilToInt(s.amount); break;
+            case TutorialAdvance.TeleportKill:
+                now.enemiesTeleported += Mathf.CeilToInt(s.amount); break;
             case TutorialAdvance.FirePower:
                 now.powersFired += Mathf.CeilToInt(s.amount); break;
         }

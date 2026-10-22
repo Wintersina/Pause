@@ -71,6 +71,7 @@ public static class TutorialAtomFlowTest
         NoAtomRespawns(spawner);
         TheAlienDropsThroughTheShipsLane(ship);
         TeleportingOntoTheAlienErasesIt(ship);
+        TheStrikeStepsAlienArrivesAndCounts();
         RealGameAtomsUnchanged();
 
         return Done();
@@ -286,6 +287,38 @@ public static class TutorialAtomFlowTest
         var again = TutorialEnemy.Spawn(0f);
         TutorialEnemy.Clear();
         Check("Clear removes a leftover alien (Skip / the ending)", again == null && TutorialEnemy.Live == null);
+    }
+
+    // The strike step's alien slides in on real time (also while frozen),
+    // stops in the ship's reach, and the signal counts only a real teleport kill.
+    static void TheStrikeStepsAlienArrivesAndCounts()
+    {
+        score.paysRealDust = false;
+        float bottom, top;
+        TutorialAtomDrift.View(out bottom, out top);
+        var enemy = TutorialEnemy.Spawn(0f);
+        Check("the strike alien spawns", enemy != null);
+        if (enemy == null) return;
+        float hold = Mathf.Min(top - 1.3f, ShipReach.ClampY(1000f) - .3f);
+        enemy.ArriveAt(hold);
+        Check("it is arriving, above the top edge", enemy.Arriving && enemy.transform.position.y > top);
+        Vector3 p0 = enemy.transform.position;
+        enemy.Step(Dt, false);
+        Check("a frozen world does not move it by the normal path", enemy.transform.position == p0);
+        int guard = 0;
+        while (enemy.Arrive(Dt) && guard++ < 600) { }
+        Check("it arrives and stops at the hold line, in the ship's reach",
+              !enemy.Arriving && Mathf.Abs(enemy.transform.position.y - hold) < .001f && hold <= ShipReach.ClampY(1000f));
+
+        int before = TeleportFx.Kills;
+        TeleportFx.Strike(enemy.transform.position + new Vector3(.1f, 0f, 0f));
+        Check("a pause-jump onto it is a counted teleport kill", TeleportFx.Kills == before + 1 && TutorialEnemy.Live == null);
+
+        var none = new TutorialSignals();
+        var killed = none; killed.enemiesTeleported = 1;
+        var strike = TutorialScript.Steps[System.Array.FindIndex(TutorialScript.Steps, s => s.advance == TutorialAdvance.TeleportKill)];
+        Check("the step completes on a teleport kill, not before", !TutorialScript.IsMet(strike, none, none) && TutorialScript.IsMet(strike, none, killed));
+        TutorialEnemy.Clear();
     }
 
     static void RealGameAtomsUnchanged()
