@@ -1,0 +1,18 @@
+{
+ "hull_w": 174,
+ "world_w": 0.22,
+ "nozzles": 1,
+ "noz_cells": [[128, 240, 1.0]],
+ "fill_holes": true,
+ "emitters": [
+  [1, "sparks", 45.7, 72.6], [1, "smoke", 64.0, 110.4], [1, "smolder", 45.7, 72.6],
+  [2, "arc", 64.0, 88.8], [2, "flame", 87.4, 78.0], [2, "leak", 49.7, 103.9],
+  [2, "smolder", 64.5, 88.8], [2, "smolder", 88.5, 79.1], [2, "smolder", 41.1, 44.8],
+  [2, "smolder", 73.0, 20.3], [2, "smolder", 50.1, 19.2], [2, "smolder", 55.0, 109.6]
+ ],
+ "skins": [["Night", "night"], ["Sodium", "sodium"], ["Bone", "bone"], ["Shellback", "stock"]],
+ "flame": {
+  "frames": 7,
+  "bands": {"outer": "#1FB5B9", "mid": "#6EF2EE", "core": "#F4EAD4", "dark": "#5A3A18", "accent": "#E2BE84"}
+ }
+}
