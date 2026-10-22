@@ -151,7 +151,8 @@ def build_sheet(cfg, codex):
         redo = None
         if os.path.exists(rp) and "--no-redo" not in sys.argv:
             rcells, rn = bp.codex_cells(rp, 3, 2)
-            redo = bp.fit_cells(rcells[:5], rn, scale * 1024 / rn, (anchor[0] * rn / 1024, anchor[1] * rn / 1024))
+            nred = 3 if cfg.get('stopgap_banks') else 5
+            redo = bp.fit_cells(rcells[:nred], rn, scale * 1024 / rn, (anchor[0] * rn / 1024, anchor[1] * rn / 1024))
         pieces = []
         for c in range(COLS):
             if c == 0:
@@ -163,8 +164,11 @@ def build_sheet(cfg, codex):
             elif c == 8:
                 pieces.append(flash)
             elif redo is not None:
-                pieces.append({2: lambda: roll_y(redo[0], -dy_px), 3: lambda: redo[1], 4: lambda: redo[2],
-                               6: lambda: redo[3], 7: lambda: redo[4]}[c]())
+                if cfg.get('stopgap_banks') and c in (6, 7):
+                    pieces.append(bank_stopgap(key_cell, -1 if c == 6 else 1))
+                else:
+                    pieces.append({2: lambda: roll_y(redo[0], -dy_px), 3: lambda: redo[1], 4: lambda: redo[2],
+                                   6: lambda: redo[3], 7: lambda: redo[4]}[c]())
             elif c == 2:
                 pieces.append(roll_y(key_cell, -dy_px))
             elif c in (3, 4):
@@ -316,6 +320,32 @@ def compose_states(img, cfg):
             cur = a[reg]
             out[reg] = np.where(m[..., None], cur, c0)
             out[reg][..., 3] = c0[..., 3]
+    return Image.fromarray(out)
+
+
+def bank_stopgap(cell, d):
+    """Modest tilt for a spinner (UFO never banks in game): idle cell squeezed ~5% across, shifted 3 px, near side shaded."""
+    a = np.array(cell)
+    h, w = a.shape[:2]
+    xs = np.nonzero(a[..., 3] > 0)[1]
+    cx = (xs.min() + xs.max()) / 2
+    out = np.zeros_like(a)
+    k = 0.95
+    for x in range(w):
+        sx = int(round(cx + (x - 3 * d - cx) / k))
+        if 0 <= sx < w:
+            out[:, x] = a[:, sx]
+    m = out[..., 3] > 0
+    xs2 = np.nonzero(m.any(axis=0))[0]
+    x0, x1 = xs2.min(), xs2.max()
+    for x in range(w):
+        t = (x - x0) / max(1, x1 - x0)          # 0 left .. 1 right
+        near = (1 - t) if d < 0 else t
+        f = 1.0 - 0.16 * max(0.0, near - 0.45) / 0.55
+        col = out[:, x, :3].astype(np.float32) * f
+        out[:, x, :3] = np.where(m[:, x, None], col, 0).astype(np.uint8)
+    out[~m] = 0
+    out[m, 3] = 255
     return Image.fromarray(out)
 
 
