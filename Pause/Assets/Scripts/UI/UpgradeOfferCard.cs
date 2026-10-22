@@ -25,10 +25,9 @@ public class UpgradeOfferCard : MonoBehaviour
     public static string PriceLine(float price) { return "PRICE  " + Mathf.RoundToInt(price).ToString("N0"); }
 
     // "+1 HEART" when buying this colour adds hearts (SkinHearts, the dock's
-    // data), "" for a ship offer or a colour that adds none.
+    // data), "" for a colour that adds none.
     public static string HeartsLine(UpgradeOfferRules.Candidate c)
     {
-        if (c.kind != UpgradeOfferRules.Kind.Skin) return "";
         int gain = SkinHearts.GainIfBought(c.shipId, c.skin);
         return gain > 0 ? "+" + gain + " " + SkinHearts.HeartsWord(gain) : "";
     }

@@ -32,12 +32,7 @@ public static class UpgradeOfferTest
 
     static R.Candidate Skin(int ship, int skin, float price)
     {
-        return new R.Candidate { kind = R.Kind.Skin, shipId = ship, skin = skin, price = price, title = "S" + ship };
-    }
-
-    static R.Candidate Ship(int ship, float price)
-    {
-        return new R.Candidate { kind = R.Kind.Ship, shipId = ship, price = price, title = "N" + ship };
+        return new R.Candidate { shipId = ship, skin = skin, price = price, title = "S" + ship };
     }
 
     static R.State Streak(int streak, int declined = 0)
@@ -54,26 +49,17 @@ public static class UpgradeOfferTest
         Check("one death is not enough", !R.Due(Streak(1)));
         Check("the 2nd death in a row is due", R.Due(Streak(2)));
 
-        // what is offered
+        // what is offered: only the flown ship's next upgrade, only if affordable
         var sel = Skin(3, 1, 50f);
-        var others = new List<R.Candidate> { Skin(2, 1, 300f), Ship(5, 600f) };
-        Check("the selected ship's upgrade wins when affordable",
-              R.ShouldOffer(true, Streak(2), 500f, sel, others, out c) && c.shipId == 3 && c.skin == 1);
-        sel = Skin(3, 2, 300f);
-        Check("selected too dear: the cheapest affordable other is offered",
-              R.ShouldOffer(true, Streak(2), 200f, sel, new List<R.Candidate> { Ship(5, 150f), Skin(2, 1, 100f) }, out c) && c.shipId == 2);
-        Check("selected too dear: a tie keeps the earlier",
-              R.ShouldOffer(true, Streak(2), 200f, sel, new List<R.Candidate> { Skin(2, 1, 100f), Ship(5, 100f) }, out c) && c.shipId == 2);
-        Check("nothing affordable: no offer",
-              !R.ShouldOffer(true, Streak(2), 40f, sel, others, out c));
-        Check("exact balance is affordable", R.ShouldOffer(true, Streak(2), 300f, sel, null, out c) && c.price == 300f);
-        Check("everything owned (no candidates): no offer",
-              !R.ShouldOffer(true, Streak(2), 99999f, none, new List<R.Candidate> { none, none }, out c));
-        Check("no candidate list: no offer", !R.ShouldOffer(true, Streak(2), 99999f, none, null, out c));
+        Check("the selected ship's upgrade is offered when affordable",
+              R.ShouldOffer(true, Streak(2), 500f, sel, out c) && c.shipId == 3 && c.skin == 1);
+        Check("exact balance is affordable", R.ShouldOffer(true, Streak(2), 50f, sel, out c) && c.price == 50f);
+        Check("too dear: no offer, never another ship's upgrade", !R.ShouldOffer(true, Streak(2), 40f, sel, out c));
+        Check("nothing left to upgrade: no offer", !R.ShouldOffer(true, Streak(2), 99999f, none, out c));
 
         // the setting
-        Check("setting off: never offered", !R.ShouldOffer(false, Streak(2), 99999f, Skin(3, 1, 50f), others, out c));
-        Check("not due: not offered", !R.ShouldOffer(true, Streak(1), 99999f, Skin(3, 1, 50f), others, out c));
+        Check("setting off: never offered", !R.ShouldOffer(false, Streak(2), 99999f, Skin(3, 1, 50f), out c));
+        Check("not due: not offered", !R.ShouldOffer(true, Streak(1), 99999f, Skin(3, 1, 50f), out c));
     }
 
     static void HeartsText()
@@ -83,7 +69,7 @@ public static class UpgradeOfferTest
         int gain = SkinHearts.GainIfBought(viper, 1);
         Check("offer card: a colour that adds a heart says so (" + UpgradeOfferCard.HeartsLine(first) + ")",
               gain > 0 && UpgradeOfferCard.HeartsLine(first) == "+" + gain + " " + SkinHearts.HeartsWord(gain));
-        Check("offer card: a ship offer shows no hearts line", UpgradeOfferCard.HeartsLine(Ship(viper, 600f)) == "");
+        Check("offer card: no candidate shows no hearts line", UpgradeOfferCard.HeartsLine(default(R.Candidate)) == "");
         Check("offer card: the stock colour adds nothing", UpgradeOfferCard.HeartsLine(Skin(viper, ShipSkins.Stock, 50f)) == "");
     }
 
@@ -164,7 +150,7 @@ public static class UpgradeOfferTest
         UpgradeOfferStore.RunStarted();
         UpgradeOfferStore.RunDied();
         Check("an offer after the second death in a row", UpgradeOfferStore.TryGetOffer(out c));
-        Check("it is the equipped ship's first colour", c.kind == R.Kind.Skin && c.shipId == 1 && c.skin == 1 && c.price > 0f);
+        Check("it is the equipped ship's first colour", c.shipId == 1 && c.skin == 1 && c.price == ShipSkins.PriceOf(1, 1));
 
         // setting off
         UpgradeOfferStore.Enabled = false;
@@ -173,29 +159,32 @@ public static class UpgradeOfferTest
         Check("the setting defaults on again", UpgradeOfferStore.TryGetOffer(out c));
         Check("the setting stores nothing while on", !PlayerPrefs.HasKey(UpgradeOfferStore.EnabledKey));
 
-        // cannot afford: the equipped colour and every other step are too dear
-        PlayerPrefs.SetFloat(StarDustLedger.CurrencyKey, 1f);
-        Check("cannot afford anything: no offer", !UpgradeOfferStore.TryGetOffer(out c));
+        // cannot afford the equipped ship's next colour: nothing, even with other ships owned
+        PlayerPrefs.SetString(ShipId.OwnedKey(2), "True");
+        PlayerPrefs.SetFloat(StarDustLedger.CurrencyKey, ShipSkins.PriceOf(1, 1) - 1f);
+        Check("cannot afford the flown ship's colour: no offer", !UpgradeOfferStore.TryGetOffer(out c));
+        PlayerPrefs.DeleteKey(ShipId.OwnedKey(2));
 
-        // can only afford another step: the cheapest ship is offered, never Paragon
+        // later colours follow as each becomes the next step
         PlayerPrefs.SetFloat(StarDustLedger.CurrencyKey, 100000f);
+        PlayerPrefs.SetInt(ShipSkins.OwnedKey(1, 1), 1);
+        Check("after the first colour the second is offered",
+              UpgradeOfferStore.TryGetOffer(out c) && c.shipId == 1 && c.skin == 2);
+
+        // fully upgraded flown ship: no offer, never another ship or a new one
         for (int n = 1; n < ShipSkins.CountFor(1); n++) PlayerPrefs.SetInt(ShipSkins.OwnedKey(1, n), 1);
-        Check("equipped ship fully upgraded: the next ship is offered",
-              UpgradeOfferStore.TryGetOffer(out c) && c.kind == R.Kind.Ship && !PremiumShips.IsPremium(c.shipId));
-        float cheapest = float.MaxValue;
-        foreach (int id in ShipId.All)
-            if (!PremiumShips.IsPremium(id) && !ShipId.IsOwned(id)) cheapest = Mathf.Min(cheapest, shopingShips.CostFor(id));
-        Check("it is the cheapest unowned ship", c.price == cheapest);
+        Check("flown ship fully upgraded: no offer", !UpgradeOfferStore.TryGetOffer(out c));
+        for (int n = 1; n < ShipSkins.PerShip; n++) PlayerPrefs.DeleteKey(ShipSkins.OwnedKey(1, n));
+        Check("the offer is skin 1 again once reset", UpgradeOfferStore.TryGetOffer(out c) && c.skin == 1);
 
         // buying through the store spends, grants and resets the backoff
         PlayerPrefs.SetFloat(StarDustLedger.CurrencyKey, c.price + 7f);
-        int shipId = c.shipId;
         Check("buying succeeds", UpgradeOfferStore.Buy(c));
-        Check("the ship is owned and the dust spent", ShipId.IsOwned(shipId) &&
+        Check("the colour is owned and the dust spent", ShipSkins.IsOwned(1, c.skin) &&
               Mathf.Approximately(PlayerPrefs.GetFloat(StarDustLedger.CurrencyKey), 7f));
         Check("the backoff is reset", PlayerPrefs.GetInt(UpgradeOfferStore.StreakKey) == 0 &&
               PlayerPrefs.GetInt(UpgradeOfferStore.DeclinedKey) == 0);
-        Check("a repeat buy of an owned ship is refused", !UpgradeOfferStore.Buy(c));
+        Check("a repeat buy of an owned colour is refused", !UpgradeOfferStore.Buy(c));
 
         // everything owned: no offer, whatever the balance
         PlayerPrefs.SetFloat(StarDustLedger.CurrencyKey, 1000000f);
@@ -210,8 +199,6 @@ public static class UpgradeOfferTest
         UpgradeOfferStore.RunStarted();
         UpgradeOfferStore.RunDied();
         Check("everything bought: no offer", !UpgradeOfferStore.TryGetOffer(out c));
-        Check("Paragon is never a candidate", !PremiumShips.IsPremium(UpgradeOfferStore.CheapestShip().shipId) ||
-              UpgradeOfferStore.CheapestShip().price <= 0f);
 
         // declines persist and the cloud save carries the backoff
         ClearShips();
