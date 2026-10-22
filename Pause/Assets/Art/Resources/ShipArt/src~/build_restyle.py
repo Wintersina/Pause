@@ -436,6 +436,12 @@ def write_skins(sheet, cfg, key, codex):
                     out.alpha_composite(Image.fromarray(tile), (c * CELL, st * CELL))
             print(f"  skin {name}: Codex sheets, {holes} silhouette pixels from the fallback")
             fb = compose_states(out, cfg)
+            if cfg.get("compose_from_key"):
+                # hit-flash column: the same solid silhouette in all three damage rows
+                fa = np.array(fb)
+                for st in (1, 2):
+                    fa[st * CELL:(st + 1) * CELL, 8 * CELL:9 * CELL] = fa[0:CELL, 8 * CELL:9 * CELL]
+                fb = Image.fromarray(fa)
         else:
             print(f"  skin {name}: palette-shift fallback")
         assert (np.array(fb)[..., 3] == base[..., 3]).all()

@@ -1,0 +1,10 @@
+Implemented Courier assets:
+
+- [skin_Courier_state0.png](/Users/sina/Developer/Pause/.claude/worktrees/agent-ac66a148d5d2f4a3c/Pause/Assets/Art/Resources/ShipArt/Dove/src~/codex/skin_Courier_state0.png)
+- [skin_Courier_state1.png](/Users/sina/Developer/Pause/.claude/worktrees/agent-ac66a148d5d2f4a3c/Pause/Assets/Art/Resources/ShipArt/Dove/src~/codex/skin_Courier_state1.png)
+- [skin_Courier_state2.png](/Users/sina/Developer/Pause/.claude/worktrees/agent-ac66a148d5d2f4a3c/Pause/Assets/Art/Resources/ShipArt/Dove/src~/codex/skin_Courier_state2.png)
+- [check_skin_Courier.py](/Users/sina/Developer/Pause/.claude/worktrees/agent-ac66a148d5d2f4a3c/Pause/Assets/Art/Resources/ShipArt/Dove/src~/codex/tools/check_skin_Courier.py)
+
+Validation: all 27 cells pass. Silhouette difference is 0%; canopy difference stays below 1.265%; changed-pixel range is 6.056–17.747%.
+
+Caveat: generated candidates had minor registration drift, so final sheets lock the approved reference geometry and use the generated painted ramp only for the Courier armour repaint. No existing files were edited or deleted; nothing was committed.
