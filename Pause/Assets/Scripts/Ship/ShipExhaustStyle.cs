@@ -6,9 +6,10 @@ using UnityEngine;
 // The hull (ShipHullArt's identity hue), the ultimate (WeaponStyleTable) and
 // the exhaust read as one theme per ship: every row's outer colour is one of
 // the ship's hue tones and its mid/accent come from the ship's weapon family
-// palette (ExhaustStyleTest checks both). The art is one atlas,
-// Resources/ShipArt/Exhaust/exhaust_atlas.png, generated together with the
-// GENERATED block below by Art/Resources/ShipArt/Hulls/src~/exhaust.py.
+// palette (ExhaustStyleTest checks both). The row and the art are the ship's
+// own: the "exhaust" block of ShipArt/<Key>/<Key>_data.json (kind, five colours,
+// tick table, strip rectangles) and the flame sheet ShipArt/<Key>/<Key>_flame.png,
+// written by Art/Resources/ShipArt/src~/ (build_restyle.py, exhaust.py).
 //
 // Nozzle ships draw a plume per nozzle (ShipNozzles) from the Plume strip,
 // and the PlumeBoost strip (longer, hotter) while boosting. The two spinners
@@ -57,7 +58,7 @@ public struct ExhaustStyle
 // The one place a ship's exhaust colours are looked up. Code that needs an
 // exhaust colour (renderer tints, tests, FX that match the exhaust) asks here.
 //
-// The atlas is drawn in each ship's stock palette (Stock). The exhaust
+// The flame sheet is drawn in each ship's stock palette (Stock). The exhaust
 // follows the ship's skin "somewhat" (For): the flame keeps its themed shape,
 // its hot core and any friendly-red accent, while the outer, mid and dark
 // bands move SkinBlend of the way toward the skin's base, highlight and
@@ -207,7 +208,6 @@ public static class ExhaustColors
 
 public static class ShipExhaustStyle
 {
-    public const string AtlasPath = "ShipArt/Exhaust/exhaust_atlas";
     public const float PixelsPerUnit = 100f;
     // Flame head: 3 u below the top of a 128 u plume frame; the wake's head
     // 4 u below the top of a 64 u spinner frame.
@@ -248,109 +248,30 @@ public static class ShipExhaustStyle
         };
     }
 
-    static readonly ExhaustStyle[] table =
-    {
-        // BEGIN GENERATED EXHAUST
-        /*  1 NeonComet    */ Row(1, "NeonComet", ExhaustKind.CometTrail, "#D8232C", "#F2862B", "#F4EAD4", "#86121F", "#6EF2EE", new[] { 2, 2, 1, 2, 2, 2 }),
-        /*  2 VoltViper    */ Row(2, "VoltViper", ExhaustKind.VoltZigzag, "#2E9BE6", "#6EF2EE", "#F4EAD4", "#174C8C", "#F2862B", new[] { 2, 2, 1, 2, 2, 2, 2 }),
-        /*  3 SolarFang    */ Row(3, "SolarFang", ExhaustKind.SolarTongues, "#F07A1E", "#FFB43C", "#F4EAD4", "#9A3E12", "#F2862B", new[] { 3, 2, 1, 2, 2, 2, 2 }),
-        /*  4 CrimsonHalo  */ Row(4, "CrimsonHalo", ExhaustKind.HaloRings, "#C8285E", "#FFB43C", "#F4EAD4", "#6E1136", "#FF7AA2", new[] { 2, 2, 1, 2, 2, 2 }),
-        /*  5 IonLancer    */ Row(5, "IonLancer", ExhaustKind.IonLance, "#3A5BE0", "#6EF2EE", "#F4EAD4", "#1C2A80", "#9AB0FF", new[] { 3, 2, 1, 2, 2, 2 }),
-        /*  6 JadePhantom  */ Row(6, "JadePhantom", ExhaustKind.GhostWisp, "#22B07A", "#8EF0C4", "#F4EAD4", "#0E5A44", "#1FB5B9", new[] { 3, 2, 1, 2, 2, 2, 2, 2 }),
-        /*  7 GoldWarden   */ Row(7, "GoldWarden", ExhaustKind.Afterburner, "#D99A1A", "#FFD36A", "#F4EAD4", "#7E4E0C", "#D8232C", new[] { 2, 2, 1, 2, 2, 2 }),
-        /*  8 Lightning    */ Row(8, "Lightning", ExhaustKind.ForkedLightning, "#EEDC32", "#6EF2EE", "#F4EAD4", "#8E8414", "#F2862B", new[] { 2, 2, 1, 2, 2, 2, 2 }),
-        /*  9 Ligher       */ Row(9, "Ligher", ExhaustKind.Blowtorch, "#C8662E", "#FFB43C", "#F4EAD4", "#6E3014", "#6EF2EE", new[] { 3, 2, 1, 2, 2, 2 }),
-        /* 10 Paranoid     */ Row(10, "Paranoid", ExhaustKind.PodJets, "#5DBB3A", "#1FB5B9", "#B6EE8A", "#2A5E1E", "#F4EAD4", new[] { 2, 2, 1, 2, 2, 2 }),
-        /* 11 Ninja        */ Row(11, "Ninja", ExhaustKind.SpinBlades, "#4A58C8", "#9FA8F0", "#F4EAD4", "#232A6E", "#D8232C", new[] { 2, 2, 1, 2, 2, 2, 2, 2 }),
-        /* 12 Saboteur     */ Row(12, "Saboteur", ExhaustKind.GatlingSmoke, "#B83CC0", "#F2862B", "#F4EAD4", "#5E1A66", "#3A2A5C", new[] { 2, 2, 1, 2, 2, 2, 2, 2 }),
-        /* 13 UFO          */ Row(13, "UFO", ExhaustKind.SpinVortex, "#7A52DC", "#BBA4FF", "#F4EAD4", "#3A2478", "#6EF2EE", new[] { 2, 2, 1, 2, 2, 2, 2, 2 }),
-        /* 14 Dove         */ Row(14, "Dove", ExhaustKind.FeatherStreaks, "#36C2C2", "#A6F2EE", "#F4EAD4", "#146A70", "#FFB43C", new[] { 3, 2, 1, 2, 2, 2, 2 }),
-        /* 15 Turtle       */ Row(15, "Turtle", ExhaustKind.HexJet, "#1FB5B9", "#6EF2EE", "#F4EAD4", "#5A3A18", "#E2BE84", new[] { 2, 2, 1, 2, 2, 2, 2 }),
-        // 16 Paragon (premium): a long neon-blue jet; frames cut from the source art by src~/paragon/build_paragon.py
-        /* 16 Paragon      */ Row(16, "Paragon", ExhaustKind.NeonJet, "#2E9BE6", "#6EF2EE", "#F4EAD4", "#174C8C", "#9AB0FF", new[] { 2, 2, 1, 2, 2, 2, 2 }),
-    };
-
-    // Atlas strips: ship, layer, x, y (bottom-up), frame w, h, frames, stride (px).
-    static readonly Strip[] strips =
-    {
-        new Strip(1, ExhaustLayer.Plume, 0, 1280, 48, 192, 6, 50),
-        new Strip(1, ExhaustLayer.PlumeBoost, 300, 1280, 48, 192, 6, 50),
-        new Strip(2, ExhaustLayer.Plume, 600, 1280, 48, 192, 7, 50),
-        new Strip(2, ExhaustLayer.PlumeBoost, 950, 1280, 48, 192, 7, 50),
-        new Strip(3, ExhaustLayer.Plume, 1300, 1280, 48, 192, 7, 50),
-        new Strip(3, ExhaustLayer.PlumeBoost, 1650, 1280, 48, 192, 7, 50),
-        new Strip(4, ExhaustLayer.Plume, 0, 1086, 48, 192, 6, 50),
-        new Strip(4, ExhaustLayer.PlumeBoost, 300, 1086, 48, 192, 6, 50),
-        new Strip(5, ExhaustLayer.Plume, 600, 1086, 48, 192, 6, 50),
-        new Strip(5, ExhaustLayer.PlumeBoost, 900, 1086, 48, 192, 6, 50),
-        new Strip(6, ExhaustLayer.Plume, 1200, 1086, 48, 192, 8, 50),
-        new Strip(6, ExhaustLayer.PlumeBoost, 1600, 1086, 48, 192, 8, 50),
-        new Strip(7, ExhaustLayer.Plume, 0, 892, 48, 192, 6, 50),
-        new Strip(7, ExhaustLayer.PlumeBoost, 300, 892, 48, 192, 6, 50),
-        new Strip(8, ExhaustLayer.Plume, 600, 892, 48, 192, 7, 50),
-        new Strip(8, ExhaustLayer.PlumeBoost, 950, 892, 48, 192, 7, 50),
-        new Strip(9, ExhaustLayer.Plume, 1300, 892, 48, 192, 6, 50),
-        new Strip(9, ExhaustLayer.PlumeBoost, 1600, 892, 48, 192, 6, 50),
-        new Strip(10, ExhaustLayer.Plume, 0, 698, 48, 192, 6, 50),
-        new Strip(10, ExhaustLayer.PlumeBoost, 300, 698, 48, 192, 6, 50),
-        new Strip(11, ExhaustLayer.Ring, 0, 382, 120, 120, 8, 122),
-        new Strip(11, ExhaustLayer.RingBoost, 976, 382, 120, 120, 8, 122),
-        new Strip(11, ExhaustLayer.Wake, 0, 260, 120, 120, 8, 122),
-        new Strip(11, ExhaustLayer.WakeBoost, 976, 260, 120, 120, 8, 122),
-        new Strip(12, ExhaustLayer.Plume, 600, 698, 48, 192, 8, 50),
-        new Strip(12, ExhaustLayer.PlumeBoost, 1000, 698, 48, 192, 8, 50),
-        new Strip(13, ExhaustLayer.Ring, 0, 138, 120, 120, 8, 122),
-        new Strip(13, ExhaustLayer.RingBoost, 976, 138, 120, 120, 8, 122),
-        new Strip(13, ExhaustLayer.Wake, 0, 16, 120, 120, 8, 122),
-        new Strip(13, ExhaustLayer.WakeBoost, 976, 16, 120, 120, 8, 122),
-        new Strip(14, ExhaustLayer.Plume, 1400, 698, 48, 192, 7, 50),
-        new Strip(14, ExhaustLayer.PlumeBoost, 0, 504, 48, 192, 7, 50),
-        new Strip(15, ExhaustLayer.Plume, 350, 504, 48, 192, 7, 50),
-        new Strip(15, ExhaustLayer.PlumeBoost, 700, 504, 48, 192, 7, 50),
-        // END GENERATED EXHAUST
-        // Paragon strips (atlas band x 1050..1750, y 504; build_paragon.py)
-        new Strip(16, ExhaustLayer.Plume, 1050, 504, 48, 192, 7, 50),
-        new Strip(16, ExhaustLayer.PlumeBoost, 1400, 504, 48, 192, 7, 50),
-    };
-
-    static Texture2D atlas;   // LEGACY-COMPAT: the shared atlas
     static readonly Sprite[][] sprites = new Sprite[32 * LayerCount][];
     static readonly Dictionary<int, ExhaustStyle> styleCache = new Dictionary<int, ExhaustStyle>();
     static readonly Dictionary<int, Strip[]> stripCache = new Dictionary<int, Strip[]>();
     static readonly Dictionary<int, Texture2D> sheets = new Dictionary<int, Texture2D>();
 
-    // The ship's style and strips: from its own data file (ShipArt/<Key>/<Key>_data.json),
-    // else (LEGACY-COMPAT) the shared tables above.
+    // The ship's style and strips, from its own data file (ShipArt/<Key>/<Key>_data.json).
     static bool Resolve(int shipId)
     {
         if (styleCache.ContainsKey(shipId)) return true;
         var d = ShipData.For(shipId);
-        if (d != null && d.exhaust != null && d.exhaust.ticks != null && d.exhaust.ticks.Length > 0)
+        if (d == null || d.exhaust == null || d.exhaust.ticks == null || d.exhaust.ticks.Length == 0) return false;
+        var e = d.exhaust;
+        var style = Row(shipId, d.key, (ExhaustKind)System.Enum.Parse(typeof(ExhaustKind), e.kind),
+                        e.outer, e.mid, e.core, e.dark, e.accent, e.ticks);
+        var list = new Strip[e.strips != null ? e.strips.Length : 0];
+        for (int i = 0; i < list.Length; i++)
         {
-            var e = d.exhaust;
-            var style = Row(shipId, d.key, (ExhaustKind)System.Enum.Parse(typeof(ExhaustKind), e.kind),
-                            e.outer, e.mid, e.core, e.dark, e.accent, e.ticks);
-            var list = new Strip[e.strips != null ? e.strips.Length : 0];
-            for (int i = 0; i < list.Length; i++)
-            {
-                var t = e.strips[i];
-                list[i] = new Strip(shipId, (ExhaustLayer)System.Enum.Parse(typeof(ExhaustLayer), t.layer),
-                                    t.x, t.y, t.w, t.h, t.frames, t.stride);
-            }
-            styleCache[shipId] = style;
-            stripCache[shipId] = list;
-            return true;
+            var t = e.strips[i];
+            list[i] = new Strip(shipId, (ExhaustLayer)System.Enum.Parse(typeof(ExhaustLayer), t.layer),
+                                t.x, t.y, t.w, t.h, t.frames, t.stride);
         }
-        for (int i = 0; i < table.Length; i++)
-        {
-            if (table[i].shipId != shipId) continue;
-            var list = new List<Strip>();
-            for (int k = 0; k < strips.Length; k++) if (strips[k].shipId == shipId) list.Add(strips[k]);
-            styleCache[shipId] = table[i];
-            stripCache[shipId] = list.ToArray();
-            return true;
-        }
-        return false;
+        styleCache[shipId] = style;
+        stripCache[shipId] = list;
+        return true;
     }
 
     public static int Count
@@ -396,25 +317,15 @@ public static class ShipExhaustStyle
         return s >= 0 ? stripCache[shipId][s].frames : 0;
     }
 
-    // The shared atlas (LEGACY-COMPAT).
-    public static Texture2D Atlas
-    {
-        get
-        {
-            if (atlas == null) atlas = Resources.Load<Texture2D>(AtlasPath);
-            return atlas;
-        }
-    }
-
     // The sheet a ship's strips are cut from: its own <Key>_flame.png (the data file's strips
-    // address it), or, for a ship still on the shared tables, the shared atlas.
+    // address it). Null for a ship with no exhaust data or no sheet.
     public static Texture2D FlameSheet(int shipId)
     {
         Texture2D tex;
         if (sheets.TryGetValue(shipId, out tex) && tex != null) return tex;
         var d = ShipData.For(shipId);
-        tex = d != null && d.exhaust != null && d.exhaust.ticks != null && d.exhaust.ticks.Length > 0
-            ? Resources.Load<Texture2D>(ShipData.FlamePath(d.key)) : Atlas;
+        if (d == null || !Resolve(shipId)) return null;
+        tex = Resources.Load<Texture2D>(ShipData.FlamePath(d.key));
         if (tex != null) sheets[shipId] = tex;
         return tex;
     }

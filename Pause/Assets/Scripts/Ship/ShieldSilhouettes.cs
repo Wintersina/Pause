@@ -17,14 +17,12 @@ using UnityEngine;
 // w*h bits, row-major from the bottom row (Texture2D.GetPixels order), LSB first.
 public static class ShieldSilhouettes
 {
-    public const string LegacyResourcePath = "Shield/hull_silhouettes";   // LEGACY-COMPAT
     public const int Magic = 0x314C4953;   // "SIL1"
 
     struct Entry { public int w, h; public byte[] bits; }
 
     static readonly Dictionary<int, Entry> entries = new Dictionary<int, Entry>();
     static readonly Dictionary<int, bool> tried = new Dictionary<int, bool>();
-    static bool legacyTried;
 
     // How many roster ships have a baked silhouette.
     public static int Count
@@ -48,7 +46,7 @@ public static class ShieldSilhouettes
     }
 
     // Forget the parsed files (the editor re-bakes them).
-    public static void Invalidate() { entries.Clear(); tried.Clear(); legacyTried = false; }
+    public static void Invalidate() { entries.Clear(); tried.Clear(); }
 
     static void Load(int id)
     {
@@ -57,10 +55,6 @@ public static class ShieldSilhouettes
         string key = ShipId.ArtKeyOf(id);
         if (key == null) return;
         var asset = Resources.Load<TextAsset>(ShipData.ShieldPath(key));
-        if (asset != null) { Parse(asset.bytes, entries); return; }
-        if (legacyTried) return;   // LEGACY-COMPAT: the one shared file
-        legacyTried = true;
-        asset = Resources.Load<TextAsset>(LegacyResourcePath);
         if (asset != null) Parse(asset.bytes, entries);
     }
 

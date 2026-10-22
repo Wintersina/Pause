@@ -54,7 +54,6 @@ public class ShipHitbox : MonoBehaviour
     // ratio to the hull (Radius).
     public const float PickupRadius = .27f;
 
-    public const string LegacyResourcePath = "Shield/hull_hitboxes";   // LEGACY-COMPAT
     public const int Magic = 0x31584248;   // "HBX1"
 
     [System.Flags]
@@ -72,7 +71,6 @@ public class ShipHitbox : MonoBehaviour
 
     static readonly Dictionary<int, Shape> shapes = new Dictionary<int, Shape>();
     static readonly Dictionary<int, bool> tried = new Dictionary<int, bool>();
-    static bool legacyTried;
     static float bakedMargin;
 
     static void LoadAll() { for (int id = 1; ShipId.ArtKeyOf(id) != null; id++) Load(id); }
@@ -88,7 +86,7 @@ public class ShipHitbox : MonoBehaviour
     }
 
     // Forget the parsed files (the editor re-bakes them).
-    public static void Invalidate() { shapes.Clear(); tried.Clear(); legacyTried = false; bakedMargin = 0f; }
+    public static void Invalidate() { shapes.Clear(); tried.Clear(); bakedMargin = 0f; }
 
     static void Load(int id)
     {
@@ -97,10 +95,6 @@ public class ShipHitbox : MonoBehaviour
         string key = ShipId.ArtKeyOf(id);
         if (key == null) return;
         var asset = Resources.Load<TextAsset>(ShipData.HitboxPath(key));
-        if (asset != null) { bakedMargin = Decode(asset.bytes, shapes); return; }
-        if (legacyTried) return;   // LEGACY-COMPAT: the one shared file
-        legacyTried = true;
-        asset = Resources.Load<TextAsset>(LegacyResourcePath);
         if (asset != null) bakedMargin = Decode(asset.bytes, shapes);
     }
 

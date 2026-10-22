@@ -14,8 +14,6 @@ using UnityEditor;
 public class ShipArtImporter : AssetPostprocessor
 {
     const string Root = "Assets/Art/Resources/ShipArt/";
-    const string Hulls = "Assets/Art/Resources/ShipArt/Hulls/";       // LEGACY-COMPAT
-    const string Exhaust = "Assets/Art/Resources/ShipArt/Exhaust/";   // LEGACY-COMPAT
 
     // True for ShipArt/<Key>/<Key>.png and ShipArt/<Key>/<Key>_flame.png.
     public static bool IsShipSheet(string path)
@@ -30,7 +28,7 @@ public class ShipArtImporter : AssetPostprocessor
 
     void OnPreprocessTexture()
     {
-        if (!IsShipSheet(assetPath) && !assetPath.StartsWith(Hulls) && !assetPath.StartsWith(Exhaust)) return;
+        if (!IsShipSheet(assetPath)) return;
         var importer = (TextureImporter)assetImporter;
         importer.textureType = TextureImporterType.Sprite;
         importer.spriteImportMode = SpriteImportMode.Single;
