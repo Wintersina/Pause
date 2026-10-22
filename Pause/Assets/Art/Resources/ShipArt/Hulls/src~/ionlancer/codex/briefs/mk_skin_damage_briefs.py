@@ -6,6 +6,8 @@ for n in ("Night", "Sodium", "Bone", "Lance"):
     t = t.replace(
         "REFERENCES (attached images, in order): (1) skinref_state0.png, (2) skinref_state1.png, (3) skinref_state2.png: the FINAL approved flipbook, three 3 x 3 sheets (intact, damaged, wreck)",
         "REFERENCES (attached images, in order): (1) skinref_state1.png, (2) skinref_state2.png: the FINAL approved DAMAGED and WRECK flipbook sheets (the wreck has destruction all over both wings, fuselage and pods), (3) skin_%s_state0.png: the already finished %s sheet of the INTACT ship, only the colour reference (3072 x 3072). The reference sheets are" % (n, n))
+    t = t.replace("(the wreck has destruction all over both wings, fuselage and pods)",
+                  "(a few bold damage features on both sides, the rest of the hull clean: paint exactly those features, add no extra texture or noise)")
     t = t.replace("Each is 1536 x 1536 (cells 512 px).", "Reference sheets 1 and 2 are 1536 x 1536 (cells 512 px).")
     t = t.replace("Redraw each of the three sheets", "Redraw ONLY the damaged and wreck sheets (do NOT touch skin_%s_state0.png)" % n)
     t = t.replace("write skin_%s_state0.png, skin_%s_state1.png, skin_%s_state2.png" % (n, n, n),
