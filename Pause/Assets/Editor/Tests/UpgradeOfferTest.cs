@@ -24,6 +24,7 @@ public static class UpgradeOfferTest
             Rules();
             Backoff();
             Store();
+            HeartsText();
         }
         Debug.Log("[OFFER] failures: " + fails);
         return fails;
@@ -73,6 +74,17 @@ public static class UpgradeOfferTest
         // the setting
         Check("setting off: never offered", !R.ShouldOffer(false, Streak(2), 99999f, Skin(3, 1, 50f), others, out c));
         Check("not due: not offered", !R.ShouldOffer(true, Streak(1), 99999f, Skin(3, 1, 50f), others, out c));
+    }
+
+    static void HeartsText()
+    {
+        int viper = ShipId.FromKey("VoltViper");
+        var first = Skin(viper, 1, 50f);
+        int gain = SkinHearts.GainIfBought(viper, 1);
+        Check("offer card: a colour that adds a heart says so (" + UpgradeOfferCard.HeartsLine(first) + ")",
+              gain > 0 && UpgradeOfferCard.HeartsLine(first) == "+" + gain + " " + SkinHearts.HeartsWord(gain));
+        Check("offer card: a ship offer shows no hearts line", UpgradeOfferCard.HeartsLine(Ship(viper, 600f)) == "");
+        Check("offer card: the stock colour adds nothing", UpgradeOfferCard.HeartsLine(Skin(viper, ShipSkins.Stock, 50f)) == "");
     }
 
     static void Backoff()

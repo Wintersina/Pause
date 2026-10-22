@@ -24,6 +24,15 @@ public class UpgradeOfferCard : MonoBehaviour
 
     public static string PriceLine(float price) { return "PRICE  " + Mathf.RoundToInt(price).ToString("N0"); }
 
+    // "+1 HEART" when buying this colour adds hearts (SkinHearts, the dock's
+    // data), "" for a ship offer or a colour that adds none.
+    public static string HeartsLine(UpgradeOfferRules.Candidate c)
+    {
+        if (c.kind != UpgradeOfferRules.Kind.Skin) return "";
+        int gain = SkinHearts.GainIfBought(c.shipId, c.skin);
+        return gain > 0 ? "+" + gain + " " + SkinHearts.HeartsWord(gain) : "";
+    }
+
     public static string BalanceLine(float balance, float price)
     {
         return "BALANCE  " + Mathf.FloorToInt(balance).ToString("N0") + "  >  " +
@@ -97,6 +106,14 @@ public class UpgradeOfferCard : MonoBehaviour
         var detail = NewText("Detail", panel, offer.detail ?? "", 22, AkiraPalette.Bone, TextAnchor.MiddleCenter);
         Fit(detail, 14, 22);
         Place(detail.rectTransform, Centered(0f, 32f, 560f, 40f));
+
+        string heartsText = HeartsLine(offer);
+        if (heartsText.Length > 0)
+        {
+            var hearts = NewText("Hearts", panel, heartsText, 24, DockArt.Gold, TextAnchor.MiddleCenter);
+            Fit(hearts, 16, 24);
+            Place(hearts.rectTransform, Centered(0f, 0f, 560f, 28f));
+        }
 
         var price = NewText("Price", panel, PriceLine(offer.price), 38, AkiraPalette.Amber, TextAnchor.MiddleCenter);
         Place(price.rectTransform, Centered(0f, -36f, 560f, 52f));
