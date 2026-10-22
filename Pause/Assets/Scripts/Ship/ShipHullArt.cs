@@ -97,9 +97,18 @@ public static class ShipHullArt
         // END PARAGON RECT
     };
 
-    public static bool Has(int id) { return id > 0 && id < rects.Length && ShipId.KeyOf(id) != null; }
+    public static bool Has(int id)
+    {
+        if (ShipId.KeyOf(id) == null) return false;
+        return ShipData.Has(id) || (id > 0 && id < rects.Length);   // LEGACY-COMPAT: the shared rects table
+    }
 
-    public static HullRect RectFor(int id) { return Has(id) ? rects[id] : rects[0]; }
+    public static HullRect RectFor(int id)
+    {
+        if (!Has(id)) return rects[0];
+        var d = ShipData.For(id);
+        return d != null ? d.hullRect : rects[id];   // LEGACY-COMPAT
+    }
 
     // The ship's identity hue: base, its one shadow, its one highlight. Red is
     // the starter's (Neon Comet) and every hull's friendly accent; the others
@@ -163,10 +172,16 @@ public static class ShipHullArt
         int key = SheetKey(id, skin);
         Texture2D sheet;
         if (sheets.TryGetValue(key, out sheet) && sheet != null) return sheet;
-        sheet = skin == ShipSkins.Stock ? Resources.Load<Texture2D>(Folder + ShipId.KeyOf(id)) : DecodeSkin(id, skin);
+        sheet = skin == ShipSkins.Stock ? LoadStock(id) : DecodeSkin(id, skin);
         if (sheet == null && skin != ShipSkins.Stock) return SheetFor(id, ShipSkins.Stock);
         sheets[key] = sheet;
         return sheet;
+    }
+
+    static Texture2D LoadStock(int id)
+    {
+        var tex = Resources.Load<Texture2D>(ShipData.HullPath(ShipId.KeyOf(id)));
+        return tex != null ? tex : Resources.Load<Texture2D>(Folder + ShipId.KeyOf(id));   // LEGACY-COMPAT
     }
 
     public static bool IsSkinLoaded(int id, int skin)
@@ -191,7 +206,8 @@ public static class ShipHullArt
     public static byte[] SkinPng(int id, int skin)
     {
         if (skin == ShipSkins.Stock || !ShipSkins.Has(id, skin)) return null;
-        var asset = Resources.Load<TextAsset>(SkinFolder + ShipSkins.SheetName(id, skin));
+        var asset = Resources.Load<TextAsset>(ShipData.Folder(ShipId.KeyOf(id)) + ShipSkins.SheetName(id, skin));
+        if (asset == null) asset = Resources.Load<TextAsset>(SkinFolder + ShipSkins.SheetName(id, skin));   // LEGACY-COMPAT
         if (asset == null) return null;
         var bytes = asset.bytes;
         Resources.UnloadAsset(asset);
@@ -287,7 +303,7 @@ public static class ShipHullArt
 
         var sheet = SheetFor(id, skin);
         if (sheet == null) return null;
-        var r = rects[id];
+        var r = RectFor(id);
         // rows run top to bottom in the png; Unity's rect origin is bottom-left
         int rowFromBottom = States - 1 - state;
         var rect = new Rect(column * Cell + r.x, rowFromBottom * Cell + r.y, r.w, r.h);

@@ -30,7 +30,7 @@ using UnityEngine;
 //           pickup's collider as it collects it, so it never pays twice.
 //
 // Both polygons are baked at edit time (ShieldSilhouetteBaker writes
-// Resources/Shield/hull_hitboxes.bytes next to the silhouettes) in
+// Resources/ShipArt/<Key>/<Key>_hitbox.bytes next to the silhouette) in
 // sprite-local units, keyed by ShipId: one shape per ship for every skin,
 // damage state and idle drawing. Installing them at spawn (spawnShips.ApplyHull)
 // only parses that file and sends two paths to physics -- no pixel is read,
@@ -54,7 +54,7 @@ public class ShipHitbox : MonoBehaviour
     // ratio to the hull (Radius).
     public const float PickupRadius = .27f;
 
-    public const string ResourcePath = "Shield/hull_hitboxes";
+    public const string LegacyResourcePath = "Shield/hull_hitboxes";   // LEGACY-COMPAT
     public const int Magic = 0x31584248;   // "HBX1"
 
     [System.Flags]
@@ -70,31 +70,41 @@ public class ShipHitbox : MonoBehaviour
         public Vector2[] shield;   // sprite-local units
     }
 
-    static Dictionary<int, Shape> shapes;
+    static readonly Dictionary<int, Shape> shapes = new Dictionary<int, Shape>();
+    static readonly Dictionary<int, bool> tried = new Dictionary<int, bool>();
+    static bool legacyTried;
     static float bakedMargin;
 
-    public static int Count { get { Load(); return shapes.Count; } }
-    public static float BakedMargin { get { Load(); return bakedMargin; } }
+    static void LoadAll() { for (int id = 1; ShipId.ArtKeyOf(id) != null; id++) Load(id); }
+
+    public static int Count { get { LoadAll(); return shapes.Count; } }
+    public static float BakedMargin { get { LoadAll(); return bakedMargin; } }
 
     public static Shape ShapeFor(int id)
     {
-        Load();
+        Load(id);
         Shape s;
         return shapes.TryGetValue(id, out s) ? s : null;
     }
 
-    // Forget the parsed file (the editor re-bakes it).
-    public static void Invalidate() { shapes = null; }
+    // Forget the parsed files (the editor re-bakes them).
+    public static void Invalidate() { shapes.Clear(); tried.Clear(); legacyTried = false; bakedMargin = 0f; }
 
-    static void Load()
+    static void Load(int id)
     {
-        if (shapes != null) return;
-        shapes = new Dictionary<int, Shape>();
-        var asset = Resources.Load<TextAsset>(ResourcePath);
+        if (tried.ContainsKey(id)) return;
+        tried[id] = true;
+        string key = ShipId.ArtKeyOf(id);
+        if (key == null) return;
+        var asset = Resources.Load<TextAsset>(ShipData.HitboxPath(key));
+        if (asset != null) { bakedMargin = Decode(asset.bytes, shapes); return; }
+        if (legacyTried) return;   // LEGACY-COMPAT: the one shared file
+        legacyTried = true;
+        asset = Resources.Load<TextAsset>(LegacyResourcePath);
         if (asset != null) bakedMargin = Decode(asset.bytes, shapes);
     }
 
-    // File: "HBX1", float margin, int count, then per ship int id,
+    // File: "HBX1", float margin, int count (1 in a per-ship file), then per ship int id,
     // int n + n * (float x, float y) hull, int m + m * (x, y) shield.
     public static byte[] Encode(float margin, IList<KeyValuePair<int, Shape>> list)
     {

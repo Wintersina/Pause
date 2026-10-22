@@ -54,7 +54,11 @@ public static class ShipId
         "Paragon",   // 16: premium (real-money) ship, PremiumShips
     };
 
-    public static string KeyOf(int id) { return IsValid(id) && id < keys.Length ? keys[id] : null; }
+    public static string KeyOf(int id) { return IsValid(id) ? ArtKeyOf(id) : null; }
+
+    // The art key whether or not the ship is currently visible (a hidden Paragon still has its
+    // folder, ShipArt/<key>/, and its data file).
+    public static string ArtKeyOf(int id) { return id > 0 && id < keys.Length ? keys[id] : null; }
 
     public static int FromKey(string key)
     {

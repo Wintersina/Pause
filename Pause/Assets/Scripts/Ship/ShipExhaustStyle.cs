@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 // How each ship's engine exhaust looks: its theme, colours and flipbook.
@@ -312,27 +313,66 @@ public static class ShipExhaustStyle
         new Strip(16, ExhaustLayer.PlumeBoost, 1400, 504, 48, 192, 7, 50),
     };
 
-    static Texture2D atlas;
+    static Texture2D atlas;   // LEGACY-COMPAT: the shared atlas
     static readonly Sprite[][] sprites = new Sprite[32 * LayerCount][];
+    static readonly Dictionary<int, ExhaustStyle> styleCache = new Dictionary<int, ExhaustStyle>();
+    static readonly Dictionary<int, Strip[]> stripCache = new Dictionary<int, Strip[]>();
+    static readonly Dictionary<int, Texture2D> sheets = new Dictionary<int, Texture2D>();
 
-    public static int Count { get { return table.Length; } }
+    // The ship's style and strips: from its own data file (ShipArt/<Key>/<Key>_data.json),
+    // else (LEGACY-COMPAT) the shared tables above.
+    static bool Resolve(int shipId)
+    {
+        if (styleCache.ContainsKey(shipId)) return true;
+        var d = ShipData.For(shipId);
+        if (d != null && d.exhaust != null && d.exhaust.ticks != null && d.exhaust.ticks.Length > 0)
+        {
+            var e = d.exhaust;
+            var style = Row(shipId, d.key, (ExhaustKind)System.Enum.Parse(typeof(ExhaustKind), e.kind),
+                            e.outer, e.mid, e.core, e.dark, e.accent, e.ticks);
+            var list = new Strip[e.strips != null ? e.strips.Length : 0];
+            for (int i = 0; i < list.Length; i++)
+            {
+                var t = e.strips[i];
+                list[i] = new Strip(shipId, (ExhaustLayer)System.Enum.Parse(typeof(ExhaustLayer), t.layer),
+                                    t.x, t.y, t.w, t.h, t.frames, t.stride);
+            }
+            styleCache[shipId] = style;
+            stripCache[shipId] = list;
+            return true;
+        }
+        for (int i = 0; i < table.Length; i++)
+        {
+            if (table[i].shipId != shipId) continue;
+            var list = new List<Strip>();
+            for (int k = 0; k < strips.Length; k++) if (strips[k].shipId == shipId) list.Add(strips[k]);
+            styleCache[shipId] = table[i];
+            stripCache[shipId] = list.ToArray();
+            return true;
+        }
+        return false;
+    }
+
+    public static int Count
+    {
+        get
+        {
+            int n = 0;
+            for (int id = 1; ShipId.ArtKeyOf(id) != null; id++) if (Resolve(id)) n++;
+            return n;
+        }
+    }
 
     public static bool Has(int shipId)
     {
-        return ShipId.IsValid(shipId) && IndexOf(shipId) >= 0;
-    }
-
-    static int IndexOf(int shipId)
-    {
-        for (int i = 0; i < table.Length; i++) if (table[i].shipId == shipId) return i;
-        return -1;
+        return ShipId.IsValid(shipId) && Resolve(shipId);
     }
 
     public static ExhaustStyle For(int shipId)
     {
-        int i = IndexOf(shipId);
-        if (i < 0) i = IndexOf(ShipId.Starter);
-        return table[i];
+        if (!Resolve(shipId)) shipId = ShipId.Starter;
+        Resolve(shipId);
+        return styleCache[shipId];
     }
 
     public static bool IsSpinDrift(int shipId)
@@ -342,8 +382,9 @@ public static class ShipExhaustStyle
 
     static int StripOf(int shipId, ExhaustLayer layer)
     {
-        for (int i = 0; i < strips.Length; i++)
-            if (strips[i].shipId == shipId && strips[i].layer == layer) return i;
+        if (!Resolve(shipId)) return -1;
+        var list = stripCache[shipId];
+        for (int i = 0; i < list.Length; i++) if (list[i].layer == layer) return i;
         return -1;
     }
 
@@ -352,9 +393,10 @@ public static class ShipExhaustStyle
     public static int FrameCount(int shipId, ExhaustLayer layer)
     {
         int s = StripOf(shipId, layer);
-        return s >= 0 ? strips[s].frames : 0;
+        return s >= 0 ? stripCache[shipId][s].frames : 0;
     }
 
+    // The shared atlas (LEGACY-COMPAT).
     public static Texture2D Atlas
     {
         get
@@ -362,6 +404,19 @@ public static class ShipExhaustStyle
             if (atlas == null) atlas = Resources.Load<Texture2D>(AtlasPath);
             return atlas;
         }
+    }
+
+    // The sheet a ship's strips are cut from: its own <Key>_flame.png (the data file's strips
+    // address it), or, for a ship still on the shared tables, the shared atlas.
+    public static Texture2D FlameSheet(int shipId)
+    {
+        Texture2D tex;
+        if (sheets.TryGetValue(shipId, out tex) && tex != null) return tex;
+        var d = ShipData.For(shipId);
+        tex = d != null && d.exhaust != null && d.exhaust.ticks != null && d.exhaust.ticks.Length > 0
+            ? Resources.Load<Texture2D>(ShipData.FlamePath(d.key)) : Atlas;
+        if (tex != null) sheets[shipId] = tex;
+        return tex;
     }
 
     static Vector2 PivotOf(ExhaustLayer layer)
@@ -377,13 +432,13 @@ public static class ShipExhaustStyle
     }
 
     // Drawing `frame` of a ship's strip (wraps), cached; null if the ship has
-    // no such layer or the atlas is missing.
+    // no such layer or its flame sheet is missing.
     public static Sprite Frame(int shipId, ExhaustLayer layer, int frame)
     {
         if (!ShipId.IsValid(shipId)) shipId = ShipId.Starter;
         int s = StripOf(shipId, layer);
         if (s < 0) return null;
-        var strip = strips[s];
+        var strip = stripCache[shipId][s];
         int slot = shipId * LayerCount + (int)layer;
         if (slot >= sprites.Length) return null;
         var row = sprites[slot];
@@ -391,7 +446,7 @@ public static class ShipExhaustStyle
         frame = ((frame % strip.frames) + strip.frames) % strip.frames;
         if (row[frame] == null)
         {
-            var tex = Atlas;
+            var tex = FlameSheet(shipId);
             if (tex == null) return null;
             var rect = new Rect(strip.x + frame * strip.stride, strip.y, strip.w, strip.h);
             row[frame] = Sprite.Create(tex, rect, PivotOf(layer), PixelsPerUnit, 0, SpriteMeshType.FullRect);
@@ -407,11 +462,10 @@ public static class ShipExhaustStyle
     public static void Prewarm(int shipId)
     {
         if (!ShipId.IsValid(shipId)) shipId = ShipId.Starter;
-        for (int s = 0; s < strips.Length; s++)
-        {
-            if (strips[s].shipId != shipId) continue;
-            for (int f = 0; f < strips[s].frames; f++) Frame(shipId, strips[s].layer, f);
-        }
+        if (!Resolve(shipId)) return;
+        var list = stripCache[shipId];
+        for (int s = 0; s < list.Length; s++)
+            for (int f = 0; f < list[s].frames; f++) Frame(shipId, list[s].layer, f);
     }
 
     // The drawing to show `ticks` (24 fps) into a ship's loop.

@@ -114,19 +114,27 @@ public static class ShipDamageTable
     // (Full health needs no maximum: the dock's ships ask every frame.)
     public static int StateFor(int hitsTaken) { return hitsTaken <= 0 ? 0 : StateFor(hitsTaken, MaxLives()); }
 
-    public static bool Has(int id) { return id > 0 && id < table.Length; }
+    // The ship's emitters, ordered by state.
+    static DamageEmitter[] RowOf(int id)
+    {
+        var d = ShipData.For(id);
+        if (d != null) return d.emitterList;
+        return id > 0 && id < table.Length ? table[id] : null;   // LEGACY-COMPAT
+    }
+
+    public static bool Has(int id) { return RowOf(id) != null; }
 
     // Every emitter of the ship (all states).
-    public static int Total(int id) { return Has(id) ? table[id].Length : 0; }
+    public static int Total(int id) { return Has(id) ? RowOf(id).Length : 0; }
 
-    public static DamageEmitter Get(int id, int index) { return table[id][index]; }
+    public static DamageEmitter Get(int id, int index) { return RowOf(id)[index]; }
 
     // How many emitters are live at `state` (they're the first Count ones).
     public static int Count(int id, int state)
     {
         if (!Has(id)) return 0;
         int n = 0;
-        var row = table[id];
+        var row = RowOf(id);
         while (n < row.Length && row[n].state <= state) n++;
         return n;
     }
@@ -137,7 +145,7 @@ public static class ShipDamageTable
     {
         emitter = default(DamageEmitter);
         if (!Has(id) || state <= 0) return false;
-        var row = table[id];
+        var row = RowOf(id);
         for (int i = 0; i < row.Length; i++)
             if (row[i].state == state) { emitter = row[i]; return true; }
         return false;

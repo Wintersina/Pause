@@ -213,17 +213,26 @@ public static class ShipSkins
         // END PARAGON SKINS
     };
 
-    public static bool Has(int id, int skin)
+    // The ship's skins, index 0 = Stock.
+    static ShipSkin[] RowOf(int id)
     {
-        return id > 0 && id < table.Length && table[id] != null && skin >= 0 && skin < table[id].Length;
+        var d = ShipData.For(id);
+        if (d != null) return d.skinList;
+        return id > 0 && id < table.Length ? table[id] : null;   // LEGACY-COMPAT
     }
 
-    public static int CountFor(int id) { return id > 0 && id < table.Length && table[id] != null ? table[id].Length : 0; }
+    public static bool Has(int id, int skin)
+    {
+        var row = RowOf(id);
+        return row != null && skin >= 0 && skin < row.Length;
+    }
+
+    public static int CountFor(int id) { var row = RowOf(id); return row != null ? row.Length : 0; }
 
     public static ShipSkin Get(int id, int skin)
     {
-        if (Has(id, skin)) return table[id][skin];
-        if (Has(id, Stock)) return table[id][Stock];
+        if (Has(id, skin)) return RowOf(id)[skin];
+        if (Has(id, Stock)) return RowOf(id)[Stock];
         return S("Stock", ShipSkinKind.Stock, "#FFFFFF", "#FFFFFF", "#FFFFFF");
     }
 
@@ -231,7 +240,7 @@ public static class ShipSkins
     public static string SheetName(int id, int skin)
     {
         string key = ShipId.KeyOf(id);
-        return key == null || skin == Stock || !Has(id, skin) ? key : key + "_" + table[id][skin].name;
+        return key == null || skin == Stock || !Has(id, skin) ? key : key + "_" + RowOf(id)[skin].name;
     }
 
     // ---------------------------------------------------------- keys
@@ -339,7 +348,7 @@ public static class ShipSkins
     // never touched).
     public static void ClearDeveloperChoices()
     {
-        for (int id = 1; id < table.Length; id++)
+        for (int id = 1; ShipId.ArtKeyOf(id) != null; id++)
         {
             if (!PlayerPrefs.HasKey(DeveloperEquippedKey(id))) continue;
             PlayerPrefs.DeleteKey(DeveloperEquippedKey(id));

@@ -61,11 +61,15 @@ public static class ShipNozzles
 
     public static bool Has(int index)
     {
+        var d = ShipData.For(index);
+        if (d != null) return d.nozzleList.Length > 0;
         return index > 0 && index < table.Length && table[index] != null && table[index].Length > 0;
     }
 
     public static Nozzle[] For(int index)
     {
+        var d = ShipData.For(index);
+        if (d != null) return d.nozzleList.Length > 0 ? d.nozzleList : fallback;
         return Has(index) ? table[index] : fallback;
     }
 
