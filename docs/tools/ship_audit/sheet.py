@@ -30,7 +30,7 @@ def sprite(path, idx, world_cell, scale):
     px = int(round(world_cell * scale * S))
     return c.resize((px, px), Image.LANCZOS), bb, h
 
-player_img = Image.open(ART + 'ShipArt/Hulls/Dove.png').convert('RGBA').crop((0, 0, 768, 768))
+player_img = Image.open(ART + 'ShipArt/Dove/Dove.png').convert('RGBA').crop((0, 0, 768, 768))
 pbb = player_img.getchannel('A').point(lambda v: 255 if v > 40 else 0).getbbox()
 player_img = player_img.crop(pbb)
 pl = max(player_img.size)

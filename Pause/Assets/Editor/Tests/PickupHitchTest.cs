@@ -73,7 +73,7 @@ public static class PickupHitchTest
 
     static void SilhouettesAreBakedFromTheArt()
     {
-        Check("hull_silhouettes.bytes is baked and matches the current hull art",
+        Check("every ship's <Key>_shield.bytes is baked and matches the current hull art",
               ShieldSilhouetteBaker.IsCurrent());
         ShieldSilhouettes.Invalidate();
         Check("a silhouette for every roster ship (" + ShieldSilhouettes.Count + "/" + ShipId.Count + ")",

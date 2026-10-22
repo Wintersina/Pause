@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Palette-quantize the ship skin sheets (Art/Resources/ShipArt/Skins/*.bytes).
+"""Palette-quantize the ship skin sheets (Art/Resources/ShipArt/<Key>/<Key>_<Skin>.bytes).
 
 Usage: quantize_skins.py SRC_DIR OUT_DIR [--colors 256]
 

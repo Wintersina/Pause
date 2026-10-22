@@ -2,16 +2,13 @@
 // The vector-art tests (flat fills in the guide palette, exact friendly-red pixels, the 2.5x damage
 // ratio) do not describe painted art, so they skip these ids; the painted rules are the sheet contract
 // (same alpha across states and skins, damage that clearly progresses) which every test still checks.
-// Add a ship's id here when its art is restyled (src~/build_restyle.py, the restyle-ship skill).
+// A ship is painted when its own data file says so ("painted": true in ShipArt/<Key>/<Key>_data.json,
+// written by the restyle pipeline); there is no list to edit here.
 public static class PaintedShips
 {
-    // 1 NeonComet, 3 SolarFang, 6 JadePhantom. (Paragon, id 16, is painted too: see PremiumShips.IsPremium.)
-    static readonly int[] restyled = { 1, 3, 6, 14 };
-
     public static bool Is(int id)
     {
-        if (PremiumShips.IsPremium(id)) return true;
-        for (int i = 0; i < restyled.Length; i++) if (restyled[i] == id) return true;
-        return false;
+        var d = ShipData.For(id);
+        return d != null && d.painted;
     }
 }

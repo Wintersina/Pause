@@ -1,20 +1,34 @@
+using System.IO;
 using UnityEditor;
 
-// Import settings for the generated Akira hull sheets
-// (Art/Resources/ShipArt/Hulls/src~/build.py) and the per-ship exhaust atlas
-// (exhaust.py). The sheets are 2304x768, past the default 2048 cap, and are shown well below their
+// Import settings for the generated hull sheets (ShipArt/<Key>/<Key>.png, built by
+// ShipArt/src~/build_restyle.py) and the per-ship flame strips (ShipArt/<Key>/<Key>_flame.png).
+// The sheets are 2304x768, past the default 2048 cap, and are shown well below their
 // authored size (a 256 px cell as a ~110 px ship, 0.43x, which bilinear alone
 // handles: mipmaps are off because an NPOT mipmapped sheet cannot be ASTC
 // compressed, see AndroidTextureDiet). Code slices them with Sprite.Create (ShipHullArt,
 // ShipExhaustStyle), so the importer only has to deliver an unclipped texture.
+//
+// A ship's folder is picked up by name alone: any PNG named <Folder>.png or <Folder>_flame.png
+// directly inside Assets/Art/Resources/ShipArt/<Folder>/ -- adding a ship needs no edit here.
 public class ShipArtImporter : AssetPostprocessor
 {
-    const string Hulls = "Assets/Art/Resources/ShipArt/Hulls/";
-    const string Exhaust = "Assets/Art/Resources/ShipArt/Exhaust/";
+    const string Root = "Assets/Art/Resources/ShipArt/";
+
+    // True for ShipArt/<Key>/<Key>.png and ShipArt/<Key>/<Key>_flame.png.
+    public static bool IsShipSheet(string path)
+    {
+        if (!path.StartsWith(Root) || !path.EndsWith(".png")) return false;
+        string rest = path.Substring(Root.Length);
+        int slash = rest.IndexOf('/');
+        if (slash <= 0 || rest.IndexOf('/', slash + 1) >= 0) return false;
+        string folder = rest.Substring(0, slash), file = Path.GetFileNameWithoutExtension(rest);
+        return file == folder || file == folder + "_flame";
+    }
 
     void OnPreprocessTexture()
     {
-        if (!assetPath.StartsWith(Hulls) && !assetPath.StartsWith(Exhaust)) return;
+        if (!IsShipSheet(assetPath)) return;
         var importer = (TextureImporter)assetImporter;
         importer.textureType = TextureImporterType.Sprite;
         importer.spriteImportMode = SpriteImportMode.Single;

@@ -3,8 +3,8 @@ using System.IO;
 using UnityEngine;
 
 // Every roster hull's silhouette (its rest drawing's alpha >= the shield's
-// cutoff), baked at edit time by ShieldSilhouetteBaker into
-// Resources/Shield/hull_silhouettes.bytes. The blue-atom shield's contour is
+// cutoff), baked at edit time by ShieldSilhouetteBaker into the ship's own folder,
+// Resources/ShipArt/<Key>/<Key>_shield.bytes. The blue-atom shield's contour is
 // cut from these, so the game never reads hull pixels back from the GPU: the
 // hull sheets are non-readable, and a RenderTexture readback stalls the frame
 // on a phone.
@@ -13,40 +13,49 @@ using UnityEngine;
 // skins are recolours with the stock alpha (ShipSkinsTest), and the shield is
 // cut from the intact rest pose whatever is showing (ShipShield).
 //
-// File: "SIL1", int count, then per ship int id, int w, int h and w*h bits,
-// row-major from the bottom row (Texture2D.GetPixels order), LSB first.
+// File: "SIL1", int count (1 in a per-ship file), then per ship int id, int w, int h and
+// w*h bits, row-major from the bottom row (Texture2D.GetPixels order), LSB first.
 public static class ShieldSilhouettes
 {
-    public const string ResourcePath = "Shield/hull_silhouettes";
     public const int Magic = 0x314C4953;   // "SIL1"
 
     struct Entry { public int w, h; public byte[] bits; }
 
-    static Dictionary<int, Entry> entries;
+    static readonly Dictionary<int, Entry> entries = new Dictionary<int, Entry>();
+    static readonly Dictionary<int, bool> tried = new Dictionary<int, bool>();
 
-    public static int Count { get { Load(); return entries.Count; } }
+    // How many roster ships have a baked silhouette.
+    public static int Count
+    {
+        get
+        {
+            for (int id = 1; ShipId.ArtKeyOf(id) != null; id++) Load(id);
+            return entries.Count;
+        }
+    }
 
     // The baked mask of ship `id`, if one was baked at exactly w x h.
     public static bool TryGet(int id, int w, int h, out bool[] mask)
     {
         mask = null;
-        Load();
+        Load(id);
         Entry e;
         if (!entries.TryGetValue(id, out e) || e.w != w || e.h != h) return false;
         mask = Unpack(e.bits, w * h);
         return true;
     }
 
-    // Forget the parsed file (the editor re-bakes it).
-    public static void Invalidate() { entries = null; }
+    // Forget the parsed files (the editor re-bakes them).
+    public static void Invalidate() { entries.Clear(); tried.Clear(); }
 
-    static void Load()
+    static void Load(int id)
     {
-        if (entries != null) return;
-        entries = new Dictionary<int, Entry>();
-        var asset = Resources.Load<TextAsset>(ResourcePath);
-        if (asset == null) return;
-        Parse(asset.bytes, entries);
+        if (tried.ContainsKey(id)) return;
+        tried[id] = true;
+        string key = ShipId.ArtKeyOf(id);
+        if (key == null) return;
+        var asset = Resources.Load<TextAsset>(ShipData.ShieldPath(key));
+        if (asset != null) Parse(asset.bytes, entries);
     }
 
     static void Parse(byte[] data, Dictionary<int, Entry> into)

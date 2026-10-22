@@ -6,22 +6,28 @@ using UnityEditor.Build.Reporting;
 using UnityEngine;
 
 // Bakes every roster hull's silhouette (stock rest drawing, alpha >=
-// ShieldContour.AlphaCutoff) into ShieldSilhouettes' Resources file, read
-// straight from the source PNGs. The game cuts the blue-atom shield's contour
+// ShieldContour.AlphaCutoff) into that ship's own folder,
+// ShipArt/<Key>/<Key>_shield.bytes (ShieldSilhouettes' file format with one ship),
+// read straight from the source PNGs. The game cuts the blue-atom shield's contour
 // from these instead of reading non-readable hull textures back from the GPU.
 //
 // Alongside it, ShipHitboxBaker writes each ship's tight hull hitbox and
-// shield zone (Resources/Shield/hull_hitboxes.bytes, see ShipHitbox).
+// shield zone (ShipArt/<Key>/<Key>_hitbox.bytes, see ShipHitbox).
 //
-// Re-baked automatically when a hull sheet is (re)imported and before every
-// player build; ShieldFitTest / ShipHitboxTest fail if either file ever
-// drifts from the art (or from ShipHitbox.ShieldMargin).
+// Each ship is baked on its own: a ship's PR rewrites only its folder. Re-baked
+// automatically when a hull sheet is (re)imported and before every player build;
+// ShieldFitTest / ShipHitboxTest fail if a file ever drifts from the art (or from
+// ShipHitbox.ShieldMargin).
 //
 //   Unity -batchmode -quit -projectPath Pause -executeMethod ShieldSilhouetteBaker.Bake
 public static class ShieldSilhouetteBaker
 {
-    public const string AssetPath = "Assets/Art/Resources/Shield/hull_silhouettes.bytes";
-    const string Hulls = "Assets/Art/Resources/ShipArt/Hulls/";
+    // The baked file of ship `id` (null for an id with no art key).
+    public static string AssetPath(int id)
+    {
+        string key = ShipId.ArtKeyOf(id);
+        return key == null ? null : "Assets/Art/Resources/" + ShipData.ShieldPath(key) + ".bytes";
+    }
 
     // The stock rest silhouette of ship `id`, from its source PNG.
     public static bool[] Silhouette(int id, out int w, out int h)
@@ -37,29 +43,28 @@ public static class ShieldSilhouetteBaker
         return ShieldContour.MaskOf(px, w, h);
     }
 
-    public static byte[] Compute()
+    // The bytes of ship `id`'s file, or null if it has no art.
+    public static byte[] Compute(int id)
     {
-        var masks = new List<KeyValuePair<int, bool[]>>();
-        var sizes = new List<Vector2Int>();
-        foreach (int id in ShipId.All)
-        {
-            if (!ShipHullArt.Has(id)) continue;
-            int w, h;
-            var mask = Silhouette(id, out w, out h);
-            if (mask == null) { Debug.LogWarning("ShieldSilhouetteBaker: no art for ship " + id); continue; }
-            masks.Add(new KeyValuePair<int, bool[]>(id, mask));
-            sizes.Add(new Vector2Int(w, h));
-        }
-        return ShieldSilhouettes.Encode(masks, sizes);
+        if (!ShipHullArt.Has(id)) return null;
+        int w, h;
+        var mask = Silhouette(id, out w, out h);
+        if (mask == null) { Debug.LogWarning("ShieldSilhouetteBaker: no art for ship " + id); return null; }
+        return ShieldSilhouettes.Encode(new List<KeyValuePair<int, bool[]>> { new KeyValuePair<int, bool[]>(id, mask) },
+                                        new List<Vector2Int> { new Vector2Int(w, h) });
     }
 
+    // Every roster ship has an up-to-date silhouette file.
     public static bool IsCurrent()
     {
-        if (!File.Exists(AssetPath)) return false;
-        var have = File.ReadAllBytes(AssetPath);
-        var want = Compute();
-        if (have.Length != want.Length) return false;
-        for (int i = 0; i < have.Length; i++) if (have[i] != want[i]) return false;
+        foreach (int id in ShipId.All)
+        {
+            var want = Compute(id);
+            if (want == null) continue;
+            string path = AssetPath(id);
+            if (!File.Exists(path)) return false;
+            if (!System.Linq.Enumerable.SequenceEqual(File.ReadAllBytes(path), want)) return false;
+        }
         return true;
     }
 
@@ -69,8 +74,8 @@ public static class ShieldSilhouetteBaker
         BakeIfStale();
     }
 
-    // Writes the silhouettes and ShipHitbox's hit zones (ShipHitboxBaker,
-    // a sibling file) where they differ. Returns true if it wrote either.
+    // Writes each ship's silhouette and ShipHitbox's hit zones (ShipHitboxBaker,
+    // a sibling file) where they differ. Returns true if it wrote any.
     public static bool BakeIfStale()
     {
         bool wrote = BakeSilhouettesIfStale();
@@ -80,17 +85,20 @@ public static class ShieldSilhouetteBaker
 
     static bool BakeSilhouettesIfStale()
     {
-        var bytes = Compute();
-        if (File.Exists(AssetPath))
+        bool wrote = false;
+        foreach (int id in ShipId.All)
         {
-            var have = File.ReadAllBytes(AssetPath);
-            if (have.Length == bytes.Length && System.Linq.Enumerable.SequenceEqual(have, bytes)) return false;
+            var bytes = Compute(id);
+            if (bytes == null) continue;
+            string path = AssetPath(id);
+            if (File.Exists(path) && System.Linq.Enumerable.SequenceEqual(File.ReadAllBytes(path), bytes)) continue;
+            File.WriteAllBytes(path, bytes);
+            AssetDatabase.ImportAsset(path, ImportAssetOptions.ForceSynchronousImport);
+            Debug.Log("ShieldSilhouetteBaker: baked " + path + " (" + bytes.Length + " bytes)");
+            wrote = true;
         }
-        File.WriteAllBytes(AssetPath, bytes);
-        AssetDatabase.ImportAsset(AssetPath, ImportAssetOptions.ForceSynchronousImport);
-        ShieldSilhouettes.Invalidate();
-        Debug.Log("ShieldSilhouetteBaker: baked " + AssetPath + " (" + bytes.Length + " bytes)");
-        return true;
+        if (wrote) ShieldSilhouettes.Invalidate();
+        return wrote;
     }
 
     sealed class BeforeBuild : IPreprocessBuildWithReport
@@ -105,7 +113,7 @@ public static class ShieldSilhouetteBaker
         {
             foreach (var path in imported)
             {
-                if (!path.StartsWith(Hulls) || !path.EndsWith(".png")) continue;
+                if (!ShipArtImporter.IsShipSheet(path) || path.EndsWith("_flame.png")) continue;
                 EditorApplication.delayCall -= Rebake;
                 EditorApplication.delayCall += Rebake;
                 return;

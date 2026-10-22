@@ -1,0 +1,191 @@
+{
+  "id": 1,
+  "key": "NeonComet",
+  "painted": true,
+  "rect": {
+    "x": 11,
+    "y": 18,
+    "w": 235,
+    "h": 220,
+    "ppu": 734.375
+  },
+  "hue": [
+    "#D8232C",
+    "#86121F",
+    "#FF5B45"
+  ],
+  "nozzles": [
+    {
+      "x": 93.5,
+      "y": 8.5,
+      "scale": 0.72
+    },
+    {
+      "x": 139.5,
+      "y": 8.5,
+      "scale": 0.72
+    }
+  ],
+  "damageNote": "1) left wing panel blown, wiring sparks; scorched right wing; 2) right wingtip torn off, spine cracked, right pod burning, canopy cracked",
+  "emitters": [
+    {
+      "state": 1,
+      "kind": "Sparks",
+      "u": 32.6,
+      "v": 82.6
+    },
+    {
+      "state": 1,
+      "kind": "Smoke",
+      "u": 57.2,
+      "v": 101.4
+    },
+    {
+      "state": 1,
+      "kind": "Smolder",
+      "u": 32.8,
+      "v": 82.3
+    },
+    {
+      "state": 2,
+      "kind": "Arc",
+      "u": 106.2,
+      "v": 91.3
+    },
+    {
+      "state": 2,
+      "kind": "Flame",
+      "u": 70.8,
+      "v": 99.6
+    },
+    {
+      "state": 2,
+      "kind": "Leak",
+      "u": 69.9,
+      "v": 92.3
+    },
+    {
+      "state": 2,
+      "kind": "Smolder",
+      "u": 107.4,
+      "v": 91.6
+    },
+    {
+      "state": 2,
+      "kind": "Smolder",
+      "u": 82.2,
+      "v": 90.1
+    },
+    {
+      "state": 2,
+      "kind": "Smolder",
+      "u": 55.2,
+      "v": 97.6
+    },
+    {
+      "state": 2,
+      "kind": "Smolder",
+      "u": 75.2,
+      "v": 61.3
+    },
+    {
+      "state": 2,
+      "kind": "Smolder",
+      "u": 53.2,
+      "v": 61.9
+    }
+  ],
+  "skins": [
+    {
+      "name": "Stock",
+      "kind": "Stock",
+      "hue": "#D8232C",
+      "shadow": "#86121F",
+      "highlight": "#FF5B45",
+      "pattern": "",
+      "accent": "",
+      "accentShadow": "",
+      "accentHighlight": ""
+    },
+    {
+      "name": "Night",
+      "kind": "Palette",
+      "hue": "#2A2E6B",
+      "shadow": "#1A1F45",
+      "highlight": "#6EF2EE",
+      "pattern": "",
+      "accent": "",
+      "accentShadow": "",
+      "accentHighlight": ""
+    },
+    {
+      "name": "Sodium",
+      "kind": "Palette",
+      "hue": "#F2862B",
+      "shadow": "#A9481A",
+      "highlight": "#FFB43C",
+      "pattern": "",
+      "accent": "",
+      "accentShadow": "",
+      "accentHighlight": ""
+    },
+    {
+      "name": "Bone",
+      "kind": "Palette",
+      "hue": "#F4EAD4",
+      "shadow": "#B9AE98",
+      "highlight": "#F4EAD4",
+      "pattern": "",
+      "accent": "",
+      "accentShadow": "",
+      "accentHighlight": ""
+    },
+    {
+      "name": "Kaneda",
+      "kind": "Special",
+      "hue": "#D8232C",
+      "shadow": "#86121F",
+      "highlight": "#FF5B45",
+      "pattern": "racing",
+      "accent": "#F4EAD4",
+      "accentShadow": "#B9AE98",
+      "accentHighlight": "#F4EAD4"
+    }
+  ],
+  "exhaust": {
+    "kind": "CometTrail",
+    "outer": "#D8232C",
+    "mid": "#F2862B",
+    "core": "#F4EAD4",
+    "dark": "#86121F",
+    "accent": "#6EF2EE",
+    "ticks": [
+      2,
+      2,
+      1,
+      2,
+      2,
+      2
+    ],
+    "strips": [
+      {
+        "layer": "Plume",
+        "x": 0,
+        "y": 194,
+        "w": 48,
+        "h": 192,
+        "frames": 6,
+        "stride": 50
+      },
+      {
+        "layer": "PlumeBoost",
+        "x": 0,
+        "y": 0,
+        "w": 48,
+        "h": 192,
+        "frames": 6,
+        "stride": 50
+      }
+    ]
+  }
+}

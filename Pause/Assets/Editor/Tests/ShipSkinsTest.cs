@@ -159,7 +159,7 @@ public static class ShipSkinsTest
         {
             string skin = who + " " + ShipSkins.Get(id, n).name;
             var png = Decode(ShipHullArt.SkinPng(id, n));
-            Check(skin + " sheet exists (" + ShipHullArt.SkinFolder + ShipSkins.SheetName(id, n) + ")", png != null);
+            Check(skin + " sheet exists (" + ShipData.Folder(ShipId.KeyOf(id)) + ShipSkins.SheetName(id, n) + ")", png != null);
             if (png == null) continue;
             Check(skin + " sheet is " + ShipHullArt.Columns + "x" + ShipHullArt.States + " cells",
                   png.width == ShipHullArt.Columns * ShipHullArt.Cell && png.height == ShipHullArt.States * ShipHullArt.Cell);

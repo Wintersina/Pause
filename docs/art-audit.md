@@ -124,7 +124,7 @@ Each world's parallax layers are in `Art/Backgrounds/Resources/Worlds/<World>/Ba
 
 | What | Paths | Why |
 |---|---|---|
-| Player ships and exhaust | `Art/Resources/ShipArt/Hulls/*.png` + `src~`, `Art/Resources/ShipArt/Exhaust/`, `Art/Resources/Weapons/<Ship>.png`, `AttackFx.png`, `SecretMeter.png` | User: "leave the ship designs alone for now". They stay flat cel (v1) |
+| Player ships and exhaust | `Art/Resources/ShipArt/<Key>/` (one folder per ship: hull, skins, flames, data, baked shield/hitbox, `src~`), `Art/Resources/Weapons/<Ship>.png`, `AttackFx.png`, `SecretMeter.png` | User: "leave the ship designs alone for now". They stay flat cel (v1) |
 | Ship damage FX | `Art/Resources/Vfx/ship_damage_fx_atlas.png` | player-side |
 | Atoms / pickups | `Art/Resources/Pickups/heal_atom_green.png`, `Art/Resources/Pickups/Atoms/*` | already pixel art; the green atom is a benchmark |
 | Life heart | `Art/Resources/Vfx/lifeHeart.png` | player-side |

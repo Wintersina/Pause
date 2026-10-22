@@ -414,7 +414,7 @@ def panel(images, labels, pad=16, bg="#05060c", top=22):
 def ship_sprite(game_px=37) -> Image.Image:
     """Rest frame of a current (unchanged, cel-style) player hull, sized to the game:
     0.58 u longest edge = 37 game px -> 148 screen-texture px at x4."""
-    sh = Image.open(os.path.join(REPO, "Pause/Assets/Art/Resources/ShipArt/Hulls/NeonComet.png")).convert("RGBA")
+    sh = Image.open(os.path.join(REPO, "Pause/Assets/Art/Resources/ShipArt/NeonComet/NeonComet.png")).convert("RGBA")
     cell = sh.crop((0, 0, 256, 256))
     cell = cell.crop(cell.getbbox())
     s = game_px * X / max(cell.size)
