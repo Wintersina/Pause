@@ -110,6 +110,25 @@ SHIPS = {
                    bands=dict(outer=(0x22, 0xB0, 0x7A), mid=(0x8E, 0xF0, 0xC4), core=(0xF4, 0xEA, 0xD4),
                               dark=(0x0E, 0x5A, 0x44), accent=(0x1F, 0xB5, 0xB9))),
     ),
+    "CrimsonHalo": dict(
+        id=4, hull_w=190, world_w=195 / 423.913, nozzles=2, noz_scale=(.72, .72),
+        noz_cells=[(120, 236, .72), (136, 236, .72)],
+        emitters=parse_emitters(
+            "E(1, Sparks, 38.8f, 84.3f), E(1, Smoke, 61.5f, 109.4f), E(1, Smolder, 39.7f, 84.0f), "
+            "E(2, Arc, 82.5f, 45.7f), E(2, Flame, 99.2f, 93.9f), E(2, Leak, 65.7f, 103.6f), "
+            "E(2, Smolder, 100.9f, 93.7f), E(2, Smolder, 77.5f, 76.3f), E(2, Smolder, 51.0f, 71.9f), "
+            "E(2, Smolder, 48.5f, 110.1f)"),
+        skins=[("Night", "night"), ("Sodium", "sodium"), ("Bone", "bone"), ("Seraph", "stock")],
+        # Codex repaints each damage state as its own picture (plating differs everywhere, ShipDamageTest sees
+        # ~88% of the hull "repainted" at both steps). So rows 1-2 are composed: the intact pixels outside the
+        # damage zones, the damaged painting inside them. Ellipses (cx, cy, rx, ry) in the key pose's cell.
+        damage_zones=dict(
+            s1=[(88, 155, 32, 34), (105, 75, 22, 46), (125, 215, 30, 34), (125, 172, 14, 30)],
+            s2=[(190, 165, 40, 32), (165, 80, 26, 44), (128, 80, 16, 32), (160, 215, 32, 32), (88, 155, 48, 40)]),
+        flame=dict(x=(0, 300), y=1086, frames=6,
+                   bands=dict(outer=(0xC8, 0x28, 0x5E), mid=(0xFF, 0xB4, 0x3C), core=(0xF4, 0xEA, 0xD4),
+                              dark=(0x6E, 0x11, 0x36), accent=(0xFF, 0x7A, 0xA2))),
+    ),
 }
 
 
@@ -328,6 +347,48 @@ def recolour(sheet, mode):
     return Image.fromarray(res)
 
 
+def zone_mask(zones, col, bbox0, bbox_c):
+    """bool 256x256 mask of the union of ellipses, moved with column `col` (bob = y shift, bank = x stretch)."""
+    yy, xx = np.mgrid[0:CELL, 0:CELL].astype(np.float64)
+    dy = {1: -4, 2: -4, 5: 4}.get(col, 0)
+    yk = yy - dy
+    if col in (6, 7):
+        kw = bbox0[1] - bbox0[0] + 1
+        bw = bbox_c[1] - bbox_c[0] + 1
+        xk = bbox0[0] + (xx - bbox_c[0]) * (kw / bw)
+    else:
+        xk = xx
+    m = np.zeros((CELL, CELL), bool)
+    for cx, cy, rx, ry in zones:
+        m |= ((xk - cx) / rx) ** 2 + ((yk - cy) / ry) ** 2 <= 1.0
+    return m
+
+
+def compose_states(img, cfg):
+    """Rows 1-2 = row 0 outside the damage zones, the painted damage state inside (cell for cell, col 8 left alone)."""
+    z = cfg.get("damage_zones")
+    if not z:
+        return img
+    a = np.array(img)
+    out = a.copy()
+    alpha0 = a[:CELL, :, 3]
+    def bbx(c):
+        xs = np.nonzero(alpha0[:, c * CELL:(c + 1) * CELL].any(axis=0))[0]
+        return xs.min(), xs.max()
+    b0 = bbx(0)
+    for c in range(COLS - 1):
+        bc = bbx(c)
+        m1 = zone_mask(z["s1"], c, b0, bc)
+        m2 = m1 | zone_mask(z["s2"], c, b0, bc)
+        c0 = a[0:CELL, c * CELL:(c + 1) * CELL]
+        for st, m in ((1, m1), (2, m2)):
+            reg = (slice(st * CELL, (st + 1) * CELL), slice(c * CELL, (c + 1) * CELL))
+            cur = a[reg]
+            out[reg] = np.where(m[..., None], cur, c0)
+            out[reg][..., 3] = c0[..., 3]
+    return Image.fromarray(out)
+
+
 def write_skin_refs(sheet, codex):
     """3 x 3 reference sheets of the FINAL flipbook (cells 512 px, green bg) for the skin briefs."""
     for st in range(3):
@@ -386,7 +447,7 @@ def write_skins(sheet, cfg, key, codex):
                     tile[a, 3] = base[reg][..., 3][a]
                     out.alpha_composite(Image.fromarray(tile), (c * CELL, st * CELL))
             print(f"  skin {name}: Codex sheets, {holes} silhouette pixels from the fallback")
-            fb = out
+            fb = compose_states(out, cfg)
         else:
             print(f"  skin {name}: palette-shift fallback")
         assert (np.array(fb)[..., 3] == base[..., 3]).all()
@@ -448,11 +509,12 @@ def main():
     key = sys.argv[1]
     cfg = SHIPS[key]
     codex = os.path.join(HERE, key.lower(), "codex")
-    sheet = build_sheet(cfg, codex)
+    raw = build_sheet(cfg, codex)
+    sheet = compose_states(raw, cfg)
     sheet.save(os.path.join(HULLS, key + ".png"), optimize=True)
     data = measure(sheet, cfg)
     data["skins"] = [n for n, _ in cfg["skins"]]
-    write_skin_refs(sheet, codex)
+    write_skin_refs(raw, codex)
     if "--no-skins" not in sys.argv:
         write_skins(sheet, cfg, key, codex)
     if "--no-flame" not in sys.argv:
