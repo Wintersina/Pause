@@ -309,11 +309,15 @@ def compose_states(img, cfg):
     for c in range(COLS - 1):
         bc = bbx(c)
         m1 = zone_mask(z["s1"], c, b0, bc)
+        w1 = zone_mask(z.get("s1w", []), c, b0, bc)    # optional: spots where row 1 shows the wreck painting
+        m1 = m1 | w1
         m2 = m1 | zone_mask(z["s2"], c, b0, bc)
         c0 = a[0:CELL, c * CELL:(c + 1) * CELL]
         for st, m in ((1, m1), (2, m2)):
             reg = (slice(st * CELL, (st + 1) * CELL), slice(c * CELL, (c + 1) * CELL))
             cur = a[reg]
+            if st == 1 and w1.any():
+                cur = np.where(w1[..., None], a[2 * CELL:3 * CELL, c * CELL:(c + 1) * CELL], cur)
             out[reg] = np.where(m[..., None], cur, c0)
             out[reg][..., 3] = c0[..., 3]
     return Image.fromarray(out)
