@@ -498,18 +498,16 @@ public static class HostileReachTest
                     Vector3 to = (Vector3)(e.Position + off);
                     Vector3 from = k % 7 == 3 ? to + Vector3.right * .4f : ship.position;   // a short hop now and then
                     if (Vector3.Distance(from, to) < TeleportFx.MinimumJump) shortJumps++;
-                    int kills = EliteShip.Kills, hearts0 = e.Hearts;
+                    int kills = EliteShip.Kills;
                     ship.position = to;
                     TeleportFx.Play(from, to);
-                    // THE PAUSE DAMAGES 2: dead when it had <= 2 hearts, else left on (hearts - 2)
-                    bool dead = hearts0 <= EliteShip.PauseDamage
-                        ? (e == null || e.State == EliteState.Dead) && EliteShip.Kills == kills + 1 && EliteShip.LastKillCause == EliteDamage.Teleport
-                        : e != null && e.State != EliteState.Dead && e.Hearts == hearts0 - EliteShip.PauseDamage;
+                    // THE PAUSE KILLS: whatever hearts it had, the jump takes it down as an ordinary kill
+                    bool dead = (e == null || e.State == EliteState.Dead) && EliteShip.Kills == kills + 1 && EliteShip.LastKillCause == EliteDamage.Teleport;
                     if (dead) connected++;
                     else Trial(ref first, def, k, "survived (hearts " + (e != null ? e.Hearts : -1) + ", grace " + (e != null ? F(e.Grace) : "-") + ", offset " + F(off.magnitude) + ")");
                     Cleanup(ship, rock);
                 }
-                Check((evasion ? "" : "evasion off: ") + def.displayName + ": a pause jump aimed at it takes 2 hearts in " + connected + "/" + attempted + " seeded runs (from 2 hearts " + fromTwo +
+                Check((evasion ? "" : "evasion off: ") + def.displayName + ": a pause jump aimed at it kills it in " + connected + "/" + attempted + " seeded runs (from 2 hearts " + fromTwo +
                       ", from 1 " + fromOne + ", in grace " + inGrace + ", mid-evasion " + midEvade + ", mid-attack " + midAttack + ", short hops " + shortJumps + ")" +
                       (first != null ? " first miss: " + first : ""), connected == attempted && attempted >= Trials * 2 / 3 / (def.hurtHide ? 2 : 1) / (def.brain == "breaker" ? 4 : def.brain == "deep" || def.brain == "trawl" || def.brain == "stoker" || def.brain == "strafer" || def.brain == "burrower" || def.brain == "glint" || def.brain == "airship" || def.brain == "hooker" ? 2 : 1)   /* (Tide's three roamers, Sunstoke, the Coalrunner and Desert's two spend half their time wholly off the board, untouchable) */ && (inGrace > 0 || def.hurtHide) && fromTwo > 0);
                 evaded += midEvade;

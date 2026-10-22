@@ -1,0 +1,19 @@
+Completed J1 with built-in image generation, nearest-neighbour cleanup, and localized damage compositing.
+
+Files:
+
+- [key_state0.png](</Users/sina/Developer/Pause/.claude/worktrees/agent-ae47bc826c0c4d00b/Pause/Assets/Art/Resources/ShipArt/UFO/src~/codex/key_state0.png>)
+- [key_state1.png](</Users/sina/Developer/Pause/.claude/worktrees/agent-ae47bc826c0c4d00b/Pause/Assets/Art/Resources/ShipArt/UFO/src~/codex/key_state1.png>)
+- [key_state2.png](</Users/sina/Developer/Pause/.claude/worktrees/agent-ae47bc826c0c4d00b/Pause/Assets/Art/Resources/ShipArt/UFO/src~/codex/key_state2.png>)
+- [preview_j1.png](</Users/sina/Developer/Pause/.claude/worktrees/agent-ae47bc826c0c4d00b/Pause/Assets/Art/Resources/ShipArt/UFO/src~/codex/preview_j1.png>)
+- [check_j1.py](</Users/sina/Developer/Pause/.claude/worktrees/agent-ae47bc826c0c4d00b/Pause/Assets/Art/Resources/ShipArt/UFO/src~/codex/tools/check_j1.py>)
+
+Validation:
+
+| State | Non-green bbox | Silhouette diff | Colour diff |
+|---|---|---:|---:|
+| 0 | `(47, 50, 975, 959)` | — | — |
+| 1 | `(47, 50, 975, 959)` | 0.0000% | 4.7382% |
+| 2 | `(47, 50, 975, 959)` | 0.0000% | 15.5098% |
+
+Checker result: PASS. No existing files, scripts, metadata, or commits were modified.

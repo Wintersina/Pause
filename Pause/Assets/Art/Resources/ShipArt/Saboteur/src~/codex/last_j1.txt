@@ -1,0 +1,21 @@
+Completed and validated all requested J1 assets:
+
+- [key_state0.png](/Users/sina/Developer/Pause/.claude/worktrees/agent-a71e29e38407814db/Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/key_state0.png)
+- [key_state1.png](/Users/sina/Developer/Pause/.claude/worktrees/agent-a71e29e38407814db/Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/key_state1.png)
+- [key_state2.png](/Users/sina/Developer/Pause/.claude/worktrees/agent-a71e29e38407814db/Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/key_state2.png)
+- [preview_j1.png](/Users/sina/Developer/Pause/.claude/worktrees/agent-a71e29e38407814db/Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/preview_j1.png)
+- [check_j1.py](/Users/sina/Developer/Pause/.claude/worktrees/agent-a71e29e38407814db/Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/tools/check_j1.py)
+
+| Check | Result |
+|---|---:|
+| Dimensions | 1024×1024 |
+| Bounding box | `(144, 52, 879, 971)` |
+| State 1 silhouette difference | 0.000% |
+| State 1 colour difference | 3.033% |
+| State 2 silhouette difference | 0.000% |
+| State 2 colour difference | 8.013% |
+| Overall audit | PASS |
+
+Used built-in image generation for the painted intact ship, then nearest-neighbour cleanup and pixel-locked damage additions to preserve identical silhouettes and undamaged pixels.
+
+Caveat: state 1/2 damage was deterministically painted onto the selected generated base to satisfy the strict pixel-identity requirement. No existing files, code, metadata, or commits were changed.

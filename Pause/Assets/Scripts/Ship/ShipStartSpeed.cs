@@ -81,4 +81,14 @@ public static class ShipStartSpeed
 
     // The dock popup's line: "START SPD 15".
     public static string Label(int hud) { return "START SPD " + hud; }
+
+    // A locked ship's line, so the upgrade is visible before buying: its base
+    // start (colour 1; a premium hull's lowest tier) and, when it beats the
+    // ship flown now, the gain: "START SPD 10 +5". `gain` is "" when it doesn't.
+    public static string LockedLabel(int id, int equippedHud, out string gain)
+    {
+        int hud = HudFor(id, PremiumShips.IsPremium(id) ? 0 : ShipSkins.Stock);
+        gain = hud > equippedHud ? "+" + (hud - equippedHud) : "";
+        return Label(hud);
+    }
 }

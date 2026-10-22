@@ -1,0 +1,19 @@
+Completed J1b pose sheets and preview. Image generation was used for painted variants, followed by hard-edged nearest-neighbour cleanup. No existing files were edited or committed.
+
+Files:
+
+- [hull_redo_state0.png](</Users/sina/Developer/Pause/.claude/worktrees/agent-ae47bc826c0c4d00b/Pause/Assets/Art/Resources/ShipArt/UFO/src~/codex/hull_redo_state0.png>)
+- [hull_redo_state1.png](</Users/sina/Developer/Pause/.claude/worktrees/agent-ae47bc826c0c4d00b/Pause/Assets/Art/Resources/ShipArt/UFO/src~/codex/hull_redo_state1.png>)
+- [hull_redo_state2.png](</Users/sina/Developer/Pause/.claude/worktrees/agent-ae47bc826c0c4d00b/Pause/Assets/Art/Resources/ShipArt/UFO/src~/codex/hull_redo_state2.png>)
+- [preview_j1b.png](</Users/sina/Developer/Pause/.claude/worktrees/agent-ae47bc826c0c4d00b/Pause/Assets/Art/Resources/ShipArt/UFO/src~/codex/preview_j1b.png>)
+- [check_j1b.py](</Users/sina/Developer/Pause/.claude/worktrees/agent-ae47bc826c0c4d00b/Pause/Assets/Art/Resources/ShipArt/UFO/src~/codex/tools/check_j1b.py>)
+
+Validation:
+
+| State | Cell 0 | Cell 1 | Cell 2 | Canopy 1 | Canopy 2 | Damage mismatches | Silhouette mismatches |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| 0 | 4.465% | 1.459% | 4.571% | 68.484% | 60.445% | 0 | 0 |
+| 1 | 4.191% | 1.459% | 4.297% | 68.484% | 60.445% | 0 | 0 |
+| 2 | 3.486% | 0.859% | 3.516% | 40.303% | 31.171% | 0 | 0 |
+
+All requested thresholds pass.

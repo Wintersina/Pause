@@ -1,0 +1,17 @@
+Completed with no existing files edited or committed.
+
+Outputs:
+
+- [skin_Jester_state0.png](/Users/sina/Developer/Pause/.claude/worktrees/agent-a71e29e38407814db/Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/skin_Jester_state0.png)
+- [skin_Jester_state1.png](/Users/sina/Developer/Pause/.claude/worktrees/agent-a71e29e38407814db/Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/skin_Jester_state1.png)
+- [skin_Jester_state2.png](/Users/sina/Developer/Pause/.claude/worktrees/agent-a71e29e38407814db/Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/skin_Jester_state2.png)
+- [check_skin_Jester.py](/Users/sina/Developer/Pause/.claude/worktrees/agent-a71e29e38407814db/Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/tools/check_skin_Jester.py)
+- [build_skin_Jester.py](/Users/sina/Developer/Pause/.claude/worktrees/agent-a71e29e38407814db/Pause/Assets/Art/Resources/ShipArt/Saboteur/src~/codex/tools/build_skin_Jester.py)
+
+Validation summary:
+
+- State 0: silhouette 0.000%, core 0.000%, minimum changed 3.223%
+- State 1: silhouette 0.000%, core 0.000%, minimum changed 3.117%
+- State 2: silhouette 0.000%, core 0.000%, minimum changed 3.056%
+
+All 27 cells pass. Built-in image generation was used for multiple repaint candidates; the final sheets use exact reference geometry with discrete Jester teal shadow/base/highlight cleanup and nearest-neighbour 2× export.
