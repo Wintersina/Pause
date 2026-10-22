@@ -1,0 +1,22 @@
+{
+ "cell": 256,
+ "note": "hub centres in the 256 px idle cell (x right, y down); rotate blades here",
+ "hubs": {
+  "upper_left": [
+   51.5,
+   43.5
+  ],
+  "upper_right": [
+   204.5,
+   43.5
+  ],
+  "lower_left": [
+   50.5,
+   205.5
+  ],
+  "lower_right": [
+   205.5,
+   205.5
+  ]
+ }
+}
