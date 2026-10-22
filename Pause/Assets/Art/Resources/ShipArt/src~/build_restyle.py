@@ -42,6 +42,7 @@ spec.loader.exec_module(bp)
 
 CELL, COLS, STATES = bp.CELL, bp.COLS, bp.STATES
 GREEN = np.array([0, 255, 0], dtype=np.uint8)
+KEYRGB = GREEN          # background key colour of the Codex paintings (a ship hook may change it)
 
 KINDS = {"Sparks": "sparks", "Arc": "arc", "Smoke": "smoke", "Flame": "flame", "Leak": "leak", "Smolder": "smolder"}
 
@@ -75,7 +76,7 @@ def hit_flash(rgb, hull=None):
         hull = ~is_green(rgb)
     peak = rgb.astype(np.int16).max(axis=2)
     out = np.empty_like(rgb)
-    out[:] = GREEN
+    out[:] = KEYRGB
     out[hull] = (244, 234, 212)
     out[hull & (peak < 45)] = (6, 8, 20)
     out[hull & (peak >= 45) & (peak < 85)] = (92, 88, 91)
@@ -341,10 +342,10 @@ def compose_states(img, cfg):
 def write_skin_refs(sheet, codex):
     """3 x 3 reference sheets of the FINAL flipbook (cells 512 px, green bg) for the skin briefs."""
     for st in range(3):
-        out = Image.new("RGB", (1536, 1536), (0, 255, 0))
+        out = Image.new("RGB", (1536, 1536), tuple(int(v) for v in KEYRGB))
         for c in range(COLS):
             cell = sheet.crop((c * CELL, st * CELL, (c + 1) * CELL, (st + 1) * CELL)).resize((512, 512), Image.NEAREST)
-            bg = Image.new("RGBA", (512, 512), (0, 255, 0, 255))
+            bg = Image.new("RGBA", (512, 512), tuple(int(v) for v in KEYRGB) + (255,))
             bg.alpha_composite(cell)
             out.paste(bg.convert("RGB"), ((c % 3) * 512, (c // 3) * 512))
         out.save(os.path.join(codex, "skinref_state%d.png" % st))
@@ -459,6 +460,9 @@ def write_flames(key, cfg, codex):
 def main():
     key = shiplib.resolve(sys.argv[1])
     cfg = load_cfg(key)
+    hook = os.path.join(shiplib.src_dir(key), "build_hook.py")     # optional per-ship tweak (e.g. another chroma key)
+    if os.path.exists(hook):
+        exec(compile(open(hook).read(), hook, "exec"), globals())
     codex = os.path.join(shiplib.src_dir(key), "codex")
     raw = build_sheet(cfg, codex)
     sheet = compose_states(raw, cfg)
