@@ -306,6 +306,9 @@ def compose_states(img, cfg):
     z = cfg.get("damage_zones")
     if not z:
         return img
+    if cfg.get("patch_from_idle"):
+        import damage_patch                    # stamps the idle damage layer onto every column (Turtle)
+        return damage_patch.compose(img, cfg)
     a = np.array(img)
     out = a.copy()
     alpha0 = a[:CELL, :, 3]
