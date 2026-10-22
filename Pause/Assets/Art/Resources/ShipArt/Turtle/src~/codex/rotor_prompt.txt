@@ -1,0 +1,7 @@
+Generate ONE image (use image generation) and save it to rotor_raw.png in the working directory (the directory is a scratch folder: write only there).
+
+Subject: a top-down helicopter / quadcopter ROTOR for a hi-res neon pixel-art shooter ship, a 3-blade rotor, viewed straight down. A round metal hub exactly in the centre of the image, with a small bright cyan dot in the middle of the hub. Three identical tapered blades radiating from the hub at 120 degrees (one pointing straight up), each blade slate-steel blue with a lighter steel top edge, a thin dark shading edge on the lower side, and a cream/bone-coloured tip band at the outer end. The three blades must be identical and symmetric. Blade length from hub centre to tip about 44% of the image width.
+
+Style: match the reference images (the attached Turtle ship and the Paragon ship are the style bar): hi-res pixel art, crisp pixels, hard-edged flat cel shading with 2 to 3 tones, tiny panel details allowed on the hub, NO outline halo, no glow, no motion blur, no anti-aliased smears. Palette: slate #5C6A7E, steel highlight #8C9CB2, cream #F0E4BC, dark shade #2A3140, cyan #2FD6E8. The blades must NOT use pink.
+Background: perfectly flat solid #FF00FF magenta everywhere outside the rotor, no shadow on it, no gradient, no box. Square 1024x1024 image.
+Attached references: ref_turtle_idle.png (the ship it goes on, gold and navy), ref_flipper_hub.png (close-up of a flipper with its hub cap, the rotor sits on that hub), ref_paragon_style.png (style bar).
