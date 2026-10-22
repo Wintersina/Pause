@@ -10,7 +10,7 @@ using UnityEngine;
 //   - a non-stock skin moves the outer / mid bands measurably toward the
 //     skin (part of the way, within the blend), keeps the hot core and any
 //     friendly-red accent
-//   - the remap of the real atlas texels lands on those colours
+//   - the remap of the real flame-sheet texels lands on those colours
 //   - equipping / previewing a skin re-colours plumes, spin drifts and the
 //     home-screen traffic's exhaust, also while the world is frozen
 public static class ExhaustSkinTest
@@ -202,16 +202,16 @@ public static class ExhaustSkinTest
               total < .04f || (left > total * .08f && left < total * .85f));
     }
 
-    // The real atlas texels: a texel drawn in a band colour shows that band's
+    // The real flame texels: a texel drawn in a band colour shows that band's
     // remapped colour; the core texels stay put.
     static void AtlasTexelsRemap()
     {
-        string path = Path.Combine(Application.dataPath, "Art/Resources/ShipArt/Exhaust/exhaust_atlas.png");
-        var tex = new Texture2D(2, 2, TextureFormat.RGBA32, false);
-        tex.LoadImage(File.ReadAllBytes(path));
-        var pixels = tex.GetPixels32();
         foreach (int id in new[] { 1, 3, 6, 13 })
         {
+            string path = Path.Combine(Application.dataPath, "Art/Resources/" + ShipData.FlamePath(ShipId.KeyOf(id)) + ".png");
+            var tex = new Texture2D(2, 2, TextureFormat.RGBA32, false);
+            tex.LoadImage(File.ReadAllBytes(path));
+            var pixels = tex.GetPixels32();
             var stock = ExhaustColors.Stock(id);
             var p = ExhaustColors.For(id, 1);
             Color32 outer = stock.outer, core = stock.core;
@@ -239,8 +239,8 @@ public static class ExhaustSkinTest
             // they barely move (the core shift is zero).
             Check(who + ": core texels stay within .03 (" + coreHits + ", err " + coreErr.ToString("F3") + ")",
                   coreHits > 0 && coreErr < .03f);
+            Object.DestroyImmediate(tex);
         }
-        Object.DestroyImmediate(tex);
     }
 
     // ------------------------------------------------------------ renderers
