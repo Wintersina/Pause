@@ -101,6 +101,15 @@ public static class UnusedAssetGuardTest
     // and the scrollingText behaviour nothing attached.
     public static readonly string[] ReplacedAssets =
     {
+        // Elites and bosses share the player's Vfx/lifeHeart; the retired sprite is archived.
+        "Assets/Art/Resources/Vfx/eliteHeart.png",
+        // Identical final-hold frames now reuse gate_open_62 without changing timing.
+        "Assets/Art/Resources/HapticGate/GateOpen/gate_open_63.png",
+        "Assets/Art/Resources/HapticGate/GateOpen/gate_open_64.png",
+        "Assets/Art/Resources/HapticGate/GateOpen/gate_open_65.png",
+        "Assets/Art/Resources/HapticGate/GateOpen/gate_open_66.png",
+        "Assets/Art/Resources/HapticGate/GateOpen/gate_open_67.png",
+        "Assets/Art/Resources/HapticGate/GateOpen/gate_open_68.png",
         // The splash's procedural steel door (2026-10-12): replaced by the approved gate-opening
         // film (Resources/HapticGate/Film, GateFilm); its debris / steam effect sheets stay.
         "Assets/Resources/HapticGate/industrial_gate_v4.png",

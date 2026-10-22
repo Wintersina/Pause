@@ -9,7 +9,8 @@ using UnityEngine.UI;
 // downscaled to 512 px, every 2nd source frame (15 fps), 69 frames = 4.6 s;
 // the last frame is the open gate + wordmark (the source's final hold).
 //
-//   Art/Resources/HapticGate/GateOpen/gate_open_00..68.png   512x512 RGBA sprites
+//   Art/Resources/HapticGate/GateOpen/gate_open_00..62.png   512x512 RGBA sprites
+//   Timeline frames 63..68 repeat frame 62 (the source PNGs are byte-identical).
 //
 // Shared by every screen that shows the animated logo (Credits now; the boot
 // splash can use the same player). Renderer-agnostic: drives a uGUI Image or a
@@ -21,6 +22,7 @@ public static class GateOpenFrames
     public const string Folder = "HapticGate/GateOpen";
     public const string Prefix = "gate_open_";
     public const int Count = 69;
+    public const int LastUniqueFrame = 62;
     public const float Fps = 15f;
     public const float Duration = Count / Fps;   // 4.6 s, then hold the last frame
 
@@ -33,7 +35,8 @@ public static class GateOpenFrames
         var frames = new Sprite[Count];
         for (int i = 0; i < Count; i++)
         {
-            frames[i] = Resources.Load<Sprite>(Folder + "/" + Prefix + i.ToString("00"));
+            frames[i] = i > LastUniqueFrame ? frames[LastUniqueFrame] :
+                Resources.Load<Sprite>(Folder + "/" + Prefix + i.ToString("00"));
             if (frames[i] == null) return cached = null;
         }
         return cached = frames;
