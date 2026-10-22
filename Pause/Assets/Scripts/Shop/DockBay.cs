@@ -125,6 +125,9 @@ public class DockBay : MonoBehaviour
         hullHalfSize = rest != null ? (Vector2)rest.bounds.extents * k2 : new Vector2(.3f, .3f);
         shadow.transform.localScale = new Vector3(hullHalfSize.x * 2.4f / .64f, hullHalfSize.y * 2.2f / .64f, 1f);
 
+        // Spinning rotors for ships that have a rotors file (Turtle); they follow the hull's tint.
+        ShipRotors.Attach(shipGo, i, hull, true);
+
         // Engine: the same mounts the flight flame uses, cold until selected.
         ShipExhaust.ConfigureBoost(shipGo, i);
         if (!wind)

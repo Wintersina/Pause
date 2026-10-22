@@ -1,0 +1,8 @@
+{
+  "rotors": [
+    { "x": 51.5,  "y": 43.5,  "scale": 1.0, "speed_deg_per_s": 540, "direction": 1 },
+    { "x": 204.5, "y": 43.5,  "scale": 1.0, "speed_deg_per_s": 540, "direction": -1 },
+    { "x": 50.5,  "y": 205.5, "scale": 1.0, "speed_deg_per_s": 540, "direction": -1 },
+    { "x": 205.5, "y": 205.5, "scale": 1.0, "speed_deg_per_s": 540, "direction": 1 }
+  ]
+}
