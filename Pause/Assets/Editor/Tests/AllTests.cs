@@ -51,6 +51,7 @@ public static class AllTests
         ("SpaceSunTest", SpaceSunTest.Execute),
         ("AccountCloudSaveTest", AccountCloudSaveTest.Execute),
         ("AccountSignInTest", AccountSignInTest.Execute),
+        ("PreRegistrationRewardTest", PreRegistrationRewardTest.Execute),
         ("AppIconTest", AppIconTest.Execute),
         ("ArtRestyleTest", ArtRestyleTest.Execute),
         ("AchievementCatalogTest", AchievementCatalogTest.Execute),
