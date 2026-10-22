@@ -37,6 +37,7 @@ CELL, COLS, STATES = bp.CELL, bp.COLS, bp.STATES
 HULLS = bp.HULLS
 SKINS_DIR = bp.SKINS_DIR
 GREEN = np.array([0, 255, 0], dtype=np.uint8)
+KEYRGB = GREEN
 
 KINDS = {"Sparks": "sparks", "Arc": "arc", "Smoke": "smoke", "Flame": "flame", "Leak": "leak", "Smolder": "smolder"}
 
@@ -49,6 +50,19 @@ def parse_emitters(text):
 # per ship: old hull width in the 256 cell (the world size the ship keeps), old emitters (kept
 # positions; nudged onto paint), skin names, flame bands (the ShipExhaustStyle row) and atlas slots
 SHIPS = {
+    "Paranoid": dict(
+        id=10, hull_w=232, world_w=243 / 810.0, nozzles=2, noz_scale=(.72, .72), magenta_key=True,
+        noz_cells=[(35, 206, .72), (222, 206, .72)],
+        emitters=parse_emitters(
+            "E(1, Sparks, 45.7f, 39.8f), E(1, Smoke, 17.7f, 92.8f), E(1, Smolder, 45.7f, 39.8f), "
+            "E(2, Arc, 90.1f, 65.2f), E(2, Flame, 110.3f, 92.8f), E(2, Leak, 64.0f, 97.4f), "
+            "E(2, Smolder, 107.4f, 61.7f), E(2, Smolder, 90.1f, 65.2f), E(2, Smolder, 16.9f, 81.3f), "
+            "E(2, Smolder, 114.0f, 80.2f), E(2, Smolder, 46.7f, 73.9f), E(2, Smolder, 114.2f, 32.5f)"),
+        skins=[("Night", "night"), ("Sodium", "sodium"), ("Bone", "bone"), ("Signal", "stock")],
+        flame=dict(x=(0, 300), y=698, frames=6,
+                   bands=dict(outer=(0x5D, 0xBB, 0x3A), mid=(0x1F, 0xB5, 0xB9), core=(0xB6, 0xEE, 0x8A),
+                              dark=(0x2A, 0x5E, 0x1E), accent=(0xF4, 0xEA, 0xD4))),
+    ),
     "NeonComet": dict(
         id=1, hull_w=232, world_w=243 / 759.375, nozzles=2, noz_scale=(.72, .72),
         emitters=parse_emitters(
@@ -64,9 +78,25 @@ SHIPS = {
 }
 
 
+MAGENTA_KEY = False     # ships whose hull is green (Paranoid) are painted on flat #FF00FF instead
+
+
+def key_magenta(img):
+    """Chroma key for #FF00FF backgrounds (green hulls): no despill needed (nothing on the hull is pink)."""
+    a = np.array(img).astype(int)
+    dist = np.sqrt((a[..., 0] - 255) ** 2 + a[..., 1] ** 2 + (a[..., 2] - 255) ** 2)
+    r, g, b = a[..., 0], a[..., 1], a[..., 2]
+    bg = (dist < 120) | ((r - g > 70) & (b - g > 70))
+    out = np.dstack([np.clip(a, 0, 255).astype(np.uint8), np.where(bg, 0, 255).astype(np.uint8)])
+    out[bg] = 0
+    return Image.fromarray(out)
+
+
 def is_green(rgb):
     v = rgb.astype(np.int16)
     r, g, b = v[..., 0], v[..., 1], v[..., 2]
+    if MAGENTA_KEY:
+        return ((r - g > 70) & (b - g > 70)) | ((r > 200) & (b > 200) & (g < 90))
     return (g > 100) & (g > r * 1.55) & (g > b * 1.4) & (g - r > 65) & (g - b > 65)
 
 
@@ -75,7 +105,7 @@ def hit_flash(rgb):
     hull = ~is_green(rgb)
     peak = rgb.astype(np.int16).max(axis=2)
     out = np.empty_like(rgb)
-    out[:] = GREEN
+    out[:] = KEYRGB
     out[hull] = (244, 234, 212)
     out[hull & (peak < 45)] = (6, 8, 20)
     out[hull & (peak >= 45) & (peak < 85)] = (92, 88, 91)
@@ -239,10 +269,10 @@ def recolour(sheet, mode):
 def write_skin_refs(sheet, codex):
     """3 x 3 reference sheets of the FINAL flipbook (cells 512 px, green bg) for the skin briefs."""
     for st in range(3):
-        out = Image.new("RGB", (1536, 1536), (0, 255, 0))
+        out = Image.new("RGB", (1536, 1536), tuple(int(v) for v in KEYRGB))
         for c in range(COLS):
             cell = sheet.crop((c * CELL, st * CELL, (c + 1) * CELL, (st + 1) * CELL)).resize((512, 512), Image.NEAREST)
-            bg = Image.new("RGBA", (512, 512), (0, 255, 0, 255))
+            bg = Image.new("RGBA", (512, 512), tuple(int(v) for v in KEYRGB) + (255,))
             bg.alpha_composite(cell)
             out.paste(bg.convert("RGB"), ((c % 3) * 512, (c // 3) * 512))
         out.save(os.path.join(codex, "skinref_state%d.png" % st))
@@ -335,7 +365,12 @@ def write_flames(cfg, codex):
 def main():
     key = sys.argv[1]
     cfg = SHIPS[key]
-    codex = os.path.join(HERE, key.lower(), "codex")
+    if cfg.get("magenta_key"):
+        global MAGENTA_KEY, KEYRGB
+        MAGENTA_KEY = True
+        KEYRGB = np.array([255, 0, 255], dtype=np.uint8)
+        bp.key_green = key_magenta
+    codex =os.path.join(HERE, key.lower(), "codex")
     sheet = build_sheet(cfg, codex)
     sheet.save(os.path.join(HULLS, key + ".png"), optimize=True)
     data = measure(sheet, cfg)
