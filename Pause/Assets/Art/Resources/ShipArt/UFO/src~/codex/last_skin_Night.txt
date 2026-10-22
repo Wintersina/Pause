@@ -1,0 +1,12 @@
+Completed the Night sheets and checker:
+
+- [skin_Night_state0.png](/Users/sina/Developer/Pause/.claude/worktrees/agent-ae47bc826c0c4d00b/Pause/Assets/Art/Resources/ShipArt/UFO/src~/codex/skin_Night_state0.png)
+- [skin_Night_state1.png](/Users/sina/Developer/Pause/.claude/worktrees/agent-ae47bc826c0c4d00b/Pause/Assets/Art/Resources/ShipArt/UFO/src~/codex/skin_Night_state1.png)
+- [skin_Night_state2.png](/Users/sina/Developer/Pause/.claude/worktrees/agent-ae47bc826c0c4d00b/Pause/Assets/Art/Resources/ShipArt/UFO/src~/codex/skin_Night_state2.png)
+- [check_skin_Night.py](/Users/sina/Developer/Pause/.claude/worktrees/agent-ae47bc826c0c4d00b/Pause/Assets/Art/Resources/ShipArt/UFO/src~/codex/tools/check_skin_Night.py)
+
+All files are 3072×3072 RGB PNGs with #00FF00 backgrounds.
+
+Checker summary: all 27 cells pass. Silhouette and canopy differences are 0.000%. Non-hit changed fractions range from 32.491% to 40.355%; hit-flash cells remain unchanged.
+
+Caveat: imagegen candidates were used to establish the Night repaint direction, then reference-locked nearest-neighbour cleanup was required to preserve exact geometry and pass the strict metrics. No existing files were edited, deleted, or committed.
