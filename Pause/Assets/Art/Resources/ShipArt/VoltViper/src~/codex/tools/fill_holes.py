@@ -11,13 +11,13 @@ from PIL import Image
 
 art = sys.argv[1]
 fix = "--fix" in sys.argv
-hulls = os.path.join(art, "Hulls")
-spec = importlib.util.spec_from_file_location("br", os.path.join(hulls, "src~", "build_restyle.py"))
+hulls = os.path.join(art, "VoltViper")
+spec = importlib.util.spec_from_file_location("br", os.path.join(art, "src~", "build_restyle.py"))
 br = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(br)
 CELL = 256
 paths = [(os.path.join(hulls, "VoltViper.png"), False)] + [
-    (os.path.join(art, "Skins", f"VoltViper_{n}.bytes"), True) for n in ("Night", "Sodium", "Bone", "Storm")]
+    (os.path.join(hulls, f"VoltViper_{n}.bytes"), True) for n in ("Night", "Sodium", "Bone", "Storm")]
 for p, as_bytes in paths:
     im = Image.open(p)
     im.load()

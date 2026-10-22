@@ -1,5 +1,5 @@
 You are making game art for "Pause" (Unity, vertical 2D shooter, phone portrait, the player flies UP the screen). Work ONLY inside this directory tree; do not edit any .cs/.meta/.json or any existing file; do not delete anything; do not commit.
-New files go ONLY to ./Pause/Assets/Art/Resources/ShipArt/Hulls/src~/paragon/codex/ (the trailing ~ matters: Unity ignores it). Put generators/helpers in its tools/ subfolder.
+New files go ONLY to ./Pause/Assets/Art/Resources/ShipArt/Paragon/src~/codex/ (the trailing ~ matters: Unity ignores it). Put generators/helpers in its tools/ subfolder.
 Read ./docs/art-style.md first (neon pixel art, 1 px dark outline, 4-6 tone ramps, rim light, saturated glowing cores, cyberpunk/Akira palette). The player ship we are building is the PREMIUM ship "Paragon".
 
 REFERENCES (attached images, in order): (1) ship_alone.png, the approved HD neon pixel-art Paragon ship: a symmetrical red-and-blue armoured fighter seen from directly above, nose pointing UP, big glowing blue cockpit canopy, two outboard wing pods and two inner pods, three engine nozzles at the bottom (one big centre, two small outboard). Its flames are painted into the image; (2) ref_rest_hull.png, the same ship with the flames removed (engines end cleanly at their nozzle lips) on flat green, at the size/orientation the game uses.

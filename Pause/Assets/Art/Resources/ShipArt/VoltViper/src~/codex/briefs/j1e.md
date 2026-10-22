@@ -1,5 +1,5 @@
 You are making game art for "Pause" (Unity, vertical 2D shooter, phone portrait, the player flies UP the screen). Work ONLY inside this directory tree; do not delete anything; do not commit. You may overwrite ONLY the six files bank_state{0,1,2}_{left,right}.png named below and preview_j1e.png; do not touch any other existing file. New helpers go in tools/.
-Output folder: ./Pause/Assets/Art/Resources/ShipArt/Hulls/src~/voltviper/codex/ (the trailing ~ matters).
+Output folder: ./Pause/Assets/Art/Resources/ShipArt/VoltViper/src~/codex/ (the trailing ~ matters).
 Read ./docs/art-style.md first (neon pixel art).
 IMPORTANT: every painted result must come from IMAGE GENERATION. If image generation fails (HTTP 429 / usage limit), STOP at once, write nothing, and say so in your final message. Do NOT fall back to scripted squashing, shearing, warping or recolouring.
 

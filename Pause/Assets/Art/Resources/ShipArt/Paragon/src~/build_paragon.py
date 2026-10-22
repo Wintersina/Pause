@@ -24,12 +24,10 @@ painted:
   * skins     hue-shifted recolours of the finished sheet (alpha identical)
   * exhaust   the long centre flame of the source, quantised to the five
               exhaust bands, 7 flipbook frames (+ smear) for cruise and boost,
-              pasted into ShipArt/Exhaust/exhaust_atlas.png (free band at
-              x=1050..1750, y=504)
+              written to ShipArt/Paragon/Paragon_flame.png
 
-It writes data.json (rect, nozzles, emitters, colours) which the C# rows in
-ShipHullArt / ShipNozzles / ShipDamageTable / ShipExhaustStyle were copied
-from. Palette: neon blue / cyan; the only red is the hull's own armour.
+It writes src~/data.json (rect, nozzles, emitters, colours) which patch_cs.py
+merges into the ship's data file ShipArt/Paragon/Paragon_data.json. Palette: neon blue / cyan; the only red is the hull's own armour.
 """
 import colorsys
 import io
@@ -43,10 +41,11 @@ import numpy as np
 from PIL import Image, ImageDraw, ImageFilter
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-RES = os.path.normpath(os.path.join(HERE, "..", "..", "..", ".."))   # Art/Resources
-HULLS = os.path.join(RES, "ShipArt", "Hulls")
-SKINS_DIR = os.path.join(RES, "ShipArt", "Skins")
-ATLAS = os.path.join(RES, "ShipArt", "Exhaust", "exhaust_atlas.png")
+sys.path.insert(0, os.path.join(HERE, "..", "..", "src~"))
+import shiplib   # noqa: E402  (shared ship-folder helpers, ShipArt/src~/shiplib.py)
+
+HULLS = shiplib.ship_dir("Paragon")       # ShipArt/Paragon/: hull, skins, flame sheet and data live together
+SKINS_DIR = HULLS
 SRC = os.path.join(HERE, "ship_alone.png")
 
 KEY = "Paragon"
@@ -542,7 +541,7 @@ BANDS = {  # ExhaustStyle row for Paragon (outer, mid, core, dark, accent)
 }
 FRAME_W, FRAME_H = 48, 192
 HEAD_Y = 4
-PLUME_X, BOOST_X, STRIDE, ATLAS_Y_TOP = 1050, 1400, 50, 1472 - 504 - 192
+STRIDE = 50
 TICKS = [2, 2, 1, 2, 2, 2, 2]
 
 
@@ -642,18 +641,13 @@ def codex_flame_frames(path):
 
 
 def write_exhaust():
-    atlas = Image.open(ATLAS).convert("RGBA")
-    for x0, length, boost, cf in ((PLUME_X, 150, False, "flame_cruise.png"), (BOOST_X, 186, True, "flame_boost.png")):
+    strips = {}
+    for layer, length, boost, cf in (("Plume", 150, False, "flame_cruise.png"), ("PlumeBoost", 186, True, "flame_boost.png")):
         cpath = os.path.join(CODEX, cf)
         frames = codex_flame_frames(cpath) if os.path.exists(cpath) and "--no-codex" not in sys.argv \
             else flame_frames(length, 44, boost)
-        for f, idx in enumerate(frames):
-            cell = paint(idx)
-            # clear then paste (replace, so a rerun is idempotent)
-            box = (x0 + f * STRIDE, ATLAS_Y_TOP, x0 + f * STRIDE + FRAME_W, ATLAS_Y_TOP + FRAME_H)
-            atlas.paste(Image.new("RGBA", (FRAME_W, FRAME_H), (0, 0, 0, 0)), box)
-            atlas.alpha_composite(cell, (box[0], box[1]))
-    atlas.save(ATLAS, optimize=True)
+        strips[layer] = [paint(idx) for idx in frames]
+    shiplib.write_flame_sheet(KEY, strips, {"Plume": (FRAME_W, FRAME_H, STRIDE), "PlumeBoost": (FRAME_W, FRAME_H, STRIDE)})
 
 
 # ------------------------------------------------------------------ main --

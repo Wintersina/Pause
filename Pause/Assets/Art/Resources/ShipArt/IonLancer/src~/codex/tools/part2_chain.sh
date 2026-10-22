@@ -7,8 +7,8 @@
 RESET=${1:-1792685100}
 S=/private/tmp/claude-501/-Users-sina-Developer-Pause/f81f62e1-5015-4fec-8294-5f213a5c6d1f/scratchpad/ionlancer
 W=/Users/sina/Developer/Pause/.claude/worktrees/agent-a15dd13c95b43c273
-H=$W/Pause/Assets/Art/Resources/ShipArt/Hulls/src~
-C=$H/ionlancer/codex
+H=$W/Pause/Assets/Art/Resources/ShipArt/src~
+C=$W/Pause/Assets/Art/Resources/ShipArt/IonLancer/src~/codex
 CX=/private/tmp/claude-501/-Users-sina-Developer-Pause/f81f62e1-5015-4fec-8294-5f213a5c6d1f/scratchpad/ion-codex.sh
 mkdir -p $S
 exec >> $S/part2.log 2>&1

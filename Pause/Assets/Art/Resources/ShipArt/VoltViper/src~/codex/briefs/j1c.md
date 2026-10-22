@@ -1,5 +1,5 @@
 You are making game art for "Pause" (Unity, vertical 2D shooter, phone portrait). Work ONLY inside this directory tree; do not edit any .cs/.meta/.json or any existing file other than the two named below; do not commit.
-Output folder: ./Pause/Assets/Art/Resources/ShipArt/Hulls/src~/voltviper/codex/ (trailing ~ matters). Helpers go in its tools/ subfolder.
+Output folder: ./Pause/Assets/Art/Resources/ShipArt/VoltViper/src~/codex/ (trailing ~ matters). Helpers go in its tools/ subfolder.
 Read ./docs/art-style.md first (neon pixel art).
 
 REFERENCES (attached, in order): (1) key_state0.png: the APPROVED intact VoltViper (azure armour, 1024x1024 on flat #00FF00). (2) paragon_damaged.png: the STYLE TARGET for painted damage: a blown panel is a dark cavity with exposed ribs, bent plates, sparking wires, torn jagged metal edges with lit orange rims, scorch gradients, burn scars and hairline cracks that are painted INTO the plating with the same pixel density, lighting and colour ramps as the hull. (3) ref_old_state1.png and (4) ref_old_state2.png: only to show WHERE damage goes on the old ship (same layout).

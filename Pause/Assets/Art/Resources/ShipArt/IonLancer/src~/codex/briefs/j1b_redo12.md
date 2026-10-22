@@ -1,5 +1,5 @@
 You are making game art for "Pause" (Unity, vertical 2D shooter). Work ONLY inside this directory tree; do not edit any .cs/.meta/.json or any existing file; do not delete anything; do not commit.
-New files go ONLY to ./Pause/Assets/Art/Resources/ShipArt/Hulls/src~/ionlancer/codex/ (the trailing ~ matters: Unity ignores it). Put helpers in its tools/ subfolder.
+New files go ONLY to ./Pause/Assets/Art/Resources/ShipArt/IonLancer/src~/codex/ (the trailing ~ matters: Unity ignores it). Put helpers in its tools/ subfolder.
 Read ./docs/art-style.md first (neon pixel art). Player ship "IonLancer", hi-res neon pixel art.
 
 REFERENCES (attached images, in order): (1) key_state1.png: approved DAMAGED key pose. (2) key_state2.png: approved HEAVY WRECK key pose (destruction across the whole hull). (3) hull_redo_state0.png: the finished HEALTHY pose sheet (3 x 2 grid of 1024 cells: lights off, glint 1, glint 2, bank left, bank right, empty). Its bank cells 3 and 4 are the PERSPECTIVE reference: clean, correctly foreshortened, solid painted hull.

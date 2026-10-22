@@ -7,7 +7,8 @@ import hullkit  # noqa: F401  (puts the sample pipeline on sys.path)
 import akira
 from PIL import Image
 
-from build import CELL, OUT_DIR
+import shiplib
+from build import CELL
 from ships import HUES, ORDER
 
 GUIDE = [v for k, v in vars(akira).items() if k.isupper() and isinstance(v, str) and v.startswith("#")]
@@ -25,7 +26,7 @@ def near(c, pal, tol):
 
 
 def check(key):
-    im = Image.open(os.path.join(OUT_DIR, key + ".png")).convert("RGBA")
+    im = Image.open(shiplib.hull_path(key)).convert("RGBA")
     W, H = im.size
     px = im.load()
     pal = [rgb(h) for h in GUIDE + list(HUES[key])]

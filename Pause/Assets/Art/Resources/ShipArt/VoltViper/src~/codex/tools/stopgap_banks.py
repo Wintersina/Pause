@@ -59,10 +59,10 @@ def process(path, as_bytes):
     return a
 
 
-hull_path = os.path.join(art, "Hulls", "VoltViper.png")
+hull_path = os.path.join(art, "VoltViper", "VoltViper.png")
 hull = process(hull_path, False)
 for n in ("Night", "Sodium", "Bone", "Storm"):
-    process(os.path.join(art, "Skins", f"VoltViper_{n}.bytes"), True)
+    process(os.path.join(art, "VoltViper", f"VoltViper_{n}.bytes"), True)
 
 # rect / ppu / nozzles (same rules as build_restyle.measure; nozzle lips are the idle ones of the first pass)
 al = hull[..., 3]
@@ -75,7 +75,7 @@ for s in range(3):
         x1, y1 = max(x1, int(xs.max()) + 1), max(y1, int(ys.max()) + 1)
 x0, y0, x1, y1 = max(0, x0 - 1), max(0, y0 - 1), min(CELL, x1 + 1), min(CELL, y1 + 1)
 w, h = x1 - x0, y1 - y0
-dj = os.path.join(art, "Hulls", "src~", "voltviper", "data.json")
+dj = os.path.join(art, "VoltViper", "src~", "data.json")
 data = json.load(open(dj))
 data["rect"] = [x0, CELL - y1, w, h]
 data["ppu"] = round(w / WORLD_W, 4)

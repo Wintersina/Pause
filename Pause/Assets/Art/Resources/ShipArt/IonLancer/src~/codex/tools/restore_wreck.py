@@ -17,7 +17,7 @@ from PIL import Image
 HERE = os.path.dirname(os.path.abspath(__file__))
 C = os.path.dirname(HERE)
 OLD = sys.argv[1] if len(sys.argv) > 1 else "5d8bd9852"
-REL = "Pause/Assets/Art/Resources/ShipArt/Hulls/src~/ionlancer/codex/"
+REL = "Pause/Assets/Art/Resources/ShipArt/IonLancer/src~/codex/"
 ROOT = subprocess.check_output(["git", "rev-parse", "--show-toplevel"], cwd=C, text=True).strip()
 
 

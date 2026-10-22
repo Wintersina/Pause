@@ -1,7 +1,7 @@
 import os, sys
 out = sys.argv[1]
 head = '''You are making game art for "Pause" (Unity, vertical 2D shooter, phone portrait, the player flies UP the screen). Work ONLY inside this directory tree; do not edit any .cs/.meta/.json or any existing file; do not delete anything; do not commit.
-New files go ONLY to ./Pause/Assets/Art/Resources/ShipArt/Hulls/src~/ionlancer/codex/ (the trailing ~ matters: Unity ignores it). Put helpers in its tools/ subfolder.
+New files go ONLY to ./Pause/Assets/Art/Resources/ShipArt/IonLancer/src~/codex/ (the trailing ~ matters: Unity ignores it). Put helpers in its tools/ subfolder.
 Read ./docs/art-style.md first (neon pixel art). The player ship is "IonLancer", redrawn in hi-res neon pixel art (cobalt-blue armour, teal canopy, gunmetal engine pods, bone-white nose tip, red wing slab lights, white/red wingtip diamonds).
 
 REFERENCES (attached images, in order): (1) skinref_state0.png, (2) skinref_state1.png, (3) skinref_state2.png: the FINAL approved flipbook, three 3 x 3 sheets (intact, damaged, wreck), 9 poses each in the order key pose / bob up / bob up lights off / glint 1 / glint 2 lights off / bob down / bank left / bank right / hit flash. Each is 1536 x 1536 (cells 512 px).

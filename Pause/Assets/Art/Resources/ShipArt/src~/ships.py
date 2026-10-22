@@ -1,4 +1,4 @@
-"""The fifteen roster hulls, redrawn in the Akira flat-cel style.
+"""The fifteen roster hulls (the legacy VECTOR designs: only ships NOT yet restyled use them), redrawn in the Akira flat-cel style.
 
 Ids and keys follow Scripts/Ship/ShipId.cs (roster index 1..15). Each ship
 keeps its name, its silhouette family and its own identity hue; red stays the
@@ -47,8 +47,12 @@ OLD_RECTS = {
 }
 
 # Hulls repainted by Codex in the Paragon style (build_restyle.py): the vector pipeline
-# (build.py / build_skins.py) must not regenerate them, nor their C# rows.
-RESTYLED = {"NeonComet", "VoltViper", "SolarFang", "JadePhantom", "IonLancer", "CrimsonHalo"}
+# (build.py / build_skins.py / exhaust.py) must not regenerate them. Derived, never edited: a
+# ship is restyled when its own data file says "painted": true (ShipArt/<Key>/<Key>_data.json,
+# written by patch_restyle.py).
+import shiplib  # noqa: E402
+
+RESTYLED = shiplib.painted_keys()
 
 ORDER = ["NeonComet", "VoltViper", "SolarFang", "CrimsonHalo", "IonLancer", "JadePhantom",
          "GoldWarden", "Lightning", "Ligher", "Paranoid", "Ninja", "Saboteur", "UFO", "Dove",

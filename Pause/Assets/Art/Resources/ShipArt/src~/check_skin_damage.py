@@ -82,7 +82,7 @@ def main():
                     data = None
                 else:
                     data = build_skins.png_bytes(sheet)
-                    path = os.path.join(build_skins.SKIN_DIR, f"{key}_{skin.name}.bytes")
+                    path = build_skins.shiplib.skin_path(key, skin.name)
                     with open(path, "rb") as fh:
                         ok = fh.read() == data
                     if ok:

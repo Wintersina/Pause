@@ -23,7 +23,7 @@ import os
 import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-REPO = os.path.abspath(os.path.join(HERE, "../../../../../../.."))
+REPO = os.path.abspath(os.path.join(HERE, "../../../../../.."))
 sys.path.append(os.path.join(REPO, "docs/art-samples/src"))
 from akira import *  # noqa: E402,F401  palette + svg helpers (the sample pipeline)
 

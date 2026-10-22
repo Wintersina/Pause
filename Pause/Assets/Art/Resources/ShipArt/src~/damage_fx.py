@@ -2,7 +2,7 @@
 
     python3 damage_fx.py [--preview <dir>]
 
-Writes ../../DamageFx.png (Resources/ShipArt/DamageFx), a grid of 64 px
+Writes ../DamageFx.png (Resources/ShipArt/DamageFx), a grid of 64 px
 cells, 4 columns x 11 rows, flat cartoon cels with INK outlines in the hull
 style's palette (docs/art-style.md), each row a 4-drawing flipbook:
 
@@ -36,7 +36,7 @@ from PIL import Image
 
 from hullkit import *  # noqa: F401,F403
 
-OUT = os.path.abspath(os.path.join(HERE, "..", "..", "DamageFx.png"))
+OUT = os.path.abspath(os.path.join(HERE, "..", "DamageFx.png"))
 CELL = 64
 COLS, ROWS = 4, 11
 WHITE = "#FFFFFF"

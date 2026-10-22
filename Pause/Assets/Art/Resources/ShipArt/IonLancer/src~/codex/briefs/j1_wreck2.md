@@ -1,5 +1,5 @@
 You are making game art for "Pause" (Unity, vertical 2D shooter). Work ONLY inside this directory tree; do not edit any .cs/.meta/.json or any existing file; do not delete anything; do not commit.
-New files go ONLY to ./Pause/Assets/Art/Resources/ShipArt/Hulls/src~/ionlancer/codex/ (the trailing ~ matters: Unity ignores it). Put helpers in its tools/ subfolder.
+New files go ONLY to ./Pause/Assets/Art/Resources/ShipArt/IonLancer/src~/codex/ (the trailing ~ matters: Unity ignores it). Put helpers in its tools/ subfolder.
 Read ./docs/art-style.md first (neon pixel art).
 
 REFERENCES (attached images, in order): (1) key_state0.png: the approved INTACT IonLancer, 1024x1024 on flat #00FF00. (2) ref_bar_wreck.png: another ship's wreck, ONLY to show how single damage features are painted (shattered canopy, torn wingtip with a glowing broken edge, exposed ribs and wires on a wing, scorched engine pods). Copy how those features are painted, NOT the amount: it is too busy for us.

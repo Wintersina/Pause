@@ -1,5 +1,5 @@
 You are making game art for "Pause" (Unity, vertical 2D shooter, phone portrait, the player flies UP the screen). Work ONLY inside this directory tree; do not edit any existing file; do not delete anything; do not commit.
-New files go ONLY to ./Pause/Assets/Art/Resources/ShipArt/Hulls/src~/voltviper/codex/ (the trailing ~ matters). Helpers go in its tools/ subfolder.
+New files go ONLY to ./Pause/Assets/Art/Resources/ShipArt/VoltViper/src~/codex/ (the trailing ~ matters). Helpers go in its tools/ subfolder.
 Read ./docs/art-style.md first (neon pixel art).
 
 REFERENCES (attached, in order): (1) key_state0.png, (2) key_state1.png, (3) key_state2.png: the approved VoltViper intact / damaged / wreck key poses, 1024 x 1024 on flat #00FF00. (4) ref_neoncomet_bank.png: three 512 px cells of ANOTHER ship (idle, bank left, bank right) showing the bar for the MOTION ONLY: a bank is a clear roll in perspective: the whole ship is also slightly rotated/leaned (about 8 to 12 degrees), the near wing is strongly foreshortened and tucked in, the far wing is longer and shows more of its top surface, the fuselage and canopy shift and skew toward the far side, and the silhouette is obviously different from idle. Do NOT copy that ship's shape; paint VoltViper.

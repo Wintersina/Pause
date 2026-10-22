@@ -1,6 +1,6 @@
 """Per-ship engine exhaust: one themed flipbook per ship, all in one atlas.
 
-    python3 exhaust.py   ->  ../../Exhaust/exhaust_atlas.png
+    python3 exhaust.py [Ship ...]   ->  ../<Key>/<Key>_flame.png (+ the exhaust row of <Key>_data.json)
                              + the generated block in Scripts/Ship/ShipExhaustStyle.cs
 
 Every ship's exhaust is coloured from its identity hue (ShipHullArt) and its
@@ -37,13 +37,13 @@ from PIL import Image
 
 from hullkit import *  # noqa: F401,F403
 
-OUT = os.path.abspath(os.path.join(HERE, "../../Exhaust"))
-CS = os.path.abspath(os.path.join(HERE, "../../../../../Scripts/Ship/ShipExhaustStyle.cs"))
+import shiplib
+
 BUILD = os.path.join(HERE, "build", "exhaust")
 
 PW, PH, PZOOM, HEAD = 32, 128, 1.5, 3.0      # plume canvas (u), zoom, flame head y
 SW, SZOOM, WAKE_HEAD = 64, 1.875, 4.0         # spinner canvas (u, square), zoom, wake head y
-ATLAS_W, GUTTER = 2048, 2
+GUTTER = 2
 
 
 # ----------------------------------------------------------------- palette --
@@ -720,10 +720,12 @@ def render(svgtext, name, zoom):
     return Image.open(png).convert("RGBA")
 
 
-def build_strips():
-    """-> list of (ship id, layer name, [frame images])"""
+def build_strips(only):
+    """-> list of (ship id, layer name, [frame images]) for the ships named in `only`"""
     strips = []
     for sid, key, kind, pal in STYLES:
+        if key not in only:
+            continue
         frames, _ = FRAMES[kind]
         if kind in SPINNERS:
             ring_fn, wake_fn = SPIN[kind]
@@ -749,77 +751,35 @@ def build_strips():
     return strips
 
 
-def pack(strips):
-    """Shelf-pack each strip (frames side by side, GUTTER apart) into rows of
-    ATLAS_W. Tallest strips first so each shelf wastes little."""
-    order = sorted(range(len(strips)), key=lambda k: (-strips[k][2][0].size[1], k))
-    placed = {}
-    shelves = []                      # [y, height, x used]
-    y_next = 0
-    for k in order:
-        imgs = strips[k][2]
-        fw, fh = imgs[0].size
-        sw = len(imgs) * (fw + GUTTER)
-        for sh in shelves:            # first shelf it fits on (same height class)
-            if sh[1] >= fh and sh[1] - fh < 40 and sh[2] + sw <= ATLAS_W:
-                placed[k] = (sh[2], sh[0])
-                sh[2] += sw
-                break
-        else:
-            shelves.append([y_next, fh, sw])
-            placed[k] = (0, y_next)
-            y_next += fh + GUTTER
-    y, shelf = y_next, 0
-    height = y + shelf
-    height = (height + 63) // 64 * 64
-    atlas = Image.new("RGBA", (ATLAS_W, height), (0, 0, 0, 0))
-    rects = []
-    for k, (sid, layer, imgs) in enumerate(strips):
-        px, py = placed[k]
-        fw, fh = imgs[0].size
-        for i, im in enumerate(imgs):
-            atlas.alpha_composite(im, (px + i * (fw + GUTTER), py))
-        # Unity rects are bottom-up
-        rects.append((sid, layer, px, height - py - fh, fw, fh, len(imgs), fw + GUTTER))
-    return atlas, rects
-
-
 def hexs(c):
-    return f'"{c.upper()}"'
+    return c.upper()
 
 
-def write_cs(rects):
-    with open(CS) as fh:
-        src = fh.read()
-    lines = []
+def write_ships(strips):
+    """One flame sheet per ship (<Key>/<Key>_flame.png), the strip rectangles and the exhaust style
+    row (kind, colours, tick table) in its data file."""
     for sid, key, kind, pal in STYLES:
+        mine = [(layer, imgs) for s, layer, imgs in strips if s == sid]
+        if not mine:
+            continue
+        layout = {layer: (imgs[0].size[0], imgs[0].size[1], imgs[0].size[0] + GUTTER) for layer, imgs in mine}
+        shiplib.write_flame_sheet(key, dict(mine), layout)
         _, ticks = FRAMES[kind]
-        lines.append(f"        /* {sid:2d} {key:<12} */ Row({sid}, \"{key}\", ExhaustKind.{kind}, "
-                     f"{hexs(pal.outer)}, {hexs(pal.mid)}, {hexs(pal.core)}, {hexs(pal.dark)}, {hexs(pal.accent)}, "
-                     f"new[] {{ {', '.join(map(str, ticks))} }}),")
-    lines.append("    };")
-    lines.append("")
-    lines.append("    // Atlas strips: ship, layer, x, y (bottom-up), frame w, h, frames, stride (px).")
-    lines.append("    static readonly Strip[] strips =")
-    lines.append("    {")
-    for sid, layer, x, y, w, h, n, stride in rects:
-        lines.append(f"        new Strip({sid}, ExhaustLayer.{layer}, {x}, {y}, {w}, {h}, {n}, {stride}),")
-    block = "\n".join(lines)
-    new = re.sub(r"(// BEGIN GENERATED EXHAUST\n).*?(\n\s*// END GENERATED EXHAUST)",
-                 lambda m: m.group(1) + block + m.group(2), src, flags=re.S)
-    with open(CS, "w") as fh:
-        fh.write(new)
+        data = shiplib.load_data(key)
+        ex = data.get("exhaust", {})
+        ex.update(kind=kind, outer=hexs(pal.outer), mid=hexs(pal.mid), core=hexs(pal.core), dark=hexs(pal.dark),
+                  accent=hexs(pal.accent), ticks=ticks)
+        shiplib.update_data(key, exhaust=ex)
+        print("wrote", shiplib.flame_path(key))
 
 
 def main():
+    names = [shiplib.resolve(a) for a in sys.argv[1:] if not a.startswith("--")]
+    only = names or [k for k in shiplib.all_keys() if k not in shiplib.painted_keys()]
     os.makedirs(BUILD, exist_ok=True)
-    strips = build_strips()
-    atlas, rects = pack(strips)
-    os.makedirs(OUT, exist_ok=True)
-    atlas.save(os.path.join(OUT, "exhaust_atlas.png"), optimize=True)
-    write_cs(rects)
-    print("exhaust atlas", atlas.size, "strips", len(rects),
-          "plume head pivot y =", 1 - HEAD / PH, "wake head pivot y =", 1 - WAKE_HEAD / SW)
+    write_ships(build_strips(only))
+    print("exhaust flame sheets for", ", ".join(only),
+          "| plume head pivot y =", 1 - HEAD / PH, "wake head pivot y =", 1 - WAKE_HEAD / SW)
 
 
 if __name__ == "__main__":

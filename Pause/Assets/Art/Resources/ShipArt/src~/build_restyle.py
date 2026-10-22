@@ -3,18 +3,22 @@
 
     python3 build_restyle.py NeonComet [--no-skins] [--no-flame] [--no-codex]
 
-Generic version of paragon/build_paragon.py for the old flat-cartoon hulls
-(restyle pass, Oct 2026). Per ship it reads  src~/<key lower>/codex/ :
+The ship is addressed by NAME only; everything it reads and writes is in its own folder
+ShipArt/<Key>/ (see shiplib.py). Generic version of Paragon/src~/build_paragon.py for the old
+flat-cartoon hulls (restyle pass, Oct 2026). Per ship it reads
 
-    key_state{0,1,2}.png         1024 px key poses on #00FF00 (intact / damaged / wreck)
-    hull_redo_state{0,1,2}.png   3x2 cells: lights off, glint 1, glint 2, bank L, bank R
-    skin_<Name>_state{0,1,2}.png 3x3 repainted flipbooks (optional; palette fallback)
-    flame_cruise.png / flame_boost.png  N cells 1:4 (optional)
+    <Key>/src~/restyle.json        the ship's build config (world size, nozzle lips, emitters, skin modes,
+                                   flame bands, damage zones)
+    <Key>/src~/codex/
+      key_state{0,1,2}.png         1024 px key poses on #00FF00 (intact / damaged / wreck)
+      hull_redo_state{0,1,2}.png   3x2 cells: lights off, glint 1, glint 2, bank L, bank R
+      skin_<Name>_state{0,1,2}.png 3x3 repainted flipbooks (optional; palette fallback)
+      flame_cruise.png / flame_boost.png  N cells 1:4 (optional)
 
-and writes the 2304 x 768 sheet (9 columns x 3 damage rows, 256 px cells, same
-layout as every hull), the skin sheets (Resources/ShipArt/Skins/<Key>_<Skin>.bytes),
-the exhaust strips and  <key>/data.json  (rect, ppu, nozzles, emitters) which
-patch_restyle.py writes into the C# tables. Only keying / fitting / assembling
+and writes the 2304 x 768 sheet <Key>/<Key>.png (9 columns x 3 damage rows, 256 px cells, same
+layout as every hull), the skin sheets <Key>/<Key>_<Skin>.bytes, the flame sheet
+<Key>/<Key>_flame.png and <Key>/src~/data.json (rect, ppu, nozzles, emitters, strips) which
+patch_restyle.py merges into <Key>/<Key>_data.json. Only keying / fitting / assembling
 here: all painting is Codex's. The old rect width (world size) is kept.
 """
 import importlib.util
@@ -29,107 +33,33 @@ import numpy as np
 from PIL import Image
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-spec = importlib.util.spec_from_file_location("bp", os.path.join(HERE, "paragon", "build_paragon.py"))
+sys.path.insert(0, HERE)
+import shiplib  # noqa: E402
+
+spec = importlib.util.spec_from_file_location("bp", os.path.join(shiplib.src_dir("Paragon"), "build_paragon.py"))
 bp = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(bp)
 
 CELL, COLS, STATES = bp.CELL, bp.COLS, bp.STATES
-HULLS = bp.HULLS
-SKINS_DIR = bp.SKINS_DIR
 GREEN = np.array([0, 255, 0], dtype=np.uint8)
 
 KINDS = {"Sparks": "sparks", "Arc": "arc", "Smoke": "smoke", "Flame": "flame", "Leak": "leak", "Smolder": "smolder"}
 
 
-def parse_emitters(text):
-    return [(int(a), KINDS[b], float(c), float(d))
-            for a, b, c, d in re.findall(r"E\((\d), (\w+), ([\d.]+)f, ([\d.]+)f\)", text)]
-
-
-# per ship: old hull width in the 256 cell (the world size the ship keeps), old emitters (kept
-# positions; nudged onto paint), skin names, flame bands (the ShipExhaustStyle row) and atlas slots
-SHIPS = {
-    "NeonComet": dict(
-        id=1, hull_w=232, world_w=243 / 759.375, nozzles=2, noz_scale=(.72, .72),
-        emitters=parse_emitters(
-            "E(1, Sparks, 32.6f, 82.6f), E(1, Smoke, 52.2f, 106.4f), E(1, Smolder, 32.8f, 82.3f), "
-            "E(2, Arc, 107.2f, 92.3f), E(2, Flame, 75.8f, 104.6f), E(2, Leak, 69.9f, 92.3f), "
-            "E(2, Smolder, 108.4f, 92.6f), E(2, Smolder, 82.2f, 90.1f), E(2, Smolder, 55.2f, 97.6f), "
-            "E(2, Smolder, 75.2f, 61.3f), E(2, Smolder, 53.2f, 61.9f)"),
-        skins=[("Night", "night"), ("Sodium", "sodium"), ("Bone", "bone"), ("Kaneda", "stock")],
-        flame=dict(x=(0, 300), y=1280, frames=6,
-                   bands=dict(outer=(0xD8, 0x23, 0x2C), mid=(0xF2, 0x86, 0x2B), core=(0xF4, 0xEA, 0xD4),
-                              dark=(0x86, 0x12, 0x1F), accent=(0x6E, 0xF2, 0xEE))),
-    ),
-    "IonLancer": dict(
-        id=5, hull_w=198, world_w=207 / 440.4255, nozzles=2, noz_scale=(.72, .72), fill_holes=True,
-        emitters=parse_emitters(
-            "E(1, Sparks, 36.5f, 99.0f), E(1, Smoke, 55.4f, 113.0f), E(1, Smolder, 36.5f, 99.2f), "
-            "E(2, Arc, 88.1f, 93.0f), E(2, Flame, 72.6f, 113.0f), E(2, Leak, 64.0f, 99.0f), "
-            "E(2, Smolder, 105.3f, 112.0f), E(2, Smolder, 88.1f, 93.0f), E(2, Smolder, 51.6f, 96.9f), "
-            "E(2, Smolder, 74.7f, 72.5f), E(2, Smolder, 49.4f, 76.5f), E(2, Smolder, 27.5f, 109.8f)"),
-        skins=[("Night", "night"), ("Sodium", "sodium"), ("Bone", "bone"), ("Lance", "stock")],
-        flame=dict(x=(600, 900), y=1086, frames=6,
-                   bands=dict(outer=(0x3A, 0x5B, 0xE0), mid=(0x6E, 0xF2, 0xEE), core=(0xF4, 0xEA, 0xD4),
-                              dark=(0x1C, 0x2A, 0x80), accent=(0x9A, 0xB0, 0xFF))),
-    ),
-    "VoltViper": dict(
-        id=2, hull_w=232, world_w=243 / 867.8571, nozzles=2, noz_scale=(.72, .72),
-        emitters=parse_emitters(
-            "E(1, Sparks, 75.0f, 63.1f), E(1, Smoke, 53.0f, 100.9f), E(1, Smolder, 75.2f, 63.3f), "
-            "E(2, Arc, 17.2f, 70.6f), E(2, Flame, 75.0f, 100.9f), E(2, Leak, 69.5f, 89.5f), "
-            "E(2, Smolder, 16.5f, 70.6f), E(2, Smolder, 93.9f, 55.5f), E(2, Smolder, 69.2f, 23.1f), "
-            "E(2, Smolder, 48.1f, 79.4f), E(2, Smolder, 76.5f, 85.6f)"),
-        skins=[("Night", "night"), ("Sodium", "sodium"), ("Bone", "bone"), ("Storm", "stock")],
-        flame=dict(x=(600, 950), y=1280, frames=7,
-                   bands=dict(outer=(0x2E, 0x9B, 0xE6), mid=(0x6E, 0xF2, 0xEE), core=(0xF4, 0xEA, 0xD4),
-                              dark=(0x17, 0x4C, 0x8C), accent=(0xF2, 0x86, 0x2B))),
-    ),
-    "SolarFang": dict(
-        id=3, hull_w=232, world_w=242 / 834.4828, nozzles=1, noz_cells=[(128, 232, 1.0)],
-        emitters=parse_emitters(
-            "E(1, Sparks, 46.3f, 91.5f), E(1, Smoke, 64.0f, 106.8f), E(1, Smolder, 46.8f, 91.0f), "
-            "E(2, Arc, 69.9f, 76.2f), E(2, Flame, 103.3f, 108.8f), E(2, Leak, 83.6f, 102.7f), "
-            "E(2, Smolder, 103.3f, 109.8f), E(2, Smolder, 70.4f, 76.2f), E(2, Smolder, 82.9f, 63.1f), "
-            "E(2, Smolder, 53.3f, 46.4f), E(2, Smolder, 78.4f, 106.3f), E(2, Smolder, 24.3f, 96.8f)"),
-        skins=[("Night", "night"), ("Neon", "stock"), ("Bone", "bone"), ("Eclipse", "stock")],
-        flame=dict(x=(1300, 1650), y=1280, frames=7,
-                   bands=dict(outer=(0xF0, 0x7A, 0x1E), mid=(0xFF, 0xB4, 0x3C), core=(0xF4, 0xEA, 0xD4),
-                              dark=(0x9A, 0x3E, 0x12), accent=(0xF2, 0x86, 0x2B))),
-    ),
-    "JadePhantom": dict(
-        id=6, hull_w=232, world_w=242 / 432.1429, nozzles=2, noz_scale=(.72, .72), fill_holes=True,
-        noz_cells=[(114, 231, .72), (142, 231, .72)],
-        emitters=parse_emitters(
-            "E(1, Sparks, 26.4f, 65.1f), E(1, Smoke, 61.2f, 109.1f), E(1, Smolder, 26.4f, 65.7f), "
-            "E(2, Arc, 106.2f, 58.5f), E(2, Flame, 91.5f, 91.5f), E(2, Leak, 65.8f, 100.3f), "
-            "E(2, Smolder, 91.3f, 93.3f), E(2, Smolder, 106.2f, 58.5f), E(2, Smolder, 81.1f, 59.5f), "
-            "E(2, Smolder, 64.6f, 88.6f), E(2, Smolder, 49.2f, 58.0f), E(2, Smolder, 62.3f, 105.9f)"),
-        skins=[("Night", "night"), ("Sodium", "sodium"), ("Bone", "bone"), ("Wraith", "stock")],
-        flame=dict(x=(1200, 1600), y=1086, frames=8,
-                   bands=dict(outer=(0x22, 0xB0, 0x7A), mid=(0x8E, 0xF0, 0xC4), core=(0xF4, 0xEA, 0xD4),
-                              dark=(0x0E, 0x5A, 0x44), accent=(0x1F, 0xB5, 0xB9))),
-    ),
-    "CrimsonHalo": dict(
-        id=4, hull_w=190, world_w=195 / 423.913, nozzles=2, noz_scale=(.72, .72),
-        noz_cells=[(120, 236, .72), (136, 236, .72)],
-        emitters=parse_emitters(
-            "E(1, Sparks, 38.8f, 84.3f), E(1, Smoke, 61.5f, 109.4f), E(1, Smolder, 39.7f, 84.0f), "
-            "E(2, Arc, 82.5f, 45.7f), E(2, Flame, 99.2f, 93.9f), E(2, Leak, 65.7f, 103.6f), "
-            "E(2, Smolder, 100.9f, 93.7f), E(2, Smolder, 77.5f, 76.3f), E(2, Smolder, 51.0f, 71.9f), "
-            "E(2, Smolder, 48.5f, 110.1f)"),
-        skins=[("Night", "night"), ("Sodium", "sodium"), ("Bone", "bone"), ("Seraph", "stock")],
-        # Codex repaints each damage state as its own picture (plating differs everywhere, ShipDamageTest sees
-        # ~88% of the hull "repainted" at both steps). So rows 1-2 are composed: the intact pixels outside the
-        # damage zones, the damaged painting inside them. Ellipses (cx, cy, rx, ry) in the key pose's cell.
-        damage_zones=dict(
-            s1=[(88, 155, 32, 34), (105, 75, 22, 46), (125, 215, 30, 34), (125, 172, 14, 30)],
-            s2=[(190, 165, 40, 32), (165, 80, 26, 44), (128, 80, 16, 32), (160, 215, 32, 32), (88, 155, 48, 40)]),
-        flame=dict(x=(0, 300), y=1086, frames=6,
-                   bands=dict(outer=(0xC8, 0x28, 0x5E), mid=(0xFF, 0xB4, 0x3C), core=(0xF4, 0xEA, 0xD4),
-                              dark=(0x6E, 0x11, 0x36), accent=(0xFF, 0x7A, 0xA2))),
-    ),
-}
+def load_cfg(key):
+    """<Key>/src~/restyle.json -> the build config (lists back to the tuples the code uses)."""
+    cfg = json.load(open(os.path.join(shiplib.src_dir(key), "restyle.json")))
+    cfg["emitters"] = [(int(st), kind, float(u), float(v)) for st, kind, u, v in cfg["emitters"]]
+    cfg["skins"] = [tuple(x) for x in cfg["skins"]]
+    if "noz_scale" in cfg:
+        cfg["noz_scale"] = tuple(cfg["noz_scale"])
+    if "noz_cells" in cfg:
+        cfg["noz_cells"] = [tuple(c) for c in cfg["noz_cells"]]
+    if "damage_zones" in cfg:
+        cfg["damage_zones"] = {k: [tuple(z) for z in v] for k, v in cfg["damage_zones"].items()}
+    fl = cfg["flame"]
+    fl["bands"] = {k: tuple(int(v[i:i + 2], 16) for i in (1, 3, 5)) for k, v in fl["bands"].items()}
+    return cfg
 
 
 def is_green(rgb):
@@ -402,7 +332,6 @@ def write_skin_refs(sheet, codex):
 
 
 def write_skins(sheet, cfg, key, codex):
-    os.makedirs(SKINS_DIR, exist_ok=True)
     base = np.array(sheet)
     for name, mode in cfg["skins"]:
         fb = recolour(sheet, mode)
@@ -453,7 +382,7 @@ def write_skins(sheet, cfg, key, codex):
         assert (np.array(fb)[..., 3] == base[..., 3]).all()
         buf = io.BytesIO()
         fb.save(buf, "PNG", optimize=True)
-        with open(os.path.join(SKINS_DIR, f"{key}_{name}.bytes"), "wb") as fh:
+        with open(shiplib.skin_path(key, name), "wb") as fh:
             fh.write(buf.getvalue())
 
 
@@ -475,20 +404,23 @@ def heat(idx):
     return new
 
 
-def write_flames(cfg, codex):
+def write_flames(key, cfg, codex):
     fl = cfg["flame"]
     if not all(os.path.exists(os.path.join(codex, f)) for f in ("flame_cruise.png", "flame_boost.png")):
         print("  no flame strips yet")
         return
     bp.BANDS.clear()
     bp.BANDS.update(fl["bands"])
-    atlas = Image.open(bp.ATLAS).convert("RGBA")
-    top = atlas.height - fl["y"] - bp.FRAME_H
     cols = np.array([bp.BANDS[k] for k in ("outer", "mid", "core", "dark", "accent")], float)
-    for x0, f in zip(fl["x"], ("flame_cruise.png", "flame_boost.png")):
+    try:
+        strips = shiplib.read_strips(key)        # keeps the ship's other layers (a spinner's ring / wake)
+    except (OSError, KeyError):
+        strips = {}
+    for layer, f in (("Plume", "flame_cruise.png"), ("PlumeBoost", "flame_boost.png")):
         im = Image.open(os.path.join(codex, f)).convert("RGB")
         n = fl["frames"]
         w = im.width // n
+        frames = []
         for i in range(n):
             keyed = bp.key_green(im.crop((i * w, 0, (i + 1) * w, im.height)))
             a = np.array(keyed.resize((bp.FRAME_W, bp.FRAME_H), Image.BOX)).astype(float)
@@ -496,32 +428,34 @@ def write_flames(cfg, codex):
             solid = a[..., 3] > 110
             d = ((a[..., None, :3] - cols[None, None]) ** 2).sum(-1)
             idx[solid] = d.argmin(-1)[solid]
-            if f == "flame_boost.png":
+            if layer == "PlumeBoost":
                 idx = heat(idx)
-            box = (x0 + i * bp.STRIDE, top, x0 + i * bp.STRIDE + bp.FRAME_W, top + bp.FRAME_H)
-            atlas.paste(Image.new("RGBA", (bp.FRAME_W, bp.FRAME_H), (0, 0, 0, 0)), box)
-            atlas.alpha_composite(bp.paint(idx), (box[0], box[1]))
-    atlas.save(bp.ATLAS, optimize=True)
-    print("  flames pasted")
+            frames.append(bp.paint(idx))
+        strips[layer] = frames
+    box = (bp.FRAME_W, bp.FRAME_H, bp.STRIDE)
+    rows = shiplib.write_flame_sheet(key, strips, {"Plume": box, "PlumeBoost": box})
+    print("  flames written:", [(r["layer"], r["frames"]) for r in rows])
 
 
 def main():
-    key = sys.argv[1]
-    cfg = SHIPS[key]
-    codex = os.path.join(HERE, key.lower(), "codex")
+    key = shiplib.resolve(sys.argv[1])
+    cfg = load_cfg(key)
+    codex = os.path.join(shiplib.src_dir(key), "codex")
     raw = build_sheet(cfg, codex)
     sheet = compose_states(raw, cfg)
-    sheet.save(os.path.join(HULLS, key + ".png"), optimize=True)
+    sheet.save(shiplib.hull_path(key), optimize=True)
     data = measure(sheet, cfg)
     data["skins"] = [n for n, _ in cfg["skins"]]
     write_skin_refs(raw, codex)
     if "--no-skins" not in sys.argv:
         write_skins(sheet, cfg, key, codex)
     if "--no-flame" not in sys.argv:
-        write_flames(cfg, codex)
-    with open(os.path.join(HERE, key.lower(), "data.json"), "w") as fh:
+        write_flames(key, cfg, codex)
+    data["strips"] = shiplib.load_data(key).get("exhaust", {}).get("strips", [])
+    with open(os.path.join(shiplib.src_dir(key), "data.json"), "w") as fh:
         json.dump(data, fh, indent=1)
     print(json.dumps(data))
+    print("next: python3 patch_restyle.py %s   (merges src~/data.json into %s)" % (key, os.path.basename(shiplib.data_path(key))))
 
 
 if __name__ == "__main__":

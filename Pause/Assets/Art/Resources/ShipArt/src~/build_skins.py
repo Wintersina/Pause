@@ -1,7 +1,7 @@
 """Builds every purchasable hull skin (skins.py) through the hull pipeline.
 
     python3 build_skins.py               # all ships, all skins
-    python3 build_skins.py NeonComet     # one ship (no C# patch)
+    python3 build_skins.py NeonComet     # one ship
     python3 build_skins.py --verify-stock
     python3 build_skins.py --preview <dir>   # roster_skins.png review sheet
 
@@ -9,16 +9,16 @@ Per ship and non-stock skin it renders the same 27 frames build.py does
 (3 damage states x idle 0-5, bank L/R, hit) with the skin's colours and
 writes the sheet as PNG bytes:
 
-    ../../Skins/<Key>_<Skin>.bytes     (Resources/ShipArt/Skins, a TextAsset)
+    ../<Key>/<Key>_<Skin>.bytes     (Resources/ShipArt/<Key>/, a TextAsset)
 
 The game decodes a sheet only when that skin is shown (ShipHullArt), so the
 build carries compact PNGs instead of 60 GPU textures. Each sheet must have
 exactly the stock sheet's alpha -- a skin changes colours, never the shape --
-which this script asserts. It then patches the generated table in
-Scripts/Ship/ShipSkins.cs (names, kinds, colours).
+which this script asserts. It then writes the ship's skin list (names, kinds, colours) into its
+data file ../<Key>/<Key>_data.json.
 
 --verify-stock re-renders every stock sheet through the skin-aware renderer
-and checks it is pixel-identical to the committed ../<Key>.png.
+and checks it is pixel-identical to the committed ../<Key>/<Key>.png.
 """
 import io
 import os
@@ -28,12 +28,12 @@ from concurrent.futures import ThreadPoolExecutor
 
 from PIL import Image, ImageChops
 
-from build import BUILD, CELL, COLUMNS, OUT_DIR, SCRIPTS, STATES, load, patch, poses
+import shiplib
+from build import BUILD, CELL, COLUMNS, STATES, load, poses
 from hullkit import Pose, render, svg
 from ships import ORDER, RESTYLED, SPINNERS
 from skins import SKINS, livery
 
-SKIN_DIR = os.path.abspath(os.path.join(OUT_DIR, "..", "Skins"))
 SKIN_BUILD = os.path.join(BUILD, "skins")
 ZOOM = 2
 
@@ -79,7 +79,7 @@ def compose(cells):
 
 
 def stock(key):
-    return Image.open(os.path.join(OUT_DIR, key + ".png")).convert("RGBA")
+    return Image.open(shiplib.hull_path(key)).convert("RGBA")
 
 
 def png_bytes(sheet):
@@ -94,8 +94,7 @@ def build_skin(key, index):
     diff = ImageChops.difference(sheet.getchannel("A"), stock(key).getchannel("A")).getbbox()
     assert diff is None, f"{key} {skin.name}: alpha differs from the stock sheet at {diff}"
     data = png_bytes(sheet)
-    os.makedirs(SKIN_DIR, exist_ok=True)
-    with open(os.path.join(SKIN_DIR, f"{key}_{skin.name}.bytes"), "wb") as fh:
+    with open(shiplib.skin_path(key, skin.name), "wb") as fh:
         fh.write(data)
     return skin, len(data)
 
@@ -110,21 +109,18 @@ def verify_stock():
     return bad
 
 
-def cs_table():
+def skin_rows(key):
+    """The ship's skin list as the data file stores it (skins.py is the design table)."""
     rows = []
-    for i, key in enumerate(ORDER, start=1):
-        parts = []
-        for skin in SKINS[key]:
-            b, s, h = skin.hue
-            if skin.pattern:
-                pb, ps, ph = skin.pattern_hue
-                parts.append(f'S("{skin.name}", ShipSkinKind.{skin.kind}, "{b}", "{s}", "{h}", '
-                             f'"{skin.pattern}", "{pb}", "{ps}", "{ph}")')
-            else:
-                parts.append(f'S("{skin.name}", ShipSkinKind.{skin.kind}, "{b}", "{s}", "{h}")')
-        rows.append(f"        /* {i:2d} {key:12s} */ new[] {{\n            "
-                    + ",\n            ".join(parts) + " },\n")
-    return "".join(rows)
+    for skin in SKINS[key]:
+        b, sh, h = skin.hue
+        row = dict(name=skin.name, kind=skin.kind, hue=b, shadow=sh, highlight=h,
+                   pattern="", accent="", accentShadow="", accentHighlight="")
+        if skin.pattern:
+            row["pattern"] = skin.pattern
+            row["accent"], row["accentShadow"], row["accentHighlight"] = skin.pattern_hue
+        rows.append(row)
+    return rows
 
 
 def preview(out):
@@ -145,7 +141,7 @@ def preview(out):
         y = top + r * (CELL + 30)
         d.text((8, y + CELL // 2 - 10), key, font=font, fill=(244, 234, 212))
         for c, skin in enumerate(SKINS[key]):
-            sheet = stock(key) if c == 0 else Image.open(os.path.join(SKIN_DIR, f"{key}_{skin.name}.bytes")).convert("RGBA")
+            sheet = stock(key) if c == 0 else Image.open(shiplib.skin_path(key, skin.name)).convert("RGBA")
             x = left + c * (CELL + pad)
             img.alpha_composite(sheet.crop((0, 0, CELL, CELL)), (x, y))
             d.text((x + 8, y + CELL + 4), f"{skin.name}  {prices[skin.kind]}", font=font, fill=(255, 180, 60))
@@ -168,10 +164,9 @@ def main():
             total += size
             print(f"{key:12s} {index} {skin.name:10s} {size / 1024:7.1f} KB")
     print(f"skin sheets: {total / 1024 / 1024:.2f} MB")
-    if not only:
-        patch(os.path.join(SCRIPTS, "ShipSkins.cs"), "// BEGIN GENERATED SKINS", "// END GENERATED SKINS",
-              cs_table())
-        print("patched ShipSkins.cs")
+    for key in keys:
+        shiplib.update_data(key, skins=skin_rows(key))
+        print("wrote skins of", shiplib.data_path(key))
 
 
 if __name__ == "__main__":

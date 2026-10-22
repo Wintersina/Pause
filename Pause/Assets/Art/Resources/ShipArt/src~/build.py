@@ -1,16 +1,17 @@
 """Builds every player hull flipbook and the data the game reads.
 
-    python3 build.py            # svg -> png (resvg) -> sheets -> C# tables
+    python3 build.py [Ship ...]   # svg -> png (resvg) -> sheets -> <Key>_data.json
     python3 build.py --svg-only
 
-Per ship it writes ../<Key>.png, a sheet of 256 px cells (128 u canvas at 2x):
+Per ship it writes ../<Key>/<Key>.png, a sheet of 256 px cells (128 u canvas at 2x):
 
     rows    = damage state (0 intact, 1 damaged, 2 critical), top to bottom
     columns = IDLE drawings 0..5, bank left, bank right, hit flash
 
-and patches the generated blocks of Scripts/Ship/ShipHullArt.cs (sprite rect
-and pixels-per-unit per ship) and Scripts/Ship/ShipNozzles.cs (nozzle points
-re-measured from the rendered rest frame).
+and merges the measured rows (sprite rect and pixels-per-unit, nozzle points re-measured from the
+rendered rest frame, the authored damage emitters) into the ship's own data file
+../<Key>/<Key>_data.json -- no shared file is edited. Ships whose data file says "painted"
+are restyled and skipped.
 
 The rect is the union of the art over every cell, so all frames share one
 rect and pivot (the bob and the bank happen inside it). Pixels-per-unit is
@@ -25,12 +26,11 @@ import sys
 from PIL import Image
 
 from hullkit import *  # noqa: F401,F403
+import shiplib
 import damage
 from ships import BUILDERS, HUES, OLD_RECTS, ORDER, RESTYLED, SPINNERS
 
-OUT_DIR = os.path.abspath(os.path.join(HERE, ".."))
 BUILD = os.path.join(HERE, "build")
-SCRIPTS = os.path.join(REPO, "Pause/Assets/Scripts/Ship")
 ZOOM = 2
 CELL = 128 * ZOOM
 
@@ -167,7 +167,7 @@ def compose(key, ship, cells):
     assert x0 >= 0 and y0 >= 0 and x1 <= CELL and y1 <= CELL, (key, x0, y0, x1, y1)
     check_alpha(key, sheet)
     check_emitters(ship, sheet)
-    sheet.save(os.path.join(OUT_DIR, key + ".png"), optimize=True)
+    sheet.save(shiplib.hull_path(key), optimize=True)
     rest = sheet.crop((0, 0, CELL, CELL))
     return (x0, y0, x1, y1), rest
 
@@ -226,31 +226,31 @@ def check_alpha(key, sheet):
 KIND_CS = {"sparks": "Sparks", "arc": "Arc", "smoke": "Smoke", "flame": "Flame", "leak": "Leak", "smolder": "Smolder"}
 
 
-def emitter_rows():
-    rows = []
-    for i, key in enumerate(ORDER, start=1):
-        ship = load(key)
-        parts = [f"E({st}, {KIND_CS[k]}, {u:.1f}f, {v:.1f}f)" for st in (1, 2) for k, u, v in ship.emitters[st]]
-        c1, c2 = damage.CONCEPTS[key]
-        rows.append(f"        // {i:2d} {key}: 1) {c1}; 2) {c2}\n"
-                    f"        new[] {{ {', '.join(parts)} }},\n")
-    return "".join(rows)
-
-
-# ------------------------------------------------------------ C# patching --
-def patch(path, begin, end, text):
-    with open(path) as fh:
-        src = fh.read()
-    pat = re.compile(re.escape(begin) + r".*?" + re.escape(end), re.S)
-    assert pat.search(src), (path, begin)
-    src = pat.sub(lambda _m: begin + "\n" + text + "        " + end, src)
-    with open(path, "w") as fh:
-        fh.write(src)
+def emitter_data(key):
+    """-> (note, [emitter dicts]) of the ship's authored damage emitters (damage.py)."""
+    ship = load(key)
+    rows = [dict(state=st, kind=KIND_CS[k], u=round(u, 1), v=round(v, 1)) for st in (1, 2) for k, u, v in ship.emitters[st]]
+    c1, c2 = damage.CONCEPTS[key]
+    return f"1) {c1}; 2) {c2}", rows
 
 
 def num(v):
     s = f"{v:.1f}"
     return s + "f"
+
+
+def write_ship_data(key, rect, nozzles):
+    """Merges the measured rows into <Key>_data.json (no shared file is touched)."""
+    x0, y0, x1, y1 = rect
+    w, h = x1 - x0, y1 - y0
+    ow, oh = OLD_RECTS[key]
+    note, emitters = emitter_data(key)
+    shiplib.update_data(
+        key,
+        rect=dict(x=x0, y=CELL - y1, w=w, h=h, ppu=round(w / (ow / 100.0), 4)),   # Unity rects are bottom-up inside a cell
+        hue=list(HUES[key]),
+        nozzles=[dict(x=round(rx, 1), y=round(ry, 1), scale=k) for rx, ry, k in nozzles],
+        damageNote=note, emitters=emitters)
 
 
 def main():
@@ -267,28 +267,11 @@ def main():
         nozzles[key] = measure_nozzles(ship, rect, rest)
         x0, y0, x1, y1 = rect
         print(f"{key:12s} rect {x1 - x0}x{y1 - y0} at ({x0},{y0}) nozzles {nozzles[key]}")
-    if only_svg or len(keys) != len(ORDER) or "--no-patch" in sys.argv:
+    if only_svg or "--no-patch" in sys.argv:
         return
-
-    rows, nrows = [], []
-    for i, key in enumerate(ORDER, start=1):
-        x0, y0, x1, y1 = rects[key]
-        w, h = x1 - x0, y1 - y0
-        ow, oh = OLD_RECTS[key]
-        ppu = w / (ow / 100.0)
-        # Unity rects are bottom-up inside a cell
-        rows.append(f'        /* {i:2d} {key:12s} */ new HullRect({x0}, {CELL - y1}, {w}, {h}, {ppu:.4f}f, "{HUES[key][0]}", "{HUES[key][1]}", "{HUES[key][2]}"),\n')
-        parts = []
-        for rx, ry, k in nozzles[key]:
-            parts.append(f"N({num(rx)}, {num(ry)}" + ("" if k == 1.0 else (", Twin" if k == TWIN_K else f", {k}f")) + ")")
-        nrows.append(f"        /* {i:2d} {key:12s} {w}x{h} */ new[] {{ {', '.join(parts)} }},\n")
-    patch(os.path.join(SCRIPTS, "ShipHullArt.cs"), "// BEGIN GENERATED RECTS", "// END GENERATED RECTS",
-          "".join(rows))
-    patch(os.path.join(SCRIPTS, "ShipNozzles.cs"), "// BEGIN GENERATED NOZZLES", "// END GENERATED NOZZLES",
-          "".join(nrows))
-    patch(os.path.join(SCRIPTS, "ShipDamageTable.cs"), "// BEGIN GENERATED EMITTERS", "// END GENERATED EMITTERS",
-          emitter_rows())
-    print("patched ShipHullArt.cs, ShipNozzles.cs and ShipDamageTable.cs")
+    for key in keys:
+        write_ship_data(key, rects[key], nozzles[key])
+        print("wrote", shiplib.data_path(key))
 
 
 TWIN_K = 0.72

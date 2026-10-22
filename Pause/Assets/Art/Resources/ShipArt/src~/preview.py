@@ -12,7 +12,8 @@ import sys
 
 from PIL import Image, ImageDraw, ImageFont
 
-from build import CELL, COLUMNS, IDLE_SEQUENCE, OUT_DIR, STATES
+import shiplib
+from build import CELL, COLUMNS, IDLE_SEQUENCE, STATES
 from hullkit import REPO
 from ships import HUE_NAMES, OLD_RECTS, ORDER, SPINNERS
 
@@ -28,7 +29,7 @@ def font(size):
 
 
 def sheet(key):
-    return Image.open(os.path.join(OUT_DIR, key + ".png")).convert("RGBA")
+    return Image.open(shiplib.hull_path(key)).convert("RGBA")
 
 
 def cell(img, state, col):

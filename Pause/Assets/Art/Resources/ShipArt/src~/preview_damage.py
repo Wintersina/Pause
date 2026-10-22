@@ -11,7 +11,8 @@ import sys
 
 from PIL import Image, ImageDraw
 
-from build import CELL, OUT_DIR, ZOOM, load
+import shiplib
+from build import CELL, ZOOM, load
 from damage import CONCEPTS
 from preview import LANE, font
 from ships import ORDER
@@ -34,7 +35,7 @@ def main():
         d.text((left + s * (c + gap) + 6, 10), head, font=f, fill=(110, 242, 238))
     for r, key in enumerate(ORDER):
         ship = load(key)
-        sheet = Image.open(os.path.join(OUT_DIR, key + ".png")).convert("RGBA")
+        sheet = Image.open(shiplib.hull_path(key)).convert("RGBA")
         y = top + r * (c + gap)
         d.text((8, y + c // 2 - 10), f"{r + 1:2d} {key}", font=f, fill=(244, 234, 212))
         for s in range(3):

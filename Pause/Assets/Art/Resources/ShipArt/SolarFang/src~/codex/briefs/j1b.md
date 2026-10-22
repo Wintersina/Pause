@@ -1,5 +1,5 @@
 You are making game art for "Pause" (Unity, vertical 2D shooter, phone portrait, the player flies UP the screen). Work ONLY inside this directory tree; do not edit any .cs/.meta/.json or any existing file; do not delete anything; do not commit.
-New files go ONLY to ./Pause/Assets/Art/Resources/ShipArt/Hulls/src~/solarfang/codex/ (the trailing ~ matters: Unity ignores it). Put helpers in its tools/ subfolder.
+New files go ONLY to ./Pause/Assets/Art/Resources/ShipArt/SolarFang/src~/codex/ (the trailing ~ matters: Unity ignores it). Put helpers in its tools/ subfolder.
 Read ./docs/art-style.md first (neon pixel art). The player ship "SolarFang" has just been redrawn in hi-res neon pixel art (same style as the premium ship "Paragon").
 
 REFERENCES (attached images, in order): (1) key_state0.png, (2) key_state1.png, (3) key_state2.png: the APPROVED key poses (intact, damaged, wreck), 1024 x 1024 on flat #00FF00. Keep EXACTLY that ship, scale, palette, pixel density and damage; only the stated change differs.

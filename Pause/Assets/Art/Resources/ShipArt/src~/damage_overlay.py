@@ -6,7 +6,7 @@ repainting every frame, ONE damage layer per state is taken from the idle cell (
 onto the intact cell of every other column by a landmark transform, then composited with alpha
 clipped to the intact alpha (binary alpha kept, nothing outside the silhouette).
 
-    python3 damage_overlay.py <Key> [--skins] [--preview DIR]
+    python3 damage_overlay.py <Ship> [--skins] [--preview DIR]
 
   layer_s  = pixels of  sheet[row s, col 0]  that differ from  sheet[row 0, col 0]  (RGBA, binary alpha)
   col 1,2,5 (bobs)       : same geometry, integer translation (measured from the intact alphas)
@@ -24,8 +24,8 @@ import numpy as np
 from PIL import Image
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-HULLS = os.path.normpath(os.path.join(HERE, ".."))
-SKINS = os.path.normpath(os.path.join(HERE, "..", "..", "Skins"))
+sys.path.insert(0, HERE)
+import shiplib  # noqa: E402
 CELL = 256
 INK = (6, 8, 20)
 NAMES = ["N", "L", "R", "C", "SL", "SR", "NL", "NR"]
@@ -198,18 +198,19 @@ def load(path):
 
 
 def main():
-    key = sys.argv[1]
+    key = shiplib.resolve(sys.argv[1])
     prev = sys.argv[sys.argv.index("--preview") + 1] if "--preview" in sys.argv else None
-    stock_p = os.path.join(HULLS, key + ".png")
+    stock_p = shiplib.hull_path(key)
     stock = load(stock_p)
     geo, marks = stock_geometry(stock)
     print("shifts", {c: g[1:] for c, g in geo.items() if g[0] == "shift"})
     masks = {r: make_layer(cell(stock, r, 0), cell(stock, 0, 0))[..., 3] > 0 for r in (1, 2)}
     targets = [(stock_p, stock)]
     if "--skins" in sys.argv:
-        for n in sorted(os.listdir(SKINS)):
-            if n.startswith(key + "_") and n.endswith(".bytes"):
-                targets.append((os.path.join(SKINS, n), load(os.path.join(SKINS, n))))
+        d = shiplib.ship_dir(key)
+        for n in sorted(os.listdir(d)):
+            if n.startswith(key + "_") and n.endswith(".bytes") and not n.endswith(("_shield.bytes", "_hitbox.bytes")):
+                targets.append((os.path.join(d, n), load(os.path.join(d, n))))
     for path, sh in targets:
         res = overlay_sheet(sh, geo, masks=None if path == stock_p else masks)
         assert (res[..., 3] == sh[..., 3]).all(), "alpha changed " + path

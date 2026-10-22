@@ -1,7 +1,7 @@
 """Validate Bone JadePhantom sheets against the approved reference sheets.
 
 Run from the repository root:
-    python3 Pause/Assets/Art/Resources/ShipArt/Hulls/src~/jadephantom/codex/tools/check_skin_Bone.py
+    python3 Pause/Assets/Art/Resources/ShipArt/JadePhantom/src~/codex/tools/check_skin_Bone.py
 
 The 3072px output is reduced to the 1536px reference grid with nearest-neighbour
 before each 512px cell is compared.
