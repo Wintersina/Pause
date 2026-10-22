@@ -138,6 +138,8 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
     public bool AimLocked { get { return aimLocked; } }
     public bool PlayerLost { get { return lost; } }
     public float StateTime { get { return stateTime; } }
+    // Held in place (a Space flare): it neither steers, attacks nor runs its clocks, and picks up where it left off.
+    public bool Stunned => stunLeft > 0f;
     public bool InPlay => State == EliteState.Join || State == EliteState.Follow || State == EliteState.Attack || State == EliteState.Retreat;
     // In the fight, on the board or away from it (hiding): the drawing stays the damaged one throughout.
     bool Engaged => InPlay || State == EliteState.Hide;
@@ -210,7 +212,7 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
     Vector2 hideTo;
     float stateTime, cooldown, escapeLeft, grace, hitFlash, frameHold, blinkCooldown, exhaustClock;
     int idleStep, attackPhase, damagedStep;
-    float damagedHold;
+    float damagedHold, stunLeft;
     float thrust, lastDt;
     Vector2 seen, lastPlayer, follow, aimSeen;
     bool aimLocked;
@@ -490,7 +492,10 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
             case EliteState.Parked: StepParked(dt); break;
             case EliteState.LiftOff: StepLiftOff(dt); break;
             case EliteState.Hide: StepHide(dt); break;
-            default: StepPlay(dt); break;
+            default:
+                if (stunLeft > 0f && (State == EliteState.Follow || State == EliteState.Attack)) StepStunned(dt);
+                else StepPlay(dt);
+                break;
         }
         if (State == EliteState.Dead) return;
         lastDt = dt;
@@ -929,6 +934,25 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
 
     // The brain's speed scale x the phase's.
     float BrainSpeed => Brain.SpeedScale * Script.SpeedScale;
+
+    // Stuns it for `seconds` (a longer stun is kept). An attack in its tell or action is broken off the way a jink breaks it off,
+    // so the script is back at a clean Follow when it wakes. False when it is not in the fight (parked, lifting off, hiding,
+    // joining or leaving: those play out as authored).
+    public bool Stun(float seconds)
+    {
+        if (seconds <= 0f || (State != EliteState.Follow && State != EliteState.Attack)) return false;
+        if (State == EliteState.Attack) BreakOff();
+        stunLeft = Mathf.Max(stunLeft, seconds);
+        return true;
+    }
+
+    void StepStunned(float dt)
+    {
+        stunLeft = Mathf.Max(0f, stunLeft - dt);
+        velocity = Vector2.zero;
+        thrust = Mathf.Lerp(thrust, .25f, 1f - Mathf.Exp(-6f * dt));
+        Collide();
+    }
 
     void StepPlay(float dt)
     {
