@@ -106,7 +106,7 @@ public static class MenuMusic
         SoundSettings.MarkMusic(credits);
         SoundSettings.RegisterMusic(credits);   // MUSIC toggle / slider apply
         Play(credits);
-        Codex.HearTrack(CodexMusic.CreditsId);
+        CodexMusic.HeardCredits();
     }
 
     // Anywhere else: the song stops (its object goes with the scene) and the
