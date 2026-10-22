@@ -12,12 +12,17 @@ NEAREST = Image.Resampling.NEAREST
 def source_art():
     logo = Image.open(ROOT / "Pause/Assets/Art/UI/Title/pause_title_2.png").convert("RGBA")
     logo = logo.crop(logo.getchannel("A").getbbox())
-    sheet = Image.open(ROOT / "Pause/Assets/Art/Resources/ShipArt/Skins/GoldWarden_Regent.bytes").convert("RGBA")
+    sheet = Image.open(ROOT / "Pause/Assets/Art/Resources/ShipArt/GoldWarden/GoldWarden_Regent.bytes").convert("RGBA")
     hull = sheet.crop((0, 0, 256, 256))
     hull = hull.crop(hull.getchannel("A").getbbox())
-    atlas = Image.open(ROOT / "Pause/Assets/Art/Resources/ShipArt/Exhaust/exhaust_atlas.png").convert("RGBA")
-    # GoldWarden PlumeBoost, frame 2: the longest readable flame in its strip.
-    flame = atlas.crop((400, 388, 448, 580))
+    import json
+    folder = ROOT / "Pause/Assets/Art/Resources/ShipArt/GoldWarden"
+    sheet_flame = Image.open(folder / "GoldWarden_flame.png").convert("RGBA")
+    strip = next(s for s in json.load(open(folder / "GoldWarden_data.json"))["exhaust"]["strips"] if s["layer"] == "PlumeBoost")
+    # GoldWarden PlumeBoost, frame 2: the longest readable flame in its strip (y counts from the bottom).
+    top = sheet_flame.height - strip["y"] - strip["h"]
+    left = strip["x"] + 2 * strip["stride"]
+    flame = sheet_flame.crop((left, top, left + strip["w"], top + strip["h"]))
     flame = flame.crop(flame.getchannel("A").getbbox())
     return logo, hull, flame
 

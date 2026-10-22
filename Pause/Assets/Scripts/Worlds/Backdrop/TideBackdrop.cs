@@ -148,7 +148,7 @@ public static class TideTuning
 
     // ---- launch sites ----
     public static float SiteMin = 1.5f, SiteMax = 1.7f, SiteFirst = 3f, SiteGapMin = 5f, SiteGapMax = 8.5f;
-    public static float SiteCloseDelay = 1.4f, SiteMinSize = 1.2f;
+    public static float SiteCloseDelay = .9f, SiteMinSize = 1.2f;
     // Entries 0-4 are the old two-drawing sites (sites atlas); 5-8 the launch-strip ones (docks atlas: <name>_00..05, DocksAtlas), for which
     // SiteClosed / SiteOpen name the idle and the open cell (Rule picks the ground by the name).
     public static readonly string[] SiteNames = { "trench_hatch", "rig_bay", "reef_dock", "vent_stack", "wreck_bay", "carrierpad", "lighthousesilo", "subpen", "wreckhull" };

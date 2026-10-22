@@ -157,7 +157,7 @@ for p in sorted(glob.glob(ART + 'Bosses/*.png')):
     res['bosses'][n] = dict(size=list(a.shape[:2]), m=m)
 
 # player reference
-a = load(ART + 'ShipArt/Hulls/Dove.png')
+a = load(ART + 'ShipArt/Dove/Dove.png')
 c = a[:, :768]
 bb = bbox(c[..., 3])
 res['player'] = dict(bbox=[int(v) for v in bb], long_u=PLAYER_U, long_big=PLAYER_U * PXU_BIG, long_small=PLAYER_U * PXU_SMALL)

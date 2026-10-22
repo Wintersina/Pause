@@ -1,0 +1,212 @@
+{
+  "id": 13,
+  "key": "UFO",
+  "painted": false,
+  "rect": {
+    "x": 7,
+    "y": 7,
+    "w": 242,
+    "h": 242,
+    "ppu": 930.7692
+  },
+  "hue": [
+    "#7A52DC",
+    "#3A2478",
+    "#BBA4FF"
+  ],
+  "nozzles": [
+    {
+      "x": 121.5,
+      "y": 44.5,
+      "scale": 1.0
+    }
+  ],
+  "damageNote": "1) rim panel blown; underside smoking; 2) rim torn at upper right and burning, second rim panel arcing, canopy cracked",
+  "emitters": [
+    {
+      "state": 1,
+      "kind": "Sparks",
+      "u": 22.2,
+      "v": 73.5
+    },
+    {
+      "state": 1,
+      "kind": "Smoke",
+      "u": 88.7,
+      "v": 94.4
+    },
+    {
+      "state": 1,
+      "kind": "Smolder",
+      "u": 22.2,
+      "v": 73.5
+    },
+    {
+      "state": 2,
+      "kind": "Arc",
+      "u": 40.3,
+      "v": 101.0
+    },
+    {
+      "state": 2,
+      "kind": "Flame",
+      "u": 103.9,
+      "v": 41.2
+    },
+    {
+      "state": 2,
+      "kind": "Leak",
+      "u": 69.7,
+      "v": 105.8
+    },
+    {
+      "state": 2,
+      "kind": "Smolder",
+      "u": 102.3,
+      "v": 38.9
+    },
+    {
+      "state": 2,
+      "kind": "Smolder",
+      "u": 40.3,
+      "v": 101.0
+    },
+    {
+      "state": 2,
+      "kind": "Smolder",
+      "u": 32.1,
+      "v": 54.6
+    },
+    {
+      "state": 2,
+      "kind": "Smolder",
+      "u": 37.8,
+      "v": 75.8
+    },
+    {
+      "state": 2,
+      "kind": "Smolder",
+      "u": 47.9,
+      "v": 23.6
+    },
+    {
+      "state": 2,
+      "kind": "Smolder",
+      "u": 20.7,
+      "v": 91.1
+    }
+  ],
+  "skins": [
+    {
+      "name": "Stock",
+      "kind": "Stock",
+      "hue": "#7A52DC",
+      "shadow": "#3A2478",
+      "highlight": "#BBA4FF",
+      "pattern": "",
+      "accent": "",
+      "accentShadow": "",
+      "accentHighlight": ""
+    },
+    {
+      "name": "Night",
+      "kind": "Palette",
+      "hue": "#2A2E6B",
+      "shadow": "#1A1F45",
+      "highlight": "#6EF2EE",
+      "pattern": "",
+      "accent": "",
+      "accentShadow": "",
+      "accentHighlight": ""
+    },
+    {
+      "name": "Sodium",
+      "kind": "Palette",
+      "hue": "#F2862B",
+      "shadow": "#A9481A",
+      "highlight": "#FFB43C",
+      "pattern": "",
+      "accent": "",
+      "accentShadow": "",
+      "accentHighlight": ""
+    },
+    {
+      "name": "Bone",
+      "kind": "Palette",
+      "hue": "#F4EAD4",
+      "shadow": "#B9AE98",
+      "highlight": "#F4EAD4",
+      "pattern": "",
+      "accent": "",
+      "accentShadow": "",
+      "accentHighlight": ""
+    },
+    {
+      "name": "Abductor",
+      "kind": "Special",
+      "hue": "#7A52DC",
+      "shadow": "#3A2478",
+      "highlight": "#BBA4FF",
+      "pattern": "split",
+      "accent": "#1FB5B9",
+      "accentShadow": "#0F5E6A",
+      "accentHighlight": "#6EF2EE"
+    }
+  ],
+  "exhaust": {
+    "kind": "SpinVortex",
+    "outer": "#7A52DC",
+    "mid": "#BBA4FF",
+    "core": "#F4EAD4",
+    "dark": "#3A2478",
+    "accent": "#6EF2EE",
+    "ticks": [
+      2,
+      2,
+      1,
+      2,
+      2,
+      2,
+      2,
+      2
+    ],
+    "strips": [
+      {
+        "layer": "Ring",
+        "x": 0,
+        "y": 366,
+        "w": 120,
+        "h": 120,
+        "frames": 8,
+        "stride": 122
+      },
+      {
+        "layer": "RingBoost",
+        "x": 0,
+        "y": 244,
+        "w": 120,
+        "h": 120,
+        "frames": 8,
+        "stride": 122
+      },
+      {
+        "layer": "Wake",
+        "x": 0,
+        "y": 122,
+        "w": 120,
+        "h": 120,
+        "frames": 8,
+        "stride": 122
+      },
+      {
+        "layer": "WakeBoost",
+        "x": 0,
+        "y": 0,
+        "w": 120,
+        "h": 120,
+        "frames": 8,
+        "stride": 122
+      }
+    ]
+  }
+}

@@ -1,0 +1,192 @@
+{
+  "id": 2,
+  "key": "VoltViper",
+  "painted": true,
+  "rect": {
+    "x": 11,
+    "y": 28,
+    "w": 234,
+    "h": 200,
+    "ppu": 835.7142
+  },
+  "hue": [
+    "#2E9BE6",
+    "#174C8C",
+    "#8FD3FF"
+  ],
+  "nozzles": [
+    {
+      "x": 95.5,
+      "y": 8.5,
+      "scale": 0.72
+    },
+    {
+      "x": 137.5,
+      "y": 8.5,
+      "scale": 0.72
+    }
+  ],
+  "damageNote": "1) hull panel blown over the right wing root; left engine smoking; 2) left wingtip torn, right wing bent, right leg on fire, canopy cracked",
+  "emitters": [
+    {
+      "state": 1,
+      "kind": "Sparks",
+      "u": 75.0,
+      "v": 63.1
+    },
+    {
+      "state": 1,
+      "kind": "Smoke",
+      "u": 53.0,
+      "v": 100.9
+    },
+    {
+      "state": 1,
+      "kind": "Smolder",
+      "u": 75.2,
+      "v": 63.3
+    },
+    {
+      "state": 2,
+      "kind": "Arc",
+      "u": 17.2,
+      "v": 70.6
+    },
+    {
+      "state": 2,
+      "kind": "Flame",
+      "u": 75.0,
+      "v": 100.9
+    },
+    {
+      "state": 2,
+      "kind": "Leak",
+      "u": 69.5,
+      "v": 89.5
+    },
+    {
+      "state": 2,
+      "kind": "Smolder",
+      "u": 16.5,
+      "v": 70.6
+    },
+    {
+      "state": 2,
+      "kind": "Smolder",
+      "u": 93.9,
+      "v": 55.5
+    },
+    {
+      "state": 2,
+      "kind": "Smolder",
+      "u": 69.2,
+      "v": 23.1
+    },
+    {
+      "state": 2,
+      "kind": "Smolder",
+      "u": 48.1,
+      "v": 79.4
+    },
+    {
+      "state": 2,
+      "kind": "Smolder",
+      "u": 76.5,
+      "v": 85.6
+    }
+  ],
+  "skins": [
+    {
+      "name": "Stock",
+      "kind": "Stock",
+      "hue": "#2E9BE6",
+      "shadow": "#174C8C",
+      "highlight": "#8FD3FF",
+      "pattern": "",
+      "accent": "",
+      "accentShadow": "",
+      "accentHighlight": ""
+    },
+    {
+      "name": "Night",
+      "kind": "Palette",
+      "hue": "#2A2E6B",
+      "shadow": "#1A1F45",
+      "highlight": "#6EF2EE",
+      "pattern": "",
+      "accent": "",
+      "accentShadow": "",
+      "accentHighlight": ""
+    },
+    {
+      "name": "Sodium",
+      "kind": "Palette",
+      "hue": "#F2862B",
+      "shadow": "#A9481A",
+      "highlight": "#FFB43C",
+      "pattern": "",
+      "accent": "",
+      "accentShadow": "",
+      "accentHighlight": ""
+    },
+    {
+      "name": "Bone",
+      "kind": "Palette",
+      "hue": "#F4EAD4",
+      "shadow": "#B9AE98",
+      "highlight": "#F4EAD4",
+      "pattern": "",
+      "accent": "",
+      "accentShadow": "",
+      "accentHighlight": ""
+    },
+    {
+      "name": "Storm",
+      "kind": "Special",
+      "hue": "#2E9BE6",
+      "shadow": "#174C8C",
+      "highlight": "#8FD3FF",
+      "pattern": "chevrons",
+      "accent": "#FFB43C",
+      "accentShadow": "#F2862B",
+      "accentHighlight": "#F4EAD4"
+    }
+  ],
+  "exhaust": {
+    "kind": "VoltZigzag",
+    "outer": "#2E9BE6",
+    "mid": "#6EF2EE",
+    "core": "#F4EAD4",
+    "dark": "#174C8C",
+    "accent": "#F2862B",
+    "ticks": [
+      2,
+      2,
+      1,
+      2,
+      2,
+      2,
+      2
+    ],
+    "strips": [
+      {
+        "layer": "Plume",
+        "x": 0,
+        "y": 194,
+        "w": 48,
+        "h": 192,
+        "frames": 7,
+        "stride": 50
+      },
+      {
+        "layer": "PlumeBoost",
+        "x": 0,
+        "y": 0,
+        "w": 48,
+        "h": 192,
+        "frames": 7,
+        "stride": 50
+      }
+    ]
+  }
+}

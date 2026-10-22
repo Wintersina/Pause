@@ -64,7 +64,7 @@ public static class ShipHitboxTest
 
     static void BakeIsCurrent()
     {
-        Check("hull_hitboxes.bytes is baked and matches the art and ShieldMargin", ShipHitboxBaker.IsCurrent());
+        Check("every ship's <Key>_hitbox.bytes is baked and matches the art and ShieldMargin", ShipHitboxBaker.IsCurrent());
         ShipHitbox.Invalidate();
         Check("a hitbox for every roster ship (" + ShipHitbox.Count + "/" + ShipId.Count + ")",
               ShipHitbox.Count == ShipId.Count);
