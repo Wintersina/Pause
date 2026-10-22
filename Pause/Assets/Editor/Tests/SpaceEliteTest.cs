@@ -1040,11 +1040,10 @@ public static class SpaceEliteTest
         return false;
     }
 
-    // ---- the pause attack: 2 damage -------------------------------------------------------
+    // ---- the pause attack: an instant kill -------------------------------------------------------
 
     static void PauseDamage()
     {
-        Check("the pause attack's damage is 2", EliteShip.PauseDamage == 2);
         foreach (var x in Expected)
         {
             Fresh(.05f);
@@ -1052,17 +1051,9 @@ public static class SpaceEliteTest
             var def = EliteCatalog.Find(x.key);
             var e = EliteShip.CreateInPlay(def, new Vector2(0f, 1.5f));
             e.AttackCooldown = 99f;
-            int hearts = def.hearts;
             Step(.3f);
             EliteShip.TeleportStrike(e.gameObject, e.Position);
-            Check(def.displayName + " (" + hearts + " hearts): a pause jump takes 2 (" + e.Hearts + " left)", Alive(e) && e.Hearts == hearts - 2);
-            if (def.hurtHide) Check("... and the hurt one breaks off and hides", e.Hidden);
-            // a second strike in the grace window still connects
-            if (!e.Hidden)
-            {
-                EliteShip.TeleportStrike(e.gameObject, e.Position);
-                Check("... the next pause jump (inside the grace window) takes 2 more (" + e.Hearts + " left)", e.Hearts == Mathf.Max(0, hearts - 4));
-            }
+            Check(def.displayName + " (" + def.hearts + " hearts): a pause jump kills it outright", !Alive(e) && EliteShip.LastKillCause == EliteDamage.Teleport);
         }
     }
 

@@ -443,18 +443,15 @@ public static class EliteFoundationTest
 
     // ---- 2b. the pause attack -----------------------------------------------------------
 
-    // Where it lives: EliteShip.TeleportStrike (from TeleportFx.Strike) -> TakeHit(Teleport, at, PauseDamage): a pause jump deals 2
-    // hearts whatever the elite has (a 5-heart one is left on 3).
+    // Where it lives: EliteShip.TeleportStrike (from TeleportFx.Strike) -> TakeHit(Teleport, at, every heart): a pause jump kills
+    // an elite outright, however many hearts it has.
     static void PauseAttackRule()
     {
         Fresh(.05f);
         var e = InPlay(Space("eventide_bastion"), new Vector2(0f, 1f));
         Check("the pause jump on a 5-heart elite", e.Hearts == 5);
         EliteShip.TeleportStrike(e.gameObject, e.Position);
-        Check("... takes 2 hearts (" + e.Hearts + " left)", Alive(e) && e.Hearts == 3 && EliteShip.PauseDamage == 2);
-        EliteShip.TeleportStrike(e.gameObject, e.Position);
-        EliteShip.TeleportStrike(e.gameObject, e.Position);
-        Check("... and three of them kill it", !Alive(e));
+        Check("... kills it outright", !Alive(e) && EliteShip.LastKillCause == EliteDamage.Teleport);
     }
 
     // The launch tell is ONE small blinking light: for every world with elites, on a hidden-in-body site (emerge) and on a plain
