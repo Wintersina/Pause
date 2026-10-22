@@ -65,6 +65,7 @@ public class DockBay : MonoBehaviour
     float clampOpen;
     float spin;
     float phase;
+    ShipRotors rotors;                       // spinning rotors, for ships that have them
     float silhouette;                        // 1 = ink shadow, 0 = full art
     float flash;                             // white fill during the reveal
     float reveal = -1f;                      // reveal progress 0..1, <0 idle
@@ -126,7 +127,7 @@ public class DockBay : MonoBehaviour
         shadow.transform.localScale = new Vector3(hullHalfSize.x * 2.4f / .64f, hullHalfSize.y * 2.2f / .64f, 1f);
 
         // Spinning rotors for ships that have a rotors file (Turtle); they follow the hull's tint.
-        ShipRotors.Attach(shipGo, i, hull, true);
+        rotors = ShipRotors.Attach(shipGo, i, hull, true);
 
         // Engine: the same mounts the flight flame uses, cold until selected.
         ShipExhaust.ConfigureBoost(shipGo, i);
@@ -352,6 +353,7 @@ public class DockBay : MonoBehaviour
 
     void ApplyPower(float p)
     {
+        if (rotors != null) rotors.hidden = silhouette > 0f;
         if (hull != null)
         {
             hull.color = Color.Lerp(OffTint, Color.white, p);
