@@ -1,9 +1,9 @@
-"""Shellback = the special CHEVRON livery skin, composited explicitly (Codex painted dark patches instead of V shapes).
-Run AFTER build_restyle.py Turtle: reads the final stock sheet Turtle.png, draws crisp slate "^" chevrons on the idle
+"""Shellback = the special livery skin, composited explicitly: four HELICOPTER PADS (cream ring + bold H on a slate-navy
+disc, thin slate rim) on the stock hull, one on each side of the shell: top (128,38) between the red tail light and the
+canopy gem, bottom (128,218) below the lower scute, left (82,150) and right (174,150) on the side plating (idle cell
+px, radius 11). Run AFTER build_restyle.py Turtle: reads the final stock sheet Turtle.png, draws the pads on the idle
 cell, moves them with every cell (bob = shift, bank = the same affine map as the damage layer) and hides them where the
-damage layer of that cell lies (so the chevrons look cracked / missing under damage). Writes Turtle_Shellback.bytes.
-Chevron geometry (256 cell): three centre chevrons apex y 150 / 172 / 194, half width 46 / 38 / 30; flank chevrons at
-x 84 and 172, apex y 96, half width 11. Slate #2C2D40, top edge #5A5C78, lower edge #1A1A28."""
+damage layer of that cell lies. Writes Turtle_Shellback.bytes."""
 import io
 import os
 import sys
@@ -16,21 +16,27 @@ CELL = 256
 BODY, HI, LO = (0x2C, 0x2D, 0x40), (0x5A, 0x5C, 0x78), (0x1A, 0x1A, 0x28)
 
 
-def chevron(dr, cx, y0, hw, d, t):
-    pts = [(cx, y0), (cx + hw, y0 + d), (cx + hw, y0 + d + t), (cx, y0 + t), (cx - hw, y0 + d + t), (cx - hw, y0 + d)]
-    dr.polygon(pts, fill=BODY + (255,))
-    # crisp 1 px edges: lighter on the two top arms, darker along the two lower arms
-    dr.line([(cx - hw, y0 + d), (cx, y0), (cx + hw, y0 + d)], fill=HI + (255,), width=1)
-    dr.line([(cx - hw, y0 + d + t), (cx, y0 + t), (cx + hw, y0 + d + t)], fill=LO + (255,), width=1)
+CREAM, SAND = (0xF4, 0xEA, 0xD4), (0xE2, 0xBE, 0x84)
+PADS = [(128, 38), (128, 218), (82, 150), (174, 150)]       # top, bottom, left, right (idle cell px)
+R = 11
+
+
+def helipad(dr, cx, cy):
+    """flat round pad: slate-navy disc, cream ring, a thin slate outer edge, a bold cream H (pixel-crisp)."""
+    dr.ellipse([cx - R - 1, cy - R - 1, cx + R + 1, cy + R + 1], fill=HI + (255,))
+    dr.ellipse([cx - R, cy - R, cx + R, cy + R], fill=CREAM + (255,))
+    dr.ellipse([cx - R + 2, cy - R + 2, cx + R - 2, cy + R - 2], fill=BODY + (255,))
+    for dx in (-4, 3):                                       # the two uprights of the H, 2 px wide
+        dr.rectangle([cx + dx - 1, cy - 6, cx + dx, cy + 6], fill=CREAM + (255,))
+    dr.rectangle([cx - 4, cy - 1, cx + 3, cy], fill=CREAM + (255,))        # crossbar
+    dr.line([(cx - 6, cy + R - 3), (cx + 5, cy + R - 3)], fill=LO + (255,), width=1)   # lower shade under the ring
 
 
 def layer():
     im = Image.new("RGBA", (CELL, CELL), (0, 0, 0, 0))
     dr = ImageDraw.Draw(im)
-    for y0, hw in ((150, 46), (172, 38), (194, 30)):
-        chevron(dr, 128, y0, hw, int(hw * 0.6), 8)
-    chevron(dr, 84, 96, 11, 7, 5)
-    chevron(dr, 172, 96, 11, 7, 5)
+    for cx, cy in PADS:
+        helipad(dr, cx, cy)
     return np.array(im)
 
 
