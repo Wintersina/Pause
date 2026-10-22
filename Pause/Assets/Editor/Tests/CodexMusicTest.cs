@@ -114,6 +114,14 @@ public static class CodexMusicTest
         CodexMusic.HeardBoss(WorldManager.Worlds[3]);
         Check("hearing the boss track unlocks it", CodexMusic.IsUnlocked(boss));
         string before = PlayerPrefs.GetString(Codex.PrefsKey);
+        float dust = PlayerPrefs.GetFloat(StarDustLedger.CurrencyKey);
+        Check("the first Credits visit unlocks Boom Boom and pays the unlock reward once",
+              CodexMusic.HeardCredits() && CodexMusic.IsUnlocked(CodexMusic.Find(CodexMusic.CreditsId))
+              && PlayerPrefs.GetFloat(StarDustLedger.CurrencyKey) == dust + Codex.UnlockReward);
+        Check("a second Credits visit pays nothing more",
+              !CodexMusic.HeardCredits() && PlayerPrefs.GetFloat(StarDustLedger.CurrencyKey) == dust + Codex.UnlockReward);
+        PlayerPrefs.SetString(Codex.PrefsKey, before);
+        Codex.Reload();
         CodexMusic.HeardWorld(WorldManager.Worlds[3]);
         Check("hearing it again changes nothing", PlayerPrefs.GetString(Codex.PrefsKey) == before);
 

@@ -706,7 +706,7 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
         if (target != null) ClearTarget.Release(gameObject);
         if (footprint != null) footprint.enabled = false;
         if (Attack != null) { Attack.OnDeath(); Attack.End(); }
-        LastEscapeLoss = RunScore.OnEliteEscaped(at, Def.Score / 2);
+        LastEscapeLoss = RunScore.OnEliteEscaped(at, bossEscape ? BossArrivalEscapePenalty : Def.Score / 2);
         if (EscapedCb != null) EscapedCb(this, LastEscapeLoss);
         BossUtil.Kill(gameObject);
     }
@@ -1500,11 +1500,18 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
         Die(cause);
     }
 
-    // A boss starts: it is destroyed, paying nothing (no score, no dust, no codex entry) and costing nothing (no ESCAPED loss).
-    // On the board (or lifting off) it goes through the normal death (explosion, debris); a parked or hidden one is simply removed.
+    // A boss starts: an elite on the board boosts away (-BossArrivalEscapePenalty score); one lifting off is destroyed through the normal
+    // death (explosion, debris), paying nothing and costing nothing; a parked or hidden one is simply removed.
     public void DismissForBoss()
     {
         if (State == EliteState.Dead) return;
+        // An elite still on the board when a boss arrives is not destroyed: it boosts away (the normal escape) and the pilot loses a
+        // flat BossArrivalEscapePenalty (floored at 0). One already retreating just carries on with the normal escape.
+        if (InPlay)
+        {
+            if (State != EliteState.Retreat) { bossEscape = true; BeginRetreat(); }
+            return;
+        }
         bool show = InPlay || State == EliteState.LiftOff;
         Hearts = 0;
         if (heartsView != null) heartsView.Refresh();
@@ -1520,6 +1527,8 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
         BossUtil.Kill(gameObject);
     }
     public static int Dismissed;
+    public const int BossArrivalEscapePenalty = 25;   // score lost when an elite boosts away because a boss arrived
+    bool bossEscape;
 
     void Die(EliteDamage cause)
     {

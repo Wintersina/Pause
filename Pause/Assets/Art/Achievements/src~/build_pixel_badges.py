@@ -389,10 +389,10 @@ def subject(im,ident,world):
               if ident=="ship_half" else
               [(64,44,"GoldWarden"),(44,59,"NeonComet"),(84,59,"VoltViper"),(51,83,"JadePhantom"),(77,83,"Ninja")])
    for x,y,name in formation:
-    paste_asset(im,f"{R}ShipArt/Hulls/{name}.png",256,8,x,y,60)
+    paste_asset(im,f"{R}ShipArt/{name}/{name}.png",256,8,x,y,60)
   elif ident=="pause_blink_100":
-   for x,y in [(44,84),(58,70),(75,53)]:paste_asset(im,f"{R}ShipArt/Hulls/Ninja.png",256,8,x,y,55)
-  else:paste_asset(im,f"{R}ShipArt/Hulls/{ships[ident]}.png",256,4,64,67,110)
+   for x,y in [(44,84),(58,70),(75,53)]:paste_asset(im,f"{R}ShipArt/Ninja/Ninja.png",256,8,x,y,55)
+  else:paste_asset(im,f"{R}ShipArt/{ships[ident]}/{ships[ident]}.png",256,4,64,67,110)
   d=ImageDraw.Draw(im)
   if ident=="ship_first": d.rectangle((39,97,89,103),fill=(149,100,48,255),outline=INK)
   elif ident=="ship_all": star(d,64,99,(255,236,151))

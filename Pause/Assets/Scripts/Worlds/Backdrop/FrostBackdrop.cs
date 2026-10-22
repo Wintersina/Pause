@@ -81,7 +81,7 @@ public static class FrostTuning
     public static float SiteMin = 1.5f, SiteMax = 1.7f;
     public static float SiteFirst = 3.2f;                              // ground distance before the first site
     public static float SiteGapMin = 5f, SiteGapMax = 8.5f;
-    public static float SiteCloseDelay = 1.4f;                         // seconds a site stays open after its elite left
+    public static float SiteCloseDelay = .9f;                         // seconds a site stays open after its elite left
     public static float SiteMinSize = 1.2f;
     // landmark families and their mix per variant (index 0 = no variant)
     public static readonly string[][] Families =

@@ -175,7 +175,7 @@ def gameplay_overlay(img, world="Space", scroll=0.0, enemies=True):
         m = mines.crop((0, row * cell, cell, (row + 1) * cell))
         put(m, 0.8, -RAIL_X, 4.8)
         put(m, 0.8, RAIL_X, -1.6)
-    hull = Image.open(os.path.join(res, "ShipArt", "Hulls", "CrimsonHalo.png")).convert("RGBA")
+    hull = Image.open(os.path.join(res, "ShipArt", "CrimsonHalo", "CrimsonHalo.png")).convert("RGBA")
     put(hull.crop((0, 0, 256, 256)), 0.62, 0.0, -4.4)
     return img
 

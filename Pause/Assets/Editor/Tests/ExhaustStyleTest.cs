@@ -26,11 +26,16 @@ public static class ExhaustStyleTest
         fails = 0;
         using var sandbox = new TestHarness.Sandbox();
 
-        Texture2D pixels = ReadableAtlas();
-        Check("the exhaust atlas loads", ShipExhaustStyle.Atlas != null);
-        Check("the exhaust atlas source is readable for the pixel checks", pixels != null);
-        Check("the atlas stays modest (<= 2048 x 2048)", ShipExhaustStyle.Atlas != null &&
-              ShipExhaustStyle.Atlas.width <= 2048 && ShipExhaustStyle.Atlas.height <= 2048);
+        var pixels = new Dictionary<int, Texture2D>();
+        foreach (int id in ShipId.All)
+        {
+            string who = ShipId.NameOf(id) + " (" + id + ")";
+            var sheet = ShipExhaustStyle.FlameSheet(id);
+            pixels[id] = ReadableSheet(id);
+            Check(who + " flame sheet loads (" + ShipData.FlamePath(ShipId.KeyOf(id)) + ")", sheet != null);
+            Check(who + " flame sheet source is readable for the pixel checks", pixels[id] != null);
+            Check(who + " flame sheet stays modest (<= 2048 x 2048)", sheet != null && sheet.width <= 2048 && sheet.height <= 2048);
+        }
 
         StylesAndFrames(pixels);
         Colours();
@@ -41,7 +46,7 @@ public static class ExhaustStyleTest
         HullSwap();
         Dock();
 
-        if (pixels != null) Object.DestroyImmediate(pixels);
+        foreach (var tex in pixels.Values) if (tex != null) Object.DestroyImmediate(tex);
         Debug.Log("[EX] failures: " + fails);
         return fails;
     }
@@ -55,7 +60,7 @@ public static class ExhaustStyleTest
         return ShipExhaustStyle.IsSpinDrift(id) ? SpinLayers : PlumeLayers;
     }
 
-    static void StylesAndFrames(Texture2D pixels)
+    static void StylesAndFrames(Dictionary<int, Texture2D> pixels)
     {
         var kinds = new HashSet<ExhaustKind>();
         foreach (int id in ShipId.All)
@@ -83,10 +88,10 @@ public static class ExhaustStyleTest
                 for (int f = 0; f < n; f++)
                 {
                     var s = ShipExhaustStyle.Frame(id, layer, f);
-                    load &= s != null && s.texture != null && s.texture.name == "exhaust_atlas";
-                    if (s != null && pixels != null) painted &= Coverage(pixels, s.rect) > .01f;
+                    load &= s != null && s.texture != null && s.texture.name == ShipId.KeyOf(id) + "_flame";
+                    if (s != null && pixels[id] != null) painted &= Coverage(pixels[id], s.rect) > .01f;
                 }
-                Check(who + " " + layer + " frames load from the atlas", load);
+                Check(who + " " + layer + " frames load from the ship's own flame sheet", load);
                 Check(who + " " + layer + " frames are all drawn (not blank)", painted);
             }
         }
@@ -181,7 +186,7 @@ public static class ExhaustStyleTest
             for (int i = 0; i < 8; i++) { book.Step(2f / 24f); moved |= flame.GetComponent<SpriteRenderer>().sprite != before; }
             Check("a plume animates when the world runs", moved);
             Check("the plume is the ship's own flipbook", book.ShipIdShown == 2 &&
-                  flame.GetComponent<SpriteRenderer>().sprite.texture.name == "exhaust_atlas");
+                  flame.GetComponent<SpriteRenderer>().sprite.texture.name == "VoltViper_flame");
         }
         finally { Object.DestroyImmediate(go); }
 
@@ -234,7 +239,7 @@ public static class ExhaustStyleTest
         return (int)rect.height;
     }
 
-    static void BoostVariants(Texture2D pixels)
+    static void BoostVariants(Dictionary<int, Texture2D> pixels)
     {
         foreach (int id in ShipId.All)
         {
@@ -244,7 +249,7 @@ public static class ExhaustStyleTest
             var boost = spinner ? ExhaustLayer.RingBoost : ExhaustLayer.PlumeBoost;
             Check(who + " has a boost variant", ShipExhaustStyle.HasLayer(id, boost) &&
                   ShipExhaustStyle.FrameCount(id, boost) == ShipExhaustStyle.FrameCount(id, normal));
-            if (pixels == null) continue;
+            if (pixels[id] == null) continue;
             float b0 = 0f, b1 = 0f;
             int len0 = 0, len1 = 0;
             int n = ShipExhaustStyle.FrameCount(id, normal);
@@ -252,10 +257,10 @@ public static class ExhaustStyleTest
             {
                 var a = ShipExhaustStyle.Frame(id, normal, f).rect;
                 var c = ShipExhaustStyle.Frame(id, boost, f).rect;
-                b0 += Brightness(pixels, a);
-                b1 += Brightness(pixels, c);
-                len0 += (int)a.height - LowestPaintedRow(pixels, a);
-                len1 += (int)c.height - LowestPaintedRow(pixels, c);
+                b0 += Brightness(pixels[id], a);
+                b1 += Brightness(pixels[id], c);
+                len0 += (int)a.height - LowestPaintedRow(pixels[id], a);
+                len1 += (int)c.height - LowestPaintedRow(pixels[id], c);
             }
             Check(who + " boost drawings are brighter (" + (b1 / Mathf.Max(1f, b0)).ToString("F2") + "x)", b1 > b0 * 1.08f);
             if (!spinner)
@@ -378,10 +383,10 @@ public static class ExhaustStyleTest
               th.IsBurning && flame != null && flame.GetComponent<SpriteRenderer>().sprite.name.StartsWith("2_Plume"));
     }
 
-    // The atlas is imported compressed and non-readable; read the source PNG.
-    static Texture2D ReadableAtlas()
+    // A ship's flame sheet is imported compressed and non-readable; read the source PNG.
+    static Texture2D ReadableSheet(int id)
     {
-        var tex = ShipExhaustStyle.Atlas;
+        var tex = ShipExhaustStyle.FlameSheet(id);
         string path = tex != null ? AssetDatabase.GetAssetPath(tex) : null;
         if (string.IsNullOrEmpty(path) || !File.Exists(path)) return null;
         var copy = new Texture2D(2, 2, TextureFormat.RGBA32, false);
