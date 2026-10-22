@@ -182,6 +182,12 @@ def compose_rows(cfg, row0, key_cell_st, key_cell0, st):
             diff = np.abs(patch[..., :3].astype(int) - ref[..., :3].astype(int)).sum(-1)
             take = ((r < .7) | ((r <= 1.0) & (diff > 70))) & (patch[..., 3] > 0) & (cell[..., 3] > 0)
             cell[take] = patch[take]
+            if st == 2 and cfg.get("wreck_scorch"):
+                # wreck only: a soft char/soot halo that fades out round every damage spot (same panels in every cell)
+                k = cfg["wreck_scorch"]
+                halo = (r > .6) & (r < 1.2) & ~take & (cell[..., 3] > 0)
+                f = 1 - k * np.clip((1.2 - r) / .6, 0, 1)
+                cell[..., :3] = np.where(halo[..., None], (cell[..., :3] * f[..., None]).astype(np.uint8), cell[..., :3])
         out.append(Image.fromarray(cell))
     return out
 
@@ -439,6 +445,12 @@ def write_skins(sheet, cfg, key, codex):
             if cfg.get("compose_from_key"):
                 # hit-flash column: the same solid silhouette in all three damage rows
                 fa = np.array(fb)
+                cells0 = [Image.fromarray(np.array(out)[0:CELL, c * CELL:(c + 1) * CELL].copy()) for c in range(COLS)]
+                for st in (1, 2):
+                    # rows composed from the skin's own intact row + its own key-pose damage (+ wreck scorch halo)
+                    kst = Image.fromarray(np.array(out)[st * CELL:(st + 1) * CELL, 0:CELL].copy())
+                    for c, cp in enumerate(compose_rows(cfg, cells0, kst, cells0[0], st)):
+                        fa[st * CELL:(st + 1) * CELL, c * CELL:(c + 1) * CELL] = np.array(cp)
                 for st in (1, 2):
                     fa[st * CELL:(st + 1) * CELL, 8 * CELL:9 * CELL] = fa[0:CELL, 8 * CELL:9 * CELL]
                 fb = Image.fromarray(fa)
