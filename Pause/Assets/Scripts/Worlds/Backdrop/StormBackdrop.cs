@@ -83,7 +83,7 @@ public static class StormTuning
 
     // ---- launch sites ------------------------------------------------------------
     public static float SiteMin = 1.5f, SiteMax = 1.7f, SiteFirst = 3f, SiteGapMin = 5f, SiteGapMax = 8.5f;
-    public static float SiteCloseDelay = 1.4f, SiteMinSize = 1.2f;
+    public static float SiteCloseDelay = .9f, SiteMinSize = 1.2f;
     // Entries 0-4 are the old two-drawing sites (sites atlas, kept as the elites' fallback homes); 5-8 the launch-strip ones (docks atlas:
     // <name>_00..05, DocksAtlas), for which SiteClosed / SiteOpen name the idle and the open cell (Rule picks the ground by the name).
     public static readonly string[] SiteNames = { "skyhook_dock", "refinery_pad", "balloon_hangar", "gantry_hatch", "cloud_bay", "airshipdock", "rodsilo", "skyhookcradle", "refinerybay" };
