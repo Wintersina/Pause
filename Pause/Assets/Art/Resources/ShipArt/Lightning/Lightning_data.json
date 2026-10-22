@@ -1,0 +1,198 @@
+{
+  "id": 8,
+  "key": "Lightning",
+  "painted": false,
+  "rect": {
+    "x": 7,
+    "y": 11,
+    "w": 243,
+    "h": 234,
+    "ppu": 867.8571
+  },
+  "hue": [
+    "#EEDC32",
+    "#8E8414",
+    "#FFF6A8"
+  ],
+  "nozzles": [
+    {
+      "x": 79.5,
+      "y": 8.5,
+      "scale": 0.72
+    },
+    {
+      "x": 163.5,
+      "y": 8.5,
+      "scale": 0.72
+    }
+  ],
+  "damageNote": "1) left pod panel blown; left pod engine smoking; 2) right wingtip torn, right pod nose bent, right pod on fire, canopy cracked",
+  "emitters": [
+    {
+      "state": 1,
+      "kind": "Sparks",
+      "u": 43.1,
+      "v": 68.1
+    },
+    {
+      "state": 1,
+      "kind": "Smoke",
+      "u": 43.1,
+      "v": 110.7
+    },
+    {
+      "state": 1,
+      "kind": "Smolder",
+      "u": 43.1,
+      "v": 68.1
+    },
+    {
+      "state": 2,
+      "kind": "Arc",
+      "u": 109.5,
+      "v": 94.1
+    },
+    {
+      "state": 2,
+      "kind": "Flame",
+      "u": 84.9,
+      "v": 110.7
+    },
+    {
+      "state": 2,
+      "kind": "Leak",
+      "u": 62.1,
+      "v": 92.0
+    },
+    {
+      "state": 2,
+      "kind": "Smolder",
+      "u": 111.4,
+      "v": 95.1
+    },
+    {
+      "state": 2,
+      "kind": "Smolder",
+      "u": 62.6,
+      "v": 48.4
+    },
+    {
+      "state": 2,
+      "kind": "Smolder",
+      "u": 31.7,
+      "v": 96.2
+    },
+    {
+      "state": 2,
+      "kind": "Smolder",
+      "u": 64.3,
+      "v": 24.0
+    },
+    {
+      "state": 2,
+      "kind": "Smolder",
+      "u": 94.5,
+      "v": 61.4
+    },
+    {
+      "state": 2,
+      "kind": "Smolder",
+      "u": 34.7,
+      "v": 55.9
+    }
+  ],
+  "skins": [
+    {
+      "name": "Stock",
+      "kind": "Stock",
+      "hue": "#EEDC32",
+      "shadow": "#8E8414",
+      "highlight": "#FFF6A8",
+      "pattern": "",
+      "accent": "",
+      "accentShadow": "",
+      "accentHighlight": ""
+    },
+    {
+      "name": "Night",
+      "kind": "Palette",
+      "hue": "#2A2E6B",
+      "shadow": "#1A1F45",
+      "highlight": "#6EF2EE",
+      "pattern": "",
+      "accent": "",
+      "accentShadow": "",
+      "accentHighlight": ""
+    },
+    {
+      "name": "Sodium",
+      "kind": "Palette",
+      "hue": "#F2862B",
+      "shadow": "#A9481A",
+      "highlight": "#FFB43C",
+      "pattern": "",
+      "accent": "",
+      "accentShadow": "",
+      "accentHighlight": ""
+    },
+    {
+      "name": "Bone",
+      "kind": "Palette",
+      "hue": "#F4EAD4",
+      "shadow": "#B9AE98",
+      "highlight": "#F4EAD4",
+      "pattern": "",
+      "accent": "",
+      "accentShadow": "",
+      "accentHighlight": ""
+    },
+    {
+      "name": "Hazard",
+      "kind": "Special",
+      "hue": "#EEDC32",
+      "shadow": "#8E8414",
+      "highlight": "#FFF6A8",
+      "pattern": "diagonal",
+      "accent": "#2C2D40",
+      "accentShadow": "#1A1A28",
+      "accentHighlight": "#5A5C78"
+    }
+  ],
+  "exhaust": {
+    "kind": "ForkedLightning",
+    "outer": "#EEDC32",
+    "mid": "#6EF2EE",
+    "core": "#F4EAD4",
+    "dark": "#8E8414",
+    "accent": "#F2862B",
+    "ticks": [
+      2,
+      2,
+      1,
+      2,
+      2,
+      2,
+      2
+    ],
+    "strips": [
+      {
+        "layer": "Plume",
+        "x": 0,
+        "y": 194,
+        "w": 48,
+        "h": 192,
+        "frames": 7,
+        "stride": 50
+      },
+      {
+        "layer": "PlumeBoost",
+        "x": 0,
+        "y": 0,
+        "w": 48,
+        "h": 192,
+        "frames": 7,
+        "stride": 50
+      }
+    ]
+  }
+}

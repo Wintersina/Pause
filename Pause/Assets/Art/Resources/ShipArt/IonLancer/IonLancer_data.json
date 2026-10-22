@@ -1,0 +1,197 @@
+{
+  "id": 5,
+  "key": "IonLancer",
+  "painted": true,
+  "rect": {
+    "x": 28,
+    "y": 7,
+    "w": 200,
+    "h": 241,
+    "ppu": 425.5319
+  },
+  "hue": [
+    "#3A5BE0",
+    "#1C2A80",
+    "#9AB0FF"
+  ],
+  "nozzles": [
+    {
+      "x": 82.5,
+      "y": 8.5,
+      "scale": 0.72
+    },
+    {
+      "x": 116.5,
+      "y": 8.5,
+      "scale": 0.72
+    }
+  ],
+  "damageNote": "1) left wing panel blown; left pod smoking; 2) right canard bent, right wingtip torn, right wing wiring arcing, canopy cracked",
+  "emitters": [
+    {
+      "state": 1,
+      "kind": "Sparks",
+      "u": 36.5,
+      "v": 99.0
+    },
+    {
+      "state": 1,
+      "kind": "Smoke",
+      "u": 60.4,
+      "v": 108.0
+    },
+    {
+      "state": 1,
+      "kind": "Smolder",
+      "u": 36.5,
+      "v": 99.2
+    },
+    {
+      "state": 2,
+      "kind": "Arc",
+      "u": 88.1,
+      "v": 93.0
+    },
+    {
+      "state": 2,
+      "kind": "Flame",
+      "u": 69.6,
+      "v": 110.0
+    },
+    {
+      "state": 2,
+      "kind": "Leak",
+      "u": 64.0,
+      "v": 99.0
+    },
+    {
+      "state": 2,
+      "kind": "Smolder",
+      "u": 105.3,
+      "v": 112.0
+    },
+    {
+      "state": 2,
+      "kind": "Smolder",
+      "u": 88.1,
+      "v": 93.0
+    },
+    {
+      "state": 2,
+      "kind": "Smolder",
+      "u": 51.6,
+      "v": 96.9
+    },
+    {
+      "state": 2,
+      "kind": "Smolder",
+      "u": 74.7,
+      "v": 72.5
+    },
+    {
+      "state": 2,
+      "kind": "Smolder",
+      "u": 49.4,
+      "v": 76.5
+    },
+    {
+      "state": 2,
+      "kind": "Smolder",
+      "u": 31.5,
+      "v": 105.8
+    }
+  ],
+  "skins": [
+    {
+      "name": "Stock",
+      "kind": "Stock",
+      "hue": "#3A5BE0",
+      "shadow": "#1C2A80",
+      "highlight": "#9AB0FF",
+      "pattern": "",
+      "accent": "",
+      "accentShadow": "",
+      "accentHighlight": ""
+    },
+    {
+      "name": "Night",
+      "kind": "Palette",
+      "hue": "#2A2E6B",
+      "shadow": "#1A1F45",
+      "highlight": "#6EF2EE",
+      "pattern": "",
+      "accent": "",
+      "accentShadow": "",
+      "accentHighlight": ""
+    },
+    {
+      "name": "Sodium",
+      "kind": "Palette",
+      "hue": "#F2862B",
+      "shadow": "#A9481A",
+      "highlight": "#FFB43C",
+      "pattern": "",
+      "accent": "",
+      "accentShadow": "",
+      "accentHighlight": ""
+    },
+    {
+      "name": "Bone",
+      "kind": "Palette",
+      "hue": "#F4EAD4",
+      "shadow": "#B9AE98",
+      "highlight": "#F4EAD4",
+      "pattern": "",
+      "accent": "",
+      "accentShadow": "",
+      "accentHighlight": ""
+    },
+    {
+      "name": "Lance",
+      "kind": "Special",
+      "hue": "#3A5BE0",
+      "shadow": "#1C2A80",
+      "highlight": "#9AB0FF",
+      "pattern": "racing",
+      "accent": "#1FB5B9",
+      "accentShadow": "#0F5E6A",
+      "accentHighlight": "#6EF2EE"
+    }
+  ],
+  "exhaust": {
+    "kind": "IonLance",
+    "outer": "#3A5BE0",
+    "mid": "#6EF2EE",
+    "core": "#F4EAD4",
+    "dark": "#1C2A80",
+    "accent": "#9AB0FF",
+    "ticks": [
+      3,
+      2,
+      1,
+      2,
+      2,
+      2
+    ],
+    "strips": [
+      {
+        "layer": "Plume",
+        "x": 0,
+        "y": 194,
+        "w": 48,
+        "h": 192,
+        "frames": 6,
+        "stride": 50
+      },
+      {
+        "layer": "PlumeBoost",
+        "x": 0,
+        "y": 0,
+        "w": 48,
+        "h": 192,
+        "frames": 6,
+        "stride": 50
+      }
+    ]
+  }
+}

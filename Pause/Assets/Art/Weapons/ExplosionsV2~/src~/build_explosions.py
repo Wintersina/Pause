@@ -267,7 +267,7 @@ def make_ingame(atlas:Image.Image)->None:
     view=frost_ground((1080,2400),False)
     # Add a faint cool grade similar to the Frost playfield's brighter midground.
     view=Image.blend(view,Image.new("RGB",view.size,"#1d3150"),.16).convert("RGBA")
-    ship=Image.open(ART/"Resources/ShipArt/Hulls/Dove.png").convert("RGBA").crop((0,0,256,256))
+    ship=Image.open(ART/"Resources/ShipArt/Dove/Dove.png").convert("RGBA").crop((0,0,256,256))
     rows=[(3,2,.85,365,"SMALL / ICE"),(2,3,1.25,1080,"MEDIUM / MINE"),(5,3,1.8,1790,"LARGE / MAGMA")]
     d=ImageDraw.Draw(view)
     f=font(34);sm=font(25)

@@ -4,7 +4,7 @@
     python3 paragon_weapons.py          # script placeholders for everything (fallback / meter row)
     python3 ingest_paragon_codex.py     # then overwrite with Codex's drawings where delivered
 
-Reads the sheets Codex drew (briefs in ShipArt/Hulls/src~/paragon/codex, J3):
+Reads the sheets Codex drew (briefs in ShipArt/Paragon/src~/codex, J3):
   charge_16.png            4x4  -> Weapons/Paragon.png row 0 (charge 0..15)
   ready_shot_impact.png    4x4  -> row 1 (ready 0-3 | shot 0-5 | impact 0-5)
   muzzle_release_trail.png 4x3  -> row 2 (muzzle 0-3 | release 0-3 | trail 0-1)
@@ -23,7 +23,7 @@ from PIL import Image
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ART = os.path.normpath(os.path.join(HERE, "..", ".."))
-SRC = os.path.join(ART, "Resources", "ShipArt", "Hulls", "src~", "paragon", "codex")
+SRC = os.path.join(ART, "Resources", "ShipArt", "Paragon", "src~", "codex")
 WEAPONS = os.path.join(ART, "Resources", "Weapons")
 GUNS = os.path.join(ART, "Resources", "ShipArt", "Guns", "ship_gun_roster.png")
 

@@ -1,0 +1,193 @@
+{
+  "id": 3,
+  "key": "SolarFang",
+  "painted": true,
+  "rect": {
+    "x": 11,
+    "y": 12,
+    "w": 235,
+    "h": 227,
+    "ppu": 810.3449
+  },
+  "hue": [
+    "#F07A1E",
+    "#9A3E12",
+    "#FFC27A"
+  ],
+  "nozzles": [
+    {
+      "x": 117.5,
+      "y": 11.5,
+      "scale": 1.0
+    }
+  ],
+  "damageNote": "1) left flank panel blown, reactor cracked; nozzle smoking; 2) left fang bent, reactor housing open and arcing, right tip torn, canopy cracked",
+  "emitters": [
+    {
+      "state": 1,
+      "kind": "Sparks",
+      "u": 46.3,
+      "v": 91.5
+    },
+    {
+      "state": 1,
+      "kind": "Smoke",
+      "u": 65.0,
+      "v": 104.8
+    },
+    {
+      "state": 1,
+      "kind": "Smolder",
+      "u": 46.8,
+      "v": 91.0
+    },
+    {
+      "state": 2,
+      "kind": "Arc",
+      "u": 69.9,
+      "v": 76.2
+    },
+    {
+      "state": 2,
+      "kind": "Flame",
+      "u": 103.3,
+      "v": 106.8
+    },
+    {
+      "state": 2,
+      "kind": "Leak",
+      "u": 83.6,
+      "v": 102.7
+    },
+    {
+      "state": 2,
+      "kind": "Smolder",
+      "u": 105.3,
+      "v": 107.8
+    },
+    {
+      "state": 2,
+      "kind": "Smolder",
+      "u": 70.4,
+      "v": 76.2
+    },
+    {
+      "state": 2,
+      "kind": "Smolder",
+      "u": 82.9,
+      "v": 63.1
+    },
+    {
+      "state": 2,
+      "kind": "Smolder",
+      "u": 53.3,
+      "v": 46.4
+    },
+    {
+      "state": 2,
+      "kind": "Smolder",
+      "u": 78.4,
+      "v": 106.3
+    },
+    {
+      "state": 2,
+      "kind": "Smolder",
+      "u": 22.3,
+      "v": 94.8
+    }
+  ],
+  "skins": [
+    {
+      "name": "Stock",
+      "kind": "Stock",
+      "hue": "#F07A1E",
+      "shadow": "#9A3E12",
+      "highlight": "#FFC27A",
+      "pattern": "",
+      "accent": "",
+      "accentShadow": "",
+      "accentHighlight": ""
+    },
+    {
+      "name": "Night",
+      "kind": "Palette",
+      "hue": "#2A2E6B",
+      "shadow": "#1A1F45",
+      "highlight": "#6EF2EE",
+      "pattern": "",
+      "accent": "",
+      "accentShadow": "",
+      "accentHighlight": ""
+    },
+    {
+      "name": "Neon",
+      "kind": "Palette",
+      "hue": "#1FB5B9",
+      "shadow": "#0F5E6A",
+      "highlight": "#6EF2EE",
+      "pattern": "",
+      "accent": "",
+      "accentShadow": "",
+      "accentHighlight": ""
+    },
+    {
+      "name": "Bone",
+      "kind": "Palette",
+      "hue": "#F4EAD4",
+      "shadow": "#B9AE98",
+      "highlight": "#F4EAD4",
+      "pattern": "",
+      "accent": "",
+      "accentShadow": "",
+      "accentHighlight": ""
+    },
+    {
+      "name": "Eclipse",
+      "kind": "Special",
+      "hue": "#F07A1E",
+      "shadow": "#9A3E12",
+      "highlight": "#FFC27A",
+      "pattern": "split",
+      "accent": "#2C2D40",
+      "accentShadow": "#1A1A28",
+      "accentHighlight": "#5A5C78"
+    }
+  ],
+  "exhaust": {
+    "kind": "SolarTongues",
+    "outer": "#F07A1E",
+    "mid": "#FFB43C",
+    "core": "#F4EAD4",
+    "dark": "#9A3E12",
+    "accent": "#F2862B",
+    "ticks": [
+      3,
+      2,
+      1,
+      2,
+      2,
+      2,
+      2
+    ],
+    "strips": [
+      {
+        "layer": "Plume",
+        "x": 0,
+        "y": 194,
+        "w": 48,
+        "h": 192,
+        "frames": 7,
+        "stride": 50
+      },
+      {
+        "layer": "PlumeBoost",
+        "x": 0,
+        "y": 0,
+        "w": 48,
+        "h": 192,
+        "frames": 7,
+        "stride": 50
+      }
+    ]
+  }
+}

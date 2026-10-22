@@ -3,7 +3,7 @@ using UnityEngine;
 
 // The flying ship's damage FX: each hull's own emitters for its damage state
 // (ShipDamageTable), drawn from the flat-cel DamageFx atlas
-// (Art/Resources/ShipArt/Hulls/src~/damage_fx.py).
+// (Art/Resources/ShipArt/src~/damage_fx.py).
 //
 //   sparks   the blown panel crackles: a spark-flash flipbook on the panel and
 //            two or three hot sparks flying off it

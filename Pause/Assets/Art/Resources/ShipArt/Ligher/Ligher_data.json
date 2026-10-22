@@ -1,0 +1,186 @@
+{
+  "id": 9,
+  "key": "Ligher",
+  "painted": false,
+  "rect": {
+    "x": 45,
+    "y": 7,
+    "w": 167,
+    "h": 242,
+    "ppu": 835.0
+  },
+  "hue": [
+    "#C8662E",
+    "#6E3014",
+    "#F2A472"
+  ],
+  "nozzles": [
+    {
+      "x": 83.5,
+      "y": 8.5,
+      "scale": 1.0
+    }
+  ],
+  "damageNote": "1) hull panel blown, nose cap cracked; nozzle smoking; 2) right fin bent, second panel open and arcing, leaking, canopy cracked",
+  "emitters": [
+    {
+      "state": 1,
+      "kind": "Sparks",
+      "u": 51.1,
+      "v": 55.2
+    },
+    {
+      "state": 1,
+      "kind": "Smoke",
+      "u": 59.7,
+      "v": 111.1
+    },
+    {
+      "state": 1,
+      "kind": "Smolder",
+      "u": 51.6,
+      "v": 55.2
+    },
+    {
+      "state": 2,
+      "kind": "Arc",
+      "u": 74.8,
+      "v": 86.6
+    },
+    {
+      "state": 2,
+      "kind": "Flame",
+      "u": 70.5,
+      "v": 109.2
+    },
+    {
+      "state": 2,
+      "kind": "Leak",
+      "u": 94.2,
+      "v": 99.4
+    },
+    {
+      "state": 2,
+      "kind": "Smolder",
+      "u": 74.8,
+      "v": 86.6
+    },
+    {
+      "state": 2,
+      "kind": "Smolder",
+      "u": 56.7,
+      "v": 75.6
+    },
+    {
+      "state": 2,
+      "kind": "Smolder",
+      "u": 64.9,
+      "v": 104.5
+    },
+    {
+      "state": 2,
+      "kind": "Smolder",
+      "u": 82.1,
+      "v": 59.5
+    },
+    {
+      "state": 2,
+      "kind": "Smolder",
+      "u": 75.2,
+      "v": 42.7
+    }
+  ],
+  "skins": [
+    {
+      "name": "Stock",
+      "kind": "Stock",
+      "hue": "#C8662E",
+      "shadow": "#6E3014",
+      "highlight": "#F2A472",
+      "pattern": "",
+      "accent": "",
+      "accentShadow": "",
+      "accentHighlight": ""
+    },
+    {
+      "name": "Night",
+      "kind": "Palette",
+      "hue": "#2A2E6B",
+      "shadow": "#1A1F45",
+      "highlight": "#6EF2EE",
+      "pattern": "",
+      "accent": "",
+      "accentShadow": "",
+      "accentHighlight": ""
+    },
+    {
+      "name": "Amber",
+      "kind": "Palette",
+      "hue": "#FFB43C",
+      "shadow": "#F2862B",
+      "highlight": "#F4EAD4",
+      "pattern": "",
+      "accent": "",
+      "accentShadow": "",
+      "accentHighlight": ""
+    },
+    {
+      "name": "Bone",
+      "kind": "Palette",
+      "hue": "#F4EAD4",
+      "shadow": "#B9AE98",
+      "highlight": "#F4EAD4",
+      "pattern": "",
+      "accent": "",
+      "accentShadow": "",
+      "accentHighlight": ""
+    },
+    {
+      "name": "Flint",
+      "kind": "Special",
+      "hue": "#C8662E",
+      "shadow": "#6E3014",
+      "highlight": "#F2A472",
+      "pattern": "chevrons",
+      "accent": "#F4EAD4",
+      "accentShadow": "#B9AE98",
+      "accentHighlight": "#F4EAD4"
+    }
+  ],
+  "exhaust": {
+    "kind": "Blowtorch",
+    "outer": "#C8662E",
+    "mid": "#FFB43C",
+    "core": "#F4EAD4",
+    "dark": "#6E3014",
+    "accent": "#6EF2EE",
+    "ticks": [
+      3,
+      2,
+      1,
+      2,
+      2,
+      2
+    ],
+    "strips": [
+      {
+        "layer": "Plume",
+        "x": 0,
+        "y": 194,
+        "w": 48,
+        "h": 192,
+        "frames": 6,
+        "stride": 50
+      },
+      {
+        "layer": "PlumeBoost",
+        "x": 0,
+        "y": 0,
+        "w": 48,
+        "h": 192,
+        "frames": 6,
+        "stride": 50
+      }
+    ]
+  }
+}
