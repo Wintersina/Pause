@@ -42,8 +42,7 @@ spec.loader.exec_module(bp)
 
 CELL, COLS, STATES = bp.CELL, bp.COLS, bp.STATES
 GREEN = np.array([0, 255, 0], dtype=np.uint8)
-KEYRGB = GREEN
-MAGENTA_KEY = False     # ships with a green hull (Paranoid) are painted on flat #FF00FF instead of #00FF00
+KEYRGB = GREEN          # background key colour of the Codex paintings (a ship hook may change it)
 
 KINDS = {"Sparks": "sparks", "Arc": "arc", "Smoke": "smoke", "Flame": "flame", "Leak": "leak", "Smolder": "smolder"}
 
@@ -64,22 +63,9 @@ def load_cfg(key):
     return cfg
 
 
-def key_magenta(img):
-    """Chroma key for #FF00FF backgrounds (green hulls): nothing on the hull is pink, so no despill."""
-    a = np.array(img).astype(int)
-    dist = np.sqrt((a[..., 0] - 255) ** 2 + a[..., 1] ** 2 + (a[..., 2] - 255) ** 2)
-    r, g, b = a[..., 0], a[..., 1], a[..., 2]
-    bg = (dist < 120) | ((r - g > 70) & (b - g > 70))
-    out = np.dstack([np.clip(a, 0, 255).astype(np.uint8), np.where(bg, 0, 255).astype(np.uint8)])
-    out[bg] = 0
-    return Image.fromarray(out)
-
-
 def is_green(rgb):
     v = rgb.astype(np.int16)
     r, g, b = v[..., 0], v[..., 1], v[..., 2]
-    if MAGENTA_KEY:
-        return ((r - g > 70) & (b - g > 70)) | ((r > 200) & (b > 200) & (g < 90))
     return (g > 100) & (g > r * 1.55) & (g > b * 1.4) & (g - r > 65) & (g - b > 65)
 
 
@@ -455,11 +441,9 @@ def write_flames(key, cfg, codex):
 def main():
     key = shiplib.resolve(sys.argv[1])
     cfg = load_cfg(key)
-    if cfg.get("magenta_key"):
-        global MAGENTA_KEY, KEYRGB
-        MAGENTA_KEY = True
-        KEYRGB = np.array([255, 0, 255], dtype=np.uint8)
-        bp.key_green = key_magenta
+    hook = os.path.join(shiplib.src_dir(key), "build_hook.py")     # optional per-ship tweak (e.g. another chroma key)
+    if os.path.exists(hook):
+        exec(compile(open(hook).read(), hook, "exec"), globals())
     codex = os.path.join(shiplib.src_dir(key), "codex")
     raw = build_sheet(cfg, codex)
     sheet = compose_states(raw, cfg)

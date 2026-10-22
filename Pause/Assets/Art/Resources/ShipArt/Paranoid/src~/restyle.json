@@ -4,7 +4,6 @@
  "nozzles": 2,
  "noz_scale": [0.72, 0.72],
  "noz_cells": [[35, 206, 0.72], [222, 206, 0.72]],
- "magenta_key": true,
  "fill_holes": true,
  "emitters": [
   [1, "sparks", 45.7, 39.8],
