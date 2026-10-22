@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 // The decision logic of the "upgrade offer" shown after a second death in a
 // row (UpgradeOfferStore wires it to the save, UpgradeOfferCard draws it).
 // Plain C#, no Unity types, so UpgradeOfferTest can drive every branch.
@@ -7,15 +5,14 @@ using System.Collections.Generic;
 // WHEN: the player has died in StreakForFirstOffer runs in a row, the Options
 // toggle is on, and the backoff allows another offer (below).
 //
-// WHAT: stardust only, never owned, never real money.
-//   1. the next upgrade (the next unbought colour, which is also the ship's
-//      next weapon step and heart) of the ship the player is flying, if they
-//      can afford it;
-//   2. otherwise the cheapest affordable "next step along the progression":
-//      the next colour of any other owned ship, or the cheapest unowned
-//      stardust ship;
-//   3. otherwise nothing. An offer the player cannot buy is never shown, and
-//      when everything is owned there is nothing to offer.
+// WHAT: stardust only, never real money, and only for the ship the player is
+// flying: its next unbought colour (which is also its next weapon step and
+// heart), starting with the discounted first colour (ShipSkins.FirstColourPrice)
+// and moving on as each is bought. If the player cannot afford it, or the
+// ship has none left, nothing is shown.
+// TODO: a fallback may be added later that offers other owned ships' next
+// colours, or the cheapest unowned stardust ship, when the active ship's next
+// upgrade is out of reach.
 //
 // BACKOFF (all numbers live here): offers are spaced exponentially in
 // consecutive deaths. Offer 1 comes at the 2nd death in a row, and each
@@ -32,16 +29,13 @@ public static class UpgradeOfferRules
     // The streak counter stops here; far past the last threshold (8).
     public const int StreakCap = 1000;
 
-    public enum Kind { Skin, Ship }
-
     public struct Candidate
     {
-        public Kind kind;
         public int shipId;
-        public int skin;          // Kind.Skin only
+        public int skin;
         public float price;       // stardust, > 0
-        public string title;      // "JADE PHANTOM", "NEW SHIP"...
-        public string detail;     // "+1 STREAK", ...
+        public string title;      // "JADE PHANTOM"...
+        public string detail;     // "CRIMSON COLOUR", ...
     }
 
     public struct State
@@ -96,32 +90,23 @@ public static class UpgradeOfferRules
         return s;
     }
 
-    // The upgrade to offer from the candidates, or false. `selected` is the
-    // next upgrade of the flown ship (price <= 0 = none left); `others` are
-    // the other next steps, in progression order (ties keep the earlier).
-    public static bool Choose(float balance, Candidate selected, IList<Candidate> others, out Candidate chosen)
+    // The upgrade to offer, or false. `selected` is the next upgrade of the
+    // flown ship (price <= 0 = none left); offered only when affordable.
+    public static bool Choose(float balance, Candidate selected, out Candidate chosen)
     {
-        if (Valid(selected) && selected.price <= balance) { chosen = selected; return true; }
         chosen = default(Candidate);
-        bool found = false;
-        if (others != null)
-            for (int i = 0; i < others.Count; i++)
-            {
-                var c = others[i];
-                if (!Valid(c) || c.price > balance) continue;
-                if (!found || c.price < chosen.price) { chosen = c; found = true; }
-            }
-        return found;
+        if (!Valid(selected) || selected.price > balance) return false;
+        chosen = selected;
+        return true;
     }
 
     static bool Valid(Candidate c) { return c.price > 0f; }
 
-    // The whole decision: setting on, streak due, something affordable.
-    public static bool ShouldOffer(bool settingOn, State s, float balance, Candidate selected,
-                                   IList<Candidate> others, out Candidate chosen)
+    // The whole decision: setting on, streak due, the next upgrade affordable.
+    public static bool ShouldOffer(bool settingOn, State s, float balance, Candidate selected, out Candidate chosen)
     {
         chosen = default(Candidate);
         if (!settingOn || !Due(s)) return false;
-        return Choose(balance, selected, others, out chosen);
+        return Choose(balance, selected, out chosen);
     }
 }

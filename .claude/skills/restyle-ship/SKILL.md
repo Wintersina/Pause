@@ -106,7 +106,26 @@ the redo poses, forces rows 1-2 onto row 0's alpha exactly, writes `<Key>.png`, 
 `src~/<key lower>/data.json`. Then `python3 src~/patch_restyle.py <Key>` rewrites that ship's rows IN PLACE in
 `ShipHullArt.cs` (rect + ppu, colours kept), `ShipNozzles.cs`, `ShipDamageTable.cs` (emitters). Exhaust Row
 colours/ticks, skin colours, hearts, attacks are untouched. Order: J1 -> J1b -> build (`--no-skins --no-flame`) ->
-J2 -> skins -> final build -> patch -> bake.
+J2 -> skins -> final build -> patch -> **overlay** (below) -> bake.
+
+### 4b. Damage overlay (REQUIRED last art step: damage must sit on the same panels in EVERY cell)
+
+Codex paints the damaged / wreck states for the idle pose only well; its banks, glints and lights-off cells
+drift (different damage per cell, crumpled banks). So the damaged rows are finished by a damage OVERLAY, never by
+trusting those cells:
+
+`python3 src~/damage_overlay.py <Key> --skins [--preview DIR]` (run after the final build + patch). Per state
+(row 1, row 2) the damage layer = the pixels of the IDLE damaged cell (col 0) that differ from the intact idle cell
+(binary alpha, clipped to the silhouette). It is mapped onto the intact cell of every other column of the same row:
+bob cells (1, 2, 5) = integer translation measured from the intact alphas; glint / lights-off cells (3, 4) = same
+geometry; bank cells (6, 7) = piecewise-affine warp through 9 landmarks found on the STOCK intact cells (nose, wing
+tips, canopy, the two wing slab lights, the two nozzle glows; `stock_landmarks` finds them by colour, so a new ship
+may need its landmark colours / ranges adapted: view `marks.png`-style overlays first); hit-flash cell (8) = ink
+where the layer is dark. Alpha stays exactly the intact alpha (script asserts it). Skins reuse the stock geometry and
+take their OWN idle damaged cell as the layer, so skin damage matches stock cell for cell. Column 0 is never touched,
+so the idle cells are the only damage that Codex has to paint (key_state1 / key_state2 + one idle cell per skin).
+Verify with a contact sheet: per row, diff (damaged vs intact) per cell in one colour; the blobs must sit at the same
+wing / fuselage spots in all 9 columns. The script is idempotent. Worked example: IonLancer.
 
 ## 5. Skins (every ship has 4 non-stock skins; each is repainted by Codex, never just hue-shifted)
 
