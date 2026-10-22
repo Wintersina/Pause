@@ -41,9 +41,10 @@ public static class WorldBackdropTest
     // Since 1f0d8e87 (2026-10-13) Desert's continuous-tone art is ASTC 4x4 on phones (WorldBackdropImport.IsContinuousTone; 6x6 bands the
     // dune gradients), 2.25x the old 6x6 size: 24 MB measured on the Android target (the worm sheets alone ~6 MB).
     public const long DesertTextureBudgetBytes = 26L * 1024 * 1024;   // (+1 MB for the docks atlas: four 6-cell launch strips, ~0.7 MB ASTC 4x4)
-    // Storm carries four 1024 atlases (landmarks, sites, weather, lightning) besides one 4-tile variant set. Its tiles are
-    // 1024x2048 HD (2026-10, ASTC 6x6 = 0.93 MB each, 3.7 MB per set; see WorldBackdropImport.IsStormHdTile). The 1024 atlases are ASTC 4x4 since 1f0d8e87 (IsContinuousTone): 7.8 MB measured on desktop after the eye atlas and v3 set were removed.
-    public const long StormTextureBudgetBytes = 8L * 1024 * 1024;
+    // Storm's HD tiles use ASTC 6x6; its painted atlases use 4x4. The launch-strip docks
+    // added in cd2db99ec are 1578x1054 (1,668,480 bytes at 4x4): the existing ~8049 KiB
+    // plus those ~1629 KiB totals ~9678 KiB. Keep a 10 MiB cap for this installed set.
+    public const long StormTextureBudgetBytes = 10L * 1024 * 1024;
     const float SeamTolerance = 0.02f;          // mean |top row - bottom row|, premultiplied RGBA
     // The guide's sky ramps (docs/art-style.md 1.3) peak at ~#123248 / #143430,
     // so the opaque sky averages up to ~0.12 relative luminance.
@@ -632,9 +633,11 @@ public static class WorldBackdropTest
                 // counts transient CPU copies, so it varies between sessions).
                 long assetBytes = (long)UnityEngine.Experimental.Rendering.GraphicsFormatUtility.ComputeMipmapSize(
                     tex.width, tex.height, tex.graphicsFormat);
-                long assetAstc = ((tex.width + 5) / 6) * ((tex.height + 5) / 6) * 16L;
-
                 var imp = (TextureImporter)AssetImporter.GetAtPath(asset);
+                // Use the Android override even on a desktop Library: continuous-tone
+                // Storm / Desert atlases use 4x4, while their other sheets can use 6x6.
+                int block = imp.GetPlatformTextureSettings("Android").format == TextureImporterFormat.ASTC_4x4 ? 4 : 6;
+                long assetAstc = ((tex.width + block - 1) / block) * ((tex.height + block - 1) / block) * 16L;
                 if (WorldBackdropImport.IsSunSheet(asset) || WorldBackdropImport.IsTornadoSheet(asset))
                 {
                     bool disc = WorldBackdropImport.IsSunDisc(asset);
@@ -829,7 +832,7 @@ public static class WorldBackdropTest
             long budget = spec.world == "Frost" ? FrostTextureBudgetBytes : spec.world == "Space" ? SpaceTextureBudgetBytes :
                           spec.world == "Verdant" ? VerdantTextureBudgetBytes : spec.world == "Ember" ? EmberTextureBudgetBytes : spec.world == "Tide" ? TideTextureBudgetBytes : spec.world == "Desert" ? DesertTextureBudgetBytes : spec.world == "Storm" ? StormTextureBudgetBytes : TextureBudgetBytes;
             Debug.Log("[WB] " + spec.world + " texture memory: " + (bytes / 1024) + " KB desktop, ~" +
-                      (astc / 1024) + " KB ASTC 6x6");
+                      (astc / 1024) + " KB Android ASTC");
             // The budget is the phone's (ASTC) size. `bytes` is only that while the
             // Library's active target is Android; a Library last used as Standalone
             // reports the desktop format (~2x), so measure the ASTC figure then.

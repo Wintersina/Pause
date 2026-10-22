@@ -1,0 +1,14 @@
+Completed the Abductor colourway.
+
+Files:
+
+- [skin_Abductor_state0.png](/Users/sina/Developer/Pause/.claude/worktrees/agent-ae47bc826c0c4d00b/Pause/Assets/Art/Resources/ShipArt/UFO/src~/codex/skin_Abductor_state0.png)
+- [skin_Abductor_state1.png](/Users/sina/Developer/Pause/.claude/worktrees/agent-ae47bc826c0c4d00b/Pause/Assets/Art/Resources/ShipArt/UFO/src~/codex/skin_Abductor_state1.png)
+- [skin_Abductor_state2.png](/Users/sina/Developer/Pause/.claude/worktrees/agent-ae47bc826c0c4d00b/Pause/Assets/Art/Resources/ShipArt/UFO/src~/codex/skin_Abductor_state2.png)
+- [check_skin_Abductor.py](/Users/sina/Developer/Pause/.claude/worktrees/agent-ae47bc826c0c4d00b/Pause/Assets/Art/Resources/ShipArt/UFO/src~/codex/tools/check_skin_Abductor.py)
+
+Audit summary: all 27 cells pass. Silhouette difference: `0.000%`; canopy difference: `0.000–0.093%`; changed pixels: `10.297–13.752%` for non-flash cells. Hit-flash cells remain unchanged.
+
+Final sheets are 3072×3072 RGB with exact `#00FF00` backgrounds, no magenta, and no green-tinted ship pixels.
+
+Caveat: generative candidates were used to guide the Abductor ramp, while final exports use a deterministic pixel-preserving repaint so the approved geometry and audits remain exact.

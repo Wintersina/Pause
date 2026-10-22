@@ -76,7 +76,7 @@ using UnityEngine;
 // (collisionDetection -> Rammed; the pilot loses a heart too unless
 // shielded), a crash, a rail, another elite, friendly fire. A shielded ram
 // (blue atom / Cloak) takes every heart, grace or not; a pause jump landing
-// on it (TeleportFx -> TeleportStrike) deals PauseDamage (2), grace or not.
+// on it (TeleportFx -> TeleportStrike) takes every heart (an instant kill, a boss excepted), grace or not.
 // Every kill, crash or lure included, pays ScoreRules.EliteDown +
 // EliteDownDust with an "ELITE DOWN" popup.
 //
@@ -96,7 +96,6 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
     public const int PlayOrder = -3;           // UNDER the rails: hull, plumes, lights, glows and hearts (PlayOrder + 2 at most) all sort below RailOrder, so a hull flying off and back passes beneath them; over the backdrop, docks and weather (<= -7)
     public const float GraceSeconds = .5f;     // after losing a heart
     public const float EscapeWindow = 2f;      // after joining: no attacks yet
-    public const int PauseDamage = 2;          // hearts a pause jump landing on an elite takes (a 4/5-heart one survives it); a shielded ram takes all
     public const float JoinSeconds = 1.1f;       // (the unscripted join; a script's entrance is its own 1-2 s: EliteScriptRunner.EntranceSeconds)
     public const float EntranceBreath = .9f;     // seconds of quiet after the entrance before the first attack
     public const float LiftSeconds = 1.7f;
@@ -138,6 +137,8 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
     public bool AimLocked { get { return aimLocked; } }
     public bool PlayerLost { get { return lost; } }
     public float StateTime { get { return stateTime; } }
+    // Held in place (a Space flare): it neither steers, attacks nor runs its clocks, and picks up where it left off.
+    public bool Stunned => stunLeft > 0f;
     public bool InPlay => State == EliteState.Join || State == EliteState.Follow || State == EliteState.Attack || State == EliteState.Retreat;
     // In the fight, on the board or away from it (hiding): the drawing stays the damaged one throughout.
     bool Engaged => InPlay || State == EliteState.Hide;
@@ -210,7 +211,7 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
     Vector2 hideTo;
     float stateTime, cooldown, escapeLeft, grace, hitFlash, frameHold, blinkCooldown, exhaustClock;
     int idleStep, attackPhase, damagedStep;
-    float damagedHold;
+    float damagedHold, stunLeft;
     float thrust, lastDt;
     Vector2 seen, lastPlayer, follow, aimSeen;
     bool aimLocked;
@@ -490,7 +491,10 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
             case EliteState.Parked: StepParked(dt); break;
             case EliteState.LiftOff: StepLiftOff(dt); break;
             case EliteState.Hide: StepHide(dt); break;
-            default: StepPlay(dt); break;
+            default:
+                if (stunLeft > 0f && (State == EliteState.Follow || State == EliteState.Attack)) StepStunned(dt);
+                else StepPlay(dt);
+                break;
         }
         if (State == EliteState.Dead) return;
         lastDt = dt;
@@ -929,6 +933,25 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
 
     // The brain's speed scale x the phase's.
     float BrainSpeed => Brain.SpeedScale * Script.SpeedScale;
+
+    // Stuns it for `seconds` (a longer stun is kept). An attack in its tell or action is broken off the way a jink breaks it off,
+    // so the script is back at a clean Follow when it wakes. False when it is not in the fight (parked, lifting off, hiding,
+    // joining or leaving: those play out as authored).
+    public bool Stun(float seconds)
+    {
+        if (seconds <= 0f || (State != EliteState.Follow && State != EliteState.Attack)) return false;
+        if (State == EliteState.Attack) BreakOff();
+        stunLeft = Mathf.Max(stunLeft, seconds);
+        return true;
+    }
+
+    void StepStunned(float dt)
+    {
+        stunLeft = Mathf.Max(0f, stunLeft - dt);
+        velocity = Vector2.zero;
+        thrust = Mathf.Lerp(thrust, .25f, 1f - Mathf.Exp(-6f * dt));
+        Collide();
+    }
 
     void StepPlay(float dt)
     {
@@ -1562,14 +1585,14 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
 
     // ---- hooks for the pilot's side ----------------------------------------
 
-    // TeleportFx.Strike: a pause jump landed on it -- PauseDamage (2)
-    // hearts, through TakeHit as ever (a shield link or armour plate that lets
-    // a pause jump through still does). It resolves on the landing frame,
-    // while the world is still frozen (the elite has not moved since the pilot
-    // aimed), and its grace window does not refuse it. (A survivor is flung
-    // out of the landing blast so the ship doesn't sit inside it; a hurtHide
-    // elite breaks off and hides.) A jump onto an elite's shot
-    // erases the shot. True when handled.
+    // TeleportFx.Strike: a pause jump landed on it -- every heart, through
+    // TakeHit as ever, so it is an ordinary elite kill (a shield link or armour
+    // plate that lets a pause jump through still does). It resolves on the
+    // landing frame, while the world is still frozen (the elite has not moved
+    // since the pilot aimed), and its grace window does not refuse it. (An
+    // elite that somehow survives is flung out of the landing blast so the ship
+    // doesn't sit inside it.) A jump onto an elite's shot erases the shot.
+    // True when handled.
     public static bool TeleportStrike(GameObject go, Vector3 at)
     {
         if (go == null) return false;
@@ -1577,7 +1600,7 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
         if (elite != null)
         {
             if (!elite.InPlay) return true;
-            elite.TakeHit(EliteDamage.Teleport, at, PauseDamage);
+            elite.TakeHit(EliteDamage.Teleport, at, elite.Hearts);
             if (elite != null && elite.State != EliteState.Dead) elite.Shove(at, TeleportFx.BlastRadius + elite.Def.hullRadius + .1f);
             return true;
         }

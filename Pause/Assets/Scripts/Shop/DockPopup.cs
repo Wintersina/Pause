@@ -533,6 +533,17 @@ public class DockPopup : MonoBehaviour
         heartsLine.gameObject.SetActive(true);
     }
 
+    // A locked ship has no skin row, so its start speed takes the colour-name
+    // slot of the header: "START SPD 10", the gain over the equipped ship in gold.
+    void ShowLockedSpeed(int index)
+    {
+        string gain;
+        string line = ShipStartSpeed.LockedLabel(index, ShipStartSpeed.EquippedHud(), out gain);
+        skinName.text = gain.Length > 0
+            ? line + " <color=#" + ColorUtility.ToHtmlStringRGB(DockArt.Gold) + ">" + gain + "</color>"
+            : line;
+    }
+
     // Five angular chips in each skin's own colours (base, shadow band, and a
     // special's livery stripe), between the header and the action. Each sits
     // in its own touch slot: the row's width split five ways (~55 units),
@@ -856,6 +867,7 @@ public class DockPopup : MonoBehaviour
             buttonImage.color = affordable ? DockArt.Gold : AkiraPalette.GunHi;
         }
         HideSkins();
+        if (!owned) ShowLockedSpeed(index);
         FitHeader();
         SetRowVisible(true);
         if (!wasVisible) { shownAt = Time.unscaledTime; ResetPreview(); }

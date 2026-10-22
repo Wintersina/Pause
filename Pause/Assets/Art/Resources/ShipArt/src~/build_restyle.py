@@ -42,6 +42,7 @@ spec.loader.exec_module(bp)
 
 CELL, COLS, STATES = bp.CELL, bp.COLS, bp.STATES
 GREEN = np.array([0, 255, 0], dtype=np.uint8)
+KEYRGB = GREEN          # background key colour of the Codex paintings (a ship hook may change it)
 
 KINDS = {"Sparks": "sparks", "Arc": "arc", "Smoke": "smoke", "Flame": "flame", "Leak": "leak", "Smolder": "smolder"}
 
@@ -75,7 +76,7 @@ def hit_flash(rgb, hull=None):
         hull = ~is_green(rgb)
     peak = rgb.astype(np.int16).max(axis=2)
     out = np.empty_like(rgb)
-    out[:] = GREEN
+    out[:] = KEYRGB
     out[hull] = (244, 234, 212)
     out[hull & (peak < 45)] = (6, 8, 20)
     out[hull & (peak >= 45) & (peak < 85)] = (92, 88, 91)
@@ -151,7 +152,8 @@ def build_sheet(cfg, codex):
         redo = None
         if os.path.exists(rp) and "--no-redo" not in sys.argv:
             rcells, rn = bp.codex_cells(rp, 3, 2)
-            redo = bp.fit_cells(rcells[:5], rn, scale * 1024 / rn, (anchor[0] * rn / 1024, anchor[1] * rn / 1024))
+            nred = 3 if cfg.get('stopgap_banks') else 5
+            redo = bp.fit_cells(rcells[:nred], rn, scale * 1024 / rn, (anchor[0] * rn / 1024, anchor[1] * rn / 1024))
         pieces = []
         for c in range(COLS):
             if c == 0:
@@ -163,8 +165,11 @@ def build_sheet(cfg, codex):
             elif c == 8:
                 pieces.append(flash)
             elif redo is not None:
-                pieces.append({2: lambda: roll_y(redo[0], -dy_px), 3: lambda: redo[1], 4: lambda: redo[2],
-                               6: lambda: redo[3], 7: lambda: redo[4]}[c]())
+                if cfg.get('stopgap_banks') and c in (6, 7):
+                    pieces.append(bank_stopgap(key_cell, -1 if c == 6 else 1))
+                else:
+                    pieces.append({2: lambda: roll_y(redo[0], -dy_px), 3: lambda: redo[1], 4: lambda: redo[2],
+                                   6: lambda: redo[3], 7: lambda: redo[4]}[c]())
             elif c == 2:
                 pieces.append(roll_y(key_cell, -dy_px))
             elif c in (3, 4):
@@ -320,16 +325,61 @@ def compose_states(img, cfg):
                 cur = np.where(w1[..., None], a[2 * CELL:3 * CELL, c * CELL:(c + 1) * CELL], cur)
             out[reg] = np.where(m[..., None], cur, c0)
             out[reg][..., 3] = c0[..., 3]
+    if cfg.get("flash_clean"):
+        # hit-flash column: the solid bone-white silhouette of row 0 in every damage row (no damage texture)
+        for st in (1, 2):
+            out[st * CELL:(st + 1) * CELL, 8 * CELL:9 * CELL] = a[0:CELL, 8 * CELL:9 * CELL]
+    sb = cfg.get("stopgap_banks")
+    if sb:
+        # modest bank cells built from the composed idle cell of each row (damage stays on the same panels)
+        xs = np.arange(CELL)
+        for st in range(3):
+            idle = out[st * CELL:(st + 1) * CELL, 0:CELL]
+            for col, d in ((6, -1), (7, 1)):
+                src = np.round(127.5 + (xs - sb["shift"] * d - 127.5) / sb["squeeze"]).astype(int)
+                ok = (src >= 0) & (src < CELL)
+                cell = np.zeros_like(idle)
+                cell[:, ok] = idle[:, src[ok]]
+                f = 1 - (1 - sb["shade"]) * np.clip((xs - 127.5) * d / 110.0, 0, 1)
+                cell[..., :3] = np.clip(cell[..., :3].astype(float) * f[None, :, None] + 0.5, 0, 255).astype(np.uint8)
+                cell[cell[..., 3] == 0] = 0
+                out[st * CELL:(st + 1) * CELL, col * CELL:(col + 1) * CELL] = cell
+    return Image.fromarray(out)
+
+
+def bank_stopgap(cell, d):
+    """Modest tilt for a spinner (UFO never banks in game): idle cell squeezed ~5% across, shifted 3 px, near side shaded."""
+    a = np.array(cell)
+    h, w = a.shape[:2]
+    xs = np.nonzero(a[..., 3] > 0)[1]
+    cx = (xs.min() + xs.max()) / 2
+    out = np.zeros_like(a)
+    k = 0.95
+    for x in range(w):
+        sx = int(round(cx + (x - 3 * d - cx) / k))
+        if 0 <= sx < w:
+            out[:, x] = a[:, sx]
+    m = out[..., 3] > 0
+    xs2 = np.nonzero(m.any(axis=0))[0]
+    x0, x1 = xs2.min(), xs2.max()
+    for x in range(w):
+        t = (x - x0) / max(1, x1 - x0)          # 0 left .. 1 right
+        near = (1 - t) if d < 0 else t
+        f = 1.0 - 0.16 * max(0.0, near - 0.45) / 0.55
+        col = out[:, x, :3].astype(np.float32) * f
+        out[:, x, :3] = np.where(m[:, x, None], col, 0).astype(np.uint8)
+    out[~m] = 0
+    out[m, 3] = 255
     return Image.fromarray(out)
 
 
 def write_skin_refs(sheet, codex):
     """3 x 3 reference sheets of the FINAL flipbook (cells 512 px, green bg) for the skin briefs."""
     for st in range(3):
-        out = Image.new("RGB", (1536, 1536), (0, 255, 0))
+        out = Image.new("RGB", (1536, 1536), tuple(int(v) for v in KEYRGB))
         for c in range(COLS):
             cell = sheet.crop((c * CELL, st * CELL, (c + 1) * CELL, (st + 1) * CELL)).resize((512, 512), Image.NEAREST)
-            bg = Image.new("RGBA", (512, 512), (0, 255, 0, 255))
+            bg = Image.new("RGBA", (512, 512), tuple(int(v) for v in KEYRGB) + (255,))
             bg.alpha_composite(cell)
             out.paste(bg.convert("RGB"), ((c % 3) * 512, (c // 3) * 512))
         out.save(os.path.join(codex, "skinref_state%d.png" % st))
@@ -481,13 +531,16 @@ def write_flames(key, cfg, codex):
 def main():
     key = shiplib.resolve(sys.argv[1])
     cfg = load_cfg(key)
+    hook = os.path.join(shiplib.src_dir(key), "build_hook.py")     # optional per-ship tweak (e.g. another chroma key)
+    if os.path.exists(hook):
+        exec(compile(open(hook).read(), hook, "exec"), globals())
     codex = os.path.join(shiplib.src_dir(key), "codex")
     raw = build_sheet(cfg, codex)
     sheet = compose_states(raw, cfg)
     sheet.save(shiplib.hull_path(key), optimize=True)
     data = measure(sheet, cfg)
     data["skins"] = [n for n, _ in cfg["skins"]]
-    write_skin_refs(raw, codex)
+    write_skin_refs(sheet, codex)
     if "--no-skins" not in sys.argv:
         write_skins(sheet, cfg, key, codex)
     if "--no-flame" not in sys.argv:
