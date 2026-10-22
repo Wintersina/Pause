@@ -7,6 +7,7 @@
   0.72
  ],
  "fill_holes": true,
+ "landmarks": {"red_y": [0.5, 0.76], "red_x": [45, 125], "orange_x": [20, 75], "orange_amber": 1},
  "emitters": [
   [
    1,
