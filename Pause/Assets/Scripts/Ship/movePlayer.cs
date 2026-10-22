@@ -45,6 +45,17 @@ public class movePlayer : MonoBehaviour
     private bool gliding;
     private float glideElapsed;
 
+    // The pause-jump is a targeting move: the ship lands ON the finger so the
+    // landing blast hits what the finger is on, then slides back up to its
+    // usual perch above the finger. The slide is an offset (landing point minus
+    // the live follow target) that eases to zero, added to the live follow
+    // target, so a finger that keeps moving is followed 1:1 the whole way and
+    // there is no jump when the slide ends. Unscaled time, like the glide.
+    public const float ReturnSeconds = 0.35f;
+    private bool returning;
+    private float returnElapsed;
+    private Vector3 returnOffset;
+
     // The launch countdown: one second of "READY" from the first touch, then
     // "GO!!!!" and the ship steers on that same frame. GO only lingers as a
     // fade-out; it never holds control back. (It used to be a 2s count plus a
@@ -102,6 +113,7 @@ public class movePlayer : MonoBehaviour
             teleported = false;
             teleportLockedUntilRelease = false;
             gliding = false;
+            returning = false;
             return;
         }
 
@@ -131,6 +143,7 @@ public class movePlayer : MonoBehaviour
                     // The launch never blinks: glide to the finger instead.
                     gliding = true;
                     glideElapsed = 0f;
+                    returning = false;
                     teleported = false;
                     teleportLockedUntilRelease = false;
                 }
@@ -168,11 +181,24 @@ public class movePlayer : MonoBehaviour
                     }
 
                     Vector3 before = transform.position;
-                    moveLeft_Right(fingerPos);
+                    Vector3 rest = FollowTarget(fingerPos);
+                    Vector3 land = LandingPoint(fingerPos);
+                    PlaceShip(land);
+                    returnOffset = land - rest;
+                    returnElapsed = 0f;
+                    returning = true;
                     MarkTeleport();
-                    TeleportFx.Play(before, transform.position);
-                    RunScore.OnTeleport(before, transform.position);
-                    AchievementTracker.OnTeleport(before, transform.position);
+                    TeleportFx.Play(before, land);
+                    // scored by the jump to the perch, as before the slide-back
+                    RunScore.OnTeleport(before, rest);
+                    AchievementTracker.OnTeleport(before, rest);
+                }
+                else if (returning)
+                {
+                    float dt = Mathf.Min(Dt(), GlideMaxStep);
+                    returnElapsed += dt;
+                    PlaceShip(ReturnPosition(FollowTarget(fingerPos), returnOffset, returnElapsed));
+                    if (returnElapsed >= ReturnSeconds) returning = false;
                 }
                 else if (!teleportLockedUntilRelease)
                 {
@@ -193,6 +219,7 @@ public class movePlayer : MonoBehaviour
             // Finger up = the pause: a glide in flight is cancelled where it
             // is, and the next touch is an ordinary pause-teleport.
             gliding = false;
+            returning = false;
             teleported = true;
             teleportLockedUntilRelease = false;
         }
@@ -232,6 +259,22 @@ public class movePlayer : MonoBehaviour
         done = Vector3.Distance(next, target) <= GlideSettleDistance || elapsed + dt >= GlideMaxSeconds;
         if (done) next = target;
         return next;
+    }
+
+    // Where a pause-jump lands: on the finger itself (the perch offsets are
+    // not applied), kept inside the same reach as the follow.
+    public static Vector3 LandingPoint(Vector3 finger)
+    {
+        return new Vector3(ShipReach.ClampX(finger.x), ClampPlayerY(finger.y));
+    }
+
+    // The slide back to the perch: `target` plus the landing offset eased out
+    // (smoothstep: no pop at either end, never overshoots).
+    public static Vector3 ReturnPosition(Vector3 target, Vector3 offset, float elapsed)
+    {
+        float t = Mathf.Clamp01(elapsed / ReturnSeconds);
+        float ease = t * t * (3f - 2f * t);
+        return target + offset * (1f - ease);
     }
 
     void PlaceShip(Vector3 p)
