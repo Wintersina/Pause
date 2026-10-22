@@ -2,6 +2,7 @@
 # Part 2 chain for IonLancer: wait for the Codex image cap reset, then run the jobs in order.
 # usage: part2_chain.sh <reset_epoch>   (seconds; the cap reset is ~2026-10-22 11:05 CDT = 1792685100)
 # Log: <scratch>/part2.log ; each step writes a marker  <scratch>/part2_<step>.done
+# The damage layers are the IDLE damaged cells (col 0); damage_overlay.py maps them onto every other cell.
 # Verification, the 1x/2x dark-background view, commit and push are done by hand afterwards.
 RESET=${1:-1792685100}
 S=/private/tmp/claude-501/-Users-sina-Developer-Pause/f81f62e1-5015-4fec-8294-5f213a5c6d1f/scratchpad/ionlancer
@@ -23,12 +24,6 @@ cp $C/key_state1_v3.png $C/key_state1.png
 cp $C/key_state2_v3.png $C/key_state2.png
 touch $S/part2_wreck2.done
 
-step redo12
-$CX $W $C/briefs/j1b_redo12.md $S/redo12_out.txt $C/key_state1.png $C/key_state2.png $C/hull_redo_state0.png
-[ -f $C/hull_redo_state1_v2.png ] && [ -f $C/hull_redo_state2_v2.png ] || { echo "FAILED redo12"; exit 1; }
-python3 $C/tools/fix_redo12.py
-touch $S/part2_redo12.done
-
 step build-noskins
 python3 $H/build_restyle.py IonLancer --no-skins --no-flame
 
@@ -42,5 +37,7 @@ touch $S/part2_skins.done
 step final-build
 python3 $H/build_restyle.py IonLancer
 python3 $H/patch_restyle.py IonLancer
+step overlay
+python3 $H/damage_overlay.py IonLancer --skins --preview $S/ov
 echo "ALL DONE $(date)"
 touch $S/part2_all.done
