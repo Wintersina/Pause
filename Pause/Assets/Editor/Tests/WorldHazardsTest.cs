@@ -85,6 +85,7 @@ public static class WorldHazardsTest
             PushOnlyNoDamage();
             SchedulingRules();
             BossFight();
+            FlareStuns();
             PoolsAndCost();
             AmbientPerWorld();
             ScreenShapes();
@@ -384,6 +385,33 @@ public static class WorldHazardsTest
     }
 
     static int CountActive() { int n = 0; foreach (var f in WorldHazards.Fields) if (f.Active) n++; return n; }
+
+    // ---- the Space flares stun what is in view ----
+    static void FlareStuns()
+    {
+        Check("both Space flares stun", Def("solar_flare").stuns && Def("flare_storm").stuns);
+        bool others = false;
+        foreach (var e in WorldWeatherTable.Entries) foreach (var h in e.hazards) if (h.stuns && !h.id.Contains("flare")) others = true;
+        Check("no other hazard stuns", !others);
+
+        NewManager();
+        var player = new GameObject("player"); made.Add(player);
+        player.transform.position = new Vector3(0f, -4f);
+        EliteSystem.PlayerOverride = player.transform;
+        var elite = EliteShip.CreateInPlay(BaseEliteDefs.For("gunship"), new Vector2(0f, 2f));
+        made.Add(elite.gameObject);
+        var f = WorldHazards.Fields[0];
+        f.def = Def("solar_flare"); f.phase = HazardField.Phase.Live; f.t = f.def.warning + 1f; f.side = 1f;
+        f.viewBottom = -6f; f.viewTop = 6f; f.laneHalf = 4f; f.liveFor = 30f; f.sweepX = -20f;   // the band is still far off: only the stun acts
+        WorldHazards.Apply(Dt);
+        Check("a live flare stuns an elite on screen", elite.Stunned && WorldHazards.LastStunned >= 1);
+        Vector2 at = elite.transform.position;
+        for (int i = 0; i < 20; i++) { WorldHazards.Apply(Dt); elite.Step(Dt); }
+        Check("a stunned elite holds still", ((Vector2)elite.transform.position - at).sqrMagnitude < 1e-6f);
+        WorldHazards.ClearAll();
+        for (int i = 0; i < 60; i++) elite.Step(Dt);
+        Check("and wakes shortly after the flare ends", !elite.Stunned);
+    }
 
     static void BossFight()
     {
