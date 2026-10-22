@@ -21,3 +21,25 @@ def is_green(rgb):          # used by hit_flash(): "is background"
 
 
 bp.key_green = key_magenta
+
+
+# Sprite rect padding. measure() crops the rect 1 px outside the art; the old Paranoid sprite had ~5 px of
+# clear margin per side (rect 243 for a 232 px hull). Game code normalises every hull sprite to a fixed size
+# (shopingShips.NormalizedHullScale) and the spawn-row gap is sized against the widest hull hit polygon, so a tight
+# rect made this wide, rectangular-podded hull 4% bigger on screen than before and tipped RailsShipSizeTest
+# (widest 1.35x hitbox 0.756 u > gap 0.754 u). Pad back to the old margin; nozzle points are rect-relative.
+_measure_tight = measure
+PAD = 5
+
+
+def measure(sheet, cfg):
+    d = _measure_tight(sheet, cfg)
+    x, y, w, h = d["rect"]
+    x2, y2 = max(0, x - PAD), max(0, y - PAD)
+    w2 = min(CELL, x + w + PAD) - x2
+    h2 = min(CELL, y + h + PAD) - y2
+    dx, dy = x - x2, y - y2
+    d["rect"] = [x2, y2, w2, h2]
+    d["ppu"] = round(w2 / cfg["world_w"], 4)
+    d["nozzles"] = [(round(a + dx, 1), round(b + dy, 1), k) for a, b, k in d["nozzles"]]
+    return d
