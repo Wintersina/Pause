@@ -384,11 +384,15 @@ def compose_states(img, cfg):
     for c in range(COLS - 1):
         bc = bbx(c)
         m1 = zone_mask(z["s1"], c, b0, bc)
+        w1 = zone_mask(z.get("s1w", []), c, b0, bc)    # optional: spots where row 1 shows the wreck painting
+        m1 = m1 | w1
         m2 = m1 | zone_mask(z["s2"], c, b0, bc)
         c0 = a[0:CELL, c * CELL:(c + 1) * CELL]
         for st, m in ((1, m1), (2, m2)):
             reg = (slice(st * CELL, (st + 1) * CELL), slice(c * CELL, (c + 1) * CELL))
             cur = a[reg]
+            if st == 1 and w1.any():
+                cur = np.where(w1[..., None], a[2 * CELL:3 * CELL, c * CELL:(c + 1) * CELL], cur)
             out[reg] = np.where(m[..., None], cur, c0)
             out[reg][..., 3] = c0[..., 3]
     if cfg.get("flash_clean"):
@@ -600,8 +604,45 @@ def heat(idx):
     return new
 
 
+def write_spin_flames(key, cfg, codex):
+    """A spinner (Ninja, UFO) has no plume: Ring / RingBoost / Wake / WakeBoost strips, 8 square cells each
+    (ring_cruise.png, ring_boost.png, wake_cruise.png, wake_boost.png), snapped to the five exhaust bands."""
+    fl = cfg["flame"]
+    files = [("Ring", "ring_cruise.png"), ("RingBoost", "ring_boost.png"),
+             ("Wake", "wake_cruise.png"), ("WakeBoost", "wake_boost.png")]
+    if not all(os.path.exists(os.path.join(codex, f)) for _, f in files):
+        print("  no spin flame strips yet")
+        return
+    sz, n = fl.get("size", 120), fl["frames"]
+    cols = np.array([fl["bands"][k] for k in ("outer", "mid", "core", "dark", "accent")], float)
+    strips = {}
+    for layer, f in files:
+        im = Image.open(os.path.join(codex, f)).convert("RGB")
+        w = im.width // n
+        frames = []
+        for i in range(n):
+            keyed = bp.key_green(im.crop((i * w, 0, (i + 1) * w, im.height)))
+            a = np.array(keyed.resize((sz, sz), Image.BOX)).astype(float)
+            idx = np.full((sz, sz), -1)
+            solid = a[..., 3] > 110
+            d = ((a[..., None, :3] - cols[None, None]) ** 2).sum(-1)
+            idx[solid] = d.argmin(-1)[solid]
+            if layer.endswith("Boost"):
+                idx = heat(idx)
+            img = np.zeros((sz, sz, 4), np.uint8)
+            for k, c in enumerate(cols):
+                img[idx == k] = (*[int(v) for v in c], 255)
+            frames.append(Image.fromarray(img))
+        strips[layer] = frames
+    layout = {l: (sz, sz, fl.get("stride", 122)) for l, _ in files}
+    rows = shiplib.write_flame_sheet(key, strips, layout)
+    print("  spin flames written:", [(r["layer"], r["frames"]) for r in rows])
+
+
 def write_flames(key, cfg, codex):
     fl = cfg["flame"]
+    if fl.get("kind") == "spin":
+        return write_spin_flames(key, cfg, codex)
     if not all(os.path.exists(os.path.join(codex, f)) for f in ("flame_cruise.png", "flame_boost.png")):
         print("  no flame strips yet")
         return
