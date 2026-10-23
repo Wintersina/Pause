@@ -133,6 +133,66 @@ def fill_enclosed(img):
     return Image.fromarray(arr), n
 
 
+def zone_radius(zones, col, bbox0, bbox_c):
+    """float 256x256 map: normalised radius of the nearest damage ellipse (<=1 inside, 9 outside), moved with
+    column `col` (bob = y shift, bank = x stretch, same mapping as zone_mask)."""
+    yy, xx = np.mgrid[0:CELL, 0:CELL].astype(np.float64)
+    dy = {1: -4, 2: -4, 5: 4}.get(col, 0)
+    yk = yy - dy
+    if col in (6, 7):
+        xk = bbox0[0] + (xx - bbox_c[0]) * ((bbox0[1] - bbox0[0] + 1) / (bbox_c[1] - bbox_c[0] + 1))
+    else:
+        xk = xx
+    m = np.full((CELL, CELL), 9.0)
+    for cx, cy, rx, ry in zones:
+        m = np.minimum(m, np.sqrt(((xk - cx) / rx) ** 2 + ((yk - cy) / ry) ** 2))
+    return m
+
+
+def _bbx(arr):
+    xs = np.nonzero(arr[..., 3].any(axis=0))[0]
+    return xs.min(), xs.max()
+
+
+def _resample_key(key, col, b0, bc):
+    """The key pose moved like column `col` (bob = y shift, bank = x stretch)."""
+    dy = {1: -4, 2: -4, 5: 4}.get(col, 0)
+    if dy:
+        return np.array(roll_y(Image.fromarray(key), dy))
+    if col in (6, 7):
+        xk = np.clip(np.round(b0[0] + (np.arange(CELL) - bc[0]) * ((b0[1] - b0[0] + 1) / (bc[1] - bc[0] + 1))).astype(int), 0, CELL - 1)
+        return key[:, xk]
+    return key
+
+
+def compose_rows(cfg, row0, key_cell_st, key_cell0, st):
+    """Row `st` (1/2) = row 0 cells with the damage painting of key pose `st` pasted inside the damage zones, on
+    every column (bob / bank follow). Ellipse core always takes the damage, its ring only where the painting
+    differs clearly from the intact key (no seam). Damage sits on the same panels in every cell."""
+    z = cfg["damage_zones"]
+    k_st, k_0 = np.array(key_cell_st), np.array(key_cell0)
+    b0 = _bbx(np.array(row0[0]))
+    out = []
+    for c in range(COLS):
+        cell = np.array(row0[c])
+        if c != 8:
+            bc = _bbx(cell)
+            r = zone_radius(list(z["s1"]) + (list(z["s2"]) if st == 2 else []), c, b0, bc)
+            patch = _resample_key(k_st, c, b0, bc)
+            ref = _resample_key(k_0, c, b0, bc)
+            diff = np.abs(patch[..., :3].astype(int) - ref[..., :3].astype(int)).sum(-1)
+            take = ((r < .7) | ((r <= 1.0) & (diff > 70))) & (patch[..., 3] > 0) & (cell[..., 3] > 0)
+            cell[take] = patch[take]
+            if st == 2 and cfg.get("wreck_scorch"):
+                # wreck only: a soft char/soot halo that fades out round every damage spot (same panels in every cell)
+                k = cfg["wreck_scorch"]
+                halo = (r > .6) & (r < 1.2) & ~take & (cell[..., 3] > 0)
+                f = 1 - k * np.clip((1.2 - r) / .6, 0, 1)
+                cell[..., :3] = np.where(halo[..., None], (cell[..., :3] * f[..., None]).astype(np.uint8), cell[..., :3])
+        out.append(Image.fromarray(cell))
+    return out
+
+
 def build_sheet(cfg, codex):
     keys = [Image.open(os.path.join(codex, f"key_state{s}.png")).convert("RGB") for s in range(3)]
     k0 = np.array(bp.key_green(keys[0]))[..., 3]
@@ -148,6 +208,11 @@ def build_sheet(cfg, codex):
         hull_mask = (np.array(bp.key_green(keys[st]))[..., 3] > 0) if cfg.get("fill_holes") else None
         flash_src = Image.fromarray(hit_flash(np.array(keys[st]), hull_mask))
         flash = bp.fit_cells([flash_src], 1024, scale, anchor)[0]
+        if st and cfg.get("compose_from_key"):
+            # only the intact pose sheet is painted; damage rows are composed from row 0 + the key poses' damage
+            per_state.append(compose_rows(cfg, per_state[0], key_cell, per_state[0][0], st))
+            per_state[-1][8] = per_state[0][8]
+            continue
         rp = os.path.join(codex, f"hull_redo_state{st}.png")
         redo = None
         if os.path.exists(rp) and "--no-redo" not in sys.argv:
@@ -319,11 +384,15 @@ def compose_states(img, cfg):
     for c in range(COLS - 1):
         bc = bbx(c)
         m1 = zone_mask(z["s1"], c, b0, bc)
+        w1 = zone_mask(z.get("s1w", []), c, b0, bc)    # optional: spots where row 1 shows the wreck painting
+        m1 = m1 | w1
         m2 = m1 | zone_mask(z["s2"], c, b0, bc)
         c0 = a[0:CELL, c * CELL:(c + 1) * CELL]
         for st, m in ((1, m1), (2, m2)):
             reg = (slice(st * CELL, (st + 1) * CELL), slice(c * CELL, (c + 1) * CELL))
             cur = a[reg]
+            if st == 1 and w1.any():
+                cur = np.where(w1[..., None], a[2 * CELL:3 * CELL, c * CELL:(c + 1) * CELL], cur)
             out[reg] = np.where(m[..., None], cur, c0)
             out[reg][..., 3] = c0[..., 3]
     if cfg.get("flash_clean"):
@@ -491,6 +560,18 @@ def write_skins(sheet, cfg, key, codex):
                     out.alpha_composite(Image.fromarray(tile), (c * CELL, st * CELL))
             print(f"  skin {name}: Codex sheets, {holes} silhouette pixels from the fallback")
             fb = apply_banks(compose_states(out, cfg), cfg)
+            if cfg.get("compose_from_key"):
+                # hit-flash column: the same solid silhouette in all three damage rows
+                fa = np.array(fb)
+                cells0 = [Image.fromarray(np.array(out)[0:CELL, c * CELL:(c + 1) * CELL].copy()) for c in range(COLS)]
+                for st in (1, 2):
+                    # rows composed from the skin's own intact row + its own key-pose damage (+ wreck scorch halo)
+                    kst = Image.fromarray(np.array(out)[st * CELL:(st + 1) * CELL, 0:CELL].copy())
+                    for c, cp in enumerate(compose_rows(cfg, cells0, kst, cells0[0], st)):
+                        fa[st * CELL:(st + 1) * CELL, c * CELL:(c + 1) * CELL] = np.array(cp)
+                for st in (1, 2):
+                    fa[st * CELL:(st + 1) * CELL, 8 * CELL:9 * CELL] = fa[0:CELL, 8 * CELL:9 * CELL]
+                fb = Image.fromarray(fa)
         else:
             print(f"  skin {name}: palette-shift fallback")
         built[name] = fb
@@ -523,8 +604,45 @@ def heat(idx):
     return new
 
 
+def write_spin_flames(key, cfg, codex):
+    """A spinner (Ninja, UFO) has no plume: Ring / RingBoost / Wake / WakeBoost strips, 8 square cells each
+    (ring_cruise.png, ring_boost.png, wake_cruise.png, wake_boost.png), snapped to the five exhaust bands."""
+    fl = cfg["flame"]
+    files = [("Ring", "ring_cruise.png"), ("RingBoost", "ring_boost.png"),
+             ("Wake", "wake_cruise.png"), ("WakeBoost", "wake_boost.png")]
+    if not all(os.path.exists(os.path.join(codex, f)) for _, f in files):
+        print("  no spin flame strips yet")
+        return
+    sz, n = fl.get("size", 120), fl["frames"]
+    cols = np.array([fl["bands"][k] for k in ("outer", "mid", "core", "dark", "accent")], float)
+    strips = {}
+    for layer, f in files:
+        im = Image.open(os.path.join(codex, f)).convert("RGB")
+        w = im.width // n
+        frames = []
+        for i in range(n):
+            keyed = bp.key_green(im.crop((i * w, 0, (i + 1) * w, im.height)))
+            a = np.array(keyed.resize((sz, sz), Image.BOX)).astype(float)
+            idx = np.full((sz, sz), -1)
+            solid = a[..., 3] > 110
+            d = ((a[..., None, :3] - cols[None, None]) ** 2).sum(-1)
+            idx[solid] = d.argmin(-1)[solid]
+            if layer.endswith("Boost"):
+                idx = heat(idx)
+            img = np.zeros((sz, sz, 4), np.uint8)
+            for k, c in enumerate(cols):
+                img[idx == k] = (*[int(v) for v in c], 255)
+            frames.append(Image.fromarray(img))
+        strips[layer] = frames
+    layout = {l: (sz, sz, fl.get("stride", 122)) for l, _ in files}
+    rows = shiplib.write_flame_sheet(key, strips, layout)
+    print("  spin flames written:", [(r["layer"], r["frames"]) for r in rows])
+
+
 def write_flames(key, cfg, codex):
     fl = cfg["flame"]
+    if fl.get("kind") == "spin":
+        return write_spin_flames(key, cfg, codex)
     if not all(os.path.exists(os.path.join(codex, f)) for f in ("flame_cruise.png", "flame_boost.png")):
         print("  no flame strips yet")
         return

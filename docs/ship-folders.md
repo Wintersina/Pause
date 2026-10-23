@@ -60,6 +60,10 @@ take the hull's colour (invulnerability blink, dock dimming). Codex / title / le
 no rotors. `ShipRotorsTest` checks every rotors file (parses, hubs inside the hull rect, non-zero speed, sheet loads).
 Example generator: `ShipArt/Turtle/src~/make_rotor.py`.
 
+## Bank poses
+
+`ShipArt/src~/bank_pose.py <Key>` rebuilds columns 6 (BankLeft) and 7 (BankRight) of the stock sheet and every skin sheet from each row's own idle cell, applying `ShipDamageTable.Posed` as a nearest-neighbour warp (near side k .80, far side .95, 1.5 unit shift toward the bank, vertical offset, near side shaded 12 %), so damage panels and skins stay consistent; skins take the stock bank alpha. It then verifies left/right extent ratios, binary alpha, skin/stock alpha equality and width change. It is idempotent and touches no other column; per-ship overrides (`axis`, `shade`) go in `<Key>/src~/bank_pose.json`. The shield and hitbox bakes read only the idle silhouette, so no re-bake is needed. Spinning ships (Ninja, UFO) never bank and are not covered.
+
 ## Design choices (and the alternative)
 
 - Per-ship `src~/` under the ship folder instead of the old `Hulls/src~/<ship>/`: the Codex paintings, briefs and

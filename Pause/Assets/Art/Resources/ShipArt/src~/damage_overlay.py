@@ -28,6 +28,9 @@ sys.path.insert(0, HERE)
 import shiplib  # noqa: E402
 CELL = 256
 INK = (6, 8, 20)
+# landmark search windows (fractions of ship height / px from the canopy x); a ship overrides them with a
+# "landmarks" dict in its src~/restyle.json (red_y, red_x, orange_x)
+LM = {"red_y": (0.55, 0.85), "red_x": (25, 85), "orange_x": (0, 40), "orange_amber": 0}
 NAMES = ["N", "L", "R", "C", "SL", "SR", "NL", "NR"]
 TRIS = [("N", "L", "SL"), ("N", "SL", "C"), ("C", "SL", "NL"), ("SL", "L", "NL"),
         ("N", "R", "SR"), ("N", "SR", "C"), ("C", "SR", "NR"), ("SR", "R", "NR"), ("C", "NL", "NR")]
@@ -55,8 +58,16 @@ def landmarks(cl):
     canopy = (cx.mean(), cy.mean())
     cxm = canopy[0]
     redish = al & (rgb[..., 0] > 150) & (rgb[..., 0] > rgb[..., 1] * 2) & (rgb[..., 0] > rgb[..., 2] * 2)
-    red = redish & (yy > ys.min() + 0.55 * h) & (yy < ys.min() + 0.85 * h) & (abs(xx - cxm) > 25) & (abs(xx - cxm) < 85)
-    orange = redish & (yy > ys.min() + 0.9 * h) & (abs(xx - cxm) < 40)
+    red = redish & (yy > ys.min() + LM["red_y"][0] * h) & (yy < ys.min() + LM["red_y"][1] * h) & (abs(xx - cxm) > LM["red_x"][0]) & (abs(xx - cxm) < LM["red_x"][1])
+    orange = redish & (yy > ys.min() + 0.9 * h) & (abs(xx - cxm) < LM["orange_x"][1]) & (abs(xx - cxm) >= LM["orange_x"][0])
+    if LM["orange_amber"]:  # amber (not red) nozzle glow
+        orange = al & (rgb[..., 0] > 120) & (rgb[..., 1] > 50) & (rgb[..., 2] < 110) & (rgb[..., 0] > rgb[..., 2] * 1.8) & (rgb[..., 0] > rgb[..., 1] * 1.15) \
+            & (yy > ys.min() + 0.82 * h) & (abs(xx - cxm) < LM["orange_x"][1]) & (abs(xx - cxm) >= LM["orange_x"][0])
+        for sel in (xx < cxm, xx >= cxm):  # keep only each nozzle's lowest rows (a foreshortened pod ends higher)
+            side = orange & sel
+            if side.any():
+                low = np.where(side)[0].max()
+                orange &= ~(sel & (yy < low - 8))
     return nose, (left[1], left[0]), (right[1], right[0]), canopy, red, orange, cxm
 
 
@@ -199,6 +210,11 @@ def load(path):
 
 def main():
     key = shiplib.resolve(sys.argv[1])
+    rj = os.path.join(shiplib.src_dir(key), "restyle.json")
+    if os.path.exists(rj):
+        import json
+        for k, v in json.load(open(rj)).get("landmarks", {}).items():
+            LM[k] = tuple(v) if isinstance(v, (list, tuple)) else v
     prev = sys.argv[sys.argv.index("--preview") + 1] if "--preview" in sys.argv else None
     stock_p = shiplib.hull_path(key)
     stock = load(stock_p)

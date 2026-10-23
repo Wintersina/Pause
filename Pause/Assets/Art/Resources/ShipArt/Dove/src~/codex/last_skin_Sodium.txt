@@ -1,0 +1,18 @@
+Implemented Sodium colourway assets and helpers:
+
+- [skin_Sodium_state0.png](/Users/sina/Developer/Pause/.claude/worktrees/agent-ac66a148d5d2f4a3c/Pause/Assets/Art/Resources/ShipArt/Dove/src~/codex/skin_Sodium_state0.png)
+- [skin_Sodium_state1.png](/Users/sina/Developer/Pause/.claude/worktrees/agent-ac66a148d5d2f4a3c/Pause/Assets/Art/Resources/ShipArt/Dove/src~/codex/skin_Sodium_state1.png)
+- [skin_Sodium_state2.png](/Users/sina/Developer/Pause/.claude/worktrees/agent-ac66a148d5d2f4a3c/Pause/Assets/Art/Resources/ShipArt/Dove/src~/codex/skin_Sodium_state2.png)
+- [check_skin_Sodium.py](/Users/sina/Developer/Pause/.claude/worktrees/agent-ac66a148d5d2f4a3c/Pause/Assets/Art/Resources/ShipArt/Dove/src~/codex/tools/check_skin_Sodium.py)
+
+Validation: all 27 cells pass.
+
+- Silhouette difference: `0.000%`
+- Canopy difference: `0.000%`
+- Changed-pixel range: `12.459%–20.895%`
+- Output size: `3072×3072`
+- Pure green background preserved; magenta pixels: `0`
+
+Used built-in image generation candidates as Sodium shading references, then nearest-neighbour compositing locked to the approved reference geometry.
+
+Caveat: the checker verifies silhouette, canopy, and visible colourway change; it does not independently prove every dark soot/trim pixel outside the canopy remained byte-identical.
