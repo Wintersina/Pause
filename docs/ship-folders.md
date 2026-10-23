@@ -38,7 +38,7 @@ Every file has its `.meta`; the folder has a folder `.meta`.
 
 - Adding or restyling a ship = adding/replacing files in `ShipArt/<Key>/`. No shared file is edited: no C# table,
   no atlas, no bake file, no registry list in the art scripts. `painted` is the registry: `PaintedShips.Is` and
-  `ships.py RESTYLED` (via `shiplib.painted_keys()`) are derived from the data files.
+  `shiplib.painted_keys()` are derived from the data files.
 - Loaders find everything from the art key: `ShipData.HullPath/SkinPath/FlamePath/ShieldPath/HitboxPath/DataPath`.
   `ShipId.keys` (roster id -> art key, the saved ids) is the one remaining list; it only changes when the roster
   gets a new slot, never for art work.

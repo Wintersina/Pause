@@ -28,7 +28,7 @@ ShipArt/<Key>/
   src~/                   Codex paintings, briefs, tools, restyle.json (build config), data.json (measured)
 ```
 The ship registry is derived from these folders: `ShipId.cs` maps id -> `<Key>` (roster order, save-game ids,
-never touched by a restyle), `PaintedShips.Is(id)` reads `"painted"` from the ship's data file, `ships.py`'s
+never touched by a restyle), `PaintedShips.Is(id)` reads `"painted"` from the ship's data file, `shiplib.painted_keys()`'s
 `RESTYLED` is computed from the same flag. There is no hand-edited shared list or table.
 
 Sheet contract (never change): `<Key>.png` = 2304 x 768, 9 columns x 3 rows of 256 px cells. Row 0 intact,
@@ -66,7 +66,7 @@ share row 0's alpha EXACTLY, alpha is binary (0/255, no faint rim), no outline h
    - `flame`: `frames` (= the ship's current Plume strip frame count in `exhaust.strips`) and the five band
      colours `bands` (hex) from `exhaust` in `<Key>_data.json` (outer, mid, core, dark, accent; the tick list stays).
 3. Nothing to register: `patch_restyle.py` (step 4) sets `"painted": true` in the data file, which is what stops
-   the old vector pipeline (`build.py` / `build_skins.py` / `exhaust.py`) from regenerating the ship and what
+   the (now removed) old vector pipeline from regenerating a ship and what
    makes the tests treat it as painted art.
 4. Reference images (1024 px cells on flat `#00FF00`): upscale the OLD cell 0 of each damage row 4x nearest
    (`ref_old_state{0,1,2}.png`), plus `paragon_ship_alone.png` (= `Paragon/src~/ship_alone.png`) and
@@ -224,7 +224,7 @@ plain `git mv` (keep each `.meta` with its asset), where `<Key>` is the CamelCas
 | the ship's slot in `Exhaust/exhaust_atlas.png` | `<Key>/<Key>_flame.png`: re-run `python3 src~/build_restyle.py <Key> --no-skins` (it rewrites the flame sheet from `codex/flame_*.png`) |
 | `Shield/hull_silhouettes.bytes`, `Shield/hull_hitboxes.bytes` (shared bake) | `<Key>/<Key>_shield.bytes`, `<Key>/<Key>_hitbox.bytes`: take master's, re-run the bake (step 7) |
 | your row in `ShipHullArt.cs` / `ShipNozzles.cs` / `ShipDamageTable.cs` / `ShipSkins.cs` / `ShipExhaustStyle.cs` | `<Key>/<Key>_data.json`: take master's file, run `python3 src~/patch_restyle.py <Key>` (merges your `src~/data.json`); if you changed skin names/colours or the exhaust style row, edit them in the data file directly |
-| your id in `PaintedShips.restyled`, your name in `ships.py RESTYLED`, your `SHIPS["<Key>"]` entry in `build_restyle.py` | gone: `"painted": true` in the data file (set by `patch_restyle.py`), and `<Key>/src~/restyle.json` (convert your `SHIPS` entry: tuples become lists, `parse_emitters(...)` becomes `[state, "kind", u, v]` rows, flame `x`/`y` drop, band tuples become `#RRGGBB`) |
+| your id in `PaintedShips.restyled`, your `SHIPS["<Key>"]` entry in `build_restyle.py` | gone: `"painted": true` in the data file (set by `patch_restyle.py`), and `<Key>/src~/restyle.json` (convert your `SHIPS` entry: tuples become lists, `parse_emitters(...)` becomes `[state, "kind", u, v]` rows, flame `x`/`y` drop, band tuples become `#RRGGBB`) |
 
 Conflicts in the deleted shared files/tables: take master's side and drop yours (the data file replaces your edit).
 Then `python3 src~/patch_restyle.py <Key>` must leave `git diff` empty on `<Key>_data.json` except your changes, and
@@ -247,5 +247,5 @@ Failures seen on NeonComet's first PR run: [SD] x5, [SA] x1, [SK] x6 (all the ex
 - Rect width changes the sprite bounds; ppu = rect width / world_w keeps the old world size (so hull_w must match
   the old drawing width, otherwise the ship visibly shrinks or grows in game).
 - Flame strips: each ship has its own `<Key>_flame.png` now, so a different frame count is possible, but `ExhaustStyleTest` wants 6-8 drawings, one 1-tick smear and a boost strip with the same count: keep the old frame count and tick list unless you also edit `exhaust.ticks` in the data file.
-- Do not regenerate a restyled ship with `build.py` / `build_skins.py` / `exhaust.py` (blocked by `"painted": true`; `exhaust.py <Ship>` would overwrite the Codex flames if you name it explicitly).
+- The old vector generators (`build.py`, `build_skins.py`, `exhaust.py`, `ships.py` ...) were removed; every ship is built with `build_restyle.py`.
 - Skin count: every ship has exactly 4 non-stock skins (PerShip = 5), so 4 Codex skin jobs per ship.
