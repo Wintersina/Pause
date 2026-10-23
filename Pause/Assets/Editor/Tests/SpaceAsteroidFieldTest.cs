@@ -108,6 +108,8 @@ public static class SpaceAsteroidFieldTest
         float last = 0f; bool grows = true;
         foreach (float w in SpaceAsteroidField.Width) { grows &= w > last; last = w; }
         Check("sizes grow with the tier", grows);
+        Check("the smallest tier is at least the shared minimum width (" + HazardSize.MinDrawnWidth + " u)",
+              SpaceAsteroidField.Width[0] >= HazardSize.MinDrawnWidth - 1e-4f);
         SpaceAsteroidField.ClearAll();
     }
 

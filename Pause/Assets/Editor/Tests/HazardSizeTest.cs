@@ -143,7 +143,9 @@ public static class HazardSizeTest
                                     HazardSize.Reach(hi), HazardSize.Reach(lo), HazardSize.Pace(hi), HazardSize.Pace(lo)));
             Check(d.key + " varies, small < typical < large", HazardSize.Varies(d) && b.sizeSmall < b.sizeTypical && b.sizeTypical < b.sizeLarge);
             Check(string.Format("{0} range {1:F2}-{2:F2} stays within 0.70x-1.60x", d.key, lo, hi), lo >= .7f - 1e-4f && hi <= 1.6f + 1e-4f);
-            Check(string.Format("{0} mean area {1:F3} is today's (within 3%)", d.key, area), Mathf.Abs(area - 1f) <= .03f);
+            Check(string.Format("{0} smallest drawn width {1:F2} u is at least the minimum {2:F2} u", d.key, lo * EnemyRoster.LegacyWidth(EnemyRole.Rock) * EnemyRoster.TierScale, HazardSize.MinDrawnWidth),
+                  lo * EnemyRoster.LegacyWidth(EnemyRole.Rock) * EnemyRoster.TierScale >= HazardSize.MinDrawnWidth - 1e-4f);
+            Check(string.Format("{0} mean area {1:F3} is today's (within 6%: the minimum lifts the small tier)", d.key, area), Mathf.Abs(area - 1f) <= .06f);
         }
         bool none = true;
         foreach (var d in EnemyRoster.All)
@@ -792,7 +794,7 @@ public static class HazardSizeTest
         Check(string.Format("mixed sizes flew: {0} rocks over {1} frames, {2:F2}x to {3:F2}x; small {4:P0}, typical {5:P0}, large {6:P0}; mean area {7:F3}",
                             rocks, frames, smallest, biggest, tiers[0] / (float)Mathf.Max(1, rocks), tiers[1] / (float)Mathf.Max(1, rocks),
                             tiers[2] / (float)Mathf.Max(1, rocks), meanArea),
-              rocks > 1000 && biggest > 1.3f && smallest < .8f && Mathf.Abs(meanArea - 1f) <= .07f);   // (.07: the 1.2 x size tier makes the large rocks a little harder to place, the flown mean sits at .95-.97)
+              rocks > 1000 && biggest > 1.3f && smallest >= HazardSize.MinScale - 1e-3f && smallest < HazardSize.MinScale + .03f && Mathf.Abs(meanArea - 1f) <= .07f);   // (smallest: the shared minimum width lifts the small tier's low end to HazardSize.MinScale, so no rock flies below it and the smallest flown sits just at it; .07: the 1.2 x size tier makes the large rocks a little harder to place, the flown mean sits at .95-.97)
         Check("no two board-locked bodies ever overlap, every frame of 16 mixed-size runs (" + overlapFrames + " frames" +
               (firstOverlap != null ? "; first: " + firstOverlap : "") + ")", overlapFrames == 0);
         Check(string.Format("every rock entered its row with a ship-wide gap ({0} rows, {1} short, narrowest widest-gap {2:F2} u vs {3:F2}{4})",
