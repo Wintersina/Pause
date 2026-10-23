@@ -261,3 +261,4 @@ WorldLeakTest 15.9
 WorldLogicTest 0.7
 WorldPaceTest 5.2
 WorldSpeedResetTest 13.7
+ShipRotorsTest 0.3

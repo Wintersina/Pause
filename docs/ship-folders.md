@@ -47,6 +47,19 @@ Every file has its `.meta`; the folder has a folder `.meta`.
 - Tools are addressed by ship name only (`python3 ShipArt/src~/build_restyle.py VoltViper`); `shiplib.py` knows where
   every file of a ship is.
 
+## Rotors (optional spinning overlay sprites)
+
+A ship can wear code-driven spinning parts (Turtle's four helicopter rotors). Add, inside the ship's folder only:
+`<Key>_rotors.json` (`{"rotors": [{"x", "y", "scale", "speed_deg_per_s", "direction"}]}`: hub centre in the 256 px
+idle cell, x right, y DOWN, image pixels; scale 1.0 = one sheet pixel per cell pixel; direction +1 / -1) and
+`<Key>_rotor.png` (2 square cells: blades with the pivot at the hub, then a static faint blur disc; point filter,
+no mipmaps, ppu 100). `ShipRotors` (Scripts/Ship) discovers the file by art key; `lifeControler` (flight, tutorial,
+shop ships) and `DockBay` (dock berth, unscaled time) attach it, nothing shared is edited. Rotors are children of
+the hull transform at sorting order hull+1, freeze with the pause, hide when the hull is disabled (DeathCrash) and
+take the hull's colour (invulnerability blink, dock dimming). Codex / title / leaderboard use plain sprites and show
+no rotors. `ShipRotorsTest` checks every rotors file (parses, hubs inside the hull rect, non-zero speed, sheet loads).
+Example generator: `ShipArt/Turtle/src~/make_rotor.py`.
+
 ## Bank poses
 
 `ShipArt/src~/bank_pose.py <Key>` rebuilds columns 6 (BankLeft) and 7 (BankRight) of the stock sheet and every skin sheet from each row's own idle cell, applying `ShipDamageTable.Posed` as a nearest-neighbour warp (near side k .80, far side .95, 1.5 unit shift toward the bank, vertical offset, near side shaded 12 %), so damage panels and skins stay consistent; skins take the stock bank alpha. It then verifies left/right extent ratios, binary alpha, skin/stock alpha equality and width change. It is idempotent and touches no other column; per-ship overrides (`axis`, `shade`) go in `<Key>/src~/bank_pose.json`. The shield and hitbox bakes read only the idle silhouette, so no re-bake is needed. Spinning ships (Ninja, UFO) never bank and are not covered.

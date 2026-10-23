@@ -64,6 +64,9 @@ public class lifeControler : MonoBehaviour {
 
         if (isLiveGameplay) ShipHullArt.Prewarm(shipIndex);
 
+        // Ships with a ShipArt/<Key>/<Key>_rotors.json (Turtle) wear spinning rotors.
+        ShipRotors.Attach(gameObject, shipIndex, spriteControl, false);
+
         if (isLiveGameplay && GetComponent<ShipDamageFx>() == null)
             gameObject.AddComponent<ShipDamageFx>();
         applyDamageSprite();
