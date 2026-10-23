@@ -229,10 +229,10 @@ public static class ReplayTest
             catch (System.Exception ex) { Debug.Log("[REPLAY] (lift-off step threw: " + ex.Message + ")"); }
         }
         Gone();
-        Check("looped to Space (not back to Desert), loop 1", WorldManager.CurrentIndex == Space && RunLoop.Index == 1 && Portal.Live == null);
+        Check("rounded to Space (not back to Desert); a Desert run has not come back to Desert yet, so still loop 0", WorldManager.CurrentIndex == Space && RunLoop.Index == 0 && Portal.Live == null);
         DieAndReplay();
         wm = Load();
-        Check("after a loop (died in Space, loop 1), Replay starts in Space on loop 0", WorldManager.CurrentIndex == Space && RunLoop.Index == 0);
+        Check("after the wrap (died in Space), Replay starts in Space on loop 0", WorldManager.CurrentIndex == Space && RunLoop.Index == 0);
         Clean("replay after a loop", wm);
 
         // a replay pinned to Desert wraps to Space after Desert too
@@ -249,8 +249,8 @@ public static class ReplayTest
             catch (System.Exception ex) { Debug.Log("[REPLAY] (lift-off step threw: " + ex.Message + ")"); }
         }
         Gone();
-        Check("... its end is the lift-off into Space, loop 1, no portal",
-              WorldManager.CurrentIndex == Space && RunLoop.Index == 1 && Portal.Live == null && !wm.PortalIsOpen);
+        Check("... its end is the lift-off into Space, no loop yet (the run began in Desert), no portal",
+              WorldManager.CurrentIndex == Space && RunLoop.Index == 0 && Portal.Live == null && !wm.PortalIsOpen);
         Gone();
     }
 

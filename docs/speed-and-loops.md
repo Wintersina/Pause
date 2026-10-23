@@ -374,3 +374,12 @@ double; no change needed.
 * [x] Merge integrate/oct05-full-master (BoardRoll, TopBand), AllTests.RunAll after it: 95 suites, only
   the two known base failures ([HOSTILE] Frost wrapper, [WB] Verdant/mid)
 * [ ] Play it (not done: simulation and tests only)
+
+## What counts as a loop (start world)
+
+A loop is counted (RunLoop.Index +1, loop bonus, LOOP banner, loop achievements,
+leaderboard loop number) only when the pilot arrives back on the world the run
+began on (`LoopRules.CompletesLoop`, `WorldManager.RunStart`). A run that began
+in Frost passes Desert -> Space as a plain wrap (bosses reset, no count) and
+loops on returning to Frost. A Space run behaves as before. The start world is
+per run, in memory only; nothing is saved, so old saves are unaffected.

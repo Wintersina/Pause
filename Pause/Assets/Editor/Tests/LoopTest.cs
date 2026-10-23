@@ -71,6 +71,8 @@ public static class LoopTest
             WaitingAtThePortal();
             LoopGoesToSpace();
             LoopFromARunBegunInTheLastWorld();
+            LoopCountsOnlyBackOnTheStartWorld();
+            StartWorldHintShowsOnce();
             LoopStartsStraightFromTheLiftoff();
             LoopScalingAppliesAndCaps();
             SpeedMultiplierTiersAndCap();
@@ -346,6 +348,66 @@ public static class LoopTest
               WorldManager.PortalDestination == 1);
         foreach (var p in Object.FindObjectsByType<Portal>(FindObjectsSortMode.None)) Object.DestroyImmediate(p.gameObject);
         PortalPressure.Reset();
+    }
+
+    // 13. A loop counts only when the pilot arrives back on the world the run
+    // began on. A Frost run passes through Space without a loop and loops on
+    // returning to Frost; a Space run loops on returning to Space.
+    static void LoopCountsOnlyBackOnTheStartWorld()
+    {
+        Check("rule: arriving on the start world completes a loop", LoopRules.CompletesLoop(1, 1) && LoopRules.CompletesLoop(0, 0));
+        Check("rule: arriving elsewhere does not", !LoopRules.CompletesLoop(0, 1) && !LoopRules.CompletesLoop(2, 1));
+
+        const int Frost = 1;
+        FreshScene(Last, Frost);
+        Board();
+        var wm = World(-1f);
+        typeof(WorldManager).GetField("runStartWorld", Inst).SetValue(wm, Frost);
+        Check("hand-set start world is read back", WorldManager.RunStart == Frost);
+        PlayBoss(wm);
+        Check("Frost run: Desert -> Space is the wrap, not a loop (no count, no bonus, no achievement tick)",
+              WorldManager.CurrentIndex == 0 && RunLoop.Index == 0 && RunScore.Parts.loops == 0 && Portal.Live == null);
+        Check("... and the bosses are due again", !BossEncounter.DoneInWorld(Last));
+
+        // Space -> Frost: arriving on the start world completes the loop.
+        typeof(WorldManager).GetField("portalOpen", Inst).SetValue(wm, true);
+        Advance(wm);
+        Check("Frost run: Space -> Frost completes loop 2 (count, bonus)",
+              WorldManager.CurrentIndex == Frost && RunLoop.Index == 1 && RunScore.Parts.loops == 1);
+
+        // Frost -> Ember is an ordinary step, no loop.
+        typeof(WorldManager).GetField("portalOpen", Inst).SetValue(wm, true);
+        Advance(wm);
+        Check("Frost run: Frost -> Verdant is no loop", WorldManager.CurrentIndex == 2 && RunLoop.Index == 1);
+        Object.DestroyImmediate(wm.gameObject);
+    }
+
+    // 14. The one-time START WORLD hint.
+    static void StartWorldHintShowsOnce()
+    {
+        PlayerPrefs.DeleteKey(PlayerStartWorld.HintKey);
+        Check("hint: due on a first arrival", PlayerStartWorld.ShouldShowHint(true, false));
+        Check("hint: not on a world already reached", !PlayerStartWorld.ShouldShowHint(false, false));
+        Check("hint: not in developer mode or the tutorial", !PlayerStartWorld.ShouldShowHint(true, true));
+        PlayerStartWorld.MarkHintShown();
+        Check("hint: once ever, never again", !PlayerStartWorld.ShouldShowHint(true, false));
+        PlayerPrefs.DeleteKey(PlayerStartWorld.HintKey);
+
+        int highest = PlayerPrefs.GetInt(WorldManager.PrefsHighestWorld, 0);
+        FreshScene(0, 0);
+        PlayerPrefs.SetInt(WorldManager.PrefsHighestWorld, 0);
+        Board();
+        var wm = World(-1f);
+        Advance(wm);   // Space -> Frost, a world never reached
+        Check("hint: the first new world shows the toast and marks it",
+              PlayerStartWorld.HintShown && AccountHintToast.Current != null && AccountHintToast.Current.Showing &&
+              AccountHintToast.Current.ShownText == PlayerStartWorld.HintText);
+        AccountHintToast.Current.Hide();
+        Advance(wm);   // Frost -> Verdant
+        Check("hint: the next new world stays quiet", !AccountHintToast.Current.Showing);
+        PlayerPrefs.DeleteKey(PlayerStartWorld.HintKey);
+        PlayerPrefs.SetInt(WorldManager.PrefsHighestWorld, highest);
+        Object.DestroyImmediate(wm.gameObject);
     }
 
     // Desert's lift-off: after its interlude in Space's sky the loop begins at once, no portal --

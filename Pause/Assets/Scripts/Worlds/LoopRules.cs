@@ -30,6 +30,11 @@ using UnityEngine;
 //   flight / kill points    x1.15    x1.30    x1.45    (x1.60 at loop 4+, BonusLoopCap)
 public static class LoopRules
 {
+    // True when arriving on `arrived` completes a loop: the run is back on the
+    // world it began on. (A run starting in Space loops on the way round to
+    // Space, exactly as before the START WORLD option existed.)
+    public static bool CompletesLoop(int arrived, int runStartWorld) { return arrived == runStartWorld; }
+
     // ---- per loop ----
     public static int MaxScaledLoops = 3;
     public static float ArrivalSpeedPerLoop = .04f;
@@ -106,7 +111,8 @@ public static class LoopDifficulty
 // leaves nothing behind. RunScore.BeginRun resets it with the run.
 public static class RunLoop
 {
-    // 0 on the first pass; +1 each time the final world is left (its lift-off ends in Space).
+
+    // 0 on the first pass; +1 each time the pilot arrives back on the world the run began on (LoopRules.CompletesLoop).
     public static int Index { get; private set; }
 
     // "LOOP 2" for Index 1: the pass the pilot is on, counted from one.
