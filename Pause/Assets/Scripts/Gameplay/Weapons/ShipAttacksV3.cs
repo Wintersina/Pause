@@ -14,7 +14,9 @@ using UnityEngine;
 //                              group; it kills what it hits and dies itself (bosses and elites are hit by
 //                              the beam instead)
 //   GaleWings       Dove       a feathered gust sweeps up and shoves everything up and outward (EnemyShove,
-//                              displacement only); shoves into each other or the screen top hurt
+//                              displacement only); shoves into each other or the screen top hurt. Hostile
+//                              shots (boss, elite) are not shoved but turned: each becomes the player's own
+//                              fast return shot that crashes into the first enemy or boss it meets
 //
 // Rules of the rest of the runner hold: gameplay time (dt), pooled sprites, every hit through
 // ShipAttackHits with the run's budget, a whole firing worth about one boss hit.
@@ -31,6 +33,12 @@ public class AttackV3
     public readonly int[] phase = new int[Max];
     public readonly int[] n = new int[Max];
     public readonly System.Collections.Generic.List<GameObject> hit2 = new System.Collections.Generic.List<GameObject>(16);
+    // Gale Wings' returned shots (a hostile shot the gust turned): position, velocity, drawing.
+    public const int ReturnMax = 16;
+    public readonly AttackSprite[] rFx = new AttackSprite[ReturnMax];
+    public readonly Vector2[] rPos = new Vector2[ReturnMax], rVel = new Vector2[ReturnMax];
+    public readonly float[] rAge = new float[ReturnMax];
+    public int rCount;
     public AttackSprite eye;
     public int count, resolved;
     public float y0;
@@ -43,6 +51,8 @@ public class AttackV3
             fx[i] = null; tgt[i] = null; col[i] = null; at[i] = 0f; phase[i] = 0; n[i] = 0;
         }
         hit2.Clear();
+        for (int i = 0; i < ReturnMax; i++) { rFx[i] = null; rAge[i] = 0f; }
+        rCount = 0;
         eye = null;
         count = resolved = 0;
         y0 = 0f;
@@ -57,6 +67,12 @@ public class AttackV3
             if (col[i] != null) col[i].enabled = true;
             fx[i] = null; col[i] = null;
         }
+        for (int i = 0; i < ReturnMax; i++)
+        {
+            if (rFx[i] != null && rFx[i].Active && rFx[i].Run == owner) rFx[i].Stop();
+            rFx[i] = null;
+        }
+        rCount = 0;
         if (eye != null && eye.Active && eye.Run == owner) eye.Stop();
         eye = null;
     }
@@ -82,6 +98,10 @@ public partial class ShipAttackRunner
     public const float HoldAhead = 1.5f, PullSeconds = .5f, HurlSpeed = 15f, HurlRadius = .3f, GroupRadius = 1.8f;
     // GALE WINGS (Dove)
     public const float GustSeconds = .8f, KnockDistance = 3f, KnockSeconds = .4f;
+    // a hostile shot the gust turns flies back at ReturnSpeed (a body is shoved KnockDistance over KnockSeconds, ~7.5/s),
+    // for at most ReturnSeconds, and crashes into the first thing it meets: ReturnWeight of a hit (the boss:
+    // ReturnBossWeight, a whole one; its own hit window still limits it to one hurt per shot)
+    public const float ReturnSpeed = 18f, ReturnSeconds = 2.5f, ReturnRadius = .3f, ReturnWeight = .5f, ReturnBossWeight = 1f;
 
     static readonly int[] OneShot = ShipFxArt.BurstTicks;
 
@@ -185,7 +205,7 @@ public partial class ShipAttackRunner
             case ShipAttack.BoomerangStar:   StepStars(run, v); break;
             case ShipAttack.ProximityMines:  StepMines(run, v, dt); break;
             case ShipAttack.AbductHurl:      StepAbduct(run, v, dt); break;
-            case ShipAttack.GaleWings:       StepGale(run, v); break;
+            case ShipAttack.GaleWings:       StepGale(run, v, dt); break;
         }
     }
 
@@ -646,7 +666,86 @@ public partial class ShipAttackRunner
         return dir * (KnockDistance * mass);
     }
 
-    void StepGale(AttackRun run, AttackV3 v)
+    // The velocity of a hostile shot at `p` that a gust blown from `origin` turns: straight at the boss when
+    // there is one (`boss`), otherwise away from the ship, up and outward like a body's knock.
+    public static Vector2 GaleReturn(Vector2 origin, Vector2 p, bool hasBoss, Vector2 boss)
+    {
+        Vector2 dir;
+        if (hasBoss && (boss - p).sqrMagnitude > 1e-4f) dir = (boss - p).normalized;
+        else dir = GaleKnock(origin, p, 1f).normalized;
+        return dir * ReturnSpeed;
+    }
+
+    // Is a shot of radius `r` at `p` inside a gust whose front is at distance `front` (range `range`, half angle `width`)?
+    // The same cone the bodies are tested with.
+    public static bool InGust(Vector2 origin, Vector2 p, float r, float range, float front, float width)
+    {
+        Vector2 d = p - origin;
+        float dist = d.magnitude;
+        if (dist > range + r || dist - r * .5f > front) return false;
+        if (dist > r && Vector2.Angle(Vector2.up, d) > width + Mathf.Asin(Mathf.Clamp01(r / dist)) * Mathf.Rad2Deg) return false;
+        return true;
+    }
+
+    // The gust turns every hostile shot inside it (once each): the shot is taken out of play without a hit on
+    // the ship and becomes the player's own return shot, drawn and flown by this run. Because the original is gone,
+    // it can never hurt the ship afterwards.
+    void TurnShots(AttackRun run, AttackV3 v, Vector2 origin, float front, bool hasBoss, Vector2 boss)
+    {
+        var l = run.loadout;
+        var shots = HostileShots.All;
+        for (int i = 0; i < shots.Count && v.rCount < AttackV3.ReturnMax; i++)
+        {
+            var s = shots[i];
+            if (s == null || (Object)s == null || !s.ShotShovable || s.ShotMass == HostileShots.Fixed) continue;
+            Vector2 p = s.ShotPosition;
+            if (!InGust(origin, p, s.ShotRadius, l.range, front, l.width)) continue;
+            int k = v.rCount++;
+            v.rPos[k] = p;
+            v.rVel[k] = GaleReturn(origin, p, hasBoss, boss);
+            v.rAge[k] = 0f;
+            v.rFx[k] = AttackPool.Sprite().Play(AttackSprite.Source.AttackLoop, ship, p, Vector3.one * .6f, 0f,
+                ShipFxArt.LoopTicks, true, 0f, null, Vector3.zero, 71).Owned(run);
+            s.ShotPop(p);
+        }
+    }
+
+    // The returned shots fly; the first target one meets takes the crash and the shot pops. Anything hostile in
+    // the way is broken (the boss's and enemies' shots crash into each other). The boss goes through
+    // ShipAttackHits like every player attack, so its normal damage rules apply.
+    void StepReturns(AttackRun run, AttackV3 v, float dt, ref int kills)
+    {
+        Rect view = ShipTargets.View(.5f);
+        for (int j = v.rCount - 1; j >= 0; j--)
+        {
+            Vector2 prev = v.rPos[j], now = prev + v.rVel[j] * dt;
+            v.rPos[j] = now;
+            v.rAge[j] += dt;
+            var fx = v.rFx[j];
+            if (fx != null && fx.Active && fx.Run == run) fx.transform.position = now;
+            HostileShots.ShootDownAlong(prev, now, ReturnRadius);
+            bool crashed = false;
+            for (int i = 0; i < targets.Count && !crashed; i++)
+            {
+                var t = targets[i];
+                if (t == null || !t.isActiveAndEnabled || t.Scenery || RunScore.IsHostileShot(t.gameObject)) continue;
+                float along;
+                if (!SegmentHits(prev, now, t.transform.position, ReturnRadius + t.Radius * .7f, out along)) continue;
+                crashed = true;
+                Burst(run, t.transform.position, .8f);
+                bool boss = t.TryGetComponent(out BossTarget _) || t.TryGetComponent(out BossActor _);
+                if (ShipAttackHits.Hit(t.gameObject, ship, boss ? ReturnBossWeight : ReturnWeight, ref run.budget)) kills++;
+            }
+            bool gone = crashed || v.rAge[j] >= ReturnSeconds || (view.width < 100f && !view.Contains(now));
+            if (!gone) continue;
+            if (fx != null && fx.Active && fx.Run == run) fx.Stop();
+            int last = --v.rCount;
+            v.rPos[j] = v.rPos[last]; v.rVel[j] = v.rVel[last]; v.rAge[j] = v.rAge[last]; v.rFx[j] = v.rFx[last];
+            v.rFx[last] = null;
+        }
+    }
+
+    void StepGale(AttackRun run, AttackV3 v, float dt)
     {
         var l = run.loadout;
         Rect view = ShipTargets.View();
@@ -662,8 +761,19 @@ public partial class ShipAttackRunner
         float top = CameraFit.ViewTop, bottom = CameraFit.ViewBottom;
         int kills = 0;
         ShipTargets.Collect(targets);
-        if (k < 1f || run.t < GustSeconds + .05f)
+        bool gusting = k < 1f || run.t < GustSeconds + .05f;
+        if (gusting)
         {
+            // hostile shots are turned, not shoved: they head for the boss (if any) and crash into what they meet
+            bool hasBoss = false;
+            Vector2 bossAt = Vector2.zero;
+            for (int i = 0; i < targets.Count && !hasBoss; i++)
+            {
+                var bt = targets[i];
+                if (bt == null || !bt.isActiveAndEnabled) continue;
+                if (bt.TryGetComponent(out BossTarget _) || bt.TryGetComponent(out BossActor _)) { hasBoss = true; bossAt = bt.transform.position; }
+            }
+            TurnShots(run, v, origin, front, hasBoss, bossAt);
             for (int i = 0; i < targets.Count; i++)
             {
                 var t = targets[i];
@@ -709,7 +819,8 @@ public partial class ShipAttackRunner
                 v.phase[j] = 3;
             }
         }
-        if (run.t < GustSeconds + .05f) return;
+        if (v.rCount > 0) StepReturns(run, v, dt, ref kills);
+        if (run.t < GustSeconds + .05f || v.rCount > 0) return;
         for (int j = 0; j < v.count; j++) if (v.phase[j] == 1 || v.phase[j] == 2) return;
         v.Release();
         run.active = false;

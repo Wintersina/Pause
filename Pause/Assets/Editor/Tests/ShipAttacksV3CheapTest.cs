@@ -31,6 +31,7 @@ public static class ShipAttacksV3CheapTest
         MinesWaitAndFizzle();
         AbductLiftsAndHurls();
         GaleShovesAndCollides();
+        GaleTurnsShots();
         UpgradesScale();
 
         AttackPool.StopAll();
@@ -439,6 +440,26 @@ public static class ShipAttacksV3CheapTest
         Teardown(c);
         Object.DestroyImmediate(boss);
         Object.DestroyImmediate(behind);
+    }
+
+    static void GaleTurnsShots()
+    {
+        Vector2 ship = Vector2.zero;
+        Vector2 toBoss = ShipAttackRunner.GaleReturn(ship, new Vector2(1f, 3f), true, new Vector2(0f, 8f));
+        Check("a turned shot heads for the boss at return speed",
+              toBoss.y > 0f && toBoss.x < 0f && Mathf.Approximately(toBoss.magnitude, ShipAttackRunner.ReturnSpeed));
+        Vector2 away = ShipAttackRunner.GaleReturn(ship, new Vector2(2f, 3f), false, Vector2.zero);
+        Check("with no boss it flies up and outward, far faster than a body is knocked",
+              away.y > 0f && away.x > 0f &&
+              ShipAttackRunner.ReturnSpeed > ShipAttackRunner.KnockDistance / ShipAttackRunner.KnockSeconds * 2f);
+        Check("a shot inside the gust cone is caught",
+              ShipAttackRunner.InGust(ship, new Vector2(0f, 3f), .3f, 6f, 4f, 60f));
+        Check("beyond the gust front, past its range or behind the ship it is not",
+              !ShipAttackRunner.InGust(ship, new Vector2(0f, 3f), .3f, 6f, 1f, 60f) &&
+              !ShipAttackRunner.InGust(ship, new Vector2(0f, 8f), .3f, 6f, 8f, 60f) &&
+              !ShipAttackRunner.InGust(ship, new Vector2(0f, -3f), .3f, 6f, 4f, 60f));
+        Check("a return shot is worth a whole boss hit and half a hit elsewhere",
+              ShipAttackRunner.ReturnBossWeight >= 1f && ShipAttackRunner.ReturnWeight <= .5f);
     }
 
     static void UpgradesScale()
