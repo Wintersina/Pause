@@ -243,7 +243,7 @@ public static class ScoringTest
         Check("source hooks: pickups and kills feed RunScore",
               Regex.Matches(System.IO.File.ReadAllText("Assets/Scripts/Ship/collisionDetection.cs"), @"RunScore\.On(Dust|Atom|Kill)\(").Count == 7);   // + the violet capacitor atom
         Check("source hooks: teleport, world, boss",
-              System.IO.File.ReadAllText("Assets/Scripts/Ship/movePlayer.cs").Contains("RunScore.OnTeleport(before, transform.position)") &&
+              System.IO.File.ReadAllText("Assets/Scripts/Ship/movePlayer.cs").Contains("RunScore.OnTeleport(before, rest)") &&
               System.IO.File.ReadAllText("Assets/Scripts/Worlds/WorldManager.cs").Contains("RunScore.OnWorldCleared(CurrentIndex)") &&
               System.IO.File.ReadAllText("Assets/Scripts/Bosses/BossEncounter.cs").Contains("RunScore.OnBoss(explode"));
     }

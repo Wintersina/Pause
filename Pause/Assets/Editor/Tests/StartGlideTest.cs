@@ -42,6 +42,32 @@ public static class StartGlideTest
         return movePlayer.FollowTarget(cam.ScreenToWorldPoint(new Vector3(sp.x, sp.y, 0)));
     }
 
+    static Vector3 FingerWorld(Vector2 sp)
+    {
+        return cam.ScreenToWorldPoint(new Vector3(sp.x, sp.y, 0));
+    }
+
+    // The jump lands on the finger, then slides back to the perch within
+    // ReturnSeconds: distance to the perch only shrinks, no overshoot.
+    static void LandsOnFingerThenReturns(string what, Vector2 sp)
+    {
+        Vector3 land = movePlayer.LandingPoint(FingerWorld(sp));
+        Vector3 rest = FingerTarget(sp);
+        Check(what + ": lands on the finger", Vector3.Distance(Pos, land) < 1e-4f);
+        float prev = Vector3.Distance(Pos, rest);
+        bool mono = true;
+        int frames = Mathf.CeilToInt(movePlayer.ReturnSeconds / Dt) + 1;
+        for (int i = 0; i < frames; i++)
+        {
+            Frame();
+            float d = Vector3.Distance(Pos, rest);
+            if (d > prev + 1e-4f) mono = false;
+            prev = d;
+        }
+        Check(what + ": slides back monotonically", mono);
+        Check(what + ": ends on the perch", Vector3.Distance(Pos, rest) < 1e-4f);
+    }
+
     static void Build()
     {
         made.Clear();
@@ -166,8 +192,7 @@ public static class StartGlideTest
         Vector2 sp2 = new Vector2(60, 300);
         pressed = true; screen = sp2;
         Frame();
-        Check("a finger landing after the glide still teleports in one frame (unchanged)",
-              Vector3.Distance(Pos, FingerTarget(sp2)) < 1e-4f);
+        LandsOnFingerThenReturns("a finger landing after the glide", sp2);
         Teardown();
     }
 
@@ -185,7 +210,7 @@ public static class StartGlideTest
         Vector2 sp2 = new Vector2(80, 200);
         pressed = true; screen = sp2;
         Frame();
-        Check("touching while paused mid-glide teleports as before", Vector3.Distance(Pos, FingerTarget(sp2)) < 1e-4f);
+        LandsOnFingerThenReturns("touching while paused mid-glide", sp2);
         Teardown();
     }
 
@@ -198,11 +223,11 @@ public static class StartGlideTest
         pressed = false; Frame();
         Vector2 sp2 = new Vector2(70, 150);
         pressed = true; screen = sp2; Frame();
-        Check("pause-teleport after the glide jumps onto the finger", Vector3.Distance(Pos, FingerTarget(sp2)) < 1e-4f);
+        LandsOnFingerThenReturns("pause-teleport after the glide", sp2);
         // a second launch (fresh ship = mid-level resume has playoneshot spent) never glides
         pressed = false; Frame();
         Vector2 sp3 = new Vector2(300, 600); pressed = true; screen = sp3; Frame();
-        Check("a later pause/resume never glides (jumps in one frame)", Vector3.Distance(Pos, FingerTarget(sp3)) < 1e-4f);
+        LandsOnFingerThenReturns("a later pause/resume never glides", sp3);
         Teardown();
     }
 
