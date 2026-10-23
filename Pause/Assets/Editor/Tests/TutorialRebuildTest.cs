@@ -169,6 +169,13 @@ public static class TutorialRebuildTest
         foreach (var d in Object.FindObjectsByType<TutorialStarDrift>(FindObjectsSortMode.None)) d.Step(Dt, moving);
         foreach (var d in Object.FindObjectsByType<TutorialAtomDrift>(FindObjectsSortMode.None)) d.Step(Dt, moving);
         if (TutorialWall.Live != null) TutorialWall.Live.Step(Dt, moving);
+        // (the strike step's alien: Update is not called in edit mode, so step it the way TutorialEnemy.Update does --
+        // the slide-in on unscaled time first, then the normal drift while the world moves)
+        if (TutorialEnemy.Live != null)
+        {
+            var alienStep = TutorialEnemy.Live.GetComponent<TutorialEnemy>();
+            if (alienStep != null && !alienStep.Arrive(Dt)) alienStep.Step(Dt, moving);
+        }
         moverUpdate.Invoke(mover, null);
         Physics2D.SyncTransforms();
         var hb = ShipHitbox.Of(ship);
@@ -230,6 +237,20 @@ public static class TutorialRebuildTest
                 // fly until the wall is in view, then let go
                 pressed = !(TutorialWall.Live != null && TutorialWall.Live.Jumpable);
                 FingerAt(new Vector3(0f, -2.6f, 0f));
+                break;
+            case TutorialAdvance.TeleportKill:
+                // fly until the alien hangs in reach, let go a moment, then touch on it
+                var alien = TutorialEnemy.Live;
+                if (alien == null || alien.position.y > ShipReach.ClampY(1000f))
+                {
+                    pressed = true;
+                    FingerAt(new Vector3(0f, -2.2f, 0f));
+                }
+                else if (frozenFor > 20)
+                {
+                    pressed = true;
+                    FingerAt(new Vector3(alien.position.x, alien.position.y, 0f));
+                }
                 break;
             case TutorialAdvance.CrossWall:
                 // frozen a moment, then touch above the wall

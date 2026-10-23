@@ -85,9 +85,10 @@ competent player needs (pacing test only).
 | 3 | `heal` | The green atom repairs a heart. | the green atom repairs the missing heart (`HealHeart`: atom caught AND hearts up) | green atom from the top | 4.0 |
 | 4 | `freeze` | A wall of aliens! Let go to pause time. | lifts the finger for 0.5 s with the wall in view (`WallFrozen`) | the wall rushes in and stops above the ship | 4.0 |
 | 5 | `jump` | Touch above the wall to jump over it. | pause-jumps from below the wall to clear above it (`CrossWall`) | the wall waits | 4.0 |
-| 6 | `refill` | The red atom refills your pauses. | catches the red atom | red atom | 4.0 |
-| 7 | `shield` | The blue atom wraps you in a shield. | catches the blue atom | blue atom | 4.0 |
-| 8 | `power` | The violet atom charges your weapon. | the armed weapon goes off (`FirePower`) | violet atom | 4.5 |
+| 6 | `strike` | Let go, then touch on the alien. | pause-jumps onto the alien and erases it (`TeleportKill`: `TeleportFx.Kills` goes up) | one `space_alien` slides in from the top (real time, so also while frozen) and hangs in the ship's reach, arrow on it; dodged or rammed, it comes back after 1 s | 5.0 |
+| 7 | `refill` | The red atom refills your pauses. | catches the red atom | red atom | 4.0 |
+| 8 | `shield` | The blue atom wraps you in a shield. | catches the blue atom | blue atom | 4.0 |
+| 9 | `power` | The violet atom charges your weapon. | the armed weapon goes off (`FirePower`) | violet atom | 4.5 |
 | - | (ending) | Nice flying! Lift off! | (nothing) | ship lifts off into the game | |
 
 Rules every step shares:
@@ -168,7 +169,8 @@ shield and the rest give no dust beyond practice dust.
   numbers while they fall.
 * The shield and violet-atom steps from the old tutorial are kept after the
   pause lesson (the brief did not drop them); the old "freeze", "teleport",
-  "hearts" and "enemies" steps are folded into the wall lesson.
+  "hearts" steps are folded into the wall lesson; "enemies" is back as the
+  `strike` step (pause-jump onto an alien to kill it), reusing `TutorialEnemy`.
 * Lift off is automatic (the brief: "the player lifts off into the game");
   `Hints.AutoLiftOff` restores the card.
 

@@ -28,7 +28,7 @@ public static class TutorialScript
     // ATOM ORDER -- each atom is introduced once, by one scripted atom that
     // rushes in from the top as its line starts (no random atoms at all):
     //   1 green repair   the ship STARTS damaged, so the repair is seen working
-    //   2 red pause      right after the pause lesson spent one
+    //   2 red pause      right after the pause lessons spent some (wall jump, alien blast)
     //   3 blue shield    the next thing that saves a run: a free hit
     //   4 violet charge  the weapon: last, because it is the reward -- one
     //                    atom charges the armed weapon and it goes off
@@ -40,6 +40,7 @@ public static class TutorialScript
         new TutorialStep("heal",    "The *green* atom repairs a heart.",               TutorialAdvance.HealHeart,        1f,   TutorialCue.SpawnGreenAtom,  4.0f),
         new TutorialStep("freeze",  "A wall! *Let go* to pause time.",       TutorialAdvance.WallFrozen,       FrozenSeconds, TutorialCue.SpawnWall,     4.0f),
         new TutorialStep("jump",    "Touch *above* the wall to jump over it.",         TutorialAdvance.CrossWall,        1f,   TutorialCue.PointAtWall,     4.0f),
+        new TutorialStep("strike",  "*Let go*, then touch *on* the alien.", TutorialAdvance.TeleportKill,     1f,   TutorialCue.SpawnEnemy,      5.0f),
         new TutorialStep("refill",  "The *red* atom refills your pauses.",             TutorialAdvance.CollectRedAtom,   1f,   TutorialCue.SpawnRedAtom,    4.0f),
         new TutorialStep("shield",  "The *blue* atom wraps you in a shield.",          TutorialAdvance.CollectBlueAtom,  1f,   TutorialCue.SpawnBlueAtom,   4.0f),
         new TutorialStep("power",   "The *violet* atom charges your weapon.",          TutorialAdvance.FirePower,        1f,   TutorialCue.SpawnCapacitorAtom, 4.5f),
@@ -111,6 +112,8 @@ public static class TutorialScript
                 return now.blueAtomsCollected - start.blueAtomsCollected >= step.amount;
             case TutorialAdvance.CollectRedAtom:
                 return now.redAtomsCollected - start.redAtomsCollected >= step.amount;
+            case TutorialAdvance.TeleportKill:
+                return now.enemiesTeleported - start.enemiesTeleported >= step.amount;
             case TutorialAdvance.FirePower:
                 return now.powersFired - start.powersFired >= step.amount;
         }
@@ -293,6 +296,7 @@ public enum TutorialAdvance
     CollectGreenAtom, // pick up `amount` green (heal) atoms
     CollectBlueAtom, // pick up `amount` blue (shield) atoms
     CollectRedAtom,  // pick up `amount` red (pause) atoms
+    TeleportKill,    // pause-jump onto the alien and erase it (TeleportFx.Strike), `amount` times
     FirePower,       // the ship's weapon (the ultimate) goes off `amount` times
 }
 
@@ -307,6 +311,7 @@ public enum TutorialCue
     SpawnCapacitorAtom, // arm the weapon for one violet atom and drop that one atom in, arrow on it
     SpawnWall,       // a wall of aliens rushes in from the top and stops above the ship: no way round
     PointAtWall,     // the wall waits; the touch pulse says where to touch
+    SpawnEnemy,      // one alien slides in from the top and hangs in the ship's reach, arrow on it
 }
 
 public struct TutorialStep
@@ -345,6 +350,7 @@ public struct TutorialSignals
     public int blueAtomsCollected;
     public int redAtomsCollected;
     public int wallsCrossed;
+    public int enemiesTeleported;   // aliens erased by a pause-jump onto them
     public int powersFired;
 }
 // A line, pre-chewed for the speaker so nothing is computed while talking.

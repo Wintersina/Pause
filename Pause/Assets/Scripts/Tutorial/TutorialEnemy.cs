@@ -36,6 +36,12 @@ public class TutorialEnemy : MonoBehaviour
     static Transform live;
     public static Transform Live { get { return live; } }
 
+    // The strike step: the alien slides in from the top on real time (it
+    // arrives while the world is frozen too) and hangs at holdY, in the
+    // ship's reach, until the world moves again.
+    public const float ArriveSpeed = 9f;
+    float holdY = float.NaN;
+
     float baseX;
     float clock;
 
@@ -87,6 +93,23 @@ public class TutorialEnemy : MonoBehaviour
         else DestroyImmediate(go);
     }
 
+    public bool Arriving { get { return !float.IsNaN(holdY); } }
+
+    // Makes the alien slide down to holdY (world units) on unscaled time.
+    public void ArriveAt(float y) { holdY = y; }
+
+    // One frame of the arrival; dt is unscaled seconds. Returns true while
+    // it is still sliding in.
+    public bool Arrive(float dt)
+    {
+        if (!Arriving) return false;
+        var p = transform.position;
+        p.y = Mathf.Max(holdY, p.y - ArriveSpeed * dt);
+        transform.position = p;
+        if (p.y <= holdY + .0001f) holdY = float.NaN;
+        return Arriving;
+    }
+
     static bool WorldMoving()
     {
         return (TouchInput.IsPressed || score.pauseCounter <= 0) && !buttonClicks.playerDied;
@@ -94,6 +117,7 @@ public class TutorialEnemy : MonoBehaviour
 
     void Update()
     {
+        if (Arrive(Time.unscaledDeltaTime)) return;
         Step(Time.deltaTime, WorldMoving());
     }
 

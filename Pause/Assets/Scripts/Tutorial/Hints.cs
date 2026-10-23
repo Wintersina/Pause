@@ -35,6 +35,8 @@ public class Hints : MonoBehaviour {
     // The player has gone this long with no progress (and the world running,
     // or a step that wants the finger up): the robot says the line again.
     public const float IdleHintSeconds = 7f;
+    // A dodged or rammed alien comes back after this long.
+    public const float EnemyRetrySeconds = 1f;
     // A broken-up wall comes back after this long.
     public const float WallRetrySeconds = 1f;
     // Pauses the player always has at the start of a step (so letting go
@@ -83,6 +85,8 @@ public class Hints : MonoBehaviour {
     float wallRetryLeft = -1f;   // seconds until a broken wall comes back (-1: none pending)
     TutorialWall wall;
     bool wallCounted;
+    int lastTeleportKills;
+    float enemyRetryLeft = -1f;   // seconds until a missed alien comes back (-1: none pending)
 
     public int CurrentStep { get { return step; } }
     public TutorialSignals Signals { get { return signals; } }
@@ -181,12 +185,14 @@ public class Hints : MonoBehaviour {
 
         var current = TutorialScript.Steps[step];
         if (AtomFor(current.cue) != TutorialAtom.None) guides.PointAt(spawnGoodStuffTut.LiveAtom);
+        else if (current.cue == TutorialCue.SpawnEnemy) guides.PointAt(TutorialEnemy.Live);
         else if (current.cue == TutorialCue.SpawnWall || current.cue == TutorialCue.PointAtWall) guides.PointAt(wall != null && wall.OnScreen && wall.Pieces.Count > 0 ? wall.Pieces[wall.Pieces.Count / 2] : null);
         // the wall still on its way in: a lifted finger gets the touch pulse (touch to bring it in)
         if (current.cue == TutorialCue.SpawnWall) guides.ShowTouch(wall == null || !wall.Jumpable);
         guides.PointAtStars(StarArrowsAllowed(current.cue) ? spawnGoodStuffTut.LiveStars : null);
         TickDust(dt);
         TickWall(dt);
+        TickEnemy(dt);
         KeepHeartsRight();
         TickIdle(current, dt);
 
@@ -215,6 +221,7 @@ public class Hints : MonoBehaviour {
             lastPressed = TouchInput.IsPressed;
             lastFired = power != null ? power.UltimatesFired : 0;
             lastLife = collisionDetection.lifeCounter;
+            lastTeleportKills = TeleportFx.Kills;
         }
 
         bool pressed = TouchInput.IsPressed && !buttonClicks.playerDied;
@@ -241,6 +248,7 @@ public class Hints : MonoBehaviour {
         signals.redAtomsCollected += Count(collisionDetection.pauseAtomPickups, ref lastRed);
 
         if (wall != null && wall.Crossed && !wallCounted) { wallCounted = true; signals.wallsCrossed++; }
+        signals.enemiesTeleported += Count(TeleportFx.Kills, ref lastTeleportKills);
         if (power != null) signals.powersFired += Count(power.UltimatesFired, ref lastFired);
 
         if (score.dustPickups != lastDustPickups)
@@ -257,9 +265,10 @@ public class Hints : MonoBehaviour {
     {
         float progress = signals.flyUnits + signals.presses + signals.pausesSpent + signals.starsCollected
                        + signals.greenAtomsCollected + signals.blueAtomsCollected + signals.redAtomsCollected
-                       + signals.powersFired + signals.wallsCrossed;
+                       + signals.powersFired + signals.wallsCrossed + signals.enemiesTeleported;
         if (!Mathf.Approximately(progress, lastProgress)) { lastProgress = progress; idleClock = 0f; return; }
-        bool wantsFinger = current.advance == TutorialAdvance.WallFrozen || current.advance == TutorialAdvance.CrossWall;
+        bool wantsFinger = current.advance == TutorialAdvance.WallFrozen || current.advance == TutorialAdvance.CrossWall
+                          || current.advance == TutorialAdvance.TeleportKill;
         if (!signals.worldMoving && !wantsFinger) return;
         if (!speaker.LineFinished) return;
         idleClock += dt;
@@ -278,7 +287,7 @@ public class Hints : MonoBehaviour {
     // the arrow (a HUD readout, an atom, the alien).
     public static bool StarArrowsAllowed(TutorialCue cue)
     {
-        return cue != TutorialCue.SpawnWall && cue != TutorialCue.PointAtWall && AtomFor(cue) == TutorialAtom.None;
+        return cue != TutorialCue.SpawnWall && cue != TutorialCue.PointAtWall && cue != TutorialCue.SpawnEnemy && AtomFor(cue) == TutorialAtom.None;
     }
 
     public const float RushAgainSeconds = .6f;
@@ -371,6 +380,36 @@ public class Hints : MonoBehaviour {
         }
     }
 
+    // ---- The alien ----
+
+    // The strike step's alien: slides in from the top and hangs in the ship's
+    // reach. Returns null with no enemy art (the step is then not left waiting).
+    TutorialEnemy SpawnAlien()
+    {
+        var alien = TutorialEnemy.Spawn(ship != null ? ship.transform.position.x : 0f);
+        if (alien == null) return null;
+        float bottom, top;
+        TutorialAtomDrift.View(out bottom, out top);
+        alien.ArriveAt(Mathf.Min(top - 1.3f, ShipReach.ClampY(1000f) - .3f));
+        if (score.pauseCounter < PausesPerStep) score.pauseCounter = PausesPerStep;
+        return alien;
+    }
+
+    // During the strike step: an alien that was dodged or rammed (gone, not
+    // blasted) comes back after a moment, so the step can always be finished.
+    void TickEnemy(float dt)
+    {
+        if (step < 0 || TutorialScript.Steps[step].cue != TutorialCue.SpawnEnemy) return;
+        if (signals.enemiesTeleported - stepStart.enemiesTeleported >= 1) return;
+        if (TutorialEnemy.Live != null) { enemyRetryLeft = -1f; return; }
+        if (enemyRetryLeft < 0f) enemyRetryLeft = EnemyRetrySeconds;
+        enemyRetryLeft -= dt;
+        if (enemyRetryLeft >= 0f) return;
+        enemyRetryLeft = -1f;
+        if (healed) TopUpHearts();
+        SpawnAlien();
+    }
+
     // ---- Steps ----
 
     void BeginStep(int index)
@@ -418,12 +457,19 @@ public class Hints : MonoBehaviour {
             case TutorialCue.PointAtWall:
                 guides.ShowTouch(true);
                 break;
+            case TutorialCue.SpawnEnemy:
+                enemyRetryLeft = -1f;
+                TutorialEnemy.Clear();
+                if (SpawnAlien() == null) signals.enemiesTeleported++;   // no alien to show: never stall here
+                guides.ShowTouch(true);
+                break;
         }
     }
 
     void EndStep(TutorialStep s)
     {
         guides.Clear();
+        TutorialEnemy.Clear();
         // an atom nobody caught goes with its step: nothing stray is left to
         // be picked up unexplained later
         spawnGoodStuffTut.RemoveLiveAtom();
@@ -474,6 +520,7 @@ public class Hints : MonoBehaviour {
         spawnGoodStuffTut.RemoveLiveAtom();
         spawnGoodStuffTut.keepAtomComing = TutorialAtom.None;
         TutorialWall.Clear();
+        TutorialEnemy.Clear();
         wall = null;
         wallRetryLeft = -1f;
         if (healed) TopUpHearts();
