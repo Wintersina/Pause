@@ -40,7 +40,7 @@ public static class TutorialScript
         new TutorialStep("heal",    "The *green* atom repairs a heart.",               TutorialAdvance.HealHeart,        1f,   TutorialCue.SpawnGreenAtom,  4.0f),
         new TutorialStep("freeze",  "A wall! *Let go* to pause time.",       TutorialAdvance.WallFrozen,       FrozenSeconds, TutorialCue.SpawnWall,     4.0f),
         new TutorialStep("jump",    "Touch *above* the wall to jump over it.",         TutorialAdvance.CrossWall,        1f,   TutorialCue.PointAtWall,     4.0f),
-        new TutorialStep("strike",  "An alien! *Let go*, then touch *on* it to blast it.", TutorialAdvance.TeleportKill,     1f,   TutorialCue.SpawnEnemy,      5.0f),
+        new TutorialStep("strike",  "*Let go*, then touch *on* the alien.", TutorialAdvance.TeleportKill,     1f,   TutorialCue.SpawnEnemy,      5.0f),
         new TutorialStep("refill",  "The *red* atom refills your pauses.",             TutorialAdvance.CollectRedAtom,   1f,   TutorialCue.SpawnRedAtom,    4.0f),
         new TutorialStep("shield",  "The *blue* atom wraps you in a shield.",          TutorialAdvance.CollectBlueAtom,  1f,   TutorialCue.SpawnBlueAtom,   4.0f),
         new TutorialStep("power",   "The *violet* atom charges your weapon.",          TutorialAdvance.FirePower,        1f,   TutorialCue.SpawnCapacitorAtom, 4.5f),
