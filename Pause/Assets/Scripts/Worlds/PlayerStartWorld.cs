@@ -80,4 +80,25 @@ public static class PlayerStartWorld
 
     public const string LockedLabel = "START WORLD  LOCKED";
     public const string LockedHint = "BEAT A WORLD'S BOSS TO UNLOCK";
+
+    // ---- the one-time hint ----------------------------------------------------
+    // The first time the pilot reaches a world they have never been to, a small
+    // toast tells them the START WORLD option now exists. Once ever (not per
+    // world), local to the device (not in the cloud snapshot).
+    public const string HintKey = "startWorldHintShown";
+    public const string HintText = "You can now change your default starter world in Options.";
+
+    public static bool HintShown { get { return PlayerPrefs.GetInt(HintKey, 0) == 1; } }
+
+    // `firstArrival`: the world just entered is further than ever reached.
+    public static bool ShouldShowHint(bool firstArrival, bool developerOrTutorial)
+    {
+        return firstArrival && !developerOrTutorial && !HintShown;
+    }
+
+    public static void MarkHintShown()
+    {
+        PlayerPrefs.SetInt(HintKey, 1);
+        PlayerPrefs.Save();
+    }
 }

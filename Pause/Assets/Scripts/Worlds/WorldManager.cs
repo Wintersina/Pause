@@ -338,7 +338,15 @@ public class WorldManager : MonoBehaviour
     public void HoldStartWorld()
     {
         runWorld = Mathf.Clamp(RunStartWorld(startAtHighestUnlocked), 0, Worlds.Length - 1);
+        runStartWorld = runWorld;
     }
+
+    // The world this run began on (memory only, set at run start; 0 for a
+    // hand-built manager). A loop is only counted when the pilot arrives back
+    // here (LoopRules.CompletesLoop): a run that began in Frost loops when it
+    // returns to Frost, not when it passes through Space.
+    int runStartWorld;
+    public static int RunStart { get { var run = Instance; return run != null ? run.runStartWorld : 0; } }
 
     void OnDestroy()
     {
@@ -402,6 +410,7 @@ public class WorldManager : MonoBehaviour
         string source = RunStartSource(startAtHighestUnlocked);
         spaceLegWorld = -1;
         CurrentIndex = RunStartWorld(startAtHighestUnlocked);
+        runStartWorld = CurrentIndex;
         Debug.Log("[WorldManager] run start: " + Current.displayName + " (index " + CurrentIndex + ", source " + source +
                   "; saved highest " + PlayerPrefs.GetInt(PrefsHighestWorld, 0) + ", dev " + DeveloperUnlocks.Enabled +
                   ", dev pick " + (DeveloperUnlocks.HasSelectedWorld ? PlayerPrefs.GetInt(DeveloperUnlocks.SelectedWorldKey).ToString() : "none") +
@@ -591,9 +600,13 @@ public class WorldManager : MonoBehaviour
     // returned banner once its clouds have cleared. Null: nothing changed.
     public string Advance(bool showBanner)
     {
-        bool loop = !HasNext;
+        bool wrap = !HasNext;   // past the final world: round to Space again
         // The way round again only exists as an open portal.
-        if (loop && !portalOpen) return null;
+        if (wrap && !portalOpen) return null;
+        int destination = wrap ? LoopWorld : CurrentIndex + 1;
+        bool firstArrival = destination > PlayerPrefs.GetInt(PrefsHighestWorld, 0);   // a world never reached before
+        // A loop counts only on arriving back at the world the run began on.
+        bool loop = LoopRules.CompletesLoop(destination, runStartWorld);
         spaceLegWorld = -1;   // the next world takes the spawners over
 
         // Nothing of the world left comes along (a planetfall cleared the
@@ -608,17 +621,19 @@ public class WorldManager : MonoBehaviour
         string banner;
         if (loop)
         {
-            // Back to Space, one loop on: every boss again.
+            // Back on the run's starting world, one loop on: every boss again.
             int loopIndex = RunLoop.Advance();
             RunScore.OnLoop(loopIndex);
             AchievementTracker.OnLoop(loopIndex);
             BossEncounter.ForgetDone();
-            CurrentIndex = LoopWorld;
+            CurrentIndex = destination;
             banner = Current.displayName + "  LOOP " + RunLoop.DisplayNumber;
         }
         else
         {
-            CurrentIndex = CurrentIndex + 1;
+            // Round to Space past the final world is not a loop unless the run began there.
+            if (wrap) BossEncounter.ForgetDone();
+            CurrentIndex = destination;
             banner = Current.displayName;
         }
 
@@ -643,7 +658,18 @@ public class WorldManager : MonoBehaviour
         if (showBanner) WorldBanner.Show(banner);
         Codex.Discover(Codex.WorldId(CurrentIndex));
         AchievementTracker.OnWorldEntered(CurrentIndex);
+        ShowStartWorldHint(firstArrival);
         return banner;
+    }
+
+    // The first new world ever reached: a small non-blocking toast that the
+    // starter world can now be changed in Options (once ever).
+    static void ShowStartWorldHint(bool firstArrival)
+    {
+        if (!PlayerStartWorld.ShouldShowHint(firstArrival, DeveloperUnlocks.Enabled || startMenu.youAreInTutorial)) return;
+        PlayerStartWorld.MarkHintShown();
+        try { AccountHintToast.Show(PlayerStartWorld.HintText); }
+        catch (System.Exception e) { Debug.LogException(e); }
     }
 
     // The world's ramp and the spawner's pace, scaled for the loop
