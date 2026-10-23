@@ -81,9 +81,12 @@ public static class PowerUpRefundTest
     {
         PowerUpRefund.BeginRun(true);
         for (int i = 0; i < Cfg.UsesPerRefund; i++) PowerUpRefund.OnPauseSpent();
+        // (edit mode never runs OnEnable / OnDisable, so RefundMark's lifetime calls are made by hand)
         var go = new GameObject("refund");
         var mark = go.AddComponent<RefundMark>();
+        PowerUpRefund.MarkSpawned();
         Check("a drop outstanding blocks another", PowerUpRefund.Pick(0, false, 0f) == Kind.None);
+        PowerUpRefund.MarkGone();
         Object.DestroyImmediate(go);
         Check("gone, the next may go", PowerUpRefund.Pick(0, false, 0f) != Kind.None);
 
