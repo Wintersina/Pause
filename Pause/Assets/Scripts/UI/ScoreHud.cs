@@ -526,6 +526,8 @@ public class ScoreHud : MonoBehaviour
                 return new PopupStyle { colour = AkiraPalette.Magenta, size = 40, seconds = 1.4f, rise = 64f, suffix = "  ELITE DOWN" };
             case RunScore.Source.Escape:   // an elite got away: the points it cost (negative), in the warning amber
                 return new PopupStyle { colour = AkiraPalette.Amber, size = 34, seconds = 1.4f, rise = 64f, suffix = "  ESCAPED" };
+            case RunScore.Source.BossEscape:   // a boss got away: the points it cost (negative), in the warning amber
+                return new PopupStyle { colour = AkiraPalette.Amber, size = 44, seconds = 1.6f, rise = 70f, suffix = "  BOSS ESCAPE" };
             case RunScore.Source.Shield:   // a hostile shot absorbed by the shield
                 return new PopupStyle { colour = AkiraPalette.Cyan, size = 28, seconds = .8f, rise = 56f, suffix = "  ABSORB" };
             case RunScore.Source.Dust:
@@ -545,8 +547,8 @@ public class ScoreHud : MonoBehaviour
 
     public Text ShowPopup(int points, Vector3 at, RunScore.Source source)
     {
-        // (an escape is the one popup that is not a gain: "-N  ESCAPED", or just "ESCAPED" when nothing was left to lose)
-        if (canvasRect == null || (points <= 0 && source != RunScore.Source.Escape)) return null;
+        // (an escape is the only popup that is not a gain: "-N  ESCAPED", or just "ESCAPED" when nothing was left to lose)
+        if (canvasRect == null || (points <= 0 && source != RunScore.Source.Escape && source != RunScore.Source.BossEscape)) return null;
         if (popups == null) BuildPopups();
 
         int index = nextPopup;

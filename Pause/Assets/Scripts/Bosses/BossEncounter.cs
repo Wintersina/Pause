@@ -474,11 +474,12 @@ public class BossEncounter : MonoBehaviour
         moveBackGround.speed = BossConfig.FightSpeed;
         if (pool != null) pool.RecycleAll();
         // Hit points gone: it explodes (DESTROYED). The clock ran out first:
-        // it gives up and warps away (SURVIVED). Scoring is the flat
-        // destroyed / survived pair, no time bonus.
+        // it gives up and warps away (ESCAPED: the pilot loses
+        // BossEscapePenalty). Destroyed pays flat, no time bonus.
         bool explode = Destroyed;
-        RunScore.OnBoss(explode, remaining, false,
-                        actor != null ? actor.transform.position : new Vector3(0f, BossConfig.BossY, 0f));
+        Vector3 at = actor != null ? actor.transform.position : new Vector3(0f, BossConfig.BossY, 0f);
+        if (explode) RunScore.OnBoss(true, remaining, false, at);
+        else RunScore.OnBossEscaped(at);
         AchievementTracker.OnBossOutro(world, explode);
         actor.BeginOutro(explode);
     }

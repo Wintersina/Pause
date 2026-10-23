@@ -147,7 +147,7 @@ public static class ScoreRules
 
     // ---- bosses ----
     public static int BossDestroyed = 300;
-    public static int BossSurvived = 150;    // it retreated: still a fight won
+    public static int BossEscapePenalty = 150;   // it ran out the clock and got away: the pilot LOSES this (floored at 0)
     // HitPoints rule only: seconds left on the fight clock when it blew up.
     public static int BossTimeBonusPerSecond = 5;
 
@@ -295,7 +295,7 @@ public static class ScoreRules
     public static int BossPoints(bool destroyed, float secondsLeft, bool hitPointsRule, int loop = 0)
     {
         int points;
-        if (!destroyed) points = BossSurvived;
+        if (!destroyed) points = 0;   // (an escape is a loss, RunScore.OnBossEscaped, not a gain)
         else
         {
             int bonus = hitPointsRule ? Mathf.RoundToInt(Mathf.Max(0f, secondsLeft) * BossTimeBonusPerSecond) : 0;

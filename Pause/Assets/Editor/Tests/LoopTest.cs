@@ -341,9 +341,8 @@ public static class LoopTest
               WorldManager.CurrentIndex == 0 && RunLoop.Index == 1 && Portal.Live == null && !PortalPressure.Active);
         long before = RunScore.Total;
         PlayBoss(wm);
-        Check("Space's boss on the loop, paying x1.5 (" + (RunScore.Total - before) + ")",
-              BossEncounter.DoneInWorld(0) && RunScore.Total - before >= ScoreRules.BossPoints(false, 0f, false, 1) &&
-              ScoreRules.BossPoints(false, 0f, false, 1) == 225);
+        Check("Space's boss on the loop, escaping costs no more than the flat penalty (" + (RunScore.Total - before) + ")",
+              BossEncounter.DoneInWorld(0) && RunScore.Total - before >= -ScoreRules.BossEscapePenalty && RunScore.Total - before <= 0);
         Check("... then Space's portal on, to Frost", wm.PortalIsOpen && wm.Stage == WorldManager.LevelStage.Portal &&
               WorldManager.PortalDestination == 1);
         foreach (var p in Object.FindObjectsByType<Portal>(FindObjectsSortMode.None)) Object.DestroyImmediate(p.gameObject);
