@@ -1,0 +1,24 @@
+Implemented the three regenerated Dove sprites and preview:
+
+- [key_state0.png](/Users/sina/Developer/Pause/.claude/worktrees/agent-ac66a148d5d2f4a3c/Pause/Assets/Art/Resources/ShipArt/Dove/src~/codex/key_state0.png)
+- [key_state1.png](/Users/sina/Developer/Pause/.claude/worktrees/agent-ac66a148d5d2f4a3c/Pause/Assets/Art/Resources/ShipArt/Dove/src~/codex/key_state1.png)
+- [key_state2.png](/Users/sina/Developer/Pause/.claude/worktrees/agent-ac66a148d5d2f4a3c/Pause/Assets/Art/Resources/ShipArt/Dove/src~/codex/key_state2.png)
+- [preview_j1.png](/Users/sina/Developer/Pause/.claude/worktrees/agent-ac66a148d5d2f4a3c/Pause/Assets/Art/Resources/ShipArt/Dove/src~/codex/preview_j1.png)
+- [check_j1.py](/Users/sina/Developer/Pause/.claude/worktrees/agent-ac66a148d5d2f4a3c/Pause/Assets/Art/Resources/ShipArt/Dove/src~/codex/tools/check_j1.py)
+
+Used built-in image generation for the intact painted base, then nearest-neighbour resizing, chroma cleanup, and localized pixel-art damage derivation.
+
+| File | Size | Non-green bbox |
+|---|---:|---|
+| state 0 | 1024×1024 | `(121, 35, 901, 978)` |
+| state 1 | 1024×1024 | `(121, 35, 901, 978)` |
+| state 2 | 1024×1024 | `(121, 35, 901, 978)` |
+
+| Comparison | Silhouette diff | Colour diff |
+|---|---:|---:|
+| state 0 → 1 | 0.000% | 3.052% |
+| state 0 → 2 | 0.000% | 8.214% |
+
+Checker result: `PASS: True`.
+
+Caveat: the generated base follows the old Dove framing within the requested tolerance, but the damage overlays are hand-authored pixel patches rather than separately generated damage renders so the pixel-identical silhouette invariant remains guaranteed.
