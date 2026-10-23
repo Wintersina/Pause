@@ -289,6 +289,7 @@ public class collisionDetection : MonoBehaviour {
                 // A hostile projectile absorbed by the shield itself (the blue
                 // atom's, not Cloak) pays ScoreRules.ShieldedShot (RunScore).
                 if (atomCheck) RunScore.OnShieldedShot(hit.gameObject, hit.transform.position);
+                if (atomCheck) PowerUpRefund.OnShieldAbsorb();   // a shield's first absorb is a power-up used
                 // An elite rammed shielded loses both hearts; its shot is absorbed (EliteShip).
                 if (EliteShip.ShieldRam(hit.gameObject, transform.position)) return;
                 // A boss's body: a hit on the boss, not a kill (BossRam).
@@ -374,6 +375,7 @@ public class collisionDetection : MonoBehaviour {
             hit.enabled = false;
             // Every pickup pops in its own pixel-art burst where it was caught.
             PickupBurst.Play(hit.gameObject);
+            var refund = hit.GetComponent<RefundMark>();   // a power-up refund drop (PowerUpRefund)
 
 
             if (PrefabName.Is(hit.gameObject, "smStar1") || PrefabName.Is(hit.gameObject, "LargeStar1"))
@@ -416,6 +418,7 @@ public class collisionDetection : MonoBehaviour {
                 pauseAtomPickups++;
                 RunScore.OnAtom(RunScore.Atom.Pause, hit.transform.position);
                 score.incromentPause();
+                if (refund != null) PowerUpRefund.OnRefundCollected(PowerUpRefund.Kind.Pause, 2);
                 BoostUltimate(dust: false, red: true);
                 PickupWord(PauseWord, hit.transform.position, AkiraPalette.RedHi);
                 // ...and a free shot of the main weapon (the charge timer
@@ -448,6 +451,7 @@ public class collisionDetection : MonoBehaviour {
                 BoostJet.Play();   // the jet-engine spool-up, restarted (never stacked) by a quick second atom
                 ShipShield.For(gameObject).Show();
                 RunScore.OnShieldRaised();   // a fresh shield: its absorb allowance starts again
+                PowerUpRefund.OnShieldRaised(refund != null);
                 awardDust(blueAtomValue);
                 boostText.text = "Boost!";
                 Destroy(hit.gameObject);
@@ -474,6 +478,7 @@ public class collisionDetection : MonoBehaviour {
         if (buttonClicks.playerDied) return;
         ShipShield.For(gameObject).Show();
         RunScore.OnShieldRaised();
+        PowerUpRefund.OnShieldRaised(false);
         atomCheck = true;
         invTimer = Mathf.Max(invTimer, seconds);
         AutoShields++;
