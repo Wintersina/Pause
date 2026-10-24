@@ -385,7 +385,7 @@ public static class RunScore
         if (PracticePopups && at.HasValue && points > 0) Raise(points, at.Value, source);
     }
 
-    public enum Atom { Heal, Shield, Pause, Cooldown }
+    public enum Atom { Heal, Shield, Pause, Cooldown, Magnet }
 
     public static int AtomPoints(Atom kind)
     {
@@ -394,6 +394,7 @@ public static class RunScore
             case Atom.Heal: return ScoreRules.HealAtom;
             case Atom.Shield: return ScoreRules.ShieldAtom;
             case Atom.Cooldown: return ScoreRules.CooldownAtom;
+            case Atom.Magnet: return ScoreRules.MagnetAtom;
             default: return ScoreRules.PauseAtom;
         }
     }

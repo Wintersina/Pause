@@ -51,6 +51,7 @@ public class PickupGlow : MonoBehaviour
             case PickupKind.Shield: return AkiraPalette.Cyan;
             case PickupKind.Pause: return AkiraPalette.RedHi;
             case PickupKind.Cooldown: return AkiraPalette.VioletHi;
+            case PickupKind.Magnet: return AkiraPalette.MagnetBlueHi;
             case PickupKind.Heal: return HealGreen;
             default: return AkiraPalette.Amber;
         }

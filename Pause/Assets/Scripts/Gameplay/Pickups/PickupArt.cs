@@ -7,7 +7,7 @@ using UnityEngine;
 // guide's flipbook clock.
 // Serialized by number on the pickup prefabs (PickupFlipbook.kind): new
 // kinds go on the end, never in the middle.
-public enum PickupKind { Shield = 0, Pause = 1, Dust = 2, DustSmall = 3, Heal = 4, Cooldown = 5 }
+public enum PickupKind { Shield = 0, Pause = 1, Dust = 2, DustSmall = 3, Heal = 4, Cooldown = 5, Magnet = 6 }
 
 public static class PickupArt
 {
@@ -22,7 +22,7 @@ public static class PickupArt
     // credits and the codex icons) are untouched.
     public const float StarDustScale = 1.25f;
 
-    // The atoms (blue, red, violet, green) are drawn this much bigger than
+    // The atoms (blue, red, violet, green, magnet) are drawn this much bigger than
     // their 0.28 u art in play, so they read at a glance on a phone (an atom
     // was ~40 px across on a 1080 px screen, a hostile shot ~32). Only the
     // drawing grows: EnlargeVisual shrinks the colliders back, so the hitbox
@@ -78,6 +78,7 @@ public static class PickupArt
             case PickupKind.Shield: return "shield_idle";
             case PickupKind.Pause: return "pause_idle";
             case PickupKind.Cooldown: return "cooldown_idle";
+            case PickupKind.Magnet: return "magnet_idle";
             case PickupKind.Dust: return "dust_idle";
             case PickupKind.DustSmall: return "dustsm_idle";
             default: return "heal_glint";
@@ -91,6 +92,7 @@ public static class PickupArt
             case PickupKind.Shield: return "shield_burst";
             case PickupKind.Pause: return "pause_burst";
             case PickupKind.Cooldown: return "cooldown_burst";
+            case PickupKind.Magnet: return "magnet_burst";
             case PickupKind.Heal: return "heal_burst";
             default: return "dust_burst";
         }
@@ -132,6 +134,7 @@ public static class PickupArt
         if (PrefabName.Is(go, "atom3a")) { kind = PickupKind.Shield; return true; }
         if (PrefabName.Is(go, "pauseAtom")) { kind = PickupKind.Pause; return true; }
         if (PrefabName.Is(go, "cooldownAtom")) { kind = PickupKind.Cooldown; return true; }
+        if (PrefabName.Is(go, MagnetPull.ObjectName)) { kind = PickupKind.Magnet; return true; }
         if (PrefabName.Is(go, "LargeStar1")) { kind = PickupKind.Dust; return true; }
         if (PrefabName.Is(go, "smStar1")) { kind = PickupKind.DustSmall; return true; }
         return false;

@@ -203,6 +203,7 @@ public static class CodexAnimations
             case "atom_red": kind = PickupKind.Pause; return true;
             case "atom_green": kind = PickupKind.Heal; return true;
             case CodexCatalogue.VioletAtomId: kind = PickupKind.Cooldown; return true;
+            case CodexCatalogue.MagnetAtomId: kind = PickupKind.Magnet; return true;
         }
         kind = PickupKind.Shield;
         return false;

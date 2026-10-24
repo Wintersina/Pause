@@ -505,6 +505,8 @@ public static class CodexTest
             CheckMaps("red atom", goods.redAtom, "atom_red");
             CheckMaps("violet capacitor atom", goods.cooldownAtom != null ? goods.cooldownAtom : Resources.Load<GameObject>("prefabs/cooldownAtom"),
                       CodexCatalogue.VioletAtomId);
+            CheckMaps("magnetic atom", goods.magnetAtom != null ? goods.magnetAtom : Resources.Load<GameObject>("prefabs/magnetAtom"),
+                      CodexCatalogue.MagnetAtomId);
         }
 
         // Runtime-built objects, named exactly as their spawners name them.
@@ -870,7 +872,7 @@ public static class CodexTest
             var pickups = new[]
             {
                 ("atom_stardust", "prefabs/smStar_1"), ("atom_bigstar", "prefabs/LargeStar_1"), ("atom_blue", "prefabs/atom3a"),
-                ("atom_red", "prefabs/pauseAtom"), (CodexCatalogue.VioletAtomId, "prefabs/cooldownAtom"),
+                ("atom_red", "prefabs/pauseAtom"), (CodexCatalogue.VioletAtomId, "prefabs/cooldownAtom"), (CodexCatalogue.MagnetAtomId, "prefabs/magnetAtom"),
             };
             foreach (var (id, path) in pickups)
             {

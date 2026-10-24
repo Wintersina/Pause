@@ -29,6 +29,8 @@ public static class AkiraPalette
     public static readonly Color VioletShadow = Hex(0x322056);
     public static readonly Color Violet = Hex(0x7051B7);
     public static readonly Color VioletHi = Hex(0xB99AFF);
+    // Magnetic atom (sampled from its magnet_idle art): the blue pole's light tone
+    public static readonly Color MagnetBlueHi = Hex(0x7FB0FF);
     // Ink + highlight
     public static readonly Color Ink = Hex(0x140C14);
     public static readonly Color Bone = Hex(0xF4EAD4);

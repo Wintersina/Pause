@@ -41,7 +41,7 @@ public class collisionDetection : MonoBehaviour {
     public static int lifeCounter;
     // Atoms picked up this session, by kind. The tutorial watches these to
     // know the player caught the atom it just introduced.
-    public static int healAtomPickups, shieldAtomPickups, pauseAtomPickups, cooldownAtomPickups;
+    public static int healAtomPickups, shieldAtomPickups, pauseAtomPickups, cooldownAtomPickups, magnetAtomPickups;
     public static int MAXLIFE;
 
     public GameObject shield;
@@ -440,6 +440,22 @@ public class collisionDetection : MonoBehaviour {
                 }
                 Destroy(hit.gameObject);
             }
+            else if (PrefabName.Is(hit.gameObject, MagnetPull.ObjectName))
+            {
+                magnetAtomPickups++;
+                RunScore.OnAtom(RunScore.Atom.Magnet, hit.transform.position);
+                // Every star dust on screen flies into the hull; with the
+                // shield up it also drags the soft enemies in and the shield
+                // gains MagnetPull.ShieldBonusSeconds (MagnetPull has the rules).
+                bool shielded = ExtendShield(MagnetPull.ShieldBonusSeconds);
+                MagnetPull.Begin(gameObject, shielded);
+                BoostUltimate(dust: false);   // the usual atom cut off the weapon's charge
+                string word = shielded ? MagnetPull.ShieldedWord : MagnetPull.Word;
+                if (hypeText != null) hypeText.text = word;
+                PickupWord(word, hit.transform.position, AkiraPalette.MagnetBlueHi);
+                AtomCharged(AkiraPalette.MagnetBlueHi);
+                Destroy(hit.gameObject);
+            }
             else if(PrefabName.Is(hit.gameObject, "atom3a"))
             {
                 shieldAtomPickups++;
@@ -482,6 +498,15 @@ public class collisionDetection : MonoBehaviour {
         atomCheck = true;
         invTimer = Mathf.Max(invTimer, seconds);
         AutoShields++;
+    }
+
+    // Adds `seconds` to a shield that is up right now (the blue atom's or an
+    // Aegis shield): true if there was one. Nothing is raised from nothing.
+    public static bool ExtendShield(float seconds)
+    {
+        if (!atomCheck || buttonClicks.playerDied) return false;
+        invTimer += Mathf.Max(0f, seconds);
+        return true;
     }
 
     // Timed shields raised on this run (tests, previews).

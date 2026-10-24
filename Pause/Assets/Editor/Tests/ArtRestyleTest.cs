@@ -99,6 +99,8 @@ public static class ArtRestyleTest
         "A9481A", "F2862B", "FFB43C",   // dust: SODIUM_SH SODIUM AMBER
         "322056", "7051B7", "B99AFF",   // cooldown (violet capacitor): VIOLET_SH VIOLET VIOLET_HI
         "29A805", "7EE702", "B4F246", "FDFDFD", "00021B",   // heal (sampled from the original)
+        "080B1C", "12172D", "3D485F", "707E94", "B1C1D2", "F4F8F0",   // magnet: steel ramp + ink (red pole reuses the pause reds)
+        "16237E", "2F6BFF", "7FB0FF", "308FAC", "9DEEEB", "E2FFF9", "FFF9DA", "75141E",   // magnet: blue pole, glints, dark red
     };
 
     static List<Color32> Parse(string[] hex)
