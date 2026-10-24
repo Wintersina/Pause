@@ -411,8 +411,10 @@ public static class WorldHazardsTest
         WorldHazards.Apply(Dt);
         Check("a live flare stuns an elite its band touches", elite.Stunned && WorldHazards.LastStunned >= 1);
         Check("... and not one outside the band", !far.Stunned);
+        DazedSparks.Reset();
+        WorldHazards.Apply(Dt);
         DazedSparks.Draw(0f);
-        Check("a stunned elite wears dazed sparks", DazedSparks.Shown == 1);
+        Check("a stunned elite wears dazed sparks", DazedSparks.Has(elite.transform) && !DazedSparks.Has(far.transform));
         Vector2 at = elite.transform.position;
         for (int i = 0; i < 20; i++) { WorldHazards.Apply(Dt); elite.Step(Dt); }
         Check("a stunned elite holds still", ((Vector2)elite.transform.position - at).sqrMagnitude < 1e-6f);
@@ -422,7 +424,7 @@ public static class WorldHazardsTest
         for (int i = 0; i < 40; i++) { WorldHazards.Apply(Dt); elite.Step(Dt); }
         Check("and wakes 2 s after the band left it", !elite.Stunned);
         DazedSparks.Draw(0f);
-        Check("the sparks end with the stun", DazedSparks.Shown == 0);
+        Check("the sparks end with the stun", !DazedSparks.Has(elite.transform));
         WorldHazards.ClearAll();
         DazedSparks.Reset();
     }

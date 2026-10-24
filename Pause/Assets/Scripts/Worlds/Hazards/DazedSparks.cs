@@ -35,6 +35,14 @@ public static class DazedSparks
         slots[free] = new Slot { tr = tr, frozen = frozen, elite = elite, head = Mathf.Max(.2f, top) + Above, phase = (phaseSeed++ % 7) * .9f };
     }
 
+    // Is this target currently wearing sparks? (tests)
+    public static bool Has(Transform tr)
+    {
+        if (tr == null) return false;
+        for (int i = 0; i < Slots; i++) if (slots[i].tr == tr && Holds(slots[i])) return true;
+        return false;
+    }
+
     static bool Holds(in Slot s)
     {
         if (s.tr == null) return false;
