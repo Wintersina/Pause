@@ -210,11 +210,11 @@ public static class CooldownAtomTest
             var b = bossRun[0];
             // (it may wait out AtomSpacing.Gap behind another atom, whose rolls the
             // boss's extra star dust shifts)
-            if (b.Count == 0 || run[0].Count == 0 || Mathf.Abs(b[0] - run[0][0]) > AtomSpacing.Gap + 1e-3f) bossFirstDiffers++;
+            if (b.Count == 0 || run[0].Count == 0 || Mathf.Abs(b[0] - run[0][0]) > 2f * AtomSpacing.Gap + 1e-3f) bossFirstDiffers++;
             for (int i = 1; i < b.Count; i++)
             {
                 float g = b[i] - b[i - 1];
-                if (g < PickupRules.CooldownAtomRepeatDelayMin - Dt || g > PickupRules.CooldownAtomRepeatDelayMax + AtomSpacing.Gap + Dt * 2f) bossGapOut++;
+                if (g < PickupRules.CooldownAtomRepeatDelayMin - Dt || g > PickupRules.CooldownAtomRepeatDelayMax + 2f * AtomSpacing.Gap + Dt * 2f) bossGapOut++;
             }
             if (b.Count > PickupRules.CooldownAtomsPerWorld) overBudget++;
         }

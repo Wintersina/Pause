@@ -60,6 +60,11 @@ public static class MagnetAtomTest
               ScoreRules.MagnetAtom == ScoreRules.PauseAtom && RunScore.AtomPoints(RunScore.Atom.Magnet) == ScoreRules.MagnetAtom);
         Check("the shield bonus is 2 s and the pull is short",
               MagnetPull.ShieldBonusSeconds == 2f && MagnetPull.PullSeconds > .5f && MagnetPull.PullSeconds < 3f);
+        string coll = File.ReadAllText("Assets/Scripts/Ship/collisionDetection.cs");
+        int mi = coll.IndexOf("MagnetPull.ObjectName)");
+        int me = mi < 0 ? -1 : coll.IndexOf("Destroy(hit.gameObject)", mi);
+        Check("the magnet atom cuts the weapon charge like every other atom (BoostUltimate, dust: false)",
+              mi >= 0 && me > mi && coll.Substring(mi, me - mi).Contains("BoostUltimate(dust: false)"));
         Check("PickupKind numbers didn't shift (Magnet is appended)",
               (int)PickupKind.Cooldown == 5 && (int)PickupKind.Magnet == 6);
     }
@@ -91,7 +96,7 @@ public static class MagnetAtomTest
         foreach (var s in burst) all &= s != null && s.rect.width == 388f;
         Check("every magnet idle (196 px) and burst (388 px) frame loads, like the other atoms", all);
         Check("the codex lists the Magnetic Atom with an animation",
-              CodexCatalogue.All.Exists(e => e.id == CodexCatalogue.MagnetAtomId) &&
+              System.Array.Exists(CodexCatalogue.All, e => e.id == CodexCatalogue.MagnetAtomId) &&
               CodexAnimations.TryPickupKind(CodexCatalogue.MagnetAtomId, out kindOut) && kindOut == PickupKind.Magnet);
     }
     static PickupKind kindOut;
@@ -159,14 +164,15 @@ public static class MagnetAtomTest
         var small = Dust("smStar1", new Vector3(2f, 2f, 0f));
         var big = Dust("LargeStar1", new Vector3(-2f, 4f, 0f));
         var atom = Dust("atom3a", new Vector3(1f, 1f, 0f));   // an atom is not dust
-        Vector3 smallStart = small.transform.position, atomStart = atom.transform.position;
+        Vector3 smallStart = small.transform.position, atomStart = atom.transform.position, bigStart = big.transform.position;
         var pull = MagnetPull.Begin(ship, false);
         pull.Step(.1f);
         float d0 = (smallStart - ship.transform.position).magnitude;
         float d1 = (small.transform.position - ship.transform.position).magnitude;
         Check("without a shield the star dust moves toward the hull", d1 < d0 - .5f);
         Check("both kinds of dust are pulled, atoms are left where they are",
-              pull.DustLast == 2 && atom.transform.position == atomStart);
+              (big.transform.position - ship.transform.position).magnitude < (bigStart - ship.transform.position).magnitude - .5f &&
+              (atom.transform.position - atomStart).sqrMagnitude < 1e-6f);
         for (int i = 0; i < 30; i++) pull.Step(.1f);
         Check("it reaches the hull within the pull and the pull ends",
               (small.transform.position - ship.transform.position).magnitude < .05f &&

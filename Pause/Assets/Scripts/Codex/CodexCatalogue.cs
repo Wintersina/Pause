@@ -183,9 +183,10 @@ public static class CodexCatalogue
                 new[] { "cooldownatom" }),
             new CodexEntry(MagnetAtomId, "Magnetic Atom", CodexCategory.Atoms,
                 () => Pickup(PickupKind.Magnet, "prefabs/" + MagnetPull.ObjectName),
-                "A horseshoe of pure polarity. Grab one and every grain of star dust on screen is hauled into your " +
+                "A horseshoe of pure polarity: grab one and every grain of star dust on screen is hauled into your " +
                 "hull. With your shield up it pulls the nearby enemies in as well (bosses and armoured elites hold " +
-                "their ground) and tops the shield up by " + MagnetPull.ShieldBonusSeconds.ToString("0") + " seconds. " +
+                "their ground) and tops the shield up by " + MagnetPull.ShieldBonusSeconds.ToString("0") + " seconds, " +
+                "and like every atom it cuts " + BlueAtomCut + " off your weapon's charge. " +
                 "Only " + PickupRules.MagnetAtomsPerWorld + " drift through each world, and never mid-boss.",
                 new[] { "magnetatom" }),
 

@@ -449,6 +449,7 @@ public class collisionDetection : MonoBehaviour {
                 // gains MagnetPull.ShieldBonusSeconds (MagnetPull has the rules).
                 bool shielded = ExtendShield(MagnetPull.ShieldBonusSeconds);
                 MagnetPull.Begin(gameObject, shielded);
+                BoostUltimate(dust: false);   // the usual atom cut off the weapon's charge
                 string word = shielded ? MagnetPull.ShieldedWord : MagnetPull.Word;
                 if (hypeText != null) hypeText.text = word;
                 PickupWord(word, hit.transform.position, AkiraPalette.MagnetBlueHi);
