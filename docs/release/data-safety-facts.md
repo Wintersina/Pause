@@ -45,7 +45,7 @@ Play Console > App content > Data safety. Answers below assume Play Games sign-i
 | Ads | None |
 | Target age | 13+ |
 | IARC / ESRB | Everyone 10+ (E10+) |
-| Contact email | hapticgate@gmail.com |
+| Contact email | dev@hapticgategames.com |
 | Category | Games > Arcade |
 
 Differences from the table below, and recommendations:
