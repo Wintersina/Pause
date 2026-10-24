@@ -253,8 +253,8 @@ public static class ScoreBonusTest
                 Debug.Log("[BONUS] outside: " + g.name + " " + r);
             }
         }
-        Check("everything still sits inside the panel (the panel is 876 tall since the SPACE DOCK row)",
-              inside && DeathPanelView.Height == 876f && DeathPanelView.Width == 680f);
+        Check("everything still sits inside the panel (the panel is 952 tall since the KILLED BY card)",
+              inside && DeathPanelView.Height == 952f && DeathPanelView.Width == 680f);
         Object.DestroyImmediate(view.gameObject);
     }
 

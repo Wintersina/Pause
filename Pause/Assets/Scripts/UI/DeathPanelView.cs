@@ -36,6 +36,8 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
         public float dustAtStart;
         public float dustWon;       // includes dustBonus
         public float dustBonus;     // the end-of-run score bonus (ScoreRules.ScoreDustBonus)
+        public string killedBy;     // the codex name of what landed the fatal hit (null: unknown)
+        public string hurtBy;       // hearts lost on the way, "Name x2, Name" (null: none)
     }
 
     // Breakdown rows, in display order.
@@ -56,7 +58,7 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
 
     // ---- Layout (panel space: canvas units, origin at the panel centre) ----
 
-    public const float Width = 680f, Height = 876f;
+    public const float Width = 680f, Height = 952f;
     // How far the frame sprite's neon bloom reaches outside the panel body.
     public const float GlowMargin = 20f;
     public const float CardWidth = 600f;
@@ -66,24 +68,28 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
     const float LabelLeft = -CardWidth * .5f + 40f;
     const float ValueRight = CardWidth * .5f - 28f;
 
-    // The panel grew by 116 for the SPACE DOCK row (a button plus a 16 gap);
-    // everything above it moved up by half of that so the centre-origin
-    // layout stays put relative to the top edge.
-    public static readonly Rect HeaderRect = Centered(0f, 384f, 600f, 56f);
-    public static readonly Rect DividerRect = Centered(0f, 338f, 440f, 16f);
+    // The panel grew by 116 for the SPACE DOCK row (a button plus a 16 gap)
+    // and by 76 for the KILLED BY card (64 plus a 12 gap); everything above
+    // them moved up by half of that so the centre-origin layout stays put
+    // relative to the top edge.
+    public static readonly Rect HeaderRect = Centered(0f, 422f, 600f, 56f);
+    public static readonly Rect DividerRect = Centered(0f, 376f, 440f, 16f);
     public static readonly Rect[] CardRects =
     {
-        Centered(0f, 254f, CardWidth, 128f),   // score
-        Centered(0f, 62f, CardWidth, 232f),     // breakdown
-        Centered(0f, -120f, CardWidth, 108f),  // star dust
+        Centered(0f, 292f, CardWidth, 128f),   // score
+        Centered(0f, 100f, CardWidth, 232f),    // breakdown
+        Centered(0f, -82f, CardWidth, 108f),   // star dust
+        Centered(0f, -182f, CardWidth, 64f),   // killed by / hurt by
     };
-    public static readonly Rect ReplayRect = Centered(-156f, -244f, ButtonWidth, ButtonHeight);
-    public static readonly Rect MenuRect = Centered(156f, -244f, ButtonWidth, ButtonHeight);
+    public static readonly Rect ReplayRect = Centered(-156f, -278f, ButtonWidth, ButtonHeight);
+    public static readonly Rect MenuRect = Centered(156f, -278f, ButtonWidth, ButtonHeight);
     // SPACE DOCK: a full-column button under REPLAY / MENU that goes straight
     // to the ship dock (shopS6) so the run's star dust can be spent at once.
-    public static readonly Rect DockRect = Centered(0f, -360f, CardWidth, ButtonHeight);
+    public static readonly Rect DockRect = Centered(0f, -394f, CardWidth, ButtonHeight);
     public const string DockScene = "shopS6";
     public const int ButtonCount = 3;
+    public const int CardCount = 4;
+    public const string KilledByCardName = "Card3";
 
     // Breakdown card (card-local): title row, then one row per source.
     public const float BreakdownTitleY = 92f;
@@ -132,8 +138,8 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
     CanvasGroup panelGroup;
     Image scrim, divider, bestGlow, slab;
     RectTransform[] headerSparkles = new RectTransform[2];
-    RectTransform[] cards = new RectTransform[3];
-    CanvasGroup[] cardGroups = new CanvasGroup[3];
+    RectTransform[] cards = new RectTransform[CardCount];
+    CanvasGroup[] cardGroups = new CanvasGroup[CardCount];
     Text scoreValue, dustValue, dustTotal;
     Text[] rowValues = new Text[0];
     long[] rowPoints = new long[0];
@@ -276,6 +282,7 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
         Place(scoreValue.rectTransform, Centered(ValueRight - 170f, 0f, 340f, 80f));
         cards[1] = BuildBreakdown(runText);
         cards[2] = BuildCard(2, "STAR DUST", "EARNED THIS RUN", Gold, dustText, out dustValue);
+        cards[3] = BuildKilledBy();
 
         // Star dust: the earned amount and the new total on separate lines,
         // both right-aligned on the same column as the score.
@@ -359,6 +366,28 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
             shownRows[i] = -1;
         }
         BuildLoopsRow(card, BreakdownFirstRowY - rowPoints.Length * BreakdownRowStep);
+        return card;
+    }
+
+    // KILLED BY <name> over HURT BY <names>: what ended the run and what chipped at it.
+    // Nothing is made up: an unknown killer shows a dash, no earlier hits reads "NO OTHER HITS".
+    public static string KilledByLabel(Results r) { return string.IsNullOrEmpty(r.killedBy) ? "-" : r.killedBy; }
+    public static string HurtByLabel(Results r) { return string.IsNullOrEmpty(r.hurtBy) ? "NO OTHER HITS" : r.hurtBy; }
+
+    RectTransform BuildKilledBy()
+    {
+        var card = CardBody(3, Coral);
+        var killed = NewText("Killed", card, "KILLED BY  " + KilledByLabel(results).ToUpperInvariant(), 24, Bone, TextAnchor.MiddleLeft);
+        Place(killed.rectTransform, Centered(LabelLeft + 250f, 12f, 500f, 30f));
+        var hurt = NewText("Hurt", card, "HURT BY  " + HurtByLabel(results), 17, Muted, TextAnchor.MiddleLeft);
+        Place(hurt.rectTransform, Centered(LabelLeft + 250f, -14f, 500f, 24f));
+        foreach (var t in new[] { killed, hurt })
+        {
+            t.horizontalOverflow = HorizontalWrapMode.Wrap;
+            t.resizeTextForBestFit = true;
+            t.resizeTextMinSize = 12;
+            t.resizeTextMaxSize = t.fontSize;
+        }
         return card;
     }
 
@@ -632,7 +661,7 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
             slab.rectTransform.localScale = new Vector3(EaseOutBack(sp), sp <= 0f ? 0f : 1f, 1f);
         }
 
-        for (int i = 0; i < 3; i++)
+        for (int i = 0; i < CardCount; i++)
         {
             float c = EaseOutCubic((t - (CardStart + i * CardStagger)) / CardDuration);
             cardGroups[i].alpha = c;

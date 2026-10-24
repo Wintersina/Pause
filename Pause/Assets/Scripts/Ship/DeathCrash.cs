@@ -125,6 +125,7 @@ public partial class DeathCrash : MonoBehaviour
     readonly List<GameObject> hiddenChildren = new List<GameObject>();
     readonly List<Behaviour> disabled = new List<Behaviour>();
     SpriteRenderer hiddenHull;
+    DeathCaption caption;   // "YOU DIED BY <enemy>" over the sequence (DeathCaption)
     GameObject ship;
     int pieceCount, fragmentCount, shipId, nextParticle;
     bool built, running, finished, animating, skipped, wasPressed, killerCrashed;
@@ -334,6 +335,10 @@ public partial class DeathCrash : MonoBehaviour
         HideShip(ship, hull);
         BeginDomino(killer, shipTf.position);
 
+        // Names the killer for the length of the crash (collisionDetection logged it just before this).
+        if (caption == null) caption = DeathCaption.Create(transform);
+        caption.Show(DamageLog.NameOf(DamageLog.RunKiller));
+
         // The fatal blast on the hull, and the kick.
         Blast(shipTf.position, TargetExplosion.Kind.Metal, 1.05f, true);
         LegacyExplosionFx.Spawn(shipTf.position, LegacyExplosionFx.PlayerSize);
@@ -510,6 +515,7 @@ public partial class DeathCrash : MonoBehaviour
         shakeClock += dt;
         shake *= Mathf.Exp(-11f * dt);
         if (running) StepDomino(dt);
+        if (caption != null) caption.Step(elapsed);
 
         bool allLanded = true;
         for (int i = 0; i < pieceCount; i++)
@@ -654,6 +660,7 @@ public partial class DeathCrash : MonoBehaviour
         running = false;
         finished = true;
         finishedAt = elapsed;
+        if (caption != null) caption.Hide();   // the panel names the killer from here
         if (ship != null) BossUtil.Kill(ship);   // the ship is gone; the panel can come up
         ship = null;
         hiddenHull = null;
@@ -664,6 +671,7 @@ public partial class DeathCrash : MonoBehaviour
     void Stop()
     {
         animating = false;
+        if (caption != null) caption.Hide();
         FrameDt = 0f;
         HideAll();
         UndoShake();

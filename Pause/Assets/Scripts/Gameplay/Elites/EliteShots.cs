@@ -232,6 +232,9 @@ public class EliteShot : MonoBehaviour, IHostileShot
     public Vector2 Velocity => velocity;
     public Vector2 LaunchedAt { get; private set; }
     public EliteShip Owner => owner;
+    // The codex id of whatever fired this shot, kept at launch so the damage log still names a shooter that died
+    // while the shot was in the air (HurtBy). Reset on every reuse; chips inherit their parent's.
+    public string SourceId { get; private set; }
     public float Radius => radius;
     public GameObject Hitbox => hitbox;
     public bool Airborne => airborne;
@@ -382,6 +385,7 @@ public class EliteShot : MonoBehaviour, IHostileShot
     public void Launch(EliteShip from, EliteDef d, EliteShots.Kind kind, Vector2 at, Vector2 v)
     {
         owner = from;
+        SourceId = from != null && from.Def != null ? from.Def.codexId : null;
         def = d;
         Kind = kind;
         velocity = v;
@@ -519,6 +523,7 @@ public class EliteShot : MonoBehaviour, IHostileShot
     {
         rosterShot = true;
         shooter = source;
+        SourceId = Codex.IdFor(source);
         ride = rideBoard;
         ownerId = source != null ? source.GetInstanceID() : 0;
     }
@@ -1096,6 +1101,7 @@ public class EliteShot : MonoBehaviour, IHostileShot
         var c = pool.Fire(owner, def, EliteShots.Kind.Shard, at, v, false);
         if (c == null) return false;
         c.BecomeChip(scale, seconds, rosterShot, shooter, ride, ownerId, age + ageBias);
+        c.SourceId = SourceId;
         return true;
     }
 

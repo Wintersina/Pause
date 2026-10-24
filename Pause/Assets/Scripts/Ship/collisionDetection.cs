@@ -213,6 +213,7 @@ public class collisionDetection : MonoBehaviour {
         SpeedRamp.ResetBoost();
         SpeedMilestones.Reset();
         AchievementTracker.ResetRun();
+        DamageLog.BeginRun();
         lifeCounter = 0;
     }
 	
@@ -317,6 +318,9 @@ public class collisionDetection : MonoBehaviour {
                 // the tutorial keeps its last heart whatever hits it
                 if (TutorialCannotDie(gameObject)) lifeCounter = Mathf.Min(lifeCounter, MAXLIFE - 1);
                 ScoreMultiplier.OnHeartLost();   // the max-speed streak ends with the heart
+                // what took the heart (or the last one): the run summary's HURT BY / KILLED BY and the
+                // codex tallies. Tutorial and developer runs keep no lifetime counts (DamageLog).
+                DamageLog.Record(HurtBy.Resolve(hit.gameObject), fatal, score.paysRealDust && !DeveloperUnlocks.Enabled);
                 AchievementEvents.RaisePlayerHurt();   // boss_no_hit, the blink-dodge probe
                 // the heart this costs darts out to shield against it
                 ShipLivesIndicator.Impact(hit.transform.position);
