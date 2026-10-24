@@ -72,6 +72,14 @@ public class TutorialWall : MonoBehaviour
         }
     }
 
+    // Where the jump should land: just clear of the wall on its far side
+    // (above it), within the ship's reach. Anchored on the wall, so it holds
+    // on every aspect ratio.
+    public float JumpTargetY
+    {
+        get { return Mathf.Min(y + CrossMargin(pieceHalfHeight, shipHalfHeight) + .15f, ShipReach.ClampY(1000f)); }
+    }
+
     // The frame the wall is in view and holding / coming (for the freeze step).
     public bool OnScreen
     {

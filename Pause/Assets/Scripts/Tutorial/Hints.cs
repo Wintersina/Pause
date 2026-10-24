@@ -65,7 +65,7 @@ public class Hints : MonoBehaviour {
     TutorialGuides guides;
     TutorialSkip skip;
     SpokenLine[] lines;
-    SpokenLine closingLine, retryLine;
+    SpokenLine closingLine, retryLine, rescueLine;
     Text pauseReadout;
     RectTransform hudPanel;
     readonly Vector3[] corners = new Vector3[4];
@@ -126,6 +126,7 @@ public class Hints : MonoBehaviour {
         for (int i = 0; i < steps.Length; i++) lines[i] = TutorialScript.Speak(steps[i].line);
         closingLine = TutorialScript.Speak(TutorialScript.ClosingLine);
         retryLine = TutorialScript.Speak(TutorialScript.WallRetryLine);
+        rescueLine = TutorialScript.Speak(TutorialScript.PauseRescueLine);
 
         speaker = RobotSpeaker.Create(font);
         guides = TutorialGuides.Create(speaker.Root);
@@ -189,6 +190,9 @@ public class Hints : MonoBehaviour {
         else if (current.cue == TutorialCue.SpawnWall || current.cue == TutorialCue.PointAtWall) guides.PointAt(wall != null && wall.OnScreen && wall.Pieces.Count > 0 ? wall.Pieces[wall.Pieces.Count / 2] : null);
         // the wall still on its way in: a lifted finger gets the touch pulse (touch to bring it in)
         if (current.cue == TutorialCue.SpawnWall) guides.ShowTouch(wall == null || !wall.Jumpable);
+        TickPauseRescue(current);
+        // a rescue atom owns the arrow: it is the only thing the player needs
+        if (spawnGoodStuffTut.LiveAtom != null && AtomFor(current.cue) == TutorialAtom.None) guides.PointAt(spawnGoodStuffTut.LiveAtom);
         guides.PointAtStars(StarArrowsAllowed(current.cue) ? spawnGoodStuffTut.LiveStars : null);
         TickDust(dt);
         TickWall(dt);
@@ -378,6 +382,24 @@ public class Hints : MonoBehaviour {
             wallCounted = false;
             speaker.Say(retryLine);
         }
+    }
+
+    // ---- Out of pauses ----
+
+    // The wall and alien lessons both need a lifted finger, which needs a
+    // pause. A player who burns them all would be stuck (the world just keeps
+    // running), so one red atom drops in with a line asking for it. One at a
+    // time: a new one only when they run dry again and the last is gone.
+    void TickPauseRescue(TutorialStep current)
+    {
+        bool wallLesson = current.cue == TutorialCue.SpawnWall || current.cue == TutorialCue.PointAtWall;
+        if (!wallLesson && current.cue != TutorialCue.SpawnEnemy) return;
+        if (score.pauseCounter > 0 || spawnGoodStuffTut.LiveAtom != null || wallRetryLeft >= 0f) return;   // (a wall retry tops the pauses up itself)
+        // already past the lesson's obstacle: the step is about to end
+        if (wallLesson ? signals.wallsCrossed > stepStart.wallsCrossed || wallCounted : signals.enemiesTeleported > stepStart.enemiesTeleported) return;
+        var spawner = FindFirstObjectByType<spawnGoodStuffTut>();
+        if (spawner != null && spawner.SpawnIntro(TutorialAtom.Red) != null) speaker.Say(rescueLine);
+        else score.pauseCounter = PausesPerStep;   // no atom to show: never stall here
     }
 
     // ---- The alien ----
