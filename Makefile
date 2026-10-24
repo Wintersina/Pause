@@ -10,6 +10,12 @@ ANDROID_PACKAGE ?= me.hapticgate.pause
 IOS_BUNDLE_ID ?= me.hapticgate.pause
 # Required by ios-deploy. Find it with `make ios-devices`.
 IOS_DEVICE_ID ?=
+# Sideload with a free personal Apple ID: IOS_NO_GAMECENTER=1 builds with empty
+# entitlements (no Game Center / iCloud), IOS_TEAM_ID=<10-char team id> signs
+# automatically for that team, e.g.
+#   make ios-deploy IOS_DEVICE_ID=<udid> IOS_NO_GAMECENTER=1 IOS_TEAM_ID=ABCDE12345
+IOS_NO_GAMECENTER ?=
+IOS_TEAM_ID ?=
 
 MAC_APP := $(PROJECT)/Builds/Mac/Pause.app
 MAC_DEV_APP := $(PROJECT)/Builds/Mac/Pause-dev.app
@@ -48,6 +54,7 @@ help:
 	@echo "  make ios-devices          List iPhone/iPad device IDs for ios-deploy"
 	@echo ""
 	@echo "Optional: ANDROID_SERIAL=<serial> selects Android; IOS_DEVICE_ID=<udid> selects iPhone."
+	@echo "Free Apple ID sideload: make ios-deploy IOS_NO_GAMECENTER=1 IOS_TEAM_ID=<team id>"
 	@echo "          UNITY=<path> overrides Unity."
 
 test:
@@ -109,11 +116,11 @@ android-log:
 	$(ADB_DEVICE) logcat -s Unity ActivityManager
 
 ios-build:
-	$(UNITY_CMD) -executeMethod BuildScript.BuildIOS
+	$(if $(IOS_NO_GAMECENTER),PAUSE_IOS_NO_GAMECENTER=1) $(if $(IOS_TEAM_ID),PAUSE_IOS_TEAM_ID=$(IOS_TEAM_ID)) $(UNITY_CMD) -executeMethod BuildScript.BuildIOS
 
 ios-deploy: ios-build
 	@test -n "$(IOS_DEVICE_ID)" || (echo "Set IOS_DEVICE_ID to a connected device ID; run 'make ios-devices'." >&2; exit 2)
-	xcodebuild -project "$(IOS_XCODE_PROJECT)" -scheme Unity-iPhone -configuration Debug -destination "platform=iOS,id=$(IOS_DEVICE_ID)" -derivedDataPath "$(IOS_DERIVED_DATA)" build
+	xcodebuild -project "$(IOS_XCODE_PROJECT)" -scheme Unity-iPhone -configuration Debug -destination "platform=iOS,id=$(IOS_DEVICE_ID)" -derivedDataPath "$(IOS_DERIVED_DATA)" $(if $(IOS_TEAM_ID),-allowProvisioningUpdates )build
 	xcrun devicectl device install app --device "$(IOS_DEVICE_ID)" "$(IOS_APP)"
 	xcrun devicectl device process launch --device "$(IOS_DEVICE_ID)" "$(IOS_BUNDLE_ID)"
 
