@@ -209,6 +209,7 @@ public partial class DeathCrash : MonoBehaviour
 
     void OnDestroy()
     {
+        EndZoom();
         UndoShake();
         if (Instance == this) { Instance = null; FrameDt = 0f; }
     }
@@ -245,6 +246,7 @@ public partial class DeathCrash : MonoBehaviour
         Build();
         if (running || deadShip == null) return;
         HideAll();
+        EndZoom();
         elapsed = 0f;
         finishedAt = -1f;
         lastLanding = 0f;
@@ -334,6 +336,7 @@ public partial class DeathCrash : MonoBehaviour
 
         HideShip(ship, hull);
         BeginDomino(killer, shipTf.position);
+        BeginZoom(killer, shipTf.position);
 
         // Names the killer for the length of the crash (collisionDetection logged it just before this).
         if (caption == null) caption = DeathCaption.Create(transform);
@@ -467,7 +470,10 @@ public partial class DeathCrash : MonoBehaviour
     void LateUpdate()
     {
         UndoShake();
-        if (!animating || shake < .002f) return;
+        UndoZoom();
+        if (!animating) return;
+        ApplyZoom();
+        if (shake < .002f) return;
         var cam = Camera.main;
         if (cam == null) return;
         shakeApplied = new Vector3(Mathf.Sin(shakeClock * 83f), Mathf.Cos(shakeClock * 61f) * .7f, 0f) * shake;
@@ -516,6 +522,7 @@ public partial class DeathCrash : MonoBehaviour
         shake *= Mathf.Exp(-11f * dt);
         if (running) StepDomino(dt);
         if (caption != null) caption.Step(elapsed);
+        StepZoom();
 
         bool allLanded = true;
         for (int i = 0; i < pieceCount; i++)
@@ -660,6 +667,7 @@ public partial class DeathCrash : MonoBehaviour
         running = false;
         finished = true;
         finishedAt = elapsed;
+        EndZoom();   // the camera is back to normal before the panel
         if (caption != null) caption.Hide();   // the panel names the killer from here
         if (ship != null) BossUtil.Kill(ship);   // the ship is gone; the panel can come up
         ship = null;
@@ -671,6 +679,7 @@ public partial class DeathCrash : MonoBehaviour
     void Stop()
     {
         animating = false;
+        EndZoom();
         if (caption != null) caption.Hide();
         FrameDt = 0f;
         HideAll();
