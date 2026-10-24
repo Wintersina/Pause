@@ -52,6 +52,13 @@ New hazard shape `HazardShape.Sweep`: a VERTICAL band that crosses the screen si
 | `solar_flare` | one wide front | 6.5 u/s, caps x1.7 | 3.0 u wide | 5.2 u/s (2 s to cross) | 2.4 s | a hard single shove, bullets flung ~6.5 u |
 | `flare_storm` | three fronts 5.4 u apart | 5.4 u/s, caps x1.6 | 2.1 u wide | 4.2 u/s (about 7 s for the train) | 2.6 s | three punches with a quiet gap you can step through |
 
+Sun side and what a flare does (Space only):
+
+* **Born at the sun.** A flare travels away from the sun: sun on the left of the backdrop, left to right; sun on the right, right to left (`HazardDef.fromSun`, `SpaceSunPick.FlareTravel`). The sun is one per-run pick shared by all four Space backdrop variants (`SpaceSunPick.Side`), so there is no per-variant side. The origin edge glow, the band start, the push and the mirrored art all follow `HazardField.side`. Fallback: if the sun art is not installed (no sun to see) the side is random as before.
+* **Wipes bullets.** Every boss and elite shot (`IHostileShot`) the live band touches is destroyed with the shot-vs-shot pop (`HazardDef.wipesShots`, `HostileShots.Wipe`). Landed pools (Fixed mass) stay; the player's shots are untouched.
+* **Stuns for 2 s.** Enemies and elites the band touches are stunned for `WorldHazards.StunSeconds` (2 s). The stun is refreshed every frame a target is inside the band, so it lapses 2 s after the band has left it. Two small dazed sparkles circle above each stunned head (`DazedSparks`, pooled, no outline). Bosses are exempt.
+* **Hazards are flung.** Rocks and mines get the push times `HazardDef.objectPush` (2.4 / 2.2) with the speed cap raised to match; no stun, no damage. The player's push is unchanged and a flare never damages the player.
+
 Space frequency: first flare at 24 s, then every 48 - 78 s (was 34 s / 70 - 110 s).
 
 Telegraph (readable, then the sweep): the origin edge glows magenta-orange and flickers (random each 1/16 s), hot slivers and sparks drift in from it and grow over 2.4 - 2.6 s; nothing moves until the warning ends. Live: layered glow (violet, magenta, orange, gold), a white-hot core line, 12 plasma arcs per band streaming behind it (hot at the front, magenta to violet at the tail), sparks thrown ahead of the shock. The painted sheet (`wx_hazard.png`, vertical-band cells, leading edge at 78% of the cell) overlays it.

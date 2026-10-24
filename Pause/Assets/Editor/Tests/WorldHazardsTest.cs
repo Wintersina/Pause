@@ -29,14 +29,15 @@ public static class WorldHazardsTest
         public bool shovable = true;
         public Vector2 pos;
         public Vector2 shoved;
-        public bool ShotCollidable => true;
+        public bool popped;
+        public bool ShotCollidable => !popped;
         public Vector2 ShotPosition => pos;
         public float ShotRadius => .1f;
         public int ShotOwner => 1;
         public float ShotAge => 5f;
         public int ShotMass => HostileShots.Light;
         public Color ShotTint => Color.white;
-        public void ShotPop(Vector2 at) { }
+        public void ShotPop(Vector2 at) { popped = true; }
         public bool ShotShovable => shovable;
         public void ShotShove(Vector2 by) { pos += by; shoved += by; }
     }
@@ -390,6 +391,8 @@ public static class WorldHazardsTest
     static void FlareStuns()
     {
         Check("both Space flares stun", Def("solar_flare").stuns && Def("flare_storm").stuns);
+        Check("... wipe bullets, are born at the sun and fling objects harder", Def("solar_flare").wipesShots && Def("flare_storm").wipesShots && Def("solar_flare").fromSun && Def("flare_storm").fromSun && Def("solar_flare").objectPush >= 2f && Def("flare_storm").objectPush >= 2f);
+        Check("the flare stun lasts about 2 s", Mathf.Abs(WorldHazards.StunSeconds - 2f) < .01f);
         bool others = false;
         foreach (var e in WorldWeatherTable.Entries) foreach (var h in e.hazards) if (h.stuns && !h.id.Contains("flare")) others = true;
         Check("no other hazard stuns", !others);
@@ -400,17 +403,28 @@ public static class WorldHazardsTest
         EliteSystem.PlayerOverride = player.transform;
         var elite = EliteShip.CreateInPlay(BaseEliteDefs.For("gunship"), new Vector2(0f, 2f));
         made.Add(elite.gameObject);
+        var far = EliteShip.CreateInPlay(BaseEliteDefs.For("gunship"), new Vector2(3.4f, -1f));
+        made.Add(far.gameObject);
         var f = WorldHazards.Fields[0];
         f.def = Def("solar_flare"); f.phase = HazardField.Phase.Live; f.t = f.def.warning + 1f; f.side = 1f;
-        f.viewBottom = -6f; f.viewTop = 6f; f.laneHalf = 4f; f.liveFor = 30f; f.sweepX = -20f;   // the band is still far off: only the stun acts
+        f.viewBottom = -6f; f.viewTop = 6f; f.laneHalf = 4f; f.liveFor = 30f; f.sweepX = 0f;   // the band sits on the first elite
         WorldHazards.Apply(Dt);
-        Check("a live flare stuns an elite on screen", elite.Stunned && WorldHazards.LastStunned >= 1);
+        Check("a live flare stuns an elite its band touches", elite.Stunned && WorldHazards.LastStunned >= 1);
+        Check("... and not one outside the band", !far.Stunned);
+        DazedSparks.Draw(0f);
+        Check("a stunned elite wears dazed sparks", DazedSparks.Shown == 1);
         Vector2 at = elite.transform.position;
         for (int i = 0; i < 20; i++) { WorldHazards.Apply(Dt); elite.Step(Dt); }
         Check("a stunned elite holds still", ((Vector2)elite.transform.position - at).sqrMagnitude < 1e-6f);
+        f.sweepX = 20f;   // the band has passed
+        for (int i = 0; i < 100; i++) { WorldHazards.Apply(Dt); elite.Step(Dt); }
+        Check("it stays stunned after the band has passed (about 1.7 s left)", elite.Stunned);
+        for (int i = 0; i < 40; i++) { WorldHazards.Apply(Dt); elite.Step(Dt); }
+        Check("and wakes 2 s after the band left it", !elite.Stunned);
+        DazedSparks.Draw(0f);
+        Check("the sparks end with the stun", DazedSparks.Shown == 0);
         WorldHazards.ClearAll();
-        for (int i = 0; i < 60; i++) elite.Step(Dt);
-        Check("and wakes shortly after the flare ends", !elite.Stunned);
+        DazedSparks.Reset();
     }
 
     static void BossFight()
