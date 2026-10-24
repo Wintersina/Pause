@@ -38,7 +38,7 @@ public static class TutorialScript
         new TutorialStep("hold",    "*Hold* anywhere to fly around.",                  TutorialAdvance.FlyDistance,      FlyDistanceUnits, TutorialCue.TouchPulse,     3.0f),
         new TutorialStep("dust",    "*Star dust*! Grab it, that's your cash.",         TutorialAdvance.CollectStar,      3f,   TutorialCue.SpawnStars,      4.0f),
         new TutorialStep("heal",    "The *green* atom repairs a heart.",               TutorialAdvance.HealHeart,        1f,   TutorialCue.SpawnGreenAtom,  4.0f),
-        new TutorialStep("freeze",  "A wall! *Let go* to pause time.",       TutorialAdvance.WallFrozen,       FrozenSeconds, TutorialCue.SpawnWall,     4.0f),
+        new TutorialStep("freeze",  "*Lift your finger* off screen to pause time.", TutorialAdvance.WallFrozen,       FrozenSeconds, TutorialCue.SpawnWall,     4.0f),
         new TutorialStep("jump",    "Touch *above* the wall to jump over it.",         TutorialAdvance.CrossWall,        1f,   TutorialCue.PointAtWall,     4.0f),
         new TutorialStep("strike",  "*Let go*, then touch *on* the alien.", TutorialAdvance.TeleportKill,     1f,   TutorialCue.SpawnEnemy,      5.0f),
         new TutorialStep("refill",  "The *red* atom refills your pauses.",             TutorialAdvance.CollectRedAtom,   1f,   TutorialCue.SpawnRedAtom,    4.0f),
