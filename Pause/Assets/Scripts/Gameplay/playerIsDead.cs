@@ -50,6 +50,8 @@ public class playerIsDead : MonoBehaviour
             dustAtStart = score.runStartCurrency,
             dustWon = Mathf.Max(0f, score.totalCurrency - score.runStartCurrency),
             dustBonus = scoreBonus,
+            killedBy = DamageLog.NameOf(DamageLog.RunKiller),
+            hurtBy = DamageLog.RunHurtLine(3),
         };
 
         var canvas = SceneUtil.FindAny("PopUpCanvas");

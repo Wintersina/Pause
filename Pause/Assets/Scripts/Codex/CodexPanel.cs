@@ -1412,6 +1412,14 @@ public class CodexPanel : MonoBehaviour
         PaintNewDots();
     }
 
+    // The lore, then how often this entry has hurt / killed the pilot (DamageLog), when it has.
+    static string LoreWithTally(CodexEntry entry)
+    {
+        string lore = Codex.DisplayLore(entry);
+        string tally = DamageLog.CodexLine(entry.id);
+        return tally == null ? lore : lore + "\n\n" + tally;
+    }
+
     public void ShowDetail(CodexEntry entry)
     {
         if (entry == null) return;
@@ -1427,7 +1435,7 @@ public class CodexPanel : MonoBehaviour
         string sub = found ? entry.Subtitle : null;
         detailSubtitle.text = sub ?? string.Empty;
         detailSubtitle.gameObject.SetActive(sub != null);
-        detailLore.text = found ? Codex.DisplayLore(entry) : LockedHint;
+        detailLore.text = found ? LoreWithTally(entry) : LockedHint;
         detailLore.color = found ? CodexUi.Body : CodexUi.Muted;
         detailLore.alignment = found ? TextAnchor.UpperLeft : TextAnchor.MiddleCenter;
         detailLoreEdge.color = found ? CodexUi.Accent : CodexUi.Locked;

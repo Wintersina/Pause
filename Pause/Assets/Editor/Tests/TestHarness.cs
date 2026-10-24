@@ -450,7 +450,7 @@ public static class TestHarness
             WorldManager.PrefsCurrentWorld, WorldManager.PrefsHighestWorld,
             DeveloperUnlocks.EnabledKey, DeveloperUnlocks.SelectedWorldKey,
             DeveloperUnlocks.ChoiceBuildKey, PlayerStartWorld.Key, SoundSettings.Key, SoundSettings.SfxOnKey, SoundSettings.MusicOnKey, SoundSettings.SfxVolumeKey, SoundSettings.MusicVolumeKey,
-            Codex.PrefsKey, Codex.NewKey, Codex.AckKey, Codex.PaidKey,
+            Codex.PrefsKey, Codex.NewKey, Codex.AckKey, Codex.PaidKey, DamageLog.KilledKey, DamageLog.HurtKey,
         };
         foreach (var flag in FeatureFlags.All) keys.Add(FeatureFlags.KeyOf(flag.name));
         for (int i = 0; i <= shopingShips.RosterTotal; i++) keys.Add("boughtship" + i);

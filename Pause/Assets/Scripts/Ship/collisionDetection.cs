@@ -213,6 +213,7 @@ public class collisionDetection : MonoBehaviour {
         SpeedRamp.ResetBoost();
         SpeedMilestones.Reset();
         AchievementTracker.ResetRun();
+        DamageLog.BeginRun();
         lifeCounter = 0;
     }
 	
@@ -314,6 +315,9 @@ public class collisionDetection : MonoBehaviour {
                 // though the player's own explosion is the visual focus.
                 if (!PrefabName.Is(hit.gameObject, "mine")) EnemyDeathAudio.Play(hit.gameObject);
                 lifeCounter += 1;
+                // what took the heart (or the last one): the run summary's HURT BY / KILLED BY and the
+                // codex tallies. Tutorial and developer runs keep no lifetime counts (DamageLog).
+                DamageLog.Record(HurtBy.Resolve(hit.gameObject), fatal, score.paysRealDust && !DeveloperUnlocks.Enabled);
                 // the tutorial keeps its last heart whatever hits it
                 if (TutorialCannotDie(gameObject)) lifeCounter = Mathf.Min(lifeCounter, MAXLIFE - 1);
                 ScoreMultiplier.OnHeartLost();   // the max-speed streak ends with the heart

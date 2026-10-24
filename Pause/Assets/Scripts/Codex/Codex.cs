@@ -285,6 +285,7 @@ public static class Codex
         unseen = null;
         acked = null;
         paid = null;
+        DamageLog.Reload();
     }
 
     // The saved sets were rewritten by a cloud restore: re-read them and let
