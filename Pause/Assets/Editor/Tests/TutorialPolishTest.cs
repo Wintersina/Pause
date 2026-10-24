@@ -79,7 +79,7 @@ public static class TutorialPolishTest
         if (freeze >= 0)
         {
             string line = TutorialScript.Steps[freeze].line;
-            Check("the wall line says to let go (\"" + line + "\")", line.Contains("Let go") && line.Length <= TutorialScript.MaxLineLength);
+            Check("the wall line says to lift your finger off the screen (\"" + line + "\")", line.Contains("Lift your finger") && line.Contains("off screen") && line.Length <= TutorialScript.MaxLineLength);
         }
     }
 
