@@ -190,7 +190,7 @@ public static class ShipFxArt
 
     static Sprite dome;
     // Paranoid's Time Bubble dome (hex facets, hollowed centre so the hull reads); one world unit across at scale 1.
-    public static Sprite Dome => dome != null ? dome : (dome = Resources.Load<Sprite>("Attacks/Paranoid/paranoid_time_dome"));
+    public static Sprite Dome => dome != null ? dome : (dome = Resources.Load<Sprite>("PowerFx/paranoid_time_dome"));
 
     static Sprite hand;
     // The Time Bubble's clock hand: a hairline 1 unit tall at scale 1, pivot at the middle of the sprite

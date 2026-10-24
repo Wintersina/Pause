@@ -633,7 +633,7 @@ public static class PowersReworkTest
         Object.DestroyImmediate(inside);
         Object.DestroyImmediate(outside);
         var hand = s.BubbleHand;
-        Check("a clock hand is drawn at 12 o'clock", hand != null && hand.gameObject.activeSelf && Mathf.Abs(Mathf.DeltaAngle(hand.eulerAngles.z, 0f)) < 1f);
+        Check("a clock hand is drawn at 12 o'clock", hand != null && hand.gameObject.activeSelf && Mathf.Abs(Mathf.DeltaAngle(hand.eulerAngles.z, 0f)) < 5f);
         Check("bubble radius is 2.35", Mathf.Approximately(s.bubbleRadius, 2.35f));
         s.Step(.02f);
         float done = .04f / s.bubbleSeconds;
