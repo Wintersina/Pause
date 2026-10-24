@@ -229,7 +229,15 @@ public class score : MonoBehaviour {
     // touches the saved total.
     public static bool PaysRealDust(string sceneName, bool hasDoneTut, bool inTutorial)
     {
-        return hasDoneTut && !inTutorial && sceneName != TutorialScene;
+        return hasDoneTut && !IsTutorialRun(sceneName, inTutorial);
+    }
+
+    // The tutorial itself (its scene, or the flagged replay of it) -- unlike
+    // PaysRealDust this does not care whether the tutorial was ever finished,
+    // so a pilot who skipped it (or whose flag went missing) still ranks.
+    public static bool IsTutorialRun(string sceneName, bool inTutorial)
+    {
+        return inTutorial || sceneName == TutorialScene;
     }
 
     public static bool ShouldSpendPause(bool runHasStarted, bool alreadySpentThisPress)
