@@ -470,7 +470,7 @@ public static class BossEncounterTest
     }
 
     // Whichever comes first: hit points (DESTROYED, 300) or the fight clock
-    // (SURVIVED, 150). Scoring unchanged, loop scaling as before.
+    // (ESCAPED, -150 floored at 0). Scoring unchanged, loop scaling as before.
     // The boss's only damage limiter is BossConfig.HitInvulnerableSeconds after a lost hit point:
     // no per-firing / per-barrage / per-ram cap (BossTarget is uncapped), blocked hits spark, and
     // fractional weapons keep their value (banked inside the window).
@@ -593,10 +593,10 @@ public static class BossEncounterTest
         for (int i = 0; i < 2000 && e.State == BossEncounter.Phase.Fight; i++) { e.Step(.1f, 1f); fought += .1f; }
         Check("timer first: the fight lasts the full clock (" + fought.ToString("F1") + "s of " + BossConfig.FightSeconds + ")",
               Mathf.Abs(fought - BossConfig.FightSeconds) < .25f);
-        Check("timer first: SURVIVED -- hit points left, it retreats and pays " + ScoreRules.BossSurvived +
+        Check("timer first: ESCAPED -- hit points left, it retreats and costs " + Mathf.Min(ScoreRules.BossEscapePenalty, (int)score) +
               " (" + (RunScore.Total - score) + ")",
               e.State == BossEncounter.Phase.Outro && !e.Destroyed && e.HitPointsLeft == BossConfig.HitPoints - 2 &&
-              e.Actor.State == BossActor.Mode.Retreating && RunScore.Total - score == ScoreRules.BossSurvived);
+              e.Actor.State == BossActor.Mode.Retreating && RunScore.Total - score == -Mathf.Min(ScoreRules.BossEscapePenalty, (int)score));
 
         // Simultaneous: the last point goes in on the frame the clock runs out.
         FreshScene();
@@ -626,10 +626,11 @@ public static class BossEncounterTest
         Check("hits during the outro are ignored", e.HitPointsLeft == 1 && !e.Destroyed);
 
         // Loop scaling unchanged: loop 2 pays x1.5 either way.
-        Check("loop scaling as before: 450 / 225 on loop 2",
-              ScoreRules.BossPoints(true, 0f, false, 1) == 450 && ScoreRules.BossPoints(false, 0f, false, 1) == 225);
-        Check("BossEncounter scores the flat pair (no time bonus)",
-              File.ReadAllText("Assets/Scripts/Bosses/BossEncounter.cs").Contains("RunScore.OnBoss(explode, remaining, false,"));
+        Check("loop scaling as before: 450 on loop 2, an escape pays nothing",
+              ScoreRules.BossPoints(true, 0f, false, 1) == 450 && ScoreRules.BossPoints(false, 0f, false, 1) == 0);
+        Check("BossEncounter pays a kill flat (no time bonus) and charges an escape",
+              File.ReadAllText("Assets/Scripts/Bosses/BossEncounter.cs").Contains("RunScore.OnBoss(true, remaining, false, at)") &&
+              File.ReadAllText("Assets/Scripts/Bosses/BossEncounter.cs").Contains("RunScore.OnBossEscaped(at)"));
         RunScore.EndRun(RunScore.RunId);
     }
 

@@ -212,8 +212,9 @@ public static class ScoringTest
         RunScore.OnBoss(true, 0f, false, Vector3.zero);
         Check("a destroyed boss pays 300", RunScore.Total - t == 300);
         t = RunScore.Total;
-        RunScore.OnBoss(false, 0f, false, Vector3.zero);
-        Check("a survived (retreating) boss pays 150", RunScore.Total - t == 150);
+        RunScore.OnBossEscaped(Vector3.zero);
+        Check("an escaped boss costs 150", RunScore.Total - t == -ScoreRules.BossEscapePenalty && ScoreRules.BossEscapePenalty == 150);
+        Check("... and never takes the score below 0", RunScore.OnBossEscaped(Vector3.zero) + RunScore.OnBossEscaped(Vector3.zero) + RunScore.OnBossEscaped(Vector3.zero) >= 0 && RunScore.Total >= 0);
         t = RunScore.Total;
         RunScore.OnBoss(true, 10f, true, Vector3.zero);
         Check("HitPoints rule: 10s left adds 50", RunScore.Total - t == 350);
@@ -245,7 +246,7 @@ public static class ScoringTest
         Check("source hooks: teleport, world, boss",
               System.IO.File.ReadAllText("Assets/Scripts/Ship/movePlayer.cs").Contains("RunScore.OnTeleport(before, rest)") &&
               System.IO.File.ReadAllText("Assets/Scripts/Worlds/WorldManager.cs").Contains("RunScore.OnWorldCleared(CurrentIndex)") &&
-              System.IO.File.ReadAllText("Assets/Scripts/Bosses/BossEncounter.cs").Contains("RunScore.OnBoss(explode"));
+              System.IO.File.ReadAllText("Assets/Scripts/Bosses/BossEncounter.cs").Contains("RunScore.OnBossEscaped(at)"));
     }
 
     // ---- 2. kill chain ------------------------------------------------------------
@@ -482,12 +483,12 @@ public static class ScoringTest
         Call(s, "Awake");
         Call(s, "Start");
         int banks = RunScore.BankCount;
-        RunScore.OnBoss(false, 0f, false, Vector3.zero);
+        RunScore.OnBoss(true, 0f, false, Vector3.zero);
         buttonClicks.playerDied = true;
         Call(s, "Update");
-        Check("death banks the run", RunScore.BankCount == banks + 1 && PlayerPrefs.GetInt(RunScore.BestScoreKey) == 150);
+        Check("death banks the run", RunScore.BankCount == banks + 1 && PlayerPrefs.GetInt(RunScore.BestScoreKey) == 300);
         RunScore.OnDust(true);
-        Check("nothing scores after death", RunScore.Total == 150);
+        Check("nothing scores after death", RunScore.Total == 300);
         Call(s, "Update");
         Call(s, "OnDestroy");
         Check("death + teardown bank it once", RunScore.BankCount == banks + 1);

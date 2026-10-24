@@ -26,7 +26,7 @@ public static class RunScore
 {
     public const string BestScoreKey = "BestScore";
 
-    public enum Source { Distance, Kill, Dust, Atom, Teleport, Boss, World, Elite, Shield, Escape }
+    public enum Source { Distance, Kill, Dust, Atom, Teleport, Boss, World, Elite, Shield, Escape, BossEscape }
 
     // Totals stay small on purpose: see ScoreRules (speed multiplier on
     // flight + kills, loop scaling on boss + world bonuses).
@@ -284,6 +284,20 @@ public static class RunScore
         int lost = (int)Math.Max(0L, Math.Min((long)Math.Max(0, points), have));
         parts.kills -= lost;
         Raise(-lost, at, Source.Escape);
+        return lost;
+    }
+
+    // A boss got away (its clock ran out, BossEncounter.BeginOutro): the pilot LOSES
+    // ScoreRules.BossEscapePenalty, taken off the BOSSES row, never past what the run
+    // has (the score cannot go below 0). Raises a negative "-N BOSS ESCAPE" popup
+    // (0: just "BOSS ESCAPE") at `at`. Returns the points actually lost.
+    public static int OnBossEscaped(Vector3 at)
+    {
+        if (!Live) return 0;
+        long have = Total;
+        int lost = (int)Math.Max(0L, Math.Min((long)Math.Max(0, ScoreRules.BossEscapePenalty), have));
+        parts.bosses -= lost;
+        Raise(-lost, at, Source.BossEscape);
         return lost;
     }
 
