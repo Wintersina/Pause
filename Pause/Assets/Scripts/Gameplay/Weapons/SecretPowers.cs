@@ -40,7 +40,7 @@ public class SecretPowerController : MonoBehaviour
     public float clapRadius = 2.6f;
     public float decoySeconds = 4f;
     public float decoyBlastRadius = 1.5f;
-    public float bubbleRadius = 1.8f;      // the Time Bubble dome's radius (drawn)
+    public float bubbleRadius = 2.35f;      // the Time Bubble dome's radius (drawn)
     public float bubbleSeconds = 2.5f;
     public float bubbleEliteKick = 14f;    // u/s^2 outward on an elite inside the dome (before EliteResist)
     public float dashDistance = 1.25f;
@@ -74,6 +74,8 @@ public class SecretPowerController : MonoBehaviour
     public SecretMeter Badge => badge;
 
     // Ongoing effects, all counted down on gameplay time.
+    float bubbleTotal;
+    SpriteRenderer bubbleHand;
     float stunLeft, magnetLeft, tractorLeft, decoyLeft, bubbleLeft, dashLeft, holeLeft, shellLeft, novaLeft, ghostLeft;
     Vector3 holeAt, novaAt;
     SpriteRenderer ghostHull;
@@ -158,6 +160,11 @@ public class SecretPowerController : MonoBehaviour
     {
         if (Instance == this) Instance = null;
         EndAll();
+        if (bubbleHand != null)
+        {
+            if (Application.isPlaying) Destroy(bubbleHand.gameObject); else DestroyImmediate(bubbleHand.gameObject);
+            bubbleHand = null;
+        }
     }
 
     // ---------------------------------------------------------------- meter
@@ -365,9 +372,12 @@ public class SecretPowerController : MonoBehaviour
             case SecretPower.TimeBubble:
                 bubbleLeft = bubbleSeconds;
                 ShieldShockwave.Prewarm();   // steps the shoves the dome gives
-                bubbleFx = Rim(at, bubbleRadius * 2f, true, bubbleSeconds, transform, 41);
+                bubbleTotal = bubbleSeconds;
+                bubbleFx = AttackPool.Sprite().Play(AttackSprite.Source.Dome, ship, at, Vector3.one * (bubbleRadius * 2f), 0f,
+                    ShipFxArt.PowerLoopTicks, true, bubbleSeconds, transform, Vector3.zero, 41);
                 bubbleFx.Rename(BubbleDomeName);
                 bubbleFx.SetColor(BubbleTint);
+                SpawnBubbleHand(at);
                 break;
 
             case SecretPower.BlinkDash:
@@ -775,7 +785,9 @@ public class SecretPowerController : MonoBehaviour
         }
 
         if (bubbleLeft > 0f && BubbleActive) StepBubble(dt);
-        if (bubbleLeft > 0f && (bubbleLeft -= dt) <= 0f)
+        if (bubbleLeft > 0f && (bubbleLeft -= dt) > 0f) PlaceBubbleHand();
+        else if (bubbleLeft <= 0f) KillBubbleHand();
+        if (bubbleLeft <= 0f && bubbleFx != null)
         {
             bubbleLeft = 0f;
             if (bubbleFx != null && bubbleFx.Active && bubbleFx.name == BubbleDomeName) bubbleFx.Stop();
@@ -867,9 +879,46 @@ public class SecretPowerController : MonoBehaviour
         }
     }
 
+    public const string BubbleHandName = "~BubbleHand";
+    public Transform BubbleHand => bubbleHand != null ? bubbleHand.transform : null;
+    public static readonly Color BubbleHandTint = new Color(.85f, 1f, 1f, .9f);
+
+    // The clock hand: a hairline from the dome centre that starts at 12 o'clock and turns clockwise through
+    // one full rotation as bubbleLeft runs from bubbleTotal to 0 (so it always shows the time actually left).
+    void SpawnBubbleHand(Vector3 at)
+    {
+        if (bubbleHand == null)
+        {
+            var go = new GameObject(BubbleHandName);
+            bubbleHand = go.AddComponent<SpriteRenderer>();
+            bubbleHand.sprite = ShipFxArt.ClockHand;
+        }
+        bubbleHand.color = BubbleHandTint;
+        bubbleHand.sortingOrder = 42;
+        bubbleHand.gameObject.SetActive(true);
+        PlaceBubbleHand();
+    }
+
+    void PlaceBubbleHand()
+    {
+        if (bubbleHand == null) return;
+        float k = bubbleTotal > 0f ? Mathf.Clamp01(1f - bubbleLeft / bubbleTotal) : 1f;
+        var t = bubbleHand.transform;
+        t.position = transform.position;
+        t.rotation = Quaternion.Euler(0f, 0f, -360f * k);
+        t.localScale = Vector3.one * (bubbleRadius * 2f);
+    }
+
+    void KillBubbleHand()
+    {
+        if (bubbleHand == null || !bubbleHand.gameObject.activeSelf) return;
+        bubbleHand.gameObject.SetActive(false);   // kept for the next bubble; OnDestroy frees it
+    }
+
     void EndAll()
     {
         ReleaseLocked();
+        KillBubbleHand();
         stunLeft = magnetLeft = tractorLeft = decoyLeft = bubbleLeft = dashLeft = holeLeft = shellLeft = novaLeft = 0f;
         if (ghostLeft > 0f) { ghostLeft = 0f; SetHullAlpha(1f); }
         ShipHitbox.SetShield(gameObject, ShipHitbox.Source.Shell, false);

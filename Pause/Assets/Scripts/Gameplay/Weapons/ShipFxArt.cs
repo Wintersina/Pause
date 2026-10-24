@@ -188,6 +188,42 @@ public static class ShipFxArt
         }
     }
 
+    static Sprite dome;
+    // Paranoid's Time Bubble dome (hex facets, hollowed centre so the hull reads); one world unit across at scale 1.
+    public static Sprite Dome => dome != null ? dome : (dome = Resources.Load<Sprite>("Attacks/Paranoid/paranoid_time_dome"));
+
+    static Sprite hand;
+    // The Time Bubble's clock hand: a hairline 1 unit tall at scale 1, pivot at the middle of the sprite
+    // (the dome centre), the visible stroke only in the upper half between ~.30 and ~.84 of the radius.
+    public static Sprite ClockHand
+    {
+        get
+        {
+            if (hand != null) return hand;
+            const int W = 16, H = 256;
+            var tex = new Texture2D(W, H, TextureFormat.RGBA32, false);
+            tex.filterMode = FilterMode.Bilinear;
+            tex.wrapMode = TextureWrapMode.Clamp;
+            var px = new Color32[W * H];
+            float cx = (W - 1) * .5f;
+            for (int y = 0; y < H; y++)
+                for (int x = 0; x < W; x++)
+                {
+                    float up = (y - (H - 1) * .5f) / (H * .5f);        // 0 at the pivot, 1 at the top
+                    float dx = Mathf.Abs(x - cx);
+                    float along = up < .30f ? Mathf.Clamp01((up - .26f) / .04f)
+                                : up > .84f ? Mathf.Clamp01((.88f - up) / .04f) : 1f;
+                    float across = Mathf.Clamp01(1.7f - dx);            // ~2.4 px wide, soft edge
+                    byte a = (byte)(255f * along * across);
+                    px[y * W + x] = new Color32(235, 255, 255, a);
+                }
+            tex.SetPixels32(px);
+            tex.Apply();
+            hand = Sprite.Create(tex, new Rect(0, 0, W, H), new Vector2(.5f, .5f), H);
+            return hand;
+        }
+    }
+
     static int Wrap(int i, int n) => ((i % n) + n) % n;
 
     // Fill fraction -> drawing, monotonic; the full drawing only when full.

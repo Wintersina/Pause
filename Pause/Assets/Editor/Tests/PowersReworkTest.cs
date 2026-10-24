@@ -632,10 +632,20 @@ public static class PowersReworkTest
         Check("the dome never changes the time scale", Mathf.Approximately(Time.timeScale, 1f));
         Object.DestroyImmediate(inside);
         Object.DestroyImmediate(outside);
-        s.Step(2.4f);
+        var hand = s.BubbleHand;
+        Check("a clock hand is drawn at 12 o'clock", hand != null && hand.gameObject.activeSelf && Mathf.Abs(Mathf.DeltaAngle(hand.eulerAngles.z, 0f)) < 1f);
+        Check("bubble radius is 2.35", Mathf.Approximately(s.bubbleRadius, 2.35f));
+        s.Step(.02f);
+        float done = .04f / s.bubbleSeconds;
+        Check("hand turns clockwise with elapsed/duration", Mathf.Abs(Mathf.DeltaAngle(hand.eulerAngles.z, -360f * done)) < 1f);
+        s.Step(1.21f);
+        Check("hand points down at the half-way mark", Mathf.Abs(Mathf.DeltaAngle(hand.eulerAngles.z, 180f)) < 3f);
+        s.Step(1.1f);
         Check("domed until 2.5 s", dome.Active);
+        Check("hand is nearly round at the end", Mathf.Abs(Mathf.DeltaAngle(hand.eulerAngles.z, 0f)) < 25f && hand.gameObject.activeSelf);
         s.Step(.2f);
         Check("no dome after", !dome.Active);
+        Check("the hand goes with the dome", s.BubbleHand == null || !s.BubbleHand.gameObject.activeSelf);
         Teardown(paranoid);
     }
 
