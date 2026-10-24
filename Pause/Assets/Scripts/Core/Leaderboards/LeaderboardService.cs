@@ -18,9 +18,9 @@ using UnityEngine.SceneManagement;
 //     sign-in succeeds. Signed out or offline, they simply wait; a failed send
 //     stays queued for the next sign-in or the next offer.
 //   - Nothing is offered while developer mode is on (unlocked ships and a
-//     picked start world aren't a fair score) or in the tutorial / any
-//     practice run that doesn't pay real star dust (50 pauses). Keeps the
-//     public boards clean.
+//     picked start world aren't a fair score) or in the tutorial
+//     (the tutorial scene or its replay; skipping it still ranks).
+//     Keeps the public boards clean.
 //   - Nothing here ever blocks: every store call is async and fire-and-forget.
 //
 // The queue and the submitted marks are deliberately NOT part of the cloud
@@ -92,16 +92,17 @@ public sealed class LeaderboardService
 
     // ---- rules ----
 
-    // Developer mode, or a practice run (tutorial scene, tutorial replay, or
-    // any run before the tutorial was completed).
+    // Developer mode, the premium ship, or a practice run (tutorial scene or
+    // tutorial replay). A skipped tutorial ranks like a completed one.
     public static bool SubmissionBlocked(out string reason)
     {
         if (DeveloperUnlocks.Enabled) { reason = "developer mode"; return true; }
         // The premium (cheat) ship never ranks: the flown ship is checked here
         // too, besides the run's own start ship (SubmitRun).
         if (PremiumShips.IsPremium(ShipId.Equipped())) { reason = "premium ship"; return true; }
-        bool practice = !score.PaysRealDust(SceneManager.GetActiveScene().name,
-            PlayerPrefs.GetString("HasDoneTut") == "true", startMenu.youAreInTutorial);
+        // Only the tutorial itself is unranked, not "tutorial never completed":
+        // skipping it (or a lost HasDoneTut flag) must not close the boards.
+        bool practice = score.IsTutorialRun(SceneManager.GetActiveScene().name, startMenu.youAreInTutorial);
         if (practice) { reason = "tutorial"; return true; }
         reason = null;
         return false;

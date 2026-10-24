@@ -310,9 +310,28 @@ public static class LeaderboardTest
         Check("tutorial: run not submitted", service.SubmitRun(run) == 0);
         startMenu.youAreInTutorial = false;
 
+        Check("the tutorial scene and its replay are tutorial runs",
+              score.IsTutorialRun(score.TutorialScene, false) && score.IsTutorialRun("gameS1", true));
+        Check("a game run is not a tutorial run", !score.IsTutorialRun("gameS1", false));
+
+        // A skipped tutorial (it sets HasDoneTut) and one never flagged at all
+        // (a lost flag, a cloud-restored or mid-way install) both still rank.
         PlayerPrefs.DeleteKey("HasDoneTut");
-        Check("before the tutorial is done: run not submitted", service.SubmitRun(run) == 0);
+        TutorialSkip.FinishBySkipping();
+        Check("skipped tutorial: not blocked", !LeaderboardService.SubmissionBlocked());
+        Check("skipped tutorial: run submitted", service.SubmitRun(run) == LeaderboardBoards.Enabled().Count);
+        PlayerPrefs.DeleteKey(LeaderboardService.PendingKey);
+        PlayerPrefs.DeleteKey("HasDoneTut");
+        Check("tutorial flag missing in a real run: not blocked", !LeaderboardService.SubmissionBlocked());
+        PlayerPrefs.SetString("HasDoneTut", "false");
+        Check("tutorial flag false in a real run: run submitted", service.SubmitRun(new LeaderboardRunStats { score = 1000 }) > 0);
         PlayerPrefs.SetString("HasDoneTut", "true");
+        Check("completed tutorial: not blocked", !LeaderboardService.SubmissionBlocked());
+
+        // Back to a clean queue for the checks below.
+        PlayerPrefs.DeleteKey(LeaderboardService.PendingKey);
+        PlayerPrefs.DeleteKey(LeaderboardService.SubmittedKey);
+        service = Service(fake);
 
         now = 60f;
         service.Tick();
