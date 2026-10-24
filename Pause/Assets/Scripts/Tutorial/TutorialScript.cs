@@ -55,6 +55,10 @@ public static class TutorialScript
     // The retry line when the wall was broken up instead of jumped.
     public const string WallRetryLine = "Not through it! *Let go*, touch *above* the wall.";
 
+    // Said when the player has burned every pause before finishing the wall
+    // or alien lesson: a red atom drops in and this asks them to grab it.
+    public const string PauseRescueLine = "Out of pauses! *Grab* the red atom to go on.";
+
     public const int MaxSteps = 10;
     // One sentence per line: short enough for the bubble.
     public const int MaxLineLength = 70;

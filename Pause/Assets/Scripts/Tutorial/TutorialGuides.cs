@@ -37,6 +37,8 @@ public class TutorialGuides : MonoBehaviour
     int starArrowsShown;
 
     bool touchWanted;
+    bool touchAtWorld;
+    Vector3 touchWorld;
     float touchAlpha, arrowAlpha;
 
     Text uiTarget;
@@ -81,7 +83,16 @@ public class TutorialGuides : MonoBehaviour
 
     // ---- What to point at ----
 
-    public void ShowTouch(bool on) { touchWanted = on; }
+    public void ShowTouch(bool on) { touchWanted = on; if (!on) touchAtWorld = false; }
+
+    // The touch ring sits on a world point (the far side of the wall) instead
+    // of the lower middle of the screen, so it keeps its place on any aspect.
+    public void ShowTouchAt(Vector3 world)
+    {
+        touchWanted = true;
+        touchAtWorld = true;
+        touchWorld = world;
+    }
 
     public void PointAt(Text hudReadout)
     {
@@ -127,6 +138,7 @@ public class TutorialGuides : MonoBehaviour
         float now = Time.unscaledTime;
         bool frozen = !TouchInput.IsPressed && score.pauseCounter > 0;
         touchAlpha = touchWanted && frozen ? 1f : 0f;
+        PlaceTouch();
 
         Vector2 tip, dir;
         bool hasArrow = ArrowTarget(out tip, out dir);
@@ -144,6 +156,24 @@ public class TutorialGuides : MonoBehaviour
         }
         Apply(now, touchAlpha);
         UpdateStarArrows(now);
+    }
+
+    // Home is the lower middle; a world point moves the ring onto it.
+    void PlaceTouch()
+    {
+        var cam = Camera.main;
+        Vector2 local;
+        if (touchAtWorld && cam != null
+            && RectTransformUtility.ScreenPointToLocalPointInRectangle(root, cam.WorldToScreenPoint(touchWorld), UiCamera, out local))
+        {
+            touch.anchorMin = touch.anchorMax = new Vector2(.5f, .5f);
+            touch.anchoredPosition = local;
+        }
+        else
+        {
+            touch.anchorMin = touch.anchorMax = new Vector2(.5f, .27f);
+            touch.anchoredPosition = Vector2.zero;
+        }
     }
 
     void UpdateStarArrows(float now)

@@ -945,6 +945,7 @@ public static class TutorialRebuildTest
         foreach (var s in TutorialScript.Steps)
             Check("step \"" + s.id + "\" has a line, a sprite-free-safe id and a competent time", !string.IsNullOrEmpty(s.line) && s.line.Trim().Length > 3 && s.par > 0f);
         Check("closing and retry lines exist", !string.IsNullOrEmpty(TutorialScript.ClosingLine) && !string.IsNullOrEmpty(TutorialScript.WallRetryLine));
+        Check("the out-of-pauses line fits the bubble", !string.IsNullOrEmpty(TutorialScript.PauseRescueLine) && TutorialScript.PauseRescueLine.Length <= TutorialScript.MaxLineLength);
         var spawner = Object.FindFirstObjectByType<spawnGoodStuffTut>();
         Check("the pickup prefabs are all there", spawner.smStar != null && spawner.midStar != null && spawner.Atom != null && spawner.redAtom != null && Resources.Load<GameObject>("prefabs/cooldownAtom") != null);
         var sr = ship.GetComponent<SpriteRenderer>();
