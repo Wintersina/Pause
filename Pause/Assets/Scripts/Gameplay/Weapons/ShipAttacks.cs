@@ -661,7 +661,7 @@ public static class AttackPool
 // riding along with a transform. Gameplay time: frozen while paused.
 public class AttackSprite : MonoBehaviour
 {
-    public enum Source { AttackLoop, AttackBurst, PowerLoop, PowerBurst, Shot, Rim, Extra }
+    public enum Source { AttackLoop, AttackBurst, PowerLoop, PowerBurst, Shot, Rim, Extra, Dome }
 
     SpriteRenderer sr;
     Source source;
@@ -783,6 +783,7 @@ public class AttackSprite : MonoBehaviour
             case Source.PowerLoop:   return ShipFxArt.PowerLoopAlpha;
             case Source.PowerBurst:  return ShipFxArt.PowerBurstAlpha;
             case Source.Rim:         return ShipFxArt.RimAlpha;
+            case Source.Dome:        return ShipFxArt.RimAlpha;
             default:                 return 1f;
         }
     }
@@ -835,7 +836,7 @@ public class AttackSprite : MonoBehaviour
             var rc = tint; rc.a *= (1f - k);
             sr.color = Shown(rc);
         }
-        else if (source == Source.Rim && loop)
+        else if ((source == Source.Rim || source == Source.Dome) && loop)
         {
             // a held rim breathes, so it reads as alive without filling in
             var pc = tint; pc.a *= .78f + .22f * Mathf.Sin(clock * 6f);
@@ -851,7 +852,7 @@ public class AttackSprite : MonoBehaviour
             float left = 1f - clock / life;
             var c = tint;
             c.a *= left > .2f ? 1f : left > .1f ? .6f : .3f;
-            if (source == Source.Rim && loop) c.a *= .78f + .22f * Mathf.Sin(clock * 6f);
+            if ((source == Source.Rim || source == Source.Dome) && loop) c.a *= .78f + .22f * Mathf.Sin(clock * 6f);
             sr.color = Shown(c);
         }
     }
@@ -872,6 +873,7 @@ public class AttackSprite : MonoBehaviour
             case Source.PowerBurst:  sr.sprite = ShipFxArt.PowerBurst(ship, Frame); break;
             case Source.Shot:        sr.sprite = WeaponArt.Shot(ship, Frame); break;
             case Source.Rim:         sr.sprite = ShipFxArt.Rim; break;
+            case Source.Dome:        sr.sprite = ShipFxArt.Dome != null ? ShipFxArt.Dome : ShipFxArt.Rim; break;
         }
     }
 
