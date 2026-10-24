@@ -30,7 +30,7 @@ public enum ShipAttack
     ProximityMines, // mines launched ahead hold their screen position and blow when something comes close
     AbductHurl,     // a beam lifts the nearest enemy, then hurls it at the densest group
     RailSlug,       // a piercing slug that hits everything in a narrow line
-    GaleWings,      // a feathered gust shoves everything up and outward; collisions hurt
+    GaleWings,      // a feathered gust shoves everything up and outward and turns hostile shots back; collisions hurt
     OrbitDisc,      // a disc that orbits the ship and smashes what it touches
     Nuke,           // premium: a warhead climbs from the nose, blinks, detonates; a thin shockwave kills everything it reaches
     IonLaser,       // top tier (cinematic): a thin laser leaves the nose and sweeps the screen, damaging everything it crosses
@@ -202,7 +202,7 @@ public static class ShipLoadoutTable
             PowerTrigger.HazardsNearShip, 2, 3.5f,
             maxHits: 1, range: 9f, speed: 15f),
         // 14 Dove (2400)
-        Row(14, ShipAttack.GaleWings, "GALE WINGS", "A gust shoves enemies up and outward; collisions hurt.",
+        Row(14, ShipAttack.GaleWings, "GALE WINGS", "A gust shoves enemies up and turns enemy and boss shots back at them.",
             SecretPower.Mending, "MENDING", "Repairs one heart in a burst of feathers as soon as the hull is damaged.",
             PowerTrigger.HullDamaged, 1, 0f,
             width: 60f, range: 6f),
