@@ -307,7 +307,7 @@ public static class LoopTest
               WorldManager.CurrentIndex == WorldManager.LoopWorld && WorldManager.LoopWorld == 0);
         Check("loopIndex 0 -> 1", RunLoop.Index == 1 && RunScore.Parts.loops == 1);
         Check("the score carries over: the boss and Desert's world bonus on top (" + before + " -> " + RunScore.Total + ")",
-              RunScore.Total >= before + ScoreRules.WorldClearedPoints(Last, 0));
+              RunScore.Total >= System.Math.Max(0L, before - ScoreRules.BossEscapePenalty) + ScoreRules.WorldClearedPoints(Last, 0));
         Check("the pressure is over: neutral dials again", !PortalPressure.Active && PortalPressure.DensityScale == 1f &&
               !PortalPressure.EarningsClosed && wm.Stage == WorldManager.LevelStage.Level);
         Check("arrival speed is the ship's fresh-run start (HUD " + Mathf.RoundToInt(moveBackGround.speed * 100f) + "), under the cap",
@@ -507,8 +507,8 @@ public static class LoopTest
         Check("flight / kill points per loop: x1.15, x1.3 ... capped at x1.6",
               Mathf.Approximately(LoopRules.ScoreScale(1), 1.15f) && Mathf.Approximately(LoopRules.ScoreScale(2), 1.3f) &&
               Mathf.Approximately(LoopRules.ScoreScale(99), 1.6f));
-        Check("boss 300/150 -> 450/225 on loop 2, world bonus 50 x n x 1.5",
-              ScoreRules.BossPoints(true, 0f, false, 1) == 450 && ScoreRules.BossPoints(false, 0f, false, 1) == 225 &&
+        Check("boss 300 -> 450 on loop 2 (an escape pays 0), world bonus 50 x n x 1.5",
+              ScoreRules.BossPoints(true, 0f, false, 1) == 450 && ScoreRules.BossPoints(false, 0f, false, 1) == 0 &&
               ScoreRules.WorldClearedPoints(3, 1) == 300 && ScoreRules.BossPoints(true, 0f, false, 0) == 300);
         Check("small numbers even at the bonus cap (boss <= 900, world <= 600)",
               ScoreRules.BossPoints(true, 0f, false, 99) <= 900 && ScoreRules.WorldClearedPoints(3, 99) <= 600);
