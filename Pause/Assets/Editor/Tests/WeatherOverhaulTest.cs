@@ -164,7 +164,7 @@ public static class WeatherOverhaulTest
             m.Visuals.Draw(WorldHazards.Fields, true);
             Check(id + ": and the warning is drawn (" + m.Visuals.Drawn + " sprites)", m.Visuals.Drawn >= 8 && m.Visuals.Drawn <= HazardVisuals.Pool);
             var rock = Body(new Vector2(-1.8f, -1f)); rock.tag = "Astr";
-            float rock0 = rock.transform.position.x, rockMax = 0f, rockAt = -1, bodyAt = -1; bool stunnedSeen = false;
+            float rock0 = rock.transform.position.x, rockMax = 0f, rockAt = -1, bodyAt = -1, rockGo = -1, bodyGo = -1; bool stunnedSeen = false;
             HostileShots.ResetCounters();
             float peakOffset = 0f; int frames = 0; float maxBody = 0f, maxShot = 0f;
             while (f.Active && frames < 60 * 30)
@@ -174,6 +174,8 @@ public static class WeatherOverhaulTest
                 maxBody = Mathf.Max(maxBody, body.transform.position.x - body0.x);
                 if (!shot.popped) maxShot = Mathf.Max(maxShot, shot.pos.x - shot0.x);
                 rockMax = Mathf.Max(rockMax, rock.transform.position.x - rock0);
+                if (rockGo < 0 && rock.transform.position.x - rock0 > .02f) rockGo = frames;
+                if (bodyGo < 0 && body.transform.position.x - body0.x > .02f) bodyGo = frames;
                 if (rockAt < 0 && rock.transform.position.x - rock0 >= 2f) rockAt = frames;
                 if (bodyAt < 0 && body.transform.position.x - body0.x >= 2f) bodyAt = frames;
                 stunnedSeen |= WorldHazards.LastStunned > 0;
@@ -183,8 +185,9 @@ public static class WeatherOverhaulTest
             Check(id + ": an enemy body is thrown " + maxBody.ToString("F1") + " u along the sweep", maxBody > 1.0f);
             Check(id + ": a hostile bullet the band touches is wiped (" + maxShot.ToString("F1") + " u pushed first)", shot.popped && HostileShots.Wiped >= 1);
             Check(id + ": an enemy body the band touches is stunned", stunnedSeen);
-            // compared by how soon each has been thrown 2 u: both end pinned at the lane wall (equal travel) and the wall truncates the rock's last steps
-            Check(id + ": a rock is flung visibly harder than the enemy ship (2 u after frame " + rockAt + " vs " + bodyAt + ")", rockAt > 0 && (bodyAt < 0 || rockAt * 1.25f <= bodyAt));
+            // compared by how long each takes to cover its first 2 u once the band has got hold of it (the band's arrival is the same for both; both end pinned at the lane wall, so total travel cannot tell them apart)
+            float rockDur = rockAt - rockGo, bodyDur = bodyAt - bodyGo;
+            Check(id + ": a rock is flung visibly harder than the enemy ship (first 2 u in " + rockDur + " vs " + bodyDur + " frames)", rockAt > 0 && bodyAt > 0 && rockDur * 1.5f <= bodyDur);
             Check(id + ": the body is alive, tagged and inside the lane", body != null && body.activeSelf && body.CompareTag("Enimey") && Mathf.Abs(body.transform.position.x) <= SpawnLane.LaneHalf);
             Check(id + ": the ship is moved only a little (" + peakOffset.ToString("F2") + " u <= cap " + WorldWeatherTable.PlayerCap + ")", peakOffset > .1f && peakOffset <= WorldWeatherTable.PlayerCap + 1e-3f);
             for (int i = 0; i < 180; i++) WorldHazards.Apply(Dt);
