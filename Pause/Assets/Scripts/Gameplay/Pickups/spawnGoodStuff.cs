@@ -8,6 +8,7 @@ public class spawnGoodStuff : MonoBehaviour {
     public GameObject Atom;
     public GameObject redAtom;
     public GameObject cooldownAtom;
+    public GameObject magnetAtom;
     public static bool AtomOnScreen;
 
     private float atomDelayTimer;
@@ -16,6 +17,8 @@ public class spawnGoodStuff : MonoBehaviour {
     private float midStarTimer;
     private float atomTimer;
     private float cooldownAtomDelayTimer;
+    private float magnetAtomDelayTimer;
+    private int magnetSpawned;
 
     [Header("Blue atoms")]
     [Tooltip("How many blue atoms a planet may hand out, chosen at random " +
@@ -51,6 +54,7 @@ public class spawnGoodStuff : MonoBehaviour {
         atomTimer = Random.Range(20f, 45f);
         redAtomDelayTimer = 10f;
         if (cooldownAtom == null) cooldownAtom = Resources.Load<GameObject>("prefabs/cooldownAtom");
+        if (magnetAtom == null) magnetAtom = Resources.Load<GameObject>("prefabs/" + MagnetPull.ObjectName);
         resetBlueBudget();
         AtomSpacing.Reset();
 	
@@ -88,6 +92,9 @@ public class spawnGoodStuff : MonoBehaviour {
         cooldownBudget = Mathf.Max(0, PickupRules.CooldownAtomsPerWorld);
         cooldownSpawned = 0;
         cooldownAtomDelayTimer = PickupRules.CooldownAtomFirstDelay();
+        // magnetic atoms: budget and delays in PickupRules
+        magnetSpawned = 0;
+        magnetAtomDelayTimer = PickupRules.MagnetAtomFirstDelay();
         blueGuaranteeUsed = false;
         atomTimer = Random.Range(20f, 45f);
     }
@@ -114,6 +121,7 @@ public class spawnGoodStuff : MonoBehaviour {
         atomTimer -= dt * PickupRules.ShieldAtomRate;
         redAtomDelayTimer -= dt;
         cooldownAtomDelayTimer -= dt * PickupRules.CooldownAtomRate;
+        magnetAtomDelayTimer -= dt * PickupRules.MagnetAtomRate;
         // No two atoms (this spawner's or the green one's) within
         // AtomSpacing.Gap: one that comes due inside it waits its turn.
         AtomSpacing.Tick(dt);
@@ -197,6 +205,16 @@ public class spawnGoodStuff : MonoBehaviour {
             cooldownSpawned++;
         }
 
+        // The magnetic atom: a fixed allowance per planet, held back through a
+        // boss fight (the delay keeps running, so it arrives right after).
+        if (magnetAtom != null && magnetAtomDelayTimer <= 0 && magnetSpawned < PickupRules.MagnetAtomsPerWorld &&
+            AtomSpacing.Ready && !BossEncounter.Running)
+        {
+            magnetAtomDelayTimer = PickupRules.MagnetAtomRepeatDelay();
+            spawnMagnetAtom();
+            magnetSpawned++;
+        }
+
         // A power-up refund (PowerUpRefund): the guaranteed drop its use
         // meter earned, after the same atom spacing as any atom.
         if (PowerUpRefund.Due && AtomSpacing.Ready) spawnRefund();
@@ -266,6 +284,13 @@ public class spawnGoodStuff : MonoBehaviour {
     {
         Vector3 randomStarPos = new Vector3(Random.Range(-RailInset.PickupLaneHalf, RailInset.PickupLaneHalf), transform.position.y, transform.rotation.z);
         AtomSpin.AddTo(Place(cooldownAtom, randomStarPos));
+        AtomSpacing.Released();
+    }
+
+    void spawnMagnetAtom()
+    {
+        Vector3 randomStarPos = new Vector3(Random.Range(-RailInset.PickupLaneHalf, RailInset.PickupLaneHalf), transform.position.y, transform.rotation.z);
+        AtomSpin.AddTo(Place(magnetAtom, randomStarPos));
         AtomSpacing.Released();
     }
 

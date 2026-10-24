@@ -96,6 +96,7 @@ public static class CodexCatalogue
     public const string WorldPrefix = "world_";
     public const string PortalId = "world_portal";
     public const string VioletAtomId = "atom_violet";
+    public const string MagnetAtomId = "atom_magnet";
     // Space's drifting backdrop rocks, now breakable (SpaceAsteroidDrift): a hazard entry with no roster def.
     public const string DriftAsteroidId = "hazard_space_drift_asteroid";
 
@@ -180,6 +181,13 @@ public static class CodexCatalogue
                 " into your weapon's charge - often enough to fire it on the spot. Only " +
                 PickupRules.CooldownAtomsPerWorld + " drift through each world, so they're worth a detour.",
                 new[] { "cooldownatom" }),
+            new CodexEntry(MagnetAtomId, "Magnetic Atom", CodexCategory.Atoms,
+                () => Pickup(PickupKind.Magnet, "prefabs/" + MagnetPull.ObjectName),
+                "A horseshoe of pure polarity. Grab one and every grain of star dust on screen is hauled into your " +
+                "hull. With your shield up it pulls the nearby enemies in as well (bosses and armoured elites hold " +
+                "their ground) and tops the shield up by " + MagnetPull.ShieldBonusSeconds.ToString("0") + " seconds. " +
+                "Only " + PickupRules.MagnetAtomsPerWorld + " drift through each world, and never mid-boss.",
+                new[] { "magnetatom" }),
 
             // ------------------------------------------------------------- Worlds
             new CodexEntry(PortalId, "Wormhole Portal", CodexCategory.Worlds, () => TeleportPortalSprites.FrameAt(0),

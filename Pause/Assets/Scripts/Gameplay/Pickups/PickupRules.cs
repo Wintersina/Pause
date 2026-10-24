@@ -13,6 +13,8 @@ using UnityEngine;
 //   ShieldAtomRateMultiplier times the per-planet allowance, all level long
 //   (boss fights included). Red (pause) and green (heal) atoms are untouched.
 //
+//   Magnetic atoms (magnetAtom): see the magnetic atom block below.
+//
 //   Violet capacitor atoms (cooldownAtom): a fixed CooldownAtomsPerWorld per
 //   planet, the first after CooldownAtomFirstDelay seconds, then one every
 //   CooldownAtomRepeatDelay. Like the red atom it keeps the plain clock --
@@ -54,6 +56,27 @@ public static class PickupRules
     public const float CooldownAtomRepeatDelayMin = 75f, CooldownAtomRepeatDelayMax = 115f;
     // Its timer's rate: the plain clock, boss fight or not.
     public const float CooldownAtomRate = 1f;
+
+    // ---- magnetic atom ----
+    // Scarce, like the violet capacitor: a fixed MagnetAtomsPerWorld per planet,
+    // the first after MagnetAtomFirstDelay seconds, then one every
+    // MagnetAtomRepeatDelay. Plain clock, and none are released during a boss
+    // fight (its pull would find a boss that is never dragged, and the
+    // shield bonus alone is already the blue atom's job).
+    public const int MagnetAtomsPerWorld = 2;
+    public const float MagnetAtomFirstDelayMin = 45f, MagnetAtomFirstDelayMax = 80f;
+    public const float MagnetAtomRepeatDelayMin = 90f, MagnetAtomRepeatDelayMax = 130f;
+    public const float MagnetAtomRate = 1f;
+
+    public static float MagnetAtomFirstDelay()
+    {
+        return Random.Range(MagnetAtomFirstDelayMin, MagnetAtomFirstDelayMax);
+    }
+
+    public static float MagnetAtomRepeatDelay()
+    {
+        return Random.Range(MagnetAtomRepeatDelayMin, MagnetAtomRepeatDelayMax);
+    }
 
     public static float CooldownAtomFirstDelay()
     {

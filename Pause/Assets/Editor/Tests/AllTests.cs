@@ -131,6 +131,7 @@ public static class AllTests
         ("CodexTest", CodexTest.Execute),
         ("CodexWhiteSpriteTest", CodexWhiteSpriteTest.Execute),
         ("CooldownAtomTest", CooldownAtomTest.Execute),
+        ("MagnetAtomTest", MagnetAtomTest.Execute),
         ("CreditsTest", CreditsTest.Execute),
         ("DeathCrashTest", DeathCrashTest.Execute),
         ("DustDischargeTest", DustDischargeTest.Execute),
