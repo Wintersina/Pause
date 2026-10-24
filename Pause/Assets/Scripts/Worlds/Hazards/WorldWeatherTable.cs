@@ -85,9 +85,9 @@ public static class WorldWeatherTable
             hazards = new[]
             {
                 // the big one: a single wide plasma front crossing in about two seconds; the leading edge is the hard shove
-                With(H("solar_flare", 0, HazardShape.Sweep, 6.5f, 3.0f, 0f), h => { h.warning = 2.4f; h.speed = 5.2f; h.push = new Vector2(1f, -.12f); h.shock = .5f; h.capMul = 1.7f; h.stuns = true; h.player = M(.5f); h.body = M(.9f); h.elite = M(.4f); h.hostile = M(1.1f); h.mine = M(.7f); h.artRow = 0; h.artWarnCol = 0; }),
+                With(H("solar_flare", 0, HazardShape.Sweep, 6.5f, 3.0f, 0f), h => { h.warning = 2.4f; h.speed = 5.2f; h.push = new Vector2(1f, -.12f); h.shock = .5f; h.capMul = 1.7f; h.stuns = true; h.wipesShots = true; h.fromSun = true; h.objectPush = 2.4f; h.player = M(.5f); h.body = M(.9f); h.elite = M(.4f); h.hostile = M(1.1f); h.mine = M(.7f); h.artRow = 0; h.artWarnCol = 0; }),
                 // a flare train: two narrower fronts a beat apart, each a separate punch with a gap you can step through
-                With(H("flare_storm", 0, HazardShape.Sweep, 5.4f, 2.1f, 0f), h => { h.warning = 2.6f; h.speed = 4.2f; h.bands = 2; h.bandGap = 5.4f; h.push = new Vector2(1f, -.1f); h.shock = .55f; h.capMul = 1.6f; h.stuns = true; h.player = M(.45f); h.body = M(.85f); h.elite = M(.4f); h.hostile = M(1.1f); h.mine = M(.7f); h.artRow = 1; h.artWarnCol = 2; }),
+                With(H("flare_storm", 0, HazardShape.Sweep, 5.4f, 2.1f, 0f), h => { h.warning = 2.6f; h.speed = 4.2f; h.bands = 2; h.bandGap = 5.4f; h.push = new Vector2(1f, -.1f); h.shock = .55f; h.capMul = 1.6f; h.stuns = true; h.wipesShots = true; h.fromSun = true; h.objectPush = 2.2f; h.player = M(.45f); h.body = M(.85f); h.elite = M(.4f); h.hostile = M(1.1f); h.mine = M(.7f); h.artRow = 1; h.artWarnCol = 2; }),
             },
         };
         var frost = new WorldWeatherEntry

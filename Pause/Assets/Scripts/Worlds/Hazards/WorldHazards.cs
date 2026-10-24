@@ -9,6 +9,7 @@ using UnityEngine.SceneManagement;
 //   * elites (a little velocity, their own steering eases them back),
 //   * hostile projectiles (IHostileShot.ShotShove, boss shots included) and the player's (AttackProjectile.Shove).
 //
+// The Space flares also wipe the hostile shots their band touches and stun the enemies and elites it touches (StunSeconds).
 // It NEVER damages anything and never moves a boss, a beam, a rail mine or a pickup. Stepped on running frames
 // only (WorldManager.Flying). One event at a time (a second field only during a fade-out). Everything is a fixed
 // array: nothing allocates after Prewarm.
@@ -39,7 +40,7 @@ public sealed class WorldHazards : MonoBehaviour
     public static bool AnyActing { get { for (int i = 0; i < fields.Length; i++) if (fields[i].Acting) return true; return false; } }
 
     // Counters (tests, previews).
-    public static int Started, LastShotsPushed, LastMinePushed, LastBodiesPushed, LastEliteKicks;
+    public static int Started, LastShotsPushed, LastMinePushed, LastBodiesPushed, LastEliteKicks, LastWiped;
     public static string LastStartedId;
 
     // ---- what the scheduler reads about the game (tests supply their own) ----
@@ -137,6 +138,7 @@ public sealed class WorldHazards : MonoBehaviour
         if (Instance == this) Instance = null;
         ClearAll();
         PlayerOffset = Vector2.zero;
+        DazedSparks.Reset();
         if (visuals != null) visuals.Destroy();
         if (weather != null) weather.Destroy();
         if (wind != null) wind.Destroy();
@@ -157,6 +159,7 @@ public sealed class WorldHazards : MonoBehaviour
         if (hazardsOn && flying && dt > 0f && !Disabled) Step(dt);
         else if (!hazardsOn && AnyActive) { ClearAll(); PlayerOffset = Vector2.zero; }
         Visuals.Draw(fields, hazardsOn);
+        DazedSparks.Draw(Time.time);
         Wind.Draw(flying ? dt : 0f, hazardsOn && weatherOn, world >= 0 ? world : (WorldManager.Instance != null ? WorldManager.SpawnWorld : 0));
         Weather.Step(flying ? dt : 0f, weatherOn, world >= 0 ? world : (WorldManager.Instance != null ? WorldManager.SpawnWorld : 0), fields);
     }
@@ -221,6 +224,7 @@ public sealed class WorldHazards : MonoBehaviour
         if (f == null) return false;
         f.def = def; f.phase = HazardField.Phase.Warning; f.t = 0f; f.fadeT = 0f; f.fadeLen = WorldWeatherTable.RampOut;
         f.side = rng.Next(2) == 0 ? -1f : 1f;
+        if (def.fromSun) { float? sun = SpaceSunPick.FlareTravel; if (sun.HasValue) f.side = sun.Value; }   // born at the sun, whichever side of the backdrop it is on
         f.variant = rng.Next(4);
         if (def.artRow >= 0 && !f.hazArtHeld) { HazardArt.Acquire(def.world); f.hazArtHeld = true; }
         float top = CameraFit.ViewTop, bottom = CameraFit.ViewBottom;
@@ -324,7 +328,7 @@ public sealed class WorldHazards : MonoBehaviour
     // ---- applying the forces ----
     public static void Apply(float dt)
     {
-        LastShotsPushed = LastMinePushed = LastBodiesPushed = LastEliteKicks = LastStunned = 0;
+        LastShotsPushed = LastMinePushed = LastBodiesPushed = LastEliteKicks = LastStunned = LastWiped = 0;
         Vector2 playerV = Vector2.zero;
         Transform player = EliteSystem.Player;
         bool boss = BossRunningOverride ?? BossEncounter.Running;
@@ -337,7 +341,11 @@ public sealed class WorldHazards : MonoBehaviour
             PushShots(f, b, dt, boss);
             PushBodies(f, b, dt);
             PushElites(f, b, dt);
-            if (f.def.stuns && f.phase == HazardField.Phase.Live) StunScreen(f);
+            if (f.phase == HazardField.Phase.Live)
+            {
+                if (f.def.wipesShots) WipeShots(f);
+                if (f.def.stuns) StunBand(f);
+            }
             if (player != null && HazardForce.Sample(f, player.position, HazardTarget.Player, out Vector2 pv)) playerV += pv;
             rigid += HazardForce.RigidX(f, HazardTarget.Hostile) * f.def.bossShotScale;
         }
@@ -444,7 +452,9 @@ public sealed class WorldHazards : MonoBehaviour
             }
             if (!Field(f, p, HazardTarget.Body, out Vector2 v)) continue;
             float mass = rock ? HazardSize.ShoveScale(EnemyIdentity.ScaleOf(go)) : 1f;
-            v = HazardForce.Clamp(v * (share * mass), WorldWeatherTable.BodyMaxSpeed * Cap(f));
+            // rocks and (rail-less) mines are hazardous objects: a flare flings them far harder than a ship (no stun, no damage)
+            float obj = f != null && (rock || go.TryGetComponent(out RailMineMount _)) ? f.def.objectPush : 1f;
+            v = HazardForce.Clamp(v * (share * mass * obj), WorldWeatherTable.BodyMaxSpeed * Cap(f) * obj);
             SpawnFootprint fp;
             Vector2 half = go.TryGetComponent(out fp) ? fp.half : new Vector2(t.Radius, t.Radius);
             Vector2 move = v * dt;
@@ -461,12 +471,13 @@ public sealed class WorldHazards : MonoBehaviour
         }
     }
 
-    // A stunning flare holds every enemy and elite in view for as long as it is live: re-asserted each frame for a moment, so the
-    // stun lapses by itself right after the flare ends (or is cut short). Bosses, rails' mines and rocks are not touched.
-    public const float StunHold = .35f;
+    // A stunning flare stuns every enemy and elite its band TOUCHES for StunSeconds. Simplest rule: the stun is refreshed every frame a
+    // target is inside the band, so it lapses StunSeconds after the band has passed (no stacking, no re-stun loop). Dazed sparkles
+    // ride above each stunned head. Bosses, hazardous objects (rocks, mines) and hostile shots are never stunned.
+    public const float StunSeconds = 2f;
     public static int LastStunned;
 
-    static void StunScreen(HazardField f)
+    static void StunBand(HazardField f)
     {
         float top = f.viewTop - .2f, bottom = f.viewBottom;
         var live = ClearTarget.Live;
@@ -477,12 +488,15 @@ public sealed class WorldHazards : MonoBehaviour
             var go = t.gameObject;
             if (!go.CompareTag("Enimey")) continue;
             Vector3 p = go.transform.position;
-            if (p.y > top || p.y < bottom || Mathf.Abs(p.x) > f.laneHalf) continue;
+            if (p.y > top || p.y < bottom || !HazardForce.Touches(f, p, t.Radius)) continue;
             if (go.TryGetComponent(out BossTarget _) || go.TryGetComponent(out BossActor _)) continue;
             if (go.TryGetComponent(out EliteShip _)) continue;          // elites: below
             if (RunScore.IsHostileShot(go)) continue;
-            if (go.TryGetComponent(out RailMineMount mount) && mount.rail != null) continue;
-            if (FrozenState.Freeze(go, StunHold) != null) LastStunned++;
+            if (go.TryGetComponent(out RailMineMount _)) continue;       // mines are pushed, not stunned
+            var fs = FrozenState.Freeze(go, StunSeconds);
+            if (fs == null) continue;
+            LastStunned++;
+            DazedSparks.Mark(go.transform, fs, null);
         }
         var elites = EliteShip.Live;
         for (int i = 0; i < elites.Count; i++)
@@ -490,8 +504,24 @@ public sealed class WorldHazards : MonoBehaviour
             var e = elites[i];
             if (e == null || !e.InPlay) continue;
             Vector2 p = e.transform.position;
-            if (p.y > top || p.y < bottom || Mathf.Abs(p.x) > f.laneHalf) continue;
-            if (e.Stun(StunHold)) LastStunned++;
+            if (p.y > top || p.y < bottom || !HazardForce.Touches(f, p, .5f)) continue;
+            if (!e.Stun(StunSeconds)) continue;
+            LastStunned++;
+            DazedSparks.Mark(e.transform, null, e);
+        }
+    }
+
+    // A flare destroys every hostile shot (boss and elite) its band touches, with the usual pop. The player's shots are not hostile shots.
+    static void WipeShots(HazardField f)
+    {
+        var hostile = HostileShots.All;
+        for (int i = hostile.Count - 1; i >= 0; i--)
+        {
+            if (i >= hostile.Count) continue;
+            var s = hostile[i];
+            if (s == null || (Object)s == null || !s.ShotCollidable) continue;
+            if (!HazardForce.Touches(f, s.ShotPosition, s.ShotRadius)) continue;
+            if (HostileShots.Wipe(s)) LastWiped++;
         }
     }
 

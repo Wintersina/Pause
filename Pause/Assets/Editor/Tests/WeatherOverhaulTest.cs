@@ -163,18 +163,28 @@ public static class WeatherOverhaulTest
             Check(id + ": during the warning nothing is pushed", (Vector2)body.transform.position == body0 && shot.pos == shot0 && WorldHazards.PlayerOffset == Vector2.zero && f.phase == HazardField.Phase.Warning);
             m.Visuals.Draw(WorldHazards.Fields, true);
             Check(id + ": and the warning is drawn (" + m.Visuals.Drawn + " sprites)", m.Visuals.Drawn >= 8 && m.Visuals.Drawn <= HazardVisuals.Pool);
+            var rock = Body(new Vector2(-1.8f, -1f)); rock.tag = "Astr";
+            float rock0 = rock.transform.position.x, rockMax = 0f, rockGo = -1, firstRock = 0f, firstBody = 0f; bool stunnedSeen = false;
+            HostileShots.ResetCounters();
             float peakOffset = 0f; int frames = 0; float maxBody = 0f, maxShot = 0f;
             while (f.Active && frames < 60 * 30)
             {
                 m.StepFields(Dt); WorldHazards.Apply(Dt); frames++;
                 peakOffset = Mathf.Max(peakOffset, WorldHazards.PlayerOffset.magnitude);
                 maxBody = Mathf.Max(maxBody, body.transform.position.x - body0.x);
-                maxShot = Mathf.Max(maxShot, shot.pos.x - shot0.x);
+                if (!shot.popped) maxShot = Mathf.Max(maxShot, shot.pos.x - shot0.x);
+                rockMax = Mathf.Max(rockMax, rock.transform.position.x - rock0);
+                if (rockGo < 0 && rock.transform.position.x - rock0 > .001f) { rockGo = frames; firstRock = rock.transform.position.x - rock0; firstBody = body.transform.position.x - body0.x; }
+                stunnedSeen |= WorldHazards.LastStunned > 0;
             }
             float crossing = (frames + warnFrames) * Dt;
             Check(id + ": the whole thing is over in " + crossing.ToString("F1") + " s", !f.Active && crossing < 14f && crossing > d.warning + 1.5f);
             Check(id + ": an enemy body is thrown " + maxBody.ToString("F1") + " u along the sweep", maxBody > 1.0f);
-            Check(id + ": a bullet is thrown " + maxShot.ToString("F1") + " u", maxShot > 2.4f);
+            Check(id + ": a hostile bullet the band touches is wiped (" + maxShot.ToString("F1") + " u pushed first)", shot.popped && HostileShots.Wiped >= 1);
+            Check(id + ": an enemy body the band touches is stunned", stunnedSeen);
+            // compared on the very first frame the band gets hold of them (same x, so the same field): once flung, a rock outruns the band
+            // and leaves its push, and both end pinned at the lane wall, so total travel cannot tell them apart
+            Check(id + ": a rock is flung at least twice as hard as the enemy ship (first step " + (firstRock / Dt).ToString("F1") + " vs " + (firstBody / Dt).ToString("F1") + " u/s)", rockGo > 0 && firstBody > 0f && firstRock > firstBody * 2f);
             Check(id + ": the body is alive, tagged and inside the lane", body != null && body.activeSelf && body.CompareTag("Enimey") && Mathf.Abs(body.transform.position.x) <= SpawnLane.LaneHalf);
             Check(id + ": the ship is moved only a little (" + peakOffset.ToString("F2") + " u <= cap " + WorldWeatherTable.PlayerCap + ")", peakOffset > .1f && peakOffset <= WorldWeatherTable.PlayerCap + 1e-3f);
             for (int i = 0; i < 180; i++) WorldHazards.Apply(Dt);
@@ -182,6 +192,7 @@ public static class WeatherOverhaulTest
             HostileShots.Unregister(shot);
         }
         WorldHazards.ClearAll();
+        FlareFollowsTheSun();
         // a flare starts wholly off screen on the near side and ends wholly off the far side, for either direction
         var m2 = NewManager(); WorldHazards.ClearAll();
         bool ok = true;
@@ -196,6 +207,37 @@ public static class WeatherOverhaulTest
             ok &= Mathf.Abs(endLead) >= f.laneHalf + f.def.size * .5f - .02f && Mathf.Sign(endLead) == f.side;
         }
         Check("a flare train starts wholly off screen and ends wholly off the far edge", ok);
+        WorldHazards.ClearAll();
+    }
+
+    // The flare is born at the sun: sun on the left of the backdrop -> it travels left to right, sun on the right -> right to left,
+    // and the origin edge (where the telegraph glows and the band starts, wholly off screen) is the sun's side.
+    static void FlareFollowsTheSun()
+    {
+        int left = 0, right = 0;
+        for (int s = 1; s < 400 && (left == 0 || right == 0); s++)
+        {
+            if (SpaceSunPick.SideFor(s) < 0 && left == 0) left = s;
+            if (SpaceSunPick.SideFor(s) > 0 && right == 0) right = s;
+        }
+        foreach (string id in new[] { "solar_flare", "flare_storm" })
+            foreach (int seed in new[] { left, right })
+            {
+                SpaceSunPick.NewRun(seed);
+                float sunSide = SpaceSunPick.SideFor(seed);
+                var m = NewManager(); WorldHazards.ClearAll();
+                Check(id + ": the sun art is installed", SpaceSunPick.FlareTravel.HasValue);
+                bool ok = true;
+                for (int i = 0; i < 12; i++)
+                {
+                    WorldHazards.ClearAll();
+                    m.Begin(Def(id));
+                    var f = WorldHazards.Fields[0];
+                    ok &= f.side == -sunSide && Mathf.Sign(f.sweepX) == sunSide;
+                }
+                Check(id + ": sun on the " + (sunSide < 0 ? "left -> travels left to right" : "right -> travels right to left") + ", always", ok);
+            }
+        SpaceSunPick.NewRun();
         WorldHazards.ClearAll();
     }
 
@@ -369,6 +411,7 @@ public static class WeatherOverhaulTest
         WeatherWind.Reset(WorldWeatherTable.Entries[5].wind, 4); WeatherWind.Fade = 1f;   // Storm: the harshest shear and gusts
         WeatherWind.PhaseNow = WeatherWind.Phase.Gust; WeatherWind.PhaseT = .5f; WeatherWind.Side = 1f;
         // and a flare AND a tornado on top, the worst of the table
+        bool wipes = Def("solar_flare").wipesShots; Def("solar_flare").wipesShots = false;   // this test is about the drift, not the wipe
         var f0 = WorldHazards.Fields[0]; f0.def = Def("solar_flare"); f0.phase = HazardField.Phase.Live; f0.side = 1f; f0.sweepX = 0f; f0.t = 5f; f0.viewBottom = -6f; f0.viewTop = 6f; f0.laneHalf = 4f; f0.liveFor = 60f;
         var f1 = WorldHazards.Fields[1]; f1.def = Def("tornado"); f1.phase = HazardField.Phase.Live; f1.side = 1f; f1.centre = new Vector2(.5f, 1f); f1.t = 5f; f1.viewBottom = -6f; f1.viewTop = 6f; f1.laneHalf = 4f; f1.liveFor = 60f;
         var shots = new List<WorldHazardsTest.StubShot>();
@@ -408,6 +451,7 @@ public static class WeatherOverhaulTest
         float most = 0f; foreach (var s in shots) most = Mathf.Max(most, s.shoved.magnitude);
         Check("outside a boss fight the same weather moves bullets " + most.ToString("F1") + " u in a second (> 4x the boss-fight cap)", most > WeatherWind.BossShotWindCap * 4f * 1f);
         foreach (var s in shots) HostileShots.Unregister(s);
+        Def("solar_flare").wipesShots = wipes;
         WorldHazards.BossRunningOverride = null;
         WorldHazards.ClearAll();
         WeatherWind.Reset(null);

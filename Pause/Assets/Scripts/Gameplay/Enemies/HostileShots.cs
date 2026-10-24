@@ -55,7 +55,7 @@ public static class HostileShots
     static readonly List<IHostileZone> zones = new List<IHostileZone>(16);
 
     // Counters (tests, previews).
-    public static int Clashes, Pops, BeamBurns, ShotDown, ZoneBurns, PowerCleared;
+    public static int Clashes, Pops, BeamBurns, ShotDown, ZoneBurns, PowerCleared, Wiped;
 
     public static IReadOnlyList<IHostileShot> All => shots;
 
@@ -67,7 +67,7 @@ public static class HostileShots
     public static void Unregister(IHostileZone z) { zones.Remove(z); }
     public static IReadOnlyList<IHostileZone> Zones => zones;
 
-    public static void ResetCounters() { Clashes = Pops = BeamBurns = ShotDown = ZoneBurns = PowerCleared = 0; }
+    public static void ResetCounters() { Clashes = Pops = BeamBurns = ShotDown = ZoneBurns = PowerCleared = Wiped = 0; }
 
     static bool Dead(IHostileShot s) => s == null || (Object)s == null;
 
@@ -144,6 +144,15 @@ public static class HostileShots
         int ma = a.ShotMass, mb = b.ShotMass;
         if (ma <= mb) Pop(a, at);
         if (mb <= ma) Pop(b, at);
+    }
+
+    // A weather field (the Space flares) wipes one shot with the usual pop. A landed pool (Fixed) is not a shot in flight and stays.
+    public static bool Wipe(IHostileShot s)
+    {
+        if (Dead(s) || !s.ShotCollidable || s.ShotMass == Fixed) return false;
+        Wiped++;
+        Pop(s, s.ShotPosition);
+        return true;
     }
 
     static void Pop(IHostileShot s, Vector2 at)

@@ -74,6 +74,21 @@ public static class HazardForce
         }
     }
 
+    // Does a Sweep's band (any band of the train) touch a disc of `radius` at `p`? Geometry only: no envelope, no mix (the flares wipe
+    // shots and stun ships by touch). False for every other shape.
+    public static bool Touches(HazardField f, Vector2 p, float radius)
+    {
+        var d = f.def;
+        if (d.shape != HazardShape.Sweep) return false;
+        float half = d.size * .5f + radius;
+        for (int b = 0; b < d.bands; b++)
+        {
+            float cx = f.sweepX - f.side * b * d.bandGap;
+            if (Mathf.Abs(p.x - cx) < half) return true;
+        }
+        return false;
+    }
+
     // The Column's pulse / burst gate (1 when it has none): shared by the force and the drawn stream.
     public static float Gate(HazardField f)
     {

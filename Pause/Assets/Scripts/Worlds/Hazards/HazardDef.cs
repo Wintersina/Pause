@@ -43,7 +43,10 @@ public sealed class HazardDef
     public int bands = 1;             // Sweep: bands in the train
     public float bandGap = 0f;        // Sweep: distance between trailing bands (u)
     public float shock = .35f;        // Sweep: how much stronger the leading half of a band is than the trailing half (0..1)
-    public bool stuns;                // while it is live, every enemy and elite on screen is stunned (the Space flares)
+    public bool stuns;                // while it is live, every enemy and elite its band touches is stunned (WorldHazards.StunSeconds, refreshed while inside; the Space flares). Bosses never
+    public bool wipesShots;           // while it is live, every hostile shot (boss, elite) its band touches is destroyed with a pop; the player's shots are not touched (the Space flares)
+    public bool fromSun;              // Sweep: it travels AWAY from the sun's side of the backdrop (SpaceSunPick), so the sun is where it is born; no sun to see: a random side
+    public float objectPush = 1f;     // multiplies the push (and the speed cap) on rocks and mines: hazardous objects are flung harder than ships, with no stun and no damage
 
     public TargetMix MixOf(HazardTarget t)
     {

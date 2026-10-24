@@ -48,6 +48,17 @@ public static class SpaceSunPick
         forced = parts[0] == Warm || parts[0] == Violet ? parts[0] : null;
         if (parts.Length > 1) forcedSide = parts[1] == "left" ? -1f : parts[1] == "right" ? 1f : 0f;
     }
+    // The solar flares are born at the sun: +1 when they travel left to right (the sun is on the LEFT), -1 right to left. The sun is
+    // one per-run pick shared by all four Space backdrop variants (it is a backdrop piece on the deep-planet layer of every one), so
+    // there is no per-variant side. Null when its art is not installed (no sun to see): the caller picks a side itself.
+    public static float? FlareTravel
+    {
+        get
+        {
+            if (Resources.Load<Texture2D>(BackdropCatalog.Folder("Space") + "sun_" + Current) == null) return null;
+            return -Side;
+        }
+    }
     public static string Current { get { ReadForce(); return forced ?? PaletteFor(RunSeed); } }
     public static float Side { get { ReadForce(); return forcedSide != 0f ? forcedSide : SideFor(RunSeed); } }
 }
