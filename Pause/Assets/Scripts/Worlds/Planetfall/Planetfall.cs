@@ -825,7 +825,7 @@ public class Planetfall : MonoBehaviour
         {
             Vector2 sp = TouchInput.Position;
             Vector3 w = cam.ScreenToWorldPoint(new Vector3(sp.x, sp.y, 0f)) - shakeApplied;
-            return new Vector3(ShipReach.ClampX(w.x), movePlayer.ClampPlayerY(w.y + ShipReach.FingerOffset), z);
+            return new Vector3(ShipReach.ClampX(w.x + ShipReach.FingerOffsetX), movePlayer.ClampPlayerY(w.y + ShipReach.FingerOffset), z);
         }
         return new Vector3(centre.x, ShipReach.StartY, z);
     }

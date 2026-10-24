@@ -76,7 +76,16 @@ public static class ShipReach
     public const float BaseFingerOffset = 1.25f;
     public const float ExtraFingerMm = 1f;
     public const float FallbackDpi = 320f;
-    public static float FingerOffset { get { return BaseFingerOffset + MmToWorld(ExtraFingerMm); } }
+    //
+    // The player may move the perch (Options > SHIP PERCH, PerchSettings): the
+    // gap scales by PerchSettings.Scale and may tilt left or right of straight
+    // up. FingerOffset is the VERTICAL part of that gap (what every caller adds
+    // to the finger's y; unchanged, 1.25 u + 1 mm, at the default), FingerOffsetX
+    // the sideways part (0 at the default; movePlayer adds it to the finger's x
+    // before the usual rail clamp).
+    public static float PerchDistance { get { return (BaseFingerOffset + MmToWorld(ExtraFingerMm)) * PerchSettings.Scale; } }
+    public static float FingerOffset { get { return PerchDistance * PerchSettings.CosTilt; } }
+    public static float FingerOffsetX { get { return PerchDistance * PerchSettings.SinTilt; } }
     public static float MmToWorld(float mm)
     {
         var cam = Camera.main;

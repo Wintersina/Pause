@@ -96,7 +96,7 @@ public abstract class HeartOrbit : MonoBehaviour
     {
         float cy = -ThumbBelow;
         if (offset.y + half < cy) return true;
-        float dx = Mathf.Max(Mathf.Abs(offset.x) - half, 0f);
+        float dx = Mathf.Max(Mathf.Abs(offset.x + ShipReach.FingerOffsetX) - half, 0f);
         float dy = Mathf.Max(0f, Mathf.Max((offset.y - half) - cy, cy - (offset.y + half)));
         return dx * dx + dy * dy < ThumbRadius * ThumbRadius;
     }
