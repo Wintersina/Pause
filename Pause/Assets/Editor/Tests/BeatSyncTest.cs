@@ -30,6 +30,7 @@ public static class BeatSyncTest
     {
         fails = 0;
         var oldNow = BeatClock.Now;
+        bool hadLatency = PlayerPrefs.HasKey(BeatCalibration.Key);
         float oldLatency = BeatCalibration.LatencySeconds;
         try
         {
@@ -45,7 +46,9 @@ public static class BeatSyncTest
         finally
         {
             BeatClock.Now = oldNow;
-            BeatCalibration.LatencySeconds = oldLatency;
+            // (a saved calibration is put back; none saved stays none, so the device keeps its own default)
+            if (hadLatency) BeatCalibration.LatencySeconds = oldLatency;
+            else { PlayerPrefs.DeleteKey(BeatCalibration.Key); BeatCalibration.Forget(); }
             BossBeat.Enabled = true;
             BossBeat.Detach();
         }
@@ -341,8 +344,12 @@ public static class BeatSyncTest
         BeatCalibration.LatencySeconds = .08f;
         double b1 = c2.BeatNow;
         Check("calibration: +80 ms latency = .2 beats earlier at 150 bpm (" + (b0 - b1).ToString("0.0000") + ")", Near(b0 - b1, .2, 1e-4));
+        // nothing saved: the knob is the mixer's output latency (BossBeatStartTest has the rest), never 0 by assumption
+        PlayerPrefs.DeleteKey(BeatCalibration.Key);
+        BeatCalibration.Forget();
+        Check("calibration: with nothing saved the default is the mixer's own output latency (" + (BeatCalibration.OutputLatency() * 1000f).ToString("0.0") + " ms)",
+              Near(BeatCalibration.LatencySeconds, BeatCalibration.OutputLatency(), 1e-6) && BeatCalibration.LatencySeconds >= 0f);
         BeatCalibration.LatencySeconds = 0f;
-        Check("calibration: default is 0", Near(BeatCalibration.LatencySeconds, 0, 1e-9));
         Check("calibration: clip 2.0 s with first beat .2 s = beat 4.5", Near(b0, 4.5, 1e-6));
 
         // pause and resume: inactive while paused, re-anchors on resume at the right place

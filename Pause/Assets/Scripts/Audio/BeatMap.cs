@@ -1,27 +1,36 @@
 using System;
 using UnityEngine;
 
-// THE BEAT MAP of one boss track: where the beats are in the clip, in clip time (seconds from the start of the audio,
-// which is what AudioSource.time reports). Built offline by scripts/tools/boss_beatmap.py into
-// Resources/BossBeatMaps.json (the numbers there are the analysis' guess: tempo and first-beat are measured, the bar
-// line is assumed to be beat 0 + k * beatsPerBar and is the least reliable part).
+// THE BEAT MAP of one boss track: where the beats are in the clip, in the analyzer's clip time (seconds from the start
+// of the decoded audio). Built offline by scripts/tools/boss_beatmap.py into Resources/BossBeatMaps.json (the numbers
+// there are the analysis' guess: tempo and first-beat are measured, the bar line is assumed to be beat 0 + k *
+// beatsPerBar and is the least reliable part).
 //
 // A STEADY track is bpm + firstBeat; a drifting one (Desert speeds up) carries an explicit `beats` list instead. Beat
 // positions are continuous: BeatAt(t) = 3.5 is half way between the 4th and 5th beat, so subdivisions are plain
 // fractions and a wave "on the off-beat" is a wave at beat + .5.
+//
+// THE CLIP LEAD: AudioSource.time is not the analyzer's clip time. The tracks are MP3s whose LAME header declares the
+// codec's priming (encoder delay 576 + decoder delay 529 = 1105 samples); ffmpeg (the analyzer's decoder) drops it and
+// skips the header's own Info frame, Unity's importer decodes everything -- the Info frame too, as 1152 samples of
+// silence: every imported clip is exactly (frames + 1) * 1152 samples long (BossBeatStartTest) -- so in the clip the
+// game plays every beat sits `clipLead` = (1152 + 1105) / 48000 = 47 ms later than the map's numbers say. The methods
+// below take and return AudioSource time: the lead is applied here, once, for every reader (the clock, the fight's
+// start seek).
 [Serializable]
 public sealed class BeatMap
 {
     public string name;
     public string clip;               // Resources path of the track
     public float bpm = 120f;
-    public float firstBeat;           // clip time of beat 0
+    public float firstBeat;           // analyzer clip time of beat 0
     public int beatsPerBar = 4;
     public int downbeatBeat;          // which beat index is a bar line (mod beatsPerBar)
     public int bossStartBeat;         // the fight's first pass starts playing here (a bar line), skipping a long intro; 0 = from the top
     public float duration;            // the clip's length, seconds (the loop point)
     public bool steady = true;
     public float[] beats;             // explicit beat times when !steady
+    public float clipLead;            // seconds the imported clip runs behind the analysis (the MP3 priming Unity keeps); 0 for a trimmed clip
 
     public float[] energy, bass, accents;
     public MusicSection[] sections;
@@ -46,30 +55,31 @@ public sealed class BeatMap
 
     public int BarBeats => Math.Max(1, beatsPerBar);
 
-    // Seconds per beat at clip time t.
+    // Seconds per beat at clip (AudioSource) time t.
     public double SecondsPerBeatAt(double t)
     {
         if (!Listed) return 60.0 / bpm;
-        int i = Index(t);
+        int i = Index(t - clipLead);
         return beats[i + 1] - beats[i];
     }
 
-    // The beat position of clip time t (beat 0 = firstBeat), continuous.
+    // The beat position of clip (AudioSource) time t (beat 0 = firstBeat + clipLead), continuous.
     public double BeatAt(double t)
     {
+        t -= clipLead;
         if (!Listed) return (t - firstBeat) * bpm / 60.0;
         int i = Index(t);
         double span = beats[i + 1] - beats[i];
         return i + (t - beats[i]) / span;
     }
 
-    // The clip time of beat position b (inverse of BeatAt).
+    // The clip (AudioSource) time of beat position b (inverse of BeatAt).
     public double TimeOfBeat(double b)
     {
-        if (!Listed) return firstBeat + b * 60.0 / bpm;
+        if (!Listed) return clipLead + firstBeat + b * 60.0 / bpm;
         int i = (int)Math.Floor(b);
         i = Math.Max(0, Math.Min(beats.Length - 2, i));
-        return beats[i] + (b - i) * (beats[i + 1] - beats[i]);
+        return clipLead + beats[i] + (b - i) * (beats[i + 1] - beats[i]);
     }
 
     // The span [i, i + 1] a time falls in; the first / last span extend before and after the list.

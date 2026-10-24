@@ -330,6 +330,9 @@ public class BossActor : MonoBehaviour, IMusicPatternHost
     public void StepArrival(float realDt)
     {
         if (mode != Mode.Arriving) return;
+        // the song started with the entrance: its clock settles on the source through the flight, so the fight's first
+        // frame reads the beat exactly instead of nudging toward it over its first second
+        BossBeat.Tick();
         realClock += realDt;
         // the site rides the backdrop's scroll: it rises from where the piece is now
         if (origin.hasSite && origin.site.Valid && ArrivalProgress01 < BackdropShare) fromPos = origin.site.Position;
