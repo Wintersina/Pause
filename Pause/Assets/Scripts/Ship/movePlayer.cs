@@ -241,7 +241,7 @@ public class movePlayer : MonoBehaviour
     // Where the hull sits for a finger at world position `finger`.
     public static Vector3 FollowTarget(Vector3 finger)
     {
-        float x = ShipReach.ClampX(finger.x + SecretPowerController.DashOffsetX + WorldHazards.PlayerOffsetX + EliteWell.Offset.x);
+        float x = ShipReach.ClampX(finger.x + ShipReach.FingerOffsetX + SecretPowerController.DashOffsetX + WorldHazards.PlayerOffsetX + EliteWell.Offset.x);
         float y = ClampPlayerY(finger.y + ShipReach.FingerOffset + WorldHazards.PlayerOffsetY + EliteWell.Offset.y);
         return new Vector3(x, y);
     }
@@ -341,7 +341,7 @@ public class movePlayer : MonoBehaviour
     {
         // Blink Dash (a secret power) throws the hull sideways off the finger
         // for a moment, then eases it back.
-        float x = ShipReach.ClampX(fingerPos.x + SecretPowerController.DashOffsetX + WorldHazards.PlayerOffsetX + EliteWell.Offset.x);
+        float x = ShipReach.ClampX(fingerPos.x + ShipReach.FingerOffsetX + SecretPowerController.DashOffsetX + WorldHazards.PlayerOffsetX + EliteWell.Offset.x);
         float y = ClampPlayerY(fingerPos.y + ShipReach.FingerOffset + WorldHazards.PlayerOffsetY + EliteWell.Offset.y);
         this.transform.position = new Vector3(x, y);
             // Allow text to follow player----------------------------
