@@ -23,6 +23,14 @@ layer dominates) once put the whole map half a beat late (firstBeat .228 for
 kicks at .028; the shots landed between the kicks). A map already in the file
 keeps its half-beat phase and its downbeatBeat when re-analysed (both were
 checked by ear); delete the entry to re-decide them from scratch.
+
+clipLead: ffmpeg drops the MP3's declared priming (the LAME header's encoder
+delay + the decoder's 529 samples: 1105 samples) and reports it as the stream's
+start_time, and it skips the Xing / Info header frame; Unity's importer decodes
+everything, the header frame included (1152 samples of silence: every imported
+clip is exactly (frames + 1) * 1152 samples long), so in the game's
+AudioSource.time every beat sits 2257 samples = 47 ms later than the numbers
+here. The map carries it and BeatMap applies it (Scripts/Audio/BeatMap.cs).
 """
 import hashlib, json, os, subprocess, sys, tempfile
 import numpy as np
@@ -43,6 +51,32 @@ def load(path):
         subprocess.run(["ffmpeg", "-v", "error", "-i", path, "-ac", "1", "-ar", str(SR), wav], check=True)
         y, _ = librosa.load(wav, sr=SR)
     return y
+
+
+def header_frame_seconds(path):
+    """1152 / rate when the MP3 opens with a Xing / Info header frame (Unity decodes it as a silent frame), else 0."""
+    with open(path, "rb") as f:
+        d = f.read(1 << 16)
+    i = 10 + ((d[6] << 21) | (d[7] << 14) | (d[8] << 7) | d[9]) if d[:3] == b"ID3" else 0
+    while i < len(d) - 4 and not (d[i] == 0xFF and d[i + 1] & 0xE0 == 0xE0):
+        i += 1
+    if i >= len(d) - 4 or (d[i + 1] >> 3) & 3 != 3:   # MPEG-1 layer III only
+        return 0.0
+    rate = {0: 44100, 1: 48000, 2: 32000}.get((d[i + 2] >> 2) & 3)
+    off = i + 4 + (17 if (d[i + 3] >> 6) & 3 == 3 else 32)
+    return 1152.0 / rate if rate and d[off:off + 4] in (b"Xing", b"Info") else 0.0
+
+
+def clip_lead(path):
+    """Seconds the imported clip runs behind this decode: the priming ffmpeg trims (its start_time) plus the header
+    frame it skips and Unity decodes; 0 for a plain clip."""
+    out = subprocess.run(["ffprobe", "-v", "error", "-select_streams", "a:0", "-show_entries", "stream=start_time",
+                          "-of", "csv=p=0", path], capture_output=True, text=True, check=True).stdout.strip()
+    try:
+        start = max(0.0, float(out.splitlines()[0]))
+    except (ValueError, IndexError):
+        start = 0.0
+    return round(start + header_frame_seconds(path), 6)
 
 
 def comb(env, ft, bpm, off, t0, t1):
@@ -128,7 +162,7 @@ def analyse(name, old=None):
     steady = drift_ms < 25 and (wt.max() - wt.min()) < 1.0
     nb = int((dur - first) / period) + 1
     out = {
-        "bpm": round(float(bpm), 3), "firstBeat": round(float(first), 4), "beatsPerBar": 4,
+        "bpm": round(float(bpm), 3), "firstBeat": round(float(first), 4), "clipLead": clip_lead(path), "beatsPerBar": 4,
         # the bar line stays what the file says (checked by ear); a new map starts at 0 and downbeatGuess is the hint
         "downbeatBeat": int(old["downbeatBeat"]) if old is not None else 0, "bossStartBeat": int(old.get("bossStartBeat", 0)) if old is not None else 0, "duration": round(float(dur), 3), "steady": bool(steady),
         "windowDriftMs90": round(drift_ms, 1),
@@ -212,6 +246,8 @@ def main():
     keep = {b["name"]: b for b in old}
     for n in names:
         r = keep[n] if features_only else {"name": n, "clip": "WorldMusic/Boss_%s" % n, **analyse(n, keep.get(n))}
+        if features_only:
+            r["clipLead"] = clip_lead(os.path.join(MUSIC, "Boss_%s.mp3" % n))
         r.update(arrangement(n, r))
         keep[n] = r
         print(n, {k: v for k, v in r.items() if k not in ("beats", "energy", "bass", "accents", "sections")})

@@ -12,13 +12,23 @@ public interface IBeatSource
 }
 
 // THE LATENCY KNOB (per device): how long after the audio source reports a position you actually hear it. Positive =
-// the sound reaches the ear late, so the game treats the music as that much earlier. Default 0; stored in PlayerPrefs
-// so a calibration screen (or a developer) can set it per device.
+// the sound reaches the ear late, so the game treats the music as that much earlier. Stored in PlayerPrefs so a
+// calibration screen (or a developer) can set it per device.
+//
+// With nothing saved the knob is the mixer's own OUTPUT LATENCY: AudioSettings.dspTime and AudioSource.timeSamples
+// are the mixer's clock, and what the mixer renders now leaves the speaker one DSP ring buffer later (bufferLength *
+// numBuffers samples: 43..85 ms on phones). Read as 0 it had every boss wave leave that much before the hit it was
+// meant for, which the first boss's sparse intro exposes (one bass hit a bar to judge it by; the drop's sixteenths
+// hide it). The hardware's own tail (an Android HAL buffer) is not visible from here: that part is still the saved
+// calibration's job, which replaces the estimate rather than adding to it.
 public static class BeatCalibration
 {
     public const string Key = "beat_latency_ms";
     static bool read;
     static float seconds;
+
+    // The default (tests replace it): the mixer's ring-buffer latency, clamped like the knob.
+    public static System.Func<float> OutputLatencyProbe = DspBufferLatency;
 
     public static float LatencySeconds
     {
@@ -27,7 +37,7 @@ public static class BeatCalibration
             if (!read)
             {
                 read = true;
-                try { seconds = PlayerPrefs.GetFloat(Key, 0f) / 1000f; } catch { seconds = 0f; }
+                try { seconds = PlayerPrefs.HasKey(Key) ? PlayerPrefs.GetFloat(Key, 0f) / 1000f : OutputLatency(); } catch { seconds = 0f; }
             }
             return seconds;
         }
@@ -37,6 +47,28 @@ public static class BeatCalibration
             seconds = Mathf.Clamp(value, -.25f, .25f);
             try { PlayerPrefs.SetFloat(Key, seconds * 1000f); } catch { }
         }
+    }
+
+    // Re-read the knob on its next use (tests: after deleting the saved value or swapping the probe).
+    public static void Forget() { read = false; }
+
+    public static float OutputLatency()
+    {
+        float s;
+        try { s = OutputLatencyProbe != null ? OutputLatencyProbe() : 0f; } catch { s = 0f; }
+        return float.IsNaN(s) ? 0f : Mathf.Clamp(s, 0f, .25f);
+    }
+
+    // bufferLength * numBuffers / outputSampleRate: the seconds of audio queued between the mixer and the output.
+    public static float DspBufferLatency()
+    {
+        try
+        {
+            AudioSettings.GetDSPBufferSize(out int length, out int buffers);
+            int hz = AudioSettings.outputSampleRate;
+            return length > 0 && buffers > 0 && hz > 0 ? (float)length * buffers / hz : 0f;
+        }
+        catch { return 0f; }
     }
 }
 

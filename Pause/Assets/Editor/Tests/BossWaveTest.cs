@@ -284,7 +284,7 @@ public static class BossWaveTest
         sim.TrackBegin(sim.player);
         st.director = director;
         float gameT = 0f;
-        int seenWaves = 0;
+        int seenWaves = 0, vetoedBefore = 0;
         double clipT = startClip;
         float need = WaveGaps.MinMultiple * 2f * PatternSim.ShipRadius - 1e-3f;
         var sw = new System.Diagnostics.Stopwatch();
@@ -320,7 +320,11 @@ public static class BossWaveTest
                 double tb = (director.Waves.LastArrival - director.Waves.LastSpawnGame) / clock.SecondsPerBeat;
                 if (director.Waves.LastTravelBeats < 2 || Math.Abs(tb - director.Waves.LastTravelBeats) > .25) st.travelFails++;
                 int we = director.Waves.WaveEligible, wb = director.Waves.WaveBouncy;
-                if (we > 6) { st.bigWaves++; if (wb == 0 || wb == we) st.allOrNone++; }
+                // a big wave with no bounce because the fairness rule vetoed its picks (shadows over the ship's path) is the
+                // rule at work, not the picker bunching up: only an unvetoed all-or-none wave counts
+                int vetoedHere = director.Waves.bounce.vetoed - vetoedBefore;
+                vetoedBefore = director.Waves.bounce.vetoed;
+                if (we > 6) { st.bigWaves++; if ((wb == 0 && vetoedHere == 0) || wb == we) st.allOrNone++; }
             }
             if (dt > 0f)
             {
