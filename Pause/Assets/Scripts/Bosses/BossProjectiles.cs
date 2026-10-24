@@ -113,6 +113,7 @@ public class BossProjectile : MonoBehaviour, IHostileShot
     public Vector2 ShotPosition => transform.position;
     public float ShotRadius => radius;
     public int ShotOwner => pool != null ? pool.OwnerId : 0;
+    public BossDef Def => boss;   // whose shot this is (the damage log, HurtBy)
     public float ShotAge => age;
     public int ShotMass => HostileShots.Light;
     public Color ShotTint => boss != null ? boss.flash : Color.white;

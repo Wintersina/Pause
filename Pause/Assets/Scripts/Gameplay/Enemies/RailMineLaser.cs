@@ -139,6 +139,8 @@ public class RailMineLaser : MonoBehaviour
     public bool BeamShown => beam != null && beam.enabled;
     public GameObject Hitbox => hitbox;
     public Transform Owner => owner;
+    // The mine's codex id, kept at Arm so the damage log still names a mine that burst while its beam burns (HurtBy).
+    public string SourceId { get; private set; }
     public Vector2 From => from;            // the muzzle: the mine's core (MuzzleOf)
     public Vector2 To => to;                // the opposite rail's inner face, along Angle
     public Vector2 Direction => dir;        // unit, From -> To
@@ -312,6 +314,7 @@ public class RailMineLaser : MonoBehaviour
     public void Arm(Transform mine, int world, float tellSeconds)
     {
         owner = mine;
+        SourceId = mine != null ? Codex.IdFor(mine.gameObject) : null;
         this.world = world;
         var art = MineLaserArt.For(world);
         sightSprite = art.sight;

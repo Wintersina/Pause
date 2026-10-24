@@ -74,6 +74,10 @@ public class ProgressSnapshot
     // Codex entries whose 5 star dust unlock reward was collected (Codex.PaidKey). Additive, no schema
     // bump: an older blob lacks it (= nothing collected there). Merged by union; a restore never shrinks the local set.
     public string[] codexPaid = new string[0];
+    // How often each codex entry killed / hurt the pilot (DamageLog: "id:n,id:n"). Additive, no schema bump: an
+    // older blob lacks both (= no counts). Merged per id by the larger count; a restore never lowers a tally.
+    public string codexKilled = "";
+    public string codexHurt = "";
 
     // Hard cap per list: the Codex has ~95 entries (+ achievement acks), so this
     // only guards the cloud blob against a corrupt pref.
@@ -162,6 +166,8 @@ public class ProgressSnapshot
         s.codexNew = IdList(PlayerPrefs.GetString(Codex.NewKey, ""));
         s.codexNewAck = IdList(PlayerPrefs.GetString(Codex.AckKey, ""));
         s.codexPaid = IdList(PlayerPrefs.GetString(Codex.PaidKey, ""));
+        s.codexKilled = DamageLog.MergeMax(PlayerPrefs.GetString(DamageLog.KilledKey, ""), "");
+        s.codexHurt = DamageLog.MergeMax(PlayerPrefs.GetString(DamageLog.HurtKey, ""), "");
 
         var counters = new List<Counter>();
         foreach (string key in CounterKeys())
@@ -218,6 +224,8 @@ public class ProgressSnapshot
         var paidNow = new HashSet<string>(IdList(PlayerPrefs.GetString(Codex.PaidKey, "")));
         paidNow.UnionWith(codexPaid ?? new string[0]);
         WriteIds(Codex.PaidKey, IdList(paidNow));
+        WriteTally(DamageLog.KilledKey, DamageLog.MergeMax(PlayerPrefs.GetString(DamageLog.KilledKey, ""), codexKilled));
+        WriteTally(DamageLog.HurtKey, DamageLog.MergeMax(PlayerPrefs.GetString(DamageLog.HurtKey, ""), codexHurt));
         Codex.OnExternalChange();   // drop the cached sets so the next write can't undo this
     }
 
@@ -246,6 +254,12 @@ public class ProgressSnapshot
     {
         var clean = IdList(ids);
         if (clean.Length > 0) PlayerPrefs.SetString(key, string.Join(",", clean));
+        else PlayerPrefs.DeleteKey(key);
+    }
+
+    static void WriteTally(string key, string value)
+    {
+        if (!string.IsNullOrEmpty(value)) PlayerPrefs.SetString(key, value);
         else PlayerPrefs.DeleteKey(key);
     }
 
@@ -338,6 +352,8 @@ public class ProgressSnapshot
         snapshot.codexNew = IdList(snapshot.codexNew);
         snapshot.codexNewAck = IdList(snapshot.codexNewAck);
         snapshot.codexPaid = IdList(snapshot.codexPaid);
+        snapshot.codexKilled = DamageLog.MergeMax(snapshot.codexKilled, "");
+        snapshot.codexHurt = DamageLog.MergeMax(snapshot.codexHurt, "");
         return ParseResult.Ok;
     }
 

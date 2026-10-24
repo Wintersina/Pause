@@ -87,6 +87,8 @@ public static class ProgressMerge
             codexNew = fresh,
             codexNewAck = acked,
             codexPaid = MergePaid(local, cloud),
+            codexKilled = DamageLog.MergeMax(local.codexKilled, cloud.codexKilled),
+            codexHurt = DamageLog.MergeMax(local.codexHurt, cloud.codexHurt),
         };
         return result;
     }

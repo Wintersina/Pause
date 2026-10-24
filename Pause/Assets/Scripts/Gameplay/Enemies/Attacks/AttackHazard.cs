@@ -49,6 +49,9 @@ public abstract class AttackHazard : MonoBehaviour, IHostileZone, IAttackStep, I
     public float TellSeconds => tellTotal;
     public float TellLeft => State == Phase.Tell ? Mathf.Max(0f, tellTotal - t) : 0f;
     public GameObject Shooter => shooter;
+    // The codex id of whoever made this attack, resolved when its tell begins so the damage log still names a shooter
+    // that died before the hazard went live (HurtBy). Reset on every reuse.
+    public string SourceId { get; private set; }
     public GameObject Hitbox => hitbox;
     public PolygonCollider2D HitCollider => poly;
     public AttackShape Footprint => shape;      // the hit geometry AND the preview geometry
@@ -133,6 +136,7 @@ public abstract class AttackHazard : MonoBehaviour, IHostileZone, IAttackStep, I
         world = Mathf.Clamp(worldIndex, 0, WorldCue.Worlds - 1);   // (Storm 5 / Desert 6 keep their own ramp and cue colour, WorldCue)
         audioWorld = Mathf.Clamp(worldIndex, 0, AttackAudio.WorldFolders.Length - 1);
         shooter = by;
+        SourceId = HurtBy.OwnerOf(by);
         ownerId = by != null ? by.GetInstanceID() : 0;
         tellTotal = Mathf.Max(MinTellSeconds, tellSeconds);
         t = age = 0f;
