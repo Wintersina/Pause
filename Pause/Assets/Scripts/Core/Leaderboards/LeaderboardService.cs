@@ -35,6 +35,10 @@ using UnityEngine.SceneManagement;
 //     premium and tutorial gates as a run end, and uses only values that
 //     already went through them (marks) or that RunScore never saves from
 //     developer mode or the premium ship (the saved best).
+//   - Opening the in-game panel sends what is queued right away (FlushNow):
+//     it skips the backoff wait, but not sign-in, the developer-mode/premium/
+//     tutorial gates or a board still being read back. Confirmed is raised
+//     when the store is seen to hold a value, so the open panel can refresh.
 //   - Nothing here ever blocks: every store call is async and fire-and-forget.
 //
 // The queue and the submitted marks are deliberately NOT part of the cloud
@@ -319,6 +323,20 @@ public sealed class LeaderboardService
         if (soonest >= 0f && (flushDueAt < 0f || soonest < flushDueAt)) flushDueAt = soonest;
     }
 
+    // Raised (with the board id) once a send is confirmed by the read-back.
+    public event Action<string> Confirmed;
+
+    // Like Flush, but boards waiting out a backoff are sent now. For the panel
+    // opening: the player is looking at the board and wants the score there.
+    // Still needs sign-in, passes the submission gates, and leaves boards
+    // waiting on a read-back alone.
+    public void FlushNow()
+    {
+        if (!SignedIn || SubmissionBlocked()) return;
+        foreach (var entry in ScoreTable.Load(PendingKey).entries) nextSendAt.Remove(entry.board);
+        Flush();
+    }
+
     void OnSubmitted(string boardId, long value, string tag, bool ok)
     {
         inFlight.Remove(boardId);
@@ -395,6 +413,7 @@ public sealed class LeaderboardService
             failures.Remove(boardId);
             nextSendAt.Remove(boardId);
             MarkSubmitted(board, v.value, v.tag);
+            if (Confirmed != null) Confirmed(boardId);
             return;
         }
         int n;

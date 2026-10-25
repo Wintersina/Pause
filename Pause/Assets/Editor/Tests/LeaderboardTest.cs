@@ -47,6 +47,7 @@ public static class LeaderboardTest
             AccountBinding();
             BackfillGates();
             PanelStates();
+            OpenFlushesPending();
             SafeAreaFit();
             OptionsButton();
         }
@@ -835,6 +836,52 @@ public static class LeaderboardTest
     {
         var service = Service(fake);
         return LeaderboardPanel.Open(service, null, Phone, PhoneSafe);
+    }
+
+    // Opening the panel sends the queue at once, ignoring a backoff wait.
+    static void OpenFlushesPending()
+    {
+        long v;
+        // A refused score sits in its backoff; opening the panel sends it now.
+        ConfirmContext();
+        var fake = new FakeLeaderboards { SilentlyRejects = true };
+        var service = Service(fake);
+        service.Offer(LeaderboardBoards.TopScore, 700);
+        now = LeaderboardService.DebounceSeconds + .01f;
+        service.Tick();
+        now += LeaderboardService.BackoffSeconds(0) + .01f;
+        service.Tick();   // second read: refused, backing off
+        service.Flush();
+        Check("open flush: the refused score is backing off", fake.Submissions.Count == 1);
+        fake.SilentlyRejects = false;
+        service.Flush();
+        Check("open flush: a plain Flush still waits out the backoff", fake.Submissions.Count == 1);
+        LeaderboardPanel.Open(service, null, Phone, PhoneSafe);
+        Check("open flush: opening the panel sends inside the backoff", fake.Submissions.Count == 2);
+        Check("open flush: and the score is confirmed",
+              service.HasSubmitted(LeaderboardBoards.TopScore, out v) && v == 700 && !service.HasPending(LeaderboardBoards.TopScore, out v));
+        LeaderboardPanel.Close();
+
+        // Signed out: nothing is sent, the queue stays.
+        ConfirmContext();
+        fake = new FakeLeaderboards { SignedIn = false };
+        service = Service(fake);
+        service.Offer(LeaderboardBoards.TopScore, 800);
+        LeaderboardPanel.Open(service, null, Phone, PhoneSafe);
+        Check("open flush: signed out sends nothing, score stays queued",
+              fake.Submissions.Count == 0 && service.HasPending(LeaderboardBoards.TopScore, out v) && v == 800);
+        LeaderboardPanel.Close();
+
+        // Developer mode switched on after queueing still blocks the send.
+        ConfirmContext();
+        fake = new FakeLeaderboards();
+        service = Service(fake);
+        service.Offer(LeaderboardBoards.TopScore, 900);
+        PlayerPrefs.SetInt(DeveloperUnlocks.EnabledKey, 1);
+        LeaderboardPanel.Open(service, null, Phone, PhoneSafe);
+        Check("open flush: developer mode still blocks the send", fake.Submissions.Count == 0);
+        LeaderboardPanel.Close();
+        PlayerPrefs.SetInt(DeveloperUnlocks.EnabledKey, 0);
     }
 
     static void PanelStates()
