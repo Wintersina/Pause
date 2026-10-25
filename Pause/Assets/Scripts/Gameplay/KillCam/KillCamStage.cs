@@ -17,6 +17,7 @@ public sealed class KillCamStage
     readonly Transform root;
     readonly List<SpriteRenderer> pool = new List<SpriteRenderer>(256);
     readonly List<Transform> poolTf = new List<Transform>(256);
+    readonly List<Transform> frameTf = new List<Transform>(256);   // each sprite's parent: carries the first half of a sheared matrix
     readonly MaterialPropertyBlock block = new MaterialPropertyBlock();
     readonly List<Renderer> driven = new List<Renderer>(8);
     readonly List<Vector2> drivenOriginal = new List<Vector2>(8);
@@ -43,9 +44,13 @@ public sealed class KillCamStage
     {
         while (pool.Count < n)
         {
+            var frame = new GameObject("~KillCamFrame" + pool.Count);
+            frame.layer = root.gameObject.layer;
+            frame.transform.SetParent(root, false);
             var go = new GameObject("~KillCamSprite" + pool.Count, typeof(SpriteRenderer));
             go.layer = root.gameObject.layer;
-            go.transform.SetParent(root, false);
+            go.transform.SetParent(frame.transform, false);
+            frameTf.Add(frame.transform);
             var sr = go.GetComponent<SpriteRenderer>();
             if (defaultMaterial == null) defaultMaterial = sr.sharedMaterial;
             sr.enabled = false;
@@ -74,6 +79,7 @@ public sealed class KillCamStage
             Vector3 p = e.pos;
             float m00 = e.m00, m01 = e.m01, m10 = e.m10, m11 = e.m11;
             Color c = e.color;
+            Vector2 size = e.size;
             if (a > 0f)
             {
                 int j = clip.Match(g, e.track, ref cursor);
@@ -86,6 +92,7 @@ public sealed class KillCamStage
                     m10 = Mathf.LerpUnclamped(m10, b.m10, a);
                     m11 = Mathf.LerpUnclamped(m11, b.m11, a);
                     c = Color.LerpUnclamped(c, b.color, a);
+                    if (e.DrawMode != SpriteDrawMode.Simple && b.DrawMode == e.DrawMode) size = Vector2.LerpUnclamped(size, b.size, a);
                 }
             }
             sr.sprite = e.sprite;
@@ -101,23 +108,56 @@ public sealed class KillCamStage
             sr.flipY = (e.flags & KillCamEntry.FlipY) != 0;
             var mode = e.DrawMode;
             if (sr.drawMode != mode) sr.drawMode = mode;
-            if (mode != SpriteDrawMode.Simple) sr.size = e.size;
+            if (mode != SpriteDrawMode.Simple) sr.size = size;
             sr.sortingLayerID = e.layer;
             sr.sortingOrder = e.order;
 
-            float sx = Mathf.Sqrt(m00 * m00 + m10 * m10);
-            float angle = Mathf.Atan2(m10, m00) * Mathf.Rad2Deg;
-            float det = m00 * m11 - m01 * m10;
-            float sy = sx > 1e-6f ? det / sx : Mathf.Sqrt(m01 * m01 + m11 * m11);
-            var tf = poolTf[i];
-            tf.SetPositionAndRotation(p + Offset, Quaternion.Euler(0f, 0f, angle));
-            tf.localScale = new Vector3(sx, sy, 1f);
+            Place(frameTf[i], poolTf[i], p + Offset, m00, m01, m10, m11);
             sr.enabled = true;
         }
         for (int i = n; i < shown; i++) pool[i].enabled = false;
         shown = n;
 
         DrawMeshes(clip, f, g, a);
+    }
+
+    // Lays a sprite's world 2x2 matrix [[m00 m01][m10 m11]] on its transforms.
+    // A plain rotation and scale (a pure R S) sits on the sprite's own
+    // transform. A transform cannot shear, but the board does: a laser
+    // telegraph is a parallelogram (a rotated, non-uniformly scaled parent over
+    // a rotated child), so a sheared matrix is split as R(phi) S R(theta) (the
+    // closed-form 2x2 SVD): the frame takes R(phi) S, the sprite R(theta).
+    public static void Place(Transform frame, Transform tf, Vector3 pos, float m00, float m01, float m10, float m11)
+    {
+        float xl = Mathf.Sqrt(m00 * m00 + m10 * m10), yl = Mathf.Sqrt(m01 * m01 + m11 * m11);
+        float dot = m00 * m01 + m10 * m11;
+        tf.localPosition = Vector3.zero;
+        if (xl > 1e-6f && Mathf.Abs(dot) <= 1e-3f * xl * yl)
+        {
+            float det = m00 * m11 - m01 * m10;
+            frame.SetPositionAndRotation(pos, Quaternion.identity);
+            frame.localScale = Vector3.one;
+            tf.localRotation = Quaternion.Euler(0f, 0f, Mathf.Atan2(m10, m00) * Mathf.Rad2Deg);
+            tf.localScale = new Vector3(xl, det / xl, 1f);
+            return;
+        }
+        float phi, theta, s1, s2;
+        Decompose(m00, m01, m10, m11, out phi, out theta, out s1, out s2);
+        frame.SetPositionAndRotation(pos, Quaternion.Euler(0f, 0f, phi * Mathf.Rad2Deg));
+        frame.localScale = new Vector3(s1, s2, 1f);
+        tf.localRotation = Quaternion.Euler(0f, 0f, theta * Mathf.Rad2Deg);
+        tf.localScale = Vector3.one;
+    }
+
+    // M = R(phi) diag(s1, s2) R(theta), angles in radians.
+    public static void Decompose(float m00, float m01, float m10, float m11, out float phi, out float theta, out float s1, out float s2)
+    {
+        float e = (m00 + m11) * .5f, f = (m00 - m11) * .5f, g = (m10 + m01) * .5f, h = (m10 - m01) * .5f;
+        float q = Mathf.Sqrt(e * e + h * h), r = Mathf.Sqrt(f * f + g * g);
+        float a1 = Mathf.Atan2(g, f), a2 = Mathf.Atan2(h, e);
+        s1 = q + r; s2 = q - r;
+        theta = (a2 - a1) * .5f;
+        phi = (a2 + a1) * .5f;
     }
 
     void DrawMeshes(KillCamClip clip, int f, int g, float a)
@@ -210,6 +250,7 @@ public sealed class KillCamStage
         DestroyQuads();
         pool.Clear();
         poolTf.Clear();
+        frameTf.Clear();
         if (root != null) Kill(root.gameObject);
     }
 

@@ -547,7 +547,7 @@ public class RailMineLaser : MonoBehaviour
     // cannot shear, so the linear map [[w, 0], [k, len]] is split as
     // R(phi) S(sx, sy) R(theta) (the closed-form 2x2 SVD): the frame takes
     // R(phi) S, the art R(theta).
-    static void Span(Transform art, float w, float len, Vector2 dir, Sprite sprite = null)
+    public static void Span(Transform art, float w, float len, Vector2 dir, Sprite sprite = null)
     {
         len = Mathf.Max(.001f, len);
         float dx = Mathf.Abs(dir.x) > 1e-4f ? dir.x : -1e-4f;
@@ -602,7 +602,7 @@ public class RailMineLaser : MonoBehaviour
 
     // `art` (a renderer of a sprite one tile wide) tiled down the beam: `tile` is one tile's width in world units, the beam's parallelogram is
     // Span's. turned: the art's TOP is the root (the body strip), so the strip is turned half a circle.
-    static void SpanTiled(SpriteRenderer r, float tile, float len, Vector2 dir, bool turned)
+    public static void SpanTiled(SpriteRenderer r, float tile, float len, Vector2 dir, bool turned)
     {
         len = Mathf.Max(.001f, len);
         Span(r.transform, tile, len, dir);

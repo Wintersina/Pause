@@ -63,6 +63,7 @@ public static class AllTests
         ("CodexNewDotsTest", CodexNewDotsTest.Execute),
         ("DamageLogTest", DamageLogTest.Execute),
         ("KillCamTest", KillCamTest.Execute),
+        ("KillCamTelegraphTest", KillCamTelegraphTest.Execute),
         ("CodexMusicTest", CodexMusicTest.Execute),
         ("MenuMusicTest", MenuMusicTest.Execute),
         ("CodexBackdropTest", CodexBackdropTest.Execute),
