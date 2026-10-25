@@ -193,6 +193,7 @@ public static class AllTests
         ("HostileProjectileTest", HostileProjectileTest.Execute),
         ("HostileFireTest", HostileFireTest.Execute),
         ("FriendlyFireCoverageTest", FriendlyFireCoverageTest.Execute),
+        ("LaunchBannerTest", LaunchBannerTest.Execute),
         ("LaunchCountdownTest", LaunchCountdownTest.Execute),
         ("StartGlideTest", StartGlideTest.Execute),
         ("LeaderboardTest", LeaderboardTest.Execute),

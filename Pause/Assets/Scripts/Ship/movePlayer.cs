@@ -79,6 +79,8 @@ public class movePlayer : MonoBehaviour
         boostText = GameObject.Find("boostText").GetComponent<RectTransform>();
         hypeText = GameObject.Find("hypeText").GetComponent<RectTransform>();
         startTimer = GameObject.Find("goText").GetComponent<Text>();
+        // READY / GO!!!! wear the PAUSED lettering (LaunchBanner).
+        if (startTimer.GetComponent<LaunchBanner>() == null) startTimer.gameObject.AddComponent<LaunchBanner>();
         goClip = GameObject.Find("GOSound").GetComponent<AudioSource>();
         startTimerCounter = CountdownSeconds;
         goTimer = GoSeconds;
