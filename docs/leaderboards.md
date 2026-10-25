@@ -68,6 +68,19 @@ iOS only its Game Center id. A board with no id on the running platform gets no 
 * **Debounce:** the queue is sent `DebounceSeconds` (2 s, unscaled) after the last offer. It's also sent
   as soon as sign-in succeeds. A send that fails stays queued for the next sign-in or offer. If a better
   score arrives while a send is in flight, it is kept and sent afterwards.
+* **Confirm before done:** the Play Games plugin answers "ok" to a submit at once, even when the server
+  later refuses the score. So after every send the player's own entry is read back
+  (`LeaderboardService.Judge`) and the value only moves from the queue to `SubmittedKey` once the board
+  holds it or better. A refused or unreadable result stays queued and is retried with growing delays
+  (`BackoffSeconds`: 3, 10, 30, 90, then 300 s).
+* **Account binding and backfill:** `BoundPlayerKey` records which store player the submitted marks
+  belong to. On the first Flush for a new player, marks of another player are dropped, marks of an
+  unknown owner (written by older builds) go back into the queue, and the saved best score
+  (`RunScore.SavedBest`) is offered once. Blocked while developer mode, the premium ship or the
+  tutorial is active (nothing sent, binding left for later). Star dust and Furthest Loop have no saved
+  best besides the marks, so only marks cover them.
+* **Silent sign-in on resume:** `LeaderboardRunner.OnApplicationFocus` retries a failed launch sign-in
+  (`AccountLink.RetrySilentOnResume`, at most once a minute, never after SIGN OUT) and flushes the queue.
 * **Never from developer mode or the tutorial.** Nothing is offered while `DeveloperUnlocks.Enabled` is
   on, because unlocked ships and a picked start world aren't fair. Nothing is offered from practice runs
   either: the tutorial scene, a tutorial replay, or any run before the tutorial is done. That's the same

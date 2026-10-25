@@ -11,6 +11,9 @@ public sealed class FakeLeaderboards : ILeaderboardPlatform
     public bool SignedIn = true;
     public bool SignInSucceeds = true;
     public bool SubmitSucceeds = true;
+    // The Play Games plugin's behaviour when the server refuses a score: the
+    // callback still says true but the board never holds the value.
+    public bool SilentlyRejects;
     public bool LoadsFail;
     public bool DeferLoads;
     public string LocalPlayerId = "local";
@@ -41,7 +44,27 @@ public sealed class FakeLeaderboards : ILeaderboardPlatform
     public void Submit(string boardId, long score, string tag, Action<bool> done)
     {
         Submissions.Add(new Submission { board = boardId, score = score, tag = tag ?? "" });
-        if (done != null) done(IsSignedIn && SubmitSucceeds);
+        bool ok = IsSignedIn && SubmitSucceeds;
+        if (ok && !SilentlyRejects) Record(boardId, score);
+        if (done != null) done(ok);
+    }
+
+    // The store keeps the player's best only.
+    void Record(string boardId, long score)
+    {
+        List<LeaderboardEntry> list;
+        if (!Boards.TryGetValue(boardId, out list)) Boards[boardId] = list = new List<LeaderboardEntry>();
+        bool lower = false;
+        foreach (var b in LeaderboardBoards.All)
+            if (b.androidId == boardId || b.iosId == boardId) lower = b.sort == LeaderboardSort.LowerIsBetter;
+        for (int i = 0; i < list.Count; i++)
+        {
+            if (!list[i].isLocalPlayer && list[i].playerId != LocalPlayerId) continue;
+            var e = list[i];
+            if (lower ? score < e.value : score > e.value) { e.value = score; list[i] = e; }
+            return;
+        }
+        list.Add(Entry(list.Count + 1, LocalPlayerName, score, true));
     }
 
     public int SubmissionsTo(string boardId)

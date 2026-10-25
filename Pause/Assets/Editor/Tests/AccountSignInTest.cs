@@ -102,6 +102,7 @@ public static class AccountSignInTest
             GameCenterWording();
             SignOutAndBackIn();
             FreshLaunchAfterSignOut();
+            SilentRetryOnResume();
             LaunchHintOnce();
             SharedInteractivePath();
             HomeHasNoAccountButtons();
@@ -149,6 +150,8 @@ public static class AccountSignInTest
         PlayerPrefs.DeleteKey(CloudSync.BackupsKey);
         PlayerPrefs.DeleteKey(LeaderboardService.PendingKey);
         PlayerPrefs.DeleteKey(LeaderboardService.SubmittedKey);
+        PlayerPrefs.DeleteKey(LeaderboardService.BoundPlayerKey);
+        PlayerPrefs.DeleteKey(RunScore.BestScoreKey);
         PlayerPrefs.SetInt(DeveloperUnlocks.EnabledKey, 0);
         PlayerPrefs.SetString("HasDoneTut", "true");
         startMenu.youAreInTutorial = false;
@@ -377,6 +380,54 @@ public static class AccountSignInTest
         Check("next launch: SIGN IN is interactive", fake.interactiveSignIns == 1);
         fake.Complete(true, Ok);
         Check("next launch: signing in reconnects", sync.Current == CloudSync.State.Ready && !AccountLink.Disconnected);
+    }
+
+    // ---- the launch sign-in failed: try again when the app comes back ----
+
+    static void SilentRetryOnResume()
+    {
+        var savedNow = AccountLink.Now;
+        float t = 1000f;
+        AccountLink.Now = () => t;
+        try
+        {
+            ClearAccountPrefs();
+            var fake = new FakeAccount { silentOk = false };
+            Launch(fake);
+            Check("resume: the launch attempt failed", fake.silentSignIns == 1 && AccountLink.Current == AccountLink.Status.SignedOut);
+            Check("resume: a failed retry is still reported as tried", AccountLink.RetrySilentOnResume() && fake.silentSignIns == 2);
+            Check("resume: not again straight away", !AccountLink.RetrySilentOnResume() && fake.silentSignIns == 2);
+            t += AccountLink.ResumeRetrySeconds + 1f;
+            fake.silentOk = true;
+            Check("resume: retried after the throttle", AccountLink.RetrySilentOnResume() && fake.silentSignIns == 3);
+            Check("resume: the retry signed in", AccountLink.Current == AccountLink.Status.SignedIn);
+            t += AccountLink.ResumeRetrySeconds + 1f;
+            Check("resume: nothing to retry once signed in", !AccountLink.RetrySilentOnResume() && fake.silentSignIns == 3);
+
+            // SIGN OUT in Pause stays signed out, however often the app resumes.
+            ClearAccountPrefs();
+            fake = new FakeAccount { silentOk = false };
+            Launch(fake);
+            AccountLink.Disconnect();
+            fake.silentOk = true;
+            t += AccountLink.ResumeRetrySeconds + 1f;
+            Check("resume: disconnected stays disconnected, no silent attempt",
+                  !AccountLink.RetrySilentOnResume() && fake.silentSignIns == 1 && AccountLink.Current == AccountLink.Status.Disconnected);
+
+            // ... also when the app is launched already disconnected.
+            ClearAccountPrefs();
+            PlayerPrefs.SetInt(AccountLink.DisconnectedKey, 1);
+            fake = new FakeAccount { silentOk = true };
+            Launch(fake);
+            t += AccountLink.ResumeRetrySeconds + 1f;
+            Check("resume: launched disconnected, never signs in",
+                  !AccountLink.RetrySilentOnResume() && fake.silentSignIns == 0 && !fake.signedIn);
+            PlayerPrefs.DeleteKey(AccountLink.DisconnectedKey);
+        }
+        finally
+        {
+            AccountLink.Now = savedNow;
+        }
     }
 
     // ---- the home-screen hint ----

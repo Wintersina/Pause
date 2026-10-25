@@ -109,6 +109,11 @@ public sealed class CloudSync
             Debug.Log("[CloudSave] signed out of " + account.PlatformName + " in Pause; not signing in.");
             return;
         }
+        SilentSignIn();
+    }
+
+    void SilentSignIn()
+    {
         Current = State.SigningIn;
         stageStartedAt = clock();
         account.SignIn(false, ok =>
@@ -116,6 +121,15 @@ public sealed class CloudSync
             AccountLink.OnSignInResult(false, ok, account);
             OnSignedIn(ok);
         });
+    }
+
+    // Another silent attempt after the launch one failed (app resume). Never
+    // while signed out in Pause, and not while an attempt is running.
+    public bool RetrySilentSignIn()
+    {
+        if (AccountLink.Disconnected || Current != State.Offline || account.IsSignedIn) return false;
+        SilentSignIn();
+        return true;
     }
 
     // Interactive sign-in (AccountLink.SignIn); runs the same flow on success.

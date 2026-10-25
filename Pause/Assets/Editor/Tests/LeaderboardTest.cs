@@ -6,7 +6,8 @@ using UnityEngine.UI;
 
 // Leaderboard foundation: board registry, submission rules (improvement only,
 // debounced, offline queue flushed once on sign-in, nothing from developer
-// mode or the tutorial), and the in-game panel built from FakeLeaderboards in
+// mode or the tutorial, a send only counts once the board shows it, marks tied
+// to the store player and a gated one-time backfill), and the in-game panel built from FakeLeaderboards in
 // every state, at several screen shapes, opened from the real Options button.
 public static class LeaderboardTest
 {
@@ -42,6 +43,9 @@ public static class LeaderboardTest
             Blocked();
             RunTagsAndParagon();
             FurthestLoopShipHearts();
+            ConfirmBeforeDone();
+            AccountBinding();
+            BackfillGates();
             PanelStates();
             SafeAreaFit();
             OptionsButton();
@@ -72,7 +76,8 @@ public static class LeaderboardTest
     static LeaderboardService Service(FakeLeaderboards fake)
     {
         now = 0f;
-        var service = new LeaderboardService(fake, () => now) { Ios = false };
+        // No store player unless a test names one (account binding is off).
+        var service = new LeaderboardService(fake, () => now) { Ios = false, PlayerId = () => null };
         LeaderboardService.Instance = service;
         return service;
     }
@@ -560,6 +565,241 @@ public static class LeaderboardTest
     static string LeadboardTag(string key, string board)
     {
         return LeaderboardService.ScoreTable.Load(key).TagOf(board);
+    }
+
+    // ---- confirming a send, account binding, backfill ----
+
+    static void ConfirmContext()
+    {
+        RealRunContext();
+        PlayerPrefs.DeleteKey(LeaderboardService.BoundPlayerKey);
+        PlayerPrefs.DeleteKey(RunScore.BestScoreKey);
+        PlayerPrefs.DeleteKey(AccountLink.DisconnectedKey);
+    }
+
+    static LeaderboardService PlayerService(FakeLeaderboards fake, string player)
+    {
+        var service = Service(fake);
+        service.PlayerId = () => player;
+        return service;
+    }
+
+    static LeaderboardPage PageWith(long value)
+    {
+        var page = new LeaderboardPage { status = LeaderboardStatus.Ok, hasPlayer = true };
+        page.player = FakeLeaderboards.Entry(3, "ME", value, true);
+        return page;
+    }
+
+    static void ConfirmBeforeDone()
+    {
+        // The decision itself, no store involved.
+        var high = LeaderboardBoards.Get(LeaderboardBoards.TopScore);
+        var low = new LeaderboardBoard("t", "a", "i", "T", "d", LeaderboardSort.LowerIsBetter, null, r => 0);
+        var none = new LeaderboardPage { status = LeaderboardStatus.Ok };
+        Check("judge: board holds the value -> accepted", LeaderboardService.Judge(high, 100, PageWith(100)) == LeaderboardService.Verdict.Accepted);
+        Check("judge: board holds a better value -> accepted", LeaderboardService.Judge(high, 100, PageWith(150)) == LeaderboardService.Verdict.Accepted);
+        Check("judge: board holds a worse value -> rejected", LeaderboardService.Judge(high, 100, PageWith(90)) == LeaderboardService.Verdict.Rejected);
+        Check("judge: no entry for the player -> rejected", LeaderboardService.Judge(high, 100, none) == LeaderboardService.Verdict.Rejected);
+        Check("judge: failed read -> unknown", LeaderboardService.Judge(high, 100, LeaderboardPage.Failed(LeaderboardStatus.Error)) == LeaderboardService.Verdict.Unknown);
+        Check("judge: no page -> unknown", LeaderboardService.Judge(high, 100, null) == LeaderboardService.Verdict.Unknown);
+        Check("judge: lower-is-better follows the board's order",
+              LeaderboardService.Judge(low, 50, PageWith(40)) == LeaderboardService.Verdict.Accepted &&
+              LeaderboardService.Judge(low, 50, PageWith(60)) == LeaderboardService.Verdict.Rejected);
+        Check("backoff grows and is capped",
+              LeaderboardService.BackoffSeconds(0) < LeaderboardService.BackoffSeconds(1) &&
+              LeaderboardService.BackoffSeconds(1) < LeaderboardService.BackoffSeconds(3) &&
+              LeaderboardService.BackoffSeconds(4) == LeaderboardService.BackoffSeconds(40) &&
+              LeaderboardService.BackoffSeconds(0) >= 1f);
+
+        // Accepted: the board holds the value, so it counts.
+        ConfirmContext();
+        var fake = new FakeLeaderboards();
+        var service = Service(fake);
+        long v;
+        service.Offer(LeaderboardBoards.TopScore, 100);
+        now = LeaderboardService.DebounceSeconds + .01f;
+        service.Tick();
+        Check("confirm: accepted send is marked submitted and leaves the queue",
+              service.HasSubmitted(LeaderboardBoards.TopScore, out v) && v == 100 && !service.HasPending(LeaderboardBoards.TopScore, out v));
+
+        // Silently refused (the plugin said true, the board never took it): stays queued,
+        // is read again after a delay, then re-sent after a longer one, never in a loop.
+        ConfirmContext();
+        fake = new FakeLeaderboards { SilentlyRejects = true };
+        service = Service(fake);
+        service.Offer(LeaderboardBoards.TopScore, 200);
+        now = LeaderboardService.DebounceSeconds + .01f;
+        service.Tick();
+        Check("refused: one send", fake.Submissions.Count == 1);
+        Check("refused: not marked submitted, still queued",
+              !service.HasSubmitted(LeaderboardBoards.TopScore, out v) && service.HasPending(LeaderboardBoards.TopScore, out v) && v == 200);
+        now += 1f;
+        service.Tick();
+        service.Flush();
+        Check("refused: no resend or re-read inside the first delay", fake.Submissions.Count == 1);
+        now += LeaderboardService.BackoffSeconds(0);
+        service.Tick();
+        Check("refused: read again, then waits before re-sending", fake.Submissions.Count == 1);
+        now += 5f;
+        service.Tick();
+        service.Flush();
+        Check("refused: still waiting out the longer delay", fake.Submissions.Count == 1);
+        fake.SilentlyRejects = false;   // the server takes it this time
+        now += LeaderboardService.BackoffSeconds(1);
+        service.Tick();
+        Check("refused: re-sent after the backoff", fake.Submissions.Count == 2);
+        Check("refused -> accepted on the retry: marked submitted, queue cleared",
+              service.HasSubmitted(LeaderboardBoards.TopScore, out v) && v == 200 && !service.HasPending(LeaderboardBoards.TopScore, out v));
+        now += 1000f;
+        service.Tick();
+        Check("accepted: nothing more is sent", fake.Submissions.Count == 2);
+
+        // Read-back fails (offline): not marked, not re-sent, read again later.
+        ConfirmContext();
+        fake = new FakeLeaderboards { LoadsFail = true };
+        service = Service(fake);
+        service.Offer(LeaderboardBoards.TopScore, 300);
+        now = LeaderboardService.DebounceSeconds + .01f;
+        service.Tick();
+        Check("unreadable: sent once, kept pending until confirmed",
+              fake.Submissions.Count == 1 && !service.HasSubmitted(LeaderboardBoards.TopScore, out v) && service.HasPending(LeaderboardBoards.TopScore, out v));
+        fake.LoadsFail = false;
+        now += LeaderboardService.BackoffSeconds(0) + .01f;
+        service.Tick();
+        Check("unreadable -> readable: confirmed without a second send",
+              fake.Submissions.Count == 1 && service.HasSubmitted(LeaderboardBoards.TopScore, out v) && v == 300 && !service.HasPending(LeaderboardBoards.TopScore, out v));
+
+        // A read the store never answers times out and is retried; its late answer is ignored.
+        ConfirmContext();
+        fake = new FakeLeaderboards { DeferLoads = true };
+        service = Service(fake);
+        service.Offer(LeaderboardBoards.TopScore, 400);
+        now = LeaderboardService.DebounceSeconds + .01f;
+        service.Tick();
+        Check("silent read: waiting, not marked", !service.HasSubmitted(LeaderboardBoards.TopScore, out v));
+        now += LeaderboardService.SubmitTimeoutSeconds + 1f;
+        service.Tick();
+        fake.DeferLoads = false;
+        fake.CompleteLoads();
+        Check("silent read: the late answer is ignored", !service.HasSubmitted(LeaderboardBoards.TopScore, out v));
+        now += LeaderboardService.BackoffSeconds(0) + .01f;
+        service.Tick();
+        Check("silent read: retried and confirmed", service.HasSubmitted(LeaderboardBoards.TopScore, out v) && v == 400 && fake.Submissions.Count == 1);
+    }
+
+    static void AccountBinding()
+    {
+        // Marks of unknown ownership are re-queued once for the first player seen, and sent once.
+        ConfirmContext();
+        long v;
+        var old = new LeaderboardService.ScoreTable();
+        old.Set(LeaderboardBoards.TopScore, 5000, "s7h4e1");
+        old.Save(LeaderboardService.SubmittedKey);
+        var fake = new FakeLeaderboards();
+        var service = PlayerService(fake, "gp-A");
+        service.Flush();
+        Check("backfill: an old mark is sent again, with its tag",
+              fake.SubmissionsTo(TopScoreId) == 1 && fake.Submissions[0].score == 5000 && fake.Submissions[0].tag == "s7h4e1");
+        Check("backfill: the player is remembered", PlayerPrefs.GetString(LeaderboardService.BoundPlayerKey) == "gp-A");
+        Check("backfill: confirmed, marked again", service.HasSubmitted(LeaderboardBoards.TopScore, out v) && v == 5000);
+        service.Flush();
+        now += 100f;
+        service.Tick();
+        Check("backfill: only once", fake.Submissions.Count == 1);
+        var relaunch = PlayerService(new FakeLeaderboards(), "gp-A");
+        relaunch.Flush();
+        Check("backfill: not again on a relaunch for the same player", ((FakeLeaderboards)relaunch.Platform).Submissions.Count == 0);
+
+        // Another player on the same device: the marks say nothing about their boards and are cleared, not re-sent.
+        var other = new FakeLeaderboards();
+        var switched = PlayerService(other, "gp-B");
+        switched.Flush();
+        Check("account switch: the old player's marks are cleared", !switched.HasSubmitted(LeaderboardBoards.TopScore, out v));
+        Check("account switch: another player's score is not sent", other.Submissions.Count == 0);
+        Check("account switch: bound to the new player", PlayerPrefs.GetString(LeaderboardService.BoundPlayerKey) == "gp-B");
+        Check("account switch: the new player's scores queue normally", switched.Offer(LeaderboardBoards.TopScore, 400));
+
+        // The saved best is offered once too (a best made before the board existed).
+        ConfirmContext();
+        PlayerPrefs.SetInt(RunScore.BestScoreKey, 777);
+        fake = new FakeLeaderboards();
+        service = PlayerService(fake, "gp-A");
+        service.Flush();
+        Check("backfill: the saved best score is sent", fake.SubmissionsTo(TopScoreId) == 1 && fake.Submissions[0].score == 777);
+        service.Flush();
+        Check("backfill: the saved best is sent once", fake.Submissions.Count == 1);
+
+        // No player id yet: nothing is bound or sent.
+        ConfirmContext();
+        PlayerPrefs.SetInt(RunScore.BestScoreKey, 777);
+        fake = new FakeLeaderboards();
+        service = PlayerService(fake, null);
+        service.Flush();
+        Check("no player id: no backfill, nothing bound", fake.Submissions.Count == 0 && PlayerPrefs.GetString(LeaderboardService.BoundPlayerKey) == "");
+    }
+
+    static void BackfillGates()
+    {
+        // Developer mode: the backfill neither sends nor uses itself up.
+        ConfirmContext();
+        PlayerPrefs.SetInt(RunScore.BestScoreKey, 777);
+        var marks = new LeaderboardService.ScoreTable();
+        marks.Set(LeaderboardBoards.FurthestWorld, 9, "s7h4e1");
+        marks.Save(LeaderboardService.SubmittedKey);
+        PlayerPrefs.SetInt(DeveloperUnlocks.EnabledKey, 1);
+        var fake = new FakeLeaderboards();
+        var service = PlayerService(fake, "gp-A");
+        service.Flush();
+        now += 100f;
+        service.Tick();
+        long v;
+        Check("backfill blocked in developer mode: nothing sent", fake.Submissions.Count == 0);
+        Check("backfill blocked in developer mode: nothing queued or bound",
+              !service.HasPending(LeaderboardBoards.TopScore, out v) && !service.HasPending(LeaderboardBoards.FurthestWorld, out v) &&
+              PlayerPrefs.GetString(LeaderboardService.BoundPlayerKey) == "");
+        PlayerPrefs.SetInt(DeveloperUnlocks.EnabledKey, 0);
+        service.Flush();
+        Check("backfill after developer mode is off: sent",
+              fake.SubmissionsTo(TopScoreId) == 1 && fake.SubmissionsTo(LeaderboardBoards.Get(LeaderboardBoards.FurthestWorld).androidId) == 1);
+
+        // Premium ship equipped: same.
+        ConfirmContext();
+        PlayerPrefs.SetInt(RunScore.BestScoreKey, 777);
+        marks.Save(LeaderboardService.SubmittedKey);
+        PlayerPrefs.SetString(ShipId.OwnedKey(PremiumShips.Paragon), "True");
+        PlayerPrefs.SetInt(ShipId.SelectedKey, PremiumShips.Paragon);
+        fake = new FakeLeaderboards();
+        service = PlayerService(fake, "gp-A");
+        service.Flush();
+        now += 100f;
+        service.Tick();
+        Check("backfill blocked on the premium ship: nothing sent, nothing bound",
+              fake.Submissions.Count == 0 && PlayerPrefs.GetString(LeaderboardService.BoundPlayerKey) == "");
+        PlayerPrefs.SetInt(ShipId.SelectedKey, ShipId.Starter);
+        PlayerPrefs.DeleteKey(ShipId.OwnedKey(PremiumShips.Paragon));
+
+        // A premium-tagged mark is never re-queued, whoever flies now.
+        ConfirmContext();
+        var tainted = new LeaderboardService.ScoreTable();
+        tainted.Set(LeaderboardBoards.TopScore, 9999, "s16h14");
+        tainted.Save(LeaderboardService.SubmittedKey);
+        fake = new FakeLeaderboards();
+        service = PlayerService(fake, "gp-A");
+        service.Flush();
+        Check("backfill: a premium-tagged mark is not re-sent", fake.Submissions.Count == 0);
+
+        // SIGN OUT in Pause: nothing is bound or sent until the player signs in again.
+        ConfirmContext();
+        PlayerPrefs.SetInt(RunScore.BestScoreKey, 777);
+        PlayerPrefs.SetInt(AccountLink.DisconnectedKey, 1);
+        fake = new FakeLeaderboards();
+        service = PlayerService(fake, "gp-A");
+        service.Flush();
+        Check("disconnected: no backfill, nothing bound", fake.Submissions.Count == 0 && PlayerPrefs.GetString(LeaderboardService.BoundPlayerKey) == "");
+        PlayerPrefs.DeleteKey(AccountLink.DisconnectedKey);
+        service.Flush();
+        Check("signed in again: the backfill runs", fake.SubmissionsTo(TopScoreId) == 1);
     }
 
     // ---- panel ----
