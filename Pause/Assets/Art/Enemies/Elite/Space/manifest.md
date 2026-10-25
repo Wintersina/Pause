@@ -2,7 +2,10 @@
 
 The four Space elites, redesigned in the grounded military / industrial language of the Steel Hound and the Static / Mirror Bastion
 (hard-surface plating, real weight, restrained shapes, accent colours inset as strips and lamps) in place of the earlier intricate
-and then cartoony versions. The ships stay level: there are no bank / swing cells, the animation is the engines burning.
+and then cartoony versions. The animation is the engines burning. Since Oct 25 each ship also banks: Codex drew a bank-left master per ship
+(`src~/space_elites_engine_burn/masters/bank/<name>_left.png`, brief `prompts/bank_left.md`), bank right is its mirror, and
+`build_banks.py` gives each side a 3-drawing burn loop in the companion strip `space_elite_<name>_banks.png` (cells 17-19 bank left,
+20-22 bank right; lights: `_lights_banks.png` from `new_docks_lights~/build_art.py`).
 
 Each `space_elite_<name>.png` is a transparent 6528 x 384 strip of seventeen 384 x 384 cells (def `cellPixels` 384):
 
@@ -12,6 +15,7 @@ Each `space_elite_<name>.png` is a transparent 6528 x 384 strip of seventeen 384
 | 1 | Pilot lights |
 | 2 | Ignition (stub flames) |
 | 3-10 | Burn cycle: 8 drawings, each engine on its own phase (the flight loop and the codex loop) |
+| 17-22 | Bank loops (`_banks.png` companion): 17-19 bank left, 20-22 bank right, each a 3-drawing burn |
 | 11-16 | Damaged burn loop (def `damagedLoop`): the damaged hull (cracked plating) with its painted flames erased, a weaker, ragged, flickering burn on EVERY engine, each on its own phase, one engine sputtering now and then; cell 11 is also the debris source |
 
 `<name>_death.png` is 3 x 384 (flash, rupture, dispersal), cut from the bare hull cell 0.

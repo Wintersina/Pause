@@ -40,7 +40,7 @@ public static class AllTests
     // cleans up after itself through TestHarness.Sandbox.
     static readonly HashSet<string> TimingPinned = new HashSet<string>
     {
-        "EliteTest", "EliteFoundationTest", "EliteScriptTest", "EliteEvasionTest", "SpaceEliteTest", "FrostEliteTest", "TideEliteTest", "EmberEliteTest", "VerdantEliteTest", "StormEliteTest", "DesertEliteTest",
+        "EliteTest", "EliteBankTest", "EliteFoundationTest", "EliteScriptTest", "EliteEvasionTest", "SpaceEliteTest", "FrostEliteTest", "TideEliteTest", "EmberEliteTest", "VerdantEliteTest", "StormEliteTest", "DesertEliteTest",
     };
 
     static readonly (string name, Func<int> execute)[] Suites =
@@ -152,6 +152,7 @@ public static class AllTests
         ("DeathHapticsTest", DeathHapticsTest.Execute),
         ("PrivacyLinkTest", PrivacyLinkTest.Execute),
         ("EliteTest", EliteTest.Execute),
+        ("EliteBankTest", EliteBankTest.Execute),
         ("EliteFoundationTest", EliteFoundationTest.Execute),
         ("EliteScriptTest", EliteScriptTest.Execute),
         ("EliteFightZoneTest", EliteFightZoneTest.Execute),
@@ -283,6 +284,7 @@ public static class AllTests
         ("TideSoundTest", TideSoundTest.Execute),
         ("StormSoundTest", StormSoundTest.Execute),
         ("DesertSoundTest", DesertSoundTest.Execute),
+        ("OutOfPausesFlashTest", OutOfPausesFlashTest.Execute),
         ("DesertRosterTest", DesertRosterTest.Execute),
         ("EnemyWorldPaletteTest", EnemyWorldPaletteTest.Execute),
         ("WorldFlagsTest", WorldFlagsTest.Execute),

@@ -77,7 +77,7 @@ public static class CodexAchievementsTabTest
 
     static void Tabs(CodexPanel panel)
     {
-        Check("eight tabs: the six categories, ACHIEVEMENTS, MUSIC (BACKDROPS lives in a world's detail)", CodexPanel.TabCount == 8 && CodexPanel.MusicTab == 7 && panel.TabLabel(CodexPanel.MusicTab).text == "MUSIC" && CodexPanel.Tabs.Length == 6 &&
+        Check("eight tabs: ACHIEVEMENTS first, five categories, MUSIC, LOG last (BACKDROPS lives in a world's detail)", CodexPanel.TabCount == 8 && CodexPanel.MusicTab == 6 && CodexPanel.LogTab == 7 && panel.TabLabel(CodexPanel.LogTab).text == "LOG" && panel.TabLabel(CodexPanel.MusicTab).text == "MUSIC" && CodexPanel.Tabs.Length == 6 &&
               panel.TabLabel(CodexPanel.AchievementsTab).text == "ACHIEVEMENTS" && CodexPanel.TabsPerRow == 4);
         foreach (var (name, safe) in Screens)
         {
@@ -134,7 +134,7 @@ public static class CodexAchievementsTabTest
         Check("a counter shows a progress bar (0/250)", v.CardBarVisible(bar) && v.CardBarText(bar).text == "0/250" && !v.CardTier(bar).gameObject.activeSelf);
         Check("a one-shot shows no bar", !v.CardBarVisible(plain));
         Check("the ACHIEVEMENTS tab is highlighted, the others idle",
-              panel.TabLabel(CodexPanel.AchievementsTab).color == CodexUi.Body && panel.TabLabel(0).color == CodexUi.Muted);
+              panel.TabLabel(CodexPanel.AchievementsTab).color == CodexUi.Body && panel.TabLabel(CodexPanel.LogTab).color == CodexUi.Muted);
         panel.ShowCategory(CodexCategory.Enemies);
         panel.SkipAnimations();
         Check("another tab hides it again and brings the entries back", !panel.AchievementsOpen && !v.Active && panel.VisibleCards > 0 &&
@@ -402,7 +402,7 @@ public static class CodexAchievementsTabTest
         var tabFrame = (RectTransform)panel.TabLabel(CodexPanel.AchievementsTab).transform.parent;
         var h5 = Tap(panel, ScreenCentre(tabFrame));
         Check("a real tap on the ACHIEVEMENTS tab opens it", h5 == tabFrame.gameObject && panel.AchievementsOpen);
-        var logTab = (RectTransform)panel.TabLabel(0).transform.parent;
+        var logTab = (RectTransform)panel.TabLabel(CodexPanel.LogTab).transform.parent;
         Tap(panel, ScreenCentre(logTab));
         Check("a real tap on LOG leaves it", !panel.AchievementsOpen && panel.Category == CodexCategory.Log);
         panel.ShowTab(CodexPanel.AchievementsTab);
@@ -421,7 +421,7 @@ public static class CodexAchievementsTabTest
         panel.SkipAnimations();
         CodexPanel.Open(CodexUi.FindFont());
         panel.SkipAnimations();
-        Check("closing and reopening starts on the entries again", !panel.AchievementsOpen && panel.IsOpen);
+        Check("closing and reopening starts on ACHIEVEMENTS again", panel.AchievementsOpen && panel.IsOpen);
         panel.ShowTab(CodexPanel.AchievementsTab);
         panel.SkipAnimations();
     }

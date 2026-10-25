@@ -218,7 +218,9 @@ public class score : MonoBehaviour {
     }
     void pauseCounterFunction()
     {
+        int before = pauseCounter;
         pauseCounter = pauseCounter - 1;
+        OutOfPausesFlash.OnPauseSpent(before, pauseCounter);
         pauseCounterBool = true;
         AchievementTracker.OnPauseSpent();
         PowerUpRefund.OnPauseSpent();

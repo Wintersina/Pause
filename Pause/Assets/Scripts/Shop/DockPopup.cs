@@ -40,6 +40,9 @@ public class DockPopup : MonoBehaviour
     public const float WeaponRowHeight = 20f;
     public const float StartSpeedLineHeight = 18f;
     public const float OwnedHeight = BaseHeight + SkinRowHeight + WeaponRowHeight + StartSpeedLineHeight;
+    // Paragon only: a one-line warning strip along the card's bottom edge
+    // (PremiumShips.LeaderboardNotice). Other ships' cards are unchanged.
+    public const float NoticeHeight = 18f;
     public const float TailUnits = 14f;
     // The whole card is drawn at this fraction of its original size (the
     // layout above is the original, 100%): one constant, applied to the unit
@@ -88,7 +91,13 @@ public class DockPopup : MonoBehaviour
     // (the skin on the hull right now).
     public bool SkinRowVisible { get; private set; }
     public int SkinShown { get; private set; }
-    public float CurrentHeightUnits { get { return SkinRowVisible ? OwnedHeight : BaseHeight; } }
+    public float CurrentHeightUnits { get { return (SkinRowVisible ? OwnedHeight : BaseHeight) + (noticeOn ? NoticeHeight : 0f); } }
+    // The leaderboard warning strip (Paragon's card only).
+    bool noticeOn;
+    Text notice;
+    public bool NoticeVisible { get { return noticeOn; } }
+    public string NoticeText { get { return noticeOn && notice != null ? notice.text : ""; } }
+    public Color NoticeColor { get { return notice != null ? notice.color : Color.clear; } }
     public float CurrentHeight { get { return CurrentHeightUnits * Unit; } }
 
     public class Swatch
@@ -142,7 +151,7 @@ public class DockPopup : MonoBehaviour
     {
         float u = (worldPerPoint > 0f ? worldPerPoint : DefaultUnit) * PopupScale;
         if (safeView.width > 0f) u = Mathf.Min(u, safeView.width / PanelWidth);
-        if (safeView.height > 0f) u = Mathf.Min(u, safeView.height / (OwnedHeight + TailUnits));
+        if (safeView.height > 0f) u = Mathf.Min(u, safeView.height / (OwnedHeight + (noticeOn ? NoticeHeight : 0f) + TailUnits));
         Unit = u;
         if (gameObject.activeInHierarchy) Follow();
     }
@@ -184,6 +193,18 @@ public class DockPopup : MonoBehaviour
         Stretch(body);
         body.offsetMax = new Vector2(0f, -PreviewHeight);
         BuildPreview();
+
+        // Paragon's warning strip: amber, under the action button (the body is raised above it while it shows).
+        notice = Label("Notice", panel, font, SmallSize, TextAnchor.MiddleCenter, AkiraPalette.Amber);
+        notice.fontStyle = FontStyle.Bold;
+        notice.horizontalOverflow = HorizontalWrapMode.Wrap;
+        notice.verticalOverflow = VerticalWrapMode.Truncate;
+        notice.resizeTextForBestFit = true;
+        notice.resizeTextMinSize = SmallSize - 2;
+        notice.resizeTextMaxSize = SmallSize;
+        notice.text = PremiumShips.LeaderboardNotice;
+        Place(notice.rectTransform, new Vector2(.5f, 0f), new Vector2(0f, 3f), new Vector2(PanelWidth - 2f * Pad, NoticeHeight - 4f), new Vector2(.5f, 0f));
+        notice.gameObject.SetActive(false);
 
         // Line 1: the ship's name, and the close button in the corner.
         title = Label("Title", body, font, TitleSize, TextAnchor.MiddleLeft, AkiraPalette.Bone);
@@ -771,6 +792,14 @@ public class DockPopup : MonoBehaviour
 
     static Color Dim(Color c, float k) { return new Color(c.r * k, c.g * k, c.b * k, 1f); }
 
+    // Shows / hides Paragon's warning strip and makes room for it (Resize follows).
+    void SetNotice(bool on)
+    {
+        noticeOn = on;
+        notice.gameObject.SetActive(on);
+        body.offsetMin = new Vector2(0f, on ? NoticeHeight : 0f);
+    }
+
     void Resize()
     {
         ((RectTransform)transform).sizeDelta = new Vector2(PanelWidth, CurrentHeightUnits);
@@ -866,6 +895,7 @@ public class DockPopup : MonoBehaviour
             buttonLabel.text = "BUY";
             buttonImage.color = affordable ? DockArt.Gold : AkiraPalette.GunHi;
         }
+        SetNotice(PremiumShips.IsPremium(index));
         HideSkins();
         if (!owned) ShowLockedSpeed(index);
         FitHeader();

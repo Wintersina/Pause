@@ -226,8 +226,9 @@ public static class CodexCatalogue
         };
 
         // ------------------------------------------------------------- Bosses
-        // Secret: hidden from the codex until the pilot first meets one at
-        // the end of its world (BossEncounter discovers it by id).
+        // Every boss is listed from the start (like enemies and elites): undiscovered ones show as the
+        // locked silhouette / "???" until the pilot meets one at the end of its world (BossEncounter
+        // discovers it by id).
         int enemyEnd = 0;
         for (int i = 0; i < list.Count; i++) if (list[i].category == CodexCategory.Enemies) enemyEnd = i + 1;
         var bosses = new List<CodexEntry>();
@@ -236,7 +237,7 @@ public static class CodexCatalogue
             var def = boss;
             bosses.Add(new CodexEntry(def.id, BossDisplayName(def.name), CodexCategory.Enemies,
                 () => BossArt.Body(def, BossArt.Portrait), def.lore + "\n\n" + BossAttackLore(def),
-                null, false, secret: true));
+                null, false));
         }
         list.InsertRange(enemyEnd, bosses);
 
@@ -464,7 +465,7 @@ public static class CodexCatalogue
         { "UFO", "Nobody knows who built this saucer, and it isn't telling." },
         { "Dove", "A peaceful-looking ship with a not-so-peaceful ultimate." },
         { "Turtle", "Never slow, always tough: a shell built to shrug off space itself." },
-        { "Paragon", "A prototype nobody was meant to fly: ten hearts of armour, a shield that raises itself and a nuke that clears the screen. Coming soon." },
+        { "Paragon", "A prototype nobody was meant to fly: ten hearts of armour, a shield that raises itself and a nuke that clears the screen. Cheat ship: not on leaderboards. Coming soon." },
     };
 
     // ---------------------------------------------------------------------

@@ -665,19 +665,19 @@ public static class BossEncounterTest
         var entry = Codex.Find(BossCatalog.ForWorld(0).id);
         Check("each boss has a codex entry", entry != null && Codex.Find(BossCatalog.ForWorld(3).id) != null);
         Check("boss lore tells the pilot's story", entry != null && entry.lore.Length > 40);
-        int total = Codex.Total;
-        Check("hidden before the first encounter", entry != null && !Codex.IsListed(entry) && !Codex.IsDiscovered(entry));
+        int total = Codex.Total, found = Codex.DiscoveredCount;
+        Check("listed but locked before the first encounter", entry != null && Codex.IsListed(entry) && !Codex.IsDiscovered(entry));
         Check("CodexPanel skips unlisted entries",
               File.ReadAllText("Assets/Scripts/Codex/CodexPanel.cs").Contains("!Codex.IsListed(e)"));
 
         PlayerPrefs.SetInt(DeveloperUnlocks.EnabledKey, 1);
         Check("developer mode reveals it", Codex.IsListed(entry) && Codex.IsDiscovered(entry) && Codex.DiscoveredCount == Codex.Total);
         PlayerPrefs.SetInt(DeveloperUnlocks.EnabledKey, 0);
-        Check("... without recording it", !Codex.IsListed(entry));
+        Check("... without recording it", Codex.IsListed(entry) && !Codex.IsDiscovered(entry));
 
         BossEncounter.Begin(0, null);
         BossEncounter.Instance.Step(.1f, 1f);
-        Check("meeting the boss reveals it", Codex.IsListed(entry) && Codex.IsDiscovered(entry) && Codex.Total == total + 1);
+        Check("meeting the boss reveals it", Codex.IsListed(entry) && Codex.IsDiscovered(entry) && Codex.Total == total && Codex.DiscoveredCount == found + 1);
         Codex.Reload();
         Check("... and it stays revealed", Codex.IsDiscovered(entry));
     }

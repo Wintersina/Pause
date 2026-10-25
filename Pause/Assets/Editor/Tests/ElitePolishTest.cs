@@ -138,7 +138,9 @@ public static class ElitePolishTest
             int S = d.cellPixels, w, h;
             var px = LoadStrip(d, out w, out h);
             if (px == null) { Check(d.key + ": strip loads", false); continue; }
-            Check(d.key + ": the strip holds every damaged-loop cell (" + (w / S) + " cells, needs " + c.Count + ")", w / S >= c.Count);
+            int need = 0;
+            foreach (int dc in c.damagedLoop) need = Mathf.Max(need, dc + 1);   // (Space's bank loops follow in the <key>_banks companion: EliteBankTest)
+            Check(d.key + ": the strip holds every damaged-loop cell (" + (w / S) + " cells, needs " + need + ")", w / S >= need);
             int parked = c.Parked;
             bool all = true;
             string log = "";

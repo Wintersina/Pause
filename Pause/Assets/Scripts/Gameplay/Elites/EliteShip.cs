@@ -190,6 +190,9 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
     float hullBase = 1f, lean, recoilLen;
     Vector2 recoilDir;
     int bankCell;   // -1 left, 0 straight, 1 right (steering frames)
+    int bankStep;   // the drawing of an animated bank loop (EliteCells.bankLeftLoop / bankRightLoop)
+    float bankHold;
+    int mountedCell = int.MinValue;   // the strip cell the engine glows / plumes are mounted for (they follow its drawn bells)
     Vector2[] nozzleLocal;
     float[] nozzleAngle;
     SpriteRenderer sight;
@@ -395,8 +398,8 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
         hull.sortingOrder = site.order;
         // (docked inside a Space body: hidden, only its engine lights show in the launch tell)
         hull.color = site.emerge ? Docked : Haze;
-        if (parkedFrames != null) hull.sprite = parkedFrames[0];
-        else if (frames != null) hull.sprite = frames[Mathf.Min(Def.cells.Parked, frames.Length - 1)];
+        if (parkedFrames != null) { hull.sprite = parkedFrames[0]; MountNozzles(-1); }
+        else if (frames != null) { hull.sprite = frames[Mathf.Min(Def.cells.Parked, frames.Length - 1)]; MountNozzles(Def.cells.Parked); }
         SetOrders(site.order);
         thrust = 0f;
         RenderEngines(0f);
@@ -1755,6 +1758,26 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
     }
 
     public int NozzleCount => nozzleLocal != null ? nozzleLocal.Length : 0;
+    // Nozzle i's mount in the hull's own frame (before scale / rotation), as currently drawn.
+    public Vector2 NozzleLocalNow(int i) => nozzleLocal != null && nozzleLocal.Length > 0 ? nozzleLocal[Mathf.Clamp(i, 0, nozzleLocal.Length - 1)] : Vector2.zero;
+    public int MountedCell => mountedCell;
+    // Where engine i's glow sits in the hull's frame now (tests: it follows the drawn bell).
+    public Vector2 GlowLocal(int i) => glows != null && i >= 0 && i < glows.Length && glows[i] != null ? (Vector2)glows[i].transform.localPosition : Vector2.zero;
+
+    // The engine glows / plume mounts sit on the drawn bells of strip cell `cell` (ElitePoint.offsets: the hull banks, lifts off and
+    // parks in other drawings, so the bells move); -1: the hover cell's points (a separate parked / lift-off strip). Only when the cell
+    // changes; no allocation.
+    void MountNozzles(int cell)
+    {
+        if (cell == mountedCell || nozzleLocal == null) return;
+        mountedCell = cell;
+        for (int i = 0; i < nozzleLocal.Length; i++)
+        {
+            nozzleLocal[i] = cell >= 0 ? Def.NozzleLocal(i, cell) : Def.PixelToLocal(Def.nozzles[i].x, Def.nozzles[i].y);
+            if (plumes != null && plumes[i] != null) plumes[i].transform.localPosition = nozzleLocal[i];
+            if (glows != null && glows[i] != null) glows[i].transform.localPosition = nozzleLocal[i];
+        }
+    }
 
     public static Vector2 Rotate(Vector2 v, float deg)
     {
@@ -1790,7 +1813,7 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
         lightCell = -1;     // (the drawn parked / lift-off strips carry their own light)
         if (State == EliteState.Parked)
         {
-            if (parkedFrames != null) { SetSprite(parkedFrames[Mathf.FloorToInt(stateTime / (4f * EliteArt.Tick)) % parkedFrames.Length]); CurrentFrame = 0; return; }
+            if (parkedFrames != null) { SetSprite(parkedFrames[Mathf.FloorToInt(stateTime / (4f * EliteArt.Tick)) % parkedFrames.Length]); CurrentFrame = 0; MountNozzles(-1); return; }
             // the launch tell: the lit cell blinks with the engine lights
             frame = c.parkedIdle >= 0 && ParkedLightsOn ? c.parkedIdle : c.Parked;
         }
@@ -1799,6 +1822,7 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
             int f = Mathf.Min(liftFrames.Length - 1, Mathf.FloorToInt(liftClock / LiftSeconds * liftFrames.Length));
             SetSprite(liftFrames[f]);
             CurrentFrame = 0;
+            MountNozzles(-1);
             return;
         }
         else if (State == EliteState.LiftOff && c.liftoff >= 0)
@@ -1809,6 +1833,7 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
         else frame = FlightFrame(dt);
         CurrentFrame = frame;
         SetSprite(frames[Mathf.Min(frame, frames.Length - 1)]);
+        MountNozzles(frame);
         // the lights wear the hull's cell, the damaged one and the burn cycle included; parked they are off until the pilot lights
         // blink on in the launch tell (the pilot-light cell)
         lightCell = State != EliteState.Parked || (c.parkedIdle >= 0 && frame == c.parkedIdle) ? frame : -1;
@@ -1882,9 +1907,27 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
         if (c.Banks)
         {
             float side = velocity.x / Mathf.Max(.1f, Def.speed);
+            int was = bankCell;
             if (bankCell == 0 && Mathf.Abs(side) > BankEnter) bankCell = side < 0f ? -1 : 1;
             else if (bankCell != 0 && (Mathf.Abs(side) < BankExit || Mathf.Sign(side) != bankCell)) bankCell = 0;
-            if (bankCell != 0) return bankCell < 0 ? c.bankLeft : c.bankRight;
+            if (bankCell != 0)
+            {
+                int[] loop = c.BankLoop(bankCell);
+                // (a fresh bank starts on its first drawing; an animated bank keeps its plumes burning at the flight loop's rhythm)
+                if (bankCell != was) { bankStep = 0; bankHold = EliteArt.IdleTicks[0] * EliteArt.Tick; }
+                else if (loop.Length > 1)
+                {
+                    bankHold -= dt;
+                    if (bankHold <= 0f)
+                    {
+                        bankStep = (bankStep + 1) % loop.Length;
+                        float hold = EliteArt.IdleTicks[bankStep % EliteArt.IdleTicks.Length] * EliteArt.Tick;
+                        bankHold += hold;
+                        if (bankHold <= 0f) bankHold = hold;
+                    }
+                }
+                return loop[bankStep % loop.Length];
+            }
         }
         int n = c.flight.Length;
         if (n <= 1) return c.Flight0;
