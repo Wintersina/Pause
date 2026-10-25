@@ -18,12 +18,14 @@
     {
       "x": 93.5,
       "y": 8.5,
-      "scale": 0.72
+      "scale": 0.72,
+      "offsets": [0.0, -0.0, 0, 4, 0, 4, 0, 0, 0, 0, 0, -4, -26.0, 15.0, 36.0, -0.0, 0, 0]
     },
     {
       "x": 139.5,
       "y": 8.5,
-      "scale": 0.72
+      "scale": 0.72,
+      "offsets": [0.0, -0.0, 0, 4, 0, 4, 0, 0, 0, 0, 0, -4, -33.0, -0.0, 4.0, 2.0, 0, 0]
     }
   ],
   "damageNote": "1) left wing panel blown, wiring sparks; scorched right wing; 2) right wingtip torn off, spine cracked, right pod burning, canopy cracked",

@@ -18,12 +18,14 @@
     {
       "x": 29.5,
       "y": 15.5,
-      "scale": 0.72
+      "scale": 0.72,
+      "offsets": [0.0, -0.0, 0, 4, 0, 3, 0, 0, 0, -1, 0, -4, 8, 2, 20, -2, 0, 0]
     },
     {
       "x": 216.5,
       "y": 15.5,
-      "scale": 0.72
+      "scale": 0.72,
+      "offsets": [0.0, -0.0, 0, 4, 0, 3, 0, 0, 0, -1, 0, -4, -20, -2, -9, 2, 0, 0]
     }
   ],
   "damageNote": "1) disc rim panel blown; left pod smoking; 2) right pod torn open, right strut bent, disc wiring arcing, canopy cracked",

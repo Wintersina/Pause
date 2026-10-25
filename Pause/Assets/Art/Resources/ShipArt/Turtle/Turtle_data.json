@@ -18,7 +18,8 @@
     {
       "x": 88.5,
       "y": 8.5,
-      "scale": 1.0
+      "scale": 1.0,
+      "offsets": [0.0, -0.0, 0, 4, 0, 4, 0, 0, 0, 0, 0, -4, -2.0, -0.0, 3.0, -0.0, 0, 0]
     }
   ],
   "damageNote": "1) shell plate blown, scute cracked; tail smoking; 2) rear scute shattered and arcing, front flipper bent, shell torn, canopy cracked",

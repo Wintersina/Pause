@@ -18,12 +18,14 @@
     {
       "x": 82.5,
       "y": 8.5,
-      "scale": 0.72
+      "scale": 0.72,
+      "offsets": [0.0, -0.0, 0, 4, 0, 4, 0, 0, 0, 0, 0, -4, 0.0, -0.0, 4.0, -0.0, 0, 0]
     },
     {
       "x": 116.5,
       "y": 8.5,
-      "scale": 0.72
+      "scale": 0.72,
+      "offsets": [0.0, -0.0, 0, 4, 0, 4, 0, 0, 0, 0, 0, -4, -4.0, -0.0, -1.0, -0.0, 0, 0]
     }
   ],
   "damageNote": "1) left wing panel blown; left pod smoking; 2) right canard bent, right wingtip torn, right wing wiring arcing, canopy cracked",

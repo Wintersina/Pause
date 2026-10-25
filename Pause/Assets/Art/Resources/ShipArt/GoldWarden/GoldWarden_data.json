@@ -18,17 +18,20 @@
     {
       "x": 108.5,
       "y": 12.5,
-      "scale": 1.0
+      "scale": 1.0,
+      "offsets": [0.0, -0.0, 0, 4, 0, 4, 0, 0, 0, 0, 0, -4, -3, 0, 3, 0, 0, 0]
     },
     {
       "x": 77.5,
       "y": 52.5,
-      "scale": 0.5
+      "scale": 0.5,
+      "offsets": [0.0, -0.0, 0, 4, 0, 4, 0, 0, 0, 0, 0, -4, 0, 0, 3, 0, 0, 0]
     },
     {
       "x": 140.5,
       "y": 52.5,
-      "scale": 0.5
+      "scale": 0.5,
+      "offsets": [0.0, -0.0, 0, 4, 0, 4, 0, 0, 0, 0, 0, -4, -3, 0, 0, 0, 0, 0]
     }
   ],
   "damageNote": "1) right wing panel blown; left engine smoking; 2) left gun barrel bent, left wingtip torn, belly panel open and arcing, canopy cracked",

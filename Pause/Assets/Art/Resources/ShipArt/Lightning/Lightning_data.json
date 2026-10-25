@@ -18,12 +18,14 @@
     {
       "x": 73.5,
       "y": 8.5,
-      "scale": 0.72
+      "scale": 0.72,
+      "offsets": [0.0, -0.0, 0, 4, 0, 4, 0, 0, 0, 0, 0, -4, -19.0, 16.0, 8.0, 3.0, 0, 0]
     },
     {
       "x": 161.5,
       "y": 8.5,
-      "scale": 0.72
+      "scale": 0.72,
+      "offsets": [0.0, -0.0, 0, 4, 0, 4, 0, 0, 0, 0, 0, -4, -14.0, -3.0, 13.0, 10.0, 0, 0]
     }
   ],
   "damageNote": "1) left pod panel blown; left pod engine smoking; 2) right wingtip torn, right pod nose bent, right pod on fire, canopy cracked",

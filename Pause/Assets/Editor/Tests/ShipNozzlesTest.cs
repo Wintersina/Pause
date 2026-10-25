@@ -56,6 +56,22 @@ public static class ShipNozzlesTest
                 if (n < mounts.Length)
                     Check(name + " plume " + n + " is mounted on that nozzle",
                           Vector2.Distance((Vector2)mounts[n], local) < .0001f);
+                if (nz.offsets == null) continue;
+
+                // The nozzle follows the bob and the bank: one (dx, dy) per hull column,
+                // and the shifted point sits on that column's own painted pixels.
+                Check(name + " nozzle " + n + " has an offset for every hull column",
+                      nz.offsets.Length == ShipHullArt.Columns * 2);
+                for (int col = 0; col < ShipHullArt.Columns && nz.offsets.Length == ShipHullArt.Columns * 2; col++)
+                {
+                    var frame = ShipHullArt.Get(i, 0, col);
+                    if (frame == null || pixels == null) continue;
+                    Check(name + " nozzle " + n + " follows column " + col + " onto painted pixels",
+                          NearOpaque(pixels, frame.rect, nz.x + nz.offsets[col * 2], nz.y + nz.offsets[col * 2 + 1], 2f));
+                    Vector2 shifted = (Vector2)ShipExhaust.MountsFor(frame, i)[n];
+                    Check(name + " plume " + n + " mounts on column " + col + "'s nozzle",
+                          Vector2.Distance(shifted, local + ShipNozzles.FrameShift(frame, nz)) < .0001f);
+                }
             }
             if (pixels != null) Object.DestroyImmediate(pixels);
         }

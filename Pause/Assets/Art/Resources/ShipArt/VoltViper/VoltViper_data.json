@@ -18,12 +18,14 @@
     {
       "x": 95.5,
       "y": 8.5,
-      "scale": 0.72
+      "scale": 0.72,
+      "offsets": [0.0, -0.0, 0, 4, 0, 4, 0, 0, 0, 0, 0, -4, 2.0, -0.0, 5.0, -0.0, 0, 0]
     },
     {
       "x": 137.5,
       "y": 8.5,
-      "scale": 0.72
+      "scale": 0.72,
+      "offsets": [0.0, -0.0, 0, 4, 0, 4, 0, 0, 0, 0, 0, -4, -4.0, -0.0, -1.0, -0.0, 0, 0]
     }
   ],
   "damageNote": "1) hull panel blown over the right wing root; left engine smoking; 2) left wingtip torn, right wing bent, right leg on fire, canopy cracked",

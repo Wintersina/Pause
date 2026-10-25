@@ -18,7 +18,8 @@
     {
       "x": 93.5,
       "y": 7.5,
-      "scale": 1.0
+      "scale": 1.0,
+      "offsets": [0.0, -0.0, 0, 4, 0, 4, 0, 0, 0, 0, 0, -4, -3.0, -0.0, 2.0, -0.0, 0, 0]
     }
   ],
   "damageNote": "1) left horn panel blown, core cracked; tail smoking; 2) right horn tip torn and bent, cradle panel open and arcing, canopy cracked",

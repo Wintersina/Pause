@@ -18,7 +18,8 @@
     {
       "x": 117.5,
       "y": 11.5,
-      "scale": 1.0
+      "scale": 1.0,
+      "offsets": [0.0, -0.0, 0, 4, 0, 4, 0, 0, 0, 0, 0, -4, -28, 17, 19, 1, 0, 0]
     }
   ],
   "damageNote": "1) left flank panel blown, reactor cracked; nozzle smoking; 2) left fang bent, reactor housing open and arcing, right tip torn, canopy cracked",

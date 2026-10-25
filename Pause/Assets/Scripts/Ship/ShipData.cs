@@ -17,7 +17,7 @@ using UnityEngine;
 // The roster id -> art key list stays in ShipId (the ids are the save-game numbers); the
 // folder name is that key. Each file is parsed once, on first use, with JsonUtility.
 [Serializable] public class ShipRectData { public int x, y, w, h; public float ppu = 100f; }
-[Serializable] public class ShipNozzleData { public float x, y, scale = 1f; }
+[Serializable] public class ShipNozzleData { public float x, y, scale = 1f; public float[] offsets; }
 [Serializable] public class ShipEmitterData { public int state; public string kind; public float u, v; }
 [Serializable]
 public class ShipSkinData
@@ -103,7 +103,7 @@ public class ShipData
 
         var n = d.nozzles ?? new ShipNozzleData[0];
         d.nozzleList = new ShipNozzles.Nozzle[n.Length];
-        for (int i = 0; i < n.Length; i++) d.nozzleList[i] = new ShipNozzles.Nozzle(n[i].x, n[i].y, n[i].scale);
+        for (int i = 0; i < n.Length; i++) d.nozzleList[i] = new ShipNozzles.Nozzle(n[i].x, n[i].y, n[i].scale, n[i].offsets);
 
         var e = d.emitters ?? new ShipEmitterData[0];
         d.emitterList = new DamageEmitter[e.Length];
