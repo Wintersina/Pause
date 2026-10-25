@@ -55,7 +55,7 @@ public static class ShipAttackSparkTest
     static ShipPowerController Viper()
     {
         PlayerPrefs.SetInt("spawnShip", 2);
-        var go = new GameObject("ship2", typeof(SpriteRenderer))   // the ship id is read from the object name (ShipId.Of);
+        var go = new GameObject("ship2", typeof(SpriteRenderer));   // the ship id is read from the object name (ShipId.Of)
         go.transform.position = new Vector3(0f, -3f, 0f);
         var c = go.AddComponent<ShipPowerController>();
         c.SendMessage("Awake");
