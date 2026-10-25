@@ -23,7 +23,7 @@ public static class KillCamMusic
     static AudioSource music;      // the run's music source
     static AudioSource voice;      // plays the reversed buffer
     static AudioClip reversed;
-    static bool pausedMusic;
+    static bool pausedMusic, wasMuted;   // pausedMusic: the song is muted under the rewind
     static float[] scratch;
 
     public static bool Reversing { get; private set; }
@@ -47,7 +47,11 @@ public static class KillCamMusic
         int channels, rate;
         int frames = Tap.Snapshot(ReverseSeconds, ref scratch, out channels, out rate);
         if (frames <= 0 || channels <= 0) return;
-        if (music.isPlaying) { music.Pause(); pausedMusic = true; }
+        // The song is MUTED, not paused: it keeps running underneath, so nothing has to resume it
+        // (Pause/UnPause on the streamed clip left the replay silent) and it simply carries on forward.
+        wasMuted = music.mute;
+        music.mute = true;
+        pausedMusic = true;
         reversed = AudioClip.Create("KillCamReverse", frames, channels, rate, false);
         reversed.SetData(scratch, 0);
         if (voice == null)
@@ -78,8 +82,69 @@ public static class KillCamMusic
             if (Application.isPlaying) Object.Destroy(reversed); else Object.DestroyImmediate(reversed);
             reversed = null;
         }
-        if (pausedMusic && music != null) music.UnPause();
+        if (pausedMusic && music != null)
+        {
+            music.mute = wasMuted;
+            // belt and braces: whatever stopped it, the song is made to play again
+            if (music.clip != null && !music.isPlaying) music.Play();
+        }
         pausedMusic = false;
         Reversing = false;
+        EndMuffle();
+    }
+
+    // ---- the muffle: the song at full volume and normal pitch, behind a low-pass, through the slow motion ----
+    // An AudioLowPassFilter on the music source (a cheap built-in effect, fine on mobile). Its cutoff
+    // eases from open to MuffleCutoff over MuffleEaseIn when the replay starts, and back to open over
+    // MuffleEaseOut as the replay ends. Restore()/EndMuffle() take it off on every exit.
+    public const float MuffleCutoff = 1500f;   // Hz at full muffle
+    public const float OpenCutoff = 22000f;    // Hz, fully open
+    public const float MuffleEaseIn = .25f;    // s, open -> muffled
+    public const float MuffleEaseOut = .2f;    // s, muffled -> open
+
+    static AudioLowPassFilter lowPass;
+    static bool lowPassAdded, muffling;
+    static float muffle;   // 0 open .. 1 muffled
+
+    public static bool Muffling { get { return muffling; } }
+    public static float MuffleAmount { get { return muffle; } }
+
+    // Cutoff for a muffle amount: eased in log space so the sweep sounds even.
+    public static float CutoffFor(float amount)
+    {
+        return Mathf.Exp(Mathf.Lerp(Mathf.Log(OpenCutoff), Mathf.Log(MuffleCutoff), Mathf.Clamp01(amount)));
+    }
+
+    // KillCam.Step, in the Play phase: `releasing` once the replay is on its closing hold.
+    public static void StepMuffle(float dt, bool releasing)
+    {
+        if (!Application.isPlaying || music == null) return;
+        if (!muffling)
+        {
+            if (releasing) return;
+            muffling = true;
+            lowPass = music.GetComponent<AudioLowPassFilter>();
+            lowPassAdded = lowPass == null;
+            if (lowPass == null) lowPass = music.gameObject.AddComponent<AudioLowPassFilter>();
+            lowPass.cutoffFrequency = OpenCutoff;
+            lowPass.enabled = true;
+        }
+        muffle = releasing ? Mathf.Max(0f, muffle - dt / MuffleEaseOut) : Mathf.Min(1f, muffle + dt / MuffleEaseIn);
+        if (lowPass != null) lowPass.cutoffFrequency = CutoffFor(muffle);
+    }
+
+    // Every exit: the filter is gone and the song is fully open.
+    public static void EndMuffle()
+    {
+        if (!muffling) return;
+        muffling = false;
+        muffle = 0f;
+        if (lowPass != null)
+        {
+            lowPass.cutoffFrequency = OpenCutoff;
+            lowPass.enabled = false;
+            if (lowPassAdded) { if (Application.isPlaying) Object.Destroy(lowPass); else Object.DestroyImmediate(lowPass); }
+        }
+        lowPass = null;
     }
 }

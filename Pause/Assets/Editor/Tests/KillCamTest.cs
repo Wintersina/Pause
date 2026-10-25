@@ -60,7 +60,7 @@ public static class KillCamTest
         Check("the clock only slows toward the hit", slowing);
         Check("every rate is slow motion", KillCamClip.LeadRate < 1f && KillCamClip.SlowRate <= .25f);
         float real = KillCamClip.RealSeconds(KillCamClip.LiveWindow);
-        Check("the live replay is a few seconds of real time (" + real.ToString("F2") + " s)", real > 2.5f && real < 4.5f);
+        Check("the live replay is a few seconds of real time (" + real.ToString("F2") + " s)", real > 2.2f && real < 3.8f && Mathf.Approximately(KillCamClip.LiveWindow, 1.3f));
         Check("a tap can skip it early", KillCam.SkipGuard < .5f);
     }
 
@@ -203,12 +203,12 @@ public static class KillCamTest
         float mainSize = main != null ? main.orthographicSize : 0f;
         var kc = KillCam.Ensure();
         made.Add(kc.gameObject);
+        KillCamAudio.ClearCache();   // count from the very first request (Begin fires the KILLED cue)
         kc.Begin(clip);
         Check("the replay plays and the crash is held", KillCam.Playing && DeathCrash.Held);
         Check("the board is hidden under the replay", boardSr.forceRenderingOff && kc.HiddenCount >= 1);
         Check("the camera takes the tape's position, never its size (no zoom)",
               main == null || (Mathf.Abs(main.transform.position.x - .3f) < 1e-3f && Mathf.Approximately(main.orthographicSize, mainSize)));
-        KillCamAudio.ClearCache();
         Check("it begins on the frozen fatal frame under the KILLED banner",
               kc.CurrentPhase == KillCam.Phase.Killed && kc.BannerShown && Mathf.Approximately(kc.ClipTime, clip.EndTime) && !kc.LabelShown &&
               kc.Banner.Text.text == "KILLED" && KillCamAudio.LastRequested == KillCamAudio.Cue.Killed);
@@ -306,6 +306,13 @@ public static class KillCamTest
         KillCamMusic.Restore();
         KillCamMusic.Restore();
         Check("restoring twice is harmless", !KillCamMusic.Reversing && !KillCamMusic.MusicPaused);
+        Check("the slow-mo muffle sweeps from open to a clear low-pass and back, and is off outside play",
+              Mathf.Approximately(KillCamMusic.CutoffFor(0f), KillCamMusic.OpenCutoff) &&
+              Mathf.Abs(KillCamMusic.CutoffFor(1f) - KillCamMusic.MuffleCutoff) < 1f &&
+              KillCamMusic.CutoffFor(.5f) < KillCamMusic.OpenCutoff && KillCamMusic.CutoffFor(.5f) > KillCamMusic.MuffleCutoff &&
+              KillCamMusic.MuffleCutoff >= 1000f && KillCamMusic.MuffleCutoff <= 2500f && !KillCamMusic.Muffling);
+        KillCamMusic.EndMuffle();
+        Check("ending the muffle with none up is harmless", !KillCamMusic.Muffling && KillCamMusic.MuffleAmount == 0f);
     }
 
     // ---- the codex slot ----

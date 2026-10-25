@@ -250,6 +250,8 @@ public sealed class KillCam : MonoBehaviour
         }
         else if (phase == Phase.Play)
         {
+            // the song stays loud and at normal pitch, behind a gentle low-pass that eases in and out
+            KillCamMusic.StepMuffle(dt, clock >= end);
             if (clock < end) clock = Mathf.Min(end, clock + dt * KillCamClip.RateAt(end - clock));
             else
             {
