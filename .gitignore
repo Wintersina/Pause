@@ -94,3 +94,7 @@ Pause/Assets/Art/Boulders~/*/preview.png
 Pause/Assets/Art/Boulders~/*/src~/*/
 Pause/Assets/Art/Boulders~/*/composite.png
 Pause/Assets/Art/Boulders~/*/storm_fx.gif
+
+# Commit hash baked by BuildScript for the DEV badge
+/Pause/Assets/Resources/BuildInfo.txt
+/Pause/Assets/Resources/BuildInfo.txt.meta

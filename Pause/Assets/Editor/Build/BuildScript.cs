@@ -196,6 +196,63 @@ public static class BuildScript
         finally { PlayerSettings.iOS.sdkVersion = sdkWas; }
     }
 
+    // Bakes the short commit hash into Resources/BuildInfo.txt (gitignored) so
+    // the DEV badge can show which version a developer build is. "+" marks
+    // uncommitted edits. Tries jj, then .git/HEAD, then "nogit".
+    static void WriteBuildInfo()
+    {
+        string hash = "nogit";
+        try
+        {
+            string root = Path.GetFullPath(Path.Combine(Application.dataPath, "../.."));
+            hash = RunTool("jj", "log -r @- --no-graph -T commit_id.short(8)", root);
+            if (hash.Length > 0 && RunTool("jj", "diff -r @ --summary", root).Length > 0) hash += "+";
+            if (hash.Length == 0) hash = GitHeadHash(root);
+        }
+        catch (Exception e) { Debug.LogWarning("[BUILD] commit hash lookup failed: " + e.Message); }
+        if (hash.Length == 0) hash = "nogit";
+        string dir = Path.Combine(Application.dataPath, "Resources");
+        Directory.CreateDirectory(dir);
+        File.WriteAllText(Path.Combine(dir, "BuildInfo.txt"), hash);
+        AssetDatabase.ImportAsset("Assets/Resources/BuildInfo.txt");
+        Debug.Log("[BUILD] commit " + hash);
+    }
+
+    static string RunTool(string exe, string args, string workDir)
+    {
+        var psi = new System.Diagnostics.ProcessStartInfo(exe, args)
+        {
+            WorkingDirectory = workDir,
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            UseShellExecute = false,
+        };
+        string path = Environment.GetEnvironmentVariable("PATH") ?? "";
+        psi.EnvironmentVariables["PATH"] = "/opt/homebrew/bin:/usr/local/bin:" + path;
+        using (var p = System.Diagnostics.Process.Start(psi))
+        {
+            string o = p.StandardOutput.ReadToEnd().Trim();
+            p.StandardError.ReadToEnd();
+            if (!p.WaitForExit(10000) || p.ExitCode != 0) return "";
+            return o;
+        }
+    }
+
+    // Fallback without jj: resolve .git/HEAD (a plain checkout; worktrees keep
+    // a .git file, which this does not follow).
+    static string GitHeadHash(string root)
+    {
+        string git = Path.Combine(root, ".git");
+        if (!Directory.Exists(git)) return "";
+        string head = File.ReadAllText(Path.Combine(git, "HEAD")).Trim();
+        if (head.StartsWith("ref: "))
+        {
+            string refPath = Path.Combine(git, head.Substring(5));
+            head = File.Exists(refPath) ? File.ReadAllText(refPath).Trim() : "";   // packed refs: give up
+        }
+        return head.Length >= 8 ? head.Substring(0, 8) : "";
+    }
+
     static void Run(BuildTarget target, string outputPath, params string[] extraDefines)
     {
         EditorApplication.Exit(Build(target, outputPath, extraDefines) ? 0 : 1);
@@ -208,6 +265,7 @@ public static class BuildScript
             throw new Exception("No enabled scenes in Build Settings.");
 
         Directory.CreateDirectory(Path.GetDirectoryName(outputPath));
+        if (Array.IndexOf(extraDefines, DevDefine) >= 0) WriteBuildInfo();
 
         var options = new BuildPlayerOptions
         {
