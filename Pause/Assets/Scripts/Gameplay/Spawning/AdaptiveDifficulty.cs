@@ -88,7 +88,7 @@ public static class AdaptiveDifficulty
 
     // ---- events ----
     public static void OnKill() { if (RunActive) Meter.OnKill(); }
-    public static void OnHeartLost() { if (RunActive) Meter.OnHit(); }
+    public static void OnHeartTaken() { if (RunActive) Meter.OnHit(); }
     public static void OnRevive() { if (RunActive) Meter.OnRevive(); }
 
     // A running frame (score.StepRunning).
