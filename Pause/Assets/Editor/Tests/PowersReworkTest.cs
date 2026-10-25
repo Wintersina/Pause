@@ -178,6 +178,19 @@ public static class PowersReworkTest
         foreach (var s in shots) { HostileShots.Unregister(s); Object.DestroyImmediate(s.gameObject); }
     }
 
+    // A hand-drawn power strip (Powers2/<Ship>_<name>): 16 cells, one world unit across, and at least one
+    // strip-drawn effect (Source.Extra) is playing right after the power fired.
+    static void StripIsDrawn(string what, int ship, string name)
+    {
+        var strip = ShipFxArt.Strip(ship, name);
+        Check(what + " strip (" + ShipId.KeyOf(ship) + "_" + name + ") is 16 cells, one world unit across", strip != null && strip.Length == 16 &&
+              strip[0] != null && Mathf.Abs(strip[0].bounds.size.x - 1f) < .01f && Mathf.Abs(strip[15].bounds.size.y - 1f) < .01f);
+        int extra = 0;
+        foreach (var fx in Object.FindObjectsByType<AttackSprite>(FindObjectsInactive.Exclude, FindObjectsSortMode.None))
+            if (fx.Active && fx.CurrentSource == AttackSprite.Source.Extra) extra++;
+        Check(what + " is drawn from its strip, not a plain ring", extra >= 1);
+    }
+
     // ---- 1 Shield Pulse --------------------------------------------------
 
     static void ShieldPulseCancelsShots()
@@ -201,6 +214,7 @@ public static class PowersReworkTest
         Check("and leaves one beyond it", far.live);
         Check("a landed pool is not a shot to delete", pool.live);
         Check("it still kills hazards right on top of the ship", ShipAttackHits.AlreadyHit(close));
+        StripIsDrawn("the pulse", 1, "pulse");
         Check("but not the ones past the kill radius", wide != null && !ShipAttackHits.AlreadyHit(wide));
         Unreg(near, far, pool);
         Object.DestroyImmediate(wide);
@@ -238,6 +252,7 @@ public static class PowersReworkTest
         Check("it cancels the enemy shots on screen", !inView.live);
         Check("and leaves a shot far off screen", offScreen.live);
         Check("an arc is drawn for each stunned enemy", s.ArcCount == 3);
+        StripIsDrawn("the EMP", 2, "emp");
         Unreg(inView, offScreen);
         Teardown(viper);
         Kill(foes);
@@ -259,6 +274,7 @@ public static class PowersReworkTest
         Check("the nova kills out to 3.0", ShipAttackHits.AlreadyHit(inside));
         Check("but not past it", outside != null && !ShipAttackHits.AlreadyHit(outside));
         Check("and leaves a burning ring", s.Burning);
+        StripIsDrawn("the nova", 3, "nova");
         Object.DestroyImmediate(outside);
 
         // an enemy that drifts into the ring a second later dies in it
