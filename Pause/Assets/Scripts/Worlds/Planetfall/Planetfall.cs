@@ -600,7 +600,7 @@ public class Planetfall : MonoBehaviour
         Vector3 dive = new Vector3(centre.x, centre.y - halfH + 2f * halfH * DiveHeight, shipFrom.z);
         Vector3 pos = Vector3.Lerp(shipFrom, dive, PlanetfallTimeline.Steer01(tl));
         float buffet = PlanetfallTimeline.ShroudAlpha(tl);
-        pos.x += buffet * .05f * Mathf.Sin(tl * 9.3f);
+        pos.x += buffet * .02f * Mathf.Sin(tl * 9.3f);
         pos.y += buffet * .03f * Mathf.Sin(tl * 13.1f);
         if (tl >= PlanetfallTimeline.SettleFrom) pos = Vector3.Lerp(pos, HandBack(cam, centre, shakeApplied, shipFrom.z), PlanetfallTimeline.Settle01(tl));
         if (ship != null) ship.position = pos;

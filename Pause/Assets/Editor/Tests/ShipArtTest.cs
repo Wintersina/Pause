@@ -265,6 +265,7 @@ public static class ShipArtTest
             go.transform.position += new Vector3(2f, 0f, 0f);
             anim.Step(1f / 60f, 1f / 60f, 0);
             Check("a teleport does not bank", anim.Bank == 0);
+            Check("a planetfall needs a much bigger sweep to bank", ShipHullAnimator.BankSpeedFor(true) >= 3f * ShipHullAnimator.BankSpeedFor(false));
 
             var spinner = new ShipHullAnimator(11, go.transform, 0);
             for (int i = 0; i < 4; i++) { go.transform.position += new Vector3(-.03f, 0f, 0f); spinner.Step(1f / 60f, 1f / 60f, 0); }
