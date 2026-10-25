@@ -46,6 +46,7 @@ public static class TitleScreenTrafficTest
         DepthLayersAreOrdered();
         NoDuplicateHullsInTheAir();
         BoostsUseTheShipsOwnBoostFlame();
+        PlumesFollowEveryHullFrame();
         ZipsFlyTheDockLaunchCurve();
         SpinnersFlyTheirSpinDrift();
         SpinnerHullsSpinLikeGameplay();
@@ -208,6 +209,41 @@ public static class TitleScreenTrafficTest
             hullArt &= f.hull.sprite != null && rest != null && f.hull.sprite.texture == rest.texture;
         }
         Check("hull art is the roster's runtime art (ShipHullArt's sheet via ApplyHull)", hullArt);
+        Done(t);
+    }
+
+    // Every title ship's flame sits on the nozzles of the hull frame on show
+    // (bob and bank), exactly as ShipThruster.Remount does for the flying ship.
+    static void PlumesFollowEveryHullFrame()
+    {
+        var t = Make("~TT_mounts", 9, x => x.layerTargets = new[] { 0, 0, 0 });
+        t.NextEliteAt = 1e9f;
+        int frames = 0, bad = 0;
+        string first = null;
+        foreach (var c in t.Pool)
+        {
+            if (c.wind || c.boost == null) continue;
+            for (int col = 0; col < ShipHullArt.Columns; col++)
+            {
+                var sprite = ShipHullArt.Get(c.id, ShipSkins.Stock, 0, col);
+                if (sprite == null) continue;
+                c.hull.sprite = sprite;
+                TitleScreenTraffic.RemountPlumes(c);
+                var mounts = ShipExhaust.MountsFor(sprite, c.id);
+                frames++;
+                for (int i = 0; i < mounts.Length; i++)
+                {
+                    var plume = c.boost.Find("Nozzle" + i);
+                    if (plume == null || (plume.localPosition - mounts[i]).sqrMagnitude > 1e-8f)
+                    {
+                        bad++;
+                        if (first == null) first = ShipId.KeyOf(c.id) + " col " + col;
+                    }
+                }
+            }
+        }
+        Check("title ships' plumes follow each hull frame's nozzles (" + frames + " frames)" + (first != null ? " first miss " + first : ""),
+              frames > 0 && bad == 0);
         Done(t);
     }
 

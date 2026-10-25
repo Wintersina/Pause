@@ -140,11 +140,7 @@ public class ShipThruster : MonoBehaviour
         for (int i = 0; i < flames.Count && i < mounts.Length; i++)
             flames[i].localPosition = mounts[i];
         if (boostObject == null) return;
-        for (int i = 0; i < mounts.Length; i++)
-        {
-            var plume = boostObject.transform.Find("Nozzle" + i);
-            if (plume != null) plume.localPosition = mounts[i];
-        }
+        ShipExhaust.RemountBoost(boostObject.transform, sprite, ShipIndex);
     }
 
     // Forgets the plume lists and removes plumes past `keep` (a hull with
