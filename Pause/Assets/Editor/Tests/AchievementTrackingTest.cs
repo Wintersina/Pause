@@ -301,17 +301,17 @@ public static class AchievementTrackingTest
         PlayerPrefs.SetString("boughtship1", "True");
         bool bought = shopingShips.TryPurchase(2, shopingShips.CostFor(2));
         Check("buying a ship: Hangar Debut, dust spent counted, ships counted (bought " + bought + ", spent " + C("spent") + ", ships " + C("ships") + ")",
-              bought && U("ship_first") && C("spent") == 600 && C("ships") == 2 && !U("ship_half"));
+              bought && U("ship_first") && C("spent") == 700 && C("ships") == 2 && !U("ship_half"));
         for (int i = 3; i <= 8; i++) shopingShips.TryPurchase(i, 0f);
         Check("8 ships owned: Squadron (" + C("ships") + ")", C("ships") == 8 && U("ship_half") && !U("ship_all"));
         for (int i = 9; i <= 15; i++) shopingShips.TryPurchase(i, 0f);
         Check("every ship owned: Fleet Admiral", C("ships") == PremiumShips.StandardCount && U("ship_all"));
-        Check("a failed purchase changes nothing", !shopingShips.TryPurchase(2, 99999f) && C("spent") == 600);
+        Check("a failed purchase changes nothing", !shopingShips.TryPurchase(2, 99999f) && C("spent") == 700);
 
         var res = ShipSkins.TryPurchase(2, 1);
-        Check("buying a skin: Fresh Paint, price spent counted", res == ShipSkins.PurchaseResult.Bought && U("skin_first") && C("spent") == 600 + 50 && !U("skin_special"));
+        Check("buying a skin: Fresh Paint, price spent counted", res == ShipSkins.PurchaseResult.Bought && U("skin_first") && C("spent") == 700 + 50 && !U("skin_special"));
         ShipSkins.TryPurchase(2, ShipSkins.Special);
-        Check("buying a Special skin: Special Edition", U("skin_special") && C("spent") == 600 + 50 + 750);
+        Check("buying a Special skin: Special Edition", U("skin_special") && C("spent") == 700 + 50 + 750);
         Check("not a full wardrobe yet", !U("skin_full_set"));
         ShipSkins.TryPurchase(2, 2); ShipSkins.TryPurchase(2, 3);
         Check("all skins of one ship: Full Wardrobe", U("skin_full_set"));

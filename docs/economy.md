@@ -1,6 +1,6 @@
 # Star dust economy
 
-Star dust is a float (`StarDustLedger`, saved as `PlayerCurrecny`). Shop prices (ships 600-5,800, skins 300 / 750)
+Star dust is a float (`StarDustLedger`, saved as `PlayerCurrecny`). Shop prices (ships 700-7,000, skins 300 / 750)
 and saved balances are unchanged.
 
 ## The dial

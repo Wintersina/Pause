@@ -192,7 +192,7 @@ public static class PremiumShipTest
 
     static void Economy()
     {
-        Check("the 15 dust ships keep their prices and rows", shopingShips.CostFor(2) == 600f && shopingShips.CostFor(15) == 3000f &&
+        Check("the 15 dust ships keep their prices and rows", shopingShips.CostFor(2) == 700f && shopingShips.CostFor(15) == 3600f &&
               ShipLives.Base(5) == ShipLives.Row(5));
         Check("Paragon is never a top-tier (price) ship, the three priciest still are",
               !ShipLoadoutTable.IsTopTierByPrice(P) && ShipLoadoutTable.IsTopTierByPrice(5) && ShipLoadoutTable.IsTopTierByPrice(6) &&

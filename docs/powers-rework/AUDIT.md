@@ -20,20 +20,20 @@ Attack and power rows come from `ShipLoadout.cs:120-195`. Weapon upgrade steps a
 | id | Ship (key) | Price | Attack (stats) | Secret power (trigger) | Power mechanics (`SecretPowers.cs`) |
 |---|---|---|---|---|---|
 | 1 | Neon Comet (NeonComet) | 0 (starter) | Comet Streak: 2 straight streaks, 0.16 s apart, speed 13, range 11, stop at first hit | Shield Pulse (ImminentHit) | `:252`: 0.75 s invulnerability (`pulseInvulnerable`), kills hazards within 1.4, burst art 3.2 units |
-| 2 | Volt Viper | 600 | Chain Lightning: 5 hops, first reach 4.6, then 2.5, one hop per 60 ms | EMP (5+ enemies on screen) | `:258`, `Stun()` `:401`: disables movers on every `Enimey`-tagged object for 3 s via `HazardMovers.Disable` (moveEnimes, straight-line, ChaserEnemy). Does not stop their shots. |
-| 3 | Solar Fang | 1400 | Solar Fireball: slow shot (speed 4.6), burst radius 1.7, range 3.6 | Solar Nova (3+ hazards within 2.3) | `:263`: kills within radius 2.1, 0.06 s hit-stop, camera kick |
-| 4 | Crimson Halo | 2200 | Rail Gun: instant piercing line, half-width 0.42, to top of screen | Capacitor Dump (3+ targets while charge < 65%) | `:269`: `RechargeNow()` sets the attack timer to about 1.2 s. Shows a 1.6 burst. |
-| 5 | Ion Lancer | 3200 (top tier) | Ion Barrage: cinematic homing volley (`ScreenClear`) | Ion Battery (pauses <= 1) | `:277`: `score.incromentPause()` adds 2 pauses. Code comment says +2, UI says "Adds two", so they agree. |
-| 6 | Jade Phantom | 4400 (top tier) | Wisp Storm: cinematic volley | Phase Cloak (ImminentHit) | `:282`, `BeginPhaseCloak` `:352`: 4 s real invulnerability. Burst plus a 1.6-unit aura loop on the hull. |
-| 7 | Gold Warden | 5800 (top tier) | Warden Salvo: cinematic volley | Gold Magnet (4+ dust in sight) | `:286`, `TickEffects` `:485`: 5 s, pickups pulled at 7 u/s to the ship. 3.2-unit loop art. |
-| 8 | Lightning | 800 | Sky Javelins: 3 lanes from above, 0.08 s apart, lane spacing 1.2, speed 26 | Thunderclap (2+ hazards within 2.0) | `:291`, `Clap` `:429`: pushes hazards within 2.6 up 2.4 units over 0.25 s. Never moves the boss. Does not kill. |
-| 9 | Ligher | 1000 | Blowtorch: flame cone range 2.7, half-angle 24 deg, 1.4 s held, 0.2 s boss ticks | Flare Decoy (chaser within 4.5, or 2+ hazards within 2.4) | `:296`: a decoy 1.2 units to the side and 0.9 up. `ChaserEnemy` hunts `ShipDecoy.Position` for 2.5 s, then pops (radius 1.5 kills). |
-| 10 | Paranoid | 1200 | Seeker Eyes: 3 homing eyes, speed 7.5, one target each | Time Bubble (3+ hazards within 2.6) | `:307`: `WorldTimeFx.BubbleScale = .45` for 2.5 s. 3.6-unit loop art. |
-| 11 | Ninja | 1600 | Ricochet Star: bounces on 5 hops, reach 3.1, speed 11 | Blink Dash (ImminentHit) | `:313`, `Dash` `:445`: teleports sideways 1.25 away from the threat, 0.6 s cloak, offset eased over 0.7 s |
-| 12 | Saboteur | 1800 | Gatling: 14 shells over 1.1 s, cone half-width 7 deg, speed 16 | Black Hole (6+ enemies on screen) | `:317`, `StepHole` `:542`: hole 2.6 units ahead for 2.6 s. Pulls within 2.7 and kills within 0.45. Bosses take a trickle (0.34/s). |
-| 13 | UFO | 2000 | Tractor Beam: held 1.5 s, half-width 0.38, to top of screen | Star Shower (calm: <= 1 hazard) | `:327`, `Shower` `:463`: 10 `smStar_1` dust pickups in an arc 2.2-3.3 above. This is a pure currency payout. |
-| 14 | Dove | 2400 | Feather Fan: 5 darts in a 56 deg fan, speed 12 | Mending (hull damaged) | `:332`: `lifeCounter--`, heals one heart |
-| 15 | Turtle | 3000 | Shell Disc: orbits at radius 1.05 for 5 s, 320 deg/s, hit radius 0.42 | Hard Shell (hazard in lane within 3.4) | `:337`: shield for up to 8 s that eats the next hit. Uses `ShipHitbox` shield zone. |
+| 2 | Volt Viper | 700 | Chain Lightning: 5 hops, first reach 4.6, then 2.5, one hop per 60 ms | EMP (5+ enemies on screen) | `:258`, `Stun()` `:401`: disables movers on every `Enimey`-tagged object for 3 s via `HazardMovers.Disable` (moveEnimes, straight-line, ChaserEnemy). Does not stop their shots. |
+| 3 | Solar Fang | 1700 | Solar Fireball: slow shot (speed 4.6), burst radius 1.7, range 3.6 | Solar Nova (3+ hazards within 2.3) | `:263`: kills within radius 2.1, 0.06 s hit-stop, camera kick |
+| 4 | Crimson Halo | 2650 | Rail Gun: instant piercing line, half-width 0.42, to top of screen | Capacitor Dump (3+ targets while charge < 65%) | `:269`: `RechargeNow()` sets the attack timer to about 1.2 s. Shows a 1.6 burst. |
+| 5 | Ion Lancer | 3850 (top tier) | Ion Barrage: cinematic homing volley (`ScreenClear`) | Ion Battery (pauses <= 1) | `:277`: `score.incromentPause()` adds 2 pauses. Code comment says +2, UI says "Adds two", so they agree. |
+| 6 | Jade Phantom | 5300 (top tier) | Wisp Storm: cinematic volley | Phase Cloak (ImminentHit) | `:282`, `BeginPhaseCloak` `:352`: 4 s real invulnerability. Burst plus a 1.6-unit aura loop on the hull. |
+| 7 | Gold Warden | 7000 (top tier) | Warden Salvo: cinematic volley | Gold Magnet (4+ dust in sight) | `:286`, `TickEffects` `:485`: 5 s, pickups pulled at 7 u/s to the ship. 3.2-unit loop art. |
+| 8 | Lightning | 950 | Sky Javelins: 3 lanes from above, 0.08 s apart, lane spacing 1.2, speed 26 | Thunderclap (2+ hazards within 2.0) | `:291`, `Clap` `:429`: pushes hazards within 2.6 up 2.4 units over 0.25 s. Never moves the boss. Does not kill. |
+| 9 | Ligher | 1200 | Blowtorch: flame cone range 2.7, half-angle 24 deg, 1.4 s held, 0.2 s boss ticks | Flare Decoy (chaser within 4.5, or 2+ hazards within 2.4) | `:296`: a decoy 1.2 units to the side and 0.9 up. `ChaserEnemy` hunts `ShipDecoy.Position` for 2.5 s, then pops (radius 1.5 kills). |
+| 10 | Paranoid | 1450 | Seeker Eyes: 3 homing eyes, speed 7.5, one target each | Time Bubble (3+ hazards within 2.6) | `:307`: `WorldTimeFx.BubbleScale = .45` for 2.5 s. 3.6-unit loop art. |
+| 11 | Ninja | 1950 | Ricochet Star: bounces on 5 hops, reach 3.1, speed 11 | Blink Dash (ImminentHit) | `:313`, `Dash` `:445`: teleports sideways 1.25 away from the threat, 0.6 s cloak, offset eased over 0.7 s |
+| 12 | Saboteur | 2150 | Gatling: 14 shells over 1.1 s, cone half-width 7 deg, speed 16 | Black Hole (6+ enemies on screen) | `:317`, `StepHole` `:542`: hole 2.6 units ahead for 2.6 s. Pulls within 2.7 and kills within 0.45. Bosses take a trickle (0.34/s). |
+| 13 | UFO | 2400 | Tractor Beam: held 1.5 s, half-width 0.38, to top of screen | Star Shower (calm: <= 1 hazard) | `:327`, `Shower` `:463`: 10 `smStar_1` dust pickups in an arc 2.2-3.3 above. This is a pure currency payout. |
+| 14 | Dove | 2900 | Feather Fan: 5 darts in a 56 deg fan, speed 12 | Mending (hull damaged) | `:332`: `lifeCounter--`, heals one heart |
+| 15 | Turtle | 3600 | Shell Disc: orbits at radius 1.05 for 5 s, 320 deg/s, hit radius 0.42 | Hard Shell (hazard in lane within 3.4) | `:337`: shield for up to 8 s that eats the next hit. Uses `ShipHitbox` shield zone. |
 
 Hit rules used by every attack and power (`W/ShipAttackTarget.cs:36`):
 - Ordinary hazards die from any hit.
