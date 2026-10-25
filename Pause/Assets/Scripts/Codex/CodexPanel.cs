@@ -323,6 +323,14 @@ public class CodexPanel : MonoBehaviour
     Image collectTabFrame, collectDetailFrame;
     Button collectTabButton, collectDetailButton;
     Text collectTabLabel, collectDetailLabel;
+    // LAST STAND (KillCamArchive.CodexId): WATCH opens the saved kill cam (CodexReplayViewer), in the COLLECT slot.
+    Image watchFrame;
+    Button watchButton;
+    Text watchLabel;
+    // The hostile entries' VERSUS YOU table at the foot of the lore card (DamageLog): hurt you / killed you / share.
+    RectTransform tallyRoot;
+    Text[] tallyValues, tallyHeads;
+    bool tallyShown;
     float feedbackUntil;
     string feedbackText;
     RectTransform grid, viewport, content;
@@ -818,6 +826,21 @@ public class CodexPanel : MonoBehaviour
         bool entryShown = inDetail && detailEntry != null && !OtherViewOpen && Codex.IsRewardPending(detailEntry);
         collectDetailFrame.gameObject.SetActive(entryShown);
         if (entryShown) collectDetailLabel.text = "COLLECT +" + Codex.UnlockReward;
+
+        bool watch = inDetail && detailEntry != null && !OtherViewOpen && !entryShown &&
+                     detailEntry.id == KillCamArchive.CodexId && KillCamArchive.HasRecord;
+        if (watchFrame != null) watchFrame.gameObject.SetActive(watch);
+    }
+
+    public const string WatchLabel = "WATCH REPLAY";
+    public Button WatchButton { get { return watchButton; } }
+    public Image WatchFrame { get { return watchFrame; } }
+
+    // LAST STAND's WATCH: the saved kill cam, full screen over the codex.
+    public CodexReplayViewer OpenReplay()
+    {
+        if (!inDetail || detailEntry == null || detailEntry.id != KillCamArchive.CodexId || !KillCamArchive.HasRecord) return null;
+        return CodexReplayViewer.Open(font);
     }
 
     void OnCollectTab()
@@ -885,6 +908,11 @@ public class CodexPanel : MonoBehaviour
         detailPill = CodexUi.NewImage("Category", infoRoot, CodexUi.CodexSprite("cx_tab"), CodexUi.Accent, true);
         collectDetailFrame = NewCollectButton("CollectEntry", infoRoot, 26, 12, out collectDetailButton, out collectDetailLabel);
         collectDetailButton.onClick.AddListener(OnCollectDetail);
+        watchFrame = NewCollectButton("WatchReplay", infoRoot, 24, 12, out watchButton, out watchLabel);
+        watchFrame.color = CodexUi.Select;
+        watchLabel.color = CodexUi.Body;
+        watchLabel.text = WatchLabel;
+        watchButton.onClick.AddListener(() => OpenReplay());
         detailPillLabel = CodexUi.NewText("Label", detailPill.rectTransform, font, "", 18, CodexUi.Ink,
                                           TextAnchor.MiddleCenter);
         CodexUi.Stretch(detailPillLabel.rectTransform);
@@ -905,8 +933,9 @@ public class CodexPanel : MonoBehaviour
         detailLore.resizeTextMaxSize = 26;
         var lrt = detailLore.rectTransform;
         CodexUi.Stretch(lrt);
-        lrt.offsetMin = new Vector2(30f, 24f);
+        lrt.offsetMin = new Vector2(30f, LoreBottom);
         lrt.offsetMax = new Vector2(-34f, -26f);
+        BuildTally();
     
         // the sub-tab row (INFO | BACKDROPS) and the world's backdrop gallery under it
         subFrames = new Image[2];
@@ -1167,6 +1196,7 @@ public class CodexPanel : MonoBehaviour
         // COLLECT sits right of the pill, inside the detail's edge (sides stay clear of the pill at any width)
         float chipW = Mathf.Min(260f, w * .5f - 100f - 16f - 8f);
         CodexUi.Place(collectDetailFrame.rectTransform, Rect.MinMaxRect(100f + 16f, y - 22f, 100f + 16f + chipW, y + 22f));
+        CodexUi.Place(watchFrame.rectTransform, Rect.MinMaxRect(100f + 16f, y - 22f, 100f + 16f + chipW, y + 22f));
         y -= 18f;
 
         if (detailSubtitle.gameObject.activeSelf && detailSubtitle.text.Length > 0)
@@ -1215,6 +1245,7 @@ public class CodexPanel : MonoBehaviour
     {
         if (phase == Phase.Hidden || phase == Phase.Closing) return;
         if (CodexBackdropViewer.IsOpen) CodexBackdropViewer.Current.Close();
+        if (CodexReplayViewer.IsOpen) CodexReplayViewer.Current.Close();
         CodexMusicPlayer.Stop();
         CodexTheme.Close();   // the codex song ends and the menu music comes back as the codex closes
         phase = Phase.Closing;
@@ -1412,12 +1443,99 @@ public class CodexPanel : MonoBehaviour
         PaintNewDots();
     }
 
-    // The lore, then how often this entry has hurt / killed the pilot (DamageLog), when it has.
-    static string LoreWithTally(CodexEntry entry)
+    // The detail's text: the lore (LAST STAND describes the saved kill cam instead).
+    static string DetailText(CodexEntry entry)
     {
-        string lore = Codex.DisplayLore(entry);
-        string tally = DamageLog.CodexLine(entry.id);
-        return tally == null ? lore : lore + "\n\n" + tally;
+        if (entry.id == KillCamArchive.CodexId) return KillCamArchive.Describe();
+        return Codex.DisplayLore(entry);
+    }
+
+    // ---- the VERSUS YOU table (hostile entries: enemies, elites, bosses, hazards) ----
+
+    public const float LoreBottom = 24f;
+    public const float TallyHeight = 80f, TallyGap = 8f;
+    public const int TallyColumns = 3;
+    public static readonly string[] TallyHeadings = { "HURT YOU", "KILLED YOU", "OF YOUR DEATHS" };
+
+    public static bool ShowsTally(CodexEntry e)
+    {
+        return e != null && (e.category == CodexCategory.Enemies || e.category == CodexCategory.Hazards);
+    }
+
+    // The table's three cells for an entry: hearts it took, deaths it dealt, its share of every death on record.
+    public static string[] TallyCells(string id)
+    {
+        int share = DamageLog.ShareOfDeaths(id);
+        return new[]
+        {
+            DamageLog.HurtCount(id).ToString("N0"),
+            DamageLog.KilledCount(id).ToString("N0"),
+            share < 0 ? "-" : share + "%",
+        };
+    }
+
+    public RectTransform TallyRoot { get { return tallyRoot; } }
+    public bool TallyShown { get { return tallyShown; } }
+    public Text TallyValue(int column) { return tallyValues[column]; }
+    public Text TallyHeading(int column) { return tallyHeads[column]; }
+
+    // Three columns at the foot of the lore card: a small muted heading over a big number.
+    // No rules or boxes: spacing, alignment and colour make the table.
+    void BuildTally()
+    {
+        tallyRoot = CodexUi.NewRect("Tally", detailLoreCard.rectTransform);
+        tallyRoot.anchorMin = new Vector2(0f, 0f);
+        tallyRoot.anchorMax = new Vector2(1f, 0f);
+        tallyRoot.pivot = new Vector2(.5f, 0f);
+        tallyRoot.offsetMin = new Vector2(30f, LoreBottom);
+        tallyRoot.offsetMax = new Vector2(-34f, LoreBottom + TallyHeight);
+        tallyValues = new Text[TallyColumns];
+        tallyHeads = new Text[TallyColumns];
+        for (int i = 0; i < TallyColumns; i++)
+        {
+            var head = CodexUi.NewText("Head" + i, tallyRoot, font, TallyHeadings[i], 17, CodexUi.Muted, TextAnchor.LowerCenter);
+            head.horizontalOverflow = HorizontalWrapMode.Wrap;
+            head.resizeTextForBestFit = true;
+            head.resizeTextMinSize = 11;
+            head.resizeTextMaxSize = 17;
+            var hrt = head.rectTransform;
+            hrt.anchorMin = new Vector2(i / (float)TallyColumns, .62f);
+            hrt.anchorMax = new Vector2((i + 1) / (float)TallyColumns, 1f);
+            hrt.offsetMin = new Vector2(4f, 0f);
+            hrt.offsetMax = new Vector2(-4f, 0f);
+            tallyHeads[i] = head;
+
+            var value = CodexUi.NewText("Value" + i, tallyRoot, font, "0", 40, CodexUi.Body, TextAnchor.MiddleCenter);
+            value.fontStyle = FontStyle.Bold;
+            value.resizeTextForBestFit = true;
+            value.resizeTextMinSize = 20;
+            value.resizeTextMaxSize = 40;
+            CodexUi.AddOutline(value.gameObject, CodexUi.Ink, 2f);
+            var vrt = value.rectTransform;
+            vrt.anchorMin = new Vector2(i / (float)TallyColumns, 0f);
+            vrt.anchorMax = new Vector2((i + 1) / (float)TallyColumns, .62f);
+            vrt.offsetMin = new Vector2(4f, 0f);
+            vrt.offsetMax = new Vector2(-4f, 0f);
+            tallyValues[i] = value;
+        }
+        tallyRoot.gameObject.SetActive(false);
+    }
+
+    // Fills the table for `entry` (shown only for a discovered hostile entry) and
+    // makes room for it under the lore.
+    void PaintTally(CodexEntry entry, bool found)
+    {
+        tallyShown = found && ShowsTally(entry);
+        tallyRoot.gameObject.SetActive(tallyShown);
+        var lrt = detailLore.rectTransform;
+        lrt.offsetMin = new Vector2(lrt.offsetMin.x, LoreBottom + (tallyShown ? TallyHeight + TallyGap : 0f));
+        if (!tallyShown) return;
+        var cells = TallyCells(entry.id);
+        int hurt = DamageLog.HurtCount(entry.id), killed = DamageLog.KilledCount(entry.id);
+        for (int i = 0; i < TallyColumns; i++) tallyValues[i].text = cells[i];
+        tallyValues[0].color = hurt > 0 ? CodexUi.Title : CodexUi.Muted;
+        tallyValues[1].color = killed > 0 ? CodexUi.Select : CodexUi.Muted;
+        tallyValues[2].color = killed > 0 ? CodexUi.Body : CodexUi.Muted;
     }
 
     public void ShowDetail(CodexEntry entry)
@@ -1435,7 +1553,8 @@ public class CodexPanel : MonoBehaviour
         string sub = found ? entry.Subtitle : null;
         detailSubtitle.text = sub ?? string.Empty;
         detailSubtitle.gameObject.SetActive(sub != null);
-        detailLore.text = found ? LoreWithTally(entry) : LockedHint;
+        detailLore.text = found ? DetailText(entry) : LockedHint;
+        PaintTally(entry, found);
         detailLore.color = found ? CodexUi.Body : CodexUi.Muted;
         detailLore.alignment = found ? TextAnchor.UpperLeft : TextAnchor.MiddleCenter;
         detailLoreEdge.color = found ? CodexUi.Accent : CodexUi.Locked;

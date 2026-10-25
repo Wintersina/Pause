@@ -214,6 +214,8 @@ public class collisionDetection : MonoBehaviour {
         SpeedMilestones.Reset();
         AchievementTracker.ResetRun();
         DamageLog.BeginRun();
+        // the kill cam's tape rolls from the first frame (the tutorial cannot be lost: no tape)
+        if (!startMenu.youAreInTutorial && !TutorialCannotDie(gameObject)) KillCamRecorder.BeginRun();
         lifeCounter = 0;
     }
 	

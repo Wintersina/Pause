@@ -23,7 +23,10 @@ using UnityEngine;
 //              the score all stop) but the board drops into a slow motion
 //              (SlowMo on this sequence's clock, DeathCrashDomino), the hull
 //              is hidden and the pieces take its place, flashing, the camera
-//              kicks
+//              kicks -- then, before any of it moves, the kill cam (KillCam)
+//              replays the run's last seconds in slow motion with the crash
+//              held on this frame (Held); it hands back to this exact frame
+//              and the crash plays on
 //   HitStop    the pieces fly, staggered (LaunchSpread): a quadratic arc
 //              up and over to a random spot (side per piece, y anywhere on
 //              screen) on the left or right rail, spinning, trailing smoke
@@ -125,7 +128,6 @@ public partial class DeathCrash : MonoBehaviour
     readonly List<GameObject> hiddenChildren = new List<GameObject>();
     readonly List<Behaviour> disabled = new List<Behaviour>();
     SpriteRenderer hiddenHull;
-    DeathCaption caption;   // "YOU DIED BY <enemy>" over the sequence (DeathCaption)
     GameObject ship;
     int pieceCount, fragmentCount, shipId, nextParticle;
     bool built, running, finished, animating, skipped, wasPressed, killerCrashed;
@@ -209,7 +211,6 @@ public partial class DeathCrash : MonoBehaviour
 
     void OnDestroy()
     {
-        EndZoom();
         UndoShake();
         if (Instance == this) { Instance = null; FrameDt = 0f; }
     }
@@ -246,7 +247,6 @@ public partial class DeathCrash : MonoBehaviour
         Build();
         if (running || deadShip == null) return;
         HideAll();
-        EndZoom();
         elapsed = 0f;
         finishedAt = -1f;
         lastLanding = 0f;
@@ -336,11 +336,6 @@ public partial class DeathCrash : MonoBehaviour
 
         HideShip(ship, hull);
         BeginDomino(killer, shipTf.position);
-        BeginZoom(killer, shipTf.position);
-
-        // Names the killer for the length of the crash (collisionDetection logged it just before this).
-        if (caption == null) caption = DeathCaption.Create(transform);
-        caption.Show(DamageLog.NameOf(DamageLog.RunKiller));
 
         // The fatal blast on the hull, and the kick.
         Blast(shipTf.position, TargetExplosion.Kind.Metal, 1.05f, true);
@@ -350,7 +345,15 @@ public partial class DeathCrash : MonoBehaviour
             Emit(ShipDamageFx.RowSpark, Random.Range(0, 4), shipTf.position,
                  Random.insideUnitCircle.normalized * Random.Range(1.4f, 2.8f), Random.Range(.22f, .36f),
                  .1f, .05f, -5f, 0f, 1.5f, Color.white, SparkOrder);
+
+        // The kill cam first: the last seconds before this hit replay in slow
+        // motion while the crash holds on its first frame (Held), then it plays.
+        KillCam.TryBegin();
     }
+
+    // The kill cam is replaying the run's last seconds: the crash waits on its
+    // first frame (no clock, FrameDt 0, no skip, no shake).
+    public static bool Held => KillCam.Playing;
 
     int Add(PieceKind kind, Sprite sprite, Vector3 start, Quaternion rotation, Vector3 scale, float radius,
             int side, bool main, Vector3 outward, bool flipX, bool flipY, TargetExplosion.Kind blast, float wantY)
@@ -452,7 +455,7 @@ public partial class DeathCrash : MonoBehaviour
     void Update()
     {
         bool pressed = TouchInput.IsPressed;
-        if (animating && pressed && !wasPressed) Skip();
+        if (animating && pressed && !wasPressed && !Held) Skip();
         wasPressed = pressed;
         Tick(Time.unscaledDeltaTime);
     }
@@ -461,7 +464,7 @@ public partial class DeathCrash : MonoBehaviour
     // never jumps the sequence ahead), publishes it as FrameDt, steps.
     public void Tick(float unscaledDt)
     {
-        if (!animating) { FrameDt = 0f; return; }
+        if (!animating || Held) { FrameDt = 0f; return; }
         float dt = Mathf.Clamp(unscaledDt, 0f, MaxStep);
         FrameDt = dt;
         Step(dt);
@@ -470,9 +473,7 @@ public partial class DeathCrash : MonoBehaviour
     void LateUpdate()
     {
         UndoShake();
-        UndoZoom();
-        if (!animating) return;
-        ApplyZoom();
+        if (!animating || Held) return;
         if (shake < .002f) return;
         var cam = Camera.main;
         if (cam == null) return;
@@ -521,8 +522,6 @@ public partial class DeathCrash : MonoBehaviour
         shakeClock += dt;
         shake *= Mathf.Exp(-11f * dt);
         if (running) StepDomino(dt);
-        if (caption != null) caption.Step(elapsed);
-        StepZoom();
 
         bool allLanded = true;
         for (int i = 0; i < pieceCount; i++)
@@ -667,8 +666,6 @@ public partial class DeathCrash : MonoBehaviour
         running = false;
         finished = true;
         finishedAt = elapsed;
-        EndZoom();   // the camera is back to normal before the panel
-        if (caption != null) caption.Hide();   // the panel names the killer from here
         if (ship != null) BossUtil.Kill(ship);   // the ship is gone; the panel can come up
         ship = null;
         hiddenHull = null;
@@ -679,8 +676,6 @@ public partial class DeathCrash : MonoBehaviour
     void Stop()
     {
         animating = false;
-        EndZoom();
-        if (caption != null) caption.Hide();
         FrameDt = 0f;
         HideAll();
         UndoShake();
@@ -701,6 +696,7 @@ public partial class DeathCrash : MonoBehaviour
         disabled.Clear();
         ship = null;
         running = finished = false;
+        KillCam.Stop();
         ResetDomino();
         Stop();
     }

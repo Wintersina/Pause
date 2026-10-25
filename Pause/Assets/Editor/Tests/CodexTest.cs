@@ -634,7 +634,7 @@ public static class CodexTest
     static void CheckInventory()
     {
         var accounted = new HashSet<string>();
-        foreach (string log in new[] { "log_pilot", "log_wormhole" }) accounted.Add(log);
+        foreach (string log in new[] { "log_pilot", "log_wormhole", KillCamArchive.CodexId }) accounted.Add(log);
 
         // ---- roster enemies and hazards ----
         foreach (var d in EnemyRoster.All)
@@ -1148,7 +1148,7 @@ public static class CodexTest
         Check("panel uses the cel frame",
               panel.Panel.Find("Frame").GetComponent<Image>().sprite != null &&
               panel.Panel.Find("Frame").GetComponent<Image>().sprite.name == "cx_panel");
-        Check("panel opens on the Pilot's Log", panel.Category == CodexCategory.Log && panel.VisibleCards == 2);
+        Check("panel opens on the Pilot's Log", panel.Category == CodexCategory.Log && panel.VisibleCards == 3);
         Check("panel counter matches", panel.Counter.text.StartsWith(Codex.DiscoveredCount + " / " + Codex.Total));
 
         // Locked vs discovered cards.
@@ -1391,7 +1391,8 @@ public static class CodexTest
                 panel.SkipAnimations();
                 string sub = e.Subtitle;
                 var d = panel.DetailAnimator;
-                bool ok = panel.CardName(i).text == e.name && panel.DetailName.text == e.name && panel.DetailLore.text == e.lore &&
+                bool ok = panel.CardName(i).text == e.name && panel.DetailName.text == e.name &&
+                          panel.DetailLore.text == (e.id == KillCamArchive.CodexId ? KillCamArchive.Describe() : e.lore) &&
                           panel.DetailSubtitle.gameObject.activeSelf == (sub != null) && (sub == null || panel.DetailSubtitle.text == sub) &&
                           panel.DetailArt.sprite != null && !CodexUi.IsSilhouette(panel.DetailArt) &&
                           d.Animation == CodexAnimations.For(e);
