@@ -305,25 +305,25 @@ public class SecretPowerController : MonoBehaviour
         {
             case SecretPower.ShieldPulse:
                 collisionDetection.BeginCloak(pulseInvulnerable);
-                Rim(at, pulseShotRadius * 1.4f, false, 0f, transform, 73);
+                PowerStrip("pulse", 8, false, pulseShotRadius * 1.4f, 0f, transform, 73, StripAlpha);
                 KillWithin(at, pulseRadius);
                 HostileShots.ClearWithin(at, pulseShotRadius);
                 break;
 
             case SecretPower.EmpStun:
-                Rim(at, 3.6f, false, 0f, transform, 73);
+                PowerStrip("emp", 8, false, 3.6f, 0f, transform, 73, StripAlpha);
                 Stun();
                 HostileShots.ClearIn(ShipTargets.View());
                 break;
 
             case SecretPower.SolarNova:
-                Rim(at, novaRadius * 1.9f, false, 0f, transform, 73);
+                PowerStrip("nova", 8, false, novaRadius * 1.9f, 0f, transform, 73, StripAlpha);
                 KillWithin(at, novaRadius);
                 CameraKick.Kick(.04f);
                 // ...and the ring stays burning where it went off
                 novaAt = at;
                 novaLeft = novaBurnSeconds;
-                Rim(at, novaRadius * 2f, true, novaBurnSeconds, null, 66);
+                PowerStrip("nova", 0, true, novaRadius * 2f, novaBurnSeconds, null, 66, StripAlpha);
                 break;
 
             case SecretPower.CapacitorDump:
@@ -492,6 +492,17 @@ public class SecretPowerController : MonoBehaviour
             loop ? ShipFxArt.PowerLoopTicks : ShipFxArt.PowerBurstTicks, loop, life, follow, Vector3.zero, order);
         fx.SetColor(RimTint(ship));
         return fx;
+    }
+
+    const float StripAlpha = .85f;
+
+    // A ship's own hand-drawn power strip (Powers2/<Ship>_<name>.png: cells 0-7 the held loop, 8-15 the burst),
+    // drawn in its own colours, centred on the ship (or on where the power went off).
+    AttackSprite PowerStrip(string name, int firstCell, bool loop, float size, float life, Transform follow, int order, float alpha)
+    {
+        return AttackPool.Sprite().Play(AttackSprite.Source.Extra, ship, transform.position, Vector3.one * size, 0f,
+            loop ? ShipFxArt.PowerLoopTicks : ShipFxArt.PowerBurstTicks, loop, life, follow, Vector3.zero, order)
+            .Strip(name, firstCell, loop).Alpha(alpha);
     }
 
     AttackSprite Loop(Vector3 at, float size, float life, Transform follow, int order)
