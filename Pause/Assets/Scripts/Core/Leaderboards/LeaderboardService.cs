@@ -527,6 +527,7 @@ public sealed class LeaderboardService
         if (!SignedIn) { done(LeaderboardPage.Failed(LeaderboardStatus.NotSignedIn), null); return; }
 
         string id = board.PlatformId(Ios);
+        string boardLogical = board.id;
         LeaderboardPage top = null, me = null;
         int remaining = 2;
         Action finish = () =>
@@ -538,7 +539,6 @@ public sealed class LeaderboardService
             int ownRank = me != null && me.Ok && me.hasPlayer ? me.player.rank : 0;
             done(FillOwnTag(boardLogical, top, ownRank), me);
         };
-        string boardLogical = board.id;
         Platform.LoadTopScores(id, LeaderboardTimeScope.AllTime, count, page => { top = page; finish(); });
         Platform.LoadPlayerScore(id, page => { me = FillOwnTag(boardLogical, page, 0); finish(); });
     }
