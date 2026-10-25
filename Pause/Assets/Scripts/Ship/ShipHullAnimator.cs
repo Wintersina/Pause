@@ -20,7 +20,7 @@ public class ShipHullAnimator
 {
     public const float FlashSeconds = 3f / ShipHullArt.TicksPerSecond;
     public const float BankHoldTicks = 4f;
-    public const float BankSpeed = .5f;        // world units / s of steering that reads as a lean
+    public const float BankSpeed = 2f;         // world units / s of steering that reads as a lean
     public const float LandingBankSpeed = 3f;  // while a planetfall flies the ship: only a clearly big sideways sweep leans it
     public const float TeleportStep = .75f;    // a single-frame jump at least this big is a teleport
 
