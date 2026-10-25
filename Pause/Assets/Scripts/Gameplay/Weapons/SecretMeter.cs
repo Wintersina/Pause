@@ -162,12 +162,14 @@ public class SecretMeter : MonoBehaviour
                 offset.y -= WorldSize * .25f;
         }
 
+        // the ship still growing out of the portal: badge and its gap grow with it
+        float k = PortalArrival.ShipFactor(host);
         var t = view.transform;
-        t.position = new Vector3(p.x + offset.x, p.y + offset.y, p.z - .05f);
+        t.position = new Vector3(p.x + offset.x * k, p.y + offset.y * k, p.z - .05f);
         t.rotation = Quaternion.identity;
         Vector3 lossy = host.lossyScale;
-        t.localScale = new Vector3(WorldSize / Mathf.Max(.0001f, Mathf.Abs(lossy.x)),
-                                   WorldSize / Mathf.Max(.0001f, Mathf.Abs(lossy.y)), 1f);
+        t.localScale = new Vector3(WorldSize * k / Mathf.Max(.0001f, Mathf.Abs(lossy.x)),
+                                   WorldSize * k / Mathf.Max(.0001f, Mathf.Abs(lossy.y)), 1f);
     }
 
     int Usable(ShipUiSlots.Side want, Vector3 p, Rect screen)
