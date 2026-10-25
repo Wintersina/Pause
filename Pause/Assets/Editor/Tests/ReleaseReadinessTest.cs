@@ -42,7 +42,7 @@ public static class ReleaseReadinessTest
     // ACCESS_NETWORK_STATE itself; the merged-manifest list is in the audit doc).
     static readonly string[] AllowedPermissions =
     {
-        "android.permission.INTERNET", "android.permission.ACCESS_NETWORK_STATE",
+        "android.permission.INTERNET", "android.permission.ACCESS_NETWORK_STATE", "android.permission.VIBRATE",
     };
 
     public static void Run() { TestHarness.Exit(Execute()); }

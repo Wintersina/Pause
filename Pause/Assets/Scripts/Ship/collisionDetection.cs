@@ -340,6 +340,7 @@ public class collisionDetection : MonoBehaviour {
                     // End of the run: flush the batched achievement counters.
                     PrefsSaver.SaveNow();
                     PlayExplosion();
+                    DeathHaptics.OnFatalHit();   // the death vibration (once: playerDied)
                     // The crash sequence takes over: the hull breaks up, its
                     // pieces (and a solid killer) slam into the rails, and
                     // only then is the ship destroyed and the Flight Complete
