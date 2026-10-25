@@ -43,6 +43,7 @@ public static class LeaderboardTest
             Blocked();
             RunTagsAndParagon();
             FurthestLoopShipHearts();
+            PausesColumn();
             ConfirmBeforeDone();
             AccountBinding();
             BackfillGates();
@@ -99,8 +100,8 @@ public static class LeaderboardTest
                 "Most star dust collected in a single run.", LeaderboardSort.HigherIsBetter,
                 LeaderboardBoards.FormatHundredths, r => (long)System.Math.Round(r.starDust * 100.0)),
             new LeaderboardBoard(LeaderboardBoards.FurthestWorld, TestWorldAndroid, AchievementIds.IosPrefix + "furthest_world",
-                "Furthest Loop", "Furthest loop reached in a single run.", LeaderboardSort.HigherIsBetter,
-                LeaderboardBoards.FormatLoop, r => System.Math.Max(1, r.loop)),
+                "Worlds", "Most worlds cleared in a single run, across loops.", LeaderboardSort.HigherIsBetter,
+                LeaderboardBoards.FormatWorlds, r => System.Math.Max(0, r.worldsCleared), 1),
         };
     }
 
@@ -139,18 +140,18 @@ public static class LeaderboardTest
 
         var dust = LeaderboardBoards.Get(LeaderboardBoards.RunStarDust);
         var world = LeaderboardBoards.Get(LeaderboardBoards.FurthestWorld);
-        Check("Android ids: Top Score / Star Dust / Furthest Loop",
+        Check("Android ids: Top Score / Star Dust / Worlds (the old furthest_world id is kept)",
               score.androidId == "CgkIopqxqbAPEAIQPg" && dust.androidId == "CgkIopqxqbAPEAIQPw" && world.androidId == "CgkIopqxqbAPEAIQQA");
         Check("a board is enabled per platform: all three on Android", score.EnabledOn(false) && dust.EnabledOn(false) && world.EnabledOn(false));
         Check("a board is enabled per platform: only Top Score on iOS until the other Game Center ids exist",
               score.EnabledOn(true) && !dust.EnabledOn(true) && !world.EnabledOn(true) &&
               dust.PlatformId(true) == null && world.PlatformId(true) == null && dust.PlatformId(false) == dust.androidId);
-        Check("Furthest Loop: renamed, logical id kept",
-              world.id == "furthest_world" && world.displayName == "Furthest Loop" && world.description == "Furthest loop reached in a single run.");
-        Check("Furthest Loop: value is the loop number, no cap, 1 at least",
-              world.Measure(new LeaderboardRunStats { loop = 1 }) == 1 && world.Measure(new LeaderboardRunStats { loop = 40 }) == 40 &&
-              world.Measure(new LeaderboardRunStats()) == 1);
-        Check("formatters: loop", LeaderboardBoards.FormatLoop(1) == "Loop 1" && LeaderboardBoards.FormatLoop(12) == "Loop 12");
+        Check("Worlds: renamed, logical id kept",
+              world.id == "furthest_world" && world.displayName == "Worlds" && world.description == "Most worlds cleared in a single run, across loops.");
+        Check("Worlds: value is the cumulative worlds cleared, no cap; below 1 is never offered",
+              world.Measure(new LeaderboardRunStats { worldsCleared = 1 }) == 1 && world.Measure(new LeaderboardRunStats { worldsCleared = 40 }) == 40 &&
+              world.Measure(new LeaderboardRunStats()) == 0 && world.minValue == 1);
+        WorldsFormatter();
         Check("formatters: hundredths", LeaderboardBoards.FormatHundredths(1234) == "12.34");
 
         var lower = new LeaderboardBoard("t", "a", "i", "T", "d", LeaderboardSort.LowerIsBetter, null, r => 0);
@@ -162,7 +163,7 @@ public static class LeaderboardTest
         Check("offer to an unknown/disabled board is skipped", !service.Offer("no_such_board", 500));
         long v;
         Check("nothing queued for a disabled board", !service.HasPending("no_such_board", out v));
-        int accepted = service.SubmitRun(new LeaderboardRunStats { score = 500, starDust = 3f, loop = 2 });
+        int accepted = service.SubmitRun(new LeaderboardRunStats { score = 500, starDust = 3f, worldsCleared = 2 });
         Check("a run end only queues enabled boards", accepted == LeaderboardBoards.Enabled().Count);
         Check("only enabled boards appear as panel tabs", service.UsableBoards().Count == LeaderboardBoards.Enabled().Count);
     }
@@ -189,7 +190,7 @@ public static class LeaderboardTest
                   !service.HasPending(LeaderboardBoards.RetiredSpeedBoard, out v));
             Check("retired speed board: an offer to it is refused", !service.Offer(LeaderboardBoards.RetiredSpeedBoard, 50));
 
-            int accepted = service.SubmitRun(new LeaderboardRunStats { score = 1234, starDust = 2.5f, loop = 1 });
+            int accepted = service.SubmitRun(new LeaderboardRunStats { score = 1234, starDust = 2.5f, worldsCleared = 1 });
             now = 60f;
             service.Tick();
             bool onlyLive = true;
@@ -302,7 +303,7 @@ public static class LeaderboardTest
         RealRunContext();
         var fake = new FakeLeaderboards();
         var service = Service(fake);
-        var run = new LeaderboardRunStats { score = 999 };
+        var run = new LeaderboardRunStats { score = 999, worldsCleared = 1 };
         long v;
 
         PlayerPrefs.SetInt(DeveloperUnlocks.EnabledKey, 1);
@@ -371,7 +372,8 @@ public static class LeaderboardTest
         Check("tag: old tag reads, end unknown", LeaderboardRunTag.TryParse("s7h4", out ship, out hearts, out end) && ship == 7 && hearts == 4 && end == -1);
         Check("tag: the 3-argument parse still reads an end tag", LeaderboardRunTag.TryParse("s7h4e2", out ship, out hearts) && ship == 7 && hearts == 4);
         Check("tag: bad end part is unknown", !LeaderboardRunTag.TryParse("s7h4e", out ship, out hearts) && !LeaderboardRunTag.TryParse("s7h4e2x", out ship, out hearts)
-              && !LeaderboardRunTag.TryParse("s7h4f2", out ship, out hearts));
+              && !LeaderboardRunTag.TryParse("s7h4E2", out ship, out hearts));
+        Check("tag: an unknown field is skipped (future builds)", LeaderboardRunTag.TryParse("s7h4f2", out ship, out hearts) && ship == 7 && hearts == 4);
         Check("tag: absurd end hearts read as unknown end", LeaderboardRunTag.TryParse("s7h4e999", out ship, out hearts, out end) && hearts == 4 && end == -1);
         Check("tag: Paragon never encoded with an end either", LeaderboardRunTag.Encode(PremiumShips.Paragon, 10, 3) == ""
               && !LeaderboardRunTag.TryParse("s16h10e3", out ship, out hearts, out end) && end == -1 && LeaderboardRunTag.IsPremium("s16h10e3"));
@@ -381,7 +383,7 @@ public static class LeaderboardTest
         RealRunContext();
         var fake = new FakeLeaderboards();
         var service = Service(fake);
-        var run = new LeaderboardRunStats { score = 500, loop = 1, startShip = 7, startHearts = 4, hasEnd = true, endHearts = 2 };
+        var run = new LeaderboardRunStats { score = 500, worldsCleared = 1, startShip = 7, startHearts = 4, hasEnd = true, endHearts = 2 };
         Check("start ship run: accepted", service.SubmitRun(run) > 0);
         now = 60f;
         service.Tick();
@@ -405,9 +407,9 @@ public static class LeaderboardTest
         fake = new FakeLeaderboards();
         service = Service(fake);
         long v;
-        var paragonRun = new LeaderboardRunStats { score = 9999, loop = 3, startShip = PremiumShips.Paragon, startHearts = 14 };
+        var paragonRun = new LeaderboardRunStats { score = 9999, worldsCleared = 3, startShip = PremiumShips.Paragon, startHearts = 14 };
         Check("Paragon start: run not submitted", service.SubmitRun(paragonRun) == 0);
-        var switched = new LeaderboardRunStats { score = 9999, loop = 3, startShip = 5, startHearts = 3, premiumRun = true };
+        var switched = new LeaderboardRunStats { score = 9999, worldsCleared = 3, startShip = 5, startHearts = 3, premiumRun = true };
         Check("started on Paragon, ship changed mid-run: not submitted (premiumRun)", service.SubmitRun(switched) == 0);
         Check("a premium tag is refused at the queue", !service.Offer(LeaderboardBoards.TopScore, 9999, "s16h14"));
         service.Flush();
@@ -527,24 +529,24 @@ public static class LeaderboardTest
         RealRunContext();
         var fake = new FakeLeaderboards();
         var service = Service(fake);
-        var run = new LeaderboardRunStats { score = 500, loop = 3, startShip = 7, startHearts = 4, hasEnd = true, endHearts = 1 };
+        var run = new LeaderboardRunStats { score = 500, worldsCleared = 3, startShip = 7, startHearts = 4, hasEnd = true, endHearts = 1 };
         service.SubmitRun(run);
         now = 60f;
         service.Tick();
         bool sent = false; string tag = null;
         foreach (var sub in fake.Submissions) if (sub.board == worldId) { sent = true; tag = sub.tag; }
-        Check("furthest loop: submitted with value 3 and the s7h4e1 tag", sent && tag == "s7h4e1" && fake.Submissions.Exists(x => x.board == worldId && x.score == 3));
-        Check("furthest loop: record keeps the tag",
+        Check("worlds: submitted with value 3 and the s7h4e1 tag", sent && tag == "s7h4e1" && fake.Submissions.Exists(x => x.board == worldId && x.score == 3));
+        Check("worlds: record keeps the tag",
               LeadboardTag(LeaderboardService.SubmittedKey, LeaderboardBoards.FurthestWorld) == "s7h4e1");
 
         // Paragon: never encoded or sent on this board either.
         RealRunContext();
         fake = new FakeLeaderboards();
         service = Service(fake);
-        var paragon = new LeaderboardRunStats { score = 9, loop = 5, startShip = PremiumShips.Paragon, startHearts = 14 };
-        Check("furthest loop: Paragon run not submitted", service.SubmitRun(paragon) == 0 && fake.Submissions.Count == 0);
+        var paragon = new LeaderboardRunStats { score = 9, worldsCleared = 5, startShip = PremiumShips.Paragon, startHearts = 14 };
+        Check("worlds: Paragon run not submitted", service.SubmitRun(paragon) == 0 && fake.Submissions.Count == 0);
         long v;
-        Check("furthest loop: premium tag refused", !service.Offer(LeaderboardBoards.FurthestWorld, 5, "s16h14")
+        Check("worlds: premium tag refused", !service.Offer(LeaderboardBoards.FurthestWorld, 5, "s16h14")
               && !service.HasPending(LeaderboardBoards.FurthestWorld, out v));
 
         // Tying an old, tagless best now sends the tag (loops tie constantly); a tagged tie does not resend.
@@ -554,14 +556,14 @@ public static class LeaderboardTest
         old.Save(LeaderboardService.SubmittedKey);
         fake = new FakeLeaderboards();
         service = Service(fake);
-        Check("furthest loop: a tie of a tagless best is queued with the tag", service.Offer(LeaderboardBoards.FurthestWorld, 3, "s7h4e1"));
-        Check("furthest loop: a tie with no tag is still ignored", !service.Offer(LeaderboardBoards.FurthestWorld, 3));
+        Check("worlds: a tie of a tagless best is queued with the tag", service.Offer(LeaderboardBoards.FurthestWorld, 3, "s7h4e1"));
+        Check("worlds: a tie with no tag is still ignored", !service.Offer(LeaderboardBoards.FurthestWorld, 3));
         now = 120f;
         service.Tick();
-        Check("furthest loop: the tie went out with its tag", fake.SubmissionsTo(worldId) == 1 && fake.Submissions[0].tag == "s7h4e1");
-        Check("furthest loop: the tie updated the stored tag", LeadboardTag(LeaderboardService.SubmittedKey, LeaderboardBoards.FurthestWorld) == "s7h4e1");
-        Check("furthest loop: once tagged, a tie is ignored", !service.Offer(LeaderboardBoards.FurthestWorld, 3, "s2h3e0"));
-        Check("furthest loop: a lower loop is still ignored", !service.Offer(LeaderboardBoards.FurthestWorld, 2, "s2h3e0"));
+        Check("worlds: the tie went out with its tag", fake.SubmissionsTo(worldId) == 1 && fake.Submissions[0].tag == "s7h4e1");
+        Check("worlds: the tie updated the stored tag", LeadboardTag(LeaderboardService.SubmittedKey, LeaderboardBoards.FurthestWorld) == "s7h4e1");
+        Check("worlds: once tagged, a tie is ignored", !service.Offer(LeaderboardBoards.FurthestWorld, 3, "s2h3e0"));
+        Check("worlds: a lower loop is still ignored", !service.Offer(LeaderboardBoards.FurthestWorld, 2, "s2h3e0"));
 
         // Rows: the Furthest Loop tab shows ship + hearts, hides Paragon, and fills the own row.
         RealRunContext();
@@ -578,13 +580,167 @@ public static class LeaderboardTest
         var panel = OpenPanel(fake);
         panel.SelectBoard(LeaderboardBoards.FurthestWorld);
         var rows = panel.PanelRoot.Find("List/Rows");
-        Check("furthest loop tab: ship and hearts shown",
+        Check("worlds tab: ship and hearts shown",
               rows.Find("Row0/Ship") != null && rows.Find("Row0/Hearts/Count").GetComponent<Text>().text == "4");
-        Check("furthest loop tab: value formatted as a loop", rows.Find("Row0/Value").GetComponent<Text>().text == "Loop 5");
-        Check("furthest loop tab: untagged entry blank", rows.Find("Row1/Ship") == null && rows.Find("Row1/Hearts") == null);
-        Check("furthest loop tab: Paragon entry hidden", rows.Find("Row2/Ship") == null);
-        Check("furthest loop tab: own entry filled from the device record",
+        Check("worlds tab: value formatted as a loop", rows.Find("Row0/Value").GetComponent<Text>().text == "LOOP 1\nWORLDS 5");
+        Check("worlds tab: untagged entry blank", rows.Find("Row1/Ship") == null && rows.Find("Row1/Hearts") == null);
+        Check("worlds tab: Paragon entry hidden", rows.Find("Row2/Ship") == null);
+        Check("worlds tab: own entry filled from the device record",
               rows.Find("Row3/Ship") != null && rows.Find("Row3/Hearts/Count").GetComponent<Text>().text == "2");
+    }
+
+    // ---- worlds cleared + pauses left ----
+
+    static void WorldsFormatter()
+    {
+        Check("worlds format: 1 -> LOOP 1 \u00B7 WORLD 1 (singular)", LeaderboardBoards.FormatWorlds(1) == "LOOP 1 \u00B7 WORLD 1");
+        Check("worlds format: 2 -> LOOP 1 \u00B7 WORLDS 2", LeaderboardBoards.FormatWorlds(2) == "LOOP 1 \u00B7 WORLDS 2");
+        Check("worlds format: 5 -> LOOP 1 \u00B7 WORLDS 5", LeaderboardBoards.FormatWorlds(5) == "LOOP 1 \u00B7 WORLDS 5");
+        Check("worlds format: 7 -> LOOP 1 \u00B7 WORLDS 7 (loop 1 complete)", LeaderboardBoards.FormatWorlds(7) == "LOOP 1 \u00B7 WORLDS 7");
+        Check("worlds format: 8 -> LOOP 2 \u00B7 WORLDS 8", LeaderboardBoards.FormatWorlds(8) == "LOOP 2 \u00B7 WORLDS 8");
+        Check("worlds format: 14 -> LOOP 2 \u00B7 WORLDS 14", LeaderboardBoards.FormatWorlds(14) == "LOOP 2 \u00B7 WORLDS 14");
+        Check("worlds format: 15 -> LOOP 3 \u00B7 WORLDS 15", LeaderboardBoards.FormatWorlds(15) == "LOOP 3 \u00B7 WORLDS 15");
+        Check("worlds format: no '>' glyph anywhere", !LeaderboardBoards.FormatWorlds(8).Contains(">"));
+        Check("worlds per loop is the live world count (a new world needs a deliberate decision)",
+              LeaderboardBoards.WorldsPerLoop == WorldManager.LiveWorldCount);
+    }
+
+    static void PausesColumn()
+    {
+        int ship, hearts, end, pauses;
+        Check("tag: encode with pauses", LeaderboardRunTag.Encode(7, 4, 2, 3) == "s7h4e2p3" && LeaderboardRunTag.Encode(7, 4, 0, 0) == "s7h4e0p0");
+        Check("tag: pauses without end hearts", LeaderboardRunTag.Encode(7, 4, -1, 5) == "s7h4p5");
+        Check("tag: pauses round trip", LeaderboardRunTag.TryParse("s7h4e2p3", out ship, out hearts, out end, out pauses)
+              && ship == 7 && hearts == 4 && end == 2 && pauses == 3);
+        Check("tag: zero pauses reads as 0, not unknown", LeaderboardRunTag.TryParse("s7h4e0p0", out ship, out hearts, out end, out pauses) && pauses == 0);
+        Check("tag: old tags have no pauses", LeaderboardRunTag.TryParse("s7h4e2", out ship, out hearts, out end, out pauses) && pauses == -1
+              && LeaderboardRunTag.TryParse("s7h4", out ship, out hearts, out end, out pauses) && pauses == -1 && end == -1);
+        Check("tag: unknown future fields are skipped, not rejected",
+              LeaderboardRunTag.TryParse("s7h4e2p3q9", out ship, out hearts, out end, out pauses) && ship == 7 && end == 2 && pauses == 3
+              && LeaderboardRunTag.TryParse("s7h4z1e2", out ship, out hearts, out end, out pauses) && end == 2 && pauses == -1);
+        Check("tag: absurd pauses read as unknown pauses", LeaderboardRunTag.TryParse("s7h4p500", out ship, out hearts, out end, out pauses) && ship == 7 && pauses == -1
+              && LeaderboardRunTag.TryParse("s7h4p99999999", out ship, out hearts, out end, out pauses) && pauses == -1);
+        Check("tag: a field without a number is malformed", !LeaderboardRunTag.TryParse("s7h4p", out ship, out hearts) && !LeaderboardRunTag.TryParse("s7h4p3x", out ship, out hearts));
+        Check("tag: Paragon never carries pauses", LeaderboardRunTag.Encode(PremiumShips.Paragon, 10, 3, 4) == ""
+              && !LeaderboardRunTag.TryParse("s16h10e3p4", out ship, out hearts, out end, out pauses) && pauses == -1 && LeaderboardRunTag.IsPremium("s16h10e3p4"));
+        Check("tag: still short", LeaderboardRunTag.Encode(15, ShipLives.MostHearts, ShipLives.MostHearts, LeaderboardRunTag.MostPauses).Length < 24);
+
+        // A run's pauses go out in every board's tag.
+        RealRunContext();
+        var fake = new FakeLeaderboards();
+        var service = Service(fake);
+        var run = new LeaderboardRunStats { score = 500, worldsCleared = 3, startShip = 7, startHearts = 4, hasEnd = true, endHearts = 2, hasPauses = true, endPauses = 3 };
+        Check("pauses run: accepted", service.SubmitRun(run) > 0);
+        Check("pauses run: the run's own tag", run.Tag == "s7h4e2p3");
+        now = 60f;
+        service.Tick();
+        bool tagged = fake.Submissions.Count > 0;
+        foreach (var sub in fake.Submissions) tagged &= sub.tag == "s7h4e2p3";
+        Check("pauses run: every board's submission carries s7h4e2p3", tagged);
+
+        // Paragon: unranked, never submitted.
+        RealRunContext();
+        fake = new FakeLeaderboards();
+        service = Service(fake);
+        var paragon = new LeaderboardRunStats { score = 9, worldsCleared = 9, startShip = PremiumShips.Paragon, startHearts = 14, hasPauses = true, endPauses = 9 };
+        Check("pauses: Paragon run excluded", service.SubmitRun(paragon) == 0 && fake.Submissions.Count == 0);
+
+        // A run that cleared no world sends nothing to the worlds board (store minimum 1).
+        RealRunContext();
+        fake = new FakeLeaderboards();
+        service = Service(fake);
+        service.SubmitRun(new LeaderboardRunStats { score = 500, worldsCleared = 0, startShip = 7, startHearts = 4 });
+        long v;
+        Check("worlds: 0 cleared is not offered", !service.HasPending(LeaderboardBoards.FurthestWorld, out v) && service.HasPending(LeaderboardBoards.TopScore, out v));
+
+        // A tie that adds the missing pauses supersedes an older tag.
+        RealRunContext();
+        var old = new LeaderboardService.ScoreTable();
+        old.Set(LeaderboardBoards.FurthestWorld, 5, "s7h4e1");
+        old.Save(LeaderboardService.SubmittedKey);
+        fake = new FakeLeaderboards();
+        service = Service(fake);
+        Check("pauses: a tie with an older (pauses-less) tag is queued with the pauses", service.Offer(LeaderboardBoards.FurthestWorld, 5, "s7h4e1p2"));
+        Check("pauses: a tie with no new information is ignored", !service.Offer(LeaderboardBoards.FurthestWorld, 5, "s7h4e1"));
+
+        // Migration: an old loop mark is dropped once.
+        RealRunContext();
+        PlayerPrefs.DeleteKey(LeaderboardService.WorldsMigratedKey);
+        old = new LeaderboardService.ScoreTable();
+        old.Set(LeaderboardBoards.FurthestWorld, 3, "s7h4e1");
+        old.Set(LeaderboardBoards.TopScore, 900, "s7h4e1");
+        old.Save(LeaderboardService.SubmittedKey);
+        LeaderboardService.MigrateWorldsBoard();
+        var after = LeaderboardService.ScoreTable.Load(LeaderboardService.SubmittedKey);
+        long m;
+        Check("migration: old furthest_world mark dropped, others kept", !after.TryGet(LeaderboardBoards.FurthestWorld, out m) && after.TryGet(LeaderboardBoards.TopScore, out m) && m == 900);
+        old.Set(LeaderboardBoards.FurthestWorld, 4);
+        old.Save(LeaderboardService.SubmittedKey);
+        LeaderboardService.MigrateWorldsBoard();
+        Check("migration: runs once", LeaderboardService.ScoreTable.Load(LeaderboardService.SubmittedKey).TryGet(LeaderboardBoards.FurthestWorld, out m) && m == 4);
+
+        // Ranking: higher cleared count first; a refused store value parks the board after MaxRejectedSends.
+        var board = LeaderboardBoards.Get(LeaderboardBoards.FurthestWorld);
+        Check("ranking: more worlds is better, ties are not", board.IsBetter(8, 7) && !board.IsBetter(7, 8) && !board.IsBetter(7, 7));
+
+        // Rows: pauses badge on every board's rows; old tags show nothing.
+        RealRunContext();
+        EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+        fake = new FakeLeaderboards();
+        string worldId = board.PlatformId(false);
+        fake.SetBoard(worldId,
+            FakeLeaderboards.Entry(1, "TETSUO", 14, false, 7, 4, 2, 3),
+            FakeLeaderboards.Entry(2, "KAI", 8, false, 7, 4, 2),
+            FakeLeaderboards.Entry(3, "REI", 5, false, 7, 4, 0, 0),
+            FakeLeaderboards.Entry(4, "KANEDA", 1, true));
+        fake.SetBoard(TopScoreId, FakeLeaderboards.Entry(1, "TETSUO", 5000, false, 7, 4, 2, 12));
+        var panel = OpenPanel(fake);
+        panel.SelectBoard(LeaderboardBoards.FurthestWorld);
+        var rows = panel.PanelRoot.Find("List/Rows");
+        Check("worlds tab: pauses shown", rows.Find("Row0/Pauses/Count").GetComponent<Text>().text == "3");
+        Check("worlds tab: old tag (no pauses) shows no pauses badge", rows.Find("Row1/Pauses") == null && rows.Find("Row1/Hearts") != null);
+        Check("worlds tab: zero pauses shows 0", rows.Find("Row2/Pauses/Count").GetComponent<Text>().text == "0");
+        string v0 = rows.Find("Row0/Value").GetComponent<Text>().text;
+        Check("worlds tab: value is LOOP 2 over WORLDS 14, no dot glyph", v0 == "LOOP 2\nWORLDS 14" && !v0.Contains(">") && !v0.Contains("\u00B7"));
+        Check("worlds tab: 'WORLD 1' singular", panel.PanelRoot.Find("PlayerRow/Row/Value").GetComponent<Text>().text == "LOOP 1\nWORLD 1");
+        Check("worlds tab: no stray zero field in an old-tag row",
+              !rows.Find("Row1/Value").GetComponent<Text>().text.Contains("0 ") && rows.Find("Row1/Pauses") == null);
+        panel.SelectBoard(LeaderboardBoards.TopScore);
+        rows = panel.PanelRoot.Find("List/Rows");
+        Check("top score tab: pauses shown too", rows.Find("Row0/Pauses/Count").GetComponent<Text>().text == "12" && rows.Find("Row0/Value").GetComponent<Text>().text == "5,000");
+
+        // The own row takes the pauses from the device record when the store row has none.
+        RealRunContext();
+        fake = new FakeLeaderboards();
+        fake.SetBoard(worldId, FakeLeaderboards.Entry(1, "KANEDA", 6, true, 3, 2, 1));
+        var companion = new LeaderboardService.ScoreTable();
+        companion.Set(LeaderboardBoards.FurthestWorld, 6, "s3h2e1p4");
+        companion.Save(LeaderboardService.SubmittedKey);
+        panel = OpenPanel(fake);
+        panel.SelectBoard(LeaderboardBoards.FurthestWorld);
+        rows = panel.PanelRoot.Find("List/Rows");
+        Check("own row: pauses filled from the device record", rows.Find("Row0/Pauses/Count") != null && rows.Find("Row0/Pauses/Count").GetComponent<Text>().text == "4");
+        Check("own row: a record for another value is not used",
+              FillCheck());
+
+        // FIT by hand (panel units; 1 dp = 0.48 unit-scale at the smallest panel): see docs/leaderboards.md.
+        float narrow = 626.7f - 80f;   // 320 dp wide phone: and-480x854
+        float name = narrow - LeaderboardPanel.NameLeft - 14f - 170f - 6f - 2f * 66f;
+        Check("FIT: the name column at the narrowest panel is >= 90 units", name >= 90f);
+        Check("FIT: badge/value type is >= 16 units = 7.7 dp at 0.48 dp-scale", 16f * 0.48f >= 7f && 14.6f * 0.48f > 7f);
+    }
+
+    static bool FillCheck()
+    {
+        RealRunContext();
+        var fake = new FakeLeaderboards();
+        fake.SetBoard(LeaderboardBoards.Get(LeaderboardBoards.FurthestWorld).PlatformId(false), FakeLeaderboards.Entry(1, "KANEDA", 9, true, 3, 2, 1));
+        var companion = new LeaderboardService.ScoreTable();
+        companion.Set(LeaderboardBoards.FurthestWorld, 6, "s3h2e1p4");
+        companion.Save(LeaderboardService.SubmittedKey);
+        var panel = OpenPanel(fake);
+        panel.SelectBoard(LeaderboardBoards.FurthestWorld);
+        return panel.PanelRoot.Find("List/Rows/Row0/Pauses") == null;
     }
 
     static string LeadboardTag(string key, string board)

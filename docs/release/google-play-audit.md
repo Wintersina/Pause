@@ -76,7 +76,7 @@ Confirmed (and asserted by `ReleaseReadinessTest`):
 
 - `WorldManager.TideEnabled = false`; `LiveWorldCount = 4`; the loop is Space, Frost, Verdant, Ember, Space. `Worlds[]` holds Space, Frost, Verdant, Ember, Tide (Tide is reachable only through the developer picker, which is gated). No Storm or Desert world exists in code (only a "Storm" ship skin colour set, and `CodexPanel.MaxSections` text mentions Storm in a comment).
 - Dormant Tide achievements are hidden and not claimable until the switch flips.
-- Android ids: all 60 achievements in `Assets/Resources/AchievementStoreIds.csv` are `CgkI...` ids, unique, none `TODO_`. All three leaderboards (Top Score `CgkIopqxqbAPEAIQPg`, Star Dust `...PwA`, Furthest Loop `...QA`) have Android ids. iOS ids are empty or unconfirmed (`IosIdsConfirmed=false`) and are compiled out of the Android path, so they do not block Android.
+- Android ids: all 60 achievements in `Assets/Resources/AchievementStoreIds.csv` are `CgkI...` ids, unique, none `TODO_`. All three leaderboards (Top Score `CgkIopqxqbAPEAIQPg`, Star Dust `...PwA`, Worlds `...QA`) have Android ids. iOS ids are empty or unconfirmed (`IosIdsConfirmed=false`) and are compiled out of the Android path, so they do not block Android.
 - Play Games app id in `PlayGamesSettings.asset` = `528367766818`, and in the merged manifest `com.google.android.gms.games.APP_ID`.
 
 Owner TODO: the achievements and leaderboards are still drafts in Play Console; they must be "Review and publish"-ed, and linked to the same app (`me.hapticgate.pause`), or sign-in works but nothing reports.

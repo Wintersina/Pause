@@ -16,7 +16,7 @@ public class LeaderboardRunTracker : MonoBehaviour
 
     long runScore;
     long bestScoreAtStart;
-    int furthestLoop;
+    int worldsCleared;
     bool ended;
     // Captured when the run starts, never re-read: what it STARTED with.
     int startShip, startHearts;
@@ -24,18 +24,21 @@ public class LeaderboardRunTracker : MonoBehaviour
     // (like runScore) because the next scene resets the static hit counter.
     // The ship never changes mid-run, so only the hearts have a finish value.
     int endHearts;
+    // The pauses left at the last sample (score.pauseCounter), cached for the same reason.
+    int endPauses;
     bool premiumRun;
 
     void Start()
     {
         bestScoreAtStart = RunScore.SavedBest;
         runScore = 0;
-        furthestLoop = RunLoop.DisplayNumber;
+        worldsCleared = 0;
         ended = false;
         startShip = ShipId.Equipped();
         startHearts = ShipLives.Max(startShip);
         premiumRun = PremiumShips.IsPremium(startShip) || RunScore.Unranked;
         endHearts = startHearts;
+        endPauses = score.pauseCounter;
     }
 
     void Update()
@@ -53,13 +56,15 @@ public class LeaderboardRunTracker : MonoBehaviour
 
     void Sample()
     {
-        furthestLoop = Mathf.Max(furthestLoop, RunLoop.DisplayNumber);
+        // Worlds cleared = portals / lift-offs flown (the world-cleared event).
+        worldsCleared = Mathf.Max(worldsCleared, RunScore.Parts.worldCount);
         // A run that started on the premium ship stays premium whatever the
         // selection becomes; one that ever flies it is premium from then on.
         if (RunScore.Unranked || PremiumShips.IsPremium(ShipId.Equipped())) premiumRun = true;
         // Cached rather than read at teardown: the next scene's run may
         // already have begun by then.
         endHearts = ShipLives.Left;
+        endPauses = Mathf.Max(0, score.pauseCounter);
         if (RunScore.Scoring) runScore = System.Math.Max(runScore, RunScore.Total);
     }
 
@@ -71,11 +76,13 @@ public class LeaderboardRunTracker : MonoBehaviour
         {
             score = runScore,
             starDust = StarDustLedger.Earned,
-            loop = furthestLoop,
+            worldsCleared = worldsCleared,
             startShip = startShip,
             startHearts = startHearts,
             hasEnd = true,
             endHearts = endHearts,
+            hasPauses = true,
+            endPauses = endPauses,
             premiumRun = premiumRun,
         };
     }

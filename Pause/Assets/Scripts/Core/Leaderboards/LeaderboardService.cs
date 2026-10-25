@@ -114,6 +114,9 @@ public sealed class LeaderboardService
     readonly Dictionary<string, float> nextSendAt = new Dictionary<string, float>();
     // A refusal is only believed after this many read-backs (the first can be stale).
     public const int ResendAfterReads = 2;
+    // After this many refused sends of one value the board is parked for the session.
+    public const int MaxRejectedSends = 8;
+    const float ParkedSeconds = 1e7f;
 
     public LeaderboardService(ILeaderboardPlatform platform, Func<float> clock = null)
     {
@@ -124,8 +127,31 @@ public sealed class LeaderboardService
     // Hooks sign-in success (SocialBridge.SignedIn) up to Flush. Idempotent.
     public static void Install()
     {
+        MigrateWorldsBoard();
         SocialBridge.SignedIn -= OnSignedInStatic;
         SocialBridge.SignedIn += OnSignedInStatic;
+    }
+
+    // The furthest_world board changed meaning once: it held the LOOP a run
+    // reached (1, 2, 3 ...) and now holds the WORLDS CLEARED across loops. A
+    // device mark of the old kind (queued or submitted) would be read as a
+    // worlds count, so it is dropped once. Nothing real is lost: the board only
+    // existed as an unpublished draft, and a mark is only a "this device
+    // already sent it" note, so the next run offers its worlds again.
+    public const string WorldsMigratedKey = "leaderboards_worldsMigrated";
+
+    public static void MigrateWorldsBoard()
+    {
+        if (PlayerPrefs.GetInt(WorldsMigratedKey, 0) == 1) return;
+        foreach (string key in new[] { PendingKey, SubmittedKey })
+        {
+            var table = ScoreTable.Load(key);
+            long unused;
+            if (!table.TryGet(LeaderboardBoards.FurthestWorld, out unused)) continue;
+            table.Remove(LeaderboardBoards.FurthestWorld);
+            table.Save(key);
+        }
+        PlayerPrefs.SetInt(WorldsMigratedKey, 1);
     }
 
     static void OnSignedInStatic() { Instance.OnSignedIn(); }
@@ -210,6 +236,7 @@ public sealed class LeaderboardService
     {
         // The last gate before the queue: nothing from the premium ship, ever.
         if (PremiumShips.IsPremium(ShipId.Equipped()) || LeaderboardRunTag.IsPremium(tag)) return false;
+        if (value < board.minValue) return false;   // below the store board's lower limit (a run that cleared no world)
         var submitted = ScoreTable.Load(SubmittedKey);
         var pending = ScoreTable.Load(PendingKey);
         long have;
@@ -227,13 +254,18 @@ public sealed class LeaderboardService
 
     // A new value replaces a stored one when it is better, or when it ties a
     // record that has no run tag and the new one has: the score is the same,
-    // but the row can now show the ship and hearts. Matters most for Furthest
-    // Loop, where a pilot keeps tying their best loop (the values are small
-    // whole numbers), so a tagless old best would otherwise never get a ship.
+    // but the row can now show the ship and hearts (or, with a tag that has no
+    // pauses, the pauses). Matters most for the Worlds board, where a pilot keeps
+    // tying their best count (the values are small whole numbers), so a tagless old best would otherwise never get a ship.
     static bool Supersedes(LeaderboardBoard board, long value, string tag, long have, string haveTag)
     {
         if (board.IsBetter(value, have)) return true;
-        return value == have && string.IsNullOrEmpty(haveTag) && !string.IsNullOrEmpty(tag);
+        if (value != have || string.IsNullOrEmpty(tag)) return false;
+        if (string.IsNullOrEmpty(haveTag)) return true;
+        // Same value, and the new tag adds the pauses an older tag lacks.
+        int s, h, e, p, s2, h2, e2, p2;
+        return LeaderboardRunTag.TryParse(tag, out s, out h, out e, out p) && p >= 0
+            && LeaderboardRunTag.TryParse(haveTag, out s2, out h2, out e2, out p2) && p2 < 0;
     }
 
     public bool HasPending(string boardId, out long value)
@@ -420,7 +452,18 @@ public sealed class LeaderboardService
         failures.TryGetValue(boardId, out n);
         failures[boardId] = n + 1;
         float delay = BackoffSeconds(n);
-        if (verdict == Verdict.Rejected && n + 1 >= ResendAfterReads)
+        if (verdict == Verdict.Rejected && n + 1 >= MaxRejectedSends)
+        {
+            // The store keeps refusing (for the worlds board: its upper limit is
+            // still the draft's 7 and the value is above it). The value stays
+            // queued and the local best is kept; no more sends this session
+            // (opening the panel or the next launch tries once more).
+            Debug.LogWarning("[Leaderboards] " + boardId + " keeps refusing " + v.value
+                + "; check the store board's limits (docs/leaderboards.md). Kept queued, not sending again this session.");
+            verifying.Remove(boardId);
+            nextSendAt[boardId] = clock() + ParkedSeconds;
+        }
+        else if (verdict == Verdict.Rejected && n + 1 >= ResendAfterReads)
         {
             // The board still lacks the value: send it again later, queue untouched.
             Debug.Log("[Leaderboards] " + boardId + " did not take " + v.value + "; sending again in " + delay + " s.");
@@ -579,28 +622,37 @@ public sealed class LeaderboardService
         long have;
         string tag = submitted.TagOf(boardId);
         if (string.IsNullOrEmpty(tag) || !submitted.TryGet(boardId, out have)) return page;
-        int ship, hearts, end;
-        if (!LeaderboardRunTag.TryParse(tag, out ship, out hearts, out end)) return page;
+        int ship, hearts, end, pauses;
+        if (!LeaderboardRunTag.TryParse(tag, out ship, out hearts, out end, out pauses)) return page;
         for (int i = 0; i < page.entries.Count; i++)
         {
             var e = page.entries[i];
-            if ((e.isLocalPlayer || (ownRank > 0 && e.rank == ownRank)) && e.value == have && e.startShip == 0 && e.startHearts == 0)
-            {
-                e.startShip = ship;
-                e.startHearts = hearts;
-                e.hasEnd = end >= 0;
-                e.endHearts = Mathf.Max(end, 0);
-                page.entries[i] = e;
-            }
+            if ((e.isLocalPlayer || (ownRank > 0 && e.rank == ownRank)) && e.value == have)
+                page.entries[i] = FillFrom(e, ship, hearts, end, pauses);
         }
-        if (page.hasPlayer && page.player.value == have && page.player.startShip == 0 && page.player.startHearts == 0)
-        {
-            page.player.startShip = ship;
-            page.player.startHearts = hearts;
-            page.player.hasEnd = end >= 0;
-            page.player.endHearts = Mathf.Max(end, 0);
-        }
+        if (page.hasPlayer && page.player.value == have) page.player = FillFrom(page.player, ship, hearts, end, pauses);
         return page;
+    }
+
+    // The device-kept record fills what the store row lacks: the whole tag when
+    // it has none, or just the pauses when its (older) tag has no pauses.
+    static LeaderboardEntry FillFrom(LeaderboardEntry e, int ship, int hearts, int end, int pauses)
+    {
+        if (e.startShip == 0 && e.startHearts == 0)
+        {
+            e.startShip = ship;
+            e.startHearts = hearts;
+            e.hasEnd = end >= 0;
+            e.endHearts = Mathf.Max(end, 0);
+            e.hasPauses = pauses >= 0;
+            e.pauses = Mathf.Max(pauses, 0);
+        }
+        else if (!e.hasPauses && pauses >= 0 && e.startShip == ship && e.startHearts == hearts)
+        {
+            e.hasPauses = true;
+            e.pauses = pauses;
+        }
+        return e;
     }
 
     // The panel's SIGN IN. The store platforms route this to
