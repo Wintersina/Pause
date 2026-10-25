@@ -527,19 +527,28 @@ public sealed class LeaderboardService
         if (!SignedIn) { done(LeaderboardPage.Failed(LeaderboardStatus.NotSignedIn), null); return; }
 
         string id = board.PlatformId(Ios);
+        string boardLogical = board.id;
         LeaderboardPage top = null, me = null;
         int remaining = 2;
-        Action finish = () => { if (--remaining == 0) done(top, me); };
-        string boardLogical = board.id;
-        Platform.LoadTopScores(id, LeaderboardTimeScope.AllTime, count, page => { top = FillOwnTag(boardLogical, page); finish(); });
-        Platform.LoadPlayerScore(id, page => { me = FillOwnTag(boardLogical, page); finish(); });
+        Action finish = () =>
+        {
+            if (--remaining > 0) return;
+            // The store may not flag the player's own row in the top list as
+            // theirs; the rank from the player's own read is the other way to
+            // find it.
+            int ownRank = me != null && me.Ok && me.hasPlayer ? me.player.rank : 0;
+            done(FillOwnTag(boardLogical, top, ownRank), me);
+        };
+        Platform.LoadTopScores(id, LeaderboardTimeScope.AllTime, count, page => { top = page; finish(); });
+        Platform.LoadPlayerScore(id, page => { me = FillOwnTag(boardLogical, page, 0); finish(); });
     }
 
     // The player's own entry with no tag from the store (Game Center, or a
     // score from an older build) gets the one this device kept for the score
     // it submitted -- only when the stored value is the same, so a score made
-    // elsewhere is never given this device's ship.
-    LeaderboardPage FillOwnTag(string boardId, LeaderboardPage page)
+    // elsewhere is never given this device's ship. `ownRank` (0 = unknown) also
+    // matches the top-list row at the player's rank when it is not flagged local.
+    LeaderboardPage FillOwnTag(string boardId, LeaderboardPage page, int ownRank)
     {
         if (page == null || !page.Ok) return page;
         var submitted = ScoreTable.Load(SubmittedKey);
@@ -551,7 +560,7 @@ public sealed class LeaderboardService
         for (int i = 0; i < page.entries.Count; i++)
         {
             var e = page.entries[i];
-            if (e.isLocalPlayer && e.value == have && e.startShip == 0 && e.startHearts == 0)
+            if ((e.isLocalPlayer || (ownRank > 0 && e.rank == ownRank)) && e.value == have && e.startShip == 0 && e.startHearts == 0)
             {
                 e.startShip = ship;
                 e.startHearts = hearts;
