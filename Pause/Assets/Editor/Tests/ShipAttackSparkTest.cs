@@ -128,7 +128,7 @@ public static class ShipAttackSparkTest
         int kills = ShipAttackHits.Kills;
         c.Runner.Fire();
         Steps(c.Runner, .06f);
-        Check("a spark is flying", c.Runner.ActiveRuns == 1 && ShipAttackHits.Kills == kills);
+        Check("a spark is flying (runs " + c.Runner.ActiveRuns + ", kills " + (ShipAttackHits.Kills - kills) + ")", c.Runner.ActiveRuns == 1 && ShipAttackHits.Kills == kills);
         Steps(c.Runner, 1.2f);
         Check("the nearest enemy was struck first", near == null);
         Check("then the chain reached the next one", far == null);
@@ -193,7 +193,7 @@ public static class ShipAttackSparkTest
         Steps(c.Runner, .1f);
         Check("it flies straight up with no enemy", c.Runner.ActiveRuns == 1);
         Steps(c.Runner, 2.5f);
-        Check("and fizzles at the top, run over", c.Runner.ActiveRuns == 0 && AttackProjectile.LaunchCount == launches);
+        Check("and fizzles at the top, run over (runs " + c.Runner.ActiveRuns + ", launches " + (AttackProjectile.LaunchCount - launches) + ", live targets " + ClearTarget.Live.Count + ")", c.Runner.ActiveRuns == 0 && AttackProjectile.LaunchCount == launches);
         Teardown(c);
     }
 

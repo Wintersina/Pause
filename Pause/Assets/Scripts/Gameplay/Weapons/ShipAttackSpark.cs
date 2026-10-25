@@ -226,7 +226,7 @@ public partial class ShipAttackRunner
             Vector2 want = (Vector2)s.target.transform.position - s.pos;
             if (want.sqrMagnitude > 1e-6f)
             {
-                float ang = Vector2.SignedAngle(s.dir, want);
+                float ang = -Vector2.SignedAngle(s.dir, want);   // Unity's SignedAngle is positive clockwise; the rotation below is counter-clockwise
                 float turn = Mathf.Clamp(ang, -SparkTurnRate * dt, SparkTurnRate * dt);
                 s.dir = (Quaternion.Euler(0f, 0f, turn) * s.dir).normalized;
             }
