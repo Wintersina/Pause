@@ -115,7 +115,7 @@ public static class CodexVettingTest
     // Playing finds everything: the whole cast discovered once, listed, counted, and Completionist's target reached.
     static void Unlocks()
     {
-        Check("a fresh profile has found only the Pilot's Log and the starter ship (" + Codex.DiscoveredCount + ")", Codex.DiscoveredCount <= 3);
+        Check("a fresh profile has found only the Pilot's Log (with LAST STAND) and the starter ship (" + Codex.DiscoveredCount + ")", Codex.DiscoveredCount <= 4);
         foreach (var e in Codex.Entries.ToList())
         {
             if (e.category == CodexCategory.Log || e.category == CodexCategory.Ships) continue;

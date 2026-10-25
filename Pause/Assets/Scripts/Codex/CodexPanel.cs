@@ -1149,12 +1149,92 @@ public class CodexPanel : MonoBehaviour
         // dp) the lore may not fit even at its smallest type: the art gives
         // up room, a step at a time, until it does (or reaches MinDetailArt).
         float minArt = Mathf.Min(art, MinDetailArt);
+        float start = art;
+        SetTallySide(false, art);
         float loreTop = PlaceDetail(art);
         while (art > minArt && !LoreFits(loreTop + d.height * .5f))
         {
             art = Mathf.Max(minArt, art - 16f);
             loreTop = PlaceDetail(art);
         }
+        // A long lore on a short, wide canvas (a tablet): the VERSUS YOU table moves
+        // beside the art, where there is room, and the lore gets the whole card.
+        if (tallyShown && !LoreFits(loreTop + d.height * .5f) && SideRoom(start) >= TallySideMin)
+        {
+            art = start;
+            SetTallySide(true, art);
+            loreTop = PlaceDetail(art);
+            while (art > minArt && (!LoreFits(loreTop + d.height * .5f) || SideRoom(art) < TallySideMin))
+            {
+                art = Mathf.Max(minArt, art - 16f);
+                loreTop = PlaceDetail(art);
+            }
+            PlaceTallySide(art);
+        }
+    }
+
+    // ---- the table's two homes: the foot of the lore card, or beside the art ----
+
+    public const float TallySideMin = 170f, TallySideGap = 16f;
+    bool tallySide;
+    float artCentreY;
+    public bool TallyBesideArt { get { return tallySide; } }
+
+    // Width free to the right of an art frame `art` units across.
+    float SideRoom(float art)
+    {
+        return layout.detail.width * .5f - (art * .5f + 18f) - TallySideGap - 8f;
+    }
+
+    void SetTallySide(bool side, float art)
+    {
+        if (tallyRoot == null) return;
+        tallySide = side && tallyShown;
+        var lrt = detailLore.rectTransform;
+        lrt.offsetMin = new Vector2(lrt.offsetMin.x, LoreBottom + (tallyShown && !tallySide ? TallyHeight + TallyGap : 0f));
+        for (int i = 0; i < TallyColumns; i++)
+        {
+            var h = tallyHeads[i].rectTransform;
+            var v = tallyValues[i].rectTransform;
+            if (tallySide)
+            {
+                float top = 1f - i / (float)TallyColumns, bottom = 1f - (i + 1) / (float)TallyColumns;
+                float split = bottom + (top - bottom) * .62f;
+                h.anchorMin = new Vector2(0f, split); h.anchorMax = new Vector2(1f, top);
+                v.anchorMin = new Vector2(0f, bottom); v.anchorMax = new Vector2(1f, split);
+            }
+            else
+            {
+                h.anchorMin = new Vector2(i / (float)TallyColumns, .62f); h.anchorMax = new Vector2((i + 1) / (float)TallyColumns, 1f);
+                v.anchorMin = new Vector2(i / (float)TallyColumns, 0f); v.anchorMax = new Vector2((i + 1) / (float)TallyColumns, .62f);
+            }
+            h.offsetMin = v.offsetMin = new Vector2(4f, 0f);
+            h.offsetMax = v.offsetMax = new Vector2(-4f, 0f);
+        }
+        if (tallySide)
+        {
+            tallyRoot.SetParent(infoRoot, false);
+        }
+        else
+        {
+            tallyRoot.SetParent(detailLoreCard.rectTransform, false);
+            tallyRoot.anchorMin = new Vector2(0f, 0f);
+            tallyRoot.anchorMax = new Vector2(1f, 0f);
+            tallyRoot.pivot = new Vector2(.5f, 0f);
+            tallyRoot.offsetMin = new Vector2(30f, LoreBottom);
+            tallyRoot.offsetMax = new Vector2(-34f, LoreBottom + TallyHeight);
+        }
+    }
+
+    void PlaceTallySide(float art)
+    {
+        if (!tallySide) return;
+        float left = art * .5f + 18f + TallySideGap;
+        float right = layout.detail.width * .5f - 8f;
+        float frame = art + 36f;
+        float bottom = artCentreY - frame * .5f;
+        float top = artCentreY + frame * .5f - 36f;   // clear of the entry number in the corner
+        CodexUi.Place(tallyRoot, Rect.MinMaxRect(left, bottom, right, Mathf.Max(bottom + 120f, top)));
     }
 
     // Whether the lore, at its best-fit minimum size, fits a lore card this tall.
@@ -1181,6 +1261,7 @@ public class CodexPanel : MonoBehaviour
         // Art frame flush with the top, then name, category pill, the
         // optional subtitle, and the lore card taking whatever is left.
         float y = top - 18f - art * .5f;
+        artCentreY = y;
         CodexUi.Place(detailFrame.rectTransform, CodexUi.Centered(0f, y, art + 36f, art + 36f));
         CodexUi.Place(detailArtBox, CodexUi.Centered(0f, 0f, art, art));
         detailAnim.Relayout();
