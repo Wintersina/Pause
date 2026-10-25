@@ -491,6 +491,30 @@ public static class LeaderboardTest
         fake.SetBoard(TopScoreId, FakeLeaderboards.Entry(1, "KANEDA", 750, true));
         panel = OpenPanel(fake);
         Check("own entry with another value: left blank", panel.PanelRoot.Find("List/Rows/Row0/Ship") == null);
+
+        // The store did not flag the player's own top-list row as local: the player's rank finds it.
+        var unflagged = FakeLeaderboards.Entry(1, "KANEDA", 700);
+        unflagged.playerId = fake.LocalPlayerId;
+        fake.SetBoard(TopScoreId, unflagged, FakeLeaderboards.Entry(2, "KAI", 700));
+        panel = OpenPanel(fake);
+        Check("own top entry not flagged local: still gets the tag by rank",
+              panel.PanelRoot.Find("List/Rows/Row0/Ship") != null && panel.PanelRoot.Find("List/Rows/Row0/Hearts/Count").GetComponent<Text>().text == "2 > 1");
+        Check("another player's entry with the same value: left blank", panel.PanelRoot.Find("List/Rows/Row1/Ship") == null);
+
+        // Own rank is 2 with a different value: the other player's equal-valued row 1 stays blank.
+        var other = FakeLeaderboards.Entry(1, "KAI", 700);
+        var ownLower = FakeLeaderboards.Entry(2, "KANEDA", 650, true);
+        fake.SetBoard(TopScoreId, other, ownLower);
+        panel = OpenPanel(fake);
+        Check("same value as the stored score, but not the player's rank: left blank", panel.PanelRoot.Find("List/Rows/Row0/Ship") == null);
+
+        // Nothing kept for the submitted score: nothing to fill.
+        var none = new LeaderboardService.ScoreTable();
+        none.Set(LeaderboardBoards.TopScore, 700, "");
+        none.Save(LeaderboardService.SubmittedKey);
+        fake.SetBoard(TopScoreId, unflagged);
+        panel = OpenPanel(fake);
+        Check("tagless stored score: unflagged own entry stays blank", panel.PanelRoot.Find("List/Rows/Row0/Ship") == null);
     }
 
     // Furthest Loop rows carry the ship and hearts like every other board.
