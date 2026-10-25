@@ -33,6 +33,18 @@ public class ElitePoint
     public string name;
     public float x, y;          // cell px (x right, y down)
     public float dir = -1f;     // art-space degrees the shot / plume leaves at (0 right, 90 up); < 0: away from the nose (nozzles) / along the nose (muzzles)
+    // Nozzles only: where this engine's bell sits on every cell of the strip (the hull strip, then its _damaged and _banks companions),
+    // as (dx, dy) cell px from (x, y) -- the hover cell's point -- x right, y down, two numbers per cell. The hull banks, lifts off and
+    // sits on the pad in other drawings, so the engine glow / plume mount moves with the drawn bell (the player's ShipNozzles offsets).
+    // Measured by .claude/skills/add-elite-ship/scripts/measure_frame_nozzles.py; absent / short: the point does not move.
+    public float[] offsets;
+
+    // This point on strip cell `cell`, cell px.
+    public Vector2 OnCell(int cell)
+    {
+        if (offsets == null || cell < 0 || cell * 2 + 1 >= offsets.Length) return new Vector2(x, y);
+        return new Vector2(x + offsets[cell * 2], y + offsets[cell * 2 + 1]);
+    }
 }
 
 // Cell indices into the strip; -1: no such drawing (procedural instead).
@@ -45,6 +57,8 @@ public class EliteCells
     public int liftoff = -1;    // rising off the pad (then flight); -1: the flight loop
     public int bankLeft = -1;   // flying left / right (steering, by sideways speed)
     public int bankRight = -1;
+    public int[] bankLeftLoop;  // optional: an animated bank (the plumes keep burning), played in place of the one held bank cell
+    public int[] bankRightLoop;
     public int tell = 4;        // the attack's wind-up; -1: charge glow at the muzzles + a squash
     public int action = 5;      // the attack; -1: muzzle flashes + recoil on the flight frame
     public int hit = 6;         // a hit; -1: the current frame flashes
@@ -58,6 +72,8 @@ public class EliteCells
             int n = 0;
             if (flight != null) foreach (int c in flight) n = Mathf.Max(n, c + 1);
             if (damagedLoop != null) foreach (int c in damagedLoop) n = Mathf.Max(n, c + 1);
+            if (bankLeftLoop != null) foreach (int c in bankLeftLoop) n = Mathf.Max(n, c + 1);
+            if (bankRightLoop != null) foreach (int c in bankRightLoop) n = Mathf.Max(n, c + 1);
             foreach (int c in new[] { parked, parkedIdle, liftoff, bankLeft, bankRight, tell, action, hit, damaged }) n = Mathf.Max(n, c + 1);
             return n;
         }
@@ -69,6 +85,21 @@ public class EliteCells
     public int Debris => damaged >= 0 ? damaged : hit >= 0 ? hit : Flight0;
     public bool HasDamagedLoop => damaged >= 0 && damagedLoop != null && damagedLoop.Length > 1;
     public bool Banks => bankLeft >= 0 && bankRight >= 0;
+    // The bank drawings for a side (-1 left, 1 right): its loop, else the one held cell (null: no banks).
+    public int[] BankLoop(int side)
+    {
+        int[] loop = side < 0 ? bankLeftLoop : bankRightLoop;
+        if (loop != null && loop.Length > 0) return loop;
+        int cell = side < 0 ? bankLeft : bankRight;
+        return cell >= 0 ? (side < 0 ? heldLeft ?? (heldLeft = new[] { cell }) : heldRight ?? (heldRight = new[] { cell })) : null;
+    }
+    [NonSerialized] int[] heldLeft, heldRight;
+    public bool IsBankCell(int cell)
+    {
+        if (cell < 0) return false;
+        if (cell == bankLeft || cell == bankRight) return true;
+        return (bankLeftLoop != null && Array.IndexOf(bankLeftLoop, cell) >= 0) || (bankRightLoop != null && Array.IndexOf(bankRightLoop, cell) >= 0);
+    }
 
     // The codex's idle loop: the flight loop, or -- one flight cell with
     // banks -- a slow weave (straight, left, straight, right). Codex only.
@@ -263,6 +294,13 @@ public class EliteDef
     public int Score => score > 0 ? score : ScoreRules.EliteDown;
     public float Dust => dust > 0f ? dust : ScoreRules.EliteDownDust;
     public float PixelWorld => cellWorldSize / Mathf.Max(1, cellPixels);
+
+    // Nozzle i's mount on strip cell `cell` (it follows the drawn bell: ElitePoint.offsets), local like PixelToLocal.
+    public Vector2 NozzleLocal(int i, int cell)
+    {
+        var p = nozzles[i].OnCell(cell);
+        return PixelToLocal(p.x, p.y);
+    }
 
     // A cell pixel -> offset from the ship's centre in the art's own frame
     // (before the drawing's rotation), world units.

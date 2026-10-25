@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""Point the four Space elite defs at the engine-burn strips: flight = the 8-drawing burn cycle (cells 3..10), no bank cells, level hull."""
+"""Point the four Space elite defs at the engine-burn strips: flight = the 8-drawing burn cycle (cells 3..10), the bank loops 17..19 / 20..22
+(<name>_banks.png, build_banks.py; Oct 25), no extra tilt. Re-run .claude/skills/add-elite-ship/scripts/measure_frame_nozzles.py --write after."""
 import json
 from pathlib import Path
 DEF = Path(__file__).resolve().parents[3] / "Resources/Elites/Defs"
@@ -8,7 +9,8 @@ ENGINE = {"rift_lancer": "#6FD8FF", "eventide_bastion": "#5FD0FF", "orbit_reaver
 for k, col in ENGINE.items():
     p = DEF / f"space_elite_{k}.json"
     d = json.load(open(p))
-    d["cells"] = {"flight": list(range(3, 11)), "parked": 0, "parkedIdle": 1, "liftoff": 2, "bankLeft": -1, "bankRight": -1,
+    d["cells"] = {"flight": list(range(3, 11)), "parked": 0, "parkedIdle": 1, "liftoff": 2, "bankLeft": 17, "bankRight": 20,
+                  "bankLeftLoop": [17, 18, 19], "bankRightLoop": [20, 21, 22],
                   "tell": -1, "action": -1, "hit": -1, "damaged": 11}
     d["maxBank"] = 0
     d["cellWorldSize"] = CWS[k]

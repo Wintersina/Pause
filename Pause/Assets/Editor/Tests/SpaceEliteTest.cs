@@ -153,11 +153,12 @@ public static class SpaceEliteTest
             Check(x.key + ": launches from a " + x.from, LandingSite.KindOf(d.launchFrom) == x.from);
             var frames = EliteArt.Frames(d);
             var c = d.cells;
-            Check(x.key + ": the engine-burn strip (parked, pilot lights, ignition, an 8-drawing burn cycle, a 6-drawing damaged burn loop) is installed",
-                  frames != null && frames.Length == 17 && c.parked == 0 && c.parkedIdle == 1 && c.liftoff == 2 && c.Flight0 == 3 &&
+            Check(x.key + ": the engine-burn strip (parked, pilot lights, ignition, an 8-drawing burn cycle, a 6-drawing damaged burn loop, two 3-drawing bank loops) is installed",
+                  frames != null && frames.Length == 23 && c.parked == 0 && c.parkedIdle == 1 && c.liftoff == 2 && c.Flight0 == 3 &&
                   c.flight.Length == 8 && c.damaged == 11 && c.HasDamagedLoop && c.damagedLoop.Length == 6 && c.damagedLoop[0] == 11 && c.damagedLoop[5] == 16);
-            Check(x.key + ": it stays level: no bank cells, no bank tilt, the codex loop is the burn cycle (" + c.CodexLoop.Length + " drawings)",
-                  !c.Banks && c.bankLeft < 0 && c.bankRight < 0 && d.maxBank == 0f && c.CodexLoop.Length == 8);
+            Check(x.key + ": banks with its own drawings (Oct 25: Codex bank-left masters, bank right mirrored): animated bank loops 17-19 / 20-22, no extra tilt, the codex loop is the burn cycle (" + c.CodexLoop.Length + " drawings)",
+                  c.Banks && c.bankLeft == 17 && c.bankRight == 20 && c.bankLeftLoop != null && c.bankLeftLoop.Length == 3 && c.bankLeftLoop[0] == 17 && c.bankLeftLoop[2] == 19 &&
+                  c.bankRightLoop != null && c.bankRightLoop.Length == 3 && c.bankRightLoop[0] == 20 && c.bankRightLoop[2] == 22 && d.maxBank == 0f && c.CodexLoop.Length == 8);
             Check(x.key + ": hearts orbit tighter than the player's (" + (d.hullRadius * d.heartOrbit + d.heartSize * 1.05f).ToString("0.00") + " u)",
                   d.hullRadius * d.heartOrbit + d.heartSize * 1.05f < .52f);
             Check(x.key + ": a codex entry", global::Codex.Find(d.codexId) != null);
@@ -1065,9 +1066,10 @@ public static class SpaceEliteTest
     static Color32[] LoadCell(string key, int cell, int size)
     {
         var tex = new Texture2D(2, 2, TextureFormat.RGBA32, false);
-        // (cells 12.. are in the companion strip <key>_damaged.png)
-        string path = "Assets/Art/Resources/Elites/Space/" + key + (cell >= 12 ? "_damaged" : "") + ".png";
-        if (cell >= 12) cell -= 12;
+        // (cells 12..16 are in the companion strip <key>_damaged.png, 17..22 -- the bank loops -- in <key>_banks.png)
+        string path = "Assets/Art/Resources/Elites/Space/" + key + (cell >= 17 ? "_banks" : cell >= 12 ? "_damaged" : "") + ".png";
+        if (cell >= 17) cell -= 17;
+        else if (cell >= 12) cell -= 12;
         if (!tex.LoadImage(File.ReadAllBytes(path))) return null;
         var px = tex.GetPixels32(); int w = tex.width;
         Object.DestroyImmediate(tex);
@@ -1091,7 +1093,7 @@ public static class SpaceEliteTest
             int hullBottom = 0;       // lowest hull row, counted from the top
             for (int y = 0; y < S; y++) for (int x = 0; x < S; x++) if (hullCell[(S - 1 - y) * S + x].a > 128) hullBottom = Mathf.Max(hullBottom, y);
             var lengths = new HashSet<int>();
-            for (int cell = 0; cell < 17; cell++)
+            for (int cell = 0; cell < 23; cell++)
             {
                 var c = LoadCell(e.key, cell, S);
                 int minX = S, minY = S, maxX = -1, maxY = -1;
@@ -1100,6 +1102,24 @@ public static class SpaceEliteTest
                 Check(e.key + " cell " + cell + ": 6 px clear of the border (" + minX + "," + minY + " .. " + maxX + "," + maxY + ")",
                       minX >= 6 && minY >= 6 && maxX <= S - 7 && maxY <= S - 7);
                 if (cell < 2) continue;
+                if (cell >= 17)
+                {
+                    // the bank loops (cells 17..22): every engine's plume leaves its bell where the bank drawing has it -- the nozzle's
+                    // per-cell offset points at a bright flame pixel over the hull
+                    foreach (var nz in def.nozzles)
+                    {
+                        Vector2 q = nz.OnCell(cell);
+                        int qx = Mathf.RoundToInt(q.x), qy = Mathf.RoundToInt(q.y);
+                        bool lit = false;
+                        for (int dy = 0; dy <= 6 && !lit; dy++)
+                        {
+                            var p = c[(S - 1 - Mathf.Min(S - 1, qy + dy)) * S + qx];
+                            lit = p.a == 255 && Mathf.Max(p.r, Mathf.Max(p.g, p.b)) > 150;
+                        }
+                        Check(e.key + " bank cell " + cell + " " + nz.name + ": a plume leaves the moved nozzle point (" + qx + "," + qy + ")", lit);
+                    }
+                    continue;
+                }
                 foreach (var nz in def.nozzles)
                 {
                     int nx = Mathf.RoundToInt(nz.x), ny = Mathf.RoundToInt(nz.y);
