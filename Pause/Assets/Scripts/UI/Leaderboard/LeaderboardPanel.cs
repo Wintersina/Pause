@@ -142,6 +142,10 @@ public class LeaderboardPanel : MonoBehaviour
         // Back closes the panel before the screen's own back is reached.
         BackNavigator.Register(panel, panel.OnBackPressed);
         panel.SelectFirstBoard();
+        // A queued score goes out now (not after its backoff); the board
+        // reloads once the store confirms it.
+        panel.service.Confirmed += panel.OnConfirmed;
+        panel.service.FlushNow();
         return panel;
     }
 
@@ -173,8 +177,14 @@ public class LeaderboardPanel : MonoBehaviour
         return true;
     }
 
+    void OnConfirmed(string boardId)
+    {
+        if (boardId == SelectedBoard) Reload();
+    }
+
     void OnDestroy()
     {
+        if (service != null) service.Confirmed -= OnConfirmed;
         BackNavigator.Unregister(this);
         if (Current == this) Current = null;
     }
