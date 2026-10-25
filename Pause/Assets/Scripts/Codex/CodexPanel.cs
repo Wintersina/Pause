@@ -1159,12 +1159,12 @@ public class CodexPanel : MonoBehaviour
         }
         // A long lore on a short, wide canvas (a tablet): the VERSUS YOU table moves
         // beside the art, where there is room, and the lore gets the whole card.
-        if (tallyShown && !LoreFits(loreTop + d.height * .5f, ReadableLore) && SideRoom(start) >= TallySideMin)
+        if (tallyShown && !LoreReadable(loreTop + d.height * .5f) && SideRoom(start) >= TallySideMin)
         {
             art = start;
             SetTallySide(true, art);
             loreTop = PlaceDetail(art);
-            while (art > minArt && (!LoreFits(loreTop + d.height * .5f, ReadableLore) || SideRoom(art) < TallySideMin))
+            while (art > minArt && (!LoreReadable(loreTop + d.height * .5f) || SideRoom(art) < TallySideMin))
             {
                 art = Mathf.Max(minArt, art - 16f);
                 loreTop = PlaceDetail(art);
@@ -1239,6 +1239,25 @@ public class CodexPanel : MonoBehaviour
 
     // The lore size the table must never squeeze the lore below (the codex's readable floor).
     public const int ReadableLore = 18;
+
+    // Whether the lore reads at ReadableLore in a lore card this tall, measured in
+    // canvas units (scale factor 1, a fresh generator), whatever the canvas's own
+    // scale is right now -- the same measure the codex's layout tests use.
+    readonly TextGenerator readableGen = new TextGenerator();
+    bool LoreReadable(float cardHeight)
+    {
+        if (string.IsNullOrEmpty(detailLore.text)) return true;
+        var lrt = detailLore.rectTransform;
+        float width = layout.detail.width + lrt.offsetMax.x - lrt.offsetMin.x;
+        float room = cardHeight - lrt.offsetMin.y + lrt.offsetMax.y;
+        var settings = detailLore.GetGenerationSettings(new Vector2(width, 100000f));
+        settings.scaleFactor = 1f;
+        settings.resizeTextForBestFit = false;
+        settings.fontSize = ReadableLore;
+        settings.verticalOverflow = VerticalWrapMode.Overflow;
+        settings.generateOutOfBounds = true;
+        return readableGen.GetPreferredHeight(detailLore.text, settings) <= room + .5f;
+    }
 
     // Whether the lore, at its best-fit minimum size (or `size`), fits a lore card this tall.
     bool LoreFits(float cardHeight, int size = 0)
