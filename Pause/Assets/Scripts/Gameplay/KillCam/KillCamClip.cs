@@ -49,7 +49,7 @@ public sealed class KillCamClip
 {
     // ---- playback timing ----
     // The live kill cam shows this much of the run before the fatal hit (game seconds).
-    public const float LiveWindow = 1.6f;
+    public const float LiveWindow = 1.3f;
     // Clock rate (game seconds per real second): LeadRate early on, easing down to
     // SlowRate over the last RampSeconds before the hit -- very slow motion at the end.
     public const float LeadRate = .7f, SlowRate = .18f, RampSeconds = .7f;
