@@ -256,18 +256,24 @@ public static class ShipArtTest
             anim.Step(1f / 60f, 1f / 60f, 0);
             Check("healing does not flash", anim.Column != ShipHullArt.Hit);
 
-            for (int i = 0; i < 4; i++) { go.transform.position += new Vector3(-.03f, 0f, 0f); anim.Step(1f / 60f, 1f / 60f, 0); }
+            for (int i = 0; i < 4; i++) { go.transform.position += new Vector3(-.05f, 0f, 0f); anim.Step(1f / 60f, 1f / 60f, 0); }
             Check("steering left banks left", anim.Column == ShipHullArt.BankLeft);
-            for (int i = 0; i < 4; i++) { go.transform.position += new Vector3(.03f, 0f, 0f); anim.Step(1f / 60f, 1f / 60f, 0); }
+            for (int i = 0; i < 4; i++) { go.transform.position += new Vector3(.05f, 0f, 0f); anim.Step(1f / 60f, 1f / 60f, 0); }
             Check("steering right banks right", anim.Column == ShipHullArt.BankRight);
             for (int i = 0; i < 30; i++) anim.Step(1f / 60f, 1f / 60f, 0);
             Check("holding still levels out", anim.Bank == 0);
             go.transform.position += new Vector3(2f, 0f, 0f);
             anim.Step(1f / 60f, 1f / 60f, 0);
             Check("a teleport does not bank", anim.Bank == 0);
+            Check("a planetfall needs a bigger sweep to bank than free flight", ShipHullAnimator.BankSpeedFor(true) > ShipHullAnimator.BankSpeedFor(false));
+            go.transform.position += new Vector3(.01f, 0f, 0f);
+            for (int i = 0; i < 30; i++) anim.Step(1f / 60f, 1f / 60f, 0);
+            go.transform.position += new Vector3(.01f, 0f, 0f);
+            anim.Step(1f / 60f, 1f / 60f, 0);
+            Check("finger jitter (0.6 u/s) does not bank", anim.Bank == 0);
 
             var spinner = new ShipHullAnimator(11, go.transform, 0);
-            for (int i = 0; i < 4; i++) { go.transform.position += new Vector3(-.03f, 0f, 0f); spinner.Step(1f / 60f, 1f / 60f, 0); }
+            for (int i = 0; i < 4; i++) { go.transform.position += new Vector3(-.05f, 0f, 0f); spinner.Step(1f / 60f, 1f / 60f, 0); }
             Check("a spinning craft never banks", spinner.Bank == 0);
         }
         finally { Object.DestroyImmediate(go); }
