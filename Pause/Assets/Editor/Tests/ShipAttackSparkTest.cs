@@ -55,7 +55,7 @@ public static class ShipAttackSparkTest
     static ShipPowerController Viper()
     {
         PlayerPrefs.SetInt("spawnShip", 2);
-        var go = new GameObject("viper", typeof(SpriteRenderer));
+        var go = new GameObject("ship2", typeof(SpriteRenderer))   // the ship id is read from the object name (ShipId.Of);
         go.transform.position = new Vector3(0f, -3f, 0f);
         var c = go.AddComponent<ShipPowerController>();
         c.SendMessage("Awake");
@@ -202,7 +202,7 @@ public static class ShipAttackSparkTest
         FreshScene();
         var c = Viper();
         var first = Enemy(0f, 3f);
-        var second = Enemy(2.2f, 2f);
+        var second = Enemy(2.2f, 3.5f);   // farther than `first`, so it is only chased once `first` is gone
         c.Runner.Fire();
         Steps(c.Runner, .05f);
         Object.DestroyImmediate(first);   // killed by something else mid-flight
