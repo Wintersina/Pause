@@ -162,8 +162,8 @@ public static class EliteFxArt
     public static Sprite Shell => shell != null ? shell : (shell = Dart("EliteShell", 14, 24, .8f));
     public static Sprite Shard => shard != null ? shard : (shard = ArrowHead("EliteShard", 12, 16));
     public static Sprite Spark => spark != null ? spark : (spark = Diamond("EliteSpark", 6, 6));
-    // The warning sight line: a solid hairline with a faint dark rim (TelegraphStyle.Line1; EliteShip.ShowSight scales it).
-    public static Sprite Sight => TelegraphStyle.Line1;
+    // The warning sight line: a chain of hollow squares (BeamKeyline.SquareSight lays it).
+    public static Sprite Sight => BeamKeyline.SquaresSprite;
 
     // floe_cast's ice slab: Frost's own floating chunk of ice (frost_rock_chunk's
     // first cell), the slag blob if that is missing.

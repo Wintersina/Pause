@@ -96,6 +96,7 @@ public class RailMineLaser : MonoBehaviour
     public const float DrawWidth = .4f;        // drawn beam (the art cell's width)
     public const float HitThickness = .28f;    // hitbox across the beam (DrawWidth x BossConfig.BeamHitFraction)
     public const float SightWidth = .12f;      // the aim line (DrawWidth x BossConfig.BeamSightWidth)
+    public const float SightVisible = SightWidth * .5f;   // the painted aim cell's visible line, between its dark keylines (BeamKeyline)
     public const float FlashAlong = .19f;      // muzzle flash: this far along from the core (the sphere's lane-side rim)
     public const float FlashSize = .34f;
     public const int SortBeam = 11;            // under the mine (12): the beam leaves its body
@@ -117,6 +118,7 @@ public class RailMineLaser : MonoBehaviour
     public static float? AngleOverride;
 
     SpriteRenderer sight, beam, flash, impact, pilot, haze, lockOn, spark;
+    BeamKeyline.Layer sightKey;   // the aim line's dark keyline layer (BeamKeyline), a child of the sight's art
     AttackArt.LaserArt kit;   // the world's painted laser kit (Space ion, Frost ice, Verdant thorn vine); null: the other worlds' beams
     MineFlameArt flame;   // Ember's flame-thrower art (null: the boss-cell beam of every other world)
     float tellTotal;
@@ -266,6 +268,7 @@ public class RailMineLaser : MonoBehaviour
         go.transform.SetParent(root, false);
         var l = go.AddComponent<RailMineLaser>();
         l.sight = Piece(go.transform, "Sight", SortBeam, true);
+        l.sightKey = BeamKeyline.Attach(l.sight.transform, l.sight);
         l.beam = Piece(go.transform, "Beam", SortBeam, true);
         l.flash = Piece(go.transform, "Flash", SortFx);
         l.impact = Piece(go.transform, "Impact", SortFx);
@@ -324,6 +327,7 @@ public class RailMineLaser : MonoBehaviour
         flame = art.flame;
         kit = art.kit;
         ResetPieces();
+        if (sightKey != null) sightKey.tint = BeamKeyline.CueColour(world);
         tellTotal = Mathf.Max(.01f, tellSeconds);
         sparkSprites[0] = art.spark[0];
         sparkSprites[1] = art.spark[1];
@@ -430,10 +434,10 @@ public class RailMineLaser : MonoBehaviour
             {
                 bool on = t >= aimDelay && Mathf.FloorToInt((t - aimDelay) / (BossArt.TelegraphBlinkTicks * tick)) % 2 == 0;
                 sight.enabled = on && sightSprite != null;
-                if (kit != null) { sight.sprite = kit.sight[Mathf.FloorToInt((t - aimDelay) / (BossArt.TelegraphBlinkTicks * tick) * .5f) & 1]; SpanTiled(sight, KitSightScale, length, dir, false); }
+                if (kit != null) { sight.sprite = kit.sight[Mathf.FloorToInt((t - aimDelay) / (BossArt.TelegraphBlinkTicks * tick) * .5f) & 1]; SpanTiled(sight, KitSightScale, length, dir, false); BeamKeyline.FitFrame(sightKey, sight.transform, KitSightScale, BeamKeyline.VisibleOf(kit.sightPx, KitSightScale), length); }
                 // the painted aim line has two drawings (aim a, b): one per blink
                 if (flame != null && flame.sightB != null) sight.sprite = Mathf.FloorToInt((t - aimDelay) / (BossArt.TelegraphBlinkTicks * tick) * .5f) % 2 == 0 ? sightSprite : flame.sightB;
-                if (kit == null) Span(sight.transform, SightWidth, length, dir, flame != null ? sight.sprite : null);
+                if (kit == null) { Span(sight.transform, SightWidth, length, dir, flame != null ? sight.sprite : null); BeamKeyline.FitFrame(sightKey, sight.transform, SightWidth, SightVisible, length); }
                 if (flame != null) PlacePilot();
                 if (kit != null) PlaceKitAim(on);
                 break;
@@ -499,6 +503,8 @@ public class RailMineLaser : MonoBehaviour
                 break;
             }
         }
+        // the warning's dark keyline: only while the aim line is drawn (never on the fired beam)
+        BeamKeyline.Sync(sightKey, sight, 1f);
     }
 
     // FRIENDLY FIRE: the one place the beam picks its targets (besides the
@@ -676,6 +682,7 @@ public class RailMineLaser : MonoBehaviour
     void HideAll()
     {
         sight.enabled = beam.enabled = flash.enabled = impact.enabled = false;
+        BeamKeyline.Off(sightKey);
         if (pilot != null) pilot.enabled = false;
         if (haze != null) haze.enabled = false;
         if (spark != null) spark.enabled = false;

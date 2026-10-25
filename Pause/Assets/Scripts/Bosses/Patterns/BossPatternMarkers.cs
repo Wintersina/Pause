@@ -12,6 +12,7 @@ public sealed class BossPatternMarkers
     sealed class Mark
     {
         public SpriteRenderer a, b;          // the two edges of a lane (b unused for a single line / ring)
+        public BeamKeyline.Layer keyA, keyB;    // their dark keyline layers (BeamKeyline); off on a ring
         public float left, total, delay;     // delay: hidden until this much has elapsed (ends on the beat as before)
         public float alpha, length;          // per renderer
         public int renderers;
@@ -55,12 +56,19 @@ public sealed class BossPatternMarkers
     {
         root = new GameObject("PatternMarkers");
         root.transform.SetParent(parent, false);
-        for (int i = 0; i < Max; i++) marks[i] = new Mark { a = Make("MarkA", i), b = Make("MarkB", i) };
+        for (int i = 0; i < Max; i++)
+        {
+            var m = new Mark { a = Make("MarkA", i), b = Make("MarkB", i) };
+            m.keyA = BeamKeyline.Attach(m.a.transform, m.a);
+            m.keyB = BeamKeyline.Attach(m.b.transform, m.b);
+            marks[i] = m;
+        }
         tint = Color.Lerp(HostileGlow.Tint(def != null ? def.flash : Color.white), Color.white, BossTelegraphStyle.PaleMix);
         if (def != null && def.WorldIndex == 2) { tint = VerdantMarkTint; blinkLow = VerdantBlinkLow; }
+        for (int i = 0; i < Max; i++) { marks[i].keyA.tint = marks[i].keyB.tint = new Color(tint.r, tint.g, tint.b, 1f); }
     }
 
-    static void Line(SpriteRenderer sr, Vector2 from, Vector2 to, float width)
+    static void Line(SpriteRenderer sr, BeamKeyline.Layer key, Vector2 from, Vector2 to, float width)
     {
         var d = to - from;
         sr.sprite = BossTelegraphStyle.Dash;
@@ -71,6 +79,15 @@ public sealed class BossPatternMarkers
         t.position = new Vector3(from.x, from.y, 0f);
         t.rotation = Quaternion.Euler(0f, 0f, Mathf.Atan2(d.y, d.x) * Mathf.Rad2Deg - 90f);   // local +y runs along the line
         t.localScale = new Vector3(width * BossTelegraphStyle.PixelsPerUnit, 1f, 1f);
+        // the dark keyline either side of the dotted core (the sprite's pivot is its start: the layer is centred half way)
+        BeamKeyline.FitStraight(key, width * BossTelegraphStyle.PixelsPerUnit, 1f, width, d.magnitude, d.magnitude * .5f);
+    }
+
+    // The keylines follow their dotted line (on and at its alpha), and never ring a spot.
+    static void KeySync(Mark m)
+    {
+        BeamKeyline.Sync(m.keyA, m.a, m.a.color.a, !m.ring);
+        BeamKeyline.Sync(m.keyB, m.b, m.b.color.a, !m.ring);
     }
 
     // A line a -> b (a == b: a spot) `halfWidth` either side, for `seconds` (only the last stretch of which is drawn).
@@ -109,17 +126,18 @@ public sealed class BossPatternMarkers
             m.alpha = BossTelegraphStyle.EdgeAlpha(inten);
             m.length = len * dotted;
             var n = new Vector2(-d.y, d.x) / len * halfWidth;
-            Line(m.a, a + n, b + n, width);
-            Line(m.b, a - n, b - n, width);
+            Line(m.a, m.keyA, a + n, b + n, width);
+            Line(m.b, m.keyB, a - n, b - n, width);
         }
         else
         {
             m.renderers = 1;
             m.alpha = BossTelegraphStyle.AimAlpha(inten);
             m.length = len * dotted;
-            Line(m.a, a, b, width);
+            Line(m.a, m.keyA, a, b, width);
         }
         m.a.enabled = m.b.enabled = false;   // Step shows it when its last stretch begins
+        KeySync(m);
     }
 
     // Verdant (jungle, world 2): the marks read over the green canopy by colour and a deeper blink, never a border: a saturated
@@ -138,11 +156,11 @@ public sealed class BossPatternMarkers
             var m = marks[i];
             if (m == null || !m.live) continue;
             m.left -= dt;
-            if (m.left <= 0f) { m.live = false; m.a.enabled = m.b.enabled = false; continue; }
+            if (m.left <= 0f) { m.live = false; m.a.enabled = m.b.enabled = false; KeySync(m); continue; }
             bool show = m.total - m.left >= m.delay;
             m.a.enabled = show;
             m.b.enabled = show && m.renderers > 1;
-            if (!show) continue;
+            if (!show) { KeySync(m); continue; }
             Shown++;
             ShownRenderers += m.renderers;
             Weight += m.alpha * m.length * m.renderers * Pulse(m);
@@ -158,13 +176,14 @@ public sealed class BossPatternMarkers
             var c = new Color(tint.r, tint.g, tint.b, al);
             m.a.color = c;
             if (m.b.enabled) m.b.color = c;
+            KeySync(m);
             if (al > MaxShownAlpha) MaxShownAlpha = al;
         }
     }
 
     public void Clear()
     {
-        for (int i = 0; i < Max; i++) if (marks[i] != null) { marks[i].live = false; marks[i].a.enabled = marks[i].b.enabled = false; }
+        for (int i = 0; i < Max; i++) if (marks[i] != null) { marks[i].live = false; marks[i].a.enabled = marks[i].b.enabled = false; KeySync(marks[i]); }
         Shown = 0; ShownRenderers = 0; Weight = 0f; MaxShownAlpha = 0f;
     }
 

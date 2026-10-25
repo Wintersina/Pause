@@ -74,7 +74,22 @@ public static class BossTelegraphTest
             Check(tag + "the safe lane stays marked: edges sit the gap's half width either side of its centre",
                   Mathf.Abs(Mathf.Abs(l.transform.position.x - r.transform.position.x) - half * 2f) < .01f && Mathf.Abs((l.transform.position.x + r.transform.position.x) * .5f - 1f) < .01f);
             float calmAlpha = mk.MaxShownAlpha;
+            // the warning lines are chains of hollow squares (BeamKeyline): a layer under each edge, shown with it, at Alpha x the line's own alpha,
+            // the dotted line's own sprite hidden behind it, the cell as wide as the line (never under SquareMin)
+            var kl = l.transform.Find("KeylineSquares")?.GetComponent<SpriteRenderer>(); var kr = r.transform.Find("KeylineSquares")?.GetComponent<SpriteRenderer>();
+            float lineA = mk.MaxShownAlpha;
+            Check(tag + "each lane edge is a chain of hollow squares, shown with it, tiled, at " + BeamKeyline.Alpha + " x its alpha",
+                  kl != null && kr != null && kl.enabled && kr.enabled && kl.sprite == BeamKeyline.SquaresSprite && kl.drawMode == SpriteDrawMode.Tiled &&
+                  Mathf.Abs(kl.color.a - BeamKeyline.Alpha * lineA) < 1e-3f && l.color.a < .003f);
+            Check(tag + "the squares are the line's width (at least " + BeamKeyline.SquareMin + " u) with a gap " + BeamKeyline.SquareGapShare + " of a side",
+                  kl != null && Mathf.Abs(kl.transform.localScale.x * l.transform.localScale.x - Mathf.Max(BossTelegraphStyle.WidthCalm, BeamKeyline.SquareMin)) < 1e-3f &&
+                  Mathf.Abs(BeamKeyline.SquaresSprite.bounds.size.y - (1f + BeamKeyline.SquareGapShare)) < 1e-3f);
+            BeamKeyline.ClockOverride = 0f; mk.Step(1e-4f); float p0 = kl.transform.localPosition.y;
+            BeamKeyline.ClockOverride = .7f; mk.Step(1e-4f); float p1 = kl.transform.localPosition.y;
+            BeamKeyline.ClockOverride = -1f;
+            Check(tag + "the chain marches (a moving phase, named speed " + BeamKeyline.SquareMarchSpeed + " u/s)", BeamKeyline.SquareMarchSpeed <= 0f || Mathf.Abs(p1 - p0) > 1e-4f);
             while (mk.Live > 0) mk.Step(dt);
+            Check(tag + "the squares go out with their line", !kl.enabled && !kr.enabled);
 
             mk.Intensity = 1f; mk.Add(top, bottom, half, seconds);
             int busyFrames = Until(mk, dt, out bool busyShown);
@@ -89,6 +104,7 @@ public static class BossTelegraphTest
             mk.Clear(); mk.Intensity = 0f; mk.Add(Vector2.zero, Vector2.zero, .38f, 1f);
             Until(mk, dt, out bool spot);
             Check(tag + "a spot is a ring of dots, fainter than a lane edge", spot && mk.IsRing(0) && mk.FirstRenderer(0).sprite == BossTelegraphStyle.Ring && mk.MaxShownAlpha < calmAlpha);
+            Check(tag + "a ring of dots has no squares", !mk.FirstRenderer(0).transform.Find("KeylineSquares").GetComponent<SpriteRenderer>().enabled);
 
             // flood: every slot at a calm section, weight and alpha stay capped
             mk.Clear(); mk.Intensity = 0f;

@@ -680,8 +680,8 @@ public static class SpaceEliteTest
         }
         pilot.position = new Vector3(0f, -2.5f, 0f);
         Check("rift_snipe tell: planted, a sight line tracks the pilot, then locks (" + tellSpeed.ToString("0.0") + ")", sight && trackedEarly && lockedStill && tellSpeed < 1.2f);
-        Check("rift_snipe sight: a subtle hairline (" + maxW.ToString("0.000") + " u <= " + TelegraphStyle.MaxLineWidth + ", alpha " + minA.ToString("0.00") + ".." + maxA.ToString("0.00") + ", gentle blink)",
-              maxW > 0f && maxW <= TelegraphStyle.MaxLineWidth + 1e-4f && maxA <= TelegraphStyle.LineAlpha + 1e-3f && minA >= TelegraphStyle.LineAlphaLow - 1e-3f);
+        Check("rift_snipe sight: a subtle hairline (" + maxW.ToString("0.000") + " u <= " + BeamKeyline.SquareEliteMin + ", alpha " + minA.ToString("0.00") + ".." + maxA.ToString("0.00") + ", gentle blink)",
+              maxW > 0f && maxW <= BeamKeyline.SquareEliteMin + 1e-4f && maxA <= BeamKeyline.Alpha + 1e-3f && minA >= BeamKeyline.Alpha * TelegraphStyle.LineAlphaLow / TelegraphStyle.LineAlpha - 1e-3f);
         int before = EliteSystem.Shots.Launched;
         Step(def.actionSeconds + Dt);
         int rails = 0;
@@ -908,7 +908,7 @@ public static class SpaceEliteTest
         float towW = 0f;
         while (e.Telling) { EliteSystem.Step(Dt); if (!e.Telling) break; sight |= e.SightShown; if (e.SightShown) towW = Mathf.Max(towW, e.SightWidth); still &= e.Velocity.magnitude < 1.2f; }
         Check("tow tell: held while a sight line drops from the top of the view to the claws", sight && still);
-        Check("tow sight: a subtle hairline (" + towW.ToString("0.000") + " u)", towW > 0f && towW <= TelegraphStyle.MaxLineWidth + 1e-4f);
+        Check("tow sight: a subtle hairline (" + towW.ToString("0.000") + " u)", towW > 0f && towW <= BeamKeyline.SquareEliteMin + 1e-4f);
         Step(Dt * 3f);
         var rock = tow.Rock;
         Check("the asteroid drifts in from above the view (a real Space rock: tag Astr, hazard, tied to the hauler)",

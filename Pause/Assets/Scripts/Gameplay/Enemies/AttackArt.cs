@@ -177,6 +177,7 @@ public static class AttackArt
                                  spark = new Sprite[4], body = new Sprite[4], sight = new Sprite[2], lockOn = new Sprite[2];
         public int bodyOpaquePx;    // the opaque columns of a 128 px wide beam frame: the part that stays inside the hit shape
         public int impactBasePx;    // the impact burst's base, in px below its cell centre
+        public int sightPx;         // the widest painted row of the aim line's 128 px tile (BeamKeyline hugs it)
     }
 
     // per world (EnemyRoster.WorldKeys order: space, frost, verdant, ember, tide, storm, desert), measured on the delivered sheets
@@ -185,6 +186,8 @@ public static class AttackArt
     // Tide (pressure water jet), Storm (arc beam) and Desert (prismatic lens beam) are the custom per-boss kits; Verdant keeps its acid kit.
     static readonly int[] LaserBodyOpaque = { 63, 85, 100, 90, 88, 88, 86 };
     static readonly int[] LaserImpactBase = { 44, 44, 49, 45, 44, 44, 44 };
+    // the aim line (lasertell sight a,b): its widest opaque row in px of the 128 px tile, measured on the delivered sheets
+    static readonly int[] LaserSightPx = { 14, 12, 10, 9, 12, 12, 13 };
 
     public static bool HasBossLaser(int world) => world >= 0 && world < LaserBodyOpaque.Length && LaserBodyOpaque[world] > 0;
 
@@ -203,7 +206,7 @@ public static class AttackArt
         var c = lasers[world];
         if (c != null && c.body[0] != null) return c;
         if (!Has(world, "laser") || !Has(world, "laserbody") || !Has(world, "lasertell")) return null;
-        var a = new LaserArt { bodyOpaquePx = LaserBodyOpaque[world], impactBasePx = LaserImpactBase[world] };
+        var a = new LaserArt { bodyOpaquePx = LaserBodyOpaque[world], impactBasePx = LaserImpactBase[world], sightPx = LaserSightPx[world] };
         for (int i = 0; i < 8; i++) if ((a.windup[i] = Cell(world, "laser", i, 0)) == null) return null;
         for (int i = 0; i < 4; i++)
         {
