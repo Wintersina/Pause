@@ -142,6 +142,9 @@ public static class CodexCatalogue
                 "The black hole kept my map but left me its wormhole. Lift your finger and time folds shut - " +
                 "the whole universe pauses while you think, and a touch somewhere else blinks your ship there. " +
                 "Pauses run out, so spend them wisely - red atoms bring more."),
+            new CodexEntry(KillCamArchive.CodexId, "Last Stand", CodexCategory.Log, LastStandArt,
+                "Every crash replays in slow motion, so you see what got you. The latest run that set a new best " +
+                "score is kept here: watch its final moments again. Each new best replaces it."),
 
             // -------------------------------------------------------------- Atoms
             // Art: the pixel pickup's own idle frame (PickupArt), the drawing
@@ -590,6 +593,15 @@ public static class CodexCatalogue
         var frames = PickupArt.Frames(PickupArt.IdleName(kind), PickupArt.IdleTicks(kind).Length);
         if (frames != null && frames.Length > 0 && frames[0] != null) return frames[0];
         return Prefab(prefabPath);
+    }
+
+    // LAST STAND's card: the wrecked hull of the ship the saved run flew (the equipped one before any).
+    static Sprite LastStandArt()
+    {
+        var record = KillCamArchive.Latest;
+        int ship = record != null && ShipId.IsValid(record.ship) ? record.ship : ShipId.Equipped();
+        var hull = ShipId.IsValid(ship) ? ShipHullArt.Rest(ship, 2) : null;
+        return hull != null ? hull : Art("cx_blackhole");
     }
 
     static Sprite Art(string name)

@@ -54,6 +54,10 @@ public class playerIsDead : MonoBehaviour
             hurtBy = DamageLog.RunHurtLine(3),
         };
 
+        // A new best on a ranked run: its kill cam is kept for the codex
+        // (KillCamArchive; only the latest such death, each replaces the last).
+        SaveKillCam(results.newBest, results.ranked, results.score);
+
         var canvas = SceneUtil.FindAny("PopUpCanvas");
         if (canvas == null) return;
 
@@ -78,6 +82,15 @@ public class playerIsDead : MonoBehaviour
         }
         DeathPanelView.Build(canvas.transform, deathScoreText, deathSpareText,
                              deathHighScoreText, FindButton("Replay"), FindButton("MainMenu"), results);
+    }
+
+    static void SaveKillCam(bool newBest, bool ranked, long runScore)
+    {
+        if (!KillCamArchive.ShouldSave(newBest, ranked)) return;
+        var recorder = KillCamRecorder.Instance;
+        var clip = recorder != null ? recorder.Clip(KillCamClip.LiveWindow) : null;
+        if (clip == null) return;
+        KillCamArchive.Save(clip, KillCamArchive.RecordForThisRun(System.Math.Max(0L, runScore)));
     }
 
     static Button FindButton(string name)

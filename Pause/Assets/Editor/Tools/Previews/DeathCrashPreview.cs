@@ -38,26 +38,6 @@ public static class DeathCrashPreview
         EditorApplication.Exit(0);
     }
 
-    // The killer beat (DeathCrashKillerZoom): the same clips, with the camera
-    // size / position logged before and after so the restore is checked.
-    //
-    //   Unity -batchmode -quit -projectPath Pause -executeMethod DeathCrashPreview.RunKillerZoom
-    public static void RunKillerZoom()
-    {
-        string dir = System.Environment.GetEnvironmentVariable("CRASH_PREVIEW_DIR");
-        if (string.IsNullOrEmpty(dir)) dir = "Builds/DeathCrashPreview";
-        Directory.CreateDirectory(dir);
-        using (var sandbox = new TestHarness.Sandbox())
-        {
-            Random.InitState(1234);
-            DeathCrash.EditorBlasts = true;
-            Clip(dir, 11, "alien", new Vector3(.8f, -1.4f, 1f));
-            Clip(dir, 13, "bossshot", new Vector3(-.2f, -2.6f, 1f));
-            DeathCrash.EditorBlasts = false;
-        }
-        EditorApplication.Exit(0);
-    }
-
     // The domino (DeathCrashDomino): a board of enemies around the ship; the
     // wreckage takes them down in a chain, the board moving on in slow
     // motion; DOMINO / MEGA DOMINO / DEATH COMBO shown as world labels
@@ -350,9 +330,9 @@ public static class DeathCrashPreview
                   ", panel at " + crash.FinishedAt.ToString("F2") + "s, " + frame + " frames");
         crash.Cancel(false);
         crash.SendMessage("LateUpdate");
-        Debug.Log("[CRASH-ZOOM] " + name + ": size " + size0.ToString("F3") + " -> peak " + peak.ToString("F3") +
+        Debug.Log("[CRASH-CAM] " + name + ": size " + size0.ToString("F3") + " -> min " + peak.ToString("F3") +
                   " -> after " + cam.orthographicSize.ToString("F3") + ", pos drift " +
-                  (cam.transform.position - pos0).magnitude.ToString("F4") + ", applied " + crash.ZoomApplied);
+                  (cam.transform.position - pos0).magnitude.ToString("F4") + " (no zoom: all equal, drift 0)");
         ShipUiSlots.ScreenOverride = null;
     }
 

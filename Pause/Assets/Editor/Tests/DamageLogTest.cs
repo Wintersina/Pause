@@ -27,7 +27,8 @@ public static class DamageLogTest
         string a = Codex.Entries[Codex.Entries.Length - 1].id, b = Codex.Entries[1].id;
 
         // ---- an old save has neither key: no counts, nothing to migrate ----
-        Check("old save: no counts", DamageLog.KilledCount(a) == 0 && DamageLog.HurtCount(a) == 0 && DamageLog.CodexLine(a) == null);
+        Check("old save: no counts", DamageLog.KilledCount(a) == 0 && DamageLog.HurtCount(a) == 0 &&
+              DamageLog.TotalKilled() == 0 && DamageLog.ShareOfDeaths(a) == -1);
 
         // ---- parse / format ----
         var parsed = DamageLog.Parse("x:3,junk,y:0,z:-2,w:abc,:5,q:2");
@@ -48,9 +49,10 @@ public static class DamageLogTest
         Check("saved as one pref per tally", PlayerPrefs.GetString(DamageLog.KilledKey) == a + ":1" && PlayerPrefs.GetString(DamageLog.HurtKey).Contains(a + ":2"));
         DamageLog.Reload();
         Check("tallies survive a reload", DamageLog.HurtCount(a) == 2 && DamageLog.KilledCount(a) == 1);
-        string line = DamageLog.CodexLine(a);
-        Check("codex line reads both", line == "KILLED YOU 1 TIME   |   HURT YOU 2 TIMES");
-        Check("codex line reads one", DamageLog.CodexLine(b) == "HURT YOU 1 TIME");
+        // the codex VERSUS YOU table: hurt you / killed you / share of every death on record
+        Check("codex table reads both", string.Join(",", CodexPanel.TallyCells(a)) == "2,1,100%");
+        Check("codex table reads one", string.Join(",", CodexPanel.TallyCells(b)) == "1,0,0%");
+        Check("every death is counted once in the total", DamageLog.TotalKilled() == 1);
 
         // ---- unknown sources and unsaved runs ----
         PlayerPrefs.SetString(DamageLog.HurtKey, "");
@@ -73,7 +75,7 @@ public static class DamageLogTest
         string an = DamageLog.NameOf(a), bn = DamageLog.NameOf(b);
         Check("run line lists the most frequent first with counts", DamageLog.RunHurtLine(3) == bn + " x2, " + an);
         Check("run line folds the rest into +N more", DamageLog.RunHurtLine(1) == bn + " x2 +1 more");
-        Check("the caption names the killer in capitals", DamageLog.DiedByLine(a) == "YOU DIED BY " + an.ToUpperInvariant() && DamageLog.DiedByLine("nope") == null);
+        Check("names resolve through the codex (an unknown id has none)", an != null && DamageLog.NameOf("nope") == null);
 
         // ---- the cloud save ----
         PlayerPrefs.SetString(DamageLog.KilledKey, a + ":3");
@@ -88,6 +90,8 @@ public static class DamageLogTest
         merged.Apply();
         DamageLog.Reload();
         Check("apply never lowers a tally", DamageLog.KilledCount(a) == 3 && DamageLog.KilledCount(b) == 2 && DamageLog.HurtCount(a) == 4);
+        Check("the share of deaths splits every death on record", DamageLog.TotalKilled() == 5 &&
+              DamageLog.ShareOfDeaths(a) == 60 && DamageLog.ShareOfDeaths(b) == 40);
 
         // ---- a cloud blob from before the feature ----
         ProgressSnapshot old;

@@ -69,29 +69,27 @@ public static class DamageLog
         return (fatal ? killed : hurt).TryGetValue(id, out n) ? n : 0;
     }
 
-    // The codex line for an entry, or null when it never hurt the pilot.
-    public static string CodexLine(string id)
+    // Every death on record (all entries): the codex table's "of your deaths" share is out of this.
+    public static int TotalKilled()
     {
-        int k = KilledCount(id), h = HurtCount(id);
-        if (k <= 0 && h <= 0) return null;
-        var sb = new StringBuilder(48);
-        if (k > 0) sb.Append("KILLED YOU ").Append(k).Append(k == 1 ? " TIME" : " TIMES");
-        if (k > 0 && h > 0) sb.Append("   |   ");
-        if (h > 0) sb.Append("HURT YOU ").Append(h).Append(h == 1 ? " TIME" : " TIMES");
-        return sb.ToString();
+        EnsureLoaded();
+        long n = 0;
+        foreach (var pair in killed) n += pair.Value;
+        return (int)Math.Min(int.MaxValue, n);
+    }
+
+    // The share (0..100, rounded) of all recorded deaths that `id` dealt; -1 with no deaths on record.
+    public static int ShareOfDeaths(string id)
+    {
+        int total = TotalKilled();
+        if (total <= 0) return -1;
+        return Mathf.RoundToInt(100f * KilledCount(id) / total);
     }
 
     public static string NameOf(string id)
     {
         var entry = id != null ? Codex.Find(id) : null;
         return entry != null ? entry.name : null;
-    }
-
-    // "You died by <name>" caption text (null when the killer is unknown).
-    public static string DiedByLine(string id)
-    {
-        string name = NameOf(id);
-        return name == null ? null : "YOU DIED BY " + name.ToUpperInvariant();
     }
 
     // This run's hearts lost, most first: "Cinder Drone x2, Mine". Names at
