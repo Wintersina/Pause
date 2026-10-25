@@ -144,6 +144,23 @@ fires on); seed nozzles on the engine bells with a small `--radius` (~6),
 the drawn flames are hotter than the bell. EliteTest checks muzzles on the
 action/tell cell (else the flight cell) and nozzles on `cells.flight[0]`.
 
+### 3b. Per-cell nozzle mounts (every elite)
+
+The engine glow / plume mount follows the drawn bell on every cell (banks lean, lift-off and parked drawings differ):
+each nozzle carries `offsets` (dx, dy cell px per cell of the strip + its `_damaged` / `_banks` companions; `ElitePoint.OnCell`,
+`EliteShip.MountNozzles`, the title screen's elite too). After any art or nozzle change run
+
+```bash
+python3 .claude/skills/add-elite-ship/scripts/measure_frame_nozzles.py Pause/Assets/Art/Resources/Elites/Defs/<key>.json --write [--sheet /tmp/nz.png]
+```
+
+It uses the seated mouths in `Art/Enemies/src~/elite_engine_fire/engine_mouths.txt` where they cover a cell, Space's exact bank mouths
+from `src~/space_elites_engine_burn/build_banks.py`, else template-tracks the bell (+-14 px) on the bank / parked / lift-off cells;
+flight and damaged-loop cells are the hover hull (offset 0). It only inserts the `offsets` lines (the defs stay hand-formatted).
+Every ship-style elite has bank cells (`EliteBankTest`); an animated bank is `bankLeftLoop` / `bankRightLoop` (Space: 17-19 / 20-22 in
+the `<key>_banks.png` companion; `EliteArt.Companions` appends `_damaged` then `_banks`, lights the same). No pale outline ring on any
+elite edge (user, Oct 19: no outlines; `EliteBankTest` scans for the old outline pass's tones).
+
 ### 4. Write the EliteDef
 
 Copy the closest existing def in `Pause/Assets/Art/Resources/Elites/Defs/`

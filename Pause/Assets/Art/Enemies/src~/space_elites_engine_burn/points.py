@@ -2,7 +2,8 @@
 """Measure each Space elite's muzzles + nozzles on the built 384 px strip and write them into the def JSON (cellPixels 384).
 Muzzles: lancer = nose tip; bastion = the twin-barrel turrets on the shoulders; reaver = the two magenta claw tips; hauler = the pincer tips.
 Nozzles = the centres of the engine-bell mouths the burn leaves (build_strips.find_openings). Writes a preview per ship.
-  python3 points.py <preview dir>"""
+  python3 points.py <preview dir>
+Writes the nozzles WITHOUT their per-cell offsets: re-run .claude/skills/add-elite-ship/scripts/measure_frame_nozzles.py <def> --write after."""
 import json, sys
 from pathlib import Path
 import numpy as np

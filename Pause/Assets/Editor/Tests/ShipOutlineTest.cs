@@ -45,7 +45,7 @@ public static class ShipOutlineTest
         foreach (var m in modes.Values) Check("modes.json has no full outline (" + m + ")", m != "full");
         Check("the Resin Warden, Cryo Siren and Rimebreaker were rebuilt from painted frames with no outline and left the plan",
               !modes.ContainsKey("verdant_elite_resin_warden") && !modes.ContainsKey("frost_elite_cryo_siren") && !modes.ContainsKey("frost_elite_rimebreaker"));
-        Check("Floe Harrower, Glacier Tender and Whiteout Sentinel got engine-fire flicker cells (ten cells, engine_fire.py) and left the outline plan (their hull already carries the outline)",
+        Check("Floe Harrower, Glacier Tender and Whiteout Sentinel got engine-fire flicker cells (ten cells, engine_fire.py) and left the outline plan (their baked pale ring was peeled off on Oct 25: src~/frost_unoutline; EliteBankTest checks no elite edge carries it)",
               !keys.ContainsKey("frost_elite_floe_harrower") && !keys.ContainsKey("frost_elite_glacier_tender") && !keys.ContainsKey("frost_elite_whiteout_sentinel"));
         Check("the flying Snap Sprout and Glacier Golem were redrawn without any outline (opted out)", modes["verdant_alien"] == "none" && modes["frost_big"] == "none");
         foreach (var fk in new[] { "frost_alien", "frost_chaser", "frost_fighter_1", "frost_fighter_3", "frost_fighter_4", "frost_rock_chunk" })

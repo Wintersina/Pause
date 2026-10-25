@@ -25,6 +25,9 @@ public static class EliteArt
 
     public enum Extra { Parked, Liftoff, Death, Lights }
 
+    // Companion strips appended to a strip's cells (the hull's and the lights' alike), in order.
+    public static readonly string[] Companions = { "_damaged", "_banks" };
+
     static readonly Dictionary<string, Sprite[]> cache = new Dictionary<string, Sprite[]>();
     static readonly HashSet<string> missing = new HashSet<string>();
 
@@ -78,20 +81,23 @@ public static class EliteArt
             frames[i] = Sprite.Create(tex, new Rect(i * w, 0, w, tex.height), new Vector2(.5f, .5f), ppu, 0, SpriteMeshType.FullRect);
             frames[i].name = def.key + "_" + i;
         }
-        // an optional companion strip <path>_damaged (more square cells, the damaged burn loop's later drawings) continues the cells
-        // after the strip's own: a strip wider than 4096 px would be downscaled on import and break the square-cell slicing
-        var more = Resources.Load<Texture2D>(path + "_damaged");
-        if (more != null)
+        // optional companion strips continue the cells after the strip's own, in this order: <path>_damaged (the damaged burn loop's
+        // later drawings), then <path>_banks (animated bank loops: Space). A strip wider than 4096 px would be downscaled on import and
+        // break the square-cell slicing, so long layouts are split into companions.
+        foreach (string suffix in Companions)
         {
+            var more = Resources.Load<Texture2D>(path + suffix);
+            if (more == null) continue;
             int m = Mathf.Max(1, more.width / Mathf.Max(1, more.height));
             float mw = more.width / (float)m;
             float mppu = more.height / Mathf.Max(.01f, def.cellWorldSize);
-            var all = new Sprite[n + m];
-            System.Array.Copy(frames, all, n);
+            int n0 = frames.Length;
+            var all = new Sprite[n0 + m];
+            System.Array.Copy(frames, all, n0);
             for (int i = 0; i < m; i++)
             {
-                all[n + i] = Sprite.Create(more, new Rect(i * mw, 0, mw, more.height), new Vector2(.5f, .5f), mppu, 0, SpriteMeshType.FullRect);
-                all[n + i].name = def.key + "_" + (n + i);
+                all[n0 + i] = Sprite.Create(more, new Rect(i * mw, 0, mw, more.height), new Vector2(.5f, .5f), mppu, 0, SpriteMeshType.FullRect);
+                all[n0 + i].name = def.key + "_" + (n0 + i);
             }
             frames = all;
         }

@@ -87,6 +87,7 @@ public partial class TitleScreenTraffic
     Flyer eliteAim;
     float eliteAimT;
     int eliteNozzles;
+    int eliteMountedCell = -1;   // the strip cell the engine glows are mounted for (they follow its drawn bells)
 
     // ---- pooled drawings
     Transform eliteRoot, eliteHullTf;
@@ -573,6 +574,7 @@ public partial class TitleScreenTraffic
             elitePlumes[i].transform.localRotation = Quaternion.Euler(0f, 0f, ang + 90f);
             eliteGlows[i].transform.localPosition = local;
         }
+        eliteMountedCell = -1;
         eliteHull.color = Color.white;
         eliteHull.sprite = eliteFrames[Mathf.Clamp(def.cells.Flight0, 0, eliteFrames.Length - 1)];
         eliteHull.enabled = eliteHull.sprite != null;
@@ -599,10 +601,27 @@ public partial class TitleScreenTraffic
         else
         {
             cell = FlightCell(c, now);
-            if (!def.turnsToFace && c.Banks && Mathf.Abs(eliteVel.x) > .8f) cell = eliteVel.x < 0f ? c.bankLeft : c.bankRight;
+            if (!def.turnsToFace && c.Banks && Mathf.Abs(eliteVel.x) > .8f)
+            {
+                // (an animated bank -- Space -- keeps its plumes burning: its drawings at the flight loop's pace)
+                int[] loop = c.BankLoop(eliteVel.x < 0f ? -1 : 1);
+                cell = loop[Mathf.FloorToInt(now * 24f / EliteArt.IdleTicks[0]) % loop.Length];
+            }
         }
-        var sprite = eliteFrames[Mathf.Clamp(cell, 0, eliteFrames.Length - 1)];
+        cell = Mathf.Clamp(cell, 0, eliteFrames.Length - 1);
+        var sprite = eliteFrames[cell];
         if (sprite != null && eliteHull.sprite != sprite) eliteHull.sprite = sprite;
+        // the engine glows / plume mounts follow this drawing's bells (ElitePoint.offsets)
+        if (cell != eliteMountedCell)
+        {
+            eliteMountedCell = cell;
+            for (int i = 0; i < eliteNozzles; i++)
+            {
+                Vector2 local = def.NozzleLocal(i, cell);
+                elitePlumes[i].transform.localPosition = local;
+                eliteGlows[i].transform.localPosition = local;
+            }
+        }
 
         // squash on the back-off, stretch along the way out once it burns
         float sx = 1f, sy = 1f;
