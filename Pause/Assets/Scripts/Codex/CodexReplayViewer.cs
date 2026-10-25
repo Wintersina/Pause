@@ -46,7 +46,8 @@ public sealed class CodexReplayViewer : MonoBehaviour
     Font font;
     RectTransform root, backRt, titleRt, subRt, shadeRt, tagRt;
     RawImage view;
-    Image fade, dot;
+    Image fade;
+    ReplayLabel replayLabel;
     Text title, sub;
     Button backBtn;
     Texture2D shadeTexture;
@@ -129,14 +130,11 @@ public sealed class CodexReplayViewer : MonoBehaviour
         CodexUi.AddOutline(sub.gameObject, CodexUi.Ink, 2f);
         subRt = sub.rectTransform;
 
-        // the blinking REPLAY tag, as in a run
+        // the REPLAY label, lettered like the PAUSED caption (as in a run)
         tagRt = CodexUi.NewRect("Tag", root);
-        dot = CodexUi.NewImage("Dot", tagRt, CodexUi.CodexSprite("cx_circle"), CodexUi.Select);
-        dot.raycastTarget = false;
-        CodexUi.Place(dot.rectTransform, CodexUi.Centered(-70f, 0f, 20f, 20f));
-        var tag = CodexUi.NewText("Label", tagRt, font, "REPLAY", 28, CodexUi.Body, TextAnchor.MiddleLeft);
-        CodexUi.AddOutline(tag.gameObject, CodexUi.Ink, 2f);
-        CodexUi.Place(tag.rectTransform, CodexUi.Centered(20f, 0f, 160f, 44f));
+        replayLabel = ReplayLabel.Build(tagRt, 34);
+        replayLabel.Root.anchorMin = replayLabel.Root.anchorMax = new Vector2(.5f, .5f);
+        replayLabel.Root.anchoredPosition = Vector2.zero;
 
         // BACK: the codex's own cel button
         var backSlot = CodexUi.NewRect("BackSlot", root);
@@ -281,7 +279,7 @@ public sealed class CodexReplayViewer : MonoBehaviour
     {
         if (closed) return;
         shown += dt;
-        if (dot != null) dot.enabled = Mathf.Repeat(shown, .8f) < .5f;
+        if (replayLabel != null) replayLabel.Pop(shown);
         var clip = Clip;
         if (clip != null)
         {
