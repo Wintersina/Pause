@@ -20,12 +20,17 @@ public class EnemyDeathFlipbook : MonoBehaviour
     SpriteRenderer renderer;
     float age;
 
-    public static Sprite[] Frames(EnemyDef def)
+    public static Sprite[] Frames(EnemyDef def) { return Frames(def, 0); }
+
+    // `variant` > 0: the obsidian shard's re-coloured burst (ObsidianShards), matching the body that died.
+    public static Sprite[] Frames(EnemyDef def, int variant)
     {
         if (def == null) return null;
+        string path = ObsidianShards.Applies(def) ? ObsidianShards.DeathPath(variant) : null;
+        string id = path ?? def.key;
         Sprite[] result;
-        if (cache.TryGetValue(def.key, out result) && result != null && result[0] != null) return result;
-        var texture = TextureLoader != null ? TextureLoader(def.key) : Resources.Load<Texture2D>("Enemies/Death/" + def.key);
+        if (cache.TryGetValue(id, out result) && result != null && result[0] != null) return result;
+        var texture = TextureLoader != null ? TextureLoader(def.key) : Resources.Load<Texture2D>(path ?? "Enemies/Death/" + def.key);
         if (texture == null || texture.width != texture.height * 3) return null;
         float side = texture.height;
         float ppu = side / Mathf.Max(.01f, def.FrameWorldSize);
@@ -33,9 +38,9 @@ public class EnemyDeathFlipbook : MonoBehaviour
         for (int i = 0; i < result.Length; i++)
         {
             result[i] = Sprite.Create(texture, new Rect(i * side, 0f, side, side), new Vector2(.5f, .5f), ppu);
-            result[i].name = def.key + "_death_" + i;
+            result[i].name = id + "_death_" + i;
         }
-        cache[def.key] = result;
+        cache[id] = result;
         return result;
     }
 
@@ -43,7 +48,8 @@ public class EnemyDeathFlipbook : MonoBehaviour
     {
         if (!Application.isPlaying || target == null) return;
         var def = EnemyIdentity.Of(target);
-        var frames = Frames(def);
+        var frames = Frames(def, EnemyIdentity.VariantOf(target));
+        if (frames == null) frames = Frames(def);
         if (frames == null) return;
         var source = target.GetComponent<SpriteRenderer>();
         var go = new GameObject(def.key + " death");

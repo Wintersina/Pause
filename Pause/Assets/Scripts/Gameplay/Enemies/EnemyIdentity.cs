@@ -34,15 +34,26 @@ public class EnemyIdentity : MonoBehaviour
         def = d;
         key = d != null ? d.key : null;
         Scale = 1f;
+        Variant = 0;
     }
 
     public void SetScale(float scale) { Scale = scale > 0f ? scale : 1f; }
+
+    // Which colour of its art this body wears (0 = the roster strip; only the obsidian shard has more, ObsidianShards).
+    public int Variant { get; private set; }
+    public void SetVariant(int variant) { Variant = variant > 0 ? variant : 0; }
 
     // A roster body's size multiple (1 for anything without an identity).
     public static float ScaleOf(GameObject go)
     {
         EnemyIdentity id;
         return go != null && go.TryGetComponent(out id) ? id.Scale : 1f;
+    }
+
+    public static int VariantOf(GameObject go)
+    {
+        EnemyIdentity id;
+        return go != null && go.TryGetComponent(out id) ? id.Variant : 0;
     }
 
     public static EnemyDef Of(GameObject go)

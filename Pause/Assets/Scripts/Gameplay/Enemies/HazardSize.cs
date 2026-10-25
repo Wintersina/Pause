@@ -138,10 +138,13 @@ public static class HazardSize
         if (u < small) { centre = b.sizeSmall; v = u / Mathf.Max(1e-5f, small); }
         else if (u < small + typical) { centre = b.sizeTypical; v = (u - small) / Mathf.Max(1e-5f, typical); }
         else { centre = b.sizeLarge; v = (u - small - typical) / Mathf.Max(1e-5f, large); }
-        return Mathf.Max(MinScale, centre * (1f + Jitter * (2f * Mathf.Clamp01(v) - 1f)));
+        return Mathf.Max(FloorFor(b), centre * (1f + Jitter * (2f * Mathf.Clamp01(v) - 1f)));
     }
 
-    public static float Min(EnemyBehaviour b) => b != null && b.sizeLarge > 0f ? Mathf.Max(MinScale, b.sizeSmall * (1f - Jitter)) : 1f;
+    // The lowest scale a draw can take: the shared rock floor, or a rock's own (the obsidian blade's minimum length).
+    public static float FloorFor(EnemyBehaviour b) => b != null ? Mathf.Max(MinScale, b.minScale) : MinScale;
+
+    public static float Min(EnemyBehaviour b) => b != null && b.sizeLarge > 0f ? Mathf.Max(FloorFor(b), b.sizeSmall * (1f - Jitter)) : 1f;
     public static float Max(EnemyBehaviour b) => b != null && b.sizeLarge > 0f ? b.sizeLarge * (1f + Jitter) : 1f;
 
     // Expected area (size^2) of a draw, nominal = 1: what the density was
@@ -151,7 +154,7 @@ public static class HazardSize
         if (b == null || b.sizeLarge <= 0f) return 1f;
         float small = SmallShare, large = LargeShare, typical = 1f - small - large;
         float spread = 1f + Jitter * Jitter / 3f;   // E[(1 + J(2v-1))^2], v uniform
-        float lo = Mathf.Max(MinScale, b.sizeSmall);   // (the floor lifts the small tier)
+        float lo = Mathf.Max(FloorFor(b), b.sizeSmall);   // (the floor lifts the small tier)
         return (small * lo * lo + typical * b.sizeTypical * b.sizeTypical +
                 large * b.sizeLarge * b.sizeLarge) * spread;
     }

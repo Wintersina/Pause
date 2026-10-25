@@ -71,7 +71,7 @@ public class EnemyFlipbook : MonoBehaviour
     public void Init(EnemyDef def)
     {
         if (sr == null) sr = GetComponent<SpriteRenderer>();
-        frames = EnemyArt.Frames(def);
+        frames = EnemyArt.Frames(def, EnemyIdentity.VariantOf(gameObject));
         idleTicks = EnemyRoster.FlipbookIdleTicks(def);
         tellTicks = EnemyRoster.TellTicks(def.role);
         tellMode = ModeFor(def.role);

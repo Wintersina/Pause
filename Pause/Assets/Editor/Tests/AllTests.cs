@@ -189,6 +189,7 @@ public static class AllTests
         ("HeartLossFxTest", HeartLossFxTest.Execute),
         ("HomePauseTest", HomePauseTest.Execute),
         ("HazardSizeTest", HazardSizeTest.Execute),
+        ("ObsidianShardTest", ObsidianShardTest.Execute),
         ("HostileReachTest", HostileReachTest.Execute),
         ("HostileProjectileTest", HostileProjectileTest.Execute),
         ("HostileFireTest", HostileFireTest.Execute),

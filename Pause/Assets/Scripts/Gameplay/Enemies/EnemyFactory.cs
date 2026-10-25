@@ -33,7 +33,15 @@ public static class EnemyFactory
 
         var sr = go.AddComponent<SpriteRenderer>();
         sr.sortingOrder = def.role == EnemyRole.Mine ? 12 : def.role == EnemyRole.Rock ? 2 : 3;
-        go.AddComponent<EnemyIdentity>().Set(def);
+        var identity = go.AddComponent<EnemyIdentity>();
+        identity.Set(def);
+        // the obsidian shard's glass colour, stable for this body (ObsidianShards.Pick)
+        if (ObsidianShards.Applies(def))
+        {
+            uint shardSeed = ObsidianShards.SeedFor(position, size);
+            identity.SetVariant(ObsidianShards.Pick(shardSeed));
+            go.AddComponent<ObsidianGlint>().Init(shardSeed, identity.Variant);   // its blinking glint (a child sprite)
+        }
 
         var col = go.AddComponent<BoxCollider2D>();
         col.isTrigger = true;
