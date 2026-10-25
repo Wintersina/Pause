@@ -65,6 +65,8 @@ public class score : MonoBehaviour {
         // best (or reach a leaderboard).
         scoreRun = RunScore.BeginRun(paysRealDust, !DeveloperUnlocks.Enabled);
         RunScore.PracticePopups = gameObject.scene.name == TutorialScene;
+        // adaptive spawn density: real runs only (not the tutorial, not the premium Paragon ship)
+        AdaptiveDifficulty.BeginRun(paysRealDust, PremiumShips.IsPremium(ShipId.Equipped()));
         committedOnDeath = false;
         if (paysRealDust) currencyHolder = StarDustLedger.Balance;
     }
@@ -149,6 +151,7 @@ public class score : MonoBehaviour {
         if (BossEncounter.ScriptedEntrance) return;
         payDust();
         RunScore.Tick(Time.deltaTime, moveBackGround.speed);
+        AdaptiveDifficulty.Tick(Time.deltaTime, RunScore.Chain, collisionDetection.lifeCounter, collisionDetection.MAXLIFE);
     }
 
     // Leaving the run by any route (Menu, Replay, Back, scene change) banks

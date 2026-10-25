@@ -115,6 +115,13 @@ opens the store's own screen. The panel follows `docs/art-style.md`: flat chamfe
 * **Carrying it:** `LeaderboardRunTag` encodes `s<ship>h<start hearts>e<end hearts>p<pauses left>` (e.g. `s7h4e2p3`; every part after `h` is optional, older `s7h4` / `s7h4e2` tags still read, and a reader skips `<letter><digits>` fields it does not know, so the tag can grow). `p` is `score.pauseCounter` when the run ended (0..99; an older tag has none and its row shows no pauses badge, never a 0). Android sends it as the Play Games score tag and reads it back from every row. Unity's Game Center API has no score context, so iOS rows of other players stay blank; the player's own row is filled from the device-local `submittedScores` record (which now keeps the tag) when the stored value equals the submitted one. `ScoreTable.Entry.tag` is additive: old queues load with an empty tag.
 * **Paragon (premium cheat ship) never ranks.** Gates: `RunScore.BeginRun` marks the run `Unranked` at its start (no saved best, no score/loop achievement progress; the dust score bonus is unchanged); `LeaderboardRunTracker` marks the run premium if it starts on, or ever flies, Paragon; `LeaderboardService.SubmitRun`, `SubmissionBlocked` (equipped ship), `OfferUnchecked` and `Flush` (drops queued premium-tagged entries) all refuse it; `SocialBridge.ReportScore` refuses it too. A premium tag read from a board is shown as unknown. The player is told before and after: an amber `PremiumShips.LeaderboardNotice` strip on Paragon's dock card (locked and owned; the IAP flow must show it before payment), "Cheat ship: not on leaderboards" in its codex blurb, and a `CHEAT SHIP - UNRANKED` sub-label on the results score card.
 
+## Adaptive difficulty and score comparability
+
+Spawn density adapts to the pilot (`docs/adaptive-difficulty.md`): enemies x0.75..x1.25 of the old rate. The bound is
+what keeps scores comparable: elites, bosses, hit points, speed and per-kill points never adapt, ease can lower the
+enemy rate by at most 25% and is not rewarded with extra score, and the premium Paragon ship (unranked) and the
+tutorial are off. The developer flag is ignored by boards anyway (developer runs never reach them).
+
 ## Adding a board
 
 1. Create the leaderboard in **both** consoles (see below).

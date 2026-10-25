@@ -696,12 +696,15 @@ public class enmiesOnBoard : MonoBehaviour {
         return Mathf.Lerp(DensityFirstMinuteCeiling, DensityMidCeiling, (float)tickInMid / midTicks);
     }
 
-    float Roll(Vector2 range)
+    float Roll(Vector2 range) { return RollWith(range, true); }
+
+    float RollWith(Vector2 range, bool adaptive)
     {
         // ... and EnemyDensity.RateScale: fewer, smarter enemies, cut harder the faster the board scrolls
         return Random.Range(range.x, range.y) / Mathf.Max(0.1f, DensityMultiplier() * LoopDifficulty.DensityScale)
                / Mathf.Max(0.1f, EnemyDensity.RateScale(EnemyDensity.Hud) * PortalPressure.DensityScale)
-               / Mathf.Max(0.1f, RunFactor());
+               / Mathf.Max(0.1f, RunFactor())
+               / (adaptive ? AdaptiveDifficulty.EnemyScale : 1f);   // pilot's flow, x0.75..x1.25 (rails stay out: they are rides)
     }
 
     // A fast start's spawn make-up (EnemyDensity.RunLengthFactor); 1 without a world.
@@ -757,7 +760,7 @@ public class enmiesOnBoard : MonoBehaviour {
         if (railDelayTimer <= 0)
         {
             if (phase.rails) spawnRails();
-            railDelayTimer = Roll(phase.railInterval);
+            railDelayTimer = RollWith(phase.railInterval, false);
         }
         if (mineDelayTimer <= 0)
         {

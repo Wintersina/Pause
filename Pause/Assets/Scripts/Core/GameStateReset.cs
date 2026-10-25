@@ -52,6 +52,7 @@ public static class GameStateReset
         collisionDetection.cloakTimer = 0f;
         SpeedRamp.ResetBoost();
         PortalPressure.Reset();
+        AdaptiveDifficulty.Reset();
         PlayerInvuln.Reset();
         // A Replay pins its world after this; any other way out drops it.
         WorldManager.ClearReplayWorld();

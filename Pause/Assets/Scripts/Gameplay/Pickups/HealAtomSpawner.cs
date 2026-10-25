@@ -58,7 +58,7 @@ public class HealAtomSpawner : MonoBehaviour
         bool running = TouchInput.IsPressed || score.pauseCounter <= 0;
         if (!running) return;
 
-        timer -= dt;
+        timer -= dt * AdaptiveDifficulty.RecoveryScale;   // a struggling pilot gets it a bit sooner; the per-world cap is unchanged
         if (timer > 0f) return;
         // Another atom just went out (AtomSpacing): this one waits its turn
         // with its timer run out, then rolls as usual.

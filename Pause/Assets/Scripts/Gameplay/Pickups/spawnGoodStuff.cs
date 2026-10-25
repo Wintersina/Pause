@@ -115,11 +115,11 @@ public class spawnGoodStuff : MonoBehaviour {
 
         // Star dust runs x3 during a boss encounter, blue atoms x2 always
         // (PickupRules); red and violet atoms keep the plain clock.
-        float dustDt = dt * PickupRules.StarDustRate();
+        float dustDt = dt * PickupRules.StarDustRate() * AdaptiveDifficulty.DustScale;
         smStarTimer -= dustDt;
         midStarTimer -= dustDt;
         atomTimer -= dt * PickupRules.ShieldAtomRate;
-        redAtomDelayTimer -= dt;
+        redAtomDelayTimer -= dt * AdaptiveDifficulty.RecoveryScale;
         cooldownAtomDelayTimer -= dt * PickupRules.CooldownAtomRate;
         magnetAtomDelayTimer -= dt * PickupRules.MagnetAtomRate;
         // No two atoms (this spawner's or the green one's) within
@@ -241,14 +241,28 @@ public class spawnGoodStuff : MonoBehaviour {
     // fresh x per star spreads the cluster across the lane instead, while
     // the vPos.y + pos stagger (unchanged) still keeps them from all
     // spawning on top of each other at once.
+    // A star's x: random across the lane, pulled toward the ship while the
+    // pilot is doing well (AdaptiveDifficulty.LaneFollow) so the chain has
+    // something in reach. 0 follow (the default) is the plain roll.
+    static collisionDetection laneShip;
+    static float StarX()
+    {
+        float x = Random.Range(-RailInset.PickupLaneHalf, RailInset.PickupLaneHalf);
+        float follow = AdaptiveDifficulty.LaneFollow;
+        if (follow <= 0f) return x;
+        if (laneShip == null) laneShip = FindFirstObjectByType<collisionDetection>();
+        if (laneShip == null) return x;
+        return Mathf.Clamp(Mathf.Lerp(x, laneShip.transform.position.x, follow), -RailInset.PickupLaneHalf, RailInset.PickupLaneHalf);
+    }
+
     void spawnSmStar(int pos, Vector3 vPos)
     {
-        Vector3 spawner = new Vector3(Random.Range(-RailInset.PickupLaneHalf, RailInset.PickupLaneHalf), vPos.y + pos, vPos.z);
+        Vector3 spawner = new Vector3(StarX(), vPos.y + pos, vPos.z);
         Place(smStar, spawner);
     }
     void spawnMidStar(int pos, Vector3 vPos)
     {
-        Vector3 spawner = new Vector3(Random.Range(-RailInset.PickupLaneHalf, RailInset.PickupLaneHalf), vPos.y + pos, vPos.z);
+        Vector3 spawner = new Vector3(StarX(), vPos.y + pos, vPos.z);
         Place(midStar, spawner);
     }
     // will make you invensiable for a few seconds.
