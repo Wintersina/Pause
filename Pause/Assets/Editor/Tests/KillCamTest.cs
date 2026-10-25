@@ -62,6 +62,11 @@ public static class KillCamTest
         float real = KillCamClip.RealSeconds(KillCamClip.LiveWindow);
         Check("the live replay is a few seconds of real time (" + real.ToString("F2") + " s)", real > 2.2f && real < 3.8f && Mathf.Approximately(KillCamClip.LiveWindow, 1.3f));
         Check("a tap can skip it early", KillCam.SkipGuard < .5f);
+        float cm3 = KillCam.LabelDropPixels(320f, 1920f, 100f);
+        Check("the REPLAY label drops ~3 cm by the screen dpi (" + cm3.ToString("F0") + " px at 320 dpi)", Mathf.Abs(cm3 - 3f / 2.54f * 320f) < .5f);
+        Check("a dpi of 0 falls back to a tenth of the screen height", Mathf.Abs(KillCam.LabelDropPixels(0f, 1920f, 100f) - 192f) < .5f);
+        Check("the label never ends up lower than 40% of the screen",
+              KillCam.LabelDropPixels(700f, 1000f, 100f) <= 300.01f && KillCam.LabelDropPixels(320f, 1920f, 100f) + 100f <= 1920f * .4f);
     }
 
     // ---- the clip: frames by time, tracks between frames ----
