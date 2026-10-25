@@ -54,6 +54,8 @@ public sealed class EnemyBehaviour
     // Tier centres as multiples of the roster's nominal size: small, typical,
     // large. 0 = one size (mines, pilots).
     public float sizeSmall, sizeTypical, sizeLarge;
+    // A floor under every size drawn (scale), on top of HazardSize.MinScale: 0 = none (ObsidianShards.MinScale for the obsidian blade).
+    public float minScale;
 
     // ---- attack ----
     public EnemyAttack attack;
@@ -167,6 +169,8 @@ public sealed class EnemyBehaviour
         sizeSmall = small; sizeTypical = typical; sizeLarge = large;
         return this;
     }
+    // No size is drawn below this scale (the obsidian blade's minimum length, ObsidianShards).
+    public EnemyBehaviour MinScale(float scale) { minScale = scale; return this; }
 
     public EnemyBehaviour Timing(float tellSeconds, float cooldownSeconds, int volleys, float first = .15f)
     {
@@ -449,7 +453,7 @@ public static class EnemyBehaviours
             .Sizes(.8f, .96f, 1.4f);
         B("ember_rock_obsidian", "obsidian blade: barely turns, one fast slanted slice")
             .Glide(1.2f, .9f).Spin(5f, 9f)
-            .Sizes(.76f, 1.02f, 1.24f);
+            .Sizes(.9f, 1f, 1.2f).MinScale(ObsidianShards.MinScale());   // never drawn shorter than ObsidianShards.MinLongEdge
         B("ember_rock_islet", "lava islet: wide slow sway and bob")
             .Sway(.7f, 4.2f).Bob(.14f, 3f).Tilt(EnemyRoster.FloatSwayDegrees, EnemyRoster.FloatSwayPeriod)
             .Sizes(.8f, .92f, 1.48f);

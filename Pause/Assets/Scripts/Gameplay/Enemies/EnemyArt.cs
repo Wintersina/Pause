@@ -10,23 +10,28 @@ public static class EnemyArt
 {
     static readonly Dictionary<string, Sprite[]> cache = new Dictionary<string, Sprite[]>();
 
-    public static Sprite[] Frames(EnemyDef def)
+    public static Sprite[] Frames(EnemyDef def) { return Frames(def, 0); }
+
+    // `variant` > 0: a re-coloured copy of the strip (ObsidianShards); anything else has none and gets its own strip.
+    public static Sprite[] Frames(EnemyDef def, int variant)
     {
         if (def == null) return null;
+        string path = ObsidianShards.Applies(def) ? ObsidianShards.StripPath(variant) : null;
+        string id = path ?? def.key;
         Sprite[] frames;
         // Sprite.Create()d sprites die with an editor scene swap; Unity's null
         // check catches that and the strip is sliced again.
-        if (cache.TryGetValue(def.key, out frames) && frames != null && frames[0] != null) return frames;
+        if (cache.TryGetValue(id, out frames) && frames != null && frames[0] != null) return frames;
 
         if (def.role == EnemyRole.Mine)
         {
             frames = RailMineArt.Flipbook(def.world);
             if (frames == null) return null;
-            cache[def.key] = frames;
+            cache[id] = frames;
             return frames;
         }
 
-        var tex = Resources.Load<Texture2D>(def.StripPath);
+        var tex = Resources.Load<Texture2D>(path ?? def.StripPath);
         if (tex == null) return null;
         int n = EnemyRoster.FrameCount;
         float w = tex.width / (float)n;
@@ -35,9 +40,9 @@ public static class EnemyArt
         for (int i = 0; i < n; i++)
         {
             frames[i] = Sprite.Create(tex, new Rect(i * w, 0, w, tex.height), new Vector2(.5f, .5f), ppu);
-            frames[i].name = def.key + "_" + i;
+            frames[i].name = id + "_" + i;
         }
-        cache[def.key] = frames;
+        cache[id] = frames;
         return frames;
     }
 

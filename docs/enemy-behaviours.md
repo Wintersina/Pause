@@ -1266,6 +1266,8 @@ ignores a size for anything but a rock. Backdrop rocks and planets (non-interact
 and atoms, and the title-screen traffic are not hazards and are untouched. No other floating gameplay hazard
 exists (no `Astr`-tagged prefab or scene object is left; `extraEnemyPrefabs` is empty in gameS1).
 
+(Obsidian shard colours: five glass colours - violet, teal, jade, acid, vermilion - one per spawned shard, picked from a hash of its spawn position and size (`ObsidianShards.Pick`); art built by `Art/Enemies/src~/obsidian_variants.py` into `Resources/Enemies/Variants`. Never drawn shorter than `ObsidianShards.MinLongEdge` = 0.60 u along the blade; the collider follows the scale as for every rock. Pinned by `ObsidianShardTest`.)
+
 **Data.** Each rock's behaviour record carries three tier sizes (`EnemyBehaviour.Sizes(small, typical, large)`,
 multiples of the roster size). `HazardSize.Draw` takes one number from the sizes' own xorshift stream, seeded off `Random.state` in the spawner's `Start` without consuming it (so the spawner's own draws, and every seeded probe, are exactly as before sizes; a seed still gives the same sizes): 28% small,
 55% typical, 17% large (`SmallShare`, `LargeShare`), then +/-5% inside the tier (`Jitter`). The tiers are chosen
@@ -1279,7 +1281,8 @@ one (without that the realised mix fell to 37% small / 11% large and 0.92 mean a
 | `space_rock_cluster`, `ember_rock_islet` (chunky) | 0.80 / 0.92 / 1.48 | 0.76-1.55 |
 | `frost_rock_chunk`, `verdant_rock_spore`, `ember_rock_magma`, `ember_rock_cinder` | 0.80 / 0.96 / 1.40 | 0.76-1.47 |
 | `frost_rock_rime`, `verdant_rock_knot` | 0.76 / 1.00 / 1.30 | 0.72-1.37 |
-| `frost_rock_shard`, `ember_rock_obsidian` (slim) | 0.76 / 1.02 / 1.24 | 0.72-1.30 |
+| `frost_rock_shard` (slim) | 0.76 / 1.02 / 1.24 | 0.72-1.30 |
+| `ember_rock_obsidian` (slim blade; floor 0.89 = 0.60 u long, `ObsidianShards`) | 0.90 / 1.00 / 1.20 | 0.89-1.26 |
 
 **Art.** A rock strip is bilinear, no mipmaps, 192 px a cell; at nominal size a phone draws it at 95.8 px (2.0
 texels per screen pixel). The range runs from 2.78 (0.72x) to 1.29 (1.55x) texels per pixel: never magnified,
