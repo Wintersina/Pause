@@ -208,6 +208,7 @@ public static class AllTests
         ("PauseGlowTest", PauseGlowTest.Execute),
         ("PausedLabelTest", PausedLabelTest.Execute),
         ("PickupHitchTest", PickupHitchTest.Execute),
+        ("AdaptiveDifficultyTest", AdaptiveDifficultyTest.Execute),
         ("PickupRulesTest", PickupRulesTest.Execute),
         ("PostHitInvulnTest", PostHitInvulnTest.Execute),
         ("RailMineArtTest", RailMineArtTest.Execute),

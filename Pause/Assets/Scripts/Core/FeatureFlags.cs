@@ -37,6 +37,11 @@ public static class FeatureFlags
     [Flag("WORLD WEATHER", true)]
     public const string WorldWeather = "world_weather";
 
+    // Adaptive spawn density (docs/adaptive-difficulty.md): ordinary hazards and pickups follow how well the pilot is
+    // doing, within fixed bounds. Never touches elites, bosses, hit points, damage or speed.
+    [Flag("ADAPTIVE DIFFICULTY", true)]
+    public const string AdaptiveDifficulty = "adaptive_difficulty";
+
     public struct Info
     {
         public string name, label;
