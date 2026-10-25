@@ -31,6 +31,7 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
         public long bestScore;      // the best after this run
         public bool newBest;        // this run set a new best score
         public bool ranked;         // a run that may set a best (not developer mode / practice)
+        public bool unranked;       // flown on the premium cheat ship: never ranked (RunScore.Unranked)
         public bool practice;       // the run scored nothing (practice run)
         public RunScore.Breakdown parts;
         public float dustAtStart;
@@ -269,6 +270,7 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
     public static string ScoreSubLabel(Results r)
     {
         if (r.practice) return "PRACTICE RUN";
+        if (r.unranked) return PremiumShips.UnrankedRunLabel;
         if (!r.ranked) return "DEV RUN - NOT SAVED";
         return "BEST  " + RunScore.Format(r.bestScore);
     }

@@ -37,6 +37,7 @@ public static class PremiumShipTest
         Skins();
         Economy();
         Combat();
+        Notice();
         Debug.Log("[PREM] failures: " + fails);
         return fails;
     }
@@ -62,6 +63,38 @@ public static class PremiumShipTest
               ShipFxArt.PowerBurst(P, 0) != null && ShipFxArt.MeterIcon(P) != null);
         var tex = Resources.Load<Texture2D>("Weapons/AttackFx");
         Check("the attack fx atlas has 16 ship rows", tex != null && tex.height == ShipFxArt.Rows * 128 && ShipFxArt.Rows == 16);
+    }
+
+    // The leaderboard warning: the dock card for Paragon (locked and owned), none on other ships,
+    // the results sub-label, and the rule it states (a Paragon run is unranked).
+    static void Notice()
+    {
+        var font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        var anchor = new GameObject("~NoticeAnchor").transform;
+        var popup = DockPopup.Create(null, font, null);
+        popup.safeView = new Rect(-50f, -50f, 100f, 100f);
+        PlayerPrefs.DeleteKey(ShipId.OwnedKey(P));
+        popup.Show(P, anchor, .3f, false, false, 0f, 0f);
+        Check("notice: locked Paragon card shows the warning, amber, one line",
+              popup.NoticeVisible && popup.NoticeText == PremiumShips.LeaderboardNotice &&
+              popup.NoticeColor == AkiraPalette.Amber && popup.CurrentHeightUnits == DockPopup.BaseHeight + DockPopup.NoticeHeight);
+        PlayerPrefs.SetString(ShipId.OwnedKey(P), "True");
+        popup.Show(P, anchor, .3f, true, false, 0f, 0f);
+        popup.ShowSkins(P, 0, 0f);
+        Check("notice: owned Paragon card keeps it above the full-height card",
+              popup.NoticeVisible && popup.CurrentHeightUnits == DockPopup.OwnedHeight + DockPopup.NoticeHeight);
+        popup.Show(5, anchor, .3f, false, false, 3200f, 0f);
+        Check("notice: another ship's card has none and its old height",
+              !popup.NoticeVisible && popup.NoticeText == "" && popup.CurrentHeightUnits == DockPopup.BaseHeight);
+        // [FIT] by hand: 12-unit bold caps, 31 chars at <= 8.4 units = 260 <= the 276-unit strip; x PopupScale .85 is 10.2 dp (min 10 units = 8.5 dp, >= 7)
+        Check("notice: short enough for the strip", PremiumShips.LeaderboardNotice.Length <= 34 && PremiumShips.UnrankedRunLabel.Length <= 24);
+        var r = new DeathPanelView.Results { ranked = false, unranked = true };
+        Check("notice: results sub-label says the run is unranked", DeathPanelView.ScoreSubLabel(r) == PremiumShips.UnrankedRunLabel);
+        r.practice = true;
+        Check("notice: a practice run still reads practice", DeathPanelView.ScoreSubLabel(r) == "PRACTICE RUN");
+        Object.DestroyImmediate(popup.gameObject);
+        Object.DestroyImmediate(anchor.gameObject);
+        PlayerPrefs.DeleteKey(ShipId.OwnedKey(P));
     }
 
     static void Gate()

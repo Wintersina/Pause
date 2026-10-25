@@ -67,6 +67,13 @@ public static class PremiumShips
 
     public const string ComingSoonLabel = "COMING SOON";
 
+    // The warning every place that meets a premium ship shows (dock card, codex,
+    // the offer before any purchase, the results screen says it shorter): a Paragon run never
+    // reaches a leaderboard (RunScore.Unranked, LeaderboardService). The IAP flow
+    // MUST show this line before the player pays.
+    public const string LeaderboardNotice = "CHEAT SHIP: NOT ON LEADERBOARDS";
+    public const string UnrankedRunLabel = "CHEAT SHIP - UNRANKED";
+
     // The only code path that may mark a premium ship owned: the (future) IAP
     // flow. Developer mode writes the key itself.
     public static void Grant(int id)

@@ -46,6 +46,7 @@ public class playerIsDead : MonoBehaviour
             newBest = RunScore.IsNewBest,
             ranked = RunScore.SavesBest,
             practice = !RunScore.Scoring,
+            unranked = RunScore.Unranked,
             parts = RunScore.Parts,
             dustAtStart = score.runStartCurrency,
             dustWon = Mathf.Max(0f, score.totalCurrency - score.runStartCurrency),
