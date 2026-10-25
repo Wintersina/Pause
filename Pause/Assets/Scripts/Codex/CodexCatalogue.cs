@@ -226,8 +226,9 @@ public static class CodexCatalogue
         };
 
         // ------------------------------------------------------------- Bosses
-        // Secret: hidden from the codex until the pilot first meets one at
-        // the end of its world (BossEncounter discovers it by id).
+        // Every boss is listed from the start (like enemies and elites): undiscovered ones show as the
+        // locked silhouette / "???" until the pilot meets one at the end of its world (BossEncounter
+        // discovers it by id).
         int enemyEnd = 0;
         for (int i = 0; i < list.Count; i++) if (list[i].category == CodexCategory.Enemies) enemyEnd = i + 1;
         var bosses = new List<CodexEntry>();
@@ -236,7 +237,7 @@ public static class CodexCatalogue
             var def = boss;
             bosses.Add(new CodexEntry(def.id, BossDisplayName(def.name), CodexCategory.Enemies,
                 () => BossArt.Body(def, BossArt.Portrait), def.lore + "\n\n" + BossAttackLore(def),
-                null, false, secret: true));
+                null, false));
         }
         list.InsertRange(enemyEnd, bosses);
 

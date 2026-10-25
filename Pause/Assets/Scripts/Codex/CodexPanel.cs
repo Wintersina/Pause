@@ -13,9 +13,9 @@ using UnityEngine.UI;
 // cel header bar in that world's enemy light with a found/total counter.
 // The current section's header stays pinned to the top of the list while
 // you scroll through it (pushed up by the next one), and a row of jump chips
-// above the list smooth-scrolls to any section. The BOSSES section keeps the
-// bosses secret: it only appears once one has been met, lists only the met
-// ones and counts only those (developer mode shows them all).
+// above the list smooth-scrolls to any section. The BOSSES section lists all
+// seven bosses from the start; unmet ones show as the locked silhouette ("???") and the
+// counter reads met/7. The codex opens on ACHIEVEMENTS (first tab); LOG is the last tab.
 //
 // Built entirely at runtime on its own overlay canvas as flat 80s-anime cels
 // in the Akira palette (CodexPalette): thick ink outlines, flat fills, hard
@@ -39,15 +39,17 @@ public class CodexPanel : MonoBehaviour
     public const float Pad = 30f;
     public const float HeaderHeight = 64f;
     public const float DividerHeight = 16f;
-    // Eight tabs (the six entry categories, then ACHIEVEMENTS and MUSIC) in two rows of four:
+    // Eight tabs (ACHIEVEMENTS, five entry categories, MUSIC, then the LOG) in two rows of four:
     // one row left each tab ~110
     // units wide and 60 tall (~32-40 dp touch targets even padded). Each
     // tab is drawn TabRowHeight tall and its touch target reaches half of
     // every gap around it: TabRowHeight + TabRowGap = 96 units, >= 48 dp /
     // 44 pt wherever the canvas is >= 0.5 dp per unit (UiScale's floor).
     public const int TabsPerRow = 4, TabRows = 2;
-    public const int AchievementsTab = 6;           // index of the ACHIEVEMENTS tab (after CodexPanel.Tabs)
-    public const int MusicTab = 7;                  // index of the MUSIC tab (after ACHIEVEMENTS)
+    // Tab order: ACHIEVEMENTS first (what the codex opens on), then ENEMIES..SHIPS (Tabs[1..5]), MUSIC, LOG last.
+    public const int AchievementsTab = 0;           // index of the ACHIEVEMENTS tab (first)
+    public const int MusicTab = 6;                  // index of the MUSIC tab
+    public const int LogTab = 7;                    // index of the LOG tab (last)
     public const int TabCount = 8;
     // A discovered world's detail view has a sub-tab row: INFO (the lore) | BACKDROPS (that world's
     // backdrop gallery). Same cel tab look as the head tabs; each button is SubTabHeight tall with the
@@ -100,7 +102,13 @@ public class CodexPanel : MonoBehaviour
 
     public static string TabName(int i)
     {
-        return i == AchievementsTab ? AchievementsLabel : i == MusicTab ? MusicLabel : CategoryLabel(Tabs[i]);
+        return i == AchievementsTab ? AchievementsLabel : i == MusicTab ? MusicLabel : CategoryLabel(CategoryOfTab(i));
+    }
+
+    // The entry category behind tab button i (not ACHIEVEMENTS / MUSIC): Tabs[1..5] sit at buttons 1..5, the Log at the end.
+    public static CodexCategory CategoryOfTab(int i)
+    {
+        return i == LogTab ? CodexCategory.Log : Tabs[i];
     }
 
     public static string CategoryLabel(CodexCategory c)
@@ -803,7 +811,7 @@ public class CodexPanel : MonoBehaviour
 
     public static bool TabHasReward(int i)
     {
-        return i == MusicTab ? false : i == AchievementsTab ? AchievementStore.ClaimableCount > 0 : Codex.PendingIn(Tabs[i]) > 0;
+        return i == MusicTab ? false : i == AchievementsTab ? AchievementStore.ClaimableCount > 0 : Codex.PendingIn(CodexPanel.CategoryOfTab(i)) > 0;
     }
 
     public Button CollectTabButton { get { return collectTabButton; } }
@@ -1336,7 +1344,7 @@ public class CodexPanel : MonoBehaviour
         detailEntry = null;
         Fit();
         Populate(category);
-        Codex.AckTab(category);
+        ShowAchievements();   // the codex always opens on ACHIEVEMENTS (the first tab)
         PaintNewDots();
         phase = Phase.Opening;
         phaseAt = Time.unscaledTime;
@@ -1397,13 +1405,13 @@ public class CodexPanel : MonoBehaviour
         tabAt = Time.unscaledTime;
     }
 
-    // A tab button: 0-5 are the entry categories, AchievementsTab the achievements.
+    // A tab button: AchievementsTab, 1-5 the entry categories, MusicTab, LogTab.
     public void ShowTab(int i)
     {
         feedbackUntil = 0f;
         if (i == AchievementsTab) ShowAchievements();
         else if (i == MusicTab) ShowMusic();
-        else if (i >= 0 && i < Tabs.Length) ShowCategory(Tabs[i]);
+        else if (i == LogTab || (i > AchievementsTab && i < Tabs.Length)) ShowCategory(CategoryOfTab(i));
     }
 
     public void ShowAchievements()
@@ -1533,7 +1541,7 @@ public class CodexPanel : MonoBehaviour
     {
         for (int i = 0; i < TabCount; i++)
         {
-            bool active = i == MusicTab ? musicOpen : i == AchievementsTab ? achievementsOpen : (!OtherViewOpen && Tabs[i] == category);
+            bool active = i == MusicTab ? musicOpen : i == AchievementsTab ? achievementsOpen : (!OtherViewOpen && CategoryOfTab(i) == category);
             tabFrames[i].color = active ? CodexUi.Select : CodexUi.Idle;
             tabLabels[i].color = active ? CodexUi.Body : CodexUi.Muted;
         }

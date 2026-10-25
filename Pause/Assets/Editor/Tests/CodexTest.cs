@@ -686,8 +686,8 @@ public static class CodexTest
         foreach (var b in BossCatalog.All)
         {
             var e = Codex.Find(b.id);
-            Check("inventory: boss " + b.name + " -> " + b.id + " (secret)",
-                  e != null && e.secret && e.category == CodexCategory.Enemies && e.name == CodexCatalogue.BossDisplayName(b.name));
+            Check("inventory: boss " + b.name + " -> " + b.id + " (listed from the start)",
+                  e != null && !e.secret && e.category == CodexCategory.Enemies && e.name == CodexCatalogue.BossDisplayName(b.name));
             if (e == null) continue;
             Check("boss " + b.id + " subtitle is its title", e.Subtitle == b.title);
             bool attacks = true, parts = true;
@@ -895,7 +895,7 @@ public static class CodexTest
             foreach (var b in BossCatalog.All)
             {
                 var e = Codex.Find(b.id);
-                Check(b.id + " stays off the list until met", !Codex.IsListed(e));
+                Check(b.id + " is listed before it is met (locked silhouette)", Codex.IsListed(e) && !Codex.IsDiscovered(e));
                 Hook(b.id, "meeting the boss (BossEncounter)", () => Codex.Discover(b.id), toasts);
                 Check(b.id + " is listed once met", Codex.IsListed(e));
             }
@@ -1148,7 +1148,10 @@ public static class CodexTest
         Check("panel uses the cel frame",
               panel.Panel.Find("Frame").GetComponent<Image>().sprite != null &&
               panel.Panel.Find("Frame").GetComponent<Image>().sprite.name == "cx_panel");
-        Check("panel opens on the Pilot's Log", panel.Category == CodexCategory.Log && panel.VisibleCards == 3);
+        Check("panel opens on ACHIEVEMENTS (the first tab)", panel.AchievementsOpen && CodexPanel.AchievementsTab == 0);
+        Check("LOG is the last tab", CodexPanel.LogTab == CodexPanel.TabCount - 1 && panel.TabLabel(CodexPanel.LogTab).text == "LOG" && panel.TabLabel(0).text == "ACHIEVEMENTS");
+        panel.ShowCategory(CodexCategory.Log);
+        Check("the LOG tab shows the Pilot's Log", panel.Category == CodexCategory.Log && panel.VisibleCards == 3);
         Check("panel counter matches", panel.Counter.text.StartsWith(Codex.DiscoveredCount + " / " + Codex.Total));
 
         // Locked vs discovered cards.
@@ -1476,12 +1479,21 @@ public static class CodexTest
 
         // Order and contents: one section per world, nothing secret.
         Check("ENEMIES is sectioned", panel.Sectioned);
-        Check("no boss met: ENEMIES shows every world SPACE .. DESERT and no BOSSES (" + Labels(panel) + ")",
-              Labels(panel) == AllWorldLabels);
+        Check("no boss met: ENEMIES shows every world SPACE .. DESERT, then BOSSES (" + Labels(panel) + ")",
+              Labels(panel) == AllWorldLabels + ",BOSSES");
         CheckWorldSections(panel, false);
-        bool noBoss = true;
-        for (int i = 0; i < panel.VisibleCards; i++) noBoss &= BossCatalog.Find(panel.CardEntry(i).id) == null;
-        Check("no boss met: no boss card anywhere", noBoss);
+        {
+            var lockedBosses = panel.SectionCount == 8 ? panel.SectionAt(7) : null;
+            bool allSeven = lockedBosses != null && lockedBosses.entries.Count == BossCatalog.All.Length && BossCatalog.All.Length == 7;
+            for (int b = 0; allSeven && b < BossCatalog.All.Length; b++)
+            {
+                int ci = panel.SectionStart(7) + b;
+                allSeven &= lockedBosses.entries[b].id == BossCatalog.All[b].id && panel.CardName(ci).text == Codex.LockedName && panel.CardArt(ci).color.r < .1f;
+            }
+            Check("no boss met: all seven bosses are listed as locked ??? silhouettes", allSeven);
+            Check("no boss met: BOSSES counter reads 0/7 ('" + (lockedBosses == null ? "" : panel.SectionCounter(7).text) + "')",
+                  lockedBosses != null && panel.SectionCounter(7).text == "0/7");
+        }
         Check("SPACE counter is found/total ('" + panel.SectionCounter(0).text + "')",
               panel.SectionCounter(0).text == "1/" + panel.SectionAt(0).entries.Count);
         Check("FROST counter counts its own discoveries", panel.SectionCounter(1).text == "1/" + panel.SectionAt(1).entries.Count);
@@ -1512,19 +1524,22 @@ public static class CodexTest
         // One boss met: the BOSSES section appears last with just that boss.
         var boss = BossCatalog.ForWorld(1);
         int totalBefore = Codex.Total;
+        int discBefore = Codex.DiscoveredCount;
         PlayerPrefs.SetString(Codex.PrefsKey, PlayerPrefs.GetString(Codex.PrefsKey) + "," + boss.id);
         Codex.Reload();
         panel.Refresh();
         panel.SkipAnimations();
         Check("one boss met: BOSSES is the last section (" + Labels(panel) + ")", Labels(panel) == AllWorldLabels + ",BOSSES");
         var bosses = panel.SectionCount == 8 ? panel.SectionAt(7) : null;
-        Check("one boss met: only that boss is listed",
-              bosses != null && bosses.entries.Count == 1 && bosses.entries[0].id == boss.id &&
-              panel.CardEntry(panel.SectionStart(7)).id == boss.id && panel.VisibleCards == panel.SectionStart(7) + 1);
-        Check("one boss met: BOSSES counts met bosses only, no hidden total ('" + panel.SectionCounter(7).text + "')",
-              panel.SectionCounter(7).text == "1");
+        int metIdx = System.Array.IndexOf(BossCatalog.All, boss);
+        Check("one boss met: all seven stay listed, only that one is named",
+              bosses != null && bosses.entries.Count == 7 && panel.VisibleCards == panel.SectionStart(7) + 7 &&
+              panel.CardName(panel.SectionStart(7) + metIdx).text == Codex.Find(boss.id).name &&
+              panel.CardName(panel.SectionStart(7) + (metIdx + 1) % 7).text == Codex.LockedName);
+        Check("one boss met: BOSSES counter reads 1/7 ('" + panel.SectionCounter(7).text + "')",
+              panel.SectionCounter(7).text == "1/7");
         CheckWorldSections(panel, true);
-        Check("one boss met: the codex total grows by one", Codex.Total == totalBefore + 1);
+        Check("one boss met: the codex total is unchanged, discovered grows by one", Codex.Total == totalBefore && Codex.DiscoveredCount == discBefore + 1);
         home.Refresh();
         Check("one boss met: home counter includes it", home.Counter.text == Codex.DiscoveredCount + "/" + Codex.Total + " DISCOVERED");
         Check("one boss met: a BOSSES jump chip", ActiveChips(panel) == 8 && panel.ChipLabel(7).text == "BOSSES");
@@ -1540,12 +1555,12 @@ public static class CodexTest
             allBosses &= panel.SectionAt(bi).entries[b].id == BossCatalog.All[b].id &&
                          panel.CardName(panel.SectionStart(bi) + b).text == Codex.Find(BossCatalog.All[b].id).name;
         Check("dev mode: BOSSES shows all seven bosses, named, after Desert's section", allBosses && BossCatalog.All.Length == 7 && panel.ChipLabel(bi - 1).text == "DESERT");
-        Check("dev mode: BOSSES counter reads " + BossCatalog.All.Length, panel.SectionCounter(bi).text == BossCatalog.All.Length.ToString());
+        Check("dev mode: BOSSES counter reads " + BossCatalog.All.Length, panel.SectionCounter(bi).text == BossCatalog.All.Length + "/" + BossCatalog.All.Length);
         CheckWorldSections(panel, true);
         DeveloperUnlocks.SetEnabled(false);
         panel.SkipAnimations();
         Check("dev mode off: back to the one met boss, codexSeen untouched",
-              panel.SectionCount == 8 && panel.SectionAt(7).entries.Count == 1 && PlayerPrefs.GetString(Codex.PrefsKey) == seen);
+              panel.SectionCount == 8 && panel.SectionAt(7).entries.Count == 7 && panel.SectionCounter(7).text == "1/7" && PlayerPrefs.GetString(Codex.PrefsKey) == seen);
 
         // Pinned header: follows the section at the top, pushed by the next.
         panel.SetScrollY(0f);
