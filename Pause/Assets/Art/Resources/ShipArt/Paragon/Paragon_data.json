@@ -18,17 +18,20 @@
     {
       "x": 125.5,
       "y": 26.5,
-      "scale": 1.5
+      "scale": 1.5,
+      "offsets": [0.0, -0.0, 0, 5, 0, 5, 0, 0, 0, 0, 0, -5, -32, 6, 23, 1, 0, 0]
     },
     {
       "x": 24.5,
       "y": 22.5,
-      "scale": 0.55
+      "scale": 0.55,
+      "offsets": [0.0, -0.0, 0, 5, 0, 5, 0, 0, 0, 0, 0, -5, -11, 15, 5, 0, 0, 0]
     },
     {
       "x": 225.5,
       "y": 22.5,
-      "scale": 0.55
+      "scale": 0.55,
+      "offsets": [0.0, -0.0, 0, 5, 0, 5, 0, 0, 0, 0, 0, -5, -9, -8, 5, 8, 0, 0]
     }
   ],
   "damageNote": "1) left wing-pod panel blown, wiring sparking; scorch on the inner pod; 2) right inner pod panel open, right wing-tip pod torn and burning, hull and canopy cracked",

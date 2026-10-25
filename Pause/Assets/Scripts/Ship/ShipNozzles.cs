@@ -19,13 +19,24 @@ using UnityEngine;
 // down the nozzle's own pixel column to the last painted row and sits the
 // point just inside that lip. ShipNozzlesTest checks every point lies on
 // painted pixels in the lower half of its hull.
+//
+// The point is measured on the key frame (column 0). The hull bobs and banks
+// inside its sprite rect, so a nozzle moves from frame to frame: `offsets`
+// holds, per hull column (0..8, see ShipHullArt), the nozzle's (dx, dy) shift
+// from its key-frame point in sprite-rect pixels (x right, y up), measured off
+// that column's art. Damage rows share the intact silhouette, so one set of
+// columns serves all three rows. Absent = the nozzle does not move.
 public static class ShipNozzles
 {
     public struct Nozzle
     {
         public float x, y;     // sprite-rect pixels
         public float scale;    // plume size relative to a single main engine
-        public Nozzle(float x, float y, float scale) { this.x = x; this.y = y; this.scale = scale; }
+        public float[] offsets; // (dx, dy) per hull column, sprite-rect pixels, y up; null = static
+        public Nozzle(float x, float y, float scale, float[] offsets = null)
+        {
+            this.x = x; this.y = y; this.scale = scale; this.offsets = offsets;
+        }
     }
 
     static readonly Nozzle[] fallback = { new Nozzle(-1f, -1f, 1f) };
@@ -39,6 +50,19 @@ public static class ShipNozzles
     public static Nozzle[] For(int index)
     {
         return Has(index) ? ShipData.For(index).nozzleList : fallback;
+    }
+
+    // The nozzle's shift from its key-frame point on the hull frame `hull`
+    // (ShipHullArt names a frame "<Key>_<state>_<column>"), in the hull's local space.
+    public static Vector2 FrameShift(Sprite hull, Nozzle nozzle)
+    {
+        if (hull == null || nozzle.offsets == null) return Vector2.zero;
+        string name = hull.name;
+        int cut = name.LastIndexOf('_');
+        int column;
+        if (cut < 0 || !int.TryParse(name.Substring(cut + 1), out column)) return Vector2.zero;
+        if (column < 0 || column * 2 + 1 >= nozzle.offsets.Length) return Vector2.zero;
+        return new Vector2(nozzle.offsets[column * 2], nozzle.offsets[column * 2 + 1]) / hull.pixelsPerUnit;
     }
 
     // Sprite-rect pixels -> the hull's local space. The fallback (negative

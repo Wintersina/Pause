@@ -70,7 +70,9 @@ public static class ShipExhaust
         return mounts.Length > 0 ? mounts[0] : new Vector3(0f, -.2f, .05f);
     }
 
-    // Where each plume leaves the hull, in the hull's local space. Read from
+    // Where each plume leaves the hull frame `hull`, in the hull's local space (the
+    // nozzles move with the bob and the bank: callers re-read this when the frame
+    // changes). Read from
     // ShipNozzles' per-ship pixel table, so the flight flame, the dock flame
     // and the launch flare all leave the same painted nozzles.
     public static Vector3[] MountsFor(Sprite hull, int index)
@@ -80,7 +82,7 @@ public static class ShipExhaust
         var mounts = new Vector3[nozzles.Length];
         for (int i = 0; i < nozzles.Length; i++)
         {
-            Vector2 local = ShipNozzles.ToLocal(hull, nozzles[i]);
+            Vector2 local = ShipNozzles.ToLocal(hull, nozzles[i]) + ShipNozzles.FrameShift(hull, nozzles[i]);
             mounts[i] = new Vector3(local.x, local.y, .05f);
         }
         return mounts;

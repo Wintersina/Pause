@@ -62,6 +62,7 @@ public class ShipThruster : MonoBehaviour
     float clock;                 // scaled seconds, for the flicker
     SpriteRenderer hullRenderer;
     Texture builtFor;            // the hull sheet the plumes were built for
+    Sprite mountedFor;           // the hull frame the plumes are mounted on
     bool built;
     ShipSpinDrift drift;
 
@@ -121,10 +122,28 @@ public class ShipThruster : MonoBehaviour
             renderer.sortingOrder = (hull != null ? hull.sortingOrder : 0) - 1;
             go.transform.localPosition = mounts[i];
             go.transform.localRotation = Quaternion.identity;
+            mountedFor = hull != null ? hull.sprite : null;
             flames.Add(go.transform);
             flameRenderers.Add(renderer);
             flameBooks.Add(ShipFlameFlipbook.Attach(renderer, i, index));
             flameScales.Add(ShipExhaust.NozzleScale(index, i));
+        }
+    }
+
+    // The hull swapped frames (a bob, a bank): the nozzles moved in its art,
+    // so the idle plumes and the boost plumes follow them.
+    void Remount(Sprite sprite)
+    {
+        mountedFor = sprite;
+        if (sprite == null || ShipExhaust.UsesSpinDrift(ShipIndex)) return;
+        var mounts = ShipExhaust.MountsFor(sprite, ShipIndex);
+        for (int i = 0; i < flames.Count && i < mounts.Length; i++)
+            flames[i].localPosition = mounts[i];
+        if (boostObject == null) return;
+        for (int i = 0; i < mounts.Length; i++)
+        {
+            var plume = boostObject.transform.Find("Nozzle" + i);
+            if (plume != null) plume.localPosition = mounts[i];
         }
     }
 
@@ -153,6 +172,7 @@ public class ShipThruster : MonoBehaviour
         {
             var sprite = hullRenderer.sprite;
             if ((sprite != null ? sprite.texture : null) != builtFor) Build();
+            else if (sprite != mountedFor) Remount(sprite);
         }
         if (drift != null && ShipExhaust.UsesSpinDrift(ShipIndex))
         {
