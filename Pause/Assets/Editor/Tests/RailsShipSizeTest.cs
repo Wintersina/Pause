@@ -423,15 +423,21 @@ public static class RailsShipSizeTest
             Debug.Log("[RSS] " + name + ": scale " + F(ps.x) + " -> " + F(ss.x) + ", drawn " + F(drawn) + " -> " + F(art) + " u, trigger box " +
                       F(prefabBox.x) + " x " + F(prefabBox.y) + " -> " + F(worldBox.x) + " x " + F(worldBox.y) + " u" +
                       (fp != null ? ", footprint half " + F(fp.half.x) + " x " + F(fp.half.y) : ""));
-            Check(name + ": exactly 1.25x its prefab in the game (scale " + F(ps.x) + " -> " + F(ss.x) + ", art " + F(art) + " u, box " + F(worldBox.x) + " u)",
-                  Mathf.Abs(ss.x - ps.x * 1.25f) < 1e-5f && Mathf.Abs(ss.y - ps.y * 1.25f) < 1e-5f &&
-                  Mathf.Abs(worldBox.x - prefabBox.x * 1.25f) < 1e-4f && Mathf.Abs(worldBox.y - prefabBox.y * 1.25f) < 1e-4f &&
-                  Mathf.Abs(art - drawn * 1.25f) < drawn * .02f);
-            Check(name + ": its spawn footprint is the bigger box", fp == null || Mathf.Abs(fp.half.x - prefabBox.x * .625f) < 1e-3f);
+            bool small = field == "smStar";
+            float k = small ? 1.25f * PickupArt.SmallStarExtra : 1.25f;
+            float kBox = small ? 1.25f * PickupArt.SmallStarBoxExtra : 1.25f;
+            Check(name + ": exactly " + F(k) + "x its prefab in the game (scale " + F(ps.x) + " -> " + F(ss.x) + ", art " + F(art) + " u, box " + F(worldBox.x) + " u)",
+                  Mathf.Abs(ss.x - ps.x * k) < 1e-5f && Mathf.Abs(ss.y - ps.y * k) < 1e-5f &&
+                  Mathf.Abs(worldBox.x - prefabBox.x * kBox) < 1e-4f && Mathf.Abs(worldBox.y - prefabBox.y * kBox) < 1e-4f &&
+                  Mathf.Abs(art - drawn * k) < drawn * .02f);
+            Check(name + ": its spawn footprint is the bigger box", fp == null || Mathf.Abs(fp.half.x - prefabBox.x * k * .5f) < 1e-3f);
             Check(name + ": the prefab itself is untouched (tutorial, credits, codex)", Mathf.Abs(prefab.transform.localScale.x - (field == "smStar" ? .05f : .1f)) < 1e-6f);
             Check(name + ": centre inside the pickup lane (" + F(star.transform.position.x) + ")", Mathf.Abs(star.transform.position.x) <= RailInset.PickupLaneHalf + 1e-4f);
             Object.DestroyImmediate(star);
         }
+        Check("small star is >= 20% bigger than before (1.25 -> " + F(PickupArt.StarDustScale * PickupArt.SmallStarExtra) + ")", PickupArt.SmallStarExtra >= 1.2f);
+        Check("small star stays smaller than the large star in play", .064f * PickupArt.StarDustScale * PickupArt.SmallStarExtra < .256f * PickupArt.StarDustScale);
+        Check("small star's trigger grows less than its art", PickupArt.SmallStarBoxExtra < PickupArt.SmallStarExtra);
         string tut = File.ReadAllText("Assets/Scripts/Tutorial/spawnGoodStuffTut.cs");
         Check("the tutorial's star dust keeps its size", !tut.Contains("ApplyInGameScale"));
     }
