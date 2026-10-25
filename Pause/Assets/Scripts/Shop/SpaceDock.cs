@@ -86,12 +86,15 @@ public class SpaceDock : MonoBehaviour
         Instance = this;
         DeveloperUnlocks.Changed -= RefreshStatuses;
         DeveloperUnlocks.Changed += RefreshStatuses;
+        ParagonPurchase.Changed -= RefreshStatuses;
+        ParagonPurchase.Changed += RefreshStatuses;
         BackNavigator.Register(this, OnBackPressed);
     }
 
     void OnDisable()
     {
         DeveloperUnlocks.Changed -= RefreshStatuses;
+        ParagonPurchase.Changed -= RefreshStatuses;
         BackNavigator.Unregister(this);
         if (Instance == this) Instance = null;
     }
@@ -99,6 +102,7 @@ public class SpaceDock : MonoBehaviour
     void OnDestroy()
     {
         DeveloperUnlocks.Changed -= RefreshStatuses;
+        ParagonPurchase.Changed -= RefreshStatuses;
         BackNavigator.Unregister(this);
         if (Instance == this) Instance = null;
     }
@@ -205,6 +209,8 @@ public class SpaceDock : MonoBehaviour
         Instance = this;
         DeveloperUnlocks.Changed -= RefreshStatuses;
         DeveloperUnlocks.Changed += RefreshStatuses;
+        ParagonPurchase.Changed -= RefreshStatuses;
+        ParagonPurchase.Changed += RefreshStatuses;
         BackNavigator.Register(this, OnBackPressed);
         cam = Camera.main;
         // Beyond the starfield (wide windows) show deep space, not the
@@ -534,8 +540,13 @@ public class SpaceDock : MonoBehaviour
     {
         if (Launching || index < 1 || index >= bays.Length) return;
         if (IsOwned(index)) { ShowPopup(index); return; }
-        // TODO(IAP): premium ships are real-money only (PremiumShips); the dock never sells one for dust.
-        if (PremiumShips.IsPremium(index)) { popup.ShowMessage(PremiumShips.ComingSoonLabel, DockArt.Cyan, 1.2f); return; }
+        // Premium ships are real-money only (PremiumShips); the dock never sells one for dust.
+        if (PremiumShips.IsPremium(index))
+        {
+            if (ParagonPurchase.Available) ParagonPurchase.RequestBuy();
+            else popup.ShowMessage(PremiumShips.ComingSoonLabel, DockArt.Cyan, 1.2f);
+            return;
+        }
         float price = shopingShips.CostFor(index);
         if (shopingShips.TryPurchase(index, price))
         {

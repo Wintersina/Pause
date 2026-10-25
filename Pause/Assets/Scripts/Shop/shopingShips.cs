@@ -90,7 +90,7 @@ public class shopingShips : MonoBehaviour {
     // to save, so killing the app from the shop could undo it.
     public static bool TryPurchase(int index, float cost)
     {
-        // TODO(IAP): premium ships (Paragon) are sold for real money, never
+        // Premium ships (Paragon) are sold for real money (ParagonPurchase), never
         // star dust -- see PremiumShips. This is the dust-purchase gate.
         if (PremiumShips.IsPremium(index)) return false;
         float dust = PlayerPrefs.GetFloat(StarDustLedger.CurrencyKey);

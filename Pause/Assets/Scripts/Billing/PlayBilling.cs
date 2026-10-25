@@ -6,8 +6,8 @@ using UnityEngine.SceneManagement;
 using System.Collections.Generic;
 #endif
 
-// Google Play Billing, for the pre-registration reward only (Paragon's real
-// money purchase is still a TODO and will share this client).
+// Google Play Billing: the pre-registration reward (PreRegistrationReward) and
+// the real-money Paragon ship (ParagonPurchase) share this client.
 //
 // Android drives the Play Billing library (com.android.billingclient:billing,
 // added in Assets/Editor/PlayBillingDependencies.xml and the Gradle template)
@@ -26,6 +26,7 @@ public class PlayBilling : MonoBehaviour
 #if UNITY_ANDROID && !UNITY_EDITOR
     const int Ok = 0;
     AndroidJavaObject client;
+    AndroidJavaObject paragonDetails;
     bool connecting, connected;
 #endif
 
@@ -55,7 +56,9 @@ public class PlayBilling : MonoBehaviour
 
     void OnApplicationFocus(bool focused)
     {
-        if (focused) QueryOwned();
+        if (!focused) return;
+        QueryOwned();
+        if (string.IsNullOrEmpty(ParagonPurchase.Price)) QueryParagonDetails();
     }
 
     void OnDestroy()
@@ -86,6 +89,7 @@ public class PlayBilling : MonoBehaviour
                 }
             }
             connecting = true;
+            ParagonPurchase.LaunchFlow = LaunchParagon;
             client.Call("startConnection", new StateListener(this));
         }
         catch (Exception e)
@@ -110,6 +114,102 @@ public class PlayBilling : MonoBehaviour
             }
         }
         catch (Exception e) { Debug.Log("[PreReg] query failed: " + e.Message); }
+    }
+
+    // Asks Play for Paragon's details; the formatted price is what the dock shows.
+    void QueryParagonDetails()
+    {
+        if (!connected || client == null) return;
+        try
+        {
+            using (var product = new AndroidJavaClass("com.android.billingclient.api.QueryProductDetailsParams$Product"))
+            using (var pb = product.CallStatic<AndroidJavaObject>("newBuilder"))
+            {
+                pb.Call<AndroidJavaObject>("setProductId", PremiumShips.ParagonProductId);
+                pb.Call<AndroidJavaObject>("setProductType", "inapp");
+                using (var one = pb.Call<AndroidJavaObject>("build"))
+                using (var list = new AndroidJavaObject("java.util.ArrayList"))
+                using (var cls = new AndroidJavaClass("com.android.billingclient.api.QueryProductDetailsParams"))
+                using (var builder = cls.CallStatic<AndroidJavaObject>("newBuilder"))
+                {
+                    list.Call<bool>("add", one);
+                    builder.Call<AndroidJavaObject>("setProductList", list);
+                    using (var query = builder.Call<AndroidJavaObject>("build"))
+                        client.Call("queryProductDetailsAsync", query, new DetailsListener(this));
+                }
+            }
+        }
+        catch (Exception e) { Debug.Log("[Paragon] details query failed: " + e.Message); }
+    }
+
+    // The dock's buy tap: opens Play's purchase sheet for Paragon.
+    void LaunchParagon()
+    {
+        try
+        {
+            if (!connected || client == null || paragonDetails == null) { FailParagon(); return; }
+            using (var player = new AndroidJavaClass("com.unity3d.player.UnityPlayer"))
+            using (var activity = player.GetStatic<AndroidJavaObject>("currentActivity"))
+            using (var pcls = new AndroidJavaClass("com.android.billingclient.api.BillingFlowParams$ProductDetailsParams"))
+            using (var pb = pcls.CallStatic<AndroidJavaObject>("newBuilder"))
+            {
+                pb.Call<AndroidJavaObject>("setProductDetails", paragonDetails);
+                using (var one = pb.Call<AndroidJavaObject>("build"))
+                using (var list = new AndroidJavaObject("java.util.ArrayList"))
+                using (var cls = new AndroidJavaClass("com.android.billingclient.api.BillingFlowParams"))
+                using (var builder = cls.CallStatic<AndroidJavaObject>("newBuilder"))
+                {
+                    list.Call<bool>("add", one);
+                    builder.Call<AndroidJavaObject>("setProductDetailsParamsList", list);
+                    using (var flow = builder.Call<AndroidJavaObject>("build"))
+                    using (var result = client.Call<AndroidJavaObject>("launchBillingFlow", activity, flow))
+                        OnFlowResult(result.Call<int>("getResponseCode"));
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            Debug.Log("[Paragon] launch failed: " + e.Message);
+            FailParagon();
+        }
+    }
+
+    void Acknowledge(string token)
+    {
+        try
+        {
+            using (var cls = new AndroidJavaClass("com.android.billingclient.api.AcknowledgePurchaseParams"))
+            using (var builder = cls.CallStatic<AndroidJavaObject>("newBuilder"))
+            {
+                builder.Call<AndroidJavaObject>("setPurchaseToken", token);
+                using (var p = builder.Call<AndroidJavaObject>("build"))
+                    client.Call("acknowledgePurchase", p, new AcknowledgeListener(this, token));
+            }
+        }
+        catch (Exception e)
+        {
+            Debug.Log("[Paragon] acknowledge call failed: " + e.Message);
+            ParagonPurchase.OnAcknowledged(token, false);
+        }
+    }
+
+    // A billing response to the Paragon flow (launch result or purchases-updated), main thread.
+    void OnFlowResult(int code)
+    {
+        switch (ParagonPurchase.Classify(code))
+        {
+            case ParagonPurchase.Outcome.Ok: return;   // the purchases-updated callback delivers the purchase
+            case ParagonPurchase.Outcome.Cancelled: ParagonPurchase.EndBuy(); return;
+            case ParagonPurchase.Outcome.AlreadyOwned: ParagonPurchase.EndBuy(); QueryOwned(); return;
+            default: FailParagon(); return;
+        }
+    }
+
+    void FailParagon()
+    {
+        ParagonPurchase.EndBuy();
+        AccountHintToast.Show(ParagonPurchase.ErrorMessage);
+        if (!connected) Connect();
     }
 
     void Consume(string token, Action<bool> done)
@@ -150,6 +250,7 @@ public class PlayBilling : MonoBehaviour
                         productId = products.Call<string>("get", k),
                         token = p.Call<string>("getPurchaseToken"),
                         state = (PlayPurchaseState)p.Call<int>("getPurchaseState"),
+                        acknowledged = p.Call<bool>("isAcknowledged"),
                     });
                 }
             }
@@ -161,7 +262,15 @@ public class PlayBilling : MonoBehaviour
     {
         mainThread.Enqueue(() =>
         {
-            foreach (var p in purchases) PreRegistrationReward.Handle(p, Consume);
+            bool buying = ParagonPurchase.Buying;
+            foreach (var p in purchases)
+            {
+                PreRegistrationReward.Handle(p, Consume);
+                var r = ParagonPurchase.Handle(p, Acknowledge);
+                if (r == ParagonPurchase.Result.Granted) AccountHintToast.Show(ParagonPurchase.GrantedMessage);
+                else if (r == ParagonPurchase.Result.Pending && buying) AccountHintToast.Show(ParagonPurchase.PendingMessage);
+                if (r != ParagonPurchase.Result.Ignored) ParagonPurchase.EndBuy();
+            }
         });
     }
 
@@ -177,13 +286,18 @@ public class PlayBilling : MonoBehaviour
             {
                 owner.connecting = false;
                 owner.connected = ok;
-                if (ok) owner.QueryOwned();
+                if (ok) { owner.QueryOwned(); owner.QueryParagonDetails(); }
             });
         }
 
         void onBillingServiceDisconnected()
         {
-            owner.mainThread.Enqueue(() => { owner.connecting = false; owner.connected = false; });
+            owner.mainThread.Enqueue(() =>
+            {
+                owner.connecting = false;
+                owner.connected = false;
+                ParagonPurchase.SetPrice(null);   // no store: the dock reads COMING SOON again
+            });
         }
     }
 
@@ -194,7 +308,12 @@ public class PlayBilling : MonoBehaviour
 
         void onPurchasesUpdated(AndroidJavaObject result, AndroidJavaObject purchases)
         {
-            if (result.Call<int>("getResponseCode") != Ok) return;
+            int code = result.Call<int>("getResponseCode");
+            if (code != Ok)
+            {
+                owner.mainThread.Enqueue(() => { if (ParagonPurchase.Buying) owner.OnFlowResult(code); });
+                return;
+            }
             owner.Deliver(Read(purchases));
         }
     }
@@ -208,6 +327,63 @@ public class PlayBilling : MonoBehaviour
         {
             if (result.Call<int>("getResponseCode") != Ok) return;
             owner.Deliver(Read(purchases));
+        }
+    }
+
+    sealed class DetailsListener : AndroidJavaProxy
+    {
+        readonly PlayBilling owner;
+        public DetailsListener(PlayBilling owner) : base("com.android.billingclient.api.ProductDetailsResponseListener") { this.owner = owner; }
+
+        // Billing 8: the details arrive inside a QueryProductDetailsResult.
+        void onProductDetailsResponse(AndroidJavaObject result, AndroidJavaObject queryResult)
+        {
+            AndroidJavaObject details = null;
+            string price = null;
+            try
+            {
+                if (result.Call<int>("getResponseCode") == Ok)
+                {
+                    using (var list = queryResult.Call<AndroidJavaObject>("getProductDetailsList"))
+                    {
+                        int n = list.Call<int>("size");
+                        for (int i = 0; i < n && details == null; i++)
+                        {
+                            var d = list.Call<AndroidJavaObject>("get", i);
+                            if (d.Call<string>("getProductId") != PremiumShips.ParagonProductId) { d.Dispose(); continue; }
+                            using (var offer = d.Call<AndroidJavaObject>("getOneTimePurchaseOfferDetails"))
+                            {
+                                if (offer == null) { d.Dispose(); continue; }
+                                price = offer.Call<string>("getFormattedPrice");
+                            }
+                            details = d;
+                        }
+                    }
+                }
+            }
+            catch (Exception e) { Debug.Log("[Paragon] details read failed: " + e.Message); details = null; price = null; }
+            owner.mainThread.Enqueue(() =>
+            {
+                owner.paragonDetails = details;
+                ParagonPurchase.SetPrice(details != null ? price : null);
+            });
+        }
+    }
+
+    sealed class AcknowledgeListener : AndroidJavaProxy
+    {
+        readonly PlayBilling owner;
+        readonly string token;
+        public AcknowledgeListener(PlayBilling owner, string token) : base("com.android.billingclient.api.AcknowledgePurchaseResponseListener")
+        {
+            this.owner = owner;
+            this.token = token;
+        }
+
+        void onAcknowledgePurchaseResponse(AndroidJavaObject result)
+        {
+            bool ok = result.Call<int>("getResponseCode") == Ok;
+            owner.mainThread.Enqueue(() => ParagonPurchase.OnAcknowledged(token, ok));
         }
     }
 
@@ -231,5 +407,6 @@ public class PlayBilling : MonoBehaviour
     // Editor, iOS and every non-Android platform: no store to talk to.
     void Connect() { }
     void QueryOwned() { }
+    void QueryParagonDetails() { }
 #endif
 }

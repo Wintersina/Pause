@@ -65,7 +65,7 @@ public class DockPopup : MonoBehaviour
     public const float PlumeClearance = .34f;
     const float AppearTime = .2f;
 
-    public enum Mode { Launch, Buy, BuySkin, Locked }
+    public enum Mode { Launch, Buy, BuySkin, Locked, BuyStore }
 
     public int ShipIndex { get; private set; }
     public Mode CurrentMode { get; private set; }
@@ -636,7 +636,7 @@ public class DockPopup : MonoBehaviour
 
     void SwatchClicked(int skin)
     {
-        if (!Visible || !SkinRowVisible || CurrentMode == Mode.Buy || CurrentMode == Mode.Locked) return;
+        if (!Visible || !SkinRowVisible || CurrentMode == Mode.Buy || CurrentMode == Mode.Locked || CurrentMode == Mode.BuyStore) return;
         if (onSkin != null) onSkin(ShipIndex, skin);
     }
 
@@ -647,7 +647,7 @@ public class DockPopup : MonoBehaviour
     // hull. A shown skin that isn't owned turns the action into BUY.
     public void ShowSkins(int index, int shown, float balance)
     {
-        if (index != ShipIndex || CurrentMode == Mode.Buy || CurrentMode == Mode.Locked) return;
+        if (index != ShipIndex || CurrentMode == Mode.Buy || CurrentMode == Mode.Locked || CurrentMode == Mode.BuyStore) return;
         SkinRowVisible = true;
         SkinShown = shown;
         skinRow.gameObject.SetActive(true);
@@ -876,9 +876,19 @@ public class DockPopup : MonoBehaviour
             buttonLabel.text = "LAUNCH";
             buttonImage.color = DockArt.Cyan;
         }
+        else if (PremiumShips.IsPremium(index) && ParagonPurchase.Available)
+        {
+            // A real-money ship with its store price loaded: the button shows it
+            // and opens the store's purchase sheet. Never star dust (PremiumShips).
+            CurrentMode = Mode.BuyStore;
+            ShowStatus("");
+            dustIcon.gameObject.SetActive(false);
+            buttonLabel.text = ParagonPurchase.BuyLabel;
+            buttonImage.color = DockArt.Gold;
+        }
         else if (PremiumShips.IsPremium(index))
         {
-            // TODO(IAP): a real-money ship; until the store purchase exists it
+            // A real-money ship without a store (editor, iOS, no Play): it
             // can't be bought with dust (PremiumShips). The popup says so.
             CurrentMode = Mode.Locked;
             ShowStatus(PremiumShips.ComingSoonLabel);
@@ -932,7 +942,8 @@ public class DockPopup : MonoBehaviour
     void Clicked()
     {
         if (!Visible) return;
-        if (CurrentMode == Mode.Locked) return;   // coming soon (real-money IAP)
+        if (CurrentMode == Mode.Locked) return;   // coming soon (no store)
+        if (CurrentMode == Mode.BuyStore) { ParagonPurchase.RequestBuy(); return; }
         if (CurrentMode == Mode.Launch) { if (onLaunch != null) onLaunch(ShipIndex); }
         else if (CurrentMode == Mode.BuySkin) { if (onBuySkin != null) onBuySkin(ShipIndex, SkinShown); }
         else if (onBuy != null) onBuy(ShipIndex);
