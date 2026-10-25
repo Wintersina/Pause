@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<dependencies><!--  Force a current androidx.fragment: Play Games pulls in 1.1.0, which Play Console flags as outdated  -->
+
+  <androidPackages>
+    <androidPackage spec='androidx.fragment:fragment:1.6.2'>
+      <repositories>
+        <repository>https://maven.google.com/</repository>
+      </repositories>
+    </androidPackage>
+  </androidPackages>
+</dependencies>
