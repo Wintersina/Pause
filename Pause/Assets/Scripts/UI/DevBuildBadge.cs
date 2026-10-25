@@ -2,8 +2,10 @@ using UnityEngine;
 using UnityEngine.UI;
 
 // A small "DEV" tag in the bottom-left corner of every screen of a PAUSE_DEV
-// build, so a developer build is never mistaken for a release one. Purely
-// visual: it never takes touches.
+// build, so a developer build is never mistaken for a release one, followed by
+// the short commit hash baked into Resources/BuildInfo.txt by BuildScript
+// (absent in the editor, where it is just "DEV"). Purely visual: it never
+// takes touches.
 public class DevBuildBadge : MonoBehaviour
 {
     static DevBuildBadge instance;
@@ -32,7 +34,8 @@ public class DevBuildBadge : MonoBehaviour
         label.transform.SetParent(transform, false);
         var text = label.AddComponent<Text>();
         text.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-        text.text = "DEV";
+        var info = Resources.Load<TextAsset>("BuildInfo");
+        text.text = info != null && info.text.Trim().Length > 0 ? "DEV " + info.text.Trim() : "DEV";
         text.fontSize = 20;
         text.fontStyle = FontStyle.Bold;
         text.color = new Color(1f, 0.79f, 0.26f, 0.75f);
@@ -41,7 +44,7 @@ public class DevBuildBadge : MonoBehaviour
 
         rect = label.GetComponent<RectTransform>();
         rect.anchorMin = rect.anchorMax = rect.pivot = Vector2.zero;
-        rect.sizeDelta = new Vector2(80f, 28f);
+        rect.sizeDelta = new Vector2(240f, 28f);
         Place();
     }
 
