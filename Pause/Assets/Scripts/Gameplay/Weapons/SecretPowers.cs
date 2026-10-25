@@ -112,6 +112,7 @@ public class SecretPowerController : MonoBehaviour
     public float LastDashDirection { get; private set; }
 
     public const string ShellAuraName = "~ShellAura";
+    const float ShellScale = 1.08f, ShellAlpha = .85f;
     public const string BubbleDomeName = "~BubbleDome";
     public static readonly Color BubbleTint = new Color(.45f, .8f, 1f, .55f);
     public static readonly Color DecoyTint = new Color(1f, .82f, .35f, 1f);
@@ -599,7 +600,9 @@ public class SecretPowerController : MonoBehaviour
     // The shell, drawn on the hull for as long as it stands.
     AttackSprite ShellLoop(float seconds)
     {
-        var fx = Rim(transform.position, 1.05f, true, seconds, transform, 45);
+        // Powers2/Turtle_shell.png: cells 0-7 the held bubble dome, 8-15 its shatter. ~1.05 u across, hull clear inside.
+        var fx = AttackPool.Sprite().Play(AttackSprite.Source.Extra, ship, transform.position, Vector3.one * ShellScale, 0f,
+            ShipFxArt.PowerLoopTicks, true, seconds, transform, Vector3.zero, 45).Strip("shell", 0, true).Alpha(ShellAlpha);
         fx.Rename(ShellAuraName);
         return fx;
     }
@@ -616,8 +619,9 @@ public class SecretPowerController : MonoBehaviour
         if (shellFx != null && shellFx.Active) shellFx.Stop();
         shellFx = null;
         Vector3 at = transform.position;
-        Rim(at, 2f, false, 0f, null, 73).SetColor(new Color(.75f, 1f, .85f, .9f));
-        Burst(at, .9f, transform);
+        // the dome cracks into shards (the strip's break cells)
+        AttackPool.Sprite().Play(AttackSprite.Source.Extra, ship, at, Vector3.one * ShellScale, 0f,
+            ShipFxArt.PowerBurstTicks, false, 0f, transform, Vector3.zero, 73).Strip("shell", ShipFxArt.LoopFrames).Alpha(ShellAlpha);
         CameraKick.Kick(.03f);
     }
 
