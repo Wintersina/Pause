@@ -6,9 +6,9 @@ using UnityEngine;
 // (Android) and Game Center id (iOS).
 //
 //   Android  Every id starts as a placeholder "TODO_android_<id>" (the old
-//            Play Console project is gone; all 60 are created fresh under
+//            Play Console project is gone; all of them are created fresh under
 //            me.hapticgate.pause). The owner pastes the real
-//            ids of the 60 rows they create into Resources/AchievementStoreIds.csv
+//            ids of the rows they create into Resources/AchievementStoreIds.csv
 //            (internal_id,CgkI...), which overrides this table at runtime; no
 //            code edit needed.
 //   iOS      me.hapticgate.pause.ach_<id> (the scheme the exported Game Center
@@ -24,7 +24,7 @@ public static class AchievementIds
     public const string PlaceholderPrefix = "TODO_";
     public const string OverrideResource = "AchievementStoreIds";
 
-    // Flip once the 60 Game Center achievements exist in App Store Connect with the ids above.
+    // Flip once the Game Center achievements exist in App Store Connect with the ids above.
     public static bool IosIdsConfirmed = false;
 
     static Dictionary<string, string> android;

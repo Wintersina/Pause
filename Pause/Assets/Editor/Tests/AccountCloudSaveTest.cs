@@ -750,7 +750,7 @@ public static class AccountCloudSaveTest
         // Earned while signed out: the unlock is local, nothing was reported.
         fake.available = false;
         AchievementStore.Unlock(tut);
-        AchievementStore.SetCounter(AchievementCatalog.CKills, 130);
+        AchievementStore.SetCounter(AchievementCatalog.CKills, 300);
         Check("resync: nothing reported while signed out", fake.reports.Count == 0 && AchievementStore.IsUnlocked(tut));
         fake.available = true;
         var sent = AchievementSync.ResyncAll();
@@ -758,10 +758,10 @@ public static class AccountCloudSaveTest
               fake.reports.Any(r => r.Key == "meta_first_flight" && r.Value == 100.0));
         Check("resync: the completed counter is reported at 100% too",
               fake.reports.Any(r => r.Key == "kills_100" && r.Value == 100.0));
-        Check("resync: the open counter reports its percent (13%)",
-              fake.reports.Any(r => r.Key == "kills_1000" && Math.Abs(r.Value - 13.0) < 1e-9));
+        Check("resync: the open counter reports its percent (15%)",
+              fake.reports.Any(r => r.Key == "kills_1000" && Math.Abs(r.Value - 15.0) < 1e-9));
         Check("resync: confirmed marks remembered", AchievementSync.Confirmed(tut) == 100 && AchievementSync.Confirmed(kills100) == 100 &&
-              AchievementSync.Confirmed(kills1000) == 13);
+              AchievementSync.Confirmed(kills1000) == 15);
         fake.reports.Clear();
         AchievementSync.ResyncAll();
         Check("resync again: nothing the store already confirmed", fake.reports.Count == 0);

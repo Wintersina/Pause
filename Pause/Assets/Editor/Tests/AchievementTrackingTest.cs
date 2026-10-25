@@ -101,24 +101,24 @@ public static class AchievementTrackingTest
         AchievementTracker.OnKill(enemy, ScoreRules.TeleportKillBonus);
         Check("a kill with the blink bonus unlocks Correct Pause", U("pause_blink_kill") && C("kills") == 3);
 
-        AchievementStore.SetCounter("kills", 99);
+        AchievementStore.SetCounter("kills", 249);
         AchievementTracker.OnKill(enemy, 0);
-        Check("the 100th kill unlocks Gunner", U("kills_100") && !U("kills_1000"));
-        AchievementStore.SetCounter("rocks", 499);
+        Check("the 250th kill unlocks Gunner", U("kills_100") && !U("kills_1000"));
+        AchievementStore.SetCounter("rocks", 999);
         AchievementTracker.OnKill(rock, 0);
-        AchievementStore.SetCounter("mines", 24);
+        AchievementStore.SetCounter("mines", 49);
         AchievementTracker.OnKill(mine, 0);
-        Check("500 rocks / 25 mines unlock Rock Breaker / Minesweeper", U("rocks_500") && U("mines_25"));
+        Check("1000 rocks / 50 mines unlock Rock Breaker / Minesweeper", U("rocks_500") && U("mines_25"));
         // through the game's own hook
         int kills = C("kills");
         collisionDetection.RecordKillAchievement(enemy);
         Check("collisionDetection.RecordKillAchievement feeds the tracker", C("kills") == kills + 1);
 
         Fresh();
-        AchievementTracker.OnChain(9);
-        Check("a 9-chain is not enough", !U("chain_10") && C("best_chain") == 9);
-        AchievementTracker.OnChain(10);
-        Check("a 10-chain unlocks Chain Reaction", U("chain_10"));
+        AchievementTracker.OnChain(14);
+        Check("a 14-chain is not enough", !U("chain_10") && C("best_chain") == 14);
+        AchievementTracker.OnChain(15);
+        Check("a 15-chain unlocks Chain Reaction", U("chain_10"));
         Fresh();
         AchievementTracker.OnMegaDomino(Vector3.zero);
         Check("a MEGA DOMINO unlocks the hidden achievement", U("mega_domino"));
@@ -130,7 +130,7 @@ public static class AchievementTrackingTest
         var defs = EliteCatalog.All;
         var space = defs.Where(d => d.WorldIndex == 0).ToArray();
         AchievementTracker.OnEliteKilled(space[0], EliteDamage.PlayerWeapon);
-        Check("an elite kill: Elite Hunter, one Space elite", U("elite_first") && C("elites") == 1 && C("elite_w0") == 1);
+        Check("an elite kill counts, one Space elite, but Elite Hunter needs 5", !U("elite_first") && C("elites") == 1 && C("elite_w0") == 1);
         AchievementTracker.OnEliteKilled(space[0], EliteDamage.PlayerWeapon);
         Check("the same elite again counts as a kill but not a new Space elite", C("elites") == 2 && C("elite_w0") == 1);
         AchievementTracker.OnEliteKilled(space[0], EliteDamage.Crash);
@@ -138,19 +138,29 @@ public static class AchievementTrackingTest
         AchievementTracker.OnEliteKilled(space[0], EliteDamage.FriendlyFire);
         Check("crash / rail / friendly fire are not the pilot's kills", C("elites") == 2);
         for (int i = 1; i < space.Length; i++) AchievementTracker.OnEliteKilled(space[i], EliteDamage.ShieldRam);
-        Check("every Space elite unlocks Space Elites (" + space.Length + ")", U("elite_space_all") && !U("elite_frost_all"));
+        Check("every Space elite unlocks Space Elites (" + space.Length + ") and the 5th elite kill: Elite Hunter", U("elite_space_all") && !U("elite_frost_all") && C("elites") >= 5 && U("elite_first"));
         Check("no blink strike yet", !U("elite_blink"));
         AchievementTracker.OnEliteKilled(space[0], EliteDamage.Teleport);
         Check("an elite killed by a blink: Blink Strike (+ Correct Pause)", U("elite_blink") && U("pause_blink_kill"));
-        AchievementStore.SetCounter("elites", 9);
+        AchievementStore.SetCounter("elites", 24);
         AchievementTracker.OnEliteKilled(space[0], EliteDamage.PlayerContact);
-        Check("10 elites: Veteran Hunter", U("elite_10") && !U("elite_50"));
+        Check("25 elites: Veteran Hunter", U("elite_10") && !U("elite_50"));
+        AchievementStore.SetCounter("elites", 99);
+        AchievementTracker.OnEliteKilled(space[0], EliteDamage.PlayerContact);
+        Check("100 elites: Elite Exterminator", U("elite_50"));
         var verdant = defs.Where(d => d.WorldIndex == 2).ToArray();
         foreach (var d in verdant) AchievementTracker.OnEliteKilled(d, EliteDamage.PlayerWeapon);
         Check("the Verdant elite completes Verdant Elites", U("elite_verdant_all"));
         foreach (var d in defs.Where(d => d.WorldIndex == 3)) AchievementTracker.OnEliteKilled(d, EliteDamage.PlayerWeapon);
         foreach (var d in defs.Where(d => d.WorldIndex == 1)) AchievementTracker.OnEliteKilled(d, EliteDamage.PlayerWeapon);
         Check("Frost and Ember sets complete too", U("elite_frost_all") && U("elite_ember_all"));
+        Check("Tide, Storm and Desert sets are not done yet", !U("elite_tide_all") && !U("elite_storm_all") && !U("elite_desert_all"));
+        foreach (var d in defs.Where(d => d.WorldIndex == 4)) AchievementTracker.OnEliteKilled(d, EliteDamage.PlayerWeapon);
+        Check("every Tide elite completes Tide Elites", U("elite_tide_all") && !U("elite_storm_all"));
+        foreach (var d in defs.Where(d => d.WorldIndex == 5)) AchievementTracker.OnEliteKilled(d, EliteDamage.PlayerWeapon);
+        foreach (var d in defs.Where(d => d.WorldIndex == 6)) AchievementTracker.OnEliteKilled(d, EliteDamage.PlayerWeapon);
+        Check("every Storm and Desert elite completes their sets", U("elite_storm_all") && U("elite_desert_all") && C("elite_w5") == defs.Count(d => d.WorldIndex == 5) &&
+              C("elite_w6") == defs.Count(d => d.WorldIndex == 6));
     }
 
     static void Bosses()
@@ -176,9 +186,13 @@ public static class AchievementTrackingTest
         AchievementTracker.OnBossOutro(3, true);
         Check("Verdant and Ember fall; four of seven: no Boss Collector yet", U("boss_verdant") && U("boss_ember") && C("bosses") == 4 && !U("boss_all"));
         AchievementTracker.OnBossOutro(4, true);
-        Check("the Tide boss counts", U("boss_tide"));
+        Check("the Tide boss counts", U("boss_tide") && !U("boss_storm") && !U("boss_desert"));
+        AchievementTracker.OnBossOutro(5, false);
+        Check("a Storm boss that warped away is no kill", !U("boss_storm"));
         AchievementTracker.OnBossOutro(5, true);
+        Check("the Storm boss counts: Engine Stalled", U("boss_storm") && !U("boss_desert"));
         AchievementTracker.OnBossOutro(6, true);
+        Check("the Desert boss counts: Dune Breaker", U("boss_desert"));
         Check("all seven worlds' bosses: Boss Collector", C("bosses") == 7 && U("boss_all"));
     }
 
@@ -190,7 +204,11 @@ public static class AchievementTrackingTest
         AchievementTracker.OnWorldEntered(1); AchievementTracker.OnWorldEntered(2); AchievementTracker.OnWorldEntered(3);
         Check("Frost, Verdant, Ember reached", U("world_frost_reached") && U("world_verdant_reached") && U("world_ember_reached"));
         AchievementTracker.OnWorldEntered(4);
-        Check("Tide reached counts", U("world_tide_reached"));
+        Check("Tide reached counts", U("world_tide_reached") && !U("world_storm_reached"));
+        AchievementTracker.OnWorldEntered(5);
+        Check("Storm reached counts", U("world_storm_reached") && !U("world_desert_reached"));
+        AchievementTracker.OnWorldEntered(6);
+        Check("Desert reached counts", U("world_desert_reached"));
         AchievementTracker.OnLoop(1);
         Check("one loop: Full Circle", U("loop_1") && !U("loop_2"));
         AchievementTracker.OnLoop(2);
@@ -203,14 +221,14 @@ public static class AchievementTrackingTest
     static void Pickups()
     {
         Fresh();
-        for (int i = 0; i < 149; i++) AchievementTracker.OnStar();
-        Check("149 stars: not yet", !U("stars_150"));
+        for (int i = 0; i < 399; i++) AchievementTracker.OnStar();
+        Check("399 stars: not yet", !U("stars_150"));
         AchievementTracker.OnStar();
-        Check("150 stars: Dust Gatherer", U("stars_150") && C("stars") == 150);
-        for (int i = 0; i < 9; i++) AchievementTracker.OnDeath();
-        Check("9 crashes: not yet", !U("deaths_10"));
+        Check("400 stars: Dust Gatherer", U("stars_150") && C("stars") == 400);
+        for (int i = 0; i < 24; i++) AchievementTracker.OnDeath();
+        Check("24 crashes: not yet", !U("deaths_10"));
         AchievementTracker.OnDeath();
-        Check("10 crashes: Crash Course", U("deaths_10") && !U("deaths_100"));
+        Check("25 crashes: Crash Course", U("deaths_10") && !U("deaths_100"));
         AchievementTracker.OnSecretPower();
         Check("a secret power: Secret Power", U("secret_power_first"));
         AchievementTracker.OnSpeedMilestone(1);
@@ -237,10 +255,10 @@ public static class AchievementTrackingTest
         Check("14 pauses held: not yet", !U("pause_hoarder"));
         AchievementTracker.OnPauseCount(15);
         Check("15 pauses held: Time Banker", U("pause_hoarder"));
-        for (int i = 0; i < 99; i++) AchievementTracker.OnTeleport(Vector3.zero, Vector3.right);
-        Check("99 blinks: not yet", !U("pause_blink_100"));
+        for (int i = 0; i < 199; i++) AchievementTracker.OnTeleport(Vector3.zero, Vector3.right);
+        Check("199 blinks: not yet", !U("pause_blink_100"));
         AchievementTracker.OnTeleport(Vector3.zero, Vector3.right);
-        Check("100 blinks: Blink Master", U("pause_blink_100"));
+        Check("200 blinks: Blink Master", U("pause_blink_100"));
         // through score.cs's own hooks
         AchievementStore.ResetAll();
         score.pauseCounter = 13;
@@ -312,7 +330,7 @@ public static class AchievementTrackingTest
         PlayerPrefs.SetString(Codex.PrefsKey, "");
         Codex.Reload();
         AchievementTracker.RefreshCodex();
-        Check("a fresh codex: the free entries count, nothing unlocked (" + Codex.DiscoveredCount + " free, codex_10 " + U("codex_10") + ")", C("codex") == Codex.DiscoveredCount && U("codex_10") == (Codex.DiscoveredCount >= 10) && !U("codex_50"));
+        Check("a fresh codex: the free entries count, nothing unlocked (" + Codex.DiscoveredCount + " free, codex_10 " + U("codex_10") + ")", C("codex") == Codex.DiscoveredCount && U("codex_10") == (Codex.DiscoveredCount >= 20) && !U("codex_50"));
         // Field Guide: everything non-boss, non-elite of ONE world
         var world0 = Codex.Entries.Where(e => (e.category == CodexCategory.Enemies || e.category == CodexCategory.Hazards) &&
                                               BossCatalog.Find(e.id) == null && EliteCatalog.FindByCodexId(e.id) == null)
@@ -328,11 +346,11 @@ public static class AchievementTrackingTest
         AchievementTracker.RefreshCodex();
         Check("a world fully catalogued: Field Guide", U("codex_field_guide"));
 
-        // 50 entries
-        PlayerPrefs.SetString(Codex.PrefsKey, string.Join(",", Codex.Entries.Where(e => !e.secret).Take(60).Select(e => e.id)));
+        // 75 entries
+        PlayerPrefs.SetString(Codex.PrefsKey, string.Join(",", Codex.Entries.Where(e => !e.secret).Take(100).Select(e => e.id)));
         Codex.Reload();
         AchievementTracker.RefreshCodex();
-        Check("50+ entries: Cartographer", Codex.DiscoveredCount >= 50 && U("codex_50"));
+        Check("75+ entries: Cartographer", Codex.DiscoveredCount >= 75 && U("codex_50"));
         // every entry (developer mode shows all, but the achievement needs real discoveries)
         PlayerPrefs.SetString(Codex.PrefsKey, string.Join(",", Codex.Entries.Select(e => e.id)));
         PlayerPrefs.SetString("boughtship1", "True");

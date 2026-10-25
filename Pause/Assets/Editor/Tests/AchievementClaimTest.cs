@@ -107,13 +107,13 @@ public static class AchievementClaimTest
             AchievementStore.Claim(AchievementCatalog.Find("loop_5"));
             Check("Unlocked fires once, Claimed fires once", unlocked == 1 && claimed == 1);
             // a counter unlocking everything it reaches at once
-            AchievementStore.SetCounter("kills", 1200);
+            AchievementStore.SetCounter("kills", 2400);
             Check("one counter write unlocks kills_100 and kills_1000, not kills_5000",
                   AchievementStore.IsUnlocked(AchievementCatalog.Find("kills_100")) && AchievementStore.IsUnlocked(AchievementCatalog.Find("kills_1000")) &&
                   !AchievementStore.IsUnlocked(AchievementCatalog.Find("kills_5000")) && unlocked == 3);
-            Check("progress is capped at the target, percent is exact", AchievementStore.Progress(AchievementCatalog.Find("kills_5000")) == 1200 &&
-                  System.Math.Abs(AchievementStore.Percent(AchievementCatalog.Find("kills_5000")) - 24.0) < 1e-9 &&
-                  AchievementStore.Progress(AchievementCatalog.Find("kills_100")) == 1200);
+            Check("progress is capped at the target, percent is exact", AchievementStore.Progress(AchievementCatalog.Find("kills_5000")) == 2400 &&
+                  System.Math.Abs(AchievementStore.Percent(AchievementCatalog.Find("kills_5000")) - 48.0) < 1e-9 &&
+                  AchievementStore.Progress(AchievementCatalog.Find("kills_100")) == 2400);
             Check("lowering a target later cannot take an unlock away: the flag persists",
                   AchievementStore.IsUnlocked(AchievementCatalog.Find("kills_100")));
         }

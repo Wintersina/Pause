@@ -84,7 +84,7 @@ public static class AchievementMigration
         if (PlayerPrefs.GetString("HasDoneTut", "") == "true") AchievementStore.Unlock(tutorial);
 
         int highest = PlayerPrefs.GetInt(WorldManager.PrefsHighestWorld, 0);
-        string[] reached = { null, "world_frost_reached", "world_verdant_reached", "world_ember_reached", "world_tide_reached" };
+        string[] reached = { null, "world_frost_reached", "world_verdant_reached", "world_ember_reached", "world_tide_reached", "world_storm_reached", "world_desert_reached" };
         for (int w = 1; w < reached.Length; w++)
             if (highest >= w) AchievementStore.Unlock(AchievementCatalog.Find(reached[w]));
 

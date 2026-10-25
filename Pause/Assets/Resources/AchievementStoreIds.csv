@@ -1,5 +1,5 @@
 # Google Play Games achievement ids, one per line: internal_id,CgkI...
-# These are the ids of the 60 achievements in the me.hapticgate.pause Play Games project (Cloud project 528367766818).
+# These are the ids of the first 60 achievements in the me.hapticgate.pause Play Games project (Cloud project 528367766818).
 # A line left out (or a TODO_ placeholder) stays a placeholder and is never reported.
 meta_first_flight,CgkIopqxqbAPEAIQDg
 meta_logged_on,CgkIopqxqbAPEAIQEw
@@ -61,3 +61,12 @@ pause_blink_100,CgkIopqxqbAPEAIQIA
 pause_no_pause_world,CgkIopqxqbAPEAIQJg
 pause_hoarder,CgkIopqxqbAPEAIQBQ
 pause_perfect_dodge,CgkIopqxqbAPEAIQLA
+# Added later (Storm / Desert / Tide coverage): create these rows in Play Console, then paste the CgkI... id over the TODO.
+# A TODO_ id is never reported; the achievement still unlocks locally.
+world_storm_reached,TODO_android_world_storm_reached
+world_desert_reached,TODO_android_world_desert_reached
+boss_storm,TODO_android_boss_storm
+boss_desert,TODO_android_boss_desert
+elite_tide_all,TODO_android_elite_tide_all
+elite_storm_all,TODO_android_elite_storm_all
+elite_desert_all,TODO_android_elite_desert_all

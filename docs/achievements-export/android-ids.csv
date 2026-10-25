@@ -5,6 +5,8 @@ world_frost_reached,CgkIopqxqbAPEAIQCA
 world_verdant_reached,CgkIopqxqbAPEAIQHA
 world_ember_reached,CgkIopqxqbAPEAIQDQ
 world_tide_reached,CgkIopqxqbAPEAIQIw
+world_storm_reached,TODO_android_world_storm_reached
+world_desert_reached,TODO_android_world_desert_reached
 loop_1,CgkIopqxqbAPEAIQCQ
 loop_2,CgkIopqxqbAPEAIQCg
 loop_5,CgkIopqxqbAPEAIQIQ
@@ -13,6 +15,8 @@ boss_frost,CgkIopqxqbAPEAIQIg
 boss_verdant,CgkIopqxqbAPEAIQDw
 boss_ember,CgkIopqxqbAPEAIQAw
 boss_tide,CgkIopqxqbAPEAIQCw
+boss_storm,TODO_android_boss_storm
+boss_desert,TODO_android_boss_desert
 boss_no_hit,CgkIopqxqbAPEAIQGQ
 boss_all,CgkIopqxqbAPEAIQOQ
 elite_first,CgkIopqxqbAPEAIQOw
@@ -22,6 +26,9 @@ elite_space_all,CgkIopqxqbAPEAIQFQ
 elite_frost_all,CgkIopqxqbAPEAIQOA
 elite_verdant_all,CgkIopqxqbAPEAIQFg
 elite_ember_all,CgkIopqxqbAPEAIQDA
+elite_tide_all,TODO_android_elite_tide_all
+elite_storm_all,TODO_android_elite_storm_all
+elite_desert_all,TODO_android_elite_desert_all
 elite_blink,CgkIopqxqbAPEAIQKg
 kills_100,CgkIopqxqbAPEAIQGw
 kills_1000,CgkIopqxqbAPEAIQMA
