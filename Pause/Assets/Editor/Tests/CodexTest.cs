@@ -1519,7 +1519,7 @@ public static class CodexTest
               fighters == 4 && rosterCount >= 7 && elitesLast && EnemyRoster.FindByCodexId(space[4].id).role == EnemyRole.Chaser &&
               EnemyRoster.FindByCodexId(space[5].id).role == EnemyRole.Alien &&
               EnemyRoster.FindByCodexId(space[rosterCount - 1].id).role == EnemyRole.Big);
-        Check("one jump chip per section", ActiveChips(panel) == 7 && panel.ChipLabel(6).text == "DESERT");
+        Check("one jump chip per section (BOSSES included, always listed)", ActiveChips(panel) == 8 && panel.ChipLabel(6).text == "DESERT" && panel.ChipLabel(7).text == "BOSSES");
 
         // One boss met: the BOSSES section appears last with just that boss.
         var boss = BossCatalog.ForWorld(1);
@@ -2442,9 +2442,10 @@ public static class CodexTest
         CheckRenderedSilhouettes(panel);
         panel.ShowCategory(CodexCategory.Enemies);
         panel.SkipAnimations();
-        bool noBoss = true;
-        for (int i = 0; i < panel.VisibleCards; i++) noBoss &= BossCatalog.Find(panel.CardEntry(i).id) == null;
-        Check("bosses stay hidden until met (no silhouette card either)", noBoss);
+        int lockedBossCards = 0;
+        for (int i = 0; i < panel.VisibleCards; i++)
+            if (BossCatalog.Find(panel.CardEntry(i).id) != null && panel.CardName(i).text == Codex.LockedName) lockedBossCards++;
+        Check("unmet bosses are listed as locked silhouettes", lockedBossCards == BossCatalog.All.Length);
 
         // The animated art stays inside its box on every screen.
         DeveloperUnlocks.SetEnabled(true);

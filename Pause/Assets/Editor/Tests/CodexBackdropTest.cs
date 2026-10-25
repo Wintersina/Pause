@@ -182,8 +182,8 @@ public static class CodexBackdropTest
 
     static void Tab(CodexPanel panel)
     {
-        Check("eight tabs: the six categories, ACHIEVEMENTS, MUSIC; no top-level BACKDROPS tab",
-              CodexPanel.TabCount == 8 && CodexPanel.TabsPerRow == 4 && CodexPanel.MusicTab == 7 &&
+        Check("eight tabs: ACHIEVEMENTS first, five categories, MUSIC, LOG last; no top-level BACKDROPS tab",
+              CodexPanel.TabCount == 8 && CodexPanel.TabsPerRow == 4 && CodexPanel.MusicTab == 6 && CodexPanel.LogTab == 7 &&
               Enumerable.Range(0, CodexPanel.TabCount).All(i => panel.TabLabel(i).text != "BACKDROPS"));
         Check("a fresh codex shows no backdrop gallery", !panel.BackdropsOpen && !panel.Backdrops.Active);
 

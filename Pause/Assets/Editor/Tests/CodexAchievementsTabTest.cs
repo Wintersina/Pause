@@ -421,7 +421,7 @@ public static class CodexAchievementsTabTest
         panel.SkipAnimations();
         CodexPanel.Open(CodexUi.FindFont());
         panel.SkipAnimations();
-        Check("closing and reopening starts on the entries again", !panel.AchievementsOpen && panel.IsOpen);
+        Check("closing and reopening starts on ACHIEVEMENTS again", panel.AchievementsOpen && panel.IsOpen);
         panel.ShowTab(CodexPanel.AchievementsTab);
         panel.SkipAnimations();
     }

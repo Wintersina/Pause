@@ -69,7 +69,7 @@ public class CodexPanel : MonoBehaviour
     public const float GridInset = 8f;
     public const float ChipsHeight = 52f;
     public const float ChipGap = 8f;
-    public const float ChipGapTight = 4f;      // with more than six chips (all seven worlds + bosses) the row is tight
+    public const float ChipGapTight = 2f;      // with more than six chips (all seven worlds + bosses) the row is tight
     public static float ChipGapFor(int count) { return count > 6 ? ChipGapTight : ChipGap; }
     public const float ChipsGap = 12f;         // chip row -> list
     public const float SectionHeaderHeight = 56f;
@@ -109,6 +109,12 @@ public class CodexPanel : MonoBehaviour
     public static CodexCategory CategoryOfTab(int i)
     {
         return i == LogTab ? CodexCategory.Log : Tabs[i];
+    }
+
+    // The tab button that shows category c (the Log is the last button, the rest sit at their Tabs index).
+    public static int TabOfCategory(CodexCategory c)
+    {
+        return c == CodexCategory.Log ? LogTab : System.Array.IndexOf(Tabs, c);
     }
 
     public static string CategoryLabel(CodexCategory c)
@@ -197,8 +203,7 @@ public class CodexPanel : MonoBehaviour
         public int world;            // WorldManager.Worlds index, or BossWorld
         public readonly List<CodexEntry> entries = new List<CodexEntry>();
         public int discovered;
-        // "5/8" for a world; the bosses show only how many were met, so the
-        // hidden total never leaks.
+        // "5/8" for a world; the bosses read met/7.
         public string counter;
     }
 
@@ -274,7 +279,6 @@ public class CodexPanel : MonoBehaviour
         if (bosses.entries.Count > 0)
         {
             Finish(bosses);
-            bosses.counter = bosses.discovered.ToString();
             sections.Add(bosses);
         }
         return sections;
@@ -601,8 +605,8 @@ public class CodexPanel : MonoBehaviour
             label.resizeTextMaxSize = TabLabelSize;
             var lrt = label.rectTransform;
             CodexUi.Stretch(lrt);
-            lrt.offsetMin = new Vector2(6f, 0f);
-            lrt.offsetMax = new Vector2(-6f, 0f);
+            lrt.offsetMin = new Vector2(2f, 0f);
+            lrt.offsetMax = new Vector2(-2f, 0f);
 
             // NEW dot on the tab's top-right corner: shown until the tab is opened
             tabDots[i] = NewDot(tabFrame.rectTransform, new Vector2(-NewDotInset, -NewDotInset), false);
@@ -635,8 +639,8 @@ public class CodexPanel : MonoBehaviour
             chip.label.resizeTextMaxSize = 18;
             var lrt = chip.label.rectTransform;
             CodexUi.Stretch(lrt);
-            lrt.offsetMin = new Vector2(8f, 0f);
-            lrt.offsetMax = new Vector2(-8f, 0f);
+            lrt.offsetMin = new Vector2(2f, 0f);
+            lrt.offsetMax = new Vector2(-2f, 0f);
             chips[i] = chip;
         }
     }
@@ -937,12 +941,12 @@ public class CodexPanel : MonoBehaviour
         detailLore.lineSpacing = 1.15f;
         detailLore.verticalOverflow = VerticalWrapMode.Truncate;
         detailLore.resizeTextForBestFit = true;
-        detailLore.resizeTextMinSize = 16;
+        detailLore.resizeTextMinSize = 15;   // CodexUi.TextUnits: the smallest type that still clears 7 dp on the floor scale
         detailLore.resizeTextMaxSize = 26;
         var lrt = detailLore.rectTransform;
         CodexUi.Stretch(lrt);
         lrt.offsetMin = new Vector2(30f, LoreBottom);
-        lrt.offsetMax = new Vector2(-34f, -26f);
+        lrt.offsetMax = new Vector2(-34f, -20f);
         BuildTally();
     
         // the sub-tab row (INFO | BACKDROPS) and the world's backdrop gallery under it
@@ -2013,8 +2017,8 @@ public class CodexPanel : MonoBehaviour
     {
         if (phase == Phase.Hidden) return;
         RefreshCounter();
-        if (achievementsOpen) { ach.Show(true); return; }
-        if (musicOpen) { music.Paint(); return; }
+        if (achievementsOpen) { ach.Show(true); PaintNewDots(); return; }   // the other tabs' dots stay current
+        if (musicOpen) { music.Paint(); PaintNewDots(); return; }
         var open = inDetail ? detailEntry : null;
         int tab = detailTab;
         Populate(category, true);
