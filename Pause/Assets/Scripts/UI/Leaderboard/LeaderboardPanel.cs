@@ -38,7 +38,7 @@ public class LeaderboardPanel : MonoBehaviour
     // art), the name, the hearts it started with (the HUD heart + a count), the score.
     public const float NameLeft = 130f, NameWidth = 210f;   // NameWidth: at the design width
     const float RankWidth = 62f, ShipLeft = 78f, ShipWidth = 46f;
-    const float BadgeWidth = 108f, HeartSize = 22f;   // heart + "4 > 2"
+    const float BadgeWidth = 108f, HeartSize = 22f;   // heart + "4"
     const float ValueWidth = 200f, ValueInset = 22f;
     // UiScale's floor: the buttons and the tab are 100-unit touch targets.
     public const float MinTapUnits = 100f;
@@ -583,9 +583,8 @@ public class LeaderboardPanel : MonoBehaviour
             count.anchorMax = new Vector2(1f, 1f);
             count.offsetMin = new Vector2(HeartSize + 4f, 0f);
             count.offsetMax = Vector2.zero;
-            // "4 > 2": hearts it started with, then finished with (0 = died).
-            string hearts = e.hasEnd ? e.startHearts + " > " + e.endHearts : e.startHearts.ToString();
-            Label(count, hearts, 24, AkiraPalette.Bone, TextAnchor.MiddleLeft, 2.5f);
+            // Only the hearts the run started with; the end hearts stay in the tag.
+            Label(count, e.startHearts.ToString(), 24, AkiraPalette.Bone, TextAnchor.MiddleLeft, 2.5f);
         }
 
         if (e.rank > 0 || e.value != 0)

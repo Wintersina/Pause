@@ -477,11 +477,11 @@ public static class LeaderboardTest
         var rows = panel.PanelRoot.Find("List/Rows");
         Check("row with ship and hearts: both shown",
               rows.Find("Row0/Ship") != null && rows.Find("Row0/Hearts/Heart") != null &&
-              rows.Find("Row0/Hearts/Count").GetComponent<Text>().text == "4 > 2");
+              rows.Find("Row0/Hearts/Count").GetComponent<Text>().text == "4");
         Check("old entry (no tag): blank, no ship and no hearts", rows.Find("Row1/Ship") == null && rows.Find("Row1/Hearts") == null);
         Check("a Paragon entry never shows the cheat ship", rows.Find("Row2/Ship") == null);
         Check("own entry: filled from the device's record of the submitted score",
-              rows.Find("Row3/Ship") != null && rows.Find("Row3/Hearts/Count").GetComponent<Text>().text == "2 > 1");
+              rows.Find("Row3/Ship") != null && rows.Find("Row3/Hearts/Count").GetComponent<Text>().text == "2");
         Check("an entry without end hearts shows only the start hearts", FakeLeaderboards.Entry(5, "OLD", 1, false, 3, 2).hasEnd == false);
         Check("row ships get a sprite to animate", rows.Find("Row0/Ship").GetComponent<Image>().sprite != null);
         var ownRow = panel.PanelRoot.Find("PlayerRow/Row");
@@ -498,7 +498,7 @@ public static class LeaderboardTest
         fake.SetBoard(TopScoreId, unflagged, FakeLeaderboards.Entry(2, "KAI", 700));
         panel = OpenPanel(fake);
         Check("own top entry not flagged local: still gets the tag by rank",
-              panel.PanelRoot.Find("List/Rows/Row0/Ship") != null && panel.PanelRoot.Find("List/Rows/Row0/Hearts/Count").GetComponent<Text>().text == "2 > 1");
+              panel.PanelRoot.Find("List/Rows/Row0/Ship") != null && panel.PanelRoot.Find("List/Rows/Row0/Hearts/Count").GetComponent<Text>().text == "2");
         Check("another player's entry with the same value: left blank", panel.PanelRoot.Find("List/Rows/Row1/Ship") == null);
 
         // Own rank is 2 with a different value: the other player's equal-valued row 1 stays blank.
@@ -578,12 +578,12 @@ public static class LeaderboardTest
         panel.SelectBoard(LeaderboardBoards.FurthestWorld);
         var rows = panel.PanelRoot.Find("List/Rows");
         Check("furthest loop tab: ship and hearts shown",
-              rows.Find("Row0/Ship") != null && rows.Find("Row0/Hearts/Count").GetComponent<Text>().text == "4 > 2");
+              rows.Find("Row0/Ship") != null && rows.Find("Row0/Hearts/Count").GetComponent<Text>().text == "4");
         Check("furthest loop tab: value formatted as a loop", rows.Find("Row0/Value").GetComponent<Text>().text == "Loop 5");
         Check("furthest loop tab: untagged entry blank", rows.Find("Row1/Ship") == null && rows.Find("Row1/Hearts") == null);
         Check("furthest loop tab: Paragon entry hidden", rows.Find("Row2/Ship") == null);
         Check("furthest loop tab: own entry filled from the device record",
-              rows.Find("Row3/Ship") != null && rows.Find("Row3/Hearts/Count").GetComponent<Text>().text == "2 > 1");
+              rows.Find("Row3/Ship") != null && rows.Find("Row3/Hearts/Count").GetComponent<Text>().text == "2");
     }
 
     static string LeadboardTag(string key, string board)
