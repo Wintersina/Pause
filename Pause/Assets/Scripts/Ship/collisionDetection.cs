@@ -468,7 +468,9 @@ public class collisionDetection : MonoBehaviour {
                 shieldAtomPickups++;
                 RunScore.OnAtom(RunScore.Atom.Shield, hit.transform.position);
                 BoostUltimate(dust: false);
-                PickupWord(ShieldWord, hit.transform.position, AkiraPalette.Cyan);
+                // a shield caught during a magnet pull: +2 s on the pull, enemies pulled in
+                bool magnetSynergy = MagnetPull.OnShieldCaught();
+                PickupWord(magnetSynergy ? MagnetPull.ShieldExtendedWord : ShieldWord, hit.transform.position, AkiraPalette.Cyan);
                 AtomCharged(AkiraPalette.Cyan);
                 boostSound.Play();
                 BoostJet.Play();   // the jet-engine spool-up, restarted (never stacked) by a quick second atom
