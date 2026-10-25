@@ -17,6 +17,7 @@ public class musicControl : MonoBehaviour {
         backgroundSound = GameObject.Find("MovingMusic").GetComponent<AudioSource>();
         level = Mathf.Clamp01(backgroundSound.volume);
         SoundSettings.MarkMusic(backgroundSound);
+        KillCamMusic.Attach(backgroundSound);   // the kill cam's rewind plays the last of the song backwards
     }
 
     void Update () {
@@ -27,7 +28,8 @@ public class musicControl : MonoBehaviour {
     void UpdateMix() {
         // A boss's entrance is scripted, not a pause: its song plays at full
         // level from the first frame even with the finger up (BossEncounter).
-        if (TouchInput.IsPressed || BossEncounter.ScriptedEntrance || score.pauseCounter <= 0)
+        // the kill cam's replay plays the song at full level (the finger is up, which would dim it)
+        if (TouchInput.IsPressed || BossEncounter.ScriptedEntrance || score.pauseCounter <= 0 || KillCam.Playing)
         {
             level = Mathf.Clamp01(level + .25f);
         }

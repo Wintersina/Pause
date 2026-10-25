@@ -60,7 +60,7 @@ public static class KillCamTest
         Check("the clock only slows toward the hit", slowing);
         Check("every rate is slow motion", KillCamClip.LeadRate < 1f && KillCamClip.SlowRate <= .25f);
         float real = KillCamClip.RealSeconds(KillCamClip.LiveWindow);
-        Check("the live replay is a few seconds of real time (" + real.ToString("F2") + " s)", real > 2.5f && real < 4.5f);
+        Check("the live replay is a few seconds of real time (" + real.ToString("F2") + " s)", real > 2.2f && real < 3.8f && Mathf.Approximately(KillCamClip.LiveWindow, 1.3f));
         Check("a tap can skip it early", KillCam.SkipGuard < .5f);
     }
 
@@ -203,22 +203,51 @@ public static class KillCamTest
         float mainSize = main != null ? main.orthographicSize : 0f;
         var kc = KillCam.Ensure();
         made.Add(kc.gameObject);
+        KillCamAudio.ClearCache();   // count from the very first request (Begin fires the KILLED cue)
         kc.Begin(clip);
         Check("the replay plays and the crash is held", KillCam.Playing && DeathCrash.Held);
         Check("the board is hidden under the replay", boardSr.forceRenderingOff && kc.HiddenCount >= 1);
         Check("the camera takes the tape's position, never its size (no zoom)",
               main == null || (Mathf.Abs(main.transform.position.x - .3f) < 1e-3f && Mathf.Approximately(main.orthographicSize, mainSize)));
+        Check("it begins on the frozen fatal frame under the KILLED banner",
+              kc.CurrentPhase == KillCam.Phase.Killed && kc.BannerShown && Mathf.Approximately(kc.ClipTime, clip.EndTime) && !kc.LabelShown &&
+              kc.Banner.Text.text == "KILLED" && KillCamAudio.LastRequested == KillCamAudio.Cue.Killed);
         float real = 0f;
         float lastClock = -1f;
-        bool forward = true;
+        bool forward = true, backward = true, sawRewind = false, sawLabelInRewind = false, killedHeld = true, fxSeen = false;
+        float rewindPrev = clip.EndTime + 1f, phaseStart = 0f, killedEnd = -1f, rewindEnd = -1f;
         while (KillCam.Playing && real < 20f)
         {
             kc.Step(1f / 60f);
             real += 1f / 60f;
-            forward &= kc.ClipTime >= lastClock;
-            lastClock = kc.ClipTime;
+            switch (kc.CurrentPhase)
+            {
+                case KillCam.Phase.Killed:
+                    killedHeld &= Mathf.Approximately(kc.ClipTime, clip.EndTime);
+                    break;
+                case KillCam.Phase.Rewind:
+                    sawRewind = true;
+                    backward &= kc.ClipTime <= rewindPrev + 1e-4f;
+                    rewindPrev = kc.ClipTime;
+                    sawLabelInRewind |= kc.LabelShown;
+                    fxSeen |= kc.FxAlpha > 0f;
+                    if (killedEnd < 0f) killedEnd = real;
+                    break;
+                case KillCam.Phase.Play:
+                    if (rewindEnd < 0f) { rewindEnd = real; phaseStart = kc.ClipTime; }
+                    forward &= kc.ClipTime >= lastClock;
+                    lastClock = kc.ClipTime;
+                    break;
+            }
         }
-        float want = KillCamClip.RealSeconds(clip.Duration);
+        Check("KILLED holds the fatal frame, then the tape rewinds backwards under the label and the rewind look",
+              killedHeld && sawRewind && backward && sawLabelInRewind && fxSeen);
+        Check("the intro is modest (" + (rewindEnd).ToString("F2") + " s) and the replay then starts from the beginning",
+              Mathf.Abs(rewindEnd - KillCam.IntroSeconds) < .1f && KillCam.IntroSeconds <= 1.5f && phaseStart < .2f);
+        Check("the sound hooks fired in order and a missing clip is silent (no placeholder)",
+              KillCamAudio.Requested == 4 && KillCamAudio.Played == 0 && KillCamAudio.LastRequested == KillCamAudio.Cue.ReplayEnd);
+        Check("the song's reverse is undone on finish", !KillCamMusic.Reversing && !KillCamMusic.MusicPaused);
+        float want = KillCamClip.RealSeconds(clip.Duration) + KillCam.IntroSeconds;
         Check("the replay runs forward to the hit and ends by itself (" + real.ToString("F2") + " s, about " + want.ToString("F2") + ")",
               !KillCam.Playing && forward && Mathf.Abs(real - want) < .2f);
         Check("the board, the camera and the crash are given back", !boardSr.forceRenderingOff && !DeathCrash.Held &&
@@ -228,10 +257,62 @@ public static class KillCamTest
         kc.Begin(clip);
         KillCam.Stop();
         Check("a stop (a revive) ends it at once and restores", !KillCam.Playing && !boardSr.forceRenderingOff);
+        KillCam.Intro = false;
+        kc.Begin(clip);
+        Check("without the intro the replay starts at once from the beginning, REPLAY label up",
+              kc.CurrentPhase == KillCam.Phase.Play && kc.ClipTime == 0f && !kc.BannerShown);
+        KillCam.Stop();
+        KillCam.Intro = true;
+        kc.Begin(clip);
+        kc.Step(.1f);
+        KillCam.Stop();
+        Check("a stop during KILLED restores everything and hides the banner",
+              !KillCam.Playing && !kc.BannerShown && !boardSr.forceRenderingOff && !KillCamMusic.Reversing);
+        MusicTap();
         KillCam.Enabled = false;
         Check("switched off, nothing begins", !KillCam.TryBegin());
         KillCam.Enabled = true;
         Check("edit mode never begins one from the tape", !KillCam.TryBegin());
+    }
+
+    // ---- the song's reverse: what the tap heard, newest first ----
+    static void MusicTap()
+    {
+        var go = new GameObject("~KillCamTapTest");
+        try
+        {
+            var tap = go.AddComponent<KillCamMusicTap>();
+            tap.Prepare(8000);
+            var data = new float[8];   // 4 stereo frames: L = n, R = -n
+            for (int f = 0; f < 4; f++) { data[f * 2] = f + 1; data[f * 2 + 1] = -(f + 1); }
+            tap.Feed(data, 2);
+            tap.Feed(data, 2);   // frames 1,2,3,4,1,2,3,4
+            float[] dest = null;
+            int ch, rate;
+            int frames = tap.Snapshot(.0005f, ref dest, out ch, out rate);   // 4 frames at 8 kHz
+            Check("the tap keeps what was heard and hands it back reversed (newest first)",
+                  frames == 4 && ch == 2 && rate == 8000 && dest[0] == 4f && dest[1] == -4f && dest[6] == 1f && dest[7] == -1f);
+            frames = tap.Snapshot(5f, ref dest, out ch, out rate);
+            Check("it never hands back more than it heard", frames == 8);
+            var big = new float[8000 * 2 * 3];
+            tap.Feed(big, 2);
+            frames = tap.Snapshot(5f, ref dest, out ch, out rate);
+            Check("the ring holds only its last couple of seconds", frames == 16000);
+        }
+        finally { Object.DestroyImmediate(go); }
+        Check("a missing sound clip plays nothing and the music reverse needs play mode",
+              !KillCamAudio.Play(KillCamAudio.Cue.Rewind) && !KillCamMusic.Reversing);
+        KillCamMusic.BeginReverse();
+        KillCamMusic.Restore();
+        KillCamMusic.Restore();
+        Check("restoring twice is harmless", !KillCamMusic.Reversing && !KillCamMusic.MusicPaused);
+        Check("the slow-mo muffle sweeps from open to a clear low-pass and back, and is off outside play",
+              Mathf.Approximately(KillCamMusic.CutoffFor(0f), KillCamMusic.OpenCutoff) &&
+              Mathf.Abs(KillCamMusic.CutoffFor(1f) - KillCamMusic.MuffleCutoff) < 1f &&
+              KillCamMusic.CutoffFor(.5f) < KillCamMusic.OpenCutoff && KillCamMusic.CutoffFor(.5f) > KillCamMusic.MuffleCutoff &&
+              KillCamMusic.MuffleCutoff >= 1000f && KillCamMusic.MuffleCutoff <= 2500f && !KillCamMusic.Muffling);
+        KillCamMusic.EndMuffle();
+        Check("ending the muffle with none up is harmless", !KillCamMusic.Muffling && KillCamMusic.MuffleAmount == 0f);
     }
 
     // ---- the codex slot ----

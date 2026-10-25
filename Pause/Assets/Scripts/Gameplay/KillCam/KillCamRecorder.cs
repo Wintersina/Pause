@@ -21,7 +21,7 @@ using UnityEngine.SceneManagement;
 [DefaultExecutionOrder(31000)]   // after everything that moves or animates a sprite
 public sealed class KillCamRecorder : MonoBehaviour
 {
-    public const int FrameCap = 160;           // 2.6 s at the 62 Hz cap
+    public const int FrameCap = 160;           // 2.6 s at the 62 Hz cap (the replay needs LiveWindow, 1.3 s)
     public const int EntryCap = 57600;         // ~360 sprites a frame over the full ring
     public const int MaxPerFrame = 900;
     public const int MaxMeshPerFrame = 8;

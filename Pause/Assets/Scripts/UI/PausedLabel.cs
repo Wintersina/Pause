@@ -161,7 +161,7 @@ public class PausedLabel : MonoBehaviour
     }
 
     // A soft elliptical falloff for the red halo behind the caption.
-    static Texture2D BuildHaloTexture()
+    public static Texture2D BuildHaloTexture()
     {
         const int W = 64, H = 32;
         var tex = new Texture2D(W, H, TextureFormat.RGBA32, false);
