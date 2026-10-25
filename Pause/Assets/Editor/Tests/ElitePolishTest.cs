@@ -222,6 +222,6 @@ public static class ElitePolishTest
         var ring = EliteFxArt.MarkRing;
         Check("the marker ring sprite is 1 u across and thin (" + ring.bounds.size.x.ToString("0.00") + " u, core line " + (2f / 96f * 1.2f).ToString("0.000") + " u at 1.2 u)",
               Mathf.Abs(ring.bounds.size.x - 1f) < .02f && 2f / 96f * 1.2f <= TelegraphStyle.MaxLineWidth);
-        Check("the sight sprite is the thin hairline (core " + TelegraphStyle.LineWidth + " u wide at scale 1)", Mathf.Abs(EliteFxArt.Sight.bounds.size.x - 3f * TelegraphStyle.LineWidth) < 1e-4f);
+        Check("the sight sprite is the hollow-squares cell (1 u wide, a cell + gap tall)", Mathf.Abs(EliteFxArt.Sight.bounds.size.x - 1f) < 1e-4f && EliteFxArt.Sight == BeamKeyline.SquaresSprite && BeamKeyline.SquareEliteMin <= TelegraphStyle.MaxLineWidth * 2f);
     }
 }

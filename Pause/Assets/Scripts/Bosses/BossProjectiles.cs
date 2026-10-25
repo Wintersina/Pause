@@ -497,6 +497,8 @@ public static class BossRicochetCue
 // hurts.
 public class BossBeam : MonoBehaviour
 {
+    BeamKeyline.Layer sightKey;
+    float sightAlpha;          // the aim line's own alpha this frame (the painted sprite is hidden behind the squares)   // the aim line's dark keyline layer (BeamKeyline)
     SpriteRenderer sight, beam, flash, impact, sheath, spark, lockOn;   // sheath: the glow along its length (HostileGlow)
     Color sheathTint;
     BossProjectilePool pool;
@@ -514,7 +516,7 @@ public class BossBeam : MonoBehaviour
 
     public bool Active { get; private set; }
     public bool Live => Active && live && !fading;
-    public float SightAlphaNow => sight != null && sight.enabled ? sight.color.a : 0f;   // test reads
+    public float SightAlphaNow => sight != null && sight.enabled ? sightAlpha : 0f;   // test reads
     public bool SightDotted => art != null || (sight != null && sight.sprite == BossTelegraphStyle.Dash);                                         // the aim line is the painted dashed art
     public bool SightShown => sight != null && sight.enabled;
     public bool Telegraphing => Active && !live;
@@ -560,6 +562,7 @@ public class BossBeam : MonoBehaviour
         b.sheath.enabled = false;
         HostileShots.Register(b);
         b.sight = Piece(go.transform, "Sight", 24);
+        b.sightKey = BeamKeyline.Attach(b.sight.transform, b.sight);
         b.beam = Piece(go.transform, "Beam", 26);
         b.flash = Piece(go.transform, "Flash", 31);
         b.impact = Piece(go.transform, "Impact", 31);
@@ -586,6 +589,7 @@ public class BossBeam : MonoBehaviour
                       float tellSeconds, float holdSeconds, float beamWidth)
     {
         boss = def;
+        if (sightKey != null) sightKey.tint = BeamKeyline.CueColour(def != null ? def.WorldIndex : 0);
         owner = actor;
         part = bodyPart;
         origin = new Vector3(from.x, from.y, 0f);
@@ -740,10 +744,13 @@ public class BossBeam : MonoBehaviour
             var sightTint = new Color(1f, 1f, 1f, BossTelegraphStyle.SightAlpha(BossTelegraphStyle.LiveIntensity));
             sight.color = sightTint;
             lockOn.color = sightTint;
+            sightAlpha = sightTint.a;
+            BeamKeyline.Sync(sightKey, sight, sightTint.a);
             if (art != null) Windup();
             return;
         }
 
+        BeamKeyline.Off(sightKey);   // the warning is over: the fired beam has no keyline
         float w = width;
         if (fading) w *= Mathf.Clamp01(fadeLeft / Mathf.Max(.01f, BossConfig.BeamFadeSeconds));
         else
@@ -839,6 +846,7 @@ public class BossBeam : MonoBehaviour
         int f = Mathf.FloorToInt(age / (3f * BossArt.Tick)) % 2;
         sight.sprite = art.sight[f];
         TileTo(sight, SightScale, length, false);
+        BeamKeyline.FitStraight(sightKey, SightScale, SightScale, BeamKeyline.VisibleOf(art.sightPx, SightScale), length, 0f);   // (the tiled sight sits centred on its own transform)
         lockOn.enabled = sight.enabled;
         lockOn.sprite = art.lockOn[Mathf.FloorToInt(age / (2f * BossArt.Tick)) % 2];
         lockOn.transform.localPosition = new Vector3(0f, length, 0f);
@@ -911,6 +919,7 @@ public class BossBeam : MonoBehaviour
         sight.transform.localPosition = Vector3.zero;       // the dash sprite's pivot is its start
         sight.transform.localScale = new Vector3(w * ppu, 1f, 1f);
         sight.size = new Vector2(1f / ppu, Mathf.Max(.001f, length));
+        BeamKeyline.FitStraight(sightKey, w * ppu, 1f, w, length, length * .5f);   // (the dash sprite's pivot is its start: the layer is centred half way)
     }
 
     static void Span(Transform t, float w, float len)

@@ -21,7 +21,7 @@ public static class KillCamTelegraphTest
 
     public static void Run() { TestHarness.Exit(Execute()); }
 
-    sealed class Live { public string name; public SpriteRenderer sr; public float angleOffAxis; }
+    sealed class Live { public string name; public SpriteRenderer sr; public float angleOffAxis; public SpriteRenderer beam; }   // beam: set on a keyline layer, the warning it rides
 
     public static int Execute()
     {
@@ -117,6 +117,17 @@ public static class KillCamTelegraphTest
             live.Add(new Live { name = "rail aim line (tiled parallelogram) " + deg, sr = RailLaser(made, sprite, deg, true, holder.transform) });
             live.Add(new Live { name = "rail beam (stretched parallelogram) " + deg, sr = RailLaser(made, sprite, deg, false, holder.transform) });
         }
+        // the dark chain of hollow squares of each rail AIM line (BeamKeyline: a child of the beam's art, Fit to the same Span)
+        int beams = live.Count;
+        var keys = new List<BeamKeyline.Layer>();
+        for (int i = 0; i < beams; i += 2)
+        {
+            var aim = live[i].sr;
+            var layer = BeamKeyline.Attach(aim.transform, aim);
+            BeamKeyline.FitFrame(layer, aim.transform, .3f, .05f, 9f);
+            keys.Add(layer);
+            live.Add(new Live { name = "keyline of " + live[i].name, sr = layer.squares, beam = aim });
+        }
         foreach (float deg in new[] { 30f, 45f, 90f }) live.Add(new Live { name = "tiled marker bar " + deg, sr = TiledBar(sprite, deg, holder.transform) });
 
         // sheared: a non-uniform parent over a rotated child
@@ -139,6 +150,13 @@ public static class KillCamTelegraphTest
                 if (l.sr.drawMode == SpriteDrawMode.Tiled && l.name.StartsWith("tiled marker"))
                     l.sr.size = new Vector2(.25f, 6f + f);
             }
+            foreach (var l in live)
+                if (l.beam != null)
+                {
+                    BeamKeyline.Sync(keys[live.IndexOf(l) - beams], l.beam, pulses[f]);
+                    l.beam.color = new Color(1f, 1f, 1f, pulses[f]);   // (the game hides its aim sprite behind the squares; this test records both)
+                    Check(l.name + ": frame " + f + " squares show with the warning at " + BeamKeyline.Alpha + " x its alpha", l.sr.enabled && Mathf.Abs(l.sr.color.a - BeamKeyline.Alpha * pulses[f]) < 1e-4f);
+                }
             rec.Capture(f / 60f);
         }
         var clip = rec.Clip(10f);
@@ -163,7 +181,17 @@ public static class KillCamTelegraphTest
             Check(l.name + ": replayed world matrix equals the live one (angle, length, width, shear)", Near(lm, rm, 2e-3f * Mathf.Max(1f, Mathf.Abs(lm.m00) + Mathf.Abs(lm.m11) + Mathf.Abs(lm.m01) + Mathf.Abs(lm.m10))));
             Check(l.name + ": draw mode, size and colour match",
                   rp.drawMode == l.sr.drawMode && (l.sr.drawMode == SpriteDrawMode.Simple || (rp.size - l.sr.size).sqrMagnitude < 1e-6f) &&
-                  Mathf.Abs(rp.color.a - l.sr.color.a) < .01f && rp.sprite == sprite);
+                  Mathf.Abs(rp.color.a - l.sr.color.a) < .01f && rp.sprite == (l.beam != null ? BeamKeyline.SquaresSprite : sprite));
+            if (l.beam != null)
+            {
+                // the layer rides the beam's own frame: its long axis and its across axis are the beam's (same shear), only wider
+                var bm = l.beam.transform.localToWorldMatrix;
+                float along = bm.m01 * rm.m11 - bm.m11 * rm.m01, across = bm.m00 * rm.m10 - bm.m10 * rm.m00;
+                float an = Mathf.Sqrt(bm.m01 * bm.m01 + bm.m11 * bm.m11) * Mathf.Sqrt(rm.m01 * rm.m01 + rm.m11 * rm.m11);
+                float cn = Mathf.Sqrt(bm.m00 * bm.m00 + bm.m10 * bm.m10) * Mathf.Sqrt(rm.m00 * rm.m00 + rm.m10 * rm.m10);
+                Check(l.name + ": replayed keyline is parallel to the beam along and across (sheared the same)", Mathf.Abs(along) < 1e-3f * Mathf.Max(1e-3f, an) && Mathf.Abs(across) < 1e-3f * Mathf.Max(1e-3f, cn));
+                Check(l.name + ": sorts with the beam, tiled", l.sr.sortingOrder == l.beam.sortingOrder && l.sr.drawMode == SpriteDrawMode.Tiled);
+            }
             float liveOff = OffAxis(lm), replayOff = OffAxis(rm);
             Check(l.name + ": an angled telegraph stays angled (" + liveOff.ToString("F1") + " vs " + replayOff.ToString("F1") + " deg off axis)",
                   Mathf.Abs(liveOff - replayOff) < .5f);

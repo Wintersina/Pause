@@ -847,12 +847,8 @@ public class DroneDeployAttack : EliteAttack
             Vector2 from = ship.MuzzleWorld(pod[i]);
             Vector2 to = p - from;
             line.enabled = true;
-            line.transform.position = new Vector3(from.x, from.y, 0f);
-            line.transform.rotation = Quaternion.Euler(0f, 0f, Deg(to) - 90f);
-            line.transform.localScale = new Vector3(TelegraphStyle.ScaleX(TelegraphStyle.LineWidth), TelegraphStyle.ScaleY(to.magnitude), 1f);
-            Color c = def.ShotColor;
-            c.a = Mathf.FloorToInt((clock + i * .1f) / (5f * EliteArt.Tick)) % 2 == 0 ? TelegraphStyle.LineAlpha : TelegraphStyle.LineAlphaLow;
-            line.color = c;
+            bool lit = Mathf.FloorToInt((clock + i * .1f) / (5f * EliteArt.Tick)) % 2 == 0;
+            BeamKeyline.SquareSight(line, from, Deg(to), to.magnitude, TelegraphStyle.LineWidth, def.ShotColor, lit ? TelegraphStyle.LineAlpha : TelegraphStyle.LineAlphaLow);
         }
         bool linked = Linked;
         shield.enabled = linked;
@@ -1037,12 +1033,7 @@ public class ArmourShatterAttack : EliteAttack
     void Edge(SpriteRenderer sr, Vector2 from, float deg, bool on)
     {
         sr.enabled = true;
-        sr.transform.position = new Vector3(from.x, from.y, 0f);
-        sr.transform.rotation = Quaternion.Euler(0f, 0f, deg - 90f);
-        sr.transform.localScale = new Vector3(TelegraphStyle.ScaleX(TelegraphStyle.LineWidth), TelegraphStyle.ScaleY(ConeLength), 1f);
-        Color c = def.ShotColor;
-        c.a = on ? TelegraphStyle.LineAlpha : TelegraphStyle.LineAlphaLow;
-        sr.color = c;
+        BeamKeyline.SquareSight(sr, from, deg, ConeLength, TelegraphStyle.LineWidth, def.ShotColor, on ? TelegraphStyle.LineAlpha : TelegraphStyle.LineAlphaLow);
     }
 
     void Build()

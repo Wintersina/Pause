@@ -1788,7 +1788,7 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
     public bool SightShown => sight != null && sight.enabled;
 
     // Shows a warning sight line (the Rift Lancer's rail, the siege cannon's lane...) from `from` along `deg`: ONE hairline of
-    // TelegraphStyle.LineWidth (whatever width a caller asks for is capped at MaxLineWidth) that blinks gently between LineAlpha and
+    // a chain of hollow squares (BeamKeyline.SquareSight; whatever width a caller asks for, the cells are at least SquareEliteMin) that blinks gently between LineAlpha and
     // LineAlphaLow with `on` (it only goes out when there is no line to show: length <= 0).
     public void ShowSight(Vector2 from, float deg, float length, bool on) { ShowSight(from, deg, length, on, TelegraphStyle.LineWidth); }
 
@@ -1797,15 +1797,10 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
         if (sight == null) return;
         sight.enabled = length > .01f;
         if (!sight.enabled) return;
-        sight.transform.position = new Vector3(from.x, from.y, 0f);
-        sight.transform.rotation = Quaternion.Euler(0f, 0f, deg - 90f);
-        sight.transform.localScale = new Vector3(TelegraphStyle.ScaleX(width), TelegraphStyle.ScaleY(length), 1f);
-        Color c = Def.ShotColor;
-        c.a = on ? TelegraphStyle.LineAlpha : TelegraphStyle.LineAlphaLow;
-        sight.color = c;
+        BeamKeyline.SquareSight(sight, from, deg, length, width, Def.ShotColor, on ? TelegraphStyle.LineAlpha : TelegraphStyle.LineAlphaLow);
     }
-    // The world width of the sight line as drawn (its core), for the tests.
-    public float SightWidth => sight != null ? sight.transform.localScale.x * TelegraphStyle.LineWidth : 0f;
+    // The world side of the sight line's squares as drawn, and its strength (BeamKeyline.Alpha at the line's on-beat), for the tests.
+    public float SightWidth => sight != null ? sight.transform.localScale.x : 0f;
     public float SightAlpha => sight != null && sight.enabled ? sight.color.a : 0f;
 
     // ---- drawing ---------------------------------------------------------------
