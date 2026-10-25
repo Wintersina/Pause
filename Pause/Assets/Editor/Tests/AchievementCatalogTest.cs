@@ -3,8 +3,8 @@ using System.IO;
 using System.Linq;
 using UnityEngine;
 
-// The 60-achievement table: counts, uniqueness, limits, points, targets, the
-// dormant Tide pair, store ids, badge art (painted or placeholder) and the CSV export.
+// The 67-achievement table: counts, uniqueness, limits, points, targets, the
+// Tide / Storm / Desert additions, store ids, badge art (painted or placeholder) and the CSV export.
 public static class AchievementCatalogTest
 {
     static int fails;
@@ -37,42 +37,52 @@ public static class AchievementCatalogTest
     static void Catalogue()
     {
         var all = AchievementCatalog.All;
-        Check("60 achievements", all.Length == 60 && AchievementCatalog.Count == 60);
-        Check("unique ids", all.Select(d => d.id).Distinct().Count() == 60);
+        Check("67 achievements", all.Length == 67 && AchievementCatalog.Count == 67);
+        Check("unique ids", all.Select(d => d.id).Distinct().Count() == 67);
         Check("ids are snake_case", all.All(d => d.id.All(c => (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || c == '_')));
-        Check("titles <= 24 chars and unique", all.All(d => d.title.Length > 0 && d.title.Length <= 24) && all.Select(d => d.title).Distinct().Count() == 60);
+        Check("titles <= 24 chars and unique", all.All(d => d.title.Length > 0 && d.title.Length <= 24) && all.Select(d => d.title).Distinct().Count() == 67);
         Check("descriptions <= 100 chars", all.All(d => d.description.Length > 0 && d.description.Length <= 100));
         Check("points are multiples of 5 within 5..40", all.All(d => d.points % 5 == 0 && d.points >= 5 && d.points <= 40));
-        Check("points total exactly 1000 (" + all.Sum(d => d.points) + ")", all.Sum(d => d.points) == AchievementCatalog.TotalPoints);
+        Check("points total exactly " + AchievementCatalog.TotalPoints + " and never above the Play Games cap of 1000 (" + all.Sum(d => d.points) + ")", all.Sum(d => d.points) == AchievementCatalog.TotalPoints && AchievementCatalog.TotalPoints <= 1000);
         // Reward table: 5 star dust for routine milestones (Bronze / Silver badges), 25 for the hard ones (Gold / Platinum).
         string[] hard =
         {
-            "loop_1", "loop_2", "loop_5", "boss_ember", "boss_tide", "boss_no_hit", "boss_all", "elite_50", "elite_ember_all",
+            "loop_1", "loop_2", "loop_5", "boss_ember", "boss_tide", "boss_storm", "boss_desert", "boss_no_hit", "boss_all", "elite_50", "elite_ember_all",
             "kills_5000", "codex_complete", "ship_all", "skin_full_set", "stars_5000", "score_150k", "speed_super_sonic", "pause_perfect_dodge",
         };
         Check("every achievement pays exactly 5 or 25 star dust", all.All(d => d.Reward == 5 || d.Reward == 25));
-        Check("17 pay 25 and 43 pay 5 (" + all.Count(d => d.Reward == 25) + " / " + all.Count(d => d.Reward == 5) + ")", all.Count(d => d.Reward == 25) == 17 && all.Count(d => d.Reward == 5) == 43);
+        Check("19 pay 25 and 48 pay 5 (" + all.Count(d => d.Reward == 25) + " / " + all.Count(d => d.Reward == 5) + ")", all.Count(d => d.Reward == 25) == 19 && all.Count(d => d.Reward == 5) == 48);
         Check("the 25-dust set is exactly the hard list: " + string.Join(",", all.Where(d => d.Reward == 25).Select(d => d.id)),
               all.Where(d => d.Reward == 25).Select(d => d.id).OrderBy(x => x).SequenceEqual(hard.OrderBy(x => x)));
         Check("25 is exactly the Gold and Platinum badges, 5 the Bronze and Silver ones", all.All(d => (d.tier >= AchievementTier.Gold) == (d.Reward == 25)));
-        Check("the total reward is 43 x 5 + 17 x 25 = 640", AchievementCatalog.TotalReward == 640);
+        Check("the total reward is 48 x 5 + 19 x 25 = 715", AchievementCatalog.TotalReward == 715);
         Check("3 hidden", all.Count(d => d.hidden) == 3 && all.Where(d => d.hidden).All(d => d.id == "mega_domino" || d.id == "deaths_100" || d.id == "pause_perfect_dodge"));
         Check("every achievement names its tracking hook", all.All(d => !string.IsNullOrEmpty(d.hook)));
         Check("counter achievements have a target, one-shots none",
               all.All(d => d.IsCounter ? d.Target >= 1 : d.Target == 0));
-        Check("fixed targets match the design (kills 100/1000/5000, stars 150/1000/5000, rocks 500, mines 25, deaths 10/100)",
-              Target("kills_100") == 100 && Target("kills_1000") == 1000 && Target("kills_5000") == 5000 &&
-              Target("stars_150") == 150 && Target("stars_1000") == 1000 && Target("stars_5000") == 5000 &&
-              Target("rocks_500") == 500 && Target("mines_25") == 25 && Target("deaths_10") == 10 && Target("deaths_100") == 100 &&
-              Target("elite_10") == 10 && Target("elite_50") == 50 && Target("codex_10") == 10 && Target("codex_50") == 50 &&
-              Target("ship_half") == 8 && Target("dust_spent_10000") == 10000 && Target("pause_blink_100") == 100 &&
-              Target("loop_1") == 1 && Target("loop_2") == 2 && Target("loop_5") == 5 && Target("chain_10") == 10);
+        Check("fixed targets match the (raised) design: kills 250/2000/5000, stars 400/2000/5000, rocks 1000, mines 50, crashes 25/150, elites 5/25/100, codex 20/75, blinks 200, chain 15",
+              Target("kills_100") == 250 && Target("kills_1000") == 2000 && Target("kills_5000") == 5000 &&
+              Target("stars_150") == 400 && Target("stars_1000") == 2000 && Target("stars_5000") == 5000 &&
+              Target("rocks_500") == 1000 && Target("mines_25") == 50 && Target("deaths_10") == 25 && Target("deaths_100") == 150 &&
+              Target("elite_first") == 5 && Target("elite_10") == 25 && Target("elite_50") == 100 && Target("codex_10") == 20 && Target("codex_50") == 75 &&
+              Target("ship_half") == 8 && Target("dust_spent_10000") == 10000 && Target("pause_blink_100") == 200 &&
+              Target("loop_1") == 1 && Target("loop_2") == 2 && Target("loop_5") == 5 && Target("chain_10") == 15);
+        Check("the elite ladder is 5 / 25 / 100 and elite_first is a standard (non-incremental) store row",
+              Target("elite_first") < Target("elite_10") && Target("elite_10") < Target("elite_50") && AchievementCatalog.Find("elite_first").storeSteps == 0);
+        Check("incremental step totals equal the targets (so the store percent maps 1:1)",
+              all.Where(d => d.storeSteps > 0).All(d => d.storeSteps == d.Target));
         Check("dynamic targets follow the game: bosses " + Target("boss_all") + ", ships " + Target("ship_all") + ", codex " + Target("codex_complete"),
               Target("boss_all") == WorldManager.LiveWorldCount && Target("ship_all") == PremiumShips.StandardCount &&
               Target("codex_complete") == Codex.ReachableCount && Target("elite_space_all") == Elites(0) &&
-              Target("elite_frost_all") == Elites(1) && Target("elite_verdant_all") == Elites(2) && Target("elite_ember_all") == Elites(3));
+              Target("elite_frost_all") == Elites(1) && Target("elite_verdant_all") == Elites(2) && Target("elite_ember_all") == Elites(3) &&
+              Target("elite_tide_all") == Elites(4) && Target("elite_storm_all") == Elites(5) && Target("elite_desert_all") == Elites(6));
         Check("elites per world: Space 4, Frost 5, Verdant 5, Ember 6 (" + Elites(0) + "," + Elites(1) + "," + Elites(2) + "," + Elites(3) + ")",
               Elites(0) >= 4 && Elites(1) >= 5 && Elites(2) == 5 && Elites(3) >= 6);
+        Check("every world with a boss and elites has its achievements: world reached (not Space), boss, elite set",
+              new[] { "world_frost_reached", "world_verdant_reached", "world_ember_reached", "world_tide_reached", "world_storm_reached", "world_desert_reached",
+                      "boss_space", "boss_frost", "boss_verdant", "boss_ember", "boss_tide", "boss_storm", "boss_desert",
+                      "elite_space_all", "elite_frost_all", "elite_verdant_all", "elite_ember_all", "elite_tide_all", "elite_storm_all", "elite_desert_all" }
+                .All(id => AchievementCatalog.Find(id) != null) && WorldManager.LiveWorldCount == 7 && AchievementCatalog.EliteWorlds == WorldManager.LiveWorldCount);
         Check("score thresholds ascend and sit inside what a run scores (ScoreRules: ~6,600 a first pass before the 2x streak)",
               Target("score_10k") < Target("score_50k") && Target("score_50k") < Target("score_150k") && Target("score_10k") == 5000 && Target("score_50k") == 20000 && Target("score_150k") == 80000);
         Check("the Codex is big enough for Cartographer (" + Codex.Entries.Length + " entries)", Codex.Entries.Length > 50);
@@ -90,9 +100,9 @@ public static class AchievementCatalogTest
 
     static void AllLive()
     {
-        Check("all 60 achievements are live and listed in the Codex tab (Tide's included)",
-              AchievementCatalog.All.Length == 60 && AchievementCatalog.ActiveCount == 60 &&
-              CodexAchievementsView.BuildSections().Sum(s => s.defs.Count) == 60);
+        Check("all 67 achievements are live and listed in the Codex tab (Tide, Storm and Desert included)",
+              AchievementCatalog.All.Length == 67 && AchievementCatalog.ActiveCount == 67 &&
+              CodexAchievementsView.BuildSections().Sum(s => s.defs.Count) == 67);
         AchievementStore.ResetAll();
         var tideWorld = AchievementCatalog.Find("world_tide_reached");
         PlayerPrefs.SetInt(tideWorld.unlockedKey, 1);   // e.g. restored from the cloud
@@ -102,7 +112,7 @@ public static class AchievementCatalogTest
         AchievementStore.ResetAll();
     }
 
-    // The 60 pixel-art badges: Art/Resources/Achievements/<id>.png, 128 x 128 RGBA with real transparency,
+    // The 67 pixel-art badges: Art/Resources/Achievements/<id>.png, 128 x 128 RGBA with real transparency,
     // imported as point-filtered sprites, and nothing in the folder that is not an achievement.
     static void Icons()
     {
@@ -125,14 +135,14 @@ public static class AchievementCatalogTest
                 imp.mipmapEnabled || !imp.alphaIsTransparency || imp.textureCompression != UnityEditor.TextureImporterCompression.Uncompressed)
                 badImport.Add(id);
         }
-        Check("every one of the 60 ids (dormant Tide included) has an icon (missing: " + string.Join(",", missing) + ")", missing.Count == 0 && ids.Count == 60);
+        Check("every one of the 67 ids has an icon (missing: " + string.Join(",", missing) + ")", missing.Count == 0 && ids.Count == 67);
         Check("all icons are 128 x 128 (bad: " + string.Join(",", badSize) + ")", badSize.Count == 0);
         Check("all icons have a transparent corner area and an opaque body (bad: " + string.Join(",", noAlpha) + ")", noAlpha.Count == 0);
         Check("all icons import as point-filtered, uncompressed, mip-less sprites (bad: " + string.Join(",", badImport) + ")", badImport.Count == 0);
         var orphans = Directory.GetFiles(folder, "*.png").Select(f => Path.GetFileNameWithoutExtension(f)).Where(n => !ids.Contains(n)).ToList();
         Check("no icon without an achievement (orphans: " + string.Join(",", orphans) + ")", orphans.Count == 0);
         AchievementArt.Reload();
-        Check("AchievementArt.HasArt for all 60", ids.All(AchievementArt.HasArt));
+        Check("AchievementArt.HasArt for all 67", ids.All(AchievementArt.HasArt));
         string setup = File.ReadAllText("../docs/achievements-store-setup.md");
         Check("docs/achievements-store-setup.md documents installing the icons", setup.Contains("Art/Resources/Achievements") && setup.Contains("play-icons-512"));
     }
@@ -142,10 +152,13 @@ public static class AchievementCatalogTest
         var defs = AchievementCatalog.All;
         var android = defs.Select(AchievementIds.AndroidId).ToList();
         var ios = defs.Select(AchievementIds.IosId).ToList();
-        Check("store ids: 60 unique Android ids", android.Distinct().Count() == 60 && android.All(s => !string.IsNullOrEmpty(s)));
-        Check("store ids: 60 unique iOS ids", ios.Distinct().Count() == 60);
-        Check("store ids: all 60 have a real Android id from AchievementStoreIds.csv", android.Count(s => s.StartsWith("CgkI")) == 60);
-        Check("store ids: none is a placeholder", android.Count(AchievementIds.IsPlaceholder) == 0);
+        Check("store ids: 67 unique Android ids", android.Distinct().Count() == 67 && android.All(s => !string.IsNullOrEmpty(s)));
+        Check("store ids: 67 unique iOS ids", ios.Distinct().Count() == 67);
+        string[] pending = { "world_storm_reached", "world_desert_reached", "boss_storm", "boss_desert", "elite_tide_all", "elite_storm_all", "elite_desert_all" };
+        Check("store ids: the 60 original achievements have a real Android id from AchievementStoreIds.csv",
+              defs.Where(d => !pending.Contains(d.id)).All(d => AchievementIds.AndroidId(d).StartsWith("CgkI")));
+        Check("store ids: the 7 new ones are still placeholders (not yet created in Play Console) and are never reported from Android",
+              pending.All(id => AchievementIds.IsPlaceholder(AchievementIds.AndroidId(AchievementCatalog.Find(id))) && !AchievementIds.IsReportable(AchievementCatalog.Find(id), false)));
         Check("store ids: the override table fills in real ids and ignores junk",
               Override("loop_1,CgkIfake\nunknown_id,CgkIx\n#c\nloop_2,TODO_x\n").Equals("CgkIfake|" + AchievementIds.Placeholder("loop_2")));
         Check("store ids: no clash between iOS and Android namespaces", !android.Intersect(ios).Any());
@@ -188,13 +201,13 @@ public static class AchievementCatalogTest
         string play = AchievementStoreExport.PlayConsoleCsv(), gc = AchievementStoreExport.GameCenterCsv();
         var playLines = play.Split('\n').Where(l => l.Length > 0).ToArray();
         var gcLines = gc.Split('\n').Where(l => l.Length > 0).ToArray();
-        Check("export: Play CSV has a header and 60 rows", playLines.Length == 61 && playLines[0].StartsWith("Order,Name,Description,Points"));
-        Check("export: Game Center CSV has a header and 60 rows", gcLines.Length == 61 && gcLines[0].StartsWith("Reference name,Achievement ID"));
-        Check("export: no commas inside store text (Play import forbids them)", play.Contains(",Hundredfold,Destroy 1000 enemies.,") && play.Contains(",Rookie Score,Score 5000 points in a run.,") &&
+        Check("export: Play CSV has a header and 67 rows", playLines.Length == 68 && playLines[0].StartsWith("Order,Name,Description,Points"));
+        Check("export: Game Center CSV has a header and 67 rows", gcLines.Length == 68 && gcLines[0].StartsWith("Reference name,Achievement ID"));
+        Check("export: no commas inside store text (Play import forbids them)", play.Contains(",Hundredfold,Destroy 2000 enemies.,") && play.Contains(",Rookie Score,Score 5000 points in a run.,") &&
               playLines.Skip(1).All(l => l.Split(',').Length == 7) && gcLines.Skip(1).All(l => l.Split(',').Length == 9));
         Check("in-game text keeps the separator", AchievementCatalog.Find("score_10k").description == "Score 5,000 points in a run.");
-        Check("export: hidden rows (the 3 secret ones; Tide's two are revealed)", playLines.Count(l => l.Contains(",Hidden,")) == 3 && gcLines.Count(l => l.Contains(",Yes,No,")) == 3);
-        Check("export: incremental steps for kills_1000", playLines.Any(l => l.Contains("Hundredfold") && l.Contains(",10,1000,Revealed,kills_1000.png")));
+        Check("export: hidden rows (the 3 secret ones; the world, boss and elite additions are revealed)", playLines.Count(l => l.Contains(",Hidden,")) == 3 && gcLines.Count(l => l.Contains(",Yes,No,")) == 3);
+        Check("export: incremental steps for kills_1000 (2000)", playLines.Any(l => l.Contains("Hundredfold") && l.Contains(",5,2000,Revealed,kills_1000.png")));
         Check("export: Game Center ids use the ach_ scheme", gcLines.Skip(1).All(l => l.Contains("me.hapticgate.pause.ach_")));
         string dir = Path.GetFullPath(Path.Combine(Application.dataPath, "..", "..", AchievementStoreExport.Folder));
         Check("export: docs/achievements-export holds the generated files (run Pause > Achievements > Export store CSV)",

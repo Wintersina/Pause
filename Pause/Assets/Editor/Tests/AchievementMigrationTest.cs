@@ -57,10 +57,10 @@ public static class AchievementMigrationTest
     static void Migrates()
     {
         Clear();
-        PlayerPrefs.SetInt(AchievementMigration.LegacyAliens, 150);
-        PlayerPrefs.SetInt(AchievementMigration.LegacyAsteroids, 600);
-        PlayerPrefs.SetInt(AchievementMigration.LegacyDeaths, 12);
-        PlayerPrefs.SetInt(AchievementMigration.LegacyStars, 200);
+        PlayerPrefs.SetInt(AchievementMigration.LegacyAliens, 300);
+        PlayerPrefs.SetInt(AchievementMigration.LegacyAsteroids, 1200);
+        PlayerPrefs.SetInt(AchievementMigration.LegacyDeaths, 30);
+        PlayerPrefs.SetInt(AchievementMigration.LegacyStars, 450);
         PlayerPrefs.SetString("HasDoneTut", "true");
         PlayerPrefs.SetInt(WorldManager.PrefsHighestWorld, 2);
         PlayerPrefs.SetString("boughtship1", "True");
@@ -80,8 +80,8 @@ public static class AchievementMigrationTest
         foreach (string id in expected) Check("migrated: " + id, U(id));
         string[] not = { "world_ember_reached", "kills_1000", "deaths_100", "stars_1000", "score_50k", "ship_half", "skin_special", "loop_1", "boss_space", "meta_logged_on", "speed_flash" };
         foreach (string id in not) Check("not earned: " + id, !U(id));
-        Check("counters seeded from the old ones", AchievementStore.Counter("kills") == 150 && AchievementStore.Counter("rocks") == 600 &&
-              AchievementStore.Counter("deaths") == 12 && AchievementStore.Counter("stars") == 200 && AchievementStore.Counter("ships") == 3);
+        Check("counters seeded from the old ones", AchievementStore.Counter("kills") == 300 && AchievementStore.Counter("rocks") == 1200 &&
+              AchievementStore.Counter("deaths") == 30 && AchievementStore.Counter("stars") == 450 && AchievementStore.Counter("ships") == 3);
         Check("the codex count is current", AchievementStore.Counter("codex") == Codex.DiscoveredCount && Codex.DiscoveredCount >= 6);
         Check("every migrated achievement is UNLOCKED, none claimed",
               AchievementStore.UnlockedCount == AchievementCatalog.All.Count(d => AchievementStore.IsUnlocked(d)) &&
@@ -144,8 +144,8 @@ public static class AchievementMigrationTest
         Check("snapshot carries the unlocked / claimed flags, counters and sets",
               local.CounterValue("ach_u_loop_1") == 1 && local.CounterValue("ach_c_loop_1") == 1 &&
               local.CounterValue("ach_n_kills") == 321 && local.CounterValue(AchievementStore.BossFlagKey(1)) == 1);
-        Check("the sync keys include every achievement's flags", ProgressSnapshot.CounterKeys().Count(k => k.StartsWith("ach_u_")) == 60 &&
-              ProgressSnapshot.CounterKeys().Count(k => k.StartsWith("ach_c_")) == 60);
+        Check("the sync keys include every achievement's flags", ProgressSnapshot.CounterKeys().Count(k => k.StartsWith("ach_u_")) == 67 &&
+              ProgressSnapshot.CounterKeys().Count(k => k.StartsWith("ach_c_")) == 67);
 
         // another device: claimed a different one, unlocked a third, more kills, a different boss
         Clear();

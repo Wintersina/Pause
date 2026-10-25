@@ -1,16 +1,16 @@
 using System;
 using System.Collections.Generic;
 
-// The 60 achievements in one reviewable table (docs/achievements-redesign.md
+// The 67 achievements in one reviewable table (docs/achievements-redesign.md
 // has the design; this is its code form, and the store CSV exporter and the
 // tests read it). Ids are stable snake_case keys: they name the saved state,
 // the badge art (Resources/Achievements/<id>) and the store rows.
 //
-// All 60 are live.
+// All 67 are live.
 //
 // Counters (lifetime, shared between achievements):
 //   kills rocks mines elites stars deaths blinks spent   Add()ed per event
-//   ships codex bosses elite_w0..3                       recounted from owned state
+//   ships codex bosses elite_w0..6                       recounted from owned state
 //   best_chain best_loop best_score                      SetAtLeast()
 public static class AchievementCatalog
 {
@@ -33,8 +33,8 @@ public static class AchievementCatalog
             return n;
         }
     }
-    public const int Count = 60;
-    public const int TotalPoints = 1000;
+    public const int Count = 67;
+    public const int TotalPoints = 990;
 
     // Single-run score thresholds. The design table had 10k / 50k / 150k, but a
     // whole first pass Space -> Ember scores ~6,600 and a second loop ~8,100
@@ -46,7 +46,7 @@ public static class AchievementCatalog
         CBosses = "bosses", CChain = "best_chain", CLoop = "best_loop", CScore = "best_score";
 
     public static string EliteCounter(int world) { return "elite_w" + world; }
-    public const int EliteWorlds = 4;
+    public const int EliteWorlds = 7;
 
     static AchievementDef D(string id, string title, string desc, int pts, AchievementTier tier, AchievementGroup group,
                             string hook, string counter = null, int target = 0, Func<int> dyn = null, int steps = 0,
@@ -73,61 +73,68 @@ public static class AchievementCatalog
     {
         D("meta_first_flight", "First Flight", "Finish the tutorial and take your first real run.", 5, B, Meta, "Hints / TutorialSkip -> AchievementTracker.OnTutorialDone"),
         D("meta_logged_on", "Logged On", "Sign in to Google Play Games or Game Center.", 5, B, Meta, "CloudSync.OnSignedIn -> AchievementTracker.OnSignedIn"),
-        D("world_frost_reached", "Cold Front", "Reach the Frost world.", 10, B, World, "WorldManager.Advance/Start -> OnWorldEntered(1)"),
-        D("world_verdant_reached", "Into the Green", "Reach the Verdant world.", 10, S, World, "WorldManager.Advance/Start -> OnWorldEntered(2)"),
-        D("world_ember_reached", "Trial by Fire", "Reach the Ember world.", 15, S, World, "WorldManager.Advance/Start -> OnWorldEntered(3)"),
+        D("world_frost_reached", "Cold Front", "Reach the Frost world.", 5, B, World, "WorldManager.Advance/Start -> OnWorldEntered(1)"),
+        D("world_verdant_reached", "Into the Green", "Reach the Verdant world.", 5, S, World, "WorldManager.Advance/Start -> OnWorldEntered(2)"),
+        D("world_ember_reached", "Trial by Fire", "Reach the Ember world.", 10, S, World, "WorldManager.Advance/Start -> OnWorldEntered(3)"),
         D("world_tide_reached", "Deep Water", "Reach the Tide world.", 20, S, World, "WorldManager.Advance/Start -> OnWorldEntered(4)"),
+        D("world_storm_reached", "Eye of the Storm", "Reach the Storm world.", 10, S, World, "WorldManager.Advance/Start -> OnWorldEntered(5)"),
+        D("world_desert_reached", "Shifting Sands", "Reach the Desert world.", 10, S, World, "WorldManager.Advance/Start -> OnWorldEntered(6)"),
         D("loop_1", "Full Circle", "Complete a full loop of every world.", 25, G, World, "WorldManager.Advance loop -> OnLoop", CLoop, 1),
         D("loop_2", "Second Lap", "Complete two loops in a single run.", 25, G, World, "WorldManager.Advance loop -> OnLoop", CLoop, 2),
         D("loop_5", "Orbit Lifer", "Complete five loops in a single run.", 40, P, World, "WorldManager.Advance loop -> OnLoop", CLoop, 5),
-        D("boss_space", "Archon Down", "Defeat the Void Archon.", 10, S, Boss, "BossEncounter.BeginOutro -> OnBossOutro(0)"),
+        D("boss_space", "Archon Down", "Defeat the Void Archon.", 5, S, Boss, "BossEncounter.BeginOutro -> OnBossOutro(0)"),
         D("boss_frost", "Leviathan Slain", "Defeat the Hoarfrost Leviathan.", 15, S, Boss, "BossEncounter.BeginOutro -> OnBossOutro(1)"),
         D("boss_verdant", "Bloom Queen Felled", "Defeat the Bloom Queen.", 20, S, Boss, "BossEncounter.BeginOutro -> OnBossOutro(2)"),
         D("boss_ember", "Drake Slayer", "Defeat the Cinder Drake.", 25, G, Boss, "BossEncounter.BeginOutro -> OnBossOutro(3)"),
         D("boss_tide", "Tide Turner", "Defeat the Tide boss.", 25, G, Boss, "BossEncounter.BeginOutro -> OnBossOutro(4)"),
+        D("boss_storm", "Engine Stalled", "Defeat the Tempest Engine.", 25, G, Boss, "BossEncounter.BeginOutro -> OnBossOutro(5)"),
+        D("boss_desert", "Dune Breaker", "Defeat the Dune-Eater.", 25, G, Boss, "BossEncounter.BeginOutro -> OnBossOutro(6)"),
         D("boss_no_hit", "Untouchable", "Defeat a boss without losing a heart.", 25, G, Boss, "AchievementEvents.PlayerHurt + BossEncounter fight start/outro"),
-        D("boss_all", "Boss Collector", "Defeat every live world's boss.", 35, P, Boss, "BossEncounter.BeginOutro (distinct worlds)", CBosses, 0, () => WorldManager.LiveWorldCount, steps: 4),
-        D("elite_first", "Elite Hunter", "Destroy your first elite ship.", 10, B, Elite, "EliteShip.Died", CElites, 1),
-        D("elite_10", "Veteran Hunter", "Destroy 10 elite ships.", 10, S, Elite, "EliteShip.Died", CElites, 10, steps: 10),
-        D("elite_50", "Elite Exterminator", "Destroy 50 elite ships.", 25, G, Elite, "EliteShip.Died", CElites, 50, steps: 50),
-        D("elite_space_all", "Space Elites", "Down every Space elite.", 15, S, Elite, "EliteShip.Died (EliteCatalog world 0)", "elite_w0", 0, () => EliteCount(0), steps: 4),
+        D("boss_all", "Boss Collector", "Defeat every live world's boss.", 35, P, Boss, "BossEncounter.BeginOutro (distinct worlds)", CBosses, 0, () => WorldManager.LiveWorldCount, steps: 7),
+        D("elite_first", "Elite Hunter", "Destroy 5 elite ships.", 5, B, Elite, "EliteShip.Died", CElites, 5),
+        D("elite_10", "Veteran Hunter", "Destroy 25 elite ships.", 10, S, Elite, "EliteShip.Died", CElites, 25, steps: 25),
+        D("elite_50", "Elite Exterminator", "Destroy 100 elite ships.", 25, G, Elite, "EliteShip.Died", CElites, 100, steps: 100),
+        D("elite_space_all", "Space Elites", "Down every Space elite.", 10, S, Elite, "EliteShip.Died (EliteCatalog world 0)", "elite_w0", 0, () => EliteCount(0), steps: 4),
         D("elite_frost_all", "Frost Elites", "Down every Frost elite.", 20, S, Elite, "EliteShip.Died (EliteCatalog world 1)", "elite_w1", 0, () => EliteCount(1), steps: 5),
-        D("elite_verdant_all", "Verdant Elites", "Down every Verdant elite.", 15, S, Elite, "EliteShip.Died (EliteCatalog world 2)", "elite_w2", 0, () => EliteCount(2)),
+        D("elite_verdant_all", "Verdant Elites", "Down every Verdant elite.", 10, S, Elite, "EliteShip.Died (EliteCatalog world 2)", "elite_w2", 0, () => EliteCount(2)),
         D("elite_ember_all", "Ember Elites", "Down every Ember elite.", 25, G, Elite, "EliteShip.Died (EliteCatalog world 3)", "elite_w3", 0, () => EliteCount(3), steps: 6),
-        D("elite_blink", "Blink Strike", "Destroy an elite with a pause blink.", 10, S, Elite, "EliteShip.Died (cause Teleport)"),
-        D("kills_100", "Gunner", "Destroy 100 enemies.", 5, B, Enemy, "collisionDetection.AwardDestroyedTarget", CKills, 100, steps: 100),
-        D("kills_1000", "Hundredfold", "Destroy 1,000 enemies.", 10, S, Enemy, "collisionDetection.AwardDestroyedTarget", CKills, 1000, steps: 1000),
+        D("elite_tide_all", "Tide Elites", "Down every Tide elite.", 10, S, Elite, "EliteShip.Died (EliteCatalog world 4)", "elite_w4", 0, () => EliteCount(4), steps: 5),
+        D("elite_storm_all", "Storm Elites", "Down every Storm elite.", 10, S, Elite, "EliteShip.Died (EliteCatalog world 5)", "elite_w5", 0, () => EliteCount(5), steps: 5),
+        D("elite_desert_all", "Desert Elites", "Down every Desert elite.", 10, S, Elite, "EliteShip.Died (EliteCatalog world 6)", "elite_w6", 0, () => EliteCount(6), steps: 6),
+        D("elite_blink", "Blink Strike", "Destroy an elite with a pause blink.", 5, S, Elite, "EliteShip.Died (cause Teleport)"),
+        D("kills_100", "Gunner", "Destroy 250 enemies.", 5, B, Enemy, "collisionDetection.AwardDestroyedTarget", CKills, 250, steps: 250),
+        D("kills_1000", "Hundredfold", "Destroy 2,000 enemies.", 5, S, Enemy, "collisionDetection.AwardDestroyedTarget", CKills, 2000, steps: 2000),
         D("kills_5000", "Warlord", "Destroy 5,000 enemies.", 25, G, Enemy, "collisionDetection.AwardDestroyedTarget", CKills, 5000, steps: 5000),
-        D("rocks_500", "Rock Breaker", "Destroy 500 asteroids and rocks.", 10, B, Enemy, "collisionDetection.AwardDestroyedTarget (tag Astr)", CRocks, 500, steps: 500),
-        D("mines_25", "Minesweeper", "Destroy 25 rail mines.", 10, B, Enemy, "collisionDetection.AwardDestroyedTarget (EnemyRole.Mine)", CMines, 25, steps: 25),
-        D("chain_10", "Chain Reaction", "Reach a 10-kill chain.", 10, S, Enemy, "RunScore.OnKill chain", CChain, 10),
-        D("mega_domino", "MEGA DOMINO", "Trigger a MEGA DOMINO.", 15, S, Enemy, "DeathCrashDomino.MegaDominoStarted", hidden: true),
-        D("codex_10", "Curious Pilot", "Discover 10 Codex entries.", 5, B, Cdx, "Codex.Discovered", CCodex, 10, steps: 10),
-        D("codex_50", "Cartographer", "Discover 50 Codex entries.", 10, S, Cdx, "Codex.Discovered", CCodex, 50, steps: 50),
-        D("codex_field_guide", "Field Guide", "Fully catalogue one world's enemies and hazards.", 15, S, Cdx, "Codex.Discovered (per-world sets)"),
+        D("rocks_500", "Rock Breaker", "Destroy 1,000 asteroids and rocks.", 5, B, Enemy, "collisionDetection.AwardDestroyedTarget (tag Astr)", CRocks, 1000, steps: 1000),
+        D("mines_25", "Minesweeper", "Destroy 50 rail mines.", 5, B, Enemy, "collisionDetection.AwardDestroyedTarget (EnemyRole.Mine)", CMines, 50, steps: 50),
+        D("chain_10", "Chain Reaction", "Reach a 15-kill chain.", 5, S, Enemy, "RunScore.OnKill chain", CChain, 15),
+        D("mega_domino", "MEGA DOMINO", "Trigger a MEGA DOMINO.", 10, S, Enemy, "DeathCrashDomino.MegaDominoStarted", hidden: true),
+        D("codex_10", "Curious Pilot", "Discover 20 Codex entries.", 5, B, Cdx, "Codex.Discovered", CCodex, 20, steps: 20),
+        D("codex_50", "Cartographer", "Discover 75 Codex entries.", 5, S, Cdx, "Codex.Discovered", CCodex, 75, steps: 75),
+        D("codex_field_guide", "Field Guide", "Fully catalogue one world's enemies and hazards.", 10, S, Cdx, "Codex.Discovered (per-world sets)"),
         D("codex_complete", "Completionist", "Discover every Codex entry.", 35, P, Cdx, "Codex.Discovered", CCodex, 0, () => Codex.ReachableCount),
         D("ship_first", "Hangar Debut", "Buy your first ship.", 5, B, Coll, "shopingShips.TryPurchase"),
         D("ship_half", "Squadron", "Own half the hangar.", 15, S, Coll, "shopingShips.TryPurchase", CShips, 8, steps: 8),
         D("ship_all", "Fleet Admiral", "Own every ship.", 40, P, Coll, "shopingShips.TryPurchase", CShips, 0, () => PremiumShips.StandardCount),
         D("skin_first", "Fresh Paint", "Buy your first ship skin.", 5, B, Coll, "ShipSkins.TryPurchase"),
-        D("skin_special", "Special Edition", "Buy a Special skin.", 10, S, Coll, "ShipSkins.TryPurchase"),
+        D("skin_special", "Special Edition", "Buy a Special skin.", 5, S, Coll, "ShipSkins.TryPurchase"),
         D("skin_full_set", "Full Wardrobe", "Own all skins for one ship.", 25, G, Coll, "ShipSkins.TryPurchase"),
-        D("secret_power_first", "Secret Power", "Unleash a ship's secret power.", 10, B, Coll, "SecretPowerController.Fire"),
-        D("stars_150", "Dust Gatherer", "Collect 150 star dust pickups.", 10, B, Dust, "collisionDetection pickup", CStars, 150, steps: 150),
-        D("stars_1000", "Dust Hoarder", "Collect 1,000 star dust pickups.", 20, S, Dust, "collisionDetection pickup", CStars, 1000, steps: 1000),
+        D("secret_power_first", "Secret Power", "Unleash a ship's secret power.", 5, B, Coll, "SecretPowerController.Fire"),
+        D("stars_150", "Dust Gatherer", "Collect 400 star dust pickups.", 5, B, Dust, "collisionDetection pickup", CStars, 400, steps: 400),
+        D("stars_1000", "Dust Hoarder", "Collect 2,000 star dust pickups.", 20, S, Dust, "collisionDetection pickup", CStars, 2000, steps: 2000),
         D("stars_5000", "Dust Baron", "Collect 5,000 star dust pickups.", 25, G, Dust, "collisionDetection pickup", CStars, 5000, steps: 5000),
         D("dust_spent_10000", "Big Spender", "Spend 10,000 star dust in the shop.", 15, S, Dust, "shopingShips/ShipSkins.TryPurchase", CSpent, 10000, steps: 10000),
-        D("score_10k", "Rookie Score", "Score " + ScoreRookie.ToString("N0", System.Globalization.CultureInfo.InvariantCulture) + " points in a run.", 10, B, Skill, "RunScore.Scored / Bank", CScore, ScoreRookie),
+        D("score_10k", "Rookie Score", "Score " + ScoreRookie.ToString("N0", System.Globalization.CultureInfo.InvariantCulture) + " points in a run.", 5, B, Skill, "RunScore.Scored / Bank", CScore, ScoreRookie),
         D("score_50k", "Ace Score", "Score " + ScoreAce.ToString("N0", System.Globalization.CultureInfo.InvariantCulture) + " points in a run.", 20, S, Skill, "RunScore.Scored / Bank", CScore, ScoreAce),
         D("score_150k", "Legend Score", "Score " + ScoreLegend.ToString("N0", System.Globalization.CultureInfo.InvariantCulture) + " points in a run.", 35, P, Skill, "RunScore.Scored / Bank", CScore, ScoreLegend),
         D("speed_flash", "Flash", "Reach the speed cap.", 15, S, Skill, "SpeedMilestones.Step"),
         D("speed_speedster", "Speedster", "Break the speed limit.", 20, S, Skill, "SpeedMilestones.Step"),
         D("speed_super_sonic", "Super Sonic", "Max out the limit break.", 35, P, Skill, "SpeedMilestones.Step"),
-        D("deaths_10", "Crash Course", "Crash 10 times.", 5, B, Skill, "collisionDetection death", CDeaths, 10, steps: 10),
-        D("deaths_100", "Frequent Flyer", "Crash 100 times.", 10, S, Skill, "collisionDetection death", CDeaths, 100, steps: 100, hidden: true),
+        D("deaths_10", "Crash Course", "Crash 25 times.", 5, B, Skill, "collisionDetection death", CDeaths, 25, steps: 25),
+        D("deaths_100", "Frequent Flyer", "Crash 150 times.", 5, S, Skill, "collisionDetection death", CDeaths, 150, steps: 150, hidden: true),
         D("pause_first", "Paused", "Spend your first pause.", 5, B, Pause, "score.pauseCounterFunction"),
-        D("pause_blink_kill", "Correct Pause", "Destroy an enemy by blinking onto it.", 10, B, Pause, "AwardDestroyedTarget bonusPoints > 0"),
-        D("pause_blink_100", "Blink Master", "Blink 100 times.", 10, S, Pause, "movePlayer teleport", CBlinks, 100, steps: 100),
+        D("pause_blink_kill", "Correct Pause", "Destroy an enemy by blinking onto it.", 5, B, Pause, "AwardDestroyedTarget bonusPoints > 0"),
+        D("pause_blink_100", "Blink Master", "Blink 200 times.", 5, S, Pause, "movePlayer teleport", CBlinks, 200, steps: 200),
         D("pause_no_pause_world", "Hold Your Breath", "Clear a world without spending a pause.", 20, S, Pause, "score.pauseCounterFunction + WorldManager.Advance"),
         D("pause_hoarder", "Time Banker", "Hold 15 pauses at once.", 10, S, Pause, "score.incromentPause"),
         D("pause_perfect_dodge", "Perfect Pause", "Blink out of a hostile shot's path.", 25, G, Pause, "movePlayer teleport probe + AchievementEvents.PlayerHurt", hidden: true),

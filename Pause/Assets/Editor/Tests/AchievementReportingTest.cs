@@ -97,7 +97,7 @@ public static class AchievementReportingTest
         var fake = new FakeAchievementStore();
         AchievementStores.Current = fake;
         AchievementStore.ResetAll();
-        for (int i = 0; i < 5; i++) AchievementStore.AddCounter("kills", 10);
+        for (int i = 0; i < 5; i++) AchievementStore.AddCounter("kills", 25);
         Check("progress is batched, not sent per kill", fake.reports.Count == 0 && AchievementSync.PendingReports >= 1);
         AchievementSync.FlushReports();
         var r = fake.reports.Where(x => x.Key == "kills_100").ToList();
@@ -106,7 +106,7 @@ public static class AchievementReportingTest
         fake.reports.Clear();
         AchievementSync.FlushReports();
         Check("an empty queue sends nothing", fake.reports.Count == 0);
-        AchievementStore.AddCounter("kills", 50);
+        AchievementStore.AddCounter("kills", 125);
         Check("completing sends 100% at once", fake.reports.Any(x => x.Key == "kills_100" && x.Value == 100.0));
         fake.reports.Clear();
         fake.available = false;
@@ -115,7 +115,7 @@ public static class AchievementReportingTest
         Check("flush while signed out keeps the queue for the sign-in sync", fake.reports.Count == 0 && AchievementSync.PendingReports >= 1);
         fake.available = true;
         AchievementSync.ResyncAll();
-        Check("... which reports the open counters' percent", fake.reports.Any(x => x.Key == "stars_150" && System.Math.Abs(x.Value - 20 * 100.0 / 150) < 1e-9));
+        Check("... which reports the open counters' percent", fake.reports.Any(x => x.Key == "stars_150" && System.Math.Abs(x.Value - 20 * 100.0 / 400) < 1e-9));
         Check("non-incremental achievements (score, chain, loops) get no partial progress",
               fake.reports.All(x => AchievementCatalog.Find(x.Key).storeSteps > 0 || x.Value == 100.0));
         fake.unreportable.Add("kills_1000");

@@ -1,5 +1,10 @@
 # Achievements store setup (Google Play Games Services and Game Center)
 
+> **Update 2026-10-25 (67 achievements, 990 points).** Early thresholds were raised and 7 achievements added (world reached: Storm, Desert;
+> boss: Storm, Desert; elite sets: Tide, Storm, Desert). The tables below are the original 60 and are kept for history; the current catalogue
+> is `AchievementCatalog.cs` and `docs/achievements-export/*.csv` (regenerated, 67 rows). Total points were rebalanced so the game stays at
+> or under the Play Games cap of 1000.
+
 For the project owner. Package / bundle id: `me.hapticgate.pause` (new Play Console account, Google Cloud project number
 `528367766818`). Status: **Android is done** (Play Games Services project `528367766818`: the 60 achievements are imported as drafts and their ids are in
 `Assets/Resources/AchievementStoreIds.csv` and `docs/achievements-export/android-ids.csv`; they still need **Review and publish** in Play Console).

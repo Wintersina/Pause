@@ -27,8 +27,8 @@ public static class AchievementTracker
     static int pausesThisWorld;
     static float dodgeAt = -1f;
 
-    static readonly string[] WorldReached = { null, "world_frost_reached", "world_verdant_reached", "world_ember_reached", "world_tide_reached" };
-    static readonly string[] BossIds = { "boss_space", "boss_frost", "boss_verdant", "boss_ember", "boss_tide" };
+    static readonly string[] WorldReached = { null, "world_frost_reached", "world_verdant_reached", "world_ember_reached", "world_tide_reached", "world_storm_reached", "world_desert_reached" };
+    static readonly string[] BossIds = { "boss_space", "boss_frost", "boss_verdant", "boss_ember", "boss_tide", "boss_storm", "boss_desert" };
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
     static void Init()
@@ -162,7 +162,6 @@ public static class AchievementTracker
     public static void OnBossOutro(int world, bool destroyed)
     {
         if (!destroyed || !Achievements.Real || world < 0 || world >= WorldManager.Worlds.Length) return;
-        // (Storm and Desert have no boss achievement of their own, but their bosses count for Boss Collector)
         if (world < BossIds.Length) AchievementStore.Unlock(AchievementCatalog.Find(BossIds[world]));
         if (AchievementStore.MarkBoss(world))
             AchievementStore.SetCounterAtLeast(AchievementCatalog.CBosses, AchievementStore.BossesDestroyed());
