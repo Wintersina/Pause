@@ -338,6 +338,7 @@ public static class PowersReworkTest
         score.pauseCounter = 2;
         s.Step(.02f);
         Check("it fires at 2 pauses and adds 2", s.FireCount == 1 && score.pauseCounter == 4);
+        StripIsDrawn("the charge ring", 5, "battery");
         Check("and no slow-time on the world", Mathf.Approximately(Time.timeScale, 1f));
         Teardown(ion);
         score.pauseCounter = 0;
@@ -386,6 +387,8 @@ public static class PowersReworkTest
         s.SetMeter(SecretPowerController.Full);
         s.Fire();
         Check("the hull is ghosted and invulnerable", SecretPowerController.Ghosted && collisionDetection.Invulnerable);
+        StripIsDrawn("the phase aura", 6, "cloak");
+        Check("the held aura keeps its name", GameObject.Find(SecretPowerController.CloakAuraName) != null);
         Check("and drawn translucent", sr.color.a < .6f);
         s.Step(3.9f);
         Check("still a ghost at 3.9 s", SecretPowerController.Ghosted && sr.color.a < .6f);
@@ -463,6 +466,7 @@ public static class PowersReworkTest
         s.SetMeter(SecretPowerController.Full);
         s.Fire();
         Check("the magnet pulls for 5 s", s.MagnetActive && Mathf.Approximately(s.magnetSeconds, 5f));
+        StripIsDrawn("the magnet field", 7, "magnet");
         Check("and dust is worth x2 meanwhile", Mathf.Approximately(SecretPowerController.DustMultiplier, 2f));
         before = score.totalCurrency + score.tutorialCurrency;
         award.Invoke(cd, new object[] { 1f });
@@ -585,6 +589,7 @@ public static class PowersReworkTest
         s.SetMeter(SecretPowerController.Full);
         s.Fire();
         Check("lightning kills hazards within the radius", ShipAttackHits.AlreadyHit(near) && ShipAttackHits.AlreadyHit(close));
+        StripIsDrawn("the clap", 8, "clap");
         Check("it kills them, not just shoves them (" + s.ClapKills + ")", s.ClapKills == 2);
         Check("hazards past 2.6 live", far != null && !ShipAttackHits.AlreadyHit(far));
         Check("a boss takes one weighted hit and is not killed", fb.hits == 1 && fb.weight > 0f && fb.weight < 1f && boss != null);
@@ -614,6 +619,7 @@ public static class PowersReworkTest
         Check("still the target at 3.9 s", ShipDecoy.Active && ShipDecoy.AimPoint(pilot) == spot);
         s.Step(.2f);
         Check("it pops after 4 s: aim back on the pilot", !ShipDecoy.Active && ShipDecoy.AimPoint(pilot) == pilot);
+        StripIsDrawn("the pop", 9, "pop");
         Check("the pop kills within 1.5", ShipAttackHits.AlreadyHit(next));
         Check("and not past it", wide != null && !ShipAttackHits.AlreadyHit(wide));
         Object.DestroyImmediate(wide);
@@ -734,6 +740,7 @@ public static class PowersReworkTest
         s.SetMeter(SecretPowerController.Full);
         s.Step(.02f);
         Check("it fires at 2 hazards close by and starts pulling", s.FireCount == 1 && s.TractorActive);
+        StripIsDrawn("the tractor", 13, "tractor");
         Run(s, .1f);
         Check("hazards are pulled toward the ship", a.transform.position.x < 1.5f - .3f && b.transform.position.x > -1.5f + .3f);
         Check("a boss is never moved", Mathf.Approximately(boss.transform.position.x, 1f));
@@ -762,6 +769,10 @@ public static class PowersReworkTest
         Check("it fires the moment the hull is damaged and heals one heart",
               s.FireCount == 1 && s.Mends == 1 && collisionDetection.lifeCounter == 0);
         Check("with a visible burst (" + (AttackPool.ActiveSprites - sprites) + " effects)", AttackPool.ActiveSprites - sprites >= 2);
+        StripIsDrawn("the heal ring", 14, "mending");
+        var aegis = ShipFxArt.Strip(16, "aegis");
+        Check("Paragon's Aegis strip (Paragon_aegis) is 16 cells, one world unit across", aegis != null && aegis.Length == 16 &&
+              aegis[0] != null && Mathf.Abs(aegis[0].bounds.size.x - 1f) < .01f);
         s.SetMeter(SecretPowerController.Full);
         collisionDetection.lifeCounter = 2;
         s.Step(.02f);

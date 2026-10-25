@@ -338,7 +338,7 @@ public class SecretPowerController : MonoBehaviour
             case SecretPower.IonBattery:
                 score.incromentPause();
                 PowerTrailSprite.Pack(ship, at);
-                Rim(at, 1.3f, false, 0f, transform, 73);
+                PowerStrip("battery", 8, false, 1.3f, 0f, transform, 73, StripAlpha);
                 break;
 
             case SecretPower.PhaseCloak:
@@ -348,11 +348,12 @@ public class SecretPowerController : MonoBehaviour
 
             case SecretPower.GoldMagnet:
                 magnetLeft = magnetSeconds;
-                magnetFx = Rim(at, 1.8f, true, magnetSeconds, transform, 41);
+                // the field loops while the magnet pulls (cells 0-7), then folds away
+                magnetFx = PowerStrip("magnet", 0, true, 1.8f, magnetSeconds, transform, 41, StripAlpha);
                 break;
 
             case SecretPower.Thunderclap:
-                Rim(at, clapRadius * 1.5f, false, 0f, transform, 73);
+                PowerStrip("clap", 8, false, clapRadius * 1.5f, 0f, transform, 73, StripAlpha);
                 Clap(at);
                 break;
 
@@ -398,14 +399,15 @@ public class SecretPowerController : MonoBehaviour
 
             case SecretPower.TractorPull:
                 tractorLeft = tractorSeconds;
-                Rim(at, tractorPullRadius * 1.1f, true, tractorSeconds, transform, 66);
-                Rim(at, 1.6f, false, 0f, transform, 73);
+                // the disc is heavy art: lower alpha and a smaller reach keep the hull clearly visible
+                PowerStrip("tractor", 0, true, tractorPullRadius * TractorScale, tractorSeconds, transform, 66, TractorAlpha);
+                PowerStrip("tractor", 8, false, 1.6f, 0f, transform, 73, TractorAlpha);
                 break;
 
             case SecretPower.Mending:
                 if (collisionDetection.lifeCounter > 0) { collisionDetection.lifeCounter--; Mends++; }
                 // a feather burst round the hull, a second one rising off it, and the word
-                Rim(at, 1.5f, false, 0f, transform, 73).SetColor(PickupGlow.HealGreen);
+                PowerStrip("mending", 8, false, 1.5f, 0f, transform, 73, StripAlpha);
                 // a few feathers lift off the hull and drift up
                 Burst(at, .9f, null).Travel(at + Vector3.up * 1.1f, .5f, 1f);
                 var hud = ScoreHud.Current;
@@ -417,7 +419,7 @@ public class SecretPowerController : MonoBehaviour
                     // the blue-atom shield (same art, same absorb rule), on a timer
                     var hit = GetComponent<collisionDetection>();
                     if (hit != null) hit.RaiseShield(PremiumShips.Current(ship).shieldSeconds);
-                    Rim(at, 1.5f, false, 0f, transform, 73);
+                    PowerStrip("aegis", 8, false, 1.5f, 0f, transform, 73, StripAlpha);
                     AegisShields++;
                 }
                 break;
@@ -441,11 +443,8 @@ public class SecretPowerController : MonoBehaviour
     {
         collisionDetection.BeginCloak(seconds);
         Vector3 at = hull != null ? hull.position : Vector3.zero;
-        AttackPool.Sprite().Play(AttackSprite.Source.Rim, shipId, at, Vector3.one * 1.7f, 0f,
-            ShipFxArt.PowerBurstTicks, false, 0f, hull, Vector3.zero, 73).SetColor(RimTint(shipId));
-        var aura = AttackPool.Sprite().Play(AttackSprite.Source.Rim, shipId, at, Vector3.one * 1.15f, 0f,
-            ShipFxArt.PowerLoopTicks, true, seconds, hull, Vector3.zero, 40);
-        aura.SetColor(RimTint(shipId));
+        PowerStripAt(shipId, "cloak", at, 8, false, 1.7f, 0f, hull, 73, StripAlpha);
+        var aura = PowerStripAt(shipId, "cloak", at, 0, true, 1.15f, seconds, hull, 40, StripAlpha);
         aura.Rename(CloakAuraName);
         return aura;
     }
@@ -495,12 +494,18 @@ public class SecretPowerController : MonoBehaviour
     }
 
     const float StripAlpha = .85f;
+    const float TractorAlpha = .6f, TractorScale = .9f;   // the heavy tractor disc: fainter and tighter (x the 4 u pull radius)
 
     // A ship's own hand-drawn power strip (Powers2/<Ship>_<name>.png: cells 0-7 the held loop, 8-15 the burst),
     // drawn in its own colours, centred on the ship (or on where the power went off).
     AttackSprite PowerStrip(string name, int firstCell, bool loop, float size, float life, Transform follow, int order, float alpha)
     {
-        return AttackPool.Sprite().Play(AttackSprite.Source.Extra, ship, transform.position, Vector3.one * size, 0f,
+        return PowerStripAt(ship, name, transform.position, firstCell, loop, size, life, follow, order, alpha);
+    }
+
+    static AttackSprite PowerStripAt(int shipId, string name, Vector3 at, int firstCell, bool loop, float size, float life, Transform follow, int order, float alpha)
+    {
+        return AttackPool.Sprite().Play(AttackSprite.Source.Extra, shipId, at, Vector3.one * size, 0f,
             loop ? ShipFxArt.PowerLoopTicks : ShipFxArt.PowerBurstTicks, loop, life, follow, Vector3.zero, order)
             .Strip(name, firstCell, loop).Alpha(alpha);
     }
@@ -795,7 +800,7 @@ public class SecretPowerController : MonoBehaviour
             decoyLeft = 0f;
             Vector3 spot = ShipDecoy.Position;
             ShipDecoy.Clear();
-            Rim(spot, decoyBlastRadius * 1.6f, false, 0f, null, 73).SetColor(DecoyTint);
+            PowerStripAt(ship, "pop", spot, 8, false, decoyBlastRadius * 1.6f, 0f, null, 73, StripAlpha);
             KillWithin(spot, decoyBlastRadius);
         }
 
