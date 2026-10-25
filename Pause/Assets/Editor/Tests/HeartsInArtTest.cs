@@ -1,3 +1,4 @@
+using System.Linq;
 using System.IO;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -134,18 +135,27 @@ public static class HeartsInArtTest
         {
             var tex = Load(EliteArt.StripPath(def));
             if (tex == null) { Check(def.key + ": strip readable", false); continue; }
+            // the real silhouette radius: the furthest opaque pixel of any drawing (the strip and the companions EliteArt appends to it:
+            // the damaged burn loop, Space's bank loops)
+            float pw = def.cellWorldSize / tex.height, far = 0f;
+            foreach (string suffix in new[] { "" }.Concat(EliteArt.Companions))
+            {
+                var t = suffix.Length == 0 ? tex : Load(EliteArt.StripPath(def) + suffix);
+                if (t == null) continue;
+                int tc = Mathf.Max(1, t.width / t.height), tcell = t.width / tc, th = t.height;
+                var tpx = t.GetPixels32();
+                for (int y = 0; y < th; y++)
+                    for (int x = 0; x < t.width; x++)
+                    {
+                        if (tpx[y * t.width + x].a < 128) continue;
+                        float dx = (x % tcell) + .5f - tcell * .5f, dy = y + .5f - th * .5f;
+                        far = Mathf.Max(far, Mathf.Sqrt(dx * dx + dy * dy));
+                    }
+            }
+            float silhouette = far * pw;
+            // (the hearts' over-the-art samples below read the main strip: the cell the ship spawns on)
             int cells = Mathf.Max(1, tex.width / tex.height), cell = tex.width / cells, ch = tex.height;
             var px = tex.GetPixels32();
-            // the real silhouette radius: the furthest opaque pixel of any drawing
-            float pw = def.cellWorldSize / ch, far = 0f;
-            for (int y = 0; y < ch; y++)
-                for (int x = 0; x < tex.width; x++)
-                {
-                    if (px[y * tex.width + x].a < 128) continue;
-                    float dx = (x % cell) + .5f - cell * .5f, dy = y + .5f - ch * .5f;
-                    far = Mathf.Max(far, Mathf.Sqrt(dx * dx + dy * dy));
-                }
-            float silhouette = far * pw;
 
             var ship = EliteShip.CreateInPlay(def, new Vector2(0f, 1f));
             var eh = ship.GetComponent<EliteHearts>();
