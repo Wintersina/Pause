@@ -22,6 +22,13 @@ public static class PickupArt
     // credits and the codex icons) are untouched.
     public const float StarDustScale = 1.25f;
 
+    // The small Star Dust (smStar1) was hard to spot, so it is drawn a further
+    // SmallStarExtra bigger than StarDustScale (the large Bright Star is not).
+    // Its trigger box grows only SmallStarBoxExtra of that, so collecting it
+    // stays about as hard as before; its SpawnSpace footprint follows the art.
+    public const float SmallStarExtra = 1.25f;
+    public const float SmallStarBoxExtra = 1.1f;
+
     // The atoms (blue, red, violet, green, magnet) are drawn this much bigger than
     // their 0.28 u art in play, so they read at a glance on a phone (an atom
     // was ~40 px across on a 1080 px screen, a hostile shot ~32). Only the
@@ -48,6 +55,7 @@ public static class PickupArt
     // StarDustScale for star dust, 1 for anything else.
     public static float InGameScale(GameObject prefab)
     {
+        if (PrefabName.Is(prefab, "smStar1")) return StarDustScale * SmallStarExtra;
         return IsStarDust(prefab) ? StarDustScale : 1f;
     }
 
@@ -59,6 +67,12 @@ public static class PickupArt
         if (k == 1f) return;
         var s = instance.transform.localScale;
         instance.transform.localScale = new Vector3(s.x * k, s.y * k, s.z);
+        if (PrefabName.Is(prefab != null ? prefab : instance, "smStar1"))
+        {
+            float shrink = SmallStarBoxExtra / SmallStarExtra;
+            foreach (var box in instance.GetComponents<BoxCollider2D>()) { box.size *= shrink; box.offset *= shrink; }
+            foreach (var circle in instance.GetComponents<CircleCollider2D>()) { circle.radius *= shrink; circle.offset *= shrink; }
+        }
     }
 
     // Atom idle: rest pose, ten travelling drawings on 2s, anticipation, pop, settle.
