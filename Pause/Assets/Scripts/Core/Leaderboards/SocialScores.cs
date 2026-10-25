@@ -16,7 +16,10 @@ public static class SocialScores
         if (scores != null)
             foreach (var s in scores)
                 if (s != null) page.entries.Add(Entry(s, localUserId, tagOf));
-        if (playerScore != null && playerScore.rank > 0)
+        // A score with a value is the player's entry even when the store gave it no
+        // public rank (rank -1: private profile, or ranks not computed yet). No
+        // score at all comes back null, or empty (rank 0, value 0).
+        if (playerScore != null && (playerScore.rank > 0 || playerScore.value > 0))
         {
             page.hasPlayer = true;
             page.player = Entry(playerScore, localUserId, tagOf);

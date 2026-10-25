@@ -615,6 +615,25 @@ public static class LeaderboardTest
         return page;
     }
 
+    // What Play Games hands back when it stores the score but has no public rank for it.
+    static LeaderboardPage Unranked(long value)
+    {
+        LeaderboardPage page = null;
+        SocialScores.ToPage(null, new FakeScore { rank = value > 0 ? -1 : 0, value = value, userID = "ME" }, "ME", "Me", null, p => page = p);
+        return page;
+    }
+
+    class FakeScore : UnityEngine.SocialPlatforms.IScore
+    {
+        public string leaderboardID { get; set; }
+        public long value { get; set; }
+        public System.DateTime date { get; set; }
+        public string formattedValue { get; set; }
+        public string userID { get; set; }
+        public int rank { get; set; }
+        public void ReportScore(System.Action<bool> callback) { }
+    }
+
     static void ConfirmBeforeDone()
     {
         // The decision itself, no store involved.
@@ -625,6 +644,13 @@ public static class LeaderboardTest
         Check("judge: board holds a better value -> accepted", LeaderboardService.Judge(high, 100, PageWith(150)) == LeaderboardService.Verdict.Accepted);
         Check("judge: board holds a worse value -> rejected", LeaderboardService.Judge(high, 100, PageWith(90)) == LeaderboardService.Verdict.Rejected);
         Check("judge: no entry for the player -> rejected", LeaderboardService.Judge(high, 100, none) == LeaderboardService.Verdict.Rejected);
+        Check("judge: unranked player entry (rank -1) holding the value -> accepted",
+              LeaderboardService.Judge(high, 100, Unranked(100)) == LeaderboardService.Verdict.Accepted);
+        Check("judge: unranked player entry with a worse value -> rejected",
+              LeaderboardService.Judge(high, 100, Unranked(90)) == LeaderboardService.Verdict.Rejected);
+        var empty = Unranked(0);
+        Check("social scores: rank -1 with a value is the player's entry; an empty score is not",
+              Unranked(100).hasPlayer && !empty.hasPlayer && LeaderboardService.Judge(high, 100, empty) == LeaderboardService.Verdict.Rejected);
         Check("judge: failed read -> unknown", LeaderboardService.Judge(high, 100, LeaderboardPage.Failed(LeaderboardStatus.Error)) == LeaderboardService.Verdict.Unknown);
         Check("judge: no page -> unknown", LeaderboardService.Judge(high, 100, null) == LeaderboardService.Verdict.Unknown);
         Check("judge: lower-is-better follows the board's order",
@@ -867,6 +893,24 @@ public static class LeaderboardTest
         Check("top-10 player: list row highlighted red",
               row1 != null && row1.GetComponent<CelShape>().fill == AkiraPalette.Red);
         Check("top-10 player: rows match entries", panel.RowCount == 3 && panel.PlayerRankText == "#2");
+
+        // A stored score the store gave no public rank (rank -1): shown without a rank, never "#-1".
+        var unranked = new FakeLeaderboards();
+        unranked.SetBoard(TopScoreId, FakeLeaderboards.Entry(-1, "KANEDA", 250, true));
+        panel = OpenPanel(unranked);
+        Check("unranked player: own row shows the score with a dash for the rank",
+              panel.PlayerRowShown && panel.PlayerRankText == "#--");
+        Check("unranked player: the private-profile note is shown, inside the player row",
+              panel.UnrankedNote == LeaderboardPanel.UnrankedMessage("Fake") && panel.UnrankedNote.Contains("private") &&
+              panel.PanelRoot.Find("PlayerRow/UnrankedNote") != null);
+        Check("unranked note: Game Center wording differs and does not mention a private profile",
+              LeaderboardPanel.UnrankedMessage("Game Center").Contains("Game Center") &&
+              !LeaderboardPanel.UnrankedMessage("Game Center").Contains("private"));
+        Check("ranked player: no unranked note", OpenPanel(mine).UnrankedNote == null);
+        var noScore = new FakeLeaderboards();
+        noScore.SetBoard(TopScoreId, FakeLeaderboards.Entry(1, "TETSUO", 300));
+        panel = OpenPanel(noScore);
+        Check("no player entry: no unranked note", panel.UnrankedNote == null && panel.PanelRoot.Find("PlayerRow/UnrankedNote") == null);
 
         // 25 entries: exactly the top 10 in rank order, plus the player's own row when they rank outside it.
         var big = new FakeLeaderboards();

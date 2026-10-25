@@ -52,7 +52,7 @@ public enum LeaderboardStatus
 [Serializable]
 public struct LeaderboardEntry
 {
-    public int rank;            // 1-based; 0 = unranked
+    public int rank;            // 1-based; 0 or less = unranked
     public string playerId;
     public string playerName;
     public long value;

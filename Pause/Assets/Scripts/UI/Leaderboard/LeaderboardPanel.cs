@@ -100,6 +100,7 @@ public class LeaderboardPanel : MonoBehaviour
     public int RowCount { get; private set; }
     public bool PlayerRowShown { get; private set; }
     public string PlayerRankText { get; private set; }
+    public string UnrankedNote { get; private set; }   // the note under an unranked own row, else null
     public string MessageText { get; private set; }
 
     public RectTransform SafeRoot { get { return safeRoot; } }
@@ -408,6 +409,7 @@ public class LeaderboardPanel : MonoBehaviour
         RowCount = 0;
         PlayerRowShown = false;
         PlayerRankText = null;
+        UnrankedNote = null;
         MessageText = null;
 
         string platformName = service.Platform.PlatformName;
@@ -449,6 +451,14 @@ public class LeaderboardPanel : MonoBehaviour
     static string StoreName(string platformName)
     {
         return platformName == "none" || string.IsNullOrEmpty(platformName) ? "your game account" : platformName;
+    }
+
+    // Shown under an own row that has a score but no public rank.
+    public static string UnrankedMessage(string platformName)
+    {
+        return platformName == "Game Center"
+            ? "Your score is saved, but Game Center has not ranked it yet. It will appear once it does."
+            : "Your profile is private, so you won't appear on the public leaderboard. Make it public in the Play Games app to be ranked.";
     }
 
     void Message(string title, string sub)
@@ -520,7 +530,15 @@ public class LeaderboardPanel : MonoBehaviour
             me.isLocalPlayer = true;
             if (string.IsNullOrEmpty(me.playerName)) me.playerName = "YOU";
             Row(rowRect, me, board, true, true);
-            PlayerRankText = "#" + me.rank;
+            PlayerRankText = me.rank > 0 ? "#" + me.rank : "#--";
+            if (me.rank <= 0)
+            {
+                // The store kept the score but gave it no public rank: say why, under the row.
+                UnrankedNote = UnrankedMessage(service.Platform.PlatformName);
+                var note = Place(prt, "UnrankedNote", 0f, PlayerRowHeight + 4f, Inner, 46f);
+                var text = Label(note, UnrankedNote, 18, AkiraPalette.Muted, TextAnchor.UpperLeft, 2f);
+                text.fontStyle = FontStyle.Bold;
+            }
         }
         else
         {
