@@ -36,7 +36,7 @@ UNITY_CMD = UNITY="$(UNITY)" scripts/unity-batch.sh -projectPath "$(PROJECT)"
 .PHONY: test test-fast help mac-build mac-run mac-dev-build mac-dev-run \
 	apk-share android-build android-release android-release-signed android-deploy android-run android-dev-build android-dev-deploy android-log \
 	ios-build ios-deploy ios-run ios-dev-build ios-dev-deploy ios-dev-run ios-devices \
-	devices install install-android install-ios run-android run-ios build-ios-sim
+	devices install install-android install-ios check-android-target check-ios-target run-android run-ios build-ios-sim
 
 help:
 	@echo "Pause local commands:"
@@ -55,12 +55,12 @@ help:
 	@echo "  make ios-devices          List iPhone/iPad device IDs for ios-deploy"
 	@echo ""
 	@echo "  make devices              List running Android emulators and booted iOS simulators"
-	@echo "  make install              install-android + install-ios (build first; see below)"
-	@echo "  make install-android      adb install -r the dev APK on every running emulator (or ANDROID_SERIAL=...) and launch it"
-	@echo "  make install-ios          Install the simulator build on the booted iOS simulator(s) and launch it"
+	@echo "  make install              install-android + install-ios (each builds first, one after the other)"
+	@echo "  make install-android      build the dev APK, then adb install -r it on every running emulator (or ANDROID_SERIAL=...) and launch it"
+	@echo "  make install-ios          Build the simulator app, then install it on the booted iOS simulator(s) and launch it"
 	@echo "  make build-ios-sim        Unity iOS simulator export + xcodebuild -sdk iphonesimulator"
 	@echo "  make run-android / run-ios  Launch the already-installed app on the emulators / simulators"
-	@echo "Emulator flow: 'make android-dev-build' then 'make install-android'; 'make build-ios-sim' then 'make install-ios'."
+	@echo "Emulator flow: 'make install-android' / 'make install-ios' build the latest dev build first, then install and launch; 'make run-*' only launches."
 	@echo "Optional: ANDROID_SERIAL=<serial> selects Android; IOS_DEVICE_ID=<udid> selects iPhone."
 	@echo "Free Apple ID sideload: make ios-deploy IOS_NO_GAMECENTER=1 IOS_TEAM_ID=<team id>"
 	@echo "          UNITY=<path> overrides Unity."
@@ -153,8 +153,8 @@ ios-devices:
 	xcrun devicectl list devices
 
 # ---- Emulators / simulators --------------------------------------------------
-# Install the already-built dev app on whatever is running; nothing here builds
-# unless you ask (android-dev-build, build-ios-sim). Real phones are never
+# install-* always build the latest dev app first, then install on whatever is
+# running; run-* only launches. Real phones are never
 # touched: only emulator-* adb devices and booted simulators are targeted, unless
 # you name one yourself with ANDROID_SERIAL=<serial> / IOS_SIM=<udid>.
 # The emulator's ABI must be in the APK (project ships arm64-v8a: an arm64
@@ -170,9 +170,15 @@ devices:
 	@echo "Android (adb):"; $(ADB) devices -l | sed '1d;/^$$/d;s/^/  /'
 	@echo "iOS simulators (booted):"; xcrun simctl list devices booted | grep -E '\(Booted\)' | sed 's/^/ /' || true
 
-install-android:
-	@test -f "$(ANDROID_DEV_APK)" || { echo "$(ANDROID_DEV_APK) missing: run 'make android-dev-build'." >&2; exit 2; }
+check-android-target:
 	@test -n "$(ANDROID_TARGETS)" || { echo "No running Android emulator (adb devices). Start one or pass ANDROID_SERIAL=<serial>." >&2; exit 2; }
+
+check-ios-target:
+	@xcrun simctl list devices $(if $(filter booted,$(IOS_SIM)),booted,) | grep -q 'Booted' || { echo "No booted iOS simulator. Boot one or pass IOS_SIM=<udid>." >&2; exit 2; }
+
+# Always rebuilds the dev APK from the current source first (fail fast with no emulator).
+install-android: check-android-target android-dev-build
+	@test -f "$(ANDROID_DEV_APK)" || { echo "$(ANDROID_DEV_APK) missing after build." >&2; exit 2; }
 	@set -e; for d in $(ANDROID_TARGETS); do \
 		echo "== $$d: install + launch"; \
 		$(ADB) -s $$d install -r "$(ANDROID_DEV_APK)"; \
@@ -191,12 +197,16 @@ build-ios-sim:
 	$(UNITY_CMD) -executeMethod BuildScript.BuildIOSSim
 	xcodebuild -project "$(PROJECT)/Builds/iOS-sim/Unity-iPhone.xcodeproj" -scheme Unity-iPhone -configuration Debug -sdk iphonesimulator -destination "generic/platform=iOS Simulator" -derivedDataPath "$(IOS_SIM_DERIVED_DATA)" build
 
-install-ios:
-	@test -d "$(IOS_SIM_APP)" || { echo "$(IOS_SIM_APP) missing: run 'make build-ios-sim'." >&2; exit 2; }
+# Always rebuilds the simulator app from the current source first.
+install-ios: check-ios-target build-ios-sim
+	@test -d "$(IOS_SIM_APP)" || { echo "$(IOS_SIM_APP) missing after build." >&2; exit 2; }
 	xcrun simctl install $(IOS_SIM) "$(IOS_SIM_APP)"
 	xcrun simctl launch $(IOS_SIM) "$(IOS_BUNDLE_ID)"
 
 run-ios:
 	xcrun simctl launch $(IOS_SIM) "$(IOS_BUNDLE_ID)"
 
-install: install-android install-ios
+# Sequential sub-makes so two Unity batch builds never overlap, even under make -j.
+install:
+	@$(MAKE) install-android
+	@$(MAKE) install-ios
