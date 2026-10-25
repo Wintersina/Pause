@@ -46,6 +46,7 @@ public static class HeartsPlacementTest
             EveryShipOrbitsAllRound();
             StayOnScreenOnEveryScreen();
             OrbitFreezesWithTheWorld();
+            OrbitFollowsAResizedHull();
             ReSpaceAfterALoss();
             FlourishesHappen();
         }
@@ -407,6 +408,27 @@ public static class HeartsPlacementTest
             Time.timeScale = 1f;
             Teardown(rig);
         }
+    }
+
+    // The portal arrival grows the ship while the orbit already exists: the
+    // orbit is re-measured the frame the size changes, not a second later.
+    static void OrbitFollowsAResizedHull()
+    {
+        ShipUiSlots.ScreenOverride = () => Everywhere;
+        FreshScene();
+        var rig = Build(ShipId.Starter, Vector3.zero);
+        rig.hearts.Place(Dt, Dt);
+        Vector2 full = rig.hearts.OrbitRadii;
+        Vector3 rest = rig.ship.transform.localScale;
+        rig.ship.transform.localScale = rest * .06f;
+        rig.hearts.Place(Dt, Dt);
+        Vector2 tiny = rig.hearts.OrbitRadii;
+        Check("the orbit shrinks the same frame the ship does, not a second later (" + full.x.ToString("F2") + " -> " + tiny.x.ToString("F2") + ")",
+              tiny.x < full.x * .5f);
+        rig.ship.transform.localScale = rest;
+        rig.hearts.Place(Dt, Dt);
+        Check("and grows back with it", Mathf.Abs(rig.hearts.OrbitRadii.x - full.x) < .01f);
+        Teardown(rig);
     }
 
     // A lost heart's place closes up: the hearts left re-space (a ring

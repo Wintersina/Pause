@@ -869,11 +869,25 @@ public abstract class HeartOrbit : MonoBehaviour
     // Half the box a heart can draw in (largest depth, leaning).
     float HalfBox { get { return heartSize * .5f * (1f + DepthScale) * 1.2f; } }
 
+    float measuredScale;
+
+    float LossyMax()
+    {
+        return Mathf.Max(Mathf.Abs(transform.lossyScale.x), Mathf.Abs(transform.lossyScale.y));
+    }
+
+    // True when the owner's size differs from the one the orbit was measured at.
+    public bool HullScaleChanged()
+    {
+        return Mathf.Abs(LossyMax() - measuredScale) > measuredScale * .005f + 1e-6f;
+    }
+
     // Re-measures the orbit round the hull's sprite (and finds the gun).
     public void Measure()
     {
         measured = true;
         remeasureIn = 1f;
+        measuredScale = LossyMax();
         if (hull == null) hull = HullRenderer();
         Vector3 p = transform.position;
         Bounds hb = HullBounds();
@@ -943,7 +957,12 @@ public abstract class HeartOrbit : MonoBehaviour
         float popDt = PopOnRealTime ? Mathf.Max(0f, unscaledDt) : dt;
         for (int i = 0; i < popLeft.Length; i++) if (popLeft[i] > 0f) popLeft[i] = Mathf.Max(0f, popLeft[i] - popDt);
         remeasureIn -= unscaledDt;
-        if (!measured || remeasureIn <= 0f) Measure();
+        // Also whenever the hull's size changes under the orbit (the portal
+        // arrival grows the ship out of the vortex over its first seconds, and
+        // the hearts may be built before or after it starts): an orbit measured
+        // at the old size would hang round the hull until the next periodic
+        // re-measure, a second later, and then pop into place.
+        if (!measured || remeasureIn <= 0f || HullScaleChanged()) Measure();
 
         Vector3 p = transform.position;
         Vector2 c = (Vector2)p + centre;
