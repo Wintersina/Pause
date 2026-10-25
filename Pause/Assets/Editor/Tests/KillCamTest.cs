@@ -7,7 +7,8 @@ using UnityEngine;
 // frames, the live replay hiding the board and handing it back untouched
 // (no zoom: the camera's size never changes), the crash held meanwhile, and
 // the saved high-score death (policy, one slot that the latest replaces,
-// the file round trip, versions and corrupt files). Edit mode, no scene.
+// the file round trip, versions and corrupt files, a sprite whose shader
+// works in its own texture space kept as it looked). Edit mode, no scene.
 public static class KillCamTest
 {
     static int fails;
@@ -394,9 +395,74 @@ public static class KillCamTest
         if (second != null) second.Dispose();
         Check("the codex describes the latest", KillCamArchive.Describe().Contains("20,000") || KillCamArchive.Describe().Contains("20000") || KillCamArchive.Describe().Contains("20"));
 
+        Baked(made, r);
+
         PlayerPrefs.SetString(KillCamArchive.PrefsKey, r.Format());
         Check("a file that does not match its record is not trusted", KillCamArchive.Load() == null);
         KillCamArchive.Clear();
         Check("cleared, there is no record", !KillCamArchive.HasRecord && KillCamArchive.Load() == null);
+    }
+
+    // A sprite drawn with a shader that works in its own texture space (the
+    // Space sky's wrap: v' = v * (1 - blend), cross-faded from v' + 1 - blend)
+    // is kept as it looked, not re-made on the atlas, where the same maths
+    // would read other sprites. The tile here is red below, green above;
+    // through the wrap at blend .5 its copy shows green at the bottom and red
+    // at the top. The same sprite drawn plain keeps its own slot.
+    static void Baked(System.Collections.Generic.List<Object> made, KillCamArchive.Record r)
+    {
+        var shader = Shader.Find("Pause/BackdropSkyWrap");
+        Check("the sky wrap shader is found", shader != null);
+        if (shader == null) return;
+        var wrap = new Material(shader);
+        made.Add(wrap);
+        wrap.SetFloat("_Blend", .5f);
+        var plainMat = new Material(Shader.Find("Sprites/Default"));
+        made.Add(plainMat);
+        Check("the sky wrap is baked, the default sprite material is not",
+              KillCamArchive.Bakes(wrap) && !KillCamArchive.Bakes(null) && !KillCamArchive.Bakes(plainMat));
+
+        const int size = 16;
+        var tex = new Texture2D(size, size, TextureFormat.RGBA32, false) { filterMode = FilterMode.Point, wrapMode = TextureWrapMode.Clamp };
+        var px = new Color[size * size];
+        for (int y = 0; y < size; y++)
+            for (int x = 0; x < size; x++) px[y * size + x] = y < size / 2 ? Color.red : Color.green;
+        tex.SetPixels(px);
+        tex.Apply();
+        var sky = Sprite.Create(tex, new Rect(0, 0, size, size), new Vector2(.5f, .5f), size);
+        made.Add(tex);
+        made.Add(sky);
+
+        var clip = MakeClip(sky, 20, 1f / 60f, 1f);
+        for (int f = 0; f < clip.frameCount; f++) { var e = clip.entries[f * 2]; e.material = wrap; clip.entries[f * 2] = e; }
+        var record = new KillCamArchive.Record { score = 30000, utcTicks = r.utcTicks + 2, ship = r.ship, world = "Space", killer = r.killer };
+        bool saved = KillCamArchive.Save(clip, record, false);
+        var loaded = KillCamArchive.Load();
+        Check("a clip with a wrapped sky is kept", saved && loaded != null);
+        if (loaded == null) return;
+        try
+        {
+            KillCamEntry baked = default, plain = default;
+            for (int i = 0; i < loaded.clip.count[0]; i++)
+            {
+                var e = loaded.clip.Entry(0, i);
+                if (e.order == 5) baked = e; else plain = e;
+            }
+            Check("the wrapped sprite replays with the plain sprite material (its look is in the atlas)",
+                  baked.sprite != null && baked.material == null && plain.sprite != null && baked.sprite != plain.sprite);
+            if (baked.sprite == null || plain.sprite == null) return;
+            Color Px(Sprite s, bool top)
+            {
+                var rect = s.rect;
+                return s.texture.GetPixel((int)rect.center.x, top ? (int)rect.yMax - 1 : (int)rect.yMin);
+            }
+            Color bb = Px(baked.sprite, false), bt = Px(baked.sprite, true);
+            Check("the baked slot holds the wrap's output: green at the bottom, red at the top (" + bb + " / " + bt + ")",
+                  bb.g > .8f && bb.r < .2f && bt.r > .8f && bt.g < .2f && bb.a > .95f && bt.a > .95f);
+            Color pb = Px(plain.sprite, false), pt = Px(plain.sprite, true);
+            Check("the same sprite drawn plain keeps its own art: red at the bottom, green at the top",
+                  pb.r > .8f && pb.g < .2f && pt.g > .8f && pt.r < .2f);
+        }
+        finally { loaded.Dispose(); }
     }
 }

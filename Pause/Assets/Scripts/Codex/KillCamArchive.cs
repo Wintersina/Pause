@@ -24,7 +24,11 @@ using UnityEngine.Experimental.Rendering;
 //     would overflow AtlasMax), the atlas stored as a PNG;
 //   * a material other than the default sprite one is stored as its shader's
 //     name and its float / colour / vector settings (re-made on load when
-//     the shader is in the build -- the backdrops' grading, the rails');
+//     the shader is in the build -- the additive glows, the rails'); but a
+//     shader that works in its sprite's own texture space (BakedShaders: the
+//     Space sky's wrap, the turning planets' disc) would sample other
+//     sprites in the clip's atlas, so such a sprite is drawn through its
+//     material into the atlas instead and replayed plain;
 //   * each rail (a scrolling quad) as its bounds, settings, a copy of its
 //     texture and its offset per frame;
 //   * frames thinned to StoreGap apart (the replay blends between them),
@@ -247,9 +251,30 @@ public static class KillCamArchive
 
     // ---- packing (main thread: reads the live sprites through the GPU) ----
 
+    // Shaders whose look is worked out in the sprite's own texture space: the
+    // sky's cross-fade over v 0..1 (BackdropSkyWrap), a planet's disc in its
+    // texture's uv (BackdropPlanet), the planetfall's uv scroll, a plate feather
+    // in 256 px cells (BackdropGrade), a lamp hash per texel (BackdropBlink).
+    // Re-made on a sprite cut into the clip's own atlas they would sample its
+    // neighbours (a planet wrapped in scraps of other sprites), so each such
+    // sprite is drawn through its material -- its renderer's settings too, as
+    // at the moment of death -- into the atlas (a slot per sprite and
+    // material) and replayed with the plain sprite material.
+    public static readonly string[] BakedShaders =
+    {
+        "Pause/BackdropSkyWrap", "Pause/BackdropPlanet", "Pause/PlanetfallLayer", "Pause/BackdropGrade", "Pause/BackdropBlink",
+    };
+
+    public static bool Bakes(Material m)
+    {
+        return m != null && m.shader != null && Array.IndexOf(BakedShaders, m.shader.name) >= 0;
+    }
+
     sealed class Slot
     {
         public Sprite sprite;
+        public Material bake;            // drawn through this (BakedShaders), else copied as is
+        public SpriteRenderer source;    // the live renderer: its property block goes into the bake
         public Texture texture;
         public Rect uv;
         public Vector2 worldSize, pivot;
@@ -278,8 +303,9 @@ public static class KillCamArchive
         p.meshCounts = new int[p.frames];
 
         var slots = new List<Slot>();
-        var spriteIndex = new Dictionary<Sprite, int>();
+        var spriteIndex = new Dictionary<(Sprite, Material), int>();
         var matIndex = new Dictionary<Material, int>();
+        var baked = new Dictionary<Material, bool>();
         var trackIndex = new Dictionary<int, int>();
         var meshIndex = new Dictionary<int, int>();
         var meshRenderers = new List<Renderer>();
@@ -293,7 +319,10 @@ public static class KillCamArchive
             for (int i = 0; i < clip.count[f]; i++)
             {
                 var e = clip.Entry(f, i);
-                int s = SlotOf(e.sprite, slots, spriteIndex);
+                bool bakes = false;   // (shader.name allocates: once per material)
+                if (e.material != null && !baked.TryGetValue(e.material, out bakes)) baked[e.material] = bakes = Bakes(e.material);
+                var bake = bakes ? e.material : null;
+                int s = SlotOf(e.sprite, bake, e.source, slots, spriteIndex);
                 if (s < 0) continue;
                 int track;
                 if (!trackIndex.TryGetValue(e.track, out track))
@@ -304,7 +333,7 @@ public static class KillCamArchive
                 }
                 p.entries.Add(new PEntry
                 {
-                    track = (ushort)track, sprite = (ushort)s, material = (short)MaterialOf(e.material, p, matIndex),
+                    track = (ushort)track, sprite = (ushort)s, material = (short)(bake != null ? -1 : MaterialOf(e.material, p, matIndex)),
                     order = e.order, layer = e.layer, flags = e.flags,
                     pos = new Vector3(e.pos.x - clip.cam[f].x, e.pos.y - clip.cam[f].y, e.pos.z),
                     m00 = e.m00, m01 = e.m01, m10 = e.m10, m11 = e.m11, color = e.color, size = e.size,
@@ -336,11 +365,11 @@ public static class KillCamArchive
         return p;
     }
 
-    static int SlotOf(Sprite sprite, List<Slot> slots, Dictionary<Sprite, int> index)
+    static int SlotOf(Sprite sprite, Material bake, SpriteRenderer source, List<Slot> slots, Dictionary<(Sprite, Material), int> index)
     {
         if (sprite == null) return -1;
         int i;
-        if (index.TryGetValue(sprite, out i)) return i;
+        if (index.TryGetValue((sprite, bake), out i)) return i;
         i = -1;
         var tex = sprite.texture;
         if (tex != null && slots.Count < ushort.MaxValue)
@@ -354,7 +383,7 @@ public static class KillCamArchive
             {
                 var slot = new Slot
                 {
-                    sprite = sprite, texture = tex,
+                    sprite = sprite, bake = bake, source = source, texture = tex,
                     uv = new Rect(r.x / tex.width, r.y / tex.height, r.width / tex.width, r.height / tex.height),
                     worldSize = r.size / ppu, srcW = r.width, srcH = r.height, srcPpu = ppu,
                     pivot = new Vector2((sprite.pivot.x - offset.x) / r.width, (sprite.pivot.y - offset.y) / r.height),
@@ -364,7 +393,7 @@ public static class KillCamArchive
                 slots.Add(slot);
             }
         }
-        index[sprite] = i;
+        index[(sprite, bake)] = i;
         return i;
     }
 
@@ -486,6 +515,8 @@ public static class KillCamArchive
 
     // One pass of textured quads into a render texture, read back once. A white
     // marker in the bottom-left corner tells which way up the read-back came.
+    // A baked slot (BakedShaders) is drawn through a copy of its material; those
+    // shaders write premultiplied colour, put back to straight alpha after.
     static byte[] DrawAtlas(List<Slot> slots, int w, int h)
     {
         if (copyMaterial == null)
@@ -496,24 +527,74 @@ public static class KillCamArchive
         }
         var rt = RenderTexture.GetTemporary(w, h, 0, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Default);
         var previous = RenderTexture.active;
+        var made = new List<Material>();
         RenderTexture.active = rt;
         GL.Clear(true, true, new Color(0f, 0f, 0f, 0f));
         GL.PushMatrix();
         GL.LoadPixelMatrix(0f, w, 0f, h);
-        Quad(Texture2D.whiteTexture, new Rect(0f, 0f, 1f, 1f), new Rect(0f, 0f, 2f, 2f));
-        foreach (var s in slots) Quad(s.texture, s.uv, new Rect(s.x, s.y, s.w, s.h));
+        Quad(copyMaterial, Texture2D.whiteTexture, new Rect(0f, 0f, 1f, 1f), new Rect(0f, 0f, 2f, 2f));
+        foreach (var s in slots)
+        {
+            var m = copyMaterial;
+            if (s.bake != null) { m = BakeMaterial(s); made.Add(m); }
+            Quad(m, s.texture, s.uv, new Rect(s.x, s.y, s.w, s.h));
+        }
         GL.PopMatrix();
         RenderTexture.active = previous;
         var bytes = ReadBack(rt, w, h, true);
         RenderTexture.ReleaseTemporary(rt);
+        foreach (var m in made) UnityEngine.Object.DestroyImmediate(m);
+        foreach (var s in slots) if (s.bake != null) Unpremultiply(bytes, w, new RectInt(s.x, s.y, s.w, s.h));
         return bytes;
     }
 
-    static void Quad(Texture t, Rect uv, Rect d)
+    static MaterialPropertyBlock bakeBlock;
+
+    // The slot's material as its renderer drew it: the material's own settings
+    // and, over them, the renderer's property block (a planet's disc and turn).
+    static Material BakeMaterial(Slot s)
     {
-        copyMaterial.mainTexture = t;
-        copyMaterial.SetPass(0);
+        var m = new Material(s.bake) { hideFlags = HideFlags.HideAndDontSave };
+        if (s.source == null || !s.source.HasPropertyBlock()) return m;
+        if (bakeBlock == null) bakeBlock = new MaterialPropertyBlock();
+        s.source.GetPropertyBlock(bakeBlock);
+        var sh = m.shader;
+        int n = sh.GetPropertyCount();
+        for (int k = 0; k < n; k++)
+        {
+            string prop = sh.GetPropertyName(k);
+            switch (sh.GetPropertyType(k))
+            {
+                case UnityEngine.Rendering.ShaderPropertyType.Float:
+                case UnityEngine.Rendering.ShaderPropertyType.Range:
+                    if (bakeBlock.HasFloat(prop)) m.SetFloat(prop, bakeBlock.GetFloat(prop)); break;
+                case UnityEngine.Rendering.ShaderPropertyType.Color:
+                    if (bakeBlock.HasColor(prop)) m.SetColor(prop, bakeBlock.GetColor(prop)); break;
+                case UnityEngine.Rendering.ShaderPropertyType.Vector:
+                    if (bakeBlock.HasVector(prop)) m.SetVector(prop, bakeBlock.GetVector(prop)); break;
+            }
+        }
+        return m;
+    }
+
+    static void Unpremultiply(byte[] px, int w, RectInt r)
+    {
+        for (int y = r.yMin; y < r.yMax; y++)
+            for (int x = r.xMin; x < r.xMax; x++)
+            {
+                int at = (y * w + x) * 4;
+                int a = px[at + 3];
+                if (a == 0 || a == 255) continue;
+                for (int c = 0; c < 3; c++) px[at + c] = (byte)Mathf.Min(255, (px[at + c] * 255 + a / 2) / a);
+            }
+    }
+
+    static void Quad(Material m, Texture t, Rect uv, Rect d)
+    {
+        m.mainTexture = t;
+        m.SetPass(0);
         GL.Begin(GL.QUADS);
+        GL.Color(Color.white);
         GL.TexCoord2(uv.xMin, uv.yMin); GL.Vertex3(d.xMin, d.yMin, 0f);
         GL.TexCoord2(uv.xMin, uv.yMax); GL.Vertex3(d.xMin, d.yMax, 0f);
         GL.TexCoord2(uv.xMax, uv.yMax); GL.Vertex3(d.xMax, d.yMax, 0f);
