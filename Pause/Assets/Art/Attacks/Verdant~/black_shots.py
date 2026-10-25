@@ -6,6 +6,8 @@ from PIL import Image
 # brown root / bark ramp (t = luminance relative to the cell's 98th percentile): near-black brown -> bark -> tan -> a small dry-ochre accent
 STOPS=[(0.0,(12,8,5)),(.45,(28,19,11)),(.72,(52,36,21)),(.90,(84,59,34)),(1.0,(112,80,46))]
 KEY=(9,6,4)
+LIME=(160,228,58); LIME_DARK=(98,152,34)   # the glowing heart of the brown shards (the game's Verdant leaf lime)
+HEART_T=.78; HEART_SHARE=.6
 OCHRE=(222,182,116)   # a dry-ochre catch-light, only on the lit (upper-left) edge of the bright bark
 # (file, cell w, cell h, columns, cell indices to convert)
 JOBS=[('Art/Resources/Attacks/Verdant/verdant_attack_shots.png',128,128,8,[2,3]),   # the elites' leaf shard (both frames)
@@ -28,6 +30,17 @@ def conv(cell, variant):
     edge=(a>=128)&(Ab[1:-1,:-2]|Ab[1:-1,2:]|Ab[:-2,1:-1]|Ab[2:,1:-1])
     body[edge&~lit]=KEY
     body[lit]=OCHRE
+    # a small glowing lime heart: the brightest interior pixels of the original nearest their centroid (the spine / core), in the world's leaf green
+    inte=(a>=128)
+    for _ in range(1):
+        p=np.pad(inte,1); inte=p[1:-1,1:-1]&p[:-2,1:-1]&p[2:,1:-1]&p[1:-1,:-2]&p[1:-1,2:]
+    S=inte&(t>HEART_T)&~lit
+    if S.sum()>=12:
+        ys,xs=np.nonzero(S); cy,cx=ys.mean(),xs.mean(); d=np.hypot(ys-cy,xs-cx)
+        keep=d<=np.sort(d)[int(len(d)*HEART_SHARE)-1]
+        K=np.zeros_like(S); K[ys[keep],xs[keep]]=True
+        u=np.clip((t-HEART_T)/(1-HEART_T),0,1)[...,None]
+        body[K]=(np.array(LIME_DARK)*(1-u)+np.array(LIME)*u)[K]
     out=cell.copy(); out[...,:3]=np.where(m[...,None],body,np.array(STOPS[0][1],float)).round().astype('uint8'); return out
 def inner(cell):
     a=cell[...,3]; m=a>=128
