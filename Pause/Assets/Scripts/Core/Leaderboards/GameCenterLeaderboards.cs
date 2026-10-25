@@ -81,7 +81,7 @@ public sealed class GameCenterLeaderboards : ILeaderboardPlatform
         if (!IsSignedIn) { done(LeaderboardPage.Failed(LeaderboardStatus.NotSignedIn)); return; }
         LoadPlayerScore(boardId, me =>
         {
-            if (!me.Ok || !me.hasPlayer) { Load(boardId, LeaderboardTimeScope.AllTime, 1, count, false, done); return; }
+            if (!me.Ok || !me.hasPlayer || me.player.rank <= 0) { Load(boardId, LeaderboardTimeScope.AllTime, 1, count, false, done); return; }
             Load(boardId, LeaderboardTimeScope.AllTime, me.player.rank - count / 2, count, false, done);
         });
     }
