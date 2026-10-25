@@ -8,6 +8,7 @@ dependencies {
 // Android Resolver Dependencies Start
     implementation 'com.android.billingclient:billing:8.0.0' // Assets/Editor/PlayBillingDependencies.xml:9
     implementation 'com.google.android.gms:play-services-games-v2:22.1.0' // Assets/GooglePlayGames/com.google.play.games/Editor/GooglePlayGamesPluginDependencies.xml:9
+    implementation 'androidx.fragment:fragment:1.6.2' // Assets/Editor/AndroidxFragmentDependencies.xml:9
 // Android Resolver Dependencies End
 **DEPS**}
 
