@@ -1159,12 +1159,12 @@ public class CodexPanel : MonoBehaviour
         }
         // A long lore on a short, wide canvas (a tablet): the VERSUS YOU table moves
         // beside the art, where there is room, and the lore gets the whole card.
-        if (tallyShown && !LoreFits(loreTop + d.height * .5f) && SideRoom(start) >= TallySideMin)
+        if (tallyShown && !LoreFits(loreTop + d.height * .5f, ReadableLore) && SideRoom(start) >= TallySideMin)
         {
             art = start;
             SetTallySide(true, art);
             loreTop = PlaceDetail(art);
-            while (art > minArt && (!LoreFits(loreTop + d.height * .5f) || SideRoom(art) < TallySideMin))
+            while (art > minArt && (!LoreFits(loreTop + d.height * .5f, ReadableLore) || SideRoom(art) < TallySideMin))
             {
                 art = Mathf.Max(minArt, art - 16f);
                 loreTop = PlaceDetail(art);
@@ -1237,8 +1237,11 @@ public class CodexPanel : MonoBehaviour
         CodexUi.Place(tallyRoot, Rect.MinMaxRect(left, bottom, right, Mathf.Max(bottom + 120f, top)));
     }
 
-    // Whether the lore, at its best-fit minimum size, fits a lore card this tall.
-    bool LoreFits(float cardHeight)
+    // The lore size the table must never squeeze the lore below (the codex's readable floor).
+    public const int ReadableLore = 18;
+
+    // Whether the lore, at its best-fit minimum size (or `size`), fits a lore card this tall.
+    bool LoreFits(float cardHeight, int size = 0)
     {
         if (string.IsNullOrEmpty(detailLore.text)) return true;
         var lrt = detailLore.rectTransform;
@@ -1246,7 +1249,7 @@ public class CodexPanel : MonoBehaviour
         float room = cardHeight - lrt.offsetMin.y + lrt.offsetMax.y;
         var settings = detailLore.GetGenerationSettings(new Vector2(width, 0f));
         settings.resizeTextForBestFit = false;
-        settings.fontSize = detailLore.resizeTextMinSize;
+        settings.fontSize = size > 0 ? size : detailLore.resizeTextMinSize;
         settings.verticalOverflow = VerticalWrapMode.Overflow;
         float ppu = Mathf.Max(detailLore.pixelsPerUnit, .0001f);
         return detailLore.cachedTextGeneratorForLayout.GetPreferredHeight(detailLore.text, settings) / ppu <= room;
