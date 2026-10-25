@@ -255,6 +255,7 @@ public static class AllTests
         ("PowersReworkTest", PowersReworkTest.Execute),
         ("ShipAttacksTest", ShipAttacksTest.Execute),
         ("ShipAttacksV3CheapTest", ShipAttacksV3CheapTest.Execute),
+        ("ShipAttackSparkTest", ShipAttackSparkTest.Execute),
         ("HomingTargetTest", HomingTargetTest.Execute),
         ("ShipDamageTest", ShipDamageTest.Execute),
         ("ShipLivesIndicatorTest", ShipLivesIndicatorTest.Execute),

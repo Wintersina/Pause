@@ -226,7 +226,7 @@ public static class ShipAttacksTest
         for (int i = 0; i < 8; i++) foes.Add(Hazard(-1.2f + (i % 4) * .8f, -1.5f + (i / 4) * .9f));
         int kills = ShipAttackHits.Kills;
         viper.Runner.Fire();
-        Steps(viper.Runner, 1f);
+        Steps(viper.Runner, 2f);
         Check("chain lightning jumps to at most its max hits (" + (ShipAttackHits.Kills - kills) + ")",
               ShipAttackHits.Kills - kills == ShipLoadoutTable.For(2).maxHits);
         Teardown(viper);

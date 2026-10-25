@@ -259,7 +259,7 @@ public static class RedAtomFreeShotTest
                     count = spritesNow == 2 * Mathf.Max(1, l.shots) && launchedNow == 0;
                 else if (l.attack == ShipAttack.ChainLightning)
                 {
-                    Steps(c.Runner, 1f);
+                    Steps(c.Runner, 2f);
                     int k = ShipAttackHits.Kills - kills;
                     count = k >= 1 && k <= l.maxHits;
                 }

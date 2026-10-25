@@ -156,8 +156,7 @@ public partial class ShipAttackRunner : MonoBehaviour
                 run.active = false;
                 break;
             case ShipAttack.ChainLightning:
-                run.point = nose;
-                run.next = 0f;
+                StartSpark(run, nose);
                 break;
             case ShipAttack.ArcaneEye:
             case ShipAttack.HeatWave:
@@ -335,7 +334,8 @@ public partial class ShipAttackRunner : MonoBehaviour
                 break;
 
             case ShipAttack.ChainLightning:
-                StepChain(run);
+                if (run.fired == 0) StepSpark(run, dt);
+                if (run.active && run.fired == 1) StepChain(run);
                 break;
 
             case ShipAttack.Blowtorch:
@@ -365,15 +365,18 @@ public partial class ShipAttackRunner : MonoBehaviour
         }
     }
 
-    // A bolt from the nose to the nearest enemy, then hop to hop, one hop
-    // every 60 ms, each to the nearest one not yet hit within reach.
+    // The chain, from where the spark landed: its target takes the first strike, then one hop every 60 ms, each to
+    // the nearest ENEMY not yet hit within reach (ShipAttackTargets: never a bullet, mine, rock or pickup).
     void StepChain(AttackRun run)
     {
         var l = run.loadout;
         while (run.active && run.t >= run.next)
         {
-            float reach = run.hops == 0 ? l.range : l.width;
-            var t = ShipTargets.Nearest(run.point, reach, run.hit);
+            ClearTarget t;
+            if (run.hops == 0 && run.spark != null && run.spark.target != null && ShipAttackTargets.IsEnemy(run.spark.target))
+                t = run.spark.target;
+            else
+                t = ShipAttackTargets.Nearest(run.point, run.hops == 0 ? SparkArriveRadius + 1f : l.width, run.hit, false);
             if (t == null || run.hops >= l.maxHits) { run.active = false; break; }
             Vector3 to = t.transform.position;
             Arc(run.point, to);
@@ -506,6 +509,7 @@ public partial class ShipAttackRunner : MonoBehaviour
     void OnDestroy()
     {
         StopAll();
+        for (int i = 0; i < runs.Length; i++) if (runs[i] != null && runs[i].spark != null) runs[i].spark.Dispose();
     }
 }
 
@@ -523,6 +527,7 @@ public class AttackRun
     public float budget;
     public Vector3 point;
     public AttackSprite visual, disc;
+    public SparkBolt spark;   // Volt Viper's spark (ShipAttackSpark.cs), allocated once per slot
     public AttackV3 v3;   // scratch of the v3 attacks (ShipAttacksV3.cs), allocated once per slot
     public readonly List<GameObject> hit = new List<GameObject>(32);
 
@@ -539,6 +544,7 @@ public class AttackRun
         budget = 1f;
         point = Vector3.zero;
         visual = disc = null;
+        if (spark != null) spark.Hide();
         hit.Clear();
         if (v3 != null) v3.Reset();
     }
@@ -547,6 +553,7 @@ public class AttackRun
     {
         active = false;
         if (v3 != null) v3.Release();
+        if (spark != null) spark.Hide();
         if (visual != null && visual.Active && visual.Run == this) visual.Stop();
         if (disc != null && disc.Active && disc.Run == this) disc.Stop();
         visual = disc = null;
