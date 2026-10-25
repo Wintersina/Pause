@@ -283,6 +283,7 @@ public static class AllTests
         ("TideSoundTest", TideSoundTest.Execute),
         ("StormSoundTest", StormSoundTest.Execute),
         ("DesertSoundTest", DesertSoundTest.Execute),
+        ("OutOfPausesFlashTest", OutOfPausesFlashTest.Execute),
         ("DesertRosterTest", DesertRosterTest.Execute),
         ("EnemyWorldPaletteTest", EnemyWorldPaletteTest.Execute),
         ("WorldFlagsTest", WorldFlagsTest.Execute),
