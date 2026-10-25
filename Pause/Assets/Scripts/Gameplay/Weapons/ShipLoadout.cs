@@ -21,7 +21,7 @@ using UnityEngine;
 public enum ShipAttack
 {
     CometStreak,    // two comet streaks straight ahead, each stops at the first hit
-    ChainLightning, // a bolt that jumps between nearby enemies
+    ChainLightning, // a homing spark that then chains lightning between nearby enemies
     SkyJavelins,    // three rockets fly up from the nose, each opens into a javelin that strikes down its lane
     Blowtorch,      // a short-range flame cone held in front of the ship
     ArcaneEye,      // an eye gazes up its cone and marks targets; the marks detonate 0.8 s later
@@ -142,7 +142,7 @@ public static class ShipLoadoutTable
             PowerTrigger.ImminentHit, 1, 0f,
             shots: 2, range: 11f, width: .3f, speed: 13f),
         // 2 Volt Viper (700)
-        Row(2, ShipAttack.ChainLightning, "CHAIN LIGHTNING", "A bolt that jumps between enemies.",
+        Row(2, ShipAttack.ChainLightning, "CHAIN LIGHTNING", "A spark homes onto an enemy, then chains lightning between enemies.",
             SecretPower.EmpStun, "EMP", "Freezes every enemy and cancels their shots, arcing through each.",
             PowerTrigger.EnemiesOnScreen, 3, 0f,
             maxHits: 5, range: 4.6f, width: 2.5f),
