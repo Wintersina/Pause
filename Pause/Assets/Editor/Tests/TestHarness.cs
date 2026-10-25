@@ -448,7 +448,7 @@ public static class TestHarness
         {
             "spawnShip", "HasDoneTut", "PlayerCurrecny", "HighestSpeed", RunScore.BestScoreKey,
             WorldManager.PrefsCurrentWorld, WorldManager.PrefsHighestWorld,
-            DeveloperUnlocks.EnabledKey, DeveloperUnlocks.SelectedWorldKey,
+            DeveloperUnlocks.EnabledKey, DeveloperUnlocks.SelectedWorldKey, LeaderboardService.BoundPlayerKey,
             DeveloperUnlocks.ChoiceBuildKey, PlayerStartWorld.Key, SoundSettings.Key, SoundSettings.SfxOnKey, SoundSettings.MusicOnKey, SoundSettings.SfxVolumeKey, SoundSettings.MusicVolumeKey,
             Codex.PrefsKey, Codex.NewKey, Codex.AckKey, Codex.PaidKey, DamageLog.KilledKey, DamageLog.HurtKey,
         };

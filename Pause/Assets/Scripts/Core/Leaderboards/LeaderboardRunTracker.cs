@@ -129,9 +129,17 @@ public class LeaderboardRunTracker : MonoBehaviour
     }
 }
 
-// Drives the service's debounced flush.
+// Drives the service's debounced flush, and on every return to the app retries
+// a failed silent sign-in and sends what is still queued.
 public class LeaderboardRunner : MonoBehaviour
 {
+    void OnApplicationFocus(bool focus)
+    {
+        if (!focus) return;
+        AccountLink.RetrySilentOnResume();
+        if (LeaderboardService.HasInstance) LeaderboardService.Instance.Flush();
+    }
+
     void Update()
     {
         if (LeaderboardService.HasInstance) LeaderboardService.Instance.Tick();

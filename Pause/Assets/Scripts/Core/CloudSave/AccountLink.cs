@@ -247,6 +247,28 @@ public static class AccountLink
         RaiseChanged();
     }
 
+    // ---- silent retry on resume ----
+
+    // The launch sign-in can fail for a passing reason (offline, Play Games
+    // still starting). When the app comes back to the front, try the silent
+    // sign-in again, at most once per ResumeRetrySeconds. Never after SIGN
+    // OUT (Disconnected), while signed in, or while an attempt is running.
+    public const float ResumeRetrySeconds = 60f;
+    static bool resumeTried;
+    static float resumeTriedAt;
+
+    public static bool RetrySilentOnResume()
+    {
+        if (!Available || Disconnected || signingIn || Account.IsSignedIn) return false;
+        var sync = CloudSync.Instance;
+        if (sync == null || sync.Account != Account) return false;
+        if (resumeTried && Now() - resumeTriedAt < ResumeRetrySeconds) return false;
+        if (!sync.RetrySilentSignIn()) return false;
+        resumeTried = true;
+        resumeTriedAt = Now();
+        return true;
+    }
+
     // ---- sign out (Pause's disconnect) ----
 
     public static void Disconnect()
@@ -371,6 +393,7 @@ public static class AccountLink
         lastReport = default(SignInReport);
         silentFailed = false;
         InteractiveAttempts = 0;
+        resumeTried = false;
         accountOverride = null;
         AccountPlatformOverride = null;
     }
