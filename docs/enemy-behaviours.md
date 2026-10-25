@@ -1266,7 +1266,7 @@ ignores a size for anything but a rock. Backdrop rocks and planets (non-interact
 and atoms, and the title-screen traffic are not hazards and are untouched. No other floating gameplay hazard
 exists (no `Astr`-tagged prefab or scene object is left; `extraEnemyPrefabs` is empty in gameS1).
 
-(Obsidian shard colours: five glass colours - violet, teal, jade, acid, vermilion - one per spawned shard, picked from a hash of its spawn position and size (`ObsidianShards.Pick`); art built by `Art/Enemies/src~/obsidian_variants.py` into `Resources/Enemies/Variants`. Never drawn shorter than `ObsidianShards.MinLongEdge` = 0.60 u along the blade; the collider follows the scale as for every rock. Pinned by `ObsidianShardTest`.)
+(Obsidian shard colours: five glass colours - violet, teal, jade, acid, vermilion - one per spawned shard, picked from a hash of its spawn position and size (`ObsidianShards.Pick`); art built by `Art/Enemies/src~/obsidian_variants.py` into `Resources/Enemies/Variants`. Never drawn shorter than `ObsidianShards.MinLongEdge` = 0.60 u along the blade; the collider follows the scale as for every rock. Each shard also carries a small blinking glint (`ObsidianGlint`: a 0.10 u pale cross on its upper-left facet, a 0.15 s blink every 0.9-1.6 s, per-shard period and phase from the shard seed). Pinned by `ObsidianShardTest`.)
 
 **Data.** Each rock's behaviour record carries three tier sizes (`EnemyBehaviour.Sizes(small, typical, large)`,
 multiples of the roster size). `HazardSize.Draw` takes one number from the sizes' own xorshift stream, seeded off `Random.state` in the spawner's `Start` without consuming it (so the spawner's own draws, and every seeded probe, are exactly as before sizes; a seed still gives the same sizes): 28% small,

@@ -64,6 +64,38 @@ public static class ObsidianShards
         return h;
     }
 
+    // ---- the blinking glint (ObsidianGlint) ----
+    // A tiny pale specular sparkle on the upper-left facet: a child sprite of the shard, so it spins and scales with it.
+    public const float GlintSize = .10f;                       // world units across at shard scale 1 (the arms' tip to tip)
+    public static readonly Vector2 GlintOffset = new Vector2(-.02f, .10f);   // on the blade, local units at scale 1
+    public const float GlintPeriodMin = .9f, GlintPeriodMax = 1.6f;           // seconds between blinks, per shard
+    public const float GlintOnSeconds = .15f;                  // the whole blink: fade in, peak, fade out
+    public const float GlintFadeSeconds = 1f / 24f;            // each fade edge: one 24 fps tick at half strength (in, peak ~.07 s, out)
+    public const float GlintAlpha = .9f;                       // peak opacity (subtle: it is a glint, not a pickup)
+    // Pale white tinted a touch toward each colour (no pink).
+    public static readonly Color[] GlintTints =
+    {
+        new Color(.88f, .92f, 1f), new Color(.82f, 1f, 1f), new Color(.86f, 1f, .90f), new Color(.95f, 1f, .80f), new Color(1f, .90f, .82f),
+    };
+
+    static uint Mix(uint h)
+    {
+        h ^= h >> 16; h *= 2146121005u; h ^= h >> 15; h *= 2221713035u; h ^= h >> 16;
+        return h;
+    }
+    // 0..1, from the shard's seed only (never UnityEngine.Random / the size stream).
+    public static float Unit(uint seed, uint salt) { return (Mix(seed ^ (salt * 2654435761u)) & 0xFFFFFF) / 16777216f; }
+    public static float GlintPeriod(uint seed) { return Mathf.Lerp(GlintPeriodMin, GlintPeriodMax, Unit(seed, 11u)); }
+    public static float GlintPhase(uint seed) { return Unit(seed, 23u) * GlintPeriod(seed); }
+    // 0 (off), 1 (fade edge), 2 (peak) for a time t seconds into the shard's life. Pure.
+    public static int GlintLevel(uint seed, float t)
+    {
+        float period = GlintPeriod(seed);
+        float p = Mathf.Repeat(t + GlintPhase(seed), period);
+        if (p >= GlintOnSeconds) return 0;
+        return p < GlintFadeSeconds || p >= GlintOnSeconds - GlintFadeSeconds ? 1 : 2;
+    }
+
     // The scale at which the blade is exactly MinLongEdge long.
     public static float MinScale()
     {

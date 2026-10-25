@@ -41,6 +41,7 @@ public static class ObsidianShardTest
             MinSize();
             Picking();
             BuiltShards();
+            Glint();
         }
         finally { }
         Debug.Log("[OBSIDIAN] failures: " + fails);
@@ -252,5 +253,49 @@ public static class ObsidianShardTest
         others &= EnemyIdentity.VariantOf(go2) == 0 && EnemyArt.Frames(other, 3) == EnemyArt.Frames(other, 0);
         Object.DestroyImmediate(go2);
         Check("other rocks never get a variant", others);
+    }
+
+    // ---- the blinking glint ----
+    static void Glint()
+    {
+        var def = EnemyRoster.Find(ObsidianShards.Key);
+        var go = EnemyFactory.Create(def, new Vector3(1f, 2f, 0f), Quaternion.identity, 1f);
+        var g = go.GetComponent<ObsidianGlint>();
+        Check("a built shard carries its glint component and a child sprite", g != null && g.Renderer != null && g.Renderer.transform.parent == go.transform);
+        if (g != null && g.Renderer != null)
+        {
+            float across = 0f;
+            // advance to a moment it is on, then read the drawn size
+            for (int i = 0; i < 400 && g.Level != 2; i++) g.Advance(.01f);
+            if (g.Renderer.sprite != null) across = g.Renderer.sprite.bounds.size.x;
+            Check("the glint is " + across.ToString("F3") + " u across (named constant " + ObsidianShards.GlintSize + "; 0.08-0.12 u)", Mathf.Abs(across - ObsidianShards.GlintSize) < 1e-3f && across >= .08f && across <= .12f);
+            Check("it sits on the blade's upper-left facet, inside the sprite", g.Renderer.transform.localPosition.x < 0f && g.Renderer.transform.localPosition.y > 0f && g.Renderer.transform.localPosition.y < ObsidianShards.SilhouetteLong * def.FrameWorldSize * .5f);
+            Check("it draws over the body and is not pink", g.Renderer.sortingOrder == go.GetComponent<SpriteRenderer>().sortingOrder + 1 && !(g.Renderer.color.r > .95f && g.Renderer.color.b > .95f && g.Renderer.color.g < .85f));
+            var scaled = EnemyFactory.Create(def, new Vector3(3f, 2f, 0f), Quaternion.identity, 1.2f);
+            Check("it scales with the shard (child of its transform)", Mathf.Abs(scaled.GetComponent<ObsidianGlint>().Renderer.transform.lossyScale.x - 1.2f) < 1e-3f);
+            Object.DestroyImmediate(scaled);
+        }
+        Object.DestroyImmediate(go);
+
+        // timing: pure functions of the seed
+        bool det = true, bounded = true, phases = false, periods = true;
+        float first = ObsidianShards.GlintPhase(1u);
+        for (uint s = 1; s < 300; s++)
+        {
+            det &= ObsidianShards.GlintPeriod(s) == ObsidianShards.GlintPeriod(s) && ObsidianShards.GlintPhase(s) == ObsidianShards.GlintPhase(s);
+            float p = ObsidianShards.GlintPeriod(s);
+            periods &= p >= ObsidianShards.GlintPeriodMin && p <= ObsidianShards.GlintPeriodMax;
+            phases |= Mathf.Abs(ObsidianShards.GlintPhase(s) - first) > .1f;
+            int on = 0; const int N = 3000; float span = 4f;
+            for (int i = 0; i < N; i++) if (ObsidianShards.GlintLevel(s, i * span / N) > 0) on++;
+            float duty = on / (float)N;
+            bounded &= duty > .05f && duty < .22f;   // ~.15 s every .9-1.6 s: 9-17 %
+        }
+        Check("period and phase are deterministic per seed, within " + ObsidianShards.GlintPeriodMin + "-" + ObsidianShards.GlintPeriodMax + " s", det && periods);
+        Check("phases differ between shards (a field twinkles out of sync)", phases);
+        Check("on-time is a short blink: duty cycle 5-22 % for every seed (" + ObsidianShards.GlintOnSeconds + " s on)", bounded);
+        Check("the blink fades in and out (edge level before and after the peak)", ObsidianShards.GlintLevel(0u, -ObsidianShards.GlintPhase(0u) + .005f) == 1 &&
+              ObsidianShards.GlintLevel(0u, -ObsidianShards.GlintPhase(0u) + ObsidianShards.GlintOnSeconds * .5f) == 2 &&
+              ObsidianShards.GlintLevel(0u, -ObsidianShards.GlintPhase(0u) + ObsidianShards.GlintOnSeconds - .005f) == 1);
     }
 }

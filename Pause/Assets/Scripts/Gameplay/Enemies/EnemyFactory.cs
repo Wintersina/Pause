@@ -36,7 +36,12 @@ public static class EnemyFactory
         var identity = go.AddComponent<EnemyIdentity>();
         identity.Set(def);
         // the obsidian shard's glass colour, stable for this body (ObsidianShards.Pick)
-        if (ObsidianShards.Applies(def)) identity.SetVariant(ObsidianShards.Pick(ObsidianShards.SeedFor(position, size)));
+        if (ObsidianShards.Applies(def))
+        {
+            uint shardSeed = ObsidianShards.SeedFor(position, size);
+            identity.SetVariant(ObsidianShards.Pick(shardSeed));
+            go.AddComponent<ObsidianGlint>().Init(shardSeed, identity.Variant);   // its blinking glint (a child sprite)
+        }
 
         var col = go.AddComponent<BoxCollider2D>();
         col.isTrigger = true;
