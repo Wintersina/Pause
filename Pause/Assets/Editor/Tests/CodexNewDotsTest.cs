@@ -75,7 +75,7 @@ public static class CodexNewDotsTest
             var home = go.AddComponent<CodexHomeButton>();
             home.Build();
             typeof(CodexHomeButton).GetMethod("OnEnable", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).Invoke(home, null);
-            int tabA = System.Array.IndexOf(CodexPanel.Tabs, catA), tabB = System.Array.IndexOf(CodexPanel.Tabs, catB);
+            int tabA = CodexPanel.TabOfCategory(catA), tabB = CodexPanel.TabOfCategory(catB);
 
             Check("start: no dots, bubble hidden, nothing pending", !home.BadgeVisible && !panel.TabNewDot(tabA).gameObject.activeSelf && Codex.PendingIn(catA) == 0);
 

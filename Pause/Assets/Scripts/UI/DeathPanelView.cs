@@ -373,7 +373,8 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
 
     // KILLED BY <name> over HURT BY <names>: what ended the run and what chipped at it.
     // Nothing is made up: an unknown killer shows a dash, no earlier hits reads "NO OTHER HITS".
-    public const int HurtLineChars = 34;   // names fit the 500 px line at a readable size before "+N more"
+    public const int HurtLineChars = 28;   // names fit the 520 px line at HurtFontSize before "+N more"
+    const int HurtFontSize = 19, HurtMinFontSize = 18;   // 19 units stays >= 7 dp on the smallest (480x854) phones
     public static string KilledByLabel(Results r) { return string.IsNullOrEmpty(r.killedBy) ? "-" : r.killedBy; }
     public static string HurtByLabel(Results r) { return string.IsNullOrEmpty(r.hurtBy) ? "NO OTHER HITS" : r.hurtBy.ToUpperInvariant(); }
 
@@ -382,8 +383,8 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
         var card = CardBody(3, Coral);
         var killed = NewText("Killed", card, "KILLED BY  " + KilledByLabel(results).ToUpperInvariant(), 24, Bone, TextAnchor.MiddleLeft);
         Place(killed.rectTransform, Centered(LabelLeft + 250f, 12f, 500f, 30f));
-        var hurt = NewText("Hurt", card, "HURT BY  " + HurtByLabel(results), 17, Muted, TextAnchor.MiddleLeft);
-        Place(hurt.rectTransform, Centered(LabelLeft + 250f, -14f, 500f, 24f));
+        var hurt = NewText("Hurt", card, "HURT BY  " + HurtByLabel(results), HurtFontSize, Muted, TextAnchor.MiddleLeft);
+        Place(hurt.rectTransform, Centered(LabelLeft + 260f, -15f, 520f, 26f));
         foreach (var t in new[] { killed, hurt })
         {
             t.horizontalOverflow = HorizontalWrapMode.Wrap;
@@ -391,6 +392,7 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
             t.resizeTextMinSize = 12;
             t.resizeTextMaxSize = t.fontSize;
         }
+        hurt.resizeTextMinSize = HurtMinFontSize;
         return card;
     }
 
