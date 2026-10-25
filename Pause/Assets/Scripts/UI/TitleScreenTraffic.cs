@@ -176,6 +176,7 @@ public partial class TitleScreenTraffic : MonoBehaviour
         public DeathCrash.FragmentSet stockFrags, residentFrags;
         public float fragsBusyUntil;           // its pieces are on screen until then
         public ShipFlameFlipbook[] flames;
+        public Sprite mountedFor;             // the hull frame the boost plumes are mounted on
         // combat (Combat.cs)
         public float ultAt;                   // when its ultimate goes off (MaxValue: not this flight)
         public bool ulting;
@@ -772,6 +773,16 @@ public partial class TitleScreenTraffic : MonoBehaviour
         return p;
     }
 
+    // The flame follows the drawing on show: the nozzles sit in different
+    // places on the bob and bank frames, as ShipThruster.Remount does in play.
+    public static void RemountPlumes(Flyer f)
+    {
+        var sprite = f.hull.sprite;
+        if (sprite == f.mountedFor || f.boost == null || f.wind) return;
+        f.mountedFor = sprite;
+        ShipExhaust.RemountBoost(f.boost, sprite, f.id);
+    }
+
     void ApplyLook(Flyer f)
     {
         var spec = Depths[(int)f.layer];
@@ -782,6 +793,7 @@ public partial class TitleScreenTraffic : MonoBehaviour
         f.hull.color = Color.white;
         var rest = ShipHullArt.Get(f.id, f.skin, 0, 0);
         if (rest != null) f.hull.sprite = rest;
+        RemountPlumes(f);
         for (int i = 0; i < f.flames.Length; i++) f.flames[i].skinOverride = f.skin;
         for (int i = 0; i < f.nozzles.Length; i++)
         {
@@ -1334,6 +1346,7 @@ public partial class TitleScreenTraffic : MonoBehaviour
             column = turn > 0f ? ShipHullArt.BankLeft : ShipHullArt.BankRight;
         var drawing = ShipHullArt.Get(f.id, f.skin, f.stricken ? ShipHullArt.States - 1 : 0, column);
         if (drawing != null && f.hull.sprite != drawing) f.hull.sprite = drawing;
+        RemountPlumes(f);
 
         if (f.trick == Trick.Roll)
         {

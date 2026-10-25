@@ -88,6 +88,20 @@ public static class ShipExhaust
         return mounts;
     }
 
+    // Moves a boost holder's "Nozzle<i>" plumes onto the nozzles of hull frame
+    // `hull` (the bob and bank frames paint them in different places). The one
+    // call ShipThruster.Remount and the title-screen traffic both use.
+    public static void RemountBoost(Transform boost, Sprite hull, int index)
+    {
+        if (boost == null || hull == null || UsesSpinDrift(index)) return;
+        var mounts = MountsFor(hull, index);
+        for (int i = 0; i < mounts.Length; i++)
+        {
+            var plume = boost.Find("Nozzle" + i);
+            if (plume != null) plume.localPosition = mounts[i];
+        }
+    }
+
     // Relative plume size per nozzle: a twin-engine ship splits its thrust,
     // and small auxiliary nozzles get a smaller flame than the main one.
     public static float NozzleScale(int index, int nozzle)
