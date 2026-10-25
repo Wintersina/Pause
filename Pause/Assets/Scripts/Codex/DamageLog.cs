@@ -26,6 +26,12 @@ public static class DamageLog
     static Dictionary<string, int> killed, hurt;
     static readonly Dictionary<string, int> runHurt = new Dictionary<string, int>();
     static readonly List<string> runOrder = new List<string>();
+    static readonly Dictionary<string, int> runLast = new Dictionary<string, int>();
+    static int runHits;
+
+    // A heart lost to something that resolves to no codex entry still counts in this run's
+    // HURT BY (never in the saved tallies): the line must not claim "no other hits" then.
+    public const string UnknownSource = "unknown_source";
 
     // The entry that landed this run's fatal hit (null while alive).
     public static string RunKiller { get; private set; }
@@ -35,6 +41,8 @@ public static class DamageLog
     {
         runHurt.Clear();
         runOrder.Clear();
+        runLast.Clear();
+        runHits = 0;
         RunKiller = null;
     }
 
@@ -42,20 +50,28 @@ public static class DamageLog
     // is the last heart. `persist` writes the lifetime counters too.
     public static void Record(string id, bool fatal, bool persist)
     {
-        if (string.IsNullOrEmpty(id)) return;
-        if (fatal) RunKiller = id;
-        else
+        if (string.IsNullOrEmpty(id))
         {
-            int n;
-            if (!runHurt.TryGetValue(id, out n)) runOrder.Add(id);
-            runHurt[id] = n + 1;
+            // unknown fatal blow: KILLED BY stays a dash; an unknown earlier hit is still a hit
+            if (!fatal) NoteRunHit(UnknownSource);
+            return;
         }
+        if (fatal) RunKiller = id;
+        else NoteRunHit(id);
         if (!persist) return;
         EnsureLoaded();
         var counts = fatal ? killed : hurt;
         Bump(counts, id);
         PlayerPrefs.SetString(fatal ? KilledKey : HurtKey, Format(counts));
         PrefsSaver.MarkDirty();
+    }
+
+    static void NoteRunHit(string id)
+    {
+        int n;
+        if (!runHurt.TryGetValue(id, out n)) runOrder.Add(id);
+        runHurt[id] = n + 1;
+        runLast[id] = ++runHits;
     }
 
     public static int KilledCount(string id) { return Lookup(true, id); }
@@ -92,28 +108,36 @@ public static class DamageLog
         return entry != null ? entry.name : null;
     }
 
-    // This run's hearts lost, most first: "Cinder Drone x2, Mine". Names at
-    // most `maxNames`; the rest fold into "+N more". Null when nothing
-    // non-fatal hurt the pilot.
-    public static string RunHurtLine(int maxNames)
+    // This run's hearts lost before the fatal one, most first and, among equals, the most recent
+    // first: "Cinder Drone x2, Mine". Entries are added while the line stays within `maxChars`
+    // (at least one always shows); the rest fold into "+N more". Null when nothing non-fatal
+    // hurt the pilot. Names are the codex names (the VERSUS YOU table's).
+    public static string RunHurtLine(int maxChars)
     {
         if (runOrder.Count == 0) return null;
-        var sb = new StringBuilder(64);
-        var used = new bool[runOrder.Count];
-        int shown = 0;
-        while (shown < maxNames && shown < runOrder.Count)
+        var order = new List<int>(runOrder.Count);
+        for (int i = 0; i < runOrder.Count; i++) order.Add(i);
+        order.Sort((x, y) =>
         {
-            int best = -1;
-            for (int i = 0; i < runOrder.Count; i++)
-                if (!used[i] && (best < 0 || runHurt[runOrder[i]] > runHurt[runOrder[best]])) best = i;
-            used[best] = true;
-            string id = runOrder[best];
+            int c = runHurt[runOrder[y]].CompareTo(runHurt[runOrder[x]]);
+            return c != 0 ? c : runLast[runOrder[y]].CompareTo(runLast[runOrder[x]]);
+        });
+        var sb = new StringBuilder(64);
+        int shown = 0;
+        foreach (int i in order)
+        {
+            string id = runOrder[i];
+            string part = (NameOf(id) ?? (id == UnknownSource ? "Unknown hazard" : id)) + (runHurt[id] > 1 ? " x" + runHurt[id] : "");
+            string moreTail = " +" + (order.Count - shown - 1) + " more";
+            int add = (shown > 0 ? 2 : 0) + part.Length;
+            // keep room for the "+N more" tail unless this is the last entry
+            int tail = shown + 1 < order.Count ? moreTail.Length : 0;
+            if (shown > 0 && sb.Length + add + tail > maxChars) break;
             if (shown > 0) sb.Append(", ");
-            sb.Append(NameOf(id) ?? id);
-            if (runHurt[id] > 1) sb.Append(" x").Append(runHurt[id]);
+            sb.Append(part);
             shown++;
         }
-        if (runOrder.Count > shown) sb.Append(" +").Append(runOrder.Count - shown).Append(" more");
+        if (order.Count > shown) sb.Append(" +").Append(order.Count - shown).Append(" more");
         return sb.ToString();
     }
 

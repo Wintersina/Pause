@@ -61,7 +61,7 @@ public static class DamageLogTest
         DamageLog.Record("", false, true);
         Check("an unknown source counts nothing", DamageLog.KilledCount(a) == 1 && DamageLog.RunKiller == a && PlayerPrefs.GetString(DamageLog.HurtKey) == "");
         DamageLog.BeginRun();
-        Check("a new run clears the run tally", DamageLog.RunKiller == null && DamageLog.RunHurtKinds == 0 && DamageLog.RunHurtLine(3) == null);
+        Check("a new run clears the run tally", DamageLog.RunKiller == null && DamageLog.RunHurtKinds == 0 && DamageLog.RunHurtLine(34) == null);
         DamageLog.Record(b, false, false);
         DamageLog.Record(b, true, false);
         Check("unsaved (tutorial / developer) runs keep the run tally only", DamageLog.RunKiller == b && DamageLog.RunHurtKinds == 1
@@ -73,8 +73,28 @@ public static class DamageLogTest
         DamageLog.Record(b, false, false);
         DamageLog.Record(b, false, false);
         string an = DamageLog.NameOf(a), bn = DamageLog.NameOf(b);
-        Check("run line lists the most frequent first with counts", DamageLog.RunHurtLine(3) == bn + " x2, " + an);
+        Check("run line lists the most frequent first with counts", DamageLog.RunHurtLine(60) == bn + " x2, " + an);
         Check("run line folds the rest into +N more", DamageLog.RunHurtLine(1) == bn + " x2 +1 more");
+
+        // recency breaks ties; an unresolved source is still a hit; the fatal blow is not listed
+        DamageLog.BeginRun();
+        DamageLog.Record(a, false, false);
+        DamageLog.Record(b, false, false);
+        Check("equal counts: the most recent hit first", DamageLog.RunHurtLine(60) == bn + ", " + an);
+        DamageLog.Record(null, false, false);
+        Check("an unresolved earlier hit shows as Unknown hazard, not NO OTHER HITS",
+              DamageLog.RunHurtLine(80) == "Unknown hazard, " + bn + ", " + an && DamageLog.RunHurtKinds == 3);
+        Check("an unresolved hit is never saved", DamageLog.HurtCount(null) == 0);
+        DamageLog.Record(a, true, false);
+        Check("the fatal blow is not in HURT BY", DamageLog.RunKiller == a && DamageLog.RunHurtKinds == 3);
+        Check("a tight budget folds into +N more", DamageLog.RunHurtLine(5).EndsWith(" +2 more"));
+        DamageLog.BeginRun();
+        DamageLog.Record(null, true, false);
+        Check("only a fatal blow: genuinely no other hits, killer unknown", DamageLog.RunHurtLine(34) == null && DamageLog.RunKiller == null);
+        var lbl = new DeathPanelView.Results();
+        Check("panel: NO OTHER HITS only when none", DeathPanelView.HurtByLabel(lbl) == "NO OTHER HITS");
+        lbl.hurtBy = "Mine x2, Laser";
+        Check("panel: names upper-cased", DeathPanelView.HurtByLabel(lbl) == "MINE X2, LASER");
         Check("names resolve through the codex (an unknown id has none)", an != null && DamageLog.NameOf("nope") == null);
 
         // ---- the cloud save ----

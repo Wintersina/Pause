@@ -371,8 +371,9 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
 
     // KILLED BY <name> over HURT BY <names>: what ended the run and what chipped at it.
     // Nothing is made up: an unknown killer shows a dash, no earlier hits reads "NO OTHER HITS".
+    public const int HurtLineChars = 34;   // names fit the 500 px line at a readable size before "+N more"
     public static string KilledByLabel(Results r) { return string.IsNullOrEmpty(r.killedBy) ? "-" : r.killedBy; }
-    public static string HurtByLabel(Results r) { return string.IsNullOrEmpty(r.hurtBy) ? "NO OTHER HITS" : r.hurtBy; }
+    public static string HurtByLabel(Results r) { return string.IsNullOrEmpty(r.hurtBy) ? "NO OTHER HITS" : r.hurtBy.ToUpperInvariant(); }
 
     RectTransform BuildKilledBy()
     {
