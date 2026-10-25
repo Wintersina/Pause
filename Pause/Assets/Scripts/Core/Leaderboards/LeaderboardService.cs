@@ -384,6 +384,11 @@ public sealed class LeaderboardService
     {
         var board = LeaderboardBoards.Get(boardId);
         var verdict = Judge(board, v.value, page);
+        Debug.Log("[Leaderboards] readback " + boardId + ": "
+            + (page == null ? "page=null"
+                : "status=" + page.status + " hasPlayer=" + page.hasPlayer
+                  + (page.hasPlayer ? " rank=" + page.player.rank + " value=" + page.player.value : ""))
+            + " submitted=" + v.value + " verdict=" + verdict);
         if (verdict == Verdict.Accepted)
         {
             verifying.Remove(boardId);

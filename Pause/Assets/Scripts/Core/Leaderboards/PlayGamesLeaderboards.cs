@@ -62,6 +62,10 @@ public sealed class PlayGamesLeaderboards : ILeaderboardPlatform
                 done(LeaderboardPage.Failed(status));
                 return;
             }
+            var mine = data.PlayerScore;
+            Debug.Log("[Leaderboards] Play Games load " + boardId + ": status=" + data.Status
+                + " playerScoreNull=" + (mine == null)
+                + (mine != null ? " rank=" + mine.rank + " value=" + mine.value : ""));
             SocialScores.ToPage(playerOnly ? null : data.Scores, data.PlayerScore,
                 gpgs.GetUserId(), gpgs.GetUserDisplayName(), gpgs.LoadUsers, done,
                 s => (s as PlayGamesScore) != null ? ((PlayGamesScore)s).metaData : null);
