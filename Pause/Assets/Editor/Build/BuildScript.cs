@@ -187,6 +187,15 @@ public static class BuildScript
         Run(BuildTarget.iOS, Path.Combine(OutputRoot, "iOS-dev"), DevDefine);
     }
 
+    // iOS Simulator export (make build-ios-sim): same project, Simulator SDK, own folder.
+    public static void BuildIOSSim()
+    {
+        var sdkWas = PlayerSettings.iOS.sdkVersion;
+        PlayerSettings.iOS.sdkVersion = iOSSdkVersion.SimulatorSDK;
+        try { Run(BuildTarget.iOS, Path.Combine(OutputRoot, "iOS-sim"), DevDefine); }
+        finally { PlayerSettings.iOS.sdkVersion = sdkWas; }
+    }
+
     static void Run(BuildTarget target, string outputPath, params string[] extraDefines)
     {
         EditorApplication.Exit(Build(target, outputPath, extraDefines) ? 0 : 1);

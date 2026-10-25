@@ -35,7 +35,8 @@ UNITY_CMD = UNITY="$(UNITY)" scripts/unity-batch.sh -projectPath "$(PROJECT)"
 
 .PHONY: test test-fast help mac-build mac-run mac-dev-build mac-dev-run \
 	apk-share android-build android-release android-release-signed android-deploy android-run android-dev-build android-dev-deploy android-log \
-	ios-build ios-deploy ios-run ios-dev-build ios-dev-deploy ios-dev-run ios-devices
+	ios-build ios-deploy ios-run ios-dev-build ios-dev-deploy ios-dev-run ios-devices \
+	devices install install-android install-ios run-android run-ios build-ios-sim
 
 help:
 	@echo "Pause local commands:"
@@ -53,6 +54,13 @@ help:
 	@echo "  make ios-dev-deploy       Same, with the PAUSE_DEV developer build"
 	@echo "  make ios-devices          List iPhone/iPad device IDs for ios-deploy"
 	@echo ""
+	@echo "  make devices              List running Android emulators and booted iOS simulators"
+	@echo "  make install              install-android + install-ios (build first; see below)"
+	@echo "  make install-android      adb install -r the dev APK on every running emulator (or ANDROID_SERIAL=...) and launch it"
+	@echo "  make install-ios          Install the simulator build on the booted iOS simulator(s) and launch it"
+	@echo "  make build-ios-sim        Unity iOS simulator export + xcodebuild -sdk iphonesimulator"
+	@echo "  make run-android / run-ios  Launch the already-installed app on the emulators / simulators"
+	@echo "Emulator flow: 'make android-dev-build' then 'make install-android'; 'make build-ios-sim' then 'make install-ios'."
 	@echo "Optional: ANDROID_SERIAL=<serial> selects Android; IOS_DEVICE_ID=<udid> selects iPhone."
 	@echo "Free Apple ID sideload: make ios-deploy IOS_NO_GAMECENTER=1 IOS_TEAM_ID=<team id>"
 	@echo "          UNITY=<path> overrides Unity."
@@ -143,3 +151,52 @@ ios-dev-run:
 
 ios-devices:
 	xcrun devicectl list devices
+
+# ---- Emulators / simulators --------------------------------------------------
+# Install the already-built dev app on whatever is running; nothing here builds
+# unless you ask (android-dev-build, build-ios-sim). Real phones are never
+# touched: only emulator-* adb devices and booted simulators are targeted, unless
+# you name one yourself with ANDROID_SERIAL=<serial> / IOS_SIM=<udid>.
+# The emulator's ABI must be in the APK (project ships arm64-v8a: an arm64
+# emulator on Apple Silicon is fine, an x86_64 emulator is not).
+
+ANDROID_TARGETS = $(if $(ANDROID_SERIAL),$(ANDROID_SERIAL),$(shell $(ADB) devices 2>/dev/null | awk '$$1 ~ /^emulator-/ && $$2 == "device" {print $$1}'))
+ANDROID_ACTIVITY ?= com.unity3d.player.UnityPlayerActivity
+IOS_SIM ?= booted
+IOS_SIM_DERIVED_DATA := $(PROJECT)/Builds/iOS-sim/DerivedData
+IOS_SIM_APP := $(IOS_SIM_DERIVED_DATA)/Build/Products/Debug-iphonesimulator/Pause.app
+
+devices:
+	@echo "Android (adb):"; $(ADB) devices -l | sed '1d;/^$$/d;s/^/  /'
+	@echo "iOS simulators (booted):"; xcrun simctl list devices booted | grep -E '\(Booted\)' | sed 's/^/ /' || true
+
+install-android:
+	@test -f "$(ANDROID_DEV_APK)" || { echo "$(ANDROID_DEV_APK) missing: run 'make android-dev-build'." >&2; exit 2; }
+	@test -n "$(ANDROID_TARGETS)" || { echo "No running Android emulator (adb devices). Start one or pass ANDROID_SERIAL=<serial>." >&2; exit 2; }
+	@set -e; for d in $(ANDROID_TARGETS); do \
+		echo "== $$d: install + launch"; \
+		$(ADB) -s $$d install -r "$(ANDROID_DEV_APK)"; \
+		$(ADB) -s $$d shell am start -n "$(ANDROID_PACKAGE)/$(ANDROID_ACTIVITY)" >/dev/null; \
+	done
+
+run-android:
+	@test -n "$(ANDROID_TARGETS)" || { echo "No running Android emulator." >&2; exit 2; }
+	@set -e; for d in $(ANDROID_TARGETS); do \
+		$(ADB) -s $$d shell am start -n "$(ANDROID_PACKAGE)/$(ANDROID_ACTIVITY)" >/dev/null; \
+	done
+
+# Simulator build: Unity exports an Xcode project with the Simulator SDK
+# (BuildScript.BuildIOSSim), then xcodebuild compiles it for iphonesimulator.
+build-ios-sim:
+	$(UNITY_CMD) -executeMethod BuildScript.BuildIOSSim
+	xcodebuild -project "$(PROJECT)/Builds/iOS-sim/Unity-iPhone.xcodeproj" -scheme Unity-iPhone -configuration Debug -sdk iphonesimulator -destination "generic/platform=iOS Simulator" -derivedDataPath "$(IOS_SIM_DERIVED_DATA)" build
+
+install-ios:
+	@test -d "$(IOS_SIM_APP)" || { echo "$(IOS_SIM_APP) missing: run 'make build-ios-sim'." >&2; exit 2; }
+	xcrun simctl install $(IOS_SIM) "$(IOS_SIM_APP)"
+	xcrun simctl launch $(IOS_SIM) "$(IOS_BUNDLE_ID)"
+
+run-ios:
+	xcrun simctl launch $(IOS_SIM) "$(IOS_BUNDLE_ID)"
+
+install: install-android install-ios
