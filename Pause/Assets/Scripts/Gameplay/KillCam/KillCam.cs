@@ -462,15 +462,14 @@ public sealed class KillCam : MonoBehaviour
         if (top) rt.localScale = new Vector3(1f, -1f, 1f);   // darkest at the top edge
     }
 
-    // The label sits in the safe area's top-left corner.
+    // The label sits top-centre, just below the top safe inset (the KILLED banner is mid-screen, clear of it).
     void PlaceLabel()
     {
         if (label == null) return;
         float units = 800f / Mathf.Max(1f, ScreenInfo.Width);
-        var safe = ScreenInfo.SafeArea;
         var rt = label.Root;
-        rt.anchorMin = rt.anchorMax = new Vector2(0f, 1f);
-        rt.pivot = new Vector2(0f, 1f);
-        rt.anchoredPosition = new Vector2(safe.xMin * units + 28f, -(ScreenInfo.SafeTopInset * units + 28f));
+        rt.anchorMin = rt.anchorMax = new Vector2(.5f, 1f);
+        rt.pivot = new Vector2(.5f, 1f);
+        rt.anchoredPosition = new Vector2(0f, -(ScreenInfo.SafeTopInset * units + 28f));
     }
 }
