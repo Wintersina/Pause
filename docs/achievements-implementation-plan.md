@@ -117,7 +117,7 @@ Art (Codex headless) runs alongside A/B and lands before C's final polish; C can
 * **Store caps**: the published Play game may block the 1000-point set if legacy points remain.
 * **Tide**: dormant achievements counted in the store totals; flipping `TideEnabled` without a new build means the store entries exist but are unreachable on old builds (fine).
 * **Dev mode / tutorial leakage**: every hook must go through the guard; test it.
-* **Rewards inflate the economy**: 1,500 dust total (cheapest ships cost 600-1400); acceptable.
+* **Rewards inflate the economy**: 1,500 dust total (cheapest ships cost 700-1700); acceptable.
 * **Tab layout**: 7 tabs in 4+3 rows on small phones; verify the 48 dp target in `CodexTest`.
 
 ## 7. Open questions (defaults proposed, do not block)

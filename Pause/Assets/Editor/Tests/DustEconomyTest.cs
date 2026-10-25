@@ -67,7 +67,7 @@ public static class DustEconomyTest
         Check("base reward constants unchanged", ScoreRules.EliteDownDust == BaseElite && Mathf.Approximately(ScoreRules.DustPerDistance, BaseFlightPerDistance) &&
               ScoreRules.ScoreDustPerSqrtPoint == BaseBonusPerSqrt && ScoreRules.ScoreDustCap == BaseBonusCap);
         Check("shop prices / skin costs unchanged",
-              shopingShips.Prices[2] == 600f && ShipSkins.KindPrices[1] == 300f && ShipSkins.KindPrices[2] == 750f);
+              shopingShips.Prices[2] == 700f && ShipSkins.KindPrices[1] == 300f && ShipSkins.KindPrices[2] == 750f);
         int mid = ShipId.Starter, mid2 = 0, last = 0, para = 0;
         foreach (int id in ShipId.All)
         {

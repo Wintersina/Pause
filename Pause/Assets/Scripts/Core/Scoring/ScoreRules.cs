@@ -238,7 +238,7 @@ public static class ScoreRules
     // sqrt so it keeps rising but ever more slowly, and a hard cap so even a
     // huge loop run is a small top-up, never an income. A run typically earns
     // ~1.5-3 dust (the flight trickle, stars 0.5/1, kills 0.12) against
-    // ships at 600-5,800 and skins at 300/750:
+    // ships at 700-7,000 and skins at 300/750:
     //
     //   score     200    400    600   1,500  3,000  5,625+
     //   bonus    0.28   0.40   0.49   0.77   1.10   1.50 (cap)
