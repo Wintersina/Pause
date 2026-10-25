@@ -464,14 +464,28 @@ public sealed class KillCam : MonoBehaviour
         if (top) rt.localScale = new Vector3(1f, -1f, 1f);   // darkest at the top edge
     }
 
-    // The label sits top-centre, just below the top safe inset (the KILLED banner is mid-screen, clear of it).
+    // The label sits top-centre, LabelDropCm below its spot just under the top safe inset (the KILLED banner is mid-screen, clear of it).
+    public const float LabelDropCm = 3f;
+    public const float LabelMaxDownFraction = .40f;   // never lower than this share of the screen height
+    public const float LabelFallbackDropFraction = .10f;   // of the screen height, when the dpi is not believable
+
+    // The drop in screen pixels: LabelDropCm at `dpi`; ~10% of the height when dpi is 0 or implausible
+    // (editor, emulators). Clamped so the label's top edge, `topPx` from the screen top, stays above 40%.
+    public static float LabelDropPixels(float dpi, float screenHeight, float topPx)
+    {
+        float drop = dpi >= 100f && dpi <= 700f ? LabelDropCm / 2.54f * dpi : screenHeight * LabelFallbackDropFraction;
+        return Mathf.Clamp(drop, 0f, Mathf.Max(0f, screenHeight * LabelMaxDownFraction - topPx));
+    }
+
     void PlaceLabel()
     {
         if (label == null) return;
-        float units = 800f / Mathf.Max(1f, ScreenInfo.Width);
+        float units = 800f / Mathf.Max(1f, ScreenInfo.Width);   // canvas units per pixel
+        float topPx = ScreenInfo.SafeTopInset + 28f / units;
+        float dropPx = LabelDropPixels(Screen.dpi, ScreenInfo.Height, topPx);
         var rt = label.Root;
         rt.anchorMin = rt.anchorMax = new Vector2(.5f, 1f);
         rt.pivot = new Vector2(.5f, 1f);
-        rt.anchoredPosition = new Vector2(0f, -(ScreenInfo.SafeTopInset * units + 28f));
+        rt.anchoredPosition = new Vector2(0f, -(topPx + dropPx) * units);
     }
 }
