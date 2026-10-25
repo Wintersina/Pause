@@ -124,6 +124,20 @@ public class PortalArrival : MonoBehaviour
     public Stage State { get { return state; } }
     public float Seconds { get { return t; } }
     public Transform Ship { get { return ship; } }
+    // 1 normally; while this arrival is growing `ship` out of the vortex, how
+    // far through its growth it is (its scale now / its full scale), so ship
+    // UI drawn at a fixed WORLD size (charge indicator, secret meter) shrinks
+    // with the hull instead of towering over it. Never zero (floored).
+    public static float ShipFactor(Transform ship)
+    {
+        var a = Live;
+        if (a == null || a.state == Stage.Done || a.departing || ship == null || a.ship != ship) return 1f;
+        Vector3 rest = a.shipScale0, cur = ship.localScale;
+        float full = Mathf.Max(Mathf.Abs(rest.x), Mathf.Abs(rest.y));
+        if (full < 1e-5f) return 1f;
+        return Mathf.Clamp(Mathf.Max(Mathf.Abs(cur.x), Mathf.Abs(cur.y)) / full, .02f, 1f);
+    }
+
     // The ship's own (full-size) scale, which the arrival grows it back to.
     public Vector3 RestScale { get { return shipScale0; } }
     public Vector3 Centre { get { return centre; } }

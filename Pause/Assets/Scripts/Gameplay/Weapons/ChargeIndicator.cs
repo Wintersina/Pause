@@ -167,16 +167,18 @@ public class ChargeIndicator : MonoBehaviour
                 ? Mathf.Max(b.extents.x, b.extents.y) * Mathf.Max(Mathf.Abs(transform.lossyScale.x), sy)
                 : (b.max.y) * sy;
         }
-        Vector3 rest = transform.position + Vector3.up * (nose + WorldSize * .5f);
+        // the ship still growing out of the portal: the badge grows with it
+        float size = WorldSize * PortalArrival.ShipFactor(transform);
+        Vector3 rest = transform.position + Vector3.up * (nose + size * .5f);
         Vector3 pos = rest;
         if (gun != null)
-            pos = Vector3.Lerp(rest, gun.MuzzlePosition + Vector3.up * WorldSize * .3f, gun.Extend01);
+            pos = Vector3.Lerp(rest, gun.MuzzlePosition + Vector3.up * size * .3f, gun.Extend01);
         pos.z = transform.position.z - .06f;
         t.position = pos;
         t.rotation = Quaternion.Euler(0f, 0f, -spin);
         Vector3 lossy = transform.lossyScale;
-        t.localScale = new Vector3(WorldSize / Mathf.Max(.0001f, Mathf.Abs(lossy.x)),
-                                   WorldSize / Mathf.Max(.0001f, Mathf.Abs(lossy.y)), 1f);
+        t.localScale = new Vector3(size / Mathf.Max(.0001f, Mathf.Abs(lossy.x)),
+                                   size / Mathf.Max(.0001f, Mathf.Abs(lossy.y)), 1f);
     }
 
     // The red atom's free shot (ShipPowerController.FreeShot) went off: a
