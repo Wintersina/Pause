@@ -35,11 +35,16 @@ public class LeaderboardPanel : MonoBehaviour
     // and score columns keep their own boxes, so they stay aligned and whole.
     public const int NameSize = 24, NameMinSize = 20;
     // Row columns, left to right: rank, the ship the run started with (its hull
-    // art), the name, the hearts it started with (the HUD heart + a count), the score.
+    // art), the name, the hearts it started with (the HUD heart + a count), the
+    // pauses it ended with (two bars + a count), the score. Widths in panel units:
+    // at the narrowest panel (a 320 dp phone, 626.7 units wide, Inner 546.7) the
+    // name column is 546.7 - 130 - 14 - 170 - 6 - 2 x 66 = 94.7.
     public const float NameLeft = 130f, NameWidth = 210f;   // NameWidth: at the design width
     const float RankWidth = 62f, ShipLeft = 78f, ShipWidth = 46f;
-    const float BadgeWidth = 108f, HeartSize = 22f;   // heart + "4"
-    const float ValueWidth = 200f, ValueInset = 22f;
+    const float BadgeWidth = 66f, HeartSize = 22f;   // heart / pause bars + a count of up to two digits
+    const float ValueWidth = 170f, ValueInset = 14f;
+    const int BadgeSize = 24, BadgeMinSize = 16;     // 16 units = 7.7 dp at the smallest scale (0.48 units per dp)
+    const int ValueMinSize = 16;
     // UiScale's floor: the buttons and the tab are 100-unit touch targets.
     public const float MinTapUnits = 100f;
     public const string Ellipsis = "...";
@@ -78,7 +83,7 @@ public class LeaderboardPanel : MonoBehaviour
     float Inner { get { return panelW - 2f * SideInset; } }
     float Drop { get { return DesignHeight - panelH; } }   // the lower block moves up by this
     float ListHeight { get { return PlayerRowTop - Drop - 40f - ListTop; } }
-    public float NameColumnWidth { get { return Inner - NameLeft - ValueInset - ValueWidth - 8f - BadgeWidth; } }
+    public float NameColumnWidth { get { return Inner - NameLeft - ValueInset - ValueWidth - 6f - 2f * BadgeWidth; } }
     public Vector2 PanelSize { get { return new Vector2(panelW, panelH); } }
     public bool ListScrolls { get { return list != null && list.GetComponent<ScrollRect>().enabled; } }
 
@@ -612,7 +617,32 @@ public class LeaderboardPanel : MonoBehaviour
             count.offsetMin = new Vector2(HeartSize + 4f, 0f);
             count.offsetMax = Vector2.zero;
             // Only the hearts the run started with; the end hearts stay in the tag.
-            Label(count, e.startHearts.ToString(), 24, AkiraPalette.Bone, TextAnchor.MiddleLeft, 2.5f);
+            Label(count, e.startHearts.ToString(), BadgeSize, AkiraPalette.Bone, TextAnchor.MiddleLeft, 2.5f, BadgeMinSize);
+        }
+
+        // The pauses the run ended with: two bars (the pause glyph) and a count.
+        // An older tag has none: the slot stays empty, never a 0 or a stray glyph.
+        if (e.hasPauses && e.pauses >= 0)
+        {
+            var badge = Child(rt, "Pauses");
+            Anchor(badge, NameLeft + NameColumnWidth + 2f + BadgeWidth, BadgeWidth - 4f);
+            for (int b = 0; b < 2; b++)
+            {
+                var bar = Child(badge, "Bar" + b);
+                bar.anchorMin = bar.anchorMax = new Vector2(0f, .5f);
+                bar.pivot = new Vector2(0f, .5f);
+                bar.sizeDelta = new Vector2(7f, 20f);
+                bar.anchoredPosition = new Vector2(2f + b * 11f, 0f);
+                var barImage = bar.gameObject.AddComponent<Image>();
+                barImage.color = AkiraPalette.Cyan;
+                barImage.raycastTarget = false;
+            }
+            var count = Child(badge, "Count");
+            count.anchorMin = new Vector2(0f, 0f);
+            count.anchorMax = new Vector2(1f, 1f);
+            count.offsetMin = new Vector2(HeartSize + 4f, 0f);
+            count.offsetMax = Vector2.zero;
+            Label(count, Mathf.Min(e.pauses, LeaderboardRunTag.MostPauses).ToString(), BadgeSize, AkiraPalette.Bone, TextAnchor.MiddleLeft, 2.5f, BadgeMinSize);
         }
 
         if (e.rank > 0 || e.value != 0)
@@ -623,9 +653,30 @@ public class LeaderboardPanel : MonoBehaviour
             value.pivot = new Vector2(1f, .5f);
             value.sizeDelta = new Vector2(ValueWidth, 0f);
             value.anchoredPosition = new Vector2(-ValueInset, 0f);
-            Label(value, board != null ? board.Format(e.value) : e.value.ToString(), 30, valueColor,
-                  TextAnchor.MiddleRight, 3f);
+            string shown = board != null ? board.Format(e.value) : e.value.ToString();
+            // "LOOP 2 \u00B7 WORLDS 8" is drawn on two lines (no dot glyph to depend on).
+            bool twoLines = shown.Contains(LeaderboardBoards.WorldsSeparator);
+            if (twoLines) shown = shown.Replace(LeaderboardBoards.WorldsSeparator, "\n");
+            var valueText = Label(value, shown, twoLines ? 24 : 30, valueColor, TextAnchor.MiddleRight, 3f, ValueMinSize);
+            if (twoLines) valueText.lineSpacing = .9f;
+            FitValue(valueText, twoLines ? 24 : 30);
         }
+    }
+
+    // The score / worlds text at `size`, shrinking one unit at a time to
+    // ValueMinSize until its widest line fits ValueWidth (never smaller, never cut).
+    // Measured with the font itself, once, when the row is built.
+    void FitValue(Text text, int size)
+    {
+        text.resizeTextForBestFit = false;
+        text.horizontalOverflow = HorizontalWrapMode.Overflow;
+        text.verticalOverflow = VerticalWrapMode.Overflow;
+        for (; size > ValueMinSize; size--)
+        {
+            text.fontSize = size;
+            if (text.preferredWidth <= ValueWidth) return;
+        }
+        text.fontSize = ValueMinSize;
     }
 
     // One line at NameSize .. NameMinSize; a name too long even at the
@@ -765,7 +816,7 @@ public class LeaderboardPanel : MonoBehaviour
         rt.anchoredPosition = new Vector2(left, 0f);
     }
 
-    Text Label(RectTransform rt, string s, int size, Color color, TextAnchor align, float ink)
+    Text Label(RectTransform rt, string s, int size, Color color, TextAnchor align, float ink, int minSize = 0)
     {
         var text = rt.gameObject.AddComponent<Text>();
         text.font = font;
@@ -778,7 +829,7 @@ public class LeaderboardPanel : MonoBehaviour
         text.horizontalOverflow = HorizontalWrapMode.Wrap;
         text.verticalOverflow = VerticalWrapMode.Overflow;
         text.resizeTextForBestFit = true;
-        text.resizeTextMinSize = Mathf.Max(12, size / 2);
+        text.resizeTextMinSize = minSize > 0 ? minSize : Mathf.Max(12, size / 2);
         text.resizeTextMaxSize = size;
         if (ink > 0f)
         {

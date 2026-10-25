@@ -22,7 +22,7 @@ All code is in `Pause/Assets/Scripts/Core/Leaderboards/`, and the panel is in `S
 | `LeaderboardPlatforms.CreateForPlatform()` | Picks the platform from `Application.platform`, the same way `PlayerAccounts` does. |
 | `LeaderboardBoards` | **The board table**: logical id, Android id, iOS id, name, description, sort order, formatter and run metric. |
 | `LeaderboardService` | The submission pipeline, the loading done for the panel, and native UI. `Instance` can be swapped out in tests. |
-| `LeaderboardRunTracker` | Added at runtime when `gameS1` loads. It tracks the run score (`RunScore.Total`), star dust and the furthest loop (`RunLoop.DisplayNumber`), and calls `SubmitRun` when the run ends. No gameplay script or scene references it. |
+| `LeaderboardRunTracker` | Added at runtime when `gameS1` loads. It tracks the run score (`RunScore.Total`), star dust, the worlds cleared (`RunScore.Parts.worldCount`) and the pauses left (`score.pauseCounter`), and calls `SubmitRun` when the run ends. No gameplay script or scene references it. |
 | `LeaderboardPanel` | The in-game panel, opened by Options → LeaderBoard (`leaderboard.pull_up_leaderboard`). It's built at runtime on its own overlay canvas, so `leaderboardS3.unity` is unchanged. |
 
 Sign-in still belongs to `CloudSync`/`IPlayerAccount`. The interactive sign-in is `AccountLink.SignIn`
@@ -40,14 +40,27 @@ The table order is the panel's tab order: **Top Score** is the primary board and
 | `top_score` | Top Score | `CgkIopqxqbAPEAIQPg` | `me.hapticgate.pause.top_score` | higher is better | integer with thousands separators (`RunScore.Total`, see `Scripts/Core/Scoring/ScoreRules.cs`) | enabled on Android and iOS |
 | ~~`top_speed`~~ | ~~Top Speed~~ | (retired) | (retired) | | | **retired** (2026-10, the speed cap): not in the table, `LeaderboardBoards.RetiredSpeedBoard` only names it so old queues drop it |
 | `run_star_dust` | Star Dust | `CgkIopqxqbAPEAIQPw` | empty (proposed `me.hapticgate.pause.run_star_dust`) | higher is better | hundredths shown with 2 decimals | enabled on Android; off on iOS until its Game Center id is filled in |
-| `furthest_world` | **Furthest Loop** (logical id kept) | `CgkIopqxqbAPEAIQQA` (lowest 1, no upper limit) | empty (proposed `me.hapticgate.pause.furthest_world`) | higher is better | `Loop N` (no world names) | enabled on Android; off on iOS until its Game Center id is filled in |
+| `furthest_world` | **Worlds** (logical id kept; was "Furthest Loop") | `CgkIopqxqbAPEAIQQA` (**upper limit must be raised**, see "Worlds cleared") | empty (proposed `me.hapticgate.pause.furthest_world`) | higher is better | `LOOP L · WORLDS N` | enabled on Android; off on iOS until its Game Center id is filled in |
 
-**Furthest Loop value.** The submitted number is the loop the run reached: 1 while still on the first pass through the worlds, 2 once the
-run flew the last live world's portal (or its auto-loop lift-off), 3 on the next, and so on with no cap. It is `RunLoop.DisplayNumber`
-(`RunLoop.Index + 1`, `Scripts/Worlds/LoopRules.cs`), the same counter that drives loop difficulty and the "LOOP 2" HUD, and
-`LeaderboardRunTracker` keeps the maximum seen in the run. The loop boundary is therefore wherever the game itself loops (after
-`WorldManager.LastLiveWorld`, so enabling Tide, Storm or Desert later changes how far a pass goes but never rewrites a loop number already
-stored in a score: a score is a loop count, not a planet count).
+**Worlds cleared (value and label).** The submitted number is the TOTAL worlds the run cleared, across loops (one loop = the 7-world cycle).
+A world is *cleared* when its portal / planetfall / the last world's lift-off is flown, the same event that pays the world-cleared points
+(`WorldManager.Advance` -> `RunScore.OnWorldCleared`; counted in `RunScore.Parts.worldCount`, only while the run is scoring). Entering a
+world is not clearing it, so the achievement counters (`OnWorldEntered`, `OnWorldCleared`, `OnLoop`) are untouched. A run that cleared 0 is
+never offered (`LeaderboardBoard.minValue` = 1, the store board's lowest score).
+
+The label is derived from the stored number alone (`LeaderboardBoards.FormatWorlds`): `LOOP L · WORLDS N` with
+`L = max(1, ceil(N / 7))` (`WorldsPerLoop` = 7, fixed, pinned to the live world count by a test so a stored score keeps its meaning) and the word
+`WORLD` when N == 1, `WORLDS` otherwise: 1 -> `LOOP 1 · WORLD 1`, 2 -> `LOOP 1 · WORLDS 2`, 5 -> `LOOP 1 · WORLDS 5`,
+7 -> `LOOP 1 · WORLDS 7` (loop 1 complete), 8 -> `LOOP 2 · WORLDS 8`, 14 -> `LOOP 2 · WORLDS 14`, 15 -> `LOOP 3 · WORLDS 15`. The panel
+draws the two halves on two lines (no dot glyph needed). Rank is the number itself (higher is better; ties are the store's order).
+
+*Local migration.* The board used to hold the loop reached (1, 2, 3 ...). `LeaderboardService.MigrateWorldsBoard` (run once from `Install`) drops
+the device's queued / submitted marks for `furthest_world`, because a mark is only a "this device already sent it" note and an old loop number
+would read as a worlds count. Nothing real is lost (the board was an unpublished draft, and there is no other local "best loop").
+
+*Store clamp.* If the store board still has its upper limit of 7, a value above 7 is refused: the read-back shows the old value, the client keeps the
+value queued and the local best, retries with the usual backoff, and after `MaxRejectedSends` (8) refused sends logs a warning and stops sending that
+board for the session (opening the panel or the next launch tries once more). Nothing crashes and no other board is affected.
 
 A board is **enabled on a platform when that platform's id is filled in** (`LeaderboardBoard.EnabledOn`): Android needs only its Play Games id,
 iOS only its Game Center id. A board with no id on the running platform gets no tab, nothing submitted and nothing queued.
@@ -77,7 +90,7 @@ iOS only its Game Center id. A board with no id on the running platform gets no 
   belong to. On the first Flush for a new player, marks of another player are dropped, marks of an
   unknown owner (written by older builds) go back into the queue, and the saved best score
   (`RunScore.SavedBest`) is offered once. Blocked while developer mode, the premium ship or the
-  tutorial is active (nothing sent, binding left for later). Star dust and Furthest Loop have no saved
+  tutorial is active (nothing sent, binding left for later). Star dust and Worlds have no saved
   best besides the marks, so only marks cover them.
 * **Silent sign-in on resume:** `LeaderboardRunner.OnApplicationFocus` retries a failed launch sign-in
   (`AccountLink.RetrySilentOnResume`, at most once a minute, never after SIGN OUT) and flushes the queue.
@@ -97,9 +110,9 @@ opens the store's own screen. The panel follows `docs/art-style.md`: flat chamfe
 
 ## Start ship, start hearts and the premium ship
 
-* **Row layout:** rank, the start ship's hull art (`ShipHullArt.StockRest`), the name, the HUD heart (`Vfx/lifeHeart`) with the start hearts count, then the score. An entry with no data (an older score, or a store that keeps no tag) shows nothing in those slots.
+* **Row layout:** rank, the start ship's hull art (`ShipHullArt.StockRest`), the name, the HUD heart (`Vfx/lifeHeart`) with the start hearts count, a two-bar pause glyph with the pauses the run ended with, then the value (on the Worlds board on two lines: `LOOP L` over `WORLDS N`). Fit at the narrowest panel (320 dp phone, e.g. and-480x854: 626.7 units, Inner 546.7): name column 546.7 - 130 - 14 - 170 - 6 - 2 x 66 = 94.7 units; badge and value type never under 16 units = 7.7 dp (0.48 units per dp there), names 20+ units. An entry with no data (an older score, or a store that keeps no tag) shows nothing in those slots.
 * **Capture:** `LeaderboardRunTracker.Start` records `ShipId.Equipped()` and `ShipLives.Max(ship)` at run start (never re-read at the end) in `LeaderboardRunStats.startShip/startHearts`.
-* **Carrying it:** `LeaderboardRunTag` encodes `s<ship>h<hearts>` (e.g. `s7h4`). Android sends it as the Play Games score tag and reads it back from every row. Unity's Game Center API has no score context, so iOS rows of other players stay blank; the player's own row is filled from the device-local `submittedScores` record (which now keeps the tag) when the stored value equals the submitted one. `ScoreTable.Entry.tag` is additive: old queues load with an empty tag.
+* **Carrying it:** `LeaderboardRunTag` encodes `s<ship>h<start hearts>e<end hearts>p<pauses left>` (e.g. `s7h4e2p3`; every part after `h` is optional, older `s7h4` / `s7h4e2` tags still read, and a reader skips `<letter><digits>` fields it does not know, so the tag can grow). `p` is `score.pauseCounter` when the run ended (0..99; an older tag has none and its row shows no pauses badge, never a 0). Android sends it as the Play Games score tag and reads it back from every row. Unity's Game Center API has no score context, so iOS rows of other players stay blank; the player's own row is filled from the device-local `submittedScores` record (which now keeps the tag) when the stored value equals the submitted one. `ScoreTable.Entry.tag` is additive: old queues load with an empty tag.
 * **Paragon (premium cheat ship) never ranks.** Gates: `RunScore.BeginRun` marks the run `Unranked` at its start (no saved best, no score/loop achievement progress; the dust score bonus is unchanged); `LeaderboardRunTracker` marks the run premium if it starts on, or ever flies, Paragon; `LeaderboardService.SubmitRun`, `SubmissionBlocked` (equipped ship), `OfferUnchecked` and `Flush` (drops queued premium-tagged entries) all refuse it; `SocialBridge.ReportScore` refuses it too. A premium tag read from a board is shown as unknown. The player is told before and after: an amber `PremiumShips.LeaderboardNotice` strip on Paragon's dock card (locked and owned; the IAP flow must show it before payment), "Cheat ship: not on leaderboards" in its codex blurb, and a `CHEAT SHIP - UNRANKED` sub-label on the results score card.
 
 ## Adding a board
@@ -138,8 +151,7 @@ Play Console id: its iOS id is already in.
 3. For each placeholder you want live, choose **Add leaderboard**:
    * Star Dust: Numeric, **2 decimal places**, larger is better. The game sends hundredths, so 1234
      shows as 12.34.
-   * Furthest Loop: Numeric, 0 decimals, larger is better, lowest 1 and no upper limit (or Custom/text units if
-     you want "World").
+   * Worlds (the existing `furthest_world` board `CgkIopqxqbAPEAIQQA`, ids are kept): name "Worlds cleared", description "Most worlds cleared in a single run, across loops", Numeric integer (0 decimals), larger is better, **lowest 1, highest 9999** (it was created with 1..7: edit the limits, do not recreate it).
    * Turn tamper protection on for each one.
 4. Copy each new id (*Get resources*) into `LeaderboardBoards`.
 5. **Publish** the Play Games Services changes. Until they're published, only the tester accounts
@@ -162,10 +174,10 @@ Play Console id: its iOS id is already in.
    the game until the Play Console id is in too, because a board is enabled per platform by that platform's own id.)
 3. For each placeholder, create a leaderboard the same way:
    * `me.hapticgate.pause.run_star_dust`: score format *Fixed point, to 2 places*, High to low
-   * `me.hapticgate.pause.furthest_world` ("Furthest Loop"): Integer, High to low, lowest 1, no upper limit (the value is the loop number, not a world index)
+   * `me.hapticgate.pause.furthest_world` ("Worlds cleared"): Integer, High to low, score range 1 to 9999 (the value is the total worlds cleared across loops, so it exceeds 7 once a run loops)
    Then copy the ids into `LeaderboardBoards`.
-   (World count: `furthest_world` is the loop number, not a world index, so adding Tide (World 5) and Storm (World 6) needs
-   NO range change in either store -- keep "lowest 1, no upper limit". Older notes that said "range 1..4" predate that.)
+   (Adding a world later changes how many worlds a loop holds in the game but not the stored numbers; `LeaderboardBoards.WorldsPerLoop` and its
+   test are the deliberate switch for the `LOOP L` label.)
 4. Attach the leaderboards to the app version (the Game Center section of the version page; put Top Score first so it is the default board) and
    submit them with the next build. Sandbox/TestFlight accounts can use them before release.
 

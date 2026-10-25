@@ -20,11 +20,10 @@ public struct LeaderboardRunStats
 {
     public long score;         // the run score (RunScore.Total)
     public float starDust;    // star dust earned in this run
-    // The loop the run reached: 1 while still on the first pass through the
-    // worlds, 2 once it flew the last live world's portal, and so on (no cap).
-    // RunLoop.DisplayNumber is the game's own counter, so the boundary is
-    // whatever the last live world was when the loop happened.
-    public int loop;
+    // How many worlds the run CLEARED in total, across loops: one per portal /
+    // lift-off flown (RunScore.Parts.worldCount, the same event that pays the
+    // world-cleared points). Entering a world is not clearing it.
+    public int worldsCleared;
     // What the run STARTED with (captured at run start, not read at the end):
     // the ship id and its hearts. Shown beside the score on the boards.
     public int startShip;
@@ -32,12 +31,15 @@ public struct LeaderboardRunStats
     // The hearts the run FINISHED with (0 = died). Sampled during the run.
     public bool hasEnd;
     public int endHearts;
+    // The pauses the run FINISHED with (score.pauseCounter at its end).
+    public bool hasPauses;
+    public int endPauses;
     // The run flew the premium (cheat) ship at any point, or ranked nothing
     // (RunScore.Unranked). Such a run is never submitted anywhere.
     public bool premiumRun;
 
     public bool UsedPremium { get { return premiumRun || PremiumShips.IsPremium(startShip); } }
-    public string Tag { get { return LeaderboardRunTag.Encode(startShip, startHearts, hasEnd ? endHearts : -1); } }
+    public string Tag { get { return LeaderboardRunTag.Encode(startShip, startHearts, hasEnd ? endHearts : -1, hasPauses ? endPauses : -1); } }
 }
 
 public sealed class LeaderboardBoard
@@ -50,10 +52,15 @@ public sealed class LeaderboardBoard
     public readonly LeaderboardSort sort;
     readonly Func<long, string> format;
     readonly Func<LeaderboardRunStats, long> measure;
+    // A value below this is never offered (the store board's lower limit: the
+    // worlds board starts at 1, so a run that cleared nothing sends nothing).
+    public readonly long minValue;
 
     public LeaderboardBoard(string id, string androidId, string iosId, string displayName, string description,
-                            LeaderboardSort sort, Func<long, string> format, Func<LeaderboardRunStats, long> measure)
+                            LeaderboardSort sort, Func<long, string> format, Func<LeaderboardRunStats, long> measure,
+                            long minValue = long.MinValue)
     {
+        this.minValue = minValue;
         this.id = id;
         this.androidId = androidId ?? "";
         this.iosId = iosId ?? "";
@@ -131,14 +138,20 @@ public static class LeaderboardBoards
             FormatHundredths,
             run => (long)Math.Round(run.starDust * 100.0)),   // stored in hundredths (2 decimals)
 
+        // Worlds cleared across loops (logical and store ids kept from the old
+        // "Furthest Loop" board; only the meaning changed). The Play Console
+        // draft was made with limits 1..7: its upper limit must be raised
+        // (docs/leaderboards.md, "Worlds cleared"). Lowest 1: a run that
+        // cleared no world is never offered.
         new LeaderboardBoard(FurthestWorld,
-            "CgkIopqxqbAPEAIQQA",   // Play Console id (lowest 1, no upper limit)
+            "CgkIopqxqbAPEAIQQA",   // Play Console id (same id as the old Furthest Loop board)
             "",   // proposed: me.hapticgate.pause.furthest_world
-            "Furthest Loop",
-            "Furthest loop reached in a single run.",
+            "Worlds",
+            "Most worlds cleared in a single run, across loops.",
             LeaderboardSort.HigherIsBetter,
-            FormatLoop,
-            run => Math.Max(1, run.loop)),                   // 1 = first pass, no cap
+            FormatWorlds,
+            run => Math.Max(0, run.worldsCleared),
+            1),
     };
 
     public static LeaderboardBoard Get(string id)
@@ -164,8 +177,26 @@ public static class LeaderboardBoards
         return (v / 100) + "." + Math.Abs(v % 100).ToString("00");
     }
 
-    public static string FormatLoop(long v)
+    // Worlds in one full pass (Space, Frost, Verdant, Ember, Tide, Storm,
+    // Desert). Fixed here, NOT read from WorldManager, so a stored value keeps
+    // its meaning if a world is added later (LeaderboardTest pins it to the
+    // live world count).
+    public const int WorldsPerLoop = 7;
+
+    // The loop a run that cleared `worlds` worlds is on: 1 for 0..7, 2 for 8..14,
+    // 3 for 15..21. Clearing the 7th world still reads LOOP 1; the loop number
+    // goes up with the 8th clear.
+    public static int LoopOfWorlds(long worlds)
     {
-        return "Loop " + v;
+        if (worlds <= WorldsPerLoop) return 1;
+        return (int)((worlds - 1) / WorldsPerLoop) + 1;
+    }
+
+    // "LOOP 2 \u00B7 WORLDS 8". WORLD (singular) for exactly 1, WORLDS otherwise.
+    public const string WorldsSeparator = " \u00B7 ";
+    public static string FormatWorlds(long worlds)
+    {
+        if (worlds < 0) worlds = 0;
+        return "LOOP " + LoopOfWorlds(worlds) + WorldsSeparator + (worlds == 1 ? "WORLD " : "WORLDS ") + worlds;
     }
 }

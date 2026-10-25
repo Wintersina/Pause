@@ -35,7 +35,7 @@ THE CODEX
 Everything you meet is recorded in the Codex: enemies, elites, bosses and worlds, with their art and notes. Fill it as you discover them.
 
 ACHIEVEMENTS AND LEADERBOARDS
-Sign in with Google Play Games to unlock achievements, compete on the Top Score, Star Dust and Furthest Loop leaderboards, and keep your progress safe with cloud save across devices. Signing in is optional; the whole game works offline.
+Sign in with Google Play Games to unlock achievements, compete on the Top Score, Star Dust and Worlds leaderboards, and keep your progress safe with cloud save across devices. Signing in is optional; the whole game works offline.
 
 NEON PIXEL ART
 Pixel art with glowing neon lighting, animated backdrops, planets and cities, and an original soundtrack.
@@ -89,7 +89,7 @@ THE CODEX
 Everything you meet is recorded in the Codex: enemies, elites, bosses and worlds, with their art and notes. Fill it as you discover them.
 
 ACHIEVEMENTS AND LEADERBOARDS
-Sign in with Google Play Games to unlock achievements, compete on the Top Score, Star Dust and Furthest Loop leaderboards, and keep your progress safe with cloud save across devices. Signing in is optional; the whole game works offline.
+Sign in with Google Play Games to unlock achievements, compete on the Top Score, Star Dust and Worlds leaderboards, and keep your progress safe with cloud save across devices. Signing in is optional; the whole game works offline.
 
 NEON PIXEL ART
 Pixel art with glowing neon lighting, animated backdrops, planets and cities, and an original soundtrack.

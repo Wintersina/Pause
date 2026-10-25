@@ -423,7 +423,7 @@ public static class ScoringTest
         {
             Check("developer run: submission blocked", LeaderboardService.SubmissionBlocked());
             Check("developer run: SubmitRun queues nothing",
-                  service.SubmitRun(new LeaderboardRunStats { score = 99999, loop = 3 }) == 0 && fake.Submissions.Count == 0);
+                  service.SubmitRun(new LeaderboardRunStats { score = 99999, worldsCleared = 3 }) == 0 && fake.Submissions.Count == 0);
         }
         LeaderboardService.Instance = prev;
         Object.DestroyImmediate(s.gameObject);
@@ -767,7 +767,7 @@ public static class ScoringTest
               top.PlatformId(true) == top.iosId && top.PlatformId(false) == top.androidId);
         Check("Top Score never reuses the retired speed board's ids",
               !top.iosId.EndsWith("highest_speed") && top.androidId != "CgkI3eXNjrQcEAIQAA");
-        Check("the speed board is retired: not in the table; Top Score, Star Dust and Furthest Loop are enabled on Android",
+        Check("the speed board is retired: not in the table; Top Score, Star Dust and Worlds are enabled on Android",
               LeaderboardBoards.Get(LeaderboardBoards.RetiredSpeedBoard) == null && LeaderboardBoards.Enabled().Count == 3);
         Check("Top Score: higher is better, measures the run score, formats 1,234,567",
               top.sort == LeaderboardSort.HigherIsBetter && top.Measure(new LeaderboardRunStats { score = 1234567 }) == 1234567 &&
@@ -788,9 +788,9 @@ public static class ScoringTest
         {
             Check("with its Play Console id in, Top Score is the first tab of three",
                   service.UsableBoards().Count == 3 && service.UsableBoards()[0].id == LeaderboardBoards.TopScore);
-            int accepted = service.SubmitRun(new LeaderboardRunStats { score = 15451, starDust = 3f, loop = 2 });
+            int accepted = service.SubmitRun(new LeaderboardRunStats { score = 15451, starDust = 3f, worldsCleared = 2 });
             long v;
-            Check("a run end queues score, star dust and loop, and nothing for speed", accepted == 3 &&
+            Check("a run end queues score, star dust and worlds cleared, and nothing for speed", accepted == 3 &&
                   service.HasPending(LeaderboardBoards.FurthestWorld, out v) && v == 2 &&
                   service.HasPending(LeaderboardBoards.TopScore, out v) && v == 15451 &&
                   !service.HasPending(LeaderboardBoards.RetiredSpeedBoard, out v));

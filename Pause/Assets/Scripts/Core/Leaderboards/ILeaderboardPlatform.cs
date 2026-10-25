@@ -65,6 +65,10 @@ public struct LeaderboardEntry
     // The hearts the run finished with (0 = died); only meaningful when hasEnd.
     public bool hasEnd;
     public int endHearts;
+    // The pauses the run finished with, from the tag; only meaningful when hasPauses
+    // (an older tag has none: the row shows nothing, never a 0).
+    public bool hasPauses;
+    public int pauses;
 }
 
 public sealed class LeaderboardPage

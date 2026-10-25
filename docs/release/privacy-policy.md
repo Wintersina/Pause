@@ -21,7 +21,7 @@ Pause saves your progress on your phone: star dust, ships and skins you own, the
 If you sign in to Google Play Games, the game uses Google's Play Games Services to provide:
 
 - **Sign-in.** Google gives the game your Play Games player ID and display name so it can recognise you and show your name on leaderboards. We do not receive your email address or Google account password.
-- **Leaderboards.** After a run, the game sends your score, star dust collected and furthest loop to Google's leaderboards. Other players can see your Play Games name and these scores according to your Play Games profile and visibility settings.
+- **Leaderboards.** After a run, the game sends your score, star dust collected, worlds cleared and pauses left to Google's leaderboards. Other players can see your Play Games name and these scores according to your Play Games profile and visibility settings.
 - **Achievements.** The game tells Google which achievements you have unlocked.
 - **Cloud save.** The game stores one small save file ("Pause progress", the same progress described above) in your Play Games saved games so you can continue on another device or after reinstalling.
 
