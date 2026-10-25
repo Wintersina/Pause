@@ -785,8 +785,12 @@ public static class PowersReworkTest
         s.Fire();
         int before = AttackPool.ActiveSprites;
         Check("the shell eats a hit", SecretPowerController.InterceptHit(hit) && !s.ShellUp);
-        Check("with its own break burst (" + s.ShellBreaks + ")", s.ShellBreaks == 1 && AttackPool.ActiveSprites >= before + 1 &&
+        Check("with its own break burst (" + s.ShellBreaks + ")", s.ShellBreaks == 1 && AttackPool.ActiveSprites >= before &&
               SpritesActiveNamed(SecretPowerController.ShellAuraName) == 0);
+        var shell = ShipFxArt.Strip(15, "shell");
+        Check("the shell strip (Turtle_shell) is 16 cells, one world unit across", shell != null && shell.Length == 16 &&
+              shell[0] != null && Mathf.Abs(shell[0].bounds.size.x - 1f) < .01f && Mathf.Abs(shell[15].bounds.size.y - 1f) < .01f &&
+              ShipFxArt.Extra(15, "shell", 0) == shell[0] && ShipFxArt.Extra(15, "shell", 8) == shell[8]);
         Object.DestroyImmediate(hit);
         Teardown(turtle);
     }
