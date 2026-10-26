@@ -323,6 +323,7 @@ public static class AllTests
         ("TutorialRobotTest", TutorialRobotTest.Execute),
         ("TutorialPolishTest", TutorialPolishTest.Execute),
         ("TutorialSafetyTest", TutorialSafetyTest.Execute),
+        ("TutorialRobustnessTest", TutorialRobustnessTest.Execute),
         ("TutorialRebuildTest", TutorialRebuildTest.Execute),
         ("TideLoopSoakTest", TideLoopSoakTest.Execute),
         ("TransitionChargeTest", TransitionChargeTest.Execute),
