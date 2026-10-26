@@ -5,7 +5,7 @@ using UnityEngine;
 // planet, just under a lime-white spore-cloud ceiling, looking down on a
 // forest full of overgrown pipework, smoking stacks and wildfires.
 //
-//   GROUND     one of four tile sets per landing (BackdropVariants): v1 canopy
+//   GROUND     one of four tile sets per landing (BackdropVariants): v1 AUTUMN canopy
 //              sea with rivers and waterfalls, v2 swamp delta, v3 overgrown
 //              ruined city, v4 the NIGHT side's bioluminescent forest
 //              (VerdantTuning.Night: drawn darker, lamps / fireflies /

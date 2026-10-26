@@ -52,7 +52,7 @@ public static class CodexBackdrops
     {
         new[] { "Violet Drift", "Magenta Veil", "Blue Reach", "Nebula Eye" },                       // Space (sky_01..04)
         new[] { "Frozen Ocean", "Coast and Harbour", "Tundra Industry", "Glacier Night" },          // Frost
-        new[] { "Canopy Sea", "Swamp Delta", "Ruined City", "Night Forest" },                       // Verdant
+        new[] { "Autumn Canopy", "Swamp Delta", "Ruined City", "Night Forest" },                       // Verdant
         new[] { "Caldera Fields", "Forge City", "Ash Ridges", "Cracked Crust" },                    // Ember
         new[] { "Open Sea", "Rig Field", "Drowned City", "Night Currents" },                        // Tide
         new[] { "Banded Deck", "Thunderhead Field", "Night Side", "Gust Front" },                         // Storm (four ground sets, v3 the night side)
