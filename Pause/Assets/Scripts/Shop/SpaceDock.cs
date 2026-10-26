@@ -90,6 +90,8 @@ public class SpaceDock : MonoBehaviour
         ParagonPurchase.Changed += RefreshStatuses;
         SupportPurchase.Changed -= OnSupportChanged;
         SupportPurchase.Changed += OnSupportChanged;
+        ParagonPurchase.Changed -= OnSupportChanged;
+        ParagonPurchase.Changed += OnSupportChanged;
         SupportPurchase.Rewarded -= OnSupportRewarded;
         SupportPurchase.Rewarded += OnSupportRewarded;
         BackNavigator.Register(this, OnBackPressed);
@@ -100,6 +102,7 @@ public class SpaceDock : MonoBehaviour
         DeveloperUnlocks.Changed -= RefreshStatuses;
         ParagonPurchase.Changed -= RefreshStatuses;
         SupportPurchase.Changed -= OnSupportChanged;
+        ParagonPurchase.Changed -= OnSupportChanged;
         SupportPurchase.Rewarded -= OnSupportRewarded;
         BackNavigator.Unregister(this);
         if (Instance == this) Instance = null;
@@ -110,6 +113,7 @@ public class SpaceDock : MonoBehaviour
         DeveloperUnlocks.Changed -= RefreshStatuses;
         ParagonPurchase.Changed -= RefreshStatuses;
         SupportPurchase.Changed -= OnSupportChanged;
+        ParagonPurchase.Changed -= OnSupportChanged;
         SupportPurchase.Rewarded -= OnSupportRewarded;
         BackNavigator.Unregister(this);
         if (Instance == this) Instance = null;
@@ -121,6 +125,9 @@ public class SpaceDock : MonoBehaviour
         var go = SceneUtil.FindAny(SupportButton.Name);
         var button = go != null ? go.GetComponent<SupportButton>() : null;
         if (button != null) button.Refresh();
+        var news = SceneUtil.FindAny(DockNewsTicker.Name);
+        var ticker = news != null ? news.GetComponent<DockNewsTicker>() : null;
+        if (ticker != null) ticker.Rebuild();
     }
 
     void OnSupportRewarded(int amount)
@@ -234,6 +241,8 @@ public class SpaceDock : MonoBehaviour
         ParagonPurchase.Changed += RefreshStatuses;
         SupportPurchase.Changed -= OnSupportChanged;
         SupportPurchase.Changed += OnSupportChanged;
+        ParagonPurchase.Changed -= OnSupportChanged;
+        ParagonPurchase.Changed += OnSupportChanged;
         SupportPurchase.Rewarded -= OnSupportRewarded;
         SupportPurchase.Rewarded += OnSupportRewarded;
         BackNavigator.Register(this, OnBackPressed);
@@ -301,7 +310,7 @@ public class SpaceDock : MonoBehaviour
             var go = SceneUtil.FindAny(name);
             if (go != null && go.transform is RectTransform) header.Add((RectTransform)go.transform);
         }
-        foreach (string name in new[] { "PlayButton", "BackButton" })
+        foreach (string name in new[] { "PlayButton", "BackButton", DockNewsTicker.Name })
         {
             var go = SceneUtil.FindAny(name);
             if (go != null && go.transform is RectTransform) footer.Add((RectTransform)go.transform);
@@ -814,6 +823,7 @@ public class SpaceDock : MonoBehaviour
         }
         if (canvas == null) return;
         SupportButton.Build(canvas.transform);
+        DockNewsTicker.Build(canvas.transform);
         PlaceFooter("BackButton", canvas.transform, -1);
         PlaceFooter("PlayButton", canvas.transform, 1);
 
@@ -849,6 +859,8 @@ public class SpaceDock : MonoBehaviour
     // Authored header / footer positions (canvas units, reference 720x960),
     // measured from the safe area's edges.
     const float DustY = -27f, InstructionY = -60f, SupportY = -102f;
+    // The news line sits just above the footer buttons' tap pads.
+    const float NewsY = FooterY + FooterH + FooterTapPad + 2f;
     const float FooterY = 24f, FooterW = 260f, FooterH = 64f, FooterGap = 40f, FooterSide = 20f;
     // The footer buttons' hit areas reach this far above their art (a
     // finger-sized target on short phones without bigger art). Only upwards:
@@ -884,6 +896,14 @@ public class SpaceDock : MonoBehaviour
         Place("starDustText", DustY, true);
         Place("~DockInstruction", InstructionY, true);
         Place(SupportButton.Name, SupportY, true);
+        var newsGo = SceneUtil.FindAny(DockNewsTicker.Name);
+        var news = newsGo != null ? newsGo.GetComponent<DockNewsTicker>() : null;
+        var newsCanvas = newsGo != null ? newsGo.GetComponentInParent<Canvas>() : null;
+        if (news != null && newsCanvas != null)
+        {
+            float nsf = Mathf.Max(newsCanvas.rootCanvas.scaleFactor, .0001f);
+            news.Place(NewsY, ScreenInfo.SafeLeftInset / nsf, ScreenInfo.SafeRightInset / nsf, ScreenInfo.SafeBottomInset / nsf);
+        }
         foreach (string name in new[] { "BackButton", "PlayButton" })
         {
             var go = SceneUtil.FindAny(name);

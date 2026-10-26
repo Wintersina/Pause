@@ -54,6 +54,7 @@ public static class AllTests
         ("PreRegistrationRewardTest", PreRegistrationRewardTest.Execute),
         ("ParagonPurchaseTest", ParagonPurchaseTest.Execute),
         ("SupportPurchaseTest", SupportPurchaseTest.Execute),
+        ("DockNewsTest", DockNewsTest.Execute),
         ("AppIconTest", AppIconTest.Execute),
         ("ArtRestyleTest", ArtRestyleTest.Execute),
         ("AchievementCatalogTest", AchievementCatalogTest.Execute),
