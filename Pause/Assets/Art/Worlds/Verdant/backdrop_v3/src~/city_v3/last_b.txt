@@ -1,0 +1,1 @@
+Saved the clearer redraw to `./city_b.png`.
