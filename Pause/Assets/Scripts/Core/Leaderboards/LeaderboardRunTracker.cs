@@ -26,6 +26,8 @@ public class LeaderboardRunTracker : MonoBehaviour
     int endHearts;
     // The pauses left at the last sample (score.pauseCounter), cached for the same reason.
     int endPauses;
+    // The star dust earned at the last sample: the next scene's BeginRun resets the ledger.
+    float endDust;
     bool premiumRun;
 
     void Start()
@@ -39,6 +41,7 @@ public class LeaderboardRunTracker : MonoBehaviour
         premiumRun = PremiumShips.IsPremium(startShip) || RunScore.Unranked;
         endHearts = startHearts;
         endPauses = score.pauseCounter;
+        endDust = 0f;
     }
 
     void Update()
@@ -65,6 +68,7 @@ public class LeaderboardRunTracker : MonoBehaviour
         // already have begun by then.
         endHearts = ShipLives.Left;
         endPauses = Mathf.Max(0, score.pauseCounter);
+        endDust = System.Math.Max(endDust, StarDustLedger.Earned);   // only grows within a run
         if (RunScore.Scoring) runScore = System.Math.Max(runScore, RunScore.Total);
     }
 
@@ -75,7 +79,7 @@ public class LeaderboardRunTracker : MonoBehaviour
         return new LeaderboardRunStats
         {
             score = runScore,
-            starDust = StarDustLedger.Earned,
+            starDust = endDust,
             worldsCleared = worldsCleared,
             startShip = startShip,
             startHearts = startHearts,

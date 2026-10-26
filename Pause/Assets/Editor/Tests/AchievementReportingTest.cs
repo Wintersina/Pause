@@ -118,6 +118,22 @@ public static class AchievementReportingTest
         Check("... which reports the open counters' percent", fake.reports.Any(x => x.Key == "stars_150" && System.Math.Abs(x.Value - 20 * 100.0 / 400) < 1e-9));
         Check("non-incremental achievements (score, chain, loops) get no partial progress",
               fake.reports.All(x => AchievementCatalog.Find(x.Key).storeSteps > 0 || x.Value == 100.0));
+        // A failed report is kept for the next flush, not dropped.
+        AchievementStore.ResetAll();
+        AchievementSync.ClearSyncMarks();   // ResetAll keeps the store's confirmed marks; a confirmed kills_100 would short-circuit Send
+        fake.reports.Clear();
+        AchievementStore.AddCounter("kills", 25);
+        fake.acceptOk = false;
+        AchievementSync.FlushReports();
+        Check("a failed flush report was attempted", fake.reports.Any(x => x.Key == "kills_100"));
+        Check("... and stays queued", AchievementSync.PendingReports >= 1);
+        fake.acceptOk = true;
+        fake.reports.Clear();
+        AchievementSync.FlushReports();
+        Check("... then goes out on the next flush", fake.reports.Any(x => x.Key == "kills_100" && x.Value == 25.0));
+        fake.reports.Clear();
+        AchievementSync.FlushReports();
+        Check("... and a confirmed report is not repeated", fake.reports.Count == 0 && AchievementSync.PendingReports == 0);
         fake.unreportable.Add("kills_1000");
         fake.reports.Clear();
         AchievementStore.AddCounter("kills", 1);

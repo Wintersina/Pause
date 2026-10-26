@@ -45,6 +45,7 @@ public static class LeaderboardTest
             FurthestLoopShipHearts();
             PausesColumn();
             PausesAtDeath();
+            StarDustSurvivesLedgerReset();
             ConfirmBeforeDone();
             AccountBinding();
             BackfillGates();
@@ -96,10 +97,10 @@ public static class LeaderboardTest
         {
             new LeaderboardBoard(LeaderboardBoards.TopScore, TestScoreAndroid, AchievementIds.IosPrefix + "top_score",
                 "Top Score", "Best score in a single run.", LeaderboardSort.HigherIsBetter,
-                LeaderboardBoards.FormatScore, r => r.score),
+                LeaderboardBoards.FormatScore, r => r.score, 1),
             new LeaderboardBoard(LeaderboardBoards.RunStarDust, "", "", "Star Dust",
                 "Most star dust collected in a single run.", LeaderboardSort.HigherIsBetter,
-                LeaderboardBoards.FormatHundredths, r => (long)System.Math.Round(r.starDust * 100.0)),
+                LeaderboardBoards.FormatHundredths, r => (long)System.Math.Round(r.starDust * 100.0), 1),
             new LeaderboardBoard(LeaderboardBoards.FurthestWorld, TestWorldAndroid, AchievementIds.IosPrefix + "furthest_world",
                 "Worlds", "Most worlds cleared in a single run, across loops.", LeaderboardSort.HigherIsBetter,
                 LeaderboardBoards.FormatWorlds, r => System.Math.Max(0, r.worldsCleared), 1),
@@ -116,6 +117,8 @@ public static class LeaderboardTest
         bool unique = true;
         foreach (var b in LeaderboardBoards.All) unique &= ids.Add(b.id);
         Check("registry: logical ids are unique", unique);
+        Check("registry: score and star dust boards never take a zero",
+              LeaderboardBoards.Get(LeaderboardBoards.TopScore).minValue == 1 && LeaderboardBoards.Get(LeaderboardBoards.RunStarDust).minValue == 1);
 
         bool both = true, named = true;
         foreach (var b in LeaderboardBoards.Enabled())
@@ -214,6 +217,15 @@ public static class LeaderboardTest
         RealRunContext();
         var fake = new FakeLeaderboards();
         var service = Service(fake);
+
+        Check("a 0-score run is not queued", !service.Offer(LeaderboardBoards.TopScore, 0));
+        Check("0.00 star dust is not queued", !service.Offer(LeaderboardBoards.RunStarDust, 0));
+        Check("1 point is queued", service.Offer(LeaderboardBoards.TopScore, 1));
+        // (the test table's Star Dust board has no store id yet, so it is never Usable here: the floor is checked on the board)
+        Check("0.01 star dust clears the board's floor", LeaderboardBoards.Get(LeaderboardBoards.RunStarDust).minValue == 1);
+        RealRunContext();
+        fake = new FakeLeaderboards();
+        service = Service(fake);
 
         Check("first score is accepted", service.Offer(LeaderboardBoards.TopScore, 100));
         service.Tick();
@@ -755,6 +767,40 @@ public static class LeaderboardTest
     static void SetField(object target, string name, object value)
     {
         target.GetType().GetField(name, System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).SetValue(target, value);
+    }
+
+    // The next scene's BeginRun zeroes the ledger before this tracker is torn down.
+    static void StarDustSurvivesLedgerReset()
+    {
+        bool savedDied = buttonClicks.playerDied;
+        var go = new GameObject("~tracker-dust-test");
+        try
+        {
+            RealRunContext();
+            var service = Service(new FakeLeaderboards());
+            var tracker = go.AddComponent<LeaderboardRunTracker>();
+            buttonClicks.playerDied = false;
+            StarDustLedger.BeginRun(true);
+            StarDustLedger.Earn(2.5f);
+            PlayerPrefs.DeleteKey(RunScore.BestScoreKey);   // so the leave-early submit (a new best) happens
+            Invoke(tracker, "Start");
+            SetField(tracker, "runScore", 500L);
+            Invoke(tracker, "Sample");
+            StarDustLedger.BeginRun(true);   // Replay: the new scene's Awake
+            Check("star dust: the ledger was reset", StarDustLedger.Earned == 0f);
+            Check("star dust: the tracker still reports the sampled dust", System.Math.Abs(tracker.Stats().starDust - 2.5f) < 1e-4f);
+            Invoke(tracker, "OnDestroy");
+            long v;
+            // (the test table's Star Dust board has no store id, so the queue is checked on the score board;
+            // the dust value itself is the Stats() check above)
+            Check("star dust: the leave-early submit went out with the sampled stats (score 500 queued)",
+                  service.HasPending(LeaderboardBoards.TopScore, out v) && v == 500);
+        }
+        finally
+        {
+            buttonClicks.playerDied = savedDied;
+            Object.DestroyImmediate(go);
+        }
     }
 
     static void PausesAtDeath()

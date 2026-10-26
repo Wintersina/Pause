@@ -43,6 +43,7 @@ public static class DeathCrashTest
         foreach (int id in ShipId.All) EveryShip(id);
         Killers();
         DoubleHit();
+        FatalHitBanksDust();
         PanelWaits();
         TapToSkip();
         Revive();
@@ -306,6 +307,21 @@ public static class DeathCrashTest
         Cleanup(first);
         Cleanup(second);
         rig.Dispose();
+    }
+
+    // The crash window is 2-5 s: the fatal hit writes the run's dust to PlayerPrefs at once.
+    static void FatalHitBanksDust()
+    {
+        PlayerPrefs.SetFloat(StarDustLedger.CurrencyKey, 1f);
+        StarDustLedger.BeginRun(true);
+        StarDustLedger.Earn(.75f);
+        var rig = new Rig(1);
+        var k = Killer(EnemyRoster.AlienObjectName, "Enimey", rig.ship.transform.position + Vector3.up * .4f);
+        rig.Hit(k);
+        Check("fatal hit: the run's dust is already in PlayerPrefs", Mathf.Abs(PlayerPrefs.GetFloat(StarDustLedger.CurrencyKey) - 1.75f) < 1e-4f);
+        Cleanup(k);
+        rig.Dispose();
+        StarDustLedger.BeginRun(false);
     }
 
     static void Killers()

@@ -133,6 +133,37 @@ public static class FusionDiscoveryStore
         return kept.ToString();
     }
 
+    // Canonical form of a saved log ("" stays "").
+    public static string Normalize(string raw)
+    {
+        if (string.IsNullOrEmpty(raw)) return "";
+        var recs = new Record[AtomFusionTable.Count];
+        string extra = Parse(raw, recs);
+        return Serialize(recs, extra);
+    }
+
+    // Two devices' logs combined per fusion: larger count, larger best chain,
+    // earlier first day. Entries this build doesn't know are kept (once each).
+    public static string Merge(string a, string b)
+    {
+        var ra = new Record[AtomFusionTable.Count];
+        var rb = new Record[AtomFusionTable.Count];
+        string ea = Parse(a, ra), eb = Parse(b, rb);
+        for (int i = 0; i < ra.Length; i++)
+        {
+            var m = ra[i];
+            m.count = Mathf.Max(ra[i].count, rb[i].count);
+            m.bestChain = Mathf.Max(ra[i].bestChain, rb[i].bestChain);
+            int d1 = ra[i].firstDay, d2 = rb[i].firstDay;
+            m.firstDay = d1 == 0 ? d2 : d2 == 0 ? d1 : Mathf.Min(d1, d2);
+            ra[i] = m;
+        }
+        var extras = new System.Collections.Generic.List<string>();
+        foreach (var e in (ea + "," + eb).Split(','))
+            if (e.Length > 0 && !extras.Contains(e)) extras.Add(e);
+        return Serialize(ra, string.Join(",", extras));
+    }
+
     public static string Serialize(Record[] records, string extra)
     {
         var sb = new System.Text.StringBuilder();

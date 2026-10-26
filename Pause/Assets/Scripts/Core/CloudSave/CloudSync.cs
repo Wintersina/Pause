@@ -276,7 +276,12 @@ public sealed class CloudSync
         backups.Save();
 
         result.Apply();
-        if (switched) AchievementSync.ClearSyncMarks();
+        if (switched)
+        {
+            AchievementSync.ClearSyncMarks();
+            ResetLocalOnlyKeys();
+        }
+        FusionDiscoveryStore.Reload();
         AchievementMigration.AfterCloudApply();   // merged counters / owned state may unlock more
         if (!string.IsNullOrEmpty(id)) PlayerPrefs.SetString(LastAccountKey, id);
         PlayerPrefs.SetString(LocalSavedAtKey, result.savedAtUtc.ToString());
@@ -289,6 +294,15 @@ public sealed class CloudSync
         Current = State.Ready;
         Debug.Log("[CloudSave] " + (switched ? "switched account; loaded its progress." : "merged cloud and local progress."));
         SettleSignIn();
+    }
+
+    // Keys the cloud snapshot does not carry that still belong to the previous
+    // account: the last-stand replay and its file, the COMBOS NEW dot, the start-world hint.
+    public static void ResetLocalOnlyKeys()
+    {
+        PlayerPrefs.DeleteKey(FusionDiscoveryStore.UnseenKey);
+        PlayerPrefs.DeleteKey(PlayerStartWorld.HintKey);
+        KillCamArchive.Clear();
     }
 
     // The sign-in has settled: this player's progress is what is on the

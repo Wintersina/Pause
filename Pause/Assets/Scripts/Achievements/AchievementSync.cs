@@ -59,15 +59,19 @@ public static class AchievementSync
         foreach (var pair in pending) flushList.Add(pair.Key);
         pending.Clear();
         foreach (var def in flushList)
-            if (!AchievementStore.IsUnlocked(def)) Send(def, AchievementStore.Percent(def));
+            if (!AchievementStore.IsUnlocked(def)) Send(def, AchievementStore.Percent(def), true);
     }
 
-    static void Send(AchievementDef def, double percent)
+    static void Send(AchievementDef def, double percent, bool requeueOnFailure = false)
     {
         var store = AchievementStores.Current;
         if (!store.Available || !store.CanReport(def)) return;
         if (Confirmed(def) >= (int)Math.Min(100.0, Math.Floor(percent + 1e-6))) return;
-        store.Report(def, percent, ok => { if (ok) Confirm(def, percent); });
+        store.Report(def, percent, ok =>
+        {
+            if (ok) Confirm(def, percent);
+            else if (requeueOnFailure && !pending.ContainsKey(def)) pending[def] = percent;   // retried on the next flush
+        });
     }
 
     // After a successful sign-in: every unlocked achievement the store has not

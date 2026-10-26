@@ -401,7 +401,9 @@ public class collisionDetection : MonoBehaviour {
                     try
                     {
                         AchievementTracker.OnDeath();
-                        // End of the run: flush the batched achievement counters.
+                        // End of the run: flush the batched achievement counters,
+                        // and bank the run's dust (the crash window is 2-5 s).
+                        StarDustLedger.Stage();
                         PrefsSaver.SaveNow();
                         PlayExplosion();
                         DeathHaptics.OnFatalHit();   // the death vibration (once: playerDied)

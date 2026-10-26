@@ -17,6 +17,9 @@ public class PrefsSaverRunner : MonoBehaviour
             RunScore.Stage();
             nextStageAt = Time.unscaledTime + PrefsSaver.SaveInterval;
         }
+        // A finished kill-cam write is committed to PlayerPrefs here, not only
+        // when the codex reads it (Settle returns at once with nothing pending).
+        KillCamArchive.Settle();
         if (!PrefsSaver.Dirty) return;
         PrefsSaver.SaveIfDue(Time.unscaledTime);
     }
@@ -33,6 +36,7 @@ public class PrefsSaverRunner : MonoBehaviour
 
     static void Flush()
     {
+        KillCamArchive.Settle();   // a replay written just before quitting still gets its record
         StarDustLedger.Stage();
         RunScore.Stage();   // best score so far; the run stays open
         PrefsSaver.SaveNow();

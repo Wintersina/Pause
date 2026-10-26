@@ -15,6 +15,8 @@ using System.Collections.Generic;
 //                                    the other side already cleared (known there
 //                                    and not NEW); acknowledged on either side
 //                                    stays acknowledged
+//   fusion log (COMBOS)              per fusion: larger count, larger best chain,
+//                                    earlier first day (FusionDiscoveryStore.Merge)
 //   currency, spawnShip,             from whichever side has the newer
 //   currentWorld, startWorld,        savedAtUtc (local wins a tie). A side with
 //   equipped skins                   no progress at all (HasProgress false: a
@@ -89,6 +91,7 @@ public static class ProgressMerge
             codexPaid = MergePaid(local, cloud),
             codexKilled = DamageLog.MergeMax(local.codexKilled, cloud.codexKilled),
             codexHurt = DamageLog.MergeMax(local.codexHurt, cloud.codexHurt),
+            fusionLog = FusionDiscoveryStore.Merge(local.fusionLog, cloud.fusionLog),
         };
         return result;
     }
