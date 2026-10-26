@@ -1,0 +1,6 @@
+Use your built-in image generation tool to REDRAW the attached reference image (green_b3.png: a top-down aerial jungle canopy sea with rivers, waterfalls, ruined stone towers, bark-brown roots, and varied colours) with MUDDIER BROWN ROOTS. KEEP everything else exactly: composition, every landmark position and silhouette, all colours, stone ruins in their natural stone colours, canopy colours, flowers, rivers, waterfalls, hi-res crisp pixel art, no outlines, no text, no blur, same portrait framing and framing to every edge.
+
+ROOTS (new direction): wherever the image shows tree roots, root tangles, river-bank roots, big gnarled root masses, trunks and vines at the base of trunks, redraw them as earthy MUD-BROWN, wet soil-caked wood: warm umber and chestnut with darker wet-mud shadows, clay and silt browns, a damp sheen, mud splatter and silt lines where roots meet water, pale dried-mud highlights, visible grain and knots, moss only in small patches. Clearly brown, muddy and earthy: not green-tinted, not grey.
+
+LAYER ROLE: far layer: the muddiest, most saturated earthy browns belong here.
+Output: copy the generated image to ./green_b4.png in your current working directory and reply with one line.

@@ -1,0 +1,1 @@
+Done — copied the generated image to `./green_b4.png`.
