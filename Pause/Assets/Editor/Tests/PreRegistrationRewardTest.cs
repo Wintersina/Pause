@@ -58,6 +58,12 @@ public static class PreRegistrationRewardTest
             Check("consumed once", consumes == 1);
             Check("token forgotten after a confirmed consume", PreRegistrationReward.GrantedTokens().Count == 0);
 
+            // A stale owned-list (queried on the focus return that coincides with the
+            // delivery, answered after the consume) lists the same token again.
+            r = PreRegistrationReward.Handle(Reward("tok-1"), autoOk);
+            Check("the same token delivered again after its consume does not pay again",
+                  r == PreRegistrationReward.Result.AlreadyGranted && Mathf.Approximately(Dust, 110f) && rewarded == 100 && consumes == 1);
+
             // Pending is ignored: no dust, no consume.
             PreRegistrationReward.ToastDue = false;
             consumes = 0;

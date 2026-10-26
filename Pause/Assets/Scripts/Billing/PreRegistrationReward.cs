@@ -40,6 +40,10 @@ public static class PreRegistrationReward
     public static bool ToastDue { get; set; }
 
     static readonly HashSet<string> consuming = new HashSet<string>();
+    // Tokens whose consume succeeded this session: an owned-list snapshot taken
+    // before the consume but delivered after it must not pay again (the token
+    // is gone from GrantedTokens by then). Same guard as SupportPurchase.
+    static readonly HashSet<string> consumed = new HashSet<string>();
 
     // Handles one owned purchase. `consume(token, done)` asks the store to
     // consume it and reports success through `done`.
@@ -51,6 +55,7 @@ public static class PreRegistrationReward
         if (purchase.state != PlayPurchaseState.Purchased || string.IsNullOrEmpty(purchase.token)) return Result.Ignored;
 
         string token = purchase.token;
+        if (consumed.Contains(token)) return Result.AlreadyGranted;   // a stale owned-list after the consume
         var granted = GrantedTokens();
         bool fresh = !granted.Contains(token);
         if (fresh)
@@ -80,6 +85,7 @@ public static class PreRegistrationReward
             Debug.Log("[PreReg] consume failed, will retry next launch");
             return;
         }
+        consumed.Add(token);
         var granted = GrantedTokens();
         if (!granted.Remove(token)) return;
         PlayerPrefs.SetString(GrantedKey, string.Join("\n", granted));
@@ -112,6 +118,7 @@ public static class PreRegistrationReward
     public static void ResetSession()
     {
         consuming.Clear();
+        consumed.Clear();
         ToastDue = false;
     }
 }
