@@ -42,6 +42,7 @@ public static class DeathCrashTest
         FragmentCounts();
         foreach (int id in ShipId.All) EveryShip(id);
         Killers();
+        DoubleHit();
         PanelWaits();
         TapToSkip();
         Revive();
@@ -276,6 +277,28 @@ public static class DeathCrashTest
         Check(who + ": every piece landed", landed);
         Check(who + ": every piece ends against a rail's inner face (+/-" + edge.ToString("F3") + ")", onRail);
         Check(who + ": every piece ends on screen", inView);
+    }
+
+    // Two hazards entering the hull in one physics step are both delivered
+    // (the colliders go off only after the batch) and the fatal branch arms no
+    // post-hit invulnerability: the second callback used to take a heart past
+    // MAXLIFE, record a second KILLED BY and count a second death.
+    static void DoubleHit()
+    {
+        var rig = new Rig(1);
+        var first = Killer("aestroid_1", "Astr", rig.ship.transform.position + Vector3.up * .4f);
+        var second = Killer("aestroid_2", "Astr", rig.ship.transform.position + Vector3.down * .4f);
+        rig.Hit(first);
+        string killer = DamageLog.RunKiller;
+        int hearts = collisionDetection.lifeCounter;
+        Check("the first hit is the fatal one", buttonClicks.playerDied && hearts == collisionDetection.MAXLIFE);
+        rig.Hit(second);
+        Check("a second fatal hit in the same step costs nothing more (" + hearts + " -> " + collisionDetection.lifeCounter + ")",
+              collisionDetection.lifeCounter == hearts);
+        Check("and the KILLED BY stays the first killer (" + killer + ")", DamageLog.RunKiller == killer);
+        Cleanup(first);
+        Cleanup(second);
+        rig.Dispose();
     }
 
     static void Killers()

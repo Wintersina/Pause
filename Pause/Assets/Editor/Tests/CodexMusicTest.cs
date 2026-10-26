@@ -57,6 +57,7 @@ public static class CodexMusicTest
             Theme(panel);
             Volume(panel);
             Layouts(panel);
+            LostScene(panel);   // last: it destroys the panel
         }
         finally
         {
@@ -191,6 +192,21 @@ public static class CodexMusicTest
               CodexMusicPlayer.DuckedSource == menu && v.RowChip(ei).text == "PLAY" && v.RowChip(bi).text == "STOP");
         CodexMusicPlayer.Stop();
         Object.DestroyImmediate(menuGo);
+    }
+
+    // The scene goes away with the MUSIC tab open (no Close, no Hide): the view
+    // is still subscribed to the player's Changed, and the player's Stop on the
+    // next scene load repaints it. It used to touch the destroyed root
+    // (MissingReferenceException inside SceneManager.sceneLoaded); it lets go now.
+    static void LostScene(CodexPanel panel)
+    {
+        panel.ShowTab(CodexPanel.MusicTab);
+        panel.SkipAnimations();
+        Object.DestroyImmediate(panel.gameObject);
+        string thrown = null;
+        try { CodexMusicPlayer.Stop(); }
+        catch (System.Exception e) { thrown = e.GetType().Name; }
+        Check("the player's Stop after the codex's scene is gone repaints nothing" + (thrown != null ? " (" + thrown + ")" : ""), thrown == null);
     }
 
     static void Leaving(CodexPanel panel)

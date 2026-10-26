@@ -280,6 +280,12 @@ public class collisionDetection : MonoBehaviour {
         //------------------------- Colliding with Enimies ---------------------------------------------
         if (hit.gameObject.CompareTag("Enimey") || hit.gameObject.CompareTag("Astr"))
         {
+            // Already dead: two hazards entering the hull in one physics step
+            // are both delivered (DeathCrash switches the colliders off only
+            // after the batch), and the fatal branch arms no invulnerability.
+            // The second would take a heart past MAXLIFE, record a second
+            // KILLED BY and count a second death.
+            if (buttonClicks.playerDied) return;
             // Post-hit invulnerability (PlayerInvuln): unless a shield or
             // Cloak is also up, the ship passes through harmlessly -- no
             // heart, no ram kill, no secret power spent.
