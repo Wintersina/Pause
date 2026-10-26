@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using System.IO;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -145,10 +146,14 @@ public static class ScoreMultiplierTest
         Check("a heart lost while x2 is on ends it", !ScoreMultiplier.Active && ScoreMultiplier.Current == 1);
         Check("... and counts one loss for the HUD", ScoreMultiplier.LostCount == lostBefore + 1);
         Check("... a pickup after it pays the plain amount", DustPays() == ScoreRules.SmallDust);
-        string det = File.ReadAllText("Assets/Scripts/Ship/collisionDetection.cs");
+        // ordering only (comment-stripped, no character distance): the loss is reported after the heart is
+        // taken and before the game-over test, in the same method
+        string det = TestHarness.StripComments(File.ReadAllText("Assets/Scripts/Ship/collisionDetection.cs"));
         int hit = det.IndexOf("lifeCounter += 1;");
+        int report = hit < 0 ? -1 : det.IndexOf("ScoreMultiplier.OnHeartLost();", hit);
+        int gameOver = hit < 0 ? -1 : det.IndexOf("if (lifeCounter >= MAXLIFE)", hit);
         Check("collisionDetection reports the lost heart right where it is taken",
-              hit > 0 && det.IndexOf("ScoreMultiplier.OnHeartLost();", hit) - hit < 320);
+              hit > 0 && report > hit && (gameOver < 0 || report < gameOver));
     }
 
     static void BreaksBelowCap()
@@ -331,12 +336,13 @@ public static class ScoreMultiplierTest
         NewRun();
         Fly(10f, Cap);
         // a shielded / cloaked / invulnerable hit never reaches OnHeartLost; a heal is not a loss
-        string det = File.ReadAllText("Assets/Scripts/Ship/collisionDetection.cs");
+        string det = TestHarness.StripComments(File.ReadAllText("Assets/Scripts/Ship/collisionDetection.cs"));
         int safeBranch = det.IndexOf("if (safe)");
         int elseBranch = det.IndexOf("lifeCounter += 1;");
+        // exactly one reporting call site (a second would double-count a loss), after the safe branch and the heart taken
         Check("only the unsafe branch (a heart actually lost) reports a loss",
               safeBranch > 0 && elseBranch > safeBranch && det.IndexOf("OnHeartLost", safeBranch) > elseBranch &&
-              det.Split(new[] { "OnHeartLost" }, System.StringSplitOptions.None).Length == 2);
+              Regex.Matches(det, @"\bOnHeartLost\b").Count == 1);
         Fly(5.1f, Cap);
         Check("10 s + 5.1 s with no loss: on", ScoreMultiplier.Active);
     }

@@ -241,8 +241,12 @@ public static class ScoringTest
 
         var parts = RunScore.Parts;
         Check("the breakdown sums to the total", parts.Total == RunScore.Total);
+        // each of the three feeds exists in the (comment-stripped) collision code; the exact number of call sites
+        // (8 today: one per pickup / kill path) is not the contract and grows with every new pickup path
+        string hooks = TestHarness.StripComments(System.IO.File.ReadAllText("Assets/Scripts/Ship/collisionDetection.cs"));
         Check("source hooks: pickups and kills feed RunScore",
-              Regex.Matches(System.IO.File.ReadAllText("Assets/Scripts/Ship/collisionDetection.cs"), @"RunScore\.On(Dust|Atom|Kill)\(").Count == 8);   // + the violet capacitor atom + the magnetic atom
+              Regex.Matches(hooks, @"RunScore\.OnDust\(").Count >= 1 && Regex.Matches(hooks, @"RunScore\.OnAtom\(").Count >= 1 &&
+              Regex.Matches(hooks, @"RunScore\.OnKill\(").Count >= 1);
         Check("source hooks: teleport, world, boss",
               System.IO.File.ReadAllText("Assets/Scripts/Ship/movePlayer.cs").Contains("RunScore.OnTeleport(before, rest)") &&
               System.IO.File.ReadAllText("Assets/Scripts/Worlds/WorldManager.cs").Contains("RunScore.OnWorldCleared(CurrentIndex)") &&
@@ -307,9 +311,10 @@ public static class ScoringTest
         for (int i = 0; i < 100; i++) RunScore.Tick(0f, .46f);   // timeScale 0: scaled dt is 0
         Check("no distance points while frozen", RunScore.Total == t);
 
-        string src = System.IO.File.ReadAllText("Assets/Scripts/Core/score.cs");
+        string rawSrc = System.IO.File.ReadAllText("Assets/Scripts/Core/score.cs");
+        string src = TestHarness.StripComments(rawSrc);
         Check("score.cs ticks the score on the world's scaled clock, only on running frames",
-              Regex.Matches(src, @"RunScore\.Tick\(Time\.deltaTime, moveBackGround\.speed\)").Count == 1 &&   // StepRunning: both running branches
+              Regex.Matches(src, @"RunScore\.Tick\(Time\.deltaTime, moveBackGround\.speed\)").Count == 1 &&   // exactly 1 matters: StepRunning ticks once per frame, a second call site would double the distance points
               !src.Contains("RunScore.Tick(Time.unscaledDeltaTime"));
         Check("the boss entrance is scripted (moveBackGround owns its clock) and earns nothing (score.cs)",
               System.IO.File.ReadAllText("Assets/Scripts/Gameplay/moveBackGround.cs").Contains("BossEncounter.ScriptedEntrance") &&
@@ -538,7 +543,7 @@ public static class ScoringTest
         Check("resume + end: banked once, best is the final total (7)",
               RunScore.BankCount == banks + 1 && PlayerPrefs.GetInt(RunScore.BestScoreKey) == 7);
         Check("PrefsSaverRunner stages the score with the dust",
-              Regex.Matches(System.IO.File.ReadAllText("Assets/Scripts/Core/PrefsSaverRunner.cs"), @"RunScore\.Stage\(\)").Count == 2);
+              Regex.Matches(TestHarness.StripComments(System.IO.File.ReadAllText("Assets/Scripts/Core/PrefsSaverRunner.cs")), @"RunScore\.Stage\(\)").Count >= 2);   // both save paths stage it; an extra call is harmless
     }
 
     // ---- 9. HUD -------------------------------------------------------------------------------
