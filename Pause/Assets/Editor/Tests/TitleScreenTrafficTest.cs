@@ -47,6 +47,7 @@ public static class TitleScreenTrafficTest
         NoDuplicateHullsInTheAir();
         BoostsUseTheShipsOwnBoostFlame();
         PlumesFollowEveryHullFrame();
+        RotorShipsWearTheirBlades();
         ZipsFlyTheDockLaunchCurve();
         SpinnersFlyTheirSpinDrift();
         SpinnerHullsSpinLikeGameplay();
@@ -244,6 +245,24 @@ public static class TitleScreenTrafficTest
         }
         Check("title ships' plumes follow each hull frame's nozzles (" + frames + " frames)" + (first != null ? " first miss " + first : ""),
               frames > 0 && bad == 0);
+        Done(t);
+    }
+
+    // Ships with a rotors file (Turtle) fly with their blades on the home screen, as in the dock.
+    static void RotorShipsWearTheirBlades()
+    {
+        var t = Make("~TT_rotors", 9, x => x.layerTargets = new[] { 0, 0, 0 });
+        t.NextEliteAt = 1e9f;
+        int expected = 0, wearing = 0, strays = 0;
+        foreach (var c in t.Pool)
+        {
+            bool has = ShipRotors.Has(c.id);
+            if (has) expected++;
+            if (has && c.rotors != null && c.rotors.Count > 0 && c.rotors.gameObject == c.go && c.go.transform.Find("Rotor0").gameObject.layer == 2) wearing++;
+            if (!has && c.rotors != null) strays++;
+        }
+        Check("every rotor ship in the traffic wears its blades (" + wearing + "/" + expected + ")",
+              expected > 0 && wearing == expected && strays == 0);
         Done(t);
     }
 
