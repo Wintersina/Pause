@@ -27,10 +27,12 @@ CFG = {
               contrast={"sky": .55, "far": .70, "mid": .85}, haze={"sky": .18, "far": .05, "mid": 0.0}),
 }
 # per-variant mid target override: the mid lane median luminance must stay <= the old set (enemy body contrast)
-MID_TARGET = {3: .26, 1: .33}
+MID_TARGET = {3: .26, 1: .27}
 FAR_TARGET = {3: .432}  # keeps far p90 under the .45 cap once the gold traces are added
 # sparse gold traces (user-approved): the hottest painted lava cores stay gold in far/sky only; never in mid (atoms are gold/orange)
 GOLD = {"far": (172, 128, 48), "sky": (122, 92, 38)}
+# v1 mid (the only visible ground layer: sky/far sit under the opaque mid tile) is the Codex redraw that has the right-hand lava river
+MID_SRC = {1: "v1_new_a_river.png"}
 FOG = (.09, .08, .08)
 CAP = .45
 NCOL = {"sky": 44, "far": 84, "mid": 58}
@@ -80,7 +82,7 @@ def ground(v, role):
     if role == "far":
         painted = np.roll(b, (143, 61), axis=(0, 1))
     elif role == "mid":
-        painted = a
+        painted = src(MID_SRC[v]) if v in MID_SRC else a
     else:
         painted = np.uint8(np.rint(a.astype(np.float32) * .30 + np.roll(b, (241, -49), axis=(0, 1)).astype(np.float32) * .70))
     t = cfg["target"][role]

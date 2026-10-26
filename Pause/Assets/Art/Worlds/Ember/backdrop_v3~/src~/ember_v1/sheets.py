@@ -16,7 +16,7 @@ for grp, d in (("old", old), ("new", new)):
 sheet.save(out / f"ember_v{v}_contact.png")
 # zoom: 3 crops (structure=far, ecology=far, play=mid), old over new, 2x
 def crop(d, r, box): return flat(d / f"{r}.png").crop(box).resize((384, 384), Image.Resampling.NEAREST)
-boxes = [("far", (20, 40, 212, 232)), ("far", (300, 600, 492, 792)), ("mid", (160, 400, 352, 592))]
+boxes = [("far", (20, 40, 212, 232)), ("mid", (320, 40, 512, 232)), ("mid", (320, 600, 512, 792))]
 z = Image.new("RGB", (3 * 390, 2 * 390), (20, 20, 20))
 for i, (r, b) in enumerate(boxes):
     z.paste(crop(old, r, b), (i * 390, 0)); z.paste(crop(new, r, b), (i * 390, 390))
