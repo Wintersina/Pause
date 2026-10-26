@@ -12,8 +12,16 @@ on:
     types: [opened, synchronize, reopened, ready_for_review]
   push:
     branches: [master]
+  # Nightly full-lane run (PAUSE_TEST_FULL=1: every variant, device and seed) on master.
+  schedule:
+    - cron: "0 3 * * *"
   workflow_dispatch:
     inputs:
+      full:
+        description: "Full lane: set PAUSE_TEST_FULL=1 (every variant / device / seed; slower). Default is the gate lane."
+        required: false
+        default: false
+        type: boolean
       suites:
         description: "Comma-separated suites to run (empty = all). Example: ShopTest,CodexTest"
         required: false
@@ -32,6 +40,8 @@ on:
 permissions:
   contents: read
 
+# Scheduled runs and manual runs get a per-run group (unity-schedule-<run id>), so a nightly can
+# neither cancel nor queue behind a PR run.
 # PRs: a newer push cancels the older run of the same PR only. master / manual runs are never
 # cancelled. Draft runs (all jobs skipped) get their own group so they cannot cancel a real run.
 # Serial fallback (shards = 1) queues every run on one global group, like the single-seat days.
@@ -148,6 +158,9 @@ jobs:
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
           SHARD: ${{ matrix.shard }}
           SUITES: ${{ matrix.suites }}
+          # Full lane for the nightly and for a manual run with `full`; empty (gate lane) for every other event,
+          # PRs and master pushes included, so their behaviour is unchanged.
+          PAUSE_TEST_FULL: ${{ (github.event_name == 'schedule' || inputs.full) && '1' || '' }}
         run: |
           set -uo pipefail
           mkdir -p ci-out
@@ -206,7 +219,7 @@ jobs:
           touch ci-out/unity.log
           ( tail -n +1 -F ci-out/unity.log 2>/dev/null & echo $! > ci-out/tail.pid )
           docker run --rm \
-            -e HOST_UID="$(id -u)" -e HOST_GID="$(id -g)" -e UNITY_EMAIL -e UNITY_PASSWORD -e GITHUB_ACTIONS \
+            -e HOST_UID="$(id -u)" -e HOST_GID="$(id -g)" -e UNITY_EMAIL -e UNITY_PASSWORD -e GITHUB_ACTIONS -e PAUSE_TEST_FULL \
             -v "$PWD:/workspace" -v "$PWD/ci-out/home:/ci-home" \
             "unityci/editor:${UNITY_IMAGE_TAG}" \
             bash /workspace/ci-out/run.sh "$method" "${extra[@]}"

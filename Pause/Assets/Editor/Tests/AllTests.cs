@@ -180,6 +180,7 @@ public static class AllTests
         ("VerdantFramingTest", VerdantFramingTest.Execute),
         ("TideStormFramesTest", TideStormFramesTest.Execute),
         ("EliteHdTest", EliteHdTest.Execute),
+        ("EliteDeathStripTest", EliteDeathStripTest.Execute),
         ("FrameElitesDamagedTest", FrameElitesDamagedTest.Execute),
         ("EnemyBehaviourTest", EnemyBehaviourTest.Execute),
         ("EnemyJitterTest", EnemyJitterTest.Execute),
@@ -459,6 +460,7 @@ public static class AllTests
                 lastLogAt = 0;
                 suiteClock.Restart();
                 int returned;
+                UnityEngine.Random.InitState(TestHarness.SuiteSeed);   // reproducible failures; suites that seed themselves override it
                 // (suites that pin the elites' exact timing run at the old attack cadence; the cadence itself is EliteFightZoneTest's)
                 EliteTuning.AttackRate = TimingPinned.Contains(suite.name) ? 1f : liveAttackRate;
                 try { returned = suite.execute(); }

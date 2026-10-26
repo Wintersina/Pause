@@ -137,6 +137,49 @@ public static class TestHarness
     public const int FlushEvery = 600;
     public static void FlushGpu() { GL.Flush(); }
 
+    // Every suite starts from this UnityEngine.Random state (set by AllTests before each suite and by
+    // the Sandbox constructor, which every suite uses), so a failure that depends on the random
+    // stream reproduces on the next run. A suite that wants its own stream seeds after this
+    // (many do: Random.InitState(<its seed>)); this only removes the "unseeded" case.
+    public const int SuiteSeed = 20260101;
+
+    // Source text without comments: `//...` to end of line and `/* ... */`, string and char literals kept
+    // intact (a "//" inside "http://x" is not a comment). For source-text assertions that must not break on
+    // a reworded or added comment (count call sites, check ordering) -- never on layout, never on distance.
+    public static string StripComments(string src)
+    {
+        var sb = new System.Text.StringBuilder(src.Length);
+        int i = 0, n = src.Length;
+        while (i < n)
+        {
+            char c = src[i];
+            if (c == '/' && i + 1 < n && src[i + 1] == '/') { while (i < n && src[i] != '\n') i++; continue; }
+            if (c == '/' && i + 1 < n && src[i + 1] == '*')
+            {
+                i += 2;
+                while (i + 1 < n && !(src[i] == '*' && src[i + 1] == '/')) i++;
+                i = Math.Min(n, i + 2);
+                continue;
+            }
+            if (c == '"' || c == '\'')
+            {
+                bool verbatim = c == '"' && i > 0 && src[i - 1] == '@';
+                sb.Append(c); i++;
+                while (i < n)
+                {
+                    char d = src[i];
+                    sb.Append(d); i++;
+                    if (!verbatim && d == '\\' && i < n) { sb.Append(src[i]); i++; continue; }
+                    if (verbatim && d == '"' && i < n && src[i] == '"') { sb.Append(src[i]); i++; continue; }
+                    if (d == c) break;
+                }
+                continue;
+            }
+            sb.Append(c); i++;
+        }
+        return sb.ToString();
+    }
+
     // Batch entry: non-zero exit code on any failure so CI/scripts notice.
     public static void Exit(int failures)
     {
@@ -153,6 +196,7 @@ public static class TestHarness
 
         public Sandbox()
         {
+            UnityEngine.Random.InitState(SuiteSeed);
             foreach (string key in PrefsKeys()) prefs[key] = ReadPref(key);
             foreach (var field in GameStaticFields())
             {

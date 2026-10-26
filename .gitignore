@@ -102,3 +102,7 @@ Pause/Assets/Art/Boulders~/*/storm_fx.gif
 # Mono crash dumps Unity writes next to the project
 mono_crash.*
 mono_crash.*.blob
+
+# Generated tool logs inside the Unity-ignored staging folders (names ending in ~)
+Pause/Assets/Art/**/src~/**/*.log
+Pause/Assets/Art/**/*~/**/*.log

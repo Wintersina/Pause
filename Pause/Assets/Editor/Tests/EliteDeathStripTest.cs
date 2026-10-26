@@ -1,10 +1,11 @@
 using System.IO;
 using UnityEngine;
 
-// Every elite def has its authored <key>_death.png: 576 x 192, three 192 px cells
-// (flash, rupture, dispersal) that slice through EliteArt, start on the live hull
-// (cell 0 covers every opaque pixel of the flight cell), keep a 6 px clear margin,
-// carry the hostile-pink core accent, and contain no red. Also: Steel Hound's
+// Every elite def has its authored <key>_death.png: three square cells of the def's cellPixels
+// (384 px for the HD elites, 192 before; flash, rupture, dispersal) that slice through EliteArt, start on the live hull
+// (cell 0 covers the hull-only idle cell 0 of the flight strip -- the later flight cells add exhaust flames the
+// death flash does not repeat), keep a clear margin (6 px per 192), carry the hostile-pink core accent
+// (Frost and Space only; Ember is pink-free), and contain no red. Also: Steel Hound's
 // death flipbook cell 0 sits on its flight registration.
 //
 //   Unity -batchmode -quit -projectPath <abs>/Pause -executeMethod EliteDeathStripTest.Run
@@ -53,11 +54,9 @@ public static class EliteDeathStripTest
             if (!File.Exists(dir + d.key + "_death.png") || !Authored(d.key)) continue;
             var ds = Read(dir + d.key + "_death.png");
             var fl = Read(dir + d.key + ".png");
-            int flightCell = d.cells != null ? d.cells.Flight0 : 3;
-            if (!(d.cells != null && d.cells.flight != null && d.cells.flight.Length > 0)) flightCell = 3;
-            // Ember defs carry no cell map: its live flight frame is the loop's last (cell 3) -- registration is checked there
+            // the hull-only idle drawing (cell 0): the flight cells after it carry exhaust flames the flash does not
+            int flightCell = 0;
             bool ember = d.key.StartsWith("ember_");
-            if (ember) flightCell = 3;
             int covered = 0, total = 0, pink = 0, red = 0, edge = 0, flightRed = 0;
             int S = d.cellPixels, m = 6 * S / 192;
             for (int y = 0; y < S; y++)
@@ -83,7 +82,8 @@ public static class EliteDeathStripTest
                 }
             Check(d.key + ": cell 0 sits on the live hull (" + covered + "/" + total + " flight pixels covered)", total > 500 && covered >= total * .98f);
             Check(d.key + ": 6 px transparent margin in every cell (" + edge + " stray)", edge == 0);
-            Check(d.key + ": hostile-pink core accent present (" + pink + " px), adds no red (" + red + " px vs " + flightRed + " in the hull itself)", pink > 20 && red <= flightRed * 3 + 2);
+            Check(d.key + ": " + (ember ? "pink-free (" : "hostile-pink core accent present (") + pink + " px), adds no red (" + red + " px vs " + flightRed + " in the hull itself)",
+                  (ember ? pink <= 20 : pink > 20) && red <= flightRed * 3 + 2);
             Object.DestroyImmediate(ds); Object.DestroyImmediate(fl);
         }
         Check("every elite def was walked (" + n + ")", n >= 20);
