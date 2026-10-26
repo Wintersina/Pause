@@ -189,9 +189,9 @@ public static class ShipTargets
         return into.Count;
     }
 
-    public static ClearTarget NearestHoming(Vector3 from, float maxDistance, List<GameObject> exclude)
+    public static ClearTarget NearestHoming(Vector3 from, float maxDistance, List<GameObject> exclude, bool skipScenery = false)
     {
-        if (!BossAlive()) return Nearest(from, maxDistance, exclude);
+        if (!BossAlive()) return Nearest(from, maxDistance, exclude, skipScenery);
         ClearTarget best = null;
         float bestSq = maxDistance > 0f ? maxDistance * maxDistance : float.MaxValue;
         var live = ClearTarget.Live;
@@ -252,7 +252,7 @@ public static class ShipTargets
 
     // Nearest hazard to `from` (inside the view), skipping anything in
     // `exclude`; `maxDistance` <= 0 means any distance.
-    public static ClearTarget Nearest(Vector3 from, float maxDistance, List<GameObject> exclude)
+    public static ClearTarget Nearest(Vector3 from, float maxDistance, List<GameObject> exclude, bool skipScenery = false)
     {
         Rect view = View();
         view.yMax += .4f;
@@ -262,7 +262,7 @@ public static class ShipTargets
         for (int i = 0; i < live.Count; i++)
         {
             var t = live[i];
-            if (!IsHazard(t)) continue;
+            if (!IsHazard(t) || (skipScenery && t.Scenery)) continue;
             Vector3 p = t.transform.position;
             if (!view.Contains(p)) continue;
             if (exclude != null && exclude.Contains(t.gameObject)) continue;

@@ -1033,8 +1033,24 @@ public class BossActor : MonoBehaviour, IMusicPatternHost
     public void Flash() { Flash(1f); }
 
     // `strength` 0..1 scales the white flash (a light hit is a dimmer pop).
+    // Back-to-back flashes (within RapidFlashGap) coalesce into one soft pop: the hit frame is not
+    // swapped again (no strobing) and the white stays dim, so a stream of light hits reads as calm.
+    public const float RapidFlashGap = .3f, RapidWhite = .3f;
+    float lastFlashAt = -99f;
+    public int HitFrameSwaps { get; private set; }
+
     public void Flash(float strength)
     {
+        float now = BossImpact.ClockNow;
+        bool rapid = now - lastFlashAt < RapidFlashGap && strength < .8f;
+        lastFlashAt = now;
+        if (rapid)
+        {
+            whitePeak = Mathf.Min(Mathf.Clamp01(strength), RapidWhite);
+            whiteLeft = Mathf.Max(whiteLeft, BossImpact.WhiteSeconds * .5f);
+            return;
+        }
+        HitFrameSwaps++;
         flashLeft = BossArt.HitTicks * BossArt.Tick;
         whiteLeft = BossImpact.WhiteSeconds;
         whitePeak = Mathf.Clamp01(strength);
@@ -1143,6 +1159,10 @@ public class BossTarget : MonoBehaviour, IShipAttackTargetUncapped
     // A blocked hit shows a light spark, at most this often (a ram would spark every frame).
     const float SparkGap = .05f;
     float lastSpark = -99f;
+    // Landed hits show their burst, sound and flash at most this often (a sentry/gatling stream hits non-stop);
+    // damage and banking are untouched.
+    public const float FxGap = .2f;
+    float lastFx = -99f;
 
     // The screen-clear volley's own entry point: one full hit.
     public static bool Intercept(GameObject target, int ship)
@@ -1154,6 +1174,16 @@ public class BossTarget : MonoBehaviour, IShipAttackTargetUncapped
     }
 
     public void TakeShipAttack(int ship, float weight, Vector3 at) => Strike(ship, weight, at);
+
+    // True when the hit effects may play (and then starts the gap). Heavy hits (weight >= .5) always do.
+    bool FxDue(float weight = 0f)
+    {
+        if (weight >= .5f || !Application.isPlaying) return true;
+        float now = Time.unscaledTime;
+        if (now - lastFx < FxGap) return false;
+        lastFx = now;
+        return true;
+    }
 
     // A player attack on the boss. True when it counted (landed or banked); false when
     // the hit window blocked it: a small spark and flash, no sound, no shake, no hit-stop,
@@ -1169,10 +1199,12 @@ public class BossTarget : MonoBehaviour, IShipAttackTargetUncapped
             float now = Application.isPlaying ? Time.unscaledTime : 0f;
             if (Application.isPlaying && now - lastSpark < SparkGap) return false;
             lastSpark = now;
+            if (!FxDue()) return false;
             TargetExplosion.Spawn(at, kind, TargetExplosion.Size.Small, ship);
             if (actor != null) actor.Flash(.3f);
             return false;
         }
+        if (!FxDue(weight)) return true;
         TargetExplosion.Spawn(transform.position + Vector3.down * .35f, kind,
                               weight >= .5f ? TargetExplosion.Size.Medium : TargetExplosion.Size.Small, ship);
         collisionDetection.PlayExplosion();

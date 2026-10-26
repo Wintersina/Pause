@@ -54,6 +54,7 @@ public static class PowersReworkTest
         FrostNovaFreezesAndShatters();
         GoldMagnetDoublesDust();
         SentriesDeployAndShoot();
+        SentriesIgnoreScenery();
         NukeDetonatesWithAShockwave();
         ThunderclapKills();
         DecoyRedirectsAim();
@@ -516,13 +517,28 @@ public static class PowersReworkTest
         Teardown(gold);
     }
 
+    static void SentriesIgnoreScenery()
+    {
+        FreshScene();
+        var rock = Hazard(0f, 2f);
+        rock.GetComponent<ClearTarget>().Scenery = true;
+        var real = Hazard(2f, 3f);
+        var muzzle = new Vector3(0f, 2f, 0f);
+        var pick = ShipTargets.NearestHoming(muzzle, 6f, null, true);
+        Check("sentries skip a nearer backdrop rock and pick the real target", pick != null && pick.gameObject == real);
+        Object.DestroyImmediate(real);
+        Check("with only scenery left the sentries have no target", ShipTargets.NearestHoming(muzzle, 6f, null, true) == null);
+        Check("other homing attacks are unchanged (still see the rock)", ShipTargets.NearestHoming(muzzle, 6f, null) != null);
+        Object.DestroyImmediate(rock);
+    }
+
     static void SentriesDeployAndShoot()
     {
         FreshScene();
         var gold = Ship(7);
         var l = gold.Loadout;
-        Check("Gold Warden flies 3 sentries for 6 s at 3 shots a second",
-              l.attack == ShipAttack.WardenSentries && l.shots == 3 && Mathf.Approximately(l.duration, 6f) && Mathf.Approximately(l.speed, 3f));
+        Check("Gold Warden flies 3 sentries for 6 s at 1.5 shots a second (cooldown doubled)",
+              l.attack == ShipAttack.WardenSentries && l.shots == 3 && Mathf.Approximately(l.duration, 6f) && Mathf.Approximately(l.speed, 1.5f));
         var fake = Hazard(0f, 3f).GetComponent<ClearTarget>().gameObject.AddComponent<FakeBoss>();
         gold.Runner.Fire();
         Steps(gold.Runner, .1f);
@@ -530,7 +546,7 @@ public static class PowersReworkTest
         Steps(gold.Runner, 1f);
         Check("once deployed the slow motion no longer needs the attack", !gold.Runner.CinematicHold && gold.Runner.ActiveRuns == 1);
         Steps(gold.Runner, 7f);
-        Check("they shoot, then fold away", gold.Runner.SentriesNow == 0 && gold.Runner.ActiveRuns == 0 && gold.Runner.SentryBolts > 30);
+        Check("they shoot, then fold away", gold.Runner.SentriesNow == 0 && gold.Runner.ActiveRuns == 0 && gold.Runner.SentryBolts > 15 && gold.Runner.SentryBolts < 30);
         Check("a sentry is worth about one boss hit (" + fake.weight + " over " + fake.hits + " bolts)", fake.weight > 2.4f && fake.weight <= 3.01f);
         Object.DestroyImmediate(fake.gameObject);
 
