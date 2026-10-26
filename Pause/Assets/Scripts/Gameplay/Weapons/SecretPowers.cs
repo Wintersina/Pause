@@ -305,25 +305,25 @@ public class SecretPowerController : MonoBehaviour
         {
             case SecretPower.ShieldPulse:
                 collisionDetection.BeginCloak(pulseInvulnerable);
-                PowerStrip("pulse", 8, false, pulseShotRadius * 1.4f, 0f, transform, 73, StripAlpha);
+                PowerStrip(ShipFxArt.PowerStripName(SecretPower.ShieldPulse), 8, false, pulseShotRadius * 1.4f, 0f, transform, 73, StripAlpha);
                 KillWithin(at, pulseRadius);
                 HostileShots.ClearWithin(at, pulseShotRadius);
                 break;
 
             case SecretPower.EmpStun:
-                PowerStrip("emp", 8, false, 3.6f, 0f, transform, 73, StripAlpha);
+                PowerStrip(ShipFxArt.PowerStripName(SecretPower.EmpStun), 8, false, 3.6f, 0f, transform, 73, StripAlpha);
                 Stun();
                 HostileShots.ClearIn(ShipTargets.View());
                 break;
 
             case SecretPower.SolarNova:
-                PowerStrip("nova", 8, false, novaRadius * 1.9f, 0f, transform, 73, StripAlpha);
+                PowerStrip(ShipFxArt.PowerStripName(SecretPower.SolarNova), 8, false, novaRadius * 1.9f, 0f, transform, 73, StripAlpha);
                 KillWithin(at, novaRadius);
                 CameraKick.Kick(.04f);
                 // ...and the ring stays burning where it went off
                 novaAt = at;
                 novaLeft = novaBurnSeconds;
-                PowerStrip("nova", 0, true, novaRadius * 2f, novaBurnSeconds, null, 66, StripAlpha);
+                PowerStrip(ShipFxArt.PowerStripName(SecretPower.SolarNova), 0, true, novaRadius * 2f, novaBurnSeconds, null, 66, StripAlpha);
                 break;
 
             case SecretPower.CapacitorDump:
@@ -338,7 +338,7 @@ public class SecretPowerController : MonoBehaviour
             case SecretPower.IonBattery:
                 score.incromentPause();
                 PowerTrailSprite.Pack(ship, at);
-                PowerStrip("battery", 8, false, 1.3f, 0f, transform, 73, StripAlpha);
+                PowerStrip(ShipFxArt.PowerStripName(SecretPower.IonBattery), 8, false, 1.3f, 0f, transform, 73, StripAlpha);
                 break;
 
             case SecretPower.PhaseCloak:
@@ -349,11 +349,11 @@ public class SecretPowerController : MonoBehaviour
             case SecretPower.GoldMagnet:
                 magnetLeft = magnetSeconds;
                 // the field loops while the magnet pulls (cells 0-7), then folds away
-                magnetFx = PowerStrip("magnet", 0, true, 1.8f, magnetSeconds, transform, 41, StripAlpha);
+                magnetFx = PowerStrip(ShipFxArt.PowerStripName(SecretPower.GoldMagnet), 0, true, 1.8f, magnetSeconds, transform, 41, StripAlpha);
                 break;
 
             case SecretPower.Thunderclap:
-                PowerStrip("clap", 8, false, clapRadius * 1.5f, 0f, transform, 73, StripAlpha);
+                PowerStrip(ShipFxArt.PowerStripName(SecretPower.Thunderclap), 8, false, clapRadius * 1.5f, 0f, transform, 73, StripAlpha);
                 Clap(at);
                 break;
 
@@ -400,14 +400,14 @@ public class SecretPowerController : MonoBehaviour
             case SecretPower.TractorPull:
                 tractorLeft = tractorSeconds;
                 // the disc is heavy art: lower alpha and a smaller reach keep the hull clearly visible
-                PowerStrip("tractor", 0, true, tractorPullRadius * TractorScale, tractorSeconds, transform, 66, TractorAlpha);
-                PowerStrip("tractor", 8, false, 1.6f, 0f, transform, 73, TractorAlpha);
+                PowerStrip(ShipFxArt.PowerStripName(SecretPower.TractorPull), 0, true, tractorPullRadius * TractorScale, tractorSeconds, transform, 66, TractorAlpha);
+                PowerStrip(ShipFxArt.PowerStripName(SecretPower.TractorPull), 8, false, 1.6f, 0f, transform, 73, TractorAlpha);
                 break;
 
             case SecretPower.Mending:
                 if (collisionDetection.lifeCounter > 0) { collisionDetection.lifeCounter--; Mends++; }
                 // a feather burst round the hull, a second one rising off it, and the word
-                PowerStrip("mending", 8, false, 1.5f, 0f, transform, 73, StripAlpha);
+                PowerStrip(ShipFxArt.PowerStripName(SecretPower.Mending), 8, false, 1.5f, 0f, transform, 73, StripAlpha);
                 // a few feathers lift off the hull and drift up
                 Burst(at, .9f, null).Travel(at + Vector3.up * 1.1f, .5f, 1f);
                 var hud = ScoreHud.Current;
@@ -419,7 +419,7 @@ public class SecretPowerController : MonoBehaviour
                     // the blue-atom shield (same art, same absorb rule), on a timer
                     var hit = GetComponent<collisionDetection>();
                     if (hit != null) hit.RaiseShield(PremiumShips.Current(ship).shieldSeconds);
-                    PowerStrip("aegis", 8, false, 1.5f, 0f, transform, 73, StripAlpha);
+                    PowerStrip(ShipFxArt.PowerStripName(SecretPower.AegisShield), 8, false, 1.5f, 0f, transform, 73, StripAlpha);
                     AegisShields++;
                 }
                 break;
@@ -443,8 +443,8 @@ public class SecretPowerController : MonoBehaviour
     {
         collisionDetection.BeginCloak(seconds);
         Vector3 at = hull != null ? hull.position : Vector3.zero;
-        PowerStripAt(shipId, "cloak", at, 8, false, 1.7f, 0f, hull, 73, StripAlpha);
-        var aura = PowerStripAt(shipId, "cloak", at, 0, true, 1.15f, seconds, hull, 40, StripAlpha);
+        PowerStripAt(shipId, ShipFxArt.PowerStripName(SecretPower.PhaseCloak), at, 8, false, 1.7f, 0f, hull, 73, StripAlpha);
+        var aura = PowerStripAt(shipId, ShipFxArt.PowerStripName(SecretPower.PhaseCloak), at, 0, true, 1.15f, seconds, hull, 40, StripAlpha);
         aura.Rename(CloakAuraName);
         return aura;
     }
@@ -618,7 +618,7 @@ public class SecretPowerController : MonoBehaviour
     {
         // Powers2/Turtle_shell.png: cells 0-7 the held bubble dome, 8-15 its shatter. ~1.05 u across, hull clear inside.
         var fx = AttackPool.Sprite().Play(AttackSprite.Source.Extra, ship, transform.position, Vector3.one * ShellScale, 0f,
-            ShipFxArt.PowerLoopTicks, true, seconds, transform, Vector3.zero, 45).Strip("shell", 0, true).Alpha(ShellAlpha);
+            ShipFxArt.PowerLoopTicks, true, seconds, transform, Vector3.zero, 45).Strip(ShipFxArt.PowerStripName(SecretPower.HardShell), 0, true).Alpha(ShellAlpha);
         fx.Rename(ShellAuraName);
         return fx;
     }
@@ -637,7 +637,7 @@ public class SecretPowerController : MonoBehaviour
         Vector3 at = transform.position;
         // the dome cracks into shards (the strip's break cells)
         AttackPool.Sprite().Play(AttackSprite.Source.Extra, ship, at, Vector3.one * ShellScale, 0f,
-            ShipFxArt.PowerBurstTicks, false, 0f, transform, Vector3.zero, 73).Strip("shell", ShipFxArt.LoopFrames).Alpha(ShellAlpha);
+            ShipFxArt.PowerBurstTicks, false, 0f, transform, Vector3.zero, 73).Strip(ShipFxArt.PowerStripName(SecretPower.HardShell), ShipFxArt.LoopFrames).Alpha(ShellAlpha);
         CameraKick.Kick(.03f);
     }
 
@@ -800,7 +800,7 @@ public class SecretPowerController : MonoBehaviour
             decoyLeft = 0f;
             Vector3 spot = ShipDecoy.Position;
             ShipDecoy.Clear();
-            PowerStripAt(ship, "pop", spot, 8, false, decoyBlastRadius * 1.6f, 0f, null, 73, StripAlpha);
+            PowerStripAt(ship, ShipFxArt.PowerStripName(SecretPower.FlareDecoy), spot, 8, false, decoyBlastRadius * 1.6f, 0f, null, 73, StripAlpha);
             KillWithin(spot, decoyBlastRadius);
         }
 

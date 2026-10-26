@@ -45,6 +45,29 @@ public static class ShipFxArt
     // at scale 1 like the old atlas. Null when the strip is missing.
     public static Sprite[] Strip(int ship, bool power) => Strip(ship, power ? "power" : "attack");
 
+    // The strip a secret power draws in flight (Powers2/<ShipKey>_<name>.png): the one table the game's
+    // SecretPowers and the dock's power preview both read, so the card cannot show older art than the
+    // flight. Null: the power plays the ship's generic "power" strip.
+    public static string PowerStripName(SecretPower power)
+    {
+        switch (power)
+        {
+            case SecretPower.ShieldPulse: return "pulse";
+            case SecretPower.EmpStun: return "emp";
+            case SecretPower.SolarNova: return "nova";
+            case SecretPower.IonBattery: return "battery";
+            case SecretPower.PhaseCloak: return "cloak";
+            case SecretPower.GoldMagnet: return "magnet";
+            case SecretPower.Thunderclap: return "clap";
+            case SecretPower.FlareDecoy: return "pop";
+            case SecretPower.TractorPull: return "tractor";
+            case SecretPower.Mending: return "mending";
+            case SecretPower.HardShell: return "shell";
+            case SecretPower.AegisShield: return "aegis";
+        }
+        return null;
+    }
+
     // The same, for any named strip of the ship: "attack_mark" -> <ShipKey>_attack_mark.png.
     public static Sprite[] Strip(int ship, string suffix)
     {
