@@ -748,6 +748,8 @@ public static class TitleScreenCombatTest
         });
         // warm-up: the wardrobe decoded, every pool grown, each weapon and
         // effect drawn once (sprites are cut on first use)
+        // (a shard that runs few suites reaches here with every ship's attack strips still uncut)
+        foreach (int ship in ShipId.All) { ShipFxArt.AttackLoop(ship, 0); ShipFxArt.AttackBurst(ship, 0); }
         Run(t, 240f);
         // a finger on the sky too
         Vector2 screen = new Vector2(Screen.width * .3f, Screen.height * .35f);
