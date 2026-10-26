@@ -31,6 +31,27 @@ public static class TutorialSafety
         return !healed && maxLife >= 2 ? maxLife - 1 : 0;
     }
 
+    // ---- Crashes: play-friendly, never punishing, always recoverable ----
+
+    public enum CrashReply { None, Ouch, Playful, Recover }
+
+    public const string OuchLine = "Ouch! Try to steer around them.";
+    public const string PlayfulLine = "Okay, okay, you can hit them, but let's try the real way!";
+    // Seconds between two crash lines (no spam).
+    public const float CrashLineCooldown = 8f;
+
+    // What the robot does about a crash. crashes: crashes since the last
+    // recovery (this one included). atCap: the hit took the last spare heart
+    // (the ship cannot be lost, so it is set back instead). A line is never
+    // said over another line, inside the cooldown, or during the fly-in.
+    public static CrashReply DecideCrash(int crashes, int recoveries, bool atCap, float sinceLastCrashLine, bool speakerBusy, bool flyingIn)
+    {
+        if (flyingIn || crashes < 1) return CrashReply.None;
+        if (atCap && crashes >= 2) return CrashReply.Recover;
+        if (crashes != 1 || speakerBusy || sinceLastCrashLine < CrashLineCooldown) return CrashReply.None;
+        return recoveries == 0 ? CrashReply.Ouch : CrashReply.Playful;
+    }
+
     // ---- Ship guard: a fling can never lose the ship ----
 
     public static bool IsFinite(Vector3 v)

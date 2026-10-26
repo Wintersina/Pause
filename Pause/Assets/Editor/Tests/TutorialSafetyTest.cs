@@ -39,6 +39,18 @@ public static class TutorialSafetyTest
         Check("the retry line is the approved one", TutorialSafety.TryAgainLine == "Whoa, whoa there! Let's try again."
               && TutorialSafety.TryAgainLine.Length <= 70);
         Check("the retry line speaks without throwing", TutorialScript.Speak(TutorialSafety.TryAgainLine).SyllableCount > 0);
+        // crash lines: light first, playful after a recovery, the second crash sets back, no spam
+        var R = TutorialSafety.CrashReply.None;
+        Check("first crash: the light line", TutorialSafety.DecideCrash(1, 0, true, 99f, false, false) == TutorialSafety.CrashReply.Ouch);
+        Check("first crash after a recovery: the playful line", TutorialSafety.DecideCrash(1, 1, true, 99f, false, false) == TutorialSafety.CrashReply.Playful);
+        Check("second crash at the cap recovers", TutorialSafety.DecideCrash(2, 0, true, 0f, true, false) == TutorialSafety.CrashReply.Recover);
+        Check("second crash below the cap says nothing", TutorialSafety.DecideCrash(2, 0, false, 99f, false, false) == R);
+        Check("no line inside the cooldown", TutorialSafety.DecideCrash(1, 0, true, 3f, false, false) == R);
+        Check("no line over another line", TutorialSafety.DecideCrash(1, 0, true, 99f, true, false) == R);
+        Check("nothing during the fly-in, even a recovery", TutorialSafety.DecideCrash(2, 0, true, 99f, false, true) == R);
+        Check("no crash, no reply", TutorialSafety.DecideCrash(0, 0, true, 99f, false, false) == R);
+        Check("the crash lines speak and fit the box", TutorialScript.Speak(TutorialSafety.OuchLine).SyllableCount > 0
+              && TutorialSafety.PlayfulLine.Length <= 70 && TutorialSafety.OuchLine.Length <= 70);
         return fails;
     }
 }
