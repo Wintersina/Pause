@@ -22,4 +22,4 @@ Sunstoke, Coalrunner, Kilnback, Ash Wraith and Cauterizer were repainted from sc
 
 ## Refresh 2026-10-11 (superseded for all but Brass Vulture)
 
-All six ships were redrawn in the Tide/Storm/Desert direction (top-down, nose up, restrained light, no pink core). Cells: 0-3 idle, 4 tell, 5 action, 6 hit. The death strips are scripted from each hull (`Art/Enemies/src~/build_ember_enemy_death.py`). Old art: `Art/Enemies/src~/ember_old/elites/`. Sources: `Art/Enemies/src~/ember_elites_refresh/`.
+All six ships were redrawn in the Tide/Storm/Desert direction (top-down, nose up, restrained light, no pink core). Cells: 0-3 idle, 4 tell, 5 action, 6 hit. The death strips are scripted from each hull (`Art/Enemies/src~/build_ember_enemy_death.py`). The old art (`Art/Enemies/src~/ember_old/`) was removed in the 2026-10-25 art cleanup; it is in the repo history. Sources: `Art/Enemies/src~/ember_elites_refresh/`.
