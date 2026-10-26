@@ -78,27 +78,52 @@ public static class ShipExhaust
     public static Vector3[] MountsFor(Sprite hull, int index)
     {
         if (hull == null) return new[] { new Vector3(0f, -.2f, .05f) };
-        var nozzles = ShipNozzles.For(index);
-        var mounts = new Vector3[nozzles.Length];
-        for (int i = 0; i < nozzles.Length; i++)
-        {
-            Vector2 local = ShipNozzles.ToLocal(hull, nozzles[i]) + ShipNozzles.FrameShift(hull, nozzles[i]);
-            mounts[i] = new Vector3(local.x, local.y, .05f);
-        }
+        var mounts = new Vector3[MountCount(index)];
+        for (int i = 0; i < mounts.Length; i++) mounts[i] = MountAt(hull, index, i);
         return mounts;
+    }
+
+    // MountsFor without the array, for the per-frame remounts (a hull frame
+    // swap on every flipbook tick): how many plumes ship `index` has, and
+    // where plume `i` leaves hull frame `hull`.
+    public static int MountCount(int index) { return ShipNozzles.For(index).Length; }
+
+    public static Vector3 MountAt(Sprite hull, int index, int i)
+    {
+        if (hull == null) return new Vector3(0f, -.2f, .05f);
+        var nozzle = ShipNozzles.For(index)[i];
+        Vector2 local = ShipNozzles.ToLocal(hull, nozzle) + ShipNozzles.FrameShift(hull, nozzle);
+        return new Vector3(local.x, local.y, .05f);
+    }
+
+    // "Nozzle<i>": the plume children's names, made once (the remount looks
+    // them up on every hull frame swap).
+    static string[] nozzleNames = new string[0];
+
+    public static string NozzleName(int i)
+    {
+        if (i >= nozzleNames.Length)
+        {
+            var grown = new string[i + 1];
+            nozzleNames.CopyTo(grown, 0);
+            for (int k = nozzleNames.Length; k < grown.Length; k++) grown[k] = "Nozzle" + k;
+            nozzleNames = grown;
+        }
+        return nozzleNames[i];
     }
 
     // Moves a boost holder's "Nozzle<i>" plumes onto the nozzles of hull frame
     // `hull` (the bob and bank frames paint them in different places). The one
-    // call ShipThruster.Remount and the title-screen traffic both use.
+    // call ShipThruster.Remount and the title-screen traffic both use, on every
+    // hull frame swap, so it allocates nothing.
     public static void RemountBoost(Transform boost, Sprite hull, int index)
     {
         if (boost == null || hull == null || UsesSpinDrift(index)) return;
-        var mounts = MountsFor(hull, index);
-        for (int i = 0; i < mounts.Length; i++)
+        int count = MountCount(index);
+        for (int i = 0; i < count; i++)
         {
-            var plume = boost.Find("Nozzle" + i);
-            if (plume != null) plume.localPosition = mounts[i];
+            var plume = boost.Find(NozzleName(i));
+            if (plume != null) plume.localPosition = MountAt(hull, index, i);
         }
     }
 

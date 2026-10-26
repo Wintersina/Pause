@@ -999,18 +999,16 @@ public static class TitleScreenTrafficTest
         // the skin wardrobe's scheduled sheet decodes are measured apart
         // (TitleScreenCombatTest skips those frames); everything else here
         t.SkinWorkPaused = true;
-        System.GC.Collect();
-        // this thread's allocations (not GetTotalMemory's heap size, which other
-        // threads, finalizers and the heap's own expansion move on their own)
-        long before = System.GC.GetAllocatedBytesForCurrentThread();
-        for (int i = 0; i < 900; i++) t.Step(Dt);
-        long allocated = System.GC.GetAllocatedBytesForCurrentThread() - before;
-        long probe = System.GC.GetAllocatedBytesForCurrentThread();
-        var garbage = new byte[4096];
-        Check("the allocation counter actually counts (" + garbage.Length + " byte probe)",
-              System.GC.GetAllocatedBytesForCurrentThread() - probe >= 4096);
+        // The harness meter: the profiler's GC.Alloc recorder with its own positive control (the
+        // meter must see allocations or the check fails) and noise filter. GetTotalMemory moves
+        // with other threads and the heap's own expansion; GC.GetAllocatedBytesForCurrentThread
+        // does not count under this Mono at all (its 4 KB probe read 0 on CI).
+        long control;
+        bool meter = TestHarness.AllocMeterWorks(out control);
+        long allocated = TestHarness.AllocatedBytes(() => { for (int i = 0; i < 900; i++) t.Step(Dt); });
+        Check("the allocation meter actually counts (control " + control + " B for " + TestHarness.AllocControlCount + " arrays)", meter);
         Check("Step allocates nothing per frame (" + allocated + " bytes over 900 frames, " +
-              t.Crashes + " crashes so far)", allocated <= 0);
+              t.Crashes + " crashes so far)", meter && allocated == 0);
         Done(t);
     }
 

@@ -81,11 +81,15 @@ public sealed class FusionMotes : MonoBehaviour
         float now = AtomFusions.Clock;
         bool on = AtomFusions.Enabled;
         // the hull's scale is not the mote's: keep a fixed world size
+        // Not built yet (an edit-mode harness stepping LateUpdate before Awake),
+        // or a dot already torn down with its scene: nothing to draw.
+        if (dots == null) return;
         Vector3 s = transform.lossyScale;
         float sx = Mathf.Abs(s.x) > 1e-4f ? 1f / Mathf.Abs(s.x) : 1f, sy = Mathf.Abs(s.y) > 1e-4f ? 1f / Mathf.Abs(s.y) : 1f;
         for (int i = 0; i < dots.Length; i++)
         {
             var r = dots[i];
+            if (r == null) continue;
             var slot = i < state.SlotCount ? state.SlotAt(i) : default;
             bool show = on && slot.used && now < slot.expires && !AtomFusionTable.IsTimed(slot.kind);
             if (r.enabled != show) r.enabled = show;

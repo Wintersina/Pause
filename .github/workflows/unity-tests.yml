@@ -42,15 +42,19 @@ permissions:
 
 # Scheduled runs and manual runs get a per-run group (unity-schedule-<run id>), so a nightly can
 # neither cancel nor queue behind a PR run.
-# PRs: a newer push cancels the older run of the same PR only. master / manual runs are never
-# cancelled. Draft runs (all jobs skipped) get their own group so they cannot cancel a real run.
-# Serial fallback (shards = 1) queues every run on one global group, like the single-seat days.
+# PRs: a newer push cancels the older run of the same PR only. Pushes to master: one group per
+# branch, so a newer merge cancels the older master run still queued or running (a burst of merges
+# tests only the latest master; the cancelled run belonged to a superseded commit and gates nothing).
+# Manual / scheduled runs are never cancelled. Draft runs (all jobs skipped) get their own group so
+# they cannot cancel a real run. Serial fallback (shards = 1) queues every run on one global group,
+# like the single-seat days.
 concurrency:
   group: >-
     ${{ (inputs.shards || vars.UNITY_CI_SHARDS) == '1' && 'unity-personal-seat' ||
     github.event_name == 'pull_request' && format('unity-pr-{0}{1}', github.event.pull_request.number, github.event.pull_request.draft && '-draft' || '') ||
+    github.event_name == 'push' && format('unity-push-{0}', github.ref) ||
     format('unity-{0}-{1}', github.event_name, github.run_id) }}
-  cancel-in-progress: ${{ github.event_name == 'pull_request' && !github.event.pull_request.draft && (inputs.shards || vars.UNITY_CI_SHARDS) != '1' }}
+  cancel-in-progress: ${{ (github.event_name == 'push' || (github.event_name == 'pull_request' && !github.event.pull_request.draft)) && (inputs.shards || vars.UNITY_CI_SHARDS) != '1' }}
 
 env:
   UNITY_IMAGE_TAG: ubuntu-6000.3.23f1-android-3.2.2

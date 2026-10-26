@@ -120,8 +120,20 @@ public static class ShipHullArt
 
     static readonly Dictionary<int, Texture2D> sheets = new Dictionary<int, Texture2D>();
     static readonly Dictionary<int, Sprite> cache = new Dictionary<int, Sprite>();
+    // Which hull column each cut sprite is (ShipNozzles.FrameShift asks this
+    // on every hull frame swap; parsing it back out of the sprite's name
+    // allocated two strings per nozzle per swap).
+    static readonly Dictionary<Sprite, int> columnOf = new Dictionary<Sprite, int>();
 
     static int SheetKey(int id, int skin) { return id * ShipSkins.PerShip + skin; }
+
+    // The hull column `sprite` was cut from, when ShipHullArt cut it.
+    public static bool TryColumnOf(Sprite sprite, out int column)
+    {
+        if (sprite != null && columnOf.TryGetValue(sprite, out column)) return true;
+        column = 0;
+        return false;
+    }
 
     static int SpriteKey(int id, int skin, int state, int column)
     {
@@ -217,7 +229,7 @@ public static class ShipHullArt
             Sprite sprite;
             if (!cache.TryGetValue(k, out sprite)) continue;
             cache.Remove(k);
-            if (sprite != null) DestroyObject(sprite);
+            if (sprite != null) { columnOf.Remove(sprite); DestroyObject(sprite); }
         }
         if (sheet != null) DestroyObject(sheet);
     }
@@ -269,6 +281,7 @@ public static class ShipHullArt
         sprite = Sprite.Create(sheet, rect, new Vector2(.5f, .5f), r.pixelsPerUnit, 0, SpriteMeshType.FullRect);
         sprite.name = sheet.name + "_" + state + "_" + column;
         cache[key] = sprite;
+        columnOf[sprite] = column;
         return sprite;
     }
 

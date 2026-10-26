@@ -136,9 +136,9 @@ public class ShipThruster : MonoBehaviour
     {
         mountedFor = sprite;
         if (sprite == null || ShipExhaust.UsesSpinDrift(ShipIndex)) return;
-        var mounts = ShipExhaust.MountsFor(sprite, ShipIndex);
-        for (int i = 0; i < flames.Count && i < mounts.Length; i++)
-            flames[i].localPosition = mounts[i];
+        int count = ShipExhaust.MountCount(ShipIndex);   // no array: this runs on every hull frame swap
+        for (int i = 0; i < flames.Count && i < count; i++)
+            flames[i].localPosition = ShipExhaust.MountAt(sprite, ShipIndex, i);
         if (boostObject == null) return;
         ShipExhaust.RemountBoost(boostObject.transform, sprite, ShipIndex);
     }

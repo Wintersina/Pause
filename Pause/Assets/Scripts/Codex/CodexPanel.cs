@@ -35,10 +35,19 @@ public class CodexPanel : MonoBehaviour
 
     public const float GlowMargin = 0f;    // the cel frame's ink line sits inside the body
     public const float Margin = 12f;       // clear of the safe-area edge
+    // The panel's vertical budget is set by the smallest screen (a 1280-unit safe
+    // height): header, divider, three tab rows, the COLLECT ALL bar, the chip row, a
+    // section header with two card rows, and BACK must all fit at once (CodexTest
+    // "a section header and two card rows fit the list"). Width drives the card
+    // height (a card is its width plus the name strip), so a tablet-wide panel
+    // (MaxWidth) lays its cards out four to a row (MinCard), not three taller ones.
     public const float MaxWidth = 820f;
-    public const float Pad = 30f;
+    public const float Pad = 30f;          // left / right
+    public const float PadY = 18f;         // top / bottom
     public const float HeaderHeight = 64f;
     public const float DividerHeight = 16f;
+    public const float HeaderDividerGap = 2f, DividerTabsGap = 6f;
+    public const float BodyGap = 10f;      // tabs -> body, body -> BACK
     // Nine tabs (ACHIEVEMENTS, five entry categories, MUSIC, COMBOS, then the LOG) in three rows of
     // three. Each tab is drawn TabRowHeight tall and its touch target reaches half of
     // every gap around it: TabRowHeight + TabRowGap = 96 units, >= 48 dp /
@@ -63,15 +72,15 @@ public class CodexPanel : MonoBehaviour
     public const int TabLabelSize = 24, TabLabelMinSize = 16;
     public const float BackWidth = 288f, BackHeight = 100f;
     public const float Gap = 16f;
-    public const float MinCard = 176f;
+    public const float MinCard = 170f;     // 3 columns on a phone (716-unit grid), 4 on a tablet-wide panel
     public const float CardNameHeight = 54f;
     public const float GridInset = 8f;
     public const float ChipsHeight = 52f;
     public const float ChipGap = 8f;
     public const float ChipGapTight = 2f;      // with more than six chips (all seven worlds + bosses) the row is tight
     public static float ChipGapFor(int count) { return count > 6 ? ChipGapTight : ChipGap; }
-    public const float CollectBarHeight = 84f, CollectBarGap = 10f;   // the COLLECT ALL row under the tabs
-    public const float ChipsGap = 12f;         // chip row -> list
+    public const float CollectBarHeight = 72f, CollectBarGap = 4f;    // the COLLECT ALL row under the tabs (its button is 72 tall)
+    public const float ChipsGap = 8f;          // chip row -> list
     public const float SectionHeaderHeight = 56f;
     public const float SectionHeaderGap = 12f; // header -> its first card row
     public const float SectionGap = 28f;       // last card row -> next header
@@ -158,17 +167,17 @@ public class CodexPanel : MonoBehaviour
         l.panel = CodexUi.Centered(avail.center.x, avail.center.y, w, h);
 
         float iw = w - 2f * Pad;
-        float left = -w * .5f + Pad, top = h * .5f - Pad, bottom = -h * .5f + Pad;
+        float left = -w * .5f + Pad, top = h * .5f - PadY, bottom = -h * .5f + PadY;
         l.header = new Rect(left, top - HeaderHeight, iw, HeaderHeight);
-        l.divider = CodexUi.Centered(0f, l.header.yMin - 4f - DividerHeight * .5f, iw * .7f, DividerHeight);
-        l.tabs = new Rect(left, l.divider.yMin - 10f - TabsHeight, iw, TabsHeight);
+        l.divider = CodexUi.Centered(0f, l.header.yMin - HeaderDividerGap - DividerHeight * .5f, iw * .7f, DividerHeight);
+        l.tabs = new Rect(left, l.divider.yMin - DividerTabsGap - TabsHeight, iw, TabsHeight);
         l.back = CodexUi.Centered(0f, bottom + BackHeight * .5f, BackWidth, BackHeight);
-        l.body = Rect.MinMaxRect(left, l.back.yMax + Gap, left + iw, l.tabs.yMin - Gap);
+        l.body = Rect.MinMaxRect(left, l.back.yMax + BodyGap, left + iw, l.tabs.yMin - BodyGap);
         l.collectBar = new Rect(left, l.body.yMax - CollectBarHeight, iw, CollectBarHeight);
         l.catBody = Rect.MinMaxRect(left, l.body.yMin, left + iw, l.collectBar.yMin - CollectBarGap);
         l.chips = new Rect(left, l.catBody.yMax - ChipsHeight, iw, ChipsHeight);
         l.list = Rect.MinMaxRect(left, l.catBody.yMin, left + iw, l.chips.yMin - ChipsGap);
-        l.detail = Rect.MinMaxRect(left, l.back.yMax + Gap, left + iw, l.divider.yMin - 10f);
+        l.detail = Rect.MinMaxRect(left, l.back.yMax + BodyGap, left + iw, l.divider.yMin - DividerTabsGap);
 
         float gridW = iw - 2f * GridInset;
         l.columns = Mathf.Clamp(Mathf.FloorToInt((gridW + Gap) / (MinCard + Gap)), 2, 5);

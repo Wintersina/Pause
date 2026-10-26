@@ -64,14 +64,29 @@ public static class ShipFxArt
     // The same, for any named strip of the ship: "attack_mark" -> <ShipKey>_attack_mark.png.
     public static Sprite[] Strip(int ship, string suffix)
     {
-        string key = (ShipId.KeyOf(ShipId.IsValid(ship) ? ship : ShipId.Starter) ?? "") + "_" + suffix;
+        int id = ShipId.IsValid(ship) ? ship : ShipId.Starter;
+        if (suffix == null) suffix = "";   // AttackSprite asks for a null extra: "<Key>_", a strip that never exists
         // Skin variant: a ship wearing its Special skin uses <key>_special when that strip exists (any ship can add one).
         if (ShipId.IsValid(ship) && ShipSkins.Has(ship, ShipSkins.Special) && ShipSkins.Shown(ship) == ShipSkins.Special)
         {
-            var special = Load(key + "_special");
+            var special = Load(Key(specialKeys, id, suffix, "_special"));
             if (special != null) return special;
         }
-        return Load(key);
+        return Load(Key(keys, id, suffix, ""));
+    }
+
+    // "<ShipKey>_<suffix>" per ship, made once: Fx() asks for a strip on every
+    // attack frame swap (the title traffic's and the flight's), so building the
+    // key each time was a per-frame allocation.
+    static readonly System.Collections.Generic.Dictionary<string, string[]> keys = new System.Collections.Generic.Dictionary<string, string[]>();
+    static readonly System.Collections.Generic.Dictionary<string, string[]> specialKeys = new System.Collections.Generic.Dictionary<string, string[]>();
+
+    static string Key(System.Collections.Generic.Dictionary<string, string[]> table, int id, string suffix, string tail)
+    {
+        string[] row;
+        if (!table.TryGetValue(suffix, out row)) table[suffix] = row = new string[shopingShips.shipTotal];
+        if (row[id] == null) row[id] = (ShipId.KeyOf(id) ?? "") + "_" + suffix + tail;
+        return row[id];
     }
 
     static Sprite[] Load(string key)
