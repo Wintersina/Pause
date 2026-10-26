@@ -832,6 +832,8 @@ public static class PowersReworkTest
         {
             foreach (bool power in new[] { true, false })
             {
+                // a power drawn only by its own strip has no generic _power.png (ShipFxArt.DrawsGenericPowerStrip)
+                if (power && !ShipFxArt.DrawsGenericPowerStrip(ShipLoadoutTable.For(id).power)) continue;
                 var strip = ShipFxArt.Strip(id, power);
                 if (strip == null || strip.Length != 16) { allStrips = false; bad += ShipId.KeyOf(id) + (power ? "_power " : "_attack "); continue; }
                 for (int i = 0; i < 8; i++)
@@ -847,7 +849,7 @@ public static class PowersReworkTest
                 }
             }
         }
-        Check("all 30 strips load as 16 cells" + (bad.Length > 0 ? " (missing: " + bad + ")" : ""), allStrips);
+        Check("every strip a ship still draws loads as 16 cells" + (bad.Length > 0 ? " (missing: " + bad + ")" : ""), allStrips);
         Check("every ship's 8 loop + 8 burst frames resolve for power and attack", allFrames);
         Check("every frame is one world unit across at scale 1", sized);
         Check("loops and bursts have 8 hold entries at about 24 fps",

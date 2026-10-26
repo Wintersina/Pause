@@ -1170,7 +1170,9 @@ public static class PowerPreview
     static Plan PlanFor(int ship, bool secretPower)
     {
         if (!secretPower) return AttackPlan(ship);
-        return new Plan { parts = Default("power", ShipFxArt.PowerLoopTicks, ShipFxArt.PowerBurstTicks), maxZoom = 3f };
+        // the strip the power really draws in flight (Turtle's shell dome, Dove's feathers...), else the ship's "power"
+        string suffix = ShipFxArt.PowerStripName(ShipLoadoutTable.For(ship).power) ?? "power";
+        return new Plan { parts = Default(suffix, ShipFxArt.PowerLoopTicks, ShipFxArt.PowerBurstTicks), maxZoom = 3f };
     }
 
     // How many cells a ship's plan lays out.

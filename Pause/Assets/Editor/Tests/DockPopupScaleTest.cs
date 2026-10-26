@@ -42,6 +42,19 @@ public static class DockPopupScaleTest
                 plans &= all && n >= 16 && n <= PowerPreview.Cells;
             }
         Check("every ship's dock preview plan finds all its cells (the nuke's shockwave and mushroom, the sentries' bolt, the nova's ice...)", plans);
+        bool flightArt = true;
+        foreach (int ship in ShipId.All)
+        {
+            string strip = ShipFxArt.PowerStripName(ShipLoadoutTable.For(ship).power);
+            if (strip == null) continue;
+            // a superseded generic strip stays deleted, and the preview never falls back to it
+            if (!ShipFxArt.DrawsGenericPowerStrip(ShipLoadoutTable.For(ship).power))
+                flightArt &= ShipFxArt.Strip(ship, true) == null;
+            var own = ShipFxArt.Strip(ship, strip);
+            PowerPreview.Fill(ship, true, cells);
+            flightArt &= own != null && cells[0] != null && cells[0].texture == own[0].texture;
+        }
+        Check("each power's dock preview plays the strip the flight draws (Turtle's shell dome, not its old hex strip)", flightArt);
         Check("Paragon's attack preview ends on the shockwave and mushroom", PowerPreview.CellCount(16, false) == 48);
         Check("every ship (" + ShipId.Count + ") resolves non-null attack and power preview frames", frames && ShipId.Count == shopingShips.RosterTotal - 1);
         bool fit = true;
