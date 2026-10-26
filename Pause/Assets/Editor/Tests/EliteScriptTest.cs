@@ -175,9 +175,23 @@ public static class EliteScriptTest
             var p0 = EliteEntrance.Path(kind, from, to, 0f, 1f, 1.6f);
             var p1 = EliteEntrance.Path(kind, from, to, 1f, 1f, 1.6f);
             var mid = EliteEntrance.Path(kind, from, to, .5f, 1f, 1.6f);
-            bool startOk = kind == "swirl" ? (p0 - from).magnitude <= 1.6f + .01f : (p0 - from).sqrMagnitude < .001f;
+            // Every kind, swirl included: k = 0 IS the lift-off's end. The swirl used to start
+            // amp * .8 away from it (its spiral offset at phase 2.2 turns), a one-frame pop of
+            // about a unit on the first Join step; its radius now grows in from 0.
+            bool startOk = (p0 - from).sqrMagnitude < .001f;
             Check("entrance '" + kind + "' starts at the lift-off's end and lands on the first spot", startOk && (p1 - to).sqrMagnitude < .001f);
             Check("entrance '" + kind + "' is its own path (not the straight line)", kind == "dash" || Mathf.Abs(Vector2.Distance(mid, Vector2.Lerp(from, to, .5f))) > .05f);
+            // ... and is continuous: with the widest swing in the defs (amp 1.8) and a 5 u
+            // trip, no 1/120 slice of it moves the elite more than .4 u (a pop is 1 u+).
+            float worst = 0f;
+            Vector2 prev = EliteEntrance.Path(kind, from, to, 0f, 1f, 1.8f);
+            for (int i = 1; i <= 120; i++)
+            {
+                var p = EliteEntrance.Path(kind, from, to, i / 120f, 1f, 1.8f);
+                worst = Mathf.Max(worst, (p - prev).magnitude);
+                prev = p;
+            }
+            Check("entrance '" + kind + "' never jumps (worst 1/120 step " + worst.ToString("0.00") + " u)", worst < .4f);
         }
         foreach (var d in EliteCatalog.All)
             Check(d.key + ": entrance " + d.script.entrance.kind + " is 1-2.4 s", d.script.entrance.seconds >= .8f && d.script.entrance.seconds <= 2.4f);

@@ -316,6 +316,9 @@ public sealed class EliteScriptRunner
 // The signature arrival: a path from where the lift-off ended to the brain's first goal, `seconds` long.
 public static class EliteEntrance
 {
+    // The share of a "swirl" entrance over which its spiral radius grows in from 0.
+    public const float SwirlRampShare = .15f;
+
     // Position at k in [0, 1] of the entrance. `side` is -1 or +1 (the side the path bulges to), `amp` how far it swings.
     public static Vector2 Path(string kind, Vector2 from, Vector2 to, float k, float side, float amp)
     {
@@ -343,9 +346,13 @@ public static class EliteEntrance
             }
             case "swirl":
             {
-                // a decaying spiral round the goal
+                // a decaying spiral round the goal. The radius grows in over
+                // the first slice of the entrance: at k = 0 the spiral's own
+                // offset (amp * .8 along the 2.2-turn phase) would otherwise
+                // put the elite a hull or more away from where the lift-off
+                // ended -- a one-frame pop on the first Join step.
                 float a = (1f - e) * Mathf.PI * 2.2f * side;
-                float r = (1f - e) * amp;
+                float r = (1f - e) * amp * Mathf.SmoothStep(0f, 1f, k / SwirlRampShare);
                 Vector2 c = Vector2.Lerp(from, to, e);
                 return c + new Vector2(Mathf.Cos(a), Mathf.Sin(a)) * r * .8f;
             }
