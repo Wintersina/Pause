@@ -454,11 +454,13 @@ public class collisionDetection : MonoBehaviour {
             {
                 magnetAtomPickups++;
                 RunScore.OnAtom(RunScore.Atom.Magnet, hit.transform.position);
-                // Every star dust on screen flies into the hull; with the
-                // shield up it also drags the soft enemies in and the shield
-                // gains MagnetPull.ShieldBonusSeconds (MagnetPull has the rules).
+                // Every goodie on screen (star dust, atoms) flies into the
+                // hull; while the shield is up too the plain enemies are
+                // sucked in to die on it, in whichever order the two were
+                // caught (MagnetCombo). A shield up now gains
+                // MagnetPull.ShieldBonusSeconds.
                 bool shielded = ExtendShield(MagnetPull.ShieldBonusSeconds);
-                MagnetPull.Begin(gameObject, shielded);
+                MagnetPull.Begin(gameObject);
                 BoostUltimate(dust: false);   // the usual atom cut off the weapon's charge
                 string word = shielded ? MagnetPull.ShieldedWord : MagnetPull.Word;
                 if (hypeText != null) hypeText.text = word;
@@ -471,7 +473,7 @@ public class collisionDetection : MonoBehaviour {
                 shieldAtomPickups++;
                 RunScore.OnAtom(RunScore.Atom.Shield, hit.transform.position);
                 BoostUltimate(dust: false);
-                // a shield caught during a magnet pull: +2 s on the pull, enemies pulled in
+                // a shield caught during a magnet pull: +2 s on the pull; with both up the enemies are pulled in (MagnetCombo)
                 bool magnetSynergy = MagnetPull.OnShieldCaught();
                 PickupWord(magnetSynergy ? MagnetPull.ShieldExtendedWord : ShieldWord, hit.transform.position, AkiraPalette.Cyan);
                 AtomCharged(AkiraPalette.Cyan);

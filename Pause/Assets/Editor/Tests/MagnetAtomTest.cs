@@ -6,8 +6,8 @@ using Object = UnityEngine.Object;
 
 // The Magnetic Atom (magnetAtom): scarce per-planet spawn rules, the prefab and
 // its art, scoring, the shield extension (+2 s only while a shield is up), the
-// dust pull (always) and the enemy pull rule (shielded only; bosses, armoured
-// elites, shots and rail-mounted mines are never dragged).
+// goodies pull (dust and atoms, always) and the enemy pull while the shield is
+// up too (MagnetComboTest has the full combo rules).
 //
 //   Unity -batchmode -quit -projectPath Pause -executeMethod MagnetAtomTest.Run
 public static class MagnetAtomTest
@@ -117,17 +117,7 @@ public static class MagnetAtomTest
 
     static void EnemyRule()
     {
-        var R = MagnetPull.Rule(true, true, false, false, false, false, false, false);
-        Check("shielded: a plain enemy is dragged", R == MagnetPull.Effect.Drag);
-        Check("no shield: nothing is pulled", MagnetPull.Rule(false, true, false, false, false, false, false, false) == MagnetPull.Effect.None);
-        Check("a boss is never pulled", MagnetPull.Rule(true, true, true, false, false, false, false, false) == MagnetPull.Effect.None);
-        Check("an armoured elite is never pulled", MagnetPull.Rule(true, true, false, false, false, true, true, true) == MagnetPull.Effect.None);
-        Check("an unarmoured elite in play is only nudged", MagnetPull.Rule(true, true, false, false, false, true, true, false) == MagnetPull.Effect.Nudge);
-        Check("an elite not in play, an enemy shot, a rail mine and a non-enemy are never pulled",
-              MagnetPull.Rule(true, true, false, false, false, true, false, false) == MagnetPull.Effect.None &&
-              MagnetPull.Rule(true, true, false, true, false, false, false, false) == MagnetPull.Effect.None &&
-              MagnetPull.Rule(true, true, false, false, true, false, false, false) == MagnetPull.Effect.None &&
-              MagnetPull.Rule(true, false, false, false, false, false, false, false) == MagnetPull.Effect.None);
+        // (the full combo table is MagnetComboTest's)
         Check("the dust pull speeds up over its run",
               MagnetPull.DustSpeed(0f) == MagnetPull.DustSpeedStart && MagnetPull.DustSpeed(99f) == MagnetPull.DustSpeedEnd);
     }
@@ -137,7 +127,8 @@ public static class MagnetAtomTest
         var go = new GameObject(name);
         go.tag = "pickUp";
         go.transform.position = at;
-        ClearTarget.Live.Add(go.AddComponent<ClearTarget>());
+        var ct = ClearTarget.Ensure(go);
+        if (!ClearTarget.Live.Contains(ct)) ClearTarget.Live.Add(ct);   // (OnEnable registers it already)
         return go;
     }
 
@@ -146,7 +137,8 @@ public static class MagnetAtomTest
         var go = new GameObject("enemy");
         go.tag = "Enimey";
         go.transform.position = at;
-        ClearTarget.Live.Add(go.AddComponent<ClearTarget>());
+        var ct = ClearTarget.Ensure(go);
+        if (!ClearTarget.Live.Contains(ct)) ClearTarget.Live.Add(ct);   // (OnEnable registers it already)
         return go;
     }
 
@@ -162,18 +154,21 @@ public static class MagnetAtomTest
     static void DustPull()
     {
         var ship = NewShip();
+        collisionDetection.atomCheck = false;
+        startMenu.youAreInTutorial = false;
         var small = Dust("smStar1", new Vector3(2f, 2f, 0f));
         var big = Dust("LargeStar1", new Vector3(-2f, 4f, 0f));
-        var atom = Dust("atom3a", new Vector3(1f, 1f, 0f));   // an atom is not dust
+        var atom = Dust("atom3a", new Vector3(1f, 1f, 0f));   // an atom is a goodie too
         Vector3 smallStart = small.transform.position, atomStart = atom.transform.position, bigStart = big.transform.position;
-        var pull = MagnetPull.Begin(ship, false);
+        var pull = MagnetPull.Begin(ship);
         pull.Step(.1f);
         float d0 = (smallStart - ship.transform.position).magnitude;
         float d1 = (small.transform.position - ship.transform.position).magnitude;
         Check("without a shield the star dust moves toward the hull", d1 < d0 - .5f);
-        Check("both kinds of dust are pulled, atoms are left where they are",
+        Check("both kinds of dust and the other atoms are pulled",
               (big.transform.position - ship.transform.position).magnitude < (bigStart - ship.transform.position).magnitude - .5f &&
-              (atom.transform.position - atomStart).sqrMagnitude < 1e-6f);
+              (atom.transform.position - ship.transform.position).magnitude < (atomStart - ship.transform.position).magnitude - .5f &&
+              pull.DustLast == 2 && pull.AtomsLast == 1);
         for (int i = 0; i < 70; i++) pull.Step(.1f);
         Check("it reaches the hull within the pull and the pull ends",
               (small.transform.position - ship.transform.position).magnitude < .05f &&
@@ -184,6 +179,7 @@ public static class MagnetAtomTest
 
     static void ShieldedPullMovesSoftEnemiesOnly()
     {
+        startMenu.youAreInTutorial = false;
         foreach (bool shielded in new[] { false, true })
         {
             var ship = NewShip();
@@ -192,7 +188,7 @@ public static class MagnetAtomTest
             var boss = Enemy(new Vector3(-2f, 3f, 0f));
             boss.AddComponent<BossTarget>();
             Vector3 softStart = soft.transform.position, bossStart = boss.transform.position;
-            var pull = MagnetPull.Begin(ship, shielded);
+            var pull = MagnetPull.Begin(ship);
             for (int i = 0; i < 5; i++) pull.Step(.1f);
             float moved = (soft.transform.position - softStart).magnitude;
             Check(shielded ? "shielded: a plain enemy is dragged toward the hull" : "unshielded: enemies stay put",
@@ -202,30 +198,32 @@ public static class MagnetAtomTest
             Object.DestroyImmediate(ship);
             ClearTarget.Live.Clear();
         }
+        collisionDetection.atomCheck = false;
     }
 
     static void ShieldCaughtDuringPull()
     {
         var ship = NewShip();
+        startMenu.youAreInTutorial = false;
         Check("no pull running: a shield catch extends nothing", !MagnetPull.OnShieldCaught() || MagnetPull.Active == null || MagnetPull.Active.Running);
         var soft = Enemy(new Vector3(2f, 3f, 0f));
         Vector3 start = soft.transform.position;
         collisionDetection.atomCheck = false;
-        var pull = MagnetPull.Begin(ship, false);
+        var pull = MagnetPull.Begin(ship);
         pull.Step(.1f);
         Check("pull lasts 6 s", Mathf.Approximately(pull.Duration, 6f) && pull.Remaining > 5.8f);
-        Check("unshielded pull leaves enemies alone", soft.transform.position == start);
+        Check("unshielded pull leaves enemies alone", soft.transform.position == start && !pull.Shielded);
         collisionDetection.atomCheck = true;   // the shield atom is caught
         Check("shield caught mid-pull is accepted", MagnetPull.OnShieldCaught());
-        Check("pull is 2 s longer", Mathf.Approximately(pull.Duration, 8f) && pull.Shielded);
+        Check("pull is 2 s longer", Mathf.Approximately(pull.Duration, 8f));
         pull.Step(.1f);
-        Check("enemies are now pulled in", (soft.transform.position - start).magnitude > .1f);
+        Check("enemies are now pulled in", (soft.transform.position - start).magnitude > .1f && pull.Shielded);
         MagnetPull.OnShieldCaught(); MagnetPull.OnShieldCaught();
         Check("total is capped", Mathf.Approximately(pull.Duration, MagnetPull.MaxSeconds));
         collisionDetection.atomCheck = false;   // shield runs out
         Vector3 held = soft.transform.position;
         pull.Step(.1f);
-        Check("enemy pull stops with the shield", !pull.Shielded && soft.transform.position == held);
+        Check("enemy pull stops with the shield", !pull.Shielded && soft.transform.position == held && pull.EnemiesLocked == 0);
         pull.End();
         Check("End stops the pull", !pull.Running);
         Object.DestroyImmediate(ship);
