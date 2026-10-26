@@ -12,8 +12,11 @@ public class movePlayerInTut : MonoBehaviour
     private RectTransform hypeText;
 
 
+    void OnDestroy() { ShipSpawn.Forget(gameObject); }
+
     void Start()
     {
+        ShipSpawn.Announce(gameObject);   // the thruster and the hearts attach to it from here
         ResetCounters();
         //will move pos of texts to follow ship
         boostText = GameObject.Find("boostText").GetComponent<RectTransform>();

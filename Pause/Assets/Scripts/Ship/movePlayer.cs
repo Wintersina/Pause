@@ -72,8 +72,11 @@ public class movePlayer : MonoBehaviour
     // Float drift after N steps of 1/N must not cost an extra frame.
     const float CountdownEpsilon = 1e-4f;
 
+    void OnDestroy() { ShipSpawn.Forget(gameObject); }
+
     void Start()
     {
+        ShipSpawn.Announce(gameObject);   // the thruster, powers and hearts attach to it from here
         teleported = false;
         //shild timer;
         boostText = GameObject.Find("boostText").GetComponent<RectTransform>();

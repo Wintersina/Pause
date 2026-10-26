@@ -737,7 +737,8 @@ public class EliteShot : MonoBehaviour, IHostileShot
         age = def.lobSeconds;
         EliteSystem.Fx.Sparks(lobTo, tint, 5);
         AttackAudio.Play(ShotSkins.WorldOf(def), "splash", .7f);
-        Physics2D.SyncTransforms();
+        // (no Physics2D.SyncTransforms here: the project auto-syncs transforms before every query and
+        // the simulation step syncs them itself, so the landed collider is seen either way; PerfWarmupTest pins the setting)
         // a pod opens as it lands: the cloud pool stays, spores scatter out of it
         if ((mot & ShotMotion.Burst) != 0 && generation == 0)
         {
@@ -760,7 +761,7 @@ public class EliteShot : MonoBehaviour, IHostileShot
         age = 0f;
         life = ShotMotions.RollSeconds;
         EliteSystem.Fx.Sparks(p, tint, 6);
-        Physics2D.SyncTransforms();
+        // (no Physics2D.SyncTransforms: see Land)
     }
 
     // The outline traced from `art`, drawn at the shot's scale `k` (cached

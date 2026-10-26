@@ -629,6 +629,30 @@ public static class BossArt
     public static Sprite Card(BossDef boss) => boss == null ? null : Single(Folder + boss.artKey + "_card");
     public static Sprite Warning() => Single(Folder + "warning");
 
+    // Every Resources path this boss's fight reads lazily (its entrance, its
+    // shots, its card, the warning, its damage and death art, the first damage
+    // stage's attack poses), in the order the fight wants them: ArtWarm loads
+    // them ahead so the first use is no stall. Missing optional sheets are
+    // harmless to ask for.
+    public static void WarmPaths(BossDef boss, List<string> into)
+    {
+        if (boss == null || into == null || string.IsNullOrEmpty(boss.artKey)) return;
+        into.Add(Folder + "warning");
+        into.Add(Folder + boss.artKey);
+        into.Add(Folder + boss.artKey + "_shots");
+        into.Add(Folder + boss.artKey + AttackShotsSuffix);
+        into.Add(Folder + boss.artKey + "_card");
+        if (HasDamageArt(boss))
+        {
+            into.Add(Folder + boss.damageKey + "_damage");
+            into.Add(Folder + boss.damageKey + "_damage_fx");
+            var names = HasExpandedCombat(boss) ? ExpandedPoseNames : PlainPoseNames;
+            for (int c = 0; c < names.Length; c++)
+                into.Add(ImpactFolder + "attack/" + boss.damageKey.ToLowerInvariant() + "_" + names[c] + "_stage1");
+        }
+        if (!string.IsNullOrEmpty(boss.deathKey)) into.Add(Folder + boss.deathKey + "_death");
+    }
+
     static Sprite Single(string path)
     {
         Sprite s;

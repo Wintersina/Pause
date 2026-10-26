@@ -241,33 +241,50 @@ public class ShipThruster : MonoBehaviour
 // instead -- looking up only the former meant this never found the tutorial
 // ship at all, so it never got the idle/boost flame the main game gets and
 // was left showing whatever flame (or none) the 2016 scene had baked in.
+// The ship announces itself (ShipSpawn) a frame or two after the scene
+// loads; this waits for that instead of scanning the scene every frame, and
+// gives up after a while as before. Out of play (edit-mode suites, where no
+// Start runs) a frame still looks the ship up.
 public class ShipThrusterAttach : MonoBehaviour
 {
     float giveUp = 6f;
+    bool done;
+    public bool Done { get { return done; } }
+
+    void OnEnable()
+    {
+        ShipSpawn.Spawned += OnShip;
+        if (ShipSpawn.Live != null) OnShip(ShipSpawn.Live);
+    }
+
+    void OnDisable() { ShipSpawn.Spawned -= OnShip; }
+
+    void OnShip(GameObject player)
+    {
+        if (done || player == null) return;
+        int index = ShipExhaust.IndexFor(player);
+        if (ShipExhaust.UsesSpinDrift(index))
+        {
+            if (player.GetComponent<ShipSpinDrift>() == null)
+                player.AddComponent<ShipSpinDrift>();
+            var oldThruster = player.GetComponent<ShipThruster>();
+            if (oldThruster != null) Destroy(oldThruster);
+        }
+        else if (player.GetComponent<ShipThruster>() == null)
+            player.AddComponent<ShipThruster>();
+        done = true;   // gone on the next frame (never destroyed from inside an event or OnEnable)
+    }
 
     void Update()
     {
-        GameObject player = FindPlayer();
-        if (player != null)
-        {
-            int index = ShipExhaust.IndexFor(player);
-            if (ShipExhaust.UsesSpinDrift(index))
-            {
-                if (player.GetComponent<ShipSpinDrift>() == null)
-                    player.AddComponent<ShipSpinDrift>();
-                var oldThruster = player.GetComponent<ShipThruster>();
-                if (oldThruster != null) Destroy(oldThruster);
-            }
-            else if (player.GetComponent<ShipThruster>() == null)
-                player.AddComponent<ShipThruster>();
-            Destroy(gameObject);
-            return;
-        }
-
+        if (!done && ShipSpawn.Live != null) OnShip(ShipSpawn.Live);
+        if (!done && !Application.isPlaying) OnShip(FindPlayer());
+        if (done) { if (Application.isPlaying) Destroy(gameObject); else DestroyImmediate(gameObject); return; }
         giveUp -= Time.unscaledDeltaTime;
         if (giveUp <= 0f) Destroy(gameObject);
     }
 
+    // The scene scan, out of play only (BugBatch0907Test reads it).
     static GameObject FindPlayer()
     {
         var main = Object.FindFirstObjectByType<movePlayer>();
