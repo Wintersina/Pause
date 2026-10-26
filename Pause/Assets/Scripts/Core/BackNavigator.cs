@@ -41,6 +41,7 @@ public static class BackNavigator
 
     static readonly List<Layer> layers = new List<Layer>();
     static int escapeFrame = -1;
+    static int lastBackFrame = int.MinValue;   // no frame value, play or edit mode, is ever this
     static bool quitArmed;
     static float quitArmedAt;
 
@@ -50,6 +51,7 @@ public static class BackNavigator
     public static Action QuitApplication = DefaultQuit;
     public static Func<RuntimePlatform> Platform = DefaultPlatform;
     public static Func<float> Clock = DefaultClock;
+    public static Func<int> Frame = DefaultFrame;
 
     // Raised when the first home back arms quitting (the toast listens).
     public static event Action QuitArmed;
@@ -57,6 +59,9 @@ public static class BackNavigator
     static void DefaultLoadScene(string scene) { SceneManager.LoadScene(scene); }
     static void DefaultQuit() { Application.Quit(); }
     static RuntimePlatform DefaultPlatform() { return Application.platform; }
+    static int editFrames;
+    // Edit-mode tests have no frames: every call counts as a new one.
+    static int DefaultFrame() { return Application.isPlaying ? Time.frameCount : --editFrames; }
     static float DefaultClock() { return Time.unscaledTime; }
 
     public static void ResetHooks()
@@ -65,6 +70,8 @@ public static class BackNavigator
         QuitApplication = DefaultQuit;
         Platform = DefaultPlatform;
         Clock = DefaultClock;
+        Frame = DefaultFrame;
+        lastBackFrame = int.MinValue;
     }
 
     // ---- the stack ----
@@ -122,6 +129,15 @@ public static class BackNavigator
     // Wired to on-screen Back buttons (menuButton.back, everythingCredit.back).
     public static void Back()
     {
+        // One press per frame: an on-screen Back and a system Back landing together
+        // must not undo two levels.
+        BackAt(Frame());
+    }
+
+    static void BackAt(int frame)
+    {
+        if (frame == lastBackFrame) return;
+        lastBackFrame = frame;
         Prune();
         // Snapshot: handlers may unregister themselves while handling.
         var snapshot = layers.ToArray();
@@ -139,7 +155,7 @@ public static class BackNavigator
     {
         if (frame == escapeFrame) return false;
         escapeFrame = frame;
-        Back();
+        BackAt(frame);
         return true;
     }
 

@@ -38,6 +38,7 @@ public static class PremiumShipTest
         Economy();
         Combat();
         Notice();
+        BuyLabelFits();
         Debug.Log("[PREM] failures: " + fails);
         return fails;
     }
@@ -62,6 +63,42 @@ public static class PremiumShipTest
               WeaponArt.Shot(P, 0) != null && WeaponArt.Charge(P, 15) != null && ShipFxArt.AttackLoop(P, 0) != null &&
               ShipFxArt.MeterIcon(P) != null);
         Check("the superseded procedural attack fx atlas stays deleted", Resources.Load<Texture2D>("Weapons/AttackFx") == null && ShipFxArt.Rows == 16);
+    }
+
+    // A long localized price shrinks to fit the BUY button on one line.
+    static void BuyLabelFits()
+    {
+        var font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        var anchor = new GameObject("~BuyFitAnchor").transform;
+        var popup = DockPopup.Create(null, font, null);
+        popup.safeView = new Rect(-50f, -50f, 100f, 100f);
+        var oldFlow = ParagonPurchase.LaunchFlow;
+        ParagonPurchase.LaunchFlow = () => { };
+        PlayerPrefs.DeleteKey(ShipId.OwnedKey(P));
+        float room = DockPopup.PanelWidth - 2f * DockPopup.Pad - 12f;
+        try
+        {
+            ParagonPurchase.SetPrice("$4.99");
+            popup.Show(P, anchor, .3f, false, false, 0f, 0f);
+            Check("buy label: a normal price keeps the full size", popup.ButtonLabel.text == "BUY $4.99" && popup.ButtonLabel.fontSize == DockPopup.ButtonSize);
+            ParagonPurchase.SetPrice("Rp 1.299.000,00 per bulan lengkap");
+            popup.Show(P, anchor, .3f, false, false, 0f, 0f);
+            var label = popup.ButtonLabel;
+            Check("buy label: a long price shrinks, never below the minimum",
+                  label.fontSize < DockPopup.ButtonSize && label.fontSize >= DockPopup.ButtonMinSize);
+            Check("buy label: ...and fits the button on one line (or is at the minimum size)",
+                  label.preferredWidth <= room || label.fontSize == DockPopup.ButtonMinSize);
+            Check("buy label: single line, no wrap", label.horizontalOverflow == HorizontalWrapMode.Overflow);
+            popup.SetButtonText("LAUNCH");
+            Check("buy label: the next short label returns to full size", label.fontSize == DockPopup.ButtonSize);
+        }
+        finally
+        {
+            ParagonPurchase.LaunchFlow = oldFlow;
+            ParagonPurchase.SetPrice(null);
+            Object.DestroyImmediate(popup.gameObject);
+            Object.DestroyImmediate(anchor.gameObject);
+        }
     }
 
     // The leaderboard warning: the dock card for Paragon (locked and owned), none on other ships,

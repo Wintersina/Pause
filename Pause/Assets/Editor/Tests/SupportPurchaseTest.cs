@@ -166,6 +166,19 @@ public static class SupportPurchaseTest
                 Check("both tiles shown with both prices", bigTile.Shown && smallTile.Shown);
                 Check("tile tap starts its own pack", smallTile.Tap() && smallLaunches == 2 && launches == 2);
                 small.EndBuy();
+                var priceMesh = bigTile.PriceMesh;
+                big.SetPrice("$9.99");
+                bigTile.Refresh();
+                Check("tile price: a normal price is unscaled", priceMesh.transform.localScale == Vector3.one);
+                big.SetPrice("Rp 1.299.000,00 (24 chars)");
+                bigTile.Refresh();
+                Check("tile price: a long price shrinks uniformly, by its length (no rendered mesh to measure in the editor)",
+                      priceMesh.transform.localScale.x < 1f && priceMesh.transform.localScale.x == priceMesh.transform.localScale.y &&
+                      Mathf.Approximately(priceMesh.transform.localScale.x, DockSupportTile.PriceScale("Rp 1.299.000,00 (24 chars)")) &&
+                      DockSupportTile.PriceScale("$9.99") == 1f && DockSupportTile.PriceScale("Rp 149.000") == 1f);
+                big.SetPrice("$9.99");
+                bigTile.Refresh();
+                Check("tile price: a short price restores the scale", priceMesh.transform.localScale == Vector3.one);
                 Check("the 850 icon is drawn smaller", DockSupportTile.IconScale(small) < DockSupportTile.IconScale(big));
             }
             finally { UnityEngine.Object.DestroyImmediate(holder); }

@@ -692,14 +692,14 @@ public class DockPopup : MonoBehaviour
             float price = ShipSkins.PriceOf(index, shown);
             bool affordable = balance >= price;
             ShowPrice(price, affordable);
-            buttonLabel.text = "BUY";
+            SetButtonText("BUY");
             buttonImage.color = affordable ? DockArt.Gold : AkiraPalette.GunHi;
         }
         else
         {
             CurrentMode = Mode.Launch;
             ShowStatus(shown == equipped && ShipIndex == SpaceDock.EquippedIndex() ? "EQUIPPED" : "");
-            buttonLabel.text = "LAUNCH";
+            SetButtonText("LAUNCH");
             buttonImage.color = DockArt.Cyan;
         }
         FitHeader();
@@ -873,7 +873,7 @@ public class DockPopup : MonoBehaviour
             // LAUNCH already says it's yours; only call out the equipped one.
             ShowStatus(equipped ? "EQUIPPED" : "");
             dustIcon.gameObject.SetActive(false);
-            buttonLabel.text = "LAUNCH";
+            SetButtonText("LAUNCH");
             buttonImage.color = DockArt.Cyan;
         }
         else if (PremiumShips.IsPremium(index) && ParagonPurchase.Available)
@@ -883,7 +883,7 @@ public class DockPopup : MonoBehaviour
             CurrentMode = Mode.BuyStore;
             ShowStatus("");
             dustIcon.gameObject.SetActive(false);
-            buttonLabel.text = ParagonPurchase.BuyLabel;
+            SetButtonText(ParagonPurchase.BuyLabel);
             buttonImage.color = DockArt.Gold;
         }
         else if (PremiumShips.IsPremium(index))
@@ -893,7 +893,7 @@ public class DockPopup : MonoBehaviour
             CurrentMode = Mode.Locked;
             ShowStatus(PremiumShips.ComingSoonLabel);
             dustIcon.gameObject.SetActive(false);
-            buttonLabel.text = "SOON";
+            SetButtonText("SOON");
             buttonImage.color = AkiraPalette.GunHi;
         }
         else
@@ -902,7 +902,7 @@ public class DockPopup : MonoBehaviour
             bool affordable = balance >= price;
             ShowPrice(price, affordable);
             dustIcon.gameObject.SetActive(true);
-            buttonLabel.text = "BUY";
+            SetButtonText("BUY");
             buttonImage.color = affordable ? DockArt.Gold : AkiraPalette.GunHi;
         }
         SetNotice(PremiumShips.IsPremium(index));
@@ -1075,6 +1075,24 @@ public class DockPopup : MonoBehaviour
         rt.anchoredPosition = position;
         rt.sizeDelta = size;
     }
+
+    public const int ButtonMinSize = 9;
+    const float ButtonTextMargin = 12f;
+
+    // The action button's text, single line: long localized prices ("BUY Rp 1.299.000,00")
+    // shrink from ButtonSize toward ButtonMinSize until they fit the button.
+    // (Best-fit ignores width on an Overflow label, so it is stepped by hand.)
+    public void SetButtonText(string s)
+    {
+        buttonLabel.text = s;
+        float room = PanelWidth - 2f * Pad - ButtonTextMargin;
+        int size = ButtonSize;
+        buttonLabel.fontSize = size;
+        while (size > ButtonMinSize && buttonLabel.preferredWidth > room)
+            buttonLabel.fontSize = --size;
+    }
+
+    public Text ButtonLabel { get { return buttonLabel; } }
 
     static Text Label(string name, Transform parent, Font font, int size, TextAnchor align, Color color)
     {
