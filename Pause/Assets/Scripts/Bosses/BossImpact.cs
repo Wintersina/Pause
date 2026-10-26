@@ -25,6 +25,9 @@ public class BossImpact : MonoBehaviour
     public const float LightWeight = .2f;         // below this: a light hit (rate-limited burst)
     public const float BigWeight = .5f;           // from this: the big burst
     public const float WhiteSeconds = .12f;       // the boss's white flash
+    // Light hits (weight < BigWeight, no heart, no kill) come in streams (sentries, gatling): their shake is
+    // smaller and restarts only when clearly stronger (+25%) and at most this often.
+    public const float LightShakeScale = .6f, LightShakeRestart = 1.25f, LightShakeGap = .3f;
     public const float LightBurstGap = .15f;      // light hits burst at most this often
     public const int BurstCells = 12, BurstPool = 6;
     public const float BurstSeconds = .4f;
@@ -65,7 +68,7 @@ public class BossImpact : MonoBehaviour
     public static BossImpact Instance => instance;
 
     float shakeAmp, shakeAge = 99f, shakeClock;
-    float lastBurstAt = -99f;
+    float lastBurstAt = -99f, lastLightShakeAt = -99f;
     Vector3 shakeApplied;
     Camera shakeCam;
     Burst[] bursts;
@@ -87,6 +90,7 @@ public class BossImpact : MonoBehaviour
     // Tests drive the clock through this; null means Time.unscaledTime.
     public static System.Func<float> ClockOverride;
     float Now => ClockOverride != null ? ClockOverride() : Time.unscaledTime;
+    public static float ClockNow => ClockOverride != null ? ClockOverride() : Time.unscaledTime;
 
     // The one effect in the scene, built on first use.
     public static BossImpact Ensure()
@@ -128,7 +132,16 @@ public class BossImpact : MonoBehaviour
 
         // shake: restart only when stronger than what is left of the last one (a gatling pulses, never piles up)
         float amp = ShakeAmplitude(weight, heartLost, kill);
-        if (amp > ShakeEnvelope(shakeAmp, shakeAge) * 1.05f) { shakeAmp = amp; shakeAge = 0f; }
+        bool streamHit = weight < BigWeight && !heartLost && !kill;
+        if (streamHit)
+        {
+            amp *= LightShakeScale;
+            if (amp > ShakeEnvelope(shakeAmp, shakeAge) * LightShakeRestart && now - lastLightShakeAt >= LightShakeGap)
+            {
+                shakeAmp = amp; shakeAge = 0f; lastLightShakeAt = now;
+            }
+        }
+        else if (amp > ShakeEnvelope(shakeAmp, shakeAge) * 1.05f) { shakeAmp = amp; shakeAge = 0f; }
 
         if (light && now - lastBurstAt < LightBurstGap) return;
         lastBurstAt = now;

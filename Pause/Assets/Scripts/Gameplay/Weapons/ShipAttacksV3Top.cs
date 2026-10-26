@@ -562,10 +562,12 @@ public partial class ShipAttackRunner
         }
     }
 
+    public const float SentryBurstAlphaK = .5f;   // a sentry bolt's impact burst is half as opaque (they fire all the time)
+
     void FireBolt(Sentry s)
     {
         Vector3 muzzle = s.to + Vector3.up * .35f;
-        var t = ShipTargets.NearestHoming(muzzle, s.reach, null);
+        var t = ShipTargets.NearestHoming(muzzle, s.reach, null, true);   // real bodies only, never backdrop rocks
         if (t == null) return;
         Bolt b = null;
         for (int i = 0; i < bolts.Length; i++) if (!bolts[i].on) { b = bolts[i]; break; }
@@ -612,7 +614,8 @@ public partial class ShipAttackRunner
             }
             if (k < 1f) continue;
             AttackPool.Sprite().Play(AttackSprite.Source.AttackBurst, ship, to, Vector3.one * .45f, 0f,
-                ShipFxArt.BurstTicks, false, 0f, null, Vector3.zero, 71).Strip("attack_shot", 8, false);
+                ShipFxArt.BurstTicks, false, 0f, null, Vector3.zero, 71).Strip("attack_shot", 8, false)
+                .Alpha(ShipFxArt.AttackBurstAlpha * SentryBurstAlphaK);
             var go = b.target;
             var run = b.run;
             float w = b.weight;

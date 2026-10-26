@@ -178,6 +178,17 @@ public static class BossImpactTest
         fx.Step(.01f);
         fx.Trigger("Frost", Vector3.zero, 1f / 14f, false, false);
         Check("an equal light hit right after does not re-peak the shake (no pile-up)", fx.ShakeNow < first);
+        // a stream of sentry-weight hits stays small and does not restart within the gap or under +25%
+        for (int i = 0; i < 40; i++) fx.Step(.0166f);
+        clockNow = 30f;
+        fx.Trigger("Frost", Vector3.zero, .11f, false, false);
+        float s0 = fx.ShakeNow;
+        Check("a light hit shakes less than the unscaled light amplitude", s0 > 0f && s0 < BossImpact.ShakeAmplitude(.11f, false, false) * .7f);
+        clockNow = 30.1f;
+        fx.Step(.1f);
+        float s1 = fx.ShakeNow;
+        fx.Trigger("Frost", Vector3.zero, .11f, false, false);
+        Check("a repeat light hit within .3 s does not restart the shake", fx.ShakeNow <= s1 + 1e-6f);
     }
 
     static float clockNow;
@@ -298,6 +309,15 @@ public static class BossImpactTest
         for (int i = 0; i < 60; i++) fx.Step(.0166f);
         e.OnShipAttackHit(1f, a.transform.position);
         Check("a light boss hit shakes, bursts and flashes a little (" + lightShake + ")", lightShake > 0f && fx.BurstsShown >= 1);
+        // back-to-back flashes coalesce: one hit-frame swap, dim white
+        BossImpact.ClockOverride = () => clockNow;
+        clockNow = 700f; a.Flash(.55f);
+        int swaps = a.HitFrameSwaps;
+        clockNow = 700.1f; a.Flash(.55f);
+        clockNow = 700.2f; a.Flash(.55f);
+        Check("rapid flashes do not swap the hit frame again and stay dim", a.HitFrameSwaps == swaps);
+        clockNow = 701f; a.Flash(.55f);
+        Check("a flash after a pause is a full pop again", a.HitFrameSwaps == swaps + 1);
         Check("a heavy boss hit shakes harder than a light one", fx.ShakeNow > lightShake * 1.5f);
         Check("a heavy hit shows a burst themed to this boss (" + fx.LastBurstKey + ") and the boss pops white", fx.BurstsShown >= 1 && fx.LastBurstKey == e.Boss.artKey);
         e.Step(1f / 60f, 1f);

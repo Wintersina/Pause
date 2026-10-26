@@ -186,6 +186,7 @@ public static class ExplosionV2Test
               ks == 0f && Near(km, .014f, .001f) && Near(kl, .0275f, .001f) && kl <= .03f);
         Check("flash / ring alpha .7", Near(TargetExplosion.OverlayAlphaNow, .7f, .001f));
         Check("crowd cap is 8 bursts", TargetExplosion.MaxConcurrentBursts == 8);
+        Check("crowd cap while a boss is alive is 3 bursts", TargetExplosion.MaxConcurrentBurstsBoss == 3 && BossTarget.FxGap >= .2f);
     }
 
     static void IntensityScales()

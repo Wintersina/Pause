@@ -437,6 +437,8 @@ public class BossEncounter : MonoBehaviour
     // own once-per-BossFriendlyFireGap limit. Player weapons go through TakePlayerHit.
     public void OnShipAttackHit(float weight, Vector3 at) => ApplyHit(weight, at, true);
 
+    float lastFlashAt = -99f;
+
     // `payHitPoints` false: the weight only banks (inside the hit window).
     void ApplyHit(float weight, Vector3 at, bool payHitPoints)
     {
@@ -451,7 +453,13 @@ public class BossEncounter : MonoBehaviour
         if (actor != null)
         {
             if (heartLost) actor.SetHearts(heartsLeft, at);
-            actor.Flash(Mathf.Lerp(.55f, 1f, BossImpact.Intensity(weight)));
+            // a stream of light hits flashes the boss at most every BossTarget.FxGap (damage is unaffected)
+            bool lightHit = weight < .5f && !heartLost && !kill && Application.isPlaying;
+            if (!lightHit || Time.unscaledTime - lastFlashAt >= BossTarget.FxGap)
+            {
+                lastFlashAt = Time.unscaledTime;
+                actor.Flash(Mathf.Lerp(.55f, 1f, BossImpact.Intensity(weight)));
+            }
         }
         if (ui != null) ui.HitFlash(boss.flash);
         // themed burst, shake (BossImpact): scaled by the hit's weight

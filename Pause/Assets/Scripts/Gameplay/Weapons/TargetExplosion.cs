@@ -48,6 +48,7 @@ public static class TargetExplosion
     public const float MaxKick = .03f;        // kick ceiling at Intensity 1
     public const float OverlayAlpha = .7f;    // flash star + shockwave ring alpha at Intensity 1
     public const int MaxConcurrentBursts = 8; // explosion bodies on screen before crowding kicks in
+    public const int MaxConcurrentBurstsBoss = 3;   // while a boss is alive: its attacks must stay readable
     public const float CrowdAlpha = .55f;     // body alpha of a crowded burst (it also skips its flash)
 
     public static float I => Mathf.Clamp(Intensity, .25f, 3f);
@@ -133,7 +134,7 @@ public static class TargetExplosion
 
     // Explosion bodies playing right now (cheap: walks the flipbook pool).
     public static int ActiveBursts => WeaponFx.ActiveOf(FlipbookFx.Mode.Explosion);
-    public static bool Crowded => ActiveBursts >= MaxConcurrentBursts;
+    public static bool Crowded => ActiveBursts >= (ShipTargets.BossAlive() ? MaxConcurrentBurstsBoss : MaxConcurrentBursts);
 
     public static void Spawn(GameObject target, int ship)
     {
