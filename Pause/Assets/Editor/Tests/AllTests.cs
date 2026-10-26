@@ -53,6 +53,7 @@ public static class AllTests
         ("AccountSignInTest", AccountSignInTest.Execute),
         ("PreRegistrationRewardTest", PreRegistrationRewardTest.Execute),
         ("ParagonPurchaseTest", ParagonPurchaseTest.Execute),
+        ("SupportPurchaseTest", SupportPurchaseTest.Execute),
         ("AppIconTest", AppIconTest.Execute),
         ("ArtRestyleTest", ArtRestyleTest.Execute),
         ("AchievementCatalogTest", AchievementCatalogTest.Execute),
