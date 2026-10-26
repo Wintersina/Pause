@@ -432,6 +432,9 @@ public class BossEncounter : MonoBehaviour
         OnShipAttackHit(weight, actor != null ? actor.transform.position + Vector3.down : Vector3.zero);
     }
 
+    // Deliberately NOT behind the hit window (TakePlayerHit): the only callers are
+    // the unused OnUltimateHit path and FriendlyFire, whose sliver already has its
+    // own once-per-BossFriendlyFireGap limit. Player weapons go through TakePlayerHit.
     public void OnShipAttackHit(float weight, Vector3 at) => ApplyHit(weight, at, true);
 
     // `payHitPoints` false: the weight only banks (inside the hit window).

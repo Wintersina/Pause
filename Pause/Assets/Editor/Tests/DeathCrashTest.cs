@@ -161,6 +161,13 @@ public static class DeathCrashTest
         var body = new GameObject("BossBody", typeof(BoxCollider2D)) { tag = "Enimey" };
         var beam = new GameObject("BossBeamHit", typeof(BoxCollider2D)) { tag = "Enimey" };
         Check("a rock is a physical killer", DeathCrash.Classify(rock) == DeathCrash.KillerKind.Physical);
+        collisionDetection.ResetExplosionSourceCache();
+        int lookups0 = collisionDetection.ExplosionLookups;
+        collisionDetection.PlayExplosion();
+        collisionDetection.PlayExplosion();
+        Check("PlayExplosion without a source in the scene walks the hierarchy once",
+              collisionDetection.ExplosionLookups - lookups0 <= 1);
+        collisionDetection.ResetExplosionSourceCache();
         Check("an alien is a physical killer", DeathCrash.Classify(alien) == DeathCrash.KillerKind.Physical);
         Check("a rail mine is a physical killer", DeathCrash.Classify(mine) == DeathCrash.KillerKind.Physical);
         Check("a boss shot is a projectile", DeathCrash.Classify(shot) == DeathCrash.KillerKind.Projectile);

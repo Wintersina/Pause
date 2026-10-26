@@ -222,7 +222,15 @@ public class score : MonoBehaviour {
     void pauseCounterFunction()
     {
         // STASIS (pause + shield): a few freezes are free while shielded (AtomFusions)
-        if (AtomFusions.ConsumeFreePause()) { pauseCounterBool = true; return; }
+        if (AtomFusions.ConsumeFreePause())
+        {
+            // Free means the counter is not spent; the freeze still happened, so
+            // the per-world pause achievements see it (refund and the out-of-pauses
+            // flash are about spent pauses and stay out).
+            pauseCounterBool = true;
+            AchievementTracker.OnPauseSpent();
+            return;
+        }
         int before = pauseCounter;
         pauseCounter = pauseCounter - 1;
         OutOfPausesFlash.OnPauseSpent(before, pauseCounter);

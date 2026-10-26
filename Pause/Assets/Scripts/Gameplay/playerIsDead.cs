@@ -28,7 +28,7 @@ public class playerIsDead : MonoBehaviour
     {
         // The panel waits for the crash sequence (and its domino) to play
         // out (DeathCrash); the run is banked then too (score.cs).
-        if (buttonClicks.playerDied && waitingForDeath && DeathCrash.PanelReady) { BeginResults(); waitingForDeath = false; }
+        if (buttonClicks.playerDied && waitingForDeath && DeathCrash.PanelReady) { waitingForDeath = false; BeginResults(); }   // flag first: a throw must not re-run it every frame
     }
 
     // The death screen's save of the run's dust. It writes the ledger's

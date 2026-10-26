@@ -337,7 +337,9 @@ public static class AtomFusions
         EndShieldBound();
     }
 
-    static void RestoreAftershock()
+    // Idempotent; also called by GameStateReset.Clear so leaving mid-Aftershock
+    // does not leave the global radius scaled.
+    public static void RestoreAftershock()
     {
         if (aftershockRestore >= 0f) ShieldShockwave.Radius = aftershockRestore;
         aftershockRestore = -1f;
