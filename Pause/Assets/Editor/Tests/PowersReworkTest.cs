@@ -777,6 +777,12 @@ public static class PowersReworkTest
         collisionDetection.lifeCounter = 2;
         s.Step(.02f);
         Check("and again later: one heart each time", s.Mends == 2 && collisionDetection.lifeCounter == 1);
+        // Cooldown doubled: the Dove's meter used to gain perSmallDust (3) per small dust / perKill (5) per kill;
+        // now it gains half of that, so a full recharge takes exactly 2x as much dust (old 100/3 -> new 200/3).
+        s.SetMeter(0f);
+        s.Add(s.perSmallDust);
+        Check("Mending's meter fills at exactly half the old rate (old " + s.perSmallDust + ", new " + s.Meter + ")",
+              Mathf.Approximately(s.Meter, s.perSmallDust * .5f));
         Teardown(dove);
     }
 
