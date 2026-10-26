@@ -9,7 +9,7 @@ OUT = HERE.parents[1]
 REPO = HERE.parents[7]
 BD = REPO / "Pause/Assets/Art/Backgrounds/Resources/Worlds/Space/Backdrop"
 PAD = 10
-MAP = {"giant_00": "giant_00_new.png", "giant_02": "giant_02_new.png", "giant_07": "giant_07_new.png"}
+MAP = {"giant_04": "giant_04_new.png", "giant_09": "giant_09_new.png", "giant_11": "giant_11_new.png"}
 
 def paint(src, w, h):
     s = Image.open(src).convert("RGBA")
