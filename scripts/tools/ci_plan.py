@@ -39,15 +39,27 @@ FULL_TRIGGERS = (
 )
 
 
-def all_suites():
+# One AllTests entry: ("SuiteName", Class.Method). The method is usually Execute, but a
+# split suite registers slices (ScreenFitTest1 -> ScreenFitTest.Slice1), so any method name
+# counts; the class name maps a suite back to its source file.
+SUITE_RE = re.compile(r'^\s*\("([A-Za-z0-9_]+)",\s*([A-Za-z0-9_]+)\.[A-Za-z0-9_]+\)', re.M)
+
+
+def registered():
+    """[(suite, class)] in AllTests order."""
     with open(os.path.join(ROOT, TESTS, "AllTests.cs"), encoding="utf-8") as f:
-        return re.findall(r'^\s*\("([A-Za-z0-9_]+)",\s*[A-Za-z0-9_]+\.Execute\)', f.read(), flags=re.M)
+        return SUITE_RE.findall(f.read())
+
+
+def all_suites():
+    return [s for s, _ in registered()]
 
 
 def graphics_suites(suites):
+    cls = dict(registered())
     out = []
     for s in suites:
-        p = os.path.join(ROOT, TESTS, s + ".cs")
+        p = os.path.join(ROOT, TESTS, cls.get(s, s) + ".cs")
         if os.path.isfile(p):
             with open(p, encoding="utf-8", errors="replace") as f:
                 if re.search(r"Camera\.Render|Graphics\.Blit|ReadPixels|RenderTexture", f.read()):
