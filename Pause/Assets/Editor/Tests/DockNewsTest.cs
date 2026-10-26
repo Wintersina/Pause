@@ -82,7 +82,11 @@ public static class DockNewsTest
             Check("ends fully off the left", Near(DockNews.Position(d, 500f, view, speed), -500f));
             Check("never overshoots", Near(DockNews.Position(d + 50f, 500f, view, speed), -500f));
             // Seamless: the next item starts at the right edge again.
-            Check("loop restarts at the right edge", Near(DockNews.Position(0f, 120f, view, speed), view));
+            // (A 120 wide line fits the 300 view, so it sways from the left instead; the restart is for lines wider than the view.)
+            float dw = DockNews.Duration(400f, view, speed);
+            Check("loop restarts at the right edge",
+                Near(DockNews.Position(dw, 400f, view, speed), -400f) && Near(DockNews.Position(0f, 400f, view, speed), view));
+            Check("a line that fits sways from the left, not the right edge", Near(DockNews.Position(0f, 120f, view, speed), 0f));
 
             // Short line: ping-pong between the edges.
             Check("short text sways", !DockNews.Scrolls(100f, view));
