@@ -54,6 +54,7 @@ public static class GameStateReset
         PortalPressure.Reset();
         AdaptiveDifficulty.Reset();
         PlayerInvuln.Reset();
+        AtomFusions.RestoreAftershock();   // a scaled shockwave radius must not outlive the run
         // A Replay pins its world after this; any other way out drops it.
         WorldManager.ClearReplayWorld();
     }

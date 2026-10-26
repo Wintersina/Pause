@@ -84,12 +84,27 @@ public class collisionDetection : MonoBehaviour {
 
     static AudioSource cachedExplosionSource;
 
+    // A scene with no explosion source (the title screen) is remembered, so
+    // every PlayExplosion there is not a hierarchy walk. Reset on scene change.
+    static int searchedSceneHandle = -1;
+    public static int ExplosionLookups;   // test seam: hierarchy walks done
+
     static AudioSource ExplosionSource()
     {
         if (cachedExplosionSource != null) return cachedExplosionSource;
+        int handle = UnityEngine.SceneManagement.SceneManager.GetActiveScene().handle;
+        if (searchedSceneHandle == handle) return null;
+        ExplosionLookups++;
         var go = SceneUtil.FindAny("AstroidExplotionSound");
         cachedExplosionSource = go != null ? go.GetComponent<AudioSource>() : null;
+        searchedSceneHandle = cachedExplosionSource != null ? -1 : handle;
         return cachedExplosionSource;
+    }
+
+    public static void ResetExplosionSourceCache()
+    {
+        cachedExplosionSource = null;
+        searchedSceneHandle = -1;
     }
 
     // Tutorial earnings are tracked separately so a practice run cannot be
@@ -381,16 +396,24 @@ public class collisionDetection : MonoBehaviour {
                 if (lifeCounter >= MAXLIFE)
                 {
                     buttonClicks.playerDied = true;
-                    AchievementTracker.OnDeath();
-                    // End of the run: flush the batched achievement counters.
-                    PrefsSaver.SaveNow();
-                    PlayExplosion();
-                    DeathHaptics.OnFatalHit();   // the death vibration (once: playerDied)
-                    // The crash sequence takes over: the hull breaks up, its
-                    // pieces (and a solid killer) slam into the rails, and
-                    // only then is the ship destroyed and the Flight Complete
-                    // panel shown (DeathCrash.PanelReady).
-                    DeathCrash.Begin(gameObject, hit.gameObject);
+                    // The crash must start even if a side effect below throws,
+                    // or the results panel would show over a live ship.
+                    try
+                    {
+                        AchievementTracker.OnDeath();
+                        // End of the run: flush the batched achievement counters.
+                        PrefsSaver.SaveNow();
+                        PlayExplosion();
+                        DeathHaptics.OnFatalHit();   // the death vibration (once: playerDied)
+                    }
+                    finally
+                    {
+                        // The crash sequence takes over: the hull breaks up, its
+                        // pieces (and a solid killer) slam into the rails, and
+                        // only then is the ship destroyed and the Flight Complete
+                        // panel shown (DeathCrash.PanelReady).
+                        DeathCrash.Begin(gameObject, hit.gameObject);
+                    }
                 }
                 else
                 {

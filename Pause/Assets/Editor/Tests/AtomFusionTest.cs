@@ -430,6 +430,20 @@ public static class AtomFusionTest
               af.Fired && af.fusion.id == FusionId.Aftershock && Mathf.Approximately(during, radius * FusionTuning.AftershockRadiusScale) &&
               ShieldShockwave.Radius == radius);
 
+        // leaving mid-Aftershock (GameStateReset.Clear) must restore the radius too
+        AtomFusions.BeginRun(ship);
+        collisionDetection.invTimer = 5f;
+        AtomFusions.OnAtom(AtomKind.Shield, Vector3.zero);
+        AtomFusions.OnAtom(AtomKind.Shield, Vector3.zero);
+        AtomFusions.OnShieldEnding(Vector3.zero);
+        bool scaled = !Mathf.Approximately(ShieldShockwave.Radius, radius);
+        GameStateReset.Clear();
+        bool back = ShieldShockwave.Radius == radius;
+        AtomFusions.RestoreAftershock();   // idempotent
+        Check("AFTERSHOCK: GameStateReset.Clear restores the scaled radius (idempotent)",
+              scaled && back && ShieldShockwave.Radius == radius);
+        collisionDetection.invTimer = 0f;
+
         // DUST STORM: the dust multipliers while the magnet pulls
         AtomFusions.BeginRun(ship);
         collisionDetection.atomCheck = false;
