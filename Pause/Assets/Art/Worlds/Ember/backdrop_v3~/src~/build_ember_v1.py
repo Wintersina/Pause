@@ -35,6 +35,8 @@ GOLD = {"far": (172, 128, 48), "sky": (122, 92, 38)}
 MID_SRC = {1: "v1_new_a_river.png"}
 FOG = (.09, .08, .08)
 CAP = .45
+# sky is hidden under the opaque mid tile but WorldBackdropTest measures it AS DRAWN (gamma luma, variant lift): v1/v3 need a lower sky target to stay <= EmberSkyMaxLuminance .16
+SKY_TARGET = {1: .30, 3: .30}
 NCOL = {"sky": 44, "far": 84, "mid": 58}
 
 
@@ -88,6 +90,7 @@ def ground(v, role):
     t = cfg["target"][role]
     if role == "mid": t = MID_TARGET.get(v, t)
     if role == "far": t = FAR_TARGET.get(v, t)
+    if role == "sky": t = SKY_TARGET.get(v, t)
     rgb = grade(painted, t, cfg["contrast"][role], cfg["sat"][role], cfg["haze"][role], NCOL[role])
     rgba = np.dstack((rgb, np.full((H, W), 255, np.uint8)))
     rgba = wrap_blend(rgba, 78)
