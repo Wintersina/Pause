@@ -1001,11 +1001,17 @@ public static class LeaderboardTest
         Check("backfill: not again on a relaunch for the same player", ((FakeLeaderboards)relaunch.Platform).Submissions.Count == 0);
 
         // Another player on the same device: the marks say nothing about their boards and are cleared, not re-sent.
+        // ... and so is whatever the old player still had queued (an offline score).
+        var queued = new LeaderboardService.ScoreTable();
+        queued.Set(LeaderboardBoards.TopScore, 9000, "s7h4e1");
+        queued.Save(LeaderboardService.PendingKey);
         var other = new FakeLeaderboards();
         var switched = PlayerService(other, "gp-B");
         switched.Flush();
         Check("account switch: the old player's marks are cleared", !switched.HasSubmitted(LeaderboardBoards.TopScore, out v));
         Check("account switch: another player's score is not sent", other.Submissions.Count == 0);
+        Check("account switch: the old player's queued score is dropped, not sent as the new player's",
+              LeaderboardService.ScoreTable.Load(LeaderboardService.PendingKey).entries.Count == 0);
         Check("account switch: bound to the new player", PlayerPrefs.GetString(LeaderboardService.BoundPlayerKey) == "gp-B");
         Check("account switch: the new player's scores queue normally", switched.Offer(LeaderboardBoards.TopScore, 400));
 
@@ -1018,6 +1024,29 @@ public static class LeaderboardTest
         Check("backfill: the saved best score is sent", fake.SubmissionsTo(TopScoreId) == 1 && fake.Submissions[0].score == 777);
         service.Flush();
         Check("backfill: the saved best is sent once", fake.Submissions.Count == 1);
+
+        // While the cloud save is still signing in or loading nothing is bound or
+        // sent: on an account switch the saved best and the queue on the device
+        // are the previous player's until CloudSync swaps the new player's in.
+        ConfirmContext();
+        PlayerPrefs.SetInt(RunScore.BestScoreKey, 777);
+        fake = new FakeLeaderboards();
+        service = PlayerService(fake, "gp-A");
+        var settling = LeaderboardService.CloudSettling;
+        LeaderboardService.CloudSettling = () => true;
+        try
+        {
+            service.Flush();
+            Check("cloud still loading: nothing bound, nothing sent",
+                  fake.Submissions.Count == 0 && !PlayerPrefs.HasKey(LeaderboardService.BoundPlayerKey));
+        }
+        finally
+        {
+            LeaderboardService.CloudSettling = settling;
+        }
+        service.Flush();
+        Check("cloud settled: the backfill goes out", fake.SubmissionsTo(TopScoreId) == 1 && fake.Submissions[0].score == 777 &&
+              PlayerPrefs.GetString(LeaderboardService.BoundPlayerKey) == "gp-A");
 
         // No player id yet: nothing is bound or sent.
         ConfirmContext();
