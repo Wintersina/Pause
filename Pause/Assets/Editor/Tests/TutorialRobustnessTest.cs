@@ -46,7 +46,7 @@ public static class TutorialRobustnessTest
         // progress keeps it quiet forever
         var wd = new TutorialSafety.Watchdog();
         bool quiet = true;
-        for (int i = 0; i < 100000; i++) if (wd.Tick(Dt, i % 600 == 0, true) != None) quiet = false;
+        for (int i = 0; i < 100000; i++) if (wd.Tick(Dt, i % 600 == 0, false) != None) quiet = false;
         Check("a player who keeps progressing is never interrupted", quiet);
 
         // odd frame times: NaN, negative, infinite and huge dt never throw or fire at once
