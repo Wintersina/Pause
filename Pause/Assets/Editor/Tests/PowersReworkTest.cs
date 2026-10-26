@@ -45,6 +45,7 @@ public static class PowersReworkTest
 
         ShieldPulseCancelsShots();
         EmpNeedsThreeAndCancelsShots();
+        EmpStunsElitesToo();
         NovaLeavesABurningRing();
         CapacitorDumpFiresTheRail();
         IonBatteryAddsPauses();
@@ -254,6 +255,37 @@ public static class PowersReworkTest
         Check("an arc is drawn for each stunned enemy", s.ArcCount == 3);
         StripIsDrawn("the EMP", 2, "emp");
         Unreg(inView, offScreen);
+        Teardown(viper);
+        Kill(foes);
+    }
+
+    // "Freezes every enemy": an elite on screen is one of them. It has no board mover for the stun to switch off, so
+    // the EMP used to pass it by (no stun, no arc); it is stunned like the Space flares stun it (EliteShip.Stun).
+    static void EmpStunsElitesToo()
+    {
+        FreshScene();
+        var viper = Ship(2);
+        var s = viper.Secret;
+        EliteSystem.PlayerOverride = viper.transform;
+        var elite = EliteShip.CreateInPlay(BaseEliteDefs.For("gunship"), new Vector2(0f, 2f));
+        var foes = new List<GameObject>();
+        for (int i = 0; i < 2; i++)
+        {
+            var f = Hazard(-1f + i * 2f, 0f);
+            f.AddComponent<moveItemEnmInStrightLine>();
+            foes.Add(f);
+        }
+        s.SetMeter(SecretPowerController.Full);
+        s.Step(.02f);
+        Check("EMP fires at two enemies and an elite", s.FireCount == 1 && s.Stunning);
+        Check("it stuns the elite too", elite != null && elite.Stunned);
+        Check("an arc reaches the elite as well as the two enemies (" + s.ArcCount + ")", s.ArcCount == 3);
+        Vector2 at = elite.transform.position;
+        for (int i = 0; i < 20; i++) elite.Step(.02f);
+        Check("the stunned elite holds still", ((Vector2)elite.transform.position - at).sqrMagnitude < 1e-6f);
+        Object.DestroyImmediate(elite.gameObject);
+        EliteSystem.Clear();
+        EliteSystem.PlayerOverride = null;
         Teardown(viper);
         Kill(foes);
     }
