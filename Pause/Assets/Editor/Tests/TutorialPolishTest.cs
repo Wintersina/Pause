@@ -57,6 +57,7 @@ public static class TutorialPolishTest
             Hearts();
             NormalRunHearts();
             ShipSize();
+            JumpStepWallComesBack();
         }
         finally
         {
@@ -123,6 +124,51 @@ public static class TutorialPolishTest
         TutorialEnemy.Clear();
         foreach (var s in Object.FindObjectsByType<RobotSpeaker>(FindObjectsInactive.Include, FindObjectsSortMode.None))
             Object.DestroyImmediate(s.gameObject);
+    }
+
+    // ---- THE JUMP STEP'S WALL ---------------------------------------------------
+
+    // The wall is spawned by the freeze step and stays for the jump step. Both
+    // a watchdog reset and a crash recovery (RecoverShip) clear the wall and
+    // begin the jump step again; it used to show only the touch pulse, so the
+    // step had no wall to cross and could end only by the watchdog's automatic
+    // advance (about 10 s of nothing, then the lesson silently skipped).
+    static void JumpStepWallComesBack()
+    {
+        GameObject ship;
+        var hints = OpenTutorial(out ship);
+        var wallField = typeof(Hints).GetField("wall", Inst);
+        var tick = typeof(Hints).GetMethod("TickWatchdog", Inst);
+        try
+        {
+            int freeze = StepIndex("freeze"), jump = StepIndex("jump");
+            Begin(hints, freeze);
+            var first = TutorialWall.Live;
+            Check("the freeze step spawns the wall", first != null);
+            Begin(hints, jump);
+            Check("the jump step keeps the freeze step's wall (no second wall)", TutorialWall.Live == first && wallField.GetValue(hints) == (object)first);
+
+            // what a reset / recovery does before beginning the step again
+            TutorialWall.Clear();
+            wallField.SetValue(hints, null);
+            Begin(hints, jump);
+            var again = TutorialWall.Live;
+            Check("begun again with no wall, the jump step spawns one", again != null && wallField.GetValue(hints) == (object)again);
+
+            // the real watchdog path: the wall gone with nothing bringing it back is a
+            // missing target; the reset it triggers must leave a wall behind
+            TutorialWall.Clear();
+            wallField.SetValue(hints, null);
+            for (int i = 0; i < 40 && TutorialWall.Live == null; i++)
+                tick.Invoke(hints, new object[] { TutorialScript.Steps[jump], .1f });
+            Check("the watchdog's reset of the jump step brings the wall back (still on the jump step)",
+                  TutorialWall.Live != null && hints.CurrentStep == jump);
+        }
+        finally
+        {
+            TutorialWall.Clear();
+            Cleanup();
+        }
     }
 
     // ---- DUST ----------------------------------------------------------------
