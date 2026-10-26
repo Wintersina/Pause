@@ -1,0 +1,1 @@
+Generated and saved the corrected image to `./green_b.png`.
