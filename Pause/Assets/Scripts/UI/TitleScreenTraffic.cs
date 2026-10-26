@@ -139,6 +139,7 @@ public partial class TitleScreenTraffic : MonoBehaviour
         public SpriteRenderer hull;
         public Transform boost;               // ShipExhaust's "Boost<id>" flame root
         public SpriteRenderer[] nozzles;
+        public ShipRotors rotors;             // Turtle's helicopter blades (null for the rest)
         public float normScale;               // NormalizedHullScale for its sprite
         public bool wind;                     // Ninja / UFO: spinning craft, no flame
         public ShipSpinDrift drift;           // ...their spin drift instead (gameplay's)
@@ -394,6 +395,10 @@ public partial class TitleScreenTraffic : MonoBehaviour
 
             var f = new Flyer { id = id, go = go, tr = go.transform, hull = sr, slot = slot, twin = twin };
             f.wind = ShipExhaust.UsesWind(id);
+            // Ships with a rotors file (Turtle) wear their spinning blades, as in the dock.
+            f.rotors = ShipRotors.Attach(go, id, sr, true);
+            if (f.rotors != null)
+                foreach (var r in f.rotors.GetComponentsInChildren<Transform>(true)) r.gameObject.layer = 2;
             f.normScale = sr.sprite != null ? shopingShips.NormalizedHullScale(sr.sprite) : 1f;
             var boost = go.transform.Find("Boost" + id);
             f.boost = boost;
@@ -794,6 +799,7 @@ public partial class TitleScreenTraffic : MonoBehaviour
         var rest = ShipHullArt.Get(f.id, f.skin, 0, 0);
         if (rest != null) f.hull.sprite = rest;
         RemountPlumes(f);
+        if (f.rotors != null && mat != null) f.rotors.SetMaterial(mat);
         for (int i = 0; i < f.flames.Length; i++) f.flames[i].skinOverride = f.skin;
         for (int i = 0; i < f.nozzles.Length; i++)
         {

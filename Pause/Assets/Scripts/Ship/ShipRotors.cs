@@ -155,6 +155,14 @@ public class ShipRotors : MonoBehaviour
         Sync();
     }
 
+    // Draws the blades and their blur disc with `material` (the title traffic's haze layers).
+    public void SetMaterial(Material material)
+    {
+        if (blades == null || material == null) return;
+        for (int i = 0; i < blades.Length; i++)
+            bladeRenderers[i].sharedMaterial = discRenderers[i].sharedMaterial = material;
+    }
+
     SpriteRenderer MakeRenderer(string name, Transform parent, Sprite sprite, float z)
     {
         var go = new GameObject(name);
