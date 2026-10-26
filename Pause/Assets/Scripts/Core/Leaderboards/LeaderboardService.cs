@@ -158,6 +158,18 @@ public sealed class LeaderboardService
 
     public void OnSignedIn() { Flush(); }
 
+    // While the cloud save is being signed in or loaded nothing is sent or
+    // bound: on an account switch the saved best and the queue on the device
+    // are still the previous player's until CloudSync applies the new one
+    // (and announces the sign-in only then). Tests override it.
+    public static Func<bool> CloudSettling = DefaultCloudSettling;
+
+    static bool DefaultCloudSettling()
+    {
+        var sync = CloudSync.Instance;
+        return sync != null && (sync.Current == CloudSync.State.SigningIn || sync.Current == CloudSync.State.Loading);
+    }
+
     // Signed in to the store and not signed out in Pause (AccountLink).
     public bool SignedIn
     {
@@ -309,7 +321,7 @@ public sealed class LeaderboardService
     // already being sent are skipped.
     public void Flush()
     {
-        if (!SignedIn) return;
+        if (!SignedIn || CloudSettling()) return;
         BindAccount();
         var pending = ScoreTable.Load(PendingKey);
         float soonest = -1f;
@@ -565,6 +577,18 @@ public sealed class LeaderboardService
                 pending.Set(e.board, e.value, e.tag);
             }
             pending.Save(PendingKey);
+        }
+        else
+        {
+            // Another player on this device: whatever the previous one still
+            // had queued (offline scores, a backfill) is theirs, never sent as
+            // this player's.
+            var pending = ScoreTable.Load(PendingKey);
+            if (pending.entries.Count > 0)
+            {
+                pending.entries.Clear();
+                pending.Save(PendingKey);
+            }
         }
         submitted.entries.Clear();
         submitted.Save(SubmittedKey);

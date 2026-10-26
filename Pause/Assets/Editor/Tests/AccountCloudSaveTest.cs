@@ -486,7 +486,23 @@ public static class AccountCloudSaveTest
 
         // B has a cloud save: it wins outright (no union with A's ships).
         var b = new FakeAccount { id = "player-B", cloudJson = Snap(1, 5f, new[] { 1, 9 }, 9, 50f, 0, 0, false).ToJson() };
-        new CloudSync(b, () => 600000) .Start();
+        // The sign-in is announced (SocialBridge.SignedIn: the leaderboards'
+        // backfill, the achievements' resync) only once B's progress is on
+        // the device; it used to fire first, with A's saved best and queue.
+        int announced = 0;
+        string accountAtAnnounce = null;
+        float dustAtAnnounce = -1f;
+        Action onSignedIn = () =>
+        {
+            announced++;
+            accountAtAnnounce = PlayerPrefs.GetString(CloudSync.LastAccountKey, "");
+            dustAtAnnounce = PlayerPrefs.GetFloat("PlayerCurrecny");
+        };
+        SocialBridge.SignedIn += onSignedIn;
+        try { new CloudSync(b, () => 600000) .Start(); }
+        finally { SocialBridge.SignedIn -= onSignedIn; }
+        Check("switch: the sign-in is announced once, after B's progress replaced A's on the device (account " + accountAtAnnounce + ", dust " + dustAtAnnounce + ")",
+              announced == 1 && accountAtAnnounce == "player-B" && dustAtAnnounce == 5f);
         Check("switch: the new account's cloud progress replaces local", Ships() == "1,9" &&
               PlayerPrefs.GetFloat("PlayerCurrecny") == 5f && PlayerPrefs.GetFloat("HighestSpeed") == 50f &&
               !PlayerPrefs.HasKey("HasDoneTut"));

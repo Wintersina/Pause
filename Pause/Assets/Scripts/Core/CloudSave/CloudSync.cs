@@ -177,8 +177,14 @@ public sealed class CloudSync
             Debug.Log("[CloudSave] not signed in to " + account.PlatformName + "; playing with local saves only.");
             return;
         }
-        SocialBridge.NotifySignedIn();
-        if (Current == State.Loading || Current == State.Ready) return;
+        // The sign-in is announced (SocialBridge.SignedIn: the leaderboards'
+        // flush and backfill, the achievements' resync) only once the cloud
+        // save has settled (SettleSignIn): on an account switch the saves on
+        // the device are still the previous player's until TryApplyPending
+        // swaps them in, and anything announced before that went to the new
+        // player's boards under the old player's numbers.
+        if (Current == State.Ready) { SocialBridge.NotifySignedIn(); return; }   // this player's save is already on the device
+        if (Current == State.Loading) return;   // the load in flight announces it when it settles
         Debug.Log("[CloudSave] signed in to " + account.PlatformName + ".");
         Current = State.Loading;
         loadAttempts = 1;
@@ -226,7 +232,7 @@ public sealed class CloudSync
                 loadToken++;
                 Current = State.ReadOnly;
                 Debug.Log("[CloudSave] cloud read never answered; keeping local progress, not uploading this session.");
-                ResyncAchievements();
+                SettleSignIn();
             }
         }
     }
@@ -237,7 +243,7 @@ public sealed class CloudSync
         {
             Current = State.ReadOnly;
             Debug.Log("[CloudSave] cloud save unavailable; keeping local progress, not uploading this session.");
-            ResyncAchievements();
+            SettleSignIn();
             return;
         }
         ProgressSnapshot cloud;
@@ -247,7 +253,7 @@ public sealed class CloudSync
             Current = State.ReadOnly;
             Debug.Log("[CloudSave] cloud save is " + (parse == ProgressSnapshot.ParseResult.NewerSchema
                 ? "from a newer version" : "unreadable") + "; leaving it untouched.");
-            ResyncAchievements();
+            SettleSignIn();
             return;
         }
         pendingCloud = cloud;   // null: the account has no save yet
@@ -282,11 +288,17 @@ public sealed class CloudSync
         pendingCloud = null;
         Current = State.Ready;
         Debug.Log("[CloudSave] " + (switched ? "switched account; loaded its progress." : "merged cloud and local progress."));
-        ResyncAchievements();
+        SettleSignIn();
     }
 
-    void ResyncAchievements()
+    // The sign-in has settled: this player's progress is what is on the
+    // device now (the cloud save applied, or unreadable and local progress
+    // kept). Only now is the sign-in announced (SocialBridge.SignedIn: the
+    // leaderboards' flush and backfill read the saved best and the queue)
+    // and the achievements resynced to the store.
+    void SettleSignIn()
     {
+        SocialBridge.NotifySignedIn();
         AchievementSync.ResyncAll();
     }
 
