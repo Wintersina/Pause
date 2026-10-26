@@ -140,8 +140,11 @@ public static class SpaceAsteroidField
     }
 }
 
-// One rock of the field.
-public class FieldAsteroid : MonoBehaviour, IShipAttackTarget
+// One rock of the field. It takes every weapon hit in full (IShipAttackTargetUncapped), like the backdrop
+// rocks: it is an ordinary hazard that happens to need more than one hit, not an elite, so it never spends the
+// firing's elite allowance (a rail through two rocks hits both; a rock in front of an elite leaves the elite
+// its hit). To the secret powers it is ordinary debris too (SecretPowerController.PowerSpecial / PowerKill).
+public class FieldAsteroid : MonoBehaviour, IShipAttackTargetUncapped
 {
     public int Tier { get; private set; }
     public bool Broken { get; private set; }

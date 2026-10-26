@@ -511,10 +511,30 @@ public class SecretPowerController : MonoBehaviour
             if (d.sqrMagnitude > r * r) continue;
             // each strike is drawn leaving the hull and reaching its mark
             if (arcs) ArcTo(t.transform.position);
+            // a Space field rock is debris: struck dead like any hazard, not chipped by half a hit
+            if (IsFieldRock(t)) { if (PowerKill(t.gameObject)) kills++; continue; }
             // a power that catches the boss is worth half an ultimate hit
             if (ShipAttackHits.Hit(t.gameObject, ship, .5f, ref budget)) kills++;
         }
         return kills;
+    }
+
+    // Space's field rocks (FieldAsteroid) are IShipAttackTargets only because a WEAPON chips them over several
+    // hits; to a power they are ordinary debris, pulled, swallowed, burnt and struck dead like any other hazard.
+    // Every other special target (a boss, an elite, a backdrop rock) keeps its own rule.
+    static bool IsFieldRock(ClearTarget t) { return t.TryGetComponent(out FieldAsteroid _); }
+    static bool PowerSpecial(ClearTarget t) { return t.GetComponent<IShipAttackTarget>() != null && !IsFieldRock(t); }
+
+    // A power's kill: an ordinary hazard dies; a field rock breaks whole (its chunks, if any, are new rocks).
+    bool PowerKill(GameObject go)
+    {
+        if (go.TryGetComponent(out FieldAsteroid rock))
+        {
+            if (rock.Broken) return false;
+            rock.Break(ship);
+            return true;
+        }
+        return ShipAttackHits.Hit(go, ship);
     }
 
     // The nova's burning ring: whatever enters it dies. The boss is left to
@@ -526,11 +546,11 @@ public class SecretPowerController : MonoBehaviour
         for (int i = 0; i < scratch.Count; i++)
         {
             var t = scratch[i];
-            if (t == null || !t.isActiveAndEnabled || t.GetComponent<IShipAttackTarget>() != null) continue;
+            if (t == null || !t.isActiveAndEnabled || PowerSpecial(t)) continue;
             Vector2 d = t.transform.position - at;
             float r = radius + t.Radius * .5f;
             if (d.sqrMagnitude > r * r) continue;
-            if (ShipAttackHits.Hit(t.gameObject, ship)) kills++;
+            if (PowerKill(t.gameObject)) kills++;
         }
         return kills;
     }
@@ -735,7 +755,7 @@ public class SecretPowerController : MonoBehaviour
         for (int i = 0; i < scratch.Count; i++)
         {
             var t = scratch[i];
-            if (t == null || !t.isActiveAndEnabled || t.GetComponent<IShipAttackTarget>() != null) continue;
+            if (t == null || !t.isActiveAndEnabled || PowerSpecial(t)) continue;
             Vector3 p = t.transform.position;
             Vector2 d = at - p;
             float dist = d.magnitude;
@@ -743,7 +763,7 @@ public class SecretPowerController : MonoBehaviour
             if (dist <= tractorKillRadius + t.Radius * .5f)
             {
                 Vector3 where = p;
-                if (ShipAttackHits.Hit(t.gameObject, ship))
+                if (PowerKill(t.gameObject))
                 {
                     TractorKills++;
                     for (int k = 0; k < tractorStarsPerKill; k++) DropStar(where + new Vector3((k - .5f) * .3f, 0f, 0f));
@@ -872,14 +892,14 @@ public class SecretPowerController : MonoBehaviour
             Vector2 d = holeAt - p;
             float dist = d.magnitude;
             if (dist > holePullRadius + t.Radius) continue;
-            if (t.GetComponent<IShipAttackTarget>() != null)
+            if (PowerSpecial(t))
             {
                 ShipAttackHits.Hit(t.gameObject, ship, budget, ref budget);
                 continue;
             }
             if (dist <= holeKillRadius + t.Radius * .5f)
             {
-                ShipAttackHits.Hit(t.gameObject, ship);
+                PowerKill(t.gameObject);
                 continue;
             }
             if (lockedCount < MaxLocked) Lock(t.gameObject);

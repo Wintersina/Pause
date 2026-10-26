@@ -6,6 +6,9 @@ using UnityEngine;
 //
 //   HAZARD     a field rock is a real "Astr" hazard: trigger collider, ClearTarget (weapons and the ultimate see it)
 //   HITS       it takes SizeHits worth of ship attacks, then bursts; large -> two medium, medium -> two small, small gone
+//   WEAPONS    it takes every weapon hit in full (never spends the firing's elite allowance: a rail through two rocks
+//              breaks both, a heat wave burns every rock it passes); to a secret power it is plain debris (Thunderclap
+//              strikes it dead, Tractor Pull drags it in and kills it, a Black Hole swallows it, the nova's ring burns it)
 //   MOTION     falls with the board, drifts sideways, leaves the view; a frozen dt moves nothing
 //   RULES      Space only, not in the first 25 s, tutorial, death, boss, transition, elites; modest rate, MaxAlive
 //   OPENING    the weighted pick (None stays possible, missing art drops out), a forced kind is what Space opens with,
@@ -34,6 +37,7 @@ public static class SpaceAsteroidFieldTest
         {
             Hazard();
             Hits();
+            WeaponsAndPowers();
             Motion();
             Patterns();
             Rules();
@@ -153,6 +157,111 @@ public static class SpaceAsteroidFieldTest
         var tough = SpaceAsteroidField.Spawn(1, 2, new Vector2(0f, 2f), 0f, 0f, 10f);
         ShipAttackHits.Hit(tough.gameObject, 0);
         Check("ShipAttackHits.Hit lands as a hit (a medium rock takes two)", tough != null && !tough.Broken && Mathf.Abs(tough.Health - 1f) < .001f);
+        SpaceAsteroidField.ClearAll();
+    }
+
+    // ---- ship weapons and secret powers ----
+
+    static bool Gone(FieldAsteroid a) { return a == null || a.Broken; }
+
+    static GameObject ShipAt(Vector2 at)
+    {
+        var go = new GameObject("ship", typeof(SpriteRenderer));
+        go.transform.position = new Vector3(at.x, at.y, 0f);
+        return go;
+    }
+
+    static void DropShip(GameObject go)
+    {
+        if (go == null) return;
+        var runner = go.GetComponent<ShipAttackRunner>();
+        if (runner != null) runner.StopAll();
+        var power = go.GetComponent<SecretPowerController>();
+        if (power != null) power.SendMessage("OnDestroy");
+        Object.DestroyImmediate(go);
+        AttackPool.StopAll();
+    }
+
+    static void WeaponsAndPowers()
+    {
+        // RAIL GUN (Crimson Halo): "pierces everything in a straight line". A field rock used to spend the firing's
+        // whole elite allowance, so a second rock on the line took nothing.
+        Fresh();
+        var ship = ShipAt(new Vector2(0f, -4f));
+        var rail = ShipAttackRunner.Attach(ship, 4);
+        var near = SpaceAsteroidField.Spawn(0, 0, new Vector2(0f, 0f), 0f, 0f, 10f);
+        var far = SpaceAsteroidField.Spawn(0, 1, new Vector2(0f, 2.5f), 0f, 0f, 10f);
+        rail.Fire();
+        Check("a rail through two small field rocks breaks both", Gone(near) && Gone(far));
+        DropShip(ship);
+        SpaceAsteroidField.ClearAll();
+
+        // HEAT WAVE (Solar Fang): "burning everything it passes"
+        Fresh();
+        ship = ShipAt(new Vector2(0f, -4f));
+        var wave = ShipAttackRunner.Attach(ship, 3);
+        var left = SpaceAsteroidField.Spawn(0, 0, new Vector2(-1.2f, -1f), 0f, 0f, 10f);
+        var right = SpaceAsteroidField.Spawn(0, 1, new Vector2(1.2f, 1f), 0f, 0f, 10f);
+        var mid = SpaceAsteroidField.Spawn(1, 2, new Vector2(0f, 3f), 0f, 0f, 10f);
+        wave.Fire();
+        for (int i = 0; i < 150 && wave.ActiveRuns > 0; i++) wave.Step(Dt);
+        Check("a heat wave burns every field rock it passes (two small ones break, a medium one is hit)",
+              Gone(left) && Gone(right) && !Gone(mid) && mid.Health < SpaceAsteroidField.SizeHits[1] - .5f);
+        DropShip(ship);
+        SpaceAsteroidField.ClearAll();
+
+        // THUNDERCLAP (Lightning): "lightning strikes everything within 2.6 dead" -- a small rock is not left standing
+        Fresh();
+        ship = ShipAt(new Vector2(0f, -4f));
+        var clap = SecretPowerController.Attach(ship, 8);
+        var struck = SpaceAsteroidField.Spawn(0, 0, new Vector2(1f, -3f), 0f, 0f, 10f);
+        var bigStruck = SpaceAsteroidField.Spawn(2, 1, new Vector2(-1.2f, -3.2f), 0f, 0f, 10f);
+        clap.Fire();
+        Check("a Thunderclap strikes field rocks in its radius dead (small and large)", Gone(struck) && Gone(bigStruck));
+        DropShip(ship);
+        SpaceAsteroidField.ClearAll();
+
+        // TRACTOR PULL (UFO): "pulls nearby enemies and debris in, and kills drop star dust"
+        Fresh();
+        ship = ShipAt(new Vector2(0f, -4f));
+        var tractor = SecretPowerController.Attach(ship, 13);
+        var close = SpaceAsteroidField.Spawn(0, 0, new Vector2(0f, -3.3f), 0f, 0f, 10f);
+        var reeled = SpaceAsteroidField.Spawn(1, 1, new Vector2(2f, -1.5f), 0f, 0f, 10f);
+        float before = Vector2.Distance(reeled.transform.position, ship.transform.position);
+        tractor.Fire();
+        tractor.Step(.02f);
+        Check("the Tractor Pull kills a field rock that reaches its field", Gone(close) && tractor.TractorKills >= 1);
+        for (int i = 0; i < 5; i++) tractor.Step(.02f);
+        Check("... and drags a farther one in", !Gone(reeled) &&
+              Vector2.Distance(reeled.transform.position, ship.transform.position) < before - .3f);
+        DropShip(ship);
+        SpaceAsteroidField.ClearAll();
+
+        // BLACK HOLE (Saboteur): "swallows what drifts in"
+        Fresh();
+        ship = ShipAt(new Vector2(0f, -4f));
+        var hole = SecretPowerController.Attach(ship, 12);
+        hole.Fire();
+        Vector2 holeAt = new Vector2(0f, -4f + 2.6f);
+        var inHole = SpaceAsteroidField.Spawn(0, 0, holeAt, 0f, 0f, 10f);
+        var drifting = SpaceAsteroidField.Spawn(0, 1, holeAt + new Vector2(1.8f, 0f), 0f, 0f, 10f);
+        float gap = Vector2.Distance(drifting.transform.position, holeAt);
+        hole.Step(.02f);
+        Check("a Black Hole swallows a field rock at its heart", Gone(inHole));
+        for (int i = 0; i < 5; i++) hole.Step(.02f);
+        Check("... and pulls one drifting at its edge in", Gone(drifting) || Vector2.Distance(drifting.transform.position, holeAt) < gap - .2f);
+        DropShip(ship);
+        SpaceAsteroidField.ClearAll();
+
+        // SOLAR NOVA (Solar Fang): the burning ring left behind -- "whatever enters it dies"
+        Fresh();
+        ship = ShipAt(new Vector2(0f, -4f));
+        var nova = SecretPowerController.Attach(ship, 3);
+        nova.Fire();
+        var entering = SpaceAsteroidField.Spawn(1, 0, new Vector2(1.5f, -3.5f), 0f, 0f, 10f);
+        nova.Step(.02f);
+        Check("the Solar Nova's burning ring burns a field rock that enters it", nova.Burning && Gone(entering));
+        DropShip(ship);
         SpaceAsteroidField.ClearAll();
     }
 
