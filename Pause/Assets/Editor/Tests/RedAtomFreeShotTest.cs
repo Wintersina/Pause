@@ -182,7 +182,7 @@ public static class RedAtomFreeShotTest
             case ShipAttack.RailSlug:
             case ShipAttack.ChainLightning:
             case ShipAttack.Blowtorch:
-            case ShipAttack.OrbitDisc:
+            case ShipAttack.ThrownDisc:
             case ShipAttack.IonLaser:
             case ShipAttack.FrostNova:
             case ShipAttack.WardenSentries:
@@ -197,7 +197,7 @@ public static class RedAtomFreeShotTest
         a == ShipAttack.IonLaser || a == ShipAttack.FrostNova || a == ShipAttack.WardenSentries || a == ShipAttack.Nuke;
 
     static bool Held(ShipAttack a) =>
-        a == ShipAttack.Blowtorch || a == ShipAttack.OrbitDisc;
+        a == ShipAttack.Blowtorch;
 
     // ---- cases ---------------------------------------------------------
 
@@ -275,6 +275,13 @@ public static class RedAtomFreeShotTest
                     int frames = 0;
                     while (c.Runner.ActiveRuns > 0 && frames < 1500) { c.Runner.Step(.02f); frames++; }
                     count = launchedNow == 0 && AttackProjectile.LaunchCount == launches && c.Runner.ActiveRuns == 0;
+                }
+                else if (l.attack == ShipAttack.ThrownDisc)
+                {
+                    // thrown: in flight, then (bounces spent or flight time up) it flies out of the screen and is gone
+                    bool on = c.Runner.ActiveRuns == 1;
+                    Steps(c.Runner, l.duration + ShipAttackRunner.ThrowLeaveSeconds + 2f);
+                    count = on && c.Runner.ActiveRuns == 0 && launchedNow == 0;
                 }
                 else if (Held(l.attack))
                 {

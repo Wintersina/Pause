@@ -67,7 +67,7 @@ public static class ShipWeaponUpgrades
         /* 12 Saboteur     */ new[] { Up("+1 MINE", shots: 1), Cd(.15f), Up("+1 MINE", shots: 1), Cd(.20f) },
         /* 13 UFO          */ new[] { Up("+1 PIERCE", maxHits: 1), Cd(.15f), Up("+1 GRAB", shots: 1), Cd(.20f) },
         /* 14 Dove         */ new[] { Up("WIDER GUST", width: 12f), Cd(.15f), Up("LONGER GUST", range: 1.5f), Cd(.20f) },
-        /* 15 Turtle       */ new[] { Up("LONGER ORBIT", duration: 1.5f), Cd(.15f), Up("BIGGER DISC", range: .14f, speed: 60f), Cd(.20f) },
+        /* 15 Turtle       */ new[] { Up("LONGER THROW", duration: 1.5f), Cd(.15f), Up("BIGGER DISC", range: .14f, speed: 1.5f), Cd(.20f) },
         // 16 Paragon: four skins like every ship. Its tiers' mini-warheads, shield, hearts and speed are PremiumShips.
         /* 16 Paragon      */ new[] { Up("FASTER WARHEAD", speed: 6f), Cd(.15f), Up("FASTER WARHEAD", speed: 8f), Cd(.20f) },
     };

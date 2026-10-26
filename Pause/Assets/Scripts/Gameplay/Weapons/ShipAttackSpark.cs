@@ -65,71 +65,33 @@ public static class ShipAttackTargets
     }
 }
 
-// The flight state and the drawing of one Volt Viper spark: a small bright head and a short fading trail of
-// pooled SpriteRenderers (plain renderers, so the kill cam records them). Built once per run slot, reused;
-// nothing allocates per frame.
+// The flight state and the drawing of one Volt Viper spark: one pooled SpriteRenderer playing the ship's
+// "attack_shot" strip (Powers2/VoltViper_attack_shot.png, cells 0-7: the spark with its own crackle tail,
+// drawn pointing up) turned to the flight heading. A plain renderer, so the kill cam records it. Built once
+// per run slot, reused; nothing allocates per frame.
 public sealed class SparkBolt
 {
-    public const int TrailLength = 6;
-
     public bool flying, arrived, fizzled;
     public Vector2 pos, dir;
     public float age;
     public ClearTarget target;
     public int steps;   // frames flown (tests)
 
+    // World size of the strip's cell at scale 1 times this: the drawn spark is ~.46 units long.
+    const float DrawScale = .7f;
+    const float Alpha = .95f;
+    const int VoltViperId = 2;   // the roster id (ShipId.KeyOf(2) == "VoltViper")
+
     GameObject root;
     SpriteRenderer head;
-    SpriteRenderer[] trail;
-    readonly Vector2[] history = new Vector2[TrailLength];
-    int histFill;
-    float histClock;
-
-    static Sprite dot;
-    // A soft round dot, one world unit across at scale 1 (white: tinted per use).
-    public static Sprite Dot
-    {
-        get
-        {
-            if (dot != null) return dot;
-            const int S = 32;
-            var tex = new Texture2D(S, S, TextureFormat.RGBA32, false) { filterMode = FilterMode.Bilinear, wrapMode = TextureWrapMode.Clamp };
-            var px = new Color32[S * S];
-            float c = (S - 1) * .5f;
-            for (int y = 0; y < S; y++)
-                for (int x = 0; x < S; x++)
-                {
-                    float d = Mathf.Sqrt((x - c) * (x - c) + (y - c) * (y - c)) / (S * .5f);
-                    float a = d >= 1f ? 0f : (d < .35f ? 1f : Mathf.Pow(1f - (d - .35f) / .65f, 1.6f));
-                    px[y * S + x] = new Color32(255, 255, 255, (byte)Mathf.RoundToInt(a * 255f));
-                }
-            tex.SetPixels32(px);
-            tex.Apply();
-            dot = Sprite.Create(tex, new Rect(0, 0, S, S), new Vector2(.5f, .5f), S);
-            return dot;
-        }
-    }
-
-    static readonly Color Core = new Color(.92f, 1f, 1f, 1f);       // white-cyan core (no pink outside Space)
-    static readonly Color Tail = new Color(.35f, .85f, 1f, .55f);   // electric blue
 
     void Build()
     {
         root = new GameObject("~viperSpark");
-        head = Make("head", 72);
-        trail = new SpriteRenderer[TrailLength];
-        for (int i = 0; i < TrailLength; i++) trail[i] = Make("trail" + i, 71);
+        head = root.AddComponent<SpriteRenderer>();
+        head.sortingOrder = 72;
+        head.color = new Color(1f, 1f, 1f, Alpha);
         root.SetActive(false);
-    }
-
-    SpriteRenderer Make(string n, int order)
-    {
-        var go = new GameObject(n);
-        go.transform.SetParent(root.transform, false);
-        var sr = go.AddComponent<SpriteRenderer>();
-        sr.sprite = Dot;
-        sr.sortingOrder = order;
-        return sr;
     }
 
     public void Launch(Vector3 from)
@@ -138,44 +100,23 @@ public sealed class SparkBolt
         flying = true; arrived = fizzled = false;
         pos = from; dir = Vector2.up; age = 0f; steps = 0;
         target = null;
-        histFill = 0; histClock = 0f;
         root.SetActive(true);
         Draw();
     }
 
-    // Sample the trail ~every 1/60 s of flight, newest first.
     public void Advance(float dt)
     {
         steps++;
-        histClock += dt;
-        if (histClock >= .016f)
-        {
-            histClock = 0f;
-            for (int i = TrailLength - 1; i > 0; i--) history[i] = history[i - 1];
-            history[0] = pos;
-            if (histFill < TrailLength) histFill++;
-        }
         Draw();
     }
 
     void Draw()
     {
         if (root == null) return;
+        head.sprite = ShipFxArt.Extra(VoltViperId, "attack_shot", Mathf.FloorToInt(age * 24f) % ShipFxArt.LoopFrames);
         head.transform.position = new Vector3(pos.x, pos.y, 0f);
-        head.transform.localScale = Vector3.one * .26f;
-        head.color = Core;
-        for (int i = 0; i < TrailLength; i++)
-        {
-            var sr = trail[i];
-            bool on = i < histFill;
-            sr.enabled = on;
-            if (!on) continue;
-            float k = 1f - (i + 1f) / (TrailLength + 1f);
-            sr.transform.position = new Vector3(history[i].x, history[i].y, 0f);
-            sr.transform.localScale = Vector3.one * Mathf.Lerp(.06f, .2f, k);
-            var c = Tail; c.a *= k;
-            sr.color = c;
-        }
+        head.transform.up = new Vector3(dir.x, dir.y, 0f);
+        head.transform.localScale = Vector3.one * DrawScale;
     }
 
     public void Hide()

@@ -226,6 +226,8 @@ public static class TitleScreenCombatTest
         for (int i = 0; i < WeaponArt.ShotFrames; i++) if (WeaponArt.Shot(id, i) == s) return true;
         for (int i = 0; i < ShipFxArt.BurstFrames; i++)
             if (ShipFxArt.AttackLoop(id, i) == s || ShipFxArt.AttackBurst(id, i) == s) return true;
+        for (int i = 0; i < ShipFxArt.StripCells; i++)
+            if (ShipFxArt.Extra(id, "attack_shot", i) == s) return true;
         return false;
     }
 

@@ -36,7 +36,8 @@ public static class ShipAttacksTest
         RailHitsOnlyItsForwardLine();
         SpreadCountsAreRespected();
         ChainCountsAreRespected();
-        OrbitDiscLastsItsDuration();
+        ThrownDiscLastsItsDuration();
+        ThrownDiscRicochetsOffEnemiesAndWalls();
         SecretMeterFillsAndTriggers();
         CloakTriggersJustBeforeAHit();
         NothingAdvancesWhilePaused();
@@ -233,19 +234,43 @@ public static class ShipAttacksTest
         foreach (var f in foes) if (f != null) Object.DestroyImmediate(f);
     }
 
-    static void OrbitDiscLastsItsDuration()
+    static void ThrownDiscLastsItsDuration()
     {
         FreshScene();
         var turtle = Ship(15);
-        float duration = ShipLoadoutTable.For(15).duration;
-        var near = Hazard(-1.05f, -3f); // on the orbit, left of the ship
+        var l = ShipLoadoutTable.For(15);
+        // straight ahead of the first throw (it leaves the nose a few degrees off the vertical)
+        Vector3 nose = turtle.Runner.Nose;
+        Vector3 ahead = nose + ShipAttackRunner.ThrowDirection(1) * 2.5f;
+        var near = Hazard(ahead.x, ahead.y);
         turtle.Runner.Fire();
-        Check("the disc orbit starts", turtle.Runner.ActiveRuns == 1);
-        Steps(turtle.Runner, duration - .1f);
-        Check("still orbiting just before its duration", turtle.Runner.ActiveRuns == 1);
-        Check("it smashed what it touched", !Alive(near));
-        Steps(turtle.Runner, .2f);
-        Check("gone once its duration is up", turtle.Runner.ActiveRuns == 0);
+        Check("the throw starts", turtle.Runner.ActiveRuns == 1);
+        Steps(turtle.Runner, .6f);
+        Check("it smashed the enemy in its path", !Alive(near));
+        Check("still in flight a moment after the strike", turtle.Runner.ActiveRuns == 1);
+        Steps(turtle.Runner, l.duration + ShipAttackRunner.ThrowLeaveSeconds + 2f);
+        Check("gone once its flight time is up and it has flown out", turtle.Runner.ActiveRuns == 0);
+        Teardown(turtle);
+    }
+
+    static void ThrownDiscRicochetsOffEnemiesAndWalls()
+    {
+        FreshScene();
+        var turtle = Ship(15);
+        var l = ShipLoadoutTable.For(15);
+        Vector3 nose = turtle.Runner.Nose;
+        Vector3 ahead = nose + ShipAttackRunner.ThrowDirection(1) * 2.5f;
+        var first = Hazard(ahead.x, ahead.y);
+        var second = Hazard(ahead.x + 2f, ahead.y + 1f);   // off to the side: the disc ricochets on to it
+        int kills = ShipAttackHits.Kills;
+        turtle.Runner.Fire();
+        Steps(turtle.Runner, 1.5f);
+        Check("it struck the first enemy and ricocheted on to the second (" + (ShipAttackHits.Kills - kills) + " kills)",
+              !Alive(first) && !Alive(second));
+        // with nothing left it keeps bouncing off the screen walls until its bounces are spent, then leaves
+        Steps(turtle.Runner, 30f);
+        Check("its bounces and flight run out and it is gone", turtle.Runner.ActiveRuns == 0);
+        Check("it is a thrown disc with a bounce budget", l.maxHits > 1 && l.speed > 0f);
         Teardown(turtle);
     }
 
@@ -427,7 +452,7 @@ public static class ShipAttacksTest
             AttackPool.Sprite().Play(AttackSprite.Source.AttackBurst, 12, Vector3.zero, Vector3.one, 0f,
                 ShipFxArt.BurstTicks, false, 0f, null, Vector3.zero, 70);
         Check("drawn effects stay within their cap", AttackPool.SpritePoolSize <= AttackPool.MaxSprites);
-        Check("the effect art resolves", ShipFxArt.AttackLoop(13, 0) != null && ShipFxArt.PowerBurst(6, 3) != null &&
+        Check("the effect art resolves", ShipFxArt.AttackLoop(13, 0) != null && ShipFxArt.Extra(6, "cloak", 11) != null &&
               ShipFxArt.MeterFill(1, 0) != null && ShipFxArt.MeterReady(15, 3) != null);
         Teardown(gat);
     }

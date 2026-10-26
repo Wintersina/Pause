@@ -60,9 +60,8 @@ public static class PremiumShipTest
               ShipNozzles.For(P)[1].x < ShipNozzles.For(P)[0].x && ShipNozzles.For(P)[2].x > ShipNozzles.For(P)[0].x);
         Check("it has the codex's weapon art cells (weapon atlas, attack fx row 16, meter row 16)",
               WeaponArt.Shot(P, 0) != null && WeaponArt.Charge(P, 15) != null && ShipFxArt.AttackLoop(P, 0) != null &&
-              ShipFxArt.PowerBurst(P, 0) != null && ShipFxArt.MeterIcon(P) != null);
-        var tex = Resources.Load<Texture2D>("Weapons/AttackFx");
-        Check("the attack fx atlas has 16 ship rows", tex != null && tex.height == ShipFxArt.Rows * 128 && ShipFxArt.Rows == 16);
+              ShipFxArt.MeterIcon(P) != null);
+        Check("the superseded procedural attack fx atlas stays deleted", Resources.Load<Texture2D>("Weapons/AttackFx") == null && ShipFxArt.Rows == 16);
     }
 
     // The leaderboard warning: the dock card for Paragon (locked and owned), none on other ships,

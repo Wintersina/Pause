@@ -10,7 +10,6 @@ Reads the sheets Codex drew (briefs in ShipArt/Paragon/src~/codex, J3):
   muzzle_release_trail.png 4x3  -> row 2 (muzzle 0-3 | release 0-3 | trail 0-1)
   shot_6.png               3x2  -> row 1 shot 0-5 (REDO: replaces the shot cells of ready_shot_impact)
   meter_16.png             4x4  -> Weapons/SecretMeter.png row 16 (64 px cells: fill 0-9, ready 10-13, flash, icon)
-  fx_16.png                4x4  -> Weapons/AttackFx.png row 16 (loop, burst, power loop, power burst)
   gun_tile.png             1x1  -> ShipArt/Guns/ship_gun_roster.png tile 16 (the ultimate gun pod)
 Each cell is keyed off its flat #00FF00, Lanczos-fitted to 128 px (the gun
 to 313 px) with premultiplied alpha, so edges carry no green fringe.
@@ -90,13 +89,6 @@ def main():
         place(atlas, mrt[8:10], 2, 8)
     atlas.save(path, optimize=True)
 
-    fx = cells("fx_16.png", 4, 4)
-    if fx:
-        p = os.path.join(WEAPONS, "AttackFx.png")
-        im = Image.open(p).convert("RGBA")
-        place(im, fx, 15, 0)
-        im.save(p, optimize=True)
-
     mt = cells("meter_16.png", 4, 4)
     if mt:
         p = os.path.join(WEAPONS, "SecretMeter.png")
@@ -116,7 +108,7 @@ def main():
         roster.alpha_composite(tile, (x0, y0))
         roster.save(GUNS, optimize=True)
     print("ingested", [n for n, v in (("charge", charge), ("ready/shot/impact", rsi), ("muzzle/release/trail", mrt),
-                                      ("shot redo", shots), ("meter", mt), ("fx", fx), ("gun", os.path.exists(gp))) if v])
+                                      ("shot redo", shots), ("meter", mt), ("gun", os.path.exists(gp))) if v])
 
 
 if __name__ == "__main__":

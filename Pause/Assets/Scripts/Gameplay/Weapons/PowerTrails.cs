@@ -15,6 +15,7 @@ public class PowerTrailSprite : MonoBehaviour
     static PowerTrailSprite[] ghosts;
     static PowerTrailSprite pack;
     static int IonId => ShipId.FromKey("IonLancer");
+    const string PackStrip = "pack";   // Powers2/IonLancer_pack.png, cells 0-7: the battery pack in flight
 
     SpriteRenderer sr;
     float age, life;
@@ -74,7 +75,7 @@ public class PowerTrailSprite : MonoBehaviour
     public static PowerTrailSprite Pack(int ship, Vector3 from)
     {
         if (pack == null) pack = Make("~ionPack");
-        pack.sr.sprite = ShipFxArt.PowerLoop(IonId, 0);
+        pack.sr.sprite = ShipFxArt.Extra(IonId, PackStrip, 0);
         pack.sr.sortingOrder = 90;
         pack.from = from;
         pack.to = CounterWorldPosition(from);
@@ -139,7 +140,7 @@ public class PowerTrailSprite : MonoBehaviour
             p.x += Mathf.Sin(k * Mathf.PI) * .6f;
             transform.position = p;
             transform.localScale = Vector3.one * Mathf.Lerp(.38f, .22f, k);
-            sr.sprite = ShipFxArt.PowerLoop(IonId, Mathf.FloorToInt(age * 24f));
+            sr.sprite = ShipFxArt.Extra(IonId, PackStrip, Mathf.FloorToInt(age * 24f) % ShipFxArt.LoopFrames);
         }
         else
         {

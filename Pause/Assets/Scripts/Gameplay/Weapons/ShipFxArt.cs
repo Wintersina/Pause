@@ -1,24 +1,15 @@
 using UnityEngine;
 
-// Slices the two shared atlases the ship attacks and secret powers draw from,
-// both rendered by Art/Weapons/src~/weapons.py (fx_attack / fx_power /
-// meter functions, colours from the same PALETTES row as each ship's
-// weapon):
+// The ship attack and secret power art. Every attack and power is a 4096 x 256 strip of 16 cells
+// (cells 0-7 the loop, 8-15 the burst), drawn by Codex and kept in Resources/Weapons/Powers2/
+// <ShipKey>_<name>.png (Strip / Extra below); one world unit across at scale 1.
 //
-//   Resources/Weapons/AttackFx.png   128px cells, 16 x 15 (row = ship id - 1; 16 ships)
-//     cols 0-3   attack loop   (beam, flame cone, chain arc, javelin strike,
-//                               rail flash, orbit ring, ...)
-//     cols 4-7   attack burst  (fireball blast, impact sparks, ...)
-//     cols 8-11  power loop    (cloak shimmer, magnet field, black hole, ...)
-//     cols 12-15 power burst   (nova, EMP ring, shield pop, ...)
-//
-//   Resources/Weapons/SecretMeter.png  64px cells, 16 x 15 (row = ship id - 1)
+// The secret-power badge still comes from one atlas rendered by Art/Weapons/src~/weapons.py:
+//   Resources/Weapons/SecretMeter.png  64px cells, 16 x 15 (row = ship id - 1; 16 ships)
 //     cols 0-9   the badge filling up (10 steps)
 //     cols 10-13 ready loop (held key pose, then the pulse on 2s)
 //     col 14     the fire flash
 //     col 15     icon only
-//
-// Every sprite is one world unit across at scale 1, like WeaponArt.
 public static class ShipFxArt
 {
     public const int Columns = 16, Rows = 16;
@@ -31,23 +22,21 @@ public static class ShipFxArt
     public static readonly int[] BurstTicks = { 1, 1, 1, 1, 1, 1, 2, 2 };
     public static readonly int[] PowerLoopTicks = { 1, 1, 1, 1, 1, 1, 1, 1 };
     public static readonly int[] PowerBurstTicks = { 1, 1, 1, 1, 1, 2, 2, 2 };
-    const int OldFrames = 4;   // the legacy AttackFx atlas, the fallback when a strip is missing
     public static readonly int[] MeterReadyTicks = { 4, 2, 2, 2 };
 
-    const int AttackLoopAt = 0, AttackBurstAt = 4, PowerLoopAt = 8, PowerBurstAt = 12;
     const int MeterFillAt = 0, MeterReadyAt = 10, MeterFlashAt = 14, MeterIconAt = 15;
 
-    static Sprite[] attackSheet, meterSheet;
+    static Sprite[] meterSheet;
     static readonly System.Collections.Generic.Dictionary<string, Sprite[]> strips = new System.Collections.Generic.Dictionary<string, Sprite[]>();
 
-    // Resources/Weapons/Powers2/<ShipId.KeyOf>_power.png / _attack.png: 16
-    // cells of 256 px (0-7 loop, 8-15 burst or impact), one world unit across
-    // at scale 1 like the old atlas. Null when the strip is missing.
+    // Resources/Weapons/Powers2/<ShipId.KeyOf>_attack.png: 16 cells of 256 px (0-7 loop, 8-15 burst or
+    // impact), one world unit across at scale 1. Null when the strip is missing. (No ship has a generic
+    // _power.png any more: every secret power draws its own named strip, PowerStripName.)
     public static Sprite[] Strip(int ship, bool power) => Strip(ship, power ? "power" : "attack");
 
     // The strip a secret power draws in flight (Powers2/<ShipKey>_<name>.png): the one table the game's
     // SecretPowers and the dock's power preview both read, so the card cannot show older art than the
-    // flight. Null: the power plays the ship's generic "power" strip.
+    // flight.
     public static string PowerStripName(SecretPower power)
     {
         switch (power)
@@ -64,28 +53,12 @@ public static class ShipFxArt
             case SecretPower.Mending: return "mending";
             case SecretPower.HardShell: return "shell";
             case SecretPower.AegisShield: return "aegis";
+            case SecretPower.CapacitorDump: return "dump";
+            case SecretPower.BlinkDash: return "dash";
+            case SecretPower.BlackHole: return "hole";
+            case SecretPower.TimeBubble: return "bubble";
         }
         return null;
-    }
-
-    // False for the powers whose flight draws only their own strip (PowerStripName): those ships have no
-    // <ShipKey>_power.png any more. The rest (EMP's stun marks, Dove's feather burst, the decoy flare...) still
-    // draw the generic one beside or instead of it.
-    public static bool DrawsGenericPowerStrip(SecretPower power)
-    {
-        switch (power)
-        {
-            case SecretPower.ShieldPulse:
-            case SecretPower.SolarNova:
-            case SecretPower.PhaseCloak:
-            case SecretPower.GoldMagnet:
-            case SecretPower.Thunderclap:
-            case SecretPower.TractorPull:
-            case SecretPower.HardShell:
-            case SecretPower.AegisShield:
-                return false;
-        }
-        return true;
     }
 
     // The same, for any named strip of the ship: "attack_mark" -> <ShipKey>_attack_mark.png.
@@ -133,12 +106,6 @@ public static class ShipFxArt
 
     // Rebuilt if the editor destroyed the Sprite.Create()d cells (tests open
     // new scenes a lot).
-    static Sprite[] Attack()
-    {
-        if (attackSheet == null || attackSheet[0] == null) attackSheet = Slice("AttackFx");
-        return attackSheet;
-    }
-
     static Sprite[] Meter()
     {
         if (meterSheet == null || meterSheet[0] == null) meterSheet = Slice("SecretMeter");
@@ -152,21 +119,19 @@ public static class ShipFxArt
         return sheet[Row(ship) * Columns + at + Mathf.Clamp(i, 0, count - 1)];
     }
 
-    static Sprite Fx(int ship, bool power, bool burst, int i)
+    // A ship's own attack strip: cell i of the loop (wrapped) or of the burst (clamped); null when it is missing.
+    static Sprite Fx(int ship, bool burst, int i)
     {
-        var strip = Strip(ship, power);
-        if (strip != null) return strip[(burst ? LoopFrames : 0) + (burst ? Mathf.Clamp(i, 0, BurstFrames - 1) : Wrap(i, LoopFrames))];
-        // fallback: the old 4-frame atlas, each of its drawings held for two of ours
-        int at = power ? (burst ? PowerBurstAt : PowerLoopAt) : (burst ? AttackBurstAt : AttackLoopAt);
-        int j = Mathf.Clamp(i, 0, burst ? BurstFrames - 1 : int.MaxValue) / 2;
-        return Get(Attack(), ship, at, OldFrames, burst ? j : Wrap(j, OldFrames));
+        var strip = Strip(ship, false);
+        if (strip == null) return null;
+        return strip[(burst ? LoopFrames : 0) + (burst ? Mathf.Clamp(i, 0, BurstFrames - 1) : Wrap(i, LoopFrames))];
     }
 
     // A cell of an extra strip (loop 0-7, burst 8-15); the ship's own attack strip when that one is missing.
     public static Sprite Extra(int ship, string suffix, bool burst, int i)
     {
         var strip = Strip(ship, "attack_" + suffix);
-        if (strip == null) return Fx(ship, false, burst, i);
+        if (strip == null) return Fx(ship, burst, i);
         return strip[(burst ? LoopFrames : 0) + (burst ? Mathf.Clamp(i, 0, BurstFrames - 1) : Wrap(i, LoopFrames))];
     }
 
@@ -177,10 +142,8 @@ public static class ShipFxArt
         return strip == null ? null : strip[Mathf.Clamp(cell, 0, StripCells - 1)];
     }
 
-    public static Sprite AttackLoop(int ship, int i)  => Fx(ship, false, false, i);
-    public static Sprite AttackBurst(int ship, int i) => Fx(ship, false, true, i);
-    public static Sprite PowerLoop(int ship, int i)   => Fx(ship, true, false, i);
-    public static Sprite PowerBurst(int ship, int i)  => Fx(ship, true, true, i);
+    public static Sprite AttackLoop(int ship, int i)  => Fx(ship, false, i);
+    public static Sprite AttackBurst(int ship, int i) => Fx(ship, true, i);
 
     public static Sprite MeterFill(int ship, int i)   => Get(Meter(), ship, MeterFillAt, MeterFillFrames, i);
     public static Sprite MeterReady(int ship, int i)  => Get(Meter(), ship, MeterReadyAt, MeterReadyFrames, Wrap(i, MeterReadyFrames));
@@ -192,44 +155,12 @@ public static class ShipFxArt
     // AttackProjectile, WeaponShot). Gameplay hit sizes never read these.
     public const float AttackAlpha = .6f;       // attack loops (beams, cones, arcs)
     public const float AttackBurstAlpha = .65f; // impact bursts
-    public const float PowerLoopAlpha = .4f;    // power loops
-    public const float PowerBurstAlpha = .45f;  // power bursts
-    public const float RimAlpha = .8f;          // the thin rim rings
+    public const float RimAlpha = .8f;          // the held Time Bubble dome
     public const float ShotScale = .72f;        // projectile body, of the size the attack asks for
     public const float TrailScale = .55f;       // light streak behind a shot, of the old width
     public const float BeamThin = .45f;         // arcs / chain / lance links: thickness in world units
     public const float BurstScale = .7f;        // burst size (blasts, fireball) on top of the per-ship scales
     public const float ImpactScale = .75f;      // weapon impact flipbook, of the old size
-
-    static Sprite rim;
-    // A thin, hard-edged circle outline, one world unit across at scale 1:
-    // the ship-centred defences are drawn with this instead of a filled blob,
-    // so the hull stays clearly visible underneath.
-    public static Sprite Rim
-    {
-        get
-        {
-            if (rim != null) return rim;
-            const int S = 128;
-            var tex = new Texture2D(S, S, TextureFormat.RGBA32, false);
-            tex.filterMode = FilterMode.Point;
-            var px = new Color32[S * S];
-            float c = (S - 1) * .5f;
-            for (int y = 0; y < S; y++)
-                for (int x = 0; x < S; x++)
-                {
-                    float d = Mathf.Sqrt((x - c) * (x - c) + (y - c) * (y - c));
-                    byte a = 0;
-                    if (d <= 63f && d >= 60.5f) a = 255;                 // the rim, ~2.5 px at 128
-                    else if (d < 60.5f && d >= 56f) a = (byte)(26 + (d - 56f) * 2f);   // a whisper inside it
-                    px[y * S + x] = new Color32(255, 255, 255, a);
-                }
-            tex.SetPixels32(px);
-            tex.Apply();
-            rim = Sprite.Create(tex, new Rect(0, 0, S, S), new Vector2(.5f, .5f), S);
-            return rim;
-        }
-    }
 
     static Sprite dome;
     // Paranoid's Time Bubble dome (hex facets, hollowed centre so the hull reads); one world unit across at scale 1.
