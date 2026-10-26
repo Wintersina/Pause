@@ -429,10 +429,12 @@ public partial class ShipAttackRunner : MonoBehaviour
     // other one in reach, else bouncing straight back off it) and off the screen walls. The loadout reads:
     // duration the flight time, speed its speed in world units per second, range the disc's hit radius and
     // maxHits how many bounces it has. After the last bounce (or when its time is up) it flies on out of the
-    // screen. Ordinary hazards die from the touch; a boss takes a weighted hit once per tick.
+    // screen. Ordinary hazards die from the touch; a boss or elite takes a weighted hit on its first touch, then
+    // at most one per DiscBossTick while the disc stays on it.
     public const float ThrowAngle = 14f;           // degrees off the vertical, the side alternating each throw
     public const float ThrowLeaveSeconds = 3f;     // after its flight time it still needs this long to fly out
     public const float DiscReach = 7f;             // how far it looks for the next enemy to ricochet to
+    public const float DiscBossTick = .4f;         // a boss / elite under the disc takes at most one hit this often
     public static Vector3 ThrowDirection(int throwNumber) { return Quaternion.Euler(0f, 0f, (throwNumber & 1) == 1 ? -ThrowAngle : ThrowAngle) * Vector3.up; }
     const float DiscArtFill = .55f;                // the shell fills this much of its 256 px cell
 
@@ -457,8 +459,11 @@ public partial class ShipAttackRunner : MonoBehaviour
         if (run.disc != null && run.disc.Active) run.disc.transform.position = p;
 
         ShipTargets.Collect(targets);
+        // The boss / elite tick is spent only by a touch: the first contact always lands, then at most one hit
+        // per DiscBossTick while the disc stays on it. (A free-running clock let a whole pass over the boss,
+        // about .33 s, fall between two ticks: the disc flew straight through it and dealt nothing.)
         bool bossTick = run.t >= run.next;
-        if (bossTick) run.next = run.t + .4f;
+        bool ticked = false;
         for (int i = 0; i < targets.Count; i++)
         {
             var t = targets[i];
@@ -468,6 +473,7 @@ public partial class ShipAttackRunner : MonoBehaviour
             if (d.sqrMagnitude > r * r) continue;
             bool special = t.GetComponent<IShipAttackTarget>() != null;
             if (special && !bossTick) continue;
+            if (special) ticked = true;
             // read what is needed before the touch: it may destroy the target
             GameObject struck = t.gameObject;
             Vector3 struckAt = t.transform.position;
@@ -483,6 +489,7 @@ public partial class ShipAttackRunner : MonoBehaviour
             DiscBounce(run, p);
             break;
         }
+        if (ticked) run.next = run.t + DiscBossTick;
 
         if (leaving && !ShipTargets.View(1f).Contains(p)) run.Stop();
         else if (run.t >= l.duration + ThrowLeaveSeconds) run.Stop();

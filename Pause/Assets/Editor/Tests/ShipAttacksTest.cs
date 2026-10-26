@@ -43,6 +43,7 @@ public static class ShipAttacksTest
         NothingAdvancesWhilePaused();
         PoolsStayBounded();
         BossTakesWeightedHits();
+        ThrownDiscHitsTheBossOnAShortPass();
         MeterKeepsClearOfShipUi();
 
         AttackPool.StopAll();
@@ -554,6 +555,87 @@ public static class ShipAttacksTest
         Check("a frost nova reaches the boss for one full hit, no freeze",
               boss != null && boss.hits == 1 && Mathf.Approximately(boss.weight, 1f) && boss.GetComponent<FrozenState>() == null);
         Teardown(warden);
+    }
+
+    // A capped special target (an elite's rule: one allowance per firing).
+    class FakeElite : MonoBehaviour, IShipAttackTarget
+    {
+        public float weight;
+        public int hits;
+        public void TakeShipAttack(int ship, float w, Vector3 at) { weight += w; hits++; }
+    }
+
+    // The Turtle's Shell Disc on a boss: the user saw it fly over the boss and do nothing. The disc's boss tick
+    // used to run on its own clock from the throw (t = 0, .4, .8 ...), so a whole pass over the boss (at most
+    // 2 * (1.05 + .42) / 9 ~ .33 s) could fall between two ticks and deal nothing. Now the first touch lands and
+    // the tick only paces a disc that stays on the boss.
+    static void ThrownDiscHitsTheBossOnAShortPass()
+    {
+        var l = ShipLoadoutTable.For(15);
+        float bossRadius = Mathf.Max(BossConfig.BodyHitbox.x, BossConfig.BodyHitbox.y) * .5f;   // the real body's ClearTarget radius
+        const float dt = .02f;
+
+        // (a) the boss sits right on the throw line, so the disc's whole pass over it ends before t = .4
+        FreshScene();
+        var turtle = Ship(15);
+        Vector3 nose = turtle.Runner.Nose;
+        Vector3 dir = ShipAttackRunner.ThrowDirection(1);
+        float centre = l.range + bossRadius + .4f;   // entered at ~.04 s, left by ~.37 s
+        var boss = Boss(nose.x + dir.x * centre, nose.y + dir.y * centre);
+        boss.GetComponent<ClearTarget>().SetRadius(bossRadius);
+        turtle.Runner.Fire();
+        Steps(turtle.Runner, .38f, dt);
+        Check("a shell disc passing over the boss hits it (" + boss.hits + " hits, weight " + boss.weight.ToString("F2") + ")",
+              boss.hits == 1 && Mathf.Abs(boss.weight - .25f) < 1e-4f);
+        Teardown(turtle);
+        Object.DestroyImmediate(boss.gameObject);
+
+        // (b) a disc that stays on the boss is paced: one weighted hit per DiscBossTick, never faster
+        FreshScene();
+        turtle = Ship(15);
+        boss = Boss(0f, 0f);
+        boss.GetComponent<ClearTarget>().SetRadius(8f);   // covers the whole screen: always in contact
+        turtle.Runner.Fire();
+        float clock = 0f, last = -99f, minGap = 99f;
+        int seen = 0;
+        for (; clock < 2f; clock += dt)
+        {
+            turtle.Runner.Step(dt);
+            if (boss.hits != seen)
+            {
+                if (last > -1f) minGap = Mathf.Min(minGap, clock - last);
+                last = clock;
+                seen = boss.hits;
+            }
+        }
+        Check("a disc held on the boss hits it once per tick (" + boss.hits + " hits, closest " + minGap.ToString("F2") + " s apart)",
+              boss.hits >= 2 && boss.hits <= 6 && minGap >= ShipAttackRunner.DiscBossTick - dt - 1e-4f &&
+              minGap >= BossConfig.HitInvulnerableSeconds);
+        Teardown(turtle);
+        Object.DestroyImmediate(boss.gameObject);
+
+        // (c) an elite on a short pass takes the disc too (its weight comes out of the firing's allowance)
+        FreshScene();
+        turtle = Ship(15);
+        nose = turtle.Runner.Nose;
+        var elite = Hazard(nose.x + dir.x * (l.range + .9f + .4f), nose.y + dir.y * (l.range + .9f + .4f));
+        elite.GetComponent<ClearTarget>().SetRadius(.9f);
+        var fe = elite.AddComponent<FakeElite>();
+        turtle.Runner.Fire();
+        Steps(turtle.Runner, .38f, dt);
+        Check("a shell disc passing over an elite hits it (" + fe.hits + " hits)", fe.hits == 1 && Alive(elite));
+        Teardown(turtle);
+        Object.DestroyImmediate(elite);
+
+        // (d) ordinary hazards still die on contact and the disc ricochets off them
+        FreshScene();
+        turtle = Ship(15);
+        nose = turtle.Runner.Nose;
+        var foe = Hazard(nose.x + dir.x * 1.5f, nose.y + dir.y * 1.5f);
+        turtle.Runner.Fire();
+        Steps(turtle.Runner, .3f, dt);
+        Check("an ordinary enemy still dies on the disc's touch", !Alive(foe) && turtle.Runner.ActiveRuns == 1);
+        Teardown(turtle);
     }
 
     static void MeterKeepsClearOfShipUi()
