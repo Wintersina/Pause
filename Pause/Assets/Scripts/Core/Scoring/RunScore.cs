@@ -472,4 +472,31 @@ public static class RunScore
     {
         return points.ToString("N0", System.Globalization.CultureInfo.InvariantCulture);
     }
+
+    // The same figure (digits in groups of three, "-" in front of a negative)
+    // written into `buf` from `at`, no string or culture lookup on the way:
+    // the HUD builds its one label string from it. Returns the end index.
+    // `buf` needs at most 27 characters past `at` (a long's 19 digits, 6
+    // separators, a sign).
+    public static int FormatInto(char[] buf, int at, long points)
+    {
+        bool negative = points < 0;
+        ulong v = negative ? (ulong)(-(points + 1)) + 1UL : (ulong)points;   // long.MinValue safe
+        // digits land right to left in a scratch tail, then are copied forward
+        int digits = 0;
+        ulong t = v;
+        do { digits++; t /= 10UL; } while (t > 0UL);
+        int n = digits + (digits - 1) / 3;
+        int start = at + (negative ? 1 : 0);
+        if (negative) buf[at] = '-';
+        int i = start + n - 1, written = 0;
+        do
+        {
+            if (written > 0 && written % 3 == 0) buf[i--] = ',';
+            buf[i--] = (char)('0' + (int)(v % 10UL));
+            v /= 10UL;
+            written++;
+        } while (v > 0UL);
+        return start + n;
+    }
 }

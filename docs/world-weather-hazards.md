@@ -222,7 +222,7 @@ layer's sorting and depth, its disc kept >= 1.9 u off the lane's centre line (a 
   breathes (scale +-2.5 %, alpha +-6 %, 9 s), the 8-frame flare flipbook loops at 6 fps, and every 28 - 58 s a BIGGER prominence arc (the flipbook again at 1.28x,
   out of phase, random angle) swells and fades over 8 s, one at a time. 4 renderers, 10 sprites, no per-frame allocation.
 * **Low contrast (held by BossHeartsTest and AtomClarityTest for every palette x side, `PAUSE_SUN_FORCE=violet:right` pins one):** disc alpha .62, flares .5, arcs <= .5, corona .6, violet x .72, all under the checked art limits (`scripts/verify_sun_art.py`).
-* **Memory (only the picked palette is loaded):** disc sheet RGBA32 8.4 MB (point filter, hard pixel art, never compressed), corona ASTC 4x4 2.1 MB, flare flipbook
+* **Memory (only the picked palette is loaded):** disc RGBA32 2.6 MB warm / 3.5 MB violet (the drawn cell cropped to its visible box by `scripts/crop_sun_disc.py`, pixels untouched; point filter, hard pixel art, never compressed), corona ASTC 4x4 2.1 MB, flare flipbook
   ASTC 4x4 8.4 MB: about 19 MB on phones (uncompressed all would be about 50 MB). ASTC 4x4 is used only on the soft additive layers, where it is visually identical
   (8 bits per pixel; the disc's hard pixel edges stay RGBA32). Import: `WorldBackdropImport` (max 4096, no mip maps, no clamping); `AndroidTextureDiet` leaves the disc alone.
 * Tests: `SpaceSunTest` (both palettes load and import at full resolution, stable per-run pick varying across seeds, smooth rotation and no per-frame garbage,

@@ -64,7 +64,26 @@ public static class WeatherArtTest
         {
             foreach (var set in new[] { "warm", "violet" })
             {
-                Sheet(sun + "sun_" + set + ".png", 2048, 1024, 1024, 2, 1, "SpaceSun");
+                // the disc file is the drawn cell cropped to its visible box (SpaceSunTuning.DiscCrop; scripts/crop_sun_disc.py)
+                var crop = SpaceSunTuning.DiscCrop(set);
+                string discPath = sun + "sun_" + set + ".png";
+                if (!File.Exists(discPath)) Check("SpaceSun/sun_" + set + ".png not delivered yet", true);
+                else
+                {
+                    var disc = new Texture2D(2, 2, TextureFormat.RGBA32, false);
+                    disc.LoadImage(File.ReadAllBytes(discPath));
+                    Check("SpaceSun/sun_" + set + ".png is its crop box " + crop.w + " x " + crop.h + " (the drawn cell's visible pixels, nothing downscaled)",
+                          disc.width == crop.w && disc.height == crop.h, disc.width + " x " + disc.height);
+                    var dpx = disc.GetPixels32();
+                    int opaque = 0;
+                    for (int i = 0; i < dpx.Length; i++) if (dpx[i].a > 128) opaque++;
+                    Check("SpaceSun/sun_" + set + ".png holds the disc (opaque pixels)", opaque > 100000, opaque.ToString());
+                    bool clearEdge = true;
+                    for (int x = 0; x < disc.width && clearEdge; x++) clearEdge = dpx[x].a == 0 && dpx[(disc.height - 1) * disc.width + x].a == 0;
+                    for (int y = 0; y < disc.height && clearEdge; y++) clearEdge = dpx[y * disc.width].a == 0 && dpx[y * disc.width + disc.width - 1].a == 0;
+                    Check("SpaceSun/sun_" + set + ".png keeps a clear margin on every edge", clearEdge);
+                    Object.DestroyImmediate(disc);
+                }
                 Sheet(sun + "sun_" + set + "_corona.png", 2048, 1024, 1024, 2, 1, "SpaceSun", 0, 0);
             }
             Sheet(sun + "flares_warm.png", 4096, 2048, 1024, 4, 2, "SpaceSun", 0, 0);

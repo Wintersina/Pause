@@ -49,6 +49,7 @@ public static class AllTests
         ("WeatherOverhaulTest", WeatherOverhaulTest.Execute),
         ("WeatherArtTest", WeatherArtTest.Execute),
         ("SpaceSunTest", SpaceSunTest.Execute),
+        ("PerfSafeWinsTest", PerfSafeWinsTest.Execute),
         ("AccountCloudSaveTest", AccountCloudSaveTest.Execute),
         ("AccountSignInTest", AccountSignInTest.Execute),
         ("PreRegistrationRewardTest", PreRegistrationRewardTest.Execute),

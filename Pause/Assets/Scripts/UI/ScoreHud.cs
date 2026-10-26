@@ -217,9 +217,15 @@ public class ScoreHud : MonoBehaviour
         rt.sizeDelta = size;
     }
 
+    public const string LabelPrefix = "SCORE  ";
+    // One string per rebuilt figure (the roll changes it most frames): the
+    // digits go straight into a kept buffer, no N0 / culture string first.
+    static readonly char[] labelBuf = new char[LabelPrefix.Length + 28];
     public static string Label(long points)
     {
-        return "SCORE  " + RunScore.Format(points);
+        LabelPrefix.CopyTo(0, labelBuf, 0, LabelPrefix.Length);
+        int n = RunScore.FormatInto(labelBuf, LabelPrefix.Length, points);
+        return new string(labelBuf, 0, n);
     }
 
     static void Style(Text t, Font font, int size, Color colour, TextAnchor align)
