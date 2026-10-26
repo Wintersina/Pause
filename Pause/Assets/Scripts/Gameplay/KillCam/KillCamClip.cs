@@ -50,31 +50,49 @@ public sealed class KillCamClip
     // ---- playback timing ----
     // The live kill cam shows this much of the run before the fatal hit (game seconds).
     public const float LiveWindow = 1.3f;
+    // ... and this much of the death after it (the crash's clock: the hit flash, the
+    // hull breaking up, the blasts, the killer's tumble). The crash holds for the
+    // replay once this much of it has played (DeathCrash), so the tape ends there.
+    public const float DeathTail = 1f;
     // Clock rate (game seconds per real second): LeadRate early on, easing down to
-    // SlowRate over the last RampSeconds before the hit -- very slow motion at the end.
+    // SlowRate over the last RampSeconds before the hit -- very slow motion at the
+    // collision -- then, after it, back up to TailRate over TailRampSeconds while
+    // the ship breaks up.
     public const float LeadRate = .7f, SlowRate = .18f, RampSeconds = .7f;
+    public const float TailRate = .6f, TailRampSeconds = .45f;
     // The last frame holds this long (real seconds) before the replay ends.
     public const float HoldEnd = .3f;
 
-    // How fast the replay clock runs `toImpact` game seconds before the hit.
+    // How fast the replay clock runs `toImpact` game seconds before the hit
+    // (negative: that long after it, the death).
     public static float RateAt(float toImpact)
     {
+        if (toImpact < 0f)
+            return Mathf.Lerp(SlowRate, TailRate, Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(-toImpact / TailRampSeconds)));
         float k = Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(toImpact / RampSeconds));
         return Mathf.Lerp(SlowRate, LeadRate, k);
     }
 
-    // Real seconds a replay of `window` game seconds takes (with the hold), at `step` real seconds a frame.
-    public static float RealSeconds(float window, float step = 1f / 60f)
+    // Real seconds a replay of `window` game seconds before the hit and `tail`
+    // after it takes (with the hold), at `step` real seconds a frame.
+    public static float RealSeconds(float window, float tail = 0f, float step = 1f / 60f)
     {
-        float t = 0f, real = 0f;
+        float t = 0f, real = 0f, end = window + Mathf.Max(0f, tail);
         int guard = 0;
-        while (t < window && guard++ < 100000)
+        while (t < end && guard++ < 100000)
         {
             t += step * RateAt(window - t);
             real += step;
         }
         return real + HoldEnd;
     }
+
+    // The fatal hit on this clip's clock (-1: not marked -- the clip ends on it).
+    public float impact = -1f;
+    public float ImpactTime { get { return impact >= 0f ? Mathf.Min(impact, EndTime) : EndTime; } }
+    public bool HasTail { get { return impact >= 0f && impact < EndTime - 1e-4f; } }
+    // The replay clock's rate at clip time `t`.
+    public float Rate(float t) { return RateAt(ImpactTime - t); }
 
     // ---- frames ----
     public int frameCount;
@@ -146,7 +164,29 @@ public sealed class KillCamClip
             int j = (cursor + k) % n;
             if (Entry(next, j).track == track) { cursor = j + 1; return j; }
         }
+        // Not near: a burst of new sprites (a barrage, a blast) pushed the rest
+        // further along. Look on (FarLook), so everything after the burst still
+        // blends instead of stepping. (Bounded: a sprite that is gone costs at
+        // most FarLook compares, not a scan of the whole frame.)
+        int far = Mathf.Min(n, FarLook);
+        for (int k = look; k < far; k++)
+        {
+            int j = (cursor + k) % n;
+            if (Entry(next, j).track == track) { cursor = j + 1; return j; }
+        }
         return -1;
+    }
+
+    // A blended pair is the same thing moving, not a pooled renderer that went
+    // out and was handed back elsewhere between two frames (a shot, a blast):
+    // that would sweep across the screen. Further than this (world units) in
+    // one recorded frame is a respawn, never motion on this board.
+    public const float MaxBlendJump = 2.5f;
+    public const int FarLook = 320;
+    public static bool Continuous(in KillCamEntry a, in KillCamEntry b)
+    {
+        float dx = b.pos.x - a.pos.x, dy = b.pos.y - a.pos.y;
+        return dx * dx + dy * dy <= MaxBlendJump * MaxBlendJump;
     }
 
     // Same for a mesh entry (there are only a handful: a straight scan).

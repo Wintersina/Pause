@@ -340,7 +340,7 @@ public class PauseQuickActions : MonoBehaviour
         bool show = buttonClicks.playerDied || stoppedTouching || pointerOnAction || touchOnAction;
         // Nothing to pause or leave by mid-crash: the sequence owns the screen
         // (a tap skips it) until the Flight Complete panel is up.
-        if (DeathCrash.Running) show = false;
+        if (DeathCrash.Running || KillCam.Playing) show = false;
         if (replayClone != null) replayClone.SetActive(show);
         if (leaveClone != null) leaveClone.SetActive(show);
     }

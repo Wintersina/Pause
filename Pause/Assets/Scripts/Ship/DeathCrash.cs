@@ -23,10 +23,13 @@ using UnityEngine;
 //              the score all stop) but the board drops into a slow motion
 //              (SlowMo on this sequence's clock, DeathCrashDomino), the hull
 //              is hidden and the pieces take its place, flashing, the camera
-//              kicks -- then, before any of it moves, the kill cam (KillCam)
-//              replays the run's last seconds in slow motion with the crash
-//              held on this frame (Held); it hands back to this exact frame
-//              and the crash plays on
+//              kicks; the kill cam's tape (KillCamRecorder) marks the hit and
+//              keeps rolling through the death
+//   DeathTail  (KillCamClip) the kill cam (KillCam) takes over: the crash is
+//              held (Held) while the run's last seconds, the collision and
+//              this much of the death replay in slow motion; it hands back to
+//              this exact frame and the crash plays on (a skip before then
+//              goes to the panel without a replay)
 //   HitStop    the pieces fly, staggered (LaunchSpread): a quadratic arc
 //              up and over to a random spot (side per piece, y anywhere on
 //              screen) on the left or right rail, spinning, trailing smoke
@@ -91,7 +94,7 @@ public partial class DeathCrash : MonoBehaviour
 
     // The sequence is playing: the panel waits.
     public static bool Running => Instance != null && Instance.running;
-    public static bool PanelReady => !Running;
+    public static bool PanelReady => !Running && !KillCam.Playing;
     // The sequence or its tail is on screen: hearts and blasts run on FrameDt.
     public static bool Animating => Instance != null && Instance.animating;
     // This frame's step of the sequence clock (0 when nothing plays).
@@ -130,7 +133,7 @@ public partial class DeathCrash : MonoBehaviour
     SpriteRenderer hiddenHull;
     GameObject ship;
     int pieceCount, fragmentCount, shipId, nextParticle;
-    bool built, running, finished, animating, skipped, wasPressed, killerCrashed;
+    bool built, running, finished, animating, skipped, wasPressed, killerCrashed, replayed;
     float elapsed, finishedAt, lastLanding, plannedEnd, shake, shakeClock, edge, viewTop, viewBottom;
     Vector3 shakeApplied;
     Camera shakeCam;
@@ -246,6 +249,9 @@ public partial class DeathCrash : MonoBehaviour
     {
         Build();
         if (running || deadShip == null) return;
+        // the collision itself goes on the kill cam's tape, the ship still whole against what hit it
+        KillCamRecorder.MarkImpact();
+        replayed = false;
         HideAll();
         elapsed = 0f;
         finishedAt = -1f;
@@ -346,13 +352,11 @@ public partial class DeathCrash : MonoBehaviour
                  Random.insideUnitCircle.normalized * Random.Range(1.4f, 2.8f), Random.Range(.22f, .36f),
                  .1f, .05f, -5f, 0f, 1.5f, Color.white, SparkOrder);
 
-        // The kill cam first: the last seconds before this hit replay in slow
-        // motion while the crash holds on its first frame (Held), then it plays.
-        KillCam.TryBegin();
+        // (the kill cam follows DeathTail into the crash: Step)
     }
 
-    // The kill cam is replaying the run's last seconds: the crash waits on its
-    // first frame (no clock, FrameDt 0, no skip, no shake).
+    // The kill cam is replaying the run's last seconds and the death: the crash
+    // waits where the tape ends (no clock, FrameDt 0, no skip, no shake).
     public static bool Held => KillCam.Playing;
 
     int Add(PieceKind kind, Sprite sprite, Vector3 start, Quaternion rotation, Vector3 scale, float radius,
@@ -508,6 +512,8 @@ public partial class DeathCrash : MonoBehaviour
         }
         lastLanding = elapsed;
         skipped = true;
+        var tape = KillCamRecorder.Instance;   // the tape ends here (the panel follows, no replay)
+        if (tape != null) tape.FinishTail(0f);
         shake = Mathf.Max(shake, .03f);
         AnnounceCombo();
         Finish();
@@ -540,6 +546,13 @@ public partial class DeathCrash : MonoBehaviour
         {
             AnnounceCombo();
             if (elapsed >= lastLanding + SettleTime) Finish();
+        }
+        // DeathTail of the death is on the tape: the replay plays it all, then the crash goes on from here
+        if (!replayed && !skipped && (elapsed >= KillCamClip.DeathTail || finished))
+        {
+            replayed = true;
+            UndoShake();   // the camera the replay hands back is the unshaken one
+            KillCam.TryBegin(dt);
         }
         if (finished && elapsed >= finishedAt + Tail && !AnyVisible()) Stop();
     }
@@ -697,6 +710,7 @@ public partial class DeathCrash : MonoBehaviour
         ship = null;
         running = finished = false;
         KillCam.Stop();
+        KillCamRecorder.CancelImpact();
         ResetDomino();
         Stop();
     }

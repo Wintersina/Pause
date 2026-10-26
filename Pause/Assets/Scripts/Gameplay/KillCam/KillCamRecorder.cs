@@ -11,9 +11,17 @@ using UnityEngine.SceneManagement;
 // each sprite on screen as a KillCamEntry: sprite, material, world matrix,
 // colour, sorting, flips; and each scrolling quad (the rails: a MeshRenderer
 // whose look is its material's texture offset) as its offset. A frozen pause
-// (finger up), a death or the replay itself records nothing, so the tape is
-// always the last seconds of actual flight. At most one frame per MinGap of
-// game time (a 120 Hz screen records every other frame).
+// (finger up) or the replay itself records nothing, so the tape is always the
+// last seconds of actual flight. At most one frame per MinGap of game time.
+//
+// THE DEATH. The fatal hit (DeathCrash.Play -> MarkImpact) is recorded at once
+// -- the frame of the collision itself, the ship still whole against what hit
+// it -- and the tape rolls on through the death on the crash's own clock
+// (DeathCrash.FrameDt: the world is stopped, the crash is not): the hit flash,
+// the hull breaking up, the blasts, the killer's tumble, for up to
+// KillCamClip.DeathTail, until the kill cam takes over (FinishTail). The clip
+// then carries where the hit is (KillCamClip.impact): the replay slows into it
+// and plays on through the death.
 //
 // Cheap and GC-free: the rings (frames, entries, mesh entries) are allocated
 // once; the walk reuses its lists (GetRootGameObjects / GetComponentsInChildren
@@ -21,12 +29,15 @@ using UnityEngine.SceneManagement;
 [DefaultExecutionOrder(31000)]   // after everything that moves or animates a sprite
 public sealed class KillCamRecorder : MonoBehaviour
 {
-    public const int FrameCap = 160;           // 2.6 s at the 62 Hz cap (the replay needs LiveWindow, 1.3 s)
-    public const int EntryCap = 57600;         // ~360 sprites a frame over the full ring
-    public const int MaxPerFrame = 900;
+    // 40 frames a game second: every frame of the 24 fps art, and the replay blends between them.
+    public const float MinGap = 1f / 40f;
+    public const int FrameCap = 128;           // 3.2 s at MinGap (the replay needs LiveWindow + DeathTail, 2.3 s)
+    // ~1070 sprites a frame over the 2.3 s the replay needs: a busy board, the
+    // elites' full-height dotted telegraphs (a hail wall's lanes are ~1000 dots) included.
+    public const int EntryCap = 98304;
+    public const int MaxPerFrame = 2048;
     public const int MaxMeshPerFrame = 8;
     public const int MeshCap = FrameCap * MaxMeshPerFrame;
-    public const float MinGap = 1f / 62f;
 
     public static KillCamRecorder Instance { get; private set; }
     // Tests / previews: switch the tape off.
@@ -46,14 +57,17 @@ public sealed class KillCamRecorder : MonoBehaviour
     readonly int[] fFirst = new int[FrameCap], fCount = new int[FrameCap];
     readonly int[] fMeshFirst = new int[FrameCap], fMeshCount = new int[FrameCap];
     int head, frames, entryWrite, entriesLive, meshWrite, meshLive;
-    float clock, lastAt = -1f;
-    bool recording;
+    float clock, lastAt = -1f, impactAt = -1f;
+    bool recording, tailing;
     Camera cam;
     KillCamClip view;
 
     public bool Recording { get { return recording; } }
     public int Frames { get { return frames; } }
     public float Clock { get { return clock; } }
+    // The fatal hit on the tape's clock (-1: none yet) and whether the death is still being taped.
+    public float ImpactAt { get { return impactAt; } }
+    public bool Tailing { get { return tailing; } }
     public int LastFrameEntries { get { return frames > 0 ? fCount[(head + frames - 1) % FrameCap] : 0; } }
 
     public static KillCamRecorder Ensure()
@@ -79,7 +93,8 @@ public sealed class KillCamRecorder : MonoBehaviour
     {
         head = frames = entryWrite = entriesLive = meshWrite = meshLive = 0;
         clock = 0f;
-        lastAt = -1f;
+        lastAt = impactAt = -1f;
+        tailing = false;
         scrollQuad.Clear();
         // drop the references so a finished run's sprites can unload
         System.Array.Clear(ring, 0, ring.Length);
@@ -90,14 +105,94 @@ public sealed class KillCamRecorder : MonoBehaviour
 
     void LateUpdate()
     {
-        if (!recording || !Enabled) return;
-        if (buttonClicks.playerDied || KillCam.Playing) return;
-        float dt = Time.deltaTime;
-        if (dt <= 0f || Time.timeScale <= 0f) return;
+        if (!recording || !Enabled || KillCam.Playing) return;
+        if (buttonClicks.playerDied)
+        {
+            // the death: on the crash's clock, until the tail is long enough
+            if (!tailing) return;
+            Tail(DeathCrash.FrameDt);
+            return;
+        }
+        if (Time.timeScale <= 0f) return;
+        Flight(Time.deltaTime);
+    }
+
+    // One frame of flight, `dt` of game time (tests drive it by hand).
+    public void Flight(float dt)
+    {
+        if (dt <= 0f) return;
         clock += dt;
         if (lastAt >= 0f && clock - lastAt < MinGap) return;
         lastAt = clock;
         Capture(clock);
+    }
+
+    // One step of the death tail: `dt` of the crash's clock (0: held, nothing).
+    public void Tail(float dt)
+    {
+        if (!tailing || dt <= 0f) return;
+        clock += dt;
+        if (clock - impactAt >= KillCamClip.DeathTail) tailing = false;   // (this last frame is still kept)
+        if (tailing && lastAt >= 0f && clock - lastAt < MinGap) return;
+        lastAt = clock;
+        Capture(clock);
+    }
+
+    // The fatal hit (DeathCrash.Play, before the hull is hidden): the collision
+    // frame itself goes on the tape and the death after it is taped too.
+    public static void MarkImpact()
+    {
+        var r = Instance;
+        if (r == null || !r.recording || !Enabled || KillCam.Playing) return;
+        r.Impact(Mathf.Clamp(Time.deltaTime, 0f, .1f));
+    }
+
+    // (tests: `dt` of flight since the last frame)
+    public void Impact(float dt)
+    {
+        if (!recording) return;
+        clock += Mathf.Max(dt, 1e-4f);
+        lastAt = impactAt = clock;
+        tailing = true;
+        Capture(clock);
+    }
+
+    // The kill cam takes over (KillCam.TryBegin): the death as it stands this
+    // frame (the crash has stepped, `dt` of its clock) is the tape's last frame.
+    public void FinishTail(float dt)
+    {
+        if (!tailing) return;
+        clock += Mathf.Max(dt, 1e-4f);
+        lastAt = clock;
+        tailing = false;
+        Capture(clock);
+    }
+
+    // A revive takes the death back: flight resumes on the same tape.
+    public static void CancelImpact()
+    {
+        var r = Instance;
+        if (r == null) return;
+        r.Uncrash();
+    }
+
+    // Takes the death's frames off the end of the tape (the next death's lead-in is flight only).
+    public void Uncrash()
+    {
+        if (impactAt >= 0f)
+            while (frames > 0)
+            {
+                int last = (head + frames - 1) % FrameCap;
+                if (fTime[last] < impactAt - 1e-5f) break;
+                entriesLive -= fCount[last];
+                meshLive -= fMeshCount[last];
+                entryWrite = fFirst[last];
+                meshWrite = fMeshFirst[last];
+                frames--;
+            }
+        lastAt = frames > 0 ? fTime[(head + frames - 1) % FrameCap] : -1f;
+        tailing = false;
+        impactAt = -1f;
     }
 
     // ---- the walk ----
@@ -213,8 +308,10 @@ public sealed class KillCamRecorder : MonoBehaviour
     }
 
     // The tape's last `window` game seconds as a clip (in time order, its clock
-    // starting at 0). The clip shares the rings: valid until recording resumes.
-    // Null when there is not enough to play.
+    // starting at 0) -- with a death on the tape, the last `window` seconds
+    // before the fatal hit and the whole death after it (the clip's impact).
+    // The clip shares the rings: valid until recording resumes. Null when there
+    // is not enough to play.
     public KillCamClip Clip(float window)
     {
         if (frames < 2) return null;
@@ -225,10 +322,12 @@ public sealed class KillCamRecorder : MonoBehaviour
             view.meshEntries = meshRing;
         }
         float end = fTime[(head + frames - 1) % FrameCap];
+        float anchor = impactAt >= 0f ? Mathf.Min(impactAt, end) : end;
         int from = 0;
-        while (from < frames - 2 && fTime[(head + from) % FrameCap] < end - window) from++;
+        while (from < frames - 2 && fTime[(head + from) % FrameCap] < anchor - window) from++;
         int n = frames - from;
         float t0 = fTime[(head + from) % FrameCap];
+        view.impact = impactAt >= 0f ? Mathf.Max(0f, anchor - t0) : -1f;
         for (int i = 0; i < n; i++)
         {
             int s = (head + from + i) % FrameCap;

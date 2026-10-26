@@ -4,8 +4,9 @@ using UnityEngine.UI;
 
 // The codex's LAST STAND viewer: the saved kill cam of the latest high-score
 // death (KillCamArchive), full screen, played the way the live kill cam
-// plays it (KillCamClip.RateAt: slowing to very slow motion at the fatal
-// hit, the normal framing, no zoom), looping with a short dip through black.
+// plays it (KillCamClip.RateAt: slowing to very slow motion into the fatal
+// hit, then on through the death; the normal framing, no zoom), looping --
+// approach, collision, death, a short hold -- with a dip through black.
 //
 // Built like CodexBackdropViewer: the clip is drawn by a KillCamStage far off
 // to the side of the menu scene (OffsetX), by the viewer's own orthographic
@@ -285,7 +286,7 @@ public sealed class CodexReplayViewer : MonoBehaviour
         {
             float end = clip.EndTime;
             float wait = KillCamClip.HoldEnd + LoopPause;
-            if (clock < end) { clock = Mathf.Min(end, clock + dt * KillCamClip.RateAt(end - clock)); since += dt; }
+            if (clock < end) { clock = Mathf.Min(end, clock + dt * clip.Rate(clock)); since += dt; }
             else
             {
                 after += dt;
