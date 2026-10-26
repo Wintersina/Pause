@@ -45,6 +45,7 @@ public static class KillCamTest
             Archive(made);
             Fidelity(made);
             RecordOrder(made);
+            RecordSettledOnFlush(made);
         }
         finally
         {
@@ -672,6 +673,25 @@ public static class KillCamTest
         var loaded = KillCamArchive.Load();
         Check("and it loads", loaded != null && loaded.meta.SameAs(r));
         if (loaded != null) loaded.Dispose();
+        KillCamArchive.Clear();
+    }
+
+    // ---- quitting before the codex is opened still keeps the record ----
+    static void RecordSettledOnFlush(System.Collections.Generic.List<Object> made)
+    {
+        KillCamArchive.Clear();
+        var sprite = MakeSprite(made, Color.green, 16);
+        var clip = MakeClip(sprite, 12, 1f / 60f, 1f);
+        var r = new KillCamArchive.Record { score = 888, utcTicks = 638000000000012345L, ship = 2, world = "Tide", killer = "" };
+        KillCamArchive.Save(clip, r, true);
+        var pending = KillCamArchive.Pending;
+        if (pending == null) { Check("flush settle: a background save is under way", false); return; }
+        pending.Wait();
+        Check("flush settle: the record is not written before anything settles", PlayerPrefs.GetString(KillCamArchive.PrefsKey, "") == "");
+        var flush = typeof(PrefsSaverRunner).GetMethod("Flush", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic);
+        flush.Invoke(null, null);   // OnApplicationPause / Quit
+        Check("flush settle: the record is in PlayerPrefs without Latest being read",
+              PlayerPrefs.GetString(KillCamArchive.PrefsKey, "") == r.Format() && KillCamArchive.Pending == null);
         KillCamArchive.Clear();
     }
 

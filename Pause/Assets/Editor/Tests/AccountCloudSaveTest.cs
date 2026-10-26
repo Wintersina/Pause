@@ -82,6 +82,7 @@ public static class AccountCloudSaveTest
         {
             MergeRules();
             RoundTrip();
+            FusionLogSync();
             CodexSync();
             DeveloperModeSnapshot();
             SignInFailureLeavesLocalAlone();
@@ -191,6 +192,60 @@ public static class AccountCloudSaveTest
     }
 
     // ---- serialisation ----
+
+    static void FusionLogSync()
+    {
+        ClearProgress();
+        string k1 = AtomFusionTable.All[0].key, k2 = AtomFusionTable.All[1].key;
+        PlayerPrefs.SetString(FusionDiscoveryStore.PrefsKey, k1 + ":5:2:20261020," + k2 + ":1:1:20261001,future:9:9:20260101");
+        var snap = ProgressSnapshot.Capture(10);
+        Check("fusion log: captured", snap.fusionLog.Contains(k1 + ":5:2:20261020"));
+        ProgressSnapshot back;
+        Check("fusion log: round trips", ProgressSnapshot.TryParse(snap.ToJson(), out back) == ProgressSnapshot.ParseResult.Ok && back.fusionLog == snap.fusionLog);
+        // An older blob without the field still parses (no schema bump).
+        string old = snap.ToJson().Replace("\"fusionLog\":\"" + snap.fusionLog + "\",", "").Replace(",\"fusionLog\":\"" + snap.fusionLog + "\"", "");
+        Check("fusion log: an older blob lacks the field", !old.Contains("fusionLog"));
+        Check("fusion log: ... and parses to none",
+              ProgressSnapshot.TryParse(old, out back) == ProgressSnapshot.ParseResult.Ok && back.fusionLog == "" && back.schemaVersion == ProgressSnapshot.CurrentSchemaVersion);
+
+        string m = FusionDiscoveryStore.Merge(k1 + ":5:2:20261020,future:9:9:20260101", k1 + ":3:4:20261010," + k2 + ":2:1:20261005,future:9:9:20260101");
+        var recs = new FusionDiscoveryStore.Record[AtomFusionTable.Count];
+        string extra = FusionDiscoveryStore.Parse(m, recs);
+        Check("fusion log merge: larger count, larger chain, earlier first day",
+              recs[0].count == 5 && recs[0].bestChain == 4 && recs[0].firstDay == 20261010);
+        Check("fusion log merge: a fusion only one side has is kept", recs[1].count == 2 && recs[1].firstDay == 20261005);
+        Check("fusion log merge: an unknown entry is kept once", extra == "future:9:9:20260101");
+        Check("fusion log merge: empty side keeps the other", FusionDiscoveryStore.Merge("", k1 + ":1:1:20261001") == k1 + ":1:1:20261001");
+
+        // Through ProgressMerge and Apply (the store reloads).
+        var a = Snap(1000, 1f, new[] { 1 }, 0, 0, 0, 0, false); a.fusionLog = k1 + ":5:2:20261020";
+        var b = Snap(2000, 1f, new[] { 1 }, 0, 0, 0, 0, false); b.fusionLog = k2 + ":2:1:20261005";
+        var merged = ProgressMerge.Merge(a, b);
+        merged.Apply();
+        Check("fusion log: merged snapshot applies and the store reloads",
+              FusionDiscoveryStore.Get(AtomFusionTable.All[0].id).count == 5 && FusionDiscoveryStore.Get(AtomFusionTable.All[1].id).count == 2);
+
+        // The keys the snapshot does not carry belong to the previous account.
+        string dir = Path.Combine(Path.GetTempPath(), "PauseAcsKillCam");
+        KillCamArchive.DirectoryOverride = dir;
+        try
+        {
+            Directory.CreateDirectory(dir);
+            File.WriteAllText(KillCamArchive.FilePath, "x");
+            PlayerPrefs.SetString(KillCamArchive.PrefsKey, "2|1|1|0||");
+            PlayerPrefs.SetInt(FusionDiscoveryStore.UnseenKey, 1);
+            PlayerPrefs.SetInt(PlayerStartWorld.HintKey, 1);
+            CloudSync.ResetLocalOnlyKeys();
+            Check("switch: local-only keys are reset", !PlayerPrefs.HasKey(KillCamArchive.PrefsKey) && !File.Exists(KillCamArchive.FilePath)
+                  && !PlayerPrefs.HasKey(FusionDiscoveryStore.UnseenKey) && !PlayerPrefs.HasKey(PlayerStartWorld.HintKey));
+        }
+        finally
+        {
+            KillCamArchive.DirectoryOverride = null;
+            try { if (Directory.Exists(dir)) Directory.Delete(dir, true); } catch (Exception) { }
+        }
+        ClearProgress();
+    }
 
     static void RoundTrip()
     {

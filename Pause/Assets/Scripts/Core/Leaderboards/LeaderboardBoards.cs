@@ -126,7 +126,8 @@ public static class LeaderboardBoards
             "Best score in a single run.",
             LeaderboardSort.HigherIsBetter,
             FormatScore,
-            run => run.score),
+            run => run.score,
+            1),   // a 0-score run is never offered
 
         // Live on Android; the Game Center ids are still to be created (empty = off on iOS).
         new LeaderboardBoard(RunStarDust,
@@ -136,7 +137,8 @@ public static class LeaderboardBoards
             "Most star dust collected in a single run.",
             LeaderboardSort.HigherIsBetter,
             FormatHundredths,
-            run => (long)Math.Round(run.starDust * 100.0)),   // stored in hundredths (2 decimals)
+            run => (long)Math.Round(run.starDust * 100.0),   // stored in hundredths (2 decimals)
+            1),   // 0.00 star dust is never offered
 
         // Worlds cleared across loops (logical and store ids kept from the old
         // "Furthest Loop" board; only the meaning changed). The Play Console

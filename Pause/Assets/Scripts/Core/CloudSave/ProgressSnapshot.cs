@@ -78,6 +78,10 @@ public class ProgressSnapshot
     // older blob lacks both (= no counts). Merged per id by the larger count; a restore never lowers a tally.
     public string codexKilled = "";
     public string codexHurt = "";
+    // Atomic fusion discoveries (FusionDiscoveryStore.PrefsKey: "key:count:bestChain:yyyymmdd,..."). Additive, no
+    // schema bump: an older blob lacks it (= none) and an older build ignores it. Merged per key (larger count and
+    // chain, earlier first day) by FusionDiscoveryStore.Merge.
+    public string fusionLog = "";
 
     // Hard cap per list: the Codex has ~95 entries (+ achievement acks), so this
     // only guards the cloud blob against a corrupt pref.
@@ -168,6 +172,7 @@ public class ProgressSnapshot
         s.codexPaid = IdList(PlayerPrefs.GetString(Codex.PaidKey, ""));
         s.codexKilled = DamageLog.MergeMax(PlayerPrefs.GetString(DamageLog.KilledKey, ""), "");
         s.codexHurt = DamageLog.MergeMax(PlayerPrefs.GetString(DamageLog.HurtKey, ""), "");
+        s.fusionLog = FusionDiscoveryStore.Normalize(PlayerPrefs.GetString(FusionDiscoveryStore.PrefsKey, ""));
 
         var counters = new List<Counter>();
         foreach (string key in CounterKeys())
@@ -226,6 +231,8 @@ public class ProgressSnapshot
         WriteIds(Codex.PaidKey, IdList(paidNow));
         WriteTally(DamageLog.KilledKey, DamageLog.MergeMax(PlayerPrefs.GetString(DamageLog.KilledKey, ""), codexKilled));
         WriteTally(DamageLog.HurtKey, DamageLog.MergeMax(PlayerPrefs.GetString(DamageLog.HurtKey, ""), codexHurt));
+        WriteTally(FusionDiscoveryStore.PrefsKey, FusionDiscoveryStore.Normalize(fusionLog));
+        FusionDiscoveryStore.Reload();
         Codex.OnExternalChange();   // drop the cached sets so the next write can't undo this
     }
 
@@ -354,6 +361,7 @@ public class ProgressSnapshot
         snapshot.codexPaid = IdList(snapshot.codexPaid);
         snapshot.codexKilled = DamageLog.MergeMax(snapshot.codexKilled, "");
         snapshot.codexHurt = DamageLog.MergeMax(snapshot.codexHurt, "");
+        snapshot.fusionLog = FusionDiscoveryStore.Normalize(snapshot.fusionLog);
         return ParseResult.Ok;
     }
 
