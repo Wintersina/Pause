@@ -378,22 +378,41 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
     public static string KilledByLabel(Results r) { return string.IsNullOrEmpty(r.killedBy) ? "-" : r.killedBy; }
     public static string HurtByLabel(Results r) { return string.IsNullOrEmpty(r.hurtBy) ? "NO OTHER HITS" : r.hurtBy.ToUpperInvariant(); }
 
+    const int KilledFontSize = 24, KilledMinFontSize = 18;
+
     RectTransform BuildKilledBy()
     {
         var card = CardBody(3, Coral);
-        var killed = NewText("Killed", card, "KILLED BY  " + KilledByLabel(results).ToUpperInvariant(), 24, Bone, TextAnchor.MiddleLeft);
-        Place(killed.rectTransform, Centered(LabelLeft + 250f, 12f, 500f, 30f));
+        var killed = NewText("Killed", card, "KILLED BY  " + KilledByLabel(results).ToUpperInvariant(), KilledFontSize, Bone, TextAnchor.MiddleLeft);
         var hurt = NewText("Hurt", card, "HURT BY  " + HurtByLabel(results), HurtFontSize, Muted, TextAnchor.MiddleLeft);
-        Place(hurt.rectTransform, Centered(LabelLeft + 260f, -15f, 520f, 26f));
-        foreach (var t in new[] { killed, hurt })
-        {
-            t.horizontalOverflow = HorizontalWrapMode.Wrap;
-            t.resizeTextForBestFit = true;
-            t.resizeTextMinSize = 12;
-            t.resizeTextMaxSize = t.fontSize;
-        }
-        hurt.resizeTextMinSize = HurtMinFontSize;
+
+        // Measured once, here (the panel is built per death): padding stays constant, the text
+        // shrinks then wraps, and the card grows to fit instead of the text filling the box.
+        float inner = DeathNameLayout.InnerWidth(CardWidth);
+        var lay = DeathNameLayout.Compute(killed.preferredWidth, KilledFontSize, KilledMinFontSize,
+                                          hurt.preferredWidth, HurtFontSize, HurtMinFontSize, inner);
+        float h = lay.cardHeight;
+        card.sizeDelta = new Vector2(CardWidth, h);
+        var bar = card.Find("Accent") as RectTransform;
+        if (bar != null) bar.sizeDelta = new Vector2(bar.sizeDelta.x, h - 30f);
+
+        float left = -CardWidth * .5f + DeathNameLayout.PadLeft;
+        float gap = lay.killedLines > 0 && lay.hurtLines > 0 ? DeathNameLayout.LineGap : 0f;
+        float top = (lay.killedHeight + lay.hurtHeight + gap) * .5f;   // block centred in the card
+        killed.fontSize = lay.killedFont;
+        hurt.fontSize = lay.hurtFont;
+        SetLine(killed, left, top, lay.killedHeight, inner, lay.killedLines);
+        SetLine(hurt, left, top - lay.killedHeight - gap, lay.hurtHeight, inner, lay.hurtLines);
         return card;
+    }
+
+    // A text box whose top edge is y (card space, y up), `width` wide, wrapping when it needs a second line.
+    static void SetLine(Text t, float left, float y, float height, float width, int lines)
+    {
+        t.horizontalOverflow = lines > 1 ? HorizontalWrapMode.Wrap : HorizontalWrapMode.Overflow;
+        t.resizeTextForBestFit = false;
+        t.alignment = TextAnchor.MiddleLeft;
+        Place(t.rectTransform, new Rect(left, y - height, width, height));
     }
 
     public static string LoopsCount(RunScore.Breakdown b) { return b.loops.ToString(); }
