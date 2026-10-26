@@ -3,37 +3,40 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
-// The kill cam: the moment the ship dies, the last LiveWindow seconds of the
-// run replay from the tape (KillCamRecorder) in slow motion that gets very
-// slow at the end (KillCamClip.RateAt), so the player sees exactly what got
-// them -- the shot, the ram, the beam -- arrive. The camera keeps its normal
-// framing: no zoom, no drift, no name caption (the Flight Complete panel
-// still names the killer).
+// The kill cam: the ship dies -- the collision and the crash play as they
+// happen -- and then the run's last LiveWindow seconds before the fatal hit,
+// the hit itself and the death after it (DeathTail) replay from the tape
+// (KillCamRecorder) in slow motion that gets very slow at the collision and
+// eases back up through the break-up (KillCamClip.RateAt), so the player sees
+// exactly what got them -- the shot, the ram, the beam -- arrive, and the ship
+// go. The camera keeps its normal framing: no zoom, no drift, no name caption
+// (the Flight Complete panel still names the killer).
 //
-// HOW. The death crash (DeathCrash) sets itself up on the fatal hit as ever,
-// then hands over: while the replay plays the crash is held (its clock and
-// FrameDt stay at zero, so its blasts, the hearts and the board stay frozen
-// on the fatal frame; the world is already stopped by the death). Every live
-// renderer is switched off (forceRenderingOff) and a KillCamStage draws the
-// recorded frames in their place; the rails keep drawing, fed their recorded
-// texture offsets; the camera takes each frame's recorded position (a shake
-// on the tape replays as it happened). When the replay reaches the fatal
-// frame and holds a beat, everything is put back exactly as it was and the
-// crash plays from its first frame -- the replay hands straight into it.
+// HOW. The death crash (DeathCrash) plays its first DeathTail seconds live
+// while the tape keeps rolling, then hands over: while the replay plays the
+// crash is held (its clock and FrameDt stay at zero, so its blasts, the hearts
+// and the board stay frozen where the tape ends; the world is already stopped
+// by the death). Every live renderer is switched off (forceRenderingOff) and a
+// KillCamStage draws the recorded frames in their place; the rails keep
+// drawing, fed their recorded texture offsets; the camera takes each frame's
+// recorded position (a shake on the tape replays as it happened). When the
+// replay reaches the tape's last frame and holds a beat, everything is put
+// back exactly as it was and the crash plays on from there -- the replay
+// hands straight back into it.
 //
 // THE INTRO. The player must know a replay is coming, so before it plays:
-//   Killed  the fatal frame freezes (the tape's last frame, no zoom, no extra
-//           shake) under a KILLED banner in the boss banner's style
+//   Killed  the tape's last frame freezes (no zoom, no extra shake) under a
+//           KILLED banner in the boss banner's style
 //   Rewind  the tape scrubs backwards to the start of the window under a cyan
 //           tint, scanlines and a horizontal glitch while the song plays in
 //           reverse (KillCamMusic); the REPLAY label pops in
-//   Play    the replay runs forward in slow motion, the song carries on from
-//           where it paused
-// A fresh tap after SkipGuard skips to the crash at any point, so the replay
-// never traps the player; the whole thing is IntroSeconds (~1.25 s) plus
-// RealSeconds(LiveWindow) (~3.4 s). Soft shades top and bottom (no boxes, no
-// lines) frame it, and a REPLAY label lettered like the PAUSED caption
-// (ReplayLabel) marks it. Sounds are optional hooks (KillCamAudio).
+//   Play    the replay runs forward: the approach, slow motion into the
+//           collision, the death; the song carries on from where it paused
+// A fresh tap after SkipGuard skips back to the crash at any point, so the
+// replay never traps the player; the whole thing is IntroSeconds (~1.25 s)
+// plus RealSeconds(LiveWindow, DeathTail) (~5 s). Soft shades top and bottom
+// (no boxes, no lines) frame it, and a REPLAY label lettered like the PAUSED
+// caption (ReplayLabel) marks it. Sounds are optional hooks (KillCamAudio).
 [DefaultExecutionOrder(32000)]   // its LateUpdate draws after everything else has moved
 public sealed class KillCam : MonoBehaviour
 {
@@ -44,7 +47,7 @@ public sealed class KillCam : MonoBehaviour
     public const float ShadeAlpha = .55f;
     public const int OverlayOrder = 400;
     // A safety net: whatever happens, the replay is over after this much real time.
-    public const float MaxReal = 8f;
+    public const float MaxReal = 12f;
 
     public const float KilledSeconds = .75f;   // the banner's stay on the frozen fatal frame
     public const float RewindSeconds = .5f;
@@ -122,14 +125,16 @@ public sealed class KillCam : MonoBehaviour
         if (instance == this) instance = null;
     }
 
-    // DeathCrash.Play, once the crash is set up: plays the replay first (the
-    // crash holds meanwhile). False -- the crash just plays -- when there is no
-    // tape (the tutorial, edit mode, a death in the first frames of a run).
-    public static bool TryBegin()
+    // DeathCrash, DeathTail into the crash: plays the replay (the crash holds
+    // meanwhile; `crashDt` is the step the crash just took, this frame's part
+    // of the death on the tape). False -- the crash just plays on -- when there
+    // is no tape (the tutorial, edit mode, a death in the first frames of a run).
+    public static bool TryBegin(float crashDt = 0f)
     {
         if (!Enabled || !Application.isPlaying) return false;
         var recorder = KillCamRecorder.Instance;
         if (recorder == null) return false;
+        recorder.FinishTail(crashDt);
         var footage = recorder.Clip(KillCamClip.LiveWindow);
         if (footage == null || footage.frameCount < MinFrames) return false;
         Ensure().Begin(footage);
@@ -150,7 +155,7 @@ public sealed class KillCam : MonoBehaviour
         hold = KillCamClip.HoldEnd;
         glitchX = 0f;
         fxTick = -1;
-        // the intro freezes on the fatal frame (the tape's last); without it the replay starts at once
+        // the intro freezes on the tape's last frame; without it the replay starts at once
         phase = Intro ? Phase.Killed : Phase.Play;
         clock = Intro ? clip.EndTime : 0f;
         Skipped = false;
@@ -252,7 +257,7 @@ public sealed class KillCam : MonoBehaviour
         {
             // the song stays loud and at normal pitch, behind a gentle low-pass that eases in and out
             KillCamMusic.StepMuffle(dt, clock >= end);
-            if (clock < end) clock = Mathf.Min(end, clock + dt * KillCamClip.RateAt(end - clock));
+            if (clock < end) clock = Mathf.Min(end, clock + dt * clip.Rate(clock));
             else
             {
                 hold -= dt;

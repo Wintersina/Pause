@@ -14,52 +14,71 @@ using UnityEngine.Experimental.Rendering;
 //
 // WHEN. playerIsDead settles the run; a ranked run (RunScore.SavesBest) that
 // beat the best it started with (RunScore.IsNewBest) saves the tape's last
-// LiveWindow seconds (ShouldSave). Practice, developer and tutorial runs never do.
+// LiveWindow seconds before the fatal hit, the hit and the death after it
+// (ShouldSave). Practice, developer and tutorial runs never do.
 //
 // WHAT. The live tape refers to sprites and materials of the running scene,
 // which the menu does not have, so a saved clip carries its own pictures:
-//   * every distinct sprite in the clip is copied through the GPU (one pass
-//     of quads into one atlas, one read-back) at a modest density
-//     (SmallDensity / LargeDensity texels a world unit, less if the atlas
-//     would overflow AtlasMax), the atlas stored as a PNG;
+//   * every distinct sprite in the clip is copied through the GPU into atlas
+//     pages (PageSize square at most, MaxPages of them; one pass of quads and
+//     one read-back a page) at the density it is SEEN at: its size on screen
+//     (its sprite's size times the largest scale any of its entries is drawn
+//     at -- a 1-unit boss cell drawn 3.3 u wide is copied 3.3 u wide) times
+//     Density texels a world unit (the viewer's own resolution; LargeDensity
+//     for backdrop plates wider than LargeExtent), never more than the source
+//     has, less (a step at a time) if the pages would overflow. A shrinking
+//     copy is box-filtered (Hidden/Pause/KillCamDownsample: thin lines of the
+//     art dim, they never drop out) and every slot's edge texels are extruded
+//     Pad texels into its gutter, so a sprite sampled at its edge never picks
+//     up the clear gutter (a seam: a hairline across the screen where two
+//     backdrop plates meet). Pages are stored as PNGs;
 //   * a material other than the default sprite one is stored as its shader's
 //     name and its float / colour / vector settings (re-made on load when
 //     the shader is in the build -- the additive glows, the rails'); but a
-//     shader that works in its sprite's own texture space (BakedShaders: the
-//     Space sky's wrap, the turning planets' disc) would sample other
-//     sprites in the clip's atlas, so such a sprite is drawn through its
-//     material into the atlas instead and replayed plain;
+//     shader that works in its sprite's own texture space or per renderer
+//     (BakedShaders: the Space sky's wrap, the turning planets' disc, the
+//     exhaust skins' palette shift) would sample other sprites in the clip's
+//     atlas or lose its renderer's settings, so such a sprite is drawn through
+//     its material -- its renderer's property block too -- into the atlas
+//     instead and replayed plain;
 //   * each rail (a scrolling quad) as its bounds, settings, a copy of its
-//     texture and its offset per frame;
-//   * frames thinned to StoreGap apart (the replay blends between them),
-//     positions relative to the camera, quantised to shorts.
-// Then gzip. A busy board comes to a few hundred KB of frames plus the atlas.
+//     texture (MeshTextureMax) and its offset per frame;
+//   * frames StoreGap apart (the replay blends between them; the fatal hit's
+//     frame always kept), positions relative to the camera.
+// Then gzip.
 //
 // FILE. Application.persistentDataPath/FileName: "KCAM", the format version,
 // then the gzipped payload, whose head repeats the record. Written to a temp
 // file then moved over the old one, off the main thread (the PNG encode and
 // gzip run in a Task: only the GPU copy happens on the main thread, once,
-// as the Flight Complete panel opens). PrefsKey holds the record ("1|score|
+// as the Flight Complete panel opens). PrefsKey holds the record ("2|score|
 // utc ticks|ship|world|killer") so the codex can describe it without opening
-// the file; the file is only trusted when its own record matches that.
+// the file. It is written only once the file is (Settle, on the main thread),
+// so it never names a file that is not there yet; a file newer than the
+// record (the app closed before the record was written) is adopted, a file
+// older than the record is not trusted.
 //
-// VERSIONS. Version is written into both. A save without PrefsKey (every save
-// before this) has no record: nothing to migrate. A record or file of another
-// version reads as no record (a future format bumps Version and reads the
-// old one or drops it); never throws on a corrupt or missing file. The slot
-// is per device: it is not part of the cloud save (too big for it).
+// VERSIONS. Version is written into both. A record or file of another
+// version reads as no record (version 1, the single-atlas format, is simply
+// dropped: the next new best fills the slot again); never throws on a corrupt
+// or missing file. The slot is per device: it is not part of the cloud save
+// (too big for it).
 public static class KillCamArchive
 {
-    public const int Version = 1;
+    public const int Version = 2;
     public const string PrefsKey = "killcamBest";
     public const string FileName = "killcam_best.kcam";
     public const string CodexId = "log_killcam";
-    public const float StoreGap = 1f / 32f;
-    public const int AtlasMax = 2048;
-    public const float SmallDensity = 56f, LargeDensity = 32f, LargeExtent = 2.5f;
-    public const int MeshTextureMax = 1024;
+    public const float StoreGap = 1f / 40f;
+    // Texels a world unit on screen: the viewer draws the run's ~13 u tall view
+    // into at most CodexReplayViewer.MaxRenderEdge (1920) pixels, ~150 a unit.
+    public const float Density = 150f;
+    public const float LargeDensity = 96f, LargeExtent = 6f;
+    public const int PageSize = 2048, MaxPages = 4, Pad = 2;
+    public const int MeshTextureMax = 2048;
+    public const string DownsampleShader = "KillCamDownsample";
     const string Magic = "KCAM";
-    const float PosQ = 256f, ZQ = 64f, MatQ = 2048f, SizeQ = 256f;
+    const float PosQ = 256f, ZQ = 64f, SizeQ = 256f;
 
     // Tests: where the file goes (null: persistentDataPath).
     public static string DirectoryOverride;
@@ -106,7 +125,14 @@ public static class KillCamArchive
     // A run's death is kept when it set a new best on a ranked run.
     public static bool ShouldSave(bool newBest, bool ranked) { return newBest && ranked; }
 
-    public static Record Latest { get { return Record.Parse(PlayerPrefs.GetString(PrefsKey, "")); } }
+    public static Record Latest
+    {
+        get
+        {
+            Settle();
+            return Record.Parse(PlayerPrefs.GetString(PrefsKey, ""));
+        }
+    }
     public static bool HasRecord { get { return Latest != null && File.Exists(FilePath); } }
 
     // How the codex describes the slot.
@@ -143,7 +169,12 @@ public static class KillCamArchive
 
     // ---- saving ----
 
-    public static Task Pending { get; private set; }
+    // The write in flight (its result: the record it wrote, null if it failed).
+    public static Task<Record> Pending { get; private set; }
+    // Read-outs (tests, the log): the last save's packing.
+    public static int LastPages { get; private set; }
+    public static long LastPackMs { get; private set; }
+    public static float LastDensityScale { get; private set; }
 
     // Keeps `clip` (the live tape's last seconds) as the latest high-score
     // death. The GPU copy happens now; encoding and writing in the background
@@ -152,18 +183,41 @@ public static class KillCamArchive
     {
         if (clip == null || !clip.Playable || meta == null) return false;
         Packed packed;
+        var watch = System.Diagnostics.Stopwatch.StartNew();
         try { packed = Pack(clip, meta); }
         catch (Exception ex) { Debug.LogWarning("[KillCam] not saved: " + ex.Message); return false; }
+        LastPackMs = watch.ElapsedMilliseconds;
         if (packed == null) return false;
-        PlayerPrefs.SetString(PrefsKey, meta.Format());
-        PrefsSaver.MarkDirty();
         string path = FilePath;
-        if (!background) { WriteFile(packed, path); return true; }
-        Pending = Task.Run(() => WriteFile(packed, path));
+        if (!background)
+        {
+            if (WriteFile(packed, path) != null) Commit(meta);
+            return true;
+        }
+        // one write at a time, in order: the latest new best is the one that stays
+        var before = Pending;
+        Pending = before == null || before.IsCompleted
+            ? Task.Run(() => WriteFile(packed, path))
+            : before.ContinueWith(_ => WriteFile(packed, path), TaskScheduler.Default);
         return true;
     }
 
-    static void WriteFile(Packed packed, string path)
+    // Main thread: a finished write's record goes into PlayerPrefs (Latest calls this).
+    public static void Settle()
+    {
+        var t = Pending;
+        if (t == null || !t.IsCompleted) return;
+        Pending = null;
+        if (t.Status == TaskStatus.RanToCompletion && t.Result != null) Commit(t.Result);
+    }
+
+    static void Commit(Record meta)
+    {
+        PlayerPrefs.SetString(PrefsKey, meta.Format());
+        PrefsSaver.MarkDirty();
+    }
+
+    static Record WriteFile(Packed packed, string path)
     {
         try
         {
@@ -177,13 +231,17 @@ public static class KillCamArchive
                 catch (Exception) { File.Delete(path); File.Move(tmp, path); }
             }
             else File.Move(tmp, path);
+            return packed.meta;
         }
-        catch (Exception ex) { Debug.LogWarning("[KillCam] write failed: " + ex.Message); }
+        catch (Exception ex) { Debug.LogWarning("[KillCam] write failed: " + ex.Message); return null; }
     }
 
     // Forgets the slot (tests, a progress reset).
     public static void Clear()
     {
+        var t = Pending;
+        if (t != null) { try { t.Wait(); } catch (Exception) { } }
+        Pending = null;
         PlayerPrefs.DeleteKey(PrefsKey);
         try { if (File.Exists(FilePath)) File.Delete(FilePath); } catch (Exception) { }
     }
@@ -226,43 +284,54 @@ public static class KillCamArchive
         public Vector2 offset;
     }
 
+    public sealed class Page
+    {
+        public int width, height;
+        public byte[] rgba;              // raw RGBA32, bottom row first (packing side)
+        public byte[] png;               // encoded (loading side)
+    }
+
     public sealed class Packed
     {
         public Record meta = new Record();
         public float camHalfHeight, camAspect, camZ;
         public Color32 background;
+        public float impact = -1f;       // the fatal hit on the frames' clock (-1: the last frame)
         public int frames;
         public float[] time;
         public Vector2[] cam;
         public int[] counts, meshCounts;
         public readonly List<PEntry> entries = new List<PEntry>();
         public readonly List<PMesh> meshEntries = new List<PMesh>();
-        // sprites: atlas rects (pixels), pivots (0..1), atlas pixels per unit, borders (atlas pixels)
+        // sprites: page, rects (pixels), pivots (0..1), pixels per unit, borders (pixels)
+        public readonly List<byte> pages = new List<byte>();
         public readonly List<RectInt> rects = new List<RectInt>();
         public readonly List<Vector2> pivots = new List<Vector2>();
         public readonly List<float> ppu = new List<float>();
         public readonly List<Vector4> borders = new List<Vector4>();
-        public int atlasW, atlasH;
-        public byte[] atlasRgba;         // raw RGBA32, bottom row first (packing side)
-        public byte[] atlasPng;          // encoded (loading side)
+        public readonly List<Page> atlas = new List<Page>();
         public readonly List<MatSpec> materials = new List<MatSpec>();
         public readonly List<MeshSpec> meshes = new List<MeshSpec>();
     }
 
     // ---- packing (main thread: reads the live sprites through the GPU) ----
 
-    // Shaders whose look is worked out in the sprite's own texture space: the
+    // Shaders a sprite is drawn through into the atlas instead of re-made on
+    // it. Their look is worked out in the sprite's own texture space: the
     // sky's cross-fade over v 0..1 (BackdropSkyWrap), a planet's disc in its
     // texture's uv (BackdropPlanet), the planetfall's uv scroll, a plate feather
-    // in 256 px cells (BackdropGrade), a lamp hash per texel (BackdropBlink).
-    // Re-made on a sprite cut into the clip's own atlas they would sample its
-    // neighbours (a planet wrapped in scraps of other sprites), so each such
-    // sprite is drawn through its material -- its renderer's settings too, as
-    // at the moment of death -- into the atlas (a slot per sprite and
-    // material) and replayed with the plain sprite material.
+    // in 256 px cells (BackdropGrade), a lamp hash per texel (BackdropBlink) --
+    // re-made on a sprite cut into the clip's own atlas they would sample its
+    // neighbours (a planet wrapped in scraps of other sprites); or it lives in
+    // the renderer's property block, which a saved clip does not carry: the
+    // exhaust skins' palette shift (ExhaustRemap). So each such sprite is drawn
+    // through its material -- its renderer's settings too, as at the moment of
+    // death -- into the atlas (a slot per sprite and material) and replayed
+    // with the plain sprite material.
     public static readonly string[] BakedShaders =
     {
         "Pause/BackdropSkyWrap", "Pause/BackdropPlanet", "Pause/PlanetfallLayer", "Pause/BackdropGrade", "Pause/BackdropBlink",
+        ExhaustRemap.ShaderName,
     };
 
     public static bool Bakes(Material m)
@@ -270,7 +339,7 @@ public static class KillCamArchive
         return m != null && m.shader != null && Array.IndexOf(BakedShaders, m.shader.name) >= 0;
     }
 
-    sealed class Slot
+    public sealed class Slot
     {
         public Sprite sprite;
         public Material bake;            // drawn through this (BakedShaders), else copied as is
@@ -279,23 +348,26 @@ public static class KillCamArchive
         public Rect uv;
         public Vector2 worldSize, pivot;
         public float srcW, srcH, srcPpu;
+        public float scaleX, scaleY;     // the largest scale an entry draws it at (its on-screen size: worldSize x these)
         public Vector4 border;
-        public int w, h, x, y;
+        public int w, h, x, y, page;
     }
 
     static Packed Pack(KillCamClip clip, Record meta)
     {
         var p = new Packed { meta = meta, camHalfHeight = clip.camHalfHeight, camAspect = clip.camAspect, camZ = clip.camZ, background = clip.background };
-        // the frames to keep: StoreGap apart, always the last
+        // the frames to keep: StoreGap apart, always the hit and the last
+        float hit = clip.impact >= 0f ? clip.ImpactTime : -1f;
         var keep = new List<int>();
         float lastKept = float.NegativeInfinity;
         for (int f = 0; f < clip.frameCount; f++)
         {
-            bool last = f == clip.frameCount - 1;
-            if (!last && clip.time[f] - lastKept < StoreGap * .999f) continue;
+            bool must = f == clip.frameCount - 1 || (hit >= 0f && Mathf.Abs(clip.time[f] - hit) < 1e-4f);
+            if (!must && clip.time[f] - lastKept < StoreGap * .999f) continue;
             keep.Add(f);
             lastKept = clip.time[f];
         }
+        p.impact = hit;
         p.frames = keep.Count;
         p.time = new float[p.frames];
         p.cam = new Vector2[p.frames];
@@ -324,6 +396,7 @@ public static class KillCamArchive
                 var bake = bakes ? e.material : null;
                 int s = SlotOf(e.sprite, bake, e.source, slots, spriteIndex);
                 if (s < 0) continue;
+                Grow(slots[s], e);
                 int track;
                 if (!trackIndex.TryGetValue(e.track, out track))
                 {
@@ -363,6 +436,15 @@ public static class KillCamArchive
         if (!PackAtlas(slots, p)) return null;
         foreach (var r in meshRenderers) p.meshes.Add(MeshOf(r, p, matIndex));
         return p;
+    }
+
+    // An entry draws its slot at its world matrix's column lengths (a tiled or
+    // sliced sprite at its size: the tile itself still at the matrix's scale).
+    public static void Grow(Slot s, in KillCamEntry e)
+    {
+        float sx = Mathf.Sqrt(e.m00 * e.m00 + e.m10 * e.m10), sy = Mathf.Sqrt(e.m01 * e.m01 + e.m11 * e.m11);
+        if (sx > s.scaleX) s.scaleX = sx;
+        if (sy > s.scaleY) s.scaleY = sy;
     }
 
     static int SlotOf(Sprite sprite, Material bake, SpriteRenderer source, List<Slot> slots, Dictionary<(Sprite, Material), int> index)
@@ -455,75 +537,115 @@ public static class KillCamArchive
         return spec;
     }
 
-    // Shelf-packs the slots (shrinking the density until they fit AtlasMax) and copies them in.
-    static bool PackAtlas(List<Slot> slots, Packed p)
+    // The texels a slot gets at density scale `k`: its on-screen size x the density, at most what its source has.
+    public static void SizeSlot(Slot s, float k)
+    {
+        float sx = s.worldSize.x * Mathf.Max(s.scaleX, 1e-3f), sy = s.worldSize.y * Mathf.Max(s.scaleY, 1e-3f);
+        float density = (Mathf.Max(sx, sy) > LargeExtent ? LargeDensity : Density) * k;
+        int most = PageSize - 2 * Pad - 4;
+        s.w = Mathf.Clamp(Mathf.CeilToInt(sx * density), 1, Mathf.Min(most, Mathf.CeilToInt(s.srcW)));
+        s.h = Mathf.Clamp(Mathf.CeilToInt(sy * density), 1, Mathf.Min(most, Mathf.CeilToInt(s.srcH)));
+    }
+
+    // Shelf-packs the slots into pages (shrinking the density a step at a time
+    // until they fit MaxPages) and copies them in.
+    public static bool PackAtlas(List<Slot> slots, Packed p)
     {
         if (slots.Count == 0) return false;
         float k = 1f;
-        for (int attempt = 0; attempt < 10; attempt++, k *= .8f)
+        for (int attempt = 0; attempt < 14; attempt++, k *= .85f)
         {
             long area = 16;
             foreach (var s in slots)
             {
-                float density = (Mathf.Max(s.worldSize.x, s.worldSize.y) > LargeExtent ? LargeDensity : SmallDensity) * k;
-                s.w = Mathf.Clamp(Mathf.CeilToInt(s.worldSize.x * density), 1, Mathf.CeilToInt(s.srcW));
-                s.h = Mathf.Clamp(Mathf.CeilToInt(s.worldSize.y * density), 1, Mathf.CeilToInt(s.srcH));
-                area += (long)(s.w + 2) * (s.h + 2);
+                SizeSlot(s, k);
+                area += (long)(s.w + 2 * Pad) * (s.h + 2 * Pad);
             }
-            int width = area > 700000 ? 2048 : area > 180000 ? 1024 : 512;
-            width = Mathf.Min(width, AtlasMax);
-            int height;
-            if (!Shelf(slots, width, out height)) continue;
-            if (height > AtlasMax) continue;
-            height = Mathf.Max(4, (height + 3) & ~3);
-            p.atlasW = width;
-            p.atlasH = height;
-            p.atlasRgba = DrawAtlas(slots, width, height);
-            if (p.atlasRgba == null) return false;
+            // the smallest page edge the whole lot might fit on (one page), else full pages
+            int width = area * 5 / 4 <= 512L * 512L ? 512 : area * 5 / 4 <= 1024L * 1024L ? 1024 : PageSize;
+            int pages;
+            List<int> heights;
+            bool ok = Shelf(slots, width, out pages, out heights) && (pages == 1 || width == PageSize);
+            if (!ok && width < PageSize)
+            {
+                width = PageSize;
+                ok = Shelf(slots, width, out pages, out heights);
+            }
+            if (!ok || pages > MaxPages) continue;
+            for (int page = 0; page < pages; page++)
+            {
+                var rgba = DrawPage(slots, page, width, heights[page]);
+                if (rgba == null) return false;
+                p.atlas.Add(new Page { width = width, height = heights[page], rgba = rgba });
+            }
             foreach (var s in slots)
             {
                 float scale = s.w / s.srcW;
+                p.pages.Add((byte)s.page);
                 p.rects.Add(new RectInt(s.x, s.y, s.w, s.h));
                 p.pivots.Add(s.pivot);
                 p.ppu.Add(s.srcPpu * scale);
                 p.borders.Add(s.border * scale);
             }
+            LastPages = pages;
+            LastDensityScale = k;
             return true;
         }
         return false;
     }
 
-    static bool Shelf(List<Slot> slots, int width, out int height)
+    // Shelves, tallest first, on pages `width` wide and tall: a slot takes its
+    // w x h plus Pad all round. False when a slot cannot fit a page at all.
+    public static bool Shelf(List<Slot> slots, int width, out int pages, out List<int> heights)
     {
         var order = new List<Slot>(slots);
         order.Sort((a, b) => b.h.CompareTo(a.h));
-        int x = 4, y = 0, shelf = 4;   // the first 4x4 holds the orientation marker
+        heights = new List<int>();
+        pages = 0;
+        int x = 4, y = 0, shelf = 0, page = 0;   // a page's first 4x4 holds the orientation marker
         foreach (var s in order)
         {
-            if (s.w + 2 > width) { height = 0; return false; }
-            if (x + s.w + 1 > width) { y += shelf + 1; x = 0; shelf = 0; }
-            s.x = x + 1;
-            s.y = y + 1;
-            x += s.w + 2;
-            shelf = Mathf.Max(shelf, s.h + 2);
+            int cw = s.w + 2 * Pad, ch = s.h + 2 * Pad;
+            if (cw + 4 > width || ch > width) return false;
+            if (x + cw > width) { y += shelf; x = 0; shelf = 0; }
+            if (y + ch > width)
+            {
+                heights.Add(Mathf.Max(4, (y + 3) & ~3));
+                page++;
+                x = 4; y = 0; shelf = 0;
+            }
+            s.page = page;
+            s.x = x + Pad;
+            s.y = y + Pad;
+            x += cw;
+            shelf = Mathf.Max(shelf, ch);
         }
-        height = y + shelf + 1;
+        heights.Add(Mathf.Max(4, (y + shelf + 3) & ~3));
+        pages = page + 1;
         return true;
     }
 
-    static Material copyMaterial;
+    static Material copyMaterial, downsampleMaterial;
+    static readonly int StepId = Shader.PropertyToID("_Step"), RectId = Shader.PropertyToID("_Rect");
 
-    // One pass of textured quads into a render texture, read back once. A white
-    // marker in the bottom-left corner tells which way up the read-back came.
-    // A baked slot (BakedShaders) is drawn through a copy of its material; those
-    // shaders write premultiplied colour, put back to straight alpha after.
-    static byte[] DrawAtlas(List<Slot> slots, int w, int h)
+    // One page: a pass of textured quads into a render texture, read back once.
+    // A white marker in the bottom-left corner tells which way up the read-back
+    // came. A shrinking copy goes through the box filter; a baked slot
+    // (BakedShaders) through a copy of its material (those write premultiplied
+    // colour, put back to straight alpha after). Then every slot's edges are
+    // extruded into its gutter.
+    static byte[] DrawPage(List<Slot> slots, int page, int w, int h)
     {
         if (copyMaterial == null)
         {
             var shader = Shader.Find("Hidden/BlitCopy");
             if (shader == null) { Debug.LogWarning("[KillCam] no copy shader"); return null; }
             copyMaterial = new Material(shader) { hideFlags = HideFlags.HideAndDontSave };
+        }
+        if (downsampleMaterial == null)
+        {
+            var shader = Resources.Load<Shader>(DownsampleShader);
+            if (shader != null) downsampleMaterial = new Material(shader) { hideFlags = HideFlags.HideAndDontSave };
         }
         var rt = RenderTexture.GetTemporary(w, h, 0, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Default);
         var previous = RenderTexture.active;
@@ -535,8 +657,15 @@ public static class KillCamArchive
         Quad(copyMaterial, Texture2D.whiteTexture, new Rect(0f, 0f, 1f, 1f), new Rect(0f, 0f, 2f, 2f));
         foreach (var s in slots)
         {
+            if (s.page != page) continue;
             var m = copyMaterial;
             if (s.bake != null) { m = BakeMaterial(s); made.Add(m); }
+            else if (downsampleMaterial != null && (s.srcW > s.w * 1.01f || s.srcH > s.h * 1.01f))
+            {
+                m = downsampleMaterial;
+                m.SetVector(StepId, new Vector4(s.uv.width / s.w, s.uv.height / s.h, 0f, 0f));
+                m.SetVector(RectId, new Vector4(s.uv.xMin, s.uv.yMin, s.uv.xMax, s.uv.yMax));
+            }
             Quad(m, s.texture, s.uv, new Rect(s.x, s.y, s.w, s.h));
         }
         GL.PopMatrix();
@@ -544,14 +673,42 @@ public static class KillCamArchive
         var bytes = ReadBack(rt, w, h, true);
         RenderTexture.ReleaseTemporary(rt);
         foreach (var m in made) UnityEngine.Object.DestroyImmediate(m);
-        foreach (var s in slots) if (s.bake != null) Unpremultiply(bytes, w, new RectInt(s.x, s.y, s.w, s.h));
+        foreach (var s in slots)
+        {
+            if (s.page != page) continue;
+            var r = new RectInt(s.x, s.y, s.w, s.h);
+            if (s.bake != null) Unpremultiply(bytes, w, r);
+            Extrude(bytes, w, h, r, Pad);
+        }
         return bytes;
+    }
+
+    // Copies a rect's edge texels `pad` texels outward (its corners too), so
+    // bilinear sampling at the sprite's edge reads the sprite, not the gutter.
+    public static void Extrude(byte[] px, int w, int h, RectInt r, int pad)
+    {
+        if (r.width <= 0 || r.height <= 0) return;
+        int x0 = Mathf.Max(0, r.xMin - pad), x1 = Mathf.Min(w - 1, r.xMax - 1 + pad);
+        int y0 = Mathf.Max(0, r.yMin - pad), y1 = Mathf.Min(h - 1, r.yMax - 1 + pad);
+        // rows of the rect: left and right
+        for (int y = r.yMin; y < r.yMax; y++)
+        {
+            int row = y * w;
+            int left = (row + r.xMin) * 4, right = (row + r.xMax - 1) * 4;
+            for (int x = x0; x < r.xMin; x++) Buffer.BlockCopy(px, left, px, (row + x) * 4, 4);
+            for (int x = r.xMax; x <= x1; x++) Buffer.BlockCopy(px, right, px, (row + x) * 4, 4);
+        }
+        // whole rows (with their extruded ends) below and above
+        int span = (x1 - x0 + 1) * 4;
+        for (int y = y0; y < r.yMin; y++) Buffer.BlockCopy(px, (r.yMin * w + x0) * 4, px, (y * w + x0) * 4, span);
+        for (int y = r.yMax; y <= y1; y++) Buffer.BlockCopy(px, ((r.yMax - 1) * w + x0) * 4, px, (y * w + x0) * 4, span);
     }
 
     static MaterialPropertyBlock bakeBlock;
 
     // The slot's material as its renderer drew it: the material's own settings
-    // and, over them, the renderer's property block (a planet's disc and turn).
+    // and, over them, the renderer's property block (a planet's disc and turn,
+    // an exhaust skin's palette shift).
     static Material BakeMaterial(Slot s)
     {
         var m = new Material(s.bake) { hideFlags = HideFlags.HideAndDontSave };
@@ -574,8 +731,17 @@ public static class KillCamArchive
                     if (bakeBlock.HasVector(prop)) m.SetVector(prop, bakeBlock.GetVector(prop)); break;
             }
         }
+        // properties set on the block that the shader does not list (the remap's hidden bands)
+        foreach (var name in BlockVectors)
+            if (bakeBlock.HasVector(name)) m.SetVector(name, bakeBlock.GetVector(name));
         return m;
     }
+
+    // The exhaust remap's per-renderer bands (not in its Properties block).
+    static readonly string[] BlockVectors =
+    {
+        "_ExSrc0", "_ExSrc1", "_ExSrc2", "_ExSrc3", "_ExSrc4", "_ExShift0", "_ExShift1", "_ExShift2", "_ExShift3", "_ExShift4",
+    };
 
     static void Unpremultiply(byte[] px, int w, RectInt r)
     {
@@ -650,14 +816,20 @@ public static class KillCamArchive
             w.Write(p.meta.Format());
             w.Write(p.camHalfHeight); w.Write(p.camAspect); w.Write(p.camZ);
             w.Write(p.background.r); w.Write(p.background.g); w.Write(p.background.b); w.Write(p.background.a);
+            w.Write(p.impact);
 
-            byte[] png = p.atlasPng ?? Png(p.atlasRgba, p.atlasW, p.atlasH);
-            w.Write(p.atlasW); w.Write(p.atlasH);
-            w.Write(png.Length); w.Write(png);
+            w.Write(p.atlas.Count);
+            foreach (var page in p.atlas)
+            {
+                byte[] png = page.png ?? Png(page.rgba, page.width, page.height);
+                w.Write(page.width); w.Write(page.height);
+                w.Write(png.Length); w.Write(png);
+            }
             w.Write(p.rects.Count);
             for (int i = 0; i < p.rects.Count; i++)
             {
                 var r = p.rects[i];
+                w.Write(i < p.pages.Count ? p.pages[i] : (byte)0);
                 w.Write((ushort)r.x); w.Write((ushort)r.y); w.Write((ushort)r.width); w.Write((ushort)r.height);
                 w.Write(p.pivots[i].x); w.Write(p.pivots[i].y);
                 w.Write(p.ppu[i]);
@@ -699,7 +871,8 @@ public static class KillCamArchive
                     var x = p.entries[e];
                     w.Write(x.track); w.Write(x.sprite); w.Write(x.material); w.Write(x.layer); w.Write(x.order); w.Write(x.flags);
                     w.Write(Q(x.pos.x, PosQ)); w.Write(Q(x.pos.y, PosQ)); w.Write(Q(x.pos.z, ZQ));
-                    w.Write(Q(x.m00, MatQ)); w.Write(Q(x.m01, MatQ)); w.Write(Q(x.m10, MatQ)); w.Write(Q(x.m11, MatQ));
+                    // the matrix as floats: a long stretched sprite (a beam, a full-height lane) keeps its length
+                    w.Write(x.m00); w.Write(x.m01); w.Write(x.m10); w.Write(x.m11);
                     w.Write(x.color.r); w.Write(x.color.g); w.Write(x.color.b); w.Write(x.color.a);
                     if (((x.flags >> KillCamEntry.DrawModeShift) & 3) != 0) { w.Write(Q(x.size.x, SizeQ)); w.Write(Q(x.size.y, SizeQ)); }
                 }
@@ -752,12 +925,20 @@ public static class KillCamArchive
                 if (p.meta == null) return null;
                 p.camHalfHeight = r.ReadSingle(); p.camAspect = r.ReadSingle(); p.camZ = r.ReadSingle();
                 p.background = new Color32(r.ReadByte(), r.ReadByte(), r.ReadByte(), r.ReadByte());
+                p.impact = r.ReadSingle();
 
-                p.atlasW = r.ReadInt32(); p.atlasH = r.ReadInt32();
-                p.atlasPng = r.ReadBytes(r.ReadInt32());
+                int pages = r.ReadInt32();
+                if (pages < 1 || pages > MaxPages) return null;
+                for (int i = 0; i < pages; i++)
+                {
+                    var page = new Page { width = r.ReadInt32(), height = r.ReadInt32() };
+                    page.png = r.ReadBytes(r.ReadInt32());
+                    p.atlas.Add(page);
+                }
                 int sprites = r.ReadInt32();
                 for (int i = 0; i < sprites; i++)
                 {
+                    p.pages.Add(r.ReadByte());
                     p.rects.Add(new RectInt(r.ReadUInt16(), r.ReadUInt16(), r.ReadUInt16(), r.ReadUInt16()));
                     p.pivots.Add(new Vector2(r.ReadSingle(), r.ReadSingle()));
                     p.ppu.Add(r.ReadSingle());
@@ -808,7 +989,7 @@ public static class KillCamArchive
                         x.track = r.ReadUInt16(); x.sprite = r.ReadUInt16(); x.material = r.ReadInt16();
                         x.layer = r.ReadInt32(); x.order = r.ReadInt16(); x.flags = r.ReadByte();
                         x.pos = new Vector3(r.ReadInt16() / PosQ, r.ReadInt16() / PosQ, r.ReadInt16() / ZQ);
-                        x.m00 = r.ReadInt16() / MatQ; x.m01 = r.ReadInt16() / MatQ; x.m10 = r.ReadInt16() / MatQ; x.m11 = r.ReadInt16() / MatQ;
+                        x.m00 = r.ReadSingle(); x.m01 = r.ReadSingle(); x.m10 = r.ReadSingle(); x.m11 = r.ReadSingle();
                         x.color = new Color32(r.ReadByte(), r.ReadByte(), r.ReadByte(), r.ReadByte());
                         if (((x.flags >> KillCamEntry.DrawModeShift) & 3) != 0) x.size = new Vector2(r.ReadInt16() / SizeQ, r.ReadInt16() / SizeQ);
                         p.entries.Add(x);
@@ -845,31 +1026,46 @@ public static class KillCamArchive
         }
     }
 
-    // The saved clip, or null (no record, a missing / stale / corrupt / other-version file).
+    // The saved clip, or null (no record and no file, a stale / corrupt /
+    // other-version file). A whole file newer than the record is adopted (the
+    // record's write never happened: the app closed first); one older than the
+    // record is not trusted.
     public static Loaded Load()
     {
         var record = Latest;
-        if (record == null) return null;
         byte[] bytes;
         try { if (!File.Exists(FilePath)) return null; bytes = File.ReadAllBytes(FilePath); }
         catch (Exception) { return null; }
         var p = Deserialize(bytes);
-        if (p == null || !p.meta.SameAs(record)) return null;
+        if (p == null) return null;
+        if (!p.meta.SameAs(record))
+        {
+            if (record != null && p.meta.utcTicks <= record.utcTicks) return null;
+            Commit(p.meta);
+        }
         return Build(p);
     }
 
     public static Loaded Build(Packed p)
     {
-        if (p == null || p.frames < 1) return null;
+        if (p == null || p.frames < 1 || p.atlas.Count == 0) return null;
         var loaded = new Loaded { meta = p.meta };
-        var atlas = new Texture2D(2, 2, TextureFormat.RGBA32, false) { name = "KillCamAtlas", filterMode = FilterMode.Bilinear, wrapMode = TextureWrapMode.Clamp };
-        loaded.Own(atlas);
-        if (p.atlasPng == null || !atlas.LoadImage(p.atlasPng, false)) { loaded.Dispose(); return null; }
+        var pages = new Texture2D[p.atlas.Count];
+        for (int i = 0; i < pages.Length; i++)
+        {
+            var atlas = new Texture2D(2, 2, TextureFormat.RGBA32, false) { name = "KillCamAtlas" + i, filterMode = FilterMode.Bilinear, wrapMode = TextureWrapMode.Clamp };
+            loaded.Own(atlas);
+            if (p.atlas[i].png == null || !atlas.LoadImage(p.atlas[i].png, false)) { loaded.Dispose(); return null; }
+            pages[i] = atlas;
+        }
 
         var sprites = new Sprite[p.rects.Count];
         for (int i = 0; i < sprites.Length; i++)
         {
             var r = p.rects[i];
+            int page = i < p.pages.Count ? p.pages[i] : 0;
+            if (page >= pages.Length) continue;
+            var atlas = pages[page];
             if (r.xMax > atlas.width || r.yMax > atlas.height || r.width < 1 || r.height < 1) continue;
             sprites[i] = Sprite.Create(atlas, new Rect(r.x, r.y, r.width, r.height), p.pivots[i], Mathf.Max(.0001f, p.ppu[i]),
                                        0, SpriteMeshType.FullRect, p.borders[i]);
@@ -903,6 +1099,7 @@ public static class KillCamArchive
         clip.background = p.background;
         int e = 0, me = 0;
         float t0 = p.frames > 0 ? p.time[0] : 0f;
+        clip.impact = p.impact >= 0f ? Mathf.Max(0f, p.impact - t0) : -1f;
         for (int f = 0; f < p.frames; f++)
         {
             clip.time[f] = p.time[f] - t0;

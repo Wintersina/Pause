@@ -8,7 +8,11 @@ using UnityEngine;
 // (no zoom: the camera's size never changes), the crash held meanwhile, and
 // the saved high-score death (policy, one slot that the latest replaces,
 // the file round trip, versions and corrupt files, a sprite whose shader
-// works in its own texture space kept as it looked). Edit mode, no scene.
+// works in its own texture space kept as it looked), the death on the tape
+// (the collision frame, the crash after it, the replay slowing into the hit
+// and playing on through it), and the saved clip's fidelity (sprites copied at
+// the size they are seen, box-filtered, their edges extruded; every dot of a
+// full-height telegraph recorded). Edit mode, no scene.
 public static class KillCamTest
 {
     static int fails;
@@ -33,8 +37,13 @@ public static class KillCamTest
             Clock();
             Clips();
             Tape(made);
+            Death(made);
+            Busy(made);
             Replay(made);
+            Blend(made);
             Archive(made);
+            Fidelity(made);
+            RecordOrder(made);
         }
         finally
         {
@@ -63,6 +72,13 @@ public static class KillCamTest
         float real = KillCamClip.RealSeconds(KillCamClip.LiveWindow);
         Check("the live replay is a few seconds of real time (" + real.ToString("F2") + " s)", real > 2.2f && real < 3.8f && Mathf.Approximately(KillCamClip.LiveWindow, 1.3f));
         Check("a tap can skip it early", KillCam.SkipGuard < .5f);
+        Check("after the hit the clock eases back up through the death",
+              Mathf.Approximately(KillCamClip.RateAt(-.0001f), KillCamClip.SlowRate) &&
+              Mathf.Approximately(KillCamClip.RateAt(-KillCamClip.TailRampSeconds), KillCamClip.TailRate) &&
+              KillCamClip.RateAt(-.2f) > KillCamClip.SlowRate && KillCamClip.RateAt(-.2f) < KillCamClip.TailRate && KillCamClip.TailRate < 1f);
+        float whole = KillCamClip.RealSeconds(KillCamClip.LiveWindow, KillCamClip.DeathTail);
+        Check("the replay with the death is still short (" + whole.ToString("F2") + " s) and inside the safety net",
+              whole > real + .8f && whole + KillCam.IntroSeconds < KillCam.MaxReal - 1f && whole < 6.5f);
         float cm3 = KillCam.LabelDropPixels(320f, 1920f, 100f);
         Check("the REPLAY label drops ~3 cm by the screen dpi (" + cm3.ToString("F0") + " px at 320 dpi)", Mathf.Abs(cm3 - 3f / 2.54f * 320f) < .5f);
         Check("a dpi of 0 falls back to a tenth of the screen height", Mathf.Abs(KillCam.LabelDropPixels(0f, 1920f, 100f) - 192f) < .5f);
@@ -321,6 +337,279 @@ public static class KillCamTest
         Check("ending the muffle with none up is harmless", !KillCamMusic.Muffling && KillCamMusic.MuffleAmount == 0f);
     }
 
+    // ---- the death on the tape: the collision frame, the crash after it ----
+    static void Death(System.Collections.Generic.List<Object> made)
+    {
+        KillCamRecorder.RequireVisible = false;
+        KillCamRecorder.BeginRun();
+        var rec = KillCamRecorder.Instance;
+        var sprite = MakeSprite(made, Color.white);
+        SpriteRenderer Make(string name)
+        {
+            var go = new GameObject(name, typeof(SpriteRenderer));
+            made.Add(go);
+            var r = go.GetComponent<SpriteRenderer>();
+            r.sprite = sprite;
+            return r;
+        }
+        var ship = Make("~KillCamTestShip");
+        var killer = Make("~KillCamTestKiller");
+        var blast = Make("~KillCamTestBlast");
+        blast.enabled = false;
+
+        // 2 s of flight, the killer closing in
+        const float dt = 1f / 60f;
+        for (int f = 0; f < 120; f++)
+        {
+            ship.transform.position = new Vector3(0f, -3f, 0f);
+            killer.transform.position = new Vector3(0f, -3f + (120 - f) * .02f, 0f);
+            rec.Flight(dt);
+        }
+        // the hit: the killer on the hull
+        killer.transform.position = new Vector3(0f, -3f, 0f);
+        rec.Impact(dt);
+        Check("the fatal hit is taped at once and the tape rolls on through the death",
+              rec.Tailing && rec.ImpactAt > 0f && Mathf.Approximately(rec.ImpactAt, rec.Clock));
+        // the death: the hull gone, a blast in its place, on the crash's clock
+        ship.enabled = false;
+        blast.enabled = true;
+        int steps = 0;
+        long control;
+        bool meter = TestHarness.AllocMeterWorks(out control);
+        long used = TestHarness.AllocatedBytes(() => { while (rec.Tailing && steps < 600) { rec.Tail(dt); steps++; } });
+        Check("the death tail ends by itself after DeathTail (" + steps + " crash frames)", !rec.Tailing && steps >= 55 && steps <= 62);
+        Check("taping the death allocates nothing: " + used + " bytes (meter control " + control + ")", meter && used == 0);
+        rec.Tail(dt);
+        Check("once the tail is long enough nothing more is taped", Mathf.Abs(rec.Clock - rec.ImpactAt - steps * dt) < 1e-3f);
+
+        var clip = rec.Clip(KillCamClip.LiveWindow);
+        Check("the clip holds LiveWindow before the hit and the death after it (" +
+              (clip != null ? clip.ImpactTime.ToString("F2") + " + " + (clip.EndTime - clip.ImpactTime).ToString("F2") : "none") + " s)",
+              clip != null && clip.HasTail && Mathf.Abs(clip.ImpactTime - KillCamClip.LiveWindow) <= 2f * KillCamRecorder.MinGap &&
+              clip.EndTime - clip.ImpactTime >= KillCamClip.DeathTail - 1e-3f && clip.EndTime - clip.ImpactTime <= KillCamClip.DeathTail + KillCamRecorder.MinGap);
+        if (clip == null) return;
+        float a;
+        int hitFrame = clip.FrameAt(clip.ImpactTime, out a);
+        int shipTrack = ship.GetInstanceID(), killerTrack = killer.GetInstanceID(), blastTrack = blast.GetInstanceID();
+        bool Has(int frame, int track, out KillCamEntry found)
+        {
+            found = default;
+            for (int i = 0; i < clip.count[frame]; i++)
+                if (clip.Entry(frame, i).track == track) { found = clip.Entry(frame, i); return true; }
+            return false;
+        }
+        KillCamEntry hs, hk, tmp;
+        Check("the collision frame is on the tape: the ship whole, the killer on its hull",
+              Mathf.Abs(clip.time[hitFrame] - clip.ImpactTime) < 1e-4f && Has(hitFrame, shipTrack, out hs) && Has(hitFrame, killerTrack, out hk) &&
+              Mathf.Abs(hs.pos.y - hk.pos.y) < 1e-3f && !Has(hitFrame, blastTrack, out tmp));
+        int last = clip.frameCount - 1;
+        Check("the clip's last frames are the death: the blast, no hull",
+              Has(last, blastTrack, out tmp) && !Has(last, shipTrack, out tmp) && Has(last - 1, blastTrack, out tmp));
+        Check("the replay runs slowest at the collision, livelier before and after it",
+              clip.Rate(clip.ImpactTime) < clip.Rate(0f) && clip.Rate(clip.ImpactTime) < clip.Rate(clip.EndTime) &&
+              Mathf.Approximately(clip.Rate(clip.ImpactTime), KillCamClip.SlowRate));
+
+        // the replay plays the approach, slows into the collision and plays on through the death
+        var kc = KillCam.Ensure();
+        made.Add(kc.gameObject);
+        KillCam.Intro = false;
+        kc.Begin(clip);
+        float real = 0f;
+        bool through = false, slowAtHit = false;
+        while (KillCam.Playing && real < 15f)
+        {
+            float before = kc.ClipTime;
+            kc.Step(1f / 60f);
+            real += 1f / 60f;
+            through |= kc.ClipTime >= clip.EndTime - 1e-4f;
+            if (before < clip.ImpactTime && kc.ClipTime >= clip.ImpactTime) slowAtHit = (kc.ClipTime - before) * 60f < KillCamClip.SlowRate + .02f;
+        }
+        KillCam.Intro = true;
+        float want = KillCamClip.RealSeconds(clip.ImpactTime, clip.EndTime - clip.ImpactTime);
+        Check("the replay plays on through the death to the tape's end, very slow at the collision (" + real.ToString("F2") + " s, about " + want.ToString("F2") + ")",
+              through && slowAtHit && !KillCam.Playing && Mathf.Abs(real - want) < .25f);
+
+        // a revive takes the death back off the tape
+        rec.Uncrash();
+        var after = rec.Clip(KillCamClip.LiveWindow);
+        Check("a revive takes the death off the tape: flight only, no impact",
+              rec.ImpactAt < 0f && !rec.Tailing && after != null && !after.HasTail && after.impact < 0f &&
+              !Has2(after, after.frameCount - 1, blastTrack));
+        rec.StopRecording();
+        rec.Clear();
+    }
+
+    static bool Has2(KillCamClip clip, int frame, int track)
+    {
+        for (int i = 0; i < clip.count[frame]; i++) if (clip.Entry(frame, i).track == track) return true;
+        return false;
+    }
+
+    // ---- a busy board: every dot of the elites' full-height telegraphs ----
+    static void Busy(System.Collections.Generic.List<Object> made)
+    {
+        KillCamRecorder.RequireVisible = false;
+        var rec = KillCamRecorder.Ensure();
+        rec.Clear();
+        var sprite = MakeSprite(made, Color.white, 4);
+        // a Static Bastion hail wall: 3 waves x 2 lanes x 2 full-height sides of ~95 dots each, and the rest of the board
+        const int dots = 1300;
+        var holder = new GameObject("~KillCamTestDots");
+        made.Add(holder);
+        for (int i = 0; i < dots; i++)
+        {
+            var go = new GameObject("Dot", typeof(SpriteRenderer));
+            go.transform.SetParent(holder.transform, false);
+            go.transform.position = new Vector3((i / 95) * .3f, 6f - (i % 95) * .13f, 0f);
+            go.GetComponent<SpriteRenderer>().sprite = sprite;
+        }
+        rec.Capture(0f);
+        int taped = rec.LastFrameEntries;
+        Check("a frame with " + dots + " dots tapes every one of them (" + taped + ")", taped >= dots && KillCamRecorder.MaxPerFrame >= dots);
+        int needed = Mathf.CeilToInt((KillCamClip.LiveWindow + KillCamClip.DeathTail) / KillCamRecorder.MinGap) + 1;
+        Check("the ring holds the whole replay (" + needed + " frames) of a board that busy",
+              KillCamRecorder.FrameCap >= needed && KillCamRecorder.EntryCap / (dots - 250) >= needed - 2);
+        Object.DestroyImmediate(holder);
+        rec.Clear();
+    }
+
+    // ---- blending: a burst of new sprites, a pooled renderer handed back elsewhere ----
+    static void Blend(System.Collections.Generic.List<Object> made)
+    {
+        var sprite = MakeSprite(made, Color.white);
+        // frame 0: tracks 1..3; frame 1: 60 new sprites first, then 1..3 moved on; track 3 jumped across the board (a respawn)
+        var clip = new KillCamClip(2, 80, 2);
+        clip.time[0] = 0f; clip.time[1] = .1f;
+        clip.first[0] = 0; clip.count[0] = 3;
+        for (int i = 0; i < 3; i++)
+            clip.entries[i] = new KillCamEntry { track = i + 1, sprite = sprite, pos = new Vector3(i, 0f, 0f), m00 = 1f, m11 = 1f, color = new Color32(255, 255, 255, 255) };
+        clip.first[1] = 3; clip.count[1] = 63;
+        for (int i = 0; i < 60; i++)
+            clip.entries[3 + i] = new KillCamEntry { track = 100 + i, sprite = sprite, pos = new Vector3(0f, 3f, 0f), m00 = 1f, m11 = 1f, color = new Color32(255, 255, 255, 255) };
+        for (int i = 0; i < 3; i++)
+            clip.entries[63 + i] = new KillCamEntry { track = i + 1, sprite = sprite, pos = new Vector3(i == 2 ? -4f : i, 1f, 0f), m00 = 1f, m11 = 1f, color = new Color32(255, 255, 255, 255) };
+        clip.frameCount = 2;
+        int cursor = 0;
+        Check("a track is still found behind a burst of 60 new sprites", clip.Match(1, 1, ref cursor) == 60);
+        var holder = new GameObject("~KillCamTestBlend");
+        made.Add(holder);
+        var stage = new KillCamStage(holder.transform, "Stage");
+        stage.Draw(clip, .05f);
+        Check("behind the burst a mover still blends", Mathf.Abs(stage.SpriteAt(0).transform.position.y - .5f) < 1e-3f);
+        Check("a pooled renderer handed back elsewhere does not sweep across the screen",
+              Mathf.Abs(stage.SpriteAt(2).transform.position.x - 2f) < 1e-3f && Mathf.Abs(stage.SpriteAt(2).transform.position.y) < 1e-3f);
+        stage.Destroy();
+    }
+
+    // ---- the saved clip's fidelity ----
+    static void Fidelity(System.Collections.Generic.List<Object> made)
+    {
+        // sized as it is seen: a 1-unit boss cell drawn 3.3 u wide
+        var cell = new KillCamArchive.Slot { worldSize = Vector2.one, srcW = 512f, srcH = 512f, srcPpu = 512f };
+        KillCamArchive.Grow(cell, new KillCamEntry { m00 = 3.3f, m11 = 3.3f });
+        KillCamArchive.SizeSlot(cell, 1f);
+        Check("a sprite is copied at the size it is drawn on screen, not its own (" + cell.w + " px for a 1 u cell drawn 3.3 u wide)",
+              cell.w == Mathf.CeilToInt(3.3f * KillCamArchive.Density) && cell.h == cell.w);
+        var plain = new KillCamArchive.Slot { worldSize = Vector2.one, srcW = 512f, srcH = 512f, srcPpu = 512f };
+        KillCamArchive.Grow(plain, new KillCamEntry { m00 = 0f, m01 = -1f, m10 = 1f, m11 = 0f });
+        KillCamArchive.SizeSlot(plain, 1f);
+        var small = new KillCamArchive.Slot { worldSize = Vector2.one, srcW = 64f, srcH = 64f, srcPpu = 64f };
+        KillCamArchive.Grow(small, new KillCamEntry { m00 = 3f, m11 = 3f });
+        KillCamArchive.SizeSlot(small, 1f);
+        Check("rotated, the same scale; never more texels than the source has",
+              plain.w == Mathf.CeilToInt(KillCamArchive.Density) && small.w == 64 && KillCamArchive.Density >= 140f);
+
+        // edges extruded into the gutter
+        var px = new byte[8 * 8 * 4];
+        for (int y = 3; y < 5; y++) for (int x = 3; x < 5; x++) { int at = (y * 8 + x) * 4; px[at] = 200; px[at + 3] = 255; }
+        KillCamArchive.Extrude(px, 8, 8, new RectInt(3, 3, 2, 2), 2);
+        Check("a slot's edge texels are copied out into its gutter (corners too)",
+              px[(3 * 8 + 1) * 4 + 3] == 255 && px[(6 * 8 + 4) * 4 + 3] == 255 && px[(1 * 8 + 1) * 4] == 200 && px[(7 * 8 + 7) * 4 + 3] == 0);
+
+        // through the GPU: an opaque plate keeps an opaque edge, and a 1 px line survives a 4:1 shrink
+        const int S = 64;
+        var tex = new Texture2D(S, S, TextureFormat.RGBA32, false) { filterMode = FilterMode.Point, wrapMode = TextureWrapMode.Clamp };
+        var cols = new Color[S * S];
+        for (int i = 0; i < cols.Length; i++) cols[i] = new Color(.1f, .2f, .6f, 1f);
+        for (int x = 0; x < S; x++) cols[29 * S + x] = Color.white;   // row 29: a point copy at 4:1 reads rows 2, 6, 10, ... and drops it
+        tex.SetPixels(cols);
+        tex.Apply();
+        made.Add(tex);
+        var plate = Sprite.Create(tex, new Rect(0, 0, S, S), new Vector2(.5f, .5f), S);
+        made.Add(plate);
+        float shrink = 15.9f / KillCamArchive.Density;   // drawn so it gets 16 texels
+        var clip = new KillCamClip(3, 3, 1);
+        for (int f = 0; f < 3; f++)
+        {
+            clip.time[f] = f * .05f;
+            clip.first[f] = f; clip.count[f] = 1;
+            clip.entries[f] = new KillCamEntry { track = 1, sprite = plate, pos = new Vector3(f * .1f, 0f, 0f), m00 = shrink, m11 = shrink, color = new Color32(255, 255, 255, 255) };
+        }
+        clip.frameCount = 3;
+        clip.impact = .05f;
+        var record = new KillCamArchive.Record { score = 50000, utcTicks = 638000000000009999L, ship = 1, world = "Storm", killer = "x" };
+        bool saved = KillCamArchive.Save(clip, record, false);
+        var loaded = KillCamArchive.Load();
+        Check("a clip with a death after the hit is kept and loads with its impact (" + KillCamArchive.LastPackMs + " ms to pack, " +
+              (File.Exists(KillCamArchive.FilePath) ? new FileInfo(KillCamArchive.FilePath).Length : 0) + " bytes, " + KillCamArchive.LastPages + " page(s))",
+              saved && loaded != null && loaded.clip.HasTail && Mathf.Abs(loaded.clip.ImpactTime - .05f) < 1e-4f && loaded.clip.frameCount == 3);
+        if (loaded == null) return;
+        try
+        {
+            var s = loaded.clip.Entry(0, 0).sprite;
+            var r = s.rect;
+            var t = s.texture;
+            Check("the plate is copied 16 texels across", Mathf.RoundToInt(r.width) == 16 && Mathf.RoundToInt(r.height) == 16);
+            int cx = (int)r.center.x;
+            Color outside = t.GetPixel((int)r.xMin - 1, (int)r.center.y), below = t.GetPixel(cx, (int)r.yMin - 1), above = t.GetPixel(cx, (int)r.yMax);
+            Check("the plate's edge does not fade into its gutter (no seam where plates meet): " + outside.a.ToString("F2") + " " + below.a.ToString("F2") + " " + above.a.ToString("F2"),
+                  outside.a > .95f && below.a > .95f && above.a > .95f);
+            float brightest = 0f;
+            for (int y = (int)r.yMin; y < (int)r.yMax; y++) brightest = Mathf.Max(brightest, t.GetPixel(cx, y).r);
+            Check("a 1 px line of the art survives the shrink, box-filtered (brightest red " + brightest.ToString("F2") + " over the plate's .10)", brightest > .25f);
+        }
+        finally { loaded.Dispose(); }
+
+        // the matrix as stored: a beam scaled 20 x keeps its length
+        var p = new KillCamArchive.Packed { meta = KillCamArchive.Record.Parse(record.Format()), camHalfHeight = 6.6f, camAspect = .5f, camZ = -10f };
+        p.atlas.Add(new KillCamArchive.Page { width = 4, height = 4, rgba = new byte[64] });
+        p.pages.Add(0); p.rects.Add(new RectInt(0, 0, 4, 4)); p.pivots.Add(new Vector2(.5f, .5f)); p.ppu.Add(4f); p.borders.Add(Vector4.zero);
+        p.frames = 1; p.time = new[] { 0f }; p.cam = new[] { Vector2.zero }; p.counts = new[] { 1 }; p.meshCounts = new[] { 0 };
+        p.entries.Add(new KillCamArchive.PEntry { sprite = 0, material = -1, m00 = .02f, m11 = 21.5f, m01 = -3.25f, color = new Color32(255, 255, 255, 255) });
+        var back = KillCamArchive.Deserialize(KillCamArchive.Serialize(p));
+        Check("a sprite stretched 21.5 x (a lane the height of the view) keeps its length and shear through the file",
+              back != null && Mathf.Approximately(back.entries[0].m11, 21.5f) && Mathf.Approximately(back.entries[0].m01, -3.25f) && Mathf.Approximately(back.entries[0].m00, .02f));
+        Check("the exhaust skins' palette shift is baked (it lives in the renderer, not the material)",
+              System.Array.IndexOf(KillCamArchive.BakedShaders, ExhaustRemap.ShaderName) >= 0 &&
+              (ExhaustRemap.Material == null || KillCamArchive.Bakes(ExhaustRemap.Material)));
+        KillCamArchive.Clear();
+    }
+
+    // ---- the record is written only once the file is ----
+    static void RecordOrder(System.Collections.Generic.List<Object> made)
+    {
+        KillCamArchive.Clear();
+        var sprite = MakeSprite(made, Color.green, 16);
+        var clip = MakeClip(sprite, 12, 1f / 60f, 1f);
+        var r = new KillCamArchive.Record { score = 777, utcTicks = 638000000000012345L, ship = 2, world = "Tide", killer = "" };
+        bool saved = KillCamArchive.Save(clip, r, true);
+        var pending = KillCamArchive.Pending;
+        Check("a background save is under way", saved && pending != null);
+        if (pending == null) return;
+        // (the record is never ahead of the file: before the write is done there is none)
+        string before = PlayerPrefs.GetString(KillCamArchive.PrefsKey, "");
+        bool notAhead = string.IsNullOrEmpty(before) || pending.IsCompleted;
+        pending.Wait();
+        Check("the record is not written before the file", notAhead);
+        var latest = KillCamArchive.Latest;
+        Check("once the file is written the record follows it (settled on the main thread)",
+              latest != null && latest.SameAs(r) && File.Exists(KillCamArchive.FilePath) && KillCamArchive.Pending == null);
+        var loaded = KillCamArchive.Load();
+        Check("and it loads", loaded != null && loaded.meta.SameAs(r));
+        if (loaded != null) loaded.Dispose();
+        KillCamArchive.Clear();
+    }
+
     // ---- the codex slot ----
     static void Archive(System.Collections.Generic.List<Object> made)
     {
@@ -338,9 +627,10 @@ public static class KillCamTest
         // the file round trip, by hand (no GPU): a 4x4 atlas, two frames
         var p = new KillCamArchive.Packed { meta = r, camHalfHeight = 6.6f, camAspect = .5f, camZ = -10f, background = new Color32(1, 2, 3, 255) };
         p.meta = KillCamArchive.Record.Parse(r.Format());
-        p.atlasW = p.atlasH = 4;
-        p.atlasRgba = new byte[4 * 4 * 4];
-        for (int i = 0; i < p.atlasRgba.Length; i += 4) { p.atlasRgba[i] = 200; p.atlasRgba[i + 3] = 255; }
+        var rgba = new byte[4 * 4 * 4];
+        for (int i = 0; i < rgba.Length; i += 4) { rgba[i] = 200; rgba[i + 3] = 255; }
+        p.atlas.Add(new KillCamArchive.Page { width = 4, height = 4, rgba = rgba });
+        p.pages.Add(0);
         p.rects.Add(new RectInt(0, 0, 4, 4)); p.pivots.Add(new Vector2(.5f, .5f)); p.ppu.Add(4f); p.borders.Add(Vector4.zero);
         p.frames = 2;
         p.time = new[] { 1f, 1.05f };
@@ -382,11 +672,14 @@ public static class KillCamTest
                 colours = c.r > .8f && c.b < .2f;
             }
         }
-        Check("it loads: frames thinned to the store rate, the sprites' own colours",
-              first != null && first.clip.frameCount >= 15 && first.clip.frameCount <= 25 && colours);
+        Check("it loads: frames kept at the store rate (" + (first != null ? first.clip.frameCount : -1) + "), the sprites' own colours",
+              first != null && first.clip.frameCount >= 20 && first.clip.frameCount <= 30 && colours);
         if (first != null) first.Dispose();
         long size = File.Exists(KillCamArchive.FilePath) ? new FileInfo(KillCamArchive.FilePath).Length : 0;
         Check("the file is small (" + size + " bytes)", size > 0 && size < 64 * 1024);
+
+        Check("the version 1 single-atlas format is dropped, not misread",
+              KillCamArchive.Version == 2 && KillCamArchive.Record.Parse("1|5|6|1|Space|x") == null);
 
         var r2 = new KillCamArchive.Record { score = 20000, utcTicks = r.utcTicks + 1, ship = 1, world = "Space", killer = "" };
         KillCamArchive.Save(clip, r2, false);
@@ -397,8 +690,14 @@ public static class KillCamTest
 
         Baked(made, r);
 
-        PlayerPrefs.SetString(KillCamArchive.PrefsKey, r.Format());
-        Check("a file that does not match its record is not trusted", KillCamArchive.Load() == null);
+        var newer = new KillCamArchive.Record { score = 1, utcTicks = r.utcTicks + 99, ship = r.ship, world = r.world, killer = r.killer };
+        PlayerPrefs.SetString(KillCamArchive.PrefsKey, newer.Format());
+        Check("a file older than its record is not trusted", KillCamArchive.Load() == null);
+        PlayerPrefs.DeleteKey(KillCamArchive.PrefsKey);
+        var adopted = KillCamArchive.Load();
+        Check("a whole file without its record (the app closed first) is adopted, record and all",
+              adopted != null && KillCamArchive.Latest != null && KillCamArchive.Latest.utcTicks == r.utcTicks + 2);
+        if (adopted != null) adopted.Dispose();
         KillCamArchive.Clear();
         Check("cleared, there is no record", !KillCamArchive.HasRecord && KillCamArchive.Load() == null);
     }

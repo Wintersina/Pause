@@ -83,9 +83,10 @@ public sealed class KillCamStage
             if (a > 0f)
             {
                 int j = clip.Match(g, e.track, ref cursor);
-                if (j >= 0)
+                KillCamEntry b = default;
+                if (j >= 0) b = clip.Entry(g, j);
+                if (j >= 0 && KillCamClip.Continuous(e, b))
                 {
-                    var b = clip.Entry(g, j);
                     p = Vector3.LerpUnclamped(p, b.pos, a);
                     m00 = Mathf.LerpUnclamped(m00, b.m00, a);
                     m01 = Mathf.LerpUnclamped(m01, b.m01, a);
