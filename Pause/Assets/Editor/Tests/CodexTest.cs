@@ -1067,6 +1067,9 @@ public static class CodexTest
             Check(name + ": six tabs in two rows, each a >= 96-unit touch target, inside the tab band", tabsOk);
 
             // Sectioned tabs: jump chips over the scrolling list, both in the body.
+            Check(name + ": COLLECT ALL bar sits under the tabs, above the chips and list, inside the body",
+                  Contains(l.body, l.collectBar) && l.collectBar.yMax <= l.tabs.yMin && !l.collectBar.Overlaps(l.chips) && !l.collectBar.Overlaps(l.list) &&
+                  l.collectBar.height >= 72f);
             Check(name + ": chip row and list sit in the body", Contains(l.body, l.chips) && Contains(l.body, l.list));
             Check(name + ": chip row clear of the list and the tabs", !l.chips.Overlaps(l.list) && !l.chips.Overlaps(l.tabs));
             // the chips the panel really shows: every world + BOSSES (MaxSections is the allocation cap, 8)

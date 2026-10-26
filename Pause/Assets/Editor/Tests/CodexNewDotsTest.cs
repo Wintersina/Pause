@@ -130,7 +130,7 @@ public static class CodexNewDotsTest
             Check("tab chip now reads COLLECT ALL +5", panel.CollectTabLabel.text == "COLLECT ALL +5");
             panel.CollectTabButton.onClick.Invoke();
             Check("collect all (tab A): +5, tab A's dot and chip clear, tab B's stays, home 1",
-                  Dust() == 110f && !panel.TabNewDot(tabA).gameObject.activeSelf && !panel.CollectTabFrame.gameObject.activeSelf &&
+                  Dust() == 110f && !panel.TabNewDot(tabA).gameObject.activeSelf && !panel.CollectTabButton.interactable && panel.CollectTabLabel.text == "COLLECT ALL" &&
                   panel.TabNewDot(tabB).gameObject.activeSelf && home.BadgeShown == "1" && Codex.PendingIn(catB) == 1);
             Codex.Reload();
             Check("reload: tab A stays clear, tab B still pending", Codex.PendingIn(catA) == 0 && Codex.PendingIn(catB) == 1 && !TabDot(panel, tabA) && TabDot(panel, tabB));
@@ -287,16 +287,20 @@ public static class CodexNewDotsTest
                 if (!InsideWithMargin(panel.CardRect(i), dot.rectTransform, 5f)) why = tab + " card " + i + ": dot not inside with margin";
             }
             if (why != null) break;
-            // COLLECT ALL: inside the panel's header, clear of the title and the counter text, label fits
+            // COLLECT ALL: the Achievements-style bar under the tab buttons, clear of the tabs and the list, label fits
             var chip = panel.CollectTabFrame;
-            if (Codex.PendingIn(tab) > 0)
+            if (!chip.gameObject.activeSelf) { why = tab + ": COLLECT ALL button hidden on a category tab"; break; }
+            if (chip.GetComponent<UnityEngine.UI.Button>().interactable != (Codex.PendingIn(tab) > 0)) { why = tab + ": COLLECT ALL enable state does not follow the pending rewards"; break; }
             {
-                if (!chip.gameObject.activeSelf) { why = tab + ": COLLECT ALL chip hidden with rewards pending"; break; }
                 var panelRt = panel.Panel;
-                if (!InsideWithMargin(panelRt, chip.rectTransform, 2f)) why = tab + ": COLLECT ALL chip outside the panel";
-                else if (WorldRect(chip.rectTransform).Overlaps(WorldRect(panel.Counter.rectTransform)) ) why = tab + ": COLLECT ALL chip overlaps the counter box";
-                else if (panel.Counter.preferredWidth > panel.Counter.rectTransform.rect.width + .5f) why = tab + ": counter text \"" + panel.Counter.text + "\" (" + panel.Counter.preferredWidth + ") no longer fits beside the chip (" + panel.Counter.rectTransform.rect.width + ", panel " + panel.Panel.rect.width + ")";
-                else if (chip.rectTransform.rect.height < 40f || chip.rectTransform.rect.width < 150f) why = tab + ": COLLECT ALL chip too small";
+                var lay = panel.CurrentLayout;
+                var cr = chip.rectTransform;
+                var local = new Rect(cr.anchoredPosition.x - cr.rect.width * .5f, cr.anchoredPosition.y - cr.rect.height * .5f, cr.rect.width, cr.rect.height);
+                if (!InsideWithMargin(panelRt, chip.rectTransform, 2f)) why = tab + ": COLLECT ALL button outside the panel";
+                else if (local.yMax > lay.collectBar.yMax + .5f || local.yMin < lay.collectBar.yMin - .5f) why = tab + ": COLLECT ALL button not inside the bar under the tabs";
+                else if (lay.collectBar.yMax > lay.tabs.yMin + .5f) why = tab + ": COLLECT ALL bar is not under the tabs";
+                else if (lay.catBody.yMax > lay.collectBar.yMin + .5f) why = tab + ": the list starts above the COLLECT ALL bar";
+                else if (cr.rect.height < 40f || cr.rect.width < 150f) why = tab + ": COLLECT ALL button too small";
             }
         }
         // the entry detail's COLLECT chip: inside the detail, clear of the pill, right of it

@@ -70,6 +70,7 @@ public class CodexPanel : MonoBehaviour
     public const float ChipGap = 8f;
     public const float ChipGapTight = 2f;      // with more than six chips (all seven worlds + bosses) the row is tight
     public static float ChipGapFor(int count) { return count > 6 ? ChipGapTight : ChipGap; }
+    public const float CollectBarHeight = 84f, CollectBarGap = 10f;   // the COLLECT ALL row under the tabs
     public const float ChipsGap = 12f;         // chip row -> list
     public const float SectionHeaderHeight = 56f;
     public const float SectionHeaderGap = 12f; // header -> its first card row
@@ -138,6 +139,8 @@ public class CodexPanel : MonoBehaviour
         // Sectioned tabs (ENEMIES, HAZARDS): the jump-chip row, and the
         // scrolling list under it (the body less the chips).
         public Rect chips, list;
+        // Category tabs: the COLLECT ALL bar under the tab buttons (same look as the Achievements strip), and the body less that bar.
+        public Rect collectBar, catBody;
         public int columns;
         public float cardWidth, cardHeight, tabWidth;
     }
@@ -161,8 +164,10 @@ public class CodexPanel : MonoBehaviour
         l.tabs = new Rect(left, l.divider.yMin - 10f - TabsHeight, iw, TabsHeight);
         l.back = CodexUi.Centered(0f, bottom + BackHeight * .5f, BackWidth, BackHeight);
         l.body = Rect.MinMaxRect(left, l.back.yMax + Gap, left + iw, l.tabs.yMin - Gap);
-        l.chips = new Rect(left, l.body.yMax - ChipsHeight, iw, ChipsHeight);
-        l.list = Rect.MinMaxRect(left, l.body.yMin, left + iw, l.chips.yMin - ChipsGap);
+        l.collectBar = new Rect(left, l.body.yMax - CollectBarHeight, iw, CollectBarHeight);
+        l.catBody = Rect.MinMaxRect(left, l.body.yMin, left + iw, l.collectBar.yMin - CollectBarGap);
+        l.chips = new Rect(left, l.catBody.yMax - ChipsHeight, iw, ChipsHeight);
+        l.list = Rect.MinMaxRect(left, l.catBody.yMin, left + iw, l.chips.yMin - ChipsGap);
         l.detail = Rect.MinMaxRect(left, l.back.yMax + Gap, left + iw, l.divider.yMin - 10f);
 
         float gridW = iw - 2f * GridInset;
@@ -334,7 +339,7 @@ public class CodexPanel : MonoBehaviour
     // entry (detail, beside the category pill). Both hide when nothing is waiting.
     Image collectTabFrame, collectDetailFrame;
     Button collectTabButton, collectDetailButton;
-    Text collectTabLabel, collectDetailLabel;
+    Text collectTabLabel, collectDetailLabel, collectBarText;
     // LAST STAND (KillCamArchive.CodexId): WATCH opens the saved kill cam (CodexReplayViewer), in the COLLECT slot.
     Image watchFrame;
     Button watchButton;
@@ -578,6 +583,13 @@ public class CodexPanel : MonoBehaviour
     {
         collectTabFrame = NewCollectButton("CollectTab", panel, 24, 12, out collectTabButton, out collectTabLabel);
         collectTabButton.onClick.AddListener(OnCollectTab);
+        collectBarText = CodexUi.NewText("CollectBarText", panel, font, "", 22, CodexUi.Body, TextAnchor.MiddleLeft);
+        collectBarText.horizontalOverflow = HorizontalWrapMode.Wrap;
+        collectBarText.verticalOverflow = VerticalWrapMode.Truncate;
+        collectBarText.resizeTextForBestFit = true;
+        collectBarText.resizeTextMinSize = 12;
+        collectBarText.resizeTextMaxSize = 22;
+        collectBarText.gameObject.SetActive(false);
     }
 
     void BuildTabs()
@@ -832,12 +844,16 @@ public class CodexPanel : MonoBehaviour
     void PaintCollect()
     {
         if (collectTabFrame == null) return;
-        int tabPending = !OtherViewOpen && !inDetail ? Codex.PendingIn(category) : 0;
+        bool barOn = !OtherViewOpen && !inDetail;
+        int tabPending = barOn ? Codex.PendingIn(category) : 0;
         bool tabShown = tabPending > 0;
-        bool wasShown = collectTabFrame.gameObject.activeSelf;
-        collectTabFrame.gameObject.SetActive(tabShown);
-        if (tabShown) collectTabLabel.text = "COLLECT ALL +" + tabPending * Codex.UnlockReward;
-        if (wasShown != tabShown && layout.panel.width > 0f) { PlaceHeader(); RefreshCounter(); }   // the counter shortens beside the chip
+        collectTabFrame.gameObject.SetActive(barOn);
+        collectBarText.gameObject.SetActive(barOn);
+        collectTabButton.interactable = tabShown;
+        collectTabFrame.color = tabShown ? CodexHomeButton.BubbleYellow : CodexUi.Locked;
+        collectTabLabel.color = tabShown ? CodexUi.Ink : CodexUi.Muted;
+        collectTabLabel.text = tabShown ? "COLLECT ALL +" + tabPending * Codex.UnlockReward : "COLLECT ALL";
+        collectBarText.text = tabShown ? tabPending + " TO COLLECT" : "NOTHING TO COLLECT";
 
         bool entryShown = inDetail && detailEntry != null && !OtherViewOpen && Codex.IsRewardPending(detailEntry);
         collectDetailFrame.gameObject.SetActive(entryShown);
@@ -1048,7 +1064,7 @@ public class CodexPanel : MonoBehaviour
             CodexUi.Place(tabFrames[i].rectTransform, t);
         }
 
-        gridRect = sectioned ? layout.list : layout.body;
+        gridRect = sectioned ? layout.list : layout.catBody;
         CodexUi.Place(grid, gridRect);
         CodexUi.Place(chipsRoot, layout.chips);
         CodexUi.Place(detail, layout.detail);
@@ -1066,17 +1082,24 @@ public class CodexPanel : MonoBehaviour
     float headerTitleW;
     public const float CollectTabWidth = 230f;
 
-    // The header's counter, and the COLLECT ALL chip at its right end while the open tab has rewards waiting.
+    // The header's counter (COLLECT ALL now lives in the bar under the tabs, like the Achievements strip).
     void PlaceHeader()
     {
         var h = layout.header;
         float left = h.xMin + 40f + headerTitleW + 16f;
-        bool chip = collectTabFrame != null && collectTabFrame.gameObject.activeSelf;
-        float chipW = Mathf.Clamp(h.width * .32f, 160f, CollectTabWidth);   // narrow panels leave the counter its room
-        float right = chip ? h.xMax - chipW - 12f : h.xMax;
-        CodexUi.Place(counter.rectTransform, new Rect(left, h.yMin, Mathf.Max(0f, right - left), h.height));
-        if (collectTabFrame != null)
-            CodexUi.Place(collectTabFrame.rectTransform, CodexUi.Centered(h.xMax - chipW * .5f, h.center.y, chipW, h.height - 8f));
+        CodexUi.Place(counter.rectTransform, new Rect(left, h.yMin, Mathf.Max(0f, h.xMax - left), h.height));
+        PlaceCollectBar();
+    }
+
+    // COLLECT ALL: right end of the bar, the Achievements button's size; "N TO COLLECT" on the left.
+    void PlaceCollectBar()
+    {
+        if (collectTabFrame == null) return;
+        var r = layout.collectBar;
+        float btnW = Mathf.Min(CodexAchievementsView.CollectAllWidth, r.width * .42f), btnH = 72f;
+        CodexUi.Place(collectTabFrame.rectTransform, CodexUi.Centered(r.xMax - 20f - btnW * .5f, r.center.y, btnW, btnH));
+        if (collectBarText != null)
+            CodexUi.Place(collectBarText.rectTransform, new Rect(r.xMin + 28f, r.yMin, Mathf.Max(0f, r.width - btnW - 68f), r.height));
     }
 
     void SizeDots()
@@ -1921,7 +1944,7 @@ public class CodexPanel : MonoBehaviour
         PaintTabs();
         PaintNewDots();
 
-        gridRect = sectioned ? layout.list : layout.body;
+        gridRect = sectioned ? layout.list : layout.catBody;
         CodexUi.Place(grid, gridRect);
         jumping = false;
         jumpTarget = -1;
@@ -2079,7 +2102,7 @@ public class CodexPanel : MonoBehaviour
             ? FusionDiscoveryStore.DiscoveredCount + " / " + FusionDiscoveryStore.Total + "  FOUND"
             : achievementsOpen
             ? AchievementStore.UnlockedCount + " / " + AchievementCatalog.ActiveCount + "  UNLOCKED"
-            : Codex.DiscoveredCount + " / " + Codex.Total + (collectTabFrame != null && collectTabFrame.gameObject.activeSelf ? "" : "  DISCOVERED");
+            : Codex.DiscoveredCount + " / " + Codex.Total + "  DISCOVERED";
     }
 
     // ---------------------------------------------------------------------
