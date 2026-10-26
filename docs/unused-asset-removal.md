@@ -1148,3 +1148,23 @@ Packages / docs / scripts file, not in any build, `UnusedAssetGuardTest` and a f
 - Storage-only, deliberately kept (the pipelines read them as inputs, deleting them breaks `audit.py` / `restyle.py` / the outline pass): `src~/space_elites_restyle/original/*`,
   `src~/ship_scale_border~/original/*` (Space, Ember, Storm), `src~/palette_unify/original/**`, `src~/desert_enemies/strips/original/*`, `Worlds/Desert/descent~/original/*`,
   the old Storm `backdrop_v3~` sources (15.5 MB). Prune only by moving them to an art archive.
+
+## Follow-up: old-art cleanup (2026-10-25)
+
+Re-audited on master 15be769e. The shipped set is still clean: every file under the Resources roots matched a loader
+(literal or composed name: `BossImpact/attack/{key}_{pose}_stage{n}`, `{World}_{shots,card,damage,damage_fx,death}`,
+`{Ship}_{Skin}`, `{world}_elite_{name}_{damaged,lights,death,banks}`, `sun_{palette}`, `sky_0{n}`, `*_shine_{i}`, ...),
+and every imported file outside Resources is reached by a build scene or sits in an exempt staging area
+(`UnusedAssetGuardTest.EveryAssetIsReachable`). So this pass removed only Unity-ignored storage: superseded art that
+no script, test, doc or skill reads and that is not byte-identical to any live asset.
+
+| Removed | Files | Size |
+|---|---:|---:|
+| `Art/Enemies/src~/frost_death` (v1 death candidates; `build_frost_death.py` writes `frost_death_v2`) | 26 | 15.6 MB |
+| `Art/Enemies/src~/ember_old` (pre-redesign Ember enemies / elites) | 42 | 7.5 MB |
+| `Art/Enemies/src~/ember_precolor` (pre-recolour Ember sheets) | 34 | 2.5 MB |
+| `Art/Enemies/src~/space_old`, `storm_unused` (replaced Space / Storm strips) | 21 | 2.4 MB |
+| `Art/Worlds/Space/backdrop_v3_original~` (pre-redo skies and the removed comets, archived Oct 11) | 10 | 13.3 MB |
+
+Still kept on purpose: `Art/Enemies/src~/verdant_old` (its README keeps it as a "what not to do" reference, and
+`verdant_refresh/resin_warden_nopink.py` reads `verdant_old/elite/` to build the live Resin Warden).
