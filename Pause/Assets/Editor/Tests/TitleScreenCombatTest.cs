@@ -758,13 +758,16 @@ public static class TitleScreenCombatTest
         System.GC.Collect();
         long counted = 0;
         int frames = 0, skipped = 0, ults = t.UltsFired, downs = t.ShootDowns, plunges = t.Plunges;
+        // Counted per thread, not as heap growth (GetTotalMemory): the Boehm
+        // heap's size moves with other threads, finalizers and its own
+        // expansion, which read as "allocations" here on an unrelated run.
         for (int i = 0; i < 1800; i++)
         {
             int work = t.SkinWork;
-            long before = System.GC.GetTotalMemory(false);
+            long before = System.GC.GetAllocatedBytesForCurrentThread();
             t.FeedPointer(0, 0, (i / 90) % 2 == 0, screen + new Vector2(Mathf.Sin(i * .05f) * 200f, 0f), Dt);
             t.Step(Dt);
-            long after = System.GC.GetTotalMemory(false);
+            long after = System.GC.GetAllocatedBytesForCurrentThread();
             // a wardrobe swap (one skin sheet decoded, every few seconds) is
             // a scheduled load, not per-frame work: those frames are skipped
             if (t.SkinWork != work) { skipped++; continue; }

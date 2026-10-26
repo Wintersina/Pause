@@ -483,10 +483,10 @@ public static class TitleScreenEliteTest
         bool started = false;
         for (int i = 0; i < 900 && (!started || t.EliteBusy); i++)
         {
-            long before = System.GC.GetTotalMemory(false);
+            long before = System.GC.GetAllocatedBytesForCurrentThread();   // this thread's allocations, not heap growth
             if (!started) started = t.TryStartElite();
             t.Step(Dt);
-            long after = System.GC.GetTotalMemory(false);
+            long after = System.GC.GetAllocatedBytesForCurrentThread();
             if (after > before) counted += after - before;
             n++;
         }
