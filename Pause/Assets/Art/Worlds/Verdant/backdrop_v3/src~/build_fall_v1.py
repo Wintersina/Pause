@@ -37,10 +37,10 @@ def desat(rgb, s, fog, haze):
 
 
 PAL = {  # per palette: source files, value targets, saturation, contrast, haze
-    "fall": dict(a="fall_a3.png", b="fall_b3.png",
+    "fall": dict(a="fall_a4.png", b="fall_b4.png",
                  target={"sky": .36, "far": .42, "mid": .40}, sat={"sky": .75, "far": .85, "mid": .62},
                  contrast={"sky": .30, "far": .62, "mid": .80}, haze={"sky": .34, "far": .08, "mid": 0.0}),
-    "green": dict(a="green_a3.png", b="green_b3.png",
+    "green": dict(a="green_a4.png", b="green_b4.png",
                   target={"sky": .38, "far": .44, "mid": .42}, sat={"sky": .85, "far": .95, "mid": .80},
                   contrast={"sky": .30, "far": .62, "mid": .80}, haze={"sky": .30, "far": .08, "mid": 0.0}),
 }
@@ -61,6 +61,21 @@ def ground(role, pal="fall"):
     rgba = B.wrap_blend(rgba)
     rgb = B.palette_and_value(rgba[:, :, :3], t, 1.0, 0, cap, colors=56)
     rgba = np.dstack((rgb, np.full((H, W), 255, np.uint8)))
+    if role == "far" and pal == "green":
+        # carry the painted flower / sakura pixels (blue, violet, pink, red) over the palette indexing, dimmed and
+        # a little desaturated, away from the 70 px wrap band (seams stay identical). Orange / gold left out.
+        sb = src(P["b"]).astype(np.float32) / 255
+        mx, mn = sb.max(axis=2), sb.min(axis=2)
+        sat = (mx - mn) / np.maximum(mx, 1e-4)
+        r, g, b = sb[..., 0], sb[..., 1], sb[..., 2]
+        warm = (r > g + .18) & (r >= b)
+        cool = (b > g + .10) & (b > r - .05)
+        pale = (r > g + .06) & (b > g + .03)
+        flower = (warm | cool | pale) & (mx > .42) & (sat > .18) & ~((r > g + .10) & (g > b + .06) & (mx < .6))
+        flower[:70] = False; flower[-70:] = False; flower[:, :70] = False; flower[:, -70:] = False
+        gr = sb.mean(axis=2, keepdims=True)
+        soft = np.clip((gr + (sb - gr) * .85) * .82, 0, 1) * 255
+        rgba[..., :3] = np.where(flower[..., None], np.uint8(soft), rgba[..., :3])
     rgba[:, -1] = rgba[:, 0]; rgba[-1] = rgba[0]
     return Image.fromarray(rgba, "RGBA")
 
