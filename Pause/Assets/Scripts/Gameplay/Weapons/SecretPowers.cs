@@ -549,8 +549,12 @@ public class SecretPowerController : MonoBehaviour
             var t = scratch[i];
             if (t == null || !t.CompareTag("Enimey")) continue;
             int before = lockedCount;
-            Lock(t.gameObject);
-            if (lockedCount > before)
+            // An elite has no board mover to switch off: it is stunned the way the Space flares stun it
+            // (EliteShip.Stun: it holds still and a wind-up in progress breaks off) for the EMP's stunSeconds.
+            bool stunned = false;
+            if (t.TryGetComponent(out EliteShip elite)) stunned = elite.Stun(stunSeconds);
+            else Lock(t.gameObject);
+            if (stunned || lockedCount > before)
             {
                 // the stun halo (VoltViper_stun.png): zaps on, then crackles round the enemy until the stun ends
                 float markSize = Mathf.Max(.9f, t.Radius * 2.4f);
