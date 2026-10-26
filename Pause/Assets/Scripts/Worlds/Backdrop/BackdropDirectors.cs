@@ -87,6 +87,23 @@ public partial class SpaceDirector : BackdropDirector
         new Color(0.66f, 0.90f, 1.00f), // teal
         new Color(0.92f, 0.76f, 1.00f), // violet
     };
+    // The six world planets (Codex: giant_00 Storm, 02 Tide, 04 Ember, 07 Verdant, 09 Frost, 11 Desert) keep
+    // their own colours: the indigo / violet tints above would push Frost lilac and Desert pink. Same length
+    // as PlanetTints, so the seeded stream is unchanged; blue stays near 1 so brightness depends on the tier.
+    static readonly Color[] WorldPlanetTints =
+    {
+        new Color(1.00f, 1.00f, 1.00f),
+        new Color(0.90f, 0.92f, 0.96f),
+        new Color(0.80f, 0.86f, 0.94f),
+        new Color(0.94f, 0.95f, 0.98f),
+    };
+    public static readonly string[] WorldPlanetCells =
+        { "giant_00", "giant_02", "giant_04", "giant_07", "giant_09", "giant_11" };
+    public static bool IsWorldPlanet(Sprite s)
+    {
+        return s != null && System.Array.IndexOf(WorldPlanetCells, s.name) >= 0;
+    }
+    int lastGiant = -1;      // the giant cell shown last: the next one is never the same
     static readonly Color StationTint = new Color(0.82f, 0.82f, 0.90f);
     static readonly Color RockTint = new Color(0.85f, 0.85f, 0.95f);
 
@@ -540,6 +557,13 @@ public partial class SpaceDirector : BackdropDirector
         if (n.kind == Planet && !opening && n.tier <= OutpostMaxTier && HasOutposts && xrng.NextDouble() < OutpostShare) art = outpostArt;
         if (art.Length == 0) { p.Show(false); return true; }
         Sprite selected = Pick(art);
+        if (art == giant && giant.Length > 1)
+        {
+            // No back-to-back repeats (steps on, so the seeded stream is unchanged).
+            int gi = System.Array.IndexOf(giant, selected);
+            if (gi == lastGiant) { gi = (gi + 1) % giant.Length; selected = giant[gi]; }
+            lastGiant = gi;
+        }
         Dress(p, selected, n.kind, n.tier, n.size, 0, planetClass);
         p.edge = n.edge;
         if (p.smoke != null)
@@ -559,8 +583,10 @@ public partial class SpaceDirector : BackdropDirector
         // reference planet is the one body that turns slowly in the picture.
         p.phase = n.kind == Station ? 0f : Rand(-14f, 14f);
         if (art == referencePlanet) p.spin = Rand(0.35f, 0.55f) * (Chance(0.5) ? 1f : -1f);
-        Color body = n.kind == Planet ? Pick(PlanetTints) : n.kind == Station ? StationTint : RockTint;
-        if (opening && openingTinted) body = openingTint;
+        bool worldArt = n.kind == Planet && IsWorldPlanet(selected);
+        Color[] tints = worldArt ? WorldPlanetTints : PlanetTints;
+        Color body = n.kind == Planet ? Pick(tints) : n.kind == Station ? StationTint : RockTint;
+        if (opening && openingTinted) body = worldArt ? tints[System.Math.Max(0, System.Array.IndexOf(PlanetTints, openingTint))] : openingTint;
         p.color = Lit(body, tier);
         if (planetClass) planetSide = x < 0f ? -1 : 1;
         else structureSide = x < 0f ? -1 : 1;

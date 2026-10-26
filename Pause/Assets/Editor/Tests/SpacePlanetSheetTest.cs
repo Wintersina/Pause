@@ -41,6 +41,7 @@ public static class SpacePlanetSheetTest
         CheckImport();
         CheckShader();
         CheckHires();
+        CheckWorldPlanets();
         Debug.Log("[PLANETSHEET] failures: " + failures);
         return failures;
     }
@@ -184,6 +185,57 @@ public static class SpacePlanetSheetTest
         Check("planet surface repeat " + period.ToString("F2") + " rad covers the turning face " + face.ToString("F2") + " rad",
               period >= face);
         Object.DestroyImmediate(mat);
+    }
+
+    // The six world planets (Storm, Tide, Ember, Verdant, Frost, Desert) are cells of the same "giant" frame
+    // set the spawner draws from (SpaceDirector picks uniformly from it, with no per-cell reserve), so every
+    // one is reachable; each is a sphere the shader can turn, its disc is opaque and round, and no violet or
+    // pink (hue 260-340 at real saturation and brightness) hides in it.
+    static void CheckWorldPlanets()
+    {
+        foreach (string file in new[] { "anim", BackdropCatalog.AtlasAnimHires })
+        {
+            string png = Dir + file + ".png";
+            if (!File.Exists(png)) continue;
+            var tex = LoadPng(png);
+            string text = File.ReadAllText(Dir + file + ".json");
+            var atlas = new BackdropAtlas(tex, Json(text));
+            var giants = atlas.Frames("giant");
+            var names = new List<string>();
+            foreach (var g in giants) names.Add(g.name);
+            bool reach = true, sphere = true, round = true, clean = true;
+            foreach (string cell in SpaceDirector.WorldPlanetCells)
+            {
+                Sprite s = atlas.Get(cell);
+                reach &= s != null && names.Contains(cell);
+                if (s == null) continue;
+                sphere &= SpaceDirector.IsSphere(s) && SpaceDirector.IsWorldPlanet(s);
+                Rect r = s.textureRect;
+                int x0 = (int)r.x, y0 = (int)r.y, w = (int)r.width, h = (int)r.height;
+                var px = tex.GetPixels32();
+                int inside = 0, opaque = 0, violet = 0;
+                for (int y = 0; y < h; y++)
+                    for (int x = 0; x < w; x++)
+                    {
+                        float nx = (x + .5f - w / 2f) / (w / 2f), ny = (y + .5f - h / 2f) / (h / 2f);
+                        float rr = Mathf.Sqrt(nx * nx + ny * ny);
+                        Color32 c = px[(y0 + y) * tex.width + x0 + x];
+                        if (rr < 0.9f) { inside++; if (c.a > 250) opaque++; }
+                        float H, S, V;
+                        Color.RGBToHSV(c, out H, out S, out V);
+                        if (c.a > 200 && S > 0.35f && V > 0.25f && H > 260f / 360f && H < 340f / 360f) violet++;
+                    }
+                round &= opaque > inside * 0.995f;
+                clean &= violet < w * h * 0.002f;
+            }
+            Check(file + ": the six world planets are in the giant set the spawner draws from (" + giants.Length + " giants)",
+                  reach && giants.Length >= 12);
+            Check(file + ": the six world planets are spheres the BackdropPlanet shader turns", sphere);
+            Check(file + ": each world planet's disc is opaque and round", round);
+            Check(file + ": no violet or pink in the world planets", clean);
+            atlas.Destroy();
+            Object.DestroyImmediate(tex);
+        }
     }
 
     // An installed hi-res re-render must be a drop-in for anim.
