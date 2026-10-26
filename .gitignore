@@ -98,3 +98,7 @@ Pause/Assets/Art/Boulders~/*/storm_fx.gif
 # Commit hash baked by BuildScript for the DEV badge
 /Pause/Assets/Resources/BuildInfo.txt
 /Pause/Assets/Resources/BuildInfo.txt.meta
+
+# Mono crash dumps Unity writes next to the project
+mono_crash.*
+mono_crash.*.blob
