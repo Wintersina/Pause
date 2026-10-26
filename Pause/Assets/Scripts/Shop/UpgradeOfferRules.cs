@@ -10,9 +10,9 @@
 // heart), starting with the discounted first colour (ShipSkins.FirstColourPrice)
 // and moving on as each is bought. If the player cannot afford it, or the
 // ship has none left, nothing is shown.
-// TODO: a fallback may be added later that offers other owned ships' next
-// colours, or the cheapest unowned stardust ship, when the active ship's next
-// upgrade is out of reach.
+// When the flown ship has no colour left at all, the same due offer becomes
+// a ship offer instead: the next roster ship (ShipOfferRules / ShipOfferCard),
+// sharing this backoff state.
 //
 // BACKOFF (all numbers live here): offers are spaced exponentially in
 // consecutive deaths. Offer 1 comes at the 2nd death in a row, and each

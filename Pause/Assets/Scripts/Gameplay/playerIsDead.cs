@@ -80,6 +80,20 @@ public class playerIsDead : MonoBehaviour
                 });
                 return;
             }
+            // Same moment and backoff, but the flown ship has nothing left
+            // to upgrade: offer the next roster ship instead (ShipOfferRules).
+            ShipOfferRules.Offer shipOffer;
+            if (ShipOfferStore.TryGetOffer(out shipOffer))
+            {
+                float balance = PlayerPrefs.GetFloat(StarDustLedger.CurrencyKey);
+                ShipOfferCard.Show(canvas.transform, deathHighScoreText.font, shipOffer, balance, bought =>
+                {
+                    if (bought) results.dustAtStart -= shipOffer.price;
+                    DeathPanelView.Build(canvas.transform, deathScoreText, deathSpareText,
+                                         deathHighScoreText, FindButton("Replay"), FindButton("MainMenu"), results);
+                });
+                return;
+            }
         }
         DeathPanelView.Build(canvas.transform, deathScoreText, deathSpareText,
                              deathHighScoreText, FindButton("Replay"), FindButton("MainMenu"), results);
