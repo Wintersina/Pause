@@ -41,8 +41,30 @@ public class movePlayerInTut : MonoBehaviour
     public static void ResetCounters() { FlownUnits = 0f; Jumps = 0; }
 
     // Update is called once per frame
+    Vector3 lastValid, startPos;
+    bool guardReady;
+    Vector2 lastGoodScreen;
+
+    // A fling can never lose the ship: a non-finite position goes back to the
+    // last valid one (or where the ship started), and one far outside the
+    // playable view is pinned back in. The fly-in / lift-off move the ship
+    // on purpose, so only the non-finite check runs while they hold it.
+    void GuardShip(bool held)
+    {
+        if (!guardReady) { guardReady = true; startPos = lastValid = transform.position; }
+        float bottom, top;
+        TutorialAtomDrift.View(out bottom, out top);
+        float slack = held ? 1000f : 3f;
+        Vector3 p = TutorialSafety.RecoverShip(transform.position, lastValid, startPos, ShipReach.HalfWidth, bottom, top, slack);
+        if (p != transform.position) transform.position = p;
+        lastValid = p;
+        var s = transform.localScale;
+        if (!TutorialSafety.IsFinite(s) || s == Vector3.zero) transform.localScale = Vector3.one;
+    }
+
     void Update()
     {
+        GuardShip(Planetfall.HoldsShip || Liftoff.HoldsShip || PortalArrival.HoldsShip);
         // The fly-in's portal and the lift-off hold the ship: no steering.
         if (Planetfall.HoldsShip || Liftoff.HoldsShip || PortalArrival.HoldsShip)
         {
@@ -57,7 +79,11 @@ public class movePlayerInTut : MonoBehaviour
             // the UI, never a steer or a jump (movePlayer does the same).
             if (PauseQuickActions.IsScreenPointOnAction(TouchInput.Position)) return;
 
-            fingerPos = Camera.main.ScreenToWorldPoint(new Vector3(TouchInput.Position.x, TouchInput.Position.y, 0));
+            var cam = Camera.main;
+            if (cam == null) return;
+            // a fling can report a point off the screen or a non-finite one
+            lastGoodScreen = TutorialSafety.SafeScreenPoint(TouchInput.Position, lastGoodScreen, Screen.width, Screen.height);
+            fingerPos = cam.ScreenToWorldPoint(new Vector3(lastGoodScreen.x, lastGoodScreen.y, 0));
             textPos = Camera.main.WorldToScreenPoint(transform.position);
 
             Vector3 before = transform.position;

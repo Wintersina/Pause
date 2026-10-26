@@ -128,6 +128,7 @@ public class Hints : MonoBehaviour {
         retryLine = TutorialScript.Speak(TutorialScript.WallRetryLine);
         rescueLine = TutorialScript.Speak(TutorialScript.PauseRescueLine);
         tryAgainLine = TutorialScript.Speak(TutorialSafety.TryAgainLine);
+        skipOfferLine = TutorialScript.Speak(TutorialSafety.SkipOfferLine);
 
         speaker = RobotSpeaker.Create(font);
         guides = TutorialGuides.Create(speaker.Root);
@@ -193,6 +194,7 @@ public class Hints : MonoBehaviour {
         if (current.cue == TutorialCue.SpawnWall) guides.ShowTouch(wall == null || !wall.Jumpable);
         TickTouchTarget(current);
         TickRecovery();
+        TickWatchdog(current, dt);
         TickPauseRescue(current);
         // a rescue atom owns the arrow: it is the only thing the player needs
         if (spawnGoodStuffTut.LiveAtom != null && AtomFor(current.cue) == TutorialAtom.None) guides.PointAt(spawnGoodStuffTut.LiveAtom);
@@ -270,9 +272,7 @@ public class Hints : MonoBehaviour {
     // repeats the line. A lifted finger on any other step pauses the clock.
     void TickIdle(TutorialStep current, float dt)
     {
-        float progress = signals.flyUnits + signals.presses + signals.pausesSpent + signals.starsCollected
-                       + signals.greenAtomsCollected + signals.blueAtomsCollected + signals.redAtomsCollected
-                       + signals.powersFired + signals.wallsCrossed + signals.enemiesTeleported;
+        float progress = Progress();
         if (!Mathf.Approximately(progress, lastProgress)) { lastProgress = progress; idleClock = 0f; return; }
         bool wantsFinger = current.advance == TutorialAdvance.WallFrozen || current.advance == TutorialAdvance.CrossWall
                           || current.advance == TutorialAdvance.TeleportKill;
@@ -280,6 +280,60 @@ public class Hints : MonoBehaviour {
         if (!speaker.LineFinished) return;
         idleClock += dt;
         if (idleClock >= IdleHintSeconds) { idleClock = 0f; Reprompt(); }
+    }
+
+    float Progress()
+    {
+        return signals.flyUnits + signals.presses + signals.pausesSpent + signals.starsCollected
+             + signals.greenAtomsCollected + signals.blueAtomsCollected + signals.redAtomsCollected
+             + signals.powersFired + signals.wallsCrossed + signals.enemiesTeleported;
+    }
+
+    // ---- Watchdog: no step can stay stuck ----
+
+    TutorialSafety.Watchdog watchdog;
+    float watchdogProgress;
+    SpokenLine skipOfferLine;
+
+    // Is what the step needs gone, with nothing bringing it back?
+    bool TargetMissing(TutorialStep current)
+    {
+        if (AtomFor(current.cue) != TutorialAtom.None)
+            return spawnGoodStuffTut.LiveAtom == null && !AtomDone(current);
+        if (current.cue == TutorialCue.SpawnWall || current.cue == TutorialCue.PointAtWall)
+            return wall == null && wallRetryLeft < 0f && signals.wallsCrossed <= stepStart.wallsCrossed;
+        return false;
+    }
+
+    bool AtomDone(TutorialStep current)
+    {
+        return TutorialScript.CanAdvance(current, stepStart, signals, true, 99f, 0f);
+    }
+
+    void TickWatchdog(TutorialStep current, float dt)
+    {
+        float prog = Progress();
+        bool progressed = !Mathf.Approximately(prog, watchdogProgress);
+        watchdogProgress = prog;
+        var action = watchdog.Tick(dt, progressed, TargetMissing(current));
+        if (action == TutorialSafety.WatchdogAction.None) return;
+        int attempts = watchdog.attempts;
+        if (action == TutorialSafety.WatchdogAction.Advance)
+        {
+            EndStep(current);
+            watchdog = default(TutorialSafety.Watchdog);
+            if (step + 1 < TutorialScript.Steps.Length) BeginStep(step + 1);
+            else BeginEnding();
+            return;
+        }
+        // set the step's objects up again, in their guaranteed-valid spots
+        TutorialWall.Clear();
+        wall = null;
+        wallRetryLeft = -1f;
+        EndStep(current);
+        BeginStep(step);
+        watchdog.attempts = attempts;
+        if (action == TutorialSafety.WatchdogAction.OfferSkip) speaker.Say(skipOfferLine);
     }
 
     void Reprompt()
@@ -475,6 +529,8 @@ public class Hints : MonoBehaviour {
     void BeginStep(int index)
     {
         step = index;
+        watchdog = default(TutorialSafety.Watchdog);
+        watchdogProgress = Progress();
         idleClock = 0f;
         stepStart = signals;
         var s = TutorialScript.Steps[index];
