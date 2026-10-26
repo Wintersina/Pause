@@ -22,7 +22,7 @@ public static class SupportPurchaseTest
     }
 
     static PlayPurchase Buy(string token, PlayPurchaseState state = PlayPurchaseState.Purchased,
-                            string product = SupportPurchase.ProductId)
+                            string product = "support_developer_2500")
     {
         return new PlayPurchase { productId = product, token = token, state = state };
     }
@@ -49,8 +49,13 @@ public static class SupportPurchaseTest
 
         try
         {
-            Check("product id", SupportPurchase.ProductId == "support_developer_2500");
-            Check("pays 2500", SupportPurchase.DustAmount == 2500);
+            Check("product ids", SupportPurchase.Large.productId == "support_developer_2500" && SupportPurchase.Small.productId == "support_developer_850");
+            Check("pays 2500 and 850", SupportPurchase.Large.dust == 2500 && SupportPurchase.Small.dust == 850);
+            Check("thank-you toast shows each pack's amount",
+                  SupportPurchase.Large.grantedMessage == "Thank you for supporting the developer! +2,500 star dust" &&
+                  SupportPurchase.Small.grantedMessage == "Thank you for supporting the developer! +850 star dust");
+            Check("routing finds the right pack", SupportPurchase.ForProduct("support_developer_850") == SupportPurchase.Small &&
+                  SupportPurchase.ForProduct("support_developer_2500") == SupportPurchase.Large && SupportPurchase.ForProduct("x") == null);
 
             var r = SupportPurchase.Handle(Buy("tok-1"), autoOk);
             Check("purchased is granted", r == SupportPurchase.Result.Granted);
@@ -103,16 +108,59 @@ public static class SupportPurchaseTest
             pendingDone(true);
             Check("consume answer clears the token", SupportPurchase.GrantedTokens().Count == 0);
 
-            // The button needs a price and a launcher; buying is one at a time.
-            Check("not available without a price", !SupportPurchase.Available && !SupportPurchase.RequestBuy());
-            int launches = 0;
-            SupportPurchase.LaunchFlow = () => launches++;
-            SupportPurchase.SetPrice("$9.99");
-            Check("available with price and launcher", SupportPurchase.Available);
-            Check("buy launches the flow", SupportPurchase.RequestBuy() && launches == 1);
-            Check("second tap while buying does nothing", !SupportPurchase.RequestBuy() && launches == 1);
-            SupportPurchase.EndBuy();
-            Check("can buy again after the flow ends", SupportPurchase.RequestBuy() && launches == 2);
+            // The 850 pack: same rules, its own amount, tokens shared in one list.
+            consumes = 0; rewarded = 0;
+            float before = Dust;
+            r = SupportPurchase.Handle(Buy("small-1", PlayPurchaseState.Purchased, "support_developer_850"), autoOk);
+            Check("850 pack is granted and pays 850", r == SupportPurchase.Result.Granted && Mathf.Approximately(Dust, before + 850f) && rewarded == 850);
+            Check("850 pack is consumed", consumes == 1 && SupportPurchase.GrantedTokens().Count == 0);
+            r = SupportPurchase.Handle(Buy("small-2", PlayPurchaseState.Purchased, "support_developer_850"), autoOk);
+            Check("850 pack repeats and pays again", r == SupportPurchase.Result.Granted && Mathf.Approximately(Dust, before + 1700f));
+            r = SupportPurchase.Handle(Buy("small-3", PlayPurchaseState.Purchased, "support_developer_850"), failing);
+            Check("850 failed consume still pays", r == SupportPurchase.Result.Granted && Mathf.Approximately(Dust, before + 2550f));
+            SupportPurchase.ResetSession();
+            r = SupportPurchase.Handle(Buy("small-3", PlayPurchaseState.Purchased, "support_developer_850"), autoOk);
+            Check("850 retry does not pay twice", r == SupportPurchase.Result.AlreadyGranted && Mathf.Approximately(Dust, before + 2550f) && SupportPurchase.GrantedTokens().Count == 0);
+            r = SupportPurchase.Handle(Buy("small-p", PlayPurchaseState.Pending, "support_developer_850"), autoOk);
+            Check("850 pending waits", r == SupportPurchase.Result.Pending && Mathf.Approximately(Dust, before + 2550f));
+
+            // A pack needs a price and a launcher; buying is one at a time, per pack.
+            var big = SupportPurchase.Large; var small = SupportPurchase.Small;
+            Check("not available without a price", !big.Available && !big.RequestBuy());
+            int launches = 0, smallLaunches = 0;
+            big.LaunchFlow = () => launches++;
+            small.LaunchFlow = () => smallLaunches++;
+            big.SetPrice("$9.99");
+            Check("available with price and launcher", big.Available && !small.Available);
+            Check("buy launches the flow", big.RequestBuy() && launches == 1);
+            Check("second tap while buying does nothing", !big.RequestBuy() && launches == 1);
+            Check("the open purchase is reported", SupportPurchase.Buying == big);
+            big.EndBuy();
+            Check("can buy again after the flow ends", big.RequestBuy() && launches == 2 && smallLaunches == 0);
+            big.EndBuy();
+            small.SetPrice("$3.99");
+            Check("small pack launches its own flow", small.RequestBuy() && smallLaunches == 1 && launches == 2 && SupportPurchase.Buying == small);
+            small.EndBuy();
+            small.SetPrice(null);
+            Check("price gone hides the pack", !small.Available);
+
+            // Dock tiles: shown only with a price, tap routes to their own pack.
+            var holder = new GameObject("~TileTest");
+            try
+            {
+                var font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+                var bigTile = DockSupportTile.Create(holder.transform, big, font);
+                var smallTile = DockSupportTile.Create(holder.transform, small, font);
+                big.EndBuy();
+                Check("tile shown only with a price", bigTile.Shown && !smallTile.Shown);
+                small.SetPrice("$4.00");
+                smallTile.Refresh();
+                Check("both tiles shown with both prices", bigTile.Shown && smallTile.Shown);
+                Check("tile tap starts its own pack", smallTile.Tap() && smallLaunches == 2 && launches == 2);
+                small.EndBuy();
+                Check("the 850 icon is drawn smaller", DockSupportTile.IconScale(small) < DockSupportTile.IconScale(big));
+            }
+            finally { UnityEngine.Object.DestroyImmediate(holder); }
         }
         finally
         {

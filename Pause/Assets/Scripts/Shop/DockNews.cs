@@ -22,25 +22,37 @@ public static class DockNews
         public Action tap;
     }
 
-    public const string ParagonId = "paragon", SupportId = "support";
+    public const string ParagonId = "paragon";
 
-    public static readonly Item[] Items =
+    // Paragon, then one line per support pack (SupportPurchase.Packs), so a new
+    // pack gets its ticker line with its table row.
+    public static readonly Item[] Items = BuildItems();
+
+    static Item[] BuildItems()
     {
-        new Item
+        var items = new List<Item>
         {
-            id = ParagonId,
-            when = () => ParagonPurchase.Available && !ShipId.IsOwned(PremiumShips.Paragon),
-            text = () => "GET THE PARAGON SHIP, THE PREMIUM PILOT" + PriceSuffix(ParagonPurchase.Price),
-            tap = () => ParagonPurchase.RequestBuy(),
-        },
-        new Item
+            new Item
+            {
+                id = ParagonId,
+                when = () => ParagonPurchase.Available && !ShipId.IsOwned(PremiumShips.Paragon),
+                text = () => "GET THE PARAGON SHIP, THE PREMIUM PILOT" + PriceSuffix(ParagonPurchase.Price),
+                tap = () => ParagonPurchase.RequestBuy(),
+            },
+        };
+        foreach (var pack in SupportPurchase.Packs)
         {
-            id = SupportId,
-            when = () => SupportPurchase.Available,
-            text = () => "SUPPORT THE DEV: +" + SupportPurchase.DustAmount.ToString("N0") + " STAR DUST" + PriceSuffix(SupportPurchase.Price),
-            tap = () => SupportPurchase.RequestBuy(),
-        },
-    };
+            var p = pack;
+            items.Add(new Item
+            {
+                id = p.id,
+                when = () => p.Available,
+                text = () => "SUPPORT THE DEV: " + p.label + PriceSuffix(p.Price),
+                tap = () => p.RequestBuy(),
+            });
+        }
+        return items.ToArray();
+    }
 
     // "  ·  $4.99", or nothing while the store price is not loaded.
     static string PriceSuffix(string price)

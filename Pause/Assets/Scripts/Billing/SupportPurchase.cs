@@ -2,8 +2,9 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-// "Support the Developer": a repeatable real-money one-time Google Play product
-// (ProductId, $10) that pays DustAmount star dust each time it is bought.
+// "Support the Developer": repeatable real-money one-time Google Play products
+// (the Packs table below: $4 pays 850 star dust, $10 pays 2,500) that each pay
+// their dust every time they are bought. Adding a pack is one row in Packs.
 //
 // It is a consumable: PlayBilling queries its details (Play's own localized
 // price), launches the billing flow from the dock's button, and feeds every
@@ -21,60 +22,89 @@ using UnityEngine;
 // and the dock hides the button.
 public static class SupportPurchase
 {
-    // The one place the Play Console product id lives.
-    public const string ProductId = "support_developer_2500";
+    // One purchasable pack. Its price and buy state are per pack.
+    public sealed class Pack
+    {
+        public readonly string id;          // stable short id (news / tile)
+        public readonly string productId;   // the Play Console product id
+        public readonly int dust;
+        public readonly string label;       // "+850 STAR DUST"
+        public readonly string grantedMessage;
 
-    public const int DustAmount = 2500;
+        // The store's formatted price ("$3.99"), null while unknown or unavailable.
+        public string Price { get; private set; }
+        // True from a buy tap until the store answers.
+        public bool Buying { get; private set; }
+        // Set by PlayBilling while connected: opens Play's purchase sheet.
+        public Action LaunchFlow;
+
+        public Pack(string id, string productId, int dust)
+        {
+            this.id = id;
+            this.productId = productId;
+            this.dust = dust;
+            label = "+" + dust.ToString("N0") + " STAR DUST";
+            grantedMessage = "Thank you for supporting the developer! +" + dust.ToString("N0") + " star dust";
+        }
+
+        public bool Available { get { return !string.IsNullOrEmpty(Price) && LaunchFlow != null; } }
+
+        public void SetPrice(string formatted)
+        {
+            string clean = string.IsNullOrEmpty(formatted) ? null : formatted;
+            if (clean == Price) return;
+            Price = clean;
+            var handler = Changed;
+            if (handler != null) handler();
+        }
+
+        // The player tapped the pack. Never without a store or while one is open.
+        public bool RequestBuy()
+        {
+            if (!Available || Buying) return false;
+            Buying = true;
+            LaunchFlow();
+            return true;
+        }
+
+        public void EndBuy() { Buying = false; }
+
+        internal void Reset() { Price = null; Buying = false; LaunchFlow = null; }
+    }
+
+    // The pack table, in dock order. Add a pack by adding a row (and the same
+    // product id in the Play Console).
+    public static readonly Pack Small = new Pack("support850", "support_developer_850", 850);
+    public static readonly Pack Large = new Pack("support2500", "support_developer_2500", 2500);
+    public static readonly Pack[] Packs = { Small, Large };
 
     // Purchase tokens already paid whose consume has not been confirmed yet,
     // newline separated. Empty in the normal case.
     public const string GrantedKey = "supportGrantedTokens";
 
-    public const string GrantedMessage = "Thank you for supporting the developer! +2,500 star dust";
     public const string PendingMessage = "Purchase pending. The star dust arrives when the payment completes.";
     public const string ErrorMessage = "Purchase failed. Please try again later.";
 
     public enum Result { Ignored, Pending, Granted, AlreadyGranted }
 
-    // The store's formatted price ("$9.99"), null while unknown or unavailable.
-    public static string Price { get; private set; }
+    // The pack sold under a Play product id, or null.
+    public static Pack ForProduct(string productId)
+    {
+        foreach (var p in Packs) if (p.productId == productId) return p;
+        return null;
+    }
 
-    // True from a buy tap until the store answers.
-    public static bool Buying { get; private set; }
+    // The pack whose purchase is open right now, or null.
+    public static Pack Buying
+    {
+        get { foreach (var p in Packs) if (p.Buying) return p; return null; }
+    }
 
-    // Raised when the price arrives or goes away, so the dock redraws.
+    // Raised when any price arrives or goes away, so the dock redraws.
     public static event Action Changed;
 
     // Raised after dust is paid, with the amount.
     public static event Action<int> Rewarded;
-
-    // Set by PlayBilling while connected: opens Play's purchase sheet.
-    public static Action LaunchFlow;
-
-    public static bool Available
-    {
-        get { return !string.IsNullOrEmpty(Price) && LaunchFlow != null; }
-    }
-
-    public static void SetPrice(string formatted)
-    {
-        string clean = string.IsNullOrEmpty(formatted) ? null : formatted;
-        if (clean == Price) return;
-        Price = clean;
-        var handler = Changed;
-        if (handler != null) handler();
-    }
-
-    // The player tapped the button. Never without a store or while one is open.
-    public static bool RequestBuy()
-    {
-        if (!Available || Buying) return false;
-        Buying = true;
-        LaunchFlow();
-        return true;
-    }
-
-    public static void EndBuy() { Buying = false; }
 
     static readonly HashSet<string> consuming = new HashSet<string>();
 
@@ -82,7 +112,8 @@ public static class SupportPurchase
     // store to consume it and reports success through `done`.
     public static Result Handle(PlayPurchase purchase, Action<string, Action<bool>> consume)
     {
-        if (purchase.productId != ProductId) return Result.Ignored;
+        var pack = ForProduct(purchase.productId);
+        if (pack == null) return Result.Ignored;
         // Not paid yet: wait for it to become Purchased.
         if (purchase.state == PlayPurchaseState.Pending) return Result.Pending;
         if (purchase.state != PlayPurchaseState.Purchased || string.IsNullOrEmpty(purchase.token)) return Result.Ignored;
@@ -95,11 +126,11 @@ public static class SupportPurchase
             // The token and the dust land in one save, so a kill can't pay without remembering it.
             granted.Add(token);
             PlayerPrefs.SetString(GrantedKey, string.Join("\n", granted));
-            StarDustLedger.Grant(DustAmount);
+            StarDustLedger.Grant(pack.dust);
             PrefsSaver.SaveNow();
-            Debug.Log("[Support] granted " + DustAmount + " star dust");
+            Debug.Log("[Support] granted " + pack.dust + " star dust");
             var handler = Rewarded;
-            if (handler != null) handler(DustAmount);
+            if (handler != null) handler(pack.dust);
         }
 
         // Duplicate deliveries (launch query + live callback) share one consume.
@@ -132,12 +163,12 @@ public static class SupportPurchase
     }
 
     // Developer mode / editor: pays a fake purchase as if Play had delivered it.
-    public static Result Simulate()
+    public static Result Simulate(Pack pack = null)
     {
         if (!DeveloperUnlocks.Available) return Result.Ignored;
         var fake = new PlayPurchase
         {
-            productId = ProductId,
+            productId = (pack ?? Large).productId,
             token = "simulated-" + DateTime.UtcNow.Ticks,
             state = PlayPurchaseState.Purchased,
         };
@@ -148,8 +179,6 @@ public static class SupportPurchase
     public static void ResetSession()
     {
         consuming.Clear();
-        Price = null;
-        Buying = false;
-        LaunchFlow = null;
+        foreach (var p in Packs) p.Reset();
     }
 }

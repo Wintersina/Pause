@@ -2,9 +2,7 @@ using System;
 using System.Collections.Concurrent;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-#if UNITY_ANDROID && !UNITY_EDITOR
 using System.Collections.Generic;
-#endif
 
 // Google Play Billing: the pre-registration reward (PreRegistrationReward) and
 // the real-money Paragon ship (ParagonPurchase) share this client.
@@ -26,7 +24,8 @@ public class PlayBilling : MonoBehaviour
 #if UNITY_ANDROID && !UNITY_EDITOR
     const int Ok = 0;
     AndroidJavaObject client;
-    AndroidJavaObject paragonDetails, supportDetails;
+    AndroidJavaObject paragonDetails;
+    readonly Dictionary<string, AndroidJavaObject> supportDetails = new Dictionary<string, AndroidJavaObject>();
     bool connecting, connected;
 #endif
 
@@ -54,11 +53,17 @@ public class PlayBilling : MonoBehaviour
         }
     }
 
+    static bool AnySupportPriceMissing()
+    {
+        foreach (var p in SupportPurchase.Packs) if (string.IsNullOrEmpty(p.Price)) return true;
+        return false;
+    }
+
     void OnApplicationFocus(bool focused)
     {
         if (!focused) return;
         QueryOwned();
-        if (string.IsNullOrEmpty(ParagonPurchase.Price) || string.IsNullOrEmpty(SupportPurchase.Price)) QueryParagonDetails();
+        if (string.IsNullOrEmpty(ParagonPurchase.Price) || AnySupportPriceMissing()) QueryParagonDetails();
     }
 
     void OnDestroy()
@@ -90,7 +95,11 @@ public class PlayBilling : MonoBehaviour
             }
             connecting = true;
             ParagonPurchase.LaunchFlow = LaunchParagon;
-            SupportPurchase.LaunchFlow = LaunchSupport;
+            foreach (var pack in SupportPurchase.Packs)
+            {
+                var p = pack;
+                p.LaunchFlow = () => LaunchSupport(p);
+            }
             client.Call("startConnection", new StateListener(this));
         }
         catch (Exception e)
@@ -128,7 +137,7 @@ public class PlayBilling : MonoBehaviour
             using (var cls = new AndroidJavaClass("com.android.billingclient.api.QueryProductDetailsParams"))
             using (var builder = cls.CallStatic<AndroidJavaObject>("newBuilder"))
             {
-                foreach (string id in new[] { PremiumShips.ParagonProductId, SupportPurchase.ProductId })
+                foreach (string id in ProductIds())
                 using (var product = new AndroidJavaClass("com.android.billingclient.api.QueryProductDetailsParams$Product"))
                 using (var pb = product.CallStatic<AndroidJavaObject>("newBuilder"))
                 {
@@ -160,18 +169,27 @@ public class PlayBilling : MonoBehaviour
         }
     }
 
-    // The dock's support button: opens Play's purchase sheet for the consumable.
-    void LaunchSupport()
+    // Every product the game sells: Paragon plus each support pack.
+    static List<string> ProductIds()
+    {
+        var ids = new List<string> { PremiumShips.ParagonProductId };
+        foreach (var p in SupportPurchase.Packs) ids.Add(p.productId);
+        return ids;
+    }
+
+    // A dock tile's buy tap: opens Play's purchase sheet for that consumable pack.
+    void LaunchSupport(SupportPurchase.Pack pack)
     {
         try
         {
-            if (!connected || client == null || supportDetails == null) { FailSupport(); return; }
-            LaunchFlowFor(supportDetails, OnSupportFlowResult);
+            AndroidJavaObject details;
+            if (!connected || client == null || !supportDetails.TryGetValue(pack.productId, out details) || details == null) { FailSupport(pack); return; }
+            LaunchFlowFor(details, OnSupportFlowResult);
         }
         catch (Exception e)
         {
             Debug.Log("[Support] launch failed: " + e.Message);
-            FailSupport();
+            FailSupport(pack);
         }
     }
 
@@ -229,20 +247,23 @@ public class PlayBilling : MonoBehaviour
     }
 
     // A billing response to the support flow (launch result or purchases-updated), main thread.
+    // Applies to the pack whose purchase is open.
     void OnSupportFlowResult(int code)
     {
+        var pack = SupportPurchase.Buying;
+        if (pack == null) return;
         switch (ParagonPurchase.Classify(code))
         {
             case ParagonPurchase.Outcome.Ok: return;   // the purchases-updated callback delivers the purchase
-            case ParagonPurchase.Outcome.Cancelled: SupportPurchase.EndBuy(); return;
-            case ParagonPurchase.Outcome.AlreadyOwned: SupportPurchase.EndBuy(); QueryOwned(); return;   // an unconsumed one: pays and consumes it
-            default: FailSupport(); return;
+            case ParagonPurchase.Outcome.Cancelled: pack.EndBuy(); return;
+            case ParagonPurchase.Outcome.AlreadyOwned: pack.EndBuy(); QueryOwned(); return;   // an unconsumed one: pays and consumes it
+            default: FailSupport(pack); return;
         }
     }
 
-    void FailSupport()
+    void FailSupport(SupportPurchase.Pack pack)
     {
-        SupportPurchase.EndBuy();
+        pack.EndBuy();
         AccountHintToast.Show(SupportPurchase.ErrorMessage);
         if (!connected) Connect();
     }
@@ -304,14 +325,15 @@ public class PlayBilling : MonoBehaviour
     {
         mainThread.Enqueue(() =>
         {
-            bool buying = ParagonPurchase.Buying, supporting = SupportPurchase.Buying;
+            bool buying = ParagonPurchase.Buying, supporting = SupportPurchase.Buying != null;
             foreach (var p in purchases)
             {
                 PreRegistrationReward.Handle(p, Consume);
+                var pack = SupportPurchase.ForProduct(p.productId);
                 var sr = SupportPurchase.Handle(p, Consume);
-                if (sr == SupportPurchase.Result.Granted) AccountHintToast.Show(SupportPurchase.GrantedMessage);
+                if (sr == SupportPurchase.Result.Granted) AccountHintToast.Show(pack.grantedMessage);
                 else if (sr == SupportPurchase.Result.Pending && supporting) AccountHintToast.Show(SupportPurchase.PendingMessage);
-                if (sr != SupportPurchase.Result.Ignored) SupportPurchase.EndBuy();
+                if (sr != SupportPurchase.Result.Ignored) pack.EndBuy();
                 var r = ParagonPurchase.Handle(p, Acknowledge);
                 if (r == ParagonPurchase.Result.Granted) AccountHintToast.Show(ParagonPurchase.GrantedMessage);
                 else if (r == ParagonPurchase.Result.Pending && buying) AccountHintToast.Show(ParagonPurchase.PendingMessage);
@@ -343,7 +365,7 @@ public class PlayBilling : MonoBehaviour
                 owner.connecting = false;
                 owner.connected = false;
                 ParagonPurchase.SetPrice(null);   // no store: the dock reads COMING SOON again
-                SupportPurchase.SetPrice(null);
+                foreach (var pack in SupportPurchase.Packs) pack.SetPrice(null);
             });
         }
     }
@@ -361,7 +383,7 @@ public class PlayBilling : MonoBehaviour
                 owner.mainThread.Enqueue(() =>
                 {
                     if (ParagonPurchase.Buying) owner.OnFlowResult(code);
-                    if (SupportPurchase.Buying) owner.OnSupportFlowResult(code);
+                    if (SupportPurchase.Buying != null) owner.OnSupportFlowResult(code);
                 });
                 return;
             }
@@ -389,8 +411,10 @@ public class PlayBilling : MonoBehaviour
         // Billing 8: the details arrive inside a QueryProductDetailsResult.
         void onProductDetailsResponse(AndroidJavaObject result, AndroidJavaObject queryResult)
         {
-            AndroidJavaObject paragon = null, support = null;
-            string paragonPrice = null, supportPrice = null;
+            AndroidJavaObject paragon = null;
+            string paragonPrice = null;
+            var support = new Dictionary<string, AndroidJavaObject>();
+            var supportPrice = new Dictionary<string, string>();
             try
             {
                 if (result.Call<int>("getResponseCode") == Ok)
@@ -402,7 +426,7 @@ public class PlayBilling : MonoBehaviour
                         {
                             var d = list.Call<AndroidJavaObject>("get", i);
                             string id = d.Call<string>("getProductId");
-                            bool isParagon = id == PremiumShips.ParagonProductId, isSupport = id == SupportPurchase.ProductId;
+                            bool isParagon = id == PremiumShips.ParagonProductId, isSupport = SupportPurchase.ForProduct(id) != null;
                             if (!isParagon && !isSupport) { d.Dispose(); continue; }
                             string price;
                             using (var offer = d.Call<AndroidJavaObject>("getOneTimePurchaseOfferDetails"))
@@ -411,18 +435,23 @@ public class PlayBilling : MonoBehaviour
                                 price = offer.Call<string>("getFormattedPrice");
                             }
                             if (isParagon) { paragon = d; paragonPrice = price; }
-                            else { support = d; supportPrice = price; }
+                            else { support[id] = d; supportPrice[id] = price; }
                         }
                     }
                 }
             }
-            catch (Exception e) { Debug.Log("[Paragon] details read failed: " + e.Message); paragon = support = null; paragonPrice = supportPrice = null; }
+            catch (Exception e) { Debug.Log("[Paragon] details read failed: " + e.Message); paragon = null; paragonPrice = null; support.Clear(); supportPrice.Clear(); }
             owner.mainThread.Enqueue(() =>
             {
                 owner.paragonDetails = paragon;
-                owner.supportDetails = support;
+                owner.supportDetails.Clear();
+                foreach (var kv in support) owner.supportDetails[kv.Key] = kv.Value;
                 ParagonPurchase.SetPrice(paragon != null ? paragonPrice : null);
-                SupportPurchase.SetPrice(support != null ? supportPrice : null);
+                foreach (var pack in SupportPurchase.Packs)
+                {
+                    string price;
+                    pack.SetPrice(support.ContainsKey(pack.productId) && supportPrice.TryGetValue(pack.productId, out price) ? price : null);
+                }
             });
         }
     }
