@@ -504,8 +504,21 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
     // settles score and saves the dust before this panel is built); this is
     // MENU's exit with a different destination: clear run state (timeScale,
     // dead flags), then load the dock. The dock's Back goes home as always.
+    static bool leavingForDock;
+
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    static void HookSceneLoaded()
+    {
+        leavingForDock = false;
+        UnityEngine.SceneManagement.SceneManager.sceneLoaded += (scene, mode) => leavingForDock = false;
+    }
+
+    public static void ResetLeavingForDock() { leavingForDock = false; }
+
     public static void OpenSpaceDock()
     {
+        if (leavingForDock) return;   // a double tap would clear and load twice
+        leavingForDock = true;
         moveBackGround.speed = 0f;
         GameStateReset.Clear();
         BackNavigator.LoadScene(DockScene);

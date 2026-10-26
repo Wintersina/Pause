@@ -121,6 +121,26 @@ public static class BackNavigationTest
         Object.DestroyImmediate(dead);
         BackNavigator.Back();
         Check("a destroyed layer drops out", lowerHits == 1 && loads.Count == 2);
+
+        // One Back per frame, whichever path: on-screen Back and system Back together undo one level.
+        var frameSeam = BackNavigator.Frame;
+        int frameNow = 900;
+        BackNavigator.Frame = () => frameNow;
+        int a = 0, b = 0;
+        var under = new Owner(); var over = new Owner();
+        BackNavigator.Register(under, () => { a++; return true; });
+        BackNavigator.Register(over, () => { b++; return true; });
+        BackNavigator.Back();
+        BackNavigator.Back();
+        Check("two Back() in one frame pop one layer", b == 1 && a == 0);
+        BackNavigator.HandleEscape(900);
+        Check("an Escape in the same frame is also swallowed", b == 1 && a == 0);
+        BackNavigator.Unregister(over);
+        frameNow = 901;
+        BackNavigator.Back();
+        Check("the next frame's Back pops the next layer", a == 1);
+        BackNavigator.Unregister(under);
+        BackNavigator.Frame = frameSeam;   // the rest of the suite counts frames per call again
     }
 
     static void OnlyTheNavigatorReadsEscape()

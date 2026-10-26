@@ -1208,6 +1208,14 @@ public static class LeaderboardTest
               row1 != null && row1.GetComponent<CelShape>().fill == AkiraPalette.Red);
         Check("top-10 player: rows match entries", panel.RowCount == 3 && panel.PlayerRankText == "#2");
 
+        // Server-supplied names render literally: no rich text.
+        var rich = new FakeLeaderboards();
+        rich.SetBoard(TopScoreId, FakeLeaderboards.Entry(1, "<size=200>X", 300));
+        panel = OpenPanel(rich);
+        Text richName = null;
+        foreach (var t in panel.PanelRoot.GetComponentsInChildren<Text>(true)) if (t.text == "<SIZE=200>X" || t.text == "<size=200>X") richName = t;
+        Check("rich names: the name label shows the markup literally with rich text off", richName != null && !richName.supportRichText);
+
         // A stored score the store gave no public rank (rank -1): shown without a rank, never "#-1".
         var unranked = new FakeLeaderboards();
         unranked.SetBoard(TopScoreId, FakeLeaderboards.Entry(-1, "KANEDA", 250, true));

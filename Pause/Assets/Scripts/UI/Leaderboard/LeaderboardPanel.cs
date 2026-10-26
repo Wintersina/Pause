@@ -826,6 +826,7 @@ public class LeaderboardPanel : MonoBehaviour
         text.color = color;
         text.alignment = align;
         text.raycastTarget = false;
+        text.supportRichText = false;   // server-supplied names render literally
         text.horizontalOverflow = HorizontalWrapMode.Wrap;
         text.verticalOverflow = VerticalWrapMode.Overflow;
         text.resizeTextForBestFit = true;

@@ -315,6 +315,7 @@ public sealed class CodexReplayViewer : MonoBehaviour
         Release();
         if (instance == this) instance = null;
         DestroyObject(gameObject);
+        // Kept synchronous on purpose: it frees the replay's atlas textures right as the viewer closes (U6 audit: not deferred).
         if (Application.isPlaying) Resources.UnloadUnusedAssets();
         var handler = Closed;
         if (handler != null) handler();

@@ -35,6 +35,13 @@ public class DockSupportTile : MonoBehaviour
         return p.dust >= 2000 ? 1f : .74f;
     }
 
+    // A price up to this many characters is drawn at full size; a longer one
+    // ("Rp 1.299.000,00") is scaled down by its length. By the string, not the
+    // mesh: a TextMesh has no measured width until it has rendered.
+    public const int PriceFitChars = 12;
+    public static float PriceScale(string p) { int n = p == null ? 0 : p.Length; return n <= PriceFitChars ? 1f : PriceFitChars / (float)n; }
+    public TextMesh PriceMesh { get { return price; } }
+
     void Build(SupportPurchase.Pack p, Font font)
     {
         pack = p;
@@ -97,6 +104,8 @@ public class DockSupportTile : MonoBehaviour
         if (p == shownPrice) return;
         shownPrice = p;
         price.text = p;
+        // A long localized price shrinks to fit the berth (never grows).
+        price.transform.localScale = Vector3.one * PriceScale(p);
     }
 
     public bool Contains(Vector3 world)

@@ -301,13 +301,15 @@ public static class DeathPanelTest
             // Clicking it clears run state and loads the dock, like MENU does for home.
             var loads = new List<string>();
             BackNavigator.LoadScene = sc => loads.Add(sc);
+            DeathPanelView.ResetLeavingForDock();
             try
             {
                 Time.timeScale = 0f; buttonClicks.playerDied = true;
                 dock.onClick.Invoke();
+                dock.onClick.Invoke();   // a double tap
             }
             finally { BackNavigator.ResetHooks(); }
-            Check("SPACE DOCK loads shopS6 once", loads.Count == 1 && loads[0] == "shopS6");
+            Check("SPACE DOCK loads shopS6 once even on a double tap", loads.Count == 1 && loads[0] == "shopS6");
             Check("SPACE DOCK leaves run state clean (timeScale 1, not dead)",
                   Mathf.Approximately(Time.timeScale, 1f) && !buttonClicks.playerDied);
         }
