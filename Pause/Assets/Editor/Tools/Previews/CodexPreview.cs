@@ -296,6 +296,47 @@ public static class CodexPreview
         Debug.Log("[CODEX-PREVIEW] " + path);
     }
 
+    // The COMBOS tab (the atomic fusions) on a 1170 x 2532 phone: a few found,
+    // the rest locked, into $PAUSE_CODEX_PREVIEW_DIR (default /private/tmp):
+    //   combos-1-fresh.png, combos-2-some-found.png
+    //   Unity -batchmode -projectPath <abs>/Pause -executeMethod CodexPreview.RunCombos
+    public static void RunCombos()
+    {
+        string dir = Environment.GetEnvironmentVariable("PAUSE_CODEX_PREVIEW_DIR");
+        if (string.IsNullOrEmpty(dir)) dir = "/private/tmp";
+        Directory.CreateDirectory(dir);
+        int code = 0;
+        try
+        {
+            using (new TestHarness.Sandbox())
+            {
+                EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+                DeveloperUnlocks.SetEnabled(false);
+                float sf = PhoneW / 800f;
+                PlayerPrefs.DeleteKey(FusionDiscoveryStore.PrefsKey);
+                FusionDiscoveryStore.Reload();
+                var panel = CodexPanel.Open(null);
+                panel.SkipAnimations();
+                Shot(panel, Path.Combine(dir, "combos-1-fresh.png"), sf, () => panel.ShowCombos());
+                PlayerPrefs.SetString(FusionDiscoveryStore.PrefsKey, "vacuum:14:4:20261020,bloom:6:2:20261022,overclock:3:1:20261025,singularity:1:1:20261026");
+                FusionDiscoveryStore.Reload();
+                panel.Close();
+                panel.SkipAnimations();
+                panel = CodexPanel.Open(null);
+                panel.SkipAnimations();
+                Shot(panel, Path.Combine(dir, "combos-2-some-found.png"), sf, () => panel.ShowCombos());
+                panel.Close();
+                panel.SkipAnimations();
+            }
+        }
+        catch (Exception e)
+        {
+            Debug.LogException(e);
+            code = 1;
+        }
+        EditorApplication.Exit(code);
+    }
+
     static void Shot(CodexPanel panel, string path, float sf, Action setup, int w = PhoneW, int h = PhoneH)
     {
         var tex = Capture(panel, w, h, () =>

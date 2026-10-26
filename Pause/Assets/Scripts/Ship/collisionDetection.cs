@@ -163,6 +163,9 @@ public class collisionDetection : MonoBehaviour {
         if (word != null)
             hud.ShowCallout(word, at + Vector3.up * MagnetCombo.CalloutLift, MagnetCombo.CalloutColour,
                             MagnetCombo.CalloutSize, MagnetCombo.CalloutSeconds, MagnetCombo.CalloutRise);
+        // the vacuum is fusion #1 of the ATOMIC FUSIONS: recorded in the codex's
+        // COMBOS page (and a SINGULARITY if a heal is in play)
+        AtomFusions.OnExternal(FusionId.Vacuum, MagnetPull.Chain);
         return callout;
     }
 
@@ -194,9 +197,11 @@ public class collisionDetection : MonoBehaviour {
     {
         var power = ShipPowerController.Instance;
         if (power == null) return;
-        power.ReduceTimer(bright ? power.secondsPerBrightStar
+        power.ReduceTimer((bright ? power.secondsPerBrightStar
                         : dust ? power.secondsPerDust
-                        : red ? power.secondsPerRedAtom : power.secondsPerAtom);
+                        : red ? power.secondsPerRedAtom : power.secondsPerAtom)
+                        // DUST STORM (capacitor + magnet): star dust charges faster
+                        * (dust || bright ? AtomFusions.DustChargeMultiplier : 1f));
     }
 
     // The tutorial scene can never end in a death: a hit that would take the
@@ -246,6 +251,8 @@ public class collisionDetection : MonoBehaviour {
         // the kill cam's tape rolls from the first frame (the tutorial cannot be lost: no tape)
         if (!startMenu.youAreInTutorial && !TutorialCannotDie(gameObject)) KillCamRecorder.BeginRun();
         lifeCounter = 0;
+        // atomic fusions: no primed atoms, no fusion running (off in the tutorial)
+        AtomFusions.BeginRun(gameObject);
     }
 	
 	// Update is called once per frame
@@ -334,6 +341,8 @@ public class collisionDetection : MonoBehaviour {
                 EnemyDeathAudio.Play(hit.gameObject);
 
                 AwardDestroyedTarget(hit.gameObject);
+                // the blue-atom shield's kill: BLOOM / SINGULARITY (AtomFusions)
+                if (atomCheck) AtomFusions.OnShieldKill();
                 Destroy(hit.gameObject);
                 
                 
@@ -442,6 +451,7 @@ public class collisionDetection : MonoBehaviour {
             {
                 healAtomPickups++;
                 RunScore.OnAtom(RunScore.Atom.Heal, hit.transform.position);
+                bool healWasted = lifeCounter <= 0;   // full hearts: a second one is an OVERHEAL
                 // repairs one point of hull damage; lifeControler picks the
                 // sprite back up from lifeCounter on the next frame
                 if (lifeCounter > 0) lifeCounter--;
@@ -449,6 +459,7 @@ public class collisionDetection : MonoBehaviour {
                 BoostUltimate(dust: false);
                 PickupWord(HealWord, hit.transform.position, PickupGlow.HealGreen);
                 AtomCharged(PickupGlow.HealGreen);
+                AtomFusions.OnAtom(AtomKind.Heal, hit.transform.position, AtomFusions.HealGates(healWasted));
                 Destroy(hit.gameObject);
             }
             else if (PrefabName.Is(hit.gameObject, "pauseAtom"))
@@ -462,6 +473,7 @@ public class collisionDetection : MonoBehaviour {
                 // ...and a free shot of the main weapon (the charge timer
                 // keeps its progress; ShipPowerController.FreeShot).
                 if (ShipPowerController.Instance != null) ShipPowerController.Instance.FreeShot();
+                AtomFusions.OnAtom(AtomKind.Pause, hit.transform.position);
                 Destroy(hit.gameObject);
             }
             else if (PrefabName.Is(hit.gameObject, "cooldownAtom"))
@@ -476,6 +488,7 @@ public class collisionDetection : MonoBehaviour {
                     if (hypeText != null) hypeText.text = word;
                     PickupWord(word, hit.transform.position, AkiraPalette.VioletHi);
                 }
+                AtomFusions.OnAtom(AtomKind.Capacitor, hit.transform.position);
                 Destroy(hit.gameObject);
             }
             else if (PrefabName.Is(hit.gameObject, MagnetPull.ObjectName))
@@ -498,6 +511,8 @@ public class collisionDetection : MonoBehaviour {
                     PickupWord(MagnetPull.Word, hit.transform.position, AkiraPalette.MagnetBlueHi);
                 }
                 AtomCharged(AkiraPalette.MagnetBlueHi);
+                // (after the vacuum's own sync above, which reports itself: AtomFusions.OnExternal)
+                AtomFusions.OnAtom(AtomKind.Magnet, hit.transform.position);
                 Destroy(hit.gameObject);
             }
             else if(PrefabName.Is(hit.gameObject, "atom3a"))
@@ -530,6 +545,7 @@ public class collisionDetection : MonoBehaviour {
                 invTimer = ShieldAtomSeconds;
                 boostTimer = 1f;
                 if (magnetSynergy) SyncAndAnnounce(comboBefore, hit.transform.position, ShieldWord, AkiraPalette.Cyan);
+                AtomFusions.OnAtom(AtomKind.Shield, hit.transform.position);
             }
         }
         //------------------------------------------------------------------------------------------------------------------
@@ -586,8 +602,10 @@ public class collisionDetection : MonoBehaviour {
         // check if atom is captrured and its time to reduce it.
         if (atomCheck && invTimer <= 0)
         {
-            // turn shields off
+            // turn shields off (NOVA / AFTERSHOCK ride its parting shockwave: AtomFusions)
+            AtomFusions.OnShieldEnding(transform.position);
             ShipShield.For(gameObject).Hide();
+            AtomFusions.OnShieldEnded();
             boost.SetActive(false);
             atomCheck = false;
             // the boost eases off; speed settles back to natural (<= the cap)
@@ -601,5 +619,7 @@ public class collisionDetection : MonoBehaviour {
         {
             boostText.text = "";
         }
+        // the fusions' windows run on this same clock (after the shield's end above)
+        AtomFusions.Tick(Time.deltaTime);
     }
 }

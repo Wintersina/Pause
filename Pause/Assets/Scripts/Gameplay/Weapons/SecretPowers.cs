@@ -91,6 +91,10 @@ public class SecretPowerController : MonoBehaviour
     readonly List<ClearTarget> scratch = new List<ClearTarget>(64);
 
     public bool ShellUp => shellLeft > 0f;
+    public float ShellLeft => shellLeft;
+
+    // SHELL BURST (Hard Shell + a shield atom, AtomFusions): the shell cracks now.
+    public void CrackShell() { if (shellLeft > 0f) BreakShell(); }
     public bool HoleActive => holeLeft > 0f;
     public bool Stunning => stunLeft > 0f;
     public bool Burning => novaLeft > 0f;
@@ -186,7 +190,8 @@ public class SecretPowerController : MonoBehaviour
     public static void OnDust(bool large)
     {
         var c = Instance;
-        if (c != null) c.Add(large ? c.perLargeDust : c.perSmallDust);
+        // (DUST STORM: x AtomFusions.DustMeterMultiplier while it runs)
+        if (c != null) c.Add((large ? c.perLargeDust : c.perSmallDust) * AtomFusions.DustMeterMultiplier);
     }
 
     public static void OnKill()
@@ -413,6 +418,7 @@ public class SecretPowerController : MonoBehaviour
                 PowerStripAt(ship, FeatherStrip, at, 0, false, 1.2f, 0f, null, 73, StripAlpha).Travel(at + Vector3.up * 1.1f, .5f, 1f);
                 var hud = ScoreHud.Current;
                 if (hud != null) hud.ShowWord(collisionDetection.HealWord, at + Vector3.up * collisionDetection.PickupWordLift, PickupGlow.HealGreen, 28);
+                AtomFusions.OnAtom(AtomKind.Mending, at);   // a heal atom soon after: FEATHER STORM
                 break;
 
             case SecretPower.AegisShield:
@@ -430,6 +436,7 @@ public class SecretPowerController : MonoBehaviour
                 // The shell is a shield: the ship's hit zone grows to the shield zone.
                 ShipHitbox.SetShield(gameObject, ShipHitbox.Source.Shell, true);
                 shellFx = ShellLoop(shellSeconds);
+                AtomFusions.OnAtom(AtomKind.Shell, at);   // a shield atom while it holds: SHELL BURST
                 break;
         }
     }

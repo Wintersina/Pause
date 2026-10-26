@@ -221,6 +221,8 @@ public class score : MonoBehaviour {
     }
     void pauseCounterFunction()
     {
+        // STASIS (pause + shield): a few freezes are free while shielded (AtomFusions)
+        if (AtomFusions.ConsumeFreePause()) { pauseCounterBool = true; return; }
         int before = pauseCounter;
         pauseCounter = pauseCounter - 1;
         OutOfPausesFlash.OnPauseSpent(before, pauseCounter);

@@ -66,7 +66,7 @@ public class ScoreHud : MonoBehaviour
     int lastMultiplier = 1;
     float chainPunchAt = -1f;
 
-    struct Popup { public Text text; public float age, seconds, rise; public Vector2 from; }
+    struct Popup { public Text text; public Outline glow; public float age, seconds, rise; public Vector2 from; }
     Popup[] popups;
     int nextPopup;
 
@@ -374,6 +374,7 @@ public class ScoreHud : MonoBehaviour
         int index = nextPopup;
         nextPopup = (nextPopup + 1) % popups.Length;
         var p = popups[index];
+        if (p.glow != null && p.glow.enabled) p.glow.enabled = false;
         p.text.text = text;
         p.text.fontSize = size;
         p.text.color = colour;
@@ -443,6 +444,7 @@ public class ScoreHud : MonoBehaviour
         int index = nextPopup;
         nextPopup = (nextPopup + 1) % popups.Length;
         var p = popups[index];
+        if (p.glow != null && p.glow.enabled) p.glow.enabled = false;
         p.text.text = text;
         p.text.fontSize = 30;
         p.text.color = colour;
@@ -473,6 +475,7 @@ public class ScoreHud : MonoBehaviour
         int index = nextPopup;
         nextPopup = (nextPopup + 1) % popups.Length;
         var p = popups[index];
+        if (p.glow != null && p.glow.enabled) p.glow.enabled = false;
         p.text.text = text;
         p.text.fontSize = size;
         p.text.color = colour;
@@ -508,6 +511,7 @@ public class ScoreHud : MonoBehaviour
         calloutSlot = index;
         calloutText = text;
         var p = popups[index];
+        if (p.glow != null && p.glow.enabled) p.glow.enabled = false;
         p.text.text = text;
         p.text.fontSize = size;
         p.text.color = colour;
@@ -522,6 +526,21 @@ public class ScoreHud : MonoBehaviour
         popups[index] = p;
         return p.text;
     }
+
+    // A fusion's callout (AtomFusions): ShowCallout plus the fusion's own
+    // glow colour round the letters. Same single slot.
+    public const float GlowDistance = 4f;
+    public Text ShowCallout(string text, Vector3 world, Color colour, int size, float seconds, float rise, Color glow)
+    {
+        var t = ShowCallout(text, world, colour, size, seconds, rise);
+        if (t == null || calloutSlot < 0) return t;
+        var g = popups[calloutSlot].glow;
+        if (g != null) { g.effectColor = glow; g.enabled = glow.a > 0f; }
+        return t;
+    }
+
+    // The live callout's glow (tests).
+    public Outline CalloutGlow => calloutSlot >= 0 && popups != null && calloutSlot < popups.Length ? popups[calloutSlot].glow : null;
 
     // Is the combo callout on screen (tests)?
     // (the slot still holding the callout: a recycled "+N" there is not replaced)
@@ -594,6 +613,7 @@ public class ScoreHud : MonoBehaviour
         int index = nextPopup;
         nextPopup = (nextPopup + 1) % popups.Length;
         var p = popups[index];
+        if (p.glow != null && p.glow.enabled) p.glow.enabled = false;
         var style = StyleFor(source, source == RunScore.Source.Kill && RunScore.Multiplier > 1);
         p.text.text = (points < 0 ? "-" + RunScore.Format(-points) : points == 0 ? "" : "+" + RunScore.Format(points)) + (points == 0 ? style.suffix.TrimStart() : style.suffix);
         p.text.fontSize = style.size;
@@ -623,8 +643,13 @@ public class ScoreHud : MonoBehaviour
             rt.sizeDelta = new Vector2(360f, 60f);
             var t = go.GetComponent<Text>();
             Style(t, font, 24, ScoreColour, TextAnchor.MiddleCenter);
+            // a fusion callout's own glow, round the ink outline (off otherwise)
+            var glow = go.AddComponent<Outline>();
+            glow.effectDistance = new Vector2(GlowDistance, -GlowDistance);
+            glow.useGraphicAlpha = true;
+            glow.enabled = false;
             go.SetActive(false);
-            popups[i] = new Popup { text = t, age = -1f };
+            popups[i] = new Popup { text = t, glow = glow, age = -1f };
         }
     }
 
@@ -696,6 +721,7 @@ public class ScoreHud : MonoBehaviour
             if (p.age >= p.seconds)
             {
                 p.text.gameObject.SetActive(false);
+                if (p.glow != null && p.glow.enabled) p.glow.enabled = false;
                 p.age = -1f;
                 popups[i] = p;
                 continue;

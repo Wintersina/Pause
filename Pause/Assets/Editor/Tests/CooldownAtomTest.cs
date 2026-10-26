@@ -69,10 +69,12 @@ public static class CooldownAtomTest
 
     static void Rules()
     {
-        Check("PickupRules: 2 capacitors per world, first 35-65 s, then 75-115 s, plain clock",
-              PickupRules.CooldownAtomsPerWorld == 2 &&
-              PickupRules.CooldownAtomFirstDelayMin == 35f && PickupRules.CooldownAtomFirstDelayMax == 65f &&
-              PickupRules.CooldownAtomRepeatDelayMin == 75f && PickupRules.CooldownAtomRepeatDelayMax == 115f &&
+        // (the base 2 a world, 35-65 s, 75-115 s, grown by the atomic fusions' spawn multiplier)
+        float k = FusionTuning.CapacitorSpawnMultiplier;
+        Check("PickupRules: 3 capacitors per world, first (35-65 s) / 1.5, then (75-115 s) / 1.5, plain clock",
+              k == 1.5f && PickupRules.CooldownAtomsPerWorld == 3 &&
+              Mathf.Approximately(PickupRules.CooldownAtomFirstDelayMin, 35f / k) && Mathf.Approximately(PickupRules.CooldownAtomFirstDelayMax, 65f / k) &&
+              Mathf.Approximately(PickupRules.CooldownAtomRepeatDelayMin, 75f / k) && Mathf.Approximately(PickupRules.CooldownAtomRepeatDelayMax, 115f / k) &&
               PickupRules.CooldownAtomRate == 1f);
         Check("spawnGoodStuff reads the capacitor rules from PickupRules (no inline numbers or inspector budget)",
               typeof(spawnGoodStuff).GetField("cooldownAtomsPerWorld", Inst) == null &&
@@ -193,13 +195,13 @@ public static class CooldownAtomTest
                 {
                     float f = times[0];
                     firstMin = Mathf.Min(firstMin, f); firstMax = Mathf.Max(firstMax, f);
-                    if (f < PickupRules.CooldownAtomFirstDelayMin || f > PickupRules.CooldownAtomFirstDelayMax + AtomSpacing.Gap + Dt * 2f) firstOut++;
+                    if (f < PickupRules.CooldownAtomFirstDelayMin || f > PickupRules.CooldownAtomFirstDelayMax + 2f * AtomSpacing.Gap + Dt * 2f) firstOut++;
                 }
                 for (int i = 1; i < times.Count; i++)
                 {
                     float g = times[i] - times[i - 1];
                     gapMin = Mathf.Min(gapMin, g); gapMax = Mathf.Max(gapMax, g);
-                    if (g < PickupRules.CooldownAtomRepeatDelayMin - Dt || g > PickupRules.CooldownAtomRepeatDelayMax + AtomSpacing.Gap + Dt * 2f) gapOut++;
+                    if (g < PickupRules.CooldownAtomRepeatDelayMin - Dt || g > PickupRules.CooldownAtomRepeatDelayMax + 2f * AtomSpacing.Gap + Dt * 2f) gapOut++;
                 }
             }
             if (clones != total) cloneMismatch++;
@@ -222,9 +224,9 @@ public static class CooldownAtomTest
               overBudget == 0);
         Check("every world (fresh allowance each planet) hands out both (" + notTwo + " short of " + seeds * worlds + ")",
               notTwo == 0);
-        Check("first capacitor after 35-65 s, + up to the atom gap (seen " + firstMin.ToString("F1") + "-" + firstMax.ToString("F1") + ")",
+        Check("first capacitor after its first delay, + up to two atom gaps (seen " + firstMin.ToString("F1") + "-" + firstMax.ToString("F1") + ")",
               firstOut == 0 && firstMax > firstMin);
-        Check("next one 75-115 s later (seen " + gapMin.ToString("F1") + "-" + gapMax.ToString("F1") + ")",
+        Check("next one a repeat delay later (seen " + gapMin.ToString("F1") + "-" + gapMax.ToString("F1") + ")",
               gapOut == 0 && gapMax > gapMin);
         Check("each spawn instantiates one cooldownAtom (" + cloneMismatch + " mismatched runs)", cloneMismatch == 0);
         Check("a boss fight leaves the capacitor's clock alone (" + bossFirstDiffers + " first spawns moved, " +
