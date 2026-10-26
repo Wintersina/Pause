@@ -10,6 +10,10 @@ using UnityEngine;
 //     evasion switched off: the test bites)
 //   - it does not lift off into an occupied column: it waits, slides its
 //     join point or hovers, and joins unhurt
+//   - the lift-off glide (pure): on a chaotic board the rising elite never
+//     jerks (no step beyond the clear-air arc's own, at most one change of
+//     aim, eased) and still reaches its join point; in clear air it flies
+//     the old arc frame for frame
 //   - it never leaves the rails or the view while evading, and never dies on
 //     a rail it steered into
 //   - two elites do not collide while evading
@@ -47,6 +51,7 @@ public static class EliteEvasionTest
             Tunables();
             SidestepsAShot();
             LiftOffWaitsForClearAir();
+            LiftGlideIsSmooth();
             StaysInBounds();
             TwoElitesDoNotCollide();
             WindUpJinksOrBreaksOff();
@@ -268,6 +273,128 @@ public static class EliteEvasionTest
         Check("clear air: no wait, and it joins where the director sent it (" + (frames * Dt).ToString("F2") + " s)",
               e.PadWait == 0f && e.HoverWait == 0f && Mathf.Abs(frames * Dt - (e.ParkSeconds + EliteShip.LiftSeconds)) < .1f &&
               Vector2.Distance(e.Position, join) < .3f);
+    }
+
+    // ---- the lift-off glide (pure) ----------------------------------------------
+
+    // A scripted board: each read of the air comes back different (the aim
+    // turns unsafe 60% of the time; the best spot jumps up to 2 u, or out to
+    // the pilot ring).
+    static EliteLiftGlide.Reader Chaos(System.Random rng, Vector2 aim0, List<Vector2> offered)
+    {
+        return (aim, arriveIn) =>
+        {
+            var r = new EliteLiftGlide.Read();
+            r.aimClear = rng.NextDouble() < .4;
+            if (rng.NextDouble() < .3) r.best = aim0 + new Vector2(rng.NextDouble() < .5 ? -3f : 3f, -2f);
+            else
+            {
+                float a = (float)rng.NextDouble() * 6.2832f, d = (float)rng.NextDouble() * 2f;
+                r.best = aim + new Vector2(Mathf.Cos(a), Mathf.Sin(a)) * d;
+            }
+            r.bestClear = rng.NextDouble() < .6;
+            r.bestCost = (float)rng.NextDouble() * 20f;
+            r.aimCost = r.aimClear ? 0f : 60f + (float)rng.NextDouble() * 1000f;
+            offered?.Add(r.best);
+            return r;
+        };
+    }
+
+    static List<Vector2> Glide(Vector2 from, Vector2 aim, EliteLiftGlide.Reader read, out EliteLiftGlide g)
+    {
+        g = new EliteLiftGlide();
+        g.Begin(from, aim, true);
+        var path = new List<Vector2>();
+        float reaction = EliteEvasion.ReactionSeconds;
+        while (!g.Done && path.Count < 60 * 10) { g.Step(Dt, reaction, read); path.Add(g.Position); }
+        return path;
+    }
+
+    // The rule before: re-aim on every read (relative to the drifting join
+    // point), slide at 3.5 u/s, stop dead to hover. Kept here so the bound bites.
+    static List<Vector2> OldGlide(Vector2 from, Vector2 aim, EliteLiftGlide.Reader read)
+    {
+        var path = new List<Vector2>();
+        var g = new EliteLiftGlide();
+        g.Begin(from, aim, true);
+        Vector2 target = aim;
+        float clock = 0f, held = 0f, checkIn = 0f;
+        bool clear = true;
+        while (clock < EliteShip.LiftSeconds && path.Count < 60 * 10)
+        {
+            bool hover = false;
+            if (clock >= EliteShip.LiftSeconds * .5f)
+            {
+                checkIn -= Dt;
+                if (checkIn <= 0f) { checkIn = EliteEvasion.ReactionSeconds; var r = read(g.To, EliteShip.LiftSeconds - clock); target = r.best; clear = r.bestClear; }
+                g.To = Vector2.MoveTowards(g.To, target, 3.5f * Dt);
+                hover = !clear && clock >= EliteShip.LiftSeconds * EliteShip.HoverShare && held < EliteEvasion.LiftHoldMax;
+            }
+            if (hover) held += Dt; else clock += Dt;
+            g.Clock = clock;
+            path.Add(g.Position);
+        }
+        return path;
+    }
+
+    // Largest move in one frame, and largest change of that move between frames (a jerk: a step in velocity).
+    static void Steps(List<Vector2> p, out float step, out float jerk)
+    {
+        step = 0f; jerk = 0f;
+        for (int i = 1; i < p.Count; i++) step = Mathf.Max(step, (p[i] - p[i - 1]).magnitude);
+        for (int i = 2; i < p.Count; i++) jerk = Mathf.Max(jerk, ((p[i] - p[i - 1]) - (p[i - 1] - p[i - 2])).magnitude);
+    }
+
+    static void LiftGlideIsSmooth()
+    {
+        var from = new Vector2(.5f, -4.5f);    // a pad ~4.5 u under its join point
+        var aim = Vector2.zero;
+        EliteLiftGlide.Reader calm = (a, t) => new EliteLiftGlide.Read { best = a, bestClear = true, aimClear = true };
+
+        // clear air: the old arc, frame for frame, to the same spot, in the same time
+        EliteLiftGlide g;
+        var now = Glide(from, aim, calm, out g);
+        var before = OldGlide(from, aim, calm);
+        float diff = 0f;
+        for (int i = 0; i < Mathf.Min(now.Count, before.Count); i++) diff = Mathf.Max(diff, (now[i] - before[i]).magnitude);
+        Check("lift glide, clear air: unchanged (" + now.Count + " frames vs " + before.Count + ", max diff " + diff.ToString("F5") + " u, ends " + g.To + ")",
+              now.Count == before.Count && diff < 1e-4f && g.To == aim && g.Held == 0f && g.Reaims == 0);
+        float calmStep, calmJerk;
+        Steps(now, out calmStep, out calmJerk);
+
+        // a chaotic board, many seeds
+        float worstStep = 0f, worstJerk = 0f, oldJerk = 0f, worstMiss = 0f;
+        int oldBites = 0, runs = 60, maxReaims = 0, offList = 0;
+        bool ended = true;
+        for (int seed = 1; seed <= runs; seed++)
+        {
+            var offered = new List<Vector2> { aim };
+            var p = Glide(from, aim, Chaos(new System.Random(seed), aim, offered), out g);
+            float s, j;
+            Steps(p, out s, out j);
+            worstStep = Mathf.Max(worstStep, s);
+            worstJerk = Mathf.Max(worstJerk, j);
+            maxReaims = Mathf.Max(maxReaims, g.Reaims);
+            ended &= g.Done && p.Count * Dt <= EliteShip.LiftSeconds + EliteEvasion.LiftHoldMax + 2f * EliteLiftGlide.RateEase + .05f
+                     && (p[p.Count - 1] - g.To).sqrMagnitude < 1e-8f;
+            if (!offered.Contains(g.Aim)) offList++;
+            // where it joins: at its aim, unless the hover budget ran out first
+            if (g.Held < EliteEvasion.LiftHoldMax - Dt) worstMiss = Mathf.Max(worstMiss, (g.To - g.Aim).magnitude);
+            var o = OldGlide(from, aim, Chaos(new System.Random(seed), aim, null));
+            Steps(o, out s, out j);
+            oldJerk = Mathf.Max(oldJerk, j);
+            if (j > calmJerk + .01f) oldBites++;
+        }
+        Check("lift glide, chaos: never more than .12 u in a frame (worst " + worstStep.ToString("F3") + " u; clear air " + calmStep.ToString("F3") + ")",
+              worstStep <= .12f && worstStep <= calmStep + EliteEvasion.LiftSlideSpeed * Dt + .005f);
+        Check("lift glide, chaos: no jerk beyond the clear-air arc's own (worst velocity step " + worstJerk.ToString("F4") + " u/frame, clear air " + calmJerk.ToString("F4") + ")",
+              worstJerk <= calmJerk + .01f);
+        Check("... and the old re-aim-every-read rule breaks that bound (" + oldBites + "/" + runs + " runs, worst " + oldJerk.ToString("F4") + ")",
+              oldBites >= runs / 2);
+        Check("lift glide, chaos: at most " + EliteLiftGlide.MaxReaims + " change of aim per lift (" + maxReaims + "), always to a spot the board offered (" + offList + " not)",
+              maxReaims <= EliteLiftGlide.MaxReaims && offList == 0);
+        Check("lift glide, chaos: it still joins, in capped time, at its join point (worst miss " + worstMiss.ToString("F3") + " u)",
+              ended && worstMiss <= EliteLiftGlide.ArriveSlack + .05f);
     }
 
     // ---- bounds ---------------------------------------------------------------

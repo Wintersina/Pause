@@ -230,9 +230,10 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
     bool evading, forcedAttack;
     float hitIn = -1f;            // the first hit still coming on its chosen path (< 0: none)
     Vector2 tellAnchor;           // where a holding wind-up began
-    float liftClock, liftHeld, parkHeld, liftCheckIn;
-    Vector2 liftAim;
+    float parkHeld, liftCheckIn;
     bool liftClear = true;
+    EliteLiftGlide glide;                  // the lift-off's arc and its eased, hysteretic join point
+    EliteLiftGlide.Reader liftReader;      // (cached: no allocation a frame)
 
     public bool Evading => evading;
     public Vector2 EvadeTarget => evadeTo;
@@ -240,10 +241,12 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
     public Vector2 Claim => claim;
     public float HitIn => hitIn;
     // Seconds until a lifting elite joins the play layer.
-    public float JoinsIn => State == EliteState.LiftOff ? Mathf.Max(0f, LiftSeconds - liftClock) : 0f;
+    public float JoinsIn => State == EliteState.LiftOff ? Mathf.Max(0f, LiftSeconds - glide.Clock) : 0f;
     // Seconds it has waited for clear air: on its pad, and hovering under the play layer.
     public float PadWait => parkHeld;
-    public float HoverWait => liftHeld;
+    public float HoverWait => glide.Held;
+    // Times it changed its join point after lifting off (at most EliteLiftGlide.MaxReaims).
+    public int LiftReaims => glide.Reaims;
     // Counters (tests, probes): sidesteps begun, wind-ups abandoned, attacks held back.
     public int Evasions { get; private set; }
     public int BreakOffs { get; private set; }
@@ -409,13 +412,12 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
     {
         State = EliteState.LiftOff;
         stateTime = 0f;
-        liftClock = 0f;
         liftCheckIn = 0f;
         // where the pilot is NOW (the director chose its join point when it parked)
         if (EliteEvasion.Enabled) liftTo = EliteEvasion.BestJoin(this, liftTo, LiftSeconds, out liftClear);
-        liftAim = liftTo;
         claim = liftTo;
         liftFrom = transform.position;
+        glide.Begin(liftFrom, liftTo, liftClear);
         // (no flash at the dock: out of a body it simply leaves; off a ground pad it kicks up a little dust)
         SetLaunchLight(false);
         if (!site.emerge) EliteSystem.Fx.LiftOffDust(liftFrom, site.order, hullTf.localScale.x * Def.cellWorldSize);
@@ -569,7 +571,7 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
         {
             if (State == EliteState.Dead) return -1f;
             if (State == EliteState.Parked) return Mathf.Clamp01((stateTime - (parkSeconds - EngineTellSeconds)) / EngineTellSeconds);
-            if (State == EliteState.LiftOff) return 1f + Mathf.Clamp01(liftClock / LiftSeconds);
+            if (State == EliteState.LiftOff) return 1f + glide.K;
             return 2f;
         }
     }
@@ -577,30 +579,19 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
     void StepLiftOff(float dt)
     {
         if (site.Valid) liftFrom = site.Position;
-        // the second half: it keeps reading the air it is about to join,
-        // slides its join point to the nearest clear spot and, if there is
-        // none yet, hovers just under the play layer (still out of reach)
-        bool hover = false;
-        if (EliteEvasion.Enabled && liftClock >= LiftSeconds * .5f)
-        {
-            liftCheckIn -= dt;
-            if (liftCheckIn <= 0f)
-            {
-                liftCheckIn = EliteEvasion.ReactionFor(Def);
-                liftAim = EliteEvasion.BestJoin(this, liftTo, Mathf.Max(0f, LiftSeconds - liftClock), out liftClear);
-            }
-            liftTo = Vector2.MoveTowards(liftTo, liftAim, EliteEvasion.LiftSlideSpeed * dt);
-            claim = liftTo;
-            hover = !liftClear && liftClock >= LiftSeconds * HoverShare && liftHeld < EliteEvasion.LiftHoldMax;
-        }
-        if (hover) liftHeld += dt;
-        else liftClock += dt;
-        float k = Mathf.Clamp01(liftClock / LiftSeconds);
-        // rises straight off the pad first, then arcs out to the join point
+        // the second half: it keeps reading the air it is about to join;
+        // only if its join point turns unsafe does it pick a clearly better
+        // one (once), easing over to it, and it eases into a hover just under
+        // the play layer (still out of reach) while the air is not clear
+        // (EliteLiftGlide: smooth on a chaotic board, unchanged in clear air)
+        glide.From = liftFrom;
+        if (EliteEvasion.Enabled && liftReader == null) liftReader = ReadJoin;
+        glide.Step(dt, EliteEvasion.ReactionFor(Def), EliteEvasion.Enabled ? liftReader : null);
+        if (EliteEvasion.Enabled) { liftTo = glide.To; claim = liftTo; }
+        float k = glide.K;
         float e = k * k * (3f - 2f * k);
-        Vector2 rise = liftFrom + Vector2.up * .6f;
-        Vector2 a = Vector2.Lerp(liftFrom, rise, Mathf.Clamp01(k * 2.5f));
-        Vector2 p = Vector2.Lerp(a, liftTo, Mathf.Clamp01((e - .15f) / .85f));
+        // rises straight off the pad first, then arcs out to the join point
+        Vector2 p = glide.Position;
         Vector2 prev = transform.position;
         transform.position = new Vector3(p.x, p.y, 0f);
         if (dt > 0f) velocity = (p - prev) / dt;
@@ -626,6 +617,13 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
         // (a drawn lift-off cell carries its own ignition: no placeholder shimmer)
         if (k < .5f && Def.cells.liftoff < 0 && liftFrames == null && Mathf.Repeat(stateTime, .12f) < dt) EliteSystem.Fx.HeatShimmer(transform.position, order - 1, hullTf.localScale.x * Def.cellWorldSize);
         if (k >= 1f) EnterPlay();
+    }
+
+    EliteLiftGlide.Read ReadJoin(Vector2 aim, float arriveIn)
+    {
+        EliteLiftGlide.Read r;
+        r.best = EliteEvasion.BestJoin(this, aim, arriveIn, out r.bestClear, out r.bestCost, out r.aimClear, out r.aimCost);
+        return r;
     }
 
     // The share of the lift-off after which it may hover, waiting for clear
@@ -1819,14 +1817,14 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
         }
         else if (State == EliteState.LiftOff && liftFrames != null)
         {
-            int f = Mathf.Min(liftFrames.Length - 1, Mathf.FloorToInt(liftClock / LiftSeconds * liftFrames.Length));
+            int f = Mathf.Min(liftFrames.Length - 1, Mathf.FloorToInt(glide.Clock / LiftSeconds * liftFrames.Length));
             SetSprite(liftFrames[f]);
             CurrentFrame = 0;
             MountNozzles(-1);
             return;
         }
         else if (State == EliteState.LiftOff && c.liftoff >= 0)
-            frame = liftClock < LiftSeconds * LiftCellShare ? c.liftoff : FlightFrame(dt);
+            frame = glide.Clock < LiftSeconds * LiftCellShare ? c.liftoff : FlightFrame(dt);
         else if (hitFlash > 0f && c.hit >= 0) frame = c.hit;
         else if (State == EliteState.Attack && attackPhase == 0 && c.tell >= 0) frame = c.tell;
         else if (State == EliteState.Attack && attackPhase == 1 && c.action >= 0) frame = c.action;

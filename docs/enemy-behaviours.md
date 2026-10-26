@@ -689,7 +689,7 @@ flagged**: it would make elites slippery.
 | `PredictionSlack`, `WeaveSlack`, `MaxWeavePace` | 0.25 u/s, 0.7, 1.2 u/s | extra room for a body per second ahead, more for one that weaves |
 | `SenseAboveView` | 4 u | how far above the view it sees hazards coming |
 | `LiftClearSeconds` | 0.8 s | lift-off clearance: the join spot must be clear this long after joining |
-| `LiftDelayMax`, `LiftHoldMax`, `LiftSlideSpeed` | 2 s, 1.5 s, 3.5 u/s | longest wait on the pad, longest hover, how fast the join point slides |
+| `LiftDelayMax`, `LiftHoldMax`, `LiftSlideSpeed` | 2 s, 1.5 s, 2.5 u/s | longest wait on the pad, longest hover, how fast the join point slides (eased, `EliteLiftGlide`: once lifting it re-aims only when its spot turns unsafe, for a clearly cheaper one, at most once; it eases into and out of a hover instead of stopping dead) |
 | `SpawnShadowSeconds`, `SpawnShadowPad`, `SpawnShadowLead` | 1.2 s, 0.12 u, 1 u | the shadow's length (x scroll), width beyond the hull, reach toward its goal; 0 s = off |
 | `BreakOffCooldown`, `JinkReach`, `HoldFireSeconds` | 0.6 s, 1 u, 0.3 s | after an abandoned wind-up; how far it may jink while charging; how long a held attack waits |
 | `BlinkClearSeconds` | 0.4 s | a blink lands only where nothing arrives this soon |

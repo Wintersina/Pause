@@ -109,11 +109,12 @@ public static class EliteEvasion
     public static float SenseAboveView = 4f;
     // Lift-off: the join spot must be clear for this long after it joins;
     // it may wait this long on the pad, and this long hovering under the
-    // play layer; the join point slides at most this fast (u/s).
+    // play layer; the join point slides at most this fast (u/s; eased,
+    // EliteLiftGlide -- 2.5 u/s is ~4 cm a frame at 60 fps, never a snap).
     public static float LiftClearSeconds = .8f;
     public static float LiftDelayMax = 2f;
     public static float LiftHoldMax = 1.5f;
-    public static float LiftSlideSpeed = 3.5f;
+    public static float LiftSlideSpeed = 2.5f;
     // A wind-up it has to abandon: seconds before it may attack again; and
     // how far it may jink while charging before it gives the attack up (u).
     public static float BreakOffCooldown = .6f;
@@ -530,6 +531,13 @@ public static class EliteEvasion
     // far enough from the pilot, else the nearest spot that is. `clear`:
     // the spot returned really is clear.
     public static Vector2 BestJoin(EliteShip self, Vector2 preferred, float arriveIn, out bool clear)
+        => BestJoin(self, preferred, arriveIn, out clear, out _, out _, out _);
+
+    // ... also `bestCost` (the returned spot's cost) and how the `preferred`
+    // spot itself reads (`preferredClear`, `preferredCost`): the lift-off's
+    // hysteresis (EliteLiftGlide) only moves off its aim for a clearly better spot.
+    public static Vector2 BestJoin(EliteShip self, Vector2 preferred, float arriveIn, out bool clear,
+                                   out float bestCost, out bool preferredClear, out float preferredCost)
     {
         var def = self.Def;
         var p = EliteSystem.Player;
@@ -539,6 +547,8 @@ public static class EliteEvasion
         float best = float.MaxValue;
         Vector2 choice = preferred;
         clear = false;
+        preferredClear = false;
+        preferredCost = float.MaxValue;
         // the preferred spot, a ring round it, then the director's ring round the pilot
         for (int k = 0; k < 1 + 8 + 16; k++)
         {
@@ -559,11 +569,107 @@ public static class EliteEvasion
             if (d < keep) cost += 500f + 100f * (keep - d);
             var o = Hold(self, c, arriveIn, t1);
             cost += Cost(o, t1);
+            if (k == 0) { preferredClear = !o.Hit; preferredCost = cost; }
             if (cost >= best) continue;
             best = cost;
             choice = c;
             clear = !o.Hit;
         }
+        bestCost = best;
         return choice;
+    }
+}
+
+// The lift-off's glide (pure: EliteShip drives it with the real board, the
+// tests with a scripted one). The lift-off arcs from the pad to its join
+// point `To`; in its second half it keeps re-reading the air at its aim and
+//   - changes its aim only when the aim has turned unsafe AND a spot is
+//     clearly cheaper (ReaimMargin), at most MaxReaims times a lift: on a
+//     chaotic board the aim no longer wanders frame to frame;
+//   - eases `To` towards the aim with a critically damped spring capped at
+//     EliteEvasion.LiftSlideSpeed: a change of aim is a continuous curve,
+//     never a step in velocity;
+//   - slows its climb to a hover (and picks it back up) over RateEase
+//     seconds instead of stopping dead, while the aim is not clear or `To`
+//     is still sliding (both inside the same LiftHoldMax budget).
+// With clear air none of this does anything: the same arc, to the same
+// spot, in exactly LiftSeconds.
+public struct EliteLiftGlide
+{
+    public const float SmoothTime = .25f;    // the spring's smoothing time (s)
+    public const float RateEase = .25f;      // seconds from full climb to a hover, and back
+    public const float ReplanShare = .5f;    // it re-reads the air from this share of the lift on
+    public const int MaxReaims = 1;          // changes of aim allowed per lift
+    public const float ReaimMargin = 10f;    // the new spot must be this much cheaper (BestJoin cost)
+    public const float ArriveSlack = .2f;    // `To` within this of the aim counts as arrived (u)
+
+    // One read of the air: the best spot, and how the current aim reads.
+    public struct Read
+    {
+        public Vector2 best;
+        public bool bestClear, aimClear;
+        public float bestCost, aimCost;
+    }
+    public delegate Read Reader(Vector2 aim, float arriveIn);
+
+    public Vector2 From, To, Aim, Slide;
+    public float Clock, Held, Rate, CheckIn;
+    public bool Clear;
+    public int Reaims;
+
+    public void Begin(Vector2 from, Vector2 aim, bool clear)
+    {
+        From = from; To = aim; Aim = aim; Slide = Vector2.zero;
+        Clock = 0f; Held = 0f; Rate = 1f; CheckIn = 0f;
+        Clear = clear; Reaims = 0;
+    }
+
+    public float K => Mathf.Clamp01(Clock / EliteShip.LiftSeconds);
+    public bool Done => Clock >= EliteShip.LiftSeconds;
+
+    // One frame. `read` is null with the evasion off (the plain arc).
+    public void Step(float dt, float reaction, Reader read)
+    {
+        bool hold = false;
+        if (read != null && Clock >= EliteShip.LiftSeconds * ReplanShare)
+        {
+            CheckIn -= dt;
+            if (CheckIn <= 0f)
+            {
+                CheckIn = reaction;
+                var r = read(Aim, Mathf.Max(0f, EliteShip.LiftSeconds - Clock));
+                if (!r.aimClear && Reaims < MaxReaims && r.bestCost + ReaimMargin < r.aimCost && (r.best - Aim).sqrMagnitude > 1e-6f)
+                {
+                    Aim = r.best;
+                    Clear = r.bestClear;
+                    Reaims++;
+                }
+                else Clear = r.aimClear;
+            }
+            if (To != Aim || Slide != Vector2.zero)
+            {
+                To = Vector2.SmoothDamp(To, Aim, ref Slide, SmoothTime, EliteEvasion.LiftSlideSpeed, dt);
+                if ((To - Aim).sqrMagnitude < 1e-8f && Slide.sqrMagnitude < 1e-6f) { To = Aim; Slide = Vector2.zero; }
+            }
+            bool waiting = !Clear || (To - Aim).sqrMagnitude > ArriveSlack * ArriveSlack;
+            // (it starts easing off half a ramp early, so the hover still lands under .9: behind the play layer)
+            hold = waiting && Clock >= EliteShip.LiftSeconds * EliteShip.HoverShare - RateEase * .5f && Held < EliteEvasion.LiftHoldMax;
+        }
+        if (hold) Held += dt;
+        Rate = Mathf.MoveTowards(Rate, hold ? 0f : 1f, dt / RateEase);
+        Clock += dt * Rate;
+    }
+
+    // Where the hull is: straight up off the pad first, then an arc out to `To`.
+    public Vector2 Position
+    {
+        get
+        {
+            float k = K;
+            float e = k * k * (3f - 2f * k);
+            Vector2 rise = From + Vector2.up * .6f;
+            Vector2 a = Vector2.Lerp(From, rise, Mathf.Clamp01(k * 2.5f));
+            return Vector2.Lerp(a, To, Mathf.Clamp01((e - .15f) / .85f));
+        }
     }
 }
