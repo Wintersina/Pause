@@ -147,7 +147,7 @@ public static class HostileProjectileTest
                 foreach (var style in new[] { BossShotStyle.Bolt, BossShotStyle.Shard })
                 {
                     var s = pool.Fire(boss, style, new Vector3(0f, 1f, 0f), Vector2.down);
-                    float drawn = style == BossShotStyle.Bolt ? BossConfig.BoltWorldSize : BossConfig.ShardWorldSize;
+                    float drawn = BossConfig.ShotWorldSizeFor(boss, style);
                     float hit = style == BossShotStyle.Bolt ? BossConfig.BoltHitRadius : BossConfig.ShardHitRadius;
                     var g = s.Glow;
                     float d = g.bounds.size.x;

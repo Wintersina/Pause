@@ -518,8 +518,11 @@ public static class BossArt
         for (int i = 0; i < px.Length; i++) px[i] = new Color32(255, 255, 255, 0);
         var dist = new int[side * side];
         const int Far = 1 << 20;
-        float reach = Mathf.Max(1f, (bold ? ShotRimBoldReach : ShotRimReach) * n);   // texels
-        float boldLight = ShotRimBoldLight * n, boldSolid = ShotRimBoldSolid * n;
+        // (a boss whose shots are drawn bigger -- the Bloom Queen's BulletScaleFor -- gets a rim that many times thinner in cell shares,
+        //  so its absolute thickness in world units is the same as before)
+        float thin = 1f / BossConfig.BulletScaleFor(boss);
+        float reach = Mathf.Max(1f, (bold ? ShotRimBoldReach : ShotRimReach) * n * thin);   // texels
+        float boldLight = ShotRimBoldLight * n * thin, boldSolid = ShotRimBoldSolid * n * thin;
 
         // The cells' pixels, read back once as one strip. By each cell's own
         // rect, never a shot sprite's textureRect: that is trimmed to the
