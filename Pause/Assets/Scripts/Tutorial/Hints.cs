@@ -323,22 +323,24 @@ public class Hints : MonoBehaviour {
         var action = watchdog.Tick(dt, progressed, TargetMissing(current));
         if (action == TutorialSafety.WatchdogAction.None) return;
         int attempts = watchdog.attempts;
-        if (action == TutorialSafety.WatchdogAction.Advance)
-        {
-            EndStep(current);
-            watchdog = default(TutorialSafety.Watchdog);
-            if (step + 1 < TutorialScript.Steps.Length) BeginStep(step + 1);
-            else BeginEnding();
-            return;
-        }
         // set the step's objects up again, in their guaranteed-valid spots
+        // (never on to the next step: no timer advances a step, the player's
+        // own SKIP does)
         TutorialWall.Clear();
         wall = null;
         wallRetryLeft = -1f;
         EndStep(current);
         BeginStep(step);
         watchdog.attempts = attempts;
-        if (action == TutorialSafety.WatchdogAction.OfferSkip) speaker.Say(skipOfferLine);
+        if (action == TutorialSafety.WatchdogAction.OfferSkip)
+        {
+            // the offer, then the step's own instruction again (reshow, like
+            // the crash lines), with the SKIP button there to be tapped
+            speaker.Say(skipOfferLine);
+            reshow = true;
+            if (skip == null) skip = FindFirstObjectByType<TutorialSkip>();
+            if (skip != null) skip.SetVisible(true);
+        }
     }
 
     void Reprompt()

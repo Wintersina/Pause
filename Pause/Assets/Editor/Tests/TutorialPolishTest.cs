@@ -58,6 +58,7 @@ public static class TutorialPolishTest
             NormalRunHearts();
             ShipSize();
             JumpStepWallComesBack();
+            SkipOfferKeepsTheInstruction();
         }
         finally
         {
@@ -167,6 +168,40 @@ public static class TutorialPolishTest
         finally
         {
             TutorialWall.Clear();
+            Cleanup();
+        }
+    }
+
+    // ---- THE SKIP OFFER ----------------------------------------------------------
+
+    // The watchdog's SKIP offer replaces the step's spoken instruction; the
+    // instruction comes back after it (reshow, as after a crash line), so the
+    // player is never left with only "Stuck? Tap SKIP" -- and the offer never
+    // moves the tutorial on by itself (no Advance: the step is begun again).
+    static void SkipOfferKeepsTheInstruction()
+    {
+        GameObject ship;
+        var hints = OpenTutorial(out ship);
+        var tick = typeof(Hints).GetMethod("TickWatchdog", Inst);
+        var reshow = typeof(Hints).GetField("reshow", Inst);
+        var watchdog = typeof(Hints).GetField("watchdog", Inst);
+        try
+        {
+            int hold = StepIndex("hold");
+            Begin(hints, hold);
+            reshow.SetValue(hints, false);
+            // two failed attempts (25 s each, no progress, nothing missing), then the third: the SKIP offer
+            var wd = (TutorialSafety.Watchdog)watchdog.GetValue(hints);
+            wd.attempts = TutorialSafety.OfferSkipAfter - 1;
+            watchdog.SetValue(hints, wd);
+            for (int i = 0; i < 30 && !(bool)reshow.GetValue(hints); i++)
+                tick.Invoke(hints, new object[] { TutorialScript.Steps[hold], 1f });
+            Check("the SKIP offer sets the instruction to come back (reshow)", (bool)reshow.GetValue(hints));
+            Check("and the step is begun again, never advanced", hints.CurrentStep == hold && !hints.Ending);
+            Check("the robot has a line to say (the offer)", hints.Speaker != null && (hints.Speaker.Talking || hints.Speaker.LineFinished));
+        }
+        finally
+        {
             Cleanup();
         }
     }

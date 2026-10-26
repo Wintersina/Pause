@@ -1,7 +1,8 @@
 using UnityEngine;
 
-// The tutorial cannot break: the step watchdog always recovers or moves on, and
-// a fling (huge / non-finite / off-screen input) can never lose the ship.
+// The tutorial cannot break: the step watchdog always recovers the step (and
+// offers SKIP, never moving on by itself), and a fling (huge / non-finite /
+// off-screen input) can never lose the ship.
 public static class TutorialRobustnessTest
 {
     static int fails;
@@ -36,12 +37,27 @@ public static class TutorialRobustnessTest
         var gone = Run(5f, true);
         Check("a missing target resets the step within 5 s", gone.Count > 0 && gone[0] == TutorialSafety.WatchdogAction.Reset);
 
-        // no progress at all: reset, reset, skip offer, reset, then the tutorial moves on by itself
+        // a target that is gone is noticed even while the finger keeps steering (steering is
+        // "progress" for the stuck clock, but it is not what brings the atom or wall back)
+        var wdSteering = new TutorialSafety.Watchdog();
+        var steeringGone = new System.Collections.Generic.List<TutorialSafety.WatchdogAction>();
+        for (float t = 0f; t < 5f; t += Dt)
+        {
+            var a = wdSteering.Tick(Dt, true, true);
+            if (a != None) steeringGone.Add(a);
+        }
+        Check("a missing target resets the step within 5 s even while the player keeps steering",
+              steeringGone.Count > 0 && steeringGone[0] == TutorialSafety.WatchdogAction.Reset);
+
+        // no progress at all: reset, reset, then every reset also offers SKIP -- and it never
+        // moves the tutorial on by itself (Hints: no timer advances a step; SKIP is the player's)
         var stuck = Run(1000f, false);
-        Check("a step with no progress never stays stuck: it ends in Advance", stuck.Count > 0 && stuck[stuck.Count - 1] == TutorialSafety.WatchdogAction.Advance);
-        Check("the SKIP offer comes before the automatic advance", stuck.IndexOf(TutorialSafety.WatchdogAction.OfferSkip) >= 0
-              && stuck.IndexOf(TutorialSafety.WatchdogAction.OfferSkip) < stuck.Count - 1);
-        Check("exactly one automatic advance", stuck.FindAll(a => a == TutorialSafety.WatchdogAction.Advance).Count == 1);
+        Check("a step with no progress is reset again and again, never advanced by itself (" + stuck.Count + " actions)",
+              stuck.Count >= 5 && !stuck.Contains(TutorialSafety.WatchdogAction.Advance));
+        Check("the first two attempts only reset", stuck[0] == TutorialSafety.WatchdogAction.Reset && stuck[1] == TutorialSafety.WatchdogAction.Reset);
+        Check("from the third attempt on every reset also offers SKIP",
+              stuck.IndexOf(TutorialSafety.WatchdogAction.OfferSkip) == TutorialSafety.OfferSkipAfter - 1 &&
+              stuck.FindAll(a => a == TutorialSafety.WatchdogAction.OfferSkip).Count == stuck.Count - (TutorialSafety.OfferSkipAfter - 1));
 
         // progress keeps it quiet forever
         var wd = new TutorialSafety.Watchdog();
