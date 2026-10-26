@@ -140,6 +140,7 @@ public static class AllTests
         ("CooldownAtomTest", CooldownAtomTest.Execute),
         ("MagnetAtomTest", MagnetAtomTest.Execute),
         ("MagnetComboTest", MagnetComboTest.Execute),
+        ("AtomFusionTest", AtomFusionTest.Execute),
         ("CreditsTest", CreditsTest.Execute),
         ("DeathCrashTest", DeathCrashTest.Execute),
         ("DustDischargeTest", DustDischargeTest.Execute),

@@ -57,6 +57,7 @@ public class spawnGoodStuff : MonoBehaviour {
         if (magnetAtom == null) magnetAtom = Resources.Load<GameObject>("prefabs/" + MagnetPull.ObjectName);
         resetBlueBudget();
         AtomSpacing.Reset();
+        AtomSpawnBias.Reset();
 	
 	}
 
@@ -85,7 +86,8 @@ public class spawnGoodStuff : MonoBehaviour {
         // x2 the inspector range (PickupRules.ShieldAtomRateMultiplier).
         blueBudget = PickupRules.ShieldAtomBudget(Random.Range(blueAtomsPerWorld.x, blueAtomsPerWorld.y + 1));
         blueSpawned = 0;
-        redBudget = redAtomsPerWorld;
+        // (x1.5 with the fusion spawn multiplier: PickupRules.PauseAtomBudget)
+        redBudget = PickupRules.PauseAtomBudget(redAtomsPerWorld);
         redSpawned = 0;
         redAtomDelayTimer = Random.Range(15f, 40f);
         // violet capacitors: budget and delays in PickupRules
@@ -97,6 +99,7 @@ public class spawnGoodStuff : MonoBehaviour {
         magnetAtomDelayTimer = PickupRules.MagnetAtomFirstDelay();
         blueGuaranteeUsed = false;
         atomTimer = Random.Range(20f, 45f);
+        AtomSpawnBias.NewWorld();   // a fresh complement allowance
     }
 
     void spawn() { spawn(Time.deltaTime); }
@@ -119,12 +122,15 @@ public class spawnGoodStuff : MonoBehaviour {
         smStarTimer -= dustDt;
         midStarTimer -= dustDt;
         atomTimer -= dt * PickupRules.ShieldAtomRate;
-        redAtomDelayTimer -= dt * AdaptiveDifficulty.RecoveryScale;
+        redAtomDelayTimer -= dt * AdaptiveDifficulty.RecoveryScale * PickupRules.PauseAtomRate;
         cooldownAtomDelayTimer -= dt * PickupRules.CooldownAtomRate;
         magnetAtomDelayTimer -= dt * PickupRules.MagnetAtomRate;
         // No two atoms (this spawner's or the green one's) within
         // AtomSpacing.Gap: one that comes due inside it waits its turn.
         AtomSpacing.Tick(dt);
+        // ...and the same atom not twice in a row within FusionTuning.SameKindGap,
+        // plus the occasional fusion partner after a catch (AtomSpawnBias)
+        AtomSpawnBias.Tick(dt);
         if (smStarTimer <= 0)
         {
             smStarTimer = Random.Range(5f, 7f);
@@ -153,7 +159,7 @@ public class spawnGoodStuff : MonoBehaviour {
         // Blue atoms used to arrive every 6-9 seconds, which made a shield and
         // boost routine. They are now a scarce, per-planet allowance.
         int reserve = blueGuaranteeUsed ? 0 : 1;   // always hold one back for the end
-        if (atomTimer <= 0 && blueSpawned < blueBudget - reserve && AtomSpacing.Ready)
+        if (atomTimer <= 0 && blueSpawned < blueBudget - reserve && AtomSpacing.Ready && AtomSpawnBias.Allows(AtomKind.Shield))
         {
             atomDelayTimer = Random.Range(55f, 95f);
             spawnAtom();
@@ -175,7 +181,7 @@ public class spawnGoodStuff : MonoBehaviour {
         // unlimited. Now a fixed allowance per planet, spread across the level.
         // (Held back through a boss encounter: the fight hands out exactly
         // BossFreeShotAtoms.Count of its own, below.)
-        if (redAtomDelayTimer <= 0 && redSpawned < redBudget && AtomSpacing.Ready && !BossEncounter.Running)
+        if (redAtomDelayTimer <= 0 && redSpawned < redBudget && AtomSpacing.Ready && !BossEncounter.Running && AtomSpawnBias.Allows(AtomKind.Pause))
         {
             redAtomDelayTimer = Random.Range(50f, 90f);
             spawnRedAtom();
@@ -198,7 +204,8 @@ public class spawnGoodStuff : MonoBehaviour {
             }
         }
 
-        if (cooldownAtom != null && cooldownAtomDelayTimer <= 0 && cooldownSpawned < cooldownBudget && AtomSpacing.Ready)
+        if (cooldownAtom != null && cooldownAtomDelayTimer <= 0 && cooldownSpawned < cooldownBudget && AtomSpacing.Ready &&
+            AtomSpawnBias.Allows(AtomKind.Capacitor))
         {
             cooldownAtomDelayTimer = PickupRules.CooldownAtomRepeatDelay();
             spawnCooldownAtom();
@@ -208,16 +215,69 @@ public class spawnGoodStuff : MonoBehaviour {
         // The magnetic atom: a fixed allowance per planet, held back through a
         // boss fight (the delay keeps running, so it arrives right after).
         if (magnetAtom != null && magnetAtomDelayTimer <= 0 && magnetSpawned < PickupRules.MagnetAtomsPerWorld &&
-            AtomSpacing.Ready && !BossEncounter.Running)
+            AtomSpacing.Ready && !BossEncounter.Running && AtomSpawnBias.Allows(AtomKind.Magnet))
         {
             magnetAtomDelayTimer = PickupRules.MagnetAtomRepeatDelay();
             spawnMagnetAtom();
             magnetSpawned++;
         }
 
+        // A fusion partner asked for after a catch (AtomSpawnBias), out of
+        // its own allowance, after the same atom spacing as any atom.
+        if (AtomSpawnBias.Due && AtomSpacing.Ready) spawnComplement();
+
         // A power-up refund (PowerUpRefund): the guaranteed drop its use
         // meter earned, after the same atom spacing as any atom.
         if (PowerUpRefund.Due && AtomSpacing.Ready) spawnRefund();
+    }
+
+    // The partner AtomSpawnBias asked for: pulled forward out of that atom's
+    // own per-world allowance (never extra), never in a boss fight; its own
+    // clock restarts from the usual repeat delay. Dropped if the allowance is spent.
+    void spawnComplement()
+    {
+        bool boss = BossEncounter.Running;
+        bool released = false;
+        switch (AtomSpawnBias.PendingKind)
+        {
+            case AtomKind.Shield:
+                if (!boss && Atom != null && blueSpawned < blueBudget - (blueGuaranteeUsed ? 0 : 1))
+                {
+                    spawnAtom();
+                    blueSpawned++;
+                    atomTimer = Random.Range(55f, 95f);
+                    released = true;
+                }
+                break;
+            case AtomKind.Pause:
+                if (!boss && redAtom != null && redSpawned < redBudget)
+                {
+                    spawnRedAtom();
+                    redSpawned++;
+                    redAtomDelayTimer = Random.Range(50f, 90f);
+                    released = true;
+                }
+                break;
+            case AtomKind.Capacitor:
+                if (!boss && cooldownAtom != null && cooldownSpawned < cooldownBudget)
+                {
+                    spawnCooldownAtom();
+                    cooldownSpawned++;
+                    cooldownAtomDelayTimer = PickupRules.CooldownAtomRepeatDelay();
+                    released = true;
+                }
+                break;
+            case AtomKind.Magnet:
+                if (!boss && magnetAtom != null && magnetSpawned < PickupRules.MagnetAtomsPerWorld)
+                {
+                    spawnMagnetAtom();
+                    magnetSpawned++;
+                    magnetAtomDelayTimer = PickupRules.MagnetAtomRepeatDelay();
+                    released = true;
+                }
+                break;
+        }
+        AtomSpawnBias.Resolve(released);
     }
 
     // The refund's drop: an ordinary atom (same prefab, spawn and visuals),
@@ -273,6 +333,7 @@ public class spawnGoodStuff : MonoBehaviour {
         // spawn 3 enimies at the same time
         AtomSpin.AddTo(Place(Atom, randomStarPos));
         AtomSpacing.Released();
+        AtomSpawnBias.Released(AtomKind.Shield);
 
     }
     // Boss-fight plan atoms released this session, by BossFreeShotAtoms.Kind (tests).
@@ -285,6 +346,7 @@ public class spawnGoodStuff : MonoBehaviour {
         Vector3 at = SpawnSpace.PickupSpot(new Vector3(Random.Range(-RailInset.PickupLaneHalf, RailInset.PickupLaneHalf), CameraFit.ViewTop + .5f, 0f), half, -RailInset.PickupLaneHalf, RailInset.PickupLaneHalf);
         SpawnFootprint.Attach(HealAtom.Spawn(at), half, SpawnLayer.Pickup);
         AtomSpacing.Released();
+        AtomSpawnBias.Released(AtomKind.Heal);
     }
 
     void spawnRedAtom()
@@ -293,12 +355,14 @@ public class spawnGoodStuff : MonoBehaviour {
         Vector3 randomStarPos = new Vector3(Random.Range(-RailInset.PickupLaneHalf, RailInset.PickupLaneHalf), transform.position.y, transform.rotation.z);
         AtomSpin.AddTo(Place(redAtom, randomStarPos));
         AtomSpacing.Released();
+        AtomSpawnBias.Released(AtomKind.Pause);
     }
     void spawnCooldownAtom()
     {
         Vector3 randomStarPos = new Vector3(Random.Range(-RailInset.PickupLaneHalf, RailInset.PickupLaneHalf), transform.position.y, transform.rotation.z);
         AtomSpin.AddTo(Place(cooldownAtom, randomStarPos));
         AtomSpacing.Released();
+        AtomSpawnBias.Released(AtomKind.Capacitor);
     }
 
     void spawnMagnetAtom()
@@ -306,6 +370,7 @@ public class spawnGoodStuff : MonoBehaviour {
         Vector3 randomStarPos = new Vector3(Random.Range(-RailInset.PickupLaneHalf, RailInset.PickupLaneHalf), transform.position.y, transform.rotation.z);
         AtomSpin.AddTo(Place(magnetAtom, randomStarPos));
         AtomSpacing.Released();
+        AtomSpawnBias.Released(AtomKind.Magnet);
     }
 
     // Placement only (SpawnSpace): a pickup lands clear of the enemies'

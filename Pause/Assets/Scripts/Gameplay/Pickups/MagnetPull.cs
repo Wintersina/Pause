@@ -187,6 +187,10 @@ public class MagnetPull : MonoBehaviour
         Rect view = ShipTargets.View();
         float enemySpeed = MagnetCombo.EnemySpeed(ComboSeconds, view.height);
         Rect field = MagnetCombo.PullRect(view);
+        // LIFELINE (magnet + heal, AtomFusions): the goodies come from the
+        // whole view and just above it; the enemy pull keeps its own field
+        bool lifeline = AtomFusions.LifelineActive;
+        Rect goodyField = lifeline ? AtomFusions.LifelineField(view) : field;
         var live = ClearTarget.Live;
         for (int i = 0; i < live.Count; i++)
         {
@@ -194,12 +198,14 @@ public class MagnetPull : MonoBehaviour
             if (t == null || !t.isActiveAndEnabled) continue;
             var go = t.gameObject;
             Vector3 p = go.transform.position;
-            if (!field.Contains(p)) continue;
+            bool inField = field.Contains(p);
+            if (!inField && !(lifeline && goodyField.Contains(p))) continue;
             if (!combo && !go.CompareTag("pickUp")) continue;   // magnet alone: only goodies, skip the lookups
             var kind = KindOf(t);
             if (!MagnetCombo.Pulls(kind, true, shield, tutorial)) continue;
             if (kind == MagnetCombo.Kind.Enemy)
             {
+                if (!inField) continue;
                 Vector2 d = at - p;
                 if (d.sqrMagnitude <= StopDistance * StopDistance) continue;
                 Lock(go, enemies, ref enemyCount);

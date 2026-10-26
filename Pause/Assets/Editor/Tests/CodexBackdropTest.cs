@@ -182,8 +182,8 @@ public static class CodexBackdropTest
 
     static void Tab(CodexPanel panel)
     {
-        Check("eight tabs: ACHIEVEMENTS first, five categories, MUSIC, LOG last; no top-level BACKDROPS tab",
-              CodexPanel.TabCount == 8 && CodexPanel.TabsPerRow == 4 && CodexPanel.MusicTab == 6 && CodexPanel.LogTab == 7 &&
+        Check("nine tabs: ACHIEVEMENTS first, five categories, MUSIC, COMBOS, LOG last; no top-level BACKDROPS tab",
+              CodexPanel.TabCount == 9 && CodexPanel.TabsPerRow == 3 && CodexPanel.MusicTab == 6 && CodexPanel.CombosTab == 7 && CodexPanel.LogTab == 8 &&
               Enumerable.Range(0, CodexPanel.TabCount).All(i => panel.TabLabel(i).text != "BACKDROPS"));
         Check("a fresh codex shows no backdrop gallery", !panel.BackdropsOpen && !panel.Backdrops.Active);
 
@@ -487,7 +487,7 @@ public static class CodexBackdropTest
             panel.ApplyLayout(safe);
             Canvas.ForceUpdateCanvases();
             var l = panel.CurrentLayout;
-            // the tab row, eight tabs in two rows
+            // the tab row, nine tabs in three rows
             bool tabs = true, hit = true, fit = true;
             for (int i = 0; i < CodexPanel.TabCount; i++)
             {
@@ -496,7 +496,7 @@ public static class CodexBackdropTest
                 for (int j = 0; j < i; j++) tabs &= !CodexPanel.TabRect(l, j).Overlaps(t);
                 hit &= t.width + CodexPanel.TabGap >= 96f && t.height + CodexPanel.TabRowGap >= 96f;
             }
-            Check(name + ": eight tabs (4 + 4) sit in the tab band, no overlap, each a >= 96-unit touch target", tabs && hit);
+            Check(name + ": nine tabs (3 + 3 + 3) sit in the tab band, no overlap, each a >= 96-unit touch target", tabs && hit);
 
             var v = Gallery(panel, 5);
             panel.ApplyLayout(safe);

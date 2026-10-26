@@ -80,6 +80,7 @@ public class HealAtomSpawner : MonoBehaviour
         SpawnFootprint.Attach(HealAtom.Spawn(at), half, SpawnLayer.Pickup);
         spawnedThisWorld++;
         AtomSpacing.Released();
+        AtomSpawnBias.Released(AtomKind.Heal);   // (only marks the last kind: the green atom's own rate is untouched)
     }
 }
 

@@ -127,8 +127,10 @@ public static class PickupRulesTest
         Check("ShieldAtomRateMultiplier is 2", PickupRules.ShieldAtomRateMultiplier == 2);
         Check("star dust runs x1 without a boss, x3 with one",
               PickupRules.StarDustRate(false) == 1f && PickupRules.StarDustRate(true) == 3f);
-        Check("a planet's blue allowance doubles (3-5 -> 6-10)",
-              PickupRules.ShieldAtomBudget(3) == 6 && PickupRules.ShieldAtomBudget(5) == 10);
+        Check("a planet's blue allowance doubles, then x1.5 for the fusions (3-5 -> 9-15)",
+              PickupRules.ShieldAtomBudget(3) == 9 && PickupRules.ShieldAtomBudget(5) == 15);
+        Check("the blue atom's clock runs x2 x1.5 = x3", Mathf.Approximately(PickupRules.ShieldAtomRate, 3f));
+        Check("red: x1.5 clock and allowance (5 -> 8)", Mathf.Approximately(PickupRules.PauseAtomRate, 1.5f) && PickupRules.PauseAtomBudget(5) == 8);
     }
 
     static void BossTriplesStarDust()
@@ -212,12 +214,14 @@ public static class PickupRulesTest
         }
         float blueMean = (float)blue / runs, oldMean = (float)oldBlue / runs;
         float ratio = blueMean / Mathf.Max(.01f, oldMean);
+        // x2 (the old doubling) x1.5 (the atomic fusions)
         Check("blue shield atoms per 180s: " + oldMean.ToString("F2") + " before -> " + blueMean.ToString("F2") +
-              " now (" + ratio.ToString("F2") + "x, ~2x)", ratio > 1.8f && ratio < 2.4f);
+              " now (" + ratio.ToString("F2") + "x, ~3x)", ratio > 2.4f && ratio < 3.8f);
 
         float redMean = (float)red / runs, oldRed = OldRedMean(window, runs);
-        Check("red pause atoms unchanged (" + oldRed.ToString("F2") + " before, " + redMean.ToString("F2") + " now)",
-              Mathf.Abs(redMean - oldRed) < .35f);
+        float redRatio = redMean / Mathf.Max(.01f, oldRed);
+        Check("red pause atoms x1.5 for the fusions (" + oldRed.ToString("F2") + " before, " + redMean.ToString("F2") + " now, " +
+              redRatio.ToString("F2") + "x)", redRatio > 1.2f && redRatio < 1.9f);
 
         // the allowance's red atoms are held back through a boss: the fight hands
         // out its own exactly-2 instead (BossFreeShotAtomsTest)

@@ -48,10 +48,12 @@ public static class MagnetAtomTest
 
     static void Rules()
     {
-        Check("PickupRules: 2 magnets per world, first 45-80 s, then 90-130 s, plain clock",
-              PickupRules.MagnetAtomsPerWorld == 2 &&
-              PickupRules.MagnetAtomFirstDelayMin == 45f && PickupRules.MagnetAtomFirstDelayMax == 80f &&
-              PickupRules.MagnetAtomRepeatDelayMin == 90f && PickupRules.MagnetAtomRepeatDelayMax == 130f &&
+        // (the base 2 a world, 45-80 s, 90-130 s, grown by the atomic fusions' spawn multiplier)
+        float k = FusionTuning.MagnetSpawnMultiplier;
+        Check("PickupRules: 3 magnets per world, first (45-80 s) / 1.5, then (90-130 s) / 1.5, plain clock",
+              k == 1.5f && PickupRules.MagnetAtomsPerWorld == 3 &&
+              Mathf.Approximately(PickupRules.MagnetAtomFirstDelayMin, 45f / k) && Mathf.Approximately(PickupRules.MagnetAtomFirstDelayMax, 80f / k) &&
+              Mathf.Approximately(PickupRules.MagnetAtomRepeatDelayMin, 90f / k) && Mathf.Approximately(PickupRules.MagnetAtomRepeatDelayMax, 130f / k) &&
               PickupRules.MagnetAtomRate == 1f);
         string spawner = File.ReadAllText("Assets/Scripts/Gameplay/Pickups/spawnGoodStuff.cs");
         Check("the spawner reads the magnet rules from PickupRules and holds the atom back during a boss",
