@@ -230,6 +230,31 @@ public static class SpacePlanetSheetTest
             }
             Check(file + ": the six world planets are in the giant set the spawner draws from (" + giants.Length + " giants)",
                   reach && giants.Length >= 12);
+            // How often they spawn: the hero pick draws from the weighted pool, and the extras (reference /
+            // neon / halo) that used to take two thirds of the planets are rare, so the world planets dominate.
+            var pool = SpaceDirector.WeightedGiants(giants);
+            var rng = new System.Random(20261026);
+            int n = 40000, worldGiant = 0, worldPlanet = 0;
+            for (int i = 0; i < n; i++)
+            {
+                bool extra = rng.NextDouble() < SpaceDirector.ReferenceChance;
+                extra |= rng.NextDouble() < SpaceDirector.NeonChance;
+                extra |= rng.NextDouble() < SpaceDirector.HaloChance;
+                if (extra) continue;
+                Sprite pick = pool[rng.Next(pool.Length)];
+                if (SpaceDirector.IsWorldPlanet(pick)) { worldGiant++; worldPlanet++; }
+            }
+            float expect = SpaceDirector.WorldPlanetSpawnShare(giants.Length, SpaceDirector.WorldPlanetCells.Length);
+            float poolShare = 0f;
+            foreach (var g in pool) if (SpaceDirector.IsWorldPlanet(g)) poolShare++;
+            poolShare /= pool.Length;
+            Check(file + ": world planets are " + poolShare.ToString("P0") + " of the weighted giant pick (>= 60%)", poolShare >= 0.6f);
+            Check(file + ": world planets are " + (worldPlanet / (float)n).ToString("P0") + " of all planet spawns, expected " +
+                  expect.ToString("P0") + " (was 17%; >= 40%)",
+                  worldPlanet / (float)n >= 0.4f && Mathf.Abs(worldPlanet / (float)n - expect) < 0.02f);
+            Check(file + ": every world planet is picked", worldGiant > 0 && pool.Length > giants.Length);
+            Check(file + ": the opening weights favour the giant (the world planets' set)",
+                  SpaceDirector.OpeningWeights[(int)SpaceDirector.OpeningKind.Giant] >= 0.5f);
             Check(file + ": the six world planets are spheres the BackdropPlanet shader turns", sphere);
             Check(file + ": each world planet's disc is opaque and round", round);
             Check(file + ": no violet or pink in the world planets", clean);
