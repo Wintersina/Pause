@@ -24,8 +24,8 @@ public interface IShipAttackTarget
 }
 
 // A target that takes every hit in full, outside the firing's allowance: the boss (which limits itself with
-// its own hit window) and ordinary small things that happen to need more than one hit (Space's backdrop rocks),
-// so one volley can break several of them.
+// its own hit window) and ordinary small things that happen to need more than one hit (Space's field rocks,
+// FieldAsteroid, and its backdrop rocks), so one volley can break several of them.
 public interface IShipAttackTargetUncapped : IShipAttackTarget { }
 
 public static class ShipAttackHits

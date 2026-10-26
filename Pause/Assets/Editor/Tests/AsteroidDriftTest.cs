@@ -268,13 +268,14 @@ public static class AsteroidDriftTest
         }
         finally { Object.DestroyImmediate(go); SpaceDirector.RocksBreakableOverride = false; }
 
-        // the dodge-field rocks are untouched: still capped by the boss allowance, still 1 / 2 / 3 hits
+        // the dodge-field rocks take every hit in full like the backdrop rocks (uncapped: a spent elite allowance
+        // does not shield them), and still need 1 / 2 / 3 hits
         SpaceAsteroidField.ClearAll();
         var a = SpaceAsteroidField.Spawn(2, 0, Vector2.zero, 0f, 0f, 0f);
         float none = 0f;
         ShipAttackHits.Hit(a.gameObject, 0, 1f, ref none);
-        Check("the field rock still honours the firing's allowance and its own hit points",
-              Mathf.Approximately(a.Health, SpaceAsteroidField.SizeHits[2]) && SpaceAsteroidField.SizeHits[0] == 1f &&
+        Check("the field rock takes a hit outside the firing's allowance and keeps its own hit points",
+              Mathf.Approximately(a.Health, SpaceAsteroidField.SizeHits[2] - 1f) && none == 0f && SpaceAsteroidField.SizeHits[0] == 1f &&
               SpaceAsteroidField.SizeHits[1] == 2f && SpaceAsteroidField.SizeHits[2] == 3f);
         SpaceAsteroidField.ClearAll();
     }
