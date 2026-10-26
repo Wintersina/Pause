@@ -89,12 +89,13 @@ public static class TutorialSafety
     public enum WatchdogAction { None, Reset, OfferSkip, Advance }
 
     // Real (unscaled) seconds a step may go without progress before its objects
-    // are set up again, and how many failed attempts lead to the SKIP prompt and
-    // to moving on by itself.
+    // are set up again, and how many failed attempts lead to the SKIP prompt.
+    // No attempt ever moves the tutorial on by itself (Hints: no timer advances
+    // a step): from OfferSkipAfter on, every reset also offers SKIP, and the
+    // player's own tap on SKIP is the only way past a step they did not do.
     public const float StuckSeconds = 25f;
     public const float TargetMissingSeconds = 2f;
     public const int OfferSkipAfter = 3;
-    public const int AdvanceAfter = 5;
     public const string SkipOfferLine = "Stuck? Tap *SKIP* to go on.";
 
     public struct Watchdog
@@ -102,23 +103,27 @@ public static class TutorialSafety
         public float sinceProgress, targetMissing;
         public int attempts;
 
-        // One frame. progressed: the player advanced the step; targetMissing:
-        // what the step needs (atom / wall / alien) is gone and nothing is
-        // bringing it back. dt: unscaled seconds (the world may be frozen).
+        // One frame. progressed: the player advanced the step (steering
+        // counts); targetMissing: what the step needs (atom / wall / alien)
+        // is gone and nothing is bringing it back. dt: unscaled seconds (the
+        // world may be frozen). Progress clears the stuck clock and the
+        // escalation, but never the missing-target clock: that one is about
+        // the step's object, not the player's hand, so a finger that keeps
+        // steering can no longer hide a lost atom or wall for as long as it
+        // moves. Never Advance: the player's own SKIP is the only way past a
+        // step they did not do.
         public WatchdogAction Tick(float dt, bool progressed, bool missing)
         {
             if (!IsFinite(dt) || dt < 0f) dt = 0f;
             dt = Mathf.Min(dt, 1f);   // a stalled frame (backgrounded app) is not 25 s of being stuck
-            if (progressed) { sinceProgress = 0f; targetMissing = 0f; attempts = 0; return WatchdogAction.None; }
-            sinceProgress += dt;
+            if (progressed) { sinceProgress = 0f; attempts = 0; }
+            else sinceProgress += dt;
             targetMissing = missing ? targetMissing + dt : 0f;
             if (targetMissing < TargetMissingSeconds && sinceProgress < StuckSeconds) return WatchdogAction.None;
             sinceProgress = 0f;
             targetMissing = 0f;
             attempts++;
-            if (attempts >= AdvanceAfter) return WatchdogAction.Advance;
-            if (attempts == OfferSkipAfter) return WatchdogAction.OfferSkip;
-            return WatchdogAction.Reset;
+            return attempts >= OfferSkipAfter ? WatchdogAction.OfferSkip : WatchdogAction.Reset;
         }
     }
 }
