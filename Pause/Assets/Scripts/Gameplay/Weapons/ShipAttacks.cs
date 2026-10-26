@@ -171,20 +171,18 @@ public partial class ShipAttackRunner : MonoBehaviour
                     ConeScale(l), 0f, ShipFxArt.LoopTicks, true, l.duration, transform,
                     Vector3.up * (noseOffset + l.range * .5f), 69).Owned(run);
                 break;
-            case ShipAttack.OrbitDisc:
-                run.angle = 90f;
-                run.visual = AttackPool.Sprite().Play(AttackSprite.Source.AttackLoop, ship, transform.position,
-                    Vector3.one * (l.width * 2f + .1f), 0f, ShipFxArt.LoopTicks, true, l.duration, transform,
-                    Vector3.zero, 68).Owned(run);
-                run.disc = AttackPool.Sprite().Play(AttackSprite.Source.Shot, ship, transform.position,
-                    Vector3.one * .4f, 0f, ShotLoop, true, l.duration, null, Vector3.zero, 72).Owned(run);
+            case ShipAttack.ThrownDisc:
+                // thrown from the nose a little off the vertical (alternating sides), spinning as it flies
+                run.point = nose;
+                run.dir = ThrowDirection(FireCount + FreeFireCount);
+                run.disc = AttackPool.Sprite().Play(AttackSprite.Source.AttackLoop, ship, nose,
+                    Vector3.one * DiscDrawScale(l), 0f, ShipFxArt.LoopTicks, true, l.duration + ThrowLeaveSeconds, null,
+                    Vector3.zero, 72).Owned(run);
                 break;
         }
         // first volley of the timed attacks goes out on this frame
         Step(run, 0f);
     }
-
-    static readonly int[] ShotLoop = { 2, 2, 2, 2 };
 
     // A homing shot of a firing marks its target so the next one picks another. The boss is never
     // marked: it is the only thing the shots can chase while it is up, and a claimed boss would leave
@@ -228,7 +226,7 @@ public partial class ShipAttackRunner : MonoBehaviour
     public AttackProjectile LaunchJavelin(AttackRun run, Vector3 from, float speed, float hitHalfWidth,
                                           float weight, float stopAtY)
     {
-        var p = Launch(run, AttackProjectile.Kind.Javelin, from, Vector3.down, speed, hitHalfWidth, .9f, null, weight);
+        var p = Launch(run, AttackProjectile.Kind.Javelin, from, Vector3.down, speed, hitHalfWidth, 1.6f, null, weight);
         if (p != null) p.StopAtY = stopAtY;
         return p;
     }
@@ -245,7 +243,8 @@ public partial class ShipAttackRunner : MonoBehaviour
         float len = BeamLength(nose, l.range);
         AttackPool.Sprite().Play(AttackSprite.Source.AttackLoop, ship, nose + Vector3.up * len * .5f,
             new Vector3(Mathf.Max(.14f, l.width * 2f * .6f), len, 1f), 0f, ShipFxArt.BurstTicks, false, 0f, null, Vector3.zero, 70);
-        AttackPool.Sprite().Play(AttackSprite.Source.AttackBurst, ship, nose, Vector3.one * .6f, 0f,
+        // the muzzle flash is drawn low in its cell: lifted so it sits on the nose, not over the hull
+        AttackPool.Sprite().Play(AttackSprite.Source.AttackBurst, ship, nose + Vector3.up * .18f, Vector3.one * .6f, 0f,
             ShipFxArt.BurstTicks, false, 0f, null, Vector3.zero, 71);
         ShipTargets.Collect(targets);
         int kills = 0;
@@ -297,7 +296,7 @@ public partial class ShipAttackRunner : MonoBehaviour
                 while (run.fired < l.shots && run.t >= run.fired * .16f)
                 {
                     Launch(run, AttackProjectile.Kind.Straight, Nose,
-                           Quaternion.Euler(0f, 0f, -StreakAngle(run.fired)) * Vector3.up, l.speed, l.width, .55f, null,
+                           Quaternion.Euler(0f, 0f, -StreakAngle(run.fired)) * Vector3.up, l.speed, l.width, .8f, null,
                            1f / Mathf.Max(1, l.shots));
                     run.fired++;
                 }
@@ -325,7 +324,7 @@ public partial class ShipAttackRunner : MonoBehaviour
                         float top = Mathf.Min(view.yMax + .6f, transform.position.y + 30f);
                         Vector3 nose = Nose;
                         var p = Launch(run, AttackProjectile.Kind.Rocket, nose, new Vector3(x - nose.x, top - nose.y, 0f),
-                                       RocketSpeed, .05f, .32f, null, 1f / Mathf.Max(1, l.shots));
+                                       RocketSpeed, .05f, .6f, null, 1f / Mathf.Max(1, l.shots));
                         if (p != null) p.SetRocket(new Vector3(x, top, 0f), transform.position.y + .3f);
                         run.fired++;
                     }
@@ -352,9 +351,8 @@ public partial class ShipAttackRunner : MonoBehaviour
                 StepV3(run, dt);
                 break;
 
-            case ShipAttack.OrbitDisc:
-                StepOrbit(run, dt);
-                if (run.t >= l.duration) run.Stop();
+            case ShipAttack.ThrownDisc:
+                StepThrow(run, dt);
                 break;
 
             default:
@@ -425,14 +423,39 @@ public partial class ShipAttackRunner : MonoBehaviour
         return Vector2.Angle(Vector2.up, d) <= halfAngle + slack;
     }
 
-    void StepOrbit(AttackRun run, float dt)
+    // ---------------------------------------------------------------- thrown disc
+
+    // The Turtle's Shell Disc is thrown from the nose and ricochets: off the enemy it strikes (on to the nearest
+    // other one in reach, else bouncing straight back off it) and off the screen walls. The loadout reads:
+    // duration the flight time, speed its speed in world units per second, range the disc's hit radius and
+    // maxHits how many bounces it has. After the last bounce (or when its time is up) it flies on out of the
+    // screen. Ordinary hazards die from the touch; a boss takes a weighted hit once per tick.
+    public const float ThrowAngle = 14f;           // degrees off the vertical, the side alternating each throw
+    public const float ThrowLeaveSeconds = 3f;     // after its flight time it still needs this long to fly out
+    public const float DiscReach = 7f;             // how far it looks for the next enemy to ricochet to
+    public static Vector3 ThrowDirection(int throwNumber) { return Quaternion.Euler(0f, 0f, (throwNumber & 1) == 1 ? -ThrowAngle : ThrowAngle) * Vector3.up; }
+    const float DiscArtFill = .55f;                // the shell fills this much of its 256 px cell
+
+    static float DiscDrawScale(ShipLoadout l) { return l.range * 2f / DiscArtFill; }
+
+    void StepThrow(AttackRun run, float dt)
     {
         var l = run.loadout;
-        run.angle += l.speed * dt;
-        float a = run.angle * Mathf.Deg2Rad;
-        Vector3 disc = transform.position + new Vector3(Mathf.Cos(a), Mathf.Sin(a), 0f) * l.width;
-        if (run.disc != null && run.disc.Active) run.disc.transform.position = disc;
-        run.point = disc;
+        bool leaving = run.hops >= l.maxHits || run.t >= l.duration;
+        Rect view = ShipTargets.View(-.2f);
+        Vector3 p = run.point + run.dir * l.speed * dt;
+        bool wall = false;
+        if (!leaving)
+        {
+            if (p.x < view.xMin) { p.x = view.xMin; run.dir.x = Mathf.Abs(run.dir.x); wall = true; }
+            else if (p.x > view.xMax) { p.x = view.xMax; run.dir.x = -Mathf.Abs(run.dir.x); wall = true; }
+            if (p.y < view.yMin) { p.y = view.yMin; run.dir.y = Mathf.Abs(run.dir.y); wall = true; }
+            else if (p.y > view.yMax) { p.y = view.yMax; run.dir.y = -Mathf.Abs(run.dir.y); wall = true; }
+        }
+        run.point = p;
+        if (wall) DiscBounce(run, p);
+        if (run.disc != null && run.disc.Active) run.disc.transform.position = p;
+
         ShipTargets.Collect(targets);
         bool bossTick = run.t >= run.next;
         if (bossTick) run.next = run.t + .4f;
@@ -440,11 +463,36 @@ public partial class ShipAttackRunner : MonoBehaviour
         {
             var t = targets[i];
             if (t == null || !t.isActiveAndEnabled) continue;
-            Vector2 d = t.transform.position - disc;
+            Vector2 d = t.transform.position - p;
             float r = l.range + t.Radius;
             if (d.sqrMagnitude > r * r) continue;
-            Touch(run, t.gameObject, bossTick, .25f);
+            bool special = t.GetComponent<IShipAttackTarget>() != null;
+            if (special && !bossTick) continue;
+            // read what is needed before the touch: it may destroy the target
+            GameObject struck = t.gameObject;
+            Vector3 struckAt = t.transform.position;
+            Touch(run, struck, bossTick, .25f);
+            if (leaving) continue;
+            run.hit.Add(struck);
+            if (run.hit.Count >= 30) run.hit.RemoveRange(0, 15);
+            var next = ShipTargets.Nearest(p, DiscReach, run.hit);
+            Vector3 away = (p - struckAt).normalized;
+            if (away.sqrMagnitude < .01f) away = -run.dir;
+            // on to the next enemy, else bouncing straight off this one
+            run.dir = next != null ? (next.transform.position - p).normalized : Vector3.Reflect(run.dir, away).normalized;
+            DiscBounce(run, p);
+            break;
         }
+
+        if (leaving && !ShipTargets.View(1f).Contains(p)) run.Stop();
+        else if (run.t >= l.duration + ThrowLeaveSeconds) run.Stop();
+    }
+
+    void DiscBounce(AttackRun run, Vector3 at)
+    {
+        run.hops++;
+        AttackPool.Sprite().Play(AttackSprite.Source.AttackBurst, ship, at, Vector3.one * .7f, 0f,
+            ShipFxArt.BurstTicks, false, 0f, null, Vector3.zero, 73);
     }
 
     // A held weapon touching something: ordinary hazards die at once, a
@@ -525,7 +573,7 @@ public class AttackRun
     public int fired, hops;
     public float angle;
     public float budget;
-    public Vector3 point;
+    public Vector3 point, dir;   // dir: the thrown disc's heading
     public AttackSprite visual, disc;
     public SparkBolt spark;   // Volt Viper's spark (ShipAttackSpark.cs), allocated once per slot
     public AttackV3 v3;   // scratch of the v3 attacks (ShipAttacksV3.cs), allocated once per slot
@@ -542,7 +590,7 @@ public class AttackRun
         fired = hops = 0;
         angle = 0f;
         budget = 1f;
-        point = Vector3.zero;
+        point = dir = Vector3.zero;
         visual = disc = null;
         if (spark != null) spark.Hide();
         hit.Clear();
@@ -668,7 +716,7 @@ public static class AttackPool
 // riding along with a transform. Gameplay time: frozen while paused.
 public class AttackSprite : MonoBehaviour
 {
-    public enum Source { AttackLoop, AttackBurst, PowerLoop, PowerBurst, Shot, Rim, Extra, Dome }
+    public enum Source { AttackLoop, AttackBurst, Extra, Dome }
 
     SpriteRenderer sr;
     Source source;
@@ -787,9 +835,6 @@ public class AttackSprite : MonoBehaviour
         {
             case Source.AttackLoop:  return ShipFxArt.AttackAlpha;
             case Source.AttackBurst: return ShipFxArt.AttackBurstAlpha;
-            case Source.PowerLoop:   return ShipFxArt.PowerLoopAlpha;
-            case Source.PowerBurst:  return ShipFxArt.PowerBurstAlpha;
-            case Source.Rim:         return ShipFxArt.RimAlpha;
             case Source.Dome:        return ShipFxArt.RimAlpha;
             default:                 return 1f;
         }
@@ -834,18 +879,9 @@ public class AttackSprite : MonoBehaviour
             transform.localScale = baseScale * Mathf.Lerp(growFrom, 1f, e);
             if (k >= 1f) travelling = false;
         }
-        else if (source == Source.Rim && !loop)
+        else if (source == Source.Dome && loop)
         {
-            // a one-shot rim opens out from the hull and thins away
-            float total = Mathf.Max(.05f, WeaponArt.Seconds(ticks));
-            float k = Mathf.Clamp01(clock / total);
-            transform.localScale = baseScale * Mathf.Lerp(.45f, 1f, 1f - (1f - k) * (1f - k));
-            var rc = tint; rc.a *= (1f - k);
-            sr.color = Shown(rc);
-        }
-        else if ((source == Source.Rim || source == Source.Dome) && loop)
-        {
-            // a held rim breathes, so it reads as alive without filling in
+            // the held dome breathes, so it reads as alive without filling in
             var pc = tint; pc.a *= .78f + .22f * Mathf.Sin(clock * 6f);
             sr.color = Shown(pc);
         }
@@ -859,7 +895,7 @@ public class AttackSprite : MonoBehaviour
             float left = 1f - clock / life;
             var c = tint;
             c.a *= left > .2f ? 1f : left > .1f ? .6f : .3f;
-            if ((source == Source.Rim || source == Source.Dome) && loop) c.a *= .78f + .22f * Mathf.Sin(clock * 6f);
+            if (source == Source.Dome && loop) c.a *= .78f + .22f * Mathf.Sin(clock * 6f);
             sr.color = Shown(c);
         }
     }
@@ -876,11 +912,7 @@ public class AttackSprite : MonoBehaviour
                 }
                 break;
             case Source.Extra:       sr.sprite = ShipFxArt.Extra(ship, extraSuffix, extraCell + (reversed ? ShipFxArt.BurstFrames - 1 - Frame : Frame)); break;
-            case Source.PowerLoop:   sr.sprite = ShipFxArt.PowerLoop(ship, Frame); break;
-            case Source.PowerBurst:  sr.sprite = ShipFxArt.PowerBurst(ship, Frame); break;
-            case Source.Shot:        sr.sprite = WeaponArt.Shot(ship, Frame); break;
-            case Source.Rim:         sr.sprite = ShipFxArt.Rim; break;
-            case Source.Dome:        sr.sprite = ShipFxArt.Dome != null ? ShipFxArt.Dome : ShipFxArt.Rim; break;
+            case Source.Dome:        sr.sprite = ShipFxArt.Dome; break;
         }
     }
 
@@ -899,21 +931,14 @@ public class AttackProjectile : MonoBehaviour
 {
     public enum Kind { Straight, Homing, Javelin, Rocket }
 
-    const int Segments = 5;
-    const float SampleSpacing = .12f;
-
     SpriteRenderer body;
-    SpriteRenderer[] outer, core;
-    readonly Vector3[] hist = new Vector3[Segments + 1];
-    int histCount;
 
     ShipAttackRunner owner;
     AttackRun run;
     Kind kind;
     int ship;
-    WeaponStyle style;
     Vector3 dir;
-    float speed, radius, size, weight, age, travelled, spinAngle;
+    float speed, radius, size, weight, age, travelled;
     Transform target;
     GameObject lastSpecial;
     int hops;
@@ -936,7 +961,6 @@ public class AttackProjectile : MonoBehaviour
     {
         if (!Active) return;
         transform.position += (Vector3)by;
-        for (int i = 0; i < hist.Length; i++) hist[i] += (Vector3)by;
     }
 
     public bool Active { get; private set; }
@@ -957,25 +981,12 @@ public class AttackProjectile : MonoBehaviour
         bodyGo.transform.SetParent(transform, false);
         body = bodyGo.GetComponent<SpriteRenderer>();
         body.sortingOrder = 72;
-        outer = Layer("Outer", 70);
-        core = Layer("Core", 71);
+        body.color = new Color(1f, 1f, 1f, BodyAlpha);
         gameObject.SetActive(false);
     }
 
-    SpriteRenderer[] Layer(string name, int order)
-    {
-        var layer = new SpriteRenderer[Segments];
-        for (int i = 0; i < Segments; i++)
-        {
-            var go = new GameObject(name, typeof(SpriteRenderer));
-            go.transform.SetParent(transform, false);
-            layer[i] = go.GetComponent<SpriteRenderer>();
-            layer[i].sprite = WeaponFx.Solid;
-            layer[i].sortingOrder = order;
-            layer[i].enabled = false;
-        }
-        return layer;
-    }
+    // The shot's own drawing (its Codex strip carries the light tail), a touch fainter than solid.
+    const float BodyAlpha = .9f;
 
     public void Launch(ShipAttackRunner by, AttackRun from, Kind k, int shipId, Vector3 at, Vector3 heading,
                        float spd, float hitRadius, float worldSize, Transform homeOn, float hitWeight)
@@ -985,31 +996,20 @@ public class AttackProjectile : MonoBehaviour
         run = from;
         kind = k;
         ship = shipId;
-        style = WeaponStyleTable.For(shipId);
         dir = heading.sqrMagnitude > 1e-6f ? heading.normalized : Vector3.up;
         speed = spd;
         radius = hitRadius;
         size = worldSize * (k == Kind.Rocket ? 1f : ShipFxArt.ShotScale);
         weight = hitWeight;
         target = homeOn;
-        age = travelled = spinAngle = 0f;
+        age = travelled = 0f;
         lastSpecial = null;
         hops = 0;
         StopAtY = float.MinValue;
         transform.position = at;
-        for (int i = 0; i < hist.Length; i++) hist[i] = at;
-        histCount = 1;
-        for (int i = 0; i < Segments; i++)
-        {
-            var oc = style.main; oc.a = .6f;
-            var cc = style.energy; cc.a = .85f;
-            outer[i].color = oc;
-            core[i].color = cc;
-        }
         if (!Active) Flying.Add(this);
         Active = true;
         gameObject.SetActive(true);
-        body.sprite = WeaponArt.Shot(ship, WeaponArt.ShotLoopFrames); // launch smear
         Draw(0f);
     }
 
@@ -1116,7 +1116,7 @@ public class AttackProjectile : MonoBehaviour
         if (by == null || r == null) return;
         // a small spark where the rocket opens into its javelin
         AttackPool.Sprite().Play(AttackSprite.Source.AttackBurst, sh, at, Vector3.one * .4f, 0f,
-            ShipFxArt.BurstTicks, false, 0f, null, Vector3.zero, 71);
+            ShipFxArt.BurstTicks, false, 0f, null, Vector3.zero, 71).Strip("attack_shot", ShipFxArt.LoopFrames);
         by.LaunchJavelin(r, at, JavelinSpeedFor(r), rad, w, stop);
     }
 
@@ -1126,54 +1126,17 @@ public class AttackProjectile : MonoBehaviour
     {
         AttackPool.Sprite().Play(AttackSprite.Source.AttackBurst, ship, new Vector3(transform.position.x, StopAtY, 0f),
             Vector3.one * .55f, 0f, ShipFxArt.BurstTicks, false, 0f, null, Vector3.zero, 71);
-        AttackPool.Sprite().Play(AttackSprite.Source.AttackLoop, ship,
-            new Vector3(transform.position.x, (StopAtY + ShipTargets.View().yMax) * .5f, 0f),
-            new Vector3(Mathf.Max(.12f, radius * 2f * .8f), Mathf.Max(1f, ShipTargets.View().yMax - StopAtY), 1f), 0f,
-            ShipFxArt.BurstTicks, false, 0f, null, Vector3.zero, 69);
         Finish(false);
     }
 
     void Draw(float dt)
     {
-        int frame = age < .07f ? WeaponArt.ShotLoopFrames : WeaponArt.FrameAt(LoopTicks, age, true);
-        body.sprite = WeaponArt.Shot(ship, frame);
+        int frame = Mathf.FloorToInt(age * 24f);
+        // a Sky Javelins rocket draws the ship's "attack_shot" strip, every other shot (comet, javelin) its attack loop
+        Sprite sprite = kind == Kind.Rocket ? ShipFxArt.Extra(ship, "attack_shot", frame % ShipFxArt.LoopFrames) : null;
+        body.sprite = sprite != null ? sprite : ShipFxArt.AttackLoop(ship, frame);
         body.transform.localScale = Vector3.one * size;
-        if (style.shotSpin != 0f)
-        {
-            spinAngle += style.shotSpin * dt;
-            body.transform.rotation = Quaternion.Euler(0f, 0f, spinAngle);
-        }
-        else body.transform.up = dir;
-
-        Vector3 p = transform.position;
-        hist[0] = p;
-        if ((hist[0] - hist[1]).sqrMagnitude >= SampleSpacing * SampleSpacing || histCount == 1)
-        {
-            for (int i = hist.Length - 1; i > 0; i--) hist[i] = hist[i - 1];
-            if (histCount < hist.Length) histCount++;
-        }
-        float w = Mathf.Clamp(size * .14f, .035f, .08f);
-        for (int i = 0; i < Segments; i++)
-        {
-            bool on = i + 1 < histCount;
-            float taper = 1f - i / (float)Segments;
-            Segment(outer[i], on, hist[i], hist[i + 1], w * taper);
-            Segment(core[i], on && i < 3, hist[i], hist[i + 1], w * taper * .45f);
-        }
-    }
-
-    static readonly int[] LoopTicks = { 2, 2, 2, 2 };
-
-    static void Segment(SpriteRenderer r, bool on, Vector3 a, Vector3 b, float width)
-    {
-        Vector3 d = b - a;
-        float len = d.magnitude;
-        if (!on || len < .0005f) { r.enabled = false; return; }
-        r.enabled = true;
-        var t = r.transform;
-        t.position = (a + b) * .5f;
-        t.rotation = Quaternion.Euler(0f, 0f, Mathf.Atan2(d.y, d.x) * Mathf.Rad2Deg);
-        t.localScale = new Vector3(len + width * .5f, width, 1f);
+        body.transform.up = dir;
     }
 
     public void Finish(bool hit)
@@ -1183,7 +1146,9 @@ public class AttackProjectile : MonoBehaviour
         Flying.Remove(this);
         target = null;
         lastSpecial = null;
-        if (hit) WeaponFx.Impact(ship, transform.position, .5f);
+        if (hit)
+            AttackPool.Sprite().Play(AttackSprite.Source.AttackBurst, ship, transform.position, Vector3.one * .5f, 0f,
+                ShipFxArt.BurstTicks, false, 0f, null, Vector3.zero, 71);
         gameObject.SetActive(false);
     }
 }

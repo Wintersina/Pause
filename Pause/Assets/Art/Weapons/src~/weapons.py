@@ -18,7 +18,7 @@ edit to that table plus a re-render.
                                        with resvg, pack ../../Resources/Weapons/<Ship>.png
     python3 weapons.py --preview DIR   also write one preview strip per ship
     python3 weapons.py --only A,B      just those ships (by key)
-    python3 weapons.py --fx-only       just the attack / power / meter atlases (fx.py)
+    python3 weapons.py --fx-only       just the secret-meter atlas (fx.py)
 
 Atlas layout (128px cells, 16 x 3, row 0 at the top):
     row 0  charge 0..15            (charge = i / 15)
@@ -1557,7 +1557,7 @@ if __name__ == "__main__":
         build(prev, only)
     if not only:
         build_explosions(prev)
-        # attack shapes, secret-power effects and secret-meter badges
-        # (fx.py: AttackFx.png, SecretMeter.png)
+        # secret-meter badges
+        # (fx.py: SecretMeter.png)
         import fx
         fx.build(prev)

@@ -1139,6 +1139,20 @@ public static class PowerPreview
             plan.parts = new[] { new Part("attack", 0, 8, LoopCycles, ShipFxArt.LoopTicks), new Part("attack_" + burstStrip, 8, 8, 1, ShipFxArt.BurstTicks) };
         switch (ship)
         {
+            case 2:   // chain lightning: the spark flies, then the chain arcs and zaps
+                plan.parts = new[]
+                {
+                    new Part("attack_shot", 0, 8, 1, ShipFxArt.LoopTicks),
+                    new Part("attack", 0, 8, 1, ShipFxArt.LoopTicks), new Part("attack", 8, 8, 1, ShipFxArt.BurstTicks),
+                };
+                break;
+            case 8:   // sky javelins: the rocket climbs and opens, then the javelin strikes
+                plan.parts = new[]
+                {
+                    new Part("attack_shot", 0, 8, 1, ShipFxArt.LoopTicks), new Part("attack_shot", 8, 8, 1, ShipFxArt.BurstTicks),
+                    new Part("attack", 0, 8, 1, ShipFxArt.LoopTicks), new Part("attack", 8, 8, 1, ShipFxArt.BurstTicks),
+                };
+                break;
             case 5:   // ion laser: a thin horizontal beam, so zoom well past the usual cap to read as a beam
                 plan.maxZoom = 8f;
                 break;
@@ -1170,8 +1184,8 @@ public static class PowerPreview
     static Plan PlanFor(int ship, bool secretPower)
     {
         if (!secretPower) return AttackPlan(ship);
-        // the strip the power really draws in flight (Turtle's shell dome, Dove's feathers...), else the ship's "power"
-        string suffix = ShipFxArt.PowerStripName(ShipLoadoutTable.For(ship).power) ?? "power";
+        // the strip the power really draws in flight (Turtle's shell dome, Dove's feathers...)
+        string suffix = ShipFxArt.PowerStripName(ShipLoadoutTable.For(ship).power);
         return new Plan { parts = Default(suffix, ShipFxArt.PowerLoopTicks, ShipFxArt.PowerBurstTicks), maxZoom = 3f };
     }
 
@@ -1216,11 +1230,10 @@ public static class PowerPreview
 
     static Sprite Cell(int ship, bool secretPower, string suffix, int cell)
     {
-        if (suffix == "attack" || suffix == "power")
+        if (suffix == "attack")
         {
             bool burst = cell >= ShipFxArt.LoopFrames;
             int i = burst ? cell - ShipFxArt.LoopFrames : cell;
-            if (secretPower) return burst ? ShipFxArt.PowerBurst(ship, i) : ShipFxArt.PowerLoop(ship, i);
             return burst ? ShipFxArt.AttackBurst(ship, i) : ShipFxArt.AttackLoop(ship, i);
         }
         return ShipFxArt.Extra(ship, suffix, cell);

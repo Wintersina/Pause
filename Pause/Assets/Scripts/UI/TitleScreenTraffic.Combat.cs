@@ -43,7 +43,6 @@ public partial class TitleScreenTraffic
     public const float UltWindup = .32f;
     public const float UltSlow = .55f;
     public const int BoltPool = 24, FxPool = 14, PiecePool = 24, ParticlePool = 72, MaxWrecks = 3;
-    public const int BoltSegments = 4;
     public const float LogoFxMax = .6f;
     public const int PlungeSortBase = -1;      // hull at +3: over the logo (0), under the front band (10)
     public const int LogoFxSort = 6;
@@ -86,7 +85,7 @@ public partial class TitleScreenTraffic
         public ShipLoadout l;
         public float t, next;
         public int fired, hops;
-        public Vector2 point;
+        public Vector2 point, vel;
         public Fx held, disc;
         public float angle;
         public readonly Flyer[] hit = new Flyer[8];
@@ -100,22 +99,17 @@ public partial class TitleScreenTraffic
     class Bolt
     {
         public SpriteRenderer body;
-        public readonly SpriteRenderer[] outer = new SpriteRenderer[BoltSegments];
-        public readonly SpriteRenderer[] core = new SpriteRenderer[BoltSegments];
-        public readonly Vector2[] hist = new Vector2[BoltSegments + 1];
-        public int histCount;
         public bool on;
         public BoltKind kind;
         public int ship;
         public Depth layer;
         public Flyer owner, target;
         public Vector2 pos, dir;
-        public float speed, radius, size, age, travelled, range, burst, spinAngle, stopY, scale;
+        public float speed, radius, size, age, travelled, range, burst, stopY, scale;
         public int hops, maxHops;
-        public WeaponStyle style;
     }
 
-    enum FxSource { Loop, Burst, Shot }
+    enum FxSource { Loop, Burst }
 
     class Fx
     {
@@ -228,13 +222,7 @@ public partial class TitleScreenTraffic
         for (int i = 0; i < MaxUlts; i++) ults[i] = new Ult();
         for (int i = 0; i < BoltPool; i++)
         {
-            var b = new Bolt { body = Renderer("~bolt", null) };
-            for (int s = 0; s < BoltSegments; s++)
-            {
-                b.outer[s] = Renderer("~bolt", WeaponFx.Solid);
-                b.core[s] = Renderer("~bolt", WeaponFx.Solid);
-            }
-            bolts[i] = b;
+            bolts[i] = new Bolt { body = Renderer("~bolt", null) };
         }
         for (int i = 0; i < FxPool; i++) fxs[i] = new Fx { sr = Renderer("~ultfx", null) };
         for (int i = 0; i < PiecePool; i++) pieces[i] = new Piece { sr = Renderer("~wreck", null) };
@@ -496,10 +484,12 @@ public partial class TitleScreenTraffic
                                   ShipFxArt.LoopTicks, true, l.duration * .8f, f, ReferenceHull * s * .5f + range * .5f, f.layer, 1);
                 }
                 break;
-            case ShipAttack.OrbitDisc:
-                u.held = Play(FxSource.Loop, f.id, f.pos, Vector3.one * (l.width * 2f + .5f) * s, 0f, ShipFxArt.LoopTicks,
-                              true, 3f, f, 0f, f.layer, 0);
-                u.disc = Play(FxSource.Shot, f.id, f.pos, Vector3.one * .55f * s, 0f, ShotLoop, true, 3f, null, 0f, f.layer, 3);
+            case ShipAttack.ThrownDisc:
+                // the shell is thrown from the nose and ricochets off the screen edges (Step)
+                u.point = nose;
+                u.vel = Dir(f.heading) * l.speed * .5f * s;
+                u.held = Play(FxSource.Loop, f.id, u.point, Vector3.one * (l.range * 2f / .55f) * s, 0f, ShipFxArt.LoopTicks,
+                              true, 3f, null, 0f, f.layer, 3);
                 break;
             case ShipAttack.ChainLightning:
                 u.point = nose;
@@ -507,8 +497,6 @@ public partial class TitleScreenTraffic
                 break;
         }
     }
-
-    static readonly int[] ShotLoop = { 2, 2, 2, 2 };
 
     void Done(Ult u)
     {
@@ -691,14 +679,14 @@ public partial class TitleScreenTraffic
                 }
                 break;
 
-            case ShipAttack.OrbitDisc:
+            case ShipAttack.ThrownDisc:
                 {
-                    u.angle += l.speed * dt;
-                    float a = u.angle * Mathf.Deg2Rad;
-                    Vector2 disc = f.pos + new Vector2(Mathf.Cos(a), Mathf.Sin(a)) * l.width * s;
-                    if (u.disc != null && u.disc.on) u.disc.sr.transform.position = new Vector3(disc.x, disc.y, 0f);
-                    KillInRadius(f, disc, l.range * s);
-                    if (u.held == null || !u.held.on) Done(u);
+                    u.point += u.vel * dt;
+                    if (u.point.x < view.xMin || u.point.x > view.xMax) { u.vel.x = -u.vel.x; u.point.x = Mathf.Clamp(u.point.x, view.xMin, view.xMax); u.hops++; }
+                    if (u.point.y < view.yMin || u.point.y > view.yMax) { u.vel.y = -u.vel.y; u.point.y = Mathf.Clamp(u.point.y, view.yMin, view.yMax); u.hops++; }
+                    if (u.held != null && u.held.on) u.held.sr.transform.position = new Vector3(u.point.x, u.point.y, 0f);
+                    KillInRadius(f, u.point, l.range * s);
+                    if (u.held == null || !u.held.on || u.hops >= l.maxHits) { if (u.held != null) StopFx(u.held); Done(u); }
                 }
                 break;
 
@@ -939,31 +927,20 @@ public partial class TitleScreenTraffic
         b.radius = radius;
         b.size = size;
         b.scale = by.scale;
-        b.age = b.travelled = b.spinAngle = 0f;
+        b.age = b.travelled = 0f;
         b.hops = 0;
         b.maxHops = 1;
         b.range = by.id > 0 ? ShipLoadoutTable.For(by.id).range * .7f * by.scale : 3f;
         b.burst = ShipLoadoutTable.For(by.id).width * .7f * by.scale;
         b.stopY = float.MinValue;
-        b.style = WeaponStyleTable.For(by.id);
-        for (int h = 0; h < b.hist.Length; h++) b.hist[h] = at;
-        b.histCount = 1;
         var spec = Depths[(int)by.layer];
         var mat = LayerMaterial(by.layer);
         b.body.sortingOrder = spec.fxSort + 2;
         b.body.color = spec.fxTint;
         if (mat != null) b.body.sharedMaterial = mat;
-        for (int s = 0; s < BoltSegments; s++)
-        {
-            b.outer[s].sortingOrder = spec.fxSort + 1;
-            b.core[s].sortingOrder = spec.fxSort + 1;
-            b.outer[s].color = b.style.main * spec.fxTint;
-            b.core[s].color = b.style.energy * spec.fxTint;
-            if (mat != null) { b.outer[s].sharedMaterial = mat; b.core[s].sharedMaterial = mat; }
-        }
-        b.body.sprite = WeaponArt.Shot(b.ship, WeaponArt.ShotLoopFrames);   // launch smear
+        b.body.sprite = ShipFxArt.AttackLoop(b.ship, 0);
         b.body.enabled = b.body.sprite != null;
-        DrawBolt(b, 0f);
+        DrawBolt(b);
         return b;
     }
 
@@ -1000,10 +977,6 @@ public partial class TitleScreenTraffic
                     {
                         Vector2 land = new Vector2(to.x, b.stopY);
                         Play(FxSource.Burst, b.ship, land, Vector3.one * 1.1f * b.scale, 0f, ShipFxArt.BurstTicks, false, 0f, null, 0f, b.layer, 3);
-                        float top = view.yMax;
-                        Play(FxSource.Loop, b.ship, new Vector2(to.x, (b.stopY + top) * .5f),
-                             new Vector3(b.radius * 2f * 1.4f, Mathf.Max(1f, top - b.stopY), 1f), 0f, ShipFxArt.BurstTicks, false, 0f,
-                             null, 0f, b.layer, 1);
                         FinishBolt(b, false);
                         continue;
                     }
@@ -1016,7 +989,7 @@ public partial class TitleScreenTraffic
                     break;
             }
             if (!Overlaps(view, to, 1f) || b.age > 4f) { FinishBolt(b, false); continue; }
-            DrawBolt(b, dt);
+            DrawBolt(b);
         }
     }
 
@@ -1037,48 +1010,21 @@ public partial class TitleScreenTraffic
     void FinishBolt(Bolt b, bool hit)
     {
         if (hit)
-        {
-            var spec = Depths[(int)b.layer];
-            PlayFx(FlipbookFx.Mode.WeaponImpact, b.pos, .5f * b.scale, b.ship, spec.fxTint, spec.fxSort + 4);
-        }
+            Play(FxSource.Burst, b.ship, b.pos, Vector3.one * .5f * b.scale, 0f, ShipFxArt.BurstTicks, false, 0f, null, 0f, b.layer, 4);
         b.on = false;
         b.owner = b.target = null;
         b.body.enabled = false;
-        for (int s = 0; s < BoltSegments; s++) { b.outer[s].enabled = false; b.core[s].enabled = false; }
     }
 
-    void DrawBolt(Bolt b, float dt)
+    // The shot is its ship's own attack strip (cells 0-7: the body with its light tail, drawn pointing up).
+    void DrawBolt(Bolt b)
     {
-        int frame = b.age < .07f ? WeaponArt.ShotLoopFrames : WeaponArt.FrameAt(ShotLoop, b.age, true);
-        var sprite = WeaponArt.Shot(b.ship, frame);
+        var sprite = ShipFxArt.AttackLoop(b.ship, Mathf.FloorToInt(b.age * 24f));
         if (sprite != null && b.body.sprite != sprite) b.body.sprite = sprite;
         var t = b.body.transform;
         t.position = new Vector3(b.pos.x, b.pos.y, 0f);
         t.localScale = new Vector3(b.size, b.size, 1f);
-        if (b.style.shotSpin != 0f)
-        {
-            b.spinAngle += b.style.shotSpin * dt;
-            t.rotation = Quaternion.Euler(0f, 0f, b.spinAngle);
-        }
-        else t.rotation = Quaternion.Euler(0f, 0f, Mathf.Atan2(b.dir.y, b.dir.x) * Mathf.Rad2Deg - 90f);
-
-        var h = b.hist;
-        h[0] = b.pos;
-        float spacing = .1f * b.scale;
-        if ((h[0] - h[1]).sqrMagnitude >= spacing * spacing || b.histCount == 1)
-        {
-            for (int i = h.Length - 1; i > 0; i--) h[i] = h[i - 1];
-            if (b.histCount < h.Length) b.histCount++;
-        }
-        float w = Mathf.Clamp(b.size * .22f, .04f, .14f);
-        for (int i = 0; i < BoltSegments; i++)
-        {
-            bool on = i + 1 < b.histCount;
-            float taper = 1f - i / (float)BoltSegments;
-            Vector3 a = h[i], c = h[i + 1];
-            Segment(b.outer[i], on, a, c, w * taper, b.outer[i].color.a);
-            Segment(b.core[i], on && i < 2, a, c, w * taper * .45f, b.core[i].color.a);
-        }
+        t.rotation = Quaternion.Euler(0f, 0f, Mathf.Atan2(b.dir.y, b.dir.x) * Mathf.Rad2Deg - 90f);
     }
 
     // ----------------------------------------------------- attack drawings
@@ -1122,8 +1068,7 @@ public partial class TitleScreenTraffic
         switch (e.src)
         {
             case FxSource.Loop: s = ShipFxArt.AttackLoop(e.ship, e.frame); break;
-            case FxSource.Burst: s = ShipFxArt.AttackBurst(e.ship, e.frame); break;
-            default: s = WeaponArt.Shot(e.ship, e.frame); break;
+            default: s = ShipFxArt.AttackBurst(e.ship, e.frame); break;
         }
         if (s != null && e.sr.sprite != s) e.sr.sprite = s;
     }

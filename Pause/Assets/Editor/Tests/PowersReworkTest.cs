@@ -826,20 +826,20 @@ public static class PowersReworkTest
 
     static void PowersV2ArtResolves()
     {
-        bool allStrips = true, allFrames = true, sized = true;
+        bool allStrips = true, allFrames = true, sized = true, allGone = true;
         string bad = "";
         for (int id = 1; id <= 15; id++)
         {
+            // every power draws only its own strip (ShipFxArt.PowerStripName); no ship has a generic _power.png any more
+            allGone &= ShipFxArt.Strip(id, true) == null;
             foreach (bool power in new[] { true, false })
             {
-                // a power drawn only by its own strip has no generic _power.png (ShipFxArt.DrawsGenericPowerStrip)
-                if (power && !ShipFxArt.DrawsGenericPowerStrip(ShipLoadoutTable.For(id).power)) continue;
-                var strip = ShipFxArt.Strip(id, power);
+                var strip = power ? ShipFxArt.Strip(id, ShipFxArt.PowerStripName(ShipLoadoutTable.For(id).power)) : ShipFxArt.Strip(id, false);
                 if (strip == null || strip.Length != 16) { allStrips = false; bad += ShipId.KeyOf(id) + (power ? "_power " : "_attack "); continue; }
                 for (int i = 0; i < 8; i++)
                 {
-                    var loop = power ? ShipFxArt.PowerLoop(id, i) : ShipFxArt.AttackLoop(id, i);
-                    var burst = power ? ShipFxArt.PowerBurst(id, i) : ShipFxArt.AttackBurst(id, i);
+                    var loop = power ? strip[i] : ShipFxArt.AttackLoop(id, i);
+                    var burst = power ? strip[8 + i] : ShipFxArt.AttackBurst(id, i);
                     if (loop != strip[i] || burst != strip[8 + i]) allFrames = false;
                     // ppu = cell size: one world unit across at scale 1, so call-site scales are world sizes
                     var b = loop.bounds.size;
@@ -851,12 +851,18 @@ public static class PowersReworkTest
         }
         Check("every strip a ship still draws loads as 16 cells" + (bad.Length > 0 ? " (missing: " + bad + ")" : ""), allStrips);
         Check("every ship's 8 loop + 8 burst frames resolve for power and attack", allFrames);
+        Check("the old procedural generic <Ship>_power.png strips stay deleted", allGone);
+        // the Pillow generator of the old procedural strips, its output and the legacy atlas are gone for good
+        string art = System.IO.Path.Combine(Application.dataPath, "Art");
+        Check("the procedural powers-v2 generator + strips and the AttackFx atlas stay deleted",
+              !System.IO.Directory.Exists(System.IO.Path.Combine(art, "Weapons~", "powers-v2")) &&
+              !System.IO.File.Exists(System.IO.Path.Combine(art, "Resources", "Weapons", "AttackFx.png")));
         Check("every frame is one world unit across at scale 1", sized);
         Check("loops and bursts have 8 hold entries at about 24 fps",
               ShipFxArt.LoopTicks.Length == 8 && ShipFxArt.BurstTicks.Length == 8 &&
               ShipFxArt.PowerLoopTicks.Length == 8 && ShipFxArt.PowerBurstTicks.Length == 8 &&
               WeaponArt.Seconds(ShipFxArt.BurstTicks) < .5f && WeaponArt.Seconds(ShipFxArt.PowerBurstTicks) < .5f);
-        Check("an out-of-range ship still draws (starter fallback)", ShipFxArt.PowerBurst(0, 3) != null && ShipFxArt.AttackLoop(99, 20) != null);
+        Check("an out-of-range ship still draws (starter fallback)", ShipFxArt.AttackBurst(0, 3) != null && ShipFxArt.AttackLoop(99, 20) != null);
 
         // call-site world sizes stay sane: the largest scale used is EMP's 6 units
         float[] sizes = { 6f, 3.2f, 2.4f, 1.6f, 2f, 1.1f };
@@ -870,7 +876,7 @@ public static class PowersReworkTest
         FreshScene();
         var jade = Ship(6);
         var s = jade.Secret;
-        jade.GetComponent<SpriteRenderer>().sprite = ShipFxArt.PowerLoop(6, 0);   // the test hull has no art of its own
+        jade.GetComponent<SpriteRenderer>().sprite = ShipFxArt.AttackLoop(6, 0);   // the test hull has no art of its own
         s.SetMeter(SecretPowerController.Full);
         s.Fire();
         for (int i = 0; i < 6; i++)

@@ -31,7 +31,7 @@ public enum ShipAttack
     AbductHurl,     // a beam lifts the nearest enemy, then hurls it at the densest group
     RailSlug,       // a piercing slug that hits everything in a narrow line
     GaleWings,      // a feathered gust shoves everything up and outward and turns hostile shots back; collisions hurt
-    OrbitDisc,      // a disc that orbits the ship and smashes what it touches
+    ThrownDisc,      // a thrown disc that ricochets off enemies and the screen walls, then flies out
     Nuke,           // premium: a warhead climbs from the nose, blinks, detonates; a thin shockwave kills everything it reaches
     IonLaser,       // top tier (cinematic): a thin laser leaves the nose and sweeps the screen, damaging everything it crosses
     FrostNova,      // top tier (cinematic): a frost ring grows over the screen, freezing all it reaches; frozen things shatter
@@ -90,8 +90,8 @@ public struct ShipLoadout
     // Attack tuning. Meaning depends on the attack (see ShipAttackRunner):
     // shots -- projectiles / javelins / marks / mines / waves / stars; maxHits --
     // chain hops, bodies a hurled enemy pierces; duration -- held cones and the
-    // orbit, an eye's gaze, the gap between heat waves; range -- reach in world
-    // units; width -- lane half-width / cone half-angle / orbit radius / a heat
+    // thrown disc's flight, an eye's gaze, the gap between heat waves; range -- reach in world
+    // units; width -- lane half-width / cone half-angle / a heat
     // wave's thickness / a gust's half-angle; speed -- projectile speed (world
     // units per second), a wave's climb, a star's speed.
     public int shots;
@@ -207,10 +207,10 @@ public static class ShipLoadoutTable
             PowerTrigger.HullDamaged, 1, 0f,
             width: 60f, range: 6f),
         // 15 Turtle (3600)
-        Row(15, ShipAttack.OrbitDisc, "SHELL DISC", "A disc orbits you, smashing hazards.",
+        Row(15, ShipAttack.ThrownDisc, "SHELL DISC", "A shell is thrown and ricochets off enemies and walls.",
             SecretPower.HardShell, "HARD SHELL", "A shell shows on the hull for up to 8 s and shatters on the next hit.",
             PowerTrigger.HazardInLane, 1, 3.4f,
-            duration: 5f, width: 1.05f, range: .42f, speed: 320f),
+            duration: 4f, range: .42f, speed: 9f, maxHits: 8),
         // 16 Paragon (premium, real-money IAP: PremiumShips). Its signature extras (timed mini-warheads
         // and a shield, both on timers) are PremiumShips tiers; this row is its ultimate and its timed
         // shield power. range: the nuke's flight height (share of the screen); duration: its fuse.

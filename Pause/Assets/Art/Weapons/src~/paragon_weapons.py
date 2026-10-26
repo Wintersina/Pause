@@ -13,8 +13,6 @@ Writes
   Resources/Weapons/Paragon.png       2048 x 384, 128 px cells, the layout in
                                       WeaponArt.cs (charge / ready / shot /
                                       impact / muzzle / release / trail)
-  Resources/Weapons/AttackFx.png      row 16 (index 15) appended or replaced:
-                                      attack loop+burst, power loop+burst
   Resources/Weapons/SecretMeter.png   row 16 appended or replaced (64 px cells)
 Run it any time; it is idempotent.
 """
@@ -224,52 +222,6 @@ def build_weapon_atlas():
 # ------------------------------------------------- shared fx / meter rows --
 
 
-def reticle(i):
-    img, n = canvas()
-    d = ImageDraw.Draw(img)
-    r = 46 - i * 2
-    for k in range(4):
-        a = i * .25 + k * math.pi / 2
-        d.arc(P([(64 - r, 64 - r), (64 + r, 64 + r)]), math.degrees(a) - 24, math.degrees(a) + 24,
-              fill=CYAN, width=4 * S)
-    poly(d, star(64, 64, 8, 3, 4), BONE, INK, 1)
-    return done(img, n)
-
-
-def burst(i):
-    img, n = canvas()
-    d = ImageDraw.Draw(img)
-    r = 18 + i * 8
-    poly(d, star(64, 64, r, r * .45, 8, i * .2), CYAN if i < 3 else BLUE, INK, 2)
-    if i < 3:
-        poly(d, star(64, 64, r * .55, r * .25, 8, i * .2), BONE, BONE, 1)
-    return done(img, n)
-
-
-def shield_loop(i):
-    img, n = canvas()
-    d = ImageDraw.Draw(img)
-    r = 44
-    hexa = [(64 + math.cos(k * math.pi / 3 + i * .08) * r, 64 + math.sin(k * math.pi / 3 + i * .08) * r) for k in range(6)]
-    d.polygon(P(hexa), fill=(46, 155, 230, 46))
-    d.line(P(hexa + [hexa[0]]), fill=INK, width=6 * S, joint="curve")
-    d.line(P(hexa + [hexa[0]]), fill=CYAN, width=3 * S, joint="curve")
-    k = (i % 4) * 1
-    a, b = hexa[k], hexa[(k + 1) % 6]
-    d.line(P([a, b]), fill=BONE, width=3 * S)
-    return done(img, n)
-
-
-def shield_pop(i):
-    img, n = canvas()
-    d = ImageDraw.Draw(img)
-    r = 28 + i * 10
-    hexa = [(64 + math.cos(k * math.pi / 3) * r, 64 + math.sin(k * math.pi / 3) * r) for k in range(6)]
-    d.line(P(hexa + [hexa[0]]), fill=INK, width=6 * S, joint="curve")
-    d.line(P(hexa + [hexa[0]]), fill=CYAN if i < 3 else BLUE, width=3 * S, joint="curve")
-    return done(img, n)
-
-
 def write_row(path, cell, cols, rows, frames_by_col):
     im = Image.open(path).convert("RGBA")
     if im.height < rows * cell:
@@ -281,16 +233,6 @@ def write_row(path, cell, cols, rows, frames_by_col):
     for col, f in frames_by_col.items():
         im.alpha_composite(f, (col * cell, ROW * cell))
     im.save(path, optimize=True)
-
-
-def build_attackfx():
-    frames = {}
-    for i in range(4):
-        frames[i] = reticle(i)
-        frames[4 + i] = burst(i)
-        frames[8 + i] = shield_loop(i)
-        frames[12 + i] = shield_pop(i)
-    write_row(os.path.join(OUT, "AttackFx.png"), 128, 16, 16, frames)
 
 
 def meter_cell(fill_steps, ready=False, flash=False, icon=False, pulse=False):
@@ -329,6 +271,5 @@ def build_meter():
 
 if __name__ == "__main__":
     build_weapon_atlas()
-    build_attackfx()
     build_meter()
-    print("wrote Paragon.png, AttackFx row 16, SecretMeter row 16")
+    print("wrote Paragon.png, SecretMeter row 16")

@@ -115,7 +115,6 @@ public class SecretPowerController : MonoBehaviour
     const float ShellScale = 1.08f, ShellAlpha = .85f;
     public const string BubbleDomeName = "~BubbleDome";
     public static readonly Color BubbleTint = new Color(.45f, .8f, 1f, .55f);
-    public static readonly Color DecoyTint = new Color(1f, .82f, .35f, 1f);
 
     // Phase Cloak: hazards pass through the ghosted hull (collisionDetection).
     public static bool Ghosted { get { var c = Instance; return c != null && c.ghostLeft > 0f; } }
@@ -331,7 +330,7 @@ public class SecretPowerController : MonoBehaviour
                     // the rail goes off right now, on top of the usual countdown
                     var runner = GetComponent<ShipAttackRunner>();
                     if (runner != null && runner.Fire()) UltimateShotSound.Play(ship);
-                    Burst(at + Vector3.up * .5f, .9f, transform);
+                    PowerStrip(ShipFxArt.PowerStripName(SecretPower.CapacitorDump), 8, false, 1.2f, 0f, transform, 73, StripAlpha);
                 }
                 break;
 
@@ -365,8 +364,7 @@ public class SecretPowerController : MonoBehaviour
                     decoyLeft = decoySeconds;
                     ShipDecoy.Place(spot);
                     // the flare is thrown from the hull and settles at its spot
-                    decoyFx = Loop(at, .6f, decoySeconds, null, 66);
-                    decoyFx.SetColor(DecoyTint);
+                    decoyFx = PowerStripAt(ship, FlareStrip, at, 0, true, .9f, decoySeconds, null, 66, StripAlpha);
                     decoyFx.Travel(spot, .3f, .5f);
                 }
                 break;
@@ -392,7 +390,7 @@ public class SecretPowerController : MonoBehaviour
                     holeAt = new Vector3(Mathf.Clamp(at.x, view.xMin, view.xMax), Mathf.Min(at.y + 2.6f, view.yMax), 0f);
                     holeLeft = holeSeconds;
                     // a small seed leaves the hull and opens into the hole where it hangs
-                    holeFx = Loop(at, 1.7f, holeSeconds, null, 67);
+                    holeFx = PowerStripAt(ship, ShipFxArt.PowerStripName(SecretPower.BlackHole), at, 0, true, HoleScale, holeSeconds, null, 67, StripAlpha);
                     holeFx.Travel(holeAt, .35f, .25f);
                 }
                 break;
@@ -409,7 +407,7 @@ public class SecretPowerController : MonoBehaviour
                 // a feather burst round the hull, a second one rising off it, and the word
                 PowerStrip(ShipFxArt.PowerStripName(SecretPower.Mending), 8, false, 1.5f, 0f, transform, 73, StripAlpha);
                 // a few feathers lift off the hull and drift up
-                Burst(at, .9f, null).Travel(at + Vector3.up * 1.1f, .5f, 1f);
+                PowerStripAt(ship, FeatherStrip, at, 0, false, 1.2f, 0f, null, 73, StripAlpha).Travel(at + Vector3.up * 1.1f, .5f, 1f);
                 var hud = ScoreHud.Current;
                 if (hud != null) hud.ShowWord(collisionDetection.HealWord, at + Vector3.up * collisionDetection.PickupWordLift, PickupGlow.HealGreen, 28);
                 break;
@@ -469,31 +467,10 @@ public class SecretPowerController : MonoBehaviour
         ghostHull.color = c;
     }
 
-    AttackSprite Burst(Vector3 at, float size, Transform follow)
-    {
-        return AttackPool.Sprite().Play(AttackSprite.Source.PowerBurst, ship, at, Vector3.one * size, 0f,
-            ShipFxArt.PowerBurstTicks, false, 0f, follow, Vector3.zero, 73);
-    }
-
-    // The tint of a ship's thin rims: its weapon's energy colour, fainter and a touch lighter.
-    public static Color RimTint(int shipId)
-    {
-        var c = WeaponStyleTable.For(shipId).energy;
-        c.a = .85f;
-        return c;
-    }
-
-    // A thin outline ring (one-shot: opens out and fades; loop: held and breathing).
-    // The defences that sit on the hull use it so the ship stays visible.
-    AttackSprite Rim(Vector3 at, float size, bool loop, float life, Transform follow, int order)
-    {
-        var fx = AttackPool.Sprite().Play(AttackSprite.Source.Rim, ship, at, Vector3.one * size, 0f,
-            loop ? ShipFxArt.PowerLoopTicks : ShipFxArt.PowerBurstTicks, loop, life, follow, Vector3.zero, order);
-        fx.SetColor(RimTint(ship));
-        return fx;
-    }
-
     const float StripAlpha = .85f;
+    // strips a power draws besides its PowerStripName one (Powers2/<Ship>_<name>.png)
+    const string FlareStrip = "flare", StunStrip = "stun", FeatherStrip = "feather";
+    const float HoleScale = 2.2f, DashScale = 1.1f;
     const float TractorAlpha = .6f, TractorScale = .9f;   // the heavy tractor disc: fainter and tighter (x the 4 u pull radius)
 
     // A ship's own hand-drawn power strip (Powers2/<Ship>_<name>.png: cells 0-7 the held loop, 8-15 the burst),
@@ -508,12 +485,6 @@ public class SecretPowerController : MonoBehaviour
         return AttackPool.Sprite().Play(AttackSprite.Source.Extra, shipId, at, Vector3.one * size, 0f,
             loop ? ShipFxArt.PowerLoopTicks : ShipFxArt.PowerBurstTicks, loop, life, follow, Vector3.zero, order)
             .Strip(name, firstCell, loop).Alpha(alpha);
-    }
-
-    AttackSprite Loop(Vector3 at, float size, float life, Transform follow, int order)
-    {
-        return AttackPool.Sprite().Play(AttackSprite.Source.PowerLoop, ship, at, Vector3.one * size, 0f,
-            ShipFxArt.PowerLoopTicks, true, life, follow, Vector3.zero, order);
     }
 
     int KillWithin(Vector3 at, float radius, bool arcs = false)
@@ -571,9 +542,10 @@ public class SecretPowerController : MonoBehaviour
             Lock(t.gameObject);
             if (lockedCount > before)
             {
-                AttackPool.Sprite().Play(AttackSprite.Source.PowerLoop, ship, t.transform.position,
-                    Vector3.one * Mathf.Max(.5f, t.Radius * 1.5f), 0f, ShipFxArt.PowerLoopTicks, true, stunSeconds,
-                    t.transform, Vector3.zero, 67);
+                // the stun halo (VoltViper_stun.png): zaps on, then crackles round the enemy until the stun ends
+                float markSize = Mathf.Max(.9f, t.Radius * 2.4f);
+                PowerStripAt(ship, StunStrip, t.transform.position, 8, false, markSize, 0f, t.transform, 68, StripAlpha);
+                PowerStripAt(ship, StunStrip, t.transform.position, 0, true, markSize, stunSeconds, t.transform, 67, StripAlpha);
                 ArcTo(t.transform.position);
                 ArcCount++;
             }
@@ -591,8 +563,8 @@ public class SecretPowerController : MonoBehaviour
         Vector3 d = to - a;
         float len = Mathf.Max(.2f, d.magnitude);
         float ang = Mathf.Atan2(d.y, d.x) * Mathf.Rad2Deg;
-        AttackPool.Sprite().Play(AttackSprite.Source.PowerLoop, ship, (a + to) * .5f, new Vector3(len, ShipFxArt.BeamThin, 1f),
-            ang, ShipFxArt.PowerLoopTicks, true, .3f, null, Vector3.zero, 70);
+        AttackPool.Sprite().Play(AttackSprite.Source.AttackLoop, ship, (a + to) * .5f, new Vector3(len, ShipFxArt.BeamThin, 1f),
+            ang, ShipFxArt.LoopTicks, true, .3f, null, Vector3.zero, 70);
     }
 
     void ReleaseLocked()
@@ -681,9 +653,9 @@ public class SecretPowerController : MonoBehaviour
         DashOffsetX = dir * dashDistance;
         dashLeft = dashSeconds;
         collisionDetection.BeginCloak(.6f);
-        Burst(at, .8f, null);
+        PowerStripAt(ship, ShipFxArt.PowerStripName(SecretPower.BlinkDash), at, 8, false, DashScale, 0f, null, 73, StripAlpha);   // the vanish
         transform.position = new Vector3(ShipReach.ClampX(at.x + DashOffsetX), at.y, at.z);
-        Burst(transform.position, .7f, transform);
+        PowerStripAt(ship, ShipFxArt.PowerStripName(SecretPower.BlinkDash), transform.position, 0, false, DashScale, 0f, transform, 73, StripAlpha);   // the arrival
     }
 
     // A star dust pickup at a kill, the way the old shower dropped them.
@@ -827,7 +799,12 @@ public class SecretPowerController : MonoBehaviour
         {
             holeLeft -= dt;
             StepHole(dt);
-            if (holeLeft <= 0f) { holeLeft = 0f; ReleaseLocked(); }
+            if (holeLeft <= 0f)
+            {
+                holeLeft = 0f;
+                ReleaseLocked();
+                PowerStripAt(ship, ShipFxArt.PowerStripName(SecretPower.BlackHole), holeAt, 8, false, HoleScale, 0f, null, 73, StripAlpha);   // it collapses
+            }
         }
 
         if (novaLeft > 0f)
