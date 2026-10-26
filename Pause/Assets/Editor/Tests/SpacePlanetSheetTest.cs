@@ -230,37 +230,67 @@ public static class SpacePlanetSheetTest
             }
             Check(file + ": the six world planets are in the giant set the spawner draws from (" + giants.Length + " giants)",
                   reach && giants.Length >= 12);
-            // How often they spawn: the hero pick draws from the weighted pool, and the extras (reference /
-            // neon / halo) that used to take two thirds of the planets are rare, so the world planets dominate.
-            var pool = SpaceDirector.WeightedGiants(giants);
-            var rng = new System.Random(20261026);
-            int n = 40000, worldGiant = 0, worldPlanet = 0;
-            for (int i = 0; i < n; i++)
-            {
-                bool extra = rng.NextDouble() < SpaceDirector.ReferenceChance;
-                extra |= rng.NextDouble() < SpaceDirector.NeonChance;
-                extra |= rng.NextDouble() < SpaceDirector.HaloChance;
-                if (extra) continue;
-                Sprite pick = pool[rng.Next(pool.Length)];
-                if (SpaceDirector.IsWorldPlanet(pick)) { worldGiant++; worldPlanet++; }
-            }
-            float expect = SpaceDirector.WorldPlanetSpawnShare(giants.Length, SpaceDirector.WorldPlanetCells.Length);
-            float poolShare = 0f;
-            foreach (var g in pool) if (SpaceDirector.IsWorldPlanet(g)) poolShare++;
-            poolShare /= pool.Length;
-            Check(file + ": world planets are " + poolShare.ToString("P0") + " of the weighted giant pick (>= 60%)", poolShare >= 0.6f);
-            Check(file + ": world planets are " + (worldPlanet / (float)n).ToString("P0") + " of all planet spawns, expected " +
-                  expect.ToString("P0") + " (was 17%; >= 40%)",
-                  worldPlanet / (float)n >= 0.4f && Mathf.Abs(worldPlanet / (float)n - expect) < 0.02f);
-            Check(file + ": every world planet is picked", worldGiant > 0 && pool.Length > giants.Length);
-            Check(file + ": the opening weights favour the giant (the world planets' set)",
-                  SpaceDirector.OpeningWeights[(int)SpaceDirector.OpeningKind.Giant] >= 0.5f);
+            // Even spawning: every planet cell has the same chance (SpaceDirector.EvenPlanetPool, no favourites).
+            if (file == "anim") CheckEvenSpawns(giants);
             Check(file + ": the six world planets are spheres the BackdropPlanet shader turns", sphere);
             Check(file + ": each world planet's disc is opaque and round", round);
             Check(file + ": no violet or pink in the world planets", clean);
             atlas.Destroy();
             Object.DestroyImmediate(tex);
         }
+    }
+
+    static Sprite[] Cells(string atlasName, string prefix)
+    {
+        var tex = LoadPng(Dir + atlasName + ".png");
+        var atlas = new BackdropAtlas(tex, Json(File.ReadAllText(Dir + atlasName + ".json")));
+        return atlas.Frames(prefix);
+    }
+
+    // Every planet cell (12 giants incl. the six world planets, the reference planet, neon, halo and the far-field
+    // outposts) is drawn with the same chance per spawn, nothing repeats back to back, and the run-start planet is
+    // even per cell too.
+    static void CheckEvenSpawns(Sprite[] giants)
+    {
+        var tex1 = new Texture2D(4, 4);
+        Sprite reference = Sprite.Create(tex1, new UnityEngine.Rect(0, 0, 4, 4), Vector2.one * .5f);
+        reference.name = "reference_planet";
+        Sprite[] neon = Cells("neon_frames", "neon_planet"), halo = Cells("extras", "halo_planet"), outposts = Cells("outposts", "outpost");
+        var near = SpaceDirector.EvenPlanetPool(giants, new[] { reference }, neon, halo, null);
+        var far = SpaceDirector.EvenPlanetPool(giants, new[] { reference }, neon, halo, outposts);
+        Check("the planet pool holds every cell once: " + near.Length + " near (12 giants + 1 reference + " + neon.Length +
+              " neon + " + halo.Length + " halo), " + far.Length + " far (+ " + outposts.Length + " outposts)",
+              near.Length == giants.Length + 1 + neon.Length + halo.Length && far.Length == near.Length + outposts.Length &&
+              new HashSet<Sprite>(far).Count == far.Length);
+        foreach (var pool in new[] { near, far })
+        {
+            var rng = new System.Random(20261026);
+            var counts = new Dictionary<Sprite, int>();
+            int n = 200000, repeats = 0;
+            Sprite last = null;
+            for (int i = 0; i < n; i++)
+            {
+                Sprite pick = SpaceDirector.NoRepeat(pool, pool[rng.Next(pool.Length)], last);
+                if (pick == last) repeats++;
+                last = pick;
+                int c; counts.TryGetValue(pick, out c); counts[pick] = c + 1;
+            }
+            float even = 1f / pool.Length, worst = 0f;
+            foreach (var c in pool) { int k; counts.TryGetValue(c, out k); worst = Mathf.Max(worst, Mathf.Abs(k / (float)n - even)); }
+            Check("pool of " + pool.Length + ": every cell within 15% of 1/N over " + n + " spawns (worst " +
+                  (worst / even).ToString("P1") + " off, six world planets each ~" + even.ToString("P1") + ")", worst < 0.15f * even);
+            Check("pool of " + pool.Length + ": no cell repeats back to back (" + repeats + ")", repeats == 0);
+        }
+        // the opening: kind by cell count, then a cell in the kind: the same chance per cell as a spawn
+        int[] cc = SpaceDirector.OpeningCellCounts;
+        bool counted = cc[1] == giants.Length && cc[2] == 1 && cc[3] == neon.Length && cc[4] == halo.Length;
+        Check("the opening's cell counts match the art (" + cc[1] + " giants, " + cc[2] + " reference, " + cc[3] + " neon, " + cc[4] + " halo)", counted);
+        float w1 = SpaceDirector.OpeningWeights[1] / cc[1];
+        bool evenOpening = true;
+        for (int k = 2; k < cc.Length; k++) evenOpening &= Mathf.Abs(SpaceDirector.OpeningWeights[k] / cc[k] - w1) < 1e-5f;
+        Check("the opening planet is even per cell (" + w1.ToString("P2") + " each; none " + SpaceDirector.OpeningWeights[0].ToString("P0") + ")",
+              evenOpening && Mathf.Abs(SpaceDirector.OpeningWeights[0] + w1 * (cc[1] + cc[2] + cc[3] + cc[4]) - 1f) < 1e-4f);
+        Object.DestroyImmediate(tex1);
     }
 
     // An installed hi-res re-render must be a drop-in for anim.

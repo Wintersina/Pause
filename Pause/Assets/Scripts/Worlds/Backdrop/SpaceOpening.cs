@@ -17,8 +17,21 @@ public partial class SpaceDirector
 {
     public enum OpeningKind { None = 0, Giant = 1, Reference = 2, Neon = 3, Halo = 4 }
 
-    // Weight of each kind, indexed by OpeningKind. The giant (the world planets are most of its set) leads by far.
-    public static readonly float[] OpeningWeights = { 0.14f, 0.52f, 0.06f, 0.16f, 0.12f };
+    // Weight of each kind, indexed by OpeningKind: no planet at all, then each kind in proportion to its number of
+    // cells (12 giants, 1 reference, 4 neon, 3 halo), so with the uniform pick inside a kind every cell is equally
+    // likely, like every spawn (SpaceDirector.EvenPlanetPool). SpacePlanetSheetTest checks the counts against the art.
+    public const float OpeningNoneWeight = 0.14f;
+    public static readonly int[] OpeningCellCounts = { 0, 12, 1, 4, 3 };
+    public static readonly float[] OpeningWeights = EvenOpeningWeights();
+    static float[] EvenOpeningWeights()
+    {
+        int total = 0;
+        foreach (int c in OpeningCellCounts) total += c;
+        var w = new float[OpeningCellCounts.Length];
+        w[0] = OpeningNoneWeight;
+        for (int i = 1; i < w.Length; i++) w[i] = (1f - OpeningNoneWeight) * OpeningCellCounts[i] / total;
+        return w;
+    }
     public const float OpeningScaleMin = 0.8f, OpeningScaleMax = 1.2f;
     public const float OpeningYMin = 0.12f, OpeningYMax = 0.42f;   // share of the half-height the planet starts above the middle
 
@@ -52,7 +65,7 @@ public partial class SpaceDirector
     {
         switch ((OpeningKind)kind)
         {
-            case OpeningKind.Giant: return giantPool;
+            case OpeningKind.Giant: return giant;
             case OpeningKind.Reference: return reference;
             case OpeningKind.Neon: return neon;
             case OpeningKind.Halo: return halo;
@@ -64,7 +77,7 @@ public partial class SpaceDirector
     {
         switch (k)
         {
-            case OpeningKind.Giant: return giantPool;
+            case OpeningKind.Giant: return giant;
             case OpeningKind.Reference: return referencePlanet;
             case OpeningKind.Neon: return neonPlanets;
             case OpeningKind.Halo: return haloPlanets;
@@ -83,9 +96,9 @@ public partial class SpaceDirector
         double roll = r.NextDouble();
         var kind = OpeningOverride >= 0 ? (OpeningKind)OpeningOverride
             : legacy ? OpeningKind.Giant
-            : PickOpening(roll, Has(giantPool), Has(referencePlanet), Has(neonPlanets), Has(haloPlanets));
+            : PickOpening(roll, Has(giant), Has(referencePlanet), Has(neonPlanets), Has(haloPlanets));
         // a forced kind the atlases lack falls back to the giant, then to an empty sky
-        if (kind != OpeningKind.None && !Has(OpeningArt(kind))) kind = Has(giantPool) ? OpeningKind.Giant : OpeningKind.None;
+        if (kind != OpeningKind.None && !Has(OpeningArt(kind))) kind = Has(giant) ? OpeningKind.Giant : OpeningKind.None;
         Opening = kind;
         openingArt = null;
         openingTinted = false;
