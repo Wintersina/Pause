@@ -12,14 +12,14 @@ using UnityEngine;
 //   * it does not count toward the "own every ship" / "every skin" sets, so
 //     the free-to-play progression stays completable without it.
 //
-// TODO(IAP): sell Paragon as a real-money in-app purchase on both stores,
-// product id ParagonProductId (placeholder, create it in App Store Connect
-// and Google Play Console, non-consumable). On a verified purchase or a
-// restore call PremiumShips.Grant(id) -- it writes the same
+// IAP: Paragon is sold for real money on Google Play (ParagonPurchase /
+// PlayBilling, product id ParagonProductId, non-consumable). On a purchase or a
+// restore ParagonPurchase calls PremiumShips.Grant(id) -- it writes the same
 // "boughtship<id>" key the roster always used, so ProgressSnapshot (cloud
-// save), the dock and the spawner pick it up unchanged. The ownership gate
-// is ShipId.IsOwned; the dust-purchase gate is shopingShips.TryPurchase;
-// the dock's "COMING SOON" state is DockPopup / DockBay / SpaceDock.Buy.
+// save), the dock and the spawner pick it up unchanged. The App Store side is
+// still to come; where no store price is available the dock keeps "COMING
+// SOON". The ownership gate is ShipId.IsOwned; the dust-purchase gate is
+// shopingShips.TryPurchase; the dock states are DockPopup / DockBay / SpaceDock.Buy.
 public struct PremiumTier
 {
     public int hearts;          // the hull's own lives at this tier
@@ -34,7 +34,7 @@ public static class PremiumShips
 {
     public const int Paragon = 16;
 
-    // Placeholder store product id (see the TODO(IAP) above).
+    // Store product id (Google Play non-consumable; the App Store id is still to create).
     public const string ParagonProductId = "me.hapticgate.pause.ship_paragon";
 
     // Every skin of a premium ship costs this much star dust (100,000 for the first two).
@@ -74,8 +74,8 @@ public static class PremiumShips
     public const string LeaderboardNotice = "CHEAT SHIP: NOT ON LEADERBOARDS";
     public const string UnrankedRunLabel = "CHEAT SHIP - UNRANKED";
 
-    // The only code path that may mark a premium ship owned: the (future) IAP
-    // flow. Developer mode writes the key itself.
+    // The only code path that may mark a premium ship owned: the IAP
+    // flow (ParagonPurchase). Developer mode writes the key itself.
     public static void Grant(int id)
     {
         if (!IsPremium(id)) return;

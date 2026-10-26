@@ -120,9 +120,11 @@ public enum PlayPurchaseState { Unspecified = 0, Purchased = 1, Pending = 2 }
 
 // One owned purchase, reduced to what the game reads. orderId and
 // developerPayload are deliberately absent: the reward has neither.
+// `acknowledged` only matters to non-consumables (Paragon).
 public struct PlayPurchase
 {
     public string productId;
     public string token;
     public PlayPurchaseState state;
+    public bool acknowledged;
 }
