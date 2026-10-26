@@ -210,7 +210,7 @@ public static class SpacePlanetSheetTest
                 reach &= s != null && names.Contains(cell);
                 if (s == null) continue;
                 sphere &= SpaceDirector.IsSphere(s) && SpaceDirector.IsWorldPlanet(s);
-                Rect r = s.textureRect;
+                UnityEngine.Rect r = s.textureRect;
                 int x0 = (int)r.x, y0 = (int)r.y, w = (int)r.width, h = (int)r.height;
                 var px = tex.GetPixels32();
                 int inside = 0, opaque = 0, violet = 0;
