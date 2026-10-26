@@ -32,12 +32,12 @@ public static class DockNewsTest
         PlayerPrefs.DeleteKey(ShipId.OwnedKey(PremiumShips.Paragon));
         ParagonPurchase.ResetSession();
         SupportPurchase.ResetSession();
-        int paragon = DockNews.IndexOf(DockNews.ParagonId), support = DockNews.IndexOf(DockNews.SupportId);
+        int paragon = DockNews.IndexOf(DockNews.ParagonId), support = DockNews.IndexOf(SupportPurchase.Large.id), small = DockNews.IndexOf(SupportPurchase.Small.id);
         var list = new List<int>();
 
         try
         {
-            Check("both items are in the table", paragon >= 0 && support >= 0 && paragon != support);
+            Check("all items are in the table", paragon >= 0 && support >= 0 && small >= 0 && paragon != support && small != support);
 
             // No store (editor / iOS): nothing purchasable shows.
             DockNews.Fill(list);
@@ -45,11 +45,17 @@ public static class DockNewsTest
 
             int paragonBuys = 0, supportBuys = 0;
             ParagonPurchase.LaunchFlow = () => paragonBuys++;
-            SupportPurchase.LaunchFlow = () => supportBuys++;
+            SupportPurchase.Large.LaunchFlow = () => supportBuys++;
+            int smallBuys = 0;
+            SupportPurchase.Small.LaunchFlow = () => smallBuys++;
             ParagonPurchase.SetPrice("$4.99");
-            SupportPurchase.SetPrice("$10.00");
+            SupportPurchase.Large.SetPrice("$10.00");
             DockNews.Fill(list);
-            Check("store loaded: both show", list.Contains(paragon) && list.Contains(support));
+            Check("a price shows only its own pack", list.Contains(support) && !list.Contains(small));
+            SupportPurchase.Small.SetPrice("$4.00");
+            DockNews.Fill(list);
+            Check("store loaded: all show", list.Contains(paragon) && list.Contains(support) && list.Contains(small));
+            Check("small text carries price and payout", DockNews.Items[small].text().Contains("$4.00") && DockNews.Items[small].text().Contains("+850 STAR DUST"));
             Check("paragon text carries Play's price", DockNews.Items[paragon].text().Contains("$4.99"));
             Check("support text carries price and payout", DockNews.Items[support].text().Contains("$10.00") && DockNews.Items[support].text().Contains("2,500"));
 
@@ -60,16 +66,18 @@ public static class DockNewsTest
             PlayerPrefs.DeleteKey(ShipId.OwnedKey(PremiumShips.Paragon));
 
             // Without a price the line has no price text; no price means no purchase line.
-            SupportPurchase.SetPrice(null);
+            SupportPurchase.Large.SetPrice(null);
             DockNews.Fill(list);
-            Check("no price, no support line", !list.Contains(support));
-            SupportPurchase.SetPrice("$10.00");
+            Check("no price, no support line", !list.Contains(support) && list.Contains(small));
+            SupportPurchase.Large.SetPrice("$10.00");
 
             // Tap routing.
             Check("tapping paragon launches paragon", DockNews.Tap(paragon) && paragonBuys == 1 && supportBuys == 0);
             ParagonPurchase.EndBuy();
             Check("tapping support launches support", DockNews.Tap(support) && supportBuys == 1 && paragonBuys == 1);
-            SupportPurchase.EndBuy();
+            SupportPurchase.Large.EndBuy();
+            Check("tapping the small pack launches only it", DockNews.Tap(small) && smallBuys == 1 && supportBuys == 1);
+            SupportPurchase.Small.EndBuy();
             Check("bad index taps nothing", !DockNews.Tap(-1) && !DockNews.Tap(99));
 
             // Scroll: a long line enters at the right and leaves past the left.
@@ -82,7 +90,7 @@ public static class DockNewsTest
             Check("ends fully off the left", Near(DockNews.Position(d, 500f, view, speed), -500f));
             Check("never overshoots", Near(DockNews.Position(d + 50f, 500f, view, speed), -500f));
             // Seamless: the next item starts at the right edge again.
-            Check("loop restarts at the right edge", Near(DockNews.Position(0f, 120f, view, speed), view));
+            Check("loop restarts at the right edge", Near(DockNews.Position(0f, 400f, view, speed), view));
 
             // Short line: ping-pong between the edges.
             Check("short text sways", !DockNews.Scrolls(100f, view));

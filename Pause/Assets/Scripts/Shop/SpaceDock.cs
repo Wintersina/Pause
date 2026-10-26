@@ -119,12 +119,10 @@ public class SpaceDock : MonoBehaviour
         if (Instance == this) Instance = null;
     }
 
-    // The support button follows Play's price; a payout refreshes the dust read-out.
+    // The support tiles follow Play's prices; a payout refreshes the dust read-out.
     void OnSupportChanged()
     {
-        var go = SceneUtil.FindAny(SupportButton.Name);
-        var button = go != null ? go.GetComponent<SupportButton>() : null;
-        if (button != null) button.Refresh();
+        if (RefreshTiles()) Relayout();
         var news = SceneUtil.FindAny(DockNewsTicker.Name);
         var ticker = news != null ? news.GetComponent<DockNewsTicker>() : null;
         if (ticker != null) ticker.Rebuild();
@@ -276,6 +274,10 @@ public class SpaceDock : MonoBehaviour
             shopingShips.ships[i] = bays[i].ship.gameObject;
         }
 
+        foreach (var pack in SupportPurchase.Packs)
+            tiles.Add(DockSupportTile.Create(rack, pack, font));
+        RefreshTiles();
+
         popup = DockPopup.Create(transform, font, cam);
         popup.onLaunch = Launch;
         popup.onBuy = Buy;
@@ -287,6 +289,28 @@ public class SpaceDock : MonoBehaviour
         FindChrome();
         RefreshStatuses();
         Relayout();
+    }
+
+    // The "support the dev" berths after the ships: one per pack Play has a
+    // price for. Shown tiles take consecutive slots, so with the 16-ship roster
+    // (3 columns, 6 rows) they fill the 2 spare berths of the last row.
+    readonly List<DockSupportTile> tiles = new List<DockSupportTile>();
+    int shownTiles;
+
+    // Shows or hides each tile by its pack's availability and refreshes its
+    // price. True when the number shown changed (the rack must lay out again).
+    bool RefreshTiles()
+    {
+        int n = 0;
+        foreach (var tile in tiles)
+        {
+            bool on = tile.Shown;
+            if (tile.gameObject.activeSelf != on) tile.gameObject.SetActive(on);
+            if (on) { tile.Refresh(); n++; }
+        }
+        bool changed = n != shownTiles;
+        shownTiles = n;
+        return changed;
     }
 
     SpriteRenderer Piece(string name, Sprite sprite, SpriteDrawMode mode, int order)
@@ -305,7 +329,7 @@ public class SpaceDock : MonoBehaviour
     {
         header.Clear();
         footer.Clear();
-        foreach (string name in new[] { "starDustText", "~DockInstruction", SupportButton.Name })
+        foreach (string name in new[] { "starDustText", "~DockInstruction" })
         {
             var go = SceneUtil.FindAny(name);
             if (go != null && go.transform is RectTransform) header.Add((RectTransform)go.transform);
@@ -331,12 +355,16 @@ public class SpaceDock : MonoBehaviour
         float halfH = cam.orthographicSize;
         float halfW = halfH * cam.aspect;
         Vector3 camPos = cam.transform.position;
-        int count = shopingShips.shipTotal - 1;
+        RefreshTiles();
+        int count = shopingShips.shipTotal - 1 + shownTiles;
         layout = DockLayout.For(count, halfW);
         rack.localScale = new Vector3(layout.scale, layout.scale, 1f);
 
         for (int i = 1; i < bays.Length; i++)
             if (bays[i] != null) bays[i].transform.localPosition = layout.BayCenter(SlotOf(i));
+        int tileSlot = shopingShips.shipTotal - 1;
+        foreach (var tile in tiles)
+            if (tile.gameObject.activeSelf) tile.transform.localPosition = layout.BayCenter(tileSlot++);
 
         float w = layout.Width, h = layout.Height;
         backplate.size = new Vector2(w, h);
@@ -789,6 +817,8 @@ public class SpaceDock : MonoBehaviour
     {
         for (int i = 1; i < bays.Length; i++)
             if (bays[i] != null && bays[i].Contains(world)) { Select(i); return; }
+        foreach (var tile in tiles)
+            if (tile.gameObject.activeSelf && tile.Contains(world)) { tile.Tap(); return; }
         Deselect();
     }
 
@@ -822,7 +852,6 @@ public class SpaceDock : MonoBehaviour
             UiScaleFloor.Configure(scaler, new Vector2(720, 960), FooterH + FooterTapPad, UiScaleFloor.SceneTextUnits);
         }
         if (canvas == null) return;
-        SupportButton.Build(canvas.transform);
         DockNewsTicker.Build(canvas.transform);
         PlaceFooter("BackButton", canvas.transform, -1);
         PlaceFooter("PlayButton", canvas.transform, 1);
@@ -858,7 +887,7 @@ public class SpaceDock : MonoBehaviour
 
     // Authored header / footer positions (canvas units, reference 720x960),
     // measured from the safe area's edges.
-    const float DustY = -27f, InstructionY = -60f, SupportY = -102f;
+    const float DustY = -27f, InstructionY = -60f;
     // The news line sits just above the footer buttons' tap pads.
     const float NewsY = FooterY + FooterH + FooterTapPad + 2f;
     const float FooterY = 24f, FooterW = 260f, FooterH = 64f, FooterGap = 40f, FooterSide = 20f;
@@ -895,7 +924,6 @@ public class SpaceDock : MonoBehaviour
     {
         Place("starDustText", DustY, true);
         Place("~DockInstruction", InstructionY, true);
-        Place(SupportButton.Name, SupportY, true);
         var newsGo = SceneUtil.FindAny(DockNewsTicker.Name);
         var news = newsGo != null ? newsGo.GetComponent<DockNewsTicker>() : null;
         var newsCanvas = newsGo != null ? newsGo.GetComponentInParent<Canvas>() : null;
