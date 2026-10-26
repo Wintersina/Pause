@@ -221,7 +221,7 @@ public class BossProjectile : MonoBehaviour, IHostileShot
         viewBottom = CameraFit.ViewBottom;
         launchedAt = new Vector3(at.x, at.y, 0f);
         transform.position = launchedAt;
-        float size = style == BossShotStyle.Bolt ? BossConfig.BoltWorldSize : BossConfig.ShardWorldSize;
+        float size = BossConfig.ShotWorldSizeFor(def, style);
         transform.localScale = Vector3.one * size;
         transform.rotation = Quaternion.identity;
         Face();

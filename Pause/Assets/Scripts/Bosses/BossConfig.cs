@@ -170,6 +170,13 @@ public static class BossConfig
     public static float ShardWorldSize = .42f;
     public static float BoltHitRadius = .13f;
     public static float ShardHitRadius = .12f;
+    // The Bloom Queen's (Verdant, the third world) thorns, spores, seeds and every painted variant are drawn this much bigger so they read
+    // on a phone. Visual only: the hit radius stays BoltHitRadius / ShardHitRadius (the collider is built from the radius in world units).
+    public const float VerdantBulletScale = 1.4f;
+    public static float BulletScaleFor(BossDef boss) => boss != null && boss.artKey == "Verdant" ? VerdantBulletScale : 1f;
+    // The drawn size (world units) of one of `boss`'s shots of `style`.
+    public static float ShotWorldSizeFor(BossDef boss, BossShotStyle style) =>
+        (style == BossShotStyle.Bolt ? BoltWorldSize : ShardWorldSize) * BulletScaleFor(boss);
     // Lobbed shots (Frost's hail) split the playfield (the ship's x clamp,
     // +/-2.4) into this many columns and rain on all but one, aimed to be
     // over their column by LobTargetY (where the ship usually flies).
