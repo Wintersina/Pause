@@ -59,6 +59,27 @@ public sealed class KillCamStage
         }
     }
 
+    // THE CONTACT BEAT. The tape's impact frame is the collision itself (the
+    // ship whole against what hit it, no blast yet: DeathCrash.Play marks it
+    // before the blast is lit). From the next frame the death's explosion is
+    // on the tape at full size and alpha, drawn above the hull pieces and the
+    // killer (its orders 64-70 against PieceOrder 60/61), so the replay --
+    // which runs at SlowRate through the hit -- would bury the contact point
+    // under the fireball at once. Replay-only rule, the live look untouched:
+    // for the crash's hit-stop after the impact a blast entry fades in and
+    // sorts beneath the pieces and the killer, then plays as recorded.
+    public const float ContactClearSeconds = DeathCrash.HitStop;
+    public const int BelowContactOrder = DeathCrash.SmokeOrder - 1;
+
+    // Pure: `since` is clip seconds after the impact (negative: before it).
+    public static void ContactRule(float since, ref Color color, ref int order)
+    {
+        if (since < 0f || since >= ContactClearSeconds) return;
+        float k = since / ContactClearSeconds;
+        color.a *= k * k;
+        if (order > BelowContactOrder) order = BelowContactOrder;
+    }
+
     // Shows clip time `t` (clip clock, game seconds).
     public void Draw(KillCamClip clip, float t)
     {
@@ -104,6 +125,8 @@ public sealed class KillCamStage
                 sr.SetPropertyBlock(block);
             }
             else if (sr.HasPropertyBlock()) sr.SetPropertyBlock(null);
+            int order = e.order;
+            if (e.IsBlast && clip.impact >= 0f) ContactRule(t - clip.impact, ref c, ref order);
             sr.color = c;
             sr.flipX = (e.flags & KillCamEntry.FlipX) != 0;
             sr.flipY = (e.flags & KillCamEntry.FlipY) != 0;
@@ -111,7 +134,7 @@ public sealed class KillCamStage
             if (sr.drawMode != mode) sr.drawMode = mode;
             if (mode != SpriteDrawMode.Simple) sr.size = size;
             sr.sortingLayerID = e.layer;
-            sr.sortingOrder = e.order;
+            sr.sortingOrder = order;
 
             Place(frameTf[i], poolTf[i], p + Offset, m00, m01, m10, m11);
             sr.enabled = true;

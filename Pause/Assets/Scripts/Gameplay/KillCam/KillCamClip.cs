@@ -22,6 +22,11 @@ public struct KillCamEntry
 {
     public const byte FlipX = 1, FlipY = 2;
     public const int DrawModeShift = 2;   // two bits: SpriteDrawMode
+    // A blast (TargetExplosion's flash / ring / body, LegacyExplosionFx):
+    // tagged on the tape (KillCamRecorder.TagBlast) so the replay can keep the
+    // collision beat clear of it (KillCamStage.ContactRule). Bit 4; the
+    // archive stores the whole byte, so old records simply have it unset.
+    public const byte Blast = 16;
 
     public int track;
     public Sprite sprite;
@@ -36,6 +41,7 @@ public struct KillCamEntry
     public Vector2 size;             // tiled / sliced sprites only
 
     public SpriteDrawMode DrawMode { get { return (SpriteDrawMode)((flags >> DrawModeShift) & 3); } }
+    public bool IsBlast { get { return (flags & Blast) != 0; } }
 }
 
 public struct KillCamMeshEntry

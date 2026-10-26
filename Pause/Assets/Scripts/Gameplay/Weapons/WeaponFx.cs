@@ -422,6 +422,9 @@ public class FlipbookFx : MonoBehaviour
         StartedAt = Time.unscaledTime;
         sr.sortingOrder = order;
         sr.color = color;
+        // a blast (not a weapon impact): the kill cam's tape marks it so the
+        // replay keeps the collision beat clear of the death's explosion
+        KillCamRecorder.TagBlast(sr, m != Mode.WeaponImpact);
         transform.position = at;
         baseAngle = m == Mode.Ring ? 0f : Random.Range(0, 4) * 90f;
         transform.rotation = Quaternion.Euler(0f, 0f, baseAngle);
