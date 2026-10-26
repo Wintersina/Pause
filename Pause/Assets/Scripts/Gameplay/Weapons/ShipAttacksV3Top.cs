@@ -7,7 +7,7 @@ using UnityEngine;
 //   Ion Lancer   ION LASER      a thin laser leaves the nose and sweeps the screen, burning what it crosses
 //   Jade Phantom FROST NOVA     a frost ring grows over the screen; what it reaches freezes, then shatters
 //   Gold Warden  WARDEN SENTRIES sentry pods launch from the ship, deploy across the screen and shoot
-//   Paragon      NUKE           a warhead climbs from the nose, blinks and detonates: a red shockwave kills
+//   Paragon      NUKE           a warhead drops in onto the impact point, blinks and detonates: a red shockwave kills
 //                               what it reaches and a mushroom cloud rises behind the action. Its timed mini-warheads (ParagonMissiles) are the small version.
 //
 // The three top-tier verbs are the cinematic attacks (ShipPowerController): the runner steps on gameplay
@@ -640,6 +640,10 @@ public partial class ShipAttackRunner
 
     public const float MiniRange = 4f, MiniRadius = 1.4f, MiniSpeed = 16f, MiniStagger = .12f, MiniSpread = .35f;
     public const int MaxWarheads = 8;
+    // Every warhead, big or small, is SEEN falling nose-down onto its impact point for this long before it
+    // detonates (damage lands on the detonation). Independent of the loadout's speed so it is never a blink.
+    public const float FallSeconds = .4f, MiniFallSeconds = .3f, FallHeight = 3.2f, MiniFallHeight = 1.6f;
+    public const float FallRotation = 180f;   // the warhead drawing points up; turned over it falls nose first
     static readonly int[] ShockTicks = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };   // all 16 cells, one animation
     // Mean radius of the shockwave drawing per cell, as a share of its full radius (measured from the art).
     static readonly float[] ShockRadius =
@@ -665,6 +669,7 @@ public partial class ShipAttackRunner
         public AttackRun run;
         public AttackSprite sprite, ring, mush;
         public Vector3 from, to, center;
+        public bool fell;
         public float t, delay, flight, fuse, maxRadius, weight;
         public readonly List<GameObject> hit = new List<GameObject>(24);
     }
@@ -672,6 +677,8 @@ public partial class ShipAttackRunner
     Warhead[] warheads;
     public int Detonations { get; private set; }
     public int MiniDetonations { get; private set; }
+    public int WarheadFalls { get; private set; }   // falling-warhead sprites spawned (every detonation has one first)
+    public int FallsShown { get; private set; }     // detonations that were preceded by a visible fall
     public int WarheadsNow { get { int n = 0; if (warheads != null) for (int i = 0; i < warheads.Length; i++) if (warheads[i].on) n++; return n; } }
 
     Warhead FreeWarhead()
@@ -711,16 +718,28 @@ public partial class ShipAttackRunner
         w.mini = false;
         w.stage = 1;
         w.run = run;
-        w.from = nose;
         w.to = new Vector3(Mathf.Clamp(x, view.xMin + .8f, view.xMax - .8f), topY, 0f);
+        // the bomb drops in from above the impact point (the muzzle puff below marks the launch at the nose)
+        w.from = w.to + Vector3.up * (view.width > 1e4f ? FallHeight : Mathf.Min(FallHeight + 2.5f, Mathf.Max(FallHeight, view.yMax + .6f - topY)));
         w.t = 0f;
         w.delay = 0f;
-        w.flight = Mathf.Max(.35f, Vector2.Distance(w.from, w.to) / Mathf.Max(1f, l.speed));
+        w.flight = FallSeconds;
+        w.fell = false;
         w.fuse = l.duration * (run.quick ? .7f : 1f);
         w.weight = 1f;
         w.hit.Clear();
-        w.sprite = AttackPool.Sprite().Play(AttackSprite.Source.AttackLoop, ship, nose, Vector3.one * .6f, 0f,
-            ShipFxArt.LoopTicks, true, 0f, null, Vector3.zero, 69).Owned(run);
+        AttackPool.Sprite().Play(AttackSprite.Source.AttackBurst, ship, nose, Vector3.one * .4f, 0f,
+            ShipFxArt.BurstTicks, false, 0f, transform, Vector3.up * noseOffset, 71);
+        SpawnFalling(w, .6f);
+    }
+
+    // The falling warhead drawing (nose down), at its start point. The one place a warhead sprite is made.
+    void SpawnFalling(Warhead w, float size)
+    {
+        w.sprite = AttackPool.Sprite().Play(AttackSprite.Source.AttackLoop, ship, w.from, Vector3.one * size, FallRotation,
+            ShipFxArt.LoopTicks, true, 0f, null, Vector3.zero, 69).Owned(w.run);
+        w.fell = true;
+        WarheadFalls++;
     }
 
     void StepNukeRun(AttackRun run)
@@ -758,11 +777,12 @@ public partial class ShipAttackRunner
             w.mini = true;
             w.stage = 0;
             w.run = miniRun;
-            w.from = from;
             w.to = from + Vector3.up * MiniRange;
+            w.from = w.to + Vector3.up * MiniFallHeight;
+            w.fell = false;
             w.t = 0f;
             w.delay = i * MiniStagger;
-            w.flight = MiniRange / MiniSpeed;
+            w.flight = MiniFallSeconds;
             w.fuse = 0f;
             w.weight = 1f / count;
             w.maxRadius = MiniRadius;
@@ -792,14 +812,14 @@ public partial class ShipAttackRunner
                     if (w.t < w.delay) break;
                     w.stage = 1;
                     w.t = 0f;
-                    w.sprite = AttackPool.Sprite().Play(AttackSprite.Source.AttackLoop, ship, w.from, Vector3.one * .3f, 0f,
-                        ShipFxArt.LoopTicks, true, 0f, null, Vector3.zero, 69).Owned(w.run);
+                    SpawnFalling(w, .3f);
                     break;
                 case 1:
                     {
                         float k = Mathf.Clamp01(w.t / w.flight);
-                        float e = 1f - (1f - k) * (1f - k);
-                        Vector3 p = Vector3.Lerp(w.from, w.to, w.mini ? k : e);
+                        float e = k * k;   // gravity: it speeds up as it drops
+                        Vector3 p = Vector3.Lerp(w.from, w.to, e);
+                        if (w.sprite == null && !w.fell) SpawnFalling(w, w.mini ? .3f : .6f);   // never skip the fall
                         if (w.sprite != null && w.sprite.Active) w.sprite.Body.position = p;
                         if (k < 1f) break;
                         w.center = w.to;
@@ -825,6 +845,8 @@ public partial class ShipAttackRunner
 
     void Detonate(Warhead w)
     {
+        if (!w.fell) SpawnFalling(w, w.mini ? .3f : .6f);   // belt and braces: no detonation without a fall
+        FallsShown++;
         if (w.sprite != null && w.sprite.Active) w.sprite.Stop();
         w.sprite = null;
         w.stage = 3;

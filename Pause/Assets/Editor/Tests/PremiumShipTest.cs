@@ -293,6 +293,10 @@ public static class PremiumShipTest
             Check("the nuke fires", power.Runner.Fire());
             for (int i = 0; i < 40; i++) power.Runner.Step(.05f);
             Check("it detonates once, with no projectile launched", power.Runner.Detonations == 1 && AttackProjectile.LaunchCount == b0);
+            Check("every nuke detonation is preceded by a visible falling warhead (big and mini alike)",
+                  power.Runner.WarheadFalls >= 1 && power.Runner.FallsShown == power.Runner.Detonations + power.Runner.MiniDetonations &&
+                  power.Runner.WarheadFalls >= power.Runner.FallsShown && ShipAttackRunner.FallSeconds >= .3f && ShipAttackRunner.FallSeconds <= .5f &&
+                  ShipAttackRunner.MiniFallSeconds >= .25f);
             AttackPool.StopAll();
             foreach (var h in hazards) if (h != null) Object.DestroyImmediate(h);
             hazards.Clear();

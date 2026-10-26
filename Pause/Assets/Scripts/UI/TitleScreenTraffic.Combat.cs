@@ -410,9 +410,9 @@ public partial class TitleScreenTraffic
                 }
                 break;
             case ShipAttack.Nuke:
-                // a warhead climbs from the nose, then blows (Step)
+                // a warhead drops onto the impact point, then blows (Step)
                 u.point = nose + Dir(f.heading) * 3.5f * s;
-                u.held = Play(FxSource.Loop, f.id, nose, Vector3.one * .5f * s, 0f, ShipFxArt.LoopTicks, true, NukeFlightSeconds + .1f,
+                u.held = Play(FxSource.Loop, f.id, u.point + Vector2.up * 3.2f * s, Vector3.one * .5f * s, 180f, ShipFxArt.LoopTicks, true, NukeFlightSeconds + .1f,
                               null, 0f, f.layer, 1);
                 break;
             case ShipAttack.RailSlug:
@@ -746,7 +746,7 @@ public partial class TitleScreenTraffic
                     {
                         if (u.held != null && u.held.on)
                         {
-                            Vector2 from = Nose(f);
+                            Vector2 from = u.point + Vector2.up * 3.2f * s;
                             u.held.sr.transform.position = new Vector3(Mathf.Lerp(from.x, u.point.x, u.t / NukeFlightSeconds),
                                                                        Mathf.Lerp(from.y, u.point.y, u.t / NukeFlightSeconds), 0f);
                         }
