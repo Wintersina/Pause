@@ -146,6 +146,34 @@ public class collisionDetection : MonoBehaviour {
     // atom's own colour, above its "+N". Constant strings: no allocation.
     public const string HealWord = "+1 HULL", PauseWord = "+1 PAUSE", ShieldWord = "SHIELD";
     public const float PickupWordLift = .5f;
+    // The blue atom's shield, on its own (MagnetCombo syncs it with a magnet).
+    public const float ShieldAtomSeconds = 5.8f;
+
+    // The magnet + shield combo just came on (`comboBefore` false) or was
+    // re-chained: restart both powers to MagnetCombo.SyncSeconds together
+    // and announce it big. Only called with both powers up (a magnet
+    // running, the blue-atom shield up). Returns what was announced.
+    public static MagnetCombo.Callout SyncMagnetShield(bool comboBefore, Vector3 at)
+    {
+        invTimer = MagnetCombo.SyncSeconds;
+        MagnetPull.Sync(MagnetCombo.SyncSeconds, comboBefore);
+        var hud = ScoreHud.Current;
+        var callout = MagnetCombo.CalloutFor(comboBefore, true, hud != null, startMenu.youAreInTutorial, KillCam.Playing);
+        string word = MagnetCombo.WordFor(callout, MagnetPull.Chain);
+        if (word != null)
+            hud.ShowCallout(word, at + Vector3.up * MagnetCombo.CalloutLift, MagnetCombo.CalloutColour,
+                            MagnetCombo.CalloutSize, MagnetCombo.CalloutSeconds, MagnetCombo.CalloutRise);
+        return callout;
+    }
+
+    // ... and with no callout (the tutorial, the replay) the atom's own word, as usual.
+    void SyncAndAnnounce(bool comboBefore, Vector3 at, string ownWord, Color ownColour)
+    {
+        var callout = SyncMagnetShield(comboBefore, at);
+        if (callout == MagnetCombo.Callout.None) { PickupWord(ownWord, at, ownColour); return; }
+        if (hypeText != null)
+            hypeText.text = callout == MagnetCombo.Callout.Combo ? MagnetCombo.ComboWordShort : MagnetCombo.WordFor(callout, MagnetPull.Chain);
+    }
 
     static void PickupWord(string word, Vector3 at, Color colour)
     {
@@ -454,15 +482,21 @@ public class collisionDetection : MonoBehaviour {
             {
                 magnetAtomPickups++;
                 RunScore.OnAtom(RunScore.Atom.Magnet, hit.transform.position);
-                // Every star dust on screen flies into the hull; with the
-                // shield up it also drags the soft enemies in and the shield
-                // gains MagnetPull.ShieldBonusSeconds (MagnetPull has the rules).
-                bool shielded = ExtendShield(MagnetPull.ShieldBonusSeconds);
-                MagnetPull.Begin(gameObject, shielded);
+                // Every goodie on screen (star dust, atoms) flies into the
+                // hull; while the shield is up too the plain enemies are
+                // sucked in to die on it, in whichever order the two were
+                // caught, and both powers restart together (MagnetCombo).
+                // No shield is raised from nothing.
+                bool comboBefore = MagnetPull.ComboOn;
+                bool shielded = atomCheck && !buttonClicks.playerDied;
+                MagnetPull.Begin(gameObject);
                 BoostUltimate(dust: false);   // the usual atom cut off the weapon's charge
-                string word = shielded ? MagnetPull.ShieldedWord : MagnetPull.Word;
-                if (hypeText != null) hypeText.text = word;
-                PickupWord(word, hit.transform.position, AkiraPalette.MagnetBlueHi);
+                if (shielded) SyncAndAnnounce(comboBefore, hit.transform.position, MagnetPull.Word, AkiraPalette.MagnetBlueHi);
+                else
+                {
+                    if (hypeText != null) hypeText.text = MagnetPull.Word;
+                    PickupWord(MagnetPull.Word, hit.transform.position, AkiraPalette.MagnetBlueHi);
+                }
                 AtomCharged(AkiraPalette.MagnetBlueHi);
                 Destroy(hit.gameObject);
             }
@@ -471,9 +505,12 @@ public class collisionDetection : MonoBehaviour {
                 shieldAtomPickups++;
                 RunScore.OnAtom(RunScore.Atom.Shield, hit.transform.position);
                 BoostUltimate(dust: false);
-                // a shield caught during a magnet pull: +2 s on the pull, enemies pulled in
-                bool magnetSynergy = MagnetPull.OnShieldCaught();
-                PickupWord(magnetSynergy ? MagnetPull.ShieldExtendedWord : ShieldWord, hit.transform.position, AkiraPalette.Cyan);
+                // a shield caught during a magnet pull: both restart together
+                // and the enemies are pulled in (MagnetCombo; below, once the
+                // shield is up). No magnet is started from nothing.
+                bool comboBefore = MagnetPull.ComboOn;
+                bool magnetSynergy = MagnetPull.MagnetRunning;
+                if (!magnetSynergy) PickupWord(ShieldWord, hit.transform.position, AkiraPalette.Cyan);
                 AtomCharged(AkiraPalette.Cyan);
                 boostSound.Play();
                 BoostJet.Play();   // the jet-engine spool-up, restarted (never stacked) by a quick second atom
@@ -490,8 +527,9 @@ public class collisionDetection : MonoBehaviour {
                 // The boost (SpeedRamp: +5 a blue atom, the limit break past
                 // the cap). A boss holds speed at 20: none then.
                 SpeedRamp.AddBoost();
-                invTimer = 5.8f;
+                invTimer = ShieldAtomSeconds;
                 boostTimer = 1f;
+                if (magnetSynergy) SyncAndAnnounce(comboBefore, hit.transform.position, ShieldWord, AkiraPalette.Cyan);
             }
         }
         //------------------------------------------------------------------------------------------------------------------
