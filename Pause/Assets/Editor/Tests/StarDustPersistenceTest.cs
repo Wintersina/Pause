@@ -38,12 +38,40 @@ public static class StarDustPersistenceTest
         NonPayingRunNeverTouchesTheSave();
         ScoreComponentBanksOnLeaveAndOnDeathOnce();
         PurchasesSaveImmediately();
+        DeathScreenKeepsAMidRunGrant();
 
         Debug.Log("[SD] failures: " + fails);
         return fails;
     }
 
     static bool Near(float a, float b) { return Mathf.Abs(a - b) < 1e-4f; }
+
+    // playerIsDead.BeginResults saves the run's dust before the results panel.
+    // It used to write score.totalCurrency: a grant that landed mid-run (a Play
+    // purchase or reward delivered on a focus return goes into the ledger's
+    // baseline only) was flushed away under the lower figure; and a practice
+    // run (totalCurrency 0) wiped the saved balance.
+    static void DeathScreenKeepsAMidRunGrant()
+    {
+        float keepTotal = score.totalCurrency;
+        PlayerPrefs.SetFloat(Key, 10f);
+        int run = StarDustLedger.BeginRun(true);
+        StarDustLedger.Earn(2f);
+        score.totalCurrency = 12f;          // score's mirror of baseline + earned ...
+        StarDustLedger.Grant(100f);         // ... which a mid-run grant never reaches
+        playerIsDead.SaveDustForResults();
+        Check("the death screen's save keeps a grant that landed mid-run", Near(PlayerPrefs.GetFloat(Key), 112f));
+        StarDustLedger.EndRun(run);
+        Check("and the run's teardown agrees", Near(PlayerPrefs.GetFloat(Key), 112f));
+
+        PlayerPrefs.SetFloat(Key, 50f);
+        run = StarDustLedger.BeginRun(false);
+        score.totalCurrency = 0f;
+        playerIsDead.SaveDustForResults();
+        Check("a practice run's death screen leaves the saved dust alone", Near(PlayerPrefs.GetFloat(Key), 50f));
+        StarDustLedger.EndRun(run);
+        score.totalCurrency = keepTotal;
+    }
 
     static void CommitsAreIdempotent()
     {

@@ -107,6 +107,12 @@ public static class SupportPurchase
     public static event Action<int> Rewarded;
 
     static readonly HashSet<string> consuming = new HashSet<string>();
+    // Tokens whose consume succeeded this session. The store's owned list is
+    // queried on every focus return, which is also when a live purchase lands:
+    // a query snapshot taken before the consume can still be delivered after
+    // it, and by then the token is gone from GrantedTokens -- it must not read
+    // as a fresh purchase and pay a second time.
+    static readonly HashSet<string> consumed = new HashSet<string>();
 
     // Handles one owned or updated purchase. `consume(token, done)` asks the
     // store to consume it and reports success through `done`.
@@ -119,6 +125,7 @@ public static class SupportPurchase
         if (purchase.state != PlayPurchaseState.Purchased || string.IsNullOrEmpty(purchase.token)) return Result.Ignored;
 
         string token = purchase.token;
+        if (consumed.Contains(token)) return Result.AlreadyGranted;   // a stale owned-list after the consume
         var granted = GrantedTokens();
         bool fresh = !granted.Contains(token);
         if (fresh)
@@ -147,6 +154,7 @@ public static class SupportPurchase
             Debug.Log("[Support] consume failed, will retry next launch");
             return;
         }
+        consumed.Add(token);
         var granted = GrantedTokens();
         if (!granted.Remove(token)) return;
         PlayerPrefs.SetString(GrantedKey, string.Join("\n", granted));
@@ -179,6 +187,7 @@ public static class SupportPurchase
     public static void ResetSession()
     {
         consuming.Clear();
+        consumed.Clear();
         foreach (var p in Packs) p.Reset();
     }
 }

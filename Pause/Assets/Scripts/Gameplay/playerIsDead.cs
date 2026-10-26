@@ -31,13 +31,25 @@ public class playerIsDead : MonoBehaviour
         if (buttonClicks.playerDied && waitingForDeath && DeathCrash.PanelReady) { BeginResults(); waitingForDeath = false; }
     }
 
+    // The death screen's save of the run's dust. It writes the ledger's
+    // balance (StarDustLedger.Stage), not score.totalCurrency: a grant that
+    // landed mid-run (a Play purchase or reward delivered on a focus return)
+    // went into the ledger's baseline only, and writing score's mirror here
+    // flushed the lower figure -- lost for good if the app was killed on
+    // this screen. A practice run has no paying ledger and writes nothing
+    // (score.totalCurrency is 0 there, which used to wipe the saved dust).
+    public static void SaveDustForResults()
+    {
+        StarDustLedger.Stage();
+        PlayerPrefs.Save();
+    }
+
     void BeginResults()
     {
         // Bank the run and its star-dust score bonus first, so the totals
         // below (and the dust written) include it.
         float scoreBonus = score.SettleCurrentRun();
-        PlayerPrefs.SetFloat("PlayerCurrecny", score.totalCurrency);
-        PlayerPrefs.Save();
+        SaveDustForResults();
 
         var results = new DeathPanelView.Results
         {

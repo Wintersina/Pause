@@ -64,6 +64,14 @@ public static class SupportPurchaseTest
             Check("consumed once", consumes == 1);
             Check("token forgotten after a confirmed consume", SupportPurchase.GrantedTokens().Count == 0);
 
+            // A stale owned-list (queried on the focus return that coincides with the
+            // purchase, delivered after the consume) lists the same token again: it
+            // must not read as a fresh purchase now that GrantedTokens has let it go.
+            r = SupportPurchase.Handle(Buy("tok-1"), autoOk);
+            Check("the same token delivered again after its consume does not pay again",
+                  r == SupportPurchase.Result.AlreadyGranted && Mathf.Approximately(Dust, 2510f) && rewarded == 2500);
+            Check("nor is it consumed again", consumes == 1);
+
             // Repeatable: a second purchase with a new token pays again.
             consumes = 0;
             r = SupportPurchase.Handle(Buy("tok-2"), autoOk);

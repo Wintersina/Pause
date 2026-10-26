@@ -43,7 +43,13 @@ public class PlayBilling : MonoBehaviour
     void Update()
     {
         Action work;
-        while (mainThread.TryDequeue(out work)) work();
+        while (mainThread.TryDequeue(out work))
+        {
+            // One delivery that throws (a toast, a handler) must not drop the
+            // ones queued behind it; they would wait for the next focus return.
+            try { work(); }
+            catch (Exception e) { Debug.LogException(e); }
+        }
 
         // Tell the player once the home screen is up (never mid-run).
         if (PreRegistrationReward.ToastDue && SceneManager.GetActiveScene().name == BackNavigator.HomeScene)
@@ -349,7 +355,9 @@ public class PlayBilling : MonoBehaviour
 
         void onBillingSetupFinished(AndroidJavaObject result)
         {
-            bool ok = result.Call<int>("getResponseCode") == Ok;
+            bool ok;
+            try { ok = result.Call<int>("getResponseCode") == Ok; }
+            catch (Exception e) { Debug.Log("[PreReg] setup result read failed: " + e.Message); ok = false; }
             owner.mainThread.Enqueue(() =>
             {
                 owner.connecting = false;
@@ -375,19 +383,25 @@ public class PlayBilling : MonoBehaviour
         readonly PlayBilling owner;
         public PurchasesListener(PlayBilling owner) : base("com.android.billingclient.api.PurchasesUpdatedListener") { this.owner = owner; }
 
+        // Play's thread. A C# exception here is rethrown into Java and would
+        // take the process down, so every proxy callback only reads and queues.
         void onPurchasesUpdated(AndroidJavaObject result, AndroidJavaObject purchases)
         {
-            int code = result.Call<int>("getResponseCode");
-            if (code != Ok)
+            try
             {
-                owner.mainThread.Enqueue(() =>
+                int code = result.Call<int>("getResponseCode");
+                if (code != Ok)
                 {
-                    if (ParagonPurchase.Buying) owner.OnFlowResult(code);
-                    if (SupportPurchase.Buying != null) owner.OnSupportFlowResult(code);
-                });
-                return;
+                    owner.mainThread.Enqueue(() =>
+                    {
+                        if (ParagonPurchase.Buying) owner.OnFlowResult(code);
+                        if (SupportPurchase.Buying != null) owner.OnSupportFlowResult(code);
+                    });
+                    return;
+                }
+                owner.Deliver(Read(purchases));
             }
-            owner.Deliver(Read(purchases));
+            catch (Exception e) { Debug.Log("[PreReg] purchases-updated read failed: " + e.Message); }
         }
     }
 
@@ -398,8 +412,12 @@ public class PlayBilling : MonoBehaviour
 
         void onQueryPurchasesResponse(AndroidJavaObject result, AndroidJavaObject purchases)
         {
-            if (result.Call<int>("getResponseCode") != Ok) return;
-            owner.Deliver(Read(purchases));
+            try
+            {
+                if (result.Call<int>("getResponseCode") != Ok) return;
+                owner.Deliver(Read(purchases));
+            }
+            catch (Exception e) { Debug.Log("[PreReg] owned-list read failed: " + e.Message); }
         }
     }
 
@@ -468,7 +486,9 @@ public class PlayBilling : MonoBehaviour
 
         void onAcknowledgePurchaseResponse(AndroidJavaObject result)
         {
-            bool ok = result.Call<int>("getResponseCode") == Ok;
+            bool ok;
+            try { ok = result.Call<int>("getResponseCode") == Ok; }
+            catch (Exception e) { Debug.Log("[Paragon] acknowledge result read failed: " + e.Message); ok = false; }
             owner.mainThread.Enqueue(() => ParagonPurchase.OnAcknowledged(token, ok));
         }
     }
@@ -485,7 +505,9 @@ public class PlayBilling : MonoBehaviour
 
         void onConsumeResponse(AndroidJavaObject result, string token)
         {
-            bool ok = result.Call<int>("getResponseCode") == Ok;
+            bool ok;
+            try { ok = result.Call<int>("getResponseCode") == Ok; }
+            catch (Exception e) { Debug.Log("[PreReg] consume result read failed: " + e.Message); ok = false; }
             owner.mainThread.Enqueue(() => done(ok));
         }
     }
