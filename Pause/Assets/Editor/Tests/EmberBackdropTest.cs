@@ -637,8 +637,12 @@ public static class EmberBackdropTest
                   ":1 >= 7 (lane median value " + shot.median.ToString("F2") + ", p90 " + shot.p90.ToString("F2") + ", hull " + hullV.ToString("F2") + ")",
                   body >= 2.5f && kick >= 7f);
         }
-        Check("the night side renders darker than the day (median " + nightMedian.ToString("F3") + " < " + dayMedian.ToString("F3") + ")",
-              nightMedian < dayMedian * .92f);
+        // Guard relaxed (user decision, 2026-10-26): since the Codex redraws every Ember variant has a dark, low-contrast
+        // play layer, so the night side is no longer a darker lane than the day (measured: day .067, night .078, the
+        // night's extra being its stronger lights / loops). Night differs by lights and hue, not by a darker lane: it
+        // only has to stay within ~25% of the day and under an absolute sanity bound, so it can never become a bright lane.
+        Check("the night side stays within 25% of the day's lane and dark (median " + nightMedian.ToString("F3") + " <= " + (dayMedian * 1.25f).ToString("F3") +
+              " and <= .09)", nightMedian <= dayMedian * 1.25f && nightMedian <= .09f);
     }
 
     struct Shot { public float mean, median, p90, laneLum; }
