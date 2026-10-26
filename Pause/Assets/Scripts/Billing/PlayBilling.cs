@@ -27,6 +27,8 @@ public class PlayBilling : MonoBehaviour
     AndroidJavaObject paragonDetails;
     readonly Dictionary<string, AndroidJavaObject> supportDetails = new Dictionary<string, AndroidJavaObject>();
     bool connecting, connected;
+    float connectStartedAt;
+    const float ConnectStaleSeconds = 30f;   // a startConnection that never called back must not block reconnects
 #endif
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
@@ -75,13 +77,16 @@ public class PlayBilling : MonoBehaviour
     void OnDestroy()
     {
         if (instance == this) instance = null;
+        ReleaseClient();
     }
 
 #if UNITY_ANDROID && !UNITY_EDITOR
     // ---------------------------------------------------------------- Android
     void Connect()
     {
-        if (connecting || connected) return;
+        if (connected) return;
+        if (connecting && Time.realtimeSinceStartup - connectStartedAt < ConnectStaleSeconds) return;
+        ReleaseClient();
         try
         {
             using (var player = new AndroidJavaClass("com.unity3d.player.UnityPlayer"))
@@ -100,6 +105,7 @@ public class PlayBilling : MonoBehaviour
                 }
             }
             connecting = true;
+            connectStartedAt = Time.realtimeSinceStartup;
             ParagonPurchase.LaunchFlow = LaunchParagon;
             foreach (var pack in SupportPurchase.Packs)
             {
@@ -114,6 +120,30 @@ public class PlayBilling : MonoBehaviour
             Debug.Log("[PreReg] billing unavailable: " + e.Message);
             connecting = false;
         }
+    }
+
+    // Ends the old client's connection and frees it and the details that belong
+    // to it. Main thread only (Connect, OnDestroy): LaunchFlowFor uses the
+    // details synchronously inside one main-thread call, so nothing can be
+    // mid-flow while this runs.
+    void ReleaseClient()
+    {
+        if (client != null)
+        {
+            try { client.Call("endConnection"); } catch (Exception) { }
+            try { client.Dispose(); } catch (Exception) { }
+            client = null;
+        }
+        connected = false;
+        DisposeQuiet(paragonDetails);
+        paragonDetails = null;
+        foreach (var kv in supportDetails) DisposeQuiet(kv.Value);
+        supportDetails.Clear();
+    }
+
+    static void DisposeQuiet(AndroidJavaObject o)
+    {
+        try { if (o != null) o.Dispose(); } catch (Exception) { }
     }
 
     void QueryOwned()
@@ -327,7 +357,7 @@ public class PlayBilling : MonoBehaviour
         return result;
     }
 
-    void Deliver(List<PlayPurchase> purchases)
+    void Deliver(List<PlayPurchase> purchases, bool fromUpdate)
     {
         mainThread.Enqueue(() =>
         {
@@ -344,6 +374,25 @@ public class PlayBilling : MonoBehaviour
                 if (r == ParagonPurchase.Result.Granted) AccountHintToast.Show(ParagonPurchase.GrantedMessage);
                 else if (r == ParagonPurchase.Result.Pending && buying) AccountHintToast.Show(ParagonPurchase.PendingMessage);
                 if (r != ParagonPurchase.Result.Ignored) ParagonPurchase.EndBuy();
+            }
+            // The live purchases-updated callback came back OK with nothing for
+            // the open sheet (empty list, other products): release the buy button.
+            // An owned-list query must not cancel a sheet that is still open.
+            if (fromUpdate)
+            {
+                var open = SupportPurchase.Buying;
+                if (open != null)
+                {
+                    bool matched = false;
+                    foreach (var p in purchases) if (p.productId == open.productId) matched = true;
+                    if (!matched) open.EndBuy();
+                }
+                if (ParagonPurchase.Buying)
+                {
+                    bool matched = false;
+                    foreach (var p in purchases) if (p.productId == PremiumShips.ParagonProductId) matched = true;
+                    if (!matched) ParagonPurchase.EndBuy();
+                }
             }
         });
     }
@@ -399,7 +448,7 @@ public class PlayBilling : MonoBehaviour
                     });
                     return;
                 }
-                owner.Deliver(Read(purchases));
+                owner.Deliver(Read(purchases), true);
             }
             catch (Exception e) { Debug.Log("[PreReg] purchases-updated read failed: " + e.Message); }
         }
@@ -415,7 +464,7 @@ public class PlayBilling : MonoBehaviour
             try
             {
                 if (result.Call<int>("getResponseCode") != Ok) return;
-                owner.Deliver(Read(purchases));
+                owner.Deliver(Read(purchases), false);
             }
             catch (Exception e) { Debug.Log("[PreReg] owned-list read failed: " + e.Message); }
         }
@@ -458,10 +507,21 @@ public class PlayBilling : MonoBehaviour
                     }
                 }
             }
-            catch (Exception e) { Debug.Log("[Paragon] details read failed: " + e.Message); paragon = null; paragonPrice = null; support.Clear(); supportPrice.Clear(); }
+            catch (Exception e)
+            {
+                Debug.Log("[Paragon] details read failed: " + e.Message);
+                DisposeQuiet(paragon);
+                foreach (var kv in support) DisposeQuiet(kv.Value);
+                paragon = null; paragonPrice = null; support.Clear(); supportPrice.Clear();
+            }
             owner.mainThread.Enqueue(() =>
             {
+                // Replaced details are freed here, on the main thread. LaunchFlowFor
+                // uses details synchronously inside a single main-thread call, so no
+                // in-flight launchBillingFlow can still be holding the old ones.
+                DisposeQuiet(owner.paragonDetails);
                 owner.paragonDetails = paragon;
+                foreach (var kv in owner.supportDetails) DisposeQuiet(kv.Value);
                 owner.supportDetails.Clear();
                 foreach (var kv in support) owner.supportDetails[kv.Key] = kv.Value;
                 ParagonPurchase.SetPrice(paragon != null ? paragonPrice : null);
@@ -516,5 +576,6 @@ public class PlayBilling : MonoBehaviour
     void Connect() { }
     void QueryOwned() { }
     void QueryParagonDetails() { }
+    void ReleaseClient() { }
 #endif
 }
