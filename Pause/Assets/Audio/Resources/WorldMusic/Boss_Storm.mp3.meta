@@ -9,7 +9,7 @@ AudioImporter:
     sampleRateSetting: 0
     sampleRateOverride: 44100
     compressionFormat: 1
-    quality: 0.55
+    quality: 0.35
     conversionMode: 0
     preloadAudioData: 0
   platformSettingOverrides:
@@ -19,7 +19,7 @@ AudioImporter:
       sampleRateSetting: 0
       sampleRateOverride: 44100
       compressionFormat: 1
-      quality: 0.55
+      quality: 0.35
       conversionMode: 0
       preloadAudioData: 0
     iPhone:
@@ -28,7 +28,7 @@ AudioImporter:
       sampleRateSetting: 0
       sampleRateOverride: 44100
       compressionFormat: 1
-      quality: 0.55
+      quality: 0.35
       conversionMode: 0
       preloadAudioData: 0
   forceToMono: 0

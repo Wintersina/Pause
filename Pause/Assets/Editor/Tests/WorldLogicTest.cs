@@ -251,7 +251,7 @@ public static class WorldLogicTest
                 Check("Space_Main overrides " + platform, importer.ContainsSampleSettingsOverride(platform));
                 Check("Space_Main streams on " + platform, s.loadType == AudioClipLoadType.Streaming);
                 Check("Space_Main is Vorbis on " + platform, s.compressionFormat == AudioCompressionFormat.Vorbis);
-                Check("Space_Main quality 0.5-0.6 on " + platform, s.quality >= 0.5f && s.quality <= 0.6f);
+                Check("Space_Main quality ~0.35 on " + platform, Mathf.Abs(s.quality - 0.35f) < 0.011f);
                 Check("Space_Main does not preload on " + platform, !s.preloadAudioData);
             }
         }
@@ -362,7 +362,7 @@ public static class WorldLogicTest
                     Check(song.world + " overrides " + platform, importer.ContainsSampleSettingsOverride(platform));
                     Check(song.world + " streams on " + platform, s.loadType == AudioClipLoadType.Streaming);
                     Check(song.world + " is Vorbis on " + platform, s.compressionFormat == AudioCompressionFormat.Vorbis);
-                    float wantQuality = 0.5f;   // Frost: the 48 kHz Frozen Pulse WAV, Vorbis 0.5 to keep the build small
+                    float wantQuality = 0.35f;   // every streamed song: Vorbis 0.35 to keep the Android base module small
                     Check(song.world + " is ~" + Mathf.RoundToInt(wantQuality * 100f) + "% quality on " + platform, Mathf.Abs(s.quality - wantQuality) < 0.011f);
                     Check(song.world + " does not preload on " + platform, !s.preloadAudioData);
                 }
@@ -473,9 +473,9 @@ public static class WorldLogicTest
             if (desertImp == null) break;
             var ds = desertImp.GetOverrideSampleSettings(platform);
             desertOk &= desertImp.ContainsSampleSettingsOverride(platform) && ds.loadType == AudioClipLoadType.Streaming
-                        && ds.compressionFormat == AudioCompressionFormat.Vorbis && Mathf.Abs(ds.quality - 0.5f) < 0.011f && !ds.preloadAudioData;
+                        && ds.compressionFormat == AudioCompressionFormat.Vorbis && Mathf.Abs(ds.quality - 0.35f) < 0.011f && !ds.preloadAudioData;
         }
-        Check("Desert_Main is stereo, Vorbis 0.5, streaming, no preload on Android and iOS", desertOk);
+        Check("Desert_Main is stereo, Vorbis 0.35, streaming, no preload on Android and iOS", desertOk);
         Check("Desert loop-out sits inside the clip", desertClip != null && WorldMusic.LoopOutSeconds(WorldMusic.DesertTrack) > 190f
               && WorldMusic.LoopOutSeconds(WorldMusic.DesertTrack) < desertClip.length - 1f);
         Check("Ember loop-out sits inside the clip, before its closing decay",

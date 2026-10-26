@@ -88,9 +88,9 @@ public static class SpaceBossMusicTest
             Check(t.world + " boss is imported", imp != null);
             if (imp == null) continue;
             var a = imp.GetOverrideSampleSettings("Android");
-            Check(t.world + " Android: override, Vorbis, streaming, q 0.5-0.6",
+            Check(t.world + " Android: override, Vorbis, streaming, q 0.35",
                   imp.ContainsSampleSettingsOverride("Android") && a.compressionFormat == AudioCompressionFormat.Vorbis &&
-                  a.loadType == AudioClipLoadType.Streaming && a.quality >= 0.5f && a.quality <= 0.6f);
+                  a.loadType == AudioClipLoadType.Streaming && Mathf.Abs(a.quality - 0.35f) < 0.011f);
             Check(t.world + " preload off, stereo", !a.preloadAudioData && !imp.forceToMono);
         }
     }
