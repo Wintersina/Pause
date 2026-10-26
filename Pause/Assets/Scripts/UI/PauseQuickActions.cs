@@ -25,7 +25,7 @@ public class PauseQuickActions : MonoBehaviour
     // ~44pt minimum comfortable tap target; on smaller ones UiScale's floor
     // raises the canvas so it never drops below 44 pt / 48 dp.
     public const float ButtonSize = 72f;
-    public const float ButtonGap = 10f;
+    public const float ButtonGap = 0f;
     // The least the band keeps clear of the safe area's side edges. Where
     // the side rails are, the band ends inside them instead (TopBand), the
     // buttons at its right end and HudStyler's score read-out at its left,
@@ -42,10 +42,40 @@ public class PauseQuickActions : MonoBehaviour
     public static readonly Vector2 ReferenceResolution = new Vector2(800f, 1000f);
     public const float MatchWidthOrHeight = 0.5f;
 
+    // The pair sits in ONE panel at the band's right end that mirrors the
+    // score board (same top edge and height, same per-world frame, HudSkin):
+    // the glyphs are drawn straight on the frame, home left of replay, each a
+    // ButtonSize tap square. Its width hugs the pair plus PanelPad each side.
+    public const float PanelPad = 5f;
+    public const float PanelWidthUnits = 2f * ButtonSize + ButtonGap + 2f * PanelPad;
+        // Set by HudStyler: the read-out's height on screen, in px (0: none).
+    public static float LiveReadoutHeightPx;
+
+    // Panel height in px, for layout maths: the score board's full height on
+    // this screen (HudStyler.ReadoutHeightFor: its authored height at its own
+    // canvas scale), so the pair match when the board is at full size.
+    public static float PanelHeightPx(Vector2 screen)
+    {
+        return Mathf.Max(HudStyler.ReadoutHeightFor(screen), ButtonSize * CanvasScaleFor(screen));
+    }
+
+    // The height actually drawn: the live board's, when it is shorter (it
+    // shrinks to share a narrow lane), never under the buttons.
+    static float DrawnPanelHeightPx(TopBand.Frame band, Vector2 screen)
+    {
+        float s = CanvasScaleFor(screen);
+        float h = ScreenRectFor(band, screen).height;
+        if (LiveReadoutHeightPx > 0f) h = Mathf.Min(h, LiveReadoutHeightPx);
+        return Mathf.Max(h, ButtonSize * s);
+    }
+
     public const string ReplayIconPath = "QuickActions/QuickAction_replay";
     public const string HomeIconPath = "QuickActions/QuickAction_home";
 
     GameObject replayClone, leaveClone;
+    Image panelImage;
+    int skinWorld = -1;
+    float appliedPanelH;
     RectTransform safeArea;
     Rect appliedSafeArea;
     Vector2Int appliedScreen;
@@ -115,8 +145,9 @@ public class PauseQuickActions : MonoBehaviour
     public static Rect ScreenRectFor(TopBand.Frame band, Vector2 screen)
     {
         float s = CanvasScaleFor(screen);
-        float width = (2f * ButtonSize + ButtonGap) * s;
-        float height = ButtonSize * s;
+        float width = PanelWidthUnits * s;
+        // as tall as the score board is on this screen, after its own lane shrink
+        float height = Mathf.Max(HudStyler.ReadoutHeightFor(screen) * HudStyler.ReadoutFitFor(band, screen), ButtonSize * s);
         return new Rect(band.right - width, band.top - height, width, height);
     }
 
@@ -124,8 +155,10 @@ public class PauseQuickActions : MonoBehaviour
     public static Rect ButtonScreenRect(TopBand.Frame band, Vector2 screen, int slotFromRight)
     {
         float s = CanvasScaleFor(screen);
-        float right = band.right - slotFromRight * (ButtonSize + ButtonGap) * s;
-        return new Rect(right - ButtonSize * s, band.top - ButtonSize * s, ButtonSize * s, ButtonSize * s);
+        Rect panel = ScreenRectFor(band, screen);
+        float right = panel.xMax - PanelPad * s - slotFromRight * (ButtonSize + ButtonGap) * s;
+        float top = panel.yMax - (panel.height - ButtonSize * s) * .5f;
+        return new Rect(right - ButtonSize * s, top - ButtonSize * s, ButtonSize * s, ButtonSize * s);
     }
 
     void Start()
@@ -150,6 +183,15 @@ public class PauseQuickActions : MonoBehaviour
         safeGo.transform.SetParent(holder.transform, false);
         safeArea = safeGo.GetComponent<RectTransform>();
         ApplySafeArea();
+
+        var panelGo = new GameObject("QuickActionPanel", typeof(RectTransform), typeof(Image));
+        panelGo.transform.SetParent(safeArea, false);
+        panelImage = panelGo.GetComponent<Image>();
+        panelImage.raycastTarget = false;
+        panelImage.type = Image.Type.Sliced;
+        // drawn as its own piece of the world's frame family (not a flipped
+        // copy), so a motif on the board's outer-left corner (Desert's worm)
+        // sits on this panel's outer-right corner
 
         replayClone = Instantiate(replaySource, safeArea);
         leaveClone = Instantiate(leaveSource, safeArea);
@@ -195,8 +237,30 @@ public class PauseQuickActions : MonoBehaviour
                 if (leave != null) { leave.onClick = new Button.ButtonClickedEvent(); leave.onClick.AddListener(tut.mainMenuButton); }
             }
         }
-        StyleIcon(replayClone, ReplayIconPath);
-        StyleIcon(leaveClone, HomeIconPath);
+        StyleIcon(replayClone);
+        StyleIcon(leaveClone);
+        ApplySkin();
+        PlaceButtons();
+    }
+
+    // The frame and glyphs for the world the run is on; again on a world change.
+    void ApplySkin()
+    {
+        skinWorld = HudSkin.CurrentWorld;
+        if (panelImage != null)
+        {
+            panelImage.sprite = HudSkin.ButtonPanel(skinWorld);
+            panelImage.color = Color.white;
+        }
+        SetGlyph(replayClone, HudSkin.ReplayGlyph(skinWorld));
+        SetGlyph(leaveClone, HudSkin.HomeGlyph(skinWorld));
+    }
+
+    static void SetGlyph(GameObject go, Sprite sprite)
+    {
+        if (go == null || sprite == null) return;
+        var image = go.GetComponent<Image>();
+        if (image != null) image.sprite = sprite;
     }
 
     // Re-placed whenever the band moves: screen, safe area, cutouts, or the
@@ -207,12 +271,31 @@ public class PauseQuickActions : MonoBehaviour
         if (screen.x <= 0f || screen.y <= 0f) return;
         Rect safe = Screen.safeArea;
         var band = TopBand.FrameFor(safe, screen);
-        if (bandApplied && band.Same(appliedBand)) return;
+        float panelH = DrawnPanelHeightPx(band, screen);
+        if (bandApplied && band.Same(appliedBand) && Mathf.Approximately(panelH, appliedPanelH)) return;
         appliedBand = band;
+        appliedPanelH = panelH;
         bandApplied = true;
+        Layout(band, safe, screen);
+    }
+
+    void Layout(TopBand.Frame band, Rect safe, Vector2 screen)
+    {
+        float s = Mathf.Max(CanvasScaleFor(screen), .0001f);
         Vector2 offset = TopRightOffset(band, safe, screen);
-        PositionTopRight(replayClone, 0, offset);
-        PositionTopRight(leaveClone, 1, offset);
+        float panelH = DrawnPanelHeightPx(band, screen) / s;
+        float panelW = PanelWidthUnits;
+        PositionTopRight(replayClone, 0, offset, panelH);
+        PositionTopRight(leaveClone, 1, offset, panelH);
+        if (panelImage != null)
+        {
+            var rt = panelImage.rectTransform;
+            rt.anchorMin = rt.anchorMax = new Vector2(1f, 1f);
+            rt.pivot = new Vector2(.5f, .5f);
+            // the frame's growth reaches past the rect, as the score board's does
+            rt.sizeDelta = new Vector2(panelW + 2f * HudStyler.FrameOutX, panelH + 2f * HudStyler.FrameOutY);
+            rt.anchoredPosition = new Vector2(offset.x - panelW * .5f, offset.y - panelH * .5f);
+        }
     }
 
     // For previews and tests: lay the buttons out for a given screen rather
@@ -224,10 +307,9 @@ public class PauseQuickActions : MonoBehaviour
         safeArea.anchorMax = new Vector2(safe.xMax / screen.x, safe.yMax / screen.y);
         safeArea.offsetMin = safeArea.offsetMax = Vector2.zero;
         appliedBand = band;
+        appliedPanelH = DrawnPanelHeightPx(band, screen);
         bandApplied = true;
-        Vector2 offset = TopRightOffset(band, safe, screen);
-        PositionTopRight(replayClone, 0, offset);
-        PositionTopRight(leaveClone, 1, offset);
+        Layout(band, safe, screen);
     }
 
     // The band's top-right corner relative to the safe area's, in canvas units.
@@ -237,7 +319,7 @@ public class PauseQuickActions : MonoBehaviour
         return new Vector2((band.right - safe.xMax) / s, (band.top - safe.yMax) / s);
     }
 
-    static void PositionTopRight(GameObject go, int slotFromRight, Vector2 offset)
+    static void PositionTopRight(GameObject go, int slotFromRight, Vector2 offset, float panelHeight)
     {
         if (go == null) return;
         var rt = go.GetComponent<RectTransform>();
@@ -245,12 +327,13 @@ public class PauseQuickActions : MonoBehaviour
         rt.pivot = new Vector2(1f, 1f);
         rt.localScale = Vector3.one;
         rt.sizeDelta = new Vector2(ButtonSize, ButtonSize);
-        rt.anchoredPosition = new Vector2(offset.x - slotFromRight * (ButtonSize + ButtonGap), offset.y);
+        rt.anchoredPosition = new Vector2(offset.x - PanelPad - slotFromRight * (ButtonSize + ButtonGap),
+                                          offset.y - (panelHeight - ButtonSize) * .5f);
     }
 
-    // The icon carries its own plate, rim and glyph, so the button is just
-    // the sprite: no text label, no tint, no extra decoration.
-    static void StyleIcon(GameObject go, string resourcePath)
+    // The glyph is the whole button (the panel behind it is the frame): no
+    // text label, no tint, no extra decoration.
+    static void StyleIcon(GameObject go)
     {
         if (go == null) return;
 
@@ -263,8 +346,6 @@ public class PauseQuickActions : MonoBehaviour
         var image = go.GetComponent<Image>();
         if (image != null)
         {
-            var sprite = Resources.Load<Sprite>(resourcePath);
-            if (sprite != null) image.sprite = sprite;
             image.type = Image.Type.Simple;
             image.preserveAspect = true;
             image.color = Color.white;
@@ -284,16 +365,8 @@ public class PauseQuickActions : MonoBehaviour
             button.colors = colors;
         }
 
-        // Motion: a cartoon squash-and-pop on press, and now and then a hard
-        // BONE glint sweeping across the plate (render.sh --shine frames).
+        // Motion: a cartoon squash-and-pop on press.
         CelPress.AddTo(go);
-        if (image != null)
-        {
-            var shine = new Sprite[ShineFrames];
-            for (int i = 0; i < ShineFrames; i++)
-                shine[i] = Resources.Load<Sprite>(ShinePath(resourcePath, i));
-            UiShimmer.AddTo(image, shine, 4.5f, resourcePath == HomeIconPath ? 0.35f : 0f);
-        }
     }
 
     public const int ShineFrames = 4;
@@ -331,6 +404,7 @@ public class PauseQuickActions : MonoBehaviour
     {
         ApplySafeArea();
         PlaceButtons();
+        if (skinWorld != HudSkin.CurrentWorld) ApplySkin();
 
         // Once the pause stock is empty the run continues even with no finger
         // on screen. Leave remains available in that state as well.
@@ -341,6 +415,7 @@ public class PauseQuickActions : MonoBehaviour
         // Nothing to pause or leave by mid-crash: the sequence owns the screen
         // (a tap skips it) until the Flight Complete panel is up.
         if (DeathCrash.Running || KillCam.Playing) show = false;
+        if (panelImage != null) panelImage.gameObject.SetActive(show);
         if (replayClone != null) replayClone.SetActive(show);
         if (leaveClone != null) leaveClone.SetActive(show);
     }

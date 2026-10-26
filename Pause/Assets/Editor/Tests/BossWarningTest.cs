@@ -750,9 +750,9 @@ public static class BossWarningTest
                       (l.chipInBand ? " (in the band)" : " (under the icons)") + "; banner " + R(l.banner));
             Check(s.name + ": the chip (at its largest) is clear of the score read-out and the quick actions",
                   !l.chip.Overlaps(read) && !l.chip.Overlaps(actions));
-            // under the icons it is the band's second row: the top fifth on a phone, the top quarter on an unfolded screen
+            // under the icons (the button panel is as tall as the score board) it is the band's second row: the top quarter on a phone, the top 30% on an unfolded screen
             Check(s.name + ": the chip is inside the safe area, in the top band (its foot " + (l.chip.yMin / s.size.y).ToString("P0") + " up)",
-                  Inside(s.safe, l.chip) && l.chip.yMin > s.size.y * (s.size.x <= 1200f ? .8f : .75f));
+                  Inside(s.safe, l.chip) && l.chip.yMin > s.size.y * (s.size.x <= 1200f ? .75f : .7f));
             Check(s.name + ": the chip is big enough to read (" + (l.chip.width / BossWarningHud.ChipMaxPunch).ToString("F0") + " px wide)",
                   l.chip.width / BossWarningHud.ChipMaxPunch >= s.size.x * .1f);
             Check(s.name + ": the banner is inside the safe area, under the band, clear of all three",

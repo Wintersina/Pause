@@ -24,10 +24,49 @@ public class HudStyler : MonoBehaviour
 
     // The panel is a chamfered NIGHT plate with an INK contour and the red
     // title-card tab (Art/UI/Hud/src~/hud_panel.svg), drawn final.
-    const string PanelSprite = "Hud/hud_panel";
+    // (Per-world frames: HudSkin.)
     static readonly Color TextInk = AkiraPalette.WithAlpha(AkiraPalette.Ink, .95f);
 
+    // The world frames' growth along the top / bottom edges and corners is
+    // drawn this far OUTSIDE the panel's layout rect (canvas units), so it
+    // never reaches the text rows and the layout, the read-out's size and
+    // everything placed around it stay exactly as they were.
+    public const float FrameOutY = 10f, FrameOutX = 6f;
+    const string SkinFrameName = "SkinFrame";
+
+    // The read-out's authored size and canvas, for the button panel's height
+    // (ReadoutHeightFor). Set from the live read-out; gameS1's own numbers until then.
+    static float authoredHeight = 131f, authoredWidth = 351f;
+    static Vector2 authoredReference = new Vector2(800f, 600f);
+    static CanvasScaler.ScreenMatchMode authoredMode = CanvasScaler.ScreenMatchMode.MatchWidthOrHeight;
+    static float authoredMatch = 0f;
+
+    // The score board's height in px on `screen`, at full size (no lane shrink).
+    public static float ReadoutHeightFor(Vector2 screen)
+    {
+        return authoredHeight * ScaleWithScreenSize(screen, authoredReference, authoredMode, authoredMatch);
+    }
+
+    // How far the read-out shrinks to share the lane with the button panel (the
+    // width logic of ComputeHudLayout, from the authored size), so the panel can
+    // match the board's drawn height.
+    public static float ReadoutFitFor(TopBand.Frame band, Vector2 screen)
+    {
+        float hudScale = Mathf.Max(ScaleWithScreenSize(screen, authoredReference, authoredMode, authoredMatch), 0.0001f);
+        float actionScale = PauseQuickActions.CanvasScaleFor(screen);
+        float width = authoredWidth * hudScale;
+        float available = band.right - PauseQuickActions.PanelWidthUnits * actionScale - MinGapToActions * actionScale - band.left;
+        float fit = width > 0f && available < width ? Mathf.Max(0.1f, available / width) : 1f;
+        if (fit < TopBand.ReadoutMinScale && PauseQuickActions.RaisedByFloor(screen))
+        {
+            float full = band.right - band.left;
+            fit = width > 0f && full < width ? Mathf.Max(0.1f, full / width) : 1f;
+        }
+        return fit;
+    }
+
     Text speedText, pauseText;
+    int skinWorld = -1;
 
     // Reactive motion (unscaled: the HUD lives on through the freeze).
     // A stat that changes snaps to a punch pose for a couple of ticks.
@@ -51,6 +90,12 @@ public class HudStyler : MonoBehaviour
     void OnDestroy()
     {
         StackedReadout = default(Rect);
+        PauseQuickActions.LiveReadoutHeightPx = 0f;
+        authoredHeight = 131f;
+        authoredWidth = 351f;
+        authoredReference = new Vector2(800f, 600f);
+        authoredMode = CanvasScaler.ScreenMatchMode.MatchWidthOrHeight;
+        authoredMatch = 0f;
     }
 
     void Start()
@@ -76,6 +121,15 @@ public class HudStyler : MonoBehaviour
         {
             hudScaler = hudCanvas.GetComponent<CanvasScaler>();
             StylePanel(hudRoot);
+            skinWorld = HudSkin.CurrentWorld;
+            if (hudScaler != null && hudScaler.uiScaleMode == CanvasScaler.ScaleMode.ScaleWithScreenSize)
+            {
+                authoredHeight = hudRoot.rect.size.y;
+                authoredWidth = hudRoot.rect.size.x;
+                authoredReference = hudScaler.referenceResolution;
+                authoredMode = hudScaler.screenMatchMode;
+                authoredMatch = hudScaler.matchWidthOrHeight;
+            }
             // Pinned by its top-left corner from here on (see PlaceHud).
             hudRoot.anchorMin = hudRoot.anchorMax = hudRoot.pivot = new Vector2(0f, 1f);
             PlaceHud(true);
@@ -130,6 +184,8 @@ public class HudStyler : MonoBehaviour
         ComputeHudLayout(band, screen, hudScale, hudRoot.rect.size, out position, out fit, out stacked);
         hudRoot.anchoredPosition = position;
         hudRoot.localScale = new Vector3(fit, fit, 1f);
+        // the home / replay panel beside it matches this height
+        PauseQuickActions.LiveReadoutHeightPx = hudRoot.rect.size.y * hudScale * fit;
         StackedReadout = stacked ? HudScreenRect(band, screen, hudScale, hudRoot.rect.size) : default(Rect);
     }
 
@@ -201,6 +257,7 @@ public class HudStyler : MonoBehaviour
         float width = hudSize.x * hudScale;
         fitScale = width > 0f && available < width ? Mathf.Max(0.1f, available / width) : 1f;
         float top = band.top;
+        float panelH = PauseQuickActions.PanelHeightPx(screen);
         // only where UiScale's floor grew the actions (the trade-off it
         // brings); elsewhere the band is exactly as it always was
         stacked = fitScale < TopBand.ReadoutMinScale && PauseQuickActions.RaisedByFloor(screen);
@@ -210,7 +267,7 @@ public class HudStyler : MonoBehaviour
             fitScale = width > 0f && full < width ? Mathf.Max(0.1f, full / width) : 1f;
             // under the first row: the actions, and BOSS INCOMING's chip
             // beside them (its full punch) while a boss is coming
-            float row = Mathf.Max(PauseQuickActions.ButtonSize, BossWarningHud.ChipH * BossWarningHud.ChipMaxPunch) * actionScale;
+            float row = Mathf.Max(panelH, BossWarningHud.ChipH * BossWarningHud.ChipMaxPunch * actionScale);
             top = band.top - row - MinGapToActions * actionScale;
         }
         anchoredPosition = new Vector2(band.left / hudScale, (top - screen.y) / hudScale);
@@ -247,17 +304,31 @@ public class HudStyler : MonoBehaviour
     {
         var image = panel.GetComponent<Image>();
         if (image == null) return;
-        var sprite = Resources.Load<Sprite>(PanelSprite);
-        if (sprite != null)
+        // The scene's own panel image stays (invisible); the skin is a child
+        // that reaches past the rect by FrameOut*.
+        image.sprite = null;
+        image.color = new Color(1f, 1f, 1f, 0f);
+        var child = panel.Find(SkinFrameName);
+        Image frame;
+        if (child == null)
         {
-            image.sprite = sprite;
-            image.type = Image.Type.Sliced;
-            image.color = Color.white;
+            var go = new GameObject(SkinFrameName, typeof(RectTransform), typeof(Image));
+            go.transform.SetParent(panel, false);
+            go.transform.SetAsFirstSibling();
+            frame = go.GetComponent<Image>();
+            frame.raycastTarget = false;
+            frame.type = Image.Type.Sliced;
+            var rt = (RectTransform)go.transform;
+            rt.anchorMin = Vector2.zero; rt.anchorMax = Vector2.one;
+            rt.offsetMin = new Vector2(-FrameOutX, -FrameOutY);
+            rt.offsetMax = new Vector2(FrameOutX, FrameOutY);
+            var le = go.AddComponent<LayoutElement>();
+            le.ignoreLayout = true;
         }
-        else
-        {
-            image.color = AkiraPalette.WithAlpha(AkiraPalette.Night1, .88f);
-        }
+        else frame = child.GetComponent<Image>();
+        var sprite = HudSkin.Frame(HudSkin.CurrentWorld);
+        if (sprite != null) { frame.sprite = sprite; frame.color = Color.white; }
+        else frame.color = AkiraPalette.WithAlpha(AkiraPalette.Night1, .88f);
     }
 
     static Text Find(string name)
@@ -296,6 +367,11 @@ public class HudStyler : MonoBehaviour
         // mismatch in the tutorial) used to silently skip every stat here,
         // not just the one that could not be found.
         PlaceHud(false);
+        if (hudRoot != null && skinWorld != HudSkin.CurrentWorld)
+        {
+            skinWorld = HudSkin.CurrentWorld;
+            StylePanel(hudRoot);
+        }
 
         if (pauseText != null)
         {
