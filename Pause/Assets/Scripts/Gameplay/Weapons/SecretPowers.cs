@@ -289,6 +289,12 @@ public class SecretPowerController : MonoBehaviour
         if (c.ShellUp)
         {
             c.BreakShell();
+            // The shell took the hit the way a heart would have: the same
+            // post-hit window follows, so the next hazard of the same cluster
+            // (the same physics step, or right behind) does not meet a bare
+            // hull. Only here, for an absorbed hazard: a shell cracked on
+            // purpose (CrackShell, the SHELL BURST fusion) earns nothing.
+            PlayerInvuln.BeginPostHit();
             return true;
         }
         if (c.Ready && (c.loadout.trigger == PowerTrigger.ImminentHit || c.loadout.trigger == PowerTrigger.ThreatClose) && !buttonClicks.playerDied)

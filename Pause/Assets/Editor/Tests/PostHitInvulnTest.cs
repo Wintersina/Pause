@@ -45,6 +45,7 @@ public static class PostHitInvulnTest
         HullDrawsTheBlink();
         WorldClock();
         StacksWithShield();
+        HardShellHit();
         FatalHitUnchanged();
         AllShips();
         NoAllocations();
@@ -321,6 +322,36 @@ public static class PostHitInvulnTest
         r.Hit("rock2");
         Check("the window alone still protects", collisionDetection.lifeCounter == 1);
         r.Dispose();
+    }
+
+    // A hit the Hard Shell absorbs arms the same window a lost heart does.
+    // It used to arm nothing: the shell broke, the tight hull came back, and
+    // the next hazard of the same cluster (the same physics step, or right
+    // behind) cost a heart with no blink in between -- the one hit path
+    // without i-frames.
+    static void HardShellHit()
+    {
+        var r = new Rig(15, 4);   // Turtle, the Hard Shell ship
+        var s = SecretPowerController.Attach(r.ship, 15);
+        var shellLeft = typeof(SecretPowerController).GetField("shellLeft", Inst);
+        shellLeft.SetValue(s, 8f);   // the shell up, as Fire() leaves it
+        Check("the Turtle's shell is up", s.ShellUp && !PlayerInvuln.Active);
+        r.Hit("rock");
+        Check("the shell eats the hit: no heart, and the window is armed like a lost heart",
+              collisionDetection.lifeCounter == 0 && !s.ShellUp && s.ShellBreaks == 1 && Mathf.Approximately(PlayerInvuln.Remaining, D));
+        r.Hit("rock2");
+        Check("the next hazard of the same step passes through: still no heart", collisionDetection.lifeCounter == 0 && s.ShellBreaks == 1);
+        PlayerInvuln.Tick(D + .1f);
+        r.Hit("rock3");
+        Check("after the window a hit counts again and starts its own", collisionDetection.lifeCounter == 1 && PlayerInvuln.Active);
+
+        // a shell cracked on purpose (CrackShell: the SHELL BURST fusion) is an attack, not a hit taken
+        PlayerInvuln.Reset();
+        shellLeft.SetValue(s, 8f);
+        s.CrackShell();
+        Check("a shell cracked on purpose arms no window", !s.ShellUp && s.ShellBreaks == 2 && !PlayerInvuln.Active);
+        r.Dispose();
+        AttackPool.StopAll();
     }
 
     static void FatalHitUnchanged()
