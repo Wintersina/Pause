@@ -128,6 +128,10 @@ public class Hints : MonoBehaviour {
         retryLine = TutorialScript.Speak(TutorialScript.WallRetryLine);
         rescueLine = TutorialScript.Speak(TutorialScript.PauseRescueLine);
         tryAgainLine = TutorialScript.Speak(TutorialSafety.TryAgainLine);
+        ouchLine = TutorialScript.Speak(TutorialSafety.OuchLine);
+        playfulLine = TutorialScript.Speak(TutorialSafety.PlayfulLine);
+        pendingCrashes = 0;
+        pendingAtCap = false;
         skipOfferLine = TutorialScript.Speak(TutorialSafety.SkipOfferLine);
 
         speaker = RobotSpeaker.Create(font);
@@ -194,6 +198,7 @@ public class Hints : MonoBehaviour {
         if (current.cue == TutorialCue.SpawnWall) guides.ShowTouch(wall == null || !wall.Jumpable);
         TickTouchTarget(current);
         TickRecovery();
+        TickCrashes();
         TickWatchdog(current, dt);
         TickPauseRescue(current);
         // a rescue atom owns the arrow: it is the only thing the player needs
@@ -465,15 +470,63 @@ public class Hints : MonoBehaviour {
     void TickRecovery()
     {
         if (!TutorialSafety.ShouldRecover(true, buttonClicks.playerDied, endedAt >= 0f) || step < 0) return;
+        RecoverShip();
+    }
+
+    // A crash, from collisionDetection (the tutorial cannot be lost: the hit
+    // is felt -- flash, blast, damage look -- but the last heart stays).
+    public static void NoteCrash(bool atCap) { pendingCrashes++; pendingAtCap |= atCap; }
+    static int pendingCrashes;
+    static bool pendingAtCap;
+
+    int crashes, recoveries;
+    float lastCrashLine = -999f;
+    bool reshow;
+    SpokenLine ouchLine, playfulLine;
+
+    // Friendly lines for crashing about; the second crash in a row sets the
+    // ship back. Never scolds; the instruction comes back after each line.
+    void TickCrashes()
+    {
+        if (reshow && !FlyingIn && speaker.LineFinished && speaker.SinceLineFinished >= 1.5f && step >= 0 && endedAt < 0f)
+        {
+            reshow = false;
+            speaker.Say(lines[step]);
+        }
+        if (pendingCrashes <= 0) return;
+        crashes += pendingCrashes;
+        bool atCap = pendingAtCap;
+        pendingCrashes = 0;
+        pendingAtCap = false;
+        if (step < 0 || endedAt >= 0f) return;
+        var reply = TutorialSafety.DecideCrash(crashes, recoveries, atCap, Time.unscaledTime - lastCrashLine, !speaker.LineFinished, FlyingIn);
+        if (reply == TutorialSafety.CrashReply.Recover) { RecoverShip(); return; }
+        if (reply == TutorialSafety.CrashReply.None) return;
+        lastCrashLine = Time.unscaledTime;
+        speaker.Say(reply == TutorialSafety.CrashReply.Ouch ? ouchLine : playfulLine);
+        reshow = true;
+    }
+
+    // Every way a tutorial run can be lost funnels in here: a death that
+    // started anyway, or a hit on the last heart. The crash sequence is
+    // cancelled (no results, no panel), the ship zooms in again through the
+    // portal, the hearts are put right, the same step is set up again and the
+    // robot says so, then repeats what to do.
+    void RecoverShip()
+    {
         if (DeathCrash.Instance != null) DeathCrash.Instance.Cancel(true);
         buttonClicks.playerDied = false;
+        crashes = 0;
+        recoveries++;
         collisionDetection.lifeCounter = TutorialSafety.LifeCounterAfterRecovery(healed, collisionDetection.MAXLIFE);
         if (ship != null && !FlyingIn)
             flyIn = PortalArrival.SpawnDriven(ship.transform, WorldManager.Worlds[0].portalColor);
         TutorialWall.Clear();
         wall = null;
+        EndStep(TutorialScript.Steps[step]);
         BeginStep(step);
         speaker.Say(tryAgainLine);
+        reshow = true;
     }
 
     // ---- Out of pauses ----
