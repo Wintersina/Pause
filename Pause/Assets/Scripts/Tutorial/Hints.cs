@@ -624,6 +624,18 @@ public class Hints : MonoBehaviour {
                 if (wall == null) { signals.wallFrozenSeconds = 99f; signals.wallsCrossed++; }   // no wall to show: never stall here
                 break;
             case TutorialCue.PointAtWall:
+                // The wall is the freeze step's; it stays for the jump. But a
+                // watchdog reset or a crash recovery clears it with the step
+                // and begins this step again: with no wall there is nothing to
+                // cross, so bring one back (or, with none to show, never stall).
+                if (wall == null) wall = TutorialWall.Live;
+                if (wall == null)
+                {
+                    wallRetryLeft = -1f;
+                    wallCounted = false;
+                    wall = TutorialWall.Spawn(ship != null ? ship.transform : null);
+                    if (wall == null) signals.wallsCrossed++;
+                }
                 guides.ShowTouch(true);
                 break;
             case TutorialCue.SpawnEnemy:
