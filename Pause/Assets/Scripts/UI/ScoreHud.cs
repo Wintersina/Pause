@@ -488,6 +488,46 @@ public class ScoreHud : MonoBehaviour
         return p.text;
     }
 
+    // A big callout over a world position (the magnet + shield combo:
+    // MagnetCombo), in the popups' pool and motion but with its own size,
+    // hold and rise. One slot: a callout still on screen is replaced in
+    // place (restarted, its pop played again), never stacked.
+    int calloutSlot = -1;
+    string calloutText;
+    public Text ShowCallout(string text, Vector3 world, Color colour, int size, float seconds, float rise)
+    {
+        if (canvasRect == null || string.IsNullOrEmpty(text)) return null;
+        if (popups == null) BuildPopups();
+        int index;
+        if (CalloutShowing) index = calloutSlot;
+        else
+        {
+            index = nextPopup;
+            nextPopup = (nextPopup + 1) % popups.Length;
+        }
+        calloutSlot = index;
+        calloutText = text;
+        var p = popups[index];
+        p.text.text = text;
+        p.text.fontSize = size;
+        p.text.color = colour;
+        p.seconds = seconds;
+        p.rise = rise;
+        p.from = KeepInSafeArea(p.text, ToCanvas(world), p.rise);
+        p.age = 0f;
+        p.text.gameObject.SetActive(true);
+        p.text.transform.SetAsLastSibling();
+        p.text.rectTransform.anchoredPosition = p.from;
+        p.text.rectTransform.localScale = Vector3.zero;
+        popups[index] = p;
+        return p.text;
+    }
+
+    // Is the combo callout on screen (tests)?
+    // (the slot still holding the callout: a recycled "+N" there is not replaced)
+    public bool CalloutShowing => calloutSlot >= 0 && popups != null && calloutSlot < popups.Length && popups[calloutSlot].age >= 0f &&
+                                  ReferenceEquals(popups[calloutSlot].text.text, calloutText);
+
     static readonly string[] ChainLabels = { "", "", "x2", "x3", "x4" };
 
     // Stepped punch: 1 tick big, 2 ticks small, then rest (24 fps ticks).

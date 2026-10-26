@@ -188,8 +188,8 @@ public static class CodexCatalogue
                 () => Pickup(PickupKind.Magnet, "prefabs/" + MagnetPull.ObjectName),
                 "A horseshoe of pure polarity: grab one and every grain of star dust and every atom on screen is hauled " +
                 "into your hull. While your shield is up too - caught before or after - it sucks the enemies on screen " +
-                "in to break on the shield (bosses and elites hold their ground); caught shielded it tops the shield up by " +
-                MagnetPull.ShieldBonusSeconds.ToString("0") + " seconds, " +
+                "in to break on the shield (bosses and elites hold their ground), and catching either atom while the other " +
+                "runs restarts both together - keep catching them to keep the vacuum going, " +
                 "and like every atom it cuts " + BlueAtomCut + " off your weapon's charge. " +
                 "Only " + PickupRules.MagnetAtomsPerWorld + " drift through each world, and never mid-boss.",
                 new[] { "magnetatom" }),

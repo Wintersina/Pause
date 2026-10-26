@@ -59,8 +59,8 @@ public static class MagnetAtomTest
               spawner.Contains("PickupRules.MagnetAtomsPerWorld") && spawner.Contains("!BossEncounter.Running"));
         Check("ScoreRules.MagnetAtom is an atom's worth and RunScore scores it by that value",
               ScoreRules.MagnetAtom == ScoreRules.PauseAtom && RunScore.AtomPoints(RunScore.Atom.Magnet) == ScoreRules.MagnetAtom);
-        Check("the shield bonus is 2 s and the pull is short",
-              MagnetPull.ShieldBonusSeconds == 2f && MagnetPull.PullSeconds == 6f && MagnetPull.ExtendSeconds == 2f && MagnetPull.MaxSeconds == 10f);
+        Check("the pull is 6 s, the shield 5.8 s, and synced they both run the longer 6 s",
+              MagnetPull.PullSeconds == 6f && collisionDetection.ShieldAtomSeconds == 5.8f && MagnetCombo.SyncSeconds == 6f);
         string coll = File.ReadAllText("Assets/Scripts/Ship/collisionDetection.cs");
         int mi = coll.IndexOf("MagnetPull.ObjectName)");
         int me = mi < 0 ? -1 : coll.IndexOf("Destroy(hit.gameObject)", mi);
@@ -109,7 +109,7 @@ public static class MagnetAtomTest
         Check("no shield up: ExtendShield does nothing", !collisionDetection.ExtendShield(2f) && collisionDetection.invTimer == 1f);
         collisionDetection.atomCheck = true;
         collisionDetection.invTimer = 3.5f;
-        Check("shield up: +2 s on its clock", collisionDetection.ExtendShield(MagnetPull.ShieldBonusSeconds) &&
+        Check("shield up: +2 s on its clock", collisionDetection.ExtendShield(2f) &&
               Mathf.Approximately(collisionDetection.invTimer, 5.5f));
         collisionDetection.atomCheck = false;
         collisionDetection.invTimer = 0f;
@@ -205,25 +205,27 @@ public static class MagnetAtomTest
     {
         var ship = NewShip();
         startMenu.youAreInTutorial = false;
-        Check("no pull running: a shield catch extends nothing", !MagnetPull.OnShieldCaught() || MagnetPull.Active == null || MagnetPull.Active.Running);
         var soft = Enemy(new Vector3(2f, 3f, 0f));
         Vector3 start = soft.transform.position;
         collisionDetection.atomCheck = false;
+        collisionDetection.invTimer = 0f;
         var pull = MagnetPull.Begin(ship);
         pull.Step(.1f);
         Check("pull lasts 6 s", Mathf.Approximately(pull.Duration, 6f) && pull.Remaining > 5.8f);
         Check("unshielded pull leaves enemies alone", soft.transform.position == start && !pull.Shielded);
-        collisionDetection.atomCheck = true;   // the shield atom is caught
-        Check("shield caught mid-pull is accepted", MagnetPull.OnShieldCaught());
-        Check("pull is 2 s longer", Mathf.Approximately(pull.Duration, 8f));
+        // the shield atom is caught (collisionDetection's shield branch)
+        collisionDetection.atomCheck = true;
+        collisionDetection.invTimer = collisionDetection.ShieldAtomSeconds;
+        collisionDetection.SyncMagnetShield(false, ship.transform.position);
+        Check("shield caught mid-pull: both restart to the synced length",
+              Mathf.Approximately(pull.Remaining, MagnetCombo.SyncSeconds) && Mathf.Approximately(collisionDetection.invTimer, MagnetCombo.SyncSeconds) && pull.Synced);
         pull.Step(.1f);
+        collisionDetection.invTimer -= .1f;
         Check("enemies are now pulled in", (soft.transform.position - start).magnitude > .1f && pull.Shielded);
-        MagnetPull.OnShieldCaught(); MagnetPull.OnShieldCaught();
-        Check("total is capped", Mathf.Approximately(pull.Duration, MagnetPull.MaxSeconds));
         collisionDetection.atomCheck = false;   // shield runs out
         Vector3 held = soft.transform.position;
         pull.Step(.1f);
-        Check("enemy pull stops with the shield", !pull.Shielded && soft.transform.position == held && pull.EnemiesLocked == 0);
+        Check("synced: the pull ends with the shield, enemies let go", !pull.Shielded && !pull.Running && soft.transform.position == held && pull.EnemiesLocked == 0);
         pull.End();
         Check("End stops the pull", !pull.Running);
         Object.DestroyImmediate(ship);

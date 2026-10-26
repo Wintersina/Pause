@@ -23,25 +23,25 @@ using UnityEngine;
 //     shots and beams, rail mines, rocks / asteroids, backdrop scenery, and
 //     nothing at all in the tutorial.
 //
-//   Catching the magnet with a shield up tops the shield up by
-//   ShieldBonusSeconds (collisionDetection.ExtendShield, done by the caller);
-//   a shield caught while the pull runs adds ExtendSeconds to the pull (cap
-//   MaxSeconds). Death ends the pull.
+//   RANGE: everything inside MagnetCombo.PullRect (90% of the visible rect's
+//   area, from the live camera), for the goodies and the enemies alike.
+//
+//   SYNC: catching the magnet with the shield up, or the shield while the
+//   magnet runs, restarts BOTH to MagnetCombo.SyncSeconds (collisionDetection
+//   calls Sync); from then on the pull ends the frame the shield does, so the
+//   two end together. Every further catch of either restarts both again
+//   (chaining, by design without limit). Death ends the pull.
 //
 // Per frame it walks ClearTarget's live registry once: nothing allocates.
 public class MagnetPull : MonoBehaviour
 {
     public const string ObjectName = "magnetAtom";
     public const string Word = "MAGNET";
-    public const string ShieldedWord = "MAGNET +2s SHIELD";
 
-    public const float ShieldBonusSeconds = 2f;
-    public const string ShieldExtendedWord = "SHIELD + MAGNET +2s";
     public const float PullSeconds = 6f;                          // was 1.4 s
-    public const float ExtendSeconds = 2f;                        // a shield caught mid-pull adds this
-    public const float MaxSeconds = 10f;                          // the pull never runs longer than this in total
     public const float DustRampSeconds = 1.4f;
     public const float DustSpeedStart = 8f, DustSpeedEnd = 24f;   // u/s, ramping over DustRampSeconds
+    public const float SyncSlack = .05f;                          // s: a synced pull follows the shield's clock within this
     public const float StopDistance = .3f;                        // a pulled enemy hands over to the shield's collision at this range
 
     public static float DustSpeed(float elapsed)
@@ -75,6 +75,10 @@ public class MagnetPull : MonoBehaviour
     public static int Pulls { get; private set; }               // atoms collected this session (tests)
     // The enemy pull is on (magnet running AND shield up), as of the last step.
     public bool Shielded { get; private set; }
+    // Restarted together with the shield (Sync): the pull ends with the shield.
+    public bool Synced { get; private set; }
+    // Catches in the current unbroken combo (1 = it just started; MagnetCombo.NextChain).
+    public static int Chain { get; private set; }
     public float ComboSeconds { get; private set; }             // how long the enemy pull has been on (its ramp)
     public float Elapsed { get; private set; }
     public float Duration { get; private set; } = PullSeconds;
@@ -99,20 +103,34 @@ public class MagnetPull : MonoBehaviour
         if (pull == null) pull = ship.AddComponent<MagnetPull>();
         pull.Elapsed = 0f;
         pull.Duration = PullSeconds;
+        pull.Synced = false;
         Active = pull;
         Pulls++;
         return pull;
     }
 
-    // A shield caught while the pull runs: +ExtendSeconds (capped at
-    // MaxSeconds in total). False if no pull is running (nothing to extend).
-    // (The enemy pull itself needs nothing from here: the shield being up is
-    // enough, MagnetCombo.)
-    public static bool OnShieldCaught()
+    // Is a magnet pull running right now?
+    public static bool MagnetRunning
+    {
+        get { var p = Active; return p != null && p.isActiveAndEnabled && p.Running; }
+    }
+
+    // Magnet running and the blue-atom shield up (the timers; the enemy pull
+    // also stays off in the tutorial).
+    public static bool ComboOn => MagnetRunning && ShieldUp;
+
+    // Restarts the running pull to `seconds` in step with the shield (the
+    // caller sets the shield's clock to the same) and counts the chain.
+    // `comboBefore`: both were already up before this catch. False if no
+    // pull is running.
+    public static bool Sync(float seconds, bool comboBefore)
     {
         var pull = Active;
         if (pull == null || !pull.isActiveAndEnabled || !pull.Running) return false;
-        pull.Duration = Mathf.Min(pull.Duration + ExtendSeconds, MaxSeconds);
+        pull.Elapsed = 0f;
+        pull.Duration = seconds;
+        pull.Synced = true;
+        Chain = MagnetCombo.NextChain(Chain, comboBefore);
         return true;
     }
 
@@ -121,6 +139,8 @@ public class MagnetPull : MonoBehaviour
     {
         Elapsed = Duration;
         Shielded = false;
+        Synced = false;
+        Chain = 0;
         ComboSeconds = 0f;
         ReleaseAll();
     }
@@ -142,17 +162,31 @@ public class MagnetPull : MonoBehaviour
         DraggedLast = DustLast = AtomsLast = 0;
 
         bool shield = ShieldUp, tutorial = Tutorial;
+        if (Synced)
+        {
+            // restarted with the shield: never outlasts it, ends the frame it does
+            if (!shield) { Elapsed = Duration; Shielded = false; Synced = false; Chain = 0; ComboSeconds = 0f; ReleaseAll(); return; }
+            // the two clocks run the same world time: the pull reads the
+            // shield's, so they cannot drift apart by a frame. (Only a shield
+            // topped up well past it -- a premium Aegis shield -- is left to
+            // run on alone after the pull.)
+            float left = Mathf.Max(0f, collisionDetection.invTimer);
+            if (left <= Remaining + SyncSlack) Elapsed = Duration - left;
+            if (!Running) { Shielded = false; Synced = false; Chain = 0; ComboSeconds = 0f; ReleaseAll(); return; }
+        }
         bool combo = MagnetCombo.EnemyPullActive(true, shield, tutorial);
         if (combo) ComboSeconds += dt;
         else
         {
             ComboSeconds = 0f;
             if (enemyCount > 0) Release(enemies, ref enemyCount);   // either power ended: let them go now
+            if (!shield) Chain = 0;
         }
         Shielded = combo;
 
         Rect view = ShipTargets.View();
         float enemySpeed = MagnetCombo.EnemySpeed(ComboSeconds, view.height);
+        Rect field = MagnetCombo.PullRect(view);
         var live = ClearTarget.Live;
         for (int i = 0; i < live.Count; i++)
         {
@@ -160,7 +194,7 @@ public class MagnetPull : MonoBehaviour
             if (t == null || !t.isActiveAndEnabled) continue;
             var go = t.gameObject;
             Vector3 p = go.transform.position;
-            if (!view.Contains(p)) continue;
+            if (!field.Contains(p)) continue;
             if (!combo && !go.CompareTag("pickUp")) continue;   // magnet alone: only goodies, skip the lookups
             var kind = KindOf(t);
             if (!MagnetCombo.Pulls(kind, true, shield, tutorial)) continue;
@@ -178,7 +212,7 @@ public class MagnetPull : MonoBehaviour
             if (kind == MagnetCombo.Kind.Dust) DustLast++; else AtomsLast++;
         }
 
-        if (!Running) { Shielded = false; ComboSeconds = 0f; ReleaseAll(); }
+        if (!Running) { Shielded = false; Synced = false; Chain = 0; ComboSeconds = 0f; ReleaseAll(); }
     }
 
     static void Lock(GameObject go, Behaviour[] into, ref int count)
