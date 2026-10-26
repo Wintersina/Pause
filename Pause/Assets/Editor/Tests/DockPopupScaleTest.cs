@@ -47,6 +47,9 @@ public static class DockPopupScaleTest
         {
             string strip = ShipFxArt.PowerStripName(ShipLoadoutTable.For(ship).power);
             if (strip == null) continue;
+            // a superseded generic strip stays deleted, and the preview never falls back to it
+            if (!ShipFxArt.DrawsGenericPowerStrip(ShipLoadoutTable.For(ship).power))
+                flightArt &= ShipFxArt.Strip(ship, true) == null;
             var own = ShipFxArt.Strip(ship, strip);
             PowerPreview.Fill(ship, true, cells);
             flightArt &= own != null && cells[0] != null && cells[0].texture == own[0].texture;

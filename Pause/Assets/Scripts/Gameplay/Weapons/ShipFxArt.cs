@@ -68,6 +68,26 @@ public static class ShipFxArt
         return null;
     }
 
+    // False for the powers whose flight draws only their own strip (PowerStripName): those ships have no
+    // <ShipKey>_power.png any more. The rest (EMP's stun marks, Dove's feather burst, the decoy flare...) still
+    // draw the generic one beside or instead of it.
+    public static bool DrawsGenericPowerStrip(SecretPower power)
+    {
+        switch (power)
+        {
+            case SecretPower.ShieldPulse:
+            case SecretPower.SolarNova:
+            case SecretPower.PhaseCloak:
+            case SecretPower.GoldMagnet:
+            case SecretPower.Thunderclap:
+            case SecretPower.TractorPull:
+            case SecretPower.HardShell:
+            case SecretPower.AegisShield:
+                return false;
+        }
+        return true;
+    }
+
     // The same, for any named strip of the ship: "attack_mark" -> <ShipKey>_attack_mark.png.
     public static Sprite[] Strip(int ship, string suffix)
     {
