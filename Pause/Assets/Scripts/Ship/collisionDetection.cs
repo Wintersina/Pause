@@ -347,7 +347,7 @@ public class collisionDetection : MonoBehaviour {
                 if (!PrefabName.Is(hit.gameObject, "mine")) EnemyDeathAudio.Play(hit.gameObject);
                 lifeCounter += 1;
                 // the tutorial keeps its last heart whatever hits it
-                if (TutorialCannotDie(gameObject)) lifeCounter = Mathf.Min(lifeCounter, MAXLIFE - 1);
+                if (TutorialCannotDie(gameObject)) { Hints.NoteCrash(lifeCounter >= MAXLIFE); lifeCounter = Mathf.Min(lifeCounter, MAXLIFE - 1); }
                 AdaptiveDifficulty.OnHeartTaken();
                 ScoreMultiplier.OnHeartLost();   // the max-speed streak ends with the heart
                 // what took the heart (or the last one): the run summary's HURT BY / KILLED BY and the
