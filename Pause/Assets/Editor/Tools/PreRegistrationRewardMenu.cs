@@ -10,4 +10,11 @@ public static class PreRegistrationRewardMenu
         if (!Application.isPlaying) { Debug.Log("[PreReg] enter play mode first"); return; }
         Debug.Log("[PreReg] simulate: " + PreRegistrationReward.Simulate());
     }
+
+    [MenuItem("Pause/Billing/Simulate support purchase (+2,500 dust)")]
+    static void SimulateSupport()
+    {
+        if (!Application.isPlaying) { Debug.Log("[Support] enter play mode first"); return; }
+        Debug.Log("[Support] simulate: " + SupportPurchase.Simulate());
+    }
 }

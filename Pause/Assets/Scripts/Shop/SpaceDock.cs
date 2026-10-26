@@ -88,6 +88,10 @@ public class SpaceDock : MonoBehaviour
         DeveloperUnlocks.Changed += RefreshStatuses;
         ParagonPurchase.Changed -= RefreshStatuses;
         ParagonPurchase.Changed += RefreshStatuses;
+        SupportPurchase.Changed -= OnSupportChanged;
+        SupportPurchase.Changed += OnSupportChanged;
+        SupportPurchase.Rewarded -= OnSupportRewarded;
+        SupportPurchase.Rewarded += OnSupportRewarded;
         BackNavigator.Register(this, OnBackPressed);
     }
 
@@ -95,6 +99,8 @@ public class SpaceDock : MonoBehaviour
     {
         DeveloperUnlocks.Changed -= RefreshStatuses;
         ParagonPurchase.Changed -= RefreshStatuses;
+        SupportPurchase.Changed -= OnSupportChanged;
+        SupportPurchase.Rewarded -= OnSupportRewarded;
         BackNavigator.Unregister(this);
         if (Instance == this) Instance = null;
     }
@@ -103,8 +109,23 @@ public class SpaceDock : MonoBehaviour
     {
         DeveloperUnlocks.Changed -= RefreshStatuses;
         ParagonPurchase.Changed -= RefreshStatuses;
+        SupportPurchase.Changed -= OnSupportChanged;
+        SupportPurchase.Rewarded -= OnSupportRewarded;
         BackNavigator.Unregister(this);
         if (Instance == this) Instance = null;
+    }
+
+    // The support button follows Play's price; a payout refreshes the dust read-out.
+    void OnSupportChanged()
+    {
+        var go = SceneUtil.FindAny(SupportButton.Name);
+        var button = go != null ? go.GetComponent<SupportButton>() : null;
+        if (button != null) button.Refresh();
+    }
+
+    void OnSupportRewarded(int amount)
+    {
+        if (shop != null) shop.RefreshStarDust();
     }
 
     // BackNavigator layer. While launching, Back is swallowed (the choice is
@@ -211,6 +232,10 @@ public class SpaceDock : MonoBehaviour
         DeveloperUnlocks.Changed += RefreshStatuses;
         ParagonPurchase.Changed -= RefreshStatuses;
         ParagonPurchase.Changed += RefreshStatuses;
+        SupportPurchase.Changed -= OnSupportChanged;
+        SupportPurchase.Changed += OnSupportChanged;
+        SupportPurchase.Rewarded -= OnSupportRewarded;
+        SupportPurchase.Rewarded += OnSupportRewarded;
         BackNavigator.Register(this, OnBackPressed);
         cam = Camera.main;
         // Beyond the starfield (wide windows) show deep space, not the
@@ -271,7 +296,7 @@ public class SpaceDock : MonoBehaviour
     {
         header.Clear();
         footer.Clear();
-        foreach (string name in new[] { "starDustText", "~DockInstruction" })
+        foreach (string name in new[] { "starDustText", "~DockInstruction", SupportButton.Name })
         {
             var go = SceneUtil.FindAny(name);
             if (go != null && go.transform is RectTransform) header.Add((RectTransform)go.transform);
@@ -788,6 +813,7 @@ public class SpaceDock : MonoBehaviour
             UiScaleFloor.Configure(scaler, new Vector2(720, 960), FooterH + FooterTapPad, UiScaleFloor.SceneTextUnits);
         }
         if (canvas == null) return;
+        SupportButton.Build(canvas.transform);
         PlaceFooter("BackButton", canvas.transform, -1);
         PlaceFooter("PlayButton", canvas.transform, 1);
 
@@ -822,7 +848,7 @@ public class SpaceDock : MonoBehaviour
 
     // Authored header / footer positions (canvas units, reference 720x960),
     // measured from the safe area's edges.
-    const float DustY = -27f, InstructionY = -60f;
+    const float DustY = -27f, InstructionY = -60f, SupportY = -102f;
     const float FooterY = 24f, FooterW = 260f, FooterH = 64f, FooterGap = 40f, FooterSide = 20f;
     // The footer buttons' hit areas reach this far above their art (a
     // finger-sized target on short phones without bigger art). Only upwards:
@@ -857,6 +883,7 @@ public class SpaceDock : MonoBehaviour
     {
         Place("starDustText", DustY, true);
         Place("~DockInstruction", InstructionY, true);
+        Place(SupportButton.Name, SupportY, true);
         foreach (string name in new[] { "BackButton", "PlayButton" })
         {
             var go = SceneUtil.FindAny(name);
