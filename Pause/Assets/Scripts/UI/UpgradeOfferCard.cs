@@ -71,6 +71,10 @@ public class UpgradeOfferCard : MonoBehaviour
         card.Build(rootRt, balance);
         card.shownAt = Time.unscaledTime;
         card.Apply(0f);
+        // Android Back = NO THANKS (as on the ship offer card). Without a
+        // layer, Back fell through to the scene root: home screen, no results
+        // panel, and the decline never recorded for the backoff.
+        BackNavigator.Register(card, card.OnBack);
         return card;
     }
 
@@ -163,12 +167,27 @@ public class UpgradeOfferCard : MonoBehaviour
         Finish(false);
     }
 
+    // The Back layer: a press while the card is up declines it.
+    bool OnBack()
+    {
+        if (finished) return false;
+        Decline();
+        return true;
+    }
+
     void Finish(bool bought)
     {
         finished = true;
+        BackNavigator.Unregister(this);
         var done = onDone;
-        Destroy(gameObject);
+        if (Application.isPlaying) Destroy(gameObject);
+        else DestroyImmediate(gameObject);
         if (done != null) done(bought);
+    }
+
+    void OnDestroy()
+    {
+        BackNavigator.Unregister(this);
     }
 
     void Update()
