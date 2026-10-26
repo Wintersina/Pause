@@ -320,6 +320,7 @@ public static class AllTests
         ("TutorialParityTest", TutorialParityTest.Execute),
         ("TutorialRobotTest", TutorialRobotTest.Execute),
         ("TutorialPolishTest", TutorialPolishTest.Execute),
+        ("TutorialSafetyTest", TutorialSafetyTest.Execute),
         ("TutorialRebuildTest", TutorialRebuildTest.Execute),
         ("TideLoopSoakTest", TideLoopSoakTest.Execute),
         ("TransitionChargeTest", TransitionChargeTest.Execute),

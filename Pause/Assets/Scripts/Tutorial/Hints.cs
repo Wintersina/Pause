@@ -65,7 +65,7 @@ public class Hints : MonoBehaviour {
     TutorialGuides guides;
     TutorialSkip skip;
     SpokenLine[] lines;
-    SpokenLine closingLine, retryLine, rescueLine;
+    SpokenLine closingLine, retryLine, rescueLine, tryAgainLine;
     Text pauseReadout;
     RectTransform hudPanel;
     readonly Vector3[] corners = new Vector3[4];
@@ -127,6 +127,7 @@ public class Hints : MonoBehaviour {
         closingLine = TutorialScript.Speak(TutorialScript.ClosingLine);
         retryLine = TutorialScript.Speak(TutorialScript.WallRetryLine);
         rescueLine = TutorialScript.Speak(TutorialScript.PauseRescueLine);
+        tryAgainLine = TutorialScript.Speak(TutorialSafety.TryAgainLine);
 
         speaker = RobotSpeaker.Create(font);
         guides = TutorialGuides.Create(speaker.Root);
@@ -190,6 +191,8 @@ public class Hints : MonoBehaviour {
         else if (current.cue == TutorialCue.SpawnWall || current.cue == TutorialCue.PointAtWall) guides.PointAt(wall != null && wall.OnScreen && wall.Pieces.Count > 0 ? wall.Pieces[wall.Pieces.Count / 2] : null);
         // the wall still on its way in: a lifted finger gets the touch pulse (touch to bring it in)
         if (current.cue == TutorialCue.SpawnWall) guides.ShowTouch(wall == null || !wall.Jumpable);
+        TickTouchTarget(current);
+        TickRecovery();
         TickPauseRescue(current);
         // a rescue atom owns the arrow: it is the only thing the player needs
         if (spawnGoodStuffTut.LiveAtom != null && AtomFor(current.cue) == TutorialAtom.None) guides.PointAt(spawnGoodStuffTut.LiveAtom);
@@ -382,6 +385,41 @@ public class Hints : MonoBehaviour {
             wallCounted = false;
             speaker.Say(retryLine);
         }
+    }
+
+    // ---- The touch ring: it sits where the step says to touch ----
+
+    // Jump step: above the wall. Strike step: on the alien. (Home, low on the
+    // screen, is only right for the steps that say "touch anywhere".)
+    void TickTouchTarget(TutorialStep current)
+    {
+        if (current.cue == TutorialCue.PointAtWall && wall != null && wall.Jumpable)
+        {
+            float x = ship != null ? ship.transform.position.x : 0f;
+            guides.ShowTouchAt(TutorialSafety.JumpTouchPoint(x, wall.JumpTargetY, RailInset.PickupLaneHalf));
+        }
+        else if (current.cue == TutorialCue.SpawnEnemy && TutorialEnemy.Live != null)
+            guides.ShowTouchAt(TutorialEnemy.Live.position);
+    }
+
+    // ---- A death is taken back ----
+
+    // Normally the tutorial cannot be lost (collisionDetection.TutorialCannotDie).
+    // Should a death start anyway, take it back: stop the crash, bring the ship
+    // in again through the portal, put the hearts right, say so, and retry the
+    // same step (BeginStep sets its objects up again; finished steps stay done).
+    void TickRecovery()
+    {
+        if (!TutorialSafety.ShouldRecover(true, buttonClicks.playerDied, endedAt >= 0f) || step < 0) return;
+        if (DeathCrash.Instance != null) DeathCrash.Instance.Cancel(true);
+        buttonClicks.playerDied = false;
+        collisionDetection.lifeCounter = TutorialSafety.LifeCounterAfterRecovery(healed, collisionDetection.MAXLIFE);
+        if (ship != null && !FlyingIn)
+            flyIn = PortalArrival.SpawnDriven(ship.transform, WorldManager.Worlds[0].portalColor);
+        TutorialWall.Clear();
+        wall = null;
+        BeginStep(step);
+        speaker.Say(tryAgainLine);
     }
 
     // ---- Out of pauses ----
