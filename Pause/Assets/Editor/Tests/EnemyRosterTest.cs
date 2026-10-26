@@ -152,7 +152,10 @@ public static class EnemyRosterTest
                               path.EndsWith("/" + RailMineArt.AtlasPathFor(w) + ".png") &&
                               Array.IndexOf(EnemyArt.Frames(d), sr.sprite) >= 0 && EnemyArt.Frames(d)[0] == RailMineArt.Frame(w, RailMineArt.Dormant));
                     else
-                        Check(W(w) + " " + d.key + " draws from its own strip", path.EndsWith("/Enemies/" + d.key + ".png"));
+                        Check(W(w) + " " + d.key + " draws from its own strip",
+                              path.EndsWith("/Enemies/" + d.key + ".png") ||
+                              // The obsidian shard is drawn in one of five glass colours: the roster strip or a re-hued copy (ObsidianShards).
+                              (ObsidianShards.Applies(d) && path.Contains("/Enemies/Variants/" + d.key + "_")));
                     UnityEngine.Object.DestroyImmediate(go);
                 }
         foreach (var d in EnemyRoster.For(0, EnemyRole.Rock))
