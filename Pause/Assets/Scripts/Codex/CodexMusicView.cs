@@ -255,6 +255,10 @@ public sealed class CodexMusicView
     // Repaints every row, the strip and the STOP button from the unlock state and the player.
     public void Paint()
     {
+        // Still subscribed after the codex went with its scene (the tab was
+        // open, so Hide never ran): the player's Stop on the scene load fires
+        // Changed and this would touch a destroyed root. Let go instead.
+        if (root == null) { CodexMusicPlayer.Changed -= Paint; return; }
         if (rows == null || !root.gameObject.activeSelf) return;
         string now = CodexMusicPlayer.NowPlaying;
         for (int i = 0; i < shownCount; i++)
