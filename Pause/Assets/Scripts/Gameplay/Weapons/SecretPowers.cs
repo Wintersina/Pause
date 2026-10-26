@@ -18,6 +18,8 @@ using UnityEngine;
 public class SecretPowerController : MonoBehaviour
 {
     public const float Full = 100f;
+    // The Dove's Mending recharges at half speed (cooldown doubled): every dust and kill adds half as much.
+    public const float MendingFillScale = .5f;
 
     [Header("Meter")]
     public float perSmallDust = 3f;
@@ -174,6 +176,7 @@ public class SecretPowerController : MonoBehaviour
         if (amount <= 0f) return;
         // a timed meter (Aegis Shield) fills with time only
         if (loadout.power == SecretPower.AegisShield) return;
+        if (loadout.power == SecretPower.Mending) amount *= MendingFillScale;
         meter = Mathf.Min(Full, meter + amount);
     }
 
