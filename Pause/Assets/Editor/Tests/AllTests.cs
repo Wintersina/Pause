@@ -145,6 +145,7 @@ public static class AllTests
         ("DeathDominoTest", DeathDominoTest.Execute),
         ("DeathComboTest", DeathComboTest.Execute),
         ("DeathPanelTest", DeathPanelTest.Execute),
+        ("DeathNameLayoutTest", DeathNameLayoutTest.Execute),
         ("DeveloperModeTest", DeveloperModeTest.Execute),
         ("DeveloperUiStartTest", DeveloperUiStartTest.Execute),
         ("DifficultyRebalanceTest", DifficultyRebalanceTest.Execute),
