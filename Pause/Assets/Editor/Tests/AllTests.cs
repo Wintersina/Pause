@@ -152,6 +152,7 @@ public static class AllTests
         ("PlayerStartWorldTest", PlayerStartWorldTest.Execute),
         ("SoundMuteTest", SoundMuteTest.Execute),
         ("UpgradeOfferTest", UpgradeOfferTest.Execute),
+        ("ShipOfferTest", ShipOfferTest.Execute),
         ("DeathHapticsTest", DeathHapticsTest.Execute),
         ("PrivacyLinkTest", PrivacyLinkTest.Execute),
         ("EliteTest", EliteTest.Execute),

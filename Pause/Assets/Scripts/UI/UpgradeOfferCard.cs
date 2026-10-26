@@ -187,11 +187,11 @@ public class UpgradeOfferCard : MonoBehaviour
         }
     }
 
-    // ---- small builders (same as DeathPanelView's) ----
+    // ---- small builders (same as DeathPanelView's; ShipOfferCard shares them) ----
 
-    static Sprite Load(string name) { return Resources.Load<Sprite>(SpriteRoot + name); }
+    internal static Sprite Load(string name) { return Resources.Load<Sprite>(SpriteRoot + name); }
 
-    static Image NewImage(string name, Transform parent, Sprite sprite, Color color)
+    internal static Image NewImage(string name, Transform parent, Sprite sprite, Color color)
     {
         var go = new GameObject(name, typeof(RectTransform), typeof(Image));
         go.transform.SetParent(parent, false);
@@ -219,7 +219,7 @@ public class UpgradeOfferCard : MonoBehaviour
         return text;
     }
 
-    static void Fit(Text t, int min, int max)
+    internal static void Fit(Text t, int min, int max)
     {
         t.horizontalOverflow = HorizontalWrapMode.Wrap;
         t.resizeTextForBestFit = true;
@@ -227,27 +227,27 @@ public class UpgradeOfferCard : MonoBehaviour
         t.resizeTextMaxSize = max;
     }
 
-    static void Outline(GameObject go, Color color, float distance)
+    internal static void Outline(GameObject go, Color color, float distance)
     {
         var o = go.GetComponent<Outline>() ?? go.AddComponent<Outline>();
         o.effectColor = color;
         o.effectDistance = new Vector2(distance, -distance);
     }
 
-    static void Place(RectTransform rt, Rect r)
+    internal static void Place(RectTransform rt, Rect r)
     {
         rt.anchorMin = rt.anchorMax = rt.pivot = new Vector2(.5f, .5f);
         rt.anchoredPosition = r.center;
         rt.sizeDelta = r.size;
     }
 
-    static void Stretch(RectTransform rt)
+    internal static void Stretch(RectTransform rt)
     {
         rt.anchorMin = Vector2.zero; rt.anchorMax = Vector2.one;
         rt.offsetMin = rt.offsetMax = Vector2.zero;
     }
 
-    static Rect Centered(float x, float y, float w, float h)
+    internal static Rect Centered(float x, float y, float w, float h)
     {
         return new Rect(x - w * .5f, y - h * .5f, w, h);
     }
