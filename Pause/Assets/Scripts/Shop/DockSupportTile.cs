@@ -7,12 +7,12 @@ using UnityEngine;
 // a price for its pack (Android with a store), so iOS, the editor and a device
 // without Play never see one.
 //
-// Art: the optional sprite Resources/Vfx/support_developer_2500_ui (smaller for
-// the smaller pack); the dock's own star-dust glyph when it is missing. Static
+// Art: the optional sprite Resources/Vfx/<productId>_ui (support_developer_850_ui,
+// support_developer_2500_ui; drawn smaller for the smaller pack); the dock's own star-dust glyph when it is missing. Static
 // once built: no Update, text is rebuilt only when the price changes.
 public class DockSupportTile : MonoBehaviour
 {
-    public const string IconResource = "Vfx/support_developer_2500_ui";
+    public static string IconResource(SupportPurchase.Pack p) { return "Vfx/" + p.productId + "_ui"; }
     const float IconExtent = .64f;   // world units, the longest edge at full size
 
     public SupportPurchase.Pack pack;
@@ -39,7 +39,7 @@ public class DockSupportTile : MonoBehaviour
     {
         pack = p;
         var plate = Sprite("Berth", DockArt.Get("bay"), Vector3.zero, DockBay.OrderBay);
-        var art = Resources.Load<Sprite>(IconResource);
+        var art = Resources.Load<Sprite>(IconResource(p));
         bool fallback = art == null;
         icon = Sprite("Icon", fallback ? DockArt.Get("icon_dust") : art, new Vector3(0f, .17f, 0f), DockBay.OrderShip);
         if (icon.sprite != null)
