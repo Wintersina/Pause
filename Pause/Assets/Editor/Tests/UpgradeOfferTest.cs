@@ -25,6 +25,7 @@ public static class UpgradeOfferTest
             Backoff();
             Store();
             HeartsText();
+            Card();
         }
         Debug.Log("[OFFER] failures: " + fails);
         return fails;
@@ -118,6 +119,51 @@ public static class UpgradeOfferTest
 
         var big = new R.State { streak = R.StreakCap, lastRunDied = true };
         Check("the streak is capped", R.OnDeath(big).streak == R.StreakCap);
+    }
+
+    // The card itself: Android Back is NO THANKS (a Back layer, like the ship
+    // offer card). It used to have no layer, so Back fell through to the scene
+    // root: home screen, no results panel, no decline recorded.
+    static void Card()
+    {
+        DeveloperUnlocks.SetEnabled(false);
+        ClearShips();
+        PlayerPrefs.SetString(ShipId.OwnedKey(1), "True");
+        PlayerPrefs.SetFloat(StarDustLedger.CurrencyKey, 100000f);
+        UpgradeOfferStore.RunStarted(); UpgradeOfferStore.RunDied();
+        UpgradeOfferStore.RunStarted(); UpgradeOfferStore.RunDied();
+        R.Candidate c;
+        if (!UpgradeOfferStore.TryGetOffer(out c)) { Check("an offer to draw", false); return; }
+        var font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        var canvasGo = new GameObject("~UpgradeOfferTestCanvas", typeof(RectTransform), typeof(Canvas));
+        canvasGo.GetComponent<Canvas>().renderMode = RenderMode.ScreenSpaceOverlay;
+        var loadScene = BackNavigator.LoadScene;
+        string loaded = null;
+        BackNavigator.LoadScene = s => loaded = s;   // the scene root would load the home screen
+        try
+        {
+            int layers = BackNavigator.LayerCount;
+            int declined = PlayerPrefs.GetInt(UpgradeOfferStore.DeclinedKey);
+            int doneCount = 0; bool doneBought = true;
+            var card = UpgradeOfferCard.Show(canvasGo.transform, font, c, 100000f, b => { doneCount++; doneBought = b; });
+            Check("the card is a Back layer (like the ship offer)", BackNavigator.IsRegistered(card) && BackNavigator.LayerCount == layers + 1);
+            BackNavigator.Back();
+            Check("Back declines: the results follow, the decline is recorded, no scene change",
+                  doneCount == 1 && !doneBought && card == null &&
+                  PlayerPrefs.GetInt(UpgradeOfferStore.DeclinedKey) == declined + 1 && loaded == null);
+            Check("and its layer is gone", BackNavigator.LayerCount == layers);
+
+            // NO THANKS still closes, and takes the layer with it
+            doneCount = 0;
+            card = UpgradeOfferCard.Show(canvasGo.transform, font, c, 100000f, b => { doneCount++; doneBought = b; });
+            card.DeclineButton.onClick.Invoke();
+            Check("NO THANKS closes and unregisters", doneCount == 1 && !doneBought && card == null && BackNavigator.LayerCount == layers);
+        }
+        finally
+        {
+            BackNavigator.LoadScene = loadScene;
+            Object.DestroyImmediate(canvasGo);
+        }
     }
 
     static void ClearShips()
