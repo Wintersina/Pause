@@ -1,0 +1,5 @@
+Use your built-in image generation tool to REDRAW the attached reference image (night_a.png: a top-down aerial view of a bioluminescent NIGHT jungle forest, 887x1774 portrait) with MUDDIER BROWN ROOTS. KEEP the composition, trees, colours and the night mood exactly; only the roots change.
+
+ROOTS (new direction): wherever the image shows tree roots, root tangles, river-bank roots, big gnarled root masses, trunks and vines at the base of trunks, redraw them as earthy MUD-BROWN, wet soil-caked wood: warm umber and chestnut with darker wet-mud shadows, clay and silt browns, a damp sheen, mud splatter and silt lines where roots meet water, pale dried-mud highlights, visible grain and knots, moss only in small patches. Clearly brown, muddy and earthy: not green-tinted, not grey.
+This becomes the PLAY layer behind a shooter with brown bullets: keep the mud browns DARK and LOW-SATURATION here (darker than the far layer), so brown projectiles stay visible.
+HARD RULES: hi-res pixel art, crisp square pixels, no outlines, no text, no blur, no pink additions. Output: copy the generated image to ./night_a2.png in your current working directory and reply with one line.

@@ -1,0 +1,1 @@
+Redrawn terrain saved to [night_b.png](./night_b.png).
