@@ -45,6 +45,21 @@ public sealed class KillCamRecorder : MonoBehaviour
     // Only what a camera drew last frame is recorded (edit-mode tests, where nothing renders, turn this off).
     public static bool RequireVisible = true;
 
+    // The blast renderers (TargetExplosion's pooled flipbooks, LegacyExplosionFx):
+    // their entries carry KillCamEntry.Blast so the replay can keep the
+    // collision beat clear of the death's explosion (KillCamStage.ContactRule).
+    // Keyed by renderer instance id: a lookup per sprite, no allocation.
+    static readonly HashSet<int> blasts = new HashSet<int>();
+
+    public static void TagBlast(SpriteRenderer sr, bool on)
+    {
+        if (sr == null) return;
+        if (on) blasts.Add(sr.GetInstanceID());
+        else blasts.Remove(sr.GetInstanceID());
+    }
+
+    public static bool IsBlast(SpriteRenderer sr) { return sr != null && blasts.Contains(sr.GetInstanceID()); }
+
     readonly List<GameObject> roots = new List<GameObject>(64);
     readonly List<Renderer> scratch = new List<Renderer>(512);
     readonly List<Renderer> found = new List<Renderer>(1024);
@@ -269,7 +284,8 @@ public sealed class KillCamRecorder : MonoBehaviour
                 e.order = (short)Mathf.Clamp(sr.sortingOrder, short.MinValue, short.MaxValue);
                 var mode = sr.drawMode;
                 e.flags = (byte)((sr.flipX ? KillCamEntry.FlipX : 0) | (sr.flipY ? KillCamEntry.FlipY : 0) |
-                                 ((int)mode << KillCamEntry.DrawModeShift));
+                                 ((int)mode << KillCamEntry.DrawModeShift) |
+                                 (blasts.Count > 0 && blasts.Contains(e.track) ? KillCamEntry.Blast : 0));
                 e.size = mode != SpriteDrawMode.Simple ? sr.size : Vector2.zero;
                 entryWrite = (entryWrite + 1) % EntryCap;
                 n++;

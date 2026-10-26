@@ -38,6 +38,7 @@ public static class KillCamTest
             Clips();
             Tape(made);
             Death(made);
+            Contact(made);
             Busy(made);
             Replay(made);
             Blend(made);
@@ -356,6 +357,9 @@ public static class KillCamTest
         var killer = Make("~KillCamTestKiller");
         var blast = Make("~KillCamTestBlast");
         blast.enabled = false;
+        KillCamRecorder.TagBlast(blast, true);   // what TargetExplosion / LegacyExplosionFx do for their renderers
+        var piece = Make("~KillCamTestPiece");    // a hull piece: not a blast
+        piece.enabled = false;
 
         // 2 s of flight, the killer closing in
         const float dt = 1f / 60f;
@@ -373,6 +377,7 @@ public static class KillCamTest
         // the death: the hull gone, a blast in its place, on the crash's clock
         ship.enabled = false;
         blast.enabled = true;
+        piece.enabled = true;
         int steps = 0;
         long control;
         bool meter = TestHarness.AllocMeterWorks(out control);
@@ -405,6 +410,13 @@ public static class KillCamTest
         int last = clip.frameCount - 1;
         Check("the clip's last frames are the death: the blast, no hull",
               Has(last, blastTrack, out tmp) && !Has(last, shipTrack, out tmp) && Has(last - 1, blastTrack, out tmp));
+        // the death's explosion is on the tape, tagged, and only after the collision frame
+        int pieceTrack = piece.GetInstanceID(), firstBlast = -1;
+        for (int f = 0; f < clip.frameCount && firstBlast < 0; f++) if (Has2(clip, f, blastTrack)) firstBlast = f;
+        KillCamEntry be, pe;
+        Check("the blast is tagged on the tape (KillCamEntry.Blast), the hull piece beside it is not",
+              Has(last, blastTrack, out be) && be.IsBlast && Has(last, pieceTrack, out pe) && !pe.IsBlast);
+        Check("the blast's first frame comes after the collision frame (" + firstBlast + " > " + hitFrame + ")", firstBlast > hitFrame);
         Check("the replay runs slowest at the collision, livelier before and after it",
               clip.Rate(clip.ImpactTime) < clip.Rate(0f) && clip.Rate(clip.ImpactTime) < clip.Rate(clip.EndTime) &&
               Mathf.Approximately(clip.Rate(clip.ImpactTime), KillCamClip.SlowRate));
@@ -437,6 +449,59 @@ public static class KillCamTest
               !Has2(after, after.frameCount - 1, blastTrack));
         rec.StopRecording();
         rec.Clear();
+        KillCamRecorder.TagBlast(blast, false);
+    }
+
+    // The contact beat: the replay keeps the collision clear of the death's
+    // explosion. A blast entry (tagged on the tape) fades in beneath the hull
+    // pieces and the killer over the crash's hit-stop after the impact, then
+    // plays as recorded. The live look is untouched (a replay-only rule).
+    static void Contact(System.Collections.Generic.List<Object> made)
+    {
+        Check("the clear window is the crash's hit-stop, the blast goes beneath the pieces and the killer",
+              Mathf.Approximately(KillCamStage.ContactClearSeconds, DeathCrash.HitStop) && KillCamStage.BelowContactOrder < DeathCrash.PieceOrder);
+        var c = new Color(1f, 1f, 1f, .8f); int order = 70;
+        KillCamStage.ContactRule(-.01f, ref c, ref order);
+        Check("before the impact a blast draws as recorded", Mathf.Approximately(c.a, .8f) && order == 70);
+        c = new Color(1f, 1f, 1f, .8f); order = 70;
+        KillCamStage.ContactRule(0f, ref c, ref order);
+        Check("at the impact it is invisible and beneath", c.a == 0f && order == KillCamStage.BelowContactOrder);
+        c = new Color(1f, 1f, 1f, .8f); order = 70;
+        KillCamStage.ContactRule(KillCamStage.ContactClearSeconds * .5f, ref c, ref order);
+        Check("half way through the hit-stop it is fading in, still beneath", c.a > 0f && c.a < .8f && order == KillCamStage.BelowContactOrder);
+        c = new Color(1f, 1f, 1f, .8f); order = 70;
+        KillCamStage.ContactRule(KillCamStage.ContactClearSeconds, ref c, ref order);
+        Check("from the end of the hit-stop it draws as recorded", Mathf.Approximately(c.a, .8f) && order == 70);
+        c = new Color(1f, 1f, 1f, .8f); order = 50;
+        KillCamStage.ContactRule(0f, ref c, ref order);
+        Check("something already beneath is not lifted", order == 50);
+
+        // the stage applies it to tagged entries only, around the clip's impact
+        var sprite = MakeSprite(made, Color.white);
+        var clip = MakeClip(sprite, 4, .1f, 1f);   // frames at 0, .1, .2, .3 s
+        clip.impact = .1f;
+        for (int f = 1; f < 4; f++)
+        {
+            var e = clip.entries[f * 2];   // track 7 is the blast from the impact frame on
+            e.flags |= KillCamEntry.Blast;
+            e.order = 70;
+            clip.entries[f * 2] = e;
+        }
+        var holder = new GameObject("~KillCamTestContactStage");
+        made.Add(holder);
+        var stage = new KillCamStage(holder.transform, "Stage");
+        stage.Draw(clip, .1f);
+        var blast = stage.SpriteAt(0);
+        var other = stage.SpriteAt(1);
+        Check("at the impact frame the blast is drawn invisible and beneath; the untagged sprite as recorded",
+              blast.color.a < 1e-3f && blast.sortingOrder == KillCamStage.BelowContactOrder && other.sortingOrder == 3 && Mathf.Abs(other.color.a - 128f / 255f) < .01f);
+        stage.Draw(clip, .1f + KillCamStage.ContactClearSeconds * .5f);
+        Check("half way through the hit-stop it is fading in", blast.color.a > .1f && blast.color.a < .9f && blast.sortingOrder == KillCamStage.BelowContactOrder);
+        stage.Draw(clip, .3f);
+        Check("after the hit-stop it draws as recorded (order 70, full alpha)", blast.sortingOrder == 70 && blast.color.a > .99f);
+        stage.Draw(clip, 0f);
+        Check("before the impact the same track, untagged, is untouched", stage.SpriteAt(0).sortingOrder == 5 && stage.SpriteAt(0).color.a > .99f);
+        stage.Hide();
     }
 
     static bool Has2(KillCamClip clip, int frame, int track)
@@ -638,7 +703,7 @@ public static class KillCamTest
         p.counts = new[] { 1, 1 };
         p.meshCounts = new[] { 0, 0 };
         p.entries.Add(new KillCamArchive.PEntry { track = 0, sprite = 0, material = -1, order = 4, pos = new Vector3(1.5f, 2f, 0f), m00 = 1f, m11 = 1f, color = new Color32(255, 255, 255, 255) });
-        p.entries.Add(new KillCamArchive.PEntry { track = 0, sprite = 0, material = -1, order = 4, pos = new Vector3(1.75f, 2f, 0f), m00 = 1f, m11 = 1f, color = new Color32(255, 255, 255, 255) });
+        p.entries.Add(new KillCamArchive.PEntry { track = 0, sprite = 0, material = -1, order = 4, pos = new Vector3(1.75f, 2f, 0f), m00 = 1f, m11 = 1f, color = new Color32(255, 255, 255, 255), flags = KillCamEntry.Blast });
         var bytes = KillCamArchive.Serialize(p);
         var back = KillCamArchive.Deserialize(bytes);
         Check("the file round-trips", back != null && back.frames == 2 && back.entries.Count == 2 && back.meta.SameAs(p.meta) &&
@@ -647,6 +712,8 @@ public static class KillCamTest
         Check("a loaded clip starts at 0, its entries back in world space, its sprite from the atlas",
               loaded != null && loaded.clip.frameCount == 2 && loaded.clip.time[0] == 0f && Mathf.Abs(loaded.clip.time[1] - .05f) < 1e-4f &&
               Mathf.Abs(loaded.clip.Entry(1, 0).pos.y - 2.5f) < .01f && loaded.clip.Entry(0, 0).sprite != null);
+        Check("the blast tag survives the file (the codex's replay clears the contact beat too)",
+              loaded != null && loaded.clip.Entry(1, 0).IsBlast && !loaded.clip.Entry(0, 0).IsBlast);
         if (loaded != null) loaded.Dispose();
         var wrong = (byte[])bytes.Clone();
         wrong[4] = 99;

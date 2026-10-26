@@ -73,6 +73,7 @@ public class LegacyExplosionFx : MonoBehaviour
             fx = go.AddComponent<LegacyExplosionFx>();
             fx.sr = go.AddComponent<SpriteRenderer>();
             fx.sr.sortingOrder = SortingOrder;
+            KillCamRecorder.TagBlast(fx.sr, true);   // a blast on the kill cam's tape (KillCamStage.ContactRule)
         }
         fx.clock = 0f;
         fx.sr.sprite = f[0];
