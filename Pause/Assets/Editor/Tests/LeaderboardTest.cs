@@ -44,6 +44,7 @@ public static class LeaderboardTest
             RunTagsAndParagon();
             FurthestLoopShipHearts();
             PausesColumn();
+            PausesAtDeath();
             ConfirmBeforeDone();
             AccountBinding();
             BackfillGates();
@@ -741,6 +742,87 @@ public static class LeaderboardTest
         var panel = OpenPanel(fake);
         panel.SelectBoard(LeaderboardBoards.FurthestWorld);
         return panel.PanelRoot.Find("List/Rows/Row0/Pauses") == null;
+    }
+
+    // ---- the pauses a run died with reach the board ----
+
+    static void Invoke(object target, string method, params object[] args)
+    {
+        var m = target.GetType().GetMethod(method, System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Public);
+        m.Invoke(target, args);
+    }
+
+    static void SetField(object target, string name, object value)
+    {
+        target.GetType().GetField(name, System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).SetValue(target, value);
+    }
+
+    static void PausesAtDeath()
+    {
+        int savedPauses = score.pauseCounter;
+        bool savedDied = buttonClicks.playerDied;
+        var go = new GameObject("~tracker-test");
+        try
+        {
+            // Alive with 7 pauses left -> died -> End: the tag carries p7, and a
+            // later teardown / app pause (ended) sends nothing more.
+            RealRunContext();
+            var fake = new FakeLeaderboards();
+            var service = Service(fake);
+            var tracker = go.AddComponent<LeaderboardRunTracker>();
+            score.pauseCounter = 7;
+            buttonClicks.playerDied = false;
+            Invoke(tracker, "Start");
+            SetField(tracker, "runScore", 500L);
+            Invoke(tracker, "Sample");
+            buttonClicks.playerDied = true;
+            Invoke(tracker, "End");
+            Check("death: Stats reports the pauses left (7)", tracker.Stats().hasPauses && tracker.Stats().endPauses == 7);
+            string tag = LeadboardTag(LeaderboardService.PendingKey, LeaderboardBoards.TopScore);
+            Check("death: queued tag has p7 and e0", tag.EndsWith("e0p7"));
+            // The next scene resets the static; nothing may re-sample it.
+            score.pauseCounter = 0;
+            Invoke(tracker, "OnApplicationPause", true);
+            Invoke(tracker, "OnDestroy");
+            Check("death: teardown after End keeps the p7 tag", LeadboardTag(LeaderboardService.PendingKey, LeaderboardBoards.TopScore).EndsWith("e0p7")
+                  && tracker.Stats().endPauses == 7);
+            // Pause counter over the cap is capped, a negative one reads 0.
+            score.pauseCounter = 150;
+            Check("tag: 150 pauses caps at p99", LeaderboardRunTag.Encode(7, 4, 0, 150) == "s7h4e0p99");
+
+            // A run that does not beat the stored best keeps the stored entry.
+            RealRunContext();
+            fake = new FakeLeaderboards();
+            service = Service(fake);
+            service.Offer(LeaderboardBoards.TopScore, 1000, "s7h4e0p0");
+            Check("lower score with more pauses does not replace the stored entry", !service.Offer(LeaderboardBoards.TopScore, 900, "s7h4e0p9"));
+            Check("tie with a known pauses count does not replace it (the first run's pauses stay)", !service.Offer(LeaderboardBoards.TopScore, 1000, "s7h4e0p9"));
+            Check("a better score replaces it with the new run's pauses", service.Offer(LeaderboardBoards.TopScore, 1100, "s7h4e0p9")
+                  && LeadboardTag(LeaderboardService.PendingKey, LeaderboardBoards.TopScore) == "s7h4e0p9");
+
+            // A tag without pauses never replaces a known count; a known count fills an unknown one.
+            RealRunContext();
+            service = Service(new FakeLeaderboards());
+            var table = new LeaderboardService.ScoreTable();
+            table.Set(LeaderboardBoards.TopScore, 1000, "s7h4e0p5");
+            table.Save(LeaderboardService.SubmittedKey);
+            Check("a tied tag with no pauses never overwrites a known count", !service.Offer(LeaderboardBoards.TopScore, 1000, "s7h4e0"));
+            table = new LeaderboardService.ScoreTable();
+            table.Set(LeaderboardBoards.TopScore, 1000, "s7h4e0");
+            table.Save(LeaderboardService.SubmittedKey);
+            Check("a tied tag with pauses fills an unknown count", service.Offer(LeaderboardBoards.TopScore, 1000, "s7h4e0p5"));
+
+            // Unknown pauses stay unknown (hasPauses false) rather than a real 0.
+            var unknown = FakeLeaderboards.Entry(1, "A", 10, false, 7, 4, 0);
+            var zero = FakeLeaderboards.Entry(2, "B", 9, false, 7, 4, 0, 0);
+            Check("an entry without a p part is unknown, p0 is a real 0", !unknown.hasPauses && zero.hasPauses && zero.pauses == 0);
+        }
+        finally
+        {
+            score.pauseCounter = savedPauses;
+            buttonClicks.playerDied = savedDied;
+            Object.DestroyImmediate(go);
+        }
     }
 
     static string LeadboardTag(string key, string board)
