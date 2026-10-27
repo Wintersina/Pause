@@ -66,8 +66,8 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
     public const float ButtonWidth = 288f, ButtonHeight = 100f;
     // Card-local columns: labels start right of the accent bar, values end
     // with the same inset from the right edge on every row.
-    const float LabelLeft = -CardWidth * .5f + 40f;
-    const float ValueRight = CardWidth * .5f - 28f;
+    const float LabelLeft = -CardWidth * .5f + 44f;
+    const float ValueRight = CardWidth * .5f - 44f;
 
     // The panel grew by 116 for the SPACE DOCK row (a button plus a 16 gap)
     // and by 76 for the KILLED BY card (64 plus a 12 gap); everything above
@@ -99,7 +99,7 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
     // nine rows in the same card.
     public const float BreakdownFirstRowY = 64f, BreakdownRowStep = 21f, BreakdownRowHeight = 21f;
     public const string LoopsRowName = "Loops";
-    const float CountRight = 96f;
+    const float CountRight = 84f;
     public static Rect PanelRect { get { return Centered(0f, 0f, Width, Height); } }
 
     // ---- Timeline (seconds of unscaled time since the panel appeared) ----
@@ -289,8 +289,8 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
         // Star dust: the earned amount and the new total on separate lines,
         // both right-aligned on the same column as the score.
         Place(dustValue.rectTransform, Centered(ValueRight - 150f, 13f, 300f, 52f));
-        dustValue.fontSize = 44;
-        dustTotal = NewText("Total", cards[2], "", 20, Muted, TextAnchor.MiddleRight);
+        dustValue.fontSize = 40;
+        dustTotal = NewText("Total", cards[2], "", 18, Muted, TextAnchor.MiddleRight);
         Place(dustTotal.rectTransform, Centered(ValueRight - 150f, -28f, 300f, 26f));
 
         // Burst origins: roughly the middle of the right-aligned digits.
@@ -310,7 +310,7 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
             var p = NewImage("NewBest", cards[0], Load("dp_pill"), Gold);
             p.type = Image.Type.Sliced;
             Place(p.rectTransform, Centered(LabelLeft + 72f, -20f, 144f, 32f));
-            var label = NewText("Label", p.rectTransform, "NEW BEST", 18, AkiraPalette.Ink, TextAnchor.MiddleCenter);
+            var label = NewText("Label", p.rectTransform, "NEW BEST", 16, AkiraPalette.Ink, TextAnchor.MiddleCenter);
             Stretch(label.rectTransform);
             pill = p.rectTransform;
         }
@@ -341,7 +341,7 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
     {
         if (unusedSceneText != null) unusedSceneText.gameObject.SetActive(false);
         var card = CardBody(1, Coral);
-        var title = NewText("Label", card, "BREAKDOWN", 22, Coral, TextAnchor.MiddleLeft);
+        var title = NewText("Label", card, "BREAKDOWN", 20, Coral, TextAnchor.MiddleLeft);
         Place(title.rectTransform, Centered(LabelLeft + 100f, BreakdownTitleY, 200f, 30f));
         AddOutline(title.gameObject, Ink, 1.5f);
 
@@ -357,11 +357,11 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
             var rt = (RectTransform)row.transform;
             Place(rt, Centered(0f, y, CardWidth - 40f, BreakdownRowHeight));
 
-            var label = NewText("Label", rt, BreakdownLabels[i], 19, Bone, TextAnchor.MiddleLeft);
+            var label = NewText("Label", rt, BreakdownLabels[i], 17, Bone, TextAnchor.MiddleLeft);
             Place(label.rectTransform, new Rect(LabelLeft, -BreakdownRowHeight * .5f, 200f, BreakdownRowHeight));
-            var count = NewText("Count", rt, counts[i] >= 0 ? counts[i].ToString() : "", 19, Muted, TextAnchor.MiddleRight);
+            var count = NewText("Count", rt, counts[i] >= 0 ? counts[i].ToString() : "", 17, Muted, TextAnchor.MiddleRight);
             Place(count.rectTransform, new Rect(CountRight - 90f, -BreakdownRowHeight * .5f, 90f, BreakdownRowHeight));
-            var value = NewText("Points", rt, "0", 21, rowPoints[i] > 0 ? Bone : Muted, TextAnchor.MiddleRight);
+            var value = NewText("Points", rt, "0", 19, rowPoints[i] > 0 ? Bone : Muted, TextAnchor.MiddleRight);
             Place(value.rectTransform, new Rect(ValueRight - 160f, -BreakdownRowHeight * .5f, 160f, BreakdownRowHeight));
             AddOutline(value.gameObject, Ink, 1.5f);
             rowValues[i] = value;
@@ -374,11 +374,11 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
     // KILLED BY <name> over HURT BY <names>: what ended the run and what chipped at it.
     // Nothing is made up: an unknown killer shows a dash, no earlier hits reads "NO OTHER HITS".
     public const int HurtLineChars = 28;   // names fit the 520 px line at HurtFontSize before "+N more"
-    const int HurtFontSize = 19, HurtMinFontSize = 18;   // 19 units stays >= 7 dp on the smallest (480x854) phones
+    const int HurtFontSize = 18, HurtMinFontSize = 18;   // 18 units stays >= 7 dp on the smallest (480x854) phones
     public static string KilledByLabel(Results r) { return string.IsNullOrEmpty(r.killedBy) ? "-" : r.killedBy; }
     public static string HurtByLabel(Results r) { return string.IsNullOrEmpty(r.hurtBy) ? "NO OTHER HITS" : r.hurtBy.ToUpperInvariant(); }
 
-    const int KilledFontSize = 24, KilledMinFontSize = 18;
+    const int KilledFontSize = 22, KilledMinFontSize = 18;
 
     RectTransform BuildKilledBy()
     {
@@ -431,11 +431,11 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
         var rt = (RectTransform)row.transform;
         Place(rt, Centered(0f, y, CardWidth - 40f, BreakdownRowHeight));
 
-        var label = NewText("Label", rt, "LOOPS", 19, Gold, TextAnchor.MiddleLeft);
+        var label = NewText("Label", rt, "LOOPS", 17, Gold, TextAnchor.MiddleLeft);
         Place(label.rectTransform, new Rect(LabelLeft, -BreakdownRowHeight * .5f, 200f, BreakdownRowHeight));
-        var count = NewText("Count", rt, LoopsCount(results.parts), 19, results.parts.loops > 0 ? Gold : Muted, TextAnchor.MiddleRight);
+        var count = NewText("Count", rt, LoopsCount(results.parts), 17, results.parts.loops > 0 ? Gold : Muted, TextAnchor.MiddleRight);
         Place(count.rectTransform, new Rect(CountRight - 90f, -BreakdownRowHeight * .5f, 90f, BreakdownRowHeight));
-        var value = NewText("Points", rt, BestMultiplierLabel(results.parts), 21, Gold, TextAnchor.MiddleRight);
+        var value = NewText("Points", rt, BestMultiplierLabel(results.parts), 19, Gold, TextAnchor.MiddleRight);
         Place(value.rectTransform, new Rect(ValueRight - 160f, -BreakdownRowHeight * .5f, 160f, BreakdownRowHeight));
         AddOutline(value.gameObject, Ink, 1.5f);
     }
@@ -463,18 +463,18 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
 
         // Label column: name on top, a quieter sub-label (or the NEW BEST
         // capsule) underneath, both starting just right of the accent bar.
-        var title = NewText("Label", card, label, 26, accent, TextAnchor.MiddleLeft);
+        var title = NewText("Label", card, label, 23, accent, TextAnchor.MiddleLeft);
         Place(title.rectTransform, Centered(LabelLeft + 150f, 18f, 300f, 36f));
         AddOutline(title.gameObject, Ink, 1.5f);
         if (sub != null)
         {
-            var subText = NewText("Sub", card, sub, 18, Muted, TextAnchor.MiddleLeft);
+            var subText = NewText("Sub", card, sub, 16, Muted, TextAnchor.MiddleLeft);
             Place(subText.rectTransform, Centered(LabelLeft + 150f, -20f, 300f, 28f));
         }
 
         // The scene's own Text becomes the value, so playerIsDead's serialized
         // references keep pointing at the number the player reads.
-        AdoptSceneText(value, card, 56, Bone, TextAnchor.MiddleRight);
+        AdoptSceneText(value, card, 50, Bone, TextAnchor.MiddleRight);
         value.fontStyle = FontStyle.Bold;
         Place(value.rectTransform, Centered(ValueRight - 130f, 0f, 260f, 80f));
         AddOutline(value.gameObject, Ink, 2f);
@@ -566,10 +566,10 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
 
         // Icon + label as one centred group.
         var text = button.GetComponentInChildren<Text>(true);
-        if (text == null) text = NewText("Label", rt, label, 28, Bone, TextAnchor.MiddleLeft);
+        if (text == null) text = NewText("Label", rt, label, 24, Bone, TextAnchor.MiddleLeft);
         text.text = label;
         text.font = font;
-        text.fontSize = 28;
+        text.fontSize = 24;
         text.fontStyle = FontStyle.Bold;
         text.color = Bone;
         text.alignment = TextAnchor.MiddleLeft;
@@ -579,7 +579,7 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
         text.gameObject.SetActive(true);
         AddOutline(text.gameObject, Ink, 1.5f);
 
-        const float iconSize = 40f, gap = 14f;
+        const float iconSize = 32f, gap = 12f;
         float textWidth = Mathf.Ceil(text.preferredWidth);
         bool showIcon = glyph != null;
         float group = textWidth + (showIcon ? iconSize + gap : 0f);

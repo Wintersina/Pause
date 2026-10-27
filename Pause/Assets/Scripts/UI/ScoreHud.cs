@@ -40,7 +40,7 @@ public class ScoreHud : MonoBehaviour
     public const string ChainName = "Chain";
     // One row (33) and the layout group's gap (7) in gameS1's read-out.
     public const float RowStep = 40f;
-    public const int FontSize = 22;
+    public const int FontSize = 19;
     public const int PopupPool = 12;
 
     static readonly Color ScoreColour = AkiraPalette.Bone;
@@ -80,7 +80,8 @@ public class ScoreHud : MonoBehaviour
     // The row the LOOP badge sits on (gameS1's pause counter).
     public const string LoopRowName = "PauseCounter";
     public const float BadgeWidth = 132f;
-    public const int BadgeFontSize = 22;
+    public const float BadgeInset = 10f;   // clear space between a right-aligned badge and the frame
+    public const int BadgeFontSize = 19;
 
     // The read-out scores only outside the tutorial.
     public static bool ShouldShow(Text speedText)
@@ -137,9 +138,9 @@ public class ScoreHud : MonoBehaviour
             crt.anchorMax = new Vector2(1f, 1f);
             crt.pivot = new Vector2(1f, .5f);
             crt.sizeDelta = new Vector2(64f, 0f);
-            crt.anchoredPosition = Vector2.zero;
+            crt.anchoredPosition = new Vector2(-BadgeInset, 0f);
             hud.chainText = chain.GetComponent<Text>();
-            Style(hud.chainText, hud.font, 22, ChainColour, TextAnchor.MiddleRight);
+            Style(hud.chainText, hud.font, 19, ChainColour, TextAnchor.MiddleRight);
             hud.chainText.text = "";
 
             Grow(rows, RowStep);
@@ -175,7 +176,7 @@ public class ScoreHud : MonoBehaviour
         rt.anchorMax = new Vector2(1f, 1f);
         rt.pivot = new Vector2(1f, .5f);
         rt.sizeDelta = new Vector2(BadgeWidth, 0f);
-        rt.anchoredPosition = Vector2.zero;
+        rt.anchoredPosition = new Vector2(-BadgeInset, 0f);
         var t = go.GetComponent<Text>();
         Style(t, font, BadgeFontSize, AkiraPalette.Cyan, TextAnchor.MiddleRight);
         t.text = "";
