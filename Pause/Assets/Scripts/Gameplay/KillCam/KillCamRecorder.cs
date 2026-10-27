@@ -65,6 +65,10 @@ public sealed class KillCamRecorder : MonoBehaviour
     readonly List<Renderer> found = new List<Renderer>(1024);
     readonly Dictionary<int, bool> scrollQuad = new Dictionary<int, bool>(32);
 
+    // The rings are the one big allocation (EntryCap entries: ~8 MB on the
+    // large-object heap): paid once, because the recorder outlives its scene
+    // (Ensure). They stay per instance: a static entry ring made the capture
+    // read as allocating under the GC's accounting (KillCamTest).
     readonly KillCamEntry[] ring = new KillCamEntry[EntryCap];
     readonly KillCamMeshEntry[] meshRing = new KillCamMeshEntry[MeshCap];
     readonly float[] fTime = new float[FrameCap];
@@ -90,7 +94,26 @@ public sealed class KillCamRecorder : MonoBehaviour
         if (Instance != null) return Instance;
         var go = new GameObject("~KillCamRecorder");
         Instance = go.AddComponent<KillCamRecorder>();
+        // One recorder for the whole session (play mode): its ~8 MB rings used
+        // to be allocated again by every gameS1 load, and left to the
+        // collector with the old scene. A scene change stops the tape and
+        // drops its references (OnSceneLoaded), so it never tapes a menu or
+        // pins a dead scene's sprites; the next run's BeginRun clears again.
+        if (Application.isPlaying)
+        {
+            DontDestroyOnLoad(go);
+            if (!sceneHooked) { sceneHooked = true; SceneManager.sceneLoaded += OnSceneLoaded; }
+        }
         return Instance;
+    }
+
+    static bool sceneHooked;
+    static void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        var r = Instance;
+        if (r == null) return;
+        r.recording = false;
+        r.Clear();
     }
 
     // A run starts (collisionDetection.Start): an empty tape, rolling.
