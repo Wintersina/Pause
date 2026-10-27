@@ -7,7 +7,7 @@ using UnityEngine;
 // so a higher rate reads as closer. Rates must strictly increase with depth;
 // WorldBackdropTest enforces it.
 //
-// Tile layers are seamless 512x1024 PNGs leap-frogged vertically. Set pieces
+// Tile layers are seamless 512x1024 PNGs (Storm, Desert and Tide grounds: 1024x2048 / 896x1792) leap-frogged vertically. Set pieces
 // (planets, glaciers, volcanoes...) and particles come from each world's `fx`
 // and `anim` atlases and are driven by that world's BackdropDirector.
 //
@@ -301,7 +301,8 @@ public static class BackdropCatalog
         // ground, PINNED to the mid tile (GroundPlanner) where its affinity
         // mask says they belong. The art is painted dark with mint foam and
         // lamps (value p90 ~.38-.47) and drawn as painted (brightness 1: not
-        // Spec.Bright), so the dark worlds' shot outlines apply.
+        // Spec.Bright), so the dark worlds' shot outlines apply. The ground tiles are 896x1792 (a 1.75x
+        // resample of the first 512x1024 art, 149.33 px per unit: WorldBackdropImport.IsTideHdTile).
         new Spec { world = "Tide", folder = "Worlds/Tide/Backdrop3/", keyAtlas = "landmarks",
                    variantSets = BackdropVariants.MaxVariants,
                    brightness = () => TideTuning.Brightness, saturation = () => 1f,

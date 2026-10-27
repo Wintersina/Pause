@@ -34,7 +34,8 @@ public static class WorldBackdropTest
     // Tide carries the same shared 1024 atlases as Ember (landmarks, pipes, fires, sites,
     // weather) plus run C's five loop sheets (smoke, flames, surf, leaks, lights) besides
     // one 4-tile variant set: ~6 MB measured now (ASTC 6x6 sizes), ~8.5 MB with run C.
-    public const long TideTextureBudgetBytes = 10L * 1024 * 1024;
+    // 2026-10: Tide's sky / far / mid / flow tiles are 896x1792 (ASTC 6x6, 0.72 MB each, was 0.24 MB at 512x1024): the variant set grew ~1.9 MB, 10 -> 12 MB.
+    public const long TideTextureBudgetBytes = 12L * 1024 * 1024;
     // Desert carries the same shared 1024 atlases as Tide (landmarks, pipes, fires, sites, weather)
     // plus fourteen loop sheets' worth of dust, shimmer, leaks and lights, and the worms'
     // two 2048 sheets (worm, worm_giant), besides one 4-tile variant set.
