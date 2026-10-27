@@ -59,7 +59,7 @@ public static class DesertTuning
     // 6.8:1 (v1) and 5.9:1 (v3) against the rendered lane, under the 7:1 guard; the entries below
     // bring every set to >= 7:1 and the night side below the day.
     public static float Brightness = 1f;
-    public static readonly float[] VariantBrightness = { 1f, .93f, .95f, .8f, 1f };   // index = variant (0 none)
+    public static readonly float[] VariantBrightness = { 1f, .93f, .95f, .8f, .93f };   // index = variant (0 none)
     public static readonly bool[] Night = { false, false, false, false, true };
     public static float NightLightBoost = 1.3f;
     public static float PlumeShare = 1f;
