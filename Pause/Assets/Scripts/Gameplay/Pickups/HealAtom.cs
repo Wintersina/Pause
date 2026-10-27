@@ -23,11 +23,33 @@ public class HealAtom : MonoBehaviour
         return TargetDiameter / Mathf.Max(0.0001f, source);
     }
 
+    // The main game's green atom: a pooled one (built once with its footprint, then reused).
+    // The tutorial's scripted atom is built with Spawn and removed with Pooled.Destroy as ever.
+    public static readonly Vector2 FootprintHalf = Vector2.one * TargetDiameter * .5f;
+    static readonly System.Func<GameObject> buildPooled = () => Build(Vector3.zero);
+    static readonly System.Action<GameObject> dressPooled = go => SpawnFootprint.Attach(go, FootprintHalf, SpawnLayer.Pickup);
+    public const string PoolKey = "pool:" + ObjectName;
+
+    public static GameObject SpawnPooled(Vector3 position)
+    {
+        return PrefabPool.Get(PoolKey, buildPooled, position, Quaternion.identity, dressPooled);
+    }
+
+    public static void Prewarm(int count)
+    {
+        PrefabPool.Prewarm(PoolKey, buildPooled, count, dressPooled);
+    }
+
     public static GameObject Spawn(Vector3 position)
     {
+        return Build(position);
+    }
+
+    static GameObject Build(Vector3 position)
+    {
         var go = new GameObject(ObjectName);
-        go.tag = "pickUp";
         go.transform.position = position;
+        go.tag = "pickUp";
 
         var sr = go.AddComponent<SpriteRenderer>();
         sr.sprite = Art();
@@ -68,7 +90,7 @@ public class HealAtom : MonoBehaviour
         // the ~0.04 fit scale set in Spawn and drew the atom ~25x too large.
         // A backstop (AtomWander removes it one unit under the view): well
         // under the visible bottom on every screen (it was a fixed -12).
-        if (transform.position.y < CameraFit.ViewBottom - DespawnBelowView) Destroy(gameObject);
+        if (transform.position.y < CameraFit.ViewBottom - DespawnBelowView) Pooled.Destroy(gameObject);
     }
 
     // Square crop around the opaque art of heal_atom_green.png (1254 x 1254).

@@ -16,7 +16,7 @@ using System.Collections;
 // (Atoms are pickups, which SpawnSpace keeps apart only softly at spawn; it
 // never binds a pattern to them.)
 
-public class moveItemEnmInStrightLine : MonoBehaviour, IMovementFootprint {
+public class moveItemEnmInStrightLine : MonoBehaviour, IMovementFootprint, IPoolReset {
 
     AtomWander wander;
     bool atomChecked;
@@ -33,6 +33,15 @@ public class moveItemEnmInStrightLine : MonoBehaviour, IMovementFootprint {
     public AtomWander Wander { get { return wander; } }
 
     void Awake() { ClearTarget.Ensure(gameObject); } // ultimate's early-clear registry
+
+    // A pooled pickup starts a new life: no wander yet (rolled on its first step), not a pilot's station.
+    public void OnPoolAcquire()
+    {
+        wander = null;
+        atomChecked = false;
+        station = false;
+        brain = null;
+    }
 
 
 
@@ -63,7 +72,7 @@ public class moveItemEnmInStrightLine : MonoBehaviour, IMovementFootprint {
 
         transform.position = wander.Advance(transform.position, dt, worldSpeed, viewTop);
         if (!AtomWander.Gone(transform.position.y, viewBottom)) return true;
-        if (Application.isPlaying) Destroy(gameObject); else DestroyImmediate(gameObject);
+        Pooled.Remove(gameObject);
         return false;
     }
 

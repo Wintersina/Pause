@@ -78,7 +78,7 @@ public class HealAtomSpawner : MonoBehaviour
         // when there's room (SpawnSpace)
         Vector2 half = Vector2.one * HealAtom.TargetDiameter * .5f;
         Vector3 at = SpawnSpace.PickupSpot(new Vector3(Random.Range(-RailInset.PickupLaneHalf, RailInset.PickupLaneHalf), CameraFit.ViewTop + SpawnAboveTop, 0f), half, -RailInset.PickupLaneHalf, RailInset.PickupLaneHalf);
-        SpawnFootprint.Attach(HealAtom.Spawn(at), half, SpawnLayer.Pickup);
+        SpawnFootprint.Attach(HealAtom.SpawnPooled(at), half, SpawnLayer.Pickup);
         spawnedThisWorld++;
         AtomSpacing.Released();
         AtomSpawnBias.Released(AtomKind.Heal);   // (only marks the last kind: the green atom's own rate is untouched)

@@ -468,7 +468,7 @@ public class collisionDetection : MonoBehaviour {
                 RunScore.OnDust(false, hit.transform.position);
                 BoostUltimate(dust: true);
                 SecretPowerController.OnDust(large: false);
-                Destroy(hit.gameObject);
+                Pooled.Destroy(hit.gameObject);   // (pooled pickups go back to their pool: PrefabPool)
             }
             else if(PrefabName.Is(hit.gameObject, "LargeStar1"))
             {
@@ -476,7 +476,7 @@ public class collisionDetection : MonoBehaviour {
                 RunScore.OnDust(true, hit.transform.position);
                 BoostUltimate(dust: true, bright: true);
                 SecretPowerController.OnDust(large: true);
-                Destroy(hit.gameObject);
+                Pooled.Destroy(hit.gameObject);   // (pooled pickups go back to their pool: PrefabPool)
             }
             else if (PrefabName.Is(hit.gameObject, HealAtom.ObjectName))
             {
@@ -491,7 +491,7 @@ public class collisionDetection : MonoBehaviour {
                 PickupWord(HealWord, hit.transform.position, PickupGlow.HealGreen);
                 AtomCharged(PickupGlow.HealGreen);
                 AtomFusions.OnAtom(AtomKind.Heal, hit.transform.position, AtomFusions.HealGates(healWasted));
-                Destroy(hit.gameObject);
+                Pooled.Destroy(hit.gameObject);   // (pooled pickups go back to their pool: PrefabPool)
             }
             else if (PrefabName.Is(hit.gameObject, "pauseAtom"))
             {
@@ -505,7 +505,7 @@ public class collisionDetection : MonoBehaviour {
                 // keeps its progress; ShipPowerController.FreeShot).
                 if (ShipPowerController.Instance != null) ShipPowerController.Instance.FreeShot();
                 AtomFusions.OnAtom(AtomKind.Pause, hit.transform.position);
-                Destroy(hit.gameObject);
+                Pooled.Destroy(hit.gameObject);   // (pooled pickups go back to their pool: PrefabPool)
             }
             else if (PrefabName.Is(hit.gameObject, "cooldownAtom"))
             {
@@ -520,7 +520,7 @@ public class collisionDetection : MonoBehaviour {
                     PickupWord(word, hit.transform.position, AkiraPalette.VioletHi);
                 }
                 AtomFusions.OnAtom(AtomKind.Capacitor, hit.transform.position);
-                Destroy(hit.gameObject);
+                Pooled.Destroy(hit.gameObject);   // (pooled pickups go back to their pool: PrefabPool)
             }
             else if (PrefabName.Is(hit.gameObject, MagnetPull.ObjectName))
             {
@@ -544,7 +544,7 @@ public class collisionDetection : MonoBehaviour {
                 AtomCharged(AkiraPalette.MagnetBlueHi);
                 // (after the vacuum's own sync above, which reports itself: AtomFusions.OnExternal)
                 AtomFusions.OnAtom(AtomKind.Magnet, hit.transform.position);
-                Destroy(hit.gameObject);
+                Pooled.Destroy(hit.gameObject);   // (pooled pickups go back to their pool: PrefabPool)
             }
             else if(PrefabName.Is(hit.gameObject, "atom3a"))
             {
@@ -565,7 +565,7 @@ public class collisionDetection : MonoBehaviour {
                 PowerUpRefund.OnShieldRaised(refund != null);
                 awardDust(blueAtomValue);
                 boostText.text = "Boost!";
-                Destroy(hit.gameObject);
+                Pooled.Destroy(hit.gameObject);   // (pooled pickups go back to their pool: PrefabPool)
 
                 // turn off inv text after  timer runs out.
                 atomCheck = true;

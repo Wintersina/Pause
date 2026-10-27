@@ -22,7 +22,7 @@ public class spawnCorrectly : MonoBehaviour
         {
             if (spawnedTimer >=0 && hit.gameObject.name != "atom3a(Clone)")
             {
-                Destroy(hit.gameObject);
+                Pooled.Destroy(hit.gameObject);   // (a pooled pickup goes back to its pool)
                 //this.gameObject.transform.position = new Vector2(hit.gameObject.transform.position.x, hit.gameObject.transform.position.y + .5f);
 
             }

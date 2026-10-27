@@ -16,7 +16,7 @@ using UnityEngine;
 // bookkeeping the game does; there is no per-frame work here.
 [ExecuteAlways]
 [DisallowMultipleComponent]
-public class ClearTarget : MonoBehaviour
+public class ClearTarget : MonoBehaviour, IPoolReset
 {
     static readonly List<ClearTarget> live = new List<ClearTarget>();
 
@@ -56,6 +56,20 @@ public class ClearTarget : MonoBehaviour
         classified = true;
         TryGetComponent(out brain);
         shotHitbox = TryGetComponent(out EliteShotHitbox _);
+    }
+
+    // A pooled body starts over: nothing sensed, no mother, not scenery. (Its measured radius and
+    // classification stay: the instance is the same body.)
+    public void OnPoolAcquire()
+    {
+        Scenery = false;
+        SensedAt = SensedVelocity = Vector2.zero;
+        SensedStep = -1;
+        SensedMeasured = false;
+        Elite = null;
+        Mother = null;
+        PlayfieldSeconds = 0f;
+        enabled = true;
     }
 
     public EnemyBrain Brain { get { if (!classified) Classify(); return brain; } }
