@@ -85,6 +85,8 @@ public static class CodexAnimations
 
     // ---- Enemies and rail mines: EnemyArt + EnemyFlipbook's timing ----
 
+    const float MineStillHold = 1.6f;
+
     public static CodexAnimation Enemy(EnemyDef def)
     {
         if (def == null) return null;
@@ -107,8 +109,12 @@ public static class CodexAnimations
         if (frames.Length >= EnemyRoster.TellFrame + 2 && def.key != "space_chaser")   // the hound never tells
         {
             var tt = EnemyRoster.TellTicks(def.role);
-            a.AddTell(new[] { frames[EnemyRoster.TellFrame], frames[EnemyRoster.TellFrame + 1] },
-                      new[] { tt[0] * EnemyFlipbook.TickSeconds, tt[Mathf.Min(1, tt.Length - 1)] * EnemyFlipbook.TickSeconds });
+            var tellFrames = new List<Sprite> { frames[EnemyRoster.TellFrame], frames[EnemyRoster.TellFrame + 1] };
+            var tellHolds = new List<float> { tt[0] * EnemyFlipbook.TickSeconds, tt[Mathf.Min(1, tt.Length - 1)] * EnemyFlipbook.TickSeconds };
+            // The Mirage Mine's tell ends on its own painted picture: the lens firing the yellow heat-lance.
+            var still = CodexCatalogue.StillArtFor(def.codexId);
+            if (still != null) { tellFrames.Add(still); tellHolds.Add(MineStillHold); }
+            a.AddTell(tellFrames.ToArray(), tellHolds.ToArray());
         }
         var mode = EnemyFlipbook.ModeFor(def.role);
         // Mines arm, aliens chomp and the chaser lunges in a loop; the others wind up once.

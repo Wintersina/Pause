@@ -37,6 +37,7 @@ public static class CodexTest
         CheckCatalogue();
         CheckInventory();
         CheckAnimationCatalogue();
+        CheckMirageMineStill();
         CheckIdleParity();
         CheckSpawnerCoverage();
         CheckDiscovery();
@@ -2612,6 +2613,16 @@ public static class CodexTest
         Vector2 min = panel.InverseTransformPoint(corners[0]);
         Vector2 max = panel.InverseTransformPoint(corners[2]);
         return Rect.MinMaxRect(Mathf.Min(min.x, max.x), Mathf.Min(min.y, max.y), Mathf.Max(min.x, max.x), Mathf.Max(min.y, max.y));
+    }
+
+    static void CheckMirageMineStill()
+    {
+        var sprite = CodexCatalogue.StillArtFor(CodexCatalogue.MirageMineId);
+        Check("Mirage Mine has its own codex still (desert_mine_codex)", sprite != null && sprite.texture.width == 314 && sprite.texture.height == 314);
+        var entry = Codex.Find(CodexCatalogue.MirageMineId);
+        Check("Mirage Mine entry uses the still, not the dormant frame", entry != null && entry.Sprite == sprite);
+        var anim = CodexAnimations.For(entry);
+        Check("Mirage Mine's arming tell ends on the firing still", anim != null && anim.HasTell && Array.IndexOf(anim.tells[0], sprite) == anim.tells[0].Length - 1);
     }
 
     static Rect Inset(Rect r, float by) { return Rect.MinMaxRect(r.xMin + by, r.yMin + by, r.xMax - by, r.yMax - by); }
