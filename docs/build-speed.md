@@ -42,8 +42,9 @@ cost of RAM: build peak RSS is ~2-2.4 GB plus Gradle (4 GB heap cap) and clang).
   compressed at import for Android and iOS). Always pass `-buildTarget Android`
   for builds (the script and Makefile do). Tests run without it and stay on the
   Library's current target.
-- A new workspace should clone the Library from a warm workspace (APFS clone:
-  `cp -cR Pause/Library new/Pause/Library`, seconds) instead of starting cold.
+- A new workspace should clone the Library from a warm copy instead of starting
+  cold: `make worktree NAME=<n>` does it (APFS clone, seconds; see
+  [worktrees.md](worktrees.md)).
 - Cold start without a clone costs ~4 min here (import 173 s). Importer results
   come from the Accelerator when available.
 - Refresh: if builds start failing oddly, delete only `Library/Bee` and

@@ -23,7 +23,7 @@ survive across seven worlds: Space, Frost, Verdant, Ember, Tide, Storm and Deser
 | `Pause/` | The Unity project (the project root, not the repo root). See [docs/project-layout.md](docs/project-layout.md). |
 | `docs/` | Design notes, build guides, store and release docs. |
 | `scripts/` | Build, capture and test helper scripts (`unity-batch.sh` runs Unity batch jobs one at a time). |
-| `Makefile` | Local build / install / run shortcuts. |
+| `Makefile` | Local build / install / run shortcuts, and `make worktree` / `worktree-done` (see [docs/worktrees.md](docs/worktrees.md)). |
 
 ## Running the project
 
@@ -70,6 +70,7 @@ request's checks rather than running the suites locally.
 
 ## Docs
 
+- [docs/worktrees.md](docs/worktrees.md): `make worktree` (workspace + cloned warm Library), `worktree-done`, `warm-library`; slim or delete worktrees when the job ends
 - [docs/project-layout.md](docs/project-layout.md): where things live in `Pause/Assets`
 - [docs/build-and-share.md](docs/build-and-share.md): building and sharing test builds
 - [docs/leaderboards.md](docs/leaderboards.md): leaderboards
