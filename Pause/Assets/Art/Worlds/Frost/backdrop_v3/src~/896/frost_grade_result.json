@@ -1,0 +1,86 @@
+{
+ "v1/mid": {
+  "median_target": 0.149,
+  "p90": 0.409,
+  "lum": 0.233,
+  "chroma": 0.246,
+  "lane_rl": 0.048,
+  "lane_p90": 0.442,
+  "lane_ch": 0.245
+ },
+ "v1/far": {
+  "median_target": 0.169,
+  "p90": 0.402,
+  "lum": 0.233,
+  "chroma": 0.234
+ },
+ "v1/sky": {
+  "median_target": 0.129,
+  "p90": 0.311,
+  "lum": 0.175,
+  "chroma": 0.188
+ },
+ "v2/mid": {
+  "median_target": 0.219,
+  "p90": 0.497,
+  "lum": 0.233,
+  "chroma": 0.215,
+  "lane_rl": 0.04,
+  "lane_p90": 0.497,
+  "lane_ch": 0.216
+ },
+ "v2/far": {
+  "median_target": 0.248,
+  "p90": 0.495,
+  "lum": 0.233,
+  "chroma": 0.202
+ },
+ "v2/sky": {
+  "median_target": 0.188,
+  "p90": 0.378,
+  "lum": 0.175,
+  "chroma": 0.166
+ },
+ "v3/mid": {
+  "median_target": 0.172,
+  "p90": 0.437,
+  "lum": 0.233,
+  "chroma": 0.203,
+  "lane_rl": 0.053,
+  "lane_p90": 0.439,
+  "lane_ch": 0.203
+ },
+ "v3/far": {
+  "median_target": 0.195,
+  "p90": 0.432,
+  "lum": 0.233,
+  "chroma": 0.19
+ },
+ "v3/sky": {
+  "median_target": 0.149,
+  "p90": 0.333,
+  "lum": 0.175,
+  "chroma": 0.158
+ },
+ "v4/mid": {
+  "median_target": 0.159,
+  "p90": 0.421,
+  "lum": 0.233,
+  "chroma": 0.244,
+  "lane_rl": 0.055,
+  "lane_p90": 0.422,
+  "lane_ch": 0.243
+ },
+ "v4/far": {
+  "median_target": 0.18,
+  "p90": 0.415,
+  "lum": 0.233,
+  "chroma": 0.232
+ },
+ "v4/sky": {
+  "median_target": 0.138,
+  "p90": 0.32,
+  "lum": 0.175,
+  "chroma": 0.187
+ }
+}
