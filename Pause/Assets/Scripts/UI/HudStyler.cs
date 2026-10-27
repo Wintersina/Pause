@@ -113,6 +113,9 @@ public class HudStyler : MonoBehaviour
 
         Style(speedText, Speed, ScoreHud.FontSize);
         Style(pauseText, Pause, ScoreHud.FontSize);
+        // all three rows centred in their equal-height slots, so the pitch between the glyphs is equal too
+        if (speedText != null) speedText.alignment = TextAnchor.MiddleLeft;
+        if (pauseText != null) pauseText.alignment = TextAnchor.MiddleLeft;
         // Resume slow-mo indicator: SLOW-MO count-up + spool bar in this row.
         ResumeSpeedRow.Attach(speedText);
 
@@ -268,10 +271,15 @@ public class HudStyler : MonoBehaviour
             // under the first row: the actions, and BOSS INCOMING's chip
             // beside them (its full punch) while a boss is coming
             float row = Mathf.Max(panelH, BossWarningHud.ChipH * BossWarningHud.ChipMaxPunch * actionScale);
-            // the two frames overhang their rects (bottom of the actions', top of the read-out's): keep MinGap between the frames
+            // the two frames overhang their rects (bottom of the actions', top of the read-out's): the frames may still touch by a few units (as they always did) but no more; capped so the death panel keeps its room
+            // The two frames overhang their rects (the actions' bottom, the read-out's top),
+            // so the read-out drops until they clear each other by a few units. Space keeps
+            // the stacking it always had (its frames just touch); a world with deeper frames
+            // drops by what they reach further (up to 40 units).
             int world = HudSkin.CurrentWorld;
             float overhang = HudSkin.ButtonOut(world).y * actionScale + HudSkin.BoardOut(world).w * hudScale * fitScale;
-            top = band.top - row - MinGapToActions * actionScale - overhang;
+            float drop = world == 0 ? 0f : Mathf.Clamp(overhang - (MinGapToActions - 3f) * actionScale, 0f, 40f * actionScale);
+            top = band.top - row - MinGapToActions * actionScale - drop;
         }
         anchoredPosition = new Vector2(band.left / hudScale, (top - screen.y) / hudScale);
     }

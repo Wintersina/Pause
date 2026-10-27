@@ -158,7 +158,7 @@ public class PauseQuickActions : MonoBehaviour
         float s = CanvasScaleFor(screen);
         Rect panel = ScreenRectFor(band, screen);
         float right = panel.xMax - PanelPad * s - slotFromRight * (ButtonSize + ButtonGap) * s;
-        float top = panel.yMax - (panel.height - ButtonSize * s) * .5f - HudSkin.ButtonInnerOffsetY(HudSkin.CurrentWorld) * s;
+        float top = panel.yMax - (panel.height - ButtonSize * s) * .5f;
         return new Rect(right - ButtonSize * s, top - ButtonSize * s, ButtonSize * s, ButtonSize * s);
     }
 
@@ -253,17 +253,22 @@ public class PauseQuickActions : MonoBehaviour
             panelImage.sprite = HudSkin.ButtonPanel(skinWorld);
             panelImage.color = Color.white;
         }
-        SetGlyph(replayClone, HudSkin.ReplayGlyph(skinWorld));
-        SetGlyph(leaveClone, HudSkin.HomeGlyph(skinWorld));
+        SetGlyph(replayClone, HudSkin.ReplayGlyph(skinWorld), 1f);
+        SetGlyph(leaveClone, HudSkin.HomeGlyph(skinWorld), HudSkin.HomeGlyphScale(skinWorld));
     }
 
-    static void SetGlyph(GameObject go, Sprite sprite)
+    static void SetGlyph(GameObject go, Sprite sprite, float scale)
     {
         if (go == null || sprite == null) return;
         var image = go.GetComponent<Image>();
         if (image != null) image.sprite = sprite;
         var glyph = GlyphImage(go);
-        if (glyph != null) glyph.sprite = sprite;
+        if (glyph == null) return;
+        glyph.sprite = sprite;
+        // the glyph (not the tap square) is centred on the frame's dark inside
+        var rt = glyph.rectTransform;
+        rt.sizeDelta = new Vector2(ButtonSize, ButtonSize) * GlyphScale * scale;
+        rt.anchoredPosition = new Vector2(0f, -HudSkin.ButtonInnerOffsetY(HudSkin.CurrentWorld));
     }
 
     // The visible glyph is a child drawn at GlyphScale of the tap square,
@@ -361,7 +366,7 @@ public class PauseQuickActions : MonoBehaviour
         rt.localScale = Vector3.one;
         rt.sizeDelta = new Vector2(ButtonSize, ButtonSize);
         rt.anchoredPosition = new Vector2(offset.x - PanelPad - slotFromRight * (ButtonSize + ButtonGap),
-                                          offset.y - (panelHeight - ButtonSize) * .5f - HudSkin.ButtonInnerOffsetY(HudSkin.CurrentWorld));
+                                          offset.y - (panelHeight - ButtonSize) * .5f);
     }
 
     // The glyph is the whole button (the panel behind it is the frame): no
