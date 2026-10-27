@@ -123,8 +123,9 @@ public static class PerfSafeWinsTest
         long bytes = TestHarness.AllocatedBytes(write);
         Check("FormatInto allocates nothing (64 figures)", bytes == 0, bytes + " B");
         for (int i = 0; i < 8; i++) ScoreHud.Label(rolling + i);   // JIT and the buffer
-        long one = TestHarness.AllocatedBytes(() => ScoreHud.Label(rolling));
-        long two = TestHarness.AllocatedBytes(() => ScoreHud.LabelPrefix + RunScore.Format(rolling));
+        string made = null;
+        long one = TestHarness.AllocatedBytes(() => made = ScoreHud.Label(rolling));
+        long two = TestHarness.AllocatedBytes(() => made = ScoreHud.LabelPrefix + RunScore.Format(rolling));
         Check("ScoreHud.Label allocates no more than the one string it returns (" + one + " B; prefix + N0 " + two + " B)", one <= two);
     }
 
