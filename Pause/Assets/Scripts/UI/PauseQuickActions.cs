@@ -76,6 +76,7 @@ public class PauseQuickActions : MonoBehaviour
     Image panelImage;
     int skinWorld = -1;
     float appliedPanelH;
+    int appliedWorld = -1;
     RectTransform safeArea;
     Rect appliedSafeArea;
     Vector2Int appliedScreen;
@@ -252,17 +253,22 @@ public class PauseQuickActions : MonoBehaviour
             panelImage.sprite = HudSkin.ButtonPanel(skinWorld);
             panelImage.color = Color.white;
         }
-        SetGlyph(replayClone, HudSkin.ReplayGlyph(skinWorld));
-        SetGlyph(leaveClone, HudSkin.HomeGlyph(skinWorld));
+        SetGlyph(replayClone, HudSkin.ReplayGlyph(skinWorld), 1f);
+        SetGlyph(leaveClone, HudSkin.HomeGlyph(skinWorld), HudSkin.HomeGlyphScale(skinWorld));
     }
 
-    static void SetGlyph(GameObject go, Sprite sprite)
+    static void SetGlyph(GameObject go, Sprite sprite, float scale)
     {
         if (go == null || sprite == null) return;
         var image = go.GetComponent<Image>();
         if (image != null) image.sprite = sprite;
         var glyph = GlyphImage(go);
-        if (glyph != null) glyph.sprite = sprite;
+        if (glyph == null) return;
+        glyph.sprite = sprite;
+        // the glyph (not the tap square) is centred on the frame's dark inside
+        var rt = glyph.rectTransform;
+        rt.sizeDelta = new Vector2(ButtonSize, ButtonSize) * GlyphScale * scale;
+        rt.anchoredPosition = new Vector2(0f, -HudSkin.ButtonInnerOffsetY(HudSkin.CurrentWorld));
     }
 
     // The visible glyph is a child drawn at GlyphScale of the tap square,
@@ -302,7 +308,8 @@ public class PauseQuickActions : MonoBehaviour
         Rect safe = Screen.safeArea;
         var band = TopBand.FrameFor(safe, screen);
         float panelH = DrawnPanelHeightPx(band, screen);
-        if (bandApplied && band.Same(appliedBand) && Mathf.Approximately(panelH, appliedPanelH)) return;
+        if (bandApplied && band.Same(appliedBand) && Mathf.Approximately(panelH, appliedPanelH) && appliedWorld == HudSkin.CurrentWorld) return;
+        appliedWorld = HudSkin.CurrentWorld;
         appliedBand = band;
         appliedPanelH = panelH;
         bandApplied = true;
@@ -323,8 +330,9 @@ public class PauseQuickActions : MonoBehaviour
             rt.anchorMin = rt.anchorMax = new Vector2(1f, 1f);
             rt.pivot = new Vector2(.5f, .5f);
             // the frame's growth reaches past the rect, as the score board's does
-            rt.sizeDelta = new Vector2(panelW + 2f * HudStyler.FrameOutX, panelH + 2f * HudStyler.FrameOutY);
-            rt.anchoredPosition = new Vector2(offset.x - panelW * .5f, offset.y - panelH * .5f);
+            Vector4 o = HudSkin.ButtonOut(HudSkin.CurrentWorld);   // left, bottom, right, top
+            rt.sizeDelta = new Vector2(panelW + o.x + o.z, panelH + o.y + o.w);
+            rt.anchoredPosition = new Vector2(offset.x - panelW * .5f + (o.z - o.x) * .5f, offset.y - panelH * .5f + (o.w - o.y) * .5f);
         }
     }
 

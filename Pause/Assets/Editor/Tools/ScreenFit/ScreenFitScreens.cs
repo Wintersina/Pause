@@ -827,6 +827,80 @@ public static class ScreenFitScreens
 
     enum GameShot { Launch, Paused, Popups, Banner, BossIntro, BossFight, PortalPressure, Death }
 
+    // HUD vetting: every world's score board + quick-action panel with the worst-case
+    // text (7-digit score, 3-digit speed, 2-digit pauses). Not part of All.
+    public static FitScreen HudVet(int world)
+    {
+        return new FitScreen { id = "hud-vet-" + world, scene = "gameS1", title = "HUD vet, world " + world, gameplayView = true, fullBleed = true, stage = r => HudVetStage(r, world) };
+    }
+
+    static void HudVetStage(ScreenFitRig rig, int world)
+    {
+        var styler = WorldBase(rig, world, true, false);
+        score.pauseCounter = 99;
+        moveBackGround.speed = 9.99f;
+        var row = SceneUtil.FindAny(ScoreHud.RowName);
+        if (row != null) row.GetComponent<Text>().text = ScoreHud.Label(1234567);
+        styler.SendMessage("Update");
+        // the pauses row punches (scales) for a moment after its number changes: capture it at rest
+        var punch = typeof(HudStyler).GetField("pausePunchAt", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+        if (punch != null) punch.SetValue(styler, -1000f);
+        styler.SendMessage("Update");
+        rig.Sync();
+        PlaceHudBand(rig, styler, false);
+        if (row != null) row.GetComponent<Text>().text = ScoreHud.Label(1234567);
+        Canvas.ForceUpdateCanvases();
+        VetLayers(rig, styler, world);
+    }
+
+    // Writes the layers the gap measurement needs, next to the final frame:
+    //   <name>_layer_D  backdrop only            <name>_layer_B  frames, no text / icons
+    //   <name>_layer_T  text + icons, no frames
+    static void VetLayers(ScreenFitRig rig, HudStyler styler, int world)
+    {
+        string dir = System.Environment.GetEnvironmentVariable("SCREEN_FIT_DIR");
+        if (string.IsNullOrEmpty(dir)) return;
+        string[] names = { "space", "frost", "verdant", "ember", "tide", "storm", "desert" };
+        string stem = System.IO.Path.Combine(dir, "layers", names[world] + "_" + rig.W + "x" + rig.H);
+        System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(stem));
+
+        var texts = new System.Collections.Generic.List<Text>();
+        foreach (var t in styler.HudRoot.GetComponentsInChildren<Text>(true)) texts.Add(t);
+        var glyphs = new System.Collections.Generic.List<Image>();
+        foreach (var im in UnityEngine.Object.FindObjectsByType<Image>(FindObjectsInactive.Exclude, FindObjectsSortMode.None))
+            if (im.gameObject.name == "Glyph") glyphs.Add(im);
+        var frames = new System.Collections.Generic.List<Image>();
+        var board = styler.HudRoot.Find("SkinFrame");
+        if (board != null) frames.Add(board.GetComponent<Image>());
+        var qa = UnityEngine.Object.FindFirstObjectByType<PauseQuickActions>();
+        var pf = typeof(PauseQuickActions).GetField("panelImage", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+        if (qa != null && pf != null && pf.GetValue(qa) is Image pi) frames.Add(pi);
+
+        var wasText = new System.Collections.Generic.Dictionary<Text, bool>();
+        foreach (var t in texts) wasText[t] = t.enabled;
+        var wasGlyph = new System.Collections.Generic.Dictionary<Image, bool>();
+        foreach (var im in glyphs) wasGlyph[im] = im.enabled;
+        var wasFrame = new System.Collections.Generic.Dictionary<Image, bool>();
+        foreach (var im in frames) wasFrame[im] = im.enabled;
+        System.Action<bool, bool, bool> show = (f, c, g) =>
+        {
+            foreach (var x in frames) x.enabled = f && wasFrame[x];
+            foreach (var x in texts) x.enabled = c && wasText[x];
+            foreach (var x in glyphs) x.enabled = g && wasGlyph[x];
+            Canvas.ForceUpdateCanvases();
+        };
+        System.Action<string> snap = tag =>
+        {
+            var tex = rig.Capture(0, false);
+            System.IO.File.WriteAllBytes(stem + "_" + tag + ".png", tex.EncodeToPNG());
+            UnityEngine.Object.DestroyImmediate(tex);
+        };
+        show(false, false, false); snap("D");
+        show(true, false, false); snap("B");
+        show(false, true, true); snap("T");
+        show(true, true, true);
+    }
+
     static void Game(ScreenFitRig rig, GameShot shot)
     {
         int world = shot == GameShot.BossIntro ? 1 : shot == GameShot.PortalPressure ? 3 : shot == GameShot.BossFight ? 2 : 0;

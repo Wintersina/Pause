@@ -24,6 +24,9 @@ public static class HudSkinTest
     {
         fails = 0;
         Check("seven worlds", HudSkin.WorldCount == 7);
+        for (int w = 0; w < HudSkin.WorldCount; w++)
+            Check(WorldManager.Worlds[w].displayName + ": icons centred on the frame's inside (offset within 6 units)", Mathf.Abs(HudSkin.ButtonInnerOffsetY(w)) <= 6f);
+        Check("HUD rows share one font size", ScoreHud.FontSize == 19);
 
         for (int w = 0; w < HudSkin.WorldCount; w++)
         {
