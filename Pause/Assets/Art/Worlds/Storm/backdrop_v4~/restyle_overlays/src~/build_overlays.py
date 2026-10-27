@@ -9,6 +9,7 @@ import numpy as np
 from PIL import Image
 
 SRC = Path(sys.argv[1]); DST = Path(sys.argv[2])
+FLOW_ALPHA_MIN = float(__import__("os").environ.get("FLOW_ALPHA_MIN", "0.07"))
 BLACK_KEY = {"lt_bolts", "lt_strikes", "lt_flashes"}   # additive light on black: brightness is opacity
 
 def load_rgba(name):
@@ -45,6 +46,12 @@ def fit(cell, box_w, box_h, margin=.04):
 def paste_center(sheet, im, cx, cy):
     sheet.alpha_composite(im, (int(round(cx - im.width / 2)), int(round(cy - im.height / 2))))
 
+# weather cells: scale the painted opacity so each cell covers about what the old art did (CloudCoverMeter: clouds cover <= 15 % of
+# the view and never park over the lane); measured from the pre-restyle atlas, mean-alpha match x 1.1, never above 1
+WEATHER_SCALE = {"cloud_bank_00": .52, "cloud_bank_01": .36, "cloud_bank_02": .41, "cloud_bank_03": .37, "cloud_wisp_00": .85, "cloud_wisp_01": .5,
+                 "cloud_wisp_02": .44, "mist_00": .25, "mist_01": .22, "gust_00": .3, "gust_01": .28, "pall_00": .22,
+                 "rain_00": .34, "rain_01": .3, "rain_02": .35, "rain_03": .33}
+
 def fill_atlas(atlas_name, mapping, sprite_key="sprites"):
     """mapping: {sheet name: [sprite names in row-major cell order]} -> rewrite those cells of <atlas>.png."""
     j = json.load(open(DST / (atlas_name + ".json")))
@@ -69,6 +76,8 @@ def fill_atlas(atlas_name, mapping, sprite_key="sprites"):
                 sheet.alpha_composite(im.crop((max(0, -left), 0, min(im.width, s["w"] - left), min(im.height, s["h"] - 14))), (s["x"] + max(0, left), H - s["y"] - s["h"] + 14))
                 continue
             im = fit(c, s["w"], s["h"])
+            if atlas_name == "weather" and WEATHER_SCALE.get(n):
+                arr = np.asarray(im).astype(np.float32) / 255; arr[..., 3] *= WEATHER_SCALE[n]; im = to_img(arr)
             paste_center(sheet, im, s["x"] + s["w"] / 2, H - s["y"] - s["h"] / 2)
             if n.startswith("flash_"):
                 # glow cells must fade to nothing at their border (StormBackdropTest): soft radial falloff on the painted glow
@@ -106,6 +115,10 @@ def flows():
             h, w = a.shape[:2]; y0, x0 = (h - 1024) // 2, (w - 1024) // 2
             return a[y0:y0 + 1024, x0:x0 + 1024]
         strip = np.concatenate([crop(srcs[p]), crop(srcs[q])], 0)
+        # drop the near-invisible haze (alpha under THR): it carries identical colour on thousands of texels (StormBackdropTest's
+        # duplicate-pair rule) and costs nothing visible; the top and bottom rows match exactly (seamless loop)
+        strip[..., 3] = np.where(strip[..., 3] < FLOW_ALPHA_MIN, 0, strip[..., 3])
+        strip[-1] = strip[0]
         to_img(strip).save(DST / v / "flow.png")
         print("flow", v)
 
