@@ -901,9 +901,15 @@ public static class ScreenFitScreens
         show(true, true, true);
     }
 
-    static void Game(ScreenFitRig rig, GameShot shot)
+    // The flight-complete panel on one world's frame (not part of All).
+    public static FitScreen DeathOn(int world)
     {
-        int world = shot == GameShot.BossIntro ? 1 : shot == GameShot.PortalPressure ? 3 : shot == GameShot.BossFight ? 2 : 0;
+        return new FitScreen { id = "game-death-" + world, scene = "gameS1", title = "Flight complete panel, world " + world, gameplayView = true, fullBleed = true, stage = r => Game(r, GameShot.Death, world) };
+    }
+
+    static void Game(ScreenFitRig rig, GameShot shot, int worldOverride = -1)
+    {
+        int world = worldOverride >= 0 ? worldOverride : shot == GameShot.BossIntro ? 1 : shot == GameShot.PortalPressure ? 3 : shot == GameShot.BossFight ? 2 : 0;
         var styler = WorldBase(rig, world, shot == GameShot.Paused, false);
         Rect view = rig.WorldView;
 
@@ -1101,6 +1107,22 @@ public static class ScreenFitScreens
                     Call(viewPanel, "Fit");
                     viewPanel.Skip();
                     Call(viewPanel, "Fit");
+                    {
+                        var pr = (RectTransform)viewPanel.GetType().GetField("panel", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).GetValue(viewPanel);
+                        Canvas.ForceUpdateCanvases();
+                        var fr = rig.PixelRect(pr.Find("Frame") as RectTransform);
+                        string line = "[DEATHRECTS] world " + world + " frame " + fr;
+                        foreach (var slotName in new[] { "ReplaySlot", "MenuSlot", "DockSlot" })
+                            line += " " + slotName + " " + rig.PixelRect(pr.Find(slotName) as RectTransform);
+                        line += " card0 " + rig.PixelRect(pr.Find("Card0") as RectTransform);
+                        Debug.Log(line);
+                    }
+                    if (System.Environment.GetEnvironmentVariable("DEATH_FRAME_ONLY") == "1")
+                    {
+                        // measuring aid: the frame art alone, to read its inner edge
+                        var panelRt = (RectTransform)viewPanel.GetType().GetField("panel", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).GetValue(viewPanel);
+                        foreach (Transform child in panelRt) child.gameObject.SetActive(child.name == "Frame");
+                    }
                     break;
                 }
         }

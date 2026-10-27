@@ -69,7 +69,7 @@ public static class DeathPanelTest
 
         var cards = DeathPanelView.CardRects;
         for (int i = 0; i + 1 < cards.Length; i++)
-            Check("card" + i + " / card" + (i + 1) + " gap is >= 12", cards[i].yMin - cards[i + 1].yMax >= 12f);
+            Check("card" + i + " / card" + (i + 1) + " gap is >= 6", cards[i].yMin - cards[i + 1].yMax >= 6f);
         bool sameColumn = true;
         foreach (var c in cards) sameColumn &= Mathf.Approximately(c.xMin, cards[0].xMin) && Mathf.Approximately(c.width, cards[0].width);
         Check("cards share one column (same x and width)", sameColumn);
@@ -81,15 +81,29 @@ public static class DeathPanelTest
         Check("buttons have equal height", Mathf.Approximately(replay.height, menu.height));
         Check("buttons share one row", Mathf.Approximately(replay.center.y, menu.center.y));
         Check("button pair is centred", Mathf.Abs(replay.center.x + menu.center.x) < .01f);
-        Check("button pair spans the card column",
-              Mathf.Abs(replay.xMin - cards[0].xMin) < .01f && Mathf.Abs(menu.xMax - cards[0].xMax) < .01f);
         // 96 canvas units ~= 44pt on a 375pt-wide phone (canvas is 800 units wide).
         Check("buttons meet the ~44pt tap target (>= 96 units)", replay.height >= 96f && replay.width >= 96f);
         Check("intro is short (<= 1.25s)", DeathPanelView.IntroDuration <= 1.25f);
         var dockR = DeathPanelView.DockRect;
         Check("SPACE DOCK sits below the replay/menu row", dockR.yMax < replay.yMin && dockR.yMax < menu.yMin);
-        Check("SPACE DOCK spans the card column and is centred",
-              Mathf.Abs(dockR.xMin - cards[0].xMin) < .01f && Mathf.Abs(dockR.xMax - cards[0].xMax) < .01f);
+        // Per world: the button column sits inside that frame's border, clear of it
+        // (and of the glow past the button bodies), never wider than the card column.
+        for (int w = 0; w < 7; w++)
+        {
+            var rs = DeathPanelView.ButtonRects(w);
+            float span = DeathPanelView.ButtonHalfSpan(w);
+            string tag = "world " + w + ": ";
+            Check(tag + "REPLAY / MENU / SPACE DOCK span one centred column", Mathf.Abs(rs[0].xMin + span) < .01f && Mathf.Abs(rs[1].xMax - span) < .01f &&
+                  Mathf.Abs(rs[2].xMin + span) < .01f && Mathf.Abs(rs[2].xMax - span) < .01f);
+            Check(tag + "the column is no wider than the cards", span <= cards[0].xMax + .01f);
+            Check(tag + "buttons and their glow stay " + DeathPanelView.ButtonClearance + " units inside the frame border",
+                  span + DeathPanelView.ButtonGlowPad + DeathPanelView.ButtonClearance <= DeathPanelView.BorderSpan(w) + .01f);
+            Check(tag + "buttons are >= 96 tall and equal width", rs[0].height >= 96f && Mathf.Approximately(rs[0].width, rs[1].width) && rs[2].height >= 96f);
+            Check(tag + "buttons do not overlap each other", !rs[0].Overlaps(rs[1]) && !rs[0].Overlaps(rs[2]) && !rs[1].Overlaps(rs[2]));
+            Check(tag + "the glow keeps off the cards above",
+                  rs[0].yMax + DeathPanelView.ButtonGlowPad <= cards[cards.Length - 1].yMin + .01f);
+        }
+        Check("buttons' fill is translucent (alpha <= .7)", DeathPanelView.ButtonFillAlpha <= .7f);
         Check("SPACE DOCK is as tall as the other buttons", Mathf.Approximately(dockR.height, replay.height));
         Check("SPACE DOCK targets the dock scene", DeathPanelView.DockScene == "shopS6");
     }

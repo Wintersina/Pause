@@ -63,7 +63,43 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
     // How far the frame sprite's neon bloom reaches outside the panel body.
     public const float GlowMargin = 20f;
     public const float CardWidth = 600f;
-    public const float ButtonWidth = 288f, ButtonHeight = 100f;
+    // The frame's 9-slice borders are drawn this many times smaller than the sprite's own pixel density gives.
+    public const float FrameBorderScale = 1.8f;
+    public const float ButtonWidth = 288f, ButtonHeight = 96f;   // ButtonWidth: the tutorial panel's pair
+    // The world frames' bottom borders (ice, vines, coral, lightning...) rise
+    // well into the panel at their native size, so the frame's 9-slice borders
+    // are drawn at 1/FrameBorderScale of that (FrameBorderScale above) and the
+    // stack of cards and buttons is packed 6 units apart: SPACE DOCK then ends
+    // above every world's bottom border art with the panel no taller than before
+    // (the 480x854 phone has no height to spare: its text is at the 7 dp floor).
+    // The side borders reach different distances inward (measured per world
+    // from renders of the frames alone; the Desert one is the deepest), so
+    // the buttons' span is per world: BorderHalfSpan is the distance from the
+    // panel's centre line to the border's inner edge on the button rows.
+    public const float ButtonClearance = 10f;   // glow edge to border
+    public const float ButtonGlowPad = 4f;      // glow reaches this far past the button body
+    public const float ButtonColumnGap = 24f;
+    // Space, Frost, Verdant, Ember, Tide, Storm, Desert (units).
+    static readonly float[] BorderHalfSpan = { 335f, 273f, 310f, 316f, 296f, 319f, 299f };
+    public static float BorderSpan(int world) { return BorderHalfSpan[Mathf.Clamp(world, 0, BorderHalfSpan.Length - 1)]; }
+    public static float ButtonHalfSpan(int world)
+    {
+        float inner = BorderSpan(world);
+        return Mathf.Min(CardWidth * .5f, inner - ButtonClearance - ButtonGlowPad);
+    }
+    public const float ReplayY = -208f, DockY = -310f;
+    // [REPLAY, MENU, SPACE DOCK] for a world's frame.
+    public static Rect[] ButtonRects(int world)
+    {
+        float span = ButtonHalfSpan(world);
+        float w = span - ButtonColumnGap * .5f;
+        return new[]
+        {
+            new Rect(-span, ReplayY - ButtonHeight * .5f, w, ButtonHeight),
+            new Rect(ButtonColumnGap * .5f, ReplayY - ButtonHeight * .5f, w, ButtonHeight),
+            new Rect(-span, DockY - ButtonHeight * .5f, 2f * span, ButtonHeight),
+        };
+    }
     // Card-local columns: labels start right of the accent bar, values end
     // with the same inset from the right edge on every row.
     const float LabelLeft = -CardWidth * .5f + 44f;
@@ -77,16 +113,17 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
     public static readonly Rect DividerRect = Centered(0f, 376f, 440f, 16f);
     public static readonly Rect[] CardRects =
     {
-        Centered(0f, 292f, CardWidth, 128f),   // score
-        Centered(0f, 100f, CardWidth, 232f),    // breakdown
-        Centered(0f, -82f, CardWidth, 108f),   // star dust
-        Centered(0f, -182f, CardWidth, 64f),   // killed by / hurt by
+        Centered(0f, 306f, CardWidth, 100f),   // score
+        Centered(0f, 134f, CardWidth, 232f),    // breakdown
+        Centered(0f, -36f, CardWidth, 96f),   // star dust
+        Centered(0f, -122f, CardWidth, 64f),   // killed by / hurt by
     };
-    public static readonly Rect ReplayRect = Centered(-156f, -278f, ButtonWidth, ButtonHeight);
-    public static readonly Rect MenuRect = Centered(156f, -278f, ButtonWidth, ButtonHeight);
+    // (the widest set, Space's; the frames' own spans come from ButtonRects)
+    public static readonly Rect ReplayRect = ButtonRects(0)[0];
+    public static readonly Rect MenuRect = ButtonRects(0)[1];
     // SPACE DOCK: a full-column button under REPLAY / MENU that goes straight
     // to the ship dock (shopS6) so the run's star dust can be spent at once.
-    public static readonly Rect DockRect = Centered(0f, -394f, CardWidth, ButtonHeight);
+    public static readonly Rect DockRect = ButtonRects(0)[2];
     public const string DockScene = "shopS6";
     public const int ButtonCount = 3;
     public const int CardCount = 4;
@@ -167,7 +204,8 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
     public RectTransform ReplaySlot { get { return buttonSlots[0]; } }
     public RectTransform MenuSlot { get { return buttonSlots[1]; } }
     public RectTransform DockSlot { get { return buttonSlots[2]; } }
-    static Rect ButtonRect(int i) { return i == 0 ? ReplayRect : i == 1 ? MenuRect : DockRect; }
+    Rect[] buttonRects = ButtonRects(0);
+    Rect ButtonRect(int i) { return buttonRects[i]; }
     public bool IntroFinished { get { return finalApplied; } }
 
     // ---------------------------------------------------------------------
@@ -203,6 +241,7 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
         view.BuildPanel(rootRt);
         view.BuildHeader();
         view.BuildCards(bestText, runText, dustText);
+        view.buttonRects = ButtonRects(HudSkin.CurrentWorld);
         view.BuildButtons(replay, replayGlyph, menu, menuGlyph);
         view.dustBurst = view.BuildBurst("DustBurst", Gold);
         view.bestBurst = view.BuildBurst("BestBurst", Cyan);
@@ -236,6 +275,7 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
 
         var frame = NewImage("Frame", panel, HudSkin.DeathPanel(HudSkin.CurrentWorld), Color.white);
         frame.type = Image.Type.Sliced;
+        frame.pixelsPerUnitMultiplier = FrameBorderScale;
         frame.raycastTarget = true;
         var r = PanelRect;
         Place(frame.rectTransform, new Rect(r.xMin - GlowMargin, r.yMin - GlowMargin,
@@ -484,9 +524,9 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
 
     void BuildButtons(Button replay, Sprite replayGlyph, Button menu, Sprite menuGlyph)
     {
-        buttonSlots[0] = BuildButton(0, replay, replayGlyph, "REPLAY", Cyan, ReplayRect);
-        buttonSlots[1] = BuildButton(1, menu, menuGlyph, "MENU", Coral, MenuRect);
-        buttonSlots[2] = BuildButton(2, NewDockButton(), null, "SPACE DOCK", Gold, DockRect);
+        buttonSlots[0] = BuildButton(0, replay, replayGlyph, "REPLAY", Cyan, buttonRects[0]);
+        buttonSlots[1] = BuildButton(1, menu, menuGlyph, "MENU", Coral, buttonRects[1]);
+        buttonSlots[2] = BuildButton(2, NewDockButton(), null, "SPACE DOCK", Gold, buttonRects[2]);
     }
 
     // The dock button is made here (the scene has no third button). It is
@@ -534,7 +574,7 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
 
         var glow = NewImage("Glow", slot, Load("dp_glow"), new Color(accent.r, accent.g, accent.b, 0f));
         glow.type = Image.Type.Sliced;
-        Place(glow.rectTransform, Centered(0f, 0f, rect.width + 40f, rect.height + 40f));
+        Place(glow.rectTransform, Centered(0f, 0f, rect.width + 2f * ButtonGlowPad, rect.height + 2f * ButtonGlowPad));
         buttonGlows[index] = glow;
 
         if (button == null) return slot;
@@ -556,7 +596,7 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
         var frame = button.GetComponent<Image>();
         if (frame != null)
         {
-            frame.sprite = Load("dp_button");
+            frame.sprite = TranslucentButtonSprite(Load("dp_button"));
             frame.type = Image.Type.Sliced;
             frame.preserveAspect = false;
             frame.color = accent;
@@ -892,7 +932,7 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
     void SplitRowGap(float fitScale)
     {
         float pad = Mathf.Max(0f, (UiScaleFloor.SceneTapUnits / Mathf.Max(fitScale, .1f) - ButtonHeight) * .5f);
-        float half = (ReplayRect.yMin - DockRect.yMax) * .5f;
+        float half = ((ReplayY - ButtonHeight * .5f) - (DockY + ButtonHeight * .5f)) * .5f;
         if (pad <= half) return;
         float far = 2f * pad - half;
         for (int i = 0; i < ButtonCount; i++)
@@ -1014,6 +1054,47 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
     {
         rt.anchorMin = Vector2.zero; rt.anchorMax = Vector2.one;
         rt.offsetMin = rt.offsetMax = Vector2.zero;
+    }
+
+    // dp_button's body fill is a flat (44,51,70); the tutorial and offer cards
+    // share the sprite and keep it solid, so the death buttons get their own
+    // copy with a less opaque fill. The ink rim and the accent slab stay solid.
+    public const float ButtonFillAlpha = .62f;
+    static Sprite translucentButton, translucentSource;
+
+    static Sprite TranslucentButtonSprite(Sprite source)
+    {
+        if (source == null) return null;
+        if (translucentButton != null && translucentSource == source) return translucentButton;
+        var tex = source.texture;
+        var rt = RenderTexture.GetTemporary(tex.width, tex.height, 0, RenderTextureFormat.ARGB32, RenderTextureReadWrite.sRGB);
+        var prev = RenderTexture.active;
+        Graphics.Blit(tex, rt);
+        RenderTexture.active = rt;
+        var copy = new Texture2D(tex.width, tex.height, TextureFormat.RGBA32, false);
+        copy.ReadPixels(new Rect(0, 0, tex.width, tex.height), 0, 0);
+        RenderTexture.active = prev;
+        RenderTexture.ReleaseTemporary(rt);
+        var px = copy.GetPixels32();
+        for (int i = 0; i < px.Length; i++)
+        {
+            var c = px[i];
+            if (c.a == 255 && Mathf.Abs(c.r - 44) <= 2 && Mathf.Abs(c.g - 51) <= 2 && Mathf.Abs(c.b - 70) <= 2)
+            {
+                c.a = (byte)Mathf.RoundToInt(255f * ButtonFillAlpha);
+                px[i] = c;
+            }
+        }
+        copy.SetPixels32(px);
+        copy.Apply(false, false);
+        copy.wrapMode = TextureWrapMode.Clamp;
+        copy.filterMode = source.texture.filterMode;
+        copy.name = "dp_button_translucent";
+        translucentSource = source;
+        translucentButton = Sprite.Create(copy, new Rect(0, 0, copy.width, copy.height), new Vector2(.5f, .5f),
+                                          source.pixelsPerUnit, 0, SpriteMeshType.FullRect, source.border);
+        translucentButton.name = "dp_button";
+        return translucentButton;
     }
 
     static Rect Centered(float x, float y, float w, float h)
