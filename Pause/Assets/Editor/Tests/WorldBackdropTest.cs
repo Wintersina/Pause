@@ -26,7 +26,8 @@ public static class WorldBackdropTest
     // pipes and smokes and wild fires", 2026-10-08) besides one 4-tile
     // variant set: two atlases more than Frost. Measured 5488 KB (ASTC 6x6
     // sizes); 7 MB leaves room for one more sheet.
-    public const long VerdantTextureBudgetBytes = 7L * 1024 * 1024;
+    // 2026-10: Verdant's sky / far / mid / flow tiles are 896x1792 (ASTC 6x6, ~0.72 MB each, was ~0.24 MB at 512x1024): the variant set grew ~1.9 MB (~7.4 MB), 7 -> 9 MB (estimate, CI measures).
+    public const long VerdantTextureBudgetBytes = 9L * 1024 * 1024;
     // Ember carries the same ten shared 1024 atlases (landmarks, pipes, fires,
     // sites, weather and five ambient-loop sheets) as Verdant besides one
     // 4-tile variant set (~5.5 MB measured, ASTC 6x6 sizes).
