@@ -1,0 +1,7 @@
+lm_anvils exit 0 /Users/sina/Develope
+lm_masts exit 0 /Users/sina/Develope
+lm_refineries exit 0 /Users/sina/Develope
+lm_docks exit 0 /Users/sina/Develope
+hz_swirl exit 0 /Users/sina/Develope
+hz_front exit 0 /Users/sina/Develope
+ALLDONE

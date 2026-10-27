@@ -1,0 +1,5 @@
+tr_raft exit 0 /Users/sina/Develope
+tr_rotors exit 0 /Users/sina/Develope
+dish_mast exit 0 /Users/sina/Develope
+dish_dish exit 0 /Users/sina/Develope
+ALLDONE

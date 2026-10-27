@@ -88,6 +88,18 @@ public static class StormLifeTest
         float before = ang[0];
         wb.Step(0f);
         Check("paused (dt 0): the fans hold still", ang[0] == before);
+
+        // the relay dish turns on its mast (steady loop, foreshortened by |cos|, frozen with the world clock)
+        var dish = d.Showcase(StormLifeTuning.DishPiece, 1.7f, 0f, 0f);
+        for (int i = 0; i < 5; i++) wb.Step(Dt);
+        Check("the relay dish piece shows its turning dish", dish != null && d.Life.IsDish(dish) && d.Life.DishWidth(dish) != 0f);
+        float d0 = d.Life.DishAngle(dish), wMin = 9f, wMax = -9f;
+        for (int i = 0; i < 150; i++) { wb.Step(Dt); float w = d.Life.DishWidth(dish) / StormLifeTuning.DishScale; wMin = Mathf.Min(wMin, w); wMax = Mathf.Max(wMax, w); }
+        Check("in 2.5 s the dish turned about " + (StormLifeTuning.DishSpeed * 2.5f).ToString("0") + " deg and swept through edge-on and mirrored (width " + wMin.ToString("F2") + " .. " + wMax.ToString("F2") + ")",
+              Mathf.Abs(d.Life.DishAngle(dish) - d0 - StormLifeTuning.DishSpeed * 2.5f) < 8f && wMin < 0f && wMax > .9f);
+        float da = d.Life.DishAngle(dish);
+        wb.Step(0f);
+        Check("paused (dt 0): the dish holds still", d.Life.DishAngle(dish) == da);
         Object.DestroyImmediate(WorldBackdrop.Instance.gameObject);
     }
 

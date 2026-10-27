@@ -20,8 +20,17 @@ public static class StormLifeTuning
     public const int Rotors = 3;
     // The three fans of "turbine_raft_00", left to right: hub centre on the 256 cell (px from the top-left) and speed in deg/s
     // (negative = clockwise on screen). Real turbines are slow; this is a readable lazy spin.
-    public static readonly Vector2[] FanHubs = { new Vector2(99.5f, 94.5f), new Vector2(150.5f, 120.5f), new Vector2(206.5f, 80.5f) };
-    public static readonly float[] FanSpeeds = { -52f, 71f, -63f };
+    // 2026-10 restyle: the raft is repainted with BARE hubs and the fans are three painted three-blade rotors; hubs measured on the new raft,
+    // FanScales = each fan's size relative to its 119 px rotor cell. A steady, clearly visible spin (about 0.3 turns a second, wind-swelled);
+    // StormLifeTest keeps every speed inside 15..140 deg/s.
+    public static readonly Vector2[] FanHubs = { new Vector2(148.3f, 49.8f), new Vector2(80.7f, 96.8f), new Vector2(205.6f, 125.6f) };
+    public static readonly float[] FanScales = { .589f, .442f, .442f };
+    public static readonly float[] FanSpeeds = { -100f, 112f, -106f };
+    // The relay dish turns on its mast: the painted dish ("dish_00" in the rotors atlas, pivot = the cell centre) sits on the mast's bare
+    // mount and turns about the vertical axis (a steady DishSpeed deg/s: its width follows |cos|, mirrored past the edge-on moment).
+    public const string DishPiece = "relay_dish_00";
+    public static readonly Vector2 DishMount = new Vector2(123.1f, 9.6f);      // on the 256 cell, px from the top-left
+    public static float DishScale = .7f, DishSpeed = 72f, DishMinWidth = .16f;
     public static float FanSwell = .22f, FanSwellHz = .11f;       // the wind: speed x (1 + swell sin)
     public const string TurbinePiece = "turbine_raft_00";
 
@@ -42,6 +51,8 @@ public sealed class StormLife
     sealed class Extras
     {
         public SpriteRenderer[] rotors;
+        public SpriteRenderer dish;        // the relay dish piece's turning dish
+        public float dishAngle;
         public SpriteRenderer heart;       // towers: the glowing core
         public SpriteRenderer tip;
         public SpriteRenderer bolts;       // towers: the lightning layer over the cloud
@@ -56,7 +67,7 @@ public sealed class StormLife
 
     readonly BackdropPool ground;
     readonly Extras[] extras;
-    readonly Sprite turbine, glowSprite;
+    readonly Sprite turbine, glowSprite, relay, dishArt;
     readonly Dictionary<Sprite, Sprite> boltOf = new Dictionary<Sprite, Sprite>();
     float lastStrike = -9f;
     readonly System.Random rng;
@@ -66,8 +77,10 @@ public sealed class StormLife
     // Preview only (before / after clips): a static frame of the old look, fans parked, no bob, breathing or glow.
     public static bool Still;
 
-    public StormLife(BackdropPool ground, BackdropAtlas rotorArt, Sprite turbine, Sprite glowSprite, int seed, BackdropAtlas landmarkArt = null, BackdropAtlas boltArt = null)
+    public StormLife(BackdropPool ground, BackdropAtlas rotorArt, Sprite turbine, Sprite glowSprite, int seed, BackdropAtlas landmarkArt = null, BackdropAtlas boltArt = null, Sprite relayPiece = null)
     {
+        relay = relayPiece;
+        dishArt = rotorArt != null ? rotorArt.Get("dish_00") : null;
         if (landmarkArt != null && boltArt != null)
             for (int k = 0; k < StormTuning.Towers.Length; k++)
             {
@@ -100,12 +113,24 @@ public sealed class StormLife
                     go.transform.SetParent(p.body, false);
                     var hub = StormLifeTuning.FanHubs[k];
                     go.transform.localPosition = new Vector3((hub.x - 128f) / ppu, (128f - hub.y) / ppu, 0f);
+                    go.transform.localScale = new Vector3(StormLifeTuning.FanScales[k], StormLifeTuning.FanScales[k], 1f);
                     var sr = go.AddComponent<SpriteRenderer>();
                     sr.sprite = rs[k];
                     sr.sortingOrder = order;
                     sr.enabled = false;
                     e.rotors[k] = sr;
                 }
+            }
+            if (dishArt != null && relay != null)
+            {
+                var go = new GameObject("dish");
+                go.transform.SetParent(p.body, false);
+                go.transform.localPosition = new Vector3((StormLifeTuning.DishMount.x - 128f) / ppu, (128f - StormLifeTuning.DishMount.y) / ppu, 0f);
+                var sr = go.AddComponent<SpriteRenderer>();
+                sr.sprite = dishArt;
+                sr.sortingOrder = order;
+                sr.enabled = false;
+                e.dish = sr;
             }
             if (boltOf.Count > 0)
             {
@@ -138,6 +163,9 @@ public sealed class StormLife
     }
 
     // ---- reads for tests ----
+    public bool IsDish(BackdropPiece p) { return relay != null && p.sr.sprite == relay; }
+    public float DishAngle(BackdropPiece p) { return extras[ground.items.IndexOf(p)].dishAngle; }
+    public float DishWidth(BackdropPiece p) { var e = extras[ground.items.IndexOf(p)]; return e.dish != null && e.dish.enabled ? e.dish.transform.localScale.x : 0f; }
     public bool IsFan(BackdropPiece p) { return turbine != null && p.sr.sprite == turbine; }
     public float[] RotorAngles(BackdropPiece p) { return extras[ground.items.IndexOf(p)].angle; }
     public bool RotorsShown(BackdropPiece p)
@@ -195,6 +223,12 @@ public sealed class StormLife
                 e.rotors[r].transform.localRotation = Quaternion.identity;
                 e.rotors[r].color = new Color(1f, 1f, 1f, a);
             }
+        if (e.dish != null)
+        {
+            e.dish.enabled = IsDish(p);
+            e.dish.transform.localScale = new Vector3(StormLifeTuning.DishScale, StormLifeTuning.DishScale, 1f);
+            e.dish.color = new Color(1f, 1f, 1f, a);
+        }
         if (e.heart != null) { e.heart.enabled = false; e.tip.enabled = false; }
         if (e.bolts != null) e.bolts.enabled = false;
     }
@@ -247,6 +281,20 @@ public sealed class StormLife
                     if (e.angle[r] > 3600f || e.angle[r] < -3600f) e.angle[r] %= 360f;
                     sr.transform.localRotation = Quaternion.Euler(0f, 0f, e.angle[r]);
                     sr.color = new Color(1f, 1f, 1f, a);
+                }
+            }
+            if (e.dish != null)
+            {
+                bool relayPiece = IsDish(p);
+                if (e.dish.enabled != relayPiece) e.dish.enabled = relayPiece;
+                if (relayPiece)
+                {
+                    e.dishAngle += StormLifeTuning.DishSpeed * dt;
+                    if (e.dishAngle > 3600f) e.dishAngle %= 360f;
+                    float c = Mathf.Cos(e.dishAngle * Mathf.Deg2Rad);
+                    float w = Mathf.Sign(c == 0f ? 1f : c) * Mathf.Max(StormLifeTuning.DishMinWidth, Mathf.Abs(c));
+                    e.dish.transform.localScale = new Vector3(w * StormLifeTuning.DishScale, StormLifeTuning.DishScale, 1f);
+                    e.dish.color = new Color(1f, 1f, 1f, a);
                 }
             }
             float strike = 0f;
