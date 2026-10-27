@@ -2106,7 +2106,27 @@ public static class WorldBackdropTest
             }
             Check("Space spheres all animate over a 5-minute run (" + spheres + " samples, " + still + " still)",
                   spheres > 50 && still == 0);
-            Check("Space outpost moons turn and blink their lamps (" + outpostViews + " samples, " + outpostStill + " static)",
+            // An outpost moon is 2 of the 22 far-field planet cells (SpaceDirector.EvenPlanetPool: every
+            // cell equally likely), so five minutes need not show one. Keep flying, up to another
+            // twenty, until one has been drawn: the checks below are about how it is drawn, not how
+            // often. Still deterministic (the director's stream is seeded).
+            int outpostWait = 0;
+            for (; outpostViews == 0 && outpostWait < 20 * 60 * 30; outpostWait++)
+            {
+                moveBackGround.speed = Mathf.Repeat(outpostWait * 0.0002f, 0.62f);
+                wb.Step(step);
+                if (outpostWait % 30 != 0) continue;
+                foreach (var pool in sd.Bodies)
+                    foreach (var p in pool.items)
+                        if (sd.IsOutpostPiece(p))
+                        {
+                            outpostViews++;
+                            if (!p.planet || p.turnRate == 0f || p.sr.sharedMaterial != sd.OutpostMaterial) outpostStill++;
+                            if (p.tier > SpaceDirector.OutpostMaxTier || p.size > SpaceDirector.OutpostMaxWidth) outpostNear++;
+                        }
+            }
+            Check("Space outpost moons turn and blink their lamps (" + outpostViews + " samples, " + outpostStill + " static" +
+                  (outpostWait > 0 ? ", first after " + (5f + outpostWait / 1800f).ToString("0.0") + " min" : "") + ")",
                   outpostViews > 0 && outpostStill == 0);
             Check("Space outpost moons (modest-resolution art) stay in the far field, small on screen (tier <= " +
                   SpaceDirector.OutpostMaxTier + ", width <= " + SpaceDirector.OutpostMaxWidth + " u; " + outpostNear + " too near / big)",
