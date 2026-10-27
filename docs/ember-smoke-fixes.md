@@ -41,3 +41,7 @@ Do not repaint the plumes; edit the existing frames.
 - Verdant `smoke.png` smoke_a_00..07 and `firesmoke.png` wildsmoke_b_00..07: shrink each frame 85-90% about the foot (128, 234) or shift left so the rightmost opaque column is <= 249; re-run `measure_points.py`.
 - Ember `smoke.png` smoke_a: keep the foot flame on x=128.6 in every frame (frames 02/06 single foot) and limit the body lean to roughly +-25 px at the top of the column so it leans the same side (right, as the wind) in all 8 frames; same for smoke_b (+-20) and eruptsmoke_a.
 - After any art change: rerun `Assets/Art/Worlds/Ember/backdrop_v3~/src~/measure_points.py` (and the Verdant equivalent) and `BackdropLoopGuardTest`; shrink `KnownEdge` / `KnownSliver` in that test to match.
+
+## Hard straight cuts in the art (Oct 27 fix)
+
+Cause of "smoke cut off by a straight line": the art itself. Ember `smoke_b`, `eruptsmoke_b` and the weather palls/wisps/gusts were cropped by the generator: a flat top row (row 57-59 of every smoke_b frame) and translucent "ghost" layers (alpha 24-85) with straight rectangular edges, plus a floating hatched strip in two eruptsmoke_b frames. The cell, sprite rect and draw order were fine. Fix: the flat tops dissolve over ~20 px with a noisy ramp, ghost layers are softened (their rectangular silhouette blurred out), detached strips removed. `EmberSmokeCutTest` guards cell-border bleed and straight cuts (run >= 14 px with an alpha jump >= 40) on every Ember smoke frame.

@@ -108,6 +108,7 @@ public static class AllTests
         ("BackNavigationTest", BackNavigationTest.Execute),
         ("BackdropCellClipTest", BackdropCellClipTest.Execute),
         ("BackdropLoopGuardTest", BackdropLoopGuardTest.Execute),
+        ("EmberSmokeCutTest", EmberSmokeCutTest.Execute),
         ("BossAttackTest", BossAttackTest.Execute),
         ("BossDamageTest", BossDamageTest.Execute),
         ("BossImpactTest", BossImpactTest.Execute),
