@@ -22,7 +22,7 @@ W, H = 1024, 2048
 VARIANTS = (sys.argv[1],) if len(sys.argv) > 1 else ("v3",)     # v1 day dunes, v3 salt flat, v4 night dunes
 SOURCES = {v: ("mid_a.png", "mid_b.png") for v in ("v1", "v3", "v4")}
 # target HSV value p90 of the opaque pixels (mid); far is .05 lower, sky .10
-P90 = {"v1": .49, "v3": .465, "v4": .40}
+P90 = {"v1": .49, "v3": .465, "v4": .44}
 NIGHT = {"v4"}
 ACCENT_HUE = {"v1": 36.0, "v3": 36.0, "v4": 215.0}   # pink / purple / red texels are rotated here (ochre by day, blue at night)
 HAZE = {"v1": (.20, .17, .12), "v3": (.20, .17, .12), "v4": (.04, .07, .13)}
