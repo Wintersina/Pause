@@ -261,6 +261,36 @@ public class PauseQuickActions : MonoBehaviour
         if (go == null || sprite == null) return;
         var image = go.GetComponent<Image>();
         if (image != null) image.sprite = sprite;
+        var glyph = GlyphImage(go);
+        if (glyph != null) glyph.sprite = sprite;
+    }
+
+    // The visible glyph is a child drawn at GlyphScale of the tap square,
+    // centred, so it keeps a clear margin inside the frame; the button's own
+    // Image stays the full-size (invisible) tap target and holds the sprite.
+    public const float GlyphScale = .8f;
+    const string GlyphName = "Glyph";
+
+    static Image GlyphImage(GameObject go)
+    {
+        var child = go.transform.Find(GlyphName);
+        return child != null ? child.GetComponent<Image>() : null;
+    }
+
+    static void EnsureGlyph(GameObject go)
+    {
+        if (GlyphImage(go) != null) return;
+        var g = new GameObject(GlyphName, typeof(RectTransform), typeof(Image));
+        g.transform.SetParent(go.transform, false);
+        var rt = (RectTransform)g.transform;
+        rt.anchorMin = rt.anchorMax = rt.pivot = new Vector2(.5f, .5f);
+        rt.anchoredPosition = Vector2.zero;
+        rt.sizeDelta = new Vector2(ButtonSize, ButtonSize) * GlyphScale;
+        var img = g.GetComponent<Image>();
+        img.preserveAspect = true;
+        img.raycastTarget = false;
+        var src = go.GetComponent<Image>();
+        if (src != null) img.sprite = src.sprite;
     }
 
     // Re-placed whenever the band moves: screen, safe area, cutouts, or the
@@ -348,7 +378,8 @@ public class PauseQuickActions : MonoBehaviour
         {
             image.type = Image.Type.Simple;
             image.preserveAspect = true;
-            image.color = Color.white;
+            EnsureGlyph(go);
+            image.color = Color.clear;   // the tap square; the Glyph child draws
             // Default rect-based raycast (not alpha-tested): taps anywhere in
             // the square count, matching IsScreenPointOnAction.
             image.raycastTarget = true;
@@ -363,6 +394,8 @@ public class PauseQuickActions : MonoBehaviour
             colors.selectedColor = Color.white;
             colors.pressedColor = new Color(1f, .86f, .82f, 1f);
             button.colors = colors;
+            var glyph = GlyphImage(go);
+            if (glyph != null) button.targetGraphic = glyph;
         }
 
         // Motion: a cartoon squash-and-pop on press.
