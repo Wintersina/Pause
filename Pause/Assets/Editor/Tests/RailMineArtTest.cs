@@ -470,6 +470,13 @@ public static class RailMineArtTest
             var def = EnemyRoster.One(w, EnemyRole.Mine);
             var entry = Codex.Find(def.codexId);
             Check(def.codexId + " codex entry exists", entry != null);
+            // a mine with its own codex still (Mirage Mine, desert_mine_codex) shows that still instead of the dormant atlas frame
+            if (CodexCatalogue.HasStillArt(def.codexId))
+            {
+                Check(def.codexId + " codex sprite is its own still (CodexCatalogue.StillArtFor)",
+                      entry != null && entry.Sprite == CodexCatalogue.StillArtFor(def.codexId));
+                continue;
+            }
             Check(def.codexId + " codex sprite is the dormant " + EnemyRoster.WorldKeys[w] + " mine",
                   entry != null && entry.Sprite == RailMineArt.Frame(w, RailMineArt.Dormant));
         }
