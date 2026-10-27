@@ -1,0 +1,1 @@
+Tiles here are the shipped ones (1x pixel grid, so BackdropResolutionTest's block test passes; lava capped per variant at the old art's brightest lava; v1 sky/far/mid x0.72/.74/.88 for WorldBackdropTest's as-drawn caps). Build: build_ember.py.

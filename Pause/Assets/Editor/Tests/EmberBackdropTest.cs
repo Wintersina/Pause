@@ -240,7 +240,8 @@ public static class EmberBackdropTest
         float worst = 0f;
         int tracked = 0;
         var tile = d.Planner.Tile;
-        float tilePx = tile.TileHeight / 1024f;
+        var midTex = Resources.Load<Texture2D>(BackdropCatalog.TileFolder("Ember", 1) + "mid");   // tile pixel size from the art itself (896x1792 since 2026-10)
+        float tileW = midTex != null ? midTex.width : 896f, tileH = midTex != null ? midTex.height : 1792f;
         Run(wb, 60f, () =>
         {
             foreach (var pool in PinnedPools(d))
@@ -252,8 +253,8 @@ public static class EmberBackdropTest
                     if (!TileSpot(wb, p.root.position, out uv)) continue;
                     Vector2 s0;
                     if (!start.TryGetValue(p, out s0)) { start[p] = uv; tracked++; continue; }
-                    float dv = Mathf.Abs(Mathf.Repeat(uv.y - s0.y + .5f, 1f) - .5f) * 1024f;   // tile pixels (wraps)
-                    float du = Mathf.Abs(uv.x - s0.x) * 512f;
+                    float dv = Mathf.Abs(Mathf.Repeat(uv.y - s0.y + .5f, 1f) - .5f) * tileH;   // tile pixels (wraps)
+                    float du = Mathf.Abs(uv.x - s0.x) * tileW;
                     worst = Mathf.Max(worst, Mathf.Max(du, dv));
                 }
         });

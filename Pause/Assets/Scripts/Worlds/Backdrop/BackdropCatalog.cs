@@ -7,7 +7,7 @@ using UnityEngine;
 // so a higher rate reads as closer. Rates must strictly increase with depth;
 // WorldBackdropTest enforces it.
 //
-// Tile layers are seamless 512x1024 PNGs (Storm and Desert grounds 1024x2048; Tide and Verdant grounds 896x1792) leap-frogged vertically. Set pieces
+// Tile layers are seamless 512x1024 PNGs (Storm and Desert grounds 1024x2048; Tide, Verdant and Ember grounds 896x1792) leap-frogged vertically. Set pieces
 // (planets, glaciers, volcanoes...) and particles come from each world's `fx`
 // and `anim` atlases and are driven by that world's BackdropDirector.
 //
