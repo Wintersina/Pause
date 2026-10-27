@@ -32,9 +32,10 @@ CLASSES = "WBOC"
 
 # score expressions and class shares (fractions of the tile)
 VARIANTS = {
-    # day dunes: sand; a few pale flats between the barchans and a little rubble
-    1: dict(built=lambda f: f['tex'] * 2 - f['lum'], bshare=.03,
-            shoal=lambda f: f['lum'] * 2 - f['tex'] * 3, oshare=.12, kelp=lambda f: -f['lum'] + f['warm'], cshare=.02),
+    # day dunes (painted 1024 x 2048 tile): dark half-buried rock outcrops = cliff (C: no dock or structure on rock), the pale gravel
+    # wadi and bleached wreck bits = hardpan (O: heavy structures and launch sites), everything else soft dune sand (W)
+    1: dict(built=lambda f: f['tex'] * 2 + f['lum'] - f['sat'] * 3, bshare=.015,
+            shoal=lambda f: f['lum'] - f['sat'] * 3 - f['tex'], oshare=.10, kelp=lambda f: f['tex'] * 4 - f['lum'] - f['sat'], cshare=.10, vote=.25),
     # canyon: rust cliff walls (warm, dark, textured), the pale floor, buried hulls
     2: dict(built=lambda f: f['tex'] * 3 - f['warm'] + f['lum'], bshare=.07,
             shoal=lambda f: f['lum'] * 2 - f['tex'], oshare=.30, kelp=lambda f: -f['lum'] * 2 + f['warm'], cshare=.42),
