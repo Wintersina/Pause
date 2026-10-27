@@ -24,6 +24,11 @@ public static class HudSkinTest
     {
         fails = 0;
         Check("seven worlds", HudSkin.WorldCount == 7);
+        Check("HUD frame grows 16 x 10 units outside the board rect", HudStyler.FrameOutY == 16f && HudStyler.FrameOutX == 10f);
+        for (int w = 0; w < HudSkin.WorldCount; w++)
+            Check(WorldManager.Worlds[w].displayName + ": icons centred on the frame's inside (offset within 6 units)", Mathf.Abs(HudSkin.ButtonInnerOffsetY(w)) <= 6f);
+        Check("Frost icons sit above the frame centre (-5.25), the frame's icicles are on top", Mathf.Abs(HudSkin.ButtonInnerOffsetY(1) + 5.25f) < .01f);
+        Check("HUD rows share one font size", ScoreHud.FontSize == 19);
 
         for (int w = 0; w < HudSkin.WorldCount; w++)
         {

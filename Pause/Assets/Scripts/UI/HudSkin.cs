@@ -39,6 +39,20 @@ public static class HudSkin
 
     // Frames: every world, Space included, has HudSkins/<World>/{hud_frame,dp_panel}.
     static string Dir(int world) { return "HudSkins/" + WorldManager.Worlds[Mathf.Clamp(world, 0, WorldCount - 1)].displayName + "/"; }
+    // Where the visible inside of the home / replay panel's frame sits, as the
+    // distance (canvas units, + is down) from the frame's centre to the centre
+    // of its dark inside. Measured from hud_buttons (sprite px, 200 ppu drawn
+    // at half scale): the top margin to the inside (icicles / crystals) minus
+    // the bottom margin, halved. The glyph pair is centred there, not on the
+    // rect, so the gaps above and below the icons read equal. Order = world index.
+    static readonly float[] ButtonInnerTopPx = { 38f, 39f, 49f, 53f, 42f, 63f, 59f };
+    static readonly float[] ButtonInnerBottomPx = { 32f, 60f, 47f, 51f, 43f, 71f, 48f };
+    public static float ButtonInnerOffsetY(int world)
+    {
+        int w = Mathf.Clamp(world, 0, ButtonInnerTopPx.Length - 1);
+        return (ButtonInnerTopPx[w] - ButtonInnerBottomPx[w]) * .25f;
+    }
+
     public static string FramePath(int world) { return Dir(world) + "hud_board"; }
     public static string ButtonPanelPath(int world) { return Dir(world) + "hud_buttons"; }
     public static string DeathPanelPath(int world) { return Dir(world) + "dp_panel"; }

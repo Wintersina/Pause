@@ -111,8 +111,8 @@ public class HudStyler : MonoBehaviour
         if (ScoreHud.ShouldShow(speedText)) ScoreHud.Attach(gameObject, speedText);
         else ScoreHud.AttachPopupsOnly(gameObject, speedText);   // the tutorial: popups, no score row
 
-        Style(speedText, Speed, 23);
-        Style(pauseText, Pause, 26);
+        Style(speedText, Speed, ScoreHud.FontSize);
+        Style(pauseText, Pause, ScoreHud.FontSize);
         // Resume slow-mo indicator: SLOW-MO count-up + spool bar in this row.
         ResumeSpeedRow.Attach(speedText);
 

@@ -76,6 +76,7 @@ public class PauseQuickActions : MonoBehaviour
     Image panelImage;
     int skinWorld = -1;
     float appliedPanelH;
+    int appliedWorld = -1;
     RectTransform safeArea;
     Rect appliedSafeArea;
     Vector2Int appliedScreen;
@@ -157,7 +158,7 @@ public class PauseQuickActions : MonoBehaviour
         float s = CanvasScaleFor(screen);
         Rect panel = ScreenRectFor(band, screen);
         float right = panel.xMax - PanelPad * s - slotFromRight * (ButtonSize + ButtonGap) * s;
-        float top = panel.yMax - (panel.height - ButtonSize * s) * .5f;
+        float top = panel.yMax - (panel.height - ButtonSize * s) * .5f - HudSkin.ButtonInnerOffsetY(HudSkin.CurrentWorld) * s;
         return new Rect(right - ButtonSize * s, top - ButtonSize * s, ButtonSize * s, ButtonSize * s);
     }
 
@@ -302,7 +303,8 @@ public class PauseQuickActions : MonoBehaviour
         Rect safe = Screen.safeArea;
         var band = TopBand.FrameFor(safe, screen);
         float panelH = DrawnPanelHeightPx(band, screen);
-        if (bandApplied && band.Same(appliedBand) && Mathf.Approximately(panelH, appliedPanelH)) return;
+        if (bandApplied && band.Same(appliedBand) && Mathf.Approximately(panelH, appliedPanelH) && appliedWorld == HudSkin.CurrentWorld) return;
+        appliedWorld = HudSkin.CurrentWorld;
         appliedBand = band;
         appliedPanelH = panelH;
         bandApplied = true;
@@ -358,7 +360,7 @@ public class PauseQuickActions : MonoBehaviour
         rt.localScale = Vector3.one;
         rt.sizeDelta = new Vector2(ButtonSize, ButtonSize);
         rt.anchoredPosition = new Vector2(offset.x - PanelPad - slotFromRight * (ButtonSize + ButtonGap),
-                                          offset.y - (panelHeight - ButtonSize) * .5f);
+                                          offset.y - (panelHeight - ButtonSize) * .5f - HudSkin.ButtonInnerOffsetY(HudSkin.CurrentWorld));
     }
 
     // The glyph is the whole button (the panel behind it is the frame): no
