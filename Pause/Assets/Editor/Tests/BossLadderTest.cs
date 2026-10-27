@@ -30,7 +30,7 @@ public static class BossLadderTest
     {
         fails = 0;
         var rows = new LadderRow[BossPatternTables.Bosses];
-        for (int w = 0; w < rows.Length; w++) rows[w] = BossLadder.Measure(w);
+        for (int w = 0; w < rows.Length; w++) rows[w] = BossLadder.Measure(w, -1f, true);   // authored parts: independent of which tests built a boss rotation first
         Table(rows);
         Order(rows);
         Floors(rows);
