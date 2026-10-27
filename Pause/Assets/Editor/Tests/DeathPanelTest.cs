@@ -102,6 +102,27 @@ public static class DeathPanelTest
             Check(tag + "buttons do not overlap each other", !rs[0].Overlaps(rs[1]) && !rs[0].Overlaps(rs[2]) && !rs[1].Overlaps(rs[2]));
             Check(tag + "the glow keeps off the cards above",
                   rs[0].yMax + DeathPanelView.ButtonGlowPad <= cards[cards.Length - 1].yMin + .01f);
+
+            // The banner is anchored to the frame art: its top edge sits below the
+            // frame's measured top border, and the stack's shift leaves SPACE DOCK
+            // above the bottom border.
+            float frameInner = DeathPanelView.FrameInnerTop(w);
+            float top = DeathPanelView.BannerTop(w);
+            Check(tag + "frame top inset is measured (> 20 units): " + DeathPanelView.FrameTopInset(w).ToString("F1"), DeathPanelView.FrameTopInset(w) > 20f);
+            Check(tag + "banner top (" + top.ToString("F1") + ") is below the frame's top inset (" + frameInner.ToString("F1") + ")", top <= frameInner - DeathPanelView.BannerGap + .01f);
+            // The cards share the buttons' column edges, inside the frame's inner span.
+            var cr = DeathPanelView.CardRectsFor(w);
+            bool cardsInside = true, sameEdges = true;
+            foreach (var c in cr)
+            {
+                cardsInside &= c.xMin >= -DeathPanelView.BorderSpan(w) + .01f && c.xMax <= DeathPanelView.BorderSpan(w) - .01f;
+                sameEdges &= Mathf.Abs(c.xMin - rs[2].xMin) < .01f && Mathf.Abs(c.xMax - rs[2].xMax) < .01f;
+            }
+            Check(tag + "every card's edges are inside the frame's inner span (" + DeathPanelView.BorderSpan(w) + ")", cardsInside);
+            Check(tag + "cards and buttons share the same column edges", sameEdges);
+            Check(tag + "the stack shift is not negative and under 60", DeathPanelView.StackShift(w) >= 0f && DeathPanelView.StackShift(w) < 60f);
+            Check(tag + "SPACE DOCK stays above the frame's bottom inset", rs[2].yMin >= DeathPanelView.FrameInnerBottom(w) + DeathPanelView.ButtonClearance - .01f);
+            Check(tag + "the banner stays inside the panel", top <= DeathPanelView.Height * .5f);
         }
         Check("buttons' fill is translucent (alpha <= .7)", DeathPanelView.ButtonFillAlpha <= .7f);
         Check("SPACE DOCK is as tall as the other buttons", Mathf.Approximately(dockR.height, replay.height));

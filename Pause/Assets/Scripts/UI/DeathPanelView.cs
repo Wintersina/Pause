@@ -93,23 +93,69 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
     {
         float span = ButtonHalfSpan(world);
         float w = span - ButtonColumnGap * .5f;
+        float down = StackShift(world);
         return new[]
         {
-            new Rect(-span, ReplayY - ButtonHeight * .5f, w, ButtonHeight),
-            new Rect(ButtonColumnGap * .5f, ReplayY - ButtonHeight * .5f, w, ButtonHeight),
-            new Rect(-span, DockY - ButtonHeight * .5f, 2f * span, ButtonHeight),
+            new Rect(-span, ReplayY - down - ButtonHeight * .5f, w, ButtonHeight),
+            new Rect(ButtonColumnGap * .5f, ReplayY - down - ButtonHeight * .5f, w, ButtonHeight),
+            new Rect(-span, DockY - down - ButtonHeight * .5f, 2f * span, ButtonHeight),
         };
     }
+    // ---- Anchored to the frame art ----
+    // Where the frame's top border art ends (units below the frame's top edge,
+    // measured from the sprite, FrameInsets) and the same at the bottom.
+    public static float FrameTopInset(int world) { return FrameInsets.Top(HudSkin.DeathPanel(world), world, FrameBorderScale, Width + 2f * GlowMargin, Height + 2f * GlowMargin); }
+    public static float FrameBottomInset(int world) { return FrameInsets.Bottom(HudSkin.DeathPanel(world), world, FrameBorderScale, Width + 2f * GlowMargin, Height + 2f * GlowMargin); }
+    // Panel-space y of the frame's top border's inner edge.
+    public static float FrameInnerTop(int world) { return Height * .5f + GlowMargin - FrameTopInset(world); }
+    public static float FrameInnerBottom(int world) { return -Height * .5f - GlowMargin + FrameBottomInset(world); }
+    // How far the banner, its rule and the whole stack below it move down (units)
+    // so the banner's top edge sits BannerGap under the frame's top border art:
+    // as much as that needs, never more than the room above the frame's bottom
+    // border under SPACE DOCK (keeping ButtonClearance there).
+    public static float StackShift(int world)
+    {
+        float need = BannerTopBase - (FrameInnerTop(world) - BannerGap);
+        float room = (DockY - ButtonHeight * .5f) - (FrameInnerBottom(world) + ButtonClearance);
+        return Mathf.Max(0f, Mathf.Min(need, room));
+    }
+    // The banner's top edge (panel space) for a world's frame.
+    public static float BannerTop(int world) { return BannerTopBase - StackShift(world); }
+    float stackShift;
+    Rect Shifted(Rect r) { return new Rect(r.x, r.y - stackShift, r.width, r.height); }
+    Vector2 Shifted(Vector2 v) { return new Vector2(v.x, v.y - stackShift); }
+
     // Card-local columns: labels start right of the accent bar, values end
     // with the same inset from the right edge on every row.
-    const float LabelLeft = -CardWidth * .5f + 44f;
-    const float ValueRight = CardWidth * .5f - 44f;
+    // (instance: the cards are as wide as the world's button column, which
+    // is the frame's inner span less the clearances; CardWidth is the widest.)
+    // The inset tightens a little as the card narrows (shrink gaps, not text).
+    float SideInset { get { return Mathf.Clamp(44f - (CardWidth - cardW) * .1f, 34f, 44f); } }
+    float LabelLeft { get { return -cardW * .5f + SideInset; } }
+    float ValueRight { get { return cardW * .5f - SideInset; } }
+    // The cards' width for a world's frame: the button column's width.
+    public static float CardWidthFor(int world) { return 2f * ButtonHalfSpan(world); }
+    public static Rect[] CardRectsFor(int world)
+    {
+        float w = CardWidthFor(world);
+        var r = new Rect[CardRects.Length];
+        for (int i = 0; i < r.Length; i++) r[i] = new Rect(-w * .5f, CardRects[i].y, w, CardRects[i].height);
+        return r;
+    }
+    float cardW = CardWidth;
 
     // The panel grew by 116 for the SPACE DOCK row (a button plus a 16 gap)
     // and by 76 for the KILLED BY card (64 plus a 12 gap); everything above
     // them moved up by half of that so the centre-origin layout stays put
     // relative to the top edge.
-    public static readonly Rect HeaderRect = Centered(0f, 422f, 600f, 56f);
+    // The banner tag (slab) is BannerHeight tall and its bottom edge stays
+    // where it was; BannerTopBase is where its top edge sits before the frame
+    // pushes the stack down (StackShift).
+    public const float BannerHeight = 64f, BannerBottom = 380f;
+    public const float BannerTopBase = BannerBottom + BannerHeight;
+    // Clear space kept between the frame's top border art and the banner's top edge.
+    public const float BannerGap = 8f;
+    public static readonly Rect HeaderRect = Centered(0f, BannerBottom + BannerHeight * .5f, 600f, 56f);
     public static readonly Rect DividerRect = Centered(0f, 376f, 440f, 16f);
     public static readonly Rect[] CardRects =
     {
@@ -228,6 +274,8 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
         var view = root.AddComponent<DeathPanelView>();
         view.results = results;
         view.font = dustText.font;
+        view.stackShift = StackShift(HudSkin.CurrentWorld);
+        view.cardW = CardWidthFor(HudSkin.CurrentWorld);
 
         // MENU leaves to the start menu, so it wears the quick actions' home glyph.
         Sprite replayGlyph = HudSkin.ReplayGlyph(HudSkin.CurrentWorld);
@@ -286,10 +334,10 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
     {
         // The Akira title-card stripe: a red slab behind the heading.
         slab = NewImage("TitleSlab", panel, Load("dp_slab"), Color.white);
-        Place(slab.rectTransform, Centered(0f, HeaderRect.center.y + 2f, 640f, 88f));
+        Place(slab.rectTransform, Shifted(Centered(0f, HeaderRect.center.y, 640f, BannerHeight)));
 
         var title = NewText("Title", panel, "FLIGHT COMPLETE", 40, Bone, TextAnchor.MiddleCenter);
-        Place(title.rectTransform, HeaderRect);
+        Place(title.rectTransform, Shifted(HeaderRect));
         AddOutline(title.gameObject, Ink, 2f);
 
         float half = Mathf.Min(title.preferredWidth, HeaderRect.width - 80f) * .5f + 28f;
@@ -297,13 +345,13 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
         {
             var sparkle = NewImage(i == 0 ? "SparkleLeft" : "SparkleRight", panel, Load("dp_sparkle"), Gold);
             float x = i == 0 ? -half : half;
-            Place(sparkle.rectTransform, Centered(x, HeaderRect.center.y, 30f, 30f));
+            Place(sparkle.rectTransform, Shifted(Centered(x, HeaderRect.center.y, 30f, 30f)));
             headerSparkles[i] = sparkle.rectTransform;
         }
 
         divider = NewImage("Divider", panel, Load("dp_divider"), Color.white);
         divider.preserveAspect = true;
-        Place(divider.rectTransform, DividerRect);
+        Place(divider.rectTransform, Shifted(DividerRect));
     }
 
     // The score card's sub-label: the best to beat, or why this run can't set one.
@@ -334,22 +382,22 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
         Place(dustTotal.rectTransform, Centered(ValueRight - 150f, -28f, 300f, 26f));
 
         // Burst origins: roughly the middle of the right-aligned digits.
-        dustValueCentre = CardRects[2].center + new Vector2(ValueRight - 95f, 13f);
-        bestValueCentre = CardRects[0].center + new Vector2(ValueRight - 90f, 0f);
+        dustValueCentre = Shifted(CardRects[2].center + new Vector2(ValueRight - 95f, 13f));
+        bestValueCentre = Shifted(CardRects[0].center + new Vector2(ValueRight - 90f, 0f));
 
         if (results.newBest)
         {
             // Celebratory bloom behind the score card ...
             bestGlow = NewImage("NewBestGlow", panel, Load("dp_glow"), new Color(Gold.r, Gold.g, Gold.b, 0f));
             bestGlow.type = Image.Type.Sliced;
-            var c = CardRects[0];
+            var c = Shifted(CardRectsFor(HudSkin.CurrentWorld)[0]);
             Place(bestGlow.rectTransform, new Rect(c.xMin - 20f, c.yMin - 20f, c.width + 40f, c.height + 40f));
             bestGlow.rectTransform.SetSiblingIndex(cards[0].GetSiblingIndex());
 
             // ... and a gold "NEW BEST" capsule in the sub-label slot.
             var p = NewImage("NewBest", cards[0], Load("dp_pill"), Gold);
             p.type = Image.Type.Sliced;
-            Place(p.rectTransform, Centered(LabelLeft + 72f, -20f, 144f, 32f));
+            Place(p.rectTransform, Centered(LabelLeft + 62f, -20f, 124f, 32f));
             var label = NewText("Label", p.rectTransform, "NEW BEST", 17, AkiraPalette.Ink, TextAnchor.MiddleCenter);
             Stretch(label.rectTransform);
             pill = p.rectTransform;
@@ -358,7 +406,7 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
 
     RectTransform CardBody(int index, Color accent)
     {
-        var rect = CardRects[index];
+        var rect = Shifted(CardRectsFor(HudSkin.CurrentWorld)[index]);
         var go = new GameObject("Card" + index, typeof(RectTransform), typeof(CanvasGroup));
         go.transform.SetParent(panel, false);
         var card = (RectTransform)go.transform;
@@ -371,7 +419,7 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
         bg.type = Image.Type.Sliced;
         Stretch(bg.rectTransform);
         var bar = NewImage("Accent", card, Load("dp_bar"), accent);
-        Place(bar.rectTransform, Centered(-CardWidth * .5f + 20f, 0f, 14f, rect.height - 30f));
+        Place(bar.rectTransform, Centered(-cardW * .5f + 20f, 0f, 14f, rect.height - 30f));
         return card;
     }
 
@@ -395,7 +443,7 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
             var row = new GameObject("Row" + i, typeof(RectTransform));
             row.transform.SetParent(card, false);
             var rt = (RectTransform)row.transform;
-            Place(rt, Centered(0f, y, CardWidth - 40f, BreakdownRowHeight));
+            Place(rt, Centered(0f, y, cardW - 40f, BreakdownRowHeight));
 
             var label = NewText("Label", rt, BreakdownLabels[i], 17, Bone, TextAnchor.MiddleLeft);
             Place(label.rectTransform, new Rect(LabelLeft, -BreakdownRowHeight * .5f, 200f, BreakdownRowHeight));
@@ -428,15 +476,15 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
 
         // Measured once, here (the panel is built per death): padding stays constant, the text
         // shrinks then wraps, and the card grows to fit instead of the text filling the box.
-        float inner = DeathNameLayout.InnerWidth(CardWidth);
+        float inner = DeathNameLayout.InnerWidth(cardW);
         var lay = DeathNameLayout.Compute(killed.preferredWidth, KilledFontSize, KilledMinFontSize,
                                           hurt.preferredWidth, HurtFontSize, HurtMinFontSize, inner);
         float h = lay.cardHeight;
-        card.sizeDelta = new Vector2(CardWidth, h);
+        card.sizeDelta = new Vector2(cardW, h);
         var bar = card.Find("Accent") as RectTransform;
         if (bar != null) bar.sizeDelta = new Vector2(bar.sizeDelta.x, h - 30f);
 
-        float left = -CardWidth * .5f + DeathNameLayout.PadLeft;
+        float left = -cardW * .5f + DeathNameLayout.PadLeft;
         float gap = lay.killedLines > 0 && lay.hurtLines > 0 ? DeathNameLayout.LineGap : 0f;
         float top = (lay.killedHeight + lay.hurtHeight + gap) * .5f;   // block centred in the card
         killed.fontSize = lay.killedFont;
@@ -469,7 +517,7 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
         var row = new GameObject(LoopsRowName, typeof(RectTransform));
         row.transform.SetParent(card, false);
         var rt = (RectTransform)row.transform;
-        Place(rt, Centered(0f, y, CardWidth - 40f, BreakdownRowHeight));
+        Place(rt, Centered(0f, y, cardW - 40f, BreakdownRowHeight));
 
         var label = NewText("Label", rt, "LOOPS", 17, Gold, TextAnchor.MiddleLeft);
         Place(label.rectTransform, new Rect(LabelLeft, -BreakdownRowHeight * .5f, 200f, BreakdownRowHeight));
@@ -654,7 +702,7 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
         bonusLine = NewText(ScoreBonusName, cards[2], ScoreBonusLabel(results.dustBonus), 18, Gold, TextAnchor.MiddleLeft);
         Place(bonusLine.rectTransform, Centered(LabelLeft + 150f, -20f, 300f, 28f));
         AddOutline(bonusLine.gameObject, Ink, 1.5f);
-        bonusCentre = CardRects[2].center + new Vector2(LabelLeft + 90f, -20f);
+        bonusCentre = Shifted(CardRects[2].center + new Vector2(LabelLeft + 90f, -20f));
         bonusBurst = BuildBurst("BonusBurst", Gold);
         bonusPopup = NewText(BonusPopupName, panel, "+" + results.dustBonus.ToString("F2", System.Globalization.CultureInfo.InvariantCulture) + " ★",
                              26, Gold, TextAnchor.MiddleCenter);
@@ -743,7 +791,7 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
             float c = EaseOutCubic((t - (CardStart + i * CardStagger)) / CardDuration);
             cardGroups[i].alpha = c;
             float cq = EaseOutBack(Progress(tq, CardStart + i * CardStagger, CardStart + i * CardStagger + CardDuration));
-            cards[i].anchoredPosition = CardRects[i].center + new Vector2((1f - cq) * 48f, 0f);
+            cards[i].anchoredPosition = Shifted(CardRects[i].center) + new Vector2((1f - cq) * 48f, 0f);
         }
 
         long score = CountUp(results.score, Progress(t, ScoreCountFrom, ScoreCountTo));
