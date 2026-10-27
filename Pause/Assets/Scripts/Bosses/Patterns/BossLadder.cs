@@ -101,9 +101,25 @@ public static class BossLadder
     }
 
     // Plays the boss's whole phase-3 rotation twice through the sim and reads the second round.
-    public static LadderRow Measure(int world, float rate = -1f)
+    //
+    // authoredParts: measure the table as authored, every stream firing from its first emitter. BossHell.TableFor resolves
+    // each stream's emitter names into `parts` ON THE SHARED TABLE the first time a boss's rotation is built in the process
+    // (a fight, or any test that builds one), and a stream with two pods then fires from both; so without this flag the
+    // numbers depend on what ran before (Void Archon read 3.4 shots/s in a clean process and 5.4 after a rotation was built).
+    // The ladder gate asks for the authored numbers; the pool sizing keeps the live ones.
+    public static LadderRow Measure(int world, float rate = -1f, bool authoredParts = false)
     {
         var slots = BossPatternTables.For(world);
+        if (authoredParts)
+        {
+            var streams = new System.Collections.Generic.List<PatternStream>();
+            var parts = new System.Collections.Generic.List<int[]>();
+            foreach (var sl in slots)
+                if (sl.pattern != null)
+                    foreach (var st in sl.pattern.streams) { streams.Add(st); parts.Add(st.parts); st.parts = null; }
+            try { return Measure(world, rate, false); }
+            finally { for (int i = 0; i < streams.Count; i++) streams[i].parts = parts[i]; }
+        }
         if (rate < 0f) rate = EnrageFor(world) * DensityFor(world);
         var row = new LadderRow { world = world, attacks = slots.Length, enrage = EnrageFor(world), density = DensityFor(world), minTell = float.MaxValue, minGap = float.MaxValue };
         var sim = new PatternSim { cap = 256 };
