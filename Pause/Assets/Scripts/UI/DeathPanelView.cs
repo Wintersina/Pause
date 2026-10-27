@@ -310,7 +310,7 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
             var p = NewImage("NewBest", cards[0], Load("dp_pill"), Gold);
             p.type = Image.Type.Sliced;
             Place(p.rectTransform, Centered(LabelLeft + 72f, -20f, 144f, 32f));
-            var label = NewText("Label", p.rectTransform, "NEW BEST", 16, AkiraPalette.Ink, TextAnchor.MiddleCenter);
+            var label = NewText("Label", p.rectTransform, "NEW BEST", 17, AkiraPalette.Ink, TextAnchor.MiddleCenter);
             Stretch(label.rectTransform);
             pill = p.rectTransform;
         }
@@ -468,7 +468,7 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
         AddOutline(title.gameObject, Ink, 1.5f);
         if (sub != null)
         {
-            var subText = NewText("Sub", card, sub, 16, Muted, TextAnchor.MiddleLeft);
+            var subText = NewText("Sub", card, sub, 17, Muted, TextAnchor.MiddleLeft);
             Place(subText.rectTransform, Centered(LabelLeft + 150f, -20f, 300f, 28f));
         }
 
