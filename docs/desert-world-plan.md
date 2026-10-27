@@ -30,7 +30,7 @@ Time of day / four variants (`variantNight` = v4):
 | Set | Look | `flow` (sparse scrolling strip) |
 | --- | --- | --- |
 | v1 Day dunes | hi-res pixel-art gold / ochre dune sea: huge crescent barchans and seif ridges with umber slip-face shadows, ripple fields, dark heavy-mineral streaks, rock outcrops, a pale dry wadi, bleached bones and wreck plates | wind-blown sand grit and glints |
-| v2 Canyon and ruins | dry canyon floor between rust-copper cliff walls, buried refinery hulls, drill heads, ribcage gantries, scattered rubble | drifting dust ribbons along the canyon |
+| v2 Canyon and ruins | carved sandstone canyon: layered strata mesas, a cobbled dry riverbed, fallen arches, toppled columns, ancient walls and a plaza, bones, rubble, a few small oases (teal pool ringed by palms); lone ruin pieces dominate the landmark mix | drifting dust ribbons along the canyon |
 | v3 Salt flat | hi-res pixel-art pale cracked salt pan: giant slabs with curled crystalline rims, wind-carved salt yardangs, salt-sand drifts, terraced teal brine pools and mineral stains (no docks or structures on the pools); the solar skeletons and mirror fields come from the landmark pieces | wind-blown salt grit and glints |
 | v4 **Night side** | hi-res pixel-art moonlit dune sea with its own dune layout: midnight-blue sand, cold blue-white crests with a teal rim, tiny amber lamp points on wrecks | cool wind grit and moon glints |
 

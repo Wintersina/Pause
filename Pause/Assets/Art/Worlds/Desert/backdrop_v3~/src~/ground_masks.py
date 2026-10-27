@@ -36,9 +36,11 @@ VARIANTS = {
     # wadi and bleached wreck bits = hardpan (O: heavy structures and launch sites), everything else soft dune sand (W)
     1: dict(built=lambda f: f['tex'] * 2 + f['lum'] - f['sat'] * 3, bshare=.015,
             shoal=lambda f: f['lum'] - f['sat'] * 3 - f['tex'], oshare=.10, kelp=lambda f: f['tex'] * 4 - f['lum'] - f['sat'], cshare=.10, vote=.25),
-    # canyon: rust cliff walls (warm, dark, textured), the pale floor, buried hulls
-    2: dict(built=lambda f: f['tex'] * 3 - f['warm'] + f['lum'], bshare=.07,
-            shoal=lambda f: f['lum'] * 2 - f['tex'], oshare=.30, kelp=lambda f: -f['lum'] * 2 + f['warm'], cshare=.42),
+    # canyon and ruins (painted 1024 x 2048 tile): every textured cell -- strata mesa walls, standing ruins, arches, columns, rubble heaps -- is
+    # cliff (C: no dock or structure on rock or on a painted ruin), the smooth packed-sand floor and the cobbled wadi = hardpan (O: heavy
+    # structures and launch sites), the rest soft sand (W); the oases (oasis_footprint.npy, +1 cell shore) are C as well (water)
+    2: dict(built=lambda f: f['tex'] - f['lum'], bshare=.0,
+            shoal=lambda f: -f['tex'] * 3 + f['lum'] * .5, oshare=.34, kelp=lambda f: f['tex'] * 3 + f['warm'] * .5, cshare=.36, vote=.30, oasis=True),
     # salt flat (painted 1024 x 2048 tile): busiest relief = built (crystal / rubble), smoothest crust = hardpan, no cliffs;
     # brine POOLS (teal) are class C so no dock or structure ever lands on water
     3: dict(built=lambda f: f['tex'], bshare=.18,
@@ -103,6 +105,16 @@ def classify(path, cfg):
         frac = teal.reshape(gh, CELL, gw, CELL).mean((1, 3))
         cd = frac > .2
         grid = np.where(cd, 3, grid)
+    if cfg.get('oasis'):
+        fp = os.path.join(os.path.dirname(path), 'oasis_footprint.npy')
+        if os.path.exists(fp):
+            o = np.load(fp)
+            o = o.reshape(gh, o.shape[0] // gh, gw, o.shape[1] // gw).any((1, 3))     # 4 px cells -> mask cells
+            od = o.copy()
+            for dy in (-1, 0, 1):
+                for dx in (-1, 0, 1):
+                    od |= np.roll(np.roll(o, dy, 0), dx, 1)
+            grid = np.where(od, 3, grid)
     return im, grid
 
 def main():

@@ -1,6 +1,6 @@
 """Desert painted-ground tiles, hi-res PIXEL ART: 1024x2048 sky / far / mid, seamless on both axes.
 
-Usage: python3 build_tiles.py <variant: v1 day dunes | v3 salt flat | v4 night dunes> <src dir with mid_a.png, mid_b.png> <out dir>
+Usage: python3 build_tiles.py <variant: v1 day dunes | v2 canyon and ruins | v3 salt flat | v4 night dunes> <src dir with mid_a.png, mid_b.png> <out dir>
 (writes <out dir>/<variant>/{sky,far,mid}.png)
 
 `mid` is built from two Codex 1254 px paintings (A over B), one painted texel -> one tile texel before the pixel pass. The A|B join and
@@ -19,13 +19,13 @@ import numpy as np
 from PIL import Image
 
 W, H = 1024, 2048
-VARIANTS = (sys.argv[1],) if len(sys.argv) > 1 else ("v3",)     # v1 day dunes, v3 salt flat, v4 night dunes
-SOURCES = {v: ("mid_a.png", "mid_b.png") for v in ("v1", "v3", "v4")}
+VARIANTS = (sys.argv[1],) if len(sys.argv) > 1 else ("v3",)     # v1 day dunes, v2 canyon and ruins, v3 salt flat, v4 night dunes
+SOURCES = {v: ("mid_a.png", "mid_b.png") for v in ("v1", "v2", "v3", "v4")}
 # target HSV value p90 of the opaque pixels (mid); far is .05 lower, sky .10
-P90 = {"v1": .49, "v3": .465, "v4": .44}
+P90 = {"v1": .49, "v2": .47, "v3": .465, "v4": .44}
 NIGHT = {"v4"}
-ACCENT_HUE = {"v1": 36.0, "v3": 36.0, "v4": 215.0}   # pink / purple / red texels are rotated here (ochre by day, blue at night)
-HAZE = {"v1": (.20, .17, .12), "v3": (.20, .17, .12), "v4": (.04, .07, .13)}
+ACCENT_HUE = {"v1": 36.0, "v2": 30.0, "v3": 36.0, "v4": 215.0}   # pink / purple / red texels are rotated here (ochre by day, blue at night)
+HAZE = {"v1": (.20, .17, .12), "v2": (.20, .15, .10), "v3": (.20, .17, .12), "v4": (.04, .07, .13)}
 CELL, COLORS = 4, 96
 
 
@@ -271,6 +271,22 @@ def shift_for(role: str, variant: str):
     return {"mid": (0, 0), "far": (W // 3, H // 3), "sky": (-W // 4, H * 2 // 3)}[role]
 
 
+def match_sources(a, b):
+    """Two paintings never share exposure: bring both to the same mean and p90 value (per channel gain) so the A|B join has no brightness step."""
+    fa, fb = a.astype(np.float32), b.astype(np.float32)
+    va, vb = fa.max(-1), fb.max(-1)
+    tm = (va.mean() + vb.mean()) / 2
+    tp = (np.percentile(va, 90) + np.percentile(vb, 90)) / 2
+    def fit(f, v):
+        # gain matches p90, then a gamma-like lift matches the mean
+        g = tp / np.percentile(v, 90)
+        f = np.clip(f * g, 0, 255)
+        m = (f.max(-1)).mean()
+        k = np.log(tm / 255) / np.log(max(m, 1) / 255)
+        return np.clip(255 * (f / 255) ** k, 0, 255).astype(np.uint8)
+    return fit(fa, va), fit(fb, vb)
+
+
 def main() -> None:
     src = Path(sys.argv[2])
     out = Path(sys.argv[3])
@@ -279,6 +295,8 @@ def main() -> None:
             print("skip", v); continue
         a = native_crop(np.asarray(Image.open(src / SOURCES[v][0]).convert("RGB")))
         b = native_crop(np.asarray(Image.open(src / SOURCES[v][1]).convert("RGB")))
+        if v == "v2":
+            a, b = match_sources(a, b)      # the canyon's two paintings have different exposure: no brightness step at the join
         base = build_canvas(a, b)
         (out / v).mkdir(parents=True, exist_ok=True)
         for role in ("mid", "far", "sky"):
@@ -287,6 +305,12 @@ def main() -> None:
             if role == "far":
                 layer = layer[:, ::-1]                     # mirrored: a different silhouette from the mid layer
             g = pixelate(grade(np.ascontiguousarray(layer), v, role))
+            if v == "v2" and role == "mid":
+                # the canyon's small oases are drawn on the cell grid after the pixel pass (oasis.py); their footprint becomes class C in the mask
+                from oasis import add_oases
+                g, foot, sites = add_oases(g, CELL, n=4)
+                np.save(out / v / "oasis_footprint.npy", foot[::CELL, ::CELL])
+                print("oasis cells", sites)
             rgba = np.dstack([g, np.full(g.shape[:2], 255, np.uint8)])
             Image.fromarray(rgba, "RGBA").save(out / v / f"{role}.png")
         print("built", v)

@@ -30,7 +30,7 @@ public static class BackdropResolutionTest
     const float BlockFraction = 0.97f;        // fraction of opaque texels equal to their block's first texel
     const float PairCeiling = 0.85f;          // adjacent identical-texel pairs (opaque on at least one side)
     const int MinOpaque = 300;                // a cell with fewer opaque texels is too sparse to judge
-    static readonly System.Text.RegularExpressions.Regex PixelGridGround = new System.Text.RegularExpressions.Regex(@"^Desert/Backdrop3/v[134]/(sky|far|mid)\.png$");
+    static readonly System.Text.RegularExpressions.Regex PixelGridGround = new System.Text.RegularExpressions.Regex(@"^Desert/Backdrop3/v[1234]/(sky|far|mid)\.png$");
     static readonly string[] Dirs = { "Backdrop3", "Backdrop" };
     static readonly string[] Worlds = { "Frost", "Verdant", "Ember", "Tide", "Desert", "Space", "Storm" };
 

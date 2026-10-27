@@ -3,12 +3,12 @@ using UnityEngine;
 
 // Desert's backdrop: the ship flies at atmosphere level over the dead strip-mined
 // planet, under a thin high haze of dust, looking down on bone-gold dune seas, a dry
-// copper canyon of buried refineries, a cracked salt pan of toppled solar arrays and
+// sandstone canyon of ancient ruins, a cracked salt pan of toppled solar arrays and
 // the NIGHT side's cold moon-lit dunes -- and, under the sand, the GIANT WORMS.
 //
 //   GROUND     one of four tile sets per landing (BackdropVariants): v1 the day
-//              dunes (barchans, long wind ripples), v2 the canyon and ruins (rust
-//              cliff walls over a pale winding floor), v3 the salt flat (a cracked
+//              dunes (barchans, long wind ripples), v2 the canyon and ruins (layered
+//              sandstone mesas, fallen arches and columns, small oases, a pale winding floor), v3 the salt flat (a cracked
 //              pan, wreckage lines, dead mirror fields), v4 the NIGHT side
 //              (DesertTuning.Night: drawn darker, work lamps and beacons emphasised).
 //   PIECES     landmarks (buried refinery hulls, ribcage gantries, a drill head,
@@ -122,7 +122,7 @@ public static class DesertTuning
     {
         new[] { 2, 2, 2, 2, 1 },   // (none)
         new[] { 1, 3, 4, 2, 1 },   // v1 day dunes: ridges, drifts, caravans, a lone ruin
-        new[] { 3, 2, 1, 2, 3 },   // v2 canyon and ruins: refineries, gantries, pipe runs
+        new[] { 1, 3, 1, 4, 1 },   // v2 canyon and ruins (an ancient stone ruin tile): few industrial hulls and pipe runs, mostly lone pieces (arches, rock fins, ribs, wells)
         new[] { 2, 3, 1, 3, 1 },   // v3 salt flat: wells and glass, lone solar skeletons
         new[] { 1, 3, 3, 3, 1 },   // v4 night: vents, dunes, lone lit towers
     };
