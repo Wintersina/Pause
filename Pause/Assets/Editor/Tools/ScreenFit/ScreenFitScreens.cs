@@ -616,10 +616,10 @@ public static class ScreenFitScreens
             Canvas.ForceUpdateCanvases();
             LayoutRebuilder.ForceRebuildLayoutImmediate(styler.HudRoot);
             Vector2 hudSize = styler.HudRoot.rect.size;
-            HudStyler.ComputeHudLayout(Band(rig), screen, hudScale, hudSize, out Vector2 at, out float fit, out bool stacked);
+            HudStyler.ComputeHudLayout(Band(rig), screen, hudScale, hudSize, out Vector2 at, out float fit, out bool narrow);
             styler.HudRoot.anchoredPosition = at;
             styler.HudRoot.localScale = new Vector3(fit, fit, 1f);
-            HudStyler.StackedReadout = stacked ? HudStyler.HudScreenRect(Band(rig), screen, hudScale, hudSize) : default(Rect);
+            HudStyler.NarrowBand = narrow ? HudStyler.NarrowBandRect(Band(rig), screen, hudScale, hudSize) : default(Rect);
             rig.Ignore(styler.HudRoot);
             Canvas.ForceUpdateCanvases();
             if (check) BandChecks(rig, styler, fit);
@@ -651,6 +651,13 @@ public static class ScreenFitScreens
         }
         if (actions.xMax > band.right + 1f || actions.yMax > band.top + 1f)
             rig.Fail("BAND", "quick actions", "outside the band: " + actions, actions);
+        {
+            Rect home = PauseQuickActions.ButtonScreenRect(band, screen, 1), replay = PauseQuickActions.ButtonScreenRect(band, screen, 0);
+            if (Overlap(home, replay))
+                rig.Fail("BAND", "quick actions", "the two tap squares overlap: " + home + " vs " + replay, home);
+            if (PauseQuickActions.Vertical(band, screen) && !(home.yMin >= replay.yMax && Mathf.Abs(home.center.x - replay.center.x) < 1f))
+                rig.Fail("BAND", "quick actions", "narrow lane: home must stand directly above restart: " + home + " vs " + replay, home);
+        }
         Rect hud = rig.PixelRect(styler.HudRoot);
         rig.AddImportant("HUD read-out", hud);
         if (fit < TopBand.ReadoutMinScale - .001f)

@@ -217,7 +217,7 @@ public class CodexToast : MonoBehaviour
         if (chip.height > 0f) top = Mathf.Max(top, (screenH - chip.yMin) / sf + WarningGap);
         if (portalChip.height > 0f) top = Mathf.Max(top, (screenH - portalChip.yMin) / sf + WarningGap);
         // the read-out, when a small phone stacks it under the quick actions
-        Rect readout = HudStyler.StackedReadout;
+        Rect readout = HudStyler.NarrowBand;
         if (readout.height > 0f) top = Mathf.Max(top, (screenH - readout.yMin) / sf + WarningGap);
         return top;
     }

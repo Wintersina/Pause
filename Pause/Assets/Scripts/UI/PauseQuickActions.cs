@@ -42,12 +42,31 @@ public class PauseQuickActions : MonoBehaviour
     public static readonly Vector2 ReferenceResolution = new Vector2(800f, 1000f);
     public const float MatchWidthOrHeight = 0.5f;
 
-    // The pair sits in ONE panel at the band's right end that mirrors the
-    // score board (same top edge and height, same per-world frame, HudSkin):
-    // the glyphs are drawn straight on the frame, home left of replay, each a
-    // ButtonSize tap square. Its width hugs the pair plus PanelPad each side.
+    // The pair sits in one slot at the band's right end that mirrors the score
+    // board (same top edge and height): home left of replay, each a ButtonSize
+    // tap square, the thin hollow glyphs drawn straight over the backdrop (no
+    // frame or backing). The slot's width hugs the pair plus PanelPad each side.
     public const float PanelPad = 5f;
     public const float PanelWidthUnits = 2f * ButtonSize + ButtonGap + 2f * PanelPad;
+
+    // On a narrow lane (the pair side by side would crowd the score board below
+    // TopBand.ReadoutMinScale) the pair stands in a single column at the right
+    // edge instead, home on top of restart, top-aligned with the board: the board
+    // never moves. The gap keeps the two tap squares apart.
+    public const float VerticalGap = 6f;
+    public const float ColumnWidthUnits = ButtonSize + 2f * PanelPad;
+
+    // True when the lane is too narrow for the pair side by side (pure: band and screen).
+    public static bool Vertical(TopBand.Frame band, Vector2 screen)
+    {
+        return HudStyler.SideBySideFit(band, screen) < TopBand.ReadoutMinScale;
+    }
+
+    // The slot's width in px for this band and screen.
+    public static float SlotWidthPx(TopBand.Frame band, Vector2 screen)
+    {
+        return (Vertical(band, screen) ? ColumnWidthUnits : PanelWidthUnits) * CanvasScaleFor(screen);
+    }
         // Set by HudStyler: the read-out's height on screen, in px (0: none).
     public static float LiveReadoutHeightPx;
 
@@ -73,7 +92,6 @@ public class PauseQuickActions : MonoBehaviour
     public const string HomeIconPath = "QuickActions/QuickAction_home";
 
     GameObject replayClone, leaveClone;
-    Image panelImage;
     int skinWorld = -1;
     float appliedPanelH;
     int appliedWorld = -1;
@@ -146,17 +164,24 @@ public class PauseQuickActions : MonoBehaviour
     public static Rect ScreenRectFor(TopBand.Frame band, Vector2 screen)
     {
         float s = CanvasScaleFor(screen);
-        float width = PanelWidthUnits * s;
+        float width = SlotWidthPx(band, screen);
         // as tall as the score board is on this screen, after its own lane shrink
         float height = Mathf.Max(HudStyler.ReadoutHeightFor(screen) * HudStyler.ReadoutFitFor(band, screen), ButtonSize * s);
+        // a column of two squares is taller than that (top-aligned with the board)
+        if (Vertical(band, screen)) height = Mathf.Max(height, (2f * ButtonSize + VerticalGap) * s);
         return new Rect(band.right - width, band.top - height, width, height);
     }
 
-    // One button's screen-pixel rect: 0 is Replay (rightmost), 1 is Home.
+    // One button's screen-pixel rect: 0 is Replay (rightmost / lower), 1 is Home (left / upper).
     public static Rect ButtonScreenRect(TopBand.Frame band, Vector2 screen, int slotFromRight)
     {
         float s = CanvasScaleFor(screen);
         Rect panel = ScreenRectFor(band, screen);
+        if (Vertical(band, screen))
+        {
+            float topV = panel.yMax - (slotFromRight == 1 ? 0f : (ButtonSize + VerticalGap) * s);
+            return new Rect(panel.xMax - PanelPad * s - ButtonSize * s, topV - ButtonSize * s, ButtonSize * s, ButtonSize * s);
+        }
         float right = panel.xMax - PanelPad * s - slotFromRight * (ButtonSize + ButtonGap) * s;
         float top = panel.yMax - (panel.height - ButtonSize * s) * .5f;
         return new Rect(right - ButtonSize * s, top - ButtonSize * s, ButtonSize * s, ButtonSize * s);
@@ -184,15 +209,6 @@ public class PauseQuickActions : MonoBehaviour
         safeGo.transform.SetParent(holder.transform, false);
         safeArea = safeGo.GetComponent<RectTransform>();
         ApplySafeArea();
-
-        var panelGo = new GameObject("QuickActionPanel", typeof(RectTransform), typeof(Image));
-        panelGo.transform.SetParent(safeArea, false);
-        panelImage = panelGo.GetComponent<Image>();
-        panelImage.raycastTarget = false;
-        panelImage.type = Image.Type.Sliced;
-        // drawn as its own piece of the world's frame family (not a flipped
-        // copy), so a motif on the board's outer-left corner (Desert's worm)
-        // sits on this panel's outer-right corner
 
         replayClone = Instantiate(replaySource, safeArea);
         leaveClone = Instantiate(leaveSource, safeArea);
@@ -248,31 +264,40 @@ public class PauseQuickActions : MonoBehaviour
     void ApplySkin()
     {
         skinWorld = HudSkin.CurrentWorld;
-        if (panelImage != null)
-        {
-            panelImage.sprite = HudSkin.ButtonPanel(skinWorld);
-            panelImage.color = Color.white;
-        }
-        SetGlyph(replayClone, HudSkin.ReplayGlyph(skinWorld), 1f);
-        SetGlyph(leaveClone, HudSkin.HomeGlyph(skinWorld), HudSkin.HomeGlyphScale(skinWorld));
+        SetGlyph(replayClone, HudSkin.ReplayGlyph(skinWorld), HudSkin.HudReplay(skinWorld), skinWorld);
+        SetGlyph(leaveClone, HudSkin.HomeGlyph(skinWorld), HudSkin.HudHome(skinWorld), skinWorld);
     }
 
-    static void SetGlyph(GameObject go, Sprite sprite, float scale)
+    // tapSprite stays on the (invisible) tap square; the Glyph child draws the thin hollow art.
+    static void SetGlyph(GameObject go, Sprite tapSprite, Sprite drawn, int world)
     {
-        if (go == null || sprite == null) return;
+        if (go == null || tapSprite == null) return;
         var image = go.GetComponent<Image>();
-        if (image != null) image.sprite = sprite;
+        if (image != null) image.sprite = tapSprite;
         var glyph = GlyphImage(go);
         if (glyph == null) return;
-        glyph.sprite = sprite;
-        // the glyph (not the tap square) is centred on the frame's dark inside
-        var rt = glyph.rectTransform;
-        rt.sizeDelta = new Vector2(ButtonSize, ButtonSize) * GlyphScale * scale;
-        rt.anchoredPosition = new Vector2(0f, -HudSkin.ButtonInnerOffsetY(HudSkin.CurrentWorld));
+        glyph.sprite = drawn != null ? drawn : tapSprite;
+        var tint = HudSkin.IconTint(world); tint.a = GlyphAlpha;
+        glyph.color = tint;
+        // the optional soft halo for worlds whose backdrop is too busy for the line alone
+        var halo = HudSkin.IconHalo(world);
+        var outline = glyph.GetComponent<Outline>();
+        if (halo.a > 0f)
+        {
+            if (outline == null) outline = glyph.gameObject.AddComponent<Outline>();
+            outline.effectColor = halo;
+            outline.effectDistance = new Vector2(1.5f, -1.5f);
+            outline.useGraphicAlpha = true;
+            outline.enabled = true;
+        }
+        else if (outline != null) outline.enabled = false;
     }
 
+    // The drawn glyphs are outline-only and tinted per world.
+    public const float GlyphAlpha = 1f;
+
     // The visible glyph is a child drawn at GlyphScale of the tap square,
-    // centred, so it keeps a clear margin inside the frame; the button's own
+    // centred on the tap square; the button's own
     // Image stays the full-size (invisible) tap target and holds the sprite.
     public const float GlyphScale = .8f;
     const string GlyphName = "Glyph";
@@ -321,19 +346,9 @@ public class PauseQuickActions : MonoBehaviour
         float s = Mathf.Max(CanvasScaleFor(screen), .0001f);
         Vector2 offset = TopRightOffset(band, safe, screen);
         float panelH = DrawnPanelHeightPx(band, screen) / s;
-        float panelW = PanelWidthUnits;
-        PositionTopRight(replayClone, 0, offset, panelH);
-        PositionTopRight(leaveClone, 1, offset, panelH);
-        if (panelImage != null)
-        {
-            var rt = panelImage.rectTransform;
-            rt.anchorMin = rt.anchorMax = new Vector2(1f, 1f);
-            rt.pivot = new Vector2(.5f, .5f);
-            // the frame's growth reaches past the rect, as the score board's does
-            Vector4 o = HudSkin.ButtonOut(HudSkin.CurrentWorld);   // left, bottom, right, top
-            rt.sizeDelta = new Vector2(panelW + o.x + o.z, panelH + o.y + o.w);
-            rt.anchoredPosition = new Vector2(offset.x - panelW * .5f + (o.z - o.x) * .5f, offset.y - panelH * .5f + (o.w - o.y) * .5f);
-        }
+        bool vertical = Vertical(band, screen);
+        PositionTopRight(replayClone, 0, offset, panelH, vertical);
+        PositionTopRight(leaveClone, 1, offset, panelH, vertical);
     }
 
     // For previews and tests: lay the buttons out for a given screen rather
@@ -357,7 +372,7 @@ public class PauseQuickActions : MonoBehaviour
         return new Vector2((band.right - safe.xMax) / s, (band.top - safe.yMax) / s);
     }
 
-    static void PositionTopRight(GameObject go, int slotFromRight, Vector2 offset, float panelHeight)
+    static void PositionTopRight(GameObject go, int slotFromRight, Vector2 offset, float panelHeight, bool vertical)
     {
         if (go == null) return;
         var rt = go.GetComponent<RectTransform>();
@@ -365,6 +380,11 @@ public class PauseQuickActions : MonoBehaviour
         rt.pivot = new Vector2(1f, 1f);
         rt.localScale = Vector3.one;
         rt.sizeDelta = new Vector2(ButtonSize, ButtonSize);
+        if (vertical)
+        {
+            rt.anchoredPosition = new Vector2(offset.x - PanelPad, offset.y - (slotFromRight == 1 ? 0f : ButtonSize + VerticalGap));
+            return;
+        }
         rt.anchoredPosition = new Vector2(offset.x - PanelPad - slotFromRight * (ButtonSize + ButtonGap),
                                           offset.y - (panelHeight - ButtonSize) * .5f);
     }
@@ -456,7 +476,6 @@ public class PauseQuickActions : MonoBehaviour
         // Nothing to pause or leave by mid-crash: the sequence owns the screen
         // (a tap skips it) until the Flight Complete panel is up.
         if (DeathCrash.Running || KillCam.Playing) show = false;
-        if (panelImage != null) panelImage.gameObject.SetActive(show);
         if (replayClone != null) replayClone.SetActive(show);
         if (leaveClone != null) leaveClone.SetActive(show);
     }

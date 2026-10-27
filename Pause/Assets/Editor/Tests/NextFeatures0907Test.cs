@@ -215,9 +215,21 @@ public static class NextFeatures0907Test
         }
         var rRect = replay.GetComponent<RectTransform>();
         var lRect = leave.GetComponent<RectTransform>();
-        Check("home icon sits left of replay without overlap",
-              lRect.anchoredPosition.x <= rRect.anchoredPosition.x - PauseQuickActions.ButtonSize + 0.01f);
-        Check("both icons share the same top edge", Mathf.Approximately(lRect.anchoredPosition.y, rRect.anchoredPosition.y));
+        // side by side on a wide lane; one column (home above restart) on a narrow one
+        var liveScreen = new Vector2(Screen.width, Screen.height);
+        bool column = PauseQuickActions.Vertical(TopBand.FrameFor(Screen.safeArea, liveScreen), liveScreen);
+        if (column)
+        {
+            Check("narrow lane: home icon stands above restart without overlap (spaced apart)",
+                  lRect.anchoredPosition.y >= rRect.anchoredPosition.y + PauseQuickActions.ButtonSize + PauseQuickActions.VerticalGap - 0.01f);
+            Check("narrow lane: both icons share the same right edge", Mathf.Approximately(lRect.anchoredPosition.x, rRect.anchoredPosition.x));
+        }
+        else
+        {
+            Check("home icon sits left of replay without overlap",
+                  lRect.anchoredPosition.x <= rRect.anchoredPosition.x - PauseQuickActions.ButtonSize + 0.01f);
+            Check("both icons share the same top edge", Mathf.Approximately(lRect.anchoredPosition.y, rRect.anchoredPosition.y));
+        }
 
         // Exactly one call per tap: the clone's own runtime listener, none of
         // the scene button's persistent calls (Instantiate copies them, and
@@ -271,7 +283,7 @@ public static class NextFeatures0907Test
         }
         {
             var corners = new Vector3[4];
-            leave.GetComponent<RectTransform>().GetWorldCorners(corners);
+            (column ? replay : leave).GetComponent<RectTransform>().GetWorldCorners(corners);   // the lowest icon
             Vector2 below = new Vector2((corners[0].x + corners[2].x) * 0.5f, corners[0].y - (corners[2].y - corners[0].y));
             Check("point below the icons is not on-action", !PauseQuickActions.IsScreenPointOnAction(below));
         }
@@ -489,8 +501,8 @@ public static class NextFeatures0907Test
 
     // With the floor (dpi reported, and not), on every cutout case: the
     // quick actions are >= 44 pt / 48 dp; the read-out keeps at least
-    // TopBand.ReadoutMinScale -- beside them, or stacked under them where the
-    // lane is too narrow -- and every piece (read-out, buttons, BOSS
+    // TopBand.ReadoutMinScale -- beside them, or with them standing in a column at
+    // the right edge where the lane is too narrow (the board never moves) -- and every piece (read-out, buttons, BOSS
     // INCOMING's chip and banner, PORTAL DANGER's chip, the codex toast's
     // top) stays inside the rails' inner edges and the safe area, clear of
     // the cutouts and of each other. Where the floor does not raise the
@@ -535,7 +547,7 @@ public static class NextFeatures0907Test
                 {
                     string tag = "floor: " + shape.name + (reported ? "" : " (dpi unreported)") + ": ";
                     string why = "";
-                    int stackedCases = 0;
+                    int narrowCases = 0;
                     float worstFit = 1f, worstTap = float.MaxValue;
                     foreach (var c in CutoutCases(size))
                     {
@@ -545,18 +557,18 @@ public static class NextFeatures0907Test
                             float s = PauseQuickActions.CanvasScaleFor(size);
                             float hudScale = HudStyler.HudCanvasScale(canvas, scaler, size);
                             var band = TopBand.FrameFor(c.safe, size, painted, c.cutouts);
-                            Vector2 pos; float fit; bool stacked;
-                            HudStyler.ComputeHudLayout(band, size, hudScale, hudSize, out pos, out fit, out stacked);
+                            Vector2 pos; float fit; bool narrow;
+                            HudStyler.ComputeHudLayout(band, size, hudScale, hudSize, out pos, out fit, out narrow);
                             Rect read = HudStyler.HudScreenRect(band, size, hudScale, hudSize);
                             Rect actions = PauseQuickActions.ScreenRectFor(band, size);
                             Rect home = PauseQuickActions.ButtonScreenRect(band, size, 1);
                             Rect replay = PauseQuickActions.ButtonScreenRect(band, size, 0);
-                            HudStyler.StackedReadout = stacked ? read : default(Rect);
+                            HudStyler.NarrowBand = narrow ? HudStyler.NarrowBandRect(band, size, hudScale, hudSize) : default(Rect);
                             var l = BossWarningHud.ComputeLayout(c.safe, size, read, band);
                             float portalScale = Mathf.Min(size.x / 800f, size.y / 1200f);   // its overlay canvas: 800x1200, Expand
                             Rect portal = PortalPressureHud.ChipScreenRect(band, portalScale);
                             float toastTop = size.y - CodexToast.TopOffset(0f, size.y, 1f, default(Rect), default(Rect), portal);
-                            if (stacked) stackedCases++;
+                            if (narrow) narrowCases++;
                             worstFit = Mathf.Min(worstFit, fit);
                             worstTap = Mathf.Min(worstTap, Mathf.Min(home.width, home.height) / shape.pxPerPt);
 
@@ -578,9 +590,11 @@ public static class NextFeatures0907Test
                                 why = "read-out at " + fit.ToString("F2") + " [" + c.name + "]";
                             if (why == "" && Mathf.Min(home.width, home.height) / shape.pxPerPt < minTap - .01f)
                                 why = "a button is " + (home.width / shape.pxPerPt).ToString("F1") + " [" + c.name + "]";
-                            if (why == "" && stacked && read.yMax > actions.yMin + .5f)
-                                why = "stacked read-out is not under the quick actions [" + c.name + "]";
-                            if (why == "" && !stacked && (Mathf.Abs(read.yMax - band.top) > .5f || Mathf.Abs(actions.yMax - band.top) > .5f))
+                            if (why == "" && narrow && !(home.yMin >= replay.yMax - .5f && Mathf.Abs(home.center.x - replay.center.x) < 1f && home.yMin - replay.yMax >= -.5f))
+                                why = "narrow lane: home does not stand directly above restart [" + c.name + "]";
+                            if (why == "" && narrow && replay.yMax > home.yMin - 1f)
+                                why = "narrow lane: the two tap squares are not spaced apart [" + c.name + "]";
+                            if (why == "" && (Mathf.Abs(read.yMax - band.top) > .5f || Mathf.Abs(actions.yMax - band.top) > .5f))
                                 why = "read-out and icons do not share the band's top edge [" + c.name + "]";
                             if (why == "" && (!InsideRect(c.safe, l.banner) || l.banner.Overlaps(read) || l.banner.Overlaps(actions)))
                                 why = "BOSS INCOMING's banner on the band [" + c.name + "]";
@@ -591,22 +605,22 @@ public static class NextFeatures0907Test
                             // (with no dpi reported the fallback takes the screen as small
                             // as its shape can be, so it may raise these too: only checked
                             // with the density the device really reports)
-                            if (why == "" && !shape.raised && reported && (stacked || c.name == "no cutout" && !SameRect(read, plainRead)))
+                            if (why == "" && !shape.raised && reported && (narrow || c.name == "no cutout" && !SameRect(read, plainRead)))
                                 why = "the band moved where the floor has nothing to raise: " + read + " vs " + plainRead + " [" + c.name + "]";
                         }
                     }
                     Check(tag + "buttons >= " + minTap + (shape.ios ? " pt" : " dp") + " (" + worstTap.ToString("F1") + "), read-out >= " +
-                          TopBand.ReadoutMinScale + " (" + worstFit.ToString("F2") + (stackedCases > 0 ? ", stacked under the actions on " + stackedCases + " of 8 cutout cases" : ", beside the actions") +
+                          TopBand.ReadoutMinScale + " (" + worstFit.ToString("F2") + (narrowCases > 0 ? ", actions in a column on " + narrowCases + " of 8 cutout cases" : ", beside the actions") +
                           "), every piece inside the rails and the safe area, clear of cutouts and each other" + (why == "" ? "" : ": " + why), why == "");
                     if (shape.raised && reported)
                         Debug.Log("[NF] floor: " + shape.name + ": quick-action buttons " + worstTap.ToString("F1") + (shape.ios ? " pt" : " dp") +
-                                  ", read-out " + (stackedCases > 0 ? "stacked under them (" + stackedCases + "/8 cases)" : "beside them") + ", fit " + worstFit.ToString("F2"));
+                                  ", read-out " + (narrowCases > 0 ? "actions in a column (" + narrowCases + "/8 cases)" : "beside them") + ", fit " + worstFit.ToString("F2"));
                 }
             }
         }
         finally
         {
-            HudStyler.StackedReadout = default(Rect);
+            HudStyler.NarrowBand = default(Rect);
             UiScaleFloor.ApplyAll();   // back to the editor's own (unfloored) scaling
             Object.DestroyImmediate(go);
         }
@@ -706,9 +720,12 @@ public static class NextFeatures0907Test
                     Check(tag + "the read-out, the button panel and the band share one top edge, in the top quarter",
                           Mathf.Abs(read.yMax - band.top) < .5f && Mathf.Abs(panelRect.yMax - band.top) < .5f &&
                           read.yMin > size.y * .75f);
-                    Check(tag + "the icons sit inside the button panel, centred on it",
+                    // side by side: centred vertically in the slot; narrow lane: one column, centred horizontally in the slot
+                    bool column = PauseQuickActions.Vertical(band, size);
+                    Check(tag + "the icons sit inside the slot, centred on it (" + (column ? "column" : "side by side") + ")",
                           panelRect.Contains(new Vector2(home.xMin, home.yMin)) && panelRect.Contains(new Vector2(replay.xMax - .01f, replay.yMax - .01f)) &&
-                          Mathf.Abs(home.center.y - panelRect.center.y) < .5f);
+                          (column ? Mathf.Abs(home.center.x - panelRect.center.x) < .5f && Mathf.Abs(replay.center.x - panelRect.center.x) < .5f && home.yMin >= replay.yMax
+                                  : Mathf.Abs(home.center.y - panelRect.center.y) < .5f));
 
                     float fit = read.width / (hudSize.x * hudScale);
                     if (edge == painted && fit < worstFit) { worstFit = fit; worstAt = shape.name + ", " + c.name; }
