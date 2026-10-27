@@ -31,7 +31,8 @@ public static class WorldBackdropTest
     // Ember carries the same ten shared 1024 atlases (landmarks, pipes, fires,
     // sites, weather and five ambient-loop sheets) as Verdant besides one
     // 4-tile variant set (~5.5 MB measured, ASTC 6x6 sizes).
-    public const long EmberTextureBudgetBytes = 7L * 1024 * 1024;
+    // 2026-10: Ember's sky / far / mid / flow tiles are 896x1792 (ASTC 6x6, 0.72 MB each, was 0.24 MB at 512x1024); measured 8037 KB, 7 -> 9 MB.
+    public const long EmberTextureBudgetBytes = 9L * 1024 * 1024;
     // Tide carries the same shared 1024 atlases as Ember (landmarks, pipes, fires, sites,
     // weather) plus run C's five loop sheets (smoke, flames, surf, leaks, lights) besides
     // one 4-tile variant set: ~6 MB measured now (ASTC 6x6 sizes), ~8.5 MB with run C.

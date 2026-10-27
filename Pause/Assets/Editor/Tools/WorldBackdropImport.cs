@@ -113,7 +113,7 @@ public class WorldBackdropImport : AssetPostprocessor
     // 2026-10: Desert's hi-res pixel-art grounds (v1 day dunes, v2 canyon and ruins, v3 salt flat, v4 night dunes) are the same 1024x2048 format.
     public static bool IsStormHdTile(string path, bool tile)
     {
-        return tile && (path.Contains("/Worlds/Storm/Backdrop3/") || IsDesertHdGround(path) || IsTideHdTile(path) || IsVerdantHdTile(path));
+        return tile && (path.Contains("/Worlds/Storm/Backdrop3/") || IsDesertHdGround(path) || IsTideHdTile(path) || IsVerdantHdTile(path) || IsEmberHdTile(path));
     }
 
     // 2026-10: Tide's four ground variants (v1..v4 sky / far / mid / flow) are a 1.75x resample of the old 512x1024 art, 896x1792
@@ -130,6 +130,14 @@ public class WorldBackdropImport : AssetPostprocessor
     public static bool IsVerdantHdTile(string path)
     {
         return path.Contains("/Worlds/Verdant/Backdrop3/v1/") || path.Contains("/Worlds/Verdant/Backdrop3/v2/") || path.Contains("/Worlds/Verdant/Backdrop3/v3/") || path.Contains("/Worlds/Verdant/Backdrop3/v4/");
+    }
+
+    // 2026-10: Ember's four ground variants (v1..v4 sky / far / mid / flow) are crisp pixel-art repaints at 896x1792 (a tile is still
+    // 6 units wide: 149.33 px per unit), same HD import rules as Storm's and Tide's tiles.
+    public const float EmberHdPixelsPerUnit = 896f / 6f;
+    public static bool IsEmberHdTile(string path)
+    {
+        return path.Contains("/Worlds/Ember/Backdrop3/v1/") || path.Contains("/Worlds/Ember/Backdrop3/v2/") || path.Contains("/Worlds/Ember/Backdrop3/v3/") || path.Contains("/Worlds/Ember/Backdrop3/v4/");
     }
 
     public static bool IsDesertHdGround(string path)
@@ -202,7 +210,7 @@ public class WorldBackdropImport : AssetPostprocessor
         {
             ti.textureType = TextureImporterType.Sprite;
             ti.spriteImportMode = SpriteImportMode.Single;
-            ti.spritePixelsPerUnit = IsTideHdTile(assetPath) ? TideHdPixelsPerUnit : IsVerdantHdTile(assetPath) ? VerdantHdPixelsPerUnit : stormHd ? 1024f / 6f : tile ? TilePixelsPerUnit : BackdropAtlas.PixelsPerUnit;
+            ti.spritePixelsPerUnit = IsTideHdTile(assetPath) || IsVerdantHdTile(assetPath) || IsEmberHdTile(assetPath) ? TideHdPixelsPerUnit : stormHd ? 1024f / 6f : tile ? TilePixelsPerUnit : BackdropAtlas.PixelsPerUnit;
             var settings = new TextureImporterSettings();
             ti.ReadTextureSettings(settings);
             settings.spriteMeshType = file == "sky" || sharpSpaceSky || stormHd ? SpriteMeshType.FullRect : SpriteMeshType.Tight;
