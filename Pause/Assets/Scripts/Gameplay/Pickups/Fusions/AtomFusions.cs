@@ -48,6 +48,7 @@ public static class AtomFusions
     public static int SingularityHeals { get; private set; }
     public static int FreePausesUsed { get; private set; }
     public static int ShotsCleared { get; private set; }
+    public static int NovaKills { get; private set; }
 
     public static AtomFusionState State => state;
     public static float Clock => clock;
@@ -273,6 +274,14 @@ public static class AtomFusions
     public static bool SingularityLive => clock < singularityUntil && MagnetPull.ComboOn && Enabled;
     // VACUUM is live and no SINGULARITY is drawing over it (FusionFx loops its vortex on this).
     public static bool VacuumLive => MagnetPull.ComboOn && Enabled && !SingularityLive;
+    // The other loops' live states (FusionFx draws each only while its own rules hold).
+    public static bool DustStormLive => clock < dustStormUntil && MagnetPull.MagnetRunning && Enabled;
+    public static bool BloomLive => clock < bloomUntil && ShieldUp && Enabled;
+    public static bool StasisLive => clock < stasisUntil && ShieldUp && Enabled;
+    public static bool LifelineLive => LifelineActive && MagnetPull.MagnetRunning;
+    public static bool NovaLive => novaArmed && ShieldUp && Enabled;
+    public static bool AftershockLive => aftershockArmed && ShieldUp && Enabled;
+    public static int BloomKills => bloomKills;
     static bool DustStormOn => clock < dustStormUntil && MagnetPull.MagnetRunning;
 
     // STASIS: a pause about to be spent is free (true: don't take it).
@@ -328,7 +337,12 @@ public static class AtomFusions
     // around the ship; AFTERSHOCK widens the shockwave for this one release.
     public static void OnShieldEnding(Vector3 at)
     {
-        if (novaArmed && Enabled) ShotsCleared += HostileShots.ClearWithin(at, FusionTuning.NovaClearRadius);
+        if (novaArmed && Enabled)
+        {
+            ShotsCleared += HostileShots.ClearWithin(at, FusionTuning.NovaClearRadius);
+            NovaKills += NovaKill(at);
+            FusionFx.NovaRing(at);
+        }
         novaArmed = false;
         if (aftershockArmed && Enabled && aftershockRestore < 0f)
         {
@@ -336,6 +350,31 @@ public static class AtomFusions
             ShieldShockwave.Radius = aftershockRestore * FusionTuning.AftershockRadiusScale;
         }
         aftershockArmed = false;
+    }
+
+    // NOVA also destroys the plain enemies in the clear circle, by the ordinary kill (ShipAttackHits: score, dust,
+    // combo, achievements, death effects). Only what MagnetCombo calls a plain Enemy, and only on screen: bosses,
+    // elites, what elites fly, rocks, rail mines, scenery and shots are left alone. Bloom / Singularity kill
+    // bookkeeping is not called: the shield is already down.
+    static readonly System.Collections.Generic.List<ClearTarget> novaScratch = new System.Collections.Generic.List<ClearTarget>(64);
+    static int NovaKill(Vector3 at)
+    {
+        if (ship == null || startMenu.youAreInTutorial) return 0;
+        int shipId = ShipId.Of(ship.gameObject, ShipId.Equipped());
+        ShipTargets.Collect(novaScratch, 0f);
+        int kills = 0;
+        for (int i = 0; i < novaScratch.Count; i++)
+        {
+            var t = novaScratch[i];
+            if (t == null || !t.isActiveAndEnabled) continue;
+            Vector2 d = t.transform.position - at;
+            float reach = FusionTuning.NovaClearRadius + t.Radius * .5f;
+            if (d.sqrMagnitude > reach * reach) continue;
+            if (MagnetPull.KindOf(t) != MagnetCombo.Kind.Enemy) continue;
+            if (ShipAttackHits.Hit(t.gameObject, shipId)) kills++;
+        }
+        novaScratch.Clear();
+        return kills;
     }
 
     // ... and has let go.

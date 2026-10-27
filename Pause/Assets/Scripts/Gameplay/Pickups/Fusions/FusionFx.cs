@@ -15,7 +15,7 @@ using UnityEngine;
 // It runs on the world's clock (AtomFusions.Tick: a pause holds it mid-frame)
 // and goes dark at once when fusions are off (the kill cam's replay, a dead
 // pilot, the tutorial).
-public sealed class FusionFx : MonoBehaviour
+public sealed partial class FusionFx : MonoBehaviour
 {
     public const int FrameCount = 9;
     public const float Fps = 14f;                  // ~0.64 s a play
@@ -56,10 +56,30 @@ public sealed class FusionFx : MonoBehaviour
     public int FrameOf(FusionId id) { return playing != null && playing[(int)id] ? Mathf.Min(FrameCount - 1, (int)(age[(int)id] * Fps)) : -1; }
     public SpriteRenderer LayerOf(FusionId id) { return layers != null ? layers[(int)id] : null; }
     // VACUUM and SINGULARITY are not one-shots: they loop for as long as the rules' own live state says (LoopLive).
-    public static bool IsLoop(FusionId id) { return id == FusionId.Vacuum || id == FusionId.Singularity; }
+    public static bool IsLoop(FusionId id)
+    {
+        switch (id)
+        {
+            case FusionId.Vacuum: case FusionId.Singularity: case FusionId.DustStorm: case FusionId.Bloom:
+            case FusionId.Stasis: case FusionId.Lifeline: case FusionId.Nova: case FusionId.Aftershock:
+                return true;
+            default: return false;   // Overclock, Feather Storm, Shell Burst, Overheal: instant, one play
+        }
+    }
     static bool LoopLive(FusionId id)
     {
-        return id == FusionId.Vacuum ? AtomFusions.VacuumLive : id == FusionId.Singularity && AtomFusions.SingularityLive;
+        switch (id)
+        {
+            case FusionId.Vacuum: return AtomFusions.VacuumLive;
+            case FusionId.Singularity: return AtomFusions.SingularityLive;
+            case FusionId.DustStorm: return AtomFusions.DustStormLive;
+            case FusionId.Bloom: return AtomFusions.BloomLive;
+            case FusionId.Stasis: return AtomFusions.StasisLive;
+            case FusionId.Lifeline: return AtomFusions.LifelineLive;
+            case FusionId.Nova: return AtomFusions.NovaLive;
+            case FusionId.Aftershock: return AtomFusions.AftershockLive;
+            default: return false;
+        }
     }
     public float AlphaOf(FusionId id) { return layers != null ? layers[(int)id].color.a : 0f; }
 
@@ -117,6 +137,7 @@ public sealed class FusionFx : MonoBehaviour
             go.transform.localScale = Vector3.one * sizes[i] / (f != null && f[i] != null && f[i].Length > 0 ? f[i][0].bounds.size.x : 1f);
             layers[i] = r;
         }
+        MakeOverlays(hull);
     }
 
     // Slice every strip once (frames are 1:1 pixel cells, point filtered).
@@ -190,6 +211,7 @@ public sealed class FusionFx : MonoBehaviour
             fx.layers[i].sprite = f[i][k];
             fx.Place(i);
         }
+        fx.StepOverlays(dt);
     }
 
     // A looping fusion: starts by itself the moment its rules go live, wraps its flipbook while they stay live, and
@@ -233,6 +255,7 @@ public sealed class FusionFx : MonoBehaviour
     {
         if (layers == null) return;
         if (!AtomFusions.Enabled) { StopAll(); return; }
+        DrawOverlays();
         // a paused / frozen world still draws the held frame, glued to the ship
         for (int i = 0; i < layers.Length; i++) if (playing[i]) Place(i);
     }
@@ -248,6 +271,7 @@ public sealed class FusionFx : MonoBehaviour
     public void StopAll()
     {
         if (layers == null) return;
+        ResetOverlays();
         for (int i = 0; i < layers.Length; i++) Stop(i);
     }
 

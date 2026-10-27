@@ -137,7 +137,7 @@ public static class AtomFusionTable
             FusionWindow.WhileShield, 0f, PickupGlow.HealGreen),
         Row(FusionId.Nova, "nova", "NOVA", new[] { AtomKind.Shield, AtomKind.Capacitor },
             "A shield with a charge stored inside.",
-            "When the shield lets go, its shockwave wipes out the enemy shots around you.",
+            "When the shield lets go, its shockwave wipes out the enemy shots and ships around you.",
             FusionWindow.WhileShield, 0f, AkiraPalette.Cyan),
         Row(FusionId.Overclock, "overclock", "OVERCLOCK", new[] { AtomKind.Pause, AtomKind.Capacitor },
             "Time and power, together.",
