@@ -259,13 +259,19 @@ public static class DeathPanelTest
 
         // Cards: laid out where the constants say, not overlapping, and the
         // label column never runs into the value column.
+        // (the cards take the current world's column width, CardRectsFor, and
+        // move down with the banner by that frame's StackShift)
         var cardRects = new List<Rect>();
+        int world = HudSkin.CurrentWorld;
+        var laidOut = DeathPanelView.CardRectsFor(world);
+        float shift = DeathPanelView.StackShift(world);
         for (int i = 0; i < 3; i++)
         {
             var card = (RectTransform)panel.Find("Card" + i);
             var r = PanelSpace(panel, card);
             cardRects.Add(r);
-            Check("Card" + i + " is where the layout puts it", Near(r, DeathPanelView.CardRects[i]));
+            var expected = new Rect(laidOut[i].x, laidOut[i].y - shift, laidOut[i].width, laidOut[i].height);
+            Check("Card" + i + " is where the layout puts it (got " + r + ", want " + expected + ")", Near(r, expected));
             var label = card.Find("Label").GetComponent<Text>();
             // (the breakdown's title row has no value any more: its rows are checked below)
             if (i == 1) continue;
