@@ -27,7 +27,7 @@ import sys, os
 import numpy as np
 from PIL import Image
 
-CELL = 16
+CELL = 16          # for the 512 x 1024 tiles; the painted 1024 x 2048 tiles use 32 (set per image below: always a 32 x 64 grid)
 CLASSES = "WBOC"
 
 # score expressions and class shares (fractions of the tile)
@@ -38,9 +38,10 @@ VARIANTS = {
     # canyon: rust cliff walls (warm, dark, textured), the pale floor, buried hulls
     2: dict(built=lambda f: f['tex'] * 3 - f['warm'] + f['lum'], bshare=.07,
             shoal=lambda f: f['lum'] * 2 - f['tex'], oshare=.30, kelp=lambda f: -f['lum'] * 2 + f['warm'], cshare=.42),
-    # salt flat: the cracked pale pan, dark crack and wreckage lines (built), no cliffs
-    3: dict(built=lambda f: f['tex'] * 3 - f['lum'], bshare=.22,
-            shoal=lambda f: f['lum'] * 2 - f['tex'] * 3, oshare=.40, kelp=lambda f: -f['lum'] - f['sat'], cshare=.02),
+    # salt flat (painted 1024 x 2048 tile): busiest relief = built (crystal / rubble), smoothest crust = hardpan, no cliffs;
+    # brine POOLS (teal) are class C so no dock or structure ever lands on water
+    3: dict(built=lambda f: f['tex'], bshare=.18,
+            shoal=lambda f: -f['tex'], oshare=.40, kelp=lambda f: -f['lum'], cshare=0, pool=True),
     # night dunes: as day, cold
     4: dict(built=lambda f: f['tex'] * 2 - f['lum'], bshare=.04,
             shoal=lambda f: f['lum'] * 2 - f['tex'] * 3, oshare=.10, kelp=lambda f: -f['lum'], cshare=.02),
@@ -73,6 +74,8 @@ def classify(path, cfg):
     im = np.asarray(Image.open(path).convert('RGB')).astype(np.float64) / 255
     f = features(im)
     H, W = im.shape[:2]
+    global CELL
+    CELL = H // 64
     cls = np.zeros((H, W), np.int8)                      # water
     cls[rank(cfg['kelp'](f)) > 1 - cfg['cshare']] = 3
     cls[rank(cfg['shoal'](f)) > 1 - cfg['oshare']] = 2
@@ -93,13 +96,21 @@ def classify(path, cfg):
                 if dx == -1: sh[:, -1] = grid[:, -1]
                 for k in range(4): cnt[..., k] += (sh == k) * (2 if dx == 0 and dy == 0 else 1)
         grid = cnt.argmax(-1)
+    if cfg.get('pool'):
+        # teal brine (g > r, b > .9 r): cells that are > 20% pool -> C
+        teal = ((im[..., 1] - im[..., 0] > .04) & (im[..., 2] > im[..., 0] * .9)).astype(float)
+        frac = teal.reshape(gh, CELL, gw, CELL).mean((1, 3))
+        cd = frac > .2
+        grid = np.where(cd, 3, grid)
     return im, grid
 
 def main():
     base = sys.argv[1]
     dbg = sys.argv[sys.argv.index('--debug') + 1] if '--debug' in sys.argv else None
     out = sys.argv[sys.argv.index('--out') + 1] if '--out' in sys.argv else base
+    only = [int(x) for x in sys.argv[sys.argv.index('--only') + 1].split(',')] if '--only' in sys.argv else list(VARIANTS)
     for v, cfg in VARIANTS.items():
+        if v not in only: continue
         im, grid = classify(os.path.join(base, 'v%d' % v, 'mid.png'), cfg)
         os.makedirs(os.path.join(out, 'v%d' % v), exist_ok=True)
         with open(os.path.join(out, 'v%d' % v, 'mask.txt'), 'w') as fh:

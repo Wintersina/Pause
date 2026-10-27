@@ -1231,7 +1231,7 @@ public static class DesertBackdropTest
             d = Director(wb);
             Run(wb, 15f);
             bool any = false;
-            for (int t = 0; t < 24 && !any; t++) { any = d.SpawnWorm(); if (!any) Run(wb, 2f); }     // up to ~1 min of ground: whether free sand is in view right now depends on the layout
+            for (int t = 0; t < 48 && !any; t++) { any = d.SpawnWorm(); if (!any) Run(wb, 2f); }     // up to ~1.5 min of ground (was 24 tries: the painted salt flat has pools and rubble to route round): whether free sand is in view right now depends on the layout
             Check("v" + v + " can carry a worm on its own sand (" + any + ")", any || v == 2);
             Object.DestroyImmediate(wb.gameObject);
         }

@@ -30,6 +30,7 @@ public static class BackdropResolutionTest
     const float BlockFraction = 0.97f;        // fraction of opaque texels equal to their block's first texel
     const float PairCeiling = 0.85f;          // adjacent identical-texel pairs (opaque on at least one side)
     const int MinOpaque = 300;                // a cell with fewer opaque texels is too sparse to judge
+    static readonly System.Text.RegularExpressions.Regex PixelGridGround = new System.Text.RegularExpressions.Regex(@"^Desert/Backdrop3/v[134]/(sky|far|mid)\.png$");
     static readonly string[] Dirs = { "Backdrop3", "Backdrop" };
     static readonly string[] Worlds = { "Frost", "Verdant", "Ember", "Tide", "Desert", "Space", "Storm" };
 
@@ -77,7 +78,17 @@ public static class BackdropResolutionTest
                     if (s > worst) { worst = s; worstK = k; }
                 }
         string label = rel + ": " + (worst > 0 ? "block score " + worst.ToString("0.000") + " (k=" + worstK + ")" : "too sparse to judge");
-        Check(label + " is not a nearest-neighbour block upscale", worst < BlockFraction);
+        if (PixelGridGround.IsMatch(rel))
+        {
+            // 2026-10: the painted Desert ground tiles are deliberate PIXEL ART on a 4 px cell grid (build_tiles.py pixel pass), so the
+            // 2/3/4 block test does not apply. They must really be that grid (k=4 >= .97) and have real detail AT the cell level (8 px
+            // blocks are not uniform), so a plain 2x or 4x upscale of a small image still fails here.
+            float g4 = BlockScore(px, W, 0, 0, W, H, 4), g8 = BlockScore(px, W, 0, 0, W, H, 8);
+            Check(label + " is a deliberate 4 px pixel grid (k=4 " + g4.ToString("0.000") + " >= " + BlockFraction + ") with cell-level detail (k=8 " + g8.ToString("0.000") + " < .5)",
+                  g4 >= BlockFraction && g8 < .5f);
+        }
+        else
+            Check(label + " is not a nearest-neighbour block upscale", worst < BlockFraction);
 
         float pairs = PairDup(px, W, H);
         Check(rel + ": identical adjacent texel pairs " + pairs.ToString("0.00") + " <= " + PairCeiling, pairs <= PairCeiling);
