@@ -65,12 +65,12 @@ public class EnemyBrain : MonoBehaviour
     // (MinFireDistance + HoldMargin, x view), but never higher than
     // HoldTopDepth under the top of the view nor into the HUD band -- unless
     // the band hangs lower than the shallowest authored station
-    // (HoldBandFloorDepth, 14% under the top: a stacked read-out on a phone
+    // (HoldBandFloorDepth, 13% under the top: the quick actions column on a phone
     // small in dp), where the pilot may still hold that high, as that
     // station already does.
     public const float HoldMargin = .1f;
     public const float HoldTopDepth = 1.1f;
-    public const float HoldBandFloorDepth = 1.4f;
+    public const float HoldBandFloorDepth = 1.3f;
 
     // THE VIEW. A pilot's script is written for a view 10 u tall (the
     // authored camera). The game's camera shows more than that and differs by

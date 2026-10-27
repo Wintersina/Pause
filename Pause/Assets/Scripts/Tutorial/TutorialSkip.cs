@@ -59,7 +59,7 @@ public class TutorialSkip : MonoBehaviour
         // reposition on an actual change, mirroring CameraFit's own pattern.
         if (ScreenInfo.Width != lastScreenW || ScreenInfo.Height != lastScreenH || ScreenInfo.SafeArea != lastSafe
             || (canvas != null && !Mathf.Approximately(canvas.scaleFactor, lastScaleFactor))
-            || HudStyler.StackedReadout != lastReadout)
+            || HudStyler.NarrowBand != lastReadout)
             Reposition();
 
         if (group != null)
@@ -190,7 +190,7 @@ public class TutorialSkip : MonoBehaviour
         lastScreenH = ScreenInfo.Height;
         lastSafe = ScreenInfo.SafeArea;
         if (canvas != null) lastScaleFactor = canvas.scaleFactor;
-        lastReadout = HudStyler.StackedReadout;
+        lastReadout = HudStyler.NarrowBand;
 
         Vector3 worldClamp = new Vector3(clampWorldX, 0f, 0f);
         Vector2 screenPoint = cam.WorldToScreenPoint(worldClamp);
@@ -211,7 +211,7 @@ public class TutorialSkip : MonoBehaviour
         float top = safeTopInset + topMargin;
         // under the read-out when a small phone stacks it under the quick
         // actions (HudStyler, UiScale's floor)
-        Rect readout = HudStyler.StackedReadout;
+        Rect readout = HudStyler.NarrowBand;
         if (readout.height > 0f) top = Mathf.Max(top, (ScreenInfo.Height - readout.yMin) / sf + 10f);
         buttonRect.anchoredPosition = new Vector2(rightEdge - canvasRect.rect.xMax, -top);
     }

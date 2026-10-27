@@ -103,7 +103,7 @@ public static class ScreenFitRunner
         if (DeveloperUnlocks.Enabled) DeveloperUnlocks.SetEnabled(false);
         LeaderboardPanel.Close();
         LeaderboardBoards.OverrideForTests(null);
-        HudStyler.StackedReadout = default(Rect);
+        HudStyler.NarrowBand = default(Rect);
         ShipSkins.ClearPreview();
         PortalPressure.Reset();
     }

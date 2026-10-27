@@ -48,6 +48,25 @@ public class PauseQuickActions : MonoBehaviour
     // frame or backing). The slot's width hugs the pair plus PanelPad each side.
     public const float PanelPad = 5f;
     public const float PanelWidthUnits = 2f * ButtonSize + ButtonGap + 2f * PanelPad;
+
+    // On a narrow lane (the pair side by side would crowd the score board below
+    // TopBand.ReadoutMinScale) the pair stands in a single column at the right
+    // edge instead, home on top of restart, top-aligned with the board: the board
+    // never moves. The gap keeps the two tap squares apart.
+    public const float VerticalGap = 6f;
+    public const float ColumnWidthUnits = ButtonSize + 2f * PanelPad;
+
+    // True when the lane is too narrow for the pair side by side (pure: band and screen).
+    public static bool Vertical(TopBand.Frame band, Vector2 screen)
+    {
+        return HudStyler.SideBySideFit(band, screen) < TopBand.ReadoutMinScale;
+    }
+
+    // The slot's width in px for this band and screen.
+    public static float SlotWidthPx(TopBand.Frame band, Vector2 screen)
+    {
+        return (Vertical(band, screen) ? ColumnWidthUnits : PanelWidthUnits) * CanvasScaleFor(screen);
+    }
         // Set by HudStyler: the read-out's height on screen, in px (0: none).
     public static float LiveReadoutHeightPx;
 
@@ -145,17 +164,24 @@ public class PauseQuickActions : MonoBehaviour
     public static Rect ScreenRectFor(TopBand.Frame band, Vector2 screen)
     {
         float s = CanvasScaleFor(screen);
-        float width = PanelWidthUnits * s;
+        float width = SlotWidthPx(band, screen);
         // as tall as the score board is on this screen, after its own lane shrink
         float height = Mathf.Max(HudStyler.ReadoutHeightFor(screen) * HudStyler.ReadoutFitFor(band, screen), ButtonSize * s);
+        // a column of two squares is taller than that (top-aligned with the board)
+        if (Vertical(band, screen)) height = Mathf.Max(height, (2f * ButtonSize + VerticalGap) * s);
         return new Rect(band.right - width, band.top - height, width, height);
     }
 
-    // One button's screen-pixel rect: 0 is Replay (rightmost), 1 is Home.
+    // One button's screen-pixel rect: 0 is Replay (rightmost / lower), 1 is Home (left / upper).
     public static Rect ButtonScreenRect(TopBand.Frame band, Vector2 screen, int slotFromRight)
     {
         float s = CanvasScaleFor(screen);
         Rect panel = ScreenRectFor(band, screen);
+        if (Vertical(band, screen))
+        {
+            float topV = panel.yMax - (slotFromRight == 1 ? 0f : (ButtonSize + VerticalGap) * s);
+            return new Rect(panel.xMax - PanelPad * s - ButtonSize * s, topV - ButtonSize * s, ButtonSize * s, ButtonSize * s);
+        }
         float right = panel.xMax - PanelPad * s - slotFromRight * (ButtonSize + ButtonGap) * s;
         float top = panel.yMax - (panel.height - ButtonSize * s) * .5f;
         return new Rect(right - ButtonSize * s, top - ButtonSize * s, ButtonSize * s, ButtonSize * s);
@@ -307,8 +333,9 @@ public class PauseQuickActions : MonoBehaviour
         float s = Mathf.Max(CanvasScaleFor(screen), .0001f);
         Vector2 offset = TopRightOffset(band, safe, screen);
         float panelH = DrawnPanelHeightPx(band, screen) / s;
-        PositionTopRight(replayClone, 0, offset, panelH);
-        PositionTopRight(leaveClone, 1, offset, panelH);
+        bool vertical = Vertical(band, screen);
+        PositionTopRight(replayClone, 0, offset, panelH, vertical);
+        PositionTopRight(leaveClone, 1, offset, panelH, vertical);
     }
 
     // For previews and tests: lay the buttons out for a given screen rather
@@ -332,7 +359,7 @@ public class PauseQuickActions : MonoBehaviour
         return new Vector2((band.right - safe.xMax) / s, (band.top - safe.yMax) / s);
     }
 
-    static void PositionTopRight(GameObject go, int slotFromRight, Vector2 offset, float panelHeight)
+    static void PositionTopRight(GameObject go, int slotFromRight, Vector2 offset, float panelHeight, bool vertical)
     {
         if (go == null) return;
         var rt = go.GetComponent<RectTransform>();
@@ -340,6 +367,11 @@ public class PauseQuickActions : MonoBehaviour
         rt.pivot = new Vector2(1f, 1f);
         rt.localScale = Vector3.one;
         rt.sizeDelta = new Vector2(ButtonSize, ButtonSize);
+        if (vertical)
+        {
+            rt.anchoredPosition = new Vector2(offset.x - PanelPad, offset.y - (slotFromRight == 1 ? 0f : ButtonSize + VerticalGap));
+            return;
+        }
         rt.anchoredPosition = new Vector2(offset.x - PanelPad - slotFromRight * (ButtonSize + ButtonGap),
                                           offset.y - (panelHeight - ButtonSize) * .5f);
     }
