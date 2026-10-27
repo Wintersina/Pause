@@ -1,0 +1,15 @@
+#!/bin/zsh
+cd /Users/sina/Developer/Pause/.claude/ws-storm-hazlm
+D=/Users/sina/Developer/Pause/.claude/ws-storm-hazlm/Pause/Assets/Art/Worlds/Storm/backdrop_v4~/restyle_landmarks/src~; R=/Users/sina/Developer/Pause/.claude/ws-storm-hazlm/Pause/Assets/Art/Worlds/Storm/backdrop_v4~/restyle_landmarks
+REFS=($R/refs/s1_supercell.png $R/refs/new_storm_weather.png $R/refs/ember_landmarks.png $R/refs/verdant_landmarks.png $R/refs/OLD_storm_landmarks_do_not_copy.png)
+job() { n=$1; b=$2
+  [ -f $D/$n.png ] && return
+  { cat $D/common.md; echo; echo "$b"; echo; echo "Output: write the final PNG to $D/$n.png"; } > $D/prompt_$n.md
+  zsh scripts/codex-art.sh $PWD $D/prompt_$n.md $D/$n.lastmsg.txt ${REFS[@]} > $D/$n.log 2>&1
+  echo "$n exit $? $(ls $D/$n.png 2>&1|tail -1|cut -c1-20)" >> $D/progress2.txt
+}
+job tr_raft "SINGLE ELEMENT (centred, filling about 90 percent of the square): a floating TURBINE RAFT in the same aerial three-quarter view and weathered cool-steel style as the reference: a floating steel raft carrying THREE tall wind-turbine towers of different heights (one tall centre, two shorter), each topped by a nacelle and a bare round HUB cap pointing at the viewer. IMPORTANT: NO blades, NO rotors, NO propeller at all on any tower: only the bare hubs (the blades will be added separately and spin). Buoyancy tanks under the raft, cool white lamps, cables."
+job tr_rotors "ROTOR SHEET (2x2 grid, 4 cells): three DIFFERENT wind-turbine ROTORS seen from the front, each with exactly THREE slim tapered blades at exactly 120 degrees apart around a round hub that sits at the EXACT CENTRE of its cell (three-fold symmetric about the hub so it can be spun around the hub), weathered pale steel-grey fibreglass with subtle wear, soft cool lighting, slightly different blade shapes and wear per rotor, blade length about 85 percent of half the cell. The fourth cell: leave empty. No tower, no nacelle, only hub and three blades. Do not draw motion blur."
+job dish_mast "SINGLE ELEMENT (centred, filling about 90 percent of the square): a floating RELAY STATION: a small floating steel platform with buoyancy tanks and a tall lattice mast, with a bare empty yoke mount (a short vertical pivot post with a round bearing cap) at the very top of the mast, exactly on the vertical centre line of the image. IMPORTANT: NO dish, NO antenna on the mast: only the empty mount (the dish will be added separately and will turn). Cool white lamps."
+job dish_dish "SINGLE ELEMENT (centred, filling about 70 percent of the square): a large parabolic RELAY / RADAR DISH antenna with its short feed arm and a small yoke base, seen from the front at a slight angle from above, perfectly SYMMETRICAL left to right about the vertical centre line of the image (so it can be squashed horizontally to fake turning), weathered pale steel with panel seams and subtle wear, a small pale-violet status lamp on the feed. The dish's vertical pivot (where it sits on its mast) is at the bottom centre of the element."
+echo ALLDONE >> $D/progress2.txt

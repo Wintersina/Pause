@@ -67,6 +67,12 @@ def despeckle(c, k=6, keep=.04):
     out = c.copy(); out[..., 3] *= grown
     return out
 
+META = {}
+
+def cell_xy(n, sx, sy):
+    """a point of the source painting (px) -> the landmark cell (px from its top-left)."""
+    m = META[n]; return ((sx - m["x0"]) * m["scale"] + m["ox"], (sy - m["y0"]) * m["scale"] + m["oy"])
+
 def fill_landmarks():
     j = json.load(open(DST / "landmarks.json")); sheet = Image.open(DST / "landmarks.png").convert("RGBA"); H = sheet.height
     by = {s["n"]: s for s in j["sprites"]}
@@ -78,6 +84,8 @@ def fill_landmarks():
         if not (SRC / (sname + ".png")).exists():
             print("missing", sname); continue
         for n, c in zip(names, [despeckle(x) for x in cells(load(sname), 2, 2)]):
+            if n == "turbine_raft_00" and (SRC / "tr_raft.png").exists(): c = despeckle(load("tr_raft"))      # bare hubs: the fans are the rotors atlas
+            if n == "relay_dish_00" and (SRC / "dish_mast.png").exists(): c = despeckle(load("dish_mast"))   # bare mount: the dish is its own turning sprite
             s = by[n]; box = (s["x"], H - s["y"] - s["h"], s["x"] + s["w"], H - s["y"])
             sheet.paste((0, 0, 0, 0), box)
             if n.startswith("spire_"):
@@ -87,7 +95,10 @@ def fill_landmarks():
                 t = c[ty:y1, x0:x1]; im = scaled(t, sc); left = 128 - round((tx - x0) * sc)
                 im = im.crop((max(0, -left), 0, min(im.width, s["w"] - left), im.height))
                 cell = Image.new("RGBA", (s["w"], s["h"])); cell.alpha_composite(im, (max(0, left), 40)); sheet.alpha_composite(cell, box[:2]); continue
-            im = fit(c, s["w"], s["h"]); put_center(sheet, im, s["x"] + s["w"] / 2, H - s["y"] - s["h"] / 2)
+            y0, y1, x0, x1 = bbox(c); sc = min(s["w"] * .95 / (x1 - x0), s["h"] * .95 / (y1 - y0)); im = fit(c, s["w"], s["h"])
+            ox = (s["w"] - im.width) / 2; oy = (s["h"] - im.height) / 2     # where the cropped, scaled art sits in the 256 cell
+            META[n] = {"scale": sc, "x0": int(x0), "y0": int(y0), "ox": ox, "oy": oy}
+            put_center(sheet, im, s["x"] + s["w"] / 2, H - s["y"] - s["h"] / 2)
     sheet.save(DST / "landmarks.png")
 
 def min_cut(err):
@@ -134,5 +145,51 @@ def fill_hazard():
             arr = np.roll(tile, round((col - 2) * 256), axis=1).copy(); arr[..., 3] *= .55; put(2, col, to_img(arr))
     sheet.save(DST / "wx_hazard.png")
 
+HUBS_627 = [(367, 122), (203, 236), (506, 306)]        # hub caps measured on the 627 px preview of tr_raft.png (x2 = source px)
+HUB_R_627 = [80, 60, 60]                               # blade tip radius per fan on the same preview
+
+def fill_rotors_dish():
+    """rotors.png: three fan rotors (119 px cells) + the relay dish (238 px cell, its pivot = the cell centre). Writes tuning.json."""
+    out = {}
+    if (SRC / "tr_rotors.png").exists():
+        sheet = Image.new("RGBA", (357 + 238, 238))
+        for k, c in enumerate(cells(load("tr_rotors"), 2, 2)[:3]):
+            al = c[..., 3]; ys, xs = np.mgrid[0:al.shape[0], 0:al.shape[1]]; w = al * (al > .06)
+            cy = (ys * w).sum() / w.sum(); cx = (xs * w).sum() / w.sum()        # three-fold symmetric: the mass centroid is the hub
+            rad = float(np.sqrt((((ys - cy) ** 2 + (xs - cx) ** 2) * (al > .3))).max())
+            s = 56.0 / rad
+            im = to_img(c).resize((round(c.shape[1] * s), round(c.shape[0] * s)), Image.LANCZOS)
+            cell = Image.new("RGBA", (119, 119)); cell.alpha_composite(im, (round(59.5 - cx * s), round(59.5 - cy * s)))
+            sheet.alpha_composite(cell, (k * 119, 238 - 119))
+        out["rotor_cell_radius"] = 56.0
+    if (SRC / "dish_dish.png").exists():
+        a = despeckle(load("dish_dish")); y0, y1, x0, x1 = bbox(a); t = a[y0:y1, x0:x1]
+        s = 96.0 / max(t.shape[0], t.shape[1]); im = to_img(t).resize((round(t.shape[1] * s), round(t.shape[0] * s)), Image.LANCZOS)
+        cell = Image.new("RGBA", (238, 238)); cell.alpha_composite(im, (119 - im.width // 2, 119 - im.height))     # bottom centre = the pivot
+        sheet.alpha_composite(cell, (357, 0))
+    sheet.save(DST / "rotors.png")
+    j = {"sprites": [{"n": "rotor_0%d" % k, "x": k * 119, "y": 0, "w": 119, "h": 119} for k in range(3)] + [{"n": "dish_00", "x": 357, "y": 0, "w": 238, "h": 238}]}
+    json.dump(j, open(DST / "rotors.json", "w"))
+    if "turbine_raft_00" in META:
+        hubs = [cell_xy("turbine_raft_00", 2 * x, 2 * y) for x, y in HUBS_627]
+        out["FanHubs"] = [[round(h[0], 1), round(h[1], 1)] for h in hubs]
+        sc = META["turbine_raft_00"]["scale"]
+        out["FanScales"] = [round(2 * r * sc / 56.0, 3) for r in HUB_R_627]
+    if "relay_dish_00" in META and (SRC / "dish_mast.png").exists():
+        a = despeckle(load("dish_mast")); core = np.where(a[..., 3] > .5); ty = core[0].min(); tx = int(np.median(core[1][core[0] < ty + 8]))
+        out["DishMount"] = [round(v, 1) for v in cell_xy("relay_dish_00", tx, ty + 14)]
+    json.dump(out, open(SRC / "tuning.json", "w"), indent=1); print(out)
+
+def fill_thunder():
+    """thunder.png: each tower's lightning layer = the bright, bluish lightning pixels of the new tower art (the strike flash re-draws them on top)."""
+    lj = json.load(open(DST / "landmarks.json")); lm = np.asarray(Image.open(DST / "landmarks.png").convert("RGBA")).astype(np.float32) / 255; H = lm.shape[0]
+    by = {s["n"]: s for s in lj["sprites"]}; sheet = np.zeros((256, 1024, 4), np.float32)
+    for k in range(4):
+        s = by["anvil_tower_0%d" % k]; y = H - s["y"] - s["h"]; c = lm[y:y + 256, s["x"]:s["x"] + 256].copy()
+        v = c[..., :3].max(-1); b = c[..., 2] - c[..., 0]
+        m = np.clip((v - .62) / .25, 0, 1) * np.clip((b + .02) / .1, 0, 1)
+        c[..., 3] *= m; sheet[:, k * 256:(k + 1) * 256] = c
+    to_img(sheet).save(DST / "thunder.png")
+
 if __name__ == "__main__":
-    fill_landmarks(); fill_hazard()
+    fill_landmarks(); fill_hazard(); fill_rotors_dish(); fill_thunder()

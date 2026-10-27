@@ -412,7 +412,7 @@ public class StormDirector : PlanetDirector
             mists[i].enabled = false;
         }
         life = new StormLife(ground, set.Atlas("rotors"), landmarkArt.Get(StormLifeTuning.TurbinePiece),
-                             flashArt.Length > 0 ? flashArt[0] : null, 4242, landmarkArt, set.Atlas(StormLifeTuning.BoltAtlas));   // own seed: never draws from the director's rng (that would reshuffle the whole backdrop)
+                             flashArt.Length > 0 ? flashArt[0] : null, 4242, landmarkArt, set.Atlas(StormLifeTuning.BoltAtlas), landmarkArt.Get(StormLifeTuning.DishPiece));   // own seed: never draws from the director's rng (that would reshuffle the whole backdrop)
         glow = Pool("glow", 4);
         bolts = Pool("bolts", 4);
         mist = Pool("mist", 3);

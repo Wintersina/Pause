@@ -112,12 +112,14 @@ public static class StormBackdropPreview
             d.Showcase(StormLifeTuning.TurbinePiece, 1.9f, -.9f, 1.5f);
             d.Showcase("anvil_tower_00", 1.9f, .95f, .3f, false, true);
             d.Showcase("spire_00", 1.7f, -.95f, -1.0f, false, true);
+            d.Showcase(StormLifeTuning.DishPiece, 1.7f, .95f, 1.6f, false, true);
             d.Showcase("skyhook_00", 1.7f, .9f, -1.7f, true, true);
             string sub = Path.Combine(dir, still ? "before" : "after");
             Directory.CreateDirectory(sub);
-            for (int f = 0; f < 120; f++)
+            int frames = int.TryParse(System.Environment.GetEnvironmentVariable("STORM_LIFE_FRAMES"), out var nf) ? nf : 120, stepsPer = int.TryParse(System.Environment.GetEnvironmentVariable("STORM_LIFE_STEPS"), out var ns) ? ns : 4;
+            for (int f = 0; f < frames; f++)
             {
-                for (int s = 0; s < 4; s++) wb.Step(Dt);
+                for (int s = 0; s < stepsPer; s++) wb.Step(Dt);
                 Capture(cam, Path.Combine(sub, f.ToString("000") + ".png"), 2);
             }
         }
