@@ -173,7 +173,7 @@ public static class ShipLoadoutTable
             shots: 3, duration: 6f, range: 6f, speed: 1.5f),   // speed = shots a second per pod (was 3; halved)
         // 8 Lightning (950)
         Row(8, ShipAttack.SkyJavelins, "SKY JAVELINS", "Three rockets climb to the top, then javelins strike down three lanes.",
-            SecretPower.Thunderclap, "THUNDERCLAP", "Lightning strikes everything within 2.6 dead, bosses take a hit.",
+            SecretPower.Thunderclap, "THUNDERCLAP", "Lightning strikes everything within 2.6 dead, bosses take half a hit.",
             PowerTrigger.HazardsNearShip, 2, 2.0f,
             shots: 3, width: .32f, range: 1.2f, speed: 26f),
         // 9 Ligher (1200)

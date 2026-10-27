@@ -694,14 +694,20 @@ public static class PowersReworkTest
         var inside = Hazard(at.x + .4f, at.y + .6f);
         var outside = Hazard(at.x + s.bubbleRadius + 1.5f, at.y + 1f);
         Vector3 outsideAt = outside.transform.position;
+        // a backdrop rock inside the dome (tagged Astr, registered as scenery: drawn behind the lane, never a body) is left where it is
+        var scenery = Hazard(at.x - .5f, at.y + .5f, "Astr");
+        scenery.GetComponent<ClearTarget>().Scenery = true;
+        Vector3 sceneryAt = scenery.transform.position;
         s.Step(.02f);
         for (int i = 0; i < 40; i++) EnemyShove.Step(.02f);
         float dIn = ((Vector2)(inside.transform.position - at)).magnitude;
         Check("a hazard inside the dome is pushed out to the rim (" + dIn.ToString("F2") + ")", dIn >= s.bubbleRadius - .05f);
         Check("one outside the dome is untouched", (outside.transform.position - outsideAt).sqrMagnitude < 1e-6f);
+        Check("a scenery rock inside the dome is not shoved", (scenery.transform.position - sceneryAt).sqrMagnitude < 1e-6f && !EnemyShove.IsShoved(scenery.transform));
         Check("the dome never changes the time scale", Mathf.Approximately(Time.timeScale, 1f));
         Object.DestroyImmediate(inside);
         Object.DestroyImmediate(outside);
+        Object.DestroyImmediate(scenery);
         var hand = s.BubbleHand;
         Check("a clock hand is drawn at 12 o'clock", hand != null && hand.gameObject.activeSelf && Mathf.Abs(Mathf.DeltaAngle(hand.eulerAngles.z, 0f)) < 5f);
         Check("bubble radius is 2.35", Mathf.Approximately(s.bubbleRadius, 2.35f));
