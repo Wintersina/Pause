@@ -43,10 +43,31 @@ public static class EliteArt
 
     public static string Suffix(Extra e) => e == Extra.Parked ? "parked" : e == Extra.Liftoff ? "liftoff" : e == Extra.Lights ? "lights" : "death";
 
+    // Frames / ExtraFrames run per frame in flight (EliteArt.Frame on every drawing swap; the title
+    // traffic's elite start), so each def's paths are built once, not on every call.
+    static readonly Dictionary<EliteDef, string> stripPaths = new Dictionary<EliteDef, string>();
+    static readonly Dictionary<EliteDef, string[]> extraPaths = new Dictionary<EliteDef, string[]>();
+
+    static string CachedStripPath(EliteDef def)
+    {
+        string path;
+        if (!stripPaths.TryGetValue(def, out path)) stripPaths[def] = path = StripPath(def);
+        return path;
+    }
+
+    static string CachedExtraPath(EliteDef def, Extra e)
+    {
+        string[] paths;
+        if (!extraPaths.TryGetValue(def, out paths)) extraPaths[def] = paths = new string[4];
+        int i = (int)e;
+        if (paths[i] == null) paths[i] = ExtraPath(def, e);
+        return paths[i];
+    }
+
     public static Sprite[] Frames(EliteDef def)
     {
         if (def == null) return null;
-        return Load(StripPath(def), def, 0);
+        return Load(CachedStripPath(def), def, 0);
     }
 
     public static Sprite Frame(EliteDef def, int i)
@@ -59,7 +80,7 @@ public static class EliteArt
     public static Sprite[] ExtraFrames(EliteDef def, Extra e)
     {
         if (def == null) return null;
-        return Load(ExtraPath(def, e), def, 0);
+        return Load(CachedExtraPath(def, e), def, 0);
     }
 
     public static bool HasExtra(EliteDef def, Extra e) => ExtraFrames(def, e) != null;

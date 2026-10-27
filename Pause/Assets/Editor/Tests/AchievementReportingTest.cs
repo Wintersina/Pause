@@ -130,7 +130,9 @@ public static class AchievementReportingTest
         fake.acceptOk = true;
         fake.reports.Clear();
         AchievementSync.FlushReports();
-        Check("... then goes out on the next flush", fake.reports.Any(x => x.Key == "kills_100" && x.Value == 25.0));
+        // 25 kills against the catalog's target (250 for kills_100: ids do not spell their targets) = 10 %
+        double expected = 25 * 100.0 / AchievementCatalog.Find("kills_100").Target;
+        Check("... then goes out on the next flush (" + expected + " %)", fake.reports.Any(x => x.Key == "kills_100" && System.Math.Abs(x.Value - expected) < 1e-9));
         fake.reports.Clear();
         AchievementSync.FlushReports();
         Check("... and a confirmed report is not repeated", fake.reports.Count == 0 && AchievementSync.PendingReports == 0);

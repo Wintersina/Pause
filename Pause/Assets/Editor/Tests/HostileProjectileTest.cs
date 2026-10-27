@@ -158,7 +158,8 @@ public static class HostileProjectileTest
                           g.GetComponent<Collider2D>() == null &&
                           Mathf.Abs(s.transform.lossyScale.x - drawn) < 1e-4f && Mathf.Abs(hb - hit) < 1e-4f);
                     int cell = style == BossShotStyle.Bolt ? BossArt.Bolt0 : BossArt.Shard0;
-                    float reach = BossArt.ShotRimReach * drawn;
+                    // the rim is thinned by the boss's draw scale (BossArt.BuildShotRims), so its absolute thickness is the unscaled one
+                    float reach = BossArt.ShotRimReach * drawn / BossConfig.BulletScaleFor(boss);
                     Check("... the glow is a rim cut from its own drawing, not the round wrapper (" + (g.sprite != null ? g.sprite.name : "none") + ")",
                           g.sprite != null && g.sprite == BossArt.ShotRim(boss, cell) && g.sprite != HostileGlow.Halo &&
                           BossArt.ShotRim(boss, cell + 1) != null && BossArt.ShotRim(boss, cell + 1) != g.sprite);
@@ -176,7 +177,7 @@ public static class HostileProjectileTest
                           BossArt.ShotRimAlpha + " opaque (its sprite " + d.ToString("F2") + " wu across with its clear pad)",
                           reach > .01f && reach <= .05f && BossArt.ShotRimAlpha >= .4f && BossArt.ShotRimAlpha <= .8f &&
                           BossArt.ShotRimPad > BossArt.ShotRimReach * BossArt.ShotRimTexels &&
-                          d > drawn && (d - drawn) * .5f <= .1f);
+                          d > drawn && (d - drawn) * .5f <= .1f * BossConfig.BulletScaleFor(boss));   // the clear pad is drawn at the shot's scale
                     string hug;
                     bool hugs = RimHugsArt(BossArt.Shot(boss, cell), g.sprite, out hug);
                     Check("... and it sits on the drawing itself, not stretched or shifted (" + hug + ")", hugs);

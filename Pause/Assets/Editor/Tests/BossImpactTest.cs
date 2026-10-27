@@ -309,6 +309,11 @@ public static class BossImpactTest
         for (int i = 0; i < 60; i++) fx.Step(.0166f);
         e.OnShipAttackHit(1f, a.transform.position);
         Check("a light boss hit shakes, bursts and flashes a little (" + lightShake + ")", lightShake > 0f && fx.BurstsShown >= 1);
+        // (the heavy hit's own flash, measured before the rapid-flash block below: that block ends on a dim .55 pop)
+        e.Step(1f / 60f, 1f);
+        Check("the boss body flashes white after a hit (" + a.WhiteAlpha + " vs light " + lightWhite + ")", a.WhiteAlpha > .5f);
+        for (int i = 0; i < 20; i++) e.Step(1f / 60f, 1f);
+        Check("... and the flash is gone in ~.12 s", a.WhiteAlpha == 0f);
         // back-to-back flashes coalesce: one hit-frame swap, dim white
         BossImpact.ClockOverride = () => clockNow;
         clockNow = 700f; a.Flash(.55f);
@@ -320,9 +325,5 @@ public static class BossImpactTest
         Check("a flash after a pause is a full pop again", a.HitFrameSwaps == swaps + 1);
         Check("a heavy boss hit shakes harder than a light one", fx.ShakeNow > lightShake * 1.5f);
         Check("a heavy hit shows a burst themed to this boss (" + fx.LastBurstKey + ") and the boss pops white", fx.BurstsShown >= 1 && fx.LastBurstKey == e.Boss.artKey);
-        e.Step(1f / 60f, 1f);
-        Check("the boss body flashes white after a hit (" + a.WhiteAlpha + " vs light " + lightWhite + ")", a.WhiteAlpha > .5f);
-        for (int i = 0; i < 20; i++) e.Step(1f / 60f, 1f);
-        Check("... and the flash is gone in ~.12 s", a.WhiteAlpha == 0f);
     }
 }

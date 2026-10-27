@@ -755,29 +755,42 @@ public static class TitleScreenCombatTest
         Run(t, 240f);
         // a finger on the sky too
         Vector2 screen = new Vector2(Screen.width * .3f, Screen.height * .35f);
-        System.GC.Collect();
-        long counted = 0;
-        int frames = 0, skipped = 0, ults = t.UltsFired, downs = t.ShootDowns, plunges = t.Plunges;
-        // Counted per thread, not as heap growth (GetTotalMemory): the Boehm
-        // heap's size moves with other threads, finalizers and its own
-        // expansion, which read as "allocations" here on an unrelated run.
-        for (int i = 0; i < 1800; i++)
+        int ults = t.UltsFired, downs = t.ShootDowns, plunges = t.Plunges;
+        // The wardrobe's scheduled sheet decodes (one skin sheet every few seconds) are a scheduled
+        // load, not per-frame work: paused for the measured minute. Measured with the harness meter
+        // (the profiler's GC.Alloc recorder with its positive control and noise filter): the
+        // Boehm heap's size (GetTotalMemory) moves with other threads and its own expansion, and
+        // GC.GetAllocatedBytesForCurrentThread does not count under this Mono at all.
+        t.SkinWorkPaused = true;
+        long control;
+        bool meter = TestHarness.AllocMeterWorks(out control);
+        int frame = 0;
+        long used = TestHarness.AllocatedBytes(() =>
         {
-            int work = t.SkinWork;
-            long before = System.GC.GetAllocatedBytesForCurrentThread();
-            t.FeedPointer(0, 0, (i / 90) % 2 == 0, screen + new Vector2(Mathf.Sin(i * .05f) * 200f, 0f), Dt);
-            t.Step(Dt);
-            long after = System.GC.GetAllocatedBytesForCurrentThread();
-            // a wardrobe swap (one skin sheet decoded, every few seconds) is
-            // a scheduled load, not per-frame work: those frames are skipped
-            if (t.SkinWork != work) { skipped++; continue; }
-            if (after > before) counted += after - before;
-            frames++;
-        }
+            for (int i = 0; i < 1800; i++, frame++)
+            {
+                t.FeedPointer(0, 0, (frame / 90) % 2 == 0, screen + new Vector2(Mathf.Sin(frame * .05f) * 200f, 0f), Dt);
+                t.Step(Dt);
+            }
+        });
         Check("the measured minute saw ultimates, shoot-downs and dives (" + (t.UltsFired - ults) + " / " +
               (t.ShootDowns - downs) + " / " + (t.Plunges - plunges) + ")", t.UltsFired > ults && t.ShootDowns + t.Plunges > downs + plunges);
-        Check("Step + touch allocate nothing per frame (" + counted + " bytes over " + frames + " frames; " + skipped +
-              " wardrobe frames skipped)", counted <= 0);
+        // On a failure, where it comes from: the sim alone, or the finger (its UI probe and shoves).
+        string where = "";
+        if (meter && used > 0)
+        {
+            int shoves = t.Shoves, flings = t.Flings, crashes = t.Crashes;
+            long stepOnly = TestHarness.AllocatedBytes(() => { for (int i = 0; i < 1800; i++) t.Step(Dt); });
+            long fingerOnly = TestHarness.AllocatedBytes(() =>
+            {
+                for (int i = 0; i < 1800; i++, frame++)
+                    t.FeedPointer(0, 0, (frame / 90) % 2 == 0, screen + new Vector2(Mathf.Sin(frame * .05f) * 200f, 0f), Dt);
+            });
+            where = "; Step alone " + stepOnly + " B / 1800 frames, FeedPointer alone " + fingerOnly + " B / 1800 frames; " +
+                    (t.Shoves - shoves) + " shoves, " + (t.Flings - flings) + " flings, " + (t.Crashes - crashes) + " crashes meanwhile";
+        }
+        Check("Step + touch allocate nothing per frame (" + used + " bytes over " + frame + " frames; meter control " + control + " B" + where + ")",
+              meter && used == 0);
         Done(t);
     }
 }

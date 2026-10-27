@@ -477,21 +477,27 @@ public static class TitleScreenEliteTest
         t.NextEliteAt = 1e9f;
         RunUntil(t, () => !t.EliteBusy, 12f);
         Run(t, 4f);
-        System.GC.Collect();
-        long counted = 0;
+        // The harness meter (profiler GC.Alloc recorder, positive control, noise filter: the smallest of
+        // repeats). Its work must be repeatable, so every pass starts a fresh elite run and always steps
+        // the same 900 frames (the run itself ends within them; the rest is plain traffic).
+        long control;
+        bool meter = TestHarness.AllocMeterWorks(out control);
+        bool started = false, ended = false;
         int n = 0;
-        bool started = false;
-        for (int i = 0; i < 900 && (!started || t.EliteBusy); i++)
+        long used = TestHarness.AllocatedBytes(() =>
         {
-            long before = System.GC.GetAllocatedBytesForCurrentThread();   // this thread's allocations, not heap growth
-            if (!started) started = t.TryStartElite();
-            t.Step(Dt);
-            long after = System.GC.GetAllocatedBytesForCurrentThread();
-            if (after > before) counted += after - before;
-            n++;
-        }
-        Check("a whole run played (" + n + " frames, " + t.EliteSnipes + " snipes so far)", started && !t.EliteBusy);
-        Check("a run allocates nothing per frame (" + counted + " bytes)", counted <= 0);
+            bool began = false;
+            for (int i = 0; i < 900; i++)
+            {
+                if (!began) began = t.TryStartElite();
+                t.Step(Dt);
+                n++;
+            }
+            started |= began;
+            ended |= began && !t.EliteBusy;
+        });
+        Check("a whole run played (" + n + " frames, " + t.EliteSnipes + " snipes so far)", started && ended);
+        Check("a run allocates nothing per frame (" + used + " bytes; meter control " + control + " B)", meter && used == 0);
         Done(t);
     }
 

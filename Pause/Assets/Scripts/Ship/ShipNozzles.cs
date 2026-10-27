@@ -57,10 +57,14 @@ public static class ShipNozzles
     public static Vector2 FrameShift(Sprite hull, Nozzle nozzle)
     {
         if (hull == null || nozzle.offsets == null) return Vector2.zero;
-        string name = hull.name;
-        int cut = name.LastIndexOf('_');
         int column;
-        if (cut < 0 || !int.TryParse(name.Substring(cut + 1), out column)) return Vector2.zero;
+        if (!ShipHullArt.TryColumnOf(hull, out column))
+        {
+            // a frame ShipHullArt didn't cut (a test's own sprite): read its name; this allocates
+            string name = hull.name;
+            int cut = name.LastIndexOf('_');
+            if (cut < 0 || !int.TryParse(name.Substring(cut + 1), out column)) return Vector2.zero;
+        }
         if (column < 0 || column * 2 + 1 >= nozzle.offsets.Length) return Vector2.zero;
         return new Vector2(nozzle.offsets[column * 2], nozzle.offsets[column * 2 + 1]) / hull.pixelsPerUnit;
     }

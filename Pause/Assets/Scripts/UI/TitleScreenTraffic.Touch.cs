@@ -88,9 +88,17 @@ public partial class TitleScreenTraffic
         for (int i = 0; i < MaxPointers; i++) pointers[i].id = int.MinValue;
     }
 
+    // Searched at Init and whenever the scene is re-read (RefreshGeometry's force), never per
+    // touch: a scene with no Selectable at all (a test rig) used to search again on every
+    // touch-down, and an empty FindObjectsByType result is still a fresh array.
+    bool touchUiSearched;
+    EventSystem dormantEventSystem;   // an EventSystem that is not current (edit mode): found with the controls
+
     void FindTouchUi()
     {
+        touchUiSearched = true;
         selectables = Object.FindObjectsByType<Selectable>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
+        dormantEventSystem = EventSystem.current != null ? null : Object.FindFirstObjectByType<EventSystem>();
         homeCanvas = menuPanel != null ? menuPanel.GetComponentInParent<Canvas>() : null;
         if (homeCanvas != null) homeCanvas = homeCanvas.rootCanvas;
     }
@@ -232,7 +240,11 @@ public partial class TitleScreenTraffic
     public bool StartsOnUi(int pointerId, Vector2 screen)
     {
         var es = EventSystem.current;
-        if (es == null) es = Object.FindFirstObjectByType<EventSystem>();
+        if (es == null)
+        {
+            if (!touchUiSearched) FindTouchUi();   // once, not a scene search per touch-down
+            es = dormantEventSystem;
+        }
         if (es != null)
         {
             if (uiEvent == null) uiEvent = new PointerEventData(es);
@@ -257,7 +269,7 @@ public partial class TitleScreenTraffic
         }
         // no raycaster running (edit mode, or before the EventSystem wakes):
         // the controls' own rects
-        if (selectables.Length == 0) FindTouchUi();
+        if (!touchUiSearched) FindTouchUi();
         for (int i = 0; i < selectables.Length; i++)
         {
             var sel = selectables[i];
