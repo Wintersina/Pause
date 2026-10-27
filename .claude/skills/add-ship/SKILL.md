@@ -19,13 +19,13 @@ run hangs or reports compiler errors without any `error CS` line, kill the stale
 
 ## Hard rules
 
-- Work in your own jj workspace (`jj workspace add ../Pause-<name> -r master` + a
+- Work in your own jj workspace (`make worktree NAME=<name>`, see docs/worktrees.md, + a
   `feature/<name>` bookmark). **Never** touch the main checkout (Codex's uncommitted edits).
   Load the `jj-sensei:wisdom` skill before any VCS command; no git commands; no
   Co-Authored-By / "Generated with" lines. Stop at a verified branch; merging to master needs
   the user's go-ahead.
-- Copy the main checkout's `Library` into a fresh workspace with `cp -Rc` (APFS clone) from an idle worktree
-  (`Pause/.claude/worktrees/*/Pause/Library`) or the first import takes ages.
+- `make worktree` clones the warm Library (APFS, ~15 MB real disk); `make warm-library FROM=<ws>`
+  refreshes it. Slim or delete worktrees when the job ends (`make worktree-slim` / `make worktree-done`).
 - **Art is drawn by Codex** (`codex exec`), scripts only key / fit / slice / assemble / verify
   (user, 2026-10-12). Put Codex's raw outputs in `src~/.../codex/` (the `~` hides it from Unity),
   open them for the user, wire only what looks right. Max 2 `codex exec` at once; use
@@ -219,7 +219,7 @@ shield, missile volley, barrage, damage states); output dirs via `PAUSE_DOCK_PRE
 
 ## Pitfalls hit building Paragon
 
-- The default jj workspace has no `Library`; `cp -Rc` one. The batch queue can hold you for an hour.
+- The default jj workspace has no `Library`; work in a `make worktree` workspace (cloned Library). The batch queue can hold you for an hour.
 - Codex headless refuses a non-git dir unless `--skip-git-repo-check`; it writes finished PNGs to the
   folder you name, a half-written PNG ("truncated") means it is still working. Its final message is
   not evidence: measure the files (see the audit above).

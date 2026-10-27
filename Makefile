@@ -36,7 +36,8 @@ UNITY_CMD = UNITY="$(UNITY)" scripts/unity-batch.sh -projectPath "$(PROJECT)"
 .PHONY: test test-fast help mac-build mac-run mac-dev-build mac-dev-run \
 	apk-share android-build android-release android-release-signed android-deploy android-run android-dev-build android-dev-deploy android-log \
 	ios-build ios-deploy ios-run ios-dev-build ios-dev-deploy ios-dev-run ios-devices \
-	devices install install-android install-ios check-android-target check-ios-target run-android run-ios build-ios-sim
+	devices install install-android install-ios check-android-target check-ios-target run-android run-ios build-ios-sim \
+	worktree worktree-library worktree-slim worktree-done worktree-list warm-library
 
 help:
 	@echo "Pause local commands:"
@@ -64,6 +65,14 @@ help:
 	@echo "Optional: ANDROID_SERIAL=<serial> selects Android; IOS_DEVICE_ID=<udid> selects iPhone."
 	@echo "Free Apple ID sideload: make ios-deploy IOS_NO_GAMECENTER=1 IOS_TEAM_ID=<team id>"
 	@echo "          UNITY=<path> overrides Unity."
+	@echo ""
+	@echo "Workspaces (docs/worktrees.md):"
+	@echo "  make worktree NAME=<n> [BASE=master]  jj workspace in ../Pause-worktrees/<n> + APFS clone of the warm Library"
+	@echo "  make warm-library [FROM=<workspace>]  refresh the warm Library (default FROM: the newest idle Library)"
+	@echo "  make worktree-library NAME=<n>        clone the warm Library into an existing workspace"
+	@echo "  make worktree-slim NAME=<n>           delete only that workspace's Pause/Library + Pause/Temp"
+	@echo "  make worktree-done NAME=<n> [FORCE=1] forget + delete it (refuses unmerged work without FORCE=1)"
+	@echo "  make worktree-list                    every workspace: disk, merge state, Unity in use"
 
 test:
 	$(UNITY_CMD) -executeMethod AllTests.RunAll
@@ -210,3 +219,24 @@ run-ios:
 install:
 	@$(MAKE) install-android
 	@$(MAKE) install-ios
+
+# jj workspaces with a cloned warm Library; see docs/worktrees.md.
+WORKTREE_SH = scripts/worktree.sh
+
+worktree:
+	@$(WORKTREE_SH) add "$(NAME)" "$(or $(BASE),master)"
+
+worktree-library:
+	@$(WORKTREE_SH) library "$(NAME)"
+
+warm-library:
+	@$(WORKTREE_SH) warm "$(FROM)"
+
+worktree-slim:
+	@$(WORKTREE_SH) slim "$(NAME)"
+
+worktree-done:
+	@FORCE="$(FORCE)" $(WORKTREE_SH) done "$(NAME)"
+
+worktree-list:
+	@$(WORKTREE_SH) list

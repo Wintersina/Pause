@@ -54,7 +54,8 @@ For each candidate, find its branch/bookmark and decide:
   not on a pushed bookmark).
 
 Remove only those:
-- jj workspace: from the main repo dir `jj --no-pager workspace forget <name>`, then `rm -rf <dir>`.
+- jj workspace: `make worktree-done NAME=<name>` (refuses unmerged/dirty ones; `make worktree-list`
+  shows them all), or by hand from the main repo dir `jj --no-pager workspace forget <name>`, then `rm -rf <dir>`.
 - git worktree (e.g. `.claude/worktrees/agent-*`): `rm -rf <dir>` then `git worktree prune`.
 
 NEVER remove: the main checkout, anything named `codex-*` (Codex's worktrees), workspaces of
@@ -80,9 +81,9 @@ Then a fresh workspace, in its own step cd into it:
 ```bash
 jj --no-pager workspace add /Users/sina/Developer/Pause/.claude/ws-release-<code> -r master
 ```
-Speed up the Unity import (~9 GB cold): clone a warm Library from an idle clean workspace
-or the main checkout: `cp -Rc <donor>/Pause/Library <new>/Pause/Library` (APFS clone, instant,
-no extra disk). Never copy anything else from the main checkout except the keystore path
+Speed up the Unity import (~9 GB cold): `make worktree-library NAME=ws-release-<code>` clones the
+warm Library (docs/worktrees.md; APFS clone, instant, no extra disk), or `cp -Rc <donor>/Pause/Library
+<new>/Pause/Library` from an idle clean workspace. Never copy anything else from the main checkout except the keystore path
 reference. Lighter alternative used before: a tarball export of master (`.claude/rel10008/src.tgz`)
 plus the Library clone. Do not make additional full repo copies.
 
