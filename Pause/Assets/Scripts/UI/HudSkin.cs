@@ -7,11 +7,11 @@ using UnityEngine;
 // Space's glyphs are the original QuickActions ones; every world has a folder,
 // Resources/HudSkins/<WorldTheme.displayName>/, holding the same four sprites:
 //   hud_board        702x310 px, the score board's frame: sliced, border 50 px
-//                    left/right and 60 px top/bottom, 200 ppu; drawn 363 x 151 units: the
+//                    left/right and 60 px top/bottom, 200 ppu; drawn 371 x 163 units: the
 //                    351 x 131 score board plus HudStyler.FrameOutX / FrameOutY
 //                    on each side, outside the layout rect
 //   hud_buttons      340x310 px, the home / replay panel's frame (drawn
-//                    166 x 151 units around the 154 x 131 panel), the board's motif, drawn as its mirror image
+//                    174 x 163 units around the 154 x 131 panel), the board's motif, drawn as its mirror image
 //   dp_panel         600x900 px, the FLIGHT COMPLETE panel, border 100 px
 // The growth along the top and bottom edges is drawn at its real size (not
 // stretched), so each row's edge keeps an irregular rhythm.

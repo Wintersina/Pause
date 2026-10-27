@@ -31,7 +31,7 @@ public class HudStyler : MonoBehaviour
     // drawn this far OUTSIDE the panel's layout rect (canvas units), so it
     // never reaches the text rows and the layout, the read-out's size and
     // everything placed around it stay exactly as they were.
-    public const float FrameOutY = 10f, FrameOutX = 6f;
+    public const float FrameOutY = 16f, FrameOutX = 10f;
     const string SkinFrameName = "SkinFrame";
 
     // The read-out's authored size and canvas, for the button panel's height
