@@ -93,7 +93,7 @@ public static class TideCloudCutTest
             int x0 = int.MaxValue, x1 = -1, y0 = int.MaxValue, y1 = -1;
             foreach (int p in pts) { int x = p % c.w, y = p / c.w; if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
             if (pts.Count < 10) continue;
-            int t = Run(lab, c, next, x0, y0, 1, 0), b = Run(lab, c, next, x0, y1, 1, 0), l = Run(lab, c, next, x0, y0, 0, 1), r = Run(lab, c, next, x1, y0, 0, 1);
+            int t = Run(lab, c, next, 0, y0, 1, 0), b = Run(lab, c, next, 0, y1, 1, 0), l = Run(lab, c, next, x0, 0, 0, 1), r = Run(lab, c, next, x1, 0, 0, 1);
             string at = c.n + " part " + pts.Count + "px";
             if (t > FlatRun) bad.Add(at + " top flat run " + t);
             if (b > FlatRun) bad.Add(at + " bottom flat run " + b);
@@ -110,7 +110,7 @@ public static class TideCloudCutTest
         int best = 0, cur = 0, n = dx == 1 ? c.w : c.h;
         for (int i = 0; i < n; i++)
         {
-            cur = lab[(y + dy * i) * c.w + x + dx * i] == id ? cur + 1 : 0;
+            cur = lab[(dy == 1 ? i : y) * c.w + (dx == 1 ? i : x)] == id ? cur + 1 : 0;
             if (cur > best) best = cur;
         }
         return best;
