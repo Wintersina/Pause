@@ -28,6 +28,7 @@ public static class PostBossLegTest
             LightAfterTheBoss();
             SparseOverTime();
             NormalInTheNextWorld();
+            EndsWithoutAPortal();
         }
         finally { PostBossLeg.End(); PortalPressure.Reset(); }
         Debug.Log("[PBL] failures: " + fails);
@@ -87,5 +88,20 @@ public static class PostBossLegTest
         PostBossLeg.Begin();
         PortalPressure.Reset();
         Check("a reset ends the leg too", !PostBossLeg.Active);
+    }
+
+    // The final world: its boss is over (the leg begins) but the loop has no portal, so PortalPressure.Open never ran and
+    // Advance only calls Close(true). The looped Space level must still start at normal rock density.
+    static void EndsWithoutAPortal()
+    {
+        PortalPressure.Reset();
+        PostBossLeg.Begin();
+        Check("no portal pressure open for the loop", !PortalPressure.Active);
+        PortalPressure.Close(true);
+        Check("the loop's world change ends the leg", !PostBossLeg.Active);
+        Check("looped Space admits every rock again", Admitted(60f, 3) == 150);
+        PostBossLeg.Begin();
+        PortalPressure.Close(false);
+        Check("closing with no portal ends the leg too", !PostBossLeg.Active);
     }
 }

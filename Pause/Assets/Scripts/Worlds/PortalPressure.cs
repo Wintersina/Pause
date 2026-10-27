@@ -196,6 +196,9 @@ public static class PortalPressure
     // The portal is gone: flown through (`entered`) or removed.
     public static void Close(bool entered)
     {
+        // The post-boss leg can be on with no pressure open (the final world's boss is over, then the loop: no portal,
+        // so Open never ran): it ends here whether or not a portal was open.
+        PostBossLeg.End();
         if (!Active) return;
         Clear();
         Raise(entered ? Signal.Entered : Signal.Closed);
