@@ -82,14 +82,15 @@ Each world's parallax layers are in `Art/Backgrounds/Resources/Worlds/<World>/Ba
 
 | World | Status |
 |---|---|
-| Storm | DONE: four painted 1024 x 2048 cloud-sea sets (PR #329 ground, #330 overlays, #331 landmarks and hazards) |
-| Desert v3 salt flat | DONE: painted 1024 x 2048 (PR #335) |
-| Desert v1 day dunes | DONE: painted 1024 x 2048 (PR #336) |
-| Desert v2 canyon, v4 night dunes | TODO: still 512 x 1024 |
+| Storm | DONE at 1024 x 2048: four cloud-sea sets (PR #329 ground, #330 overlays, #331 landmarks and hazards); not yet through the pixel pass (soft painted look), a follow-up |
+| Desert v3 salt flat | DONE: hi-res pixel art 1024 x 2048 (PR #335) |
+| Desert v1 day dunes | DONE: hi-res pixel art 1024 x 2048 (PR #336) |
+| Desert v4 night dunes | DONE: hi-res pixel art 1024 x 2048 (PR #338) |
+| Desert v2 canyon | TODO: still 512 x 1024 |
 | Ember, Verdant, Frost, Tide (all four variants each) | TODO: still 512 x 1024 |
 | Space | its own sky and planet atlases; not part of this queue |
 
-The layer lists below describe the older, sprite-scale checklist: apply the painted-ground rules to the TODO rows above.
+The layer lists below describe the older, sprite-scale checklist: apply the hi-res pixel-art ground rules (`art-style.md` 5.1) to the TODO rows above.
 
 - [ ] **Space.** Layers: `sky.png`, `anim.png` + `anim.json`, `fx.png` + `fx.json`.
 - [ ] **Frost.** Layers: `sky`, `far`, `mid`, `flow`, `anim`, `fx`.

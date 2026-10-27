@@ -65,13 +65,15 @@ Every numbered line is a separate commit/merge unit unless it explicitly says
 48. **Queued — legacy cleanup audit:** delete a legacy source family only after its live replacement is verified.
 49. **Installed (in game; device feel not yet checked) — Space elites ×4:** `space_elite_eventide_bastion`, `space_elite_orbit_reaver`, `space_elite_rift_lancer`, `space_elite_singularity_hauler` (`Art/Enemies/Elite/Space`, Codex's `manifest.md`). Codex delivered only `_concept` / `_motion_candidate` / `_strip_candidate` files; the 7-cell flight strips (engines off, idle glow, ignition, hover, bank L/R, damaged) were promoted unchanged to `space_elite_<name>.png` so `EliteArtSync` installs them into `Art/Resources/Elites/Space`. Muzzles and nozzles measured on the hover cell; `EliteTest` and `SpaceEliteTest` pass. They launch out of the Space backdrop's stations (Bastion, Lancer), planets (Reaver) and big asteroids (Hauler). **Open art items for Codex:** optional `<key>_liftoff.png` strips (the ship emerging from a hangar or surface: today a code fade-in from the ignition cell plus a procedural dock flare); `<key>_death.png` strips (today the generic debris cut from the damaged cell); a dedicated hangar-door / docking-light drawing on the station atlas would make the launch point read before the ship appears. The 4-cell `_motion_candidate` strips (booster engaged) are not used.
 
-## Backdrop ground restyle (2026-10): painted 1024 x 2048 tiles
+## Backdrop ground restyle (2026-10): hi-res pixel-art 1024 x 2048 tiles
 
-Direction: hi-res painted ground (real texture, many different terrain features, depth), built from Codex paintings with a
-min-error-cut script; rules in `art-style.md` section 5.1. Enemies, bosses, ships' attacks, hazards and pickups stay neon pixel art.
+Direction: hi-res PIXEL-ART ground (painted-level detail and variety of terrain features, crisp 4 px cell grid, limited palette, never photographic), built from Codex paintings with a
+min-error-cut script and a pixel pass; rules in `art-style.md` section 5.1. Enemies, bosses, ships' attacks, hazards and pickups stay neon pixel art.
 
-- **Installed and validated (CI gate):** Storm ground (#329), overlays (#330), landmarks and hazards (#331); Desert salt flat (#335); Desert day dunes (#336).
-- **Next, in this order (each one world per PR, ground first, then overlays):** Ember, Verdant, Frost, Tide, then Desert v2 canyon and v4 night dunes. All are still 512 x 1024 tiles with the older hand-built look.
+- **Installed and validated (CI gate):** Storm ground (#329), overlays (#330), landmarks and hazards (#331); Desert salt flat (#335), day dunes (#336), night dunes (#338; pixel pass applied). Storm is 1024 x 2048 but still soft: give it the pixel pass next.
+- **Standard (2026-10):** every world's ground layers are at least 896 x 1792 per layer (Space's sky is 896 x 1792; the 1024 x 2048 Storm and Desert tiles are fine), always crisp pixel-art. Brightness is a readability concern both ways: keep world grounds bright enough (Ember v2 and Frost darkness was toned back).
+- **In progress (other agents):** Frost, Verdant, Ember and Tide upgrades to 896 x 1792 (Verdant gets a very light mist overlay), and Desert v2 canyon and ruins rebuild (`art/desert-canyon-ruins-rework`).
+- **Next (each one world per PR, ground first, then overlays):** Storm pixel pass, then any world still under 896 x 1792.
 - Per world: brief and refs, two Codex paintings per variant (A / B arrangements), build tiles and flow, rebuild masks, re-scale `DockGradeTable` tints, check the limits in section 5.1, record sources under the world's `restyle~` folder.
 
 ## Already approved / installed

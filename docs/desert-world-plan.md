@@ -29,10 +29,10 @@ Time of day / four variants (`variantNight` = v4):
 
 | Set | Look | `flow` (sparse scrolling strip) |
 | --- | --- | --- |
-| v1 Day dunes | painted hi-res gold / ochre dune sea: huge crescent barchans and seif ridges with umber slip-face shadows, ripple fields, dark heavy-mineral streaks, rock outcrops, a pale dry wadi, bleached bones and wreck plates | wind-blown sand grit and glints |
+| v1 Day dunes | hi-res pixel-art gold / ochre dune sea: huge crescent barchans and seif ridges with umber slip-face shadows, ripple fields, dark heavy-mineral streaks, rock outcrops, a pale dry wadi, bleached bones and wreck plates | wind-blown sand grit and glints |
 | v2 Canyon and ruins | dry canyon floor between rust-copper cliff walls, buried refinery hulls, drill heads, ribcage gantries, scattered rubble | drifting dust ribbons along the canyon |
-| v3 Salt flat | painted hi-res pale cracked salt pan: giant slabs with curled crystalline rims, wind-carved salt yardangs, salt-sand drifts, terraced teal brine pools and mineral stains (no docks or structures on the pools); the solar skeletons and mirror fields come from the landmark pieces | wind-blown salt grit and glints |
-| v4 **Night side** | the same dune sea under a cold moon-glow: dusty-indigo sand, cold bone-white crests, a few dim work lights on ruins | pale drifting sand veils |
+| v3 Salt flat | hi-res pixel-art pale cracked salt pan: giant slabs with curled crystalline rims, wind-carved salt yardangs, salt-sand drifts, terraced teal brine pools and mineral stains (no docks or structures on the pools); the solar skeletons and mirror fields come from the landmark pieces | wind-blown salt grit and glints |
+| v4 **Night side** | hi-res pixel-art moonlit dune sea with its own dune layout: midnight-blue sand, cold blue-white crests with a teal rim, tiny amber lamp points on wrecks | cool wind grit and moon glints |
 
 No space imagery (the moon-glow is a lighting colour only; no moon disc, no stars). The cloud ceiling is a thin high dust/sand haze (see the planet).
 
@@ -75,7 +75,7 @@ Numeric checks (all must hold; `verify_backdrop_tiles.py --forbid-hue` is run wi
 
 Forbidden-hue lists for the verifiers: red band (345..15, S>.5); pink 312-326 (tiny lamps only); 250-300 violet; and saturated 30-48 (S > .45) except
 <= 0.3% of opaque pixels (sparks). Brightness: p90 of HSV value over opaque pixels .40-.50 (day sets), .32-.42 (night). Because bone-gold is naturally
-bright, the tiles are painted **dark-base** (the painted v1 / v3 tiles keep p90 <= .50 by grading the Codex paintings down, `art-style.md` 5.1): sand body V .30-.50, shadows V .12-.28 (warm umber on the painted day dunes and salt flat; indigo only on the night side and the sets not yet restyled), bright bone only as thin crest highlights (Ember's mid is the
+bright, the tiles are painted **dark-base** (the pixel-art v1 / v3 / v4 tiles keep p90 <= .50 by grading the Codex paintings down, `art-style.md` 5.1): sand body V .30-.50, shadows V .12-.28 (warm umber on the painted day dunes and salt flat; indigo only on the night side and the sets not yet restyled), bright bone only as thin crest highlights (Ember's mid is the
 target: dark base, lively accents). The player reads against this: red ship, bone-gold sand, pink shots.
 
 Enemy light (`EnemyPalette.Theme.light`): sun-white **#FFF1C8**. Boss flash: **#F4E3B0** (hue 44, S .27); boss heart colour: pale bone **#FFF6DC**; warning
