@@ -11,17 +11,22 @@ public static class DeathButtonsCapture
     {
         string dir = Environment.GetEnvironmentVariable("SCREEN_FIT_DIR") ?? "Builds/DeathButtons";
         string[] names = { "space", "frost", "verdant", "ember", "tide", "storm", "desert" };
-        var devices = new[] { FitDevice.Find("and-480x854"), FitDevice.Find("and-1080x2340-notch") };
+        var devices = new[] { FitDevice.Find("and-480x854"), FitDevice.Find("and-1080x2340-notch"), FitDevice.Find("tab-1600x2560") };
         Directory.CreateDirectory(dir);
         using (new TestHarness.Sandbox())
         {
             for (int w = 0; w < names.Length; w++)
+            {
+                var dock = DeathPanelView.ButtonRects(w)[2];
+                Debug.Log("[DEATHGAP] " + names[w] + " above=" + (DeathPanelView.FrameInnerTop(w) - DeathPanelView.BannerTop(w)).ToString("F1") +
+                          " below=" + (dock.yMin - DeathPanelView.FrameInnerBottom(w)).ToString("F1") + " shift=" + DeathPanelView.StackShift(w).ToString("F1"));
                 foreach (var d in devices)
                 {
                     var shot = ScreenFitRunner.Run(ScreenFitScreens.DeathOn(w), d, Path.Combine(dir, names[w] + "_" + d.w + "x" + d.h + ".png"), 0);
                     Debug.Log("[DEATHBTN] " + names[w] + " " + d.id + " err=" + shot.error + " failures=" + shot.failures + " minTextPt=" + shot.minTextPt.ToString("F1") + " (" + shot.minTextName + ")");
                     foreach (var f in shot.findings) if (!f.waived) Debug.Log("[DEATHFIND] " + names[w] + " " + d.id + " " + f.kind + " " + f.element + ": " + f.detail);
                 }
+            }
         }
         UnityEditor.EditorApplication.Exit(0);
     }
