@@ -160,13 +160,35 @@ public class MenuBackdrop : MonoBehaviour
         Instance = this;
         var pick = MenuBackdropSelection.Current;
         if (!pick.Valid) return;
-        if (Build(pick)) { if (Application.isPlaying) Resources.UnloadUnusedAssets(); return; }
+        if (Build(pick)) { SweepIfProbed(); return; }
         // incomplete art: try the other candidates once before giving up
         var list = new List<MenuBackdropSelection.Pick>();
         MenuBackdropSelection.Candidates(MenuBackdropSelection.HighestWorld(), list);
         foreach (var c in list)
             if (!c.Same(pick) && Build(c)) return;
         Debug.LogWarning("[MenuBackdrop] no complete backdrop; keeping the scene background");
+    }
+
+    // The full-heap sweep is only worth its stall when this arrival rolled a new backdrop: the roll
+    // probed (Resources.Load) every candidate sky and left the unpicked ones resident. Page-to-page
+    // (home -> Options -> dock and back) keeps the pick, probes nothing and the scene load has just
+    // freed everything unused itself, so a sweep there was a second stall on the destination's first
+    // frame.
+    static int sweptRolls;
+    public static int SweepsRun { get; private set; }
+    // True once per roll (the caller then sweeps); tests call it to prove page-to-page does not.
+    public static bool SweepDue()
+    {
+        if (MenuBackdropSelection.Rolls == sweptRolls) return false;
+        sweptRolls = MenuBackdropSelection.Rolls;
+        return true;
+    }
+    public static void ResetSweepForTests() { sweptRolls = 0; SweepsRun = 0; }
+    static void SweepIfProbed()
+    {
+        if (!SweepDue() || !Application.isPlaying) return;
+        SweepsRun++;
+        Resources.UnloadUnusedAssets();
     }
 
     void OnDestroy()

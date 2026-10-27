@@ -746,7 +746,7 @@ public class SpaceDock : MonoBehaviour
         }
 
         Time.timeScale = 1f;
-        SceneManager.LoadScene(Destination);
+        MenuNav.Load(Destination);
     }
 
     // ----------------------------------------------------------------- input
