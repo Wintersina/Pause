@@ -342,6 +342,7 @@ public static class AllTests
         ("MenuBackdropTest", MenuBackdropTest.Execute),
         ("HomeLayoutTest", HomeLayoutTest.Execute),
         ("FrostBackdropTest", FrostBackdropTest.Execute),
+        ("CloudShadowTest", CloudShadowTest.Execute),
         ("BackdropAnchorTest", BackdropAnchorTest.Execute),
         ("BackdropCellBleedTest", BackdropCellBleedTest.Execute),
         ("StormCloudCutTest", StormCloudCutTest.Execute),
