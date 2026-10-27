@@ -47,22 +47,33 @@ public class HudStyler : MonoBehaviour
         return authoredHeight * ScaleWithScreenSize(screen, authoredReference, authoredMode, authoredMatch);
     }
 
-    // How far the read-out shrinks to share the lane with the button panel (the
-    // width logic of ComputeHudLayout, from the authored size), so the panel can
-    // match the board's drawn height.
+    // How far the read-out would shrink to share the lane with the pair side by side
+    // (the width logic of ComputeHudLayout, from the authored size): below
+    // TopBand.ReadoutMinScale the pair stands in a column instead (PauseQuickActions.Vertical).
+    // The HUD canvas's pixels per unit on `screen`: its scaler's plain scale raised to
+    // UiScaleFloor's scene floor, as the live canvas gets it.
+    static float FlooredHudScale(Vector2 screen)
+    {
+        float plain = ScaleWithScreenSize(screen, authoredReference, authoredMode, authoredMatch);
+        return Mathf.Max(UiScale.Apply(plain, UiScaleFloor.SceneTapUnits, UiScaleFloor.SceneTextUnits), 0.0001f);
+    }
+
+    public static float SideBySideFit(TopBand.Frame band, Vector2 screen)
+    {
+        float actionScale = PauseQuickActions.CanvasScaleFor(screen);
+        float width = authoredWidth * FlooredHudScale(screen);
+        float available = band.right - PauseQuickActions.PanelWidthUnits * actionScale - MinGapToActions * actionScale - band.left;
+        return width > 0f && available < width ? Mathf.Max(0.1f, available / width) : 1f;
+    }
+
+    // How far the read-out shrinks to share the lane with the quick actions (side by
+    // side, or their column on a narrow lane), so the slot can match the board's drawn height.
     public static float ReadoutFitFor(TopBand.Frame band, Vector2 screen)
     {
-        float hudScale = Mathf.Max(ScaleWithScreenSize(screen, authoredReference, authoredMode, authoredMatch), 0.0001f);
         float actionScale = PauseQuickActions.CanvasScaleFor(screen);
-        float width = authoredWidth * hudScale;
-        float available = band.right - PauseQuickActions.PanelWidthUnits * actionScale - MinGapToActions * actionScale - band.left;
-        float fit = width > 0f && available < width ? Mathf.Max(0.1f, available / width) : 1f;
-        if (fit < TopBand.ReadoutMinScale && PauseQuickActions.RaisedByFloor(screen))
-        {
-            float full = band.right - band.left;
-            fit = width > 0f && full < width ? Mathf.Max(0.1f, full / width) : 1f;
-        }
-        return fit;
+        float width = authoredWidth * FlooredHudScale(screen);
+        float available = band.right - PauseQuickActions.SlotWidthPx(band, screen) - MinGapToActions * actionScale - band.left;
+        return width > 0f && available < width ? Mathf.Max(0.1f, available / width) : 1f;
     }
 
     Text speedText, pauseText;
@@ -89,7 +100,7 @@ public class HudStyler : MonoBehaviour
     // toasts, the next run before its HUD is placed) keeps dodging it.
     void OnDestroy()
     {
-        StackedReadout = default(Rect);
+        NarrowBand = default(Rect);
         PauseQuickActions.LiveReadoutHeightPx = 0f;
         authoredHeight = 131f;
         authoredWidth = 351f;
@@ -183,13 +194,13 @@ public class HudStyler : MonoBehaviour
         float hudScale = HudCanvasScale(hudCanvas, hudScaler, screen);
         Vector2 position;
         float fit;
-        bool stacked;
-        ComputeHudLayout(band, screen, hudScale, hudRoot.rect.size, out position, out fit, out stacked);
+        bool narrow;
+        ComputeHudLayout(band, screen, hudScale, hudRoot.rect.size, out position, out fit, out narrow);
         hudRoot.anchoredPosition = position;
         hudRoot.localScale = new Vector3(fit, fit, 1f);
         // the home / replay panel beside it matches this height
         PauseQuickActions.LiveReadoutHeightPx = hudRoot.rect.size.y * hudScale * fit;
-        StackedReadout = stacked ? HudScreenRect(band, screen, hudScale, hudRoot.rect.size) : default(Rect);
+        NarrowBand = narrow ? NarrowBandRect(band, screen, hudScale, hudRoot.rect.size) : default(Rect);
     }
 
     // Pixels per unit of the HUD's own canvas. Computed from the scaler for the
@@ -237,21 +248,19 @@ public class HudStyler : MonoBehaviour
         ComputeHudLayout(TopBand.FrameFor(safeArea, screen), screen, hudScale, hudSize, out anchoredPosition, out fitScale);
     }
 
-    // On a phone small in points / dp (UiScale's floor makes the quick
-    // actions >= 44 pt / 48 dp, so they take more of a narrow lane) the
-    // read-out would have to shrink under TopBand.ReadoutMinScale to sit
-    // beside them: it drops to a second row instead, under the actions, with
-    // the band's whole width (BossWarningHud then puts its chip in the first
-    // row's free space, left of the actions).
+    // The read-out always sits at the band's left end, top-aligned: it shrinks to share
+    // the lane with the quick actions, and where side by side would take it under
+    // TopBand.ReadoutMinScale the actions stand in a column at the right edge instead
+    // (PauseQuickActions.Vertical), leaving the board its width. `narrow` reports that case.
     public static void ComputeHudLayout(TopBand.Frame band, Vector2 screen, float hudScale, Vector2 hudSize,
                                         out Vector2 anchoredPosition, out float fitScale)
     {
-        bool stacked;
-        ComputeHudLayout(band, screen, hudScale, hudSize, out anchoredPosition, out fitScale, out stacked);
+        bool narrow;
+        ComputeHudLayout(band, screen, hudScale, hudSize, out anchoredPosition, out fitScale, out narrow);
     }
 
     public static void ComputeHudLayout(TopBand.Frame band, Vector2 screen, float hudScale, Vector2 hudSize,
-                                        out Vector2 anchoredPosition, out float fitScale, out bool stacked)
+                                        out Vector2 anchoredPosition, out float fitScale, out bool narrow)
     {
         hudScale = Mathf.Max(hudScale, 0.0001f);
         float actionScale = PauseQuickActions.CanvasScaleFor(screen);
@@ -259,29 +268,24 @@ public class HudStyler : MonoBehaviour
         float available = actions.xMin - MinGapToActions * actionScale - band.left;
         float width = hudSize.x * hudScale;
         fitScale = width > 0f && available < width ? Mathf.Max(0.1f, available / width) : 1f;
-        float top = band.top;
-        float panelH = PauseQuickActions.PanelHeightPx(screen);
-        // only where UiScale's floor grew the actions (the trade-off it
-        // brings); elsewhere the band is exactly as it always was
-        stacked = fitScale < TopBand.ReadoutMinScale && PauseQuickActions.RaisedByFloor(screen);
-        if (stacked)
-        {
-            float full = band.right - band.left;
-            fitScale = width > 0f && full < width ? Mathf.Max(0.1f, full / width) : 1f;
-            // under the first row: the actions, and BOSS INCOMING's chip
-            // beside them (its full punch) while a boss is coming
-            float row = Mathf.Max(panelH, BossWarningHud.ChipH * BossWarningHud.ChipMaxPunch * actionScale);
-            // the two frames overhang their rects (bottom of the actions', top of the read-out's): the frames may still touch by a few units (as they always did) but no more; capped so the death panel keeps its room
-            top = band.top - row - MinGapToActions * actionScale;
-        }
-        anchoredPosition = new Vector2(band.left / hudScale, (top - screen.y) / hudScale);
+        narrow = PauseQuickActions.Vertical(band, screen);
+        anchoredPosition = new Vector2(band.left / hudScale, (band.top - screen.y) / hudScale);
     }
 
-    // The read-out's screen rect while it is stacked under the quick actions
-    // (a small phone), else empty: what the codex toast and PORTAL DANGER's
-    // chip, which sit under the band, drop below. Set by the live HUD
-    // whenever it is placed (and by the screen-fit rig for its device).
-    public static Rect StackedReadout;
+    // The whole HUD block (read-out and the quick actions' column) on a narrow lane, else
+    // empty: what the codex toast, PORTAL DANGER's chip and the tutorial's SKIP, which sit
+    // under the band, drop below. Set by the live HUD whenever it is placed (and by the
+    // screen-fit rig for its device).
+    public static Rect NarrowBand;
+
+    // The block's rect: the read-out's union with the quick actions' slot.
+    public static Rect NarrowBandRect(TopBand.Frame band, Vector2 screen, float hudScale, Vector2 hudSize)
+    {
+        Rect read = HudScreenRect(band, screen, hudScale, hudSize);
+        Rect actions = PauseQuickActions.ScreenRectFor(band, screen);
+        return Rect.MinMaxRect(Mathf.Min(read.xMin, actions.xMin), Mathf.Min(read.yMin, actions.yMin),
+                               Mathf.Max(read.xMax, actions.xMax), Mathf.Max(read.yMax, actions.yMax));
+    }
 
     // Where the read-out lands on screen, in pixels (origin bottom-left).
     public static Rect HudScreenRect(Rect safeArea, Vector2 screen, float hudScale, Vector2 hudSize)

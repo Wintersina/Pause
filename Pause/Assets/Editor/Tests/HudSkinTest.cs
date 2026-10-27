@@ -102,7 +102,7 @@ public static class HudSkinTest
     // symmetric about the screen's centre line, inside the band, not touching it.
     static void Layout()
     {
-        var screens = new[] { new Vector2(1080, 2520), new Vector2(1080, 2340), new Vector2(1170, 2532), new Vector2(720, 1560) };
+        var screens = new[] { new Vector2(1080, 2520), new Vector2(1080, 2340), new Vector2(1170, 2532), new Vector2(720, 1560), new Vector2(480, 854) };
         var hudSize = new Vector2(351f, 131f);
         foreach (var size in screens)
         {
@@ -121,16 +121,26 @@ public static class HudSkinTest
                 PauseQuickActions.LiveReadoutHeightPx = 0f;
                 string tag = size + " edge " + edge + ": ";
                 Check(tag + "panel shares the score board's top edge", Mathf.Abs(panel.yMax - read.yMax) < .5f);
-                Check(tag + "panel is the score board's height (or the buttons', if taller)", panel.height >= read.height - .5f && panel.height <= Mathf.Max(read.height, PauseQuickActions.ButtonSize * s) + .5f);
+                Check(tag + "panel is the score board's height (or the buttons', if taller)", panel.height >= read.height - .5f && panel.height <= Mathf.Max(read.height, (2f * PauseQuickActions.ButtonSize + PauseQuickActions.VerticalGap) * s) + .5f);
                 Check(tag + "panel mirrors the score board about the centre line (outer edges)",
                       Mathf.Abs((size.x - read.xMin) - panel.xMax) < 1.5f);
                 Check(tag + "panel does not overlap the score board", !panel.Overlaps(read));
                 Check(tag + "panel stays inside the band", panel.xMin >= band.left - .5f && panel.xMax <= band.right + .5f);
                 Rect home = PauseQuickActions.ButtonScreenRect(band, size, 1), replay = PauseQuickActions.ButtonScreenRect(band, size, 0);
-                Check(tag + "home is left of replay, both inside the panel", home.xMax < replay.xMin && home.xMin >= panel.xMin && replay.xMax <= panel.xMax);
+                bool column = PauseQuickActions.Vertical(band, size);
+                if (column)
+                {
+                    Check(tag + "narrow lane: home stands above restart in one column, both inside the slot",
+                          home.yMin >= replay.yMax && Mathf.Abs(home.center.x - replay.center.x) < .5f && home.xMin >= panel.xMin && replay.xMax <= panel.xMax);
+                    Check(tag + "narrow lane: the tap squares are spaced apart", home.yMin - replay.yMax >= PauseQuickActions.VerticalGap * s - .5f);
+                }
+                else
+                {
+                    Check(tag + "home is left of replay, both inside the panel", home.xMax <= replay.xMin + .01f && home.xMin >= panel.xMin && replay.xMax <= panel.xMax);
+                    float left = home.xMin - panel.xMin, right = panel.xMax - replay.xMax;
+                    Check(tag + "buttons evenly spaced in the panel", Mathf.Abs(left - right) < .5f);
+                }
                 Check(tag + "buttons keep the full tap size", home.width >= PauseQuickActions.ButtonSize * s - .01f && home.height >= PauseQuickActions.ButtonSize * s - .01f);
-                float left = home.xMin - panel.xMin, right = panel.xMax - replay.xMax;
-                Check(tag + "buttons evenly spaced in the panel", Mathf.Abs(left - right) < .5f);
             }
         }
     }

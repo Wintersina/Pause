@@ -242,7 +242,7 @@ public class PortalPressureHud : MonoBehaviour
         var screen = new Vector2(Screen.width, Screen.height);
         Rect safe = Screen.safeArea;
         var band = TopBand.FrameFor(safe, screen);
-        Rect readout = HudStyler.StackedReadout;
+        Rect readout = HudStyler.NarrowBand;
         if (screen == laidOutFor && safe == laidOutSafe && band.Same(laidOutBand) && readout == laidOutReadout) return;
         laidOutFor = screen;
         laidOutSafe = safe;
@@ -260,7 +260,7 @@ public class PortalPressureHud : MonoBehaviour
         float cx = .5f * (band.left + band.right);
         float top = band.top - ChipTopOffset * scale;
         // under the read-out when a small phone stacks it under the actions
-        Rect readout = HudStyler.StackedReadout;
+        Rect readout = HudStyler.NarrowBand;
         if (readout.height > 0f) top = Mathf.Min(top, readout.yMin - 12f * scale);
         return new Rect(cx - .5f * w, top - h, w, h);
     }
