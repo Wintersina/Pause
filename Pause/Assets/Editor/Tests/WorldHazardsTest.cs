@@ -93,7 +93,6 @@ public static class WorldHazardsTest
             TornadoVortex();
             ApprovedWorldArt();
             BoulderSeam();
-            FlagOff();
         }
         finally
         {
@@ -503,9 +502,9 @@ public static class WorldHazardsTest
         Check("with the board empty, a frame of the hazard system allocates (almost) nothing", ib <= 100 * 512, ib + " B / 100 frames");
         foreach (var s in shots) HostileShots.Register(s);
         var vis = m.Visuals;
-        vis.Draw(WorldHazards.Fields, true);
+        vis.Draw(WorldHazards.Fields);
         Check("hazard visuals stay inside their pool", vis.Drawn <= HazardVisuals.Pool && vis.Drawn > 0, vis.Drawn + " drawn");
-        long vbytes = TestHarness.AllocatedBytes(() => { for (int i = 0; i < 100; i++) vis.Draw(WorldHazards.Fields, true); });
+        long vbytes = TestHarness.AllocatedBytes(() => { for (int i = 0; i < 100; i++) vis.Draw(WorldHazards.Fields); });
         Check("drawing the hazard allocates no more than editor noise (<= 24 B per sprite-frame: ~4 Transform writes at ~3 B)", vbytes <= 100L * Mathf.Max(1, vis.Drawn) * 24, vbytes + " B");
         foreach (var s in shots) HostileShots.Unregister(s);
         WorldHazards.ClearAll();
@@ -518,13 +517,13 @@ public static class WorldHazardsTest
         var layer = m.Weather;
         for (int w = 0; w < WorldManager.Worlds.Length; w++)
         {
-            for (int i = 0; i < 90; i++) layer.Step(Dt, true, w, WorldHazards.Fields);
+            for (int i = 0; i < 90; i++) layer.Step(Dt, w, WorldHazards.Fields);
             Check(WorldManager.Worlds[w].displayName + ": ambient weather runs (" + layer.Visible + " particles)", layer.Count > 0 && layer.Visible > 0 && layer.Visible <= WorldWeatherTable.AmbientMax);
         }
-        WeatherLayer.Reduced = true; layer.Step(Dt, true, 1, WorldHazards.Fields); layer.Step(Dt, true, 2, WorldHazards.Fields);
-        int reduced = layer.Count; WeatherLayer.Reduced = false; layer.Step(Dt, true, 1, WorldHazards.Fields); layer.Step(Dt, true, 2, WorldHazards.Fields);
+        WeatherLayer.Reduced = true; layer.Step(Dt, 1, WorldHazards.Fields); layer.Step(Dt, 2, WorldHazards.Fields);
+        int reduced = layer.Count; WeatherLayer.Reduced = false; layer.Step(Dt, 1, WorldHazards.Fields); layer.Step(Dt, 2, WorldHazards.Fields);
         Check("the reduced option thins the ambient layer", reduced < layer.Count, reduced + " < " + layer.Count);
-        long bytes = TestHarness.AllocatedBytes(() => { for (int i = 0; i < 100; i++) layer.Step(Dt, true, 2, WorldHazards.Fields); });
+        long bytes = TestHarness.AllocatedBytes(() => { for (int i = 0; i < 100; i++) layer.Step(Dt, 2, WorldHazards.Fields); });
         Check("the ambient layer allocates no more than editor noise (<= 24 B per sprite-frame)", bytes <= 100L * Mathf.Max(1, layer.Visible) * 24, bytes + " B");
         // no visibility limit: alpha stays under the cap
         bool alpha = true; foreach (var e in WorldWeatherTable.Entries) foreach (var a in e.ambient) alpha &= a.alpha <= WorldWeatherTable.AmbientMaxAlpha;
@@ -560,7 +559,7 @@ public static class WorldHazardsTest
                         if (h.shape == HazardShape.Front) ok &= f.laneHalf >= halfW - .05f;
                         else if (h.shape == HazardShape.Sweep) ok &= f.laneHalf >= halfW - .05f;
                         else ok &= Mathf.Abs(f.centre.x) <= 2.1f && f.centre.y >= -top && f.centre.y <= top;
-                        m.Visuals.Draw(WorldHazards.Fields, true);
+                        m.Visuals.Draw(WorldHazards.Fields);
                         foreach (var r in m.Visuals.Renderers)
                             if (r.enabled) drawn &= Mathf.Abs(r.transform.position.x) <= halfW + 1.2f + (h.shape == HazardShape.Sweep ? h.size * 4f : 0f) && r.transform.position.y >= -top - 1.2f && r.transform.position.y <= top + 1.2f;
                     }
@@ -587,7 +586,7 @@ public static class WorldHazardsTest
         float last = 0f, lastStep = 0f; bool accel = true, monotone = true; float s0 = -1f, s1 = 0f;
         for (int i = 0; i < 2 * 60 - 2; i++)
         {
-            m.StepFields(Dt); m.Visuals.Draw(WorldHazards.Fields, true);
+            m.StepFields(Dt); m.Visuals.Draw(WorldHazards.Fields);
             float ang = HazardVisuals.SpinAngle(f0); float step = ang - last;
             if (i > 3) accel &= step >= lastStep - 1e-4f;
             monotone &= step >= -1e-5f; last = ang; lastStep = step;
@@ -601,7 +600,7 @@ public static class WorldHazardsTest
         var frames = new System.Collections.Generic.List<Sprite>(); float rot2Min = 999f, rot2Max = -999f;
         for (int i = 0; i < 4 * 60; i++)
         {
-            m.StepFields(Dt); m.Visuals.Draw(WorldHazards.Fields, true);
+            m.StepFields(Dt); m.Visuals.Draw(WorldHazards.Fields);
             float a2 = HazardVisuals.SpinAngle(f0); float d = a2 - prev; prev = a2; dMin = Mathf.Min(dMin, d); dMax = Mathf.Max(dMax, d);
             var sp = m.Visuals.ArtRenderers[0].sprite; if (frames.Count == 0 || frames[frames.Count - 1] != sp) frames.Add(sp);
         }
@@ -620,7 +619,7 @@ public static class WorldHazardsTest
         // the pull lines, debris and the radius ring are drawn on top of the body
         Check("the pull lines, debris and the radius ring are drawn with it", m.Visuals.Drawn >= 30, m.Visuals.Drawn + " particles");
         WorldHazards.ClearAll();
-        m.Visuals.Draw(WorldHazards.Fields, true);
+        m.Visuals.Draw(WorldHazards.Fields);
         Check("the sheet is released when the tornado ends", !HazardArt.Loaded && HazardArt.Refs == 0);
     }
 
@@ -643,7 +642,7 @@ public static class WorldHazardsTest
                 Check(id + ": 18 cells of 512 x 512 (full resolution)", all);
             }
             var seen = new System.Collections.Generic.HashSet<Sprite>();
-            for (int i = 0; i < 6 * 60; i++) { m.StepFields(Dt); m.Visuals.Draw(WorldHazards.Fields, true); if (m.Visuals.ArtDrawn > 0) seen.Add(m.Visuals.ArtRenderers[0].sprite); }
+            for (int i = 0; i < 6 * 60; i++) { m.StepFields(Dt); m.Visuals.Draw(WorldHazards.Fields); if (m.Visuals.ArtDrawn > 0) seen.Add(m.Visuals.ArtRenderers[0].sprite); }
             Check(id + ": the painted body is drawn (warning cells, then the loop)", m.Visuals.ArtDrawn > 0 || !WorldHazards.AnyActive, seen.Count + " frames");
             Check(id + ": the warning cells (2) and the live loop frames show", seen.Count >= 3, seen.Count + " distinct");
             WorldHazards.ClearAll();
@@ -652,7 +651,7 @@ public static class WorldHazardsTest
         var layer = m.Weather;
         for (int w = 0; w < WorldManager.Worlds.Length; w++)
         {
-            for (int i = 0; i < 60; i++) layer.Step(Dt, true, w, WorldHazards.Fields);
+            for (int i = 0; i < 60; i++) layer.Step(Dt, w, WorldHazards.Fields);
             Check(WorldManager.Worlds[w].displayName + ": the approved ambient sheet is loaded (16 painted particles)", WeatherArt.LoadedFor(w));
             if (WeatherArt.LoadedFor(w)) Check(WorldManager.Worlds[w].displayName + ": particle sprites are tight cuts, one unit on the long side", Mathf.Abs(Mathf.Max(WeatherArt.Get(0, 0).bounds.size.x, WeatherArt.Get(0, 0).bounds.size.y) - 1f) < .01f);
         }
@@ -687,16 +686,5 @@ public static class WorldHazardsTest
         CoverBoulderDirector.WorldOverride = -1;
         CoverBoulders.TestAnyWorld = false;
         WorldHazards.ClearAll();
-    }
-
-    static void FlagOff()
-    {
-        var m = NewManager(); WorldHazards.ClearAll();
-        m.Begin(Def("tornado"));
-        FeatureFlags.Set(FeatureFlags.WorldHazards, false);
-        TestHarness.Send(m, "LateUpdate");
-        Check("flag off: a running hazard is cleared and nothing acts", !WorldHazards.AnyActive && WorldHazards.PlayerOffset == Vector2.zero);
-        FeatureFlags.Set(FeatureFlags.WorldHazards, true);
-        Check("the two flags exist and default on", FeatureFlags.DefaultOf(FeatureFlags.WorldHazards) && FeatureFlags.DefaultOf(FeatureFlags.WorldWeather));
     }
 }

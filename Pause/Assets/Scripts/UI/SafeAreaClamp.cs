@@ -31,10 +31,8 @@ public class SafeAreaClamp : MonoBehaviour
     // apart (Tutorial, Credits and the developer rows above it). On a
     // canvas UiScale's floor makes short (a phone small in points / dp) the
     // lift that keeps BACK inside the safe area would put it on the row
-    // above: the whole column rises with it instead (the developer flags card above
-    // it shrinks to fit, FeatureFlagOptions). Other clamped elements move alone.
+    // above: the whole column rises with it instead. Other clamped elements move alone.
     public static readonly string[] ColumnScenes = { "leaderboardS3" };
-    public const string ColumnHead = FeatureFlagOptions.CardName;   // placed by FeatureFlagOptions itself
     public bool carryColumn;
     readonly System.Collections.Generic.List<RectTransform> column = new System.Collections.Generic.List<RectTransform>();
     readonly System.Collections.Generic.List<Vector2> columnAuthored = new System.Collections.Generic.List<Vector2>();
@@ -128,7 +126,7 @@ public class SafeAreaClamp : MonoBehaviour
         for (int i = 0; i < parent.childCount; i++)
         {
             var rt = parent.GetChild(i) as RectTransform;
-            if (rt == null || rt == rect || rt.name == ColumnHead || column.Contains(rt)) continue;
+            if (rt == null || rt == rect || column.Contains(rt)) continue;
             if (rt.anchorMin != rt.anchorMax || rt.anchorMin != new Vector2(.5f, .5f)) continue;
             if (rt.GetComponentInChildren<UnityEngine.UI.Button>(true) == null || rt.anchoredPosition.y <= authored.y) continue;
             column.Add(rt);

@@ -161,7 +161,7 @@ public static class WeatherOverhaulTest
             int warnFrames = Mathf.FloorToInt(d.warning * 60f) - 2;
             for (int i = 0; i < warnFrames; i++) { m.StepFields(Dt); WorldHazards.Apply(Dt); }
             Check(id + ": during the warning nothing is pushed", (Vector2)body.transform.position == body0 && shot.pos == shot0 && WorldHazards.PlayerOffset == Vector2.zero && f.phase == HazardField.Phase.Warning);
-            m.Visuals.Draw(WorldHazards.Fields, true);
+            m.Visuals.Draw(WorldHazards.Fields);
             Check(id + ": and the warning is drawn (" + m.Visuals.Drawn + " sprites)", m.Visuals.Drawn >= 8 && m.Visuals.Drawn <= HazardVisuals.Pool);
             var rock = Body(new Vector2(-1.8f, -1f)); rock.tag = "Astr";
             float rock0 = rock.transform.position.x, rockMax = 0f, rockGo = -1, firstRock = 0f, firstBody = 0f; bool stunnedSeen = false;
@@ -582,7 +582,7 @@ public static class WeatherOverhaulTest
         for (int i = 0; i < 60 * 14 && f.Active; i++)
         {
             m.StepFields(Dt);
-            m.Visuals.Draw(WorldHazards.Fields, true);
+            m.Visuals.Draw(WorldHazards.Fields);
             maxDrawn = Mathf.Max(maxDrawn, m.Visuals.Drawn);
             foreach (var r in m.Visuals.Renderers)
                 if (r.enabled) inside &= Mathf.Abs(r.transform.position.x) <= f.laneHalf + f.def.size * 4f && r.transform.position.y >= -7f && r.transform.position.y <= 7f;
@@ -594,20 +594,20 @@ public static class WeatherOverhaulTest
         // the wind streaks: they appear in a breeze, brighten in a gust, flow with the field, and a warned gust glows its upwind edge
         var wv = m.Wind;
         WeatherWind.Reset(WorldWeatherTable.Entries[4].wind, 2); WeatherWind.Fade = 1f;
-        for (int i = 0; i < 120; i++) wv.Draw(Dt, true, 4);
+        for (int i = 0; i < 120; i++) wv.Draw(Dt, 4);
         int calmShown = wv.Visible;
         WeatherWind.PhaseNow = WeatherWind.Phase.Warning; WeatherWind.PhaseT = 1.2f;
-        wv.Draw(Dt, true, 4);
+        wv.Draw(Dt, 4);
         Check("a warned gust is drawn (upwind edge bars + streaks)", wv.Visible > 0);
         WeatherWind.PhaseNow = WeatherWind.Phase.Gust; WeatherWind.PhaseT = 1.5f;
-        for (int i = 0; i < 30; i++) wv.Draw(Dt, true, 4);
+        for (int i = 0; i < 30; i++) wv.Draw(Dt, 4);
         int gustShown = wv.Visible;
         Check("wind streaks: " + calmShown + " in the breeze, " + gustShown + " in a gust (>=)", calmShown > 5 && gustShown >= calmShown && gustShown <= WindVisuals.Streaks + 2);
-        long bytes = TestHarness.AllocatedBytes(() => { for (int i = 0; i < 100; i++) wv.Draw(Dt, true, 4); });
+        long bytes = TestHarness.AllocatedBytes(() => { for (int i = 0; i < 100; i++) wv.Draw(Dt, 4); });
         Check("drawing the wind allocates no more than editor noise (<= 40 B per sprite-frame: five Transform / colour writes at ~8 B)", bytes <= 100L * Mathf.Max(1, gustShown) * 40, bytes + " B for " + gustShown + " sprites");
         WeatherWind.Reset(null);
-        wv.Draw(Dt, true, 0);
-        for (int i = 0; i < 90; i++) wv.Draw(Dt, true, 0);
+        wv.Draw(Dt, 0);
+        for (int i = 0; i < 90; i++) wv.Draw(Dt, 0);
         Check("Space draws no wind", wv.Visible == 0);
     }
 }

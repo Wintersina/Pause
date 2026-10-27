@@ -1,6 +1,6 @@
 # Google Play release audit (v1.0.0, branch feature/release-rc)
 
-Package `me.hapticgate.pause`, paid app (USD 1.99), v1.0 scope: four worlds (Space, Frost, Verdant, Ember; Tide, Storm and Desert are built but not part of 1.0). Unity 6000.3.23f1. Note (2026-10-14): the code audit found the Paragon "COMING SOON" premium berth is enabled by default (`FeatureFlags.ParagonShip`) with no purchase path; the "no IAP" statements below hold only while that flag is off or the ship is not purchasable. Decide before submission. Checked against an audit build (see section 12) and the code.
+Package `me.hapticgate.pause`, paid app (USD 1.99), v1.0 scope: four worlds (Space, Frost, Verdant, Ember; Tide, Storm and Desert are built but not part of 1.0). Unity 6000.3.23f1. Note (2026-10-14, updated 2026-10-27): the Paragon "COMING SOON" premium berth is always shown (its feature flag was removed; the roster is 16 ships with no switch); the "no IAP" statements below hold only while the ship is not purchasable. Decide before submission. Checked against an audit build (see section 12) and the code.
 
 ## Verdict
 

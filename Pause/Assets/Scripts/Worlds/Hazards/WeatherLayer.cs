@@ -80,7 +80,7 @@ public sealed class WeatherLayer
     }
 
     // One frame. dt 0 while the world is frozen (nothing moves, nothing flickers).
-    public void Step(float dt, bool on, int worldIndex, HazardField[] fields)
+    public void Step(float dt, int worldIndex, HazardField[] fields)
     {
         var cam = Camera.main;
         if (cam != null && cam.orthographic)
@@ -90,7 +90,7 @@ public sealed class WeatherLayer
             halfW = cam.orthographicSize * cam.aspect + .3f;
         }
         if (worldIndex != world) SetWorld(worldIndex);
-        float target = on && !Quiet ? 1f : 0f;
+        float target = Quiet ? 0f : 1f;
         fade = Mathf.MoveTowards(fade, target, (dt > 0f ? dt : 0f) * .7f);
         if (entry == null || fade <= 0f)
         {

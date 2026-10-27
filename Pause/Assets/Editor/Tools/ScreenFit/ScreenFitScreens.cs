@@ -51,10 +51,6 @@ public static class ScreenFitScreens
         // Developer-only rows: left as they are on purpose (user decision).
         new FitWaiver { screen = "options", kind = "TAPSIZE", element = "Canvas/Developer",
                         reason = "DEVELOPER-ONLY rows (DeveloperUnlocks.Available builds; not shipped to players): left as is by decision" },
-        new FitWaiver { screen = "options", kind = "TAPSIZE", element = "Viewport/Content/",
-                        reason = "DEVELOPER-ONLY feature-flag list (DeveloperUnlocks.Available builds; not shipped to players)" },
-        new FitWaiver { screen = "options", kind = "SMALLTEXT", element = "Viewport/Content/",
-                        reason = "DEVELOPER-ONLY feature-flag list (DeveloperUnlocks.Available builds; not shipped to players)" },
     };
 
     const float Dt = 1f / 60f;
@@ -72,8 +68,7 @@ public static class ScreenFitScreens
         new FitScreen { id = "codex-world-detail", fullBleed = true, scene = "startS4", title = "Codex / world detail (INFO | BACKDROPS)", stage = r => CodexBackdropsScreen(r, false, false) },
         new FitScreen { id = "codex-backdrops", fullBleed = true, scene = "startS4", title = "Codex / world detail: backdrops sub-tab", stage = r => CodexBackdropsScreen(r, false, true) },
         new FitScreen { id = "codex-backdrop-viewer", fullBleed = true, scene = "startS4", title = "Codex / backdrop viewer", stage = r => CodexBackdropsScreen(r, true, false) },
-        new FitScreen { id = "options", fullBleed = true, scene = "leaderboardS3", title = "Options: developer rows + feature flags", stage = r => Options(r, 0) },
-        new FitScreen { id = "options-flags", fullBleed = true, scene = "leaderboardS3", title = "Options: feature-flag list scrolled", stage = r => Options(r, 1) },
+        new FitScreen { id = "options", fullBleed = true, scene = "leaderboardS3", title = "Options: developer rows", stage = r => Options(r, 0) },
         new FitScreen { id = "options-start-world", fullBleed = true, scene = "leaderboardS3", title = "Options: START WORLD row (unlocked)", stage = r => Options(r, 3) },
         new FitScreen { id = "options-start-locked", fullBleed = true, scene = "leaderboardS3", title = "Options: START WORLD row (locked)", stage = r => Options(r, 4) },
         new FitScreen { id = "options-mute-on", fullBleed = true, scene = "leaderboardS3", title = "Options: SOUND: ON row", stage = r => Options(r, 5) },
@@ -323,26 +318,12 @@ public static class ScreenFitScreens
         Add<DeveloperOptions>("~DeveloperOptions");
         Add<StartWorldOptions>("~StartWorldOptions");
         Add<SoundOptions>("~SoundOptions");
-        FeatureFlagOptions flags = null;
-        if (shot < 2)
-        {
-            flags = new GameObject("~FeatureFlagOptions").AddComponent<FeatureFlagOptions>();
-            flags.Build(new Vector2(rig.W, rig.H), rig.device.Safe, true);
-            rig.Sync();
-            flags.Relayout();
-        }
         SafeAreaClamp.AttachAll("leaderboardS3");
         rig.Sync();   // it may change the canvas scaler
         SafeAreaClamp.AttachAll("leaderboardS3");
-        if (flags != null) flags.Relayout();   // over the column as BACK's clamp left it (FeatureFlagOptions.Update on a device)
         rig.Sync();
         DevBadge(rig);
-        if (shot == 1)
-        {
-            flags.List.verticalNormalizedPosition = 0f;   // the list scrolled to its last row
-            rig.Sync();
-        }
-        else if (shot == 2)
+        if (shot == 2)
         {
             // The shipped table has no live store ids yet (the panel would say
             // NO LEADERBOARDS YET): stage the one board it has, Top Score,

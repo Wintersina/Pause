@@ -50,8 +50,7 @@ loses the +35% dust and the chain feed. Dust per run at the extremes: the star p
 ## Gates
 
 `AdaptiveDifficulty.On` = `RunActive` (set at run start: a real-dust run, so not the tutorial or practice, and not
-the premium Paragon ship) and the developer-togglable feature flag `AdaptiveDifficulty.Enabled`
-(`FeatureFlags.AdaptiveDifficulty`, default ON; shown in Options > feature flags in developer mode).
+the premium Paragon ship). There is no switch: a real run always adapts.
 
 ## Debug
 

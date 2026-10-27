@@ -170,7 +170,6 @@ BackdropCellBleedTest 0.5
 BackdropLoopGuardTest 0.5
 DifficultyRetuneTest 0.5
 LeaderboardTest 0.5
-ParagonFlagTest 0.5
 RailMineArtTest 0.5
 ShopHealthCarryoverTest 0.5
 WorldLogicTest 0.5

@@ -40,14 +40,6 @@ public static class PremiumShips
     // Every skin of a premium ship costs this much star dust (100,000 for the first two).
     public const float SkinPrice = 50000f;
 
-    // Whether Paragon exists for this player: its feature flag ("paragon_ship",
-    // default ON, a locked COMING SOON berth) or developer mode. Flag off, ShipId.Count is 15 and Paragon is not
-    // a valid id anywhere (dock, codex, saves, achievements, selection).
-    public static bool Visible
-    {
-        get { return DeveloperUnlocks.Enabled || FeatureFlags.IsOn(FeatureFlags.ParagonShip); }
-    }
-
     public static bool IsPremium(int id) { return id == Paragon; }
 
     // Roster ships that live in the dust economy (the 15 originals).
@@ -63,7 +55,7 @@ public static class PremiumShips
     public static bool DustPurchasable(int id) { return ShipId.IsValid(id) && !IsPremium(id); }
 
     // Locked and not buyable yet: the dock reads "COMING SOON".
-    public static bool ComingSoon(int id) { return Visible && IsPremium(id) && !ShipId.IsOwned(id); }
+    public static bool ComingSoon(int id) { return IsPremium(id) && !ShipId.IsOwned(id); }
 
     public const string ComingSoonLabel = "COMING SOON";
 

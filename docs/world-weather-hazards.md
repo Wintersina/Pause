@@ -162,8 +162,8 @@ A world is about 120 s at baseline: one event, sometimes two. The hazard is rand
   spring pulls the offset back as soon as the field is gone; the ship's reach clamp (rails, floor, ceiling) is final.
 * Strengths are capped (`PlayerCap`, `BodyMaxSpeed`, `ShotMaxSpeed`, `EliteMaxSpeed`); a Swirl's pull fades at the core so nothing sticks or jitters.
 * Hazards never change what spawns, only where things drift. Spawn protection and the boss budgets are untouched.
-* Accessibility: the game has no reduced-motion setting. Two feature flags (Options developer list) exist: `WORLD HAZARDS` and `WORLD WEATHER`
-  (both default on). `WeatherLayer.Reduced` (density x.4) is the hook a future player option would flip. Nothing flashes: alpha <= .6, no
+* Accessibility: the game has no reduced-motion setting and no switch for hazards or weather (both always on).
+  `WeatherLayer.Reduced` (density x.4) is the hook a future player option would flip. Nothing flashes: alpha <= .6, no
   modulation faster than 1 Hz.
 
 ## 9. Performance
@@ -237,5 +237,5 @@ geyser burst, whirlpool suck, ion-wind swell, blizzard whine.
 Data completeness (every world has weather + hazards; warning >= 1.5 s; rates sane; no pink outside Space), force model per shape and per
 target (bullets scatter / bend, ship displaced but capped and returning, bosses unmoved, elites eased, lane clamp), no damage, boulder avoidance
 (seam both ways), rarity and spawn rules per world, boss-fight allowance, pool / no-alloc (editor noise bounded: see the test comment), performance with 2000 shots, ScreenFit (6 phone shapes: a front spans the
-view, fields and particles stay inside it), flag off = nothing. `WeatherArtTest`: art sizes and the no-block-upscale check; `WorldHazardsPreview` renders
+view, fields and particles stay inside it). `WeatherArtTest`: art sizes and the no-block-upscale check; `WorldHazardsPreview` renders
 `docs/world-weather-hazards-preview.png` (the placeholder look).

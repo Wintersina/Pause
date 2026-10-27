@@ -49,12 +49,11 @@ public sealed class HazardVisuals
         unchecked { uint h = (uint)(i * 73856093 ^ k * 19349663); h ^= h >> 13; h *= 0x5bd1e995; h ^= h >> 15; return (h & 0xffff) / 65535f; }
     }
 
-    public void Draw(HazardField[] fields, bool on)
+    public void Draw(HazardField[] fields)
     {
         int n = 0;
-        if (on)
-            for (int f = 0; f < fields.Length; f++)
-                if (fields[f].Active) n = DrawField(fields[f], n);
+        for (int f = 0; f < fields.Length; f++)
+            if (fields[f].Active) n = DrawField(fields[f], n);
         for (int i = n; i < Pool; i++) if (sr[i].enabled) sr[i].enabled = false;
         for (int i = artDrawn; i < artSr.Length; i++) artSr[i].enabled = false;
         artLast = artDrawn; artDrawn = 0;

@@ -40,26 +40,23 @@ public class AdaptiveFlowOverlay : MonoBehaviour
     // The line is rebuilt only when a shown figure changes (two decimals), so the
     // readout costs no strings on the frames it would read the same anyway.
     int shownFlow = int.MinValue, shownEnemy, shownDust;
-    bool shownHeld, shownEnabled;
+    bool shownHeld;
 
     void Update()
     {
         bool show = AdaptiveDifficulty.RunActive && DeveloperUnlocks.Enabled;
         text.enabled = show;
         if (!show) return;
-        bool enabled = AdaptiveDifficulty.Enabled;
         int flow = Mathf.RoundToInt(AdaptiveDifficulty.Meter.Flow * 100f);
         int enemy = Mathf.RoundToInt(AdaptiveDifficulty.EnemyScale * 100f);
         int dust = Mathf.RoundToInt(AdaptiveDifficulty.DustScale * 100f);
         bool held = AdaptiveDifficulty.Held;
-        if (enabled == shownEnabled && flow == shownFlow && enemy == shownEnemy && dust == shownDust && held == shownHeld) return;
-        shownEnabled = enabled; shownFlow = flow; shownEnemy = enemy; shownDust = dust; shownHeld = held;
-        text.text = enabled
-            ? "FLOW " + AdaptiveDifficulty.Meter.Flow.ToString("+0.00;-0.00;0.00") +
-              "  en x" + AdaptiveDifficulty.EnemyScale.ToString("0.00") +
-              "  dust x" + AdaptiveDifficulty.DustScale.ToString("0.00") +
-              (held ? "  HELD" : "")
-            : "FLOW off";
+        if (flow == shownFlow && enemy == shownEnemy && dust == shownDust && held == shownHeld) return;
+        shownFlow = flow; shownEnemy = enemy; shownDust = dust; shownHeld = held;
+        text.text = "FLOW " + AdaptiveDifficulty.Meter.Flow.ToString("+0.00;-0.00;0.00") +
+                    "  en x" + AdaptiveDifficulty.EnemyScale.ToString("0.00") +
+                    "  dust x" + AdaptiveDifficulty.DustScale.ToString("0.00") +
+                    (held ? "  HELD" : "");
     }
 }
 #endif
