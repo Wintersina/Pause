@@ -60,6 +60,7 @@ public static class AtomFusionTest
             RunEffects();
             NoAllocation();
             FusionFlipbooks();
+            LoopingFusions();
             DevFusionTest();
             CodexTab();
         }
@@ -626,6 +627,81 @@ public static class AtomFusionTest
         Check("... and create no objects (renderers " + fx.transform.childCount + " = " + children + ", builds " + FusionFx.Builds + ")",
               fx.transform.childCount == children && FusionFx.Builds == builds && children == all.Length);
 
+        AtomFusions.EnabledOverride = null;
+        Object.DestroyImmediate(ship);
+    }
+
+    // ---- VACUUM / SINGULARITY loop while live, fade out when not ---------------------------------
+
+    static void LoopingFusions()
+    {
+        EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+        var ship = new GameObject("~loopShip", typeof(SpriteRenderer));
+        AtomFusions.EnabledOverride = true;
+        AtomFusions.BeginRun(ship);
+        var fx = FusionFx.Instance;
+        buttonClicks.playerDied = false;
+        collisionDetection.atomCheck = true;
+        collisionDetection.invTimer = 5.8f;
+        var pull = MagnetPull.Begin(ship);
+        pull.Synced = true;
+        var layer = fx.LayerOf(FusionId.Vacuum);
+
+        AtomFusions.Tick(.01f);
+        AtomFusions.OnExternal(FusionId.Vacuum, 1);
+        Check("VACUUM: the vortex starts by itself when magnet + shield are both live", fx.IsPlaying(FusionId.Vacuum) && layer.enabled);
+        AtomFusions.Tick(5f);
+        Check("... and is still looping well past the old one-shot " + (FusionFx.FrameCount / FusionFx.Fps).ToString("0.00") + " s",
+              fx.IsPlaying(FusionId.Vacuum) && layer.enabled && layer.color.a >= FusionFx.Alpha - .01f);
+        AtomFusions.Tick(0f);
+        bool held = fx.IsPlaying(FusionId.Vacuum);
+        Check("... a paused world (dt 0) holds it", held);
+
+        // SINGULARITY takes over the vortex, flashes on a heal
+        collisionDetection.lifeCounter = 2;
+        AtomFusions.OnAtom(AtomKind.Heal, Vector3.zero);
+        AtomFusions.Tick(.05f);
+        Check("SINGULARITY: its own vortex loops while its window and the vacuum run", AtomFusions.SingularityLive && fx.IsPlaying(FusionId.Singularity));
+        AtomFusions.OnShieldKill();
+        AtomFusions.Tick(.05f);
+        Check("... a healed heart flashes it green", AtomFusions.SingularityHeals >= 1 && fx.LayerOf(FusionId.Singularity).color.g > fx.LayerOf(FusionId.Singularity).color.b + .05f);
+
+        // the shield ends: the combo is off, so both fade out within LoopFadeSeconds and hide
+        collisionDetection.invTimer = 0f;
+        collisionDetection.atomCheck = false;
+        AtomFusions.Tick(FusionTuning.LoopFadeSeconds * .5f);
+        bool fading = fx.IsPlaying(FusionId.Singularity) && fx.LayerOf(FusionId.Singularity).color.a < FusionFx.Alpha;
+        AtomFusions.Tick(FusionTuning.LoopFadeSeconds);
+        Check("the effect ends: it fades over " + FusionTuning.LoopFadeSeconds + " s, then is gone (cannot outlive the rules)",
+              fading && !fx.IsPlaying(FusionId.Vacuum) && !fx.IsPlaying(FusionId.Singularity) && !layer.enabled && !fx.LayerOf(FusionId.Singularity).enabled);
+
+        // death / GameStateReset end it cleanly
+        collisionDetection.atomCheck = true;
+        collisionDetection.invTimer = 5f;
+        pull.Elapsed = 0f;
+        AtomFusions.Tick(.05f);
+        bool back = fx.IsPlaying(FusionId.Singularity);   // the singularity window is still open
+        buttonClicks.playerDied = true;
+        AtomFusions.Tick(.05f);
+        bool deadStops = !AtomFusions.VacuumLive;
+        typeof(FusionFx).GetMethod("LateUpdate", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).Invoke(fx, null);
+        Check("death: the loop is dark at once", back && deadStops && !fx.IsPlaying(FusionId.Singularity) && !fx.IsPlaying(FusionId.Vacuum) && !fx.LayerOf(FusionId.Singularity).enabled);
+        buttonClicks.playerDied = false;
+
+        // no allocation while looping
+        pull.Elapsed = 0f;
+        for (int w = 0; w < 20; w++) AtomFusions.Tick(.05f);
+        long before = System.GC.GetAllocatedBytesForCurrentThread();
+        for (int n = 0; n < 2000; n++) { pull.Elapsed = 0f; AtomFusions.Tick(.016f); }
+        long bytes = System.GC.GetAllocatedBytesForCurrentThread() - before;
+        Check("2000 looping frames allocate nothing (" + bytes + " bytes)", bytes == 0);
+
+        // NOVA's wipe is 60% wider
+        Check("NOVA: the clear radius is 4.5 x 1.6 = 7.2 u", Mathf.Approximately(FusionTuning.NovaClearRadius, 7.2f));
+
+        collisionDetection.atomCheck = false;
+        collisionDetection.invTimer = 0f;
+        collisionDetection.lifeCounter = 0;
         AtomFusions.EnabledOverride = null;
         Object.DestroyImmediate(ship);
     }

@@ -269,6 +269,10 @@ public static class AtomFusions
     // DUST STORM: what a star dust's cut to the weapon charge / the secret meter is multiplied by.
     public static float DustChargeMultiplier => DustStormOn ? FusionTuning.DustStormChargeMultiplier : 1f;
     public static float DustMeterMultiplier => DustStormOn ? FusionTuning.DustStormMeterMultiplier : 1f;
+    // SINGULARITY is live: its window is open and the vacuum (magnet + shield) still runs. FusionFx loops its vortex on this.
+    public static bool SingularityLive => clock < singularityUntil && MagnetPull.ComboOn && Enabled;
+    // VACUUM is live and no SINGULARITY is drawing over it (FusionFx loops its vortex on this).
+    public static bool VacuumLive => MagnetPull.ComboOn && Enabled && !SingularityLive;
     static bool DustStormOn => clock < dustStormUntil && MagnetPull.MagnetRunning;
 
     // STASIS: a pause about to be spent is free (true: don't take it).
@@ -304,6 +308,7 @@ public static class AtomFusions
             singularityHearts++;
             singularityLastHeart = clock;
             SingularityHeals++;
+            FusionFx.Flash(FusionId.Singularity);
         }
     }
 

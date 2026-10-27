@@ -43,6 +43,7 @@ public sealed class FusionFx : MonoBehaviour
     static Sprite[][] frames;              // [fusion][frame], shared across runs
 
     SpriteRenderer[] layers;
+    float[] fade, flash;                   // loop fade-out clock (-1 = live), heal flash clock
     float[] age;
     bool[] playing;
     Transform follow;
@@ -54,6 +55,22 @@ public sealed class FusionFx : MonoBehaviour
     public bool IsPlaying(FusionId id) { return playing != null && playing[(int)id]; }
     public int FrameOf(FusionId id) { return playing != null && playing[(int)id] ? Mathf.Min(FrameCount - 1, (int)(age[(int)id] * Fps)) : -1; }
     public SpriteRenderer LayerOf(FusionId id) { return layers != null ? layers[(int)id] : null; }
+    // VACUUM and SINGULARITY are not one-shots: they loop for as long as the rules' own live state says (LoopLive).
+    public static bool IsLoop(FusionId id) { return id == FusionId.Vacuum || id == FusionId.Singularity; }
+    static bool LoopLive(FusionId id)
+    {
+        return id == FusionId.Vacuum ? AtomFusions.VacuumLive : id == FusionId.Singularity && AtomFusions.SingularityLive;
+    }
+    public float AlphaOf(FusionId id) { return layers != null ? layers[(int)id].color.a : 0f; }
+
+    // A healed heart (SINGULARITY): a short green flash on its vortex. Nothing is created.
+    public static void Flash(FusionId id)
+    {
+        var fx = instance;
+        if (fx == null || fx.flash == null) return;
+        fx.flash[(int)id] = FusionTuning.HealFlashSeconds;
+    }
+
     public static bool HasArt(FusionId id)
     {
         var f = Frames();
@@ -84,6 +101,9 @@ public sealed class FusionFx : MonoBehaviour
         layers = new SpriteRenderer[all.Length];
         age = new float[all.Length];
         playing = new bool[all.Length];
+        fade = new float[all.Length];
+        for (int i = 0; i < fade.Length; i++) fade[i] = -1f;
+        flash = new float[all.Length];
         for (int i = 0; i < all.Length; i++)
         {
             var go = new GameObject("~Fx_" + all[i].key);
@@ -130,6 +150,18 @@ public sealed class FusionFx : MonoBehaviour
         var fx = instance;
         if (fx == null || fx.layers == null || fx.layers[(int)id] == null || fx.layers[(int)id].sprite == null) return;
         int i = (int)id;
+        if (IsLoop(id))
+        {
+            // a chain / re-fire of a loop keeps spinning (no restart pop); it only cancels a fade-out
+            fx.fade[i] = -1f;
+            if (!fx.playing[i]) fx.age[i] = 0f;
+            fx.playing[i] = true;
+            fx.Colour(i);
+            fx.Place(i);
+            fx.layers[i].enabled = true;
+            Plays++;
+            return;
+        }
         fx.age[i] = 0f;
         fx.playing[i] = true;
         fx.Place(i);
@@ -150,6 +182,7 @@ public sealed class FusionFx : MonoBehaviour
         var f = Frames();
         for (int i = 0; i < fx.layers.Length; i++)
         {
+            if (IsLoop((FusionId)i)) { fx.StepLoop(i, dt, f); continue; }
             if (!fx.playing[i]) continue;
             fx.age[i] += dt;
             int k = (int)(fx.age[i] * Fps);
@@ -157,6 +190,42 @@ public sealed class FusionFx : MonoBehaviour
             fx.layers[i].sprite = f[i][k];
             fx.Place(i);
         }
+    }
+
+    // A looping fusion: starts by itself the moment its rules go live, wraps its flipbook while they stay live, and
+    // fades out over LoopFadeSeconds once they stop. Driven only by the live state, so it can never outlive the effect.
+    void StepLoop(int i, float dt, Sprite[][] f)
+    {
+        if (f == null || f[i] == null || f[i].Length == 0) return;
+        bool live = LoopLive((FusionId)i);
+        if (live)
+        {
+            if (!playing[i]) { playing[i] = true; age[i] = 0f; layers[i].enabled = true; }
+            fade[i] = -1f;
+        }
+        else if (playing[i])
+        {
+            if (fade[i] < 0f) fade[i] = 0f;
+            fade[i] += dt;
+            if (fade[i] >= FusionTuning.LoopFadeSeconds) { fade[i] = -1f; Stop(i); return; }
+        }
+        else return;
+        age[i] += dt;
+        if (flash[i] > 0f) flash[i] = Mathf.Max(0f, flash[i] - dt);
+        layers[i].sprite = f[i][(int)(age[i] * Fps) % f[i].Length];
+        Colour(i);
+        Place(i);
+    }
+
+    // Base alpha, scaled down by an ending loop's fade, with the heal flash tinting toward green.
+    void Colour(int i)
+    {
+        float a = Alpha;
+        if (fade[i] >= 0f) a *= 1f - Mathf.Clamp01(fade[i] / FusionTuning.LoopFadeSeconds);
+        float t = flash[i] > 0f ? flash[i] / FusionTuning.HealFlashSeconds : 0f;
+        Color c = Color.Lerp(Color.white, PickupGlow.HealGreen, t * .8f);
+        c.a = a;
+        layers[i].color = c;
     }
 
     // Off when fusions are (kill cam replay, dead pilot, tutorial): hide without waiting for the clock.
@@ -171,6 +240,8 @@ public sealed class FusionFx : MonoBehaviour
     void Stop(int i)
     {
         playing[i] = false;
+        if (fade != null) { fade[i] = -1f; flash[i] = 0f; }
+        if (layers[i] != null) layers[i].color = new Color(1f, 1f, 1f, Alpha);
         if (layers[i] != null && layers[i].enabled) layers[i].enabled = false;
     }
 
