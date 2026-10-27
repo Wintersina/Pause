@@ -87,7 +87,7 @@ public partial class SpaceDirector : BackdropDirector
         new Color(0.66f, 0.90f, 1.00f), // teal
         new Color(0.92f, 0.76f, 1.00f), // violet
     };
-    // The six world planets (Codex: giant_00 Storm, 02 Tide, 04 Ember, 07 Verdant, 09 Frost, 11 Desert) keep
+    // The six world planets (Codex: giant_00 Storm, 01 Tide, 02 Ember, 03 Verdant, 04 Frost, 05 Desert; the manifests were renumbered contiguous when the old giants were dropped, as Frames("giant") needs) keep
     // their own colours: the indigo / violet tints above would push Frost lilac and Desert pink. Same length
     // as PlanetTints, so the seeded stream is unchanged; blue stays near 1 so brightness depends on the tier.
     static readonly Color[] WorldPlanetTints =
@@ -98,16 +98,16 @@ public partial class SpaceDirector : BackdropDirector
         new Color(0.94f, 0.95f, 0.98f),
     };
     public static readonly string[] WorldPlanetCells =
-        { "giant_00", "giant_02", "giant_04", "giant_07", "giant_09", "giant_11" };
+        { "giant_00", "giant_01", "giant_02", "giant_03", "giant_04", "giant_05" };
     public static bool IsWorldPlanet(Sprite s)
     {
         return s != null && System.Array.IndexOf(WorldPlanetCells, s.name) >= 0;
     }
     // EVEN spawning, no favourites: a planet is drawn uniformly from ONE pool holding every planet cell once
-    // (the 12 giants incl. the six world planets, the reference planet, 4 neon, 3 halo and, in the far field only,
-    // the 2 outposts), so each cell has the same chance per spawn: 1/20 near, 1/22 far. Per-kind shares follow
-    // from the cell counts (giants 12/20 = 60%, neon 20%, halo 15%, reference 5%). The run-start planet draws
-    // kind by those same counts (OpeningWeights), then a cell uniformly, so it is even per cell too. Rocks and
+    // (the six world planets, which are the only giants left in anim.json, and, in the far field only, the 2
+    // outposts), so each cell has the same chance per spawn: 1/6 near, 1/8 far. The purple planets (neon, halo,
+    // reference) and the old giants are retired: Build() loads none of them and the sheets no longer list the
+    // old giants. The run-start planet draws a cell uniformly from the giants (OpeningWeights), so it is even too. Rocks and
     // rock moons are already uniform over their own cells. Nothing repeats back to back.
     public static Sprite[] EvenPlanetPool(Sprite[] giants, Sprite[] reference, Sprite[] neon, Sprite[] halo, Sprite[] outposts)
     {
@@ -121,6 +121,18 @@ public partial class SpaceDirector : BackdropDirector
     {
         if (pick != last || pool.Length < 2) return pick;
         return pool[(System.Array.IndexOf(pool, pick) + 1) % pool.Length];
+    }
+    // The director's own stream is seeded (SpaceDirector() : base(1988)) so the sky is reproducible, but that made
+    // every replay draw the same planet cells in the same order (the opening's cell included: SpaceOpening only
+    // rolled kind, size, side and tint). In play the planet CELL comes from a per-run stream instead, uniformly
+    // from the same even pool; the seeded draw above is still taken, so every other draw is unchanged. Edit mode
+    // (tests, previews) keeps the seeded cell.
+    System.Random runCells;
+    Sprite RunPlanetCell(Sprite[] art, Sprite seeded)
+    {
+        if (!Application.isPlaying || art.Length == 0) return seeded;
+        if (runCells == null) runCells = new System.Random(System.Environment.TickCount ^ GetHashCode());
+        return art[runCells.Next(art.Length)];
     }
     Sprite[] planetPool, planetPoolFar;     // EvenPlanetPool without / with the outposts
     Sprite lastPlanetSprite, lastRockSprite;
@@ -215,14 +227,15 @@ public partial class SpaceDirector : BackdropDirector
         miniRocky = fx.Frames("mini_rocky");
         miniStation = fx.Frames("mini_station");
         miniRingStation = fx.Frames("mini_ringstation");
-        haloPlanets = set.Extras != null ? set.Extras.Frames("halo_planet") : new Sprite[0];
+        // The purple planets (halo_planet_*, neon_planet_*, reference_planet) are retired from Space: they stay
+        // on disk for their rocks and the outposts' sheet, but never enter a spawn pool or the opening sky.
+        haloPlanets = new Sprite[0];
         asteroids = new Sprite[3];
         string spaceFolder = BackdropCatalog.Folder("Space");
         for (int i = 0; i < asteroids.Length; i++)
             asteroids[i] = Resources.Load<Sprite>(spaceFolder + "asteroid_" + i.ToString("00"));
-        neonPlanets = set.NeonFrames != null ? set.NeonFrames.Frames("neon_planet") : new Sprite[0];
-        Sprite reference = Resources.Load<Sprite>(spaceFolder + "reference_planet");
-        referencePlanet = reference != null ? new[] { reference } : new Sprite[0];
+        neonPlanets = new Sprite[0];
+        referencePlanet = new Sprite[0];
         Sprite detailedStation = Resources.Load<Sprite>(spaceFolder + "station_ring_v2");
         detailedStationFrames = detailedStation != null ? new[] { detailedStation } : new Sprite[0];
         asteroidEffects = new Sprite[3][];
@@ -578,6 +591,7 @@ public partial class SpaceDirector : BackdropDirector
             : (asteroids[0] != null && n.size >= MiniBelow && Chance(0.55) ? RockArt(n.size) : RockArt(n.size));
         if (art.Length == 0) { p.Show(false); return true; }
         Sprite selected = Pick(art);
+        if (n.kind == Planet) selected = RunPlanetCell(art, selected);
         if (n.kind == Planet) { selected = NoRepeat(art, selected, lastPlanetSprite); lastPlanetSprite = selected; }
         else if (n.kind == Planetoid) { selected = NoRepeat(art, selected, lastRockSprite); lastRockSprite = selected; }
         Dress(p, selected, n.kind, n.tier, n.size, 0, planetClass);

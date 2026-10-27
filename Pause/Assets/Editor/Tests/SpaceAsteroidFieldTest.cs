@@ -402,6 +402,8 @@ public static class SpaceAsteroidFieldTest
         Check("the weighted pick follows the weights", close);
         Check("no planet at all is a real outcome", counts[(int)SpaceDirector.OpeningKind.None] > n / 10);
         Check("the giant is the most common single planet", counts[1] > counts[2] && counts[1] > counts[3] && counts[1] > counts[4]);
+        Check("the retired reference, neon and halo kinds are never picked",
+              counts[2] == 0 && counts[3] == 0 && counts[4] == 0);
 
         Check("with no art at all the pick is an empty sky",
               SpaceDirector.PickOpening(.9, false, false, false, false) == SpaceDirector.OpeningKind.None);
@@ -441,21 +443,24 @@ public static class SpaceAsteroidFieldTest
         Check("edit-mode default keeps the legacy giant opening", legacy.OpeningWasLegacy && legacy.Opening == SpaceDirector.OpeningKind.Giant && ActivePlanets(legacy) == 1);
         Object.DestroyImmediate(legacyHost);
 
+        // The reference, neon and halo planets are purple and retired from Space: only the giants (the six world
+        // planets) open the sky, and a forced retired kind falls back to a giant, never to purple art.
         foreach (var kind in new[] { SpaceDirector.OpeningKind.Giant, SpaceDirector.OpeningKind.Reference,
                                      SpaceDirector.OpeningKind.Neon, SpaceDirector.OpeningKind.Halo })
         {
+            bool retired = kind != SpaceDirector.OpeningKind.Giant;
             var host = new GameObject("~open");
             WorldBackdrop wb;
             var sd = OpenSpace(host, (int)kind, 5, out wb);
             bool has = ActivePlanets(sd) == 1;
-            Check(kind + ": opens with exactly one planet", sd.Opening == kind && has);
+            Check(kind + (retired ? ": retired kind falls back to a giant" : ": opens with exactly one planet"),
+                  sd.Opening == SpaceDirector.OpeningKind.Giant && has);
             if (has)
             {
                 string name = "";
                 foreach (var p in sd.Bodies[0].items) if (p.active && p.kind == SpaceDirector.Planet) name = p.sr.sprite.name;
-                string want = kind == SpaceDirector.OpeningKind.Giant ? "giant_" : kind == SpaceDirector.OpeningKind.Reference ? "reference"
-                            : kind == SpaceDirector.OpeningKind.Neon ? "neon_planet_" : "halo_planet_";
-                Check(kind + ": it is that planet's art (" + name + ")", name.StartsWith(want, System.StringComparison.Ordinal));
+                Check(kind + ": it is a world planet, never purple art (" + name + ")",
+                      System.Array.IndexOf(SpaceDirector.WorldPlanetCells, name) >= 0);
             }
             for (int i = 0; i < 20 * 30; i++) wb.Step(Dt);
             Check(kind + ": the backdrop keeps running for 20 s", wb.Current.Director != null);
