@@ -8,9 +8,12 @@ using UnityEngine;
 //   * It turns very slowly and smoothly (SpaceSunTuning.TurnSeconds per turn, on the director's scaled clock, so a
 //     paused game holds it), its corona breathes, and its 8-frame flare flipbook (6 fps) loops over it; every
 //     ArcEvery seconds a BIGGER prominence arc (the same flipbook, larger and out of phase) swells and fades.
-//   * Sheets: sun_<p> (2 variants, 1024 cells; variant 0 warm / 1 violet is the one drawn), sun_<p>_corona (additive),
-//     flares_<p> (4 x 2 cells of 1024, additive). Only the chosen palette is loaded and it is unloaded with the set.
+//   * Sheets: sun_<p> (the drawn disc cell, cropped to its visible box: SpaceSunTuning.DiscCrop), sun_<p>_corona (2 variants,
+//     1024 cells, additive), flares_<p> (4 x 2 cells of 1024, additive). Only the chosen palette is loaded and it is unloaded with the set.
 //     Mobile: the disc stays RGBA32 (hard pixel art), the corona and the flare flipbook are ASTC 4x4 (soft additive layers).
+//     The disc sheet was approved as 2048 x 1024 (two 1024 cells, variant 0 warm / 1 violet the one drawn) and only ~78 % of the
+//     drawn cell held pixels, so the wired file is that cell's alpha box (scripts/crop_sun_disc.py: byte-identical pixels, every
+//     dropped pixel clear) and the sprite's pivot puts the cell's centre back under the sun's root: 8.4 MB -> 2.6 / 3.5 MB RGBA32.
 //   * Cheap: 4 renderers built once, 8 + 2 sprites made once, no per-frame allocation.
 public static class SpaceSunPick
 {
@@ -76,6 +79,27 @@ public static class SpaceSunTuning
     public const float VioletGain = .72f;   // the violet palette is the brighter on the dark sky: held to the readability suites (BossHeartsTest, AtomClarityTest)
     public const int VariantWarm = 0, VariantViolet = 1;   // the disc cell each palette's flares were drawn for
     public const int SortingOffset = 0;
+
+    // The wired disc file is the drawn 1024 cell cropped to its visible box (scripts/crop_sun_disc.py --check prints these):
+    // x / y are the box's bottom-left in the cell's frame (y up), w / h its size and the file's size. The cell's centre
+    // (512, 512) is the sun's centre, so the sprite's pivot is ((512 - x) / w, (512 - y) / h) and the disc lands exactly
+    // where the full cell put it. A file of another size (older art) is drawn the old way, as a 1024 cell.
+    public const int Cell = 1024;
+    public struct Crop { public int x, y, w, h; public Crop(int x, int y, int w, int h) { this.x = x; this.y = y; this.w = w; this.h = h; } }
+    public static readonly Crop DiscCropWarm = new Crop(92, 115, 828, 798);
+    public static readonly Crop DiscCropViolet = new Crop(53, 32, 926, 956);
+    public static Crop DiscCrop(string palette) { return palette == SpaceSunPick.Warm ? DiscCropWarm : DiscCropViolet; }
+    public static bool IsCropped(Texture2D disc, string palette)
+    {
+        var c = DiscCrop(palette);
+        return disc != null && disc.width == c.w && disc.height == c.h;
+    }
+    // The disc sprite's pivot (normalised) for a cropped file: the cell centre's place in the crop.
+    public static Vector2 DiscPivot(string palette)
+    {
+        var c = DiscCrop(palette);
+        return new Vector2((Cell * .5f - c.x) / c.w, (Cell * .5f - c.y) / c.h);
+    }
 }
 
 public sealed class SpaceSunLayer
@@ -128,7 +152,10 @@ public sealed class SpaceSunLayer
         int variant = palette == SpaceSunPick.Warm ? SpaceSunTuning.VariantWarm : SpaceSunTuning.VariantViolet;
         float ppu = 1024f / SpaceSunTuning.CellUnits;
 
-        sunDiscSprite = Sprite.Create(sunTexDisc, new Rect(variant * 1024, 0, 1024, 1024), new Vector2(.5f, .5f), ppu, 0, SpriteMeshType.FullRect);
+        // the disc file is the drawn cell's visible box: the whole file, pivoted so the cell's centre sits under the root
+        sunDiscSprite = SpaceSunTuning.IsCropped(sunTexDisc, palette)
+            ? Sprite.Create(sunTexDisc, new Rect(0, 0, sunTexDisc.width, sunTexDisc.height), SpaceSunTuning.DiscPivot(palette), ppu, 0, SpriteMeshType.FullRect)
+            : Sprite.Create(sunTexDisc, new Rect(variant * 1024, 0, 1024, 1024), new Vector2(.5f, .5f), ppu, 0, SpriteMeshType.FullRect);
         if (sunTexCorona != null) sunCoronaSprite = Sprite.Create(sunTexCorona, new Rect(variant * 1024, 0, 1024, 1024), new Vector2(.5f, .5f), ppu, 0, SpriteMeshType.FullRect);
         sunFlares = new Sprite[8];
         for (int i = 0; i < 8; i++)

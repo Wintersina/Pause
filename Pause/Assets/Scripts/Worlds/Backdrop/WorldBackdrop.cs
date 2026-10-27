@@ -153,7 +153,8 @@ public class WorldBackdrop : MonoBehaviour
             {
                 outgoing.Destroy();
                 outgoing = null;
-                if (Application.isPlaying) Resources.UnloadUnusedAssets();
+                // its textures go at the next covered moment (the clouds), not as a hitch in play
+                AssetSweep.Defer();
             }
         }
         if (Current != null) Current.Tick(dt, v);

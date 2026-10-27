@@ -62,8 +62,13 @@ public static class SpaceSunTest
             var flares = Resources.Load<Texture2D>("Worlds/Space/Backdrop/flares_" + p);
             Check(p + ": the three sheets load", disc != null && corona != null && flares != null);
             if (disc == null || corona == null || flares == null) continue;
-            Check(p + ": sheet sizes (2048x1024, 2048x1024, 4096x2048: full resolution, nothing downscaled)",
-                  disc.width == 2048 && disc.height == 1024 && corona.width == 2048 && corona.height == 1024 && flares.width == 4096 && flares.height == 2048);
+            var crop = SpaceSunTuning.DiscCrop(p);
+            Check(p + ": sheet sizes (disc " + crop.w + "x" + crop.h + " = the drawn cell's visible box, corona 2048x1024, flares 4096x2048: full resolution, nothing downscaled)",
+                  disc.width == crop.w && disc.height == crop.h && corona.width == 2048 && corona.height == 1024 && flares.width == 4096 && flares.height == 2048,
+                  disc.width + "x" + disc.height);
+            Check(p + ": the crop box lies inside the 1024 cell and holds its centre",
+                  crop.x >= 0 && crop.y >= 0 && crop.x + crop.w <= SpaceSunTuning.Cell && crop.y + crop.h <= SpaceSunTuning.Cell &&
+                  crop.x < SpaceSunTuning.Cell / 2 && crop.x + crop.w > SpaceSunTuning.Cell / 2 && crop.y < SpaceSunTuning.Cell / 2 && crop.y + crop.h > SpaceSunTuning.Cell / 2);
             foreach (var n in new[] { "sun_" + p, "sun_" + p + "_corona", "flares_" + p })
             {
                 var imp = AssetImporter.GetAtPath(Dir + n + ".png") as TextureImporter;
@@ -104,12 +109,35 @@ public static class SpaceSunTest
         var a = new BackdropSet("Space", root, 3.72f, 6.6f);
         var b = new BackdropSet("Space", root, 3.72f, 6.6f);
         Check("a run showing warm: every set built in it is warm", a.Sun.Palette == SpaceSunPick.Warm && b.Sun.Palette == SpaceSunPick.Warm);
+        Placement(a.Sun);
         a.Destroy(); b.Destroy();
         SpaceSunPick.NewRun(SeedFor(SpaceSunPick.Violet));
         var c = new BackdropSet("Space", root, 3.72f, 6.6f);
         Check("the next run can be the other palette", c.Sun.Palette == SpaceSunPick.Violet);
+        Placement(c.Sun);
         Check("the side matches the seed's pick", Mathf.Sign(c.Sun.Root.localPosition.x) == SpaceSunPick.Side);
         c.Destroy();
+    }
+
+    // The cropped disc file draws exactly where the full 1024 cell drew it: the sprite's local bounds are the crop box
+    // in world units around the cell's centre (the pivot), so the disc's pixels, edge and centre have not moved.
+    static void Placement(SpaceSunLayer sun)
+    {
+        if (sun == null || !sun.Built || sun.Disc.sprite == null) { Check("placement: a built sun with a disc sprite", false); return; }
+        var crop = SpaceSunTuning.DiscCrop(sun.Palette);
+        float ppu = SpaceSunTuning.Cell / SpaceSunTuning.CellUnits;
+        var b = sun.Disc.sprite.bounds;
+        float half = SpaceSunTuning.Cell * .5f;
+        Vector2 wantMin = new Vector2((crop.x - half) / ppu, (crop.y - half) / ppu);
+        Vector2 wantMax = new Vector2((crop.x + crop.w - half) / ppu, (crop.y + crop.h - half) / ppu);
+        bool ok = Mathf.Abs(b.min.x - wantMin.x) < 1e-3f && Mathf.Abs(b.min.y - wantMin.y) < 1e-3f &&
+                  Mathf.Abs(b.max.x - wantMax.x) < 1e-3f && Mathf.Abs(b.max.y - wantMax.y) < 1e-3f;
+        Check(sun.Palette + ": the cropped disc sprite covers the crop box around the cell's centre (same pixels, same place as the 1024 cell)", ok,
+              b.min.x.ToString("F3") + "," + b.min.y.ToString("F3") + " .. " + b.max.x.ToString("F3") + "," + b.max.y.ToString("F3"));
+        Check(sun.Palette + ": the disc is the whole cropped file at the cell's pixels-per-unit (" + ppu.ToString("F1") + ")",
+              sun.Disc.sprite.rect.width == crop.w && sun.Disc.sprite.rect.height == crop.h && Mathf.Abs(sun.Disc.sprite.pixelsPerUnit - ppu) < 1e-3f);
+        Check(sun.Palette + ": the disc is in no way smaller than the cell drew it (its centre and radius are unchanged)",
+              b.min.x < 0f && b.max.x > 0f && b.min.y < 0f && b.max.y > 0f && b.size.x <= SpaceSunTuning.CellUnits + 1e-3f);
     }
 
     static void Rotation(BackdropSet set)

@@ -425,8 +425,8 @@ public class Liftoff : MonoBehaviour
             WorldMusic.Apply(theme);
             // the sky is Space's: so is what spawns, until the next arrival
             WorldManager.BeginSpaceLeg(def.interludeWorld);
-            // the planet's backdrop is gone: let its textures go too
-            if (Application.isPlaying) Resources.UnloadUnusedAssets();
+            // the planet's backdrop is gone: let its textures go too (the clouds hide the sweep's stall)
+            AssetSweep.Now();
         }
         catch (System.Exception e) { Debug.LogException(e); }
     }

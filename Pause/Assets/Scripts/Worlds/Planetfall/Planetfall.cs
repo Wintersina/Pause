@@ -659,6 +659,8 @@ public class Planetfall : MonoBehaviour
 
         // ---- the world changes, unseen ----
         if (!switched && tl >= PlanetfallTimeline.SwitchAt) Switch();
+        // the clouds hide the whole view: a pending asset sweep (the old world's textures) runs under them
+        if (switched && tl < PlanetfallTimeline.CloudsOutFrom) AssetSweep.Covered();
         if (switched && !bannered && tl >= PlanetfallTimeline.BannerAt)
         {
             bannered = true;

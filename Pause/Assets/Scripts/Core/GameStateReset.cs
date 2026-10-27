@@ -22,6 +22,7 @@ public static class GameStateReset
 
     static void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
+        if (mode == LoadSceneMode.Single) AssetSweep.Drop();   // the load freed the unused assets itself
         if (scene.name != score.TutorialScene) ShipId.TutorialFlight = false;
         if (System.Array.IndexOf(GameplayScenes, scene.name) >= 0) return;
         Clear();
