@@ -264,12 +264,12 @@ public class PauseQuickActions : MonoBehaviour
     void ApplySkin()
     {
         skinWorld = HudSkin.CurrentWorld;
-        SetGlyph(replayClone, HudSkin.ReplayGlyph(skinWorld), HudSkin.HudReplay(skinWorld));
-        SetGlyph(leaveClone, HudSkin.HomeGlyph(skinWorld), HudSkin.HudHome(skinWorld));
+        SetGlyph(replayClone, HudSkin.ReplayGlyph(skinWorld), HudSkin.HudReplay(skinWorld), skinWorld);
+        SetGlyph(leaveClone, HudSkin.HomeGlyph(skinWorld), HudSkin.HudHome(skinWorld), skinWorld);
     }
 
     // tapSprite stays on the (invisible) tap square; the Glyph child draws the thin hollow art.
-    static void SetGlyph(GameObject go, Sprite tapSprite, Sprite drawn)
+    static void SetGlyph(GameObject go, Sprite tapSprite, Sprite drawn, int world)
     {
         if (go == null || tapSprite == null) return;
         var image = go.GetComponent<Image>();
@@ -277,11 +277,24 @@ public class PauseQuickActions : MonoBehaviour
         var glyph = GlyphImage(go);
         if (glyph == null) return;
         glyph.sprite = drawn != null ? drawn : tapSprite;
-        glyph.color = new Color(1f, 1f, 1f, GlyphAlpha);
+        var tint = HudSkin.IconTint(world); tint.a = GlyphAlpha;
+        glyph.color = tint;
+        // the optional soft halo for worlds whose backdrop is too busy for the line alone
+        var halo = HudSkin.IconHalo(world);
+        var outline = glyph.GetComponent<Outline>();
+        if (halo.a > 0f)
+        {
+            if (outline == null) outline = glyph.gameObject.AddComponent<Outline>();
+            outline.effectColor = halo;
+            outline.effectDistance = new Vector2(1.5f, -1.5f);
+            outline.useGraphicAlpha = true;
+            outline.enabled = true;
+        }
+        else if (outline != null) outline.enabled = false;
     }
 
-    // The drawn glyphs are outline-only; a little see-through on top so they sit lightly on the backdrop.
-    public const float GlyphAlpha = .9f;
+    // The drawn glyphs are outline-only and tinted per world.
+    public const float GlyphAlpha = 1f;
 
     // The visible glyph is a child drawn at GlyphScale of the tap square,
     // centred on the tap square; the button's own

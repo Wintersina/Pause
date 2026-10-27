@@ -29,13 +29,13 @@ public static class HudSkinTest
         for (int w = 0; w < HudSkin.WorldCount; w++)
         {
             string name = WorldManager.Worlds[w].displayName;
-            var paths = new[] { HudSkin.FramePath(w), HudSkin.HudHomePath(w), HudSkin.HudReplayPath(w), HudSkin.DeathPanelPath(w), HudSkin.HomeGlyphPath(w), HudSkin.ReplayGlyphPath(w) };
+            var paths = new[] { HudSkin.FramePath(w), HudSkin.DeathPanelPath(w), HudSkin.HomeGlyphPath(w), HudSkin.ReplayGlyphPath(w) };
             foreach (string path in paths)
             {
                 var sprite = Resources.Load<Sprite>(path);
                 Check(name + ": " + path + " loads", sprite != null);
                 if (sprite == null) continue;
-                bool glyph = path.EndsWith("glyph") || path.EndsWith("hud_home") || path.EndsWith("hud_replay");
+                bool glyph = path.EndsWith("glyph");
                 bool own = w > 0 || !path.EndsWith("glyph");
                 if (own)
                     Check(name + ": " + path + " is the world's own art", path.StartsWith("HudSkins/" + name + "/"));
@@ -48,9 +48,35 @@ public static class HudSkinTest
             Check(name + ": the board's backing fill is see-through (centre alpha below 0.85)", HudSkin.Frame(w).texture != null && CentreAlpha(HudSkin.Frame(w)) < .85f);
         }
 
+        SharedIcons();
         Layout();
         Debug.Log("[HSK] failures: " + fails);
         return fails;
+    }
+
+    // One shared white hud_home / hud_replay pair for every world, tinted per world in code;
+    // no per-world copies are left behind.
+    static void SharedIcons()
+    {
+        foreach (string path in new[] { HudSkin.SharedHomePath, HudSkin.SharedReplayPath })
+        {
+            var sprite = Resources.Load<Sprite>(path);
+            Check(path + " loads", sprite != null);
+            if (sprite == null) continue;
+            Check(path + " is square", Mathf.Approximately(sprite.rect.width, sprite.rect.height));
+            CheckImport("shared", path, sprite, false);
+        }
+        for (int w = 0; w < HudSkin.WorldCount; w++)
+        {
+            string name = WorldManager.Worlds[w].displayName;
+            foreach (string leaf in new[] { "hud_home", "hud_replay" })
+                Check(name + ": no per-world " + leaf + " copy", Resources.Load<Sprite>("HudSkins/" + name + "/" + leaf) == null);
+            var tint = HudSkin.IconTint(w);
+            Check(name + ": has an opaque icon tint", tint.a > .99f);
+            float l = .2126f * Mathf.GammaToLinearSpace(tint.r) + .7152f * Mathf.GammaToLinearSpace(tint.g) + .0722f * Mathf.GammaToLinearSpace(tint.b);
+            bool brightBackdrop = w == 1 || w == 2;   // Frost clouds, Verdant foliage
+            Check(name + ": icon tint " + (brightBackdrop ? "dark" : "light") + " for its backdrop (luma " + l.ToString("0.00") + ")", brightBackdrop ? l < .1f : l > .6f);
+        }
     }
 
     // Alpha of the sprite's centre pixel (the board's backing fill); the texture is compressed, so decode a copy.

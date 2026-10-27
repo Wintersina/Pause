@@ -11,8 +11,9 @@ using UnityEngine;
 //                    left/right and 60 px top/bottom, 200 ppu; the dark backing
 //                    fill is 70% opaque (Tools/hud_art_pass.py); drawn 351 x 131
 //                    plus the per-world BoardOuts growth, outside the layout rect
-//   hud_home / hud_replay   256 px outline-only glyphs for the quick actions
-//                    (Tools/hud_art_pass.py derives them from the solid glyphs)
+//   (HudSkins/hud_home and hud_replay, one shared white pair for every world:
+//   256 px outline-only glyphs for the quick actions, drawn by Tools/hud_icons.py
+//   and tinted per world with IconTint / IconHalo)
 //   dp_panel         600x900 px, the FLIGHT COMPLETE panel, border 100 px
 //   qa_home_glyph / qa_replay_glyph   the solid glyphs the death panel's buttons use
 // The growth along the top and bottom edges is drawn at its real size (not
@@ -72,8 +73,40 @@ public static class HudSkin
     public static float BoardTextExtraLeft(int world) { return TextExtraLeft[Mathf.Clamp(world, 0, TextExtraLeft.Length - 1)]; }
 
     public static string FramePath(int world) { return Dir(world) + "hud_board"; }
-    public static string HudHomePath(int world) { return Dir(world) + "hud_home"; }
-    public static string HudReplayPath(int world) { return Dir(world) + "hud_replay"; }
+    // The in-run quick-action glyphs are shared by every world (white; tinted by IconTint).
+    public const string SharedHomePath = "HudSkins/hud_home";
+    public const string SharedReplayPath = "HudSkins/hud_replay";
+    public static string HudHomePath(int world) { return SharedHomePath; }
+    public static string HudReplayPath(int world) { return SharedReplayPath; }
+
+    // Per-world glyph colour, picked from each backdrop's measured brightness
+    // (Tools/hud_icons.py; HudVetCapture renders): bright backdrops (Frost clouds,
+    // Verdant foliage) get a dark saturated tint, the mid/dark ones a light tint.
+    // Order = world index (Space, Frost, Verdant, Ember, Tide, Storm, Desert).
+    static readonly Color[] IconTints =
+    {
+        new Color32(190, 240, 255, 255),   // Space
+        new Color32(12, 34, 92, 255),      // Frost
+        new Color32(8, 54, 22, 255),       // Verdant
+        new Color32(255, 232, 196, 255),   // Ember
+        new Color32(255, 255, 255, 255),   // Tide
+        new Color32(228, 232, 255, 255),   // Storm
+        new Color32(255, 238, 176, 255),   // Desert
+    };
+    // A soft under-halo (UI Outline) where the tinted line alone can't hold 3:1 against the backdrop's brightest
+    // or darkest patches; alpha 0 = none. The halo is the opposite brightness of the tint.
+    static readonly Color[] IconHalos =
+    {
+        new Color32(0, 0, 0, 0),           // Space
+        new Color32(255, 255, 255, 0),     // Frost
+        new Color32(255, 255, 255, 0),     // Verdant
+        new Color32(0, 0, 0, 0),           // Ember
+        new Color32(6, 28, 30, 150),       // Tide
+        new Color32(0, 0, 0, 0),           // Storm
+        new Color32(0, 0, 0, 0),           // Desert
+    };
+    public static Color IconTint(int world) { return IconTints[Mathf.Clamp(world, 0, IconTints.Length - 1)]; }
+    public static Color IconHalo(int world) { return IconHalos[Mathf.Clamp(world, 0, IconHalos.Length - 1)]; }
     public static string DeathPanelPath(int world) { return Dir(world) + "dp_panel"; }
     public static string HomeGlyphPath(int world) { var f = Folder(world); return f == null ? SpaceHomeGlyph : f + "qa_home_glyph"; }
     public static string ReplayGlyphPath(int world) { var f = Folder(world); return f == null ? SpaceReplayGlyph : f + "qa_replay_glyph"; }
@@ -86,9 +119,9 @@ public static class HudSkin
     }
 
     public static Sprite Frame(int world) { return Load(FramePath(world), SpaceFrame); }
-    // The in-run quick actions' thin hollow glyphs (the death panel keeps the solid ones above).
-    public static Sprite HudHome(int world) { return Load(HudHomePath(world), SpaceHomeGlyph); }
-    public static Sprite HudReplay(int world) { return Load(HudReplayPath(world), SpaceReplayGlyph); }
+    // The in-run quick actions' thin hollow glyphs, shared by every world (the death panel keeps the solid ones above).
+    public static Sprite HudHome(int world) { return Load(SharedHomePath, SpaceHomeGlyph); }
+    public static Sprite HudReplay(int world) { return Load(SharedReplayPath, SpaceReplayGlyph); }
     public static Sprite DeathPanel(int world) { return Load(DeathPanelPath(world), SpaceDeathPanel); }
     public static Sprite HomeGlyph(int world) { return Load(HomeGlyphPath(world), SpaceHomeGlyph); }
     public static Sprite ReplayGlyph(int world) { return Load(ReplayGlyphPath(world), SpaceReplayGlyph); }
