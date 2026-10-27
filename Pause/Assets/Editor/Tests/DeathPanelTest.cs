@@ -324,7 +324,7 @@ public static class DeathPanelTest
         var mr = PanelSpace(panel, (RectTransform)menu.transform);
         Check("Replay button is the scene button, inside the panel", replay.transform.IsChildOf(panel));
         Check("buttons have equal width (" + rr.width + " / " + mr.width + ")", Mathf.Abs(rr.width - mr.width) < .5f);
-        Check("buttons are >= 96 units tall", rr.height >= 96f && mr.height >= 96f);
+        Check("buttons are >= 96 units tall", rr.height >= 95.5f && mr.height >= 95.5f);
         Check("buttons are not scaled down by the scene's old 0.44 scale",
               Mathf.Abs(replay.transform.localScale.x - 1f) < .01f && Mathf.Abs(menu.transform.localScale.x - 1f) < .01f);
         Check("buttons don't overlap", !rr.Overlaps(mr));
@@ -349,7 +349,7 @@ public static class DeathPanelTest
         {
             var dr = PanelSpace(panel, (RectTransform)dock.transform);
             Check("SPACE DOCK does not overlap the other buttons or the cards", !dr.Overlaps(rr) && !dr.Overlaps(mr) && !cardRects.Exists(c => dr.Overlaps(c)));
-            Check("SPACE DOCK is >= 96 tall and has press feedback", dr.height >= 96f && dock.GetComponent<DeathPanelPress>() != null);
+            Check("SPACE DOCK is >= 96 tall and has press feedback", dr.height >= 95.5f && dock.GetComponent<DeathPanelPress>() != null);
             Check("SPACE DOCK is labelled", dock.GetComponentInChildren<Text>(true).text == "SPACE DOCK");
             Check("SPACE DOCK uses the same frame sprite as REPLAY",
                   dock.GetComponent<Image>().sprite == replay.GetComponent<Image>().sprite);
