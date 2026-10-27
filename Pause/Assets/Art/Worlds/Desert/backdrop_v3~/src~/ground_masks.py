@@ -43,9 +43,9 @@ VARIANTS = {
     # brine POOLS (teal) are class C so no dock or structure ever lands on water
     3: dict(built=lambda f: f['tex'], bshare=.18,
             shoal=lambda f: -f['tex'], oshare=.40, kelp=lambda f: -f['lum'], cshare=0, pool=True),
-    # night dunes: as day, cold
-    4: dict(built=lambda f: f['tex'] * 2 - f['lum'], bshare=.04,
-            shoal=lambda f: f['lum'] * 2 - f['tex'] * 3, oshare=.10, kelp=lambda f: -f['lum'], cshare=.02),
+    # night dunes (painted 1024 x 2048 tile): as the day dunes -- dark rock outcrops and wreck piles = cliff (C), the pale gravel wadi = hardpan (O)
+    4: dict(built=lambda f: f['tex'] * 2 + f['lum'] - f['sat'] * 3, bshare=.015,
+            shoal=lambda f: f['lum'] - f['sat'] * 3 - f['tex'], oshare=.10, kelp=lambda f: f['tex'] * 4 - f['lum'] - f['sat'], cshare=.10, vote=.25),
 }
 
 def blur(a, r):
