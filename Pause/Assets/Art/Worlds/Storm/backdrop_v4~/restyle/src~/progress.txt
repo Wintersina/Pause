@@ -1,0 +1,9 @@
+v1_a exit 0 /Users/sina/Developer/Pause/.claude/ws-storm-ground/Pause/Assets/Art/Worlds/Storm/backdrop_v4~/restyle/src~/v1_a.png
+v1_b exit 0 /Users/sina/Developer/Pause/.claude/ws-storm-ground/Pause/Assets/Art/Worlds/Storm/backdrop_v4~/restyle/src~/v1_b.png
+v2_a exit 0 /Users/sina/Developer/Pause/.claude/ws-storm-ground/Pause/Assets/Art/Worlds/Storm/backdrop_v4~/restyle/src~/v2_a.png
+v2_b exit 0 /Users/sina/Developer/Pause/.claude/ws-storm-ground/Pause/Assets/Art/Worlds/Storm/backdrop_v4~/restyle/src~/v2_b.png
+v3_a exit 0 /Users/sina/Developer/Pause/.claude/ws-storm-ground/Pause/Assets/Art/Worlds/Storm/backdrop_v4~/restyle/src~/v3_a.png
+v3_b exit 0 /Users/sina/Developer/Pause/.claude/ws-storm-ground/Pause/Assets/Art/Worlds/Storm/backdrop_v4~/restyle/src~/v3_b.png
+v4_a exit 0 /Users/sina/Developer/Pause/.claude/ws-storm-ground/Pause/Assets/Art/Worlds/Storm/backdrop_v4~/restyle/src~/v4_a.png
+v4_b exit 0 /Users/sina/Developer/Pause/.claude/ws-storm-ground/Pause/Assets/Art/Worlds/Storm/backdrop_v4~/restyle/src~/v4_b.png
+ALLDONE

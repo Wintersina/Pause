@@ -382,7 +382,7 @@ public static class StormBackdropTest
         return m;
     }
 
-    // 2026-10: Storm v1 / v2 are COLOURFUL (indigo / violet / teal / electric blue with amber rims). Still no ocean green, no
+    // 2026-10: Storm ground sets are realistic cool steel / teal-grey with violet-white lightning (no amber rims since the realistic restyle). No ocean green, no
     // pink (Space only), no red (the player's); violet stays a minority (the capacitor pickup is violet).
     // Tile red cap 0.6% (same as the atlas check): the v4 gust-front crest rims measure ~0.49%; the user approved the art on 2026-10-20.
     public const float MaxTileRedShare = .006f;
