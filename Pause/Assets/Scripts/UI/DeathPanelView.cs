@@ -89,11 +89,13 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
     }
     public const float ReplayY = -208f, DockY = -310f;
     // [REPLAY, MENU, SPACE DOCK] for a world's frame.
-    public static Rect[] ButtonRects(int world)
+    public static Rect[] ButtonRects(int world) { return ButtonRectsAt(world, StackShift(world)); }
+    // The same with an explicit downward shift (no sprite load: safe in static
+    // and instance field initialisers, where Resources.Load throws).
+    static Rect[] ButtonRectsAt(int world, float down)
     {
         float span = ButtonHalfSpan(world);
         float w = span - ButtonColumnGap * .5f;
-        float down = StackShift(world);
         return new[]
         {
             new Rect(-span, ReplayY - down - ButtonHeight * .5f, w, ButtonHeight),
@@ -165,11 +167,11 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
         Centered(0f, -122f, CardWidth, 64f),   // killed by / hurt by
     };
     // (the widest set, Space's; the frames' own spans come from ButtonRects)
-    public static readonly Rect ReplayRect = ButtonRects(0)[0];
-    public static readonly Rect MenuRect = ButtonRects(0)[1];
+    public static readonly Rect ReplayRect = ButtonRectsAt(0, 0f)[0];
+    public static readonly Rect MenuRect = ButtonRectsAt(0, 0f)[1];
     // SPACE DOCK: a full-column button under REPLAY / MENU that goes straight
     // to the ship dock (shopS6) so the run's star dust can be spent at once.
-    public static readonly Rect DockRect = ButtonRects(0)[2];
+    public static readonly Rect DockRect = ButtonRectsAt(0, 0f)[2];
     public const string DockScene = "shopS6";
     public const int ButtonCount = 3;
     public const int CardCount = 4;
@@ -250,7 +252,7 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
     public RectTransform ReplaySlot { get { return buttonSlots[0]; } }
     public RectTransform MenuSlot { get { return buttonSlots[1]; } }
     public RectTransform DockSlot { get { return buttonSlots[2]; } }
-    Rect[] buttonRects = ButtonRects(0);
+    Rect[] buttonRects = ButtonRectsAt(0, 0f);
     Rect ButtonRect(int i) { return buttonRects[i]; }
     public bool IntroFinished { get { return finalApplied; } }
 
