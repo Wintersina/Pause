@@ -60,6 +60,8 @@ public static class AtomFusionTest
             RunEffects();
             NoAllocation();
             FusionFlipbooks();
+            LoopingFusions();
+            MoreLoopsAndNova();
             DevFusionTest();
             CodexTab();
         }
@@ -624,8 +626,254 @@ public static class AtomFusionTest
         long fxBytes = System.GC.GetAllocatedBytesForCurrentThread() - before;
         Check("6000 triggers and their flipbooks allocate nothing (" + fxBytes + " bytes)", fxBytes == 0);
         Check("... and create no objects (renderers " + fx.transform.childCount + " = " + children + ", builds " + FusionFx.Builds + ")",
-              fx.transform.childCount == children && FusionFx.Builds == builds && children == all.Length);
+              fx.transform.childCount == children && FusionFx.Builds == builds && children == all.Length + FusionFx.OverlayRenderers);
 
+        AtomFusions.EnabledOverride = null;
+        Object.DestroyImmediate(ship);
+    }
+
+    // ---- VACUUM / SINGULARITY loop while live, fade out when not ---------------------------------
+
+    static void LoopingFusions()
+    {
+        EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+        var ship = new GameObject("~loopShip", typeof(SpriteRenderer));
+        AtomFusions.EnabledOverride = true;
+        AtomFusions.BeginRun(ship);
+        var fx = FusionFx.Instance;
+        buttonClicks.playerDied = false;
+        collisionDetection.atomCheck = true;
+        collisionDetection.invTimer = 5.8f;
+        var pull = MagnetPull.Begin(ship);
+        var layer = fx.LayerOf(FusionId.Vacuum);
+
+        AtomFusions.Tick(.01f);
+        AtomFusions.OnExternal(FusionId.Vacuum, 1);
+        Check("VACUUM: the vortex starts by itself when magnet + shield are both live", fx.IsPlaying(FusionId.Vacuum) && layer.enabled);
+        AtomFusions.Tick(5f);
+        Check("... and is still looping well past the old one-shot " + (FusionFx.FrameCount / FusionFx.Fps).ToString("0.00") + " s",
+              fx.IsPlaying(FusionId.Vacuum) && layer.enabled && layer.color.a >= FusionFx.Alpha - .01f);
+        AtomFusions.Tick(0f);
+        bool held = fx.IsPlaying(FusionId.Vacuum);
+        Check("... a paused world (dt 0) holds it", held);
+
+        // SINGULARITY takes over the vortex, flashes on a heal
+        collisionDetection.lifeCounter = 2;
+        AtomFusions.OnAtom(AtomKind.Heal, Vector3.zero);
+        AtomFusions.Tick(.05f);
+        Check("SINGULARITY: its own vortex loops while its window and the vacuum run", AtomFusions.SingularityLive && fx.IsPlaying(FusionId.Singularity));
+        AtomFusions.OnShieldKill();
+        AtomFusions.Tick(.05f);
+        Check("... a healed heart flashes it green", AtomFusions.SingularityHeals >= 1 && fx.LayerOf(FusionId.Singularity).color.g > fx.LayerOf(FusionId.Singularity).color.b + .05f);
+
+        // the shield ends: the combo is off, so both fade out within LoopFadeSeconds and hide
+        collisionDetection.invTimer = 0f;
+        collisionDetection.atomCheck = false;
+        AtomFusions.Tick(FusionTuning.LoopFadeSeconds * .5f);
+        bool fading = fx.IsPlaying(FusionId.Singularity) && fx.LayerOf(FusionId.Singularity).color.a < FusionFx.Alpha;
+        AtomFusions.Tick(FusionTuning.LoopFadeSeconds);
+        Check("the effect ends: it fades over " + FusionTuning.LoopFadeSeconds + " s, then is gone (cannot outlive the rules)",
+              fading && !fx.IsPlaying(FusionId.Vacuum) && !fx.IsPlaying(FusionId.Singularity) && !layer.enabled && !fx.LayerOf(FusionId.Singularity).enabled);
+
+        // death / GameStateReset end it cleanly
+        collisionDetection.atomCheck = true;
+        collisionDetection.invTimer = 5f;
+        MagnetPull.Begin(ship);
+        AtomFusions.Tick(.05f);
+        bool back = fx.IsPlaying(FusionId.Singularity);   // the singularity window is still open
+        buttonClicks.playerDied = true;
+        AtomFusions.EnabledOverride = false;   // a dead pilot turns fusions off (Enabled)
+        AtomFusions.Tick(.05f);
+        bool deadStops = !AtomFusions.VacuumLive;
+        typeof(FusionFx).GetMethod("LateUpdate", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).Invoke(fx, null);
+        Check("death: the loop is dark at once", back && deadStops && !fx.IsPlaying(FusionId.Singularity) && !fx.IsPlaying(FusionId.Vacuum) && !fx.LayerOf(FusionId.Singularity).enabled);
+        buttonClicks.playerDied = false;
+        AtomFusions.EnabledOverride = true;
+
+        // no allocation while looping
+        MagnetPull.Begin(ship);
+        for (int w = 0; w < 20; w++) AtomFusions.Tick(.05f);
+        long before = System.GC.GetAllocatedBytesForCurrentThread();
+        for (int n = 0; n < 2000; n++) { MagnetPull.Begin(ship); AtomFusions.Tick(.016f); }
+        long bytes = System.GC.GetAllocatedBytesForCurrentThread() - before;
+        Check("2000 looping frames allocate nothing (" + bytes + " bytes)", bytes == 0);
+
+        // NOVA's wipe is 60% wider
+        Check("NOVA: the clear radius is 4.5 x 1.6 = 7.2 u", Mathf.Approximately(FusionTuning.NovaClearRadius, 7.2f));
+
+        collisionDetection.atomCheck = false;
+        collisionDetection.invTimer = 0f;
+        collisionDetection.lifeCounter = 0;
+        AtomFusions.EnabledOverride = null;
+        Object.DestroyImmediate(ship);
+    }
+
+    // ---- DUST STORM / BLOOM / STASIS / LIFELINE loops, NOVA's kill and ring -----------------------
+
+    static GameObject Plain(string tag, Vector2 at)
+    {
+        var go = new GameObject("~novaBody");
+        go.tag = tag;
+        go.transform.position = at;
+        var col = go.AddComponent<CircleCollider2D>(); col.radius = .3f;
+        go.AddComponent<ClearTarget>();
+        return go;
+    }
+
+    static void MoreLoopsAndNova()
+    {
+        EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+        var ship = new GameObject("~moreShip", typeof(SpriteRenderer));
+        AtomFusions.EnabledOverride = true;
+        AtomFusions.BeginRun(ship);
+        var fx = FusionFx.Instance;
+        buttonClicks.playerDied = false;
+        collisionDetection.atomCheck = false;
+        collisionDetection.invTimer = 0f;
+
+        // DUST STORM: dust streams in while the magnet pulls, fades out when it ends
+        var pull = MagnetPull.Begin(ship);
+        AtomFusions.Tick(.01f);
+        AtomFusions.OnAtom(AtomKind.Capacitor, Vector3.zero);
+        var ds = AtomFusions.OnAtom(AtomKind.Magnet, Vector3.zero);
+        AtomFusions.Tick(.3f);
+        Check("DUST STORM: violet dust streams while the magnet pulls (loop + dust)",
+              ds.Fired && ds.fusion.id == FusionId.DustStorm && AtomFusions.DustStormLive && fx.IsPlaying(FusionId.DustStorm) && fx.DotsShowing(0) > 3);
+        pull.End();
+        AtomFusions.Tick(.1f);
+        bool dusting = fx.DotsShowing(0) > 0;
+        AtomFusions.Tick(.3f);
+        Check("... and fades out within " + FusionTuning.LoopFadeSeconds + " s of the magnet ending", dusting && fx.DotsShowing(0) == 0 && !fx.IsPlaying(FusionId.DustStorm));
+
+        // BLOOM: petals orbit the shield, pop on a heal
+        AtomFusions.BeginRun(ship);
+        collisionDetection.atomCheck = true;
+        collisionDetection.invTimer = 5.5f;
+        collisionDetection.lifeCounter = 2;
+        AtomFusions.Tick(.01f);
+        AtomFusions.OnAtom(AtomKind.Shield, Vector3.zero);
+        var bl = AtomFusions.OnAtom(AtomKind.Heal, Vector3.zero);
+        AtomFusions.Tick(.3f);
+        Check("BLOOM: petals orbit the shield while it blooms", bl.Fired && bl.fusion.id == FusionId.Bloom && AtomFusions.BloomLive && fx.IsPlaying(FusionId.Bloom) && fx.DotsShowing(1) == 6);
+        float dim = fx.DotAlpha(1, 0);
+        int healsBefore = AtomFusions.BloomHeals;
+        for (int i = 0; i < FusionTuning.BloomKillsPerHeart; i++) AtomFusions.OnShieldKill();
+        AtomFusions.Tick(.02f);
+        Check("... a heal pops them brighter", AtomFusions.BloomHeals == healsBefore + 1 && fx.DotAlpha(1, 0) > dim + .2f);
+        collisionDetection.invTimer = 0f; collisionDetection.atomCheck = false;
+        AtomFusions.Tick(.4f);
+        Check("... the shield ending ends them", !AtomFusions.BloomLive && fx.DotsShowing(1) == 0 && !fx.IsPlaying(FusionId.Bloom));
+
+        // STASIS: a pip per free pause, one goes dark per use
+        AtomFusions.BeginRun(ship);
+        collisionDetection.atomCheck = true;
+        collisionDetection.invTimer = 5.5f;
+        AtomFusions.Tick(.01f);
+        AtomFusions.OnAtom(AtomKind.Pause, Vector3.zero);
+        var st = AtomFusions.OnAtom(AtomKind.Shield, Vector3.zero);
+        AtomFusions.Tick(.3f);
+        int litBefore = 0, litAfter = 0;
+        for (int i = 0; i < FusionTuning.StasisFreePauses; i++) if (fx.DotAlpha(2, i) > .4f) litBefore++;
+        AtomFusions.ConsumeFreePause();
+        AtomFusions.Tick(.02f);
+        for (int i = 0; i < FusionTuning.StasisFreePauses; i++) if (fx.DotAlpha(2, i) > .4f) litAfter++;
+        Check("STASIS: a pip per free pause (" + litBefore + "), one goes dark per use (" + litAfter + ")",
+              st.Fired && st.fusion.id == FusionId.Stasis && AtomFusions.StasisLive && fx.IsPlaying(FusionId.Stasis) &&
+              litBefore == FusionTuning.StasisFreePauses && litAfter == litBefore - 1);
+        collisionDetection.invTimer = 0f; collisionDetection.atomCheck = false;
+        AtomFusions.Tick(.4f);
+        Check("... gone with the shield", fx.DotsShowing(2) == 0 && !fx.IsPlaying(FusionId.Stasis));
+
+        // LIFELINE: band along the top edge while the extended reach is live
+        AtomFusions.BeginRun(ship);
+        pull = MagnetPull.Begin(ship);
+        AtomFusions.Tick(.01f);
+        AtomFusions.OnAtom(AtomKind.Magnet, Vector3.zero);
+        var ll = AtomFusions.OnAtom(AtomKind.Heal, Vector3.zero);
+        AtomFusions.Tick(.3f);
+        bool llLive = ll.Fired && ll.fusion.id == FusionId.Lifeline && AtomFusions.LifelineLive && fx.IsPlaying(FusionId.Lifeline);
+        bool noCam = Camera.main == null;   // with no camera there is no edge to draw on: the band stays off
+        Check("LIFELINE: loops while its reach is live", llLive && (noCam || fx.BandShowing));
+        pull.End();
+        AtomFusions.Tick(.4f);
+        Check("... ends with the magnet", !fx.IsPlaying(FusionId.Lifeline) && !fx.BandShowing && fx.DotsShowing(3) == 0);
+
+        // NOVA: armed charge loops inside the shield; the clear kills plain enemies, ring reaches exactly the radius
+        AtomFusions.BeginRun(ship);
+        ship.transform.position = Vector3.zero;
+        collisionDetection.atomCheck = true;
+        collisionDetection.invTimer = 5f;
+        AtomFusions.Tick(.01f);
+        AtomFusions.OnAtom(AtomKind.Shield, Vector3.zero);
+        var nv = AtomFusions.OnAtom(AtomKind.Capacitor, Vector3.zero);
+        AtomFusions.Tick(1f);
+        Check("NOVA: the armed charge loops while the shield holds", nv.Fired && nv.fusion.id == FusionId.Nova && AtomFusions.NovaLive && fx.IsPlaying(FusionId.Nova));
+        var inner = Plain("Enimey", new Vector2(0f, 6.5f));      // past the old 4.5, inside the new 7.2
+        var far = Plain("Enimey", new Vector2(0f, 8.5f));
+        var rock = Plain("Astr", new Vector2(2f, 2f));
+        int killsBefore = AtomFusions.NovaKills;
+        collisionDetection.invTimer = 0f;
+        AtomFusions.OnShieldEnding(Vector3.zero);
+        Check("NOVA: a plain enemy inside 7.2 u dies by the ordinary kill; one outside, and a rock, do not",
+              AtomFusions.NovaKills == killsBefore + 1 && (inner == null || !inner.activeInHierarchy || !inner.GetComponent<ClearTarget>().enabled) &&
+              far != null && far.GetComponent<ClearTarget>().enabled && rock != null && rock.GetComponent<ClearTarget>().enabled);
+        AtomFusions.OnShieldEnded();
+        collisionDetection.atomCheck = false;
+        AtomFusions.Tick(FusionFx.NovaRingSeconds * FusionFx.NovaGrowShare);
+        Check("... a ring grows to exactly the clear radius (" + FusionTuning.NovaClearRadius + " u)",
+              fx.NovaRingShowing && Mathf.Abs(fx.NovaRingRadius - FusionTuning.NovaClearRadius) < .05f && fx.NovaRingRenderer.color.a <= .7f);
+        AtomFusions.Tick(FusionFx.NovaRingSeconds);
+        Check("... then fades away", !fx.NovaRingShowing);
+        if (far != null) Object.DestroyImmediate(far);
+        if (rock != null) Object.DestroyImmediate(rock);
+        if (inner != null) Object.DestroyImmediate(inner);
+
+        // nothing in the tutorial: no kills
+        AtomFusions.BeginRun(ship);
+        collisionDetection.atomCheck = true; collisionDetection.invTimer = 5f;
+        AtomFusions.Tick(.01f);
+        AtomFusions.OnAtom(AtomKind.Shield, Vector3.zero);
+        AtomFusions.OnAtom(AtomKind.Capacitor, Vector3.zero);
+        var bystander = Plain("Enimey", new Vector2(0f, 3f));
+        startMenu.youAreInTutorial = true;
+        int before = AtomFusions.NovaKills;
+        collisionDetection.invTimer = 0f;
+        AtomFusions.OnShieldEnding(Vector3.zero);
+        startMenu.youAreInTutorial = false;
+        Check("NOVA kills nothing in the tutorial", AtomFusions.NovaKills == before && bystander.GetComponent<ClearTarget>().enabled);
+        Object.DestroyImmediate(bystander);
+
+        // every loop ends cleanly on death
+        AtomFusions.BeginRun(ship);
+        collisionDetection.atomCheck = true; collisionDetection.invTimer = 5f;
+        AtomFusions.Tick(.01f);
+        AtomFusions.OnAtom(AtomKind.Shield, Vector3.zero);
+        AtomFusions.OnAtom(AtomKind.Heal, Vector3.zero);
+        AtomFusions.Tick(.3f);
+        bool bloomOn = fx.DotsShowing(1) > 0;
+        buttonClicks.playerDied = true;
+        AtomFusions.EnabledOverride = false;
+        typeof(FusionFx).GetMethod("LateUpdate", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).Invoke(fx, null);
+        Check("death: the overlays go dark at once", bloomOn && fx.DotsShowing(1) == 0 && !fx.IsPlaying(FusionId.Bloom));
+        buttonClicks.playerDied = false;
+        AtomFusions.EnabledOverride = true;
+
+        // no allocation while they run
+        AtomFusions.BeginRun(ship);
+        collisionDetection.atomCheck = true; collisionDetection.invTimer = 5.5f;
+        AtomFusions.Tick(.01f);
+        AtomFusions.OnAtom(AtomKind.Shield, Vector3.zero);
+        AtomFusions.OnAtom(AtomKind.Heal, Vector3.zero);
+        for (int w = 0; w < 20; w++) AtomFusions.Tick(.05f);
+        long mem0 = System.GC.GetAllocatedBytesForCurrentThread();
+        for (int n = 0; n < 1000; n++) { collisionDetection.invTimer = 5.5f; AtomFusions.Tick(.016f); }
+        long bytes = System.GC.GetAllocatedBytesForCurrentThread() - mem0;
+        Check("1000 frames of bloom petals allocate nothing (" + bytes + " bytes)", bytes == 0);
+
+        pull.End();
+        collisionDetection.atomCheck = false;
+        collisionDetection.invTimer = 0f;
+        collisionDetection.lifeCounter = 0;
         AtomFusions.EnabledOverride = null;
         Object.DestroyImmediate(ship);
     }

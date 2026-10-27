@@ -23,7 +23,9 @@ public static class FusionTuning
     public const float BloomMinHeartGap = 1f;      // s between two restored hearts at most
 
     // ---- NOVA (shield + capacitor): the shield's parting shockwave also clears enemy shots ----
-    public const float NovaClearRadius = 4.5f;     // u from the ship (the plain shockwave reaches ShieldShockwave.Radius 3.2)
+    public const float NovaClearRadiusBase = 4.5f;  // the first radius
+    public const float NovaClearRadiusScale = 1.6f; // +60%: the parting wipe reaches further
+    public const float NovaClearRadius = NovaClearRadiusBase * NovaClearRadiusScale;   // 7.2 u from the ship (the plain shockwave reaches ShieldShockwave.Radius 3.2)
 
     // ---- OVERCLOCK (pause + capacitor) ----
     public const int OverclockPausesTo = 5;        // the pause counter is topped up to at least this (a run starts with 5)
@@ -41,6 +43,10 @@ public static class FusionTuning
     // ---- SINGULARITY (magnet + shield + heal): the vacuum heals ----
     public const float SingularityHealGap = 1.5f;  // s between two healed hearts at most
     public const int SingularityMaxHearts = 2;     // per singularity
+
+    // ---- looping fusion visuals (FusionFx): VACUUM / SINGULARITY loop while the rules say they are live ----
+    public const float LoopFadeSeconds = .2f;      // the fade-out when the effect ends
+    public const float HealFlashSeconds = .3f;     // SINGULARITY's flash on each healed heart
 
     // ---- the ship-flavoured ones ----
     public const float FeatherStormClearRadius = 2.4f;   // Dove's Mending + heal atom: clears enemy shots this close...
