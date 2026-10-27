@@ -170,6 +170,7 @@ public static class WorldArtPreload
             Request<Sprite>(tileFolder + layer.texture);
         }
         if (wrap) Request<Shader>(BackdropTile.WrapShader);
+        if (Application.isPlaying && CloudShadowLayer.Enabled && CloudShadowLayer.Has(spec.world)) CloudShadowArt.Shapes();   // the cloud-shadow atlas is procedural: build it now, not mid-play
         Request<Shader>(BackdropGrade.ShaderName);
         Request<Texture2D>(folder + BackdropCatalog.AtlasFx);
         Request<TextAsset>(folder + BackdropCatalog.AtlasFx);

@@ -474,3 +474,20 @@ Converter conventions:
 | Background vignette, Frost, with a fighter, a rock and the unchanged player ship at true scale | `vignette_frost.png` |
 | Palettes | `palette.png` |
 | Everything on one sheet | `sample-sheet.png` |
+
+## Cloud shadows (backdrop)
+
+Frost, Verdant, Ember, Tide and Desert carry 2-4 slow, soft cloud shadows drifting over the ground (`CloudShadows.cs`,
+`CloudShadowLayer`). **None in Space (the Space loop after Desert included) and none in Storm** (its own thunderheads).
+
+- Pixel art, not blur: one procedural 512x512 atlas (three blob shapes, five stepped alpha levels, 4x4 ordered dither on the
+  rims), point-filtered, quad snapped to a 4-art-pixel cell grid (the ground tiles are 896 px wide).
+- Tint is a dark *saturated* version of the ground colour per world (deep blue Frost, deep green Verdant, umber-red Ember,
+  deep teal Tide, umber Desert), never black, never pink. Core opacity caps: Frost .50, Verdant .48, Ember .46, Tide .50,
+  Desert .50 (hard ceiling `CloudShadowLayer.HardCap` = .5); the planet's night-side variants take `nightCapMul` of that.
+- Sorting: above EVERY ground-plane layer of the world (tiles, strips, landmarks, docks, pipes, lamps), below the weather
+  layers (mist, wisps, ceiling, snow, grit) and far below gameplay (order 0: enemies, elites, shots, pickups, ship) and the HUD.
+- Cost: 2-4 pooled SpriteRenderers, one material, one cached texture, zero allocation per frame. Low-end phones
+  (KillCamRecorder thresholds) get 2; under 2.5 GB RAM none. Kill switch `CloudShadowLayer.Enabled`.
+- The layer is only built in play: edit-mode art measurements (luminance, lane, dock, mask) never include it.
+- Tests: `CloudShadowTest`. Preview: `CloudShadowPreview.Run` (`CLOUD_SHADOW_DIR`).

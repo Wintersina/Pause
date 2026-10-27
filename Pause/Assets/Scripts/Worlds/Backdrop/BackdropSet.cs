@@ -40,6 +40,8 @@ public class BackdropSet
     public BackdropAtlas AsteroidFx { get; private set; }
     public BackdropDirector Director { get; private set; }
     public SpaceSunLayer Sun { get; private set; }
+    // Soft cloud shadows over the ground (CloudShadows.cs); null in Space / Storm, in the menus' tile-only sets and in edit mode.
+    public CloudShadowLayer CloudShadows { get; private set; }
     public float SunDim { get; private set; } = 1f;
     // The variant set the tile layers came from (Spec.variantSets; 0 = none).
     public int Variant { get; private set; }
@@ -135,6 +137,7 @@ public class BackdropSet
         Layout(halfWidth, halfHeight);
         Director = tilesOnly ? null : CreateDirector(Spec.world);
         if (Director != null && Complete) Director.Init(this);
+        if (!tilesOnly && Complete) CloudShadows = CloudShadowLayer.TryCreate(this);
         // Space's sun: a backdrop piece the run's palette pick owns (SpaceSunPick); the menu's Space shows it too, dimmed like its tiles.
         if (Spec.world == "Space" && Complete)
         {
@@ -216,6 +219,7 @@ public class BackdropSet
         float mainWidth = halfWidth * 2f * 1.02f;
         TileScale = mainWidth / 6f;
         foreach (var t in Tiles) t.Layout(mainWidth, halfHeight * 2f, mainWidth);
+        if (CloudShadows != null) CloudShadows.Layout(halfWidth, halfHeight);
     }
 
     // dt is already scaled: 0 while paused.
@@ -224,6 +228,7 @@ public class BackdropSet
         foreach (var t in Tiles) t.Tick(dt, velocity, HalfHeight * 2f, Alpha);
         if (Director != null && Complete) Director.Tick(dt, velocity);
         if (Sun != null) Sun.Step(dt);
+        if (CloudShadows != null) CloudShadows.Step(dt, velocity, Alpha);
     }
 
     public int PieceCount
@@ -242,6 +247,7 @@ public class BackdropSet
     {
         if (Director != null) Director.Teardown();
         if (Sun != null) { Sun.Teardown(); Sun = null; }
+        if (CloudShadows != null) { CloudShadows.Teardown(); CloudShadows = null; }
         foreach (var t in Tiles) t.Destroy();
         Fx.Destroy();
         Anim.Destroy();
