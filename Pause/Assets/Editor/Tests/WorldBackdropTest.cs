@@ -102,6 +102,11 @@ public static class WorldBackdropTest
     const float EmberSkyMaxLuminance = 0.16f;
     const float EmberTileMaxLuminance = 0.18f;
     const float EmberTileMaxChroma = 0.25f;
+    // Ember enemy bodies read >= 2.0:1 (every other world 2.5:1) against the rendered lane, user decision 2026-10-27 ("the
+    // Ember backdrops are all black, make them colourful"): the 2.5:1 rule forced a lane median luminance <= .011 and so
+    // a near-black visible ground; at 2.0:1 it is <= .026, which lets the lava, rust and copper colour show. The brightest
+    // tone must still read >= 7:1 and the lane p90 value stays under the enemy hull's.
+    public const float EmberBodyContrastMin = 2.0f;
     const float EmberCloudMaxLuminance = 0.80f;
 
     // TIDE IS DARK, MINT-FOAMED AND LAMP-LIT, AS PAINTED: its v3 ocean world is painted at value
@@ -1250,8 +1255,9 @@ public static class WorldBackdropTest
             float body = Contrast(RelLum(theme.hull), laneLum);
             float bright = Mathf.Max(RelLum(theme.light), Mathf.Max(RelLum(theme.hullHighlight), RelLum(theme.bone)));
             float kick = Contrast(bright, laneLum);
-            Check(world + " lane with enemies on top: body " + body.ToString("F2") + ":1 >= 2.5, brightest " +
-                  kick.ToString("F2") + ":1 >= 7", body >= 2.5f && kick >= 7f);
+            float bodyMin = wspec.world == "Ember" ? EmberBodyContrastMin : 2.5f;
+            Check(world + " lane with enemies on top: body " + body.ToString("F2") + ":1 >= " + bodyMin.ToString("F1") + ", brightest " +
+                  kick.ToString("F2") + ":1 >= 7", body >= bodyMin && kick >= 7f);
             Check(world + " lane stays darker than enemy bodies (lane value p90 " + laneV90.ToString("F2") +
                   " <= " + ValueCap(wspec) + " and < hull " + Value(theme.hull).ToString("F2") + ")",
                   laneV90 <= ValueCap(wspec) && laneV90 < Value(theme.hull));

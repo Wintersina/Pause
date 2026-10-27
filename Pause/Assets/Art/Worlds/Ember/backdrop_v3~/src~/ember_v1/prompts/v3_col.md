@@ -1,0 +1,11 @@
+Use your built-in image generation tool to redraw the attached reference image (v3_ref.png).
+
+SCENE (v3 ash ridges, wind-sculpted ash dunes, black rock ridges, thin lava streams, ruined arches and wheels): make RIVERS OF LAVA in BOTH GOLD AND RED run through the ridges (some channels glowing red-orange, others bright gold-yellow, both with dark crust banks), plus a network of CRACKED CRUST with glowing orange cracks over the rock and the ash plain. Ash dunes warm pale grey-tan lit by the lava light; ridges black basalt with rust-red strata; ruins in iron, rust and brass. Colourful and fiery overall, not grey.
+
+REDRAW the attached reference as a COLOURFUL, vivid volcanic-world ground (the previous version came out almost black and grey; the user wants it clearly brighter and more colourful). Keep the composition, landmark positions and silhouettes identical. Top-down aerial view, portrait 887x1774, hi-res pixel art with crisp square pixels, terrain fills every edge, no outlines or borders, no text, no blur, no horizon, no ships, no space. NO pink, NO magenta, NO purple.
+
+COLOUR AND MATERIALS: rich, varied, natural colours, not monochrome: glowing lava in red, orange and gold; warm rust-red and ochre rock; charcoal and blue-black basalt with glassy highlights; warm pale-grey ash with a golden tint where lit; copper, brass and bronze metal with green-teal verdigris patina; a few teal accents. Strong value contrast, crisp rim light on structures, no haze or fog over them. Overall the image must read warm, lit and colourful, never near-black and never flat grey.
+
+READABILITY (important): the central vertical band of the image (roughly x from 20% to 80% of the width) is where the game's fire-coloured bullets, orange and gold pickups and enemies move, so keep that central band calmer: mostly mid-dark ground (dark crust, charcoal, deep umber, dark rust, dark brass) with colour present as saturated mid-value hues and thin glowing cracks, and with at most a few small bright lava features. Put the strongest, brightest lava glow, rivers and the most vivid colour in the LEFT and RIGHT fifth of the image and around (not on top of) the central band. Never a big flat bright area anywhere.
+
+Output: copy the generated image to ./v3_col_a.png in your current working directory and reply with one line.
