@@ -1,0 +1,5 @@
+Created the transparent 1254×1254 RGBA weather sheet with three cloud wisps and one mist puff.
+
+Saved to [wx_wisps.png](/Users/sina/Developer/Pause/.claude/ws-storm-overlays/Pause/Assets/Art/Worlds/Storm/backdrop_v4~/restyle_overlays/src~/wx_wisps.png)
+
+Used the built-in image generation tool; no other files were modified.

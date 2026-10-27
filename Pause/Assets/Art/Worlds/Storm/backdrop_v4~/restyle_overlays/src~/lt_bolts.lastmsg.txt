@@ -1,0 +1,3 @@
+Generated the 1254×1254 lightning overlay sheet and saved it here:
+
+[lt_bolts.png](/Users/sina/Developer/Pause/.claude/ws-storm-overlays/Pause/Assets/Art/Worlds/Storm/backdrop_v4~/restyle_overlays/src~/lt_bolts.png)

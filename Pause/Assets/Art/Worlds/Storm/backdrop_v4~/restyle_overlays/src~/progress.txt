@@ -1,0 +1,14 @@
+rain_a exit 0 /Users/sina/Develope
+rain_b exit 0 /Users/sina/Develope
+rain_c exit 0 /Users/sina/Develope
+rain_d exit 0 /Users/sina/Develope
+wx_banks exit 0 /Users/sina/Develope
+wx_wisps exit 0 /Users/sina/Develope
+wx_gusts exit 0 /Users/sina/Develope
+wx_rain exit 0 /Users/sina/Develope
+lt_bolts exit 0 /Users/sina/Develope
+lt_strikes exit 0 /Users/sina/Develope
+lt_flashes exit 0 /Users/sina/Develope
+amb_a exit 0 /Users/sina/Develope
+amb_b exit 0 /Users/sina/Develope
+ALLDONE

@@ -1,0 +1,5 @@
+Created the transparent 2×2 weather overlay sheet and saved it here:
+
+[wx_gusts.png](/Users/sina/Developer/Pause/.claude/ws-storm-overlays/Pause/Assets/Art/Worlds/Storm/backdrop_v4~/restyle_overlays/src~/wx_gusts.png)
+
+1254×1254 RGBA PNG; no other project files were modified.

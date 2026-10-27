@@ -1,0 +1,5 @@
+Created the transparent 1254×1254 RGBA overlay sheet and saved it here:
+
+[amb_a.png](/Users/sina/Developer/Pause/.claude/ws-storm-overlays/Pause/Assets/Art/Worlds/Storm/backdrop_v4~/restyle_overlays/src~/amb_a.png)
+
+No other project files were modified.

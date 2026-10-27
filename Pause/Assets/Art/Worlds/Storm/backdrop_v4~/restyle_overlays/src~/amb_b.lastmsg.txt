@@ -1,0 +1,5 @@
+Created the transparent 4×2 storm overlay sheet.
+
+[amb_b.png](/Users/sina/Developer/Pause/.claude/ws-storm-overlays/Pause/Assets/Art/Worlds/Storm/backdrop_v4~/restyle_overlays/src~/amb_b.png)
+
+Verified: 1254×1254 PNG, RGBA with real transparency.

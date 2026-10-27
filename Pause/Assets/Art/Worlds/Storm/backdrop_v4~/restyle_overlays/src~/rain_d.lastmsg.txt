@@ -1,0 +1,5 @@
+Created the transparent 1254×1254 RGBA rain overlay sheet:
+
+[Download `rain_d.png`](</Users/sina/Developer/Pause/.claude/ws-storm-overlays/Pause/Assets/Art/Worlds/Storm/backdrop_v4~/restyle_overlays/src~/rain_d.png>)
+
+No other project files were changed.
