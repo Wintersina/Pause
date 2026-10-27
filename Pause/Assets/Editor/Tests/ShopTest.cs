@@ -281,6 +281,8 @@ public static class ShopTest
 
         int poor = 7;
         PlayerPrefs.DeleteKey("boughtship" + poor);
+        PlayerPrefs.SetString("boughtship2", "True");   // Gold Warden opens at 4 owned ships (ShipUnlocks)
+        PlayerPrefs.SetString("boughtship3", "True");
         PlayerPrefs.SetFloat("PlayerCurrecny", 100f);
         dock.Select(poor);
         dock.popup.Press();

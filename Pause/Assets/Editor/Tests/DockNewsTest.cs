@@ -44,6 +44,7 @@ public static class DockNewsTest
             Check("no store, no items", list.Count == 0);
 
             int paragonBuys = 0, supportBuys = 0;
+            for (int id = 1; id <= 5; id++) PlayerPrefs.SetString(ShipId.OwnedKey(id), "True");   // Paragon's ticker line needs 5 owned ships (ShipUnlocks)
             ParagonPurchase.LaunchFlow = () => paragonBuys++;
             SupportPurchase.Large.LaunchFlow = () => supportBuys++;
             int smallBuys = 0;

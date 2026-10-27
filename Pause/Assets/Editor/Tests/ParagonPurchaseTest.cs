@@ -61,6 +61,10 @@ public static class ParagonPurchaseTest
             ParagonPurchase.SetPrice("$4.99");
             Check("same price does not redraw", changed == 1);
 
+            // Paragon opens at 5 owned ships (ShipUnlocks): fewer, and the tap does nothing.
+            Check("buy tap with too few ships does nothing", !ParagonPurchase.RequestBuy() && launches == 0 && !ParagonPurchase.Buying);
+            for (int id = 2; id <= 5; id++) PlayerPrefs.SetString(ShipId.OwnedKey(id), "True");
+
             // The buy tap opens the store once; a second tap while buying is ignored.
             Check("buy tap launches the flow", ParagonPurchase.RequestBuy() && launches == 1 && ParagonPurchase.Buying);
             Check("second tap while buying is ignored", !ParagonPurchase.RequestBuy() && launches == 1);

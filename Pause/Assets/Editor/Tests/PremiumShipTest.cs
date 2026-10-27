@@ -75,6 +75,7 @@ public static class PremiumShipTest
         var oldFlow = ParagonPurchase.LaunchFlow;
         ParagonPurchase.LaunchFlow = () => { };
         PlayerPrefs.DeleteKey(ShipId.OwnedKey(P));
+        for (int id = 2; id <= 5; id++) PlayerPrefs.SetString(ShipId.OwnedKey(id), "True");   // Paragon's buy button needs 5 owned ships (ShipUnlocks)
         float room = DockPopup.PanelWidth - 2f * DockPopup.Pad - 12f;
         try
         {

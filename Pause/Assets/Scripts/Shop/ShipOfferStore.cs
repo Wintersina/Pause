@@ -29,7 +29,7 @@ public static class ShipOfferStore
     // not premium (Paragon is real money only), with a real dust price.
     public static bool Offerable(int id)
     {
-        if (!ShipId.IsValid(id) || ShipId.IsOwned(id) || PremiumShips.IsPremium(id)) return false;
+        if (!ShipId.IsValid(id) || ShipId.IsOwned(id) || PremiumShips.IsPremium(id) || ShipUnlocks.IsLocked(id)) return false;
         float price = shopingShips.CostFor(id);
         return price > 0f && price < float.MaxValue;
     }

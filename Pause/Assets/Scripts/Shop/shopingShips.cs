@@ -92,6 +92,8 @@ public class shopingShips : MonoBehaviour {
         // Premium ships (Paragon) are sold for real money (ParagonPurchase), never
         // star dust -- see PremiumShips. This is the dust-purchase gate.
         if (PremiumShips.IsPremium(index)) return false;
+        // The last three berths open only once enough ships are owned (ShipUnlocks).
+        if (ShipUnlocks.IsLocked(index)) return false;
         float dust = PlayerPrefs.GetFloat(StarDustLedger.CurrencyKey);
         if (dust < cost) return false;
         PlayerPrefs.SetFloat(StarDustLedger.CurrencyKey, dust - cost);

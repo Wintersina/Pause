@@ -27,6 +27,8 @@ Names and descriptions as entered on Play:
 3. Support the Developer: Small Pack: "Support the developer of Pause and receive 850 star dust to spend in the game. Can be bought as many times as you like. Thank you!"
 4. 100 Star Dust (Pre-registration Reward): "A thank-you for pre-registering for Pause: 100 star dust to spend in the game, added to your account the first time you open it."
 
+Ship unlock gate (`ShipUnlocks`, `Ship/ShipUnlocks.cs`): the three dearest roster ships in dock order (Jade Phantom 5,300, Gold Warden 7,000 star dust, and Paragon last) can only be bought once the player owns other ships: Jade Phantom and Gold Warden need 4 owned, Paragon needs 5. Owned counts the free starter and every roster ship, read from the saved `boughtship<id>` keys (the ship being bought is not counted); no save format changed. Locked, the dock button reads "OWN 4 SHIPS" / "OWN 5 SHIPS" and does nothing; `shopingShips.TryPurchase`, `SpaceDock.Buy`, the post-death ship offer and `ParagonPurchase.RequestBuy` all refuse. The Play product, purchase restore and `PremiumShips.Grant` are untouched, and a ship already owned stays owned and usable whatever the count (a player who bought Paragon before reaching 5 ships keeps it). Tests: `ShipUnlocksTest`.
+
 Paragon is a real-money cheat ship: it is not on leaderboards and star dust never buys it (`PremiumShips.DustPurchasable`, `shopingShips.TryPurchase` refuses it).
 
 ## 2. Pre-registration reward on Play
