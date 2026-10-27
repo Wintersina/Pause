@@ -28,7 +28,7 @@ CFG = {
 }
 # per-variant mid target override: the mid lane median luminance must stay <= the old set (enemy body contrast)
 MID_TARGET = {3: .26, 1: .27}
-FAR_TARGET = {3: .432}  # keeps far p90 under the .45 cap once the gold traces are added
+FAR_TARGET = {1: .40, 3: .40}  # keeps far p90 under the .45 cap once the gold traces are added
 # sparse gold traces (user-approved): the hottest painted lava cores stay gold in far/sky only; never in mid (atoms are gold/orange)
 GOLD = {"far": (172, 128, 48), "sky": (122, 92, 38)}
 # v1 mid (the only visible ground layer: sky/far sit under the opaque mid tile) is the Codex redraw that has the right-hand lava river
@@ -36,7 +36,7 @@ MID_SRC = {1: "v1_new_a_river.png"}
 FOG = (.09, .08, .08)
 CAP = .45
 # sky is hidden under the opaque mid tile but WorldBackdropTest measures it AS DRAWN (gamma luma, variant lift): v1/v3 need a lower sky target to stay <= EmberSkyMaxLuminance .16
-SKY_TARGET = {1: .30, 3: .30}
+SKY_TARGET = {1: .27, 2: .30, 3: .28}
 NCOL = {"sky": 44, "far": 84, "mid": 58}
 
 

@@ -56,7 +56,9 @@ public static class EmberTuning
     // The cracked-crust NIGHT side (v4) is the darkest and draws its lights
     // stronger (NightLightBoost). One number each.
     public static float Brightness = 1f;
-    public static readonly float[] VariantBrightness = { 1f, .6f, .35f, .7f, .55f };   // index = variant (0 none)
+    // 2026-10-27: the colourful redraw is drawn as painted (the old .6 / .35 / .7 / .55 darkening made every set near-black);
+    // the guard moved to the art (calm central lane, vivid colour in the side bands) and to EmberBodyContrastMin 2.0.
+    public static readonly float[] VariantBrightness = { 1f, 1f, 1f, .9f, .8f };   // index = variant (0 none)
     public static readonly bool[] Night = { false, false, false, false, true };
     public static float NightLightBoost = 1.3f;
     public static float PlumeShare = 1f;

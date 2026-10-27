@@ -633,16 +633,19 @@ public static class EmberBackdropTest
             float body = Contrast(RelLum(theme.hull), shot.laneLum);
             float bright = Mathf.Max(RelLum(theme.light), Mathf.Max(RelLum(theme.hullHighlight), RelLum(theme.bone)));
             float kick = Contrast(bright, shot.laneLum);
-            Check("v" + v + " rendered lane with enemies on top: body " + body.ToString("F2") + ":1 >= 2.5, brightest " + kick.ToString("F2") +
+            Check("v" + v + " rendered lane with enemies on top: body " + body.ToString("F2") + ":1 >= " + WorldBackdropTest.EmberBodyContrastMin.ToString("F1") + ", brightest " + kick.ToString("F2") +
                   ":1 >= 7 (lane median value " + shot.median.ToString("F2") + ", p90 " + shot.p90.ToString("F2") + ", hull " + hullV.ToString("F2") + ")",
-                  body >= 2.5f && kick >= 7f);
+                  body >= WorldBackdropTest.EmberBodyContrastMin && kick >= 7f);
         }
         // Guard relaxed (user decision, 2026-10-26): since the Codex redraws every Ember variant has a dark, low-contrast
         // play layer, so the night side is no longer a darker lane than the day (measured: day .067, night .078, the
         // night's extra being its stronger lights / loops). Night differs by lights and hue, not by a darker lane: it
         // only has to stay within ~25% of the day and under an absolute sanity bound, so it can never become a bright lane.
+        // 2026-10-27 (colourful redraw, VariantBrightness {1, 1, 1, .9, .8}): the lanes are brighter overall (CI measured
+        // day .169, night .129 lane median value), so the absolute bound moved .09 -> .2 (still under half the enemy
+        // hull's value .42); the relative night <= 1.25 x day rule is unchanged.
         Check("the night side stays within 25% of the day's lane and dark (median " + nightMedian.ToString("F3") + " <= " + (dayMedian * 1.25f).ToString("F3") +
-              " and <= .09)", nightMedian <= dayMedian * 1.25f && nightMedian <= .09f);
+              " and <= .2)", nightMedian <= dayMedian * 1.25f && nightMedian <= .2f);
     }
 
     struct Shot { public float mean, median, p90, laneLum; }
