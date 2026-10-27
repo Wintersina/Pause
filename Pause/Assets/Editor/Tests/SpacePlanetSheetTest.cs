@@ -70,8 +70,8 @@ public static class SpacePlanetSheetTest
             n++;
             if (s == null || s.rect != new UnityEngine.Rect(r.x, r.y, r.w, r.h)) exact = false;
         }
-        Check("anim.json drives every cell's rect and size (" + n + " cells; giants 12, rocks 4)",
-              exact && atlas.Frames("giant").Length == 12 && atlas.Frames("rocky").Length == 4);
+        Check("anim.json drives every cell's rect and size (" + n + " cells; giants 6 = the world planets, rocks 4)",
+              exact && atlas.Frames("giant").Length == SpaceDirector.WorldPlanetCells.Length && atlas.Frames("rocky").Length == 4);
         Check("a 1x sheet keeps 100 pixels per unit", Mathf.Approximately(atlas.PixelScale, 1f) &&
               Mathf.Approximately(atlas.Get("giant_00").pixelsPerUnit, BackdropAtlas.PixelsPerUnit));
         atlas.Destroy();
@@ -187,9 +187,9 @@ public static class SpacePlanetSheetTest
         Object.DestroyImmediate(mat);
     }
 
-    // The six world planets (Storm, Tide, Ember, Verdant, Frost, Desert) are cells of the same "giant" frame
+    // The six world planets (Storm, Tide, Ember, Verdant, Frost, Desert) are the ONLY cells of the "giant" frame
     // set the spawner draws from (SpaceDirector picks uniformly from it, with no per-cell reserve), so every
-    // one is reachable; each is a sphere the shader can turn, its disc is opaque and round, and no violet or
+    // one is reachable and no old purple giant (the old giant_01/03/05/06/08/10 art; the six kept cells are renumbered giant_00..05, contiguous as Atlas.Frames needs) is still listed in the manifest; each is a sphere the shader can turn, its disc is opaque and round, and no violet or
     // pink (hue 260-340 at real saturation and brightness) hides in it.
     static void CheckWorldPlanets()
     {
@@ -228,8 +228,12 @@ public static class SpacePlanetSheetTest
                 round &= opaque > inside * 0.995f;
                 clean &= violet < w * h * 0.002f;
             }
-            Check(file + ": the six world planets are in the giant set the spawner draws from (" + giants.Length + " giants)",
-                  reach && giants.Length >= 12);
+            // The old giants were dropped from both manifests: any giant that is not a world planet is a regression
+            // (a stale cell would be drawn by the spawner and show purple art again).
+            bool onlyWorld = true;
+            foreach (string n in names) onlyWorld &= System.Array.IndexOf(SpaceDirector.WorldPlanetCells, n) >= 0;
+            Check(file + ": the giant set is exactly the six world planets (" + giants.Length + " giants, no old purple cell)",
+                  reach && onlyWorld && giants.Length == SpaceDirector.WorldPlanetCells.Length);
             // Even spawning: every planet cell has the same chance (SpaceDirector.EvenPlanetPool, no favourites).
             if (file == "anim") CheckEvenSpawns(giants);
             Check(file + ": the six world planets are spheres the BackdropPlanet shader turns", sphere);
@@ -247,21 +251,22 @@ public static class SpacePlanetSheetTest
         return atlas.Frames(prefix);
     }
 
-    // Every planet cell (12 giants incl. the six world planets, the reference planet, neon, halo and the far-field
-    // outposts) is drawn with the same chance per spawn, nothing repeats back to back, and the run-start planet is
-    // even per cell too.
+    // Every planet cell (the six world planets and the far-field outposts) is drawn with the same chance per spawn,
+    // nothing repeats back to back, and the run-start planet is even per cell too. The neon, halo and reference
+    // planets are purple and retired: SpaceDirector.Build loads none of them, so the pool is built from empty sets
+    // for those kinds, exactly as the director does (WorldBackdropTest.CheckSpaceMotion watches the live sky).
     static void CheckEvenSpawns(Sprite[] giants)
     {
-        var tex1 = new Texture2D(4, 4);
-        Sprite reference = Sprite.Create(tex1, new UnityEngine.Rect(0, 0, 4, 4), Vector2.one * .5f);
-        reference.name = "reference_planet";
-        Sprite[] neon = Cells("neon_frames", "neon_planet"), halo = Cells("extras", "halo_planet"), outposts = Cells("outposts", "outpost");
-        var near = SpaceDirector.EvenPlanetPool(giants, new[] { reference }, neon, halo, null);
-        var far = SpaceDirector.EvenPlanetPool(giants, new[] { reference }, neon, halo, outposts);
-        Check("the planet pool holds every cell once: " + near.Length + " near (12 giants + 1 reference + " + neon.Length +
-              " neon + " + halo.Length + " halo), " + far.Length + " far (+ " + outposts.Length + " outposts)",
-              near.Length == giants.Length + 1 + neon.Length + halo.Length && far.Length == near.Length + outposts.Length &&
-              new HashSet<Sprite>(far).Count == far.Length);
+        var none = new Sprite[0];
+        Sprite[] outposts = Cells("outposts", "outpost");
+        var near = SpaceDirector.EvenPlanetPool(giants, none, none, none, null);
+        var far = SpaceDirector.EvenPlanetPool(giants, none, none, none, outposts);
+        bool purple = false;
+        foreach (var c in far) purple |= c.name.StartsWith("neon_planet_") || c.name.StartsWith("halo_planet_") || c.name.StartsWith("reference");
+        Check("the planet pool holds every cell once: " + near.Length + " near (" + giants.Length + " world planets), " +
+              far.Length + " far (+ " + outposts.Length + " outposts), no neon / halo / reference planet",
+              near.Length == giants.Length && far.Length == near.Length + outposts.Length &&
+              new HashSet<Sprite>(far).Count == far.Length && !purple);
         foreach (var pool in new[] { near, far })
         {
             var rng = new System.Random(20261026);
@@ -278,19 +283,19 @@ public static class SpacePlanetSheetTest
             float even = 1f / pool.Length, worst = 0f;
             foreach (var c in pool) { int k; counts.TryGetValue(c, out k); worst = Mathf.Max(worst, Mathf.Abs(k / (float)n - even)); }
             Check("pool of " + pool.Length + ": every cell within 15% of 1/N over " + n + " spawns (worst " +
-                  (worst / even).ToString("P1") + " off, six world planets each ~" + even.ToString("P1") + ")", worst < 0.15f * even);
+                  (worst / even).ToString("P1") + " off, world planets each ~" + even.ToString("P1") + ")", worst < 0.15f * even);
             Check("pool of " + pool.Length + ": no cell repeats back to back (" + repeats + ")", repeats == 0);
         }
         // the opening: kind by cell count, then a cell in the kind: the same chance per cell as a spawn
         int[] cc = SpaceDirector.OpeningCellCounts;
-        bool counted = cc[1] == giants.Length && cc[2] == 1 && cc[3] == neon.Length && cc[4] == halo.Length;
-        Check("the opening's cell counts match the art (" + cc[1] + " giants, " + cc[2] + " reference, " + cc[3] + " neon, " + cc[4] + " halo)", counted);
+        bool counted = cc[1] == giants.Length && cc[2] == 0 && cc[3] == 0 && cc[4] == 0;
+        Check("the opening's cell counts match the art (" + cc[1] + " giants; reference, neon and halo retired = 0)", counted);
         float w1 = SpaceDirector.OpeningWeights[1] / cc[1];
         bool evenOpening = true;
-        for (int k = 2; k < cc.Length; k++) evenOpening &= Mathf.Abs(SpaceDirector.OpeningWeights[k] / cc[k] - w1) < 1e-5f;
+        for (int k = 2; k < cc.Length; k++) evenOpening &= cc[k] == 0 ? SpaceDirector.OpeningWeights[k] == 0f
+                                                                      : Mathf.Abs(SpaceDirector.OpeningWeights[k] / cc[k] - w1) < 1e-5f;
         Check("the opening planet is even per cell (" + w1.ToString("P2") + " each; none " + SpaceDirector.OpeningWeights[0].ToString("P0") + ")",
               evenOpening && Mathf.Abs(SpaceDirector.OpeningWeights[0] + w1 * (cc[1] + cc[2] + cc[3] + cc[4]) - 1f) < 1e-4f);
-        Object.DestroyImmediate(tex1);
     }
 
     // An installed hi-res re-render must be a drop-in for anim.

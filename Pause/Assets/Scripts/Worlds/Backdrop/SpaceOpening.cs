@@ -4,8 +4,8 @@ using UnityEngine;
 // open every run on the same giant at the same spot; now each run rolls its start once:
 //
 //   kind      a weighted pick (OpeningWeights): sometimes no planet at all (nebula and stars only), otherwise the
-//             giant, Codex's reference planet, a neon planet or a halo planet -- any of those that the backdrop's
-//             atlases actually carry (a missing one drops out of the draw, None always stays).
+//             giant (one of the six world planets) -- Space no longer loads the reference, neon or halo planets, so
+//             those kinds are never available and drop out of the draw (None always stays).
 //   look      the planet's size (OpeningScaleMin..Max), the side it sits on, how far down the view it starts and its
 //             light (one of the planet tints) are rolled too, so a repeat of the same kind still looks different.
 //
@@ -18,10 +18,11 @@ public partial class SpaceDirector
     public enum OpeningKind { None = 0, Giant = 1, Reference = 2, Neon = 3, Halo = 4 }
 
     // Weight of each kind, indexed by OpeningKind: no planet at all, then each kind in proportion to its number of
-    // cells (12 giants, 1 reference, 4 neon, 3 halo), so with the uniform pick inside a kind every cell is equally
-    // likely, like every spawn (SpaceDirector.EvenPlanetPool). SpacePlanetSheetTest checks the counts against the art.
+    // cells (6 giants; the reference, neon and halo planets are retired, so 0), so with the uniform pick inside a
+    // kind every cell is equally likely, like every spawn (SpaceDirector.EvenPlanetPool). SpacePlanetSheetTest
+    // checks the counts against the art.
     public const float OpeningNoneWeight = 0.14f;
-    public static readonly int[] OpeningCellCounts = { 0, 12, 1, 4, 3 };
+    public static readonly int[] OpeningCellCounts = { 0, 6, 0, 0, 0 };
     public static readonly float[] OpeningWeights = EvenOpeningWeights();
     static float[] EvenOpeningWeights()
     {

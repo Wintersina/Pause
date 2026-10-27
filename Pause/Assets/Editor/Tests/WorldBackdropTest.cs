@@ -265,7 +265,7 @@ public static class WorldBackdropTest
 
     static readonly Dictionary<string, string[]> RequiredSprites = new Dictionary<string, string[]>
     {
-        { "Space", new[] { "giant_00", "giant_11", "rocky_00", "rocky_03", "station_00", "station_03",
+        { "Space", new[] { "giant_00", "giant_05", "rocky_00", "rocky_03", "station_00", "station_03",
                            "ringstation_00", "ringstation_03", "mini_station_00", "mini_ringstation_00",
                            "mini_rocky_00", "galaxy0", "galaxy1", "wisp0", "wisp1",
                            "moon", "star", "dot", "streak" } },
@@ -2048,7 +2048,7 @@ public static class WorldBackdropTest
 
             // A long run: every sphere turns.
             const float step = 1f / 30f;
-            int spheres = 0, still = 0;
+            int spheres = 0, still = 0, purplePlanets = 0;
             int outpostViews = 0, outpostStill = 0, outpostNear = 0, wreckViews = 0, wreckStill = 0, debrisViews = 0, debrisStill = 0;
             bool twinkleAnimated = false, blinkClockAdvances = false;
             float blinkFirst = sd.BlinkMaterial != null ? sd.BlinkMaterial.GetFloat("_Blink") : 0f;
@@ -2099,14 +2099,22 @@ public static class WorldBackdropTest
                 foreach (var pool in sd.Bodies)
                     foreach (var p in pool.items)
                     {
-                        if (!p.active || !SpaceDirector.IsSphere(p.sr.sprite)) continue;
+                        if (!p.active) continue;
+                        // Retired purple art (old giants, neon / halo / reference planets) must never be drawn.
+                        string spriteName = p.sr.sprite != null ? p.sr.sprite.name : "";
+                        if (p.kind == SpaceDirector.Planet && (spriteName.StartsWith("neon_planet_") || spriteName.StartsWith("halo_planet_") ||
+                            spriteName.StartsWith("reference_planet") || (spriteName.StartsWith("giant_") && !SpaceDirector.IsWorldPlanet(p.sr.sprite))))
+                            purplePlanets++;
+                        if (!SpaceDirector.IsSphere(p.sr.sprite)) continue;
                         spheres++;
                         if (!p.planet || p.turnRate == 0f || p.frames != null) still++;
                     }
             }
             Check("Space spheres all animate over a 5-minute run (" + spheres + " samples, " + still + " still)",
                   spheres > 50 && still == 0);
-            // An outpost moon is 2 of the 22 far-field planet cells (SpaceDirector.EvenPlanetPool: every
+            Check("Space never draws a retired purple planet (old giant, neon, halo, reference): " + purplePlanets + " seen",
+                  purplePlanets == 0);
+            // An outpost moon is 2 of the 8 far-field planet cells (SpaceDirector.EvenPlanetPool: every
             // cell equally likely), so five minutes need not show one. Keep flying, up to another
             // twenty, until one has been drawn: the checks below are about how it is drawn, not how
             // often. Still deterministic (the director's stream is seeded).
