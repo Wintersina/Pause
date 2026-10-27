@@ -76,7 +76,20 @@ All four need a **full redesign**: new silhouettes, not a restyle of the current
 
 ### World backgrounds
 
-Each world's parallax layers are in `Art/Backgrounds/Resources/Worlds/<World>/Backdrop/`.
+Each world's parallax layers are in `Art/Backgrounds/Resources/Worlds/<World>/Backdrop/` (v3 worlds: `Backdrop3/v1..v4/`).
+
+**Ground tiles (sky / far / mid / flow / mask), 2026-10 status** (rules in `art-style.md` section 5.1):
+
+| World | Status |
+|---|---|
+| Storm | DONE: four painted 1024 x 2048 cloud-sea sets (PR #329 ground, #330 overlays, #331 landmarks and hazards) |
+| Desert v3 salt flat | DONE: painted 1024 x 2048 (PR #335) |
+| Desert v1 day dunes | DONE: painted 1024 x 2048 (PR #336) |
+| Desert v2 canyon, v4 night dunes | TODO: still 512 x 1024 |
+| Ember, Verdant, Frost, Tide (all four variants each) | TODO: still 512 x 1024 |
+| Space | its own sky and planet atlases; not part of this queue |
+
+The layer lists below describe the older, sprite-scale checklist: apply the painted-ground rules to the TODO rows above.
 
 - [ ] **Space.** Layers: `sky.png`, `anim.png` + `anim.json`, `fx.png` + `fx.json`.
 - [ ] **Frost.** Layers: `sky`, `far`, `mid`, `flow`, `anim`, `fx`.

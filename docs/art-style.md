@@ -18,6 +18,12 @@ green heal atom (`Pause/Assets/Art/Resources/Pickups/heal_atom_green.png`).
 > (`git log -- docs/art-style.md docs/art-samples`); `docs/art-samples/src/` stays because the
 > art scripts import its palette. The v2 samples are in `docs/art-samples/neon/`.
 
+> **Scope (2026-10).** Neon pixel art remains the style of everything you collide with or read as a
+> game object: enemies, bosses, elites, hazards, pickups, shots and FX, and the world's landmarks and
+> props. The player ships and UI keep the flat-cartoon v1 look. The one exception is the **backdrop
+> ground** (the sky / far / mid tiles under the playfield): worlds whose ground has been restyled
+> (Storm, and Desert's salt flat and day dunes) use hi-res painted tiles; see section 5.1.
+
 Defining traits (keep all of them, on every converted asset):
 
 1. **1 px dark selective outline.** Ink on the shadow side and darkened local colour on the lit side.
@@ -296,8 +302,10 @@ Key-pose rules:
 
 ## 5. Readability versus backgrounds
 
-Backgrounds are neon pixel art too, but **darker, lower in contrast, and lower in neon density**
-than anything you can collide with. These limits are checked by `pixelkit.bg_check()`:
+Backgrounds are **darker, lower in contrast, and lower in neon density** than anything you can
+collide with. Sprite-scale and hand-pixelled backgrounds (the Space and Frost vignettes, atlases,
+walls) are neon pixel art and are checked by `pixelkit.bg_check()` against the limits below; the painted ground tiles
+of section 5.1 follow their own measured limits instead:
 
 | Metric (HSV) | Background limit | Gameplay objects |
 |---|---|---|
@@ -319,6 +327,48 @@ than anything you can collide with. These limits are checked by `pixelkit.bg_che
 - **Check:** the frost vignette scores p95 value 0.27, max 0.60, saturation 0.70 and 0.25%
   accents (`samples.py` asserts this). Then composite an enemy and the player ship on it at
   true scale, as in `vignette_frost.png`.
+
+### 5.1 Backdrop ground: painted hi-res tiles
+
+The ground of a restyled world is **not pixel art**: it is a real-looking, richly textured painting
+(cracked salt polygons, pools, crystal terraces, wind-sculpted dunes, rocks, wadis) at twice the old
+resolution. The old 512 x 1024 tiles read as flat, repeated and blurry next to everything else.
+Reference sets: Storm (cloud seas, `Worlds/Storm/Backdrop3`), Desert v3 salt flat and v1 day dunes. Not
+yet restyled (still 512 x 1024, a queue item): Ember, Verdant, Frost, Tide, and Desert v2 canyon and
+v4 night dunes.
+
+- **Tiles.** `sky`, `far`, `mid` are 1024 x 2048, seamless on both axes, imported at PPU 170.67 (so the
+  world size is unchanged), max texture 2048, ASTC 6x6, mesh type Full Rect. `flow` is a 1024 x 2048
+  transparent overlay (grit, rain, glints) made by a script, not painted.
+- **One paint source per layer.** Codex (gpt-5.6-luna image generation) paints two opaque 1254 x 1254
+  paintings per variant ("A over B", clearly different arrangements, central 40% of the width calm, outer
+  30% busiest, no horizon / vignette / borders). `build_tiles.py` crops each to 1224 px (one painted texel =
+  one tile texel, no resampling), stacks A over B and joins them, and wraps the left and right edges, all with
+  a **min-error cut** through real painted content (not a crossfade). `far` and `sky` are the same painting
+  shifted and mirrored, hazier and darker.
+- **Grading rules (in `build_tiles.py`).** Value is scaled to a per-variant p90 target (Desert .465-.49,
+  Storm .42-.44; far -.05, sky -.10); the central lane is compressed in contrast and capped. **No pink,
+  magenta, purple or strong red outside Space**: such texels are rotated to the world's accent (ochre in Desert,
+  indigo in Storm). **No outlines or borders** on terrain. Colour comes from hue and light, not from brightness.
+- **Readability limits (tests).** `WorldBackdropTest` holds each world's tile value p90 (.50), relative
+  luminance as drawn (tiles .31, sky .26) and chroma (.30) caps, and a per-world ASTC texture budget; the lane must
+  stay darker than the enemy hull and the brightest enemy tone must read at least 7:1 against it
+  (`CheckReadability`, `DesertBackdropTest`). `DesertTuning.VariantBrightness` darkens a set that fails.
+  Never raise a cap to fit new art: darken the grade first.
+- **Masks.** `mask.txt` is a 32 x 64 grid (CELL 32 on a 1024 x 2048 tile, row 0 = top) made by that world's
+  `ground_masks.py` from colour and texture statistics, then checked by eye on the debug overlay. Desert classes:
+  **W** dune sand (soft ground, worms), **B** built / rubble, **O** hardpan (heavy structures and launch sites),
+  **C** cliff or rock **and open water / brine pools**. Docks, structures and wells never stand on C; elite
+  docks are placed one at a time on real ground, never on water.
+- **Dock tints.** Elite docks are tinted per backdrop (`DockGradeTable`, `Desert/<variant>/<dock>`). After new
+  ground art, re-scale the rows of that variant by the ratio of the new to the old mid tile's mean RGB (clamped
+  to 1; an estimate), and refine with `DockAuditCapture` when a GPU run is available.
+- **Sources** live in `~` folders (not shipped): `Art/Worlds/<World>/backdrop_*~/restyle*/` holds the prompts
+  (`common*.md`, `prompt_*.md`), the painted sources (`*.png`), `refs/` (style bars, and the replaced art marked
+  `OLD_..._do_not_copy`), `build_tiles.py`, `build_flow.py` and a README. Re-run the build from there; never
+  hand-paint into `Resources`.
+- **Landmarks and props** (towers, docks, wrecks, vortices) stay hand-composed sprite sheets pinned to the
+  ground; they were not changed by the ground restyle and keep the pixel-art look of section 2.
 
 ---
 
@@ -389,7 +439,7 @@ Converter conventions:
 |---|---|
 | Draw at native 1/64 u pixels, upscale ×4 nearest | Draw big and downscale, or resample in Unity |
 | 1 px sel-out outline per part | Thick ink (v1), no outline, or outlined glow |
-| 4–6 tone ramps with texture in the mid-tones | Smooth gradients, airbrush, photo texture |
+| 4–6 tone ramps with texture in the mid-tones (sprites) | Smooth gradients, airbrush, photo texture on sprites (the painted ground tiles of 5.1 are the exception) |
 | Rim light on the bottom-right | Rim on every edge (that reads as a sticker outline) |
 | Neon cores with a white-hot centre and a stepped halo | Soft full-opacity bloom blobs, or glow wider than §3 allows |
 | One world palette per asset plus `INK` | Mixed world hues, or invented in-between tones |
