@@ -184,6 +184,7 @@ public static class SpawnSpace
         Collider2D col;
         if (go.TryGetComponent(out col) && col.enabled)
         {
+            Physics2D.SyncTransforms();   // (auto sync is off: bounds follow the last sync)
             Vector2 e = col.bounds.extents;
             if (e.x > .01f || e.y > .01f) return e;
             var box = col as BoxCollider2D;

@@ -112,7 +112,7 @@ public class BackdropSet
             bool spaceSky = Spec.world == "Space" && layer.name == "sky";
             string texture = spaceSky ? (menu != null ? SpaceSkySelection.TextureFor(menu.variant) : SpaceSkySelection.Texture) : layer.texture;
             bool turn = spaceSky && (menu != null ? menu.halfTurn : SpaceSkySelection.HalfTurn);
-            var sprite = Resources.Load<Sprite>(tileFolder + texture);
+            var sprite = WorldArtPreload.Load<Sprite>(tileFolder + texture);
             if (sprite == null) { Complete = false; continue; }
             Textures.Add(sprite.texture);
             float lift = BackdropGrade.Lift(Spec, layer, Variant);
@@ -163,8 +163,8 @@ public class BackdropSet
 
     BackdropAtlas LoadAtlas(string folder, string name)
     {
-        var tex = Resources.Load<Texture2D>(folder + name);
-        var json = Resources.Load<TextAsset>(folder + name);
+        var tex = WorldArtPreload.Load<Texture2D>(folder + name);
+        var json = WorldArtPreload.Load<TextAsset>(folder + name);
         if (tex != null) Textures.Add(tex);
         return new BackdropAtlas(tex, json);
     }
@@ -175,12 +175,12 @@ public class BackdropSet
     // from the cell's pixel size, so the swap changes sharpness only.
     public static BackdropAtlas LoadAnimAtlas(string folder)
     {
-        var tex = Resources.Load<Texture2D>(folder + BackdropCatalog.AtlasAnimHires);
-        var json = tex != null ? Resources.Load<TextAsset>(folder + BackdropCatalog.AtlasAnimHires) : null;
+        var tex = WorldArtPreload.Load<Texture2D>(folder + BackdropCatalog.AtlasAnimHires);
+        var json = tex != null ? WorldArtPreload.Load<TextAsset>(folder + BackdropCatalog.AtlasAnimHires) : null;
         if (tex == null || json == null)
         {
-            tex = Resources.Load<Texture2D>(folder + BackdropCatalog.AtlasAnim);
-            json = Resources.Load<TextAsset>(folder + BackdropCatalog.AtlasAnim);
+            tex = WorldArtPreload.Load<Texture2D>(folder + BackdropCatalog.AtlasAnim);
+            json = WorldArtPreload.Load<TextAsset>(folder + BackdropCatalog.AtlasAnim);
         }
         return new BackdropAtlas(tex, json);
     }

@@ -175,7 +175,7 @@ public class ChaserEnemy : MonoBehaviour, IMovementFootprint
 
         // A safety net, not the normal exit: colliding with the player or
         // the ultimate destroying it are the expected ways this goes away.
-        var cam = Camera.main;
+        var cam = CameraFit.Main;
         if (cam != null && cam.orthographic &&
             transform.position.y > cam.transform.position.y + cam.orthographicSize + 6f)
             Destroy(gameObject);

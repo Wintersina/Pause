@@ -82,7 +82,7 @@ public static class BackdropGrade
     public static Material Create(string name, float lift, float sat = 1f, float alphaLift = 1f, float feather = 0f)
     {
         if (Mathf.Approximately(lift, 1f) && alphaLift <= 1f && Mathf.Approximately(sat, 1f) && feather <= 0f) return null;
-        var shader = Resources.Load<Shader>(ShaderName);
+        var shader = WorldArtPreload.Load<Shader>(ShaderName);
         if (shader == null) return null;
         var m = new Material(shader) { name = "Grade_" + name };
         Set(m, lift, sat, alphaLift);

@@ -41,7 +41,7 @@ public class RailFit : MonoBehaviour
 
     bool CameraSizeChanged()
     {
-        var cam = Camera.main;
+        var cam = CameraFit.Main;
         return cam != null && cam.orthographic && !Mathf.Approximately(cam.orthographicSize, lastCamSize);
     }
 

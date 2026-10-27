@@ -115,6 +115,7 @@ public class WorldBackdrop : MonoBehaviour
             Current.Destroy();
         }
         Current = next;
+        WorldArtPreload.Clear();   // the swap used what was preloaded (or fell back to loading): let go of the hold
         // The codex BACKDROPS tab: this backdrop was shown in play (the tutorial and developer mode record nothing).
         if (Application.isPlaying)
             CodexBackdrops.SeenInPlay(next.Spec.world, next.Spec.world == "Space" ? SpaceSkySelection.Variant : next.Variant);

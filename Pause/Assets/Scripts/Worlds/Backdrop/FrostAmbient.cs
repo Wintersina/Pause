@@ -30,6 +30,13 @@ public class BackdropVariants
     public int Picks { get; private set; }
     // Test / preview hook: > 0 always picks this variant (when installed).
     public int Force;
+    // A pick made ahead of the entry (WorldArtPreload loads that variant's tiles); the next Pick returns it.
+    public int Reserved { get; private set; }
+    public int Reserve(int count)
+    {
+        if (Reserved == 0) Reserved = Pick(count);
+        return Reserved;
+    }
 
     System.Random rng = new System.Random();
     readonly int[] known = new int[MaxVariants + 1];   // 0 unknown, 1 installed, -1 missing
@@ -44,6 +51,7 @@ public class BackdropVariants
         Last = 0;
         Picks = 0;
         Force = 0;
+        Reserved = 0;
         rng = new System.Random();
         System.Array.Clear(known, 0, known.Length);
     }
@@ -53,7 +61,7 @@ public class BackdropVariants
     {
         if (v < 1 || v > MaxVariants) return false;
         if (known[v] == 0)
-            known[v] = Resources.Load<Sprite>(BackdropCatalog.TileFolder(World, v) + "sky") != null ? 1 : -1;
+            known[v] = WorldArtPreload.Load<Sprite>(BackdropCatalog.TileFolder(World, v) + "sky") != null ? 1 : -1;
         return known[v] > 0;
     }
 
@@ -69,6 +77,7 @@ public class BackdropVariants
     // then reports itself incomplete).
     public int Pick(int count)
     {
+        if (Reserved > 0) { int r = Reserved; Reserved = 0; return r; }   // the preload already chose (Reserve)
         count = Mathf.Clamp(count, 1, MaxVariants);
         int pick = 0;
         if (Force > 0 && Installed(Force)) pick = Force;

@@ -530,6 +530,8 @@ public class WorldManager : MonoBehaviour
     void OpenPortal()
     {
         portalOpen = true;
+        // The next world's backdrop and planetfall art load now, a frame at a time, under the lift-off / boss-over beat
+        WorldArtPreload.Next(CurrentIndex, PortalDestination, !HasNext, Worlds[PortalDestination].displayName);
         // Leaving a planet that lifts off (LiftoffCatalog: Frost, Verdant, Ember, Tide, Storm, Desert): the climb
         // to space and a calm interlude first, then Liftoff opens the gateway
         // itself (no pressure until then). Missing art: the gateway now (the

@@ -43,7 +43,7 @@ public static class EliteSystem
     {
         get
         {
-            var c = Camera.main;
+            var c = CameraFit.Main;
             return c != null && c.orthographic ? c.orthographicSize * c.aspect : RailEdge;
         }
     }

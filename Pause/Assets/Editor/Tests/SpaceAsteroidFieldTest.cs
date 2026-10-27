@@ -106,6 +106,7 @@ public static class SpaceAsteroidFieldTest
             var sprite = go.GetComponent<SpriteRenderer>();
             float w = sprite.sprite.bounds.size.x * go.transform.localScale.x;
             Check("tier " + tier + ": drawn at its width (" + w.ToString("F2") + ")", Mathf.Abs(w - SpaceAsteroidField.Width[tier]) < .02f);
+            Physics2D.SyncTransforms();
             Check("tier " + tier + ": collider inside the drawing", col.bounds.extents.x < w * .5f);
             Check("tier " + tier + ": no pink tint (white sprite colour)", go.GetComponent<SpriteRenderer>().color == Color.white);
         }

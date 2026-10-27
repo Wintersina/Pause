@@ -737,8 +737,8 @@ public class EliteShot : MonoBehaviour, IHostileShot
         age = def.lobSeconds;
         EliteSystem.Fx.Sparks(lobTo, tint, 5);
         AttackAudio.Play(ShotSkins.WorldOf(def), "splash", .7f);
-        // (no Physics2D.SyncTransforms here: the project auto-syncs transforms before every query and
-        // the simulation step syncs them itself, so the landed collider is seen either way; PerfWarmupTest pins the setting)
+        // (no Physics2D.SyncTransforms here: the simulation step syncs transforms before it runs the
+        // triggers, so the landed collider is seen by the next step; PerfWarmupTest pins this)
         // a pod opens as it lands: the cloud pool stays, spores scatter out of it
         if ((mot & ShotMotion.Burst) != 0 && generation == 0)
         {
