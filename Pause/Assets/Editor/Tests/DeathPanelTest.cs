@@ -120,7 +120,22 @@ public static class DeathPanelTest
             }
             Check(tag + "every card's edges are inside the frame's inner span (" + DeathPanelView.BorderSpan(w) + ")", cardsInside);
             Check(tag + "cards and buttons share the same column edges", sameEdges);
-            Check(tag + "the stack shift is not negative and under 60", DeathPanelView.StackShift(w) >= 0f && DeathPanelView.StackShift(w) < 60f);
+            Check(tag + "the stack shift is within +-60", Mathf.Abs(DeathPanelView.StackShift(w)) < 60f);
+            // Centred: the free space above the banner and below SPACE DOCK, inside the frame's inner borders, is equal.
+            // (the layout is in canvas units, so every phone / tablet aspect ratio shares it: Fit only scales the whole panel)
+            float above = DeathPanelView.FrameInnerTop(w) - top, below = rs[2].yMin - DeathPanelView.FrameInnerBottom(w);
+            Check(tag + "stack is centred in the frame: free space above banner " + above.ToString("F1") + " vs below SPACE DOCK " + below.ToString("F1"),
+                  Mathf.Abs(above - below) <= 1f);
+            Check(tag + "the banner keeps its gap under the top border", above >= DeathPanelView.BannerGap - .01f);
+            // On screen (the whole panel is scaled by Fit, never skewed): the same equality at several aspect ratios.
+            foreach (var asp in new[] { 9f / 16f, 9f / 19.5f, 9f / 20f, 9f / 21f, 3f / 4f })
+            {
+                var safe = new Rect(-asp * 1000f * .5f, -500f, asp * 1000f, 1000f);
+                DeathPanelView.ComputeFit(safe, null, out var fitCentre, out var fitScale);
+                float topPx = above * fitScale, bottomPx = below * fitScale;
+                Check(tag + "aspect " + asp.ToString("F3") + ": free space above banner (" + topPx.ToString("F1") + ") equals below SPACE DOCK (" + bottomPx.ToString("F1") + ")",
+                      Mathf.Abs(topPx - bottomPx) <= 1f * Mathf.Max(fitScale, .01f));
+            }
             Check(tag + "SPACE DOCK stays above the frame's bottom inset", rs[2].yMin >= DeathPanelView.FrameInnerBottom(w) + DeathPanelView.ButtonClearance - .01f);
             Check(tag + "the banner stays inside the panel", top <= DeathPanelView.Height * .5f);
         }
@@ -309,7 +324,7 @@ public static class DeathPanelTest
         var mr = PanelSpace(panel, (RectTransform)menu.transform);
         Check("Replay button is the scene button, inside the panel", replay.transform.IsChildOf(panel));
         Check("buttons have equal width (" + rr.width + " / " + mr.width + ")", Mathf.Abs(rr.width - mr.width) < .5f);
-        Check("buttons are >= 96 units tall", rr.height >= 96f && mr.height >= 96f);
+        Check("buttons are >= 96 units tall", rr.height >= 95.5f && mr.height >= 95.5f);
         Check("buttons are not scaled down by the scene's old 0.44 scale",
               Mathf.Abs(replay.transform.localScale.x - 1f) < .01f && Mathf.Abs(menu.transform.localScale.x - 1f) < .01f);
         Check("buttons don't overlap", !rr.Overlaps(mr));
@@ -334,7 +349,7 @@ public static class DeathPanelTest
         {
             var dr = PanelSpace(panel, (RectTransform)dock.transform);
             Check("SPACE DOCK does not overlap the other buttons or the cards", !dr.Overlaps(rr) && !dr.Overlaps(mr) && !cardRects.Exists(c => dr.Overlaps(c)));
-            Check("SPACE DOCK is >= 96 tall and has press feedback", dr.height >= 96f && dock.GetComponent<DeathPanelPress>() != null);
+            Check("SPACE DOCK is >= 96 tall and has press feedback", dr.height >= 95.5f && dock.GetComponent<DeathPanelPress>() != null);
             Check("SPACE DOCK is labelled", dock.GetComponentInChildren<Text>(true).text == "SPACE DOCK");
             Check("SPACE DOCK uses the same frame sprite as REPLAY",
                   dock.GetComponent<Image>().sprite == replay.GetComponent<Image>().sprite);

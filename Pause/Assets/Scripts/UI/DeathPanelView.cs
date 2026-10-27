@@ -112,14 +112,18 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
     public static float FrameInnerTop(int world) { return Height * .5f + GlowMargin - FrameTopInset(world); }
     public static float FrameInnerBottom(int world) { return -Height * .5f - GlowMargin + FrameBottomInset(world); }
     // How far the banner, its rule and the whole stack below it move down (units)
-    // so the banner's top edge sits BannerGap under the frame's top border art:
-    // as much as that needs, never more than the room above the frame's bottom
-    // border under SPACE DOCK (keeping ButtonClearance there).
+    // so the stack is CENTRED between the frame's inner top and inner bottom
+    // borders: the free space above the banner's top edge equals the free
+    // space below SPACE DOCK. Kept within what the clearances allow: at least
+    // BannerGap under the top border art, at least ButtonClearance above the
+    // bottom border art.
     public static float StackShift(int world)
     {
-        float need = BannerTopBase - (FrameInnerTop(world) - BannerGap);
-        float room = (DockY - ButtonHeight * .5f) - (FrameInnerBottom(world) + ButtonClearance);
-        return Mathf.Max(0f, Mathf.Min(need, room));
+        float stackTop = BannerTopBase, stackBottom = DockY - ButtonHeight * .5f;
+        float centred = (stackTop + stackBottom - FrameInnerTop(world) - FrameInnerBottom(world)) * .5f;
+        float need = stackTop - (FrameInnerTop(world) - BannerGap);
+        float room = stackBottom - (FrameInnerBottom(world) + ButtonClearance);
+        return Mathf.Max(need, Mathf.Min(centred, room));
     }
     // The banner's top edge (panel space) for a world's frame.
     public static float BannerTop(int world) { return BannerTopBase - StackShift(world); }
