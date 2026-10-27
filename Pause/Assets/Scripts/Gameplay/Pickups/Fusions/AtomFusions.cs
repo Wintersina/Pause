@@ -95,7 +95,7 @@ public static class AtomFusions
         bloomLastHeart = singularityLastHeart = -99f;
         novaArmed = aftershockArmed = false;
         RestoreAftershock();
-        if (shipGo != null && Enabled) { FusionMotes.Attach(shipGo); FusionFx.Build(shipGo); }
+        if (shipGo != null && Enabled) { FusionMotes.Attach(shipGo); FusionFx.Build(shipGo); FusionDiscoveryStore.Prewarm(); }
     }
 
     // The world's running clock (collisionDetection's running frames).

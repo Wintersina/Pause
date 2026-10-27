@@ -40,6 +40,14 @@ public static class FusionDiscoveryStore
         unseen = PlayerPrefs.GetInt(UnseenKey, 0) != 0;
     }
 
+    // The first fusion's own first-time work -- the PlayerPrefs read + parse and the clock's time-zone setup
+    // (DateTime.Now is slow the first time on a phone) -- done as the run begins (AtomFusions.BeginRun). Idempotent.
+    public static void Prewarm()
+    {
+        Ensure();
+        Today();
+    }
+
     public static Record Get(FusionId id) { Ensure(); return records[(int)id]; }
     public static bool IsDiscovered(FusionId id) { return Get(id).Discovered; }
 

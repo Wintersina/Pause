@@ -22,22 +22,35 @@ public static class BoostJet
 
     public static AudioSource Source { get { return source; } }
 
+    // Everything the first pickup would otherwise do on its own frame -- the Resources.Load, the Vorbis decode
+    // of a clip imported without "Preload Audio Data", the pooled GameObject + AudioSource -- done as the ship
+    // spawns (collisionDetection.Start). Idempotent; plays nothing.
+    public static void Prewarm()
+    {
+        if (clip == null) clip = Resources.Load<AudioClip>(ClipPath);
+        if (clip != null && clip.loadState == AudioDataLoadState.Unloaded) clip.LoadAudioData();
+        EnsureSource();
+    }
+
+    static void EnsureSource()
+    {
+        if (source != null) return;
+        var go = new GameObject("~BoostJet");
+        go.hideFlags = HideFlags.HideAndDontSave;
+        if (Application.isPlaying) Object.DontDestroyOnLoad(go);
+        source = go.AddComponent<AudioSource>();
+        source.playOnAwake = false;
+        source.loop = false;
+        source.spatialBlend = 0f;
+    }
+
     public static void Play()
     {
         float sfx = SoundSettings.SfxGain;
         if (sfx <= 0f) return;
         if (clip == null) clip = Resources.Load<AudioClip>(ClipPath);
         if (clip == null) return;
-        if (source == null)
-        {
-            var go = new GameObject("~BoostJet");
-            go.hideFlags = HideFlags.HideAndDontSave;
-            if (Application.isPlaying) Object.DontDestroyOnLoad(go);
-            source = go.AddComponent<AudioSource>();
-            source.playOnAwake = false;
-            source.loop = false;
-            source.spatialBlend = 0f;
-        }
+        EnsureSource();
         source.Stop();                 // restart, never stack
         source.clip = clip;
         source.volume = Volume;

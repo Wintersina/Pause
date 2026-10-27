@@ -244,6 +244,7 @@ public class collisionDetection : MonoBehaviour {
         // The blue atom's sting, decoded before the first pickup (WorldMusic
         // does the same when it swaps in a world's own sting).
         WorldMusic.Prewarm(boostSound.clip);
+        BoostJet.Prewarm();   // the jet spool-up's clip + source, ready before the first pickup
 
         shield = ShipShield.For(gameObject).Visual;
 
