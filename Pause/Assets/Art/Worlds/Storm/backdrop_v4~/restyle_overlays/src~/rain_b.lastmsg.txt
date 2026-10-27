@@ -1,0 +1,5 @@
+Created the transparent 1254×1254 rain overlay using the built-in image generator:
+
+[rain_b.png](/Users/sina/Developer/Pause/.claude/ws-storm-overlays/Pause/Assets/Art/Worlds/Storm/backdrop_v4~/restyle_overlays/src~/rain_b.png)
+
+Verified: true alpha channel, sparse center, and 40+ px meaningful edge clearance.

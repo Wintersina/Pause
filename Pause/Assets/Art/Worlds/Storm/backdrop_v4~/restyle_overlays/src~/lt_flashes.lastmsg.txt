@@ -1,0 +1,5 @@
+Created the final 1254×1254 lightning overlay sheet with the built-in image generator.
+
+Saved to:
+
+[lt_flashes.png](/Users/sina/Developer/Pause/.claude/ws-storm-overlays/Pause/Assets/Art/Worlds/Storm/backdrop_v4~/restyle_overlays/src~/lt_flashes.png)
