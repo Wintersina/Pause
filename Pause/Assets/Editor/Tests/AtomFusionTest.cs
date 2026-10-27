@@ -710,6 +710,8 @@ public static class AtomFusionTest
 
     // ---- DUST STORM / BLOOM / STASIS / LIFELINE loops, NOVA's kill and ring -----------------------
 
+    static bool Gone(GameObject go) { return go == null || !go.activeInHierarchy || !go.GetComponent<ClearTarget>().enabled; }
+
     static GameObject Plain(string tag, Vector2 at)
     {
         var go = new GameObject("~novaBody");
@@ -810,13 +812,25 @@ public static class AtomFusionTest
         Check("NOVA: the armed charge loops while the shield holds", nv.Fired && nv.fusion.id == FusionId.Nova && AtomFusions.NovaLive && fx.IsPlaying(FusionId.Nova));
         var inner = Plain("Enimey", new Vector2(0f, 6.5f));      // past the old 4.5, inside the new 7.2
         var far = Plain("Enimey", new Vector2(0f, 8.5f));
-        var rock = Plain("Astr", new Vector2(2f, 2f));
+        var rock = Plain("Astr", new Vector2(2f, 2f));            // hazards die too
+        var farRock = Plain("Astr", new Vector2(0f, 9f));
+        var mine = Plain("Enimey", new Vector2(-3f, 1f));
+        mine.AddComponent<RailMineMount>();
+        var boss = Plain("Enimey", new Vector2(1f, 3f));
+        boss.AddComponent<BossTarget>();
+        var scenery = Plain("Astr", new Vector2(-1f, 3f));
+        scenery.GetComponent<ClearTarget>().Scenery = true;
         int killsBefore = AtomFusions.NovaKills;
         collisionDetection.invTimer = 0f;
         AtomFusions.OnShieldEnding(Vector3.zero);
-        Check("NOVA: a plain enemy inside 7.2 u dies by the ordinary kill; one outside, and a rock, do not",
-              AtomFusions.NovaKills == killsBefore + 1 && (inner == null || !inner.activeInHierarchy || !inner.GetComponent<ClearTarget>().enabled) &&
-              far != null && far.GetComponent<ClearTarget>().enabled && rock != null && rock.GetComponent<ClearTarget>().enabled);
+        Check("NOVA: enemies, rocks and rail mines inside 7.2 u die by the ordinary kill (" + (AtomFusions.NovaKills - killsBefore) + ")",
+              AtomFusions.NovaKills == killsBefore + 3 && Gone(inner) && Gone(rock) && Gone(mine));
+        Check("... one outside the circle, a boss and backdrop scenery are untouched",
+              far.GetComponent<ClearTarget>().enabled && farRock.GetComponent<ClearTarget>().enabled &&
+              boss.GetComponent<ClearTarget>().enabled && scenery.GetComponent<ClearTarget>().enabled);
+        if (boss != null) Object.DestroyImmediate(boss);
+        if (scenery != null) Object.DestroyImmediate(scenery);
+        if (farRock != null) Object.DestroyImmediate(farRock);
         AtomFusions.OnShieldEnded();
         collisionDetection.atomCheck = false;
         AtomFusions.Tick(FusionFx.NovaRingSeconds * FusionFx.NovaGrowShare);
@@ -825,7 +839,6 @@ public static class AtomFusionTest
         AtomFusions.Tick(FusionFx.NovaRingSeconds);
         Check("... then fades away", !fx.NovaRingShowing);
         if (far != null) Object.DestroyImmediate(far);
-        if (rock != null) Object.DestroyImmediate(rock);
         if (inner != null) Object.DestroyImmediate(inner);
 
         // nothing in the tutorial: no kills

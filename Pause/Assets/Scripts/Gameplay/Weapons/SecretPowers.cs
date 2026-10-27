@@ -993,6 +993,13 @@ public static class HazardMovers
         return count;
     }
 
+    // The vacuum's pull: also the Space field rocks' own mover.
+    public static int DisableRock(GameObject go, Behaviour[] into, int count)
+    {
+        count = Disable(go, into, count);
+        return Add(go.GetComponent<FieldAsteroid>(), into, count);
+    }
+
     static int Add(Behaviour b, Behaviour[] into, int count)
     {
         if (b == null || !b.enabled || count >= into.Length) return count;

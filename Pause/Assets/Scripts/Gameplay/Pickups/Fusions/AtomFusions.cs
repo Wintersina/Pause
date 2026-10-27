@@ -352,9 +352,9 @@ public static class AtomFusions
         aftershockArmed = false;
     }
 
-    // NOVA also destroys the plain enemies in the clear circle, by the ordinary kill (ShipAttackHits: score, dust,
-    // combo, achievements, death effects). Only what MagnetCombo calls a plain Enemy, and only on screen: bosses,
-    // elites, what elites fly, rocks, rail mines, scenery and shots are left alone. Bloom / Singularity kill
+    // NOVA also destroys the hazards in the clear circle (plain enemies, rocks, mines), by the ordinary kill
+    // (ShipAttackHits: score, dust, combo, achievements, death effects), only on screen: bosses, elites, what
+    // elites fly, scenery and shots are left alone. Bloom / Singularity kill
     // bookkeeping is not called: the shield is already down.
     static readonly System.Collections.Generic.List<ClearTarget> novaScratch = new System.Collections.Generic.List<ClearTarget>(64);
     static int NovaKill(Vector3 at)
@@ -370,8 +370,17 @@ public static class AtomFusions
             Vector2 d = t.transform.position - at;
             float reach = FusionTuning.NovaClearRadius + t.Radius * .5f;
             if (d.sqrMagnitude > reach * reach) continue;
-            if (MagnetPull.KindOf(t) != MagnetCombo.Kind.Enemy) continue;
-            if (ShipAttackHits.Hit(t.gameObject, shipId)) kills++;
+            var kind = MagnetPull.KindOf(t);
+            // hazards: plain enemies, free mines, rocks and rail mines (the shield's own contact destroys any of them)
+            if (kind != MagnetCombo.Kind.Enemy && kind != MagnetCombo.Kind.Rock && kind != MagnetCombo.Kind.RailMine) continue;
+            var go = t.gameObject;
+            if (go.TryGetComponent(out FieldAsteroid field))
+            {
+                if (field.Broken) continue;
+                field.Break(shipId);   // a Space field rock breaks whole, like any power's kill (SecretPowerController.PowerKill)
+                kills++;
+            }
+            else if (ShipAttackHits.Hit(go, shipId)) kills++;
         }
         novaScratch.Clear();
         return kills;

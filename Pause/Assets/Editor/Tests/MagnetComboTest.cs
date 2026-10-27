@@ -8,7 +8,7 @@ using Object = UnityEngine.Object;
 //   * shield alone pulls nothing;
 //   * both up pulls the plain enemies in too, whichever was caught first,
 //     and the moment either ends the enemies are let go;
-//   * bosses, elites, what elites fly, shots, rail mines, rocks and scenery
+//   * rocks are pulled like plain enemies; bosses, elites, what elites fly, shots, rail mines and scenery
 //     are never pulled, and nothing is pulled in the tutorial;
 //   * catching either atom while the other runs restarts BOTH to the synced
 //     length (both orders, any number of times: chaining), and they end
@@ -46,6 +46,7 @@ public static class MagnetComboTest
             Callouts();
             EitherEndingLetsGo();
             ExcludedBodiesStayPut();
+        RocksArePulled();
             TutorialPullsNoEnemy();
         }
         finally
@@ -76,21 +77,23 @@ public static class MagnetComboTest
             bool goodie = k == MagnetCombo.Kind.Dust || k == MagnetCombo.Kind.Atom;
             magnetAlone &= MagnetCombo.Pulls(k, true, false, false) == goodie;
             shieldAlone &= !MagnetCombo.Pulls(k, false, true, false);
-            both &= MagnetCombo.Pulls(k, true, true, false) == (goodie || k == MagnetCombo.Kind.Enemy);
+            both &= MagnetCombo.Pulls(k, true, true, false) == (goodie || k == MagnetCombo.Kind.Enemy || k == MagnetCombo.Kind.Rock);
         }
         Check("magnet alone pulls the goodies (dust and atoms) and nothing else", magnetAlone);
         Check("shield alone pulls nothing", shieldAlone);
-        Check("magnet + shield pulls the goodies and the plain enemies, nothing else", both);
-        Check("bosses, elites, elite-owned bodies, shots, rail mines, rocks and scenery are never pulled, even in the combo",
+        Check("magnet + shield pulls the goodies, the plain enemies and the rocks, nothing else", both);
+        Check("bosses, elites, elite-owned bodies, shots, rail mines and scenery are never pulled, even in the combo",
               !MagnetCombo.Pulls(MagnetCombo.Kind.Boss, true, true, false) &&
               !MagnetCombo.Pulls(MagnetCombo.Kind.Elite, true, true, false) &&
               !MagnetCombo.Pulls(MagnetCombo.Kind.EliteOwned, true, true, false) &&
               !MagnetCombo.Pulls(MagnetCombo.Kind.HostileShot, true, true, false) &&
               !MagnetCombo.Pulls(MagnetCombo.Kind.RailMine, true, true, false) &&
-              !MagnetCombo.Pulls(MagnetCombo.Kind.Rock, true, true, false) &&
               !MagnetCombo.Pulls(MagnetCombo.Kind.Scenery, true, true, false));
-        Check("the tutorial keeps the goodies pull but never pulls an enemy",
-              MagnetCombo.Pulls(MagnetCombo.Kind.Dust, true, true, true) && !MagnetCombo.Pulls(MagnetCombo.Kind.Enemy, true, true, true));
+        Check("the tutorial keeps the goodies pull but never pulls an enemy or a rock",
+              MagnetCombo.Pulls(MagnetCombo.Kind.Dust, true, true, true) && !MagnetCombo.Pulls(MagnetCombo.Kind.Enemy, true, true, true) &&
+              !MagnetCombo.Pulls(MagnetCombo.Kind.Rock, true, true, true) && !MagnetCombo.Pulls(MagnetCombo.Kind.Rock, true, false, false));
+        Check("a rock an elite owns (a thrown boulder) is EliteOwned, never a Rock",
+              MagnetCombo.Classify(false, false, false, true, false, false, false, true, false, false) == MagnetCombo.Kind.EliteOwned);
     }
 
     static MagnetCombo.Kind C(bool scenery = false, bool pickup = false, bool dust = false, bool rock = false, bool enemy = false,
@@ -473,19 +476,66 @@ public static class MagnetComboTest
     static void ExcludedBodiesStayPut()
     {
         var ship = NewShip();
-        var rock = Body("rock", "Astr", new Vector3(2f, 4f, 0f));
         var boss = Body("boss", "Enimey", new Vector3(-2f, 4f, 0f), mover: false);
         boss.AddComponent<BossTarget>();
         var untagged = Body("scenery", "Untagged", new Vector3(0f, 5f, 0f));
         var sceneryEnemy = Body("backdropRock", "Enimey", new Vector3(1f, 6f, 0f));
         sceneryEnemy.GetComponent<ClearTarget>().Scenery = true;
-        Vector3 r = rock.transform.position, b = boss.transform.position, u = untagged.transform.position, s = sceneryEnemy.transform.position;
+        Vector3 b = boss.transform.position, u = untagged.transform.position, s = sceneryEnemy.transform.position;
         collisionDetection.atomCheck = true;
         var pull = MagnetPull.Begin(ship);
         for (int i = 0; i < 10; i++) pull.Step(.1f);
-        Check("in the combo a rock, a boss, scenery and an untagged body are never moved",
-              rock.transform.position == r && boss.transform.position == b && untagged.transform.position == u &&
-              sceneryEnemy.transform.position == s && rock.GetComponent<moveItemEnmInStrightLine>().enabled);
+        Check("in the combo a boss, scenery and an untagged body are never moved",
+              boss.transform.position == b && untagged.transform.position == u &&
+              sceneryEnemy.transform.position == s);
+        Done(ship);
+    }
+
+    // A rock is a hazard like a plain enemy: pulled to the hull in the combo, its own mover held, released with it;
+    // a rail mine (its mount owns it) and, in the tutorial, a rock stay put.
+    static void RocksArePulled()
+    {
+        var ship = NewShip();
+        var rock = Body("rock", "Astr", new Vector3(2f, 4f, 0f));
+        var mine = Body("railMine", "Enimey", new Vector3(-2f, 4f, 0f));
+        mine.AddComponent<RailMineMount>();
+        Vector3 r = rock.transform.position, m = mine.transform.position;
+        collisionDetection.atomCheck = true;
+        var pull = MagnetPull.Begin(ship);
+        for (int i = 0; i < 10; i++) pull.Step(.1f);
+        var mover = rock.GetComponent<moveItemEnmInStrightLine>();
+        Check("in the combo a rock is pulled toward the hull, its mover held; a rail mine stays on its rail",
+              Vector3.Distance(rock.transform.position, ship.transform.position) < Vector3.Distance(r, ship.transform.position) - .5f &&
+              !mover.enabled && mine.transform.position == m);
+        collisionDetection.atomCheck = false;
+        pull.Step(.1f);
+        Check("... and the rock is let go with the shield", mover.enabled);
+
+        // 1000 frames of the vacuum pulling a rock and an enemy allocate nothing
+        var foe = Body("foe", "Enimey", new Vector3(-2f, 5f, 0f));
+        collisionDetection.atomCheck = true;
+        for (int i = 0; i < 30; i++) { MagnetPull.Begin(ship); pull.Step(.02f); }   // warm
+        long before = System.GC.GetAllocatedBytesForCurrentThread();
+        for (int i = 0; i < 1000; i++)
+        {
+            MagnetPull.Begin(ship);
+            rock.transform.position = new Vector3(2f, 4f, 0f);
+            foe.transform.position = new Vector3(-2f, 5f, 0f);
+            pull.Step(.02f);
+        }
+        long bytes = System.GC.GetAllocatedBytesForCurrentThread() - before;
+        Check("1000 vacuum frames pulling a rock and an enemy allocate nothing (" + bytes + " bytes)", bytes == 0);
+        Done(ship);
+
+        ship = NewShip();
+        rock = Body("rock", "Astr", new Vector3(2f, 4f, 0f));
+        r = rock.transform.position;
+        startMenu.youAreInTutorial = true;
+        collisionDetection.atomCheck = true;
+        pull = MagnetPull.Begin(ship);
+        for (int i = 0; i < 5; i++) pull.Step(.1f);
+        startMenu.youAreInTutorial = false;
+        Check("the tutorial never pulls a rock", rock.transform.position == r);
         Done(ship);
     }
 

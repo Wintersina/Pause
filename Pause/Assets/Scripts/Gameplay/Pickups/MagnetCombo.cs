@@ -6,8 +6,9 @@ using UnityEngine;
 //   MAGNET ALONE   every goodie on screen (star dust AND the other atoms) is
 //                  hauled into the hull. No enemy, rock, mine or shot moves.
 //   SHIELD ALONE   nothing is pulled (the shield is unchanged).
-//   BOTH           the goodies as above, AND every plain enemy on screen is
-//                  sucked in toward the hull; the shield destroys what
+//   BOTH           the goodies as above, AND every plain enemy and every
+//                  free-flying hazard (rocks / asteroids, tag Astr, Kind.Rock)
+//                  on screen is sucked in toward the hull; the shield destroys what
 //                  touches it (collisionDetection's ordinary shield kill, so
 //                  the score, dust, combo, achievements and death effects are
 //                  the usual ones).
@@ -36,12 +37,17 @@ using UnityEngine;
 // re-chain after that; nothing without a HUD, in the tutorial or in the kill
 // cam's replay. A magnet or shield on its own shows its normal pickup word.
 //
+// "Hazards" = Kind.Enemy (plain enemies, free mines) and Kind.Rock (tag Astr,
+// not elite-owned, not scenery). Both are pulled and shield-killed the same
+// way; the shield's ordinary contact already destroys any Enimey / Astr body.
+//
 // Never pulled, combo or not: bosses (and their body hitboxes), elites (the
 // mini-bosses keep their own rules: a shielded ram still costs them hearts,
 // EliteShip.ShieldRam), anything an elite owns and flies (a Tender's drones,
-// a hauler's boulder: ClearTarget.Mother), hostile shots and beams, rail
-// mines, rocks / asteroids (tag Astr), backdrop scenery. Nothing in the
-// tutorial is pulled in.
+// a hauler's boulder: ClearTarget.Mother, rock or not), hostile shots and
+// beams, rail mines (RailMineMount owns their position: they stay clamped on
+// their rail; the shield still destroys one it touches, and NOVA's clear
+// destroys them in range), backdrop scenery. Nothing in the tutorial is pulled in.
 public static class MagnetCombo
 {
     public enum Kind
@@ -49,7 +55,7 @@ public static class MagnetCombo
         Dust,          // star dust (smStar1 / LargeStar1)
         Atom,          // any other pickup: the atoms
         Enemy,         // a plain enemy (tag Enimey, none of the below)
-        Rock,          // tag Astr: rocks, asteroids
+        Rock,          // tag Astr: rocks, asteroids (free-flying; one an elite owns is EliteOwned)
         Boss,          // a boss body or any other special hit target (IShipAttackTarget)
         Elite,         // an elite (EliteShip)
         EliteOwned,    // flown by an elite: drones, thrown boulders (ClearTarget.Mother)
@@ -194,6 +200,7 @@ public static class MagnetCombo
             case Kind.Atom:
                 return true;
             case Kind.Enemy:
+            case Kind.Rock:
                 return EnemyPullActive(true, shieldUp, tutorial);
             default:
                 return false;
@@ -206,6 +213,7 @@ public static class MagnetCombo
     {
         if (scenery) return Kind.Scenery;
         if (pickup) return starDust ? Kind.Dust : Kind.Atom;
+        if (rockTag && eliteOwned) return Kind.EliteOwned;   // an elite's thrown boulder
         if (rockTag) return Kind.Rock;
         if (!enemyTag) return Kind.Other;
         if (elite) return Kind.Elite;
