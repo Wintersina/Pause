@@ -827,6 +827,31 @@ public static class ScreenFitScreens
 
     enum GameShot { Launch, Paused, Popups, Banner, BossIntro, BossFight, PortalPressure, Death }
 
+    // HUD vetting: every world's score board + quick-action panel with the worst-case
+    // text (7-digit score, 3-digit speed, 2-digit pauses). Not part of All.
+    public static FitScreen HudVet(int world)
+    {
+        return new FitScreen { id = "hud-vet-" + world, scene = "gameS1", title = "HUD vet, world " + world, gameplayView = true, fullBleed = true, stage = r => HudVetStage(r, world) };
+    }
+
+    static void HudVetStage(ScreenFitRig rig, int world)
+    {
+        var styler = WorldBase(rig, world, true, false);
+        score.pauseCounter = 99;
+        moveBackGround.speed = 9.99f;
+        var row = SceneUtil.FindAny(ScoreHud.RowName);
+        if (row != null) row.GetComponent<Text>().text = ScoreHud.Label(1234567);
+        styler.SendMessage("Update");
+        // the pauses row punches (scales) for a moment after its number changes: capture it at rest
+        var punch = typeof(HudStyler).GetField("pausePunchAt", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+        if (punch != null) punch.SetValue(styler, -1000f);
+        styler.SendMessage("Update");
+        rig.Sync();
+        PlaceHudBand(rig, styler, false);
+        if (row != null) row.GetComponent<Text>().text = ScoreHud.Label(1234567);
+        Canvas.ForceUpdateCanvases();
+    }
+
     static void Game(ScreenFitRig rig, GameShot shot)
     {
         int world = shot == GameShot.BossIntro ? 1 : shot == GameShot.PortalPressure ? 3 : shot == GameShot.BossFight ? 2 : 0;

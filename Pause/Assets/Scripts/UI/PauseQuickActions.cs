@@ -325,8 +325,9 @@ public class PauseQuickActions : MonoBehaviour
             rt.anchorMin = rt.anchorMax = new Vector2(1f, 1f);
             rt.pivot = new Vector2(.5f, .5f);
             // the frame's growth reaches past the rect, as the score board's does
-            rt.sizeDelta = new Vector2(panelW + 2f * HudStyler.FrameOutX, panelH + 2f * HudStyler.FrameOutY);
-            rt.anchoredPosition = new Vector2(offset.x - panelW * .5f, offset.y - panelH * .5f);
+            Vector4 o = HudSkin.ButtonOut(HudSkin.CurrentWorld);   // left, bottom, right, top
+            rt.sizeDelta = new Vector2(panelW + o.x + o.z, panelH + o.y + o.w);
+            rt.anchoredPosition = new Vector2(offset.x - panelW * .5f + (o.z - o.x) * .5f, offset.y - panelH * .5f + (o.w - o.y) * .5f);
         }
     }
 

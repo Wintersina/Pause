@@ -27,11 +27,11 @@ public class HudStyler : MonoBehaviour
     // (Per-world frames: HudSkin.)
     static readonly Color TextInk = AkiraPalette.WithAlpha(AkiraPalette.Ink, .95f);
 
-    // The world frames' growth along the top / bottom edges and corners is
-    // drawn this far OUTSIDE the panel's layout rect (canvas units), so it
-    // never reaches the text rows and the layout, the read-out's size and
+    // The world frames' growth along the edges and corners is drawn OUTSIDE
+    // the panel's layout rect (canvas units; HudSkin.BoardOut, per world), so
+    // it never reaches the text rows and the layout, the read-out's size and
     // everything placed around it stay exactly as they were.
-    public const float FrameOutY = 16f, FrameOutX = 10f;
+    static int basePadLeft = -1;
     const string SkinFrameName = "SkinFrame";
 
     // The read-out's authored size and canvas, for the button panel's height
@@ -268,7 +268,10 @@ public class HudStyler : MonoBehaviour
             // under the first row: the actions, and BOSS INCOMING's chip
             // beside them (its full punch) while a boss is coming
             float row = Mathf.Max(panelH, BossWarningHud.ChipH * BossWarningHud.ChipMaxPunch * actionScale);
-            top = band.top - row - MinGapToActions * actionScale;
+            // the two frames overhang their rects (bottom of the actions', top of the read-out's): keep MinGap between the frames
+            int world = HudSkin.CurrentWorld;
+            float overhang = HudSkin.ButtonOut(world).y * actionScale + HudSkin.BoardOut(world).w * hudScale * fitScale;
+            top = band.top - row - MinGapToActions * actionScale - overhang;
         }
         anchoredPosition = new Vector2(band.left / hudScale, (top - screen.y) / hudScale);
     }
@@ -305,7 +308,7 @@ public class HudStyler : MonoBehaviour
         var image = panel.GetComponent<Image>();
         if (image == null) return;
         // The scene's own panel image stays (invisible); the skin is a child
-        // that reaches past the rect by FrameOut*.
+        // that reaches past the rect by HudSkin.BoardOut (per world).
         image.sprite = null;
         image.color = new Color(1f, 1f, 1f, 0f);
         var child = panel.Find(SkinFrameName);
@@ -320,12 +323,21 @@ public class HudStyler : MonoBehaviour
             frame.type = Image.Type.Sliced;
             var rt = (RectTransform)go.transform;
             rt.anchorMin = Vector2.zero; rt.anchorMax = Vector2.one;
-            rt.offsetMin = new Vector2(-FrameOutX, -FrameOutY);
-            rt.offsetMax = new Vector2(FrameOutX, FrameOutY);
             var le = go.AddComponent<LayoutElement>();
             le.ignoreLayout = true;
         }
         else frame = child.GetComponent<Image>();
+        var vlg = panel.GetComponentInChildren<VerticalLayoutGroup>();
+        if (vlg != null)
+        {
+            if (basePadLeft < 0) basePadLeft = vlg.padding.left;
+            int left = basePadLeft + Mathf.RoundToInt(HudSkin.BoardTextExtraLeft(HudSkin.CurrentWorld));
+            if (vlg.padding.left != left) { vlg.padding.left = left; LayoutRebuilder.MarkLayoutForRebuild(panel); }
+        }
+        var o = HudSkin.BoardOut(HudSkin.CurrentWorld);
+        var frt = (RectTransform)frame.transform;
+        frt.offsetMin = new Vector2(-o.x, -o.y);
+        frt.offsetMax = new Vector2(o.z, o.w);
         var sprite = HudSkin.Frame(HudSkin.CurrentWorld);
         if (sprite != null) { frame.sprite = sprite; frame.color = Color.white; }
         else frame.color = AkiraPalette.WithAlpha(AkiraPalette.Night1, .88f);

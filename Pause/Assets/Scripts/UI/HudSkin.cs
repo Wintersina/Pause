@@ -7,11 +7,11 @@ using UnityEngine;
 // Space's glyphs are the original QuickActions ones; every world has a folder,
 // Resources/HudSkins/<WorldTheme.displayName>/, holding the same four sprites:
 //   hud_board        702x310 px, the score board's frame: sliced, border 50 px
-//                    left/right and 60 px top/bottom, 200 ppu; drawn 371 x 163 units: the
-//                    351 x 131 score board plus HudStyler.FrameOutX / FrameOutY
+//                    left/right and 60 px top/bottom, 200 ppu; drawn about 351 x 131 plus BoardOut units: the
+//                    351 x 131 score board plus the per-world BoardOut growth
 //                    on each side, outside the layout rect
 //   hud_buttons      340x310 px, the home / replay panel's frame (drawn
-//                    174 x 163 units around the 154 x 131 panel), the board's motif, drawn as its mirror image
+//                    ButtonOut units around the 154 x 131 panel), the board's motif, drawn as its mirror image
 //   dp_panel         600x900 px, the FLIGHT COMPLETE panel, border 100 px
 // The growth along the top and bottom edges is drawn at its real size (not
 // stretched), so each row's edge keeps an irregular rhythm.
@@ -39,18 +39,54 @@ public static class HudSkin
 
     // Frames: every world, Space included, has HudSkins/<World>/{hud_frame,dp_panel}.
     static string Dir(int world) { return "HudSkins/" + WorldManager.Worlds[Mathf.Clamp(world, 0, WorldCount - 1)].displayName + "/"; }
-    // Where the visible inside of the home / replay panel's frame sits, as the
-    // distance (canvas units, + is down) from the frame's centre to the centre
-    // of its dark inside. Measured from hud_buttons (sprite px, 200 ppu drawn
-    // at half scale): the top margin to the inside (icicles / crystals) minus
-    // the bottom margin, halved. The glyph pair is centred there, not on the
-    // rect, so the gaps above and below the icons read equal. Order = world index.
-    static readonly float[] ButtonInnerTopPx = { 38f, 39f, 49f, 53f, 42f, 63f, 59f };
-    static readonly float[] ButtonInnerBottomPx = { 32f, 60f, 47f, 51f, 43f, 71f, 48f };
+    // How far each world's frame art reaches INTO its drawn rect: the distance
+    // from the sprite's edge to the dark inside, in sprite px at 200 ppu (drawn
+    // at half size, so /2 = canvas units). Measured from hud_board / hud_buttons
+    // (the median over the middle of each edge, so icicles and crystals count).
+    // Order = world index: Space, Frost, Verdant, Ember, Tide, Storm, Desert.
+    // { top, bottom, left, right }
+    static readonly int[][] BoardInset =
+    {
+        new[]{56,46,25,25}, new[]{42,67,37,36}, new[]{54,47,36,37}, new[]{67,63,33,32},
+        new[]{49,44,19,19}, new[]{71,79,38,38}, new[]{75,50,73,43},
+    };
+    static readonly int[][] ButtonInset =
+    {
+        new[]{38,32,19,19}, new[]{39,60,27,27}, new[]{49,47,33,33}, new[]{53,51,27,27},
+        new[]{42,43,23,22}, new[]{63,71,38,38}, new[]{59,48,37,38},
+    };
+    // What the frame may still reach into the layout rect (canvas units): the
+    // text / icons live in the rest. Space's frame at these values is the
+    // reference look.
+    const float KeepTop = 4f, KeepBottom = 7f, KeepSide = 2.5f, MinOut = 6f, MaxOutX = 14f;
+
+    // Extra room the text needs on the left where the art's decoration (Desert's
+    // sandworm head) sits inside the frame's left edge, canvas units.
+    public static float BoardTextExtraLeft(int world) { return world == 6 ? 12f : 0f; }
+
+    // The frame's growth past the layout rect, canvas units: x = left, y = bottom,
+    // z = right, w = top. Sized per world so the art's inside matches the rect.
+    public static Vector4 BoardOut(int world) { return OutFor(BoardInset, world); }
+    public static Vector4 ButtonOut(int world) { return OutFor(ButtonInset, world); }
+
+    static Vector4 OutFor(int[][] table, int world)
+    {
+        var m = table[Mathf.Clamp(world, 0, table.Length - 1)];
+        return new Vector4(
+            Mathf.Clamp(m[2] * .5f - KeepSide, MinOut, MaxOutX),
+            Mathf.Max(MinOut, m[1] * .5f - KeepBottom),
+            Mathf.Clamp(m[3] * .5f - KeepSide, MinOut, MaxOutX),
+            Mathf.Max(MinOut, m[0] * .5f - KeepTop));
+    }
+
+    // The home / replay pair is centred on the frame's dark inside: its centre
+    // sits this far (canvas units, + is down) below the layout rect's centre.
     public static float ButtonInnerOffsetY(int world)
     {
-        int w = Mathf.Clamp(world, 0, ButtonInnerTopPx.Length - 1);
-        return (ButtonInnerTopPx[w] - ButtonInnerBottomPx[w]) * .25f;
+        var m = ButtonInset[Mathf.Clamp(world, 0, ButtonInset.Length - 1)];
+        Vector4 o = ButtonOut(world);
+        float insetTop = m[0] * .5f - o.w, insetBottom = m[1] * .5f - o.y;
+        return (insetTop - insetBottom) * .5f;
     }
 
     public static string FramePath(int world) { return Dir(world) + "hud_board"; }
