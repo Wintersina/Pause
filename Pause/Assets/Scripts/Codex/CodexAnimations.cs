@@ -71,6 +71,7 @@ public static class CodexAnimations
         {
             case CodexAnimKind.Enemy:
             case CodexAnimKind.Mine:
+                if (CodexCatalogue.HasStillArt(e.id)) return null;   // its own painted still (For() falls back to Static(e.Sprite))
                 var elite = EliteCatalog.FindByCodexId(e.id);
                 if (elite != null) return Elite(elite);
                 return Enemy(EnemyRoster.FindByCodexId(e.id));

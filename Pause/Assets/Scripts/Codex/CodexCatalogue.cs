@@ -482,7 +482,7 @@ public static class CodexCatalogue
                 foreach (string legacy in d.legacyNames) matches.Add(Codex.Normalise(legacy));
             var entry = new CodexEntry(d.codexId, d.displayName,
                                        d.IsHazard ? CodexCategory.Hazards : CodexCategory.Enemies,
-                                       () => EnemyArt.Frame(d, 0), d.lore, matches.ToArray());
+                                       () => StillArtFor(d.codexId) ?? EnemyArt.Frame(d, 0), d.lore, matches.ToArray());
             (d.IsHazard ? hazards : enemies).Add(entry);
         }
         // The elite ships (EliteCatalog), after the roster's enemies.
@@ -502,6 +502,18 @@ public static class CodexCatalogue
             new[] { Codex.Normalise(SpaceDirector.RockObjectName) }));
         enemies.AddRange(hazards);
         return enemies;
+    }
+
+    // Entries with their own painted codex picture instead of the roster's frame 0: the Desert Mirage Mine firing its heat-lance.
+    public const string MirageMineId = "hazard_desert_mine";
+    public const string MirageMineStillPath = "Enemies/Mines/desert_mine_codex";
+    static Sprite mirageStill;
+    public static bool HasStillArt(string codexId) { return codexId == MirageMineId && StillArtFor(codexId) != null; }
+    public static Sprite StillArtFor(string codexId)
+    {
+        if (codexId != MirageMineId) return null;
+        if (mirageStill == null) mirageStill = Resources.Load<Sprite>(MirageMineStillPath);
+        return mirageStill;
     }
 
     // The first of Codex's three Space rocks, the art the drifting field is cut from.
