@@ -36,6 +36,7 @@ public static class BossImpactTest
             BurstsPoolAndFade();
             BurstAndArtLoad();
             HitDrivesEverything();
+            SentryStreamIsCalm();
         }
         finally { BossImpact.Dispose(); BossImpact.ClockOverride = null; }
         Debug.Log("[BOSSIMPACT] " + (fails == 0 ? "ALL PASS" : fails + " FAILED"));
@@ -325,5 +326,51 @@ public static class BossImpactTest
         Check("a flash after a pause is a full pop again", a.HitFrameSwaps == swaps + 1);
         Check("a heavy boss hit shakes harder than a light one", fx.ShakeNow > lightShake * 1.5f);
         Check("a heavy hit shows a burst themed to this boss (" + fx.LastBurstKey + ") and the boss pops white", fx.BurstsShown >= 1 && fx.LastBurstKey == e.Boss.artKey);
+    }
+
+    // Warden sentries: 3 pods x 1.5 bolts a second = 4.5 light hits a second on a boss. The full-screen tint and the boss's
+    // white pop must stay at or under ~3 a second, faint, and allocate nothing; the damage is whatever the hits weigh.
+    static void SentryStreamIsCalm()
+    {
+        var e = StartFight(3);
+        var a = e.Actor;
+        BossImpact.ClockOverride = () => clockNow;
+        var fx = BossImpact.Ensure();
+        clockNow = 900f;
+        const float seconds = 4f, hitsPerSecond = 4.5f, w = 1f / 90f;
+        int n = Mathf.RoundToInt(seconds * hitsPerSecond);
+        float dmg0 = e.Damage;
+        Vector3 at = a.transform.position;
+        // warm-up (first-use caches), then measure
+        e.OnShipAttackHit(w, at);
+        int overlay0 = e.OverlayFlashes, pops0 = a.Pops;
+        long mem0 = System.GC.GetAllocatedBytesForCurrentThread();
+        float maxWhite = 0f;
+        for (int i = 0; i < n; i++)
+        {
+            clockNow = 901f + i / hitsPerSecond;
+            e.OnShipAttackHit(w, at);
+            a.Flash(.3f);   // the blocked-hit spark flash of BossTarget.Strike
+            for (int f = 0; f < 4; f++)
+            {
+                fx.Step(1f / 60f);
+                e.Step(1f / 60f, 1f);
+                if (i > 0) maxWhite = Mathf.Max(maxWhite, a.WhiteAlpha);
+            }
+        }
+        long mem = System.GC.GetAllocatedBytesForCurrentThread() - mem0;
+        int overlays = e.OverlayFlashes - overlay0, pops = a.Pops - pops0;
+        int cap = Mathf.CeilToInt(seconds * 3f) + 1;
+        Check("a sentry stream tints the screen at most 3 a second (" + overlays + " in " + seconds + " s)", overlays >= 1 && overlays <= cap);
+        Check("... and faintly (peak alpha " + e.OverlayPeak + " <= " + BossEncounter.OverlayLightAlpha + ")", e.OverlayPeak <= BossEncounter.OverlayLightAlpha + 1e-4f);
+        Check("the boss pops white at most 3 a second (" + pops + ")", pops >= 1 && pops <= cap);
+        Check("... and a coalesced pop is dim (" + maxWhite + " <= " + BossActor.RapidWhite + ")", maxWhite <= BossActor.RapidWhite + 1e-4f);
+        Check("flash gating allocates no managed memory per hit (" + mem + " B over " + n + " hits)", mem < 2048);
+        Check("damage is exactly the hits' weight (" + (e.Damage - dmg0) + ")", Mathf.Abs((e.Damage - dmg0) - (n + 1) * w) < 1e-4f);
+        // a heavy hit still tints at the old strength, once, and a heart or kill always shows
+        int before = e.OverlayFlashes;
+        clockNow += 5f;
+        e.OnShipAttackHit(1f, at);
+        Check("a heavy hit keeps its full tint", e.OverlayFlashes == before + 1 && e.OverlayPeak >= BossEncounter.OverlayHeavyAlpha - 1e-4f);
     }
 }

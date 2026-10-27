@@ -1035,8 +1035,9 @@ public class BossActor : MonoBehaviour, IMusicPatternHost
     // `strength` 0..1 scales the white flash (a light hit is a dimmer pop).
     // Back-to-back flashes (within RapidFlashGap) coalesce into one soft pop: the hit frame is not
     // swapped again (no strobing) and the white stays dim, so a stream of light hits reads as calm.
-    public const float RapidFlashGap = .3f, RapidWhite = .3f;
-    float lastFlashAt = -99f;
+    public const float RapidFlashGap = .3f, RapidWhite = .22f, PopGap = .34f;   // PopGap: a coalesced stream pops at most ~3 a second
+    float lastFlashAt = -99f, lastPopAt = -99f;
+    public int Pops { get; private set; }
     public int HitFrameSwaps { get; private set; }
 
     public void Flash(float strength)
@@ -1046,11 +1047,13 @@ public class BossActor : MonoBehaviour, IMusicPatternHost
         lastFlashAt = now;
         if (rapid)
         {
+            if (now - lastPopAt < PopGap) return;
+            lastPopAt = now; Pops++;
             whitePeak = Mathf.Min(Mathf.Clamp01(strength), RapidWhite);
             whiteLeft = Mathf.Max(whiteLeft, BossImpact.WhiteSeconds * .5f);
             return;
         }
-        HitFrameSwaps++;
+        HitFrameSwaps++; Pops++; lastPopAt = now;
         flashLeft = BossArt.HitTicks * BossArt.Tick;
         whiteLeft = BossImpact.WhiteSeconds;
         whitePeak = Mathf.Clamp01(strength);
