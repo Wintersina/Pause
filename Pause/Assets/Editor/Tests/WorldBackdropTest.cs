@@ -40,12 +40,21 @@ public static class WorldBackdropTest
     // two 2048 sheets (worm, worm_giant), besides one 4-tile variant set.
     // Since 1f0d8e87 (2026-10-13) Desert's continuous-tone art is ASTC 4x4 on phones (WorldBackdropImport.IsContinuousTone; 6x6 bands the
     // dune gradients), 2.25x the old 6x6 size: 24 MB measured on the Android target (the worm sheets alone ~6 MB).
-    public const long DesertTextureBudgetBytes = 26L * 1024 * 1024;   // (+1 MB for the docks atlas: four 6-cell launch strips, ~0.7 MB ASTC 4x4)
+    // 2026-10 painted salt flat: its sky / far / mid / flow are 1024x2048 (ASTC 6x6, ~7.5 MB with mips, was ~2.7 MB at 512x1024), so the largest variant set grew ~5 MB: 26 -> 32 MB.
+    public const long DesertTextureBudgetBytes = 32L * 1024 * 1024;   // (+1 MB for the docks atlas: four 6-cell launch strips, ~0.7 MB ASTC 4x4)
     // Storm's HD tiles use ASTC 6x6; its painted atlases use 4x4. The launch-strip docks
     // added in cd2db99ec are 1578x1054 (1,668,480 bytes at 4x4): the existing ~8049 KiB
     // plus those ~1629 KiB totals ~9678 KiB. Keep a 10 MiB cap for this installed set.
     public const long StormTextureBudgetBytes = 10L * 1024 * 1024;
     const float SeamTolerance = 0.02f;          // mean |top row - bottom row|, premultiplied RGBA
+    // 2026-10: the Desert hi-res pixel-art ground tiles (4 px cells, build_tiles.py) are seamless by construction, but the top and bottom
+    // rows are two different CELLS, so their difference is a cell-boundary difference: measured .018-.041 on the shipped tiles, the same as the
+    // tiles' own interior cell boundaries (.024-.042). The limit is 1.4x the worst interior boundary.
+    const float PixelGridSeamTolerance = 0.06f;
+    static float SeamLimit(string asset)
+    {
+        return System.Text.RegularExpressions.Regex.IsMatch(asset.Replace('\\', '/'), "/Desert/Backdrop3/v[134]/(sky|far|mid)\\.png$") ? PixelGridSeamTolerance : SeamTolerance;
+    }
     // The guide's sky ramps (docs/art-style.md 1.3) peak at ~#123248 / #143430,
     // so the opaque sky averages up to ~0.12 relative luminance.
     const float SkyMaxLuminance = 0.13f;        // opaque far layer
@@ -724,9 +733,9 @@ public static class WorldBackdropTest
                     if (!foundLayer) { Check(spec.world + "/" + name + " maps to a catalog layer", false); continue; }
                     float seam = layer.wrapBlend > 0f ? WrapBlendSeam(px, layer.wrapBlend) : SeamDifference(px);
                     Check(spec.world + "/" + VariantTag(path) + name + " is vertically seamless (top vs bottom row " +
-                          seam.ToString("F4") + " <= " + SeamTolerance +
+                          seam.ToString("F4") + " <= " + SeamLimit(asset) +
                           (layer.wrapBlend > 0f ? ", as rendered with a " + layer.wrapBlend + " wrap cross-fade; raw art " +
-                                                  SeamDifference(px).ToString("F4") : "") + ")", seam <= SeamTolerance);
+                                                  SeamDifference(px).ToString("F4") : "") + ")", seam <= SeamLimit(asset));
                 }
 
                 // Frost and Verdant are measured as drawn (BackdropGrade).
