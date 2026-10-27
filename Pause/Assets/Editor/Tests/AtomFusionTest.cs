@@ -410,8 +410,10 @@ public static class AtomFusionTest
         collisionDetection.lifeCounter = 3;
         AtomFusions.OnAtom(AtomKind.Heal, Vector3.zero);
         var bl = AtomFusions.OnAtom(AtomKind.Shield, Vector3.zero);
+        int healsBefore = AtomFusions.BloomHeals;
         for (int i = 0; i < FusionTuning.BloomKillsPerHeart; i++) AtomFusions.OnShieldKill();
         int afterFirst = collisionDetection.lifeCounter;
+        int healsBefore = AtomFusions.BloomHeals;
         for (int i = 0; i < FusionTuning.BloomKillsPerHeart; i++) AtomFusions.OnShieldKill();   // inside the min gap: banked, not paid
         int sameMoment = collisionDetection.lifeCounter;
         AtomFusions.Tick(FusionTuning.BloomMinHeartGap + .01f);
@@ -626,7 +628,7 @@ public static class AtomFusionTest
         long fxBytes = System.GC.GetAllocatedBytesForCurrentThread() - before;
         Check("6000 triggers and their flipbooks allocate nothing (" + fxBytes + " bytes)", fxBytes == 0);
         Check("... and create no objects (renderers " + fx.transform.childCount + " = " + children + ", builds " + FusionFx.Builds + ")",
-              fx.transform.childCount == children && FusionFx.Builds == builds && children == all.Length);
+              fx.transform.childCount == children && FusionFx.Builds == builds && children == all.Length + FusionFx.OverlayRenderers);
 
         AtomFusions.EnabledOverride = null;
         Object.DestroyImmediate(ship);
@@ -682,11 +684,13 @@ public static class AtomFusionTest
         AtomFusions.Tick(.05f);
         bool back = fx.IsPlaying(FusionId.Singularity);   // the singularity window is still open
         buttonClicks.playerDied = true;
+        AtomFusions.EnabledOverride = false;   // a dead pilot turns fusions off (Enabled)
         AtomFusions.Tick(.05f);
         bool deadStops = !AtomFusions.VacuumLive;
         typeof(FusionFx).GetMethod("LateUpdate", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).Invoke(fx, null);
         Check("death: the loop is dark at once", back && deadStops && !fx.IsPlaying(FusionId.Singularity) && !fx.IsPlaying(FusionId.Vacuum) && !fx.LayerOf(FusionId.Singularity).enabled);
         buttonClicks.playerDied = false;
+        AtomFusions.EnabledOverride = true;
 
         // no allocation while looping
         MagnetPull.Begin(ship);
@@ -754,9 +758,10 @@ public static class AtomFusionTest
         AtomFusions.Tick(.3f);
         Check("BLOOM: petals orbit the shield while it blooms", bl.Fired && bl.fusion.id == FusionId.Bloom && AtomFusions.BloomLive && fx.IsPlaying(FusionId.Bloom) && fx.DotsShowing(1) == 6);
         float dim = fx.DotAlpha(1, 0);
+        int healsBefore = AtomFusions.BloomHeals;
         for (int i = 0; i < FusionTuning.BloomKillsPerHeart; i++) AtomFusions.OnShieldKill();
         AtomFusions.Tick(.02f);
-        Check("... a heal pops them brighter", AtomFusions.BloomHeals == 1 && fx.DotAlpha(1, 0) > dim + .2f);
+        Check("... a heal pops them brighter", AtomFusions.BloomHeals == healsBefore + 1 && fx.DotAlpha(1, 0) > dim + .2f);
         collisionDetection.invTimer = 0f; collisionDetection.atomCheck = false;
         AtomFusions.Tick(.4f);
         Check("... the shield ending ends them", !AtomFusions.BloomLive && fx.DotsShowing(1) == 0 && !fx.IsPlaying(FusionId.Bloom));
@@ -849,9 +854,11 @@ public static class AtomFusionTest
         AtomFusions.Tick(.3f);
         bool bloomOn = fx.DotsShowing(1) > 0;
         buttonClicks.playerDied = true;
+        AtomFusions.EnabledOverride = false;
         typeof(FusionFx).GetMethod("LateUpdate", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).Invoke(fx, null);
         Check("death: the overlays go dark at once", bloomOn && fx.DotsShowing(1) == 0 && !fx.IsPlaying(FusionId.Bloom));
         buttonClicks.playerDied = false;
+        AtomFusions.EnabledOverride = true;
 
         // no allocation while they run
         AtomFusions.BeginRun(ship);

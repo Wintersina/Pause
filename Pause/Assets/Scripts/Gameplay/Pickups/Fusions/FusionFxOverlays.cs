@@ -13,6 +13,7 @@ using UnityEngine;
 public sealed partial class FusionFx
 {
     const int DotsPer = 10;
+    public const int OverlayRenderers = 4 * DotsPer + 3;   // dots for the four loops, plus the stasis ring, nova ring and band
     const int EffDust = 0, EffBloom = 1, EffStasis = 2, EffLifeline = 3, Effects = 4;
     public const float NovaRingSeconds = .45f;       // the whole ring: grows, then fades
     public const float NovaGrowShare = .75f;         // it reaches the full radius at this share of it
